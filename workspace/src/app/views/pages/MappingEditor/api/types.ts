@@ -52,8 +52,8 @@ export interface TargetClassAutoCompletion {
 }
 
 export interface PropertyByDomainAutoCompletion {
-    domain: string;
+    domain?: string;
     genericInfo: GenericInfo;
     propertyType: "ObjectProperty" | "DatatypeProperty";
-    range: string;
+    range?: string;
 }

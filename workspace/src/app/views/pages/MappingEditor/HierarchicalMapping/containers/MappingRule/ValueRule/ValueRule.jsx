@@ -22,6 +22,7 @@ import { IconButton, Spinner } from "@eccenca/gui-elements";
 class ValueRule extends React.Component {
     // define property types
     static propTypes = {
+        displayLabel: PropTypes.string,
         comment: PropTypes.string,
         id: PropTypes.string,
         type: PropTypes.string,
@@ -167,6 +168,7 @@ class ValueRule extends React.Component {
                                     uri: mappingTarget.uri,
                                     type: this.props.type,
                                     parent: parentId,
+                                    displayLabel: this.props.displayLabel
                                 });
                             }}
                         />

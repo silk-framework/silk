@@ -159,7 +159,7 @@ class Workspace(val provider: WorkspaceProvider,
       throw IdentifierAlreadyExistsException("Project " + creationConfig.id + " does already exist!")
     }
     provider.putProject(creationConfig)
-    val newProject = new Project(creationConfig, provider, repository.get(creationConfig.id))
+    val newProject = new Project(creationConfig, provider, repository.get(creationConfig.id), userContext)
     addProjectToCache(newProject)
     newProject.setWorkspacePrefixes(workspacePrefixes)
     log.info(s"Created new project '${creationConfig.id}'. " + userContext.logInfo)
@@ -281,7 +281,7 @@ class Workspace(val provider: WorkspaceProvider,
     removeProjectFromCache(id)
     provider.readProject(id) match {
       case Some(projectConfig) =>
-        val project = new Project(projectConfig, provider, repository.get(projectConfig.id))
+        val project = new Project(projectConfig, provider, repository.get(projectConfig.id), userContext)
         project.setWorkspacePrefixes(workspacePrefixes)
         addProjectToCache(project)
         project.startActivities()
@@ -311,7 +311,7 @@ class Workspace(val provider: WorkspaceProvider,
   private def loadProjects()(implicit userContext: UserContext): Unit = {
     cachedProjects = for(projectConfig <- provider.readProjects()) yield {
       log.info("Loading project: " + projectConfig.id)
-      val project = new Project(projectConfig, provider, repository.get(projectConfig.id))
+      val project = new Project(projectConfig, provider, repository.get(projectConfig.id), userContext)
       log.info("Finished loading project '" + projectConfig.id + "'.")
       project
     }

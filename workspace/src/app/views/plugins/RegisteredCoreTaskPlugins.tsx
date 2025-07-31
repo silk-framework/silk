@@ -56,6 +56,7 @@ export const registerCorePlugins = () => {
             label: "Mapping editor",
             queryParametersToKeep: ["ruleId"],
             supportsTaskContext: true,
+            sortOrder: 1,
             render(
                 projectId: string,
                 taskId: string,

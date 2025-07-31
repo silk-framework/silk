@@ -88,12 +88,12 @@ export const KeyboardShortcutsModal = () => {
         setIsOpen(false);
     }, []);
 
-    return (
+    return isOpen ? (
         <SimpleDialog
             data-test-id="keyboard-shortcuts"
             size="large"
             title={t("header.keyboardShortcutsModal.title")}
-            isOpen={isOpen}
+            isOpen={true}
             onClose={closeModal}
             actions={[
                 <Button key="cancel" onClick={closeModal}>
@@ -165,5 +165,5 @@ export const KeyboardShortcutsModal = () => {
                 ))}
             </OverviewItemList>
         </SimpleDialog>
-    );
+    ) : null;
 };

@@ -23,7 +23,8 @@ case class PartialSourcePathAutoCompletionRequest(inputString: String,
                                                   taskContext: Option[WorkflowTaskContext],
                                                   baseSourcePath: Option[String] = None,
                                                   oneHopOnly: Option[Boolean] = None,
-                                                  ignorePathOperatorCompletions: Option[Boolean] = None) extends AutoSuggestAutoCompletionRequest {
+                                                  ignorePathOperatorCompletions: Option[Boolean] = None,
+                                                  langPref: Option[String] = None) extends AutoSuggestAutoCompletionRequest {
   private val operatorStartChars = Set('/', '\\', '[')
 
   /** The remaining characters from the cursor position to the end of the current path operator. */

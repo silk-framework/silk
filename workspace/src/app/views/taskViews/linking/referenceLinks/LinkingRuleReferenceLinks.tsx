@@ -20,7 +20,7 @@ import {
     TableHeader,
     TableRow,
     Toolbar,
-    ToolbarSection,
+    ToolbarSection, Tooltip, ConfidenceValue,
 } from "@eccenca/gui-elements";
 import { usePagination } from "@eccenca/gui-elements/src/components/Pagination/Pagination";
 import React from "react";
@@ -144,6 +144,7 @@ export const LinkingRuleReferenceLinks = ({
                                         small
                                         data-test-id={"reference-links-show-confirmed-links"}
                                         elevated={showConfirmedOnly}
+                                        tooltip={t("ReferenceLinks.confirmedOnlyTooltip")}
                                         disabled={!showConfirmedOnly && positiveLinks <= 0}
                                         onClick={() => {
                                             setShowConfirmedOnly(!showConfirmedOnly);
@@ -156,6 +157,7 @@ export const LinkingRuleReferenceLinks = ({
                                         small
                                         data-test-id={"reference-links-show-declined-links"}
                                         elevated={showDeclinedOnly}
+                                        tooltip={t("ReferenceLinks.declinedOnlyTooltip")}
                                         disabled={!showDeclinedOnly && negativeLinks <= 0}
                                         onClick={() => {
                                             setShowDeclinedOnly(!showDeclinedOnly);
@@ -170,8 +172,9 @@ export const LinkingRuleReferenceLinks = ({
                             {!!showLinkType ? (
                                 <>
                                     <Button
-                                        small
+                                        size={"small"}
                                         key={"certain"}
+                                        tooltip={t("ReferenceLinks.certainOnlyTooltip")}
                                         data-test-id={"reference-links-show-certain-links"}
                                         elevated={!showUncertainLinks}
                                         onClick={() => showLinksOfType("labeled")}
@@ -179,8 +182,9 @@ export const LinkingRuleReferenceLinks = ({
                                         {t("ReferenceLinks.certainOnly")}
                                     </Button>
                                     <Button
-                                        small
+                                        size={"small"}
                                         key={"uncertain"}
+                                        tooltip={t("ReferenceLinks.uncertainOnlyTooltip")}
                                         data-test-id={"reference-links-show-uncertain-links"}
                                         elevated={showUncertainLinks}
                                         onClick={() => showLinksOfType("unlabeled")}
@@ -190,15 +194,17 @@ export const LinkingRuleReferenceLinks = ({
                                     <Spacing vertical={true} size="small" />
                                 </>
                             ) : null}
-                            <Checkbox
-                                data-test-id={"reference-links-show-mismatches"}
-                                disabled={misMatches <= 0}
-                                checked={showOnlyMismatches}
-                                onChange={() => setShowOnlyMismatches((prev) => !prev)}
-                                style={{ margin: "0px" }}
-                            >
-                                {t("ReferenceLinks.mismatchCheckboxTitle", { nrMismatches: misMatches })}
-                            </Checkbox>
+                            <Tooltip content={t("ReferenceLinks.mismatchCheckboxTooltip")}>
+                                <Checkbox
+                                    data-test-id={"reference-links-show-mismatches"}
+                                    disabled={misMatches <= 0}
+                                    checked={showOnlyMismatches}
+                                    onChange={() => setShowOnlyMismatches((prev) => !prev)}
+                                    style={{margin: "0px"}}
+                                >
+                                    {t("ReferenceLinks.mismatchCheckboxTitle", {nrMismatches: misMatches})}
+                                </Checkbox>
+                            </Tooltip>
                             <Spacing vertical={true} size="small" />
                         </>
                     )}
@@ -247,13 +253,14 @@ export const LinkingRuleReferenceLinks = ({
     const ReferenceLinksTable = () => {
         return (
             <>
-                <Table columnWidths={["30px", "30px", "40%", "40%", "100px"]}>
+                <Table columnWidths={["30px", "30px", "35%", "35%", "90px", "100px"]}>
                     <TableHead>
                         <TableRow>
                             <TableHeader key={"marker-column"}>&nbsp;</TableHeader>
                             <TableHeader key={"warning-column"}>&nbsp;</TableHeader>
                             <TableHeader>{t("ActiveLearning.config.entitiyPair.sourceColumnTitle")}</TableHeader>
                             <TableHeader>{t("ActiveLearning.config.entitiyPair.targetColumnTitle")}</TableHeader>
+                            <TableHeader>{t("linkingEvaluationTabView.table.header.score")}</TableHeader>
                             <TableHeader key={"actions-column"} style={{ width: "1px" }}>
                                 &nbsp;
                             </TableHeader>
@@ -299,6 +306,13 @@ export const LinkingRuleReferenceLinks = ({
                                               </TableCell>
                                               <TableCell>{sourceLabel}</TableCell>
                                               <TableCell>{targetLabel}</TableCell>
+                                              <TableCell>
+                                                  {link.score ? <ConfidenceValue
+                                                          value={link.score}
+                                                      /> :
+                                                      "N/A"
+                                                  }
+                                              </TableCell>
                                               <TableCell>
                                                   <Toolbar>
                                                       <ToolbarSection>

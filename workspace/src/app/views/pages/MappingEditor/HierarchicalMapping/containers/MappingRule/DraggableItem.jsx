@@ -57,7 +57,7 @@ class DraggableItem extends React.Component {
             this.updateHistory(this.props.id);
             this.props.scrollIntoView();
         } else {
-            this.updateHistory("");
+            this.updateHistory(this.props.parentRuleId ?? "");
         }
     }
 

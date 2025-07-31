@@ -24,6 +24,7 @@ import MetadataDesc from "../../../components/Metadata/MetadataDesc";
 import { SourcePath } from "../../../components/SourcePath";
 import TargetCardinality from "../../../components/TargetCardinality";
 import { defaultUriPattern } from "./ObjectRule.utils";
+import {getRuleLabel} from "../../../utils/getRuleLabel";
 
 class ObjectRule extends React.Component {
     static propTypes = {
@@ -154,7 +155,10 @@ class ObjectRule extends React.Component {
     render() {
         const { type, ruleData } = this.props;
         const { edit } = this.state;
-        const { type: ruleType } = ruleData;
+        const { type: ruleType, metadata, mappingTarget } = ruleData;
+        const label = _.get(metadata, 'label', '');
+        const ruleLabelData = getRuleLabel({label, uri: mappingTarget.uri});
+        const ruleDisplayLabel = ruleLabelData.displayLabel
 
         if (edit) {
             return (
@@ -241,6 +245,7 @@ class ObjectRule extends React.Component {
                                         uri: this.props.ruleData.mappingTarget.uri,
                                         type: ruleType,
                                         parent: this.props.parentId,
+                                        displayLabel: ruleDisplayLabel
                                     });
                                 }}
                             />

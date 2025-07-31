@@ -105,7 +105,7 @@ trait PluginObjectParameterTypeTrait extends ParameterType[PluginObjectParameter
 
   override def toString(value: PluginObjectParameter)(implicit pluginContext: PluginContext): String = {
     // There is no string representation
-    ???
+    ""
   }
 }
 

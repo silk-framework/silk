@@ -420,8 +420,6 @@ class TransformTaskApi @Inject() () extends InjectedController with UserContextA
               )
               ruleId: String): Action[AnyContent] = RequestUserContextAction { request => implicit userContext =>
     implicit val (project, task) = getProjectAndTask[TransformSpec](projectName, taskName)
-    implicit val prefixes: Prefixes = project.config.prefixes
-    implicit val resources: ResourceManager = project.resources
     implicit val readContext: ReadContext = ReadContext.fromProject(project).copy(identifierGenerator = identifierGenerator(task), validationEnabled = true)
 
     task.synchronized {
@@ -481,7 +479,6 @@ class TransformTaskApi @Inject() () extends InjectedController with UserContextA
                  )
                  rule: String): Action[AnyContent] = UserContextAction { implicit userContext =>
     implicit val (project, task) = getProjectAndTask[TransformSpec](projectName, taskName)
-    implicit val prefixes: Prefixes = project.config.prefixes
 
     try {
       task.synchronized {
@@ -834,7 +831,7 @@ class TransformTaskApi @Inject() () extends InjectedController with UserContextA
   }
 
   /**
-    * Processes a rule a catches relevant exceptions
+    * Processes a rule and catches relevant exceptions
     */
   private def processRule(task: Task[TransformSpec], ruleId: String)(processFunc: RuleTraverser => Result): Result = {
     RuleTraverser(task.data.mappingRule).find(ruleId) match {
