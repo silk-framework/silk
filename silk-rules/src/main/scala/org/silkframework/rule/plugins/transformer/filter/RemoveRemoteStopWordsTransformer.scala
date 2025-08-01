@@ -1,10 +1,7 @@
 package org.silkframework.rule.plugins.transformer.filter
 
-import org.silkframework.rule.input.SimpleTransformer
 import org.silkframework.runtime.plugin.annotations.Plugin
-import org.silkframework.runtime.resource.Resource
 
-import scala.collection.mutable.ListBuffer
 import scala.io.Source
 
 @Plugin(
@@ -13,22 +10,14 @@ import scala.io.Source
   label = "Remove stopwords (remote stopword list)",
   description = "Removes stopwords from all values. The stopword list is retrieved via a http connection (e.g. https://sites.google.com/site/kevinbouge/stopwords-lists/stopwords_de.txt). Each line in the stopword list contains a stopword. The separator defines a regex that is used for detecting words."
 )
-case class RemoveRemoteStopwords(stopWordListUrl: String, separator: String = "[\\s-]+") extends SimpleTransformer {
+case class RemoveRemoteStopWordsTransformer(stopWordListUrl: String = RemoveRemoteStopWordsTransformer.defaultStopWordListUrl,
+                                            separator: String = "[\\s-]+")
+  extends RemoveStopWords(separator, RemoveRemoteStopWordsTransformer.loadStopWords(stopWordListUrl))
 
-  private val stopWords = loadStopWords
+object RemoveRemoteStopWordsTransformer {
+  private val defaultStopWordListUrl = "https://gist.githubusercontent.com/rg089/35e00abf8941d72d419224cfd5b5925d/raw/12d899b70156fd0041fa9778d657330b024b959c/stopwords.txt"
 
-  private val regex = separator.r
-
-  override def evaluate(value: String): String = {
-    val result = new StringBuilder
-    for(word <- regex.split(value) if !stopWords.contains(word)) {
-      result.append(word)
-      result.append(" ")
-    }
-    result.toString()
-  }
-
-  private def loadStopWords: Set[String] = {
+  private def loadStopWords(stopWordListUrl: String): Set[String] = {
     val html = Source.fromURL(stopWordListUrl)
     try {
       html.getLines().toSet
