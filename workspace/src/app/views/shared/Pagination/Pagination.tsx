@@ -1,9 +1,12 @@
 import React from "react";
 import { Link, Pagination, Spacing } from "@eccenca/gui-elements";
 import { useTranslation } from "react-i18next";
+import { useStoreGlobalTableSettings } from "../../../hooks/useStoreGlobalTableSettings";
 
 export function AppPagination({ pagination, onChangeSelect, pageSizes }) {
     const [t] = useTranslation();
+    const { updateGlobalTableSettings, globalTableSettings } = useStoreGlobalTableSettings();
+    const path = window.location.pathname.endsWith("activities") ? "activities" : "workbench";
 
     const totalGreaterThanMinPageSize = pagination.total > Math.min(pagination.limit, ...pageSizes);
     const invalidPage = pagination.current !== 1 && Math.ceil(pagination.total / pagination.limit) < pagination.current;
@@ -24,6 +27,7 @@ export function AppPagination({ pagination, onChangeSelect, pageSizes }) {
             <Pagination
                 onChange={({ page, pageSize }) => {
                     onChangeSelect(page, pageSize);
+                    updateGlobalTableSettings({ [path]: { ...globalTableSettings[path], pageSize } });
                 }}
                 totalItems={pagination.total}
                 pageSizes={pageSizes}
