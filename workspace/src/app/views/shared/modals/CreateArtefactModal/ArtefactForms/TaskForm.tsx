@@ -413,7 +413,7 @@ export function TaskForm({
                 collect(key);
                 dependentParametersTransitiveSet.forEach((paramId) => {
                     const currentValue = getValues(paramId)
-                    if(currentValue) {
+                    if(currentValue && paramId !== key) {
                         resetDependentParameters.push(parameterLabels.current.get(paramId) ?? paramId)
                         handleChange(paramId)("");
                         propagateExternallyChangedParameterValue(paramId, "");

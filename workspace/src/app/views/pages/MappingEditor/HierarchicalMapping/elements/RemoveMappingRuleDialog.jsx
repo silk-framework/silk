@@ -6,7 +6,7 @@ import { MAPPING_RULE_TYPE_OBJECT } from '../utils/constants';
 
 const RemoveMappingRuleDialog = props => {
     const {
-        mappingType, handleConfirmRemove, handleCancelRemove,
+        mappingType, handleConfirmRemove, handleCancelRemove, label
     } = props;
     return (
         <ConfirmationDialog
@@ -32,7 +32,7 @@ const RemoveMappingRuleDialog = props => {
             }
         >
             <p>
-              When you click REMOVE the mapping rule
+              When you click REMOVE the mapping rule{label ? ` '${label}'` : ""}
                 {
                     mappingType === MAPPING_RULE_TYPE_OBJECT
                         ? ' including all child rules '

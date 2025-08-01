@@ -56,13 +56,6 @@ trait PluginParameter {
   def apply(obj: AnyRef): AnyRef
 
   /**
-    * Formats a parameter value as string.
-    */
-  def formatValue(value: AnyRef)(implicit pluginContext: PluginContext): String = {
-    parameterType.asInstanceOf[ParameterType[AnyRef]].toString(value)
-  }
-
-  /**
     * Retrieves the current value of this parameter as string.
     */
   def stringValue(obj: AnyRef)(implicit pluginContext: PluginContext): String = {
@@ -77,10 +70,10 @@ trait PluginParameter {
   }
 
   /**
-    * Returns the example value as string.
-    */
-  def stringExampleValue(implicit pluginContext: PluginContext): Option[String] = {
-    for(value <- exampleValue) yield formatValue(value)
+   * Formats a parameter value as string.
+   */
+  private def formatValue(value: AnyRef)(implicit pluginContext: PluginContext): String = {
+    parameterType.asInstanceOf[ParameterType[AnyRef]].toString(value)
   }
 
 }

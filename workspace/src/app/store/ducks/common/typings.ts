@@ -288,6 +288,9 @@ export interface IInitFrontend {
     /** Configured links to the DM that should be displayed in the global navigation menu. */
     dmModuleLinks?: IDmLink[];
 
+    /** The URI of the logged-in user. */
+    userUri?: string;
+
     /** Hotkey configuration for the frontend. */
     hotKeys: Partial<Record<HotKeyIds, string>>;
 
@@ -299,6 +302,9 @@ export interface IInitFrontend {
 
     /** If the assistant feature is enabled. */
     assistantSupported: boolean;
+
+    /** If the mapping creator is enabled. */
+    mappingCreatorEnabled: boolean;
 
     /** The default project page suffix. */
     defaultProjectPageSuffix?: string;

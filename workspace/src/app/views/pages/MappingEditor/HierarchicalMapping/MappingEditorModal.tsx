@@ -94,6 +94,7 @@ const MappingEditorModal = ({
             onClose={onClose}
             wrapperDivProps={{
                 onMouseUp: () => {},
+                onMouseDown: () => {}, // do not stop event propagation, otherwise notification overlays will prevent usage of input fields
             }}
             headerOptions={
                 <IconButton
