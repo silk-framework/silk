@@ -14,11 +14,26 @@ interface IProps {
 
 export default function SortButton({ sortersList, activeSort, onSort }: IProps) {
     const [t] = useTranslation();
-    const { updateGlobalTableSettings } = useStoreGlobalTableSettings({
+    const storeSettingsPath = React.useMemo(
+        () => (sortersList.find((l) => l.id === "runningTime") ? "activities" : "workbench"),
+        [sortersList],
+    );
+    const { updateGlobalTableSettings, globalTableSettings } = useStoreGlobalTableSettings({
         sorters: sortersList,
         activeSortBy: activeSort.sortBy,
         onSort,
+        path: storeSettingsPath,
     });
+
+    const handleMenuClick = React.useCallback(
+        (itemId: string) => {
+            onSort(itemId);
+            updateGlobalTableSettings({
+                [storeSettingsPath]: { ...globalTableSettings[storeSettingsPath], sortBy: itemId },
+            });
+        },
+        [globalTableSettings, storeSettingsPath],
+    );
 
     return (
         <div className={"sortButton"} data-test-id={"sortButton"}>
@@ -35,10 +50,7 @@ export default function SortButton({ sortersList, activeSort, onSort }: IProps) 
                                     : "list-sortdesc"
                                 : undefined
                         }
-                        onClick={() => {
-                            onSort(item.id);
-                            updateGlobalTableSettings({ sortBy: item.id });
-                        }}
+                        onClick={() => handleMenuClick(item.id)}
                     />
                 ))}
             </ContextMenu>
