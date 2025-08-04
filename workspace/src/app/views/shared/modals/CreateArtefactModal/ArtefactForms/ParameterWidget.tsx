@@ -23,6 +23,7 @@ import { ArtefactFormParameter } from "./ArtefactFormParameter";
 import { optionallyLabelledParameterToValue } from "../../../../taskViews/linking/linking.types";
 import { ArtefactDocumentation } from "../CreateArtefactModal";
 import { PARAMETER_DOC_PREFIX } from "./TaskForm";
+import { YamlEditor } from "../../../../../views/shared/YamlEditor";
 
 const MAXLENGTH_TOOLTIP = 32;
 const MAXLENGTH_SIMPLEHELP = 192;
@@ -258,6 +259,7 @@ export const ParameterWidget = (props: IProps) => {
         );
     } else {
         const isTemplateParameter = parameterCallbacks.initialTemplateFlag(formParamId);
+        const showYamlEditorInput = autoCompletion && propertyDetails.parameterType === INPUT_TYPES.KEY_VALUE_PAIRS;
         const initialValue = autoCompletion
             ? initialValues[formParamId]
                 ? initialValues[formParamId].value
@@ -283,8 +285,28 @@ export const ParameterWidget = (props: IProps) => {
                     initialValue,
                     defaultValue: defaultValueAsJs(propertyDetails, !!autoCompletion),
                 }}
+                pluginId={pluginId}
+                autoCompletion={autoCompletion}
+                dependentValue={dependentValue}
+                defaultValue={parameterCallbacks.defaultValue}
+                formParamId={formParamId}
                 inputElementFactory={(initialValueReplace, onChange) => {
-                    if (autoCompletion) {
+                    if (showYamlEditorInput) {
+                        return (
+                            <YamlEditor
+                                projectId={projectId}
+                                pluginId={pluginId}
+                                autoCompletion={autoCompletion}
+                                id={formParamId}
+                                initialValue={initialValue?.value ?? initialValue}
+                                onChange={(value) => (onChange ? onChange(value) : changeHandlers[formParamId](value))}
+                                autoCompletionRequestDelay={200}
+                                defaultValue={parameterCallbacks.defaultValue}
+                                dependentValue={dependentValue}
+                                formParamId={formParamId}
+                            />
+                        );
+                    } else if (autoCompletion) {
                         const currentInitialValue = initialValueReplace ? initialValueReplace : undefined;
                         return (
                             <ParameterAutoCompletion

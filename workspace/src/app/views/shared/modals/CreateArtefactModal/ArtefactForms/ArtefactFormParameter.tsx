@@ -18,6 +18,9 @@ import { useSelector } from "react-redux";
 import { commonSel } from "@ducks/common";
 import { CreateArtefactModalContext } from "../CreateArtefactModalContext";
 import { INPUT_TYPES } from "../../../../../constants";
+import { YamlEditor } from "../../../../../views/shared/YamlEditor";
+import { IPropertyAutocomplete } from "@ducks/common/typings";
+import { DependsOnParameterValueAny } from "./ParameterAutoCompletion";
 interface Props {
     //For task forms, project id is needed tor validation and autocompletion
     projectId?: string;
@@ -25,6 +28,8 @@ interface Props {
     parameterId: string;
     // Label of the parameter
     label: string;
+    /** ID of this plugin. */
+    pluginId?: string;
     // If required "(required)" will be placed next to the label
     required?: boolean;
     /** Error or info message that will be displayed below the input component. This is usually an error message. */
@@ -64,6 +69,14 @@ interface Props {
         defaultValue?: string | number | boolean | OptionallyLabelledParameter<string | number | boolean>;
     };
     parameterType?: string;
+    /** The auto-completion config. */
+    autoCompletion?: IPropertyAutocomplete;
+    /** Get parameter values this auto-completion might depend on. */
+    dependentValue?: (paramId: string) => DependsOnParameterValueAny | undefined;
+    /** The default value as defined in the parameter spec. */
+    defaultValue?: (paramId: string) => string | null | undefined;
+    /** Unique ID/name of the parameter in the form. */
+    formParamId?: string;
 }
 
 /** Wrapper around the input element of a parameter. Supports switching to variable templates. */
@@ -81,6 +94,11 @@ export const ArtefactFormParameter = ({
     disabled = false,
     tooltip,
     supportVariableTemplateElement,
+    pluginId,
+    autoCompletion,
+    defaultValue,
+    dependentValue,
+    formParamId,
 }: Props) => {
     const [t] = useTranslation();
     const [toggledTemplateSwitchBefore, setToggledTemplateSwitchBefore] = React.useState<boolean>(false);
@@ -186,8 +204,11 @@ export const ArtefactFormParameter = ({
     const multiline =
         (parameterType &&
             (parameterType.startsWith("code-") ||
-                [INPUT_TYPES.RESTRICTION, INPUT_TYPES.MULTILINE_STRING].includes(parameterType))) ||
+                [INPUT_TYPES.RESTRICTION, INPUT_TYPES.MULTILINE_STRING, INPUT_TYPES.KEY_VALUE_PAIRS].includes(
+                    parameterType,
+                ))) ||
         isTemplateInputType;
+
     return (
         <FieldItem
             key={parameterId}
@@ -233,6 +254,12 @@ export const ArtefactFormParameter = ({
                                 supportVariableTemplateElement?.showTemplatePreview ? setTemplateInfoMessage : undefined
                             }
                             allowSensitiveVariables={isPasswordInput}
+                            parameterType={parameterType}
+                            pluginId={pluginId}
+                            autoCompletion={autoCompletion}
+                            defaultValue={defaultValue}
+                            dependentValue={dependentValue}
+                            formParamId={formParamId}
                         />
                     ) : (
                         inputElementFactory(valueState.current.inputValueBeforeSwitch, onElementValueChange)
@@ -276,6 +303,8 @@ interface TemplateInputComponentProps {
     projectId?: string;
     /** ID for the input field. */
     parameterId: string;
+    /** ID of this plugin. */
+    pluginId?: string;
     initialValue: string;
     onTemplateValueChange: (any) => any;
     setValidationError: (error?: string) => any;
@@ -286,12 +315,22 @@ interface TemplateInputComponentProps {
     handleTemplateErrors?: (error?: string) => any;
     multiline?: boolean;
     allowSensitiveVariables?: boolean;
+    parameterType?: string;
+    /** The auto-completion config. */
+    autoCompletion?: IPropertyAutocomplete;
+    /** Get parameter values this auto-completion might depend on. */
+    dependentValue?: (paramId: string) => DependsOnParameterValueAny | undefined;
+    /** The default value as defined in the parameter spec. */
+    defaultValue?: (paramId: string) => string | null | undefined;
+    /** Unique ID/name of the parameter in the form. */
+    formParamId?: string;
 }
 
 /** The input component for the template value. */
 export const TemplateInputComponent = memo(
     ({
         parameterId,
+        pluginId,
         initialValue,
         onTemplateValueChange,
         setValidationError,
@@ -300,7 +339,12 @@ export const TemplateInputComponent = memo(
         variableName,
         handleTemplateErrors,
         multiline,
+        parameterType,
         allowSensitiveVariables,
+        autoCompletion,
+        dependentValue,
+        defaultValue,
+        formParamId,
     }: TemplateInputComponentProps) => {
         const modalContext = React.useContext(CreateArtefactModalContext);
         const { registerError: globalErrorHandler } = useErrorHandler();
@@ -382,7 +426,7 @@ export const TemplateInputComponent = memo(
             [processValidationError],
         );
 
-        return (
+        return parameterType !== INPUT_TYPES.KEY_VALUE_PAIRS ? (
             <CodeAutocompleteField
                 id={parameterId}
                 initialValue={initialValue}
@@ -391,6 +435,20 @@ export const TemplateInputComponent = memo(
                 checkInput={checkTemplate}
                 autoCompletionRequestDelay={200}
                 multiline={multiline}
+            />
+        ) : (
+            <YamlEditor
+                projectId={projectId}
+                pluginId={pluginId}
+                autoCompletion={autoCompletion}
+                id={parameterId}
+                initialValue={initialValue}
+                onChange={onTemplateValueChange}
+                checkInput={checkTemplate}
+                autoCompletionRequestDelay={200}
+                defaultValue={defaultValue}
+                dependentValue={dependentValue}
+                formParamId={formParamId}
             />
         );
     },

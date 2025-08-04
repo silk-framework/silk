@@ -2,9 +2,9 @@ package org.silkframework.dataset
 
 object DatasetCategories {
 
-  final val file = "file"
+  final val file = "File"
 
-  final val remote = "remote"
+  final val remote = "Remote"
 
-  final val embedded = "embedded"
+  final val embedded = "Embedded"
 }
