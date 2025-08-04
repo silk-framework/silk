@@ -46,7 +46,7 @@ case class SparqlUpdateCustomTask(@Param(label = "SPARQL update query", value = 
 
   override def inputPorts: InputPorts = {
     if(isStaticTemplate) {
-      FixedNumberOfInputs(Seq.empty)
+      InputPorts.NoInputPorts
     } else {
       FixedNumberOfInputs(Seq(FixedSchemaPort(expectedInputSchema)))
     }

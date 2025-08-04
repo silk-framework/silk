@@ -78,7 +78,7 @@ case class DatasetSpec[+DatasetType <: Dataset](plugin: DatasetType,
   /** Datasets don't define input schemata, because any data can be written to them. */
   override def inputPorts: InputPorts = {
     if(readOnly || characteristics.readOnly) {
-      FixedNumberOfInputs(Seq.empty)
+      InputPorts.NoInputPorts
     } else if(characteristics.supportsMultipleWrites) {
       FlexibleNumberOfInputs()
     } else {
@@ -294,7 +294,12 @@ object DatasetSpec {
     /**
       * Makes sure that the next write will start from an empty dataset.
       */
-    override def clear()(implicit userContext: UserContext): Unit = entitySink.clear()
+    override def clear(force: Boolean = false)(implicit userContext: UserContext): Unit = {
+      if(datasetSpec.readOnly) {
+        throw new RuntimeException(s"Cannot clear dataset, because it is configured as read-only.")
+      }
+      entitySink.clear(force)
+    }
 
     @inline
     private def prependUri(uri: String, values: IndexedSeq[Seq[String]]): IndexedSeq[Seq[String]] = {
@@ -357,7 +362,12 @@ object DatasetSpec {
     /**
       * Makes sure that the next write will start from an empty dataset.
       */
-    override def clear()(implicit userContext: UserContext): Unit = linkSink.clear()
+    override def clear(force: Boolean = false)(implicit userContext: UserContext): Unit = {
+      if(datasetSpec.readOnly) {
+        throw new RuntimeException(s"Cannot clear dataset, because it is configured as read-only.")
+      }
+      linkSink.clear(force)
+    }
   }
 
   /**
