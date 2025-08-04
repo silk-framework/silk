@@ -10,7 +10,7 @@ import org.silkframework.rule.execution.TransformReportBuilder
 import org.silkframework.rule.{RootMappingRule, TransformRule, TransformSpec}
 import org.silkframework.runtime.iterator.CloseableIterator
 import org.silkframework.runtime.validation.ValidationException
-import org.silkframework.util.Identifier
+import org.silkframework.util.{Identifier, Uri}
 
 import java.util.logging.Logger
 import scala.collection.mutable

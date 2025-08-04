@@ -44,9 +44,9 @@ case class LocalAddProjectFilesOperatorExecutor() extends LocalExecutor[AddProje
       for (fileEntity <- files.typedEntities) {
         val file = fileEntity.file
         val newFileName = fileNameGenerator(file.name)
-        val fileExists = targetDirectory.exists(newFileName)
-        if (addFile(newFileName, fileExists)) {
-          targetDirectory.get(newFileName).writeResource(file)
+        val targetFile = targetDirectory.get(newFileName)
+        if (addFile(newFileName, targetFile.exists)) {
+          targetFile.writeResource(file)
           executionReport.increaseEntityCounter()
         }
       }

@@ -105,6 +105,7 @@ const NewVariableModal: React.FC<VariableModalProps> = ({
      */
     const handleVariableNameChange = React.useCallback(
         (e) => {
+            setError(undefined);
             const newName = e.target.value;
             setName(newName);
             if (variables.find((v) => v.name === newName)) {
@@ -116,7 +117,7 @@ const NewVariableModal: React.FC<VariableModalProps> = ({
                 setValidationError((prevError) => ({ ...prevError, name: undefined }));
             }
         },
-        [variables]
+        [variables],
     );
 
     const resetModalState = React.useCallback(() => {
@@ -158,7 +159,7 @@ const NewVariableModal: React.FC<VariableModalProps> = ({
                           variables: [...variables, formPayload],
                       },
                       projectId,
-                      taskId
+                      taskId,
                   );
 
             resetModalState();
@@ -167,7 +168,7 @@ const NewVariableModal: React.FC<VariableModalProps> = ({
         } catch (err) {
             checkAndDisplayError(
                 err,
-                t("widget.VariableWidget.errorMessages.variableUpsertFailure", "Variable add/update failed")
+                t("widget.VariableWidget.errorMessages.variableUpsertFailure", "Variable add/update failed"),
             );
         } finally {
             setLoading(false);
@@ -240,7 +241,7 @@ const NewVariableModal: React.FC<VariableModalProps> = ({
                     handleCheckTemplateErrors={(err) =>
                         checkAndDisplayError(
                             err,
-                            t("widget.VariableWidget.errorMessages.templateUpdateFailure", "variable template error")
+                            t("widget.VariableWidget.errorMessages.templateUpdateFailure", "variable template error"),
                         )
                     }
                 />

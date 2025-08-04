@@ -347,7 +347,8 @@ object SearchApiModel {
                                   @Schema(
                                     description = "If set to true, the current configuration for each task item is returned in the search response.",
                                     required = false,
-                                    nullable = true
+                                    nullable = true,
+                                    implementation = classOf[Boolean]
                                   )
                                   addTaskParameters: Option[Boolean] = Some(false)) extends SearchRequestTrait {
     /** The offset used for paging. */

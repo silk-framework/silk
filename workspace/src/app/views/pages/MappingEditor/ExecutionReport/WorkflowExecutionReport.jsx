@@ -43,9 +43,9 @@ export default class WorkflowExecutionReport extends React.Component {
         }
 
         return (
-            <Grid>
-                <GridRow>
-                    <GridColumn small>
+            <Grid useAbsoluteSpace verticalStretchable>
+                <GridRow verticalStretched>
+                    <GridColumn small style={{ overflow: "auto", paddingLeft: 0 }}>
                         <Section className="silk-report-sidebar-overview">
                             <SectionHeader>
                                 <TitleSubsection>Workflow</TitleSubsection>
@@ -64,13 +64,15 @@ export default class WorkflowExecutionReport extends React.Component {
                             <div className="silk-report-sidebar-tasks-content">
                                 <OverviewItemList hasSpacing>
                                     {this.props.executionReport.taskReports.map((report, index) =>
-                                        this.renderTaskItem(report, index, report.warnings)
+                                        this.renderTaskItem(report, index, report.warnings),
                                     )}
                                 </OverviewItemList>
                             </div>
                         </Section>
                     </GridColumn>
-                    <GridColumn>{this.renderReport(this.props.executionReport.nodeId)}</GridColumn>
+                    <GridColumn style={{ overflow: "auto" }}>
+                        {this.renderReport(this.props.executionReport.nodeId)}
+                    </GridColumn>
                 </GridRow>
             </Grid>
         );

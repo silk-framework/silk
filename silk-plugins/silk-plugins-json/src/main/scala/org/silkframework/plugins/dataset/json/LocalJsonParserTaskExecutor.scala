@@ -80,7 +80,7 @@ case class LocalJsonParserTaskExecutor() extends LocalExecutor[JsonParserTask] {
           case Some(jsonInputString) =>
             val resource = InMemoryResourceManager().get("temp")
             resource.writeBytes(jsonInputString.getBytes)
-            val dataset = JsonDataset(resource, basePath = spec.basePath, uriPattern = entity.uri.toString + spec.uriSuffixPattern, streaming = false)
+            val dataset = JsonDataset(resource, basePath = spec.basePath, uriPattern = entity.uri.toString + spec.uriSuffixPattern, streaming = false, navigateIntoArrays = spec.navigateIntoArrays)
             ExecutorRegistry.execute(PlainTask(task.id, DatasetSpec(dataset, readOnly = true)), Seq.empty, output, execution) match {
               case Some(result) => result.entities
               case None => CloseableIterator.empty

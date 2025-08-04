@@ -1,7 +1,7 @@
 import { FetchResponse } from "../../../services/fetch/responseInterceptor";
 import fetch from "../../../services/fetch";
 import { legacyTransformEndpoint } from "../../../utils/getApiEndpoint";
-import { IComplexMappingRule, ITransformRule } from "./transform.types";
+import {IComplexMappingRule, ITransformRule, PartialBy} from "./transform.types";
 import { IAutocompleteDefaultResponse } from "@ducks/shared/typings";
 import { TaskContext } from "../../shared/projectTaskTabView/projectTaskTabView.typing";
 import { IPartialAutoCompleteResult } from "@eccenca/gui-elements/src/components/AutoSuggestion/AutoSuggestion";
@@ -102,5 +102,32 @@ export const evaluateTransformRule = async (
         query: {
             limit,
         },
+    });
+};
+
+/** Appends a transform rule as a child of a container rule. */
+export const appendTransformRule = async (
+    projectId: string,
+    transformId: string,
+    containerRuleId: string,
+    newRule: PartialBy<ITransformRule, "id" | "metadata">,
+    afterRuleId?: string
+): Promise<FetchResponse<ITransformRule>> => {
+    return fetch({
+        url: legacyTransformEndpoint(`/tasks/${projectId}/${transformId}/rule/${containerRuleId}/rules` + (afterRuleId ? `?afterRuleId=${afterRuleId}` : "")),
+        method: "POST",
+        body: newRule,
+    });
+};
+
+/** Appends a transform rule as a child of a container rule. */
+export const removeTransformRule = async (
+    projectId: string,
+    transformId: string,
+    ruleId: string
+): Promise<FetchResponse<ITransformRule>> => {
+    return fetch({
+        url: legacyTransformEndpoint(`/tasks/${projectId}/${transformId}/rule/${ruleId}`),
+        method: "DELETE"
     });
 };

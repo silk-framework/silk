@@ -3,7 +3,15 @@ import // FIXME: should be transcoded to a tsx file
 React from "react";
 import PropTypes from "prop-types";
 import { URI } from "ecc-utils";
-import { IconButton, Notification, Spacing, Toolbar, ToolbarSection } from "@eccenca/gui-elements";
+import {
+    IconButton,
+    Notification,
+    Spacing,
+    Toolbar,
+    ToolbarSection,
+    FlexibleLayoutContainer,
+    FlexibleLayoutItem,
+} from "@eccenca/gui-elements";
 import { withHistoryHOC } from "../HierarchicalMapping/utils/withHistoryHOC";
 import silkStore from "../api/silkStore";
 import WorkflowExecutionReport from "./WorkflowExecutionReport";
@@ -63,9 +71,13 @@ class WorkflowReportManager extends React.Component {
         if (this.state.availableReports.length > 0) {
             return (
                 <div>
-                    {this.renderReportChooser()}
-                    <Spacing />
-                    {this.renderSelectedReport()}
+                    <FlexibleLayoutContainer vertical noEqualItemSpace useAbsoluteSpace>
+                        <FlexibleLayoutItem growFactor={0}>
+                            {this.renderReportChooser()}
+                            <Spacing size="tiny" />
+                        </FlexibleLayoutItem>
+                        <FlexibleLayoutItem>{this.renderSelectedReport()}</FlexibleLayoutItem>
+                    </FlexibleLayoutContainer>
                 </div>
             );
         } else {

@@ -20,12 +20,12 @@ import org.silkframework.entity.paths.{Path, UntypedPath}
 import org.silkframework.plugins.dataset.rdf.executors.LocalSparqlSelectExecutor
 import org.silkframework.plugins.dataset.rdf.tasks.SparqlSelectCustomTask
 import org.silkframework.rule.TransformSpec.RuleSchemata
-import org.silkframework.rule.{TaskContext, TransformRule, TransformSpec}
+import org.silkframework.rule.{ComplexUriMapping, TaskContext, TransformRule, TransformSpec}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.PluginContext
 import org.silkframework.runtime.serialization.ReadContext
 import org.silkframework.runtime.validation.ValidationException
-import org.silkframework.util.Identifier
+import org.silkframework.util.{Identifier, Uri}
 import org.silkframework.workspace.{Project, ProjectTask}
 import play.api.libs.json.{Format, Json}
 import play.api.mvc._
@@ -265,7 +265,10 @@ class PeakTransformApi @Inject() () extends InjectedController with UserContextA
                                              limit: Int)
                                             (implicit prefixes: Prefixes) = {
     val (tryCounter, errorCounter, errorMessage, sourceAndTargetResults) = collectTransformationExamples(rule, exampleEntities, limit)
-    if (sourceAndTargetResults.nonEmpty) {
+    if (sourceAndTargetResults.nonEmpty && errorMessage.nonEmpty) {
+      Ok(Json.toJson(PeakResults(Some(rule.sourcePaths.map(serializePath)), Some(sourceAndTargetResults),
+        status = PeakStatus("with exceptions", errorMessage))))
+    } else if (sourceAndTargetResults.nonEmpty) {
       Ok(Json.toJson(PeakResults(Some(rule.sourcePaths.map(serializePath)), Some(sourceAndTargetResults),
         status = PeakStatus("success", ""))))
     } else if (errorCounter > 0) {

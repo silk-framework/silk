@@ -79,10 +79,12 @@ export const LinkRuleNodeEvaluation = ({
                                     style={{ whiteSpace: "nowrap", overflow: "hidden" }}
                                 >
                                     {error ? (
-                                        <OverflowText className="linking__error-description">
-                                            <SampleError sampleError={error} hasStateWarning />
-                                            {error.error}
-                                        </OverflowText>
+                                        <Tooltip content={error.error}>
+                                            <OverflowText className="linking__error-description">
+                                                <SampleError sampleError={error} hasStateWarning/>
+                                                {error.error}
+                                            </OverflowText>
+                                        </Tooltip>
                                     ) : (
                                         <Tooltip
                                             content={

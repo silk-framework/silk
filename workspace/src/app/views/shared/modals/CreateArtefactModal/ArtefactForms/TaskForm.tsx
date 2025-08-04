@@ -24,11 +24,12 @@ import useHotKey from "../../../HotKeyHandler/HotKeyHandler";
 import utils from "@eccenca/gui-elements/src/cmem/markdown/markdown.utils";
 import { commonOp } from "@ducks/common";
 import { DependsOnParameterValueAny } from "./ParameterAutoCompletion";
+import {FieldValues, FormContextValues} from "react-hook-form";
 
 export const READ_ONLY_PARAMETER = "readOnly";
 
 export interface IProps {
-    form: any;
+    form: FormContextValues<FieldValues>;
 
     detectChange: (key: string, val: any, oldValue: any) => void;
 
@@ -54,6 +55,9 @@ export interface IProps {
 
     /** If a parameter value is changed in a way that did not use the parameter widget, this must be called in order to update the value in the widget itself. */
     propagateExternallyChangedParameterValue: (fullParamId: string, value: string) => any;
+
+    /** Shows a warning notification with the following message in the dialog popup that can be removed by the user. */
+    showWarningMessage: (message: string) => void;
 }
 
 export interface UpdateTaskProps {
@@ -124,6 +128,7 @@ export function TaskForm({
     goBackOnEscape = () => {},
     newTaskPreConfiguration,
     propagateExternallyChangedParameterValue,
+    showWarningMessage
 }: IProps) {
     const { properties, required: requiredRootParameters } = artefact;
     const { register, errors, getValues, setValue, unregister, triggerValidation } = form;
@@ -363,7 +368,7 @@ export function TaskForm({
                 unregister(LABEL);
                 unregister(DESCRIPTION);
                 unregister(IDENTIFIER);
-                unregister({ name: TAGS });
+                unregister(TAGS);
             }
             returnKeys.forEach((key) => unregister(key));
         };
@@ -393,19 +398,33 @@ export function TaskForm({
             }
             if (dependentParameters.current.has(key)) {
                 // collect all dependent parameters
-                const dependentParametersTransitive = new Set<string>();
+                const dependentParametersTransitiveSet = new Set<string>();
+                // Dependent parameters that were actually reset
+                const resetDependentParameters: string[] = []
                 const collect = (currentParamId: string) => {
                     const params = dependentParameters.current?.get(currentParamId) ?? [];
-                    params.forEach((p) => {
-                        dependentParametersTransitive.add(p);
-                        collect(p);
+                    params.forEach((p: string) => {
+                        if(!dependentParametersTransitiveSet.has(p)) {
+                            dependentParametersTransitiveSet.add(p);
+                            collect(p);
+                        }
                     });
                 };
                 collect(key);
-                dependentParametersTransitive.forEach((paramId) => {
-                    handleChange(paramId)("");
-                    propagateExternallyChangedParameterValue(paramId, "");
+                dependentParametersTransitiveSet.forEach((paramId) => {
+                    const currentValue = getValues(paramId)
+                    if(currentValue && paramId !== key) {
+                        resetDependentParameters.push(parameterLabels.current.get(paramId) ?? paramId)
+                        handleChange(paramId)("");
+                        propagateExternallyChangedParameterValue(paramId, "");
+                    }
                 });
+                if(resetDependentParameters.length) {
+                    showWarningMessage(t("form.taskForm.resetMessage", {
+                        parameters: resetDependentParameters.join(", "),
+                        dependOn: parameterLabels.current.get(key) ?? key
+                    }))
+                }
             }
         },
         [],

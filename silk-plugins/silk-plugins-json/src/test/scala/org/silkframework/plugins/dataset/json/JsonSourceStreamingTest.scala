@@ -7,7 +7,7 @@ class JsonSourceStreamingTest extends JsonSourceTest {
   behavior of "JsonSourceStreaming"
 
   override protected def createSource(resource: Resource, basePath: String, uriPattern: String): JsonSource = {
-    new JsonSourceStreaming(Identifier.fromAllowed(resource.name), resource, basePath, uriPattern)
+    new JsonSourceStreaming(Identifier.fromAllowed(resource.name), resource, basePath, uriPattern, navigateIntoArrays = true)
   }
 
   override protected def createDataset(resource: WritableResource): JsonDataset = {

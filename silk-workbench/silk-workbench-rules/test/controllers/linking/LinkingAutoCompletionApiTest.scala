@@ -12,6 +12,7 @@ import play.api.libs.json.Json
 import test.Routes
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.must.Matchers
+import org.silkframework.plugins.dataset.json.JsonDataset
 
 class LinkingAutoCompletionApiTest extends AnyFlatSpec with SingleProjectWorkspaceProviderTestTrait with IntegrationTestTrait with Matchers with BeforeAndAfterAll {
   override def workspaceProviderId = "inMemory"
@@ -27,7 +28,7 @@ class LinkingAutoCompletionApiTest extends AnyFlatSpec with SingleProjectWorkspa
   private val rdfAllOperatorCompletions = Seq("/", "\\", "[", "[@lang = 'en']")
   private val backwardOp = Seq("\\")
   private val jsonSourcePaths = Seq("department", "id", "name", "phoneNumbers", "department/id", "department/tags", "phoneNumbers/number", "phoneNumbers/type", "department/tags/evenMoreNested", "department/tags/tagId")
-  private val jsonSpecialPaths = Seq("#id", "#text", "#key", "#line", "#column", "*")
+  private val jsonSpecialPaths = Seq("#id", "#uuid", "#text", "#arrayText", "#key", "#array", "#line", "#column", "*")
   private val jsonAllOperatorCompletions = Seq("/", "\\", "[")
   private val jsonOperatorCompletions = Seq("\\..", "\\")
 
