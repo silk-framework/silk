@@ -1,5 +1,5 @@
 import fetch from "../../../services/fetch";
-import { legacyLinkingEndpoint } from "../../../utils/getApiEndpoint";
+import { legacyLinkingEndpoint, legacyTransformEndpoint } from "../../../utils/getApiEndpoint";
 import { FetchResponse } from "../../../services/fetch/responseInterceptor";
 import { PathWithMetaData } from "../shared/rules/rule.typings";
 import { IEntityLink, IEvaluatedReferenceLinks, ILinkingRule, ILinkingTaskParameters } from "./linking.types";
@@ -149,7 +149,8 @@ export const partialAutoCompleteLinkingInputPaths = (
     inputType: "source" | "target",
     inputString: string,
     cursorPosition: number,
-    limit?: number
+    limit?: number,
+    langPref?: string
 ): Promise<FetchResponse<IPartialAutoCompleteResult>> => {
     return fetch({
         url: legacyLinkingEndpoint(`/tasks/${projectId}/${linkingTaskId}/completions/partialSourcePaths`),
@@ -161,6 +162,7 @@ export const partialAutoCompleteLinkingInputPaths = (
             inputString,
             cursorPosition,
             maxSuggestions: limit,
+            langPref
         },
     });
 };

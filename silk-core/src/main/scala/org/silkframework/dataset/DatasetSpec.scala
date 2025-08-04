@@ -82,12 +82,12 @@ case class DatasetSpec[+DatasetType <: Dataset](plugin: DatasetType,
     } else if(characteristics.supportsMultipleWrites) {
       FlexibleNumberOfInputs()
     } else {
-      FlexibleNumberOfInputs(FlexibleSchemaPort, 0, Some(1))
+      FlexibleNumberOfInputs(FlexibleSchemaPort(), 0, Some(1))
     }
   }
 
   /** Datasets don't have a static EntitySchema. It is defined by the following task. */
-  override def outputPort: Option[Port] = Some(FlexibleSchemaPort)
+  override def outputPort: Option[Port] = Some(FlexibleSchemaPort(explicitSchema = characteristics.explicitSchema))
 
   /** The resources that are referenced by this dataset. */
   override def referencedResources: Seq[Resource] = plugin.referencedResources
@@ -108,8 +108,8 @@ case class DatasetSpec[+DatasetType <: Dataset](plugin: DatasetType,
     }
   }
 
-  override def searchTags(prefixes: Prefixes): Seq[String] = {
-    plugin.searchTags(prefixes)
+  override def searchTags(pluginContext: PluginContext): Seq[String] = {
+    plugin.searchTags(pluginContext)
   }
 }
 
@@ -159,7 +159,7 @@ object DatasetSpec {
       * @return A Traversable over the entities. The evaluation of the Traversable may be non-strict.
       */
     override def retrieve(entitySchema: EntitySchema, limit: Option[Int])
-                         (implicit userContext: UserContext, prefixes: Prefixes): EntityHolder = {
+                         (implicit context: PluginContext): EntityHolder = {
       val adaptedSchema = adaptSchema(entitySchema)
       val entities = source.retrieve(adaptedSchema, limit)
       adaptUris(entities)
@@ -173,13 +173,16 @@ object DatasetSpec {
       * @return A Traversable over the entities. The evaluation of the Traversable may be non-strict.
       */
     override def retrieveByUri(entitySchema: EntitySchema, entities: Seq[Uri])
-                              (implicit userContext: UserContext, prefixes: Prefixes): EntityHolder = {
+                              (implicit context: PluginContext): EntityHolder = {
       if(entities.isEmpty) {
         GenericEntityTable(CloseableIterator.empty, entitySchema, underlyingTask)
       } else {
-        val adaptedSchema = adaptSchema(entitySchema)
-        val retrievedEntities = source.retrieveByUri(adaptedSchema, entities)
-        adaptUris(retrievedEntities)
+        if(datasetSpec.uriAttribute.isDefined) {
+          val uriSet = entities.toSet
+          retrieve(entitySchema).filter(e => uriSet.contains(e.uri))
+        } else {
+          source.retrieveByUri(entitySchema, entities)
+        }
       }
     }
 
@@ -350,7 +353,7 @@ object DatasetSpec {
     /**
       * Closes this writer.
       */
-    override def close()(implicit userContext: UserContext) {
+    override def close()(implicit userContext: UserContext): Unit = {
       if (linkSink != null) linkSink.close()
       isOpen = false
       log.info(s"Wrote $linkCount links.")

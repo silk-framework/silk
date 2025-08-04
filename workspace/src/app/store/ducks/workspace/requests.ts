@@ -7,13 +7,14 @@ import {
     ISearchResultsServer,
     ISorterListItemState,
     ITaskLink,
-    Keywords, TaskContextResponse,
+    Keywords,
+    TaskContextResponse,
 } from "@ducks/workspace/typings";
 import fetch from "../../../services/fetch";
 import { legacyApiEndpoint, projectApi, workspaceApi } from "../../../utils/getApiEndpoint";
 import { FetchResponse } from "../../../services/fetch/responseInterceptor";
 import { IAutocompleteDefaultResponse, IProjectTask } from "@ducks/shared/typings";
-import {TaskContext} from "../../../views/shared/projectTaskTabView/projectTaskTabView.typing";
+import { TaskContext } from "../../../views/shared/projectTaskTabView/projectTaskTabView.typing";
 
 export interface ISearchListRequest {
     limit?: number;
@@ -168,7 +169,7 @@ export const requestCreateProject = async (payload: ICreateProjectPayload): Prom
 };
 
 //missing-type
-export const requestProjectPrefixes = async (projectId: string): Promise<any | never> => {
+export const requestProjectPrefixesLegacy = async (projectId: string): Promise<any | never> => {
     try {
         const { data } = await fetch({
             url: workspaceApi(`/projects/${projectId}/prefixes`),
@@ -179,35 +180,34 @@ export const requestProjectPrefixes = async (projectId: string): Promise<any | n
     }
 };
 
+/** Fetch project prefixes. */
+export const requestProjectPrefixes = async (projectId: string): Promise<FetchResponse<Record<string, string>>> => {
+    return fetch({
+        url: workspaceApi(`/projects/${projectId}/prefixes`),
+    });
+};
+
 //missing-type
 export const requestChangePrefixes = async (
     prefixName: string,
     prefixUri: string,
     projectId: string
 ): Promise<any | never> => {
-    try {
-        const { data } = await fetch({
-            url: workspaceApi(`/projects/${projectId}/prefixes/${prefixName}`),
-            method: "PUT",
-            body: prefixUri,
-        });
-        return data;
-    } catch (e) {
-        throw handleError(e);
-    }
+    const {data} = await fetch({
+        url: workspaceApi(`/projects/${projectId}/prefixes/${prefixName}`),
+        method: "PUT",
+        body: prefixUri,
+    });
+    return data;
 };
 
 //missing-type
 export const requestRemoveProjectPrefix = async (prefixName: string, projectId: string): Promise<any | never> => {
-    try {
-        const { data } = await fetch({
-            url: workspaceApi(`/projects/${projectId}/prefixes/${prefixName}`),
-            method: "DELETE",
-        });
-        return data;
-    } catch (e) {
-        throw handleError(e);
-    }
+    const {data} = await fetch({
+        url: workspaceApi(`/projects/${projectId}/prefixes/${prefixName}`),
+        method: "DELETE",
+    });
+    return data;
 };
 
 //missing-type
@@ -375,15 +375,17 @@ export const requestSearchForGlobalVocabularyProperties = async (
 };
 
 /** Fetches additional information for the given task context. */
-export const requestTaskContextInfo = async (projectId: string,
-                                             taskId: string,
-                                             taskContext: TaskContext): Promise<FetchResponse<TaskContextResponse>> => {
+export const requestTaskContextInfo = async (
+    projectId: string,
+    taskId: string,
+    taskContext: TaskContext
+): Promise<FetchResponse<TaskContextResponse>> => {
     return fetch({
         url: projectApi(`/${projectId}/taskContext`),
         method: "POST",
         body: {
             taskId,
-            taskContext
-        }
-    })
-}
+            taskContext,
+        },
+    });
+};

@@ -4,7 +4,7 @@ import { RuleNodeFormParameter } from "./RuleNodeFormParameter";
 import { RuleEditorUiContext } from "../../contexts/RuleEditorUiContext";
 import { partitionArray } from "../../../../../utils/basicUtils";
 import { AdvancedOptionsArea } from "../../../AdvancedOptionsArea/AdvancedOptionsArea";
-import { LanguageFilterProps } from "./PathInputOperator";
+import { InputPathFunctions } from "./PathInputOperator";
 
 export interface RuleNodeParametersProps {
     nodeId: string;
@@ -13,14 +13,16 @@ export interface RuleNodeParametersProps {
     parameters: IRuleNodeParameter[];
     /** Requests values of parameters this parameter might depend on for auto-completion. */
     dependentValue: (paramId: string) => string | undefined;
+    /** The default value as defined in the parameter spec. */
+    parameterDefaultValue: (paramId: string) => string | undefined;
     /** If the form will be rendered in a large area. The used input components might differ. */
     large: boolean;
     /** If this is true then the parameters are put into an advanced section that is collapsed by default. */
     hasAdvancedSection?: boolean;
     /** When used inside a modal, the behavior of some components will be optimized. */
     insideModal: boolean;
-    /** If for this operator there is a language filter supported. Currently only path operators are affected by this option. */
-    languageFilter?: LanguageFilterProps;
+    /** Functions that are specific to input path rule operators. */
+    inputPathFunctions: InputPathFunctions;
 }
 
 /** The parameter widget of a rule node. */
@@ -32,19 +34,18 @@ export const RuleNodeParameterForm = ({
     large,
     hasAdvancedSection,
     insideModal,
-    languageFilter,
+    inputPathFunctions,
+    parameterDefaultValue,
 }: RuleNodeParametersProps) => {
     const ruleEditorUiContext = React.useContext(RuleEditorUiContext);
     const { matches: normalParameters, nonMatches: advancedParameters } = partitionArray(
         parameters,
-        (param) => !param.parameterSpecification.advanced
+        (param) => !param.parameterSpecification.advanced,
     );
 
     const shownParameters = [...normalParameters];
-    if (ruleEditorUiContext.advancedParameterModeEnabled && !hasAdvancedSection) {
-        shownParameters.push(...advancedParameters);
-    }
-    const advancedSectionParameters = hasAdvancedSection ? advancedParameters : [];
+    const advancedSectionParameters =
+        hasAdvancedSection || ruleEditorUiContext.advancedParameterModeEnabled ? advancedParameters : [];
     const renderFormParameter = (param: IRuleNodeParameter) => {
         return (
             <RuleNodeFormParameter
@@ -52,10 +53,11 @@ export const RuleNodeParameterForm = ({
                 nodeId={nodeId}
                 parameter={param}
                 dependentValue={dependentValue}
+                parameterDefaultValue={parameterDefaultValue}
                 pluginId={pluginId}
                 large={large}
                 insideModal={insideModal}
-                languageFilter={languageFilter}
+                inputPathFunctions={inputPathFunctions}
             />
         );
     };
@@ -64,7 +66,10 @@ export const RuleNodeParameterForm = ({
         <div key={"ruleNodeParameters"}>
             {shownParameters.map(renderFormParameter)}
             {advancedSectionParameters.length > 0 ? (
-                <AdvancedOptionsArea open={ruleEditorUiContext.advancedParameterModeEnabled}>
+                <AdvancedOptionsArea
+                    open={ruleEditorUiContext.advancedParameterModeEnabled}
+                    compact={!hasAdvancedSection}
+                >
                     {advancedSectionParameters.map(renderFormParameter)}
                 </AdvancedOptionsArea>
             ) : null}

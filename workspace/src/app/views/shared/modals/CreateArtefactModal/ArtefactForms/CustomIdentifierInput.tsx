@@ -4,8 +4,7 @@ import { errorMessage } from "./ParameterWidget";
 import { debounce } from "../../../../../utils/debounce";
 import { requestProjectIdValidation, requestTaskIdValidation } from "@ducks/common/requests";
 import useCopyButton from "../../../../../hooks/useCopyButton";
-import { useTranslation } from "react-i18next";
-import { TFunction } from "i18next";
+import { useTranslation, TFunction } from "react-i18next";
 import { ErrorHandlerRegisterFuncType } from "../../../../../hooks/useErrorHandler";
 import { ArtefactFormParameter } from "./ArtefactFormParameter";
 
@@ -35,7 +34,7 @@ export const handleCustomIdValidation = debounce(
         form: any,
         registerError: ErrorHandlerRegisterFuncType,
         customId: string,
-        projectId?: string
+        projectId?: string,
     ) => {
         if (!customId) return form.clearError(IDENTIFIER);
         try {
@@ -55,7 +54,7 @@ export const handleCustomIdValidation = debounce(
             }
         }
     },
-    200
+    200,
 );
 
 const CustomIdentifierInput = ({ form, onValueChange, taskId, projectId }: IProps) => {
@@ -81,7 +80,7 @@ const CustomIdentifierInput = ({ form, onValueChange, taskId, projectId }: IProp
                     id={IDENTIFIER}
                     name={IDENTIFIER}
                     onChange={onValueChange(IDENTIFIER)}
-                    hasStateDanger={errors.id ? true : false}
+                    intent={errors.id ? "danger" : undefined}
                     onKeyDown={(e) => {
                         if (e.keyCode === 13) {
                             e.preventDefault();

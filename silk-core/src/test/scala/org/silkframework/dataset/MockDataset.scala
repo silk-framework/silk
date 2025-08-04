@@ -6,6 +6,7 @@ import org.silkframework.execution.EntityHolder
 import org.silkframework.execution.local.GenericEntityTable
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.iterator.CloseableIterator
+import org.silkframework.runtime.plugin.PluginContext
 import org.silkframework.runtime.plugin.annotations.Param
 import org.silkframework.util.Uri
 
@@ -35,12 +36,12 @@ case class DummyDataSource(retrieveFn: (EntitySchema, Option[Int]) => CloseableI
                            retrieveByUriFn: (EntitySchema, Seq[Uri]) => CloseableIterator[Entity],
                            retrievePathsFn: (Uri, Int, Option[Int]) => IndexedSeq[TypedPath]) extends DataSource {
   override def retrieve(entitySchema: EntitySchema, limit: Option[Int])
-                       (implicit userContext: UserContext, prefixes: Prefixes): EntityHolder = {
+                       (implicit context: PluginContext): EntityHolder = {
     GenericEntityTable(retrieveFn(entitySchema, limit), entitySchema, underlyingTask)
   }
 
   override def retrieveByUri(entitySchema: EntitySchema, entities: Seq[Uri])
-                            (implicit userContext: UserContext, prefixes: Prefixes): EntityHolder = {
+                            (implicit context: PluginContext): EntityHolder = {
     GenericEntityTable(retrieveByUriFn(entitySchema, entities), entitySchema, underlyingTask)
   }
 

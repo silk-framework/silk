@@ -4,6 +4,7 @@ import org.silkframework.entity.{EntitySchema, Link}
 import org.silkframework.entity.paths.TypedPath
 import org.silkframework.execution.EntityHolder
 import org.silkframework.runtime.activity.UserContext
+import org.silkframework.runtime.plugin.PluginContext
 import org.silkframework.util.Uri
 
 /**
@@ -25,12 +26,12 @@ object SafeModeDataSource extends DataSource {
   }
 
   override def retrieve(entitySchema: EntitySchema, limit: Option[Int])
-                       (implicit userContext: UserContext, prefixes: Prefixes): EntityHolder = {
+                       (implicit context: PluginContext): EntityHolder = {
     SafeModeException.throwSafeModeException()
   }
 
   override def retrieveByUri(entitySchema: EntitySchema, entities: Seq[Uri])
-                            (implicit userContext: UserContext, prefixes: Prefixes): EntityHolder = {
+                            (implicit context: PluginContext): EntityHolder = {
     SafeModeException.throwSafeModeException()
   }
 }

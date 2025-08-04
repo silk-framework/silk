@@ -3,6 +3,8 @@ package org.silkframework.serialization.json
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin._
 import org.silkframework.runtime.serialization.{Serialization, WriteContext}
+import org.silkframework.serialization.json.PluginSerializers.ParameterValuesJsonFormat
+import org.silkframework.serialization.json.PluginSerializers.ParameterValuesJsonFormat.writeParameters
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.{ProjectTrait, WorkspaceReadTrait}
 import play.api.libs.json._
@@ -52,7 +54,8 @@ object PluginDescriptionSerializers {
       ).filter(_ => !overviewOnly)
       val optionalPluginIcon = plugin.icon.map(content => "pluginIcon" -> JsString(content))
       val pluginTypeSpecificProperties = plugin.customDescriptions.flatMap(_.additionalProperties().view.mapValues(JsString))
-      JsObject(metaData ++ tt ++ details ++ markdownDocumentation ++ optionalPluginIcon ++ pluginTypeSpecificProperties)
+      val actions = Seq(("actions" -> serializeActions(plugin.actions)))
+      JsObject(metaData ++ tt ++ details ++ markdownDocumentation ++ optionalPluginIcon ++ pluginTypeSpecificProperties ++ actions)
     }
 
     private def serializeParams(params: Seq[PluginParameter],
@@ -140,11 +143,35 @@ object PluginDescriptionSerializers {
       }
     }
 
-    def serializeParameterValue(pluginObjectParameterClass: Class[_],
-                                value: AnyRef)
-                               (implicit writeContext: WriteContext[JsValue]): JsValue = {
-      val jsonFormat = Serialization.formatForDynamicType[JsValue](pluginObjectParameterClass)
-      jsonFormat.write(value)
+    private def serializeParameterValue(pluginObjectParameterClass: Class[_],
+                                        value: AnyRef)
+                                       (implicit writeContext: WriteContext[JsValue]): JsValue = {
+      // First try to find a custom JSON format
+      Serialization.formatForDynamicTypeOption[JsValue](pluginObjectParameterClass) match {
+        case Some(format) =>
+          format.write(value)
+        case None =>
+          // If no JSON format is found, use the default serialization for plugins
+          value match {
+            case plugin: AnyPlugin =>
+              ParameterValuesJsonFormat.write(plugin.parameters)
+            case _: AnyRef =>
+              throw new RuntimeException(s"Plugin parameter '$value' cannot be serialized to JSON because it's not a plugin itself and no custom JSON format has been found.")
+          }
+      }
+    }
+
+    private def serializeActions(actions: Map[String, PluginAction]): JsObject = {
+      JsObject(
+        for((actionName, action) <- actions) yield {
+          actionName ->
+            Json.obj(
+              "label" -> JsString(action.label),
+              "description" -> JsString(action.description),
+              "icon" -> action.icon.map(JsString)
+            )
+        }
+      )
     }
   }
 

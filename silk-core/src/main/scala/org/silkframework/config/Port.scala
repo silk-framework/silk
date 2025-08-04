@@ -26,9 +26,10 @@ case class FixedSchemaPort(schema: EntitySchema) extends Port {
   * Flexible input ports will adapt the schema to the connected output.
   * Flexible output ports will adapt the schema to the connected input.
   *
-  * It is not allowed to connect two flexible ports.
+  * @param explicitSchema Indicates whether an output port has an explicitly defined and quickly retrievable schema (like CSV).
+ *                        This allows for connecting it directly to flexible input ports in which case the explict schema will be used.
   */
-case object FlexibleSchemaPort extends Port {
+case class FlexibleSchemaPort(explicitSchema: Boolean = false) extends Port {
 
   override def schemaOpt: Option[EntitySchema] = None
 
@@ -62,7 +63,7 @@ case class FixedNumberOfInputs(ports: Seq[Port]) extends InputPorts
   * @param min            The minimum number of ports that need to be connected.
   * @param max            The maximum number of ports that can be connected. None means unlimited.
   */
-case class FlexibleNumberOfInputs(portDefinition: Port = FlexibleSchemaPort,
+case class FlexibleNumberOfInputs(portDefinition: Port = FlexibleSchemaPort(),
                                   min: Int = 0,
                                   max: Option[Int] = None) extends InputPorts
 

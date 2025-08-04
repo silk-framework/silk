@@ -5,11 +5,10 @@ import org.silkframework.dataset.rdf.SparqlEndpointDatasetParameter
 import org.silkframework.entity.Restriction
 import org.silkframework.runtime.plugin.annotations.PluginType
 import org.silkframework.runtime.plugin.types._
-import org.silkframework.runtime.resource.{EmptyResourceManager, Resource, WritableResource}
+import org.silkframework.runtime.resource.{Resource, WritableResource}
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.{AesCrypto, Identifier, Uri}
 
-import java.io.File
 import java.lang.reflect.{ParameterizedType, Type}
 import java.net.{URLDecoder, URLEncoder}
 import java.security.spec.InvalidKeySpecException
@@ -18,7 +17,9 @@ import java.util.logging.{Level, Logger}
 import javax.crypto.SecretKey
 import scala.language.existentials
 import scala.reflect.ClassTag
+import scala.util.control.NonFatal
 import scala.util.{Failure, Success, Try}
+import scala.collection.immutable.ArraySeq
 
 /** Represents a plugin parameter type and provides serialization. */
 sealed abstract class ParameterType[T: ClassTag] {
@@ -104,7 +105,7 @@ trait PluginObjectParameterTypeTrait extends ParameterType[PluginObjectParameter
 
   override def toString(value: PluginObjectParameter)(implicit pluginContext: PluginContext): String = {
     // There is no string representation
-    ???
+    ""
   }
 }
 
@@ -199,7 +200,7 @@ object StringParameterType {
     Seq(StringType, CharType, IntType, DoubleType, BooleanType, IntOptionType, StringMapType, UriType, ResourceType,
       WritableResourceType, ResourceOptionType, DurationType, ProjectReferenceType, TaskReferenceType, MultilineStringParameterType,
       SparqlEndpointDatasetParameterType, LongType, GraphUriParameterType, TemplateParameterType,
-      PasswordParameterType, IdentifierType, IdentifierOptionType, StringTraversableParameterType, RestrictionType,
+      PasswordParameterType, IdentifierType, IdentifierOptionType, StringIterableParameterType, RestrictionType,
       Jinja2CodeParameterType, JsonCodeParameterType, SparqlCodeParameterType, SqlCodeParameterType, XmlCodeParameterType,
       YamlCodeParameterType, PythonCodeParameterType, TurtleCodeParameterType, LocaleOptionType)
   }
@@ -262,22 +263,22 @@ object StringParameterType {
     }
   }
 
-  object StringTraversableParameterType extends StringParameterType[StringTraversableParameter] {
+  object StringIterableParameterType extends StringParameterType[StringIterableParameter] {
 
     override def name: String = "traversable[string]"
 
     override def description: String = "A comma-separated list."
 
     override def fromString(str: String)
-                           (implicit context: PluginContext): StringTraversableParameter = {
+                           (implicit context: PluginContext): StringIterableParameter = {
       if(str.isEmpty) {
-        StringTraversableParameter(Iterable.empty)
+        StringIterableParameter(Iterable.empty)
       } else {
-        StringTraversableParameter(str.split("\\s*,\\s*"))
+        StringIterableParameter(str.split("\\s*,\\s*"))
       }
     }
 
-    override def toString(value: StringTraversableParameter)
+    override def toString(value: StringIterableParameter)
                          (implicit pluginContext: PluginContext): String = {
       value.mkString(", ")
     }
@@ -595,7 +596,7 @@ object StringParameterType {
   case class EnumerationType(enumType: Class[_]) extends StringParameterType[Enum[_]] {
     require(enumType.isEnum)
 
-    private val enumConstants = enumType.asInstanceOf[Class[Enum[_]]].getEnumConstants
+    private val enumConstants = ArraySeq.unsafeWrapArray(enumType.asInstanceOf[Class[Enum[_]]].getEnumConstants)
 
     private val valueList = enumerationValues.mkString(", ")
 
@@ -657,13 +658,13 @@ object StringParameterType {
 
     override def description: String = "A template."
 
-    override def fromString(str: String)(implicit context: PluginContext): TemplateParameter = TemplateParameter(str, context.templateVariables)
+    override def fromString(str: String)(implicit context: PluginContext): TemplateParameter = TemplateParameter(str)
 
     override def toString(value: TemplateParameter)(implicit pluginContext: PluginContext): String = value.templateStr
   }
 
   object PasswordParameterType extends StringParameterType[PasswordParameter] {
-    // This preamble should be added to all serializations to mark the string as a encrypted password, else it will be interpreted as plain
+    // This preamble should be added to all serializations to mark the string as an encrypted password, else it will be interpreted as plain
     final val PREAMBLE = "PASSWORD_PARAMETER:"
     final val CONFIG_KEY = "plugin.parameters.password.crypt.key"
 
@@ -698,7 +699,10 @@ object StringParameterType {
       val encryptedPassword = if (str == null || str == "") {
         str // Handle empty string as empty password and vice versa
       } else if (str.startsWith(PREAMBLE)) {
-        str.stripPrefix(PREAMBLE)
+        val encryptedPassword = str.stripPrefix(PREAMBLE)
+        // Test that it can be decrypted
+        PasswordParameter.decrypt(encryptedPassword)
+        encryptedPassword
       } else {
         AesCrypto.encrypt(key, str)
       }

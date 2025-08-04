@@ -63,3 +63,9 @@ interface SampleEntitySchema {
     typePath: string;
     properties: string[];
 }
+
+// Data about a type rule
+export interface TypeRuleData {
+    id: string;
+    typeRuleId: string;
+}

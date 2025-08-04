@@ -19,13 +19,13 @@ import {
 } from "@eccenca/gui-elements";
 import { Definitions as IntentTypes } from "@eccenca/gui-elements/src/common/Intent";
 import {
-    ActivityAction,
-    IActivityControlLayoutProps,
+    SilkActivityControlAction,
+    SilkActivityControlLayoutProps,
     SilkActivityControl,
-    IActivityStatus,
+    SilkActivityStatusProps,
     Markdown,
     ElapsedDateTimeDisplay,
-    TimeUnits,
+    ElapsedDateTimeDisplayUnits,
 } from "@eccenca/gui-elements";
 import {
     IActivityCachesOverallStatus,
@@ -59,11 +59,11 @@ export function TaskActivityOverview({ projectId, taskId }: IProps) {
     // Basically a clone of activities, so the update functions can access the current activities
     const [unmanagedState] = useState<{ activities: IActivityListEntry[] }>({ activities: [] });
     // Stores the current status for each activity
-    const [activityStatusMap] = useState<Map<string, IActivityStatus>>(new Map());
+    const [activityStatusMap] = useState<Map<string, SilkActivityStatusProps>>(new Map());
     // Contains the memoized activity control execution functions for each activity
     const [activityFunctionsMap] = useState<Map<string, IActivityControlFunctions>>(new Map());
     // Contains the callback function from a specific activity control that needs to be called every time the status changes, so only the affected activity is re-rendered.
-    const [activityUpdateCallback] = useState<Map<string, (status: IActivityStatus) => any>>(new Map());
+    const [activityUpdateCallback] = useState<Map<string, (status: SilkActivityStatusProps) => any>>(new Map());
     // The aggregated status of all cache activities
     const [cachesOverallStatus] = useState<IActivityCachesOverallStatus>({
         failedActivities: 0,
@@ -77,7 +77,7 @@ export function TaskActivityOverview({ projectId, taskId }: IProps) {
     //boolean to disable and re-enable reload all button
     const [reloadingAllCaches, setReloadingAllCaches] = React.useState<boolean>(false);
     const ignoreStillRunningError = React.useRef<boolean>(false);
-    const nonExecutedCacheActivities = React.useRef<IActivityListEntry[]>([])
+    const nonExecutedCacheActivities = React.useRef<IActivityListEntry[]>([]);
 
     // Used for explicit re-render trigger
     const setUpdateSwitch = useState<boolean>(false)[1];
@@ -97,7 +97,7 @@ export function TaskActivityOverview({ projectId, taskId }: IProps) {
 
     // Request activity updates via websocket or polling. If a task is depending on other activities than its own, this is executed multiple times.
     const requestUpdates = (
-        updateActivityStatus: (activityStatus: IActivityStatus) => any,
+        updateActivityStatus: (activityStatus: SilkActivityStatusProps) => any,
         project: StringOrUndefined,
         task: StringOrUndefined,
         activityName: StringOrUndefined
@@ -115,21 +115,22 @@ export function TaskActivityOverview({ projectId, taskId }: IProps) {
         .join("|");
 
     const executeAllNonExecutedCacheActivities = React.useCallback(async () => {
-        const activitiesToExecute = nonExecutedCacheActivities.current
-        nonExecutedCacheActivities.current = []
-        for(let i = 0; i < activitiesToExecute.length; i++) {
+        const activitiesToExecute = nonExecutedCacheActivities.current;
+        nonExecutedCacheActivities.current = [];
+        for (let i = 0; i < activitiesToExecute.length; i++) {
             const activityFunctions = activityFunctionsCreator(activitiesToExecute[i]);
             await activityFunctions.executeActivityAction("restart");
         }
-    }, [])
+    }, []);
 
     React.useEffect(() => {
         //check if any caches activity is running
         const currentlyRunningCacheActivity = !!Array.from(activityStatusMap.entries()).find(
-            ([activityKey, a]) => cacheActivityIds.has(activityKey) && !["Waiting", "Finished", "Idle"].includes(a.statusName)
+            ([activityKey, a]) =>
+                cacheActivityIds.has(activityKey) && !["Waiting", "Finished", "Idle"].includes(a.statusName)
         );
-        if(!currentlyRunningCacheActivity && nonExecutedCacheActivities.current.length) {
-            executeAllNonExecutedCacheActivities()
+        if (!currentlyRunningCacheActivity && nonExecutedCacheActivities.current.length) {
+            executeAllNonExecutedCacheActivities();
         }
         setReloadingAllCaches(currentlyRunningCacheActivity);
     }, [statusMapDependency, nonExecutedCacheActivities.current]);
@@ -142,7 +143,7 @@ export function TaskActivityOverview({ projectId, taskId }: IProps) {
             .map((a) => activityKeyOfEntry(a));
         const cacheActivityStatus = cacheActivityKeys
             .map((activityKey) => activityStatusMap.get(activityKey))
-            .filter((a) => a) as IActivityStatus[];
+            .filter((a) => a) as SilkActivityStatusProps[];
         // Update currently-executing state
         const executing = cacheActivityStatus.some((status) => status.isRunning);
         if (cachesOverallStatus.currentlyExecuting !== executing) {
@@ -189,7 +190,7 @@ export function TaskActivityOverview({ projectId, taskId }: IProps) {
     const requestActivityUpdates = () => {
         setLoading(true);
         // Callback function when an update comes in
-        const updateActivityStatus = (activityStatus: IActivityStatus) => {
+        const updateActivityStatus = (activityStatus: SilkActivityStatusProps) => {
             const key = activityKey(activityStatus.activity, activityStatus.project, activityStatus.task);
             const oldValue = activityStatusMap.get(key);
             activityStatusMap.set(key, activityStatus);
@@ -239,7 +240,11 @@ export function TaskActivityOverview({ projectId, taskId }: IProps) {
 
     const translateActions = useCallback((key: string) => t("widget.TaskActivityOverview.activityControl." + key), [t]);
 
-    const handleActivityActionError = (activityName: string, action: ActivityAction, error: DIErrorTypes) => {
+    const handleActivityActionError = (
+        activityName: string,
+        action: SilkActivityControlAction,
+        error: DIErrorTypes
+    ) => {
         const errorIsStillRunningError = !!/running/.test(
             (error as FetchError)?.errorDetails?.response?.data?.detail ?? ""
         );
@@ -252,12 +257,13 @@ export function TaskActivityOverview({ projectId, taskId }: IProps) {
     };
 
     // Register an observer from the activity widget
-    const createRegisterForUpdatesFn = (activityKey: string) => (callback: (status: IActivityStatus) => any) => {
-        activityUpdateCallback.set(activityKey, callback);
-        // Send current value if it exists
-        const currentStatus = activityStatusMap.get(activityKey);
-        currentStatus && callback(currentStatus);
-    };
+    const createRegisterForUpdatesFn =
+        (activityKey: string) => (callback: (status: SilkActivityStatusProps) => any) => {
+            activityUpdateCallback.set(activityKey, callback);
+            // Send current value if it exists
+            const currentStatus = activityStatusMap.get(activityKey);
+            currentStatus && callback(currentStatus);
+        };
 
     // Unregister from updates when an activity control is not shown anymore
     const createUnregisterFromUpdateFn = (activityKey: string) => () => {
@@ -311,7 +317,7 @@ export function TaskActivityOverview({ projectId, taskId }: IProps) {
     const mainActivities = activitiesWithStatus.filter((a) => a.activityCharacteristics.isMainActivity);
     const nonMainActivities = activitiesWithStatus.filter((a) => !a.activityCharacteristics.isMainActivity);
     const cacheActivities = nonMainActivities.filter((a) => a.activityCharacteristics.isCacheActivity);
-    const cacheActivityIds = new Set(cacheActivities.map(c => activityKeyOfEntry(c)))
+    const cacheActivityIds = new Set(cacheActivities.map((c) => activityKeyOfEntry(c)));
     const runningNonMainActivities = nonMainActivities.filter(
         (a) => activityStatusMap.get(activityKeyOfEntry(a))?.isRunning && !a.activityCharacteristics.isCacheActivity
     );
@@ -335,7 +341,7 @@ export function TaskActivityOverview({ projectId, taskId }: IProps) {
     };
 
     // For the elapsed time component, showing when a cache was last updated
-    const translateUnits = (unit: TimeUnits) => t("common.units." + unit, unit);
+    const translateUnits = (unit: ElapsedDateTimeDisplayUnits) => t("common.units." + unit, unit);
     const startPrioritized = React.useCallback(async (activityName: string, project: string, task: string) => {
         const registerActivityError = (activityName: string, error: DIErrorTypes) => {
             registerError(
@@ -348,7 +354,10 @@ export function TaskActivityOverview({ projectId, taskId }: IProps) {
     }, []);
 
     // A single activity control
-    const activityControl = (activity: IActivityListEntry, layoutConfig: IActivityControlLayoutProps): JSX.Element => {
+    const activityControl = (
+        activity: IActivityListEntry,
+        layoutConfig: SilkActivityControlLayoutProps
+    ): JSX.Element => {
         const activityFunctions = activityFunctionsCreator(activity);
         const activityLabel = t(`widget.TaskActivityOverview.activities.${activity.name}.title`, activity.label);
         const elapsedTime = activity.activityCharacteristics.isCacheActivity
@@ -415,28 +424,29 @@ export function TaskActivityOverview({ projectId, taskId }: IProps) {
             setReloadingAllCaches(true);
             // check that all cache activities are in waiting or idle state
             const currentlyRunningActivity = !!Array.from(activityStatusMap.entries()).find(
-                ([activityKey, a]) => cacheActivityIds.has(activityKey) && !["Waiting", "Finished", "Idle"].includes(a.statusName)
+                ([activityKey, a]) =>
+                    cacheActivityIds.has(activityKey) && !["Waiting", "Finished", "Idle"].includes(a.statusName)
             );
 
             if (!currentlyRunningActivity) {
-                ignoreStillRunningError.current = true
-                const notExecutedActivities: IActivityListEntry[] = []
+                ignoreStillRunningError.current = true;
+                const notExecutedActivities: IActivityListEntry[] = [];
                 try {
                     await Promise.all(
                         cacheActivities.map(async (activity) => {
                             const activityFunctions = activityFunctionsCreator(activity);
                             const wasExecuted = await activityFunctions.executeActivityAction("restart");
                             if (!wasExecuted) {
-                                notExecutedActivities.push(activity)
+                                notExecutedActivities.push(activity);
                             }
                         })
-                    )
-                    if(notExecutedActivities.length) {
-                        nonExecutedCacheActivities.current = notExecutedActivities
+                    );
+                    if (notExecutedActivities.length) {
+                        nonExecutedCacheActivities.current = notExecutedActivities;
                     }
                 } finally {
                     setReloadingAllCaches(false);
-                    ignoreStillRunningError.current = false
+                    ignoreStillRunningError.current = false;
                 }
             }
         }, [cacheActivities]);
@@ -487,7 +497,7 @@ export function TaskActivityOverview({ projectId, taskId }: IProps) {
     // Returns the sorted list of activity controls
     function activityWidgets(
         activities: IActivityListEntry[],
-        layoutConfig: IActivityControlLayoutProps
+        layoutConfig: SilkActivityControlLayoutProps
     ): JSX.Element[] {
         const activitiesWithLabels = activities
             .map((activity) => {

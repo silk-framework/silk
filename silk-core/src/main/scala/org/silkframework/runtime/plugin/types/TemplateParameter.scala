@@ -1,5 +1,10 @@
 package org.silkframework.runtime.plugin.types
 
-import org.silkframework.runtime.templating.TemplateVariablesReader
+import scala.language.implicitConversions
 
-case class TemplateParameter(templateStr: String, templateVariables: TemplateVariablesReader)
+case class TemplateParameter(templateStr: String)
+
+object TemplateParameter {
+  implicit def str2parameter(str: String): TemplateParameter = TemplateParameter(str)
+  implicit def templateParameter2str(templateParameter: TemplateParameter): String = templateParameter.templateStr
+}

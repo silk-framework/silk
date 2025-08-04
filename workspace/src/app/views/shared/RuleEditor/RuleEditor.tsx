@@ -9,6 +9,7 @@ import {
     IRuleOperatorNode,
     IRuleSideBarFilterTabConfig,
     IRuleSidebarPreConfiguredOperatorsTabConfig,
+    PathMetaDataFunctions,
     RuleEditorValidationNode,
     RuleOperatorPluginType,
     RuleSaveResult,
@@ -16,16 +17,16 @@ import {
 import ErrorBoundary from "../../../ErrorBoundary";
 import { ReactFlowProvider } from "react-flow-renderer";
 import utils from "./RuleEditor.utils";
-import { IStickyNote } from "views/taskViews/shared/task.typings";
 import { DatasetCharacteristics } from "../typings";
 import { ReactFlowHotkeyContext } from "@eccenca/gui-elements/src/cmem/react-flow/extensions/ReactFlowHotkeyContext";
-import {Notification} from "@eccenca/gui-elements"
-import {diErrorMessage} from "@ducks/error/typings";
+import { Notification, StickyNote } from "@eccenca/gui-elements";
+import { diErrorMessage } from "@ducks/error/typings";
+import { IPartialAutoCompleteResult } from "@eccenca/gui-elements/src/components/AutoSuggestion/AutoSuggestion";
 
 /** Function to fetch the rule operator spec. */
 export type RuleOperatorFetchFnType = (
     pluginId: string,
-    pluginType?: RuleOperatorPluginType
+    pluginType?: RuleOperatorPluginType,
 ) => IRuleOperator | undefined;
 
 export interface RuleEditorProps<RULE_TYPE, OPERATOR_TYPE> {
@@ -42,8 +43,8 @@ export interface RuleEditorProps<RULE_TYPE, OPERATOR_TYPE> {
     /** Save rule. If true is returned saving was successful, else it failed. */
     saveRule: (
         ruleOperatorNodes: IRuleOperatorNode[],
-        stickyNotes: IStickyNote[],
-        originalRuleData: RULE_TYPE
+        stickyNotes: StickyNote[],
+        originalRuleData: RULE_TYPE,
     ) => Promise<RuleSaveResult> | RuleSaveResult;
     /** Fetch available rule operators. */
     fetchRuleOperators: () => Promise<OPERATOR_TYPE[] | undefined> | OPERATOR_TYPE[] | undefined;
@@ -51,8 +52,8 @@ export interface RuleEditorProps<RULE_TYPE, OPERATOR_TYPE> {
     convertRuleOperator: (
         op: OPERATOR_TYPE,
         addAdditionParameterSpecifications: (
-            pluginDetails: OPERATOR_TYPE
-        ) => [id: string, spec: IParameterSpecification][]
+            pluginDetails: OPERATOR_TYPE,
+        ) => [id: string, spec: IParameterSpecification][],
     ) => IRuleOperator;
     /** Converts the external rule representation into the internal rule representation. */
     convertToRuleOperatorNodes: (ruleData: RULE_TYPE, ruleOperator: RuleOperatorFetchFnType) => IRuleOperatorNode[];
@@ -66,14 +67,14 @@ export interface RuleEditorProps<RULE_TYPE, OPERATOR_TYPE> {
     validateConnection: (
         fromRuleOperatorNode: RuleEditorValidationNode,
         toRuleOperatorNode: RuleEditorValidationNode,
-        targetPortIdx: number
+        targetPortIdx: number,
     ) => boolean;
     /** Tabs that allow to show different rule operators or only a subset. */
     tabs?: (IRuleSideBarFilterTabConfig | IRuleSidebarPreConfiguredOperatorsTabConfig)[];
     /** Additional components that will be placed in the tool bar left to the save button. */
     additionalToolBarComponents?: () => JSX.Element | JSX.Element[];
     /** parent configuration to extract stickyNote from taskData*/
-    getStickyNotes?: (taskData: RULE_TYPE | undefined) => IStickyNote[];
+    getStickyNotes?: (taskData: RULE_TYPE | undefined) => StickyNote[];
     /** When enabled only the rule is shown without side- and toolbar and any other means to edit the rule. */
     showRuleOnly: boolean;
     /** When enabled the mini map is not displayed. */
@@ -85,10 +86,17 @@ export interface RuleEditorProps<RULE_TYPE, OPERATOR_TYPE> {
     /** Fetches dataset characteristics for all input datasets relevant in the rule editor. These are used for the 'PathInputOperator' type.
      * The key is the corresponding plugin ID. */
     fetchDatasetCharacteristics?: (
-        taskData: RULE_TYPE | undefined
+        taskData: RULE_TYPE | undefined,
     ) => Map<string, DatasetCharacteristics> | Promise<Map<string, DatasetCharacteristics>>;
-    /** Returns for a path input plugin and a path the type of the given path. Returns undefined if either the plugin does not exist or the path data is unknown. */
-    inputPathPluginPathType?: (inputPathPluginId: string, path: string) => string | undefined;
+    /** Optional functions to get more information about specific properties/paths. */
+    pathMetaData?: PathMetaDataFunctions;
+    /**
+     * Fetches partial auto-completion results for the transforms task input paths, i.e. any part of a path could be auto-completed
+     * without replacing the complete path.
+     */
+    partialAutoCompletion: (
+        inputType: "source" | "target",
+    ) => (inputString: string, cursorPosition: number) => Promise<IPartialAutoCompleteResult | undefined>;
 }
 
 const READ_ONLY_QUERY_PARAMETER = "readOnly";
@@ -117,7 +125,8 @@ const RuleEditor = <TASK_TYPE extends object, OPERATOR_TYPE extends object>({
     initialFitToViewZoomLevel,
     instanceId,
     fetchDatasetCharacteristics,
-    inputPathPluginPathType,
+    pathMetaData,
+    partialAutoCompletion,
 }: RuleEditorProps<TASK_TYPE, OPERATOR_TYPE>) => {
     // The task that contains the rule, e.g. transform or linking task
     const [taskData, setTaskData] = React.useState<TASK_TYPE | undefined>(undefined);
@@ -129,7 +138,7 @@ const RuleEditor = <TASK_TYPE extends object, OPERATOR_TYPE extends object>({
     const [operatorsLoading, setOperatorsLoading] = React.useState<boolean>(false);
     // The internal rule operator node model
     const [initialRuleOperatorNodes, setInitialRuleOperatorNodes] = React.useState<IRuleOperatorNode[] | undefined>(
-        undefined
+        undefined,
     );
     // The list of available operators that can be added to the canvas
     const [operatorList, setOperatorList] = React.useState<IRuleOperator[] | undefined>(undefined);
@@ -144,7 +153,7 @@ const RuleEditor = <TASK_TYPE extends object, OPERATOR_TYPE extends object>({
     const [lastSaveResult, setLastSaveResult] = React.useState<RuleSaveResult | undefined>(undefined);
     // Dataset characteristics used for the 'PathInputOperator' type. The key is the corresponding plugin ID.
     const [datasetCharacteristics, setDatasetCharacteristics] = React.useState<Map<string, DatasetCharacteristics>>(
-        new Map()
+        new Map(),
     );
     const [hotKeysDisabled, setHotKeysDisabled] = React.useState<boolean>(false);
 
@@ -187,7 +196,7 @@ const RuleEditor = <TASK_TYPE extends object, OPERATOR_TYPE extends object>({
             const addAdditionalParams = addAdditionParameterSpecifications ?? (() => []);
             operators.forEach((op) => ops.push(convertRuleOperator(op, addAdditionalParams)));
             const operatorSpec = new Map(
-                ops.map((op) => [op.pluginId, new Map(Object.entries(op.parameterSpecification))])
+                ops.map((op) => [op.pluginId, new Map(Object.entries(op.parameterSpecification))]),
             );
 
             const operatorMap = new Map<string, IRuleOperator[]>();
@@ -217,7 +226,7 @@ const RuleEditor = <TASK_TYPE extends object, OPERATOR_TYPE extends object>({
 
     const saveRuleOperatorNodes = async (
         ruleNodeOperators: IRuleOperatorNode[],
-        stickyNotes: IStickyNote[] = []
+        stickyNotes: StickyNote[] = [],
     ): Promise<RuleSaveResult> => {
         if (taskData) {
             const result = await saveRule(ruleNodeOperators, stickyNotes, taskData);
@@ -277,7 +286,8 @@ const RuleEditor = <TASK_TYPE extends object, OPERATOR_TYPE extends object>({
                 initialFitToViewZoomLevel,
                 instanceId,
                 datasetCharacteristics,
-                inputPathPluginPathType,
+                pathMetaData,
+                partialAutoCompletion,
             }}
         >
             <ReactFlowHotkeyContext.Provider
@@ -300,7 +310,7 @@ const RuleEditor = <TASK_TYPE extends object, OPERATOR_TYPE extends object>({
 };
 
 const WrappedRuleEditor = <RULE_TYPE extends object, OPERATOR_TYPE extends object>(
-    props: RuleEditorProps<RULE_TYPE, OPERATOR_TYPE>
+    props: RuleEditorProps<RULE_TYPE, OPERATOR_TYPE>,
 ) => (
     <ErrorBoundary>
         <ReactFlowProvider>

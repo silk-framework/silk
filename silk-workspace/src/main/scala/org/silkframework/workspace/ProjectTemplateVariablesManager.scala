@@ -2,14 +2,19 @@ package org.silkframework.workspace
 
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.templating.exceptions.InvalidScopeException
-import org.silkframework.runtime.templating.{GlobalTemplateVariables, TemplateVariables, TemplateVariablesManager}
+import org.silkframework.runtime.templating.{GlobalTemplateVariables, TemplateVariableScopes, TemplateVariables, TemplateVariablesManager}
 
-class ProjectTemplateVariablesManager(serializer: TemplateVariablesSerializer)
-                                     (implicit user: UserContext) extends TemplateVariablesManager {
+/**
+ * Manages project template variables.
+ *
+ * @param serializer The serializer to read and write template variables.
+ * @param loadingUser The user context for loading the variables initially.
+ */
+class ProjectTemplateVariablesManager(serializer: TemplateVariablesSerializer, loadingUser: UserContext) extends TemplateVariablesManager {
 
-  private val projectScope = "project"
+  private def projectScope = TemplateVariableScopes.project
 
-  private var variables: TemplateVariables = serializer.readVariables()
+  private var variables: TemplateVariables = serializer.readVariables()(loadingUser)
 
   /**
     * The available variable scopes.
@@ -26,7 +31,7 @@ class ProjectTemplateVariablesManager(serializer: TemplateVariablesSerializer)
   /**
     * Updates all template variables.
     */
-  override def put(variables: TemplateVariables): Unit = {
+  override def put(variables: TemplateVariables)(implicit user: UserContext): Unit = {
     // Make sure that all variables are in the project scope.
     for(variable <- variables.variables) {
       if(variable.scope != projectScope) {

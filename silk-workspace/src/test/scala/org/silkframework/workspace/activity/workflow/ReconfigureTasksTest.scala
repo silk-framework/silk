@@ -2,19 +2,22 @@ package org.silkframework.workspace.activity.workflow
 
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
-import org.silkframework.config.{PlainTask, Task, TaskSpec}
+import org.silkframework.config.{PlainTask, Prefixes, Task, TaskSpec}
+import org.silkframework.dataset.{Dataset, DatasetSpec}
 import org.silkframework.entity.paths.UntypedPath
 import org.silkframework.entity.{Entity, EntitySchema}
 import org.silkframework.rule.{DatasetSelection, LinkSpec, TransformSpec}
-import org.silkframework.runtime.plugin.PluginContext
 import org.silkframework.runtime.plugin.types.IdentifierOptionParameter
+import org.silkframework.runtime.plugin._
+import org.silkframework.runtime.resource.InMemoryResourceManager
+import org.silkframework.util.ConfigTestTrait
 import org.silkframework.workspace.activity.workflow.ReconfigureTasks.ReconfigurableTask
 
-class ReconfigureTasksTest extends AnyFlatSpec with Matchers {
+class ReconfigureTasksTest extends AnyFlatSpec with Matchers with ConfigTestTrait {
 
   behavior of "ReconfigureTasks"
 
-  private implicit val pluginContext: PluginContext = PluginContext.empty
+  private implicit val pluginContext: PluginContext = PluginContext(Prefixes.default, InMemoryResourceManager())
 
   it should "reconfigure transform tasks" in {
     val transform = PlainTask("transform-task", TransformSpec(DatasetSelection("original-source"), output = IdentifierOptionParameter(Some("original-output"))))
@@ -29,6 +32,14 @@ class ReconfigureTasksTest extends AnyFlatSpec with Matchers {
     updatedLinkSpec.data.source.inputId shouldBe "replaced-source"
     updatedLinkSpec.data.target.inputId shouldBe "replaced-target"
     updatedLinkSpec.data.output shouldBe IdentifierOptionParameter(Some("replaced-output"))
+  }
+
+  it should "overwrite reconfigured values even if a template is defined for them" in {
+    val dataset = PluginRegistry.create[Dataset]("text", ParameterValues(Map("file" -> ParameterTemplateValue("template"))))
+    val updatedDataset = reconfigure(PlainTask("test", DatasetSpec(dataset)), Map("file" -> "updated"))
+
+    dataset.parameters.values.get("file") shouldBe Some(ParameterTemplateValue("template"))
+    updatedDataset.parameters.values.get("file") shouldBe Some(ParameterStringValue("updated"))
   }
 
   private def reconfigure[T <: TaskSpec](task: Task[T], values: Map[String, String]): Task[T] = {
@@ -46,4 +57,7 @@ class ReconfigureTasksTest extends AnyFlatSpec with Matchers {
     task.reconfigure(Seq(entity))
   }
 
+  override def propertyMap: Map[String, Option[String]] = Map(
+    "config.variables.engine" -> Some("unresolved")
+  )
 }

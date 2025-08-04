@@ -109,6 +109,36 @@ class WorkspaceTest extends AnyFlatSpec with Matchers with ConfigTestTrait with 
     newSleepActivity.status() mustBe 'isRunning
   }
 
+  it should "reload workspace prefixes and add them to all projects" in {
+    val initialPrefix = "initialPrefix"
+    val secondPrefix = "secondPrefix"
+    var prefixes: Prefixes = Prefixes(Map("initialPrefix" -> "urn:initial:"))
+    val workspaceProvider = new TestWorkspaceProvider(loadTimePause = 0) {
+      override def fetchRegisteredPrefixes()(implicit userContext: UserContext): Prefixes = {
+        prefixes
+      }
+    }
+    val projectPrefix = "projectPrefix"
+    val projectId = "project"
+    val workspace = new Workspace(workspaceProvider, InMemoryResourceRepository())
+    val project = workspace.createProject(ProjectConfig(projectId, Prefixes(Map(projectPrefix -> "urn:project:"))))
+    project.config.projectPrefixes.get("rdfs") must not be defined
+    project.config.workspacePrefixes.get("rdfs") mustBe defined
+    project.config.prefixes.get(initialPrefix) mustBe defined
+    prefixes = Prefixes(Map(secondPrefix -> "urn:second:"))
+    workspace.reloadPrefixes()
+    val projectConfig = workspace.project(projectId).config
+    projectConfig.projectPrefixes.get("rdfs") must not be defined
+    projectConfig.prefixes.get(initialPrefix) must not be defined
+    projectConfig.prefixes.get(secondPrefix) mustBe defined
+    projectConfig.prefixes.get(projectPrefix) mustBe defined
+    val projectId2 = "project2"
+    val projectConfig2 = workspace.createProject(ProjectConfig(projectId2, Prefixes.empty)).config
+    projectConfig2.projectPrefixes.get("rdfs") must not be defined
+    projectConfig2.prefixes.get(secondPrefix) mustBe defined
+    projectConfig2.prefixes.get(projectPrefix) must not be defined
+  }
+
   override def propertyMap: Map[String, Option[String]] = Map(
     "workspace.timeouts.waitForWorkspaceInitialization" -> Some("1")
   )

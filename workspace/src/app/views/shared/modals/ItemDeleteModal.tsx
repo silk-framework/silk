@@ -14,10 +14,14 @@ interface IProps {
     onClose: () => void;
 
     onConfirmed?();
+
+    notifications?: React.ReactNode | React.ReactNode[];
+
+    deleteDisabled?: boolean;
 }
 
 /** Modal for task deletion. */
-export function ItemDeleteModal({ item, onClose, onConfirmed }: IProps) {
+export function ItemDeleteModal({ item, onClose, onConfirmed, notifications, deleteDisabled }: IProps) {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<ErrorResponse | undefined>(undefined);
 
@@ -56,7 +60,7 @@ export function ItemDeleteModal({ item, onClose, onConfirmed }: IProps) {
         const itemType = t(
             item.id
                 ? `common.dataTypes.${item.type ? item.type.toLowerCase() : "genericArtefactLabel"}`
-                : "common.dataTypes.project"
+                : "common.dataTypes.project",
         );
         setDeleteModalOptions({
             render: () => <Loading description={t("Deletedialog.loading", "Loading delete dialog.")} delay={0} />,
@@ -95,7 +99,7 @@ export function ItemDeleteModal({ item, onClose, onConfirmed }: IProps) {
                                                 </Tooltip>
                                             </Link>
                                         </li>
-                                    )
+                                    ),
                                 )}
                             </ul>
                         </div>
@@ -139,7 +143,6 @@ export function ItemDeleteModal({ item, onClose, onConfirmed }: IProps) {
             });
         }
     };
-
     return deleteModalOptions ? (
         <DeleteModal
             data-test-id={"deleteItemModal"}
@@ -147,7 +150,9 @@ export function ItemDeleteModal({ item, onClose, onConfirmed }: IProps) {
             onDiscard={onClose}
             {...deleteModalOptions}
             removeLoading={loading}
+            deleteDisabled={deleteDisabled}
             errorMessage={error && `Deletion failed: ${error.asString()}`}
+            notifications={notifications}
         />
     ) : null;
 }

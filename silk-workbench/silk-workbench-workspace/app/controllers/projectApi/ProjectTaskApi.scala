@@ -145,7 +145,7 @@ class ProjectTaskApi @Inject()() extends InjectedController with UserContextActi
         }
       }
       RelatedItem(task.id, task.fullLabel, task.metaData.description, itemType.label, itemLinks, pd.label, task.tags().map(FullTag.fromTag),
-        task.searchTags(project.config.prefixes),
+        task.searchTags(PluginContext.fromProject(project)),
         Some(pd.id),
         Some(project.id),
         readOnly

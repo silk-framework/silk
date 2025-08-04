@@ -63,7 +63,7 @@ class Workspace(val provider: WorkspaceProvider,
 
   @volatile
   // Additional prefixes loaded from the workspace provider that will be added to every project
-  private var additionalPrefixes: Prefixes = Prefixes.empty
+  private var workspacePrefixes: Prefixes = Prefixes.default
 
   // All global workspace activities
   lazy val activities: Seq[GlobalWorkspaceActivity[_ <: HasValue]] = {
@@ -159,9 +159,9 @@ class Workspace(val provider: WorkspaceProvider,
       throw IdentifierAlreadyExistsException("Project " + creationConfig.id + " does already exist!")
     }
     provider.putProject(creationConfig)
-    val newProject = new Project(creationConfig, provider, repository.get(creationConfig.id))
+    val newProject = new Project(creationConfig, provider, repository.get(creationConfig.id), userContext)
     addProjectToCache(newProject)
-    newProject.setAdditionalPrefixes(additionalPrefixes)
+    newProject.setWorkspacePrefixes(workspacePrefixes)
     log.info(s"Created new project '${creationConfig.id}'. " + userContext.logInfo)
     newProject
   }
@@ -216,7 +216,7 @@ class Workspace(val provider: WorkspaceProvider,
                     file: File,
                     marshaller: ProjectMarshallingTrait,
                     overwrite: Boolean = false)
-                   (implicit userContext: UserContext) {
+                   (implicit userContext: UserContext): Unit = {
     loadUserProjects()
     synchronized {
       findProject(name) match {
@@ -247,6 +247,10 @@ class Workspace(val provider: WorkspaceProvider,
     for(workspaceActivity <- activities) {
       workspaceActivity.control.cancel()
     }
+    for(workspaceActivity <- activities) {
+      Try(workspaceActivity.control.waitUntilFinished())
+    }
+
     // Refresh workspace provider
     provider.refresh(repository)
 
@@ -263,9 +267,9 @@ class Workspace(val provider: WorkspaceProvider,
 
   /** Reloads the registered prefixes if the workspace provider supports this operation. */
   def reloadPrefixes()(implicit userContext: UserContext): Unit = {
-    additionalPrefixes = provider.fetchRegisteredPrefixes()
+    workspacePrefixes = provider.fetchRegisteredPrefixes() ++ Prefixes.default
     cachedProjects foreach { project =>
-      project.setAdditionalPrefixes(additionalPrefixes)
+      project.setWorkspacePrefixes(workspacePrefixes)
     }
   }
 
@@ -277,7 +281,8 @@ class Workspace(val provider: WorkspaceProvider,
     removeProjectFromCache(id)
     provider.readProject(id) match {
       case Some(projectConfig) =>
-        val project = new Project(projectConfig, provider, repository.get(projectConfig.id))
+        val project = new Project(projectConfig, provider, repository.get(projectConfig.id), userContext)
+        project.setWorkspacePrefixes(workspacePrefixes)
         addProjectToCache(project)
         project.startActivities()
       case None =>
@@ -306,7 +311,7 @@ class Workspace(val provider: WorkspaceProvider,
   private def loadProjects()(implicit userContext: UserContext): Unit = {
     cachedProjects = for(projectConfig <- provider.readProjects()) yield {
       log.info("Loading project: " + projectConfig.id)
-      val project = new Project(projectConfig, provider, repository.get(projectConfig.id))
+      val project = new Project(projectConfig, provider, repository.get(projectConfig.id), userContext)
       log.info("Finished loading project '" + projectConfig.id + "'.")
       project
     }

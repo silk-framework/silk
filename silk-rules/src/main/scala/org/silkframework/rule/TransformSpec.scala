@@ -6,15 +6,16 @@ import org.silkframework.entity._
 import org.silkframework.entity.paths._
 import org.silkframework.rule.RootMappingRule.RootMappingRuleFormat
 import org.silkframework.rule.TransformSpec.{RuleSchemata, TargetVocabularyCategory, TargetVocabularyParameter}
-import org.silkframework.rule.input.TransformInput
+import org.silkframework.rule.input.{TransformInput, Transformer}
 import org.silkframework.rule.vocab.TargetVocabularyParameterEnum
-import org.silkframework.runtime.plugin.StringParameterType.{EnumerationType, StringTraversableParameterType}
+import org.silkframework.runtime.plugin.StringParameterType.{EnumerationType, StringIterableParameterType}
 import org.silkframework.runtime.plugin._
 import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
 import org.silkframework.runtime.plugin.types.IdentifierOptionParameter
 import org.silkframework.runtime.resource.Resource
 import org.silkframework.runtime.serialization.XmlSerialization._
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat, XmlSerialization}
+import org.silkframework.runtime.templating.TemplateVariableName
 import org.silkframework.runtime.validation.NotFoundException
 import org.silkframework.util.{Identifier, IdentifierGenerator}
 import org.silkframework.workspace.{OriginalTaskData, TaskLoadingException, WorkspaceReadTrait}
@@ -24,6 +25,7 @@ import scala.collection.mutable
 import scala.language.implicitConversions
 import scala.util.Try
 import scala.xml.{Node, Null}
+import scala.collection.immutable.ArraySeq
 
 /**
   * This class contains all the required parameters to execute a transform task.
@@ -102,7 +104,7 @@ case class TransformSpec(@Param(label = "Input", value = "The source from which 
 
   override lazy val referencedResources: Seq[Resource] = {
     val resources = new mutable.HashSet[Resource]()
-    extractResourcesFromRule(mappingRule, resources)
+    iterateAllTransformersFromRule(mappingRule, _.referencedResources.foreach(resources.add))
     resources.toSeq
   }
 
@@ -110,18 +112,23 @@ case class TransformSpec(@Param(label = "Input", value = "The source from which 
     updatedResourceOfRule(mappingRule, resource)
   }
 
-  private def extractResourcesFromRule(rule: TransformRule,
-                                       resources: mutable.HashSet[Resource]): Unit = {
-    extractResourcesFromOperator(rule.operator, resources)
-    rule.rules.foreach(rule => extractResourcesFromRule(rule, resources))
+  override def referencedVariables: Seq[TemplateVariableName] = {
+    val variables = mutable.Buffer[TemplateVariableName]()
+    iterateAllTransformersFromRule(mappingRule, _.referencedVariables.foreach(variables.append))
+    variables.toSeq
   }
 
-  private def extractResourcesFromOperator(operator: Operator,
-                                           resources: mutable.HashSet[Resource]): Unit = {
+  private def iterateAllTransformersFromRule(rule: TransformRule, f: Transformer => Unit): Unit = {
+    iterateAllTransformersFromOperator(rule.operator, f)
+    rule.rules.foreach(rule => iterateAllTransformersFromRule(rule, f))
+  }
+
+  private def iterateAllTransformersFromOperator(operator: Operator,
+                                                 f: Transformer => Unit): Unit = {
     operator match {
       case TransformInput(_, transformer, inputs) =>
-        inputs.foreach(input => extractResourcesFromOperator(input, resources))
-        transformer.referencedResources.foreach(resources.add)
+        inputs.foreach(input => iterateAllTransformersFromOperator(input, f))
+        f(transformer)
       case _ =>
     }
   }
@@ -553,7 +560,7 @@ object TransformSpec {
         case Some(enumValue) =>
           TargetVocabularyCategory(enumValue.asInstanceOf[TargetVocabularyParameterEnum])
         case None =>
-          TargetVocabularyListParameter(StringTraversableParameterType.fromString(str)(PluginContext.empty).value)
+          TargetVocabularyListParameter(StringIterableParameterType.fromString(str)(PluginContext.empty).value)
       }
     }
   }
@@ -571,7 +578,7 @@ object TransformSpec {
   }
 
   case class TargetVocabularyAutoCompletionProvider() extends PluginParameterAutoCompletionProvider {
-    private val potentialResults: Seq[AutoCompletionResult] = TargetVocabularyParameterEnum.values().map { value =>
+    private val potentialResults: Seq[AutoCompletionResult] = ArraySeq.unsafeWrapArray(TargetVocabularyParameterEnum.values()).map { value =>
       AutoCompletionResult(value.id(), Some(value.displayName()))
     }
     override def autoComplete(searchQuery: String,

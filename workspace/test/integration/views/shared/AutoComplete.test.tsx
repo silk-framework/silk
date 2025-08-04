@@ -1,14 +1,11 @@
 import React from "react";
-import {
-    AutoCompleteField,
-    IAutoCompleteFieldProps,
-} from "@eccenca/gui-elements/src/components/AutocompleteField/AutoCompleteField";
+import { SuggestField, SuggestFieldProps } from "@eccenca/gui-elements";
 import { addDocumentCreateRangeMethod, findSingleElement, testWrapper, withMount } from "../../TestHelper";
 import { waitFor } from "@testing-library/react";
 
 describe("AutoComplete", () => {
-    const wrapper = (props: IAutoCompleteFieldProps<any, any>) => {
-        return withMount(testWrapper(<AutoCompleteField {...props} />));
+    const wrapper = (props: SuggestFieldProps<any, any>) => {
+        return withMount(testWrapper(<SuggestField {...props} />));
     };
 
     it("should send exactly one request when receiving focus", async () => {

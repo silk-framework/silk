@@ -2,15 +2,17 @@ package config
 
 import com.typesafe.config.{Config => TypesafeConfig}
 import config.WorkbenchConfig.Tabs
-import org.silkframework.config.DefaultConfig
+import org.silkframework.config.{Config, DefaultConfig}
 import org.silkframework.runtime.metrics.MeterRegistryProvider
 import org.silkframework.runtime.metrics.MetricsConfig.prefix
 import org.silkframework.runtime.resource._
+import play.api.libs.json.JsString
 import play.api.mvc.RequestHeader
 import play.api.{Configuration, Environment, Mode}
 import play.twirl.api.Html
 
 import java.io.{File, InputStream}
+import java.util.Base64
 import javax.inject.Inject
 import scala.io.{Codec, Source}
 import scala.util.{Failure, Success, Try}
@@ -45,10 +47,18 @@ case class WorkbenchConfig(title: String = "Silk Workbench",
 
 object WorkbenchConfig {
   private lazy val cfg = DefaultConfig.instance()
+  private val defaultProjectPageSuffixKey = "workbench.project.defaultUrlSuffix"
   lazy val publicProtocol: String = if(WorkbenchConfig.useHttps(cfg)) "https" else "http"
   lazy val publicHost: String = WorkbenchConfig.host(cfg).getOrElse("localhost:9000")
   lazy val publicBaseUrl: String = s"$publicProtocol://$publicHost"
   lazy val applicationContext: String = WorkbenchConfig.applicationContext(cfg)
+  lazy val defaultProjectPageSuffix: Option[String] = {
+    if(cfg.hasPath(defaultProjectPageSuffixKey)) {
+      Some(cfg.getString(defaultProjectPageSuffixKey))
+    } else {
+      None
+    }
+  }
 
   /** The public host name and port of the server this application runs on. */
   def host(config: TypesafeConfig): Option[String] = {
@@ -200,7 +210,7 @@ object WorkbenchConfig {
       title = config.getOptional[String]("workbench.title").getOrElse("Silk Workbench"),
       version = version,
       logo = resourceLoader.get(config.getOptional[String]("workbench.logo").getOrElse("logo.png")),
-      logoSmall = resourceLoader.get(config.getOptional[String]("workbench.logoSmall").getOrElse("logo.png")),
+      logoSmall = loadIcon(resourceLoader, config.getOptional[String]("workbench.logoSmall").getOrElse("logo.png")),
       welcome = resourceLoader.get(config.getOptional[String]("workbench.welcome").getOrElse("welcome.html")),
       about = resourceLoader.get(config.getOptional[String]("workbench.about").getOrElse("about.html")),
       mdlStyle = config.getOptional[String]("workbench.mdlStyle").map(r=>resourceLoader.get(r)),
@@ -219,19 +229,34 @@ object WorkbenchConfig {
 
   def apply(): WorkbenchConfig = get
 
+  /**
+   * Loads an icon resource, which can either be a file path or a data URL.
+   */
+  private def loadIcon(resourceLoader: ResourceLoader, name: String): Resource = {
+    if(name.startsWith("data:")) {
+      // Parse the data URL to extract the Base64 encoded data
+      val commaIndex = name.indexOf(',')
+      if (commaIndex == -1) throw new IllegalArgumentException("Invalid data URL: does not contain a comma.")
+      val base64Data = name.substring(commaIndex + 1)
+      // Decode the Base64 string into a byte array
+      val decodedBytes = Base64.getDecoder.decode(base64Data)
+      // Create an InMemoryResource with the decoded bytes
+      new InMemoryResource(name, name, decodedBytes)
+    } else {
+      resourceLoader.get(name)
+    }
+  }
+
   def getResourceLoader: ResourceLoader = {
-    //Depending on the distribution method, the configuration resources may be located at different locations.
-    //We identify the configuration location by searching for the application configuration.
-    if(new File("conf/application.conf").exists() || new File("conf/reference.conf").exists())
-      FileResourceManager(new File("conf/"))
-    else if(new File("silk-workbench/conf/application.conf").exists() || new File("silk-workbench/conf/reference.conf").exists())
-      FileResourceManager(new File("silk-workbench/conf/"))
-    else if(new File("../conf/application.conf").exists() || new File("../conf/reference.conf").exists())
-      FileResourceManager(new File("../conf/"))
-    else if(getClass.getClassLoader.getResourceAsStream("reference.conf") != null || getClass.getClassLoader.getResourceAsStream("application.conf") != null)
-      ClasspathResourceLoader("")
-    else
-      throw new ResourceNotFoundException("Could not locate configuration. Current directory is: " + new File(".").getAbsolutePath)
+    DefaultConfig.instance.eldsHomeDir match {
+      case None =>
+        // If no eLDs home directory is set, use the classpath resource loader only.
+        ClasspathResourceLoader("")
+      case Some(eldsHome) =>
+        // If an eLDs home directory is set, use the file resource manager for the config directory.
+        val configDir = new File(eldsHome, Config.DATAINTEGRATION_CONFIG_DIR)
+        FallbackResourceManager(ReadOnlyResourceManager(ClasspathResourceLoader("")), FileResourceManager(configDir), writeIntoFallbackLoader = false)
+    }
   }
 
   /**

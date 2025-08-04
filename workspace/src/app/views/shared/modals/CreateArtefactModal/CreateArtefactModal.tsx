@@ -8,11 +8,9 @@ import {
     Grid,
     GridColumn,
     GridRow,
-    HelperClasses,
+    ClassNames,
     Highlighter,
-    HtmlContentBlock,
     IconButton,
-    Markdown,
     Notification,
     OverflowText,
     OverviewItem,
@@ -23,8 +21,15 @@ import {
     OverviewItemList,
     SimpleDialog,
     Spacing,
+    highlighterUtils,
+    Markdown,
+    MenuItem,
+    ContextMenu,
+    Accordion,
+    AccordionItem,
+    Depiction,
+    Spinner,
 } from "@eccenca/gui-elements";
-import { createMultiWordRegex, extractSearchWords } from "@eccenca/gui-elements/src/components/Typography/Highlighter";
 import { commonOp, commonSel } from "@ducks/common";
 import {
     IArtefactModal,
@@ -48,7 +53,7 @@ import ProjectSelection from "./ArtefactForms/ProjectSelection";
 import { workspaceSel } from "@ducks/workspace";
 import { requestSearchList } from "@ducks/workspace/requests";
 import { objectToFlatRecord, uppercaseFirstChar } from "../../../../utils/transformers";
-import { requestProjectMetadata } from "@ducks/shared/requests";
+import { performAction, requestProjectMetadata } from "@ducks/shared/requests";
 import { requestAutoConfiguredDataset } from "./CreateArtefactModal.requests";
 import { diErrorMessage } from "@ducks/error/typings";
 import useHotKey from "../../HotKeyHandler/HotKeyHandler";
@@ -77,6 +82,8 @@ export interface ArtefactDocumentation {
 }
 
 export function CreateArtefactModal() {
+    const MAX_SINGLEPLUGINBUTTONS = 2;
+
     const dispatch = useDispatch();
     const form = useForm();
 
@@ -139,7 +146,7 @@ export function CreateArtefactModal() {
     const isEmptyWorkspace = useSelector(workspaceSel.isEmptyPageSelector);
     const projectId = useSelector(commonSel.currentProjectIdSelector);
     const externalParameterUpdateMap = React.useRef(
-        new Map<string, (value: { value: string; label?: string }) => any>()
+        new Map<string, (value: { value: string; label?: string }) => any>(),
     );
     const templateParameters = React.useRef(new Set<string>());
 
@@ -147,6 +154,18 @@ export function CreateArtefactModal() {
         toBeAdded.current = plugin;
         toBeAddedKey.current = plugin?.key;
     }, []);
+    const [taskActionResult, setTaskActionResult] = React.useState<{ label: string; message: string }>();
+    const [taskActionLoading, setTaskActionLoading] = React.useState<string | null>(null);
+    const [taskFormGeneralWarning, setTaskFormGeneralWarning] = React.useState<string | undefined>();
+    const generalWarningTimeout = React.useRef<number | undefined>()
+
+    const taskFormWarning = React.useCallback((message: string) => {
+        if(generalWarningTimeout.current) {
+            clearTimeout(generalWarningTimeout.current)
+        }
+        generalWarningTimeout.current = window.setTimeout(() => setTaskFormGeneralWarning(message), 250)
+    }, [])
+
     React.useEffect(() => {
         if (infoMessage?.removeAfterSeconds && infoMessage.removeAfterSeconds > 0) {
             const timeoutId = setTimeout(() => {
@@ -202,7 +221,7 @@ export function CreateArtefactModal() {
                     registerError(
                         "CreateArtefactModal-fetch-project-meta-data",
                         "Could not fetch project information",
-                        e
+                        e,
                     );
                 }
             })();
@@ -227,7 +246,7 @@ export function CreateArtefactModal() {
                 dispatch(
                     commonOp.fetchArtefactsListAsync({
                         textQuery: searchValue,
-                    })
+                    }),
                 );
             });
         } else {
@@ -251,7 +270,7 @@ export function CreateArtefactModal() {
             dispatch(
                 commonOp.fetchArtefactsListAsync({
                     textQuery,
-                })
+                }),
             );
         }
     };
@@ -301,12 +320,12 @@ export function CreateArtefactModal() {
             if (selectedArtefact) {
                 const artefactDocumentation: ArtefactDocumentation = pluginOverviewToArtefactDocumentation(
                     selectedArtefact,
-                    PARAMETER_DOC_PREFIX + parameterId
+                    PARAMETER_DOC_PREFIX + parameterId,
                 );
                 showEnhancedDescription(artefactDocumentation);
             }
         },
-        [selectedArtefact]
+        [selectedArtefact],
     );
 
     const handleEnter = (e) => {
@@ -330,7 +349,7 @@ export function CreateArtefactModal() {
                 return (cachedArtefactProperties[artefactId] as IPluginDetails).taskType;
             }
         },
-        [cachedArtefactProperties]
+        [cachedArtefactProperties],
     );
 
     const handleCreate = React.useCallback(
@@ -347,7 +366,6 @@ export function CreateArtefactModal() {
             try {
                 if (isValidFields) {
                     const formValues = form.getValues();
-                    console.log({ formValues });
                     const type = updateExistingTask?.taskPluginDetails.taskType ?? taskType(selectedArtefactKey);
                     let dataParameters: any;
                     if (type === "Dataset") {
@@ -361,8 +379,8 @@ export function CreateArtefactModal() {
                                 formValues,
                                 dataParameters,
                                 templateParameters.current,
-                                updateExistingTask?.alternativeUpdateFunction
-                            )
+                                updateExistingTask?.alternativeUpdateFunction,
+                            ),
                         );
                         updateExistingTask.successHandler?.({
                             projectId: updateExistingTask.projectId,
@@ -376,8 +394,8 @@ export function CreateArtefactModal() {
                                 type,
                                 dataParameters,
                                 templateParameters.current,
-                                newTaskPreConfiguration?.alternativeCallback
-                            )
+                                newTaskPreConfiguration?.alternativeCallback,
+                            ),
                         );
                         setSearchValue("");
                     }
@@ -395,13 +413,13 @@ export function CreateArtefactModal() {
                 registerError(
                     "CreateArtefactModal.handleCreate",
                     `Could not ${updateExistingTask ? "update" : "create"} task.`,
-                    error
+                    error,
                 );
             } finally {
                 setActionLoading(false);
             }
         },
-        [form, updateExistingTask, taskType]
+        [form, updateExistingTask, taskType],
     );
 
     const closeModal = () => {
@@ -421,6 +439,7 @@ export function CreateArtefactModal() {
         setIsProjectImport(false);
         setToBeAdded(undefined);
         setCurrentProject(undefined);
+        setTaskActionResult(undefined);
         form.reset();
         setFormValueChanges({});
         form.clearError();
@@ -516,7 +535,7 @@ export function CreateArtefactModal() {
                                     name="item-edit"
                                     text={t(
                                         "CreateModal.projectContext.changeProjectButton",
-                                        "Select a different project"
+                                        "Select a different project",
                                     )}
                                     onClick={() => setShowProjectSelection(true)}
                                 />
@@ -552,7 +571,7 @@ export function CreateArtefactModal() {
         (paramId: string, handleUpdates: (value: { value: string; label?: string }) => any) => {
             externalParameterUpdateMap.current.set(paramId, handleUpdates);
         },
-        []
+        [],
     );
 
     const propagateExternallyChangedParameterValue = React.useCallback((fullParamId: string, value: string) => {
@@ -582,6 +601,7 @@ export function CreateArtefactModal() {
                 // Close modal immediately from update dialog
                 goBackOnEscape={() => handleBack(true)}
                 propagateExternallyChangedParameterValue={propagateExternallyChangedParameterValue}
+                showWarningMessage={taskFormWarning}
             />
         );
     } else {
@@ -621,7 +641,8 @@ export function CreateArtefactModal() {
                             goBackOnEscape={handleBack}
                             newTaskPreConfiguration={updatedNewTaskPreConfiguration}
                             propagateExternallyChangedParameterValue={propagateExternallyChangedParameterValue}
-                        />
+                            showWarningMessage={taskFormWarning}
+                        />,
                     );
                 }
             }
@@ -639,7 +660,7 @@ export function CreateArtefactModal() {
         .filter(
             (artefact) =>
                 selectedDType === "all" ||
-                (artefact.taskType && routerOp.itemTypeToPath(artefact.taskType) === selectedDType)
+                (artefact.taskType && routerOp.itemTypeToPath(artefact.taskType) === selectedDType),
         )
         .sort((a, b) => a.title!.localeCompare(b.title!));
     const removeProjectCategoryAndItem = newTaskPreConfiguration && !newTaskPreConfiguration.showProjectItem;
@@ -650,7 +671,7 @@ export function CreateArtefactModal() {
                 title: uppercaseFirstChar(t("common.dataTypes.project")),
                 description: t(
                     "common.dataTypes.projectDesc",
-                    "Projects let you group related items. All items that depend on each other need to be in the same project."
+                    "Projects let you group related items. All items that depend on each other need to be in the same project.",
                 ),
             },
             ...artefactListWithProject,
@@ -659,7 +680,7 @@ export function CreateArtefactModal() {
 
     // Rank title matches higher
     if (searchValue.trim() !== "") {
-        const regex = createMultiWordRegex(extractSearchWords(searchValue), false);
+        const regex = highlighterUtils.createMultiWordRegex(highlighterUtils.extractSearchWords(searchValue), false);
         const titleMatches: IPluginOverview[] = [];
         const nonTitleMatches: IPluginOverview[] = [];
         artefactListWithProject.forEach((artefactItem) => {
@@ -691,10 +712,10 @@ export function CreateArtefactModal() {
             resetModalError();
             const { parameters, variableTemplateParameters } = commonOp.splitParameterAndVariableTemplateParameters(
                 form.getValues(),
-                templateParameters.current
+                templateParameters.current,
             );
-            const parameterData = commonOp.buildTaskObject(parameters);
-            const variableTemplateData = commonOp.buildTaskObject(variableTemplateParameters);
+            const parameterData = commonOp.buildNestedTaskParameterObject(parameters);
+            const variableTemplateData = commonOp.buildNestedTaskParameterObject(variableTemplateParameters);
             const requestBody: DatasetTaskPlugin<any> = {
                 taskType: taskType(artefactId) as TaskType,
                 type: artefactId,
@@ -736,21 +757,124 @@ export function CreateArtefactModal() {
     ) {
         additionalButtons.push(
             <Button
+                outlined
                 data-test-id={"autoConfigureItem-btn"}
                 key="autoConfig"
                 tooltip={t("CreateModal.autoConfigTooltip")}
                 onClick={() =>
                     handleAutoConfigure(
                         projectId ?? currentProject!.id,
-                        selectedArtefactKey ?? updateExistingTask!.taskPluginDetails.pluginId
+                        selectedArtefactKey ?? updateExistingTask!.taskPluginDetails.pluginId,
                     )
                 }
                 loading={autoConfigPending}
             >
                 {t("CreateModal.autoConfigButton")}
-            </Button>
+            </Button>,
         );
     }
+
+    const pluginActions: JSX.Element[] = [];
+    if (selectedArtefact?.actions) {
+        const describedActions = Object.entries(selectedArtefact.actions);
+        pluginActions.push(
+            ...describedActions.map(([actionKey, action]) => {
+                const executeAction = async () => {
+                    try {
+                        setTaskActionLoading(actionKey);
+                        const project = updateExistingTask?.projectId || currentProject?.id || projectId;
+                        if (!project) return;
+                        const formValues = form.getValues();
+                        const { parameters, variableTemplateParameters } =
+                            commonOp.splitParameterAndVariableTemplateParameters(
+                                formValues,
+                                templateParameters.current,
+                            );
+                        const parameterData = commonOp.buildNestedTaskParameterObject(parameters);
+                        const variableTemplateData =
+                            commonOp.buildNestedTaskParameterObject(variableTemplateParameters);
+                        const result = await performAction({
+                            projectId: project,
+                            taskId: updateExistingTask?.taskId ?? "task",
+                            actionKey,
+                            taskPayload: {
+                                taskType: (updateExistingTask?.taskPluginDetails.taskType ??
+                                    taskType(selectedArtefactKey)) as TaskType,
+                                type: selectedArtefact.key,
+                                parameters: {
+                                    ...parameterData,
+                                },
+                                templates: {
+                                    ...variableTemplateData,
+                                },
+                            },
+                        });
+                        resetModalError();
+                        setTaskActionResult({ label: action.label, message: result.data.message });
+                    } catch (err) {
+                        setTaskActionResult(undefined);
+                        registerError("CreateArtefactModal.action", `Could not perform action '${action.label}'.`, err);
+                    } finally {
+                        setTaskActionLoading(null);
+                    }
+                };
+                return describedActions.length > MAX_SINGLEPLUGINBUTTONS ? (
+                    <MenuItem
+                        text={action.label}
+                        tooltip={action.description}
+                        data-test-id={`${actionKey}-btn`}
+                        key={actionKey}
+                        onClick={executeAction}
+                        icon={
+                            action.icon ? (
+                                <Depiction image={<img src={action.icon} />} forceInlineSvg ratio="1:1" size="tiny" />
+                            ) : undefined
+                        }
+                    />
+                ) : (
+                    <Button
+                        outlined
+                        fill
+                        ellipsizeText
+                        disabled={!!taskActionLoading}
+                        data-test-id={`${actionKey}-btn`}
+                        key={actionKey}
+                        onClick={executeAction}
+                        tooltip={action.description}
+                        icon={
+                            taskActionLoading == actionKey ? (
+                                <Spinner size="tiny" />
+                            ) : action.icon ? (
+                                <Depiction image={<img src={action.icon} />} forceInlineSvg ratio="1:1" size="tiny" />
+                            ) : undefined
+                        }
+                    >
+                        {action.label}
+                    </Button>
+                );
+            }),
+        );
+    }
+
+    const pluginActionsMenu =
+        pluginActions.length > MAX_SINGLEPLUGINBUTTONS
+            ? [
+                  <ContextMenu
+                      key="menu-pluginactions"
+                      disabled={!!taskActionLoading}
+                      togglerElement={
+                          <Button
+                              outlined
+                              disabled={!!taskActionLoading}
+                              text={t("CreateModal.pluginActions")}
+                              rightIcon={taskActionLoading ? <Spinner size="tiny" /> : "toggler-caretdown"}
+                          />
+                      }
+                  >
+                      {pluginActions}
+                  </ContextMenu>,
+              ]
+            : pluginActions;
 
     const headerOptions: JSX.Element[] = [];
     if (selectedArtefactTitle && (selectedArtefact?.markdownDocumentation || selectedArtefact?.description)) {
@@ -761,10 +885,10 @@ export function CreateArtefactModal() {
                 onClick={(e) =>
                     handleShowEnhancedDescriptionClickHandler(
                         e,
-                        pluginOverviewToArtefactDocumentation(selectedArtefact)
+                        pluginOverviewToArtefactDocumentation(selectedArtefact),
                     )
                 }
-            />
+            />,
         );
     }
 
@@ -792,7 +916,7 @@ export function CreateArtefactModal() {
                 onDismiss={resetModalError}
                 message={taskLoadingError || error.errorMessage || actionFailed()}
                 danger
-            />
+            />,
         );
     }
 
@@ -818,11 +942,61 @@ export function CreateArtefactModal() {
                         {t("ProjectImportModal.restoreStarter", "Import project file")}
                     </Button>,
                 ]}
-            />
+            />,
         );
     }
+
+    if(taskFormGeneralWarning) {
+        notifications.push(
+            <Notification
+                message={taskFormGeneralWarning}
+                onDismiss={() => setTaskFormGeneralWarning(undefined)}
+            />,
+        );
+    }
+
     const submitEnabled = !!isCreationUpdateDialog && !isErrorPresented();
     useHotKey({ hotkey: "enter", handler: handleCreate, enabled: submitEnabled });
+
+    if (taskActionResult) {
+        notifications.push(
+            <Notification
+                success
+                message={
+                    <Accordion whitespaceSize={"none"}>
+                        <AccordionItem
+                            open={(taskActionResult?.message ?? "").length < 500}
+                            label={taskActionResult?.label}
+                            noBorder
+                            fullWidth
+                        >
+                            <Spacing size="small" />
+                            <Markdown
+                                htmlContentBlockProps={{
+                                    style: {
+                                        maxHeight: "25vh",
+                                        overflow: "auto",
+                                    },
+                                }}
+                            >
+                                {taskActionResult?.message ?? ""}
+                            </Markdown>
+                        </AccordionItem>
+                    </Accordion>
+                }
+                actions={[
+                    <IconButton
+                        key="cancel"
+                        name="navigation-close"
+                        text={t("common.action.close")}
+                        onClick={() => {
+                            setTaskActionResult(undefined);
+                        }}
+                    />,
+                ]}
+            />,
+        );
+    }
 
     const createDialog = (
         <SimpleDialog
@@ -839,8 +1013,8 @@ export function CreateArtefactModal() {
                               })`,
                           })
                     : selectedArtefactTitle
-                    ? t("CreateModal.createTitle", { type: selectedArtefactTitle })
-                    : t("CreateModal.createTitleGeneric")
+                      ? t("CreateModal.createTitle", { type: selectedArtefactTitle })
+                      : t("CreateModal.createTitleGeneric")
             }
             headerOptions={headerOptions}
             onClose={closeModal}
@@ -863,17 +1037,23 @@ export function CreateArtefactModal() {
                             <Button key="cancel" data-test-id="create-dialog-cancel-btn" onClick={closeModal}>
                                 {t("common.action.cancel")}
                             </Button>,
-                            ...additionalButtons,
                             <CardActionsAux key="aux">
                                 {!updateExistingTask && (
-                                    <Button
-                                        data-test-id={"create-dialog-back-btn"}
-                                        key="back"
-                                        onClick={() => handleBack(false)}
-                                    >
-                                        {t("common.words.back", "Back")}
-                                    </Button>
+                                    <>
+                                        <Button
+                                            data-test-id={"create-dialog-back-btn"}
+                                            key="back"
+                                            onClick={() => handleBack(false)}
+                                        >
+                                            {t("common.words.back", "Back")}
+                                        </Button>
+                                        {additionalButtons.length + pluginActions.length > 0 && (
+                                            <Spacing vertical hasDivider />
+                                        )}
+                                    </>
                                 )}
+                                {additionalButtons}
+                                {pluginActionsMenu}
                             </CardActionsAux>,
                         ]
                     )
@@ -891,11 +1071,24 @@ export function CreateArtefactModal() {
                         <Button data-test-id="create-dialog-cancel-btn" key="cancel" onClick={closeModal}>
                             {t("common.action.cancel")}
                         </Button>,
-                        ...additionalButtons,
+                        <CardActionsAux key="aux">
+                            {additionalButtons}
+                            {pluginActionsMenu}
+                        </CardActionsAux>,
                     ]
                 )
             }
-            notifications={notifications}
+            actionsProps={{ noWrap: true }}
+            notifications={
+                notifications.length > 0
+                    ? notifications.map((notification, idx) => (
+                          <>
+                              {notification}
+                              {idx < notifications.length - 1 && <Spacing size="small" />}
+                          </>
+                      ))
+                    : undefined
+            }
         >
             {
                 <>
@@ -941,7 +1134,7 @@ export function CreateArtefactModal() {
                                                         key={artefact.key}
                                                         className={
                                                             toBeAddedKey.current === artefact.key
-                                                                ? HelperClasses.Intent.ACCENT
+                                                                ? ClassNames.Intent.ACCENT
                                                                 : ""
                                                         }
                                                     >
@@ -983,8 +1176,8 @@ export function CreateArtefactModal() {
                                                                             handleShowEnhancedDescriptionClickHandler(
                                                                                 e,
                                                                                 pluginOverviewToArtefactDocumentation(
-                                                                                    artefact
-                                                                                )
+                                                                                    artefact,
+                                                                                ),
                                                                             );
                                                                         }}
                                                                     />
@@ -1022,14 +1215,14 @@ export function CreateArtefactModal() {
                 registerModalError: registerError,
             }}
         >
-            {createDialog}
+            {isOpen ? createDialog : null}
         </CreateArtefactModalContext.Provider>
     );
 }
 
 const pluginOverviewToArtefactDocumentation = (
     pluginOverview: IPluginOverview,
-    namedAnchor?: string
+    namedAnchor?: string,
 ): ArtefactDocumentation => {
     return {
         key: pluginOverview.key,

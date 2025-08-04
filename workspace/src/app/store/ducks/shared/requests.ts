@@ -1,4 +1,4 @@
-import { legacyApiEndpoint, projectApi, workspaceApi } from "../../../utils/getApiEndpoint";
+import { legacyApiEndpoint, projectApi, rootPath, workspaceApi } from "../../../utils/getApiEndpoint";
 import fetch from "../../../services/fetch";
 import qs from "qs";
 import {
@@ -14,6 +14,7 @@ import {
     IRequestAutocompletePayload,
     IResourceListPayload,
     ITaskMetadataResponse,
+    TaskPlugin,
 } from "@ducks/shared/typings";
 import { FetchResponse } from "../../../services/fetch/responseInterceptor";
 import { DatasetCharacteristics } from "../../../views/shared/typings";
@@ -168,5 +169,24 @@ export const requestDatasetCharacteristics = async (
 ): Promise<FetchResponse<DatasetCharacteristics>> => {
     return fetch({
         url: projectApi(`/${projectId}/datasets/${datasetId}/characteristics`),
+    });
+};
+
+/** Executes custom actions of a task. The task must either already exist in the backend or it can be provided with the request. */
+export const performAction = ({
+    projectId,
+    taskId,
+    actionKey,
+    taskPayload,
+}: {
+    projectId: string;
+    taskId: string;
+    actionKey: string;
+    taskPayload: TaskPlugin | undefined;
+}) => {
+    return fetch({
+        url: rootPath(`/workspace/projects/${projectId}/tasks/${taskId}/action/${actionKey}`),
+        method: "POST",
+        body: { task: taskPayload },
     });
 };

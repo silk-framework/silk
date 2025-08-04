@@ -19,10 +19,8 @@ object ParameterValueUtils {
         None
       } else if(parts.length == 1) {
         params.values.get(parts.head) match {
-          case Some(ParameterStringValue(value)) =>
-            Some(value)
-          case Some(template: ParameterTemplateValue) =>
-            Some(template.evaluate(pluginContext.templateVariables.all))
+          case Some(value: SimpleParameterValue) =>
+            Some(value.strValue)
           case _ =>
             None
         }

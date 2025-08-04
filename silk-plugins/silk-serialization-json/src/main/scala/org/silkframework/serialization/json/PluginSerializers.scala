@@ -2,6 +2,7 @@ package org.silkframework.serialization.json
 
 import org.silkframework.runtime.plugin._
 import org.silkframework.runtime.serialization.{ReadContext, Serialization, WriteContext}
+import org.silkframework.runtime.templating.exceptions.TemplateEvaluationException
 import org.silkframework.serialization.json.JsonSerializers.{PARAMETERS, TEMPLATES, TYPE}
 import play.api.libs.json._
 
@@ -21,7 +22,18 @@ object PluginSerializers {
     }
 
     override def write(value: ParameterValues)(implicit writeContext: WriteContext[JsValue]): JsObject = {
-      val parameters = writeParameters(value)
+      write(value, failOnInvalidTemplates = true)
+    }
+
+    /**
+     * Serializes parameter values a JSON.
+     *
+     * @param value The parameter values to be serialized.
+     * @param failOnInvalidTemplates If true, [[TemplateEvaluationException]] will be thrown if a template is invalid, e.g., if a reference variable is not bound.
+     *                               If false, invalid templates will resolve to an empty value.
+     */
+    def write(value: ParameterValues, failOnInvalidTemplates: Boolean)(implicit writeContext: WriteContext[JsValue]): JsObject = {
+      val parameters = writeParameters(value, failOnInvalidTemplates)
       val templates = writeTemplates(value)
       if(templates.value.isEmpty) {
         Json.obj(
@@ -55,19 +67,37 @@ object PluginSerializers {
       }
     }
 
-    private def writeParameters(params: ParameterValues)
+    private def writeParameters(params: ParameterValues, failOnInvalidTemplates: Boolean)
                                (implicit writeContext: WriteContext[JsValue]): JsObject = {
       JsObject(
         params.values.collect {
           case (key, ParameterStringValue(strValue)) =>
             (key, JsString(strValue))
           case (key, template: ParameterTemplateValue) =>
-            (key, JsString(template.evaluate(writeContext.templateVariables.all)))
+            try {
+              (key, JsString(template.evaluate(writeContext.templateVariables.all)))
+            } catch {
+              case _: TemplateEvaluationException if !failOnInvalidTemplates =>
+                (key, JsString(""))
+            }
           case (key, parameterObjectValue: ParameterObjectValue) =>
             val value = parameterObjectValue.value(writeContext)
-            (key, Serialization.formatForDynamicType[JsValue](value.getClass).write(value))
+            // First try to find a custom JSON format
+            val valueJson = Serialization.formatForDynamicTypeOption[JsValue](value.getClass) match {
+              case Some(format) =>
+                format.write(value)
+              case None =>
+                // If no JSON format is found, use the default serialization for plugins
+                value match {
+                  case plugin: AnyPlugin =>
+                    writeParameters(plugin.parameters, failOnInvalidTemplates)
+                  case _: AnyRef =>
+                    throw new RuntimeException(s"Plugin parameter '$value' cannot be serialized to JSON because it's not a plugin itself and no custom JSON format has been found.")
+                }
+            }
+            (key, valueJson)
           case (key, values: ParameterValues) =>
-            (key, writeParameters(values))
+            (key, writeParameters(values, failOnInvalidTemplates))
         }
       )
     }

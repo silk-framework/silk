@@ -4,6 +4,7 @@ package org.silkframework.entity.rdf
 import org.silkframework.config.Prefixes
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
+import org.silkframework.runtime.validation.BadUserInputException
 
 class SparqlRestrictionTest extends AnyFlatSpec with Matchers {
 
@@ -30,6 +31,21 @@ class SparqlRestrictionTest extends AnyFlatSpec with Matchers {
 
   it should "not complain about missing prefixes in literals" in {
     val restriction = "?a <http://www.example.com/someProperty> \"\"\"+fakePrefix:12* +prefix:23\"\"\" ."
+    resolve(restriction) should be (restriction)
+  }
+
+  it should "resolve prefixes correctly if using property paths with prefixed names" in {
+    val restriction = "?a owl:sameAs/rdf:type owl:Thing ."
+    resolve(restriction) should be ("?a <http://www.w3.org/2002/07/owl#sameAs>/<http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Thing> .")
+  }
+
+  it should "fail if a prefix in a property path is not defined" in {
+    val restriction = "?a rdf:type/schema:additionalType owl:Class ."
+    an[BadUserInputException] should be thrownBy resolve(restriction)
+  }
+
+  it should "not replace prefixes in full URIs" in {
+    val restriction = "?a <urn:test:prop1> <http://www.example.com/someValue> ."
     resolve(restriction) should be (restriction)
   }
 

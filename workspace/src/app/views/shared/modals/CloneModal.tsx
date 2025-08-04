@@ -1,14 +1,23 @@
-import React, { KeyboardEventHandler, useEffect, useState } from "react";
-import { Button, FieldItem, Notification, SimpleDialog, Spacing, TextField } from "@eccenca/gui-elements";
-import { ErrorResponse, FetchError } from "../../../services/fetch/responseInterceptor";
-import { requestCloneProject, requestCloneTask } from "@ducks/workspace/requests";
-import { requestProjectMetadata, requestTaskMetadata } from "@ducks/shared/requests";
-import { Loading } from "../Loading/Loading";
-import { useTranslation } from "react-i18next";
-import { IModalItem } from "@ducks/shared/typings";
+import React, {KeyboardEventHandler, useEffect, useState} from "react";
+import {
+    Button,
+    FieldItem,
+    IconButton,
+    Notification,
+    SimpleDialog,
+    Spacing,
+    Spinner,
+    TextField
+} from "@eccenca/gui-elements";
+import {ErrorResponse, FetchError} from "../../../services/fetch/responseInterceptor";
+import {requestCloneProject, requestCloneTask} from "@ducks/workspace/requests";
+import {requestProjectMetadata, requestTaskMetadata} from "@ducks/shared/requests";
+import {useTranslation} from "react-i18next";
+import {IModalItem} from "@ducks/shared/typings";
 import useHotKey from "../HotKeyHandler/HotKeyHandler";
-import { requestProjectIdValidation, requestTaskIdValidation } from "@ducks/common/requests";
-import { debounce } from "lodash";
+import {requestProjectIdValidation, requestTaskIdValidation} from "@ducks/common/requests";
+import {debounce} from "lodash";
+import {TaskDocumentationModal} from "./CreateArtefactModal/TaskDocumentationModal";
 
 export interface ICloneOptions {
     item: IModalItem;
@@ -24,18 +33,20 @@ export default function CloneModal({ item, onDiscard, onConfirmed }: ICloneOptio
     const [description, setDescription] = useState(item.description);
     const [customId, setCustomId] = React.useState<string>("");
     const [identifierValidationMsg, setIdentifierValidationMsg] = React.useState<string>("");
+    const [initialLoading, setInitialLoading] = useState(true);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<ErrorResponse | null>(null);
     // Label of the project or task that should be cloned
     const [label, setLabel] = useState<string | undefined>(item.label);
     const [t] = useTranslation();
+    const [showDocumentation, setShowDocumentation] = React.useState<boolean>(false);
 
     useEffect(() => {
         prepareCloning();
     }, [item]);
 
     const prepareCloning = async () => {
-        setLoading(true);
+        setInitialLoading(true);
         try {
             const response =
                 item.projectId && item.id
@@ -48,7 +59,7 @@ export default function CloneModal({ item, onDiscard, onConfirmed }: ICloneOptio
         } catch (ex) {
             // swallow exception, fallback to ID
         } finally {
-            setLoading(false);
+            setInitialLoading(false);
         }
     };
 
@@ -75,9 +86,9 @@ export default function CloneModal({ item, onDiscard, onConfirmed }: ICloneOptio
                     }
                 }
             },
-            [item]
+            [item],
         ),
-        1000
+        1000,
     );
 
     const handleCustomIdChange = React.useCallback(
@@ -86,7 +97,7 @@ export default function CloneModal({ item, onDiscard, onConfirmed }: ICloneOptio
             setCustomId(newCustomId);
             verifyCustomId(newCustomId);
         },
-        [item]
+        [item],
     );
 
     const handleCloning = async () => {
@@ -123,13 +134,10 @@ export default function CloneModal({ item, onDiscard, onConfirmed }: ICloneOptio
                 handleCloning();
             }
         },
-        [item, description, newLabel, customId]
+        [item, description, newLabel, customId],
     );
 
-    return loading ? (
-        <Loading delay={0} />
-    ) : (
-        <SimpleDialog
+    return <SimpleDialog
             data-test-id={"clone-item-to-modal"}
             size="small"
             title={
@@ -142,18 +150,27 @@ export default function CloneModal({ item, onDiscard, onConfirmed }: ICloneOptio
                 item.id
             }
             isOpen={true}
+            preventSimpleClosing={loading}
             onClose={onDiscard}
+            headerOptions={
+                <IconButton
+                    key={"show-enhanced-description-btn"}
+                    name="item-question"
+                    onClick={() => setShowDocumentation(true)}
+                />
+            }
             actions={[
                 <Button
                     key="clone"
                     affirmative
                     onClick={handleCloning}
-                    disabled={!newLabel}
+                    disabled={!newLabel || initialLoading}
+                    loading={loading}
                     data-test-id={"clone-modal-button"}
                 >
                     {t("common.action.clone")}
                 </Button>,
-                <Button key="cancel" onClick={onDiscard}>
+                <Button key="cancel" onClick={onDiscard} disabled={loading}>
                     {t("common.action.cancel")}
                 </Button>,
             ]}
@@ -166,7 +183,10 @@ export default function CloneModal({ item, onDiscard, onConfirmed }: ICloneOptio
                     }),
                 }}
             >
-                <TextField onChange={(e) => setNewLabel(e.target.value)} value={newLabel} autoFocus={true} />
+                {initialLoading ?
+                    <Spinner position={"inline"} size={"small"} /> :
+                    <TextField onChange={(e) => setNewLabel(e.target.value)} value={newLabel} autoFocus={true} />
+                }
             </FieldItem>
 
             <FieldItem
@@ -194,6 +214,12 @@ export default function CloneModal({ item, onDiscard, onConfirmed }: ICloneOptio
                     <Notification message={error.asString()} danger />
                 </>
             )}
+            {showDocumentation && (
+                <TaskDocumentationModal
+                    documentationToShow={{ key: "", namedAnchor: "", description: t("cloneModal.info") }}
+                    onClose={() => setShowDocumentation(false)}
+                    size="tiny"
+                />
+            )}
         </SimpleDialog>
-    );
 }

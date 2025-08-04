@@ -19,6 +19,7 @@ import org.silkframework.dataset.CombinedEntitySink
 import org.silkframework.rule.execution.{ExecuteTransform, GenerateLinks}
 import org.silkframework.rule.{LinkSpec, LinkingConfig, TransformSpec}
 import org.silkframework.runtime.activity.{Activity, UserContext}
+import org.silkframework.runtime.plugin.PluginContext
 import org.silkframework.runtime.resource.FileResourceManager
 import org.silkframework.runtime.serialization.{ReadContext, XmlSerialization}
 import org.silkframework.util.StringUtils._
@@ -181,10 +182,10 @@ object Silk {
    * @param transform The transform specification.
    */
   private def executeTransform(config: LinkingConfig, transform: Task[TransformSpec]): Unit = {
-    val input = config.source(transform.selection.inputId).source
-    implicit val prefixes: Prefixes = config.prefixes
-    Activity(new ExecuteTransform(transform, (_) => input, (_) =>
-      new CombinedEntitySink(config.output.map(_.entitySink).toSeq))).startBlocking() // TODO: Allow to set error output
+    val inputTask =  config.source(transform.selection.inputId)
+    val inputSource = inputTask.source
+    Activity(new ExecuteTransform(transform, (_) => inputTask, (_) => inputSource, (_) =>
+      new CombinedEntitySink(config.output.map(_.entitySink).toSeq), _ => None, _ => PluginContext.empty)).startBlocking()
   }
 
   /**
@@ -218,7 +219,7 @@ object Silk {
   /**
    * Main method to allow Silk to be started from the command line.
    */
-  def main(args: Array[String]) {
+  def main(args: Array[String]): Unit = {
     configMgr()
     val logs = CollectLogs() {
       execute()

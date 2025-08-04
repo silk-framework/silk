@@ -22,6 +22,7 @@ import { IconButton, Spinner } from "@eccenca/gui-elements";
 class ValueRule extends React.Component {
     // define property types
     static propTypes = {
+        displayLabel: PropTypes.string,
         comment: PropTypes.string,
         id: PropTypes.string,
         type: PropTypes.string,
@@ -153,7 +154,10 @@ class ValueRule extends React.Component {
                         ) : null}
                     </CardContent>
                     <Divider />
-                    <CardActions className="ecc-silk-mapping__ruleseditor__actionrow">
+                    <CardActions
+                        data-test-id={"mapping-rule-card-actions"}
+                        className="ecc-silk-mapping__ruleseditor__actionrow"
+                    >
                         <EditButton onEdit={this.handleEdit} />
                         <CopyButton onCopy={this.handleCopy} />
                         <CloneButton onClone={this.handleClone} />
@@ -164,6 +168,7 @@ class ValueRule extends React.Component {
                                     uri: mappingTarget.uri,
                                     type: this.props.type,
                                     parent: parentId,
+                                    displayLabel: this.props.displayLabel
                                 });
                             }}
                         />

@@ -2,8 +2,9 @@ package org.silkframework.execution.local
 
 import org.silkframework.dataset.Dataset
 import org.silkframework.execution.ExecutionType
-import org.silkframework.execution.local.LocalExecution.LocalInternalDataset
 import org.silkframework.plugins.dataset.{InternalDataset, InternalDatasetTrait}
+import org.silkframework.runtime.plugin.annotations.Plugin
+import org.silkframework.runtime.resource.Resource
 import org.silkframework.util.Identifier
 
 import java.util.concurrent.ConcurrentHashMap
@@ -24,9 +25,31 @@ case class LocalExecution(useLocalInternalDatasets: Boolean,
 
   type DataType = LocalEntities
 
+  private val log: Logger = Logger.getLogger(this.getClass.getName)
+
   private val internalDatasets: mutable.Map[Option[String], InternalDatasetTrait] = mutable.Map.empty
   private val shutdownHooks = new ConcurrentHashMap[Identifier, () => Unit]()
   private val logger = Logger.getLogger(LocalExecution.getClass.getName)
+  // Tracks updated files that were overwritten with means other than the sink of a file based dataset
+  private val updatedFiles = new ConcurrentHashMap[String, String]()
+
+  /**
+    * Fetches all resources from a collection that have been updated and clears from the update list.
+    */
+  def fetchAndClearUpdatedFiles(resources: Iterable[Resource]): Set[String] = this.synchronized {
+    var foundEntries =  Set[String]()
+    for(resource <- resources) {
+      if(updatedFiles.remove(resource.name) != null) {
+        foundEntries += resource.name
+      }
+    }
+    foundEntries
+  }
+
+  def addUpdatedFile(resourceName: String): Unit = this.synchronized {
+    log.fine(s"File $resourceName has been updated!")
+    updatedFiles.put(resourceName, resourceName)
+  }
 
   def createInternalDataset(internalDatasetId: Option[String]): Dataset = {
     if (useLocalInternalDatasets) {
@@ -78,9 +101,14 @@ object LocalExecution {
   def apply(): LocalExecution = {
     instance
   }
+}
 
-  class LocalInternalDataset extends InternalDatasetTrait {
-    override protected def internalDatasetPluginImpl: Dataset = InternalDataset.createInternalDataset()
-  }
-
+@Plugin(
+  id = "LocalInternalDataset",
+  label = "Internal dataset (single graph)",
+  description =
+    """Dataset for storing entities between workflow steps. This variant does use the same graph for all internal datasets in a workflow. The underlying dataset type can be configured using the `dataset.internal.*` configuration parameters."""
+)
+case class LocalInternalDataset() extends InternalDatasetTrait {
+  override protected def internalDatasetPluginImpl: Dataset = InternalDataset.createInternalDataset()
 }

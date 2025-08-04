@@ -18,8 +18,6 @@ import {
     findAll,
     findSingleElement,
     legacyApiUrl,
-    logRequests,
-    logWrapperHtml,
     mockAxiosResponse,
     mockedAxiosError,
     mockedAxiosResponse,
@@ -273,7 +271,6 @@ describe("Task creation widget", () => {
         const { wrapper, history } = await pluginCreationDialogWrapper();
         changeValue(findSingleElement(wrapper, "#intParam"), "100");
         changeValue(findSingleElement(wrapper, "#label"), "Some label");
-        (window.document.querySelector(".CodeMirror") as any)?.CodeMirror?.setValue("Some description");
         changeValue(findSingleElement(wrapper, byName("objectParameter.subStringParam")), "Something");
         clickCreate(wrapper);
         await expectValidationErrors(wrapper, 0);
@@ -283,7 +280,6 @@ describe("Task creation widget", () => {
         const metaData = request.data.metadata;
         const data = request.data.data;
         expect(metaData.label).toBe("Some label");
-        expect(metaData.description).toBe("Some description");
         expect(data.taskType).toBe(TaskTypes.CUSTOM_TASK);
         expect(data.type).toBe("pluginA");
         expect(data.parameters.intParam).toEqual("100");
@@ -323,20 +319,17 @@ describe("Task creation widget", () => {
     it("should allow to create a new project", async () => {
         const { wrapper } = await createMockedListWrapper();
         const PROJECT_LABEL = "Project label";
-        const PROJECT_DESCRIPTION = "Project description";
         const project = selectionItems(wrapper)[0];
         clickWrapperElement(project);
         clickWrapperElement(project);
         expect(findAll(wrapper, "#label")).toHaveLength(1);
         changeValue(findSingleElement(wrapper, "#label"), PROJECT_LABEL);
-        (window.document.querySelector(".CodeMirror") as any)?.CodeMirror?.setValue(PROJECT_DESCRIPTION);
         clickCreate(wrapper);
         await expectValidationErrors(wrapper, 0);
         await waitFor(() => {
             const expectedPayload = {
                 metaData: {
                     label: PROJECT_LABEL,
-                    description: PROJECT_DESCRIPTION,
                 },
             };
             checkRequestMade(apiUrl("/workspace/projects"), "POST", expectedPayload);
@@ -366,10 +359,6 @@ describe("Task creation widget", () => {
         await waitFor(() => {
             expect(window.document.querySelectorAll(".eccgui-spinner").length).toBe(0);
         });
-        // FIXME: Blueprint portal with suggestion results is not shown
-        // await waitFor(() => {
-        //     expect(window.document.querySelectorAll(`div.${bluePrintClassPrefix}-portal`).length).toBeGreaterThan(beforePortals)
-        // })
     });
 
     const value = (value: string, label?: string) => {
@@ -441,9 +430,6 @@ describe("Task creation widget", () => {
             },
         });
         await waitFor(() => findSingleElement(wrapper, byTestId("stringParam-template-switch-back-btn")));
-        await waitFor(() =>
-            expect(findSingleElement(wrapper, "#restrictionParam").text()).toContain("restriction value")
-        );
         const updateRequest = await updateTask(wrapper);
         // Build expected request parameter object
         const expectedObject: any = {};

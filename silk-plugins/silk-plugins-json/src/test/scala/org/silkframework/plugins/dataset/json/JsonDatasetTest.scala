@@ -6,11 +6,11 @@ import org.scalatest.matchers.should.Matchers
 import org.silkframework.config.Prefixes
 import org.silkframework.entity.EntitySchema
 import org.silkframework.entity.paths.UntypedPath
-import org.silkframework.runtime.activity.TestUserContextTrait
+import org.silkframework.runtime.activity.TestPluginContextTrait
 import org.silkframework.runtime.resource.{ClasspathResourceLoader, Resource, ResourceLoader, ResourceTooLargeException}
 import org.silkframework.util.{ConfigTestTrait, Uri}
 
-class JsonDatasetTest extends AnyFlatSpec with Matchers with TestUserContextTrait {
+class JsonDatasetTest extends AnyFlatSpec with Matchers with TestPluginContextTrait {
 
   behavior of "JSON dataset"
 
@@ -38,7 +38,7 @@ class JsonDatasetTest extends AnyFlatSpec with Matchers with TestUserContextTrai
   private def loadEntities(maxInMemorySize: String): Unit = {
     ConfigTestTrait.withConfig(Resource.maxInMemorySizeParameterName -> Some(maxInMemorySize)) {
       implicit val prefixes: Prefixes = Prefixes.empty
-      val source = JsonSourceInMemory(resources.get("exampleLines.jsonl"), "", "")
+      val source = JsonSourceInMemory.fromResource(resources.get("exampleLines.jsonl"), "", "")
       source.retrieve(EntitySchema(Uri(""), typedPaths = IndexedSeq(UntypedPath.parse("name").asStringTypedPath))).entities.toSeq
     }
   }

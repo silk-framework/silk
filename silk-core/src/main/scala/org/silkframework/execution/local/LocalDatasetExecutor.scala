@@ -6,17 +6,23 @@ import org.silkframework.dataset.DatasetSpec.{EntitySinkWrapper, GenericDatasetS
 import org.silkframework.dataset._
 import org.silkframework.dataset.operations.ClearDatasetOperator.ClearDatasetTable
 import org.silkframework.dataset.operations.ClearDatasetOperatorExecutionReportUpdater
+import org.silkframework.dataset.bulk.{BulkResourceBasedDataset, ZipWritableResource}
 import org.silkframework.dataset.rdf._
 import org.silkframework.entity._
 import org.silkframework.execution._
-import org.silkframework.execution.report.{EntitySample, SampleEntitiesSchema}
+import org.silkframework.execution.typed._
 import org.silkframework.runtime.activity.{ActivityContext, UserContext}
 import org.silkframework.runtime.iterator.{CloseableIterator, TraversableIterator}
+import org.silkframework.runtime.plugin.PluginContext
+import org.silkframework.runtime.resource.zip.ZipOutputStreamResource
+import org.silkframework.runtime.resource.{FileResource, ReadOnlyResource, WritableResource}
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.Uri
 
 import java.util
 import java.util.logging.{Level, Logger}
+import java.util.zip.ZipOutputStream
+import scala.util.Using
 
 /**
   * Local dataset executor that handles read and writes to [[Dataset]] tasks.
@@ -28,21 +34,22 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
     * Reads data from a dataset.
     */
   override def read(dataset: Task[DatasetSpec[DatasetType]], schema: EntitySchema, execution: LocalExecution)
-                   (implicit userContext: UserContext, context: ActivityContext[ExecutionReport], prefixes: Prefixes): LocalEntities = {
+                   (implicit pluginContext: PluginContext, context: ActivityContext[ExecutionReport]): LocalEntities = {
+    implicit val prefixes: Prefixes = pluginContext.prefixes
+    implicit val user: UserContext = pluginContext.user
+
     //FIXME CMEM-1759 clean this and use only plugin based implementations of LocalEntities
     lazy val source = access(dataset, execution).source
     schema match {
       case EmptyEntityTable.schema =>
         EmptyEntityTable(dataset)
-      case QuadEntityTable.schema =>
-        handleTripleEntitySchema(dataset)
-      case TripleEntityTable.schema =>
-        handleTripleEntitySchema(dataset)
+      case QuadEntitySchema.schema =>
+        handleQuadEntitySchema(dataset)
       case SparqlEndpointEntitySchema.schema =>
         handleSparqlEndpointSchema(dataset)
       case multi: MultiEntitySchema =>
         handleMultiEntitySchema(dataset, source, schema, multi)
-      case DatasetResourceEntitySchema.schema =>
+      case FileEntitySchema.schema =>
         handleDatasetResourceEntitySchema(dataset)
       case _ =>
         implicit val executionReport: ExecutionReportUpdater = ReadEntitiesReportUpdater(dataset, context)
@@ -51,12 +58,19 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
     }
   }
 
-  private def handleDatasetResourceEntitySchema(dataset: Task[DatasetSpec[DatasetType]]) = {
+  private def handleDatasetResourceEntitySchema(dataset: Task[DatasetSpec[DatasetType]])
+                                               (implicit pluginContext: PluginContext, context: ActivityContext[ExecutionReport]): LocalEntities = {
     dataset.data match {
       case datasetSpec: DatasetSpec[_] =>
         datasetSpec.plugin match {
           case dsr: ResourceBasedDataset =>
-            new LocalDatasetResourceEntityTable(dsr.file, dataset)
+            implicit val executionReport: ExecutionReportUpdater = ReadFilesReportUpdater(dataset, context)
+            implicit val prefixes: Prefixes = pluginContext.prefixes
+            val fileEntities =
+              for(resource <- BulkResourceBasedDataset.resources(dsr) if resource.exists) yield {
+                FileEntity(ReadOnlyResource(resource), FileType.Project, dsr.mimeType)
+              }
+            ReportingIterator.addReporter(FileEntitySchema.create(fileEntities, dataset))
           case _: Dataset =>
             throw new ValidationException(s"Dataset task ${dataset.id} of type " +
                 s"${datasetSpec.plugin.pluginSpec.label} has no resource (file) or does not support requests for its resource!")
@@ -67,8 +81,9 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
   }
 
   private def handleMultiEntitySchema(dataset: Task[DatasetSpec[Dataset]], source: DataSource, schema: EntitySchema, multi: MultiEntitySchema)
-                                     (implicit userContext: UserContext, prefixes: Prefixes, context: ActivityContext[ExecutionReport])= {
+                                     (implicit pluginContext: PluginContext, context: ActivityContext[ExecutionReport])= {
     implicit val executionReport: ExecutionReportUpdater = ReadEntitiesReportUpdater(dataset, context)
+    implicit val prefixes: Prefixes = pluginContext.prefixes
     val table = source.retrieve(entitySchema = schema)
     MultiEntityTable(
       entities = ReportingIterator(table.entities),
@@ -81,8 +96,8 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
     )
   }
 
-  private def handleTripleEntitySchema(dataset: Task[DatasetSpec[Dataset]])
-                                      (implicit userContext: UserContext): TripleEntityTable = {
+  private def handleQuadEntitySchema(dataset: Task[DatasetSpec[Dataset]])
+                                    (implicit pluginContext: PluginContext): TypedEntities[Quad, TaskSpec] = {
     dataset.data match {
       case rdfDataset: RdfDataset =>
         readTriples(dataset, rdfDataset)
@@ -92,45 +107,44 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
         throw TaskException("Dataset is not a RDF dataset and thus cannot output triples!")
     }
   }
-  private def handleSparqlEndpointSchema(dataset: Task[GenericDatasetSpec]): SparqlEndpointEntityTable = {
+
+  private def readTriples(dataset: Task[GenericDatasetSpec], rdfDataset: RdfDataset)
+                       (implicit pluginContext: PluginContext): TypedEntities[Quad, TaskSpec] = {
+    val sparqlResult = rdfDataset.sparqlEndpoint.select("SELECT ?s ?p ?o WHERE {?s ?p ?o}")(pluginContext.user)
+    val tripleEntities = sparqlResult.bindings map { resultMap =>
+      val s = resultMap("s").asInstanceOf[ConcreteNode]
+      val p = resultMap("p").asInstanceOf[Resource]
+      val v = resultMap("o")
+      Triple(s, p, v)
+    }
+    QuadEntitySchema.create(tripleEntities, dataset)
+  }
+
+
+  private def handleSparqlEndpointSchema(dataset: Task[GenericDatasetSpec])(implicit pluginContext: PluginContext): TypedEntities[Unit, DatasetSpec[RdfDataset]] = {
     dataset.data match {
-      case rdfDataset: RdfDataset =>
-        new SparqlEndpointEntityTable(rdfDataset.sparqlEndpoint, dataset)
-      case DatasetSpec(rdfDataset: RdfDataset, _, _) =>
-        new SparqlEndpointEntityTable(rdfDataset.sparqlEndpoint, dataset)
+      case DatasetSpec(_: RdfDataset, _, _) =>
+        SparqlEndpointEntitySchema.create(dataset.asInstanceOf[Task[DatasetSpec[RdfDataset]]])
       case _ =>
         throw TaskException("Dataset does not offer a SPARQL endpoint!")
     }
   }
 
-  private def readTriples(dataset: Task[GenericDatasetSpec], rdfDataset: RdfDataset)
-                         (implicit userContext: UserContext): TripleEntityTable = {
-    val sparqlResult = rdfDataset.sparqlEndpoint.select("SELECT ?s ?p ?o WHERE {?s ?p ?o}")
-    val tripleEntities = sparqlResult.bindings map { resultMap =>
-      val s = resultMap("s").value
-      val p = resultMap("p").value
-      val (value, typ) = TripleEntityTable.convertToEncodedType(resultMap("o"))
-      Entity(s, IndexedSeq(Seq(s), Seq(p), Seq(value), Seq(typ)), TripleEntityTable.schema)
-    }
-    new TripleEntityTable(tripleEntities, dataset)
-  }
-
   override protected def write(data: LocalEntities, dataset: Task[DatasetSpec[DatasetType]], execution: LocalExecution)
-                              (implicit userContext: UserContext, context: ActivityContext[ExecutionReport], prefixes: Prefixes): Unit = {
+                              (implicit pluginContext: PluginContext, context: ActivityContext[ExecutionReport]): Unit = {
+    implicit val prefixes: Prefixes = pluginContext.prefixes
+    implicit val user: UserContext = pluginContext.user
+
     DatasetSpec.checkDatasetAllowsWriteAccess(Some(dataset.fullLabel), dataset.readOnly)
-    //FIXME CMEM-1759 clean this and use only plugin based implementations of LocalEntities
+
     data match {
-      case LinksTable(links, linkType, inverseLinkType, _) =>
+      case LinksEntitySchema(links) =>
         withLinkSink(dataset, execution) { linkSink =>
-          writeLinks(dataset, linkSink, links, linkType, inverseLinkType)
+          writeLinks(dataset, linkSink, links.typedEntities, links.task.linkType, links.task.inverseLinkType)
         }
-      case tripleEntityTable: TripleEntityTable =>
+      case QuadEntitySchema(quads) =>
         withEntitySink(dataset, execution) { entitySink =>
-          writeTriples(entitySink, tripleEntityTable.entities)
-        }
-      case QuadEntityTable(entitiesFunc, _) =>
-        withEntitySink(dataset, execution) { entitySink =>
-          writeTriples(entitySink, entitiesFunc())
+          writeQuads(entitySink, quads, WriteTriplesReportUpdater(dataset, context))
         }
       case tables: MultiEntityTable =>
         implicit val report: ExecutionReportUpdater = WriteEntitiesReportUpdater(dataset, context)
@@ -142,13 +156,12 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
           writeMultiTables(entitySink, tables)
         }
         report.executionDone()
-      case datasetResource: DatasetResourceEntityTable =>
-        writeDatasetResource(dataset, datasetResource)
-      case graphStoreFiles: LocalGraphStoreFileUploadTable =>
-        val reportUpdater = UploadFilesViaGspReportUpdater(dataset, context)
-        uploadFilesViaGraphStore(dataset, graphStoreFiles, reportUpdater)
-      case sparqlUpdateTable: SparqlUpdateEntityTable =>
-        executeSparqlUpdateQueries(dataset, sparqlUpdateTable, execution)
+      case FileEntitySchema(files) if dataset.data.plugin.isInstanceOf[ResourceBasedDataset] =>
+        writeDatasetResource(dataset, files, WriteFilesReportUpdater(dataset, context), resource => execution.addUpdatedFile(resource.name))
+      case FileEntitySchema(files) if dataset.data.plugin.isInstanceOf[RdfDataset] =>
+        uploadFilesViaGraphStore(dataset, files.typedEntities, UploadFilesViaGspReportUpdater(dataset, context))
+      case SparqlUpdateEntitySchema(queries) =>
+        executeSparqlUpdateQueries(dataset, queries, execution)
       case _: ClearDatasetTable =>
         executeClearDataset(dataset)
       case et: LocalEntities =>
@@ -214,14 +227,14 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
   }
 
   private def executeSparqlUpdateQueries(dataset: Task[DatasetSpec[DatasetType]],
-                                         sparqlUpdateTable: SparqlUpdateEntityTable,
+                                         sparqlUpdateQueries: TypedEntities[String, TaskSpec],
                                          execution: LocalExecution)
                                         (implicit userContext: UserContext, context: ActivityContext[ExecutionReport], prefixes: Prefixes): Unit = {
     dataset.plugin match {
       case rdfDataset: RdfDataset =>
         val endpoint = rdfDataset.sparqlEndpoint
         val executionReport = SparqlUpdateExecutionReportUpdater(dataset, context)
-        val queryBuffer = SparqlQueryBuffer(remainingSparqlUpdateQueryBufferSize, sparqlUpdateTable.entities)
+        val queryBuffer = SparqlQueryBuffer(remainingSparqlUpdateQueryBufferSize, sparqlUpdateQueries.typedEntities)
         for (updateQuery <- queryBuffer) {
           endpoint.update(updateQuery)
           executionReport.increaseEntityCounter()
@@ -229,7 +242,7 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
         }
         executionReport.executionDone()
       case _ =>
-        writeGenericLocalEntities(dataset, sparqlUpdateTable, execution)
+        writeGenericLocalEntities(dataset, sparqlUpdateQueries, execution)
     }
   }
 
@@ -248,13 +261,11 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
     *
     * @param bufferSize max size of queries that should be buffered
     */
-  case class SparqlQueryBuffer(queryBufferSize: Int, entities: CloseableIterator[Entity]) extends TraversableIterator[String] {
+  case class SparqlQueryBuffer(queryBufferSize: Int, entities: CloseableIterator[String]) extends TraversableIterator[String] {
     private val queryBuffer = new util.LinkedList[String]()
 
     override def foreach[U](f: String => U): Unit = {
-      entities foreach { entity =>
-        assert(entity.values.size == 1 && entity.values.head.size == 1)
-        val query = entity.values.head.head
+      entities foreach { query =>
         queryBuffer.push(query)
         if(queryBuffer.size() > queryBufferSize) {
           f(queryBuffer.remove())
@@ -269,7 +280,7 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
   }
 
   private def uploadFilesViaGraphStore(dataset: Task[DatasetSpec[Dataset]],
-                                       table: GraphStoreFileUploadTable,
+                                       files: CloseableIterator[FileEntity],
                                        reportUpdater: ExecutionReportUpdater)
                                       (implicit userContext: UserContext): Unit = {
     val datasetLabelOrId = dataset.metaData.formattedLabel(dataset.id)
@@ -283,8 +294,13 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
               case None => throw new ValidationException(s"No graph defined on dataset $datasetLabelOrId of type '${dataset.plugin.pluginSpec.label}'!")
             }
             val graphStore = sparqlEndpoint.asInstanceOf[GraphStoreFileUploadTrait]
-            for(fileResource <- table.files) {
-              graphStore.uploadFileToGraph(targetGraph, fileResource.file, table.contentType, None)
+            for(fileEntity <- files) {
+              val file = fileEntity.file match {
+                case FileResource(file) => file
+                case _ => throw new ValidationException(s"Cannot upload non-local file to GraphStore: $fileEntity")
+              }
+              val mimeType = fileEntity.mimeType.getOrElse(throw new ValidationException(s"Cannot upload file to GraphStore that is missing the MIME type: $fileEntity"))
+              graphStore.uploadFileToGraph(targetGraph, file, mimeType, None)
               reportUpdater.increaseEntityCounter()
             }
           case _: Dataset =>
@@ -297,16 +313,20 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
     reportUpdater.executionDone()
   }
 
-  // Write the resource from the resource entity table to the dataset's resource
-  private def writeDatasetResource(dataset: Task[DatasetSpec[Dataset]], datasetResource: DatasetResourceEntityTable): Unit = {
-    val inputResource = datasetResource.datasetResource
+  // Write file entities to the dataset's resource
+  private def writeDatasetResource(dataset: Task[DatasetSpec[Dataset]],
+                                   fileEntities: TypedEntities[FileEntity, TaskSpec],
+                                   reportUpdater: ExecutionReportUpdater,
+                                   onUpdate: WritableResource => Unit): Unit = {
     dataset.data match {
       case datasetSpec: DatasetSpec[_] =>
         datasetSpec.plugin match {
           case dsr: ResourceBasedDataset =>
             dsr.writableResource match {
-              case Some(wr) =>
-                wr.writeResource(inputResource)
+              case Some(outputResource) =>
+                if(writeResources(fileEntities.typedEntities, outputResource, reportUpdater)) {
+                  onUpdate(outputResource)
+                }
               case None =>
                 throw new ValidationException(s"Dataset task ${dataset.id} of type ${datasetSpec.plugin.pluginSpec.label} " +
                     s"does not have a writable resource!")
@@ -318,6 +338,47 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
       case _ =>
         throw new ValidationException("No dataset spec found!")
     }
+    reportUpdater.executionDone()
+  }
+
+  private def writeResources(fileEntities: Iterator[FileEntity], outputResource: WritableResource, reportUpdater: ExecutionReportUpdater): Boolean = {
+    var resourceWritten = false
+    if(!BulkResourceBasedDataset.isZip(outputResource)) {
+      // We are writing to a non-zip resource, so we can only write one file
+      for(inputResource <- fileEntities) {
+        if(BulkResourceBasedDataset.isZip(inputResource.file)) {
+          throw new ValidationException(s"Cannot write a zip file (${inputResource.file.name}) to a dataset that's not based on a zip file.")
+        }
+        if(resourceWritten) {
+          throw new ValidationException(s"Cannot write multiple files to a dataset that is not based on a zip file: ${outputResource.name}")
+        }
+        outputResource.writeResource(inputResource.file)
+        resourceWritten = true
+        reportUpdater.increaseEntityCounter()
+      }
+    } else {
+      // We are writing to a zip resource
+      fileEntities.nextOption() match {
+        case None =>
+          // No files to write, nothing to do
+        case Some(firstEntity) if BulkResourceBasedDataset.isZip(firstEntity.file) && !fileEntities.hasNext =>
+          // If there is only one file and it is a zip file, we can write it directly
+          outputResource.writeResource(firstEntity.file)
+        case Some(firstEntity) =>
+          // Otherwise we package all files into a zip file
+          outputResource.write() { outputStream =>
+            Using.resource(new ZipOutputStream(outputStream)) { zipOutput =>
+              for (inputResource <- Iterator(firstEntity) ++ fileEntities) {
+                val entryResource = ZipOutputStreamResource(inputResource.file.name, inputResource.file.name, zipOutput)
+                entryResource.writeResource(inputResource.file)
+                resourceWritten = true
+                reportUpdater.increaseEntityCounter()
+              }
+            }
+          }
+      }
+    }
+    resourceWritten
   }
 
   private def withLinkSink(dataset: Task[DatasetSpec[DatasetType]], execution: LocalExecution)(f: LinkSink => Unit)(implicit userContext: UserContext): Unit = {
@@ -351,7 +412,7 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
     logger.log(Level.INFO, "Finished writing " + entityCount + " entities with type '" + entityTable.entitySchema.typeUri + "' in " + time + " seconds")
   }
 
-  private def writeLinks(dataset: Task[DatasetSpec[DatasetType]], sink: LinkSink, links: Seq[Link], linkType: Uri, inverseLinkType: Option[Uri])
+  private def writeLinks(dataset: Task[DatasetSpec[DatasetType]], sink: LinkSink, links: CloseableIterator[Link], linkType: Uri, inverseLinkType: Option[Uri])
                         (implicit userContext: UserContext, prefixes: Prefixes, context: ActivityContext[ExecutionReport]): Unit = {
     implicit val report: ExecutionReportUpdater = WriteLinksReportUpdater(dataset, context)
     val startTime = System.currentTimeMillis()
@@ -365,43 +426,28 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
     logger.log(Level.INFO, "Finished writing links in " + time + " seconds")
   }
 
-  private def writeTriples(sink: EntitySink, entities: CloseableIterator[Entity])
-                          (implicit userContext: UserContext, prefixes: Prefixes): Unit = {
+  private def writeQuads(sink: EntitySink, quads: TypedEntities[Quad, TaskSpec], reportUpdater: WriteTriplesReportUpdater)
+                        (implicit userContext: UserContext, prefixes: Prefixes): Unit = {
     sink match {
       case tripleSink: TripleSink =>
-        writeTriples(entities, tripleSink)
+        writeQuadsToTripleSink(tripleSink, quads, reportUpdater)
       case EntitySinkWrapper(tripleSink: TripleSink, _) =>
-        writeTriples(entities, tripleSink)
+        writeQuadsToTripleSink(tripleSink, quads, reportUpdater)
       case _ =>
-        throw TaskException("Cannot write triples to non-RDF dataset!")
+        // Write the statements as generic entities
+        implicit val executionReportUpdater: ExecutionReportUpdater = reportUpdater
+        writeEntities(sink, quads)
     }
   }
 
-  private def writeTriples(entities: CloseableIterator[Entity], sink: TripleSink)
-                          (implicit userContext: UserContext, prefixes: Prefixes): Unit = {
+  private def writeQuadsToTripleSink(sink: TripleSink, quads: TypedEntities[Quad, TaskSpec], reportUpdater: WriteTriplesReportUpdater)
+                                    (implicit userContext: UserContext, prefixes: Prefixes): Unit = {
     sink.init()
-    for (entity <- entities) {
-      if (entity.values.size < 4 || entity.values.size > 5) {
-        throw new scala.RuntimeException("TripleEntityTable with invalid Entity encountered.")
-      }
-      try {
-        entity.schema match{
-          case TripleEntityTable.schema =>
-            val Seq(s, p, o, encodedType) = entity.values.map(_.head)
-            val valueType = TripleEntityTable.convertToValueType(encodedType)
-            sink.writeTriple(s, p, o, valueType)
-          case QuadEntityTable.schema =>
-            val Seq(s, p, o, encodedType, context) = entity.values.map(_.head)
-            val valueType = TripleEntityTable.convertToValueType(encodedType)
-            sink.writeTriple(s, p, o, valueType)  //FIXME CMEM-1759 quad context is ignored for now, change when quad sink is available
-          case _ =>
-            throw new scala.RuntimeException("Unexpected entity schema format: " + entity.schema)
-        }
-      } catch {
-        case ex: Exception =>
-          throw new scala.RuntimeException("Triple entity with empty values", ex)
-      }
+    for (quad <- quads.typedEntities) {
+      sink.writeTriple(quad.subject.value, quad.predicate.value, quad.objectVal.value, QuadEntitySchema.getValueType(quad.objectVal))
+      reportUpdater.increaseEntityCounter()
     }
+    reportUpdater.executionDone()
   }
 
   private def writeMultiTables(sink: EntitySink, tables: MultiEntityTable)
@@ -411,31 +457,49 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
     }
   }
 
-  case class WriteEntitiesReportUpdater(task: Task[TaskSpec], context: ActivityContext[ExecutionReport]) extends ExecutionReportUpdater {
+  private case class WriteEntitiesReportUpdater(task: Task[TaskSpec], context: ActivityContext[ExecutionReport]) extends ExecutionReportUpdater {
     override def operationLabel: Option[String] = Some("write")
     override def entityProcessVerb: String = "written"
   }
 
-  case class ReadEntitiesReportUpdater(task: Task[TaskSpec], context: ActivityContext[ExecutionReport]) extends ExecutionReportUpdater {
+  private case class ReadEntitiesReportUpdater(task: Task[TaskSpec], context: ActivityContext[ExecutionReport]) extends ExecutionReportUpdater {
     override def operationLabel: Option[String] = Some("read")
     override def entityProcessVerb: String = "read"
   }
 
-  case class WriteLinksReportUpdater(task: Task[TaskSpec], context: ActivityContext[ExecutionReport]) extends ExecutionReportUpdater {
+  private case class ReadFilesReportUpdater(task: Task[TaskSpec], context: ActivityContext[ExecutionReport]) extends ExecutionReportUpdater {
+    override def entityLabelSingle: String = "File"
+    override def entityLabelPlural: String = "Files"
+    override def operationLabel: Option[String] = Some("read")
+    override def entityProcessVerb: String = "read"
+  }
+
+  private case class WriteLinksReportUpdater(task: Task[TaskSpec], context: ActivityContext[ExecutionReport]) extends ExecutionReportUpdater {
     override def entityLabelSingle: String = "Link"
     override def entityLabelPlural: String = "Links"
     override def operationLabel: Option[String] = Some("write")
     override def entityProcessVerb: String = "written"
   }
 
-  case class UploadFilesViaGspReportUpdater(task: Task[TaskSpec], context: ActivityContext[ExecutionReport]) extends ExecutionReportUpdater {
+  private case class WriteFilesReportUpdater(task: Task[TaskSpec], context: ActivityContext[ExecutionReport]) extends ExecutionReportUpdater {
     override def entityLabelSingle: String = "File"
-
     override def entityLabelPlural: String = "Files"
+    override def operationLabel: Option[String] = Some("write")
+    override def entityProcessVerb: String = "written"
+  }
 
+  private case class UploadFilesViaGspReportUpdater(task: Task[TaskSpec], context: ActivityContext[ExecutionReport]) extends ExecutionReportUpdater {
+    override def entityLabelSingle: String = "File"
+    override def entityLabelPlural: String = "Files"
     override def operationLabel: Option[String] = Some("upload")
-
     override def entityProcessVerb: String = "uploaded"
+  }
+
+  case class WriteTriplesReportUpdater(task: Task[TaskSpec], context: ActivityContext[ExecutionReport]) extends ExecutionReportUpdater {
+    override def entityLabelSingle: String = "Triple"
+    override def entityLabelPlural: String = "Triples"
+    override def operationLabel: Option[String] = Some("write")
+    override def entityProcessVerb: String = "written"
   }
 }
 

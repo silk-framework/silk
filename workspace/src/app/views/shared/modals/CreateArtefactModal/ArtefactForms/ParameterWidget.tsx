@@ -16,7 +16,7 @@ import { InputMapper, RegisterForExternalChangesFn } from "./InputMapper";
 import { defaultValueAsJs } from "../../../../../utils/transformers";
 import { INPUT_TYPES } from "../../../../../constants";
 import { useTranslation } from "react-i18next";
-import { dependentValueIsSet, ParameterAutoCompletion } from "./ParameterAutoCompletion";
+import { dependentValueIsSet, DependsOnParameterValueAny, ParameterAutoCompletion } from "./ParameterAutoCompletion";
 import { pluginRegistry, SUPPORTED_PLUGINS } from "../../../../plugins/PluginRegistry";
 import { ParameterExtensions } from "../../../../plugins/plugin.types";
 import { ArtefactFormParameter } from "./ArtefactFormParameter";
@@ -50,6 +50,8 @@ export interface ExtendedParameterCallbacks extends ParameterCallbacks {
     parameterLabel: (fullParameterId: string) => string;
     /** Named anchors in the Markdown documentation. */
     namedAnchors: string[];
+    /** The default value as defined in the parameter spec. */
+    defaultValue: (paramId: string) => string | null | undefined;
 }
 
 interface IProps {
@@ -72,7 +74,7 @@ interface IProps {
         [key: string]: any;
     };
     // Values that the auto-completion of other parameters depends on
-    dependentValues: React.MutableRefObject<Record<string, any>>;
+    dependentValues: React.MutableRefObject<Record<string, DependsOnParameterValueAny | undefined>>;
     parameterCallbacks: ExtendedParameterCallbacks;
 }
 
@@ -109,7 +111,7 @@ export const ParameterWidget = (props: IProps) => {
         parameterCallbacks,
     } = props;
     const parameterExtensions = pluginRegistry.pluginComponent<ParameterExtensions>(
-        SUPPORTED_PLUGINS.DI_PARAMETER_EXTENSIONS
+        SUPPORTED_PLUGINS.DI_PARAMETER_EXTENSIONS,
     );
     const errors = formHooks.errors[taskParameter.paramId];
     const propertyDetails = parameterExtensions ? parameterExtensions.extend(taskParameter.param) : taskParameter.param;
@@ -123,10 +125,15 @@ export const ParameterWidget = (props: IProps) => {
         return dependentValues.current[prefixedParamId];
     };
 
+    const hasDefaultValue = (paramId: string) => {
+        return parameterCallbacks.defaultValue(paramId) != null;
+    };
+
     const missingParameterLabels = missingDependentParameters(
         taskParameter.param,
         dependentValues.current,
-        formParameterPrefix
+        formParameterPrefix,
+        hasDefaultValue,
     ).map((paramId) => parameterCallbacks.parameterLabel(formParameterPrefix + paramId));
     /** Text that should be displayed below the input element for this parameter as long as there is no error message displayed. */
     const infoHelperText =
@@ -218,7 +225,7 @@ export const ParameterWidget = (props: IProps) => {
                                 parameterCallbacks={parameterCallbacks}
                             />
                         );
-                    }
+                    },
                 )}
             </FieldSet>
         );
@@ -255,7 +262,7 @@ export const ParameterWidget = (props: IProps) => {
             ? initialValues[formParamId]
                 ? initialValues[formParamId].value
                 : defaultValueAsJs(propertyDetails, true)
-            : initialValues[formParamId]?.value ?? optionallyLabelledParameterToValue(propertyDetails.value);
+            : (initialValues[formParamId]?.value ?? optionallyLabelledParameterToValue(propertyDetails.value));
         return (
             <ArtefactFormParameter
                 projectId={projectId}
@@ -298,6 +305,7 @@ export const ParameterWidget = (props: IProps) => {
                                 intent={errors ? Intent.DANGER : Intent.NONE}
                                 formParamId={formParamId}
                                 dependentValue={dependentValue}
+                                defaultValue={parameterCallbacks.defaultValue}
                                 required={required}
                                 registerForExternalChanges={parameterCallbacks.registerForExternalChanges}
                             />
@@ -328,9 +336,16 @@ export const ParameterWidget = (props: IProps) => {
 /** Returns an array of parameter IDs of missing dependent values. */
 export const missingDependentParameters = (
     propertyDetails: IArtefactItemProperty,
-    dependentValues: Record<string, any>,
-    parameterPrefix: string
+    dependentValues: Record<string, DependsOnParameterValueAny | undefined>,
+    parameterPrefix: string,
+    hasDefaultValue: (paramId: string) => boolean,
 ): string[] => {
     const dependsOnParameters = propertyDetails.autoCompletion?.autoCompletionDependsOnParameters ?? [];
-    return dependsOnParameters.filter((paramId) => !dependentValueIsSet(dependentValues[parameterPrefix + paramId]));
+    return dependsOnParameters.filter(
+        (paramId) =>
+            !dependentValueIsSet(
+                dependentValues[parameterPrefix + paramId]?.value,
+                hasDefaultValue(parameterPrefix + paramId),
+            ),
+    );
 };

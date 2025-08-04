@@ -1,5 +1,6 @@
 package org.silkframework.util
-
+
+
 import org.silkframework.config.Prefixes
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
@@ -35,6 +36,13 @@ class UriTest extends AnyFlatSpec with Matchers {
     Uri("urn:namespace:name").localName shouldBe Some("name")
     Uri("urn:namespace:name/child").localName shouldBe Some("child")
     Uri("http://example.org").localName shouldBe None
+  }
+
+  it should "extract the namespace" in {
+    Uri("http://example.org/resource/path?x=y").namespace shouldBe Some("http://example.org/resource/")
+    Uri("urn:example:resource").namespace shouldBe Some("urn:example:")
+    Uri("resource").namespace shouldBe None
+    Uri("http://example.org/resource#fragment").namespace shouldBe Some("http://example.org/resource#")
   }
 
 }

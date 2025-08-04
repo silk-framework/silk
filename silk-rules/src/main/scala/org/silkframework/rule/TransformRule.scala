@@ -8,7 +8,7 @@ import org.silkframework.entity.paths.{TypedPath, UntypedPath}
 import org.silkframework.rule.MappingRules.MappingRulesFormat
 import org.silkframework.rule.MappingTarget.MappingTargetFormat
 import org.silkframework.rule.TransformRule.RDF_TYPE
-import org.silkframework.rule.input.{Input, PathInput, TransformInput, Value}
+import org.silkframework.rule.input.{Input, OperatorEvaluationError, PathInput, TransformInput, Value}
 import org.silkframework.rule.plugins.transformer.combine.ConcatTransformer
 import org.silkframework.rule.plugins.transformer.normalize.{UriFixTransformer, UrlEncodeTransformer}
 import org.silkframework.rule.plugins.transformer.value.{ConstantTransformer, ConstantUriTransformer, EmptyValueTransformer}
@@ -278,13 +278,16 @@ object RootMappingRule {
   * @param id             The name of this mapping. For direct mappings usually just the property that is mapped.
   * @param sourcePath     The source path
   * @param mappingTarget  The target property
+  * @param metaData       Meta data
+  * @param inputId        Identifier of the generated input path operator. If not defined, the mapping `id` will be used.
   */
 case class DirectMapping(id: Identifier = "sourcePath",
                          sourcePath: UntypedPath = UntypedPath(Nil),
                          mappingTarget: MappingTarget = MappingTarget("http://www.w3.org/2000/01/rdf-schema#label"),
-                         metaData: MetaData = MetaData.empty) extends ValueTransformRule {
+                         metaData: MetaData = MetaData.empty,
+                         inputId: Option[Identifier] = None) extends ValueTransformRule {
 
-  override val operator = PathInput(id, sourcePath.asUntypedPath)
+  override val operator = PathInput(inputId.getOrElse(id), sourcePath.asUntypedPath)
 
   override val target = Some(mappingTarget)
 
@@ -340,6 +343,16 @@ case class ComplexUriMapping(id: Identifier = "complexURI",
 
   override def withContext(taskContext: TaskContext): ComplexUriMapping = {
     copy(operator = operator.withContext(taskContext))
+  }
+
+  override def apply(entity: Entity): Value = {
+    val v = super.apply(entity)
+    val invalidUri = v.values.find(uri => !Uri(uri).isValidUri)
+    if(invalidUri.isDefined && v.errors.isEmpty) {
+      // The URI rule has generated an invalid URI
+      return v.copy(errors = Seq(OperatorEvaluationError(id, new ValidationException(s"URI rule has generated an invalid URI: '${invalidUri.get}'!"))))
+    }
+    v
   }
 }
 
@@ -555,8 +568,8 @@ object TransformRule {
     */
   def simplify(complexMapping: ComplexMapping)(implicit prefixes: Prefixes): TransformRule = complexMapping match {
     // Direct Mapping
-    case ComplexMapping(id, PathInput(_, path), Some(target), metaData, _, uiAnnotations) if uiAnnotations.stickyNotes.isEmpty =>
-      DirectMapping(id, path.asUntypedPath, target, metaData)
+    case ComplexMapping(id, PathInput(pathId, path), Some(target), metaData, _, uiAnnotations) if uiAnnotations.stickyNotes.isEmpty =>
+      DirectMapping(id, path.asUntypedPath, target, metaData, Some(pathId))
     // Rule with annotations or layout info is always treated as complex (URI) mapping rule
     case ComplexMapping(id, operator, targetOpt, metaData, layout, uiAnnotations) if layout.nodePositions.nonEmpty || uiAnnotations.stickyNotes.nonEmpty =>
       if(targetOpt.isEmpty) {

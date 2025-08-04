@@ -6,7 +6,7 @@ import ruleNodeUtils from "./ruleNode.utils";
 import { IParameterValidationResult } from "../../RuleEditor.typings";
 import { useTranslation } from "react-i18next";
 import { RuleEditorNodeParameterValue } from "../../model/RuleEditorModel.typings";
-import { LanguageFilterProps } from "./PathInputOperator";
+import { InputPathFunctions, LanguageFilterProps } from "./PathInputOperator";
 
 interface RuleNodeFormParameterProps {
     nodeId: string;
@@ -14,12 +14,14 @@ interface RuleNodeFormParameterProps {
     parameter: IRuleNodeParameter;
     /** Requests values of parameters this parameter might depend on for auto-completion. */
     dependentValue: (paramId: string) => string | undefined;
+    /** The default value as defined in the parameter spec. */
+    parameterDefaultValue: (paramId: string) => string | undefined;
     /** If the form parameter will be rendered in a large area. The used input components might differ. */
     large: boolean;
     /** When used inside a modal, the behavior of some components will be optimized. */
     insideModal: boolean;
-    /** If for this parameter there is a language filter supported. Currently only path parameters are affected by this option. */
-    languageFilter?: LanguageFilterProps;
+    /** Functions that are specific to input path rule operators. */
+    inputPathFunctions: InputPathFunctions;
 }
 
 /** A single form parameter, i.e. label, validation and input component. */
@@ -30,7 +32,8 @@ export const RuleNodeFormParameter = ({
     dependentValue,
     large,
     insideModal,
-    languageFilter,
+    inputPathFunctions,
+    parameterDefaultValue,
 }: RuleNodeFormParameterProps) => {
     const [t] = useTranslation();
     const [validationResult, setValidationResult] = React.useState<IParameterValidationResult>({ valid: true });
@@ -85,9 +88,10 @@ export const RuleNodeFormParameter = ({
                 nodeId={nodeId}
                 hasValidationError={!validationResult.valid}
                 dependentValue={dependentValue}
+                parameterDefaultValue={parameterDefaultValue}
                 large={large}
                 insideModal={insideModal}
-                languageFilter={languageFilter}
+                inputPathFunctions={inputPathFunctions}
             />
         </FieldItem>
     );

@@ -16,7 +16,7 @@ import org.silkframework.config.Task
 import org.silkframework.rule.execution.TransformReport
 import org.silkframework.rule.execution.TransformReport.RuleResult
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.runtime.plugin.PluginContext
+import org.silkframework.runtime.plugin.{ParameterValues, PluginContext}
 import org.silkframework.runtime.serialization.{ReadContext, XmlSerialization}
 import org.silkframework.util.Identifier
 import org.silkframework.workbench.utils.UnsupportedMediaTypeException
@@ -174,7 +174,7 @@ class WorkflowApi @Inject() () extends InjectedController with UserContextAction
     implicit val (project, workflowTask) = getProjectAndTask[Workflow](projectName, workflowTaskName)
 
     val activity = workflowTask.activity[WorkflowWithPayloadExecutor]
-    val resultValue = activity.startBlockingAndGetValue(workflowConfiguration)
+    val resultValue = activity.startBlockingAndGetValue(ParameterValues.fromStringMap(workflowConfiguration))
 
     SerializationUtils.serializeCompileTime(resultValue, Some(project))
   }
@@ -248,7 +248,7 @@ class WorkflowApi @Inject() () extends InjectedController with UserContextAction
     implicit val pluginContext: PluginContext = PluginContext.fromProject(project)
 
     val activity = workflowTask.activity[WorkflowWithPayloadExecutor]
-    val id = activity.start(workflowConfiguration)
+    val id = activity.start(ParameterValues.fromStringMap(workflowConfiguration))
     val result = StartActivityResponse(activity.name, id)
 
     Created(Json.toJson(result))

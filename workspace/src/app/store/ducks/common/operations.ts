@@ -18,9 +18,11 @@ import i18Instance, { fetchStoredLang } from "../../../../language";
 import { URI_PROPERTY_PARAMETER_ID } from "../../../views/shared/modals/CreateArtefactModal/ArtefactForms/UriAttributeParameterInput";
 import utils from "../../../views/shared/Metadata/MetadataUtils";
 import { Keyword } from "@ducks/workspace/typings";
-import { SelectedParamsType } from "@eccenca/gui-elements/src/components/MultiSelect/MultiSelect";
+import { MultiSelectSelectionProps } from "@eccenca/gui-elements/src/components/MultiSelect/MultiSelect";
 import { READ_ONLY_PARAMETER } from "../../../views/shared/modals/CreateArtefactModal/ArtefactForms/TaskForm";
 import { fillCustomPluginStore } from "../../../views/shared/ItemDepiction/ItemDepiction";
+import { TaskParameters } from "../../../views/plugins/plugin.types";
+import { setDefaultProjectPageSuffix } from "../../../utils/routerUtils";
 
 const {
     setError,
@@ -51,6 +53,7 @@ const fetchCommonSettingsAsync = () => {
     return async (dispatch) => {
         try {
             const data = await requestInitFrontend();
+            data.defaultProjectPageSuffix && setDefaultProjectPageSuffix(data.defaultProjectPageSuffix);
             dispatch(setInitialSettings(data));
 
             const overviewItems = await requestArtefactList({});
@@ -104,7 +107,7 @@ const fetchAvailableDTypesAsync = (id?: string) => {
                     updateAvailableDTypes({
                         fieldName: "type",
                         modifier: validModifier,
-                    })
+                    }),
                 );
             });
         } catch (error) {
@@ -178,8 +181,8 @@ const splitParameterAndVariableTemplateParameters = (formData: any, variableTemp
 };
 
 /** Builds a request object for project/task create call. */
-const buildTaskObject = (formData: Record<string, any>): object => {
-    const returnObject = Object.create(null);
+const buildNestedTaskParameterObject = (formData: Record<string, any>): TaskParameters => {
+    const returnObject: TaskParameters = Object.create(null);
     const nestedParamsFlat = Object.entries(formData).filter(([k, v]) => k.includes("."));
     const directParams = Object.entries(formData).filter(([k, v]) => !k.includes("."));
     // Add direct parameters
@@ -197,7 +200,7 @@ const buildTaskObject = (formData: Record<string, any>): object => {
     }, {});
     // Add nested parameters to result object and call buildTaskObject recursively
     Object.entries(nestedParamsMap).forEach(([propName, value]) => {
-        returnObject[propName] = buildTaskObject(value as Record<string, any>);
+        returnObject[propName] = buildNestedTaskParameterObject(value as Record<string, any>);
     });
     return returnObject;
 };
@@ -213,7 +216,7 @@ const createArtefactAsync = (
     // Parameters that are flagged to have variable template value
     variableTemplateParameterSet: Set<string>,
     /** If this is set, then instead of redirecting to the newly created task, this function is called. */
-    alternativeCallback?: (newTask: IProjectTask) => any
+    alternativeCallback?: (newTask: IProjectTask) => any,
 ) => {
     return async (dispatch, getState) => {
         const { selectedArtefact } = commonSel.artefactModalSelector(getState());
@@ -232,8 +235,8 @@ const createArtefactAsync = (
                                 taskType as TaskType,
                                 dataParameters,
                                 variableTemplateParameterSet,
-                                alternativeCallback
-                            )
+                                alternativeCallback,
+                            ),
                         ));
                 } else {
                     console.error("selectedArtefact not set! Cannot create item.");
@@ -247,7 +250,7 @@ const createArtefactAsync = (
 const createTagsAndAddToMetadata = async (payload: {
     label: string;
     description?: string;
-    tags?: SelectedParamsType<Keyword>;
+    tags?: MultiSelectSelectionProps<Keyword>;
     projectId?: string;
     taskId?: string;
 }) => {
@@ -255,7 +258,7 @@ const createTagsAndAddToMetadata = async (payload: {
     const tags = await utils.getSelectedTagsAndCreateNew(
         payload.tags?.createdItems,
         payload.projectId,
-        payload.tags?.selectedItems
+        payload.tags?.selectedItems,
     );
 
     await utils.updateMetaData(
@@ -265,7 +268,7 @@ const createTagsAndAddToMetadata = async (payload: {
             tags: tags ?? [],
         },
         payload.projectId,
-        payload.taskId
+        payload.taskId,
     );
 };
 
@@ -285,17 +288,17 @@ const fetchCreateTaskAsync = (
     // Parameters that are flagged to have variable template value
     variableTemplateParameterSet: Set<string>,
     /** If this is set, then instead of redirecting to the newly created task, this function is called. */
-    alternativeCallback?: (newTask: IProjectTask) => any
+    alternativeCallback?: (newTask: IProjectTask) => any,
 ) => {
     return async (dispatch, getState) => {
         const currentProjectId = commonSel.currentProjectIdSelector(getState());
         const { label, description, id, tags, ...restFormData } = formData;
         const { parameters, variableTemplateParameters } = splitParameterAndVariableTemplateParameters(
             restFormData,
-            variableTemplateParameterSet
+            variableTemplateParameterSet,
         );
-        const parameterData = buildTaskObject(parameters);
-        const variableTemplateData = buildTaskObject(variableTemplateParameters);
+        const parameterData = buildNestedTaskParameterObject(parameters);
+        const variableTemplateData = buildNestedTaskParameterObject(variableTemplateParameters);
         const metadata = {
             label,
             description,
@@ -340,7 +343,7 @@ const fetchCreateTaskAsync = (
                               type: taskType,
                               projectId: currentProjectId,
                               label,
-                          })
+                          }),
                       );
             });
         } catch (e) {
@@ -360,15 +363,15 @@ const fetchUpdateTaskAsync = (
     // Parameters that are flagged to have variable template value
     variableTemplateParameterSet: Set<string>,
     /** Function that is called instead of the task PATCH endpoint. */
-    alternativeUpdateFunction?: AlternativeTaskUpdateFunction
+    alternativeUpdateFunction?: AlternativeTaskUpdateFunction,
 ) => {
     return async (dispatch) => {
         const { parameters, variableTemplateParameters } = splitParameterAndVariableTemplateParameters(
             formData,
-            variableTemplateParameterSet
+            variableTemplateParameterSet,
         );
-        const parameterData = buildTaskObject(parameters);
-        const variableTemplateData = buildTaskObject(variableTemplateParameters);
+        const parameterData = buildNestedTaskParameterObject(parameters);
+        const variableTemplateData = buildNestedTaskParameterObject(variableTemplateParameters);
         const payload = {
             data: {
                 ...dataParameters,
@@ -398,7 +401,7 @@ const fetchCreateProjectAsync = (formData: {
     label: string;
     description?: string;
     id?: string;
-    tags?: SelectedParamsType<Keyword>;
+    tags?: MultiSelectSelectionProps<Keyword>;
 }) => {
     return async (dispatch) => {
         dispatch(setModalError({}));
@@ -460,7 +463,7 @@ const commonOps = {
     setSelectedArtefactDType,
     setModalError,
     setModalInfo,
-    buildTaskObject,
+    buildNestedTaskParameterObject: buildNestedTaskParameterObject,
     fetchCreateTaskAsync,
     fetchUpdateTaskAsync,
     fetchCreateProjectAsync,

@@ -1,8 +1,10 @@
-import { IInputSource, IStickyNote } from "../shared/task.typings";
+import { IInputSource } from "../shared/task.typings";
 import { IMetadata } from "@ducks/shared/typings";
 import { IValueInput, RuleLayout } from "../shared/rules/rule.typings";
-import { ILinkingRule, IResourceLink, OptionallyLabelledParameter } from "../linking/linking.types";
 import { Stacktrace } from "../../shared/SampleError/SampleError";
+import { StickyNote } from "@eccenca/gui-elements";
+
+export type PartialBy<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>
 
 /** Parameters of a transform task. */
 export interface ITransformRule {
@@ -31,7 +33,7 @@ export interface IComplexMappingRule extends ITransformRule {
     /** Rule operator layout information. */
     layout: RuleLayout;
     uiAnnotations: {
-        stickyNotes: IStickyNote[];
+        stickyNotes: StickyNote[];
     };
 }
 
@@ -42,7 +44,10 @@ export interface IComplexUriRule extends ITransformRule {
 }
 
 /** A constant URI rule. */
-export interface IUriRule extends ITransformRule {}
+export interface IUriRule extends ITransformRule {
+    type: "uri";
+    pattern: string;
+}
 
 /** The target specification of the mapping rule. */
 export interface IMappingTarget {

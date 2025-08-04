@@ -123,6 +123,7 @@ POST          /projects/:project/tasks/:task/copy                               
 GET           /projects/:project/tasks/:task/cachesLoaded                       controllers.workspace.TaskApi.cachesLoaded(project: String, task: String)
 GET           /projects/:project/tasks/:task/downloadInfo                       controllers.workspace.TaskDownloadApi.downloadInfo(project: String, task: String)
 GET           /projects/:project/tasks/:task/downloadOutput                     controllers.workspace.TaskDownloadApi.downloadOutput(project: String, task: String)
+POST          /projects/:project/tasks/:task/action/:action                     controllers.workspace.TaskApi.callAction(project: String, task: String, action: String)
 
 # Global workspace activities
 GET           /globalWorkspaceActivities                                        controllers.workspace.ActivityApi.globalWorkspaceActivities()

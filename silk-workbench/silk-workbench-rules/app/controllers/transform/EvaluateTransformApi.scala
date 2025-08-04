@@ -13,7 +13,7 @@ import io.swagger.v3.oas.annotations.{Operation, Parameter}
 import org.silkframework.config.Prefixes
 import org.silkframework.rule.evaluation.{DetailedEvaluator, Value}
 import org.silkframework.rule.execution.{EvaluateTransform => EvaluateTransformTask}
-import org.silkframework.rule.{ObjectMapping, TransformRule, TransformSpec, ValueTransformRule}
+import org.silkframework.rule.{ComplexUriMapping, ObjectMapping, TransformRule, TransformSpec, ValueTransformRule}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.iterator.CloseableIterator
 import org.silkframework.runtime.plugin.PluginContext
@@ -217,16 +217,15 @@ class EvaluateTransformApi @Inject()(implicit accessMonitor: WorkbenchAccessMoni
   private def ruleSchemaById(task: ProjectTask[TransformSpec], ruleId: String)
                             (implicit pluginContext: PluginContext): TransformSpec.RuleSchemata = {
     val objectMappingId = task.data.objectMappingIdOfRule(ruleId).getOrElse(ruleId)
-    task.data.ruleSchemataWithoutEmptyObjectRules
+    task.data.ruleSchemata
       .find(_.transformRule.id.toString == objectMappingId)
-      .getOrElse(throw new NotFoundException(s"Mapping rule '$ruleId' is either an empty object rule, i.e. it has at most a URI rule,  or is not part of task '${task.fullLabel}' in project '${task.project.fullLabel}'. " +
-        s"Available rules: ${task.data.ruleSchemataWithoutEmptyObjectRules.map(_.transformRule.id).mkString(", ")}"))
+      .getOrElse(throw new NotFoundException(s"Mapping rule '$ruleId' is not part of task '${task.fullLabel}' in project '${task.project.fullLabel}'. " +
+        s"Available rules: ${task.data.ruleSchemata.map(_.transformRule.id).mkString(", ")}"))
       .withContext(task.taskContext)
   }
 
   private def evaluateRule(task: ProjectTask[TransformSpec], parentRuleId: Identifier, transformRule: TransformRule, limit: Int)
                           (implicit pluginContext: PluginContext): CloseableIterator[Value] = {
-    implicit val prefixes: Prefixes = task.project.config.prefixes
     implicit val user: UserContext = pluginContext.user
 
     val ruleSchema = ruleSchemaById(task, parentRuleId)

@@ -8,6 +8,7 @@ import org.silkframework.execution.EntityHolder
 import org.silkframework.execution.local.GenericEntityTable
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.iterator.CloseableIterator
+import org.silkframework.runtime.plugin.PluginContext
 import org.silkframework.runtime.resource.Resource
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.{Identifier, Uri}
@@ -25,12 +26,12 @@ class TextFileSource(ds: TextFileDataset, textFile: Resource) extends DataSource
   }
 
   override def retrieve(entitySchema: EntitySchema, limit: Option[Int])
-                       (implicit userContext: UserContext, prefixes: Prefixes): EntityHolder = {
+                       (implicit context: PluginContext): EntityHolder = {
     retrieveEntity(entitySchema)
   }
 
   override def retrieveByUri(entitySchema: EntitySchema, entities: Seq[Uri])
-                            (implicit userContext: UserContext, prefixes: Prefixes): EntityHolder = {
+                            (implicit context: PluginContext): EntityHolder = {
     if(entities.contains(ds.uri)) {
       retrieveEntity(entitySchema)
     } else {
@@ -39,7 +40,7 @@ class TextFileSource(ds: TextFileDataset, textFile: Resource) extends DataSource
   }
 
   private def retrieveEntity(entitySchema: EntitySchema): EntityHolder = {
-    if(entitySchema.typedPaths == IndexedSeq(ds.path)) {
+    if(entitySchema.typedPaths.map(_.normalizedSerialization) == IndexedSeq(ds.path.normalizedSerialization)) {
       val text = textFile.loadAsString(ds.codec)
       val entity = new Entity(
         uri = ds.uri,

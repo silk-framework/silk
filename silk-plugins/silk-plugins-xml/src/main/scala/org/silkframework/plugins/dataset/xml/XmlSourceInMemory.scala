@@ -8,6 +8,7 @@ import org.silkframework.execution.EntityHolder
 import org.silkframework.execution.local.GenericEntityTable
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.iterator.CloseableIterator
+import org.silkframework.runtime.plugin.PluginContext
 import org.silkframework.runtime.resource.Resource
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.{Identifier, Uri}
@@ -42,7 +43,7 @@ class XmlSourceInMemory(file: Resource, basePath: String, uriPattern: String) ex
   }
 
   override def retrieve(entitySchema: EntitySchema, limit: Option[Int] = None)
-                       (implicit userContext: UserContext, prefixes: Prefixes): EntityHolder = {
+                       (implicit context: PluginContext): EntityHolder = {
     logger.log(Level.FINE, "Retrieving data from XML.")
 
     val entities = retrieveEntities(entitySchema)
@@ -107,7 +108,7 @@ class XmlSourceInMemory(file: Resource, basePath: String, uriPattern: String) ex
   }
 
   override def peak(entitySchema: EntitySchema, limit: Int)
-                   (implicit userContext: UserContext, prefixes: Prefixes): CloseableIterator[Entity] = {
+                   (implicit context: PluginContext): CloseableIterator[Entity] = {
     peakWithMaximumFileSize(file, entitySchema, limit)
   }
 

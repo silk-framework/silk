@@ -1,6 +1,7 @@
 package org.silkframework.runtime.resource
 
 import java.io.{InputStream, OutputStream}
+import java.time.Instant
 
 /**
   * A resource that cannot be written.
@@ -11,11 +12,13 @@ case class ReadOnlyResource(resource: Resource) extends WritableResource {
 
   override def path: String = resource.path
 
-  override def exists = resource.exists
+  override def entryPath: Option[String] = resource.entryPath
 
-  override def size = resource.size
+  override def exists: Boolean = resource.exists
 
-  override def modificationTime = resource.modificationTime
+  override def size: Option[Long] = resource.size
+
+  override def modificationTime: Option[Instant] = resource.modificationTime
 
   override def inputStream: InputStream = resource.inputStream
 
@@ -23,7 +26,7 @@ case class ReadOnlyResource(resource: Resource) extends WritableResource {
     throw new UnsupportedOperationException("This resource can not be written.")
   }
 
-  override def toString = resource.toString
+  override def toString: String = resource.toString
 
   /**
     * Deletes this resource.

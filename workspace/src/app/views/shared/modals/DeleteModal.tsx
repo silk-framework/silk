@@ -31,6 +31,7 @@ export interface IDeleteModalOptions extends TestableComponent {
     //optional prop to disable the delete button
     deleteDisabled?: boolean;
     alternativeCancelButtonLabel?: string;
+    notifications?: React.ReactNode | React.ReactNode[];
     /** An alternative button text than the 'Delete' text. */
     alternativeDeleteButtonText?: string;
 }
@@ -70,35 +71,30 @@ export default function DeleteModal({
     }, [submitOnEnter, isConfirmed, confirmationRequired, onConfirm]);
 
     useHotKey({ hotkey: "enter", handler: enterHandler, enabled: submitOnEnter });
-
     return (
         <AlertDialog
             danger
             title={title}
             isOpen={isOpen}
-            canEscapeKeyClose={true}
+            canEscapeKeyClose={!removeLoading}
             onClose={onDiscard}
             data-test-id={otherProps["data-test-id"]}
-            actions={
-                removeLoading ? (
-                    <Loading delay={0} />
-                ) : (
-                    [
-                        <Button
-                            key="remove"
-                            disruptive
-                            onClick={onConfirm}
-                            disabled={(confirmationRequired && !isConfirmed) || deleteDisabled}
-                            data-test-id={"remove-item-button"}
-                        >
-                            {alternativeDeleteButtonText ?? t("common.action.delete", "Delete")}
-                        </Button>,
-                        <Button key="cancel" onClick={onDiscard}>
-                            {alternativeCancelButtonLabel ?? t("common.action.cancel", "Cancel")}
-                        </Button>,
-                    ]
-                )
-            }
+            actions={[
+                <Button
+                    key="remove"
+                    disruptive
+                    onClick={onConfirm}
+                    loading={removeLoading}
+                    disabled={(confirmationRequired && !isConfirmed) || deleteDisabled}
+                    data-test-id={"remove-item-button"}
+                >
+                    {alternativeDeleteButtonText ?? t("common.action.delete", "Delete")}
+                </Button>,
+                <Button key="cancel" onClick={onDiscard} disabled={removeLoading}>
+                    {alternativeCancelButtonLabel ?? t("common.action.cancel", "Cancel")}
+                </Button>,
+            ]}
+            {...otherProps}
         >
             {otherContent && (
                 <>

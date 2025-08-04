@@ -39,7 +39,7 @@ export const UriAttributeParameterInput = ({ onValueChange, initialValue }: Prop
                     id={URI_PROPERTY_PARAMETER_ID}
                     name={URI_PROPERTY_PARAMETER_ID}
                     onChange={onChange}
-                    hasStateDanger={validationFailed}
+                    intent={validationFailed ? "danger" : undefined}
                     defaultValue={initialValue}
                     escapeToBlur={true}
                 />

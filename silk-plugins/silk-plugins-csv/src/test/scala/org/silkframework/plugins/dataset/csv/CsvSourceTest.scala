@@ -31,8 +31,10 @@ class CsvSourceTest extends AnyFlatSpec with Matchers {
     )
 
   val noSeparatorSettings: CsvSettings = settings.copy(separator = ' ')
+  val trimmingWhiteSpaceSettings: CsvSettings = settings.copy(trimWhitespaceAndNonPrintableCharacters = true)
 
   lazy val source = new CsvSource(resources.get("persons.csv"), settings)
+  lazy val spacedSource = new CsvSource(resources.get("spaced_persons.csv"), trimmingWhiteSpaceSettings)
   lazy val emptyHeaderFieldsDataset = new CsvSource(resources.get("emptyHeaderFields.csv"), settings)
   lazy val dirtyHeaders = new CsvSource(resources.get("dirtyHeaders.csv"), settings)
   lazy val datasetHard = CsvDataset(ReadOnlyResource(resources.get("hard_to_parse.csv")), separator = "\t", quote = "")
@@ -78,6 +80,14 @@ class CsvSourceTest extends AnyFlatSpec with Matchers {
     persons(0).values should equal(IndexedSeq(Seq("Max Mustermann"), Seq("30")))
     persons(1).values should equal(IndexedSeq(Seq("Markus G."), Seq("24")))
     persons(2).values should equal(IndexedSeq(Seq("John Doe"), Seq("55")))
+  }
+
+  "For spaced_persons.csv, CsvParser" should "trim the whitespaces if so configured" in {
+    val entityDesc = EntitySchema(typeUri = Uri(""), typedPaths = IndexedSeq(UntypedPath("ID").asStringTypedPath, UntypedPath("Name").asStringTypedPath, UntypedPath("Age").asStringTypedPath))
+    val persons = spacedSource.retrieve(entityDesc).entities.toIndexedSeq
+    persons(0).values should equal(IndexedSeq(Seq("1"), Seq("Max Mustermann"), Seq("30")))
+    persons(1).values should equal(IndexedSeq(Seq("2"), Seq("Markus G."), Seq("24")))
+    persons(2).values should equal(IndexedSeq(Seq("3"), Seq("John Doe"), Seq("55")))
   }
 
   "SeparatorDetector" should "detect comma separator" in {

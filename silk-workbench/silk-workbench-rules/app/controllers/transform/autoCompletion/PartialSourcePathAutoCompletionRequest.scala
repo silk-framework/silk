@@ -8,16 +8,23 @@ import play.api.libs.json.{Format, Json}
 /**
   * Request payload for partial source path auto-completion, i.e. suggest replacements for only parts of a more complex source path.
   *
-  * @param inputString    The currently entered source path string.
-  * @param cursorPosition The cursor position inside the source path string.
-  * @param maxSuggestions The max. number of suggestions to return.
-  * @param isObjectPath   Set to true if the auto-completion results are meant for an object path. Some suggestions might be filtered out or added.
+  * @param inputString                   The currently entered source path string.
+  * @param cursorPosition                The cursor position inside the source path string.
+  * @param maxSuggestions                The max. number of suggestions to return.
+  * @param isObjectPath                  Set to true if the auto-completion results are meant for an object path. Some suggestions might be filtered out or added.
+  * @param baseSourcePath                The base source path of the auto-completion request. This can be used as alternative to the source path of the rule.
+  * @param oneHopOnly                    Return only paths as replacements that have one hop. Default: false
+  * @param ignorePathOperatorCompletions If there should be NO completions of path operators returned, e.g. '/' etc. be suggested. Default: false
   */
 case class PartialSourcePathAutoCompletionRequest(inputString: String,
                                                   cursorPosition: Int,
                                                   maxSuggestions: Option[Int],
                                                   isObjectPath: Option[Boolean],
-                                                  taskContext: Option[WorkflowTaskContext]) extends AutoSuggestAutoCompletionRequest {
+                                                  taskContext: Option[WorkflowTaskContext],
+                                                  baseSourcePath: Option[String] = None,
+                                                  oneHopOnly: Option[Boolean] = None,
+                                                  ignorePathOperatorCompletions: Option[Boolean] = None,
+                                                  langPref: Option[String] = None) extends AutoSuggestAutoCompletionRequest {
   private val operatorStartChars = Set('/', '\\', '[')
 
   /** The remaining characters from the cursor position to the end of the current path operator. */

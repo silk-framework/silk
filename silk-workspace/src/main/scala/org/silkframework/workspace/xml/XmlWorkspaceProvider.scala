@@ -2,7 +2,7 @@ package org.silkframework.workspace.xml
 
 import org.silkframework.config.Tag.TagXmlFormat
 import org.silkframework.config._
-import org.silkframework.dataset.rdf.SparqlEndpoint
+import org.silkframework.dataset.rdf.{GraphStoreTrait, SparqlEndpoint}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.PluginContext
 import org.silkframework.runtime.resource.{EmptyResourceManager, ResourceManager}
@@ -51,7 +51,7 @@ class XmlWorkspaceProvider(val resources: ResourceManager) extends WorkspaceProv
       val configXML = resources.child(projectName).get("config.xml").read(XML.load)
       val prefixes = Prefixes.fromXML((configXML \ "Prefixes").head)
       val resourceURI = (configXML \ "@resourceUri").headOption.map(_.text.trim)
-      Some(ProjectConfig(projectName, prefixes, resourceURI, metaData(configXML, projectName)))
+      Some(ProjectConfig(projectName, prefixes, projectResourceUriOpt = resourceURI, metaData = metaData(configXML, projectName)))
     } catch {
       case NonFatal(ex) =>
         log.log(Level.WARNING, s"Could not load project $projectName", ex)
@@ -72,7 +72,7 @@ class XmlWorkspaceProvider(val resources: ResourceManager) extends WorkspaceProv
     val uri = config.resourceUriOrElseDefaultUri
     val configXMl =
       <ProjectConfig resourceUri={uri}>
-        { config.prefixes.toXML }
+        { config.projectPrefixes.toXML }
         { XmlSerialization.toXml(config.metaData) }
       </ProjectConfig>
     resources.child(config.id).get("config.xml").write(){ os => configXMl.write(os) }
@@ -201,5 +201,5 @@ class XmlWorkspaceProvider(val resources: ResourceManager) extends WorkspaceProv
   /**
     * Returns None, because the projects are not held as RDF.
     */
-  override def sparqlEndpoint: Option[SparqlEndpoint] = None
+  override def sparqlEndpoint: Option[SparqlEndpoint with GraphStoreTrait] = None
 }

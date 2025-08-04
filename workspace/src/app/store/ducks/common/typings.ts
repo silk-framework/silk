@@ -6,7 +6,7 @@ import {
     TaskType,
     TemplateValueType,
 } from "@ducks/shared/typings";
-import { IRenderModifiers } from "@eccenca/gui-elements/src/components/AutocompleteField/AutoCompleteField";
+import { SuggestFieldItemRendererModifierProps } from "@eccenca/gui-elements";
 import { OptionallyLabelledParameter } from "../../../views/taskViews/linking/linking.types";
 
 export interface IAvailableDataTypes {
@@ -29,14 +29,14 @@ interface AutoCompletionFrontendExtensions {
     /** Optional function if the auto-completion results are not coming from the standard plugin parameter auto-completion endpoint. */
     customAutoCompletionRequest?: (
         textQuery: string,
-        limit: number
+        limit: number,
     ) => IAutocompleteDefaultResponse[] | Promise<IAutocompleteDefaultResponse[]>;
     /** Custom item renderer. By default the item label is displayed. */
     customItemRenderer?: (
         autoCompleteResponse: IAutocompleteDefaultResponse,
         query: string,
-        modifiers: IRenderModifiers,
-        handleSelectClick: () => any
+        modifiers: SuggestFieldItemRendererModifierProps,
+        handleSelectClick: () => any,
     ) => string | JSX.Element;
 }
 
@@ -117,6 +117,15 @@ export interface IPluginOverview {
     markdownDocumentation?: string;
     /** Plugin icon in Data URL format. */
     pluginIcon?: string;
+    pluginId?: string;
+    actions?: Record<
+        string,
+        {
+            description: string;
+            icon: string | null;
+            label: string;
+        }
+    >;
 }
 
 export type AlternativeTaskUpdateFunction = (
@@ -124,7 +133,7 @@ export type AlternativeTaskUpdateFunction = (
     taskId: string,
     parameterData: object,
     variableTemplateData: object,
-    dataParameters: Record<string, string> | undefined
+    dataParameters: Record<string, string> | undefined,
 ) => any | Promise<any>;
 
 /** Contains all data that is needed to render an update dialog. */
@@ -279,6 +288,9 @@ export interface IInitFrontend {
     /** Configured links to the DM that should be displayed in the global navigation menu. */
     dmModuleLinks?: IDmLink[];
 
+    /** The URI of the logged-in user. */
+    userUri?: string;
+
     /** Hotkey configuration for the frontend. */
     hotKeys: Partial<Record<HotKeyIds, string>>;
 
@@ -287,6 +299,15 @@ export interface IInitFrontend {
 
     /** If templating in some input fields is enabled. */
     templatingEnabled: boolean;
+
+    /** If the assistant feature is enabled. */
+    assistantSupported: boolean;
+
+    /** If the mapping creator is enabled. */
+    mappingCreatorEnabled: boolean;
+
+    /** The default project page suffix. */
+    defaultProjectPageSuffix?: string;
 }
 
 type HotKeyIds = "quickSearch" | "overview";

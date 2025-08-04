@@ -1,8 +1,8 @@
 import { IRuleNodeParameter } from "./RuleNodeParameter.typings";
 import React, { MouseEvent } from "react";
-import { CodeEditor, Switch, TextField } from "@eccenca/gui-elements";
+import { CodeAutocompleteField, CodeEditorProps, Switch, TextField } from "@eccenca/gui-elements";
 import { requestResourcesList } from "@ducks/shared/requests";
-import { Intent } from "@blueprintjs/core";
+import { DefinitionsBlueprint as Intent } from "@eccenca/gui-elements/src/common/Intent";
 import { useTranslation } from "react-i18next";
 import { RuleEditorContext } from "../../contexts/RuleEditorContext";
 import { RuleEditorNodeParameterValue, ruleEditorNodeParameterValue } from "../../model/RuleEditorModel.typings";
@@ -10,6 +10,7 @@ import { RuleEditorModelContext } from "../../contexts/RuleEditorModelContext";
 import useErrorHandler from "../../../../../hooks/useErrorHandler";
 import { SelectFileFromExisting } from "../../../FileUploader/cases/SelectFileFromExisting";
 import {
+    DependsOnParameterValueAny,
     ParameterAutoCompletion,
     ParameterAutoCompletionProps,
 } from "../../../modals/CreateArtefactModal/ArtefactForms/ParameterAutoCompletion";
@@ -18,9 +19,10 @@ import { fileValue, IProjectResource } from "@ducks/shared/typings";
 import { TextFieldWithCharacterWarnings } from "../../../extendedGuiElements/TextFieldWithCharacterWarnings";
 import { TextAreaWithCharacterWarnings } from "../../../extendedGuiElements/TextAreaWithCharacterWarnings";
 import { IPropertyAutocomplete } from "@ducks/common/typings";
-import { LanguageFilterProps, PathInputOperator } from "./PathInputOperator";
-import { supportedCodeRuleParameterTypes } from "../../RuleEditor.typings";
-import { SupportedCodeEditorModes } from "@eccenca/gui-elements/src/extensions/codemirror/CodeMirror";
+import { InputPathFunctions, PathInputOperator } from "./PathInputOperator";
+import { RULE_EDITOR_NOTIFICATION_INSTANCE, supportedCodeRuleParameterTypes } from "../../RuleEditor.typings";
+import { CodeAutocompleteFieldPartialAutoCompleteResult } from "@eccenca/gui-elements/src/components/AutoSuggestion/AutoSuggestion";
+import { requestAutoCompleteTemplateString } from "../../../../../views/shared/modals/CreateArtefactModal/CreateArtefactModal.requests";
 
 interface RuleParameterInputProps {
     /** ID of the plugin this parameter is part of. */
@@ -37,8 +39,10 @@ interface RuleParameterInputProps {
     large: boolean;
     /** When used inside a modal, the behavior of some components will be optimized. */
     insideModal: boolean;
-    /** If for this parameter there is a language filter supported. Currently only path parameters are affected by this option. */
-    languageFilter?: LanguageFilterProps;
+    /** Functions that are specific to input path rule operators. */
+    inputPathFunctions: InputPathFunctions;
+    /** The default value as defined in the parameter spec. */
+    parameterDefaultValue: (paramId: string) => string | undefined;
 }
 
 /** An input widget for a parameter value. */
@@ -50,7 +54,8 @@ export const RuleParameterInput = ({
     dependentValue,
     large,
     insideModal,
-    languageFilter,
+    inputPathFunctions,
+    parameterDefaultValue,
 }: RuleParameterInputProps) => {
     const _onChange = ruleParameter.update;
     const onChangeRef = React.useRef(_onChange);
@@ -82,15 +87,18 @@ export const RuleParameterInput = ({
                 })
             ).data;
         } catch (e) {
-            registerError("RuleParameterInput.handleFileSearch", "Could not fetch project resource files!", e);
+            registerError("RuleParameterInput.handleFileSearch", "Could not fetch project resource files!", e, {
+                errorNotificationInstanceId: RULE_EDITOR_NOTIFICATION_INSTANCE,
+            });
             return [];
         }
     };
 
     const autoCompleteProps: (autoComplete: IPropertyAutocomplete) => ParameterAutoCompletionProps = (
-        autoComplete
+        autoComplete,
     ) => ({
         projectId: ruleEditorContext.projectId,
+        taskId: ruleEditorContext.editedItemId!,
         paramId: ruleParameter.parameterId,
         pluginId: pluginId,
         onChange: inputAttributes.onChange,
@@ -103,11 +111,34 @@ export const RuleParameterInput = ({
         autoCompletion: autoComplete,
         intent: hasValidationError ? Intent.DANGER : Intent.NONE,
         formParamId: uniqueId,
-        dependentValue: dependentValue,
+        dependentValue: (paramId: string): DependsOnParameterValueAny | undefined => ({
+            value: dependentValue(paramId),
+            isTemplate: false,
+        }),
         required: ruleParameter.parameterSpecification.required,
         readOnly: inputAttributes.readOnly,
         hasBackDrop: !insideModal,
+        defaultValue: parameterDefaultValue,
+        partialAutoCompletion: ruleEditorContext.partialAutoCompletion,
     });
+
+    const fetchSuggestions = React.useCallback(
+        async (
+            inputString: string,
+            cursorPosition: number,
+        ): Promise<CodeAutocompleteFieldPartialAutoCompleteResult | undefined> => {
+            try {
+                return (
+                    await requestAutoCompleteTemplateString(inputString, cursorPosition, ruleEditorContext.projectId)
+                ).data;
+            } catch (e) {
+                registerError("RuleParameterInput.fetchSuggestions", "Could not fetch auto-complete suggestions!", e, {
+                    errorNotificationInstanceId: RULE_EDITOR_NOTIFICATION_INSTANCE,
+                });
+            }
+        },
+        [],
+    );
 
     if (
         ruleParameter.parameterSpecification.type === "code" ||
@@ -116,22 +147,32 @@ export const RuleParameterInput = ({
         const sizeParameters = large ? undefined : { height: "100px" };
         if (supportedCodeRuleParameterTypes.find((m) => m === ruleParameter.parameterSpecification.type)) {
             return (
-                <CodeEditor
-                    mode={ruleParameter.parameterSpecification.type.substring(5) as SupportedCodeEditorModes}
-                    outerDivAttributes={{
-                        ...preventEventsFromBubblingToReactFlow,
-                    }}
-                    {...inputAttributes}
+                <CodeAutocompleteField
+                    id={inputAttributes.id}
+                    mode={ruleParameter.parameterSpecification.type.substring(5) as CodeEditorProps["mode"]}
+                    initialValue={inputAttributes.defaultValue ?? ""}
+                    onChange={inputAttributes.onChange}
+                    fetchSuggestions={fetchSuggestions}
+                    readOnly={inputAttributes.readOnly}
+                    autoCompletionRequestDelay={500}
+                    validationRequestDelay={250}
+                    multiline
+                    outerDivAttributes={preventMouseEventsFromBubblingToReactFlow}
                     {...sizeParameters}
                 />
             );
         } else {
             return (
-                <CodeEditor
-                    outerDivAttributes={{
-                        ...preventEventsFromBubblingToReactFlow,
-                    }}
-                    {...inputAttributes}
+                <CodeAutocompleteField
+                    id={inputAttributes.id}
+                    initialValue={inputAttributes.defaultValue ?? ""}
+                    onChange={inputAttributes.onChange}
+                    fetchSuggestions={fetchSuggestions}
+                    readOnly={inputAttributes.readOnly}
+                    autoCompletionRequestDelay={500}
+                    validationRequestDelay={250}
+                    multiline
+                    outerDivAttributes={preventMouseEventsFromBubblingToReactFlow}
                     {...sizeParameters}
                 />
             );
@@ -152,7 +193,7 @@ export const RuleParameterInput = ({
                         small={true}
                         growVertically={false}
                         rows={2}
-                        {...preventEventsFromBubblingToReactFlow}
+                        {...preventMouseEventsFromBubblingToReactFlow}
                     />
                 );
             }
@@ -173,7 +214,7 @@ export const RuleParameterInput = ({
                     onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                         onChange(e.target.value);
                     }}
-                    {...preventEventsFromBubblingToReactFlow}
+                    {...preventMouseEventsFromBubblingToReactFlow}
                 />
             );
         case "resource":
@@ -206,9 +247,9 @@ export const RuleParameterInput = ({
                     return (
                         <PathInputOperator
                             parameterAutoCompletionProps={autoCompleteProps(
-                                ruleParameter.parameterSpecification.autoCompletion
+                                ruleParameter.parameterSpecification.autoCompletion,
                             )}
-                            languageFilterSupport={languageFilter}
+                            inputPathFunctions={inputPathFunctions}
                         />
                     );
                 }
@@ -220,13 +261,17 @@ export const RuleParameterInput = ({
                 );
             } else {
                 return (
-                    <TextFieldWithCharacterWarnings {...inputAttributes} {...preventEventsFromBubblingToReactFlow} />
+                    <TextFieldWithCharacterWarnings
+                        {...inputAttributes}
+                        {...preventMouseEventsFromBubblingToReactFlow}
+                    />
                 );
             }
     }
 };
 
-const preventEventsFromBubblingToReactFlow = {
+/** Prevents that mouse events on specific input component are bubbling up to react-flow which would lead to issues in those components. */
+export const preventMouseEventsFromBubblingToReactFlow = {
     onMouseDown: (event: MouseEvent<any>) => event.stopPropagation(),
     onMouseUp: (event: MouseEvent<any>) => event.stopPropagation(),
     onContextMenu: (event: MouseEvent<any>) => event.stopPropagation(),

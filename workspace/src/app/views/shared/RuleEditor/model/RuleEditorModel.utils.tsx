@@ -1,5 +1,4 @@
 import React from "react";
-import { IHandleProps } from "@eccenca/gui-elements/src/extensions/react-flow/nodes/NodeContent";
 import { ArrowHeadType, Edge, FlowElement, Position } from "react-flow-renderer";
 import { rangeArray } from "../../../../utils/basicUtils";
 import {
@@ -15,9 +14,9 @@ import { RuleEditorNode, RuleEditorNodeParameterValue } from "./RuleEditorModel.
 import { Connection, Elements, XYPosition } from "react-flow-renderer/dist/types";
 import dagre from "dagre";
 import { NodeContent, RuleNodeContentProps } from "../view/ruleNode/NodeContent";
-import { IconButton } from "@eccenca/gui-elements";
+import { IconButton, NodeContentHandleProps, NodeContentProps, NodeDimensions } from "@eccenca/gui-elements";
 import { RuleEditorEvaluationContextProps } from "../contexts/RuleEditorEvaluationContext";
-import { LanguageFilterProps } from "../view/ruleNode/PathInputOperator";
+import { InputPathFunctions, LanguageFilterProps } from "../view/ruleNode/PathInputOperator";
 
 /** Constants */
 
@@ -30,7 +29,7 @@ export const SOURCE_HANDLE_TYPE = "source";
 export const TARGET_HANDLE_TYPE = "target";
 
 /** Creates a new input handle. Handle IDs need to be numbers that are unique for the same node. */
-function createInputHandle(handleId: number, operatorContext?: IOperatorCreateContext): IHandleProps {
+function createInputHandle(handleId: number, operatorContext?: IOperatorCreateContext): NodeContentHandleProps {
     return {
         id: `${handleId}`,
         type: TARGET_HANDLE_TYPE,
@@ -71,15 +70,17 @@ export interface IOperatorCreateContext {
     updateNodeParameters: (nodeId: string, parameterValues: Map<string, RuleEditorNodeParameterValue>) => any;
     // If the operator is in permanent read-only mode
     readOnlyMode: boolean;
-    /** If for this operator there is a language filter supported. Currently only path operators are affected by this option. */
-    languageFilterEnabled: (nodeId: string) => LanguageFilterProps | undefined;
+    /** Fetch the input path functions for the given node. This will be an empty object for non-pah operators. */
+    inputPathFunctions: (nodeId: string) => InputPathFunctions;
+    /** change node size */
+    changeNodeSize: (nodeId: string, newNodeDimensions: NodeDimensions) => void;
 }
 
 /** Creates a new react-flow rule operator node. */
 function createOperatorNode(
     node: IRuleOperatorNode,
     nodeOperations: IOperatorNodeOperations,
-    operatorContext: IOperatorCreateContext
+    operatorContext: IOperatorCreateContext,
 ): RuleEditorNode {
     operatorContext.initParameters(node.nodeId, node.parameters);
     const position = {
@@ -92,7 +93,7 @@ function createOperatorNode(
             ? Math.max(node.portSpecification.maxInputPorts, node.portSpecification.minInputPorts, usedInputs)
             : Math.max(node.portSpecification.minInputPorts, usedInputs + 1);
 
-    const handles: IHandleProps[] = [
+    const handles: NodeContentHandleProps[] = [
         ...createInputHandles(numberOfInputPorts, operatorContext),
         { type: SOURCE_HANDLE_TYPE, position: Position.Right, isValidConnection: operatorContext.isValidConnection },
     ];
@@ -118,7 +119,7 @@ function createOperatorNode(
     );
     const type = nodeType(node.pluginType, node.pluginId);
 
-    const data: NodeContentPropsWithBusinessData<IRuleNodeData> = {
+    let data: NodeContentPropsWithBusinessData<IRuleNodeData> = {
         size: "medium",
         label: node.label,
         minimalShape: "none",
@@ -160,6 +161,10 @@ function createOperatorNode(
         contentExtension: operatorContext.ruleEvaluationContext.supportsEvaluation
             ? operatorContext.ruleEvaluationContext.createRuleEditorEvaluationComponent(node.nodeId)
             : undefined,
+        onNodeResize: (data) => operatorContext.changeNodeSize(node.nodeId, data),
+        resizeDirections: { right: true },
+        resizeMaxDimensions: { width: 1400 },
+        nodeDimensions: node.dimension ? (node.dimension as NodeDimensions) : undefined,
     };
 
     return {
@@ -225,12 +230,12 @@ function initNodeBaseIdsFactory() {
     const createNewOperatorNode = (
         newNode: Omit<IRuleOperatorNode, "nodeId">,
         nodeOperations: IOperatorNodeOperations,
-        operatorContext: IOperatorCreateContext
+        operatorContext: IOperatorCreateContext,
     ): RuleEditorNode => {
         return createOperatorNode(
             { ...newNode, nodeId: freshNodeId(newNode.pluginId) },
             nodeOperations,
-            operatorContext
+            operatorContext,
         );
     };
     return { createNewOperatorNode, initNodeBaseIds, freshNodeId };
@@ -246,7 +251,7 @@ function createEdgeFactory() {
         sourceNodeId: string,
         targetNodeId: string,
         targetHandleId: string,
-        edgeType: string
+        edgeType: string,
     ): Edge {
         edgeCounter += 1;
         return {

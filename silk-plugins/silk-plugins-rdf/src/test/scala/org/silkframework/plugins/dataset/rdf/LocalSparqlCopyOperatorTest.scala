@@ -1,25 +1,25 @@
 package org.silkframework.plugins.dataset.rdf
 
 
-  import org.silkframework.config.{PlainTask, Prefixes}
-  import org.silkframework.dataset.DatasetSpec
-  import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
-  import org.silkframework.dataset.rdf.SparqlEndpointEntityTable
-  import org.silkframework.execution.ExecutorOutput
-  import org.silkframework.execution.local.LocalExecution
-  import org.silkframework.plugins.dataset.rdf.datasets.RdfFileDataset
-  import org.silkframework.plugins.dataset.rdf.executors.LocalSparqlCopyExecutor
-  import org.silkframework.plugins.dataset.rdf.tasks.SparqlCopyCustomTask
-  import org.silkframework.runtime.activity.{ActivityMonitor, UserContext}
-  import org.silkframework.runtime.resource.{ClasspathResourceLoader, ReadOnlyResourceManager}
-  import org.silkframework.util.{MockitoSugar, TestMocks}
-  import org.silkframework.workspace.activity.workflow.{LocalWorkflowExecutorGeneratingProvenance, Workflow, WorkflowExecutionReportWithProvenance}
-  import org.silkframework.workspace.{SingleProjectWorkspaceProviderTestTrait, WorkspaceFactory}
+import org.silkframework.config.{PlainTask, Prefixes}
+import org.silkframework.dataset.DatasetSpec
+import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
+import org.silkframework.execution.ExecutorOutput
+import org.silkframework.execution.local.LocalExecution
+import org.silkframework.plugins.dataset.rdf.datasets.RdfFileDataset
+import org.silkframework.plugins.dataset.rdf.executors.LocalSparqlCopyExecutor
+import org.silkframework.plugins.dataset.rdf.tasks.SparqlCopyCustomTask
+import org.silkframework.runtime.activity.{ActivityMonitor, UserContext}
+import org.silkframework.runtime.resource.{ClasspathResourceLoader, ReadOnlyResourceManager}
+import org.silkframework.util.{MockitoSugar, TestMocks}
+import org.silkframework.workspace.activity.workflow.{LocalWorkflowExecutorGeneratingProvenance, Workflow, WorkflowExecutionReportWithProvenance}
+import org.silkframework.workspace.{SingleProjectWorkspaceProviderTestTrait, WorkspaceFactory}
 
-  import java.io.File
-  import org.scalatest.flatspec.AnyFlatSpec
-  import org.scalatest.matchers.must.Matchers
-  import org.silkframework.runtime.plugin.PluginContext
+import java.io.File
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.must.Matchers
+import org.silkframework.execution.typed.SparqlEndpointEntitySchema
+import org.silkframework.runtime.plugin.PluginContext
 
   class LocalSparqlCopyOperatorTest extends AnyFlatSpec with Matchers with MockitoSugar with SingleProjectWorkspaceProviderTestTrait  {
     behavior of "Local SPARQL Copy Executor"
@@ -44,21 +44,24 @@ package org.silkframework.plugins.dataset.rdf
     private val constructQuery = "CONSTRUCT { ?s ?p ?o. } WHERE { ?s ?p ?o. FILTER(?s = <http://dbpedia.org/resource/Albert_Einstein>) }"
     private val context = TestMocks.activityContextMock()
     private val source = RdfFileDataset(resources.get("test.nt"), "N-Triples")    // FIXME CMEM-1759 use quad file when QuadSink is available
-    private val input = Seq(new SparqlEndpointEntityTable(source.sparqlEndpoint, PlainTask("endpointTask", DatasetSpec.empty)))
+    private val input = Seq(SparqlEndpointEntitySchema.create(PlainTask("endpointTask", DatasetSpec(source))))
 
     private val WORKFLOW_ID = "copy_sparql"
     private val OUTPUT_DATASET_ID = "sparql_out"
     private val INPUT_DATASET_ID = "test"
 
-    for(withTempfile <- Seq(true, false)){
-      val task = PlainTask("task", SparqlCopyCustomTask(constructQuery, withTempfile))
+    for(withTempFile <- Seq(true, false)){
+      val task = PlainTask("task", SparqlCopyCustomTask(constructQuery, withTempFile))
 
-      it should "copy correct triples and store them optionally in a temp file " + withTempfile in {
+      it should "copy correct triples and store them optionally in a temp file " + withTempFile in {
         val result = executor.execute(task, input, ExecutorOutput.empty, execution, context)
         result match{
           case Some(copy) =>
             copy.entities.size mustBe 5                    // number of triples in source
             copy.entities.forall(e => e.values.size == 5) mustBe true   // default number of quad values as entities
+            val report = context.value.get
+            report mustBe defined
+            report.get.entityCount mustBe 5
           case None => fail("Empty result of copy task")
         }
       }

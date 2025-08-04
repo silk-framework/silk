@@ -4,29 +4,29 @@ import React from "react";
 import {
     Accordion,
     AccordionItem,
-    SuggestField,
     Button,
     Checkbox,
     FieldItem,
     Link,
     Notification,
     OverviewItem,
-    OverviewItemList,
-    OverviewItemDescription,
     OverviewItemDepiction,
+    OverviewItemDescription,
     OverviewItemLine,
+    OverviewItemList,
     SimpleDialog,
     Spacing,
+    SuggestField,
     TitleSubsection,
     Tooltip,
 } from "@eccenca/gui-elements";
-import { ICloneOptions } from "../CloneModal";
-import { useTranslation } from "react-i18next";
-import { requestProjectMetadata, requestTaskMetadata } from "@ducks/shared/requests";
-import { requestCopyProject, requestCopyTask, requestSearchList } from "@ducks/workspace/requests";
+import {ICloneOptions} from "../CloneModal";
+import {useTranslation} from "react-i18next";
+import {requestProjectMetadata, requestTaskMetadata} from "@ducks/shared/requests";
+import {requestCopyProject, requestCopyTask, requestSearchList} from "@ducks/workspace/requests";
 import ItemDepiction from "../../ItemDepiction";
-import { ErrorResponse, FetchError } from "../../../../services/fetch/responseInterceptor";
-import { useModalError } from "../../../../hooks/useModalError";
+import {ErrorResponse} from "../../../../services/fetch/responseInterceptor";
+import {useModalError} from "../../../../hooks/useModalError";
 
 //Component Interface
 interface CopyToModalProps extends ICloneOptions {
@@ -59,6 +59,7 @@ const CopyToModal: React.FC<CopyToModalProps> = ({ item, onDiscard, onConfirmed 
     const [error, setError] = React.useState<ErrorResponse | null>(null);
     const checkAndDisplayError = useModalError({ setError });
     const [loading, setLoading] = React.useState<boolean>(false);
+    const [processCopying, setProcessCopying] = React.useState<boolean>(false);
     const [label, setLabel] = React.useState<string | undefined>(item.label);
     const [targetProject, setTargetProject] = React.useState<string | undefined>(undefined);
     const [info, setInfo] = React.useState<CopyResponsePayload | undefined>();
@@ -114,7 +115,7 @@ const CopyToModal: React.FC<CopyToModalProps> = ({ item, onDiscard, onConfirmed 
         const { projectId, id } = item;
         setError(null);
         try {
-            setLoading(true);
+            setProcessCopying(true);
             const payload: CopyPayloadProps = {
                 targetProject: targetProject,
                 dryRun: false,
@@ -126,7 +127,7 @@ const CopyToModal: React.FC<CopyToModalProps> = ({ item, onDiscard, onConfirmed 
         } catch (e) {
             checkAndDisplayError(e, t("copyModal.errorMessages.copyFailure", "Retrieving item list failed"));
         } finally {
-            setLoading(false);
+            setProcessCopying(false);
         }
     };
 
@@ -177,7 +178,8 @@ const CopyToModal: React.FC<CopyToModalProps> = ({ item, onDiscard, onConfirmed 
             size="small"
             title={modalTitle}
             isOpen={true}
-            canEscapeKeyClose={true}
+            preventSimpleClosing={processCopying}
+            canEscapeKeyClose={!processCopying}
             onClose={onDiscard}
             actions={[
                 <Button
@@ -185,15 +187,22 @@ const CopyToModal: React.FC<CopyToModalProps> = ({ item, onDiscard, onConfirmed 
                     affirmative
                     onClick={handleCopyingAction}
                     disabled={!!buttonDisabled || loading || !targetProject}
-                    loading={loading}
+                    loading={loading || processCopying}
                     data-test-id={"copy-modal-button"}
                 >
                     {t("common.action.copy")}
                 </Button>,
-                <Button key="cancel" onClick={onDiscard}>
+                <Button key="cancel" onClick={onDiscard} disabled={processCopying}>
                     {t("common.action.cancel")}
                 </Button>,
             ]}
+            notifications={
+                error ? (
+                    <Notification message={error.detail} danger />
+                ) : (
+                    <Notification message={t("copyModal.projectVarInfo")} />
+                )
+            }
         >
             <FieldItem
                 key={"copy-label"}
@@ -313,12 +322,6 @@ const CopyToModal: React.FC<CopyToModalProps> = ({ item, onDiscard, onConfirmed 
                     {t("common.messages.taskOverwrittenPrompt")}
                 </Checkbox>
             ) : null}
-            {error && (
-                <>
-                    <Spacing />
-                    <Notification message={error.detail} danger />
-                </>
-            )}
         </SimpleDialog>
     );
 };

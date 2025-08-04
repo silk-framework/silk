@@ -54,7 +54,7 @@ case class PathInput(id: Identifier = Operator.generateId, path: Path) extends I
    */
   override def apply(entity: Entity): Value = {
     if(path.operators.isEmpty) {
-      Value(Array(entity.uri.toString))
+      Value(Seq(entity.uri.toString))
     } else {
       var index = cachedPathIndex
       if(index < 0 || index >= entity.schema.typedPaths.size || entity.schema.typedPaths(index).normalizedSerialization != path.normalizedSerialization) {

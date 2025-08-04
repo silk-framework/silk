@@ -26,7 +26,14 @@ export function initialCommonState(): ICommonState {
         searchQuery: "",
         error: {},
         availableDataTypes: {},
-        initialSettings: { emptyWorkspace: true, initialLanguage: "en", hotKeys: {}, templatingEnabled: false },
+        initialSettings: {
+            emptyWorkspace: true,
+            initialLanguage: "en",
+            hotKeys: {},
+            templatingEnabled: false,
+            assistantSupported: false,
+            mappingCreatorEnabled: false
+        },
         exportTypes: [],
         artefactModal: initialArtefactModalState(),
         taskPluginOverviews: [],

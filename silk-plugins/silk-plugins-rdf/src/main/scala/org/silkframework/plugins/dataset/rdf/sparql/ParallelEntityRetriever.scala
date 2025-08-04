@@ -156,7 +156,7 @@ class ParallelEntityRetriever(endpoint: SparqlEndpoint,
       }
     }
 
-    override def run() {
+    override def run(): Unit = {
       try {
         //Query for all entities
         queryPath().bindings.use { bindings =>

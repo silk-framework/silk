@@ -1,6 +1,6 @@
 package org.silkframework.plugins.dataset.rdf.vocab
 
-import org.apache.jena.vocabulary.{OWL, RDF}
+import org.apache.jena.vocabulary.{OWL2, RDF}
 import org.silkframework.dataset.rdf._
 import org.silkframework.rule.vocab._
 import org.silkframework.runtime.activity.UserContext
@@ -8,7 +8,7 @@ import org.silkframework.runtime.activity.UserContext
 import scala.collection.immutable.SortedMap
 import scala.collection.mutable
 
-class VocabularyLoader(endpoint: SparqlEndpoint) {
+class VocabularyLoader(endpoint: SparqlEndpoint with GraphStoreTrait) {
   final val languageRanking: IndexedSeq[String] = IndexedSeq("en", "de", "es", "fr", "it", "pt")
 
   def retrieveVocabulary(uri: String)(implicit userContext: UserContext): Option[Vocabulary] = {
@@ -16,8 +16,9 @@ class VocabularyLoader(endpoint: SparqlEndpoint) {
     val vocabGenericInfo = retrieveGenericVocabularyInfo(uri)
     Some(Vocabulary(
       info = vocabGenericInfo,
-      classes = classes.toSeq,
-      properties = retrieveProperties(uri, classes.toSeq)
+      classes = classes,
+      properties = retrieveProperties(uri, classes),
+      endpoint = Some(endpoint)
     ))
   }
 
@@ -36,15 +37,16 @@ class VocabularyLoader(endpoint: SparqlEndpoint) {
          | ORDER BY ?v
       """.stripMargin
     val bindings = endpoint.select(vocabQuery).bindings.use(_.toSeq)
-    val vocabUri = collectObjectNodes("v", bindings).headOption
+    val vocabUri = collectObjectNodes("v", bindings).headOption.map(_.value).getOrElse(vocabularyGraphUri)
     val label = rankValues(labelVars.flatMap(collectObjectNodes(_, bindings))).headOption
     val description = rankValues(commentVars.flatMap(collectObjectNodes(_, bindings))).headOption
     val altLabels = rankValues(altLabelVars.flatMap(collectObjectNodes(_, bindings)))
     GenericInfo(
-      vocabularyGraphUri, // FIXME: At the moment we expect the graph to be the same as the vocab URI
+      vocabUri, // FIXME: At the moment we expect the graph to be the same as the vocab URI
       label = label,
       description = description,
-      altLabels = altLabels
+      altLabels = altLabels,
+      vocabularyUri = Some(vocabularyGraphUri)
     )
   }
 
@@ -82,14 +84,14 @@ class VocabularyLoader(endpoint: SparqlEndpoint) {
       |PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
       |""".stripMargin
 
-  def retrieveClasses(uri: String)
+  def retrieveClasses(vocabularyGraphUri: String)
                      (implicit userContext: UserContext): Seq[VocabularyClass] = {
     val classQuery =
       s"""
          | $prefixes
          |
          | SELECT * WHERE {
-         |   GRAPH <$uri> {
+         |   GRAPH <$vocabularyGraphUri> {
          |     { ?c a owl:Class }
          |     UNION
          |     { ?c a rdfs:Class }
@@ -116,7 +118,8 @@ class VocabularyLoader(endpoint: SparqlEndpoint) {
             uri = classUri,
             label = label,
             description = description,
-            altLabels = altLabels
+            altLabels = altLabels,
+            vocabularyUri = Some(vocabularyGraphUri)
           ),
         parentClasses = parents
       )
@@ -220,13 +223,13 @@ class VocabularyLoader(endpoint: SparqlEndpoint) {
 
   val propertyClasses = Set(
     RDF.Property.getURI,
-    OWL.DatatypeProperty.getURI,
-    OWL.ObjectProperty.getURI
+    OWL2.DatatypeProperty.getURI,
+    OWL2.ObjectProperty.getURI
   )
 
-  def retrieveProperties(uri: String, classes: Iterable[VocabularyClass])
+  def retrieveProperties(vocabularyUri: String, classes: Iterable[VocabularyClass])
                         (implicit userContext: UserContext): Iterable[VocabularyProperty] = {
-    val propertyQuery = propertiesOfClassQuery(uri)
+    val propertyQuery = propertiesOfClassQuery(vocabularyUri)
 
     val classMap = classes.map(c => (c.info.uri, c)).toMap
     def getClass(uri: String) = classMap.getOrElse(uri, VocabularyClass(GenericInfo(uri, altLabels = Seq.empty), Seq()))
@@ -241,7 +244,8 @@ class VocabularyLoader(endpoint: SparqlEndpoint) {
           uri = propertyResource.value,
           label = rankValues(labelVars.flatMap(collectObjectNodes(_, bindings))).headOption,
           description = description,
-          altLabels = altLabels
+          altLabels = altLabels,
+          vocabularyUri = Some(vocabularyUri)
         )
       val classes = bindings.flatMap(_.get("class"))
       val propertyType = classes.toSeq.

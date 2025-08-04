@@ -21,8 +21,8 @@ object CaseClassUtils {
     a match {
       // Make Strings look similar to their literal form.
       case s: String =>
-        '"' + Seq("\n" -> "\\n", "\r" -> "\\r", "\t" -> "\\t", "\"" -> "\\\"", "\\" -> "\\\\").foldLeft(s) {
-          case (acc, (c, r)) => acc.replace(c, r) } + '"'
+        s""""${Seq("\n" -> "\\n", "\r" -> "\\r", "\t" -> "\\t", "\"" -> "\\\"", "\\" -> "\\\\").foldLeft(s) {
+          case (acc, (c, r)) => acc.replace(c, r) }}""""
       case xs: Seq[_] =>
         xs.map(e => prettyPrint(e, indentation)).toString
       case xs: Array[_] =>

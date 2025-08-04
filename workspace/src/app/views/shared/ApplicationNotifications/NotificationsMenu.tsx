@@ -153,7 +153,7 @@ export function useNotificationsQueue(errorNotificationInstanceId?: string, auto
 
     useEffect(() => {
         if (messages.length && messages[0].timestamp > initTime.current) {
-            if (autoDisplayNotifications) {
+            if (autoDisplayNotifications && !messages[0].notAutoOpen) {
                 setDisplayLastNotification(true);
                 const timeout: number = window.setTimeout(async () => {
                     if (displayMessageUntilClosed.current && displayMessageUntilClosed.current === messages[0]) {

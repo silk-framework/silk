@@ -187,7 +187,7 @@ private class PorterStemmer {
     var done = false
 
     while (!done && iter.hasNext) {
-      val v = iter.next
+      val v = iter.next()
       done = replacer(v._1, v._2, checker)
 
     }
@@ -195,7 +195,7 @@ private class PorterStemmer {
     done
   }
 
-  def step1() {
+  def step1(): Unit = {
     var m = calcM(word)
 
     // step 1a

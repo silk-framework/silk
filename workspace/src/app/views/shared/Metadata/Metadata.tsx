@@ -23,22 +23,21 @@ import {
     PropertyValue,
     PropertyValueList,
     PropertyValuePair,
-    TextArea,
     TextField,
-    TimeUnits,
+    ElapsedDateTimeDisplayUnits,
+    MultiSuggestFieldSelectionProps,
+    StringPreviewContentBlobToggler,
 } from "@eccenca/gui-elements";
 import { IMetadataUpdatePayload } from "@ducks/shared/typings";
 import { commonSel } from "@ducks/common";
 import { routerOp } from "@ducks/router";
 import { sharedOp } from "@ducks/shared";
 import { Loading } from "../Loading/Loading";
-import { StringPreviewContentBlobToggler } from "@eccenca/gui-elements/src/cmem/ContentBlobToggler/StringPreviewContentBlobToggler";
 import useErrorHandler from "../../../hooks/useErrorHandler";
 import * as H from "history";
 import utils from "./MetadataUtils";
 import { IMetadataExpanded } from "./Metadatatypings";
 import { Keyword, Keywords } from "@ducks/workspace/typings";
-import { SelectedParamsType } from "@eccenca/gui-elements/src/components/MultiSelect/MultiSelect";
 import { MultiTagSelect } from "../MultiTagSelect";
 import useHotKey from "../HotKeyHandler/HotKeyHandler";
 
@@ -71,6 +70,7 @@ export function Metadata(props: IProps) {
     const [loading, setLoading] = useState(false);
     const [data, setData] = useState<IMetadataExpanded>({ label: "", description: "", tags: [] });
     const [formEditData, setFormEditData] = useState<IMetadataUpdatePayload | undefined>(undefined);
+    const formRef = React.useRef<IMetadataUpdatePayload | undefined>();
     const [isEditing, setIsEditing] = useState(false);
     const [unsavedChanges, setUnsavedChanges] = useState(false);
     const [createdTags, setCreatedTags] = React.useState<Partial<Keyword>[]>([]);
@@ -213,9 +213,10 @@ export function Metadata(props: IProps) {
         if (formEditData && e.target !== undefined) {
             const hasToReRender = !formEditData.label || !e.target.value;
             formEditData.label = e.target.value;
+            formRef.current = formEditData;
             if (hasToReRender) {
                 // Label has changed either from empty or was set to empty. Need to re-render
-                setFormEditData({ ...formEditData });
+                setFormEditData({ ...formEditData }); //changing object ref
             }
             checkEditState();
         }
@@ -223,7 +224,8 @@ export function Metadata(props: IProps) {
 
     const onDescriptionChange = (value: string) => {
         if (formEditData && value !== undefined) {
-            formEditData.description = value;
+            const form = formRef.current ?? formEditData;
+            form.description = value;
             checkEditState();
         }
     };
@@ -241,7 +243,7 @@ export function Metadata(props: IProps) {
         }
     };
 
-    const handleTagSelectionChange = React.useCallback((params: SelectedParamsType<Keyword>) => {
+    const handleTagSelectionChange = React.useCallback((params: MultiSuggestFieldSelectionProps<Keyword>) => {
         setCreatedTags(params.createdItems);
         setSelectedTags((oldSelectedTags) => {
             return params.selectedItems;
@@ -252,29 +254,13 @@ export function Metadata(props: IProps) {
         dispatch(routerOp.goToPage(path));
     };
 
-    const translateUnits = (unit: TimeUnits) => t("common.units." + unit, unit);
+    const translateUnits = (unit: ElapsedDateTimeDisplayUnits) => t("common.units." + unit, unit);
 
     const getDeltaInDays = (dateTime: number | string) => {
         const now = Date.now();
         const then = new Date(dateTime).getTime();
         return (now - then) / 1000 / 60 / 60 / 24;
     };
-
-    const CodeEditorMemoed = React.useMemo(
-        () => (
-            <CodeEditor
-                name="description"
-                mode="markdown"
-                outerDivAttributes={{
-                    id: "description",
-                }}
-                preventLineNumbers
-                defaultValue={formEditData?.description}
-                onChange={onDescriptionChange}
-            />
-        ),
-        [formEditData]
-    );
 
     const widgetContent = (
         <CardContent data-test-id={"metaDataWidget"}>
@@ -303,7 +289,7 @@ export function Metadata(props: IProps) {
                                     data-test-id="metadata-label-input"
                                     onChange={onLabelChange}
                                     defaultValue={formEditData?.label}
-                                    hasStateDanger={errors.form.label ? true : false}
+                                    intent={errors.form.label ? "danger" : undefined}
                                 />
                             </FieldItem>
                         </PropertyValue>
@@ -324,7 +310,19 @@ export function Metadata(props: IProps) {
                                     </p>
                                 }
                             >
-                                {CodeEditorMemoed}
+                                <CodeEditor
+                                    name="description"
+                                    mode="markdown"
+                                    id="description"
+                                    preventLineNumbers
+                                    defaultValue={formEditData?.description}
+                                    onChange={onDescriptionChange}
+                                    useToolbar
+                                    translate={(key) => {
+                                        const translationKey = `Editor.markdown.toolbar.${key}`;
+                                        return t(translationKey) as string;
+                                    }}
+                                />
                             </FieldItem>
                         </PropertyValue>
                     </PropertyValuePair>
@@ -359,7 +357,11 @@ export function Metadata(props: IProps) {
                                 <StringPreviewContentBlobToggler
                                     className="di__dataset__metadata-description"
                                     content={description}
-                                    fullviewContent={<Markdown>{description}</Markdown>}
+                                    fullviewContent={
+                                        <Markdown htmlContentBlockProps={{ linebreakForced: true }}>
+                                            {description}
+                                        </Markdown>
+                                    }
                                     toggleExtendText={t("common.words.more", "more")}
                                     toggleReduceText={t("common.words.less", "less")}
                                     firstNonEmptyLineOnly={true}

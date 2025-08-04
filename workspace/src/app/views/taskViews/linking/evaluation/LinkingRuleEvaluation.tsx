@@ -1,7 +1,14 @@
 /** Component that handles the linking rule (inline) evaluation. */
-import { RuleEditorEvaluationContext } from "../../../shared/RuleEditor/contexts/RuleEditorEvaluationContext";
+import {
+    RuleEditorEvaluationCallbackContext,
+    RuleEditorEvaluationContext
+} from "../../../shared/RuleEditor/contexts/RuleEditorEvaluationContext";
 import React, { ReactElement } from "react";
-import { IRuleOperatorNode, RuleValidationError } from "../../../shared/RuleEditor/RuleEditor.typings";
+import {
+    IRuleOperatorNode,
+    RULE_EDITOR_NOTIFICATION_INSTANCE,
+    RuleValidationError,
+} from "../../../shared/RuleEditor/RuleEditor.typings";
 import { RuleEditorProps } from "../../../shared/RuleEditor/RuleEditor";
 import { TaskPlugin } from "@ducks/shared/typings";
 import {
@@ -24,6 +31,7 @@ import { ruleEditorNodeParameterValue } from "../../../shared/RuleEditor/model/R
 import { PathNotInCacheModal } from "../../shared/evaluations/PathNotInCacheModal";
 import evaluationUtils from "../../shared/evaluations/evaluationOperations";
 import { SampleError } from "../../../shared/SampleError/SampleError";
+import {DIErrorTypes} from "@ducks/error/typings";
 
 type EvaluationChildType = ReactElement<RuleEditorProps<TaskPlugin<ILinkingTaskParameters>, IPluginDetails>>;
 
@@ -64,6 +72,9 @@ export const LinkingRuleEvaluation = ({
     const [evaluationResultsShown, setEvaluationResultsShown] = React.useState<boolean>(false);
     const [ruleValidationError, setRuleValidationError] = React.useState<RuleValidationError | undefined>(undefined);
     const [evaluatedRuleOperatorIds, setEvaluatedRuleOperatorIds] = React.useState<string[]>([]);
+    const [errorModalEnabled, setErrorModalEnabled] = React.useState(true);
+    const popupErrorsEnabled = React.useRef(true)
+    popupErrorsEnabled.current = errorModalEnabled
     // The root node of the sub-tree that will be evaluated
     const evaluatedSubTreeNode = React.useRef<string>();
 
@@ -72,13 +83,24 @@ export const LinkingRuleEvaluation = ({
     >(undefined);
     /** Contains the function to trigger an evaluation. */
     const triggerEvaluation = React.useRef<(() => any) | undefined>(undefined);
-    const { registerError } = useErrorHandler();
+    const { registerError: _registerError } = useErrorHandler();
     const [t] = useTranslation();
+
+    const registerError = (errorKey: string, error: DIErrorTypes) => {
+        _registerError(errorKey, t(errorKey), error, {
+            errorNotificationInstanceId: RULE_EDITOR_NOTIFICATION_INSTANCE,
+            notAutoOpen: !popupErrorsEnabled.current
+        })
+    }
 
     const clearRuleValidationErrors = () => {
         setRuleValidationError(undefined);
         setPathNotInCacheValidationError(undefined);
     };
+
+    const enableErrorModal = React.useCallback((enable: boolean) => {
+        setErrorModalEnabled(enable)
+    }, [])
 
     React.useEffect(() => {
         setEvaluationResult([]);
@@ -139,11 +161,7 @@ export const LinkingRuleEvaluation = ({
             return result.data;
         } catch (ex) {
             if (ex.isFetchError && (ex as FetchError).httpStatus !== 409) {
-                registerError(
-                    "LinkingRuleEvaluation.fetchReferenceLinksEvaluation",
-                    "Could not fetch evaluation results for reference links. Need to fallback to executing linking evaluation.",
-                    ex
-                );
+                registerError("taskViews.linkRulesEditor.errors.fetchReferenceLinks.msg", ex);
             } else {
                 throw ex;
             }
@@ -216,16 +234,12 @@ export const LinkingRuleEvaluation = ({
                         setPathNotInCacheValidationError({ path, toTarget: pathNode.pluginId === "targetPathInput" });
                     }
                 } else {
-                    registerError(
-                        "LinkingRuleEvaluation.startEvaluation",
-                        t("taskViews.linkRulesEditor.errors.startEvaluation.msg"),
-                        ex
-                    );
+                    registerError("taskViews.linkRulesEditor.errors.startEvaluation.msg", ex);
                 }
             } else if (ex.isRuleValidationError) {
                 setRuleValidationError(ex);
             } else {
-                console.warn("Could not fetch evaluation results!", ex);
+                registerError("taskViews.linkRulesEditor.errors.beforeStartEvaluation.msg", ex);
             }
         } finally {
             setEvaluationRunning(false);
@@ -258,7 +272,9 @@ export const LinkingRuleEvaluation = ({
         triggerEvaluation.current = trigggerFn;
     }, []);
 
-    return (
+    return <RuleEditorEvaluationCallbackContext.Provider value={{
+        enableErrorModal
+    }}>
         <RuleEditorEvaluationContext.Provider
             value={{
                 supportsEvaluation: true,
@@ -276,9 +292,10 @@ export const LinkingRuleEvaluation = ({
                 setEvaluationRootNode,
                 evaluationRootNode,
                 canBeEvaluated,
+                ruleType: "linking",
             }}
         >
-            {pathNotInCacheValidationError && triggerEvaluation.current && (
+            {errorModalEnabled && pathNotInCacheValidationError && triggerEvaluation.current && (
                 <PathNotInCacheModal
                     projectId={projectId}
                     linkingTaskId={linkingTaskId}
@@ -293,5 +310,5 @@ export const LinkingRuleEvaluation = ({
             )}
             {children}
         </RuleEditorEvaluationContext.Provider>
-    );
+    </RuleEditorEvaluationCallbackContext.Provider>
 };

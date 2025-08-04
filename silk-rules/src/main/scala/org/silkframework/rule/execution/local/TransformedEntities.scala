@@ -10,7 +10,7 @@ import org.silkframework.rule.execution.TransformReportBuilder
 import org.silkframework.rule.{RootMappingRule, TransformRule, TransformSpec}
 import org.silkframework.runtime.iterator.CloseableIterator
 import org.silkframework.runtime.validation.ValidationException
-import org.silkframework.util.Identifier
+import org.silkframework.util.{Identifier, Uri}
 
 import java.util.logging.Logger
 import scala.collection.mutable
@@ -180,19 +180,28 @@ class TransformedEntities(task: Task[TransformSpec],
   }
 
   private class TransformReportIterator(iterator: CloseableIterator[Entity], report: TransformReportBuilder) extends CloseableIterator[Entity] {
+    @volatile
+    private var reportDone = false
+
+    private def closeReport(): Unit = {
+      if(!reportDone) {
+        report.build(isDone = true)
+        reportDone = true
+      }
+    }
 
     override def hasNext: Boolean = {
       try {
         if (iterator.hasNext) {
           true
         } else {
-          report.build(isDone = true)
+          closeReport()
           false
         }
       } catch {
         case NonFatal(ex) =>
           report.setExecutionError(ex.getMessage)
-          report.build(isDone = true)
+          closeReport()
           throw ex
       }
     }
@@ -203,11 +212,14 @@ class TransformedEntities(task: Task[TransformSpec],
       } catch {
         case NonFatal(ex) =>
           report.setExecutionError(ex.getMessage)
-          report.build(isDone = true)
+          closeReport()
           throw ex
       }
     }
 
-    override def close(): Unit = iterator.close()
+    override def close(): Unit = {
+      closeReport()
+      iterator.close()
+    }
   }
 }

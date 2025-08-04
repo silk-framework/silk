@@ -179,8 +179,7 @@ class LinkingAutoCompletionApi @Inject() () extends InjectedController with User
                         )
                         isTarget: Boolean): Action[JsValue] = RequestUserContextAction(parse.json) { implicit request =>
     implicit userContext =>
-      val (project, linkingTask) = projectAndTask[LinkSpec](projectId, linkingTaskId)
-      implicit val prefixes: Prefixes = project.config.prefixes
+      implicit val (project, linkingTask) = projectAndTask[LinkSpec](projectId, linkingTaskId)
       validateJson[PartialSourcePathAutoCompletionRequest] { autoCompletionRequest =>
         AutoCompletionApi.validateAutoCompletionRequest(autoCompletionRequest)
         val datasetSelection = if (isTarget) linkingTask.target else linkingTask.source
@@ -197,7 +196,8 @@ class LinkingAutoCompletionApi @Inject() () extends InjectedController with User
                                            (implicit userContext: UserContext): AutoSuggestAutoCompletionResponse = {
     implicit val project: Project = linkingTask.project
     implicit val prefixes: Prefixes = project.config.prefixes
-    val isRdfInput = DatasetUtils.isRdfInput(project, datasetSelection)
+    val metaDataFactory = pathsMetaDataFactory(datasetSelection, autoCompletionRequest.langPref.getOrElse("en"))
+    val isRdfInput = TransformUtils.isRdfDataset(project, datasetSelection)
     val pathToReplace = PartialSourcePathAutocompletionHelper.pathToReplace(autoCompletionRequest, isRdfInput)
     val dataSourceCharacteristicsOpt = DatasetUtils.datasetCharacteristics(project, datasetSelection)
     val supportsAsteriskOperator = dataSourceCharacteristicsOpt.exists(_.supportsAsteriskPathOperator)
@@ -209,7 +209,7 @@ class LinkingAutoCompletionApi @Inject() () extends InjectedController with User
     val linkingPathsCache = linkingTask.activity[LinkingPathsCache]
     val entitySchemaOpt = linkingPathsCache.value.get.map(cacheValue => if(isTarget) cacheValue.target else cacheValue.source)
     val cachedEntitySchemata = entitySchemaOpt.map(entitySchema => CachedEntitySchemata(entitySchema, if(isRdfInput) Some(entitySchema) else None, datasetSelection.inputId, None))
-    val allPaths = AutoCompletionApiUtils.pathsCacheCompletions(datasetSelection.typeUri, cachedEntitySchemata, simpleSubPath.nonEmpty && isRdfInput)
+    val allPaths = AutoCompletionApiUtils.pathsCacheCompletions(datasetSelection.typeUri, cachedEntitySchemata, simpleSubPath.nonEmpty && isRdfInput, metaDataFactory)
     val pathOpFilter = (autoCompletionRequest.isInBackwardOp, autoCompletionRequest.isInExplicitForwardOp) match {
       case (true, false) => OpFilter.Backward
       case (false, true) => OpFilter.Forward

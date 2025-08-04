@@ -6,25 +6,33 @@ import {
     FieldItem,
     Highlighter,
     highlighterUtils,
+    Icon,
     MenuItem,
     OverflowText,
     OverviewItem,
     OverviewItemDescription,
     OverviewItemLine,
     Spacing,
+    SuggestFieldItemRendererModifierProps,
+    OverviewItemDepiction,
+    OverviewItemActions,
 } from "@eccenca/gui-elements";
-import { IRenderModifiers } from "@eccenca/gui-elements/src/components/AutocompleteField/interfaces";
-import {TaskContext} from "../../../../shared/projectTaskTabView/projectTaskTabView.typing";
+import { TaskContext } from "../../../../shared/projectTaskTabView/projectTaskTabView.typing";
+import { ValidIconName } from "@eccenca/gui-elements/src/components/Icon/canonicalIconNames";
 
 // Creates a search function for the auto-complete field
-const onSearchFactory = (ruleId?: string, entity?: string, taskContext?: TaskContext): ((searchText: string) => Promise<any[]>) => {
+const onSearchFactory = (
+    ruleId?: string,
+    entity?: string,
+    taskContext?: TaskContext
+): ((searchText: string) => Promise<any[]>) => {
     return (searchText: string) => {
         return new Promise((resolve, reject) => {
             autocompleteAsync({
                 entity,
                 input: searchText,
                 ruleId,
-                taskContext
+                taskContext,
             }).subscribe(
                 ({ options }) => {
                     resolve(options);
@@ -91,7 +99,7 @@ interface IProps {
     // When a label exist, also show the value in the 2. row below the label of the suggested item. Default: true
     showValueWhenLabelExists?: boolean;
     /** Context of the transform task. */
-    taskContext?: TaskContext
+    taskContext?: TaskContext;
 }
 
 // Auto-complete interface as it is returned by the auto-complete backend APIs
@@ -105,13 +113,26 @@ interface IAutoCompleteItem {
 const hasDistinctLabel = (autoCompleteItem: IAutoCompleteItem) =>
     autoCompleteItem.label && autoCompleteItem.label.toLowerCase() !== autoCompleteItem.value.toLowerCase();
 
-const autoCompleteItemRendererFactory = (showValueWhenLabelExists: boolean) => {
+interface OptionalRenderFunctions<T> {
+    optionalLabelFn?: (obj: T) => string | undefined;
+    optionalValueFn?: (obj: T) => string;
+    optionalDescriptionFn?: (obj: T) => string | undefined;
+    optionalIconFn?: (obj: T) => ValidIconName | JSX.Element | undefined;
+    optionalItemActionsFn?: (obj: T) => JSX.Element | undefined;
+}
+
+export function autoCompleteItemRendererFactory<T = {}>(
+    showValueWhenLabelExists: boolean,
+    optionalFunctions: OptionalRenderFunctions<T> = {}
+) {
     return (
-        autoCompleteItem: IAutoCompleteItem,
+        autoCompleteItem: IAutoCompleteItem & T,
         query: string,
-        modifiers: IRenderModifiers,
+        modifiers: SuggestFieldItemRendererModifierProps,
         handleClick: () => any
     ): JSX.Element => {
+        const { optionalLabelFn, optionalValueFn, optionalDescriptionFn, optionalIconFn, optionalItemActionsFn } =
+            optionalFunctions;
         let label: string | undefined;
         let value: string | undefined = undefined;
         // Do not display value and label if they are basically the same
@@ -121,11 +142,27 @@ const autoCompleteItemRendererFactory = (showValueWhenLabelExists: boolean) => {
         } else {
             label = autoCompleteItem.value;
         }
+        if (optionalLabelFn) {
+            label = optionalLabelFn(autoCompleteItem);
+        }
+        if (optionalValueFn && label !== optionalValueFn(autoCompleteItem)) {
+            value = optionalValueFn(autoCompleteItem);
+        }
         const highlighter = (value: string | undefined) =>
             modifiers.highlightingEnabled ? <Highlighter label={value} searchValue={query} /> : value;
+        const description: string | undefined | null = optionalDescriptionFn
+            ? optionalDescriptionFn(autoCompleteItem)
+            : autoCompleteItem.description;
+        const icon = optionalIconFn?.(autoCompleteItem);
+        const itemActions = optionalItemActionsFn?.(autoCompleteItem);
         const item =
-            value || autoCompleteItem.description ? (
+            value || description ? (
                 <OverviewItem style={modifiers.styleWidth}>
+                    {icon ? (
+                        <OverviewItemDepiction>
+                            {typeof icon === "string" ? <Icon name={icon} /> : icon}
+                        </OverviewItemDepiction>
+                    ) : null}
                     <OverviewItemDescription>
                         <OverviewItemLine>
                             <OverflowText ellipsis={"reverse"}>{highlighter(label)}</OverflowText>
@@ -135,12 +172,13 @@ const autoCompleteItemRendererFactory = (showValueWhenLabelExists: boolean) => {
                                 <OverflowText ellipsis={"reverse"}>{highlighter(value)}</OverflowText>
                             </OverviewItemLine>
                         )}
-                        {autoCompleteItem.description && (
+                        {description && (
                             <OverviewItemLine small={true}>
-                                <OverflowText>{highlighter(autoCompleteItem.description)}</OverflowText>
+                                <OverflowText>{highlighter(description)}</OverflowText>
                             </OverviewItemLine>
                         )}
                     </OverviewItemDescription>
+                    {itemActions ? <OverviewItemActions>{itemActions}</OverviewItemActions> : null}
                 </OverviewItem>
             ) : (
                 <OverflowText style={modifiers.styleWidth} ellipsis={"reverse"}>
@@ -151,13 +189,13 @@ const autoCompleteItemRendererFactory = (showValueWhenLabelExists: boolean) => {
             <MenuItem
                 active={modifiers.active}
                 disabled={modifiers.disabled}
-                key={autoCompleteItem.value}
+                key={value ?? label}
                 onClick={handleClick}
                 text={item}
             />
         );
     };
-};
+}
 
 // Renders an option item in the suggest list
 export const autoCompleteItemRenderer = autoCompleteItemRendererFactory(true);
@@ -212,7 +250,7 @@ const AutoComplete = ({
         : ({ label }) => ({ value: label });
     const newItemRenderer = (
         query: string,
-        modifiers: IRenderModifiers,
+        modifiers: SuggestFieldItemRendererModifierProps,
         handleClick: React.MouseEventHandler<HTMLElement>
     ) => {
         if (isValidNewOption({ label: query })) {

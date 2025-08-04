@@ -79,7 +79,7 @@ export const transformToValueMap = (transform: EvaluatedTransformEntity): Map<st
                 error: transform.error,
                 entity: "",
                 stacktrace: transform.stacktrace,
-                values: transform.children.map((child) => child.values),
+                values: transform.children?.map((child) => child.values),
             };
         }
         valueMap.set(transform.operatorId, { value: transform.values, error: error });

@@ -1,12 +1,12 @@
 package org.silkframework.workspace.activity.linking
 
-import org.silkframework.config.Prefixes
 import org.silkframework.dataset.DataSource
 import org.silkframework.entity.paths.TypedPath
 import org.silkframework.entity.{Entity, EntitySchema, Link}
 import org.silkframework.rule.LinkSpec
 import org.silkframework.rule.evaluation.ReferenceEntities
 import org.silkframework.runtime.activity.{ActivityContext, UserContext}
+import org.silkframework.runtime.plugin.PluginContext
 import org.silkframework.runtime.resource.WritableResource
 import org.silkframework.util.{DPair, Uri}
 import org.silkframework.workspace.ProjectTask
@@ -96,6 +96,11 @@ class ReferenceLinksEntityLoader(task: ProjectTask[LinkSpec],
                                  cancelled: => Boolean)
                                 (implicit userContext: UserContext) {
 
+  /**
+   * Only load up to that many entities per query.
+   */
+  private val maxEntitiesPerQuery = 1000
+
   private val sources = task.dataSources
 
   private val linkSpec = task.data
@@ -177,11 +182,13 @@ class ReferenceLinksEntityLoader(task: ProjectTask[LinkSpec],
     if (entityUris.isEmpty) {
       Map.empty
     } else {
-      implicit val prefixes: Prefixes = task.project.config.prefixes
-      source.retrieveByUri(
-        entitySchema = entityDesc,
-        entities = entityUris map Uri.apply
-      ).use(_.map { e => (e.uri.toString, e) }.toMap)
+      implicit val context: PluginContext = PluginContext.fromProject(task.project)
+      var entities = Map[String, Entity]()
+      for(uris <- entityUris.grouped(maxEntitiesPerQuery)) {
+        val loadedEntities = source.retrieveByUri(entityDesc, uris map Uri.apply)
+        loadedEntities.use(entities ++= _.map { e => (e.uri.toString, e) })
+      }
+      entities
     }
   }
 

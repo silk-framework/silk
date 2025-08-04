@@ -69,6 +69,7 @@ class RulePlugins extends PluginModule {
         classOf[LowerCaseTransformer] ::
         classOf[UpperCaseTransformer] ::
         classOf[CapitalizeTransformer] ::
+        classOf[CamelCaseTransformer] ::
         classOf[UrlEncodeTransformer] ::
         classOf[StemmerTransformer] ::
         classOf[StripPrefixTransformer] ::
@@ -184,7 +185,8 @@ class RulePlugins extends PluginModule {
     classOf[GeometricMeanAggregator] ::
     classOf[NegationAggregator] ::
     classOf[ScalingAggregator] ::
-    classOf[HandleMissingValuesAggregator] :: Nil
+    classOf[HandleMissingValuesAggregator] ::
+    classOf[FirstNonEmptyAggregator] :: Nil
 
   private def serializers: List[Class[_ <: AnyPlugin]] =
     TransformSpecFormat.getClass ::

@@ -18,17 +18,28 @@ export type ErrorHandlerRegisterFuncType = (
     errorId: string,
     errorMessage: string,
     cause: DIErrorTypes | null,
-    errorNotificationInstanceId?: string,
+    options?: ErrorHandlerOptions,
+) => JSX.Element | null;
+
+interface ErrorHandlerOptions {
+    /** The notification instance where the error should be displayed. If this is set, the
+     error will NOT be displayed in the global notification widget. */
+    errorNotificationInstanceId?: string;
     /** Optional function that is called when a notification will be dismissed. Usually needed when an error notification instance ID is supplied
      * and the return notification element is used. */
-    onDismiss?: () => any
-) => JSX.Element | null;
+    onDismiss?: () => any;
+    /** The intent of the notification. Default: "danger" */
+    intent?: "danger" | "warning";
+    /** If this is true, the error will not trigger opening the notification queue. */
+    notAutoOpen?: boolean;
+}
 
 type ErrorHandlerRegisterShortFuncType = (
     /** A valid language key from the language files. This key will be used as error ID. */
     langKey: string,
     /** The error cause. */
-    cause: DIErrorTypes | null
+    cause: DIErrorTypes | null,
+    options?: ErrorHandlerOptions,
 ) => JSX.Element | null;
 
 interface ErrorHandlerDict {
@@ -51,14 +62,15 @@ const useErrorHandler = (): ErrorHandlerDict => {
      * @param errorId A globally unique error ID that has to be set by the developer. Convention: "<ComponentName>_<ActionName>", e.g. "WorkflowEditor_LoadWorkflow".
      * @param errorMessage Human readable error message.
      * @param cause Optional Error object explaining the exception.
+     * @param options Additional options.
      */
     const registerError: ErrorHandlerRegisterFuncType = (
         errorId: string,
         errorMessage: string,
         cause: DIErrorTypes | null,
-        errorNotificationInstanceId?: string,
-        onDismiss?: () => any
+        options?: ErrorHandlerOptions,
     ) => {
+        const { errorNotificationInstanceId, onDismiss, intent, notAutoOpen } = options ?? {};
         const error: RegisterErrorType = {
             id: errorId,
             message: errorMessage,
@@ -81,7 +93,8 @@ const useErrorHandler = (): ErrorHandlerDict => {
                         alternativeIntent: "warning",
                     },
                     errorNotificationInstanceId,
-                })
+                    notAutoOpen,
+                }),
             );
             return <Notification message={tempUnavailableMessage} />;
         } else if (isNotFoundError(cause)) {
@@ -91,9 +104,13 @@ const useErrorHandler = (): ErrorHandlerDict => {
         } else {
             dispatch(
                 registerNewError({
-                    newError: error,
+                    newError: {
+                        ...error,
+                        alternativeIntent: intent === "warning" ? intent : undefined,
+                    },
                     errorNotificationInstanceId,
-                })
+                    notAutoOpen,
+                }),
             );
             const detailMessage = diErrorMessage(cause);
             return (
@@ -105,7 +122,7 @@ const useErrorHandler = (): ErrorHandlerDict => {
                             <AccordionItem
                                 label={<TitleSubsection>{t("common.action.showMoreDetails")}</TitleSubsection>}
                                 open={false}
-                                condensed={true}
+                                whitespaceSize={"none"}
                                 noBorder={true}
                             >
                                 {detailMessage}
@@ -118,8 +135,12 @@ const useErrorHandler = (): ErrorHandlerDict => {
     };
 
     /** Shorter version that uses the language file key as error ID. */
-    const registerErrorI18N: ErrorHandlerRegisterShortFuncType = (langKey: string, cause: DIErrorTypes | null) => {
-        return registerError(langKey, t(langKey), cause);
+    const registerErrorI18N: ErrorHandlerRegisterShortFuncType = (
+        langKey: string,
+        cause: DIErrorTypes | null,
+        options?: ErrorHandlerOptions,
+    ) => {
+        return registerError(langKey, t(langKey), cause, options);
     };
 
     const isTemporarilyUnavailableError = (error?: DIErrorTypes | null): boolean => {

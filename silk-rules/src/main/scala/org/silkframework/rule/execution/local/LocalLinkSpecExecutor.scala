@@ -5,6 +5,7 @@ import org.silkframework.dataset.{DataSource, Dataset, DatasetSpec, EmptyDataset
 import org.silkframework.entity.EntitySchema
 import org.silkframework.entity.paths.TypedPath
 import org.silkframework.execution.local._
+import org.silkframework.execution.typed.LinksEntitySchema
 import org.silkframework.execution.{EntityHolder, ExecutionReport, Executor, ExecutorOutput}
 import org.silkframework.rule.LinkSpec.{MAX_LINK_LIMIT, MAX_LINK_LIMIT_CONFIG_KEY}
 import org.silkframework.rule.execution._
@@ -50,7 +51,7 @@ class LocalLinkSpecExecutor extends Executor[LinkSpec, LocalExecution] {
       ))
     }
     context.value() = linking
-    Some(LinksTable(linking.links, linkSpec.rule.linkType, linkSpec.rule.inverseLinkType, task))
+    Some(LinksEntitySchema.create(linking.links, task))
   }
 
   private def entitySource(input: LocalEntities, typeUri: Uri): EntitySource = {
@@ -70,12 +71,12 @@ class LocalLinkSpecExecutor extends Executor[LinkSpec, LocalExecution] {
   private class EntitySource(table: LocalEntities) extends DataSource {
 
     override def retrieve(entitySchema: EntitySchema, limit: Option[Int] = None)
-                         (implicit userContext: UserContext, prefixes: Prefixes): EntityHolder = {
+                         (implicit context: PluginContext): EntityHolder = {
       table
     }
 
     override def retrieveByUri(entitySchema: EntitySchema, entities: Seq[Uri])
-                              (implicit userContext: UserContext, prefixes: Prefixes): EntityHolder = {
+                              (implicit context: PluginContext): EntityHolder = {
       EmptyEntityTable(underlyingTask)
     }
 

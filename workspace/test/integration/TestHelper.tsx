@@ -5,17 +5,12 @@ import { Provider } from "react-redux";
 import { configureStore, getDefaultMiddleware } from "@reduxjs/toolkit";
 import rootReducer from "../../src/app/store/reducers";
 import { ConnectedRouter, routerMiddleware } from "connected-react-router";
-import {
-    AxiosMockQueueItem,
-    AxiosMockRequestCriteria,
-    AxiosMockType,
-    HttpResponse,
-} from "jest-mock-axios/dist/lib/mock-axios-types";
+import { AxiosMockQueueItem, AxiosMockRequestCriteria, AxiosMockType, HttpResponse } from "jest-mock-axios";
 import mockAxios from "../__mocks__/axios";
 import { CONTEXT_PATH, SERVE_PATH } from "../../src/app/constants/path";
 import { mergeDeepRight } from "ramda";
 import { IStore } from "../../src/app/store/typings/IStore";
-import { render, waitFor } from "@testing-library/react";
+import { render, RenderResult, waitFor } from "@testing-library/react";
 import {
     responseInterceptorOnError,
     responseInterceptorOnSuccess,
@@ -35,6 +30,14 @@ const mockValues: IMockValues = {
     },
 };
 const host = process.env.HOST;
+
+jest.mock("@codemirror/view", () => ({
+    ...jest.requireActual("@codemirror/view"),
+}));
+
+jest.mock("@codemirror/language", () => ({
+    ...jest.requireActual("@codemirror/language"),
+}));
 
 // Mock global history object
 jest.mock("../../src/app/store/configureStore", () => {
@@ -91,8 +94,8 @@ export type RecursivePartial<T> = {
     [P in keyof T]?: T[P] extends (infer U)[]
         ? RecursivePartial<U>[]
         : T[P] extends object
-        ? RecursivePartial<T[P]>
-        : T[P];
+          ? RecursivePartial<T[P]>
+          : T[P];
 };
 
 export const withShallow = (component) => shallow(component);
@@ -105,7 +108,7 @@ export const withRender = (component) => render(component);
 export const testWrapper = (
     component: React.ReactNode,
     history: History<LocationState> = createBrowserHistory<LocationState>(),
-    initialState: RecursivePartial<IStore> = {}
+    initialState: RecursivePartial<IStore> = {},
 ) => {
     const store = createStore(history, initialState);
     // Set path name of global mock
@@ -172,7 +175,7 @@ export const changeValue = (wrapper: ReactWrapper<any, any>, value: string) => {
 /** Finds a single element corresponding to the selector or fails. */
 export const findSingleElement = (
     wrapper: ReactWrapper<any, any>,
-    cssSelector: string | EnzymePropSelector
+    cssSelector: string | EnzymePropSelector,
 ): ReactWrapper<any, any> => {
     wrapper.update();
     const element = findAll(wrapper, cssSelector);
@@ -183,12 +186,12 @@ export const findSingleElement = (
 export const elementHtmlToContain = async (
     wrapper: ReactWrapper<any, any>,
     selector: string | EnzymePropSelector,
-    substring: string
+    substring: string,
 ) => {
     await waitFor(() => expect(findSingleElement(wrapper, selector).html()).toContain(substring), {
         onTimeout: (err) => {
             console.warn(
-                `Element with selector '${selector}' did not contain sub-string '${substring}'! Printing wrapper HTML:`
+                `Element with selector '${selector}' did not contain sub-string '${substring}'! Printing wrapper HTML:`,
             );
             logWrapperHtml(wrapper);
             return err;
@@ -290,7 +293,7 @@ export const mockedAxiosResponse = ({ status = 200, data = "" }: IAxiosResponse 
 
 /** Returns the Axios queue item based on the given criteria. */
 const axiosMockItemByCriteria = (
-    criteria: string | ExtendedAxiosMockRequestCriteria
+    criteria: string | ExtendedAxiosMockRequestCriteria,
 ): AxiosMockQueueItem | undefined => {
     if (typeof criteria === "string") {
         return mockAxios.getReqByUrl(criteria);
@@ -318,7 +321,7 @@ const axiosMockItemByCriteria = (
                     return matchingQueueItems[0];
                 default:
                     console.warn(
-                        "More than 1 request found for request criteria. Returning last match. Criteria: " + criteria
+                        "More than 1 request found for request criteria. Returning last match. Criteria: " + criteria,
                     );
                     return matchingQueueItems[matchingQueueItems.length - 1];
             }
@@ -356,7 +359,7 @@ interface ExtendedAxiosMockRequestCriteria extends AxiosMockRequestCriteria {
 export const mockAxiosResponse = (
     criteria: string | ExtendedAxiosMockRequestCriteria,
     response?: HttpResponse | AxiosError,
-    silentMode?: boolean
+    silentMode?: boolean,
 ): void => {
     mockAxios.interceptors.response.use(responseInterceptorOnSuccess, responseInterceptorOnError);
     const requestQueueItem = axiosMockItemByCriteria(criteria);
@@ -420,7 +423,7 @@ export const checkRequestMade = (
     url: string,
     method: string = "GET",
     data: any = null,
-    partialEquality: boolean = false
+    partialEquality: boolean = false,
 ): void => {
     const reqInfo = mockAxios.getReqMatching({
         url: url,
@@ -441,3 +444,59 @@ export const checkRequestMade = (
 
 /** Cleans up the DOM. This is needed to avoid DOM elements from one test interfering with the subsequent tests. */
 export const cleanUpDOM = () => (document.body.innerHTML = "");
+
+export class RenderResultApi {
+    renderResult: RenderResult;
+
+    constructor(renderResult: RenderResult) {
+        this.renderResult = renderResult;
+    }
+
+    find = (cssSelector: string): Element | null => {
+        return this.renderResult.container.querySelector(cssSelector);
+    };
+
+    findExisting = (cssSelector: string): Element => {
+        const element = this.find(cssSelector);
+        this.assert(!!element, `Element with selector '${cssSelector}' does not exist!`);
+        return element!;
+    };
+
+    findNth = (cssSelector: string, idx: number): Element => {
+        const element = this.findAll(cssSelector)[idx];
+        this.assert(!!element, `${idx + 1}th element with selector '${cssSelector}' does not exist!`);
+        return element!;
+    };
+
+    findAll = (cssSelector: string): NodeListOf<Element> => {
+        return this.renderResult.container.querySelectorAll(cssSelector);
+    };
+
+    assert = (predicate: any, errorMessage: string) => {
+        if (!predicate) {
+            fail(errorMessage);
+        }
+    };
+
+    click = (cssSelector: string, idx: number = 0) => {
+        const element = this.findAll(cssSelector)[idx] as HTMLButtonElement;
+        this.assert(
+            element,
+            `No element with selector '${cssSelector}' ${idx !== 0 ? `at index ${idx} ` : ""}has been found!`,
+        );
+        if (element.click) {
+            element.click();
+        } else {
+            element.dispatchEvent(new Event("click"));
+        }
+    };
+
+    printHtml = (selector?: string) => {
+        const elementToPrint = selector ? this.findExisting(selector) : this.renderResult.container;
+        console.log(elementToPrint.outerHTML);
+    };
+
+    static testId = (testId: string): string => {
+        return `[data-test-id = '${testId}']`;
+    };
+}

@@ -2,6 +2,7 @@ package controllers.workspaceApi
 
 import java.util.logging.Logger
 import com.typesafe.config.ConfigValueType
+import config.WorkbenchConfig
 import controllers.core.UserContextActions
 import controllers.core.util.ControllerUtilsTrait
 import controllers.workspaceApi.doc.InitApiDoc
@@ -30,6 +31,8 @@ case class InitApi @Inject()() extends InjectedController with UserContextAction
   private val dmLinkIcon = "icon"
   private val dmLinkDefaultLabel = "defaultLabel"
   private val playMaxFileUploadSizeKey = "play.http.parser.maxDiskBuffer"
+  private val apiKey = "com.eccenca.di.assistant.ApiConfig.apiKey"
+  private val mappingCreatorEnabledKey = "com.eccenca.di.mappingCreatorEnabled"
   private val versionKey = "workbench.version"
   private lazy val cfg = DefaultConfig.instance()
   private val log: Logger = Logger.getLogger(getClass.getName)
@@ -48,6 +51,14 @@ case class InitApi @Inject()() extends InjectedController with UserContextAction
     } else {
       None
     }
+  }
+
+  lazy val assistantSupported: Boolean = {
+    cfg.hasPath(apiKey) && cfg.getString(apiKey) != ""
+  }
+
+  lazy val mappingCreatorEnabled: Boolean = {
+    cfg.hasPath(mappingCreatorEnabledKey) && cfg.getBoolean(mappingCreatorEnabledKey)
   }
 
   @Operation(
@@ -71,14 +82,17 @@ case class InitApi @Inject()() extends InjectedController with UserContextAction
       "initialLanguage" -> initialLanguage(request),
       "hotKeys" -> Json.toJson(hotkeys()),
       "maxFileUploadSize" -> maxUploadSize,
-      "templatingEnabled" -> GlobalTemplateVariablesConfig.isEnabled
+      "templatingEnabled" -> GlobalTemplateVariablesConfig.isEnabled,
+      "assistantSupported" -> assistantSupported,
+      "mappingCreatorEnabled" -> mappingCreatorEnabled
     )
     val withDmUrl = dmBaseUrl.map { url =>
       resultJson + ("dmBaseUrl" -> url) + ("dmModuleLinks" -> JsArray(dmLinks.map(Json.toJson(_))))
     }.getOrElse(resultJson)
     val withVersion = version.map(v => withDmUrl + ("version" -> v)).getOrElse(withDmUrl)
     val withUser = userContext.user.map(user => withVersion + ("userUri" -> JsString(user.uri))).getOrElse(withVersion)
-    Ok(withUser)
+    val withDefaultProjectPageSuffix = WorkbenchConfig.defaultProjectPageSuffix.map(suffix => withUser + ("defaultProjectPageSuffix" -> JsString(suffix))).getOrElse(withUser)
+    Ok(withDefaultProjectPageSuffix)
   }
 
   val supportedLanguages = Set("en", "de")

@@ -1,8 +1,14 @@
 import { Edge, Node } from "react-flow-renderer";
-import { IRuleNodeData, NodeContentPropsWithBusinessData } from "../RuleEditor.typings";
+import {
+    IRuleNodeData,
+    IRuleOperatorNode,
+    NodeContentPropsWithBusinessData,
+    NodePosition,
+    RuleOperatorNodeParameters,
+} from "../RuleEditor.typings";
 import { XYPosition } from "react-flow-renderer/dist/types";
 import { IOperatorNodeParameterValueWithLabel } from "../../../taskViews/shared/rules/rule.typings";
-import { NodeDimensions } from "@eccenca/gui-elements/src/extensions/react-flow/nodes/NodeContent";
+import { NodeContentProps, NodeDimensions } from "@eccenca/gui-elements";
 import { CSSProperties } from "react";
 
 export interface RuleModelChanges {
@@ -18,7 +24,7 @@ export const ruleEditorNodeParameterValue = (value: RuleEditorNodeParameterValue
     return typeof value === "string" ? value : value?.value;
 };
 export const ruleEditorNodeParameterLabel = (value: RuleEditorNodeParameterValue): string | undefined => {
-    return typeof value === "string" ? value : value?.label ?? value?.value;
+    return typeof value === "string" ? value : (value?.label ?? value?.value);
 };
 export type StickyNodePropType = { content?: string; style?: CSSProperties };
 
@@ -63,8 +69,8 @@ export interface ChangeNodePosition {
 export interface ChangeNodeSize {
     type: "Change node size";
     nodeId: string;
-    from: NodeDimensions;
-    to: NodeDimensions;
+    from: NodeDimensions | undefined;
+    to: NodeDimensions | undefined;
 }
 export interface ChangeStickyNodeProperties {
     type: "Change sticky node style or content";
@@ -102,7 +108,7 @@ export const RuleModelChangesFactory = {
             nodes.map((node: Node) => ({
                 type: "Add node",
                 node,
-            }))
+            })),
         ),
     deleteNode: (node: Node): RuleModelChanges => toRuleModelChanges({ type: "Delete node", node }),
     deleteNodes: (nodes: Node[]): RuleModelChanges =>
@@ -110,7 +116,7 @@ export const RuleModelChangesFactory = {
             nodes.map((node) => ({
                 type: "Delete node",
                 node,
-            }))
+            })),
         ),
     addEdge: (edge: Edge): RuleModelChanges => toRuleModelChanges({ type: "Add edge", edge }),
     addEdges: (edges: Edge[]): RuleModelChanges =>
@@ -118,7 +124,7 @@ export const RuleModelChangesFactory = {
             edges.map((edge) => ({
                 type: "Add edge",
                 edge,
-            }))
+            })),
         ),
     deleteEdge: (edge: Edge): RuleModelChanges => toRuleModelChanges({ type: "Delete edge", edge }),
     deleteEdges: (edges: Edge[]): RuleModelChanges =>
@@ -126,9 +132,9 @@ export const RuleModelChangesFactory = {
             edges.map((edge) => ({
                 type: "Delete edge",
                 edge,
-            }))
+            })),
         ),
-    changeNodeSize: (nodeId: string, from: NodeDimensions, to: NodeDimensions) =>
+    changeNodeSize: (nodeId: string, from: NodeDimensions | undefined, to: NodeDimensions | undefined) =>
         toRuleModelChanges({ type: "Change node size", nodeId, from, to }),
     changeNodePosition: (nodeId: string, from: XYPosition, to: XYPosition): RuleModelChanges =>
         toRuleModelChanges({ type: "Change node position", nodeId, from, to }),
@@ -138,8 +144,15 @@ export const RuleModelChangesFactory = {
         nodeId: string,
         parameterId: string,
         from: RuleEditorNodeParameterValue,
-        to: RuleEditorNodeParameterValue
+        to: RuleEditorNodeParameterValue,
     ): RuleModelChanges => {
         return toRuleModelChanges({ type: "Change node parameter", nodeId, parameterId, from, to });
     },
 };
+
+export interface RuleNodeCopySerialization
+    extends Pick<IRuleOperatorNode, "nodeId" | "pluginId" | "pluginType" | "dimension"> {
+    position: NodePosition;
+    parameters?: RuleOperatorNodeParameters;
+    inputHandleIds: string[];
+}

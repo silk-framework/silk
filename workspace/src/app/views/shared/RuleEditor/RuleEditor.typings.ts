@@ -1,4 +1,4 @@
-import { NodeContentProps } from "@eccenca/gui-elements/src/extensions/react-flow/nodes/NodeContent";
+import { NodeContentProps, NodeDimensions } from "@eccenca/gui-elements/src/extensions/react-flow/nodes/NodeContent";
 import { PluginType, RuleOperatorType } from "@ducks/shared/typings";
 import { ValidIconName } from "@eccenca/gui-elements/src/components/Icon/canonicalIconNames";
 import { IPreConfiguredRuleOperator } from "./view/sidebar/RuleEditorOperatorSidebar.typings";
@@ -59,6 +59,8 @@ export interface IRuleOperatorNode extends IRuleOperatorBase {
     parameters: RuleOperatorNodeParameters;
     /** The position on the canvas. */
     position?: NodePosition;
+    /** The node size */
+    dimension?: NodeDimensions;
     /** The input node IDs. */
     inputs: (string | undefined)[];
     /** Tags that will be displayed inside the node. */
@@ -90,6 +92,8 @@ export interface IParameterSpecification {
     distanceMeasureRange?: DistanceMeasureRange;
     /** some required fields have additional labels to specify what values are acceptable */
     requiredLabel?: string;
+    /** The order index of this parameter. The index in the order of the parameter. First parameter starts with 0. */
+    orderIdx: number;
 }
 
 export interface IParameterValidationResult {
@@ -124,7 +128,7 @@ export type RuleParameterType =
     | "pathInput"
     | SupportedRuleParameterCodeModes;
 
-interface NodePosition {
+export interface NodePosition {
     x: number;
     y: number;
 }
@@ -134,7 +138,7 @@ export interface RuleOperatorNodeParameters {
 }
 
 /** Rule editor node with required business data. For convenience. */
-export interface NodeContentPropsWithBusinessData<T> extends Omit<NodeContentProps<T, RuleNodeContentProps>, "label"> {
+export interface NodeContentPropsWithBusinessData<T> extends Omit<NodeContentProps<T>, "label" | "businessData"> {
     label: string; // NodeContent now also allows JSX.Element, lead to TS error in DI because this interface was used directly
     businessData: T & { stickyNote?: string | undefined };
 }
@@ -234,4 +238,14 @@ export interface RuleEditorValidationNode {
     node: IRuleOperatorNode;
     inputs: () => (RuleEditorValidationNode | undefined)[];
     output: () => RuleEditorValidationNode | undefined;
+}
+
+export const RULE_EDITOR_NOTIFICATION_INSTANCE = "RuleEditor";
+
+/** Functions that return meta data of a path. */
+export interface PathMetaDataFunctions {
+    /** Returns for a path input plugin and a path the type of the given path. Returns undefined if either the plugin does not exist or the path data is unknown. */
+    inputPathPluginPathType?: (inputPathPluginId: string, path: string) => string | undefined;
+    /** Returns the label for the path. */
+    inputPathLabel?: (inputPathPluginId: string, path: string) => string | undefined;
 }

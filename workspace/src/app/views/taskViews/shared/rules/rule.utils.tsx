@@ -27,9 +27,9 @@ import {
     OverviewItem,
     OverviewItemDescription,
     OverviewItemLine,
+    SuggestFieldItemRendererModifierProps,
+    CLASSPREFIX as eccguiprefix,
 } from "@eccenca/gui-elements";
-import { IRenderModifiers } from "@eccenca/gui-elements/src/components/AutocompleteField/AutoCompleteField";
-import { CLASSPREFIX as eccguiprefix } from "@eccenca/gui-elements/src/configuration/constants";
 import { optionallyLabelledParameterToValue } from "../../linking/linking.types";
 
 /** Extracts the operator node from a path input. */
@@ -119,7 +119,7 @@ const extractOperatorNodeFromValueInput = (
 const customInputPathRenderer = (
     autoCompleteResponse: IAutocompleteDefaultResponse,
     query: string,
-    modifiers: IRenderModifiers,
+    modifiers: SuggestFieldItemRendererModifierProps,
     handleSelectClick: () => any
 ): JSX.Element | string => {
     return autoCompleteResponse.label ? (
@@ -183,6 +183,7 @@ const inputPathOperator = (
                           customItemRenderer: customInputPathRenderer,
                       }
                     : undefined,
+                orderIdx: 1,
             }),
         },
         categories: [...additionalCategories, "Recommended"],
@@ -206,6 +207,7 @@ const parameterSpecification = ({
     autoCompletion,
     distanceMeasureRange,
     requiredLabel,
+    orderIdx,
 }: Omit<IParameterSpecification, OptionalParameterAttributes> &
     Partial<Pick<IParameterSpecification, OptionalParameterAttributes>>): IParameterSpecification => {
     return {
@@ -219,6 +221,7 @@ const parameterSpecification = ({
         autoCompletion,
         distanceMeasureRange,
         requiredLabel,
+        orderIdx,
     };
 };
 
@@ -250,7 +253,7 @@ const convertRuleOperator = (
         parameterSpecification: Object.fromEntries([
             ...Object.entries(pluginDetails.properties)
                 .filter(([paramId, paramSpec]) => !inputsCanBeSwitched || paramId !== REVERSE_PARAMETER_ID)
-                .map(([parameterId, parameterSpec]) => {
+                .map(([parameterId, parameterSpec], idx) => {
                     const spec: IParameterSpecification = {
                         label: parameterSpec.title,
                         description: parameterSpec.description,
@@ -259,6 +262,7 @@ const convertRuleOperator = (
                         type: convertPluginParameterType(parameterSpec.parameterType),
                         autoCompletion: parameterSpec.autoCompletion,
                         defaultValue: optionallyLabelledParameterToValue(parameterSpec.value) ?? "",
+                        orderIdx: idx,
                     };
                     return [parameterId, spec];
                 }),
@@ -466,10 +470,16 @@ const findCycles = (
 
 /** Extract rule layout from rule operator nodes. */
 const ruleLayout = (nodes: IRuleOperatorNode[]): RuleLayout => {
-    const nodePositions: { [key: string]: [number, number] } = Object.create(null);
+    const nodePositions: RuleLayout["nodePositions"] = Object.create(null);
     nodes.forEach((node) => {
         if (node.position) {
-            nodePositions[node.nodeId] = [Math.round(node.position.x), Math.round(node.position.y)];
+            // nodePositions[node.nodeId] = [Math.round(node.position.x), Math.round(node.position.y)];
+            nodePositions[node.nodeId] = {
+                x: Math.round(node.position.x),
+                y: Math.round(node.position.y),
+                width: node.dimension?.width ?? null,
+                height: node.dimension?.height ?? null,
+            };
         }
     });
     return {

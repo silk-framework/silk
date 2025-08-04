@@ -1,5 +1,12 @@
-import { Button, Card, List, OverviewItem, OverviewItemActions, Spacing } from "@eccenca/gui-elements";
-import { extractSearchWords } from "@eccenca/gui-elements/src/components/Typography/Highlighter";
+import {
+    Button,
+    Card,
+    List,
+    OverviewItem,
+    OverviewItemActions,
+    Spacing,
+    highlighterUtils,
+} from "@eccenca/gui-elements";
 import React from "react";
 import { useTranslation } from "react-i18next";
 import { IRuleOperator, RuleOperatorNodeParameters } from "../../RuleEditor.typings";
@@ -38,7 +45,7 @@ export function RuleOperatorList<T>({
     showPreconfiguredOperatorsOnlyWithQuery,
 }: RuleOperatorListProps<T>) {
     const { t } = useTranslation();
-    const searchWords = extractSearchWords(textQuery, true);
+    const searchWords = highlighterUtils.extractSearchWords(textQuery, true);
     const [currentlyCycledTaskId] = React.useState<string | undefined>(undefined);
     const [taskCycleIndex] = React.useState<number>(0);
     const totalMatches = 0; // FIXME: Node cycle logic
@@ -61,11 +68,12 @@ export function RuleOperatorList<T>({
         (e: React.DragEvent<HTMLDivElement>) => {
             const pluginData = JSON.stringify({ pluginType, pluginId, parameterValues });
             e.dataTransfer.setData("application/reactflow", pluginData);
+            e.dataTransfer.setData("application/x-reactflow-app", "ruleEditor");
             const draggedElement = e.currentTarget;
             e.dataTransfer.setDragImage(
                 draggedElement,
                 draggedElement.clientWidth / 2,
-                draggedElement.clientHeight / 2
+                draggedElement.clientHeight / 2,
             );
         };
 
@@ -79,7 +87,7 @@ export function RuleOperatorList<T>({
                 onDragStart={onDragStartByPluginId(
                     ruleOperator.pluginType,
                     ruleOperator.pluginId,
-                    (ruleOperator as IPreConfiguredRuleOperator).parameterOverwrites
+                    (ruleOperator as IPreConfiguredRuleOperator).parameterOverwrites,
                 )}
                 style={{ cursor: "grab" }}
             >
@@ -156,7 +164,7 @@ function mergePreConfiguredOperators<T>(preConfiguredOperators: IPreConfiguredOp
 /** Merges the list of "normal" and pre-configured operators. */
 function mergeOperators<T>(
     ruleOperatorList: IRuleOperator[],
-    preConfiguredOperators?: IPreConfiguredOperators<T | IRuleOperator>[]
+    preConfiguredOperators?: IPreConfiguredOperators<T | IRuleOperator>[],
 ) {
     if (preConfiguredOperators) {
         if (ruleOperatorList.length === 0) {

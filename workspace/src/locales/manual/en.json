@@ -8,6 +8,7 @@
         "autoConfigButton": "Auto-config",
         "autoConfigTooltip": "Try to auto-configure technical parameters of the item based on the current configuration.",
         "autoConfigParametersUpdated": "Auto-configuration has changed {{number}} parameter values.",
+        "pluginActions": "Additional actions",
         "projectContext": {
             "configResetInfo": "All settings are going to be reset, except label and description.",
             "selectProjectLabel": "Select target project",
@@ -262,14 +263,16 @@
                     }
                 },
                 "rule-editors": {
-                    "label": "Linking editor",
+                    "label": "Linking editor / Value formula editor",
                     "shortcuts": {
                         "duplicate-nodes": "Duplicate selected nodes",
                         "undo": "Undo change",
                         "redo": "Redo change",
                         "delete": "Remove selected elements",
                         "multiselect": "Select multiple nodes",
-                        "multiselectDesc": "Select nodes either by clicking on them or by dragging a selection area"
+                        "multiselectDesc": "Select nodes either by clicking on them or by dragging a selection area",
+                        "copySelectedNodes": "Copy selected nodes to clipboard",
+                        "pasteNodes": "Paste copied nodes"
                     }
                 },
                 "workflow-editor": {
@@ -306,7 +309,7 @@
             "DeleteSmth": "Delete {{smth}}",
             "RemoveSmth": "Remove {{smth}}",
             "ShowSmth": "Show {{smth}}",
-            "CopyItems": "Copy Items to another project",
+            "CopyItems": "Copy items to another project",
             "CopyProject": "Copy to another project",
             "abort": "Abort",
             "add": "Add",
@@ -345,7 +348,11 @@
             "clearInput": "Clear input",
             "filterOn": "Use as filter",
             "filterOff": "Remove filter",
-            "showMoreDetails": "Show more details"
+            "showMoreDetails": "Show more details",
+            "restore": "Restore",
+            "revert": "Revert",
+            "edit": "Edit",
+            "ok": "Ok"
         },
         "app": {
             "build": "Workbench",
@@ -430,7 +437,8 @@
             "added": "Added",
             "removed": "Removed",
             "paths": "Paths",
-            "unknown": "Unknown"
+            "unknown": "Unknown",
+            "active": "active"
         },
         "tooltips": {
             "dataset": {
@@ -451,6 +459,9 @@
             "projectDesc": "Project description",
             "projectTitle": "Project title",
             "title": "Title"
+        },
+        "taskForm": {
+            "resetMessage": "Following parameters have been reset because they depend on the changed parameter '{{dependOn}}': {{parameters}}"
         },
         "validations": {
             "float": "must be a valid floating point number",
@@ -482,6 +493,9 @@
             "server": "Server error",
             "timeout": "Timeout"
         }
+    },
+    "evaluationTabRow": {
+        "validationErrorOverall": "There exists at least one validation error for this entity: {{error}}"
     },
     "transformEvaluationTabView": {
         "table": {
@@ -646,6 +660,10 @@
                 "clone": {
                     "label": "Clone selected nodes",
                     "tooltip": "Clones all selected nodes and inter-connections and inserts them as new selection. Following key combination also triggers this action: CTRL/CMD + d"
+                },
+                "copy": {
+                    "label": "Copy selected nodes to clipboard",
+                    "tooltip": "Copy all selected nodes and inter-connections. Can be also triggered with following keyboard shortcut: ^Ctrl + c / ⌘Command + c. The copied elements can be inserted as copies with following keyboard shortcut: ^Ctrl + v / ⌘Command + v.The copied elements can also be inserted in editors in different tabs, windows or browsers."
                 }
             }
         },
@@ -697,12 +715,16 @@
             },
             "startEvaluation": "Start evaluation",
             "showEvaluation": "Show evaluation examples",
-            "hideEvaluation": "Hide evaluation examples"
+            "hideEvaluation": "Hide evaluation examples",
+            "copiedNotificationText": "Copied {{numberOfNodes}} to clipboard"
         }
     },
     "taskViews": {
         "linkRulesEditor": {
             "errors": {
+                "partialPathAutoCompletion": {
+                    "msg": "Could not fetch partial autocompletion"
+                },
                 "fetchTaskData": {
                     "msg": "An error has occurred while fetching the linking task."
                 },
@@ -723,6 +745,12 @@
                 },
                 "startEvaluation": {
                     "msg": "Could not fetch evaluation results."
+                },
+                "beforeStartEvaluation": {
+                    "msg": "Could not start evaluation."
+                },
+                "fetchReferenceLinks": {
+                    "msg": "Could not fetch evaluation results for reference links. Need to fallback to executing linking evaluation."
                 }
             },
             "cacheWidgets": {
@@ -745,13 +773,15 @@
             },
             "warning": {
                 "modal": {
-                    "title": "Editor Warning",
-                    "body": "There are still unsaved changes. Are you sure you want to close the editor?",
-                    "close-btn": "Yes, close",
-                    "back-btn": "No, go back"
+                    "title": "Discard unsaved changes?",
+                    "body": "There are still unsaved changes. Do you want to discard them?",
+                    "discard": "Discard changes"
                 }
             },
             "errors": {
+                "partialPathAutoCompletion": {
+                    "msg": "Could not fetch partial autocompletion"
+                },
                 "fetchTransformRule": {
                     "msg": "An error has occurred while fetching the transform rule."
                 },
@@ -769,10 +799,14 @@
     },
     "copyModal": {
         "copyPrefixes": "Copy prefixes",
+        "projectVarInfo": "Project variables that are missing in the target project will be copied.",
         "errorMessages": {
             "searchFailure": "Retrieving project list failed",
             "copyFailure": "Failed to copy"
         }
+    },
+    "cloneModal": {
+        "info": "Cloning a task means creating a copy of the task configuration in the same project. The related (used) tasks of this cloned task are not copied or changed (e.g., a cloned workflow processes the same workflow tasks as the original and not copies of them)."
     },
     "widget": {
         "ActivityInfoWidget": {
@@ -1137,16 +1171,21 @@
     },
     "ReferenceLinks": {
         "mismatchCheckboxTitle": "Mismatches ({{nrMismatches}})",
+        "mismatchCheckboxTooltip": "If active, show only reference links where the currently best learned rule has computed a different decision than the user.",
         "mismatchWithRule": "Current best rule decides differently",
         "showList": "Show link list",
         "hideList": "Hide link list",
         "confirmedOnly": "Confirmed only ({{nr}})",
+        "confirmedOnlyTooltip": "If this filter is active only confirmed reference links are shown.",
         "declinedOnly": "Declined only ({{nr}})",
+        "declinedOnlyTooltip": "If this filter is active only declined reference links are shown.",
         "confirmed": "Confirmed",
         "declined": "Declined",
         "certainOnly": "Certain",
+        "certainOnlyTooltip": "Show only reference links that are either confirmed or declined.",
         "uncertain": "Uncertain",
         "uncertainOnly": "Uncertain",
+        "uncertainOnlyTooltip": "Show only reference links without a decision.",
         "removeLink": "Delete reference link",
         "checkFeedback": "Re-evaluate feedback decision",
         "source": "Source",
@@ -1187,7 +1226,8 @@
             "errors": {
                 "emptyResult": "Preview has returned no results.",
                 "emptyWithExceptions": "Preview has returned no results, possibly because of transform validation errors.",
-                "notSupported": "Input source does not support the transform preview."
+                "notSupported": "Input source does not support the transform preview.",
+                "withExceptions": "At least one problem has been detected: {{error}}"
             }
         }
     },
@@ -1195,6 +1235,16 @@
         "suggestionIssues": {
             "noFoundClass": "None of the target classes have been found in the target vocabularies. Falling back to matching against all properties instead.",
             "notAllClassesFound": "Following target classes have not been found in any of the target vocabularies: {{classesString}}.\n\nMatching only against {{numberOfFoundClasses}} of {{numberOfAllClasses}} target classes."
+        },
+        "SourceElement": {
+            "infobox": {
+                "exampleData": "Example data",
+                "sourcePath": "Source path",
+                "objectPath": "Object path",
+                "valuePath": "Value path",
+                "dataTypeSubPaths": "Datatype sub-paths",
+                "objectTypeSubPaths": "Object type sub-paths"
+            }
         }
     },
     "InvisibleCharacterHandling": {
@@ -1241,13 +1291,40 @@
             "messages": {
                 "selectMapping": "Select a mapping for detailed results.",
                 "noIssues": "This mapping rule executed successfully without any issues.",
-                "validationIssues": "This mapping rule generated {{count}} validation issues during execution. Examples are shown below."
+                "validationIssues": "This mapping rule generated {{errors}} validation issues during execution. Examples are shown below.",
+                "InvalidTypeUris": "There exist invalid type URIs: {{typeUris}}"
             }
         },
         "errorTable": {
             "entity": "Entity",
             "values": "Values",
             "issue": "Issue"
+        }
+    },
+    "Editor": {
+        "markdown": {
+            "toolbar": {
+                "paragraphs": "Paragraphs",
+                "heading-1": "Heading 1",
+                "heading-2": "Heading 2",
+                "heading-3": "Heading 3",
+                "heading-4": "Heading 4",
+                "heading-5": "Heading 5",
+                "heading-6": "Heading 6",
+                "block-quote": "Block quote",
+                "code-block": "Monospaced block",
+                "bold": "Bold",
+                "italic": "Italic",
+                "strikethrough": "Strike through",
+                "inline-code": "Monospaced",
+                "unordered-list": "Bulleted list",
+                "ordered-list": "Numbered list",
+                "todo-list": "Todo list",
+                "link": "Web link",
+                "image": "Image media",
+                "preview": "Preview",
+                "continue-editing": "Continue editing"
+            }
         }
     },
     "DatasetClearButton": {

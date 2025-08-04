@@ -1,11 +1,10 @@
 import React from "react";
-import { mount, shallow } from "enzyme";
+import { mount } from "enzyme";
 import { ObjectRuleForm } from "../../../../../src/app/views/pages/MappingEditor/HierarchicalMapping/containers/MappingRule/ObjectRule/ObjectRuleForm";
-import { CardTitle } from "gui-elements-deprecated";
-import ExampleView from "../../../../../src/app/views/pages/MappingEditor/HierarchicalMapping/containers/MappingRule/ExampleView";
+import { CardTitle } from "@eccenca/gui-elements";
 import * as Store from "../../../../../src/app/views/pages/MappingEditor/HierarchicalMapping/store";
 import EventEmitter from "../../../../../src/app/views/pages/MappingEditor/HierarchicalMapping/utils/EventEmitter";
-import { byTestId, changeValue, findAll, findSingleElement, logWrapperHtml } from "../../../utils/TestHelpers";
+import { byTestId, changeValue, findAll, findSingleElement } from "../../../utils/TestHelpers";
 import { waitFor } from "@testing-library/react";
 
 const props = {
@@ -32,7 +31,7 @@ const props = {
 
 const selectors = {
     TARGET_PROP_AUTOCOMPLETE: '[data-id="autocomplete_target_prop"]',
-    ENTITY_CON_RADIO: 'ul[data-id="entity_radio_group"]',
+    ENTITY_CON_RADIO: '[data-test-id="entity-relationship-selection"]',
     OBJECT_VALUE_PATH: "#object-value-path-auto-suggestion",
     URI_INPUT: "#uri-pattern-auto-suggestion",
     RULE_LABEL_INPUT: ".ecc-silk-mapping__ruleseditor__label",

@@ -28,6 +28,11 @@ trait Resource {
   def path: String
 
   /**
+   * If the resource is part of a compressed archive, this is the path to the entry within the archive.
+   */
+  def entryPath: Option[String] = None
+
+  /**
     * Checks if this resource exists.
     */
   def exists: Boolean
@@ -72,7 +77,7 @@ trait Resource {
     checkSizeForInMemory()
     val source = Source.fromInputStream(inputStream)(codec)
     try {
-      source.getLines.mkString("\n")
+      source.getLines().mkString("\n")
     } finally {
       source.close()
     }
@@ -85,7 +90,7 @@ trait Resource {
     checkSizeForInMemory()
     val source = Source.fromInputStream(inputStream)(codec)
     try {
-      source.getLines.toList
+      source.getLines().toList
     } finally {
       source.close()
     }

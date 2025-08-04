@@ -7,10 +7,12 @@ import {
     IRuleSideBarFilterTabConfig,
     RuleSaveResult,
     RuleEditorValidationNode,
+    PathMetaDataFunctions,
 } from "../RuleEditor.typings";
 import { IViewActions } from "../../../plugins/PluginRegistry";
-import { IStickyNote } from "views/taskViews/shared/task.typings";
 import { DatasetCharacteristics } from "../../typings";
+import { StickyNote } from "@eccenca/gui-elements";
+import { IPartialAutoCompleteResult } from "@eccenca/gui-elements/src/components/AutoSuggestion/AutoSuggestion";
 
 /**
  * The rule editor context that contains objects and methods related to the original objects that are being edited and
@@ -41,7 +43,7 @@ export interface RuleEditorContextProps {
     /** Save the rule. */
     saveRule: (
         ruleOperatorNodes: IRuleOperatorNode[],
-        stickyNotes?: IStickyNote[]
+        stickyNotes?: StickyNote[],
     ) => Promise<RuleSaveResult> | RuleSaveResult;
     /** Converts a rule operator to a rule node. */
     convertRuleOperatorToRuleNode: (ruleOperator: IRuleOperator) => Omit<IRuleOperatorNode, "nodeId">;
@@ -49,7 +51,7 @@ export interface RuleEditorContextProps {
     validateConnection: (
         fromRuleOperatorNode: RuleEditorValidationNode,
         toRuleOperatorNode: RuleEditorValidationNode,
-        targetPortIdx: number
+        targetPortIdx: number,
     ) => boolean;
     /** Tabs that allow to show different rule operators or only a subset. The first tab will always be selected first. */
     tabs?: (IRuleSideBarFilterTabConfig | IRuleSidebarPreConfiguredOperatorsTabConfig)[];
@@ -62,7 +64,7 @@ export interface RuleEditorContextProps {
     /** The last save result. */
     lastSaveResult?: RuleSaveResult;
     /** UI annotation sticky notes */
-    stickyNotes: IStickyNote[];
+    stickyNotes: StickyNote[];
     /** When enabled only the rule is shown without side- and toolbar and any other means to edit the rule. */
     showRuleOnly?: boolean;
     /** When enabled the mini map is not displayed. */
@@ -75,8 +77,15 @@ export interface RuleEditorContextProps {
     instanceId: string;
     /** Dataset characteristics, e.g. used for the 'PathInputOperator' type. The key is the corresponding plugin ID. */
     datasetCharacteristics: Map<string, DatasetCharacteristics>;
-    /** Returns for a path input plugin and a path the type of the given path. Returns undefined if either the plugin does not exist or the path data is unknown. */
-    inputPathPluginPathType?: (inputPathPluginId: string, path: string) => string | undefined;
+    /** Optional functions to get more information about specific properties/paths. */
+    pathMetaData?: PathMetaDataFunctions;
+    /**
+     * Fetches partial auto-completion results for the transforms task input paths, i.e. any part of a path could be auto-completed
+     * without replacing the complete path.
+     */
+    partialAutoCompletion: (
+        inputType: "source" | "target",
+    ) => (inputString: string, cursorPosition: number) => Promise<IPartialAutoCompleteResult | undefined>;
 }
 
 /** Creates a rule editor model context that contains the actual rule model and low-level update functions. */
@@ -98,5 +107,9 @@ export const RuleEditorContext = React.createContext<RuleEditorContextProps>({
     initialFitToViewZoomLevel: 0.75,
     instanceId: "uniqueId",
     datasetCharacteristics: new Map(),
-    inputPathPluginPathType: () => undefined,
+    pathMetaData: {
+        inputPathPluginPathType: () => undefined,
+        inputPathLabel: () => undefined,
+    },
+    partialAutoCompletion: () => async () => undefined,
 });

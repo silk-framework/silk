@@ -2,8 +2,9 @@ package controllers.workflowApi.variableWorkflow
 
 import org.silkframework.config.Task
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
+import org.silkframework.plugins.dataset.BinaryFileDataset
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.runtime.plugin.{ParameterObjectValue, ParameterStringValue, ParameterTemplateValue, ParameterValues, PluginContext}
+import org.silkframework.runtime.plugin._
 import org.silkframework.runtime.resource.FileMapResourceManager
 import org.silkframework.runtime.validation.BadUserInputException
 import org.silkframework.util.FileUtils
@@ -55,7 +56,8 @@ object VariableWorkflowRequestUtils {
     ntriplesMimeType, // RDF file dataset with N-Triples output
     xlsxMimeType, // Excel dataset
     csvMimeTypeShort, // CSV dataset
-    csvMimeType // CSV dataset
+    csvMimeType, // CSV dataset
+    BinaryFileDataset.mimeType // Binary file dataset
   )
 
   /** Returns the output dataset config for the variable workflow based on the ACCEPT header.
@@ -77,6 +79,7 @@ object VariableWorkflowRequestUtils {
           case Some("json") => ("json", Map.empty, "application/json")
           case Some("csv") => ("csv", Map.empty, "text/comma-separated-values")
           case Some("excel") => ("excel", Map.empty, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+          case Some(BinaryFileDataset.id) => (BinaryFileDataset.id, Map.empty, BinaryFileDataset.mimeType)
           case Some(pluginId) => (pluginId, Map.empty, s"application/x-plugin-$pluginId")
           case _ =>
             acceptedMimeType.find(mimeType => request.accepts(mimeType)) match {
@@ -100,6 +103,7 @@ object VariableWorkflowRequestUtils {
       case "application/n-triples" => ("file", Map("format" -> "N-Triples"), mimeType)
       case "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" => ("excel", Map.empty, mimeType)
       case "text/comma-separated-values" | "text/csv" => ("csv", Map.empty, mimeType)
+      case BinaryFileDataset.mimeType => (BinaryFileDataset.id, Map.empty, mimeType)
     }
   }
 
@@ -186,6 +190,8 @@ object VariableWorkflowRequestUtils {
         "xml"
       case Some("text/comma-separated-values") | Some("text/csv") =>
         "csv"
+      case Some(BinaryFileDataset.mimeType) =>
+        BinaryFileDataset.id
       case Some(CustomMimeType(pluginId)) =>
         if(!fileBasedPluginIds.contains(pluginId)) {
           throw UnsupportedMediaTypeException(s"Unsupported custom media type application/x-plugin-$pluginId. No file based plugin with ID $pluginId found.")
@@ -214,7 +220,8 @@ object VariableWorkflowRequestUtils {
     csvMimeType,
     csvMimeTypeShort,
     "application/x-www-form-urlencoded",
-    "multipart/form-data"
+    "multipart/form-data",
+    BinaryFileDataset.mimeType
   )
 
   val tempFileBaseDir: Path = {
@@ -352,7 +359,7 @@ object VariableWorkflowRequestUtils {
 
   private def throwUnsupportedMediaType(givenMediaType: String): Nothing = {
     throw UnsupportedMediaTypeException(s"Unsupported payload content type ($givenMediaType). Supported types are: " +
-        s"application/json, application/xml, text/csv, text/comma-separated-values and application/x-plugin-<PLUGIN_ID>")
+        s"application/json, application/xml, text/csv, text/comma-separated-values, application/octet-stream and application/x-plugin-<PLUGIN_ID>")
   }
 
   // Transform a parameter map to a JSON object

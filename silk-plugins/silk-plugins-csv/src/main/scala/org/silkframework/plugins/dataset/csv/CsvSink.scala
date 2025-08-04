@@ -16,7 +16,7 @@ class CsvSink(val resource: WritableResource, settings: CsvSettings) extends Dir
   private var writerOpt: Option[CsvWriter] = None
 
   def openTable(typeUri: Uri, properties: Seq[TypedProperty] = Seq.empty, singleEntity: Boolean = false)
-               (implicit userContext: UserContext, prefixes: Prefixes){
+               (implicit userContext: UserContext, prefixes: Prefixes): Unit = {
     writerOpt = Some(new CsvWriter(resource, properties, settings))
   }
 

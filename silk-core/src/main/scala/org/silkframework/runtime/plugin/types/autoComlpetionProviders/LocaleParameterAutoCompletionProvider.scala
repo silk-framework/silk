@@ -4,6 +4,7 @@ import org.silkframework.runtime.plugin.{AutoCompletionResult, ParamValue, Plugi
 import org.silkframework.workspace.WorkspaceReadTrait
 
 import java.text.DateFormat
+import scala.collection.immutable.ArraySeq
 
 /** Auto-completion for supported locales. */
 class LocaleParameterAutoCompletionProvider extends PluginParameterAutoCompletionProvider {
@@ -29,7 +30,7 @@ class LocaleParameterAutoCompletionProvider extends PluginParameterAutoCompletio
 
 object LocaleParameterAutoCompletionProvider {
   private lazy val localeCandidates: Seq[AutoCompletionResult] = {
-    val availableLocales = DateFormat.getAvailableLocales
+    val availableLocales = ArraySeq.unsafeWrapArray(DateFormat.getAvailableLocales)
     availableLocales.map { locale =>
       val value = locale.toString
       AutoCompletionResult(

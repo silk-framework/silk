@@ -10,20 +10,23 @@ import utils from "./LinkingRuleEditor.utils";
 import ruleUtils from "../shared/rules/rule.utils";
 import {
     IRuleOperatorNode,
+    RULE_EDITOR_NOTIFICATION_INSTANCE,
     RuleSaveNodeError,
     RuleSaveResult,
     RuleValidationError,
 } from "../../shared/RuleEditor/RuleEditor.typings";
 import { useSelector } from "react-redux";
 import { commonSel } from "@ducks/common";
-import linkingRuleRequests, { fetchLinkSpec, updateLinkageRule } from "./LinkingRuleEditor.requests";
+import linkingRuleRequests, {
+    fetchLinkSpec,
+    partialAutoCompleteLinkingInputPaths,
+    updateLinkageRule,
+} from "./LinkingRuleEditor.requests";
 import { PathWithMetaData } from "../shared/rules/rule.typings";
 import { IAutocompleteDefaultResponse, TaskPlugin } from "@ducks/shared/typings";
 import { FetchError, FetchResponse } from "../../../services/fetch/responseInterceptor";
 import { LinkingRuleEvaluation } from "./evaluation/LinkingRuleEvaluation";
 import { LinkingRuleCacheInfo } from "./LinkingRuleCacheInfo";
-import { IStickyNote } from "../shared/task.typings";
-import { extractSearchWords, matchesAllWords } from "@eccenca/gui-elements/src/components/Typography/Highlighter";
 import { DatasetCharacteristics } from "../../shared/typings";
 import { requestDatasetCharacteristics } from "@ducks/shared/requests";
 import Loading from "../../shared/Loading";
@@ -33,7 +36,9 @@ import {
 } from "../../../views/shared/RuleEditor/model/RuleEditorModel.typings";
 import { invalidValueResult } from "../../../views/shared/RuleEditor/view/ruleNode/ruleNode.utils";
 import { diErrorMessage } from "@ducks/error/typings";
-import { Notification } from "@eccenca/gui-elements";
+import { Notification, highlighterUtils, StickyNote } from "@eccenca/gui-elements";
+import { IPartialAutoCompleteResult } from "@eccenca/gui-elements/src/components/AutoSuggestion/AutoSuggestion";
+import {languageFilterRegex, PathInputOperatorContext} from "../../shared/RuleEditor/view/ruleNode/PathInputOperator";
 
 export interface LinkingRuleEditorProps {
     /** Project ID the task is in. */
@@ -70,9 +75,15 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions, insta
     const [t] = useTranslation();
     const { registerError } = useErrorHandler();
     const prefLang = useSelector(commonSel.localeSelector);
-    // Label for input paths
-    const sourcePathLabels = React.useRef<PathWithMetaData[]>([]);
-    const targetPathLabels = React.useRef<PathWithMetaData[]>([]);
+    const langPref = React.useRef<string>(prefLang)
+    langPref.current = prefLang
+    // Meta data and label data structures for input paths
+    const sourcePathMetaData = React.useRef<PathWithMetaData[]>([]);
+    const sourcePathLabels = React.useRef<Map<string, string>>(new Map());
+    const targetPathMetaData = React.useRef<PathWithMetaData[]>([]);
+    const targetPathLabels = React.useRef<Map<string, string>>(new Map());
+    // In which language the path labels are available
+    const [pathLabelsAvailableForLang, setPathLabelsAvailableForLang] = React.useState<string | undefined>()
     const [loading, setLoading] = React.useState(true);
     const [initError, setInitError] = React.useState<any | undefined>(undefined);
     const pendingRequests = React.useRef(2);
@@ -83,8 +94,7 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions, insta
     const optionalContext = React.useContext(LinkingRuleEditorOptionalContext);
 
     React.useEffect(() => {
-        fetchPaths("source");
-        fetchPaths("target");
+        fetchAllPaths()
     }, [projectId, linkingTaskId, prefLang]);
 
     const reducePendingRequestCount = () => {
@@ -106,17 +116,39 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions, insta
                 linkingTaskId,
                 sourceOrTarget,
                 true,
-                prefLang
+                prefLang,
             );
+            const createLabelMap = (paths: PathWithMetaData[]): Map<string, string> => {
+                const valueToPaths: [string, string][] = paths
+                    .filter((p) => p.label)
+                    .map((p) => {
+                        let value = p.value;
+                        // We want to have the actual property without language filter
+                        if (languageFilterRegex.test(value)) {
+                            value = value.replace(languageFilterRegex, "");
+                        }
+                        return [value, p.label!];
+                    });
+                return new Map(valueToPaths);
+            };
             if (sourceOrTarget === "source") {
-                sourcePathLabels.current = paths.data as PathWithMetaData[];
+                sourcePathMetaData.current = paths.data as PathWithMetaData[];
+                sourcePathLabels.current = createLabelMap(sourcePathMetaData.current);
             } else {
-                targetPathLabels.current = paths.data as PathWithMetaData[];
+                targetPathMetaData.current = paths.data as PathWithMetaData[];
+                targetPathLabels.current = createLabelMap(targetPathMetaData.current);
             }
         } finally {
             reducePendingRequestCount();
         }
     };
+
+    const fetchAllPaths = async () => {
+        await fetchPaths("source");
+        await fetchPaths("target");
+        setPathLabelsAvailableForLang(prefLang)
+    }
+
     /** Fetches the parameters of the linking task */
     const fetchTaskData = async (projectId: string, taskId: string) => {
         if (optionalContext.linkingRule) {
@@ -129,7 +161,8 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions, insta
                 registerError(
                     "LinkingRuleEditor_fetchLinkingTask",
                     t("taskViews.linkRulesEditor.errors.fetchTaskData.msg"),
-                    err
+                    err,
+                    { errorNotificationInstanceId: RULE_EDITOR_NOTIFICATION_INSTANCE },
                 );
                 setInitError(err);
             }
@@ -140,12 +173,12 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions, insta
         (inputType: "source" | "target") =>
         async (term: string, limit: number): Promise<IAutocompleteDefaultResponse[]> => {
             let results: (IAutocompleteDefaultResponse & { valueType?: string })[] =
-                inputType === "source" ? sourcePathLabels.current : targetPathLabels.current;
-            const searchWords = extractSearchWords(term, true);
+                inputType === "source" ? sourcePathMetaData.current : targetPathMetaData.current;
+            const searchWords = highlighterUtils.extractSearchWords(term, true);
             if (searchWords.length) {
                 results = results.filter((path) => {
                     const searchText = `${path.value} ${path.valueType} ${path.label ?? ""}`.toLowerCase();
-                    return matchesAllWords(searchText, searchWords);
+                    return highlighterUtils.matchesAllWords(searchText, searchWords);
                 });
             } else if (results[0]?.value !== "") {
                 results.unshift({ value: "", label: `<${t("common.words.emptyPath")}>` });
@@ -154,14 +187,23 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions, insta
         };
 
     // Return for either a source or target path what type of path it is.
-    const inputPathPluginPathType = (
-        pluginId: "sourcePathInput" | "targetPathInput",
-        path: string
-    ): string | undefined => {
-        const pathsMetaData = pluginId === "sourcePathInput" ? sourcePathLabels.current : targetPathLabels.current;
-        const pathMetaData = pathsMetaData.find((p) => p.value && path.endsWith(p.value));
-        return pathMetaData?.valueType;
-    };
+    const inputPathPluginPathType = React.useCallback(
+        (pluginId: "sourcePathInput" | "targetPathInput", path: string): string | undefined => {
+            const pathsMetaData =
+                pluginId === "sourcePathInput" ? sourcePathMetaData.current : targetPathMetaData.current;
+            const pathMetaData = pathsMetaData.find((p) => p.value && path.endsWith(p.value));
+            return pathMetaData?.valueType;
+        },
+        [],
+    );
+
+    const inputPathLabel = React.useCallback(
+        (pluginId: "sourcePathInput" | "targetPathInput", path: string): string | undefined => {
+            const pathLabels = pluginId === "sourcePathInput" ? sourcePathLabels.current : targetPathLabels.current;
+            return pathLabels.get(path);
+        },
+        [],
+    );
 
     /** Fetches the list of operators that can be used in a linking task. */
     const fetchLinkingRuleOperatorDetails = async () => {
@@ -176,7 +218,8 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions, insta
             registerError(
                 "LinkingRuleEditor_fetchLinkingRuleOperatorDetails",
                 t("taskViews.linkRulesEditor.errors.fetchLinkingRuleOperatorDetails.msg"),
-                err
+                err,
+                { errorNotificationInstanceId: RULE_EDITOR_NOTIFICATION_INSTANCE },
             );
             setInitError(err);
         }
@@ -185,7 +228,7 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions, insta
     /** Save the rule. */
     const saveLinkageRule = async (
         ruleOperatorNodes: IRuleOperatorNode[],
-        stickyNotes: IStickyNote[] = []
+        stickyNotes: StickyNote[] = [],
     ): Promise<RuleSaveResult> => {
         try {
             const ruleTree = utils.constructLinkageRuleTree(ruleOperatorNodes);
@@ -214,7 +257,7 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions, insta
                     }));
                     return new RuleValidationError(
                         t("taskViews.linkRulesEditor.errors.saveLinkageRule.msg"),
-                        nodeErrors
+                        nodeErrors,
                     );
                 } else {
                     return {
@@ -231,15 +274,11 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions, insta
     // FIXME: Add i18n to parameter specs
     const weightParameterSpec = ruleUtils.parameterSpecification({
         label: t("RuleEditor.sidebar.parameter.weightLabel", "Weight"),
-        description: t(
-            "RuleEditor.sidebar.parameter.weightDesc",
-            "The weight parameter can be used by the parent aggregation when combining " +
-                "its input values. Only certain aggregations will consider weighted inputs. Examples are the weighted average " +
-                "aggregation, quadraticMean and geometricMean."
-        ),
+        description: t("RuleEditor.sidebar.parameter.weightDesc"),
         type: "int",
         advanced: true,
         defaultValue: "1",
+        orderIdx: -0.5,
     });
 
     const thresholdParameterSpec = (pluginDetails: IPluginDetails) => {
@@ -249,7 +288,7 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions, insta
                     return {
                         description: t(
                             "RuleEditor.sidebar.parameter.thresholdDesc.normalized",
-                            "The maximum distance. This distance measure is normalized, i.e., the threshold must be between 0 (exact match) and 1 (no similarity)."
+                            "The maximum distance. This distance measure is normalized, i.e., the threshold must be between 0 (exact match) and 1 (no similarity).",
                         ),
                         label: t("RuleEditor.sidebar.parameter.thresholdLabel", "Threshold"),
                         requiredLabel: t("RuleEditor.sidebar.parameter.thresholdRequired.normalized", "required 0..1"),
@@ -258,7 +297,7 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions, insta
                     return {
                         description: t(
                             "RuleEditor.sidebar.parameter.thresholdDesc.unbounded",
-                            "The maximum distance. Distances start at 0 (exact match) and increase the more different the values may be."
+                            "The maximum distance. Distances start at 0 (exact match) and increase the more different the values may be.",
                         ),
                         label: t("RuleEditor.sidebar.parameter.thresholdLabel", "Threshold"),
                         requiredLabel: t("RuleEditor.sidebar.parameter.thresholdRequired.unbounded", "required 0..∞"),
@@ -288,8 +327,34 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions, insta
             defaultValue: "0.0",
             customValidation: customValidation(pluginDetails.distanceMeasureRange),
             distanceMeasureRange: pluginDetails.distanceMeasureRange,
+            orderIdx: -1,
         });
     };
+
+    const fetchPartialAutoCompletionResult = React.useCallback(
+        (inputType: "source" | "target") =>
+            async (inputString: string, cursorPosition: number): Promise<IPartialAutoCompleteResult | undefined> => {
+                try {
+                    const result = await partialAutoCompleteLinkingInputPaths(
+                        projectId,
+                        linkingTaskId,
+                        inputType,
+                        inputString,
+                        cursorPosition,
+                        200,
+                        langPref.current
+                    );
+                    return result.data;
+                } catch (err) {
+                    registerError(
+                        "LinkingRuleEditor_partialAutoCompletion",
+                        t("taskViews.linkRulesEditor.errors.partialPathAutoCompletion.msg"),
+                        err,
+                    );
+                }
+            },
+        [],
+    );
 
     const sourcePathInput = () =>
         ruleUtils.inputPathOperator(
@@ -297,7 +362,7 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions, insta
             t("RuleEditor.sidebar.operator.sourcePathLabel", "Source path"),
             ["Source path"],
             t("RuleEditor.sidebar.operator.sourcePathDesc", "The value path of the source input of the linking task."),
-            inputPathAutoCompletion("source")
+            inputPathAutoCompletion("source"),
         );
 
     const targetPathInput = () =>
@@ -306,7 +371,7 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions, insta
             t("RuleEditor.sidebar.operator.targetPathLabel", "Target path"),
             ["Target path"],
             t("RuleEditor.sidebar.operator.targetPathDesc", "The value path of the target input of the linking task."),
-            inputPathAutoCompletion("target")
+            inputPathAutoCompletion("target"),
         );
 
     const tabs = React.useMemo(() => {
@@ -316,15 +381,17 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions, insta
                 registerError(
                     "linking-rule-editor-fetch-source-paths",
                     t("taskViews.linkRulesEditor.errors.fetchLinkingPaths.msg"),
-                    ex
-                )
+                    ex,
+                    { errorNotificationInstanceId: RULE_EDITOR_NOTIFICATION_INSTANCE },
+                ),
             ),
             utils.inputPathTab(projectId, linkingTaskId, targetPathInput(), "target", (ex) =>
                 registerError(
                     "linking-rule-editor-fetch-source-paths",
                     t("taskViews.linkRulesEditor.errors.fetchLinkingPaths.msg"),
-                    ex
-                )
+                    ex,
+                    { errorNotificationInstanceId: RULE_EDITOR_NOTIFICATION_INSTANCE },
+                ),
             ),
             ruleUtils.sidebarTabs.transform,
             ruleUtils.sidebarTabs.comparison,
@@ -337,16 +404,16 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions, insta
         if (taskData) {
             const parameters = taskData.parameters;
             const sourceTaskId = optionallyLabelledParameterToValue(
-                optionallyLabelledParameterToValue(parameters.source).inputId
+                optionallyLabelledParameterToValue(parameters.source).inputId,
             );
             const targetTaskId = optionallyLabelledParameterToValue(
-                optionallyLabelledParameterToValue(parameters.target).inputId
+                optionallyLabelledParameterToValue(parameters.target).inputId,
             );
             const sourceDatasetRequest = requestDatasetCharacteristics(projectId, sourceTaskId);
             const targetDatasetRequest = requestDatasetCharacteristics(projectId, targetTaskId);
             const handleRequest = async (
                 requestFuture: Promise<FetchResponse<DatasetCharacteristics>>,
-                pathPluginId: "sourcePathInput" | "targetPathInput"
+                pathPluginId: "sourcePathInput" | "targetPathInput",
             ) => {
                 try {
                     const response = await requestFuture;
@@ -357,7 +424,8 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions, insta
                         registerError(
                             "LinkingRuleEditor-fetchDatasetCharacteristics",
                             "Dataset characteristics could not be fetched. UI-support for language filters will not be available.",
-                            ex
+                            ex,
+                            { errorNotificationInstanceId: RULE_EDITOR_NOTIFICATION_INSTANCE },
                         );
                     }
                 }
@@ -376,7 +444,9 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions, insta
         return <Loading />;
     }
 
-    return (
+    return <PathInputOperatorContext.Provider value={{
+        pathLabelsAvailableForLang
+    }}>
         <LinkingRuleEvaluation
             projectId={projectId}
             linkingTaskId={linkingTaskId}
@@ -387,6 +457,7 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions, insta
                 taskId={linkingTaskId}
                 fetchRuleData={fetchTaskData}
                 fetchRuleOperators={fetchLinkingRuleOperatorDetails}
+                partialAutoCompletion={fetchPartialAutoCompletionResult}
                 saveRule={saveLinkageRule}
                 getStickyNotes={utils.getStickyNotes}
                 convertRuleOperator={ruleUtils.convertRuleOperator}
@@ -419,8 +490,11 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions, insta
                 initialFitToViewZoomLevel={optionalContext.initialFitToViewZoomLevel}
                 instanceId={instanceId}
                 fetchDatasetCharacteristics={fetchDatasetCharacteristics}
-                inputPathPluginPathType={inputPathPluginPathType}
+                pathMetaData={{
+                    inputPathPluginPathType,
+                    inputPathLabel,
+                }}
             />
         </LinkingRuleEvaluation>
-    );
+    </PathInputOperatorContext.Provider>;
 };

@@ -1,11 +1,16 @@
 import { IArtefactItemProperty } from "@ducks/common/typings";
+import { IViewActions } from "../../views/plugins/PluginRegistry";
 import { TestableComponent } from "@eccenca/gui-elements";
 
 export type IPreview = IDatasetConfigPreview | IResourcePreview | IDatasetPreview | FixedPreview;
 
 interface IValidation {
-    validate: () => boolean;
+    validate: () => boolean | Promise<boolean>;
     errorMessage: string;
+}
+
+export interface TaskParameters {
+    [key: string]: string | TaskParameters;
 }
 
 /**
@@ -15,7 +20,7 @@ export interface IDatasetInfo {
     /** The plugin ID, e.g. 'csv'. */
     type: string;
     /** The parameters of the plugin. */
-    parameters: Record<string, string>;
+    parameters: TaskParameters;
 }
 
 /**
@@ -75,7 +80,7 @@ export interface DataPreviewProps extends TestableComponent {
     externalValidation?: IValidation;
     // If defined this should be used to get the parameters for the dataset config.
     // Reason for use: In forms the data preview widget won't be re-rendered when form values change.
-    datasetConfigValues?: () => Record<string, string>;
+    datasetConfigValues?: () => TaskParameters;
     // If the data preview should be loaded automatically without user interaction. Default: false
     autoLoad?: boolean;
     // An optional ID for the preview widget
@@ -103,6 +108,16 @@ export interface BrandingProps {
 export interface ParameterExtensions {
     /** Extends the given parameter definition (or leaves it as it is). */
     extend: (input: IArtefactItemProperty) => IArtefactItemProperty;
+}
+
+/** Props for mapping suggestion. */
+export interface SuggestionNGProps {
+    // Project the transform task is in.
+    projectId: string;
+    // The transform task to create matches for.
+    transformTaskId: string;
+    // Generic actions and callbacks that could be necessary.
+    viewActions?: IViewActions;
 }
 
 /** The preview gets a fixed list of types and their values. */

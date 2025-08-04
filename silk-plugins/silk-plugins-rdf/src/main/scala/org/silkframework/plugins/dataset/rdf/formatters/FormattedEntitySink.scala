@@ -19,7 +19,7 @@ class FormattedEntitySink(resource: WritableResource, formatter: EntityFormatter
   private var writer: Writer = _
 
   override def openTable(typeUri: Uri, properties: Seq[TypedProperty], singleEntity: Boolean = false)
-                        (implicit userContext: UserContext, prefixes: Prefixes){
+                        (implicit userContext: UserContext, prefixes: Prefixes): Unit = {
     this.properties = properties
     if(writer == null) {
       val outputStream = resource.createOutputStream(append = true)
@@ -47,7 +47,7 @@ class FormattedEntitySink(resource: WritableResource, formatter: EntityFormatter
 
   override def closeTable()(implicit userContext: UserContext): Unit = {}
 
-  override def close()(implicit userContext: UserContext) {
+  override def close()(implicit userContext: UserContext): Unit = {
     if (Option(writer).isDefined) {
       try {
         writer.write(formatter.footer)

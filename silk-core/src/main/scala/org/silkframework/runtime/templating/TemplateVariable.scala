@@ -10,9 +10,9 @@ import scala.xml.{Node, PCData}
   */
 case class TemplateVariable(override val name: String,
                             value: String,
-                            template: Option[String],
-                            description: Option[String],
-                            isSensitive: Boolean,
+                            template: Option[String] = None,
+                            description: Option[String] = None,
+                            isSensitive: Boolean = false,
                             override val scope: String) extends TemplateVariableValue(name, scope, values = Seq(value)) {
 
   validate()

@@ -7,6 +7,7 @@ import utils from "./ruleNode.utils";
 import { IOperatorNodeParameterValueWithLabel } from "../../../../taskViews/shared/rules/rule.typings";
 import { RuleNodeFormParameterModal } from "./RuleNodeFormParameterModal";
 import { RuleEditorNodeParameterValue } from "../../model/RuleEditorModel.typings";
+import { InputPathFunctions } from "./PathInputOperator";
 
 export interface RuleNodeContentProps {
     nodeId: string;
@@ -64,19 +65,9 @@ export const NodeContent = ({
                 parameterSpecification: paramSpec,
             };
         })
-        // Required parameters to the top, advanced to the bottom, sort alphabetically
+        // Sort by order given in the plugin spec
         .sort((paramA, paramB) => {
-            return paramA.parameterSpecification.required !== paramB.parameterSpecification.required
-                ? paramA.parameterSpecification.required
-                    ? -1
-                    : 1
-                : paramA.parameterSpecification.advanced !== paramB.parameterSpecification.advanced
-                ? paramA.parameterSpecification.advanced
-                    ? 1
-                    : -1
-                : paramA.parameterSpecification.label.toLowerCase() < paramB.parameterSpecification.label.toLowerCase()
-                ? -1
-                : 1;
+            return paramA.parameterSpecification.orderIdx < paramB.parameterSpecification.orderIdx ? -1 : 1;
         });
     const dependentValue = (paramId: string): string | undefined => {
         const value = operatorContext.currentValue(nodeId, paramId);
@@ -86,6 +77,23 @@ export const NodeContent = ({
             return value as string | undefined;
         }
     };
+    const parameterDefaultValue: (paramId: string) => string | undefined = React.useCallback(
+        (paramId) => {
+            const spec = operatorContext.operatorParameterSpecification.get(paramId);
+            if (spec) {
+                return spec.defaultValue;
+            } else {
+                return undefined;
+            }
+        },
+        [operatorContext.operatorParameterSpecification],
+    );
+
+    const inputPathFunctions: InputPathFunctions = React.useMemo(
+        () => operatorContext.inputPathFunctions(nodeId),
+        [operatorContext.inputPathFunctions, nodeId],
+    );
+
     return rerender ? null : (
         <>
             {parameters.length ? (
@@ -95,9 +103,10 @@ export const NodeContent = ({
                     pluginId={operatorContext.nodePluginId(nodeId) ?? "unknown"}
                     parameters={parameters}
                     dependentValue={dependentValue}
+                    parameterDefaultValue={parameterDefaultValue}
                     large={false}
                     insideModal={false}
-                    languageFilter={operatorContext.languageFilterEnabled(nodeId)}
+                    inputPathFunctions={inputPathFunctions}
                 />
             ) : null}
             {tags ? utils.createOperatorTags(tags) : null}
@@ -109,12 +118,13 @@ export const NodeContent = ({
                     pluginId={operatorContext.nodePluginId(nodeId) ?? "unknown"}
                     parameters={parameters}
                     dependentValue={dependentValue}
+                    parameterDefaultValue={parameterDefaultValue}
                     onClose={() => {
                         setRerender(true);
                         onCloseEditModal();
                     }}
                     updateNodeParameters={operatorContext.updateNodeParameters}
-                    languageFilter={operatorContext.languageFilterEnabled(nodeId)}
+                    inputPathFunctions={inputPathFunctions}
                 />
             ) : null}
         </>

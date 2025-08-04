@@ -1,6 +1,6 @@
 package org.silkframework.plugins.dataset.json
 
-import org.silkframework.config.{PlainTask, Prefixes, Task, TaskSpec}
+import org.silkframework.config.{FixedSchemaPort, PlainTask, Prefixes, Task, TaskSpec}
 import org.silkframework.dataset.DatasetSpec
 import org.silkframework.entity.{Entity, EntitySchema, MultiEntitySchema}
 import org.silkframework.execution._
@@ -40,7 +40,7 @@ case class LocalJsonParserTaskExecutor() extends LocalExecutor[JsonParserTask] {
       }
 
       def parseEntities(schema: EntitySchema, createNewIterator: Boolean = false): CloseableIterator[Entity] = {
-        val entityParser = new EntityParser(task, ExecutorOutput(output.task, Some(schema)), execution, pathIndex)
+        val entityParser = new EntityParser(task, ExecutorOutput(output.task, Some(FixedSchemaPort(schema))), execution, pathIndex)
         val entityIterator = if(createNewIterator) entities.newIterator() else entities
         implicit val reportUpdater: ExecutionReportUpdater = JsonParserReportUpdater(task, context)
         implicit val prefixes: Prefixes = Prefixes.empty
@@ -80,7 +80,7 @@ case class LocalJsonParserTaskExecutor() extends LocalExecutor[JsonParserTask] {
           case Some(jsonInputString) =>
             val resource = InMemoryResourceManager().get("temp")
             resource.writeBytes(jsonInputString.getBytes)
-            val dataset = JsonDataset(resource, basePath = spec.basePath, uriPattern = entity.uri.toString + spec.uriSuffixPattern, streaming = false)
+            val dataset = JsonDataset(resource, basePath = spec.basePath, uriPattern = entity.uri.toString + spec.uriSuffixPattern, streaming = false, navigateIntoArrays = spec.navigateIntoArrays)
             ExecutorRegistry.execute(PlainTask(task.id, DatasetSpec(dataset, readOnly = true)), Seq.empty, output, execution) match {
               case Some(result) => result.entities
               case None => CloseableIterator.empty
