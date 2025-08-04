@@ -44,9 +44,6 @@ case class AlignmentDataset(
    * The alignment dataset cannot write generic entities, but it needs to support the clear method.
    */
   private class AlignmentEntitySink extends EntitySink {
-    override def clear()(implicit userContext: UserContext): Unit = {
-      file.delete()
-    }
 
     override def openTable(typeUri: Uri, properties: Seq[TypedProperty], singleEntity: Boolean)
                           (implicit userContext: UserContext, prefixes: Prefixes): Unit = throwNotSupportedException

@@ -50,13 +50,9 @@ class CorePlugins extends PluginModule {
     classOf[LocalDeleteFilesOperatorExecutor] ::
     classOf[GetProjectFilesOperator] ::
     classOf[LocalGetProjectFilesOperatorExecutor] ::
-    Nil
-  }
-
-  private def datasetOperations: Seq[Class[_ <: AnyPlugin]] = {
     classOf[ClearDatasetOperator] ::
     classOf[ClearDatasetOperatorLocalExecutor] ::
-      Nil
+    Nil
   }
 
   private def serializers: Seq[Class[_ <: AnyPlugin]] =
