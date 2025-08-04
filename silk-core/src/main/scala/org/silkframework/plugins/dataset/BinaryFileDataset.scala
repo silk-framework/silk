@@ -116,6 +116,10 @@ class FileSink(file: WritableResource) extends EntitySink {
     throwException
   }
 
+  override def clear(force: Boolean = false)(implicit userContext: UserContext): Unit = {
+    file.delete()
+  }
+
   private def throwException: Nothing = {
     throw new RuntimeException("Cannot write generic entities to this dataset. Only file entities can be written. " +
                                "File entities are produced by some operators, such as the 'Get project files' task.")
