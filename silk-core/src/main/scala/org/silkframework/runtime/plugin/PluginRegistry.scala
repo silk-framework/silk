@@ -256,8 +256,13 @@ object PluginRegistry {
     }
   }
 
-  // Checks if a plugin description is valid
-  def checkPluginDescription(pluginDesc: PluginDescription[_]): Unit = {
+  /**
+   * Checks if a plugin description is valid.
+   * @param pluginDesc The plugin description to check.
+   *
+   * @throws InvalidPluginException if the plugin description is invalid.
+   */
+  private def checkPluginDescription(pluginDesc: PluginDescription[_]): Unit = {
     pluginDesc.parameters foreach { param =>
       if(!param.visibleInDialog && param.defaultValue.isEmpty) {
         throw new InvalidPluginException(s"Plugin '${pluginDesc.label}' is invalid. Parameter '${param.name}' must " +
@@ -267,11 +272,17 @@ object PluginRegistry {
   }
 
   /**
-    * Registers a single plugin.
-    */
+   * Registers a single plugin.
+   *
+   * @throws InvalidPluginException if the plugin description is invalid or if a plugin with the same id already exists.
+   */
   def registerPlugin(pluginDesc: PluginDescription[_]): Unit = {
     checkPluginDescription(pluginDesc)
-    if(!Config.blacklistedPlugins().contains(pluginDesc.id) && !(plugins.contains(pluginDesc.pluginClass.getName) && pluginsById.contains(pluginDesc.id))) {
+    if(!Config.blacklistedPlugins().contains(pluginDesc.id) && !(plugins.contains(pluginDesc.pluginClass.getName))) {
+      if(pluginsById.contains(pluginDesc.id)) {
+        throw new InvalidPluginException(s"Plugin with id '${pluginDesc.id}' already exists. " +
+            s"Please use a different id for plugin $pluginDesc.")
+      }
       for (superType <- pluginDesc.pluginTypes) {
         val pluginType = pluginTypes.getOrElse(superType.name, new PluginTypeHolder)
         pluginTypes += ((superType.name, pluginType))

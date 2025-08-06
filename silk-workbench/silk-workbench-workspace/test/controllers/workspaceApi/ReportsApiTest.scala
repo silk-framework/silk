@@ -25,7 +25,7 @@ class ReportsApiTest extends AnyFlatSpec with IntegrationTestTrait with ReportsA
 
   behavior of "Report API"
 
-  override def workspaceProviderId: String = "inMemory"
+  override def workspaceProviderId: String = "inMemoryWorkspaceProvider"
 
   override def routes: Option[Class[_ <: Router]] = Some(classOf[testWorkspace.Routes])
 

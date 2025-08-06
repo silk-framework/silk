@@ -1,7 +1,8 @@
 package controllers.workspaceApi
 
 import controllers.workspaceApi.validation.{AutoSuggestValidationError, AutoSuggestValidationResponse, SourcePathValidationRequest, UriPatternValidationRequest}
-import helper.IntegrationTestTrait
+import helper.IntegrationTestTrait
+
 import org.silkframework.serialization.json.JsonHelpers
 import play.api.libs.json.Json
 import play.api.routing.Router
@@ -16,7 +17,7 @@ class ValidationApiTest extends AnyFlatSpec with IntegrationTestTrait with Match
 
   val projectId = "testProject"
 
-  override def workspaceProviderId: String = "inMemory"
+  override def workspaceProviderId: String = "inMemoryWorkspaceProvider"
 
   override def routes: Option[Class[_ <: Router]] = Some(classOf[testWorkspace.Routes])
 

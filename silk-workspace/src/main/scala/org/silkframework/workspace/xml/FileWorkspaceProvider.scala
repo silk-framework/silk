@@ -4,7 +4,7 @@ import org.silkframework.runtime.plugin.annotations.Plugin
 import org.silkframework.runtime.resource.FileResourceManager
 
 @Plugin(
-  id = "file",
+  id = "fileWorkspaceProvider",
   label = "Workspace on filesystem",
   description = "Holds the workspace in a specified directory on the filesystem."
 )
