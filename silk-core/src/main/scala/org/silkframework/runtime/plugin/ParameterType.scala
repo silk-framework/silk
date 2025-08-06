@@ -202,7 +202,7 @@ object StringParameterType {
       SparqlEndpointDatasetParameterType, LongType, GraphUriParameterType, TemplateParameterType,
       PasswordParameterType, IdentifierType, IdentifierOptionType, StringIterableParameterType, RestrictionType,
       Jinja2CodeParameterType, JsonCodeParameterType, SparqlCodeParameterType, SqlCodeParameterType, XmlCodeParameterType,
-      YamlCodeParameterType, PythonCodeParameterType, TurtleCodeParameterType, LocaleOptionType)
+      YamlCodeParameterType, PythonCodeParameterType, TurtleCodeParameterType, LocaleOptionType, HtmlCodeParameterType)
   }
 
   /**
@@ -783,5 +783,11 @@ object StringParameterType {
     override def codeMode: String = "python"
 
     override def fromString(str: String)(implicit context: PluginContext): PythonCodeParameter = PythonCodeParameter(str)
+  }
+
+  private object HtmlCodeParameterType extends CodeParameterType[HtmlCodeParameter] {
+    override def codeMode: String = "html"
+
+    override def fromString(str: String)(implicit context: PluginContext): HtmlCodeParameter = HtmlCodeParameter(str)
   }
 }
