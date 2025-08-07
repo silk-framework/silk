@@ -50,6 +50,8 @@ trait WorkspaceProviderTestTrait extends AnyFlatSpec with Matchers with MockitoS
   private val dummyDataset = MockDataset()
   private lazy val fileBasedDatasetWithHierarchicalFilePath = CsvDataset(project(emptyUserContext).resources.getInPath("some/nested/file.csv"))
 
+  PluginRegistry.unregisterPlugin(classOf[TestCustomTask])
+  PluginRegistry.unregisterPlugin(classOf[FailingCustomTask])
   PluginRegistry.registerPlugin(classOf[TestCustomTask])
   PluginRegistry.registerPlugin(classOf[FailingCustomTask])
 

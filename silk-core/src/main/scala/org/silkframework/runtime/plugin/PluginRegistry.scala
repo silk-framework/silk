@@ -305,6 +305,7 @@ object PluginRegistry {
 
   /**
     * Removes a plugin from the registry.
+    * Does nothing if the plugin is not registered.
     */
   def unregisterPlugin(pluginDesc: PluginDescription[_]): Unit = {
     for  { superType <- pluginDesc.pluginTypes
@@ -327,6 +328,7 @@ object PluginRegistry {
 
   /**
     * Removes a plugin from the registry.
+    * Does nothing if the plugin is not registered.
     */
   def unregisterPlugin(implementingClass: Class[_ <: AnyPlugin]): Unit = {
     unregisterPlugin(ClassPluginDescription.create(implementingClass))
