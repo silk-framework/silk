@@ -754,7 +754,7 @@ trait WorkspaceProviderTestTrait extends AnyFlatSpec with Matchers with MockitoS
   }
 }
 
-@Plugin(id = "test", label = "test task")
+@Plugin(id = "WorkspaceProviderTestTask", label = "test task")
 case class TestCustomTask(stringParam: String, numberParam: Int) extends CustomTask {
   override def inputPorts: InputPorts = FixedNumberOfInputs(Seq.empty)
   override def outputPort: Option[Port] = None

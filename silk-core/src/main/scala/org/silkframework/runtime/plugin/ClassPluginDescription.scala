@@ -86,7 +86,7 @@ class ClassPluginDescription[+T <: AnyPlugin](val id: Identifier,
     }
   }
 
-  override def toString: String = label
+  override def toString: String = s"Plugin '$label' defined by class '${pluginClass.getName}'"
 
   /**
     * Throws an exception if a parameter value is provided that does not exist on this plugin.

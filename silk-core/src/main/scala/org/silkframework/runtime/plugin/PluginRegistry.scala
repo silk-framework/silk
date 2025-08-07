@@ -281,7 +281,7 @@ object PluginRegistry {
     if(!Config.blacklistedPlugins().contains(pluginDesc.id)) {
       if(pluginsById.contains(pluginDesc.id)) {
         throw new InvalidPluginException(s"Plugin with id '${pluginDesc.id}' already exists. " +
-            s"Please use a different id for plugin $pluginDesc.")
+            s"Please use a different id for $pluginDesc.")
       }
       for (superType <- pluginDesc.pluginTypes) {
         val pluginType = pluginTypes.getOrElse(superType.name, new PluginTypeHolder)
