@@ -372,6 +372,7 @@ trait WorkspaceProviderTestTrait extends AnyFlatSpec with Matchers with MockitoS
 
   it should "read and write dataset tasks" in {
     implicit val us: UserContext = emptyUserContext
+    PluginRegistry.unregisterPlugin(classOf[MockDataset])
     PluginRegistry.registerPlugin(classOf[MockDataset])
     project.addTask[GenericDatasetSpec](DUMMY_DATASET, DatasetSpec(dummyDataset, readOnly = true))
     project.addTask[GenericDatasetSpec](hierarchicalFileDatasetId, DatasetSpec(fileBasedDatasetWithHierarchicalFilePath))
