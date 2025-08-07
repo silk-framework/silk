@@ -25,8 +25,7 @@ public @interface TransformExample {
 
     String[] output() default {};
 
-    // The full class path or empty string
-    String throwsException() default "";
-
+    // Thrown exception if evaluation should fail. Defaults to Object class if no exception is thrown.
+    Class<?> throwsException() default Object.class;
 }
 

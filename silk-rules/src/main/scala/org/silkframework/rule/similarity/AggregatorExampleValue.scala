@@ -9,13 +9,14 @@ case class AggregatorExampleValue(description: Option[String],
                                   inputs: Seq[Option[Double]],
                                   weights: Seq[Int],
                                   output: Option[Double],
-                                  throwsException: String) extends OperatorExampleValue {
+                                  throwsException: Option[Class[_]]) extends OperatorExampleValue {
 
   def formatted: String = {
-    if (throwsException.trim != "") {
-      s"Fails validation and thus returns ${format(output)} for parameters ${format(parameters)} and input scores ${format(inputs.map(formatScore))}."
-    } else {
-      s"Returns ${formatScore(output)} for parameters ${format(parameters)}, input scores ${format(inputs.map(formatScore))} and weights ${format(weights)}."
+    throwsException match {
+      case Some(exClass) =>
+        s"Fails validation with exception `${exClass.getSimpleName}` and thus returns ${format(output)} for parameters ${format(parameters)} and input scores ${format(inputs.map(formatScore))}."
+      case None =>
+        s"Returns ${formatScore(output)} for parameters ${format(parameters)}, input scores ${format(inputs.map(formatScore))} and weights ${format(weights)}."
     }
   }
 
@@ -34,6 +35,9 @@ case class AggregatorExampleValue(description: Option[String],
       sb ++= "\n"
     }
     sb ++= s"* Returns: `${formatScore(output)}`\n"
+    for (exceptionClass <- throwsException) {
+      sb ++= s"* **Throws error:** `${exceptionClass.getSimpleName}`\n"
+    }
   }
 
   private def formatScore(score: Option[Double]): String = {
@@ -59,7 +63,7 @@ object AggregatorExampleValue {
         inputs = ArraySeq.unsafeWrapArray(example.inputs.map(convertScore)),
         weights = ArraySeq.unsafeWrapArray(example.weights()),
         output = convertScore(example.output()),
-        throwsException = example.throwsException()
+        throwsException = Option(example.throwsException()).filterNot(_ == classOf[Object])
       )
     }
   }

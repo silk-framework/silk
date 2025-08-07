@@ -54,31 +54,30 @@ abstract class TransformerTest[T <: Transformer : ClassTag] extends PluginTest {
       }
 
     def addTest(): Unit = {
-      if(example.throwsException != "") {
-        it should s"throw ${example.throwsException} for parameters ${format(example.parameters)} and input values ${format(example.input.map(format))}" in {
-          generatedOutput should have size 0
-          val expectedException = Class.forName(example.throwsException)
-          throwableOpt match {
-            case Some(ex) =>
-              if(!expectedException.isAssignableFrom(ex.getClass)) {
-                throw new RuntimeException("Another exception was thrown: " + ex.getClass.getName + ". Expected: " + example.throwsException)
-              }
-            case None =>
-              throw new RuntimeException("Exception " + example.throwsException + " has not been thrown!")
+      example.throwsException match {
+        case Some(expectedException) =>
+          it should s"throw ${example.throwsException} for parameters ${format(example.parameters)} and input values ${format(example.input.map(format))}" in {
+            generatedOutput should have size 0
+            throwableOpt match {
+              case Some(ex) =>
+                if(!expectedException.isAssignableFrom(ex.getClass)) {
+                  throw new RuntimeException("Another exception was thrown: " + ex.getClass.getName + ". Expected: " + example.throwsException)
+                }
+              case None =>
+                throw new RuntimeException("Exception " + example.throwsException + " has not been thrown!")
+            }
           }
-
-        }
-      } else {
-        it should s"return ${format(example.output)} for parameters ${format(example.parameters)} and input values ${format(example.input.map(format))}" in {
-          throwableOpt foreach { ex =>
-            log.warning("Exception was thrown: " + ex.getMessage)
-            ex.printStackTrace()
+        case None =>
+          it should s"return ${format(example.output)} for parameters ${format(example.parameters)} and input values ${format(example.input.map(format))}" in {
+            throwableOpt foreach { ex =>
+              log.warning("Exception was thrown: " + ex.getMessage)
+              ex.printStackTrace()
+            }
+            generatedOutput should have size example.output.size
+            for ((value, expected) <- generatedOutput zip example.output) {
+              value shouldEqual expected
+            }
           }
-          generatedOutput should have size example.output.size
-          for ((value, expected) <- generatedOutput zip example.output) {
-            value shouldEqual expected
-          }
-        }
       }
     }
 
