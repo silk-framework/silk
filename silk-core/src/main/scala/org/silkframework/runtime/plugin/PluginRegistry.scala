@@ -278,7 +278,7 @@ object PluginRegistry {
    */
   def registerPlugin(pluginDesc: PluginDescription[_]): Unit = {
     checkPluginDescription(pluginDesc)
-    if(!Config.blacklistedPlugins().contains(pluginDesc.id) && !(plugins.contains(pluginDesc.pluginClass.getName))) {
+    if(!Config.blacklistedPlugins().contains(pluginDesc.id)) {
       if(pluginsById.contains(pluginDesc.id)) {
         throw new InvalidPluginException(s"Plugin with id '${pluginDesc.id}' already exists. " +
             s"Please use a different id for plugin $pluginDesc.")
