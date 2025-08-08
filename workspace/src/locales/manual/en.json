@@ -438,7 +438,9 @@
             "removed": "Removed",
             "paths": "Paths",
             "unknown": "Unknown",
-            "active": "active"
+            "active": "active",
+            "next": "Next",
+            "previous": "Previous"
         },
         "tooltips": {
             "dataset": {
