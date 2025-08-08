@@ -8,11 +8,8 @@ import org.silkframework.runtime.plugin.annotations.Plugin
   id = "removeDefaultStopWords",
   categories = Array("Filter"),
   label = "Remove default stop words",
-  description = "Removes default stop words from all values." +
-    "This filter uses the following list of English stop words as a default:" +
-    " https://gist.githubusercontent.com/rg089/35e00abf8941d72d419224cfd5b5925d/raw/12d899b70156fd0041fa9778d657330b024b959c/stopwords.txt" +
-    " Should you want to provide an own stop word list, either as a resource (e.g. a file) or a remote URL," +
-    " see the filters 'removeStopWords' and 'removeRemoteStopWords'."
+  description = "Removes default stop words from all values.",
+  documentationFile = "RemoveDefaultStopWordsTransformer.md"
 )
 @TransformExamples(Array(
   new TransformExample(
