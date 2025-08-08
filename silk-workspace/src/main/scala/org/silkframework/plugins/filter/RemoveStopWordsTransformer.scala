@@ -8,7 +8,7 @@ import org.silkframework.runtime.resource.Resource
 @Plugin(
   id = "removeStopWords",
   categories = Array("Filter"),
-  label = "Remove stopWords",
+  label = "Remove stop words",
   description = "Removes stop words from all values.",
   documentationFile = "RemoveStopWordsTransformer.md"
 )
