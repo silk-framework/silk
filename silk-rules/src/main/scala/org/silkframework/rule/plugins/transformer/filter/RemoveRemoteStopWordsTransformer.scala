@@ -1,7 +1,7 @@
 package org.silkframework.rule.plugins.transformer.filter
 
 import org.silkframework.rule.annotations.{TransformExample, TransformExamples}
-import org.silkframework.runtime.plugin.annotations.Plugin
+import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
 
 import scala.io.Source
 
@@ -22,8 +22,8 @@ import scala.io.Source
     output = Array("It impossible", "")
   )
 ))
-case class RemoveRemoteStopWordsTransformer(stopWordListUrl: String = RemoveRemoteStopWordsTransformer.defaultStopWordListUrl,
-                                            separator: String = "[\\s-]+")
+case class RemoveRemoteStopWordsTransformer(@Param(value = "URL of the stop word list") stopWordListUrl: String = RemoveRemoteStopWordsTransformer.defaultStopWordListUrl,
+                                            @Param(value = "RegEx for detecting words") separator: String = "[\\s-]+")
   extends RemoveStopWords(separator, RemoveRemoteStopWordsTransformer.loadStopWords(stopWordListUrl))
 
 object RemoveRemoteStopWordsTransformer {

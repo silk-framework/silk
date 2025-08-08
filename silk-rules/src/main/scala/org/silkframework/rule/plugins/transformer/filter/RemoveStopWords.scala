@@ -1,6 +1,7 @@
 package org.silkframework.rule.plugins.transformer.filter
 
 import org.silkframework.rule.input.SimpleTransformer
+import org.silkframework.runtime.plugin.annotations.Param
 
 import scala.io.Source
 import scala.util.matching.Regex
@@ -11,9 +12,9 @@ import scala.util.matching.Regex
  * @param separator Regular Expressions for the separator between single words.
  * @param stopWords List of stop words. If not set, a sensible default (= base) stop word list is used.
  */
-abstract class RemoveStopWords(separator: String = "[\\s-]+",
-                               stopWords: Set[String] = RemoveStopWords.loadDefaultStopWords
-                              ) extends SimpleTransformer {
+abstract class RemoveStopWords(@Param(value = "RegEx for detecting words") separator: String = "[\\s-]+",
+                               @Param(value = "Stop word list") stopWords: Set[String] = RemoveStopWords.loadDefaultStopWords)
+  extends SimpleTransformer {
   private val regex: Regex = separator.r
 
   override def evaluate(value: String): String = {

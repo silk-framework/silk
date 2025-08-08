@@ -2,7 +2,7 @@ package org.silkframework.plugins.filter
 
 import org.silkframework.rule.annotations.{TransformExample, TransformExamples}
 import org.silkframework.rule.plugins.transformer.filter.RemoveStopWords
-import org.silkframework.runtime.plugin.annotations.Plugin
+import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
 import org.silkframework.runtime.resource.Resource
 
 @Plugin(
@@ -22,7 +22,8 @@ import org.silkframework.runtime.resource.Resource
     output = Array("It impossible", "")
   )
 ))
-case class RemoveStopWordsTransformer(stopWordList: Resource, separator: String = "[\\s-]+")
+case class RemoveStopWordsTransformer(@Param(value = "Resource for the stop word list") stopWordList: Resource,
+                                      @Param(value = "RegEx for detecting words") separator: String = "[\\s-]+")
   extends RemoveStopWords(separator, stopWordList.loadAsString().split("\n").toSet) {
 
   override def referencedResources: Seq[Resource] = Seq(stopWordList)
