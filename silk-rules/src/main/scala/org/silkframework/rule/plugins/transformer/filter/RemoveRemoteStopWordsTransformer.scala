@@ -1,5 +1,6 @@
 package org.silkframework.rule.plugins.transformer.filter
 
+import org.silkframework.rule.annotations.{TransformExample, TransformExamples}
 import org.silkframework.runtime.plugin.annotations.Plugin
 
 import scala.io.Source
@@ -21,6 +22,16 @@ import scala.io.Source
       " By default, the separator is a regular expression for non-whitespace characters." +
       " Additionally, notice the simpler filter 'removeDefaultStopWords', which uses a default stop word list."
 )
+@TransformExamples(Array(
+  new TransformExample(
+    input1 = Array("To be or not to be", "that is the question"),
+    output = Array("To", "question")
+  ),
+  new TransformExample(
+    input1 = Array("It always seems impossible", "until it's done"),
+    output = Array("It impossible", "")
+  )
+))
 case class RemoveRemoteStopWordsTransformer(stopWordListUrl: String = RemoveRemoteStopWordsTransformer.defaultStopWordListUrl,
                                             separator: String = "[\\s-]+")
   extends RemoveStopWords(separator, RemoveRemoteStopWordsTransformer.loadStopWords(stopWordListUrl))
