@@ -18,7 +18,8 @@ import scala.io.Source
       " for the English language." +
       " Each line in the stop word list should contain a single stop word." +
       " The separator defines a regular expression (regex) that is used for detecting words." +
-      " By default, the separator is a regular expression for non-whitespace characters."
+      " By default, the separator is a regular expression for non-whitespace characters." +
+      " Additionally, notice the simpler filter 'removeDefaultStopWords', which uses a default stop word list."
 )
 case class RemoveRemoteStopWordsTransformer(stopWordListUrl: String = RemoveRemoteStopWordsTransformer.defaultStopWordListUrl,
                                             separator: String = "[\\s-]+")
