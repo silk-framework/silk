@@ -8,7 +8,7 @@ import org.silkframework.runtime.plugin.annotations.Plugin
   id = "removeDefaultStopWords",
   categories = Array("Filter"),
   label = "Remove default stop words",
-  description = "Removes default stop words from all values.",
+  description = "Removes stop words based on a default stop word list.",
   documentationFile = "RemoveDefaultStopWordsTransformer.md"
 )
 @TransformExamples(Array(

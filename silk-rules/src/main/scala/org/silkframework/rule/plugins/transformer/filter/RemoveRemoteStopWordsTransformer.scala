@@ -8,8 +8,8 @@ import scala.io.Source
 @Plugin(
   id = "removeRemoteStopWords",
   categories = Array("Filter"),
-  label = "Remove stop words (remote stop word list)",
-  description = "Removes stop words from all values.",
+  label = "Remove remote stop words",
+  description = "Removes stop words based on a stop word list remote URL.",
   documentationFile = "RemoveRemoteStopWordsTransformer.md"
 )
 @TransformExamples(Array(

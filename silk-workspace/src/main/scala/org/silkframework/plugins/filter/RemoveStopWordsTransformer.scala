@@ -9,7 +9,7 @@ import org.silkframework.runtime.resource.Resource
   id = "removeStopWords",
   categories = Array("Filter"),
   label = "Remove stop words",
-  description = "Removes stop words from all values.",
+  description = "Removes stop words based on a stop word list resource.",
   documentationFile = "RemoveStopWordsTransformer.md"
 )
 @TransformExamples(Array(
