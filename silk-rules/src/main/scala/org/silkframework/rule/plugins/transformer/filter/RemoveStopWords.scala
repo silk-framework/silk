@@ -19,7 +19,7 @@ class RemoveStopWords(@Param(value = "RegEx for detecting words") separator: Str
 
   override def evaluate(value: String): String = {
     val result = new StringBuilder
-    for(word <- regex.split(value) if !stopWords.contains(word.toLowerCase)) {
+    for(word <- regex.split(value) if !stopWords.map(_.toLowerCase).contains(word.toLowerCase)) {
       result.append(word.toLowerCase)
       result.append(" ")
     }
