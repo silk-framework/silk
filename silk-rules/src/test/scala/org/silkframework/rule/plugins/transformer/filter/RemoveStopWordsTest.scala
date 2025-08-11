@@ -26,14 +26,26 @@ class RemoveStopWordsTest extends AnyFlatSpec with Matchers with MockServerTestT
     val transformer = new RemoveStopWords(stopWords = lowerCaseStopWords)
     transformer.apply(Seq(upperCaseStopWords.toSeq)).map(_.trim) should equal(List.fill(upperCaseStopWords.size)(""))
   }
+
+  "RemoveStopWords" should "not just return empty values, if any uppercase stop words for a lowercase 'ß' are not 'ẞ' but 'SS'" in {
+    val transformer = new RemoveStopWords(stopWords = badUpperCaseStopWords)
+    transformer.apply(Seq(lowerCaseStopWords.toSeq)).map(_.trim) should not equal List.fill(lowerCaseStopWords.size)("")
+  }
+
+  "RemoveStopWords" should "just return empty values, if any uppercase input values for a lowercase 'ß' are not 'ẞ' but 'SS'" in {
+    val transformer = new RemoveStopWords(stopWords = lowerCaseStopWords)
+    transformer.apply(Seq(badUpperCaseStopWords.toSeq)).map(_.trim) should equal(List.fill(badUpperCaseStopWords.size)(""))
+  }
 }
 
 object RemoveStopWordsTest {
   val STOP_WORDS_LOWERCASE = "stopWords-de.txt"
   val STOP_WORDS_UPPERCASE = "stopwords-de-upper.txt"
+  val STOP_WORDS_UPPERCASE_BAD = "stopwords-de-upper-with-SS-mismatch.txt"
 
-  lazy val upperCaseStopWords: Set[String] = loadStopWords(STOP_WORDS_UPPERCASE)
   lazy val lowerCaseStopWords: Set[String] = loadStopWords(STOP_WORDS_LOWERCASE)
+  lazy val upperCaseStopWords: Set[String] = loadStopWords(STOP_WORDS_UPPERCASE)
+  lazy val badUpperCaseStopWords: Set[String] = loadStopWords(STOP_WORDS_UPPERCASE_BAD)
 
   def loadStopWords(file: String): Set[String] = {
     val txt = Source.fromResource(s"org/silkframework/rule/plugins/transformer/filter/$file")
