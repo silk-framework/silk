@@ -25,7 +25,7 @@ object PluginRegistry {
   
   /** Map from plugin base types to an instance holding all plugins of that type.  */
   @volatile
-  private var pluginTypes = Map[String, PluginTypeHolder]()
+  private var pluginTypesById = Map[String, PluginTypeHolder]()
 
   /** Map holding all plugins by their class name */
   @volatile
@@ -190,7 +190,7 @@ object PluginRegistry {
     * Returns a list of all available plugins of a specific runtime type.
     */
   def availablePluginsForClass(pluginClass: Class[_]): Seq[PluginDescription[_]] = {
-    pluginTypes.get(pluginClass.getName) match {
+    pluginTypesById.get(pluginClass.getName) match {
       case Some(pluginType) => pluginType.availablePlugins
       case None => Seq.empty
     }
@@ -273,8 +273,8 @@ object PluginRegistry {
     checkPluginDescription(pluginDesc)
     if(!Config.blacklistedPlugins().contains(pluginDesc.id) && !(plugins.contains(pluginDesc.pluginClass.getName) && pluginsById.contains(pluginDesc.id))) {
       for (superType <- pluginDesc.pluginTypes) {
-        val pluginType = pluginTypes.getOrElse(superType.name, new PluginTypeHolder)
-        pluginTypes += ((superType.name, pluginType))
+        val pluginType = pluginTypesById.getOrElse(superType.name, new PluginTypeHolder(superType))
+        pluginTypesById += ((superType.name, pluginType))
         pluginType.register(pluginDesc)
       }
       plugins += ((pluginDesc.pluginClass.getName, pluginDesc))
@@ -297,7 +297,7 @@ object PluginRegistry {
     */
   def unregisterPlugin(pluginDesc: PluginDescription[_]): Unit = {
     for  { superType <- pluginDesc.pluginTypes
-           pluginType <- pluginTypes.get(superType.name)} {
+           pluginType <- pluginTypesById.get(superType.name)} {
       pluginType.unregister(pluginDesc.id)
     }
     plugins -= pluginDesc.pluginClass.getName
@@ -321,15 +321,19 @@ object PluginRegistry {
     unregisterPlugin(ClassPluginDescription.create(implementingClass))
   }
 
+  def pluginTypes: Iterable[PluginTypeDescription] = {
+    pluginTypesById.values.map(_.pluginType)
+  }
+
   private def pluginType[T: ClassTag]: PluginTypeHolder = {
     val pluginClass = implicitly[ClassTag[T]].runtimeClass
-    pluginTypes.getOrElse(pluginClass.getName, new PluginTypeHolder)
+    pluginTypesById.getOrElse(pluginClass.getName, throw new IllegalArgumentException(s"Unknown plugin type: ${pluginClass.getName}"))
   }
 
   /**
    * Holds all plugins that share a specific base type.
    */
-  private class PluginTypeHolder {
+  private class PluginTypeHolder(val pluginType: PluginTypeDescription) {
 
     /** Map from plugin id to plugin description */
     @volatile

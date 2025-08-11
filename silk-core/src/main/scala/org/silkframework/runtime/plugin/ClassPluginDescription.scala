@@ -139,7 +139,7 @@ object ClassPluginDescription {
     }
     for {
       pluginType <- pluginTypes
-      customDescription <- pluginType.customDescription.generate(pluginClass)
+      customDescription <- pluginType.customDescriptionGenerator.generate(pluginClass)
     } {
       customDescription.generateDocumentation(docBuilder)
     }

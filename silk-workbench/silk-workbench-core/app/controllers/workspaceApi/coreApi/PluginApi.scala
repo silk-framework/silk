@@ -15,7 +15,7 @@ import org.silkframework.rule.input.Transformer
 import org.silkframework.rule.similarity.{Aggregator, DistanceMeasure}
 import org.silkframework.rule.{LinkSpec, TransformSpec}
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.runtime.plugin.{AnyPlugin, PluginDescription, PluginList, PluginRegistry}
+import org.silkframework.runtime.plugin.{AnyPlugin, PluginDescription, PluginList, PluginRegistry, PluginTypeDescription}
 import org.silkframework.runtime.resource.EmptyResourceManager
 import org.silkframework.runtime.serialization.WriteContext
 import org.silkframework.serialization.json.JsonSerializers
@@ -135,6 +135,22 @@ class PluginApi @Inject()() extends InjectedController with UserContextActions {
       case None =>
         NotFound
     }
+  }
+
+  @Operation(
+    summary = "Plugin types",
+    description = "Lists all available plugin types.",
+    responses = Array(
+      new ApiResponse(
+        responseCode = "200",
+        description = "Plugin types",
+        content = Array(new Content(
+          mediaType = "application/json"
+        ))
+      )
+    ))
+  def pluginTypes(): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
+    Ok(Json.toJson(PluginTypesJson.retrieve()))
   }
 
   /** Return plugin description of a single rule operator plugin. */
@@ -482,6 +498,35 @@ object PluginApi {
 
   def taskplugins(): Seq[PluginDescription[_]] = {
     specialTaskPlugins ++ normalTaskPlugins()
+  }
+}
+
+/**
+ * JSON representation of a plugin type.
+ * @see PluginTypeDescription
+ */
+case class PluginTypeJson(name: String, label: String, description: Option[String] = None)
+
+object PluginTypeJson {
+
+  implicit val pluginTypeWrites: Writes[PluginTypeJson] = Json.writes[PluginTypeJson]
+
+  def apply(pluginType: PluginTypeDescription): PluginTypeJson = {
+    PluginTypeJson(pluginType.name, pluginType.label, pluginType.description)
+  }
+}
+
+/**
+ * JSON representation of a list of plugin types.
+ */
+case class PluginTypesJson(pluginTypes: Seq[PluginTypeJson])
+
+object PluginTypesJson {
+
+  implicit val pluginTypesWrites: Writes[PluginTypesJson] = Json.writes[PluginTypesJson]
+
+  def retrieve(): PluginTypesJson = {
+    PluginTypesJson(PluginRegistry.pluginTypes.map(PluginTypeJson(_)).toSeq)
   }
 }
 
