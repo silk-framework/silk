@@ -27,7 +27,7 @@ import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
     description = "Throws a validation error if more than one input is provided.",
     inputs = Array(0.1, 0.2),
     output = Double.NaN,
-    throwsException = "java.lang.IllegalArgumentException"
+    throwsException = classOf[java.lang.IllegalArgumentException]
   )
 ))
 case class ScalingAggregator(

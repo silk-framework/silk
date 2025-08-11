@@ -50,6 +50,11 @@ trait OperatorExampleValue {
   def parameters: Map[String, String]
 
   /**
+   * The class of the exception that is expected to be thrown by this example, if any.
+   */
+  def throwsException: Option[Class[_]]
+
+  /**
     * Format this example as markdown.
     */
   def markdownFormatted(sb: StringBuilder): Unit
