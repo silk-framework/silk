@@ -15,11 +15,11 @@ import org.silkframework.runtime.resource.Resource
 @TransformExamples(Array(
   new TransformExample(
     input1 = Array("To be or not to be", "that is the question"),
-    output = Array("To", "question")
+    output = Array("", "question")
   ),
   new TransformExample(
     input1 = Array("It always seems impossible", "until it's done"),
-    output = Array("It impossible", "")
+    output = Array("impossible", "")
   )
 ))
 case class RemoveStopWordsTransformer(@Param(value = "Resource for the stop word list") stopWordList: Resource,

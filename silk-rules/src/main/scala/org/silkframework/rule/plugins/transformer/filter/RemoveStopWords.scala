@@ -19,8 +19,8 @@ abstract class RemoveStopWords(@Param(value = "RegEx for detecting words") separ
 
   override def evaluate(value: String): String = {
     val result = new StringBuilder
-    for(word <- regex.split(value) if !stopWords.contains(word)) {
-      result.append(word)
+    for(word <- regex.split(value) if !stopWords.contains(word.toLowerCase)) {
+      result.append(word.toLowerCase)
       result.append(" ")
     }
     result.toString()
