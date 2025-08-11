@@ -145,7 +145,8 @@ class PluginApi @Inject()() extends InjectedController with UserContextActions {
         responseCode = "200",
         description = "Plugin types",
         content = Array(new Content(
-          mediaType = "application/json"
+          mediaType = "application/json",
+          schema = new Schema(implementation = classOf[PluginTypesJson])
         ))
       )
     ))
@@ -505,7 +506,24 @@ object PluginApi {
  * JSON representation of a plugin type.
  * @see PluginTypeDescription
  */
-case class PluginTypeJson(name: String, label: String, description: Option[String] = None)
+@Schema(
+  description = "A plugin type."
+)
+case class PluginTypeJson(@Schema(
+                            description = "The name of the plugin type.",
+                            example = "org.silkframework.dataset.Dataset"
+                          )
+                          name: String,
+                          @Schema(
+                            description = "The human-readable label of the plugin type.",
+                            example = "Dataset"
+                          )
+                          label: String,
+                          @Schema(
+                            description = "An optional description of the plugin type.",
+                            example = "A dataset plugin that can be used to read and write data."
+                          )
+                          description: Option[String] = None)
 
 object PluginTypeJson {
 
