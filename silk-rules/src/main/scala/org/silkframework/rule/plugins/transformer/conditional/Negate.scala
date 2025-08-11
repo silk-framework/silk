@@ -17,11 +17,11 @@ import org.silkframework.runtime.plugin.annotations.Plugin
   ),
   new TransformExample(
     input1 = Array("falsee", "true"),
-    throwsException = "java.lang.IllegalArgumentException"
+    throwsException = classOf[java.lang.IllegalArgumentException]
   ),
   new TransformExample(
     input1 = Array(),
-    throwsException = "java.lang.IllegalArgumentException"
+    throwsException = classOf[java.lang.IllegalArgumentException]
   )
 ))
 case class Negate() extends Transformer {
