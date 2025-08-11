@@ -9,7 +9,7 @@ for the English language.
 Regardless of the stop word list used, the following comments apply:
 
 * Each line in the stop word list should contain a single stop word.
-* The removal of stop words is case-sensitive. For example, 'The' and 'the' are considered the same.
+* The removal of stop words is case-insensitive. For example, 'The' and 'the' are considered the same.
 * The separator defines a regular expression (regex) that is used for detecting words.
 * By default, the separator is a regular expression for non-whitespace characters.
 
