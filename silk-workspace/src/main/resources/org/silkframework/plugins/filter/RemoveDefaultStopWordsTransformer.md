@@ -4,5 +4,7 @@ as a default.
 
 The removal of stop words is case-insensitive. For example, 'The' and 'the' are considered the same.
 
+In the case of German words, notice that the upper-case letter of the lower-case 'ß' is 'ẞ', not 'SS'.
+
 Should you want to provide your own stop word list, either as a resource (e.g. a file) or a remote URL, see the filters
 'removeStopWords' and 'removeRemoteStopWords'.
