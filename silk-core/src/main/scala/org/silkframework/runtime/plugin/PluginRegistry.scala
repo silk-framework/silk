@@ -157,10 +157,15 @@ object PluginRegistry {
    */
   def availablePlugins[T: ClassTag]: Seq[PluginDescription[T]] = {
     val blackList = Config.blacklistedPlugins()
-    pluginType[T]
-        .availablePlugins.asInstanceOf[Seq[PluginDescription[T]]]
-        .filterNot(p => blackList.contains(p.id))
-        .sortBy(_.label)
+    pluginTypeOpt[T] match {
+      case Some(pluginType) =>
+        pluginType.availablePlugins.asInstanceOf[Seq[PluginDescription[T]]]
+                  .filterNot(p => blackList.contains(p.id))
+                  .sortBy(_.label)
+      case None =>
+        Seq.empty
+    }
+
   }
 
   /** Get a specific plugin description by plugin ID.
@@ -323,6 +328,11 @@ object PluginRegistry {
 
   def pluginTypes: Iterable[PluginTypeDescription] = {
     pluginTypesById.values.map(_.pluginType)
+  }
+
+  private def pluginTypeOpt[T: ClassTag]: Option[PluginTypeHolder] = {
+    val pluginClass = implicitly[ClassTag[T]].runtimeClass
+    pluginTypesById.get(pluginClass.getName)
   }
 
   private def pluginType[T: ClassTag]: PluginTypeHolder = {
