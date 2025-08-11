@@ -12,8 +12,8 @@ import scala.util.matching.Regex
  * @param separator Regular Expressions for the separator between single words.
  * @param stopWords List of stop words. If not set, a sensible default (= base) stop word list is used.
  */
-abstract class RemoveStopWords(@Param(value = "RegEx for detecting words") separator: String = "[\\s-]+",
-                               @Param(value = "Stop word list") stopWords: Set[String] = RemoveStopWords.loadDefaultStopWords)
+class RemoveStopWords(@Param(value = "RegEx for detecting words") separator: String = "[\\s-]+",
+                      @Param(value = "Stop word list") stopWords: Set[String] = RemoveStopWords.loadDefaultStopWords)
   extends SimpleTransformer {
   private val regex: Regex = separator.r
 
