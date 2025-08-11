@@ -25,8 +25,8 @@ object PluginDescriptionSerializers {
 
     override def write(pluginList: PluginList)(implicit writeContext: WriteContext[JsValue]): JsValue = {
       JsObject(
-        for((_, plugins) <- pluginList.pluginsByType; plugin <- plugins) yield {
-          plugin.id.toString -> serializePlugin(plugin, pluginList.serializeMarkdownDocumentation, pluginList.overviewOnly, taskType = None, withLabels = false)
+        for((pluginType, plugins) <- pluginList.pluginsByType; plugin <- plugins) yield {
+          plugin.id.toString -> serializePlugin(plugin, pluginList.serializeMarkdownDocumentation, pluginList.overviewOnly, pluginType = Some(pluginType), withLabels = false)
         }
       )
     }
@@ -34,8 +34,9 @@ object PluginDescriptionSerializers {
     def serializePlugin(plugin: PluginDescription[_],
                         withMarkdownDocumentation: Boolean,
                         overviewOnly: Boolean,
-                        taskType: Option[String],
-                        withLabels: Boolean)
+                        taskType: Option[String] = None,
+                        pluginType: Option[String] = None,
+                        withLabels: Boolean = false)
                        (implicit writeContext: WriteContext[JsValue]): JsObject = {
       val markdownDocumentation = if(withMarkdownDocumentation && plugin.documentation.nonEmpty){
         Some((MARKDOWN_DOCUMENTATION_PARAMETER -> JsString(plugin.documentation)))
@@ -45,7 +46,8 @@ object PluginDescriptionSerializers {
         "categories" -> JsArray(plugin.categories.map(JsString)),
         "description" -> JsString(plugin.description)
       )
-      val tt = taskType.map(t => JsonSerializers.TASKTYPE -> JsString(t)).toSeq
+      val taskTypeJson = taskType.map(t => JsonSerializers.TASKTYPE -> JsString(t)).toSeq
+      val pluginTypeJson = pluginType.map(t => JsonSerializers.PLUGIN_TYPE -> JsString(t)).toSeq
       val details = Seq (
         "type" -> JsString("object"),
         "properties" -> JsObject(serializeParams(plugin.parameters, withLabels)),
@@ -55,7 +57,7 @@ object PluginDescriptionSerializers {
       val optionalPluginIcon = plugin.icon.map(content => "pluginIcon" -> JsString(content))
       val pluginTypeSpecificProperties = plugin.customDescriptions.flatMap(_.additionalProperties().view.mapValues(JsString))
       val actions = Seq(("actions" -> serializeActions(plugin.actions)))
-      JsObject(metaData ++ tt ++ details ++ markdownDocumentation ++ optionalPluginIcon ++ pluginTypeSpecificProperties ++ actions)
+      JsObject(metaData ++ taskTypeJson ++ pluginTypeJson ++ details ++ markdownDocumentation ++ optionalPluginIcon ++ pluginTypeSpecificProperties ++ actions)
     }
 
     private def serializeParams(params: Seq[PluginParameter],
