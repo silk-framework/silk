@@ -35,14 +35,12 @@ public @interface Plugin {
    */
   String[] categories() default { PluginCategories.uncategorized };
 
-  /** A short (few sentence) description of this plugin. */
+  /** A short (few sentence, single-line) description of this plugin. */
   String description() default "No description";
 
   /**
-   * Optional further documentation for this plugin.
-   * Classpath to a Markdown file.
-   * Typically the Markdown file is at the same classpath as the documented plugin,
-   * in which case the local file name can be provided instead of the full classpath.
+   * Optional markdown documentation for this plugin that will be shown instead of the description for showing the full documentation of a plugin.
+   * Classpath to a Markdown file. Typically the Markdown file is at the same classpath as the documented plugin, in which case the local file name can be provided instead of the full classpath.
    *
    * Parameter links:
    *
