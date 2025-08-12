@@ -23,10 +23,7 @@ import org.silkframework.runtime.validation.ValidationException
   id = "substring",
   categories = Array("Substring"),
   label = "Substring",
-  description =
-"""Returns a substring between 'beginIndex' (inclusive) and 'endIndex' (exclusive).
-If 'endIndex' is 0 (default), it is ignored and the entire remaining string starting with 'beginIndex' is returned.
-If 'endIndex' is negative, -endIndex characters are removed from the end."""
+  description = """Returns a substring between 'beginIndex' (inclusive) and 'endIndex' (exclusive). If 'endIndex' is 0 (default), it is ignored and the entire remaining string starting with 'beginIndex' is returned. If 'endIndex' is negative, -endIndex characters are removed from the end."""
 )
 @TransformExamples(Array(
   new TransformExample(

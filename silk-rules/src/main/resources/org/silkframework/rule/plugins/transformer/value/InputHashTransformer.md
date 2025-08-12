@@ -1,0 +1,2 @@
+Calculates the hash sum of the input values. Generates a single hash sum for all input values combined.
+This operator supports using different hash algorithms from the [Secure Hash Algorithms family](https://en.wikipedia.org/wiki/Secure_Hash_Algorithms) (SHA, e.g. SHA256) and two algorithms from the [Message-Digest Algorithm family](https://en.wikipedia.org/wiki/MD5) (MD2 / MD5). Please be aware that some of these algorithms are not secure regarding collision- and other attacks.

@@ -8,9 +8,7 @@ import org.silkframework.runtime.plugin.annotations.Plugin
   label = "If matches regex",
   categories = Array("Conditional"),
   description =
-"""Accepts two or three inputs.
-If any value of the first input matches the regex, the second input is forwarded.
-Otherwise, the third input is forwarded (if present)."""
+    """Accepts two or three inputs. If any value of the first input matches the regex, the second input is forwarded. Otherwise, the third input is forwarded (if present)."""
 )
 case class IfMatchesRegexTransformer(regex: String, negate: Boolean = false) extends Transformer {
   val r = regex.r
