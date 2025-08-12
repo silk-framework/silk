@@ -51,6 +51,11 @@ trait PluginDescription[+T] {
    */
   val deprecation: Option[String]
 
+  /**
+   * The type of the backend that this plugin is comming from, e.g. native or python.
+   */
+  val backendType: String
+
   /** Custom plugin descriptions */
   lazy val customDescriptions: Seq[CustomPluginDescription] = pluginTypes.flatMap(_.customDescriptionGenerator.generate(pluginClass))
 

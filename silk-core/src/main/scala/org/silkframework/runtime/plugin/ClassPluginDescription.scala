@@ -56,6 +56,8 @@ class ClassPluginDescription[+T <: AnyPlugin](val id: Identifier,
                                               val actions: SeqMap[String, PluginAction],
                                               val deprecation: Option[String]) extends PluginDescription[T] {
 
+  val backendType: String = "native"
+
   /**
     * The plugin class.
     */
