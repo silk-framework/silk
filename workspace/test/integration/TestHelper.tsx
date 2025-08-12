@@ -104,6 +104,24 @@ export const withMount = (component) => mount(component);
 
 export const withRender = (component) => render(component);
 
+export const renderWrapper = (
+    ui: JSX.Element,
+    history: History<LocationState> = createBrowserHistory<LocationState>(),
+    initialState: RecursivePartial<IStore> = {},
+    options = {},
+) => {
+    const store = createStore(history, initialState);
+    mockValues.history = history;
+    render(ui, {
+        wrapper: ({ children }) => (
+            <Provider store={store}>
+                <ConnectedRouter history={history}>{children}</ConnectedRouter>
+            </Provider>
+        ),
+        ...options,
+    });
+};
+
 /** Returns a wrapper for the application. */
 export const testWrapper = (
     component: React.ReactNode,
