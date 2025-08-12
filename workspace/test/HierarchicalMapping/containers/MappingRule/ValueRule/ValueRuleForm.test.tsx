@@ -189,10 +189,10 @@ describe("ValueMappingRuleForm Component", () => {
             await waitFor(() => {
                 clickElement(wrapper, selectors.CANCEL_BUTTON);
             });
-            expect(emitMock).toBeCalledWith("ruleView.unchanged", {
+            expect(emitMock).toHaveBeenCalledWith("ruleView.unchanged", {
                 id: "1",
             });
-            expect(emitMock).toBeCalledWith("ruleView.close", {
+            expect(emitMock).toHaveBeenCalledWith("ruleView.close", {
                 id: "1",
             });
         });

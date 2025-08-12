@@ -113,13 +113,13 @@ describe("ValueRule Component", () => {
         it("should CopyButton button call `handleCopy` function from props, with right arguments", () => {
             const wrapper = getWrapper(mount);
             wrapper.find(CopyButton).simulate("click");
-            expect(handleCopyFn).toBeCalledWith(props.id, props.type);
+            expect(handleCopyFn).toHaveBeenCalledWith(props.id, props.type);
         });
 
         it("should CloneButton button call `handleClone` function from props, with right arguments", () => {
             const wrapper = getWrapper(mount);
             wrapper.find(CloneButton).simulate("click");
-            expect(handleCloneFn).toBeCalledWith(props.id, "direct");
+            expect(handleCloneFn).toHaveBeenCalledWith(props.id, "direct");
         });
 
         it("should DeleteButton button call `onClickedRemove` function from props, with right arguments", () => {
@@ -128,7 +128,7 @@ describe("ValueRule Component", () => {
                 type: "object",
             });
             wrapper.find(DeleteButton).simulate("click");
-            expect(onClickedRemoveFn).toBeCalledWith({
+            expect(onClickedRemoveFn).toHaveBeenCalledWith({
                 id: "1",
                 uri: "uri",
                 type: "object",

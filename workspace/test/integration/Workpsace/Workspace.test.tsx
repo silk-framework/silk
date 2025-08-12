@@ -32,7 +32,7 @@ describe("Search Items", () => {
                     label: "Datatypes",
                     values: [{ id: "dataset", label: "dataset" }],
                 },
-            })
+            }),
         );
     };
 
@@ -71,7 +71,7 @@ describe("Search Items", () => {
                     ],
                     total: 20,
                 },
-            })
+            }),
         );
     };
 
@@ -127,7 +127,7 @@ describe("Search Items", () => {
         expect(reqInfo).toBeTruthy();
     });
 
-    it("should facets presented correctly", async (done) => {
+    it("should facets presented correctly", async () => {
         const filteredQueryParams = {
             itemType: "dataset",
         };
@@ -141,11 +141,10 @@ describe("Search Items", () => {
         await waitFor(() => {
             const elements = findAll(wrapper, byTestId(`facet-items`));
             expect(elements).toHaveLength(2);
-            done();
         });
     });
 
-    xit("should search bar send request for filtering", async (done) => {
+    xit("should search bar send request for filtering", async () => {
         // THE QUERY STRING NOT UPDATED IN ROUTER-CONNECTED-ROUTER
         getWrapper();
 
@@ -160,8 +159,6 @@ describe("Search Items", () => {
                 offset: 0,
                 textQuery: "test",
             });
-
-            done();
         });
     });
 

@@ -37,7 +37,7 @@ const getWrapper = (currentUrl: string = `${SERVE_PATH}`) => {
             toggleShowIdentifierModal={() => {}}
         />,
         history,
-        {}
+        {},
     );
     return withMount(provider);
 };
@@ -46,6 +46,6 @@ describe("Project Row Component", () => {
     it("should duplicate button fire the onOpenDuplicateModal function", () => {
         const wrapper = getWrapper();
         clickElement(wrapper, byTestId("open-duplicate-modal"));
-        expect(onOpenDuplicateModalFn).toBeCalled();
+        expect(onOpenDuplicateModalFn).toHaveBeenCalled();
     });
 });

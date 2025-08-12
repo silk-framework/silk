@@ -140,7 +140,7 @@ describe("ObjectMappingRule Component", () => {
         it("should CopyButton button call `handleCopy` function from props, with right arguments", () => {
             const wrapper = getWrapper(mount);
             wrapper.find(CopyButton).simulate("click");
-            expect(handleCopyFn).toBeCalledWith(props.ruleData.id, props.ruleData.type);
+            expect(handleCopyFn).toHaveBeenCalledWith(props.ruleData.id, props.ruleData.type);
         });
 
         it("should CloneButton button call `handleClone` function from props, with right arguments", () => {
@@ -152,7 +152,7 @@ describe("ObjectMappingRule Component", () => {
                 },
             });
             wrapper.find(CloneButton).simulate("click");
-            expect(handleCloneFn).toBeCalledWith(props.ruleData.id, "object", props.ruleData.parentId);
+            expect(handleCloneFn).toHaveBeenCalledWith(props.ruleData.id, "object", props.ruleData.parentId);
         });
 
         it("should DeleteButton button call `onClickedRemove` function from props, with right arguments", () => {
@@ -161,7 +161,7 @@ describe("ObjectMappingRule Component", () => {
                 type: "object",
             });
             wrapper.find(DeleteButton).simulate("click");
-            expect(onClickedRemoveFn).toBeCalledWith({
+            expect(onClickedRemoveFn).toHaveBeenCalledWith({
                 id: "root",
                 uri: "uri",
                 type: "root",

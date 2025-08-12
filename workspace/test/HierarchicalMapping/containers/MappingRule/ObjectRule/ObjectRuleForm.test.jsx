@@ -113,7 +113,7 @@ describe("ObjectMappingRuleForm Component", () => {
             await waitFor(() => {
                 wrapper.update();
                 findSingleElement(wrapper, selectors.CONFIRM_BUTTON).simulate("click");
-                expect(createMappingAsyncMock).toBeCalled();
+                expect(createMappingAsyncMock).toHaveBeenCalled();
             });
         });
 
@@ -122,10 +122,10 @@ describe("ObjectMappingRuleForm Component", () => {
             wrapper.find(selectors.CANCEL_BUTTON).first().simulate("click", {
                 stopPropagation: jest.fn(),
             });
-            expect(emitMock).toBeCalledWith("ruleView.unchanged", {
+            expect(emitMock).toHaveBeenCalledWith("ruleView.unchanged", {
                 id: "1",
             });
-            expect(emitMock).toBeCalledWith("ruleView.close", {
+            expect(emitMock).toHaveBeenCalledWith("ruleView.close", {
                 id: "1",
             });
         });

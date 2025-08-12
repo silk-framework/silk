@@ -132,7 +132,7 @@ describe("MappingRule Component", () => {
             wrapper.find(selectors.ROW_CLICK).simulate("click", {
                 stopPropagation: jest.fn(),
             });
-            expect(onRuleIdChangeFn).toBeCalledWith({
+            expect(onRuleIdChangeFn).toHaveBeenCalledWith({
                 newRuleId: props.id,
                 parentId: props.parentId,
             });
@@ -142,7 +142,7 @@ describe("MappingRule Component", () => {
             wrapper.find(selectors.ROW_CLICK).simulate("click", {
                 stopPropagation: jest.fn(),
             });
-            expect(onExpandFn).toBeCalled();
+            expect(onExpandFn).toHaveBeenCalled();
         });
 
         afterEach(() => {

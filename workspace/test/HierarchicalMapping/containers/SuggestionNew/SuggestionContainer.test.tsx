@@ -55,7 +55,7 @@ const mockSuggestions = (matchFromDataset: boolean) =>
             { prefix: candidate2, nrCandidates: 2 },
             { prefix: candidateNonMatches, nrCandidates: 0 },
         ],
-        matchFromDataset
+        matchFromDataset,
     );
 const mockExampleValues = () => {
     const examplesValues = {};
@@ -85,7 +85,7 @@ const getWrapper = (args = props): ReactWrapper<any, any> => {
     return withMount(
         testWrapper(<SuggestionContainer {...args} />, history, {
             common: { initialSettings: { dmBaseUrl: "http://docker.local" } },
-        })
+        }),
     );
 };
 
@@ -144,31 +144,31 @@ describe("Suggestion Container Component", () => {
 
     it("should request suggestions, examples and prefixes on mount", async () => {
         getWrapper();
-        expect(getSuggestionsAsync).toBeCalledWith(
+        expect(getSuggestionsAsync).toHaveBeenCalledWith(
             {
                 targetClassUris: props.targetClassUris,
                 ruleId: props.ruleId,
                 matchFromDataset: true,
                 nrCandidates: 20,
             },
-            true
+            true,
         );
-        expect(schemaExampleValuesAsync).toBeCalled();
-        expect(prefixesAsync).toBeCalled();
+        expect(schemaExampleValuesAsync).toHaveBeenCalled();
+        expect(prefixesAsync).toHaveBeenCalled();
     });
 
     it("should load suggestion with reverted `matchFromDataset` value on swap action", async () => {
         const wrapper = getWrapper();
         const btn = await waitFor(() => findSingleElement(wrapper, byTestId("SWAP_BUTTON")));
         clickWrapperElement(btn);
-        expect(getSuggestionsAsync).toBeCalledWith(
+        expect(getSuggestionsAsync).toHaveBeenCalledWith(
             {
                 targetClassUris: props.targetClassUris,
                 ruleId: props.ruleId,
                 matchFromDataset: false,
                 nrCandidates: 20,
             },
-            true
+            true,
         );
     });
 
@@ -179,9 +179,9 @@ describe("Suggestion Container Component", () => {
             () => {
                 expect(findAll(wrapper, "table tbody tr")).toHaveLength(3);
             },
-            { onTimeout: logWrapperHtmlOnError(wrapper) }
+            { onTimeout: logWrapperHtmlOnError(wrapper) },
         );
         clickElement(wrapper, byTestId("add_button"));
-        expect(generateRuleAsync).toBeCalledWith([], props.ruleId, undefined);
+        expect(generateRuleAsync).toHaveBeenCalledWith([], props.ruleId, undefined);
     });
 });
