@@ -3,7 +3,9 @@ package org.silkframework.rule.plugins.transformer.filter
 import org.silkframework.rule.input.SimpleTransformer
 import org.silkframework.runtime.plugin.annotations.Param
 
-import scala.io.Source
+import java.nio.charset.Charset
+import java.nio.file.{Files, Paths}
+import scala.jdk.CollectionConverters.CollectionHasAsScala
 import scala.util.matching.Regex
 
 /**
@@ -28,12 +30,8 @@ class RemoveStopWords(@Param(value = "RegEx for detecting words") separator: Str
 }
 
 object RemoveStopWords {
-  private def loadDefaultStopWords: Set[String] = {
-    val txt = Source.fromResource("org/silkframework/rule/plugins/transformer/filter/stopWords.txt")
-    try {
-      txt.getLines.toSet
-    } finally {
-      txt.close()
-    }
-  }
+  private val STOP_WORDS_FILE: String = "stopWords.txt"
+
+  private def loadDefaultStopWords: Set[String] =
+    Files.readAllLines(Paths.get(getClass.getResource(STOP_WORDS_FILE).toURI), Charset.forName("utf-8")).asScala.toSet
 }

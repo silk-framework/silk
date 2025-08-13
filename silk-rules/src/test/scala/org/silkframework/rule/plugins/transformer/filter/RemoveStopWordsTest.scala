@@ -5,7 +5,9 @@ import org.scalatest.matchers.should.Matchers
 import org.silkframework.rule.plugins.transformer.filter.RemoveStopWordsTest._
 import org.silkframework.util.MockServerTestTrait
 
-import scala.io.Source
+import java.nio.charset.Charset
+import java.nio.file.{Files, Paths}
+import scala.jdk.CollectionConverters.CollectionHasAsScala
 
 class RemoveStopWordsTest extends AnyFlatSpec with Matchers with MockServerTestTrait {
   "RemoveStopWords" should "be case insensitive" in {
@@ -47,12 +49,6 @@ object RemoveStopWordsTest {
   lazy val upperCaseStopWords: Set[String] = loadStopWords(STOP_WORDS_UPPERCASE)
   lazy val badUpperCaseStopWords: Set[String] = loadStopWords(STOP_WORDS_UPPERCASE_BAD)
 
-  def loadStopWords(file: String): Set[String] = {
-    val txt = Source.fromResource(s"org/silkframework/rule/plugins/transformer/filter/$file")
-    try {
-      txt.getLines.toSet
-    } finally {
-      txt.close()
-    }
-  }
+  def loadStopWords(file: String): Set[String] =
+    Files.readAllLines(Paths.get(getClass.getResource(file).toURI), Charset.forName("utf-8")).asScala.toSet
 }
