@@ -42,6 +42,8 @@ public @interface Plugin {
    * Optional markdown documentation for this plugin that will be shown instead of the description for showing the full documentation of a plugin.
    * Classpath to a Markdown file. Typically the Markdown file is at the same classpath as the documented plugin, in which case the local file name can be provided instead of the full classpath.
    *
+   * Headings: Should use ## for the main heading, ### for subheadings, etc. The top-level heading # should not be used.
+   *
    * Parameter links:
    *
    * It is possible to define special HTML links in the Markdown documentation for parameters of a plugin.
