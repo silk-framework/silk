@@ -21,22 +21,31 @@ class RemoveStopWordsTest extends AnyFlatSpec with Matchers with MockServerTestT
 
   "RemoveStopWords" should "be case insensitive for upper case stop words and lower case values" in {
     val transformer = new RemoveStopWords(stopWords = upperCaseStopWords)
-    transformer.apply(Seq(lowerCaseStopWords.toSeq)).map(_.trim) should equal(List.fill(lowerCaseStopWords.size)(""))
+    val transformed = transformer.apply(Seq(lowerCaseStopWords.toSeq)).map(_.trim)
+    transformed should equal(List.fill(lowerCaseStopWords.size)(""))
+    transformed.filter(_.nonEmpty) should equal(List.empty)
   }
 
   "RemoveStopWords" should "be case insensitive for lower case stop words and upper case values" in {
     val transformer = new RemoveStopWords(stopWords = lowerCaseStopWords)
-    transformer.apply(Seq(upperCaseStopWords.toSeq)).map(_.trim) should equal(List.fill(upperCaseStopWords.size)(""))
+    val transformed = transformer.apply(Seq(upperCaseStopWords.toSeq)).map(_.trim)
+    transformed should equal(List.fill(upperCaseStopWords.size)(""))
+    transformed.filter(_.nonEmpty) should equal(List.empty)
   }
 
   "RemoveStopWords" should "not just return empty values, if any uppercase stop words for a lowercase 'ß' are not 'ẞ' but 'SS'" in {
     val transformer = new RemoveStopWords(stopWords = badUpperCaseStopWords)
-    transformer.apply(Seq(lowerCaseStopWords.toSeq)).map(_.trim) should not equal List.fill(lowerCaseStopWords.size)("")
+    val transformed = transformer.apply(Seq(lowerCaseStopWords.toSeq)).map(_.trim)
+    transformed should not equal List.fill(lowerCaseStopWords.size)("")
+    transformed.filter(_.nonEmpty) should not equal List.empty
   }
 
-  "RemoveStopWords" should "just return empty values, if any uppercase input values for a lowercase 'ß' are not 'ẞ' but 'SS'" in {
+  "RemoveStopWords" should "return less empty values than the source, if the source contains repetitions with 'SS'" in {
     val transformer = new RemoveStopWords(stopWords = lowerCaseStopWords)
-    transformer.apply(Seq(badUpperCaseStopWords.toSeq)).map(_.trim) should equal(List.fill(badUpperCaseStopWords.size)(""))
+    val transformed = transformer.apply(Seq(badUpperCaseStopWords.toSeq)).map(_.trim)
+    transformed should equal(List.fill(badUpperCaseStopWords.size)(""))
+    transformed should not equal List.fill(lowerCaseStopWords.size)("")
+    transformed.filter(_.nonEmpty) should equal(List.empty)
   }
 }
 
