@@ -55,7 +55,7 @@ object CountingTask {
 }
 /** Task that counts its executions. */
 case class CountingTask() extends CustomTask {
-  override def inputPorts: InputPorts = FixedNumberOfInputs(Seq.empty)
+  override def inputPorts: InputPorts = InputPorts.NoInputPorts
   override def outputPort: Option[Port] = None
 }
 

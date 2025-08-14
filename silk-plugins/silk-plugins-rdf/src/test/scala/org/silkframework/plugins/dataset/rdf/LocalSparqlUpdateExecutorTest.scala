@@ -125,7 +125,7 @@ class LocalSparqlUpdateExecutorTest extends AnyFlatSpec with Matchers with TestW
 
 class DummyTaskSpec(params: Map[String, String]) extends CustomTask {
 
-  override def inputPorts: InputPorts = FixedNumberOfInputs(Seq.empty)
+  override def inputPorts: InputPorts = InputPorts.NoInputPorts
 
   override def outputPort: Option[Port] = None
 

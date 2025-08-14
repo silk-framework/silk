@@ -22,6 +22,9 @@ object SilkVocab {
 
   val RestTaskResultResponseBody: String = RestTaskResult + "/responseBody"
 
+  // Clear dataset
+  val ClearDatasetType: String = namespace + "ClearDatasetType"
+
   // Empty table
   val EmptySchemaType: String = namespace + "EmptySchemaType"
 

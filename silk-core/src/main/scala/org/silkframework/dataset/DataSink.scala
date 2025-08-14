@@ -9,6 +9,8 @@ trait DataSink extends CloseableDataset {
 
   /**
     * Makes sure that the next write will start from an empty dataset.
+    *
+    * @param force If set to true, it should clear the dataset no matter what the config is.
     */
-  def clear()(implicit userContext: UserContext): Unit
+  def clear(force: Boolean = false)(implicit userContext: UserContext): Unit = { }
 }

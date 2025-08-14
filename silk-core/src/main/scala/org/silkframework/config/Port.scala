@@ -66,3 +66,7 @@ case class FixedNumberOfInputs(ports: Seq[Port]) extends InputPorts
 case class FlexibleNumberOfInputs(portDefinition: Port = FlexibleSchemaPort(),
                                   min: Int = 0,
                                   max: Option[Int] = None) extends InputPorts
+
+object InputPorts {
+  final val NoInputPorts = FixedNumberOfInputs(Seq.empty)
+}

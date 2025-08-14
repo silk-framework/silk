@@ -116,7 +116,7 @@ class FileSink(file: WritableResource) extends EntitySink {
     throwException
   }
 
-  override def clear()(implicit userContext: UserContext): Unit = {
+  override def clear(force: Boolean = false)(implicit userContext: UserContext): Unit = {
     file.delete()
   }
 

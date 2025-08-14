@@ -1326,5 +1326,12 @@
                 "continue-editing": "Continue editing"
             }
         }
+    },
+    "DatasetClearButton": {
+        "tooltip": "Clears the output dataset",
+        "readOnlyTooltip": "Output dataset is read-only and cannot be cleared.",
+        "modalTitle": "Clear dataset '{{datasetLabel}}'",
+        "modalText": "Are you sure that you want to clear the dataset '{{datasetLabel}}'?'",
+        "modalButtonText": "Clear dataset"
     }
 }
