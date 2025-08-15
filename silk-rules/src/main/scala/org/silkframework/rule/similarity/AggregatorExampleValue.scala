@@ -39,12 +39,12 @@ case class AggregatorExampleValue(description: Option[String],
   private def formatScore(score: Option[Double]): String = {
     score match {
       case Some(s) => s.toString
-      case None => "(none)"
+      case None => "null"
     }
   }
 
   private def format(iterable: Iterable[_]): String = {
-    iterable.mkString("[", ", ", "]")
+    iterable.mkString("`[", ", ", "]`")
   }
 }
 
