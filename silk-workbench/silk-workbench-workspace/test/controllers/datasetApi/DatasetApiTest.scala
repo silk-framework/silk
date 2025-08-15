@@ -16,7 +16,7 @@ class DatasetApiTest extends AnyFlatSpec with Matchers with IntegrationTestTrait
 
   override def routes: Option[Class[_ <: Router]] = Some(classOf[testWorkspace.Routes])
 
-  override def workspaceProviderId: String = "inMemory"
+  override def workspaceProviderId: String = "inMemoryWorkspaceProvider"
 
   val projectId = "testProject"
   private lazy val project = retrieveOrCreateProject(projectId)

@@ -28,7 +28,7 @@ class ResourceApiTest extends AnyFlatSpec with IntegrationTestTrait with Matcher
 
   override def routes: Option[Class[testWorkspace.Routes]] = Some(classOf[testWorkspace.Routes])
 
-  override def workspaceProviderId: String = "inMemory"
+  override def workspaceProviderId: String = "inMemoryWorkspaceProvider"
 
   private val resourceApi = controllers.workspace.routes.ResourceApi
 
