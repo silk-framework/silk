@@ -24,7 +24,8 @@ import scala.util.matching.Regex
   id = "regexReplace",
   categories = Array("Replace"),
   label = "Regex replace",
-  description = "Replace all occurrences of a regular expression in a string.",
+  description = "Replace all occurrences of a regular expression in a string." +
+    " If no replacement is given, the occurrences of the regular expression will be deleted.",
   documentationFile = "RegexReplaceTransformer.md"
 )
 @TransformExamples(Array(
