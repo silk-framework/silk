@@ -58,7 +58,7 @@ describe("Task creation widget", () => {
 
     const createArtefactWrapper = (
         currentUrl: string = `${SERVE_PATH}`,
-        existingTask?: RecursivePartial<IProjectTaskUpdatePayload>
+        existingTask?: RecursivePartial<IProjectTaskUpdatePayload>,
     ): IWrapper => {
         const history = createMemoryHistory();
         history.push(currentUrl);
@@ -104,7 +104,7 @@ describe("Task creation widget", () => {
     const pluginCreationDialogWrapper = async (
         doubleClickToAdd: boolean = true,
         // The current data of a task that is being updated
-        existingTask?: RecursivePartial<IProjectTaskUpdatePayload>
+        existingTask?: RecursivePartial<IProjectTaskUpdatePayload>,
     ) => {
         const wrapper = await createMockedListWrapper(existingTask);
         const pluginA = selectionItems(wrapper.wrapper)[1];
@@ -120,13 +120,13 @@ describe("Task creation widget", () => {
             }
             mockAxios.mockResponseFor(
                 { url: apiUrl("core/plugins/pluginA") },
-                mockedAxiosResponse({ data: mockPluginDescription })
+                mockedAxiosResponse({ data: mockPluginDescription }),
             );
         }
         await waitFor(() => {
             const labels = findAll(wrapper.wrapper, ".eccgui-label .eccgui-label__text").map((e) => e.text());
             Object.entries(mockPluginDescription.properties).forEach(([paramId, attributes]) =>
-                expect(labels).toContain(attributes.title)
+                expect(labels).toContain(attributes.title),
             );
         });
         return wrapper;
@@ -175,22 +175,22 @@ describe("Task creation widget", () => {
             resourceParam: atomicParamDescription({ title: "resource param", parameterType: INPUT_TYPES.RESOURCE }),
             enumerationParam: atomicParamDescription(
                 { title: "enumeration param", parameterType: INPUT_TYPES.ENUMERATION },
-                {}
+                {},
             ),
             autoCompletionParamCustom: atomicParamDescription(
                 { title: "auto-complete param that allows custom values", parameterType: INPUT_TYPES.STRING },
-                { allowOnlyAutoCompletedValues: false }
+                { allowOnlyAutoCompletedValues: false },
             ),
             optionalAutoCompletionParamCustom: atomicParamDescription(
                 { title: "auto-complete param that allows resetting it's value", parameterType: INPUT_TYPES.STRING },
-                {}
+                {},
             ),
             objectParameter: objectParamDescription(
                 "pluginX",
                 {
                     subProperty: atomicParamDescription(
                         { title: "nested auto-complete param", parameterType: INPUT_TYPES.STRING },
-                        {}
+                        {},
                     ),
                     subStringParam: atomicParamDescription({
                         title: "string param",
@@ -198,7 +198,7 @@ describe("Task creation widget", () => {
                     }),
                 },
                 ["subStringParam"],
-                {}
+                {},
             ),
         },
     };
@@ -271,12 +271,6 @@ describe("Task creation widget", () => {
         const { wrapper, history } = await pluginCreationDialogWrapper();
         changeValue(findSingleElement(wrapper, "#intParam"), "100");
         changeValue(findSingleElement(wrapper, "#label"), "Some label");
-        /** FIXME: CodeMirror Editor refed in the codemirror-wrapper div doesn't show and is still null even at this point
-         * This wasn't the case with version 5 where I could do this document.querySelector('#description .CodeMirror').CodeMirror.setValue('')
-         * In v6 I should be able to do cmView.view.dispatch({ changes: {from:0, to: document.querySelector('.cm-content').cmView.view.state.doc.length, insert:''}})
-         * but again the editor returns null, even after waiting
-         * created follow up issue https://jira.eccenca.com/browse/CMEM-6208
-         */
         changeValue(findSingleElement(wrapper, byName("objectParameter.subStringParam")), "Something");
         clickCreate(wrapper);
         await expectValidationErrors(wrapper, 0);
@@ -297,7 +291,7 @@ describe("Task creation widget", () => {
         mockAxiosResponse(tasksUri, { data: { id: newTaskId } });
         await waitFor(() => {
             expect(history.location.pathname).toEqual(
-                expect.stringMatching(new RegExp(`projects/${PROJECT_ID}/task/${newTaskId}$`))
+                expect.stringMatching(new RegExp(`projects/${PROJECT_ID}/task/${newTaskId}$`)),
             );
         });
     });
@@ -313,7 +307,7 @@ describe("Task creation widget", () => {
         await waitFor(() => {
             mockAxiosResponse(
                 legacyApiUrl("workspace/projects/projectId/tasks"),
-                mockedAxiosError(500, { title: "error", detail: expectedErrorMsg })
+                mockedAxiosError(500, { title: "error", detail: expectedErrorMsg }),
             );
         });
         await waitFor(() => {
@@ -325,18 +319,11 @@ describe("Task creation widget", () => {
     it("should allow to create a new project", async () => {
         const { wrapper } = await createMockedListWrapper();
         const PROJECT_LABEL = "Project label";
-        const PROJECT_DESCRIPTION = "Project description";
         const project = selectionItems(wrapper)[0];
         clickWrapperElement(project);
         clickWrapperElement(project);
         expect(findAll(wrapper, "#label")).toHaveLength(1);
         changeValue(findSingleElement(wrapper, "#label"), PROJECT_LABEL);
-        /** FIXME: CodeMirror Editor refed in the codemirror-wrapper div doesn't show and is still null even at this point
-         * This wasn't the case with version 5 where I could do this document.querySelector('#description .CodeMirror').CodeMirror.setValue('')
-         * In v6 I should be able to do cmView.view.dispatch({ changes: {from:0, to: document.querySelector('.cm-content').cmView.view.state.doc.length, insert:''}})
-         * but again the editor returns null, even after waiting
-         * created follow up issue https://jira.eccenca.com/browse/CMEM-6208
-         */
         clickCreate(wrapper);
         await expectValidationErrors(wrapper, 0);
         await waitFor(() => {
@@ -366,16 +353,12 @@ describe("Task creation widget", () => {
             // Request is delayed by 200ms
             mockAutoCompleteResponse(
                 { textQuery: "abc" },
-                mockedAxiosResponse({ data: [{ value: "abc1" }, { value: "abc2" }] })
+                mockedAxiosResponse({ data: [{ value: "abc1" }, { value: "abc2" }] }),
             );
         });
         await waitFor(() => {
             expect(window.document.querySelectorAll(".eccgui-spinner").length).toBe(0);
         });
-        // FIXME: Blueprint portal with suggestion results is not shown
-        // await waitFor(() => {
-        //     expect(window.document.querySelectorAll(`div.${bluePrintClassPrefix}-portal`).length).toBeGreaterThan(beforePortals)
-        // })
     });
 
     const value = (value: string, label?: string) => {
@@ -433,7 +416,7 @@ describe("Task creation widget", () => {
         Object.entries(expectedParams).forEach(([key, value]) => (expectedObject[key] = value.value));
         const objectParameterObject: any = {};
         Object.entries(expectedParams.objectParameter.value).forEach(
-            ([key, value]) => (objectParameterObject[key] = value.value)
+            ([key, value]) => (objectParameterObject[key] = value.value),
         );
         expectedObject.objectParameter = objectParameterObject;
         expect(updateRequest.data.parameters).toEqual(expectedObject);
@@ -447,24 +430,15 @@ describe("Task creation widget", () => {
             },
         });
         await waitFor(() => findSingleElement(wrapper, byTestId("stringParam-template-switch-back-btn")));
-        /** FIXME: CodeMirror Editor refed in the codemirror-wrapper div doesn't show and is still null even at this point
-         * This wasn't the case with version 5 where I could do this document.querySelector('#description .CodeMirror').CodeMirror.setValue('')
-         * In v6 I should be able to do cmView.view.dispatch({ changes: {from:0, to: document.querySelector('.cm-content').cmView.view.state.doc.length, insert:''}})
-         * but again the editor returns null, even after waiting 
-         * created follow up issue https://jira.eccenca.com/browse/CMEM-6208
-         *  await waitFor(() =>
-             expect(findSingleElement(wrapper, "#restrictionParam").text()).toContain("restriction value") 
-           );
-         */
         const updateRequest = await updateTask(wrapper);
         // Build expected request parameter object
         const expectedObject: any = {};
         Object.entries(expectedParams).forEach(
-            ([key, value]) => key !== "stringParam" && (expectedObject[key] = value.value)
+            ([key, value]) => key !== "stringParam" && (expectedObject[key] = value.value),
         );
         const objectParameterObject: any = {};
         Object.entries(expectedParams.objectParameter.value).forEach(
-            ([key, value]) => (objectParameterObject[key] = value.value)
+            ([key, value]) => (objectParameterObject[key] = value.value),
         );
         expectedObject.objectParameter = objectParameterObject;
         expect(updateRequest.data.parameters).toEqual(expectedObject);

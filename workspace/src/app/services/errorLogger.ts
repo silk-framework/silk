@@ -72,7 +72,7 @@ const onErrorHandler = (
     url: string,
     lineNumber: number,
     colNo?: number,
-    normalErrorObject?: Error
+    normalErrorObject?: Error,
 ): boolean => {
     if (normalErrorObject) {
         logError(normalErrorObject);
@@ -111,6 +111,7 @@ const getClientInfo = (): IClientInfo => {
  */
 const generateNetworkError = (error: FetchError) => {
     const { config } = error.errorDetails;
+    if (!config) return {};
     const { url, data, headers, baseURL, method } = config;
     return {
         url,

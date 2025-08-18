@@ -46,7 +46,7 @@ object ItemType {
       case ItemType.task =>
         ItemLink("details", "Task details page", s"$detailsPageBase/${ItemType.task.id}/$itemId")
       case ItemType.project =>
-        ItemLink("details", "Project details page", s"$context/${workspaceProjectPath(itemId)}")
+        ItemLink("details", "Project details page", s"$context/${workspaceProjectPath(itemId)}" + WorkbenchConfig.defaultProjectPageSuffix.getOrElse(""))
       case _ =>
         throw new IllegalArgumentException(s"Unsupported item type: $itemType")
 

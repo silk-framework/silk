@@ -60,4 +60,10 @@ public @interface Plugin {
    * This icon is rendered in the UI.
    */
   String iconFile() default "";
+
+  /**
+   * Optional deprecation message.
+   * If set, the plugin will be marked as deprecated in the UI.
+   */
+  String deprecation() default "";
 }

@@ -5,7 +5,7 @@ import org.silkframework.config.Prefixes
 import org.silkframework.dataset.DataSource
 import org.silkframework.entity._
 import org.silkframework.entity.paths.{TypedPath, UntypedPath}
-import org.silkframework.runtime.activity.UserContext
+import org.silkframework.runtime.activity.{TestPluginContextTrait, UserContext}
 import org.silkframework.runtime.resource.ClasspathResourceLoader
 import org.silkframework.util.Uri
 
@@ -16,10 +16,7 @@ import org.scalatest.matchers.should.Matchers
 import scala.collection.immutable.Seq
 
 //noinspection ScalaStyle
-abstract class XmlSourceTestBase extends AnyFlatSpec with Matchers {
-
-  implicit protected val userContext: UserContext = UserContext.Empty
-  implicit protected val prefixes: Prefixes = Prefixes.empty
+abstract class XmlSourceTestBase extends AnyFlatSpec with Matchers with TestPluginContextTrait {
 
   def xmlSource(name: String, uriPattern: String, baseType: String = ""): DataSource with XmlSourceTrait
   // Some operations are not supported in streaming mode
@@ -131,7 +128,7 @@ abstract class XmlSourceTestBase extends AnyFlatSpec with Matchers {
     }
 
     it should s"generate correct URIs for non-leaf nodes when the URI pattern is defined ($fileName)" in {
-      (persons withUriPattern "http://example.org/Property{Value}" atPath "Person" valuesAt "Properties/Property") shouldBe
+      (persons withUriPattern "http://example.org/Property{Value}" atPath "Person" entityURIsAt "Properties/Property") shouldBe
         Seq(Seq("http://example.org/PropertyV1", "http://example.org/PropertyV2", "http://example.org/PropertyV3"), Seq())
     }
 

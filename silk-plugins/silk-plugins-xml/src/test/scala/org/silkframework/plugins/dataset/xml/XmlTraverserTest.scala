@@ -25,7 +25,7 @@ class XmlTraverserTest extends AnyFlatSpec with Matchers {
       </A>
     </Root>
     implicit val traverser: XmlTraverser = createTraverser(xml)
-    evaluate("/A/B") mustBe Seq("Value", "complex element")
+    evaluate("/A/B") mustBe Seq("Value", "", "complex element", "", "")
     val objectResources = evaluate("/A/B", ValueType.URI)
     objectResources.size mustBe 6
     objectResources.map(_.take(14)).distinct mustBe Seq("urn:instance:B")

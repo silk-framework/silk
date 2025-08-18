@@ -13,7 +13,7 @@ import io.swagger.v3.oas.annotations.{Operation, Parameter}
 import org.silkframework.config.Prefixes
 import org.silkframework.rule.evaluation.{DetailedEvaluator, Value}
 import org.silkframework.rule.execution.{EvaluateTransform => EvaluateTransformTask}
-import org.silkframework.rule.{ObjectMapping, TransformRule, TransformSpec, ValueTransformRule}
+import org.silkframework.rule.{ComplexUriMapping, ObjectMapping, TransformRule, TransformSpec, ValueTransformRule}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.iterator.CloseableIterator
 import org.silkframework.runtime.plugin.PluginContext
@@ -226,7 +226,6 @@ class EvaluateTransformApi @Inject()(implicit accessMonitor: WorkbenchAccessMoni
 
   private def evaluateRule(task: ProjectTask[TransformSpec], parentRuleId: Identifier, transformRule: TransformRule, limit: Int)
                           (implicit pluginContext: PluginContext): CloseableIterator[Value] = {
-    implicit val prefixes: Prefixes = task.project.config.prefixes
     implicit val user: UserContext = pluginContext.user
 
     val ruleSchema = ruleSchemaById(task, parentRuleId)

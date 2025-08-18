@@ -156,6 +156,16 @@ export function CreateArtefactModal() {
     }, []);
     const [taskActionResult, setTaskActionResult] = React.useState<{ label: string; message: string }>();
     const [taskActionLoading, setTaskActionLoading] = React.useState<string | null>(null);
+    const [taskFormGeneralWarning, setTaskFormGeneralWarning] = React.useState<string | undefined>();
+    const generalWarningTimeout = React.useRef<number | undefined>();
+
+    const taskFormWarning = React.useCallback((message: string) => {
+        if (generalWarningTimeout.current) {
+            clearTimeout(generalWarningTimeout.current);
+        }
+        generalWarningTimeout.current = window.setTimeout(() => setTaskFormGeneralWarning(message), 250);
+    }, []);
+
     React.useEffect(() => {
         if (infoMessage?.removeAfterSeconds && infoMessage.removeAfterSeconds > 0) {
             const timeoutId = setTimeout(() => {
@@ -591,6 +601,7 @@ export function CreateArtefactModal() {
                 // Close modal immediately from update dialog
                 goBackOnEscape={() => handleBack(true)}
                 propagateExternallyChangedParameterValue={propagateExternallyChangedParameterValue}
+                showWarningMessage={taskFormWarning}
             />
         );
     } else {
@@ -630,6 +641,7 @@ export function CreateArtefactModal() {
                             goBackOnEscape={handleBack}
                             newTaskPreConfiguration={updatedNewTaskPreConfiguration}
                             propagateExternallyChangedParameterValue={propagateExternallyChangedParameterValue}
+                            showWarningMessage={taskFormWarning}
                         />,
                     );
                 }
@@ -933,6 +945,13 @@ export function CreateArtefactModal() {
             />,
         );
     }
+
+    if (taskFormGeneralWarning) {
+        notifications.push(
+            <Notification message={taskFormGeneralWarning} onDismiss={() => setTaskFormGeneralWarning(undefined)} />,
+        );
+    }
+
     const submitEnabled = !!isCreationUpdateDialog && !isErrorPresented();
     useHotKey({ hotkey: "enter", handler: handleCreate, enabled: submitEnabled });
 

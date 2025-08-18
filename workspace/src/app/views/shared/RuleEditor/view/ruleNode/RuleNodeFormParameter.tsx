@@ -6,7 +6,7 @@ import ruleNodeUtils from "./ruleNode.utils";
 import { IParameterValidationResult } from "../../RuleEditor.typings";
 import { useTranslation } from "react-i18next";
 import { RuleEditorNodeParameterValue } from "../../model/RuleEditorModel.typings";
-import { LanguageFilterProps } from "./PathInputOperator";
+import { InputPathFunctions, LanguageFilterProps } from "./PathInputOperator";
 
 interface RuleNodeFormParameterProps {
     nodeId: string;
@@ -20,8 +20,8 @@ interface RuleNodeFormParameterProps {
     large: boolean;
     /** When used inside a modal, the behavior of some components will be optimized. */
     insideModal: boolean;
-    /** If for this parameter there is a language filter supported. Currently only path parameters are affected by this option. */
-    languageFilter?: LanguageFilterProps;
+    /** Functions that are specific to input path rule operators. */
+    inputPathFunctions: InputPathFunctions;
 }
 
 /** A single form parameter, i.e. label, validation and input component. */
@@ -32,7 +32,7 @@ export const RuleNodeFormParameter = ({
     dependentValue,
     large,
     insideModal,
-    languageFilter,
+    inputPathFunctions,
     parameterDefaultValue,
 }: RuleNodeFormParameterProps) => {
     const [t] = useTranslation();
@@ -91,7 +91,7 @@ export const RuleNodeFormParameter = ({
                 parameterDefaultValue={parameterDefaultValue}
                 large={large}
                 insideModal={insideModal}
-                languageFilter={languageFilter}
+                inputPathFunctions={inputPathFunctions}
             />
         </FieldItem>
     );

@@ -13,7 +13,7 @@ export const getEvaluatedEntities = async (
     taskId: string,
     ruleId: string,
     limit: number,
-    showOnlyEntitiesWithUris: boolean
+    showOnlyEntitiesWithUris: boolean,
 ): Promise<FetchResponse<EvaluatedRuleEntityResult>> =>
     fetch({
         method: "GET",
@@ -56,7 +56,7 @@ export const NodeTagValues: React.FC<NodeTagValuesProps> = React.memo(
                         N/A
                     </Tag>
                 )}
-                {!values.length && error && <Icon intent="warning" name="state-warning" tooltipText={error} />}
+                {error && <Icon intent="warning" name="state-warning" tooltipText={error} />}
                 {values.slice(0, cutAfter).map((v, i) => (
                     <Tag key={i} round emphasis="stronger" interactive {...otherTagProps}>
                         {v}
@@ -65,7 +65,7 @@ export const NodeTagValues: React.FC<NodeTagValuesProps> = React.memo(
                 {remainingNodes}
             </TagList>
         );
-    }
+    },
 );
 
 export const newNode = ({

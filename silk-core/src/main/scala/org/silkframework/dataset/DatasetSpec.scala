@@ -159,7 +159,7 @@ object DatasetSpec {
       * @return A Traversable over the entities. The evaluation of the Traversable may be non-strict.
       */
     override def retrieve(entitySchema: EntitySchema, limit: Option[Int])
-                         (implicit userContext: UserContext, prefixes: Prefixes): EntityHolder = {
+                         (implicit context: PluginContext): EntityHolder = {
       val adaptedSchema = adaptSchema(entitySchema)
       val entities = source.retrieve(adaptedSchema, limit)
       adaptUris(entities)
@@ -173,7 +173,7 @@ object DatasetSpec {
       * @return A Traversable over the entities. The evaluation of the Traversable may be non-strict.
       */
     override def retrieveByUri(entitySchema: EntitySchema, entities: Seq[Uri])
-                              (implicit userContext: UserContext, prefixes: Prefixes): EntityHolder = {
+                              (implicit context: PluginContext): EntityHolder = {
       if(entities.isEmpty) {
         GenericEntityTable(CloseableIterator.empty, entitySchema, underlyingTask)
       } else {

@@ -21,6 +21,8 @@ import {
     TableRow,
     Toolbar,
     ToolbarSection,
+    Tooltip,
+    ConfidenceValue,
 } from "@eccenca/gui-elements";
 import { usePagination } from "@eccenca/gui-elements/src/components/Pagination/Pagination";
 import React from "react";
@@ -74,7 +76,7 @@ export const LinkingRuleReferenceLinks = ({
     const [showConfirmedOnly, setShowConfirmedOnly] = React.useState(false);
     const [showDeclinedOnly, setShowDeclinedOnly] = React.useState(false);
     const [entityUrisToOpenInModal, setEntityUrisToOpenInModal] = React.useState<UnlabeledEntityLink | undefined>(
-        undefined
+        undefined,
     );
     const [pagination, paginationElement, onTotalChange] = usePagination({
         initialPageSize: 10,
@@ -82,7 +84,7 @@ export const LinkingRuleReferenceLinks = ({
         presentation: { hideInfoText: true },
     });
     const [referenceLinksFiltered, setReferenceLinksFiltered] = React.useState<AnnotatedReferenceLink[] | undefined>(
-        undefined
+        undefined,
     );
     const [t] = useTranslation();
     const misMatches = (referenceLinksFiltered ?? []).filter((link) => link.misMatch).length;
@@ -118,7 +120,7 @@ export const LinkingRuleReferenceLinks = ({
                 );
                 const misMatchFiltered = !showOnlyMismatches || link.misMatch;
                 return typeFiltered && misMatchFiltered;
-            })
+            }),
         );
         setActiveTableRow(undefined);
     }, [referenceLinks, showOnlyMismatches, showConfirmedOnly, showDeclinedOnly]);
@@ -144,6 +146,7 @@ export const LinkingRuleReferenceLinks = ({
                                         small
                                         data-test-id={"reference-links-show-confirmed-links"}
                                         elevated={showConfirmedOnly}
+                                        tooltip={t("ReferenceLinks.confirmedOnlyTooltip")}
                                         disabled={!showConfirmedOnly && positiveLinks <= 0}
                                         onClick={() => {
                                             setShowConfirmedOnly(!showConfirmedOnly);
@@ -156,6 +159,7 @@ export const LinkingRuleReferenceLinks = ({
                                         small
                                         data-test-id={"reference-links-show-declined-links"}
                                         elevated={showDeclinedOnly}
+                                        tooltip={t("ReferenceLinks.declinedOnlyTooltip")}
                                         disabled={!showDeclinedOnly && negativeLinks <= 0}
                                         onClick={() => {
                                             setShowDeclinedOnly(!showDeclinedOnly);
@@ -170,8 +174,9 @@ export const LinkingRuleReferenceLinks = ({
                             {!!showLinkType ? (
                                 <>
                                     <Button
-                                        small
+                                        size={"small"}
                                         key={"certain"}
+                                        tooltip={t("ReferenceLinks.certainOnlyTooltip")}
                                         data-test-id={"reference-links-show-certain-links"}
                                         elevated={!showUncertainLinks}
                                         onClick={() => showLinksOfType("labeled")}
@@ -179,8 +184,9 @@ export const LinkingRuleReferenceLinks = ({
                                         {t("ReferenceLinks.certainOnly")}
                                     </Button>
                                     <Button
-                                        small
+                                        size={"small"}
                                         key={"uncertain"}
+                                        tooltip={t("ReferenceLinks.uncertainOnlyTooltip")}
                                         data-test-id={"reference-links-show-uncertain-links"}
                                         elevated={showUncertainLinks}
                                         onClick={() => showLinksOfType("unlabeled")}
@@ -190,15 +196,17 @@ export const LinkingRuleReferenceLinks = ({
                                     <Spacing vertical={true} size="small" />
                                 </>
                             ) : null}
-                            <Checkbox
-                                data-test-id={"reference-links-show-mismatches"}
-                                disabled={misMatches <= 0}
-                                checked={showOnlyMismatches}
-                                onChange={() => setShowOnlyMismatches((prev) => !prev)}
-                                style={{ margin: "0px" }}
-                            >
-                                {t("ReferenceLinks.mismatchCheckboxTitle", { nrMismatches: misMatches })}
-                            </Checkbox>
+                            <Tooltip content={t("ReferenceLinks.mismatchCheckboxTooltip")}>
+                                <Checkbox
+                                    data-test-id={"reference-links-show-mismatches"}
+                                    disabled={misMatches <= 0}
+                                    checked={showOnlyMismatches}
+                                    onChange={() => setShowOnlyMismatches((prev) => !prev)}
+                                    style={{ margin: "0px" }}
+                                >
+                                    {t("ReferenceLinks.mismatchCheckboxTitle", { nrMismatches: misMatches })}
+                                </Checkbox>
+                            </Tooltip>
                             <Spacing vertical={true} size="small" />
                         </>
                     )}
@@ -247,13 +255,14 @@ export const LinkingRuleReferenceLinks = ({
     const ReferenceLinksTable = () => {
         return (
             <>
-                <Table columnWidths={["30px", "30px", "40%", "40%", "100px"]}>
+                <Table columnWidths={["30px", "30px", "35%", "35%", "90px", "100px"]}>
                     <TableHead>
                         <TableRow>
                             <TableHeader key={"marker-column"}>&nbsp;</TableHeader>
                             <TableHeader key={"warning-column"}>&nbsp;</TableHeader>
                             <TableHeader>{t("ActiveLearning.config.entitiyPair.sourceColumnTitle")}</TableHeader>
                             <TableHeader>{t("ActiveLearning.config.entitiyPair.targetColumnTitle")}</TableHeader>
+                            <TableHeader>{t("linkingEvaluationTabView.table.header.score")}</TableHeader>
                             <TableHeader key={"actions-column"} style={{ width: "1px" }}>
                                 &nbsp;
                             </TableHeader>
@@ -264,7 +273,7 @@ export const LinkingRuleReferenceLinks = ({
                             ? referenceLinksFiltered
                                   .slice(
                                       (pagination.current - 1) * pagination.limit,
-                                      pagination.current * pagination.limit
+                                      pagination.current * pagination.limit,
                                   )
                                   .map((link, rowIdx) => {
                                       const [sourceLabel, targetLabel] = entityLabels(link);
@@ -300,6 +309,9 @@ export const LinkingRuleReferenceLinks = ({
                                               <TableCell>{sourceLabel}</TableCell>
                                               <TableCell>{targetLabel}</TableCell>
                                               <TableCell>
+                                                  {link.score ? <ConfidenceValue value={link.score} /> : "N/A"}
+                                              </TableCell>
+                                              <TableCell>
                                                   <Toolbar>
                                                       <ToolbarSection>
                                                           <IconButton
@@ -322,7 +334,7 @@ export const LinkingRuleReferenceLinks = ({
                                                               data-test-id={`reference-link-more-menu-${rowIdx}`}
                                                               togglerText={t(
                                                                   "common.action.moreOptions",
-                                                                  "Show more options"
+                                                                  "Show more options",
                                                               )}
                                                           >
                                                               <MenuItem

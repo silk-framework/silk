@@ -49,7 +49,7 @@ class PartialAutoCompletionApiTest extends AnyFlatSpec with Matchers with Single
     */
   override def projectPathInClasspath: String = "diProjects/423a27b9-c6e6-45e5-84d2-26d94fce3d1b_Partialauto-completionproject.zip"
 
-  override def workspaceProviderId: String = "inMemory"
+  override def workspaceProviderId: String = "inMemoryWorkspaceProvider"
 
   protected override def routes: Option[Class[Routes]] = Some(classOf[test.Routes])
 
@@ -119,7 +119,7 @@ class PartialAutoCompletionApiTest extends AnyFlatSpec with Matchers with Single
     jsonSuggestions(inputWithFilter, filterStartIdx) mustBe Seq("id") ++ jsonSpecialPaths.filter(_.contains("id"))
     jsonSuggestions(inputWithFilter, secondFilterStartIdx) mustBe Seq("tagId") ++ jsonSpecialPaths.filter(_.contains("id"))
     // Multi word query
-    jsonSuggestions(inputWithFilter.take(secondFilterStartIdx) + "ta id" + inputWithFilter.drop(secondFilterStartIdx + 2), secondFilterStartIdx) mustBe Seq("tagId")
+    jsonSuggestions(inputWithFilter.take(secondFilterStartIdx) + "ta id" + inputWithFilter.drop(secondFilterStartIdx + 2), secondFilterStartIdx) mustBe Seq("tagId", "#uuid")
     // Empty query
     jsonSuggestions(inputWithFilter.take(secondFilterStartIdx) + "" + inputWithFilter.drop(secondFilterStartIdx + 2), secondFilterStartIdx) mustBe Seq("evenMoreNested", "tagId") ++ jsonSpecialPaths
   }
@@ -160,9 +160,9 @@ class PartialAutoCompletionApiTest extends AnyFlatSpec with Matchers with Single
     // The operators are proposed, so the path should also be shown
     rdfSuggestions("rdf:type") mustBe Seq("rdf:type") ++ rdfOps
     // The special paths actually match "value" in the comments, that's why they show up here and /value is still proposed
-    jsonSuggestionsForPath("department/tags/evenMoreNested/value") mustBe Seq("/value", "/#id", "/#text", "/#line", "/#column") ++ jsonOps
+    jsonSuggestionsForPath("department/tags/evenMoreNested/value") mustBe Seq("/value", "/#id", "/#uuid", "/#text", "/#arrayText", "/#line", "/#column") ++ jsonOps
     // Here, the backward operator would show up, so also show the path
-    jsonSuggestions("name", 0, None) mustBe Seq("name", "#key", "\\")
+    jsonSuggestions("name", 0, None) mustBe Seq("name", "#uuid", "#key", "\\")
   }
 
   it should "not propose path ops inside a filter" in {
@@ -218,7 +218,7 @@ class PartialAutoCompletionApiTest extends AnyFlatSpec with Matchers with Single
 
   it should "not suggest special paths that should not be used in object mapping value paths" in {
     jsonSuggestionsForPath("", Some(true)) mustBe allJsonPaths ++ jsonSpecialPaths.filterNot(p =>
-      Set(JsonDataset.specialPaths.ID, JsonDataset.specialPaths.TEXT, JsonDataset.specialPaths.KEY).contains(p)) ++ Seq("\\")
+      Set(JsonDataset.specialPaths.ID, JsonDataset.specialPaths.UUID, JsonDataset.specialPaths.TEXT, JsonDataset.specialPaths.ARRAY_TEXT, JsonDataset.specialPaths.KEY).contains(p)) ++ Seq("\\")
     rdfSuggestions("", Some(true)) mustBe allPersonRdfPaths.filterNot(p => Set(specialPaths.LANG, specialPaths.TEXT).contains(p)) ++ Seq("\\")
   }
 
@@ -231,7 +231,7 @@ class PartialAutoCompletionApiTest extends AnyFlatSpec with Matchers with Single
 
   it should "suggest the correct paths for object mappings starting with backward paths" in {
     suggest("") mustBe allJsonPaths ++ jsonSpecialPaths ++ Seq("\\")
-    suggest("nam") mustBe Seq("name", "#key") ++ jsonOps
+    suggest("nam") mustBe Seq("name", "#uuid", "#key") ++ jsonOps
   }
 
   it should "consider * for datasets that support this path operator" in {
@@ -241,7 +241,7 @@ class PartialAutoCompletionApiTest extends AnyFlatSpec with Matchers with Single
     suggest("*/id") mustBe allJsonPaths
       .filter(_.contains("/"))
       .map(p => p.drop(p.indexOf("/")))
-      .filter(_.toLowerCase.contains("id")) ++ Seq("/#id") ++ jsonOps
+      .filter(_.toLowerCase.contains("id")) ++ Seq("/#id", "/#uuid") ++ jsonOps
     // Ignore special paths containing "value" in the description
     suggest("*/tags/*/val").filter(!_.startsWith("/#")) mustBe Seq("/value") ++ jsonOps
   }
@@ -268,7 +268,7 @@ class PartialAutoCompletionApiTest extends AnyFlatSpec with Matchers with Single
     pathsCache.control.waitUntilFinished()
     val cacheValue = pathsCache.control.value.get.get
     cacheValue.configuredSchema.typedPaths.find(_.toString.contains("someBackwardPathToParent")) mustBe defined
-    suggest("nam", ruleId = "toParent") mustBe Seq("nameAfterBack", "#key") ++ jsonOps
+    suggest("nam", ruleId = "toParent") mustBe Seq("nameAfterBack", "#uuid", "#key") ++ jsonOps
   }
 
   private def partialAutoCompleteResult(inputString: String = "",

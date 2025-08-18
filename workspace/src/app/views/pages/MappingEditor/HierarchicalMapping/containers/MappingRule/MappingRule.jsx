@@ -15,6 +15,7 @@ import MappingRuleRow from "./MappingRuleRow";
 import NavigateButton from "../../elements/buttons/NavigateButton";
 import ExpandButton from "../../elements/buttons/ExpandButton";
 import { ContextMenu, MenuItem, Spinner } from "@eccenca/gui-elements";
+import { getRuleLabel } from "../../utils/getRuleLabel";
 
 export class MappingRule extends React.Component {
     // define property types
@@ -135,6 +136,10 @@ export class MappingRule extends React.Component {
             this.props;
         const srcPath = sourcePath || sourcePaths;
 
+        const label = _.get(metadata, "label", "");
+        const ruleLabelData = getRuleLabel({ label, uri: mappingTarget.uri });
+        const ruleDisplayLabel = ruleLabelData.displayLabel;
+
         const expandedView = this.props.expanded ? (
             isRootOrObjectRule(type) ? (
                 <ObjectRule
@@ -163,6 +168,7 @@ export class MappingRule extends React.Component {
                     onClickedRemove={this.props.onClickedRemove}
                     mapRuleLoading={this.props.mapRuleLoading}
                     viewActions={this.props.viewActions}
+                    displayLabel={ruleDisplayLabel}
                 />
             )
         ) : (

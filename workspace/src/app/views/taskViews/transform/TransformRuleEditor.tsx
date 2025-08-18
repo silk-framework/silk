@@ -6,7 +6,12 @@ import { IViewActions } from "../../plugins/PluginRegistry";
 import RuleEditor, { RuleOperatorFetchFnType } from "../../shared/RuleEditor/RuleEditor";
 import { requestRuleOperatorPluginsDetails } from "@ducks/common/requests";
 import { IPluginDetails } from "@ducks/common/typings";
-import { autoCompleteTransformSourcePath, putTransformRule, requestTransformRule } from "./transform.requests";
+import {
+    autoCompleteTransformSourcePath,
+    partialAutoCompleteTransformInputPaths,
+    putTransformRule,
+    requestTransformRule,
+} from "./transform.requests";
 import {
     IRuleOperatorNode,
     RULE_EDITOR_NOTIFICATION_INSTANCE,
@@ -24,6 +29,7 @@ import { DatasetCharacteristics } from "../../shared/typings";
 import { requestDatasetCharacteristics, requestTaskData } from "@ducks/shared/requests";
 import { GlobalMappingEditorContext } from "../../pages/MappingEditor/contexts/GlobalMappingEditorContext";
 import { StickyNote } from "@eccenca/gui-elements";
+import { IPartialAutoCompleteResult } from "@eccenca/gui-elements/src/components/AutoSuggestion/AutoSuggestion";
 
 export interface TransformRuleEditorProps {
     /** Project ID the task is in. */
@@ -72,7 +78,7 @@ export const TransformRuleEditor = ({
                 "transformRuleEditor_fetchTransformRule",
                 t("taskViews.transformRulesEditor.errors.fetchTransformRule.msg"),
                 err,
-                { errorNotificationInstanceId: RULE_EDITOR_NOTIFICATION_INSTANCE }
+                { errorNotificationInstanceId: RULE_EDITOR_NOTIFICATION_INSTANCE },
             );
         }
     };
@@ -86,7 +92,7 @@ export const TransformRuleEditor = ({
                 "TransformRuleEditor_fetchTransformRuleOperatorDetails",
                 t("taskViews.transformRulesEditor.errors.fetchTransformRuleOperatorDetails.msg"),
                 err,
-                { errorNotificationInstanceId: RULE_EDITOR_NOTIFICATION_INSTANCE }
+                { errorNotificationInstanceId: RULE_EDITOR_NOTIFICATION_INSTANCE },
             );
         }
     };
@@ -95,7 +101,7 @@ export const TransformRuleEditor = ({
     const saveTransformRule = async (
         ruleOperatorNodes: IRuleOperatorNode[],
         stickyNotes: StickyNote[],
-        originalRule: IComplexMappingRule
+        originalRule: IComplexMappingRule,
     ): Promise<RuleSaveResult> => {
         try {
             const [operatorNodeMap, rootNodes] = ruleUtils.convertToRuleOperatorNodeMap(ruleOperatorNodes, true);
@@ -135,7 +141,7 @@ export const TransformRuleEditor = ({
                     }));
                     return new RuleValidationError(
                         t("taskViews.transformRulesEditor.errors.saveTransformRule.msg"),
-                        nodeErrors
+                        nodeErrors,
                     );
                 } else {
                     return {
@@ -152,7 +158,7 @@ export const TransformRuleEditor = ({
     /** Converts the linking task rule to the internal representation. */
     const convertToRuleOperatorNodes = (
         mappingRule: IComplexMappingRule,
-        ruleOperator: RuleOperatorFetchFnType
+        ruleOperator: RuleOperatorFetchFnType,
     ): IRuleOperatorNode[] => {
         const operatorNodes: IRuleOperatorNode[] = [];
         ruleUtils.extractOperatorNodeFromValueInput(mappingRule.operator, operatorNodes, false, ruleOperator);
@@ -185,7 +191,7 @@ export const TransformRuleEditor = ({
                 ruleId,
                 term,
                 mappingEditorContext.taskContext,
-                limit
+                limit,
             );
             let results = response.data.map((data) => ({ ...data, valueType: "" }));
             if (term.trim() === "") {
@@ -199,11 +205,35 @@ export const TransformRuleEditor = ({
                 "LinkingRuleEditor_inputPathAutoCompletion",
                 t("taskViews.linkRulesEditor.errors.inputPathAutoCompletion.msg"),
                 err,
-                { errorNotificationInstanceId: RULE_EDITOR_NOTIFICATION_INSTANCE }
+                { errorNotificationInstanceId: RULE_EDITOR_NOTIFICATION_INSTANCE },
             );
             return [];
         }
     };
+
+    const fetchPartialAutoCompletionResult = React.useCallback(
+        () =>
+            async (inputString: string, cursorPosition: number): Promise<IPartialAutoCompleteResult | undefined> => {
+                try {
+                    const result = await partialAutoCompleteTransformInputPaths(
+                        projectId,
+                        transformTaskId,
+                        containerRuleId,
+                        inputString,
+                        cursorPosition,
+                        200,
+                    );
+                    return result.data;
+                } catch (err) {
+                    registerError(
+                        "TransformRuleEditor_partialAutoCompletion",
+                        t("taskViews.transformRulesEditor.errors.partialPathAutoCompletion.msg"),
+                        err,
+                    );
+                }
+            },
+        [],
+    );
 
     const sourcePathInput = () =>
         ruleUtils.inputPathOperator(
@@ -211,7 +241,7 @@ export const TransformRuleEditor = ({
             "Source path",
             ["Source path"],
             "The value path of the input source of the transformation task.",
-            inputPathAutoCompletion
+            inputPathAutoCompletion,
         );
 
     const fetchDatasetCharacteristics = async () => {
@@ -228,7 +258,7 @@ export const TransformRuleEditor = ({
                     "TransformRuleEditor-fetchDatasetCharacteristics",
                     "Dataset characteristics could not be fetched. UI-support for language filters will not be available.",
                     ex,
-                    { errorNotificationInstanceId: RULE_EDITOR_NOTIFICATION_INSTANCE }
+                    { errorNotificationInstanceId: RULE_EDITOR_NOTIFICATION_INSTANCE },
                 );
             }
         }
@@ -248,9 +278,9 @@ export const TransformRuleEditor = ({
                         "linking-rule-editor-fetch-source-paths",
                         t("taskViews.linkRulesEditor.errors.fetchLinkingPaths.msg"),
                         ex,
-                        { errorNotificationInstanceId: RULE_EDITOR_NOTIFICATION_INSTANCE }
+                        { errorNotificationInstanceId: RULE_EDITOR_NOTIFICATION_INSTANCE },
                     ),
-                mappingEditorContext.taskContext
+                mappingEditorContext.taskContext,
             ),
             ruleUtils.sidebarTabs.transform,
         ];
@@ -271,6 +301,7 @@ export const TransformRuleEditor = ({
                 saveRule={saveTransformRule}
                 convertRuleOperator={ruleUtils.convertRuleOperator}
                 convertToRuleOperatorNodes={convertToRuleOperatorNodes}
+                partialAutoCompletion={fetchPartialAutoCompletionResult}
                 viewActions={viewActions}
                 additionalToolBarComponents={additionalToolBarComponents}
                 getStickyNotes={getStickyNotes}

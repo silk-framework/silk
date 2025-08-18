@@ -60,7 +60,11 @@ import java.net.{MalformedURLException, URI, URISyntaxException, URL, URLDecoder
     description = "Leading and trailing spaces are removed.",
     input1 = Array("  http://domain.com/[squareBrackets] "),
     output = Array("http://domain.com/%5BsquareBrackets%5D")
-  )
+  ),
+  new TransformExample(
+    input1 = Array("100%"),
+    output = Array("urn:url-encoded-value:100%25")
+  ),
 ))
 case class UriFixTransformer(uriPrefix: String = "urn:url-encoded-value:") extends SimpleTransformer {
 
@@ -97,9 +101,7 @@ case class UriFixTransformer(uriPrefix: String = "urn:url-encoded-value:") exten
       val uri = new URI(url.getProtocol, url.getUserInfo, url.getHost, url.getPort, url.getPath, url.getQuery, url.getRef)
       uri.toString
     } catch {
-      case _: URISyntaxException =>
-        generateUri(possiblyInvalidUri)
-      case _: MalformedURLException =>
+      case _: URISyntaxException | _: MalformedURLException | _: IllegalArgumentException =>
         generateUri(possiblyInvalidUri)
     }
   }

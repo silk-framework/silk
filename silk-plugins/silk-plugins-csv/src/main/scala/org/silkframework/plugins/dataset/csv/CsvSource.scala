@@ -9,6 +9,7 @@ import org.silkframework.execution.EntityHolder
 import org.silkframework.execution.local.GenericEntityTable
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.iterator.{AutoClose, CloseableIterator}
+import org.silkframework.runtime.plugin.PluginContext
 import org.silkframework.runtime.resource.Resource
 import org.silkframework.util.{Identifier, Uri}
 
@@ -127,7 +128,7 @@ class CsvSource(file: Resource,
   }
 
   override def retrieve(entitySchema: EntitySchema, limitOpt: Option[Int] = None)
-                       (implicit userContext: UserContext, prefixes: Prefixes): EntityHolder = {
+                       (implicit context: PluginContext): EntityHolder = {
     if (entitySchema.filter.operator.isDefined) {
       throw new NotImplementedError("Filter restrictions are not supported on CSV datasets!") // TODO: Implement Restriction handling!
     }
@@ -135,7 +136,7 @@ class CsvSource(file: Resource,
   }
 
   override def retrieveByUri(entitySchema: EntitySchema, entities: Seq[Uri])
-                            (implicit userContext: UserContext, prefixes: Prefixes): EntityHolder = {
+                            (implicit context: PluginContext): EntityHolder = {
     if(entities.isEmpty) {
       GenericEntityTable(CloseableIterator.empty, entitySchema, underlyingTask)
     } else {

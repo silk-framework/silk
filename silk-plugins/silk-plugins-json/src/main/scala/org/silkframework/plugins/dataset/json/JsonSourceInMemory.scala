@@ -1,13 +1,12 @@
 package org.silkframework.plugins.dataset.json
 
 import com.fasterxml.jackson.core.{JsonFactory, JsonParser}
-import org.silkframework.config.Prefixes
 import org.silkframework.entity.paths.UntypedPath
 import org.silkframework.entity.{Entity, EntitySchema}
 import org.silkframework.execution.EntityHolder
 import org.silkframework.execution.local.{EmptyEntityTable, GenericEntityTable}
-import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.iterator.CloseableIterator
+import org.silkframework.runtime.plugin.PluginContext
 import org.silkframework.runtime.resource.Resource
 import org.silkframework.util.{Identifier, Uri}
 
@@ -16,7 +15,7 @@ import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
 import java.util.logging.{Level, Logger}
 
-class JsonSourceInMemory(taskId: Identifier, nodes: () => CloseableIterator[JsonNode], basePath: String, uriPattern: String) extends JsonSource(taskId, basePath, uriPattern) {
+class JsonSourceInMemory(taskId: Identifier, nodes: () => CloseableIterator[JsonNode], basePath: String, uriPattern: String, navigateIntoArrays: Boolean) extends JsonSource(taskId, basePath, uriPattern) {
 
   private val logger = Logger.getLogger(getClass.getName)
 
@@ -31,10 +30,10 @@ class JsonSourceInMemory(taskId: Identifier, nodes: () => CloseableIterator[Json
   }
 
   override def retrieve(entitySchema: EntitySchema, limit: Option[Int] = None)
-                       (implicit userContext: UserContext, prefixes: Prefixes): EntityHolder = {
+                       (implicit context: PluginContext): EntityHolder = {
     val entities = nodes().flatMap { node =>
       logger.log(Level.FINE, "Retrieving data from JSON.")
-      val jsonTraverser = JsonTraverser.fromNode(underlyingTask.id, node)
+      val jsonTraverser = JsonTraverser.fromNode(underlyingTask.id, node, navigateIntoArrays)
       val selectedElements = jsonTraverser.select(basePathParts)
       val subPath = UntypedPath.parse(entitySchema.typeUri.uri) ++ entitySchema.subPath
       val subPathElements =
@@ -49,13 +48,13 @@ class JsonSourceInMemory(taskId: Identifier, nodes: () => CloseableIterator[Json
   }
 
   override def retrieveByUri(entitySchema: EntitySchema, entities: Seq[Uri])
-                            (implicit userContext: UserContext, prefixes: Prefixes): EntityHolder = {
+                            (implicit context: PluginContext): EntityHolder = {
     if (entities.isEmpty) {
       EmptyEntityTable(underlyingTask)
     } else {
       val retrievedEntities = nodes().flatMap { node =>
         logger.log(Level.FINE, "Retrieving data from JSON.")
-        val jsonTraverser = JsonTraverser.fromNode(underlyingTask.id, node)
+        val jsonTraverser = JsonTraverser.fromNode(underlyingTask.id, node, navigateIntoArrays)
         val selectedElements = jsonTraverser.select(basePathParts)
         retrieveEntities(selectedElements, entitySchema, entities.map(_.uri).toSet)
       }
@@ -99,15 +98,15 @@ class JsonSourceInMemory(taskId: Identifier, nodes: () => CloseableIterator[Json
 
 object JsonSourceInMemory {
 
-  def apply(taskId: Identifier, str: String, basePath: String, uriPattern: String): JsonSourceInMemory = {
-    new JsonSourceInMemory(taskId, () => new JsonNodeIterator(new ByteArrayInputStream(str.getBytes(StandardCharsets.UTF_8))), basePath, uriPattern)
+  def fromString(taskId: Identifier, str: String, basePath: String, uriPattern: String, navigateIntoArrays: Boolean = true): JsonSourceInMemory = {
+    new JsonSourceInMemory(taskId, () => new JsonNodeIterator(new ByteArrayInputStream(str.getBytes(StandardCharsets.UTF_8))), basePath, uriPattern, navigateIntoArrays)
   }
 
-  def apply(file: Resource, basePath: String, uriPattern: String): JsonSourceInMemory = {
+  def fromResource(file: Resource, basePath: String, uriPattern: String, navigateIntoArrays: Boolean = true): JsonSourceInMemory = {
     if(file.nonEmpty) {
-      new JsonSourceInMemory(Identifier.fromAllowed(file.name), () => new JsonNodeIterator(file.inputStream), basePath, uriPattern)
+      new JsonSourceInMemory(Identifier.fromAllowed(file.name), () => new JsonNodeIterator(file.inputStream), basePath, uriPattern, navigateIntoArrays)
     } else {
-      new JsonSourceInMemory(Identifier.fromAllowed(file.name), () => CloseableIterator.empty, basePath, uriPattern)
+      new JsonSourceInMemory(Identifier.fromAllowed(file.name), () => CloseableIterator.empty, basePath, uriPattern, navigateIntoArrays)
     }
   }
 

@@ -11,7 +11,7 @@ import io.swagger.v3.oas.annotations.parameters.RequestBody
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.tags.Tag
 import io.swagger.v3.oas.annotations.{Operation, Parameter}
-import org.silkframework.config.{PlainTask, Prefixes, TaskSpec}
+import org.silkframework.config.{Prefixes, TaskSpec}
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.dataset._
 import org.silkframework.dataset.rdf.RdfDataset
@@ -20,12 +20,12 @@ import org.silkframework.entity.paths.{Path, UntypedPath}
 import org.silkframework.plugins.dataset.rdf.executors.LocalSparqlSelectExecutor
 import org.silkframework.plugins.dataset.rdf.tasks.SparqlSelectCustomTask
 import org.silkframework.rule.TransformSpec.RuleSchemata
-import org.silkframework.rule.{TaskContext, TransformRule, TransformSpec}
+import org.silkframework.rule.{ComplexUriMapping, TaskContext, TransformRule, TransformSpec}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.PluginContext
 import org.silkframework.runtime.serialization.ReadContext
 import org.silkframework.runtime.validation.ValidationException
-import org.silkframework.util.Identifier
+import org.silkframework.util.{Identifier, Uri}
 import org.silkframework.workspace.{Project, ProjectTask}
 import play.api.libs.json.{Format, Json}
 import play.api.mvc._
@@ -99,6 +99,7 @@ class PeakTransformApi @Inject() () extends InjectedController with UserContextA
       val transformSpec = task.data
       val ruleSchemata = transformSpec.oneRuleEntitySchemaById(ruleName).get
       val inputTaskId = transformSpec.selection.inputId
+      implicit val context: PluginContext = PluginContext.fromProject(project)
 
       peakRule(project, inputTaskId, ruleSchemata, limit, maxTryEntities)
   }
@@ -188,8 +189,9 @@ class PeakTransformApi @Inject() () extends InjectedController with UserContextA
   }
 
   private def peakRule(project: Project, inputTaskId: Identifier, ruleSchemata: RuleSchemata, limit: Int, maxTryEntities: Int)
-                      (implicit userContext: UserContext): Result = {
+                      (implicit context: PluginContext): Result = {
     implicit val prefixes: Prefixes = project.config.prefixes
+    implicit val user: UserContext = context.user
 
     val inputTask = project.anyTask(inputTaskId)
     val inputTaskLabel = inputTask.label()
@@ -228,8 +230,8 @@ class PeakTransformApi @Inject() () extends InjectedController with UserContextA
                                        limit: Int,
                                        maxTryEntities: Int,
                                        sparqlSelectTask: SparqlSelectCustomTask)
-                                      (implicit prefixes: Prefixes,
-                                       userContext: UserContext): Result = {
+                                      (implicit userContext: UserContext, prefixes: Prefixes): Result = {
+    implicit val context: PluginContext = PluginContext.fromProject(project)
     val sparqlDataset = sparqlSelectTask.optionalInputDataset.sparqlEnabledDataset
     if (sparqlDataset == "") {
       Ok(Json.toJson(PeakResults(None, None, PeakStatus(NOT_SUPPORTED_STATUS_MSG, s"Input task '$inputTaskLabel' of type ${sparqlSelectTask.pluginSpec.label} " +
@@ -263,7 +265,10 @@ class PeakTransformApi @Inject() () extends InjectedController with UserContextA
                                              limit: Int)
                                             (implicit prefixes: Prefixes) = {
     val (tryCounter, errorCounter, errorMessage, sourceAndTargetResults) = collectTransformationExamples(rule, exampleEntities, limit)
-    if (sourceAndTargetResults.nonEmpty) {
+    if (sourceAndTargetResults.nonEmpty && errorMessage.nonEmpty) {
+      Ok(Json.toJson(PeakResults(Some(rule.sourcePaths.map(serializePath)), Some(sourceAndTargetResults),
+        status = PeakStatus("with exceptions", errorMessage))))
+    } else if (sourceAndTargetResults.nonEmpty) {
       Ok(Json.toJson(PeakResults(Some(rule.sourcePaths.map(serializePath)), Some(sourceAndTargetResults),
         status = PeakStatus("success", ""))))
     } else if (errorCounter > 0) {

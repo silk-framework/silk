@@ -5,7 +5,7 @@ import controllers.core.UserContextActions
 import controllers.util.{PluginUsageCollector, TextSearchUtils}
 import controllers.workspaceApi.coreApi.doc.PluginApiDoc
 import io.swagger.v3.oas.annotations.enums.ParameterIn
-import io.swagger.v3.oas.annotations.media.{Content, ExampleObject, Schema}
+import io.swagger.v3.oas.annotations.media.{ArraySchema, Content, ExampleObject, Schema}
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.tags.Tag
 import io.swagger.v3.oas.annotations.{Operation, Parameter}
@@ -15,12 +15,12 @@ import org.silkframework.rule.input.Transformer
 import org.silkframework.rule.similarity.{Aggregator, DistanceMeasure}
 import org.silkframework.rule.{LinkSpec, TransformSpec}
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.runtime.plugin.{PluginDescription, PluginList, PluginRegistry}
+import org.silkframework.runtime.plugin.{AnyPlugin, PluginDescription, PluginList, PluginRegistry}
 import org.silkframework.runtime.resource.EmptyResourceManager
 import org.silkframework.runtime.serialization.WriteContext
 import org.silkframework.serialization.json.JsonSerializers
 import org.silkframework.serialization.json.PluginDescriptionSerializers.PluginListJsonFormat
-import org.silkframework.workspace.WorkspaceFactory
+import org.silkframework.workspace.{ProjectTask, WorkspaceFactory}
 import org.silkframework.workspace.activity.dataset.DatasetUtils
 import org.silkframework.workspace.activity.workflow.Workflow
 import play.api.libs.json._
@@ -204,6 +204,9 @@ class PluginApi @Inject()() extends InjectedController with UserContextActions {
         description = "Success",
         content = Array(new Content(
           mediaType = "application/json",
+          array = new ArraySchema(
+            schema = new Schema(implementation = classOf[PluginUsage])
+          ),
           examples = Array(new ExampleObject(PluginApiDoc.pluginUsagesExample))
         ))
       )
@@ -216,22 +219,48 @@ class PluginApi @Inject()() extends InjectedController with UserContextActions {
                      schema = new Schema(implementation = classOf[String], example = "csv")
                    )
                    pluginId: String): Action[AnyContent] = RequestUserContextAction { request => implicit userContext =>
-    val usages = mutable.Buffer[JsObject]()
+    val usages = mutable.Buffer[PluginUsage]()
 
     for(project <- WorkspaceFactory().workspace.projects) {
       for(task <- project.allTasks) {
         val pluginIds = PluginUsageCollector.pluginUsages(task.data)
         if(pluginIds.contains(pluginId)) {
-          usages += Json.obj(
-            "project" -> project.id.toString,
-            "task" -> task.id.toString,
-            "link" -> WorkbenchLinks.editorLink(task)
-          )
+          usages += PluginUsage.forTask(task, pluginIds.head._2)
         }
       }
     }
 
-    Ok(JsArray(usages))
+    Ok(Json.toJson(usages))
+  }
+
+  @Operation(
+    summary = "Deprecated plugin usages",
+    description = "Returns a list of usages of deprecated plugins. Currently lists usages in projects as tasks and as within linking and transform rules.",
+    responses = Array(
+      new ApiResponse(
+        responseCode = "200",
+        description = "Success",
+        content = Array(new Content(
+          mediaType = "application/json",
+          array = new ArraySchema(
+            schema = new Schema(implementation = classOf[PluginUsage])
+          )
+        ))
+      )
+    ))
+  def deprecatedPluginUsages(): Action[AnyContent] = UserContextAction { implicit userContext =>
+    val usages = mutable.Buffer[PluginUsage]()
+
+    for {
+      project <- WorkspaceFactory().workspace.projects
+      task <- project.allTasks
+      plugin <- PluginUsageCollector.pluginUsages(task.data).values
+      if plugin.deprecation.isDefined
+    } {
+      usages += PluginUsage.forTask(task, plugin)
+    }
+
+    Ok(Json.toJson(usages))
   }
 
   lazy val resourceBasedDatasetPluginIds: Seq[JsString] = DatasetUtils.resourceBasedDatasetPluginIds
@@ -453,5 +482,23 @@ object PluginApi {
 
   def taskplugins(): Seq[PluginDescription[_]] = {
     specialTaskPlugins ++ normalTaskPlugins()
+  }
+}
+
+case class PluginUsage(project: Option[String],
+                       task: Option[String],
+                       link: Option[String],
+                       deprecationMessage: Option[String])
+
+object PluginUsage {
+  implicit val pluginUsageWrites: Writes[PluginUsage] = Json.writes[PluginUsage]
+
+  def forTask(task: ProjectTask[_ <: TaskSpec], pluginDesc: PluginDescription[AnyPlugin]): PluginUsage = {
+    PluginUsage(
+      project = Some(task.project.id.toString),
+      task = Some(task.id.toString),
+      link = Some(WorkbenchLinks.editorLink(task)),
+      deprecationMessage = pluginDesc.deprecation
+    )
   }
 }

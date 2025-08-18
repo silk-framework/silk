@@ -1,14 +1,12 @@
-import {
-    Background,
-    BackgroundVariant,
-    ConnectionLineType,
-    Controls,
-    Edge,
-    HandleProps,
-    OnLoadParams,
-} from "react-flow-renderer";
-import { ReactFlow } from "@eccenca/gui-elements/src/cmem";
+import { Background, BackgroundVariant, ConnectionLineType, Controls, Edge, OnLoadParams } from "react-flow-renderer";
 import React, { MouseEvent as ReactMouseEvent } from "react";
+import {
+    GridColumn,
+    HandleDefaultProps,
+    MiniMap,
+    ReactFlowExtended,
+    ReactFlowHotkeyContext,
+} from "@eccenca/gui-elements";
 import { Connection, Elements, Node, OnConnectStartParams, XYPosition } from "react-flow-renderer/dist/types";
 import { SelectionMenu } from "./ruleNode/SelectionMenu";
 import {
@@ -21,14 +19,11 @@ import {
 import { RuleEditorModelContext } from "../contexts/RuleEditorModelContext";
 import { EdgeMenu } from "./ruleEdge/EdgeMenu";
 import { ruleEditorModelUtilsFactory, SOURCE_HANDLE_TYPE, TARGET_HANDLE_TYPE } from "../model/RuleEditorModel.utils";
-import { MiniMap } from "@eccenca/gui-elements/src/extensions/react-flow/minimap/MiniMap";
-import { GridColumn } from "@eccenca/gui-elements";
 import { RuleEditorNode } from "../model/RuleEditorModel.typings";
 import useHotKey from "../../HotKeyHandler/HotKeyHandler";
 import { RuleEditorUiContext } from "../contexts/RuleEditorUiContext";
 import { useSelector } from "react-redux";
 import { commonSel } from "@ducks/common";
-import { ReactFlowHotkeyContext } from "@eccenca/gui-elements/src/cmem/react-flow/extensions/ReactFlowHotkeyContext";
 
 //snap grid
 const snapGrid: [number, number] = [15, 15];
@@ -249,7 +244,7 @@ export const RuleEditorCanvas = () => {
     // Iterate over the input handles of a node
     const iterateInputHandles = (
         ruleEditorNode: RuleEditorNode,
-        handleAction: (handle: HandleProps, handleDom: Element) => void,
+        handleAction: (handle: HandleDefaultProps, handleDom: Element) => void,
     ) => {
         const handles = modelUtils.inputHandles(ruleEditorNode);
         const ruleDomNode = document.querySelector(`#${modelContext.canvasId} div[data-id="${ruleEditorNode.id}"]`);
@@ -259,7 +254,7 @@ export const RuleEditorCanvas = () => {
                     `div[data-handlepos = "left"][data-handleid="${handle.id}"]`,
                 );
                 if (handleDom) {
-                    handleAction(handle as HandleProps, handleDom);
+                    handleAction(handle, handleDom);
                 }
             });
     };
@@ -267,7 +262,7 @@ export const RuleEditorCanvas = () => {
     // Iterate over the output handles of a node
     const iterateOutputHandles = (
         ruleEditorNode: RuleEditorNode,
-        handleAction: (handle: HandleProps, handleDom: Element) => void,
+        handleAction: (handle: HandleDefaultProps, handleDom: Element) => void,
     ) => {
         const handles = modelUtils.outputHandles(ruleEditorNode);
         const ruleDomNode = document.querySelector(`#${modelContext.canvasId} div[data-id="${ruleEditorNode.id}"]`);
@@ -275,7 +270,7 @@ export const RuleEditorCanvas = () => {
             handles.forEach((handle) => {
                 const handleDom = ruleDomNode.querySelector(`div[data-handlepos = "right"]`);
                 if (handleDom) {
-                    handleAction(handle as HandleProps, handleDom);
+                    handleAction(handle, handleDom);
                 }
             });
     };
@@ -469,6 +464,11 @@ export const RuleEditorCanvas = () => {
 
     // Add new node when operator is dropped
     const onDrop = (e: React.DragEvent<HTMLDivElement>) => {
+        const appName = e.dataTransfer.getData("application/x-reactflow-app");
+        if (appName && appName !== "ruleEditor") {
+            // Only handle drag events that originate from the workflow editor
+            return;
+        }
         e.preventDefault();
         const reactFlowBounds = ruleEditorUiContext?.reactFlowWrapper?.current?.getBoundingClientRect();
         const pluginData = e.dataTransfer.getData("application/reactflow");
@@ -511,7 +511,7 @@ export const RuleEditorCanvas = () => {
     return (
         <>
             <GridColumn>
-                <ReactFlow
+                <ReactFlowExtended
                     id={modelContext.canvasId}
                     data-test-id={"ruleEditor-react-flow-canvas"}
                     configuration={"linking"}
@@ -565,7 +565,7 @@ export const RuleEditorCanvas = () => {
                         }
                     />
                     <Background variant={BackgroundVariant.Lines} gap={16} />
-                </ReactFlow>
+                </ReactFlowExtended>
                 {contextMenu}
             </GridColumn>
         </>

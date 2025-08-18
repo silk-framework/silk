@@ -8,6 +8,8 @@ import { commonOp, commonSel } from "@ducks/common";
 import { DATA_TYPES } from "../../../constants";
 import { uppercaseFirstChar } from "../../../utils/transformers";
 import { useTranslation } from "react-i18next";
+import { useInitFrontend } from "../../pages/MappingEditor/api/silkRestApi.hooks";
+import { absoluteProjectPath } from "../../../utils/routerUtils";
 
 export const useKeyboardHeaderShortcuts = () => {
     const dispatch = useDispatch();
@@ -25,7 +27,7 @@ export const useKeyboardHeaderShortcuts = () => {
         (filter: string) => {
             batch(() => {
                 if (projectId && filter !== "project") {
-                    dispatch(routerOp.goToPage(`${SERVE_PATH}/projects/${projectId}`));
+                    dispatch(routerOp.goToPage(absoluteProjectPath(projectId)));
                 } else if (projectId && filter === "project") {
                     dispatch(routerOp.goToPage(SERVE_PATH));
                 }
@@ -33,14 +35,14 @@ export const useKeyboardHeaderShortcuts = () => {
                 dispatch(
                     workspaceOp.applyFiltersOp({
                         itemType: filter,
-                    })
+                    }),
                 );
                 dispatch(workspaceOp.changePageOp(1));
             });
             focusOnSearchBar();
             return false;
         },
-        [projectId]
+        [projectId],
     );
 
     const headerShortcuts = [
@@ -80,7 +82,7 @@ export const useKeyboardHeaderShortcuts = () => {
             hotKey: "g a",
             handler: () => {
                 dispatch(
-                    routerOp.goToPage(`${SERVE_PATH}/activities?page=1&limit=25&sortBy=recentlyUpdated&sortOrder=ASC`)
+                    routerOp.goToPage(`${SERVE_PATH}/activities?page=1&limit=25&sortBy=recentlyUpdated&sortOrder=ASC`),
                 );
                 focusOnSearchBar();
                 return false;
@@ -95,9 +97,9 @@ export const useKeyboardHeaderShortcuts = () => {
                         title: uppercaseFirstChar(t("common.dataTypes.project")),
                         description: t(
                             "common.dataTypes.projectDesc",
-                            "Projects let you group related items. All items that depend on each other need to be in the same project."
+                            "Projects let you group related items. All items that depend on each other need to be in the same project.",
                         ),
-                    })
+                    }),
                 );
                 return false;
             },
@@ -109,7 +111,7 @@ export const useKeyboardHeaderShortcuts = () => {
                     commonOp.createNewTask({
                         selectedDType: "workflow",
                         newTaskPreConfiguration: { taskPluginId: "workflow" },
-                    })
+                    }),
                 );
                 return false;
             },
@@ -121,7 +123,7 @@ export const useKeyboardHeaderShortcuts = () => {
                     commonOp.createNewTask({
                         selectedDType: "dataset",
                         newTaskPreConfiguration: { taskPluginId: "dataset" },
-                    })
+                    }),
                 );
                 return false;
             },
@@ -133,7 +135,7 @@ export const useKeyboardHeaderShortcuts = () => {
                     commonOp.createNewTask({
                         selectedDType: "transform",
                         newTaskPreConfiguration: { taskPluginId: "transform" },
-                    })
+                    }),
                 );
                 return false;
             },
@@ -145,7 +147,7 @@ export const useKeyboardHeaderShortcuts = () => {
                     commonOp.createNewTask({
                         selectedDType: "linking",
                         newTaskPreConfiguration: { taskPluginId: "linking" },
-                    })
+                    }),
                 );
                 return false;
             },

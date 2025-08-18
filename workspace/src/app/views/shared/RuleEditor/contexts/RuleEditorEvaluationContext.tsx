@@ -87,3 +87,12 @@ export const RuleEditorEvaluationContext = React.createContext<RuleEditorEvaluat
     evaluationRootNode: () => undefined,
     canBeEvaluated: () => false,
 });
+
+export interface RuleEditorEvaluationCallbackContextProps {
+    /** Allows a sub-component, e.g. an input component of a rule operator, to disable the evaluation error modal. */
+    enableErrorModal: (enabled: boolean) => void;
+}
+
+export const RuleEditorEvaluationCallbackContext = React.createContext<RuleEditorEvaluationCallbackContextProps>({
+    enableErrorModal: NOP,
+});

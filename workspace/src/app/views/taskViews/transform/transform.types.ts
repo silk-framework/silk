@@ -4,6 +4,8 @@ import { IValueInput, RuleLayout } from "../shared/rules/rule.typings";
 import { Stacktrace } from "../../shared/SampleError/SampleError";
 import { StickyNote } from "@eccenca/gui-elements";
 
+export type PartialBy<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>;
+
 /** Parameters of a transform task. */
 export interface ITransformRule {
     /** The ID of the transform rule. */
@@ -42,7 +44,10 @@ export interface IComplexUriRule extends ITransformRule {
 }
 
 /** A constant URI rule. */
-export interface IUriRule extends ITransformRule {}
+export interface IUriRule extends ITransformRule {
+    type: "uri";
+    pattern: string;
+}
 
 /** The target specification of the mapping rule. */
 export interface IMappingTarget {

@@ -14,29 +14,27 @@
 
 package org.silkframework.plugins.dataset.rdf
 
-import java.io.File
-import java.net.URLDecoder
-
-import org.silkframework.config.Prefixes
-import org.silkframework.entity.paths.UntypedPath
-import org.silkframework.entity.{EntitySchema, StringValueType, UriValueType, ValueType}
-import org.silkframework.plugins.dataset.rdf.datasets.RdfFileDataset
-import org.silkframework.runtime.activity.UserContext
-import org.silkframework.runtime.resource.FileResourceManager
-import org.silkframework.util.Uri
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
+import org.silkframework.config.Prefixes
+import org.silkframework.entity.paths.UntypedPath
+import org.silkframework.entity.{EntitySchema, ValueType}
+import org.silkframework.plugins.dataset.rdf.datasets.RdfFileDataset
+import org.silkframework.runtime.activity.TestPluginContextTrait
+import org.silkframework.runtime.resource.FileResourceManager
+import org.silkframework.util.Uri
 
-class FileDataSourceTest extends AnyFlatSpec with Matchers {
+import java.io.File
+import java.net.URLDecoder
+
+class FileDataSourceTest extends AnyFlatSpec with Matchers with TestPluginContextTrait {
   behavior of "File Data Source"
 
-  implicit val prefixes: Prefixes = Map(
+  override implicit val prefixes: Prefixes = Map(
     "rdf" -> "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
     "rdfs" -> "http://www.w3.org/2000/01/rdf-schema#",
     "do" -> "http://dbpedia.org/ontology/"
   )
-
-  implicit val userContext: UserContext = UserContext.Empty
 
   val fileName = "test.nt"
 

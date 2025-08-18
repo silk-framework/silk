@@ -130,7 +130,7 @@ export function ProjectImportModal({ close, back, maxFileUploadSizeBytes }: IPro
                 }
                 if (status.success) {
                     close();
-                    dispatch(routerOp.goToPage(`projects/${status.projectId}`));
+                    dispatch(routerOp.goToPage(absoluteProjectPath(status.projectId!)));
                 } else {
                     setStartProjectImportExecutionError([
                         status.failureMessage ?? "Project could not be imported.",

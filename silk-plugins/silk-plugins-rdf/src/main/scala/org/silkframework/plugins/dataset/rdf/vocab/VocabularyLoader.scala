@@ -37,12 +37,12 @@ class VocabularyLoader(endpoint: SparqlEndpoint with GraphStoreTrait) {
          | ORDER BY ?v
       """.stripMargin
     val bindings = endpoint.select(vocabQuery).bindings.use(_.toSeq)
-    val vocabUri = collectObjectNodes("v", bindings).headOption
+    val vocabUri = collectObjectNodes("v", bindings).headOption.map(_.value).getOrElse(vocabularyGraphUri)
     val label = rankValues(labelVars.flatMap(collectObjectNodes(_, bindings))).headOption
     val description = rankValues(commentVars.flatMap(collectObjectNodes(_, bindings))).headOption
     val altLabels = rankValues(altLabelVars.flatMap(collectObjectNodes(_, bindings)))
     GenericInfo(
-      vocabularyGraphUri, // FIXME: At the moment we expect the graph to be the same as the vocab URI
+      vocabUri, // FIXME: At the moment we expect the graph to be the same as the vocab URI
       label = label,
       description = description,
       altLabels = altLabels,

@@ -19,6 +19,7 @@ import org.silkframework.rule._
 import org.silkframework.rule.execution.ExecuteTransform
 import org.silkframework.rule.util.UriPatternParser.UriPatternParserException
 import org.silkframework.runtime.activity.{Activity, UserContext}
+import org.silkframework.runtime.plugin.PluginContext
 import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext}
 import org.silkframework.runtime.templating.{GlobalTemplateVariables, TemplateVariablesReader}
@@ -419,8 +420,6 @@ class TransformTaskApi @Inject() () extends InjectedController with UserContextA
               )
               ruleId: String): Action[AnyContent] = RequestUserContextAction { request => implicit userContext =>
     implicit val (project, task) = getProjectAndTask[TransformSpec](projectName, taskName)
-    implicit val prefixes: Prefixes = project.config.prefixes
-    implicit val resources: ResourceManager = project.resources
     implicit val readContext: ReadContext = ReadContext.fromProject(project).copy(identifierGenerator = identifierGenerator(task), validationEnabled = true)
 
     task.synchronized {
@@ -480,7 +479,6 @@ class TransformTaskApi @Inject() () extends InjectedController with UserContextA
                  )
                  rule: String): Action[AnyContent] = UserContextAction { implicit userContext =>
     implicit val (project, task) = getProjectAndTask[TransformSpec](projectName, taskName)
-    implicit val prefixes: Prefixes = project.config.prefixes
 
     try {
       task.synchronized {
@@ -833,7 +831,7 @@ class TransformTaskApi @Inject() () extends InjectedController with UserContextA
   }
 
   /**
-    * Processes a rule a catches relevant exceptions
+    * Processes a rule and catches relevant exceptions
     */
   private def processRule(task: Task[TransformSpec], ruleId: String)(processFunc: RuleTraverser => Result): Result = {
     RuleTraverser(task.data.mappingRule).find(ruleId) match {
@@ -967,10 +965,15 @@ class TransformTaskApi @Inject() () extends InjectedController with UserContextA
                                dataSource: DataSource,
                                errorEntitySinkOpt: Option[EntitySink])
                               (implicit userContext: UserContext): Unit = {
-    implicit val prefixes: Prefixes = task.project.config.prefixes
-    implicit val variables: TemplateVariablesReader = task.project.combinedTemplateVariables
-    val inputTask = task.project.anyTask (task.selection.inputId)
-    val transform = new ExecuteTransform(task, (_) => inputTask, (_) => dataSource, (_) => entitySink, (_) => errorEntitySinkOpt)
+    val inputTask = task.project.anyTask(task.selection.inputId)
+    val transform = new ExecuteTransform(
+      task = task,
+      inputTask = _ => inputTask,
+      input = _ => dataSource,
+      output = _ => entitySink,
+      errorOutput =  _ => errorEntitySinkOpt,
+      pluginContext = _ => PluginContext.fromProject(task.project)
+    )
     Activity(transform).startBlocking()
   }
 

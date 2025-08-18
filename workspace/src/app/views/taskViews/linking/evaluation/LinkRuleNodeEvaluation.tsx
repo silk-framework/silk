@@ -21,7 +21,7 @@ interface LinkRuleNodeEvaluationProps {
     /** Register for evaluation updates. */
     registerForEvaluationResults: (
         ruleOperatorId: string,
-        evaluationUpdate: (evaluationValues: EvaluationResultType | undefined) => void
+        evaluationUpdate: (evaluationValues: EvaluationResultType | undefined) => void,
     ) => void;
     unregister: () => void;
     /** A URL to link to when there is no result found. */
@@ -79,10 +79,12 @@ export const LinkRuleNodeEvaluation = ({
                                     style={{ whiteSpace: "nowrap", overflow: "hidden" }}
                                 >
                                     {error ? (
-                                        <OverflowText className="linking__error-description">
-                                            <SampleError sampleError={error} hasStateWarning />
-                                            {error.error}
-                                        </OverflowText>
+                                        <Tooltip content={error.error}>
+                                            <OverflowText className="linking__error-description">
+                                                <SampleError sampleError={error} hasStateWarning />
+                                                {error.error}
+                                            </OverflowText>
+                                        </Tooltip>
                                     ) : (
                                         <Tooltip
                                             content={

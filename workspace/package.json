@@ -25,14 +25,14 @@
         "lint:js": "eslint --ignore-path .gitignore '{src,test}/**/*.{js,jsx,ts,tsx}'"
     },
     "dependencies": {
-        "@eccenca/gui-elements": "^24.1.0-rc.5",
+        "@eccenca/gui-elements": "^24.4.0",
         "@eccenca/superagent": "^1.4.1",
         "@mavrin/remark-typograf": "^2.2.0",
         "@reduxjs/toolkit": "^1.9.7",
         "@uppy/core": "1.17.0",
         "@uppy/react": "1.11.10",
         "@uppy/xhr-upload": "1.7.5",
-        "axios": "^0.26.1",
+        "axios": "^0.30.0",
         "bfj": "6.1.1",
         "connected-react-router": "^6.9.3",
         "dagre": "^0.8.5",

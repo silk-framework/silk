@@ -70,9 +70,13 @@ class HierarchicalMapping extends React.Component {
 
     componentDidUpdate(prevProps, prevState) {
         const currentSearchQuery = this.props.history.location.search;
-        const inTabViewModal = this.props.startFullScreen
+        const inTabViewModal = this.props.startFullScreen;
         // Handle the user clicking on the transform task in the breadcrumb navigation. This should navigate to the root rule.
-        if (this.state.currentRuleId !== MAPPING_ROOT_RULE_ID && !currentSearchQuery.includes("ruleId=") && !inTabViewModal) {
+        if (
+            this.state.currentRuleId !== MAPPING_ROOT_RULE_ID &&
+            !currentSearchQuery.includes("ruleId=") &&
+            !inTabViewModal
+        ) {
             this.setState({
                 currentRuleId: MAPPING_ROOT_RULE_ID,
             });
@@ -123,7 +127,7 @@ class HierarchicalMapping extends React.Component {
          * FIXME: move this functionality to RemoveConfirmDialog component and refactor this component which will work as a portal
          */
         if (args) {
-            const { id, uri, type, parent } = args;
+            const { id, uri, type, parent, displayLabel } = args;
             this.setState({
                 editingElements: [],
                 elementToDelete: {
@@ -131,6 +135,7 @@ class HierarchicalMapping extends React.Component {
                     uri,
                     type,
                     parent,
+                    label: displayLabel,
                 },
                 askForRemove: true,
                 removeFunction: this.handleConfirmRemove,
@@ -182,7 +187,7 @@ class HierarchicalMapping extends React.Component {
                     askForRemove: false,
                     loading: false,
                 });
-            }
+            },
         );
     };
 
@@ -277,6 +282,7 @@ class HierarchicalMapping extends React.Component {
                             mappingType={elementToDelete.type}
                             handleConfirmRemove={this.state.removeFunction}
                             handleCancelRemove={this.handleCancelRemove}
+                            label={elementToDelete.label}
                         />
                     )}
                     <PromptModal

@@ -6,17 +6,18 @@ import controllers.workflowApi.workflow.WorkflowInfo
 import controllers.workspace.ActivityClient
 import controllers.workspace.activityApi.StartActivityResponse
 import helper.IntegrationTestTrait
-
+import org.scalatest.BeforeAndAfterAll
 import org.scalatest.concurrent.Eventually.eventually
-import org.scalatest.{BeforeAndAfterAll}
-import org.silkframework.runtime.resource.FileResource
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.must.Matchers
 import org.silkframework.dataset.DatasetSpec
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
+import org.silkframework.plugins.dataset.BinaryFileDataset
 import org.silkframework.plugins.dataset.rdf.datasets.InMemoryDataset
+import org.silkframework.runtime.resource.FileResource
 import org.silkframework.serialization.json.JsonHelpers
 import org.silkframework.util.FileUtils
 import org.silkframework.workspace.SingleProjectWorkspaceProviderTestTrait
-import org.silkframework.workspace.activity.workflow.Workflow
 import org.silkframework.workspace.activity.workflow.{Workflow, WorkflowDataset, WorkflowOperator}
 import org.silkframework.workspace.annotation.UiAnnotations
 import play.api.libs.json.JsArray
@@ -26,8 +27,6 @@ import play.api.routing.Router
 
 import java.io.File
 import scala.concurrent.Future
-import org.scalatest.flatspec.AnyFlatSpec
-import org.scalatest.matchers.must.Matchers
 
 class SimpleVariableWorkflowApiTest extends AnyFlatSpec with BeforeAndAfterAll
     with SingleProjectWorkspaceProviderTestTrait with IntegrationTestTrait with Matchers {
@@ -63,7 +62,7 @@ class SimpleVariableWorkflowApiTest extends AnyFlatSpec with BeforeAndAfterAll
 
   override def projectPathInClasspath: String = "Simplevariableworkflowproject.zip"
 
-  override def workspaceProviderId: String = "inMemory"
+  override def workspaceProviderId: String = "inMemoryWorkspaceProvider"
 
   private val nonEmptyRequestParameters = Map(sourceProperty1 -> Seq("val"))
   it should "not execute invalid workflows" in {
@@ -90,7 +89,8 @@ class SimpleVariableWorkflowApiTest extends AnyFlatSpec with BeforeAndAfterAll
   }
 
   it should "return the correct response bodies given valid ACCEPT values" in {
-    for (mimeType <- VariableWorkflowRequestUtils.acceptedMimeType.filter(mimeType => mimeType != "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")) {
+    val ignoredMimeTypes = Seq("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", BinaryFileDataset.mimeType)
+    for (mimeType <- VariableWorkflowRequestUtils.acceptedMimeType.filterNot(ignoredMimeTypes.contains)) {
       for (IndexedSeq(param1Values, param2Values) <- Seq(
         IndexedSeq(Seq("val 1"), Seq("val 2")),
         IndexedSeq(Seq(), Seq("val A", "val B"))
