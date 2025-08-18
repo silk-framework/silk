@@ -168,7 +168,7 @@ class ValueRule extends React.Component {
                                     uri: mappingTarget.uri,
                                     type: this.props.type,
                                     parent: parentId,
-                                    displayLabel: this.props.displayLabel
+                                    displayLabel: this.props.displayLabel,
                                 });
                             }}
                         />

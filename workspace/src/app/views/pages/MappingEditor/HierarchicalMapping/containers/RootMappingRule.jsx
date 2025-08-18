@@ -101,7 +101,7 @@ class RootMappingRule extends React.Component {
                 {
                     expanded: !this.state.expanded,
                 },
-                this.updateQueryOnExpansion
+                this.updateQueryOnExpansion,
             );
         }
     }

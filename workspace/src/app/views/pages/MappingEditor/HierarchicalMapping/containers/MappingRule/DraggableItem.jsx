@@ -72,7 +72,7 @@ class DraggableItem extends React.Component {
                 {
                     expanded,
                 },
-                this.updateQueryOnExpansion
+                this.updateQueryOnExpansion,
             );
         }
     };

@@ -11,7 +11,7 @@ interface ObjectUriPatternProps {
     uriRule: any;
     onRemoveUriRule: () => void;
     openMappingEditor: () => void;
-    showLabel?: boolean
+    showLabel?: boolean;
 }
 
 const ObjectUriPattern = ({ uriRule, onRemoveUriRule, openMappingEditor, showLabel = true }: ObjectUriPatternProps) => {
@@ -51,10 +51,9 @@ const ObjectUriPattern = ({ uriRule, onRemoveUriRule, openMappingEditor, showLab
         <div className="ecc-silk-mapping__rulesviewer__idpattern">
             <div className="ecc-silk-mapping__rulesviewer__comment">
                 <dl className="ecc-silk-mapping__rulesviewer__attribute">
-                    {showLabel ?
-                        <dt className="ecc-silk-mapping__rulesviewer__attribute-label">{uriPatternLabel}</dt> :
-                        null
-                    }
+                    {showLabel ? (
+                        <dt className="ecc-silk-mapping__rulesviewer__attribute-label">{uriPatternLabel}</dt>
+                    ) : null}
                     <dd className="ecc-silk-mapping__rulesviewer__attribute-info">
                         {uriPattern}
                         <IconButton

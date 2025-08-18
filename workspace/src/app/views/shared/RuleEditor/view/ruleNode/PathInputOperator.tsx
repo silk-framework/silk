@@ -274,14 +274,14 @@ const LanguageSwitcherContext = React.createContext<LanguageSwitcherContextProps
     showLanguageFilterButton: false,
 });
 
-const LanguageSwitcher = ({onLanguageChange, initialLanguage}: LanguageSwitcherProps) => {
+const LanguageSwitcher = ({ onLanguageChange, initialLanguage }: LanguageSwitcherProps) => {
     const [t] = useTranslation();
     const [languageFilter, setLanguageFilter] = React.useState<string | undefined>(initialLanguage);
     const currentLanguageFilter = React.useRef<string | undefined>();
     currentLanguageFilter.current = languageFilter;
     const context = React.useContext(LanguageSwitcherContext);
 
-    return context.showLanguageFilterButton ?
+    return context.showLanguageFilterButton ? (
         <Select<string>
             inputProps={{
                 id: "language-filter-input",
@@ -310,7 +310,7 @@ const LanguageSwitcher = ({onLanguageChange, initialLanguage}: LanguageSwitcherP
                     );
                 }
             }}
-            itemRenderer={(lang, {handleClick, modifiers}) => {
+            itemRenderer={(lang, { handleClick, modifiers }) => {
                 return lang === NO_LANG ? (
                     currentLanguageFilter.current ? (
                         <MenuItem
@@ -358,8 +358,8 @@ const LanguageSwitcher = ({onLanguageChange, initialLanguage}: LanguageSwitcherP
                     outlined={true}
                 />
             )}
-        </Select> :
-        null
+        </Select>
+    ) : null;
 };
 
 /** Extract the last property of the path that is not in a filter. */

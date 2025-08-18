@@ -13,7 +13,7 @@ export const getEvaluatedEntities = async (
     taskId: string,
     ruleId: string,
     limit: number,
-    showOnlyEntitiesWithUris: boolean
+    showOnlyEntitiesWithUris: boolean,
 ): Promise<FetchResponse<EvaluatedRuleEntityResult>> =>
     fetch({
         method: "GET",
@@ -65,7 +65,7 @@ export const NodeTagValues: React.FC<NodeTagValuesProps> = React.memo(
                 {remainingNodes}
             </TagList>
         );
-    }
+    },
 );
 
 export const newNode = ({

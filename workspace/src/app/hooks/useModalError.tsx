@@ -21,8 +21,9 @@ export const useModalError = ({ setError }: useModalParams) => {
             setError(errorWithContextName((e as FetchError).errorResponse));
         } else if (e.title === "Network Error") {
             setError(errorWithContextName(e));
-        } else if(typeof e.asString === "function" && !!e.status) { // If not a FetchError, seems to be an error response then
-            setError(errorWithContextName(e))
+        } else if (typeof e.asString === "function" && !!e.status) {
+            // If not a FetchError, seems to be an error response then
+            setError(errorWithContextName(e));
         } else {
             console.warn(e);
         }

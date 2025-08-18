@@ -61,7 +61,7 @@ export const registerCorePlugins = () => {
                 projectId: string,
                 taskId: string,
                 viewActions: IViewActions,
-                startFullScreen: boolean
+                startFullScreen: boolean,
             ): JSX.Element {
                 return (
                     <HierarchicalMapping
@@ -91,7 +91,7 @@ export const registerCorePlugins = () => {
                 projectId: string,
                 taskId: string,
                 viewActions: IViewActions | undefined,
-                startFullScreen: boolean
+                startFullScreen: boolean,
             ): JSX.Element {
                 setApiDetails({ project: projectId, transformTask: taskId });
                 return (

@@ -25,7 +25,7 @@ export function FileUploadModal({ isOpen, onDiscard, uploaderOptions = {} }: IFi
     const [t] = useTranslation();
 
     useDebugValue(!projectId ? "Project ID not provided and upload url is not valid" : "");
-    
+
     if (!projectId) {
         return null;
     }
@@ -49,8 +49,15 @@ export function FileUploadModal({ isOpen, onDiscard, uploaderOptions = {} }: IFi
                 onClose={handleDiscard}
                 preventSimpleClosing={isUploading}
                 actions={
-                     <Button data-test-id="file-upload-dialog-close-btn" key="close" onClick={onDiscard} disabled={isUploading}>
-                         {!uploadedFiles.length ? t("common.action.cancel", "Cancel") :t("common.action.close", "Close") }
+                    <Button
+                        data-test-id="file-upload-dialog-close-btn"
+                        key="close"
+                        onClick={onDiscard}
+                        disabled={isUploading}
+                    >
+                        {!uploadedFiles.length
+                            ? t("common.action.cancel", "Cancel")
+                            : t("common.action.close", "Close")}
                     </Button>
                 }
             >
@@ -64,6 +71,7 @@ export function FileUploadModal({ isOpen, onDiscard, uploaderOptions = {} }: IFi
                     }}
                     onProgress={(amount) => setIsUploading(amount > 0 && amount < 1)} // between 0 and 1
                     maxFileUploadSizeBytes={maxFileUploadSize}
+                    t={t}
                 />
             </SimpleDialog>
         </>

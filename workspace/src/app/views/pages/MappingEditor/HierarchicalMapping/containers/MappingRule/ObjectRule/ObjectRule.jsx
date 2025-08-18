@@ -24,7 +24,7 @@ import MetadataDesc from "../../../components/Metadata/MetadataDesc";
 import { SourcePath } from "../../../components/SourcePath";
 import TargetCardinality from "../../../components/TargetCardinality";
 import { defaultUriPattern } from "./ObjectRule.utils";
-import {getRuleLabel} from "../../../utils/getRuleLabel";
+import { getRuleLabel } from "../../../utils/getRuleLabel";
 
 class ObjectRule extends React.Component {
     static propTypes = {
@@ -99,7 +99,7 @@ class ObjectRule extends React.Component {
                 },
                 (err) => {
                     console.error(err);
-                }
+                },
             );
         } else {
             this.props.openMappingEditor(uriRuleId);
@@ -118,7 +118,7 @@ class ObjectRule extends React.Component {
                 },
                 (err) => {
                     console.error(err);
-                }
+                },
             );
         };
         this.props.onClickedRemove(null, callbackFn);
@@ -156,9 +156,9 @@ class ObjectRule extends React.Component {
         const { type, ruleData } = this.props;
         const { edit } = this.state;
         const { type: ruleType, metadata, mappingTarget } = ruleData;
-        const label = _.get(metadata, 'label', '');
-        const ruleLabelData = getRuleLabel({label, uri: mappingTarget.uri});
-        const ruleDisplayLabel = ruleLabelData.displayLabel
+        const label = _.get(metadata, "label", "");
+        const ruleLabelData = getRuleLabel({ label, uri: mappingTarget.uri });
+        const ruleDisplayLabel = ruleLabelData.displayLabel;
 
         if (edit) {
             return (
@@ -245,7 +245,7 @@ class ObjectRule extends React.Component {
                                         uri: this.props.ruleData.mappingTarget.uri,
                                         type: ruleType,
                                         parent: this.props.parentId,
-                                        displayLabel: ruleDisplayLabel
+                                        displayLabel: ruleDisplayLabel,
                                     });
                                 }}
                             />

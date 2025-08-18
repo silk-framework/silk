@@ -23,7 +23,7 @@ interface MappingsListProps {
     handleClone?: (id, type, parent) => any;
     onClickedRemove?: () => any;
     onShowSuggestions?: () => any;
-    onRuleIdChange?: (param:  any) => any;
+    onRuleIdChange?: (param: any) => any;
     onAskDiscardChanges?: (param: any) => any;
     openMappingEditor: () => void;
     startFullScreen: boolean;
@@ -64,7 +64,7 @@ const MappingsList = ({
         const childrenRules = reorderArray(
             items.map((a) => a.key),
             fromPos,
-            toPos
+            toPos,
         );
 
         const { project, transformTask } = getApiDetails();

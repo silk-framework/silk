@@ -135,7 +135,7 @@ class HierarchicalMapping extends React.Component {
                     uri,
                     type,
                     parent,
-                    label: displayLabel
+                    label: displayLabel,
                 },
                 askForRemove: true,
                 removeFunction: this.handleConfirmRemove,

@@ -1,4 +1,4 @@
-import React, {KeyboardEventHandler, useEffect, useState} from "react";
+import React, { KeyboardEventHandler, useEffect, useState } from "react";
 import {
     Button,
     FieldItem,
@@ -7,17 +7,17 @@ import {
     SimpleDialog,
     Spacing,
     Spinner,
-    TextField
+    TextField,
 } from "@eccenca/gui-elements";
-import {ErrorResponse, FetchError} from "../../../services/fetch/responseInterceptor";
-import {requestCloneProject, requestCloneTask} from "@ducks/workspace/requests";
-import {requestProjectMetadata, requestTaskMetadata} from "@ducks/shared/requests";
-import {useTranslation} from "react-i18next";
-import {IModalItem} from "@ducks/shared/typings";
+import { ErrorResponse, FetchError } from "../../../services/fetch/responseInterceptor";
+import { requestCloneProject, requestCloneTask } from "@ducks/workspace/requests";
+import { requestProjectMetadata, requestTaskMetadata } from "@ducks/shared/requests";
+import { useTranslation } from "react-i18next";
+import { IModalItem } from "@ducks/shared/typings";
 import useHotKey from "../HotKeyHandler/HotKeyHandler";
-import {requestProjectIdValidation, requestTaskIdValidation} from "@ducks/common/requests";
-import {debounce} from "lodash";
-import {TaskDocumentationModal} from "./CreateArtefactModal/TaskDocumentationModal";
+import { requestProjectIdValidation, requestTaskIdValidation } from "@ducks/common/requests";
+import { debounce } from "lodash";
+import { TaskDocumentationModal } from "./CreateArtefactModal/TaskDocumentationModal";
 
 export interface ICloneOptions {
     item: IModalItem;
@@ -137,7 +137,8 @@ export default function CloneModal({ item, onDiscard, onConfirmed }: ICloneOptio
         [item, description, newLabel, customId],
     );
 
-    return <SimpleDialog
+    return (
+        <SimpleDialog
             data-test-id={"clone-item-to-modal"}
             size="small"
             title={
@@ -183,10 +184,11 @@ export default function CloneModal({ item, onDiscard, onConfirmed }: ICloneOptio
                     }),
                 }}
             >
-                {initialLoading ?
-                    <Spinner position={"inline"} size={"small"} /> :
+                {initialLoading ? (
+                    <Spinner position={"inline"} size={"small"} />
+                ) : (
                     <TextField onChange={(e) => setNewLabel(e.target.value)} value={newLabel} autoFocus={true} />
-                }
+                )}
             </FieldItem>
 
             <FieldItem
@@ -222,4 +224,5 @@ export default function CloneModal({ item, onDiscard, onConfirmed }: ICloneOptio
                 />
             )}
         </SimpleDialog>
+    );
 }

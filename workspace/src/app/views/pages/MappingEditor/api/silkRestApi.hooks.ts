@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import silkApi from "./silkRestApi";
 import { setDefaultProjectPageSuffix } from "../../../../utils/routerUtils";
-import {IInitFrontend} from "@ducks/common/typings";
+import { IInitFrontend } from "@ducks/common/typings";
 
 interface IProps {
     errorStatus: number;

@@ -20,13 +20,13 @@ import {
     TitleSubsection,
     Tooltip,
 } from "@eccenca/gui-elements";
-import {ICloneOptions} from "../CloneModal";
-import {useTranslation} from "react-i18next";
-import {requestProjectMetadata, requestTaskMetadata} from "@ducks/shared/requests";
-import {requestCopyProject, requestCopyTask, requestSearchList} from "@ducks/workspace/requests";
+import { ICloneOptions } from "../CloneModal";
+import { useTranslation } from "react-i18next";
+import { requestProjectMetadata, requestTaskMetadata } from "@ducks/shared/requests";
+import { requestCopyProject, requestCopyTask, requestSearchList } from "@ducks/workspace/requests";
 import ItemDepiction from "../../ItemDepiction";
-import {ErrorResponse} from "../../../../services/fetch/responseInterceptor";
-import {useModalError} from "../../../../hooks/useModalError";
+import { ErrorResponse } from "../../../../services/fetch/responseInterceptor";
+import { useModalError } from "../../../../hooks/useModalError";
 
 //Component Interface
 interface CopyToModalProps extends ICloneOptions {

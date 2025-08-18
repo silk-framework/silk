@@ -14,11 +14,11 @@ import {
     TitleSubsection,
     Markdown,
     StringPreviewContentBlobToggler,
+    Uppy,
+    UppyFile,
 } from "@eccenca/gui-elements";
 import { useTranslation } from "react-i18next";
-import Uppy, { UppyFile } from "@uppy/core";
 import { workspaceApi } from "../../../utils/getApiEndpoint";
-import XHR from "@uppy/xhr-upload";
 import {
     requestDeleteProjectImport,
     requestProjectImportDetails,
@@ -43,7 +43,7 @@ interface IProps {
 
 export function ProjectImportModal({ close, back, maxFileUploadSizeBytes }: IProps) {
     const [t] = useTranslation();
-    const [uppy] = useState(Uppy());
+    const [uppy, setUppy] = useState<Uppy>();
     const dispatch = useDispatch();
     const [loading, setLoading] = useState(false);
     const [projectImportId, setProjectImportId] = useState<string | null>(null);
@@ -57,25 +57,6 @@ export function ProjectImportModal({ close, back, maxFileUploadSizeBytes }: IPro
     const [startProjectImportExecutionError, setStartProjectImportExecutionError] = useState<
         [string, boolean, boolean] | null
     >(null);
-
-    useEffect(() => {
-        uppy.use(XHR, {
-            method: "POST",
-            fieldName: "file",
-            metaFields: [],
-        });
-        uppy.getPlugin("XHRUpload").setOptions({
-            endpoint: workspaceApi(`/projectImport`),
-        });
-
-        if (maxFileUploadSizeBytes) {
-            uppy.setOptions({
-                restrictions: {
-                    maxFileSize: maxFileUploadSizeBytes,
-                },
-            });
-        }
-    }, []);
 
     useEffect(() => {
         if (projectImportId) {
@@ -122,7 +103,7 @@ export function ProjectImportModal({ close, back, maxFileUploadSizeBytes }: IPro
 
     const handleFileAdded = async () => {
         setUploadError(null);
-        await uppy.upload();
+        await uppy?.upload();
     };
 
     const startProjectImport = async (generateNewProjectId: boolean, overWriteExistingProject: boolean) => {
@@ -191,10 +172,15 @@ export function ProjectImportModal({ close, back, maxFileUploadSizeBytes }: IPro
                 details: details,
             }),
         );
-        uppy.reset();
+        uppy?.reset();
     };
+
     const onUploadSuccess = (file: UppyFile, response) => {
-        const projectImportId = response?.body?.projectImportId;
+        const projectImportId =
+            typeof response?.body === "string"
+                ? JSON.parse(response.body)?.projectImportId
+                : response?.body?.projectImportId;
+
         if (projectImportId) {
             setProjectImportId(projectImportId);
         } else {
@@ -204,12 +190,28 @@ export function ProjectImportModal({ close, back, maxFileUploadSizeBytes }: IPro
                     "Invalid response received from project upload. Project import cannot proceed.",
                 ),
             );
-            uppy.reset();
+            uppy?.reset();
         }
     };
+
+    const restrictions = {
+        restrictions: maxFileUploadSizeBytes
+            ? {
+                  maxFileSize: maxFileUploadSizeBytes,
+              }
+            : {},
+    };
+
     const uploader = (
         <UploadNewFile
-            uppy={uppy}
+            getUppyInstance={setUppy}
+            xhrUploadOptions={{
+                method: "POST",
+                fieldName: "file",
+                metaFields: [],
+                endpoint: workspaceApi(`/projectImport`),
+            }}
+            {...restrictions}
             allowMultiple={false}
             onAdded={handleFileAdded}
             onUploadSuccess={onUploadSuccess}

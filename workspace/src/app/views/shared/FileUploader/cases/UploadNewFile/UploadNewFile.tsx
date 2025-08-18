@@ -1,7 +1,16 @@
-import { DragDrop } from "@uppy/react";
 import React, { useEffect, useState } from "react";
-import Uppy, { UppyFile } from "@uppy/core";
-import { Button, Icon, Notification, Spacing } from "@eccenca/gui-elements";
+import {
+    Button,
+    Icon,
+    Notification,
+    Restrictions,
+    Spacing,
+    Uppy,
+    UppyFile,
+    XHRUploadOptions,
+    FileUpload,
+    FileUploadDragDrop,
+} from "@eccenca/gui-elements";
 import { useTranslation } from "react-i18next";
 import { NewFileItem } from "./NewFileItem";
 import { ReplacementFileItem } from "./ReplacementFileItem";
@@ -14,7 +23,11 @@ import { CLASSPREFIX as eccgui } from "@eccenca/gui-elements/src/configuration/c
 
 interface IProps {
     // Uppy instance
-    uppy: Uppy.Uppy<any>;
+    getUppyInstance?: (uppy?: Uppy) => void;
+    // xhr upload options
+    xhrUploadOptions: XHRUploadOptions;
+    // upload restrictions
+    restrictions?: Restrictions;
 
     // Allow multiple file upload
     allowMultiple?: boolean;
@@ -49,6 +62,8 @@ interface IProps {
 
     /** If uploaded files can be deleted in the same dialog. */
     allowFileDeletion?: boolean;
+    // parent uppy? instance
+    uppy?: Uppy;
 }
 
 /**
@@ -56,7 +71,6 @@ interface IProps {
  */
 export function UploadNewFile({
     projectId,
-    uppy,
     onAdded,
     onUploadSuccess,
     validateBeforeAdd,
@@ -67,7 +81,12 @@ export function UploadNewFile({
     listenToUploadedFiles,
     uploadInitialFiles,
     allowFileDeletion,
+    xhrUploadOptions,
+    restrictions,
+    getUppyInstance,
+    ...restProps
 }: IProps) {
+    const [uppy, setUppy] = React.useState<Uppy | undefined>(restProps.uppy);
     // contains files, which need in replacements
     const [onlyReplacements, setOnlyReplacements] = useState<UppyFile[]>([]);
 
@@ -115,6 +134,7 @@ export function UploadNewFile({
     checkFilesSuccessfullyUploaded();
 
     const uploadInitialFilesAsNewFiles = React.useCallback(async () => {
+        if (!uppy) return;
         const files = uppy.getFiles();
         for (let i = 0; i < files.length; i++) {
             await uploadAsNewFile(files[i]);
@@ -130,28 +150,6 @@ export function UploadNewFile({
     React.useEffect(() => {
         listenToUploadedFiles?.(uploadedFiles);
     }, [uploadedFiles]);
-
-    // register/unregister uppy events
-    useEffect(() => {
-        const unregisterEvents = () => {
-            uppy.off("file-added", handleFileAdded);
-            uppy.off("upload-progress", handleProgress);
-            uppy.off("upload-success", handleUploadSuccess);
-            uppy.off("upload-error", handleUploadError);
-            uppy.off("restriction-failed", onLocalRestrictionFailed);
-        };
-
-        // reset events, because of "file-added" store prev state values
-        unregisterEvents();
-
-        uppy.on("file-added", handleFileAdded);
-        uppy.on("upload-progress", handleProgress);
-        uppy.on("upload-success", handleUploadSuccess);
-        uppy.on("upload-error", handleUploadError);
-        uppy.on("restriction-failed", onLocalRestrictionFailed);
-
-        return unregisterEvents;
-    }, [onlyReplacements, uploadedFiles, filesForRetry]);
 
     /** If a restriction failed, e.g. file size too large, this is fired. */
     const onLocalRestrictionFailed = (file: UppyFile & { error?: string }, error: any) => {
@@ -219,6 +217,7 @@ export function UploadNewFile({
     };
 
     const uploadAsNewFile = async (file: UppyFile) => {
+        if (!uppy) return;
         await validateBeforeUploadAsync(file);
 
         const notCompletedUploads = uppy.getFiles().filter((f) => !f.progress?.uploadComplete);
@@ -236,7 +235,7 @@ export function UploadNewFile({
     const upload = async (files): Promise<void | never> => {
         try {
             files.forEach((file) => {
-                uppy.setFileState(file.id, {
+                uppy?.setFileState(file.id, {
                     xhrUpload: {
                         endpoint: attachFileNameToEndpoint
                             ? `${uploadEndpoint}?path=${encodeURIComponent(file.name)}`
@@ -245,7 +244,7 @@ export function UploadNewFile({
                 });
             });
 
-            await uppy.upload();
+            await uppy?.upload();
         } catch (e) {
             throw new Error(e);
         }
@@ -317,6 +316,7 @@ export function UploadNewFile({
     };
 
     const handleAbort = (fileId: string) => {
+        if (!uppy) return;
         setProgresses((prevState) => {
             const newState = {
                 ...prevState,
@@ -329,13 +329,14 @@ export function UploadNewFile({
     };
 
     const handleReplace = (file: UppyFile) => {
-        uppy.addFile({
+        uppy?.addFile({
             ...file,
             source: "REPLACE_ACTION",
         });
     };
 
     const handleRetry = (fileId: string) => {
+        if (!uppy) return;
         const files = filesForRetry.filter((f) => f.id === fileId);
 
         removeFromRetry(fileId);
@@ -349,18 +350,19 @@ export function UploadNewFile({
     };
 
     const handleRetryAll = () => {
-        const files = uppy.getFiles();
+        if (!uppy) return;
+        const files = uppy?.getFiles();
 
-        // reset uppy if all files should retry
-        uppy.reset();
+        // reset uppy? if all files should retry
+        uppy?.reset();
 
         files.forEach(uppy.addFile);
     };
 
     const removeFromUppyQueue = (fileId: string) => {
-        uppy.removeFile(fileId);
+        uppy?.removeFile(fileId);
 
-        // call force on uppy change
+        // call force on uppy? change
         forceUpdate();
     };
 
@@ -382,24 +384,68 @@ export function UploadNewFile({
     };
 
     const setFileError = (fileId: string, error: string) => {
-        uppy.setFileState(fileId, {
+        uppy?.setFileState(fileId, {
             error,
         });
         // after every file state update forceUpdate required
         forceUpdate();
     };
 
+    // register/unregister uppy events
+    useEffect(() => {
+        if (uppy) {
+            const unregisterEvents = () => {
+                uppy.off("file-added", handleFileAdded);
+                uppy.off("upload-progress", handleProgress);
+                uppy.off("upload-success", handleUploadSuccess);
+                uppy.off("upload-error", handleUploadError);
+                uppy.off("restriction-failed", onLocalRestrictionFailed);
+            };
+
+            // reset events, because of "file-added" store prev state values
+            unregisterEvents();
+
+            uppy.on("file-added", handleFileAdded);
+            uppy.on("upload-progress", handleProgress);
+            uppy.on("upload-success", handleUploadSuccess);
+            uppy.on("upload-error", handleUploadError);
+            uppy.on("restriction-failed", onLocalRestrictionFailed);
+
+            return unregisterEvents;
+        }
+    }, [onlyReplacements, uploadedFiles, filesForRetry, uppy]);
+
+    const handleSetUppyInstance = React.useCallback(
+        (instance: Uppy) => {
+            if (!instance) return;
+            getUppyInstance && getUppyInstance(instance);
+            setUppy(instance);
+        },
+        [getUppyInstance],
+    );
+
     return (
         <div className="diapp-project__uploadwidget">
             {projectId && showDeleteDialog && (
                 <FileRemoveModal projectId={projectId} onConfirm={handleConfirmDelete} file={showDeleteDialog} />
             )}
-            {(uploadInitialFiles?.alsoAllowOther ?? true) && (
-                <DragDrop
-                    uppy={uppy}
-                    locale={{ strings: { dropHereOr: t("FileUploader.dropzone", "Drop files here or browse") } }}
-                />
-            )}
+
+            {(uploadInitialFiles?.alsoAllowOther ?? true) &&
+                (!restProps.uppy ? (
+                    <FileUpload
+                        xhrUploadOptions={xhrUploadOptions}
+                        setInstance={handleSetUppyInstance}
+                        restrictions={restrictions}
+                        localeOptions={{
+                            strings: { dropHereOr: t("FileUploader.dropzone", "Drop files here or browse") },
+                        }}
+                    />
+                ) : (
+                    <FileUploadDragDrop
+                        uppy={restProps.uppy}
+                        locale={{ strings: { dropHereOr: t("FileUploader.dropzone", "Drop files here or browse") } }}
+                    />
+                ))}
             <Icon name="item-upload" className="diapp-project__uploadwidget__dnd-icon" />
             <Spacing />
             {!error ? (
@@ -415,15 +461,17 @@ export function UploadNewFile({
                             onCancelRetry={removeFromRetry}
                         />
                     ))}
-                    {uppy.getFiles().map((file) => (
-                        <NewFileItem
-                            key={file.id}
-                            file={file}
-                            onAbort={handleAbort}
-                            onRemove={removeFromUppyQueue}
-                            progress={progresses[file.id] || 0}
-                        />
-                    ))}
+                    {uppy
+                        ?.getFiles()
+                        .map((file) => (
+                            <NewFileItem
+                                key={file.id}
+                                file={file}
+                                onAbort={handleAbort}
+                                onRemove={removeFromUppyQueue}
+                                progress={progresses[file.id] || 0}
+                            />
+                        ))}
                     {onlyReplacements.map((file) => (
                         <ReplacementFileItem
                             key={file.id}

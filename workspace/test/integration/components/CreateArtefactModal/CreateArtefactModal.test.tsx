@@ -58,7 +58,7 @@ describe("Task creation widget", () => {
 
     const createArtefactWrapper = (
         currentUrl: string = `${SERVE_PATH}`,
-        existingTask?: RecursivePartial<IProjectTaskUpdatePayload>
+        existingTask?: RecursivePartial<IProjectTaskUpdatePayload>,
     ): IWrapper => {
         const history = createMemoryHistory();
         history.push(currentUrl);
@@ -104,7 +104,7 @@ describe("Task creation widget", () => {
     const pluginCreationDialogWrapper = async (
         doubleClickToAdd: boolean = true,
         // The current data of a task that is being updated
-        existingTask?: RecursivePartial<IProjectTaskUpdatePayload>
+        existingTask?: RecursivePartial<IProjectTaskUpdatePayload>,
     ) => {
         const wrapper = await createMockedListWrapper(existingTask);
         const pluginA = selectionItems(wrapper.wrapper)[1];
@@ -120,13 +120,13 @@ describe("Task creation widget", () => {
             }
             mockAxios.mockResponseFor(
                 { url: apiUrl("core/plugins/pluginA") },
-                mockedAxiosResponse({ data: mockPluginDescription })
+                mockedAxiosResponse({ data: mockPluginDescription }),
             );
         }
         await waitFor(() => {
             const labels = findAll(wrapper.wrapper, ".eccgui-label .eccgui-label__text").map((e) => e.text());
             Object.entries(mockPluginDescription.properties).forEach(([paramId, attributes]) =>
-                expect(labels).toContain(attributes.title)
+                expect(labels).toContain(attributes.title),
             );
         });
         return wrapper;
@@ -175,22 +175,22 @@ describe("Task creation widget", () => {
             resourceParam: atomicParamDescription({ title: "resource param", parameterType: INPUT_TYPES.RESOURCE }),
             enumerationParam: atomicParamDescription(
                 { title: "enumeration param", parameterType: INPUT_TYPES.ENUMERATION },
-                {}
+                {},
             ),
             autoCompletionParamCustom: atomicParamDescription(
                 { title: "auto-complete param that allows custom values", parameterType: INPUT_TYPES.STRING },
-                { allowOnlyAutoCompletedValues: false }
+                { allowOnlyAutoCompletedValues: false },
             ),
             optionalAutoCompletionParamCustom: atomicParamDescription(
                 { title: "auto-complete param that allows resetting it's value", parameterType: INPUT_TYPES.STRING },
-                {}
+                {},
             ),
             objectParameter: objectParamDescription(
                 "pluginX",
                 {
                     subProperty: atomicParamDescription(
                         { title: "nested auto-complete param", parameterType: INPUT_TYPES.STRING },
-                        {}
+                        {},
                     ),
                     subStringParam: atomicParamDescription({
                         title: "string param",
@@ -198,7 +198,7 @@ describe("Task creation widget", () => {
                     }),
                 },
                 ["subStringParam"],
-                {}
+                {},
             ),
         },
     };
@@ -291,7 +291,7 @@ describe("Task creation widget", () => {
         mockAxiosResponse(tasksUri, { data: { id: newTaskId } });
         await waitFor(() => {
             expect(history.location.pathname).toEqual(
-                expect.stringMatching(new RegExp(`projects/${PROJECT_ID}/task/${newTaskId}$`))
+                expect.stringMatching(new RegExp(`projects/${PROJECT_ID}/task/${newTaskId}$`)),
             );
         });
     });
@@ -307,7 +307,7 @@ describe("Task creation widget", () => {
         await waitFor(() => {
             mockAxiosResponse(
                 legacyApiUrl("workspace/projects/projectId/tasks"),
-                mockedAxiosError(500, { title: "error", detail: expectedErrorMsg })
+                mockedAxiosError(500, { title: "error", detail: expectedErrorMsg }),
             );
         });
         await waitFor(() => {
@@ -353,7 +353,7 @@ describe("Task creation widget", () => {
             // Request is delayed by 200ms
             mockAutoCompleteResponse(
                 { textQuery: "abc" },
-                mockedAxiosResponse({ data: [{ value: "abc1" }, { value: "abc2" }] })
+                mockedAxiosResponse({ data: [{ value: "abc1" }, { value: "abc2" }] }),
             );
         });
         await waitFor(() => {
@@ -416,7 +416,7 @@ describe("Task creation widget", () => {
         Object.entries(expectedParams).forEach(([key, value]) => (expectedObject[key] = value.value));
         const objectParameterObject: any = {};
         Object.entries(expectedParams.objectParameter.value).forEach(
-            ([key, value]) => (objectParameterObject[key] = value.value)
+            ([key, value]) => (objectParameterObject[key] = value.value),
         );
         expectedObject.objectParameter = objectParameterObject;
         expect(updateRequest.data.parameters).toEqual(expectedObject);
@@ -434,11 +434,11 @@ describe("Task creation widget", () => {
         // Build expected request parameter object
         const expectedObject: any = {};
         Object.entries(expectedParams).forEach(
-            ([key, value]) => key !== "stringParam" && (expectedObject[key] = value.value)
+            ([key, value]) => key !== "stringParam" && (expectedObject[key] = value.value),
         );
         const objectParameterObject: any = {};
         Object.entries(expectedParams.objectParameter.value).forEach(
-            ([key, value]) => (objectParameterObject[key] = value.value)
+            ([key, value]) => (objectParameterObject[key] = value.value),
         );
         expectedObject.objectParameter = objectParameterObject;
         expect(updateRequest.data.parameters).toEqual(expectedObject);

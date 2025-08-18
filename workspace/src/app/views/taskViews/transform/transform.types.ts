@@ -4,7 +4,7 @@ import { IValueInput, RuleLayout } from "../shared/rules/rule.typings";
 import { Stacktrace } from "../../shared/SampleError/SampleError";
 import { StickyNote } from "@eccenca/gui-elements";
 
-export type PartialBy<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>
+export type PartialBy<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>;
 
 /** Parameters of a transform task. */
 export interface ITransformRule {
