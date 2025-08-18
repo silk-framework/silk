@@ -87,6 +87,7 @@ object PluginDescriptionSerializers {
         case _ => (None, None)
       }
       Json.toJson(PluginParameterJsonPayload(
+        name = param.name,
         title = param.label,
         description = param.description,
         `type` = param.parameterType.jsonSchemaType,
@@ -186,6 +187,7 @@ object PluginDescriptionSerializers {
 }
 
 /**
+  * @param name            The name of the parameter.
   * @param title           Human-readable title of the parameter.
   * @param description     Description of the parameter.
   * @param `type`          The JSON type of the parameter, at the moment either "string" or "object".
@@ -198,7 +200,8 @@ object PluginDescriptionSerializers {
   * @param pluginId        Optional plugin ID, if this parameter is itself a plugin.
   * @param required For object parameter types it will list the required parameters.
   */
-case class PluginParameterJsonPayload(title: String,
+case class PluginParameterJsonPayload(name: String,
+                                      title: String,
                                       description: String,
                                      `type`: String,
                                       parameterType: String,
