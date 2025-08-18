@@ -40,9 +40,9 @@ import scala.util.matching.Regex
     output = Array("1")
   ),
 ))
-case class RegexReplaceTransformer(@Param(value = "The regular expression to search for", example = "\\s*")
+case class RegexReplaceTransformer(@Param(value = "The regular expression to match", example = "\\s*")
                                    regex: String,
-                                   @Param(value = "The string that will replace each match")
+                                   @Param(value = "The replacement of each match")
                                    replace: String = "") extends SimpleTransformer{
   private val compiledRegex = new Regex(regex)
 
