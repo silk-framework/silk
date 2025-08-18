@@ -88,7 +88,7 @@ class ClassPluginDescription[+T <: AnyPlugin](val id: Identifier,
     }
   }
 
-  override def toString: String = label
+  override def toString: String = s"Plugin '$label' defined by class '${pluginClass.getName}'"
 
   /**
     * Throws an exception if a parameter value is provided that does not exist on this plugin.
@@ -181,7 +181,7 @@ object ClassPluginDescription {
       )
     } catch {
       case ex: InvalidPluginException =>
-        throw new InvalidPluginException(s"Cannot extract plugin description for plugin class '${pluginClass.getCanonicalName}'. Details: ${ex.getMessage}", ex)
+        throw new InvalidPluginException(s"Cannot extract plugin description for plugin class '${pluginClass.getCanonicalName}'. Details: ${ex.getMessage}", Some(ex))
     }
   }
 

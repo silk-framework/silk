@@ -3,7 +3,8 @@ package controllers.workspaceApi
 import akka.stream.scaladsl.{FileIO, Source}
 import controllers.workspaceApi.ProjectImportApi.ProjectImportDetails
 import helper.IntegrationTestTrait
-import org.scalatest.concurrent.PatienceConfiguration
+import org.scalatest.concurrent.PatienceConfiguration
+
 import org.silkframework.runtime.resource.ClasspathResource
 import org.silkframework.util.{Identifier, StreamUtils, TestFileUtils}
 import org.silkframework.workspace.{SingleProjectWorkspaceProviderTestTrait, WorkspaceFactory}
@@ -23,7 +24,7 @@ class ProjectImportApiTest extends AnyFlatSpec with SingleProjectWorkspaceProvid
 
   override def projectPathInClasspath: String = "diProjects/configProject.zip"
 
-  override def workspaceProviderId: String = "inMemory"
+  override def workspaceProviderId: String = "inMemoryWorkspaceProvider"
 
   override def routes: Option[Class[_ <: Router]] = Some(classOf[testWorkspace.Routes])
 

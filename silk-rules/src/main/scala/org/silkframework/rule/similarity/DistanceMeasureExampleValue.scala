@@ -23,6 +23,9 @@ case class DistanceMeasureExampleValue(description: Option[String],
     sb ++= s"    - Target: ${code(format(inputs.target))}\n"
     sb ++= "\n"
     sb ++= s"* Returns: `${output}`\n"
+    for(exceptionClass <- throwsException) {
+      sb ++= s"* **Throws error:** `${exceptionClass.getSimpleName}`\n"
+    }
   }
 
   private def format(traversable: Iterable[_]): String = {

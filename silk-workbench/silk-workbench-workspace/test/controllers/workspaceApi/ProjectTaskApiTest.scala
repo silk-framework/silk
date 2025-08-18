@@ -30,7 +30,7 @@ class ProjectTaskApiTest extends AnyFlatSpec with SingleProjectWorkspaceProvider
     with Matchers {
   behavior of "Project Task API"
 
-  override def workspaceProviderId: String = "inMemory"
+  override def workspaceProviderId: String = "inMemoryWorkspaceProvider"
 
   override def projectPathInClasspath: String = "diProjects/relatedItemsProject.zip"
 

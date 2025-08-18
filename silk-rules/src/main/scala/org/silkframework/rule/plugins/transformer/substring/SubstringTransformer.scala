@@ -45,7 +45,7 @@ import org.silkframework.runtime.validation.ValidationException
     parameters = Array("beginIndex", "2", "endIndex", "4"),
     input1 = Array("abc"),
     output = Array("c"),
-    throwsException = "org.silkframework.runtime.validation.ValidationException"
+    throwsException = classOf[org.silkframework.runtime.validation.ValidationException]
   ),
   new TransformExample(
     parameters = Array("beginIndex", "2", "endIndex", "4", "stringMustBeInRange", "false"),
