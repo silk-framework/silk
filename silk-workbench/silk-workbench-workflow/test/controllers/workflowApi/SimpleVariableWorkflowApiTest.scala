@@ -62,7 +62,7 @@ class SimpleVariableWorkflowApiTest extends AnyFlatSpec with BeforeAndAfterAll
 
   override def projectPathInClasspath: String = "Simplevariableworkflowproject.zip"
 
-  override def workspaceProviderId: String = "inMemory"
+  override def workspaceProviderId: String = "inMemoryWorkspaceProvider"
 
   private val nonEmptyRequestParameters = Map(sourceProperty1 -> Seq("val"))
   it should "not execute invalid workflows" in {
