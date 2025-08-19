@@ -1,10 +1,5 @@
-This transformer takes 3 inputs.
-- The first input should have exactly one value that should be passed out again untouched.
-- The second input has at least two Regex values - two in order to make sense.
-- The third input should have exactly one value which is checked against the regexes.
+This transformer takes _three_ inputs: a single _output value_, a sequence of _regular expressions_ and a sequence of _values to check_ against the regular expressions. It returns a sequence of copies of the output value exclusively at those positions where one of the regular expressions matches the input value.
 
-The result of the transformer is a sequence with the same length of number of regexes.
-For the output value (of the first input) is set to each position in this sequence where
-the related regex also matched.
+In other words: It _selects_ the matches within the sequence of values against the regular expressions and 'marks' them with the provided output value.
 
-If `oneOnly` is true only the position of the **first** matching regex will be set to the output value.
+As a further detail of its operation: If the parameter `oneOnly` of the transformer is set to `true`, then only the position of the _first_ matching regular expression will be marked with the output value. There won't be any further marked matches.
