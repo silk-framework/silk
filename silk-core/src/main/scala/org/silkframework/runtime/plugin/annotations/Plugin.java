@@ -35,23 +35,30 @@ public @interface Plugin {
    */
   String[] categories() default { PluginCategories.uncategorized };
 
-  /** A short (few sentence, single-line) description of this plugin. */
+  /** A short description of this plugin, in a single line. */
   String description() default "No description";
 
   /**
-   * Optional markdown documentation for this plugin that will be shown instead of the description for showing the full documentation of a plugin.
-   * Classpath to a Markdown file. Typically the Markdown file is at the same classpath as the documented plugin, in which case the local file name can be provided instead of the full classpath.
+   * Optional Markdown documentation file for this plugin. If the Markdown file exists, it will replace the description, if the full documentation is shown. The Markdown file should thus include a complete description of the plugin.
+   * <br/>
+   * Classpath to a Markdown file. Typically, the Markdown file is located at the same classpath as the plugin it describes. In this case, only the file name of the Markdown file should be provided, instead of the fully resolved (class)path.
    *
-   * Headings: Should use ## for the main heading, ### for subheadings, etc. The top-level heading # should not be used.
+   * <h4>Headings</h4>
    *
-   * Parameter links:
+   * A {@code ##} should be used for the main heading, {@code ###} for the subheadings, etc. The top-level heading {@code #} should not be used.
+   *
+   * <h4>Parameter links</h4>
    *
    * It is possible to define special HTML links in the Markdown documentation for parameters of a plugin.
    * This allows for direct links into the documentation for a specific parameter. The format is as follows:
    *
-   * <a id="parameter_doc_<PARAMETER_ID></>">documentation text</a>
+   * <pre>
+   * {@code
+   * <a id="parameter_doc_<PARAMETER_ID></>">documentation text</a></code>
+   * }
+   * </pre>
    *
-   * Replace <PARAMETER_ID> with the parameter ID it corresponds to.
+   * Replace {@code <PARAMETER_ID>} with the parameter ID it corresponds to.
    */
   String documentationFile() default "";
 
