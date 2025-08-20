@@ -8,7 +8,7 @@ import scala.collection.immutable.ArraySeq
  * @param uri The URI of the SPARQL endpoint
  * @param user The login required by the endpoint for authentication
  * @param graph The URI of a named graph
- * @param pageSize The number of solutions to be retrieved per SPARQL query (default: 1000)
+ * @param pageSize The number of entities to be retrieved per SPARQL query (default: 1000)
  * @param entityList A list of entities to be retrieved. If not given, all entities will be retrieved. Multiple entities are separated by whitespace.
  * @param pauseTime The minimum number of milliseconds between two queries
  * @param retryCount The number of retries if a query fails

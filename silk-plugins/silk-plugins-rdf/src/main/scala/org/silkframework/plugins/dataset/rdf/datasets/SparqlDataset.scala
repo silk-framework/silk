@@ -22,7 +22,7 @@ case class SparqlDataset(
   password: PasswordParameter = PasswordParameter.empty,
   @Param("The URI of a named graph. If set, the SPARQL endpoint will only retrieve entities from that specific graph.")
   graph: String = null,
-  @Param(value = "The number of solutions to be retrieved per SPARQL query.", advanced = true)
+  @Param(value = "The number of entities to be retrieved per SPARQL query. This is the page size while paging.", advanced = true)
   pageSize: Int = 1000,
   @Param(value = "A list of entities to be retrieved. If not given, all entities will be retrieved. Multiple entities are separated by whitespace.", advanced = true)
   entityList: MultilineStringParameter = MultilineStringParameter(""),
