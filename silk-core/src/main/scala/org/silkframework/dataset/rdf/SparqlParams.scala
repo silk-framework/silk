@@ -5,11 +5,11 @@ import scala.collection.immutable.ArraySeq
 /**
  * Sparql parameters.
  *
- * @param uri The URI of the endpoint
+ * @param uri The URI of the SPARQL endpoint
  * @param user The login required by the endpoint for authentication
  * @param graph The URI of a named graph
  * @param pageSize The number of solutions to be retrieved per SPARQL query (default: 1000)
- * @param entityList TODO @Robert Isele
+ * @param entityList A list of entities to be retrieved. If not given, all entities will be retrieved. Multiple entities are separated by whitespace.
  * @param pauseTime The minimum number of milliseconds between two queries
  * @param retryCount The number of retries if a query fails
  * @param retryPause The pause in milliseconds before a query is retried. For each subsequent retry the pause is doubled.
@@ -19,7 +19,7 @@ import scala.collection.immutable.ArraySeq
  * @param timeout The timeout in milliseconds or no timeout if not specified.
 */
 case class SparqlParams(
-   uri: String = "",
+  uri: String = "",
   user: String = null,
   password: String = null,
   graph: Option[String] = None,
