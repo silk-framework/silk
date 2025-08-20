@@ -1,5 +1,7 @@
 package org.silkframework.rule
 
+import org.silkframework.rule.OperatorExampleValues.code
+
 /**
   * Holds example inputs/outputs for operator plugins.
   */
@@ -15,20 +17,37 @@ case class OperatorExampleValues[T <: OperatorExampleValue](examples: Seq[T]) {
         sb ++= "---\n"
         example.description match {
           case Some(desc) =>
-            sb ++= s"#### ${desc.stripSuffix(".")}:\n\n"
+            sb ++= s"**${desc.stripSuffix(".")}:**\n\n"
           case None =>
-            sb ++= s"#### Example ${idx + 1}:\n\n"
+            sb ++= s"**Example ${idx + 1}:**\n\n"
         }
         if (example.parameters.nonEmpty) {
           sb ++= "* Parameters\n"
           for ((param, paramValue) <- example.parameters) {
-            sb ++= s"  * *$param*: `$paramValue`\n"
+            sb ++= s"    * $param: ${code(paramValue)}\n"
           }
           sb ++= "\n"
         }
         example.markdownFormatted(sb)
         sb ++= "\n\n"
       }
+    }
+  }
+
+}
+
+object OperatorExampleValues {
+
+  /**
+   * Wraps a string into a markdown code block.
+   */
+  def code(str: String): String = {
+    if(str.contains("\n")) {
+      val indent = " " * 4
+      val indentedLines = str.split("\n").map(line => indent + line)
+      indentedLines.mkString(s"\n$indent```\n", "\n", s"\n$indent```")
+    } else {
+      s"`$str`"
     }
   }
 
