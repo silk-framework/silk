@@ -20,7 +20,7 @@ case class SparqlDataset(
   login: String = null,
   @Param("Password required for authentication")
   password: PasswordParameter = PasswordParameter.empty,
-  @Param("Only retrieve entities from a specific graph")
+  @Param("The URI of a named graph. If set, the SPARQL endpoint will only retrieve entities from that specific graph.")
   graph: String = null,
   @Param(value = "The number of solutions to be retrieved per SPARQL query.", advanced = true)
   pageSize: Int = 1000,
