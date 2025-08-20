@@ -26,7 +26,7 @@ case class SparqlDataset(
   pageSize: Int = 1000,
   @Param(value = "A list of entities to be retrieved. If not given, all entities will be retrieved. Multiple entities are separated by whitespace.", advanced = true)
   entityList: MultilineStringParameter = MultilineStringParameter(""),
-  @Param(value = "The number of milliseconds to wait between subsequent query", advanced = true)
+  @Param(value = "The number of milliseconds to wait between subsequent queries", advanced = true)
   pauseTime: Int = 0,
   @Param(value = "The number of retries if a query fails", advanced = true)
   retryCount: Int = 3,
