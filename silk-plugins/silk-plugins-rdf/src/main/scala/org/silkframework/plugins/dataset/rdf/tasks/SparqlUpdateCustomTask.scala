@@ -11,8 +11,7 @@ import org.silkframework.runtime.plugin.types.SparqlCodeParameter
   id = "sparqlUpdateOperator",
   label = "SPARQL Update query",
   description =
-"""A task that outputs SPARQL Update queries for every entity from the input based on a SPARQL Update template.
-The output of this operator should be connected to the SPARQL datasets to which the results should be written. In contrast to the SPARQL select operator, no FROM clause gets injected into the query."""
+"""A task that outputs SPARQL Update queries for every entity from the input based on a SPARQL Update template. The output of this operator should be connected to the SPARQL datasets to which the results should be written. In contrast to the SPARQL select operator, no FROM clause gets injected into the query."""
 )
 case class SparqlUpdateCustomTask(@Param(label = "SPARQL update query", value = SparqlUpdateCustomTask.sparqlUpdateTemplateDescription,
                                          example = "DELETE DATA { ${<PROP_FROM_ENTITY_SCHEMA1>} rdf:label ${\"PROP_FROM_ENTITY_SCHEMA2\"} }")

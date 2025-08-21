@@ -25,8 +25,8 @@ object PluginDescriptionSerializers {
 
     override def write(pluginList: PluginList)(implicit writeContext: WriteContext[JsValue]): JsValue = {
       JsObject(
-        for((_, plugins) <- pluginList.pluginsByType; plugin <- plugins) yield {
-          plugin.id.toString -> serializePlugin(plugin, pluginList.serializeMarkdownDocumentation, pluginList.overviewOnly, taskType = None, withLabels = false)
+        for((pluginType, plugins) <- pluginList.pluginsByType; plugin <- plugins) yield {
+          plugin.id.toString -> serializePlugin(plugin, pluginList.serializeMarkdownDocumentation, pluginList.overviewOnly, pluginType = Some(pluginType), withLabels = false)
         }
       )
     }
@@ -34,8 +34,9 @@ object PluginDescriptionSerializers {
     def serializePlugin(plugin: PluginDescription[_],
                         withMarkdownDocumentation: Boolean,
                         overviewOnly: Boolean,
-                        taskType: Option[String],
-                        withLabels: Boolean)
+                        taskType: Option[String] = None,
+                        pluginType: Option[String] = None,
+                        withLabels: Boolean = false)
                        (implicit writeContext: WriteContext[JsValue]): JsObject = {
       val markdownDocumentation = if(withMarkdownDocumentation && plugin.documentation.nonEmpty){
         Some((MARKDOWN_DOCUMENTATION_PARAMETER -> JsString(plugin.documentation)))
@@ -45,7 +46,9 @@ object PluginDescriptionSerializers {
         "categories" -> JsArray(plugin.categories.map(JsString)),
         "description" -> JsString(plugin.description)
       )
-      val tt = taskType.map(t => JsonSerializers.TASKTYPE -> JsString(t)).toSeq
+      val taskTypeJson = taskType.map(t => JsonSerializers.TASKTYPE -> JsString(t)).toSeq
+      val pluginTypeJson = pluginType.map(t => JsonSerializers.PLUGIN_TYPE -> JsString(t)).toSeq
+      val backendType = Seq("backendType" -> JsString(plugin.backendType))
       val details = Seq (
         "type" -> JsString("object"),
         "properties" -> JsObject(serializeParams(plugin.parameters, withLabels)),
@@ -55,7 +58,7 @@ object PluginDescriptionSerializers {
       val optionalPluginIcon = plugin.icon.map(content => "pluginIcon" -> JsString(content))
       val pluginTypeSpecificProperties = plugin.customDescriptions.flatMap(_.additionalProperties().view.mapValues(JsString))
       val actions = Seq(("actions" -> serializeActions(plugin.actions)))
-      JsObject(metaData ++ tt ++ details ++ markdownDocumentation ++ optionalPluginIcon ++ pluginTypeSpecificProperties ++ actions)
+      JsObject(metaData ++ taskTypeJson ++ pluginTypeJson ++ backendType++ details ++ markdownDocumentation ++ optionalPluginIcon ++ pluginTypeSpecificProperties ++ actions)
     }
 
     private def serializeParams(params: Seq[PluginParameter],
@@ -84,6 +87,7 @@ object PluginDescriptionSerializers {
         case _ => (None, None)
       }
       Json.toJson(PluginParameterJsonPayload(
+        name = param.name,
         title = param.label,
         description = param.description,
         `type` = param.parameterType.jsonSchemaType,
@@ -183,6 +187,7 @@ object PluginDescriptionSerializers {
 }
 
 /**
+  * @param name            The name of the parameter.
   * @param title           Human-readable title of the parameter.
   * @param description     Description of the parameter.
   * @param `type`          The JSON type of the parameter, at the moment either "string" or "object".
@@ -195,7 +200,8 @@ object PluginDescriptionSerializers {
   * @param pluginId        Optional plugin ID, if this parameter is itself a plugin.
   * @param required For object parameter types it will list the required parameters.
   */
-case class PluginParameterJsonPayload(title: String,
+case class PluginParameterJsonPayload(name: String,
+                                      title: String,
                                       description: String,
                                      `type`: String,
                                       parameterType: String,

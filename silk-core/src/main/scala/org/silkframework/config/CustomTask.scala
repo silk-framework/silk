@@ -10,7 +10,10 @@ import scala.xml.Node
 /**
   * A custom task provided by a plugin.
   */
-@PluginType(label = "Workflow operator")
+@PluginType(
+  label = "Workflow operator",
+  description = "An operator that can be used in a workflow."
+)
 trait CustomTask extends TaskSpec with AnyPlugin
 
 object CustomTask extends PluginFactory[CustomTask] {
