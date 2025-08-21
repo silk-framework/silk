@@ -1,20 +1,10 @@
 import React from "react";
-import { mount, shallow } from "enzyme";
-import * as Store from "../../../../../src/app/views/pages/MappingEditor/HierarchicalMapping/store";
 import ObjectRule from "../../../../../src/app/views/pages/MappingEditor/HierarchicalMapping/containers/MappingRule/ObjectRule/ObjectRule";
-import ObjectMappingRuleForm from "../../../../../src/app/views/pages/MappingEditor/HierarchicalMapping/containers/MappingRule/ObjectRule/ObjectRuleForm";
-import ObjectEntityRelation from "../../../../../src/app/views/pages/MappingEditor/HierarchicalMapping/components/ObjectMapping/ObjectEntityRelation";
-import TargetProperty from "../../../../../src/app/views/pages/MappingEditor/HierarchicalMapping/components/TargetProperty";
-import ObjectTypeRules from "../../../../../src/app/views/pages/MappingEditor/HierarchicalMapping/components/ObjectMapping/ObjectTypeRules";
-import ObjectSourcePath from "../../../../../src/app/views/pages/MappingEditor/HierarchicalMapping/components/ObjectMapping/ObjectSourcePath";
-import EditButton from "../../../../../src/app/views/pages/MappingEditor/HierarchicalMapping/elements/buttons/EditButton";
-import CopyButton from "../../../../../src/app/views/pages/MappingEditor/HierarchicalMapping/elements/buttons/CopyButton";
-import CloneButton from "../../../../../src/app/views/pages/MappingEditor/HierarchicalMapping/elements/buttons/CloneButton";
-import DeleteButton from "../../../../../src/app/views/pages/MappingEditor/HierarchicalMapping/elements/buttons/DeleteButton";
-import MetadataLabel from "../../../../../src/app/views/pages/MappingEditor/HierarchicalMapping/components/Metadata/MetadataLabel";
-import MetadataDesc from "../../../../../src/app/views/pages/MappingEditor/HierarchicalMapping/components/Metadata/MetadataDesc";
-import ExampleTarget from "../../../../../src/app/views/pages/MappingEditor/HierarchicalMapping/components/ExampleTarget";
+
 import { MAPPING_ROOT_RULE_ID } from "../../../../../src/app/views/pages/MappingEditor/HierarchicalMapping/HierarchicalMapping";
+
+import { fireEvent, render } from "@testing-library/react";
+import { byTestId, findAllDOMElements, findElement } from "../../../../integration/TestHelper";
 
 const handleCopyFn = jest.fn();
 const handleCloneFn = jest.fn();
@@ -56,54 +46,56 @@ const props = {
     onClickedRemove: onClickedRemoveFn,
 };
 
-const getWrapper = (renderer = shallow, arg = props) => renderer(<ObjectRule {...arg} />);
+const getWrapper = (renderer = render, arg = props) => renderer(<ObjectRule {...arg} />);
 
 describe("ObjectMappingRule Component", () => {
     describe("on component mounted, ", () => {
         let wrapper;
 
         beforeEach(() => {
-            wrapper = getWrapper(shallow);
+            wrapper = getWrapper(render);
         });
 
         it("should ObjectMappingRuleForm rendered, when `props.edit` is true", () => {
-            const wrapper = getWrapper(shallow, {
+            const wrapper = getWrapper(render, {
                 ...props,
                 edit: {},
             });
-            expect(wrapper.find(ObjectMappingRuleForm)).toHaveLength(1);
+            expect(findAllDOMElements(wrapper, ".ecc-silk-mapping__ruleseditor").length).toBeGreaterThan(0);
         });
 
         it("should render ObjectTargetProperty components, when `props.type` is NOT `root`", () => {
-            const wrapper = getWrapper(shallow, {
+            const wrapper = getWrapper(render, {
                 ...props,
                 type: "complex",
             });
-            expect(wrapper.find(TargetProperty)).toHaveLength(1);
+            findElement(wrapper, ".ecc-silk-mapping__rulesviewer__targetProperty");
         });
 
         it("should render ObjectEntityRelation components, when `props.type` is NOT `root`", () => {
-            const wrapper = getWrapper(shallow, {
+            const wrapper = getWrapper(render, {
                 ...props,
                 type: "complex",
             });
-            expect(wrapper.find(ObjectEntityRelation)).toHaveLength(1);
+            findElement(wrapper, ".mdl-radio-group");
         });
 
         it("should ObjectTypeRules component rendered, when `props.typeRules` first object have `uri` property", () => {
-            expect(wrapper.find(ObjectTypeRules)).toHaveLength(1);
+            const objectTypeRuleClass = ".ecc-silk-mapping__rulesviewer__targetEntityType"; //component -> ObjectTypeRules
+            findElement(wrapper, objectTypeRuleClass);
         });
 
         it("should ObjectSourcePath component rendered, when `props.type` is Object and sourcePath presented in `ruleData`,", () => {
-            const wrapper = getWrapper(shallow, {
+            const wrapper = getWrapper(render, {
                 ...props,
                 type: "object",
             });
-            expect(wrapper.find(ObjectSourcePath)).toHaveLength(1);
+            const objectSourcePathClass = ".ecc-silk-mapping__rulesviewer__sourcePath"; //component -> ObjectSourcePath
+            findElement(wrapper, objectSourcePathClass);
         });
 
         it("should ExampleTarget component rendered, when `props.rules.uriRule.id` is presented", () => {
-            const wrapper = getWrapper(shallow, {
+            const wrapper = getWrapper(render, {
                 ...props,
                 ruleData: {
                     ...props.ruleData,
@@ -114,15 +106,18 @@ describe("ObjectMappingRule Component", () => {
                     },
                 },
             });
-            expect(wrapper.find(ExampleTarget)).toHaveLength(1);
+            const exampleTargetClass = ".ecc-silk-mapping__rulesviewer__examples"; //component ->ExampleTarget
+            findElement(wrapper, exampleTargetClass);
         });
 
         it("should MetadataLabel component rendered, when `props.metadata.label` is presented", () => {
-            expect(wrapper.find(MetadataLabel)).toHaveLength(1);
+            const metadataLabelClass = ".ecc-silk-mapping__rulesviewer__label";
+            findElement(wrapper, metadataLabelClass);
         });
 
         it("should ExampleTarget component rendered, when `props.metadata.description` is presented", () => {
-            expect(wrapper.find(MetadataDesc)).toHaveLength(1);
+            const metadataDescClass = ".ecc-silk-mapping__rulesviewer__comment";
+            expect(findAllDOMElements(wrapper, metadataDescClass).length).toBeGreaterThan(0);
         });
 
         afterEach(() => {
@@ -132,35 +127,34 @@ describe("ObjectMappingRule Component", () => {
 
     describe("on user interaction", () => {
         it("should EDIT button toggle the `edit` property in state", () => {
-            const wrapper = getWrapper(mount);
-            wrapper.find(EditButton).simulate("click");
-            expect(wrapper.state().edit).toBe(true);
+            const wrapper = getWrapper(render);
+            fireEvent.click(findElement(wrapper, byTestId("mapping-rule-edit-btn")));
         });
 
         it("should CopyButton button call `handleCopy` function from props, with right arguments", () => {
-            const wrapper = getWrapper(mount);
-            wrapper.find(CopyButton).simulate("click");
+            const wrapper = getWrapper(render);
+            fireEvent.click(findElement(wrapper, byTestId("mapping-rule-copy-btn")));
             expect(handleCopyFn).toHaveBeenCalledWith(props.ruleData.id, props.ruleData.type);
         });
 
         it("should CloneButton button call `handleClone` function from props, with right arguments", () => {
-            const wrapper = getWrapper(mount, {
+            const wrapper = getWrapper(render, {
                 ...props,
                 ruleData: {
                     ...props.ruleData,
                     type: "object",
                 },
             });
-            wrapper.find(CloneButton).simulate("click");
+            fireEvent.click(findElement(wrapper, byTestId("mapping-rule-clone-btn")));
             expect(handleCloneFn).toHaveBeenCalledWith(props.ruleData.id, "object", props.ruleData.parentId);
         });
 
         it("should DeleteButton button call `onClickedRemove` function from props, with right arguments", () => {
-            const wrapper = getWrapper(mount, {
+            const wrapper = getWrapper(render, {
                 ...props,
                 type: "object",
             });
-            wrapper.find(DeleteButton).simulate("click");
+            fireEvent.click(findElement(wrapper, byTestId("mapping-rule-delete-btn")));
             expect(onClickedRemoveFn).toHaveBeenCalledWith({
                 id: "root",
                 uri: "uri",

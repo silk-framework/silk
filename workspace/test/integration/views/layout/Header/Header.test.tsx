@@ -1,10 +1,12 @@
 import React from "react";
-import { createBrowserHistory } from "history";
+import { createBrowserHistory, createMemoryHistory } from "history";
 import mockAxios from "../../../../__mocks__/axios";
 import {
     byTestId,
-    clickElement,
+    clickFoundElement,
+    findElement,
     mockedAxiosResponse,
+    renderWrapper,
     setUseParams,
     testWrapper,
     withMount,
@@ -13,15 +15,14 @@ import {
 import { Header } from "../../../../../src/app/views/layout/Header/Header";
 import Task from "../../../../../src/app/views/pages/Task";
 import { APP_VIEWHEADER_ID, PageHeader } from "../../../../../src/app/views/shared/PageHeader/PageHeader";
-import { waitFor } from "@testing-library/react";
+import { fireEvent, RenderResult, waitFor } from "@testing-library/react";
 import { Helmet } from "react-helmet";
-import { ContextMenu } from "@eccenca/gui-elements";
 import { pluginRegistry, SUPPORTED_PLUGINS } from "../../../../../src/app/views/plugins/PluginRegistry";
 import { BrandingProps } from "../../../../../src/app/views/plugins/plugin.types";
 
 describe("Header", () => {
     let hostPath = process.env.HOST;
-    let wrapper;
+    let wrapper: RenderResult;
     let history = createBrowserHistory();
     pluginRegistry.registerPluginComponent<BrandingProps>(SUPPORTED_PLUGINS.DI_BRANDING, {
         applicationCorporationName: "some corp",
@@ -34,15 +35,16 @@ describe("Header", () => {
         const portalroot = global.document.createElement("div");
         portalroot.setAttribute("id", APP_VIEWHEADER_ID);
         global.document.querySelector("body").appendChild(portalroot);
-
-        history.location.pathname = workspacePath("/projects/SomeProjectId/dataset/SomeTaskId");
+        history.push(workspacePath("/projects/SomeProjectId/dataset/SomeTaskId"));
 
         setUseParams("SomeProjectId", "SomeTaskId");
 
-        wrapper = withMount(
-            testWrapper(<Header />, history, {
+        wrapper = renderWrapper(
+            <Header onClickApplicationSidebarExpand={() => {}} isApplicationSidebarExpanded={false} />,
+            history,
+            {
                 common: { initialSettings: { dmBaseUrl: "http://docker.local" } },
-            })
+            },
         );
     });
 
@@ -52,64 +54,57 @@ describe("Header", () => {
     });
 
     it("should page title is correct", () => {
-        wrapper = withMount(
-            testWrapper(
-                <PageHeader
-                    pageTitle="My Page Title"
-                    type="artefacttype"
-                    breadcrumbs={[
-                        { href: "/workbench", text: "Workbench" },
-                        { href: "/workbench/projects/SomeProjectId", text: "My Project" },
-                        {
-                            href: "/workbench/projects/SomeProjectId/transform/SomeTransformId",
-                            text: "My Transform Title",
-                        },
-                    ]}
-                />,
-                history,
-                {
-                    common: { initialSettings: { dmBaseUrl: "http://docker.local" } },
-                }
-            )
+        wrapper = renderWrapper(
+            <PageHeader
+                pageTitle="My Page Title"
+                type="artefacttype"
+                breadcrumbs={[
+                    { href: "/workbench", text: "Workbench" },
+                    { href: "/workbench/projects/SomeProjectId", text: "My Project" },
+                    {
+                        href: "/workbench/projects/SomeProjectId/transform/SomeTransformId",
+                        text: "My Transform Title",
+                    },
+                ]}
+            />,
+            history,
+            {
+                common: { initialSettings: { dmBaseUrl: "http://docker.local" } },
+            },
         );
-
-        expect(wrapper.find(Helmet).prop("title")).toEqual(
-            "My Page Title (artefacttype) at Workbench / My Project — some corp some suite"
-        );
+        const helmet = Helmet.peek();
+        expect(helmet.title).toBe("My Page Title (artefacttype) at Workbench / My Project — some corp some suite");
     });
 
     it("should delete button works properly", async () => {
-        wrapper = withMount(
-            testWrapper(<Task />, history, {
-                common: { initialSettings: { dmBaseUrl: "http://docker.local" } },
-            })
-        );
-
-        clickElement(wrapper, byTestId("header-remove-button"));
-        clickElement(wrapper, byTestId("remove-item-button"));
+        wrapper = renderWrapper(<Task />, history, {
+            common: { initialSettings: { dmBaseUrl: "http://docker.local" } },
+        });
+        const removeHeaderButton = document.querySelector(byTestId("header-remove-button")) as Element;
+        fireEvent.click(removeHeaderButton);
+        const removeItemButton = document.querySelector(byTestId("remove-item-button")) as Element;
+        fireEvent.click(removeItemButton);
         mockAxios.mockResponseFor(
             {
                 url: hostPath + "/workspace/projects/SomeProjectId/tasks/SomeTaskId",
                 method: "DELETE",
             },
-            mockedAxiosResponse()
+            mockedAxiosResponse(),
         );
 
         await waitFor(() => {
-            expect(window.location.pathname).toBe("/");
+            expect(window.location.pathname).toBe(workspacePath("/projects/SomeProjectId"));
         });
     });
 
     xit("should clone button works properly", async () => {
-        wrapper = withMount(
-            testWrapper(<Task />, history, {
-                common: { initialSettings: { dmBaseUrl: "http://docker.local" } },
-            })
-        );
+        wrapper = renderWrapper(<Task />, history, {
+            common: { initialSettings: { dmBaseUrl: "http://docker.local" } },
+        });
 
-        wrapper.find(ContextMenu).simulate("click");
-        clickElement(wrapper, byTestId("header-clone-button"));
-        clickElement(wrapper, byTestId("clone-modal-button"));
+        fireEvent.click(findElement(wrapper, "[class*='contextmenu']"));
+        clickFoundElement(wrapper, byTestId("header-clone-button"));
+        clickFoundElement(wrapper, byTestId("clone-modal-button"));
 
         mockAxios.mockResponseFor(
             {
@@ -120,7 +115,7 @@ describe("Header", () => {
                 data: {
                     detailsPage: workspacePath("/projects/SomeProjectId/dataset/SomeTaskId"),
                 },
-            })
+            }),
         );
 
         await waitFor(() => {

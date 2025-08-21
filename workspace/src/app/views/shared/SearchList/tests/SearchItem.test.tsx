@@ -1,9 +1,7 @@
 import React from "react";
-import { shallow, ShallowWrapper } from "enzyme";
 import SearchItem from "../SearchItem";
 import { createMemoryHistory } from "history";
-import { byTestId, clickElement, testWrapper, withMount } from "../../../../../../test/integration/TestHelper";
-import { CreateArtefactModal } from "../../modals/CreateArtefactModal/CreateArtefactModal";
+import { byTestId, clickFoundElement, renderWrapper } from "../../../../../../test/integration/TestHelper";
 import { SERVE_PATH } from "../../../../constants/path";
 
 const onOpenDeleteModalFn = jest.fn(),
@@ -26,8 +24,7 @@ const item = {
 const getWrapper = (currentUrl: string = `${SERVE_PATH}`) => {
     const history = createMemoryHistory<{}>();
     history.push(currentUrl);
-
-    const provider = testWrapper(
+    return renderWrapper(
         <SearchItem
             item={item}
             onOpenDeleteModal={onOpenDeleteModalFn}
@@ -39,13 +36,12 @@ const getWrapper = (currentUrl: string = `${SERVE_PATH}`) => {
         history,
         {},
     );
-    return withMount(provider);
 };
 
 describe("Project Row Component", () => {
     it("should duplicate button fire the onOpenDuplicateModal function", () => {
         const wrapper = getWrapper();
-        clickElement(wrapper, byTestId("open-duplicate-modal"));
+        clickFoundElement(wrapper, byTestId("open-duplicate-modal"));
         expect(onOpenDuplicateModalFn).toHaveBeenCalled();
     });
 });

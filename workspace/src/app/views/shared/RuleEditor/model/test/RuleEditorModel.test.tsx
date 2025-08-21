@@ -1,6 +1,6 @@
 import React from "react";
 import { RuleEditorModel } from "../RuleEditorModel";
-import { renderWrapper, testWrapper, withMount } from "../../../../../../../test/integration/TestHelper";
+import { renderWrapper } from "../../../../../../../test/integration/TestHelper";
 import { RuleEditorModelContext, RuleEditorModelContextProps } from "../../contexts/RuleEditorModelContext";
 import { Elements, FitViewParams, FlowExportObject, FlowTransform, ReactFlowProvider } from "react-flow-renderer";
 import { act, waitFor, render } from "@testing-library/react";
@@ -803,7 +803,6 @@ describe("Rule editor model", () => {
         expect(allNodes()).toHaveLength(4);
         // // Execute UNDO and REDO twice
         for (let i = 0; i < 2; i++) {
-            console.log("Test UNDO");
             for (let changeIdx = stateHistory.length - 1; changeIdx > 0; changeIdx--) {
                 expect(currentContext().canUndo).toBe(true);
                 act(() => {

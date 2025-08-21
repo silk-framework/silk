@@ -1,31 +1,27 @@
 import React from "react";
-import { shallow } from 'enzyme';
-import { ParentElement } from '../../../src/app/views/pages/MappingEditor/HierarchicalMapping/components/ParentElement';
-import { ThingName } from '../../../src/app/views/pages/MappingEditor/HierarchicalMapping/components/ThingName';
+import { ParentElement } from "../../../src/app/views/pages/MappingEditor/HierarchicalMapping/components/ParentElement";
+import { render } from "@testing-library/react";
+import { findElement } from "../../integration/TestHelper";
 
-
-
-const getWrapper = (renderer = shallow, args = props) => renderer(
-    <ParentElement {...args} />
-);
-
+const getWrapper = (renderer = render, args = props) => renderer(<ParentElement {...args} />);
 
 describe("ParentElement Component", () => {
-    describe("on component mounted, ",() => {
+    describe("on component mounted, ", () => {
         it("should render ThingName component, when `type` is presented in `parent` prop", () => {
-            const wrapper = getWrapper(shallow, {
+            const wrapper = getWrapper(render, {
                 parent: {
-                    type: 'something'
-                }
+                    type: "something",
+                },
             });
-            expect(wrapper.find(ThingName)).toHaveLength(1);
+            findElement(wrapper, "span:first-child");
         });
 
         it("should render html span element, when `type` is NOT presented in `parent` prop", () => {
-            const wrapper = getWrapper(shallow, {
-                parent: {}
+            const wrapper = getWrapper(render, {
+                parent: {},
             });
-            expect(wrapper.find('span').text()).toEqual('parent element')
+
+            expect(findElement(wrapper, "span:first-child").textContent).toEqual("parent element");
         });
     });
 });

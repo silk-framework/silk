@@ -1,6 +1,5 @@
 import React from "react";
 import { createBrowserHistory, createMemoryHistory, History, LocationState } from "history";
-import { EnzymePropSelector, mount, ReactWrapper, shallow } from "enzyme";
 import { Provider } from "react-redux";
 import { configureStore, getDefaultMiddleware } from "@reduxjs/toolkit";
 import rootReducer from "../../src/app/store/reducers";
@@ -10,7 +9,9 @@ import mockAxios from "../__mocks__/axios";
 import { CONTEXT_PATH, SERVE_PATH } from "../../src/app/constants/path";
 import { mergeDeepRight } from "ramda";
 import { IStore } from "../../src/app/store/typings/IStore";
-import { render, RenderResult, waitFor } from "@testing-library/react";
+import { render, RenderResult, waitFor, fireEvent } from "@testing-library/react";
+import "@testing-library/jest-dom";
+
 import {
     responseInterceptorOnError,
     responseInterceptorOnSuccess,
@@ -98,10 +99,6 @@ export type RecursivePartial<T> = {
           : T[P];
 };
 
-export const withShallow = (component) => shallow(component);
-
-export const withMount = (component) => mount(component);
-
 export const withRender = (component) => render(component);
 
 export const renderWrapper = (
@@ -109,10 +106,10 @@ export const renderWrapper = (
     history: History<LocationState> = createBrowserHistory<LocationState>(),
     initialState: RecursivePartial<IStore> = {},
     options = {},
-) => {
+): RenderResult => {
     const store = createStore(history, initialState);
     mockValues.history = history;
-    render(ui, {
+    return render(ui, {
         wrapper: ({ children }) => (
             <Provider store={store}>
                 <ConnectedRouter history={history}>{children}</ConnectedRouter>
@@ -155,58 +152,48 @@ export const logRequests = (axiosMock?: AxiosMockType) => {
     });
 };
 
-/** Clicks an element specified by a selector. */
-export const clickElement = (wrapper: ReactWrapper<any, any>, cssSelector: string | EnzymePropSelector) => {
-    const element = findSingleElement(wrapper, cssSelector);
-    clickWrapperElement(element);
-    // console.log(`Clicked element with selector '${cssSelector}'.`);
+/**Clicks an element specified by a selector. */
+export const clickFoundElement = (root: RenderResult | Element, selector: string) => {
+    const container = "container" in root ? root.container : root;
+    const element = container.querySelector(selector);
+    if (!element) {
+        throw new Error(`No element found with selector: ${selector}`);
+    }
+    fireEvent.click(element);
 };
 
 /** Click the element represented by the given wrapper.
- *
  * @param wrapper The element to click on.
  * @param times How many times to click.
  */
-export const clickWrapperElement = (wrapper: ReactWrapper<any, any>, times: number = 1) => {
-    // There should only be one element, if there are more, the selector needs to be more selective
-    expect(wrapper).toHaveLength(1);
+export const clickRenderedElement = (root: Element | RenderResult, times: number = 1) => {
+    const container = "container" in root ? root.container : root;
+    expect(container).toBeTruthy();
     for (let i = 0; i < times; i++) {
-        wrapper.simulate("click");
+        fireEvent.click(container);
     }
 };
 
-/** Simulates a keyboard key press on an element. */
-export const pressKey = (wrapper: ReactWrapper<any, any>, key: string = "Enter") => {
-    wrapper.simulate("keypress", { key: key });
-};
-
 /** Simulates a key down event on the element. */
-export const keyDown = (wrapper: ReactWrapper<any, any>, key: string = "Enter") => {
-    wrapper.simulate("keydown", { key: key });
+export const pressKeyDown = async (element: HTMLElement, key: string = "Enter") => {
+    fireEvent.keyDown(element, { key });
 };
 
-/** Triggers a change event on an element. */
-export const changeValue = (wrapper: ReactWrapper<any, any>, value: string) => {
-    wrapper.simulate("change", { target: { value: value } });
+export const changeInputValue = (input: HTMLInputElement, value: string) => {
+    return fireEvent.change(input, { target: { value } });
 };
 
 /** Finds a single element corresponding to the selector or fails. */
-export const findSingleElement = (
-    wrapper: ReactWrapper<any, any>,
-    cssSelector: string | EnzymePropSelector,
-): ReactWrapper<any, any> => {
-    wrapper.update();
-    const element = findAll(wrapper, cssSelector);
-    expect(element).toHaveLength(1);
-    return element[0];
+export const findElement = (root: RenderResult | Element, cssSelector: string) => {
+    const container = "container" in root ? root.container : root;
+    expect(container).toBeInTheDocument();
+    const elements = container.querySelectorAll(cssSelector);
+    expect(elements).toHaveLength(1);
+    return elements[0] as HTMLElement;
 };
 
-export const elementHtmlToContain = async (
-    wrapper: ReactWrapper<any, any>,
-    selector: string | EnzymePropSelector,
-    substring: string,
-) => {
-    await waitFor(() => expect(findSingleElement(wrapper, selector).html()).toContain(substring), {
+export const elementHtmlToContain = async (wrapper: RenderResult | Element, selector: string, substring: string) => {
+    await waitFor(() => expect(findElement(wrapper, selector).innerHTML).toContain(substring), {
         onTimeout: (err) => {
             console.warn(
                 `Element with selector '${selector}' did not contain sub-string '${substring}'! Printing wrapper HTML:`,
@@ -230,9 +217,7 @@ export const addDocumentCreateRangeMethod = () => {
 };
 
 /** Returns a data test id selector. */
-export const byTestId = (testId: string): EnzymePropSelector => {
-    return { "data-test-id": testId };
-};
+export const byTestId = (testId: string) => `[data-test-id="${testId}"]`;
 
 /** Prints the complete page HTML string to console. */
 export const logPageHtml = (): void => {
@@ -249,51 +234,19 @@ export const logPageOnError = (err: Error) => {
 };
 
 /** Log the wrapper HTML to the console */
-export const logWrapperHtml = (wrapper: ReactWrapper<any, any>) => {
-    wrapper.update();
-    console.log(wrapper.html());
-};
-
-/** Returns the HTML of th given React wrapper */
-export const wrapperHtml = (wrapper: ReactWrapper<any, any>): string => {
-    wrapper.update();
-    return wrapper.html();
-};
-
-/** Logs the wrapper HTML on error. */
-export const logWrapperHtmlOnError = (wrapper: ReactWrapper<any, any>) => {
-    wrapper.update();
-    return (err: Error) => {
-        logWrapperHtml(wrapper);
-        return err;
-    };
+export const logWrapperHtml = (root: RenderResult | Element) => {
+    const container = "container" in root ? root.container : root;
+    console.log(container.innerHTML);
 };
 
 /** Returns a name selector. */
-export const byName = (name: string): EnzymePropSelector => {
-    return { name: name };
-};
+export const byName = (name: string): string => `[name="${name}"]`;
 
-/** Enzyme's find() method returns not always just the DOM elements, but also companion objects for each DOM element.
- * Filter out these companion objects and see if 1 element is left and return it. */
-const extractValidElements = function (element: ReactWrapper<any, any>) {
-    const validElementIdx: number[] = [];
-    element.getElements().forEach((elem, idx) => {
-        if (typeof elem.type === "string") {
-            validElementIdx.push(idx);
-        }
-    });
-    return validElementIdx.map((idx) => element.at(idx));
-};
-/** Finds all wrapper elements that are actual elements in the DOM */
-export const findAll = (wrapper: ReactWrapper<any, any>, cssSelector: string | EnzymePropSelector): ReactWrapper[] => {
-    wrapper.update();
-    const element =
-        typeof cssSelector === "string"
-            ? wrapper.find(cssSelector as string)
-            : wrapper.find(cssSelector as EnzymePropSelector);
-
-    return extractValidElements(element);
+export const findAllDOMElements = (root: RenderResult | Element, cssSelector: string): Element[] => {
+    const container = "container" in root ? root.container : root;
+    expect(container).toBeInTheDocument();
+    const elements = Array.from(container.querySelectorAll(cssSelector));
+    return elements;
 };
 
 interface IAxiosResponse {

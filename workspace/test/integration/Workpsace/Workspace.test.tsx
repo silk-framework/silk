@@ -1,8 +1,9 @@
 import React from "react";
+import "@testing-library/jest-dom";
 import qs from "qs";
 import { createMemoryHistory } from "history";
 import mockAxios from "../../__mocks__/axios";
-import { byTestId, findAll, mockedAxiosResponse, testWrapper, withMount, workspacePath } from "../TestHelper";
+import { byTestId, findAllDOMElements, mockedAxiosResponse, renderWrapper, workspacePath } from "../TestHelper";
 import { Workspace } from "../../../src/app/views/pages/Workspace/Workspace";
 import { fireEvent, screen, waitFor } from "@testing-library/react";
 
@@ -83,7 +84,7 @@ describe("Search Items", () => {
             const qsStr = qs.stringify(searchParams, { arrayFormat: "comma" });
             history.push(`${rootPath}?${qsStr}`);
         }
-        return withMount(testWrapper(<Workspace />, history));
+        return renderWrapper(<Workspace />, history);
     };
 
     afterEach(() => {
@@ -139,7 +140,7 @@ describe("Search Items", () => {
         mockSearchItemsRequest();
 
         await waitFor(() => {
-            const elements = findAll(wrapper, byTestId(`facet-items`));
+            const elements = findAllDOMElements(wrapper, byTestId(`facet-items`));
             expect(elements).toHaveLength(2);
         });
     });
@@ -148,7 +149,7 @@ describe("Search Items", () => {
         // THE QUERY STRING NOT UPDATED IN ROUTER-CONNECTED-ROUTER
         getWrapper();
 
-        const input = screen.queryByTestId(`search-bar`);
+        const input = screen.queryByTestId(`search-bar`) as Element;
         fireEvent.change(input, { target: { value: "test" } });
         fireEvent.keyDown(input, { key: "Enter", code: "Enter" });
 

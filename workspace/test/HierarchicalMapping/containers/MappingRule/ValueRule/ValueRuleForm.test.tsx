@@ -1,12 +1,10 @@
 import React from "react";
-import ErrorView from "../../../../../src/app/views/pages/MappingEditor/HierarchicalMapping/components/ErrorView";
 import ExampleView from "../../../../../src/app/views/pages/MappingEditor/HierarchicalMapping/containers/MappingRule/ExampleView";
 import * as Store from "../../../../../src/app/views/pages/MappingEditor/HierarchicalMapping/store";
 import EventEmitter from "../../../../../src/app/views/pages/MappingEditor/HierarchicalMapping/utils/EventEmitter";
 import { ValueRuleForm } from "../../../../../src/app/views/pages/MappingEditor/HierarchicalMapping/containers/MappingRule/ValueRule/ValueRuleForm";
-import { clickElement, findAll, withMount } from "../../../utils/TestHelpers";
-import { waitFor } from "@testing-library/react";
-import { CardTitle, Spinner } from "@eccenca/gui-elements";
+import { render, waitFor } from "@testing-library/react";
+import { clickFoundElement, findAllDOMElements } from "../../../../integration/TestHelper";
 
 const props = {
     id: "1",
@@ -30,7 +28,7 @@ const selectors = {
     CONFIRM_BUTTON: "button.ecc-silk-mapping__ruleseditor__actionrow-save",
     CANCEL_BUTTON: "button.ecc-silk-mapping__ruleseditor___actionrow-cancel",
 };
-const getWrapper = (arg = props) => withMount(<ValueRuleForm {...arg} openMappingEditor={() => {}} />);
+const getWrapper = (arg = props) => render(<ValueRuleForm {...arg} openMappingEditor={() => {}} />);
 
 jest.mock("../../../../../src/app/views/pages/MappingEditor/HierarchicalMapping/store", () => {
     const asyncMockFn =
@@ -64,7 +62,7 @@ describe("ValueMappingRuleForm Component", () => {
         });
 
         it("should loading indicator present if data still loading", () => {
-            expect(wrapper.find(Spinner)).toHaveLength(1);
+            expect(findAllDOMElements(wrapper, `[class*="-spinner"]`).length).toBeGreaterThan(1);
         });
 
         xit("should show the error message, when it's happened", () => {
@@ -75,7 +73,7 @@ describe("ValueMappingRuleForm Component", () => {
                     },
                 },
             });
-            expect(wrapper.find(ErrorView)).toHaveLength(1);
+            expect(findAllDOMElements(wrapper, `[class="mdl-alert--narrowed"]`)).toHaveLength(1);
         });
 
         it("should show the title, when `id` not presented", () => {
@@ -83,7 +81,7 @@ describe("ValueMappingRuleForm Component", () => {
                 ...props,
                 id: false,
             });
-            expect(wrapper.find(CardTitle)).toHaveLength(1);
+            expect(findAllDOMElements(wrapper, `[class*="-card__title"]`)).toHaveLength(1);
         });
 
         xit("should render Source property Autocomplete box, when rule type equal to `direct` ", () => {
@@ -91,7 +89,7 @@ describe("ValueMappingRuleForm Component", () => {
                 type: "direct",
                 loading: false,
             });
-            expect(wrapper.find(selectors.SOURCE_PROP_AUTOCOMPLETE)).toHaveLength(1);
+            expect(findAllDOMElements(wrapper, `[class="${selectors.SOURCE_PROP_AUTOCOMPLETE}"]`)).toHaveLength(1);
         });
 
         xit("should render TextField, when rule type equal to `complex` ", () => {
@@ -99,7 +97,7 @@ describe("ValueMappingRuleForm Component", () => {
                 type: "complex",
                 loading: false,
             });
-            expect(wrapper.find(selectors.INPUT_COMPLEX)).toHaveLength(1);
+            expect(findAllDOMElements(wrapper, `[class="${selectors.INPUT_COMPLEX}"]`)).toHaveLength(1);
         });
 
         xit("should render ExampleView, when sourceProperty not empty", () => {
@@ -112,19 +110,19 @@ describe("ValueMappingRuleForm Component", () => {
 
         it("should render Target property autocomplete", async () => {
             await waitFor(() => {
-                expect(findAll(wrapper, selectors.TARGET_PROP_AUTOCOMPLETE)).toHaveLength(1);
+                expect(findAllDOMElements(wrapper, selectors.TARGET_PROP_AUTOCOMPLETE)).toHaveLength(1);
             });
         });
 
         it("should render the target cardinality field", async () => {
             await waitFor(() => {
-                expect(findAll(wrapper, selectors.TARGET_CARDINALITY)).toHaveLength(1);
+                expect(findAllDOMElements(wrapper, selectors.TARGET_CARDINALITY)).toHaveLength(1);
             });
         });
 
         it("should render the autocomplete for data types", async () => {
             await waitFor(() => {
-                expect(findAll(wrapper, selectors.DATA_TYPE_AUTOCOMPLETE)).toHaveLength(1);
+                expect(findAllDOMElements(wrapper, selectors.DATA_TYPE_AUTOCOMPLETE)).toHaveLength(1);
             });
         });
 
@@ -134,18 +132,18 @@ describe("ValueMappingRuleForm Component", () => {
                     nodeType: "LanguageValueType",
                 },
             });
-            expect(wrapper.find(selectors.LNG_SELECT_BOX)).toHaveLength(1);
+            expect(findAllDOMElements(wrapper, `[class="${selectors.LNG_SELECT_BOX}"]`)).toHaveLength(1);
         });
 
         it("should render input for editing label of rule", async () => {
             await waitFor(() => {
-                expect(findAll(wrapper, selectors.RULE_LABEL_INPUT)).toHaveLength(1);
+                expect(findAllDOMElements(wrapper, selectors.RULE_LABEL_INPUT)).toHaveLength(1);
             });
         });
 
         it("should render input for editing description of rule", async () => {
             await waitFor(() => {
-                expect(findAll(wrapper, selectors.RULE_DESC_INPUT)).toHaveLength(1);
+                expect(findAllDOMElements(wrapper, selectors.RULE_DESC_INPUT)).toHaveLength(1);
             });
         });
 
@@ -181,13 +179,13 @@ describe("ValueMappingRuleForm Component", () => {
                 stopPropagation: jest.fn(),
                 persist: jest.fn(),
             });
-            expect(createMappingAsyncMock).toBeCalled();
+            expect(createMappingAsyncMock).toHaveBeenCalled();
         });
 
         it("should cancel button emit the event which will discard the form", async () => {
             const wrapper = getWrapper();
             await waitFor(() => {
-                clickElement(wrapper, selectors.CANCEL_BUTTON);
+                clickFoundElement(wrapper, selectors.CANCEL_BUTTON);
             });
             expect(emitMock).toHaveBeenCalledWith("ruleView.unchanged", {
                 id: "1",
