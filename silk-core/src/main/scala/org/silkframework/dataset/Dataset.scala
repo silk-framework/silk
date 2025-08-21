@@ -35,7 +35,7 @@ trait Dataset extends AnyPlugin with DatasetAccess {
 
 trait DatasetPluginAutoConfigurable[T <: Dataset] {
   /**
-   * returns an auto-configured version of this plugin
+   * returns an autoconfigured version of this plugin
    */
   def autoConfigured(implicit pluginContext: PluginContext): T
 }
