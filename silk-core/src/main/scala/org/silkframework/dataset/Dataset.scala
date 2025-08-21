@@ -8,7 +8,10 @@ import org.silkframework.runtime.resource.Resource
 /**
  * A specific dataset.
  */
-@PluginType()
+@PluginType(
+  label = "Dataset",
+  description = "A dataset is a collection of data that can be read or written.",
+)
 trait Dataset extends AnyPlugin with DatasetAccess {
 
   /** The resources that are referenced by this dataset. */

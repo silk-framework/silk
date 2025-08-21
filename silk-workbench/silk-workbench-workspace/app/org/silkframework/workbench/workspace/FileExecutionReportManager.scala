@@ -21,7 +21,7 @@ import scala.collection.immutable.ArraySeq
 import scala.util.Try
 
 @Plugin(
-  id = "file",
+  id = "fileExecutionReportManager",
   label = "Reports on filesystem",
   description = "Holds the reports in a specified directory on the filesystem."
 )

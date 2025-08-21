@@ -50,6 +50,8 @@ trait WorkspaceProviderTestTrait extends AnyFlatSpec with Matchers with MockitoS
   private val dummyDataset = MockDataset()
   private lazy val fileBasedDatasetWithHierarchicalFilePath = CsvDataset(project(emptyUserContext).resources.getInPath("some/nested/file.csv"))
 
+  PluginRegistry.unregisterPlugin(classOf[TestCustomTask])
+  PluginRegistry.unregisterPlugin(classOf[FailingCustomTask])
   PluginRegistry.registerPlugin(classOf[TestCustomTask])
   PluginRegistry.registerPlugin(classOf[FailingCustomTask])
 
@@ -370,6 +372,7 @@ trait WorkspaceProviderTestTrait extends AnyFlatSpec with Matchers with MockitoS
 
   it should "read and write dataset tasks" in {
     implicit val us: UserContext = emptyUserContext
+    PluginRegistry.unregisterPlugin(classOf[MockDataset])
     PluginRegistry.registerPlugin(classOf[MockDataset])
     project.addTask[GenericDatasetSpec](DUMMY_DATASET, DatasetSpec(dummyDataset, readOnly = true))
     project.addTask[GenericDatasetSpec](hierarchicalFileDatasetId, DatasetSpec(fileBasedDatasetWithHierarchicalFilePath))
@@ -754,7 +757,7 @@ trait WorkspaceProviderTestTrait extends AnyFlatSpec with Matchers with MockitoS
   }
 }
 
-@Plugin(id = "test", label = "test task")
+@Plugin(id = "WorkspaceProviderTestTask", label = "test task")
 case class TestCustomTask(stringParam: String, numberParam: Int) extends CustomTask {
   override def inputPorts: InputPorts = FixedNumberOfInputs(Seq.empty)
   override def outputPort: Option[Port] = None

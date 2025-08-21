@@ -64,12 +64,12 @@ import java.util.Locale;
   new TransformExample(
     parameters = Array("format", "MMM yyyy", "locale", "de"),
     input1 = Array("May 2024"),
-    throwsException = "org.silkframework.runtime.validation.ValidationException"
+    throwsException = classOf[org.silkframework.runtime.validation.ValidationException]
   ),
   new TransformExample(
     parameters = Array("format", "yyyyMMdd", "lenient", "false"),
     input1 = Array("20150000"),
-    throwsException = "org.silkframework.runtime.validation.ValidationException"
+    throwsException = classOf[org.silkframework.runtime.validation.ValidationException]
   )
 ))
 case class ParseDateTransformer(

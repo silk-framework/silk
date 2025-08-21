@@ -12,7 +12,7 @@ import org.silkframework.workspace.activity.workflow.{LocalWorkflowExecutorGener
 class SparqlUpdateTaskIntegrationTest extends AnyFlatSpec with Matchers with SingleProjectWorkspaceProviderTestTrait {
   behavior of "SPARQL Update Task in a Workflow"
 
-  override def workspaceProviderId: String = "inMemory"
+  override def workspaceProviderId: String = "inMemoryWorkspaceProvider"
 
   private val identity: String => String = (input: String) => input
   private val taskPropertyConcatenate = (input: String) => s"20 $input true"

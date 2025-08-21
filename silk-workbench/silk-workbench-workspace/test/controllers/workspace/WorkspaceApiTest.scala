@@ -38,7 +38,7 @@ class WorkspaceApiTest extends PlaySpec with IntegrationTestTrait with Matchers 
 
   private val project = "project"
 
-  override def workspaceProviderId: String = "inMemory"
+  override def workspaceProviderId: String = "inMemoryWorkspaceProvider"
 
   protected override def routes: Option[Class[Routes]] = Some(classOf[testWorkspace.Routes])
 

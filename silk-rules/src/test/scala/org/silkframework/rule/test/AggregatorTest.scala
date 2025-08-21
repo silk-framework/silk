@@ -56,34 +56,34 @@ abstract class AggregatorTest[T <: Aggregator : ClassTag] extends PluginTest {
       val description = if (example.description.isEmpty) "" else s" (${example.description})"
 
       it should "fulfill: " + example.formatted + description in {
-        if (example.throwsException != "") {
-          val expectedException = Class.forName(example.throwsException)
-          var expectedExceptionThrown = false
-          try {
-            aggregator(operators(example.inputs, weights), DPair.fill(Entity.empty("dummy")), 0.0)
-          } catch {
-            case NonFatal(ex) =>
-              if (!expectedException.isAssignableFrom(ex.getClass)) {
-                fail("Another exception was thrown: " + ex.getClass.getName + ". Expected: " + example.throwsException)
-              } else {
-                expectedExceptionThrown = true
-              }
-          }
-          if(!expectedExceptionThrown) {
-            fail("Exception " + example.throwsException + " has not been thrown!")
-          }
-        } else {
-          val result = aggregator(operators(example.inputs, weights), DPair.fill(Entity.empty("dummy")), 0.0)
-          (result.score, example.output) match {
-            case (Some(resultScore), Some(expectedScore)) =>
-              resultScore shouldBe expectedScore +- epsilon
-            case (Some(resultScore), None) =>
-              fail(s"Aggregation did return a similarity score ($resultScore), although it was expected to return none.")
-            case (None, Some(expectedScore)) =>
-              fail(s"Aggregation did not return a similarity score, although it was expected to return $expectedScore.")
-            case (None, None) =>
-            // success
-          }
+        example.throwsException match {
+          case Some(expectedException) =>
+            var expectedExceptionThrown = false
+            try {
+              aggregator(operators(example.inputs, weights), DPair.fill(Entity.empty("dummy")), 0.0)
+            } catch {
+              case NonFatal(ex) =>
+                if (!expectedException.isAssignableFrom(ex.getClass)) {
+                  fail("Another exception was thrown: " + ex.getClass.getName + ". Expected: " + example.throwsException)
+                } else {
+                  expectedExceptionThrown = true
+                }
+            }
+            if(!expectedExceptionThrown) {
+              fail("Exception " + example.throwsException + " has not been thrown!")
+            }
+          case None =>
+            val result = aggregator(operators(example.inputs, weights), DPair.fill(Entity.empty("dummy")), 0.0)
+            (result.score, example.output) match {
+              case (Some(resultScore), Some(expectedScore)) =>
+                resultScore shouldBe expectedScore +- epsilon
+              case (Some(resultScore), None) =>
+                fail(s"Aggregation did return a similarity score ($resultScore), although it was expected to return none.")
+              case (None, Some(expectedScore)) =>
+                fail(s"Aggregation did not return a similarity score, although it was expected to return $expectedScore.")
+              case (None, None) =>
+              // success
+            }
         }
       }
     }
