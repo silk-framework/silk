@@ -52,7 +52,7 @@ case class SparqlDataset(
       " This zero value has a symbolic character: it means that the timeout of SPARQL select and update queries is" +
       " configured via the properties `silk.remoteSparqlEndpoint.defaults.connection.timeout.ms and" +
       " `silk.remoteSparqlEndpoint.defaults.read.timeout.ms` for the default connection and read timeouts." +
-      " To overwrite these configured values, specify a (common) timeout greater than zero.")
+      " To overwrite these configured values, specify a (common) timeout greater than zero milliseconds.")
   sparqlTimeout: Int = 0) extends RdfDataset with TripleSinkDataset {
 
   private val params =
