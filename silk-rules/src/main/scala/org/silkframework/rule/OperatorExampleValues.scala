@@ -10,7 +10,7 @@ case class OperatorExampleValues[T <: OperatorExampleValue](examples: Seq[T]) {
   def markdownFormatted(sb: StringBuilder): Unit = {
     if (examples.nonEmpty) {
       sb ++= "\n"
-      sb ++= "### Examples"
+      sb ++= "## Examples"
       sb ++= "\n\n"
       sb ++= "**Notation:** List of values are represented via square brackets. Example: `[first, second]` represents a list of two values \"first\" and \"second\".\n\n"
       for ((example, idx) <- examples.zipWithIndex) {
