@@ -174,6 +174,12 @@ export const clickRenderedElement = (root: Element | RenderResult, times: number
     }
 };
 
+export const clickMultipleRenderedElements = (roots: Element[] | RenderResult[]) => {
+    for (let root of roots) {
+        clickRenderedElement(root);
+    }
+};
+
 /** Simulates a key down event on the element. */
 export const pressKeyDown = async (element: HTMLElement, key: string = "Enter") => {
     fireEvent.keyDown(element, { key });

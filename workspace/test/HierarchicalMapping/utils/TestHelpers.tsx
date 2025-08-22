@@ -44,7 +44,7 @@ export const rangeArray = (nrItems: number): number[] => {
 
 /** Logs the wrapper HTML on error. */
 export const logWrapperHtmlOnError = (wrapper: RenderResult) => {
-    expect(wrapper).toBeInTheDocument();
+    expect(wrapper.baseElement).toBeInTheDocument();
     return (err: Error) => {
         logWrapperHtml(wrapper);
         return err;
