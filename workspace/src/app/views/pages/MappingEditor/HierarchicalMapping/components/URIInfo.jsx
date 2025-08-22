@@ -54,7 +54,7 @@ export class URIInfo extends React.Component {
         }
 
         return (
-            <span className="ecc-silk-mapping__thingname" {...otherProps}>
+            <span className="ecc-silk-mapping__uriinfo" {...otherProps}>
                 {noInfo}
             </span>
         );

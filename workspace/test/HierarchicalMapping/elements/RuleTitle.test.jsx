@@ -49,11 +49,11 @@ describe("RuleTitle Component", () => {
                         },
                     },
                 });
-                findElement(wrapper, "span.ecc-silk-mapping__thingname");
+                findElement(wrapper, "span.ecc-silk-mapping__uriinfo");
             });
 
             it("when `rule.type` equal to `object` and uri presented", () => {
-                findElement(wrapper, "span.ecc-silk-mapping__thingname");
+                findElement(wrapper, "span.ecc-silk-mapping__uriinfo");
             });
 
             it("when `rule.type` equal to `direct` and uri presented", () => {
@@ -63,7 +63,7 @@ describe("RuleTitle Component", () => {
                         type: "direct",
                     },
                 });
-                findElement(wrapper, "span.ecc-silk-mapping__thingname");
+                findElement(wrapper, "span.ecc-silk-mapping__uriinfo");
             });
 
             it("when `rule.type` equal to `complex` and uri presented", () => {
@@ -73,7 +73,7 @@ describe("RuleTitle Component", () => {
                         type: "complex",
                     },
                 });
-                findElement(wrapper, "span.ecc-silk-mapping__thingname");
+                findElement(wrapper, "span.ecc-silk-mapping__uriinfo");
             });
 
             afterEach(() => {

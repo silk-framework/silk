@@ -458,7 +458,6 @@ describe("Rule editor model", () => {
         expect(savedRuleOperatorNodes[0].position).toBe(newPosition);
     });
 
-    //pass
     it("should move multiple nodes by an offset", async () => {
         await ruleEditorModel(
             [
@@ -496,7 +495,6 @@ describe("Rule editor model", () => {
         checkUndoAndRedo(beforeUpdateCheck, afterUpdateCheck);
     });
 
-    //pass
     it("should change node parameters and undo & redo", async () => {
         await ruleEditorModel([node({ nodeId: "nodeA" })], [operator("pluginA")]);
         const checkParameters = (expectedParameterValues: string[] = ["Value A", "Value B"]) => {
@@ -554,7 +552,6 @@ describe("Rule editor model", () => {
         checkAfterChange();
     });
 
-    //pass
     it("should save rule parameters correctly", async () => {
         await ruleEditorModel(
             [
@@ -583,7 +580,6 @@ describe("Rule editor model", () => {
         });
     });
 
-    //pass
     it("should delete multiple nodes and undo & redo", async () => {
         await ruleEditorModel(
             [
@@ -609,7 +605,6 @@ describe("Rule editor model", () => {
         checkUndoAndRedo(checkBeforeDelete, checkAfterDelete);
     });
 
-    //pass
     it("should copy and paste multiple nodes and undo & redo", async () => {
         await ruleEditorModel([
             node({ nodeId: "nodeA" }),
@@ -650,7 +645,6 @@ describe("Rule editor model", () => {
         checkUndoAndRedo(checkBeforeCopyAndPaste, checkAfterCopyAndPaste, checkAfterCopyAndPaste2nd);
     });
 
-    //pass
     it("should add an edge and undo & redo", async () => {
         await ruleEditorModel([node({ nodeId: "nodeA" }), node({ nodeId: "nodeB" })]);
         const checkBeforeAdd = () => {
@@ -674,7 +668,6 @@ describe("Rule editor model", () => {
         checkUndoAndRedo(checkBeforeAdd, checkAfterAdd);
     });
 
-    //pass
     it("should delete an edge and undo & redo", async () => {
         await ruleEditorModel([
             node({ nodeId: "nodeA" }),
@@ -702,7 +695,6 @@ describe("Rule editor model", () => {
         checkUndoAndRedo(checkBeforeDelete, checkAfterDelete);
     });
 
-    //pass
     it("should undo and redo complex change chains", async () => {
         const stateHistory: (IRuleOperatorNode | StickyNote)[][] = [];
         const stateHistoryLabel: string[] = [];
@@ -826,7 +818,7 @@ describe("Rule editor model", () => {
     const nodeHasInputs = (nodeId: string, inputs: (string | null)[]) => {
         expect(currentOperatorNodes().find((op) => op.nodeId === nodeId)?.inputs).toStrictEqual(inputs);
     };
-    //pass
+
     it("should remove an existing edge when a new edge is connected to the same port", async () => {
         await ruleEditorModel([
             node({ nodeId: "nodeA" }),
@@ -852,7 +844,6 @@ describe("Rule editor model", () => {
         checkUndoAndRedo(beforeEditCheck, afterEditCheck);
     });
 
-    //pass
     it("should swap edges when changing an existing edge to another handle on the same node", async () => {
         await ruleEditorModel([
             node({ nodeId: "nodeA" }),
@@ -875,7 +866,7 @@ describe("Rule editor model", () => {
 
         checkUndoAndRedo(checkBeforeEdit, checkAfterEdit);
     });
-    //pass
+
     it("should connect to the first free handle of a node when no handle is specified", async () => {
         await ruleEditorModel([
             node({ nodeId: "nodeA" }),
@@ -908,7 +899,7 @@ describe("Rule editor model", () => {
 
         checkUndoAndRedo(checkBeforeEdit, checkAfterEdit);
     });
-    //pass
+
     it("should increase and decrease input ports for nodes with potentially unlimited input ports (and only for those)", async () => {
         const nrOfDummyNodes = 10;
         const dummyNodes = rangeArray(nrOfDummyNodes).map((idx) => node({ nodeId: "inputNode" + (idx + 1) }));
@@ -961,7 +952,6 @@ describe("Rule editor model", () => {
         checkUndoAndRedo(checkBeforeChange, checkAfterChange);
     });
 
-    //   //fail
     it("should auto-layout nodes and undo & redo", async () => {
         const initialPositions = [
             { x: 0, y: 0 },
