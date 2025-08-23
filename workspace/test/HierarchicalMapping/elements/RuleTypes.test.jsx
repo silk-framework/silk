@@ -26,7 +26,7 @@ describe("RuleTypes Component", () => {
                         },
                     },
                 });
-                expect(findAllDOMElements(wrapper, "span.ecc-silk-mapping__thingname").length).toBeGreaterThan(0);
+                expect(findAllDOMElements(wrapper, "span.ecc-silk-mapping__uriinfo").length).toBeGreaterThan(0);
             });
 
             it("and `rule.rules.typeRules` Empty, should return <NotAvailable />", () => {
