@@ -35,7 +35,7 @@ case class SparqlParams(
  ) {
 
   /**
-   * The login as option pair of user and password.
+   * The login as optional pair of user and password.
    */
   val login: Option[(String, String)] = {
     if (user != null && user != "") {

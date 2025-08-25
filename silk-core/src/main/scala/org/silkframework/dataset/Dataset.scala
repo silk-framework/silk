@@ -20,7 +20,7 @@ trait Dataset extends AnyPlugin with DatasetAccess {
   /** A dataset that is based on a file repository based resource, e.g. CSV, XML files. */
   def isFileResourceBased: Boolean = false
 
-  /** Generates a browser URl for a given resource URI. */
+  /** Generates a browser URL for a given resource URI. */
   def entityLink(entityUri: String): Option[String] = None
 
   /** Related links for this dataset. */
