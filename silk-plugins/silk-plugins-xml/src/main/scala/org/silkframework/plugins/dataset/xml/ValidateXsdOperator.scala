@@ -11,10 +11,7 @@ import org.silkframework.workspace.resources.ResourceAutoCompletionProvider
 @Plugin(
   id = "validateXsdOperator",
   label = "Validate XML",
-  description =
-      """Validates an XML dataset against a provided XML schema (XSD) file.
-         Any errors are written to the output. Can be used in conjunction with the `Cancel Workflow` operator in order to stop the workflow if errors have been found."
-      """
+  description = """Validates an XML dataset against a provided XML schema (XSD) file. Any errors are written to the output. Can be used in conjunction with the `Cancel Workflow` operator in order to stop the workflow if errors have been found."""
 )
 case class ValidateXsdOperator(@Param(value = "The XSD file to be used for validating the XML.",
                                autoCompletionProvider = classOf[ResourceAutoCompletionProvider], allowOnlyAutoCompletedValues = true)

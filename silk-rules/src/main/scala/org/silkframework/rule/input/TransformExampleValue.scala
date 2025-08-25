@@ -1,7 +1,9 @@
 package org.silkframework.rule.input
 
 import org.silkframework.rule.OperatorExampleValue
+import org.silkframework.rule.OperatorExampleValues.code
 import org.silkframework.rule.annotations.TransformExample
+
 import scala.collection.immutable.ArraySeq
 
 case class TransformExampleValue(description: Option[String],
@@ -23,11 +25,11 @@ case class TransformExampleValue(description: Option[String],
     if(input.nonEmpty) {
       sb ++= "* Input values:\n"
       for((input, idx) <- input.zipWithIndex) {
-        sb ++= s"  ${idx + 1}. `${format(input)}`\n"
+        sb ++= s"    ${idx + 1}. ${code(format(input))}\n"
       }
       sb ++= "\n"
     }
-    sb ++= s"* Returns:\n\n  → `${format(output)}`\n"
+    sb ++= s"* Returns: ${code(format(output))}\n"
     for(exceptionClass <- throwsException) {
       sb ++= s"* **Throws error:** `${exceptionClass.getSimpleName}`\n"
     }

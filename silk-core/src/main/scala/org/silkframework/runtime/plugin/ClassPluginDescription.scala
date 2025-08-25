@@ -56,6 +56,8 @@ class ClassPluginDescription[+T <: AnyPlugin](val id: Identifier,
                                               val actions: SeqMap[String, PluginAction],
                                               val deprecation: Option[String]) extends PluginDescription[T] {
 
+  val backendType: String = "native"
+
   /**
     * The plugin class.
     */
@@ -133,13 +135,16 @@ object ClassPluginDescription {
 
     // Generate documentation
     val docBuilder = new StringBuilder()
-    docBuilder ++= loadMarkdownDocumentation(pluginClass, annotation.documentationFile)
-    if (docBuilder.nonEmpty) {
-      docBuilder ++= "\n"
+    val markdownDoc = loadMarkdownDocumentation(pluginClass, annotation.documentationFile)
+    if (markdownDoc.nonEmpty) {
+      docBuilder ++= markdownDoc
+    } else {
+      docBuilder ++= annotation.description()
     }
+    docBuilder ++= "\n"
     for {
       pluginType <- pluginTypes
-      customDescription <- pluginType.customDescription.generate(pluginClass)
+      customDescription <- pluginType.customDescriptionGenerator.generate(pluginClass)
     } {
       customDescription.generateDocumentation(docBuilder)
     }
