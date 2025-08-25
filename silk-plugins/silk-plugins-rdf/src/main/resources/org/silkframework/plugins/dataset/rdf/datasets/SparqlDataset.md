@@ -21,4 +21,15 @@ A very simple example showcasing the usage of this plugin is the following idea:
 as https://dbpedia.org/sparql, with a simple SPARQL query like `select distinct ?Concept where {[] a ?Concept} LIMIT 10`
 or similar. Use this plugin as a **source** dataset, and transform or transfer the SPARQL query results into a sink
 dataset such as a **CSV file**. A similar or related showcase example involves considering other output datasets such as
-an **in-memory dataset** or a **Knowledge Graph** handled by the `eccencaDataPlatform` plugin.
+an **in-memory dataset** or a **Knowledge Graph** such as the one handled by the `eccencaDataPlatform` plugin, which is
+the flagship RDF dataset of
+[Corporate Memory](https://eccenca.com/products/enterprise-knowledge-graph-platform-corporate-memory).
+
+## Related plugins
+
+Other types of RDF datasets are the **in-memory dataset**, the **RDF dataset**. These are worth considering if the
+information is short-lived or the dataset is small. A more durable and resilient solution is to use a proper
+**Knowledge Graph**.
+
+The SPARQL dataset plugin can be used in conjunction with the **task** plugins for SPARQL `SELECT`, `UPDATE` and
+`CONSTRUCT` queries, i.e. the plugins `sparqlSelectOperator`, `sparqlUpdateOperator` and `sparqlCopyOperator`.
