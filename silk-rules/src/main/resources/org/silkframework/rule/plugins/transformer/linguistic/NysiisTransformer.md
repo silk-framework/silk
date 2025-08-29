@@ -34,6 +34,7 @@ As a comparison of the two versions of NYSIIS, we give a few examples:
 
 ## Related plugins
 
-Other phonetic algorithms usually associated are the different variations or improvements of the Soundex algorithm,
-implemented by this (NYSIIS) and the [`Metaphone`](https://en.wikipedia.org/wiki/Metaphone) algorithms.
+Other phonetic algorithms usually associated with are the different variations or improvements of the Soundex algorithm,
+implemented by this (Metaphone) and the
+[NYSIIS](https://en.wikipedia.org/wiki/New_York_State_Identification_and_Intelligence_System) algorithms.
 The corresponding linguistic transformer plugins are named accordingly.
