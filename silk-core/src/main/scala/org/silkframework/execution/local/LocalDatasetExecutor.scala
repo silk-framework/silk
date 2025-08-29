@@ -6,6 +6,7 @@ import org.silkframework.dataset.DatasetSpec.{EntitySinkWrapper, GenericDatasetS
 import org.silkframework.dataset._
 import org.silkframework.dataset.bulk.{BulkResourceBasedDataset, ZipWritableResource}
 import org.silkframework.dataset.rdf._
+import org.silkframework.dataset.sql.SqlDataset
 import org.silkframework.entity._
 import org.silkframework.execution._
 import org.silkframework.execution.typed._
@@ -159,9 +160,33 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
       case FileEntitySchema(files) if dataset.data.plugin.isInstanceOf[RdfDataset] =>
         uploadFilesViaGraphStore(dataset, files.typedEntities, UploadFilesViaGspReportUpdater(dataset, context))
       case SparqlUpdateEntitySchema(queries) =>
+        // TODO CMEM-4031
         executeSparqlUpdateQueries(dataset, queries, execution)
+      case SqlUpdateEntitySchema(queries) =>
+        executeSqlStatement(dataset, queries, execution)
       case et: LocalEntities =>
         writeGenericLocalEntities(dataset, et, execution)
+    }
+  }
+
+  private def executeSqlStatement(dataset: Task[DatasetSpec[DatasetType]],
+                          sqlUpdateQueries: TypedEntities[String, TaskSpec],
+                          execution: LocalExecution)
+  (implicit userContext: UserContext, context: ActivityContext[ExecutionReport], prefixes: Prefixes): Unit = {
+    dataset.plugin match {
+      case sqlDataset: SqlDataset =>
+        val endpoint = sqlDataset.sqlEndpoint
+//        val executionReport = SparqlUpdateExecutionReportUpdater(dataset, context)
+        endpoint.updateStatement(sqlUpdateQueries.typedEntities.head)
+//        val queryBuffer = SparqlQueryBuffer(remainingSparqlUpdateQueryBufferSize, sparqlUpdateQueries.typedEntities)
+//        for (updateQuery <- queryBuffer) {
+//          endpoint.update(updateQuery)
+//          executionReport.increaseEntityCounter()
+//          executionReport.remainingQueries = queryBuffer.bufferedQuerySize
+//        }
+//        executionReport.executionDone()
+      case _ =>
+        writeGenericLocalEntities(dataset, sqlUpdateQueries, execution)
     }
   }
 
