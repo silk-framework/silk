@@ -20,7 +20,7 @@ Illustrative examples:
 * `school` is encoded as `skhl`.
 * `encyclopedia` is encoded as `ensklpt`.
 * `accuracy` is encoded as `akkrs`.
-* `eccenca` is encoded as `eksnk`
+* `eccenca` is encoded as `eksnk`.
 
 ## Related plugins
 
