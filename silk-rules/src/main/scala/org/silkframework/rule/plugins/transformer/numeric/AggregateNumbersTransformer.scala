@@ -14,12 +14,13 @@
 
 package org.silkframework.rule.plugins.transformer.numeric
 
+import org.silkframework.rule.annotations.{TransformExample, TransformExamples}
 import org.silkframework.rule.input.Transformer
 import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
 import org.silkframework.util.StringUtils.DoubleLiteral
 
 /**
- * Aggregates all numbers in this set using a mathematical operation..
+ * Aggregates all numbers in this set using a mathematical operation.
  *
  * @author Robert Isele
  */
@@ -27,11 +28,39 @@ import org.silkframework.util.StringUtils.DoubleLiteral
   id = "aggregateNumbers",
   categories = Array("Numeric"),
   label = "Aggregate numbers",
-  description = "Aggregates all numbers in this set using a mathematical operation."
+  description = """Applies one of the aggregation operators (`+`, `*`, `min`, `max` or `average`) to the sequence of input values. The transformation uses double-precision floating-point numbers in the computations."""
 )
+@TransformExamples(Array(
+  new TransformExample(
+    parameters = Array("operator", "+"),
+    input1 = Array("1", "1", "1"),
+    output = Array("3.0")
+  ),
+  new TransformExample(
+    parameters = Array("operator", "*"),
+    input1 = Array("2", "2", "2"),
+    output = Array("8.0")
+  ),
+  new TransformExample(
+    parameters = Array("operator", "min"),
+    input1 = Array("1", "2", "3"),
+    output = Array("1.0")
+  ),
+  new TransformExample(
+    parameters = Array("operator", "max"),
+    input1 = Array("1", "2", "3"),
+    output = Array("3.0")
+  ),
+  new TransformExample(
+    parameters = Array("operator", "average"),
+    input1 = Array("1", "2", "3"),
+    output = Array("2.0")
+  )
+))
 case class AggregateNumbersTransformer(
-  @Param("One of '+', '*', 'min', 'max', 'average'.")
-  operator: String) extends Transformer {
+                                        @Param("The aggregation operation to be applied to all values. One of '+', '*', 'min', 'max', 'average'.")
+                                        operator: String
+                                      ) extends Transformer {
 
   require(Set("+", "*", "min", "max", "average") contains operator, "Operator must be one of '+', '*', 'min', 'max', 'average'")
 
