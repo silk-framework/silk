@@ -77,7 +77,7 @@ import org.silkframework.util.StringUtils.DoubleLiteral
   )
 ))
 case class NumOperationTransformer(
-  @Param("The operator to be applied to all values. One of '+', '-', '*', '/'")
+  @Param("The operator to be applied to all values. One of `+`, `-`, `*`, `/`")
   operator: String) extends Transformer {
 
   require(Set("+", "-", "*", "/") contains operator, "Operator must be one of '+', '-', '*', '/'")
