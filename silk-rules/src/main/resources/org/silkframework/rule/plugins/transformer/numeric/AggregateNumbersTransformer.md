@@ -3,8 +3,7 @@ The allowed aggregation operators are **sum** (`+`), **product** (`*`), **minimu
 and **average** (`average`).
 
 Notice that the "number" `Infinity` is allowed as input and to be expected as possible output. For example, the
-_minimum_ between `1` and `Infinity` is `1`, but its _maximum_, its _sum_, its _product_ and its _average_ are
-`Infinity`.
+_minimum_ of `1` and `Infinity` is `1`, but its _maximum_, its _sum_, its _product_ and its _average_ are `Infinity`.
 
 The **aggregation operations** of this plugin are exclusively _numerical_. They are exactly the expected operations upon
 a list or sequence of numbers, in order to 'aggregate', 'reduce', 'sum' or
