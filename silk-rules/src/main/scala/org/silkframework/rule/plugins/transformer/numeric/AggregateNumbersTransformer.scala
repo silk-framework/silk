@@ -28,7 +28,8 @@ import org.silkframework.util.StringUtils.DoubleLiteral
   id = "aggregateNumbers",
   categories = Array("Numeric"),
   label = "Aggregate numbers",
-  description = """Applies one of the aggregation operators (`+`, `*`, `min`, `max` or `average`) to the sequence of input values. The transformation uses double-precision floating-point numbers in the computations."""
+  description = "Applies one of the aggregation operators (`+`, `*`, `min`, `max` or `average`) to the sequence of input values.",
+  documentationFile = "AggregateNumbersTransformer.md"
 )
 @TransformExamples(Array(
   new TransformExample(
@@ -55,12 +56,67 @@ import org.silkframework.util.StringUtils.DoubleLiteral
     parameters = Array("operator", "average"),
     input1 = Array("1", "2", "3"),
     output = Array("2.0")
-  )
+  ),
+  new TransformExample(
+    parameters = Array("operator", "+"),
+    input1 = Array("1.0", "Infinity"),
+    output = Array("Infinity")
+  ),
+  new TransformExample(
+    parameters = Array("operator", "*"),
+    input1 = Array("1.0", "Infinity"),
+    output = Array("Infinity")
+  ),
+  new TransformExample(
+    parameters = Array("operator", "min"),
+    input1 = Array("1.0", "Infinity"),
+    output = Array("1.0")
+  ),
+  new TransformExample(
+    parameters = Array("operator", "max"),
+    input1 = Array("1.0", "Infinity"),
+    output = Array("Infinity")
+  ),
+  new TransformExample(
+    parameters = Array("operator", "average"),
+    input1 = Array("1.0", "Infinity"),
+    output = Array("Infinity")
+  ),
+  new TransformExample(
+    parameters = Array("operator", "+"),
+    input1 = Array("1", "Whatever"),
+    output = Array("1.0")
+  ),
+  new TransformExample(
+    parameters = Array("operator", "*"),
+    input1 = Array("1.0", "Whatever"),
+    output = Array("1.0")
+  ),
+  new TransformExample(
+    parameters = Array("operator", "min"),
+    input1 = Array("1.0", "Whatever"),
+    output = Array("1.0")
+  ),
+  new TransformExample(
+    parameters = Array("operator", "max"),
+    input1 = Array("1.0", "Whatever"),
+    output = Array("1.0")
+  ),
+  new TransformExample(
+    parameters = Array("operator", "average"),
+    input1 = Array("1.0", "Whatever"),
+    output = Array("1.0")
+  ),
+  new TransformExample(
+    parameters = Array("operator", "notAnOperator"),
+    input1 = Array("1.0", "2.0", "3.0"),
+    output = Array()
+  ),
 ))
 case class AggregateNumbersTransformer(
-                                        @Param("The aggregation operation to be applied to all values. One of '+', '*', 'min', 'max', 'average'.")
-                                        operator: String
-                                      ) extends Transformer {
+  @Param("The aggregation operation to be applied to all values. One of `+`, `*`, `min`, `max`, `average`.")
+  operator: String
+) extends Transformer {
 
   require(Set("+", "*", "min", "max", "average") contains operator, "Operator must be one of '+', '*', 'min', 'max', 'average'")
 
