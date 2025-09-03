@@ -30,7 +30,8 @@ import org.silkframework.util.StringUtils.DoubleLiteral
   id = "numOperation",
   categories = Array("Numeric"),
   label = "Numeric operation",
-  description = """Applies one of the four basic arithmetic operators (`+`, `-`, `*` or `/`) to the sequence of input values. The transformation uses double-precision floating-point numbers in the computations."""
+  description = """Applies one of the four basic arithmetic operators to the sequence of input values.""",
+  documentationFile = "NumOperationTransformer.md"
 )
 @TransformExamples(Array(
   new TransformExample(
@@ -74,11 +75,18 @@ import org.silkframework.util.StringUtils.DoubleLiteral
     input1 = Array("1", "1"),
     input2 = Array("1"),
     output = Array("3.0")
-  )
+  ),
+  new TransformExample(
+    parameters = Array("operator", "/"),
+    input1 = Array("1"),
+    input2 = Array("0"),
+    output = Array("Infinity")
+  ),
 ))
 case class NumOperationTransformer(
   @Param("The operator to be applied to all values. One of `+`, `-`, `*`, `/`")
-  operator: String) extends Transformer {
+  operator: String
+) extends Transformer {
 
   require(Set("+", "-", "*", "/") contains operator, "Operator must be one of '+', '-', '*', '/'")
 
