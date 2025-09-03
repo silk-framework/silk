@@ -7,7 +7,7 @@ should never divide by null. Doing so will result in `Infinity`.
 
 The computations are done with
 [double-precision floating-point numbers](https://en.wikipedia.org/wiki/Double-precision_floating-point_format).
-This means that e.g. integers such as `1` or `2`will be converted to `1.0` and `2.0`.
+This means that e.g. integers such as `1` or `2` will be converted to `1.0` and `2.0`.
 This also regards the _output_ of the operation, as in `1 + 1` leading to `2.0` rather than the integer `2`.
 
 _**Only** the four basic arithmetic operations are allowed_ (and understood) by this numeric transformer plugin. If an
