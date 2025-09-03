@@ -17,6 +17,4 @@ package org.silkframework.runtime.plugin
 /**
  * Thrown if a plugin is invalid.
  */
-class InvalidPluginException(e: String, cause: Throwable) extends Exception(e) {
-  def this(e: String) = this (e, null)
-}
+class InvalidPluginException(message: String, cause: Option[Throwable] = None) extends Exception(message, cause.orNull)

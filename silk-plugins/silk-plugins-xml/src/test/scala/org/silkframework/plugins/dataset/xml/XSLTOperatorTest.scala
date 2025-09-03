@@ -1,5 +1,6 @@
 package org.silkframework.plugins.dataset.xml
-
+
+
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.workspace.SingleProjectWorkspaceProviderTestTrait
 
@@ -11,7 +12,7 @@ class XSLTOperatorTest extends AnyFlatSpec with Matchers with SingleProjectWorks
   private final val WORKFLOW = "xsltWorkflow"
   private final val OUTPUT_RESOURCE = "output.xml"
 
-  override def workspaceProviderId: String = "inMemory"
+  override def workspaceProviderId: String = "inMemoryWorkspaceProvider"
 
   private val expectedOutput: Elem = {
     <GroupedPerson>

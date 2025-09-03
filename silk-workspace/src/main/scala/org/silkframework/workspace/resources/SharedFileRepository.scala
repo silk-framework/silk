@@ -6,7 +6,7 @@ import org.silkframework.runtime.resource.FileResourceManager
 import java.io.File
 
 @Plugin(
-  id = "file",
+  id = "sharedFileRepository",
   label = "File resources",
   description = "Holds all resources in a specified folder."
 )

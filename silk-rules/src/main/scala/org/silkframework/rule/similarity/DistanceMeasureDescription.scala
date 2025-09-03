@@ -9,7 +9,7 @@ case class DistanceMeasureDescription(range: DistanceMeasureRange,
                                       examples: OperatorExampleValues[DistanceMeasureExampleValue]) extends CustomPluginDescription {
 
   override def generateDocumentation(sb: StringBuilder): Unit = {
-    sb ++= "\n### Characteristics\n"
+    sb ++= "\n## Characteristics\n"
     sb ++= range.description
     for(c <- cardinality) {
       sb ++= "\n\n"

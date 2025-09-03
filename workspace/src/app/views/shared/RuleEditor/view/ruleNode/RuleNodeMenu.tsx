@@ -38,9 +38,7 @@ export const RuleNodeMenu = ({
         menuFns?.closeMenu();
     };
     const menuFunctionsCallback = useMemo(() => (menuFunctions) => setMenuFns(menuFunctions), []);
-    const operatorDoc = `${ruleOperatorDescription ?? ""} ${
-        ruleOperatorDocumentation ? `\n\n${ruleOperatorDocumentation}` : ""
-    }`;
+    const operatorDoc = ruleOperatorDocumentation || ruleOperatorDescription || "";
 
     const nodeDimensions = utils.nodeById(modelContext.elements, nodeId)?.data.nodeDimensions;
     const resizeResetIsDisabled = !nodeDimensions?.width && !nodeDimensions?.height;
@@ -86,14 +84,14 @@ export const RuleNodeMenu = ({
                             ruleEvaluationContext.startEvaluation(
                                 subtreeRuleOperatorNodes,
                                 ruleEditorContext.editedItem,
-                                false
+                                false,
                             );
                             ruleEvaluationContext.toggleEvaluationResults(true);
                         }}
                         text={t("RuleEditor.node.menu.subtree.label", "Evaluate subtree")}
                         htmlTitle={t(
                             "RuleEditor.node.menu.subtree.description",
-                            "Evaluate linking tree partially until this operator node."
+                            "Evaluate linking tree partially until this operator node.",
                         )}
                     />
                 ) : null}

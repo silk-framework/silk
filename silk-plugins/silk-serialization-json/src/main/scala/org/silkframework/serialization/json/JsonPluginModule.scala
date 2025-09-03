@@ -33,7 +33,6 @@ class JsonPluginModule extends PluginModule {
       PathInputJsonFormat.getClass ::
       TransformInputJsonFormat.getClass ::
       ValueTypeJsonFormat.getClass ::
-      GenericInfoJsonFormat.getClass ::
       VocabularyCacheValueJsonFormat.getClass ::
       VocabularyClassJsonFormat.getClass ::
       InputJsonFormat.getClass ::
@@ -49,7 +48,6 @@ class JsonPluginModule extends PluginModule {
       CachedEntitySchemataJsonFormat.getClass ::
       EntityHolderJsonFormat.getClass ::
       LinkingJsonFormat.getClass ::
-      TransformReportJsonFormat.getClass ::
       LinkageRuleJsonFormat.getClass ::
       DatasetSelectionJsonFormat.getClass ::
       ReferenceLinksJsonFormat.getClass ::

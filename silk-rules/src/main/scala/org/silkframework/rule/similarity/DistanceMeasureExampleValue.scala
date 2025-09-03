@@ -1,8 +1,10 @@
 package org.silkframework.rule.similarity
 
 import org.silkframework.rule.OperatorExampleValue
+import org.silkframework.rule.OperatorExampleValues.code
 import org.silkframework.rule.annotations.DistanceMeasureExample
 import org.silkframework.util.DPair
+
 import scala.collection.immutable.ArraySeq
 
 case class DistanceMeasureExampleValue(description: Option[String],
@@ -17,10 +19,13 @@ case class DistanceMeasureExampleValue(description: Option[String],
 
   def markdownFormatted(sb: StringBuilder): Unit = {
     sb ++= "* Input values:\n"
-    sb ++= s"  - Source: `${format(inputs.source)}`\n"
-    sb ++= s"  - Target: `${format(inputs.target)}`\n"
+    sb ++= s"    - Source: ${code(format(inputs.source))}\n"
+    sb ++= s"    - Target: ${code(format(inputs.target))}\n"
     sb ++= "\n"
-    sb ++= s"* Returns: → `${output}`\n"
+    sb ++= s"* Returns: `${output}`\n"
+    for(exceptionClass <- throwsException) {
+      sb ++= s"* **Throws error:** `${exceptionClass.getSimpleName}`\n"
+    }
   }
 
   private def format(traversable: Iterable[_]): String = {

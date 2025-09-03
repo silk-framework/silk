@@ -33,9 +33,7 @@ export const RuleOperator = ({ ruleOperator, textQuery, searchWords }: RuleOpera
             : undefined;
     const itemLabel = ruleOperator.label;
     const [t] = useTranslation();
-    const operatorDoc = `${ruleOperator.description ?? ""} ${
-        ruleOperator.markdownDocumentation ? `\n\n ${ruleOperator.markdownDocumentation}` : ""
-    }`;
+    const operatorDoc = ruleOperator.markdownDocumentation || ruleOperator.description || "";
     const ruleEditorUiContext = React.useContext(RuleEditorUiContext);
 
     return (
@@ -81,7 +79,7 @@ export const RuleOperator = ({ ruleOperator, textQuery, searchWords }: RuleOpera
                     )}
                 </OverviewItemLine>,
                 "bottom-end",
-                "large"
+                "large",
             )}
             {descriptionSearchSnippet && (
                 <OverviewItemLine data-test-id={"ruleOperator-sidebar-search-operator-description"}>
@@ -92,7 +90,7 @@ export const RuleOperator = ({ ruleOperator, textQuery, searchWords }: RuleOpera
                             <Highlighter label={descriptionSearchSnippet} searchValue={textQuery} />
                         </OverflowText>,
                         "bottom-end",
-                        "medium"
+                        "medium",
                     )}
                 </OverviewItemLine>
             )}
@@ -100,7 +98,7 @@ export const RuleOperator = ({ ruleOperator, textQuery, searchWords }: RuleOpera
                 {utils.createOperatorTags(
                     [...(ruleOperator.tags ?? []), ...(ruleOperator.categories ?? [])],
                     textQuery,
-                    tagColor
+                    tagColor,
                 )}
             </OverviewItemLine>
         </OverviewItemDescription>
@@ -109,7 +107,7 @@ export const RuleOperator = ({ ruleOperator, textQuery, searchWords }: RuleOpera
 
 const tagColors = getColorConfiguration("react-flow-linking");
 export const tagColor = (
-    tag: "Input" | "Transform" | "Comparison" | "Aggregation" | "Source path" | "Target path"
+    tag: "Input" | "Transform" | "Comparison" | "Aggregation" | "Source path" | "Target path",
 ): Color | string | undefined => {
     switch (tag) {
         case "Transform":

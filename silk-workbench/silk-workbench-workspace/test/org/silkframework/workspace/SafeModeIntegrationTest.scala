@@ -35,7 +35,7 @@ class SafeModeIntegrationTest extends AnyFlatSpec
   private var sparqlServerPort = -1
   private val sparqlDatasetEndpointParameter = "endpointURI"
 
-  override def workspaceProviderId: String = "inMemory"
+  override def workspaceProviderId: String = "inMemoryWorkspaceProvider"
   protected override def routes = Some(classOf[testWorkspace.Routes])
 
   override def propertyMap: Map[String, Option[String]] = Map(

@@ -16,6 +16,10 @@ package org.silkframework.util
 
 import java.util.logging.Logger
 
+/**
+ * A table with a name, header and values.
+ * The table can be formatted as CSV, markdown or latex.
+ */
 case class Table(name: String,
                  header: Seq[String],
                  values: Seq[Seq[Any]])
@@ -69,14 +73,26 @@ case class Table(name: String,
     val MAX_CHARACTERS = if(breakLongLines) 500 else Int.MaxValue
     val sb = new StringBuilder()
 
-    sb.append(header.mkString("| ", " | ", " |\n"))
-    sb.append("| " + (" --- |" * header.size) + "\n")
+    // Header
+    sb ++= "| "
+    var first = true
+    for((name, maxChars) <- header.zip(columnWidthInCharacters)) {
+      if(first) {
+        first = false
+      } else {
+        sb ++= " | "
+      }
+      sb ++= name.padTo(maxChars, ' ')
+    }
+    sb ++= " |\n"
+    sb.append("| " + columnWidthInCharacters.map(c => "-" * c).mkString(" | ") + " |\n")
+
+    // Rows
     for(row <- values) {
       sb.append("| ")
       val lineValues = scala.collection.mutable.ListBuffer.empty[String]
-      for(cell <- row.zip(columnWidthInCharacters)) {
+      for((value, maxChars) <- row.zip(columnWidthInCharacters)) {
         val cellValue = {
-          val value = cell._1
           var truncatedValue = if(value != null) value.toString.take(MAX_CHARACTERS) else "*null*"
           val newLineIdx = truncatedValue.lastIndexOf('\n')
           if(truncatedValue.length >= MAX_CHARACTERS && newLineIdx > 0) {
@@ -85,13 +101,12 @@ case class Table(name: String,
           }
           truncatedValue.replace("\\", "\\\\")
         }
-        val maxChars = cell._2
         // If there are line breaks in a value, we need to generate multiple rows
         if(breakLongLines) {
           val lines = Table.softGrouped(cellValue, maxChars)
           lineValues += lines.mkString("\\\n")
         } else {
-          lineValues += cellValue.replaceAll("""[\n\r]+""", "\\\\")
+          lineValues += cellValue.replaceAll("""[\n\r]+""", "\\\\").padTo(maxChars, ' ')
         }
       }
       sb.append(lineValues.mkString(" | "))
@@ -156,7 +171,9 @@ object Table {
 
       val (next, remain) = remainingString.splitAt(splitIndex)
       val camelCaseSuffix = if(isCamelCase) "-" else ""
-      splits :+= next.stripSuffix("\n").stripSuffix("\r") + camelCaseSuffix
+      val processedNext = next.stripSuffix("\n").stripSuffix("\r") + camelCaseSuffix
+      val paddedNext = processedNext.padTo(maxLength, ' ')
+      splits :+= paddedNext
       remainingString = remain
     }
     splits
