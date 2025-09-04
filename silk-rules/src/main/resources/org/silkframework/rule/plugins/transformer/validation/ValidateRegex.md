@@ -1,9 +1,9 @@
 ## Description
 
-The `regexReplace` plugin replaces all occurrences of a regular expression.
+The `validateRegex` plugin validates whether all values match a given regular expression.
 
-This plugin is a _replace_ transformer plugin. This means that if the regular expression does _not_ match the input
-value, it will be replaced with an empty string, i.e. deleted.
+This plugin is a _validation_ transformer plugin. This means that if the regular expression does _not_ match the input
+value, it will _fail_ with a validation exception.
 
 ### Notes on regular expressions
 
@@ -24,9 +24,10 @@ A compilation of the available constructs for building regular expressions is av
 
 ## Relation to other plugins
 
-Additionally to the `regexReplace` plugin, there are related plugins such as `validateRegex`, `ifMatchesRegex` and
+Additionally to the `validateRegex` plugin, there are related plugins such as `ifMatchesRegex`, `regexReplace` and
 `regexExtract`.
 
 The distinctive feature of each of these plugins lies in what happens whenever the regular expression
-matches the input value(s): the `regexReplace` plugin is used for _replacing_ the input, `validateRegex` is useful for
-_validating_ the input, and `ifMatchesRegex` _conditionally distinguishes_ which input to take.
+matches the input value(s): the `validateRegex` plugin is used for _validating_ the input, `ifMatchesRegex` is useful
+for _conditionally distinguishing_ which input to take, `regexReplace` _replaces_ all occurrences, and `regexExtract`
+_extracts_ them.
