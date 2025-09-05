@@ -24,7 +24,7 @@ import org.silkframework.runtime.plugin.annotations.Plugin
   *   )
   * }}}
   *
-  * the transofmer will return
+  * the transformer will return
   * {{{
   *   Seq("output", "", "output")
   * }}}
