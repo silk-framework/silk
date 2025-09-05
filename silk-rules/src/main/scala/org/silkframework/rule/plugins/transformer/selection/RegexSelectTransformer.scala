@@ -1,5 +1,6 @@
 package org.silkframework.rule.plugins.transformer.selection
 
+import org.silkframework.rule.annotations.{TransformExample, TransformExamples}
 import org.silkframework.rule.input.Transformer
 import org.silkframework.runtime.plugin.annotations.Plugin
 
@@ -36,6 +37,24 @@ import org.silkframework.runtime.plugin.annotations.Plugin
   description = """This transformer takes 3 inputs: one output value, multiple regex patterns, and a value to check against those patterns. It returns the output value at positions where regex patterns match the input value.""",
   documentationFile = "RegexSelectTransformer.md"
 )
+@TransformExamples(Array(
+  new TransformExample(
+    description = "sets the correct outputs based on the regexes",
+    parameters = Array("oneOnly", "false"),
+    input1 = Array("output"),
+    input2 = Array("a", "b", "c"),
+    input3 = Array("catch"),
+    output = Array("output", "", "output")
+  ),
+  new TransformExample(
+    description = "return only first match position if oneOnly = true",
+    parameters = Array("oneOnly", "true"),
+    input1 = Array("output"),
+    input2 = Array("a", "b", "c"),
+    input3 = Array("catch"),
+    output = Array("output", "", "")
+  ),
+))
 case class RegexSelectTransformer(oneOnly: Boolean = false) extends Transformer {
   override def apply(inputs: Seq[Seq[String]]): Seq[String] = {
     require(inputs.size == 3, "The ")
