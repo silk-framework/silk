@@ -29,7 +29,9 @@ The following list summarizes the creation and the behavior of the conditional t
 ### Notes on regular expressions
 
 The most commonly used examples of regular expressions are `"\\s*"` for representing whitespace characters, `[^0-9]*`
-for numbers, and `[a-z]*` for the usual English characters between `a` and `z`.
+for numbers, and `[a-z]*` for the usual English characters between `a` and `z`. The star (`*`) represents an arbitrary
+number of occurrences (zero included), whereas the plus sign (`+`) indicates a strictly positive number of occurrences
+(zero excluded).
 
 An uppercase version of the predefined character classes means _negation_, such as `"\\S*"` for _non_-whitespace
 characters, or `"\\D*"` for _non_-digits.

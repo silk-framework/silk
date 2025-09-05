@@ -1,9 +1,11 @@
 ## Description
 
-The `regexReplace` plugin replaces all occurrences of a regular expression.
+The `regexExtract` plugin extracts one or all matches of a regular expression within the input.
 
-This plugin is a _replace_ transformer plugin. This means that if the regular expression does _not_ match the input
-value, it will be replaced with an empty string, i.e. deleted.
+This plugin is an _extraction_ transformer plugin. It is configured with the parameters `regex` and `extractAll`. The
+regular expression `regex` is simply the pattern used in the matching. With `extractAll`, we tell the `regexExtract`
+plugin whether to extract _all_ values (with `extractAll = true`) or only the _first_ occurrence of the matching
+(with `extractAll = false`, which is the default).
 
 ### Notes on regular expressions
 
@@ -26,10 +28,10 @@ A compilation of the available constructs for building regular expressions is av
 
 ## Relation to other plugins
 
-Additionally to the `regexReplace` plugin, there are related plugins such as `validateRegex`, `ifMatchesRegex` and
-`regexExtract`.
+Additionally to the `regexExtract` plugin, there are related plugins such as `validateRegex`, `ifMatchesRegex` and
+`regexReplace`.
 
 The distinctive feature of each of these plugins lies in what happens whenever the regular expression
-matches the input value(s): the `regexReplace` plugin is used for _replacing_ the input, `validateRegex` is useful for
-_validating_ the input, `ifMatchesRegex` _conditionally distinguishes_ which input to take, and `regexExtract`
-_extracts_ all occurrences of the matching.
+matches the input value(s): the `regexExtract` plugin is used for _extracting_ matches from the input, `validateRegex`
+is useful for _validating_ the input, `ifMatchesRegex` _conditionally distinguishes_ which input to take, and
+`regexReplace` _replaces_ all occurrences of the matching.
