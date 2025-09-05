@@ -21,7 +21,7 @@ case class GetProjectFilesOperator(
   fileName: String = "",
   @Param("Optional regular expression for retrieving files. The regex needs to match the full path (i.e. from beginning to end, including sub-directories).")
   filesRegex: String = "",
-  @Param("Optional MIME type to assign to all retrieved files.")
+  @Param(label = "MIME type", value = "Optional MIME type to assign to all retrieved files. If left empty, the MIME type will be not be set.")
   mimeType: String = "") extends CustomTask {
 
   assert(fileName.nonEmpty || filesRegex.nonEmpty, "Either the file name or the file regex must be set")
