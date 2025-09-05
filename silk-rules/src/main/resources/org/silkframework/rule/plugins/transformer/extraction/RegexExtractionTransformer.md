@@ -7,6 +7,10 @@ regular expression `regex` is simply the pattern used in the matching. With `ext
 plugin whether to extract _all_ values (with `extractAll = true`) or only the _first_ occurrence of the matching
 (with `extractAll = false`, which is the default).
 
+Additionally to normal regular expressions, we can also use _capturing groups_ such as in `(A)(B)(C)` instead of just
+`ABC`. If capturing groups are used in a regular expression, only the _first_ capturing group will be considered. This
+does _not_ mean the first matching group, but the first capturing group in the regex.
+
 ### Notes on regular expressions
 
 The most commonly used examples of regular expressions are `"\\s*"` for representing whitespace characters, `[^0-9]*`

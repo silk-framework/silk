@@ -12,9 +12,9 @@ import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
   categories = Array("Extract"),
   label = "Regex extract",
   description = "Extracts one or all matches of a regular expression within the input." +
-    " If the regular expression contains one or more capture groups, only the first matching group will be considered.",
+    " If the regular expression contains one or more capturing groups, only the first group will be considered.",
   documentationFile = "RegexExtractionTransformer.md"
-),
+)
 @TransformExamples(Array(
   new TransformExample(
     description = "returns only the first match, when extractAll = false (default)",
@@ -35,25 +35,25 @@ import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
     output = Array()
   ),
   new TransformExample(
-    description = "returns the match of the first capture group, which includes two to four letters",
+    description = "returns the match of the first capturing group, which includes two to four letters",
     parameters = Array("regex", "^([a-z]{2,4})123([a-z]+)"),
     input1 = Array("abcd123xyz"),
     output = Array("abcd")
   ),
   new TransformExample(
-    description = "returns the match of the first capture group, which includes at least one letter",
+    description = "returns the match of the first capturing group, which includes at least one letter",
     parameters = Array("regex", "^([a-z]+)123([a-z]{2,4})"),
     input1 = Array("pqrstuvwxyz123abcd"),
     output = Array("pqrstuvwxyz")
   ),
   new TransformExample(
-    description = "returns an empty string, because the first capture group includes the possibility of no letters",
+    description = "returns an empty string, because the first capturing group includes the possibility of no letters",
     parameters = Array("regex", "^([a-z]*)123([a-z]{2,4})"),
     input1 = Array("123abcd"),
     output = Array("")
   ),
   new TransformExample(
-    description = "returns an empty list, because the first capture group excludes the possibility of no letters",
+    description = "returns an empty list, because the first capturing group excludes the possibility of no letters",
     parameters = Array("regex", "^([a-z]+)123([a-z]{2,4})"),
     input1 = Array("123abcd"),
     output = Array()
