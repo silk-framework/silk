@@ -12,7 +12,7 @@ export const TaskPluginView = () => {
 
     const taskViewPlugins = pluginRegistry.taskViews(pluginId ?? "");
     const taskView = taskViewPlugins.find(
-        (plugin) => (!plugin.available || plugin.available(initialSettings)) && plugin.id === viewId
+        (plugin) => (!plugin.available || plugin.available(initialSettings)) && plugin.id === viewId,
     );
 
     return !projectId || !taskId || !taskView ? (
@@ -22,11 +22,11 @@ export const TaskPluginView = () => {
     );
 };
 
-interface TaskViewParams {
+type TaskViewParams = {
     projectId?: string;
     taskId?: string;
     pluginId?: string;
     viewId?: string;
-}
+};
 
 export default TaskPluginView;

@@ -14,18 +14,13 @@ export function fetchBreadcrumbs(WrappedComponent) {
     const breadcrumbIdMap = { projectId: "projectLabel", taskId: "taskLabel" };
 
     return function (props) {
-        const location = useLocation<any>();
+        const location = useLocation();
         const [breadcrumbs, setBreadcrumbs] = useState<BreadcrumbItemProps[]>([]);
         const [t] = useTranslation();
 
         useEffect(() => {
             const match = appRoutes
-                .map((route) =>
-                    matchPath(location.pathname, {
-                        path: getFullRoutePath(route.path),
-                        exact: route.exact,
-                    }),
-                )
+                .map((route) => matchPath(location.pathname, getFullRoutePath(route.path)))
                 .filter(Boolean);
 
             if (match) {

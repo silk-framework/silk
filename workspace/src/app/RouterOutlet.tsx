@@ -1,5 +1,5 @@
 import React, { Suspense } from "react";
-import { Route, Switch } from "react-router-dom";
+import { Route, Routes } from "react-router-dom";
 import Loading from "./views/shared/Loading";
 import { getFullRoutePath } from "./utils/routerUtils";
 import { AppLayout } from "./views/layout/AppLayout/AppLayout";
@@ -15,11 +15,11 @@ export default function RouterOutlet({ routes }: RouterOutletProps) {
     const [t] = useTranslation();
     return (
         <Suspense fallback={<Loading posGlobal description={t("common.app.loading", "Loading page.")} />}>
-            <Switch>
+            <Routes>
                 {routes.map((route) => {
-                    const Component = route.component as any;
+                    const Component = route.element as any;
                     return (
-                        <Route key={route.path} path={getFullRoutePath(route.path)} exact={route.exact}>
+                        <Route key={route.path} path={getFullRoutePath(route.path)}>
                             {route.componentOnly && Component ? (
                                 <ApplicationContainer monitorDropzonesFor={["application/reactflow", "Files"]}>
                                     <ApplicationContent>
@@ -32,7 +32,7 @@ export default function RouterOutlet({ routes }: RouterOutletProps) {
                         </Route>
                     );
                 })}
-            </Switch>
+            </Routes>
         </Suspense>
     );
 }

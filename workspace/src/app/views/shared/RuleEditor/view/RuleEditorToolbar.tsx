@@ -19,11 +19,11 @@ import useHotKey from "../../HotKeyHandler/HotKeyHandler";
 import { RuleEditorUiContext } from "../contexts/RuleEditorUiContext";
 import { RuleEditorEvaluationContext, RuleEditorEvaluationContextProps } from "../contexts/RuleEditorEvaluationContext";
 import { EvaluationActivityControl } from "./evaluation/EvaluationActivityControl";
-import { Prompt } from "react-router";
 import { RuleValidationError } from "../RuleEditor.typings";
 import utils, { DEFAULT_NODE_HEIGHT, DEFAULT_NODE_WIDTH } from "../model/RuleEditorModel.utils";
 import { RuleEditorBaseModal } from "./components/RuleEditorBaseModal";
 import { ReactFlowHotkeyContext } from "@eccenca/gui-elements/src/cmem/react-flow/extensions/ReactFlowHotkeyContext";
+import { Prompt } from "../../../../views/shared/Prompt";
 
 /** Toolbar of the rule editor. Contains global editor actions like save, redo/undo etc. */
 export const RuleEditorToolbar = () => {
@@ -115,8 +115,8 @@ export const RuleEditorToolbar = () => {
     const ruleValidationError: RuleValidationError | undefined = ruleEvaluationContext.ruleValidationError
         ? ruleEvaluationContext.ruleValidationError
         : ruleEditorContext.lastSaveResult?.errorMessage
-        ? (ruleEditorContext.lastSaveResult as RuleValidationError)
-        : undefined;
+          ? (ruleEditorContext.lastSaveResult as RuleValidationError)
+          : undefined;
     const translationsStickyNoteModal = {
         modalTitle: t("StickyNoteModal.title"),
         noteLabel: t("StickyNoteModal.labels.codeEditor"),
@@ -174,7 +174,10 @@ export const RuleEditorToolbar = () => {
                 />
             ) : null}
             <Toolbar data-test-id={"workflow-editor-header"} noWrap>
-                <Prompt when={modelContext.unsavedChanges} message={routingPrompt} />
+                <Prompt
+                    when={modelContext.unsavedChanges}
+                    message={t("taskViews.ruleEditor.warnings.unsavedChanges") as string}
+                />
                 <ToolbarSection>
                     <IconButton
                         data-test-id={"rule-editor-undo-btn"}
@@ -212,7 +215,7 @@ export const RuleEditorToolbar = () => {
                         checked={ruleEditorUiContext.advancedParameterModeEnabled}
                         onClick={() =>
                             ruleEditorUiContext.setAdvancedParameterMode(
-                                !ruleEditorUiContext.advancedParameterModeEnabled
+                                !ruleEditorUiContext.advancedParameterModeEnabled,
                             )
                         }
                     />
@@ -291,7 +294,7 @@ export const RuleEditorToolbar = () => {
                             ruleValidationError ? [ruleValidationError.errorMessage] : ([] as string[])
                         }
                         queueNodeNotifications={(ruleValidationError?.nodeErrors ?? []).filter(
-                            (nodeError) => nodeError.message
+                            (nodeError) => nodeError.message,
                         )}
                         nodeJumpToHandler={modelContext.centerNode}
                         evaluationNotifications={ruleEvaluationContext.notifications}

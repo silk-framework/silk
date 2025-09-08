@@ -12,69 +12,58 @@ const TaskPluginView = lazy(() => import("./views/pages/TaskPluginView/TaskPlugi
 const NotFoundPage = lazy(() => import("./views/pages/NotFound"));
 const Activities = lazy(() => import("./views/pages/Activities"));
 
-export interface IRouteProps extends RouteProps {
+export type IRouteProps = RouteProps & {
     /** Path of the route. */
     path: string;
     /** If true then only the component is shown without header etc. */
     componentOnly?: boolean;
-}
+};
 
 const appRoutes: IRouteProps[] = [
     {
         path: "/",
-        component: DashboardPage,
-        exact: true,
+        element: DashboardPage,
     },
     {
         path: "/projects/:projectId",
-        component: ProjectPage,
-        exact: true,
+        element: ProjectPage,
     },
     {
         path: "/projects/:projectId/dataset/:taskId/:tab?",
-        component: DatasetPage,
-        exact: true,
+        element: DatasetPage,
     },
     {
         path: "/projects/:projectId/workflow/:taskId/:tab?",
-        component: WorkflowPage,
-        exact: true,
+        element: WorkflowPage,
     },
     {
         path: "/projects/:projectId/transform/:taskId/:tab?",
-        component: TransformPage,
-        exact: true,
+        element: TransformPage,
     },
     {
         path: "/projects/:projectId/linking/:taskId/:tab?",
-        component: LinkingPage,
-        exact: true,
+        element: LinkingPage,
     },
     {
         path: "/projects/:projectId/task/:taskId/:tab?",
-        component: TaskPage,
-        exact: true,
+        element: TaskPage,
     },
     {
         path: "/projects/:projectId/activities",
-        component: Activities,
-        exact: true,
+        element: Activities,
     },
     {
         path: "/activities",
-        component: Activities,
-        exact: true,
+        element: Activities,
     },
     {
         path: "/projects/:projectId/item/:pluginId/:taskId/view/:viewId",
-        component: TaskPluginView,
-        exact: true,
+        element: TaskPluginView,
         componentOnly: true,
     },
     {
         path: "*",
-        component: NotFoundPage,
-        exact: false,
+        element: NotFoundPage,
     },
 ];
 

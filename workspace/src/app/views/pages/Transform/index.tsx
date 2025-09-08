@@ -13,7 +13,7 @@ import { TaskActivityOverview } from "../../shared/TaskActivityOverview/TaskActi
 import { ProjectTaskParams } from "../../shared/typings";
 
 export default function TransformPage() {
-    const { taskId, projectId } = useParams<ProjectTaskParams>();
+    const { taskId, projectId } = useParams<ProjectTaskParams>() as ProjectTaskParams;
     const [notFound, setNotFound] = useState(false);
 
     const { pageHeader, updateActionsMenu, updateBreadcrumbsExtensions } = usePageHeader({

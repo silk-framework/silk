@@ -14,7 +14,7 @@ import { ProjectTaskParams } from "../../shared/typings";
 import { LinkageRuleConfig } from "./config/LinkageRuleConfig";
 
 export default function LinkingPage() {
-    const { projectId, taskId } = useParams<ProjectTaskParams>();
+    const { projectId, taskId } = useParams<ProjectTaskParams>() as ProjectTaskParams;
     const [notFound, setNotFound] = useState(false);
 
     const { pageHeader, updateActionsMenu } = usePageHeader({
