@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { Prompt, useLocation } from "react-router";
+import { useLocation } from "react-router";
 import { Trans, useTranslation } from "react-i18next";
 import {
     Button,
@@ -40,6 +40,7 @@ import { IMetadataExpanded } from "./Metadatatypings";
 import { Keyword, Keywords } from "@ducks/workspace/typings";
 import { MultiTagSelect } from "../MultiTagSelect";
 import useHotKey from "../HotKeyHandler/HotKeyHandler";
+import { Prompt } from "../Prompt";
 
 export const getDateData = (dateTime: number | string) => {
     const then = new Date(dateTime);
@@ -202,12 +203,6 @@ export function Metadata(props: IProps) {
             <Divider />
         </>
     );
-
-    // Show 'unsaved changes' prompt when navigating away via React routing
-    const routingPrompt: (newLocation: H.Location, action: H.Action) => string | boolean = (newLocation, action) => {
-        // Only complain when navigating away from current page.
-        return unsavedChanges && action !== "REPLACE" ? (t("Metadata.unsavedMetaDataWarning") as string) : true;
-    };
 
     const onLabelChange = (e) => {
         if (formEditData && e.target !== undefined) {
@@ -388,7 +383,7 @@ export function Metadata(props: IProps) {
                                             ? t(
                                                   "Metadata.dateFormat",
                                                   "{{year}}/{{month}}/{{day}}",
-                                                  getDateData(created)
+                                                  getDateData(created),
                                               )
                                             : "",
                                         author: createdByUser?.label ?? t("Metadata.unknownuser", "unknown user"),
@@ -427,7 +422,7 @@ export function Metadata(props: IProps) {
                                                     ? t(
                                                           "Metadata.dateFormat",
                                                           "{{year}}/{{month}}/{{day}}",
-                                                          getDateData(modified)
+                                                          getDateData(modified),
                                                       )
                                                     : "",
                                                 author:
@@ -439,7 +434,7 @@ export function Metadata(props: IProps) {
                                                     <Link
                                                         href={utils.generateFacetUrl(
                                                             "lastModifiedBy",
-                                                            lastModifiedByUser?.uri ?? ""
+                                                            lastModifiedByUser?.uri ?? "",
                                                         )}
                                                     ></Link>
                                                 ),
@@ -473,7 +468,7 @@ export function Metadata(props: IProps) {
     const widgetFooter =
         !loading && isEditing ? (
             <>
-                <Prompt when={unsavedChanges} message={routingPrompt} />
+                <Prompt when={unsavedChanges} message={t("Metadata.unsavedMetaDataWarning") as string} />
                 <Divider />
                 <CardActions>
                     <Button

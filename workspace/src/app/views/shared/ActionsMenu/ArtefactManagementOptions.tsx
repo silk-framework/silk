@@ -35,7 +35,7 @@ export function ArtefactManagementOptions({
     notFoundCallback = () => {},
 }: IProps) {
     const dispatch = useDispatch();
-    const location = useLocation<any>();
+    const location = useLocation();
     const [t] = useTranslation();
     const [deleteModalOpen, setDeleteModalOpen] = useState(false);
     const [cloneModalOpen, setCloneModalOpen] = useState(false);

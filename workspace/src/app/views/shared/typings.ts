@@ -1,7 +1,7 @@
-export interface ProjectTaskParams {
+export type ProjectTaskParams = {
     projectId: string;
     taskId: string;
-}
+};
 
 /** Characteristics of a dataset task. */
 export interface DatasetCharacteristics {

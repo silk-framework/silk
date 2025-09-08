@@ -13,7 +13,7 @@ import { ProjectTaskParams } from "../../shared/typings";
 import { IPluginDetails } from "@ducks/common/typings";
 
 export default function TaskPage() {
-    const { taskId, projectId } = useParams<ProjectTaskParams>();
+    const { taskId, projectId } = useParams<ProjectTaskParams>() as ProjectTaskParams;
     const [notFound, setNotFound] = useState(false);
     const [pluginDetails, setPluginDetails] = React.useState<IPluginDetails | undefined>();
 

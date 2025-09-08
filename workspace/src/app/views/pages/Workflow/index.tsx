@@ -12,7 +12,7 @@ import { ProjectTaskParams } from "../../shared/typings";
 import VariablesWidget from "../../../views/shared/VariablesWidget/VariablesWidget";
 
 export default function WorkflowPage() {
-    const { taskId, projectId } = useParams<ProjectTaskParams>();
+    const { taskId, projectId } = useParams<ProjectTaskParams>() as ProjectTaskParams;
     const [notFound, setNotFound] = useState(false);
 
     const { pageHeader, updateActionsMenu } = usePageHeader({
@@ -28,7 +28,7 @@ export default function WorkflowPage() {
                 id: "workflowSaved",
                 message: "Workflow updated",
             }),
-            "*"
+            "*",
         );
     };
 

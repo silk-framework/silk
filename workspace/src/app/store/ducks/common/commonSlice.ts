@@ -30,11 +30,9 @@ const getExtraReducers = () => {
             };
 
             let match;
+            //{ taskId?: string; projectId?: string }
             for (let route of appRoutes) {
-                match = matchPath<{ taskId?: string; projectId?: string }>(location.pathname, {
-                    path: getFullRoutePath(route.path),
-                    exact: true,
-                });
+                match = matchPath<"taskId" | "projectId", string>(location.pathname, getFullRoutePath(route.path));
 
                 if (match) {
                     updatedState.currentProjectId = match.params.projectId || null;
@@ -164,7 +162,7 @@ export const commonSlice = createSlice({
 
         createNewTask: (
             state,
-            action: PayloadAction<Pick<IArtefactModal, "newTaskPreConfiguration" | "selectedDType">>
+            action: PayloadAction<Pick<IArtefactModal, "newTaskPreConfiguration" | "selectedDType">>,
         ) => {
             const { newTaskPreConfiguration, selectedDType } = action.payload;
             state.artefactModal.newTaskPreConfiguration = newTaskPreConfiguration;

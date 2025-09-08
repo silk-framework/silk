@@ -1,6 +1,5 @@
 import React, { useEffect, useState, Fragment } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useHistory } from "react-router";
 import { useTranslation } from "react-i18next";
 import locationParser from "query-string";
 import { CLASSPREFIX as eccgui } from "@eccenca/gui-elements/src/configuration/constants";
@@ -30,6 +29,7 @@ import { IProjectTaskView, IViewActions, pluginRegistry } from "../../plugins/Pl
 import PromptModal from "./PromptModal";
 import ErrorBoundary from "../../../ErrorBoundary";
 import { ProjectTaskTabViewContext } from "./ProjectTaskTabViewContext";
+import { useNavigate, useBlocker } from "react-router";
 
 const getBookmark = () => window.location.pathname.split("/").slice(-1)[0];
 
@@ -100,7 +100,7 @@ export function ProjectTaskTabView({
     const projectId = taskViewConfig?.projectId ?? globalProjectId;
     const taskId = taskViewConfig?.taskId ?? globalTaskId;
     const dispatch = useDispatch();
-    const history = useHistory();
+    const navigate = useNavigate();
     const [t] = useTranslation();
     const [isFetchingLinks, setIsFetchingLinks] = useState(true);
     const iframeRef = React.useRef<HTMLIFrameElement>(null);
@@ -253,20 +253,32 @@ export function ProjectTaskTabView({
             const toTaskView = getTaskView(tabRoute?.id);
             const queryToKeep = toTaskView ? extractSearchQuery(toTaskView) : "";
             !startFullscreen &&
-                dispatch(history.replace(calculateBookmark(tabRoute?.id ?? "", taskId, viewsAndItemLink, queryToKeep)));
+                dispatch(
+                    navigate(calculateBookmark(tabRoute?.id ?? "", taskId, viewsAndItemLink, queryToKeep), {
+                        replace: true,
+                    }),
+                );
         }
     };
 
-    /** show browser prompt when making route changes except changes with search params */
-    React.useEffect(() => {
-        window.onbeforeunload = () => (unsavedChanges ? true : null);
-        const unBlock = history.block((location) =>
-            !location.search.length && unsavedChanges && !openTabSwitchPrompt
-                ? (t("Metadata.unsavedMetaDataWarning") as string)
-                : undefined,
-        );
-        return () => unBlock();
-    }, [unsavedChanges, openTabSwitchPrompt]);
+    // /** show browser prompt when making route changes except changes with search params */
+    // React.useEffect(() => {
+    //     window.onbeforeunload = () => (unsavedChanges ? true : null);
+    //     const unBlock = history.block((location) =>
+    //         !location.search.length && unsavedChanges && !openTabSwitchPrompt
+    //             ? (t("Metadata.unsavedMetaDataWarning") as string)
+    //             : undefined,
+    //     );
+    //     return () => unBlock();
+    // }, [unsavedChanges, openTabSwitchPrompt]);
+
+    useBlocker(
+        ({ currentLocation }) =>
+            !currentLocation.search.length &&
+            unsavedChanges &&
+            !openTabSwitchPrompt &&
+            window.confirm(t("Metadata.unsavedMetaDataWarning") as string),
+    );
 
     const getInitialActiveLink = (
         itemLinks: IItemLink[],

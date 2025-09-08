@@ -26,7 +26,7 @@ import { commonOp } from "@ducks/common";
 import { workspaceOp, workspaceSel } from "@ducks/workspace";
 import { routerSel } from "@ducks/router";
 import ActivityList from "./ActivityList";
-import { useHistory, useParams } from "react-router";
+import { useNavigate, useParams } from "react-router";
 import { SERVE_PATH } from "../../../constants/path";
 import { ProjectTaskParams } from "views/shared/typings";
 import { previewSlice } from "@ducks/workspace/previewSlice";
@@ -34,7 +34,7 @@ import { previewSlice } from "@ducks/workspace/previewSlice";
 const Activities = () => {
     const dispatch = useDispatch();
     const { registerError } = useErrorHandler();
-    const history = useHistory();
+    const navigate = useNavigate();
     const error = useSelector(workspaceSel.errorSelector);
     const qs = useSelector(routerSel.routerSearchSelector);
     const path = useSelector(routerSel.pathnameSelector);
@@ -159,7 +159,7 @@ const Activities = () => {
                                         <IconButton
                                             name="item-reload"
                                             text="Reload activities"
-                                            onClick={() => history.go(0)}
+                                            onClick={() => navigate(0)}
                                         />
                                     </div>
                                 </GridColumn>

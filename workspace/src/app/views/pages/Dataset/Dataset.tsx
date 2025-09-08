@@ -25,7 +25,7 @@ const automaticallyPreviewedDatasets = ["json", "xml", "csv"];
 const noDataPreviewDatasets = ["variableDataset"];
 
 export function Dataset() {
-    const { taskId, projectId } = useParams<ProjectTaskParams>();
+    const { taskId, projectId } = useParams<ProjectTaskParams>() as ProjectTaskParams;
     const [t] = useTranslation();
     const [pluginDetails, setPluginDetails] = React.useState<IPluginDetails | undefined>();
     const [notFound, setNotFound] = useState(false);
