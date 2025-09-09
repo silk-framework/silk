@@ -65,47 +65,12 @@ describe("ValueMappingRuleForm Component", () => {
             expect(findAllDOMElements(wrapper, `[class*="-spinner"]`).length).toBeGreaterThan(1);
         });
 
-        xit("should show the error message, when it's happened", () => {
-            wrapper.setState({
-                error: {
-                    response: {
-                        body: "Error",
-                    },
-                },
-            });
-            expect(findAllDOMElements(wrapper, `[class="mdl-alert--narrowed"]`)).toHaveLength(1);
-        });
-
         it("should show the title, when `id` not presented", () => {
             const wrapper = getWrapper({
                 ...props,
                 id: false,
             });
             expect(findAllDOMElements(wrapper, `[class*="-card__title"]`)).toHaveLength(1);
-        });
-
-        xit("should render Source property Autocomplete box, when rule type equal to `direct` ", () => {
-            wrapper.setState({
-                type: "direct",
-                loading: false,
-            });
-            expect(findAllDOMElements(wrapper, `[class="${selectors.SOURCE_PROP_AUTOCOMPLETE}"]`)).toHaveLength(1);
-        });
-
-        xit("should render TextField, when rule type equal to `complex` ", () => {
-            wrapper.setState({
-                type: "complex",
-                loading: false,
-            });
-            expect(findAllDOMElements(wrapper, `[class="${selectors.INPUT_COMPLEX}"]`)).toHaveLength(1);
-        });
-
-        xit("should render ExampleView, when sourceProperty not empty", () => {
-            wrapper.setState({
-                sourceProperty: ["1"],
-                loading: false,
-            });
-            expect(wrapper.find(ExampleView)).toHaveLength(1);
         });
 
         it("should render Target property autocomplete", async () => {
@@ -124,15 +89,6 @@ describe("ValueMappingRuleForm Component", () => {
             await waitFor(() => {
                 expect(findAllDOMElements(wrapper, selectors.DATA_TYPE_AUTOCOMPLETE)).toHaveLength(1);
             });
-        });
-
-        xit("should render the language select box, when nodeType equal to `LanguageValueType`", () => {
-            wrapper.setState({
-                valueType: {
-                    nodeType: "LanguageValueType",
-                },
-            });
-            expect(findAllDOMElements(wrapper, `[class="${selectors.LNG_SELECT_BOX}"]`)).toHaveLength(1);
         });
 
         it("should render input for editing label of rule", async () => {
@@ -156,30 +112,6 @@ describe("ValueMappingRuleForm Component", () => {
         let emitMock;
         beforeEach(() => {
             emitMock = jest.spyOn(EventEmitter, "emit");
-        });
-
-        xit("should save button call createMapping function, when value changed and targetProperty presented with language tag", () => {
-            const createMappingAsyncMock = jest.spyOn(Store, "createMappingAsync");
-            const wrapper = getWrapper({
-                ...props,
-                ruleData: {
-                    ...props.ruleData,
-                    type: "root",
-                },
-            });
-            wrapper.setState({
-                loading: false,
-                changed: true,
-                valueType: {
-                    nodeType: "en",
-                },
-                targetProperty: "2",
-            });
-            wrapper.find(selectors.CONFIRM_BUTTON).first().simulate("click", {
-                stopPropagation: jest.fn(),
-                persist: jest.fn(),
-            });
-            expect(createMappingAsyncMock).toHaveBeenCalled();
         });
 
         it("should cancel button emit the event which will discard the form", async () => {

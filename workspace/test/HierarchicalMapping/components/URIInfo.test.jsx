@@ -1,7 +1,7 @@
 import React from "react";
 import { URIInfo } from "../../../src/app/views/pages/MappingEditor/HierarchicalMapping/components/URIInfo";
 import { fireEvent, render } from "@testing-library/react";
-import { findAllDOMElements, findElement } from "../../integration/TestHelper";
+import {findAllDOMElements, findElement, logRequests} from "../../integration/TestHelper";
 
 const getVocabInfoAsyncMock = jest.fn();
 
@@ -16,11 +16,6 @@ const getWrapper = (renderer = render, args = props) => renderer(<URIInfo {...ar
 
 describe("URIInfo Component", () => {
     describe("on component mounted, ", () => {
-        xit("should render information text, when text is available from server", () => {
-            const wrapper = getWrapper(render);
-            expect(findElement(wrapper, "span").textContent).toEqual("Message");
-        });
-
         it("should render fallback text, when text is NOT available from server", () => {
             const wrapper = getWrapper(render);
             expect(findElement(wrapper, "span").textContent).toEqual("Fallback text");

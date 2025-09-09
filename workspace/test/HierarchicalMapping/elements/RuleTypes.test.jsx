@@ -57,18 +57,6 @@ describe("RuleTypes Component", () => {
                 expect(findElement(wrapper, "span").textContent).toEqual("dummy");
             });
 
-            xit("and `rule.mappingTarget.valueType.nodeType` NOT presented", () => {
-                const wrapper = getWrapper(render, {
-                    rule: {
-                        type: "direct",
-                        mappingTarget: {
-                            valueType: {},
-                        },
-                    },
-                });
-                expect(findAllDOMElements(wrapper, "[class*='__notavailable']").length).toBeGreaterThan(0);
-            });
-
             it("and language prefix presented", () => {
                 const wrapper = getWrapper(render, {
                     rule: {

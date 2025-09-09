@@ -96,30 +96,4 @@ describe("Header", () => {
             expect(window.location.pathname).toBe(workspacePath("/projects/SomeProjectId"));
         });
     });
-
-    xit("should clone button works properly", async () => {
-        wrapper = renderWrapper(<Task />, history, {
-            common: { initialSettings: { dmBaseUrl: "http://docker.local" } },
-        });
-
-        fireEvent.click(findElement(wrapper, "[class*='contextmenu']"));
-        clickFoundElement(wrapper, byTestId("header-clone-button"));
-        clickFoundElement(wrapper, byTestId("clone-modal-button"));
-
-        mockAxios.mockResponseFor(
-            {
-                url: hostPath + "/workspace/projects/SomeProjectId/tasks/SomeTaskId/clone",
-                method: "POST",
-            },
-            mockedAxiosResponse({
-                data: {
-                    detailsPage: workspacePath("/projects/SomeProjectId/dataset/SomeTaskId"),
-                },
-            }),
-        );
-
-        await waitFor(() => {
-            expect(window.location.pathname).toBe(workspacePath("/projects/SomeProjectId/dataset/SomeTaskId"));
-        });
-    });
 });

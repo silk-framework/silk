@@ -76,10 +76,6 @@ describe("Project page", () => {
         checkRequestMade(apiUrl("/workspace/projects/" + testProjectId + "/metaDataExpanded"));
     });
 
-    xit("should get available resources for file widget", () => {
-        checkRequestMade(legacyApiUrl("/workspace/projects/" + testProjectId + "/resources"));
-    });
-
     it("should get prefixes for configuration widget", () => {
         checkRequestMade(apiUrl("/workspace/projects/" + testProjectId + "/prefixes"));
     });

@@ -56,10 +56,6 @@ describe("ObjectMappingRuleForm Component", () => {
         });
 
         describe("when `ruleData.type` Not equal to `root` ", () => {
-            xit("should render Target property Autocomplete box", async () => {
-                findElement(wrapper, selectors.TARGET_PROP_AUTOCOMPLETE);
-            });
-
             it("should render Radio group of entity connections", () => {
                 expect(findAllDOMElements(wrapper, selectors.ENTITY_CON_RADIO)).toHaveLength(1);
             });
