@@ -3,6 +3,7 @@ GET        /taskPlugins                   controllers.workspaceApi.coreApi.Plugi
 GET        /ruleOperatorPlugins           controllers.workspaceApi.coreApi.PluginApi.ruleOperatorPlugins(addMarkdownDocumentation: Boolean ?= false, textQuery: Option[String] ?= None, category: Option[String] ?= None, overviewOnly: Option[Boolean] ?= None, inputOperatorsOnly: Option[Boolean] ?= None)
 GET        /ruleOperatorPlugins/:pluginId controllers.workspaceApi.coreApi.PluginApi.ruleOperatorPlugin(pluginId: String, addMarkdownDocumentation: Boolean ?= false, pretty: Boolean ?= false, withLabels: Boolean ?= false)
 GET        /plugins/:pluginId             controllers.workspaceApi.coreApi.PluginApi.plugin(pluginId: String, addMarkdownDocumentation: Boolean ?= false, pretty: Boolean ?= false, withLabels: Boolean ?= false)
+GET        /pluginTypes                   controllers.workspaceApi.coreApi.PluginApi.pluginTypes()
 GET        /usages/plugins/:pluginId      controllers.workspaceApi.coreApi.PluginApi.pluginUsages(pluginId: String)
 GET        /usages/deprecatedPlugins      controllers.workspaceApi.coreApi.PluginApi.deprecatedPluginUsages()
 

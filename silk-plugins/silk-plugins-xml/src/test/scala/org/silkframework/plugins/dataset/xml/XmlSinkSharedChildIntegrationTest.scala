@@ -1,5 +1,6 @@
 package org.silkframework.plugins.dataset.xml
-
+
+
 import org.silkframework.rule.TransformSpec
 import org.silkframework.rule.execution.ExecuteTransform
 import org.silkframework.workspace.SingleProjectWorkspaceProviderTestTrait
@@ -15,7 +16,7 @@ class XmlSinkSharedChildIntegrationTest extends AnyFlatSpec with Matchers with S
 
   override def projectId = "xmlSharedChildBug"
 
-  override def workspaceProviderId: String = "inMemory"
+  override def workspaceProviderId: String = "inMemoryWorkspaceProvider"
 
   private val TRANSFORM_TASK = "transformRDF2XML"
   private val OUTPUT_XML_RESOURCE = "output.xml"

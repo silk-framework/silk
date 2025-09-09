@@ -12,7 +12,7 @@ class FixProjectTaskIntegrationTest extends AnyFlatSpec with Matchers with Singl
 
   protected override def routes: Option[Class[Routes]] = Some(classOf[testWorkspace.Routes])
 
-  override def workspaceProviderId: String = "inMemory"
+  override def workspaceProviderId: String = "inMemoryWorkspaceProvider"
 
   /**
     * Returns the path of the XML zip project that should be loaded before the test suite starts.

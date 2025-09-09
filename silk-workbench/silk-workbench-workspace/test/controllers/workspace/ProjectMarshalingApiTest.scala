@@ -26,7 +26,7 @@ class ProjectMarshalingApiTest extends PlaySpec with IntegrationTestTrait {
   @volatile
   private var failOnResources: Set[String] = Set.empty
 
-  override def workspaceProviderId: String = "inMemory"
+  override def workspaceProviderId: String = "inMemoryWorkspaceProvider"
 
   override def createResourceRepository(dir: File): ResourceRepository = {
     new TestResourceRepository(super.createResourceRepository(dir))

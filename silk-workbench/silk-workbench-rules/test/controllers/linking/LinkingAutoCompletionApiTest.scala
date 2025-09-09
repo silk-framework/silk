@@ -15,7 +15,7 @@ import org.scalatest.matchers.must.Matchers
 import org.silkframework.plugins.dataset.json.JsonDataset
 
 class LinkingAutoCompletionApiTest extends AnyFlatSpec with SingleProjectWorkspaceProviderTestTrait with IntegrationTestTrait with Matchers with BeforeAndAfterAll {
-  override def workspaceProviderId = "inMemory"
+  override def workspaceProviderId = "inMemoryWorkspaceProvider"
 
   override def projectPathInClasspath: String = "diProjects/423a27b9-c6e6-45e5-84d2-26d94fce3d1b_Partialauto-completionproject.zip"
 
