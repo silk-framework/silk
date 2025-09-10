@@ -191,7 +191,7 @@ class BinaryFileDatasetTest extends AnyFlatSpec with Matchers with TestWorkspace
 
   override def routes: Option[Class[_ <: Router]] = Some(classOf[testWorkflowApi.Routes])
 
-  override def workspaceProviderId: String = "inMemory"
+  override def workspaceProviderId: String = "inMemoryWorkspaceProvider"
 
   override def beforeAll(): Unit = {
     PluginRegistry.registerPlugin(classOf[ConversionTask])

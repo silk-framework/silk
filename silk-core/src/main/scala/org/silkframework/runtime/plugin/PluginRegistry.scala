@@ -25,7 +25,7 @@ object PluginRegistry {
   
   /** Map from plugin base types to an instance holding all plugins of that type.  */
   @volatile
-  private var pluginTypes = Map[String, PluginTypeHolder]()
+  private var pluginTypesById = Map[String, PluginTypeHolder]()
 
   /** Map holding all plugins by their class name */
   @volatile
@@ -157,10 +157,15 @@ object PluginRegistry {
    */
   def availablePlugins[T: ClassTag]: Seq[PluginDescription[T]] = {
     val blackList = Config.blacklistedPlugins()
-    pluginType[T]
-        .availablePlugins.asInstanceOf[Seq[PluginDescription[T]]]
-        .filterNot(p => blackList.contains(p.id))
-        .sortBy(_.label)
+    pluginTypeOpt[T] match {
+      case Some(pluginType) =>
+        pluginType.availablePlugins.asInstanceOf[Seq[PluginDescription[T]]]
+                  .filterNot(p => blackList.contains(p.id))
+                  .sortBy(_.label)
+      case None =>
+        Seq.empty
+    }
+
   }
 
   /** Get a specific plugin description by plugin ID.
@@ -190,7 +195,7 @@ object PluginRegistry {
     * Returns a list of all available plugins of a specific runtime type.
     */
   def availablePluginsForClass(pluginClass: Class[_]): Seq[PluginDescription[_]] = {
-    pluginTypes.get(pluginClass.getName) match {
+    pluginTypesById.get(pluginClass.getName) match {
       case Some(pluginType) => pluginType.availablePlugins
       case None => Seq.empty
     }
@@ -256,8 +261,13 @@ object PluginRegistry {
     }
   }
 
-  // Checks if a plugin description is valid
-  def checkPluginDescription(pluginDesc: PluginDescription[_]): Unit = {
+  /**
+   * Checks if a plugin description is valid.
+   * @param pluginDesc The plugin description to check.
+   *
+   * @throws InvalidPluginException if the plugin description is invalid.
+   */
+  private def checkPluginDescription(pluginDesc: PluginDescription[_]): Unit = {
     pluginDesc.parameters foreach { param =>
       if(!param.visibleInDialog && param.defaultValue.isEmpty) {
         throw new InvalidPluginException(s"Plugin '${pluginDesc.label}' is invalid. Parameter '${param.name}' must " +
@@ -267,14 +277,20 @@ object PluginRegistry {
   }
 
   /**
-    * Registers a single plugin.
-    */
+   * Registers a single plugin.
+   *
+   * @throws InvalidPluginException if the plugin description is invalid or if a plugin with the same id already exists.
+   */
   def registerPlugin(pluginDesc: PluginDescription[_]): Unit = {
     checkPluginDescription(pluginDesc)
-    if(!Config.blacklistedPlugins().contains(pluginDesc.id) && !(plugins.contains(pluginDesc.pluginClass.getName) && pluginsById.contains(pluginDesc.id))) {
+    if(!Config.blacklistedPlugins().contains(pluginDesc.id)) {
+      if(pluginsById.contains(pluginDesc.id)) {
+        throw new InvalidPluginException(s"Plugin with id '${pluginDesc.id}' already exists. " +
+            s"Please use a different id for $pluginDesc.")
+      }
       for (superType <- pluginDesc.pluginTypes) {
-        val pluginType = pluginTypes.getOrElse(superType.name, new PluginTypeHolder)
-        pluginTypes += ((superType.name, pluginType))
+        val pluginType = pluginTypesById.getOrElse(superType.name, new PluginTypeHolder(superType))
+        pluginTypesById += ((superType.name, pluginType))
         pluginType.register(pluginDesc)
       }
       plugins += ((pluginDesc.pluginClass.getName, pluginDesc))
@@ -294,10 +310,11 @@ object PluginRegistry {
 
   /**
     * Removes a plugin from the registry.
+    * Does nothing if the plugin is not registered.
     */
   def unregisterPlugin(pluginDesc: PluginDescription[_]): Unit = {
     for  { superType <- pluginDesc.pluginTypes
-           pluginType <- pluginTypes.get(superType.name)} {
+           pluginType <- pluginTypesById.get(superType.name)} {
       pluginType.unregister(pluginDesc.id)
     }
     plugins -= pluginDesc.pluginClass.getName
@@ -316,20 +333,30 @@ object PluginRegistry {
 
   /**
     * Removes a plugin from the registry.
+    * Does nothing if the plugin is not registered.
     */
   def unregisterPlugin(implementingClass: Class[_ <: AnyPlugin]): Unit = {
     unregisterPlugin(ClassPluginDescription.create(implementingClass))
   }
 
+  def pluginTypes: Iterable[PluginTypeDescription] = {
+    pluginTypesById.values.map(_.pluginType)
+  }
+
+  private def pluginTypeOpt[T: ClassTag]: Option[PluginTypeHolder] = {
+    val pluginClass = implicitly[ClassTag[T]].runtimeClass
+    pluginTypesById.get(pluginClass.getName)
+  }
+
   private def pluginType[T: ClassTag]: PluginTypeHolder = {
     val pluginClass = implicitly[ClassTag[T]].runtimeClass
-    pluginTypes.getOrElse(pluginClass.getName, new PluginTypeHolder)
+    pluginTypesById.getOrElse(pluginClass.getName, throw new IllegalArgumentException(s"Unknown plugin type: ${pluginClass.getName}"))
   }
 
   /**
    * Holds all plugins that share a specific base type.
    */
-  private class PluginTypeHolder {
+  private class PluginTypeHolder(val pluginType: PluginTypeDescription) {
 
     /** Map from plugin id to plugin description */
     @volatile

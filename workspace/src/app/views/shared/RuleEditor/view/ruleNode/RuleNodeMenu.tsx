@@ -38,9 +38,7 @@ export const RuleNodeMenu = ({
         menuFns?.closeMenu();
     };
     const menuFunctionsCallback = useMemo(() => (menuFunctions) => setMenuFns(menuFunctions), []);
-    const operatorDoc = `${ruleOperatorDescription ?? ""} ${
-        ruleOperatorDocumentation ? `\n\n${ruleOperatorDocumentation}` : ""
-    }`;
+    const operatorDoc = ruleOperatorDocumentation || ruleOperatorDescription || "";
 
     const nodeDimensions = utils.nodeById(modelContext.elements, nodeId)?.data.nodeDimensions;
     const resizeResetIsDisabled = !nodeDimensions?.width && !nodeDimensions?.height;
