@@ -67,10 +67,6 @@ describe("MappingRule Component", () => {
             wrapper = getWrapper(render);
         });
 
-        // it("should loading appear when data not loaded", () => {
-        //     expect(findAllDOMElements(wrapper, ".eccgui-spinner")).toHaveLength(1);
-        // });
-
         it("should rendered NavigateButton, when type is object", () => {
             const wrapper = getWrapper(render, {
                 ...props,

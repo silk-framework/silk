@@ -11,7 +11,7 @@ const props = {
     handleDiscardConfirm: handleDiscardConfirmMock,
 };
 
-const getWrapper = (renderer = shallow) => renderer(<DiscardChangesDialog {...props} />);
+const getWrapper = (renderer = render) => renderer(<DiscardChangesDialog {...props} />);
 
 const selectors = {
     DISCARD_BUTTON: "button.ecc-hm-accept-discard",
