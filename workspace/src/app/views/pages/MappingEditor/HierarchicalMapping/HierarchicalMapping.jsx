@@ -135,7 +135,7 @@ class HierarchicalMapping extends React.Component {
                     uri,
                     type,
                     parent,
-                    label: displayLabel
+                    label: displayLabel,
                 },
                 askForRemove: true,
                 removeFunction: this.handleConfirmRemove,
@@ -265,7 +265,7 @@ class HierarchicalMapping extends React.Component {
                             projectId={this.props.project}
                             transformTaskId={this.props.transformTask}
                             containerRuleId={this.state.containerRuleId ?? MAPPING_ROOT_RULE_ID}
-                            ruleId={this.state.mappingEditorRuleId}
+                            ruleDefinition={{ ruleId: this.state.mappingEditorRuleId }}
                             viewActions={this.props.viewActions}
                             isOpen={showMappingEditor}
                             onClose={() => {

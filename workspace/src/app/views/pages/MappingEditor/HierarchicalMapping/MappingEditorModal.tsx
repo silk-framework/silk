@@ -3,6 +3,7 @@ import { Button, HtmlContentBlock, IconButton, AlertDialog, SimpleDialog } from 
 import { TransformRuleEditor } from "../../../../views/taskViews/transform/TransformRuleEditor";
 import { useTranslation } from "react-i18next";
 import { IViewActions } from "../../../../views/plugins/PluginRegistry";
+import { RuleParameterType } from "../../../taskViews/transform/transform.types";
 
 export interface MappingEditorProps {
     /** Project ID the task is in. */
@@ -12,7 +13,7 @@ export interface MappingEditorProps {
     /** The container rule ID, i.e. of either the root or an object rule. */
     containerRuleId: string;
     /** The transform rule that should be edited. This needs to be a value mapping rule. */
-    ruleId: string;
+    ruleDefinition: RuleParameterType;
     // control whether the modal is open or not
     isOpen: boolean;
     /**
@@ -24,7 +25,7 @@ export interface MappingEditorProps {
 }
 
 const MappingEditorModal = ({
-    ruleId,
+    ruleDefinition,
     onClose,
     projectId,
     transformTaskId,
@@ -111,7 +112,7 @@ const MappingEditorModal = ({
                     <TransformRuleEditor
                         projectId={projectId}
                         containerRuleId={containerRuleId}
-                        ruleId={ruleId}
+                        ruleDefinition={ruleDefinition}
                         instanceId={"transform-rule-editor-modal-instance"}
                         transformTaskId={transformTaskId}
                         viewActions={{

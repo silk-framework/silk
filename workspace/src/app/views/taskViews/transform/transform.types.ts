@@ -4,7 +4,7 @@ import { IValueInput, RuleLayout } from "../shared/rules/rule.typings";
 import { Stacktrace } from "../../shared/SampleError/SampleError";
 import { StickyNote } from "@eccenca/gui-elements";
 
-export type PartialBy<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>
+export type PartialBy<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>;
 
 /** Parameters of a transform task. */
 export interface ITransformRule {
@@ -88,3 +88,18 @@ export interface ITransformTaskParameters {
     /** The output task ID */
     output: string;
 }
+
+// Editor component specific types
+export interface ActualRule {
+    /** The actual rule object that will be loaded into the rule editor. */
+    rule: ITransformRule;
+    /** The alternative save function, since the rule cannot be saved in the backend directly. */
+    saveRule: (updatedRule: ITransformRule) => void;
+}
+
+export interface RuleReference {
+    /** The ID of the rule that should be fetched from the backend and loaded into the rule editor. */
+    ruleId: string;
+}
+
+export type RuleParameterType = ActualRule | RuleReference;
