@@ -39,6 +39,22 @@ class SparqlRestrictionTest extends AnyFlatSpec with Matchers {
     resolve(restriction) should be ("?a <http://www.w3.org/2002/07/owl#sameAs>/<http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Thing> .")
   }
 
+  it should "resolve prefixes correctly if using alternative paths" in {
+    val restrictiion = "?a rdfs:label|rdfs:comment ?o ."
+    resolve(restrictiion) should be ("?a <http://www.w3.org/2000/01/rdf-schema#label>|<http://www.w3.org/2000/01/rdf-schema#comment> ?o .")
+  }
+
+  it should "resolve prefixes correctly if using property graph placeholders" in {
+    resolve("""?a ex:prop* "value" .""") should be ("""?a <http://silkframework.org/example/prop>* "value" .""")
+    resolve("""?a ex:prop+ "value" .""") should be ("""?a <http://silkframework.org/example/prop>+ "value" .""")
+    resolve("""?a ex:prop? "value" .""") should be ("""?a <http://silkframework.org/example/prop>? "value" .""")
+  }
+
+  it should "resolve prefixes correctly if using grouped paths" in {
+    val restriction = "?a (owl:sameAs/rdf:type)+ owl:Thing ."
+    resolve(restriction) should be ("?a (<http://www.w3.org/2002/07/owl#sameAs>/<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>)+ <http://www.w3.org/2002/07/owl#Thing> .")
+  }
+
   it should "fail if a prefix in a property path is not defined" in {
     val restriction = "?a rdf:type/schema:additionalType owl:Class ."
     an[BadUserInputException] should be thrownBy resolve(restriction)
