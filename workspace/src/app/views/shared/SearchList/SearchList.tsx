@@ -17,9 +17,10 @@ import CopyToModal from "../modals/CopyToModal/CopyToModal";
 import { IModalItem } from "@ducks/shared/typings";
 import ShowIdentifierModal from "../modals/ShowIdentifierModal";
 import { IArtefactModal } from "@ducks/common/typings";
+import { AppDispatch } from "store/configureStore";
 
 export function SearchList() {
-    const dispatch = useDispatch();
+    const dispatch = useDispatch<AppDispatch>();
 
     const pageSizes = [10, 25, 50, 100];
 

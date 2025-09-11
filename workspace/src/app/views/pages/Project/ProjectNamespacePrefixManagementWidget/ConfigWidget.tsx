@@ -21,12 +21,13 @@ import {
 import { useTranslation } from "react-i18next";
 import { commonSel } from "@ducks/common";
 import useHotKey from "../../../../views/shared/HotKeyHandler/HotKeyHandler";
+import { AppDispatch } from "store/configureStore";
 
 const VISIBLE_COUNT = 5;
 
 /** The project namespace prefix management widget that allows adding, updating and removing namespace prefixes. */
 export const ProjectNamespacePrefixManagementWidget = () => {
-    const dispatch = useDispatch();
+    const dispatch = useDispatch<AppDispatch>();
     const prefixList = useSelector(workspaceSel.prefixListSelector);
 
     const [visiblePrefixes, setVisiblePrefixes] = useState<IPrefixDefinition[]>([]);

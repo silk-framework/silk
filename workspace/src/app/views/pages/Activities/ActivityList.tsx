@@ -36,6 +36,7 @@ import { routerOp } from "@ducks/router";
 import { batch } from "react-redux";
 import { SERVE_PATH } from "../../../constants/path";
 import { DIErrorTypes } from "@ducks/error/typings";
+import { AppDispatch } from "store/configureStore";
 
 interface IActivity extends ISearchResultsServer {
     isCacheActivity: boolean;
@@ -56,7 +57,7 @@ export const nonStartableActivitiesBlacklist = {
 };
 
 const ActivityList = () => {
-    const dispatch = useDispatch();
+    const dispatch = useDispatch<AppDispatch>();
     const pageSizes = [10, 25, 50, 100];
     const { registerError } = useErrorHandler();
 
@@ -80,7 +81,7 @@ const ActivityList = () => {
 
     const translateActions = React.useCallback(
         (key: SilkActivityControlTranslationKeys) => t("widget.TaskActivityOverview.activityControl." + key),
-        [t]
+        [t],
     );
     const emptyListWithoutFilters: boolean = isEmpty && !textQuery && !appliedFacets.length;
 
@@ -106,7 +107,7 @@ const ActivityList = () => {
         return connectWebSocket(
             legacyApiEndpoint("/activities/updatesWebSocket"),
             legacyApiEndpoint("/activities/updates"),
-            updateActivityStatus
+            updateActivityStatus,
         );
     };
 
@@ -132,7 +133,7 @@ const ActivityList = () => {
         registerError(
             `ActivityList.${action}`,
             `Activity action '${action}' against activity '${activityName}' could not be executed.`,
-            error
+            error,
         );
     };
 
@@ -146,7 +147,7 @@ const ActivityList = () => {
             registerError(
                 `taskActivityOverview-fetchErrorReport`,
                 t("widget.TaskActivityOverview.errorMessages.errorReport.fetchReport"),
-                ex
+                ex,
             );
         });
     };
@@ -171,7 +172,7 @@ const ActivityList = () => {
                         <Highlighter
                             label={t(
                                 "widget.Filterbar.subsections.valueLabels.itemType." + activity.parentType,
-                                activity.parentType[0].toUpperCase() + activity.parentType.substr(1)
+                                activity.parentType[0].toUpperCase() + activity.parentType.substr(1),
                             )}
                             searchValue={textQuery}
                         />

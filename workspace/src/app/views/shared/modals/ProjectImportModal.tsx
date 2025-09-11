@@ -31,6 +31,7 @@ import { useDispatch } from "react-redux";
 import { routerOp } from "@ducks/router";
 import { absoluteProjectPath } from "../../../utils/routerUtils";
 import { UploadNewFile } from "../FileUploader/cases/UploadNewFile/UploadNewFile";
+import { AppDispatch } from "store/configureStore";
 
 interface IProps {
     // Called when closing the modal
@@ -44,7 +45,7 @@ interface IProps {
 export function ProjectImportModal({ close, back, maxFileUploadSizeBytes }: IProps) {
     const [t] = useTranslation();
     const [uppy] = useState(Uppy());
-    const dispatch = useDispatch();
+    const dispatch = useDispatch<AppDispatch>();
     const [loading, setLoading] = useState(false);
     const [projectImportId, setProjectImportId] = useState<string | null>(null);
     const [projectImportDetails, setProjectImportDetails] = useState<IProjectImportDetails | null>(null);

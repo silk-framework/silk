@@ -36,9 +36,10 @@ import ActivityInfoWidget from "./ActivityInfoWidget";
 import { previewSlice } from "@ducks/workspace/previewSlice";
 import VariablesWidget from "../../../views/shared/VariablesWidget/VariablesWidget";
 import { useSelectFirstResult } from "../../../hooks/useSelectFirstResult";
+import { AppDispatch } from "store/configureStore";
 
 const Project = () => {
-    const dispatch = useDispatch();
+    const dispatch = useDispatch<AppDispatch>();
 
     const { textQuery } = useSelector(workspaceSel.appliedFiltersSelector);
     const currentSearchQuery = useRef<string>("");

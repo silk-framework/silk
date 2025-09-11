@@ -1,7 +1,7 @@
 import React from "react";
 import "@testing-library/jest-dom/extend-expect";
 import { render as rtlRender } from "@testing-library/react";
-import { configureStore } from "@reduxjs/toolkit";
+import { combineReducers, configureStore } from "@reduxjs/toolkit";
 import { Provider } from "react-redux";
 import workspaceReducer from "../../../../store/ducks/workspace";
 import ActivityList, { nonStartableActivitiesBlacklist } from "../ActivityList";
@@ -46,16 +46,20 @@ const dummyState = {
     },
 };
 
+const rootReducer = combineReducers({
+    workspace: workspaceReducer,
+});
+
 const render = (
     ui: JSX.Element,
     {
         store = configureStore({
-            reducer: { workspace: workspaceReducer },
+            reducer: rootReducer,
             preloadedState: {
                 ...(dummyState as any),
             },
         }),
-    } = {}
+    } = {},
 ) => {
     function Wrapper({ children }) {
         return <Provider store={store}>{children}</Provider>;
@@ -72,7 +76,7 @@ describe("ActivityList", () => {
     test("that ActivityList has right number of activity control items", () => {
         const wrapper = render(<ActivityList />);
         expect(wrapper.container.querySelectorAll(`.${bluePrintClassPrefix}-card`).length).toBe(
-            testData.activities.length
+            testData.activities.length,
         );
     });
 
@@ -93,8 +97,8 @@ describe("ActivityList", () => {
                 activityProperties[label!].blacklisted
                     ? "activity-stop-activity"
                     : activityProperties[label!].cacheActivity
-                    ? "activity-reload-activity"
-                    : "activity-start-activity"
+                      ? "activity-reload-activity"
+                      : "activity-start-activity",
             );
         }
     });
@@ -104,11 +108,11 @@ describe("ActivityList", () => {
         const activities = wrapper.container.querySelectorAll(`.${bluePrintClassPrefix}-card`);
         activities.forEach((activity, index) => {
             const [parentTypeTag, projectTag] = Array.from(
-                activity.querySelectorAll(`.${bluePrintClassPrefix}-tag`)
+                activity.querySelectorAll(`.${bluePrintClassPrefix}-tag`),
             ).reverse();
             const activityData = testData.activities[index];
             expect(parentTypeTag?.textContent).toBe(
-                activityData.parentType[0].toUpperCase() + activityData.parentType.substr(1)
+                activityData.parentType[0].toUpperCase() + activityData.parentType.substr(1),
             );
             //no project tag possibly global activity
             expect(projectTag?.textContent).toBe(!projectTag ? undefined : activityData.project);

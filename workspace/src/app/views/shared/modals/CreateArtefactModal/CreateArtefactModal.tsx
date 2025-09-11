@@ -60,6 +60,7 @@ import useHotKey from "../../HotKeyHandler/HotKeyHandler";
 import { CreateArtefactModalContext } from "./CreateArtefactModalContext";
 import { TaskDocumentationModal } from "./TaskDocumentationModal";
 import { PARAMETER_DOC_PREFIX } from "./ArtefactForms/TaskForm";
+import { AppDispatch } from "store/configureStore";
 
 const ignorableFields = new Set(["label", "description"]);
 
@@ -84,7 +85,7 @@ export interface ArtefactDocumentation {
 export function CreateArtefactModal() {
     const MAX_SINGLEPLUGINBUTTONS = 2;
 
-    const dispatch = useDispatch();
+    const dispatch = useDispatch<AppDispatch>();
     const form = useForm();
 
     const [searchValue, setSearchValue] = useState("");
@@ -157,14 +158,14 @@ export function CreateArtefactModal() {
     const [taskActionResult, setTaskActionResult] = React.useState<{ label: string; message: string }>();
     const [taskActionLoading, setTaskActionLoading] = React.useState<string | null>(null);
     const [taskFormGeneralWarning, setTaskFormGeneralWarning] = React.useState<string | undefined>();
-    const generalWarningTimeout = React.useRef<number | undefined>()
+    const generalWarningTimeout = React.useRef<number | undefined>();
 
     const taskFormWarning = React.useCallback((message: string) => {
-        if(generalWarningTimeout.current) {
-            clearTimeout(generalWarningTimeout.current)
+        if (generalWarningTimeout.current) {
+            clearTimeout(generalWarningTimeout.current);
         }
-        generalWarningTimeout.current = window.setTimeout(() => setTaskFormGeneralWarning(message), 250)
-    }, [])
+        generalWarningTimeout.current = window.setTimeout(() => setTaskFormGeneralWarning(message), 250);
+    }, []);
 
     React.useEffect(() => {
         if (infoMessage?.removeAfterSeconds && infoMessage.removeAfterSeconds > 0) {
@@ -946,12 +947,9 @@ export function CreateArtefactModal() {
         );
     }
 
-    if(taskFormGeneralWarning) {
+    if (taskFormGeneralWarning) {
         notifications.push(
-            <Notification
-                message={taskFormGeneralWarning}
-                onDismiss={() => setTaskFormGeneralWarning(undefined)}
-            />,
+            <Notification message={taskFormGeneralWarning} onDismiss={() => setTaskFormGeneralWarning(undefined)} />,
         );
     }
 

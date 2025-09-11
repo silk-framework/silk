@@ -1,4 +1,4 @@
-import { createAction, createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { ActionReducerMapBuilder, createAction, createSlice, PayloadAction, WritableDraft } from "@reduxjs/toolkit";
 import { initialCommonState } from "./initialState";
 import { LOCATION_CHANGE } from "connected-react-router";
 import appRoutes from "../../../appRoutes";
@@ -13,6 +13,7 @@ import {
     IInitFrontend,
     IProjectTaskUpdatePayload,
     IArtefactModal,
+    ICommonState,
 } from "@ducks/common/typings";
 import { setStoredLang } from "../../../../language";
 
@@ -20,37 +21,33 @@ import { setStoredLang } from "../../../../language";
  * @override connect-react-router location change action
  * set projectId and taskId on location change
  */
-const getExtraReducers = () => {
+const getExtraReducers = (builder: ActionReducerMapBuilder<WritableDraft<ICommonState>>) => {
     const routerChange = createAction(LOCATION_CHANGE);
-    return {
-        [routerChange.toString()]: (state) => {
-            const { location } = getHistory();
-            const updatedState = {
-                ...state,
-            };
+    builder.addCase(routerChange.toString(), (state) => {
+        const { location } = getHistory();
+        const updatedState = {
+            ...state,
+        };
 
-            let match;
-            for (let route of appRoutes) {
-                match = matchPath<{ taskId?: string; projectId?: string }>(location.pathname, {
-                    path: getFullRoutePath(route.path),
-                    exact: true,
-                });
+        let match;
+        for (let route of appRoutes) {
+            match = matchPath<{ taskId?: string; projectId?: string }>(location.pathname, {
+                path: getFullRoutePath(route.path),
+                exact: true,
+            });
 
-                if (match) {
-                    updatedState.currentProjectId = match.params.projectId || null;
-                    updatedState.currentTaskId = match.params.taskId || null;
-                    break;
-                }
+            if (match) {
+                updatedState.currentProjectId = match.params.projectId || null;
+                updatedState.currentTaskId = match.params.taskId || null;
+                break;
             }
+        }
 
-            if (!match) {
-                updatedState.currentTaskId = null;
-                updatedState.currentProjectId = null;
-            }
-
-            return updatedState;
-        },
-    };
+        if (!match) {
+            updatedState.currentTaskId = undefined;
+            updatedState.currentProjectId = undefined;
+        }
+    });
 };
 
 export const commonSlice = createSlice({
@@ -164,7 +161,7 @@ export const commonSlice = createSlice({
 
         createNewTask: (
             state,
-            action: PayloadAction<Pick<IArtefactModal, "newTaskPreConfiguration" | "selectedDType">>
+            action: PayloadAction<Pick<IArtefactModal, "newTaskPreConfiguration" | "selectedDType">>,
         ) => {
             const { newTaskPreConfiguration, selectedDType } = action.payload;
             state.artefactModal.newTaskPreConfiguration = newTaskPreConfiguration;
@@ -185,5 +182,5 @@ export const commonSlice = createSlice({
             state.artefactModal.info = action.payload;
         },
     },
-    extraReducers: getExtraReducers(),
+    extraReducers: (builder) => getExtraReducers(builder),
 });
