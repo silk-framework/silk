@@ -97,6 +97,9 @@ export interface RuleEditorProps<RULE_TYPE, OPERATOR_TYPE> {
     partialAutoCompletion: (
         inputType: "source" | "target",
     ) => (inputString: string, cursorPosition: number) => Promise<IPartialAutoCompleteResult | undefined>;
+    /** True if the save button should be initially enabled even when nothing has been changed by the user.
+     * This should be enabled for example when the initial rule is not persisted yet in the backend. */
+    saveInitiallyEnabled: boolean;
 }
 
 const READ_ONLY_QUERY_PARAMETER = "readOnly";
@@ -127,6 +130,7 @@ const RuleEditor = <TASK_TYPE extends object, OPERATOR_TYPE extends object>({
     fetchDatasetCharacteristics,
     pathMetaData,
     partialAutoCompletion,
+    saveInitiallyEnabled,
 }: RuleEditorProps<TASK_TYPE, OPERATOR_TYPE>) => {
     // The task that contains the rule, e.g. transform or linking task
     const [taskData, setTaskData] = React.useState<TASK_TYPE | undefined>(undefined);
@@ -288,6 +292,7 @@ const RuleEditor = <TASK_TYPE extends object, OPERATOR_TYPE extends object>({
                 datasetCharacteristics,
                 pathMetaData,
                 partialAutoCompletion,
+                saveInitiallyEnabled,
             }}
         >
             <ReactFlowHotkeyContext.Provider

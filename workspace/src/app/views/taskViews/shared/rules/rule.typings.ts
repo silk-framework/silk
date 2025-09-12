@@ -5,20 +5,20 @@ export interface IOperatorNode {
 }
 
 /** A value input that can either be plugged into a comparison or transform operator. */
-export interface IValueInput extends IOperatorNode {
+export interface IValueInputBase extends IOperatorNode {
     /** A value input can either be a path input or a transform operator. */
     type: "pathInput" | "transformInput";
 }
 
 /** Input operator that returns inputs for a specific path expression of a resource. */
-export interface IPathInput extends IValueInput {
+export interface IPathInput extends IValueInputBase {
     type: "pathInput";
     /** The input path expression. Silk path expression syntax.*/
     path: string;
 }
 
 /** Input operator that returns transformed values. */
-export interface ITransformOperator extends IValueInput {
+export interface ITransformOperator extends IValueInputBase {
     type: "transformInput";
     /** The transform operator plugin ID. */
     function: string;
@@ -27,6 +27,8 @@ export interface ITransformOperator extends IValueInput {
     /** Parameter values to configure the transform operator. */
     parameters: IOperatorNodeParameters;
 }
+
+export type IValueInput = IPathInput | ITransformOperator;
 
 /** Labelled value. In order to show human-readable versions of values, e.g. in auto-completion. */
 export interface IOperatorNodeParameterValueWithLabel {

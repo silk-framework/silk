@@ -37,12 +37,6 @@ export interface IComplexMappingRule extends ITransformRule {
     };
 }
 
-export interface IComplexUriRule extends ITransformRule {
-    type: "complexUri";
-    /**  */
-    operator: IValueInput;
-}
-
 /** A constant URI rule. */
 export interface IUriRule extends ITransformRule {
     type: "uri";
@@ -92,9 +86,11 @@ export interface ITransformTaskParameters {
 // Editor component specific types
 export interface ActualRule {
     /** The actual rule object that will be loaded into the rule editor. */
-    rule: ITransformRule;
+    rule: PartialBy<ITransformRule, "id" | "metadata">;
     /** The alternative save function, since the rule cannot be saved in the backend directly. */
-    saveRule: (updatedRule: ITransformRule) => void;
+    saveRule: (updatedRule: PartialBy<ITransformRule, "id" | "metadata">) => void | Promise<void>;
+    /** Set the rule editor parameter to have the ave button enabled from the beginning. */
+    saveInitiallyEnabled: boolean;
 }
 
 export interface RuleReference {

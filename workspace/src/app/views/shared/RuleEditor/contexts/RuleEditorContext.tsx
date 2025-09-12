@@ -86,6 +86,8 @@ export interface RuleEditorContextProps {
     partialAutoCompletion: (
         inputType: "source" | "target",
     ) => (inputString: string, cursorPosition: number) => Promise<IPartialAutoCompleteResult | undefined>;
+    /** Enable save button once after init. */
+    saveInitiallyEnabled: boolean;
 }
 
 /** Creates a rule editor model context that contains the actual rule model and low-level update functions. */
@@ -112,4 +114,5 @@ export const RuleEditorContext = React.createContext<RuleEditorContextProps>({
         inputPathLabel: () => undefined,
     },
     partialAutoCompletion: () => async () => undefined,
+    saveInitiallyEnabled: false,
 });

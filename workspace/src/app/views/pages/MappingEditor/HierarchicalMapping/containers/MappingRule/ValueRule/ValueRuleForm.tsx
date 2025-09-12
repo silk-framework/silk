@@ -35,6 +35,7 @@ import TargetCardinality from "../../../components/TargetCardinality";
 import { IViewActions } from "../../../../../../../views/plugins/PluginRegistry";
 import { GlobalMappingEditorContext } from "../../../../contexts/GlobalMappingEditorContext";
 import { MAPPING_ROOT_RULE_ID } from "../../../HierarchicalMapping";
+import { RuleParameterType } from "../../../../../../taskViews/transform/transform.types";
 
 const LANGUAGES_LIST = [
     "en",
@@ -114,7 +115,7 @@ interface IProps {
     // Called when the edit mode got cancelled
     onCancelEdit?: () => any;
     // Called when the rule editor for a specific rule should be opened
-    openMappingEditor: (ruleId: string) => void;
+    openMappingEditor: (ruleDefinition: RuleParameterType) => void;
     viewActions: IViewActions;
     /** do not use Card around content */
     noCardWrapper?: boolean;
@@ -155,7 +156,7 @@ export function ValueRuleForm(props: IProps) {
         debounce((hasFocus: boolean) => {
             setValuePathInputHasFocus(hasFocus);
         }, 200),
-        []
+        [],
     );
 
     const autoCompleteRuleId = id || parentId;
@@ -216,7 +217,7 @@ export function ValueRuleForm(props: IProps) {
                 },
                 (err) => {
                     setLoading(false);
-                }
+                },
             );
         } else {
             setLoading(false);
@@ -263,7 +264,7 @@ export function ValueRuleForm(props: IProps) {
                 (err) => {
                     setError(err);
                     setLoading(false);
-                }
+                },
             );
     };
 
@@ -326,7 +327,7 @@ export function ValueRuleForm(props: IProps) {
 
         const touched = wasTouched(
             { ...initialValues, valueType: initialValues.valueType?.nodeType },
-            { ...currValues, valueType: currValues.valueType?.nodeType }
+            { ...currValues, valueType: currValues.valueType?.nodeType },
         );
         const id = _.get(props, "id", 0);
 
@@ -375,7 +376,9 @@ export function ValueRuleForm(props: IProps) {
         event.preventDefault();
         event.stopPropagation();
         saveRule(false, (ruleId) => {
-            props.openMappingEditor(ruleId!);
+            props.openMappingEditor({
+                ruleId: ruleId!,
+            });
         });
     };
 
@@ -411,7 +414,7 @@ export function ValueRuleForm(props: IProps) {
         () => (value: string | { value: string }) => {
             sourceProperty.current = value;
         },
-        []
+        [],
     );
 
     // template rendering
@@ -450,7 +453,7 @@ export function ValueRuleForm(props: IProps) {
                                 input,
                                 cursorPosition,
                                 false,
-                                mappingEditorContext.taskContext
+                                mappingEditorContext.taskContext,
                             )
                         }
                         checkInput={checkValuePathValidity}

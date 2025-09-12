@@ -50,7 +50,7 @@ class HierarchicalMapping extends React.Component {
             askForRemove: false,
             removeFunction: this.handleConfirmRemove,
             showMappingEditor: false,
-            mappingEditorRuleId: undefined,
+            mappingEditorRuleDefinition: undefined,
             valueTypeLabels: new Map(),
         };
     }
@@ -231,8 +231,11 @@ class HierarchicalMapping extends React.Component {
         EventEmitter.emit(MESSAGES.RULE_VIEW.DISCARD_ALL);
     };
 
-    handleOpenMappingEditorModal = (mappingEditorRuleId) => {
-        this.setState({ showMappingEditor: true, mappingEditorRuleId });
+    handleOpenMappingEditorModal = (mappingEditorRuleDefinition) => {
+        this.setState({
+            showMappingEditor: true,
+            mappingEditorRuleDefinition,
+        });
     };
 
     /** Handles changes of the container rule. */
@@ -260,18 +263,18 @@ class HierarchicalMapping extends React.Component {
                 }}
             >
                 <section className="ecc-silk-mapping" data-test-id={"hierarchical-mappings"}>
-                    {showMappingEditor && this.state.mappingEditorRuleId ? (
+                    {showMappingEditor && this.state.mappingEditorRuleDefinition ? (
                         <MappingEditorModal
                             projectId={this.props.project}
                             transformTaskId={this.props.transformTask}
                             containerRuleId={this.state.containerRuleId ?? MAPPING_ROOT_RULE_ID}
-                            ruleDefinition={{ ruleId: this.state.mappingEditorRuleId }}
+                            ruleDefinition={this.state.mappingEditorRuleDefinition}
                             viewActions={this.props.viewActions}
                             isOpen={showMappingEditor}
                             onClose={() => {
                                 this.setState({
                                     showMappingEditor: false,
-                                    mappingEditorRuleId: undefined,
+                                    mappingEditorRuleDefinition: undefined,
                                 });
                                 EventEmitter.emit(MESSAGES.RELOAD, true);
                             }}

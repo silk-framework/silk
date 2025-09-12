@@ -5,6 +5,7 @@ import {
     IComplexMappingRule,
     ITransformRule,
     ITransformTaskParameters,
+    PartialBy,
     RuleParameterType,
     RuleReference,
 } from "./transform.types";
@@ -75,7 +76,7 @@ export const TransformRuleEditor = ({
     /** Fetches the parameters of the transform rule. */
     const fetchTransformRule = async (projectId: string, taskId: string): Promise<IComplexMappingRule | undefined> => {
         try {
-            const taskData: ITransformRule = isReferencedRule
+            const taskData: PartialBy<ITransformRule, "id" | "metadata"> = isReferencedRule
                 ? (await requestTransformRule(projectId, taskId, (ruleDefinition as RuleReference).ruleId)).data
                 : (ruleDefinition as ActualRule).rule;
             if (taskData.type !== "complex") {
@@ -138,7 +139,7 @@ export const TransformRuleEditor = ({
             if (isReferencedRule) {
                 await putTransformRule(projectId, transformTaskId, (ruleDefinition as RuleReference).ruleId, rule);
             } else {
-                (ruleDefinition as ActualRule).saveRule(rule);
+                await (ruleDefinition as ActualRule).saveRule(rule);
             }
             return {
                 success: true,
@@ -326,6 +327,7 @@ export const TransformRuleEditor = ({
                 initialFitToViewZoomLevel={initialFitToViewZoomLevel}
                 instanceId={instanceId}
                 fetchDatasetCharacteristics={fetchDatasetCharacteristics}
+                saveInitiallyEnabled={(ruleDefinition as ActualRule).saveInitiallyEnabled ?? false}
             />
         </TransformRuleEvaluation>
     );
