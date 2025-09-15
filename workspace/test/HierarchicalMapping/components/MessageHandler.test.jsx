@@ -1,80 +1,51 @@
 import React from "react";
-import { shallow } from 'enzyme';
-import MessageHandler from '../../../src/app/views/pages/MappingEditor/HierarchicalMapping/components/MessageHandler';
-import { Alert, Error, Info, Success, Warning } from 'gui-elements-deprecated';
+import MessageHandler from "../../../src/app/views/pages/MappingEditor/HierarchicalMapping/components/MessageHandler";
+import { errorChannel } from "../../../src/app/views/pages/MappingEditor/HierarchicalMapping/store";
+import { render, waitFor } from "@testing-library/react";
+import { findAllDOMElements, findElement } from "../../integration/TestHelper";
 
-
-const getWrapper = (renderer = shallow) => renderer(
-    <MessageHandler/>
-);
-
+const getWrapper = () => render(<MessageHandler />);
 
 describe("MessageHandler Component", () => {
-    describe("on component mounted, ",() => {
-        it("should render Alert component, when `errorType` is equal to `alert`", () => {
-            const wrapper = getWrapper(shallow);
-            wrapper.setState({
-                errorMessages: [
-                    {
-                        errorType: 'alert',
-                        message: 'lorem'
-                    }
-                ]
+    describe("on component mounted,", () => {
+        it("should render Alert component, when `errorType` is equal to `alert`", async () => {
+            const wrapper = getWrapper();
+            errorChannel.subject("message.alert").onNext({ errorType: "alert", message: "lorem" });
+            await waitFor(() => {
+                expect(findAllDOMElements(wrapper, "[class*='mdl-alert']").length).toBeGreaterThan(0);
             });
-            expect(wrapper.find(Alert)).toHaveLength(1);
         });
 
-        it("should render Error component, when `errorType` is equal to `error`", () => {
-            const wrapper = getWrapper(shallow);
-            wrapper.setState({
-                errorMessages: [
-                    {
-                        errorType: 'error',
-                        message: 'lorem'
-                    }
-                ]
+        it("should render Error component, when `errorType` is equal to `error`", async () => {
+            const wrapper = getWrapper();
+            errorChannel.subject("message.error").onNext({ errorType: "error", message: "lorem" });
+            await waitFor(() => {
+                findElement(wrapper, "[class*='mdl-alert--danger']");
             });
-            expect(wrapper.find(Error)).toHaveLength(1);
         });
 
-        it("should render Info component, when `errorType` is equal to `info`", () => {
-            const wrapper = getWrapper(shallow);
-            wrapper.setState({
-                errorMessages: [
-                    {
-                        errorType: 'info',
-                        message: 'lorem'
-                    }
-                ]
+        it("should render Info component, when `errorType` is equal to `info`", async () => {
+            const wrapper = getWrapper();
+            errorChannel.subject("message.info").onNext({ errorType: "info", message: "lorem" });
+            await waitFor(() => {
+                findElement(wrapper, "[class*='mdl-alert--info']");
             });
-            expect(wrapper.find(Info)).toHaveLength(1);
         });
 
-        it("should render Success component, when `errorType` is equal to `success`", () => {
-            const wrapper = getWrapper(shallow);
-            wrapper.setState({
-                errorMessages: [
-                    {
-                        errorType: 'success',
-                        message: 'lorem'
-                    }
-                ]
+        it("should render Success component, when `errorType` is equal to `success`", async () => {
+            const wrapper = getWrapper();
+            errorChannel.subject("message.success").onNext({ errorType: "success", message: "lorem" });
+            await waitFor(() => {
+                findElement(wrapper, "[class*='mdl-alert--success']");
             });
-            expect(wrapper.find(Success)).toHaveLength(1);
         });
 
-        it("should render Warning component, when `errorType` is equal to `warning`", () => {
-            const wrapper = getWrapper(shallow);
-            wrapper.setState({
-                errorMessages: [
-                    {
-                        errorType: 'warning',
-                        message: 'lorem'
-                    }
-                ]
+        it("should render Warning component, when `errorType` is equal to `warning`", async () => {
+            const wrapper = getWrapper();
+            errorChannel.subject("message.warning").onNext({ errorType: "warning", message: "lorem" });
+            await waitFor(() => {
+                findElement(wrapper, "[class*='mdl-alert--warning']");
             });
-            expect(wrapper.find(Warning)).toHaveLength(1);
         });
-
     });
 });

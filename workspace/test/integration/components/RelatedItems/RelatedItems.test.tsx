@@ -4,24 +4,22 @@ import { createBrowserHistory, History, LocationState } from "history";
 import mockAxios from "../../../__mocks__/axios";
 import {
     checkRequestMade,
-    findAll,
-    findSingleElement,
-    logWrapperHtml,
+    findAllDOMElements,
+    findElement,
     mockedAxiosResponse,
-    testWrapper,
-    withMount,
+    renderWrapper,
     workspacePath,
 } from "../../TestHelper";
 import { RelatedItems } from "../../../../src/app/views/shared/RelatedItems/RelatedItems";
 import { RelatedItemsTestHelper } from "./RelatedItemsTestHelper";
-import { SERVE_PATH } from "../../../../src/app/constants/path";
+import { CONTEXT_PATH, SERVE_PATH } from "../../../../src/app/constants/path";
 import { ReactWrapper } from "enzyme";
-import { waitFor } from "@testing-library/react";
+import { RenderResult, waitFor } from "@testing-library/react";
 
 describe("Related items", () => {
     let hostPath = process.env.HOST;
     let history: History<LocationState> = null;
-    let wrapper: ReactWrapper<any, any>;
+    let wrapper: RenderResult;
     const nrOverallItems = 11;
     beforeEach(async () => {
         console.log("before has started");
@@ -59,43 +57,44 @@ describe("Related items", () => {
 
     const loadRelatedItems = (
         props: { projectId?: string; taskId?: string } = {},
-        currentUrl: string = `${SERVE_PATH}/projects/${PROJECT_ID}/task/${TASK_ID}`
+        currentUrl: string = `${SERVE_PATH}/projects/${PROJECT_ID}/task/${TASK_ID}`,
     ) => {
         history = createBrowserHistory<{}>();
         history.location.pathname = currentUrl;
 
-        return withMount(testWrapper(<RelatedItems {...props} />, history));
+        return renderWrapper(<RelatedItems {...props} />, history);
     };
 
     /** Check the initial representation of the related items component. */
-    const checkRelatedItems = async function (nrItems: number, wrapper: ReactWrapper<any, any, React.Component>) {
+    const checkRelatedItems = async function (nrItems: number, wrapper: RenderResult) {
         mockAxios.mockResponseFor(
             { url: relatedItemsUrl() },
-            mockedAxiosResponse({ data: RelatedItemsTestHelper.generateRelatedItemsJson(nrItems, ITEM_PREFIX) })
+            mockedAxiosResponse({ data: RelatedItemsTestHelper.generateRelatedItemsJson(nrItems, ITEM_PREFIX) }),
         );
 
         // Wait for render
         await waitFor(
             () => {
-                expect(wrapper.text()).toContain(`(${nrItems})`);
+                expect(wrapper.container.textContent).toContain(`(${nrItems})`);
             },
-            { timeout: 50000 }
+            { timeout: 50000 },
         );
         // Check items that are displayed in the list
-        const shownRelatedItems = findAll(wrapper, "li .eccgui-overviewitem__item");
+        const shownRelatedItems = findAllDOMElements(wrapper, "li .eccgui-overviewitem__item");
         expect(shownRelatedItems).toHaveLength(DEFAULT_PAGE_SIZE);
         shownRelatedItems.forEach((elem, idx) => {
-            expect(findSingleElement(elem, ".eccgui-link").text()).toBe(`${ITEM_PREFIX + idx} label`);
-            expect(findAll(elem, ".eccgui-tag__item").map((tag) => tag.text())).toStrictEqual([
+            expect(findElement(elem, ".eccgui-link").textContent).toBe(`${ITEM_PREFIX + idx} label`);
+            expect(findAllDOMElements(elem, ".eccgui-tag__item").map((tag) => tag.textContent)).toStrictEqual([
                 "Dataset",
                 "testPlugin",
             ]);
             // Check item actions
-            const itemActions = findSingleElement(elem, ".eccgui-overviewitem__actions").children();
+            const itemActions = findElement(elem, ".eccgui-overviewitem__actions").children;
             expect(itemActions).toHaveLength(2);
-            // Check detail page link
-            const detailPageLink = findSingleElement(itemActions.at(0), "a").get(0);
-            expect(detailPageLink.props.href).toBe(workspacePath("/projects/cmem/task/item" + idx));
+
+            // // Check detail page link
+            const detailPageLink = itemActions[0] as HTMLAnchorElement;
+            expect(detailPageLink.pathname).toBe(workspacePath("/projects/cmem/task/item" + idx));
         });
     };
 });

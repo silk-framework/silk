@@ -1,16 +1,16 @@
 import React from "react";
+import "@testing-library/jest-dom";
 import mockAxios from "../../../../__mocks__/axios";
 import {
     apiUrl,
     byTestId,
     checkRequestMade,
-    findAll,
-    findSingleElement,
+    findAllDOMElements,
+    findElement,
     legacyApiUrl,
     mockedAxiosResponse,
+    renderWrapper,
     setUseParams,
-    testWrapper,
-    withMount,
     workspacePath,
 } from "../../../TestHelper";
 import { createBrowserHistory } from "history";
@@ -21,7 +21,7 @@ import {
     requestArtefactPropertiesTestResponse,
     requestTaskDataTestResponse,
 } from "../../../requests/sharedResponseStubs";
-import { waitFor } from "@testing-library/react";
+import { RenderResult, waitFor } from "@testing-library/react";
 import { ReactWrapper } from "enzyme";
 import { IArtefactItemProperty } from "../../../../../src/app/store/ducks/common/typings";
 import { IMetadata } from "@ducks/shared/typings";
@@ -47,12 +47,12 @@ describe("Task page", () => {
         setUseParams(projectId, taskId);
     });
 
-    let taskPageWrapper: ReactWrapper<any, any> = null;
+    let taskPageWrapper: RenderResult;
     beforeEach(() => {
         const history = createBrowserHistory();
         history.location.pathname = workspacePath(`/projects/${projectId}/task/${taskId}`);
 
-        taskPageWrapper = withMount(testWrapper(<Task />, history));
+        taskPageWrapper = renderWrapper(<Task />, history);
     });
 
     it("should request meta data, related items and task config", async () => {
@@ -61,7 +61,7 @@ describe("Task page", () => {
         checkRequestMade(taskDataUrl, "GET", { withLabels: true });
         mockAxios.mockResponseFor(
             taskDataUrl,
-            mockedAxiosResponse({ data: requestTaskDataTestResponse({ pluginId: pluginId }) })
+            mockedAxiosResponse({ data: requestTaskDataTestResponse({ pluginId: pluginId }) }),
         );
         await waitFor(() => checkRequestMade(pluginUrl));
     });
@@ -91,7 +91,7 @@ describe("Task page", () => {
         // Get task data
         mockAxios.mockResponseFor(
             taskDataUrl,
-            mockedAxiosResponse({ data: requestTaskDataTestResponse({ pluginId: pluginId, parameters: taskParams }) })
+            mockedAxiosResponse({ data: requestTaskDataTestResponse({ pluginId: pluginId, parameters: taskParams }) }),
         );
         await waitFor(() => checkRequestMade(pluginUrl));
         // Get plugin description
@@ -102,23 +102,25 @@ describe("Task page", () => {
                     pluginLabel: pluginLabel,
                     properties: testParameterDescriptions,
                 }),
-            })
+            }),
         );
         // Check widget title
         await waitFor(() => {
-            const taskConfig = findSingleElement(taskPageWrapper, byTestId("taskConfigWidget"));
-            expect(findSingleElement(taskConfig, "header h2").text()).toContain(pluginLabel);
+            const taskConfig = findElement(taskPageWrapper, byTestId("taskConfigWidget"));
+            expect(findElement(taskConfig, "header h2").textContent).toContain(pluginLabel);
         });
 
-        const taskConfig = findSingleElement(taskPageWrapper, byTestId("taskConfigWidget"));
-        const propertyLabels = findAll(taskConfig, ".eccgui-card__content .eccgui-label").map((elem) => elem.text());
+        const taskConfig = findElement(taskPageWrapper, byTestId("taskConfigWidget"));
+        const propertyLabels = findAllDOMElements(taskConfig, ".eccgui-card__content .eccgui-label").map(
+            (elem) => elem.textContent,
+        );
         expect(propertyLabels).toStrictEqual(params.map(([paramId, paramLabel]) => paramLabel));
-        const propertyValues = findAll(taskConfig, ".eccgui-card__content .eccgui-propertyvalue__value").map((elem) =>
-            elem.text()
+        const propertyValues = findAllDOMElements(taskConfig, ".eccgui-card__content .eccgui-propertyvalue__value").map(
+            (elem) => elem.textContent,
         );
 
         expect(propertyValues).toStrictEqual(
-            params.map(([pluginId, pluginLabel, value, label]) => (label ? label : value))
+            params.map(([pluginId, pluginLabel, value, label]) => (label ? label : value)),
         );
     });
 
@@ -131,8 +133,10 @@ describe("Task page", () => {
         };
         mockAxios.mockResponseFor(taskMetaDataExpandedURL, mockedAxiosResponse({ data: taskMetaData }));
         await waitFor(() => {
-            const metaData = findSingleElement(taskPageWrapper, byTestId("metaDataWidget"));
-            expect(findAll(metaData, ".eccgui-propertyvalue__value").map((elem) => elem.text())).toStrictEqual([
+            const metaData = findElement(taskPageWrapper, byTestId("metaDataWidget"));
+            expect(
+                findAllDOMElements(metaData, ".eccgui-propertyvalue__value").map((elem) => elem.textContent),
+            ).toStrictEqual([
                 taskLabel,
                 taskDescription,
                 "Created < 1 minute ago by unknown user. Last modified < 1 minute ago by unknown user.",
