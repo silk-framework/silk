@@ -1,7 +1,7 @@
 import React from "react";
 import { URIInfo } from "../../../src/app/views/pages/MappingEditor/HierarchicalMapping/components/URIInfo";
-import { fireEvent, render } from "@testing-library/react";
-import {findAllDOMElements, findElement, logRequests} from "../../integration/TestHelper";
+import { render } from "@testing-library/react";
+import { findAllDOMElements, findElement, logRequests } from "../../integration/TestHelper";
 
 const getVocabInfoAsyncMock = jest.fn();
 
@@ -12,17 +12,17 @@ const props = {
     field: "field",
 };
 
-const getWrapper = (renderer = render, args = props) => renderer(<URIInfo {...args} />);
+const getWrapper = (args = props) => render(<URIInfo {...args} />);
 
 describe("URIInfo Component", () => {
     describe("on component mounted, ", () => {
         it("should render fallback text, when text is NOT available from server", () => {
-            const wrapper = getWrapper(render);
+            const wrapper = getWrapper();
             expect(findElement(wrapper, "span").textContent).toEqual("Fallback text");
         });
 
         it("should render NotAvailable component, when fallback not available and `uri` in not string", () => {
-            const wrapper = getWrapper(render, {
+            const wrapper = getWrapper({
                 ...props,
                 uri: {},
                 fallback: undefined,
@@ -31,7 +31,7 @@ describe("URIInfo Component", () => {
         });
 
         it("should render text from `uri`, when `props.field` equal to 'label'", () => {
-            const wrapper = getWrapper(render, {
+            const wrapper = getWrapper({
                 ...props,
                 field: "label",
                 fallback: undefined,

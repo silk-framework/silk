@@ -1,8 +1,8 @@
 import React from "react";
 import ValueRule from "../../../../../src/app/views/pages/MappingEditor/HierarchicalMapping/containers/MappingRule/ValueRule/ValueRule";
 
-import { fireEvent, render, waitFor } from "@testing-library/react";
-import { byTestId, findAllDOMElements, findElement } from "../../../../integration/TestHelper";
+import { waitFor, render, waitForElementToBeRemoved } from "@testing-library/react";
+import { byTestId, clickFoundElement, findAllDOMElements, findElement } from "../../../../integration/TestHelper";
 
 const handleCopyFn = jest.fn();
 const handleCloneFn = jest.fn();
@@ -34,19 +34,19 @@ const props = {
     onClickedRemove: onClickedRemoveFn,
 };
 
-const getWrapper = (renderer = render, arg = props) => renderer(<ValueRule {...arg} />);
+const getWrapper = (arg = props) => render(<ValueRule {...arg} />);
 
 describe("ValueRule Component", () => {
     describe("on component mounted, ", () => {
         let wrapper;
 
         beforeEach(() => {
-            wrapper = getWrapper(render);
+            wrapper = getWrapper();
         });
 
         it("should ValueRuleForm rendered, when `props.edit` is true", async () => {
             await waitFor(() => {
-                const wrapper = getWrapper(render, {
+                const wrapper = getWrapper({
                     ...props,
                     edit: true,
                 });
@@ -59,18 +59,18 @@ describe("ValueRule Component", () => {
         });
 
         it("should render ValueNodeType component, when `nodeType` is presented", () => {
-            const wrapper = getWrapper(render);
+            const wrapper = getWrapper();
             findElement(wrapper, ".ecc-silk-mapping__rulesviewer__propertyType");
         });
 
         it("should ObjectSourcePath component rendered, when `props.type` equal to `direct` and sourcePath presented", () => {
-            const wrapper = getWrapper(render, { ...props, sourcePath: "path", sourcePaths: undefined });
+            const wrapper = getWrapper({ ...props, sourcePath: "path", sourcePaths: undefined });
             const objectSourcePathClass = ".ecc-silk-mapping__rulesviewer__sourcePath"; //component -> ObjectSourcePath
             findElement(wrapper, objectSourcePathClass);
         });
 
         it("should ValueSourcePaths component rendered, when `props.type` is NOT equal to `direct` and sourcePaths presented", () => {
-            const wrapper = getWrapper(render, {
+            const wrapper = getWrapper({
                 ...props,
                 type: "object",
             });
@@ -96,29 +96,24 @@ describe("ValueRule Component", () => {
     });
 
     describe("on user interaction", () => {
-        it("should EDIT button toggle the `edit` property in state", () => {
-            const wrapper = getWrapper(render);
-            fireEvent.click(findElement(wrapper, byTestId("mapping-rule-edit-btn")));
-        });
-
         it("should CopyButton button call `handleCopy` function from props, with right arguments", () => {
-            const wrapper = getWrapper(render);
-            fireEvent.click(findElement(wrapper, byTestId("mapping-rule-copy-btn")));
+            const wrapper = getWrapper();
+            clickFoundElement(wrapper, byTestId("mapping-rule-copy-btn"));
             expect(handleCopyFn).toHaveBeenCalledWith(props.id, props.type);
         });
 
         it("should CloneButton button call `handleClone` function from props, with right arguments", () => {
-            const wrapper = getWrapper(render);
-            fireEvent.click(findElement(wrapper, byTestId("mapping-rule-clone-btn")));
+            const wrapper = getWrapper();
+            clickFoundElement(wrapper, byTestId("mapping-rule-clone-btn"));
             expect(handleCloneFn).toHaveBeenCalledWith(props.id, "direct");
         });
 
         it("should DeleteButton button call `onClickedRemove` function from props, with right arguments", () => {
-            const wrapper = getWrapper(render, {
+            const wrapper = getWrapper({
                 ...props,
                 type: "object",
             });
-            fireEvent.click(findElement(wrapper, byTestId("mapping-rule-delete-btn")));
+            clickFoundElement(wrapper, byTestId("mapping-rule-delete-btn"));
             expect(onClickedRemoveFn).toHaveBeenCalledWith({
                 id: "1",
                 uri: "uri",

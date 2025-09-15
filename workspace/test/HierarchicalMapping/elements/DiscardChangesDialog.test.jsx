@@ -1,7 +1,7 @@
 import React from "react";
 import DiscardChangesDialog from "../../../src/app/views/pages/MappingEditor/HierarchicalMapping/elements/DiscardChangesDialog";
-import { fireEvent, render } from "@testing-library/react";
-import { findElement } from "../../integration/TestHelper";
+import { render } from "@testing-library/react";
+import { clickFoundElement } from "../../integration/TestHelper";
 
 const handleDiscardCancelMock = jest.fn();
 const handleDiscardConfirmMock = jest.fn();
@@ -11,7 +11,7 @@ const props = {
     handleDiscardConfirm: handleDiscardConfirmMock,
 };
 
-const getWrapper = (renderer = render) => renderer(<DiscardChangesDialog {...props} />);
+const getWrapper = () => render(<DiscardChangesDialog {...props} />);
 
 const selectors = {
     DISCARD_BUTTON: "button.ecc-hm-accept-discard",
@@ -22,16 +22,16 @@ describe("DiscardChangesDialog Component", () => {
     describe("on user interaction, ", () => {
         let wrapper;
         beforeEach(() => {
-            wrapper = getWrapper(render);
+            wrapper = getWrapper();
         });
 
         it("should handleDiscardConfirm called, when click on Discard button", () => {
-            fireEvent.click(findElement(wrapper, selectors.DISCARD_BUTTON));
+            clickFoundElement(wrapper, selectors.DISCARD_BUTTON);
             expect(handleDiscardConfirmMock).toHaveBeenCalled();
         });
 
         it("should handleDiscardCancel called, when click on Cancel button", () => {
-            fireEvent.click(findElement(wrapper, selectors.CANCEL_BUTTON));
+            clickFoundElement(wrapper, selectors.CANCEL_BUTTON);
             expect(handleDiscardCancelMock).toHaveBeenCalled();
         });
 

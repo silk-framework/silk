@@ -3,8 +3,8 @@ import ObjectRule from "../../../../../src/app/views/pages/MappingEditor/Hierarc
 
 import { MAPPING_ROOT_RULE_ID } from "../../../../../src/app/views/pages/MappingEditor/HierarchicalMapping/HierarchicalMapping";
 
-import { fireEvent, render } from "@testing-library/react";
-import { byTestId, findAllDOMElements, findElement } from "../../../../integration/TestHelper";
+import { render } from "@testing-library/react";
+import { byTestId, clickFoundElement, findAllDOMElements, findElement } from "../../../../integration/TestHelper";
 
 const handleCopyFn = jest.fn();
 const handleCloneFn = jest.fn();
@@ -46,18 +46,18 @@ const props = {
     onClickedRemove: onClickedRemoveFn,
 };
 
-const getWrapper = (renderer = render, arg = props) => renderer(<ObjectRule {...arg} />);
+const getWrapper = (arg = props) => render(<ObjectRule {...arg} />);
 
 describe("ObjectMappingRule Component", () => {
     describe("on component mounted, ", () => {
         let wrapper;
 
         beforeEach(() => {
-            wrapper = getWrapper(render);
+            wrapper = getWrapper();
         });
 
         it("should ObjectMappingRuleForm rendered, when `props.edit` is true", () => {
-            const wrapper = getWrapper(render, {
+            const wrapper = getWrapper({
                 ...props,
                 edit: {},
             });
@@ -65,7 +65,7 @@ describe("ObjectMappingRule Component", () => {
         });
 
         it("should render ObjectTargetProperty components, when `props.type` is NOT `root`", () => {
-            const wrapper = getWrapper(render, {
+            const wrapper = getWrapper({
                 ...props,
                 type: "complex",
             });
@@ -73,7 +73,7 @@ describe("ObjectMappingRule Component", () => {
         });
 
         it("should render ObjectEntityRelation components, when `props.type` is NOT `root`", () => {
-            const wrapper = getWrapper(render, {
+            const wrapper = getWrapper({
                 ...props,
                 type: "complex",
             });
@@ -86,7 +86,7 @@ describe("ObjectMappingRule Component", () => {
         });
 
         it("should ObjectSourcePath component rendered, when `props.type` is Object and sourcePath presented in `ruleData`,", () => {
-            const wrapper = getWrapper(render, {
+            const wrapper = getWrapper({
                 ...props,
                 type: "object",
             });
@@ -95,7 +95,7 @@ describe("ObjectMappingRule Component", () => {
         });
 
         it("should ExampleTarget component rendered, when `props.rules.uriRule.id` is presented", () => {
-            const wrapper = getWrapper(render, {
+            const wrapper = getWrapper({
                 ...props,
                 ruleData: {
                     ...props.ruleData,
@@ -127,34 +127,35 @@ describe("ObjectMappingRule Component", () => {
 
     describe("on user interaction", () => {
         it("should EDIT button toggle the `edit` property in state", () => {
-            const wrapper = getWrapper(render);
-            fireEvent.click(findElement(wrapper, byTestId("mapping-rule-edit-btn")));
+            const wrapper = getWrapper();
+            clickFoundElement(wrapper, byTestId("mapping-rule-edit-btn"));
+            expect(wrapper.container.querySelector(".ecc-silk-mapping__ruleseditor")).toBeInTheDocument();
         });
 
         it("should CopyButton button call `handleCopy` function from props, with right arguments", () => {
-            const wrapper = getWrapper(render);
-            fireEvent.click(findElement(wrapper, byTestId("mapping-rule-copy-btn")));
+            const wrapper = getWrapper();
+            clickFoundElement(wrapper, byTestId("mapping-rule-copy-btn"));
             expect(handleCopyFn).toHaveBeenCalledWith(props.ruleData.id, props.ruleData.type);
         });
 
         it("should CloneButton button call `handleClone` function from props, with right arguments", () => {
-            const wrapper = getWrapper(render, {
+            const wrapper = getWrapper({
                 ...props,
                 ruleData: {
                     ...props.ruleData,
                     type: "object",
                 },
             });
-            fireEvent.click(findElement(wrapper, byTestId("mapping-rule-clone-btn")));
+            clickFoundElement(wrapper, byTestId("mapping-rule-clone-btn"));
             expect(handleCloneFn).toHaveBeenCalledWith(props.ruleData.id, "object", props.ruleData.parentId);
         });
 
         it("should DeleteButton button call `onClickedRemove` function from props, with right arguments", () => {
-            const wrapper = getWrapper(render, {
+            const wrapper = getWrapper({
                 ...props,
                 type: "object",
             });
-            fireEvent.click(findElement(wrapper, byTestId("mapping-rule-delete-btn")));
+            clickFoundElement(wrapper, byTestId("mapping-rule-delete-btn"));
             expect(onClickedRemoveFn).toHaveBeenCalledWith({
                 id: "root",
                 uri: "uri",

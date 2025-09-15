@@ -3,12 +3,12 @@ import { ParentStructure } from "../../../src/app/views/pages/MappingEditor/Hier
 import { render } from "@testing-library/react";
 import { findElement } from "../../integration/TestHelper";
 
-const getWrapper = (renderer = render, args = props) => renderer(<ParentStructure {...args} />);
+const getWrapper = (args = props) => render(<ParentStructure {...args} />);
 
 describe("ParentStructure Component", () => {
     describe("on component mounted, ", () => {
         it("should render ThingName component, when `property` is presented in `parent` prop", () => {
-            const wrapper = getWrapper(render, {
+            const wrapper = getWrapper({
                 parent: {
                     property: "something",
                 },
@@ -17,7 +17,7 @@ describe("ParentStructure Component", () => {
         });
 
         it("should render ParentElement component, when `property` is NOT presented in `parent` prop", () => {
-            const wrapper = getWrapper(render, {
+            const wrapper = getWrapper({
                 parent: {},
             });
             findElement(wrapper, "span:first-child");

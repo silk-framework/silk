@@ -1,17 +1,15 @@
 import React from "react";
-import { fireEvent, render, waitFor } from "@testing-library/react";
-import { NotAvailable } from "gui-elements-deprecated";
-import { ThingName } from "../../../src/app/views/pages/MappingEditor/HierarchicalMapping/components/ThingName";
+import { render } from "@testing-library/react";
 import RuleTypes from "../../../src/app/views/pages/MappingEditor/HierarchicalMapping/elements/RuleTypes";
 import { findAllDOMElements, findElement } from "../../integration/TestHelper";
 
-const getWrapper = (renderer = render, props = {}) => renderer(<RuleTypes {...props} />);
+const getWrapper = (props = {}) => render(<RuleTypes {...props} />);
 
 describe("RuleTypes Component", () => {
     describe("on components mounted ", () => {
         describe("when `rule.type` equal to `object` ", () => {
             it("and `rule.rules.typeRules` presented, should return array of <ThingName />", () => {
-                const wrapper = getWrapper(render, {
+                const wrapper = getWrapper({
                     rule: {
                         type: "object",
                         rules: {
@@ -30,7 +28,7 @@ describe("RuleTypes Component", () => {
             });
 
             it("and `rule.rules.typeRules` Empty, should return <NotAvailable />", () => {
-                const wrapper = getWrapper(render, {
+                const wrapper = getWrapper({
                     rule: {
                         type: "object",
                         rules: {
@@ -44,7 +42,7 @@ describe("RuleTypes Component", () => {
 
         describe("should return text, when `rule.type` equal to `direct` or `complex` ", () => {
             it("and `rule.mappingTarget.valueType.nodeType` presented", () => {
-                const wrapper = getWrapper(render, {
+                const wrapper = getWrapper({
                     rule: {
                         type: "direct",
                         mappingTarget: {
@@ -58,7 +56,7 @@ describe("RuleTypes Component", () => {
             });
 
             it("and language prefix presented", () => {
-                const wrapper = getWrapper(render, {
+                const wrapper = getWrapper({
                     rule: {
                         type: "complex",
                         mappingTarget: {
@@ -74,7 +72,7 @@ describe("RuleTypes Component", () => {
         });
 
         it("should return proper types for root mapping", () => {
-            const wrapperNoType = getWrapper(render, {
+            const wrapperNoType = getWrapper({
                 rule: {
                     type: "root",
                 },
@@ -83,7 +81,7 @@ describe("RuleTypes Component", () => {
             const span = findAllDOMElements(wrapperNoType, "span");
             expect(span[0].innerHTML).toContain(notAvailable[0].innerHTML);
             expect(wrapperNoType.container.innerHTML).toContain("not available");
-            const wrapperWithType = getWrapper(render, {
+            const wrapperWithType = getWrapper({
                 rule: {
                     type: "root",
                     rules: {

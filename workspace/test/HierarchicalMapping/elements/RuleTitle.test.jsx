@@ -1,16 +1,14 @@
 import React from "react";
 import RuleTitle from "../../../src/app/views/pages/MappingEditor/HierarchicalMapping/elements/RuleTitle";
-import { NotAvailable } from "gui-elements-deprecated";
-import { ThingName } from "../../../src/app/views/pages/MappingEditor/HierarchicalMapping/components/ThingName";
 import { render } from "@testing-library/react";
 import { findAllDOMElements, findElement } from "../../integration/TestHelper";
 
-const getWrapper = (renderer = render, props = {}) => renderer(<RuleTitle {...props} />);
+const getWrapper = (props = {}) => render(<RuleTitle {...props} />);
 
 describe("RuleTitle Component", () => {
     describe("on components mounted ", () => {
         it("should return label, when `metadata.label` presented", () => {
-            const wrapper = getWrapper(render, {
+            const wrapper = getWrapper({
                 rule: {
                     metadata: {
                         label: "Something",
@@ -31,13 +29,13 @@ describe("RuleTitle Component", () => {
             };
 
             beforeEach(() => {
-                wrapper = getWrapper(render, {
+                wrapper = getWrapper({
                     rule,
                 });
             });
 
             it("when `rule.type` equal to `root` and uri presented", () => {
-                const wrapper = getWrapper(render, {
+                const wrapper = getWrapper({
                     rule: {
                         type: "root",
                         rules: {
@@ -57,7 +55,7 @@ describe("RuleTitle Component", () => {
             });
 
             it("when `rule.type` equal to `direct` and uri presented", () => {
-                wrapper = getWrapper(render, {
+                wrapper = getWrapper({
                     rule: {
                         ...rule,
                         type: "direct",
@@ -67,7 +65,7 @@ describe("RuleTitle Component", () => {
             });
 
             it("when `rule.type` equal to `complex` and uri presented", () => {
-                wrapper = getWrapper(render, {
+                wrapper = getWrapper({
                     rule: {
                         ...rule,
                         type: "complex",
@@ -83,14 +81,14 @@ describe("RuleTitle Component", () => {
 
         describe("should return <NotAvailable />", () => {
             it("when `type` property missing in rule arg", () => {
-                const wrapper = getWrapper(render, {
+                const wrapper = getWrapper({
                     rule: {},
                 });
                 expect(findAllDOMElements(wrapper, "[class*='__notavailable']").length).toBeGreaterThan(0);
             });
 
             it("when `rule.type` equal to `root` and uri NOT presented", () => {
-                const wrapper = getWrapper(render, {
+                const wrapper = getWrapper({
                     rule: {
                         type: "root",
                         rules: {
@@ -116,7 +114,7 @@ describe("RuleTitle Component", () => {
                 };
 
                 beforeEach(() => {
-                    wrapper = getWrapper(render, {
+                    wrapper = getWrapper({
                         rule,
                     });
                 });
@@ -126,7 +124,7 @@ describe("RuleTitle Component", () => {
                 });
 
                 it("and `rule.type` equal to `direct`", () => {
-                    wrapper = getWrapper(render, {
+                    wrapper = getWrapper({
                         rule: {
                             ...rule,
                             type: "direct",
@@ -136,7 +134,7 @@ describe("RuleTitle Component", () => {
                 });
 
                 it("and `rule.type` equal to `complex` ", () => {
-                    wrapper = getWrapper(render, {
+                    wrapper = getWrapper({
                         rule: {
                             ...rule,
                             type: "complex",

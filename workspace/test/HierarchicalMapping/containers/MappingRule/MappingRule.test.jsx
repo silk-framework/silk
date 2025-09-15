@@ -1,11 +1,7 @@
 import React from "react";
 import MappingRule from "../../../../src/app/views/pages/MappingEditor/HierarchicalMapping/containers/MappingRule/MappingRule";
-import ObjectRule from "../../../../src/app/views/pages/MappingEditor/HierarchicalMapping/containers/MappingRule/ObjectRule/ObjectRule";
-import ValueMappingRule from "../../../../src/app/views/pages/MappingEditor/HierarchicalMapping/containers/MappingRule/ValueRule/ValueRule";
-import NavigateButton from "../../../../src/app/views/pages/MappingEditor/HierarchicalMapping/elements/buttons/NavigateButton";
-import ExpandButton from "../../../../src/app/views/pages/MappingEditor/HierarchicalMapping/elements/buttons/ExpandButton";
-import { fireEvent, render } from "@testing-library/react";
-import { findAllDOMElements } from "../../../integration/TestHelper";
+import { render } from "@testing-library/react";
+import { byTestId, clickFoundElement, findAllDOMElements } from "../../../integration/TestHelper";
 
 const onRuleIdChangeFn = jest.fn();
 const onExpandFn = jest.fn();
@@ -58,29 +54,29 @@ const selectors = {
     ROW_CLICK: 'div[data-test-id="row-click"]',
 };
 
-const getWrapper = (renderer = render, args = props) => render(<MappingRule {...args} />);
+const getWrapper = (args = props) => render(<MappingRule {...args} />);
 
 describe("MappingRule Component", () => {
     describe("on component mounted, ", () => {
         let wrapper;
         beforeEach(() => {
-            wrapper = getWrapper(render);
+            wrapper = getWrapper();
         });
 
         it("should rendered NavigateButton, when type is object", () => {
-            const wrapper = getWrapper(render, {
+            const wrapper = getWrapper({
                 ...props,
                 type: "object",
             });
-            expect(wrapper.container.querySelector("[class*='button-']")).toBeInTheDocument();
+            expect(wrapper.container.querySelector(byTestId(`button-${props.id}`))).toBeInTheDocument();
         });
 
         it("should rendered ExpandButton, when type is NOT object", () => {
-            expect(wrapper.container.querySelector("[class*='button-']")).toBeInTheDocument();
+            expect(wrapper.container.querySelector(byTestId(`button-${props.id}`))).toBeInTheDocument();
         });
 
         it("should render ObjectMappingRule component, when rule is expanded and rule is object", () => {
-            const wrapper = getWrapper(render, {
+            const wrapper = getWrapper({
                 ...props,
                 type: "root",
                 expanded: true,
@@ -89,7 +85,7 @@ describe("MappingRule Component", () => {
         });
 
         it("should render ValueMappingRule component, when rule is expanded and rule is NOT object", () => {
-            const wrapper = getWrapper(render, {
+            const wrapper = getWrapper({
                 ...props,
                 expanded: true,
             });
@@ -108,15 +104,15 @@ describe("MappingRule Component", () => {
     describe("on user interaction, ", () => {
         let wrapper;
         beforeEach(() => {
-            wrapper = getWrapper(render);
+            wrapper = getWrapper();
         });
 
         it("should on row click navigate to the rule page, when rule type is object", () => {
-            const wrapper = getWrapper(render, {
+            const wrapper = getWrapper({
                 ...props,
                 type: "object",
             });
-            fireEvent.click(wrapper.container.querySelector(selectors.ROW_CLICK));
+            clickFoundElement(wrapper, selectors.ROW_CLICK);
             expect(onRuleIdChangeFn).toHaveBeenCalledWith({
                 newRuleId: props.id,
                 parentId: props.parentId,
@@ -124,7 +120,7 @@ describe("MappingRule Component", () => {
         });
 
         it("should on row click expand the rule, when rule type is NOT object", () => {
-            fireEvent.click(wrapper.container.querySelector(selectors.ROW_CLICK));
+            clickFoundElement(wrapper, selectors.ROW_CLICK);
             expect(onExpandFn).toHaveBeenCalled();
         });
 

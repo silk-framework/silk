@@ -3,12 +3,12 @@ import { ParentElement } from "../../../src/app/views/pages/MappingEditor/Hierar
 import { render } from "@testing-library/react";
 import { findElement } from "../../integration/TestHelper";
 
-const getWrapper = (renderer = render, args = props) => renderer(<ParentElement {...args} />);
+const getWrapper = (args = props) => render(<ParentElement {...args} />);
 
 describe("ParentElement Component", () => {
     describe("on component mounted, ", () => {
         it("should render ThingName component, when `type` is presented in `parent` prop", () => {
-            const wrapper = getWrapper(render, {
+            const wrapper = getWrapper({
                 parent: {
                     type: "something",
                 },
@@ -17,7 +17,7 @@ describe("ParentElement Component", () => {
         });
 
         it("should render html span element, when `type` is NOT presented in `parent` prop", () => {
-            const wrapper = getWrapper(render, {
+            const wrapper = getWrapper({
                 parent: {},
             });
 

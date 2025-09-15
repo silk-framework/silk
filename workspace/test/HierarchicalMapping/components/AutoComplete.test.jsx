@@ -10,13 +10,13 @@ const props = {
 const autocompleteAsyncMock = jest.fn();
 jest.doMock("../../../src/app/views/pages/MappingEditor/HierarchicalMapping/store", () => autocompleteAsyncMock);
 
-const getWrapper = (renderer = render) => renderer(<AutoComplete {...props} />);
+const getWrapper = () => render(<AutoComplete {...props} />);
 
 describe("AutoComplete Component", () => {
     describe("on component mounted, ", () => {
         let wrapper;
         beforeEach(() => {
-            wrapper = getWrapper(render);
+            wrapper = getWrapper();
         });
 
         it("should render AutoCompleteBox component", () => {

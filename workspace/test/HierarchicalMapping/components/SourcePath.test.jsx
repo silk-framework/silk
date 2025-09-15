@@ -3,19 +3,19 @@ import { SourcePath } from "../../../src/app/views/pages/MappingEditor/Hierarchi
 import { render } from "@testing-library/react";
 import { findAllDOMElements, findElement } from "../../integration/TestHelper";
 
-const getWrapper = (renderer = render, args = {}) => renderer(<SourcePath {...args} />);
+const getWrapper = (args = {}) => render(<SourcePath {...args} />);
 
 describe("SourcePath Component", () => {
     describe("on component mounted, ", () => {
         it("should render NotAvailable component, when `sourcePath` is NOT presented in `rule` prop", () => {
-            const wrapper = getWrapper(render, {
+            const wrapper = getWrapper({
                 rule: {},
             });
             expect(findAllDOMElements(wrapper, "[class*='__notavailable']").length).toBeGreaterThan(0);
         });
 
         it("should render NotAvailable component, when `sourcePath` is presented in `rule` prop", () => {
-            const wrapper = getWrapper(render, {
+            const wrapper = getWrapper({
                 rule: {
                     sourcePath: "text",
                 },

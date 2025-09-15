@@ -717,8 +717,8 @@ describe("Rule editor model", () => {
             changeAction: () => any,
             additionalCheck: () => any | Promise<any> = () => {},
         ) => {
-            await act(async () => {
-                await currentContext().executeModelEditOperation.startChangeTransaction();
+            act(() => {
+                currentContext().executeModelEditOperation.startChangeTransaction();
                 changeAction();
             });
             // Check that something has changed

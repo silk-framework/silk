@@ -2,8 +2,14 @@ import React from "react";
 import { ObjectRuleForm } from "../../../../../src/app/views/pages/MappingEditor/HierarchicalMapping/containers/MappingRule/ObjectRule/ObjectRuleForm";
 import * as Store from "../../../../../src/app/views/pages/MappingEditor/HierarchicalMapping/store";
 import EventEmitter from "../../../../../src/app/views/pages/MappingEditor/HierarchicalMapping/utils/EventEmitter";
-import { byTestId, changeInputValue, findAllDOMElements, findElement } from "../../../../integration/TestHelper";
-import { waitFor, render, fireEvent } from "@testing-library/react";
+import {
+    byTestId,
+    changeInputValue,
+    clickFoundElement,
+    findAllDOMElements,
+    findElement,
+} from "../../../../integration/TestHelper";
+import { waitFor, render } from "@testing-library/react";
 
 const props = {
     id: "1",
@@ -106,14 +112,14 @@ describe("ObjectMappingRuleForm Component", () => {
             changeInputValue(input, "new label");
             await waitFor(() => {
                 expect(wrapper.container).toBeInTheDocument();
-                fireEvent.click(findElement(wrapper, selectors.CONFIRM_BUTTON));
+                clickFoundElement(wrapper, selectors.CONFIRM_BUTTON);
                 expect(createMappingAsyncMock).toHaveBeenCalled();
             });
         });
 
         it("should cancel button emit the event which will discard the form", () => {
             const wrapper = getWrapper();
-            fireEvent.click(findElement(wrapper, selectors.CANCEL_BUTTON));
+            clickFoundElement(wrapper, selectors.CANCEL_BUTTON);
             expect(emitMock).toHaveBeenCalledWith("ruleView.unchanged", {
                 id: "1",
             });

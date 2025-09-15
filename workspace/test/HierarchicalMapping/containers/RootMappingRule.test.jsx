@@ -1,7 +1,7 @@
 import React from "react";
 import RootMappingRule from "../../../src/app/views/pages/MappingEditor/HierarchicalMapping/containers/RootMappingRule";
-import { fireEvent, render } from "@testing-library/react";
-import { findAllDOMElements, findElement, byTestId } from "../../integration/TestHelper";
+import { render } from "@testing-library/react";
+import { findAllDOMElements, findElement, byTestId, clickFoundElement } from "../../integration/TestHelper";
 
 const props = {
     rule: {
@@ -49,17 +49,17 @@ const selectors = {
     URI_PATTERN: ".ecc-silk-mapping__rulesobject__title-uripattern",
 };
 
-const getWrapper = (renderer = render, args = props) => renderer(<RootMappingRule {...args} />);
+const getWrapper = (args = props) => render(<RootMappingRule {...args} />);
 
 describe("RootMappingRule Component", () => {
     describe("on component mounted, ", () => {
         let wrapper;
         beforeEach(() => {
-            wrapper = getWrapper(render);
+            wrapper = getWrapper();
         });
 
         it("should return null, when rule is empty", () => {
-            const wrapper = getWrapper(render, {
+            const wrapper = getWrapper({
                 ...props,
                 rule: {},
             });
@@ -67,7 +67,7 @@ describe("RootMappingRule Component", () => {
         });
 
         it("should NotAvailable rendered in uriPattern, when rule type is not Uri or Complex", () => {
-            const wrapper = getWrapper(render, {
+            const wrapper = getWrapper({
                 ...props,
                 rule: {
                     ...props.rule,
@@ -78,7 +78,7 @@ describe("RootMappingRule Component", () => {
         });
 
         it("should uriPattern is equal to `rules.uriRule.pattern`, when uriRule type is uri", () => {
-            const wrapper = getWrapper(render, {
+            const wrapper = getWrapper({
                 ...props,
                 rule: {
                     ...props.rule,
@@ -96,7 +96,7 @@ describe("RootMappingRule Component", () => {
         });
 
         it("should uriPattern is equal to `URI formula`, when uriRule type is complex", () => {
-            const wrapper = getWrapper(render, {
+            const wrapper = getWrapper({
                 ...props,
                 rule: {
                     ...props.rule,
@@ -113,9 +113,7 @@ describe("RootMappingRule Component", () => {
 
         it("should render the ObjectRule component, when rule is expanded", () => {
             window.HTMLElement.prototype.scrollIntoView = jest.fn();
-            fireEvent.click(
-                wrapper.container.querySelector(`${byTestId("root-mapping-rule")} [class*='card__header']`),
-            );
+            clickFoundElement(wrapper, `${byTestId("root-mapping-rule")} [class*='card__header']`);
             expect(findElement(wrapper, ".ecc-silk-mapping__rulesviewer")).toBeInTheDocument();
         });
 
