@@ -237,7 +237,7 @@ abstract class JsonSourceTest extends AnyFlatSpec with Matchers with TestPluginC
     val source: DataSource = createSource(resources.get("exampleDifferentNesting.json"), "", "#id")
     val paths = IndexedSeq("name")
     val entities = source.retrieve(EntitySchema("**/person", typedPaths = paths.map(UntypedPath.parse(_).asStringTypedPath))).entities
-    entities.map(_.values.head).toSeq mustBe Seq(Seq("John"), Seq("Alice"))
+    entities.map(_.values.head).toSeq mustBe Seq(Seq("John"), Seq("Alice"), Seq("Bob"))
   }
 
   class TestAnalyzer extends ValueAnalyzer[String] {
