@@ -6,7 +6,7 @@ import org.silkframework.entity.paths._
 import org.silkframework.entity.{Entity, EntitySchema}
 import org.silkframework.execution.EntityHolder
 import org.silkframework.execution.local.GenericEntityTable
-import org.silkframework.plugins.dataset.json.JsonDataset.specialPaths.ALL_CHILDREN
+import org.silkframework.plugins.dataset.json.JsonDataset.specialPaths.{ALL_CHILDREN, ALL_CHILDREN_RECURSIVE}
 import org.silkframework.runtime.iterator.BufferingIterator
 import org.silkframework.runtime.plugin.PluginContext
 import org.silkframework.runtime.resource.Resource
@@ -134,7 +134,68 @@ class JsonSourceStreaming(taskId: Identifier, resource: Resource, basePath: Stri
              JsonToken.VALUE_NUMBER_FLOAT |
              JsonToken.VALUE_FALSE |
              JsonToken.VALUE_TRUE =>
-          if(currentPathSegment().forall(segment => segment.property.uri == ALL_CHILDREN || segment.property.uri == reader.currentNameEncoded)) {
+
+          // Handle recursive ALL_CHILDREN_RECURSIVE specially
+          val curSegOpt = currentPathSegment()
+          if(curSegOpt.exists(_.property.uri == ALL_CHILDREN_RECURSIVE)) {
+            // If recursive is the last segment, any descendant matches
+            if(pathSegmentIdx == entityPathSegments.size - 1) {
+              return true
+            } else {
+              // Attempt to match the segment after the recursive operator at any depth
+              val nextSeg = entityPathSegments(pathSegmentIdx + 1)
+
+              // If the next segment is also recursive, just advance and continue
+              if(nextSeg.property.uri == ALL_CHILDREN_RECURSIVE) {
+                pathSegmentIdx += 1
+                reader.nextToken()
+              } else {
+                // If the next segment matches the current token, treat it as matched
+                val matchesNow = nextSeg.property.uri == ALL_CHILDREN || nextSeg.property.uri == reader.currentNameEncoded
+                if(matchesNow) {
+                  // Move to the matched segment
+                  pathSegmentIdx += 1
+                  if(pathSegmentIdx == entityPathSegments.size - 1) {
+                    return true
+                  } else {
+                    // Advance to next segment after the matched one and continue traversal
+                    pathSegmentIdx += 1
+                    reader.nextToken()
+                  }
+                } else {
+                  // Scan forward to find a matching token for nextSeg at any depth
+                  var found = false
+                  while(reader.hasCurrentToken && !found) {
+                    reader.currentToken match {
+                      case JsonToken.START_OBJECT |
+                           JsonToken.VALUE_STRING |
+                           JsonToken.VALUE_NUMBER_INT |
+                           JsonToken.VALUE_NUMBER_FLOAT |
+                           JsonToken.VALUE_FALSE |
+                           JsonToken.VALUE_TRUE =>
+                        if(nextSeg.property.uri == ALL_CHILDREN || nextSeg.property.uri == reader.currentNameEncoded) {
+                          found = true
+                          pathSegmentIdx += 1
+                          if(pathSegmentIdx == entityPathSegments.size - 1) {
+                            return true
+                          } else {
+                            pathSegmentIdx += 1
+                            reader.nextToken()
+                          }
+                        } else {
+                          reader.nextToken()
+                        }
+                      case _ =>
+                        reader.nextToken()
+                    }
+                  }
+                  if(!found) {
+                    return false
+                  }
+                }
+              }
+            }
+          } else if(curSegOpt.forall(segment => segment.property.uri == ALL_CHILDREN || segment.property.uri == reader.currentNameEncoded)) {
             if(pathSegmentIdx == entityPathSegments.size - 1) {
               // All path segments were matching, found element.
               return true

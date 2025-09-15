@@ -233,6 +233,13 @@ abstract class JsonSourceTest extends AnyFlatSpec with Matchers with TestPluginC
     )
   }
 
+  it should "support ** special path" in {
+    val source: DataSource = createSource(resources.get("exampleDifferentNesting.json"), "", "#id")
+    val paths = IndexedSeq("name")
+    val entities = source.retrieve(EntitySchema("**/person", typedPaths = paths.map(UntypedPath.parse(_).asStringTypedPath))).entities
+    entities.map(_.values.head).toSeq mustBe Seq(Seq("John"), Seq("Alice"))
+  }
+
   class TestAnalyzer extends ValueAnalyzer[String] {
     private var maxString: Option[String] = None
 

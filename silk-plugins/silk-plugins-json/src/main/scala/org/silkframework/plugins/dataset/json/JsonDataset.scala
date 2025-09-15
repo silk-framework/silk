@@ -4,6 +4,7 @@ import org.silkframework.dataset.DatasetCharacteristics.{SpecialPathInfo, Specia
 import org.silkframework.dataset._
 import org.silkframework.dataset.bulk.TextBulkResourceBasedDataset
 import org.silkframework.plugins.dataset.hierarchical.HierarchicalSink.DEFAULT_MAX_SIZE
+import org.silkframework.plugins.dataset.json.JsonDataset.specialPaths.ALL_CHILDREN_RECURSIVE
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
 import org.silkframework.runtime.plugin.types.JsonCodeParameter
@@ -75,6 +76,7 @@ object JsonDataset {
     final val KEY = "#key"
     final val ARRAY = "#array"
     final val ALL_CHILDREN = "*"
+    final val ALL_CHILDREN_RECURSIVE = "**"
     final val BACKWARD_PATH = "\\.."
   }
 
@@ -95,6 +97,7 @@ object JsonDataset {
         SpecialPaths.LINE,
         SpecialPaths.COLUMN,
         SpecialPathInfo(specialPaths.ALL_CHILDREN, Some("Selects all direct children of the entity.")),
+        SpecialPathInfo(specialPaths.ALL_CHILDREN_RECURSIVE, Some("Selects all children nested below the entity at any depth.")),
         SpecialPathInfo(specialPaths.BACKWARD_PATH, Some("Navigates back to parent object."))
       )
     )
