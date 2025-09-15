@@ -17,11 +17,7 @@
           "person":
             {
               "id": "2",
-              "name": "Alice",
-              "person": {
-                "id": "3",
-                "name": "Bob"
-              }
+              "name": "Alice"
             }
         }
     },
