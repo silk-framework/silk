@@ -13,7 +13,7 @@
     {
       "organization":
         {
-          "name": "Alice Inc",
+          "companyName": "Alice Inc",
           "person":
             {
               "id": "2",
@@ -24,7 +24,7 @@
     {
       "organization":
         {
-          "name": "Max Inc"
+          "companyName": "Max Inc"
         }
     }
   ]
