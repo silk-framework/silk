@@ -20,7 +20,7 @@ class SearchApiIntegrationTest extends AnyFlatSpec
     with Matchers{
   behavior of "Search API"
 
-  override def workspaceProviderId: String = "inMemory"
+  override def workspaceProviderId: String = "inMemoryWorkspaceProvider"
 
   override def projectPathInClasspath: String = "diProjects/facetSearchWorkspaceProject.zip"
 

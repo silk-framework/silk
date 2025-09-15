@@ -49,7 +49,7 @@ class PartialAutoCompletionApiTest extends AnyFlatSpec with Matchers with Single
     */
   override def projectPathInClasspath: String = "diProjects/423a27b9-c6e6-45e5-84d2-26d94fce3d1b_Partialauto-completionproject.zip"
 
-  override def workspaceProviderId: String = "inMemory"
+  override def workspaceProviderId: String = "inMemoryWorkspaceProvider"
 
   protected override def routes: Option[Class[Routes]] = Some(classOf[test.Routes])
 

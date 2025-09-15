@@ -77,7 +77,7 @@ class TaskActionIntegrationTest extends AnyFlatSpec with Matchers with Integrati
 
 
 
-  override def workspaceProviderId: String = "inMemory"
+  override def workspaceProviderId: String = "inMemoryWorkspaceProvider"
 
   protected override def routes = Some(classOf[testWorkspace.Routes])
 

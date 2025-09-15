@@ -332,7 +332,6 @@ describe("Task creation widget", () => {
     it("should allow to create a new project", async () => {
         const { element } = await createMockedListWrapper();
         const PROJECT_LABEL = "Project label";
-        const PROJECT_DESCRIPTION = "Project description";
         const project = selectionItems(element)[0];
         clickRenderedElement(project);
         clickRenderedElement(project);
@@ -379,10 +378,6 @@ describe("Task creation widget", () => {
         await waitFor(() => {
             expect(window.document.querySelectorAll(".eccgui-spinner").length).toBe(0);
         });
-        // FIXME: Blueprint portal with suggestion results is not shown
-        // await waitFor(() => {
-        //     expect(window.document.querySelectorAll(`div.${bluePrintClassPrefix}-portal`).length).toBeGreaterThan(beforePortals)
-        // })
     });
 
     const value = (value: string, label?: string) => {
@@ -457,10 +452,10 @@ describe("Task creation widget", () => {
         /** FIXME: CodeMirror Editor refed in the codemirror-wrapper div doesn't show and is still null even at this point
          * This wasn't the case with version 5 where I could do this document.querySelector('#description .CodeMirror').CodeMirror.setValue('')
          * In v6 I should be able to do cmView.view.dispatch({ changes: {from:0, to: document.querySelector('.cm-content').cmView.view.state.doc.length, insert:''}})
-         * but again the editor returns null, even after waiting 
+         * but again the editor returns null, even after waiting
          * created follow up issue https://jira.eccenca.com/browse/CMEM-6208
          *  await waitFor(() =>
-             expect(findSingleElement(wrapper, "#restrictionParam").text()).toContain("restriction value") 
+             expect(findSingleElement(wrapper, "#restrictionParam").text()).toContain("restriction value")
            );
          */
         const updateRequest = await updateTask(element);

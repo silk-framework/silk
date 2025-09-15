@@ -26,17 +26,23 @@ object PluginDocumentation {
     sb ++= description + "\n\n"
     val categories = PluginRegistry.availablePlugins[T].flatMap(getCategories).distinct.sorted
     for (category <- categories) {
-      if (categories.size > 1)
+      if (categories.size > 1) {
         sb ++= "### " + category.getOrElse("Uncategorized") + "\n\n"
+      }
       for (cat <- category; categoryDescription <- categoryDescriptions.get(cat)) {
         sb ++= categoryDescription + "\n\n"
       }
-      pluginCategory[T](title, category, pluginParameterDisplay)
+      pluginCategory[T](title, category, pluginParameterDisplay, if(categories.size > 1) 4 else 3)
     }
   }
 
+  /**
+   * Returns the the first category of the given plugin.
+   * Ignores the recommended category.
+   * If no categories are defined, returns a single None.
+   */
   private def getCategories(pluginDesc: PluginDescription[_]): Seq[Option[String]] = {
-    val categories = pluginDesc.categories.filter(_ != PluginCategories.recommended)
+    val categories = pluginDesc.categories.filter(_ != PluginCategories.recommended).take(1)
     if(categories.isEmpty) {
       Seq(None)
     } else {
@@ -46,7 +52,8 @@ object PluginDocumentation {
 
   def pluginCategory[T: ClassTag](title: String,
                                   category: Option[String],
-                                  pluginParameterDisplay: PluginParameterDisplay)
+                                  pluginParameterDisplay: PluginParameterDisplay,
+                                  headingLevel: Int)
                                  (implicit sb: StringBuilder): Unit = {
     val plugins = category match {
       case Some(cat) =>
@@ -61,14 +68,15 @@ object PluginDocumentation {
           header = pluginParameterDisplay.headers,
           values = plugin.parameters.map(p => p.name +: pluginParameterDisplay.generateValues(p))
         )(columnWidthInCharacters = pluginParameterDisplay.maxCharsInColumns)
-      serializeToMarkdown(plugin, paramTable)
+      serializeToMarkdown(plugin, paramTable, headingLevel)
     }
   }
 
   def serializeToMarkdown[T](plugin: PluginDescription[T],
-                             table: Table)
+                             table: Table,
+                             headingLevel: Int)
                             (implicit sb: StringBuilder): Unit = {
-    sb ++= "#### " + plugin.label + "\n\n"
+    sb ++= "#" * headingLevel + " " + plugin.label + "\n\n"
     sb ++= plugin.description + "\n\n"
     if (table.values.nonEmpty) {
       sb ++= table.toMarkdown() + "\n"
@@ -77,7 +85,7 @@ object PluginDocumentation {
     }
     sb ++= s"The identifier for this plugin is `${plugin.id}`.\n\n"
     sb ++= s"It can be found in the package `${plugin.pluginClass.getPackage.getName}`.\n\n"
-    sb ++= plugin.documentation + "\n\n"
+    sb ++= adaptHeadings(plugin.documentation, headingLevel + 1) + "\n\n"
   }
 
   def formatDefaultValue(parameter: PluginParameter): String = {
@@ -97,6 +105,28 @@ object PluginDocumentation {
       case Some(v) => v.toString
       case None => ""
     }
+  }
+
+  /**
+   * Adapts headings in the markdown to have a minimum nesting level.
+   *
+   * @param markdown The markdown content to adapt.
+   * @param level The minimum heading level to adapt to.
+   *              For example, if level is 2, all headings will be adapted to at least level 2.
+   */
+  private def adaptHeadings(markdown: String, level: Int): String = {
+    val headingPattern = "(#+)\\s+(.*)".r
+    markdown.split("\n\r?").map {
+      case headingPattern(heading, text) =>
+        val currentLevel = heading.length
+        if (currentLevel < level) {
+          "#" * level + " " + text
+        } else {
+          heading + " " + text
+        }
+      case line: String =>
+        line
+    }.mkString("\n")
   }
 }
 

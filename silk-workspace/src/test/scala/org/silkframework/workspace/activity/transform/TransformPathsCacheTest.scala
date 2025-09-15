@@ -1,5 +1,6 @@
 package org.silkframework.workspace.activity.transform
-
+
+
 import org.silkframework.entity.{StringValueType, UriValueType, ValueType}
 import org.silkframework.rule.TransformSpec
 import org.silkframework.workspace.SingleProjectWorkspaceProviderTestTrait
@@ -11,7 +12,7 @@ class TransformPathsCacheTest extends AnyFlatSpec with SingleProjectWorkspacePro
 
   override def projectPathInClasspath: String = "diProjects/hierarchicalPersonJson.zip"
 
-  override def workspaceProviderId: String = "inMemory"
+  override def workspaceProviderId: String = "inMemoryWorkspaceProvider"
 
   it should "cache typed paths for JSON data source" in {
     val task = project.task[TransformSpec]("personJsonTransform")
