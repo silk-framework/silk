@@ -11,16 +11,26 @@ import org.silkframework.runtime.plugin.types.SparqlCodeParameter
   id = "sparqlUpdateOperator",
   label = "SPARQL Update query",
   description =
-"""A task that outputs SPARQL Update queries for every entity from the input based on a SPARQL Update template. The output of this operator should be connected to the SPARQL datasets to which the results should be written. In contrast to the SPARQL select operator, no FROM clause gets injected into the query."""
+"""A task that outputs SPARQL Update queries for every entity from the input based on a SPARQL Update template.
+      | The output of this operator should be connected to the SPARQL datasets to which the results should be written.
+      | In contrast to the SPARQL select operator, no FROM clause gets injected into the query.""".stripMargin
 )
-case class SparqlUpdateCustomTask(@Param(label = "SPARQL update query", value = SparqlUpdateCustomTask.sparqlUpdateTemplateDescription,
-                                         example = "DELETE DATA { ${<PROP_FROM_ENTITY_SCHEMA1>} rdf:label ${\"PROP_FROM_ENTITY_SCHEMA2\"} }")
-                                  sparqlUpdateTemplate: SparqlCodeParameter,
-                                  @Param(label = "Batch size", value = "How many entities should be handled in a single update request.")
-                                  batchSize: Int = SparqlUpdateCustomTask.defaultBatchSize,
-                                  @Param("The templating mode. 'Simple' only allows simple URI and literal insertions, whereas 'Velocity Engine' supports complex templating." +
-                                      " See 'Sparql Update Template' parameter description for examples and http://velocity.apache.org for details on the Velocity templates.")
-                                  templatingMode: SparqlUpdateTemplatingMode = SparqlUpdateTemplatingMode.simple) extends CustomTask {
+case class SparqlUpdateCustomTask(
+  @Param(
+    label = "SPARQL update query",
+    value = SparqlUpdateCustomTask.sparqlUpdateTemplateDescription,
+    example = "DELETE DATA { ${<PROP_FROM_ENTITY_SCHEMA1>} rdf:label ${\"PROP_FROM_ENTITY_SCHEMA2\"} }"
+  )
+  sparqlUpdateTemplate: SparqlCodeParameter,
+  @Param(label = "Batch size", value = "How many entities should be handled in a single update request.")
+  batchSize: Int = SparqlUpdateCustomTask.defaultBatchSize,
+  @Param(
+    "The templating mode. 'Simple' only allows simple URI and literal insertions, whereas 'Velocity Engine' supports" +
+      " complex templating. See 'Sparql Update Template' parameter description for examples and" +
+      " http://velocity.apache.org for details on the Velocity templates."
+  )
+  templatingMode: SparqlUpdateTemplatingMode = SparqlUpdateTemplatingMode.simple
+) extends CustomTask {
   assert(batchSize >= 1, "Batch size must be greater zero!")
 
   val templatingEngine: SparqlUpdateTemplatingEngine = templatingMode match {
@@ -64,7 +74,7 @@ Example for the 'Simple' mode:
 
   DELETE DATA { ${<PROP_FROM_ENTITY_SCHEMA1>} rdf:label ${"PROP_FROM_ENTITY_SCHEMA2"} }
   INSERT DATA { ${<PROP_FROM_ENTITY_SCHEMA1>} rdf:label ${"PROP_FROM_ENTITY_SCHEMA3"} }
-  
+
   This will insert the URI serialization of the property value PROP_FROM_ENTITY_SCHEMA1 for the ${<PROP_FROM_ENTITY_SCHEMA1>} expression.
   And it will insert a plain literal serialization for the property values PROP_FROM_ENTITY_SCHEMA2/3 for the template literal expressions.
 
