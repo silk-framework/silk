@@ -12,15 +12,23 @@ import scala.util.{Failure, Success, Try}
 @Plugin(
   id = "sparqlCopyOperator",
   label = "SPARQL Construct query",
-  description = "A task that executes a SPARQL Construct query on a SPARQL enabled data source and outputs the SPARQL result. " +
-    "If the result should be written to the same RDF store it is read from, the SPARQL Update operator is preferable."
+  description =
+    "A task that executes a SPARQL Construct query on a SPARQL enabled data source and outputs the SPARQL result. " +
+      "If the result should be written to the same RDF store it is read from, the SPARQL Update operator is preferable."
 )
 case class SparqlCopyCustomTask(
-    @Param(label = "Construct query", value = "A SPARQL 1.1 construct query", example = "construct { ?s ?p ?o } where { ?s ?p ?o }")
-      query: SparqlCodeParameter,
-    @Param(label = "Use temporary file", value = "When copying directly to the same SPARQL Endpoint or when copying large amounts of triples, set to True by default")
-      tempFile: Boolean = true
-  ) extends CustomTask {
+    @Param(
+      label = "Construct query",
+      value = "A SPARQL 1.1 construct query",
+      example = "construct { ?s ?p ?o } where { ?s ?p ?o }"
+    )
+    query: SparqlCodeParameter,
+    @Param(
+      label = "Use temporary file",
+      value = "When copying directly to the same SPARQL Endpoint or when copying large amounts of triples, set to True by default"
+    )
+    tempFile: Boolean = true
+) extends CustomTask {
 
   private def validateQuery(): Unit = {
     val parsedQuery = Try(QueryFactory.create(query.str)) match {
