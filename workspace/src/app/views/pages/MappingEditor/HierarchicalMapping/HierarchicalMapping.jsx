@@ -86,7 +86,7 @@ class HierarchicalMapping extends React.Component {
             const ruleId = this.state.currentRuleId;
             if (!inTabViewModal) {
                 history.replace({
-                    search: ruleId !== "root" ? `?${new URLSearchParams({ ruleId })}` : "",
+                    search: ruleId !== MAPPING_ROOT_RULE_ID ? `?${new URLSearchParams({ ruleId })}` : "",
                 });
             }
         }

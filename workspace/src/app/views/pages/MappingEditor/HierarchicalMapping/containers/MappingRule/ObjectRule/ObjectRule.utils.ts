@@ -1,9 +1,10 @@
 import { IComplexMappingRule, ITransformRule, PartialBy } from "../../../../../../taskViews/transform/transform.types";
 import { IPathInput, ITransformOperator, IValueInput } from "../../../../../../taskViews/shared/rules/rule.typings";
+import { MAPPING_ROOT_RULE_ID } from "../../../HierarchicalMapping";
 
 /** The default URI pattern as it would be generated in the backend. */
 export const defaultUriPattern = (containerRuleId: string) => {
-    if (containerRuleId === "root") {
+    if (containerRuleId === MAPPING_ROOT_RULE_ID) {
         return "{}";
     } else {
         return `{}/${containerRuleId}`;
@@ -26,7 +27,7 @@ export const defaultUriRule = (containerRuleId: string): PartialBy<IComplexMappi
         },
     };
     const inputs: (IPathInput | ITransformOperator)[] = [fixUriOp];
-    if (containerRuleId !== "root") {
+    if (containerRuleId !== MAPPING_ROOT_RULE_ID) {
         inputs.push({
             type: "transformInput",
             id: "constant1",
