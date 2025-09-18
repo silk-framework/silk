@@ -1,5 +1,5 @@
 import React from "react";
-import "@testing-library/jest-dom/extend-expect";
+import "@testing-library/jest-dom";
 import { render as rtlRender } from "@testing-library/react";
 import { configureStore } from "@reduxjs/toolkit";
 import { createMemoryHistory } from "history";
