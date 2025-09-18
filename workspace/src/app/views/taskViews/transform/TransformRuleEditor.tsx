@@ -5,6 +5,7 @@ import {
     IComplexMappingRule,
     ITransformRule,
     ITransformTaskParameters,
+    NewTransformRule,
     PartialBy,
     RuleParameterType,
     RuleReference,
@@ -76,7 +77,7 @@ export const TransformRuleEditor = ({
     /** Fetches the parameters of the transform rule. */
     const fetchTransformRule = async (projectId: string, taskId: string): Promise<IComplexMappingRule | undefined> => {
         try {
-            const taskData: PartialBy<ITransformRule, "id" | "metadata"> = isReferencedRule
+            const taskData: NewTransformRule = isReferencedRule
                 ? (await requestTransformRule(projectId, taskId, (ruleDefinition as RuleReference).ruleId)).data
                 : (ruleDefinition as ActualRule).rule;
             if (taskData.type !== "complex") {

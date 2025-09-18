@@ -83,12 +83,15 @@ export interface ITransformTaskParameters {
     output: string;
 }
 
+export type NewTransformRule = PartialBy<ITransformRule, "id" | "metadata">;
+export type NewComplexMappingRule = PartialBy<IComplexMappingRule, "id" | "metadata">;
+
 // Editor component specific types
 export interface ActualRule {
     /** The actual rule object that will be loaded into the rule editor. */
-    rule: PartialBy<ITransformRule, "id" | "metadata">;
+    rule: NewTransformRule;
     /** The alternative save function, since the rule cannot be saved in the backend directly. */
-    saveRule: (updatedRule: PartialBy<ITransformRule, "id" | "metadata">) => void | Promise<void>;
+    saveRule: (updatedRule: NewTransformRule) => void | Promise<void>;
     /** Set the rule editor parameter to have the ave button enabled from the beginning. */
     saveInitiallyEnabled: boolean;
 }
