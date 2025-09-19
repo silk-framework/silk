@@ -61,9 +61,7 @@ export const useStoreGlobalTableSettings = () => {
                     pageSize,
                     sortOrder,
                 } = (globalTableSettings ?? defaultGlobalTableSettings)[pathname] || defaultConfig;
-                dispatch(workspaceOp.applySorterOp(sortBy));
                 updateGlobalTableSettings({ sortBy, pageSize, sortOrder });
-                pageSize && dispatch(workspaceOp.changeLimitOp(pageSize));
             });
         });
     }, []);
