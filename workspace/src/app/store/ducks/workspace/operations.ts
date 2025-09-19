@@ -114,7 +114,7 @@ const setupFiltersFromQs = (queryString: string) => {
                                     type: fTypes[idx],
                                 },
                                 keywordIds: fValues[idx].split(ARRAY_DELIMITER),
-                            })
+                            }),
                         );
                     });
                 } else {
@@ -127,7 +127,7 @@ const setupFiltersFromQs = (queryString: string) => {
                             applyFacet({
                                 facet,
                                 keywordIds: fKeys[i].split(ARRAY_DELIMITER),
-                            })
+                            }),
                         );
                     });
                 }
@@ -149,7 +149,7 @@ const setupFiltersFromQs = (queryString: string) => {
                     applySorter({
                         sortBy: parsedQs.sortBy,
                         sortOrder: parsedQs.sortOrder,
-                    })
+                    }),
                 );
             }
 
@@ -164,7 +164,7 @@ const setupFiltersFromQs = (queryString: string) => {
  */
 const fetchListAsync = (
     fetcher?: (payload: ISearchListRequest) => Promise<FetchResponse<ISearchListResponse>>,
-    customDefaultLimit?: number
+    customDefaultLimit?: number,
 ) => {
     return async (dispatch, getState) => {
         dispatch(fetchList());
@@ -234,7 +234,7 @@ const applyFiltersOp = (filter) => {
     return (dispatch) => {
         batch(() => {
             dispatch(applyFilters(filter));
-            dispatch(updateQueryString());
+            // dispatch(updateQueryString());
         });
     };
 };
@@ -245,9 +245,9 @@ const applySorterOp = (sortBy: string) => {
             dispatch(
                 applySorter({
                     sortBy,
-                })
+                }),
             );
-            dispatch(updateQueryString());
+            // dispatch(updateQueryString());
         });
     };
 };
@@ -256,7 +256,7 @@ const changePageOp = (page: number) => {
     return (dispatch) => {
         batch(() => {
             dispatch(changePage(page));
-            dispatch(updateQueryString());
+            // dispatch(updateQueryString());
         });
     };
 };
@@ -265,7 +265,7 @@ const changeLimitOp = (value: number) => {
     return (dispatch) => {
         batch(() => {
             dispatch(changeProjectsLimit(value));
-            dispatch(updateQueryString());
+            // dispatch(updateQueryString());
         });
     };
 };
@@ -282,18 +282,18 @@ const toggleFacetOp = (facet: IFacetState, keywordId: string) => {
                 applyFacet({
                     facet,
                     keywordIds: [keywordId],
-                })
+                }),
             );
         } else {
             dispatch(
                 removeFacet({
                     facet: foundFacet,
                     keywordId,
-                })
+                }),
             );
         }
 
-        dispatch(updateQueryString());
+        // dispatch(updateQueryString());
     };
 };
 

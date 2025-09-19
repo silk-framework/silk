@@ -36,9 +36,10 @@ const Activities = () => {
     const { registerError } = useErrorHandler();
     const history = useHistory();
     const error = useSelector(workspaceSel.errorSelector);
-    const qs = useSelector(routerSel.routerSearchSelector);
     const path = useSelector(routerSel.pathnameSelector);
     const { textQuery } = useSelector(workspaceSel.appliedFiltersSelector);
+    const pagination = useSelector(workspaceSel.paginationSelector);
+    const sorter = useSelector(workspaceSel.sortersSelector);
     const sorters = useSelector(workspaceSel.sortersSelector);
     const { clearSearchResults } = previewSlice.actions;
 
@@ -107,11 +108,7 @@ const Activities = () => {
     React.useEffect(() => {
         if (path.endsWith("activities")) {
             batch(() => {
-                // Reset the filters, due to redirecting
-                dispatch(workspaceOp.resetFilters());
-
                 // Setup the filters from query string
-                dispatch(workspaceOp.setupFiltersFromQs(qs));
                 projectId && dispatch(commonOp.setProjectId(projectId));
                 // Fetch the list of projects
                 dispatch(workspaceOp.fetchListAsync(utils.searchActivities));
@@ -120,7 +117,7 @@ const Activities = () => {
         return () => {
             dispatch(clearSearchResults());
         };
-    }, [qs]);
+    }, [pagination.limit, sorter?.applied?.sortBy]);
 
     /** handle sorting */
     const handleSort = (sortBy: string) => {

@@ -1,11 +1,13 @@
 import { workspaceOp } from "@ducks/workspace";
 import { ISorterListItemState } from "@ducks/workspace/typings";
+import { useLocation } from "react-router";
 import React from "react";
 import { batch, useDispatch } from "react-redux";
 
 const defaultConfig = {
     pageSize: 10,
     sortBy: "",
+    sortOrder: "ASC",
 };
 
 const defaultGlobalTableSettings = {
@@ -17,6 +19,7 @@ const defaultGlobalTableSettings = {
 type BaseConfig = {
     pageSize?: number;
     sortBy?: string;
+    sortOrder?: "ASC" | "DESC";
 };
 
 interface GlobalTableSettings {
@@ -29,54 +32,65 @@ const LOCAL_STORAGE_KEYS = {
     GLOBAL_TABLE_SETTINGS: "global_table_settings",
 };
 
-type settingsConfig = {
+export type settingsConfig = {
     sorters: ISorterListItemState[];
     activeSortBy: string;
     onSort: (sortBy: string) => void;
     path: keyof typeof defaultGlobalTableSettings;
 };
 
-export const useStoreGlobalTableSettings = (
-    config: settingsConfig = { sorters: [], activeSortBy: "", onSort: () => {}, path: "workbench" } as settingsConfig,
-) => {
-    const [globalTableSettings, setGlobalTableSettings] = React.useState<GlobalTableSettings>(() => {
-        const storedSettings = localStorage.getItem(LOCAL_STORAGE_KEYS.GLOBAL_TABLE_SETTINGS);
-        if (!storedSettings) return defaultGlobalTableSettings;
-        return JSON.parse(storedSettings);
-    });
+export const useStoreGlobalTableSettings = () => {
     const dispatch = useDispatch();
+    const location = useLocation();
+    const pathname = location.pathname.split("/").slice(-1)[0];
+
+    const getGlobalTableSettings = React.useCallback(() => {
+        const storedSettings = localStorage.getItem(LOCAL_STORAGE_KEYS.GLOBAL_TABLE_SETTINGS);
+        const tableSettings = !storedSettings ? defaultGlobalTableSettings : JSON.parse(storedSettings);
+        return tableSettings;
+    }, []);
 
     React.useEffect(() => {
         //don't need to track 'config' because every change resets the globalTableSettings, it's re-rendered
         // page change still has old redux state, but is reset in Workspace.tsx etc. do work after
         setTimeout(() => {
             batch(() => {
-                const { sortBy = "", pageSize } =
-                    (globalTableSettings ?? defaultGlobalTableSettings)[config.path] || defaultConfig;
-                const validSorter = config.sorters.find((s) => s.id === sortBy);
-                if (sortBy && validSorter && config.activeSortBy !== sortBy) {
-                    //has valid sortBy filter for this kind of list
-                    config.onSort(sortBy);
-                } else if (!validSorter) {
-                    config.onSort("");
-                }
-                updateGlobalTableSettings({ [config.path]: { sortBy, pageSize } });
+                const globalTableSettings = getGlobalTableSettings();
+                const {
+                    sortBy = "",
+                    pageSize,
+                    sortOrder,
+                } = (globalTableSettings ?? defaultGlobalTableSettings)[pathname] || defaultConfig;
+                dispatch(workspaceOp.applySorterOp(sortBy));
+                updateGlobalTableSettings({ sortBy, pageSize, sortOrder });
                 pageSize && dispatch(workspaceOp.changeLimitOp(pageSize));
             });
         });
     }, []);
 
     const updateGlobalTableSettings = React.useCallback(
-        (settings: Partial<GlobalTableSettings>) => {
-            const newSettings = { ...globalTableSettings, ...settings };
-            setGlobalTableSettings(newSettings as GlobalTableSettings);
+        (settings: BaseConfig) => {
+            const globalTableSettings = getGlobalTableSettings();
+            const newSettings: GlobalTableSettings = {
+                ...globalTableSettings,
+                [pathname]: {
+                    ...globalTableSettings[pathname],
+                    ...settings,
+                },
+            };
+            console.log("settings ==>", settings);
+            console.log("new Settings ==>", newSettings);
             localStorage.setItem(LOCAL_STORAGE_KEYS.GLOBAL_TABLE_SETTINGS, JSON.stringify(newSettings));
+            const { sortBy, pageSize } = newSettings[pathname as settingsConfig["path"]];
+            batch(() => {
+                sortBy && dispatch(workspaceOp.applySorterOp(sortBy));
+                pageSize && dispatch(workspaceOp.changeLimitOp(pageSize));
+            });
         },
-        [globalTableSettings],
+        [getGlobalTableSettings, pathname],
     );
 
     return {
-        globalTableSettings,
         updateGlobalTableSettings,
     };
 };

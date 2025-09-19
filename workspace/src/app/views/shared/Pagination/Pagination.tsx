@@ -5,8 +5,7 @@ import { useStoreGlobalTableSettings } from "../../../hooks/useStoreGlobalTableS
 
 export function AppPagination({ pagination, onChangeSelect, pageSizes }) {
     const [t] = useTranslation();
-    const { updateGlobalTableSettings, globalTableSettings } = useStoreGlobalTableSettings();
-    const path = window.location.pathname.endsWith("activities") ? "activities" : "workbench";
+    const { updateGlobalTableSettings } = useStoreGlobalTableSettings();
 
     const totalGreaterThanMinPageSize = pagination.total > Math.min(pagination.limit, ...pageSizes);
     const invalidPage = pagination.current !== 1 && Math.ceil(pagination.total / pagination.limit) < pagination.current;
@@ -27,7 +26,7 @@ export function AppPagination({ pagination, onChangeSelect, pageSizes }) {
             <Pagination
                 onChange={({ page, pageSize }) => {
                     onChangeSelect(page, pageSize);
-                    updateGlobalTableSettings({ [path]: { ...globalTableSettings[path], pageSize } });
+                    updateGlobalTableSettings({ pageSize });
                 }}
                 totalItems={pagination.total}
                 pageSizes={pageSizes}

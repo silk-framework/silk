@@ -3,7 +3,6 @@ import React, { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { workspaceOp, workspaceSel } from "@ducks/workspace";
 import WorkspaceSearch from "./WorkspaceSearch";
-import { routerSel } from "@ducks/router";
 import { Grid, GridColumn, GridRow } from "@eccenca/gui-elements";
 import { EmptyWorkspace } from "./EmptyWorkspace/EmptyWorkspace";
 import { commonOp, commonSel } from "@ducks/common";
@@ -15,8 +14,9 @@ export function Workspace() {
     const { registerError } = useErrorHandler();
 
     const error = useSelector(workspaceSel.errorSelector);
-    const qs = useSelector(routerSel.routerSearchSelector);
     const isEmptyWorkspace = useSelector(workspaceSel.isEmptyPageSelector);
+    const pagination = useSelector(workspaceSel.paginationSelector);
+    const sorter = useSelector(workspaceSel.sortersSelector);
     const projectId = useSelector(commonSel.currentProjectIdSelector);
     const { clearSearchResults } = previewSlice.actions;
 
@@ -34,17 +34,12 @@ export function Workspace() {
     }, []);
 
     useEffect(() => {
-        // Reset the filters, due to redirecting
-        dispatch(workspaceOp.resetFilters());
-
-        // Setup the filters from query string
-        dispatch(workspaceOp.setupFiltersFromQs(qs));
         // Fetch the list of projects
         dispatch(workspaceOp.fetchListAsync());
         return () => {
             dispatch(clearSearchResults());
         };
-    }, [qs]);
+    }, [pagination.limit, sorter?.applied?.sortBy]);
 
     return !isEmptyWorkspace ? (
         <WorkspaceSearch />

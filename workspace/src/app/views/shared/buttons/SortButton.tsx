@@ -3,7 +3,8 @@ import { IAppliedSorterState, ISorterListItemState } from "@ducks/workspace/typi
 
 import { ContextMenu, MenuItem } from "@eccenca/gui-elements";
 import { useTranslation } from "react-i18next";
-import { useStoreGlobalTableSettings } from "../../../hooks/useStoreGlobalTableSettings";
+import { settingsConfig, useStoreGlobalTableSettings } from "../../../hooks/useStoreGlobalTableSettings";
+import { useLocation } from "react-router";
 
 interface IProps {
     sortersList: ISorterListItemState[];
@@ -14,25 +15,18 @@ interface IProps {
 
 export default function SortButton({ sortersList, activeSort, onSort }: IProps) {
     const [t] = useTranslation();
-    const storeSettingsPath = React.useMemo(
-        () => (sortersList.find((l) => l.id === "runningTime") ? "activities" : "workbench"),
-        [sortersList],
-    );
-    const { updateGlobalTableSettings, globalTableSettings } = useStoreGlobalTableSettings({
-        sorters: sortersList,
-        activeSortBy: activeSort.sortBy,
-        onSort,
-        path: storeSettingsPath,
-    });
+    const location = useLocation();
+    const pathname = location.pathname.split("/").slice(-1)[0] as settingsConfig["path"];
+    const { updateGlobalTableSettings } = useStoreGlobalTableSettings();
 
     const handleMenuClick = React.useCallback(
         (itemId: string) => {
             onSort(itemId);
             updateGlobalTableSettings({
-                [storeSettingsPath]: { ...globalTableSettings[storeSettingsPath], sortBy: itemId },
+                sortBy: itemId,
             });
         },
-        [globalTableSettings, storeSettingsPath],
+        [pathname],
     );
 
     return (

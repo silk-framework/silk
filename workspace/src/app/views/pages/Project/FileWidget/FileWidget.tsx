@@ -47,16 +47,18 @@ export const FileWidget = () => {
     const [fileDeleteDialog, setFileDeleteDialog] = useState<any>(null);
 
     const { isLoading } = fileWidget;
-    const { globalTableSettings, updateGlobalTableSettings } = useStoreGlobalTableSettings();
+    const { updateGlobalTableSettings } = useStoreGlobalTableSettings();
+    const _pagination = useSelector(workspaceSel.paginationSelector);
+
     const [pagination, paginationElement, onTotalChange] = usePagination({
         pageSizes: [5, 10, 20],
         presentation: { hideInfoText: true },
-        initialPageSize: globalTableSettings.files.pageSize,
+        initialPageSize: _pagination.limit,
     });
     const [t] = useTranslation();
 
     React.useEffect(() => {
-        updateGlobalTableSettings({ files: { pageSize: pagination.limit } });
+        updateGlobalTableSettings({ pageSize: pagination.limit });
     }, [pagination.limit]);
 
     // @FIXME: Improve logic, fileList can't be null or undefined, check state object
