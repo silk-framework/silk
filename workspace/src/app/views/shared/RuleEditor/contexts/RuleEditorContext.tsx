@@ -88,6 +88,12 @@ export interface RuleEditorContextProps {
     ) => (inputString: string, cursorPosition: number) => Promise<IPartialAutoCompleteResult | undefined>;
     /** Enable save button once after init. */
     saveInitiallyEnabled: boolean;
+    /** Initially highlights the given operator nodes and shows a message explaining why the nodes are highlighted.
+     * When the notification is closed the highlighting of the nodes is removed again.  */
+    initialHighlighting?: {
+        message: string;
+        nodeIds: string[];
+    };
 }
 
 /** Creates a rule editor model context that contains the actual rule model and low-level update functions. */

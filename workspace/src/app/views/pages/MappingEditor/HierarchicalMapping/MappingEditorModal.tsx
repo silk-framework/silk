@@ -22,6 +22,12 @@ export interface MappingEditorProps {
     onClose: () => void;
     /** Generic actions and callbacks on views. */
     viewActions?: IViewActions;
+    /** Initially highlights the given operator nodes and shows a message explaining why the nodes are highlighted.
+     * When the notification is closed the highlighting of the nodes is removed again.  */
+    initialHighlighting?: {
+        message: string;
+        nodeIds: string[];
+    };
 }
 
 const MappingEditorModal = ({
@@ -32,6 +38,7 @@ const MappingEditorModal = ({
     isOpen,
     containerRuleId,
     viewActions,
+    initialHighlighting,
 }: MappingEditorProps) => {
     /** keeps track of whether there are unsaved changes or not */
     const [unsavedChanges, setUnsavedChanges] = React.useState<boolean>(false);
@@ -122,6 +129,7 @@ const MappingEditorModal = ({
                             },
                             integratedView: true,
                         }}
+                        initialHighlighting={initialHighlighting}
                     />
                 </div>
             </>

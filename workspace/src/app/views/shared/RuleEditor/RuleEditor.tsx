@@ -100,6 +100,12 @@ export interface RuleEditorProps<RULE_TYPE, OPERATOR_TYPE> {
     /** True if the save button should be initially enabled even when nothing has been changed by the user.
      * This should be enabled for example when the initial rule is not persisted yet in the backend. */
     saveInitiallyEnabled: boolean;
+    /** Initially highlights the given operator nodes and shows a message explaining why the nodes are highlighted.
+     * When the notification is closed the highlighting of the nodes is removed again.  */
+    initialHighlighting?: {
+        message: string;
+        nodeIds: string[];
+    };
 }
 
 const READ_ONLY_QUERY_PARAMETER = "readOnly";
@@ -131,6 +137,7 @@ const RuleEditor = <TASK_TYPE extends object, OPERATOR_TYPE extends object>({
     pathMetaData,
     partialAutoCompletion,
     saveInitiallyEnabled,
+    initialHighlighting,
 }: RuleEditorProps<TASK_TYPE, OPERATOR_TYPE>) => {
     // The task that contains the rule, e.g. transform or linking task
     const [taskData, setTaskData] = React.useState<TASK_TYPE | undefined>(undefined);
@@ -293,6 +300,7 @@ const RuleEditor = <TASK_TYPE extends object, OPERATOR_TYPE extends object>({
                 pathMetaData,
                 partialAutoCompletion,
                 saveInitiallyEnabled,
+                initialHighlighting,
             }}
         >
             <ReactFlowHotkeyContext.Provider

@@ -94,6 +94,12 @@ export interface ActualRule {
     saveRule: (updatedRule: NewTransformRule) => void | Promise<void>;
     /** Set the rule editor parameter to have the ave button enabled from the beginning. */
     saveInitiallyEnabled: boolean;
+    /** Initially highlights the given operator nodes and shows a message explaining why the nodes are highlighted.
+     * When the notification is closed the highlighting of the nodes is removed again.  */
+    initialHighlighting?: {
+        message: string;
+        nodeIds: string[];
+    };
 }
 
 export interface RuleReference {

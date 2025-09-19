@@ -57,6 +57,12 @@ export interface TransformRuleEditorProps {
     instanceId: string;
     /** Additional components that will be placed in the tool bar left to the save button. */
     additionalToolBarComponents?: () => JSX.Element | JSX.Element[];
+    /** Initially highlights the given operator nodes and shows a message explaining why the nodes are highlighted.
+     * When the notification is closed the highlighting of the nodes is removed again.  */
+    initialHighlighting?: {
+        message: string;
+        nodeIds: string[];
+    };
 }
 
 /** Editor for creating and changing transform rule operator trees. */
@@ -69,6 +75,7 @@ export const TransformRuleEditor = ({
     instanceId,
     additionalToolBarComponents,
     viewActions,
+    initialHighlighting,
 }: TransformRuleEditorProps) => {
     const [t] = useTranslation();
     const { registerError } = useErrorHandler();
@@ -329,6 +336,7 @@ export const TransformRuleEditor = ({
                 instanceId={instanceId}
                 fetchDatasetCharacteristics={fetchDatasetCharacteristics}
                 saveInitiallyEnabled={(ruleDefinition as ActualRule).saveInitiallyEnabled ?? false}
+                initialHighlighting={initialHighlighting}
             />
         </TransformRuleEvaluation>
     );
