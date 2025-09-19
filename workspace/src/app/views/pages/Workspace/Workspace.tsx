@@ -14,6 +14,7 @@ export function Workspace() {
     const { registerError } = useErrorHandler();
 
     const error = useSelector(workspaceSel.errorSelector);
+    const { textQuery } = useSelector(workspaceSel.appliedFiltersSelector);
     const isEmptyWorkspace = useSelector(workspaceSel.isEmptyPageSelector);
     const pagination = useSelector(workspaceSel.paginationSelector);
     const sorter = useSelector(workspaceSel.sortersSelector);
@@ -39,7 +40,7 @@ export function Workspace() {
         return () => {
             dispatch(clearSearchResults());
         };
-    }, [pagination.limit, sorter?.applied?.sortBy]);
+    }, [pagination.limit, sorter?.applied?.sortBy, textQuery]);
 
     return !isEmptyWorkspace ? (
         <WorkspaceSearch />

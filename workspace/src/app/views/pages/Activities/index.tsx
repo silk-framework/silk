@@ -117,7 +117,7 @@ const Activities = () => {
         return () => {
             dispatch(clearSearchResults());
         };
-    }, [pagination.limit, sorter?.applied?.sortBy]);
+    }, [pagination.limit, sorter?.applied?.sortBy, textQuery]);
 
     /** handle sorting */
     const handleSort = (sortBy: string) => {
