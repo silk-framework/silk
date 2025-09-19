@@ -78,8 +78,6 @@ export const useStoreGlobalTableSettings = () => {
                     ...settings,
                 },
             };
-            console.log("settings ==>", settings);
-            console.log("new Settings ==>", newSettings);
             localStorage.setItem(LOCAL_STORAGE_KEYS.GLOBAL_TABLE_SETTINGS, JSON.stringify(newSettings));
             const { sortBy, pageSize } = newSettings[pathname as settingsConfig["path"]];
             batch(() => {
