@@ -51,20 +51,8 @@ export const useStoreGlobalTableSettings = () => {
     }, []);
 
     React.useEffect(() => {
-        //don't need to track 'config' because every change resets the globalTableSettings, it's re-rendered
-        // page change still has old redux state, but is reset in Workspace.tsx etc. do work after
-        setTimeout(() => {
-            batch(() => {
-                const globalTableSettings = getGlobalTableSettings();
-                const {
-                    sortBy = "",
-                    pageSize,
-                    sortOrder,
-                } = (globalTableSettings ?? defaultGlobalTableSettings)[pathname] || defaultConfig;
-                updateGlobalTableSettings({ sortBy, pageSize, sortOrder });
-            });
-        });
-    }, []);
+        updateGlobalTableSettings(getGlobalTableSettings()[pathname]);
+    }, [pathname, getGlobalTableSettings]);
 
     const updateGlobalTableSettings = React.useCallback(
         (settings: BaseConfig) => {
@@ -79,8 +67,8 @@ export const useStoreGlobalTableSettings = () => {
             localStorage.setItem(LOCAL_STORAGE_KEYS.GLOBAL_TABLE_SETTINGS, JSON.stringify(newSettings));
             const { sortBy, pageSize } = newSettings[pathname as settingsConfig["path"]];
             batch(() => {
-                sortBy && dispatch(workspaceOp.applySorterOp(sortBy));
-                pageSize && dispatch(workspaceOp.changeLimitOp(pageSize));
+                dispatch(workspaceOp.applySorterOp(sortBy!));
+                dispatch(workspaceOp.changeLimitOp(pageSize!));
             });
         },
         [getGlobalTableSettings, pathname],

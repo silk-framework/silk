@@ -100,7 +100,7 @@ const Activities = () => {
      */
     React.useEffect(() => {
         batch(() => {
-            dispatch(workspaceOp.changeProjectsLimit(25));
+            dispatch(workspaceOp.changeProjectsLimit(pagination.limit));
             dispatch(commonOp.fetchAvailableDTypesAsync(projectId as string));
         });
     }, []);
@@ -126,7 +126,7 @@ const Activities = () => {
 
     /** handle search */
     const handleSearch = (textQuery: string) => {
-        dispatch(workspaceOp.applyFiltersOp({ textQuery, limit: 25, project: projectId }));
+        dispatch(workspaceOp.applyFiltersOp({ textQuery, limit: pagination.limit, project: projectId }));
     };
 
     return error.status === 404 ? (
