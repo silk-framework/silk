@@ -21,7 +21,7 @@ import {
 import { DependsOnParameterValue } from "@ducks/shared/typings";
 
 interface YamlEditorProps {
-    /** ID of the parameter. */
+    /** ID of the project. */
     projectId?: string;
     /** ID of this plugin. */
     pluginId?: string;
@@ -133,27 +133,12 @@ export const YamlEditor: React.FC<YamlEditorProps> = (props) => {
         }
     }, []);
 
-    const syntaxValidation = React.useCallback(
-        (yaml: string) => {
-            //disallow nesting of yaml objects, arrays, etc.
-            /**
-             * return {
-             *   valid: false,
-             *   message: "Nesting of yaml objects, arrays, etc. is not allowed.",
-             *   line: 1
-             * }
-             */
-        },
-        [cm],
-    );
-
     const handleChange = React.useMemo(() => {
         return (val: string) => {
             value.current = val;
-            syntaxValidation(val);
             props.onChange(val);
         };
-    }, [props.onChange, syntaxValidation]);
+    }, [props.onChange]);
 
     const handleInputEditorClear = React.useCallback(() => {
         dispatch({

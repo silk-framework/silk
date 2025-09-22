@@ -18,9 +18,7 @@ import { useSelector } from "react-redux";
 import { commonSel } from "@ducks/common";
 import { CreateArtefactModalContext } from "../CreateArtefactModalContext";
 import { INPUT_TYPES } from "../../../../../constants";
-import { YamlEditor } from "../../../../../views/shared/YamlEditor";
-import { IPropertyAutocomplete } from "@ducks/common/typings";
-import { DependsOnParameterValueAny } from "./ParameterAutoCompletion";
+
 interface Props {
     //For task forms, project id is needed tor validation and autocompletion
     projectId?: string;
@@ -69,14 +67,6 @@ interface Props {
         defaultValue?: string | number | boolean | OptionallyLabelledParameter<string | number | boolean>;
     };
     parameterType?: string;
-    /** The auto-completion config. */
-    autoCompletion?: IPropertyAutocomplete;
-    /** Get parameter values this auto-completion might depend on. */
-    dependentValue?: (paramId: string) => DependsOnParameterValueAny | undefined;
-    /** The default value as defined in the parameter spec. */
-    defaultValue?: (paramId: string) => string | null | undefined;
-    /** Unique ID/name of the parameter in the form. */
-    formParamId?: string;
 }
 
 /** Wrapper around the input element of a parameter. Supports switching to variable templates. */
@@ -95,10 +85,6 @@ export const ArtefactFormParameter = ({
     tooltip,
     supportVariableTemplateElement,
     pluginId,
-    autoCompletion,
-    defaultValue,
-    dependentValue,
-    formParamId,
 }: Props) => {
     const [t] = useTranslation();
     const [toggledTemplateSwitchBefore, setToggledTemplateSwitchBefore] = React.useState<boolean>(false);
@@ -256,10 +242,6 @@ export const ArtefactFormParameter = ({
                             allowSensitiveVariables={isPasswordInput}
                             parameterType={parameterType}
                             pluginId={pluginId}
-                            autoCompletion={autoCompletion}
-                            defaultValue={defaultValue}
-                            dependentValue={dependentValue}
-                            formParamId={formParamId}
                         />
                     ) : (
                         inputElementFactory(valueState.current.inputValueBeforeSwitch, onElementValueChange)
@@ -316,14 +298,6 @@ interface TemplateInputComponentProps {
     multiline?: boolean;
     allowSensitiveVariables?: boolean;
     parameterType?: string;
-    /** The auto-completion config. */
-    autoCompletion?: IPropertyAutocomplete;
-    /** Get parameter values this auto-completion might depend on. */
-    dependentValue?: (paramId: string) => DependsOnParameterValueAny | undefined;
-    /** The default value as defined in the parameter spec. */
-    defaultValue?: (paramId: string) => string | null | undefined;
-    /** Unique ID/name of the parameter in the form. */
-    formParamId?: string;
 }
 
 /** The input component for the template value. */
@@ -341,10 +315,6 @@ export const TemplateInputComponent = memo(
         multiline,
         parameterType,
         allowSensitiveVariables,
-        autoCompletion,
-        dependentValue,
-        defaultValue,
-        formParamId,
     }: TemplateInputComponentProps) => {
         const modalContext = React.useContext(CreateArtefactModalContext);
         const { registerError: globalErrorHandler } = useErrorHandler();
@@ -426,7 +396,7 @@ export const TemplateInputComponent = memo(
             [processValidationError],
         );
 
-        return parameterType !== INPUT_TYPES.KEY_VALUE_PAIRS ? (
+        return (
             <CodeAutocompleteField
                 id={parameterId}
                 initialValue={initialValue}
@@ -435,20 +405,6 @@ export const TemplateInputComponent = memo(
                 checkInput={checkTemplate}
                 autoCompletionRequestDelay={200}
                 multiline={multiline}
-            />
-        ) : (
-            <YamlEditor
-                projectId={projectId}
-                pluginId={pluginId}
-                autoCompletion={autoCompletion}
-                id={parameterId}
-                initialValue={initialValue}
-                onChange={onTemplateValueChange}
-                checkInput={checkTemplate}
-                autoCompletionRequestDelay={200}
-                defaultValue={defaultValue}
-                dependentValue={dependentValue}
-                formParamId={formParamId}
             />
         );
     },

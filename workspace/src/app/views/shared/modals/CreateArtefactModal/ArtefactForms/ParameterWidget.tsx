@@ -286,10 +286,6 @@ export const ParameterWidget = (props: IProps) => {
                     defaultValue: defaultValueAsJs(propertyDetails, !!autoCompletion),
                 }}
                 pluginId={pluginId}
-                autoCompletion={autoCompletion}
-                dependentValue={dependentValue}
-                defaultValue={parameterCallbacks.defaultValue}
-                formParamId={formParamId}
                 inputElementFactory={(initialValueReplace, onChange) => {
                     if (showYamlEditorInput) {
                         return (
