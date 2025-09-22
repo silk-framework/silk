@@ -8,15 +8,16 @@ import { EmptyWorkspace } from "./EmptyWorkspace/EmptyWorkspace";
 import { commonOp, commonSel } from "@ducks/common";
 import useErrorHandler from "../../../hooks/useErrorHandler";
 import { previewSlice } from "@ducks/workspace/previewSlice";
+import { routerSel } from "@ducks/router";
 
 export function Workspace() {
     const dispatch = useDispatch();
     const { registerError } = useErrorHandler();
 
     const error = useSelector(workspaceSel.errorSelector);
-    const { textQuery } = useSelector(workspaceSel.appliedFiltersSelector);
     const isEmptyWorkspace = useSelector(workspaceSel.isEmptyPageSelector);
     const pagination = useSelector(workspaceSel.paginationSelector);
+    const qs = useSelector(routerSel.routerSearchSelector);
     const sorter = useSelector(workspaceSel.sortersSelector);
     const projectId = useSelector(commonSel.currentProjectIdSelector);
     const { clearSearchResults } = previewSlice.actions;
@@ -35,12 +36,17 @@ export function Workspace() {
     }, []);
 
     useEffect(() => {
+        // Reset the filters, due to redirecting
+        dispatch(workspaceOp.resetFilters());
+
+        // Setup the filters from query string
+        dispatch(workspaceOp.setupFiltersFromQs(qs));
         // Fetch the list of projects
         dispatch(workspaceOp.fetchListAsync());
         return () => {
             dispatch(clearSearchResults());
         };
-    }, [pagination.limit, sorter?.applied?.sortBy, textQuery]);
+    }, [pagination.limit, sorter?.applied?.sortBy, qs]);
 
     return !isEmptyWorkspace ? (
         <WorkspaceSearch />

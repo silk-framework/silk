@@ -38,6 +38,7 @@ const Activities = () => {
     const error = useSelector(workspaceSel.errorSelector);
     const path = useSelector(routerSel.pathnameSelector);
     const { textQuery } = useSelector(workspaceSel.appliedFiltersSelector);
+    const qs = useSelector(routerSel.routerSearchSelector);
     const pagination = useSelector(workspaceSel.paginationSelector);
     const sorter = useSelector(workspaceSel.sortersSelector);
     const sorters = useSelector(workspaceSel.sortersSelector);
@@ -99,15 +100,16 @@ const Activities = () => {
      * Get available Datatypes
      */
     React.useEffect(() => {
-        batch(() => {
-            dispatch(workspaceOp.changeProjectsLimit(pagination.limit));
-            dispatch(commonOp.fetchAvailableDTypesAsync(projectId as string));
-        });
+        dispatch(commonOp.fetchAvailableDTypesAsync(projectId as string));
     }, []);
 
     React.useEffect(() => {
         if (path.endsWith("activities")) {
             batch(() => {
+                // Reset the filters, due to redirecting
+                dispatch(workspaceOp.resetFilters());
+                // Setup the filters from query string
+                dispatch(workspaceOp.setupFiltersFromQs(qs));
                 // Setup the filters from query string
                 projectId && dispatch(commonOp.setProjectId(projectId));
                 // Fetch the list of projects
@@ -117,7 +119,7 @@ const Activities = () => {
         return () => {
             dispatch(clearSearchResults());
         };
-    }, [pagination.limit, sorter?.applied?.sortBy, textQuery]);
+    }, [pagination.limit, sorter?.applied?.sortBy, qs]);
 
     /** handle sorting */
     const handleSort = (sortBy: string) => {

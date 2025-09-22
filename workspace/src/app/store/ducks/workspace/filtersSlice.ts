@@ -110,8 +110,6 @@ export const filtersSlice = createSlice({
 
         resetFilters(state) {
             state.appliedFilters = initialAppliedFiltersState();
-            state.sorters = initialSortersState();
-            state.pagination = initialPaginationState();
             state.appliedFacets = [];
         },
     },

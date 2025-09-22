@@ -47,13 +47,12 @@ export const FileWidget = () => {
     const [fileDeleteDialog, setFileDeleteDialog] = useState<any>(null);
 
     const { isLoading } = fileWidget;
-    const { updateGlobalTableSettings } = useStoreGlobalTableSettings();
-    const _pagination = useSelector(workspaceSel.paginationSelector);
+    const { updateGlobalTableSettings, getGlobalTableSettings } = useStoreGlobalTableSettings({ key: "files" });
 
     const [pagination, paginationElement, onTotalChange] = usePagination({
         pageSizes: [5, 10, 20],
         presentation: { hideInfoText: true },
-        initialPageSize: _pagination.limit,
+        initialPageSize: getGlobalTableSettings()["files"].pageSize,
     });
     const [t] = useTranslation();
 

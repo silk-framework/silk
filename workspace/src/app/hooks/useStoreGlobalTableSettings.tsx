@@ -1,6 +1,5 @@
 import { workspaceOp } from "@ducks/workspace";
 import { ISorterListItemState } from "@ducks/workspace/typings";
-import { useLocation } from "react-router";
 import React from "react";
 import { batch, useDispatch } from "react-redux";
 
@@ -39,16 +38,16 @@ export type settingsConfig = {
     path: keyof typeof defaultGlobalTableSettings;
 };
 
-export const useStoreGlobalTableSettings = () => {
+export const useStoreGlobalTableSettings = ({ key }: { key?: string } = {}) => {
     const dispatch = useDispatch();
-    const location = useLocation();
-    const pathname = location.pathname.split("/").slice(-1)[0];
 
     const getGlobalTableSettings = React.useCallback(() => {
         const storedSettings = localStorage.getItem(LOCAL_STORAGE_KEYS.GLOBAL_TABLE_SETTINGS);
         const tableSettings = !storedSettings ? defaultGlobalTableSettings : JSON.parse(storedSettings);
         return tableSettings;
     }, []);
+    const storeKey = location.pathname.split("/").slice(-1)[0] === "activities" ? "activities" : "workbench";
+    const pathname = key || storeKey;
 
     React.useEffect(() => {
         updateGlobalTableSettings(getGlobalTableSettings()[pathname]);
@@ -65,16 +64,15 @@ export const useStoreGlobalTableSettings = () => {
                 },
             };
             localStorage.setItem(LOCAL_STORAGE_KEYS.GLOBAL_TABLE_SETTINGS, JSON.stringify(newSettings));
-            const { sortBy, pageSize } = newSettings[pathname as settingsConfig["path"]];
-            batch(() => {
-                dispatch(workspaceOp.applySorterOp(sortBy!));
-                dispatch(workspaceOp.changeLimitOp(pageSize!));
-            });
+            const { sortBy, pageSize, sortOrder } = newSettings[pathname as settingsConfig["path"]];
+            dispatch(workspaceOp.applySorterOp(sortBy!, sortOrder));
+            dispatch(workspaceOp.changeLimitOp(pageSize!));
         },
         [getGlobalTableSettings, pathname],
     );
 
     return {
         updateGlobalTableSettings,
+        getGlobalTableSettings,
     };
 };

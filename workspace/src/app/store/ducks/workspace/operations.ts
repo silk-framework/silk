@@ -43,14 +43,9 @@ const updateQueryString = () => {
         const state = getState();
 
         const appliedFilters = workspaceSel.appliedFiltersSelector(state);
-        const { applied: appliedSorters } = workspaceSel.sortersSelector(state);
         const appliedFacets = workspaceSel.appliedFacetsSelector(state);
-        const { current, limit } = workspaceSel.paginationSelector(state);
         const queryParams = {
             ...appliedFilters,
-            ...appliedSorters,
-            page: current,
-            limit: limit,
             f_ids: appliedFacets.map((o) => o.facetId),
             types: appliedFacets.map((o) => o.type),
             f_keys: appliedFacets.map((o) => o.keywordIds.join(ARRAY_DELIMITER)),
@@ -133,25 +128,25 @@ const setupFiltersFromQs = (queryString: string) => {
                 }
             }
 
-            // Pagination
-            if (parsedQs.page) {
-                batchQueue.push(changePage(+parsedQs.page));
-            }
+            // // Pagination
+            // if (parsedQs.page) {
+            //     batchQueue.push(changePage(+parsedQs.page));
+            // }
 
-            //DropDown
-            if (parsedQs.limit) {
-                batchQueue.push(changeProjectsLimit(+parsedQs.limit));
-            }
+            // //DropDown
+            // if (parsedQs.limit) {
+            //     batchQueue.push(changeProjectsLimit(+parsedQs.limit));
+            // }
 
-            // Sorting
-            if (parsedQs.sortBy) {
-                batchQueue.push(
-                    applySorter({
-                        sortBy: parsedQs.sortBy,
-                        sortOrder: parsedQs.sortOrder,
-                    }),
-                );
-            }
+            // // Sorting
+            // if (parsedQs.sortBy) {
+            //     batchQueue.push(
+            //         applySorter({
+            //             sortBy: parsedQs.sortBy,
+            //             sortOrder: parsedQs.sortOrder,
+            //         }),
+            //     );
+            // }
 
             batch(() => batchQueue.forEach(dispatch));
         } catch {}
@@ -234,20 +229,20 @@ const applyFiltersOp = (filter) => {
     return (dispatch) => {
         batch(() => {
             dispatch(applyFilters(filter));
-            // dispatch(updateQueryString());
+            dispatch(updateQueryString());
         });
     };
 };
 
-const applySorterOp = (sortBy: string) => {
+const applySorterOp = (sortBy: string, sortOrder = "") => {
     return (dispatch) => {
         batch(() => {
             dispatch(
                 applySorter({
                     sortBy,
+                    sortOrder: sortOrder,
                 }),
             );
-            // dispatch(updateQueryString());
         });
     };
 };
@@ -256,7 +251,7 @@ const changePageOp = (page: number) => {
     return (dispatch) => {
         batch(() => {
             dispatch(changePage(page));
-            // dispatch(updateQueryString());
+            dispatch(updateQueryString());
         });
     };
 };
@@ -265,7 +260,6 @@ const changeLimitOp = (value: number) => {
     return (dispatch) => {
         batch(() => {
             dispatch(changeProjectsLimit(value));
-            // dispatch(updateQueryString());
         });
     };
 };
@@ -293,7 +287,7 @@ const toggleFacetOp = (facet: IFacetState, keywordId: string) => {
             );
         }
 
-        // dispatch(updateQueryString());
+        dispatch(updateQueryString());
     };
 };
 
