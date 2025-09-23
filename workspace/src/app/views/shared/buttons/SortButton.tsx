@@ -24,6 +24,7 @@ export default function SortButton({ sortersList, activeSort, onSort }: IProps) 
             onSort(itemId);
             updateGlobalTableSettings({
                 sortBy: itemId,
+                sortOrder: activeSort.sortOrder,
             });
         },
         [pathname],

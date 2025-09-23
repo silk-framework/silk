@@ -1,5 +1,5 @@
 import { workspaceOp } from "@ducks/workspace";
-import { ISorterListItemState } from "@ducks/workspace/typings";
+import { ISorterListItemState, SortModifierType } from "@ducks/workspace/typings";
 import React from "react";
 import { batch, useDispatch } from "react-redux";
 
@@ -18,7 +18,7 @@ const defaultGlobalTableSettings = {
 type BaseConfig = {
     pageSize?: number;
     sortBy?: string;
-    sortOrder?: "ASC" | "DESC";
+    sortOrder?: SortModifierType;
 };
 
 interface GlobalTableSettings {
