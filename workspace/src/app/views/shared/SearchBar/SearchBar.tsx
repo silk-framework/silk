@@ -17,8 +17,6 @@ interface IProps extends ISearchBarSearchInputProps {
     textQuery: string;
     sorters?: ISortersState;
 
-    onSort?(sortBy: string): void;
-
     onSearch(textQuery: string): void;
 
     /** If defined, the component will warn of queries containing invisible characters that are hard to spot. */
@@ -35,7 +33,6 @@ interface IProps extends ISearchBarSearchInputProps {
 export function SearchBar({
     textQuery,
     sorters,
-    onSort,
     onSearch,
     focusOnCreation = false,
     warnOfInvisibleCharacters = true,
@@ -88,10 +85,10 @@ export function SearchBar({
                     {...otherProps}
                 />
             </ToolbarSection>
-            {!!sorters && !!sorters.list.length && onSort && (
+            {!!sorters && !!sorters.list.length && (
                 <ToolbarSection>
                     <Spacing size="tiny" vertical />
-                    <SortButton sortersList={sorters.list} onSort={onSort} activeSort={sorters.applied} />
+                    <SortButton sortersList={sorters.list} activeSort={sorters.applied} />
                 </ToolbarSection>
             )}
         </Toolbar>

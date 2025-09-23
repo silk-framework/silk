@@ -234,15 +234,10 @@ const applyFiltersOp = (filter) => {
     };
 };
 
-const applySorterOp = (sortBy: string, sortOrder = "") => {
+const applySorterOp = (sorter: { sortBy: string; sortOrder: string }) => {
     return (dispatch) => {
         batch(() => {
-            dispatch(
-                applySorter({
-                    sortBy,
-                    sortOrder: sortOrder,
-                }),
-            );
+            dispatch(applySorter(sorter));
         });
     };
 };

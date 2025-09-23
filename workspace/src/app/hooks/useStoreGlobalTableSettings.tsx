@@ -63,10 +63,18 @@ export const useStoreGlobalTableSettings = ({ key }: { key?: string } = {}) => {
                     ...settings,
                 },
             };
-            localStorage.setItem(LOCAL_STORAGE_KEYS.GLOBAL_TABLE_SETTINGS, JSON.stringify(newSettings));
+            const { sortBy: lastSortBy, sortOrder: lastSortOrder } = globalTableSettings[pathname];
             const { sortBy, pageSize, sortOrder } = newSettings[pathname as settingsConfig["path"]];
-            dispatch(workspaceOp.applySorterOp(sortBy!, sortOrder));
-            dispatch(workspaceOp.changeLimitOp(pageSize!));
+            let newSortOrder: SortModifierType = sortOrder || "ASC";
+            if (lastSortBy === sortBy) {
+                newSortOrder = lastSortOrder === "ASC" ? "DESC" : "ASC";
+            }
+            newSettings[pathname].sortOrder = newSortOrder;
+            localStorage.setItem(LOCAL_STORAGE_KEYS.GLOBAL_TABLE_SETTINGS, JSON.stringify(newSettings));
+            batch(() => {
+                dispatch(workspaceOp.applySorterOp({ sortBy: sortBy!, sortOrder: newSortOrder }));
+                dispatch(workspaceOp.changeLimitOp(pageSize!));
+            });
         },
         [getGlobalTableSettings, pathname],
     );

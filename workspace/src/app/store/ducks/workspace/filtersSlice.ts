@@ -35,21 +35,16 @@ export const filtersSlice = createSlice({
         },
 
         applySorter(state, action) {
-            const currentSort = state.sorters.applied;
             const { sortBy, sortOrder } = action.payload;
             let appliedSorter: IAppliedSorterState = {
                 sortBy: "",
                 sortOrder: "",
             };
-
             if (sortBy) {
-                let newSortOrder: SortModifierType = sortOrder || "ASC";
-                if (currentSort.sortBy === sortBy) {
-                    newSortOrder = currentSort.sortOrder === "ASC" ? "DESC" : "ASC";
-                }
                 appliedSorter.sortBy = sortBy;
-                appliedSorter.sortOrder = newSortOrder;
+                appliedSorter.sortOrder = sortOrder;
             }
+            console.log("appliedSorter ==>", appliedSorter);
 
             state.sorters.applied = appliedSorter;
         },

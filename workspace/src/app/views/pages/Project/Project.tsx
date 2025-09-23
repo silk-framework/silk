@@ -81,10 +81,6 @@ const Project = () => {
         };
     }, [qs, projectId]);
 
-    const handleSort = (sortBy: string) => {
-        dispatch(workspaceOp.applySorterOp(sortBy));
-    };
-
     const handleSearch = (textQuery: string) => {
         dispatch(workspaceOp.applyFiltersOp({ textQuery }));
     };
@@ -123,7 +119,6 @@ const Project = () => {
                                     <SearchBar
                                         textQuery={effectiveSearchQuery}
                                         sorters={sorters}
-                                        onSort={handleSort}
                                         onSearch={handleSearch}
                                         onEnter={onEnter}
                                         disableEnterDuringPendingSearch={true}

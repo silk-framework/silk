@@ -119,12 +119,7 @@ const Activities = () => {
         return () => {
             dispatch(clearSearchResults());
         };
-    }, [pagination.limit, sorter?.applied?.sortBy, qs]);
-
-    /** handle sorting */
-    const handleSort = (sortBy: string) => {
-        dispatch(workspaceOp.applySorterOp(sortBy));
-    };
+    }, [pagination.limit, sorter?.applied, qs]);
 
     /** handle search */
     const handleSearch = (textQuery: string) => {
@@ -151,7 +146,6 @@ const Activities = () => {
                                                 focusOnCreation
                                                 textQuery={effectiveSearchQuery}
                                                 sorters={sorters}
-                                                onSort={handleSort}
                                                 onSearch={handleSearch}
                                             />
                                         </div>

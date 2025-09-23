@@ -3,31 +3,24 @@ import { IAppliedSorterState, ISorterListItemState } from "@ducks/workspace/typi
 
 import { ContextMenu, MenuItem } from "@eccenca/gui-elements";
 import { useTranslation } from "react-i18next";
-import { settingsConfig, useStoreGlobalTableSettings } from "../../../hooks/useStoreGlobalTableSettings";
-import { useLocation } from "react-router";
+import { useStoreGlobalTableSettings } from "../../../hooks/useStoreGlobalTableSettings";
 
 interface IProps {
     sortersList: ISorterListItemState[];
     activeSort: IAppliedSorterState;
-
-    onSort(id: string): void;
 }
 
-export default function SortButton({ sortersList, activeSort, onSort }: IProps) {
+export default function SortButton({ sortersList, activeSort }: IProps) {
     const [t] = useTranslation();
-    const location = useLocation();
-    const pathname = location.pathname.split("/").slice(-1)[0] as settingsConfig["path"];
     const { updateGlobalTableSettings } = useStoreGlobalTableSettings();
 
     const handleMenuClick = React.useCallback(
-        (itemId: string) => {
-            onSort(itemId);
+        (itemId: string) =>
             updateGlobalTableSettings({
                 sortBy: itemId,
                 sortOrder: activeSort.sortOrder,
-            });
-        },
-        [pathname],
+            }),
+        [updateGlobalTableSettings],
     );
 
     return (

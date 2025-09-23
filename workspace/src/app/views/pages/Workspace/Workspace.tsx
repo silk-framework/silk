@@ -46,7 +46,7 @@ export function Workspace() {
         return () => {
             dispatch(clearSearchResults());
         };
-    }, [pagination.limit, sorter?.applied?.sortBy, qs]);
+    }, [pagination.limit, sorter?.applied, qs]);
 
     return !isEmptyWorkspace ? (
         <WorkspaceSearch />
