@@ -13,6 +13,7 @@ import { IViewActions } from "../../../plugins/PluginRegistry";
 import { DatasetCharacteristics } from "../../typings";
 import { StickyNote } from "@eccenca/gui-elements";
 import { IPartialAutoCompleteResult } from "@eccenca/gui-elements/src/components/AutoSuggestion/AutoSuggestion";
+import { InitialRuleHighlighting } from "../../../taskViews/transform/transform.types";
 
 /**
  * The rule editor context that contains objects and methods related to the original objects that are being edited and
@@ -90,10 +91,7 @@ export interface RuleEditorContextProps {
     saveInitiallyEnabled: boolean;
     /** Initially highlights the given operator nodes and shows a message explaining why the nodes are highlighted.
      * When the notification is closed the highlighting of the nodes is removed again.  */
-    initialHighlighting?: {
-        message: string;
-        nodeIds: string[];
-    };
+    initialHighlighting?: InitialRuleHighlighting;
 }
 
 /** Creates a rule editor model context that contains the actual rule model and low-level update functions. */

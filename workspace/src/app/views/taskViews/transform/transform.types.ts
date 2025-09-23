@@ -96,10 +96,12 @@ export interface ActualRule {
     saveInitiallyEnabled: boolean;
     /** Initially highlights the given operator nodes and shows a message explaining why the nodes are highlighted.
      * When the notification is closed the highlighting of the nodes is removed again.  */
-    initialHighlighting?: {
-        message: string;
-        nodeIds: string[];
-    };
+    initialHighlighting?: InitialRuleHighlighting;
+}
+
+export interface InitialRuleHighlighting {
+    message: string;
+    nodeIds: string[];
 }
 
 export interface RuleReference {

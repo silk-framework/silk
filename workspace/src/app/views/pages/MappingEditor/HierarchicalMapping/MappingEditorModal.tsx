@@ -3,7 +3,7 @@ import { Button, HtmlContentBlock, IconButton, AlertDialog, SimpleDialog } from 
 import { TransformRuleEditor } from "../../../../views/taskViews/transform/TransformRuleEditor";
 import { useTranslation } from "react-i18next";
 import { IViewActions } from "../../../../views/plugins/PluginRegistry";
-import { RuleParameterType } from "../../../taskViews/transform/transform.types";
+import { InitialRuleHighlighting, RuleParameterType } from "../../../taskViews/transform/transform.types";
 
 export interface MappingEditorProps {
     /** Project ID the task is in. */
@@ -24,10 +24,7 @@ export interface MappingEditorProps {
     viewActions?: IViewActions;
     /** Initially highlights the given operator nodes and shows a message explaining why the nodes are highlighted.
      * When the notification is closed the highlighting of the nodes is removed again.  */
-    initialHighlighting?: {
-        message: string;
-        nodeIds: string[];
-    };
+    initialHighlighting?: InitialRuleHighlighting;
 }
 
 const MappingEditorModal = ({

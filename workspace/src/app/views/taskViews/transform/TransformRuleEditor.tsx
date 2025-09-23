@@ -3,6 +3,7 @@ import useErrorHandler from "../../../hooks/useErrorHandler";
 import {
     ActualRule,
     IComplexMappingRule,
+    InitialRuleHighlighting,
     ITransformRule,
     ITransformTaskParameters,
     NewTransformRule,
@@ -59,10 +60,7 @@ export interface TransformRuleEditorProps {
     additionalToolBarComponents?: () => JSX.Element | JSX.Element[];
     /** Initially highlights the given operator nodes and shows a message explaining why the nodes are highlighted.
      * When the notification is closed the highlighting of the nodes is removed again.  */
-    initialHighlighting?: {
-        message: string;
-        nodeIds: string[];
-    };
+    initialHighlighting?: InitialRuleHighlighting;
 }
 
 /** Editor for creating and changing transform rule operator trees. */

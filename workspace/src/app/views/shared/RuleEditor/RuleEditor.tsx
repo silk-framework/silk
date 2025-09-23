@@ -22,6 +22,7 @@ import { ReactFlowHotkeyContext } from "@eccenca/gui-elements/src/cmem/react-flo
 import { Notification, StickyNote } from "@eccenca/gui-elements";
 import { diErrorMessage } from "@ducks/error/typings";
 import { IPartialAutoCompleteResult } from "@eccenca/gui-elements/src/components/AutoSuggestion/AutoSuggestion";
+import { InitialRuleHighlighting } from "../../taskViews/transform/transform.types";
 
 /** Function to fetch the rule operator spec. */
 export type RuleOperatorFetchFnType = (
@@ -102,10 +103,7 @@ export interface RuleEditorProps<RULE_TYPE, OPERATOR_TYPE> {
     saveInitiallyEnabled: boolean;
     /** Initially highlights the given operator nodes and shows a message explaining why the nodes are highlighted.
      * When the notification is closed the highlighting of the nodes is removed again.  */
-    initialHighlighting?: {
-        message: string;
-        nodeIds: string[];
-    };
+    initialHighlighting?: InitialRuleHighlighting;
 }
 
 const READ_ONLY_QUERY_PARAMETER = "readOnly";
