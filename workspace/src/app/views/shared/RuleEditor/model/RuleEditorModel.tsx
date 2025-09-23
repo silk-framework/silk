@@ -575,7 +575,6 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
             ruleUndoStack.push(ruleModelChanges);
         } else {
             ruleUndoStack.push(ruleModelChanges);
-            console.log("Rule undo stack ==>", ruleUndoStack);
         }
     };
 

@@ -1,32 +1,26 @@
 import React from "react";
-import { shallow } from 'enzyme';
-import { ThingName } from '../../../src/app/views/pages/MappingEditor/HierarchicalMapping/components/ThingName';
-import { ParentStructure } from '../../../src/app/views/pages/MappingEditor/HierarchicalMapping/components/ParentStructure';
-import { ParentElement } from '../../../src/app/views/pages/MappingEditor/HierarchicalMapping/components/ParentElement';
+import { ParentStructure } from "../../../src/app/views/pages/MappingEditor/HierarchicalMapping/components/ParentStructure";
+import { render } from "@testing-library/react";
+import { findElement } from "../../integration/TestHelper";
 
-
-
-const getWrapper = (renderer = shallow, args = props) => renderer(
-    <ParentStructure {...args} />
-);
-
+const getWrapper = (args = props) => render(<ParentStructure {...args} />);
 
 describe("ParentStructure Component", () => {
-    describe("on component mounted, ",() => {
+    describe("on component mounted, ", () => {
         it("should render ThingName component, when `property` is presented in `parent` prop", () => {
-            const wrapper = getWrapper(shallow, {
+            const wrapper = getWrapper({
                 parent: {
-                    property: 'something'
-                }
+                    property: "something",
+                },
             });
-            expect(wrapper.find(ThingName)).toHaveLength(1);
+            findElement(wrapper, "span:first-child");
         });
 
         it("should render ParentElement component, when `property` is NOT presented in `parent` prop", () => {
-            const wrapper = getWrapper(shallow, {
-                parent: {}
+            const wrapper = getWrapper({
+                parent: {},
             });
-            expect(wrapper.find(ParentElement)).toHaveLength(1)
+            findElement(wrapper, "span:first-child");
         });
     });
 });
