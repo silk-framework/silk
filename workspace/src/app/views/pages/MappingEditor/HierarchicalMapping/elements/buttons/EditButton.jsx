@@ -1,5 +1,5 @@
+import { Button } from "@eccenca/gui-elements";
 import React from "react";
-import { Button } from "@eccenca/gui-elements/src/legacy-replacements";
 
 const EditButton = ({ onEdit }) => {
     return (
