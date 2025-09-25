@@ -144,8 +144,17 @@ export const TransformRuleEditor = ({
             };
             if (isReferencedRule) {
                 await putTransformRule(projectId, transformTaskId, (ruleDefinition as RuleReference).ruleId, rule);
+            } else if ((ruleDefinition as ActualRule).saveRule) {
+                await (ruleDefinition as ActualRule).saveRule!(rule);
+            } else if ((ruleDefinition as ActualRule).rule?.id) {
+                await putTransformRule(projectId, transformTaskId, (ruleDefinition as ActualRule).rule.id!, rule);
             } else {
-                await (ruleDefinition as ActualRule).saveRule(rule);
+                const errorMessage = "No ID found to save rule to backend and no alternative save function defined!";
+                console.warn(errorMessage);
+                return {
+                    success: false,
+                    errorMessage: `Internal error: ${errorMessage}`,
+                };
             }
             return {
                 success: true,

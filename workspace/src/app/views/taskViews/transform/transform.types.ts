@@ -90,8 +90,8 @@ export type NewComplexMappingRule = PartialBy<IComplexMappingRule, "id" | "metad
 export interface ActualRule {
     /** The actual rule object that will be loaded into the rule editor. */
     rule: NewTransformRule;
-    /** The alternative save function, since the rule cannot be saved in the backend directly. */
-    saveRule: (updatedRule: NewTransformRule) => void | Promise<void>;
+    /** The alternative save function, since the rule cannot be saved in the backend directly. If no function is given, the normal save function for existing rules is used. */
+    saveRule?: (updatedRule: NewTransformRule) => void | Promise<void>;
     /** Set the rule editor parameter to have the ave button enabled from the beginning. */
     saveInitiallyEnabled: boolean;
     /** Initially highlights the given operator nodes and shows a message explaining why the nodes are highlighted.
