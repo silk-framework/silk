@@ -102,7 +102,7 @@ GET           /projects/:project/resources/:name/usage                          
 GET           /projects/:project/resources/:name/metadata                       controllers.workspace.ResourceApi.getResourceMetadata(project: String, name: String)
 
 # current
-GET           /projects/:project/browse/:path                                   controllers.workspace.ResourceApi.getFileForBrowsing(project: String, path: String)
+GET           /projects/:project/browse/*path                                   controllers.workspace.ResourceApi.getFileForBrowsing(project: String, path: String)
 GET           /projects/:project/files                                          controllers.workspace.ResourceApi.getFileForDownload(project: String, path: String)
 PUT           /projects/:project/files                                          controllers.workspace.ResourceApi.putFile(project: String, path: String)
 DELETE        /projects/:project/files                                          controllers.workspace.ResourceApi.deleteFile(project: String, path: String)
