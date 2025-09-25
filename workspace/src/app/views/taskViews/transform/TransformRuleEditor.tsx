@@ -142,10 +142,10 @@ export const TransformRuleEditor = ({
                     stickyNotes,
                 },
             };
-            if (isReferencedRule) {
+            if (ruleDefinition.alternativeSave) {
+                await ruleDefinition.alternativeSave(rule);
+            } else if (isReferencedRule) {
                 await putTransformRule(projectId, transformTaskId, (ruleDefinition as RuleReference).ruleId, rule);
-            } else if ((ruleDefinition as ActualRule).saveRule) {
-                await (ruleDefinition as ActualRule).saveRule!(rule);
             } else if ((ruleDefinition as ActualRule).rule?.id) {
                 await putTransformRule(projectId, transformTaskId, (ruleDefinition as ActualRule).rule.id!, rule);
             } else {

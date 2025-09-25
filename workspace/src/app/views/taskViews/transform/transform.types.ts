@@ -86,17 +86,11 @@ export interface ITransformTaskParameters {
 export type NewTransformRule = PartialBy<ITransformRule, "id" | "metadata">;
 export type NewComplexMappingRule = PartialBy<IComplexMappingRule, "id" | "metadata">;
 
-// Editor component specific types
-export interface ActualRule {
-    /** The actual rule object that will be loaded into the rule editor. */
-    rule: NewTransformRule;
+// Mapping rule editor parameter types
+
+interface RuleToBeEdited {
     /** The alternative save function, since the rule cannot be saved in the backend directly. If no function is given, the normal save function for existing rules is used. */
-    saveRule?: (updatedRule: NewTransformRule) => void | Promise<void>;
-    /** Set the rule editor parameter to have the ave button enabled from the beginning. */
-    saveInitiallyEnabled: boolean;
-    /** Initially highlights the given operator nodes and shows a message explaining why the nodes are highlighted.
-     * When the notification is closed the highlighting of the nodes is removed again.  */
-    initialHighlighting?: InitialRuleHighlighting;
+    alternativeSave: undefined | ((updatedRule: NewTransformRule) => void | Promise<void>);
 }
 
 export interface InitialRuleHighlighting {
@@ -104,7 +98,18 @@ export interface InitialRuleHighlighting {
     nodeIds: string[];
 }
 
-export interface RuleReference {
+// Editor component specific types
+export interface ActualRule extends RuleToBeEdited {
+    /** The actual rule object that will be loaded into the rule editor. */
+    rule: NewTransformRule;
+    /** Set the rule editor parameter to have the Save button enabled from the beginning. */
+    saveInitiallyEnabled: boolean;
+    /** Initially highlights the given operator nodes and shows a message explaining why the nodes are highlighted.
+     * When the notification is closed the highlighting of the nodes is removed again.  */
+    initialHighlighting?: InitialRuleHighlighting;
+}
+
+export interface RuleReference extends RuleToBeEdited {
     /** The ID of the rule that should be fetched from the backend and loaded into the rule editor. */
     ruleId: string;
 }

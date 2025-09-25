@@ -116,6 +116,7 @@ interface IProps {
     onCancelEdit?: () => any;
     // Called when the rule editor for a specific rule should be opened
     openMappingEditor: (ruleDefinition: RuleParameterType) => void;
+    // The view context the rule form is opened in
     viewActions: IViewActions;
     /** do not use Card around content */
     noCardWrapper?: boolean;
@@ -378,6 +379,7 @@ export function ValueRuleForm(props: IProps) {
         saveRule(false, (ruleId) => {
             props.openMappingEditor({
                 ruleId: ruleId!,
+                alternativeSave: undefined,
             });
         });
     };
