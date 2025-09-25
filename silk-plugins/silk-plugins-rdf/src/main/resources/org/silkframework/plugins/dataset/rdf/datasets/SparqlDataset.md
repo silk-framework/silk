@@ -31,5 +31,5 @@ Other types of RDF datasets are the **in-memory dataset**, the **RDF dataset**. 
 information is short-lived or the dataset is small. A more durable and resilient solution is to use a proper
 **Knowledge Graph**.
 
-The SPARQL dataset plugin can be used in conjunction with the **task** plugins for SPARQL `SELECT`, `UPDATE` and
-`CONSTRUCT` queries, i.e. the plugins `sparqlSelectOperator`, `sparqlUpdateOperator` and `sparqlCopyOperator`.
+The SPARQL dataset plugin can be used in conjunction with the **task** plugins for SPARQL `SELECT` and `CONSTRUCT`
+queries, i.e. the plugins `sparqlSelectOperator` and `sparqlCopyOperator`.
