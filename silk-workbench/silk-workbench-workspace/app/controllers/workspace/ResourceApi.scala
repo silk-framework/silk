@@ -14,6 +14,7 @@ import io.swagger.v3.oas.annotations.parameters.RequestBody
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.tags.Tag
 import io.swagger.v3.oas.annotations.{Operation, Parameter}
+import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.serialization.json.ResourceSerializers
 import org.silkframework.workspace.WorkspaceFactory
@@ -136,6 +137,38 @@ class ResourceApi  @Inject() extends InjectedController with UserContextActions 
   def getResourceMetadata(projectName: String, resourceName: String): Action[AnyContent] = getFileMetadata(projectName, resourceName).apply()
 
   @Operation(
+    summary = "Download resource",
+    description = "Retrieve the contents of a resource as an attachment for download",
+    responses = Array(
+      new ApiResponse(
+        responseCode = "200"
+      ),
+      new ApiResponse(
+        responseCode = "404",
+        description = "If the specified project or resource has not been found."
+      )
+    )
+  )
+  def getFileForDownload(@Parameter(
+                          name = "project",
+                          description = "The project identifier",
+                          required = true,
+                          in = ParameterIn.PATH,
+                          schema = new Schema(implementation = classOf[String])
+                        )
+                        projectName: String,
+                        @Parameter(
+                          name = "path",
+                          description = "The resource path relative to the resource repository",
+                          required = true,
+                          in = ParameterIn.QUERY,
+                          schema = new Schema(implementation = classOf[String])
+                        )
+                        resourceName: String): Action[AnyContent] = UserContextAction { implicit userContext =>
+    getFile(projectName, resourceName, download = true)
+  }
+
+  @Operation(
     summary = "Retrieve resource",
     description = "Retrieve the contents of a resource.",
     responses = Array(
@@ -148,30 +181,40 @@ class ResourceApi  @Inject() extends InjectedController with UserContextActions 
       )
     )
   )
-  def getFile(@Parameter(
-                    name = "project",
-                    description = "The project identifier",
-                    required = true,
-                    in = ParameterIn.PATH,
-                    schema = new Schema(implementation = classOf[String])
-                  )
-                  projectName: String,
-              @Parameter(
-                    name = "path",
-                    description = "The resource path relative to the resource repository",
-                    required = true,
-                    in = ParameterIn.QUERY,
-                    schema = new Schema(implementation = classOf[String])
-                  )
-                  resourceName: String): Action[AnyContent] = UserContextAction { implicit userContext =>
+  def getFileForBrowsing(@Parameter(
+                          name = "project",
+                          description = "The project identifier",
+                          required = true,
+                          in = ParameterIn.PATH,
+                          schema = new Schema(implementation = classOf[String])
+                        )
+                        projectName: String,
+                        @Parameter(
+                          name = "path",
+                          description = "The resource path relative to the resource repository",
+                          required = true,
+                          in = ParameterIn.QUERY,
+                          schema = new Schema(implementation = classOf[String])
+                        )
+                        resourceName: String): Action[AnyContent] = UserContextAction { implicit userContext =>
+    getFile(projectName, resourceName, download = false)
+  }
+
+  private def getFile(projectName: String, resourceName: String, download: Boolean)
+                     (implicit user: UserContext): Result = {
     val project = WorkspaceFactory().workspace.project(projectName)
     val resource = project.resources.get(resourceName, mustExist = true)
     val contentType = Option(URLConnection.guessContentTypeFromName(resourceName))
-    Ok.chunked(StreamConverters.fromInputStream(() => resource.inputStream), contentType).withHeaders("Content-Disposition" -> s"""attachment; filename="${resource.name}"""")
+    val result = Ok.chunked(StreamConverters.fromInputStream(() => resource.inputStream), contentType)
+    if(download) {
+      result.withHeaders("Content-Disposition" -> s"attachment; filename=\"${resource.name}\"")
+    } else {
+      result.withHeaders("Content-Disposition" -> s"inline; filename=\"${resource.name}\"")
+    }
   }
 
   @deprecated("Use files-endpoints instead.")
-  def getResource(projectName: String, resourceName: String): Action[AnyContent] = getFile(projectName, resourceName).apply()
+  def getResource(projectName: String, resourceName: String): Action[AnyContent] = getFileForDownload(projectName, resourceName).apply()
 
   @Operation(
     summary = "Upload resource",
