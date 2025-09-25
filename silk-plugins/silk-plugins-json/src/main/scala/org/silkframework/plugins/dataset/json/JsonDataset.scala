@@ -97,7 +97,7 @@ object JsonDataset {
         SpecialPaths.LINE,
         SpecialPaths.COLUMN,
         SpecialPathInfo(specialPaths.ALL_CHILDREN, Some("Selects all direct children of the entity.")),
-        SpecialPathInfo(specialPaths.ALL_CHILDREN_RECURSIVE, Some("Selects all children nested below the entity at any depth.")),
+        SpecialPathInfo(specialPaths.ALL_CHILDREN_RECURSIVE, Some("Selects all children nested below the entity at any depth. Not supported in streaming mode.")),
         SpecialPathInfo(specialPaths.BACKWARD_PATH, Some("Navigates back to parent object."))
       )
     )
