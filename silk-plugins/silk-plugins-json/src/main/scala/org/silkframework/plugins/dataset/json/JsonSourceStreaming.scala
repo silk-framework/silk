@@ -134,17 +134,11 @@ class JsonSourceStreaming(taskId: Identifier, resource: Resource, basePath: Stri
              JsonToken.VALUE_NUMBER_FLOAT |
              JsonToken.VALUE_FALSE |
              JsonToken.VALUE_TRUE =>
-
           val curSegOpt = currentPathSegment()
           if(curSegOpt.exists(_.property.uri == ALL_CHILDREN_RECURSIVE)) {
-            val (updatedIdx, resultOpt) = handleRecursiveSegment(reader, entityPathSegments, pathSegmentIdx)
-            pathSegmentIdx = updatedIdx
-            resultOpt match {
-              case Some(true) => return true              // Found entity
-              case Some(false) => return false            // No further entity could be found following recursive search
-              case None => // continue scanning
-            }
-          } else if(curSegOpt.forall(segment => segment.property.uri == ALL_CHILDREN || segment.property.uri == reader.currentNameEncoded)) {
+            throw new ValidationException(s"The special path segment '${ALL_CHILDREN_RECURSIVE}' is not supported when streaming JSON. Disable streaming to use this path segment.")
+          }
+          if(curSegOpt.forall(segment => segment.property.uri == ALL_CHILDREN || segment.property.uri == reader.currentNameEncoded)) {
             if(pathSegmentIdx == entityPathSegments.size - 1) {
               // All path segments were matching, found element.
               return true
@@ -167,61 +161,6 @@ class JsonSourceStreaming(taskId: Identifier, resource: Resource, basePath: Stri
     }
     // Document end, no further entity can be found.
     false
-  }
-
-  /**
-    * Handles the logic when the current path segment is a recursive ALL_CHILDREN_RECURSIVE segment.
-    * Returns a tuple of (updatedPathSegmentIdx, resultOpt)
-    *   resultOpt = Some(true)  -> Found entity (parser positioned on the entity start token)
-    *   resultOpt = Some(false) -> No entity found (end condition for caller)
-    *   resultOpt = None        -> Continue outer while loop
-    */
-  private def handleRecursiveSegment(reader: JsonReader,
-                                     entityPathSegments: IndexedSeq[ForwardOperator],
-                                     currentIdx: Int): (Int, Option[Boolean]) = {
-    var pathSegmentIdx = currentIdx
-    // If recursive is the last segment, any descendant matches
-    if(pathSegmentIdx == entityPathSegments.size - 1) {
-      return (pathSegmentIdx, Some(true))
-    }
-
-    // Attempt to match the segment after the recursive operator at any depth
-    val nextSeg = entityPathSegments(pathSegmentIdx + 1)
-
-    // If the next segment is also recursive, just advance and continue
-    if(nextSeg.property.uri == ALL_CHILDREN_RECURSIVE) {
-      pathSegmentIdx += 1
-      reader.nextToken()
-      return (pathSegmentIdx, None)
-    }
-
-    // Scan forward to find a matching token for nextSeg at any depth
-    while(reader.hasCurrentToken) {
-      reader.currentToken match {
-        case JsonToken.START_OBJECT |
-             JsonToken.VALUE_STRING |
-             JsonToken.VALUE_NUMBER_INT |
-             JsonToken.VALUE_NUMBER_FLOAT |
-             JsonToken.VALUE_FALSE |
-             JsonToken.VALUE_TRUE =>
-          if(nextSeg.property.uri == ALL_CHILDREN || nextSeg.property.uri == reader.currentNameEncoded) {
-            pathSegmentIdx += 1 // Move to the matched segment
-            if(pathSegmentIdx == entityPathSegments.size - 1) {
-              return (pathSegmentIdx, Some(true))
-            } else {
-              // Advance to next segment after the matched one and continue traversal
-              pathSegmentIdx += 1
-              reader.nextToken()
-              return (pathSegmentIdx, None)
-            }
-          } else {
-            reader.nextToken()
-          }
-        case _ =>
-          reader.nextToken()
-      }
-    }
-    (pathSegmentIdx, Some(false))
   }
 
   /**
