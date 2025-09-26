@@ -16,7 +16,7 @@
         "watch": "node --openssl-legacy-provider --max_old_space_size=2048 scripts/build-di.dev.js --watch",
         "build-di-dev": "node --openssl-legacy-provider scripts/build-di.dev.js",
         "build-di-prod": "node --openssl-legacy-provider --max_old_space_size=2048 scripts/build-di.prod.js",
-        "test": "DEBUG=jest node scripts/test.js",
+        "test": "node scripts/test.js",
         "test-ci": "export CI=true && node scripts/test.js --coverage --reporters=\"default\" --reporters=\"jest-junit\" --no-colors -ci --silent",
         "sync-trans": "sync-i18n --files 'src/locales/manual/*.json' --primary en --languages de --space 4 -- --check",
         "i18n-parser": "node scripts/i18next-scanner.js",
@@ -100,6 +100,11 @@
         ]
     },
     "jest": {
+        "testEnvironment": "jsdom",
+        "testEnvironmentOptions": {
+            "url": "http://localhost/",
+            "globalsCleanup": "on"
+        },
         "globals": {
             "__DEBUG__": false
         },
@@ -134,13 +139,11 @@
         ],
         "moduleNameMapper": {
             "^react-native$": "react-native-web",
+            "^react-markdown$": "<rootDir>/../../node_modules/react-markdown",
+            "^@eccenca/gui-elements$": "<rootDir>/../../node_modules/@eccenca/gui-elements",
+            "^@eccenca/gui-elements/(.*)$": "<rootDir>/../../node_modules/@eccenca/gui-elements/$1",
             "^.+\\.module\\.(css|sass|scss)$": "identity-obj-proxy",
-            "@ducks(.*)$": "<rootDir>/src/app/store/ducks/$1",
-            "^devlop$": "devlop/lib/default.js",
-            "^unist-util-visit-parents/do-not-use-color$": "unist-util-visit-parents/lib/color.js",
-            "^vfile/do-not-use-conditional-minpath$": "vfile/lib/minpath.browser.js",
-            "^vfile/do-not-use-conditional-minproc$": "vfile/lib/minproc.browser.js",
-            "^vfile/do-not-use-conditional-minurl$": "vfile/lib/minurl.browser.js"
+            "@ducks(.*)$": "<rootDir>/src/app/store/ducks/$1"
         },
         "moduleFileExtensions": [
             "web.js",
@@ -176,11 +179,10 @@
         "@babel/preset-typescript": "^7.27.1",
         "@cyclonedx/webpack-plugin": "^2.0.2",
         "@svgr/webpack": "^8.1.0",
-        "@testing-library/jest-dom": "^5.17.0",
-        "@testing-library/react": "^10.4.9",
+        "@testing-library/jest-dom": "^6.6.4",
+        "@testing-library/react": "^12.1.5",
         "@testing-library/user-event": "^14.6.1",
-        "@types/enzyme": "^3.10.19",
-        "@types/jest": "^26.0.24",
+        "@types/jest": "^30.0.0",
         "@types/ramda": "^0.26.6",
         "@types/react": "^17.0.85",
         "@types/react-dom": "^17.0.8",
@@ -191,7 +193,6 @@
         "@typescript-eslint/eslint-plugin": "^6.21.0",
         "@typescript-eslint/parser": "^6.21.0",
         "@welldone-software/why-did-you-render": "^4.0.5",
-        "@wojtekmaj/enzyme-adapter-react-17": "^0.8.0",
         "babel-eslint": "10.1.0",
         "babel-jest": "^26.6.3",
         "babel-loader": "^8.4.1",
@@ -203,7 +204,6 @@
         "css-loader": "^5.2.7",
         "dotenv": "8.2.0",
         "dotenv-expand": "5.1.0",
-        "enzyme": "^3.11.0",
         "eslint": "^7.32.0",
         "eslint-config-react-app": "^6.0.0",
         "eslint-loader": "^4.0.2",
@@ -221,13 +221,13 @@
         "i18next-json-sync": "^3.1.2",
         "i18next-scanner": "^4.6.0",
         "identity-obj-proxy": "^3.0.0",
-        "jest": "^26.6.3",
-        "jest-environment-jsdom": "^26.6.2",
+        "jest": "^30.0.5",
+        "jest-environment-jsdom": "^30.0.5",
         "jest-junit": "^16.0.0",
         "jest-mock-axios": "^4.8.0",
         "jest-pnp-resolver": "^1.2.3",
         "jest-resolve": "^26.6.2",
-        "jest-watch-typeahead": "^0.5.0",
+        "jest-watch-typeahead": "^3.0.1",
         "jest-websocket-mock": "^2.5.0",
         "lint-staged": "^10.1.7",
         "localforage": "^1.10.0",

@@ -1,19 +1,17 @@
 import React from "react";
-import { shallow, mount } from 'enzyme';
-import DiscardChangesDialog from '../../../src/app/views/pages/MappingEditor/HierarchicalMapping/elements/DiscardChangesDialog';
+import DiscardChangesDialog from "../../../src/app/views/pages/MappingEditor/HierarchicalMapping/elements/DiscardChangesDialog";
+import { render } from "@testing-library/react";
+import { clickFoundElement } from "../../integration/TestHelper";
 
 const handleDiscardCancelMock = jest.fn();
 const handleDiscardConfirmMock = jest.fn();
 const props = {
     numberEditingElements: 2,
     handleDiscardCancel: handleDiscardCancelMock,
-    handleDiscardConfirm: handleDiscardConfirmMock
+    handleDiscardConfirm: handleDiscardConfirmMock,
 };
 
-const getWrapper = (renderer = shallow) => renderer(
-    <DiscardChangesDialog {...props} />
-);
-
+const getWrapper = () => render(<DiscardChangesDialog {...props} />);
 
 const selectors = {
     DISCARD_BUTTON: "button.ecc-hm-accept-discard",
@@ -21,26 +19,24 @@ const selectors = {
 };
 
 describe("DiscardChangesDialog Component", () => {
-
-    describe("on user interaction, ",() => {
-
+    describe("on user interaction, ", () => {
         let wrapper;
         beforeEach(() => {
-            wrapper = getWrapper(mount);
+            wrapper = getWrapper();
         });
 
         it("should handleDiscardConfirm called, when click on Discard button", () => {
-            wrapper.find(selectors.DISCARD_BUTTON).simulate('click');
+            clickFoundElement(wrapper, selectors.DISCARD_BUTTON);
             expect(handleDiscardConfirmMock).toHaveBeenCalled();
         });
 
         it("should handleDiscardCancel called, when click on Cancel button", () => {
-            wrapper.find(selectors.CANCEL_BUTTON).simulate('click');
+            clickFoundElement(wrapper, selectors.CANCEL_BUTTON);
             expect(handleDiscardCancelMock).toHaveBeenCalled();
         });
 
         afterEach(() => {
             wrapper.unmount();
-        })
+        });
     });
 });
