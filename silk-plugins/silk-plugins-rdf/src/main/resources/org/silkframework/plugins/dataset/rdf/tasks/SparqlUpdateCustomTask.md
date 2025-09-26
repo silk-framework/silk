@@ -26,7 +26,7 @@ the dollar sign (`$`), i.e. filling in input values via placeholders in the temp
 
 This will insert the URI serialization of the property value `PROP_FROM_ENTITY_SCHEMA1` for the
 `${<PROP_FROM_ENTITY_SCHEMA1>}` expression.
-Furthermore, it will insert a plain literal serialization for the property values `PROP_FROM_ENTITY_SCHEMA2`and
+Furthermore, it will insert a plain literal serialization for the property values `PROP_FROM_ENTITY_SCHEMA2` and
 `PROP_FROM_ENTITY_SCHEMA3` for the template literal expressions.
 
 It is also possible to write something like `${"PROP"}^^<http://someDatatype>`  or `${"PROP"}@en`. In other words, we
@@ -41,7 +41,7 @@ can combine variable substitutions with fixed expressions to construct semi-flex
   #end
 ```
 
-Input values are accessible via various methods of the `row` variable (used with `$row):
+Input values are accessible via various methods of the `row` variable (used with `$row`):
 
 - `$row.uri(inputPath: String)`: Renders an input value as **URI**. Throws an exception if the value isn't a valid URI.
 - `$row.plainLiteral(inputPath: String)`: Renders an input value as **plain literal**, i.e. it escapes problematic characters, etc.
