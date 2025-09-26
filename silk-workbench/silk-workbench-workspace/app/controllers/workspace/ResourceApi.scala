@@ -193,7 +193,7 @@ class ResourceApi  @Inject() extends InjectedController with UserContextActions 
                           name = "path",
                           description = "The resource path relative to the resource repository",
                           required = true,
-                          in = ParameterIn.QUERY,
+                          in = ParameterIn.PATH,
                           schema = new Schema(implementation = classOf[String])
                         )
                         resourceName: String): Action[AnyContent] = UserContextAction { implicit userContext =>
