@@ -41,17 +41,17 @@ can combine variable substitutions with fixed expressions to construct semi-flex
   #end
 ```
 
-Input values are accessible via various methods of the `row` variable (used in `$row`):
+Input values are accessible via various methods of the `row` variable (used with `$row):
 
-- `uri(inputPath: String)`: Renders an input value as URI. Throws an exception if the value isn't a valid URI.
-- `plainLiteral(inputPath: String)`: Renders an input value as plain literal, i.e. it escapes problematic characters, etc.
-- `rawUnsafe(inputPath: String)`: Renders an input value as is, i.e. no escaping is done. This should **only** be used if the input values can be trusted.
-- `exists(inputPath: String)`: Returns `true` if a value for the input path exists, else `false`.
+- `$row.uri(inputPath: String)`: Renders an input value as **URI**. Throws an exception if the value isn't a valid URI.
+- `$row.plainLiteral(inputPath: String)`: Renders an input value as **plain literal**, i.e. it escapes problematic characters, etc.
+- `$row.rawUnsafe(inputPath: String)`: Renders an input value as is, i.e. **no escaping** is done. This should **only** be used if the input values can be trusted.
+- `$row.exists(inputPath: String)`: Returns `true` if a value for the input path **exists**, else `false`.
 
 The methods `uri`, `plainLiteral` and `rawUnsafe` throw an exception if no input value is available for the given input path.
 
 In addition to input values, properties of the input and output tasks can be accessed via the `inputProperties` and
-`outputProperties` objects in the same way as the row object. For example with `$inputProperties.uri("graph")`.
+`outputProperties` objects in the same way as the `row` object. For example with `$inputProperties.uri("graph")`.
 
 For more information about the Velocity Engine, visit http://velocity.apache.org.
 
