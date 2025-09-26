@@ -12,8 +12,8 @@ import org.silkframework.runtime.plugin.types.SparqlCodeParameter
   label = "SPARQL Update query",
   description =
     "A task that outputs SPARQL Update queries for every entity from the input based on a SPARQL Update template." +
-      " The output of this operator should be connected to the SPARQL datasets to which the results should be written." +
-      " In contrast to the SPARQL select operator, no FROM clause gets injected into the query."
+      " The output of this operator should be connected to the SPARQL datasets to which the results should be written.",
+  documentationFile = "SparqlUpdateCustomTask.md"
 )
 case class SparqlUpdateCustomTask(
   @Param(
