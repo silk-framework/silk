@@ -240,8 +240,6 @@ export const ArtefactFormParameter = ({
                                 supportVariableTemplateElement?.showTemplatePreview ? setTemplateInfoMessage : undefined
                             }
                             allowSensitiveVariables={isPasswordInput}
-                            parameterType={parameterType}
-                            pluginId={pluginId}
                         />
                     ) : (
                         inputElementFactory(valueState.current.inputValueBeforeSwitch, onElementValueChange)
@@ -285,8 +283,6 @@ interface TemplateInputComponentProps {
     projectId?: string;
     /** ID for the input field. */
     parameterId: string;
-    /** ID of this plugin. */
-    pluginId?: string;
     initialValue: string;
     onTemplateValueChange: (any) => any;
     setValidationError: (error?: string) => any;
@@ -297,14 +293,12 @@ interface TemplateInputComponentProps {
     handleTemplateErrors?: (error?: string) => any;
     multiline?: boolean;
     allowSensitiveVariables?: boolean;
-    parameterType?: string;
 }
 
 /** The input component for the template value. */
 export const TemplateInputComponent = memo(
     ({
         parameterId,
-        pluginId,
         initialValue,
         onTemplateValueChange,
         setValidationError,
@@ -313,7 +307,6 @@ export const TemplateInputComponent = memo(
         variableName,
         handleTemplateErrors,
         multiline,
-        parameterType,
         allowSensitiveVariables,
     }: TemplateInputComponentProps) => {
         const modalContext = React.useContext(CreateArtefactModalContext);
