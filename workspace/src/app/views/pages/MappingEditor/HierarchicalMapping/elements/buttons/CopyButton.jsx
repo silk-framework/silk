@@ -6,7 +6,6 @@ const CopyButton = ({ onCopy }) => {
         <Button
             data-test-id={"mapping-rule-copy-btn"}
             className="ecc-silk-mapping__rulesviewer__actionrow-copy"
-            raised
             onClick={onCopy}
         >
             Copy

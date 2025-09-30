@@ -6,7 +6,6 @@ const EditButton = ({ onEdit }) => {
         <Button
             data-test-id={"mapping-rule-edit-btn"}
             className="ecc-silk-mapping__rulesviewer__actionrow-edit"
-            raised
             onClick={onEdit}
         >
             Edit
