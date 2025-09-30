@@ -1,7 +1,7 @@
 import React from "react";
 import { createBrowserHistory, createMemoryHistory, History, LocationState } from "history";
 import { Provider } from "react-redux";
-import { configureStore, getDefaultMiddleware } from "@reduxjs/toolkit";
+import { configureStore } from "@reduxjs/toolkit";
 import rootReducer from "../../src/app/store/reducers";
 import { ConnectedRouter, routerMiddleware } from "connected-react-router";
 import { AxiosMockQueueItem, AxiosMockRequestCriteria, AxiosMockType, HttpResponse } from "jest-mock-axios";
@@ -65,18 +65,13 @@ jest.mock("react-router", () => ({
  */
 export const createStore = (history: History<LocationState>, initialState: RecursivePartial<IStore>) => {
     const root = rootReducer(history);
-    const middleware = [
-        ...getDefaultMiddleware({
-            serializableCheck: false,
-        }),
-        routerMiddleware(history),
-    ];
+    const middleware = [routerMiddleware(history)];
 
     // Get the initial state (defaults) of the store
     // FIXME: Is there a better way to get the initial state of the store?
     const tempStore = configureStore({
         reducer: root,
-        middleware,
+        middleware: (getDefaultMiddleWare) => getDefaultMiddleWare({ serializableCheck: false }).concat(middleware),
     });
 
     const rootState = tempStore.getState();
@@ -85,7 +80,7 @@ export const createStore = (history: History<LocationState>, initialState: Recur
     // Create store with merged state
     return configureStore({
         reducer: root,
-        middleware,
+        middleware: (getDefaultMiddleWare) => getDefaultMiddleWare({ serializableCheck: false }).concat(middleware),
         preloadedState: state,
     });
 };

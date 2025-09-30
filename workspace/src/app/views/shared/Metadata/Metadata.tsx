@@ -40,6 +40,7 @@ import { IMetadataExpanded } from "./Metadatatypings";
 import { Keyword, Keywords } from "@ducks/workspace/typings";
 import { MultiTagSelect } from "../MultiTagSelect";
 import useHotKey from "../HotKeyHandler/HotKeyHandler";
+import { AppDispatch } from "store/configureStore";
 
 export const getDateData = (dateTime: number | string) => {
     const then = new Date(dateTime);
@@ -58,7 +59,7 @@ interface IProps {
 
 export function Metadata(props: IProps) {
     const location = useLocation();
-    const dispatch = useDispatch();
+    const dispatch = useDispatch<AppDispatch>();
     const { registerError } = useErrorHandler();
 
     const _projectId = useSelector(commonSel.currentProjectIdSelector);

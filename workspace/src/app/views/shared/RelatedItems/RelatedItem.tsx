@@ -24,6 +24,7 @@ import { useProjectTaskTabsView } from "../projectTaskTabView/projectTaskTabsVie
 import { projectTagsRenderer } from "../ProjectTags/ProjectTags";
 import { searchTagsRenderer } from "../SearchList/SearchTags";
 import { ArtefactTag } from "../ArtefactTag";
+import { AppDispatch } from "store/configureStore";
 
 interface IProps {
     // The related item to be shown
@@ -34,7 +35,7 @@ interface IProps {
 
 export function RelatedItem({ relatedItem, textQuery }: IProps) {
     const [t] = useTranslation();
-    const dispatch = useDispatch();
+    const dispatch = useDispatch<AppDispatch>();
     const { projectTabView, changeTab, menuItems } = useProjectTaskTabsView({
         srcLinks: relatedItem.itemLinks.slice(1),
         pluginId: relatedItem.pluginId,

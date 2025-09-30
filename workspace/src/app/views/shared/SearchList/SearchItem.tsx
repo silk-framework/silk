@@ -37,6 +37,7 @@ import { wrapTooltip } from "../../../utils/uiUtils";
 import { projectTagsRenderer } from "../ProjectTags/ProjectTags";
 import { searchTagsRenderer } from "./SearchTags";
 import { ArtefactTag } from "../ArtefactTag";
+import { AppDispatch } from "store/configureStore";
 
 interface IProps {
     item: ISearchResultsServer;
@@ -68,7 +69,7 @@ export default function SearchItem({
     parentProjectId,
     toggleShowIdentifierModal,
 }: IProps) {
-    const dispatch = useDispatch();
+    const dispatch = useDispatch<AppDispatch>();
     const exportTypes = useSelector(commonSel.exportTypesSelector);
     const [t] = useTranslation();
     const itemLinks = item.itemLinks ?? [{ path: "", label: "" }];

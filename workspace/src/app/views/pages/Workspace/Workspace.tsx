@@ -9,9 +9,10 @@ import { EmptyWorkspace } from "./EmptyWorkspace/EmptyWorkspace";
 import { commonOp, commonSel } from "@ducks/common";
 import useErrorHandler from "../../../hooks/useErrorHandler";
 import { previewSlice } from "@ducks/workspace/previewSlice";
+import { AppDispatch } from "store/configureStore";
 
 export function Workspace() {
-    const dispatch = useDispatch();
+    const dispatch = useDispatch<AppDispatch>();
     const { registerError } = useErrorHandler();
 
     const error = useSelector(workspaceSel.errorSelector);

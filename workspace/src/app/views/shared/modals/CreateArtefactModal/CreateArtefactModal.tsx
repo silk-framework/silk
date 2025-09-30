@@ -60,6 +60,7 @@ import useHotKey from "../../HotKeyHandler/HotKeyHandler";
 import { CreateArtefactModalContext } from "./CreateArtefactModalContext";
 import { TaskDocumentationModal } from "./TaskDocumentationModal";
 import { PARAMETER_DOC_PREFIX } from "./ArtefactForms/TaskForm";
+import { AppDispatch } from "store/configureStore";
 
 const ignorableFields = new Set(["label", "description"]);
 
@@ -84,7 +85,7 @@ export interface ArtefactDocumentation {
 export function CreateArtefactModal() {
     const MAX_SINGLEPLUGINBUTTONS = 2;
 
-    const dispatch = useDispatch();
+    const dispatch = useDispatch<AppDispatch>();
     const form = useForm();
 
     const [searchValue, setSearchValue] = useState("");

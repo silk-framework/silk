@@ -16,6 +16,7 @@ import CopyToModal from "../modals/CopyToModal/CopyToModal";
 import ShowIdentifierModal from "../modals/ShowIdentifierModal";
 import { SERVE_PATH } from "../../../constants/path";
 import { absoluteProjectPath } from "../../../utils/routerUtils";
+import { AppDispatch } from "store/configureStore";
 
 interface IProps {
     projectId: string;
@@ -34,7 +35,7 @@ export function ArtefactManagementOptions({
     updateActionsMenu,
     notFoundCallback = () => {},
 }: IProps) {
-    const dispatch = useDispatch();
+    const dispatch = useDispatch<AppDispatch>();
     const location = useLocation<any>();
     const [t] = useTranslation();
     const [deleteModalOpen, setDeleteModalOpen] = useState(false);

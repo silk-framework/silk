@@ -26,6 +26,7 @@ import { failedTaskParameters, fixFailedTask } from "./TaskLoadingError.requests
 import { AlternativeTaskUpdateFunction } from "@ducks/common/typings";
 import { FixTaskDataNotFoundModal } from "./FixTaskDataNotFoundModal";
 import { TaskParameterValues } from "./TaskLoadingError.typing";
+import { AppDispatch } from "store/configureStore";
 
 interface Props {
     refreshProjectPage: () => any;
@@ -33,7 +34,7 @@ interface Props {
 /** Displays the task loading errors for a project, i.e. tasks that could not be loaded/initialized. */
 export const ProjectTaskLoadingErrors = ({ refreshProjectPage }: Props) => {
     const { registerErrorI18N } = useErrorHandler();
-    const dispatch = useDispatch();
+    const dispatch = useDispatch<AppDispatch>();
     const projectId = useSelector(commonSel.currentProjectIdSelector);
     const warningList = useSelector(workspaceSel.warningListSelector);
     const { cachedArtefactProperties } = useSelector(commonSel.artefactModalSelector);

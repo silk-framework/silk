@@ -30,10 +30,11 @@ import { useTranslation } from "react-i18next";
 import { FileRemoveModal } from "../../../shared/modals/FileRemoveModal";
 import { CONTEXT_PATH } from "../../../../constants/path";
 import { fileValue } from "@ducks/shared/typings";
+import { AppDispatch } from "store/configureStore";
 
 /** Project file management widget. */
 export const FileWidget = () => {
-    const dispatch = useDispatch();
+    const dispatch = useDispatch<AppDispatch>();
 
     const filesList = useSelector(workspaceSel.filesListSelector);
     const fileWidget = useSelector(workspaceSel.widgetsSelector).files;
@@ -130,7 +131,7 @@ export const FileWidget = () => {
                                             {filesList
                                                 .slice(
                                                     (pagination.current - 1) * pagination.limit,
-                                                    pagination.current * pagination.limit
+                                                    pagination.current * pagination.limit,
                                                 )
                                                 .map((file) => (
                                                     <TableRow key={file.id}>
@@ -168,7 +169,7 @@ export const FileWidget = () => {
                                                                     text={t("common.action.download")}
                                                                     small
                                                                     href={`${CONTEXT_PATH}/workspace/projects/${projectId}/files?path=${encodeURIComponent(
-                                                                        fileValue(file)
+                                                                        fileValue(file),
                                                                     )}`}
                                                                 />
                                                                 <IconButton

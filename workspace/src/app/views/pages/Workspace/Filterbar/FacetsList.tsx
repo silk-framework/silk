@@ -6,10 +6,11 @@ import FacetItem from "./FacetItem";
 import { Button, ClassNames, Spacing, TitleSubsection, Label } from "@eccenca/gui-elements";
 import { useTranslation } from "react-i18next";
 import { useLocation } from "react-router";
+import { AppDispatch } from "store/configureStore";
 
 /** List of filter facets used to re-fine search results. */
 export default function FacetsList({ projectId }: { projectId?: string }) {
-    const dispatch = useDispatch();
+    const dispatch = useDispatch<AppDispatch>();
     const [t] = useTranslation();
 
     const facets = useSelector(workspaceSel.facetsSelector);
@@ -95,7 +96,7 @@ export default function FacetsList({ projectId }: { projectId?: string }) {
                                                     <span className={ClassNames.Typography.FORCELINEBREAK}>
                                                         {t(
                                                             `widget.FacetsList.facet.${facet.id}.valueLabels.${val.id}`,
-                                                            val.label
+                                                            val.label,
                                                         )}
                                                     </span>
                                                     <span> ({val.count})</span>

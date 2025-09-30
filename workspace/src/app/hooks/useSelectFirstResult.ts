@@ -5,9 +5,10 @@ import { IPageLabels } from "@ducks/router/operations";
 import { workspaceOp, workspaceSel } from "@ducks/workspace";
 import { DATA_TYPES } from "../constants";
 import { batch, useDispatch, useSelector } from "react-redux";
+import { AppDispatch } from "store/configureStore";
 
 export const useSelectFirstResult = () => {
-    const dispatch = useDispatch();
+    const dispatch = useDispatch<AppDispatch>();
     const data = useSelector(workspaceSel.resultsSelector);
     const dataArrayRef = React.useRef(data);
     const enabled = React.useRef(true);

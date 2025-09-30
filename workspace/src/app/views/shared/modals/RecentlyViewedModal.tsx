@@ -36,6 +36,7 @@ import { uppercaseFirstChar } from "../../../utils/transformers";
 import { projectTagsRenderer } from "../ProjectTags/ProjectTags";
 import { searchTagsRenderer } from "../SearchList/SearchTags";
 import { ArtefactTag } from "../ArtefactTag";
+import { AppDispatch } from "store/configureStore";
 
 /** Shows the recently viewed items a user has visited. Also allows to trigger a workspace search. */
 export function RecentlyViewedModal() {
@@ -50,7 +51,7 @@ export function RecentlyViewedModal() {
     // Current path name
     const { pathname } = useLocation();
     const { t } = useTranslation();
-    const dispatch = useDispatch();
+    const dispatch = useDispatch<AppDispatch>();
     const { hotKeys } = useSelector(commonSel.initialSettingsSelector);
     const loadRecentItems = async () => {
         setError(null);
@@ -124,7 +125,7 @@ export function RecentlyViewedModal() {
         item: IRecentlyViewedItem,
         query: string,
         modifiers: SuggestFieldItemRendererModifierProps,
-        handleSelectClick: () => any
+        handleSelectClick: () => any,
     ) => {
         console.log("quick search item", item);
         const label = item.taskLabel || item.taskId || item.projectLabel || item.projectId;
@@ -218,7 +219,7 @@ export function RecentlyViewedModal() {
     // Displays the 'search in workspace' option in the list.
     const createNewItemRenderer = suggestFieldUtils.createNewItemRendererFactory(
         (query) => t("RecentlyViewedModal.globalSearch", { query }),
-        "operation-search"
+        "operation-search",
     );
 
     // The auto-completion of the recently viewed items

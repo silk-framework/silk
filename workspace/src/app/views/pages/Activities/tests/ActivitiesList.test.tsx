@@ -1,7 +1,7 @@
 import React from "react";
 import "@testing-library/jest-dom";
 import { render as rtlRender } from "@testing-library/react";
-import { configureStore } from "@reduxjs/toolkit";
+import { combineReducers, configureStore } from "@reduxjs/toolkit";
 import { Provider } from "react-redux";
 import workspaceReducer from "../../../../store/ducks/workspace";
 import ActivityList, { nonStartableActivitiesBlacklist } from "../ActivityList";
@@ -46,11 +46,15 @@ const dummyState = {
     },
 };
 
+const rootReducer = combineReducers({
+    workspace: workspaceReducer,
+});
+
 const render = (
     ui: React.JSX.Element,
     {
         store = configureStore({
-            reducer: { workspace: workspaceReducer },
+            reducer: rootReducer,
             preloadedState: {
                 ...(dummyState as any),
             },
