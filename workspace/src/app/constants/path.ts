@@ -30,7 +30,7 @@ export const isDevelopment = process.env.NODE_ENV !== "production";
 
 export const isTestEnv = process.env.NODE_ENV === "test";
 
-export const API_ENDPOINT = process.env.API_ENDPOINT;
+export const API_ENDPOINT = process.env.API_ENDPOINT ?? "/api";
 
 export const AUTH_ENDPOINT = HOST + "/oauth/authorize";
 

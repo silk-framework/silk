@@ -103,8 +103,9 @@ trait GraphStoreTrait {
     ConnectionClosingOutputStream(connection, userContext, errorHandler)
   }
 
-  def deleteGraph(graph: String)
-                 (implicit userContext: UserContext): Unit = {
+  def deleteGraph(graph: String,
+                 ignoreIfNotExists: Boolean = false)
+                (implicit userContext: UserContext): Unit = {
     log.fine(s"Deleting graph '$graph' from Graph Store")
     var tries = 0
     var success = false
@@ -113,12 +114,17 @@ trait GraphStoreTrait {
       GraphStoreTrait.handleTimeoutErrors(defaultTimeouts.readTimeoutMs, s"Deleting graph '$graph' has failed: ") {
         val connection = initConnection(graph)
         connection.setRequestMethod("DELETE")
-        success = connection.getResponseCode / 100 == 2
+        val responseCode = connection.getResponseCode
+        success = responseCode / 100 == 2
         if (!success) {
-          if (tries == 1 && connection.getResponseCode == UNAUTHORIZED) {
+          if (ignoreIfNotExists && responseCode == 404) {
+            log.fine(s"Graph $graph does not exist and cannot be deleted. Ignoring as requested.")
+            return
+          }
+          if (tries == 1 && responseCode == UNAUTHORIZED) {
             handleAuthenticationError(userContext)
             log.fine(s"Request to delete graph $graph has been successful.")
-          } else if (connection.getResponseCode / 100 == 5) {
+          } else if (responseCode / 100 == 5) {
             // Try again on server error
           } else {
             handleError(connection, s"Could not delete graph $graph!")
