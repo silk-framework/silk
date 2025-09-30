@@ -29,10 +29,10 @@ export interface ViewActionsTaskContext {
     // The task context
     context: TaskContext;
     /** Additional suffix that is shown in the tab title for views that support a task context. */
-    taskViewSuffix?: (taskContext: TaskContext) => JSX.Element | undefined;
+    taskViewSuffix?: (taskContext: TaskContext) => React.JSX.Element | undefined;
     /** A notification shown in the tab view regarding the task context, e.g. a warning. */
     taskContextNotification?: (
-        taskContext: TaskContext
+        taskContext: TaskContext,
     ) => Promise<TaskContextNotification[] | undefined> | TaskContextNotification[] | undefined;
 }
 
@@ -48,7 +48,12 @@ export interface IProjectTaskView {
     // The label that should be shown to the user
     label: string;
     // Function that renders the view
-    render: (projectId: string, taskId: string, viewActions?: IViewActions, startInFullScreen?: boolean) => JSX.Element;
+    render: (
+        projectId: string,
+        taskId: string,
+        viewActions?: IViewActions,
+        startInFullScreen?: boolean,
+    ) => React.JSX.Element;
     /** The query parameters to get from other tabs or propagate to other tabs. */
     queryParametersToKeep?: string[];
     /** Specifies the task context support for this view, e.g. that it uses the information given with the task context. */
@@ -71,7 +76,7 @@ export interface IPluginComponent<I> {
     // The label that should be shown to the user
     label: string;
     // Function that renders the view
-    Component: (params: I) => JSX.Element;
+    Component: (params: I) => React.JSX.Element;
 }
 
 class PluginRegistry {
@@ -91,7 +96,7 @@ class PluginRegistry {
             views.push(view);
         } else {
             console.warn(
-                `Trying to register project task plugin view '${view.id}' that already exists in the registry for plugin '${pluginId}'!`
+                `Trying to register project task plugin view '${view.id}' that already exists in the registry for plugin '${pluginId}'!`,
             );
         }
     }
@@ -100,7 +105,7 @@ class PluginRegistry {
     public registerReactPluginComponent<I = never>(pluginComponent: IPluginComponent<I>) {
         if (this.pluginReactComponents.has(pluginComponent.id)) {
             console.warn(
-                `Trying to register a React plugin component with ID '${pluginComponent.id}' that already exists in the React plugin component registry!`
+                `Trying to register a React plugin component with ID '${pluginComponent.id}' that already exists in the React plugin component registry!`,
             );
         } else {
             this.pluginReactComponents.set(pluginComponent.id, pluginComponent);
@@ -111,7 +116,7 @@ class PluginRegistry {
     public registerPluginComponent<I extends object = never>(pluginId: string, plugin: I) {
         if (this.pluginComponents.has(pluginId)) {
             console.warn(
-                `Trying to register a plugin component with ID '${pluginId}' that already exists in the plugin component registry!`
+                `Trying to register a plugin component with ID '${pluginId}' that already exists in the plugin component registry!`,
             );
         } else {
             this.pluginComponents.set(pluginId, plugin);

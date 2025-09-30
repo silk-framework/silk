@@ -92,14 +92,14 @@ export const ProjectTaskLoadingErrors = ({ refreshProjectPage }: Props) => {
         taskId,
         parameterData,
         variableTemplateData,
-        dataParameters
+        dataParameters,
     ) => {
         await fixFailedTask(
             projectId,
             taskId,
             parameterData as TaskParameterValues,
             variableTemplateData as TaskParameterValues,
-            dataParameters
+            dataParameters,
         );
         // Update warning list and project page
         fetchWarningList();
@@ -138,7 +138,7 @@ export const ProjectTaskLoadingErrors = ({ refreshProjectPage }: Props) => {
                     // FIXME: Add label to failedTaskData in order to display task label
                     alternativeTitle: t("widget.WarningWidget.fixTaskModalTitle", { taskLabel: taskLabel }),
                     alternativeUpdateFunction: fixTask,
-                })
+                }),
             );
         } catch (ex) {
             if (ex.httpStatus === 404 || ex.status === 404) {
@@ -174,7 +174,7 @@ export const ProjectTaskLoadingErrors = ({ refreshProjectPage }: Props) => {
                 <CardContent>
                     <ul>
                         {warningList.map((warn, id) => {
-                            const actions: JSX.Element[] = projectId
+                            const actions: React.JSX.Element[] = projectId
                                 ? [
                                       <FixTaskButton
                                           text={t("widget.WarningWidget.fixTask")}

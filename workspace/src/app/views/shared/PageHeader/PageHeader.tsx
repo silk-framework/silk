@@ -31,7 +31,7 @@ interface IPageHeaderContentBasicProps extends React.HTMLAttributes<HTMLDivEleme
     autogenerateBreadcrumbs?: boolean;
     pageTitle?: string;
     autogeneratePageTitle?: boolean;
-    actionsMenu?: JSX.Element;
+    actionsMenu?: React.JSX.Element;
 }
 
 /*
@@ -196,7 +196,7 @@ export function usePageHeader({ ...propsHeader }: IPageHeaderContentBasicProps) 
         updateBreadcrumbsExtensions: (update) => {
             updatePageHeader({ breadcrumbsExtensions: update, autogenerateBreadcrumbs: true });
         },
-        updateActionsMenu: (update: JSX.Element) => {
+        updateActionsMenu: (update: React.JSX.Element) => {
             updatePageHeader({ actionsMenu: update });
         },
         updatePageHeader,

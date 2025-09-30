@@ -22,7 +22,7 @@ interface IProps {
     // If the task ID is set then this is a task else a project
     taskId?: string;
     itemType: string;
-    updateActionsMenu: (actionMenu: JSX.Element) => any;
+    updateActionsMenu: (actionMenu: React.JSX.Element) => any;
     // Called with true when the item links endpoint returns a 404
     notFoundCallback?: (boolean) => any;
 }

@@ -47,7 +47,7 @@ const dummyState = {
 };
 
 const render = (
-    ui: JSX.Element,
+    ui: React.JSX.Element,
     {
         store = configureStore({
             reducer: { workspace: workspaceReducer },

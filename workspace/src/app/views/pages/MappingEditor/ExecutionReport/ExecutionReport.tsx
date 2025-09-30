@@ -69,7 +69,7 @@ export const ExecutionReport = ({ executionReport, executionMetaData, trackRuleI
             title = t("ExecutionReport.defaultTitle");
         }
 
-        let executionMetaDataPairs: JSX.Element[] = [];
+        let executionMetaDataPairs: React.JSX.Element[] = [];
         if (executionMetaData != null) {
             executionMetaDataPairs = executionMetaDataPairs.concat([
                 <PropertyValuePair hasDivider key="queuedAt">
@@ -110,7 +110,7 @@ export const ExecutionReport = ({ executionReport, executionMetaData, trackRuleI
                     <PropertyValuePair hasDivider key="cancelledAt">
                         <PropertyName className="silk-report-table-bold">Cancelled at</PropertyName>
                         <PropertyValue>{executionMetaData.cancelledAt}</PropertyValue>
-                    </PropertyValuePair>
+                    </PropertyValuePair>,
                 );
             }
             if (executionMetaData.cancelledBy != null) {
@@ -118,7 +118,7 @@ export const ExecutionReport = ({ executionReport, executionMetaData, trackRuleI
                     <PropertyValuePair hasDivider key="cancelledBy">
                         <PropertyName className="silk-report-table-bold">Cancelled by</PropertyName>
                         <PropertyValue>{executionMetaData.cancelledBy}</PropertyValue>
-                    </PropertyValuePair>
+                    </PropertyValuePair>,
                 );
             }
         }
@@ -200,7 +200,7 @@ export const ExecutionReport = ({ executionReport, executionMetaData, trackRuleI
             if (rules.typeRules != null) {
                 m.set(
                     rule.id,
-                    rules.typeRules.map((r) => ({ id: r.id, typeRuleId: r.typeUri }))
+                    rules.typeRules.map((r) => ({ id: r.id, typeRuleId: r.typeUri })),
                 );
             }
             if (rules.propertyRules != null) {
@@ -329,7 +329,7 @@ export const ExecutionReport = ({ executionReport, executionMetaData, trackRuleI
         // Check type rules
         const typeRulesOfRule = typeRulesPerContainerRule.get(ruleId) ?? [];
         typeRulesWithIssues = typeRulesOfRule.filter(
-            (typeRuleId) => ruleValidation && ruleValidation[typeRuleId.id] === "warning"
+            (typeRuleId) => ruleValidation && ruleValidation[typeRuleId.id] === "warning",
         );
         return (
             <Section className="ecc-silk-mapping__treenav">

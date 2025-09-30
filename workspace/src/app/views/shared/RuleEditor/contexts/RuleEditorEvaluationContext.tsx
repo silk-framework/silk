@@ -20,7 +20,7 @@ export interface RuleEditorEvaluationContextProps {
     startEvaluation: (ruleOperatorNodes: IRuleOperatorNode[], originalTask: any, quickEvaluationOnly: boolean) => void;
 
     /** Creates the evaluation component for a single operator node. */
-    createRuleEditorEvaluationComponent: (ruleOperatorId: string) => JSX.Element;
+    createRuleEditorEvaluationComponent: (ruleOperatorId: string) => React.JSX.Element;
 
     /** If the evaluation is currently running. */
     evaluationRunning: boolean;
@@ -94,5 +94,5 @@ export interface RuleEditorEvaluationCallbackContextProps {
 }
 
 export const RuleEditorEvaluationCallbackContext = React.createContext<RuleEditorEvaluationCallbackContextProps>({
-    enableErrorModal: NOP
-})
+    enableErrorModal: NOP,
+});

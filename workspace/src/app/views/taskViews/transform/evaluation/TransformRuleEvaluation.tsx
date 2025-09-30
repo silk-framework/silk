@@ -48,18 +48,18 @@ export const TransformRuleEvaluation: React.FC<TransformRuleEvaluationProps> = (
     const [evaluationResultMap] = React.useState<Map<string, EvaluationResultType>>(new Map());
     const [evaluationResultsShown, setEvaluationResultsShown] = React.useState<boolean>(false);
     const [nodeUpdateCallbacks] = React.useState(
-        new Map<string, (evaluationValues: EvaluationResultType | undefined) => any>()
+        new Map<string, (evaluationValues: EvaluationResultType | undefined) => any>(),
     );
     const [ruleValidationError, setRuleValidationError] = React.useState<RuleValidationError | undefined>(undefined);
     const [validationNotifications, setValidationNotifications] = React.useState<RuleEditorEvaluationNotification[]>(
-        []
+        [],
     );
     const { registerError, registerErrorI18N } = useErrorHandler();
     const [t] = useTranslation();
     const taskContextWarningShown = React.useRef(false);
     const mappingEditorContext = React.useContext(GlobalMappingEditorContext);
     // The root node of the sub-tree that will be evaluated
-    const evaluatedSubTreeNode = React.useRef<string>();
+    const evaluatedSubTreeNode = React.useRef<string>(undefined);
     const [evaluationError, setEvaluationError] = React.useState<string | undefined>();
 
     const addValidationNotification = React.useCallback((n: RuleEditorEvaluationNotification) => {
@@ -105,7 +105,7 @@ export const TransformRuleEvaluation: React.FC<TransformRuleEvaluationProps> = (
     };
 
     const fetchTransformRuleEvaluation: (
-        rule: IComplexMappingRule
+        rule: IComplexMappingRule,
     ) => Promise<EvaluatedTransformEntity[] | undefined> = async (rule: IComplexMappingRule) => {
         try {
             const result = await evaluateTransformRule(
@@ -113,7 +113,7 @@ export const TransformRuleEvaluation: React.FC<TransformRuleEvaluationProps> = (
                 transformTaskId,
                 containerRuleId,
                 rule,
-                numberOfLinkToShow
+                numberOfLinkToShow,
             );
             return result.data;
         } catch (ex) {
@@ -143,7 +143,7 @@ export const TransformRuleEvaluation: React.FC<TransformRuleEvaluationProps> = (
     const startEvaluation = async (
         _ruleOperatorNodes: IRuleOperatorNode[],
         originalRule: any,
-        quickEvaluationOnly: boolean = false
+        quickEvaluationOnly: boolean = false,
     ) => {
         setEvaluationRunning(true);
         setRuleValidationError(undefined);
@@ -178,7 +178,7 @@ export const TransformRuleEvaluation: React.FC<TransformRuleEvaluationProps> = (
                     "TransformRuleEvaluation.startEvaluation",
                     t("taskViews.linkRulesEditor.errors.startEvaluation.msg"),
                     ex,
-                    { errorNotificationInstanceId: RULE_EDITOR_NOTIFICATION_INSTANCE }
+                    { errorNotificationInstanceId: RULE_EDITOR_NOTIFICATION_INSTANCE },
                 );
             } else if (ex.isRuleValidationError) {
                 setRuleValidationError(ex);
@@ -187,7 +187,7 @@ export const TransformRuleEvaluation: React.FC<TransformRuleEvaluationProps> = (
                     "LinkingRuleEvaluation.beforeStartEvaluation",
                     t("taskViews.linkRulesEditor.errors.beforeStartEvaluation.msg"),
                     ex,
-                    { errorNotificationInstanceId: RULE_EDITOR_NOTIFICATION_INSTANCE }
+                    { errorNotificationInstanceId: RULE_EDITOR_NOTIFICATION_INSTANCE },
                 );
             }
         } finally {
@@ -216,14 +216,14 @@ export const TransformRuleEvaluation: React.FC<TransformRuleEvaluationProps> = (
     /** Called by a rule operator node to register for evaluation updates. */
     const registerForEvaluationResults = (
         ruleOperatorId: string,
-        evaluationUpdate: (evaluationValues: EvaluationResultType | undefined) => void
+        evaluationUpdate: (evaluationValues: EvaluationResultType | undefined) => void,
     ) => {
         nodeUpdateCallbacks.set(ruleOperatorId, evaluationUpdate);
         evaluationUpdate(evaluationResultMap.get(ruleOperatorId));
     };
 
     /** Factory method used by the rule editor to create an evaluation element. */
-    const createRuleEditorEvaluationComponent = (ruleOperatorId: string): JSX.Element => {
+    const createRuleEditorEvaluationComponent = (ruleOperatorId: string): React.JSX.Element => {
         return (
             <LinkRuleNodeEvaluation
                 ruleOperatorId={ruleOperatorId}

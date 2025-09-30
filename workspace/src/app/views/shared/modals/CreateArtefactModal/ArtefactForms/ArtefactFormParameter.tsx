@@ -42,11 +42,11 @@ interface Props {
         initialValueReplace?: string,
         onChange?: (value: string) => any,
         showRareActions?: (show: boolean) => any,
-    ) => JSX.Element;
+    ) => React.JSX.Element;
     // If the parameter is disabled
     disabled?: boolean;
     // Is displayed between label and input element.
-    helperText?: string | JSX.Element;
+    helperText?: string | React.JSX.Element;
     // Tooltip to display
     tooltip?: string;
     /* If defined, the parameter supports variable templates that gets their values set in the backend with variable substitution.

@@ -76,6 +76,7 @@ describe("Rule editor model", () => {
         stickyNotes: StickyNote[] = [],
     ) => {
         modelContext = undefined;
+        const Provider: React.FC<{ children: React.JSX.Element }> = ReactFlowProvider;
         const ruleModel = renderWrapper(
             <RuleEditorContext.Provider
                 value={{
@@ -98,11 +99,11 @@ describe("Rule editor model", () => {
                     partialAutoCompletion: () => async () => undefined,
                 }}
             >
-                <ReactFlowProvider>
+                <Provider>
                     <RuleEditorModel>
                         <RuleEditorModelTestComponent />
                     </RuleEditorModel>
-                </ReactFlowProvider>
+                </Provider>
             </RuleEditorContext.Provider>,
         );
         await waitFor(() => {

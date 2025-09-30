@@ -102,7 +102,7 @@ export type RecursivePartial<T> = {
 export const withRender = (component) => render(component);
 
 export const renderWrapper = (
-    ui: JSX.Element,
+    ui: React.JSX.Element,
     history: History<LocationState> = createBrowserHistory<LocationState>(),
     initialState: RecursivePartial<IStore> = {},
     options = {},

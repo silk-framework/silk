@@ -28,7 +28,11 @@ const RuleTypes = ({ rule, ...otherProps }) => {
                 // add language tag if available
                 appendText = ` (${appendText})`;
             }
-            let dataTypeLabel: string | JSX.Element = _.get(rule, "mappingTarget.valueType.nodeType", <NotAvailable />);
+            let dataTypeLabel: string | React.JSX.Element = _.get(
+                rule,
+                "mappingTarget.valueType.nodeType",
+                <NotAvailable />,
+            );
             if (typeof dataTypeLabel === "string") {
                 const label = mappingEditorContext.valueTypeLabels.get(dataTypeLabel);
                 if (label) {

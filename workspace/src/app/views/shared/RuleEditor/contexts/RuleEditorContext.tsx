@@ -60,7 +60,7 @@ export interface RuleEditorContextProps {
     /** If set to true the editor will be in read-only mode and cannot be set into edit mode. */
     readOnlyMode?: boolean;
     /** Additional components that will be placed in the tool bar left to the save button. */
-    additionalToolBarComponents?: () => JSX.Element | JSX.Element[];
+    additionalToolBarComponents?: () => React.JSX.Element | React.JSX.Element[];
     /** The last save result. */
     lastSaveResult?: RuleSaveResult;
     /** UI annotation sticky notes */

@@ -8,12 +8,10 @@ export interface ConnectionAvailableProps {
     /**
      * Action buttons (or other content) displayed when the connection element is hovered.
      */
-    actions: JSX.Element;
+    actions: React.JSX.Element;
 }
 
-const ConnectionAvailable = ({
-    actions,
-}: ConnectionAvailableProps) => {
+const ConnectionAvailable = ({ actions }: ConnectionAvailableProps) => {
     return (
         <Toolbar style={{ height: "100%" }} noWrap>
             <ToolbarSection canGrow={true}>

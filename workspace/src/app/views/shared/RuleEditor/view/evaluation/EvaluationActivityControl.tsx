@@ -55,7 +55,7 @@ export const EvaluationActivityControl = ({
         label: <strong>{t("RuleEditor.evaluation.scoreWidget.title")}</strong>,
         statusMessage: t("RuleEditor.evaluation.scoreWidget.notStarted"),
     } as ActivityControlWidgetProps;
-    let EvaluationTooltip = ({ children }: { children: JSX.Element }): JSX.Element => children;
+    let EvaluationTooltip = ({ children }: { children: React.JSX.Element }): React.JSX.Element => children;
 
     if (score) {
         const allEvaluatedTrue = score.truePositives + score.falsePositives;

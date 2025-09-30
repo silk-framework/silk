@@ -218,7 +218,7 @@ export function ProjectImportModal({ close, back, maxFileUploadSizeBytes }: IPro
             attachFileNameToEndpoint={false}
         />
     );
-    const actions: JSX.Element[] = [];
+    const actions: React.JSX.Element[] = [];
     if (projectImportDetails) {
         if (!projectImportDetails.errorMessage && !projectImportDetails.projectAlreadyExists) {
             actions.push(
