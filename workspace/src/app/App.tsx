@@ -20,7 +20,7 @@ export default function App({ externalRoutes, routes }: IProps) {
         dispatch(commonOp.fetchExportTypesAsync());
     }, [commonOp]);
     return (
-        <ConnectedRouter history={getHistory()} context={ReactReduxContext as any}>
+        <ConnectedRouter history={getHistory()}>
             <RouterOutlet routes={routes} />
         </ConnectedRouter>
     );

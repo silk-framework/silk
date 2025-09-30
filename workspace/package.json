@@ -264,6 +264,7 @@
     "resolutions": {
         "**/minimist": "^1.2.8",
         "sanitize.css": "12.0.1",
-        "**/url-parse": "1.5.9"
+        "**/url-parse": "1.5.9",
+        "react-redux": "^9.1.2"
     }
 }

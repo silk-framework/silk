@@ -47,6 +47,8 @@ const getExtraReducers = (builder: ActionReducerMapBuilder<WritableDraft<ICommon
             updatedState.currentTaskId = undefined;
             updatedState.currentProjectId = undefined;
         }
+
+        return updatedState;
     });
 };
 
