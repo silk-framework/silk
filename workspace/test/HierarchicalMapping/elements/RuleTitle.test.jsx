@@ -1,70 +1,77 @@
 import React from "react";
-import { shallow } from 'enzyme';
-import RuleTitle from '../../../src/app/views/pages/MappingEditor/HierarchicalMapping/elements/RuleTitle';
-import { NotAvailable } from 'gui-elements-deprecated';
-import { ThingName } from '../../../src/app/views/pages/MappingEditor/HierarchicalMapping/components/ThingName';
+import RuleTitle from "../../../src/app/views/pages/MappingEditor/HierarchicalMapping/elements/RuleTitle";
+import { render } from "@testing-library/react";
+import { findAllDOMElements, findElement } from "../../integration/TestHelper";
 
-const getWrapper = (renderer = shallow, props = {}) => renderer(
-    <RuleTitle {...props} />
-);
+const getWrapper = (props = {}) => render(<RuleTitle {...props} />);
 
 describe("RuleTitle Component", () => {
     describe("on components mounted ", () => {
-        it('should return label, when `metadata.label` presented', () => {
-            const wrapper = getWrapper(shallow, {
+        it("should return label, when `metadata.label` presented", () => {
+            const wrapper = getWrapper({
                 rule: {
                     metadata: {
-                        label: 'Something'
-                    }
-                }
+                        label: "Something",
+                    },
+                },
             });
-            expect(wrapper.find('span').text()).toEqual('Something');
+            expect(findElement(wrapper, "span").textContent).toEqual("Something");
         });
 
-        describe('should return <ThingName />', () => {
+        describe("should return <ThingName />", () => {
             let wrapper;
 
             const rule = {
-                type: 'object',
+                type: "object",
                 mappingTarget: {
-                    uri: 'ANOTHER_URI'
-                }
+                    uri: "ANOTHER_URI",
+                },
             };
 
             beforeEach(() => {
-                wrapper = getWrapper(shallow, {
-                    rule
+                wrapper = getWrapper({
+                    rule,
                 });
             });
 
-            it('when `rule.type` equal to `root` and uri presented', () => {
-                const wrapper = getWrapper(shallow, {
+            it("when `rule.type` equal to `root` and uri presented", () => {
+                const wrapper = getWrapper({
                     rule: {
-                        type: 'root',
+                        type: "root",
                         rules: {
-                            typeRules: [{
-                                typeUri: 'simple_uri'
-                            }]
-                        }
-                    }
+                            typeRules: [
+                                {
+                                    typeUri: "simple_uri",
+                                },
+                            ],
+                        },
+                    },
                 });
-                expect(wrapper.find(ThingName)).toHaveLength(1);
+                findElement(wrapper, "span.ecc-silk-mapping__uriinfo");
             });
 
-            it('when `rule.type` equal to `object` and uri presented', () => {
-                expect(wrapper.find(ThingName)).toHaveLength(1);
+            it("when `rule.type` equal to `object` and uri presented", () => {
+                findElement(wrapper, "span.ecc-silk-mapping__uriinfo");
             });
 
-            it('when `rule.type` equal to `direct` and uri presented', () => {
-                rule.type = 'direct';
-                wrapper.setProps({rule});
-                expect(wrapper.find(ThingName)).toHaveLength(1);
+            it("when `rule.type` equal to `direct` and uri presented", () => {
+                wrapper = getWrapper({
+                    rule: {
+                        ...rule,
+                        type: "direct",
+                    },
+                });
+                findElement(wrapper, "span.ecc-silk-mapping__uriinfo");
             });
 
-            it('when `rule.type` equal to `complex` and uri presented', () => {
-                rule.type = 'complex';
-                wrapper.setProps({rule});
-                expect(wrapper.find(ThingName)).toHaveLength(1);
+            it("when `rule.type` equal to `complex` and uri presented", () => {
+                wrapper = getWrapper({
+                    rule: {
+                        ...rule,
+                        type: "complex",
+                    },
+                });
+                findElement(wrapper, "span.ecc-silk-mapping__uriinfo");
             });
 
             afterEach(() => {
@@ -72,58 +79,68 @@ describe("RuleTitle Component", () => {
             });
         });
 
-        describe('should return <NotAvailable />', () => {
-            it('when `type` property missing in rule arg', () => {
-                const wrapper = getWrapper(shallow, {
-                    rule: {}
+        describe("should return <NotAvailable />", () => {
+            it("when `type` property missing in rule arg", () => {
+                const wrapper = getWrapper({
+                    rule: {},
                 });
-                expect(wrapper.find(NotAvailable)).toHaveLength(1);
+                expect(findAllDOMElements(wrapper, "[class*='__notavailable']").length).toBeGreaterThan(0);
             });
 
-            it('when `rule.type` equal to `root` and uri NOT presented', () => {
-                const wrapper = getWrapper(shallow, {
+            it("when `rule.type` equal to `root` and uri NOT presented", () => {
+                const wrapper = getWrapper({
                     rule: {
-                        type: 'root',
+                        type: "root",
                         rules: {
-                            typeRules: [{
-                                typeUri: ''
-                            }]
-                        }
-                    }
+                            typeRules: [
+                                {
+                                    typeUri: "",
+                                },
+                            ],
+                        },
+                    },
                 });
-                expect(wrapper.find('span').text()).toEqual('Mapping');
+                expect(findElement(wrapper, "span").textContent).toEqual("Mapping");
             });
 
-            describe('when uri not presented ', () => {
+            describe("when uri not presented ", () => {
                 let wrapper;
 
                 const rule = {
-                    type: 'object',
+                    type: "object",
                     mappingTarget: {
-                        uri: ''
-                    }
+                        uri: "",
+                    },
                 };
 
                 beforeEach(() => {
-                    wrapper = getWrapper(shallow, {
-                        rule
+                    wrapper = getWrapper({
+                        rule,
                     });
                 });
 
-                it('and `rule.type` equal to `object` ', () => {
-                    expect(wrapper.find(NotAvailable)).toHaveLength(1);
+                it("and `rule.type` equal to `object` ", () => {
+                    expect(findAllDOMElements(wrapper, "[class*='__notavailable']").length).toBeGreaterThan(0);
                 });
 
-                it('and `rule.type` equal to `direct`', () => {
-                    rule.type = 'direct';
-                    wrapper.setProps({rule});
-                    expect(wrapper.find(NotAvailable)).toHaveLength(1);
+                it("and `rule.type` equal to `direct`", () => {
+                    wrapper = getWrapper({
+                        rule: {
+                            ...rule,
+                            type: "direct",
+                        },
+                    });
+                    expect(findAllDOMElements(wrapper, "[class*='__notavailable']").length).toBeGreaterThan(0);
                 });
 
-                it('and `rule.type` equal to `complex` ', () => {
-                    rule.type = 'complex';
-                    wrapper.setProps({rule});
-                    expect(wrapper.find(NotAvailable)).toHaveLength(1);
+                it("and `rule.type` equal to `complex` ", () => {
+                    wrapper = getWrapper({
+                        rule: {
+                            ...rule,
+                            type: "complex",
+                        },
+                    });
+                    expect(findAllDOMElements(wrapper, "[class*='__notavailable']").length).toBeGreaterThan(0);
                 });
 
                 afterEach(() => {

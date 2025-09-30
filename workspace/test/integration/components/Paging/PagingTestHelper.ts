@@ -1,12 +1,12 @@
-import { clickWrapperElement, findAll } from "../../TestHelper";
-import { ReactWrapper } from "enzyme";
+import { RenderResult } from "@testing-library/react";
+import { clickRenderedElement, findAllDOMElements } from "../../TestHelper";
 
 /** Clicks the "next" button of a paging element.
  *
  * @param wrapper The element the paging component is contained in.
  */
-export const clickNextPageButton = (wrapper: ReactWrapper<any, any>) => {
-    const navButtons = findAll(wrapper, ".cds--pagination__right button");
+export const clickNextPageButton = (wrapper: RenderResult) => {
+    const navButtons = findAllDOMElements(wrapper, ".cds--pagination__right button");
     expect(navButtons).toHaveLength(2);
-    clickWrapperElement(navButtons[1]);
+    clickRenderedElement(navButtons[1]);
 };
