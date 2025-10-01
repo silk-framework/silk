@@ -21,9 +21,10 @@ import SearchBar from "../../shared/SearchBar";
 import { usePageHeader } from "../../shared/PageHeader/PageHeader";
 import Filterbar from "./Filterbar";
 import { useSelectFirstResult } from "../../../hooks/useSelectFirstResult";
+import { AppDispatch } from "store/configureStore";
 
 const WorkspaceSearch = () => {
-    const dispatch = useDispatch();
+    const dispatch = useDispatch<AppDispatch>();
     const [t] = useTranslation();
 
     const { textQuery } = useSelector(workspaceSel.appliedFiltersSelector);

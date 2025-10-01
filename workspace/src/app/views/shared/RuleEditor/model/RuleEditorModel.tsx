@@ -63,7 +63,7 @@ import { copyToClipboard } from "../../../../utils/copyToClipboard";
 
 export interface RuleEditorModelProps {
     /** The children that work on this rule model. */
-    children: JSX.Element | JSX.Element[];
+    children: React.JSX.Element | React.JSX.Element[];
 }
 
 // Object to denote transaction boundaries between change operations

@@ -26,6 +26,7 @@ import { failedTaskParameters, fixFailedTask } from "./TaskLoadingError.requests
 import { AlternativeTaskUpdateFunction } from "@ducks/common/typings";
 import { FixTaskDataNotFoundModal } from "./FixTaskDataNotFoundModal";
 import { TaskParameterValues } from "./TaskLoadingError.typing";
+import { AppDispatch } from "store/configureStore";
 
 interface Props {
     refreshProjectPage: () => any;
@@ -33,7 +34,7 @@ interface Props {
 /** Displays the task loading errors for a project, i.e. tasks that could not be loaded/initialized. */
 export const ProjectTaskLoadingErrors = ({ refreshProjectPage }: Props) => {
     const { registerErrorI18N } = useErrorHandler();
-    const dispatch = useDispatch();
+    const dispatch = useDispatch<AppDispatch>();
     const projectId = useSelector(commonSel.currentProjectIdSelector);
     const warningList = useSelector(workspaceSel.warningListSelector);
     const { cachedArtefactProperties } = useSelector(commonSel.artefactModalSelector);
@@ -92,14 +93,14 @@ export const ProjectTaskLoadingErrors = ({ refreshProjectPage }: Props) => {
         taskId,
         parameterData,
         variableTemplateData,
-        dataParameters
+        dataParameters,
     ) => {
         await fixFailedTask(
             projectId,
             taskId,
             parameterData as TaskParameterValues,
             variableTemplateData as TaskParameterValues,
-            dataParameters
+            dataParameters,
         );
         // Update warning list and project page
         fetchWarningList();
@@ -138,7 +139,7 @@ export const ProjectTaskLoadingErrors = ({ refreshProjectPage }: Props) => {
                     // FIXME: Add label to failedTaskData in order to display task label
                     alternativeTitle: t("widget.WarningWidget.fixTaskModalTitle", { taskLabel: taskLabel }),
                     alternativeUpdateFunction: fixTask,
-                })
+                }),
             );
         } catch (ex) {
             if (ex.httpStatus === 404 || ex.status === 404) {
@@ -174,7 +175,7 @@ export const ProjectTaskLoadingErrors = ({ refreshProjectPage }: Props) => {
                 <CardContent>
                     <ul>
                         {warningList.map((warn, id) => {
-                            const actions: JSX.Element[] = projectId
+                            const actions: React.JSX.Element[] = projectId
                                 ? [
                                       <FixTaskButton
                                           text={t("widget.WarningWidget.fixTask")}

@@ -84,7 +84,7 @@ export const ObjectRuleForm = (props: IProps) => {
         }
     };
     const [targetEntityType, setTargetEntityType] = useState<(string | { value: string })[]>(
-        _modifiedValues.current.targetEntityType
+        _modifiedValues.current.targetEntityType,
     );
     // Used for setting a new URI pattern from the existing URI pattern selection
     const [initialUriPattern, setInitialUriPattern] = useState<string>((props.ruleData as any).pattern ?? "");
@@ -106,8 +106,8 @@ export const ObjectRuleForm = (props: IProps) => {
 
     const distinctUriPatterns = Array.from(
         new Map(
-            uriPatternSuggestions.filter((p) => p.value !== (modifiedValues() as any).pattern).map((p) => [p.value, p])
-        ).values()
+            uriPatternSuggestions.filter((p) => p.value !== (modifiedValues() as any).pattern).map((p) => [p.value, p]),
+        ).values(),
     );
     const currentUriPatterns = React.useRef<IUriPattern[]>([]);
     currentUriPatterns.current = distinctUriPatterns;
@@ -207,7 +207,7 @@ export const ObjectRuleForm = (props: IProps) => {
                 pattern: modifiedValues().uriRule?.type === MAPPING_RULE_TYPE_URI && !uriPattern ? null : uriPattern,
                 entityConnection: modifiedValues().entityConnection === "to",
             },
-            true
+            true,
         ).subscribe(
             () => {
                 if (props.onAddNewRule) {
@@ -221,7 +221,7 @@ export const ObjectRuleForm = (props: IProps) => {
             (err) => {
                 setSaveObjectError(err.response.body);
                 setLoading(false);
-            }
+            },
         );
     };
 
@@ -317,7 +317,7 @@ export const ObjectRuleForm = (props: IProps) => {
                         parentId ? parentId : MAPPING_ROOT_RULE_ID,
                         input,
                         cursorPosition,
-                        modifiedValues().sourceProperty
+                        modifiedValues().sourceProperty,
                     )
                 }
                 onFocusChange={setUriPatternInputHasFocus}
@@ -326,7 +326,7 @@ export const ObjectRuleForm = (props: IProps) => {
                 reInitOnInitialValueChange={true}
             />
         ),
-        [initialUriPattern, uriPatternSelector]
+        [initialUriPattern, uriPatternSelector],
     );
 
     if (loading) {
@@ -345,10 +345,10 @@ export const ObjectRuleForm = (props: IProps) => {
         </>
     );
 
-    let targetPropertyInput: JSX.Element | undefined = undefined;
-    let targetCardinality: JSX.Element | undefined = undefined;
-    let entityRelationInput: JSX.Element | undefined = undefined;
-    let sourcePropertyInput: JSX.Element | undefined = undefined;
+    let targetPropertyInput: React.JSX.Element | undefined = undefined;
+    let targetCardinality: React.JSX.Element | undefined = undefined;
+    let entityRelationInput: React.JSX.Element | undefined = undefined;
+    let sourcePropertyInput: React.JSX.Element | undefined = undefined;
 
     targetCardinality = (
         <TargetCardinality
@@ -394,8 +394,8 @@ export const ObjectRuleForm = (props: IProps) => {
             initialValues.sourceProperty == null
                 ? ""
                 : typeof initialValues.sourceProperty === "string"
-                ? initialValues.sourceProperty
-                : initialValues.sourceProperty.value;
+                  ? initialValues.sourceProperty
+                  : initialValues.sourceProperty.value;
         sourcePropertyInput = (
             <CodeAutocompleteField
                 id={"object-value-path-auto-suggestion"}
@@ -416,7 +416,7 @@ export const ObjectRuleForm = (props: IProps) => {
         );
     }
 
-    let patternInput: JSX.Element | undefined;
+    let patternInput: React.JSX.Element | undefined;
 
     // URI pattern
     if (!id || modifiedValues().uriRuleType === "uri") {
@@ -453,7 +453,7 @@ export const ObjectRuleForm = (props: IProps) => {
         );
     }
 
-    let previewExamples: null | JSX.Element = null;
+    let previewExamples: null | React.JSX.Element = null;
     const noUriRule = !modifiedValues().uriRule || modifiedValues().uriRule.type === MAPPING_RULE_TYPE_URI;
     const noUriPattern = !modifiedValues().pattern;
 
@@ -479,8 +479,8 @@ export const ObjectRuleForm = (props: IProps) => {
         const ruleType = modifiedValues().pattern
             ? MAPPING_RULE_TYPE_URI
             : modifiedValues().uriRule
-            ? modifiedValues().uriRule.type
-            : MAPPING_RULE_TYPE_URI;
+              ? modifiedValues().uriRule.type
+              : MAPPING_RULE_TYPE_URI;
         previewExamples = (
             <ExampleView
                 id={parentId || MAPPING_ROOT_RULE_ID}

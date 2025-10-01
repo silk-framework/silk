@@ -144,10 +144,10 @@ export const ParameterWidget = (props: IProps) => {
             : undefined;
 
     const detailedDocumentationAvailable = parameterCallbacks.namedAnchors.includes(formParamId);
-    let propertyHelperText: JSX.Element | undefined = undefined;
+    let propertyHelperText: React.JSX.Element | undefined = undefined;
     if ((description && description.length > MAXLENGTH_TOOLTIP) || detailedDocumentationAvailable) {
-        let parameterDescription: JSX.Element = <Markdown>{description}</Markdown>;
-        let detailedLink: JSX.Element | undefined = undefined;
+        let parameterDescription: React.JSX.Element = <Markdown>{description}</Markdown>;
+        let detailedLink: React.JSX.Element | undefined = undefined;
         if (detailedDocumentationAvailable) {
             detailedLink = (
                 <Link

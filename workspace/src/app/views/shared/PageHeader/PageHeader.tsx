@@ -19,6 +19,7 @@ import { APPLICATION_CORPORATION_NAME, APPLICATION_SUITE_NAME } from "../../../c
 import { fetchBreadcrumbs } from "./breadcrumbsHelper";
 import ItemDepiction from "../ItemDepiction";
 import { convertTaskTypeToItemType, TaskType } from "@ducks/shared/typings";
+import { AppDispatch } from "store/configureStore";
 
 interface IPageHeaderContentBasicProps extends React.HTMLAttributes<HTMLDivElement> {
     /** Optional type of the page item. Can be an ItemType. */
@@ -31,7 +32,7 @@ interface IPageHeaderContentBasicProps extends React.HTMLAttributes<HTMLDivEleme
     autogenerateBreadcrumbs?: boolean;
     pageTitle?: string;
     autogeneratePageTitle?: boolean;
-    actionsMenu?: JSX.Element;
+    actionsMenu?: React.JSX.Element;
 }
 
 /*
@@ -87,7 +88,7 @@ function PageHeaderContent({
     autogeneratePageTitle = false,
     actionsMenu,
 }: IPageHeaderContentBasicProps) {
-    const dispatch = useDispatch();
+    const dispatch = useDispatch<AppDispatch>();
 
     const handleBreadcrumbItemClick = React.useCallback((itemUrl, e) => {
         e.preventDefault();
@@ -196,7 +197,7 @@ export function usePageHeader({ ...propsHeader }: IPageHeaderContentBasicProps) 
         updateBreadcrumbsExtensions: (update) => {
             updatePageHeader({ breadcrumbsExtensions: update, autogenerateBreadcrumbs: true });
         },
-        updateActionsMenu: (update: JSX.Element) => {
+        updateActionsMenu: (update: React.JSX.Element) => {
             updatePageHeader({ actionsMenu: update });
         },
         updatePageHeader,

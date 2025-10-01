@@ -48,7 +48,7 @@ const VariablesWidget: React.FC<VariableWidgetProps> = ({ projectId, taskId }) =
     const checkAndDisplayDeletionError = useModalError({ setError: setDeleteError });
     const [dropChangeLoading, setDropChangeLoading] = React.useState<boolean>(false);
     const [dependencies, setVariableDependencies] = React.useState<VariableDependencies>();
-    const [errorNotification, setErrorNotification] = React.useState<JSX.Element | null>(null);
+    const [errorNotification, setErrorNotification] = React.useState<React.JSX.Element | null>(null);
     const [t] = useTranslation();
 
     const variableHasDependencies = dependencies?.dependentTasks.length || dependencies?.dependentVariables.length;
@@ -68,7 +68,7 @@ const VariablesWidget: React.FC<VariableWidgetProps> = ({ projectId, taskId }) =
         })();
     }, [refetch, projectId]);
 
-    const handleModalOpen = React.useCallback((variable = undefined) => {
+    const handleModalOpen = React.useCallback((variable: Variable | undefined = undefined) => {
         setSelectedVariable(variable);
         setErrorNotification(null);
         setModalOpen(true);
@@ -84,7 +84,7 @@ const VariablesWidget: React.FC<VariableWidgetProps> = ({ projectId, taskId }) =
         } catch (err) {
             checkAndDisplayDeletionError(
                 err,
-                t("widget.VariableWidget.errorMessages.dependencyRetrievalFailure", "Failed to retrieve variable")
+                t("widget.VariableWidget.errorMessages.dependencyRetrievalFailure", "Failed to retrieve variable"),
             );
         }
     }, []);
@@ -103,7 +103,7 @@ const VariablesWidget: React.FC<VariableWidgetProps> = ({ projectId, taskId }) =
         } catch (err) {
             checkAndDisplayDeletionError(
                 err,
-                t("widget.VariableWidget.errorMessages.variableDeletionFailure", "Failed to delete variable")
+                t("widget.VariableWidget.errorMessages.variableDeletionFailure", "Failed to delete variable"),
             );
         } finally {
             setIsDeleting(false);
@@ -133,7 +133,7 @@ const VariablesWidget: React.FC<VariableWidgetProps> = ({ projectId, taskId }) =
                 setDropChangeLoading(true);
                 const res = await reorderVariablesRequest(
                     projectId,
-                    reorderedVariables.map((v) => v.name)
+                    reorderedVariables.map((v) => v.name),
                 );
                 if (res.axiosResponse.status === 200) {
                     setVariables(reorderedVariables);
@@ -150,7 +150,7 @@ const VariablesWidget: React.FC<VariableWidgetProps> = ({ projectId, taskId }) =
                 setDropChangeLoading(false);
             }
         },
-        [variables]
+        [variables],
     );
 
     const renderDeleteVariable = React.useCallback(() => {
@@ -310,7 +310,7 @@ const VariablesWidget: React.FC<VariableWidgetProps> = ({ projectId, taskId }) =
                                                                                     data-test-id="template-variable-delimiter"
                                                                                     tooltipText={
                                                                                         t(
-                                                                                            "widget.TaskConfigWidget.templateValueInfo"
+                                                                                            "widget.TaskConfigWidget.templateValueInfo",
                                                                                         ) +
                                                                                         `\n\n\`\`\`${variable.template}\`\`\``
                                                                                     }

@@ -9,7 +9,7 @@ interface IProps {
     query?: string;
 }
 
-export const projectTagsRenderer = (props: IProps): JSX.Element[] => {
+export const projectTagsRenderer = (props: IProps): React.JSX.Element[] => {
     const { tags = [], query = "" } = props;
     return metadataUtils.sortTags(tags.slice()).map((t, i) => (
         <Tag emphasis="weaker" key={i} className="diapp-projecttags__tag">

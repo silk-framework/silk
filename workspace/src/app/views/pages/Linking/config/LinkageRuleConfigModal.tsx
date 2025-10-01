@@ -18,7 +18,7 @@ export const LinkageRuleConfigModal = ({ onClose, parameters, submit }: IProps) 
     const [t] = useTranslation();
     const [parameterDiff] = useState<Map<string, string>>(new Map());
     const [changed, setChanged] = useState(false);
-    const [requestError, setRequestError] = useState<JSX.Element | undefined>(undefined);
+    const [requestError, setRequestError] = useState<React.JSX.Element | undefined>(undefined);
     const [errorCount, setErrorCount] = useState(0);
     const initialParameters = new Map(parameters.map((p) => [p.id, p]));
     const [errors] = useState(new Map<string, string>());
@@ -45,8 +45,8 @@ export const LinkageRuleConfigModal = ({ onClose, parameters, submit }: IProps) 
             forParameter: string,
             autoCompleteRequest: (
                 textQuery: string,
-                limit: number
-            ) => Promise<FetchResponse<IAutocompleteDefaultResponse[]>>
+                limit: number,
+            ) => Promise<FetchResponse<IAutocompleteDefaultResponse[]>>,
         ) =>
         async (textQuery: string) => {
             try {
@@ -58,7 +58,7 @@ export const LinkageRuleConfigModal = ({ onClose, parameters, submit }: IProps) 
                         warning
                     >
                         Auto-completion request has failed. Cannot suggest values for '${forParameter}' parameter.
-                    </Notification>
+                    </Notification>,
                 );
                 return [];
             }
@@ -113,7 +113,7 @@ export const LinkageRuleConfigModal = ({ onClose, parameters, submit }: IProps) 
                 "LinkageRuleConfig-save-config",
                 t("widget.LinkingRuleConfigWidget.saveError"),
                 ex,
-                { errorNotificationInstanceId: "_none_" }
+                { errorNotificationInstanceId: "_none_" },
             );
             setRequestError(errorWidget || undefined);
         }

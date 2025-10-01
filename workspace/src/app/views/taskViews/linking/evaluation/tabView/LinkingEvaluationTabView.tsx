@@ -85,7 +85,7 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
     const [t] = useTranslation();
     const errorHandler = useErrorHandler();
     const commonSel = useSelector(workspaceSel.commonSelector);
-    const evaluationResults = React.useRef<LinkRuleEvaluationResult | undefined>();
+    const evaluationResults = React.useRef<LinkRuleEvaluationResult | undefined>(undefined);
     const [pagination, paginationElement, onTotalChange] = usePagination({
         pageSizes,
         initialPageSize: 20,
@@ -108,7 +108,6 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
     const hasRenderedBefore = useFirstRender();
     const [showReferenceLinks, setShowReferenceLinks] = React.useState<boolean>(() => {
         const show = new URLSearchParams(window.location.search).get("showReferenceLinks");
-        console.log({ show });
         return Boolean(show);
     });
     const [showImportLinkModal, setShowImportLinkModal] = React.useState<boolean>(false);

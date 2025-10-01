@@ -16,13 +16,14 @@ import CopyToModal from "../modals/CopyToModal/CopyToModal";
 import ShowIdentifierModal from "../modals/ShowIdentifierModal";
 import { SERVE_PATH } from "../../../constants/path";
 import { absoluteProjectPath } from "../../../utils/routerUtils";
+import { AppDispatch } from "store/configureStore";
 
 interface IProps {
     projectId: string;
     // If the task ID is set then this is a task else a project
     taskId?: string;
     itemType: string;
-    updateActionsMenu: (actionMenu: JSX.Element) => any;
+    updateActionsMenu: (actionMenu: React.JSX.Element) => any;
     // Called with true when the item links endpoint returns a 404
     notFoundCallback?: (boolean) => any;
 }
@@ -34,7 +35,7 @@ export function ArtefactManagementOptions({
     updateActionsMenu,
     notFoundCallback = () => {},
 }: IProps) {
-    const dispatch = useDispatch();
+    const dispatch = useDispatch<AppDispatch>();
     const location = useLocation<any>();
     const [t] = useTranslation();
     const [deleteModalOpen, setDeleteModalOpen] = useState(false);

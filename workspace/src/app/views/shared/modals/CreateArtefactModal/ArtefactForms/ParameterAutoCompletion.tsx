@@ -74,7 +74,6 @@ type StringOrReifiedValue = IAutocompleteDefaultResponse | string;
 
 const AUTOCOMPLETION_LIMIT = 100;
 
-
 /** Component for parameter auto-completion. */
 export const ParameterAutoCompletion = ({
     paramId,
@@ -278,7 +277,7 @@ export const labelAndOrValueItemRenderer = (
     query: string,
     modifiers: SuggestFieldItemRendererModifierProps,
     handleSelectClick: () => any,
-): JSX.Element | string => {
+): React.JSX.Element | string => {
     const labelValueKindOfSame =
         (autoCompleteResponse.label ?? "").toLowerCase() === autoCompleteResponse.value.toLowerCase();
     const showLabel = autoCompleteResponse.label && !labelValueKindOfSame;

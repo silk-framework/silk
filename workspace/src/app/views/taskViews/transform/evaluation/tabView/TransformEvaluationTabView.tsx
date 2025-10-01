@@ -38,7 +38,7 @@ const TransformEvaluationTabView: React.FC<TransformEvaluationTabViewProps> = ({
     startFullScreen,
     viewActions,
 }) => {
-    const evaluatedEntityResults = React.useRef<EvaluatedRuleEntityResult | undefined>();
+    const evaluatedEntityResults = React.useRef<EvaluatedRuleEntityResult | undefined>(undefined);
     const [allRowsExpanded, setAllRowsExpanded] = React.useState<boolean>(false);
     const [loading, setLoading] = React.useState<boolean>(false);
     const [currentRuleId, setCurrentRuleId] = React.useState<string>(() => {

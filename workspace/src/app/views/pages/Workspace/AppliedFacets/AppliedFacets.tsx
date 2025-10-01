@@ -3,10 +3,11 @@ import { useDispatch, useSelector } from "react-redux";
 import { workspaceOp, workspaceSel } from "@ducks/workspace";
 import { IFacetState } from "@ducks/workspace/typings";
 import { Spacing, Tag, TagList } from "@eccenca/gui-elements";
+import { AppDispatch } from "store/configureStore";
 
 /** The currently active search filter facets represented as tags. Clicking a tag removes the facet. */
 export function AppliedFacets() {
-    const dispatch = useDispatch();
+    const dispatch = useDispatch<AppDispatch>();
 
     const facets = useSelector(workspaceSel.facetsSelector);
     const appliedFacets = useSelector(workspaceSel.appliedFacetsSelector);

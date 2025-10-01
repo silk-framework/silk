@@ -72,7 +72,7 @@ export interface RuleEditorProps<RULE_TYPE, OPERATOR_TYPE> {
     /** Tabs that allow to show different rule operators or only a subset. */
     tabs?: (IRuleSideBarFilterTabConfig | IRuleSidebarPreConfiguredOperatorsTabConfig)[];
     /** Additional components that will be placed in the tool bar left to the save button. */
-    additionalToolBarComponents?: () => JSX.Element | JSX.Element[];
+    additionalToolBarComponents?: () => React.JSX.Element | React.JSX.Element[];
     /** parent configuration to extract stickyNote from taskData*/
     getStickyNotes?: (taskData: RULE_TYPE | undefined) => StickyNote[];
     /** When enabled only the rule is shown without side- and toolbar and any other means to edit the rule. */
@@ -309,13 +309,14 @@ const RuleEditor = <TASK_TYPE extends object, OPERATOR_TYPE extends object>({
     );
 };
 
+const Provider: React.FC<{ children: React.JSX.Element }> = ReactFlowProvider;
 const WrappedRuleEditor = <RULE_TYPE extends object, OPERATOR_TYPE extends object>(
     props: RuleEditorProps<RULE_TYPE, OPERATOR_TYPE>,
 ) => (
     <ErrorBoundary>
-        <ReactFlowProvider>
+        <Provider>
             <RuleEditor<RULE_TYPE, OPERATOR_TYPE> {...props} />
-        </ReactFlowProvider>
+        </Provider>
     </ErrorBoundary>
 );
 

@@ -151,7 +151,7 @@ export const LinkingEvaluationRow = React.memo(
         );
 
         // Returns an icon element that warns the user that the entity has no values at all
-        const emptyEntityWarning = (values?: Record<string, string[]>): JSX.Element | null => {
+        const emptyEntityWarning = (values?: Record<string, string[]>): React.JSX.Element | null => {
             if (!values) {
                 return null;
             }
@@ -360,7 +360,7 @@ export const LinkingEvaluationRow = React.memo(
                                 +{(evaluationMap.get(id)?.value || []).length - cutAfter}
                             </Tag>
                         ) : null;
-                    let exampleValues: JSX.Element[] = [];
+                    let exampleValues: React.JSX.Element[] = [];
 
                     if (!evaluationMap.get(id)?.value.length) {
                         exampleValues = [

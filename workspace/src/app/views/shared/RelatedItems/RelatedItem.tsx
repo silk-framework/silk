@@ -24,6 +24,7 @@ import { useProjectTaskTabsView } from "../projectTaskTabView/projectTaskTabsVie
 import { projectTagsRenderer } from "../ProjectTags/ProjectTags";
 import { searchTagsRenderer } from "../SearchList/SearchTags";
 import { ArtefactTag } from "../ArtefactTag";
+import { AppDispatch } from "store/configureStore";
 
 interface IProps {
     // The related item to be shown
@@ -34,7 +35,7 @@ interface IProps {
 
 export function RelatedItem({ relatedItem, textQuery }: IProps) {
     const [t] = useTranslation();
-    const dispatch = useDispatch();
+    const dispatch = useDispatch<AppDispatch>();
     const { projectTabView, changeTab, menuItems } = useProjectTaskTabsView({
         srcLinks: relatedItem.itemLinks.slice(1),
         pluginId: relatedItem.pluginId,
@@ -51,7 +52,7 @@ export function RelatedItem({ relatedItem, textQuery }: IProps) {
                 routerOp.goToPage(relatedItem.itemLinks[0].path, {
                     taskLabel: relatedItem.label,
                     itemType: relatedItem.type.toLowerCase(),
-                })
+                }),
             );
         }
     };
@@ -75,25 +76,25 @@ export function RelatedItem({ relatedItem, textQuery }: IProps) {
     ));
 
     const contextMenuItems = [otherMenuItems[0], ...menuItems, ...otherMenuItems.slice(1)];
-    const itemTags = [] as JSX.Element[];
+    const itemTags = [] as React.JSX.Element[];
     if (relatedItem.type === "Dataset") {
         itemTags.push(
             <ArtefactTag key={"dataset"} artefactType="datasetNode">
                 <Highlighter label={relatedItem.type} searchValue={textQuery} />
-            </ArtefactTag>
+            </ArtefactTag>,
         );
     }
     if (relatedItem.readOnly) {
         itemTags.push(
             <Tag key={"readOnlyTag"}>
                 <Icon name="state-locked" tooltipText={t("common.tooltips.dataset.readOnly")} />
-            </Tag>
+            </Tag>,
         );
     }
     itemTags.push(
         <ArtefactTag key={relatedItem.pluginLabel} artefactType={`${relatedItem.pluginLabel.toLowerCase()}Node`}>
             <Highlighter label={relatedItem.pluginLabel} searchValue={textQuery} />
-        </ArtefactTag>
+        </ArtefactTag>,
     );
     return (
         <OverviewItem key={relatedItem.id}>

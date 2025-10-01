@@ -5,7 +5,7 @@ import { ruleEditorNodeParameterValue, RuleEditorNodeParameterValue } from "../.
 import Color from "color";
 
 /** Adds highlighting to the text if query is non-empty. */
-export const addHighlighting = (text: string, query?: string): string | JSX.Element => {
+export const addHighlighting = (text: string, query?: string): string | React.JSX.Element => {
     return query ? <Highlighter label={text} searchValue={query} /> : text;
 };
 
@@ -13,9 +13,9 @@ export const addHighlighting = (text: string, query?: string): string | JSX.Elem
 const createOperatorTags = (
     tags: string[],
     query?: string,
-    color?: (tag: string) => Color | string | undefined
-): JSX.Element[] => {
-    const returnArray: JSX.Element[] = [];
+    color?: (tag: string) => Color | string | undefined,
+): React.JSX.Element[] => {
+    const returnArray: React.JSX.Element[] = [];
     tags.forEach((tag, idx) => {
         returnArray.push(
             <Tag
@@ -26,7 +26,7 @@ const createOperatorTags = (
                 emphasis={tag === "Recommended" ? "stronger" : "normal"}
             >
                 {addHighlighting(tag, query)}
-            </Tag>
+            </Tag>,
         );
 
         idx < tags.length + 1 && returnArray.push(<Spacing key={`spacing-${tag}`} vertical size="tiny" />);
@@ -43,7 +43,7 @@ export const invalidValueResult = (message: string): IParameterValidationResult 
 const validateValue = (
     parameterValue: RuleEditorNodeParameterValue,
     parameterSpec: IParameterSpecification,
-    translate: (key: string, additionalParameters?: object) => string
+    translate: (key: string, additionalParameters?: object) => string,
 ): IParameterValidationResult => {
     const value = ruleEditorNodeParameterValue(parameterValue);
     if (value == null) {

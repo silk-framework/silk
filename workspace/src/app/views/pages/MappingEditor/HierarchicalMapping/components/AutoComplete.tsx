@@ -24,7 +24,7 @@ import { ValidIconName } from "@eccenca/gui-elements/src/components/Icon/canonic
 const onSearchFactory = (
     ruleId?: string,
     entity?: string,
-    taskContext?: TaskContext
+    taskContext?: TaskContext,
 ): ((searchText: string) => Promise<any[]>) => {
     return (searchText: string) => {
         return new Promise((resolve, reject) => {
@@ -37,7 +37,7 @@ const onSearchFactory = (
                 ({ options }) => {
                     resolve(options);
                 },
-                (err) => reject(err)
+                (err) => reject(err),
             );
         });
     };
@@ -117,20 +117,20 @@ interface OptionalRenderFunctions<T> {
     optionalLabelFn?: (obj: T) => string | undefined;
     optionalValueFn?: (obj: T) => string;
     optionalDescriptionFn?: (obj: T) => string | undefined;
-    optionalIconFn?: (obj: T) => ValidIconName | JSX.Element | undefined;
-    optionalItemActionsFn?: (obj: T) => JSX.Element | undefined;
+    optionalIconFn?: (obj: T) => ValidIconName | React.JSX.Element | undefined;
+    optionalItemActionsFn?: (obj: T) => React.JSX.Element | undefined;
 }
 
 export function autoCompleteItemRendererFactory<T = {}>(
     showValueWhenLabelExists: boolean,
-    optionalFunctions: OptionalRenderFunctions<T> = {}
+    optionalFunctions: OptionalRenderFunctions<T> = {},
 ) {
     return (
         autoCompleteItem: IAutoCompleteItem & T,
         query: string,
         modifiers: SuggestFieldItemRendererModifierProps,
-        handleClick: () => any
-    ): JSX.Element => {
+        handleClick: () => any,
+    ): React.JSX.Element => {
         const { optionalLabelFn, optionalValueFn, optionalDescriptionFn, optionalIconFn, optionalItemActionsFn } =
             optionalFunctions;
         let label: string | undefined;
@@ -251,12 +251,12 @@ const AutoComplete = ({
     const newItemRenderer = (
         query: string,
         modifiers: SuggestFieldItemRendererModifierProps,
-        handleClick: React.MouseEventHandler<HTMLElement>
+        handleClick: React.MouseEventHandler<HTMLElement>,
     ) => {
         if (isValidNewOption({ label: query })) {
             const newItemRenderer = suggestFieldUtils.createNewItemRendererFactory(
                 (query: string) => (newOptionText ? newOptionText(query) : `Create option '${query}'`),
-                "item-add-artefact"
+                "item-add-artefact",
             );
             return newItemRenderer(query, modifiers, handleClick);
         }

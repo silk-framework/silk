@@ -32,7 +32,7 @@ export const useProjectTaskTabsView = ({
     const [activeTab, setActiveTab] = useState<IItemLink | string | undefined>(startLink);
     const initialSettings = useSelector(commonSel.initialSettingsSelector);
     const taskViews = (pluginId ? pluginRegistry.taskViews(pluginId) : []).filter(
-        (plugin) => !plugin.available || plugin.available(initialSettings)
+        (plugin) => !plugin.available || plugin.available(initialSettings),
     );
     const menuItems = taskViews.map(({ id, label }) => (
         <MenuItem
@@ -50,7 +50,7 @@ export const useProjectTaskTabsView = ({
     };
     const taskViewConfig = pluginId ? { pluginId, taskId, projectId } : undefined;
     const taskContext = fetchTaskContext?.();
-    const returnElement: JSX.Element | null = activeTab ? (
+    const returnElement: React.JSX.Element | null = activeTab ? (
         <ProjectTaskTabView
             srcLinks={srcLinks.map((link) => {
                 return {

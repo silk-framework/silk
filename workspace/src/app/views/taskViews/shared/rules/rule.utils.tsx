@@ -36,7 +36,7 @@ import { optionallyLabelledParameterToValue } from "../../linking/linking.types"
 const extractOperatorNodeFromPathInput = (
     pathInput: IPathInput,
     result: IRuleOperatorNode[],
-    isTarget: boolean | undefined
+    isTarget: boolean | undefined,
 ): string => {
     result.push({
         nodeId: pathInput.id,
@@ -62,10 +62,10 @@ const extractOperatorNodeFromTransformInput = (
     transformInput: ITransformOperator,
     result: IRuleOperatorNode[],
     isTarget: boolean | undefined,
-    ruleOperator: RuleOperatorFetchFnType
+    ruleOperator: RuleOperatorFetchFnType,
 ): string => {
     const inputs = transformInput.inputs.map((input) =>
-        extractOperatorNodeFromValueInput(input, result, isTarget, ruleOperator)
+        extractOperatorNodeFromValueInput(input, result, isTarget, ruleOperator),
     );
     const op = ruleOperator(transformInput.function, "TransformOperator");
     const parameters = transformInput.parameters;
@@ -105,7 +105,7 @@ const extractOperatorNodeFromValueInput = (
     operator: IValueInput | undefined,
     result: IRuleOperatorNode[],
     isTarget: boolean | undefined,
-    ruleOperator: (pluginId: string, pluginType?: string) => IRuleOperator | undefined
+    ruleOperator: (pluginId: string, pluginType?: string) => IRuleOperator | undefined,
 ): string | undefined => {
     if (operator) {
         const nodeId =
@@ -120,8 +120,8 @@ const customInputPathRenderer = (
     autoCompleteResponse: IAutocompleteDefaultResponse,
     query: string,
     modifiers: SuggestFieldItemRendererModifierProps,
-    handleSelectClick: () => any
-): JSX.Element | string => {
+    handleSelectClick: () => any,
+): React.JSX.Element | string => {
     return autoCompleteResponse.label ? (
         <OverviewItem
             key={autoCompleteResponse.value}
@@ -155,9 +155,9 @@ const inputPathOperator = (
     description?: string,
     customAutoCompletionRequest?: (
         textQuery: string,
-        limit: number
+        limit: number,
     ) => IAutocompleteDefaultResponse[] | Promise<IAutocompleteDefaultResponse[]>,
-    customValidation?: (value: RuleEditorNodeParameterValue) => IParameterValidationResult
+    customValidation?: (value: RuleEditorNodeParameterValue) => IParameterValidationResult,
 ): IRuleOperator => {
     return {
         pluginType: "PathInputOperator",
@@ -234,7 +234,9 @@ const REVERSE_PARAMETER_ID = "reverse";
  */
 const convertRuleOperator = (
     pluginDetails: IPluginDetails,
-    addAdditionParameterSpecifications: (pluginDetails: IPluginDetails) => [id: string, spec: IParameterSpecification][]
+    addAdditionParameterSpecifications: (
+        pluginDetails: IPluginDetails,
+    ) => [id: string, spec: IParameterSpecification][],
 ): IRuleOperator => {
     const required = (parameterId: string) => pluginDetails.required.includes(parameterId);
     // If this is true then source and target inputs can be connected in any order.
@@ -343,7 +345,7 @@ const portSpecification = (op: IPluginDetails): IPortSpecification => {
 /** Converts a rule operator node to a value input. */
 const convertRuleOperatorNodeToValueInput = (
     ruleOperatorNode: IRuleOperatorNode,
-    ruleOperatorNodes: Map<string, IRuleOperatorNode>
+    ruleOperatorNodes: Map<string, IRuleOperatorNode>,
 ): IValueInput => {
     if (ruleOperatorNode.pluginType === "TransformOperator") {
         const transformOperator: ITransformOperator = {
@@ -354,14 +356,14 @@ const convertRuleOperatorNodeToValueInput = (
                 .map((i) =>
                     convertRuleOperatorNodeToValueInput(
                         fetchRuleOperatorNode(i!!, ruleOperatorNodes, ruleOperatorNode),
-                        ruleOperatorNodes
-                    )
+                        ruleOperatorNodes,
+                    ),
                 ),
             parameters: Object.fromEntries(
                 Object.entries(ruleOperatorNode.parameters).map(([parameterKey, parameterValue]) => [
                     parameterKey,
                     parameterValue ?? "",
-                ])
+                ]),
             ),
             type: "transformInput",
         };
@@ -375,7 +377,7 @@ const convertRuleOperatorNodeToValueInput = (
         return pathInput;
     } else {
         throw Error(
-            `Tried to convert ${ruleOperatorNode.pluginType} node '${ruleOperatorNode.label}' to incompatible value input!`
+            `Tried to convert ${ruleOperatorNode.pluginType} node '${ruleOperatorNode.label}' to incompatible value input!`,
         );
     }
 };
@@ -384,7 +386,7 @@ const convertRuleOperatorNodeToValueInput = (
 const fetchRuleOperatorNode = (
     nodeId: string,
     ruleOperators: Map<string, IRuleOperatorNode>,
-    parentNode?: IRuleOperatorNode
+    parentNode?: IRuleOperatorNode,
 ): IRuleOperatorNode => {
     const ruleOperatorNode = ruleOperators.get(nodeId);
     if (ruleOperatorNode) {
@@ -393,7 +395,7 @@ const fetchRuleOperatorNode = (
         throw new Error(
             `Rule operator node with ID '${nodeId}' does not exist${
                 parentNode ? `, but is defined as input for node '${parentNode.label}'!` : "!"
-            }`
+            }`,
         );
     }
 };
@@ -401,14 +403,14 @@ const fetchRuleOperatorNode = (
 /** Converts the editor rule operator nodes to a map from ID to node and also returns all root nodes, i.e. nodes without parent. */
 const convertToRuleOperatorNodeMap = (
     ruleOperatorNodes: IRuleOperatorNode[],
-    validate: boolean
+    validate: boolean,
 ): [Map<string, IRuleOperatorNode>, IRuleOperatorNode[]] => {
     const hasParent = new Set<string>();
     const nodeMap = new Map<string, IRuleOperatorNode>(
         ruleOperatorNodes.map((node) => {
             node.inputs.filter((i) => i != null).forEach((i) => hasParent.add(i!!));
             return [node.nodeId, node];
-        })
+        }),
     );
     const rootNodes = ruleOperatorNodes.filter((node) => !hasParent.has(node.nodeId));
     if (validate && rootNodes.length > 1) {
@@ -419,7 +421,7 @@ const convertToRuleOperatorNodeMap = (
             rootNodes.map((node) => ({
                 nodeId: node.nodeId,
                 message: `Rule operator '${node.label}' is not the only root node.`,
-            }))
+            })),
         );
     } else if (validate && rootNodes.length === 0 && nodeMap.size > 0) {
         throw Error(`Rule tree cannot be saved, because it contains cycles!`);
@@ -429,7 +431,7 @@ const convertToRuleOperatorNodeMap = (
             throw new RuleValidationError(
                 "Illegal cycle found in rule. Path from root node to cycled node: " +
                     cycle.map((n) => n.label).join(", "),
-                cycle
+                cycle,
             );
         }
     }
@@ -439,7 +441,7 @@ const convertToRuleOperatorNodeMap = (
 /** Returns the first cycle found if any exist. */
 const findCycles = (
     rootNode: IRuleOperatorNode,
-    nodeMap: Map<string, IRuleOperatorNode>
+    nodeMap: Map<string, IRuleOperatorNode>,
 ): IRuleOperatorNode[] | undefined => {
     const visitedNodes = new Set<string>();
     const iterate = (operatorNode: IRuleOperatorNode): IRuleOperatorNode[] | undefined => {
@@ -462,7 +464,7 @@ const findCycles = (
     if (visitedNodes.size !== nodeMap.size) {
         throw new RuleValidationError(
             `Root node '${rootNode.label}' is not connected to all nodes! There are overall ${nodeMap.size} nodes, but only ${visitedNodes.size} are part of the rule tree spanned by '${rootNode.label}'.`,
-            [rootNode]
+            [rootNode],
         );
     }
     return result ? result.reverse() : undefined;
@@ -491,7 +493,7 @@ const ruleLayout = (nodes: IRuleOperatorNode[]): RuleLayout => {
 const validateConnection = (
     fromRuleOperatorNode: RuleEditorValidationNode,
     toRuleOperatorNode: RuleEditorValidationNode,
-    targetPortIdx: number
+    targetPortIdx: number,
 ): boolean => {
     const sourcePluginType = fromRuleOperatorNode.node.pluginType;
     const sourcePluginId = fromRuleOperatorNode.node.pluginId;
@@ -592,7 +594,7 @@ const toType = (node: RuleEditorValidationNode, targetPortIdx: number): PathVali
                     default:
                         // If this happens then it's a bug
                         throw new RuleValidationError(
-                            `Bug: Invalid connection to comparison operator ${node.node.label} on input port ${targetPortIdx} detected.`
+                            `Bug: Invalid connection to comparison operator ${node.node.label} on input port ${targetPortIdx} detected.`,
                         );
                 }
             }
@@ -628,7 +630,7 @@ const invalidCombination = (s: PathValidationType, t: PathValidationType) => {
 const inputPathValidation = (
     fromRuleOperatorNode: RuleEditorValidationNode,
     toRuleOperatorNode: RuleEditorValidationNode,
-    targetPortIdx: number
+    targetPortIdx: number,
 ): boolean => {
     const sourceNodeFromType = fromType(fromRuleOperatorNode);
     const targetNodeToType = toType(toRuleOperatorNode, targetPortIdx);

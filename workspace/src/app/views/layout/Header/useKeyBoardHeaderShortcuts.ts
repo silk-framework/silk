@@ -10,9 +10,10 @@ import { uppercaseFirstChar } from "../../../utils/transformers";
 import { useTranslation } from "react-i18next";
 import { useInitFrontend } from "../../pages/MappingEditor/api/silkRestApi.hooks";
 import { absoluteProjectPath } from "../../../utils/routerUtils";
+import { AppDispatch } from "store/configureStore";
 
 export const useKeyboardHeaderShortcuts = () => {
-    const dispatch = useDispatch();
+    const dispatch = useDispatch<AppDispatch>();
     const [t] = useTranslation();
     const projectId = useSelector(commonSel.currentProjectIdSelector);
 

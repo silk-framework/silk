@@ -60,6 +60,7 @@ import useHotKey from "../../HotKeyHandler/HotKeyHandler";
 import { CreateArtefactModalContext } from "./CreateArtefactModalContext";
 import { TaskDocumentationModal } from "./TaskDocumentationModal";
 import { PARAMETER_DOC_PREFIX } from "./ArtefactForms/TaskForm";
+import { AppDispatch } from "store/configureStore";
 
 const ignorableFields = new Set(["label", "description"]);
 
@@ -84,7 +85,7 @@ export interface ArtefactDocumentation {
 export function CreateArtefactModal() {
     const MAX_SINGLEPLUGINBUTTONS = 2;
 
-    const dispatch = useDispatch();
+    const dispatch = useDispatch<AppDispatch>();
     const form = useForm();
 
     const [searchValue, setSearchValue] = useState("");
@@ -157,14 +158,14 @@ export function CreateArtefactModal() {
     const [taskActionResult, setTaskActionResult] = React.useState<{ label: string; message: string }>();
     const [taskActionLoading, setTaskActionLoading] = React.useState<string | null>(null);
     const [taskFormGeneralWarning, setTaskFormGeneralWarning] = React.useState<string | undefined>();
-    const generalWarningTimeout = React.useRef<number | undefined>()
+    const generalWarningTimeout = React.useRef<number | undefined>(undefined);
 
     const taskFormWarning = React.useCallback((message: string) => {
-        if(generalWarningTimeout.current) {
-            clearTimeout(generalWarningTimeout.current)
+        if (generalWarningTimeout.current) {
+            clearTimeout(generalWarningTimeout.current);
         }
-        generalWarningTimeout.current = window.setTimeout(() => setTaskFormGeneralWarning(message), 250)
-    }, [])
+        generalWarningTimeout.current = window.setTimeout(() => setTaskFormGeneralWarning(message), 250);
+    }, []);
 
     React.useEffect(() => {
         if (infoMessage?.removeAfterSeconds && infoMessage.removeAfterSeconds > 0) {
@@ -507,7 +508,7 @@ export function CreateArtefactModal() {
      * @param artefactForm
      * @returns
      */
-    const addChangeProjectHandler = (artefactForm: JSX.Element): JSX.Element => {
+    const addChangeProjectHandler = (artefactForm: React.JSX.Element): React.JSX.Element => {
         if (
             currentProject &&
             (newTaskPreConfiguration?.showProjectChangeWidget == null ||
@@ -551,7 +552,7 @@ export function CreateArtefactModal() {
 
     const projectArtefactSelected = selectedArtefactKey === DATA_TYPES.PROJECT;
 
-    let artefactForm: JSX.Element | null = null;
+    let artefactForm: React.JSX.Element | null = null;
 
     /** if no current Project context, redirect to project selection first */
     if (selectedArtefactKey && !currentProject) {
@@ -749,7 +750,7 @@ export function CreateArtefactModal() {
     };
 
     const isCreationUpdateDialog = selectedArtefactKey || updateExistingTask;
-    const additionalButtons: JSX.Element[] = [];
+    const additionalButtons: React.JSX.Element[] = [];
     if (
         (projectId || currentProject) &&
         ((updateExistingTask && updateExistingTask.taskPluginDetails.autoConfigurable) ||
@@ -774,7 +775,7 @@ export function CreateArtefactModal() {
         );
     }
 
-    const pluginActions: JSX.Element[] = [];
+    const pluginActions: React.JSX.Element[] = [];
     if (selectedArtefact?.actions) {
         const describedActions = Object.entries(selectedArtefact.actions);
         pluginActions.push(
@@ -876,7 +877,7 @@ export function CreateArtefactModal() {
               ]
             : pluginActions;
 
-    const headerOptions: JSX.Element[] = [];
+    const headerOptions: React.JSX.Element[] = [];
     if (selectedArtefactTitle && (selectedArtefact?.markdownDocumentation || selectedArtefact?.description)) {
         headerOptions.push(
             <IconButton
@@ -893,7 +894,7 @@ export function CreateArtefactModal() {
     }
 
     const updateModalTitle = (updateData: IProjectTaskUpdatePayload) => updateData.metaData.label ?? updateData.taskId;
-    const notifications: JSX.Element[] = [];
+    const notifications: React.JSX.Element[] = [];
 
     if (!!error.detail || !!error.errorMessage || !!error.body?.taskLoadingError?.errorMessage || error.isFetchError) {
         // Special case for fix task loading error
@@ -946,12 +947,9 @@ export function CreateArtefactModal() {
         );
     }
 
-    if(taskFormGeneralWarning) {
+    if (taskFormGeneralWarning) {
         notifications.push(
-            <Notification
-                message={taskFormGeneralWarning}
-                onDismiss={() => setTaskFormGeneralWarning(undefined)}
-            />,
+            <Notification message={taskFormGeneralWarning} onDismiss={() => setTaskFormGeneralWarning(undefined)} />,
         );
     }
 
