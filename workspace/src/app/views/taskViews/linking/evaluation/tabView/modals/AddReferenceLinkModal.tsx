@@ -57,11 +57,11 @@ export const AddReferenceLinkModal = ({ projectId, linkingTaskId, onClose }: Pro
             title={t("ReferenceLinks.addLinkModal.title")}
             onClose={cancel}
             data-test-id="add-reference-links-modal"
-            notifications={errorMessage ? <Notification message={errorMessage} warning={true} /> : null}
+            notifications={errorMessage ? <Notification message={errorMessage} intent="warning" /> : null}
             actions={[
                 <Button
                     key="submit"
-                    hasStatePrimary={true}
+                    intent="primary"
                     onClick={handleAddNewReferenceLinks}
                     loading={newLinkCreationLoading}
                     data-test-id="reference-links-add-submit"

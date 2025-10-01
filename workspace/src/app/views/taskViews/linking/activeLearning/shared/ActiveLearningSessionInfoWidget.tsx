@@ -46,7 +46,7 @@ export const ActiveLearningSessionInfoWidget = ({
             )}
         </HtmlContentBlock>
     ) : (
-        <Notification warning={true}>{t("ActiveLearning.statistics.noStats")}</Notification>
+        <Notification intent="warning">{t("ActiveLearning.statistics.noStats")}</Notification>
     );
 };
 

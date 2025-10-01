@@ -282,7 +282,7 @@ export function ProjectImportModal({ close, back, maxFileUploadSizeBytes }: IPro
                 text: t("ProjectImportModal.projectFile"),
                 htmlFor: "projectFile-input",
             }}
-            hasStateDanger={uploadError !== null}
+            intent={uploadError !== null ? "danger" : undefined}
             messageText={uploadError !== null ? uploadError : undefined}
         >
             {uploader}
@@ -328,7 +328,7 @@ export function ProjectImportModal({ close, back, maxFileUploadSizeBytes }: IPro
             return (
                 <>
                     <Notification
-                        warning={true}
+                        intent="warning"
                         actions={[
                             <Button
                                 key={"openExistingProjectKey"}
@@ -362,7 +362,7 @@ export function ProjectImportModal({ close, back, maxFileUploadSizeBytes }: IPro
         } else if (details.errorMessage) {
             return (
                 <Notification
-                    danger={true}
+                    intent="danger"
                     message={"The project cannot be imported. Details: " + details.errorMessage}
                 />
             );
@@ -374,7 +374,7 @@ export function ProjectImportModal({ close, back, maxFileUploadSizeBytes }: IPro
     const errorRetryElement = (errorMessage: string, retryAction: () => any) => {
         return (
             <>
-                <Notification danger={true} message={errorMessage} />
+                <Notification intent="danger" message={errorMessage} />
                 <Spacing />
                 <Button
                     data-test-id={"retryProjectDetailsBtn"}

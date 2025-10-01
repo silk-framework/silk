@@ -178,7 +178,7 @@ const Activities = () => {
                             <GridColumn>
                                 {error.detail ? (
                                     <Notification
-                                        danger={true}
+                                        intent="danger"
                                         actions={
                                             <Button
                                                 text={t("common.action.retry", "Retry")}

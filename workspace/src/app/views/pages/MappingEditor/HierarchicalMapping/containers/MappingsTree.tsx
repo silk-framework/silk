@@ -265,12 +265,12 @@ const MappingsTreeNew: React.FC<MappingTreeProps> = ({
                 spinnerProps={{ position: "inline", size: "small", delay: 50 }}
             >
                 {navigationLoading && _.isUndefined(data) && (
-                    <Notification neutral data-test-id="ecc-silk-mapping__treenav-loading">
+                    <Notification intent="neutral" data-test-id="ecc-silk-mapping__treenav-loading">
                         {t("MappingTree.loadingRules")}
                     </Notification>
                 )}
                 {!navigationLoading && _.isEmpty(data) && (
-                    <Notification warning data-test-id="ecc-silk-mapping__treenav-norules">
+                    <Notification intent="warning" data-test-id="ecc-silk-mapping__treenav-norules">
                         {t("MappingTree.noRulesFound")}
                     </Notification>
                 )}

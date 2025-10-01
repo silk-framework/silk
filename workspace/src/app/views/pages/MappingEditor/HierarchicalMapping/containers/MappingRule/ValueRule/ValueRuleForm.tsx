@@ -522,7 +522,7 @@ export function ValueRuleForm(props: IProps) {
                     />
                     {valueType.nodeType === "CustomValueType" && (
                         <FieldItem
-                            hasStateDanger={!!customURIErrorMsg}
+                            intent={!!customURIErrorMsg ? "danger" : undefined}
                             messageText={customURIErrorMsg}
                             labelProps={{
                                 htmlFor: "uri",

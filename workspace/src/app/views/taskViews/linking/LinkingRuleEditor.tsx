@@ -437,7 +437,7 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions, insta
     };
 
     if (initError) {
-        return <Notification danger={true}>{diErrorMessage(initError)}</Notification>;
+        return <Notification intent="danger">{diErrorMessage(initError)}</Notification>;
     }
 
     if (loading) {

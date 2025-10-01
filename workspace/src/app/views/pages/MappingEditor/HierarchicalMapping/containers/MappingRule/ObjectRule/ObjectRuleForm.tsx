@@ -471,7 +471,7 @@ export const ObjectRuleForm = (props: IProps) => {
         );
     } else if (!uriPatternIsValid || !objectPathValid) {
         previewExamples = (
-            <Notification warning={true} data-test-id={"object-rule-form-preview-invalid-input"}>
+            <Notification intent="warning" data-test-id={"object-rule-form-preview-invalid-input"}>
                 URI pattern or value path is invalid. No preview shown.
             </Notification>
         );

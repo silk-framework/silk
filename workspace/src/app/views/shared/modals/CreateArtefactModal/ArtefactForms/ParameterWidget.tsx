@@ -242,7 +242,7 @@ export const ParameterWidget = (props: IProps) => {
                     />
                 }
                 helperText={propertyHelperText}
-                hasStateDanger={!!errorMessage(title, errors)}
+                intent={!!errorMessage(title, errors) ? "danger" : undefined}
                 messageText={errorText ? errorText : infoHelperText}
             >
                 <InputMapper

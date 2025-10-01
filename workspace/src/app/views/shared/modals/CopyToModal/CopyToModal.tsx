@@ -198,7 +198,7 @@ const CopyToModal: React.FC<CopyToModalProps> = ({ item, onDiscard, onConfirmed 
             ]}
             notifications={
                 error ? (
-                    <Notification message={error.detail} danger />
+                    <Notification message={error.detail} intent="danger" />
                 ) : (
                     <Notification message={t("copyModal.projectVarInfo")} />
                 )

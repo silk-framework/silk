@@ -125,7 +125,7 @@ export const ManualComparisonPairSelection = ({ projectId, linkingTaskId, addCom
                 {showInfo && (
                     <>
                         <Notification
-                            neutral
+                            intent="neutral"
                             icon={<Icon name="item-question" />}
                             message={t("ActiveLearning.config.manualSelection.info")}
                             actions={

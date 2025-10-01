@@ -141,8 +141,7 @@ const Project = () => {
                             <GridColumn>
                                 {!data.length && error.detail ? (
                                     <Notification
-                                        danger={true}
-                                        warning={error?.status === 503}
+                                        intent={error?.status === 503 ? "warning" : "danger"}
                                         actions={
                                             <Button
                                                 text={t("common.action.retry", "Retry")}

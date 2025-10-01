@@ -430,7 +430,7 @@ export default function SuggestionContainer({
             }
             return (
                 <>
-                    <Notification warning={true}>
+                    <Notification intent="warning">
                         <Markdown data-test-id={"mapping-suggestion-issues"}>{message}</Markdown>
                     </Notification>
                     <Spacing />

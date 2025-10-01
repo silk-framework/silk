@@ -55,7 +55,7 @@ export const LinkageRuleConfigModal = ({ onClose, parameters, submit }: IProps) 
                 setRequestError(
                     <Notification
                         actions={<IconButton onClick={() => setRequestError(undefined)} name={"navigation-close"} />}
-                        warning
+                        intent="warning"
                     >
                         Auto-completion request has failed. Cannot suggest values for '${forParameter}' parameter.
                     </Notification>
@@ -153,7 +153,7 @@ export const LinkageRuleConfigModal = ({ onClose, parameters, submit }: IProps) 
                             htmlFor: p.id,
                             text: p.label,
                         }}
-                        hasStateDanger={!!errorMessage}
+                        intent={!!errorMessage ? "danger" : undefined}
                         messageText={errorMessage ? errorMessage : undefined}
                         helperText={p.description}
                     >

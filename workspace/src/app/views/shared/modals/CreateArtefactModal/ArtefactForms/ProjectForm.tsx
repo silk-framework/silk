@@ -88,7 +88,7 @@ export function ProjectForm({ form, goBackOnEscape = () => {} }: IProps) {
                     info: t("common.words.required"),
                     htmlFor: "title-input",
                 }}
-                hasStateDanger={errorMessage("Title", errors.label) ? true : false}
+                intent={errorMessage("Title", errors.label) ? "danger" : undefined}
                 messageText={errorMessage("Title", errors.label)}
             >
                 <TextField

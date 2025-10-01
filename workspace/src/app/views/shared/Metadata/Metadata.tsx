@@ -280,7 +280,7 @@ export function Metadata(props: IProps) {
                                 messageText={
                                     errors.form.label ? t("form.validations.isRequired", { field: `Label` }) : ""
                                 }
-                                hasStateDanger={errors.form.label}
+                                intent={errors.form.label ? "danger" : undefined}
                             >
                                 <TextField
                                     name="label"

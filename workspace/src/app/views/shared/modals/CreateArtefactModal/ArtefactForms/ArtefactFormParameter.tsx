@@ -197,7 +197,7 @@ export const ArtefactFormParameter = ({
                 htmlFor: parameterId,
                 tooltip: tooltip,
             }}
-            hasStateDanger={infoMessageDanger || !!validationError}
+            intent={infoMessageDanger || !!validationError ? "danger" : undefined}
             messageText={infoMessage || validationError || templateInfoMessage || passwordMsgText}
             disabled={disabled}
             helperText={helperText}
@@ -261,7 +261,7 @@ export const ArtefactFormParameter = ({
                             onBlur={showRareActions ? () => setShowRareActions(false) : undefined}
                             minimal={false}
                             outlined
-                            hasStatePrimary={showVariableTemplateInput}
+                            intent={showVariableTemplateInput ? "primary" : undefined}
                             active={showVariableTemplateInput}
                         />
                     </ToolbarSection>

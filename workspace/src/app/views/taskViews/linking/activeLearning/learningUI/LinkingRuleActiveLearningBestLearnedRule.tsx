@@ -147,7 +147,7 @@ export const LinkingRuleActiveLearningBestLearnedRule = ({
     };
 
     const Info = () => {
-        return <Notification neutral={true} message={t("ActiveLearning.bestLearnedRule.noRule")} />;
+        return <Notification intent="neutral" message={t("ActiveLearning.bestLearnedRule.noRule")} />;
     };
 
     return (

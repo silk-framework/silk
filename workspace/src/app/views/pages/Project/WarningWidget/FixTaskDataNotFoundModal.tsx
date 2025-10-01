@@ -34,7 +34,7 @@ export const FixTaskDataNotFoundModal = ({ onReload, onClose, errorMessage }: Pr
             actions={<Button onClick={onClose} text={t("common.action.close")} />}
         >
             <Notification
-                warning
+                intent="warning"
                 message={
                     <p>
                         {t("widget.WarningWidget.FixTaskDataNotFoundModal.warningMessage", { details: "" })}

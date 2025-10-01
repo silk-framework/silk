@@ -193,7 +193,7 @@ export function RecentlyViewedModal() {
     // Warning when an error has occurred
     const errorView = (error: ErrorResponse) => {
         return (
-            <Notification danger>
+            <Notification intent="danger">
                 <span>
                     {error.title}. {error.detail ? ` Details: ${error.detail}` : ""}
                 </span>
