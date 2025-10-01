@@ -248,9 +248,9 @@ const CopyToModal: React.FC<CopyToModalProps> = ({ item, onDiscard, onConfirmed 
                         elevated
                         open
                     >
-                        <OverviewItemList hasSpacing densityHigh>
+                        <OverviewItemList hasSpacing>
                             {orderTasksByLabel(info.overwrittenTasks)?.map((t) => (
-                                <OverviewItem key={t.id} className="copy-modal-item">
+                                <OverviewItem key={t.id} className="copy-modal-item" densityHigh>
                                     <OverviewItemDepiction>
                                         <ItemDepiction itemType={t.taskType} pluginId={t.pluginId} />
                                     </OverviewItemDepiction>
@@ -287,9 +287,9 @@ const CopyToModal: React.FC<CopyToModalProps> = ({ item, onDiscard, onConfirmed 
                         fullWidth
                         open={false}
                     >
-                        <OverviewItemList hasSpacing densityHigh>
+                        <OverviewItemList hasSpacing>
                             {orderTasksByLabel(info.copiedTasks)?.map((item) => (
-                                <OverviewItem key={item.id} className="copy-modal-item">
+                                <OverviewItem key={item.id} className="copy-modal-item" densityHigh>
                                     <OverviewItemDepiction>
                                         <ItemDepiction itemType={item.taskType} pluginId={item.pluginId} />
                                     </OverviewItemDepiction>
