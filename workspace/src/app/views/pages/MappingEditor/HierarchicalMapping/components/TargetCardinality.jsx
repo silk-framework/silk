@@ -1,7 +1,7 @@
 import React from "react";
-import { Tooltip, RadioGroup } from "gui-elements-deprecated";
+import { RadioGroup } from "gui-elements-deprecated";
 import * as PropTypes from "prop-types";
-import { FieldItem, RadioButton } from "@eccenca/gui-elements";
+import { FieldItem, RadioButton, Tooltip } from "@eccenca/gui-elements";
 
 /** Let's a user choose if a target property is single or multi-valued. Depending on the dataset type this will have different implications. */
 class TargetCardinality extends React.Component {
@@ -48,7 +48,7 @@ class TargetCardinality extends React.Component {
         if (this.props.isObjectMapping) {
             return (
                 <Tooltip
-                    label={
+                    content={
                         <span style={{ textAlign: "left" }}>
                             A single entity is expected for each parent entity. Receiving multiple entities will trigger
                             a validation error.
@@ -68,7 +68,7 @@ class TargetCardinality extends React.Component {
         } else {
             return (
                 <Tooltip
-                    label={
+                    content={
                         <span style={{ textAlign: "left" }}>
                             A single value is expected for this property. Receiving multiple values will trigger a
                             validation error.
@@ -92,7 +92,7 @@ class TargetCardinality extends React.Component {
         if (this.props.isObjectMapping) {
             return (
                 <Tooltip
-                    label={
+                    content={
                         <div style={{ textAlign: "left" }}>
                             Multiple entities may be generated for each parent entity.
                             <br />
@@ -111,7 +111,7 @@ class TargetCardinality extends React.Component {
         } else {
             return (
                 <Tooltip
-                    label={
+                    content={
                         <div style={{ textAlign: "left" }}>
                             Multiple values may be generated for this property.
                             <br />
