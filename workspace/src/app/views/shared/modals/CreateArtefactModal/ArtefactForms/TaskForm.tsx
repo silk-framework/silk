@@ -6,7 +6,7 @@ import {
     TaskPreConfiguration,
 } from "@ducks/common/typings";
 import { DATA_TYPES, INPUT_TYPES } from "../../../../../constants";
-import { CodeEditor, FieldItem, MultiSelectSelectionProps, Spacing, Switch, TextField } from "@eccenca/gui-elements";
+import { CodeEditor, FieldItem, MultiSuggestFieldSelectionProps, Spacing, Switch, TextField } from "@eccenca/gui-elements";
 import { AdvancedOptionsArea } from "../../../AdvancedOptionsArea/AdvancedOptionsArea";
 import { errorMessage, ExtendedParameterCallbacks, ParameterCallbacks, ParameterWidget } from "./ParameterWidget";
 import { defaultValueAsJs, existingTaskValuesToFlatParameters } from "../../../../../utils/transformers";
@@ -431,7 +431,7 @@ export function TaskForm({
     );
 
     const handleTagSelectionChange = React.useCallback(
-        (params: MultiSelectSelectionProps<Keyword>) => setValue(TAGS, params),
+        (params: MultiSuggestFieldSelectionProps<Keyword>) => setValue(TAGS, params),
         [],
     );
     const preConfiguredFileAndLabel =

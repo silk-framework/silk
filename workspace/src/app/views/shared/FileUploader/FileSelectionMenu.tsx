@@ -5,7 +5,7 @@ import "@uppy/drag-drop/dist/style.css";
 import "@uppy/progress-bar/dist/style.css";
 
 import { Button, Divider, FieldItem, Icon, TextField } from "@eccenca/gui-elements";
-import { IAutoCompleteFieldProps } from "@eccenca/gui-elements/src/components/AutocompleteField/AutoCompleteField";
+import { SuggestFieldProps } from "@eccenca/gui-elements/src/components/AutocompleteField/AutoCompleteField";
 import { UploadNewFile } from "./cases/UploadNewFile/UploadNewFile";
 import { FileSelectionOptions, FileMenuItems } from "./FileSelectionOptions";
 import { SelectFileFromExisting } from "./cases/SelectFileFromExisting";
@@ -79,7 +79,7 @@ export interface IUploaderOptions {
      */
     advanced?: {
         // auto-completion of existing files
-        autocomplete: IAutoCompleteFieldProps<any, any>;
+        autocomplete: SuggestFieldProps<any, any>;
     };
 
     /**

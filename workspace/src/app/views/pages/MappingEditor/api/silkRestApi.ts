@@ -3,7 +3,7 @@ import Promise from "bluebird";
 import { IUriPatternsResult, PropertyByDomainAutoCompletion, TargetPropertyAutoCompletion } from "./types";
 import { CONTEXT_PATH } from "../../../../constants/path";
 import { TaskContext } from "../../../shared/projectTaskTabView/projectTaskTabView.typing";
-import { IPartialAutoCompleteResult } from "@eccenca/gui-elements/src/components/AutoSuggestion/AutoSuggestion";
+import { CodeAutocompleteFieldPartialAutoCompleteResult } from "@eccenca/gui-elements/src/components/AutoSuggestion/AutoSuggestion";
 
 const CONTENT_TYPE_JSON = "application/json";
 
@@ -355,7 +355,7 @@ const silkApi = {
         baseSourcePath?: string,
         oneHopOnly?: boolean,
         ignorePathOperatorCompletions?: boolean
-    ): HttpResponsePromise<IPartialAutoCompleteResult> {
+    ): HttpResponsePromise<CodeAutocompleteFieldPartialAutoCompleteResult> {
         const requestUrl = `${CONTEXT_PATH}/transform/tasks/${projectId}/${transformTaskId}/rule/${ruleId}/completions/partialSourcePaths`;
         const requestBody: any = {
             inputString,

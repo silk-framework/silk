@@ -4,7 +4,7 @@ import { FetchResponse } from "../../../services/fetch/responseInterceptor";
 import { PathWithMetaData } from "../shared/rules/rule.typings";
 import { IEntityLink, IEvaluatedReferenceLinks, ILinkingRule, ILinkingTaskParameters } from "./linking.types";
 import { IAutocompleteDefaultResponse, TaskPlugin } from "@ducks/shared/typings";
-import { IPartialAutoCompleteResult } from "@eccenca/gui-elements/src/components/AutoSuggestion/AutoSuggestion";
+import { CodeAutocompleteFieldPartialAutoCompleteResult } from "@eccenca/gui-elements/src/components/AutoSuggestion/AutoSuggestion";
 
 /** Fetches the cached paths from the linking paths cache.*/
 export const fetchLinkingCachedPaths = (
@@ -151,7 +151,7 @@ export const partialAutoCompleteLinkingInputPaths = (
     cursorPosition: number,
     limit?: number,
     langPref?: string
-): Promise<FetchResponse<IPartialAutoCompleteResult>> => {
+): Promise<FetchResponse<CodeAutocompleteFieldPartialAutoCompleteResult>> => {
     return fetch({
         url: legacyLinkingEndpoint(`/tasks/${projectId}/${linkingTaskId}/completions/partialSourcePaths`),
         method: "POST",

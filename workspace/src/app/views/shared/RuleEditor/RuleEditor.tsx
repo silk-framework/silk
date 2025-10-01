@@ -21,7 +21,7 @@ import { DatasetCharacteristics } from "../typings";
 import { ReactFlowHotkeyContext } from "@eccenca/gui-elements/src/cmem/react-flow/extensions/ReactFlowHotkeyContext";
 import { Notification, StickyNote } from "@eccenca/gui-elements";
 import { diErrorMessage } from "@ducks/error/typings";
-import { IPartialAutoCompleteResult } from "@eccenca/gui-elements/src/components/AutoSuggestion/AutoSuggestion";
+import { CodeAutocompleteFieldPartialAutoCompleteResult } from "@eccenca/gui-elements/src/components/AutoSuggestion/AutoSuggestion";
 
 /** Function to fetch the rule operator spec. */
 export type RuleOperatorFetchFnType = (
@@ -96,7 +96,7 @@ export interface RuleEditorProps<RULE_TYPE, OPERATOR_TYPE> {
      */
     partialAutoCompletion: (
         inputType: "source" | "target",
-    ) => (inputString: string, cursorPosition: number) => Promise<IPartialAutoCompleteResult | undefined>;
+    ) => (inputString: string, cursorPosition: number) => Promise<CodeAutocompleteFieldPartialAutoCompleteResult | undefined>;
 }
 
 const READ_ONLY_QUERY_PARAMETER = "readOnly";

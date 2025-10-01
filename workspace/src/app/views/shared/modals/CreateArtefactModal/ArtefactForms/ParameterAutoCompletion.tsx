@@ -21,7 +21,7 @@ import { parseErrorCauseMsg } from "../../../ApplicationNotifications/Notificati
 import { CLASSPREFIX as eccguiprefix } from "@eccenca/gui-elements/src/configuration/constants";
 import { RegisterForExternalChangesFn } from "./InputMapper";
 import { CreateArtefactModalContext } from "../CreateArtefactModalContext";
-import { IPartialAutoCompleteResult } from "@eccenca/gui-elements/src/components/AutoSuggestion/AutoSuggestion";
+import { CodeAutocompleteFieldPartialAutoCompleteResult } from "@eccenca/gui-elements/src/components/AutoSuggestion/AutoSuggestion";
 
 export interface ParameterAutoCompletionProps {
     /** ID of the parameter. */
@@ -67,7 +67,7 @@ export interface ParameterAutoCompletionProps {
      */
     partialAutoCompletion?: (
         inputType: "source" | "target",
-    ) => (inputString: string, cursorPosition: number) => Promise<IPartialAutoCompleteResult | undefined>;
+    ) => (inputString: string, cursorPosition: number) => Promise<CodeAutocompleteFieldPartialAutoCompleteResult | undefined>;
 }
 
 type StringOrReifiedValue = IAutocompleteDefaultResponse | string;

@@ -1,18 +1,18 @@
 import { Icon, SearchField, AutoSuggestionList } from "@eccenca/gui-elements";
-import { ISuggestionWithReplacementInfo } from "@eccenca/gui-elements/src/components/AutoSuggestion/AutoSuggestion";
+import { CodeAutocompleteFieldSuggestionWithReplacementInfo } from "@eccenca/gui-elements/src/components/AutoSuggestion/AutoSuggestion";
 import React from "react";
 import { useTranslation } from "react-i18next";
 
 interface SidebarSearchFieldProps {
     activeTabId?: string;
     onQueryChange: (textQuery) => any;
-    searchSuggestions?: () => ISuggestionWithReplacementInfo[];
+    searchSuggestions?: () => CodeAutocompleteFieldSuggestionWithReplacementInfo[];
 }
 
 /** The search input of the rule editor sidebar. */
 export const SidebarSearchField = ({ onQueryChange, searchSuggestions, activeTabId }: SidebarSearchFieldProps) => {
     const [textQuery, setTextQuery] = React.useState<string>("");
-    const [suggestions, setSuggestions] = React.useState<ISuggestionWithReplacementInfo[]>([]);
+    const [suggestions, setSuggestions] = React.useState<CodeAutocompleteFieldSuggestionWithReplacementInfo[]>([]);
     const [hasFocus, setHasFocus] = React.useState(false);
     const [t] = useTranslation();
     const inputRef = React.useRef<HTMLInputElement>(null);

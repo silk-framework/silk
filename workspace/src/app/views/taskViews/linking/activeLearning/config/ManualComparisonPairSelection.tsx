@@ -25,7 +25,7 @@ import {
 import { checkValuePathValidity } from "../../../../pages/MappingEditor/HierarchicalMapping/store";
 import { partialAutoCompleteLinkingInputPaths } from "../../LinkingRuleEditor.requests";
 import useErrorHandler from "../../../../../hooks/useErrorHandler";
-import { IPartialAutoCompleteResult } from "@eccenca/gui-elements/src/components/AutoSuggestion/AutoSuggestion";
+import { CodeAutocompleteFieldPartialAutoCompleteResult } from "@eccenca/gui-elements/src/components/AutoSuggestion/AutoSuggestion";
 import { ComparisonPairWithId, TypedPath } from "../LinkingRuleActiveLearning.typings";
 import { useTranslation } from "react-i18next";
 import { fetchPathExampleValues } from "../LinkingRuleActiveLearning.requests";
@@ -285,7 +285,7 @@ const PathAutoCompletion = ({
 
     const fetchAutoCompletionResult = React.useCallback(
         (isTarget: boolean) =>
-            async (inputString: string, cursorPosition: number): Promise<IPartialAutoCompleteResult | undefined> => {
+            async (inputString: string, cursorPosition: number): Promise<CodeAutocompleteFieldPartialAutoCompleteResult | undefined> => {
                 try {
                     const result = await partialAutoCompleteLinkingInputPaths(
                         projectId,

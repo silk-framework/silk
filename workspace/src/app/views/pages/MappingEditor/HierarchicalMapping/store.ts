@@ -17,8 +17,8 @@ import React, { useState } from "react";
 import silkApi, { HttpResponsePromise } from "../api/silkRestApi";
 import { ITransformedSuggestion, SuggestionIssues } from "./containers/SuggestionNew/suggestion.typings";
 import {
-    IPartialAutoCompleteResult,
-    IValidationResult,
+    CodeAutocompleteFieldPartialAutoCompleteResult,
+    CodeAutocompleteFieldValidationResult,
 } from "@eccenca/gui-elements/src/components/AutoSuggestion/AutoSuggestion";
 import { CONTEXT_PATH } from "../../../../constants/path";
 import { TaskContext } from "../../../shared/projectTaskTabView/projectTaskTabView.typing";
@@ -723,7 +723,7 @@ const getValuePathSuggestion = (
     cursorPosition: number,
     isObjectPath: boolean,
     taskContext?: TaskContext
-): HttpResponsePromise<IPartialAutoCompleteResult> => {
+): HttpResponsePromise<CodeAutocompleteFieldPartialAutoCompleteResult> => {
     const { transformTask, project } = getDefinedApiDetails();
     return silkApi.getSuggestionsForAutoCompletion(
         project,
@@ -750,7 +750,7 @@ export const fetchValuePathSuggestions = (
     cursorPosition: number,
     isObjectPath: boolean,
     taskContext?: TaskContext
-): Promise<IPartialAutoCompleteResult | undefined> => {
+): Promise<CodeAutocompleteFieldPartialAutoCompleteResult | undefined> => {
     return new Promise((resolve, reject) => {
         if (!ruleId) {
             resolve(undefined);
@@ -768,7 +768,7 @@ export const fetchUriPatternAutoCompletions = (
     inputString: string,
     cursorPosition: number,
     objectContextPath?: string
-): Promise<IPartialAutoCompleteResult | undefined> => {
+): Promise<CodeAutocompleteFieldPartialAutoCompleteResult | undefined> => {
     return new Promise((resolve, reject) => {
         if (!ruleId) {
             resolve(undefined);
@@ -800,7 +800,7 @@ const uriPatternValidation = (inputString: string) => {
 };
 
 // Checks if the value path syntax is valid
-export const checkValuePathValidity = (inputString, projectId?: string): Promise<IValidationResult | undefined> => {
+export const checkValuePathValidity = (inputString, projectId?: string): Promise<CodeAutocompleteFieldValidationResult | undefined> => {
     return new Promise((resolve, reject) => {
         if (!inputString) {
             // Empty string is considered valid
@@ -819,7 +819,7 @@ export const checkValuePathValidity = (inputString, projectId?: string): Promise
 };
 
 // Checks if the value path syntax is valid
-export const checkUriPatternValidity = (uriPattern: string): Promise<IValidationResult | undefined> => {
+export const checkUriPatternValidity = (uriPattern: string): Promise<CodeAutocompleteFieldValidationResult | undefined> => {
     return new Promise((resolve, reject) => {
         uriPatternValidation(uriPattern)
             .then((response) => {

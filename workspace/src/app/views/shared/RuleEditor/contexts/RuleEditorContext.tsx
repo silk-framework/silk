@@ -12,7 +12,7 @@ import {
 import { IViewActions } from "../../../plugins/PluginRegistry";
 import { DatasetCharacteristics } from "../../typings";
 import { StickyNote } from "@eccenca/gui-elements";
-import { IPartialAutoCompleteResult } from "@eccenca/gui-elements/src/components/AutoSuggestion/AutoSuggestion";
+import { CodeAutocompleteFieldPartialAutoCompleteResult } from "@eccenca/gui-elements/src/components/AutoSuggestion/AutoSuggestion";
 
 /**
  * The rule editor context that contains objects and methods related to the original objects that are being edited and
@@ -85,7 +85,7 @@ export interface RuleEditorContextProps {
      */
     partialAutoCompletion: (
         inputType: "source" | "target",
-    ) => (inputString: string, cursorPosition: number) => Promise<IPartialAutoCompleteResult | undefined>;
+    ) => (inputString: string, cursorPosition: number) => Promise<CodeAutocompleteFieldPartialAutoCompleteResult | undefined>;
 }
 
 /** Creates a rule editor model context that contains the actual rule model and low-level update functions. */

@@ -13,7 +13,7 @@ import {
     OptionallyLabelledParameter,
     optionallyLabelledParameterToValue,
 } from "../../../../taskViews/linking/linking.types";
-import { IValidationResult } from "@eccenca/gui-elements/src/components/AutoSuggestion/AutoSuggestion";
+import { CodeAutocompleteFieldValidationResult } from "@eccenca/gui-elements/src/components/AutoSuggestion/AutoSuggestion";
 import { useSelector } from "react-redux";
 import { commonSel } from "@ducks/common";
 import { CreateArtefactModalContext } from "../CreateArtefactModalContext";
@@ -307,7 +307,7 @@ export const TemplateInputComponent = memo(
         const [t] = useTranslation();
         const registerError = modalContext.registerModalError ? modalContext.registerModalError : globalErrorHandler;
 
-        const processValidationError = React.useCallback((validationResult: IValidationResult): IValidationResult => {
+        const processValidationError = React.useCallback((validationResult: CodeAutocompleteFieldValidationResult): CodeAutocompleteFieldValidationResult => {
             let errorMessage = validationResult.parseError?.message;
             const adaptedValidationResult = { ...validationResult };
             if (errorMessage) {

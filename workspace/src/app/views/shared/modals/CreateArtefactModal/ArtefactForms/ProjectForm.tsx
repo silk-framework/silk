@@ -1,5 +1,5 @@
 import React from "react";
-import { CodeEditor, FieldItem, TextField, MultiSelectSelectionProps } from "@eccenca/gui-elements";
+import { CodeEditor, FieldItem, TextField, MultiSuggestFieldSelectionProps } from "@eccenca/gui-elements";
 import { errorMessage } from "./ParameterWidget";
 import { useTranslation } from "react-i18next";
 import { AdvancedOptionsArea } from "../../../AdvancedOptionsArea/AdvancedOptionsArea";
@@ -57,7 +57,7 @@ export function ProjectForm({ form, goBackOnEscape = () => {} }: IProps) {
     };
 
     const handleTagSelectionChange = React.useCallback(
-        (params: MultiSelectSelectionProps<Keyword>) => setValue("tags", params),
+        (params: MultiSuggestFieldSelectionProps<Keyword>) => setValue("tags", params),
         []
     );
 
