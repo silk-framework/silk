@@ -55,8 +55,7 @@ export const SidebarSearchField = ({ onQueryChange, searchSuggestions, activeTab
                 data-test-id={"rule-editor-operator-search"}
                 onChange={(e) => setTextQuery(e.target.value)}
                 value={textQuery}
-                fullWidth={true}
-                placeholder={t("RuleEditor.sidebar.searchInput")}
+                emptySearchInputMessage={t("RuleEditor.sidebar.searchInput")}
                 onClearanceHandler={clearSearchTerm}
                 onFocus={() => setHasFocus(true)}
                 onBlur={() => setHasFocus(false)}
