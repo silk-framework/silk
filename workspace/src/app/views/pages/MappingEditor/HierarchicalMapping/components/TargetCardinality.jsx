@@ -37,8 +37,8 @@ class TargetCardinality extends React.Component {
                         this.onChange(value === "single");
                     }}
                 >
-                    <RadioButton name="single" value="single" label={this.renderSingleValue()} />
-                    <RadioButton name="multiple" value="multiple" label={this.renderMultipleValues()} />
+                    <RadioButton name="single" value="single" labelElement={this.renderSingleValue()} />
+                    <RadioButton name="multiple" value="multiple" labelElement={this.renderMultipleValues()} />
                 </RadioGroup>
             </FieldItem>
         );
