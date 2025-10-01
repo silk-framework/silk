@@ -209,7 +209,7 @@ export function Header({ onClickApplicationSidebarExpand, isApplicationSidebarEx
                                     dispatch(commonOp.toggleUserMenuDisplay(false));
                                 }}
                             >
-                                <Icon name="navigation-close" description="Close icon" large />
+                                <Icon name="navigation-close" title="Close icon" large />
                             </ApplicationToolbarAction>
                             <ApplicationToolbarPanel
                                 aria-label="User menu"
@@ -296,7 +296,7 @@ export function Header({ onClickApplicationSidebarExpand, isApplicationSidebarEx
                                 dispatch(commonOp.toggleUserMenuDisplay(true));
                             }}
                         >
-                            <Icon name="application-useraccount" description="User menu icon" large />
+                            <Icon name="application-useraccount" title="User menu icon" large />
                         </ApplicationToolbarAction>
                     )}
                 </ApplicationToolbar>
