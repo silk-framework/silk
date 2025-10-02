@@ -28,7 +28,7 @@ export class URIInfo extends React.Component {
             },
             () => {
                 this.setState({ info: false });
-            }
+            },
         );
     }
 
@@ -53,6 +53,10 @@ export class URIInfo extends React.Component {
             noInfo = uri.substring(lastSlash + 1).replace(/[<>]/g, "");
         }
 
-        return <span {...otherProps}>{noInfo}</span>;
+        return (
+            <span className="ecc-silk-mapping__uriinfo" {...otherProps}>
+                {noInfo}
+            </span>
+        );
     }
 }
