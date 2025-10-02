@@ -104,7 +104,7 @@ trait GraphStoreTrait {
   }
 
   def deleteGraph(graph: String,
-                 ignoreIfNotExists: Boolean = false)
+                 ignoreIfNotExists: Boolean = true)
                 (implicit userContext: UserContext): Unit = {
     log.fine(s"Deleting graph '$graph' from Graph Store")
     var tries = 0
