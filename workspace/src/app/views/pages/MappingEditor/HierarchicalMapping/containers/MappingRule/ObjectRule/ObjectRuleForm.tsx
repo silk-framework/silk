@@ -16,7 +16,6 @@ import {
     CardHeader,
     Divider,
 } from "@eccenca/gui-elements";
-import { AffirmativeButton, DismissiveButton } from "@eccenca/gui-elements/src/legacy-replacements";
 import _ from "lodash";
 import ExampleView from "../ExampleView";
 import {
@@ -84,7 +83,7 @@ export const ObjectRuleForm = (props: IProps) => {
         }
     };
     const [targetEntityType, setTargetEntityType] = useState<(string | { value: string })[]>(
-        _modifiedValues.current.targetEntityType
+        _modifiedValues.current.targetEntityType,
     );
     // Used for setting a new URI pattern from the existing URI pattern selection
     const [initialUriPattern, setInitialUriPattern] = useState<string>((props.ruleData as any).pattern ?? "");
@@ -106,8 +105,8 @@ export const ObjectRuleForm = (props: IProps) => {
 
     const distinctUriPatterns = Array.from(
         new Map(
-            uriPatternSuggestions.filter((p) => p.value !== (modifiedValues() as any).pattern).map((p) => [p.value, p])
-        ).values()
+            uriPatternSuggestions.filter((p) => p.value !== (modifiedValues() as any).pattern).map((p) => [p.value, p]),
+        ).values(),
     );
     const currentUriPatterns = React.useRef<IUriPattern[]>([]);
     currentUriPatterns.current = distinctUriPatterns;
@@ -207,7 +206,7 @@ export const ObjectRuleForm = (props: IProps) => {
                 pattern: modifiedValues().uriRule?.type === MAPPING_RULE_TYPE_URI && !uriPattern ? null : uriPattern,
                 entityConnection: modifiedValues().entityConnection === "to",
             },
-            true
+            true,
         ).subscribe(
             () => {
                 if (props.onAddNewRule) {
@@ -221,7 +220,7 @@ export const ObjectRuleForm = (props: IProps) => {
             (err) => {
                 setSaveObjectError(err.response.body);
                 setLoading(false);
-            }
+            },
         );
     };
 
@@ -317,7 +316,7 @@ export const ObjectRuleForm = (props: IProps) => {
                         parentId ? parentId : MAPPING_ROOT_RULE_ID,
                         input,
                         cursorPosition,
-                        modifiedValues().sourceProperty
+                        modifiedValues().sourceProperty,
                     )
                 }
                 onFocusChange={setUriPatternInputHasFocus}
@@ -326,7 +325,7 @@ export const ObjectRuleForm = (props: IProps) => {
                 reInitOnInitialValueChange={true}
             />
         ),
-        [initialUriPattern, uriPatternSelector]
+        [initialUriPattern, uriPatternSelector],
     );
 
     if (loading) {
@@ -394,8 +393,8 @@ export const ObjectRuleForm = (props: IProps) => {
             initialValues.sourceProperty == null
                 ? ""
                 : typeof initialValues.sourceProperty === "string"
-                ? initialValues.sourceProperty
-                : initialValues.sourceProperty.value;
+                  ? initialValues.sourceProperty
+                  : initialValues.sourceProperty.value;
         sourcePropertyInput = (
             <CodeAutocompleteField
                 id={"object-value-path-auto-suggestion"}
@@ -479,8 +478,8 @@ export const ObjectRuleForm = (props: IProps) => {
         const ruleType = modifiedValues().pattern
             ? MAPPING_RULE_TYPE_URI
             : modifiedValues().uriRule
-            ? modifiedValues().uriRule.type
-            : MAPPING_RULE_TYPE_URI;
+              ? modifiedValues().uriRule.type
+              : MAPPING_RULE_TYPE_URI;
         previewExamples = (
             <ExampleView
                 id={parentId || MAPPING_ROOT_RULE_ID}
@@ -569,9 +568,9 @@ export const ObjectRuleForm = (props: IProps) => {
             </CardContent>
             <Divider />
             <CardActions className="ecc-silk-mapping__ruleseditor__actionrow">
-                <AffirmativeButton
+                <Button
+                    affirmative
                     className="ecc-silk-mapping__ruleseditor__actionrow-save"
-                    raised
                     data-test-id={"object-rule-form-confirm-button"}
                     onClick={handleConfirm}
                     disabled={
@@ -582,14 +581,10 @@ export const ObjectRuleForm = (props: IProps) => {
                     }
                 >
                     Save
-                </AffirmativeButton>
-                <DismissiveButton
-                    className="ecc-silk-mapping__ruleseditor__actionrow-cancel"
-                    raised
-                    onClick={handleClose}
-                >
+                </Button>
+                <Button className="ecc-silk-mapping__ruleseditor__actionrow-cancel" onClick={handleClose}>
                     Cancel
-                </DismissiveButton>
+                </Button>
             </CardActions>
         </>
     );
