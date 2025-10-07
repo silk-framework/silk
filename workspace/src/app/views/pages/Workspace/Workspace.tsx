@@ -51,7 +51,7 @@ export function Workspace() {
         return () => {
             dispatch(clearSearchResults());
         };
-    }, [qs, tableSettings.pageSize, tableSettings.sortBy, tableSettings.sortOrder, pagination.current]);
+    }, [qs, tableSettings.pageSize, tableSettings.sortBy, tableSettings.sortOrder]);
 
     return !isEmptyWorkspace ? (
         <WorkspaceSearch />

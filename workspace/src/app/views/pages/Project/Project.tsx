@@ -86,7 +86,7 @@ const Project = () => {
         return () => {
             dispatch(clearSearchResults());
         };
-    }, [qs, projectId, tableSettings.sortBy, tableSettings.sortOrder, tableSettings.pageSize, pagination.current]);
+    }, [qs, projectId, tableSettings.sortBy, tableSettings.sortOrder, tableSettings.pageSize]);
 
     const handleSearch = (textQuery: string) => {
         dispatch(workspaceOp.applyFiltersOp({ textQuery }));
