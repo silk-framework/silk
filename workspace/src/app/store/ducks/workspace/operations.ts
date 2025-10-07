@@ -45,8 +45,10 @@ const updateQueryString = () => {
 
         const appliedFilters = workspaceSel.appliedFiltersSelector(state);
         const appliedFacets = workspaceSel.appliedFacetsSelector(state);
+        const { current } = workspaceSel.paginationSelector(state);
         const queryParams = {
             ...appliedFilters,
+            page: current,
             f_ids: appliedFacets.map((o) => o.facetId),
             types: appliedFacets.map((o) => o.type),
             f_keys: appliedFacets.map((o) => o.keywordIds.join(ARRAY_DELIMITER)),
@@ -127,6 +129,10 @@ const setupFiltersFromQs = (queryString: string) => {
                         );
                     });
                 }
+            }
+            // Pagination
+            if (parsedQs.page) {
+                batchQueue.push(changePage(+parsedQs.page));
             }
 
             batch(() => batchQueue.forEach(dispatch));
