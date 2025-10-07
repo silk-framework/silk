@@ -68,6 +68,7 @@ const WorkspaceSearch = () => {
                                         onSearch={handleSearch}
                                         onEnter={onEnter}
                                         disableEnterDuringPendingSearch={true}
+                                        globalTableKey={"workbench"}
                                     />
                                 </GridColumn>
                             </GridRow>

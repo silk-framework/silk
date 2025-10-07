@@ -75,7 +75,6 @@ export function Header({ onClickApplicationSidebarExpand, isApplicationSidebarEx
             : "";
 
     const activitiesPageLink = SERVE_PATH + "/activities";
-    // const activitiesPageQueries = "?page=1&limit=25&sortBy=recentlyUpdated&sortOrder=ASC";
 
     return (
         <>

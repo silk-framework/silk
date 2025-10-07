@@ -4,6 +4,7 @@ import { IAppliedSorterState, ISorterListItemState } from "@ducks/workspace/typi
 import { ContextMenu, MenuItem } from "@eccenca/gui-elements";
 import { useTranslation } from "react-i18next";
 import { useStoreGlobalTableSettings } from "../../../hooks/useStoreGlobalTableSettings";
+import {GlobalTableContext} from "../../../GlobalContextsWrapper";
 
 interface IProps {
     sortersList: ISorterListItemState[];
@@ -12,7 +13,7 @@ interface IProps {
 
 export default function SortButton({ sortersList, activeSort }: IProps) {
     const [t] = useTranslation();
-    const { updateGlobalTableSettings } = useStoreGlobalTableSettings();
+    const { updateGlobalTableSettings } = React.useContext(GlobalTableContext)
 
     const handleMenuClick = React.useCallback(
         (itemId: string) =>

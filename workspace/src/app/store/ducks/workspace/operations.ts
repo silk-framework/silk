@@ -14,6 +14,7 @@ import { fetchResourcesListAsync } from "@ducks/workspace/widgets/file.thunk";
 import { commonSel } from "@ducks/common";
 import { ISearchListRequest, ISearchListResponse, requestSearchList } from "@ducks/workspace/requests";
 import { FetchResponse } from "../../../services/fetch/responseInterceptor";
+import {GlobalTableBaseConfig} from "../../../hooks/useStoreGlobalTableSettings";
 
 const {
     updateResultTotal,
@@ -128,26 +129,6 @@ const setupFiltersFromQs = (queryString: string) => {
                 }
             }
 
-            // // Pagination
-            // if (parsedQs.page) {
-            //     batchQueue.push(changePage(+parsedQs.page));
-            // }
-
-            // //DropDown
-            // if (parsedQs.limit) {
-            //     batchQueue.push(changeProjectsLimit(+parsedQs.limit));
-            // }
-
-            // // Sorting
-            // if (parsedQs.sortBy) {
-            //     batchQueue.push(
-            //         applySorter({
-            //             sortBy: parsedQs.sortBy,
-            //             sortOrder: parsedQs.sortOrder,
-            //         }),
-            //     );
-            // }
-
             batch(() => batchQueue.forEach(dispatch));
         } catch {}
     };
@@ -158,8 +139,9 @@ const setupFiltersFromQs = (queryString: string) => {
  * by provided filters
  */
 const fetchListAsync = (
-    fetcher?: (payload: ISearchListRequest) => Promise<FetchResponse<ISearchListResponse>>,
-    customDefaultLimit?: number,
+    tableSettings: GlobalTableBaseConfig | undefined = undefined,
+    fetcher: ((payload: ISearchListRequest) => Promise<FetchResponse<ISearchListResponse>>) | undefined = undefined,
+    customDefaultLimit: number | undefined = undefined
 ) => {
     return async (dispatch, getState) => {
         dispatch(fetchList());
@@ -177,11 +159,18 @@ const fetchListAsync = (
         const projectId = commonSel.currentProjectIdSelector(state);
 
         const body: ISearchListRequest = {
-            limit: customDefaultLimit || limit,
+            limit: customDefaultLimit || tableSettings?.pageSize || limit,
             offset,
         };
 
-        if (sorters.applied.sortBy) {
+        if(tableSettings) {
+            if(tableSettings.sortBy) {
+                body.sortBy = tableSettings.sortBy
+            }
+            if(tableSettings.sortOrder) {
+                body.sortOrder = tableSettings.sortOrder
+            }
+        } else if (sorters.applied.sortBy) {
             body.sortBy = sorters.applied.sortBy;
             body.sortOrder = sorters.applied.sortOrder;
         }

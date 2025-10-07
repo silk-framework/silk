@@ -9,6 +9,7 @@ import { commonOp, commonSel } from "@ducks/common";
 import useErrorHandler from "../../../hooks/useErrorHandler";
 import { previewSlice } from "@ducks/workspace/previewSlice";
 import { routerSel } from "@ducks/router";
+import {GlobalTableContext} from "../../../GlobalContextsWrapper";
 
 export function Workspace() {
     const dispatch = useDispatch();
@@ -16,11 +17,11 @@ export function Workspace() {
 
     const error = useSelector(workspaceSel.errorSelector);
     const isEmptyWorkspace = useSelector(workspaceSel.isEmptyPageSelector);
-    const pagination = useSelector(workspaceSel.paginationSelector);
     const qs = useSelector(routerSel.routerSearchSelector);
-    const sorter = useSelector(workspaceSel.sortersSelector);
     const projectId = useSelector(commonSel.currentProjectIdSelector);
     const { clearSearchResults } = previewSlice.actions;
+    const {globalTableSettings} = React.useContext(GlobalTableContext)
+    const pagination = useSelector(workspaceSel.paginationSelector);
 
     useEffect(() => {
         if (error.detail) {
@@ -42,11 +43,11 @@ export function Workspace() {
         // Setup the filters from query string
         dispatch(workspaceOp.setupFiltersFromQs(qs));
         // Fetch the list of projects
-        dispatch(workspaceOp.fetchListAsync());
+        dispatch(workspaceOp.fetchListAsync(globalTableSettings["workbench"]));
         return () => {
             dispatch(clearSearchResults());
         };
-    }, [pagination.limit, sorter?.applied, qs]);
+    }, [qs, globalTableSettings["workbench"], pagination.offset]);
 
     return !isEmptyWorkspace ? (
         <WorkspaceSearch />

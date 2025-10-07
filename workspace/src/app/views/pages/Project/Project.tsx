@@ -36,6 +36,7 @@ import ActivityInfoWidget from "./ActivityInfoWidget";
 import { previewSlice } from "@ducks/workspace/previewSlice";
 import VariablesWidget from "../../../views/shared/VariablesWidget/VariablesWidget";
 import { useSelectFirstResult } from "../../../hooks/useSelectFirstResult";
+import {GlobalTableContext} from "../../../GlobalContextsWrapper";
 
 const Project = () => {
     const dispatch = useDispatch();
@@ -55,6 +56,7 @@ const Project = () => {
     const [searchInitialized, setSearchInitialized] = React.useState(false);
     const effectiveSearchQuery = searchInitialized ? textQuery : "";
     const { onEnter } = useSelectFirstResult();
+    const {globalTableSettings} = React.useContext(GlobalTableContext)
 
     React.useEffect(() => {
         setSearchInitialized(true);
@@ -67,6 +69,8 @@ const Project = () => {
         dispatch(commonOp.fetchAvailableDTypesAsync(projectId));
     }, []);
 
+    const tableSettings = globalTableSettings["workbench"]
+
     useEffect(() => {
         // Reset the filters, due to redirecting
         dispatch(workspaceOp.resetFilters());
@@ -75,11 +79,11 @@ const Project = () => {
         dispatch(workspaceOp.setupFiltersFromQs(qs));
 
         // Fetch the list of projects
-        dispatch(workspaceOp.fetchListAsync());
+        dispatch(workspaceOp.fetchListAsync(tableSettings));
         return () => {
             dispatch(clearSearchResults());
         };
-    }, [qs, projectId]);
+    }, [qs, projectId, tableSettings.sortBy, tableSettings.sortOrder, tableSettings.pageSize]);
 
     const handleSearch = (textQuery: string) => {
         dispatch(workspaceOp.applyFiltersOp({ textQuery }));
@@ -122,6 +126,7 @@ const Project = () => {
                                         onSearch={handleSearch}
                                         onEnter={onEnter}
                                         disableEnterDuringPendingSearch={true}
+                                        globalTableKey={"workbench"}
                                     />
                                 </GridColumn>
                             </GridRow>

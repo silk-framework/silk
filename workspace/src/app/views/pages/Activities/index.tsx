@@ -30,6 +30,7 @@ import { useHistory, useParams } from "react-router";
 import { SERVE_PATH } from "../../../constants/path";
 import { ProjectTaskParams } from "views/shared/typings";
 import { previewSlice } from "@ducks/workspace/previewSlice";
+import {GlobalTableContext} from "../../../GlobalContextsWrapper";
 
 const Activities = () => {
     const dispatch = useDispatch();
@@ -40,9 +41,9 @@ const Activities = () => {
     const { textQuery } = useSelector(workspaceSel.appliedFiltersSelector);
     const qs = useSelector(routerSel.routerSearchSelector);
     const pagination = useSelector(workspaceSel.paginationSelector);
-    const sorter = useSelector(workspaceSel.sortersSelector);
     const sorters = useSelector(workspaceSel.sortersSelector);
     const { clearSearchResults } = previewSlice.actions;
+    const {globalTableSettings} = React.useContext(GlobalTableContext)
 
     const [t] = useTranslation();
 
@@ -110,16 +111,16 @@ const Activities = () => {
                 dispatch(workspaceOp.resetFilters());
                 // Setup the filters from query string
                 dispatch(workspaceOp.setupFiltersFromQs(qs));
-                // Setup the filters from query string
+
                 projectId && dispatch(commonOp.setProjectId(projectId));
                 // Fetch the list of projects
-                dispatch(workspaceOp.fetchListAsync(utils.searchActivities));
+                dispatch(workspaceOp.fetchListAsync(globalTableSettings["activities"], utils.searchActivities));
             });
         }
         return () => {
             dispatch(clearSearchResults());
         };
-    }, [pagination.limit, sorter?.applied, qs]);
+    }, [pagination.limit, pagination.offset, globalTableSettings["activities"], qs]);
 
     /** handle search */
     const handleSearch = (textQuery: string) => {
@@ -147,6 +148,7 @@ const Activities = () => {
                                                 textQuery={effectiveSearchQuery}
                                                 sorters={sorters}
                                                 onSearch={handleSearch}
+                                                globalTableKey={"activities"}
                                             />
                                         </div>
                                         <IconButton

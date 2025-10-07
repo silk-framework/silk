@@ -3,28 +3,28 @@ import { ISorterListItemState, SortModifierType } from "@ducks/workspace/typings
 import React from "react";
 import { batch, useDispatch } from "react-redux";
 
-const defaultConfig = {
+const defaultConfig: GlobalTableBaseConfig = {
     pageSize: 10,
     sortBy: "",
     sortOrder: "ASC",
 };
 
-const defaultGlobalTableSettings = {
+export const defaultGlobalTableSettings: GlobalTableSettings = {
     activities: { ...defaultConfig, pageSize: 25 },
     workbench: { ...defaultConfig },
     files: { ...defaultConfig, pageSize: 5 },
 } as const;
 
-type BaseConfig = {
+export type GlobalTableBaseConfig = {
     pageSize?: number;
     sortBy?: string;
     sortOrder?: SortModifierType;
 };
 
-interface GlobalTableSettings {
-    activities: BaseConfig;
-    workbench: BaseConfig;
-    files: BaseConfig;
+export interface GlobalTableSettings {
+    activities: GlobalTableBaseConfig;
+    workbench: GlobalTableBaseConfig;
+    files: GlobalTableBaseConfig;
 }
 
 const LOCAL_STORAGE_KEYS = {
@@ -38,49 +38,51 @@ export type settingsConfig = {
     path: keyof typeof defaultGlobalTableSettings;
 };
 
-export const useStoreGlobalTableSettings = ({ key }: { key?: string } = {}) => {
-    const dispatch = useDispatch();
+export type GlobalTableTypes = "workbench" | "files" | "activities"
 
+interface GlobalTableSettingFunctions {
+    /** Set the table settings for a specific global table. Specify table explicitly, else it will be derived from the path if possible. */
+    updateGlobalTableSettings: (settings: GlobalTableBaseConfig, explicitKey?: GlobalTableTypes) => void;
+    globalTableSettings: GlobalTableSettings
+}
+
+export const useStoreGlobalTableSettings: () => GlobalTableSettingFunctions = () => {
+    // Return the current global settings from local storage or if not existing default values
     const getGlobalTableSettings = React.useCallback(() => {
         const storedSettings = localStorage.getItem(LOCAL_STORAGE_KEYS.GLOBAL_TABLE_SETTINGS);
-        const tableSettings = !storedSettings ? defaultGlobalTableSettings : JSON.parse(storedSettings);
-        return tableSettings;
+        return !storedSettings ? defaultGlobalTableSettings : JSON.parse(storedSettings);
     }, []);
-    const storeKey = location.pathname.split("/").slice(-1)[0] === "activities" ? "activities" : "workbench";
-    const pathname = key || storeKey;
+    const [globalTableSettings, setGlobalTableSettings] = React.useState(getGlobalTableSettings)
 
-    React.useEffect(() => {
-        updateGlobalTableSettings(getGlobalTableSettings()[pathname]);
-    }, [pathname, getGlobalTableSettings]);
-
+    // Extracts the table key from the location path
+    const extractTableKey = (): GlobalTableTypes => {
+        return location.pathname.split("/").slice(-1)[0] === "activities" ? "activities" : "workbench";
+    }
     const updateGlobalTableSettings = React.useCallback(
-        (settings: BaseConfig) => {
+        (settings: GlobalTableBaseConfig, customKey?: GlobalTableTypes) => {
+            const tableKey = customKey ?? extractTableKey()
             const globalTableSettings = getGlobalTableSettings();
             const newSettings: GlobalTableSettings = {
                 ...globalTableSettings,
-                [pathname]: {
-                    ...globalTableSettings[pathname],
+                [tableKey]: {
+                    ...globalTableSettings[tableKey],
                     ...settings,
                 },
             };
-            const { sortBy: lastSortBy, sortOrder: lastSortOrder } = globalTableSettings[pathname];
-            const { sortBy, pageSize, sortOrder } = newSettings[pathname as settingsConfig["path"]];
+            const {sortBy: lastSortBy, sortOrder: lastSortOrder} = globalTableSettings[tableKey];
+            const {sortBy, sortOrder} = newSettings[tableKey as settingsConfig["path"]];
             let newSortOrder: SortModifierType = sortOrder || "ASC";
             if (lastSortBy === sortBy) {
                 newSortOrder = lastSortOrder === "ASC" ? "DESC" : "ASC";
             }
-            newSettings[pathname].sortOrder = newSortOrder;
+            newSettings[tableKey].sortOrder = newSortOrder;
             localStorage.setItem(LOCAL_STORAGE_KEYS.GLOBAL_TABLE_SETTINGS, JSON.stringify(newSettings));
-            batch(() => {
-                dispatch(workspaceOp.applySorterOp({ sortBy: sortBy!, sortOrder: newSortOrder }));
-                dispatch(workspaceOp.changeLimitOp(pageSize!));
-            });
+            setGlobalTableSettings(newSettings)
         },
-        [getGlobalTableSettings, pathname],
-    );
+        [getGlobalTableSettings]);
 
     return {
         updateGlobalTableSettings,
-        getGlobalTableSettings,
+        globalTableSettings
     };
 };
