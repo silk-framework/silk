@@ -1,7 +1,5 @@
-import { workspaceOp } from "@ducks/workspace";
-import { ISorterListItemState, SortModifierType } from "@ducks/workspace/typings";
+import {SortModifierType} from "@ducks/workspace/typings";
 import React from "react";
-import { batch, useDispatch } from "react-redux";
 
 const defaultConfig: GlobalTableBaseConfig = {
     pageSize: 10,
@@ -31,13 +29,6 @@ const LOCAL_STORAGE_KEYS = {
     GLOBAL_TABLE_SETTINGS: "global_table_settings",
 };
 
-export type settingsConfig = {
-    sorters: ISorterListItemState[];
-    activeSortBy: string;
-    onSort: (sortBy: string) => void;
-    path: keyof typeof defaultGlobalTableSettings;
-};
-
 export type GlobalTableTypes = "workbench" | "files" | "activities"
 
 interface GlobalTableSettingFunctions {
@@ -46,6 +37,9 @@ interface GlobalTableSettingFunctions {
     globalTableSettings: GlobalTableSettings
 }
 
+/** Hook that returns the current global table settings and a function to change these.
+ *
+ * Do NOT use this hook directly, instead use the GlobalTableContext! */
 export const useStoreGlobalTableSettings: () => GlobalTableSettingFunctions = () => {
     // Return the current global settings from local storage or if not existing default values
     const getGlobalTableSettings = React.useCallback(() => {

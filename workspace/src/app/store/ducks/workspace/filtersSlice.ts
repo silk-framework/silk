@@ -44,7 +44,6 @@ export const filtersSlice = createSlice({
                 appliedSorter.sortBy = sortBy;
                 appliedSorter.sortOrder = sortOrder;
             }
-            console.log("appliedSorter ==>", appliedSorter);
 
             state.sorters.applied = appliedSorter;
         },
