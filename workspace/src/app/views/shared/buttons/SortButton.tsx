@@ -1,5 +1,5 @@
 import React from "react";
-import { IAppliedSorterState, ISorterListItemState } from "@ducks/workspace/typings";
+import {IAppliedSorterState, ISorterListItemState, SortModifierType} from "@ducks/workspace/typings";
 
 import { ContextMenu, MenuItem } from "@eccenca/gui-elements";
 import { useTranslation } from "react-i18next";
@@ -16,12 +16,18 @@ export default function SortButton({ sortersList, activeSort }: IProps) {
     const { updateGlobalTableSettings } = React.useContext(GlobalTableContext)
 
     const handleMenuClick = React.useCallback(
-        (itemId: string) =>
+        (itemId: string) => {
+            const {sortBy, sortOrder} = activeSort
+            let newSortOrder: SortModifierType = activeSort.sortOrder || "ASC";
+            if (itemId === sortBy) {
+                newSortOrder = activeSort.sortOrder === "ASC" ? "DESC" : "ASC";
+            }
             updateGlobalTableSettings({
                 sortBy: itemId,
-                sortOrder: activeSort.sortOrder,
-            }),
-        [updateGlobalTableSettings],
+                sortOrder: newSortOrder,
+            })
+        },
+        [updateGlobalTableSettings, activeSort],
     );
 
     return (

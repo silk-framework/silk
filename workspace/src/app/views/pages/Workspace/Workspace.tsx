@@ -36,18 +36,22 @@ export function Workspace() {
         dispatch(commonOp.fetchAvailableDTypesAsync(projectId));
     }, []);
 
+    const tableSettings = globalTableSettings["workbench"]
+
     useEffect(() => {
         // Reset the filters, due to redirecting
         dispatch(workspaceOp.resetFilters());
+    }, [location.pathname]);
 
+    useEffect(() => {
         // Setup the filters from query string
         dispatch(workspaceOp.setupFiltersFromQs(qs));
         // Fetch the list of projects
-        dispatch(workspaceOp.fetchListAsync(globalTableSettings["workbench"]));
+        dispatch(workspaceOp.fetchListAsync(tableSettings));
         return () => {
             dispatch(clearSearchResults());
         };
-    }, [qs, globalTableSettings["workbench"], pagination.offset]);
+    }, [qs, tableSettings.pageSize, tableSettings.sortBy, tableSettings.sortOrder, pagination.current]);
 
     return !isEmptyWorkspace ? (
         <WorkspaceSearch />

@@ -69,13 +69,6 @@ export const useStoreGlobalTableSettings: () => GlobalTableSettingFunctions = ()
                     ...settings,
                 },
             };
-            const {sortBy: lastSortBy, sortOrder: lastSortOrder} = globalTableSettings[tableKey];
-            const {sortBy, sortOrder} = newSettings[tableKey as settingsConfig["path"]];
-            let newSortOrder: SortModifierType = sortOrder || "ASC";
-            if (lastSortBy === sortBy) {
-                newSortOrder = lastSortOrder === "ASC" ? "DESC" : "ASC";
-            }
-            newSettings[tableKey].sortOrder = newSortOrder;
             localStorage.setItem(LOCAL_STORAGE_KEYS.GLOBAL_TABLE_SETTINGS, JSON.stringify(newSettings));
             setGlobalTableSettings(newSettings)
         },
