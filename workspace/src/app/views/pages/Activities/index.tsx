@@ -105,22 +105,27 @@ const Activities = () => {
     }, []);
 
     React.useEffect(() => {
+        // Reset the filters, due to redirecting
+        dispatch(workspaceOp.resetFilters());
+    }, [location.pathname])
+
+    const tableSettings = globalTableSettings["activities"]
+
+    React.useEffect(() => {
         if (path.endsWith("activities")) {
             batch(() => {
-                // Reset the filters, due to redirecting
-                dispatch(workspaceOp.resetFilters());
                 // Setup the filters from query string
                 dispatch(workspaceOp.setupFiltersFromQs(qs));
 
                 projectId && dispatch(commonOp.setProjectId(projectId));
                 // Fetch the list of projects
-                dispatch(workspaceOp.fetchListAsync(globalTableSettings["activities"], utils.searchActivities));
+                dispatch(workspaceOp.fetchListAsync(tableSettings, utils.searchActivities));
             });
         }
         return () => {
             dispatch(clearSearchResults());
         };
-    }, [pagination.limit, pagination.offset, globalTableSettings["activities"], qs]);
+    }, [pagination.current, tableSettings.sortBy, tableSettings.sortOrder, tableSettings.pageSize, qs]);
 
     /** handle search */
     const handleSearch = (textQuery: string) => {

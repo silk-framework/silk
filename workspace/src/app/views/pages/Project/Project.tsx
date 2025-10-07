@@ -49,6 +49,7 @@ const Project = () => {
     const data = useSelector(workspaceSel.resultsSelector);
     const projectId = useSelector(commonSel.currentProjectIdSelector);
     const qs = useSelector(routerSel.routerSearchSelector);
+    const pagination = useSelector(workspaceSel.paginationSelector);
     const { clearSearchResults } = previewSlice.actions;
     const [t] = useTranslation();
 
@@ -69,12 +70,14 @@ const Project = () => {
         dispatch(commonOp.fetchAvailableDTypesAsync(projectId));
     }, []);
 
-    const tableSettings = globalTableSettings["workbench"]
-
     useEffect(() => {
         // Reset the filters, due to redirecting
         dispatch(workspaceOp.resetFilters());
+    }, [location.pathname]);
 
+    const tableSettings = globalTableSettings["workbench"]
+
+    useEffect(() => {
         // Setup the filters from query string
         dispatch(workspaceOp.setupFiltersFromQs(qs));
 
@@ -83,7 +86,7 @@ const Project = () => {
         return () => {
             dispatch(clearSearchResults());
         };
-    }, [qs, projectId, tableSettings.sortBy, tableSettings.sortOrder, tableSettings.pageSize]);
+    }, [qs, projectId, tableSettings.sortBy, tableSettings.sortOrder, tableSettings.pageSize, pagination.current]);
 
     const handleSearch = (textQuery: string) => {
         dispatch(workspaceOp.applyFiltersOp({ textQuery }));
