@@ -25,7 +25,6 @@ import { requestItemLinks } from "@ducks/shared/requests";
 import { commonSel } from "@ducks/common";
 import Loading from "../Loading";
 import { SERVE_PATH } from "../../../constants/path";
-import "./projectTaskTabView.scss";
 import { IProjectTaskView, IViewActions, pluginRegistry } from "../../plugins/PluginRegistry";
 import PromptModal from "./PromptModal";
 import ErrorBoundary from "../../../ErrorBoundary";
