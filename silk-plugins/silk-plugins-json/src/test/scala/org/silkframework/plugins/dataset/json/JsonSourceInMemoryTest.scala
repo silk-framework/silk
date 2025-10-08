@@ -33,6 +33,18 @@ class JsonSourceInMemoryTest extends JsonSourceTest {
     entities4.map(_.values.head).toSeq mustBe Seq(Seq("1"), Seq("2"), Seq("3"))
   }
 
+  it should "not allow multiple ** operators in a single path" in {
+    val source: DataSource = createSource(resources.get("exampleDifferentNesting.json"), "", "#id")
+
+    an[IllegalArgumentException] should be thrownBy {
+      source.retrieve(EntitySchema("**/person/**", typedPaths = IndexedSeq(UntypedPath.parse("name").asStringTypedPath))).entities.toSeq
+    }
+
+    an[IllegalArgumentException] should be thrownBy {
+      source.retrieve(EntitySchema("", typedPaths = IndexedSeq(UntypedPath.parse("**/name/**").asStringTypedPath))).entities.toSeq
+    }
+  }
+
   it should "test string based apply method" in {
     val str = resources.get("example.json").loadAsString(Codec.UTF8)
     val result = JsonSourceInMemory.fromString("taskId", str, "", "#id").peak(EntitySchema(Uri(""), typedPaths = IndexedSeq(UntypedPath.parse("/persons/phoneNumbers/number").asStringTypedPath)), 3).toSeq
