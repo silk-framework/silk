@@ -451,7 +451,7 @@ export class RenderResultApi {
 
     assert = (predicate: any, errorMessage: string) => {
         if (!predicate) {
-            fail(errorMessage);
+            throw new Error(errorMessage);
         }
     };
 
