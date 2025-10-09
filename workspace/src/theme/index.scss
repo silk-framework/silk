@@ -36,6 +36,7 @@ $eccgui-selector-text-spot-highlight: "[id^=parameter_doc_]";
  * Additional styles for modules
  */
 
+@import "./../app/views/shared/projectTaskTabView/projectTaskTabView";
 @import "./../app/views/taskViews/linking/activeLearning/LinkingRuleActiveLeraningConfig";
 @import "./../app/views/taskViews/linking/evaluation/tabView/LinkingEvaluationTabview.scss";
 @import "./../app/views/taskViews/transform/evaluation/tabView/TransformEvaluationTabView.scss";
