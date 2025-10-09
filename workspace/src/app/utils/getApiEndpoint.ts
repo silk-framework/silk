@@ -1,4 +1,8 @@
 import { API_ENDPOINT, HOST } from "../constants/path";
+import { APPLICATION_DOCUMENTATION_SERVICE_URL, APPLICATION_NAME } from "../constants/base";
+import { useTranslation } from "react-i18next";
+import { commonSel } from "@ducks/common";
+import { useSelector } from "react-redux";
 
 /**
  * Root path of DI
@@ -53,7 +57,6 @@ export const prependSlash = (relativePath: string): string => {
     }
 };
 
-
 /**
  * @param query
  */
@@ -67,4 +70,25 @@ export const legacyTransformEndpoint = (subPath: string) => {
 
 export const legacyLinkingEndpoint = (subPath: string) => {
     return rootPath("/linking") + prependSlash(subPath);
+};
+
+/**
+ * Documentation page resolver
+ */
+export const documentationPageUrl = (featureId: string): string | null => {
+    const { i18n } = useTranslation();
+    const { version } = useSelector(commonSel.initialSettingsSelector);
+
+    try {
+        return new URL(
+            `?${new URLSearchParams({
+                lang: i18n.language,
+                version: version ?? "unknown",
+                origin: APPLICATION_NAME(),
+            }).toString()}`,
+            APPLICATION_DOCUMENTATION_SERVICE_URL() + featureId,
+        ).toString();
+    } catch {
+        return null;
+    }
 };
