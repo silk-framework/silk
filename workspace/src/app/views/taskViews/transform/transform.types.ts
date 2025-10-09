@@ -90,7 +90,7 @@ export type NewComplexMappingRule = PartialBy<IComplexMappingRule, "id" | "metad
 
 interface RuleToBeEdited {
     /** The alternative save function, since the rule cannot be saved in the backend directly. If no function is given, the normal save function for existing rules is used. */
-    alternativeSave: undefined | ((updatedRule: NewTransformRule) => void | Promise<void>);
+    alternativeSave: undefined | ((updatedRule: NewComplexMappingRule) => void | Promise<void>);
 }
 
 export interface InitialRuleHighlighting {
