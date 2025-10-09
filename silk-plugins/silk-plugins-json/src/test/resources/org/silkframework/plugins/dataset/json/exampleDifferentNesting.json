@@ -1,0 +1,31 @@
+{
+  "description": "Used to test the ** operator for different nesting levels",
+  "persons": [
+    {
+      "person":
+        {
+          "id": "1",
+          "name": "John"
+        }
+    }
+  ],
+  "organizations": [
+    {
+      "organization":
+        {
+          "companyName": "Alice Inc",
+          "person":
+            {
+              "id": "2",
+              "name": "Alice"
+            }
+        }
+    },
+    {
+      "organization":
+        {
+          "companyName": "Max Inc"
+        }
+    }
+  ]
+}

@@ -58,7 +58,7 @@ object SparqlRestriction {
     val strippedRestrictions = restrictions.trim.stripSuffix(".").trim
     val cleanedRestrictions = if (strippedRestrictions.isEmpty) "" else strippedRestrictions + " ."
 
-    val prefixRegex = """(?<!<)(?<![\p{L}\d])([a-zA-Z][a-zA-Z0-9]*):([^\s/<>"';]+)(?![^<]*>)(?![^"']*["'](?:[^"']*["'][^"']*["'])*[^"']*$)""".r
+    val prefixRegex = """(?<!<)(?<![\p{L}\d])([a-zA-Z][a-zA-Z0-9]*):([^\s/<>"';|+*?)]+)(?![^<]*>)(?![^"']*["'](?:[^"']*["'][^"']*["'])*[^"']*$)""".r
 
     // Replace all prefixes with their full URIs
     val restrictionsFull = prefixRegex.replaceAllIn(cleanedRestrictions, replacePrefix _)

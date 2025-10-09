@@ -24,7 +24,7 @@ case class LocalGetProjectFilesOperatorExecutor() extends LocalExecutor[GetProje
       for(filePath <- task.data.getFiles()) yield {
         val file = pluginContext.resources.getInPath(filePath)
         executionReport.addFile(filePath)
-        FileEntity(file, FileType.Project)
+        FileEntity(file, FileType.Project, task.data.mimeTypeOpt)
       }
 
     executionReport.executionDone()

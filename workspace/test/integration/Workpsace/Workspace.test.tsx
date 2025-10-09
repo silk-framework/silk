@@ -1,8 +1,9 @@
 import React from "react";
+import "@testing-library/jest-dom";
 import qs from "qs";
 import { createMemoryHistory } from "history";
 import mockAxios from "../../__mocks__/axios";
-import { byTestId, findAll, mockedAxiosResponse, testWrapper, withMount, workspacePath } from "../TestHelper";
+import { byTestId, findAllDOMElements, mockedAxiosResponse, renderWrapper, workspacePath } from "../TestHelper";
 import { Workspace } from "../../../src/app/views/pages/Workspace/Workspace";
 import { fireEvent, screen, waitFor } from "@testing-library/react";
 
@@ -32,7 +33,7 @@ describe("Search Items", () => {
                     label: "Datatypes",
                     values: [{ id: "dataset", label: "dataset" }],
                 },
-            })
+            }),
         );
     };
 
@@ -71,7 +72,7 @@ describe("Search Items", () => {
                     ],
                     total: 20,
                 },
-            })
+            }),
         );
     };
 
@@ -83,7 +84,7 @@ describe("Search Items", () => {
             const qsStr = qs.stringify(searchParams, { arrayFormat: "comma" });
             history.push(`${rootPath}?${qsStr}`);
         }
-        return withMount(testWrapper(<Workspace />, history));
+        return renderWrapper(<Workspace />, history);
     };
 
     afterEach(() => {
@@ -127,7 +128,7 @@ describe("Search Items", () => {
         expect(reqInfo).toBeTruthy();
     });
 
-    it("should facets presented correctly", async (done) => {
+    it("should facets presented correctly", async () => {
         const filteredQueryParams = {
             itemType: "dataset",
         };
@@ -139,59 +140,8 @@ describe("Search Items", () => {
         mockSearchItemsRequest();
 
         await waitFor(() => {
-            const elements = findAll(wrapper, byTestId(`facet-items`));
+            const elements = findAllDOMElements(wrapper, byTestId(`facet-items`));
             expect(elements).toHaveLength(2);
-            done();
-        });
-    });
-
-    xit("should search bar send request for filtering", async (done) => {
-        // THE QUERY STRING NOT UPDATED IN ROUTER-CONNECTED-ROUTER
-        getWrapper();
-
-        const input = screen.queryByTestId(`search-bar`);
-        fireEvent.change(input, { target: { value: "test" } });
-        fireEvent.keyDown(input, { key: "Enter", code: "Enter" });
-
-        await waitFor(() => {
-            expect(mockAxios.lastReqGet().data).toEqual({
-                facets: [],
-                limit: 10,
-                offset: 0,
-                textQuery: "test",
-            });
-
-            done();
-        });
-    });
-
-    xit("should pagination works as expected", async () => {
-        getWrapper();
-
-        mockItemTypesRequest();
-
-        mockSearchItemsRequest();
-
-        mockAxios.reset();
-
-        const btn = await screen.findByLabelText("Next page");
-        fireEvent.click(btn);
-
-        await waitFor(() => {
-            const reqInfo = mockAxios.getReqMatching({
-                url: hostPath + "/api/workspace/searchItems",
-            });
-
-            expect(reqInfo.data).toEqual({
-                itemType: "dataset",
-                limit: 15,
-                offset: 10,
-                page: 2,
-                facets: [
-                    { facetId: "facetId1", type: "keyword", keywordIds: ["facet1Key1", "facet1Key2"] },
-                    { facetId: "facetId2", type: "keyword", keywordIds: ["facet2Key"] },
-                ],
-            });
         });
     });
 });

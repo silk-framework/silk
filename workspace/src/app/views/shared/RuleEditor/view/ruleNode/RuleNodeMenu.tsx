@@ -84,14 +84,14 @@ export const RuleNodeMenu = ({
                             ruleEvaluationContext.startEvaluation(
                                 subtreeRuleOperatorNodes,
                                 ruleEditorContext.editedItem,
-                                false
+                                false,
                             );
                             ruleEvaluationContext.toggleEvaluationResults(true);
                         }}
                         text={t("RuleEditor.node.menu.subtree.label", "Evaluate subtree")}
                         htmlTitle={t(
                             "RuleEditor.node.menu.subtree.description",
-                            "Evaluate linking tree partially until this operator node."
+                            "Evaluate linking tree partially until this operator node.",
                         )}
                     />
                 ) : null}
