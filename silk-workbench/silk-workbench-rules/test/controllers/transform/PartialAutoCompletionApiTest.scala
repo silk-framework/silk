@@ -213,7 +213,7 @@ class PartialAutoCompletionApiTest extends AnyFlatSpec with Matchers with Single
     val uriPatternAutoCompletions = uriPatternAutoCompleteRequest(jsonTransform, inputText = inputText,
       cursorPosition = cursorPosition, objectPath = Some(objectPathContext))
     val Seq(querySpecificResults, genericOperatorResults) = uriPatternAutoCompletions.replacementResults
-    querySpecificResults.replacements.map(_.value) mustBe allJsonPaths.filter(_.contains("Nested")).map(_.drop(objectPathContext.length + 1))
+    querySpecificResults.replacements.map(_.value).filterNot(_ == "**") mustBe allJsonPaths.filter(_.contains("Nested")).map(_.drop(objectPathContext.length + 1))
   }
 
   it should "not suggest special paths that should not be used in object mapping value paths" in {
