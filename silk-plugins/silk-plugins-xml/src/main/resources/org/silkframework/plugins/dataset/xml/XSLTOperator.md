@@ -186,7 +186,7 @@ In short, the `<xsl:template>` tells which elements it should `match`, whereas t
 - **EPUB** – for generating e-books (often via intermediate XHTML).
 - **SVG** – for generating vector graphics or data visualizations directly from XML.
 
-More conceptually, other user cases of XSLT include:
+More conceptually, other use cases of XSLT include:
 
 - **Data migration and integration** — converting legacy XML to modern schemas or RDF.
 - **Web services** — transforming XML-based APIs into HTML or JSON.
