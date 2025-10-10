@@ -124,7 +124,7 @@ export function RecentlyViewedModal() {
         item: IRecentlyViewedItem,
         query: string,
         modifiers: SuggestFieldItemRendererModifierProps,
-        handleSelectClick: () => any
+        handleSelectClick: () => any,
     ) => {
         console.log("quick search item", item);
         const label = item.taskLabel || item.taskId || item.projectLabel || item.projectId;
@@ -152,7 +152,7 @@ export function RecentlyViewedModal() {
                     <OverviewItemLine small>
                         <TagList>
                             {(item.itemType === "project" || item.itemType === "dataset") && (
-                                <ArtefactTag artefactType={`${item.itemType}Node`}>
+                                <ArtefactTag artefactType={`${item.itemType}-node`}>
                                     <Highlighter label={itemType(item)} searchValue={query} />
                                 </ArtefactTag>
                             )}
@@ -162,7 +162,7 @@ export function RecentlyViewedModal() {
                                 </Tag>
                             )}
                             {item.pluginLabel && (
-                                <ArtefactTag artefactType={`${item.pluginLabel?.toLowerCase()}Node`}>
+                                <ArtefactTag artefactType={`${item.pluginLabel?.toLowerCase()}-node`}>
                                     <Highlighter label={item.pluginLabel} searchValue={query} />
                                 </ArtefactTag>
                             )}
@@ -218,7 +218,7 @@ export function RecentlyViewedModal() {
     // Displays the 'search in workspace' option in the list.
     const createNewItemRenderer = suggestFieldUtils.createNewItemRendererFactory(
         (query) => t("RecentlyViewedModal.globalSearch", { query }),
-        "operation-search"
+        "operation-search",
     );
 
     // The auto-completion of the recently viewed items

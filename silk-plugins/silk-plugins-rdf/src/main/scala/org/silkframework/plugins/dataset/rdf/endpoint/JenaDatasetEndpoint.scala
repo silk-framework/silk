@@ -54,7 +54,7 @@ class JenaDatasetEndpoint(dataset: Dataset, val sparqlParams: SparqlParams = Spa
     JenaDatasetWritingOutputStream(dataset, lang, graph)
   }
 
-  override def deleteGraph(graph: String)
+  override def deleteGraph(graph: String, ignoreIfNotExists: Boolean = false)
                           (implicit userContext: UserContext): Unit = {
     dataset.removeNamedModel(graph)
   }
