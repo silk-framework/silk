@@ -206,4 +206,6 @@ To import XML into a **Knowledge Graph**, you typically:
 3. **Validate the RDF** — check it against the ontology or SHACL shapes.
 4. **Load the RDF** — import it into a **triple store** or **graph database** (e.g., Fuseki, GraphDB, Neo4j).
 
-The plugin `xsltOperator` is an _essential component_ in achieving exactly this, using the Silk Framework or [eccenca Corporate Memory](https://eccenca.com/products/enterprise-knowledge-graph-platform-corporate-memory).
+Whereas this process *does* the job of importing XML into a knowledge graph, using a **data integration** solution based on **knowledge graphs**, such as [eccenca Corporate Memory](https://eccenca.com/products/enterprise-knowledge-graph-platform-corporate-memory), is a *much better fit*. For an example on this, see the [tutorial on lifting data from an XML source](https://documentation.eccenca.com/latest/build/lift-data-from-json-and-xml-sources/), and notice how each of the steps (mapping, transforming, validating, loading) is realized. The `xsltOperator` plugin  is an essential component in achieving the second step of the list (_transforming the XML_).
+
+Notice as well that the source of XML data does not need to be an XML _file_. An alternative could be a Web API providing XML instead of JSON responses. See the [tutorial on extracting data from a Web API](https://documentation.eccenca.com/latest/build/extracting-data-from-a-web-api/), and use an **XML parser** and **XML Dataset** instead of the JSON variants described in the tutorial. Otherwise, the process is the same.
