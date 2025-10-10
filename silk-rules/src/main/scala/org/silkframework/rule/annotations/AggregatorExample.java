@@ -23,7 +23,7 @@ public @interface AggregatorExample {
     // Expected output score. NaN to represent an empty score (None).
     double output();
 
-    // The full class path or empty string
-    String throwsException() default "";
+    // Thrown exception if evaluation should fail. Defaults to Object class if no exception is thrown.
+    Class<?> throwsException() default Object.class;
 
 }

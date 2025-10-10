@@ -1,5 +1,6 @@
 package integration.test
-
+
+
 import org.silkframework.rule.LinkSpec
 import org.silkframework.rule.execution.ComparisonToRestrictionConverter
 import org.silkframework.util.{ConfigTestTrait, DPair}
@@ -40,7 +41,7 @@ class BooleanFilterLinkSpecIntegrationTest extends AnyFlatSpec
     comparisonToRestrictionConverter.removeInequalityClauses mustBe false
   }
 
-  override def workspaceProviderId: String = "inMemory"
+  override def workspaceProviderId: String = "inMemoryWorkspaceProvider"
 
   for((testCase, ExpectedStats(expectedSourceEntities, expectedTargetEntities, expectedNrLinks)) <- testCases) {
     it should s"filter the correct number of entities for test case $testCase" in {

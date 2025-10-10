@@ -28,13 +28,16 @@ class ResourceApiTest extends AnyFlatSpec with IntegrationTestTrait with Matcher
 
   override def routes: Option[Class[testWorkspace.Routes]] = Some(classOf[testWorkspace.Routes])
 
-  override def workspaceProviderId: String = "inMemory"
+  override def workspaceProviderId: String = "inMemoryWorkspaceProvider"
 
   private val resourceApi = controllers.workspace.routes.ResourceApi
 
   it should "download the content of a nested file" in {
-    val url = resourceApi.getFile(projectId, nestedResourcePath).url
-    checkResponse(client.url(s"$baseUrl$url").get()).body mustBe "test"
+    val url1 = resourceApi.getFileForDownload(projectId, nestedResourcePath).url
+    checkResponse(client.url(s"$baseUrl$url1").get()).body mustBe "test"
+
+    val url2 = resourceApi.getFileForBrowsing(projectId, nestedResourcePath).url
+    checkResponse(client.url(s"$baseUrl$url2").get()).body mustBe "test"
   }
 
   it should "fetch file meta data of a nested file" in {
@@ -71,7 +74,7 @@ class ResourceApiTest extends AnyFlatSpec with IntegrationTestTrait with Matcher
     def fileMimeType(name: String, contents: String, expectedMimeType: String): Unit = {
       val resource = project.resources.getInPath(name)
       resource.writeString(contents)
-      val url = resourceApi.getFile(projectId, name).url
+      val url = resourceApi.getFileForDownload(projectId, name).url
       val response = checkResponse(client.url(s"$baseUrl$url").get())
       response.contentType mustBe expectedMimeType
     }

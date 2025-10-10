@@ -1,6 +1,7 @@
 package controllers.transform
 
-import helper.IntegrationTestTrait
+import helper.IntegrationTestTrait
+
 import org.silkframework.workspace.SingleProjectWorkspaceProviderTestTrait
 import play.api.libs.json._
 import org.scalatest.flatspec.AnyFlatSpec
@@ -16,7 +17,7 @@ class EvaluateLinkingTest extends AnyFlatSpec with IntegrationTestTrait with Sin
 
   override def routes = Some(classOf[test.Routes])
 
-  override def workspaceProviderId: String = "inMemory"
+  override def workspaceProviderId: String = "inMemoryWorkspaceProvider"
 
   // TODO this tests run standalone, but let other tests fail. Disabling for now
   ignore should "generate evaluation links" in {

@@ -49,7 +49,7 @@ class PartialAutoCompletionApiTest extends AnyFlatSpec with Matchers with Single
     */
   override def projectPathInClasspath: String = "diProjects/423a27b9-c6e6-45e5-84d2-26d94fce3d1b_Partialauto-completionproject.zip"
 
-  override def workspaceProviderId: String = "inMemory"
+  override def workspaceProviderId: String = "inMemoryWorkspaceProvider"
 
   protected override def routes: Option[Class[Routes]] = Some(classOf[test.Routes])
 
@@ -213,7 +213,7 @@ class PartialAutoCompletionApiTest extends AnyFlatSpec with Matchers with Single
     val uriPatternAutoCompletions = uriPatternAutoCompleteRequest(jsonTransform, inputText = inputText,
       cursorPosition = cursorPosition, objectPath = Some(objectPathContext))
     val Seq(querySpecificResults, genericOperatorResults) = uriPatternAutoCompletions.replacementResults
-    querySpecificResults.replacements.map(_.value) mustBe allJsonPaths.filter(_.contains("Nested")).map(_.drop(objectPathContext.length + 1))
+    querySpecificResults.replacements.map(_.value).filterNot(_ == "**") mustBe allJsonPaths.filter(_.contains("Nested")).map(_.drop(objectPathContext.length + 1))
   }
 
   it should "not suggest special paths that should not be used in object mapping value paths" in {

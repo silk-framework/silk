@@ -1,9 +1,9 @@
 import React from "react";
 import { RuleEditorModel } from "../RuleEditorModel";
-import { testWrapper, withMount } from "../../../../../../../test/integration/TestHelper";
+import { renderWrapper } from "../../../../../../../test/integration/TestHelper";
 import { RuleEditorModelContext, RuleEditorModelContextProps } from "../../contexts/RuleEditorModelContext";
 import { Elements, FitViewParams, FlowExportObject, FlowTransform, ReactFlowProvider } from "react-flow-renderer";
-import { act, waitFor } from "@testing-library/react";
+import { act, waitFor, render } from "@testing-library/react";
 import { RuleEditorContext } from "../../contexts/RuleEditorContext";
 import {
     IParameterSpecification,
@@ -76,36 +76,34 @@ describe("Rule editor model", () => {
         stickyNotes: StickyNote[] = [],
     ) => {
         modelContext = undefined;
-        const ruleModel = withMount(
-            testWrapper(
-                <RuleEditorContext.Provider
-                    value={{
-                        projectId: "testProject",
-                        editedItem: {},
-                        operatorList: operatorList,
-                        editedItemLoading: false,
-                        operatorListLoading: false,
-                        initialRuleOperatorNodes: initialRuleNodes,
-                        stickyNotes,
-                        saveRule: (ruleOperatorNodes): RuleSaveResult => {
-                            savedRuleOperatorNodes = ruleOperatorNodes;
-                            return { success: true };
-                        },
-                        convertRuleOperatorToRuleNode: utils.defaults.convertRuleOperatorToRuleNode,
-                        operatorSpec,
-                        validateConnection,
-                        instanceId: "id",
-                        datasetCharacteristics: new Map(),
-                        partialAutoCompletion: () => async () => undefined,
-                    }}
-                >
-                    <ReactFlowProvider>
-                        <RuleEditorModel>
-                            <RuleEditorModelTestComponent />
-                        </RuleEditorModel>
-                    </ReactFlowProvider>
-                </RuleEditorContext.Provider>,
-            ),
+        const ruleModel = renderWrapper(
+            <RuleEditorContext.Provider
+                value={{
+                    projectId: "testProject",
+                    editedItem: {},
+                    operatorList: operatorList,
+                    editedItemLoading: false,
+                    operatorListLoading: false,
+                    initialRuleOperatorNodes: initialRuleNodes,
+                    stickyNotes,
+                    saveRule: (ruleOperatorNodes): RuleSaveResult => {
+                        savedRuleOperatorNodes = ruleOperatorNodes;
+                        return { success: true };
+                    },
+                    convertRuleOperatorToRuleNode: utils.defaults.convertRuleOperatorToRuleNode,
+                    operatorSpec,
+                    validateConnection,
+                    instanceId: "id",
+                    datasetCharacteristics: new Map(),
+                    partialAutoCompletion: () => async () => undefined,
+                }}
+            >
+                <ReactFlowProvider>
+                    <RuleEditorModel>
+                        <RuleEditorModelTestComponent />
+                    </RuleEditorModel>
+                </ReactFlowProvider>
+            </RuleEditorContext.Provider>,
         );
         await waitFor(() => {
             expect(modelContext).toBeTruthy();
@@ -460,43 +458,6 @@ describe("Rule editor model", () => {
         expect(savedRuleOperatorNodes[0].position).toBe(newPosition);
     });
 
-    it("should auto-layout nodes and undo & redo", async () => {
-        const initialPositions = [
-            { x: 0, y: 0 },
-            { x: -100, y: 100 },
-            { x: 200, y: 100 },
-        ];
-        await ruleEditorModel([
-            node({ nodeId: "nodeA", position: initialPositions[0] }),
-            node({ nodeId: "nodeB", position: initialPositions[1] }),
-            node({
-                nodeId: "nodeC",
-                position: initialPositions[2],
-                portSpecification: { minInputPorts: 2, maxInputPorts: 2 },
-            }),
-        ]);
-        const checkBefore = () => {
-            expect(currentOperatorNodes().map((n) => n.position)).toStrictEqual(initialPositions);
-        };
-        checkBefore();
-        act(() => {
-            currentContext().executeModelEditOperation.addEdge("nodeB", "nodeC", "2");
-            currentContext().executeModelEditOperation.addEdge("nodeA", "nodeC", "1");
-        });
-        act(() => {
-            currentContext().executeModelEditOperation.autoLayout(false);
-        });
-        const checkAfter = async () => {
-            await waitFor(() => {
-                const newPositions = currentOperatorNodes().map((n) => n.position);
-                expect(newPositions).not.toStrictEqual(initialPositions);
-                expect(newPositions[0]?.y!!).toBeLessThan(newPositions[1]?.y!!);
-            });
-        };
-        await checkAfter();
-        checkUndoAndRedo(checkBefore, checkAfter);
-    });
-
     it("should move multiple nodes by an offset", async () => {
         await ruleEditorModel(
             [
@@ -834,7 +795,6 @@ describe("Rule editor model", () => {
         expect(allNodes()).toHaveLength(4);
         // // Execute UNDO and REDO twice
         for (let i = 0; i < 2; i++) {
-            console.log("Test UNDO");
             for (let changeIdx = stateHistory.length - 1; changeIdx > 0; changeIdx--) {
                 expect(currentContext().canUndo).toBe(true);
                 act(() => {
@@ -990,6 +950,41 @@ describe("Rule editor model", () => {
         };
         checkAfterChange();
         checkUndoAndRedo(checkBeforeChange, checkAfterChange);
+    });
+
+    it("should auto-layout nodes and undo & redo", async () => {
+        const initialPositions = [
+            { x: 0, y: 0 },
+            { x: -100, y: 100 },
+            { x: 200, y: 100 },
+        ];
+        await ruleEditorModel([
+            node({ nodeId: "nodeA", position: initialPositions[0] }),
+            node({ nodeId: "nodeB", position: initialPositions[1] }),
+            node({
+                nodeId: "nodeC",
+                position: initialPositions[2],
+                portSpecification: { minInputPorts: 2, maxInputPorts: 2 },
+            }),
+        ]);
+        const checkBefore = () => {
+            expect(currentOperatorNodes().map((n) => n.position)).toStrictEqual(initialPositions);
+        };
+        checkBefore();
+        await act(async () => {
+            await currentContext().executeModelEditOperation.addEdge("nodeB", "nodeC", "2");
+            await currentContext().executeModelEditOperation.addEdge("nodeA", "nodeC", "1");
+        });
+        await act(async () => {
+            await currentContext().executeModelEditOperation.autoLayout(false);
+        });
+        const checkAfter = () => {
+            const newPositions = currentOperatorNodes().map((n) => n.position);
+            expect(newPositions).not.toStrictEqual(initialPositions);
+            expect(newPositions[0]?.y!!).toBeLessThan(newPositions[1]?.y!!);
+        };
+        await checkAfter();
+        checkUndoAndRedo(checkBefore, checkAfter);
     });
 });
 

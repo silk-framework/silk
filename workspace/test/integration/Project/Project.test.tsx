@@ -1,26 +1,22 @@
 import React from "react";
-import { waitFor } from "@testing-library/react";
+import { RenderResult, waitFor } from "@testing-library/react";
 import mockAxios from "../../__mocks__/axios";
 import {
     apiUrl,
     byTestId,
-    changeValue,
+    changeInputValue,
     checkRequestMade,
-    findAll,
-    findSingleElement,
-    keyDown,
+    findElement,
+    pressKeyDown,
     legacyApiUrl,
-    logRequests,
     mockAxiosResponse,
-    testWrapper,
-    withMount,
     workspacePath,
-    wrapperHtml,
+    renderWrapper,
+    findAllDOMElements,
 } from "../TestHelper";
 import { createBrowserHistory, History, LocationState } from "history";
 import Project from "../../../src/app/views/pages/Project";
 import qs from "qs";
-import { ReactWrapper } from "enzyme";
 
 //jest.setTimeout(50000);
 
@@ -58,14 +54,13 @@ describe("Project page", () => {
             },
         },
     };
-    let projectPageWrapper: ReactWrapper<any, any> = null;
+    let projectPageWrapper: RenderResult = null;
     let history: History<LocationState> = null;
     beforeEach(() => {
         history = createBrowserHistory();
         history.location.pathname = workspacePath("/projects/" + testProjectId);
 
-        projectPageWrapper = withMount(testWrapper(<Project />, history, reducerState));
-
+        projectPageWrapper = renderWrapper(<Project />, history, reducerState);
         return projectPageWrapper;
     });
 
@@ -79,10 +74,6 @@ describe("Project page", () => {
 
     it("should request meta data", async () => {
         checkRequestMade(apiUrl("/workspace/projects/" + testProjectId + "/metaDataExpanded"));
-    });
-
-    xit("should get available resources for file widget", () => {
-        checkRequestMade(legacyApiUrl("/workspace/projects/" + testProjectId + "/resources"));
     });
 
     it("should get prefixes for configuration widget", () => {
@@ -113,14 +104,14 @@ describe("Project page", () => {
                 f_keys: ["facet1Key1|facet1Key2", "facet2Key"],
                 types: ["keyword", "keyword"],
             },
-            { arrayFormat: "comma" }
+            { arrayFormat: "comma" },
         );
 
         let history = createBrowserHistory();
         history.location.pathname = workspacePath("/projects/" + testProjectId);
         history.location.search = filteredQueryParams;
 
-        withMount(testWrapper(<Project />, history));
+        renderWrapper(<Project />, history);
 
         const expectedSearchResponse = {
             textQuery: "some text",
@@ -138,8 +129,7 @@ describe("Project page", () => {
     });
 
     it("file widget is displayed", () => {
-        const filewidget = findAll(projectPageWrapper, byTestId(`project-files-widget`));
-        expect(filewidget).toHaveLength(1);
+        expect(findAllDOMElements(projectPageWrapper, byTestId(`project-files-widget`))).toHaveLength(1);
     });
 
     const setFilesForWidget = (files) => {
@@ -149,43 +139,39 @@ describe("Project page", () => {
     it("file search bar is shown when there are files", async () => {
         setFilesForWidget(reducerState.workspace.widgets.files.results);
         await waitFor(() => {
-            const filesearchinput = findAll(projectPageWrapper, byTestId(`file-search-bar`));
-            expect(filesearchinput).toHaveLength(1);
+            expect(findAllDOMElements(projectPageWrapper, byTestId(`file-search-bar`))).toHaveLength(1);
         });
     });
 
     it("file search bar is not shown but upload widget when there are no files", async () => {
         setFilesForWidget([]);
         await waitFor(() => {
-            const filesearchinput = findAll(projectPageWrapper, byTestId(`file-search-bar`));
-            const emptyfilesnotifcation = findAll(projectPageWrapper, byTestId(`project-files-widget-empty`));
-            expect(filesearchinput).toHaveLength(0);
-            expect(emptyfilesnotifcation).toHaveLength(1);
+            expect(findAllDOMElements(projectPageWrapper, byTestId(`file-search-bar`))).toHaveLength(0);
+            expect(findAllDOMElements(projectPageWrapper, byTestId(`project-files-widget-empty`))).toHaveLength(1);
         });
     });
 
     it("file search bar never disappears when no results are shown", async () => {
         setFilesForWidget(reducerState.workspace.widgets.files.results);
         await waitFor(() => {
-            const filesearchinputchange = findSingleElement(projectPageWrapper, byTestId(`file-search-bar`));
-            changeValue(filesearchinputchange, "unknown-string");
-            keyDown(filesearchinputchange, "Enter");
+            const fileSearchInput = findElement(projectPageWrapper, byTestId(`file-search-bar`)) as HTMLInputElement;
+            changeInputValue(fileSearchInput, "unknown-string");
+            pressKeyDown(fileSearchInput); //Enter key is default
             //setFilesForWidget([]);
         });
         setFilesForWidget([]);
         await waitFor(() => {
-            const filesearchinputtest = findAll(projectPageWrapper, byTestId(`file-search-bar`));
-            expect(filesearchinputtest).toHaveLength(1);
+            expect(findAllDOMElements(projectPageWrapper, byTestId(`file-search-bar`))).toHaveLength(1);
         });
     });
 
     it("should have a download link for a file resource", async () => {
         setFilesForWidget(reducerState.workspace.widgets.files.results);
         await waitFor(() => {
-            expect(wrapperHtml(projectPageWrapper)).toContain(expectedFile);
+            expect(projectPageWrapper.container.innerHTML).toContain(expectedFile);
         });
-        const downloadIcon = findSingleElement(projectPageWrapper, byTestId("resource-download-btn"));
-        expect(downloadIcon.getDOMNode().tagName).toBe("A");
-        expect(downloadIcon.getDOMNode().getAttribute("href")).toContain(expectedFile);
+        const downloadIcon = findElement(projectPageWrapper, byTestId("resource-download-btn"));
+        expect(downloadIcon.tagName).toBe("A");
+        expect(downloadIcon.getAttribute("href")).toContain(expectedFile);
     });
 });

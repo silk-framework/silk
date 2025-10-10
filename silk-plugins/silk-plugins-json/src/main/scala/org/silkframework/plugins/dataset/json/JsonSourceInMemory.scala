@@ -1,7 +1,7 @@
 package org.silkframework.plugins.dataset.json
 
 import com.fasterxml.jackson.core.{JsonFactory, JsonParser}
-import org.silkframework.entity.paths.UntypedPath
+import org.silkframework.entity.paths.{ForwardOperator, Path, PathOperator, UntypedPath}
 import org.silkframework.entity.{Entity, EntitySchema}
 import org.silkframework.execution.EntityHolder
 import org.silkframework.execution.local.{EmptyEntityTable, GenericEntityTable}
@@ -15,7 +15,8 @@ import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
 import java.util.logging.{Level, Logger}
 
-class JsonSourceInMemory(taskId: Identifier, nodes: () => CloseableIterator[JsonNode], basePath: String, uriPattern: String, navigateIntoArrays: Boolean) extends JsonSource(taskId, basePath, uriPattern) {
+class JsonSourceInMemory(taskId: Identifier, nodes: () => CloseableIterator[JsonNode], basePath: String, uriPattern: String, navigateIntoArrays: Boolean)
+  extends JsonSource(taskId, basePath, uriPattern) {
 
   private val logger = Logger.getLogger(getClass.getName)
 
@@ -36,12 +37,17 @@ class JsonSourceInMemory(taskId: Identifier, nodes: () => CloseableIterator[Json
       val jsonTraverser = JsonTraverser.fromNode(underlyingTask.id, node, navigateIntoArrays)
       val selectedElements = jsonTraverser.select(basePathParts)
       val subPath = UntypedPath.parse(entitySchema.typeUri.uri) ++ entitySchema.subPath
+      // Check paths
+      checkPath(subPath)
+      entitySchema.typedPaths.foreach(checkPath)
+      // Apply sub path if necessary
       val subPathElements =
         if(subPath.operators.nonEmpty) {
           selectedElements.flatMap(_.select(subPath.operators))
         } else {
           selectedElements
         }
+      // Retrieve entities
       retrieveEntities(subPathElements, entitySchema, Set.empty)
     }
     GenericEntityTable(entities, entitySchema, underlyingTask)
@@ -89,8 +95,15 @@ class JsonSourceInMemory(taskId: Identifier, nodes: () => CloseableIterator[Json
     }
   }
 
-  private def basePathMatches(currentPath: List[String]) = {
-    basePathLength == 0 || basePathPartsReversed == currentPath.takeRight(basePathLength)
+  /**
+   * Checks that a path is valid, i.e. contains at most one recursive all children operator.
+   */
+  private def checkPath(path: Path): Unit = {
+    val recursiveOperatorCount = path.operators.count {
+      case ForwardOperator(prop) if prop.uri == JsonDataset.specialPaths.ALL_CHILDREN_RECURSIVE => true
+      case _ => false
+    }
+    require(recursiveOperatorCount <= 1, s"The ** operator can only occur once in a path. Found: $path")
   }
 
 

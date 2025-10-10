@@ -35,7 +35,7 @@ import org.silkframework.runtime.validation.ValidationException
     parameters = Array("min", "0", "max", "1"),
     input1 = Array("value1", "value2"),
     output = Array(),
-    throwsException = "org.silkframework.runtime.validation.ValidationException"
+    throwsException = classOf[org.silkframework.runtime.validation.ValidationException]
   )
 ))
 case class ValidateNumberOValues(

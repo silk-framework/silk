@@ -1,7 +1,8 @@
 package controllers.workspaceApi
 
 import controllers.workspaceApi.uriPattern.{UriPatternRequest, UriPatternResponse, UriPatternResult}
-import helper.IntegrationTestTrait
+import helper.IntegrationTestTrait
+
 import org.silkframework.serialization.json.JsonHelpers
 import org.silkframework.util.ConfigTestTrait
 import org.silkframework.workspace.SingleProjectWorkspaceProviderTestTrait
@@ -19,7 +20,7 @@ class WorkspaceUriPatternApiTest extends AnyFlatSpec with SingleProjectWorkspace
 
   override def projectPathInClasspath: String = "diProjects/9b50b3b6-eab1-4261-a743-eb3570e67f25_URItemplatetestproject.zip"
 
-  override def workspaceProviderId: String = "inMemory"
+  override def workspaceProviderId: String = "inMemoryWorkspaceProvider"
 
   override def routes: Option[Class[_ <: Router]] = Some(classOf[testWorkspace.Routes])
 

@@ -1,20 +1,23 @@
 package org.silkframework.rule.input
 
 import org.silkframework.rule.OperatorExampleValue
+import org.silkframework.rule.OperatorExampleValues.code
 import org.silkframework.rule.annotations.TransformExample
+
 import scala.collection.immutable.ArraySeq
 
 case class TransformExampleValue(description: Option[String],
                                  parameters: Map[String, String],
                                  input: Seq[Seq[String]],
                                  output: Seq[String],
-                                 throwsException: String) extends OperatorExampleValue {
+                                 throwsException: Option[Class[_]]) extends OperatorExampleValue {
 
   def formatted: String = {
-    if(throwsException.trim != "") {
-      s"Fails validation and thus returns ${format(output)} for parameters ${format(parameters)} and input values ${format(input.map(format))}."
-    } else {
-      s"Returns ${format(output)} for parameters ${format(parameters)} and input values ${format(input.map(format))}."
+    throwsException match {
+      case Some(exClass) =>
+        s"Fails validation with exception `${exClass.getSimpleName}` and thus returns ${format(output)} for parameters ${format(parameters)} and input values ${format(input.map(format))}."
+      case None =>
+        s"Returns ${format(output)} for parameters ${format(parameters)} and input values ${format(input.map(format))}."
     }
   }
 
@@ -22,11 +25,14 @@ case class TransformExampleValue(description: Option[String],
     if(input.nonEmpty) {
       sb ++= "* Input values:\n"
       for((input, idx) <- input.zipWithIndex) {
-        sb ++= s"  ${idx + 1}. `${format(input)}`\n"
+        sb ++= s"    ${idx + 1}. ${code(format(input))}\n"
       }
       sb ++= "\n"
     }
-    sb ++= s"* Returns:\n\n  → `${format(output)}`\n"
+    sb ++= s"* Returns: ${code(format(output))}\n"
+    for(exceptionClass <- throwsException) {
+      sb ++= s"* **Throws error:** `${exceptionClass.getSimpleName}`\n"
+    }
   }
 
   private def format(traversable: Iterable[_]): String = {
@@ -45,7 +51,7 @@ object TransformExampleValue {
         parameters = retrieveParameters(example),
         input = retrieveInputs(example),
         output = example.output().toList,
-        throwsException = example.throwsException()
+        throwsException = Option(example.throwsException()).filterNot(_ == classOf[Object])
       )
     }
   }

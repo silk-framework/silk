@@ -30,9 +30,7 @@ import org.silkframework.util.StringUtils.DoubleLiteral
   id = "numOperation",
   categories = Array("Numeric"),
   label = "Numeric operation",
-  description =
-    """ | Applies a numeric operation to the values of multiple input operators.
-        | Uses double-precision floating-point numbers for computation."""
+  description = """Applies one of the four basic arithmetic operators (`+`, `-`, `*` or `/`) to the sequence of input values. The transformation uses double-precision floating-point numbers in the computations."""
 )
 @TransformExamples(Array(
   new TransformExample(

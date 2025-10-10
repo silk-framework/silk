@@ -46,3 +46,9 @@ case class YamlCodeParameter(var str: String) extends CodeParameter
 case class PythonCodeParameter(var str: String) extends CodeParameter
 
 case class TurtleCodeParameter(var str: String) extends CodeParameter
+
+case class HtmlCodeParameter(var str: String) extends CodeParameter
+
+object HtmlCodeParameter {
+  implicit def str2parameter(str: String): HtmlCodeParameter = HtmlCodeParameter(str)
+}

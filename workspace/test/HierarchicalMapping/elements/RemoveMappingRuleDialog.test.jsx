@@ -1,18 +1,17 @@
 import React from "react";
-import { shallow, mount } from 'enzyme';
-import RemoveMappingRuleDialog from '../../../src/app/views/pages/MappingEditor/HierarchicalMapping/elements/RemoveMappingRuleDialog';
+import RemoveMappingRuleDialog from "../../../src/app/views/pages/MappingEditor/HierarchicalMapping/elements/RemoveMappingRuleDialog";
+import { render } from "@testing-library/react";
+import { clickFoundElement, findElement } from "../../integration/TestHelper";
 
 const handleRemoveCancelMock = jest.fn();
 const handleRemoveConfirmMock = jest.fn();
 const props = {
     numberEditingElements: 2,
     handleCancelRemove: handleRemoveCancelMock,
-    handleConfirmRemove: handleRemoveConfirmMock
+    handleConfirmRemove: handleRemoveConfirmMock,
 };
 
-const getWrapper = (renderer = shallow) => renderer(
-    <RemoveMappingRuleDialog {...props} />
-);
+const getWrapper = () => render(<RemoveMappingRuleDialog {...props} />);
 
 const selectors = {
     REMOVE_BUTTON: "button.ecc-hm-delete-accept",
@@ -20,25 +19,24 @@ const selectors = {
 };
 
 describe("RemoveMappingRuleDialog Component", () => {
-    describe("on user interaction, ",() => {
-
+    describe("on user interaction, ", () => {
         let wrapper;
         beforeEach(() => {
-            wrapper = getWrapper(mount);
+            wrapper = getWrapper();
         });
 
         it("should handleDiscardConfirm called, when click on Discard button", () => {
-            wrapper.find(selectors.REMOVE_BUTTON).simulate('click');
+            clickFoundElement(wrapper, selectors.REMOVE_BUTTON);
             expect(handleRemoveConfirmMock).toHaveBeenCalled();
         });
 
         it("should handleDiscardCancel called, when click on Cancel button", () => {
-            wrapper.find(selectors.CANCEL_BUTTON).simulate('click');
+            clickFoundElement(wrapper, selectors.CANCEL_BUTTON);
             expect(handleRemoveCancelMock).toHaveBeenCalled();
         });
 
         afterEach(() => {
             wrapper.unmount();
-        })
+        });
     });
 });
