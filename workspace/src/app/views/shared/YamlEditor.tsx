@@ -3,7 +3,7 @@ import React from "react";
 import {CodeAutocompleteField} from "@eccenca/gui-elements";
 import {
     CodeAutocompleteFieldPartialAutoCompleteResult,
-    CodeAutocompleteFieldReplacementResult,
+    CodeAutocompleteFieldReplacementResult, CodeAutocompleteFieldValidationResult,
 } from "@eccenca/gui-elements/src/components/AutoSuggestion/AutoSuggestion";
 import {sharedOp} from "@ducks/shared";
 import {IPropertyAutocomplete} from "@ducks/common/typings";
@@ -12,6 +12,8 @@ import {
     DependsOnParameterValueAny,
 } from "./modals/CreateArtefactModal/ArtefactForms/ParameterAutoCompletion";
 import {DependsOnParameterValue} from "@ducks/shared/typings";
+import {validateYaml} from "@ducks/workspace/requests";
+import useErrorHandler from "../../hooks/useErrorHandler";
 
 interface YamlEditorProps {
     /** ID of the project. */
@@ -35,6 +37,7 @@ interface YamlEditorProps {
 
 export const YamlEditor: React.FC<YamlEditorProps> = ({projectId, pluginId, formParamId, dependentValue, initialValue,
                                                           defaultValue, autoCompletion, id, onChange}) => {
+    const {registerError} = useErrorHandler()
 
     const selectDependentValues = (autoCompletion: IPropertyAutocomplete): DependsOnParameterValue[] => {
         if (!formParamId || !defaultValue || !dependentValue) return [];
@@ -93,6 +96,16 @@ export const YamlEditor: React.FC<YamlEditorProps> = ({projectId, pluginId, form
         }
     }, [pluginId, id, projectId, autoCompletion?.autoCompletionDependsOnParameters.join("|")])
 
+
+    const checkYamlString = React.useCallback(async (yaml: string): Promise<CodeAutocompleteFieldValidationResult | undefined> => {
+        try {
+            const result = await validateYaml(yaml, false, true)
+            return result.data
+        } catch (ex) {
+            registerError("checkYamlString", "YAML validation request has failed.", ex)
+        }
+    }, [])
+
     return <CodeAutocompleteField
         mode={"yaml"}
         initialValue={initialValue ?? ""}
@@ -100,5 +113,6 @@ export const YamlEditor: React.FC<YamlEditorProps> = ({projectId, pluginId, form
         onChange={onChange}
         fetchSuggestions={fetchSuggestions}
         autoCompletionRequestDelay={200}
+        checkInput={checkYamlString}
     />
 };

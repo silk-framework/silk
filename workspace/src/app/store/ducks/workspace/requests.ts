@@ -15,6 +15,7 @@ import { legacyApiEndpoint, projectApi, workspaceApi } from "../../../utils/getA
 import { FetchResponse } from "../../../services/fetch/responseInterceptor";
 import { IAutocompleteDefaultResponse, IProjectTask } from "@ducks/shared/typings";
 import { TaskContext } from "../../../views/shared/projectTaskTabView/projectTaskTabView.typing";
+import { CodeAutocompleteFieldValidationResult } from "@eccenca/gui-elements/src/components/AutoSuggestion/AutoSuggestion";
 
 export interface ISearchListRequest {
     limit?: number;
@@ -388,4 +389,20 @@ export const requestTaskContextInfo = async (
             taskContext,
         },
     });
+};
+
+/** Validates a YAML string.
+ * @param yaml The YAML string that should be validated.
+ * @param nestingAllowed If the YAML can be nested, else each value has to be atomic.
+ * @param expectMap If the root element must be a Map. */
+export const validateYaml = async (yaml: string, nestingAllowed: boolean, expectMap: boolean): Promise<FetchResponse<CodeAutocompleteFieldValidationResult>> => {
+    return fetch({
+        url: workspaceApi("/validation/yaml"),
+        method: "POST",
+        body: {
+            yaml,
+            nestingAllowed,
+            expectMap
+        }
+    })
 };
