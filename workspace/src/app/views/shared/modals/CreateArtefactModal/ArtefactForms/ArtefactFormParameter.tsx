@@ -26,8 +26,6 @@ interface Props {
     parameterId: string;
     // Label of the parameter
     label: string;
-    /** ID of this plugin. */
-    pluginId?: string;
     // If required "(required)" will be placed next to the label
     required?: boolean;
     /** Error or info message that will be displayed below the input component. This is usually an error message. */
@@ -84,7 +82,6 @@ export const ArtefactFormParameter = ({
     disabled = false,
     tooltip,
     supportVariableTemplateElement,
-    pluginId,
 }: Props) => {
     const [t] = useTranslation();
     const [toggledTemplateSwitchBefore, setToggledTemplateSwitchBefore] = React.useState<boolean>(false);
