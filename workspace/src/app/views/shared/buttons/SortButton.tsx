@@ -1,10 +1,10 @@
 import React from "react";
-import {IAppliedSorterState, ISorterListItemState, SortModifierType} from "@ducks/workspace/typings";
+import { IAppliedSorterState, ISorterListItemState, SortModifierType } from "@ducks/workspace/typings";
 
 import { ContextMenu, MenuItem } from "@eccenca/gui-elements";
 import { useTranslation } from "react-i18next";
 import { useStoreGlobalTableSettings } from "../../../hooks/useStoreGlobalTableSettings";
-import {GlobalTableContext} from "../../../GlobalContextsWrapper";
+import { GlobalTableContext } from "../../../GlobalContextsWrapper";
 
 interface IProps {
     sortersList: ISorterListItemState[];
@@ -13,11 +13,11 @@ interface IProps {
 
 export default function SortButton({ sortersList, activeSort }: IProps) {
     const [t] = useTranslation();
-    const { updateGlobalTableSettings } = React.useContext(GlobalTableContext)
+    const { updateGlobalTableSettings } = React.useContext(GlobalTableContext);
 
     const handleMenuClick = React.useCallback(
         (itemId: string) => {
-            const {sortBy, sortOrder} = activeSort
+            const { sortBy, sortOrder } = activeSort;
             let newSortOrder: SortModifierType = activeSort.sortOrder || "ASC";
             if (itemId === sortBy) {
                 newSortOrder = activeSort.sortOrder === "ASC" ? "DESC" : "ASC";
@@ -25,7 +25,7 @@ export default function SortButton({ sortersList, activeSort }: IProps) {
             updateGlobalTableSettings({
                 sortBy: itemId,
                 sortOrder: newSortOrder,
-            })
+            });
         },
         [updateGlobalTableSettings, activeSort],
     );
@@ -35,6 +35,7 @@ export default function SortButton({ sortersList, activeSort }: IProps) {
             <ContextMenu togglerElement="list-sort" togglerText={t("common.words.sortOptions", "Sort options")}>
                 {sortersList.map((item) => (
                     <MenuItem
+                        data-test-id={`sort-option-${item.id || "default"}-${activeSort.sortOrder}`}
                         active={activeSort.sortBy === item.id ? true : false}
                         key={item.id}
                         text={item.label}
