@@ -1,4 +1,4 @@
-# Description
+## Description of the plugin
 
 This transformer takes _three_ inputs: a single _output value_, a sequence of _regular expressions_ and a sequence of
 _values to check_ against the regular expressions. It returns a sequence of copies of the output value exclusively at
