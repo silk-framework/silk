@@ -1,6 +1,5 @@
 import React from "react";
-import { Tag, TagProps, utils } from "@eccenca/gui-elements";
-import { extend } from "lodash";
+import { Tag, TagProps, utils, CLASSPREFIX as eccgui } from "@eccenca/gui-elements";
 
 interface ArtefactTagProps extends Omit<TagProps, "intent" | "emphasis" | "minimal"> {
     /**
@@ -8,12 +7,12 @@ interface ArtefactTagProps extends Omit<TagProps, "intent" | "emphasis" | "minim
      * This leads to a tag element with a configured background color.
      */
     artefactType:
-        | "datasetNode"
-        | "linkingNode"
-        | "transformNode"
-        | "taskNode"
-        | "workflowNode"
-        | "replaceableInput"
+        | "dataset-node"
+        | "linking-node"
+        | "transform-node"
+        | "task-node"
+        | "workflow-node"
+        | "replaceable-input"
         | string;
     /**
      * Stronger appearance.
@@ -25,7 +24,7 @@ interface ArtefactTagProps extends Omit<TagProps, "intent" | "emphasis" | "minim
 export const ArtefactTag = ({ artefactType, strong, ...otherTagProps }: ArtefactTagProps) => {
     const paletteWorkflow = utils.getColorConfiguration("react-flow-workflow");
     const tagColors = { ...paletteWorkflow }; // maybe we have more colors later
-    const colorKey = artefactType + (strong ? "" : "Bright");
+    const colorKey = `${eccgui}-` + artefactType + (strong ? "" : "-bright");
     return (
         <Tag
             className="diapp-artefacttag"

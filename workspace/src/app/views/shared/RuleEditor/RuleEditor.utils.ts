@@ -1,4 +1,5 @@
 import getColorConfiguration from "@eccenca/gui-elements/src/common/utils/getColorConfiguration";
+import { CLASSPREFIX as eccgui } from "@eccenca/gui-elements";
 import { IRuleOperator, IRuleOperatorNode } from "./RuleEditor.typings";
 
 /** Default function to turn a rule operator into a rule node. */
@@ -9,7 +10,7 @@ const convertRuleOperatorToRuleNode = (ruleOperator: IRuleOperator): Omit<IRuleO
         parameters: Object.fromEntries(
             Object.entries(ruleOperator.parameterSpecification).map(([paramId, paramSpec]) => {
                 return [paramId, paramSpec.defaultValue];
-            })
+            }),
         ),
         pluginId: ruleOperator.pluginId,
         pluginType: ruleOperator.pluginType,
@@ -38,21 +39,21 @@ export const linkingRuleOperatorTypeColorFunction: () => (id: string) => string 
         switch (id) {
             case "sourcePathInput":
             case "sourcePaths":
-                return tabColors.sourcepathNodeBright;
+                return tabColors[`${eccgui}-sourcepath-node-bright`];
             case "targetPathInput":
             case "targetPaths":
-                return tabColors.targetpathNodeBright;
+                return tabColors[`${eccgui}-targetpath-node-bright`];
             case "PathInputOperator":
-                return tabColors.sourcepathNodeBright;
+                return tabColors[`${eccgui}-sourcepath-node-bright`];
             case "ComparisonOperator":
             case "comparison":
-                return tabColors.comparatorNodeBright;
+                return tabColors[`${eccgui}-comparator-node-bright`];
             case "TransformOperator":
             case "transform":
-                return tabColors.transformationNodeBright;
+                return tabColors[`${eccgui}-transformation-node-bright`];
             case "AggregationOperator":
             case "aggregation":
-                return tabColors.aggregatorNodeBright;
+                return tabColors[`${eccgui}-aggregator-node-bright`];
             default:
                 return undefined;
         }

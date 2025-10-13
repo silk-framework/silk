@@ -8,6 +8,7 @@ import {
     Spacing,
     Highlighter,
     highlighterUtils,
+    CLASSPREFIX as eccgui,
 } from "@eccenca/gui-elements";
 import utils from "../ruleNode/ruleNode.utils";
 import { SidebarRuleOperatorBase } from "./RuleEditorOperatorSidebar.typings";
@@ -79,7 +80,7 @@ export const RuleOperator = ({ ruleOperator, textQuery, searchWords }: RuleOpera
                     )}
                 </OverviewItemLine>,
                 "bottom-end",
-                "large"
+                "large",
             )}
             {descriptionSearchSnippet && (
                 <OverviewItemLine data-test-id={"ruleOperator-sidebar-search-operator-description"}>
@@ -90,7 +91,7 @@ export const RuleOperator = ({ ruleOperator, textQuery, searchWords }: RuleOpera
                             <Highlighter label={descriptionSearchSnippet} searchValue={textQuery} />
                         </OverflowText>,
                         "bottom-end",
-                        "medium"
+                        "medium",
                     )}
                 </OverviewItemLine>
             )}
@@ -98,7 +99,7 @@ export const RuleOperator = ({ ruleOperator, textQuery, searchWords }: RuleOpera
                 {utils.createOperatorTags(
                     [...(ruleOperator.tags ?? []), ...(ruleOperator.categories ?? [])],
                     textQuery,
-                    tagColor
+                    tagColor,
                 )}
             </OverviewItemLine>
         </OverviewItemDescription>
@@ -107,21 +108,21 @@ export const RuleOperator = ({ ruleOperator, textQuery, searchWords }: RuleOpera
 
 const tagColors = getColorConfiguration("react-flow-linking");
 export const tagColor = (
-    tag: "Input" | "Transform" | "Comparison" | "Aggregation" | "Source path" | "Target path"
+    tag: "Input" | "Transform" | "Comparison" | "Aggregation" | "Source path" | "Target path",
 ): Color | string | undefined => {
     switch (tag) {
         case "Transform":
-            return tagColors.transformationNodeBright;
+            return tagColors[`${eccgui}-transformation-node-bright`];
         case "Input":
-            return tagColors.valueEdge;
+            return tagColors[`${eccgui}-value-edge`];
         case "Comparison":
-            return tagColors.comparatorNodeBright;
+            return tagColors[`${eccgui}-comparator-node-bright`];
         case "Aggregation":
-            return tagColors.aggregatorNodeBright;
+            return tagColors[`${eccgui}-aggregator-node-bright`];
         case "Source path":
-            return tagColors.sourcepathNodeBright;
+            return tagColors[`${eccgui}-sourcepath-node-bright`];
         case "Target path":
-            return tagColors.targetpathNodeBright;
+            return tagColors[`${eccgui}-targetpath-node-bright`];
     }
 };
 
