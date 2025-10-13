@@ -10,7 +10,8 @@ import org.silkframework.workspace.resources.ResourceAutoCompletionProvider
   id = "xsltOperator",
   label = "XSLT",
   description =
-      """A task that converts an XML resource via an XSLT script and writes the transformed output into a file resource."""
+  """A task that converts an XML resource via an XSLT script and writes the transformed output into a file resource.""",
+  documentationFile = "XSLTOperator.md"
 )
 case class XSLTOperator(
   @Param(

@@ -90,7 +90,7 @@ A slightly more complex example is the following:
 
 ##### XML style
 
-A rather straightforward but specific example could be the following _conversion from XML data to **RDF**:
+A rather straightforward but specific example could be the following _conversion from XML data to **RDF**_:
 
 **XML**:
 ```xml
