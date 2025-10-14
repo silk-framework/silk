@@ -6,7 +6,7 @@ import org.silkframework.entity.paths._
 import org.silkframework.entity.{Entity, EntitySchema}
 import org.silkframework.execution.EntityHolder
 import org.silkframework.execution.local.GenericEntityTable
-import org.silkframework.plugins.dataset.json.JsonDataset.specialPaths.ALL_CHILDREN
+import org.silkframework.plugins.dataset.json.JsonDataset.specialPaths.{ALL_CHILDREN, ALL_CHILDREN_RECURSIVE}
 import org.silkframework.runtime.iterator.BufferingIterator
 import org.silkframework.runtime.plugin.PluginContext
 import org.silkframework.runtime.resource.Resource
@@ -134,7 +134,11 @@ class JsonSourceStreaming(taskId: Identifier, resource: Resource, basePath: Stri
              JsonToken.VALUE_NUMBER_FLOAT |
              JsonToken.VALUE_FALSE |
              JsonToken.VALUE_TRUE =>
-          if(currentPathSegment().forall(segment => segment.property.uri == ALL_CHILDREN || segment.property.uri == reader.currentNameEncoded)) {
+          val curSegOpt = currentPathSegment()
+          if(curSegOpt.exists(_.property.uri == ALL_CHILDREN_RECURSIVE)) {
+            throw new ValidationException(s"The special path segment '${ALL_CHILDREN_RECURSIVE}' is not supported when streaming JSON. Disable streaming to use this path segment.")
+          }
+          if(curSegOpt.forall(segment => segment.property.uri == ALL_CHILDREN || segment.property.uri == reader.currentNameEncoded)) {
             if(pathSegmentIdx == entityPathSegments.size - 1) {
               // All path segments were matching, found element.
               return true

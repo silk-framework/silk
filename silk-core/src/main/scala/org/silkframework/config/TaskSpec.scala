@@ -22,7 +22,7 @@ trait TaskSpec {
   def inputPorts: InputPorts
 
   /**
-    * The output port and it's schema.
+    * The output port and its schema.
     * None, if this operator does not generate any output.
     */
   def outputPort: Option[Port]

@@ -27,6 +27,10 @@ case class JsonTraverser(taskId: Identifier, parentOpt: Option[ParentTraverser],
         for((key, value) <- obj.values.toSeq) yield {
           asNewParent(prop, value, Some(key))
         }
+      case obj: JsonObject if prop.uri == JsonDataset.specialPaths.ALL_CHILDREN_RECURSIVE =>
+        Seq(keepParent(obj)) ++ obj.values.toSeq.flatMap { case (key, value) =>
+          asNewParent(prop, value, Some(key)).children(prop)
+        }
       case obj: JsonObject =>
         val decodedProp = URLDecoder.decode(prop.uri, StandardCharsets.UTF_8.name)
         obj.values.get(decodedProp).toSeq.map(value => asNewParent(prop, value)).flatMap(_.resolveArray())

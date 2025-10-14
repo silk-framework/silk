@@ -36,7 +36,7 @@ case class DeleteFilesOperator(@Param(label = "File matching regex",
   override def inputPorts: InputPorts = FixedNumberOfInputs(Seq.empty)
 
   /**
-    * The output port and it's schema.
+    * The output port and its schema.
     * None, if this operator does not generate any output.
     */
   override def outputPort: Option[Port] = if(outputEntities) Some(FixedSchemaPort(DeleteFilesOperator.schema)) else None
