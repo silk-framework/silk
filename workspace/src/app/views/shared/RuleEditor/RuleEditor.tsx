@@ -19,8 +19,7 @@ import { ReactFlowProvider } from "react-flow-renderer";
 import utils from "./RuleEditor.utils";
 import { DatasetCharacteristics } from "../typings";
 import { ReactFlowHotkeyContext } from "@eccenca/gui-elements/src/cmem/react-flow/extensions/ReactFlowHotkeyContext";
-import { Notification, StickyNote } from "@eccenca/gui-elements";
-import { diErrorMessage } from "@ducks/error/typings";
+import { StickyNote } from "@eccenca/gui-elements";
 import { IPartialAutoCompleteResult } from "@eccenca/gui-elements/src/components/AutoSuggestion/AutoSuggestion";
 import { InitialRuleHighlighting } from "../../taskViews/transform/transform.types";
 
@@ -30,13 +29,52 @@ export type RuleOperatorFetchFnType = (
     pluginType?: RuleOperatorPluginType,
 ) => IRuleOperator | undefined;
 
-export interface RuleEditorProps<RULE_TYPE, OPERATOR_TYPE> {
-    /** The ID of the instance. If multiple instances are used in parallel, they need to have unique IDs, else there can be interferences. */
-    instanceId: string;
+/** Properties that are used in multiple relevant interfaces in the rule editor. */
+export interface RuleEditorBaseProps {
+    /** The project context. */
+    projectId: string;
     /** Optional title that is shown above the toolbar. */
     editorTitle?: string;
-    /** Project ID the task is in. */
-    projectId: string;
+    /** Validate a connection. Specifies which connections are allowed between nodes. */
+    validateConnection: (
+        fromRuleOperatorNode: RuleEditorValidationNode,
+        toRuleOperatorNode: RuleEditorValidationNode,
+        targetPortIdx: number,
+    ) => boolean;
+    /** Tabs that allow to show different rule operators or only a subset. The first tab will always be selected first. */
+    tabs?: (IRuleSideBarFilterTabConfig | IRuleSidebarPreConfiguredOperatorsTabConfig)[];
+    /** Task view actions. */
+    viewActions?: IViewActions;
+    /** Optional functions to get more information about specific properties/paths. */
+    pathMetaData?: PathMetaDataFunctions;
+    /**
+     * Fetches partial auto-completion results for the transforms task input paths, i.e. any part of a path could be auto-completed
+     * without replacing the complete path.
+     */
+    partialAutoCompletion: (
+        inputType: "source" | "target",
+    ) => (inputString: string, cursorPosition: number) => Promise<IPartialAutoCompleteResult | undefined>;
+    /** True if the save button should be initially enabled even when nothing has been changed by the user.
+     * This should be enabled for example when the initial rule is not persisted yet in the backend. */
+    saveInitiallyEnabled: boolean;
+    /** Initially highlights the given operator nodes and shows a message explaining why the nodes are highlighted.
+     * When the notification is closed the highlighting of the nodes is removed again.  */
+    initialHighlighting?: InitialRuleHighlighting;
+    /** Additional components that will be placed in the toolbar left to the save button. */
+    additionalToolBarComponents?: () => React.JSX.Element | React.JSX.Element[];
+    /** When enabled only the rule is shown without side- and toolbar and any other means to edit the rule. */
+    showRuleOnly?: boolean;
+    /** When enabled the mini map is not displayed. */
+    hideMinimap?: boolean;
+    /** Defines minimum and maximum of the available zoom levels */
+    zoomRange?: [number, number];
+    /** After the initial fit to view, zoom to the specified Zoom level to avoid showing too small nodes. */
+    initialFitToViewZoomLevel?: number;
+    /** The ID of the instance. If multiple instances are used in parallel, they need to have unique IDs, else there can be interferences. */
+    instanceId: string;
+}
+
+export interface RuleEditorProps<RULE_TYPE, OPERATOR_TYPE> extends RuleEditorBaseProps {
     /** The task the rules are being edited of. */
     taskId: string;
     /** Function to fetch the actual task data to initialize the editor. */
@@ -58,52 +96,19 @@ export interface RuleEditorProps<RULE_TYPE, OPERATOR_TYPE> {
     ) => IRuleOperator;
     /** Converts the external rule representation into the internal rule representation. */
     convertToRuleOperatorNodes: (ruleData: RULE_TYPE, ruleOperator: RuleOperatorFetchFnType) => IRuleOperatorNode[];
-    /** Generic actions and callbacks on views. */
-    viewActions?: IViewActions;
     /** Additional rule operator plugins that are not returned via the fetchRuleOperators method. */
     additionalRuleOperators?: IRuleOperator[];
     /** Function to add additional parameter (specifications) to a rule operator based on the original operator. */
     addAdditionParameterSpecifications?: (operator: OPERATOR_TYPE) => [id: string, spec: IParameterSpecification][];
-    /** Specifies the allowed connections. Only connections that return true are allowed. */
-    validateConnection: (
-        fromRuleOperatorNode: RuleEditorValidationNode,
-        toRuleOperatorNode: RuleEditorValidationNode,
-        targetPortIdx: number,
-    ) => boolean;
-    /** Tabs that allow to show different rule operators or only a subset. */
-    tabs?: (IRuleSideBarFilterTabConfig | IRuleSidebarPreConfiguredOperatorsTabConfig)[];
-    /** Additional components that will be placed in the tool bar left to the save button. */
-    additionalToolBarComponents?: () => JSX.Element | JSX.Element[];
     /** parent configuration to extract stickyNote from taskData*/
     getStickyNotes?: (taskData: RULE_TYPE | undefined) => StickyNote[];
     /** When enabled only the rule is shown without side- and toolbar and any other means to edit the rule. */
     showRuleOnly: boolean;
-    /** When enabled the mini map is not displayed. */
-    hideMinimap?: boolean;
-    /** Defines minimun and maximum of the available zoom levels */
-    zoomRange?: [number, number];
-    /** After the initial fit to view, zoom to the specified Zoom level to avoid showing too small nodes. */
-    initialFitToViewZoomLevel?: number;
     /** Fetches dataset characteristics for all input datasets relevant in the rule editor. These are used for the 'PathInputOperator' type.
      * The key is the corresponding plugin ID. */
     fetchDatasetCharacteristics?: (
         taskData: RULE_TYPE | undefined,
     ) => Map<string, DatasetCharacteristics> | Promise<Map<string, DatasetCharacteristics>>;
-    /** Optional functions to get more information about specific properties/paths. */
-    pathMetaData?: PathMetaDataFunctions;
-    /**
-     * Fetches partial auto-completion results for the transforms task input paths, i.e. any part of a path could be auto-completed
-     * without replacing the complete path.
-     */
-    partialAutoCompletion: (
-        inputType: "source" | "target",
-    ) => (inputString: string, cursorPosition: number) => Promise<IPartialAutoCompleteResult | undefined>;
-    /** True if the save button should be initially enabled even when nothing has been changed by the user.
-     * This should be enabled for example when the initial rule is not persisted yet in the backend. */
-    saveInitiallyEnabled: boolean;
-    /** Initially highlights the given operator nodes and shows a message explaining why the nodes are highlighted.
-     * When the notification is closed the highlighting of the nodes is removed again.  */
-    initialHighlighting?: InitialRuleHighlighting;
 }
 
 const READ_ONLY_QUERY_PARAMETER = "readOnly";
