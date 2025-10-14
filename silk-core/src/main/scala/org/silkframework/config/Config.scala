@@ -148,7 +148,7 @@ case class ExtendedTypesafeConfig(typesafeConfig: TypesafeConfig) {
         valueFetcher(key)
       } catch {
         case _: ConfigException.WrongType =>
-          throw new RuntimeException(s"Config parameter '$key' could not be read, because it's value does not seem to be of type $expectedType." +
+          throw new RuntimeException(s"Config parameter '$key' could not be read, because its value does not seem to be of type $expectedType." +
             s"Actual type: ${typesafeConfig.getAnyRef(key).getClass.getSimpleName}")
       }
     } else {

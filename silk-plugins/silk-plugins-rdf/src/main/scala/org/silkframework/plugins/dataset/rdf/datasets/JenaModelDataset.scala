@@ -31,7 +31,7 @@ case class JenaModelDataset() extends RdfDataset {
   }
 
   /**
-    * Returns a entity sink for writing entities to the data set.
+    * Returns an entity sink for writing entities to the data set.
     */
   override def entitySink(implicit userContext: UserContext): EntitySink = {
     new SparqlSink(sparqlParams, sparqlEndpoint, dropGraphOnClear = true)

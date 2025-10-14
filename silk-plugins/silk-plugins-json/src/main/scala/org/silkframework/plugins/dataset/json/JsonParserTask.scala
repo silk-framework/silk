@@ -15,12 +15,12 @@ case class JsonParserTask(@Param("The Silk path expression of the input entity t
     "not set, the value of the first defined property will be taken.")
                           inputPath: String = "",
                           @Param("The path to the elements to be read, starting from the root element, " +
-                              "e.g., '/Persons/Person'. If left empty, all direct children of the root element will be read.")
+                              "e.g., `/Persons/Person`. If left empty, all direct children of the root element will be read.")
                           basePath: String = "",
                           @Param(
                             label = "URI suffix pattern",
-                            value = "A URI pattern that is relative to the base URI of the input entity, e.g., /{ID}, " +
-                              "where {path} may contain relative paths to elements. This relative part is appended to the input entity URI to construct the full URI pattern.")
+                            value = "A URI pattern that is relative to the base URI of the input entity, e.g., `/{ID}`, " +
+                              "where `{path}` may contain relative paths to elements. This relative part is appended to the input entity URI to construct the full URI pattern.")
                           uriSuffixPattern: String = "",
                           @Param("Navigate into arrays automatically. If set to false, the `#array` path operator must be used to navigate into arrays.")
                           navigateIntoArrays: Boolean = true) extends CustomTask {

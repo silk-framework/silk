@@ -11,32 +11,54 @@ import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
   id = "regexExtract",
   categories = Array("Extract"),
   label = "Regex extract",
-  description = "Extracts occurrences of a regex \"regex\" in a string. If there is at least one capture group, it will return the string of the first capture group instead.")
+  description = "Extracts one or all matches of a regular expression within the input." +
+    " If the regular expression contains one or more capturing groups, only the first group will be considered.",
+  documentationFile = "RegexExtractionTransformer.md"
+)
 @TransformExamples(Array(
   new TransformExample(
-    description = "returns the first match",
+    description = "returns only the first match, when extractAll = false (default)",
     parameters = Array("regex", "[a-z]{2,4}123"),
-    input1 = Array("afe123_abc123"),
+    input1 = Array("afe123_abcd23"),
     output = Array("afe123")
   ),
   new TransformExample(
-    description = "returns all matches, if extractAll = true",
+    description = "returns all matches, when extractAll = true",
     parameters = Array("regex", "[a-z]{2,4}123", "extractAll", "true"),
-    input1 = Array("afe123_abc123"),
-    output = Array("afe123", "abc123")
+    input1 = Array("afe123_abcd123"),
+    output = Array("afe123", "abcd123")
   ),
   new TransformExample(
     description = "returns an empty list if nothing matches",
     parameters = Array("regex", "^[a-z]{2,4}123"),
-    input1 = Array("abcdef123"),
+    input1 = Array("abcde123"),
     output = Array()
   ),
   new TransformExample(
-    description = "returns the match of the first capture group that matches",
+    description = "returns the match of the first capturing group, which includes two to four letters",
     parameters = Array("regex", "^([a-z]{2,4})123([a-z]+)"),
     input1 = Array("abcd123xyz"),
     output = Array("abcd")
   ),
+  new TransformExample(
+    description = "returns the match of the first capturing group, which includes at least one letter",
+    parameters = Array("regex", "^([a-z]+)123([a-z]{2,4})"),
+    input1 = Array("pqrstuvwxyz123abcd"),
+    output = Array("pqrstuvwxyz")
+  ),
+  new TransformExample(
+    description = "returns an empty string, because the first capturing group includes the possibility of no letters",
+    parameters = Array("regex", "^([a-z]*)123([a-z]{2,4})"),
+    input1 = Array("123abcd"),
+    output = Array("")
+  ),
+  new TransformExample(
+    description = "returns an empty list, because the first capturing group excludes the possibility of no letters",
+    parameters = Array("regex", "^([a-z]+)123([a-z]{2,4})"),
+    input1 = Array("123abcd"),
+    output = Array()
+  ),
+
   new TransformExample(
     parameters = Array("regex", "\"bedeutungen\"\\s*:\\s*\\[\\s*(?:\"([^\"]*)\"(?:\\s*,\\s*\"([^\"]*)\")*)*\\s*\\]"),
     input1 = Array("\"bedeutungen\" : [ ]"),
@@ -46,7 +68,7 @@ import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
 case class RegexExtractionTransformer(
   @Param("Regular expression")
   regex: String,
-  @Param("If true, all matches are extracted. If false, only the first match is extracted.")
+  @Param("If true, all matches are extracted. If false, only the first match is extracted (default).")
   extractAll: Boolean = false) extends Transformer {
 
   lazy val r = regex.r
