@@ -96,6 +96,7 @@ describe("Rule editor model", () => {
                     instanceId: "id",
                     datasetCharacteristics: new Map(),
                     partialAutoCompletion: () => async () => undefined,
+                    saveInitiallyEnabled: false,
                 }}
             >
                 <ReactFlowProvider>
