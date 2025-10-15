@@ -1,15 +1,9 @@
-## Description of the plugin
+## Description
 
-This transformer takes _three_ inputs: a single _output value_, a sequence of _regular expressions_ and a sequence of
-_values to check_ against the regular expressions. It returns a sequence of copies of the output value exclusively at
-those positions where one of the regular expressions matches the input value.
+The `regexReplace` plugin replaces all occurrences of a regular expression.
 
-In other words: It _selects_ the matches within the sequence of values against the regular expressions and 'marks' them
-with the provided output value.
-
-As a further detail of its operation: If the parameter `oneOnly` of the transformer is set to `true`, then only the
-position of the _first_ matching regular expression will be marked with the output value. There won't be any further
-marked matches.
+This plugin is a _replace_ transformer plugin. This means that if the regular expression does _not_ match the input
+value, it will be replaced with an empty string, i.e. deleted.
 
 ### Notes on regular expressions
 
@@ -32,10 +26,10 @@ A compilation of the available constructs for building regular expressions is av
 
 ## Relation to other plugins
 
-Additionally to the `regexSelect` plugin, there are related plugins such as `ifMatchesRegex`, `validateRegex`,
-`regexReplace` and `regexExtract`.
+Additionally to the `regexReplace` plugin, there are related plugins such as `validateRegex`, `ifMatchesRegex` and
+`regexExtract`.
 
 The distinctive feature of each of these plugins lies in what happens whenever the regular expression
-matches the input value(s): the `ifMatchesRegex` plugin is useful for _conditionally distinguishing_ which input to
-take, `validateRegex` is used for _validating_ the input, `regexReplace` _replaces_ all occurrences, and
-`regexExtract` _extracts_ them.
+matches the input value(s): the `regexReplace` plugin is used for _replacing_ the input, `validateRegex` is useful for
+_validating_ the input, `ifMatchesRegex` _conditionally distinguishes_ which input to take, and `regexExtract`
+_extracts_ all occurrences of the matching.
