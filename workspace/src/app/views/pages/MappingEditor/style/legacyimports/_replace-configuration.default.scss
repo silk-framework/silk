@@ -1,6 +1,7 @@
 @use "sass:math";
 @use "sass:color";
 @use "sass:meta";
+@use "sass:string";
 
 // -- our color config
 
@@ -21,6 +22,16 @@ $debug-rgba-values: "no";
         // value is not a SASS color value, we use our CSS color method
         @return eccgui-color-mix(black $amount, $color);
     }
+}
+
+@function _from-rgb($color) {
+    $fixedcolor: "undefined";
+    @if string.slice($color, 1, 8) == "rgb(var(" {
+        $fixedcolor: string.slice($color, 5, string.length($color) - 1);
+    } @else {
+        $fixedcolor: $color;
+    }
+    @return $fixedcolor;
 }
 
 // -- Load helper functions ----------------------------------------------------------
@@ -44,8 +55,8 @@ $ecc-color-primary-contrast: $eccgui-color-primary-contrast !default;
 $ecc-color-accent: $eccgui-color-accent !default;
 $ecc-color-accent-contrast: $eccgui-color-accent-contrast !default;
 
-$ecc-color-application-background: $eccgui-color-applicationheader-background !default;
-$ecc-color-application-text: $eccgui-color-applicationheader-text !default;
+$ecc-color-application-background: $eccgui-color-workspace-background !default;
+$ecc-color-application-text: $eccgui-color-workspace-text !default;
 
 $ecc-color-success-background: $eccgui-color-success-background !default;
 $ecc-color-success-text: $eccgui-color-success-text !default;
