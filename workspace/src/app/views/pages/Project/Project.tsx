@@ -36,6 +36,7 @@ import ActivityInfoWidget from "./ActivityInfoWidget";
 import { previewSlice } from "@ducks/workspace/previewSlice";
 import VariablesWidget from "../../../views/shared/VariablesWidget/VariablesWidget";
 import { useSelectFirstResult } from "../../../hooks/useSelectFirstResult";
+import { GlobalTableContext } from "../../../GlobalContextsWrapper";
 
 const Project = () => {
     const dispatch = useDispatch();
@@ -48,6 +49,7 @@ const Project = () => {
     const data = useSelector(workspaceSel.resultsSelector);
     const projectId = useSelector(commonSel.currentProjectIdSelector);
     const qs = useSelector(routerSel.routerSearchSelector);
+    const pagination = useSelector(workspaceSel.paginationSelector);
     const { clearSearchResults } = previewSlice.actions;
     const [t] = useTranslation();
 
@@ -55,6 +57,7 @@ const Project = () => {
     const [searchInitialized, setSearchInitialized] = React.useState(false);
     const effectiveSearchQuery = searchInitialized ? textQuery : "";
     const { onEnter } = useSelectFirstResult();
+    const { globalTableSettings } = React.useContext(GlobalTableContext);
 
     React.useEffect(() => {
         setSearchInitialized(true);
@@ -70,20 +73,20 @@ const Project = () => {
     useEffect(() => {
         // Reset the filters, due to redirecting
         dispatch(workspaceOp.resetFilters());
+    }, [location.pathname]);
 
+    const tableSettings = globalTableSettings["workbench"];
+
+    useEffect(() => {
         // Setup the filters from query string
         dispatch(workspaceOp.setupFiltersFromQs(qs));
 
         // Fetch the list of projects
-        dispatch(workspaceOp.fetchListAsync());
+        dispatch(workspaceOp.fetchListAsync(tableSettings));
         return () => {
             dispatch(clearSearchResults());
         };
-    }, [qs, projectId]);
-
-    const handleSort = (sortBy: string) => {
-        dispatch(workspaceOp.applySorterOp(sortBy));
-    };
+    }, [qs, projectId, tableSettings.sortBy, tableSettings.sortOrder, tableSettings.pageSize]);
 
     const handleSearch = (textQuery: string) => {
         dispatch(workspaceOp.applyFiltersOp({ textQuery }));
@@ -123,10 +126,10 @@ const Project = () => {
                                     <SearchBar
                                         textQuery={effectiveSearchQuery}
                                         sorters={sorters}
-                                        onSort={handleSort}
                                         onSearch={handleSearch}
                                         onEnter={onEnter}
                                         disableEnterDuringPendingSearch={true}
+                                        globalTableKey={"workbench"}
                                     />
                                 </GridColumn>
                             </GridRow>

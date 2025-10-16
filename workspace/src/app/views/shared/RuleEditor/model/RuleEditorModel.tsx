@@ -52,6 +52,7 @@ import {
     NodeContentHandleProps,
     StickyNote,
     NodeDimensions,
+    Notification,
 } from "@eccenca/gui-elements";
 import { LINKING_NODE_TYPES } from "@eccenca/gui-elements/src/cmem/react-flow/configuration/typing";
 import StickyMenuButton from "../view/components/StickyMenuButton";
@@ -134,6 +135,9 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
     /** when a node is clicked the selected nodes appears here */
     const [selectedElements, _setSelectedElements] = React.useState<Elements | null>(null);
     const [copiedNodesCount, setCopiedNodesCount] = React.useState<number>(0);
+    // Flag if the rule has already been changed once
+    const [savedOnce, setSavedOnce] = React.useState(false);
+    const [notification, setNotification] = React.useState<React.JSX.Element | undefined>();
 
     const clearTextSelection = React.useCallback(() => {
         if (document.getSelection) {
@@ -1681,10 +1685,11 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
         );
     };
 
-    const clearHighlighting = () => {
+    const clearHighlighting = (nodeIds?: string[]) => {
+        const ids = new Set(nodeIds ?? []);
         changeElementsInternal((elements) =>
             elements.map((el) => {
-                if (utils.isNode(el)) {
+                if (utils.isNode(el) && (!nodeIds || ids.has(el.id))) {
                     const node = utils.asNode(el)!!;
                     node.data = {
                         ...node.data,
@@ -1883,7 +1888,6 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
         });
     };
 
-    //node.data?.nodeDimensions
     /** Save the current rule. */
     const saveRule = async () => {
         const stickyNodes = current.elements.reduce((stickyNodes, elem) => {
@@ -1899,6 +1903,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
             // Reset UNDO state
             ruleUndoStack.splice(0);
             setCanUndo(false);
+            setSavedOnce(true);
         }
         if ((saveResult.nodeErrors ?? []).length > 0) {
             const firstNodeError = saveResult.nodeErrors!![0];
@@ -1979,6 +1984,26 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
         utils.initNodeBaseIds([...nodes, ...stickyNodes]);
         ruleUndoStack.splice(0);
         ruleRedoStack.splice(0);
+        if (ruleEditorContext.initialHighlighting) {
+            const h = ruleEditorContext.initialHighlighting;
+            let closeFn = () => {};
+            if (h.nodeIds.length) {
+                highlightNodes(h.nodeIds, { intent: "info" }, false);
+                centerNode(h.nodeIds[0]);
+                closeFn = () => clearHighlighting(h.nodeIds);
+            }
+            setNotification(
+                <Notification
+                    intent={"info"}
+                    onDismiss={() => {
+                        setNotification(undefined);
+                        closeFn();
+                    }}
+                >
+                    {h.message}
+                </Notification>,
+            );
+        }
         // Center and then zoom not too far out
         setTimeout(async () => {
             if (needsLayout) {
@@ -2027,10 +2052,11 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                     fixNodeInputs,
                     copyNodes,
                 },
-                unsavedChanges: canUndo,
+                unsavedChanges: canUndo || (!savedOnce && ruleEditorContext.saveInitiallyEnabled),
                 isValidEdge,
                 centerNode,
                 ruleOperatorNodes,
+                notification,
             }}
         >
             <InteractionGate showSpinner={initializing} useParentPositioning>

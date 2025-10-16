@@ -1,7 +1,7 @@
 import { FetchResponse } from "../../../services/fetch/responseInterceptor";
 import fetch from "../../../services/fetch";
 import { legacyTransformEndpoint } from "../../../utils/getApiEndpoint";
-import {IComplexMappingRule, ITransformRule, PartialBy} from "./transform.types";
+import { IComplexMappingRule, ITransformRule, NewTransformRule, PartialBy } from "./transform.types";
 import { IAutocompleteDefaultResponse } from "@ducks/shared/typings";
 import { TaskContext } from "../../shared/projectTaskTabView/projectTaskTabView.typing";
 import { CodeAutocompleteFieldPartialAutoCompleteResult } from "@eccenca/gui-elements/src/components/AutoSuggestion/AutoSuggestion";
@@ -11,11 +11,11 @@ export const requestTransformRule = async (
     projectId: string,
     transformId: string,
     ruleId: string,
-    convertToComplex: boolean = true
+    convertToComplex: boolean = true,
 ): Promise<FetchResponse<ITransformRule>> => {
     return fetch({
         url: legacyTransformEndpoint(
-            `/tasks/${projectId}/${transformId}/rule/${ruleId}` + (convertToComplex ? "?convertToComplex=true" : "")
+            `/tasks/${projectId}/${transformId}/rule/${ruleId}` + (convertToComplex ? "?convertToComplex=true" : ""),
         ),
     });
 };
@@ -38,11 +38,11 @@ export const partialAutoCompleteTransformInputPaths = (
     rule: string,
     inputString: string,
     cursorPosition: number,
-    limit?: number
+    limit?: number,
 ): Promise<FetchResponse<CodeAutocompleteFieldPartialAutoCompleteResult>> => {
     return fetch({
         url: legacyTransformEndpoint(
-            `/tasks/${projectId}/${transformTaskId}/rule/${rule}/completions/partialSourcePaths`
+            `/tasks/${projectId}/${transformTaskId}/rule/${rule}/completions/partialSourcePaths`,
         ),
         method: "POST",
         body: {
@@ -60,11 +60,11 @@ export const autoCompleteTransformSourcePath = (
     ruleId: string,
     term = "",
     taskContext?: TaskContext,
-    limit = 100
+    limit = 100,
 ): Promise<FetchResponse<IAutocompleteDefaultResponse[]>> => {
     return fetch({
         url: legacyTransformEndpoint(
-            `/tasks/${projectId}/${taskId}/rule/${ruleId}/completions/sourcePaths?maxResults=${limit}&term=${term}`
+            `/tasks/${projectId}/${taskId}/rule/${ruleId}/completions/sourcePaths?maxResults=${limit}&term=${term}`,
         ),
         method: "POST",
         body: {
@@ -78,7 +78,7 @@ export const putTransformRule = async (
     projectId: string,
     transformId: string,
     ruleId: string,
-    complexTransformRule: IComplexMappingRule
+    complexTransformRule: IComplexMappingRule,
 ): Promise<FetchResponse<void>> => {
     return fetch({
         url: legacyTransformEndpoint(`/tasks/${projectId}/${transformId}/rule/${ruleId}`),
@@ -93,7 +93,7 @@ export const evaluateTransformRule = async (
     transformTaskId: string,
     containerRuleId: string,
     rule,
-    limit: number = 100
+    limit: number = 100,
 ): Promise<FetchResponse<any>> => {
     return fetch({
         url: legacyTransformEndpoint(`/tasks/${projectId}/${transformTaskId}/rule/${containerRuleId}/evaluateRule`),
@@ -110,11 +110,14 @@ export const appendTransformRule = async (
     projectId: string,
     transformId: string,
     containerRuleId: string,
-    newRule: PartialBy<ITransformRule, "id" | "metadata">,
-    afterRuleId?: string
+    newRule: NewTransformRule,
+    afterRuleId?: string,
 ): Promise<FetchResponse<ITransformRule>> => {
     return fetch({
-        url: legacyTransformEndpoint(`/tasks/${projectId}/${transformId}/rule/${containerRuleId}/rules` + (afterRuleId ? `?afterRuleId=${afterRuleId}` : "")),
+        url: legacyTransformEndpoint(
+            `/tasks/${projectId}/${transformId}/rule/${containerRuleId}/rules` +
+                (afterRuleId ? `?afterRuleId=${afterRuleId}` : ""),
+        ),
         method: "POST",
         body: newRule,
     });
@@ -124,10 +127,10 @@ export const appendTransformRule = async (
 export const removeTransformRule = async (
     projectId: string,
     transformId: string,
-    ruleId: string
+    ruleId: string,
 ): Promise<FetchResponse<ITransformRule>> => {
     return fetch({
         url: legacyTransformEndpoint(`/tasks/${projectId}/${transformId}/rule/${ruleId}`),
-        method: "DELETE"
+        method: "DELETE",
     });
 };

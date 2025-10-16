@@ -4,7 +4,7 @@ import { IValueInput, RuleLayout } from "../shared/rules/rule.typings";
 import { Stacktrace } from "../../shared/SampleError/SampleError";
 import { StickyNote } from "@eccenca/gui-elements";
 
-export type PartialBy<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>
+export type PartialBy<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>;
 
 /** Parameters of a transform task. */
 export interface ITransformRule {
@@ -35,12 +35,6 @@ export interface IComplexMappingRule extends ITransformRule {
     uiAnnotations: {
         stickyNotes: StickyNote[];
     };
-}
-
-export interface IComplexUriRule extends ITransformRule {
-    type: "complexUri";
-    /**  */
-    operator: IValueInput;
 }
 
 /** A constant URI rule. */
@@ -88,3 +82,36 @@ export interface ITransformTaskParameters {
     /** The output task ID */
     output: string;
 }
+
+export type NewTransformRule = PartialBy<ITransformRule, "id" | "metadata">;
+export type NewComplexMappingRule = PartialBy<IComplexMappingRule, "id" | "metadata">;
+
+// Mapping rule editor parameter types
+
+interface RuleToBeEdited {
+    /** The alternative save function, since the rule cannot be saved in the backend directly. If no function is given, the normal save function for existing rules is used. */
+    alternativeSave: undefined | ((updatedRule: NewComplexMappingRule) => void | Promise<void>);
+}
+
+export interface InitialRuleHighlighting {
+    message: string;
+    nodeIds: string[];
+}
+
+// Editor component specific types
+export interface ActualRule extends RuleToBeEdited {
+    /** The actual rule object that will be loaded into the rule editor. */
+    rule: NewTransformRule;
+    /** Set the rule editor parameter to have the Save button enabled from the beginning. */
+    saveInitiallyEnabled: boolean;
+    /** Initially highlights the given operator nodes and shows a message explaining why the nodes are highlighted.
+     * When the notification is closed the highlighting of the nodes is removed again.  */
+    initialHighlighting?: InitialRuleHighlighting;
+}
+
+export interface RuleReference extends RuleToBeEdited {
+    /** The ID of the rule that should be fetched from the backend and loaded into the rule editor. */
+    ruleId: string;
+}
+
+export type RuleParameterType = ActualRule | RuleReference;

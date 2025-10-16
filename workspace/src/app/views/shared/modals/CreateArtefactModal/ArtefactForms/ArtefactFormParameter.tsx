@@ -18,6 +18,7 @@ import { useSelector } from "react-redux";
 import { commonSel } from "@ducks/common";
 import { CreateArtefactModalContext } from "../CreateArtefactModalContext";
 import { INPUT_TYPES } from "../../../../../constants";
+
 interface Props {
     //For task forms, project id is needed tor validation and autocompletion
     projectId?: string;
@@ -186,8 +187,11 @@ export const ArtefactFormParameter = ({
     const multiline =
         (parameterType &&
             (parameterType.startsWith("code-") ||
-                [INPUT_TYPES.RESTRICTION, INPUT_TYPES.MULTILINE_STRING].includes(parameterType))) ||
+                [INPUT_TYPES.RESTRICTION, INPUT_TYPES.MULTILINE_STRING, INPUT_TYPES.KEY_VALUE_PAIRS].includes(
+                    parameterType,
+                ))) ||
         isTemplateInputType;
+
     return (
         <FieldItem
             key={parameterId}

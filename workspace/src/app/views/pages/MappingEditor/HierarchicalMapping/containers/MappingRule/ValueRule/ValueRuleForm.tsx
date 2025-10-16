@@ -32,6 +32,7 @@ import TargetCardinality from "../../../components/TargetCardinality";
 import { IViewActions } from "../../../../../../../views/plugins/PluginRegistry";
 import { GlobalMappingEditorContext } from "../../../../contexts/GlobalMappingEditorContext";
 import { MAPPING_ROOT_RULE_ID } from "../../../HierarchicalMapping";
+import { RuleParameterType } from "../../../../../../taskViews/transform/transform.types";
 
 const LANGUAGES_LIST = [
     "en",
@@ -111,7 +112,8 @@ interface IProps {
     // Called when the edit mode got cancelled
     onCancelEdit?: () => any;
     // Called when the rule editor for a specific rule should be opened
-    openMappingEditor: (ruleId: string) => void;
+    openMappingEditor: (ruleDefinition: RuleParameterType) => void;
+    // The view context the rule form is opened in
     viewActions: IViewActions;
     /** do not use Card around content */
     noCardWrapper?: boolean;
@@ -372,7 +374,10 @@ export function ValueRuleForm(props: IProps) {
         event.preventDefault();
         event.stopPropagation();
         saveRule(false, (ruleId) => {
-            props.openMappingEditor(ruleId!);
+            props.openMappingEditor({
+                ruleId: ruleId!,
+                alternativeSave: undefined,
+            });
         });
     };
 

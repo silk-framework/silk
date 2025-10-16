@@ -114,6 +114,7 @@ lazy val core = (project in file("silk-core"))
     libraryDependencies += "javax.xml.bind" % "jaxb-api" % "2.3.1",
     libraryDependencies += "xalan" % "xalan" % "2.7.3",
     libraryDependencies += "xalan" % "serializer" % "2.7.3",
+    libraryDependencies += "org.snakeyaml" % "snakeyaml-engine" % "2.9",
     libraryDependencies += "io.micrometer" % "micrometer-registry-prometheus" % "1.15.2"
   )
 

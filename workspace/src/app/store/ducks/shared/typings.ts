@@ -57,7 +57,7 @@ export type TaskType = "Dataset" | "Linking" | "Transform" | "Workflow" | "Custo
 /** Converts the task type from the backend to the item type of the UI. */
 export const convertTaskTypeToItemType = (
     taskType: TaskType | undefined,
-    returnInputStringOnNoMatch: boolean = false
+    returnInputStringOnNoMatch: boolean = false,
 ): ItemType => {
     switch (taskType) {
         case "Dataset":
@@ -193,7 +193,7 @@ export interface IDatasetTypesRequest {
 }
 
 export interface IMetadata {
-    label: string;
+    label?: string;
     description?: string;
     relations?: IRelations;
     type?: string;
