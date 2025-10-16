@@ -1,7 +1,7 @@
 import { FetchResponse } from "../../../services/fetch/responseInterceptor";
 import fetch from "../../../services/fetch";
 import { legacyTransformEndpoint } from "../../../utils/getApiEndpoint";
-import {IComplexMappingRule, ITransformRule, PartialBy} from "./transform.types";
+import { IComplexMappingRule, ITransformRule, NewTransformRule, PartialBy } from "./transform.types";
 import { IAutocompleteDefaultResponse } from "@ducks/shared/typings";
 import { TaskContext } from "../../shared/projectTaskTabView/projectTaskTabView.typing";
 import { IPartialAutoCompleteResult } from "@eccenca/gui-elements/src/components/AutoSuggestion/AutoSuggestion";
@@ -110,11 +110,14 @@ export const appendTransformRule = async (
     projectId: string,
     transformId: string,
     containerRuleId: string,
-    newRule: PartialBy<ITransformRule, "id" | "metadata">,
-    afterRuleId?: string
+    newRule: NewTransformRule,
+    afterRuleId?: string,
 ): Promise<FetchResponse<ITransformRule>> => {
     return fetch({
-        url: legacyTransformEndpoint(`/tasks/${projectId}/${transformId}/rule/${containerRuleId}/rules` + (afterRuleId ? `?afterRuleId=${afterRuleId}` : "")),
+        url: legacyTransformEndpoint(
+            `/tasks/${projectId}/${transformId}/rule/${containerRuleId}/rules` +
+                (afterRuleId ? `?afterRuleId=${afterRuleId}` : ""),
+        ),
         method: "POST",
         body: newRule,
     });
@@ -124,10 +127,10 @@ export const appendTransformRule = async (
 export const removeTransformRule = async (
     projectId: string,
     transformId: string,
-    ruleId: string
+    ruleId: string,
 ): Promise<FetchResponse<ITransformRule>> => {
     return fetch({
         url: legacyTransformEndpoint(`/tasks/${projectId}/${transformId}/rule/${ruleId}`),
-        method: "DELETE"
+        method: "DELETE",
     });
 };

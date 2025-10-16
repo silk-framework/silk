@@ -2,11 +2,6 @@ import React, { useEffect, useState } from "react";
 import { ScrollingHOC } from "gui-elements-deprecated";
 import { debounce } from "lodash";
 import {
-    AffirmativeButton,
-    DismissiveButton,
-    TextField as LegacyTextField,
-} from "@eccenca/gui-elements/src/legacy-replacements";
-import {
     Card,
     CardActions,
     CardContent,
@@ -19,6 +14,8 @@ import {
     Spacing,
     Spinner,
     TextField,
+    TextArea,
+    Button,
 } from "@eccenca/gui-elements";
 import _ from "lodash";
 import ExampleView from "../ExampleView";
@@ -35,6 +32,7 @@ import TargetCardinality from "../../../components/TargetCardinality";
 import { IViewActions } from "../../../../../../../views/plugins/PluginRegistry";
 import { GlobalMappingEditorContext } from "../../../../contexts/GlobalMappingEditorContext";
 import { MAPPING_ROOT_RULE_ID } from "../../../HierarchicalMapping";
+import { RuleParameterType } from "../../../../../../taskViews/transform/transform.types";
 
 const LANGUAGES_LIST = [
     "en",
@@ -114,7 +112,8 @@ interface IProps {
     // Called when the edit mode got cancelled
     onCancelEdit?: () => any;
     // Called when the rule editor for a specific rule should be opened
-    openMappingEditor: (ruleId: string) => void;
+    openMappingEditor: (ruleDefinition: RuleParameterType) => void;
+    // The view context the rule form is opened in
     viewActions: IViewActions;
     /** do not use Card around content */
     noCardWrapper?: boolean;
@@ -155,7 +154,7 @@ export function ValueRuleForm(props: IProps) {
         debounce((hasFocus: boolean) => {
             setValuePathInputHasFocus(hasFocus);
         }, 200),
-        []
+        [],
     );
 
     const autoCompleteRuleId = id || parentId;
@@ -216,7 +215,7 @@ export function ValueRuleForm(props: IProps) {
                 },
                 (err) => {
                     setLoading(false);
-                }
+                },
             );
         } else {
             setLoading(false);
@@ -263,7 +262,7 @@ export function ValueRuleForm(props: IProps) {
                 (err) => {
                     setError(err);
                     setLoading(false);
-                }
+                },
             );
     };
 
@@ -326,7 +325,7 @@ export function ValueRuleForm(props: IProps) {
 
         const touched = wasTouched(
             { ...initialValues, valueType: initialValues.valueType?.nodeType },
-            { ...currValues, valueType: currValues.valueType?.nodeType }
+            { ...currValues, valueType: currValues.valueType?.nodeType },
         );
         const id = _.get(props, "id", 0);
 
@@ -375,7 +374,10 @@ export function ValueRuleForm(props: IProps) {
         event.preventDefault();
         event.stopPropagation();
         saveRule(false, (ruleId) => {
-            props.openMappingEditor(ruleId!);
+            props.openMappingEditor({
+                ruleId: ruleId!,
+                alternativeSave: undefined,
+            });
         });
     };
 
@@ -411,7 +413,7 @@ export function ValueRuleForm(props: IProps) {
         () => (value: string | { value: string }) => {
             sourceProperty.current = value;
         },
-        []
+        [],
     );
 
     // template rendering
@@ -450,7 +452,7 @@ export function ValueRuleForm(props: IProps) {
                                 input,
                                 cursorPosition,
                                 false,
-                                mappingEditorContext.taskContext
+                                mappingEditorContext.taskContext,
                             )
                         }
                         checkInput={checkValuePathValidity}
@@ -564,38 +566,46 @@ export function ValueRuleForm(props: IProps) {
                     <Spacing size={"small"} />
                     {exampleView}
                     <Spacing size={"small"} />
-                    <LegacyTextField
-                        label="Mapping label"
-                        className="ecc-silk-mapping__ruleseditor__label"
-                        value={label}
-                        onChange={handleChangeTextfield.bind(null, "label", setLabel)}
-                    />
-                    <LegacyTextField
-                        multiline
-                        label="Mapping description"
-                        className="ecc-silk-mapping__ruleseditor__comment"
-                        value={comment}
-                        onChange={handleChangeTextfield.bind(null, "comment", setComment)}
-                    />
+                    <FieldItem
+                        labelProps={{
+                            text: "Mapping label",
+                        }}
+                    >
+                        <TextField
+                            className="ecc-silk-mapping__ruleseditor__label"
+                            value={label}
+                            onChange={handleChangeTextfield.bind(null, "label", setLabel)}
+                        />
+                    </FieldItem>
+                    <FieldItem
+                        labelProps={{
+                            text: "Mapping description",
+                        }}
+                    >
+                        <TextArea
+                            className="ecc-silk-mapping__ruleseditor__comment"
+                            value={comment}
+                            onChange={handleChangeTextfield.bind(null, "comment", setComment)}
+                        />
+                    </FieldItem>
                 </CardContent>
                 <Divider />
                 <CardActions className="ecc-silk-mapping__ruleseditor__actionrow">
-                    <AffirmativeButton
+                    <Button
+                        affirmative
                         className="ecc-silk-mapping__ruleseditor__actionrow-save"
-                        raised
                         onClick={handleConfirm}
                         disabled={!allowConfirm || (!changed && !!id)}
                     >
                         Save
-                    </AffirmativeButton>
-                    <DismissiveButton
+                    </Button>
+                    <Button
                         data-test-id={"value-rule-form-edit-cancel-btn"}
                         className="ecc-silk-mapping__ruleseditor___actionrow-cancel"
-                        raised
                         onClick={handleClose}
                     >
                         Cancel
-                    </DismissiveButton>
+                    </Button>
                 </CardActions>
             </>
         );

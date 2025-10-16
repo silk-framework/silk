@@ -30,6 +30,8 @@ import { useTranslation } from "react-i18next";
 import { FileRemoveModal } from "../../../shared/modals/FileRemoveModal";
 import { CONTEXT_PATH } from "../../../../constants/path";
 import { fileValue } from "@ducks/shared/typings";
+import { useStoreGlobalTableSettings } from "../../../../hooks/useStoreGlobalTableSettings";
+import {GlobalTableContext} from "../../../../GlobalContextsWrapper";
 
 /** Project file management widget. */
 export const FileWidget = () => {
@@ -46,11 +48,18 @@ export const FileWidget = () => {
     const [fileDeleteDialog, setFileDeleteDialog] = useState<any>(null);
 
     const { isLoading } = fileWidget;
+    const { updateGlobalTableSettings, globalTableSettings} = React.useContext(GlobalTableContext)
+
     const [pagination, paginationElement, onTotalChange] = usePagination({
         pageSizes: [5, 10, 20],
         presentation: { hideInfoText: true },
+        initialPageSize: globalTableSettings["files"].pageSize,
     });
     const [t] = useTranslation();
+
+    React.useEffect(() => {
+        updateGlobalTableSettings({ pageSize: pagination.limit }, "files");
+    }, [pagination.limit]);
 
     // @FIXME: Improve logic, fileList can't be null or undefined, check state object
     if (filesList !== undefined && filesList !== null && filesList.length !== pagination.total) {
@@ -112,6 +121,7 @@ export const FileWidget = () => {
                                     onSearch={onSearch}
                                     data-test-id={"file-search-bar"}
                                     focusOnCreation={!!textQuery.length}
+                                    globalTableKey={"files"}
                                 />
                             )}
                             {!!filesList.length && <Spacing size="tiny" />}
@@ -130,7 +140,7 @@ export const FileWidget = () => {
                                             {filesList
                                                 .slice(
                                                     (pagination.current - 1) * pagination.limit,
-                                                    pagination.current * pagination.limit
+                                                    pagination.current * pagination.limit,
                                                 )
                                                 .map((file) => (
                                                     <TableRow key={file.id}>
@@ -168,7 +178,7 @@ export const FileWidget = () => {
                                                                     text={t("common.action.download")}
                                                                     small
                                                                     href={`${CONTEXT_PATH}/workspace/projects/${projectId}/files?path=${encodeURIComponent(
-                                                                        fileValue(file)
+                                                                        fileValue(file),
                                                                     )}`}
                                                                 />
                                                                 <IconButton

@@ -39,10 +39,6 @@ const WorkspaceSearch = () => {
         setSearchInitialized(true);
     }, []);
 
-    const handleSort = (sortBy: string) => {
-        dispatch(workspaceOp.applySorterOp(sortBy));
-    };
-
     const handleSearch = (textQuery: string) => {
         dispatch(workspaceOp.applyFiltersOp({ textQuery }));
     };
@@ -69,10 +65,10 @@ const WorkspaceSearch = () => {
                                         focusOnCreation={true}
                                         textQuery={effectiveSearchQuery}
                                         sorters={sorters}
-                                        onSort={handleSort}
                                         onSearch={handleSearch}
                                         onEnter={onEnter}
                                         disableEnterDuringPendingSearch={true}
+                                        globalTableKey={"workbench"}
                                     />
                                 </GridColumn>
                             </GridRow>

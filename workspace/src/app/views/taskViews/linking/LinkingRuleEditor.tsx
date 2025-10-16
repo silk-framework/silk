@@ -75,8 +75,8 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions, insta
     const [t] = useTranslation();
     const { registerError } = useErrorHandler();
     const prefLang = useSelector(commonSel.localeSelector);
-    const langPref = React.useRef<string>(prefLang)
-    langPref.current = prefLang
+    const langPref = React.useRef<string>(prefLang);
+    langPref.current = prefLang;
     // Meta data and label data structures for input paths
     const sourcePathMetaData = React.useRef<PathWithMetaData[]>([]);
     const sourcePathLabels = React.useRef<Map<string, string>>(new Map());
@@ -342,7 +342,7 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions, insta
                         inputString,
                         cursorPosition,
                         200,
-                        langPref.current
+                        langPref.current,
                     );
                     return result.data;
                 } catch (err) {
@@ -501,6 +501,7 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions, insta
                         inputPathPluginPathType,
                         inputPathLabel,
                     }}
+                    saveInitiallyEnabled={false}
                 />
             </LinkingRuleEvaluation>
         </PathInputOperatorContext.Provider>

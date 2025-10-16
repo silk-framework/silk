@@ -1,6 +1,16 @@
 import React from "react";
 import useErrorHandler from "../../../hooks/useErrorHandler";
-import { IComplexMappingRule, ITransformTaskParameters } from "./transform.types";
+import {
+    ActualRule,
+    IComplexMappingRule,
+    InitialRuleHighlighting,
+    ITransformRule,
+    ITransformTaskParameters,
+    NewTransformRule,
+    PartialBy,
+    RuleParameterType,
+    RuleReference,
+} from "./transform.types";
 import { useTranslation } from "react-i18next";
 import { IViewActions } from "../../plugins/PluginRegistry";
 import RuleEditor, { RuleOperatorFetchFnType } from "../../shared/RuleEditor/RuleEditor";
@@ -38,8 +48,8 @@ export interface TransformRuleEditorProps {
     transformTaskId: string;
     /** The container rule ID, i.e. of either the root or an object rule. */
     containerRuleId: string;
-    /** The transform rule that should be edited. This needs to be a value mapping rule. */
-    ruleId: string;
+    /** The transform rule that should be edited. This needs to be a value mapping rule. Either given as rule object or referenced via rule ID (i.e. already persisted rule). */
+    ruleDefinition: RuleParameterType;
     /** Generic actions and callbacks on views. */
     viewActions?: IViewActions;
     /** After the initial fit to view, zoom to the specified Zoom level to avoid showing too small nodes. */
@@ -48,6 +58,9 @@ export interface TransformRuleEditorProps {
     instanceId: string;
     /** Additional components that will be placed in the tool bar left to the save button. */
     additionalToolBarComponents?: () => JSX.Element | JSX.Element[];
+    /** Initially highlights the given operator nodes and shows a message explaining why the nodes are highlighted.
+     * When the notification is closed the highlighting of the nodes is removed again.  */
+    initialHighlighting?: InitialRuleHighlighting;
 }
 
 /** Editor for creating and changing transform rule operator trees. */
@@ -55,19 +68,23 @@ export const TransformRuleEditor = ({
     projectId,
     transformTaskId,
     containerRuleId,
-    ruleId,
+    ruleDefinition,
     initialFitToViewZoomLevel,
     instanceId,
     additionalToolBarComponents,
     viewActions,
+    initialHighlighting,
 }: TransformRuleEditorProps) => {
     const [t] = useTranslation();
     const { registerError } = useErrorHandler();
     const mappingEditorContext = React.useContext(GlobalMappingEditorContext);
+    const isReferencedRule = "ruleId" in ruleDefinition;
     /** Fetches the parameters of the transform rule. */
     const fetchTransformRule = async (projectId: string, taskId: string): Promise<IComplexMappingRule | undefined> => {
         try {
-            const taskData = (await requestTransformRule(projectId, taskId, ruleId)).data;
+            const taskData: NewTransformRule = isReferencedRule
+                ? (await requestTransformRule(projectId, taskId, (ruleDefinition as RuleReference).ruleId)).data
+                : (ruleDefinition as ActualRule).rule;
             if (taskData.type !== "complex") {
                 throw new Error("Edit of container/object rules is not supported!");
             } else {
@@ -125,7 +142,20 @@ export const TransformRuleEditor = ({
                     stickyNotes,
                 },
             };
-            await putTransformRule(projectId, transformTaskId, ruleId, rule);
+            if (ruleDefinition.alternativeSave) {
+                await ruleDefinition.alternativeSave(rule);
+            } else if (isReferencedRule) {
+                await putTransformRule(projectId, transformTaskId, (ruleDefinition as RuleReference).ruleId, rule);
+            } else if ((ruleDefinition as ActualRule).rule?.id) {
+                await putTransformRule(projectId, transformTaskId, (ruleDefinition as ActualRule).rule.id!, rule);
+            } else {
+                const errorMessage = "No ID found to save rule to backend and no alternative save function defined!";
+                console.warn(errorMessage);
+                return {
+                    success: false,
+                    errorMessage: `Internal error: ${errorMessage}`,
+                };
+            }
             return {
                 success: true,
             };
@@ -188,7 +218,7 @@ export const TransformRuleEditor = ({
             const response = await autoCompleteTransformSourcePath(
                 projectId,
                 transformTaskId,
-                ruleId,
+                isReferencedRule ? (ruleDefinition as RuleReference).ruleId : containerRuleId,
                 term,
                 mappingEditorContext.taskContext,
                 limit,
@@ -271,7 +301,7 @@ export const TransformRuleEditor = ({
             inputPathTab(
                 projectId,
                 transformTaskId,
-                ruleId,
+                isReferencedRule ? (ruleDefinition as RuleReference).ruleId : containerRuleId,
                 sourcePathInput(),
                 (ex) =>
                     registerError(
@@ -312,6 +342,8 @@ export const TransformRuleEditor = ({
                 initialFitToViewZoomLevel={initialFitToViewZoomLevel}
                 instanceId={instanceId}
                 fetchDatasetCharacteristics={fetchDatasetCharacteristics}
+                saveInitiallyEnabled={(ruleDefinition as ActualRule).saveInitiallyEnabled ?? false}
+                initialHighlighting={initialHighlighting}
             />
         </TransformRuleEvaluation>
     );
