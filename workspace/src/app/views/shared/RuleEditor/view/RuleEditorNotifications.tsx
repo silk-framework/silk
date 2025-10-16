@@ -28,19 +28,19 @@ export const RuleEditorNotifications = ({
     const ruleEditorErrorMessages = messages.filter((diError) => diError.timestamp > generalNotificationMinDateTime);
 
     useEffect(() => {
-        if(ruleEditorErrorMessages.length && !ruleEditorErrorMessages[0]?.notAutoOpen) {
+        if (ruleEditorErrorMessages.length && !ruleEditorErrorMessages[0]?.notAutoOpen) {
             setIsOpen(true);
         }
     }, [ruleEditorErrorMessages.length > 0 ? ruleEditorErrorMessages[0] : undefined]);
 
     useEffect(() => {
-        if(queueEditorNotifications.length) {
+        if (queueEditorNotifications.length) {
             setIsOpen(true);
         }
     }, [queueEditorNotifications.length > 0 ? queueEditorNotifications[0] : undefined]);
 
     useEffect(() => {
-        if(queueNodeNotifications.length) {
+        if (queueNodeNotifications.length) {
             setIsOpen(true);
         }
     }, [queueNodeNotifications.length > 0 ? queueNodeNotifications[0] : undefined]);

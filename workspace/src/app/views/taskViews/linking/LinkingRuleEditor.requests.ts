@@ -12,7 +12,7 @@ export const fetchLinkingCachedPaths = (
     linkingTaskId: string,
     which: "source" | "target",
     withMetaData: boolean = true,
-    langPref: string = "en"
+    langPref: string = "en",
 ): Promise<FetchResponse<string[] | PathWithMetaData[]>> => {
     return fetch({
         url: legacyLinkingEndpoint(`/tasks/${projectId}/${linkingTaskId}/pathCacheValue/${which}`),
@@ -28,7 +28,7 @@ export const fetchLinkSpec = (
     projectId: string,
     linkingTaskId: string,
     withLabels: boolean,
-    langPref: string = "en"
+    langPref: string = "en",
 ): Promise<FetchResponse<TaskPlugin<ILinkingTaskParameters>>> => {
     return fetch({
         url: legacyLinkingEndpoint(`/tasks/${projectId}/${linkingTaskId}`),
@@ -43,7 +43,7 @@ export const fetchLinkSpec = (
 export const updateLinkageRule = (
     projectId: string,
     linkingTaskId: string,
-    linkingRule: ILinkingRule
+    linkingRule: ILinkingRule,
 ): Promise<FetchResponse<void>> => {
     return fetch({
         url: legacyLinkingEndpoint(`/tasks/${projectId}/${linkingTaskId}/rule`),
@@ -57,7 +57,7 @@ export const evaluateLinkingRuleAgainstReferenceEntities = (
     projectId: string,
     linkingTaskId: string,
     linkingRule: ILinkingRule,
-    linkLimit: number = 100
+    linkLimit: number = 100,
 ): Promise<FetchResponse<IEvaluatedReferenceLinks>> => {
     return fetch({
         url: legacyLinkingEndpoint(`/tasks/${projectId}/${linkingTaskId}/referenceLinksEvaluated`),
@@ -78,7 +78,7 @@ export const evaluateLinkingRuleAgainstReferenceEntities = (
 export const referenceLinksEvaluated = (
     projectId: string,
     linkingTaskId: string,
-    withEntitiesAndSchema: boolean
+    withEntitiesAndSchema: boolean,
 ): Promise<FetchResponse<IEvaluatedReferenceLinks>> => {
     return fetch({
         url: legacyLinkingEndpoint(`/tasks/${projectId}/${linkingTaskId}/referenceLinksEvaluated`),
@@ -94,7 +94,7 @@ export const evaluateLinkingRule = (
     linkingTaskId: string,
     linkingRule: ILinkingRule,
     linkLimit: number = 100,
-    timeoutInMs: number = 30000
+    timeoutInMs: number = 30000,
 ): Promise<FetchResponse<IEntityLink[]>> => {
     return fetch({
         url: legacyLinkingEndpoint(`/tasks/${projectId}/${linkingTaskId}/evaluateLinkageRule`),
@@ -120,7 +120,7 @@ export const autoCompleteLinkingInputPaths = (
     linkingTaskId: string,
     inputType: "source" | "target",
     searchQuery: string,
-    limit: number
+    limit: number,
 ): Promise<FetchResponse<IAutocompleteDefaultResponse[]>> => {
     return fetch({
         url: legacyLinkingEndpoint(`/tasks/${projectId}/${linkingTaskId}/completions/inputPaths`),
@@ -172,7 +172,7 @@ export const addPathToReferenceEntitiesCache = (
     projectId: string,
     linkingTaskId: string,
     path: string,
-    toTarget: boolean
+    toTarget: boolean,
 ): Promise<FetchResponse<void>> => {
     return fetch({
         url: legacyLinkingEndpoint(`/tasks/${projectId}/${linkingTaskId}/referenceEntitiesCache/path`),

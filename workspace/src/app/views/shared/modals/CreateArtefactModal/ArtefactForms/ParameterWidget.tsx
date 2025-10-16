@@ -1,7 +1,6 @@
 import React from "react";
 import {
     FieldSet,
-    IconButton,
     Label,
     Link,
     Markdown,
@@ -10,19 +9,19 @@ import {
     TitleSubsection,
     WhiteSpaceContainer,
 } from "@eccenca/gui-elements";
-import { IArtefactItemProperty, ITaskParameter } from "@ducks/common/typings";
-import { Intent } from "@eccenca/gui-elements/blueprint/constants";
-import { InputMapper, RegisterForExternalChangesFn } from "./InputMapper";
-import { defaultValueAsJs } from "../../../../../utils/transformers";
-import { INPUT_TYPES } from "../../../../../constants";
-import { useTranslation } from "react-i18next";
-import { dependentValueIsSet, DependsOnParameterValueAny, ParameterAutoCompletion } from "./ParameterAutoCompletion";
-import { pluginRegistry, SUPPORTED_PLUGINS } from "../../../../plugins/PluginRegistry";
-import { ParameterExtensions } from "../../../../plugins/plugin.types";
-import { ArtefactFormParameter } from "./ArtefactFormParameter";
-import { optionallyLabelledParameterToValue } from "../../../../taskViews/linking/linking.types";
-import { ArtefactDocumentation } from "../CreateArtefactModal";
-import { PARAMETER_DOC_PREFIX } from "./TaskForm";
+import {IArtefactItemProperty, ITaskParameter} from "@ducks/common/typings";
+import {Intent} from "@eccenca/gui-elements/blueprint/constants";
+import {InputMapper, RegisterForExternalChangesFn} from "./InputMapper";
+import {defaultValueAsJs} from "../../../../../utils/transformers";
+import {INPUT_TYPES} from "../../../../../constants";
+import {useTranslation} from "react-i18next";
+import {dependentValueIsSet, DependsOnParameterValueAny, ParameterAutoCompletion} from "./ParameterAutoCompletion";
+import {pluginRegistry, SUPPORTED_PLUGINS} from "../../../../plugins/PluginRegistry";
+import {ParameterExtensions} from "../../../../plugins/plugin.types";
+import {ArtefactFormParameter} from "./ArtefactFormParameter";
+import {optionallyLabelledParameterToValue} from "../../../../taskViews/linking/linking.types";
+import {PARAMETER_DOC_PREFIX} from "./TaskForm";
+import {YamlEditor} from "../../../../../views/shared/YamlEditor";
 
 const MAXLENGTH_TOOLTIP = 32;
 const MAXLENGTH_SIMPLEHELP = 192;
@@ -258,6 +257,7 @@ export const ParameterWidget = (props: IProps) => {
         );
     } else {
         const isTemplateParameter = parameterCallbacks.initialTemplateFlag(formParamId);
+        const showYamlEditorInput = autoCompletion && propertyDetails.parameterType === INPUT_TYPES.KEY_VALUE_PAIRS;
         const initialValue = autoCompletion
             ? initialValues[formParamId]
                 ? initialValues[formParamId].value
@@ -284,7 +284,21 @@ export const ParameterWidget = (props: IProps) => {
                     defaultValue: defaultValueAsJs(propertyDetails, !!autoCompletion),
                 }}
                 inputElementFactory={(initialValueReplace, onChange) => {
-                    if (autoCompletion) {
+                    if (showYamlEditorInput) {
+                        return (
+                            <YamlEditor
+                                projectId={projectId}
+                                pluginId={pluginId}
+                                autoCompletion={autoCompletion}
+                                id={formParamId}
+                                initialValue={initialValue?.value ?? initialValue}
+                                onChange={(value) => (onChange ? onChange(value) : changeHandlers[formParamId](value))}
+                                defaultValue={parameterCallbacks.defaultValue}
+                                dependentValue={dependentValue}
+                                formParamId={formParamId}
+                            />
+                        );
+                    } else if (autoCompletion) {
                         const currentInitialValue = initialValueReplace ? initialValueReplace : undefined;
                         return (
                             <ParameterAutoCompletion
