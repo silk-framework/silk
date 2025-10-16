@@ -29,7 +29,8 @@ object KeyValuePairsType extends StringParameterType[KeyValuePairs] {
         case map: java.util.Map[_, _] =>
           var keyValues = ListMap.empty[String, String]
           map.forEach((k, v) => {
-            keyValues = keyValues.updated(k.toString, v.toString)
+            val value = if(v == null) "" else v.toString
+            keyValues = keyValues.updated(k.toString, value)
           })
           keyValues
         case _ =>
