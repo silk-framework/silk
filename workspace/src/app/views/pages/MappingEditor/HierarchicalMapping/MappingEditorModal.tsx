@@ -3,6 +3,7 @@ import { Button, HtmlContentBlock, IconButton, AlertDialog, SimpleDialog } from 
 import { TransformRuleEditor } from "../../../../views/taskViews/transform/TransformRuleEditor";
 import { useTranslation } from "react-i18next";
 import { IViewActions } from "../../../../views/plugins/PluginRegistry";
+import { InitialRuleHighlighting, RuleParameterType } from "../../../taskViews/transform/transform.types";
 
 export interface MappingEditorProps {
     /** Project ID the task is in. */
@@ -12,7 +13,7 @@ export interface MappingEditorProps {
     /** The container rule ID, i.e. of either the root or an object rule. */
     containerRuleId: string;
     /** The transform rule that should be edited. This needs to be a value mapping rule. */
-    ruleId: string;
+    ruleDefinition: RuleParameterType;
     // control whether the modal is open or not
     isOpen: boolean;
     /**
@@ -21,16 +22,20 @@ export interface MappingEditorProps {
     onClose: () => void;
     /** Generic actions and callbacks on views. */
     viewActions?: IViewActions;
+    /** Initially highlights the given operator nodes and shows a message explaining why the nodes are highlighted.
+     * When the notification is closed the highlighting of the nodes is removed again.  */
+    initialHighlighting?: InitialRuleHighlighting;
 }
 
 const MappingEditorModal = ({
-    ruleId,
+    ruleDefinition,
     onClose,
     projectId,
     transformTaskId,
     isOpen,
     containerRuleId,
     viewActions,
+    initialHighlighting,
 }: MappingEditorProps) => {
     /** keeps track of whether there are unsaved changes or not */
     const [unsavedChanges, setUnsavedChanges] = React.useState<boolean>(false);
@@ -111,7 +116,7 @@ const MappingEditorModal = ({
                     <TransformRuleEditor
                         projectId={projectId}
                         containerRuleId={containerRuleId}
-                        ruleId={ruleId}
+                        ruleDefinition={ruleDefinition}
                         instanceId={"transform-rule-editor-modal-instance"}
                         transformTaskId={transformTaskId}
                         viewActions={{
@@ -121,6 +126,7 @@ const MappingEditorModal = ({
                             },
                             integratedView: true,
                         }}
+                        initialHighlighting={initialHighlighting}
                     />
                 </div>
             </>

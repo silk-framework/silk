@@ -23,8 +23,10 @@ import MetadataLabel from "../../../components/Metadata/MetadataLabel";
 import MetadataDesc from "../../../components/Metadata/MetadataDesc";
 import { SourcePath } from "../../../components/SourcePath";
 import TargetCardinality from "../../../components/TargetCardinality";
-import { defaultUriPattern } from "./ObjectRule.utils";
-import {getRuleLabel} from "../../../utils/getRuleLabel";
+import { defaultUriPattern, defaultUriRule } from "./ObjectRule.utils";
+import { getRuleLabel } from "../../../utils/getRuleLabel";
+import { appendTransformRule } from "../../../../../../taskViews/transform/transform.requests";
+import { GlobalMappingEditorContext } from "../../../../contexts/GlobalMappingEditorContext";
 
 class ObjectRule extends React.Component {
     static propTypes = {
@@ -34,6 +36,8 @@ class ObjectRule extends React.Component {
         edit: PropTypes.oneOfType([PropTypes.bool, PropTypes.object]).isRequired,
         ruleData: PropTypes.object.isRequired,
     };
+
+    static contextType = GlobalMappingEditorContext;
 
     state = {
         edit: !!this.props.edit,
@@ -88,21 +92,26 @@ class ObjectRule extends React.Component {
     openEditor = () => {
         let uriRuleId = _.get(this.props.ruleData, "rules.uriRule")?.id;
         if (!uriRuleId) {
-            const rule = _.cloneDeep(this.props.ruleData);
-            rule.rules.uriRule = {
-                type: "uri",
-                pattern: defaultUriPattern(rule.id),
+            // Generate default URI rule and load it into the mapping editor
+            const containerRuleId = this.props.ruleData.id;
+            const uriRule = defaultUriRule(containerRuleId);
+            const saveRule = async (editedRule) => {
+                await appendTransformRule(
+                    this.context.projectId,
+                    this.context.transformTaskId,
+                    containerRuleId,
+                    editedRule,
+                );
             };
-            updateObjectMappingAsync(rule).subscribe(
-                (data) => {
-                    this.props.openMappingEditor(data.body.rules.uriRule.id);
-                },
-                (err) => {
-                    console.error(err);
-                }
-            );
+            this.props.openMappingEditor({
+                rule: uriRule,
+                saveRule,
+                saveInitiallyEnabled: true,
+            });
         } else {
-            this.props.openMappingEditor(uriRuleId);
+            this.props.openMappingEditor({
+                ruleId: uriRuleId,
+            });
         }
 
         return false;
@@ -118,7 +127,7 @@ class ObjectRule extends React.Component {
                 },
                 (err) => {
                     console.error(err);
-                }
+                },
             );
         };
         this.props.onClickedRemove(null, callbackFn);
@@ -156,9 +165,9 @@ class ObjectRule extends React.Component {
         const { type, ruleData } = this.props;
         const { edit } = this.state;
         const { type: ruleType, metadata, mappingTarget } = ruleData;
-        const label = _.get(metadata, 'label', '');
-        const ruleLabelData = getRuleLabel({label, uri: mappingTarget.uri});
-        const ruleDisplayLabel = ruleLabelData.displayLabel
+        const label = _.get(metadata, "label", "");
+        const ruleLabelData = getRuleLabel({ label, uri: mappingTarget.uri });
+        const ruleDisplayLabel = ruleLabelData.displayLabel;
 
         if (edit) {
             return (
@@ -245,7 +254,7 @@ class ObjectRule extends React.Component {
                                         uri: this.props.ruleData.mappingTarget.uri,
                                         type: ruleType,
                                         parent: this.props.parentId,
-                                        displayLabel: ruleDisplayLabel
+                                        displayLabel: ruleDisplayLabel,
                                     });
                                 }}
                             />

@@ -7,7 +7,8 @@ import org.silkframework.runtime.plugin.annotations.Plugin
   id = "soundex",
   categories = Array("Linguistic"),
   label = "Soundex",
-  description = "Soundex algorithm."
+  description = "Soundex algorithm.",
+  documentationFile = "SoundexTransformer.md"
 )
 case class SoundexTransformer(refined: Boolean = true) extends SimpleTransformer {
 
