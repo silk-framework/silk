@@ -35,20 +35,14 @@ export const filtersSlice = createSlice({
         },
 
         applySorter(state, action) {
-            const currentSort = state.sorters.applied;
             const { sortBy, sortOrder } = action.payload;
             let appliedSorter: IAppliedSorterState = {
                 sortBy: "",
                 sortOrder: "",
             };
-
             if (sortBy) {
-                let newSortOrder: SortModifierType = sortOrder || "ASC";
-                if (currentSort.sortBy === sortBy) {
-                    newSortOrder = currentSort.sortOrder === "ASC" ? "DESC" : "ASC";
-                }
                 appliedSorter.sortBy = sortBy;
-                appliedSorter.sortOrder = newSortOrder;
+                appliedSorter.sortOrder = sortOrder;
             }
 
             state.sorters.applied = appliedSorter;
@@ -110,8 +104,6 @@ export const filtersSlice = createSlice({
 
         resetFilters(state) {
             state.appliedFilters = initialAppliedFiltersState();
-            state.sorters = initialSortersState();
-            state.pagination = initialPaginationState();
             state.appliedFacets = [];
         },
     },

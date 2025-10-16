@@ -1,11 +1,13 @@
 import React from "react";
-import { ISortersState } from "@ducks/workspace/typings";
+import {IAppliedSorterState, ISortersState} from "@ducks/workspace/typings";
 import { Spacing, Toolbar, ToolbarSection } from "@eccenca/gui-elements";
 import SearchInput, { ISearchInputProps } from "./SearchInput";
 import SortButton from "../buttons/SortButton";
 import { useTranslation } from "react-i18next";
 import { useInvisibleCharacterCleanUpModal } from "../modals/InvisibleCharacterCleanUpModal";
 import { useSearch } from "../../../hooks/useSearch";
+import {GlobalTableContext} from "../../../GlobalContextsWrapper";
+import {GlobalTableTypes} from "../../../hooks/useStoreGlobalTableSettings";
 
 /** The omitted properties are only set by this component and not propagated to SearchInput. */
 type ISearchBarSearchInputProps = Omit<
@@ -17,8 +19,6 @@ interface IProps extends ISearchBarSearchInputProps {
     textQuery: string;
     sorters?: ISortersState;
 
-    onSort?(sortBy: string): void;
-
     onSearch(textQuery: string): void;
 
     /** If defined, the component will warn of queries containing invisible characters that are hard to spot. */
@@ -29,18 +29,21 @@ interface IProps extends ISearchBarSearchInputProps {
 
     /** Callback to signal when there is a pending (maybe not even executed search). */
     disableEnterDuringPendingSearch?: boolean;
+
+    /** Global search table configuration key. */
+    globalTableKey?: GlobalTableTypes;
 }
 
 /** A simple search bar. */
 export function SearchBar({
     textQuery,
     sorters,
-    onSort,
     onSearch,
     focusOnCreation = false,
     warnOfInvisibleCharacters = true,
     onEnter,
     disableEnterDuringPendingSearch = false,
+    globalTableKey,
     ...otherProps
 }: IProps) {
     const [t] = useTranslation();
@@ -52,6 +55,7 @@ export function SearchBar({
         onClear,
         searchPending,
     } = useSearch({ onSearch, searchQuery: textQuery });
+    const {globalTableSettings} = React.useContext(GlobalTableContext)
 
     const emptySearchMessage = otherProps.emptySearchInputMessage
         ? otherProps.emptySearchInputMessage
@@ -71,6 +75,20 @@ export function SearchBar({
         onEnter ? onEnter() : onEnterRefreshSearch();
     }, [onEnterRefreshSearch, onEnter]);
 
+    const appliedSorters: IAppliedSorterState | undefined = sorters ?
+        {...sorters.applied} :
+        undefined ;
+
+    if(appliedSorters && globalTableKey && globalTableSettings[globalTableKey]) {
+        const conf = globalTableSettings[globalTableKey]
+        if(conf.sortBy) {
+            appliedSorters.sortBy = conf.sortBy
+        }
+        if(conf.sortOrder) {
+            appliedSorters.sortOrder = conf.sortOrder
+        }
+    }
+
     return (
         <Toolbar className="diapp-searchbar">
             <ToolbarSection canGrow canShrink>
@@ -88,10 +106,10 @@ export function SearchBar({
                     {...otherProps}
                 />
             </ToolbarSection>
-            {!!sorters && !!sorters.list.length && onSort && (
+            {!!sorters && !!sorters.list.length && appliedSorters && (
                 <ToolbarSection>
                     <Spacing size="tiny" vertical />
-                    <SortButton sortersList={sorters.list} onSort={onSort} activeSort={sorters.applied} />
+                    <SortButton sortersList={sorters.list} activeSort={appliedSorters} />
                 </ToolbarSection>
             )}
         </Toolbar>
