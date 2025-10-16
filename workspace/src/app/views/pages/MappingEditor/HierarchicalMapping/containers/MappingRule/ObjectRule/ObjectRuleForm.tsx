@@ -311,6 +311,11 @@ export const ObjectRuleForm = (props: IProps) => {
                 onChange={(value) => {
                     handleChangeValue("pattern", value);
                 }}
+                outerDivAttributes={
+                    {
+                        "data-test-id": "codemirror-wrapper",
+                    } as React.HTMLAttributes<HTMLDivElement>
+                }
                 fetchSuggestions={(input, cursorPosition) =>
                     fetchUriPatternAutoCompletions(
                         parentId ? parentId : MAPPING_ROOT_RULE_ID,

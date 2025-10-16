@@ -130,9 +130,24 @@ export function InputMapper({
     if (param.parameterType.startsWith("code-")) {
         const mode = param.parameterType.substring(5);
         if (CodeEditor.supportedModes.find((m) => m === mode)) {
-            return <CodeEditor mode={mode as any} {...inputAttributes} />;
+            return (
+                <CodeEditor
+                    mode={mode as any}
+                    {...inputAttributes}
+                    outerDivAttributes={
+                        { "data-test-id": "codemirror-wrapper" } as React.HTMLAttributes<HTMLDivElement>
+                    }
+                />
+            );
         } else {
-            return <CodeEditor {...inputAttributes} />;
+            return (
+                <CodeEditor
+                    {...inputAttributes}
+                    outerDivAttributes={
+                        { "data-test-id": "codemirror-wrapper" } as React.HTMLAttributes<HTMLDivElement>
+                    }
+                />
+            );
         }
     }
 
@@ -145,9 +160,28 @@ export function InputMapper({
         case INPUT_TYPES.TEXTAREA:
             return <TextAreaWithCharacterWarnings {...inputAttributes} />;
         case INPUT_TYPES.RESTRICTION:
-            return <CodeEditor mode="sparql" {...inputAttributes} />;
+            return (
+                <CodeEditor
+                    mode="sparql"
+                    {...inputAttributes}
+                    outerDivAttributes={
+                        {
+                            "data-test-id": "codemirror-wrapper",
+                        } as React.HTMLAttributes<HTMLDivElement>
+                    }
+                />
+            );
         case INPUT_TYPES.MULTILINE_STRING:
-            return <CodeEditor {...inputAttributes} />;
+            return (
+                <CodeEditor
+                    {...inputAttributes}
+                    outerDivAttributes={
+                        {
+                            "data-test-id": "codemirror-wrapper",
+                        } as React.HTMLAttributes<HTMLDivElement>
+                    }
+                />
+            );
         case INPUT_TYPES.PASSWORD:
             return <TextField {...inputAttributes} type={"password"} escapeToBlur={true} />;
         case INPUT_TYPES.TARGET_VOCABULARY:

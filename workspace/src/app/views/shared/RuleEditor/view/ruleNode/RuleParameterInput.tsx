@@ -275,4 +275,5 @@ export const preventMouseEventsFromBubblingToReactFlow = {
     onMouseDown: (event: MouseEvent<any>) => event.stopPropagation(),
     onMouseUp: (event: MouseEvent<any>) => event.stopPropagation(),
     onContextMenu: (event: MouseEvent<any>) => event.stopPropagation(),
+    "data-test-id": "codemirror-wrapper",
 };

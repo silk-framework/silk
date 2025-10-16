@@ -58,7 +58,7 @@ export function ProjectForm({ form, goBackOnEscape = () => {} }: IProps) {
 
     const handleTagSelectionChange = React.useCallback(
         (params: MultiSuggestFieldSelectionProps<Keyword>) => setValue("tags", params),
-        []
+        [],
     );
 
     const CodeEditorMemoed = React.useMemo(
@@ -70,13 +70,14 @@ export function ProjectForm({ form, goBackOnEscape = () => {} }: IProps) {
                 mode="markdown"
                 onChange={onValueChange(DESCRIPTION)}
                 useToolbar
+                outerDivAttributes={{ "data-test-id": "codemirror-wrapper" } as React.HTMLAttributes<HTMLDivElement>}
                 translate={(key) => {
                     const translationKey = `Editor.markdown.toolbar.${key}`;
                     return t(translationKey) as string;
                 }}
             />
         ),
-        []
+        [],
     );
 
     return (
