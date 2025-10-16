@@ -307,27 +307,30 @@ export const TemplateInputComponent = memo(
         const [t] = useTranslation();
         const registerError = modalContext.registerModalError ? modalContext.registerModalError : globalErrorHandler;
 
-        const processValidationError = React.useCallback((validationResult: CodeAutocompleteFieldValidationResult): CodeAutocompleteFieldValidationResult => {
-            let errorMessage = validationResult.parseError?.message;
-            const adaptedValidationResult = { ...validationResult };
-            if (errorMessage) {
-                if (errorMessage.includes("error at position")) {
-                    // Parse position from error message
-                    const result = /error at position (\d+)/.exec(errorMessage);
-                    if (result && Number.isInteger(Number.parseInt(result[1]))) {
-                        const errorPosition = Number.parseInt(result[1]);
-                        adaptedValidationResult.parseError = {
-                            start: errorPosition,
-                            end: errorPosition + 2,
-                            message: validationResult.parseError!.message,
-                        };
-                        errorMessage = `${t("ArtefactFormParameter.invalidTemplate")}: ${errorMessage}`;
+        const processValidationError = React.useCallback(
+            (validationResult: CodeAutocompleteFieldValidationResult): CodeAutocompleteFieldValidationResult => {
+                let errorMessage = validationResult.parseError?.message;
+                const adaptedValidationResult = { ...validationResult };
+                if (errorMessage) {
+                    if (errorMessage.includes("error at position")) {
+                        // Parse position from error message
+                        const result = /error at position (\d+)/.exec(errorMessage);
+                        if (result && Number.isInteger(Number.parseInt(result[1]))) {
+                            const errorPosition = Number.parseInt(result[1]);
+                            adaptedValidationResult.parseError = {
+                                start: errorPosition,
+                                end: errorPosition + 2,
+                                message: validationResult.parseError!.message,
+                            };
+                            errorMessage = `${t("ArtefactFormParameter.invalidTemplate")}: ${errorMessage}`;
+                        }
                     }
                 }
-            }
-            setValidationError(errorMessage);
-            return adaptedValidationResult;
-        }, []);
+                setValidationError(errorMessage);
+                return adaptedValidationResult;
+            },
+            [],
+        );
 
         const autoComplete = React.useCallback(async (inputString: string, cursorPosition: number) => {
             try {
@@ -391,6 +394,11 @@ export const TemplateInputComponent = memo(
                 checkInput={checkTemplate}
                 autoCompletionRequestDelay={200}
                 multiline={multiline}
+                outerDivAttributes={
+                    {
+                        "data-test-id": "codemirror-wrapper",
+                    } as any
+                }
             />
         );
     },

@@ -6,7 +6,14 @@ import {
     TaskPreConfiguration,
 } from "@ducks/common/typings";
 import { DATA_TYPES, INPUT_TYPES } from "../../../../../constants";
-import { CodeEditor, FieldItem, MultiSuggestFieldSelectionProps, Spacing, Switch, TextField } from "@eccenca/gui-elements";
+import {
+    CodeEditor,
+    FieldItem,
+    MultiSuggestFieldSelectionProps,
+    Spacing,
+    Switch,
+    TextField,
+} from "@eccenca/gui-elements";
 import { AdvancedOptionsArea } from "../../../AdvancedOptionsArea/AdvancedOptionsArea";
 import { errorMessage, ExtendedParameterCallbacks, ParameterCallbacks, ParameterWidget } from "./ParameterWidget";
 import { defaultValueAsJs, existingTaskValuesToFlatParameters } from "../../../../../utils/transformers";
@@ -24,7 +31,7 @@ import useHotKey from "../../../HotKeyHandler/HotKeyHandler";
 import utils from "@eccenca/gui-elements/src/cmem/markdown/markdown.utils";
 import { commonOp } from "@ducks/common";
 import { DependsOnParameterValueAny } from "./ParameterAutoCompletion";
-import {FieldValues, FormContextValues} from "react-hook-form";
+import { FieldValues, FormContextValues } from "react-hook-form";
 
 export const READ_ONLY_PARAMETER = "readOnly";
 
@@ -128,7 +135,7 @@ export function TaskForm({
     goBackOnEscape = () => {},
     newTaskPreConfiguration,
     propagateExternallyChangedParameterValue,
-    showWarningMessage
+    showWarningMessage,
 }: IProps) {
     const { properties, required: requiredRootParameters } = artefact;
     const { register, errors, getValues, setValue, unregister, triggerValidation } = form;
@@ -400,11 +407,11 @@ export function TaskForm({
                 // collect all dependent parameters
                 const dependentParametersTransitiveSet = new Set<string>();
                 // Dependent parameters that were actually reset
-                const resetDependentParameters: string[] = []
+                const resetDependentParameters: string[] = [];
                 const collect = (currentParamId: string) => {
                     const params = dependentParameters.current?.get(currentParamId) ?? [];
                     params.forEach((p: string) => {
-                        if(!dependentParametersTransitiveSet.has(p)) {
+                        if (!dependentParametersTransitiveSet.has(p)) {
                             dependentParametersTransitiveSet.add(p);
                             collect(p);
                         }
@@ -412,18 +419,20 @@ export function TaskForm({
                 };
                 collect(key);
                 dependentParametersTransitiveSet.forEach((paramId) => {
-                    const currentValue = getValues(paramId)
-                    if(currentValue && paramId !== key) {
-                        resetDependentParameters.push(parameterLabels.current.get(paramId) ?? paramId)
+                    const currentValue = getValues(paramId);
+                    if (currentValue && paramId !== key) {
+                        resetDependentParameters.push(parameterLabels.current.get(paramId) ?? paramId);
                         handleChange(paramId)("");
                         propagateExternallyChangedParameterValue(paramId, "");
                     }
                 });
-                if(resetDependentParameters.length) {
-                    showWarningMessage(t("form.taskForm.resetMessage", {
-                        parameters: resetDependentParameters.join(", "),
-                        dependOn: parameterLabels.current.get(key) ?? key
-                    }))
+                if (resetDependentParameters.length) {
+                    showWarningMessage(
+                        t("form.taskForm.resetMessage", {
+                            parameters: resetDependentParameters.join(", "),
+                            dependOn: parameterLabels.current.get(key) ?? key,
+                        }),
+                    );
                 }
             }
         },
@@ -464,6 +473,7 @@ export function TaskForm({
                 mode="markdown"
                 defaultValue={description}
                 onChange={handleChange(DESCRIPTION)}
+                outerDivAttributes={{ "data-test-id": "codemirror-wrapper" } as React.HTMLAttributes<HTMLDivElement>}
             />
         ),
         [],
