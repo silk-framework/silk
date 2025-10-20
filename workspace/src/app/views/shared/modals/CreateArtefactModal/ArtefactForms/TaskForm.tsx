@@ -473,7 +473,7 @@ export function TaskForm({
                 mode="markdown"
                 defaultValue={description}
                 onChange={handleChange(DESCRIPTION)}
-                outerDivAttributes={{ "data-test-id": "codemirror-wrapper" } as React.HTMLAttributes<HTMLDivElement>}
+                data-test-id="codemirror-wrapper"
             />
         ),
         [],

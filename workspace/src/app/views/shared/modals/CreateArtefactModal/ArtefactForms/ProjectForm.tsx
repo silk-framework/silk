@@ -70,7 +70,7 @@ export function ProjectForm({ form, goBackOnEscape = () => {} }: IProps) {
                 mode="markdown"
                 onChange={onValueChange(DESCRIPTION)}
                 useToolbar
-                outerDivAttributes={{ "data-test-id": "codemirror-wrapper" } as React.HTMLAttributes<HTMLDivElement>}
+                data-test-id="codemirror-wrapper"
                 translate={(key) => {
                     const translationKey = `Editor.markdown.toolbar.${key}`;
                     return t(translationKey) as string;

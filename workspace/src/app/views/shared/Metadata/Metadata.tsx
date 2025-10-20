@@ -318,6 +318,7 @@ export function Metadata(props: IProps) {
                                     defaultValue={formEditData?.description}
                                     onChange={onDescriptionChange}
                                     useToolbar
+                                    data-test-id="codemirror-wrapper"
                                     translate={(key) => {
                                         const translationKey = `Editor.markdown.toolbar.${key}`;
                                         return t(translationKey) as string;
@@ -388,7 +389,7 @@ export function Metadata(props: IProps) {
                                             ? t(
                                                   "Metadata.dateFormat",
                                                   "{{year}}/{{month}}/{{day}}",
-                                                  getDateData(created)
+                                                  getDateData(created),
                                               )
                                             : "",
                                         author: createdByUser?.label ?? t("Metadata.unknownuser", "unknown user"),
@@ -427,7 +428,7 @@ export function Metadata(props: IProps) {
                                                     ? t(
                                                           "Metadata.dateFormat",
                                                           "{{year}}/{{month}}/{{day}}",
-                                                          getDateData(modified)
+                                                          getDateData(modified),
                                                       )
                                                     : "",
                                                 author:
@@ -439,7 +440,7 @@ export function Metadata(props: IProps) {
                                                     <Link
                                                         href={utils.generateFacetUrl(
                                                             "lastModifiedBy",
-                                                            lastModifiedByUser?.uri ?? ""
+                                                            lastModifiedByUser?.uri ?? "",
                                                         )}
                                                     ></Link>
                                                 ),
