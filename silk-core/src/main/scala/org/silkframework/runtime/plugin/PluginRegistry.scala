@@ -85,7 +85,7 @@ object PluginRegistry {
    * Returns the (optional) plugin description of a specific plugin.
    */
   def pluginByIdOpt[T: ClassTag](id: String): Option[PluginDescription[_]] = {
-    pluginType[T].pluginByIdOpt[T](id)
+    pluginTypeOpt[T].flatMap(_.pluginByIdOpt[T](id))
   }
 
   /**
