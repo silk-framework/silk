@@ -108,7 +108,7 @@ export const KeyboardShortcutsModal = () => {
                         <TitleSubsection>
                             {t(`header.keyboardShortcutsModal.categories.${sectionKey}.label`)}
                         </TitleSubsection>
-                        <OverviewItemList densityHigh columns={2}>
+                        <OverviewItemList columns={2}>
                             {shortcuts[sectionKey].map((shortcut, i) => (
                                 <PropertyValuePair style={{ width: "100%" }} hasSpacing key={sectionKey + shortcut.key}>
                                     <PropertyName

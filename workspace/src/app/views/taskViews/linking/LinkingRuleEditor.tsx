@@ -37,7 +37,7 @@ import {
 import { invalidValueResult } from "../../../views/shared/RuleEditor/view/ruleNode/ruleNode.utils";
 import { diErrorMessage } from "@ducks/error/typings";
 import { Notification, highlighterUtils, StickyNote } from "@eccenca/gui-elements";
-import { IPartialAutoCompleteResult } from "@eccenca/gui-elements/src/components/AutoSuggestion/AutoSuggestion";
+import { CodeAutocompleteFieldPartialAutoCompleteResult } from "@eccenca/gui-elements/src/components/AutoSuggestion/AutoSuggestion";
 import { languageFilterRegex, PathInputOperatorContext } from "../../shared/RuleEditor/view/ruleNode/PathInputOperator";
 
 export interface LinkingRuleEditorProps {
@@ -333,7 +333,10 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions, insta
 
     const fetchPartialAutoCompletionResult = React.useCallback(
         (inputType: "source" | "target") =>
-            async (inputString: string, cursorPosition: number): Promise<IPartialAutoCompleteResult | undefined> => {
+            async (
+                inputString: string,
+                cursorPosition: number,
+            ): Promise<CodeAutocompleteFieldPartialAutoCompleteResult | undefined> => {
                 try {
                     const result = await partialAutoCompleteLinkingInputPaths(
                         projectId,
@@ -437,7 +440,7 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions, insta
     };
 
     if (initError) {
-        return <Notification danger={true}>{diErrorMessage(initError)}</Notification>;
+        return <Notification intent="danger">{diErrorMessage(initError)}</Notification>;
     }
 
     if (loading) {

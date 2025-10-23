@@ -104,7 +104,7 @@ const PrefixesDialog = ({ onCloseModal, isOpen, existingPrefixes, projectId }: I
                     {t("common.action.close")}
                 </Button>
             }
-            notifications={error ? <Notification danger>{error.detail}</Notification> : null}
+            notifications={error ? <Notification intent="danger">{error.detail}</Notification> : null}
         >
             <PrefixNew
                 onAdd={(newPrefix: IPrefixDefinition) => handleAddOrUpdatePrefix(newPrefix)}

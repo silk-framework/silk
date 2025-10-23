@@ -9,19 +9,19 @@ import {
     TitleSubsection,
     WhiteSpaceContainer,
 } from "@eccenca/gui-elements";
-import {IArtefactItemProperty, ITaskParameter} from "@ducks/common/typings";
-import {Intent} from "@eccenca/gui-elements/blueprint/constants";
-import {InputMapper, RegisterForExternalChangesFn} from "./InputMapper";
-import {defaultValueAsJs} from "../../../../../utils/transformers";
-import {INPUT_TYPES} from "../../../../../constants";
-import {useTranslation} from "react-i18next";
-import {dependentValueIsSet, DependsOnParameterValueAny, ParameterAutoCompletion} from "./ParameterAutoCompletion";
-import {pluginRegistry, SUPPORTED_PLUGINS} from "../../../../plugins/PluginRegistry";
-import {ParameterExtensions} from "../../../../plugins/plugin.types";
-import {ArtefactFormParameter} from "./ArtefactFormParameter";
-import {optionallyLabelledParameterToValue} from "../../../../taskViews/linking/linking.types";
-import {PARAMETER_DOC_PREFIX} from "./TaskForm";
-import {YamlEditor} from "../../../../../views/shared/YamlEditor";
+import { IArtefactItemProperty, ITaskParameter } from "@ducks/common/typings";
+import { Intent } from "@eccenca/gui-elements/blueprint/constants";
+import { InputMapper, RegisterForExternalChangesFn } from "./InputMapper";
+import { defaultValueAsJs } from "../../../../../utils/transformers";
+import { INPUT_TYPES } from "../../../../../constants";
+import { useTranslation } from "react-i18next";
+import { dependentValueIsSet, DependsOnParameterValueAny, ParameterAutoCompletion } from "./ParameterAutoCompletion";
+import { pluginRegistry, SUPPORTED_PLUGINS } from "../../../../plugins/PluginRegistry";
+import { ParameterExtensions } from "../../../../plugins/plugin.types";
+import { ArtefactFormParameter } from "./ArtefactFormParameter";
+import { optionallyLabelledParameterToValue } from "../../../../taskViews/linking/linking.types";
+import { PARAMETER_DOC_PREFIX } from "./TaskForm";
+import { YamlEditor } from "../../../../../views/shared/YamlEditor";
 
 const MAXLENGTH_TOOLTIP = 32;
 const MAXLENGTH_SIMPLEHELP = 192;
@@ -241,7 +241,7 @@ export const ParameterWidget = (props: IProps) => {
                     />
                 }
                 helperText={propertyHelperText}
-                hasStateDanger={!!errorMessage(title, errors)}
+                intent={!!errorMessage(title, errors) ? "danger" : undefined}
                 messageText={errorText ? errorText : infoHelperText}
             >
                 <InputMapper

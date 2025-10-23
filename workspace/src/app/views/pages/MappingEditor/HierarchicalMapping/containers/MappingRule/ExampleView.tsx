@@ -122,7 +122,7 @@ export const ExampleView = ({ id, rawRule, ruleType, objectSourcePathContext, up
         const detailMessage = showDetails && details ? details : undefined;
         return (
             <Notification
-                warning={true}
+                intent="warning"
                 actions={
                     details ? (
                         <IconButton

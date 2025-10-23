@@ -196,7 +196,7 @@ export default function CloneModal({ item, onDiscard, onConfirmed }: ICloneOptio
                         item: item.id ? t("common.dataTypes.task") : t("common.dataTypes.project"),
                     }),
                 }}
-                hasStateDanger={!!identifierValidationMsg}
+                intent={!!identifierValidationMsg ? "danger" : undefined}
                 messageText={identifierValidationMsg}
             >
                 <TextField
@@ -211,7 +211,7 @@ export default function CloneModal({ item, onDiscard, onConfirmed }: ICloneOptio
             {error && (
                 <>
                     <Spacing />
-                    <Notification message={error.asString()} danger />
+                    <Notification message={error.asString()} intent="danger" />
                 </>
             )}
             {showDocumentation && (

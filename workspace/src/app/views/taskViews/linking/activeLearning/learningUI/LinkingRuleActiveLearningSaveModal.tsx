@@ -135,7 +135,7 @@ export const LinkingRuleActiveLearningSaveModal = ({
                         {t("ActiveLearning.saveDialog.bestLearnedRule.label")}
                     </Switch>
                 </FieldItem>
-                {saveRule && <Notification warning>{t("ActiveLearning.saveDialog.overwriteWarning")}</Notification>}
+                {saveRule && <Notification intent="warning">{t("ActiveLearning.saveDialog.overwriteWarning")}</Notification>}
                 <Spacing size="small" />
                 {unsavedBestRule ? (
                     <LinkingRuleActiveLearningBestLearnedRule rule={unsavedBestRule} defaultDisplayVisualRule />

@@ -4,7 +4,7 @@ import { legacyTransformEndpoint } from "../../../utils/getApiEndpoint";
 import { IComplexMappingRule, ITransformRule, NewTransformRule, PartialBy } from "./transform.types";
 import { IAutocompleteDefaultResponse } from "@ducks/shared/typings";
 import { TaskContext } from "../../shared/projectTaskTabView/projectTaskTabView.typing";
-import { IPartialAutoCompleteResult } from "@eccenca/gui-elements/src/components/AutoSuggestion/AutoSuggestion";
+import { CodeAutocompleteFieldPartialAutoCompleteResult } from "@eccenca/gui-elements/src/components/AutoSuggestion/AutoSuggestion";
 
 /** Fetches a transform rule. */
 export const requestTransformRule = async (
@@ -39,7 +39,7 @@ export const partialAutoCompleteTransformInputPaths = (
     inputString: string,
     cursorPosition: number,
     limit?: number,
-): Promise<FetchResponse<IPartialAutoCompleteResult>> => {
+): Promise<FetchResponse<CodeAutocompleteFieldPartialAutoCompleteResult>> => {
     return fetch({
         url: legacyTransformEndpoint(
             `/tasks/${projectId}/${transformTaskId}/rule/${rule}/completions/partialSourcePaths`,

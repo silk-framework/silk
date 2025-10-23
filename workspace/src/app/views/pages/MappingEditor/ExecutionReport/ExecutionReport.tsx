@@ -18,6 +18,7 @@ import {
     TableCell,
     TableHead,
     TableRow,
+    NotificationProps,
 } from "@eccenca/gui-elements";
 import MappingsTree from "../HierarchicalMapping/containers/MappingsTree";
 import { SampleError } from "../../../shared/SampleError/SampleError";
@@ -178,10 +179,7 @@ export const ExecutionReport = ({ executionReport, executionMetaData, trackRuleI
                 {messages.map((warning, idx) => (
                     <div key={idx}>
                         <Notification
-                            neutral={notificationState === "neutral"}
-                            success={notificationState === "success"}
-                            warning={notificationState === "warning"}
-                            danger={notificationState === "danger"}
+                            intent={notificationState as NotificationProps["intent"]}
                         >
                             {warning}
                         </Notification>
@@ -334,7 +332,7 @@ export const ExecutionReport = ({ executionReport, executionMetaData, trackRuleI
         return (
             <Section className="ecc-silk-mapping__treenav">
                 {typeRulesWithIssues.length ? (
-                    <Notification data-test-id={"type-rule-validation-issues"} warning={true}>
+                    <Notification data-test-id={"type-rule-validation-issues"} intent="warning">
                         {t("ExecutionReport.transform.messages.InvalidTypeUris", {
                             typeUris: typeRulesWithIssues.map((r) => r.typeRuleId).join(", "),
                         })}
@@ -342,9 +340,7 @@ export const ExecutionReport = ({ executionReport, executionMetaData, trackRuleI
                 ) : null}
                 {title ? (
                     <Notification
-                        neutral={ruleResults === undefined}
-                        success={ruleResults?.errorCount === 0}
-                        warning={(ruleResults?.errorCount ?? 0) > 0}
+                        intent={(ruleResults?.errorCount ?? 0) > 0 ? "warning" : ruleResults?.errorCount === 0 ? "success" : ruleResults === undefined ? "neutral" : undefined}
                     >
                         {title}
                     </Notification>

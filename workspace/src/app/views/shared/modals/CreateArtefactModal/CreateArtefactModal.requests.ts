@@ -3,8 +3,8 @@ import { DatasetTaskPlugin } from "@ducks/shared/typings";
 import fetch from "../../../../services/fetch";
 import { coreApi, projectApi } from "../../../../utils/getApiEndpoint";
 import {
-    IPartialAutoCompleteResult,
-    IValidationResult,
+    CodeAutocompleteFieldPartialAutoCompleteResult,
+    CodeAutocompleteFieldValidationResult,
 } from "@eccenca/gui-elements/src/components/AutoSuggestion/AutoSuggestion";
 
 /** Send dataset configuration and get an auto-configured version back. */
@@ -19,7 +19,7 @@ export const requestAutoConfiguredDataset = async (
     });
 };
 
-export interface ValidateTemplateResponse extends IValidationResult {
+export interface ValidateTemplateResponse extends CodeAutocompleteFieldValidationResult {
     /** If the validation was successful, then this is the evaluated string. */
     evaluatedTemplate?: string;
 }
@@ -58,7 +58,7 @@ export const requestAutoCompleteTemplateString = async (
     project?: string,
     variableName?: string,
     includeSensitiveVariables?: boolean
-): Promise<FetchResponse<IPartialAutoCompleteResult>> => {
+): Promise<FetchResponse<CodeAutocompleteFieldPartialAutoCompleteResult>> => {
     return fetch({
         url: coreApi("/variableTemplate/completion"),
         method: "POST",

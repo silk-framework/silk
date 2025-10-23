@@ -55,14 +55,14 @@ export const ReferenceLinksRemoveModal = ({ projectId, linkingTaskId, onClose }:
         <SimpleDialog
             size="small"
             title={t("ReferenceLinks.removeModal.title")}
-            notifications={errorMessage ? <Notification message={errorMessage} warning={true} /> : null}
+            notifications={errorMessage ? <Notification message={errorMessage} intent="warning" /> : null}
             isOpen={true}
             onClose={cancel}
             data-test-id="remove-reference-links-modal"
             actions={[
                 <Button
                     key="delete"
-                    hasStateDanger
+                    intent="danger"
                     onClick={handleDeleteReferenceLinks}
                     disabled={!anyCheckboxSelected}
                     loading={deleteReferenceLinkLoading}

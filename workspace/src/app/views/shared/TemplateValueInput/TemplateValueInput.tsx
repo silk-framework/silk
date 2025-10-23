@@ -109,7 +109,7 @@ const TemplateValueInput = React.forwardRef(
                     text: t("widget.VariableWidget.form.value"),
                     info: t("common.words.required"),
                 }}
-                hasStateDanger={hasStateDanger || !!validationError}
+                intent={hasStateDanger || !!validationError ? "danger" : undefined}
                 messageText={messageText || validationError || templateInfoMessage}
                 disabled={disabled}
                 helperText={helperText}
@@ -170,7 +170,7 @@ const TemplateValueInput = React.forwardRef(
                             onClick={switchShowVariableTemplateInput}
                             minimal={false}
                             outlined
-                            hasStatePrimary={showVariableTemplateInput}
+                            intent={showVariableTemplateInput ? "primary" : undefined}
                             active={showVariableTemplateInput}
                         />
                     </ToolbarSection>

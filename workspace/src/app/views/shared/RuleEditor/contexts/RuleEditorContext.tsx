@@ -12,7 +12,6 @@ import {
 import { IViewActions } from "../../../plugins/PluginRegistry";
 import { DatasetCharacteristics } from "../../typings";
 import { StickyNote } from "@eccenca/gui-elements";
-import { IPartialAutoCompleteResult } from "@eccenca/gui-elements/src/components/AutoSuggestion/AutoSuggestion";
 import { InitialRuleHighlighting } from "../../../taskViews/transform/transform.types";
 import { RuleEditorBaseProps } from "../RuleEditor";
 

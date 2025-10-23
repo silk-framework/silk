@@ -1,4 +1,38 @@
 @use "sass:math";
+@use "sass:color";
+@use "sass:meta";
+@use "sass:string";
+
+// -- our color config
+
+@import "~@eccenca/gui-elements/src/configuration/libprefix";
+@import "~@eccenca/gui-elements/src/common/scss/color-functions";
+@import "~@eccenca/gui-elements/src/configuration/variables";
+$debug-rgba-values: "no";
+
+// replace older scss functions because we cannot change the usage itself
+
+@function darken($color, $amount) {
+    @if meta.type-of($color) == "color" {
+        // value is SASS color value, we use SASS color functionality
+        $darkercolor: color.adjust($color, $lightness: -1 * $amount);
+        // @debug "Color $color is not CSS custom property: darken(#{$color}, #{$amount}) -> #{$darkercolor}";
+        @return $darkercolor;
+    } @else {
+        // value is not a SASS color value, we use our CSS color method
+        @return eccgui-color-mix(black $amount, $color);
+    }
+}
+
+@function _from-rgb($color) {
+    $fixedcolor: "undefined";
+    @if string.slice($color, 1, 8) == "rgb(var(" {
+        $fixedcolor: string.slice($color, 5, string.length($color) - 1);
+    } @else {
+        $fixedcolor: $color;
+    }
+    @return $fixedcolor;
+}
 
 // -- Load helper functions ----------------------------------------------------------
 
@@ -16,22 +50,22 @@
     variables to overwrite the default look of the application.
 */
 
-$ecc-color-primary: rgb(254, 143, 1) !default;
-$ecc-color-primary-contrast: $color-dark-contrast !default;
-$ecc-color-accent: rgb(10, 103, 163) !default;
-$ecc-color-accent-contrast: $color-dark-contrast !default;
+$ecc-color-primary: $eccgui-color-primary !default;
+$ecc-color-primary-contrast: $eccgui-color-primary-contrast !default;
+$ecc-color-accent: $eccgui-color-accent !default;
+$ecc-color-accent-contrast: $eccgui-color-accent-contrast !default;
 
-$ecc-color-application-background: $palette-grey-300 !default;
-$ecc-color-application-text: $palette-grey-900 !default;
+$ecc-color-application-background: $eccgui-color-workspace-background !default;
+$ecc-color-application-text: $eccgui-color-workspace-text !default;
 
-$ecc-color-success-background: $palette-green-50 !default;
-$ecc-color-success-text: $palette-green-800 !default;
-$ecc-color-info-background: $palette-blue-50 !default;
-$ecc-color-info-text: $palette-blue-800 !default;
-$ecc-color-warning-background: $palette-orange-50 !default;
-$ecc-color-warning-text: $palette-orange-800 !default;
-$ecc-color-danger-background: $palette-red-50 !default;
-$ecc-color-danger-text: $palette-red-800 !default;
+$ecc-color-success-background: $eccgui-color-success-background !default;
+$ecc-color-success-text: $eccgui-color-success-text !default;
+$ecc-color-info-background: $eccgui-color-info-background !default;
+$ecc-color-info-text: $eccgui-color-info-text !default;
+$ecc-color-warning-background: $eccgui-color-warning-background !default;
+$ecc-color-warning-text: $eccgui-color-warning-text !default;
+$ecc-color-danger-background: $eccgui-color-danger-background !default;
+$ecc-color-danger-text: $eccgui-color-danger-text !default;
 
 // -- Configuration stack of sizes ---------------------------------------------------
 
@@ -43,7 +77,10 @@ $ecc-color-danger-text: $palette-red-800 !default;
 
 $ecc-size-typo-base: 14px !default; // size including absolute unit, preferable px
 $ecc-size-typo-base-lineheight: 1.39 !default; // only ratio to font size, no unit!
-$ecc-size-type-levelratio: math.div(7, 6) !default; // ratio without unit! used to calculate different text sizes, etc ...
+$ecc-size-type-levelratio: math.div(
+    7,
+    6
+) !default; // ratio without unit! used to calculate different text sizes, etc ...
 
 // -- Calculation of more config vars ------------------------------------------------
 
@@ -57,17 +94,35 @@ $ecc-size-typo-caption-lineheight: max($ecc-size-type-levelratio * $ecc-size-typ
 $ecc-size-typo-text: 1rem !default;
 $ecc-size-typo-text-lineheight: max($ecc-size-typo-base-lineheight, 1) !default;
 $ecc-size-typo-subtitle: $ecc-size-type-levelratio * $ecc-size-typo-text !default;
-$ecc-size-typo-subtitle-lineheight: max(math.div(1, $ecc-size-type-levelratio) * $ecc-size-typo-text-lineheight, 1) !default;
+$ecc-size-typo-subtitle-lineheight: max(
+    math.div(1, $ecc-size-type-levelratio) * $ecc-size-typo-text-lineheight,
+    1
+) !default;
 $ecc-size-typo-title: $ecc-size-type-levelratio * $ecc-size-typo-subtitle !default;
-$ecc-size-typo-title-lineheight: max(math.div(1, $ecc-size-type-levelratio) * $ecc-size-typo-subtitle-lineheight, 1) !default;
+$ecc-size-typo-title-lineheight: max(
+    math.div(1, $ecc-size-type-levelratio) * $ecc-size-typo-subtitle-lineheight,
+    1
+) !default;
 $ecc-size-typo-headline: $ecc-size-type-levelratio * $ecc-size-typo-title !default;
-$ecc-size-typo-headline-lineheight: max(math.div(1, $ecc-size-type-levelratio) * $ecc-size-typo-title-lineheight, 1) !default;
+$ecc-size-typo-headline-lineheight: max(
+    math.div(1, $ecc-size-type-levelratio) * $ecc-size-typo-title-lineheight,
+    1
+) !default;
 $ecc-size-typo-display-1: $ecc-size-type-levelratio * $ecc-size-typo-headline !default;
-$ecc-size-typo-display-1-lineheight: max(math.div(1, $ecc-size-type-levelratio) * $ecc-size-typo-headline-lineheight , 1)!default;
+$ecc-size-typo-display-1-lineheight: max(
+    math.div(1, $ecc-size-type-levelratio) * $ecc-size-typo-headline-lineheight,
+    1
+) !default;
 $ecc-size-typo-display-2: $ecc-size-type-levelratio * $ecc-size-typo-display-1 !default;
-$ecc-size-typo-display-2-lineheight: max(math.div(1, $ecc-size-type-levelratio) * $ecc-size-typo-display-1-lineheight, 1) !default;
+$ecc-size-typo-display-2-lineheight: max(
+    math.div(1, $ecc-size-type-levelratio) * $ecc-size-typo-display-1-lineheight,
+    1
+) !default;
 $ecc-size-typo-display-3: $ecc-size-type-levelratio * $ecc-size-typo-display-2 !default;
-$ecc-size-typo-display-3-lineheight: max(math.div(1, $ecc-size-type-levelratio) * $ecc-size-typo-display-2-lineheight, 1) !default;
+$ecc-size-typo-display-3-lineheight: max(
+    math.div(1, $ecc-size-type-levelratio) * $ecc-size-typo-display-2-lineheight,
+    1
+) !default;
 
 $ecc-size-blockelement-margin-vertical: 1rem !default; // deprecated
 $ecc-size-blockelement-margin-horizontal: 1rem !default; // deprecated
@@ -87,5 +142,5 @@ $ecc-size-maxwidth-workview: 100 * $ecc-size-typo-text;
 // -- Load MDL variables and mixins --------------------------------------------------
 
 @import "~gui-elements-deprecated/src/configuration.mdl"; // calculation MDL config with our changes
-@import '~@eccenca/material-design-lite/src/variables'; // original MDL configuration as fallback
-@import '~@eccenca/material-design-lite/src/mixins'; // original MDL mixins
+@import "~@eccenca/material-design-lite/src/variables"; // original MDL configuration as fallback
+@import "~@eccenca/material-design-lite/src/mixins"; // original MDL mixins

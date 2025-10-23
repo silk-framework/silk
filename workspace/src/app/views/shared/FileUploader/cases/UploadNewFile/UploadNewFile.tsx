@@ -446,7 +446,7 @@ export function UploadNewFile({
                         <Button minimal outlined text={t("FileUploader.retry", "Retry")} onClick={handleRetryAll} />
                     }
                     message={error}
-                    danger
+                    intent="danger"
                 />
             )}
         </div>

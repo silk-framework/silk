@@ -16,7 +16,7 @@ import useErrorHandler from "../../../../../hooks/useErrorHandler";
 import { useTranslation } from "react-i18next";
 import { useSelector } from "react-redux";
 import { commonSel } from "@ducks/common";
-import { ISuggestionWithReplacementInfo } from "@eccenca/gui-elements/src/components/AutoSuggestion/AutoSuggestion";
+import { CodeAutocompleteFieldSuggestionWithReplacementInfo } from "@eccenca/gui-elements/src/components/AutoSuggestion/AutoSuggestion";
 import ruleEditorUtils from "../../RuleEditor.utils";
 
 type PreConfiguredOperatorConfig = IPreConfiguredOperators<any> & {
@@ -34,7 +34,7 @@ export const RuleEditorOperatorSidebar = () => {
     // The query that was input in the search field. This won't get immediately active.
     const [textQuery, setTextQuery] = React.useState<string>("");
     const [operatorList, setOperatorList] = React.useState<IRuleOperator[] | undefined>();
-    const [operatorCategories] = React.useState<ISuggestionWithReplacementInfo[]>([]);
+    const [operatorCategories] = React.useState<CodeAutocompleteFieldSuggestionWithReplacementInfo[]>([]);
     /** Tab handling. */
     // The currently active tab
     const [activeTabId, setActiveTabId] = React.useState<string | undefined>(undefined);

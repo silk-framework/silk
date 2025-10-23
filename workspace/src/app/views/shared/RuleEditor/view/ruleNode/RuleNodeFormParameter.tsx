@@ -77,10 +77,7 @@ export const RuleNodeFormParameter = ({
                 info: paramSpec.requiredLabel || (paramSpec.required ? "required" : undefined),
             }}
             messageText={validationResult.message}
-            hasStateDanger={validationResult.intent === "danger"}
-            hasStatePrimary={validationResult.intent === "primary"}
-            hasStateSuccess={validationResult.intent === "success"}
-            hasStateWarning={validationResult.intent === "warning"}
+            intent={validationResult.intent}
         >
             <RuleParameterInput
                 pluginId={pluginId}

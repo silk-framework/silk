@@ -556,7 +556,7 @@ const SuggestionWidget = ({
                             <>
                                 <Notification
                                     icon={suggestions.length > 0 ? <Icon name="item-question" /> : undefined}
-                                    neutral={suggestions.length > 0}
+                                    intent={suggestions.length > 0 ? "neutral" : undefined}
                                     actions={
                                         suggestions.length > 0 ? (
                                             <IconButton
@@ -640,7 +640,7 @@ const SuggestionsWarningModal = ({ warnings }: { warnings: string[] }) => {
         <IconButton
             text={t("ActiveLearning.config.suggestions.warningsButton")}
             name={"state-warning"}
-            hasStateWarning={true}
+            intent="warning"
             onClick={() => setShowWarningsModal(true)}
         />
     );
