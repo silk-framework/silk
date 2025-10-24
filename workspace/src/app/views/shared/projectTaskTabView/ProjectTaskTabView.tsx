@@ -76,7 +76,11 @@ interface IProjectTaskTabView {
         taskId?: string;
     };
     viewActions?: IViewActions;
+    // Modal ID for tracking its open/closed state
+    modalId?: string;
 }
+
+export const defaultProjectTaskTabViewFullScreenModalId = "projectTaskTabViewFullScreenModal"
 
 /**
  * Displays views of a specific project task. Item links are displayed in an i-frame whereas component views are directly
@@ -91,6 +95,7 @@ export function ProjectTaskTabView({
     taskViewConfig,
     iFrameName,
     viewActions,
+    modalId = defaultProjectTaskTabViewFullScreenModalId,
     ...otherProps
 }: IProjectTaskTabView) {
     const initialSettings = useSelector(commonSel.initialSettingsSelector);
@@ -505,6 +510,7 @@ export function ProjectTaskTabView({
                     isOpen={true}
                     onClose={() => handlerRemoveModalWrapper()}
                     wrapperDivProps={customModalPreventEvents}
+                    modalId={modalId}
                 >
                     <ErrorBoundary>{tabsWidget(projectId, taskId)}</ErrorBoundary>
                 </Modal>

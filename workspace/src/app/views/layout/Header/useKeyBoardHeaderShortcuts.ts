@@ -10,11 +10,17 @@ import { uppercaseFirstChar } from "../../../utils/transformers";
 import { useTranslation } from "react-i18next";
 import { useInitFrontend } from "../../pages/MappingEditor/api/silkRestApi.hooks";
 import { absoluteProjectPath } from "../../../utils/routerUtils";
+import { ModalContext } from "@eccenca/gui-elements/src/components/Dialog/ModalContext";
 
 export const useKeyboardHeaderShortcuts = () => {
     const dispatch = useDispatch();
     const [t] = useTranslation();
     const projectId = useSelector(commonSel.currentProjectIdSelector);
+    const modalContext = React.useContext(ModalContext)
+    const modalIsOpen = React.useRef(false)
+    modalIsOpen.current = !!modalContext.openModalStack
+    const currentProjectId = React.useRef<string | undefined>(undefined)
+    currentProjectId.current = projectId;
 
     const focusOnSearchBar = React.useCallback(() => {
         const searchbar = document.querySelector("[data-test-id='search-bar']") as HTMLInputElement;
@@ -23,12 +29,21 @@ export const useKeyboardHeaderShortcuts = () => {
         }
     }, []);
 
+    // Allows to disable a handler based on e.g. the modal state
+    const onOffHandler = React.useCallback(<T>(handler: () => T): () => T | undefined => () => {
+        if(modalIsOpen.current) {
+            return
+        } else {
+            return handler()
+        }
+    } ,[])
+
     const handlePageNavigation = React.useCallback(
         (filter: string) => {
             batch(() => {
-                if (projectId && filter !== "project") {
-                    dispatch(routerOp.goToPage(absoluteProjectPath(projectId)));
-                } else if (projectId && filter === "project") {
+                if (currentProjectId.current && filter !== "project") {
+                    dispatch(routerOp.goToPage(absoluteProjectPath(currentProjectId.current)));
+                } else if (currentProjectId.current && filter === "project") {
                     dispatch(routerOp.goToPage(SERVE_PATH));
                 }
 
@@ -42,55 +57,55 @@ export const useKeyboardHeaderShortcuts = () => {
             focusOnSearchBar();
             return false;
         },
-        [projectId],
+        [],
     );
 
-    const headerShortcuts = [
+    const headerShortcuts = React.useMemo(() => [
         {
             hotKey: "g h",
-            handler: () => {
+            handler: onOffHandler(() => {
                 dispatch(routerOp.goToPage(SERVE_PATH));
                 return false;
-            },
+            }),
         },
         {
             hotKey: "g p",
-            handler: () => handlePageNavigation("project"),
+            handler: onOffHandler(() => handlePageNavigation("project")),
         },
         {
             hotKey: "g w",
-            handler: () => handlePageNavigation("workflow"),
+            handler: onOffHandler(() => handlePageNavigation("workflow")),
         },
         {
             hotKey: "g d",
-            handler: () => handlePageNavigation("dataset"),
+            handler: onOffHandler(() => handlePageNavigation("dataset")),
         },
         {
             hotKey: "g t",
-            handler: () => handlePageNavigation("transform"),
+            handler: onOffHandler(() => handlePageNavigation("transform")),
         },
         {
             hotKey: "g l",
-            handler: () => handlePageNavigation("linking"),
+            handler: onOffHandler(() => handlePageNavigation("linking")),
         },
         {
             hotKey: "g o",
-            handler: () => handlePageNavigation("task"),
+            handler: onOffHandler(() => handlePageNavigation("task")),
         },
 
         {
             hotKey: "g a",
-            handler: () => {
+            handler: onOffHandler(() => {
                 dispatch(
                     routerOp.goToPage(`${SERVE_PATH}/activities?page=1&limit=25&sortBy=recentlyUpdated&sortOrder=ASC`),
                 );
                 focusOnSearchBar();
                 return false;
-            },
+            }),
         },
         {
             hotKey: "c p",
-            handler: () => {
+            handler: onOffHandler(() => {
                 dispatch(
                     commonOp.selectArtefact({
                         key: DATA_TYPES.PROJECT,
@@ -102,11 +117,11 @@ export const useKeyboardHeaderShortcuts = () => {
                     }),
                 );
                 return false;
-            },
+            }),
         },
         {
             hotKey: "c w",
-            handler: () => {
+            handler: onOffHandler(() => {
                 dispatch(
                     commonOp.createNewTask({
                         selectedDType: "workflow",
@@ -114,11 +129,12 @@ export const useKeyboardHeaderShortcuts = () => {
                     }),
                 );
                 return false;
-            },
+            }),
         },
         {
             hotKey: "c d",
-            handler: () => {
+            handler: onOffHandler(() => {
+
                 dispatch(
                     commonOp.createNewTask({
                         selectedDType: "dataset",
@@ -126,11 +142,11 @@ export const useKeyboardHeaderShortcuts = () => {
                     }),
                 );
                 return false;
-            },
+            }),
         },
         {
             hotKey: "c t",
-            handler: () => {
+            handler: onOffHandler(() => {
                 dispatch(
                     commonOp.createNewTask({
                         selectedDType: "transform",
@@ -138,11 +154,11 @@ export const useKeyboardHeaderShortcuts = () => {
                     }),
                 );
                 return false;
-            },
+            }),
         },
         {
             hotKey: "c l",
-            handler: () => {
+            handler: onOffHandler(() => {
                 dispatch(
                     commonOp.createNewTask({
                         selectedDType: "linking",
@@ -150,23 +166,23 @@ export const useKeyboardHeaderShortcuts = () => {
                     }),
                 );
                 return false;
-            },
+            }),
         },
         {
             hotKey: "c o",
-            handler: () => {
+            handler: onOffHandler(() => {
                 dispatch(commonOp.setSelectedArtefactDType("task"));
                 return false;
-            },
+            }),
         },
         {
             hotKey: "c n",
-            handler: () => {
+            handler: onOffHandler(() => {
                 dispatch(commonOp.setSelectedArtefactDType("all"));
                 return false;
-            },
+            }),
         },
-    ];
+    ], [handlePageNavigation]);
 
     React.useEffect(() => {
         //bind shortcuts
@@ -177,7 +193,8 @@ export const useKeyboardHeaderShortcuts = () => {
         //unbind shortcuts
         return () =>
             headerShortcuts.forEach((shortcut) => {
+                // FIXME: This is NOT working as expected! It is not possible to remove a specific handler from a hot key sequence
                 Mousetrap.unbind(shortcut.hotKey, shortcut.handler);
-            });
-    }, [projectId]);
+            })
+    }, []);
 };
