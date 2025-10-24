@@ -75,10 +75,10 @@ lazy val commonSettings = Seq(
   (Test / packageSrc / publishArtifact) := sys.env.getOrElse("SBT_PUBLISH_TESTS_JARS", "false").toLowerCase == "true",
   // Testing
   libraryDependencies += "org.scalatest" %% "scalatest" % "3.2.19" % "test",
-  libraryDependencies += "net.codingwell" %% "scala-guice" % "6.0.0" % "test",
+  libraryDependencies += "net.codingwell" %% "scala-guice" % "7.0.0" % "test",
   libraryDependencies += "ch.qos.logback" % "logback-classic" % "1.5.20",
-  libraryDependencies += "org.mockito" % "mockito-core" % "5.18.0" % Test,
-  libraryDependencies += "com.google.inject" % "guice" % "6.0.0" % "test",
+  libraryDependencies += "org.mockito" % "mockito-core" % "5.20.0" % Test,
+  libraryDependencies += "com.google.inject" % "guice" % "7.0.0" % "test",
   libraryDependencies += "javax.inject" % "javax.inject" % "1",
   (Test / testOptions) += Tests.Argument(TestFrameworks.ScalaTest, "-u", "target/test-reports", scalaTestOptions),
 
@@ -105,7 +105,7 @@ lazy val core = (project in file("silk-core"))
     name := "Silk Core",
     libraryDependencies += "com.typesafe" % "config" % "1.4.5", // Should always use the same version as the Play Framework dependency
     // Additional scala standard libraries
-    libraryDependencies += "org.scala-lang.modules" %% "scala-xml" % "2.2.0",
+    libraryDependencies += "org.scala-lang.modules" %% "scala-xml" % "2.4.0",
     libraryDependencies += "org.scala-lang" % "scala-reflect" % scalaVersion.value,
     libraryDependencies += "org.scala-lang.modules" %% "scala-parallel-collections" % "1.0.4",
     libraryDependencies += "org.scala-lang.modules" %% "scala-parser-combinators" % "1.1.2",
@@ -114,7 +114,7 @@ lazy val core = (project in file("silk-core"))
     libraryDependencies += "javax.xml.bind" % "jaxb-api" % "2.3.1",
     libraryDependencies += "xalan" % "xalan" % "2.7.3",
     libraryDependencies += "xalan" % "serializer" % "2.7.3",
-    libraryDependencies += "org.snakeyaml" % "snakeyaml-engine" % "2.9",
+    libraryDependencies += "org.snakeyaml" % "snakeyaml-engine" % "2.10",
     libraryDependencies += "io.micrometer" % "micrometer-registry-prometheus" % "1.15.5"
   )
 
@@ -164,7 +164,7 @@ lazy val pluginsXml = (project in file("silk-plugins/silk-plugins-xml"))
   .settings(commonSettings *)
   .settings(
     name := "Silk Plugins XML",
-    libraryDependencies += "net.sf.saxon" % "Saxon-HE" % "11.5"
+    libraryDependencies += "net.sf.saxon" % "Saxon-HE" % "12.9"
   )
 
 lazy val pluginsJson = (project in file("silk-plugins/silk-plugins-json"))
