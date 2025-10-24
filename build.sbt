@@ -75,10 +75,10 @@ lazy val commonSettings = Seq(
   (Test / packageSrc / publishArtifact) := sys.env.getOrElse("SBT_PUBLISH_TESTS_JARS", "false").toLowerCase == "true",
   // Testing
   libraryDependencies += "org.scalatest" %% "scalatest" % "3.2.19" % "test",
-  libraryDependencies += "net.codingwell" %% "scala-guice" % "7.0.0" % "test",
+  libraryDependencies += "net.codingwell" %% "scala-guice" % "6.0.0" % "test",
   libraryDependencies += "ch.qos.logback" % "logback-classic" % "1.5.20",
   libraryDependencies += "org.mockito" % "mockito-core" % "5.20.0" % Test,
-  libraryDependencies += "com.google.inject" % "guice" % "7.0.0" % "test",
+  libraryDependencies += "com.google.inject" % "guice" % "6.0.0" % "test",
   libraryDependencies += "javax.inject" % "javax.inject" % "1",
   (Test / testOptions) += Tests.Argument(TestFrameworks.ScalaTest, "-u", "target/test-reports", scalaTestOptions),
 
