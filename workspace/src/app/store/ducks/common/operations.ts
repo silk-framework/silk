@@ -18,7 +18,7 @@ import i18Instance, { fetchStoredLang } from "../../../../language";
 import { URI_PROPERTY_PARAMETER_ID } from "../../../views/shared/modals/CreateArtefactModal/ArtefactForms/UriAttributeParameterInput";
 import utils from "../../../views/shared/Metadata/MetadataUtils";
 import { Keyword } from "@ducks/workspace/typings";
-import { MultiSelectSelectionProps } from "@eccenca/gui-elements/src/components/MultiSelect/MultiSelect";
+import { MultiSuggestFieldSelectionProps } from "@eccenca/gui-elements/src/components/MultiSelect/MultiSelect";
 import { READ_ONLY_PARAMETER } from "../../../views/shared/modals/CreateArtefactModal/ArtefactForms/TaskForm";
 import { fillCustomPluginStore } from "../../../views/shared/ItemDepiction/ItemDepiction";
 import { TaskParameters } from "../../../views/plugins/plugin.types";
@@ -250,7 +250,7 @@ const createArtefactAsync = (
 const createTagsAndAddToMetadata = async (payload: {
     label: string;
     description?: string;
-    tags?: MultiSelectSelectionProps<Keyword>;
+    tags?: MultiSuggestFieldSelectionProps<Keyword>;
     projectId?: string;
     taskId?: string;
 }) => {
@@ -401,7 +401,7 @@ const fetchCreateProjectAsync = (formData: {
     label: string;
     description?: string;
     id?: string;
-    tags?: MultiSelectSelectionProps<Keyword>;
+    tags?: MultiSuggestFieldSelectionProps<Keyword>;
 }) => {
     return async (dispatch) => {
         dispatch(setModalError({}));

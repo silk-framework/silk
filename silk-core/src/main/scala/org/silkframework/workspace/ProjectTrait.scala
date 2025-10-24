@@ -3,7 +3,7 @@ package org.silkframework.workspace
 import org.silkframework.config.{HasMetaData, MetaData, Task, TaskSpec}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.resource.ResourceManager
-import org.silkframework.runtime.templating.{GlobalTemplateVariables, TemplateVariablesManager, TemplateVariablesReader, CombinedTemplateVariablesReader}
+import org.silkframework.runtime.templating.{CombinedTemplateVariablesReader, GlobalTemplateVariables, TemplateVariablesManager, TemplateVariablesReader}
 import org.silkframework.util.Identifier
 
 import scala.reflect.ClassTag
@@ -39,6 +39,9 @@ trait ProjectTrait extends HasMetaData {
 
   /** All tasks of a specific type. */
   def tasks[T <: TaskSpec : ClassTag](implicit userContext: UserContext): Seq[Task[T]]
+
+  /** All tasks of all types. */
+  def allTasks(implicit userContext: UserContext): Seq[Task[_ <: TaskSpec]]
 
   /** Returns a task option */
   def taskOption[T <: TaskSpec : ClassTag](taskName: Identifier)

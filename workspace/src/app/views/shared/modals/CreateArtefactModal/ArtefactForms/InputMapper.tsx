@@ -130,9 +130,9 @@ export function InputMapper({
     if (param.parameterType.startsWith("code-")) {
         const mode = param.parameterType.substring(5);
         if (CodeEditor.supportedModes.find((m) => m === mode)) {
-            return <CodeEditor mode={mode as any} {...inputAttributes} />;
+            return <CodeEditor mode={mode as any} {...inputAttributes} data-test-id="codemirror-wrapper" />;
         } else {
-            return <CodeEditor {...inputAttributes} />;
+            return <CodeEditor {...inputAttributes} data-test-id="codemirror-wrapper" />;
         }
     }
 
@@ -145,9 +145,9 @@ export function InputMapper({
         case INPUT_TYPES.TEXTAREA:
             return <TextAreaWithCharacterWarnings {...inputAttributes} />;
         case INPUT_TYPES.RESTRICTION:
-            return <CodeEditor mode="sparql" {...inputAttributes} />;
+            return <CodeEditor mode="sparql" {...inputAttributes} data-test-id="codemirror-wrapper" />;
         case INPUT_TYPES.MULTILINE_STRING:
-            return <CodeEditor {...inputAttributes} />;
+            return <CodeEditor {...inputAttributes} data-test-id="codemirror-wrapper" />;
         case INPUT_TYPES.PASSWORD:
             return <TextField {...inputAttributes} type={"password"} escapeToBlur={true} />;
         case INPUT_TYPES.TARGET_VOCABULARY:

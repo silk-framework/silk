@@ -33,7 +33,7 @@ const TemplateValueInput = React.forwardRef(
             handleCheckTemplateErrors,
             setModalError,
         }: TemplateValueInputProps,
-        valueStateRef: MutableRefObject<ValueStateRef>
+        valueStateRef: MutableRefObject<ValueStateRef>,
     ) => {
         const [showVariableTemplateInput, setShowVariableTemplateInput] = React.useState<boolean>(false);
         const [validationError, setValidationError] = React.useState<string>();
@@ -73,7 +73,7 @@ const TemplateValueInput = React.forwardRef(
                             : undefined,
                     }));
             },
-            [setModalError]
+            [setModalError],
         );
 
         const onTemplateValueChange = React.useCallback((e) => {
@@ -109,7 +109,7 @@ const TemplateValueInput = React.forwardRef(
                     text: t("widget.VariableWidget.form.value"),
                     info: t("common.words.required"),
                 }}
-                hasStateDanger={hasStateDanger || !!validationError}
+                intent={hasStateDanger || !!validationError ? "danger" : undefined}
                 messageText={messageText || validationError || templateInfoMessage}
                 disabled={disabled}
                 helperText={helperText}
@@ -170,14 +170,14 @@ const TemplateValueInput = React.forwardRef(
                             onClick={switchShowVariableTemplateInput}
                             minimal={false}
                             outlined
-                            hasStatePrimary={showVariableTemplateInput}
+                            intent={showVariableTemplateInput ? "primary" : undefined}
                             active={showVariableTemplateInput}
                         />
                     </ToolbarSection>
                 </Toolbar>
             </FieldItem>
         );
-    }
+    },
 );
 
 export default TemplateValueInput;

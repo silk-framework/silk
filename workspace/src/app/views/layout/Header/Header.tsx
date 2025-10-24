@@ -68,20 +68,19 @@ export function Header({ onClickApplicationSidebarExpand, isApplicationSidebarEx
         dispatch(routerOp.goToPage(path));
     };
 
-    const searchURL = (page: string) => `?itemType=${page}&page=1&limit=10`;
+    const searchURL = (page: string) => `?itemType=${page}`;
     const brandingSuffix =
         APPLICATION_CORPORATION_NAME() || APPLICATION_SUITE_NAME()
             ? ` @ ${APPLICATION_CORPORATION_NAME()} ${APPLICATION_SUITE_NAME()}`
             : "";
 
     const activitiesPageLink = SERVE_PATH + "/activities";
-    const activitiesPageQueries = "?page=1&limit=25&sortBy=recentlyUpdated&sortOrder=ASC";
 
     return (
         <>
             <ApplicationHeader aria-label={`${APPLICATION_NAME()}${brandingSuffix}`}>
                 <ApplicationTitle
-                    href={getFullRoutePath("?itemType=project&page=1&limit=10")}
+                    href={getFullRoutePath("?itemType=project")}
                     prefix={APPLICATION_CORPORATION_NAME()}
                     isNotDisplayed={!isApplicationSidebarExpanded}
                     isApplicationSidebarExpanded={isApplicationSidebarExpanded}
@@ -184,7 +183,7 @@ export function Header({ onClickApplicationSidebarExpand, isApplicationSidebarEx
                             onClick={(e) => {
                                 e.preventDefault();
                                 e.stopPropagation();
-                                handleNavigate(activitiesPageLink + activitiesPageQueries);
+                                handleNavigate(activitiesPageLink);
                             }}
                             href={activitiesPageLink}
                             active={location.pathname.includes(activitiesPageLink)}
@@ -209,7 +208,7 @@ export function Header({ onClickApplicationSidebarExpand, isApplicationSidebarEx
                                     dispatch(commonOp.toggleUserMenuDisplay(false));
                                 }}
                             >
-                                <Icon name="navigation-close" description="Close icon" large />
+                                <Icon name="navigation-close" title="Close icon" large />
                             </ApplicationToolbarAction>
                             <ApplicationToolbarPanel
                                 aria-label="User menu"
@@ -296,7 +295,7 @@ export function Header({ onClickApplicationSidebarExpand, isApplicationSidebarEx
                                 dispatch(commonOp.toggleUserMenuDisplay(true));
                             }}
                         >
-                            <Icon name="application-useraccount" description="User menu icon" large />
+                            <Icon name="application-useraccount" title="User menu icon" large />
                         </ApplicationToolbarAction>
                     )}
                 </ApplicationToolbar>

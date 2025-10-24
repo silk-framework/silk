@@ -1,7 +1,6 @@
 import React from "react";
 import {
     FieldSet,
-    IconButton,
     Label,
     Link,
     Markdown,
@@ -21,8 +20,8 @@ import { pluginRegistry, SUPPORTED_PLUGINS } from "../../../../plugins/PluginReg
 import { ParameterExtensions } from "../../../../plugins/plugin.types";
 import { ArtefactFormParameter } from "./ArtefactFormParameter";
 import { optionallyLabelledParameterToValue } from "../../../../taskViews/linking/linking.types";
-import { ArtefactDocumentation } from "../CreateArtefactModal";
 import { PARAMETER_DOC_PREFIX } from "./TaskForm";
+import { YamlEditor } from "../../../../../views/shared/YamlEditor";
 
 const MAXLENGTH_TOOLTIP = 32;
 const MAXLENGTH_SIMPLEHELP = 192;
@@ -242,7 +241,7 @@ export const ParameterWidget = (props: IProps) => {
                     />
                 }
                 helperText={propertyHelperText}
-                hasStateDanger={!!errorMessage(title, errors)}
+                intent={!!errorMessage(title, errors) ? "danger" : undefined}
                 messageText={errorText ? errorText : infoHelperText}
             >
                 <InputMapper
@@ -258,6 +257,7 @@ export const ParameterWidget = (props: IProps) => {
         );
     } else {
         const isTemplateParameter = parameterCallbacks.initialTemplateFlag(formParamId);
+        const showYamlEditorInput = autoCompletion && propertyDetails.parameterType === INPUT_TYPES.KEY_VALUE_PAIRS;
         const initialValue = autoCompletion
             ? initialValues[formParamId]
                 ? initialValues[formParamId].value
@@ -284,7 +284,21 @@ export const ParameterWidget = (props: IProps) => {
                     defaultValue: defaultValueAsJs(propertyDetails, !!autoCompletion),
                 }}
                 inputElementFactory={(initialValueReplace, onChange) => {
-                    if (autoCompletion) {
+                    if (showYamlEditorInput) {
+                        return (
+                            <YamlEditor
+                                projectId={projectId}
+                                pluginId={pluginId}
+                                autoCompletion={autoCompletion}
+                                id={formParamId}
+                                initialValue={initialValue?.value ?? initialValue}
+                                onChange={(value) => (onChange ? onChange(value) : changeHandlers[formParamId](value))}
+                                defaultValue={parameterCallbacks.defaultValue}
+                                dependentValue={dependentValue}
+                                formParamId={formParamId}
+                            />
+                        );
+                    } else if (autoCompletion) {
                         const currentInitialValue = initialValueReplace ? initialValueReplace : undefined;
                         return (
                             <ParameterAutoCompletion

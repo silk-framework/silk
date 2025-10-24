@@ -12,8 +12,8 @@ import {
 import { IViewActions } from "../../../plugins/PluginRegistry";
 import { DatasetCharacteristics } from "../../typings";
 import { StickyNote } from "@eccenca/gui-elements";
-import { IPartialAutoCompleteResult } from "@eccenca/gui-elements/src/components/AutoSuggestion/AutoSuggestion";
 import { InitialRuleHighlighting } from "../../../taskViews/transform/transform.types";
+import { RuleEditorBaseProps } from "../RuleEditor";
 
 /**
  * The rule editor context that contains objects and methods related to the original objects that are being edited and
@@ -22,15 +22,11 @@ import { InitialRuleHighlighting } from "../../../taskViews/transform/transform.
  * @param ITEM_TYPE The interface of the rule based item that is being edited.
  * @param OPERATOR_TYPE The interface of the operators that can be placed in the editor.
  */
-export interface RuleEditorContextProps {
-    /** The project context. */
-    projectId: string;
+export interface RuleEditorContextProps extends RuleEditorBaseProps {
     /** Unique ID for the edited item. This needs to be unique inside the project. */
     editedItemId?: string;
     /** The item whose rules are being edited, e.g. linking or transformation. */
     editedItem?: object;
-    /** Optional title that is shown above the toolbar. */
-    editorTitle?: string;
     /** The operators that can be dragged and dropped onto the rule editor. */
     operatorList?: IRuleOperator[];
     /** The operator parameter specification of each operator plugin. */
@@ -48,50 +44,14 @@ export interface RuleEditorContextProps {
     ) => Promise<RuleSaveResult> | RuleSaveResult;
     /** Converts a rule operator to a rule node. */
     convertRuleOperatorToRuleNode: (ruleOperator: IRuleOperator) => Omit<IRuleOperatorNode, "nodeId">;
-    /** Validate a connection. Specifies which connections are allowed between nodes. */
-    validateConnection: (
-        fromRuleOperatorNode: RuleEditorValidationNode,
-        toRuleOperatorNode: RuleEditorValidationNode,
-        targetPortIdx: number,
-    ) => boolean;
-    /** Tabs that allow to show different rule operators or only a subset. The first tab will always be selected first. */
-    tabs?: (IRuleSideBarFilterTabConfig | IRuleSidebarPreConfiguredOperatorsTabConfig)[];
-    /** Task view actions. */
-    viewActions?: IViewActions;
     /** If set to true the editor will be in read-only mode and cannot be set into edit mode. */
     readOnlyMode?: boolean;
-    /** Additional components that will be placed in the tool bar left to the save button. */
-    additionalToolBarComponents?: () => JSX.Element | JSX.Element[];
     /** The last save result. */
     lastSaveResult?: RuleSaveResult;
     /** UI annotation sticky notes */
     stickyNotes: StickyNote[];
-    /** When enabled only the rule is shown without side- and toolbar and any other means to edit the rule. */
-    showRuleOnly?: boolean;
-    /** When enabled the mini map is not displayed. */
-    hideMinimap?: boolean;
-    /** Defines minimum and maximum of the available zoom levels */
-    zoomRange?: [number, number];
-    /** After the initial fit to view, zoom to the specified Zoom level to avoid showing too small nodes. */
-    initialFitToViewZoomLevel?: number;
-    /** The ID of the instance. If multiple instances are used in parallel, they need to have unique IDs, else there can be interferences. */
-    instanceId: string;
     /** Dataset characteristics, e.g. used for the 'PathInputOperator' type. The key is the corresponding plugin ID. */
     datasetCharacteristics: Map<string, DatasetCharacteristics>;
-    /** Optional functions to get more information about specific properties/paths. */
-    pathMetaData?: PathMetaDataFunctions;
-    /**
-     * Fetches partial auto-completion results for the transforms task input paths, i.e. any part of a path could be auto-completed
-     * without replacing the complete path.
-     */
-    partialAutoCompletion: (
-        inputType: "source" | "target",
-    ) => (inputString: string, cursorPosition: number) => Promise<IPartialAutoCompleteResult | undefined>;
-    /** Enable save button once after init. */
-    saveInitiallyEnabled: boolean;
-    /** Initially highlights the given operator nodes and shows a message explaining why the nodes are highlighted.
-     * When the notification is closed the highlighting of the nodes is removed again.  */
-    initialHighlighting?: InitialRuleHighlighting;
 }
 
 /** Creates a rule editor model context that contains the actual rule model and low-level update functions. */

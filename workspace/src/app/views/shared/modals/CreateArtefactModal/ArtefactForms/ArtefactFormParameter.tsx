@@ -13,11 +13,12 @@ import {
     OptionallyLabelledParameter,
     optionallyLabelledParameterToValue,
 } from "../../../../taskViews/linking/linking.types";
-import { IValidationResult } from "@eccenca/gui-elements/src/components/AutoSuggestion/AutoSuggestion";
+import { CodeAutocompleteFieldValidationResult } from "@eccenca/gui-elements/src/components/AutoSuggestion/AutoSuggestion";
 import { useSelector } from "react-redux";
 import { commonSel } from "@ducks/common";
 import { CreateArtefactModalContext } from "../CreateArtefactModalContext";
 import { INPUT_TYPES } from "../../../../../constants";
+
 interface Props {
     //For task forms, project id is needed tor validation and autocompletion
     projectId?: string;
@@ -186,8 +187,11 @@ export const ArtefactFormParameter = ({
     const multiline =
         (parameterType &&
             (parameterType.startsWith("code-") ||
-                [INPUT_TYPES.RESTRICTION, INPUT_TYPES.MULTILINE_STRING].includes(parameterType))) ||
+                [INPUT_TYPES.RESTRICTION, INPUT_TYPES.MULTILINE_STRING, INPUT_TYPES.KEY_VALUE_PAIRS].includes(
+                    parameterType,
+                ))) ||
         isTemplateInputType;
+
     return (
         <FieldItem
             key={parameterId}
@@ -197,7 +201,7 @@ export const ArtefactFormParameter = ({
                 htmlFor: parameterId,
                 tooltip: tooltip,
             }}
-            hasStateDanger={infoMessageDanger || !!validationError}
+            intent={infoMessageDanger || !!validationError ? "danger" : undefined}
             messageText={infoMessage || validationError || templateInfoMessage || passwordMsgText}
             disabled={disabled}
             helperText={helperText}
@@ -261,7 +265,7 @@ export const ArtefactFormParameter = ({
                             onBlur={showRareActions ? () => setShowRareActions(false) : undefined}
                             minimal={false}
                             outlined
-                            hasStatePrimary={showVariableTemplateInput}
+                            intent={showVariableTemplateInput ? "primary" : undefined}
                             active={showVariableTemplateInput}
                         />
                     </ToolbarSection>
@@ -307,27 +311,30 @@ export const TemplateInputComponent = memo(
         const [t] = useTranslation();
         const registerError = modalContext.registerModalError ? modalContext.registerModalError : globalErrorHandler;
 
-        const processValidationError = React.useCallback((validationResult: IValidationResult): IValidationResult => {
-            let errorMessage = validationResult.parseError?.message;
-            const adaptedValidationResult = { ...validationResult };
-            if (errorMessage) {
-                if (errorMessage.includes("error at position")) {
-                    // Parse position from error message
-                    const result = /error at position (\d+)/.exec(errorMessage);
-                    if (result && Number.isInteger(Number.parseInt(result[1]))) {
-                        const errorPosition = Number.parseInt(result[1]);
-                        adaptedValidationResult.parseError = {
-                            start: errorPosition,
-                            end: errorPosition + 2,
-                            message: validationResult.parseError!.message,
-                        };
-                        errorMessage = `${t("ArtefactFormParameter.invalidTemplate")}: ${errorMessage}`;
+        const processValidationError = React.useCallback(
+            (validationResult: CodeAutocompleteFieldValidationResult): CodeAutocompleteFieldValidationResult => {
+                let errorMessage = validationResult.parseError?.message;
+                const adaptedValidationResult = { ...validationResult };
+                if (errorMessage) {
+                    if (errorMessage.includes("error at position")) {
+                        // Parse position from error message
+                        const result = /error at position (\d+)/.exec(errorMessage);
+                        if (result && Number.isInteger(Number.parseInt(result[1]))) {
+                            const errorPosition = Number.parseInt(result[1]);
+                            adaptedValidationResult.parseError = {
+                                start: errorPosition,
+                                end: errorPosition + 2,
+                                message: validationResult.parseError!.message,
+                            };
+                            errorMessage = `${t("ArtefactFormParameter.invalidTemplate")}: ${errorMessage}`;
+                        }
                     }
                 }
-            }
-            setValidationError(errorMessage);
-            return adaptedValidationResult;
-        }, []);
+                setValidationError(errorMessage);
+                return adaptedValidationResult;
+            },
+            [],
+        );
 
         const autoComplete = React.useCallback(async (inputString: string, cursorPosition: number) => {
             try {
@@ -391,6 +398,11 @@ export const TemplateInputComponent = memo(
                 checkInput={checkTemplate}
                 autoCompletionRequestDelay={200}
                 multiline={multiline}
+                outerDivAttributes={
+                    {
+                        "data-test-id": "codemirror-wrapper",
+                    } as any
+                }
             />
         );
     },

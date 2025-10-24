@@ -405,7 +405,7 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
         if (taskEvaluationStatus === "Failed") {
             // evaluation action did run with errors
             return (
-                <Notification warning data-test-id="notification-unsuccessful-evaluation">
+                <Notification intent="warning" data-test-id="notification-unsuccessful-evaluation">
                     {t("linkingEvaluationTabView.messages.unsuccessfulEvaluation")}
                 </Notification>
             );
@@ -429,7 +429,7 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
 
         // Fallback
         return (
-            <Notification warning data-test-id="notification-unknown-problem">
+            <Notification intent="warning" data-test-id="notification-unknown-problem">
                 {t("linkingEvaluationTabView.messages.unknownProblem")}
             </Notification>
         );

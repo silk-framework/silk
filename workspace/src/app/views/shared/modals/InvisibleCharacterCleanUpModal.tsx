@@ -119,7 +119,7 @@ export const useInvisibleCharacterCleanUpModal = ({
         iconButton: detectedCodePoints.size ? (
             <IconButton
                 data-test-id={"invisible-character-warning"}
-                hasStateWarning={true}
+                intent="warning"
                 onClick={openModal}
                 name={"state-warning"}
                 text={t("InvisibleCharacterHandling.iconTooltip")}

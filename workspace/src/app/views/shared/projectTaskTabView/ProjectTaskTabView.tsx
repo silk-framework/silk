@@ -542,7 +542,7 @@ const CardContentWarnings = React.memo(({ warnings }: CardContentWarningsProps) 
                 return (
                     <Fragment key={warning}>
                         <Notification
-                            warning
+                            intent="warning"
                             onDismiss={(didTimeoutExpire) => !didTimeoutExpire && removeWarning(warning)}
                         >
                             {warning}

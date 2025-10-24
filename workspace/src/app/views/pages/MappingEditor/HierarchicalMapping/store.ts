@@ -17,8 +17,8 @@ import React, { useState } from "react";
 import silkApi, { HttpResponsePromise } from "../api/silkRestApi";
 import { ITransformedSuggestion, SuggestionIssues } from "./containers/SuggestionNew/suggestion.typings";
 import {
-    IPartialAutoCompleteResult,
-    IValidationResult,
+    CodeAutocompleteFieldPartialAutoCompleteResult,
+    CodeAutocompleteFieldValidationResult,
 } from "@eccenca/gui-elements/src/components/AutoSuggestion/AutoSuggestion";
 import { CONTEXT_PATH } from "../../../../constants/path";
 import { TaskContext } from "../../../shared/projectTaskTabView/projectTaskTabView.typing";
@@ -266,9 +266,9 @@ const prepareObjectMappingPayload = (data) => {
                       pattern: data.pattern,
                   }
                 : // URI pattern should be reset when set to null
-                data.pattern === null
-                ? null
-                : undefined,
+                  data.pattern === null
+                  ? null
+                  : undefined,
             typeRules,
         },
     };
@@ -507,7 +507,7 @@ export const getSuggestionsAsync = (data: ISuggestAsyncProps, executeVocabularyM
                 suggestionIssues,
                 warnings: _.filter([vocabDatasetsResponse.error, sourcePaths.error], (e) => !_.isUndefined(e)),
             };
-        }
+        },
     );
 };
 
@@ -525,7 +525,7 @@ export const childExampleAsync = (data) => {
                 return rawRule;
             default:
                 throw new Error(
-                    'Rule send to rule.child.example type must be in ("value","object","uri","complexURI")'
+                    'Rule send to rule.child.example type must be in ("value","object","uri","complexURI")',
                 );
         }
     };
@@ -669,7 +669,7 @@ export const ruleRemoveAsync = (id) => {
             },
             (err) => {
                 // TODO: When mapping and workspace code bases are merged, add error handling
-            }
+            },
         );
 };
 
@@ -722,8 +722,8 @@ const getValuePathSuggestion = (
     inputString: string,
     cursorPosition: number,
     isObjectPath: boolean,
-    taskContext?: TaskContext
-): HttpResponsePromise<IPartialAutoCompleteResult> => {
+    taskContext?: TaskContext,
+): HttpResponsePromise<CodeAutocompleteFieldPartialAutoCompleteResult> => {
     const { transformTask, project } = getDefinedApiDetails();
     return silkApi.getSuggestionsForAutoCompletion(
         project,
@@ -732,7 +732,7 @@ const getValuePathSuggestion = (
         inputString,
         cursorPosition,
         isObjectPath,
-        taskContext
+        taskContext,
     );
 };
 
@@ -749,8 +749,8 @@ export const fetchValuePathSuggestions = (
     inputString: string,
     cursorPosition: number,
     isObjectPath: boolean,
-    taskContext?: TaskContext
-): Promise<IPartialAutoCompleteResult | undefined> => {
+    taskContext?: TaskContext,
+): Promise<CodeAutocompleteFieldPartialAutoCompleteResult | undefined> => {
     return new Promise((resolve, reject) => {
         if (!ruleId) {
             resolve(undefined);
@@ -767,8 +767,8 @@ export const fetchUriPatternAutoCompletions = (
     ruleId: string | undefined,
     inputString: string,
     cursorPosition: number,
-    objectContextPath?: string
-): Promise<IPartialAutoCompleteResult | undefined> => {
+    objectContextPath?: string,
+): Promise<CodeAutocompleteFieldPartialAutoCompleteResult | undefined> => {
     return new Promise((resolve, reject) => {
         if (!ruleId) {
             resolve(undefined);
@@ -781,7 +781,7 @@ export const fetchUriPatternAutoCompletions = (
                     ruleId,
                     inputString,
                     cursorPosition,
-                    objectContextPath
+                    objectContextPath,
                 )
                 .then((suggestions) => resolve(suggestions?.data))
                 .catch((err) => reject(err));
@@ -800,7 +800,10 @@ const uriPatternValidation = (inputString: string) => {
 };
 
 // Checks if the value path syntax is valid
-export const checkValuePathValidity = (inputString, projectId?: string): Promise<IValidationResult | undefined> => {
+export const checkValuePathValidity = (
+    inputString,
+    projectId?: string,
+): Promise<CodeAutocompleteFieldValidationResult | undefined> => {
     return new Promise((resolve, reject) => {
         if (!inputString) {
             // Empty string is considered valid
@@ -819,7 +822,9 @@ export const checkValuePathValidity = (inputString, projectId?: string): Promise
 };
 
 // Checks if the value path syntax is valid
-export const checkUriPatternValidity = (uriPattern: string): Promise<IValidationResult | undefined> => {
+export const checkUriPatternValidity = (
+    uriPattern: string,
+): Promise<CodeAutocompleteFieldValidationResult | undefined> => {
     return new Promise((resolve, reject) => {
         uriPatternValidation(uriPattern)
             .then((response) => {

@@ -38,7 +38,7 @@ export const ImportReferenceLinksModal = ({ projectId, linkingTaskId, onClose }:
                 linkingTaskId,
                 { generateNegative: shouldGenerateNegativeLink },
                 "PUT",
-                importedReferenceLinkFile
+                importedReferenceLinkFile,
             );
             onClose(true);
         } catch (err) {
@@ -63,12 +63,12 @@ export const ImportReferenceLinksModal = ({ projectId, linkingTaskId, onClose }:
             isOpen={true}
             size="small"
             title={t("ReferenceLinks.importModal.title")}
-            notifications={errorMessage ? <Notification message={errorMessage} warning={true} /> : null}
+            notifications={errorMessage ? <Notification message={errorMessage} intent="warning" /> : null}
             onClose={cancel}
             actions={[
                 <Button
                     key="submit"
-                    hasStatePrimary={true}
+                    intent="primary"
                     onClick={handleImportReferenceLinks}
                     loading={newLinkImportLoading}
                     disabled={!fileSelected}

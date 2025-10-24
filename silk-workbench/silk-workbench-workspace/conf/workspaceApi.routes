@@ -31,5 +31,6 @@ GET           /reports/currentReport/updatesWebSocket                           
 
 POST          /validation/sourcePath/:projectId                                 controllers.workspaceApi.ValidationApi.validateSourcePath(projectId: String)
 POST          /validation/uriPattern/:projectId                                 controllers.workspaceApi.ValidationApi.validateUriPattern(projectId: String)
+POST          /validation/yaml                                                  controllers.workspaceApi.ValidationApi.validateYaml()
 
 ->            /projects                   projectsApi.Routes

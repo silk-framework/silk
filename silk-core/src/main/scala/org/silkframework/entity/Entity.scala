@@ -29,8 +29,8 @@ import scala.xml.Node
 /**
   * An Entity can represent an instance of any given concept
  *
-  * @param uri         - an URI as identifier
-  * @param values        - A list of values of the properties defined in the provided EntitySchema
+  * @param uri         - a URI as identifier
+  * @param values       - A list of values of the properties defined in the provided EntitySchema
   * @param schema      - The EntitySchema defining the nature of this entity
   * @param metadata - metadata object containing all available metadata information about this object
   *                 an Entity is marked as 'failed' if [[org.silkframework.entity.metadata.EntityMetadata.failure]] is set. It becomes sealed.

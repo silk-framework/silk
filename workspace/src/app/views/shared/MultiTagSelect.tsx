@@ -1,5 +1,5 @@
 import { Keyword } from "@ducks/workspace/typings";
-import { MultiSuggestField, MultiSelectSelectionProps } from "@eccenca/gui-elements";
+import { MultiSuggestField, MultiSuggestFieldSelectionProps } from "@eccenca/gui-elements";
 import React from "react";
 import utils from "./Metadata/MetadataUtils";
 import useErrorHandler from "../../hooks/useErrorHandler";
@@ -9,7 +9,7 @@ import { CreateArtefactModalContext } from "./modals/CreateArtefactModal/CreateA
 
 interface IProps {
     projectId?: string;
-    handleTagSelectionChange: (params: MultiSelectSelectionProps<Keyword>) => any;
+    handleTagSelectionChange: (params: MultiSuggestFieldSelectionProps<Keyword>) => any;
     initialTags?: Keyword[];
 }
 
