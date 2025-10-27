@@ -71,7 +71,7 @@ export const PathNotInCacheModal = ({
         >
             <Markdown>
                 {`${t("RuleEditor.evaluation.PathNotInCacheModal.messagePartA")}\n\n- ${path}\n\n${t(
-                    "RuleEditor.evaluation.PathNotInCacheModal.messagePartB"
+                    "RuleEditor.evaluation.PathNotInCacheModal.messagePartB",
                 )}`}
             </Markdown>
         </SimpleDialog>

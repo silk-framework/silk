@@ -111,7 +111,7 @@ export const EvaluationActivityControl = ({
         activityInfo = {
             ...activityInfo,
             statusMessage: `${t("common.words.loading")}...`,
-            progressSpinner: loading ? { } : undefined,
+            progressSpinner: loading ? {} : undefined,
         };
     }
 

@@ -68,7 +68,7 @@ export const LinkingRuleActiveLearningFeedbackComponent = ({ setUnsavedStateExis
     const [valuesToDisplay, setValuesToDisplay] = React.useState<ComparisonPair[] | undefined>();
     const [submittingEntityLink, setSubmittingEntityLink] = React.useState(false);
     const [entityUrisToOpenInModal, setEntityUrisToOpenInModal] = React.useState<UnlabeledEntityLink | undefined>(
-        undefined
+        undefined,
     );
 
     const labelPropertyPairIds = new Set(labelPropertyPairs.map((lpp) => lpp.pairId));
@@ -108,7 +108,7 @@ export const LinkingRuleActiveLearningFeedbackComponent = ({ setUnsavedStateExis
     /** Changes the status of a link to the given decision. */
     const submitLink = async (
         link: EntityLink | ActiveLearningLinkCandidate | undefined,
-        decision: ActiveLearningDecisions
+        decision: ActiveLearningDecisions,
     ) => {
         if (link) {
             setSubmittingEntityLink(true);

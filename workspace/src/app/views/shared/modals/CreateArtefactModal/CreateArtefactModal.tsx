@@ -157,14 +157,14 @@ export function CreateArtefactModal() {
     const [taskActionResult, setTaskActionResult] = React.useState<{ label: string; message: string }>();
     const [taskActionLoading, setTaskActionLoading] = React.useState<string | null>(null);
     const [taskFormGeneralWarning, setTaskFormGeneralWarning] = React.useState<string | undefined>();
-    const generalWarningTimeout = React.useRef<number | undefined>()
+    const generalWarningTimeout = React.useRef<number | undefined>();
 
     const taskFormWarning = React.useCallback((message: string) => {
-        if(generalWarningTimeout.current) {
-            clearTimeout(generalWarningTimeout.current)
+        if (generalWarningTimeout.current) {
+            clearTimeout(generalWarningTimeout.current);
         }
-        generalWarningTimeout.current = window.setTimeout(() => setTaskFormGeneralWarning(message), 250)
-    }, [])
+        generalWarningTimeout.current = window.setTimeout(() => setTaskFormGeneralWarning(message), 250);
+    }, []);
 
     React.useEffect(() => {
         if (infoMessage?.removeAfterSeconds && infoMessage.removeAfterSeconds > 0) {
@@ -946,12 +946,9 @@ export function CreateArtefactModal() {
         );
     }
 
-    if(taskFormGeneralWarning) {
+    if (taskFormGeneralWarning) {
         notifications.push(
-            <Notification
-                message={taskFormGeneralWarning}
-                onDismiss={() => setTaskFormGeneralWarning(undefined)}
-            />,
+            <Notification message={taskFormGeneralWarning} onDismiss={() => setTaskFormGeneralWarning(undefined)} />,
         );
     }
 

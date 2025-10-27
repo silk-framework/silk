@@ -64,7 +64,7 @@ const PrefixesDialog = ({ onCloseModal, isOpen, existingPrefixes, projectId }: I
         } catch (err) {
             checkAndDisplayPrefixError(
                 err,
-                t("widget.ConfigWidget.modal.errors.prefixDeletionFailure", "Prefix deletion failed")
+                t("widget.ConfigWidget.modal.errors.prefixDeletionFailure", "Prefix deletion failed"),
             );
         } finally {
             setLoading(false);
@@ -86,7 +86,7 @@ const PrefixesDialog = ({ onCloseModal, isOpen, existingPrefixes, projectId }: I
         } catch (err) {
             checkAndDisplayPrefixError(
                 err,
-                t("widget.ConfigWidget.modal.errors.prefixChangeFailure", "Prefix change failed")
+                t("widget.ConfigWidget.modal.errors.prefixChangeFailure", "Prefix change failed"),
             );
         } finally {
             setLoading(false);

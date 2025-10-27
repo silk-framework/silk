@@ -40,7 +40,7 @@ export const ReferenceLinksRemoveModal = ({ projectId, linkingTaskId, onClose }:
                     negative: deleteReferenceLinkMap.get("negative")!,
                     unlabeled: deleteReferenceLinkMap.get("unlabeled")!,
                 },
-                "DELETE"
+                "DELETE",
             );
             closeAndRefresh();
         } catch (err) {

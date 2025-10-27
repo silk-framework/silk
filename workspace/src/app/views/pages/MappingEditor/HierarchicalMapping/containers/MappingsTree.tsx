@@ -87,7 +87,7 @@ const MappingsTreeNew: React.FC<MappingTreeProps> = ({
             nodeExpansionState.current.set(node.id, true);
             setTreeNodes([buildTree(data, { nodeId: node.id, expanded: true })]);
         },
-        [data, currentRuleId]
+        [data, currentRuleId],
     );
 
     const handleNodeCollapse = React.useCallback(
@@ -95,7 +95,7 @@ const MappingsTreeNew: React.FC<MappingTreeProps> = ({
             nodeExpansionState.current.set(node.id, false);
             setTreeNodes([buildTree(data, { nodeId: node.id, expanded: false })]);
         },
-        [data, currentRuleId]
+        [data, currentRuleId],
     );
 
     const renderRuleIcon = (ruleIds: string[]) => {
@@ -175,8 +175,8 @@ const MappingsTreeNew: React.FC<MappingTreeProps> = ({
             let isExpanded = nodeExpansionState.current.has(id)
                 ? nodeExpansionState.current.get(id)
                 : currentRuleId === id
-                ? true
-                : parentType === MAPPING_RULE_TYPE_ROOT;
+                  ? true
+                  : parentType === MAPPING_RULE_TYPE_ROOT;
 
             const tree: TreeNodeInfo<TreeNodeMetaData> = {
                 id,
@@ -206,7 +206,7 @@ const MappingsTreeNew: React.FC<MappingTreeProps> = ({
             tree.isExpanded = isExpanded;
             return tree;
         },
-        [currentRuleId, ruleValidation]
+        [currentRuleId, ruleValidation],
     );
 
     const getRuleById = (searchId) => {
@@ -221,7 +221,7 @@ const MappingsTreeNew: React.FC<MappingTreeProps> = ({
             },
             () => {
                 setNavigationLoading(false);
-            }
+            },
         );
     };
 
@@ -235,7 +235,7 @@ const MappingsTreeNew: React.FC<MappingTreeProps> = ({
                 setData(ruleTree);
             }
         },
-        [ruleTree]
+        [ruleTree],
     );
 
     const loadNavigationTree = (args: Record<string, any> = {}) => {
@@ -253,7 +253,7 @@ const MappingsTreeNew: React.FC<MappingTreeProps> = ({
                 if (args.onFinish) {
                     args.onFinish();
                 }
-            }
+            },
         );
     };
 

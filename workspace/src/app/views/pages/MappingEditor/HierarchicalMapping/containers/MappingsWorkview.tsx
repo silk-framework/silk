@@ -145,7 +145,7 @@ const MappingsWorkview = ({
                     onFinish();
                 }
                 setLoading(false);
-            }
+            },
         );
     };
 

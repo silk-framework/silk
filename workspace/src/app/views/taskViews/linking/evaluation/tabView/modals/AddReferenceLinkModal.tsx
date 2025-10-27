@@ -39,7 +39,7 @@ export const AddReferenceLinkModal = ({ projectId, linkingTaskId, onClose }: Pro
                 linkingTaskId,
                 newSourceReferenceLink,
                 newTargetReferenceLink,
-                newLinkType
+                newLinkType,
             );
             onClose(true);
         } catch (err) {

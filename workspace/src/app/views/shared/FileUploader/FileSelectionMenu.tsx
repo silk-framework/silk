@@ -102,7 +102,7 @@ export interface IUploaderOptions {
      * Reasons for non-success are: uploads are in progress, user interaction is needed, errors have occurred.*/
     allFilesSuccessfullyUploadedHandler?: (allSuccessful: boolean) => any;
 
-    listenToUploadedFiles: (files: UppyFile[]) => void 
+    listenToUploadedFiles: (files: UppyFile[]) => void;
 }
 
 interface IState {
@@ -304,7 +304,7 @@ class FileSelectionMenu extends React.Component<IUploaderOptions, IState> {
                                     labelAttributes={{
                                         text: this.props.t(
                                             "FileUploader.selectFromProject",
-                                            "Select file from projects"
+                                            "Select file from projects",
                                         ),
                                         info: this.props.t("common.words.required"),
                                         htmlFor: "autocompleteInput",

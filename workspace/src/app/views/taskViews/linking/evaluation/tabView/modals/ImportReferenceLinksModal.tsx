@@ -38,7 +38,7 @@ export const ImportReferenceLinksModal = ({ projectId, linkingTaskId, onClose }:
                 linkingTaskId,
                 { generateNegative: shouldGenerateNegativeLink },
                 "PUT",
-                importedReferenceLinkFile
+                importedReferenceLinkFile,
             );
             onClose(true);
         } catch (err) {

@@ -17,7 +17,7 @@ import { useSelector } from "react-redux";
 import { commonSel } from "@ducks/common";
 
 const sectionKeys = ["general", "workflow-editor", "rule-editors", "projects", "tasks"] as const;
-const shortcuts: Record<typeof sectionKeys[number], Array<{ key: string; commands: string[] }>> = {
+const shortcuts: Record<(typeof sectionKeys)[number], Array<{ key: string; commands: string[] }>> = {
     general: [
         { key: "quick-search", commands: ["/"] },
         { key: "help", commands: ["?"] },
@@ -116,12 +116,12 @@ export const KeyboardShortcutsModal = () => {
                                         labelProps={{
                                             tooltip: t(
                                                 `header.keyboardShortcutsModal.categories.${sectionKey}.shortcuts.${shortcut.key}Desc`,
-                                                ""
+                                                "",
                                             ),
                                         }}
                                     >
                                         {t(
-                                            `header.keyboardShortcutsModal.categories.${sectionKey}.shortcuts.${shortcut.key}`
+                                            `header.keyboardShortcutsModal.categories.${sectionKey}.shortcuts.${shortcut.key}`,
                                         )}
                                     </PropertyName>
                                     <PropertyValue
@@ -137,7 +137,7 @@ export const KeyboardShortcutsModal = () => {
                                                         {" "}
                                                         <p>
                                                             {t(
-                                                                `header.keyboardShortcutsModal.key-directives.${keyDirective}`
+                                                                `header.keyboardShortcutsModal.key-directives.${keyDirective}`,
                                                             )}
                                                         </p>
                                                     </React.Fragment>
@@ -148,7 +148,7 @@ export const KeyboardShortcutsModal = () => {
                                                             .map((key) => {
                                                                 return t(
                                                                     `header.keyboardShortcutsModal.keys.${key}`,
-                                                                    key
+                                                                    key,
                                                                 );
                                                             })
                                                             .join(" + ")}
