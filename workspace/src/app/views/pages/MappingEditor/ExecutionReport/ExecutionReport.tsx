@@ -301,7 +301,7 @@ export const ExecutionReport = ({ executionReport, executionMetaData, trackRuleI
                 if(!ruleResults.startedAt) {
                     ruleIcons[ruleId] = <TestIcon className="ecc-silk-mapping__ruleitem-icon-yellow" tryout={InProgressWarning} />
                 } else {
-                    ruleIcons[ruleId] = <TestIcon className="ecc-silk-mapping__ruleitem-icon-yellow" tryout={InProgressError} />
+                    ruleIcons[ruleId] = <TestIcon className="ecc-silk-mapping__ruleitem-icon-red" tryout={InProgressError} />
                 }
             } else if (ruleResults.errorCount === 0) {
                 ruleIcons[ruleId] = "ok";
@@ -319,7 +319,7 @@ export const ExecutionReport = ({ executionReport, executionMetaData, trackRuleI
         const ruleResults = executionReport?.ruleResults?.[ruleId];
         let title: string | undefined = undefined;
         let validationError: string | undefined = undefined
-        let intent: "neutral" | "warning" | "success" = "neutral"
+        let intent: "neutral" | "danger" | "warning" | "success" = "neutral"
         let typeRulesWithIssues: TypeRuleData[] = [];
         const showURI = !!executionReport?.executionReportContext?.entityUriOutput;
         if (ruleResults) {
@@ -327,10 +327,11 @@ export const ExecutionReport = ({ executionReport, executionMetaData, trackRuleI
                 // Either never started or did not finish successfully
                 if(!ruleResults.startedAt) {
                     title = t("ExecutionReport.transform.messages.notExecuted");
+                    intent = "warning"
                 } else {
                     title = t("ExecutionReport.transform.messages.notFinished");
+                    intent = "danger"
                 }
-                intent = "warning"
             } else if (ruleResults.errorCount === 0) {
                 title = t("ExecutionReport.transform.messages.noIssues");
                 intent = "success"
