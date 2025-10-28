@@ -1294,7 +1294,9 @@
                 "selectMapping": "Select a mapping for detailed results.",
                 "noIssues": "This mapping rule executed successfully without any issues.",
                 "validationIssues": "This mapping rule generated {{errors}} validation issues during execution. Examples are shown below.",
-                "InvalidTypeUris": "There exist invalid type URIs: {{typeUris}}"
+                "InvalidTypeUris": "There exist invalid type URIs: {{typeUris}}",
+                "notExecuted": "This mapping rule has not been executed at all. The transform execution has been stopped for some reason.",
+                "notFinished": "This mapping rule has not been executed over all source entities. The transform execution has been stopped for some reason."
             }
         },
         "errorTable": {

@@ -43,6 +43,8 @@ type RuleResults = Record<string, RuleResult>;
 interface RuleResult {
     errorCount: number;
     sampleErrors: any[];
+    startedAt?: string
+    finishedAt?: string
 }
 
 export interface OutputEntitiesSample {
