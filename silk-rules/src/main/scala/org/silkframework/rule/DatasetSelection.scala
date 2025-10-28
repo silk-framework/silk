@@ -45,7 +45,7 @@ case class DatasetSelection(@Param(label = "Input", value = "The input that is g
                             @Param(label = "Restriction", value = "Additional restrictions on the enumerated entities. If this is an RDF source, " +
                                     "use SPARQL patterns that include the variable `?a` to identify the enumerated entities, e.g., `?a foaf:knows <http://example.org/SomePerson>`. " +
                                     "Note that blank nodes (`[]`) are not allowed in restrictions. " +
-                                    "The restriction is ignored for non-RDF datasets")
+                                    "The restriction is ignored for non-RDF datasets.")
                             restriction: Restriction = Restriction.empty) extends PluginObjectParameter {
 
   /**
