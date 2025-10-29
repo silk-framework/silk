@@ -245,7 +245,8 @@ object ExecutionReportSerializers {
       WorkflowExecutionReport(
         task = taskFormat.read(requiredValue(value, TASK)),
         taskReports = taskReports.toIndexedSeq,
-        isDone = booleanValueOption(value, IS_DONE).getOrElse(true)
+        isDone = booleanValueOption(value, IS_DONE).getOrElse(true),
+        error = stringValueOption(value, ERROR)
       )
     }
   }
