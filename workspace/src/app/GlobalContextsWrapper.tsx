@@ -6,7 +6,7 @@ import {
     GlobalTableTypes,
     useStoreGlobalTableSettings
 } from "./hooks/useStoreGlobalTableSettings";
-import {ModalContext, ModalContextProps} from "@eccenca/gui-elements/src/components/Dialog/ModalContext";
+import {ModalContext, useModalContext} from "@eccenca/gui-elements/src/components/Dialog/ModalContext";
 
 /** Wraps globally used contexts around the application component. */
 export const GlobalContextsWrapper = ({children}) => {
@@ -34,33 +34,3 @@ export const GlobalTableContext = React.createContext<GlobalTableContextProps>({
     updateGlobalTableSettings: () => {}
 });
 
-const useModalContext = (): ModalContextProps => {
-    // A stack of modal IDs. These should reflect a stacked opening of modals on top of each other.
-    const [openModalStack, setOpenModalStack] = React.useState<string[]>([])
-
-    const setModalOpen = React.useCallback((modalId: string, isOpen: boolean) => {
-        setOpenModalStack(old => {
-            if(isOpen) {
-                return [...old, modalId]
-            } else {
-                const idx = old.findIndex(id => modalId === id)
-                switch(idx) {
-                    case -1:
-                        console.warn(`Trying to close modal with ID '${modalId}' that has not been registered as open!`)
-                        return old;
-                    case old.length - 1:
-                        return old.slice(0, idx)
-                    default:
-                        // Modal in between is closed. Consider all modals after it also as closed and log warning
-                        console.warn(`Modal with ID '${modalId}' is closed. Several modals opened after it are also considered as closed. IDs: ${old.slice(idx + 1).join(", ")}`)
-                        return old.slice(0, idx)
-                }
-            }
-        })
-    }, [])
-
-    return {
-        openModalStack: openModalStack.length ? [...openModalStack] : undefined,
-        setModalOpen
-    }
-}
