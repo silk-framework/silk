@@ -170,7 +170,7 @@ const TemplateValueInput = React.forwardRef(
                             onClick={switchShowVariableTemplateInput}
                             minimal={false}
                             outlined
-                            intent={showVariableTemplateInput ? "primary" : undefined}
+                            elevated={showVariableTemplateInput}
                             active={showVariableTemplateInput}
                         />
                     </ToolbarSection>

@@ -68,7 +68,7 @@ export const ImportReferenceLinksModal = ({ projectId, linkingTaskId, onClose }:
             actions={[
                 <Button
                     key="submit"
-                    intent="primary"
+                    affirmative
                     onClick={handleImportReferenceLinks}
                     loading={newLinkImportLoading}
                     disabled={!fileSelected}

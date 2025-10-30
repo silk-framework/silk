@@ -1019,7 +1019,7 @@ export function CreateArtefactModal() {
             actions={
                 isCreationUpdateDialog ? (
                     actionLoading ? (
-                        <Loading size={"small"} color={"primary"} delay={0} />
+                        <Loading size={"small"} elevated delay={0} />
                     ) : (
                         [
                             <Button

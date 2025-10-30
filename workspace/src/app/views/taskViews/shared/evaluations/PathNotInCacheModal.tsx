@@ -61,7 +61,7 @@ export const PathNotInCacheModal = ({
                 <Button
                     data-test-id={"loadAndReEvaluateBtn"}
                     type={"submit"}
-                    intent="primary"
+                    affirmative
                     text={t("RuleEditor.evaluation.PathNotInCacheModal.loadAndReEvaluate")}
                     onClick={addPath}
                     loading={loading}

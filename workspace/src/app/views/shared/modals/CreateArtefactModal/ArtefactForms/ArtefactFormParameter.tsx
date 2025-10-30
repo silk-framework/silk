@@ -265,7 +265,7 @@ export const ArtefactFormParameter = ({
                             onBlur={showRareActions ? () => setShowRareActions(false) : undefined}
                             minimal={false}
                             outlined
-                            intent={showVariableTemplateInput ? "primary" : undefined}
+                            elevated={showVariableTemplateInput}
                             active={showVariableTemplateInput}
                         />
                     </ToolbarSection>
