@@ -505,6 +505,7 @@ export function ProjectTaskTabView({
                     isOpen={true}
                     onClose={() => handlerRemoveModalWrapper()}
                     wrapperDivProps={customModalPreventEvents}
+                    preventReactFlowEvents={false}
                 >
                     <ErrorBoundary>{tabsWidget(projectId, taskId)}</ErrorBoundary>
                 </Modal>
