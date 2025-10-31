@@ -723,7 +723,9 @@ describe("Rule editor model", () => {
                 changeAction();
             });
             // Check that something has changed
-            expect(allNodes()).not.toStrictEqual(stateHistory[stateHistory.length - 1]);
+            await waitFor(() => {
+                expect(allNodes()).not.toStrictEqual(stateHistory[stateHistory.length - 1]);
+            });
             await additionalCheck();
             recordCurrentState(stateLabel);
         };
