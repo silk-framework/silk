@@ -38,6 +38,7 @@ import _ from "lodash";
 import { useTranslation } from "react-i18next";
 import { GlobalMappingEditorContext } from "../../../contexts/GlobalMappingEditorContext";
 import { IInitFrontend } from "@ducks/common/typings";
+import { Set } from "immutable";
 
 interface ISuggestionListContext {
     // Can be deleted when popup issue gone
@@ -479,7 +480,8 @@ export default function SuggestionContainer({
                         <Spacing size="tiny" />
                         <TableContainer>
                             <SuggestionList
-                                rows={filteredData}
+                                originalRows={data}
+                                searchFilteredRows={Set(filteredData.map((row) => row.uri))}
                                 prefixList={prefixList}
                                 onSwapAction={handleSwapAction}
                                 onAdd={handleAdd}
