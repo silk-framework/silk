@@ -39,7 +39,7 @@ export const AddReferenceLinkModal = ({ projectId, linkingTaskId, onClose }: Pro
                 linkingTaskId,
                 newSourceReferenceLink,
                 newTargetReferenceLink,
-                newLinkType
+                newLinkType,
             );
             onClose(true);
         } catch (err) {
@@ -61,7 +61,7 @@ export const AddReferenceLinkModal = ({ projectId, linkingTaskId, onClose }: Pro
             actions={[
                 <Button
                     key="submit"
-                    intent="primary"
+                    affirmative
                     onClick={handleAddNewReferenceLinks}
                     loading={newLinkCreationLoading}
                     data-test-id="reference-links-add-submit"

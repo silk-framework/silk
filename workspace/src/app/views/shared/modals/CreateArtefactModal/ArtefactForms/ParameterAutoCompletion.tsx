@@ -67,13 +67,15 @@ export interface ParameterAutoCompletionProps {
      */
     partialAutoCompletion?: (
         inputType: "source" | "target",
-    ) => (inputString: string, cursorPosition: number) => Promise<CodeAutocompleteFieldPartialAutoCompleteResult | undefined>;
+    ) => (
+        inputString: string,
+        cursorPosition: number,
+    ) => Promise<CodeAutocompleteFieldPartialAutoCompleteResult | undefined>;
 }
 
 type StringOrReifiedValue = IAutocompleteDefaultResponse | string;
 
 const AUTOCOMPLETION_LIMIT = 100;
-
 
 /** Component for parameter auto-completion. */
 export const ParameterAutoCompletion = ({

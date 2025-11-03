@@ -33,7 +33,7 @@ const TemplateValueInput = React.forwardRef(
             handleCheckTemplateErrors,
             setModalError,
         }: TemplateValueInputProps,
-        valueStateRef: MutableRefObject<ValueStateRef>
+        valueStateRef: MutableRefObject<ValueStateRef>,
     ) => {
         const [showVariableTemplateInput, setShowVariableTemplateInput] = React.useState<boolean>(false);
         const [validationError, setValidationError] = React.useState<string>();
@@ -73,7 +73,7 @@ const TemplateValueInput = React.forwardRef(
                             : undefined,
                     }));
             },
-            [setModalError]
+            [setModalError],
         );
 
         const onTemplateValueChange = React.useCallback((e) => {
@@ -170,14 +170,14 @@ const TemplateValueInput = React.forwardRef(
                             onClick={switchShowVariableTemplateInput}
                             minimal={false}
                             outlined
-                            intent={showVariableTemplateInput ? "primary" : undefined}
+                            elevated={showVariableTemplateInput}
                             active={showVariableTemplateInput}
                         />
                     </ToolbarSection>
                 </Toolbar>
             </FieldItem>
         );
-    }
+    },
 );
 
 export default TemplateValueInput;

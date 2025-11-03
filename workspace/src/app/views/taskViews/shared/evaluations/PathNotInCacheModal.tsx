@@ -61,7 +61,7 @@ export const PathNotInCacheModal = ({
                 <Button
                     data-test-id={"loadAndReEvaluateBtn"}
                     type={"submit"}
-                    intent="primary"
+                    affirmative
                     text={t("RuleEditor.evaluation.PathNotInCacheModal.loadAndReEvaluate")}
                     onClick={addPath}
                     loading={loading}
@@ -71,7 +71,7 @@ export const PathNotInCacheModal = ({
         >
             <Markdown>
                 {`${t("RuleEditor.evaluation.PathNotInCacheModal.messagePartA")}\n\n- ${path}\n\n${t(
-                    "RuleEditor.evaluation.PathNotInCacheModal.messagePartB"
+                    "RuleEditor.evaluation.PathNotInCacheModal.messagePartB",
                 )}`}
             </Markdown>
         </SimpleDialog>

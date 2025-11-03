@@ -37,7 +37,8 @@ import ErrorView from "../../components/ErrorView";
 import _ from "lodash";
 import { useTranslation } from "react-i18next";
 import { GlobalMappingEditorContext } from "../../../contexts/GlobalMappingEditorContext";
-import {IInitFrontend} from "@ducks/common/typings";
+import { IInitFrontend } from "@ducks/common/typings";
+import { Set } from "immutable";
 
 interface ISuggestionListContext {
     // Can be deleted when popup issue gone
@@ -168,7 +169,7 @@ export default function SuggestionContainer({
                 maxResults,
                 selectedVocabs,
                 true,
-                mappingEditorContext.taskContext
+                mappingEditorContext.taskContext,
             );
             if (Array.isArray(data)) {
                 return data.map((tp) => {
@@ -233,7 +234,7 @@ export default function SuggestionContainer({
         matchFromDataset: boolean,
         setLoader: boolean,
         executeMatching: boolean,
-        selectedVocabularies?: string[]
+        selectedVocabularies?: string[],
     ) => {
         const vocabs = selectedVocabularies ? selectedVocabularies : selectedVocabs;
         setData([]);
@@ -249,7 +250,7 @@ export default function SuggestionContainer({
                     nrCandidates: 20,
                     targetVocabularies: vocabs && vocabs.length > 0 ? vocabs : undefined,
                 },
-                executeMatching
+                executeMatching,
             ).subscribe(
                 ({ suggestions, warnings, suggestionIssues }) => {
                     try {
@@ -267,7 +268,7 @@ export default function SuggestionContainer({
                 (error) => {
                     setLoader && setLoading(false);
                     reject(error);
-                }
+                },
             );
         });
     };
@@ -282,7 +283,7 @@ export default function SuggestionContainer({
                 },
                 (err) => {
                     reject(err);
-                }
+                },
             );
         });
     };
@@ -303,7 +304,7 @@ export default function SuggestionContainer({
                 },
                 (err) => {
                     reject(err);
-                }
+                },
             );
         });
     };
@@ -341,12 +342,12 @@ export default function SuggestionContainer({
                 error
                     .filter((err) => err?.error)
                     .forEach(
-                        (err) => (err.error.titlePrefix = "There has been a problem generating the mapping rules: ")
+                        (err) => (err.error.titlePrefix = "There has been a problem generating the mapping rules: "),
                     );
                 setErrorSafe(error);
                 setLoading(false);
             },
-            () => setLoading(false)
+            () => setLoading(false),
         );
     };
 
@@ -479,7 +480,8 @@ export default function SuggestionContainer({
                         <Spacing size="tiny" />
                         <TableContainer>
                             <SuggestionList
-                                rows={filteredData}
+                                originalRows={data}
+                                searchFilteredRows={Set(filteredData.map((row) => row.uri))}
                                 prefixList={prefixList}
                                 onSwapAction={handleSwapAction}
                                 onAdd={handleAdd}

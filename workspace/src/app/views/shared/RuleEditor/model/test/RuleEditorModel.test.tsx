@@ -1,9 +1,9 @@
 import React from "react";
 import { RuleEditorModel } from "../RuleEditorModel";
-import { renderWrapper } from "../../../../../../../test/integration/TestHelper";
+import { RenderResultApi, renderWrapper } from "../../../../../../../test/integration/TestHelper";
 import { RuleEditorModelContext, RuleEditorModelContextProps } from "../../contexts/RuleEditorModelContext";
 import { Elements, FitViewParams, FlowExportObject, FlowTransform, ReactFlowProvider } from "react-flow-renderer";
-import { act, waitFor, render } from "@testing-library/react";
+import { act, waitFor } from "@testing-library/react";
 import { RuleEditorContext } from "../../contexts/RuleEditorContext";
 import {
     IParameterSpecification,
@@ -718,20 +718,24 @@ describe("Rule editor model", () => {
             changeAction: () => any,
             additionalCheck: () => any | Promise<any> = () => {},
         ) => {
-            act(() => {
+            await act(() => {
                 currentContext().executeModelEditOperation.startChangeTransaction();
                 changeAction();
             });
             // Check that something has changed
-            expect(allNodes()).not.toStrictEqual(stateHistory[stateHistory.length - 1]);
+            await waitFor(() => {
+                expect(allNodes()).not.toStrictEqual(stateHistory[stateHistory.length - 1]);
+            });
             await additionalCheck();
             recordCurrentState(stateLabel);
         };
-        await ruleEditorModel([
-            node({ nodeId: "nodeA" }),
-            node({ nodeId: "nodeB", inputs: ["nodeA"] }),
-            node({ nodeId: "nodeC", inputs: ["nodeB"] }),
-        ]);
+        const resultApi = new RenderResultApi(
+            await ruleEditorModel([
+                node({ nodeId: "nodeA" }),
+                node({ nodeId: "nodeB", inputs: ["nodeA"] }),
+                node({ nodeId: "nodeC", inputs: ["nodeB"] }),
+            ]),
+        );
         recordCurrentState("Initial state");
         // Record every change and check that after undo and later redo the states match
         await recordedTransaction("Add a node", () => {
@@ -797,7 +801,10 @@ describe("Rule editor model", () => {
         // // Execute UNDO and REDO twice
         for (let i = 0; i < 2; i++) {
             for (let changeIdx = stateHistory.length - 1; changeIdx > 0; changeIdx--) {
-                expect(currentContext().canUndo).toBe(true);
+                resultApi.assert(
+                    currentContext().canUndo,
+                    `Undo changes failed because 'can undo' is false. Round: ${i + 1}, Change: ${changeIdx + 1}/${stateHistory.length}.`,
+                );
                 act(() => {
                     currentContext().undo();
                 });

@@ -38,7 +38,7 @@ export const ImportReferenceLinksModal = ({ projectId, linkingTaskId, onClose }:
                 linkingTaskId,
                 { generateNegative: shouldGenerateNegativeLink },
                 "PUT",
-                importedReferenceLinkFile
+                importedReferenceLinkFile,
             );
             onClose(true);
         } catch (err) {
@@ -68,7 +68,7 @@ export const ImportReferenceLinksModal = ({ projectId, linkingTaskId, onClose }:
             actions={[
                 <Button
                     key="submit"
-                    intent="primary"
+                    affirmative
                     onClick={handleImportReferenceLinks}
                     loading={newLinkImportLoading}
                     disabled={!fileSelected}

@@ -10,7 +10,7 @@ import {
 /** Send dataset configuration and get an auto-configured version back. */
 export const requestAutoConfiguredDataset = async (
     projectId: string,
-    dataset: DatasetTaskPlugin<any>
+    dataset: DatasetTaskPlugin<any>,
 ): Promise<FetchResponse<DatasetTaskPlugin<any>>> => {
     return fetch({
         url: projectApi(`${projectId}/dataset/autoConfigure  `),
@@ -29,7 +29,7 @@ export const requestValidateTemplateString = async (
     templateString: string,
     project?: string,
     variableName?: string,
-    includeSensitiveVariables?: boolean
+    includeSensitiveVariables?: boolean,
 ): Promise<FetchResponse<ValidateTemplateResponse>> => {
     return fetch({
         url: coreApi("/variableTemplate/validation"),
@@ -57,7 +57,7 @@ export const requestAutoCompleteTemplateString = async (
     cursorPosition: number,
     project?: string,
     variableName?: string,
-    includeSensitiveVariables?: boolean
+    includeSensitiveVariables?: boolean,
 ): Promise<FetchResponse<CodeAutocompleteFieldPartialAutoCompleteResult>> => {
     return fetch({
         url: coreApi("/variableTemplate/completion"),

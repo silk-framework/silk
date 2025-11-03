@@ -285,7 +285,10 @@ const PathAutoCompletion = ({
 
     const fetchAutoCompletionResult = React.useCallback(
         (isTarget: boolean) =>
-            async (inputString: string, cursorPosition: number): Promise<CodeAutocompleteFieldPartialAutoCompleteResult | undefined> => {
+            async (
+                inputString: string,
+                cursorPosition: number,
+            ): Promise<CodeAutocompleteFieldPartialAutoCompleteResult | undefined> => {
                 try {
                     const result = await partialAutoCompleteLinkingInputPaths(
                         projectId,
@@ -293,18 +296,18 @@ const PathAutoCompletion = ({
                         isTarget ? "target" : "source",
                         inputString,
                         cursorPosition,
-                        200
+                        200,
                     );
                     return result.data;
                 } catch (err) {
                     registerError(
                         "ActiveLearning.fetchAutoCompletionResult",
                         t("ActiveLearning.config.errors.fetchAutoCompletionResult"),
-                        err
+                        err,
                     );
                 }
             },
-        []
+        [],
     );
 
     return (
