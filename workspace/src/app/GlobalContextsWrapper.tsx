@@ -6,10 +6,13 @@ import {
     GlobalTableTypes,
     useStoreGlobalTableSettings,
 } from "./hooks/useStoreGlobalTableSettings";
+import { ModalContext, useModalContext } from "@eccenca/gui-elements/src/components/Dialog/ModalContext";
 
 /** Wraps globally used contexts around the application component. */
 export const GlobalContextsWrapper = ({ children }) => {
     const { globalTableSettings, updateGlobalTableSettings } = useStoreGlobalTableSettings();
+    const { openModalStack, setModalOpen } = useModalContext();
+
     return (
         <GlobalTableContext.Provider
             value={{
@@ -17,7 +20,7 @@ export const GlobalContextsWrapper = ({ children }) => {
                 updateGlobalTableSettings,
             }}
         >
-            {children}
+            <ModalContext.Provider value={{ openModalStack, setModalOpen }}>{children}</ModalContext.Provider>
         </GlobalTableContext.Provider>
     );
 };

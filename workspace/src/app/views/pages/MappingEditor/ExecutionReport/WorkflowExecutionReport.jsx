@@ -108,7 +108,7 @@ export default class WorkflowExecutionReport extends React.Component {
     }
 
     renderTaskDescription(warnings, error) {
-        if(error) {
+        if (error) {
             return <OverflowText>Execution failed</OverflowText>;
         } else if (warnings != null && warnings.length > 0) {
             return <OverflowText>{warnings.length} warning(s)</OverflowText>;
