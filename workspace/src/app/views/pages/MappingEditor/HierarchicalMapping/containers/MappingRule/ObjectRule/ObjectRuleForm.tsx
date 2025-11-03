@@ -311,6 +311,11 @@ export const ObjectRuleForm = (props: IProps) => {
                 onChange={(value) => {
                     handleChangeValue("pattern", value);
                 }}
+                outerDivAttributes={
+                    {
+                        "data-test-id": "codemirror-wrapper",
+                    } as React.HTMLAttributes<HTMLDivElement>
+                }
                 fetchSuggestions={(input, cursorPosition) =>
                     fetchUriPatternAutoCompletions(
                         parentId ? parentId : MAPPING_ROOT_RULE_ID,
@@ -470,7 +475,7 @@ export const ObjectRuleForm = (props: IProps) => {
         );
     } else if (!uriPatternIsValid || !objectPathValid) {
         previewExamples = (
-            <Notification warning={true} data-test-id={"object-rule-form-preview-invalid-input"}>
+            <Notification intent="warning" data-test-id={"object-rule-form-preview-invalid-input"}>
                 URI pattern or value path is invalid. No preview shown.
             </Notification>
         );

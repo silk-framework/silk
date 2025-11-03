@@ -100,18 +100,20 @@ export default class WorkflowExecutionReport extends React.Component {
                                 {report.label} {report.operation != null ? "(" + report.operation + ")" : ""}
                             </OverflowText>
                         </OverviewItemLine>
-                        <OverviewItemLine small>{this.renderTaskDescription(warnings)}</OverviewItemLine>
+                        <OverviewItemLine small>{this.renderTaskDescription(warnings, report.error)}</OverviewItemLine>
                     </OverviewItemDescription>
                 </OverviewItem>
             </Card>
         );
     }
 
-    renderTaskDescription(warnings) {
-        if (warnings != null && warnings.length > 0) {
-            return <OverflowText>{warnings.length} warnings</OverflowText>;
+    renderTaskDescription(warnings, error) {
+        if (error) {
+            return <OverflowText>Execution failed</OverflowText>;
+        } else if (warnings != null && warnings.length > 0) {
+            return <OverflowText>{warnings.length} warning(s)</OverflowText>;
         } else {
-            return <OverflowText>no issues</OverflowText>;
+            return <OverflowText>No issues</OverflowText>;
         }
     }
 

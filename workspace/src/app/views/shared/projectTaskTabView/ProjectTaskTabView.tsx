@@ -80,7 +80,7 @@ interface IProjectTaskTabView {
     modalId?: string;
 }
 
-export const defaultProjectTaskTabViewFullScreenModalId = "projectTaskTabViewFullScreenModal"
+export const defaultProjectTaskTabViewFullScreenModalId = "projectTaskTabViewFullScreenModal";
 
 /**
  * Displays views of a specific project task. Item links are displayed in an i-frame whereas component views are directly
@@ -511,6 +511,7 @@ export function ProjectTaskTabView({
                     onClose={() => handlerRemoveModalWrapper()}
                     wrapperDivProps={customModalPreventEvents}
                     modalId={modalId}
+                    preventReactFlowEvents={false}
                 >
                     <ErrorBoundary>{tabsWidget(projectId, taskId)}</ErrorBoundary>
                 </Modal>
@@ -548,7 +549,7 @@ const CardContentWarnings = React.memo(({ warnings }: CardContentWarningsProps) 
                 return (
                     <Fragment key={warning}>
                         <Notification
-                            warning
+                            intent="warning"
                             onDismiss={(didTimeoutExpire) => !didTimeoutExpire && removeWarning(warning)}
                         >
                             {warning}

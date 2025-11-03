@@ -9,7 +9,7 @@ import { commonOp, commonSel } from "@ducks/common";
 import useErrorHandler from "../../../hooks/useErrorHandler";
 import { previewSlice } from "@ducks/workspace/previewSlice";
 import { routerSel } from "@ducks/router";
-import {GlobalTableContext} from "../../../GlobalContextsWrapper";
+import { GlobalTableContext } from "../../../GlobalContextsWrapper";
 
 export function Workspace() {
     const dispatch = useDispatch();
@@ -20,7 +20,7 @@ export function Workspace() {
     const qs = useSelector(routerSel.routerSearchSelector);
     const projectId = useSelector(commonSel.currentProjectIdSelector);
     const { clearSearchResults } = previewSlice.actions;
-    const {globalTableSettings} = React.useContext(GlobalTableContext)
+    const { globalTableSettings } = React.useContext(GlobalTableContext);
     const pagination = useSelector(workspaceSel.paginationSelector);
 
     useEffect(() => {
@@ -36,7 +36,7 @@ export function Workspace() {
         dispatch(commonOp.fetchAvailableDTypesAsync(projectId));
     }, []);
 
-    const tableSettings = globalTableSettings["workbench"]
+    const tableSettings = globalTableSettings["workbench"];
 
     useEffect(() => {
         // Reset the filters, due to redirecting

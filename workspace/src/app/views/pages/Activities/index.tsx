@@ -30,7 +30,7 @@ import { useHistory, useParams } from "react-router";
 import { SERVE_PATH } from "../../../constants/path";
 import { ProjectTaskParams } from "views/shared/typings";
 import { previewSlice } from "@ducks/workspace/previewSlice";
-import {GlobalTableContext} from "../../../GlobalContextsWrapper";
+import { GlobalTableContext } from "../../../GlobalContextsWrapper";
 
 const Activities = () => {
     const dispatch = useDispatch();
@@ -43,7 +43,7 @@ const Activities = () => {
     const pagination = useSelector(workspaceSel.paginationSelector);
     const sorters = useSelector(workspaceSel.sortersSelector);
     const { clearSearchResults } = previewSlice.actions;
-    const {globalTableSettings} = React.useContext(GlobalTableContext)
+    const { globalTableSettings } = React.useContext(GlobalTableContext);
 
     const [t] = useTranslation();
 
@@ -107,9 +107,9 @@ const Activities = () => {
     React.useEffect(() => {
         // Reset the filters, due to redirecting
         dispatch(workspaceOp.resetFilters());
-    }, [location.pathname])
+    }, [location.pathname]);
 
-    const tableSettings = globalTableSettings["activities"]
+    const tableSettings = globalTableSettings["activities"];
 
     React.useEffect(() => {
         if (path.endsWith("activities")) {
@@ -178,7 +178,7 @@ const Activities = () => {
                             <GridColumn>
                                 {error.detail ? (
                                     <Notification
-                                        danger={true}
+                                        intent="danger"
                                         actions={
                                             <Button
                                                 text={t("common.action.retry", "Retry")}

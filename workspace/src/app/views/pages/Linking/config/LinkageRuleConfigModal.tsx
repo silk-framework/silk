@@ -45,8 +45,8 @@ export const LinkageRuleConfigModal = ({ onClose, parameters, submit }: IProps) 
             forParameter: string,
             autoCompleteRequest: (
                 textQuery: string,
-                limit: number
-            ) => Promise<FetchResponse<IAutocompleteDefaultResponse[]>>
+                limit: number,
+            ) => Promise<FetchResponse<IAutocompleteDefaultResponse[]>>,
         ) =>
         async (textQuery: string) => {
             try {
@@ -55,10 +55,10 @@ export const LinkageRuleConfigModal = ({ onClose, parameters, submit }: IProps) 
                 setRequestError(
                     <Notification
                         actions={<IconButton onClick={() => setRequestError(undefined)} name={"navigation-close"} />}
-                        warning
+                        intent="warning"
                     >
                         Auto-completion request has failed. Cannot suggest values for '${forParameter}' parameter.
-                    </Notification>
+                    </Notification>,
                 );
                 return [];
             }
@@ -113,7 +113,7 @@ export const LinkageRuleConfigModal = ({ onClose, parameters, submit }: IProps) 
                 "LinkageRuleConfig-save-config",
                 t("widget.LinkingRuleConfigWidget.saveError"),
                 ex,
-                { errorNotificationInstanceId: "_none_" }
+                { errorNotificationInstanceId: "_none_" },
             );
             setRequestError(errorWidget || undefined);
         }
@@ -153,7 +153,7 @@ export const LinkageRuleConfigModal = ({ onClose, parameters, submit }: IProps) 
                             htmlFor: p.id,
                             text: p.label,
                         }}
-                        hasStateDanger={!!errorMessage}
+                        intent={!!errorMessage ? "danger" : undefined}
                         messageText={errorMessage ? errorMessage : undefined}
                         helperText={p.description}
                     >

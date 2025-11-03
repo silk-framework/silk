@@ -42,13 +42,18 @@ export const ApplicationNotification = ({ errorItem, removeError, interactionCal
                 removeError(errorItem);
             }
         },
-        [removeError]
+        [removeError],
     );
 
     return (
         <Notification
-            danger={!errorItem.alternativeIntent}
-            warning={errorItem.alternativeIntent === "warning"}
+            intent={
+                !errorItem.alternativeIntent
+                    ? "danger"
+                    : errorItem.alternativeIntent === "warning"
+                      ? "warning"
+                      : undefined
+            }
             flexWidth={true}
             onDismiss={onDismiss}
         >

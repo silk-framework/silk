@@ -718,12 +718,14 @@ describe("Rule editor model", () => {
             changeAction: () => any,
             additionalCheck: () => any | Promise<any> = () => {},
         ) => {
-            act(() => {
+            await act(() => {
                 currentContext().executeModelEditOperation.startChangeTransaction();
                 changeAction();
             });
             // Check that something has changed
-            expect(allNodes()).not.toStrictEqual(stateHistory[stateHistory.length - 1]);
+            await waitFor(() => {
+                expect(allNodes()).not.toStrictEqual(stateHistory[stateHistory.length - 1]);
+            });
             await additionalCheck();
             recordCurrentState(stateLabel);
         };

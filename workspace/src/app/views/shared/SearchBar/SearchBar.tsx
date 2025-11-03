@@ -1,13 +1,13 @@
 import React from "react";
-import {IAppliedSorterState, ISortersState} from "@ducks/workspace/typings";
+import { IAppliedSorterState, ISortersState } from "@ducks/workspace/typings";
 import { Spacing, Toolbar, ToolbarSection } from "@eccenca/gui-elements";
 import SearchInput, { ISearchInputProps } from "./SearchInput";
 import SortButton from "../buttons/SortButton";
 import { useTranslation } from "react-i18next";
 import { useInvisibleCharacterCleanUpModal } from "../modals/InvisibleCharacterCleanUpModal";
 import { useSearch } from "../../../hooks/useSearch";
-import {GlobalTableContext} from "../../../GlobalContextsWrapper";
-import {GlobalTableTypes} from "../../../hooks/useStoreGlobalTableSettings";
+import { GlobalTableContext } from "../../../GlobalContextsWrapper";
+import { GlobalTableTypes } from "../../../hooks/useStoreGlobalTableSettings";
 
 /** The omitted properties are only set by this component and not propagated to SearchInput. */
 type ISearchBarSearchInputProps = Omit<
@@ -55,7 +55,7 @@ export function SearchBar({
         onClear,
         searchPending,
     } = useSearch({ onSearch, searchQuery: textQuery });
-    const {globalTableSettings} = React.useContext(GlobalTableContext)
+    const { globalTableSettings } = React.useContext(GlobalTableContext);
 
     const emptySearchMessage = otherProps.emptySearchInputMessage
         ? otherProps.emptySearchInputMessage
@@ -75,17 +75,15 @@ export function SearchBar({
         onEnter ? onEnter() : onEnterRefreshSearch();
     }, [onEnterRefreshSearch, onEnter]);
 
-    const appliedSorters: IAppliedSorterState | undefined = sorters ?
-        {...sorters.applied} :
-        undefined ;
+    const appliedSorters: IAppliedSorterState | undefined = sorters ? { ...sorters.applied } : undefined;
 
-    if(appliedSorters && globalTableKey && globalTableSettings[globalTableKey]) {
-        const conf = globalTableSettings[globalTableKey]
-        if(conf.sortBy) {
-            appliedSorters.sortBy = conf.sortBy
+    if (appliedSorters && globalTableKey && globalTableSettings[globalTableKey]) {
+        const conf = globalTableSettings[globalTableKey];
+        if (conf.sortBy) {
+            appliedSorters.sortBy = conf.sortBy;
         }
-        if(conf.sortOrder) {
-            appliedSorters.sortOrder = conf.sortOrder
+        if (conf.sortOrder) {
+            appliedSorters.sortOrder = conf.sortOrder;
         }
     }
 

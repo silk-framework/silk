@@ -70,18 +70,15 @@ export const RuleEditorNotifications = ({
                     >
                         {ruleEditorErrorMessages.length > 0 ? notifications : null}
                         {queueEditorNotifications.map((editorNotification) => (
-                            <Notification danger={true} key={"errorMessage"} icon={<Icon name="state-warning" />}>
+                            <Notification intent="danger" key={"errorMessage"} icon={<Icon name="state-warning" />}>
                                 {editorNotification}
                             </Notification>
                         ))}
                         {evaluationNotifications && evaluationNotifications.length > 0
                             ? evaluationNotifications.map((notification) => {
-                                  const intentObject: Pick<
-                                      NotificationProps,
-                                      "danger" | "warning" | "success" | "neutral"
-                                  > = Object.create(null);
+                                  const intentObject: Pick<NotificationProps, "intent"> = Object.create(null);
                                   if (notification.intent !== "none") {
-                                      intentObject[notification.intent] = true;
+                                      intentObject[notification.intent] = notification.intent;
                                   }
                                   return (
                                       <Notification
@@ -99,7 +96,7 @@ export const RuleEditorNotifications = ({
                             <div key={nodeNotification.nodeId}>
                                 <Spacing size={"tiny"} />
                                 <Notification
-                                    warning={true}
+                                    intent="warning"
                                     icon={<Icon name="state-warning" />}
                                     actions={
                                         <IconButton

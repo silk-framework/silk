@@ -16,6 +16,7 @@ import java.time.Instant
 case class WorkflowExecutionReport(task: Task[TaskSpec],
                                    taskReports: IndexedSeq[WorkflowTaskReport] = IndexedSeq.empty,
                                    isDone: Boolean = false,
+                                   override val error : Option[String] = None,
                                    version: Int = 0) extends ExecutionReport {
 
   /**
