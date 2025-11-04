@@ -25,7 +25,11 @@ case class CsvDataset (
     separator: String = ",",
   @Param(label = "Array separator", value = "The character that is used to separate the parts of array values. Write \"\\t\" to specify the tab character.")
     arraySeparator: String = "",
-  @Param("Character used to quote values.")
+  @Param("""
+  The instruct model to use (e.g., gpt-4o).
+When using Anthropic API, no model autocompletion is available!
+Just create a custom entry with a model name from [Anthropics model overview](https://docs.anthropic.com/en/docs/about-claude/models/overview).
+  """)
     quote: String = "\"",
   @deprecated("This will be removed in the next release.", "")
   @Param(label = "URI pattern", value = "*Deprecated* A pattern used to construct the entity URI. If not provided the prefix + the line number is used. An example of such a pattern is 'urn:zyx:{id}' where *id* is a name of a property.", advanced = true)

@@ -4,6 +4,7 @@ import {
     Label,
     Link,
     Markdown,
+    reduceToText,
     Spacing,
     StringPreviewContentBlobToggler,
     TitleSubsection,
@@ -170,7 +171,7 @@ export const ParameterWidget = (props: IProps) => {
             <StringPreviewContentBlobToggler
                 key={"descriptionToggler"}
                 className="di__parameter_widget__description"
-                content={description}
+                content={reduceToText(description, { markdown: true})}
                 previewMaxLength={MAXLENGTH_SIMPLEHELP}
                 fullviewContent={
                     <WhiteSpaceContainer
