@@ -21,7 +21,9 @@ interface RuleEditorViewProps {
 export const RuleEditorView = ({ showRuleOnly, hideMinimap, zoomRange, readOnlyMode }: RuleEditorViewProps) => {
     const [modalShown, setModalShown] = React.useState(false);
     const [advancedParameterModeEnabled, setAdvancedParameterMode] = React.useState(false);
-    const [currentRuleNodeDescription, setCurrentRuleNodeDescription] = React.useState<string | undefined>("");
+    const [currentRuleNodeInfo, setCurrentRuleNodeInfo] = React.useState<
+        { description?: string; label?: string } | undefined
+    >(undefined);
     const reactFlowWrapper = React.useRef<any>(null);
     const [reactFlowInstance, setReactFlowInstance] = React.useState<OnLoadParams | undefined>(undefined);
     // At the moment react-flow's selection logic is buggy in some places, e.g. https://github.com/wbkd/react-flow/issues/1314
@@ -41,8 +43,8 @@ export const RuleEditorView = ({ showRuleOnly, hideMinimap, zoomRange, readOnlyM
                 reactFlowWrapper,
                 reactFlowInstance,
                 setReactFlowInstance,
-                currentRuleNodeDescription,
-                setCurrentRuleNodeDescription,
+                currentRuleNodeInfo,
+                setCurrentRuleNodeInfo,
                 showRuleOnly,
                 hideMinimap,
                 zoomRange,

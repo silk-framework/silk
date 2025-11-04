@@ -115,8 +115,8 @@ export const RuleEditorToolbar = () => {
     const ruleValidationError: RuleValidationError | undefined = ruleEvaluationContext.ruleValidationError
         ? ruleEvaluationContext.ruleValidationError
         : ruleEditorContext.lastSaveResult?.errorMessage
-        ? (ruleEditorContext.lastSaveResult as RuleValidationError)
-        : undefined;
+          ? (ruleEditorContext.lastSaveResult as RuleValidationError)
+          : undefined;
     const translationsStickyNoteModal = {
         modalTitle: t("StickyNoteModal.title"),
         noteLabel: t("StickyNoteModal.labels.codeEditor"),
@@ -146,24 +146,21 @@ export const RuleEditorToolbar = () => {
                 <TitleMainsection>{ruleEditorContext.editorTitle}</TitleMainsection>
             ) : null}
 
-            {ruleEditorUiContext.currentRuleNodeDescription ? (
+            {ruleEditorUiContext.currentRuleNodeInfo ? (
                 <RuleEditorBaseModal
                     isOpen={true}
-                    title={t("common.words.description")}
-                    onClose={() => ruleEditorUiContext.setCurrentRuleNodeDescription(undefined)}
+                    title={ruleEditorUiContext.currentRuleNodeInfo.label}
+                    onClose={() => ruleEditorUiContext.setCurrentRuleNodeInfo(undefined)}
                     hasBorder={true}
                     size={"small"}
                     data-test-id={"ruleEditorNode-description-modal"}
                     actions={[
-                        <Button
-                            key="close"
-                            onClick={() => ruleEditorUiContext.setCurrentRuleNodeDescription(undefined)}
-                        >
+                        <Button key="close" onClick={() => ruleEditorUiContext.setCurrentRuleNodeInfo(undefined)}>
                             {t("common.action.close")}
                         </Button>,
                     ]}
                 >
-                    <Markdown>{ruleEditorUiContext.currentRuleNodeDescription}</Markdown>
+                    <Markdown>{ruleEditorUiContext.currentRuleNodeInfo?.description as string}</Markdown>
                 </RuleEditorBaseModal>
             ) : null}
             {showCreateStickyModal ? (
@@ -212,7 +209,7 @@ export const RuleEditorToolbar = () => {
                         checked={ruleEditorUiContext.advancedParameterModeEnabled}
                         onClick={() =>
                             ruleEditorUiContext.setAdvancedParameterMode(
-                                !ruleEditorUiContext.advancedParameterModeEnabled
+                                !ruleEditorUiContext.advancedParameterModeEnabled,
                             )
                         }
                     />
@@ -291,7 +288,7 @@ export const RuleEditorToolbar = () => {
                             ruleValidationError ? [ruleValidationError.errorMessage] : ([] as string[])
                         }
                         queueNodeNotifications={(ruleValidationError?.nodeErrors ?? []).filter(
-                            (nodeError) => nodeError.message
+                            (nodeError) => nodeError.message,
                         )}
                         nodeJumpToHandler={modelContext.centerNode}
                         evaluationNotifications={ruleEvaluationContext.notifications}
