@@ -25,7 +25,7 @@ import { PARAMETER_DOC_PREFIX } from "./TaskForm";
 import { YamlEditor } from "../../../../../views/shared/YamlEditor";
 
 const MAXLENGTH_TOOLTIP = 32;
-const MAXLENGTH_SIMPLEHELP = 192;
+const MAXLENGTH_SIMPLEHELP = 100;
 
 interface IHookFormParam {
     errors: any;
@@ -171,7 +171,7 @@ export const ParameterWidget = (props: IProps) => {
             <StringPreviewContentBlobToggler
                 key={"descriptionToggler"}
                 className="di__parameter_widget__description"
-                content={reduceToText(description, { markdown: true})}
+                content={reduceToText(description, { markdown: true })}
                 previewMaxLength={MAXLENGTH_SIMPLEHELP}
                 fullviewContent={
                     <WhiteSpaceContainer
