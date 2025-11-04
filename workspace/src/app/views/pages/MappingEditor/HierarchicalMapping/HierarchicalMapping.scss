@@ -35,6 +35,10 @@
             white-space: nowrap;
         }
     }
+
+    .mdl-textfield__label {
+        pointer-events: none;
+    }
 }
 
 ul.ecc-hierarchical-mapping-error-list {
