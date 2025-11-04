@@ -184,7 +184,6 @@ export const ParameterWidget = (props: IProps) => {
                 }
                 toggleExtendText={t("common.words.more", "more")}
                 toggleReduceText={t("common.words.less", "less")}
-                firstNonEmptyLineOnly={true}
                 noTogglerContentSuffix={detailedLink ? <> {detailedLink}</> : detailedLink}
             />
         );
