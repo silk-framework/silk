@@ -50,8 +50,8 @@ $debug-rgba-values: "no";
     variables to overwrite the default look of the application.
 */
 
-$ecc-color-primary: $eccgui-color-primary !default;
-$ecc-color-primary-contrast: $eccgui-color-primary-contrast !default;
+$ecc-color-primary: $eccgui-color-accent !default;
+$ecc-color-primary-contrast: $eccgui-color-accent-contrast !default;
 $ecc-color-accent: $eccgui-color-accent !default;
 $ecc-color-accent-contrast: $eccgui-color-accent-contrast !default;
 

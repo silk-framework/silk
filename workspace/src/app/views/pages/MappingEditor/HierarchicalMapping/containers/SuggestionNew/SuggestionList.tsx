@@ -206,8 +206,10 @@ export default function SuggestionList({
         });
 
         setAllRows(arr);
+    }, [originalRows, preSelectedUriPrefix]);
 
-        const filteredRows = filterRowsByColumnModifier(columnFilters, selectedSources, arr, context.isFromDataset);
+    React.useEffect(() => {
+        const filteredRows = filterRowsByColumnModifier(columnFilters, selectedSources, allRows, context.isFromDataset);
         const filteredBySearch = filteredRows.filter((row) => searchFilteredRows.has(row.uri));
         setFilteredRows(filteredBySearch);
 
@@ -225,7 +227,15 @@ export default function SuggestionList({
                 return oldPagination;
             }
         });
-    }, [originalRows, preSelectedUriPrefix, searchFilteredRows, pagination]);
+    }, [
+        allRows,
+        searchFilteredRows,
+        pagination,
+        selectedSources,
+        context.isFromDataset,
+        columnFilters,
+        sortDirections,
+    ]);
 
     // update the source -> target and target->map relactions on swap
     const updateRelations = (source, targets: ITargetWithSelected[]) => {
