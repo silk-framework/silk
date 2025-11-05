@@ -4,7 +4,6 @@ import {
     Label,
     Link,
     Markdown,
-    reduceToText,
     Spacing,
     StringPreviewContentBlobToggler,
     TitleSubsection,
@@ -23,6 +22,7 @@ import { ArtefactFormParameter } from "./ArtefactFormParameter";
 import { optionallyLabelledParameterToValue } from "../../../../taskViews/linking/linking.types";
 import { PARAMETER_DOC_PREFIX } from "./TaskForm";
 import { YamlEditor } from "../../../../../views/shared/YamlEditor";
+import { reduceToText } from "@eccenca/gui-elements/src/common/utils/reduceToText";
 
 const MAXLENGTH_TOOLTIP = 32;
 const MAXLENGTH_SIMPLEHELP = 100;
@@ -171,7 +171,7 @@ export const ParameterWidget = (props: IProps) => {
             <StringPreviewContentBlobToggler
                 key={"descriptionToggler"}
                 className="di__parameter_widget__description"
-                content={reduceToText(description, { markdown: true })}
+                content={reduceToText(<Markdown>{description}</Markdown>)}
                 previewMaxLength={MAXLENGTH_SIMPLEHELP}
                 fullviewContent={
                     <WhiteSpaceContainer
