@@ -75,7 +75,7 @@ export const legacyLinkingEndpoint = (subPath: string) => {
 /**
  * Documentation page resolver
  */
-export const documentationPageUrl = (featureId: string): string | null => {
+export const documentationPageUrl = (featureId: string): string | undefined => {
     const { i18n } = useTranslation();
     const { version } = useSelector(commonSel.initialSettingsSelector);
 
@@ -89,6 +89,6 @@ export const documentationPageUrl = (featureId: string): string | null => {
             APPLICATION_DOCUMENTATION_SERVICE_URL() + featureId,
         ).toString();
     } catch {
-        return null;
+        return undefined;
     }
 };
