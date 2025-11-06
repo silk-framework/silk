@@ -124,7 +124,6 @@ export const ArtefactFormParameter = ({
         currentInputValue: startWithTemplateView ? stringDefaultValue : initialValue,
         currentTemplateValue: startWithTemplateView ? initialValue : undefined,
     });
-    const showRareElementState = React.useRef<{ timeout?: number }>({});
     const isPasswordInput = parameterType === "password";
     const switchShowVariableTemplateInput = React.useCallback(() => {
         setToggledTemplateSwitchBefore(true);
