@@ -20,14 +20,14 @@ import {
     TableRow,
     TestIcon,
 } from "@eccenca/gui-elements";
-import MappingsTree, {RuleValidationIconMapType} from "../HierarchicalMapping/containers/MappingsTree";
-import {SampleError} from "../../../shared/SampleError/SampleError";
-import {pluginRegistry, SUPPORTED_PLUGINS} from "../../../plugins/PluginRegistry";
-import {DataPreviewProps} from "../../../plugins/plugin.types";
-import {ExecutionReportResponse, OutputEntitiesSample, TypeRuleData} from "./report-typings";
-import {useTranslation} from "react-i18next";
-import {MAPPING_RULE_TYPE_OBJECT} from "../HierarchicalMapping/utils/constants";
-import {MAPPING_ROOT_RULE_ID} from "../HierarchicalMapping/HierarchicalMapping";
+import MappingsTree, { RuleValidationIconMapType } from "../HierarchicalMapping/containers/MappingsTree";
+import { SampleError } from "../../../shared/SampleError/SampleError";
+import { pluginRegistry, SUPPORTED_PLUGINS } from "../../../plugins/PluginRegistry";
+import { DataPreviewProps } from "../../../plugins/plugin.types";
+import { ExecutionReportResponse, OutputEntitiesSample, TypeRuleData } from "./report-typings";
+import { useTranslation } from "react-i18next";
+import { MAPPING_RULE_TYPE_OBJECT } from "../HierarchicalMapping/utils/constants";
+import { MAPPING_ROOT_RULE_ID } from "../HierarchicalMapping/HierarchicalMapping";
 import { InProgressError, InProgressWarning } from "@carbon/icons-react";
 
 interface ExecutionReportProps {
@@ -296,12 +296,16 @@ export const ExecutionReport = ({ executionReport, executionMetaData, trackRuleI
     const generateIcons = (): RuleValidationIconMapType => {
         let ruleIcons: RuleValidationIconMapType = Object.create(null);
         for (let [ruleId, ruleResults] of Object.entries(executionReport?.ruleResults ?? {})) {
-            if(!ruleResults.finishedAt || !ruleResults.startedAt) {
+            if (!ruleResults.finishedAt || !ruleResults.startedAt) {
                 // Either never started or did not finish successfully
-                if(!ruleResults.startedAt) {
-                    ruleIcons[ruleId] = <TestIcon className="ecc-silk-mapping__ruleitem-icon-yellow" tryout={InProgressWarning} />
+                if (!ruleResults.startedAt) {
+                    ruleIcons[ruleId] = (
+                        <TestIcon className="ecc-silk-mapping__ruleitem-icon-yellow" tryout={InProgressWarning} />
+                    );
                 } else {
-                    ruleIcons[ruleId] = <TestIcon className="ecc-silk-mapping__ruleitem-icon-red" tryout={InProgressError} />
+                    ruleIcons[ruleId] = (
+                        <TestIcon className="ecc-silk-mapping__ruleitem-icon-red" tryout={InProgressError} />
+                    );
                 }
             } else if (ruleResults.errorCount === 0) {
                 ruleIcons[ruleId] = "ok";
@@ -318,25 +322,25 @@ export const ExecutionReport = ({ executionReport, executionMetaData, trackRuleI
         const typeRulesPerContainerRule = typeRules(mappingRule);
         const ruleResults = executionReport?.ruleResults?.[ruleId];
         let title: string | undefined = undefined;
-        let validationError: string | undefined = undefined
-        let intent: "neutral" | "danger" | "warning" | "success" = "neutral"
+        let validationError: string | undefined = undefined;
+        let intent: "neutral" | "danger" | "warning" | "success" = "neutral";
         let typeRulesWithIssues: TypeRuleData[] = [];
         const showURI = !!executionReport?.executionReportContext?.entityUriOutput;
         if (ruleResults) {
-            if(!ruleResults.finishedAt || !ruleResults.startedAt) {
+            if (!ruleResults.finishedAt || !ruleResults.startedAt) {
                 // Either never started or did not finish successfully
-                if(!ruleResults.startedAt) {
+                if (!ruleResults.startedAt) {
                     title = t("ExecutionReport.transform.messages.notExecuted");
-                    intent = "warning"
+                    intent = "warning";
                 } else {
                     title = t("ExecutionReport.transform.messages.notFinished");
-                    intent = "danger"
+                    intent = "danger";
                 }
             } else if (ruleResults.errorCount === 0) {
                 title = t("ExecutionReport.transform.messages.noIssues");
-                intent = "success"
+                intent = "success";
             }
-            if(ruleResults.errorCount > 0) {
+            if (ruleResults.errorCount > 0) {
                 const errorCount = `${ruleResults.errorCount}`;
                 validationError = t("ExecutionReport.transform.messages.validationIssues", { errors: errorCount });
             }
@@ -355,21 +359,9 @@ export const ExecutionReport = ({ executionReport, executionMetaData, trackRuleI
                         })}
                     </Notification>
                 ) : null}
-                {title ? (
-                    <Notification intent={intent}>
-                        {title}
-                    </Notification>
-                ) : null}
-                {title && validationError ?
-                    <Spacing size={"tiny"} /> :
-                    null
-                }
-                {validationError ?
-                    <Notification intent={"warning"}>
-                        {validationError}
-                    </Notification> :
-                    null
-                }
+                {title ? <Notification intent={intent}>{title}</Notification> : null}
+                {title && validationError ? <Spacing size={"tiny"} /> : null}
+                {validationError ? <Notification intent={"warning"}>{validationError}</Notification> : null}
                 {ruleResults !== undefined && ruleResults.errorCount > 0 && renderRuleErrors(ruleResults)}
                 <Spacing size={"small"} />
                 {renderEntityPreview(ruleId, showURI)}
