@@ -187,8 +187,10 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
         };
         const handleCopy = async (e) => {
             const tagName = e.target.tagName;
-            const selectedText: Selection | null = document.getSelection();
-            if (tagName === "INPUT" || (selectedText && selectedText.toString() !== "")) {
+            const textSelection: Selection | null = document.getSelection();
+            const selectedText =
+                (textSelection?.rangeCount && textSelection.getRangeAt(0).toString()) || textSelection?.toString();
+            if (tagName === "INPUT" || selectedText !== "") {
                 // User tries to copy text from an input or from selected text somewhere else on the page, do not interfere
                 return;
             }
