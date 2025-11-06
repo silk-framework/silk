@@ -31,10 +31,12 @@ interface MappingTreeProps {
     ruleTree?: any; //Todo change to correct type
     handleRuleNavigation: (...args) => void;
     trackRuleInUrl?: boolean;
-    ruleValidation?: Record<string, "ok" | "warning">;
+    ruleValidation?: RuleValidationIconMapType;
     showValueMappings?: boolean;
     startFullScreen?: boolean;
 }
+
+export type RuleValidationIconMapType = Record<string, "ok" | "warning" | React.JSX.Element>
 
 //React.useState<Map<string, boolean>>(new Map());
 
@@ -98,7 +100,7 @@ const MappingsTreeNew: React.FC<MappingTreeProps> = ({
         [data, currentRuleId],
     );
 
-    const renderRuleIcon = (ruleIds: string[]) => {
+    const renderRuleIcon = (ruleIds: string[]): React.JSX.Element | null => {
         const rulesWithValidation = ruleIds.filter((ruleId) => ruleValidation && ruleValidation[ruleId] !== undefined);
         if (rulesWithValidation.length === 0) {
             return null;
@@ -106,6 +108,8 @@ const MappingsTreeNew: React.FC<MappingTreeProps> = ({
             rulesWithValidation.findIndex((ruleId) => ruleValidation && ruleValidation[ruleId] === "warning") > -1
         ) {
             return <Icon className="ecc-silk-mapping__ruleitem-icon-yellow" name="warning" />;
+        } else if(rulesWithValidation.findIndex((ruleId) => ruleValidation && typeof ruleValidation[ruleId] !== "string") > -1) {
+            return ruleValidation![rulesWithValidation.find(ruleId => typeof ruleValidation![ruleId] !== "string")!] as React.JSX.Element
         } else {
             return <Icon className="ecc-silk-mapping__ruleitem-icon-green" name="done" />;
         }
