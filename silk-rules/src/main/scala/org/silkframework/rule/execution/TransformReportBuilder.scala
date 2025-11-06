@@ -58,6 +58,22 @@ class TransformReportBuilder(task: Task[TransformSpec], context: ActivityContext
     ruleResults += ((rule.id, updatedRuleResult))
   }
 
+  /** Sets the 'started' times for the given transform rules.
+    *
+    * @param coveredRules The IDs of the rules for which the start time should be set
+    */
+  def setStarted(coveredRules: Set[String]): Unit = {
+    ruleResults = ruleResults.map { case (id, results) => (id, if(coveredRules.contains(id)) results.withStarted() else results) }
+  }
+
+  /** Sets the 'finished' times for the given transform rules.
+    *
+    * @param coveredRules The IDs of the rules for which the finish time should be set
+    */
+  def setFinished(coveredRules: Set[String]): Unit = {
+    ruleResults = ruleResults.map { case (id, results) => (id, if(coveredRules.contains(id)) results.withFinished() else results) }
+  }
+
   def setContainerRule(ruleId: String, outputEntitySchema: EntitySchema)
                       (implicit prefixes: Prefixes): Unit = {
     if(ruleId != currentContainerRuleId) {
