@@ -1,5 +1,11 @@
-import React, { memo, MouseEventHandler } from "react";
-import { CodeAutocompleteField, FieldItem, IconButton, Spacing, Toolbar, ToolbarSection } from "@eccenca/gui-elements";
+import React, { memo } from "react";
+import {
+    CodeAutocompleteField,
+    FieldItem,
+    IconButton,
+    FlexibleLayoutContainer,
+    FlexibleLayoutItem,
+} from "@eccenca/gui-elements";
 import { useTranslation } from "react-i18next";
 import { ExtendedParameterCallbacks } from "./ParameterWidget";
 import {
@@ -88,7 +94,6 @@ export const ArtefactFormParameter = ({
     const [passwordMsgText, setPasswordMsgText] = React.useState<string | undefined>();
     const startWithTemplateView = supportVariableTemplateElement?.startWithTemplateView ?? false;
     const [showVariableTemplateInput, setShowVariableTemplateInput] = React.useState<boolean>(startWithTemplateView);
-    const [showRareActions, setShowRareActions] = React.useState(false);
     const [validationError, setValidationError] = React.useState<string | undefined>(undefined);
     const [templateInfoMessage, setTemplateInfoMessage] = React.useState<string | undefined>(undefined);
     const { templatingEnabled } = useSelector(commonSel.initialSettingsSelector);
@@ -119,7 +124,6 @@ export const ArtefactFormParameter = ({
         currentInputValue: startWithTemplateView ? stringDefaultValue : initialValue,
         currentTemplateValue: startWithTemplateView ? initialValue : undefined,
     });
-    const showRareElementState = React.useRef<{ timeout?: number }>({});
     const isPasswordInput = parameterType === "password";
     const switchShowVariableTemplateInput = React.useCallback(() => {
         setToggledTemplateSwitchBefore(true);
@@ -169,20 +173,7 @@ export const ArtefactFormParameter = ({
         },
         [supportVariableTemplateElement?.onChange],
     );
-    const onMouseOver: MouseEventHandler<HTMLDivElement> = React.useCallback(() => {
-        if (showRareElementState.current.timeout != null) {
-            clearTimeout(showRareElementState.current.timeout);
-        }
-        showRareElementState.current.timeout = window.setTimeout(() => setShowRareActions(true), 150);
-    }, []);
-    const onMouseOut: MouseEventHandler<HTMLDivElement> = React.useCallback(() => {
-        if (showRareElementState.current.timeout != null) {
-            clearTimeout(showRareElementState.current.timeout);
-        }
-        showRareElementState.current.timeout = window.setTimeout(() => setShowRareActions(false), 250);
-    }, []);
 
-    const showSwitchButton = showRareActions || showVariableTemplateInput; // always show for variable templates
     const isTemplateInputType = parameterType === INPUT_TYPES.TEMPLATE;
     const multiline =
         (parameterType &&
@@ -206,19 +197,8 @@ export const ArtefactFormParameter = ({
             disabled={disabled}
             helperText={helperText}
         >
-            <Toolbar
-                onMouseOver={supportVariableTemplateElement ? onMouseOver : undefined}
-                onMouseOut={supportVariableTemplateElement ? onMouseOut : undefined}
-                style={{ alignItems: "flex-start" }}
-                noWrap
-            >
-                <ToolbarSection
-                    canGrow
-                    style={{
-                        alignSelf: "center",
-                        maxWidth: showSwitchButton ? "calc(100% - 3.5px - 32px)" : "100%", // set full width minus tiny spacing and icon button width
-                    }}
-                >
+            <FlexibleLayoutContainer noEqualItemSpace gapSize="tiny">
+                <FlexibleLayoutItem style={{ alignSelf: "center" }}>
                     {(supportVariableTemplateElement && showVariableTemplateInput) || isTemplateInputType ? (
                         <TemplateInputComponent
                             projectId={projectId}
@@ -241,12 +221,10 @@ export const ArtefactFormParameter = ({
                     ) : (
                         inputElementFactory(valueState.current.inputValueBeforeSwitch, onElementValueChange)
                     )}
-                </ToolbarSection>
-                {templatingEnabled && supportVariableTemplateElement && !disabled && (
-                    <ToolbarSection hideOverflow style={!showSwitchButton ? { width: "0px" } : {}}>
-                        <Spacing vertical={true} size={"tiny"} />
+                </FlexibleLayoutItem>
+                {templatingEnabled && supportVariableTemplateElement && (
+                    <FlexibleLayoutItem growFactor={0} shrinkFactor={0}>
                         <IconButton
-                            fill={false}
                             tooltipProps={{
                                 hoverOpenDelay: 50,
                                 placement: "top",
@@ -261,16 +239,15 @@ export const ArtefactFormParameter = ({
                                 showVariableTemplateInput ? "back" : "to"
                             }-btn`}
                             onClick={switchShowVariableTemplateInput}
-                            onFocus={showSwitchButton ? undefined : () => setShowRareActions(true)}
-                            onBlur={showRareActions ? () => setShowRareActions(false) : undefined}
                             minimal={false}
                             outlined
                             elevated={showVariableTemplateInput}
                             active={showVariableTemplateInput}
+                            disabled={disabled}
                         />
-                    </ToolbarSection>
+                    </FlexibleLayoutItem>
                 )}
-            </Toolbar>
+            </FlexibleLayoutContainer>
         </FieldItem>
     );
 };

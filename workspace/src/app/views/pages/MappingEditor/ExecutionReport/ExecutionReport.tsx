@@ -1,26 +1,26 @@
 import React from "react";
-import PropTypes from "prop-types";
 import {
     Grid,
-    GridRow,
     GridColumn,
-    Notification,
+    GridRow,
     HtmlContentBlock,
-    Section,
-    Spacing,
-    PropertyValueList,
-    PropertyValuePair,
+    Notification,
+    NotificationProps,
     PropertyName,
     PropertyValue,
+    PropertyValueList,
+    PropertyValuePair,
+    Section,
+    Spacing,
     Table,
-    TableHeader,
     TableBody,
     TableCell,
     TableHead,
+    TableHeader,
     TableRow,
-    NotificationProps,
+    TestIcon,
 } from "@eccenca/gui-elements";
-import MappingsTree from "../HierarchicalMapping/containers/MappingsTree";
+import MappingsTree, { RuleValidationIconMapType } from "../HierarchicalMapping/containers/MappingsTree";
 import { SampleError } from "../../../shared/SampleError/SampleError";
 import { pluginRegistry, SUPPORTED_PLUGINS } from "../../../plugins/PluginRegistry";
 import { DataPreviewProps } from "../../../plugins/plugin.types";
@@ -28,6 +28,7 @@ import { ExecutionReportResponse, OutputEntitiesSample, TypeRuleData } from "./r
 import { useTranslation } from "react-i18next";
 import { MAPPING_RULE_TYPE_OBJECT } from "../HierarchicalMapping/utils/constants";
 import { MAPPING_ROOT_RULE_ID } from "../HierarchicalMapping/HierarchicalMapping";
+import { InProgressError, InProgressWarning } from "@carbon/icons-react";
 
 interface ExecutionReportProps {
     /** The execution report to render. */
@@ -292,10 +293,21 @@ export const ExecutionReport = ({ executionReport, executionMetaData, trackRuleI
         }
     };
 
-    const generateIcons = (): Record<string, "ok" | "warning"> => {
-        let ruleIcons: Record<string, "ok" | "warning"> = Object.create(null);
+    const generateIcons = (): RuleValidationIconMapType => {
+        let ruleIcons: RuleValidationIconMapType = Object.create(null);
         for (let [ruleId, ruleResults] of Object.entries(executionReport?.ruleResults ?? {})) {
-            if (ruleResults.errorCount === 0) {
+            if (!ruleResults.finishedAt || !ruleResults.startedAt) {
+                // Either never started or did not finish successfully
+                if (!ruleResults.startedAt) {
+                    ruleIcons[ruleId] = (
+                        <TestIcon className="ecc-silk-mapping__ruleitem-icon-yellow" tryout={InProgressWarning} />
+                    );
+                } else {
+                    ruleIcons[ruleId] = (
+                        <TestIcon className="ecc-silk-mapping__ruleitem-icon-red" tryout={InProgressError} />
+                    );
+                }
+            } else if (ruleResults.errorCount === 0) {
                 ruleIcons[ruleId] = "ok";
             } else {
                 ruleIcons[ruleId] = "warning";
@@ -304,20 +316,33 @@ export const ExecutionReport = ({ executionReport, executionMetaData, trackRuleI
         return ruleIcons;
     };
 
-    const renderRuleReport = (ruleValidation: Record<string, "ok" | "warning">) => {
+    const renderRuleReport = (ruleValidation: RuleValidationIconMapType) => {
         const ruleId = currentRuleId ?? MAPPING_ROOT_RULE_ID;
         const mappingRule = executionReport?.task.data.parameters.mappingRule;
         const typeRulesPerContainerRule = typeRules(mappingRule);
         const ruleResults = executionReport?.ruleResults?.[ruleId];
-        let title;
+        let title: string | undefined = undefined;
+        let validationError: string | undefined = undefined;
+        let intent: "neutral" | "danger" | "warning" | "success" = "neutral";
         let typeRulesWithIssues: TypeRuleData[] = [];
         const showURI = !!executionReport?.executionReportContext?.entityUriOutput;
         if (ruleResults) {
-            if (ruleResults.errorCount === 0) {
+            if (!ruleResults.finishedAt || !ruleResults.startedAt) {
+                // Either never started or did not finish successfully
+                if (!ruleResults.startedAt) {
+                    title = t("ExecutionReport.transform.messages.notExecuted");
+                    intent = "warning";
+                } else {
+                    title = t("ExecutionReport.transform.messages.notFinished");
+                    intent = "danger";
+                }
+            } else if (ruleResults.errorCount === 0) {
                 title = t("ExecutionReport.transform.messages.noIssues");
-            } else {
+                intent = "success";
+            }
+            if (ruleResults.errorCount > 0) {
                 const errorCount = `${ruleResults.errorCount}`;
-                title = t("ExecutionReport.transform.messages.validationIssues", { errors: errorCount });
+                validationError = t("ExecutionReport.transform.messages.validationIssues", { errors: errorCount });
             }
         }
         // Check type rules
@@ -334,21 +359,9 @@ export const ExecutionReport = ({ executionReport, executionMetaData, trackRuleI
                         })}
                     </Notification>
                 ) : null}
-                {title ? (
-                    <Notification
-                        intent={
-                            (ruleResults?.errorCount ?? 0) > 0
-                                ? "warning"
-                                : ruleResults?.errorCount === 0
-                                  ? "success"
-                                  : ruleResults === undefined
-                                    ? "neutral"
-                                    : undefined
-                        }
-                    >
-                        {title}
-                    </Notification>
-                ) : null}
+                {title ? <Notification intent={intent}>{title}</Notification> : null}
+                {title && validationError ? <Spacing size={"tiny"} /> : null}
+                {validationError ? <Notification intent={"warning"}>{validationError}</Notification> : null}
                 {ruleResults !== undefined && ruleResults.errorCount > 0 && renderRuleErrors(ruleResults)}
                 <Spacing size={"small"} />
                 {renderEntityPreview(ruleId, showURI)}
