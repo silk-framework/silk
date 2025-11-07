@@ -1,5 +1,5 @@
 import { API_ENDPOINT, HOST } from "../constants/path";
-import { APPLICATION_DOCUMENTATION_SERVICE_URL, APPLICATION_NAME } from "../constants/base";
+import { APPLICATION_DOCUMENTATION_SERVICE_URL, APPLICATION_ID } from "../constants/base";
 import { useTranslation } from "react-i18next";
 import { commonSel } from "@ducks/common";
 import { useSelector } from "react-redux";
@@ -75,7 +75,7 @@ export const legacyLinkingEndpoint = (subPath: string) => {
 /**
  * Documentation page resolver
  */
-export const documentationPageUrl = (featureId: string): string | null => {
+export const documentationPageUrl = (featureId: string): string | undefined => {
     const { i18n } = useTranslation();
     const { version } = useSelector(commonSel.initialSettingsSelector);
 
@@ -84,11 +84,11 @@ export const documentationPageUrl = (featureId: string): string | null => {
             `?${new URLSearchParams({
                 lang: i18n.language,
                 version: version ?? "unknown",
-                origin: APPLICATION_NAME(),
+                origin: APPLICATION_ID(),
             }).toString()}`,
             APPLICATION_DOCUMENTATION_SERVICE_URL() + featureId,
         ).toString();
     } catch {
-        return null;
+        return undefined;
     }
 };
