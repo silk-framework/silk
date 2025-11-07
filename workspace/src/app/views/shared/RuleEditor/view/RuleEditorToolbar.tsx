@@ -115,8 +115,8 @@ export const RuleEditorToolbar = () => {
     const ruleValidationError: RuleValidationError | undefined = ruleEvaluationContext.ruleValidationError
         ? ruleEvaluationContext.ruleValidationError
         : ruleEditorContext.lastSaveResult?.errorMessage
-        ? (ruleEditorContext.lastSaveResult as RuleValidationError)
-        : undefined;
+          ? (ruleEditorContext.lastSaveResult as RuleValidationError)
+          : undefined;
     const translationsStickyNoteModal = {
         modalTitle: t("StickyNoteModal.title"),
         noteLabel: t("StickyNoteModal.labels.codeEditor"),
@@ -168,6 +168,9 @@ export const RuleEditorToolbar = () => {
             ) : null}
             {showCreateStickyModal ? (
                 <StickyNoteModal
+                    simpleDialogProps={{
+                        "data-test-id": "sticky-note-modal",
+                    }}
                     onClose={() => setShowCreateStickyModal(false)}
                     onSubmit={handleStickyNoteSubmit}
                     translate={(key) => translationsStickyNoteModal[key]}
@@ -212,7 +215,7 @@ export const RuleEditorToolbar = () => {
                         checked={ruleEditorUiContext.advancedParameterModeEnabled}
                         onClick={() =>
                             ruleEditorUiContext.setAdvancedParameterMode(
-                                !ruleEditorUiContext.advancedParameterModeEnabled
+                                !ruleEditorUiContext.advancedParameterModeEnabled,
                             )
                         }
                     />
@@ -291,7 +294,7 @@ export const RuleEditorToolbar = () => {
                             ruleValidationError ? [ruleValidationError.errorMessage] : ([] as string[])
                         }
                         queueNodeNotifications={(ruleValidationError?.nodeErrors ?? []).filter(
-                            (nodeError) => nodeError.message
+                            (nodeError) => nodeError.message,
                         )}
                         nodeJumpToHandler={modelContext.centerNode}
                         evaluationNotifications={ruleEvaluationContext.notifications}
