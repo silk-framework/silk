@@ -25,7 +25,7 @@ import { YamlEditor } from "../../../../../views/shared/YamlEditor";
 import { reduceToText } from "@eccenca/gui-elements/src/common/utils/reduceToText";
 
 const MAXLENGTH_TOOLTIP = 32;
-const MAXLENGTH_SIMPLEHELP = 100;
+const MAXLENGTH_SIMPLEHELP = 192;
 
 interface IHookFormParam {
     errors: any;
