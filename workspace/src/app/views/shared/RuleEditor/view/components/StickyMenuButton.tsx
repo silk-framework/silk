@@ -12,7 +12,7 @@ interface StickyMenuButtonProps {
 
 const StickyMenuButton: React.FC<StickyMenuButtonProps> = ({ stickyNodeId, color, stickyNote }) => {
     const [currentStickyContent, setCurrentStickyContent] = React.useState<StickyNoteMetadataType | undefined>(
-        undefined
+        undefined,
     );
     const [showEditModal, setShowEditModal] = React.useState<boolean>(false);
     const [t] = useTranslation();
@@ -30,6 +30,9 @@ const StickyMenuButton: React.FC<StickyMenuButtonProps> = ({ stickyNodeId, color
         <>
             {showEditModal ? (
                 <StickyNoteModal
+                    simpleDialogProps={{
+                        "data-test-id": "sticky-note-modal",
+                    }}
                     metaData={currentStickyContent}
                     onClose={() => setShowEditModal(false)}
                     onSubmit={({ note, color }) =>

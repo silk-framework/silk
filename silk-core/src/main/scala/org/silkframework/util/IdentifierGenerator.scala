@@ -55,8 +55,13 @@ class IdentifierGenerator {
     val str = identifier.toString
     val splitIndex = str.length - str.reverse.indexWhere(!_.isDigit)
     val (name, numStr) = str.splitAt(splitIndex)
-    val num = if(numStr.isEmpty) 0 else numStr.toInt
-    (name, num)
+    try {
+      val num = if(numStr.isEmpty) 0 else numStr.toInt
+      (name, num)
+    } catch {
+      case _: NumberFormatException =>
+        (str + "-", 0)
+    }
   }
 
 }

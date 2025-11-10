@@ -165,6 +165,9 @@ export const RuleEditorToolbar = () => {
             ) : null}
             {showCreateStickyModal ? (
                 <StickyNoteModal
+                    simpleDialogProps={{
+                        "data-test-id": "sticky-note-modal",
+                    }}
                     onClose={() => setShowCreateStickyModal(false)}
                     onSubmit={handleStickyNoteSubmit}
                     translate={(key) => translationsStickyNoteModal[key]}

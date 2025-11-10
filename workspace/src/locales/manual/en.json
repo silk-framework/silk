@@ -446,6 +446,10 @@
             "dataset": {
                 "readOnly": "This dataset is configured as read-only. You can disable this in the dataset configuration."
             }
+        },
+        "documentationLink": {
+            "label": "Documentation",
+            "tooltip": "Open documentation page in new tab."
         }
     },
     "form": {
