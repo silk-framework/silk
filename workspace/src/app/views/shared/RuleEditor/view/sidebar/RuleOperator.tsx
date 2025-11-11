@@ -66,7 +66,12 @@ export const RuleOperator = ({ ruleOperator, textQuery, searchWords }: RuleOpera
                             <Icon
                                 data-test-id="operator-markdown-icon"
                                 name="item-question"
-                                onClick={() => ruleEditorUiContext.setCurrentRuleNodeDescription(operatorDoc)}
+                                onClick={() =>
+                                    ruleEditorUiContext.setCurrentRuleNodeInfo({
+                                        description: operatorDoc,
+                                        label: ruleOperator.label,
+                                    })
+                                }
                                 small
                                 tooltipText={t("RuleEditor.sidebar.operator.markdownTooltip", {
                                     shortDescription: ruleOperator.description,

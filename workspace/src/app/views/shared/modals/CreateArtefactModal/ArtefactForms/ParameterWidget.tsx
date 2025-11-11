@@ -22,6 +22,7 @@ import { ArtefactFormParameter } from "./ArtefactFormParameter";
 import { optionallyLabelledParameterToValue } from "../../../../taskViews/linking/linking.types";
 import { PARAMETER_DOC_PREFIX } from "./TaskForm";
 import { YamlEditor } from "../../../../../views/shared/YamlEditor";
+import { reduceToText } from "@eccenca/gui-elements/src/common/utils/reduceToText";
 
 const MAXLENGTH_TOOLTIP = 32;
 const MAXLENGTH_SIMPLEHELP = 192;
@@ -170,7 +171,7 @@ export const ParameterWidget = (props: IProps) => {
             <StringPreviewContentBlobToggler
                 key={"descriptionToggler"}
                 className="di__parameter_widget__description"
-                content={description}
+                content={reduceToText(<Markdown>{description}</Markdown>)}
                 previewMaxLength={MAXLENGTH_SIMPLEHELP}
                 fullviewContent={
                     <WhiteSpaceContainer
@@ -184,7 +185,6 @@ export const ParameterWidget = (props: IProps) => {
                 }
                 toggleExtendText={t("common.words.more", "more")}
                 toggleReduceText={t("common.words.less", "less")}
-                firstNonEmptyLineOnly={true}
                 noTogglerContentSuffix={detailedLink ? <> {detailedLink}</> : detailedLink}
             />
         );

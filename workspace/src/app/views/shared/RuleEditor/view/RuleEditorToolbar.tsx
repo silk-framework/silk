@@ -146,24 +146,21 @@ export const RuleEditorToolbar = () => {
                 <TitleMainsection>{ruleEditorContext.editorTitle}</TitleMainsection>
             ) : null}
 
-            {ruleEditorUiContext.currentRuleNodeDescription ? (
+            {ruleEditorUiContext.currentRuleNodeInfo ? (
                 <RuleEditorBaseModal
                     isOpen={true}
-                    title={t("common.words.description")}
-                    onClose={() => ruleEditorUiContext.setCurrentRuleNodeDescription(undefined)}
+                    title={ruleEditorUiContext.currentRuleNodeInfo.label}
+                    onClose={() => ruleEditorUiContext.setCurrentRuleNodeInfo(undefined)}
                     hasBorder={true}
                     size={"small"}
                     data-test-id={"ruleEditorNode-description-modal"}
                     actions={[
-                        <Button
-                            key="close"
-                            onClick={() => ruleEditorUiContext.setCurrentRuleNodeDescription(undefined)}
-                        >
+                        <Button key="close" onClick={() => ruleEditorUiContext.setCurrentRuleNodeInfo(undefined)}>
                             {t("common.action.close")}
                         </Button>,
                     ]}
                 >
-                    <Markdown>{ruleEditorUiContext.currentRuleNodeDescription}</Markdown>
+                    <Markdown>{ruleEditorUiContext.currentRuleNodeInfo?.description as string}</Markdown>
                 </RuleEditorBaseModal>
             ) : null}
             {showCreateStickyModal ? (
