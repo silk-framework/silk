@@ -28,11 +28,11 @@ class VocabularyLoader(endpoint: SparqlEndpoint with GraphStoreTrait) {
       s"""
          | $prefixes
          |
-         | SELECT * WHERE {
-         |   GRAPH <$vocabularyGraphUri> {
-         |     { ?v a owl:Ontology }
-         |     ${genericInfoPropertiesPattern("v")}
-         |   }
+         | SELECT *
+         | FROM <$vocabularyGraphUri>
+         | WHERE {
+         |   { ?v a owl:Ontology }
+         |   ${genericInfoPropertiesPattern("v")}
          | }
          | ORDER BY ?v
       """.stripMargin
@@ -90,14 +90,14 @@ class VocabularyLoader(endpoint: SparqlEndpoint with GraphStoreTrait) {
       s"""
          | $prefixes
          |
-         | SELECT * WHERE {
-         |   GRAPH <$vocabularyGraphUri> {
-         |     { ?c a owl:Class }
-         |     UNION
-         |     { ?c a rdfs:Class }
-         |     OPTIONAL { ?c rdfs:subClassOf ?parent }
-         |     ${genericInfoPropertiesPattern("c")}
-         |   }
+         | SELECT *
+         | FROM <$vocabularyGraphUri>
+         | WHERE {
+         |   { ?c a owl:Class }
+         |   UNION
+         |   { ?c a rdfs:Class }
+         |   OPTIONAL { ?c rdfs:subClassOf ?parent }
+         |   ${genericInfoPropertiesPattern("c")}
          | }
          | ORDER BY ?c
       """.stripMargin
@@ -266,19 +266,19 @@ class VocabularyLoader(endpoint: SparqlEndpoint with GraphStoreTrait) {
     s"""
        | $prefixes
        |
-       | SELECT * WHERE {
-       |   GRAPH <$uri> {
-       |     { ?p a rdf:Property }
-       |     UNION
-       |     { ?p a owl:ObjectProperty }
-       |     UNION
-       |     { ?p a owl:DatatypeProperty }
+       | SELECT *
+       | FROM <$uri>
+       | WHERE {
+       |   { ?p a rdf:Property }
+       |   UNION
+       |   { ?p a owl:ObjectProperty }
+       |   UNION
+       |   { ?p a owl:DatatypeProperty }
        |
-       |     ?p a ?class
-       |     OPTIONAL { ?p rdfs:domain ?domain }
-       |     OPTIONAL { ?p rdfs:range ?range }
-       |     ${genericInfoPropertiesPattern("p")}
-       |   }
+       |   ?p a ?class
+       |   OPTIONAL { ?p rdfs:domain ?domain }
+       |   OPTIONAL { ?p rdfs:range ?range }
+       |   ${genericInfoPropertiesPattern("p")}
        | }
       """.stripMargin
   }
