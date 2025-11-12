@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="32px" height="32px" viewBox="0 0 32 32" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: Sketch 52.6 (67491) - http://www.bohemiancoding.com/sketch -->
+    <title>SPARQL Update query</title>
+    <desc>Created with Sketch.</desc>
+    <g id="SPARQL-Update-query" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="update-now" transform="translate(2.000000, 2.000000)">
+            <g id="Group" transform="translate(10.000000, 11.000000)">
+                <circle id="Oval" fill="#ffffff" cx="11" cy="3" r="3"></circle>
+                <circle id="Oval" fill="#ffffff" cx="13" cy="14" r="3"></circle>
+                <circle id="Oval" fill="#ffffff" cx="3" cy="10" r="3"></circle>
+                <path d="M3,10.5 L11.5,2" id="Line" stroke="#ffffff" stroke-width="1.5" stroke-linecap="square"></path>
+                <path d="M13.5,14.5 L11.5,2" id="Line" stroke="#ffffff" stroke-width="1.5" stroke-linecap="square"></path>
+                <path d="M3,10.5 L13.5,14.5" id="Line" stroke="#ffffff" stroke-width="1.5" stroke-linecap="square"></path>
+            </g>
+            <path d="M14,26 C7.37564431,25.9926152 2.00738483,20.6243557 2,14 L0,14 C0.00870729351,21.7283769 6.27162305,27.9912927 14,28 L14,26 Z" id="Path" fill="#ffffff"></path>
+            <path d="M10,6 L5.0784,6 C8.39157674,2.2913282 13.6509568,1.01419583 18.2960165,2.79037345 C22.9410762,4.56655107 26.006544,9.02693818 26,14 L28.0000177,14 C28.0090383,8.30656994 24.5639465,3.17660345 19.2903633,1.03078245 C14.0167801,-1.11503856 7.96868576,0.152150511 4,4.2344 L4,1.42106921e-14 L2,1.42106921e-14 L2,8 L10,8 L10,6 Z" id="Path" fill="#ffffff"></path>
+        </g>
+    </g>
+</svg>
