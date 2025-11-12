@@ -15,11 +15,11 @@
 package org.silkframework.rule.plugins.transformer.substring
 
 import org.silkframework.rule.annotations.{TransformExample, TransformExamples}
+
 import java.net.URLDecoder
 import java.util.logging.{Level, Logger}
-
 import org.silkframework.rule.input.SimpleTransformer
-import org.silkframework.runtime.plugin.annotations.Plugin
+import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
 import org.silkframework.util.Uri
 
 import scala.math.max
@@ -46,9 +46,19 @@ import scala.math.max
   new TransformExample(
     input1 = Array("value"),
     output = Array("value")
+  ),
+  new TransformExample(
+    input1 = Array("urn:scheme:Two_words"),
+    output = Array("Two words")
+  ),
+  new TransformExample(
+    input1 = Array("urn:scheme:Two_words"),
+    parameters = Array("decodeUnderscoresToSpaces", "false"),
+    output = Array("Two_words")
   )
 ))
-case class StripUriPrefixTransformer() extends SimpleTransformer {
+case class StripUriPrefixTransformer(@Param("If true, underscores will be decoded to spaces.")
+                                     decodeUnderscoresToSpaces: Boolean = true) extends SimpleTransformer {
 
   @transient
   private val log = Logger.getLogger(classOf[StripUriPrefixTransformer].getName)
@@ -61,7 +71,7 @@ case class StripUriPrefixTransformer() extends SimpleTransformer {
       val remainder = value.substring(uriPrefixEnd + 1)
 
       //Decode url
-      val clean = remainder.replace('_', ' ')
+      val clean = if(decodeUnderscoresToSpaces) remainder.replace('_', ' ') else remainder
       try {
         URLDecoder.decode(clean, "utf8")
       }
