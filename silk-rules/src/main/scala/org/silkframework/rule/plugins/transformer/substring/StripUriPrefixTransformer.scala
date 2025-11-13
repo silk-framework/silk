@@ -28,7 +28,7 @@ import scala.math.max
   id = "stripUriPrefix",
   categories = Array("Substring", "Normalize"),
   label = "Strip URI prefix",
-  description = "Strips the URI prefix and decodes the remainder. Leaves values unchanged which are not a valid URI."
+  description = "Strips the URI prefix and decodes the remainder based on UTF-8 URL decoding (using java.net.URLDecoder). Leaves values unchanged which are not a valid URI."
 )
 @TransformExamples(Array(
   new TransformExample(
