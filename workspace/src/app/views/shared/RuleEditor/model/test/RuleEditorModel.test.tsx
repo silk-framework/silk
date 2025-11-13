@@ -801,9 +801,10 @@ describe("Rule editor model", () => {
         // // Execute UNDO and REDO twice
         for (let i = 0; i < 2; i++) {
             for (let changeIdx = stateHistory.length - 1; changeIdx > 0; changeIdx--) {
+                expect(allNodes()).toStrictEqual(stateHistory[changeIdx]);
                 resultApi.assert(
                     currentContext().canUndo,
-                    `Undo changes failed because 'can undo' is false. Round: ${i + 1}, Change: ${changeIdx + 1}/${stateHistory.length}.`,
+                    `Undo changes failed because 'can undo' is false. Round: ${i + 1}, Change: ${changeIdx + 1}/${stateHistory.length}. Currently at '${stateHistoryLabel[changeIdx]}' trying to undo to state '${stateHistoryLabel[changeIdx - 1]}'.'`,
                 );
                 act(() => {
                     currentContext().undo();
