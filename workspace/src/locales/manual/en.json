@@ -1225,6 +1225,12 @@
             "title": "Add reference link",
             "sourceUri": "Source URI",
             "targetUri": "Target URI"
+        },
+        "evaluationScoreTooltipWidget": {
+            "range": "Ranging from 0.0 (worst) to 1.0 (best).",
+            "fMeasureText": "<h3>F1-measure: {{fMeasure}}</h3><p>This is the combination of precision and recall. {{range}}</p>",
+            "precisionText": "<h3>Precision: {{precision}}</h3><p>How precise the rule is, i.e. the ratio of correctly evaluated positive items ({{truePositives}}) vs. all positively evaluated items ({{allEvaluatedTrue}}). {{range}}</p>",
+            "recallText": "<h3>Recall: {{recall}}</h3><p>Specifies how many of all the positive items are categorized correctly, i.e the ratio of correctly evaluated positive items ({{truePositives}}) vs all existing positive items ({{allTrue}}). {{range}}</p>"
         }
     },
     "HierarchicalMapping": {
