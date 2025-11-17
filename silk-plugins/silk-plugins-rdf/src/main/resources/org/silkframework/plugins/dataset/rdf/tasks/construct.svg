@@ -1,15 +1,25 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<svg width="32px" height="32px" viewBox="0 0 32 32" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-    <!-- Generator: Sketch 52.6 (67491) - http://www.bohemiancoding.com/sketch -->
-    <title> SPARQL Construct query</title>
-    <desc>Created with Sketch.</desc>
-    <g id="-SPARQL-Construct-query" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
-        <circle id="Oval" fill="#ffffff" cx="16" cy="6" r="4"></circle>
-        <circle id="Oval" fill="#ffffff" cx="7" cy="24" r="4"></circle>
-        <path d="M8,23 L16,6" id="Line" stroke="#ffffff" stroke-width="1.5" stroke-linecap="square"></path>
-        <path d="M21.5,18 L16,6" id="Line" stroke="#ffffff" stroke-width="1.5" stroke-linecap="square"></path>
-        <path d="M8,23.5 L18,23.5" id="Line" stroke="#ffffff" stroke-width="1.5" stroke-linecap="square"></path>
-        <polygon id="Path" fill="#ffffff" points="25 22 25 20 23 20 23 22 21 22 21 24 23 24 23 26 25 26 25 24 27 24 27 22"></polygon>
-        <circle id="Oval" stroke="#ffffff" stroke-width="1.5" cx="24" cy="23" r="5"></circle>
-    </g>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   width="32px"
+   height="32px"
+   viewBox="0 0 32 32"
+   fill="currentColor"
+   version="1.1"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <title
+     id="title1"> SPARQL Construct query</title>
+  <path
+     d="M 16 2 A 4 4 0 0 0 12 6 A 4 4 0 0 0 13.648438 9.2363281 L 8.4550781 20.273438 A 4 4 0 0 0 7 20 A 4 4 0 0 0 3 24 A 4 4 0 0 0 7 28 A 4 4 0 0 0 10.992188 24.25 L 18 24.25 L 18.386719 24.25 C 18.960116 26.819299 21.262281 28.75 24 28.75 C 27.166754 28.75 29.75 26.166754 29.75 23 C 29.75 19.833246 27.166754 17.25 24 17.25 C 23.34416 17.25 22.713022 17.36062 22.125 17.564453 L 18.318359 9.2597656 A 4 4 0 0 0 20 6 A 4 4 0 0 0 16 2 z M 15.005859 9.875 A 4 4 0 0 0 16 10 A 4 4 0 0 0 16.955078 9.8847656 L 20.783203 18.238281 C 19.320726 19.229977 18.336719 20.875957 18.255859 22.75 L 18 22.75 L 10.798828 22.75 A 4 4 0 0 0 9.7324219 21.078125 L 15.005859 9.875 z M 24 18.75 C 26.356094 18.75 28.25 20.643906 28.25 23 C 28.25 25.356094 26.356094 27.25 24 27.25 C 21.643906 27.25 19.75 25.356094 19.75 23 C 19.75 20.643906 21.643906 18.75 24 18.75 z M 23 20 L 23 22 L 21 22 L 21 24 L 23 24 L 23 26 L 25 26 L 25 24 L 27 24 L 27 22 L 25 22 L 25 20 L 23 20 z " />
+  <metadata>
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:title>SPARQL Construct query</dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
 </svg>
