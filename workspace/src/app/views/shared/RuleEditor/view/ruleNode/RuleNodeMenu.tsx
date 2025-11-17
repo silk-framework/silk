@@ -63,7 +63,7 @@ export const RuleNodeMenu = ({
                     <MenuItem
                         data-test-id="rule-node-info"
                         key="info"
-                        icon={"item-info"}
+                        icon={"item-question"}
                         onClick={(e) => {
                             closeMenu();
                             ruleEditorUiContext.setCurrentRuleNodeInfo({
