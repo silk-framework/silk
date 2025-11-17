@@ -1,13 +1,12 @@
 import { RuleParameterInput } from "./RuleParameterInput";
 import React from "react";
-import { FieldItem, Link, Icon, TestIcon } from "@eccenca/gui-elements";
+import { FieldItem, Link, Icon } from "@eccenca/gui-elements";
 import { IRuleNodeParameter } from "./RuleNodeParameter.typings";
 import ruleNodeUtils from "./ruleNode.utils";
 import { IParameterValidationResult } from "../../RuleEditor.typings";
 import { useTranslation } from "react-i18next";
 import { RuleEditorNodeParameterValue } from "../../model/RuleEditorModel.typings";
-import { InputPathFunctions, LanguageFilterProps } from "./PathInputOperator";
-import * as icons from "@carbon/react/icons";
+import { InputPathFunctions } from "./PathInputOperator";
 
 interface RuleNodeFormParameterProps {
     nodeId: string;
@@ -78,7 +77,7 @@ export const RuleNodeFormParameter = ({
                 info: paramSpec.requiredLabel || (paramSpec.required ? "required" : undefined),
                 additionalElements: paramSpec.urlUserHelp ? (
                     <Link href={paramSpec.urlUserHelp} target="_docs" style={{ color: "inherit" }}>
-                        <TestIcon small tryout={icons.HelpFilled} tooltipText={t("common.documentationLink.tooltip")} />
+                        <Icon small name="item-question" tooltipText={t("common.documentationLink.tooltip")} />
                     </Link>
                 ) : undefined,
             }}

@@ -4,6 +4,7 @@ import {
     GridColumn,
     GridRow,
     HtmlContentBlock,
+    Icon,
     Notification,
     NotificationProps,
     PropertyName,
@@ -18,7 +19,6 @@ import {
     TableHead,
     TableHeader,
     TableRow,
-    TestIcon,
 } from "@eccenca/gui-elements";
 import MappingsTree, { RuleValidationIconMapType } from "../HierarchicalMapping/containers/MappingsTree";
 import { SampleError } from "../../../shared/SampleError/SampleError";
@@ -28,7 +28,6 @@ import { ExecutionReportResponse, OutputEntitiesSample, TypeRuleData } from "./r
 import { useTranslation } from "react-i18next";
 import { MAPPING_RULE_TYPE_OBJECT } from "../HierarchicalMapping/utils/constants";
 import { MAPPING_ROOT_RULE_ID } from "../HierarchicalMapping/HierarchicalMapping";
-import { InProgressError, InProgressWarning } from "@carbon/icons-react";
 
 interface ExecutionReportProps {
     /** The execution report to render. */
@@ -300,11 +299,19 @@ export const ExecutionReport = ({ executionReport, executionMetaData, trackRuleI
                 // Either never started or did not finish successfully
                 if (!ruleResults.startedAt) {
                     ruleIcons[ruleId] = (
-                        <TestIcon className="ecc-silk-mapping__ruleitem-icon-yellow" tryout={InProgressWarning} />
+                        <Icon
+                            className="ecc-silk-mapping__ruleitem-icon-yellow"
+                            name="state-progress-warning"
+                            intent="warning"
+                        />
                     );
                 } else {
                     ruleIcons[ruleId] = (
-                        <TestIcon className="ecc-silk-mapping__ruleitem-icon-red" tryout={InProgressError} />
+                        <Icon
+                            className="ecc-silk-mapping__ruleitem-icon-red"
+                            name="state-progress-error"
+                            intent="danger"
+                        />
                     );
                 }
             } else if (ruleResults.errorCount === 0) {
