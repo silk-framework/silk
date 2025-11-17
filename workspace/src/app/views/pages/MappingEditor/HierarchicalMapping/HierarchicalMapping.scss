@@ -59,7 +59,6 @@ ul.ecc-hierarchical-mapping-error-list {
     display: flex;
     flex-wrap: wrap;
     align-items: stretch;
-    padding: 0 $ecc-size-block-whitespace * 0.5 $ecc-size-block-whitespace * 0.5;
 }
 
 .ecc-silk-mapping__treenav {
@@ -133,13 +132,7 @@ ul.ecc-hierarchical-mapping-error-list {
     .ecc-silk-mapping__treenav--item-toggler {
         flex-grow: 0;
         flex-shrink: 0;
-        min-width: $button-height;
-
-        &.material-icons {
-            font-size: $typo-body-1-font-size;
-            text-align: center;
-            color: to_color($palette-grey-500);
-        }
+        min-width: $button-height !important;
     }
 
     .ecc-silk-mapping__treenav--item-handler:not(.#{$eccgui}-button) {
@@ -312,29 +305,10 @@ ul.ecc-hierarchical-mapping-error-list {
     }
 }
 
-.ecc-silk-mapping__ruleitem-expanded {
-}
-
 .ecc-silk-mapping__ruleitem--defect {
     color: to_color($ecc-color-warning-text);
     background-color: to_color($ecc-color-warning-background);
     border-color: darken(to_color($ecc-color-warning-background), 5%);
-}
-
-.ecc-silk-mapping__ruleitem-icon {
-    font-size: 1.39em;
-    vertical-align: bottom;
-    margin-right: 0.1em;
-
-    &-red {
-        color: to_color($palette-red-800);
-    }
-    &-yellow {
-        color: to_color($palette-yellow-800);
-    }
-    &-green {
-        color: to_color($palette-green-800);
-    }
 }
 
 .ecc-silk-mapping__ruleitem-headline {

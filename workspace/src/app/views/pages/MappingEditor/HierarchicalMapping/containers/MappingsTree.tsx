@@ -1,6 +1,5 @@
 import React from "react";
 import _ from "lodash";
-import { Icon } from "gui-elements-deprecated";
 import {
     InteractionGate,
     Notification,
@@ -11,6 +10,8 @@ import {
     OverviewItemDescription,
     OverviewItemLine,
     OverflowText,
+    Icon,
+    IconButton,
 } from "@eccenca/gui-elements";
 
 import RuleTypes from "../elements/RuleTypes";
@@ -107,7 +108,7 @@ const MappingsTreeNew: React.FC<MappingTreeProps> = ({
         } else if (
             rulesWithValidation.findIndex((ruleId) => ruleValidation && ruleValidation[ruleId] === "warning") > -1
         ) {
-            return <Icon className="ecc-silk-mapping__ruleitem-icon-yellow" name="warning" />;
+            return <Icon className="ecc-silk-mapping__ruleitem-icon-yellow" name="state-warning" intent="warning" />;
         } else if (
             rulesWithValidation.findIndex((ruleId) => ruleValidation && typeof ruleValidation[ruleId] !== "string") > -1
         ) {
@@ -115,7 +116,7 @@ const MappingsTreeNew: React.FC<MappingTreeProps> = ({
                 rulesWithValidation.find((ruleId) => typeof ruleValidation![ruleId] !== "string")!
             ] as React.JSX.Element;
         } else {
-            return <Icon className="ecc-silk-mapping__ruleitem-icon-green" name="done" />;
+            return <Icon className="ecc-silk-mapping__ruleitem-icon-green" name="state-success" intent="success" />;
         }
     };
 
@@ -192,10 +193,12 @@ const MappingsTreeNew: React.FC<MappingTreeProps> = ({
                 isExpanded,
                 label,
                 icon: !childNodes.length ? (
-                    <Icon
-                        name="radio_button_unchecked"
+                    <IconButton
+                        name="toggler-radio"
                         data-test-id={`ecc-silk-mapping__treenav--item-toggler-${id}`}
                         className="ecc-silk-mapping__treenav--item-toggler"
+                        small
+                        disabled
                     />
                 ) : undefined,
                 childNodes: childNodes.map((child) => {

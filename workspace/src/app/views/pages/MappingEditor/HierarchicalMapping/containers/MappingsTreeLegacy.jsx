@@ -1,8 +1,7 @@
 import React from "react";
 import PropTypes from "prop-types";
 import _ from "lodash";
-import { Button, Icon } from "gui-elements-deprecated";
-import { InteractionGate, Notification } from "@eccenca/gui-elements";
+import { InteractionGate, Notification, Icon, IconButton } from "@eccenca/gui-elements";
 
 import RuleTypes from "../elements/RuleTypes";
 import RuleTitle from "../elements/RuleTitle";
@@ -71,7 +70,7 @@ class MappingsTree extends React.Component {
             },
             () => {
                 this.setState({ navigationLoading: false });
-            }
+            },
         );
     };
 
@@ -110,7 +109,7 @@ class MappingsTree extends React.Component {
                 if (args.onFinish) {
                     args.onFinish();
                 }
-            }
+            },
         );
     };
 
@@ -273,21 +272,23 @@ class MappingsTree extends React.Component {
                     }`}
                 >
                     {!_.isEmpty(childs) ? (
-                        <Button
+                        <IconButton
                             data-test-id={`ecc-silk-mapping__treenav--item-toggler-${id}`}
                             className="ecc-silk-mapping__treenav--item-toggler"
-                            iconName={expanded ? "expand_more" : "arrow_nextpage"}
+                            name={expanded ? "toggler-showmore" : "toggler-moveright"}
                             tooltip={expanded ? "Hide sub tree" : "Open sub tree"}
                             onClick={() => {
                                 this.handleToggleExpandNavigationTree(id);
                             }}
                         />
                     ) : (
-                        <Icon
+                        <IconButton
                             data-test-id={`ecc-silk-mapping__treenav--item-toggler-${id}`}
                             className="ecc-silk-mapping__treenav--item-toggler"
-                            name="radio_button_unchecked"
+                            name="toggler-radio"
                             tooltip=""
+                            disabled
+                            small
                         />
                     )}
                     {element()}
@@ -307,9 +308,9 @@ class MappingsTree extends React.Component {
         if (!this.props.ruleValidation || !this.props.ruleValidation.hasOwnProperty(ruleId)) {
             return null;
         } else if (this.props.ruleValidation[ruleId] === "ok") {
-            return <Icon className="ecc-silk-mapping__ruleitem-icon-green" name="done" />;
+            return <Icon className="ecc-silk-mapping__ruleitem-icon-green" name="state-success" intent="success" />;
         } else {
-            return <Icon className="ecc-silk-mapping__ruleitem-icon-yellow" name="warning" />;
+            return <Icon className="ecc-silk-mapping__ruleitem-icon-yellow" name="state-warning" intent="warning" />;
         }
     }
 
