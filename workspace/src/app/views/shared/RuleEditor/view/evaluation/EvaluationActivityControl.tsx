@@ -8,6 +8,7 @@ import {
     ActivityControlWidgetAction,
 } from "@eccenca/gui-elements";
 import { useTranslation } from "react-i18next";
+import { EvaluationScoreTooltip } from "./EvaluationScoreTooltip";
 
 interface EvaluationActivityControlProps {
     score: IEvaluatedReferenceLinksScore | undefined;
@@ -55,36 +56,14 @@ export const EvaluationActivityControl = ({
         label: <strong>{t("RuleEditor.evaluation.scoreWidget.title")}</strong>,
         statusMessage: t("RuleEditor.evaluation.scoreWidget.notStarted"),
     } as ActivityControlWidgetProps;
-    let EvaluationTooltip = ({ children }: { children: JSX.Element }): JSX.Element => children;
+    let EvaluationTooltip = ({ children }: { children: React.JSX.Element }): React.JSX.Element => children;
 
     if (score) {
-        const allEvaluatedTrue = score.truePositives + score.falsePositives;
-        const allTrue = score.truePositives + score.falseNegatives;
-        const fMeasure = Number.parseFloat(score.fMeasure);
-        const range = "Ranging from 0.0 (worst) to 1.0 (best).";
-        const fmeasureText = `<h3>F1-measure: ${score.fMeasure}</h3><p>This is the combination of precision and recall. ${range}</p>`;
-        const precisionText = `<h3>Precision: ${score.precision}</h3><p>How precise the rule is, i.e. the ratio of correctly evaluated positive items (${score.truePositives}) vs. all positively evaluated items (${allEvaluatedTrue}). ${range}</p>`;
-        const recallText = `<h3>Recall: ${score.recall}</h3><p>Specifies how many of all the positive items are categorized correctly, i.e the ratio of correctly evaluated positive items (${score.truePositives}) vs all existing positive items (${allTrue}). ${range}</p>`;
-
         activityInfo = {
             ...activityInfo,
-            label: <strong>F / P / R</strong>,
-            statusMessage: `${score.fMeasure} / ${score.precision} / ${score.recall}`,
-            progressBar: {
-                intent: "primary",
-                animate: false,
-                stripes: false,
-                value: fMeasure,
-            },
+            ...activityControlScoreProps(score),
         };
-        EvaluationTooltip = ({ children }) => (
-            <Tooltip
-                content={<Markdown allowHtml={true}>{fmeasureText + precisionText + recallText}</Markdown>}
-                size={"large"}
-            >
-                {children}
-            </Tooltip>
-        );
+        EvaluationTooltip = ({ children }) => <EvaluationScoreTooltip score={score}>{children}</EvaluationScoreTooltip>;
     } else if (isLinkingEvaluation && !!evaluationResultsShown) {
         activityInfo = {
             ...activityInfo,
@@ -120,4 +99,19 @@ export const EvaluationActivityControl = ({
             <ActivityControlWidget border small canShrink {...activityInfo} activityActions={Menu()} />
         </EvaluationTooltip>
     );
+};
+
+/** Generate activity control properties based on score. */
+export const activityControlScoreProps = (score: IEvaluatedReferenceLinksScore): ActivityControlWidgetProps => {
+    const fMeasure = Number.parseFloat(score.fMeasure);
+    return {
+        label: <strong>F / P / R</strong>,
+        statusMessage: `${score.fMeasure} / ${score.precision} / ${score.recall}`,
+        progressBar: {
+            intent: "primary",
+            animate: false,
+            stripes: false,
+            value: fMeasure,
+        },
+    };
 };

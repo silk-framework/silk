@@ -30,6 +30,7 @@ import {
     DataTableRenderProps,
     TabProps,
     usePagination,
+    ActivityControlWidgetProps,
 } from "@eccenca/gui-elements";
 import React from "react";
 import { useTranslation } from "react-i18next";
@@ -45,7 +46,7 @@ import {
     ReferenceLinkType,
 } from "./typings";
 import utils from "../LinkingRuleEvaluation.utils";
-import { IAggregationOperator, IComparisonOperator } from "../../linking.types";
+import { IAggregationOperator, IComparisonOperator, IEvaluatedReferenceLinksScore } from "../../linking.types";
 import { EvaluationResultType } from "../LinkingRuleEvaluation";
 import { requestRuleOperatorPluginsDetails } from "@ducks/common/requests";
 import { IPluginDetails } from "@ducks/common/typings";
@@ -60,6 +61,9 @@ import { AddReferenceLinkModal } from "./modals/AddReferenceLinkModal";
 import useErrorHandler from "../../../../../hooks/useErrorHandler";
 import { getHistory } from "../../../../../store/configureStore";
 import { legacyLinkingEndpoint } from "../../../../../utils/getApiEndpoint";
+import { referenceLinksEvaluated } from "../../LinkingRuleEditor.requests";
+import { activityControlScoreProps } from "../../../../shared/RuleEditor/view/evaluation/EvaluationActivityControl";
+import { EvaluationScoreTooltip } from "../../../../shared/RuleEditor/view/evaluation/EvaluationScoreTooltip";
 
 interface LinkingEvaluationTabViewProps {
     projectId: string;
@@ -111,6 +115,7 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
         console.log({ show });
         return Boolean(show);
     });
+    const [evaluationScore, setEvaluationScore] = React.useState<IEvaluatedReferenceLinksScore | undefined | string>();
     const [showImportLinkModal, setShowImportLinkModal] = React.useState<boolean>(false);
     const [showAddLinkModal, setShowAddLinkModal] = React.useState<boolean>(false);
     const [showDeleteReferenceLinkModal, setShowDeleteReferenceLinkModal] = React.useState<boolean>(false);
@@ -128,6 +133,28 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
             ]),
     );
     const linkType = showReferenceLinks ? "Reference" : "Evaluation";
+
+    const fetchReferenceLinksScore = async () => {
+        try {
+            const evaluated = await referenceLinksEvaluated(projectId, linkingTaskId, false);
+            setEvaluationScore(evaluated.data.evaluationScore);
+        } catch (err) {
+            setEvaluationScore("N/A");
+            errorHandler.registerError(
+                "fetchReferenceLinksScore",
+                "Could not fetch reference links performance score!",
+                err,
+            );
+        }
+    };
+
+    React.useEffect(() => {
+        if (showReferenceLinks) {
+            fetchReferenceLinksScore();
+        } else {
+            setEvaluationScore(undefined);
+        }
+    }, [showReferenceLinks]);
 
     //fetch operator plugins
     React.useEffect(() => {
@@ -624,6 +651,7 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                         </ContextOverlay>
                     </ToolbarSection>
                 ) : null}
+                {showReferenceLinks ? <ReferenceLinksScoreWidget score={evaluationScore} /> : null}
                 <ToolbarSection canShrink>
                     <Spacing vertical size="small" />
                     <TaskActivityWidget
@@ -795,6 +823,33 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                 (!evaluationResults.current?.links?.length && createUserNotification())}
             {!!evaluationResults.current?.links.length && paginationElement}
         </section>
+    );
+};
+
+interface ReferenceLinksScoreWidgetProps {
+    score?: IEvaluatedReferenceLinksScore | string;
+}
+const ReferenceLinksScoreWidget = ({ score }: ReferenceLinksScoreWidgetProps) => {
+    let props: ActivityControlWidgetProps;
+
+    if (typeof score === "string") {
+        // Error
+        props = {
+            label: <strong>N/A</strong>,
+            statusMessage: score,
+        };
+    } else if (score) {
+        props = activityControlScoreProps(score);
+    } else {
+        props = {
+            progressSpinner: { position: "local" },
+        };
+    }
+
+    return (
+        <EvaluationScoreTooltip score={typeof score === "string" ? undefined : score}>
+            <ActivityControlWidget border small canShrink data-test-id="reference-links-score-widget" {...props} />
+        </EvaluationScoreTooltip>
     );
 };
 
