@@ -217,6 +217,8 @@ export const ArtefactFormParameter = ({
                                 supportVariableTemplateElement?.showTemplatePreview ? setTemplateInfoMessage : undefined
                             }
                             allowSensitiveVariables={isPasswordInput}
+                            // If the parameter is a template parameter, the validation is not aware in general what variables exist
+                            ignoreUnboundVariables={isTemplateInputType && !showVariableTemplateInput}
                         />
                     ) : (
                         inputElementFactory(valueState.current.inputValueBeforeSwitch, onElementValueChange)
@@ -267,6 +269,8 @@ interface TemplateInputComponentProps {
     handleTemplateErrors?: (error?: string) => any;
     multiline?: boolean;
     allowSensitiveVariables?: boolean;
+    /** If the validation of the template string should ignore unbound variables. */
+    ignoreUnboundVariables: boolean;
 }
 
 /** The input component for the template value. */
@@ -282,7 +286,10 @@ export const TemplateInputComponent = memo(
         handleTemplateErrors,
         multiline,
         allowSensitiveVariables,
+        ignoreUnboundVariables,
     }: TemplateInputComponentProps) => {
+        const currentUB = React.useRef<boolean>(ignoreUnboundVariables);
+        currentUB.current = ignoreUnboundVariables;
         const modalContext = React.useContext(CreateArtefactModalContext);
         const { registerError: globalErrorHandler } = useErrorHandler();
         const [t] = useTranslation();
@@ -344,6 +351,7 @@ export const TemplateInputComponent = memo(
                             projectId,
                             variableName,
                             allowSensitiveVariables,
+                            currentUB.current,
                         )
                     ).data;
                     evaluatedValueMessage?.(

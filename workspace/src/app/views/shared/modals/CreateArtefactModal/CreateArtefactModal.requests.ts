@@ -30,6 +30,7 @@ export const requestValidateTemplateString = async (
     project?: string,
     variableName?: string,
     includeSensitiveVariables?: boolean,
+    ignoreUnboundVariables?: boolean,
 ): Promise<FetchResponse<ValidateTemplateResponse>> => {
     return fetch({
         url: coreApi("/variableTemplate/validation"),
@@ -39,6 +40,7 @@ export const requestValidateTemplateString = async (
             project,
             variableName,
             includeSensitiveVariables,
+            ignoreUnboundVariables,
         },
     });
 };
