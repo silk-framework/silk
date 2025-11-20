@@ -18,6 +18,7 @@ import {
     Highlighter,
     Icon,
     IconButton,
+    IconButtonProps,
     InteractionGate,
     OverflowText,
     Spacing,
@@ -31,7 +32,6 @@ import {
 } from "@eccenca/gui-elements";
 import { OperatorLabel } from "../../../../../views/taskViews/shared/evaluations/OperatorLabel";
 import { LinkType } from "../../referenceLinks/LinkingRuleReferenceLinks.typing";
-import { Intent as BlueprintIntent } from "@blueprintjs/core";
 
 interface ExpandedEvaluationRowProps {
     rowIdx: number;
@@ -64,7 +64,7 @@ const operatorInputMapping = {
 const linkStateButtons: {
     icon: ValidIconName;
     linkType: LinkType;
-    intent?: BlueprintIntent | "accent";
+    intent?: IconButtonProps["intent"];
     tooltip: string;
 }[] = [
     { icon: "state-confirmed", intent: "success", linkType: "positive", tooltip: "Confirm" },
