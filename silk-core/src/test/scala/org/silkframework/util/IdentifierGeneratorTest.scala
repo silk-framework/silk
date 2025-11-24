@@ -40,9 +40,11 @@ class IdentifierGeneratorTest extends AnyFlatSpec with Matchers {
     generator.generate("name1") mustBe Identifier("name1")
   }
 
-  it should "append new number if existing cannot be parsed" in {
+  it should "append new number if last number cannot be parsed to a 32bit integer" in {
     val generator = new IdentifierGenerator()
     generator.add("aff0eea9-2f47-4299-a48e-170361534358")
     generator.generate("aff0eea9-2f47-4299-a48e-170361534358") mustBe Identifier("aff0eea9-2f47-4299-a48e-170361534358-1")
+    generator.generate("aff0eea9-2f47-4299-a48e-170361534358") mustBe Identifier("aff0eea9-2f47-4299-a48e-170361534358-2")
+    generator.generate("aff0eea9-2f47-4299-a48e-170361534358-1") mustBe Identifier("aff0eea9-2f47-4299-a48e-170361534358-3")
   }
 }
