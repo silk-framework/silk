@@ -2,7 +2,7 @@ package controllers.workspaceApi.coreApi
 
 import config.WorkbenchLinks
 import controllers.core.UserContextActions
-import controllers.util.{PluginUsageCollector, TextSearchUtils}
+import controllers.util.{ItemType, PluginUsageCollector, TextSearchUtils}
 import controllers.workspaceApi.coreApi.doc.PluginApiDoc
 import io.swagger.v3.oas.annotations.enums.ParameterIn
 import io.swagger.v3.oas.annotations.media.{ArraySchema, Content, ExampleObject, Schema}
@@ -549,7 +549,12 @@ object PluginTypesJson {
 }
 
 case class PluginUsage(project: Option[String],
+                       projectLabel: Option[String],
                        task: Option[String],
+                       taskLabel: Option[String],
+                       itemType: Option[String] = None,
+                       pluginId: String,
+                       pluginLabel: String,
                        link: Option[String],
                        deprecationMessage: Option[String])
 
@@ -559,7 +564,12 @@ object PluginUsage {
   def forTask(task: ProjectTask[_ <: TaskSpec], pluginDesc: PluginDescription[AnyPlugin]): PluginUsage = {
     PluginUsage(
       project = Some(task.project.id.toString),
+      projectLabel = Some(task.project.fullLabel),
       task = Some(task.id.toString),
+      taskLabel = Some(task.fullLabel),
+      itemType = Some(ItemType.itemType(task.data).id),
+      pluginId = pluginDesc.id.toString,
+      pluginLabel = pluginDesc.label,
       link = Some(WorkbenchLinks.editorLink(task)),
       deprecationMessage = pluginDesc.deprecation
     )

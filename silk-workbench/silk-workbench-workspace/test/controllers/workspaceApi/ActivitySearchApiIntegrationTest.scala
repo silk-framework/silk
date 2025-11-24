@@ -1,11 +1,11 @@
 package controllers.workspaceApi
 
+import controllers.util.ItemType
 import controllers.workspaceApi.search.SearchApiModel.{FacetSetting, FacetType, FacetedSearchResult, Facets, KeywordFacetSetting, SortOrder, SortableProperty}
 import controllers.workspaceApi.search._
 import controllers.workspaceApi.search.activity.ActivitySearchRequest
 import controllers.workspaceApi.search.activity.ActivitySearchRequest.{ActivityResult, ActivitySortBy}
 import helper.IntegrationTestTrait
-
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.rule.TransformSpec
 import org.silkframework.workspace.SingleProjectWorkspaceProviderTestTrait
