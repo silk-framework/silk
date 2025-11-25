@@ -477,7 +477,7 @@ object TransformSpec {
       */
     override def write(value: TransformSpec)(implicit writeContext: WriteContext[Node]): Node = {
       <TransformSpec abortIfErrorsOccur={value.abortIfErrorsOccur.toString}>
-        {value.selection.toXML(true)}{toXml(value.mappingRule)}<Outputs>
+        {value.selection.toXML(asSource = true, writeContext.prefixes)}{toXml(value.mappingRule)}<Outputs>
         {value.output.value.toSeq.map(o => <Output id={o}></Output>)}
       </Outputs>{if (value.errorOutput.isEmpty) {
         Null
