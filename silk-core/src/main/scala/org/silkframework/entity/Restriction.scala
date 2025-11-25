@@ -16,7 +16,7 @@ package org.silkframework.entity
 
 import org.silkframework.config.Prefixes
 import org.silkframework.entity.paths.UntypedPath
-import org.silkframework.entity.rdf.{SparqlEntitySchema, SparqlRestriction}
+import org.silkframework.entity.rdf.{SparqlEntitySchema, SparqlRestriction, SparqlRestrictionBuilder}
 
 /**
  * A restriction for filtering datasets.
@@ -32,7 +32,15 @@ case class Restriction(operator: Option[Restriction.Operator]) {
   /** Retrieves all paths that are used by this restriction. */
   def paths: Set[UntypedPath] = operator.map(_.paths).getOrElse(Set.empty)
 
+  /** @deprecated Serializes the restriction, but has no corresponding parser. Use generateCustomRestriction
+    *             instead to serialize a custom SPARQL restriction. */
   def serialize: String = operator.map(_.serialize).mkString
+
+  /** Serializes the restriction to a custom SPARQL restriction. This should be used when parsing of the serializes string must be supported. */
+  def generateCustomRestriction(implicit prefixes: Prefixes): SparqlRestriction = {
+    val sparqlBuilder = new SparqlRestrictionBuilder("a")
+    sparqlBuilder.apply(this)
+  }
 
   override def toString: String = operator.mkString
 }
@@ -61,10 +69,11 @@ object Restriction {
    * Currently all conditions are parsed into custom conditions.
    */
   def parse(restriction: String)(implicit prefixes: Prefixes): Restriction = {
-    if(restriction.trim.isEmpty)
+    if(restriction.trim.isEmpty) {
       Restriction.empty
-    else
+    } else {
       Restriction.custom(restriction)
+    }
   }
 
   /**

@@ -53,18 +53,18 @@ case class DatasetSelection(@Param(label = "Input", value = "The input that is g
    *
    * @param asSource If true, this dataset will be serialized as a source dataset. If false it will be serialize as target dataset.
    */
-  def toXML(asSource: Boolean): Elem = {
+  def toXML(asSource: Boolean, prefixes: Prefixes): Elem = {
     if (asSource) {
       <SourceDataset dataSource={inputId} var="a" typeUri={typeUri.uri}>
         <RestrictTo xml:space="preserve">
-          {restriction.serialize}
+          {restriction.generateCustomRestriction(prefixes).toSparql}
         </RestrictTo>
       </SourceDataset>
     }
     else {
       <TargetDataset dataSource={inputId} var="b" typeUri={typeUri.uri}>
         <RestrictTo xml:space="preserve">
-          {restriction.serialize}
+          {restriction.generateCustomRestriction(prefixes).toSparql}
         </RestrictTo>
       </TargetDataset>
     }
