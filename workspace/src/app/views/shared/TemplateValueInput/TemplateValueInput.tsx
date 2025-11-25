@@ -137,6 +137,7 @@ const TemplateValueInput = React.forwardRef(
                                 parameterId={parameterId}
                                 variableName={existingVariableName}
                                 handleTemplateErrors={handleCheckTemplateErrors}
+                                ignoreUnboundVariables={false}
                             />
                         ) : (
                             <TextField
