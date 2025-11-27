@@ -66,8 +66,8 @@ class SparqlSink(params: SparqlParams,
     }
   }
 
-  override def clear()(implicit userContext: UserContext): Unit = {
-    if(dropGraphOnClear) {
+  override def clear(force: Boolean = false)(implicit userContext: UserContext): Unit = {
+    if(dropGraphOnClear || force) {
       params.graph match {
         case Some(graph) =>
           endpoint.update(s"DROP SILENT GRAPH <$graph>")

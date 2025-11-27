@@ -138,8 +138,8 @@ case class GraphStoreSink(graphStore: GraphStoreTrait,
     writeStatement(subject, predicate, obj, valueType)
   }
 
-  override def clear()(implicit userContext: UserContext): Unit = {
-    if(dropGraphOnClear) {
+  override def clear(force: Boolean = false)(implicit userContext: UserContext): Unit = {
+    if(dropGraphOnClear || force) {
       log.fine("Clearing graph " + graphUri)
       graphStore.deleteGraph(graphUri)
     }
