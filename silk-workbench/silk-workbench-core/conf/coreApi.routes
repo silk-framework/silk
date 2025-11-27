@@ -5,7 +5,7 @@ GET        /ruleOperatorPlugins/:pluginId controllers.workspaceApi.coreApi.Plugi
 GET        /plugins/:pluginId             controllers.workspaceApi.coreApi.PluginApi.plugin(pluginId: String, addMarkdownDocumentation: Boolean ?= false, pretty: Boolean ?= false, withLabels: Boolean ?= false)
 GET        /pluginTypes                   controllers.workspaceApi.coreApi.PluginApi.pluginTypes()
 GET        /usages/plugins/:pluginId      controllers.workspaceApi.coreApi.PluginApi.pluginUsages(pluginId: String)
-GET        /usages/deprecatedPlugins      controllers.workspaceApi.coreApi.PluginApi.deprecatedPluginUsages()
+GET        /usages/deprecatedPlugins      controllers.workspaceApi.coreApi.PluginApi.deprecatedPluginUsages(project: Option[String] ?= None, task: Option[String] ?= None)
 
 # Template variables
 GET        /variableTemplate/variables        controllers.workspaceApi.coreApi.VariableTemplateApi.getVariables(project: String)

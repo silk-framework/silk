@@ -2,9 +2,10 @@ package controllers.workspaceApi
 
 import controllers.core.UserContextActions
 import controllers.core.util.ControllerUtilsTrait
+import controllers.util.ItemType
 import controllers.workspace.doc.SearchApiDoc
 import controllers.workspaceApi.search.SearchApiModel._
-import controllers.workspaceApi.search.{ItemType, ParameterAutoCompletionRequest}
+import controllers.workspaceApi.search.ParameterAutoCompletionRequest
 import io.swagger.v3.oas.annotations.enums.ParameterIn
 import io.swagger.v3.oas.annotations.media.{Content, ExampleObject, Schema}
 import io.swagger.v3.oas.annotations.parameters.RequestBody
