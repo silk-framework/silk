@@ -28,6 +28,20 @@ class DatasetApiTest extends AnyFlatSpec with Matchers with IntegrationTestTrait
     csvDatasetCharacteristics.supportedPathExpressions.languageFilter mustBe false
   }
 
+  it should "clear a dataset" in {
+    val csvResourceName = "resource.csv"
+    val datasetId = "csvDataset"
+    val csvResource = project.resources.get(csvResourceName)
+    csvResource.writeString("a,b,c\n1,2,3")
+    project.resources.exists(csvResourceName) mustBe true
+    val csvDataset = new CsvDataset(csvResource)
+    project.addTask(datasetId, DatasetSpec(csvDataset))
+    val url = controllers.datasetApi.routes.DatasetApi.clearDataset(projectId, datasetId)
+    checkResponseExactStatusCode(client.url(s"$baseUrl$url").delete(), NO_CONTENT)
+    project.resources.exists(csvResourceName) mustBe false
+    csvResource.exists mustBe false
+  }
+
   private var counter = 0
 
   private def datasetCharacteristics(dataset: Dataset): DatasetCharacteristics = {

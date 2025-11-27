@@ -294,7 +294,7 @@ object DatasetSpec {
     /**
       * Makes sure that the next write will start from an empty dataset.
       */
-    override def clear()(implicit userContext: UserContext): Unit = entitySink.clear()
+    override def clear(force: Boolean = false)(implicit userContext: UserContext): Unit = entitySink.clear(force)
 
     @inline
     private def prependUri(uri: String, values: IndexedSeq[Seq[String]]): IndexedSeq[Seq[String]] = {
@@ -357,7 +357,7 @@ object DatasetSpec {
     /**
       * Makes sure that the next write will start from an empty dataset.
       */
-    override def clear()(implicit userContext: UserContext): Unit = linkSink.clear()
+    override def clear(force: Boolean = false)(implicit userContext: UserContext): Unit = linkSink.clear(force)
   }
 
   /**

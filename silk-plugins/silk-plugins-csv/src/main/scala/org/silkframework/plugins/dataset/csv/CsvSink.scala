@@ -41,8 +41,8 @@ class CsvSink(val resource: WritableResource, settings: CsvSettings) extends Dat
   /**
     * Makes sure that the next write will start from an empty dataset.
     */
-  override def clear()(implicit userContext: UserContext): Unit = {
-    if(settings.clearBeforeExecution) {
+  override def clear(force: Boolean = false)(implicit userContext: UserContext): Unit = {
+    if(settings.clearBeforeExecution || force) {
       val resourceFile = new File(resource.path).getAbsoluteFile
       val resourcePath = resourceFile.toPath
       val crcFile = new File(resourcePath.getParent.toFile, s".${resourcePath.getFileName.toString}.crc")
