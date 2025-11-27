@@ -252,7 +252,8 @@ class PluginApi @Inject()() extends InjectedController with UserContextActions {
 
   @Operation(
     summary = "Deprecated plugin usages",
-    description = "Returns a list of usages of deprecated plugins. Currently lists usages in projects as tasks and as within linking and transform rules.",
+    description = "Returns a list of usages of deprecated plugins. " +
+      "Lists usages of deprecated workflow operators as well as deprecated rule operators within linking and transform tasks.",
     responses = Array(
       new ApiResponse(
         responseCode = "200",
@@ -265,12 +266,25 @@ class PluginApi @Inject()() extends InjectedController with UserContextActions {
         ))
       )
     ))
-  def deprecatedPluginUsages(): Action[AnyContent] = UserContextAction { implicit userContext =>
+  def deprecatedPluginUsages(@Parameter(
+                               name = "project",
+                               description = "Project id to filter results. If not provided, all projects are considered.",
+                               required = false,
+                               in = ParameterIn.QUERY,
+                             )
+                             projectName: Option[String],
+                             @Parameter(
+                               name = "task",
+                               description = "Task id to filter results. If not provided, all tasks are considered.",
+                               required = false,
+                               in = ParameterIn.QUERY,
+                             )
+                             taskName: Option[String]): Action[AnyContent] = UserContextAction { implicit userContext =>
     val usages = mutable.Buffer[PluginUsage]()
 
     for {
-      project <- WorkspaceFactory().workspace.projects
-      task <- project.allTasks
+      project <- WorkspaceFactory().workspace.projects if projectName.forall(_ == project.id.toString)
+      task <- project.allTasks if taskName.forall(_ == task.id.toString)
       plugin <- PluginUsageCollector.pluginUsages(task.data).values
       if plugin.deprecation.isDefined
     } {
