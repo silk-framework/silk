@@ -24,6 +24,8 @@ import org.silkframework.runtime.templating.TemplateVariableName
  * Transforms values.
  */
 @PluginType(
+  label = "Transformer",
+  description = "Transforms a sequence of string values",
   customDescription = classOf[TransformerDescriptionGenerator]
 )
 trait Transformer extends AnyPlugin {

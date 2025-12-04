@@ -197,12 +197,12 @@ object StringParameterType {
     * All available static parameter types.
     */
   private val allStaticTypes: Seq[StringParameterType[_]] = {
-    Seq(StringType, CharType, IntType, DoubleType, BooleanType, IntOptionType, StringMapType, UriType, ResourceType,
+    Seq(StringType, CharType, IntType, DoubleType, BooleanType, IntOptionType, StringMapType, KeyValuePairsType, UriType, ResourceType,
       WritableResourceType, ResourceOptionType, DurationType, ProjectReferenceType, TaskReferenceType, MultilineStringParameterType,
       SparqlEndpointDatasetParameterType, LongType, GraphUriParameterType, TemplateParameterType,
       PasswordParameterType, IdentifierType, IdentifierOptionType, StringIterableParameterType, RestrictionType,
       Jinja2CodeParameterType, JsonCodeParameterType, SparqlCodeParameterType, SqlCodeParameterType, XmlCodeParameterType,
-      YamlCodeParameterType, PythonCodeParameterType, TurtleCodeParameterType, LocaleOptionType)
+      YamlCodeParameterType, PythonCodeParameterType, TurtleCodeParameterType, LocaleOptionType, HtmlCodeParameterType)
   }
 
   /**
@@ -783,5 +783,11 @@ object StringParameterType {
     override def codeMode: String = "python"
 
     override def fromString(str: String)(implicit context: PluginContext): PythonCodeParameter = PythonCodeParameter(str)
+  }
+
+  private object HtmlCodeParameterType extends CodeParameterType[HtmlCodeParameter] {
+    override def codeMode: String = "html"
+
+    override def fromString(str: String)(implicit context: PluginContext): HtmlCodeParameter = HtmlCodeParameter(str)
   }
 }

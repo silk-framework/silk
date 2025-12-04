@@ -271,7 +271,7 @@ class Project(initialConfig: ProjectConfig, provider: WorkspaceProvider, val res
     *
     * @param name The name of the task.
     * @param taskData The task data.
-    * @param metaData The task meta data. If not provided, no changes to the meta data are made.
+    * @param metaData The task metadata. If not provided, no changes to the metadata are made.
     * @tparam T The task type.
     */
   def updateTask[T <: TaskSpec : ClassTag](name: Identifier, taskData: T, metaData: Option[MetaData] = None)

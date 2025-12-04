@@ -1,7 +1,7 @@
 import React from "react";
-import { shallow } from "enzyme";
 import AutoComplete from "../../../src/app/views/pages/MappingEditor/HierarchicalMapping/components/AutoComplete";
-import { SuggestField } from "@eccenca/gui-elements";
+import { render } from "@testing-library/react";
+import { findElement } from "../../integration/TestHelper";
 
 const props = {
     input: "text",
@@ -10,17 +10,17 @@ const props = {
 const autocompleteAsyncMock = jest.fn();
 jest.doMock("../../../src/app/views/pages/MappingEditor/HierarchicalMapping/store", () => autocompleteAsyncMock);
 
-const getWrapper = (renderer = shallow) => renderer(<AutoComplete {...props} />);
+const getWrapper = () => render(<AutoComplete {...props} />);
 
 describe("AutoComplete Component", () => {
     describe("on component mounted, ", () => {
         let wrapper;
         beforeEach(() => {
-            wrapper = getWrapper(shallow);
+            wrapper = getWrapper();
         });
 
         it("should render AutoCompleteBox component", () => {
-            expect(wrapper.find(SuggestField)).toHaveLength(1);
+            findElement(wrapper, "[class*='-suggestfield']");
         });
 
         afterEach(() => {

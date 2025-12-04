@@ -27,6 +27,13 @@ case class ReadContext(resources: ResourceManager,
 
 object ReadContext {
 
+  def empty: ReadContext = {
+    ReadContext(
+      resources = EmptyResourceManager(),
+      prefixes = Prefixes.empty
+    )
+  }
+
   def fromProject(project: ProjectTrait)(implicit user: UserContext): ReadContext = {
     ReadContext(
       resources = project.resources,

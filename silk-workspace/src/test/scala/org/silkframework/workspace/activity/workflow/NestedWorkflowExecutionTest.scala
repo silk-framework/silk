@@ -9,7 +9,7 @@ abstract class NestedWorkflowExecutionTest extends AnyFlatSpec with Matchers wit
 
   override def projectPathInClasspath: String = "org/silkframework/workspace/activity/workflow/nestedWorkflowsProject.zip"
 
-  override def workspaceProviderId: String = "inMemory"
+  override def workspaceProviderId: String = "inMemoryWorkspaceProvider"
 
   override def projectId: String = "nestedWorkflowsTest"
 

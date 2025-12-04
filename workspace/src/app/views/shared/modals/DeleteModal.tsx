@@ -120,7 +120,7 @@ export default function DeleteModal({
             {errorMessage && (
                 <>
                     <Spacing />
-                    <Notification message={errorMessage} danger />
+                    <Notification message={errorMessage} intent="danger" />
                     <Spacing />
                 </>
             )}

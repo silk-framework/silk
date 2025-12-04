@@ -187,7 +187,7 @@ export default function SearchItem({
                     <OverviewItemLine small>
                         <TagList>
                             {projectOrDataset && (
-                                <ArtefactTag artefactType={`${item.type}Node`}>
+                                <ArtefactTag artefactType={`${item.type}-node`}>
                                     <Highlighter
                                         label={t(
                                             "widget.Filterbar.subsections.valueLabels.itemType." + item.type,
@@ -203,7 +203,7 @@ export default function SearchItem({
                                 </Tag>
                             )}
                             {item.pluginLabel && (
-                                <ArtefactTag artefactType={`${item.pluginLabel.toLowerCase()}Node`}>
+                                <ArtefactTag artefactType={`${item.pluginLabel.toLowerCase()}-node`}>
                                     <Highlighter label={item.pluginLabel} searchValue={searchValue} />
                                 </ArtefactTag>
                             )}

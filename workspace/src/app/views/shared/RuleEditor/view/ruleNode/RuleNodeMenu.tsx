@@ -15,6 +15,7 @@ interface NodeMenuProps {
     ruleOperatorDescription?: string;
     ruleOperatorDocumentation?: string;
     nodeType?: string;
+    ruleOperatorLabel?: string;
 }
 
 /** The menu of a rule node. */
@@ -25,6 +26,7 @@ export const RuleNodeMenu = ({
     handleCloneNode,
     ruleOperatorDescription,
     ruleOperatorDocumentation,
+    ruleOperatorLabel,
     nodeType,
 }: NodeMenuProps) => {
     const [menuFns, setMenuFns] = useState<NodeToolsMenuFunctions | undefined>(undefined);
@@ -38,9 +40,7 @@ export const RuleNodeMenu = ({
         menuFns?.closeMenu();
     };
     const menuFunctionsCallback = useMemo(() => (menuFunctions) => setMenuFns(menuFunctions), []);
-    const operatorDoc = `${ruleOperatorDescription ?? ""} ${
-        ruleOperatorDocumentation ? `\n\n${ruleOperatorDocumentation}` : ""
-    }`;
+    const operatorDoc = ruleOperatorDocumentation || ruleOperatorDescription || "";
 
     const nodeDimensions = utils.nodeById(modelContext.elements, nodeId)?.data.nodeDimensions;
     const resizeResetIsDisabled = !nodeDimensions?.width && !nodeDimensions?.height;
@@ -63,10 +63,13 @@ export const RuleNodeMenu = ({
                     <MenuItem
                         data-test-id="rule-node-info"
                         key="info"
-                        icon={"item-info"}
+                        icon={"item-question"}
                         onClick={(e) => {
                             closeMenu();
-                            ruleEditorUiContext.setCurrentRuleNodeDescription(operatorDoc);
+                            ruleEditorUiContext.setCurrentRuleNodeInfo({
+                                description: operatorDoc,
+                                label: ruleOperatorLabel,
+                            });
                             e.preventDefault();
                             e.stopPropagation();
                         }}
@@ -86,14 +89,14 @@ export const RuleNodeMenu = ({
                             ruleEvaluationContext.startEvaluation(
                                 subtreeRuleOperatorNodes,
                                 ruleEditorContext.editedItem,
-                                false
+                                false,
                             );
                             ruleEvaluationContext.toggleEvaluationResults(true);
                         }}
                         text={t("RuleEditor.node.menu.subtree.label", "Evaluate subtree")}
                         htmlTitle={t(
                             "RuleEditor.node.menu.subtree.description",
-                            "Evaluate linking tree partially until this operator node."
+                            "Evaluate linking tree partially until this operator node.",
                         )}
                     />
                 ) : null}

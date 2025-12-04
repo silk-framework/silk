@@ -7,7 +7,8 @@ import org.silkframework.runtime.plugin.annotations.Plugin
   id = "NYSIIS",
   categories = Array("Linguistic"),
   label = "NYSIIS",
-  description = "NYSIIS phonetic encoding."
+  description = "NYSIIS phonetic encoding.",
+  documentationFile = "NysiisTransformer.md"
 )
 case class NysiisTransformer(refined: Boolean = true) extends SimpleTransformer {
 

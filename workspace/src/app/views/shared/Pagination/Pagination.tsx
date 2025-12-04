@@ -1,9 +1,11 @@
 import React from "react";
 import { Link, Pagination, Spacing } from "@eccenca/gui-elements";
 import { useTranslation } from "react-i18next";
+import { GlobalTableContext } from "../../../GlobalContextsWrapper";
 
 export function AppPagination({ pagination, onChangeSelect, pageSizes }) {
     const [t] = useTranslation();
+    const { updateGlobalTableSettings } = React.useContext(GlobalTableContext);
 
     const totalGreaterThanMinPageSize = pagination.total > Math.min(pagination.limit, ...pageSizes);
     const invalidPage = pagination.current !== 1 && Math.ceil(pagination.total / pagination.limit) < pagination.current;
@@ -24,7 +26,9 @@ export function AppPagination({ pagination, onChangeSelect, pageSizes }) {
             <Pagination
                 onChange={({ page, pageSize }) => {
                     onChangeSelect(page, pageSize);
+                    updateGlobalTableSettings({ pageSize });
                 }}
+                title={pagination.limit}
                 totalItems={pagination.total}
                 pageSizes={pageSizes}
                 page={pagination.current}

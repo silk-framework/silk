@@ -13,23 +13,8 @@
  */
 
 package org.silkframework.rule.plugins.transformer
-
+
 import org.silkframework.rule.plugins.transformer.replace.ReplaceTransformer
-import org.scalatest.flatspec.AnyFlatSpec
-import org.scalatest.matchers.should.Matchers
+import org.silkframework.rule.test.TransformerTest
 
-
-class ReplaceTransformerTest extends AnyFlatSpec with Matchers {
-
-  val transformer = new ReplaceTransformer(search = " ", replace = "")
-
-  "ReplaceTransformer" should "return 'abc'" in {
-    transformer.evaluate("a b c") should equal("abc")
-  }
-
-  val transformer1 = new ReplaceTransformer(search = "abc", replace = "")
-
-  "ReplaceTransformer" should "return 'def'" in {
-    transformer1.evaluate("abcdef") should equal("def")
-  }
-}
+class ReplaceTransformerTest extends TransformerTest[ReplaceTransformer]

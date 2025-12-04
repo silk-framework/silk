@@ -30,17 +30,20 @@ import { useHistory, useParams } from "react-router";
 import { SERVE_PATH } from "../../../constants/path";
 import { ProjectTaskParams } from "views/shared/typings";
 import { previewSlice } from "@ducks/workspace/previewSlice";
+import { GlobalTableContext } from "../../../GlobalContextsWrapper";
 
 const Activities = () => {
     const dispatch = useDispatch();
     const { registerError } = useErrorHandler();
     const history = useHistory();
     const error = useSelector(workspaceSel.errorSelector);
-    const qs = useSelector(routerSel.routerSearchSelector);
     const path = useSelector(routerSel.pathnameSelector);
     const { textQuery } = useSelector(workspaceSel.appliedFiltersSelector);
+    const qs = useSelector(routerSel.routerSearchSelector);
+    const pagination = useSelector(workspaceSel.paginationSelector);
     const sorters = useSelector(workspaceSel.sortersSelector);
     const { clearSearchResults } = previewSlice.actions;
+    const { globalTableSettings } = React.useContext(GlobalTableContext);
 
     const [t] = useTranslation();
 
@@ -98,38 +101,35 @@ const Activities = () => {
      * Get available Datatypes
      */
     React.useEffect(() => {
-        batch(() => {
-            dispatch(workspaceOp.changeProjectsLimit(25));
-            dispatch(commonOp.fetchAvailableDTypesAsync(projectId as string));
-        });
+        dispatch(commonOp.fetchAvailableDTypesAsync(projectId as string));
     }, []);
+
+    React.useEffect(() => {
+        // Reset the filters, due to redirecting
+        dispatch(workspaceOp.resetFilters());
+    }, [location.pathname]);
+
+    const tableSettings = globalTableSettings["activities"];
 
     React.useEffect(() => {
         if (path.endsWith("activities")) {
             batch(() => {
-                // Reset the filters, due to redirecting
-                dispatch(workspaceOp.resetFilters());
-
                 // Setup the filters from query string
                 dispatch(workspaceOp.setupFiltersFromQs(qs));
+
                 projectId && dispatch(commonOp.setProjectId(projectId));
                 // Fetch the list of projects
-                dispatch(workspaceOp.fetchListAsync(utils.searchActivities));
+                dispatch(workspaceOp.fetchListAsync(tableSettings, utils.searchActivities));
             });
         }
         return () => {
             dispatch(clearSearchResults());
         };
-    }, [qs]);
-
-    /** handle sorting */
-    const handleSort = (sortBy: string) => {
-        dispatch(workspaceOp.applySorterOp(sortBy));
-    };
+    }, [pagination.current, tableSettings.sortBy, tableSettings.sortOrder, tableSettings.pageSize, qs]);
 
     /** handle search */
     const handleSearch = (textQuery: string) => {
-        dispatch(workspaceOp.applyFiltersOp({ textQuery, limit: 25, project: projectId }));
+        dispatch(workspaceOp.applyFiltersOp({ textQuery, limit: pagination.limit, project: projectId }));
     };
 
     return error.status === 404 ? (
@@ -152,8 +152,8 @@ const Activities = () => {
                                                 focusOnCreation
                                                 textQuery={effectiveSearchQuery}
                                                 sorters={sorters}
-                                                onSort={handleSort}
                                                 onSearch={handleSearch}
+                                                globalTableKey={"activities"}
                                             />
                                         </div>
                                         <IconButton
@@ -178,7 +178,7 @@ const Activities = () => {
                             <GridColumn>
                                 {error.detail ? (
                                     <Notification
-                                        danger={true}
+                                        intent="danger"
                                         actions={
                                             <Button
                                                 text={t("common.action.retry", "Retry")}

@@ -15,7 +15,7 @@ import play.api.libs.json.{JsArray, JsObject, JsValue, Json}
 class PluginApiTest extends AnyFlatSpec with IntegrationTestTrait with Matchers {
   behavior of "Plugin API"
 
-  override def workspaceProviderId = "inMemory"
+  override def workspaceProviderId = "inMemoryWorkspaceProvider"
 
   protected override def routes = Some(classOf[test.Routes])
 

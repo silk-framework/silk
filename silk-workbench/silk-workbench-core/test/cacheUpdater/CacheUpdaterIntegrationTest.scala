@@ -24,7 +24,7 @@ import scala.concurrent.duration._
 class CacheUpdaterIntegrationTest() extends AnyFlatSpec with IntegrationTestTrait with Matchers with ConfigTestTrait with Eventually with BeforeAndAfterAll {
   behavior of "Cache updater"
 
-  override def workspaceProviderId: String = "inMemory"
+  override def workspaceProviderId: String = "inMemoryWorkspaceProvider"
 
   private val beforeJsonContent = """{"id": 1, "sub": {"name": "name1"}}"""
   private val afterJsonContent = """{"id": 1, "sub": {"name": "name1"}, "newSub": {"subName": "name2"}}"""

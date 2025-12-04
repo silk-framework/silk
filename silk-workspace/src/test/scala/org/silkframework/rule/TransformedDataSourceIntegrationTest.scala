@@ -1,5 +1,6 @@
 package org.silkframework.rule
-
+
+
 import org.silkframework.workspace.SingleProjectWorkspaceProviderTestTrait
 import org.silkframework.workspace.activity.linking.EvaluateLinkingActivity
 import org.scalatest.flatspec.AnyFlatSpec
@@ -10,7 +11,7 @@ class TransformedDataSourceIntegrationTest extends AnyFlatSpec with Matchers wit
 
   override def projectPathInClasspath: String = "diProjects/brokenLinkEvaluationWithTransformationAsInputSource.zip"
 
-  override def workspaceProviderId: String = "inMemory"
+  override def workspaceProviderId: String = "inMemoryWorkspaceProvider"
 
   private val linkingTaskId = "linkSourceAndTarget"
 

@@ -10,7 +10,8 @@ import org.silkframework.util.Uri
   id = "XmlParserOperator",
   label = "Parse XML",
   description = "Takes exactly one input and reads either the defined inputPath or the first value of the first entity as " +
-      "XML document. Then executes the given output entity schema similar to the XML dataset to construct the result entities."
+      "XML document. Then executes the given output entity schema similar to the XML dataset to construct the result entities.", 
+  iconFile="parse-xml.svg"
 )
 case class XmlParserTask(@Param(XmlParserTask.INPUT_PATH_PARAM_DESCRIPTION)
                          inputPath: String = "",

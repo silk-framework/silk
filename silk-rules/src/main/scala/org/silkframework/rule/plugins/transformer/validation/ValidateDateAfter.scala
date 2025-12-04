@@ -31,7 +31,7 @@ import org.silkframework.runtime.validation.ValidationException
   new TransformExample(
     input1 = Array("2015-04-02"),
     input2 = Array("2015-04-03"),
-    throwsException = "org.silkframework.runtime.validation.ValidationException"
+    throwsException = classOf[org.silkframework.runtime.validation.ValidationException]
   ),
   new TransformExample(
     input1 = Array("2015-04-04"),
@@ -48,7 +48,7 @@ import org.silkframework.runtime.validation.ValidationException
     parameters = Array("allowEqual", "false"),
     input1 = Array("2015-04-03"),
     input2 = Array("2015-04-03"),
-    throwsException = "org.silkframework.runtime.validation.ValidationException"
+    throwsException = classOf[org.silkframework.runtime.validation.ValidationException]
   )
 ))
 case class ValidateDateAfter(

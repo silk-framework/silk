@@ -22,7 +22,7 @@ class ProjectApiTest extends AnyFlatSpec with IntegrationTestTrait with Matchers
 
   private def projects: Seq[String] = workspaceProvider.readProjects().map(_.id.toString)
 
-  override def workspaceProviderId: String = "inMemory"
+  override def workspaceProviderId: String = "inMemoryWorkspaceProvider"
 
   override def routes: Option[Class[_ <: Router]] = Some(classOf[testWorkspace.Routes])
 

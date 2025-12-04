@@ -12,6 +12,7 @@ interface IProps {
     posLocal?: boolean;
     posInline?: boolean;
     delay?: number;
+    elevated?: boolean;
 }
 
 export const Loading = memo<IProps>(function LoadingIndicator({
@@ -24,7 +25,7 @@ export const Loading = memo<IProps>(function LoadingIndicator({
     let forwardedProps = {};
     switch (true) {
         case posGlobal:
-            forwardedProps = { position: "global", color: "primary", className: "spinner-global" };
+            forwardedProps = { position: "global", elevated: true, className: "spinner-global" };
             break;
         case posInline:
             forwardedProps = { position: "inline" };

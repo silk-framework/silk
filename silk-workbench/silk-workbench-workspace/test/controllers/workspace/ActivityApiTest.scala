@@ -164,7 +164,7 @@ class ActivityApiTest extends PlaySpec with ConfigTestTrait with IntegrationTest
     count must equal (11 +- 5)
   }
 
-  override def workspaceProviderId: String = "inMemory"
+  override def workspaceProviderId: String = "inMemoryWorkspaceProvider"
 
   protected override def routes: Option[Class[_ <: Router]] = Some(classOf[testWorkspace.Routes])
 

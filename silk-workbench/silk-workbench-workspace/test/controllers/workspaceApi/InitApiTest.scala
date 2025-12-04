@@ -12,7 +12,7 @@ import org.scalatest.matchers.must.Matchers
 class InitApiTest extends AnyFlatSpec with IntegrationTestTrait with Matchers with ConfigTestTrait {
   behavior of "Init API"
 
-  override def workspaceProviderId: String = "inMemory"
+  override def workspaceProviderId: String = "inMemoryWorkspaceProvider"
 
   override def routes: Option[Class[_ <: Router]] = Some(classOf[testWorkspace.Routes])
 

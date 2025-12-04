@@ -1,5 +1,6 @@
 package org.silkframework.workspace
-
+
+
 import org.silkframework.rule.{DatasetSelection, TransformSpec}
 import org.silkframework.runtime.activity.TestUserContextTrait
 import org.silkframework.workspace.exceptions.CircularDependencyException
@@ -44,6 +45,6 @@ class ProjectTest extends AnyFlatSpec with Matchers with TestWorkspaceProviderTe
     thrown1.circularTaskChain shouldBe Seq("transform1", "transform1")
   }
 
-  override def workspaceProviderId: String = "inMemory"
+  override def workspaceProviderId: String = "inMemoryWorkspaceProvider"
 
 }

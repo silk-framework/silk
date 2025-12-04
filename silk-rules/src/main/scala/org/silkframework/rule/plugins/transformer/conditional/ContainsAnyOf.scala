@@ -34,17 +34,17 @@ import org.silkframework.runtime.plugin.annotations.Plugin
   new TransformExample(
     input1 = Array("A", "B", "C"),
     input2 = Array(),
-    throwsException = "java.lang.IllegalArgumentException"
+    throwsException = classOf[java.lang.IllegalArgumentException]
   ),
   new TransformExample(
     input1 = Array("A"),
     input2 = Array("A"),
     input3 = Array("A"),
-    throwsException = "java.lang.IllegalArgumentException"
+    throwsException = classOf[java.lang.IllegalArgumentException]
   ),
   new TransformExample(
     input1 = Array("A"),
-    throwsException = "java.lang.IllegalArgumentException"
+    throwsException = classOf[java.lang.IllegalArgumentException]
   )
 ))
 case class ContainsAnyOf() extends Transformer {

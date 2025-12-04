@@ -26,7 +26,7 @@ class TaskApiTest extends PlaySpec with IntegrationTestTrait with Matchers {
 
   private val project = "project"
 
-  override def workspaceProviderId: String = "inMemory"
+  override def workspaceProviderId: String = "inMemoryWorkspaceProvider"
 
   protected override def routes = Some(classOf[testWorkspace.Routes])
 
@@ -45,6 +45,7 @@ class TaskApiTest extends PlaySpec with IntegrationTestTrait with Matchers {
   private val customPrefix = ("ex", "http://example.org/")
 
   "setup" in {
+    PluginRegistry.unregisterPlugin(classOf[TestCustomTask])
     PluginRegistry.registerPlugin(classOf[TestCustomTask])
     createProject(project)
     addProjectPrefixes(project, Map(customPrefix))
@@ -325,7 +326,7 @@ class TaskApiTest extends PlaySpec with IntegrationTestTrait with Matchers {
   "post custom task" in {
     val request = client.url(s"$baseUrl/workspace/projects/$project/tasks")
     val response = request.post(
-      <CustomTask id={customTaskId} type="test">
+      <CustomTask id={customTaskId} type="WorkspaceProviderTestTask">
         <Param name="stringParam" value="someValue"/>
         <Param name="numberParam" value="1"/>
       </CustomTask>
@@ -339,7 +340,7 @@ class TaskApiTest extends PlaySpec with IntegrationTestTrait with Matchers {
     val response = checkResponse(request.get())
 
     (response.xml \ "@id").text mustBe customTaskId
-    (response.xml \ "@type").text mustBe "test"
+    (response.xml \ "@type").text mustBe "WorkspaceProviderTestTask"
     (response.xml \ "Param").filter(p => (p \ "@name").text == "stringParam").text mustBe "someValue"
   }
 

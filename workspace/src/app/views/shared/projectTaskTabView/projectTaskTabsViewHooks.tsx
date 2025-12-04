@@ -15,8 +15,10 @@ interface IProps {
     taskId?: string;
     /** Fetches the current view task context information. */
     fetchTaskContext?: () => ViewActionsTaskContext | undefined;
-    /** Called when the task tab view is closed. Only valid when this is an overlay version of the task tabs. */
+    /** Called when the task tab view is closed. Only valid when this is an modal version of the task tabs. */
     onCloseModal?: () => any;
+    /** In case of a modal version of the task tabs, propagate this modal ID to the opened modal. */
+    modalId?: string;
 }
 
 /** Shows custom views of a project task. */
@@ -28,6 +30,7 @@ export const useProjectTaskTabsView = ({
     projectId,
     onCloseModal,
     fetchTaskContext,
+    modalId
 }: IProps) => {
     const [activeTab, setActiveTab] = useState<IItemLink | string | undefined>(startLink);
     const initialSettings = useSelector(commonSel.initialSettingsSelector);
@@ -68,6 +71,7 @@ export const useProjectTaskTabsView = ({
             viewActions={{
                 taskContext,
             }}
+            modalId={modalId}
         />
     ) : null;
 

@@ -13,16 +13,8 @@ import scala.util.matching.Regex.Match
   id = "extractPhysicalQuantity",
   label = "Extract physical quantity",
   categories = Array("Numeric", "Normalize"),
-  description =
-"""Extracts physical quantities, such as length or weight values.
-Values are expected of the form '{Number}{UnitPrefix}{Symbol}' and are converted to the base unit.
-
-Example:
-
-- Given a value '10km, 3mg'.
-- If the symbol parameter is set to 'm', the extracted value is 10000.
-- If the symbol parameter is set to 'g', the extracted value is 0.001.
-"""
+  description = "Extracts physical quantities, such as length or weight values. Values are expected to be formatted as `{Number}{UnitPrefix}{Symbol}` and are converted to the base unit.",
+  documentationFile = "PhysicalQuantityExtractor.md"
 )
 case class PhysicalQuantityExtractor(@Param("The symbol of the dimension, e.g., 'm' for meter.")
                                      symbol: String = "",

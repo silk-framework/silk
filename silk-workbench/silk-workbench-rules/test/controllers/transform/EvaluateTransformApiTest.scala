@@ -13,7 +13,7 @@ class EvaluateTransformApiTest extends AnyFlatSpec with Matchers with SingleProj
 
   override def projectPathInClasspath: String = "controllers/transform/evaluateTransformTest.zip"
 
-  override def workspaceProviderId: String = "inMemory"
+  override def workspaceProviderId: String = "inMemoryWorkspaceProvider"
 
   override def routes: Option[Class[_ <: Router]] = Some(classOf[test.Routes])
 

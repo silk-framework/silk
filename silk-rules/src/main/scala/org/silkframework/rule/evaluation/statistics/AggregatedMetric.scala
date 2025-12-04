@@ -59,11 +59,23 @@ object AggregatedMetric {
   }
 
   /**
-   * Combines multiple metrics into one.
+   * Averages multiple metrics into one.
+   * This is useful for metrics that are averaged, such as precision or recall.
    */
-  def combined(metrics: Iterable[AggregatedMetric]): AggregatedMetric = {
+  def average(metrics: Iterable[AggregatedMetric]): AggregatedMetric = {
     val combinedMean = metrics.map(_.mean).sum / metrics.size
     val combinedVariance = metrics.map(m => m.standardDeviation * m.standardDeviation).sum / metrics.size
+    val combinedStandardDeviation = sqrt(combinedVariance)
+    AggregatedMetric(combinedMean, combinedStandardDeviation)
+  }
+
+  /**
+   * Sums multiple metrics into one.
+   * This is useful for metrics that can be summed, such as the total runtime.
+   */
+  def sum(metrics: Iterable[AggregatedMetric]): AggregatedMetric = {
+    val combinedMean = metrics.map(_.mean).sum
+    val combinedVariance = metrics.map(m => m.standardDeviation * m.standardDeviation).sum
     val combinedStandardDeviation = sqrt(combinedVariance)
     AggregatedMetric(combinedMean, combinedStandardDeviation)
   }

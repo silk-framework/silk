@@ -1,5 +1,6 @@
 package org.silkframework.plugins.dataset.rdf
-
+
+
 import org.silkframework.config.Prefixes
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.workspace.SingleProjectWorkspaceProviderTestTrait
@@ -10,7 +11,7 @@ import org.scalatest.matchers.must.Matchers
 class SparqlUpdateTaskExtensionIntegrationTest extends AnyFlatSpec with Matchers with SingleProjectWorkspaceProviderTestTrait {
   behavior of "SPARQL Update Task extensions"
 
-  override def workspaceProviderId: String = "inMemory"
+  override def workspaceProviderId: String = "inMemoryWorkspaceProvider"
 
   implicit val prefixes: Prefixes = Prefixes.empty
 

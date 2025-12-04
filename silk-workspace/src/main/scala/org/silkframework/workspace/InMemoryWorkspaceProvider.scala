@@ -16,7 +16,7 @@ import org.silkframework.workspace.resources.ResourceRepository
 import scala.reflect.ClassTag
 
 @Plugin(
-  id = "inMemory",
+  id = "inMemoryWorkspaceProvider",
   label = "In-memory workspace",
   description = "Workspace provider that holds all projects in memory. All contents will be gone on restart."
 )

@@ -45,7 +45,7 @@ class LocalSparqlUpdateExecutorTest extends AnyFlatSpec with Matchers with TestW
 
   private val context = TestMocks.activityContextMock()
 
-  override def workspaceProviderId: String = "inMemory"
+  override def workspaceProviderId: String = "inMemoryWorkspaceProvider"
 
   private val projectName: Identifier = "LocalSparqlUpdateExecutorTest"
   private val project = retrieveOrCreateProject(projectName)

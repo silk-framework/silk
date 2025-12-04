@@ -1,18 +1,14 @@
 import React from "react";
-import { mount, ReactWrapper } from "enzyme";
 import SuggestionContainer from "../../../../src/app/views/pages/MappingEditor/HierarchicalMapping/containers/SuggestionNew/SuggestionContainer";
-import { waitFor } from "@testing-library/react";
+import { fireEvent, RenderResult, waitFor } from "@testing-library/react";
+import { logWrapperHtmlOnError, rangeArray } from "../../utils/TestHelpers";
 import {
+    findElement,
+    renderWrapper,
     byTestId,
-    clickElement,
-    clickWrapperElement,
-    findAll,
-    findSingleElement,
-    logWrapperHtmlOnError,
-    rangeArray,
-} from "../../utils/TestHelpers";
-import { testWrapper, withMount } from "../../../integration/TestHelper";
-import Task from "../../../../src/app/views/pages/Task";
+    clickFoundElement,
+    findAllDOMElements,
+} from "../../../integration/TestHelper";
 import { createBrowserHistory } from "history";
 
 /** Helper functions to generate test data. */
@@ -55,7 +51,7 @@ const mockSuggestions = (matchFromDataset: boolean) =>
             { prefix: candidate2, nrCandidates: 2 },
             { prefix: candidateNonMatches, nrCandidates: 0 },
         ],
-        matchFromDataset
+        matchFromDataset,
     );
 const mockExampleValues = () => {
     const examplesValues = {};
@@ -80,13 +76,11 @@ const props = {
     setSelectedVocabs: jest.fn(),
 };
 
-const getWrapper = (args = props): ReactWrapper<any, any> => {
+const getWrapper = (args = props): RenderResult => {
     let history = createBrowserHistory();
-    return withMount(
-        testWrapper(<SuggestionContainer {...args} />, history, {
-            common: { initialSettings: { dmBaseUrl: "http://docker.local" } },
-        })
-    );
+    return renderWrapper(<SuggestionContainer {...args} />, history, {
+        common: { initialSettings: { dmBaseUrl: "http://docker.local" } },
+    });
 };
 
 jest.mock("../../../../src/app/views/pages/MappingEditor/HierarchicalMapping/store", () => {
@@ -144,31 +138,31 @@ describe("Suggestion Container Component", () => {
 
     it("should request suggestions, examples and prefixes on mount", async () => {
         getWrapper();
-        expect(getSuggestionsAsync).toBeCalledWith(
+        expect(getSuggestionsAsync).toHaveBeenCalledWith(
             {
                 targetClassUris: props.targetClassUris,
                 ruleId: props.ruleId,
                 matchFromDataset: true,
                 nrCandidates: 20,
             },
-            true
+            true,
         );
-        expect(schemaExampleValuesAsync).toBeCalled();
-        expect(prefixesAsync).toBeCalled();
+        expect(schemaExampleValuesAsync).toHaveBeenCalled();
+        expect(prefixesAsync).toHaveBeenCalled();
     });
 
     it("should load suggestion with reverted `matchFromDataset` value on swap action", async () => {
         const wrapper = getWrapper();
-        const btn = await waitFor(() => findSingleElement(wrapper, byTestId("SWAP_BUTTON")));
-        clickWrapperElement(btn);
-        expect(getSuggestionsAsync).toBeCalledWith(
+        const btn = await waitFor(() => findElement(wrapper, byTestId("SWAP_BUTTON")));
+        fireEvent.click(btn);
+        expect(getSuggestionsAsync).toHaveBeenCalledWith(
             {
                 targetClassUris: props.targetClassUris,
                 ruleId: props.ruleId,
                 matchFromDataset: false,
                 nrCandidates: 20,
             },
-            true
+            true,
         );
     });
 
@@ -177,11 +171,11 @@ describe("Suggestion Container Component", () => {
         const wrapper = getWrapper();
         await waitFor(
             () => {
-                expect(findAll(wrapper, "table tbody tr")).toHaveLength(3);
+                expect(findAllDOMElements(wrapper, "table tbody tr")).toHaveLength(3);
             },
-            { onTimeout: logWrapperHtmlOnError(wrapper) }
+            { onTimeout: logWrapperHtmlOnError(wrapper) },
         );
-        clickElement(wrapper, byTestId("add_button"));
-        expect(generateRuleAsync).toBeCalledWith([], props.ruleId, undefined);
+        clickFoundElement(wrapper, byTestId("add_button"));
+        expect(generateRuleAsync).toHaveBeenCalledWith([], props.ruleId, undefined);
     });
 });

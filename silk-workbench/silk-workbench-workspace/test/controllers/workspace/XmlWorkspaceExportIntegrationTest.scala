@@ -46,4 +46,22 @@ class XmlWorkspaceExportIntegrationTest extends AnyFlatSpec with ExportIntegrati
       "singleProject/config.xml"
     ))
   }
+
+  it should "export workspace without resources" in {
+    makeWorkspaceFail()
+    val workspaceExportURI = baseUrl + "/workspace/export/xmlZipWithoutResources"
+    val responseBody = checkResponse(client.url(workspaceExportURI).get()).bodyAsBytes.toArray
+    checkZipEntries(responseBody, Seq(
+      "singleProject/workflow/Workflow.xml",
+      "singleProject/linking/miniLinking/alignment.xml",
+      "singleProject/linking/miniLinking/linkSpec.xml",
+      "singleProject/transform/miniTransform/rules.xml",
+      "singleProject/transform/miniTransform/dataset.xml",
+      "singleProject/dataset/miniCsv.xml",
+      "singleProject/dataset/internalDataset.xml",
+      "singleProject/variables.xml",
+      "singleProject/tags.xml",
+      "singleProject/config.xml"
+    ))
+  }
 }

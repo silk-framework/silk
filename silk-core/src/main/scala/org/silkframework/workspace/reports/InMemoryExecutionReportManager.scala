@@ -10,7 +10,7 @@ import java.time.Duration
 import scala.collection.immutable.ListMap
 
 @Plugin(
-  id = "inMemory",
+  id = "inMemoryExecutionReportManager",
   label = "Reports held in memory",
   description = "Holds the reports in memory."
 )

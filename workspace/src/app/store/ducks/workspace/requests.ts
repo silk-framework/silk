@@ -15,6 +15,7 @@ import { legacyApiEndpoint, projectApi, workspaceApi } from "../../../utils/getA
 import { FetchResponse } from "../../../services/fetch/responseInterceptor";
 import { IAutocompleteDefaultResponse, IProjectTask } from "@ducks/shared/typings";
 import { TaskContext } from "../../../views/shared/projectTaskTabView/projectTaskTabView.typing";
+import { CodeAutocompleteFieldValidationResult } from "@eccenca/gui-elements/src/components/AutoSuggestion/AutoSuggestion";
 
 export interface ISearchListRequest {
     limit?: number;
@@ -68,7 +69,7 @@ export const requestRemoveProject = async (itemId: string): Promise<FetchRespons
 export const requestRemoveTask = async (
     itemId: string,
     projectId?: string,
-    removeDependentTasks: boolean = false
+    removeDependentTasks: boolean = false,
 ): Promise<FetchResponse<void>> => {
     return await fetch({
         url:
@@ -110,7 +111,7 @@ export const requestCloneTask = async (
     taskId: string,
     projectId: string,
     payload: any,
-    newTaskId?: string
+    newTaskId?: string,
 ): Promise<FetchResponse<IClonedItem>> => {
     let body = { ...payload };
     if (newTaskId) {
@@ -191,9 +192,9 @@ export const requestProjectPrefixes = async (projectId: string): Promise<FetchRe
 export const requestChangePrefixes = async (
     prefixName: string,
     prefixUri: string,
-    projectId: string
+    projectId: string,
 ): Promise<any | never> => {
-    const {data} = await fetch({
+    const { data } = await fetch({
         url: workspaceApi(`/projects/${projectId}/prefixes/${prefixName}`),
         method: "PUT",
         body: prefixUri,
@@ -203,7 +204,7 @@ export const requestChangePrefixes = async (
 
 //missing-type
 export const requestRemoveProjectPrefix = async (prefixName: string, projectId: string): Promise<any | never> => {
-    const {data} = await fetch({
+    const { data } = await fetch({
         url: workspaceApi(`/projects/${projectId}/prefixes/${prefixName}`),
         method: "DELETE",
     });
@@ -246,7 +247,7 @@ export const requestRemoveProjectResource = async (projectId: string, resourceNa
 /** Returns all tasks that depend on a specific resource. */
 export const projectFileResourceDependents = async (
     projectId: string,
-    resourceName: string
+    resourceName: string,
 ): Promise<FetchResponse<ITaskLink[]>> => {
     return fetch({
         url: legacyApiEndpoint(`/projects/${projectId}/files/usage`),
@@ -288,7 +289,7 @@ const projectImportEndpoint = (projectImportId: string) => workspaceApi(`/projec
 
 /** Fetch the project import details for the previously uploaded project file. */
 export const requestProjectImportDetails = async (
-    projectImportId: string
+    projectImportId: string,
 ): Promise<FetchResponse<IProjectImportDetails>> => {
     return fetch({
         url: projectImportEndpoint(projectImportId),
@@ -311,7 +312,7 @@ export const requestDeleteProjectImport = async (projectImportId: string): Promi
 export const requestStartProjectImport = async (
     projectImportId: string,
     generateNewId: boolean,
-    overwriteExistingProject: boolean
+    overwriteExistingProject: boolean,
 ): Promise<FetchResponse<void>> => {
     return fetch({
         url:
@@ -323,7 +324,7 @@ export const requestStartProjectImport = async (
 
 /** When the actual project import has been started, this endpoint will inform about the progress. */
 export const requestProjectImportExecutionStatus = async (
-    projectImportId: string
+    projectImportId: string,
 ): Promise<FetchResponse<IProjectExecutionStatus>> => {
     return fetch({
         url: projectImportEndpoint(projectImportId) + "/status",
@@ -362,7 +363,7 @@ export const requestProjectUri = async (projectId: string): Promise<FetchRespons
 export const requestSearchForGlobalVocabularyProperties = async (
     textQuery: string,
     limit: number,
-    projectId?: string
+    projectId?: string,
 ): Promise<FetchResponse<IAutocompleteDefaultResponse[]>> => {
     return fetch({
         url: workspaceApi("vocabularies/property/search"),
@@ -378,7 +379,7 @@ export const requestSearchForGlobalVocabularyProperties = async (
 export const requestTaskContextInfo = async (
     projectId: string,
     taskId: string,
-    taskContext: TaskContext
+    taskContext: TaskContext,
 ): Promise<FetchResponse<TaskContextResponse>> => {
     return fetch({
         url: projectApi(`/${projectId}/taskContext`),
@@ -386,6 +387,26 @@ export const requestTaskContextInfo = async (
         body: {
             taskId,
             taskContext,
+        },
+    });
+};
+
+/** Validates a YAML string.
+ * @param yaml The YAML string that should be validated.
+ * @param nestingAllowed If the YAML can be nested, else each value has to be atomic.
+ * @param expectMap If the root element must be a Map. */
+export const validateYaml = async (
+    yaml: string,
+    nestingAllowed: boolean,
+    expectMap: boolean,
+): Promise<FetchResponse<CodeAutocompleteFieldValidationResult>> => {
+    return fetch({
+        url: workspaceApi("/validation/yaml"),
+        method: "POST",
+        body: {
+            yaml,
+            nestingAllowed,
+            expectMap,
         },
     });
 };

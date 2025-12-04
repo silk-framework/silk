@@ -19,7 +19,7 @@ class LocalWorkflowExecutorTest extends AnyFlatSpec with Matchers with SinglePro
 
   override def projectPathInClasspath: String = "org/silkframework/workspace/activity/workflow/executionReportTest.zip"
 
-  override def workspaceProviderId: String = "inMemory"
+  override def workspaceProviderId: String = "inMemoryWorkspaceProvider"
 
   override def projectId: String = "executionReportTest"
 
@@ -65,7 +65,7 @@ class LocalWorkflowExecutorTest extends AnyFlatSpec with Matchers with SinglePro
 
   override def propertyMap: Map[String, Option[String]] = {
     Map(
-      "workspace.reportManager.plugin" -> Some("inMemory")
+      "workspace.reportManager.plugin" -> Some("inMemoryExecutionReportManager")
     )
   }
 }

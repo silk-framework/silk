@@ -14,7 +14,7 @@ import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
   * A Dataset where all entities are given directly in the configuration.
   *
   * Parameters:
-  * - '''data''': The RDf data
+  * - '''data''': The RDF data
   * - '''format''': The format of the RDF file. Allowed values: "RDF/XML", "N-Triples", "Turtle"
   */
 @Plugin(id = "rdf", label = "RDF in-memory", description = "A Dataset where all entities are given directly in the configuration.")

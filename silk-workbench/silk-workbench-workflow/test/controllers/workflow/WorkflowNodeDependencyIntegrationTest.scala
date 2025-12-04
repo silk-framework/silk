@@ -12,7 +12,7 @@ class WorkflowNodeDependencyIntegrationTest extends AnyFlatSpec with Matchers wi
 
   override def projectId: String = "nestedWorkflowsTest"
 
-  override def workspaceProviderId: String = "inMemory"
+  override def workspaceProviderId: String = "inMemoryWorkspaceProvider"
 
   it should "execute a workflow that connects independent parts only via dependency connections" in {
     noException mustBe thrownBy {

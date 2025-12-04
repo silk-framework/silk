@@ -33,6 +33,11 @@ public @interface PluginType {
    */
   String label() default "";
 
+  /**
+   * A human-readable description of this plugin type.
+   */
+  String description() default "";
+
   /** Optional custom metadata about this plugin. */
   Class<? extends CustomPluginDescriptionGenerator> customDescription() default NoCustomPluginDescription.class;
 

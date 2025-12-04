@@ -12,7 +12,7 @@ import org.silkframework.workspace.activity.workflow.{LocalWorkflowExecutorGener
 class WorkflowExecutionIntegrationTest extends AnyFlatSpec with SingleProjectWorkspaceProviderTestTrait with Matchers {
     override def projectPathInClasspath: String = "diProjects/workflow-execution-integration-test-project.zip"
 
-  override def workspaceProviderId: String = "inMemory"
+  override def workspaceProviderId: String = "inMemoryWorkspaceProvider"
 
   private val workflow = "workflow"
   private val dependencyWorkflow = "Dependencyexecutiontestworkflow_d61977481919ba4f"

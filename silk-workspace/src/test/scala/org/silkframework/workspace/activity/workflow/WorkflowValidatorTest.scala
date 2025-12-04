@@ -63,6 +63,6 @@ class WorkflowValidatorTest extends AnyFlatSpec with Matchers with TestWorkspace
     PlainTask(id, Workflow(operators = WorkflowOperatorsParameter(nestedWorkflows)))
   }
 
-  override def workspaceProviderId: String = "inMemory"
+  override def workspaceProviderId: String = "inMemoryWorkspaceProvider"
 
 }

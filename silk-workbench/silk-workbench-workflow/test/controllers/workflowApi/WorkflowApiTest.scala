@@ -30,7 +30,7 @@ class WorkflowApiTest extends AnyFlatSpec with SingleProjectWorkspaceProviderTes
 
   override def routes: Option[Class[_ <: Router]] = Some(classOf[testWorkflowApi.Routes])
 
-  override def workspaceProviderId: String = "inMemory"
+  override def workspaceProviderId: String = "inMemoryWorkspaceProvider"
 
   private val workflowId = "f506c6d7-1c83-424e-8033-8d5137b704b9_Workflow"
   private val customTaskWithoutSchemaFromInitialProject = "23586f0a-037d-4acd-91ad-669afe05a074_JSONparser"

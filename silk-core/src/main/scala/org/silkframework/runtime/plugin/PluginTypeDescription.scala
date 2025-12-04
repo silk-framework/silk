@@ -9,9 +9,14 @@ import org.silkframework.util.StringUtils.toStringUtils
   * @param baseClass The base class of all plugins of this type. For instance, 'DistanceMeasure' for distance measure plugins.
   * @param name Unique name of this plugin type.
   * @param label Human-readably label for this plugin type.
-  * @param customDescription Generates additional metadata for each plugin of this type.
+  * @param description Human-readably description for this plugin type.
+  * @param customDescriptionGenerator Generates additional metadata for each plugin of this type.
   */
-case class PluginTypeDescription(baseClass: Class[_], name: String, label: String, customDescription: CustomPluginDescriptionGenerator = new NoCustomPluginDescription)
+case class PluginTypeDescription(baseClass: Class[_],
+                                 name: String,
+                                 label: String,
+                                 description: Option[String],
+                                 customDescriptionGenerator: CustomPluginDescriptionGenerator = new NoCustomPluginDescription)
 
 object PluginTypeDescription {
 
@@ -23,8 +28,9 @@ object PluginTypeDescription {
       for (typeAnnotation <- typeAnnotations.headOption) yield {
         val name = pluginClass.getName
         val label = if (typeAnnotation.label().nonEmpty) typeAnnotation.label() else pluginClass.getSimpleName.toSentenceCase
+        val description = if (typeAnnotation.description().nonEmpty) Some(typeAnnotation.description()) else None
         val customDescriptionGenerator = typeAnnotation.customDescription().getDeclaredConstructor().newInstance()
-        PluginTypeDescription(pluginClass, name, label, customDescriptionGenerator)
+        PluginTypeDescription(pluginClass, name, label, description, customDescriptionGenerator)
       }
     }
   }

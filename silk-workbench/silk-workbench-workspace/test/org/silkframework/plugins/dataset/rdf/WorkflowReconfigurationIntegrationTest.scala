@@ -1,5 +1,6 @@
 package org.silkframework.plugins.dataset.rdf
-
+
+
 import org.silkframework.workspace.SingleProjectWorkspaceProviderTestTrait
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.must.Matchers
@@ -19,7 +20,7 @@ class WorkflowReconfigurationIntegrationTest extends AnyFlatSpec with Matchers w
   private val workflowId = "reconfiguredWorkflow"
   private val outputFile = "sparqlSelect.csv"
 
-  override def workspaceProviderId: String = "inMemory"
+  override def workspaceProviderId: String = "inMemoryWorkspaceProvider"
 
   it should "re-configure tasks in a workflow execution" in {
     executeWorkflow(workflowId)

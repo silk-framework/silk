@@ -1,5 +1,4 @@
 import { Keywords } from ".";
-import { TaskType } from "@ducks/shared/typings";
 
 export type DATA_TYPES = "project" | "Dataset" | "transform" | "Linking" | "task";
 

@@ -1,5 +1,5 @@
 import React from "react";
-import { CodeEditor, FieldItem, TextField, MultiSelectSelectionProps } from "@eccenca/gui-elements";
+import { CodeEditor, FieldItem, TextField, MultiSuggestFieldSelectionProps } from "@eccenca/gui-elements";
 import { errorMessage } from "./ParameterWidget";
 import { useTranslation } from "react-i18next";
 import { AdvancedOptionsArea } from "../../../AdvancedOptionsArea/AdvancedOptionsArea";
@@ -57,8 +57,8 @@ export function ProjectForm({ form, goBackOnEscape = () => {} }: IProps) {
     };
 
     const handleTagSelectionChange = React.useCallback(
-        (params: MultiSelectSelectionProps<Keyword>) => setValue("tags", params),
-        []
+        (params: MultiSuggestFieldSelectionProps<Keyword>) => setValue("tags", params),
+        [],
     );
 
     const CodeEditorMemoed = React.useMemo(
@@ -70,13 +70,14 @@ export function ProjectForm({ form, goBackOnEscape = () => {} }: IProps) {
                 mode="markdown"
                 onChange={onValueChange(DESCRIPTION)}
                 useToolbar
+                data-test-id="codemirror-wrapper"
                 translate={(key) => {
                     const translationKey = `Editor.markdown.toolbar.${key}`;
                     return t(translationKey) as string;
                 }}
             />
         ),
-        []
+        [],
     );
 
     return (
@@ -88,7 +89,7 @@ export function ProjectForm({ form, goBackOnEscape = () => {} }: IProps) {
                     info: t("common.words.required"),
                     htmlFor: "title-input",
                 }}
-                hasStateDanger={errorMessage("Title", errors.label) ? true : false}
+                intent={errorMessage("Title", errors.label) ? "danger" : undefined}
                 messageText={errorMessage("Title", errors.label)}
             >
                 <TextField

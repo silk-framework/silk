@@ -18,7 +18,7 @@ import java.io.{File, OutputStream}
 /**
   * Trait defining methods for marshalling and unmarshalling of Silk projects.
   */
-@PluginType()
+@PluginType(label = "Project marshaller")
 trait ProjectMarshallingTrait extends AnyPlugin {
   /**
     * A unique ID, so this marshaller can be distinguished from other marshallers

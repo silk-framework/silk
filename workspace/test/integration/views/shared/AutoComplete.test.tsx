@@ -1,11 +1,11 @@
 import React from "react";
 import { SuggestField, SuggestFieldProps } from "@eccenca/gui-elements";
-import { addDocumentCreateRangeMethod, findSingleElement, testWrapper, withMount } from "../../TestHelper";
+import { addDocumentCreateRangeMethod, findElement, renderWrapper } from "../../TestHelper";
 import { waitFor } from "@testing-library/react";
 
 describe("AutoComplete", () => {
     const wrapper = (props: SuggestFieldProps<any, any>) => {
-        return withMount(testWrapper(<SuggestField {...props} />));
+        return renderWrapper(<SuggestField {...props} />);
     };
 
     it("should send exactly one request when receiving focus", async () => {
@@ -23,8 +23,8 @@ describe("AutoComplete", () => {
         };
         const autoComplete = wrapper({ onSearch });
         expect(counter).toBe(0);
-        const inputField = findSingleElement(autoComplete, "input");
-        inputField.simulate("focus");
+        const inputField = findElement(autoComplete, "input");
+        inputField.focus();
         await waitFor(() => {
             expect(counter).toBe(1);
         });

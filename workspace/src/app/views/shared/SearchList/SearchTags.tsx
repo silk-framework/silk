@@ -16,7 +16,7 @@ export const searchTagsRenderer = (props: SearchTagsProps): JSX.Element[] => {
             className: "diapp-searchtags__tag",
         };
         return searchTag.includes("Replaceable") ? (
-            <ArtefactTag artefactType="replaceableInput" {...tagProps}>
+            <ArtefactTag artefactType="replaceable-input" {...tagProps}>
                 {tagContent}
             </ArtefactTag>
         ) : (

@@ -14,6 +14,7 @@
 
 package org.silkframework.rule.plugins.transformer.validation
 
+import org.silkframework.rule.annotations.{TransformExample, TransformExamples}
 import org.silkframework.rule.input.SimpleTransformer
 import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
 import org.silkframework.runtime.validation.ValidationException
@@ -24,11 +25,45 @@ import scala.util.matching.Regex
   id = "validateRegex",
   categories = Array("Validation"),
   label = "Validate regex",
-  description = "Validates if all values match a regular expression."
+  description = "Validates if all values match a regular expression.",
+  documentationFile = "ValidateRegex.md"
 )
+@TransformExamples(Array(
+  new TransformExample(
+    parameters = Array("regex", "\\w*"),
+    input1 = Array("TestValue123"),
+    output = Array("TestValue123"),
+  ),
+  new TransformExample(
+    parameters = Array("regex", "[a-d]*"),
+    input1 = Array("abcd"),
+    output = Array("abcd"),
+  ),
+  new TransformExample(
+    parameters = Array("regex", "Prefix \\w\\w\\w"),
+    input1 = Array("Prefix abc"),
+    output = Array("Prefix abc"),
+  ),
+  new TransformExample(
+    parameters = Array("regex", "\\w*"),
+    input1 = Array("(TestValue123)"),
+    throwsException = classOf[ValidationException]
+  ),
+  new TransformExample(
+    parameters = Array("regex", "[a-d]*"),
+    input1 = Array("abcde"),
+    throwsException = classOf[ValidationException]
+  ),
+  new TransformExample(
+    parameters = Array("regex", "Prefix \\w\\w\\w"),
+    input1 = Array("Prefixabc"),
+    throwsException = classOf[ValidationException]
+  ),
+))
 case class ValidateRegex(
   @Param(value = "regular expression")
-  regex: String = "\\w*") extends SimpleTransformer {
+  regex: String = "\\w*"
+) extends SimpleTransformer {
 
   private val compiledRegex = new Regex(regex)
 

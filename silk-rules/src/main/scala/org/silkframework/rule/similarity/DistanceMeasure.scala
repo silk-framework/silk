@@ -19,6 +19,8 @@ import org.silkframework.runtime.plugin.annotations.PluginType
 import org.silkframework.runtime.plugin.{AnyPlugin, PluginFactory}
 
 @PluginType(
+  label = "Distance Measure",
+  description = "Computes the distance between two sets of strings.",
   customDescription = classOf[DistanceMeasureDescriptionGenerator]
 )
 trait DistanceMeasure extends AnyPlugin {

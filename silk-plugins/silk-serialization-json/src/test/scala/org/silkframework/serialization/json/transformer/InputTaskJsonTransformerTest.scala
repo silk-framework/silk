@@ -31,7 +31,7 @@ class InputTaskJsonTransformerTest extends AnyFlatSpec with Matchers with TestWo
   }
 
 
-  override def workspaceProviderId: String = "inMemory"
+  override def workspaceProviderId: String = "inMemoryWorkspaceProvider"
 
   object TestData {
 

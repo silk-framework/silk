@@ -1,5 +1,6 @@
 package org.silkframework.plugins.dataset.xml
-
+
+
 import org.silkframework.rule.TransformSpec
 import org.silkframework.workspace.SingleProjectWorkspaceProviderTestTrait
 import org.scalatest.flatspec.AnyFlatSpec
@@ -10,7 +11,7 @@ case class XmlMappingIntegrationTest() extends AnyFlatSpec with SingleProjectWor
 
   override def projectPathInClasspath: String = "org/silkframework/plugins/dataset/xml/0a7d0894-5ece-4f4a-8ee5-d6faf483b242_XMLmappingtestproject.zip"
 
-  override def workspaceProviderId: String = "inMemory"
+  override def workspaceProviderId: String = "inMemoryWorkspaceProvider"
 
   private val transformId = "f5f24c45-1d0f-45e8-99ce-12fb5c0dbd95_TransformXML"
 

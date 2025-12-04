@@ -20,7 +20,9 @@ case class GetProjectFilesOperator(
     autoCompletionProvider = classOf[ProjectFilesAutoCompletionProvider])
   fileName: String = "",
   @Param("Optional regular expression for retrieving files. The regex needs to match the full path (i.e. from beginning to end, including sub-directories).")
-  filesRegex: String = "") extends CustomTask {
+  filesRegex: String = "",
+  @Param(label = "MIME type", value = "Optional MIME type to assign to all retrieved files. If left empty, the MIME type will be not be set.")
+  mimeType: String = "") extends CustomTask {
 
   assert(fileName.nonEmpty || filesRegex.nonEmpty, "Either the file name or the file regex must be set")
   assert(!(fileName.nonEmpty && filesRegex.nonEmpty), "Only one of the file name or the file regex must be set")
@@ -28,12 +30,17 @@ case class GetProjectFilesOperator(
   private val regex = filesRegex.trim.r
 
   /**
+   * Optional MIME type to assign to all retrieved files.
+   */
+  val mimeTypeOpt: Option[String] = if(mimeType.trim.isEmpty) None else Some(mimeType.trim)
+
+  /**
     * The input ports and their schemata.
     */
   override def inputPorts: InputPorts = FixedNumberOfInputs(Seq.empty)
 
   /**
-    * The output port and it's schema.
+    * The output port and its schema.
     * None, if this operator does not generate any output.
     */
   override def outputPort: Option[Port] = Some(FixedSchemaPort(FileEntitySchema.schema))

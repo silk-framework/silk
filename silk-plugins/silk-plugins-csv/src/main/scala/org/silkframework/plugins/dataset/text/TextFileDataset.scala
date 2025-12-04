@@ -15,6 +15,7 @@ import scala.io.Codec
 @Plugin(
   id = "text",
   label = "Text",
+  categories = Array(DatasetCategories.file),
   description= "Reads and writes plain text files.",
   documentationFile = "TextFileDataset.md")
 case class TextFileDataset(

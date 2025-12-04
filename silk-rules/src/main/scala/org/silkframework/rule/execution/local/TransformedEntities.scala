@@ -82,7 +82,7 @@ class TransformedEntities(task: Task[TransformSpec],
         }
         mappedEntity
       }
-    new TransformReportIterator(mappedEntities.thenClose(() => report.build()), report)
+    new TransformReportIterator(mappedEntities.thenClose(() => report.build()), report, rules.map(_.id.toString).toSet)
   }
 
   private def mapEntity(entity: Entity, report: TransformReportBuilder): Iterator[Entity] = {
@@ -179,9 +179,11 @@ class TransformedEntities(task: Task[TransformSpec],
     }
   }
 
-  private class TransformReportIterator(iterator: CloseableIterator[Entity], report: TransformReportBuilder) extends CloseableIterator[Entity] {
+  private class TransformReportIterator(iterator: CloseableIterator[Entity], report: TransformReportBuilder, coveredRules: Set[String]) extends CloseableIterator[Entity] {
     @volatile
     private var reportDone = false
+    @volatile
+    private var started = false
 
     private def closeReport(): Unit = {
       if(!reportDone) {
@@ -191,10 +193,15 @@ class TransformedEntities(task: Task[TransformSpec],
     }
 
     override def hasNext: Boolean = {
+      if(!started) {
+        started = true
+        report.setStarted(coveredRules)
+      }
       try {
         if (iterator.hasNext) {
           true
         } else {
+          report.setFinished(coveredRules)
           closeReport()
           false
         }

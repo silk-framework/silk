@@ -51,7 +51,7 @@ export function RelatedItem({ relatedItem, textQuery }: IProps) {
                 routerOp.goToPage(relatedItem.itemLinks[0].path, {
                     taskLabel: relatedItem.label,
                     itemType: relatedItem.type.toLowerCase(),
-                })
+                }),
             );
         }
     };
@@ -78,22 +78,22 @@ export function RelatedItem({ relatedItem, textQuery }: IProps) {
     const itemTags = [] as JSX.Element[];
     if (relatedItem.type === "Dataset") {
         itemTags.push(
-            <ArtefactTag key={"dataset"} artefactType="datasetNode">
+            <ArtefactTag key={"dataset"} artefactType="dataset-node">
                 <Highlighter label={relatedItem.type} searchValue={textQuery} />
-            </ArtefactTag>
+            </ArtefactTag>,
         );
     }
     if (relatedItem.readOnly) {
         itemTags.push(
             <Tag key={"readOnlyTag"}>
                 <Icon name="state-locked" tooltipText={t("common.tooltips.dataset.readOnly")} />
-            </Tag>
+            </Tag>,
         );
     }
     itemTags.push(
-        <ArtefactTag key={relatedItem.pluginLabel} artefactType={`${relatedItem.pluginLabel.toLowerCase()}Node`}>
+        <ArtefactTag key={relatedItem.pluginLabel} artefactType={`${relatedItem.pluginLabel.toLowerCase()}-node`}>
             <Highlighter label={relatedItem.pluginLabel} searchValue={textQuery} />
-        </ArtefactTag>
+        </ArtefactTag>,
     );
     return (
         <OverviewItem key={relatedItem.id}>

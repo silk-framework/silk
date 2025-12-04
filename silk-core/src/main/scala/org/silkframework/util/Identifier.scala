@@ -23,7 +23,7 @@ import scala.language.implicitConversions
  * May only contain the following characters: (a - z, A - Z, 0 - 9, _, -)
  */
 class Identifier(private val name: String) extends Serializable with Ordered[Identifier] {
-  require(!name.isEmpty, "Identifier must not be empty.")
+  require(name.nonEmpty, "Identifier must not be empty.")
   require(name.forall(Identifier.isAllowed),
     "An identifier may only contain the following characters (a - z, A - Z, 0 - 9, _, -). The following identifier is not valid: '" + name + "'.")
 

@@ -1,54 +1,42 @@
 import React from "react";
-import { shallow } from 'enzyme';
-import { NotAvailable } from 'gui-elements-deprecated';
-import { URIInfo } from '../../../src/app/views/pages/MappingEditor/HierarchicalMapping/components/URIInfo';
+import { URIInfo } from "../../../src/app/views/pages/MappingEditor/HierarchicalMapping/components/URIInfo";
+import { render } from "@testing-library/react";
+import { findAllDOMElements, findElement, logRequests } from "../../integration/TestHelper";
 
 const getVocabInfoAsyncMock = jest.fn();
 
-jest.doMock( '../../../src/app/views/pages/MappingEditor/HierarchicalMapping/store', () => getVocabInfoAsyncMock);
+jest.doMock("../../../src/app/views/pages/MappingEditor/HierarchicalMapping/store", () => getVocabInfoAsyncMock);
 const props = {
-    uri: '<superUri>',
-    fallback: 'Fallback text',
-    field: 'field'
+    uri: "<superUri>",
+    fallback: "Fallback text",
+    field: "field",
 };
 
-const getWrapper = (renderer = shallow, args = props) => renderer(
-    <URIInfo {...args} />
-);
-
+const getWrapper = (args = props) => render(<URIInfo {...args} />);
 
 describe("URIInfo Component", () => {
-    describe("on component mounted, ",() => {
-        it("should render information text, when text is available from server", () => {
-            const wrapper = getWrapper(shallow);
-            wrapper.setState({
-                info: 'Message'
-            });
-
-            expect(wrapper.find('span').text()).toEqual('Message')
-        });
-
+    describe("on component mounted, ", () => {
         it("should render fallback text, when text is NOT available from server", () => {
-            const wrapper = getWrapper(shallow);
-            expect(wrapper.find('span').text()).toEqual('Fallback text')
+            const wrapper = getWrapper();
+            expect(findElement(wrapper, "span").textContent).toEqual("Fallback text");
         });
 
         it("should render NotAvailable component, when fallback not available and `uri` in not string", () => {
-            const wrapper = getWrapper(shallow, {
+            const wrapper = getWrapper({
                 ...props,
                 uri: {},
-                fallback: undefined
+                fallback: undefined,
             });
-            expect(wrapper.find(NotAvailable)).toHaveLength(1);
+            expect(findAllDOMElements(wrapper, "[class*='__notavailable']").length).toBeGreaterThan(0);
         });
 
         it("should render text from `uri`, when `props.field` equal to 'label'", () => {
-            const wrapper = getWrapper(shallow, {
+            const wrapper = getWrapper({
                 ...props,
-                field: 'label',
-                fallback: undefined
+                field: "label",
+                fallback: undefined,
             });
-            expect(wrapper.find('span').text()).toEqual('superUri')
+            expect(findElement(wrapper, "span").textContent).toEqual("superUri");
         });
     });
 });

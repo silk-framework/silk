@@ -17,6 +17,7 @@ import org.silkframework.util.{Identifier, Uri}
 @Plugin(
   id = BinaryFileDataset.id,
   label = "Binary file",
+  categories = Array(DatasetCategories.file),
   description= "Reads and writes binary files. A typical use-case for this dataset is to process PDF documents or images.",
   documentationFile = "BinaryFileDataset.md",
   iconFile = "BinaryFileDataset.svg"

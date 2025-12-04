@@ -438,12 +438,18 @@
             "removed": "Removed",
             "paths": "Paths",
             "unknown": "Unknown",
-            "active": "active"
+            "active": "active",
+            "next": "Next",
+            "previous": "Previous"
         },
         "tooltips": {
             "dataset": {
                 "readOnly": "This dataset is configured as read-only. You can disable this in the dataset configuration."
             }
+        },
+        "documentationLink": {
+            "label": "Documentation",
+            "tooltip": "Open documentation page in new tab."
         }
     },
     "form": {
@@ -1219,6 +1225,12 @@
             "title": "Add reference link",
             "sourceUri": "Source URI",
             "targetUri": "Target URI"
+        },
+        "evaluationScoreTooltipWidget": {
+            "range": "Ranging from 0.0 (worst) to 1.0 (best).",
+            "fMeasureText": "<h3>F1-measure: {{fMeasure}}</h3><p>This is the combination of precision and recall. {{range}}</p>",
+            "precisionText": "<h3>Precision: {{precision}}</h3><p>How precise the rule is, i.e. the ratio of correctly evaluated positive items ({{truePositives}}) vs. all positively evaluated items ({{allEvaluatedTrue}}). {{range}}</p>",
+            "recallText": "<h3>Recall: {{recall}}</h3><p>Specifies how many of all the positive items are categorized correctly, i.e the ratio of correctly evaluated positive items ({{truePositives}}) vs all existing positive items ({{allTrue}}). {{range}}</p>"
         }
     },
     "HierarchicalMapping": {
@@ -1292,7 +1304,9 @@
                 "selectMapping": "Select a mapping for detailed results.",
                 "noIssues": "This mapping rule executed successfully without any issues.",
                 "validationIssues": "This mapping rule generated {{errors}} validation issues during execution. Examples are shown below.",
-                "InvalidTypeUris": "There exist invalid type URIs: {{typeUris}}"
+                "InvalidTypeUris": "There exist invalid type URIs: {{typeUris}}",
+                "notExecuted": "This mapping rule has not been executed at all. The transform execution has been stopped before for some reason.",
+                "notFinished": "This mapping rule has not been executed over all source entities. The transform execution has been stopped for some reason."
             }
         },
         "errorTable": {

@@ -16,7 +16,7 @@ import useErrorHandler from "../../../../../hooks/useErrorHandler";
 import { useTranslation } from "react-i18next";
 import { useSelector } from "react-redux";
 import { commonSel } from "@ducks/common";
-import { ISuggestionWithReplacementInfo } from "@eccenca/gui-elements/src/components/AutoSuggestion/AutoSuggestion";
+import { CodeAutocompleteFieldSuggestionWithReplacementInfo } from "@eccenca/gui-elements/src/components/AutoSuggestion/AutoSuggestion";
 import ruleEditorUtils from "../../RuleEditor.utils";
 
 type PreConfiguredOperatorConfig = IPreConfiguredOperators<any> & {
@@ -34,7 +34,7 @@ export const RuleEditorOperatorSidebar = () => {
     // The query that was input in the search field. This won't get immediately active.
     const [textQuery, setTextQuery] = React.useState<string>("");
     const [operatorList, setOperatorList] = React.useState<IRuleOperator[] | undefined>();
-    const [operatorCategories] = React.useState<ISuggestionWithReplacementInfo[]>([]);
+    const [operatorCategories] = React.useState<CodeAutocompleteFieldSuggestionWithReplacementInfo[]>([]);
     /** Tab handling. */
     // The currently active tab
     const [activeTabId, setActiveTabId] = React.useState<string | undefined>(undefined);
@@ -54,14 +54,14 @@ export const RuleEditorOperatorSidebar = () => {
 
     // All pre-configured tab configs
     const preConfiguredOperatorTabs = (editorContext.tabs ?? []).filter(
-        (tabConfig) => !(tabConfig as IRuleSideBarFilterTabConfig).filterAndSort
+        (tabConfig) => !(tabConfig as IRuleSideBarFilterTabConfig).filterAndSort,
     ) as IRuleSidebarPreConfiguredOperatorsTabConfig[];
 
     // Filter operator list when active query or filters change
     React.useEffect(() => {
         const searchWords = highlighterUtils.extractSearchWords(textQuery);
         const filterPreConfiguredOperatorsBasedOnTextQuery = (
-            preConfiguredOperators: PreConfiguredOperatorConfig[]
+            preConfiguredOperators: PreConfiguredOperatorConfig[],
         ) => {
             const filteredOps = preConfiguredOperators.map((preConfigured) => {
                 const filtered = filterAndSortOperators(
@@ -69,7 +69,7 @@ export const RuleEditorOperatorSidebar = () => {
                     preConfigured.itemSearchText,
                     preConfigured.itemLabel,
                     () => [],
-                    searchWords
+                    searchWords,
                 );
                 return { ...preConfigured, originalOperators: filtered };
             });
@@ -83,13 +83,13 @@ export const RuleEditorOperatorSidebar = () => {
                         ruleOperatorSearchText,
                         (op) => op.label,
                         (op) => op.categories ?? [],
-                        searchWords
-                    )
+                        searchWords,
+                    ),
                 );
             } else {
                 // Rank "Recommended" operators to the top by default in unfiltered list
                 const { matches: recommended, nonMatches: others } = partitionArray<IRuleOperator>(operatorList, (op) =>
-                    (op.categories ?? []).includes("Recommended")
+                    (op.categories ?? []).includes("Recommended"),
                 );
                 setFilteredOperators([...recommended, ...others]);
             }
@@ -149,7 +149,7 @@ export const RuleEditorOperatorSidebar = () => {
                             loadExternalOperators(preConfiguredOperatorTabs, true);
                         }
                         setShowPreConfiguredOperatorsOnlyWithQuery(
-                            filterTabConfig.showOperatorsFromPreConfiguredOperatorTabsForQuery
+                            filterTabConfig.showOperatorsFromPreConfiguredOperatorTabsForQuery,
                         );
                     } else {
                         const customTabConfig = tabConfig as IRuleSidebarPreConfiguredOperatorsTabConfig;
@@ -167,12 +167,12 @@ export const RuleEditorOperatorSidebar = () => {
     // Load external operators
     const loadExternalOperators = async (
         configs: IRuleSidebarPreConfiguredOperatorsTabConfig[],
-        mergeWithOperatorList: boolean
+        mergeWithOperatorList: boolean,
     ) => {
         setPreConfiguredOperatorListLoading(true);
         try {
             const originalOperatorsPerConfig = await Promise.all(
-                configs.map((config) => config.fetchOperators(prefLang))
+                configs.map((config) => config.fetchOperators(prefLang)),
             );
             const preConfiguredOperatorConfigs = originalOperatorsPerConfig.map((_originalOperators, idx) => {
                 const config = configs[idx];
@@ -204,7 +204,7 @@ export const RuleEditorOperatorSidebar = () => {
                     tabName: configs.map((c) => c.label).join(", "),
                 }),
                 ex,
-                { errorNotificationInstanceId: RULE_EDITOR_NOTIFICATION_INSTANCE }
+                { errorNotificationInstanceId: RULE_EDITOR_NOTIFICATION_INSTANCE },
             );
         } finally {
             setPreConfiguredOperatorListLoading(false);
@@ -296,7 +296,7 @@ function filterAndSortOperators<T>(
     searchText: (op: T) => string,
     labelText: (op: T) => string,
     categories: (op: T) => string[],
-    searchWords: string[]
+    searchWords: string[],
 ): T[] {
     const filteredOperators = operators.filter((op) => {
         return highlighterUtils.matchesAllWords(searchText(op), searchWords);
@@ -304,11 +304,11 @@ function filterAndSortOperators<T>(
     const matchCount = new Map<T, number>();
     const { matches: labelMatches, nonMatches: nonLabelMatches } = partitionArray(
         filteredOperators,
-        (op) => !!searchWords.find((w) => labelText(op).toLowerCase().includes(w))
+        (op) => !!searchWords.find((w) => labelText(op).toLowerCase().includes(w)),
     );
     const { matches: categoryMatches, nonMatches: nonCategoryMatches } = partitionArray(
         nonLabelMatches,
-        (op) => !!searchWords.find((w) => categories(op).findIndex((v) => v.toLowerCase() === w) > -1)
+        (op) => !!searchWords.find((w) => categories(op).findIndex((v) => v.toLowerCase() === w) > -1),
     );
     labelMatches.forEach((match) => {
         const label = labelText(match).toLowerCase();

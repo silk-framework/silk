@@ -196,7 +196,7 @@ const NewVariableModal: React.FC<VariableModalProps> = ({
                         onClick={() => setShowModalHelperText(true)}
                     />
                 }
-                notifications={error ? <Notification danger>{error.detail}</Notification> : null}
+                notifications={error ? <Notification intent="danger">{error.detail}</Notification> : null}
                 actions={[
                     <Button
                         key="add"
@@ -214,7 +214,7 @@ const NewVariableModal: React.FC<VariableModalProps> = ({
                 ]}
             >
                 <FieldItem
-                    hasStateDanger={!!validationError?.name}
+                    intent={!!validationError?.name ? "danger" : undefined}
                     messageText={validationError?.name}
                     labelProps={{
                         htmlFor: "name",

@@ -1,6 +1,6 @@
 Typically, this dataset is used to transform an XML file to another format, e.g., to RDF. It can also be used to generate XML files.
 
-### Reading
+## Reading
 
 When this dataset is used as an input for another task (e.g., a transformation task), the input type of the consuming task selects the path where the entities to be read are located.
 
@@ -39,6 +39,6 @@ Path examples:
 - The backslash can be used to navigate to the parent XML node, e.g., `\Persons/SomeHeader`.
 - `#text` retrieves the text of the selected node.
 
-### Writing
+## Writing
 
 When writing XML, all entities need to possess a unique URI. Writing multiple root entities with the same URI will result in multiple entries in the generated XML. If multiple nested entities with the same URI are written, only the last entity with a given URI will be written.

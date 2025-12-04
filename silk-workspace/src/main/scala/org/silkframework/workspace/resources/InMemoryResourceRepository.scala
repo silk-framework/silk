@@ -5,7 +5,7 @@ import org.silkframework.runtime.resource.{InMemoryResourceManager, ResourceMana
 import org.silkframework.util.Identifier
 
 @Plugin(
-  id = "inMemory",
+  id = "inMemoryResourceRepository",
   label = "In-memory resources",
   description = "Holds all resource in-memory."
 )

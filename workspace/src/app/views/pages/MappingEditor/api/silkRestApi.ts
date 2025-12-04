@@ -3,7 +3,7 @@ import Promise from "bluebird";
 import { IUriPatternsResult, PropertyByDomainAutoCompletion, TargetPropertyAutoCompletion } from "./types";
 import { CONTEXT_PATH } from "../../../../constants/path";
 import { TaskContext } from "../../../shared/projectTaskTabView/projectTaskTabView.typing";
-import { IPartialAutoCompleteResult } from "@eccenca/gui-elements/src/components/AutoSuggestion/AutoSuggestion";
+import { CodeAutocompleteFieldPartialAutoCompleteResult } from "@eccenca/gui-elements/src/components/AutoSuggestion/AutoSuggestion";
 
 const CONTENT_TYPE_JSON = "application/json";
 
@@ -123,7 +123,7 @@ const silkApi = {
     retrieveTargetVocabularyTypeOrPropertyInfo: function (
         projectId: string,
         transformTaskId: string,
-        uri: string
+        uri: string,
     ): HttpResponsePromise<any> {
         const requestUrl = this.targetVocabularyTypeOrPropertyInfoEndpoint(projectId, transformTaskId);
 
@@ -143,7 +143,7 @@ const silkApi = {
         maxResults: number = 30,
         vocabularies?: string[] | undefined,
         fullUris: boolean = true,
-        taskContext?: TaskContext
+        taskContext?: TaskContext,
     ): HttpResponsePromise<TargetPropertyAutoCompletion[]> {
         const requestUrl = this.transformTargetPropertyEndpoint(
             projectId,
@@ -151,7 +151,7 @@ const silkApi = {
             ruleId,
             searchTerm,
             maxResults,
-            fullUris
+            fullUris,
         );
 
         const promise = superagent
@@ -171,14 +171,14 @@ const silkApi = {
         projectId: string,
         taskId: string,
         searchTerm: string | undefined,
-        maxResults: number
+        maxResults: number,
     ): HttpResponsePromise<TargetPropertyAutoCompletion[]> {
         const requestUrl = this.transformTargetTypesEndpoint(
             projectId,
             taskId,
             "notUsedInBackend",
             searchTerm,
-            maxResults
+            maxResults,
         );
 
         const promise = superagent.get(requestUrl).accept(CONTENT_TYPE_JSON);
@@ -190,7 +190,7 @@ const silkApi = {
         projectId: string,
         transformTaskId: string,
         classUri: string,
-        includeGeneralProperties?: boolean
+        includeGeneralProperties?: boolean,
     ): HttpResponsePromise<PropertyByDomainAutoCompletion[]> {
         const requestUrl = this.propertiesByTypeEndpoint(projectId, transformTaskId);
 
@@ -198,7 +198,7 @@ const silkApi = {
             superagent.get(requestUrl).accept(CONTENT_TYPE_JSON).query({
                 classUri,
                 includeGeneralProperties,
-            })
+            }),
         );
     },
 
@@ -233,7 +233,7 @@ const silkApi = {
                 .post(requestUrl)
                 .accept(CONTENT_TYPE_JSON)
                 .set("Content-Type", CONTENT_TYPE_JSON)
-                .send({ projectId, targetClassUris: typeUris })
+                .send({ projectId, targetClassUris: typeUris }),
         );
     },
 
@@ -323,7 +323,7 @@ const silkApi = {
         ruleId: string,
         searchTerm: string | undefined,
         maxResults: number,
-        fullUris: boolean
+        fullUris: boolean,
     ): string {
         const encodedSearchTerm = searchTerm ? encodeURIComponent(searchTerm) : "";
         return `${CONTEXT_PATH}/transform/tasks/${projectId}/${transformTaskId}/rule/${ruleId}/completions/targetProperties?term=${encodedSearchTerm}&maxResults=${maxResults}&fullUris=${fullUris}`;
@@ -334,7 +334,7 @@ const silkApi = {
         transformTaskId: string,
         ruleId: string,
         searchTerm: string | undefined,
-        maxResults: number
+        maxResults: number,
     ): string {
         const encodedSearchTerm = searchTerm ? encodeURIComponent(searchTerm) : "";
         return `${CONTEXT_PATH}/transform/tasks/${projectId}/${transformTaskId}/rule/${ruleId}/completions/targetTypes?term=${encodedSearchTerm}&maxResults=${maxResults}`;
@@ -354,8 +354,8 @@ const silkApi = {
         taskContext?: TaskContext,
         baseSourcePath?: string,
         oneHopOnly?: boolean,
-        ignorePathOperatorCompletions?: boolean
-    ): HttpResponsePromise<IPartialAutoCompleteResult> {
+        ignorePathOperatorCompletions?: boolean,
+    ): HttpResponsePromise<CodeAutocompleteFieldPartialAutoCompleteResult> {
         const requestUrl = `${CONTEXT_PATH}/transform/tasks/${projectId}/${transformTaskId}/rule/${ruleId}/completions/partialSourcePaths`;
         const requestBody: any = {
             inputString,
@@ -381,7 +381,7 @@ const silkApi = {
         ruleId: string,
         inputString: string,
         cursorPosition: number,
-        objectContextPath?: string
+        objectContextPath?: string,
     ): HttpResponsePromise<any> {
         const requestUrl = `${CONTEXT_PATH}/transform/tasks/${projectId}/${transformTaskId}/rule/${ruleId}/completions/uriPattern`;
         const promise = superagent

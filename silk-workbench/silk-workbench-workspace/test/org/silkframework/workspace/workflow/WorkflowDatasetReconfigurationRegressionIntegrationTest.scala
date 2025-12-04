@@ -15,7 +15,7 @@ class WorkflowDatasetReconfigurationRegressionIntegrationTest extends AnyFlatSpe
   private val workflowId = "test-workflow"
   private val originalInputFile = "persons.xml"
 
-  override def workspaceProviderId: String = "inMemory"
+  override def workspaceProviderId: String = "inMemoryWorkspaceProvider"
 
   it should "not delete dataset file when re-configuring the file parameter value in a workflow" in {
     val originalInputResourceSize = project.resources.get(originalInputFile).size.get

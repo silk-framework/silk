@@ -1,15 +1,10 @@
-import React from 'react';
-import { Button } from "@eccenca/gui-elements/src/legacy-replacements";
+import { IconButton } from "@eccenca/gui-elements";
+import React from "react";
 
 const NavigateButton = ({ onClick, id }) => {
     return (
-        <Button
-            data-test-id={`button-${id}`}
-            className={`silk${id}`}
-            iconName={'arrow_nextpage'}
-            onClick={onClick}
-        />
-    )
+        <IconButton data-test-id={`button-${id}`} className={`silk${id}`} name="navigation-next" onClick={onClick} />
+    );
 };
 
 export default NavigateButton;

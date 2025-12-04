@@ -1,7 +1,8 @@
 package controllers.workspaceApi
 
 import controllers.errorReporting.ErrorReport.ErrorReportItem
-import helper.IntegrationTestTrait
+import helper.IntegrationTestTrait
+
 import org.silkframework.config.MetaData
 import org.silkframework.plugins.dataset.json.JsonParserTask
 import org.silkframework.workspace.{SingleProjectWorkspaceProviderTestTrait, WorkspaceFactory}
@@ -19,7 +20,7 @@ class ProjectLoadingErrorIntegrationTest extends AnyFlatSpec with SingleProjectW
 
   override def routes: Option[Class[_ <: Router]] = Some(classOf[testWorkspace.Routes])
 
-  override def workspaceProviderId: String = "inMemory"
+  override def workspaceProviderId: String = "inMemoryWorkspaceProvider"
 
   private def updateProjectMetaData(): Unit = {
     WorkspaceFactory().workspace.project(projectId).updateMetaData(MetaData(Some(projectLabel)))

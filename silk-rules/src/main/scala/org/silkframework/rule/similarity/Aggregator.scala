@@ -20,6 +20,8 @@ import org.silkframework.runtime.plugin.{AnyPlugin, PluginFactory}
 import org.silkframework.util.DPair
 
 @PluginType(
+  label = "Aggregator",
+  description = "Aggregates multiple similarity scores.",
   customDescription = classOf[AggregatorDescriptionGenerator]
 )
 trait Aggregator extends AnyPlugin {

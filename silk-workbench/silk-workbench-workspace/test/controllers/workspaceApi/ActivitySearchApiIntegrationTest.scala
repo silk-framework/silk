@@ -4,7 +4,8 @@ import controllers.workspaceApi.search.SearchApiModel.{FacetSetting, FacetType, 
 import controllers.workspaceApi.search._
 import controllers.workspaceApi.search.activity.ActivitySearchRequest
 import controllers.workspaceApi.search.activity.ActivitySearchRequest.{ActivityResult, ActivitySortBy}
-import helper.IntegrationTestTrait
+import helper.IntegrationTestTrait
+
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.rule.TransformSpec
 import org.silkframework.workspace.SingleProjectWorkspaceProviderTestTrait
@@ -21,7 +22,7 @@ class ActivitySearchApiIntegrationTest extends AnyFlatSpec
 
   behavior of "Search API"
 
-  override def workspaceProviderId: String = "inMemory"
+  override def workspaceProviderId: String = "inMemoryWorkspaceProvider"
 
   override def projectPathInClasspath: String = "diProjects/facetSearchWorkspaceProject.zip"
 
@@ -97,6 +98,8 @@ class ActivitySearchApiIntegrationTest extends AnyFlatSpec
     val cache1 = project.task[GenericDatasetSpec]("xmlA1").activity[TypesCache]
     cache1.control.waitUntilFinished()
     cache1.startBlocking()
+    // Make sure the update times are at least 1ms away from each other
+    Thread.sleep(1)
     val cache2 = project.task[GenericDatasetSpec]("xmlA2").activity[TypesCache]
     cache2.control.waitUntilFinished()
     cache2.startBlocking()
