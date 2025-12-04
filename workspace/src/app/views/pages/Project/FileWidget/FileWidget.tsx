@@ -31,7 +31,7 @@ import { FileRemoveModal } from "../../../shared/modals/FileRemoveModal";
 import { CONTEXT_PATH } from "../../../../constants/path";
 import { fileValue } from "@ducks/shared/typings";
 import { useStoreGlobalTableSettings } from "../../../../hooks/useStoreGlobalTableSettings";
-import {GlobalTableContext} from "../../../../GlobalContextsWrapper";
+import { GlobalTableContext } from "../../../../GlobalContextsWrapper";
 
 /** Project file management widget. */
 export const FileWidget = () => {
@@ -48,7 +48,7 @@ export const FileWidget = () => {
     const [fileDeleteDialog, setFileDeleteDialog] = useState<any>(null);
 
     const { isLoading } = fileWidget;
-    const { updateGlobalTableSettings, globalTableSettings} = React.useContext(GlobalTableContext)
+    const { updateGlobalTableSettings, globalTableSettings } = React.useContext(GlobalTableContext);
 
     const [pagination, paginationElement, onTotalChange] = usePagination({
         pageSizes: [5, 10, 20],

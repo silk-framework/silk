@@ -39,7 +39,7 @@ import { DatasetCharacteristics } from "../../shared/typings";
 import { requestDatasetCharacteristics, requestTaskData } from "@ducks/shared/requests";
 import { GlobalMappingEditorContext } from "../../pages/MappingEditor/contexts/GlobalMappingEditorContext";
 import { StickyNote } from "@eccenca/gui-elements";
-import { IPartialAutoCompleteResult } from "@eccenca/gui-elements/src/components/AutoSuggestion/AutoSuggestion";
+import { CodeAutocompleteFieldPartialAutoCompleteResult } from "@eccenca/gui-elements/src/components/AutoSuggestion/AutoSuggestion";
 
 export interface TransformRuleEditorProps {
     /** Project ID the task is in. */
@@ -243,7 +243,10 @@ export const TransformRuleEditor = ({
 
     const fetchPartialAutoCompletionResult = React.useCallback(
         () =>
-            async (inputString: string, cursorPosition: number): Promise<IPartialAutoCompleteResult | undefined> => {
+            async (
+                inputString: string,
+                cursorPosition: number,
+            ): Promise<CodeAutocompleteFieldPartialAutoCompleteResult | undefined> => {
                 try {
                     const result = await partialAutoCompleteTransformInputPaths(
                         projectId,

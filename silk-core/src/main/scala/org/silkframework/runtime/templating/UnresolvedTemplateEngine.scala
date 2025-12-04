@@ -14,7 +14,7 @@ case class UnresolvedTemplateEngine() extends TemplateEngine {
   override def compile(templateString: String): CompiledTemplate = {
     new CompiledTemplate {
       override def evaluate(values: Map[String, AnyRef], writer: Writer): Unit = writer.write(templateString)
-      override def evaluate(values: Seq[TemplateVariableValue], writer: Writer): Unit = writer.write(templateString)
+      override def evaluate(values: Seq[TemplateVariableValue], writer: Writer, evaluationConfig: EvaluationConfig): Unit = writer.write(templateString)
     }
   }
 }

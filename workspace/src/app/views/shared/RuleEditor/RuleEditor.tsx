@@ -20,7 +20,7 @@ import utils from "./RuleEditor.utils";
 import { DatasetCharacteristics } from "../typings";
 import { ReactFlowHotkeyContext } from "@eccenca/gui-elements/src/cmem/react-flow/extensions/ReactFlowHotkeyContext";
 import { StickyNote } from "@eccenca/gui-elements";
-import { IPartialAutoCompleteResult } from "@eccenca/gui-elements/src/components/AutoSuggestion/AutoSuggestion";
+import { CodeAutocompleteFieldPartialAutoCompleteResult } from "@eccenca/gui-elements/src/components/AutoSuggestion/AutoSuggestion";
 import { InitialRuleHighlighting } from "../../taskViews/transform/transform.types";
 
 /** Function to fetch the rule operator spec. */
@@ -53,7 +53,10 @@ export interface RuleEditorBaseProps {
      */
     partialAutoCompletion: (
         inputType: "source" | "target",
-    ) => (inputString: string, cursorPosition: number) => Promise<IPartialAutoCompleteResult | undefined>;
+    ) => (
+        inputString: string,
+        cursorPosition: number,
+    ) => Promise<CodeAutocompleteFieldPartialAutoCompleteResult | undefined>;
     /** True if the save button should be initially enabled even when nothing has been changed by the user.
      * This should be enabled for example when the initial rule is not persisted yet in the backend. */
     saveInitiallyEnabled: boolean;

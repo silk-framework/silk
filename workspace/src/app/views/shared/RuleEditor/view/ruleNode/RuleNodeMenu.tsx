@@ -15,6 +15,7 @@ interface NodeMenuProps {
     ruleOperatorDescription?: string;
     ruleOperatorDocumentation?: string;
     nodeType?: string;
+    ruleOperatorLabel?: string;
 }
 
 /** The menu of a rule node. */
@@ -25,6 +26,7 @@ export const RuleNodeMenu = ({
     handleCloneNode,
     ruleOperatorDescription,
     ruleOperatorDocumentation,
+    ruleOperatorLabel,
     nodeType,
 }: NodeMenuProps) => {
     const [menuFns, setMenuFns] = useState<NodeToolsMenuFunctions | undefined>(undefined);
@@ -61,10 +63,13 @@ export const RuleNodeMenu = ({
                     <MenuItem
                         data-test-id="rule-node-info"
                         key="info"
-                        icon={"item-info"}
+                        icon={"item-question"}
                         onClick={(e) => {
                             closeMenu();
-                            ruleEditorUiContext.setCurrentRuleNodeDescription(operatorDoc);
+                            ruleEditorUiContext.setCurrentRuleNodeInfo({
+                                description: operatorDoc,
+                                label: ruleOperatorLabel,
+                            });
                             e.preventDefault();
                             e.stopPropagation();
                         }}

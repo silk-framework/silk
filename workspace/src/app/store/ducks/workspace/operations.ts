@@ -14,7 +14,7 @@ import { fetchResourcesListAsync } from "@ducks/workspace/widgets/file.thunk";
 import { commonSel } from "@ducks/common";
 import { ISearchListRequest, ISearchListResponse, requestSearchList } from "@ducks/workspace/requests";
 import { FetchResponse } from "../../../services/fetch/responseInterceptor";
-import {GlobalTableBaseConfig} from "../../../hooks/useStoreGlobalTableSettings";
+import { GlobalTableBaseConfig } from "../../../hooks/useStoreGlobalTableSettings";
 
 const {
     updateResultTotal,
@@ -147,7 +147,7 @@ const setupFiltersFromQs = (queryString: string) => {
 const fetchListAsync = (
     tableSettings: GlobalTableBaseConfig | undefined = undefined,
     fetcher: ((payload: ISearchListRequest) => Promise<FetchResponse<ISearchListResponse>>) | undefined = undefined,
-    customDefaultLimit: number | undefined = undefined
+    customDefaultLimit: number | undefined = undefined,
 ) => {
     return async (dispatch, getState) => {
         dispatch(fetchList());
@@ -169,12 +169,12 @@ const fetchListAsync = (
             offset,
         };
 
-        if(tableSettings) {
-            if(tableSettings.sortBy) {
-                body.sortBy = tableSettings.sortBy
+        if (tableSettings) {
+            if (tableSettings.sortBy) {
+                body.sortBy = tableSettings.sortBy;
             }
-            if(tableSettings.sortOrder) {
-                body.sortOrder = tableSettings.sortOrder
+            if (tableSettings.sortOrder) {
+                body.sortOrder = tableSettings.sortOrder;
             }
         } else if (sorters.applied.sortBy) {
             body.sortBy = sorters.applied.sortBy;

@@ -15,7 +15,7 @@ import MappingRuleRow from "./MappingRuleRow";
 import NavigateButton from "../../elements/buttons/NavigateButton";
 import ExpandButton from "../../elements/buttons/ExpandButton";
 import { ContextMenu, MenuItem, Spinner } from "@eccenca/gui-elements";
-import {getRuleLabel} from "../../utils/getRuleLabel";
+import { getRuleLabel } from "../../utils/getRuleLabel";
 
 export class MappingRule extends React.Component {
     // define property types
@@ -136,9 +136,9 @@ export class MappingRule extends React.Component {
             this.props;
         const srcPath = sourcePath || sourcePaths;
 
-        const label = _.get(metadata, 'label', '');
-        const ruleLabelData = getRuleLabel({label, uri: mappingTarget.uri});
-        const ruleDisplayLabel = ruleLabelData.displayLabel
+        const label = _.get(metadata, "label", "");
+        const ruleLabelData = getRuleLabel({ label, uri: mappingTarget.uri });
+        const ruleDisplayLabel = ruleLabelData.displayLabel;
 
         const expandedView = this.props.expanded ? (
             isRootOrObjectRule(type) ? (
@@ -232,6 +232,7 @@ export class MappingRule extends React.Component {
         );
         return (
             <li
+                data-test-id={`mapping-rule-${id}`}
                 className={className("ecc-silk-mapping__ruleitem", {
                     "ecc-silk-mapping__ruleitem--object": type === "object",
                     "ecc-silk-mapping__ruleitem--literal": type !== "object",

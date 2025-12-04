@@ -105,7 +105,7 @@ class ObjectRule extends React.Component {
             };
             this.props.openMappingEditor({
                 rule: uriRule,
-                saveRule,
+                alternativeSave: saveRule,
                 saveInitiallyEnabled: true,
             });
         } else {

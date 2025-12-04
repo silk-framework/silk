@@ -2,41 +2,13 @@
 <svg
    viewBox="0 0 24 24"
    version="1.1"
-   id="svg828"
-   sodipodi:docname="file-binary-24.svg"
-   inkscape:version="1.1.2 (b8e25be8, 2022-02-05)"
-   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
-   xmlns="http://www.w3.org/2000/svg"
-   xmlns:svg="http://www.w3.org/2000/svg">
-  <defs
-     id="defs832" />
-  <sodipodi:namedview
-     id="namedview830"
-     pagecolor="#ffffff"
-     bordercolor="#666666"
-     borderopacity="1.0"
-     inkscape:pageshadow="2"
-     inkscape:pageopacity="0.0"
-     inkscape:pagecheckerboard="0"
-     showgrid="false"
-     inkscape:zoom="35.291667"
-     inkscape:cx="12"
-     inkscape:cy="12"
-     inkscape:window-width="1920"
-     inkscape:window-height="1027"
-     inkscape:window-x="1728"
-     inkscape:window-y="25"
-     inkscape:window-maximized="1"
-     inkscape:current-layer="svg828" />
+   fill="currentColor"
+   xmlns="http://www.w3.org/2000/svg">
   <g
-     id="g916"
      transform="matrix(0.9149941,0,0,0.9149941,2.1983471,0.8500591)">
     <path
-       d="M 3,3 A 2,2 0 0 1 5,1 h 9.982 a 2,2 0 0 1 1.414,0.586 l 4.018,4.018 A 2,2 0 0 1 21,7.018 V 21 a 2,2 0 0 1 -2,2 H 4.75 a 0.75,0.75 0 0 1 0,-1.5 H 19 A 0.5,0.5 0 0 0 19.5,21 V 8.5 h -4 a 2,2 0 0 1 -2,-2 v -4 H 5 A 0.5,0.5 0 0 0 4.5,3 V 9.25 A 0.75,0.75 0 0 1 3,9.25 Z M 15,2.5 v 4 A 0.5,0.5 0 0 0 15.5,7 h 4 A 0.5,0.5 0 0 0 19.354,6.664 L 15.336,2.646 A 0.5,0.5 0 0 0 15,2.5"
-       id="path824" />
+       d="M 3,3 A 2,2 0 0 1 5,1 h 9.982 a 2,2 0 0 1 1.414,0.586 l 4.018,4.018 A 2,2 0 0 1 21,7.018 V 21 a 2,2 0 0 1 -2,2 H 4.75 a 0.75,0.75 0 0 1 0,-1.5 H 19 A 0.5,0.5 0 0 0 19.5,21 V 8.5 h -4 a 2,2 0 0 1 -2,-2 v -4 H 5 A 0.5,0.5 0 0 0 4.5,3 V 9.25 A 0.75,0.75 0 0 1 3,9.25 Z M 15,2.5 v 4 A 0.5,0.5 0 0 0 15.5,7 h 4 A 0.5,0.5 0 0 0 19.354,6.664 L 15.336,2.646 A 0.5,0.5 0 0 0 15,2.5" />
     <path
-       d="M 0,13.75 C 0,12.784 0.784,12 1.75,12 h 3 c 0.966,0 1.75,0.784 1.75,1.75 v 4 A 1.75,1.75 0 0 1 4.75,19.5 h -3 A 1.75,1.75 0 0 1 0,17.75 Z M 1.75,13.5 A 0.25,0.25 0 0 0 1.5,13.75 v 4 C 1.5,17.888 1.612,18 1.75,18 h 3 A 0.25,0.25 0 0 0 5,17.75 v -4 A 0.25,0.25 0 0 0 4.75,13.5 Z M 9,12 a 0.75,0.75 0 0 0 0,1.5 h 1.5 V 18 H 9 a 0.75,0.75 0 0 0 0,1.5 h 4.5 a 0.75,0.75 0 0 0 0,-1.5 H 12 V 12.75 A 0.75,0.75 0 0 0 11.25,12 Z"
-       id="path826" />
+       d="M 0,13.75 C 0,12.784 0.784,12 1.75,12 h 3 c 0.966,0 1.75,0.784 1.75,1.75 v 4 A 1.75,1.75 0 0 1 4.75,19.5 h -3 A 1.75,1.75 0 0 1 0,17.75 Z M 1.75,13.5 A 0.25,0.25 0 0 0 1.5,13.75 v 4 C 1.5,17.888 1.612,18 1.75,18 h 3 A 0.25,0.25 0 0 0 5,17.75 v -4 A 0.25,0.25 0 0 0 4.75,13.5 Z M 9,12 a 0.75,0.75 0 0 0 0,1.5 h 1.5 V 18 H 9 a 0.75,0.75 0 0 0 0,1.5 h 4.5 a 0.75,0.75 0 0 0 0,-1.5 H 12 V 12.75 A 0.75,0.75 0 0 0 11.25,12 Z" />
   </g>
 </svg>

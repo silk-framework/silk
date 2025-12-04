@@ -36,7 +36,7 @@ import ActivityInfoWidget from "./ActivityInfoWidget";
 import { previewSlice } from "@ducks/workspace/previewSlice";
 import VariablesWidget from "../../../views/shared/VariablesWidget/VariablesWidget";
 import { useSelectFirstResult } from "../../../hooks/useSelectFirstResult";
-import {GlobalTableContext} from "../../../GlobalContextsWrapper";
+import { GlobalTableContext } from "../../../GlobalContextsWrapper";
 
 const Project = () => {
     const dispatch = useDispatch();
@@ -57,7 +57,7 @@ const Project = () => {
     const [searchInitialized, setSearchInitialized] = React.useState(false);
     const effectiveSearchQuery = searchInitialized ? textQuery : "";
     const { onEnter } = useSelectFirstResult();
-    const {globalTableSettings} = React.useContext(GlobalTableContext)
+    const { globalTableSettings } = React.useContext(GlobalTableContext);
 
     React.useEffect(() => {
         setSearchInitialized(true);
@@ -75,7 +75,7 @@ const Project = () => {
         dispatch(workspaceOp.resetFilters());
     }, [location.pathname]);
 
-    const tableSettings = globalTableSettings["workbench"]
+    const tableSettings = globalTableSettings["workbench"];
 
     useEffect(() => {
         // Setup the filters from query string
@@ -144,8 +144,7 @@ const Project = () => {
                             <GridColumn>
                                 {!data.length && error.detail ? (
                                     <Notification
-                                        danger={true}
-                                        warning={error?.status === 503}
+                                        intent={error?.status === 503 ? "warning" : "danger"}
                                         actions={
                                             <Button
                                                 text={t("common.action.retry", "Retry")}

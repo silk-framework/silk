@@ -157,14 +157,18 @@ object ExecutionReportSerializers {
     private def writeRuleResult(ruleResult: RuleResult): JsValue = {
       Json.obj(
         ERROR_COUNT -> ruleResult.errorCount,
-        SAMPLE_ERRORS -> ruleResult.sampleErrors.map(writeRuleError)
+        SAMPLE_ERRORS -> ruleResult.sampleErrors.map(writeRuleError),
+        RULE_EXECUTION_STARTED -> ruleResult.started.map(started => started.toString),
+        RULE_EXECUTION_FINISHED -> ruleResult.finished.map(finished => finished.toString)
       )
     }
 
     private def readRuleResult(value: JsValue): RuleResult = {
       RuleResult(
         errorCount = numberValue(value, ERROR_COUNT).longValue,
-        sampleErrors = arrayValue(value, SAMPLE_ERRORS).value.map(readRuleError).toIndexedSeq
+        sampleErrors = arrayValue(value, SAMPLE_ERRORS).value.map(readRuleError).toIndexedSeq,
+        started = instantValueOption(value, RULE_EXECUTION_STARTED),
+        finished = instantValueOption(value, RULE_EXECUTION_FINISHED)
       )
     }
 
@@ -245,7 +249,8 @@ object ExecutionReportSerializers {
       WorkflowExecutionReport(
         task = taskFormat.read(requiredValue(value, TASK)),
         taskReports = taskReports.toIndexedSeq,
-        isDone = booleanValueOption(value, IS_DONE).getOrElse(true)
+        isDone = booleanValueOption(value, IS_DONE).getOrElse(true),
+        error = stringValueOption(value, ERROR)
       )
     }
   }
@@ -282,6 +287,8 @@ object ExecutionReportSerializers {
 
     final val ERROR_COUNT = "errorCount"
     final val SAMPLE_ERRORS = "sampleErrors"
+    final val RULE_EXECUTION_STARTED = "startedAt"
+    final val RULE_EXECUTION_FINISHED = "finishedAt"
 
     final val ENTITY = "entity"
     final val VALUES = "values"

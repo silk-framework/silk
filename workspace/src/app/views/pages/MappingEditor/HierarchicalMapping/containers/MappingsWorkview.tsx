@@ -145,7 +145,7 @@ const MappingsWorkview = ({
                     onFinish();
                 }
                 setLoading(false);
-            }
+            },
         );
     };
 
@@ -367,7 +367,7 @@ const MappingsWorkview = ({
             {error ? (
                 <>
                     <Spacing />
-                    <Notification warning={true} message={error} />
+                    <Notification intent="warning" message={error} />
                 </>
             ) : null}
         </div>

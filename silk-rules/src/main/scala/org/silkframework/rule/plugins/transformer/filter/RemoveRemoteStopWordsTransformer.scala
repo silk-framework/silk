@@ -27,7 +27,7 @@ case class RemoveRemoteStopWordsTransformer(@Param(value = "URL of the stop word
   extends RemoveStopWords(separator, RemoveRemoteStopWordsTransformer.loadStopWords(stopWordListUrl))
 
 object RemoveRemoteStopWordsTransformer {
-  private val defaultStopWordListUrl = "https://gist.githubusercontent.com/rg089/35e00abf8941d72d419224cfd5b5925d/raw/12d899b70156fd0041fa9778d657330b024b959c/stopwords.txt"
+  private val defaultStopWordListUrl = "https://raw.githubusercontent.com/stopwords-iso/stopwords-en/refs/heads/master/stopwords-en.txt"
 
   private def loadStopWords(stopWordListUrl: String): Set[String] = {
     val html = Source.fromURL(stopWordListUrl)

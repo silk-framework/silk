@@ -5,14 +5,6 @@
 $eccgui-selector-text-spot-highlight: "[id^=parameter_doc_]";
 
 /**
- * Legacy styles for older components
- * FIXME: they need to made be obsolete as soon as possible
- */
-
-// Transformation editor
-@import "./../app/views/pages/MappingEditor/style/style.scss";
-
-/**
  * Current styles
  */
 

@@ -19,7 +19,7 @@ export const ActiveLearningSessionInfoWidget = ({
     const { sessionInfo, loading } = useActiveLearningSessionInfo(
         activeLearningContext.projectId,
         activeLearningContext.linkingTaskId,
-        activeLearningSessionInfo
+        activeLearningSessionInfo,
     );
     const [t] = useTranslation();
 
@@ -39,14 +39,14 @@ export const ActiveLearningSessionInfoWidget = ({
                     <Spacing />
                 </>
             ) : null}
-            {(sessionInfo.referenceLinks.addedLinks + sessionInfo.referenceLinks.removedLinks > 0) && (
+            {sessionInfo.referenceLinks.addedLinks + sessionInfo.referenceLinks.removedLinks > 0 && (
                 <>
                     <ReferenceLinksStatsWidget stats={sessionInfo.referenceLinks} />
                 </>
             )}
         </HtmlContentBlock>
     ) : (
-        <Notification warning={true}>{t("ActiveLearning.statistics.noStats")}</Notification>
+        <Notification intent="warning">{t("ActiveLearning.statistics.noStats")}</Notification>
     );
 };
 
@@ -81,11 +81,11 @@ interface ActiveLearningSessionInfoResult {
 export const useActiveLearningSessionInfo = (
     projectId: string,
     linkingTaskId: string,
-    activeLearningSessionInfo?: ActiveLearningSessionInfo
+    activeLearningSessionInfo?: ActiveLearningSessionInfo,
 ): ActiveLearningSessionInfoResult => {
     const { registerError } = useErrorHandler();
     const [sessionInfo, setSessionInfo] = React.useState<ActiveLearningSessionInfo | undefined>(
-        activeLearningSessionInfo
+        activeLearningSessionInfo,
     );
     const [loading, setLoading] = React.useState(false);
     const [t] = useTranslation();

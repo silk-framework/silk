@@ -267,7 +267,8 @@ export function ValueRuleForm(props: IProps) {
     };
 
     // remove rule
-    const handleChangeTextfield = (statePropertyName: string, setValueFunction: (v: any) => void, { value }) => {
+    const handleChangeTextfield = (statePropertyName: string, setValueFunction: (v: any) => void, event) => {
+        const value = event.target.value;
         handleChangeValue(statePropertyName, value, setValueFunction);
     };
 
@@ -524,7 +525,7 @@ export function ValueRuleForm(props: IProps) {
                     />
                     {valueType.nodeType === "CustomValueType" && (
                         <FieldItem
-                            hasStateDanger={!!customURIErrorMsg}
+                            intent={!!customURIErrorMsg ? "danger" : undefined}
                             messageText={customURIErrorMsg}
                             labelProps={{
                                 htmlFor: "uri",
@@ -572,6 +573,7 @@ export function ValueRuleForm(props: IProps) {
                         }}
                     >
                         <TextField
+                            data-test-id={"value-rule-form-label-input"}
                             className="ecc-silk-mapping__ruleseditor__label"
                             value={label}
                             onChange={handleChangeTextfield.bind(null, "label", setLabel)}
@@ -583,6 +585,7 @@ export function ValueRuleForm(props: IProps) {
                         }}
                     >
                         <TextArea
+                            data-test-id={"value-rule-form-description-input"}
                             className="ecc-silk-mapping__ruleseditor__comment"
                             value={comment}
                             onChange={handleChangeTextfield.bind(null, "comment", setComment)}

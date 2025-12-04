@@ -37,8 +37,9 @@ import {
 import { invalidValueResult } from "../../../views/shared/RuleEditor/view/ruleNode/ruleNode.utils";
 import { diErrorMessage } from "@ducks/error/typings";
 import { Notification, highlighterUtils, StickyNote } from "@eccenca/gui-elements";
-import { IPartialAutoCompleteResult } from "@eccenca/gui-elements/src/components/AutoSuggestion/AutoSuggestion";
+import { CodeAutocompleteFieldPartialAutoCompleteResult } from "@eccenca/gui-elements/src/components/AutoSuggestion/AutoSuggestion";
 import { languageFilterRegex, PathInputOperatorContext } from "../../shared/RuleEditor/view/ruleNode/PathInputOperator";
+import { documentationPageUrl } from "workspace/src/app/utils/getApiEndpoint";
 
 export interface LinkingRuleEditorProps {
     /** Project ID the task is in. */
@@ -281,6 +282,8 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions, insta
         orderIdx: -0.5,
     });
 
+    const thresholdUserHelpUrl = documentationPageUrl("build-linking-comparison-operator");
+
     const thresholdParameterSpec = (pluginDetails: IPluginDetails) => {
         const varyingSpec = () => {
             switch (pluginDetails.distanceMeasureRange) {
@@ -292,6 +295,7 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions, insta
                         ),
                         label: t("RuleEditor.sidebar.parameter.thresholdLabel", "Threshold"),
                         requiredLabel: t("RuleEditor.sidebar.parameter.thresholdRequired.normalized", "required 0..1"),
+                        urlUserHelp: thresholdUserHelpUrl,
                     };
                 case "unbounded":
                     return {
@@ -301,6 +305,7 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions, insta
                         ),
                         label: t("RuleEditor.sidebar.parameter.thresholdLabel", "Threshold"),
                         requiredLabel: t("RuleEditor.sidebar.parameter.thresholdRequired.unbounded", "required 0..∞"),
+                        urlUserHelp: thresholdUserHelpUrl,
                     };
                 default:
                     return {
@@ -333,7 +338,10 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions, insta
 
     const fetchPartialAutoCompletionResult = React.useCallback(
         (inputType: "source" | "target") =>
-            async (inputString: string, cursorPosition: number): Promise<IPartialAutoCompleteResult | undefined> => {
+            async (
+                inputString: string,
+                cursorPosition: number,
+            ): Promise<CodeAutocompleteFieldPartialAutoCompleteResult | undefined> => {
                 try {
                     const result = await partialAutoCompleteLinkingInputPaths(
                         projectId,
@@ -437,7 +445,7 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions, insta
     };
 
     if (initError) {
-        return <Notification danger={true}>{diErrorMessage(initError)}</Notification>;
+        return <Notification intent="danger">{diErrorMessage(initError)}</Notification>;
     }
 
     if (loading) {

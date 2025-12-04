@@ -109,6 +109,7 @@ const MappingEditorModal = ({
                     data-test-id="transform-mapping-editor-close-btn"
                 />
             }
+            preventReactFlowEvents={false}
         >
             <>
                 <WarningModal />

@@ -17,9 +17,9 @@ export interface RuleEditorUiContextProps {
     /** Sets the react-flow instance, so it can be used everywhere in the view code. */
     reactFlowInstance: OnLoadParams | undefined;
     /** markdown description for rule operator node  */
-    currentRuleNodeDescription: string | undefined;
+    currentRuleNodeInfo: { description?: string; label?: string } | undefined;
     /** Sets the markdown description for rule operator node */
-    setCurrentRuleNodeDescription: (description: string | undefined) => void;
+    setCurrentRuleNodeInfo: (info: { description?: string; label?: string } | undefined) => void;
     /** When enabled only the rule is shown without side- and toolbar and any other means to edit the rule. */
     showRuleOnly?: boolean;
     /** When enabled the mini map is not displayed. */
@@ -38,8 +38,8 @@ export const RuleEditorUiContext = React.createContext<RuleEditorUiContextProps>
     reactFlowWrapper: null,
     setReactFlowInstance: () => {},
     reactFlowInstance: undefined,
-    currentRuleNodeDescription: undefined,
-    setCurrentRuleNodeDescription: () => {},
+    currentRuleNodeInfo: {},
+    setCurrentRuleNodeInfo: () => {},
     showRuleOnly: false,
     hideMinimap: false,
     zoomRange: [0.25, 1.5],

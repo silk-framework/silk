@@ -107,6 +107,7 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
     } catch {
       case e: WorkflowExecutionException =>
         if(!cancelled) {
+          context.value.updateWith(_.copy(error = Some(e.getMessage)))
           throw e // Only rethrow exception if the activity was not cancelled, else the error could be due to the cancellation.
         }
     } finally {

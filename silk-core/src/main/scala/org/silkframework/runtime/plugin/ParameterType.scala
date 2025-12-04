@@ -197,7 +197,7 @@ object StringParameterType {
     * All available static parameter types.
     */
   private val allStaticTypes: Seq[StringParameterType[_]] = {
-    Seq(StringType, CharType, IntType, DoubleType, BooleanType, IntOptionType, StringMapType, UriType, ResourceType,
+    Seq(StringType, CharType, IntType, DoubleType, BooleanType, IntOptionType, StringMapType, KeyValuePairsType, UriType, ResourceType,
       WritableResourceType, ResourceOptionType, DurationType, ProjectReferenceType, TaskReferenceType, MultilineStringParameterType,
       SparqlEndpointDatasetParameterType, LongType, GraphUriParameterType, TemplateParameterType,
       PasswordParameterType, IdentifierType, IdentifierOptionType, StringIterableParameterType, RestrictionType,

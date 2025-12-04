@@ -167,4 +167,10 @@ object Uri {
     "urn:uuid:" + UUID.nameUUIDFromBytes(value.getBytes(StandardCharsets.UTF_8))
   }
 
+  /**
+   * Generates a random UUID URI.
+   */
+  def randomUuid: Uri = {
+    "urn:uuid:" + UUID.randomUUID().toString
+  }
 }

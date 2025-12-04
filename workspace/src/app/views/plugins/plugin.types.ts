@@ -102,6 +102,8 @@ export interface BrandingProps {
     applicationSuiteName: string;
     // The application name for Silk.
     applicationName: string;
+    // Some intern id for the application
+    applicationId: string;
     // URL for access to documentation pages.
     applicationDocumentationServiceUrl: string;
 }

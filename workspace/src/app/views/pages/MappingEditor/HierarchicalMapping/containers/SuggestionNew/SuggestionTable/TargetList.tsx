@@ -108,7 +108,11 @@ export default function TargetList({ targets, onChange }: IProps) {
     const itemRenderer = (target: ITargetWithSelected, { handleClick }) => {
         return (
             <MenuItem
-                text={<div style={{ width: "40rem", maxWidth: "90vw" }}>{itemLabel(target, inputQuery)}</div>}
+                text={
+                    <div style={{ minWidth: "100%", width: "40rem", maxWidth: "90vw" }}>
+                        {itemLabel(target, inputQuery)}
+                    </div>
+                }
                 key={target.uri}
                 onClick={handleClick}
                 active={target.uri === selected.uri}
@@ -139,13 +143,16 @@ export default function TargetList({ targets, onChange }: IProps) {
                     ? "Enter text to search in all target properties..."
                     : "Filter candidates...",
                 className: "ecc-silk-mapping__suggestionlist__target-property-search",
+                fill: true,
             }}
             contextOverlayProps={{
                 popoverClassName: "ecc-silk-mapping__suggestionlist__target-dropdown",
                 portalContainer: context.portalContainer,
+                matchTargetWidth: false,
             }}
             onQueryChange={handleQueryChange}
             query={inputQuery}
+            fill
         >
             <Button fill outlined rightIcon="toggler-caretdown" text={itemLabel(selected, context.search)} />
         </Select>

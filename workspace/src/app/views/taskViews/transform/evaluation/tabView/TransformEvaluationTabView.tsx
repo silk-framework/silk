@@ -180,7 +180,7 @@ const TransformEvaluationTabView: React.FC<TransformEvaluationTabViewProps> = ({
                                                     <td colSpan={2}>
                                                         <Spacing />
                                                         <Notification
-                                                            warning={true}
+                                                            intent="warning"
                                                             data-test-id="notification-unknown-problem"
                                                         >
                                                             {t("transformEvaluationTabView.couldNotLoad")} {error}

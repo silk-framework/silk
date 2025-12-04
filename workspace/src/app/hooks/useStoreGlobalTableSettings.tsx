@@ -1,4 +1,4 @@
-import {SortModifierType} from "@ducks/workspace/typings";
+import { SortModifierType } from "@ducks/workspace/typings";
 import React from "react";
 
 const defaultConfig: GlobalTableBaseConfig = {
@@ -29,12 +29,12 @@ const LOCAL_STORAGE_KEYS = {
     GLOBAL_TABLE_SETTINGS: "global_table_settings",
 };
 
-export type GlobalTableTypes = "workbench" | "files" | "activities"
+export type GlobalTableTypes = "workbench" | "files" | "activities";
 
 interface GlobalTableSettingFunctions {
     /** Set the table settings for a specific global table. Specify table explicitly, else it will be derived from the path if possible. */
     updateGlobalTableSettings: (settings: GlobalTableBaseConfig, explicitKey?: GlobalTableTypes) => void;
-    globalTableSettings: GlobalTableSettings
+    globalTableSettings: GlobalTableSettings;
 }
 
 /** Hook that returns the current global table settings and a function to change these.
@@ -46,15 +46,15 @@ export const useStoreGlobalTableSettings: () => GlobalTableSettingFunctions = ()
         const storedSettings = localStorage.getItem(LOCAL_STORAGE_KEYS.GLOBAL_TABLE_SETTINGS);
         return !storedSettings ? defaultGlobalTableSettings : JSON.parse(storedSettings);
     }, []);
-    const [globalTableSettings, setGlobalTableSettings] = React.useState(getGlobalTableSettings)
+    const [globalTableSettings, setGlobalTableSettings] = React.useState(getGlobalTableSettings);
 
     // Extracts the table key from the location path
     const extractTableKey = (): GlobalTableTypes => {
         return location.pathname.split("/").slice(-1)[0] === "activities" ? "activities" : "workbench";
-    }
+    };
     const updateGlobalTableSettings = React.useCallback(
         (settings: GlobalTableBaseConfig, customKey?: GlobalTableTypes) => {
-            const tableKey = customKey ?? extractTableKey()
+            const tableKey = customKey ?? extractTableKey();
             const globalTableSettings = getGlobalTableSettings();
             const newSettings: GlobalTableSettings = {
                 ...globalTableSettings,
@@ -64,12 +64,13 @@ export const useStoreGlobalTableSettings: () => GlobalTableSettingFunctions = ()
                 },
             };
             localStorage.setItem(LOCAL_STORAGE_KEYS.GLOBAL_TABLE_SETTINGS, JSON.stringify(newSettings));
-            setGlobalTableSettings(newSettings)
+            setGlobalTableSettings(newSettings);
         },
-        [getGlobalTableSettings]);
+        [getGlobalTableSettings],
+    );
 
     return {
         updateGlobalTableSettings,
-        globalTableSettings
+        globalTableSettings,
     };
 };
