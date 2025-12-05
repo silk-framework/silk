@@ -10,10 +10,12 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.tags.Tag
 import io.swagger.v3.oas.annotations.{Operation, Parameter}
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
+import org.silkframework.workspace.activity.dataset.TypesCache
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, InjectedController}
 
 import javax.inject.Inject
+import scala.util.Try
 
 /**
   * REST API for dataset tasks.
@@ -94,6 +96,10 @@ class DatasetApi @Inject() () extends InjectedController with UserContextActions
     val (_, dataset) = projectAndTask[GenericDatasetSpec](projectId, datasetId)
     val sink = dataset.data.entitySink
     sink.clear(force = true)
+    val typeCache = dataset.activity[TypesCache].control
+    // This will throw an exception if the previous cache execution as failed.
+    Try(typeCache.waitUntilFinished())
+    Try(typeCache.start())
     NoContent
   }
 }
