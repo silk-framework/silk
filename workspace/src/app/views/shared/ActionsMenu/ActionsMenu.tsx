@@ -1,5 +1,5 @@
 import React from "react";
-import { Button, ContextMenu, IconButton, MenuItem, OverflowText } from "@eccenca/gui-elements";
+import { Button, ContextMenu, IconButton, MenuDivider, MenuItem, OverflowText } from "@eccenca/gui-elements";
 import { ValidIconName } from "@eccenca/gui-elements/src/components/Icon/canonicalIconNames";
 
 interface IActionBasicProps {
@@ -30,12 +30,18 @@ export interface IActionsMenuProps extends React.HTMLAttributes<HTMLDivElement> 
     actionPrimary?: IActionButtonItemProps;
     actionsSecondary?: IActionButtonItemProps[];
     actionsFullMenu?: TActionsMenuItem[];
+    disruptiveActions?: IActionButtonItemProps[];
 }
 
-export function ActionsMenu({ actionPrimary, actionsSecondary, actionsFullMenu }: IActionsMenuProps) {
+export function ActionsMenu({
+    actionPrimary,
+    actionsSecondary,
+    actionsFullMenu,
+    disruptiveActions,
+}: IActionsMenuProps) {
     const renderMenuItems = (items) => {
         return items.map((item, index) => {
-            const { text, icon, actionHandler, disabled, subitems, ...otherProps } = item;
+            const { text, icon, actionHandler, disabled, subitems, disruptive, ...otherProps } = item;
             return subitems && subitems.length > 0 ? (
                 <MenuItem
                     {...otherProps}
@@ -56,6 +62,7 @@ export function ActionsMenu({ actionPrimary, actionsSecondary, actionsFullMenu }
                     text={<OverflowText>{text}</OverflowText>}
                     onClick={actionHandler}
                     disabled={disabled ? true : false}
+                    intent={disruptive ? "danger" : "none"}
                 />
             );
         });
@@ -94,7 +101,15 @@ export function ActionsMenu({ actionPrimary, actionsSecondary, actionsFullMenu }
                     );
                 })}
             {actionsFullMenu && actionsFullMenu.length > 0 && (
-                <ContextMenu data-test-id={"header-context-menu-btn"}>{renderMenuItems(actionsFullMenu)}</ContextMenu>
+                <ContextMenu data-test-id={"header-context-menu-btn"}>
+                    {renderMenuItems(actionsFullMenu)}
+                    {disruptiveActions && disruptiveActions.length > 0 && (
+                        <>
+                            <MenuDivider />
+                            {renderMenuItems(disruptiveActions)}
+                        </>
+                    )}
+                </ContextMenu>
             )}
         </>
     );

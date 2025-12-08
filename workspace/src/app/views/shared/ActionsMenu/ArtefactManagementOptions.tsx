@@ -189,13 +189,6 @@ export function ArtefactManagementOptions({
                 actionHandler: toggleShowIdentifierModal,
                 "data-test-id": "header-item-identifier-button",
             },
-            {
-                icon: "operation-erase",
-                text: t("DataPreview.clearDatasetModal.title", "Clear dataset"),
-                disruptive: true,
-                actionHandler: () => setShowClearDatasetPrompt(true),
-                "data-test-id": "header-item-erase-dataset-button",
-            },
         ];
 
         if (itemType === DATA_TYPES.PROJECT) {
@@ -249,6 +242,18 @@ export function ArtefactManagementOptions({
                       ]
                     : [],
             actionsFullMenu: projectId || taskId ? getFullMenu() : [],
+            disruptiveActions:
+                projectId && taskId
+                    ? [
+                          {
+                              icon: "operation-erase",
+                              text: t("DataPreview.clearDatasetModal.title", "Clear dataset"),
+                              disruptive: true,
+                              actionHandler: () => setShowClearDatasetPrompt(true),
+                              "data-test-id": "header-item-erase-dataset-button",
+                          },
+                      ]
+                    : [],
         });
     }, [projectId, taskId, itemType, exportTypes, itemLinks, t]);
 
