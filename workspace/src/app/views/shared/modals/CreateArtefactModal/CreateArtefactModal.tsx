@@ -916,7 +916,7 @@ export function CreateArtefactModal() {
             <Notification
                 onDismiss={resetModalError}
                 message={taskLoadingError || error.errorMessage || actionFailed()}
-                danger
+                intent="danger"
             />,
         );
     }
@@ -959,7 +959,7 @@ export function CreateArtefactModal() {
     if (taskActionResult) {
         notifications.push(
             <Notification
-                success
+                intent="success"
                 message={
                     <Accordion whitespaceSize={"none"}>
                         <AccordionItem
@@ -1020,7 +1020,7 @@ export function CreateArtefactModal() {
             actions={
                 isCreationUpdateDialog ? (
                     actionLoading ? (
-                        <Loading size={"small"} color={"primary"} delay={0} />
+                        <Loading size={"small"} elevated delay={0} />
                     ) : (
                         [
                             <Button

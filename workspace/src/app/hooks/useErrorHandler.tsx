@@ -114,7 +114,7 @@ const useErrorHandler = (): ErrorHandlerDict => {
             );
             const detailMessage = diErrorMessage(cause);
             return (
-                <Notification warning onDismiss={onDismiss}>
+                <Notification intent="warning" onDismiss={onDismiss}>
                     {errorMessage}
                     <Spacing size="small" />
                     {detailMessage ? (

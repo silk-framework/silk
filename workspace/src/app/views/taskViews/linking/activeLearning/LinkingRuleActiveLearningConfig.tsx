@@ -85,7 +85,7 @@ export const LinkingRuleActiveLearningConfig = ({ projectId, linkingTaskId }: Li
 
     // Updates all or parts of the comparison pair state. Checks if the state will change first.
     const updateComparisonPairState = (
-        stateUpdateFunction: (currentState: ComparisonPairState) => Partial<ComparisonPairState>
+        stateUpdateFunction: (currentState: ComparisonPairState) => Partial<ComparisonPairState>,
     ) => {
         setComparisonPairState((current) => {
             const updatedState = stateUpdateFunction(current);
@@ -156,7 +156,7 @@ export const LinkingRuleActiveLearningConfig = ({ projectId, linkingTaskId }: Li
         return connectWebSocket(
             legacyApiEndpoint(`/activities/valueUpdatesWebSocket${query}`),
             legacyApiEndpoint(`/activities/valueUpdates${query}`),
-            updateSuggestions
+            updateSuggestions,
         );
     }, [projectId, linkingTaskId]);
 
@@ -172,7 +172,7 @@ export const LinkingRuleActiveLearningConfig = ({ projectId, linkingTaskId }: Li
             registerError(
                 "LinkingRuleActiveLearningConfig.loadCandidatePairs",
                 t("ActiveLearning.config.errors.fetchComparisionConfig"),
-                ex
+                ex,
             );
         }
     };
@@ -188,7 +188,7 @@ export const LinkingRuleActiveLearningConfig = ({ projectId, linkingTaskId }: Li
             registerError(
                 "LinkingRuleActiveLearningConfig.addComparisonPair",
                 t("ActiveLearning.config.errors.addFailed"),
-                ex
+                ex,
             );
             return false;
         }
@@ -210,7 +210,7 @@ export const LinkingRuleActiveLearningConfig = ({ projectId, linkingTaskId }: Li
                 registerError("ActiveLearningFeedback.removePair", "Removing comparison pair has failed.", error);
             }
         },
-        [comparisonPairState.propertiesToCompare]
+        [comparisonPairState.propertiesToCompare],
     );
 
     const addSuggestion = React.useCallback(
@@ -229,7 +229,7 @@ export const LinkingRuleActiveLearningConfig = ({ projectId, linkingTaskId }: Li
                 }
             }
         },
-        [comparisonPairState.suggestions, comparisonPairState.propertiesToCompare]
+        [comparisonPairState.suggestions, comparisonPairState.propertiesToCompare],
     );
 
     const Title = () => {
@@ -523,7 +523,7 @@ const SuggestionWidget = ({
                 filterSuggestions(path, isTarget);
             }
         },
-        [suggestions]
+        [suggestions],
     );
 
     return (
@@ -556,7 +556,7 @@ const SuggestionWidget = ({
                             <>
                                 <Notification
                                     icon={suggestions.length > 0 ? <Icon name="item-question" /> : undefined}
-                                    neutral={suggestions.length > 0}
+                                    intent={suggestions.length > 0 ? "neutral" : undefined}
                                     actions={
                                         suggestions.length > 0 ? (
                                             <IconButton
@@ -640,7 +640,7 @@ const SuggestionsWarningModal = ({ warnings }: { warnings: string[] }) => {
         <IconButton
             text={t("ActiveLearning.config.suggestions.warningsButton")}
             name={"state-warning"}
-            hasStateWarning={true}
+            intent="warning"
             onClick={() => setShowWarningsModal(true)}
         />
     );

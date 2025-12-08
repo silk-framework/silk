@@ -18,7 +18,7 @@ export function RetryFileItem({ file, onCancelRetry, onRetry }: IProps) {
         <div key={file.id}>
             <Notification
                 onDismiss={(didTimeoutExpire) => !didTimeoutExpire && onCancelRetry(file.id)}
-                danger={true}
+                intent="danger"
                 timeout={1000 * 60 * 60} //TODO change back to default 0 for no-dismiss after new release.
                 actions={
                     onRetry && (

@@ -1,25 +1,26 @@
 import React from "react";
-import PropTypes from "prop-types";
 import {
     Grid,
-    GridRow,
     GridColumn,
-    Notification,
+    GridRow,
     HtmlContentBlock,
-    Section,
-    Spacing,
-    PropertyValueList,
-    PropertyValuePair,
+    Icon,
+    Notification,
+    NotificationProps,
     PropertyName,
     PropertyValue,
+    PropertyValueList,
+    PropertyValuePair,
+    Section,
+    Spacing,
     Table,
-    TableHeader,
     TableBody,
     TableCell,
     TableHead,
+    TableHeader,
     TableRow,
 } from "@eccenca/gui-elements";
-import MappingsTree from "../HierarchicalMapping/containers/MappingsTree";
+import MappingsTree, { RuleValidationIconMapType } from "../HierarchicalMapping/containers/MappingsTree";
 import { SampleError } from "../../../shared/SampleError/SampleError";
 import { pluginRegistry, SUPPORTED_PLUGINS } from "../../../plugins/PluginRegistry";
 import { DataPreviewProps } from "../../../plugins/plugin.types";
@@ -177,14 +178,7 @@ export const ExecutionReport = ({ executionReport, executionMetaData, trackRuleI
             <div className="silk-report-warning">
                 {messages.map((warning, idx) => (
                     <div key={idx}>
-                        <Notification
-                            neutral={notificationState === "neutral"}
-                            success={notificationState === "success"}
-                            warning={notificationState === "warning"}
-                            danger={notificationState === "danger"}
-                        >
-                            {warning}
-                        </Notification>
+                        <Notification intent={notificationState as NotificationProps["intent"]}>{warning}</Notification>
                         <Spacing size="tiny" />
                     </div>
                 ))}
@@ -298,10 +292,29 @@ export const ExecutionReport = ({ executionReport, executionMetaData, trackRuleI
         }
     };
 
-    const generateIcons = (): Record<string, "ok" | "warning"> => {
-        let ruleIcons: Record<string, "ok" | "warning"> = Object.create(null);
+    const generateIcons = (): RuleValidationIconMapType => {
+        let ruleIcons: RuleValidationIconMapType = Object.create(null);
         for (let [ruleId, ruleResults] of Object.entries(executionReport?.ruleResults ?? {})) {
-            if (ruleResults.errorCount === 0) {
+            if (!ruleResults.finishedAt || !ruleResults.startedAt) {
+                // Either never started or did not finish successfully
+                if (!ruleResults.startedAt) {
+                    ruleIcons[ruleId] = (
+                        <Icon
+                            className="ecc-silk-mapping__ruleitem-icon-yellow"
+                            name="state-progress-warning"
+                            intent="warning"
+                        />
+                    );
+                } else {
+                    ruleIcons[ruleId] = (
+                        <Icon
+                            className="ecc-silk-mapping__ruleitem-icon-red"
+                            name="state-progress-error"
+                            intent="danger"
+                        />
+                    );
+                }
+            } else if (ruleResults.errorCount === 0) {
                 ruleIcons[ruleId] = "ok";
             } else {
                 ruleIcons[ruleId] = "warning";
@@ -310,20 +323,33 @@ export const ExecutionReport = ({ executionReport, executionMetaData, trackRuleI
         return ruleIcons;
     };
 
-    const renderRuleReport = (ruleValidation: Record<string, "ok" | "warning">) => {
+    const renderRuleReport = (ruleValidation: RuleValidationIconMapType) => {
         const ruleId = currentRuleId ?? MAPPING_ROOT_RULE_ID;
         const mappingRule = executionReport?.task.data.parameters.mappingRule;
         const typeRulesPerContainerRule = typeRules(mappingRule);
         const ruleResults = executionReport?.ruleResults?.[ruleId];
-        let title;
+        let title: string | undefined = undefined;
+        let validationError: string | undefined = undefined;
+        let intent: "neutral" | "danger" | "warning" | "success" = "neutral";
         let typeRulesWithIssues: TypeRuleData[] = [];
         const showURI = !!executionReport?.executionReportContext?.entityUriOutput;
         if (ruleResults) {
-            if (ruleResults.errorCount === 0) {
+            if (!ruleResults.finishedAt || !ruleResults.startedAt) {
+                // Either never started or did not finish successfully
+                if (!ruleResults.startedAt) {
+                    title = t("ExecutionReport.transform.messages.notExecuted");
+                    intent = "warning";
+                } else {
+                    title = t("ExecutionReport.transform.messages.notFinished");
+                    intent = "danger";
+                }
+            } else if (ruleResults.errorCount === 0) {
                 title = t("ExecutionReport.transform.messages.noIssues");
-            } else {
+                intent = "success";
+            }
+            if (ruleResults.errorCount > 0) {
                 const errorCount = `${ruleResults.errorCount}`;
-                title = t("ExecutionReport.transform.messages.validationIssues", { errors: errorCount });
+                validationError = t("ExecutionReport.transform.messages.validationIssues", { errors: errorCount });
             }
         }
         // Check type rules
@@ -334,21 +360,15 @@ export const ExecutionReport = ({ executionReport, executionMetaData, trackRuleI
         return (
             <Section className="ecc-silk-mapping__treenav">
                 {typeRulesWithIssues.length ? (
-                    <Notification data-test-id={"type-rule-validation-issues"} warning={true}>
+                    <Notification data-test-id={"type-rule-validation-issues"} intent="warning">
                         {t("ExecutionReport.transform.messages.InvalidTypeUris", {
                             typeUris: typeRulesWithIssues.map((r) => r.typeRuleId).join(", "),
                         })}
                     </Notification>
                 ) : null}
-                {title ? (
-                    <Notification
-                        neutral={ruleResults === undefined}
-                        success={ruleResults?.errorCount === 0}
-                        warning={(ruleResults?.errorCount ?? 0) > 0}
-                    >
-                        {title}
-                    </Notification>
-                ) : null}
+                {title ? <Notification intent={intent}>{title}</Notification> : null}
+                {title && validationError ? <Spacing size={"tiny"} /> : null}
+                {validationError ? <Notification intent={"warning"}>{validationError}</Notification> : null}
                 {ruleResults !== undefined && ruleResults.errorCount > 0 && renderRuleErrors(ruleResults)}
                 <Spacing size={"small"} />
                 {renderEntityPreview(ruleId, showURI)}

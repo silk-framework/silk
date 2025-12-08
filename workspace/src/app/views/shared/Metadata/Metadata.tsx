@@ -281,7 +281,7 @@ export function Metadata(props: IProps) {
                                 messageText={
                                     errors.form.label ? t("form.validations.isRequired", { field: `Label` }) : ""
                                 }
-                                hasStateDanger={errors.form.label}
+                                intent={errors.form.label ? "danger" : undefined}
                             >
                                 <TextField
                                     name="label"
@@ -319,6 +319,7 @@ export function Metadata(props: IProps) {
                                     defaultValue={formEditData?.description}
                                     onChange={onDescriptionChange}
                                     useToolbar
+                                    data-test-id="codemirror-wrapper"
                                     translate={(key) => {
                                         const translationKey = `Editor.markdown.toolbar.${key}`;
                                         return t(translationKey) as string;

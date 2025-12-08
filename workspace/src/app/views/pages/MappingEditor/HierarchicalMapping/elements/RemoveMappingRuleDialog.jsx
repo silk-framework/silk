@@ -1,13 +1,11 @@
-import React from 'react';
-import PropTypes from 'prop-types';
-import { ConfirmationDialog } from 'gui-elements-deprecated';
-import { DismissiveButton, DisruptiveButton } from "@eccenca/gui-elements/src/legacy-replacements";
-import { MAPPING_RULE_TYPE_OBJECT } from '../utils/constants';
+import React from "react";
+import PropTypes from "prop-types";
+import { ConfirmationDialog } from "gui-elements-deprecated";
+import { MAPPING_RULE_TYPE_OBJECT } from "../utils/constants";
+import { Button } from "@eccenca/gui-elements";
 
-const RemoveMappingRuleDialog = props => {
-    const {
-        mappingType, handleConfirmRemove, handleCancelRemove, label
-    } = props;
+const RemoveMappingRuleDialog = (props) => {
+    const { mappingType, handleConfirmRemove, handleCancelRemove, label } = props;
     return (
         <ConfirmationDialog
             className="ecc-hm-delete-dialog"
@@ -15,30 +13,20 @@ const RemoveMappingRuleDialog = props => {
             modal
             title="Remove mapping rule?"
             confirmButton={
-                <DisruptiveButton
-                    className="ecc-hm-delete-accept"
-                    onClick={handleConfirmRemove}
-                >
-                  Remove
-                </DisruptiveButton>
+                <Button disruptive className="ecc-hm-delete-accept" onClick={handleConfirmRemove}>
+                    Remove
+                </Button>
             }
             cancelButton={
-                <DismissiveButton
-                    className="ecc-hm-delete-cancel"
-                    onClick={handleCancelRemove}
-                >
-                  Cancel
-                </DismissiveButton>
+                <Button className="ecc-hm-delete-cancel" onClick={handleCancelRemove}>
+                    Cancel
+                </Button>
             }
         >
             <p>
-              When you click REMOVE the mapping rule{label ? ` '${label}'` : ""}
-                {
-                    mappingType === MAPPING_RULE_TYPE_OBJECT
-                        ? ' including all child rules '
-                        : ' '
-                }
-              will be deleted permanently.
+                When you click REMOVE the mapping rule{label ? ` '${label}'` : ""}
+                {mappingType === MAPPING_RULE_TYPE_OBJECT ? " including all child rules " : " "}
+                will be deleted permanently.
             </p>
         </ConfirmationDialog>
     );
@@ -51,7 +39,7 @@ RemoveMappingRuleDialog.propTypes = {
 };
 
 RemoveMappingRuleDialog.defaultProps = {
-    mappingType: '',
+    mappingType: "",
 };
 
 export default RemoveMappingRuleDialog;

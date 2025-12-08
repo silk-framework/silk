@@ -27,6 +27,10 @@ case class JsonTraverser(taskId: Identifier, parentOpt: Option[ParentTraverser],
         for((key, value) <- obj.values.toSeq) yield {
           asNewParent(prop, value, Some(key))
         }
+      case obj: JsonObject if prop.uri == JsonDataset.specialPaths.ALL_CHILDREN_RECURSIVE =>
+        Seq(keepParent(obj)) ++ obj.values.toSeq.flatMap { case (key, value) =>
+          asNewParent(prop, value, Some(key)).children(prop)
+        }
       case obj: JsonObject =>
         val decodedProp = URLDecoder.decode(prop.uri, StandardCharsets.UTF_8.name)
         obj.values.get(decodedProp).toSeq.map(value => asNewParent(prop, value)).flatMap(_.resolveArray())
@@ -155,7 +159,13 @@ case class JsonTraverser(taskId: Identifier, parentOpt: Option[ParentTraverser],
           case SpecialPaths.COLUMN.value =>
             Seq(value.position.column.toString)
           case _ =>
-            children(prop).flatMap(child => child.evaluate(tail, generateUris))
+            val nodes = children(prop)
+            if(nodes.isEmpty && tail == Seq(ForwardOperator(JsonDataset.specialPaths.ARRAY_TEXT))) {
+              // Special case: if the next and final operator is #arrayText, we need to return an empty array representation
+              Seq("[]")
+            } else {
+              nodes.flatMap(child => child.evaluate(tail, generateUris))
+            }
         }
       case BackwardOperator(_) :: tail =>
         navigateBack() match {

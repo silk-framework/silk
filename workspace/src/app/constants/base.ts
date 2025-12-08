@@ -7,8 +7,10 @@ const branding = (): BrandingProps => {
         ? brandingObject
         : {
               applicationName: "Silk",
+              applicationId: "silk",
               applicationCorporationName: "",
               applicationSuiteName: "",
+              applicationDocumentationServiceUrl: "",
           };
 };
 
@@ -17,3 +19,7 @@ export const APPLICATION_CORPORATION_NAME = () => branding().applicationCorporat
 export const APPLICATION_SUITE_NAME = () => branding().applicationSuiteName;
 
 export const APPLICATION_NAME = () => branding().applicationName;
+
+export const APPLICATION_ID = () => branding().applicationId;
+
+export const APPLICATION_DOCUMENTATION_SERVICE_URL = () => branding().applicationDocumentationServiceUrl;

@@ -208,6 +208,7 @@ const parameterSpecification = ({
     distanceMeasureRange,
     requiredLabel,
     orderIdx,
+    urlUserHelp,
 }: Omit<IParameterSpecification, OptionalParameterAttributes> &
     Partial<Pick<IParameterSpecification, OptionalParameterAttributes>>): IParameterSpecification => {
     return {
@@ -222,6 +223,7 @@ const parameterSpecification = ({
         distanceMeasureRange,
         requiredLabel,
         orderIdx,
+        urlUserHelp,
     };
 };
 

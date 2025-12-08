@@ -84,8 +84,8 @@ abstract class XmlZipProjectMarshaling extends ProjectMarshallingTrait {
 
       // Load all projects into temporary XML workspace provider
       for (project <- projects) {
-        val projectResources = resourcesIfIncluded(resourceRepository.get(project.config.id)).getOrElse(EmptyResourceManager())
-        exportProject(project, xmlWorkspaceProvider, projectResources, getProjectResources(xmlWorkspaceProvider, project.config.id), alsoExportResources = true)
+        val projectResources = resourceRepository.get(project.config.id)
+        exportProject(project, xmlWorkspaceProvider, projectResources, getProjectResources(xmlWorkspaceProvider, project.config.id), alsoExportResources = includeResources)
       }
     } finally {
       // Close ZIP
@@ -118,17 +118,6 @@ abstract class XmlZipProjectMarshaling extends ProjectMarshallingTrait {
 
   private def getProjectResources(provider: XmlWorkspaceProvider, project: Identifier): ResourceManager = {
     provider.resources.child(project).child("resources")
-  }
-
-  /**
-    * Returns the given resource manager if includeResources is true and None otherwise.
-    */
-  private def resourcesIfIncluded(resources: ResourceManager): Option[ResourceManager] = {
-    if(includeResources) {
-      Some(resources)
-    } else {
-      None
-    }
   }
 
   /** Handler for file suffix */

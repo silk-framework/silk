@@ -37,6 +37,7 @@ import { batch } from "react-redux";
 import { SERVE_PATH } from "../../../constants/path";
 import { DIErrorTypes } from "@ducks/error/typings";
 import { AppDispatch } from "store/configureStore";
+import { GlobalTableContext } from "../../../GlobalContextsWrapper";
 
 interface IActivity extends ISearchResultsServer {
     isCacheActivity: boolean;
@@ -60,9 +61,17 @@ const ActivityList = () => {
     const dispatch = useDispatch<AppDispatch>();
     const pageSizes = [10, 25, 50, 100];
     const { registerError } = useErrorHandler();
+    const { globalTableSettings } = React.useContext(GlobalTableContext);
+    const activityListSettings = globalTableSettings["activities"];
 
     const data = useSelector(workspaceSel.resultsSelector);
     const pagination = useSelector(workspaceSel.paginationSelector);
+    const adaptedPagination = {
+        ...pagination,
+    };
+    if (activityListSettings.pageSize) {
+        adaptedPagination.limit = activityListSettings.pageSize;
+    }
     const appliedFacets = useSelector(workspaceSel.appliedFacetsSelector);
 
     const isLoading = useSelector(workspaceSel.isLoadingSelector);
@@ -286,7 +295,11 @@ const ActivityList = () => {
                     );
                 })}
             </Datalist>
-            <Pagination pagination={pagination} pageSizes={pageSizes} onChangeSelect={handlePaginationOnChange} />
+            <Pagination
+                pagination={adaptedPagination}
+                pageSizes={pageSizes}
+                onChangeSelect={handlePaginationOnChange}
+            />
         </>
     );
 };

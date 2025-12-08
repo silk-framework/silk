@@ -94,6 +94,8 @@ export interface IParameterSpecification {
     requiredLabel?: string;
     /** The order index of this parameter. The index in the order of the parameter. First parameter starts with 0. */
     orderIdx: number;
+    /** URL stub to link online documentation */
+    urlUserHelp?: string;
 }
 
 export interface IParameterValidationResult {

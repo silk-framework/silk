@@ -1,6 +1,5 @@
 import React from "react";
 import _ from "lodash";
-import { Icon } from "gui-elements-deprecated";
 import {
     InteractionGate,
     Notification,
@@ -11,6 +10,8 @@ import {
     OverviewItemDescription,
     OverviewItemLine,
     OverflowText,
+    Icon,
+    IconButton,
 } from "@eccenca/gui-elements";
 
 import RuleTypes from "../elements/RuleTypes";
@@ -31,10 +32,12 @@ interface MappingTreeProps {
     ruleTree?: any; //Todo change to correct type
     handleRuleNavigation: (...args) => void;
     trackRuleInUrl?: boolean;
-    ruleValidation?: Record<string, "ok" | "warning">;
+    ruleValidation?: RuleValidationIconMapType;
     showValueMappings?: boolean;
     startFullScreen?: boolean;
 }
+
+export type RuleValidationIconMapType = Record<string, "ok" | "warning" | React.JSX.Element>;
 
 //React.useState<Map<string, boolean>>(new Map());
 
@@ -87,7 +90,7 @@ const MappingsTreeNew: React.FC<MappingTreeProps> = ({
             nodeExpansionState.current.set(node.id, true);
             setTreeNodes([buildTree(data, { nodeId: node.id, expanded: true })]);
         },
-        [data, currentRuleId]
+        [data, currentRuleId],
     );
 
     const handleNodeCollapse = React.useCallback(
@@ -95,19 +98,25 @@ const MappingsTreeNew: React.FC<MappingTreeProps> = ({
             nodeExpansionState.current.set(node.id, false);
             setTreeNodes([buildTree(data, { nodeId: node.id, expanded: false })]);
         },
-        [data, currentRuleId]
+        [data, currentRuleId],
     );
 
-    const renderRuleIcon = (ruleIds: string[]) => {
+    const renderRuleIcon = (ruleIds: string[]): React.JSX.Element | null => {
         const rulesWithValidation = ruleIds.filter((ruleId) => ruleValidation && ruleValidation[ruleId] !== undefined);
         if (rulesWithValidation.length === 0) {
             return null;
         } else if (
             rulesWithValidation.findIndex((ruleId) => ruleValidation && ruleValidation[ruleId] === "warning") > -1
         ) {
-            return <Icon className="ecc-silk-mapping__ruleitem-icon-yellow" name="warning" />;
+            return <Icon className="ecc-silk-mapping__ruleitem-icon-yellow" name="state-warning" intent="warning" />;
+        } else if (
+            rulesWithValidation.findIndex((ruleId) => ruleValidation && typeof ruleValidation[ruleId] !== "string") > -1
+        ) {
+            return ruleValidation![
+                rulesWithValidation.find((ruleId) => typeof ruleValidation![ruleId] !== "string")!
+            ] as React.JSX.Element;
         } else {
-            return <Icon className="ecc-silk-mapping__ruleitem-icon-green" name="done" />;
+            return <Icon className="ecc-silk-mapping__ruleitem-icon-green" name="state-success" intent="success" />;
         }
     };
 
@@ -175,8 +184,8 @@ const MappingsTreeNew: React.FC<MappingTreeProps> = ({
             let isExpanded = nodeExpansionState.current.has(id)
                 ? nodeExpansionState.current.get(id)
                 : currentRuleId === id
-                ? true
-                : parentType === MAPPING_RULE_TYPE_ROOT;
+                  ? true
+                  : parentType === MAPPING_RULE_TYPE_ROOT;
 
             const tree: TreeNodeInfo<TreeNodeMetaData> = {
                 id,
@@ -184,10 +193,12 @@ const MappingsTreeNew: React.FC<MappingTreeProps> = ({
                 isExpanded,
                 label,
                 icon: !childNodes.length ? (
-                    <Icon
-                        name="radio_button_unchecked"
+                    <IconButton
+                        name="toggler-radio"
                         data-test-id={`ecc-silk-mapping__treenav--item-toggler-${id}`}
                         className="ecc-silk-mapping__treenav--item-toggler"
+                        small
+                        disabled
                     />
                 ) : undefined,
                 childNodes: childNodes.map((child) => {
@@ -206,7 +217,7 @@ const MappingsTreeNew: React.FC<MappingTreeProps> = ({
             tree.isExpanded = isExpanded;
             return tree;
         },
-        [currentRuleId, ruleValidation]
+        [currentRuleId, ruleValidation],
     );
 
     const getRuleById = (searchId) => {
@@ -221,7 +232,7 @@ const MappingsTreeNew: React.FC<MappingTreeProps> = ({
             },
             () => {
                 setNavigationLoading(false);
-            }
+            },
         );
     };
 
@@ -235,7 +246,7 @@ const MappingsTreeNew: React.FC<MappingTreeProps> = ({
                 setData(ruleTree);
             }
         },
-        [ruleTree]
+        [ruleTree],
     );
 
     const loadNavigationTree = (args: Record<string, any> = {}) => {
@@ -253,7 +264,7 @@ const MappingsTreeNew: React.FC<MappingTreeProps> = ({
                 if (args.onFinish) {
                     args.onFinish();
                 }
-            }
+            },
         );
     };
 
@@ -265,12 +276,12 @@ const MappingsTreeNew: React.FC<MappingTreeProps> = ({
                 spinnerProps={{ position: "inline", size: "small", delay: 50 }}
             >
                 {navigationLoading && _.isUndefined(data) && (
-                    <Notification neutral data-test-id="ecc-silk-mapping__treenav-loading">
+                    <Notification intent="neutral" data-test-id="ecc-silk-mapping__treenav-loading">
                         {t("MappingTree.loadingRules")}
                     </Notification>
                 )}
                 {!navigationLoading && _.isEmpty(data) && (
-                    <Notification warning data-test-id="ecc-silk-mapping__treenav-norules">
+                    <Notification intent="warning" data-test-id="ecc-silk-mapping__treenav-norules">
                         {t("MappingTree.noRulesFound")}
                     </Notification>
                 )}

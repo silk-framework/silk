@@ -31,6 +31,8 @@ import { FileRemoveModal } from "../../../shared/modals/FileRemoveModal";
 import { CONTEXT_PATH } from "../../../../constants/path";
 import { fileValue } from "@ducks/shared/typings";
 import { AppDispatch } from "store/configureStore";
+import { useStoreGlobalTableSettings } from "../../../../hooks/useStoreGlobalTableSettings";
+import { GlobalTableContext } from "../../../../GlobalContextsWrapper";
 
 /** Project file management widget. */
 export const FileWidget = () => {
@@ -47,11 +49,18 @@ export const FileWidget = () => {
     const [fileDeleteDialog, setFileDeleteDialog] = useState<any>(null);
 
     const { isLoading } = fileWidget;
+    const { updateGlobalTableSettings, globalTableSettings } = React.useContext(GlobalTableContext);
+
     const [pagination, paginationElement, onTotalChange] = usePagination({
         pageSizes: [5, 10, 20],
         presentation: { hideInfoText: true },
+        initialPageSize: globalTableSettings["files"].pageSize,
     });
     const [t] = useTranslation();
+
+    React.useEffect(() => {
+        updateGlobalTableSettings({ pageSize: pagination.limit }, "files");
+    }, [pagination.limit]);
 
     // @FIXME: Improve logic, fileList can't be null or undefined, check state object
     if (filesList !== undefined && filesList !== null && filesList.length !== pagination.total) {
@@ -113,6 +122,7 @@ export const FileWidget = () => {
                                     onSearch={onSearch}
                                     data-test-id={"file-search-bar"}
                                     focusOnCreation={!!textQuery.length}
+                                    globalTableKey={"files"}
                                 />
                             )}
                             {!!filesList.length && <Spacing size="tiny" />}

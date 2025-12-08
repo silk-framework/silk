@@ -16,7 +16,7 @@ export function UploadedFileItem({ file, onRemoveFile }: IProps) {
     return (
         <div key={file.id}>
             <Notification
-                success={true}
+                intent="success"
                 actions={
                     onRemoveFile ? (
                         <Button outlined onClick={() => onRemoveFile(file)}>

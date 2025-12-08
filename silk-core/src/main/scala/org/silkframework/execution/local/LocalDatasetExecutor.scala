@@ -6,6 +6,7 @@ import org.silkframework.dataset.DatasetSpec.{EntitySinkWrapper, GenericDatasetS
 import org.silkframework.dataset._
 import org.silkframework.dataset.bulk.{BulkResourceBasedDataset, ZipWritableResource}
 import org.silkframework.dataset.rdf._
+import org.silkframework.dataset.sql.SqlDataset
 import org.silkframework.entity._
 import org.silkframework.execution._
 import org.silkframework.execution.typed._
@@ -23,14 +24,14 @@ import java.util.zip.ZipOutputStream
 import scala.util.Using
 
 /**
-  * Local dataset executor that handles read and writes to [[Dataset]] tasks.
-  */
+ * Local dataset executor that handles read and writes to [[Dataset]] tasks.
+ */
 abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecutor[DatasetType, LocalExecution] {
   private val logger = Logger.getLogger(getClass.getName)
 
   /**
-    * Reads data from a dataset.
-    */
+   * Reads data from a dataset.
+   */
   override def read(dataset: Task[DatasetSpec[DatasetType]], schema: EntitySchema, execution: LocalExecution)
                    (implicit pluginContext: PluginContext, context: ActivityContext[ExecutionReport]): LocalEntities = {
     implicit val prefixes: Prefixes = pluginContext.prefixes
@@ -71,7 +72,7 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
             ReportingIterator.addReporter(FileEntitySchema.create(fileEntities, dataset))
           case _: Dataset =>
             throw new ValidationException(s"Dataset task ${dataset.id} of type " +
-                s"${datasetSpec.plugin.pluginSpec.label} has no resource (file) or does not support requests for its resource!")
+              s"${datasetSpec.plugin.pluginSpec.label} has no resource (file) or does not support requests for its resource!")
         }
       case _ =>
         throw new ValidationException("No dataset spec found!")
@@ -87,8 +88,8 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
       entities = ReportingIterator(table.entities),
       entitySchema = schema,
       subTables =
-          for (subSchema <- multi.subSchemata) yield
-            GenericEntityTable(ReportingIterator(source.retrieve(entitySchema = subSchema).entities), subSchema, dataset),
+        for (subSchema <- multi.subSchemata) yield
+          GenericEntityTable(ReportingIterator(source.retrieve(entitySchema = subSchema).entities), subSchema, dataset),
       task = dataset,
       globalErrors = table.globalErrors
     )
@@ -107,7 +108,7 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
   }
 
   private def readTriples(dataset: Task[GenericDatasetSpec], rdfDataset: RdfDataset)
-                       (implicit pluginContext: PluginContext): TypedEntities[Quad, TaskSpec] = {
+                         (implicit pluginContext: PluginContext): TypedEntities[Quad, TaskSpec] = {
     val sparqlResult = rdfDataset.sparqlEndpoint.select("SELECT ?s ?p ?o WHERE {?s ?p ?o}")(pluginContext.user)
     val tripleEntities = sparqlResult.bindings map { resultMap =>
       val s = resultMap("s").asInstanceOf[ConcreteNode]
@@ -160,8 +161,28 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
         uploadFilesViaGraphStore(dataset, files.typedEntities, UploadFilesViaGspReportUpdater(dataset, context))
       case SparqlUpdateEntitySchema(queries) =>
         executeSparqlUpdateQueries(dataset, queries, execution)
+      case SqlUpdateEntitySchema(queries) =>
+        executeSqlStatement(dataset, queries, execution)
       case et: LocalEntities =>
         writeGenericLocalEntities(dataset, et, execution)
+    }
+  }
+
+  private def executeSqlStatement(dataset: Task[DatasetSpec[DatasetType]],
+                                  sqlUpdateQueries: TypedEntities[String, TaskSpec],
+                                  execution: LocalExecution)
+                                 (implicit userContext: UserContext, context: ActivityContext[ExecutionReport], prefixes: Prefixes): Unit = {
+    dataset.plugin match {
+      case sqlDataset: SqlDataset =>
+        val executionReport = UpdateSqlUpdater(dataset, context)
+        val endpoint = sqlDataset.sqlEndpoint
+        for (entity <- sqlUpdateQueries.typedEntities) {
+          endpoint.updateStatement(entity)
+          executionReport.increaseEntityCounter()
+        }
+        executionReport.executionDone()
+      case _ =>
+        writeGenericLocalEntities(dataset, sqlUpdateQueries, execution)
     }
   }
 
@@ -243,9 +264,9 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
   }
 
   /** Buffers queries to make prediction about how many queries will be executed.
-    *
-    * @param bufferSize max size of queries that should be buffered
-    */
+   *
+   * @param bufferSize max size of queries that should be buffered
+   */
   case class SparqlQueryBuffer(queryBufferSize: Int, entities: CloseableIterator[String]) extends TraversableIterator[String] {
     private val queryBuffer = new util.LinkedList[String]()
 
@@ -290,7 +311,7 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
             }
           case _: Dataset =>
             throw new ValidationException(s"Dataset task ${dataset.id} of type ${datasetSpec.plugin.pluginSpec.label} " +
-                s"has no support for graph store file uploads!")
+              s"has no support for graph store file uploads!")
         }
       case _ =>
         throw new ValidationException("No dataset spec found!")
@@ -314,11 +335,11 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
                 }
               case None =>
                 throw new ValidationException(s"Dataset task ${dataset.id} of type ${datasetSpec.plugin.pluginSpec.label} " +
-                    s"does not have a writable resource!")
+                  s"does not have a writable resource!")
             }
           case _: Dataset =>
             throw new ValidationException(s"Dataset task ${dataset.id} of type ${datasetSpec.plugin.pluginSpec.label} " +
-                s"has no resource (file) or does not support the required interface!")
+              s"has no resource (file) or does not support the required interface!")
         }
       case _ =>
         throw new ValidationException("No dataset spec found!")
@@ -345,7 +366,7 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
       // We are writing to a zip resource
       fileEntities.nextOption() match {
         case None =>
-          // No files to write, nothing to do
+        // No files to write, nothing to do
         case Some(firstEntity) if BulkResourceBasedDataset.isZip(firstEntity.file) && !fileEntities.hasNext =>
           // If there is only one file and it is a zip file, we can write it directly
           outputResource.writeResource(firstEntity.file)
@@ -471,6 +492,13 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
     override def entityLabelPlural: String = "Files"
     override def operationLabel: Option[String] = Some("write")
     override def entityProcessVerb: String = "written"
+  }
+
+  private case class UpdateSqlUpdater(task: Task[TaskSpec], context: ActivityContext[ExecutionReport]) extends ExecutionReportUpdater {
+    override def entityLabelSingle: String = "Statement"
+    override def entityLabelPlural: String = "Statements"
+    override def operationLabel: Option[String] = Some("process")
+    override def entityProcessVerb: String = "processed"
   }
 
   private case class UploadFilesViaGspReportUpdater(task: Task[TaskSpec], context: ActivityContext[ExecutionReport]) extends ExecutionReportUpdater {

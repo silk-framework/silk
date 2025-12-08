@@ -1,12 +1,12 @@
 import { RuleParameterInput } from "./RuleParameterInput";
 import React from "react";
-import { FieldItem } from "@eccenca/gui-elements";
+import { FieldItem, Link, Icon } from "@eccenca/gui-elements";
 import { IRuleNodeParameter } from "./RuleNodeParameter.typings";
 import ruleNodeUtils from "./ruleNode.utils";
 import { IParameterValidationResult } from "../../RuleEditor.typings";
 import { useTranslation } from "react-i18next";
 import { RuleEditorNodeParameterValue } from "../../model/RuleEditorModel.typings";
-import { InputPathFunctions, LanguageFilterProps } from "./PathInputOperator";
+import { InputPathFunctions } from "./PathInputOperator";
 
 interface RuleNodeFormParameterProps {
     nodeId: string;
@@ -75,12 +75,14 @@ export const RuleNodeFormParameter = ({
                     rootBoundary: "viewport",
                 },
                 info: paramSpec.requiredLabel || (paramSpec.required ? "required" : undefined),
+                additionalElements: paramSpec.urlUserHelp ? (
+                    <Link href={paramSpec.urlUserHelp} target="_docs" style={{ color: "inherit" }}>
+                        <Icon small name="item-question" tooltipText={t("common.documentationLink.tooltip")} />
+                    </Link>
+                ) : undefined,
             }}
             messageText={validationResult.message}
-            hasStateDanger={validationResult.intent === "danger"}
-            hasStatePrimary={validationResult.intent === "primary"}
-            hasStateSuccess={validationResult.intent === "success"}
-            hasStateWarning={validationResult.intent === "warning"}
+            intent={validationResult.intent}
         >
             <RuleParameterInput
                 pluginId={pluginId}

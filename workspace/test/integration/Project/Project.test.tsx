@@ -98,7 +98,6 @@ describe("Project page", () => {
             {
                 textQuery: "some text",
                 itemType: "dataset",
-                limit: 15,
                 page: 2,
                 f_ids: ["facetId1", "facetId2"],
                 f_keys: ["facet1Key1|facet1Key2", "facet2Key"],
@@ -116,9 +115,10 @@ describe("Project page", () => {
         const expectedSearchResponse = {
             textQuery: "some text",
             itemType: "dataset",
-            limit: 15,
+            limit: 10,
             offset: 10,
             project: testProjectId,
+            sortOrder: "ASC",
             facets: [
                 { facetId: "facetId1", type: "keyword", keywordIds: ["facet1Key1", "facet1Key2"] },
                 { facetId: "facetId2", type: "keyword", keywordIds: ["facet2Key"] },

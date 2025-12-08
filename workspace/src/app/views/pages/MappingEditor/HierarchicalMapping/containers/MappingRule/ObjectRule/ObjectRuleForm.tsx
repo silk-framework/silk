@@ -16,7 +16,6 @@ import {
     CardHeader,
     Divider,
 } from "@eccenca/gui-elements";
-import { AffirmativeButton, DismissiveButton } from "@eccenca/gui-elements/src/legacy-replacements";
 import _ from "lodash";
 import ExampleView from "../ExampleView";
 import {
@@ -312,6 +311,11 @@ export const ObjectRuleForm = (props: IProps) => {
                 onChange={(value) => {
                     handleChangeValue("pattern", value);
                 }}
+                outerDivAttributes={
+                    {
+                        "data-test-id": "codemirror-wrapper",
+                    } as React.HTMLAttributes<HTMLDivElement>
+                }
                 fetchSuggestions={(input, cursorPosition) =>
                     fetchUriPatternAutoCompletions(
                         parentId ? parentId : MAPPING_ROOT_RULE_ID,
@@ -471,7 +475,7 @@ export const ObjectRuleForm = (props: IProps) => {
         );
     } else if (!uriPatternIsValid || !objectPathValid) {
         previewExamples = (
-            <Notification warning={true} data-test-id={"object-rule-form-preview-invalid-input"}>
+            <Notification intent="warning" data-test-id={"object-rule-form-preview-invalid-input"}>
                 URI pattern or value path is invalid. No preview shown.
             </Notification>
         );
@@ -569,9 +573,9 @@ export const ObjectRuleForm = (props: IProps) => {
             </CardContent>
             <Divider />
             <CardActions className="ecc-silk-mapping__ruleseditor__actionrow">
-                <AffirmativeButton
+                <Button
+                    affirmative
                     className="ecc-silk-mapping__ruleseditor__actionrow-save"
-                    raised
                     data-test-id={"object-rule-form-confirm-button"}
                     onClick={handleConfirm}
                     disabled={
@@ -582,14 +586,10 @@ export const ObjectRuleForm = (props: IProps) => {
                     }
                 >
                     Save
-                </AffirmativeButton>
-                <DismissiveButton
-                    className="ecc-silk-mapping__ruleseditor__actionrow-cancel"
-                    raised
-                    onClick={handleClose}
-                >
+                </Button>
+                <Button className="ecc-silk-mapping__ruleseditor__actionrow-cancel" onClick={handleClose}>
                     Cancel
-                </DismissiveButton>
+                </Button>
             </CardActions>
         </>
     );

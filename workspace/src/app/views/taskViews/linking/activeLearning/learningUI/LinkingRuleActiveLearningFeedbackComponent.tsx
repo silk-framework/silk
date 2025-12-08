@@ -68,7 +68,7 @@ export const LinkingRuleActiveLearningFeedbackComponent = ({ setUnsavedStateExis
     const [valuesToDisplay, setValuesToDisplay] = React.useState<ComparisonPair[] | undefined>();
     const [submittingEntityLink, setSubmittingEntityLink] = React.useState(false);
     const [entityUrisToOpenInModal, setEntityUrisToOpenInModal] = React.useState<UnlabeledEntityLink | undefined>(
-        undefined
+        undefined,
     );
 
     const labelPropertyPairIds = new Set(labelPropertyPairs.map((lpp) => lpp.pairId));
@@ -108,7 +108,7 @@ export const LinkingRuleActiveLearningFeedbackComponent = ({ setUnsavedStateExis
     /** Changes the status of a link to the given decision. */
     const submitLink = async (
         link: EntityLink | ActiveLearningLinkCandidate | undefined,
-        decision: ActiveLearningDecisions
+        decision: ActiveLearningDecisions,
     ) => {
         if (link) {
             setSubmittingEntityLink(true);
@@ -139,7 +139,7 @@ export const LinkingRuleActiveLearningFeedbackComponent = ({ setUnsavedStateExis
                 {showInfo && (
                     <>
                         <Notification
-                            neutral
+                            intent="neutral"
                             icon={<Icon name="item-question" />}
                             actions={
                                 <IconButton
@@ -274,7 +274,7 @@ const DecisionButtons = ({ disabledButtons, submitLink, selectedDecision, cancel
                 disabled={disabledButtons}
                 onClick={() => (positiveSelected ? cancel() : submitLink("positive"))}
                 outlined={!positiveSelected}
-                hasStateSuccess
+                intent="success"
             >
                 {t("ActiveLearning.feedback.confirm")}
             </Button>
@@ -296,7 +296,7 @@ const DecisionButtons = ({ disabledButtons, submitLink, selectedDecision, cancel
                 onClick={() => (negativeSelected ? cancel() : submitLink("negative"))}
                 icon={"state-declined"}
                 outlined={!negativeSelected}
-                hasStateDanger
+                intent="danger"
             >
                 {t("ActiveLearning.feedback.decline")}
             </Button>

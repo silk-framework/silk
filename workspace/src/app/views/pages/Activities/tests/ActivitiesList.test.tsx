@@ -2,11 +2,15 @@ import React from "react";
 import "@testing-library/jest-dom";
 import { render as rtlRender } from "@testing-library/react";
 import { combineReducers, configureStore } from "@reduxjs/toolkit";
+import { createMemoryHistory } from "history";
+import { connectRouter, routerMiddleware } from "connected-react-router";
 import { Provider } from "react-redux";
 import workspaceReducer from "../../../../store/ducks/workspace";
 import ActivityList, { nonStartableActivitiesBlacklist } from "../ActivityList";
 import testData from "./test-data";
 import { bluePrintClassPrefix } from "../../../../../../test/HierarchicalMapping/utils/TestHelpers";
+
+const history = createMemoryHistory();
 
 const activityProperties: Record<
     string,
@@ -56,6 +60,7 @@ const render = (
         store = configureStore({
             reducer: rootReducer,
             preloadedState: {
+                middleware: (getDefaultMiddleware) => getDefaultMiddleware().concat(routerMiddleware(history)),
                 ...(dummyState as any),
             },
         }),

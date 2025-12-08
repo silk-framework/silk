@@ -48,6 +48,8 @@ export interface RuleEditorModelContextProps {
     /** The ID of the rule editor canvas element. */
     canvasId: string;
     updateSelectedElements: (elements: Elements | null) => void;
+    /** Notification that is shown below the canvas. */
+    notification?: React.JSX.Element;
 }
 
 export interface IModelActions {
@@ -63,7 +65,7 @@ export interface IModelActions {
         pluginId: string,
         position: XYPosition,
         overwriteParameterValues?: RuleOperatorNodeParameters,
-        isCanvasPosition?: boolean
+        isCanvasPosition?: boolean,
     ) => void;
     /** Delete a rule node. */
     deleteNode: (nodeId: string) => void;
@@ -75,7 +77,7 @@ export interface IModelActions {
         targetNodeId: string,
         // If target handle is undefined, connect to the first free handle
         targetHandleId: string | undefined,
-        previousTargetHandle?: string
+        previousTargetHandle?: string,
     ) => void;
     /** Delete an edge.
      *
@@ -109,7 +111,7 @@ export interface IModelActions {
         nodeId: string,
         parameterId: string,
         newValue: string | undefined,
-        autoStartTransaction?: boolean
+        autoStartTransaction?: boolean,
     ) => void;
     /** Automatically layout the rule nodes. */
     autoLayout: (startTransaction?: boolean) => void;

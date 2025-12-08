@@ -18,7 +18,9 @@ import { IModalItem } from "@ducks/shared/typings";
 import ShowIdentifierModal from "../modals/ShowIdentifierModal";
 import { IArtefactModal } from "@ducks/common/typings";
 import { AppDispatch } from "store/configureStore";
+import { GlobalTableContext } from "../../../GlobalContextsWrapper";
 
+/** Search list for the workspace/project page search. */
 export function SearchList() {
     const dispatch = useDispatch<AppDispatch>();
 
@@ -26,6 +28,14 @@ export function SearchList() {
 
     const data = useSelector(workspaceSel.resultsSelector);
     const pagination = useSelector(workspaceSel.paginationSelector);
+    const { globalTableSettings } = React.useContext(GlobalTableContext);
+    const workspaceTableSettings = globalTableSettings["workbench"];
+    const adaptedPagination = {
+        ...pagination,
+    };
+    if (workspaceTableSettings.pageSize) {
+        adaptedPagination.limit = workspaceTableSettings.pageSize;
+    }
     const appliedFilters = useSelector(workspaceSel.appliedFiltersSelector);
     const isLoading = useSelector(workspaceSel.isLoadingSelector);
     const appliedFacets = useSelector(workspaceSel.appliedFacetsSelector);
@@ -189,7 +199,11 @@ export function SearchList() {
                 ))}
             </DataList>
             <Spacing size="small" />
-            <Pagination pagination={pagination} pageSizes={pageSizes} onChangeSelect={handlePaginationOnChange} />
+            <Pagination
+                pagination={adaptedPagination}
+                pageSizes={pageSizes}
+                onChangeSelect={handlePaginationOnChange}
+            />
             {!isEmpty ? (
                 <>
                     {deleteModalOpen && selectedItem && (

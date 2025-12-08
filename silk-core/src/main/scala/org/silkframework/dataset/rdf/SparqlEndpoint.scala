@@ -34,7 +34,7 @@ trait SparqlEndpoint {
 
   /**
     * Executes an ask query.
-    * ASK queries determine whether or not a query solution exists for the given set of patterns and restrictions.
+    * ASK queries determine whether a query solution exists for the given set of patterns and restrictions.
     * Syntax: ASK WHERE{ ... }
     */
   def ask(query: String)(implicit userContext: UserContext): SparqlAskResult = {

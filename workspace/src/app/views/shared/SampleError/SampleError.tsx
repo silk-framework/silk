@@ -45,9 +45,9 @@ export const SampleError = ({ sampleError, hasStateWarning = false }: SampleErro
                 key={"show-report"}
                 data-test-id={"show-sample-error-btn"}
                 name={"artefact-report"}
-                hasStateWarning={hasStateWarning}
+                intent={hasStateWarning ? "warning" : undefined}
                 onClick={onClick}
-                small={true}
+                small
             />
             {showSameErrorReport ? (
                 <SampleErrorModal sampleError={sampleError} onClose={() => setShowSampleErrorReport(false)} />

@@ -40,7 +40,7 @@ trait CompiledTemplate {
     *
     * @throws TemplateEvaluationException If the evaluation failed.
     */
-  def evaluate(values: Seq[TemplateVariableValue], writer: Writer): Unit
+  def evaluate(values: Seq[TemplateVariableValue], writer: Writer, evaluationConfig: EvaluationConfig = EvaluationConfig()): Unit
 
   /**
     * Evaluates this template using a provided entity.
@@ -78,5 +78,11 @@ trait CompiledTemplate {
       }
     }
   }
-
 }
+
+/** Config to fine-tune evaluation parameters for the template engine.
+  *
+  * @param ignoreUnboundVariables If an unbound variable is found then instead of throwing an error the variable evaluates
+  *                               to the variable name itself.
+  */
+case class EvaluationConfig(ignoreUnboundVariables: Boolean = false)

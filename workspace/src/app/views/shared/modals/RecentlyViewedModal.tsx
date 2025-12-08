@@ -153,7 +153,7 @@ export function RecentlyViewedModal() {
                     <OverviewItemLine small>
                         <TagList>
                             {(item.itemType === "project" || item.itemType === "dataset") && (
-                                <ArtefactTag artefactType={`${item.itemType}Node`}>
+                                <ArtefactTag artefactType={`${item.itemType}-node`}>
                                     <Highlighter label={itemType(item)} searchValue={query} />
                                 </ArtefactTag>
                             )}
@@ -163,7 +163,7 @@ export function RecentlyViewedModal() {
                                 </Tag>
                             )}
                             {item.pluginLabel && (
-                                <ArtefactTag artefactType={`${item.pluginLabel?.toLowerCase()}Node`}>
+                                <ArtefactTag artefactType={`${item.pluginLabel?.toLowerCase()}-node`}>
                                     <Highlighter label={item.pluginLabel} searchValue={query} />
                                 </ArtefactTag>
                             )}
@@ -194,7 +194,7 @@ export function RecentlyViewedModal() {
     // Warning when an error has occurred
     const errorView = (error: ErrorResponse) => {
         return (
-            <Notification danger>
+            <Notification intent="danger">
                 <span>
                     {error.title}. {error.detail ? ` Details: ${error.detail}` : ""}
                 </span>

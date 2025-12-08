@@ -13,22 +13,8 @@
  */
 
 package org.silkframework.rule.plugins.transformer
-
+
 import org.silkframework.rule.plugins.transformer.replace.RegexReplaceTransformer
-import org.silkframework.test.PluginTest
+import org.silkframework.rule.test.TransformerTest
 
-class RegexReplaceTransformerTest extends PluginTest {
-
-  it should "return 'abc'" in {
-    val transformer = new RegexReplaceTransformer(regex = "[^0-9]*", replace = "")
-    transformer.evaluate("a0b1c2") should equal("012")
-  }
-
-  it should "return '1'" in {
-    val transformer1 = new RegexReplaceTransformer(regex = "[a-z]*", replace = "")
-    transformer1.evaluate("abcdef1") should equal("1")
-  }
-
-  override def pluginObject = new RegexReplaceTransformer(regex = "[^0-9]*", replace = "")
-
-}
+class RegexReplaceTransformerTest extends TransformerTest[RegexReplaceTransformer]

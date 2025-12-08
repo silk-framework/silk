@@ -7,7 +7,8 @@ import org.silkframework.runtime.plugin.annotations.Plugin
   id = "metaphone",
   categories = Array("Linguistic"),
   label = "Metaphone",
-  description = "Metaphone phonetic encoding."
+  description = "Metaphone phonetic encoding.",
+  documentationFile = "MetaphoneTransformer.md"
 )
 case class MetaphoneTransformer() extends SimpleTransformer {
 

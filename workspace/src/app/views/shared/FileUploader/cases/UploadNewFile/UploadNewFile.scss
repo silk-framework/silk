@@ -6,9 +6,9 @@
     position: relative;
 
     & > .diapp-project__uploadwidget__dnd-icon {
-       position: absolute; 
-       top: $ecc-size-block-whitespace; 
-       left: 50%;
-       transform: translate(-50%);
+        position: absolute;
+        top: $eccgui-size-block-whitespace;
+        left: 50%;
+        transform: translate(-50%);
     }
 }

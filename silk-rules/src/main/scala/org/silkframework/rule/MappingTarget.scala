@@ -75,6 +75,15 @@ case class MappingTarget(propertyUri: Uri,
 
 object MappingTarget {
 
+  /**
+   * Creates a MappingTarget for an object property.
+   */
+  def obj(propertyUri: Uri,
+          isBackwardProperty: Boolean = false,
+          isAttribute: Boolean = false): MappingTarget = {
+    MappingTarget(propertyUri, ValueType.URI, isBackwardProperty, isAttribute)
+  }
+
   implicit object MappingTargetFormat extends XmlFormat[MappingTarget] {
 
     import org.silkframework.runtime.serialization.XmlSerialization._

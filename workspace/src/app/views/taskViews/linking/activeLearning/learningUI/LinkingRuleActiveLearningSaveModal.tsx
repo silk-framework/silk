@@ -27,7 +27,7 @@ export const LinkingRuleActiveLearningSaveModal = ({
     const [saving, setSaving] = React.useState(false);
     const { sessionInfo } = useActiveLearningSessionInfo(
         activeLearningContext.projectId,
-        activeLearningContext.linkingTaskId
+        activeLearningContext.linkingTaskId,
     );
     const [saveReferenceLinks, setSaveReferenceLinks] = React.useState(false);
     const unsavedReferenceLinks = sessionInfo?.referenceLinks
@@ -49,14 +49,14 @@ export const LinkingRuleActiveLearningSaveModal = ({
                 activeLearningContext.projectId,
                 activeLearningContext.linkingTaskId,
                 saveRule,
-                saveReferenceLinks
+                saveReferenceLinks,
             );
             setTimeout(() => onClose(true, saveRule, saveReferenceLinks), 50);
         } catch (error) {
             registerError(
                 "LinkingRuleActiveLearningSaveModal.onSave",
                 t("ActiveLearning.saveDialog.saveFailureMessage"),
-                error
+                error,
             );
         } finally {
             setSaving(false);
@@ -135,7 +135,9 @@ export const LinkingRuleActiveLearningSaveModal = ({
                         {t("ActiveLearning.saveDialog.bestLearnedRule.label")}
                     </Switch>
                 </FieldItem>
-                {saveRule && <Notification warning>{t("ActiveLearning.saveDialog.overwriteWarning")}</Notification>}
+                {saveRule && (
+                    <Notification intent="warning">{t("ActiveLearning.saveDialog.overwriteWarning")}</Notification>
+                )}
                 <Spacing size="small" />
                 {unsavedBestRule ? (
                     <LinkingRuleActiveLearningBestLearnedRule rule={unsavedBestRule} defaultDisplayVisualRule />

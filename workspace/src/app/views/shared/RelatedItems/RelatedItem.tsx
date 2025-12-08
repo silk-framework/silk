@@ -79,7 +79,7 @@ export function RelatedItem({ relatedItem, textQuery }: IProps) {
     const itemTags = [] as React.JSX.Element[];
     if (relatedItem.type === "Dataset") {
         itemTags.push(
-            <ArtefactTag key={"dataset"} artefactType="datasetNode">
+            <ArtefactTag key={"dataset"} artefactType="dataset-node">
                 <Highlighter label={relatedItem.type} searchValue={textQuery} />
             </ArtefactTag>,
         );
@@ -92,7 +92,7 @@ export function RelatedItem({ relatedItem, textQuery }: IProps) {
         );
     }
     itemTags.push(
-        <ArtefactTag key={relatedItem.pluginLabel} artefactType={`${relatedItem.pluginLabel.toLowerCase()}Node`}>
+        <ArtefactTag key={relatedItem.pluginLabel} artefactType={`${relatedItem.pluginLabel.toLowerCase()}-node`}>
             <Highlighter label={relatedItem.pluginLabel} searchValue={textQuery} />
         </ArtefactTag>,
     );

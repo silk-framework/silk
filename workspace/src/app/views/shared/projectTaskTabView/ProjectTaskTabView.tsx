@@ -25,7 +25,6 @@ import { requestItemLinks } from "@ducks/shared/requests";
 import { commonSel } from "@ducks/common";
 import Loading from "../Loading";
 import { SERVE_PATH } from "../../../constants/path";
-import "./projectTaskTabView.scss";
 import { IProjectTaskView, IViewActions, pluginRegistry } from "../../plugins/PluginRegistry";
 import PromptModal from "./PromptModal";
 import ErrorBoundary from "../../../ErrorBoundary";
@@ -78,7 +77,11 @@ interface IProjectTaskTabView {
         taskId?: string;
     };
     viewActions?: IViewActions;
+    // Modal ID for tracking its open/closed state
+    modalId?: string;
 }
+
+export const defaultProjectTaskTabViewFullScreenModalId = "projectTaskTabViewFullScreenModal";
 
 /**
  * Displays views of a specific project task. Item links are displayed in an i-frame whereas component views are directly
@@ -93,6 +96,7 @@ export function ProjectTaskTabView({
     taskViewConfig,
     iFrameName,
     viewActions,
+    modalId = defaultProjectTaskTabViewFullScreenModalId,
     ...otherProps
 }: IProjectTaskTabView) {
     const initialSettings = useSelector(commonSel.initialSettingsSelector);
@@ -507,6 +511,8 @@ export function ProjectTaskTabView({
                     isOpen={true}
                     onClose={() => handlerRemoveModalWrapper()}
                     wrapperDivProps={customModalPreventEvents}
+                    modalId={modalId}
+                    preventReactFlowEvents={false}
                 >
                     <ErrorBoundary>{tabsWidget(projectId, taskId)}</ErrorBoundary>
                 </Modal>
@@ -544,7 +550,7 @@ const CardContentWarnings = React.memo(({ warnings }: CardContentWarningsProps) 
                 return (
                     <Fragment key={warning}>
                         <Notification
-                            warning
+                            intent="warning"
                             onDismiss={(didTimeoutExpire) => !didTimeoutExpire && removeWarning(warning)}
                         >
                             {warning}
