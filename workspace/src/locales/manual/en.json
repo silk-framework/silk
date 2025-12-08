@@ -63,7 +63,7 @@
         "typeSelectionBack": "Back to type selection",
         "typeSelectionTooltip": "The data source consists of multiple types. Select one type from the list for a preview. There are max. 1000 types fetched at any time.",
         "clearDatasetModal": {
-            "title": "Clear dataset?",
+            "title": "Clear dataset",
             "content": "Are you sure you want to clear the dataset? This action cannot be undone.",
             "actionBtn": "Clear dataset", 
             "error": "Error while clearing dataset"

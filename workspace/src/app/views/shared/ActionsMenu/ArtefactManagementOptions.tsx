@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useLocation } from "react-router";
+import { useHistory, useLocation } from "react-router";
 import { useTranslation } from "react-i18next";
 import { routerOp } from "@ducks/router";
 import { IItemLink } from "@ducks/shared/typings";
@@ -16,6 +16,9 @@ import CopyToModal from "../modals/CopyToModal/CopyToModal";
 import ShowIdentifierModal from "../modals/ShowIdentifierModal";
 import { SERVE_PATH } from "../../../constants/path";
 import { absoluteProjectPath } from "../../../utils/routerUtils";
+import { AlertDialog, Button, HtmlContentBlock, Notification } from "@eccenca/gui-elements";
+import { clearDataset } from "workspacePlugins/src/plugins/components/DataPreview/DataPreview.requests";
+import { FetchError } from "../../../services/fetch/responseInterceptor";
 
 interface IProps {
     projectId: string;
@@ -36,6 +39,7 @@ export function ArtefactManagementOptions({
 }: IProps) {
     const dispatch = useDispatch();
     const location = useLocation<any>();
+    const history = useHistory();
     const [t] = useTranslation();
     const [deleteModalOpen, setDeleteModalOpen] = useState(false);
     const [cloneModalOpen, setCloneModalOpen] = useState(false);
@@ -43,6 +47,10 @@ export function ArtefactManagementOptions({
     const [showIdentifierOpen, setShowIdentifierOpen] = useState<boolean>(false);
     const [itemLinks, setItemLinks] = useState<IItemLink[]>([]);
     const [menuItems, setMenuItems] = useState<IActionsMenuProps>({});
+    const [showClearDatasetPrompt, setShowClearDatasetPrompt] = React.useState<boolean>(false);
+    const notifications = React.useRef<React.JSX.Element[]>([]);
+    const [erasingDataset, setErasingDataset] = useState<boolean>(false);
+
     const exportTypes = useSelector(commonSel.exportTypesSelector);
 
     const itemData = {
@@ -116,6 +124,51 @@ export function ArtefactManagementOptions({
         setCopyToModalOpen(!copyToModalOpen);
     };
 
+    const handleClearDataset = async () => {
+        if (!projectId && !taskId) return;
+        setErasingDataset(true);
+        try {
+            await clearDataset(projectId, taskId as string);
+            history.go(0);
+            setShowClearDatasetPrompt(false);
+        } catch (err) {
+            notifications.current.push(
+                <Notification
+                    message={
+                        (err as FetchError)?.errorResponse?.detail ??
+                        t("DataPreview.clearDatasetModal.error", "Error while clearing dataset")
+                    }
+                    intent="danger"
+                />,
+            );
+        } finally {
+            setErasingDataset(false);
+            notifications.current = [];
+        }
+    };
+
+    const confirmClearDatasetPrompt = (
+        <AlertDialog
+            isOpen={showClearDatasetPrompt}
+            size="tiny"
+            warning
+            title={`${t("DataPreview.clearDatasetModal.title", "Clear dataset")}?`}
+            actions={[
+                <Button key="1" affirmative onClick={handleClearDataset} loading={erasingDataset}>
+                    {t("DataPreview.clearDatasetModal.actionBtn")}
+                </Button>,
+                <Button key="2" onClick={() => setShowClearDatasetPrompt(false)}>
+                    {t("common.action.cancel")}
+                </Button>,
+            ]}
+            notifications={notifications.current}
+        >
+            <HtmlContentBlock>
+                <p>{t("DataPreview.clearDatasetModal.content")}</p>
+            </HtmlContentBlock>
+        </AlertDialog>
+    );
+
     const getFullMenu = () => {
         const fullMenu: TActionsMenuItem[] = [
             {
@@ -135,6 +188,13 @@ export function ArtefactManagementOptions({
                 text: t("common.action.showIdentifier", "Show identifier"),
                 actionHandler: toggleShowIdentifierModal,
                 "data-test-id": "header-item-identifier-button",
+            },
+            {
+                icon: "operation-erase",
+                text: t("DataPreview.clearDatasetModal.title", "Clear dataset"),
+                disruptive: true,
+                actionHandler: () => setShowClearDatasetPrompt(true),
+                "data-test-id": "header-item-erase-dataset-button",
             },
         ];
 
@@ -210,6 +270,7 @@ export function ArtefactManagementOptions({
             {showIdentifierOpen && (
                 <ShowIdentifierModal onDiscard={toggleShowIdentifierModal} taskId={taskId} projectId={projectId} />
             )}
+            {confirmClearDatasetPrompt}
             {/* {displayItemLink && (
                 <ProjectTaskTabView
                     srcLinks={itemLinks}
