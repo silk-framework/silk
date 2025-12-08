@@ -5,9 +5,9 @@ import { useTranslation } from "react-i18next";
 import DeleteModal from "../../../shared/modals/DeleteModal";
 import { clearDataset } from "./dataset.requests";
 import { ErrorResponse, FetchError } from "../../../../services/fetch/responseInterceptor";
-import { IMetaData } from "../../../pages/MappingEditor/HierarchicalMapping/store";
 import { requestTaskData } from "@ducks/shared/requests";
 import useErrorHandler from "../../../../hooks/useErrorHandler";
+import {IMetadata} from "@ducks/shared/typings";
 
 interface Props {
     projectId: string;
@@ -19,7 +19,7 @@ interface Props {
 export const DatasetClearButton = ({ projectId, datasetId }: Props) => {
     const [t] = useTranslation();
     const [showModal, setShowModal] = React.useState(false);
-    const [datasetMetaData, setDatasetMetaData] = React.useState<IMetaData | undefined>(undefined);
+    const [datasetMetaData, setDatasetMetaData] = React.useState<IMetadata | undefined>(undefined);
     const [outputIsReadOnly, setOutputIsReadOnly] = React.useState(false);
     const { registerError } = useErrorHandler();
 
@@ -79,13 +79,14 @@ export const DatasetClearButton = ({ projectId, datasetId }: Props) => {
 
 interface ModalProps extends Props {
     onClose: () => any;
-    datasetMetaData: IMetaData;
+    datasetMetaData: IMetadata;
 }
 
 const DatasetClearButtonModal = ({ projectId, datasetId, onClose, datasetMetaData }: ModalProps) => {
     const [t] = useTranslation();
     const [error, setError] = useState<ErrorResponse | undefined>(undefined);
     const [clearing, setClearing] = React.useState(false);
+    const datasetLabel = datasetMetaData.label ?? datasetId
 
     const onConfirm = async () => {
         setError(undefined);
@@ -101,7 +102,6 @@ const DatasetClearButtonModal = ({ projectId, datasetId, onClose, datasetMetaDat
             setClearing(false);
         }
     };
-    const datasetLabel = datasetMetaData.label;
     return (
         <DeleteModal
             title={t("DatasetClearButton.modalTitle", { datasetLabel })}
@@ -111,7 +111,7 @@ const DatasetClearButtonModal = ({ projectId, datasetId, onClose, datasetMetaDat
             removeLoading={clearing}
             alternativeDeleteButtonText={t("DatasetClearButton.modalButtonText")}
             errorMessage={
-                error ? `Clearing dataset '${datasetMetaData.label}' has failed. ${error.asString()}` : undefined
+                error ? `Clearing dataset '${datasetLabel}' has failed. ${error.asString()}` : undefined
             }
         >
             {t("DatasetClearButton.modalText", { datasetLabel })}
