@@ -8,7 +8,7 @@ import org.silkframework.plugins.dataset.rdf.tasks.SparqlSelectCustomTask
 import org.silkframework.rule.TransformSpec
 import org.silkframework.runtime.plugin._
 import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
-import org.silkframework.serialization.json.{PluginDescriptionSerializers, PluginParameterJsonPayload}
+import org.silkframework.serialization.json.{PluginDescriptionSerializers, PluginParameterJson}
 import org.silkframework.workspace.WorkspaceReadTrait
 import play.api.libs.json.{JsArray, JsObject, JsValue, Json}
 
@@ -34,7 +34,7 @@ class PluginApiTest extends AnyFlatSpec with IntegrationTestTrait with Matchers 
   it should "return the correct properties for auto-completable plugins" in {
     PluginRegistry.registerPlugin(classOf[AutoCompletableTestPlugin])
     val jsonResult = checkResponse(client.url(s"$baseUrl/core/plugins").get()).json
-    val autoCompletableTestPluginJson = Json.fromJson[PluginParameterJsonPayload]((jsonResult \ "autoCompletableTestPlugin" \ "properties" \ "completableParam").as[JsValue]).get
+    val autoCompletableTestPluginJson = Json.fromJson[PluginParameterJson]((jsonResult \ "autoCompletableTestPlugin" \ "properties" \ "completableParam").as[JsValue]).get
     val autoComplete = autoCompletableTestPluginJson.autoCompletion
     autoComplete mustBe defined
     autoComplete.get.autoCompleteValueWithLabels mustBe true
