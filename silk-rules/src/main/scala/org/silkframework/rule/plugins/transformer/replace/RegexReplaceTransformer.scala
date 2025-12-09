@@ -16,12 +16,13 @@ package org.silkframework.rule.plugins.transformer.replace
 
 import org.silkframework.rule.annotations.{TransformExample, TransformExamples}
 import org.silkframework.rule.input.SimpleTransformer
+import org.silkframework.rule.plugins.transformer.replace.RegexReplaceTransformer.pluginId
 import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
 
 import scala.util.matching.Regex
 
 @Plugin(
-  id = "regexReplace",
+  id = pluginId,
   categories = Array("Replace"),
   label = "Regex replace",
   description = "Replace all occurrences of a regular expression in a string." +
@@ -75,4 +76,10 @@ case class RegexReplaceTransformer(@Param(value = "The regular expression to mat
   def evaluate(value: String): String = {
     compiledRegex.replaceAllIn(value, replace)
   }
+}
+
+object RegexReplaceTransformer {
+
+  final val pluginId: String = "regexReplace"
+
 }
