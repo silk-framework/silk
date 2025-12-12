@@ -16,6 +16,7 @@ import { FetchResponse } from "../../../services/fetch/responseInterceptor";
 import { IAutocompleteDefaultResponse, IProjectTask } from "@ducks/shared/typings";
 import { TaskContext } from "../../../views/shared/projectTaskTabView/projectTaskTabView.typing";
 import { CodeAutocompleteFieldValidationResult } from "@eccenca/gui-elements/src/components/AutoSuggestion/AutoSuggestion";
+import { ItemType } from "@ducks/router/operations";
 
 export interface ISearchListRequest {
     limit?: number;
@@ -25,6 +26,7 @@ export interface ISearchListRequest {
     project?: string;
     facets?: IAppliedFacetState[];
     textQuery?: string;
+    itemType?: ItemType;
 }
 
 export interface ISearchListResponse {
