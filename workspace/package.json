@@ -16,7 +16,7 @@
         "watch": "node --openssl-legacy-provider --max_old_space_size=2048 scripts/build-di.dev.js --watch",
         "build-di-dev": "node --openssl-legacy-provider scripts/build-di.dev.js",
         "build-di-prod": "node --openssl-legacy-provider --max_old_space_size=2048 scripts/build-di.prod.js",
-        "test": "node scripts/test.js",
+        "test": "DEBUG=true node scripts/test.js",
         "test-ci": "export CI=true && node scripts/test.js --coverage --reporters=\"default\" --reporters=\"jest-junit\" --no-colors -ci --silent",
         "sync-trans": "sync-i18n --files 'src/locales/manual/*.json' --primary en --languages de --space 4 -- --check",
         "i18n-parser": "node scripts/i18next-scanner.js",
@@ -28,7 +28,7 @@
         "@eccenca/gui-elements": "^25.0.0",
         "@eccenca/superagent": "^1.4.1",
         "@mavrin/remark-typograf": "^2.2.0",
-        "@reduxjs/toolkit": "^2.9.0",
+        "@reduxjs/toolkit": "^2.11.1",
         "@uppy/core": "1.17.0",
         "@uppy/react": "1.11.10",
         "@uppy/xhr-upload": "1.7.5",
@@ -129,12 +129,12 @@
             "<rootDir>/test/**/*(*.)@(spec|test).{js,jsx,ts,tsx}"
         ],
         "transform": {
-            "^.+\\.(js|jsx|ts|tsx)$": "babel-jest",
+            "^.+\\.(js|jsx|ts|tsx|mjs|cjs)$": "babel-jest",
             "^.+\\.css$": "<rootDir>/config/jest/cssTransform.js",
             "^(?!.*\\.(js|jsx|ts|tsx|css|json)$)": "<rootDir>/config/jest/fileTransform.js"
         },
         "transformIgnorePatterns": [
-            "[/\\\\]node_modules[/\\\\](?!react-markdown|vfile|unist-util-stringify-position|).+\\.(js|jsx|ts|tsx)$",
+            "[/\\\\]node_modules[/\\\\](?!react-markdown|vfile|unist-util-stringify-position|@reduxjs/toolkit|).+\\.(js|jsx|ts|tsx|mjs|cjs)$",
             "^.+\\.module\\.(css|sass|scss)$"
         ],
         "moduleNameMapper": {
@@ -142,6 +142,7 @@
             "^react-markdown$": "<rootDir>/../../node_modules/react-markdown",
             "^@eccenca/gui-elements$": "<rootDir>/../../node_modules/@eccenca/gui-elements",
             "^@eccenca/gui-elements/(.*)$": "<rootDir>/../../node_modules/@eccenca/gui-elements/$1",
+            "^@reduxjs/toolkit$": "<rootDir>/../../node_modules/@reduxjs/toolkit/dist/cjs/redux-toolkit.development.cjs",
             "^.+\\.module\\.(css|sass|scss)$": "identity-obj-proxy",
             "@ducks(.*)$": "<rootDir>/src/app/store/ducks/$1"
         },

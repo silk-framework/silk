@@ -1,5 +1,9 @@
 import "regenerator-runtime/runtime";
 import "@testing-library/jest-dom";
+import { TextEncoder, TextDecoder } from "util";
+
+(global as any).TextEncoder = TextEncoder;
+(global as any).TextDecoder = TextDecoder;
 
 jest.setTimeout(30000);
 
