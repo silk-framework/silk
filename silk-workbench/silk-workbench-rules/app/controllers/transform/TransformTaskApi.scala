@@ -276,10 +276,10 @@ class TransformTaskApi @Inject() () extends InjectedController with UserContextA
     implicit val (project, task) = getProjectAndTask[TransformSpec](projectName, taskName)
     implicit val prefixes: Prefixes = project.config.prefixes
     validateJson[RuleAutoCompletionRequest] { requestData =>
-      val allRules = task.data.rules.allRulesRecursive
-      val filter: TransformRule => Boolean = (requestData.objectRulesOnly, requestData.valueRulesOnly) match {
-        case (Some(true), None) => (r: TransformRule) => r.isInstanceOf[ContainerTransformRule]
-        case (None, Some(true)) => (r: TransformRule) => r.isInstanceOf[ValueTransformRule]
+      val allRules = task.data.allRulesRecursive
+      val filter: TransformRule => Boolean = (requestData.objectRulesOnly.getOrElse(false), requestData.valueRulesOnly.getOrElse(false)) match {
+        case (true, false) => (r: TransformRule) => r.isInstanceOf[ContainerTransformRule]
+        case (false, true) => (r: TransformRule) => r.isInstanceOf[ValueTransformRule]
         case _ => (_: TransformRule) => true
       }
       val completions: Seq[Completion] = allRules
