@@ -20,13 +20,13 @@ import {
     TitleSubsection,
     Tooltip,
 } from "@eccenca/gui-elements";
-import {ICloneOptions} from "../CloneModal";
-import {useTranslation} from "react-i18next";
-import {requestProjectMetadata, requestTaskMetadata} from "@ducks/shared/requests";
-import {requestCopyProject, requestCopyTask, requestSearchList} from "@ducks/workspace/requests";
+import { ICloneOptions } from "../CloneModal";
+import { useTranslation } from "react-i18next";
+import { requestProjectMetadata, requestTaskMetadata } from "@ducks/shared/requests";
+import { requestCopyProject, requestCopyTask, requestSearchList } from "@ducks/workspace/requests";
 import ItemDepiction from "../../ItemDepiction";
-import {ErrorResponse} from "../../../../services/fetch/responseInterceptor";
-import {useModalError} from "../../../../hooks/useModalError";
+import { ErrorResponse } from "../../../../services/fetch/responseInterceptor";
+import { useModalError } from "../../../../hooks/useModalError";
 
 //Component Interface
 interface CopyToModalProps extends ICloneOptions {
@@ -198,7 +198,7 @@ const CopyToModal: React.FC<CopyToModalProps> = ({ item, onDiscard, onConfirmed 
             ]}
             notifications={
                 error ? (
-                    <Notification message={error.detail} danger />
+                    <Notification message={error.detail} intent="danger" />
                 ) : (
                     <Notification message={t("copyModal.projectVarInfo")} />
                 )
@@ -248,9 +248,9 @@ const CopyToModal: React.FC<CopyToModalProps> = ({ item, onDiscard, onConfirmed 
                         elevated
                         open
                     >
-                        <OverviewItemList hasSpacing densityHigh>
+                        <OverviewItemList hasSpacing>
                             {orderTasksByLabel(info.overwrittenTasks)?.map((t) => (
-                                <OverviewItem key={t.id} className="copy-modal-item">
+                                <OverviewItem key={t.id} className="copy-modal-item" densityHigh>
                                     <OverviewItemDepiction>
                                         <ItemDepiction itemType={t.taskType} pluginId={t.pluginId} />
                                     </OverviewItemDepiction>
@@ -287,9 +287,9 @@ const CopyToModal: React.FC<CopyToModalProps> = ({ item, onDiscard, onConfirmed 
                         fullWidth
                         open={false}
                     >
-                        <OverviewItemList hasSpacing densityHigh>
+                        <OverviewItemList hasSpacing>
                             {orderTasksByLabel(info.copiedTasks)?.map((item) => (
-                                <OverviewItem key={item.id} className="copy-modal-item">
+                                <OverviewItem key={item.id} className="copy-modal-item" densityHigh>
                                     <OverviewItemDepiction>
                                         <ItemDepiction itemType={item.taskType} pluginId={item.pluginId} />
                                     </OverviewItemDepiction>

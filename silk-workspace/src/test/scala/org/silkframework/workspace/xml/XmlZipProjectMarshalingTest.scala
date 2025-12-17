@@ -10,7 +10,7 @@ import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.annotations.Plugin
 import org.silkframework.runtime.plugin.{PluginContext, PluginRegistry, TestPluginContext}
 import org.silkframework.runtime.resource._
-import org.silkframework.runtime.templating.{CompiledTemplate, InMemoryTemplateVariablesReader, TemplateEngine, TemplateVariableValue}
+import org.silkframework.runtime.templating.{CompiledTemplate, EvaluationConfig, InMemoryTemplateVariablesReader, TemplateEngine, TemplateVariableValue}
 import org.silkframework.util.{ConfigTestTrait, Uri}
 import org.silkframework.workspace.resources.InMemoryResourceRepository
 import org.silkframework.workspace.{InMemoryWorkspaceProvider, Workspace}
@@ -144,7 +144,7 @@ case class MockTemplateEngine() extends TemplateEngine {
     templateString match {
       case "{{project.linkLimitTimesTen}}" =>
         new CompiledTemplate {
-          override def evaluate(values: Seq[TemplateVariableValue], writer: Writer): Unit = {
+          override def evaluate(values: Seq[TemplateVariableValue], writer: Writer, evaluationConfig: EvaluationConfig): Unit = {
             writer.write(values.find(_.name == "linkLimitTimesTen").get.values.mkString)
           }
           override def evaluate(values: Map[String, AnyRef], writer: Writer): Unit = ???

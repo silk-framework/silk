@@ -511,6 +511,7 @@ export const RuleEditorCanvas = () => {
     return (
         <>
             <GridColumn>
+                {modelContext.notification}
                 <ReactFlowExtended
                     id={modelContext.canvasId}
                     data-test-id={"ruleEditor-react-flow-canvas"}

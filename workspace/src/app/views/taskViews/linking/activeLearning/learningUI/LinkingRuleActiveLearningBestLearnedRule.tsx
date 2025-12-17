@@ -50,7 +50,7 @@ export const LinkingRuleActiveLearningBestLearnedRule = ({
         const aggregateOperators = (
             ops: IRuleOperatorNode[],
             labelFn: (op: IRuleOperatorNode) => string,
-            colorFn: (op: IRuleOperatorNode) => string | undefined
+            colorFn: (op: IRuleOperatorNode) => string | undefined,
         ): OpLabelWithCountAndColor[] => {
             const opMap = new Map<string, number>();
             const colorMap = new Map<string, string | undefined>();
@@ -68,19 +68,19 @@ export const LinkingRuleActiveLearningBestLearnedRule = ({
             aggregateOperators(
                 ops,
                 (op) => ruleEditorNodeParameterLabel(op.parameters["path"]) ?? "",
-                (op) => getTabColor(op.pluginId)
+                (op) => getTabColor(op.pluginId),
             );
         const aggregateOps = (ops: IRuleOperatorNode[]) =>
             aggregateOperators(
                 ops,
                 (op) => op.label,
-                (op) => getTabColor(op.pluginType)
+                (op) => getTabColor(op.pluginType),
             );
         const sourcePaths = aggregatePathOps(
-            ruleOperators.filter((op) => op.pluginType === "PathInputOperator" && op.pluginId === "sourcePathInput")
+            ruleOperators.filter((op) => op.pluginType === "PathInputOperator" && op.pluginId === "sourcePathInput"),
         );
         const targetPaths = aggregatePathOps(
-            ruleOperators.filter((op) => op.pluginType === "PathInputOperator" && op.pluginId === "targetPathInput")
+            ruleOperators.filter((op) => op.pluginType === "PathInputOperator" && op.pluginId === "targetPathInput"),
         );
         const comparisons = aggregateOps(ruleOperators.filter((op) => op.pluginType === "ComparisonOperator"));
         const transformations = aggregateOps(ruleOperators.filter((op) => op.pluginType === "TransformOperator"));
@@ -109,10 +109,10 @@ export const LinkingRuleActiveLearningBestLearnedRule = ({
                         {t("ActiveLearning.bestLearnedRule.title", { score: scoreString })}
                         {rule && (
                             <>
-                            {" "}
-                            <Tooltip content={t("ActiveLearning.bestLearnedRule.titleTooltip")}>
-                                {`(${t("ActiveLearning.bestLearnedRule.scoreInfo", { score: scoreString })})`}
-                            </Tooltip>
+                                {" "}
+                                <Tooltip content={t("ActiveLearning.bestLearnedRule.titleTooltip")}>
+                                    {`(${t("ActiveLearning.bestLearnedRule.scoreInfo", { score: scoreString })})`}
+                                </Tooltip>
                             </>
                         )}
                     </h2>
@@ -147,7 +147,7 @@ export const LinkingRuleActiveLearningBestLearnedRule = ({
     };
 
     const Info = () => {
-        return <Notification neutral={true} message={t("ActiveLearning.bestLearnedRule.noRule")} />;
+        return <Notification intent="neutral" message={t("ActiveLearning.bestLearnedRule.noRule")} />;
     };
 
     return (

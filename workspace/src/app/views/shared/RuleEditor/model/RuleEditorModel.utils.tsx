@@ -118,6 +118,7 @@ function createOperatorNode(
         />
     );
     const type = nodeType(node.pluginType, node.pluginId);
+    console.log("NODE ==>", node);
 
     let data: NodeContentPropsWithBusinessData<IRuleNodeData> = {
         size: "medium",
@@ -135,6 +136,7 @@ function createOperatorNode(
                 t={operatorContext.t}
                 nodeType={type}
                 handleDeleteNode={nodeOperations.handleDeleteNode}
+                ruleOperatorLabel={node.label}
                 ruleOperatorDescription={node.description}
                 ruleOperatorDocumentation={node.markdownDocumentation}
                 handleCloneNode={nodeOperations.handleCloneNode}

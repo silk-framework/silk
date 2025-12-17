@@ -61,9 +61,9 @@ case class TemplateVariables(variables: Seq[TemplateVariable]) {
     *
     * @throws TemplateEvaluationException If the template evaluation failed.
     * */
-  def resolveTemplateValue(template: String): String = {
+  def resolveTemplateValue(template: String, evaluationConfig: EvaluationConfig = EvaluationConfig()): String = {
     val writer = new StringWriter()
-    GlobalTemplateVariablesConfig.templateEngine().compile(template).evaluate(variables, writer)
+    GlobalTemplateVariablesConfig.templateEngine().compile(template).evaluate(variables, writer, evaluationConfig)
     writer.toString
   }
 

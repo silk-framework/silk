@@ -10,6 +10,8 @@ import org.silkframework.rule.TransformSpec
 import org.silkframework.rule.execution.TransformReport._
 import org.silkframework.util.Identifier
 
+import java.time.Instant
+
 /**
   * Holds the state of the transform execution.
   *
@@ -66,8 +68,14 @@ object TransformReport {
     * @param errorCount The number of (validation) errors for this rule.
     * @param sampleErrors Samples of erroneous values. This is just an excerpt. If all erroneous values are needed,
     *                     the transform executor needs to be configured with an error output.
+    * @param started     The time when the rule has started executing, i.e. when the first input entity has been requested.
+    * @param finished    The time when the rule has finished executing successfully. This will be probably missing when
+    *                    the execution has been aborted.
     */
-  case class RuleResult(errorCount: Long = 0L, sampleErrors: IndexedSeq[RuleError] = IndexedSeq.empty) {
+  case class RuleResult(errorCount: Long = 0L,
+                        sampleErrors: IndexedSeq[RuleError] = IndexedSeq.empty,
+                        started: Option[Instant] = None,
+                        finished: Option[Instant] = None) {
 
     /**
       * Increases the error counter, but does not add a new sample error.
@@ -88,6 +96,17 @@ object TransformReport {
       )
     }
 
+    def withStarted(): RuleResult = {
+      copy(
+        started = Some(Instant.now())
+      )
+    }
+
+    def withFinished(): RuleResult = {
+      copy(
+        finished = Some(Instant.now())
+      )
+    }
   }
 
   /**

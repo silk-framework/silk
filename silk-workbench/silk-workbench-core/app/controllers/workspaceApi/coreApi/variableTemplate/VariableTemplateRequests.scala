@@ -3,7 +3,7 @@ package controllers.workspaceApi.coreApi.variableTemplate
 import controllers.autoCompletion._
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.templating.exceptions.UnboundVariablesException
-import org.silkframework.runtime.templating.{GlobalTemplateVariables, TemplateVariables}
+import org.silkframework.runtime.templating.{EvaluationConfig, GlobalTemplateVariables, TemplateVariables}
 import org.silkframework.util.StringUtils
 import org.silkframework.workspace.WorkspaceFactory
 import play.api.libs.json.{Format, Json}
@@ -46,15 +46,17 @@ trait VariableTemplateRequest {
 case class ValidateVariableTemplateRequest(templateString: String,
                                            project: Option[String] = None,
                                            variableName: Option[String] = None,
-                                           includeSensitiveVariables: Option[Boolean] = None) extends VariableTemplateRequest {
+                                           includeSensitiveVariables: Option[Boolean] = None,
+                                           ignoreUnboundVariables: Option[Boolean] = None) extends VariableTemplateRequest {
+  private val evaluationConfig: EvaluationConfig = EvaluationConfig(ignoreUnboundVariables = ignoreUnboundVariables.getOrElse(false))
 
   def execute()(implicit user: UserContext): VariableTemplateValidationResponse = {
     val resultOrError: Either[String, String] = try {
-      Left(collectVariables(includeSensitiveVariables = includeSensitiveVariables.getOrElse(false)).resolveTemplateValue(templateString))
+      Left(collectVariables(includeSensitiveVariables = includeSensitiveVariables.getOrElse(false)).resolveTemplateValue(templateString, evaluationConfig))
     } catch {
       case ex: UnboundVariablesException if variableName.isDefined && ex.missingVars.size == 1 =>
         // Check if the variable is unbound because it is defined after the current one
-        Try(collectVariables(ignoreVariableName = true).resolveTemplateValue(templateString)) match {
+        Try(collectVariables(ignoreVariableName = true).resolveTemplateValue(templateString, evaluationConfig)) match {
           case _: Success[_] =>
             Right(s"'${ex.missingVars.head}' cannot be used because it's defined after '${variableName.get}'.")
           case _: Failure[_] =>

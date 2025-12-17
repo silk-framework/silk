@@ -36,6 +36,7 @@ import { routerOp } from "@ducks/router";
 import { batch } from "react-redux";
 import { SERVE_PATH } from "../../../constants/path";
 import { DIErrorTypes } from "@ducks/error/typings";
+import { GlobalTableContext } from "../../../GlobalContextsWrapper";
 
 interface IActivity extends ISearchResultsServer {
     isCacheActivity: boolean;
@@ -59,9 +60,17 @@ const ActivityList = () => {
     const dispatch = useDispatch();
     const pageSizes = [10, 25, 50, 100];
     const { registerError } = useErrorHandler();
+    const { globalTableSettings } = React.useContext(GlobalTableContext);
+    const activityListSettings = globalTableSettings["activities"];
 
     const data = useSelector(workspaceSel.resultsSelector);
     const pagination = useSelector(workspaceSel.paginationSelector);
+    const adaptedPagination = {
+        ...pagination,
+    };
+    if (activityListSettings.pageSize) {
+        adaptedPagination.limit = activityListSettings.pageSize;
+    }
     const appliedFacets = useSelector(workspaceSel.appliedFacetsSelector);
 
     const isLoading = useSelector(workspaceSel.isLoadingSelector);
@@ -80,7 +89,7 @@ const ActivityList = () => {
 
     const translateActions = React.useCallback(
         (key: SilkActivityControlTranslationKeys) => t("widget.TaskActivityOverview.activityControl." + key),
-        [t]
+        [t],
     );
     const emptyListWithoutFilters: boolean = isEmpty && !textQuery && !appliedFacets.length;
 
@@ -106,7 +115,7 @@ const ActivityList = () => {
         return connectWebSocket(
             legacyApiEndpoint("/activities/updatesWebSocket"),
             legacyApiEndpoint("/activities/updates"),
-            updateActivityStatus
+            updateActivityStatus,
         );
     };
 
@@ -132,7 +141,7 @@ const ActivityList = () => {
         registerError(
             `ActivityList.${action}`,
             `Activity action '${action}' against activity '${activityName}' could not be executed.`,
-            error
+            error,
         );
     };
 
@@ -146,7 +155,7 @@ const ActivityList = () => {
             registerError(
                 `taskActivityOverview-fetchErrorReport`,
                 t("widget.TaskActivityOverview.errorMessages.errorReport.fetchReport"),
-                ex
+                ex,
             );
         });
     };
@@ -171,7 +180,7 @@ const ActivityList = () => {
                         <Highlighter
                             label={t(
                                 "widget.Filterbar.subsections.valueLabels.itemType." + activity.parentType,
-                                activity.parentType[0].toUpperCase() + activity.parentType.substr(1)
+                                activity.parentType[0].toUpperCase() + activity.parentType.substr(1),
                             )}
                             searchValue={textQuery}
                         />
@@ -285,7 +294,11 @@ const ActivityList = () => {
                     );
                 })}
             </Datalist>
-            <Pagination pagination={pagination} pageSizes={pageSizes} onChangeSelect={handlePaginationOnChange} />
+            <Pagination
+                pagination={adaptedPagination}
+                pageSizes={pageSizes}
+                onChangeSelect={handlePaginationOnChange}
+            />
         </>
     );
 };

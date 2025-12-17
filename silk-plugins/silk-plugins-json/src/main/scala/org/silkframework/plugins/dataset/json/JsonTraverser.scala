@@ -159,7 +159,13 @@ case class JsonTraverser(taskId: Identifier, parentOpt: Option[ParentTraverser],
           case SpecialPaths.COLUMN.value =>
             Seq(value.position.column.toString)
           case _ =>
-            children(prop).flatMap(child => child.evaluate(tail, generateUris))
+            val nodes = children(prop)
+            if(nodes.isEmpty && tail == Seq(ForwardOperator(JsonDataset.specialPaths.ARRAY_TEXT))) {
+              // Special case: if the next and final operator is #arrayText, we need to return an empty array representation
+              Seq("[]")
+            } else {
+              nodes.flatMap(child => child.evaluate(tail, generateUris))
+            }
         }
       case BackwardOperator(_) :: tail =>
         navigateBack() match {

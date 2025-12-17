@@ -10,6 +10,7 @@ import { ActiveLearningValueExamples } from "../../activeLearning/shared/ActiveL
 import TableTree from "../../../shared/evaluations/TableTreeView";
 import { IPluginDetails } from "@ducks/common/typings";
 import { EvaluationResultType } from "../LinkingRuleEvaluation";
+import { ValidIconName } from "@eccenca/gui-elements/src/components/Icon/canonicalIconNames";
 
 import {
     ConfidenceValue,
@@ -17,6 +18,7 @@ import {
     Highlighter,
     Icon,
     IconButton,
+    IconButtonProps,
     InteractionGate,
     OverflowText,
     Spacing,
@@ -29,6 +31,7 @@ import {
     Tag,
 } from "@eccenca/gui-elements";
 import { OperatorLabel } from "../../../../../views/taskViews/shared/evaluations/OperatorLabel";
+import { LinkType } from "../../referenceLinks/LinkingRuleReferenceLinks.typing";
 
 interface ExpandedEvaluationRowProps {
     rowIdx: number;
@@ -58,11 +61,16 @@ const operatorInputMapping = {
     pathInput: "Input",
 };
 
-const linkStateButtons = [
-    { icon: "state-confirmed", hasStateSuccess: true, linkType: "positive", tooltip: "Confirm" },
+const linkStateButtons: {
+    icon: ValidIconName;
+    linkType: LinkType;
+    intent?: IconButtonProps["intent"];
+    tooltip: string;
+}[] = [
+    { icon: "state-confirmed", intent: "success", linkType: "positive", tooltip: "Confirm" },
     { icon: "item-question", linkType: "unlabeled", tooltip: "Uncertain" },
-    { icon: "state-declined", hasStateDanger: true, linkType: "negative", tooltip: "Decline" },
-] as const;
+    { icon: "state-declined", intent: "danger", linkType: "negative", tooltip: "Decline" },
+];
 
 /** A single row (link) in the linking evaluation view. */
 export const LinkingEvaluationRow = React.memo(

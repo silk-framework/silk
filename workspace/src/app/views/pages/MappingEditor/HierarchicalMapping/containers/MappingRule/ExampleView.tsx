@@ -74,7 +74,7 @@ export const ExampleView = ({ id, rawRule, ruleType, objectSourcePathContext, up
             (error) => {
                 setError(error);
                 setLoading(false);
-            }
+            },
         );
     };
 
@@ -122,7 +122,7 @@ export const ExampleView = ({ id, rawRule, ruleType, objectSourcePathContext, up
         const detailMessage = showDetails && details ? details : undefined;
         return (
             <Notification
-                warning={true}
+                intent="warning"
                 actions={
                     details ? (
                         <IconButton
@@ -181,19 +181,20 @@ export const ExampleView = ({ id, rawRule, ruleType, objectSourcePathContext, up
                             </TableHeader>
                         </TableRow>
                     </TableHead>
-                    {resultsCount > 0 && examples.status.id === "with exceptions" && examples.status.msg ?
+                    {resultsCount > 0 && examples.status.id === "with exceptions" && examples.status.msg ? (
                         <TableBody>
                             <TableRow key={"errorRow"}>
                                 <TableCell colSpan={3}>
                                     <ProblemNotification
-                                        message={t("HierarchicalMapping.ExampleView.errors.withExceptions", {error: examples.status.msg})}
+                                        message={t("HierarchicalMapping.ExampleView.errors.withExceptions", {
+                                            error: examples.status.msg,
+                                        })}
                                         details={examples.status.msg}
                                     />
                                 </TableCell>
                             </TableRow>
-                        </TableBody> :
-                        null
-                    }
+                        </TableBody>
+                    ) : null}
                     {_.map(examples.results, (result, index) => (
                         <TableBody key={`tbody_${index}`}>
                             {sourcePaths.map((sourcePath, i) => (
@@ -232,7 +233,7 @@ export const ExampleView = ({ id, rawRule, ruleType, objectSourcePathContext, up
                                                     >
                                                         {transformedValue}
                                                     </Tag>
-                                                )
+                                                ),
                                             )}
                                         </TableCell>
                                     )}

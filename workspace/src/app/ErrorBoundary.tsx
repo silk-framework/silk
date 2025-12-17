@@ -42,7 +42,7 @@ class ErrorBoundary extends Component<any, any> {
                         <div style={{ margin: "auto", maxWidth: "40rem" }}>
                             <GridColumn verticalAlign={"center"}>
                                 <Notification
-                                    danger
+                                    intent="danger"
                                     actions={
                                         <>
                                             <Button

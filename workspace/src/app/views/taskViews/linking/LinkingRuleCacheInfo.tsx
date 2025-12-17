@@ -72,7 +72,7 @@ export const LinkingRuleCacheInfo = ({ projectId, taskId }: LinkingRuleCacheInfo
                                 {pathCache.elapsedDateTime}
                             </>
                         }
-                        progressSpinner={intent === "none" ? { intent, value: 0 } : undefined}
+                        progressSpinner={intent === "none" ? { value: 0 } : undefined}
                         progressSpinnerFinishedIcon={
                             intent !== "none" ? (
                                 <Icon name={[`state-${intent}`]} intent={intent as IntentTypes} />

@@ -6,6 +6,7 @@ import { commonOp } from "@ducks/common";
 import RouterOutlet from "./RouterOutlet";
 import { getHistory } from "./store/configureStore";
 import { IRouteProps } from "./appRoutes";
+import { GlobalContextsWrapper } from "./GlobalContextsWrapper";
 
 interface IProps {
     routes: IRouteProps[];
@@ -21,8 +22,10 @@ export default function App({ externalRoutes, routes }: IProps) {
     }, [commonOp]);
 
     return (
-        <ConnectedRouter history={getHistory()}>
-            <RouterOutlet routes={routes} />
-        </ConnectedRouter>
+        <GlobalContextsWrapper>
+            <ConnectedRouter history={getHistory()}>
+                <RouterOutlet routes={routes} />
+            </ConnectedRouter>
+        </GlobalContextsWrapper>
     );
 }

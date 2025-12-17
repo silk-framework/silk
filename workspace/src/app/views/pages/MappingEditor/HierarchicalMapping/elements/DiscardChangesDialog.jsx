@@ -1,12 +1,10 @@
-import React from 'react';
-import PropTypes from 'prop-types';
-import { ConfirmationDialog } from 'gui-elements-deprecated';
-import { DismissiveButton, DisruptiveButton } from "@eccenca/gui-elements/src/legacy-replacements";
+import React from "react";
+import PropTypes from "prop-types";
+import { ConfirmationDialog } from "gui-elements-deprecated";
+import { Button } from "@eccenca/gui-elements";
 
-const DiscardChangesDialog = props => {
-    const {
-        numberEditingElements, handleDiscardCancel, handleDiscardConfirm,
-    } = props;
+const DiscardChangesDialog = (props) => {
+    const { numberEditingElements, handleDiscardCancel, handleDiscardConfirm } = props;
     return (
         <ConfirmationDialog
             active
@@ -14,28 +12,20 @@ const DiscardChangesDialog = props => {
             className="ecc-hm-discard-dialog"
             title="Discard changes?"
             confirmButton={
-                <DisruptiveButton
-                    className="ecc-hm-accept-discard"
-                    onClick={handleDiscardConfirm}
-                >
+                <Button disruptive className="ecc-hm-accept-discard" onClick={handleDiscardConfirm}>
                     Discard
-                </DisruptiveButton>
+                </Button>
             }
             cancelButton={
-                <DismissiveButton
-                    className="ecc-hm-cancel-discard"
-                    onClick={handleDiscardCancel}
-                >
+                <Button className="ecc-hm-cancel-discard" onClick={handleDiscardCancel}>
                     Cancel
-                </DismissiveButton>
+                </Button>
             }
         >
             <p>
-                {
-                    `You currently have unsaved changes${
-                        numberEditingElements === 1 ? '' : ` in ${numberEditingElements} mapping rules`
-                    }.`
-                }
+                {`You currently have unsaved changes${
+                    numberEditingElements === 1 ? "" : ` in ${numberEditingElements} mapping rules`
+                }.`}
             </p>
         </ConfirmationDialog>
     );

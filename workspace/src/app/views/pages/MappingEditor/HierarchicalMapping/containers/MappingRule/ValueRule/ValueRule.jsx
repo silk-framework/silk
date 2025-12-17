@@ -61,8 +61,10 @@ class ValueRule extends React.Component {
         }
     }
 
-    handleComplexEdit(event) {
-        this.props.openMappingEditor(this.props.id);
+    handleComplexEdit() {
+        this.props.openMappingEditor({
+            ruleId: this.props.id,
+        });
     }
 
     // open view in edit mode
@@ -168,7 +170,7 @@ class ValueRule extends React.Component {
                                     uri: mappingTarget.uri,
                                     type: this.props.type,
                                     parent: parentId,
-                                    displayLabel: this.props.displayLabel
+                                    displayLabel: this.props.displayLabel,
                                 });
                             }}
                         />

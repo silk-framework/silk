@@ -27,7 +27,7 @@ class JenaModelEndpoint(model: Model) extends JenaEndpoint {
     }
   }
 
-  override def select(sparql: String, limit: Int)
+  override def select(sparql: String, limit: Int = Integer.MAX_VALUE)
                      (implicit userContext: UserContext): SparqlResults = {
     this.synchronized {
       super.select(sparql, limit)

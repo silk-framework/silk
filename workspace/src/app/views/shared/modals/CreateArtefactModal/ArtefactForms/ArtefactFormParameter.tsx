@@ -1,5 +1,11 @@
-import React, { memo, MouseEventHandler } from "react";
-import { CodeAutocompleteField, FieldItem, IconButton, Spacing, Toolbar, ToolbarSection } from "@eccenca/gui-elements";
+import React, { memo } from "react";
+import {
+    CodeAutocompleteField,
+    FieldItem,
+    IconButton,
+    FlexibleLayoutContainer,
+    FlexibleLayoutItem,
+} from "@eccenca/gui-elements";
 import { useTranslation } from "react-i18next";
 import { ExtendedParameterCallbacks } from "./ParameterWidget";
 import {
@@ -13,11 +19,12 @@ import {
     OptionallyLabelledParameter,
     optionallyLabelledParameterToValue,
 } from "../../../../taskViews/linking/linking.types";
-import { IValidationResult } from "@eccenca/gui-elements/src/components/AutoSuggestion/AutoSuggestion";
+import { CodeAutocompleteFieldValidationResult } from "@eccenca/gui-elements/src/components/AutoSuggestion/AutoSuggestion";
 import { useSelector } from "react-redux";
 import { commonSel } from "@ducks/common";
 import { CreateArtefactModalContext } from "../CreateArtefactModalContext";
 import { INPUT_TYPES } from "../../../../../constants";
+
 interface Props {
     //For task forms, project id is needed tor validation and autocompletion
     projectId?: string;
@@ -87,7 +94,6 @@ export const ArtefactFormParameter = ({
     const [passwordMsgText, setPasswordMsgText] = React.useState<string | undefined>();
     const startWithTemplateView = supportVariableTemplateElement?.startWithTemplateView ?? false;
     const [showVariableTemplateInput, setShowVariableTemplateInput] = React.useState<boolean>(startWithTemplateView);
-    const [showRareActions, setShowRareActions] = React.useState(false);
     const [validationError, setValidationError] = React.useState<string | undefined>(undefined);
     const [templateInfoMessage, setTemplateInfoMessage] = React.useState<string | undefined>(undefined);
     const { templatingEnabled } = useSelector(commonSel.initialSettingsSelector);
@@ -118,7 +124,6 @@ export const ArtefactFormParameter = ({
         currentInputValue: startWithTemplateView ? stringDefaultValue : initialValue,
         currentTemplateValue: startWithTemplateView ? initialValue : undefined,
     });
-    const showRareElementState = React.useRef<{ timeout?: number }>({});
     const isPasswordInput = parameterType === "password";
     const switchShowVariableTemplateInput = React.useCallback(() => {
         setToggledTemplateSwitchBefore(true);
@@ -168,26 +173,16 @@ export const ArtefactFormParameter = ({
         },
         [supportVariableTemplateElement?.onChange],
     );
-    const onMouseOver: MouseEventHandler<HTMLDivElement> = React.useCallback(() => {
-        if (showRareElementState.current.timeout != null) {
-            clearTimeout(showRareElementState.current.timeout);
-        }
-        showRareElementState.current.timeout = window.setTimeout(() => setShowRareActions(true), 150);
-    }, []);
-    const onMouseOut: MouseEventHandler<HTMLDivElement> = React.useCallback(() => {
-        if (showRareElementState.current.timeout != null) {
-            clearTimeout(showRareElementState.current.timeout);
-        }
-        showRareElementState.current.timeout = window.setTimeout(() => setShowRareActions(false), 250);
-    }, []);
 
-    const showSwitchButton = showRareActions || showVariableTemplateInput; // always show for variable templates
     const isTemplateInputType = parameterType === INPUT_TYPES.TEMPLATE;
     const multiline =
         (parameterType &&
             (parameterType.startsWith("code-") ||
-                [INPUT_TYPES.RESTRICTION, INPUT_TYPES.MULTILINE_STRING].includes(parameterType))) ||
+                [INPUT_TYPES.RESTRICTION, INPUT_TYPES.MULTILINE_STRING, INPUT_TYPES.KEY_VALUE_PAIRS].includes(
+                    parameterType,
+                ))) ||
         isTemplateInputType;
+
     return (
         <FieldItem
             key={parameterId}
@@ -197,24 +192,13 @@ export const ArtefactFormParameter = ({
                 htmlFor: parameterId,
                 tooltip: tooltip,
             }}
-            hasStateDanger={infoMessageDanger || !!validationError}
+            intent={infoMessageDanger || !!validationError ? "danger" : undefined}
             messageText={infoMessage || validationError || templateInfoMessage || passwordMsgText}
             disabled={disabled}
             helperText={helperText}
         >
-            <Toolbar
-                onMouseOver={supportVariableTemplateElement ? onMouseOver : undefined}
-                onMouseOut={supportVariableTemplateElement ? onMouseOut : undefined}
-                style={{ alignItems: "flex-start" }}
-                noWrap
-            >
-                <ToolbarSection
-                    canGrow
-                    style={{
-                        alignSelf: "center",
-                        maxWidth: showSwitchButton ? "calc(100% - 3.5px - 32px)" : "100%", // set full width minus tiny spacing and icon button width
-                    }}
-                >
+            <FlexibleLayoutContainer noEqualItemSpace gapSize="tiny">
+                <FlexibleLayoutItem style={{ alignSelf: "center" }}>
                     {(supportVariableTemplateElement && showVariableTemplateInput) || isTemplateInputType ? (
                         <TemplateInputComponent
                             projectId={projectId}
@@ -233,16 +217,16 @@ export const ArtefactFormParameter = ({
                                 supportVariableTemplateElement?.showTemplatePreview ? setTemplateInfoMessage : undefined
                             }
                             allowSensitiveVariables={isPasswordInput}
+                            // If the parameter is a template parameter, the validation is not aware in general what variables exist
+                            ignoreUnboundVariables={isTemplateInputType && !showVariableTemplateInput}
                         />
                     ) : (
                         inputElementFactory(valueState.current.inputValueBeforeSwitch, onElementValueChange)
                     )}
-                </ToolbarSection>
-                {templatingEnabled && supportVariableTemplateElement && !disabled && (
-                    <ToolbarSection hideOverflow style={!showSwitchButton ? { width: "0px" } : {}}>
-                        <Spacing vertical={true} size={"tiny"} />
+                </FlexibleLayoutItem>
+                {templatingEnabled && supportVariableTemplateElement && (
+                    <FlexibleLayoutItem growFactor={0} shrinkFactor={0}>
                         <IconButton
-                            fill={false}
                             tooltipProps={{
                                 hoverOpenDelay: 50,
                                 placement: "top",
@@ -257,16 +241,15 @@ export const ArtefactFormParameter = ({
                                 showVariableTemplateInput ? "back" : "to"
                             }-btn`}
                             onClick={switchShowVariableTemplateInput}
-                            onFocus={showSwitchButton ? undefined : () => setShowRareActions(true)}
-                            onBlur={showRareActions ? () => setShowRareActions(false) : undefined}
                             minimal={false}
                             outlined
-                            hasStatePrimary={showVariableTemplateInput}
+                            elevated={showVariableTemplateInput}
                             active={showVariableTemplateInput}
+                            disabled={disabled}
                         />
-                    </ToolbarSection>
+                    </FlexibleLayoutItem>
                 )}
-            </Toolbar>
+            </FlexibleLayoutContainer>
         </FieldItem>
     );
 };
@@ -286,6 +269,8 @@ interface TemplateInputComponentProps {
     handleTemplateErrors?: (error?: string) => any;
     multiline?: boolean;
     allowSensitiveVariables?: boolean;
+    /** If the validation of the template string should ignore unbound variables. */
+    ignoreUnboundVariables: boolean;
 }
 
 /** The input component for the template value. */
@@ -301,33 +286,39 @@ export const TemplateInputComponent = memo(
         handleTemplateErrors,
         multiline,
         allowSensitiveVariables,
+        ignoreUnboundVariables,
     }: TemplateInputComponentProps) => {
+        const currentUB = React.useRef<boolean>(ignoreUnboundVariables);
+        currentUB.current = ignoreUnboundVariables;
         const modalContext = React.useContext(CreateArtefactModalContext);
         const { registerError: globalErrorHandler } = useErrorHandler();
         const [t] = useTranslation();
         const registerError = modalContext.registerModalError ? modalContext.registerModalError : globalErrorHandler;
 
-        const processValidationError = React.useCallback((validationResult: IValidationResult): IValidationResult => {
-            let errorMessage = validationResult.parseError?.message;
-            const adaptedValidationResult = { ...validationResult };
-            if (errorMessage) {
-                if (errorMessage.includes("error at position")) {
-                    // Parse position from error message
-                    const result = /error at position (\d+)/.exec(errorMessage);
-                    if (result && Number.isInteger(Number.parseInt(result[1]))) {
-                        const errorPosition = Number.parseInt(result[1]);
-                        adaptedValidationResult.parseError = {
-                            start: errorPosition,
-                            end: errorPosition + 2,
-                            message: validationResult.parseError!.message,
-                        };
-                        errorMessage = `${t("ArtefactFormParameter.invalidTemplate")}: ${errorMessage}`;
+        const processValidationError = React.useCallback(
+            (validationResult: CodeAutocompleteFieldValidationResult): CodeAutocompleteFieldValidationResult => {
+                let errorMessage = validationResult.parseError?.message;
+                const adaptedValidationResult = { ...validationResult };
+                if (errorMessage) {
+                    if (errorMessage.includes("error at position")) {
+                        // Parse position from error message
+                        const result = /error at position (\d+)/.exec(errorMessage);
+                        if (result && Number.isInteger(Number.parseInt(result[1]))) {
+                            const errorPosition = Number.parseInt(result[1]);
+                            adaptedValidationResult.parseError = {
+                                start: errorPosition,
+                                end: errorPosition + 2,
+                                message: validationResult.parseError!.message,
+                            };
+                            errorMessage = `${t("ArtefactFormParameter.invalidTemplate")}: ${errorMessage}`;
+                        }
                     }
                 }
-            }
-            setValidationError(errorMessage);
-            return adaptedValidationResult;
-        }, []);
+                setValidationError(errorMessage);
+                return adaptedValidationResult;
+            },
+            [],
+        );
 
         const autoComplete = React.useCallback(async (inputString: string, cursorPosition: number) => {
             try {
@@ -360,6 +351,7 @@ export const TemplateInputComponent = memo(
                             projectId,
                             variableName,
                             allowSensitiveVariables,
+                            currentUB.current,
                         )
                     ).data;
                     evaluatedValueMessage?.(
@@ -391,6 +383,11 @@ export const TemplateInputComponent = memo(
                 checkInput={checkTemplate}
                 autoCompletionRequestDelay={200}
                 multiline={multiline}
+                outerDivAttributes={
+                    {
+                        "data-test-id": "codemirror-wrapper",
+                    } as any
+                }
             />
         );
     },

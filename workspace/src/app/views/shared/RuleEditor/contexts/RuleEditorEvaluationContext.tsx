@@ -94,5 +94,5 @@ export interface RuleEditorEvaluationCallbackContextProps {
 }
 
 export const RuleEditorEvaluationCallbackContext = React.createContext<RuleEditorEvaluationCallbackContextProps>({
-    enableErrorModal: NOP
-})
+    enableErrorModal: NOP,
+});

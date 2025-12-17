@@ -42,7 +42,7 @@ export function fetchBreadcrumbs(WrappedComponent) {
             const labelFunction = labelForBreadCrumb(params);
             const updatedBread = [
                 {
-                    href: getFullRoutePath("?itemType=project&page=1&limit=10"),
+                    href: getFullRoutePath("?itemType=project"),
                     text: t("common.app.build", "Workbench"),
                 },
             ];
