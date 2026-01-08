@@ -25,7 +25,7 @@ import org.silkframework.rule.plugins.distance.characterbased._
 import org.silkframework.rule.plugins.distance.equality._
 import org.silkframework.rule.plugins.distance.numeric._
 import org.silkframework.rule.plugins.distance.tokenbased._
-import org.silkframework.rule.plugins.transformer.combine.{ConcatMultipleValuesTransformer, ConcatPairwiseTransformer, ConcatTransformer, MergeTransformer}
+import org.silkframework.rule.plugins.transformer.combine.{ConcatMultipleValuesTransformer, ConcatPairwiseTransformer, ConcatTransformer, MergeTransformer, ZipTransformer}
 import org.silkframework.rule.plugins.transformer.conditional._
 import org.silkframework.rule.plugins.transformer.conversion.ConvertCharsetTransformer
 import org.silkframework.rule.plugins.transformer.metadata.FileHashTransformer
@@ -87,6 +87,7 @@ class RulePlugins extends PluginModule {
         classOf[Tokenizer] ::
         classOf[ConcatMultipleValuesTransformer] ::
         classOf[MergeTransformer] ::
+        classOf[ZipTransformer] ::
         classOf[SpotlightTextVectorTransformer] ::
         classOf[CamelCaseTokenizer] ::
         classOf[NormalizeCharsTransformer] ::
