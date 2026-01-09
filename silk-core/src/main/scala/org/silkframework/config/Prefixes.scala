@@ -22,11 +22,13 @@ import scala.language.implicitConversions
 import scala.xml.{Elem, Node}
 
 /**
- * Holds namespace prefixes.
- *
- * @param prefixMap The map of prefixes. This is an immutable.HashMap to make sure that it's always serializable.
- */
-case class Prefixes(prefixMap: immutable.HashMap[String, String]) extends Serializable {
+  * Holds namespace prefixes.
+  *
+  * @param prefixMap The map of prefixes. This is an immutable.HashMap to make sure that it's always serializable.
+  * @param tracker   Registers all shortened URIs if defined.
+  */
+case class Prefixes(prefixMap: immutable.HashMap[String, String],
+                    tracker: Option[PrefixTracker] = None) extends Serializable {
 
   override def toString: String = "Prefixes(" + prefixMap.toString + ")"
 
@@ -72,6 +74,7 @@ case class Prefixes(prefixMap: immutable.HashMap[String, String]) extends Serial
    */
   def shorten(uri: String): String = {
     for ((id, namespace) <- prefixMap if uri.startsWith(namespace) && namespace.nonEmpty) {
+      tracker.foreach(_.register(id, namespace))
       return id + ":" + uri.substring(namespace.length)
     }
 
@@ -119,4 +122,10 @@ object Prefixes {
   def fromXML(xml: Node): Prefixes = {
     new Prefixes(immutable.HashMap[String, String]((xml \ "Prefix").map(n => ((n \ "@id").text, (n \ "@namespace").text)):_*))
   }
+}
+
+/** Tracks the usage of prefixes of a Prefixes object, i.e. it registers all prefixes that are used for shortening URIs.  */
+trait PrefixTracker {
+  /** Registers a prefix and its namespace. */
+  def register(prefix: String, namespace: String): Unit
 }
