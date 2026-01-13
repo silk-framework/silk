@@ -9,6 +9,8 @@ interface IActionBasicProps {
     disruptive?: boolean;
     disabled?: boolean;
     "data-test-id"?: string;
+    // In cases where the text property is written out (instead of used as a tooltip), e.g. in a context menu, an optional tooltip can be added.
+    tooltipText?: string;
 }
 
 export interface IActionButtonItemProps extends IActionBasicProps {
@@ -41,7 +43,7 @@ export function ActionsMenu({
 }: IActionsMenuProps) {
     const renderMenuItems = (items) => {
         return items.map((item, index) => {
-            const { text, icon, actionHandler, disabled, subitems, disruptive, ...otherProps } = item;
+            const { text, icon, actionHandler, disabled, subitems, disruptive, tooltipText, ...otherProps } = item;
             return subitems && subitems.length > 0 ? (
                 <MenuItem
                     {...otherProps}
@@ -63,6 +65,7 @@ export function ActionsMenu({
                     onClick={actionHandler}
                     disabled={disabled ? true : false}
                     intent={disruptive ? "danger" : "none"}
+                    tooltip={tooltipText}
                 />
             );
         });
@@ -86,7 +89,7 @@ export function ActionsMenu({
             {actionsSecondary &&
                 actionsSecondary.length > 0 &&
                 actionsSecondary.map((actionItem) => {
-                    const { icon, text, affirmative, disruptive, disabled, actionHandler, ...otherProps } = actionItem;
+                    const { icon, text, affirmative, disruptive, disabled, actionHandler, tooltipText, ...otherProps } = actionItem;
                     return (
                         <IconButton
                             {...otherProps}

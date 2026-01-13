@@ -10,6 +10,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.tags.Tag
 import io.swagger.v3.oas.annotations.{Operation, Parameter}
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
+import org.silkframework.runtime.validation.{BadUserInputException, ConflictRequestException}
 import org.silkframework.workspace.activity.dataset.TypesCache
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, InjectedController}
@@ -94,6 +95,9 @@ class DatasetApi @Inject() () extends InjectedController with UserContextActions
                    )
                    datasetId: String): Action[AnyContent] = UserContextAction { implicit userContext =>
     val (_, dataset) = projectAndTask[GenericDatasetSpec](projectId, datasetId)
+    if(dataset.readOnly) {
+      throw ConflictRequestException("Cannot clear dataset! It is set to read-only.")
+    }
     val sink = dataset.data.entitySink
     sink.clear(force = true)
     val typeCache = dataset.activity[TypesCache].control

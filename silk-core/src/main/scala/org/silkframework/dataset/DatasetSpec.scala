@@ -232,12 +232,16 @@ object DatasetSpec {
 
     private var extraTypeUri: Option[String] = None
 
+    private def checkReadOnly(): Unit = {
+      checkDatasetAllowsWriteAccess(None, datasetSpec.readOnly)
+    }
+
     /**
       * Initializes this writer.
       */
     override def openTable(typeUri: Uri, properties: Seq[TypedProperty], singleEntity: Boolean = false)
                           (implicit userContext: UserContext, prefixes: Prefixes): Unit = {
-      checkDatasetAllowsWriteAccess(None, datasetSpec.readOnly)
+      checkReadOnly()
       if (isOpen) {
         entitySink.close()
         isOpen = false
@@ -294,7 +298,10 @@ object DatasetSpec {
     /**
       * Makes sure that the next write will start from an empty dataset.
       */
-    override def clear(force: Boolean = false)(implicit userContext: UserContext): Unit = entitySink.clear(force)
+    override def clear(force: Boolean = false)(implicit userContext: UserContext): Unit = {
+      checkReadOnly()
+      entitySink.clear(force)
+    }
 
     @inline
     private def prependUri(uri: String, values: IndexedSeq[Seq[String]]): IndexedSeq[Seq[String]] = {
@@ -325,7 +332,12 @@ object DatasetSpec {
 
     private var isOpen = false
 
+    private def checkReadOnly(): Unit = {
+      checkDatasetAllowsWriteAccess(None, datasetSpec.readOnly)
+    }
+
     override def init()(implicit userContext: UserContext, prefixes: Prefixes): Unit = {
+      checkReadOnly()
       if (isOpen) {
         linkSink.close()
         isOpen = false
@@ -357,7 +369,10 @@ object DatasetSpec {
     /**
       * Makes sure that the next write will start from an empty dataset.
       */
-    override def clear(force: Boolean = false)(implicit userContext: UserContext): Unit = linkSink.clear(force)
+    override def clear(force: Boolean = false)(implicit userContext: UserContext): Unit = {
+      checkReadOnly()
+      linkSink.clear(force)
+    }
   }
 
   /**

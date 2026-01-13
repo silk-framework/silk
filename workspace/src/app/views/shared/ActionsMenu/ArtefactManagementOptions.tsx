@@ -5,7 +5,7 @@ import { useTranslation } from "react-i18next";
 import { routerOp } from "@ducks/router";
 import { IItemLink } from "@ducks/shared/typings";
 import { commonOp, commonSel } from "@ducks/common";
-import { requestItemLinks } from "@ducks/shared/requests";
+import {requestDatasetCharacteristics, requestItemLinks, requestTaskData} from "@ducks/shared/requests";
 import { IExportTypes } from "@ducks/common/typings";
 import { downloadProject } from "../../../utils/downloadProject";
 import { DATA_TYPES } from "../../../constants";
@@ -50,6 +50,7 @@ export function ArtefactManagementOptions({
     const [showClearDatasetPrompt, setShowClearDatasetPrompt] = React.useState<boolean>(false);
     const notifications = React.useRef<React.JSX.Element[]>([]);
     const [erasingDataset, setErasingDataset] = useState<boolean>(false);
+    const [isReadOnlyDataset, setIsReadOnlyDataset] = useState<boolean | undefined>(undefined);
 
     const exportTypes = useSelector(commonSel.exportTypesSelector);
 
@@ -63,10 +64,17 @@ export function ArtefactManagementOptions({
     useEffect(() => {
         if (projectId && taskId) {
             getItemLinks(taskId);
+            if(itemType === DATA_TYPES.DATASET) {
+                const checkReadOnly = async () => {
+                    const response = await requestTaskData(projectId, taskId)
+                    setIsReadOnlyDataset(response.data.data.readOnly)
+                }
+                checkReadOnly()
+            }
         } else {
             setItemLinks([]);
         }
-    }, [projectId, taskId]);
+    }, [projectId, taskId, itemType]);
 
     const getItemLinks = async (taskId: string) => {
         try {
@@ -147,8 +155,11 @@ export function ArtefactManagementOptions({
         }
     };
 
-    const confirmClearDatasetPrompt = (
-        <AlertDialog
+    const ConfirmClearDatasetPrompt = () => {
+        if(itemType !== DATA_TYPES.DATASET) {
+            return null
+        }
+        return <AlertDialog
             isOpen={showClearDatasetPrompt}
             size="tiny"
             warning
@@ -167,7 +178,7 @@ export function ArtefactManagementOptions({
                 <p>{t("DataPreview.clearDatasetModal.content")}</p>
             </HtmlContentBlock>
         </AlertDialog>
-    );
+    };
 
     const getFullMenu = () => {
         const fullMenu: TActionsMenuItem[] = [
@@ -243,19 +254,21 @@ export function ArtefactManagementOptions({
                     : [],
             actionsFullMenu: projectId || taskId ? getFullMenu() : [],
             disruptiveActions:
-                projectId && taskId
+                projectId && taskId && itemType === DATA_TYPES.DATASET
                     ? [
                           {
                               icon: "operation-erase",
                               text: t("DataPreview.clearDatasetModal.title", "Clear dataset"),
+                              disabled: isReadOnlyDataset,
                               disruptive: true,
                               actionHandler: () => setShowClearDatasetPrompt(true),
                               "data-test-id": "header-item-erase-dataset-button",
+                              tooltipText: isReadOnlyDataset ? t("DataPreview.clearDatasetModal.readOnly") : undefined
                           },
                       ]
                     : [],
         });
-    }, [projectId, taskId, itemType, exportTypes, itemLinks, t]);
+    }, [projectId, taskId, itemType, exportTypes, itemLinks, t, isReadOnlyDataset]);
 
     useEffect(() => {
         updateActionsMenu(<ActionsMenu {...menuItems} />);
@@ -275,15 +288,7 @@ export function ArtefactManagementOptions({
             {showIdentifierOpen && (
                 <ShowIdentifierModal onDiscard={toggleShowIdentifierModal} taskId={taskId} projectId={projectId} />
             )}
-            {confirmClearDatasetPrompt}
-            {/* {displayItemLink && (
-                <ProjectTaskTabView
-                    srcLinks={itemLinks}
-                    startWithLink={displayItemLink}
-                    startFullscreen={true}
-                    handlerRemoveModal={() => toggleItemLink(null)}
-                />
-            )} */}
+            <ConfirmClearDatasetPrompt />
         </>
     );
 }

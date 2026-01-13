@@ -65,8 +65,9 @@
         "clearDatasetModal": {
             "title": "Clear dataset",
             "content": "Are you sure you want to clear the dataset? This action cannot be undone.",
-            "actionBtn": "Clear dataset", 
-            "error": "Error while clearing dataset"
+            "actionBtn": "Clear dataset",
+            "error": "Error while clearing dataset",
+            "readOnly": "The dataset is set to read-only and cannot be cleared."
         }
     },
     "DataProfiling": {
