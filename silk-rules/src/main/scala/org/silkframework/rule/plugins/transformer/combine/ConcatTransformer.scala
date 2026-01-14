@@ -84,8 +84,7 @@ import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
   )
 ))
 case class ConcatTransformer(
-  @Param("Separator to be inserted between two concatenated strings. The text can contain escaped characters \\n, \\t and" +
-    " \\\\ that are replaced by a newline, tab or backslash respectively.")
+  @Param(ConcatTransformer.glueDescription)
   glue: String = "",
   @Param("Handle missing values as empty strings.")
   missingValuesAsEmptyStrings: Boolean = false) extends Transformer {
@@ -131,6 +130,10 @@ case class ConcatTransformer(
 }
 
 object ConcatTransformer {
+
+  final val glueDescription  = "Separator to be inserted between two concatenated strings. The text can contain escaped characters \\n, \\t and" +
+    " \\\\ that are replaced by a newline, tab or backslash respectively."
+
   /** Converts escape sequences into their actual character. Supports: "\\", "\n" nad "\t" */
   def parseGlue(glue: String): String = {
     if(glue.contains("\\")) {
