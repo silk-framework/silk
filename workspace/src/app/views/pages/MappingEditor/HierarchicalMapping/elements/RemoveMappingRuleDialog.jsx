@@ -4,8 +4,7 @@ import { ConfirmationDialog } from "gui-elements-deprecated";
 import { MAPPING_RULE_TYPE_OBJECT } from "../utils/constants";
 import { Button } from "@eccenca/gui-elements";
 
-const RemoveMappingRuleDialog = (props) => {
-    const { mappingType, handleConfirmRemove, handleCancelRemove, label } = props;
+const RemoveMappingRuleDialog = ({ mappingType = "", handleConfirmRemove, handleCancelRemove, label }) => {
     return (
         <ConfirmationDialog
             className="ecc-hm-delete-dialog"
@@ -36,10 +35,6 @@ RemoveMappingRuleDialog.propTypes = {
     mappingType: PropTypes.string,
     handleConfirmRemove: PropTypes.func.isRequired,
     handleCancelRemove: PropTypes.func.isRequired,
-};
-
-RemoveMappingRuleDialog.defaultProps = {
-    mappingType: "",
 };
 
 export default RemoveMappingRuleDialog;

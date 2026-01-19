@@ -81,14 +81,6 @@ class ObjectRule extends React.Component {
         }
     }
 
-    componentWillReceiveProps(nextProps) {
-        if (_.has(nextProps, "ruleData.rules.uriRule.id")) {
-            this.setState({
-                href: getEditorHref(_.get(nextProps, "ruleData.rules.uriRule.id", "")),
-            });
-        }
-    }
-
     openEditor = () => {
         let uriRuleId = _.get(this.props.ruleData, "rules.uriRule")?.id;
         if (!uriRuleId) {
