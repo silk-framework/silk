@@ -7,7 +7,6 @@ const DeleteButton = ({ onDelete }) => {
             disruptive
             data-test-id={"mapping-rule-delete-btn"}
             className="ecc-silk-mapping__rulesviewer__actionrow-remove"
-            raised
             onClick={onDelete}
         >
             Remove

@@ -439,29 +439,27 @@ export function ValueRuleForm(props: IProps) {
 
         if (type === MAPPING_RULE_TYPE_DIRECT) {
             sourcePropertyInput = (
-                <>
-                    <CodeAutocompleteField
-                        id={"value-path-auto-suggestion"}
-                        label="Value path"
-                        initialValue={initialValues.sourceProperty ?? ""}
-                        clearIconText={"Clear value path"}
-                        validationErrorText={"The entered value path is invalid."}
-                        onChange={handleChangeSelectBox.bind(null, "sourceProperty", updateSourceProperty)}
-                        fetchSuggestions={(input, cursorPosition) =>
-                            fetchValuePathSuggestions(
-                                autoCompleteRuleId,
-                                input,
-                                cursorPosition,
-                                false,
-                                mappingEditorContext.taskContext,
-                            )
-                        }
-                        checkInput={checkValuePathValidity}
-                        onInputChecked={setValuePathValid}
-                        onFocusChange={changeValuePathInputHasFocus}
-                        rightElement={<ComplexRuleEditButton />}
-                    />
-                </>
+                <CodeAutocompleteField
+                    id={"value-path-auto-suggestion"}
+                    label="Value path"
+                    initialValue={initialValues.sourceProperty ?? ""}
+                    clearIconText={"Clear value path"}
+                    validationErrorText={"The entered value path is invalid."}
+                    onChange={handleChangeSelectBox.bind(null, "sourceProperty", updateSourceProperty)}
+                    fetchSuggestions={(input, cursorPosition) =>
+                        fetchValuePathSuggestions(
+                            autoCompleteRuleId,
+                            input,
+                            cursorPosition,
+                            false,
+                            mappingEditorContext.taskContext,
+                        )
+                    }
+                    checkInput={checkValuePathValidity}
+                    onInputChecked={setValuePathValid}
+                    onFocusChange={changeValuePathInputHasFocus}
+                    rightElement={<ComplexRuleEditButton/>}
+                />
             );
         } else if (type === MAPPING_RULE_TYPE_COMPLEX) {
             const editButton = <ComplexRuleEditButton />;
