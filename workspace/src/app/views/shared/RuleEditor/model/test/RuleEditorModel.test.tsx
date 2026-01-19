@@ -3,7 +3,7 @@ import { RuleEditorModel } from "../RuleEditorModel";
 import { RenderResultApi, renderWrapper } from "../../../../../../../test/integration/TestHelper";
 import { RuleEditorModelContext, RuleEditorModelContextProps } from "../../contexts/RuleEditorModelContext";
 import { Elements, FitViewParams, FlowExportObject, FlowTransform, ReactFlowProvider } from "react-flow-renderer";
-import { act, waitFor } from "@testing-library/react";
+import { act, waitFor, cleanup } from "@testing-library/react";
 import { RuleEditorContext } from "../../contexts/RuleEditorContext";
 import {
     IParameterSpecification,
@@ -75,38 +75,42 @@ describe("Rule editor model", () => {
         ) => boolean = () => true,
         stickyNotes: StickyNote[] = [],
     ) => {
+        // Remove previously mounted components (needed if called multiple times in the same test)
+        cleanup()
         modelContext = undefined;
         const Provider: React.FC<{ children: React.JSX.Element }> = ReactFlowProvider;
-        const ruleModel = renderWrapper(
-            <RuleEditorContext.Provider
-                value={{
-                    projectId: "testProject",
-                    editedItem: {},
-                    operatorList: operatorList,
-                    editedItemLoading: false,
-                    operatorListLoading: false,
-                    initialRuleOperatorNodes: initialRuleNodes,
-                    stickyNotes,
-                    saveRule: (ruleOperatorNodes): RuleSaveResult => {
-                        savedRuleOperatorNodes = ruleOperatorNodes;
-                        return { success: true };
-                    },
-                    convertRuleOperatorToRuleNode: utils.defaults.convertRuleOperatorToRuleNode,
-                    operatorSpec,
-                    validateConnection,
-                    instanceId: "id",
-                    datasetCharacteristics: new Map(),
-                    partialAutoCompletion: () => async () => undefined,
-                    saveInitiallyEnabled: false,
-                }}
-            >
-                <Provider>
-                    <RuleEditorModel>
-                        <RuleEditorModelTestComponent />
-                    </RuleEditorModel>
-                </Provider>
-            </RuleEditorContext.Provider>,
-        );
+        const ruleModel = await act(() => {
+            return renderWrapper(
+                <RuleEditorContext.Provider
+                    value={{
+                        projectId: "testProject",
+                        editedItem: {},
+                        operatorList: operatorList,
+                        editedItemLoading: false,
+                        operatorListLoading: false,
+                        initialRuleOperatorNodes: initialRuleNodes,
+                        stickyNotes,
+                        saveRule: (ruleOperatorNodes): RuleSaveResult => {
+                            savedRuleOperatorNodes = ruleOperatorNodes;
+                            return {success: true};
+                        },
+                        convertRuleOperatorToRuleNode: utils.defaults.convertRuleOperatorToRuleNode,
+                        operatorSpec,
+                        validateConnection,
+                        instanceId: "id",
+                        datasetCharacteristics: new Map(),
+                        partialAutoCompletion: () => async () => undefined,
+                        saveInitiallyEnabled: false,
+                    }}
+                >
+                    <Provider>
+                        <RuleEditorModel>
+                            <RuleEditorModelTestComponent/>
+                        </RuleEditorModel>
+                    </Provider>
+                </RuleEditorContext.Provider>
+            );
+        })
         await waitFor(() => {
             expect(modelContext).toBeTruthy();
             modelContext!!.setReactFlowInstance({
@@ -321,11 +325,14 @@ describe("Rule editor model", () => {
             borderColor: "#000000",
             color: "#000",
         };
-        const node = allStickyNodes()[0];
         const checkBeforeChange = () => {
+            const node = allStickyNodes()[0];
             expect(node.data.style).toEqual(defaultStyle);
+            return node
         };
-        checkBeforeChange();
+        const node = await waitFor(() => {
+            return checkBeforeChange();
+        })
 
         const checkAfterChange = () => {
             expect(modelUtils.nodeById(currentContext().elements, node.id)!!.data.style).not.toStrictEqual(
@@ -719,9 +726,9 @@ describe("Rule editor model", () => {
             changeAction: () => any,
             additionalCheck: () => any | Promise<any> = () => {},
         ) => {
-            await act(() => {
+            await act(async () => {
                 currentContext().executeModelEditOperation.startChangeTransaction();
-                changeAction();
+                await changeAction();
             });
             // Check that something has changed
             await waitFor(() => {
