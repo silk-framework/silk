@@ -38,6 +38,7 @@ const props = {
         },
         mappingTarget: {
             uri: "uri",
+            isAttribute: false
         },
         type: "root",
     },

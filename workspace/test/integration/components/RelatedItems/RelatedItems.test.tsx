@@ -14,7 +14,7 @@ import { RelatedItems } from "../../../../src/app/views/shared/RelatedItems/Rela
 import { RelatedItemsTestHelper } from "./RelatedItemsTestHelper";
 import { CONTEXT_PATH, SERVE_PATH } from "../../../../src/app/constants/path";
 import { ReactWrapper } from "enzyme";
-import { RenderResult, waitFor } from "@testing-library/react";
+import {act, RenderResult, waitFor} from "@testing-library/react";
 
 describe("Related items", () => {
     let hostPath = process.env.HOST;
@@ -41,7 +41,7 @@ describe("Related items", () => {
 
     it("should reload the related items when changing the project or task", async () => {
         const otherTask = "otherTask";
-        history.push(workspacePath(`/projects/${PROJECT_ID}/task/${otherTask}`));
+        act(() => history.push(workspacePath(`/projects/${PROJECT_ID}/task/${otherTask}`)));
         await waitFor(() => {
             checkRequestMade(relatedItemsUrl(otherTask));
         });
