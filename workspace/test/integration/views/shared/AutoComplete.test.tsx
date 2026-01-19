@@ -1,7 +1,7 @@
 import React from "react";
 import { SuggestField, SuggestFieldProps } from "@eccenca/gui-elements";
 import { addDocumentCreateRangeMethod, findElement, renderWrapper } from "../../TestHelper";
-import { waitFor } from "@testing-library/react";
+import {act, waitFor} from "@testing-library/react";
 
 describe("AutoComplete", () => {
     const wrapper = (props: SuggestFieldProps<any, any>) => {
@@ -24,7 +24,9 @@ describe("AutoComplete", () => {
         const autoComplete = wrapper({ onSearch });
         expect(counter).toBe(0);
         const inputField = findElement(autoComplete, "input");
-        inputField.focus();
+        act(() => {
+            inputField.focus();
+        })
         await waitFor(() => {
             expect(counter).toBe(1);
         });

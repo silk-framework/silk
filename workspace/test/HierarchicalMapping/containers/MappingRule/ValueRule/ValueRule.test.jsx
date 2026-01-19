@@ -1,7 +1,7 @@
 import React from "react";
 import ValueRule from "../../../../../src/app/views/pages/MappingEditor/HierarchicalMapping/containers/MappingRule/ValueRule/ValueRule";
 
-import { waitFor, render, waitForElementToBeRemoved } from "@testing-library/react";
+import { waitFor, render, cleanup } from "@testing-library/react";
 import { byTestId, clickFoundElement, findAllDOMElements, findElement } from "../../../../integration/TestHelper";
 
 const handleCopyFn = jest.fn();
@@ -34,7 +34,10 @@ const props = {
     onClickedRemove: onClickedRemoveFn,
 };
 
-const getWrapper = (arg = props) => render(<ValueRule {...arg} />);
+const getWrapper = (arg = props) => {
+    cleanup()
+    return render(<ValueRule {...arg} />);
+}
 
 describe("ValueRule Component", () => {
     describe("on component mounted, ", () => {

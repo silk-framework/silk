@@ -38,8 +38,9 @@ const props = {
     pos: 4,
     provided: {
         placeholder: null,
-        dragHandleProps: jest.fn(),
+        dragHandleProps: {},
         draggableStyle: {},
+        draggableProps: {},
         innerRef: jest.fn(),
     },
     scrollElementIntoView: jest.fn(),

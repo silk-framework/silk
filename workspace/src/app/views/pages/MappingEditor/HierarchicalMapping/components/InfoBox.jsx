@@ -1,18 +1,18 @@
 import React from 'react';
-import { Button } from 'gui-elements-deprecated';
+import { IconButton } from "@eccenca/gui-elements"
 
 export class InfoBox extends React.Component {
     state = {
         expanded: false,
     };
-    
+
     toggleExpander = event => {
         event.stopPropagation();
         this.setState({
             expanded: !this.state.expanded,
         });
     };
-    
+
     render() {
         return (
             <div
@@ -20,13 +20,14 @@ export class InfoBox extends React.Component {
                     !this.state.expanded ? ' is-narrowed' : ''
                     }`}
             >
-                <Button
+                <IconButton
                     className="ecc-silk-mapping__rulesviewer__infobox-toggler"
-                    iconName={
-                        this.state.expanded ? 'expand_more' : 'chevron_right'
+                    name={
+                        this.state.expanded ? 'toggler-showless' : 'toggler-showmore'
                     }
-                    tooltip={this.state.expanded ? 'Show less' : 'Show more'}
+                    text={this.state.expanded ? 'Show less' : 'Show more'}
                     onClick={this.toggleExpander}
+                    size={"small"}
                 />
                 <div className="ecc-silk-mapping__rulesviewer__infobox-content">
                     {this.props.children}
