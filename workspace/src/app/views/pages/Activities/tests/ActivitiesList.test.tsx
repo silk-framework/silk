@@ -59,8 +59,8 @@ const render = (
     {
         store = configureStore({
             reducer: rootReducer,
+            middleware: (getDefaultMiddleware) => getDefaultMiddleware().concat(routerMiddleware(history)),
             preloadedState: {
-                middleware: (getDefaultMiddleware) => getDefaultMiddleware().concat(routerMiddleware(history)),
                 ...(dummyState as any),
             },
         }),
