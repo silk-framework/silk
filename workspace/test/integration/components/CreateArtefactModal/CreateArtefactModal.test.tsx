@@ -1,8 +1,8 @@
 import React from "react";
 import "@testing-library/jest-dom";
 import mockAxios from "../../../__mocks__/axios";
-import { SERVE_PATH } from "../../../../src/app/constants/path";
-import { createMemoryHistory } from "history";
+import {SERVE_PATH} from "../../../../src/app/constants/path";
+import {createMemoryHistory} from "history";
 
 import {
     addDocumentCreateRangeMethod,
@@ -13,28 +13,27 @@ import {
     checkRequestMade,
     cleanUpDOM,
     clickRenderedElement,
-    elementHtmlToContain,
     findAllDOMElements,
     findElement,
-    legacyApiUrl,
+    legacyApiUrl, logPageHtml,
     mockAxiosResponse,
     mockedAxiosError,
     mockedAxiosResponse,
     RecursivePartial,
     renderWrapper,
 } from "../../TestHelper";
-import { CreateArtefactModal } from "../../../../src/app/views/shared/modals/CreateArtefactModal/CreateArtefactModal";
-import { fireEvent, RenderResult, waitFor, screen, within } from "@testing-library/react";
+import {CreateArtefactModal} from "../../../../src/app/views/shared/modals/CreateArtefactModal/CreateArtefactModal";
+import {act, fireEvent, RenderResult, waitFor} from "@testing-library/react";
 import {
     IOverviewArtefactItemList,
     IPluginDetails,
     IProjectTaskUpdatePayload,
 } from "../../../../src/app/store/ducks/common/typings";
-import { atomicParamDescription, mockAutoCompleteResponse, objectParamDescription } from "./CreateArtefactModalHelper";
-import { INPUT_TYPES } from "../../../../src/app/constants";
-import { TaskTypes } from "../../../../src/app/store/ducks/shared/typings";
-import { MemoryHistory } from "history/createMemoryHistory";
-import { bluePrintClassPrefix } from "../../../HierarchicalMapping/utils/TestHelpers";
+import {atomicParamDescription, mockAutoCompleteResponse, objectParamDescription} from "./CreateArtefactModalHelper";
+import {INPUT_TYPES} from "../../../../src/app/constants";
+import {TaskTypes} from "../../../../src/app/store/ducks/shared/typings";
+import {MemoryHistory} from "history/createMemoryHistory";
+import {bluePrintClassPrefix} from "../../../HierarchicalMapping/utils/TestHelpers";
 
 describe("Task creation widget", () => {
     beforeAll(() => {
@@ -78,7 +77,7 @@ describe("Task creation widget", () => {
 
     // Loads the selection list modal with mocked artefact list
     const createMockedListWrapper = async (existingTask?: RecursivePartial<IProjectTaskUpdatePayload>) => {
-        const wrapper = createArtefactWrapper(`${SERVE_PATH}/projects/${PROJECT_ID}`, existingTask);
+        const wrapper = await act(() => createArtefactWrapper(`${SERVE_PATH}/projects/${PROJECT_ID}`, existingTask));
         const url = apiUrl("core/taskPlugins?addMarkdownDocumentation=true");
         mockAxios.mockResponseFor({ url }, mockedAxiosResponse({ data: mockArtefactListResponse }));
         if (!existingTask) {
@@ -99,7 +98,7 @@ describe("Task creation widget", () => {
         return findAllDOMElements(dialogWrapper, ".eccgui-overviewitem__list .eccgui-overviewitem__item");
     };
 
-    const pluginCreationDialogWrapper = async (
+    const pluginCreationDialogWrapper: (doubleClickToAdd?: boolean, existingTask?: RecursivePartial<IProjectTaskUpdatePayload>) => Promise<IWrapper> = async (
         doubleClickToAdd: boolean = true,
         // The current data of a task that is being updated
         existingTask?: RecursivePartial<IProjectTaskUpdatePayload>,
@@ -117,18 +116,23 @@ describe("Task creation widget", () => {
                 clickRenderedElement(findElement(wrapper.element, byTestId("item-add-btn")));
             }
             mockAxios.mockResponseFor(
-                { url: apiUrl("core/plugins/pluginA") },
-                mockedAxiosResponse({ data: mockPluginDescription }),
+                {url: apiUrl("core/plugins/pluginA")},
+                mockedAxiosResponse({data: mockPluginDescription}),
             );
         }
-        await waitFor(() => {
-            const labels = findAllDOMElements(wrapper.element, ".eccgui-label .eccgui-label__text").map(
-                (e) => e.textContent,
-            );
-            Object.entries(mockPluginDescription.properties).forEach(([paramId, attributes]) =>
-                expect(labels).toContain(attributes.title),
-            );
-        });
+        const waitForTaskFormLoaded = async () => {
+            await waitFor(() => {
+                const labels = findAllDOMElements(wrapper.element, ".eccgui-label .eccgui-label__text").map(
+                    (e) => e.textContent,
+                );
+                Object.entries(mockPluginDescription.properties).forEach(([paramId, attributes]) =>
+                    expect(labels).toContain(attributes.title),
+                );
+            });
+        }
+        await waitForTaskFormLoaded()
+        // For some reason the task form inits twice
+        await waitForTaskFormLoaded()
         return wrapper;
     };
 
@@ -230,9 +234,8 @@ describe("Task creation widget", () => {
         await pluginCreationDialogWrapper(false);
     });
 
-    //failing for some reason
     it("should show a form with parameters of different types", async () => {
-        const { element } = await pluginCreationDialogWrapper();
+        const {element} = await pluginCreationDialogWrapper()
         // boolean parameter
         expect(findAllDOMElements(element, 'input[type="checkbox"]')).toHaveLength(1);
         // password parameter
@@ -248,7 +251,7 @@ describe("Task creation widget", () => {
     });
 
     // Click the create button in the create dialog
-    const clickCreate = (wrapper) => clickRenderedElement(findElement(wrapper, byTestId("createArtefactButton")));
+    const clickCreate = (wrapper: HTMLElement) => clickRenderedElement(findElement(wrapper, byTestId("createArtefactButton")));
     // Checks the number of expected validation errors
     const expectValidationErrors = async (wrapper, nrErrors: number) =>
         await waitFor(() => {
