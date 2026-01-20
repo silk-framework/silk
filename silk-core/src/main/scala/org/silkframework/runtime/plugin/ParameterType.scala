@@ -567,7 +567,7 @@ object StringParameterType {
     }
 
     override def toString(value: Restriction)(implicit pluginContext: PluginContext): String = {
-      value.serialize
+      value.generateCustomRestriction(pluginContext.prefixes).toSparql
     }
   }
 

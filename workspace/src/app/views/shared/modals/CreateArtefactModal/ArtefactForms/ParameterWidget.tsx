@@ -171,7 +171,7 @@ export const ParameterWidget = (props: IProps) => {
             <StringPreviewContentBlobToggler
                 key={"descriptionToggler"}
                 className="di__parameter_widget__description"
-                content={reduceToText(<Markdown>{description}</Markdown>)}
+                content={description}
                 previewMaxLength={MAXLENGTH_SIMPLEHELP}
                 fullviewContent={
                     <WhiteSpaceContainer
@@ -186,6 +186,8 @@ export const ParameterWidget = (props: IProps) => {
                 toggleExtendText={t("common.words.more", "more")}
                 toggleReduceText={t("common.words.less", "less")}
                 noTogglerContentSuffix={detailedLink ? <> {detailedLink}</> : detailedLink}
+                renderPreviewAsMarkdown
+                useOnly={"firstMarkdownSection"}
             />
         );
     }

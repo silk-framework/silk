@@ -766,7 +766,7 @@ object JsonSerializers {
       Json.obj(
         INPUT_ID -> value.inputId.toString,
         TYPE_URI -> value.typeUri.serialize(writeContext.prefixes),
-        RESTRICTION -> value.restriction.serialize
+        RESTRICTION -> value.restriction.generateCustomRestriction(writeContext.prefixes).toSparql
       )
     }
   }
