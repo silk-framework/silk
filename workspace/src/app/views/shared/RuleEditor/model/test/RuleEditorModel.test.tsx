@@ -296,7 +296,7 @@ describe("Rule editor model", () => {
                     .sort((left, right) => (left < right ? 1 : -1)),
             ).toStrictEqual(["pluginA", "node B", "1"]);
         };
-        checkBeforeAdd();
+        await waitFor(checkBeforeAdd)
 
         // Add nodes
         const position = { x: 5, y: 10 };
@@ -337,9 +337,7 @@ describe("Rule editor model", () => {
             expect(node.data.style).toEqual(defaultStyle);
             return node
         };
-        const node = await waitFor(() => {
-            return checkBeforeChange();
-        })
+        const node = await waitFor(checkBeforeChange)
 
         const checkAfterChange = () => {
             expect(modelUtils.nodeById(currentContext().elements, node.id)!!.data.style).not.toStrictEqual(
@@ -386,9 +384,7 @@ describe("Rule editor model", () => {
         const checkBeforeChange = () => {
             expect(node.data.nodeDimensions).toEqual(defaultNodeDimensions);
         };
-        await waitFor(() => {
-            checkBeforeChange();
-        })
+        await waitFor(checkBeforeChange)
         const randomNewNodeDimensions = { width: DEFAULT_NODE_WIDTH + 30, height: DEFAULT_NODE_HEIGHT + 10 };
         const checkAfterChange = () => {
             expect(modelUtils.nodeById(currentContext().elements, node.id)!!.data.nodeDimensions).toEqual(
@@ -416,9 +412,7 @@ describe("Rule editor model", () => {
             // 3 nodes, 3 edges
             expect(currentContext().elements).toHaveLength(6);
         };
-        await waitFor(() => {
-            checkBeforeDelete();
-        })
+        await waitFor(checkBeforeDelete)
 
         // Delete node
         act(() => {
@@ -449,7 +443,7 @@ describe("Rule editor model", () => {
         const checkBeforeMove = () => {
             expect(modelUtils.nodeById(currentContext().elements, nodeId)!!.position).toStrictEqual(startPosition);
         };
-        checkBeforeMove();
+        await waitFor(checkBeforeMove)
 
         // Move node
         const newPosition = { x: 100, y: 102 };
@@ -615,7 +609,7 @@ describe("Rule editor model", () => {
         const checkBeforeDelete = () => {
             expect(currentContext().elements).toHaveLength(6);
         };
-        checkBeforeDelete();
+        await waitFor(checkBeforeDelete)
         act(() => {
             currentContext().executeModelEditOperation.deleteNodes(["nodeA", "nodeC"]);
         });
@@ -637,7 +631,7 @@ describe("Rule editor model", () => {
         const checkBeforeCopyAndPaste = () => {
             expect(currentContext().elements).toHaveLength(6);
         };
-        checkBeforeCopyAndPaste();
+        await waitFor(checkBeforeCopyAndPaste)
 
         // Copy and paste first time
         act(() => {
@@ -673,7 +667,7 @@ describe("Rule editor model", () => {
         const checkBeforeAdd = () => {
             expect(currentContext().elements).toHaveLength(2);
         };
-        checkBeforeAdd();
+        await waitFor(checkBeforeAdd)
 
         // Add edge
         act(() => {
@@ -704,7 +698,7 @@ describe("Rule editor model", () => {
         const checkBeforeDelete = () => {
             expect(currentContext().elements).toHaveLength(before);
         };
-        checkBeforeDelete();
+        await waitFor(checkBeforeDelete);
 
         // Delete edge
         act(() => {
@@ -889,7 +883,7 @@ describe("Rule editor model", () => {
             nodeHasInputs("nodeC", ["nodeA", "nodeB"]);
             expect(currentContext().elements).toHaveLength(5);
         };
-        checkBeforeEdit();
+        await waitFor(checkBeforeEdit);
         act(() => {
             currentContext().executeModelEditOperation.deleteEdge("1");
             currentContext().executeModelEditOperation.addEdge("nodeA", "nodeC", "1", "0");
@@ -921,7 +915,7 @@ describe("Rule editor model", () => {
             nodeHasInputs("nodeE", [null, "nodeA", null]);
             expect(currentContext().elements).toHaveLength(6);
         };
-        checkBeforeEdit();
+        await waitFor(checkBeforeEdit);
         act(() => {
             currentContext().executeModelEditOperation.addEdge("nodeB", "nodeE", undefined);
             currentContext().executeModelEditOperation.addEdge("nodeC", "nodeE", undefined);
@@ -960,7 +954,7 @@ describe("Rule editor model", () => {
         const checkBeforeChange = () => {
             checkNrOfInputs([...inputHandlesForDummyNodes, 1, 0, 1, 3, 3, 3, 3]);
         };
-        checkBeforeChange();
+        await waitFor(checkBeforeChange);
         act(() => {
             execute().addEdge("nodeA", "nodeB", undefined);
             execute().addEdge("nodeA2", "nodeB", undefined);
@@ -1005,7 +999,7 @@ describe("Rule editor model", () => {
         const checkBefore = () => {
             expect(currentOperatorNodes().map((n) => n.position)).toStrictEqual(initialPositions);
         };
-        checkBefore();
+        await waitFor(checkBefore);
         await act(async () => {
             await currentContext().executeModelEditOperation.addEdge("nodeB", "nodeC", "2");
             await currentContext().executeModelEditOperation.addEdge("nodeA", "nodeC", "1");
