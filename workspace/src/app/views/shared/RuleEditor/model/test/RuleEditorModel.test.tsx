@@ -1,10 +1,17 @@
 import React from "react";
-import { RuleEditorModel } from "../RuleEditorModel";
-import { RenderResultApi, renderWrapper } from "../../../../../../../test/integration/TestHelper";
-import { RuleEditorModelContext, RuleEditorModelContextProps } from "../../contexts/RuleEditorModelContext";
-import { Elements, FitViewParams, FlowExportObject, FlowTransform, ReactFlowProvider } from "react-flow-renderer";
-import { act, waitFor, cleanup } from "@testing-library/react";
-import { RuleEditorContext } from "../../contexts/RuleEditorContext";
+import {RuleEditorModel} from "../RuleEditorModel";
+import {RenderResultApi, renderWrapper} from "../../../../../../../test/integration/TestHelper";
+import {RuleEditorModelContext, RuleEditorModelContextProps} from "../../contexts/RuleEditorModelContext";
+import {
+    Elements,
+    FitViewParams,
+    FlowElement,
+    FlowExportObject,
+    FlowTransform,
+    ReactFlowProvider
+} from "react-flow-renderer";
+import {act, cleanup, waitFor} from "@testing-library/react";
+import {RuleEditorContext} from "../../contexts/RuleEditorContext";
 import {
     IParameterSpecification,
     IPortSpecification,
@@ -14,13 +21,13 @@ import {
     RuleOperatorNodeParameters,
     RuleSaveResult,
 } from "../../RuleEditor.typings";
-import { XYPosition } from "react-flow-renderer/dist/types";
+import {XYPosition} from "react-flow-renderer/dist/types";
 import utils from "../../RuleEditor.utils";
-import { DEFAULT_NODE_HEIGHT, DEFAULT_NODE_WIDTH, ruleEditorModelUtilsFactory } from "../RuleEditorModel.utils";
-import { RuleEditorNode } from "../RuleEditorModel.typings";
-import { rangeArray } from "../../../../../utils/basicUtils";
-import { LINKING_NODE_TYPES } from "@eccenca/gui-elements/src/cmem/react-flow/configuration/typing";
-import { nodeDefaultUtils, StickyNote } from "@eccenca/gui-elements";
+import {DEFAULT_NODE_HEIGHT, DEFAULT_NODE_WIDTH, ruleEditorModelUtilsFactory} from "../RuleEditorModel.utils";
+import {RuleEditorNode} from "../RuleEditorModel.typings";
+import {rangeArray} from "../../../../../utils/basicUtils";
+import {LINKING_NODE_TYPES} from "@eccenca/gui-elements/src/cmem/react-flow/configuration/typing";
+import {nodeDefaultUtils, StickyNote} from "@eccenca/gui-elements";
 
 let modelContext: RuleEditorModelContextProps | undefined;
 const currentContext = () => modelContext as RuleEditorModelContextProps;
@@ -350,11 +357,14 @@ describe("Rule editor model", () => {
     it("should change node text content and undo & redo", async () => {
         const stickyNote = "# Testing... 1 2 3...";
         await stickyNoteNodeBootstrap(stickyNote);
-        const node = allStickyNodes()[0];
-        const checkBeforeChange = () => {
-            expect(node.data.businessData.stickyNote).toStrictEqual(stickyNote);
+        const checkBeforeChange: () => Promise<FlowElement> = async () => {
+            return await waitFor(() => {
+                const node = allStickyNodes()[0];
+                expect(node.data.businessData.stickyNote).toStrictEqual(stickyNote);
+                return node
+            })
         };
-        checkBeforeChange();
+        const node = await checkBeforeChange();
         const newContent = "**new Content**";
         const checkAfterChange = () => {
             expect(modelUtils.nodeById(currentContext().elements, node.id)!!.data.businessData.stickyNote).toEqual(
@@ -376,7 +386,9 @@ describe("Rule editor model", () => {
         const checkBeforeChange = () => {
             expect(node.data.nodeDimensions).toEqual(defaultNodeDimensions);
         };
-        checkBeforeChange();
+        await waitFor(() => {
+            checkBeforeChange();
+        })
         const randomNewNodeDimensions = { width: DEFAULT_NODE_WIDTH + 30, height: DEFAULT_NODE_HEIGHT + 10 };
         const checkAfterChange = () => {
             expect(modelUtils.nodeById(currentContext().elements, node.id)!!.data.nodeDimensions).toEqual(
@@ -404,7 +416,9 @@ describe("Rule editor model", () => {
             // 3 nodes, 3 edges
             expect(currentContext().elements).toHaveLength(6);
         };
-        checkBeforeDelete();
+        await waitFor(() => {
+            checkBeforeDelete();
+        })
 
         // Delete node
         act(() => {
@@ -809,7 +823,9 @@ describe("Rule editor model", () => {
         // // Execute UNDO and REDO twice
         for (let i = 0; i < 2; i++) {
             for (let changeIdx = stateHistory.length - 1; changeIdx > 0; changeIdx--) {
-                expect(allNodes()).toStrictEqual(stateHistory[changeIdx]);
+                await waitFor(() => {
+                    expect(allNodes()).toStrictEqual(stateHistory[changeIdx]);
+                })
                 resultApi.assert(
                     currentContext().canUndo,
                     `Undo changes failed because 'can undo' is false. Round: ${i + 1}, Change: ${changeIdx + 1}/${stateHistory.length}. Currently at '${stateHistoryLabel[changeIdx]}' trying to undo to state '${stateHistoryLabel[changeIdx - 1]}'.'`,
@@ -817,8 +833,10 @@ describe("Rule editor model", () => {
                 act(() => {
                     currentContext().undo();
                 });
-                expect(allNodes()).not.toStrictEqual(stateHistory[changeIdx]);
-                expect(allNodes()).toStrictEqual(stateHistory[changeIdx - 1]);
+                await waitFor(() => {
+                    expect(allNodes()).not.toStrictEqual(stateHistory[changeIdx]);
+                    expect(allNodes()).toStrictEqual(stateHistory[changeIdx - 1]);
+                })
             }
             console.log("Test REDO");
             for (let changeIdx = 1; changeIdx < stateHistory.length; changeIdx++) {
