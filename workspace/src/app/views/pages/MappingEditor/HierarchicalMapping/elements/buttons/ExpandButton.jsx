@@ -5,7 +5,7 @@ const ExpandButton = ({ onToggle, id, expanded }) => {
     return (
         <IconButton
             data-test-id={`button-${id}`}
-            className={`silk${id}`}
+            className={`silk${id} nodrag`}
             name={expanded ? "toggler-rowcollapse" : "toggler-rowexpand"}
             onClick={onToggle}
         />

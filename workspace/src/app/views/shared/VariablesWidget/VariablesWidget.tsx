@@ -1,11 +1,17 @@
 import React from "react";
-import { DndContext, PointerSensor, KeyboardSensor, useSensor, useSensors } from "@dnd-kit/core";
-import { SortableContext, useSortable, verticalListSortingStrategy, sortableKeyboardCoordinates, arrayMove } from "@dnd-kit/sortable";
-import { CSS } from "@dnd-kit/utilities";
-import { restrictToVerticalAxis } from "@dnd-kit/modifiers";
+import {DndContext, KeyboardSensor, useSensor, useSensors} from "@dnd-kit/core";
+import {
+    arrayMove,
+    SortableContext,
+    sortableKeyboardCoordinates,
+    useSortable,
+    verticalListSortingStrategy
+} from "@dnd-kit/sortable";
+import {CSS} from "@dnd-kit/utilities";
+import {restrictToVerticalAxis} from "@dnd-kit/modifiers";
 
 //typing
-import { Variable, VariableDependencies, VariableWidgetProps } from "./typing";
+import {Variable, VariableDependencies, VariableWidgetProps} from "./typing";
 import {
     Card,
     CardContent,
@@ -15,10 +21,8 @@ import {
     Divider,
     Icon,
     IconButton,
-    Label,
     Link,
     Notification,
-    OverflowText,
     OverviewItemList,
     PropertyName,
     PropertyValue,
@@ -28,14 +32,14 @@ import {
     ToolbarSection,
     Tooltip,
 } from "@eccenca/gui-elements";
-import { useTranslation } from "react-i18next";
-import { deleteVariableRequest, getVariableDependencies, getVariables, reorderVariablesRequest } from "./requests";
+import {useTranslation} from "react-i18next";
+import {deleteVariableRequest, getVariableDependencies, getVariables, reorderVariablesRequest} from "./requests";
 import useErrorHandler from "../../../hooks/useErrorHandler";
 import Loading from "../Loading";
 import NewVariableModal from "./modals/NewVariableModal";
 import DeleteModal from "../modals/DeleteModal";
-import { ErrorResponse, FetchError } from "../../../services/fetch/responseInterceptor";
-import { useModalError } from "../../../hooks/useModalError";
+import {ErrorResponse, FetchError} from "../../../services/fetch/responseInterceptor";
+import {useModalError} from "../../../hooks/useModalError";
 import dndkitUtils from "../../../utils/dndkitUtils";
 
 const VariablesWidget: React.FC<VariableWidgetProps> = ({ projectId, taskId }) => {
