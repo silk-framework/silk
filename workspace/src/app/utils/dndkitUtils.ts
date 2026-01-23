@@ -23,7 +23,14 @@ const preventDraggingInNoDragElements = (targetElement: HTMLElement ): boolean =
 class DefaultMouseSensor extends MouseSensor {
     static activators = [{
         eventName: 'onMouseDown',
-        handler: ({ nativeEvent: event }: MouseEvent) => preventDraggingInNoDragElements(event.target as HTMLElement)
+        handler: ({ nativeEvent: event }: MouseEvent): boolean => {
+            if(event.button !== 0) {
+                // Only allow dragging with left mouse button
+                return false
+            } else {
+                return preventDraggingInNoDragElements(event.target as HTMLElement)
+            }
+        }
     }] satisfies typeof MouseSensor['activators'];
 }
 
