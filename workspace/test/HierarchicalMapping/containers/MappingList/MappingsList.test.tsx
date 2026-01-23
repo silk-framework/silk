@@ -1,4 +1,4 @@
-import React from "react";
+    import React from "react";
 import "@testing-library/jest-dom";
 
 import MappingsList from "../../../../src/app/views/pages/MappingEditor/HierarchicalMapping/containers/MappingsList/MappingsList";

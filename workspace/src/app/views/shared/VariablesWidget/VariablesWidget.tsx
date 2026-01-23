@@ -59,7 +59,7 @@ const VariablesWidget: React.FC<VariableWidgetProps> = ({ projectId, taskId }) =
     const [t] = useTranslation();
 
     const sensors = useSensors(
-        useSensor(dndkitUtils.DefaultMouseSensor),
+        useSensor(dndkitUtils.DefaultMouseSensor, dndkitUtils.defaultMouseSensorOptions),
         useSensor(KeyboardSensor, {
             coordinateGetter: sortableKeyboardCoordinates,
         })
@@ -370,7 +370,6 @@ const SortableVariableItem: React.FC<SortableVariableItemProps> = ({ variable, i
                         data-test-id="variable-edit-btn"
                         onClick={() => onEdit(variable)}
                         size={"small"}
-                        className={"nodrag"}
                     />
                     <IconButton
                         name="item-remove"
@@ -378,7 +377,6 @@ const SortableVariableItem: React.FC<SortableVariableItemProps> = ({ variable, i
                         onClick={() => onDelete(variable)}
                         disruptive
                         size={"small"}
-                        className={"nodrag"}
                     />
                 </ToolbarSection>
             </Toolbar>

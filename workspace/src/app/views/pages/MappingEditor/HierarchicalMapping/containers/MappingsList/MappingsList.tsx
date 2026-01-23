@@ -60,7 +60,7 @@ const MappingsList = ({
     const { registerError } = useErrorHandler();
 
     const sensors = useSensors(
-        useSensor(dndkitUtils.DefaultMouseSensor),
+        useSensor(dndkitUtils.DefaultMouseSensor, dndkitUtils.defaultMouseSensorOptions),
         useSensor(KeyboardSensor, {
             coordinateGetter: sortableKeyboardCoordinates,
         })

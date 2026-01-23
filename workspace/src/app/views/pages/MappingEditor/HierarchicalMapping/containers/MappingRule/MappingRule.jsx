@@ -176,7 +176,7 @@ export class MappingRule extends React.Component {
         );
         const reorderHandleButton = !this.props.expanded ? (
             <div className="ecc-silk-mapping__ruleitem-reorderhandler" key={id} ref={this.props.refFromParent}>
-                <ContextMenu togglerElement="item-draggable" style={{ align: "left", valign: "top" }} className={"nodrag"}>
+                <ContextMenu togglerElement="item-draggable" style={{ align: "left", valign: "top" }}>
                     <MenuItem
                         data-test-id={"reorder-mapping-move-to-top"}
                         text={"Move to top"}
@@ -188,7 +188,6 @@ export class MappingRule extends React.Component {
                                 id,
                             })
                         }
-                        className={"nodrag"}
                     />
                     <MenuItem
                         data-test-id={"reorder-mapping-move-up"}
@@ -201,7 +200,6 @@ export class MappingRule extends React.Component {
                                 id,
                             })
                         }
-                        className={"nodrag"}
                     />
                     <MenuItem
                         data-test-id={"reorder-mapping-move-down"}
@@ -214,7 +212,6 @@ export class MappingRule extends React.Component {
                                 id,
                             })
                         }
-                        className={"nodrag"}
                     />
                     <MenuItem
                         data-test-id={"reorder-mapping-move-to-bottom"}
@@ -227,7 +224,6 @@ export class MappingRule extends React.Component {
                                 id,
                             })
                         }
-                        className={"nodrag"}
                     />
                 </ContextMenu>
             </div>
