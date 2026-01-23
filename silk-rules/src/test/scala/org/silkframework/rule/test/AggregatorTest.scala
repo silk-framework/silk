@@ -107,6 +107,8 @@ abstract class AggregatorTest[T <: Aggregator : ClassTag] extends PluginTest {
 
     override def children: Seq[Operator] = Seq.empty
 
+    override def withId(newId: Identifier): Operator = this
+
     override def withChildren(newChildren: Seq[Operator]): Operator = this
   }
 
