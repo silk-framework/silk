@@ -1,6 +1,7 @@
 @import "~@eccenca/gui-elements/src/includes/blueprintjs/variables";
 @import "~@eccenca/gui-elements/src/includes/blueprintjs/requisits";
 
+// TODO: we need to check if this is still necessary
 .ecc-component-messagehandler {
     .ecc-temp__appmessages & {
         position: fixed;
@@ -39,12 +40,6 @@
     .mdl-textfield__label {
         pointer-events: none;
     }
-}
-
-ul.ecc-hierarchical-mapping-error-list {
-    margin-left: 0;
-    padding-left: 0;
-    list-style-type: none;
 }
 
 .ecc-silk-mapping__header {
