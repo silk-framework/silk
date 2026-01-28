@@ -6,6 +6,11 @@ on:
   pull_request:
     branches: [ develop, master ]
 
+permissions:
+  contents: read
+  checks: write
+  pull-requests: write
+
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -43,3 +48,13 @@ jobs:
       run: sbt test
       env:
         SBT_OPTS: "-Xmx6G -XX:+UseG1GC"
+
+    - name: Publish Test Report
+      uses: dorny/test-reporter@v1.9.1
+      if: always()
+      with:
+        name: Test Results
+        path: '**/target/test-reports/*.xml'
+        reporter: java-junit
+        fail-on-error: true
+
