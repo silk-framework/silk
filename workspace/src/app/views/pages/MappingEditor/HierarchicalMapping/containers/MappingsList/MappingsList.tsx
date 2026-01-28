@@ -1,5 +1,13 @@
 import React, { useEffect, useState } from "react";
-import { Card, CardHeader, CardTitle, Divider } from "@eccenca/gui-elements";
+import {
+    Card,
+    CardHeader,
+    CardOptions,
+    CardTitle,
+    Divider,
+    StickyTarget,
+    StickyTargetProps,
+} from "@eccenca/gui-elements";
 import { DndContext, KeyboardSensor, useSensor, useSensors } from "@dnd-kit/core";
 import {
     arrayMove,
@@ -122,10 +130,20 @@ const MappingsList = ({
         <div className="ecc-silk-mapping__ruleslist">
             {reorderingRequestPending && <Spinner position={"global"} />}
             <Card elevation={0}>
-                <CardHeader>
-                    <CardTitle>Mapping rules {`(${rules.length})`}</CardTitle>
-                </CardHeader>
-                <Divider />
+                <StickyTarget local background={"card"} offset={`${-14}px` as StickyTargetProps["offset"]}>
+                    <CardHeader>
+                        <CardTitle>Mapping rules {`(${rules.length})`}</CardTitle>
+                        <CardOptions>
+                            <ListActions
+                                onMappingCreate={onMappingCreate}
+                                onPaste={handlePaste}
+                                onShowSuggestions={onShowSuggestions}
+                                listLoading={loading}
+                            />
+                        </CardOptions>
+                    </CardHeader>
+                    <Divider />
+                </StickyTarget>
                 {!rules.length ? (
                     <EmptyList />
                 ) : (
@@ -157,12 +175,6 @@ const MappingsList = ({
                         </SortableContext>
                     </DndContext>
                 )}
-                <ListActions
-                    onMappingCreate={onMappingCreate}
-                    onPaste={handlePaste}
-                    onShowSuggestions={onShowSuggestions}
-                    listLoading={loading}
-                />
             </Card>
         </div>
     );

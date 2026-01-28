@@ -221,10 +221,6 @@
 }
 
 .ecc-silk-mapping__ruleslist {
-    .ecc-floatingactionlist__wrapper--fixed {
-        z-index: 2; // TODO: need to be moved to gui elements
-    }
-
     &:not(.ecc-silk-mapping__suggestionlist) {
         & .mdl-card__actions {
             background-color: transparent;
