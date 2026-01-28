@@ -26,19 +26,12 @@ jobs:
       with:
         node-version: '14.17.0'
         cache: 'yarn'
+        cache-dependency-path: 'yarn.lock'
 
     - name: Install Node dependencies
       run: yarn install
 
     - name: Run tests
       run: sbt test
-
-    - name: Cache SBT
-      uses: actions/cache@v4
-      with:
-        path: |
-          ~/.sbt
-          ~/.ivy2/cache
-        key: ${{ runner.os }}-sbt-${{ hashFiles('**/build.sbt', '**/build.properties', '**/plugins.sbt') }}
-        restore-keys: |
-          ${{ runner.os }}-sbt-
+      env:
+        SBT_OPTS: "-Xmx6G -XX:+UseG1GC"
