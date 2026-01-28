@@ -57,4 +57,6 @@ jobs:
         path: '**/target/test-reports/*.xml'
         reporter: java-junit
         fail-on-error: true
+        list-suites: 'failed'
+        list-tests: 'failed'
 
