@@ -1,18 +1,23 @@
-import React, {useEffect, useState} from "react";
-import {Card, CardTitle} from "gui-elements-deprecated";
-import {DndContext, KeyboardSensor, useSensor, useSensors} from "@dnd-kit/core";
-import {arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy} from "@dnd-kit/sortable";
-import {getApiDetails} from "../../store";
+import React, { useEffect, useState } from "react";
+import { Card, CardHeader, CardTitle, Divider } from "@eccenca/gui-elements";
+import { DndContext, KeyboardSensor, useSensor, useSensors } from "@dnd-kit/core";
+import {
+    arrayMove,
+    SortableContext,
+    sortableKeyboardCoordinates,
+    verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { getApiDetails } from "../../store";
 import DraggableItem from "../MappingRule/DraggableItem";
 import rulesToList from "../../utils/rulesToList";
 import ListActions from "./ListActions";
 import EmptyList from "./EmptyList";
-import {Spinner} from "@eccenca/gui-elements";
+import { Spinner } from "@eccenca/gui-elements";
 import silkRestApi from "../../../api/silkRestApi";
 import useErrorHandler from "../../../../../../hooks/useErrorHandler";
-import {IViewActions} from "../../../../../../views/plugins/PluginRegistry";
+import { IViewActions } from "../../../../../../views/plugins/PluginRegistry";
 import dndkitUtils from "../../../../../../utils/dndkitUtils";
-import {restrictToVerticalAxis} from "@dnd-kit/modifiers";
+import { restrictToVerticalAxis } from "@dnd-kit/modifiers";
 
 interface MappingsListProps {
     rules: any[];
@@ -25,7 +30,7 @@ interface MappingsListProps {
     handleClone?: (id, type, parent) => any;
     onClickedRemove?: () => any;
     onShowSuggestions?: () => any;
-    onRuleIdChange?: (param:  any) => any;
+    onRuleIdChange?: (param: any) => any;
     onAskDiscardChanges?: (param: any) => any;
     openMappingEditor: () => void;
     startFullScreen: boolean;
@@ -63,7 +68,7 @@ const MappingsList = ({
         useSensor(dndkitUtils.DefaultMouseSensor, dndkitUtils.defaultMouseSensorOptions),
         useSensor(KeyboardSensor, {
             coordinateGetter: sortableKeyboardCoordinates,
-        })
+        }),
     );
 
     useEffect(() => {
@@ -102,8 +107,8 @@ const MappingsList = ({
             return;
         }
 
-        const fromPos = items.findIndex(item => `draggable-${item.key}` === active.id);
-        const toPos = items.findIndex(item => `draggable-${item.key}` === over.id);
+        const fromPos = items.findIndex((item) => `draggable-${item.key}` === active.id);
+        const toPos = items.findIndex((item) => `draggable-${item.key}` === over.id);
 
         if (fromPos !== -1 && toPos !== -1) {
             handleOrderRules({
@@ -116,15 +121,19 @@ const MappingsList = ({
     return (
         <div className="ecc-silk-mapping__ruleslist">
             {reorderingRequestPending && <Spinner position={"global"} />}
-            <Card shadow={0}>
-                <CardTitle>
-                    <div className="mdl-card__title-text">Mapping rules {`(${rules.length})`}</div>
-                </CardTitle>
+            <Card elevation={0}>
+                <CardHeader>
+                    <CardTitle>Mapping rules {`(${rules.length})`}</CardTitle>
+                </CardHeader>
+                <Divider />
                 {!rules.length ? (
                     <EmptyList />
                 ) : (
                     <DndContext sensors={sensors} onDragEnd={onDragEnd} modifiers={[restrictToVerticalAxis]}>
-                        <SortableContext items={items.map((item) => `draggable-${item.key}`)} strategy={verticalListSortingStrategy}>
+                        <SortableContext
+                            items={items.map((item) => `draggable-${item.key}`)}
+                            strategy={verticalListSortingStrategy}
+                        >
                             <ol className="mdl-list">
                                 {items.map((item, index) => (
                                     <DraggableItem
