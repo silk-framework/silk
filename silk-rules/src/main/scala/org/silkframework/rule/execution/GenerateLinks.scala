@@ -15,7 +15,7 @@
 package org.silkframework.rule.execution
 
 import org.silkframework.cache.{EntityCache, FileEntityCache, MemoryEntityCache}
-import org.silkframework.config.{Prefixes, Task}
+import org.silkframework.config.{Directories, Prefixes, Task}
 import org.silkframework.dataset.{DataSource, LinkSink}
 import org.silkframework.entity.{Entity, EntitySchema, Link}
 import org.silkframework.execution.ExecutionReport
@@ -193,11 +193,11 @@ class GenerateLinks(task: Task[LinkSpec],
     val sourceSchema = comparisonToRestrictionConverter.extendEntitySchemaWithLinkageRuleRestriction(entityDescs.source, rule, sourceOrTarget = true)
     val targetSchema = comparisonToRestrictionConverter.extendEntitySchemaWithLinkageRuleRestriction(entityDescs.target, rule, sourceOrTarget = false)
     if (runtimeConfig.useFileCache) {
-      val cacheDir = new File(runtimeConfig.homeDir + "/entityCache/" + task.id + UUID.randomUUID().toString)
-
+      val cacheDir = Directories().cache.resolve("linkingCaches")
+      val fileName = task.id + "_" +  UUID.randomUUID().toString
       DPair(
-        source = new FileEntityCache(sourceSchema, sourceIndexFunction, cacheDir + "_source/", runtimeConfig),
-        target = new FileEntityCache(targetSchema, targetIndexFunction, cacheDir + "_target/", runtimeConfig)
+        source = new FileEntityCache(sourceSchema, sourceIndexFunction, cacheDir.resolve(fileName + "_source").toFile, runtimeConfig),
+        target = new FileEntityCache(targetSchema, targetIndexFunction, cacheDir.resolve(fileName + "_target").toFile, runtimeConfig)
       )
     } else {
       DPair(

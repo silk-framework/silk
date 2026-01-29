@@ -31,7 +31,6 @@ import org.silkframework.rule.execution.ExecutionMethod
   * @param partitionSize             The maximum size of the entity partitions in the cache.
   * @param numThreads                The number of concurrent threads used for matching.
   * @param generateLinksWithEntities Generate links with the entities they connect.
-  * @param homeDir                   The directory used by Silk to store persistent information such as caches.
   * @param sampleSizeOpt             Load all entities if set to None, else only load a random sample of max. the configured size
   *                                  from each data source to be linked.
   * @param linkLimit                 If defined, the execution will stop after the configured number of links is reached and will return
@@ -48,7 +47,6 @@ case class RuntimeLinkingConfig(executionMethod: ExecutionMethod = ExecutionMeth
                                 partitionSize: Int = 1000,
                                 numThreads: Int = Runtime.getRuntime.availableProcessors(),
                                 generateLinksWithEntities: Boolean = false,
-                                homeDir: String = System.getProperty("user.home") + "/.silk/",
                                 logLevel: Level = Level.INFO,
                                 sampleSizeOpt: Option[Int] = None,
                                 linkLimit: Option[Int] = None,
