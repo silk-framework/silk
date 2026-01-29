@@ -189,6 +189,7 @@
         "speed-measure-webpack-plugin": "^1.5.0",
         "style-loader": "0.23.1",
         "terser-webpack-plugin": "4.2.3",
+        "ts-node": "^10.9.2",
         "ts-pnp": "1.1.6",
         "typescript": "5.5.3",
         "url-loader": "^4.1.1",
