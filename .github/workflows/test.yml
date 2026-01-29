@@ -36,6 +36,10 @@ jobs:
       run: yarn i18n-parser
       working-directory: ./workspace
 
+    - name: Build frontend code
+      run: yarn build-di-prod
+      working-directory: ./workspace
+
     - name: Run jest tests
       run: yarn test-ci --config=./config/jest/config.js
       working-directory: ./workspace
