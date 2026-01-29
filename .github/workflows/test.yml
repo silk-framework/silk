@@ -49,7 +49,7 @@ jobs:
       working-directory: ./workspace
 
     - name: Run UI tests
-      run: yarn --config=./config/jest/config.ts test-ci
+      run: yarn test-ci --config=./config/jest/config.ts
       working-directory: ./workspace
 
     - name: Run tests
@@ -67,4 +67,3 @@ jobs:
         fail-on-error: true
         list-suites: 'failed'
         list-tests: 'failed'
-
