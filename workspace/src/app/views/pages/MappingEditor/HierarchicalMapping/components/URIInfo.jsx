@@ -1,7 +1,7 @@
 import React from "react";
 import _ from "lodash";
 import { getApiDetails, getVocabInfoAsync } from "../store";
-import { NotAvailable } from "gui-elements-deprecated";
+import { NotAvailable } from "@eccenca/gui-elements";
 
 export class URIInfo extends React.Component {
     state = {

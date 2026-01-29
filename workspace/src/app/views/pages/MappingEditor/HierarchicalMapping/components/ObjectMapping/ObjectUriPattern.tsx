@@ -1,24 +1,23 @@
 import React from "react";
-import { NotAvailable } from "gui-elements-deprecated";
 import { MAPPING_RULE_TYPE_COMPLEX_URI, MAPPING_RULE_TYPE_URI } from "../../utils/constants";
 import getPathsRecursive from "../../utils/getUriPaths";
 import getUriOperatorsRecursive from "../../utils/getUriOperators";
 import ComplexDeleteButton from "../../elements/buttons/ComplexeDeleteButton";
-import { IconButton } from "@eccenca/gui-elements";
+import { IconButton, NotAvailable } from "@eccenca/gui-elements";
 import { useGetRuleOperatorPlugins } from "../../../../../../hooks/useGetOperatorPlugins";
 
 interface ObjectUriPatternProps {
     uriRule: any;
     onRemoveUriRule: () => void;
     openMappingEditor: () => void;
-    showLabel?: boolean
+    showLabel?: boolean;
 }
 
 const ObjectUriPattern = ({ uriRule, onRemoveUriRule, openMappingEditor, showLabel = true }: ObjectUriPatternProps) => {
     const { getPluginDetailLabel } = useGetRuleOperatorPlugins();
     const { type, pattern } = uriRule;
 
-    let uriPattern = <NotAvailable label="automatic default pattern" inline />;
+    let uriPattern = <NotAvailable label="automatic default pattern" tooltip={""} noTag />;
 
     let uriPatternLabel = "URI pattern";
     let tooltipText = "Create URI formula";
@@ -51,10 +50,9 @@ const ObjectUriPattern = ({ uriRule, onRemoveUriRule, openMappingEditor, showLab
         <div className="ecc-silk-mapping__rulesviewer__idpattern">
             <div className="ecc-silk-mapping__rulesviewer__comment">
                 <dl className="ecc-silk-mapping__rulesviewer__attribute">
-                    {showLabel ?
-                        <dt className="ecc-silk-mapping__rulesviewer__attribute-label">{uriPatternLabel}</dt> :
-                        null
-                    }
+                    {showLabel ? (
+                        <dt className="ecc-silk-mapping__rulesviewer__attribute-label">{uriPatternLabel}</dt>
+                    ) : null}
                     <dd className="ecc-silk-mapping__rulesviewer__attribute-info">
                         {uriPattern}
                         <IconButton
