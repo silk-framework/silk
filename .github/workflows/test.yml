@@ -44,6 +44,12 @@ jobs:
     - name: Install Node dependencies
       run: yarn install
 
+    - name: Run i18n parser
+      run: yarn --cwd "${{ github.workspace }}/workspace" i18n-parser
+
+    - name: Run UI tests
+      run: yarn --cwd "${{ github.workspace }}/workspace" test-ci
+
     - name: Run tests
       run: sbt test
       env:
