@@ -1,6 +1,7 @@
 /* import type {Config} from "jest"; */
 
 module.exports = {
+    rootDir: "./../../",
     testEnvironment: "jsdom",
     testEnvironmentOptions: {
         url: "http://localhost/",

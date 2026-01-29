@@ -49,8 +49,8 @@ jobs:
       working-directory: ./workspace
 
     - name: Run UI tests
-      run: cd workspace && yarn test-ci --config=./config/jest/config.js
-      #working-directory: ./workspace
+      run: yarn test-ci --config=./config/jest/config.js
+      working-directory: ./workspace
 
     - name: Run tests
       run: sbt test
