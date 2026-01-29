@@ -2,7 +2,7 @@ package config
 
 import com.typesafe.config.{Config => TypesafeConfig}
 import config.WorkbenchConfig.Tabs
-import org.silkframework.config.{Config, DefaultConfig}
+import org.silkframework.config.{Config, DefaultConfig, Directories}
 import org.silkframework.runtime.metrics.MeterRegistryProvider
 import org.silkframework.runtime.metrics.MetricsConfig.prefix
 import org.silkframework.runtime.resource._
@@ -204,7 +204,7 @@ object WorkbenchConfig {
    */
   lazy val get = {
     val config = Configuration(DefaultConfig.instance())
-    val resourceLoader = getResourceLoader
+    val resourceLoader = createBrandingResourceLoader
 
     WorkbenchConfig(
       title = config.getOptional[String]("workbench.title").getOrElse("Silk Workbench"),
@@ -247,16 +247,13 @@ object WorkbenchConfig {
     }
   }
 
-  def getResourceLoader: ResourceLoader = {
-    DefaultConfig.instance.eldsHomeDir match {
-      case None =>
-        // If no eLDs home directory is set, use the classpath resource loader only.
-        ClasspathResourceLoader("")
-      case Some(eldsHome) =>
-        // If an eLDs home directory is set, use the file resource manager for the config directory.
-        val configDir = new File(eldsHome, Config.DATAINTEGRATION_CONFIG_DIR)
-        FallbackResourceManager(ReadOnlyResourceManager(ClasspathResourceLoader("")), FileResourceManager(configDir), writeIntoFallbackLoader = false)
-    }
+  /**
+   * The resource loader for branding resources, such as logos and welcome messages.
+   */
+  def createBrandingResourceLoader: ResourceLoader = {
+      // First search in the branding directory inside the data directory and then in the classpath
+      val brandingDir = Directories().data.resolve("branding").toFile
+      FallbackResourceManager(FileResourceManager(brandingDir), ReadOnlyResourceManager(ClasspathResourceLoader("")), writeIntoFallbackLoader = false)
   }
 
   /**
