@@ -44,12 +44,13 @@ jobs:
     - name: Install Node dependencies
       run: yarn install
 
-    # TODO: Fix UI tests
-    # - name: Run i18n parser
-    #   run: yarn --cwd "${{ github.workspace }}/workspace" i18n-parser
+    - name: Run i18n parser
+      run: yarn i18n-parser
+      working-directory: ./workspace
 
-    # - name: Run UI tests
-    #   run: yarn --cwd "${{ github.workspace }}/workspace" test-ci
+    - name: Run UI tests
+      run: yarn --config=./config/jest/config.ts test-ci
+      working-directory: ./workspace
 
     - name: Run tests
       run: sbt test
