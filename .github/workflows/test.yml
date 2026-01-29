@@ -49,7 +49,7 @@ jobs:
       working-directory: ./workspace
 
     - name: Run UI tests
-      run: yarn test-ci --config=./config/jest/config.ts
+      run: yarn test-ci --config=./config/jest/config.js
       working-directory: ./workspace
 
     - name: Run tests
