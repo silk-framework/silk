@@ -70,7 +70,7 @@ class WorkspaceController @Inject() (implicit workspaceReact: WorkspaceReact) ex
 
     // Load example and write it to a temporary file
     val exampleFile = Files.createTempFile("example", ".zip")
-    val inputStream = WorkbenchConfig.createBrandingResourceLoader.get("example.zip").inputStream
+    val inputStream = WorkbenchConfig.createConfigResourceLoader.get("example.zip").inputStream
 
     try {
       Files.copy(inputStream, exampleFile, StandardCopyOption.REPLACE_EXISTING)

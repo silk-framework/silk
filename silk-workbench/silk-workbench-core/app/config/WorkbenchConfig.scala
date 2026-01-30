@@ -204,7 +204,7 @@ object WorkbenchConfig {
    */
   lazy val get = {
     val config = Configuration(DefaultConfig.instance())
-    val resourceLoader = createBrandingResourceLoader
+    val resourceLoader = createConfigResourceLoader
 
     WorkbenchConfig(
       title = config.getOptional[String]("workbench.title").getOrElse("Silk Workbench"),
@@ -248,12 +248,12 @@ object WorkbenchConfig {
   }
 
   /**
-   * The resource loader for branding resources, such as logos and welcome messages.
+   * The resource loader for config resources, inclusing logos and welcome messages.
    */
-  def createBrandingResourceLoader: ResourceLoader = {
+  def createConfigResourceLoader: ResourceLoader = {
       // First search in the branding directory inside the data directory and then in the classpath
-      val brandingDir = Directories().data.resolve("branding").toFile
-      FallbackResourceManager(FileResourceManager(brandingDir), ReadOnlyResourceManager(ClasspathResourceLoader("")), writeIntoFallbackLoader = false)
+      val configDir = Directories().config.toFile
+      FallbackResourceManager(FileResourceManager(configDir), ReadOnlyResourceManager(ClasspathResourceLoader("")), writeIntoFallbackLoader = false)
   }
 
   /**
