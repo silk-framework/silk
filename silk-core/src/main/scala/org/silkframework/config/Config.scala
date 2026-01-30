@@ -23,6 +23,7 @@ trait Config {
 
 @Named("default")
 class DefaultConfig private() extends Config {
+
   // Overwrite default logging pattern for java.util.logging
   if (System.getProperty("java.util.logging.SimpleFormatter.format") == null) {
     System.setProperty("java.util.logging.SimpleFormatter.format", "%1$tb %1$td, %1$tY %1$tl:%1$tM:%1$tS %1$Tp %3$s%n%4$s: %5$s%6$s%n")
@@ -35,7 +36,28 @@ class DefaultConfig private() extends Config {
   private def init(): TypesafeConfig = {
     this.synchronized {
       ConfigFactory.invalidateCaches()
-      val fullConfig = ConfigFactory.load()
+
+      // Check for external config file based on environment variables
+      val configPath = sys.env.get("DATAINTEGRATION_CONFIG") match {
+        case Some(configDir) => s"$configDir/dataintegration.conf"
+        case None => sys.env.get("CMEM_HOME") match {
+          case Some(cmemHome) => s"$cmemHome/dataintegration/config/dataintegration.conf"
+          case None => sys.props.get("user.home").map(home => s"$home/.cmem/dataintegration/config/dataintegration.conf").getOrElse("")
+        }
+      }
+
+      val configFile = new java.io.File(configPath)
+      val fullConfig = if (configFile.exists()) {
+        println(s"Loading external config from: $configPath")
+        // Load with external config having highest priority
+        val externalConfig = ConfigFactory.parseFile(configFile)
+        ConfigFactory.systemProperties()
+          .withFallback(externalConfig)
+          .withFallback(ConfigFactory.load())
+      } else {
+        ConfigFactory.load()
+      }
+
       currentTimestamp = Instant.now()
       fullConfig.resolve()
     }
