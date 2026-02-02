@@ -30,7 +30,7 @@ jobs:
         cache-dependency-path: 'yarn.lock'
 
     - name: Install Node dependencies
-      run: yarn install
+      run: yarn install --frozen-lockfile
 
     - name: Run i18n parser
       run: yarn i18n-parser
