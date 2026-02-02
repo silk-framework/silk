@@ -10,49 +10,20 @@ $font_root: "~gui-elements-deprecated/dist/fonts";
 
 // -- Eccenca Material Design Lite -----------------------------------------------------
 
-// Resets and dependencies
-@import "~@eccenca/material-design-lite/src/resets/resets";
-
 // Components
-@import "~@eccenca/material-design-lite/src/badge/badge";
 @import "~@eccenca/material-design-lite/src/button/button";
-@import "~@eccenca/material-design-lite/src/checkbox/checkbox";
-@import "~@eccenca/material-design-lite/src/chip/chip";
-@import "~@eccenca/material-design-lite/src/list/list";
-@import "~@eccenca/material-design-lite/src/menu/menu";
-@import "~@eccenca/material-design-lite/src/progress/progress";
-@import "~@eccenca/material-design-lite/src/layout/layout"; // only necessary for legacy includes via iframe
-@import "~@eccenca/material-design-lite/src/radio/radio";
-@import "~@eccenca/material-design-lite/src/spinner/spinner";
-@import "~@eccenca/material-design-lite/src/switch/switch";
 @import "~@eccenca/material-design-lite/src/textfield/textfield";
 @import "~@eccenca/material-design-lite/src/tooltip/tooltip";
-@import "~@eccenca/material-design-lite/src/shadow/shadow";
-@import "~@eccenca/material-design-lite/src/grid/grid"; // only necessary for legacy includes via iframe
 
 // -- Own MDL & GUI extensions -------------------------------------------------
 
 @import "~gui-elements-deprecated/src/elements/Button/button";
-@import "~gui-elements-deprecated/src/elements/Breadcrumbs/breadcrumbs";
-@import "~gui-elements-deprecated/src/elements/Checkbox/checkbox";
-@import "replace-chip";
-@import "~gui-elements-deprecated/src/elements/ContextMenu/contextmenu";
-@import "~gui-elements-deprecated/src/elements/Dialog/dialog";
-@import "~gui-elements-deprecated/src/elements/Radio/radio";
-@import "~gui-elements-deprecated/src/elements/Progressbar/progressbar";
+@import "~gui-elements-deprecated/src/elements/TextField/textfield";
 @import "~gui-elements-deprecated/src/elements/SelectBox/selectbox";
 @import "~gui-elements-deprecated/src/elements/AutoCompleteBox/autocomplete";
-@import "~gui-elements-deprecated/src/elements/Spinner/spinner";
-@import "~gui-elements-deprecated/src/elements/Table/table";
-@import "~gui-elements-deprecated/src/elements/TextField/textfield";
-@import "~gui-elements-deprecated/src/elements/Tooltip/tooltip";
 
 // -- Changes ------------------------------------------------------------------
 
-@import "~gui-elements-deprecated/src/scss/adjustments";
-@import "~gui-elements-deprecated/src/scss/patches";
-
 // -- Fonts --------------------------------------------------------------------
 
-@import "~gui-elements-deprecated/src/scss/roboto";
 @import "~gui-elements-deprecated/src/scss/iconfont";
