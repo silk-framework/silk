@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { ScrollingHOC } from "gui-elements-deprecated";
+import { ScrollingHOC } from "../../../utils/ScrollingHOC";
 import {
     Button,
     CodeAutocompleteField,

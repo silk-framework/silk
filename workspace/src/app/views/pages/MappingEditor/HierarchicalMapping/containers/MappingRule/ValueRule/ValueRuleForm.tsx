@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { ScrollingHOC } from "gui-elements-deprecated";
+import { ScrollingHOC } from "../../../utils/ScrollingHOC";
 import { debounce } from "lodash";
 import {
     Card,
@@ -458,7 +458,7 @@ export function ValueRuleForm(props: IProps) {
                     checkInput={checkValuePathValidity}
                     onInputChecked={setValuePathValid}
                     onFocusChange={changeValuePathInputHasFocus}
-                    rightElement={<ComplexRuleEditButton/>}
+                    rightElement={<ComplexRuleEditButton />}
                 />
             );
         } else if (type === MAPPING_RULE_TYPE_COMPLEX) {

@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { MappingRule } from "./MappingRule";
-import { ScrollingHOC } from "gui-elements-deprecated";
+import { ScrollingHOC } from "../../utils/ScrollingHOC";
 
 import { URI } from "ecc-utils";
 import { MAPPING_RULE_TYPE_OBJECT } from "../../utils/constants";
@@ -25,14 +25,7 @@ const DraggableItem = (props) => {
     const [isPastedState, setIsPastedState] = useState(isPasted(props.id));
     const [expanded, setExpanded] = useState(isExpanded(props.id) || isPasted(props.id));
 
-    const {
-        attributes,
-        listeners,
-        setNodeRef,
-        transform,
-        transition,
-        isDragging,
-    } = useSortable({
+    const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
         id: `draggable-${props.id}`,
         disabled: expanded,
     });
@@ -55,14 +48,17 @@ const DraggableItem = (props) => {
         }
     }, []); // Only run on mount
 
-    const updateHistory = useCallback((ruleId) => {
-        if (!props.startFullScreen) {
-            const history = getHistory();
-            history.replace({
-                search: `?${new URLSearchParams({ ruleId })}`,
-            });
-        }
-    }, [props.startFullScreen]);
+    const updateHistory = useCallback(
+        (ruleId) => {
+            if (!props.startFullScreen) {
+                const history = getHistory();
+                history.replace({
+                    search: `?${new URLSearchParams({ ruleId })}`,
+                });
+            }
+        },
+        [props.startFullScreen],
+    );
 
     const updateQueryOnExpansion = useCallback(() => {
         if (expanded) {
@@ -73,16 +69,19 @@ const DraggableItem = (props) => {
         }
     }, [expanded, props.id, props.parentRuleId, props.scrollIntoView, updateHistory]);
 
-    const handleExpand = useCallback((newExpanded = !expanded, id = true) => {
-        // only trigger state / render change if necessary
-        if (
-            newExpanded !== expanded &&
-            props.type !== MAPPING_RULE_TYPE_OBJECT &&
-            (id === true || id === props.id)
-        ) {
-            setExpanded(newExpanded);
-        }
-    }, [expanded, props.type, props.id]);
+    const handleExpand = useCallback(
+        (newExpanded = !expanded, id = true) => {
+            // only trigger state / render change if necessary
+            if (
+                newExpanded !== expanded &&
+                props.type !== MAPPING_RULE_TYPE_OBJECT &&
+                (id === true || id === props.id)
+            ) {
+                setExpanded(newExpanded);
+            }
+        },
+        [expanded, props.type, props.id],
+    );
 
     // Call updateQueryOnExpansion when expanded changes
     useEffect(() => {
@@ -118,6 +117,6 @@ const DraggableItem = (props) => {
             {...props}
         />
     );
-}
+};
 
 export default ScrollingHOC(DraggableItem);
