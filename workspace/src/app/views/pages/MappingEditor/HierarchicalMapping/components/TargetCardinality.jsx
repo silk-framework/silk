@@ -1,5 +1,4 @@
 import React from "react";
-import { RadioGroup } from "gui-elements-deprecated";
 import * as PropTypes from "prop-types";
 import { FieldItem, RadioButton, Tooltip } from "@eccenca/gui-elements";
 
@@ -30,16 +29,20 @@ class TargetCardinality extends React.Component {
     renderRadioBox() {
         return (
             <FieldItem className={this.props.className}>
-                <RadioGroup
-                    value={this.state.isAttribute ? "single" : "multiple"}
-                    name=""
-                    onChange={({ value }) => {
-                        this.onChange(value === "single");
-                    }}
-                >
-                    <RadioButton name="single" value="single" labelElement={this.renderSingleValue()} />
-                    <RadioButton name="multiple" value="multiple" labelElement={this.renderMultipleValues()} />
-                </RadioGroup>
+                <RadioButton
+                    name="single"
+                    value="single"
+                    labelElement={this.renderSingleValue()}
+                    onChange={() => this.onChange(true)}
+                    checked={this.state.isAttribute}
+                />
+                <RadioButton
+                    name="multiple"
+                    value="multiple"
+                    labelElement={this.renderMultipleValues()}
+                    onChange={() => this.onChange(false)}
+                    checked={!this.state.isAttribute}
+                />
             </FieldItem>
         );
     }
