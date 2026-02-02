@@ -152,7 +152,7 @@ const MappingsList = ({
                             items={items.map((item) => `draggable-${item.key}`)}
                             strategy={verticalListSortingStrategy}
                         >
-                            <ol className="mdl-list">
+                            <ol>
                                 {items.map((item, index) => (
                                     <DraggableItem
                                         key={item.key}

@@ -14,7 +14,7 @@ import PropTypes from "prop-types";
 import MappingRuleRow from "./MappingRuleRow";
 import NavigateButton from "../../elements/buttons/NavigateButton";
 import ExpandButton from "../../elements/buttons/ExpandButton";
-import { ContextMenu, MenuItem, Spinner } from "@eccenca/gui-elements";
+import { ContextMenu, MenuItem, Spinner, OverviewItem, OverviewItemActions } from "@eccenca/gui-elements";
 import { getRuleLabel } from "../../utils/getRuleLabel";
 
 export class MappingRule extends React.Component {
@@ -237,7 +237,7 @@ export class MappingRule extends React.Component {
                     "ecc-silk-mapping__ruleitem--object": type === "object",
                     "ecc-silk-mapping__ruleitem--literal": type !== "object",
                     "ecc-silk-mapping__ruleitem--defect": errorInfo,
-                    "mdl-layout_item--background-flash": this.props.isPasted,
+                    "ecc-silk-mapping__ruleitem--new": this.props.isPasted,
                 })}
             >
                 <div
@@ -254,9 +254,9 @@ export class MappingRule extends React.Component {
                         })}
                     >
                         {reorderHandleButton}
-                        <div
+                        <OverviewItem
                             data-test-id="row-click"
-                            className="mdl-list__item clickable"
+                            hasSpacing={true}
                             onClick={(ev) =>
                                 isObjectRule(type)
                                     ? this.handleNavigate(this.props.id, this.props.parentId, ev)
@@ -271,7 +271,7 @@ export class MappingRule extends React.Component {
                                 sourcePath={srcPath}
                                 type={type}
                             />
-                            <div className="mdl-list__item-secondary-content" key="action">
+                            <OverviewItemActions>
                                 {!isObjectRule(type) && (
                                     <ExpandButton
                                         id={this.props.id}
@@ -292,8 +292,8 @@ export class MappingRule extends React.Component {
                                         }}
                                     />
                                 )}
-                            </div>
-                        </div>
+                            </OverviewItemActions>
+                        </OverviewItem>
                     </div>
                     {this.props.expanded ? (
                         <div className="ecc-silk-mapping__ruleitem-expanded nodrag">{expandedView}</div>

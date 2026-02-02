@@ -25,6 +25,7 @@ export const ThingIcon = ({ type, status, message }) => {
                 className="ecc-silk-mapping__ruleitem-icon"
                 name={status === "error" ? "warning" : iconName}
                 tooltip={status === "error" ? `${tooltip} (${message})` : tooltip}
+                small
             />
             <Spacing vertical size={"tiny"} />
         </>
