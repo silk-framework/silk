@@ -22,14 +22,6 @@
     // box-sizing: inherit;
 }
 
-.ecc-silk-mapping__header {
-    margin: $ecc-size-block-whitespace * 0.5 $ecc-size-block-whitespace;
-
-    &-action-row {
-        justify-content: flex-end;
-    }
-}
-
 .ecc-silk-mapping__treenav {
     ul,
     li {
@@ -127,24 +119,6 @@
     span.ecc-silk-mapping__treenav--item-rule-subtitle {
         @include typo-caption();
     }
-}
-
-.ecc-silk-mapping__rules {
-    .ecc-breadcrumbs__button {
-        padding-top: 0;
-        padding-bottom: 0;
-    }
-}
-
-.ecc-silk-mapping__navheader {
-    position: sticky;
-    top: 0;
-    z-index: 10;
-    margin-bottom: $ecc-size-block-whitespace;
-}
-
-.ecc-silk-mapping__navheader-row {
-    //overflow: visible;
 }
 
 .ecc-silk-mapping__rulesobject {
@@ -495,11 +469,4 @@
         background-color: darken($ecc-color-info-background, 30%);
         color: $ecc-color-info-text;
     }
-}
-
-.ecc-silk-mapping__tree-label-wrapper {
-    cursor: pointer;
-    flex-grow: 1;
-    flex-shrink: 1;
-    padding: $ecc-size-block-whitespace * 0.25 $ecc-size-block-whitespace * 0.5;
 }
