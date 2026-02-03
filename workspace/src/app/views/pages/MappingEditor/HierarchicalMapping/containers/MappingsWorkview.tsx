@@ -5,7 +5,7 @@
 import React from "react";
 import _ from "lodash";
 import { copyRuleAsync, errorChannel, getApiDetails, getRuleAsync } from "../store";
-import { Spinner, Spacing, Notification, ClassNames } from "@eccenca/gui-elements";
+import { Spinner, Spacing, Notification, ClassNames, GridColumn, WhiteSpaceContainer } from "@eccenca/gui-elements";
 import RootMappingRule from "./RootMappingRule";
 import ObjectMappingRuleForm from "./MappingRule/ObjectRule/ObjectRuleForm";
 import ValueMappingRuleForm from "./MappingRule/ValueRule/ValueRuleForm";
@@ -349,28 +349,41 @@ const MappingsWorkview = ({
         ) : null;
 
     return (
-        <div className="ecc-silk-mapping__rules">
-            {loadingWidget}
-            <RootMappingRule
-                rule={ruleData}
-                key={`objhead_${id}`}
-                handleCopy={handleCopy}
-                handleClone={handleClone}
-                onAskDiscardChanges={onAskDiscardChanges}
-                onClickedRemove={onClickedRemove}
-                openMappingEditor={openMappingEditor}
-                startFullScreen={startFullScreen}
-                viewActions={viewActions}
-            />
-            {listSuggestions || <div className={ClassNames.Blueprint.elevationClass(1)}>{listMappings}</div>}
-            {createRuleForm}
-            {error ? (
-                <>
-                    <Spacing />
-                    <Notification intent="warning" message={error} />
-                </>
-            ) : null}
-        </div>
+        <GridColumn
+            className="ecc-silk-mapping__rules"
+            style={{
+                maxHeight: "100%",
+                overflowY: "auto",
+            }}
+        >
+            <WhiteSpaceContainer
+                paddingTop={"regular"}
+                paddingRight={"regular"}
+                paddingBottom={"regular"}
+                paddingLeft={"small"}
+            >
+                {loadingWidget}
+                <RootMappingRule
+                    rule={ruleData}
+                    key={`objhead_${id}`}
+                    handleCopy={handleCopy}
+                    handleClone={handleClone}
+                    onAskDiscardChanges={onAskDiscardChanges}
+                    onClickedRemove={onClickedRemove}
+                    openMappingEditor={openMappingEditor}
+                    startFullScreen={startFullScreen}
+                    viewActions={viewActions}
+                />
+                {listSuggestions || <div className={ClassNames.Blueprint.elevationClass(1)}>{listMappings}</div>}
+                {createRuleForm}
+                {error ? (
+                    <>
+                        <Spacing />
+                        <Notification intent="warning" message={error} />
+                    </>
+                ) : null}
+            </WhiteSpaceContainer>
+        </GridColumn>
     );
 };
 

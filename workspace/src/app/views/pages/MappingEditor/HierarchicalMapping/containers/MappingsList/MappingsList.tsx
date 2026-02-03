@@ -130,7 +130,7 @@ const MappingsList = ({
         <div className="ecc-silk-mapping__ruleslist">
             {reorderingRequestPending && <Spinner position={"global"} />}
             <Card elevation={0}>
-                <StickyTarget local background={"card"} offset={`${-14}px` as StickyTargetProps["offset"]}>
+                <StickyTarget local background={"card"} offset={`${-1}px` as StickyTargetProps["offset"]}>
                     <CardHeader>
                         <CardTitle>Mapping rules {`(${rules.length})`}</CardTitle>
                         <CardOptions>

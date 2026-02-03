@@ -1,7 +1,14 @@
 import React from "react";
 import PropTypes from "prop-types";
 import _ from "lodash";
-import { InteractionGate, Notification, Icon, IconButton } from "@eccenca/gui-elements";
+import {
+    InteractionGate,
+    Notification,
+    Icon,
+    IconButton,
+    GridColumn,
+    WhiteSpaceContainer,
+} from "@eccenca/gui-elements";
 
 import RuleTypes from "../elements/RuleTypes";
 import RuleTitle from "../elements/RuleTitle";
@@ -320,25 +327,39 @@ class MappingsTree extends React.Component {
         const NavigationList = this.navigationList(tree);
 
         return (
-            <div className="ecc-silk-mapping__treenav">
+            <GridColumn
+                medium
+                className="ecc-silk-mapping__treenav"
+                style={{
+                    maxHeight: "100%",
+                    overflowY: "auto",
+                }}
+            >
                 <InteractionGate inert={navigationLoading} showSpinner={navigationLoading}>
-                    {navigationLoading && _.isUndefined(data) && (
-                        <Notification neutral data-test-id="ecc-silk-mapping__treenav-loading">
-                            Loading rules
-                        </Notification>
-                    )}
-                    {!navigationLoading && _.isEmpty(data) && (
-                        <Notification info data-test-id="ecc-silk-mapping__treenav-norules">
-                            No rules found
-                        </Notification>
-                    )}
-                    {!_.isEmpty(data) && (
-                        <ul className="ecc-silk-mapping__treenav--maintree">
-                            <li>{NavigationList}</li>
-                        </ul>
-                    )}
+                    <WhiteSpaceContainer
+                        paddingTop={"regular"}
+                        paddingRight={"small"}
+                        paddingBottom={"regular"}
+                        paddingLeft={"regular"}
+                    >
+                        {navigationLoading && _.isUndefined(data) && (
+                            <Notification neutral data-test-id="ecc-silk-mapping__treenav-loading">
+                                Loading rules
+                            </Notification>
+                        )}
+                        {!navigationLoading && _.isEmpty(data) && (
+                            <Notification info data-test-id="ecc-silk-mapping__treenav-norules">
+                                No rules found
+                            </Notification>
+                        )}
+                        {!_.isEmpty(data) && (
+                            <ul className="ecc-silk-mapping__treenav--maintree">
+                                <li>{NavigationList}</li>
+                            </ul>
+                        )}
+                    </WhiteSpaceContainer>
                 </InteractionGate>
-            </div>
+            </GridColumn>
         );
     }
 }
