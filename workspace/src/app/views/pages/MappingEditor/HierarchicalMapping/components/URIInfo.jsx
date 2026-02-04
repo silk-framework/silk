@@ -2,10 +2,11 @@ import React from "react";
 import _ from "lodash";
 import { getApiDetails, getVocabInfoAsync } from "../store";
 import { NotAvailable } from "@eccenca/gui-elements";
+import { TextToggler } from "../components/TextToggler";
 
 export class URIInfo extends React.Component {
     state = {
-        info: false,
+        info: "",
     };
 
     componentDidMount() {
@@ -36,7 +37,7 @@ export class URIInfo extends React.Component {
         const { info } = this.state;
 
         if (info) {
-            return <span>{info}</span>;
+            return <TextToggler text={info} />;
         }
 
         const { uri, fallback, field, ...otherProps } = this.props;

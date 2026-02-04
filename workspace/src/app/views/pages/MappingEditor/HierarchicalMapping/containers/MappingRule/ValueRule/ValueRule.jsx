@@ -1,5 +1,16 @@
 import React from "react";
-import { Card, CardActions, CardContent, Divider } from "@eccenca/gui-elements";
+import {
+    Card,
+    CardActions,
+    CardContent,
+    Divider,
+    PropertyValueList,
+    PropertyValuePair,
+    PropertyValue,
+    PropertyName,
+    Label,
+    Spacing,
+} from "@eccenca/gui-elements";
 import _ from "lodash";
 import PropTypes from "prop-types";
 import { getEditorHref } from "../../../store";
@@ -115,45 +126,72 @@ class ValueRule extends React.Component {
         if (mapRuleLoading) {
             return <Spinner />;
         }
+        const metaLabel = _.get(metadata, "label");
+        const metaDesc = _.get(metadata, "description");
         return (
             <div className="ecc-silk-mapping__rulesviewer">
                 <Card elevation={-1}>
                     <CardContent>
-                        {mappingTarget.uri ? (
-                            <TargetProperty
-                                key={"ObjectTargetProperty"}
-                                mappingTargetUri={mappingTarget.uri}
-                                isObjectMapping={false}
-                                isAttribute={mappingTarget.isAttribute}
-                            />
-                        ) : null}
-                        {nodeType ? <ValueNodeType nodeType={nodeType} valueType={mappingTarget.valueType} /> : null}
-                        {this.props.type === MAPPING_RULE_TYPE_DIRECT && !sourcePaths ? (
-                            <ObjectSourcePath>
-                                <code>{sourcePath ? sourcePath : "<empty>"}</code>
-                                <IconButton
-                                    name="item-edit"
-                                    data-test-id="complex-rule-edit-button"
-                                    onClick={this.handleComplexEdit}
-                                    text="Open value formula editor"
+                        <PropertyValueList>
+                            {(metaLabel || metaDesc) && (
+                                <>
+                                    <PropertyValuePair singleColumn>
+                                        {metaLabel && metaDesc ? (
+                                            <>
+                                                {_.get(metadata, "label") && (
+                                                    <MetadataLabel label={metaLabel} hasDescription />
+                                                )}
+                                                {_.get(metadata, "description") && (
+                                                    <MetadataDesc description={metaDesc} hasLabel />
+                                                )}
+                                            </>
+                                        ) : (
+                                            <>
+                                                {_.get(metadata, "label") && <MetadataLabel label={metaLabel} />}
+                                                {_.get(metadata, "description") && (
+                                                    <MetadataDesc description={metaDesc} />
+                                                )}
+                                            </>
+                                        )}
+                                    </PropertyValuePair>
+                                    <Spacing size={"small"} />
+                                </>
+                            )}
+                            {mappingTarget.uri ? (
+                                <TargetProperty
+                                    key={"ObjectTargetProperty"}
+                                    mappingTargetUri={mappingTarget.uri}
+                                    isObjectMapping={false}
+                                    isAttribute={mappingTarget.isAttribute}
                                 />
-                            </ObjectSourcePath>
-                        ) : null}
-                        {this.props.type !== MAPPING_RULE_TYPE_DIRECT && sourcePaths ? (
-                            <ValueSourcePaths paths={sourcePaths} operator={operator}>
-                                <IconButton
-                                    name="item-edit"
-                                    data-test-id="complex-rule-edit-button"
-                                    onClick={this.handleComplexEdit}
-                                    text="Editor value formula"
-                                />
-                            </ValueSourcePaths>
-                        ) : null}
-                        {id ? <ExampleTarget uriRuleId={id} /> : null}
-                        {_.get(metadata, "label") ? <MetadataLabel label={_.get(metadata, "label")} /> : null}
-                        {_.get(metadata, "description") ? (
-                            <MetadataDesc description={_.get(metadata, "description")} />
-                        ) : null}
+                            ) : null}
+                            {nodeType ? (
+                                <ValueNodeType nodeType={nodeType} valueType={mappingTarget.valueType} />
+                            ) : null}
+                            {this.props.type === MAPPING_RULE_TYPE_DIRECT && !sourcePaths ? (
+                                <ObjectSourcePath>
+                                    <code>{sourcePath ? sourcePath : "<empty>"}</code>
+                                    <IconButton
+                                        name="item-edit"
+                                        data-test-id="complex-rule-edit-button"
+                                        onClick={this.handleComplexEdit}
+                                        text="Open value formula editor"
+                                    />
+                                </ObjectSourcePath>
+                            ) : null}
+                            {this.props.type !== MAPPING_RULE_TYPE_DIRECT && sourcePaths ? (
+                                <ValueSourcePaths paths={sourcePaths} operator={operator}>
+                                    <IconButton
+                                        small
+                                        name="item-edit"
+                                        data-test-id="complex-rule-edit-button"
+                                        onClick={this.handleComplexEdit}
+                                        text="Editor value formula"
+                                    />
+                                </ValueSourcePaths>
+                            ) : null}
+                            {id ? <ExampleTarget uriRuleId={id} /> : null}
+                        </PropertyValueList>
                     </CardContent>
                     <Divider />
                     <CardActions
