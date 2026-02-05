@@ -8,19 +8,11 @@ import { TextToggler } from "../components/TextToggler";
 const TargetProperty = ({ mappingTargetUri, isObjectMapping, isAttribute = false }) => {
     return (
         <div className="ecc-silk-mapping__rulesviewer__targetProperty">
+            <TargetCardinality isAttribute={isAttribute} isObjectMapping={isObjectMapping} editable={false} />
+            <Spacing size={"small"} />
             <PropertyValuePair singleColumn className="ecc-silk-mapping__rulesviewer__attribute">
                 <PropertyName className="ecc-silk-mapping__rulesviewer__attribute-label">
-                    <Label
-                        emphasis={"strong"}
-                        text={"Target property"}
-                        info={
-                            <TargetCardinality
-                                isAttribute={isAttribute}
-                                isObjectMapping={isObjectMapping}
-                                editable={false}
-                            />
-                        }
-                    />
+                    <Label emphasis={"strong"} text={"Target property"} />
                 </PropertyName>
                 <PropertyValue>
                     <ThingName id={mappingTargetUri} />{" "}

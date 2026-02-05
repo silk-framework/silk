@@ -1,6 +1,6 @@
 import React from "react";
 import PropTypes from "prop-types";
-import { CardActions, CardContent, Divider } from "@eccenca/gui-elements";
+import { CardActions, CardContent, Divider, PropertyValuePair, Spacing } from "@eccenca/gui-elements";
 import _ from "lodash";
 import { getEditorHref, updateObjectMappingAsync } from "../../../store";
 import ObjectMappingRuleForm from "./ObjectRuleForm";
@@ -173,36 +173,64 @@ class ObjectRule extends React.Component {
             );
         }
 
+        const metaLabel = _.get(ruleData, "metadata.label");
+        const metaDesc = _.get(ruleData, "metadata.description");
+
         // @FIXME type vs ruleType is it not same?
         return (
             <div>
                 <div className="ecc-silk-mapping__rulesviewer">
                     <CardContent>
+                        {(metaLabel || metaDesc) && (
+                            <>
+                                <PropertyValuePair singleColumn>
+                                    {metaLabel && metaDesc ? (
+                                        <>
+                                            {_.get(metadata, "label") && (
+                                                <MetadataLabel label={metaLabel} hasDescription />
+                                            )}
+                                            {_.get(metadata, "description") && (
+                                                <MetadataDesc description={metaDesc} hasLabel />
+                                            )}
+                                        </>
+                                    ) : (
+                                        <>
+                                            {_.get(metadata, "label") && <MetadataLabel label={metaLabel} />}
+                                            {_.get(metadata, "description") && <MetadataDesc description={metaDesc} />}
+                                        </>
+                                    )}
+                                </PropertyValuePair>
+                                <Spacing size={"small"} />
+                            </>
+                        )}
                         {!isRootRule(type) ? (
                             [
+                                <ObjectEntityRelation
+                                    key={"ObjectEntityRelation"}
+                                    isBackwardProperty={_.get(ruleData, "mappingTarget.isBackwardProperty")}
+                                    parent={this.props.parent}
+                                />,
                                 <TargetProperty
                                     key={"ObjectTargetProperty"}
                                     mappingTargetUri={_.get(ruleData, "mappingTarget.uri")}
                                     isObjectMapping={true}
                                     isAttribute={_.get(ruleData, "mappingTarget.isAttribute")}
                                 />,
-                                <ObjectEntityRelation
-                                    key={"ObjectEntityRelation"}
-                                    isBackwardProperty={_.get(ruleData, "mappingTarget.isBackwardProperty")}
-                                    parent={this.props.parent}
-                                />,
                             ]
                         ) : (
-                            <TargetCardinality
-                                isAttribute={_.get(ruleData, "mappingTarget.isAttribute")}
-                                isObjectMapping={true}
-                                editable={false}
-                            />
+                            <>
+                                <TargetCardinality
+                                    isAttribute={_.get(ruleData, "mappingTarget.isAttribute")}
+                                    isObjectMapping={true}
+                                    editable={false}
+                                />
+                            </>
                         )}
-                        {_.get(ruleData, "rules.typeRules[0].typeUri") ? (
+                        <Spacing size="small" />
+                        {_.get(ruleData, "rules.typeRules[0].typeUri") && (
                             <ObjectTypeRules typeRules={_.get(ruleData, "rules.typeRules") || {}} />
-                        ) : null}
-                        {isObjectRule(type) && ruleData.sourcePath ? (
+                        )}
+                        {isObjectRule(type) && ruleData.sourcePath && (
                             <ObjectSourcePath type={ruleData.type}>
                                 <SourcePath
                                     rule={{
@@ -211,7 +239,7 @@ class ObjectRule extends React.Component {
                                     }}
                                 />
                             </ObjectSourcePath>
-                        ) : null}
+                        )}
                         {
                             <ObjectUriPattern
                                 uriRule={_.get(ruleData, "rules.uriRule") || {}}
@@ -220,15 +248,9 @@ class ObjectRule extends React.Component {
                                 openMappingEditor={this.openEditor}
                             />
                         }
-                        {_.get(ruleData, "rules.uriRule.id") ? (
+                        {_.get(ruleData, "rules.uriRule.id") && (
                             <ExampleTarget uriRuleId={_.get(ruleData, "rules.uriRule.id")} />
-                        ) : null}
-                        {_.get(ruleData, "metadata.label") ? (
-                            <MetadataLabel label={_.get(ruleData, "metadata.label", "")} />
-                        ) : null}
-                        {_.get(ruleData, "metadata.description") ? (
-                            <MetadataDesc description={_.get(ruleData, "metadata.description", "")} />
-                        ) : null}
+                        )}
                     </CardContent>
                     <Divider />
                     <CardActions

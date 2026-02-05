@@ -1,45 +1,34 @@
-import React from 'react';
-import { ThingName } from '../ThingName';
-import { ThingDescription } from '../ThingDescription';
-import { InfoBox } from '../InfoBox';
+import React from "react";
+import { PropertyValuePair, PropertyValue, PropertyName, Label, Spacing } from "@eccenca/gui-elements";
+import { ThingName } from "../ThingName";
+import { ThingDescription } from "../ThingDescription";
+import { TextToggler } from "../TextToggler";
 
 const ObjectTypeRules = ({ typeRules }) => {
     return (
         <div className="ecc-silk-mapping__rulesviewer__targetEntityType">
-            <dl className="ecc-silk-mapping__rulesviewer__attribute">
-                <dt className="ecc-silk-mapping__rulesviewer__attribute-label">
-                    {typeRules.length > 1
-                        ? 'Target entity types'
-                        : 'Target entity type'}
-                </dt>
+            <PropertyValuePair singleColumn className="ecc-silk-mapping__rulesviewer__attribute">
+                <PropertyName className="ecc-silk-mapping__rulesviewer__attribute-label">
+                    <Label
+                        emphasis={"strong"}
+                        text={typeRules.length > 1 ? "Target entity types" : "Target entity type"}
+                    />
+                </PropertyName>
                 {typeRules.map((typeRule, idx) => (
-                    <dd key={`TargetEntityType_${idx}`}>
-                        <InfoBox>
-                            <div className="ecc-silk-mapping__rulesviewer__attribute-title ecc-silk-mapping__rulesviewer__infobox-main">
-                                <ThingName
-                                    id={
-                                        typeRule.typeUri
-                                    }
-                                />
-                            </div>
-                            <div className="ecc-silk-mapping__rulesviewer__attribute-info ecc-silk-mapping__rulesviewer__infobox-main">
-                                <code>
-                                    {typeRule.typeUri}
-                                </code>
-                            </div>
-                            <div className="ecc-silk-mapping__rulesviewer__attribute-info ecc-silk-mapping__rulesviewer__infobox-sub">
-                                <ThingDescription
-                                    id={
-                                        typeRule.typeUri
-                                    }
-                                />
-                            </div>
-                        </InfoBox>
-                    </dd>
+                    <PropertyValue key={`TargetEntityType_${idx}`}>
+                        <ThingName id={typeRule.typeUri} />{" "}
+                        <code>
+                            {"<"}
+                            {typeRule.typeUri}
+                            {">"}
+                        </code>{" "}
+                        <TextToggler text={<ThingDescription id={typeRule.typeUri} />} />
+                    </PropertyValue>
                 ))}
-            </dl>
+            </PropertyValuePair>
+            <Spacing size="small" />
         </div>
-    )
+    );
 };
 
 export default ObjectTypeRules;

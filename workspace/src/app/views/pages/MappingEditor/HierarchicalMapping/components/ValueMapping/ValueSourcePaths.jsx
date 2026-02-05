@@ -10,7 +10,12 @@ const ValueSourcePaths = ({ paths, operator, children }) => {
         <div className="ecc-silk-mapping__rulesviewer__sourcePath">
             <PropertyValuePair singleColumn className="ecc-silk-mapping__rulesviewer__attribute">
                 <PropertyName className="ecc-silk-mapping__rulesviewer__attribute-label">
-                    <Label text={"Value formula"} emphasis={"strong"} additionalElements={children} />
+                    <Label
+                        text={"Value formula"}
+                        emphasis={"strong"}
+                        additionalElements={children}
+                        isLayoutForElement={"span"}
+                    />
                 </PropertyName>
                 <PropertyValue className="ecc-silk-mapping__rulesviewer__attribute-info">
                     Formula uses {paths.length} value path{paths.length > 1 ? "s" : ""}:{" "}

@@ -13,7 +13,7 @@ const MetadataLabel = ({ label, hasDescription }) => {
                     <PropertyName>
                         <Label text={"Mapping label"} emphasis={"strong"} />
                     </PropertyName>
-                    <PropertyName className="ecc-silk-mapping__rulesviewer__label">{label}</PropertyName>
+                    <PropertyValue className="ecc-silk-mapping__rulesviewer__label">{label}</PropertyValue>
                 </>
             )}
         </>

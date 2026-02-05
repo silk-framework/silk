@@ -1,4 +1,5 @@
 import React from "react";
+import { PropertyValuePair, PropertyValue, PropertyName, Label, Spacing } from "@eccenca/gui-elements";
 import { MAPPING_RULE_TYPE_COMPLEX_URI, MAPPING_RULE_TYPE_URI } from "../../utils/constants";
 import getPathsRecursive from "../../utils/getUriPaths";
 import getUriOperatorsRecursive from "../../utils/getUriOperators";
@@ -36,9 +37,9 @@ const ObjectUriPattern = ({ uriRule, onRemoveUriRule, openMappingEditor, showLab
 
         uriPattern = (
             <span>
-                URI uses {paths.length} value {paths.length > 1 ? "paths" : "path"}:&nbsp;
-                <code>{paths.join(", ")}</code>&nbsp;and {operators.length}&nbsp; operator{" "}
-                {operators.length > 1 ? "functions" : "function"}:&nbsp;
+                URI uses {paths.length} value {paths.length > 1 ? "paths" : "path"}: <code>{paths.join(", ")}</code>
+                <br />
+                and {operators.length}&nbsp; operator {operators.length > 1 ? "functions" : "function"}:{" "}
                 <code>{operators.map(getPluginDetailLabel).join(", ")}</code>.
             </span>
         );
@@ -49,22 +50,34 @@ const ObjectUriPattern = ({ uriRule, onRemoveUriRule, openMappingEditor, showLab
     return (
         <div className="ecc-silk-mapping__rulesviewer__idpattern">
             <div className="ecc-silk-mapping__rulesviewer__comment">
-                <dl className="ecc-silk-mapping__rulesviewer__attribute">
+                <PropertyValuePair singleColumn className="ecc-silk-mapping__rulesviewer__attribute">
                     {showLabel ? (
-                        <dt className="ecc-silk-mapping__rulesviewer__attribute-label">{uriPatternLabel}</dt>
+                        <PropertyName className="ecc-silk-mapping__rulesviewer__attribute-label">
+                            <Label
+                                text={uriPatternLabel}
+                                emphasis={"strong"}
+                                additionalElements={
+                                    <>
+                                        <IconButton
+                                            name="item-edit"
+                                            data-test-id="complex-rule-edit-button"
+                                            onClick={openMappingEditor}
+                                            text={tooltipText}
+                                            small
+                                        />
+                                        {removeButton}
+                                    </>
+                                }
+                                isLayoutForElement={"span"}
+                            />
+                        </PropertyName>
                     ) : null}
-                    <dd className="ecc-silk-mapping__rulesviewer__attribute-info">
+                    <PropertyValue className="ecc-silk-mapping__rulesviewer__attribute-info">
                         {uriPattern}
-                        <IconButton
-                            name="item-edit"
-                            data-test-id="complex-rule-edit-button"
-                            onClick={openMappingEditor}
-                            text={tooltipText}
-                        />
-                        {removeButton}
-                    </dd>
-                </dl>
+                    </PropertyValue>
+                </PropertyValuePair>
             </div>
+            <Spacing size="small" />
         </div>
     );
 };
