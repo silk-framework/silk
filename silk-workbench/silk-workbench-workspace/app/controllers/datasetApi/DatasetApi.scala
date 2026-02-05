@@ -10,10 +10,13 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.tags.Tag
 import io.swagger.v3.oas.annotations.{Operation, Parameter}
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
+import org.silkframework.runtime.validation.{BadUserInputException, ConflictRequestException}
+import org.silkframework.workspace.activity.dataset.TypesCache
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, InjectedController}
 
 import javax.inject.Inject
+import scala.util.Try
 
 /**
   * REST API for dataset tasks.
@@ -59,5 +62,48 @@ class DatasetApi @Inject() () extends InjectedController with UserContextActions
       val (_, dataset) = projectAndTask[GenericDatasetSpec](projectId, datasetId)
       val datasetCharacteristics = dataset.data.characteristics
       Ok(Json.toJson(datasetCharacteristics))
+  }
+
+  @Operation(
+    summary = "Clear dataset",
+    description = "Clears the content of a dataset. What will actually be done depends on the dataset's implementation, e.g. deleting the referenced file etc.",
+    responses = Array(
+      new ApiResponse(
+        responseCode = "201",
+        description = "Success"
+      ),
+      new ApiResponse(
+        responseCode = "404",
+        description = "If the specified project or dataset has not been found."
+      )
+    )
+  )
+  def clearDataset(@Parameter(
+                     name = "projectId",
+                     description = "The project identifier",
+                     required = true,
+                     in = ParameterIn.PATH,
+                     schema = new Schema(implementation = classOf[String])
+                   )
+                   projectId: String,
+                   @Parameter(
+                     name = "datasetId",
+                     description = "The dataset identifier",
+                     required = true,
+                     in = ParameterIn.PATH,
+                     schema = new Schema(implementation = classOf[String])
+                   )
+                   datasetId: String): Action[AnyContent] = UserContextAction { implicit userContext =>
+    val (_, dataset) = projectAndTask[GenericDatasetSpec](projectId, datasetId)
+    if(dataset.readOnly) {
+      throw ConflictRequestException("Cannot clear dataset! It is set to read-only.")
+    }
+    val sink = dataset.data.entitySink
+    sink.clear(force = true)
+    val typeCache = dataset.activity[TypesCache].control
+    // This will throw an exception if the previous cache execution as failed.
+    Try(typeCache.waitUntilFinished())
+    Try(typeCache.start())
+    NoContent
   }
 }
