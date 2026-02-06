@@ -604,7 +604,7 @@
     },
     "deprecatedPlugins": {
       "title": "Deprecated Plugins",
-      "noPluginsFound": "No deprecated plugins found.",
+      "noPluginsFound": "This page lists plugins that are used in existing projects but have been marked as deprecated. Good news: No deprecated plugins were found in your workspace!",
       "unknownTask": "Unknown Task",
       "infoMessage": "This page lists plugins that are used in existing projects but have been marked as deprecated. It is recommended to replace these plugins to ensure compatibility with future versions of the application.",
       "deprecationMessage": "Plugin is deprecated.",

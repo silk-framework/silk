@@ -25,7 +25,12 @@ import { SERVE_PATH } from "../../../constants/path";
 
 interface DeprecatedPluginsModel {
   project?: string;
+  projectLabel?: string;
   task?: string;
+  taskLabel?: string;
+  itemType?: string;
+  pluginId: string;
+  pluginLabel: string;
   link?: string;
   deprecationMessage?: string;
 }
@@ -93,13 +98,15 @@ export default function DeprecatedPlugins() {
       {/* page header in app bar */}
       {pageHeader}
       {/* information alert to user when no deprecated plugins are found */}
-      <Notification>
+
+      {deprecatedPlugins.length > 0 && <Notification>
         {t(
           "pages.deprecatedPlugins.infoMessage",
           "This page lists plugins that are used in existing projects but have been marked as deprecated. It is recommended to replace these plugins to ensure compatibility with future versions of the application.",
         )}
       </Notification>
-      <br/>
+      }
+      <br />
       {/* list of deprecated plugins in two column layout */}
       <Datalist
         data-test-id="deprecated-plugins-list"
@@ -108,13 +115,10 @@ export default function DeprecatedPlugins() {
         hasSpacing
         columns={2}
         emptyContainer={
-          <Notification>
-            {t(
-              "pages.deprecatedPlugins.noPluginsFound",
-              "No deprecated plugins found.",
-            )}
-          </Notification>
-        }
+          <Notification>{t(
+            "pages.deprecatedPlugins.noPluginsFound",
+            "This page lists plugins that are used in existing projects but have been marked as deprecated. Good news: No deprecated plugins were found in your workspace!",
+          )}</Notification>}
       >
         {deprecatedPlugins.map((plugin, index) => (
           <Card
@@ -131,14 +135,13 @@ export default function DeprecatedPlugins() {
                   {/* task label */}
                   <h4 style={{ display: "inline" }}>
                     <ResourceLink
-                      url={plugin.link || false}
+                      url={plugin.taskLabel || false}
                       handlerResourcePageLoader={
                         plugin.link ? goToTaskPage(plugin.link) : false
                       }
                     >
-
                       <OverflowText>
-                        {plugin.task ||
+                        {plugin.taskLabel ||
                           t(
                             "pages.deprecatedPlugins.unknownTask",
                             "Unknown Task",
@@ -153,10 +156,10 @@ export default function DeprecatedPlugins() {
                         plugin.deprecationMessage.length > 80,
                         <OverflowText passDown={true} inline={true}>
                           {plugin.deprecationMessage ||
-                          t(
-                            "pages.deprecatedPlugins.deprecationMessage",
-                            "Plugin is deprecated.",
-                          )}
+                            t(
+                              "pages.deprecatedPlugins.deprecationMessage",
+                              "Plugin is deprecated.",
+                            )}
                         </OverflowText>,
                         <div>{plugin.deprecationMessage.substring(0, 80) ||
                           t(
@@ -170,8 +173,14 @@ export default function DeprecatedPlugins() {
                 <OverviewItemLine small>
                   {/* Tags (Plugin label, project label, item label) */}
                   <TagList>
-                    {plugin.project && (
-                      <Tag emphasis="weak">{plugin.project}</Tag>
+                    {plugin.pluginLabel && (
+                      <Tag emphasis="weak">{plugin.pluginLabel}</Tag>
+                    )}
+                    {plugin.projectLabel && (
+                      <Tag emphasis="weak">{plugin.projectLabel}</Tag>
+                    )}
+                    {plugin.itemType && (
+                      <Tag emphasis="weak">{plugin.itemType}</Tag>
                     )}
                   </TagList>
                 </OverviewItemLine>
