@@ -1,1351 +1,1365 @@
 {
-    "CreateModal": {
-        "createTitle": "Create new item of type {{type}}",
-        "createTitleGeneric": "Create new item",
-        "loading": "Loading artefact type list.",
-        "noMatch": "No match found.",
-        "updateTitle": "Update item {{type}}",
-        "autoConfigButton": "Auto-config",
-        "autoConfigTooltip": "Try to auto-configure technical parameters of the item based on the current configuration.",
-        "autoConfigParametersUpdated": "Auto-configuration has changed {{number}} parameter values.",
-        "pluginActions": "Additional actions",
-        "projectContext": {
-            "configResetInfo": "All settings are going to be reset, except label and description.",
-            "selectProjectLabel": "Select target project",
-            "noOptions": "No projects found.",
-            "selectProjectInfo": "Select the target project for the new item first, then you can configure it here.",
-            "selectedProject": "Selected target project",
-            "changeProjectButton": "Change target project",
-            "resetModalTitle": "Configuration reset necessary"
+  "CreateModal": {
+    "createTitle": "Create new item of type {{type}}",
+    "createTitleGeneric": "Create new item",
+    "loading": "Loading artefact type list.",
+    "noMatch": "No match found.",
+    "updateTitle": "Update item {{type}}",
+    "autoConfigButton": "Auto-config",
+    "autoConfigTooltip": "Try to auto-configure technical parameters of the item based on the current configuration.",
+    "autoConfigParametersUpdated": "Auto-configuration has changed {{number}} parameter values.",
+    "pluginActions": "Additional actions",
+    "projectContext": {
+      "configResetInfo": "All settings are going to be reset, except label and description.",
+      "selectProjectLabel": "Select target project",
+      "noOptions": "No projects found.",
+      "selectProjectInfo": "Select the target project for the new item first, then you can configure it here.",
+      "selectedProject": "Selected target project",
+      "changeProjectButton": "Change target project",
+      "resetModalTitle": "Configuration reset necessary"
+    },
+    "ReadOnlyParameter": {
+      "label": "Read-only",
+      "description": "If enabled, all write operations using this dataset object will fail, e.g. when used as output in workflows or transform/linking executions. This will NOT protect the underlying resource in general, e.g. files, databases or knowledge graphs could still be changed externally."
+    },
+    "CustomIdentifierInput": {
+      "ProjectId": "Project identifier",
+      "ProjectUri": "Project URI",
+      "TaskId": "Item identifier",
+      "TaskUri": "Item URI",
+      "helperDescription": "An unique identifier, e.g. `my-new-element`. This identifier is used for references and URLs.",
+      "validations": {
+        "invalid": "Only following characters (ranges) are allowed in a valid ID: a - z, A - Z, 0 - 9, _, -",
+        "unique": "Identifier must be unique. The entered identifier is already used for another item."
+      }
+    }
+  },
+  "ShowIdentifierModal": {
+    "title": "Item identifier",
+    "combinedIdentifier": "Combined project and task identifier"
+  },
+  "StickyNoteModal": {
+    "title": "Add note",
+    "tooltip": "Add note",
+    "labels": {
+      "codeEditor": "Note",
+      "color": "Color"
+    }
+  },
+  "DataList": {
+    "loading": "Loading data."
+  },
+  "DataPreview": {
+    "loadMore": "Load more",
+    "loadMoreTooltip": "Load and append more text of this file",
+    "formatText": "Format text",
+    "load": "Load preview",
+    "loading": "Loading preview data.",
+    "noAttributes": "No attributes found. This might be an empty dataset.",
+    "notLoading": "Validation failed. Not loading preview.",
+    "previewOf": "Preview of",
+    "reload": "Reload preview",
+    "typeSelection": "Type Selection",
+    "typeSelectionBack": "Back to type selection",
+    "typeSelectionTooltip": "The data source consists of multiple types. Select one type from the list for a preview. There are max. 1000 types fetched at any time.",
+    "clearDatasetModal": {
+      "title": "Clear dataset",
+      "content": "Are you sure you want to clear the dataset? This action cannot be undone.",
+      "actionBtn": "Clear dataset",
+      "error": "Error while clearing dataset",
+      "readOnly": "The dataset is set to read-only and cannot be cleared."
+    }
+  },
+  "DataProfiling": {
+    "attributes": {
+      "count": {
+        "comment": "The count of profiled values. Note that usually only a sample of the dataset is profiled, i.e., the total number of values in the dataset may be higher",
+        "label": "Count"
+      },
+      "datatype": {
+        "comment": "The detected data type.",
+        "label": "Data type"
+      },
+      "distribution": {
+        "comment": "The distribution of values. Depending on the data type the histogram can be interpreted differently. For interval scaled types this is usually the histogram from the min to the max value.",
+        "label": "Distribution"
+      },
+      "max": {
+        "comment": "The largest value of all profiled values. The representation of the value can be normalized, depending on the detected data type.",
+        "label": "Max. value"
+      },
+      "maxStrLength": {
+        "comment": "The longest string length in number of characters.",
+        "label": "Length (max)"
+      },
+      "mean": {
+        "comment": "The arithmetic mean of all profiled values. The representation of the value can be normalized, depending on the detected data type.",
+        "label": "Mean value"
+      },
+      "meanStrLength": {
+        "comment": "The average string length in number of characters of all profiled values.",
+        "label": "Length (avg)"
+      },
+      "min": {
+        "comment": "The smallest value of all profiled values. The representation of the value can be normalized, depending on the detected data type.",
+        "label": "Min. value"
+      },
+      "minStringLength": {
+        "comment": "The shortest string length in number of characters.",
+        "label": "Length (min)"
+      },
+      "profilingTimestamp": {
+        "comment": "The time the profiling information was extracted from the data source.",
+        "label": "Profiling timestamp"
+      },
+      "regexPatterns": {
+        "comment": "A set of extracted regular expression patterns that cover all of the profiled values.",
+        "label": "Regex patterns"
+      },
+      "samples": {
+        "comment": "Values sampled from all profiled values. Usually this sample is uniformly selected from the set of unique values. The representation of the values can be normalized, depending on the detected data type.",
+        "label": "Samples"
+      },
+      "uniqueCount": {
+        "comment": "The count of unique values.",
+        "label": "Count (unique)"
+      }
+    },
+    "noAttributeProfile": "No profiling data available.",
+    "profilingInfoHeader": "Profiling info for {{path}} data",
+    "profilingInfoTooltip": "Show extended profiling info for {{path}}",
+    "profilingNotAvailable": "No profiling data available, yet.",
+    "profilingRunning": "Running profiling on"
+  },
+  "DeleteModal": {
+    "confirmMsg": "The {{itemType}} '{{name}}' is used by other items! Deleting this item will also delete all depending items listed below:",
+    "deleteResource": "{{type}} '{{name}}' will be deleted.",
+    "projectNote": "All contained items will be deleted, too."
+  },
+  "Deletedialog": {
+    "loading": "Loading delete dialog."
+  },
+  "FileMenu": {
+    "create": "Create empty file",
+    "empty": "Select file from project",
+    "new": "Upload new file"
+  },
+  "FileUploader": {
+    "abort": "Abort and keep file",
+    "abortOnly": "Abort Upload",
+    "abortProcess": "Abort upload process?",
+    "changeFile": "Change file",
+    "createNewFile": "New file name",
+    "dropzone": "Drop files here or browse",
+    "fileNotSpecified": "File name not specified",
+    "modalTitle": "Upload file",
+    "retry": "Retry",
+    "retryAbortMessage": "The {{fileName}} upload process aborted",
+    "retryMessage": "Something going wrong during upload process for {{fileName}}",
+    "selectFromProject": "Select file from projects",
+    "successfullyUploaded": "{{uploadedName}} was successfully uploaded",
+    "uploadError": "An upload error has occurred for file '{{fileName}}'. Details: {{errorDetails}}",
+    "waitFor": "File '{{fileName}}' is being uploaded."
+  },
+  "Metadata": {
+    "addNewTag": "Add new tag",
+    "newTagPostfix": " (new tag)",
+    "loading": "Loading summary data.",
+    "updateFailed": "Updating meta data has failed",
+    "unsavedMetaDataWarning": "There are unsaved changes that will be lost. Do you still want to proceed?",
+    "lastModifiedBy": "Last modified <timestamp>{{timestamp}}</timestamp> by <author>{{author}}</author>.",
+    "createdBy": "Created <timestamp>{{timestamp}}</timestamp> by <author>{{author}}</author>.",
+    "unknownuser": "unknown user",
+    "prefixAgo": "",
+    "suffixAgo": " ago",
+    "dateFormat": "{{year}}/{{month}}/{{day}}",
+    "markdownHelperText": "Learn more about Markdown formatting",
+    "markdownHelperLinkText": "here"
+  },
+  "OverwriteModal": {
+    "overwriteFile": "File '{{fileName}}' already exists. Do you want to overwrite it?"
+  },
+  "Pagination": {
+    "backToPage1": "Back to page 1",
+    "backwardText": "Previous page",
+    "forwardText": "Next page",
+    "invalidPageError": "Invalid page. ",
+    "itemRangeText": "{{min}}–{{max}} of {{total}} items",
+    "itemsPerPage": "Items per page:",
+    "pageRangeText": "of {{total}} pages"
+  },
+  "ParameterWidget": {
+    "AutoComplete": {
+      "createNewItem": "Custom entry: '{{query}}'",
+      "fetchErrorTitle": "Could not fetch auto-completion suggestions. ",
+      "missingDependsOnValuesInfo": "Parameter is disabled because it requires following parameters to be non-empty: {{parameterLabels}}"
+    },
+    "parameterDocLinkText": "See documentation"
+  },
+  "PrefixDialog": {
+    "deletePrefix": "Prefix '{{prefixName}}' will be deleted.",
+    "overwritePrefix": "Update existing prefix '{{prefixName}}'?",
+    "prefixNameInvalid": "The prefix name you have entered is invalid",
+    "prefixUriInvalid": "The entered URI prefix must be a valid URI / IRI.",
+    "prefixUriInvalidChar": "The entered URI prefix contains invalid characters. First invalid character at position {{idx}} is '{{char}}'."
+  },
+  "ProjectImportModal": {
+    "importBtn": "Import project",
+    "importSummary": "Imported project summary",
+    "importUnderFreshIdBtn": "Import as new project",
+    "openExistingProject": "Open existing project page",
+    "projectFile": "Choose project file to import:",
+    "replaceImportBtn": "Replace existing project",
+    "responseInvalid": "Invalid response received from project upload. Project import cannot proceed.",
+    "responseUploadError": "File {{file}} could not be uploaded! {{details}}",
+    "restoreNotice": "Want to restore an existing project?",
+    "restoreStarter": "Import project file",
+    "title": "Project import",
+    "warningExistingProject": "A project with the same ID already exists! Choose to either overwrite the existing project or import the project under a freshly generated ID."
+  },
+  "RecentlyViewedModal": {
+    "globalSearch": "Search in workspace for '{{query}}'",
+    "placeholder": "Search recently viewed items or in workspace",
+    "title": "Quick search"
+  },
+  "RelatedItems": {
+    "title": "Related items"
+  },
+  "header": {
+    "keyboardShortcutsModal": {
+      "title": "Keyboard shortcuts",
+      "categories-title": "Sections",
+      "key-directives": {
+        "then": "then"
+      },
+      "categories": {
+        "general": {
+          "label": "Build",
+          "shortcuts": {
+            "quick-search": "Quick search",
+            "help": "Open keyboard shortcut help",
+            "go-home": "Go home",
+            "browse-projects": "Browse projects",
+            "browse-datasets": "Browse datasets",
+            "browse-workflows": "Browse workflows",
+            "browse-tasks": "Browse tasks",
+            "browse-transform-tasks": "Browse transform tasks",
+            "browse-linking-tasks": "Browse linking tasks",
+            "browse-activities-tasks": "Browse activities tasks",
+            "create-project": "Create project",
+            "create-workflow": "Create workflow",
+            "create-dataset": "Create dataset",
+            "create-transform": "Create Transform",
+            "create-linking": "Create Linking",
+            "create-task": "Create Task",
+            "create-new-item": "Create new item"
+          }
         },
-        "ReadOnlyParameter": {
-            "label": "Read-only",
-            "description": "If enabled, all write operations using this dataset object will fail, e.g. when used as output in workflows or transform/linking executions. This will NOT protect the underlying resource in general, e.g. files, databases or knowledge graphs could still be changed externally."
+        "projects": {
+          "label": "Projects",
+          "shortcuts": {
+            "manage-prefixes": "Manage Prefixes",
+            "edit-summary": "Edit Summary"
+          }
         },
-        "CustomIdentifierInput": {
-            "ProjectId": "Project identifier",
-            "ProjectUri": "Project URI",
-            "TaskId": "Item identifier",
-            "TaskUri": "Item URI",
-            "helperDescription": "An unique identifier, e.g. `my-new-element`. This identifier is used for references and URLs.",
-            "validations": {
-                "invalid": "Only following characters (ranges) are allowed in a valid ID: a - z, A - Z, 0 - 9, _, -",
-                "unique": "Identifier must be unique. The entered identifier is already used for another item."
-            }
+        "tasks": {
+          "label": "Tasks",
+          "shortcuts": {
+            "edit-summary": "Edit Summary",
+            "update-tasks": "Update tasks"
+          }
+        },
+        "rule-editors": {
+          "label": "Linking editor / Value formula editor",
+          "shortcuts": {
+            "duplicate-nodes": "Duplicate selected nodes",
+            "undo": "Undo change",
+            "redo": "Redo change",
+            "delete": "Remove selected elements",
+            "multiselect": "Select multiple nodes",
+            "multiselectDesc": "Select nodes either by clicking on them or by dragging a selection area",
+            "copySelectedNodes": "Copy selected nodes to clipboard",
+            "pasteNodes": "Paste copied nodes"
+          }
+        },
+        "workflow-editor": {
+          "label": "Workflow editor",
+          "shortcuts": {
+            "delete": "Remove selected elements",
+            "multiselect": "Select multiple nodes",
+            "multiselectDesc": "Select nodes either by clicking on them or by dragging a selection area",
+            "create-dataset": "Create dataset",
+            "create-transform": "Create Transform",
+            "create-linking": "Create Linking",
+            "create-task": "Create Task",
+            "create-new-item": "Create new item"
+          }
         }
+      },
+      "keys": {
+        "ctrl": "^Ctrl",
+        "cmd": "⌘Command",
+        "shift": "⇧Shift",
+        "backspace": "←Backpace",
+        "alt": "⌥Option/Alt",
+        "mouse select": "mouse select"
+      }
+    }
+  },
+  "common": {
+    "action": {
+      "showIdentifier": "Show identifier",
+      "AddSmth": "Add {{smth}}",
+      "CloneSmth": "Clone {{smth}}",
+      "CopySmth": "Copy {{smth}} artefacts",
+      "CreateSmth": "Create {{smth}}",
+      "DeleteSmth": "Delete {{smth}}",
+      "RemoveSmth": "Remove {{smth}}",
+      "ShowSmth": "Show {{smth}}",
+      "CopyItems": "Copy items to another project",
+      "CopyProject": "Copy to another project",
+      "abort": "Abort",
+      "add": "Add",
+      "cancel": "Cancel",
+      "proceed": "Proceed",
+      "copy": "Copy",
+      "chooseFile": "Choose file",
+      "clone": "Clone",
+      "close": "Close",
+      "confirm": "Confirm",
+      "create": "Create",
+      "delete": "Delete",
+      "download": "Download",
+      "export": "Export to",
+      "exportTo": "Export to",
+      "import": "Import",
+      "loadExampleProject": "Add \"movies\" example project",
+      "logout": "Logout",
+      "remove": "Remove",
+      "moreOptions": "Show more options",
+      "openInNewTab": "Open link in new tab",
+      "profilingStart": "Start profiling",
+      "profilingUpdate": "Update profiling",
+      "replace": "Replace",
+      "resetSelection": "Reset selection",
+      "retry": "Retry",
+      "save": "Save",
+      "search": "Search",
+      "show": "Show",
+      "showDetails": "Open details page",
+      "submit": "Submit",
+      "update": "Update",
+      "showApiDoc": "API",
+      "listDeprecatedPlugins": "Deprecated plugins",
+      "copyClipboard": "Copy to clipboard",
+      "configure": "Configure",
+      "clearInput": "Clear input",
+      "filterOn": "Use as filter",
+      "filterOff": "Remove filter",
+      "showMoreDetails": "Show more details",
+      "restore": "Restore",
+      "revert": "Revert",
+      "edit": "Edit",
+      "ok": "Ok"
     },
-    "ShowIdentifierModal": {
-        "title": "Item identifier",
-        "combinedIdentifier": "Combined project and task identifier"
+    "app": {
+      "build": "Workbench",
+      "loading": "Loading page."
     },
-    "StickyNoteModal": {
-        "title": "Add note",
-        "tooltip": "Add note",
-        "labels": {
-            "codeEditor": "Note",
-            "color": "Color"
-        }
+    "dataTypes": {
+      "dataset": "dataset",
+      "genericArtefactLabel": "item",
+      "linking": "linking",
+      "project": "project",
+      "projectDesc": "Projects let you group related items. All items that depend on each other need to be in the same project.",
+      "task": "task",
+      "transform": "transform",
+      "workflow": "workflow"
     },
-    "DataList": {
-        "loading": "Loading data."
+    "iframeWindow": {
+      "Explore": "Data exploration",
+      "Learning": "Learning",
+      "Linking editor": "Linking editor",
+      "Linking evaluation": "Linking evaluation",
+      "Linking execution": "Linking execution",
+      "Mapping editor": "Mapping editor",
+      "Query": "Query editor",
+      "Reference links": "Reference links",
+      "Transform evaluation": "Transform evaluation",
+      "Transform execution": "Transform execution",
+      "Workflow editor": "Workflow editor",
+      "Workflow report": "Workflow report"
     },
-    "DataPreview": {
-        "loadMore": "Load more",
-        "loadMoreTooltip": "Load and append more text of this file",
-        "formatText": "Format text",
-        "load": "Load preview",
-        "loading": "Loading preview data.",
-        "noAttributes": "No attributes found. This might be an empty dataset.",
-        "notLoading": "Validation failed. Not loading preview.",
-        "previewOf": "Preview of",
-        "reload": "Reload preview",
-        "typeSelection": "Type Selection",
-        "typeSelectionBack": "Back to type selection",
-        "typeSelectionTooltip": "The data source consists of multiple types. Select one type from the list for a preview. There are max. 1000 types fetched at any time.",
-        "clearDatasetModal": {
-            "title": "Clear dataset",
-            "content": "Are you sure you want to clear the dataset? This action cannot be undone.",
-            "actionBtn": "Clear dataset",
-            "error": "Error while clearing dataset",
-            "readOnly": "The dataset is set to read-only and cannot be cleared."
-        }
+    "messages": {
+      "actionFailed": "{{action}} action failed. Details: {{error}}",
+      "anErrorHasOccurred": "An error has occurred.",
+      "allTypes": "All types",
+      "cloneModalTitle": "New name of cloned {{item}}",
+      "cloneModalIdentifier": "Custom identifier for {{item}} (optional)",
+      "cloneOf": "Copy of {{item}}",
+      "copyModalTitle": "New name of copied {{item}}",
+      "copyModalProjectSelect": "Select Project Target",
+      "copyModalOverwrittenTasks": " Overwritten tasks ({{tasks}})",
+      "copyModalCopiedTasks": "Copied tasks ({{tasks}})",
+      "createFirstItems": "Create your first {{items}} now.",
+      "errorDataTypes": "Fetch error for dataset types",
+      "noItems": "No {{items}} found.",
+      "noValuesAvailable": "No values available",
+      "notAvailable": "Not available",
+      "noResults": "No results.",
+      "noTypes": "No types found",
+      "serverError": "Server error",
+      "taskOverwrittenPrompt": "I understand that some tasks will be overwritten",
+      "temporarilyUnavailableMessage": "Service is temporarily unavailable. Details: {{detailMessage}}"
     },
-    "DataProfiling": {
-        "attributes": {
-            "count": {
-                "comment": "The count of profiled values. Note that usually only a sample of the dataset is profiled, i.e., the total number of values in the dataset may be higher",
-                "label": "Count"
-            },
-            "datatype": {
-                "comment": "The detected data type.",
-                "label": "Data type"
-            },
-            "distribution": {
-                "comment": "The distribution of values. Depending on the data type the histogram can be interpreted differently. For interval scaled types this is usually the histogram from the min to the max value.",
-                "label": "Distribution"
-            },
-            "max": {
-                "comment": "The largest value of all profiled values. The representation of the value can be normalized, depending on the detected data type.",
-                "label": "Max. value"
-            },
-            "maxStrLength": {
-                "comment": "The longest string length in number of characters.",
-                "label": "Length (max)"
-            },
-            "mean": {
-                "comment": "The arithmetic mean of all profiled values. The representation of the value can be normalized, depending on the detected data type.",
-                "label": "Mean value"
-            },
-            "meanStrLength": {
-                "comment": "The average string length in number of characters of all profiled values.",
-                "label": "Length (avg)"
-            },
-            "min": {
-                "comment": "The smallest value of all profiled values. The representation of the value can be normalized, depending on the detected data type.",
-                "label": "Min. value"
-            },
-            "minStringLength": {
-                "comment": "The shortest string length in number of characters.",
-                "label": "Length (min)"
-            },
-            "profilingTimestamp": {
-                "comment": "The time the profiling information was extracted from the data source.",
-                "label": "Profiling timestamp"
-            },
-            "regexPatterns": {
-                "comment": "A set of extracted regular expression patterns that cover all of the profiled values.",
-                "label": "Regex patterns"
-            },
-            "samples": {
-                "comment": "Values sampled from all profiled values. Usually this sample is uniformly selected from the set of unique values. The representation of the values can be normalized, depending on the detected data type.",
-                "label": "Samples"
-            },
-            "uniqueCount": {
-                "comment": "The count of unique values.",
-                "label": "Count (unique)"
-            }
-        },
-        "noAttributeProfile": "No profiling data available.",
-        "profilingInfoHeader": "Profiling info for {{path}} data",
-        "profilingInfoTooltip": "Show extended profiling info for {{path}}",
-        "profilingNotAvailable": "No profiling data available, yet.",
-        "profilingRunning": "Running profiling on"
+    "sorter": {
+      "recentlyViewed": "Recently viewed"
     },
-    "DeleteModal": {
-        "confirmMsg": "The {{itemType}} '{{name}}' is used by other items! Deleting this item will also delete all depending items listed below:",
-        "deleteResource": "{{type}} '{{name}}' will be deleted.",
-        "projectNote": "All contained items will be deleted, too."
+    "units": {
+      "second": "second",
+      "seconds": "seconds",
+      "minute": "minute",
+      "minutes": "minutes",
+      "hour": "hour",
+      "hours": "hours",
+      "day": "day",
+      "days": "days"
     },
-    "Deletedialog": {
-        "loading": "Loading delete dialog."
+    "words": {
+      "advancedOptions": "Advanced options",
+      "all": "All",
+      "and": "and",
+      "back": "Back",
+      "config": "Config",
+      "description": "Description",
+      "emptyPath": "Empty path",
+      "itemType": "Item type",
+      "less": "less",
+      "more": "more",
+      "loading": "Loading",
+      "required": "required",
+      "sortOptions": "Sort options",
+      "summary": "Summary",
+      "copied": "Copied",
+      "unlimited": "unlimited",
+      "added": "Added",
+      "removed": "Removed",
+      "paths": "Paths",
+      "unknown": "Unknown",
+      "active": "active",
+      "next": "Next",
+      "previous": "Previous"
     },
-    "FileMenu": {
-        "create": "Create empty file",
-        "empty": "Select file from project",
-        "new": "Upload new file"
+    "tooltips": {
+      "dataset": {
+        "readOnly": "This dataset is configured as read-only. You can disable this in the dataset configuration."
+      }
     },
-    "FileUploader": {
-        "abort": "Abort and keep file",
-        "abortOnly": "Abort Upload",
-        "abortProcess": "Abort upload process?",
-        "changeFile": "Change file",
-        "createNewFile": "New file name",
-        "dropzone": "Drop files here or browse",
-        "fileNotSpecified": "File name not specified",
-        "modalTitle": "Upload file",
-        "retry": "Retry",
-        "retryAbortMessage": "The {{fileName}} upload process aborted",
-        "retryMessage": "Something going wrong during upload process for {{fileName}}",
-        "selectFromProject": "Select file from projects",
-        "successfullyUploaded": "{{uploadedName}} was successfully uploaded",
-        "uploadError": "An upload error has occurred for file '{{fileName}}'. Details: {{errorDetails}}",
-        "waitFor": "File '{{fileName}}' is being uploaded."
+    "documentationLink": {
+      "label": "Documentation",
+      "tooltip": "Open documentation page in new tab."
+    }
+  },
+  "form": {
+    "field": {
+      "description": "Description",
+      "label": "Label",
+      "searchField": "Enter search term",
+      "tags": "Tags",
+      "searchOrEnterTags": "Search or create new tag"
     },
-    "Metadata": {
-        "addNewTag": "Add new tag",
-        "newTagPostfix": " (new tag)",
-        "loading": "Loading summary data.",
-        "updateFailed": "Updating meta data has failed",
-        "unsavedMetaDataWarning": "There are unsaved changes that will be lost. Do you still want to proceed?",
-        "lastModifiedBy": "Last modified <timestamp>{{timestamp}}</timestamp> by <author>{{author}}</author>.",
-        "createdBy": "Created <timestamp>{{timestamp}}</timestamp> by <author>{{author}}</author>.",
-        "unknownuser": "unknown user",
-        "prefixAgo": "",
-        "suffixAgo": " ago",
-        "dateFormat": "{{year}}/{{month}}/{{day}}",
-        "markdownHelperText": "Learn more about Markdown formatting",
-        "markdownHelperLinkText": "here"
+    "projectForm": {
+      "importProjectButton": "Import existing project",
+      "projectDesc": "Project description",
+      "projectTitle": "Project title",
+      "title": "Title"
     },
-    "OverwriteModal": {
-        "overwriteFile": "File '{{fileName}}' already exists. Do you want to overwrite it?"
+    "taskForm": {
+      "resetMessage": "Following parameters have been reset because they depend on the changed parameter '{{dependOn}}': {{parameters}}"
     },
-    "Pagination": {
-        "backToPage1": "Back to page 1",
-        "backwardText": "Previous page",
-        "forwardText": "Next page",
-        "invalidPageError": "Invalid page. ",
-        "itemRangeText": "{{min}}–{{max}} of {{total}} items",
-        "itemsPerPage": "Items per page:",
-        "pageRangeText": "of {{total}} pages"
+    "validations": {
+      "float": "must be a valid floating point number",
+      "integer": "must be a valid integer number",
+      "isRequired": "{{field}} is required",
+      "parameter": "Parameter validation failed. Please fix the issues first.",
+      "threshold": {
+        "normalized": "Must be a number from 0...1",
+        "unbounded": "Must be a number from 0...∞"
+      }
+    }
+  },
+  "http": {
+    "error": {
+      "aborted": "Request Aborted",
+      "fetchNotResult": "Error, cannot fetch results.",
+      "largeRequest": "Request too large",
+      "networkFileUpload": "Can't upload file '{{fileName}}', please check your connection and try again",
+      "not": {
+        "authenticated": "Not authenticated",
+        "authorized": "Not authorized",
+        "available": "Temporarily unavailable",
+        "found": "Not found",
+        "markdown": "There was a problem fetching the error report",
+        "proxy": "Not authorized (proxy)",
+        "valid": "Invalid request"
+      },
+      "requestFailed": "Preview request failed",
+      "server": "Server error",
+      "timeout": "Timeout"
+    }
+  },
+  "evaluationTabRow": {
+    "validationErrorOverall": "There exists at least one validation error for this entity: {{error}}"
+  },
+  "transformEvaluationTabView": {
+    "table": {
+      "header": {
+        "transformEntities": "Transformed Entities"
+      }
     },
-    "ParameterWidget": {
-        "AutoComplete": {
-            "createNewItem": "Custom entry: '{{query}}'",
-            "fetchErrorTitle": "Could not fetch auto-completion suggestions. ",
-            "missingDependsOnValuesInfo": "Parameter is disabled because it requires following parameters to be non-empty: {{parameterLabels}}"
-        },
-        "parameterDocLinkText": "See documentation"
+    "couldNotLoad": "Could not load evaluation."
+  },
+  "linkingEvaluationTabView": {
+    "toolbar": {
+      "toggleExampleValues": "Value table expanded by default",
+      "toggleOperatorsTree": "Operator tree expanded by default",
+      "statsHeadSources": "Sources",
+      "statsHeadTargets": "Targets",
+      "statsHeadLinkCount": "Links",
+      "statsShowInfo": "Show statistical information"
     },
-    "PrefixDialog": {
-        "deletePrefix": "Prefix '{{prefixName}}' will be deleted.",
-        "overwritePrefix": "Update existing prefix '{{prefixName}}'?",
-        "prefixNameInvalid": "The prefix name you have entered is invalid",
-        "prefixUriInvalid": "The entered URI prefix must be a valid URI / IRI.",
-        "prefixUriInvalidChar": "The entered URI prefix contains invalid characters. First invalid character at position {{idx}} is '{{char}}'."
+    "messages": {
+      "missingExecution": "Linking evaluation action need to run first to get evaluation results.",
+      "emptyWithoutFilters": "No evaluation results available.",
+      "emptyWithFilters": "No evaluation results available for the filters you set. Adjust or clear them first.",
+      "referenceLinksEmptyWithoutFilters": "No reference links available.",
+      "referenceLinksEmptyWithFilters": "No reference links available for the filters you set. Adjust or clear them first.",
+      "running": "Evaluation is currently running.",
+      "unsuccessfulEvaluation": "The evaluation process did not finished successfully. Check the warning log.",
+      "unknownProblem": "No results available because of unexpected behaviour."
     },
-    "ProjectImportModal": {
-        "importBtn": "Import project",
-        "importSummary": "Imported project summary",
-        "importUnderFreshIdBtn": "Import as new project",
-        "openExistingProject": "Open existing project page",
-        "projectFile": "Choose project file to import:",
-        "replaceImportBtn": "Replace existing project",
-        "responseInvalid": "Invalid response received from project upload. Project import cannot proceed.",
-        "responseUploadError": "File {{file}} could not be uploaded! {{details}}",
-        "restoreNotice": "Want to restore an existing project?",
-        "restoreStarter": "Import project file",
-        "title": "Project import",
-        "warningExistingProject": "A project with the same ID already exists! Choose to either overwrite the existing project or import the project under a freshly generated ID."
+    "errors": {
+      "fetchingLinks": {
+        "msg": "An error has occurred fetching {{linkType}} links"
+      },
+      "updateLink": {
+        "msg": "An error has occurred updating {{linkType}} link"
+      }
     },
-    "RecentlyViewedModal": {
-        "globalSearch": "Search in workspace for '{{query}}'",
-        "placeholder": "Search recently viewed items or in workspace",
-        "title": "Quick search"
-    },
-    "RelatedItems": {
-        "title": "Related items"
-    },
-    "header": {
-        "keyboardShortcutsModal": {
-            "title": "Keyboard shortcuts",
-            "categories-title": "Sections",
-            "key-directives": {
-                "then": "then"
-            },
-            "categories": {
-                "general": {
-                    "label": "Build",
-                    "shortcuts": {
-                        "quick-search": "Quick search",
-                        "help": "Open keyboard shortcut help",
-                        "go-home": "Go home",
-                        "browse-projects": "Browse projects",
-                        "browse-datasets": "Browse datasets",
-                        "browse-workflows": "Browse workflows",
-                        "browse-tasks": "Browse tasks",
-                        "browse-transform-tasks": "Browse transform tasks",
-                        "browse-linking-tasks": "Browse linking tasks",
-                        "browse-activities-tasks": "Browse activities tasks",
-                        "create-project": "Create project",
-                        "create-workflow": "Create workflow",
-                        "create-dataset": "Create dataset",
-                        "create-transform": "Create Transform",
-                        "create-linking": "Create Linking",
-                        "create-task": "Create Task",
-                        "create-new-item": "Create new item"
-                    }
-                },
-                "projects": {
-                    "label": "Projects",
-                    "shortcuts": {
-                        "manage-prefixes": "Manage Prefixes",
-                        "edit-summary": "Edit Summary"
-                    }
-                },
-                "tasks": {
-                    "label": "Tasks",
-                    "shortcuts": {
-                        "edit-summary": "Edit Summary",
-                        "update-tasks": "Update tasks"
-                    }
-                },
-                "rule-editors": {
-                    "label": "Linking editor / Value formula editor",
-                    "shortcuts": {
-                        "duplicate-nodes": "Duplicate selected nodes",
-                        "undo": "Undo change",
-                        "redo": "Redo change",
-                        "delete": "Remove selected elements",
-                        "multiselect": "Select multiple nodes",
-                        "multiselectDesc": "Select nodes either by clicking on them or by dragging a selection area",
-                        "copySelectedNodes": "Copy selected nodes to clipboard",
-                        "pasteNodes": "Paste copied nodes"
-                    }
-                },
-                "workflow-editor": {
-                    "label": "Workflow editor",
-                    "shortcuts": {
-                        "delete": "Remove selected elements",
-                        "multiselect": "Select multiple nodes",
-                        "multiselectDesc": "Select nodes either by clicking on them or by dragging a selection area",
-                        "create-dataset": "Create dataset",
-                        "create-transform": "Create Transform",
-                        "create-linking": "Create Linking",
-                        "create-task": "Create Task",
-                        "create-new-item": "Create new item"
-                    }
-                }
-            },
-            "keys": {
-                "ctrl": "^Ctrl",
-                "cmd": "⌘Command",
-                "shift": "⇧Shift",
-                "backspace": "←Backpace",
-                "alt": "⌥Option/Alt",
-                "mouse select": "mouse select"
-            }
-        }
-    },
-    "common": {
-        "action": {
-            "showIdentifier": "Show identifier",
-            "AddSmth": "Add {{smth}}",
-            "CloneSmth": "Clone {{smth}}",
-            "CopySmth": "Copy {{smth}} artefacts",
-            "CreateSmth": "Create {{smth}}",
-            "DeleteSmth": "Delete {{smth}}",
-            "RemoveSmth": "Remove {{smth}}",
-            "ShowSmth": "Show {{smth}}",
-            "CopyItems": "Copy items to another project",
-            "CopyProject": "Copy to another project",
-            "abort": "Abort",
-            "add": "Add",
-            "cancel": "Cancel",
-            "proceed": "Proceed",
-            "copy": "Copy",
-            "chooseFile": "Choose file",
-            "clone": "Clone",
-            "close": "Close",
-            "confirm": "Confirm",
-            "create": "Create",
-            "delete": "Delete",
-            "download": "Download",
-            "export": "Export to",
-            "exportTo": "Export to",
-            "import": "Import",
-            "loadExampleProject": "Add \"movies\" example project",
-            "logout": "Logout",
-            "remove": "Remove",
-            "moreOptions": "Show more options",
-            "openInNewTab": "Open link in new tab",
-            "profilingStart": "Start profiling",
-            "profilingUpdate": "Update profiling",
-            "replace": "Replace",
-            "resetSelection": "Reset selection",
-            "retry": "Retry",
-            "save": "Save",
-            "search": "Search",
-            "show": "Show",
-            "showDetails": "Open details page",
-            "submit": "Submit",
-            "update": "Update",
-            "showApiDoc": "API",
-            "copyClipboard": "Copy to clipboard",
-            "configure": "Configure",
-            "clearInput": "Clear input",
-            "filterOn": "Use as filter",
-            "filterOff": "Remove filter",
-            "showMoreDetails": "Show more details",
-            "restore": "Restore",
-            "revert": "Revert",
-            "edit": "Edit",
-            "ok": "Ok"
-        },
-        "app": {
-            "build": "Workbench",
-            "loading": "Loading page."
-        },
-        "dataTypes": {
-            "dataset": "dataset",
-            "genericArtefactLabel": "item",
-            "linking": "linking",
-            "project": "project",
-            "projectDesc": "Projects let you group related items. All items that depend on each other need to be in the same project.",
-            "task": "task",
-            "transform": "transform",
-            "workflow": "workflow"
-        },
-        "iframeWindow": {
-            "Explore": "Data exploration",
-            "Learning": "Learning",
-            "Linking editor": "Linking editor",
-            "Linking evaluation": "Linking evaluation",
-            "Linking execution": "Linking execution",
-            "Mapping editor": "Mapping editor",
-            "Query": "Query editor",
-            "Reference links": "Reference links",
-            "Transform evaluation": "Transform evaluation",
-            "Transform execution": "Transform execution",
-            "Workflow editor": "Workflow editor",
-            "Workflow report": "Workflow report"
-        },
-        "messages": {
-            "actionFailed": "{{action}} action failed. Details: {{error}}",
-            "anErrorHasOccurred": "An error has occurred.",
-            "allTypes": "All types",
-            "cloneModalTitle": "New name of cloned {{item}}",
-            "cloneModalIdentifier": "Custom identifier for {{item}} (optional)",
-            "cloneOf": "Copy of {{item}}",
-            "copyModalTitle": "New name of copied {{item}}",
-            "copyModalProjectSelect": "Select Project Target",
-            "copyModalOverwrittenTasks": " Overwritten tasks ({{tasks}})",
-            "copyModalCopiedTasks": "Copied tasks ({{tasks}})",
-            "createFirstItems": "Create your first {{items}} now.",
-            "errorDataTypes": "Fetch error for dataset types",
-            "noItems": "No {{items}} found.",
-            "noValuesAvailable": "No values available",
-            "notAvailable": "Not available",
-            "noResults": "No results.",
-            "noTypes": "No types found",
-            "serverError": "Server error",
-            "taskOverwrittenPrompt": "I understand that some tasks will be overwritten",
-            "temporarilyUnavailableMessage": "Service is temporarily unavailable. Details: {{detailMessage}}"
-        },
-        "sorter": {
-            "recentlyViewed": "Recently viewed"
-        },
-        "units": {
-            "second": "second",
-            "seconds": "seconds",
-            "minute": "minute",
-            "minutes": "minutes",
-            "hour": "hour",
-            "hours": "hours",
-            "day": "day",
-            "days": "days"
-        },
-        "words": {
-            "advancedOptions": "Advanced options",
-            "all": "All",
-            "and": "and",
-            "back": "Back",
-            "config": "Config",
-            "description": "Description",
-            "emptyPath": "Empty path",
-            "itemType": "Item type",
-            "less": "less",
-            "more": "more",
-            "loading": "Loading",
-            "required": "required",
-            "sortOptions": "Sort options",
-            "summary": "Summary",
-            "copied": "Copied",
-            "unlimited": "unlimited",
-            "added": "Added",
-            "removed": "Removed",
-            "paths": "Paths",
-            "unknown": "Unknown",
-            "active": "active",
-            "next": "Next",
-            "previous": "Previous"
-        },
-        "tooltips": {
-            "dataset": {
-                "readOnly": "This dataset is configured as read-only. You can disable this in the dataset configuration."
-            }
-        },
-        "documentationLink": {
-            "label": "Documentation",
-            "tooltip": "Open documentation page in new tab."
-        }
-    },
-    "form": {
-        "field": {
-            "description": "Description",
-            "label": "Label",
-            "searchField": "Enter search term",
-            "tags": "Tags",
-            "searchOrEnterTags": "Search or create new tag"
-        },
-        "projectForm": {
-            "importProjectButton": "Import existing project",
-            "projectDesc": "Project description",
-            "projectTitle": "Project title",
-            "title": "Title"
-        },
-        "taskForm": {
-            "resetMessage": "Following parameters have been reset because they depend on the changed parameter '{{dependOn}}': {{parameters}}"
-        },
-        "validations": {
-            "float": "must be a valid floating point number",
-            "integer": "must be a valid integer number",
-            "isRequired": "{{field}} is required",
-            "parameter": "Parameter validation failed. Please fix the issues first.",
-            "threshold": {
-                "normalized": "Must be a number from 0...1",
-                "unbounded": "Must be a number from 0...∞"
-            }
-        }
-    },
-    "http": {
-        "error": {
-            "aborted": "Request Aborted",
-            "fetchNotResult": "Error, cannot fetch results.",
-            "largeRequest": "Request too large",
-            "networkFileUpload": "Can't upload file '{{fileName}}', please check your connection and try again",
-            "not": {
-                "authenticated": "Not authenticated",
-                "authorized": "Not authorized",
-                "available": "Temporarily unavailable",
-                "found": "Not found",
-                "markdown": "There was a problem fetching the error report",
-                "proxy": "Not authorized (proxy)",
-                "valid": "Invalid request"
-            },
-            "requestFailed": "Preview request failed",
-            "server": "Server error",
-            "timeout": "Timeout"
-        }
-    },
-    "evaluationTabRow": {
-        "validationErrorOverall": "There exists at least one validation error for this entity: {{error}}"
-    },
-    "transformEvaluationTabView": {
-        "table": {
-            "header": {
-                "transformEntities": "Transformed Entities"
-            }
-        },
-        "couldNotLoad": "Could not load evaluation."
-    },
-    "linkingEvaluationTabView": {
-        "toolbar": {
-            "toggleExampleValues": "Value table expanded by default",
-            "toggleOperatorsTree": "Operator tree expanded by default",
-            "statsHeadSources": "Sources",
-            "statsHeadTargets": "Targets",
-            "statsHeadLinkCount": "Links",
-            "statsShowInfo": "Show statistical information"
-        },
-        "messages": {
-            "missingExecution": "Linking evaluation action need to run first to get evaluation results.",
-            "emptyWithoutFilters": "No evaluation results available.",
-            "emptyWithFilters": "No evaluation results available for the filters you set. Adjust or clear them first.",
-            "referenceLinksEmptyWithoutFilters": "No reference links available.",
-            "referenceLinksEmptyWithFilters": "No reference links available for the filters you set. Adjust or clear them first.",
-            "running": "Evaluation is currently running.",
-            "unsuccessfulEvaluation": "The evaluation process did not finished successfully. Check the warning log.",
-            "unknownProblem": "No results available because of unexpected behaviour."
-        },
-        "errors": {
-            "fetchingLinks": {
-                "msg": "An error has occurred fetching {{linkType}} links"
-            },
-            "updateLink": {
-                "msg": "An error has occurred updating {{linkType}} link"
-            }
-        },
-        "table": {
-            "header": {
-                "source": "Source",
-                "target": "Target",
-                "score": "Score",
-                "linkState": "Link state",
-                "expandRows": "Expand all rows",
-                "expandTrees": "Expand all trees",
-                "collapseRows": "Collapse all rows"
-            },
-            "infoCollapsedInputValue": "Input values available",
-            "expandRow": "Expand row",
-            "collapseRow": "Collapse row"
-        }
-    },
-    "navigation": {
-        "side": {
-            "di": {
-                "datasets": "Datasets",
-                "datasetsTooltip": "Shows the list of all datasets across all build projects.",
-                "projects": "Projects",
-                "projectsTooltip": "Shows the list of all data-integration build projects.",
-                "activities": "Activities",
-                "activitiesTooltip": "Shows the list of all data-integration build activities",
-                "workflows": "Workflows",
-                "workflowsTooltip": "Shows the list of all workflows across all build projects."
-            },
-            "diBrowse": "Silk",
-            "diBrowseTooltip": "Used to manage data-integration projects to build a knowledge graph from existing datasources",
-            "dm": {
-                "explore": "Knowledge Graphs",
-                "exploreTooltip": "A generic RDF graph data browser and editor.",
-                "query": "Queries",
-                "queryTooltip": "Used to write, store, describe, search and run SPARQL queries.",
-                "vocab": "Vocabularies",
-                "vocabTooltip": "Shows the list of all managed vocabularies. It let's you (un-)install vocabularies from RDF files or the integrated catalog.",
-                "thesaurus": "Thesauri",
-                "thesaurusTooltip": "The thesaurus module provides an interface for browsing, editing, structuring and linking concepts in a taxonomy based on SKOS."
-            },
-            "dmBrowser": "Explore",
-            "open": "Open navigation",
-            "close": "Close navigation"
-        },
-        "user": {
-            "open": "Open user menu",
-            "close": "Close user menu"
-        }
-    },
-    "pages": {
-        "dataset": {
-            "title": "Data preview"
-        },
-        "activities": {
-            "title": "Activities",
-            "noActivities": "No Activities found"
-        },
-        "notFound": {
-            "backLink": "Go to homepage",
-            "text": "The page you requested does not exist.",
-            "title": "Page not found"
-        },
-        "project": {
-            "content": "Contents",
-            "loading": "Loading project data"
-        },
-        "workspace": {
-            "contents": "Contents",
-            "createProject": "Create Project",
-            "empty": "Your workspace is empty. In order to start, create a new project or import an existing project from an exported project file.",
-            "firstWorkflow": "Workflow 1"
-        }
-    },
-    "RuleEditor": {
-        "edge": {
-            "menu": {
-                "delete": {
-                    "label": "Remove edge",
-                    "tooltip": "Removes the edge. Alternatively you can delete (multiple) selected rule elements by pressing the [←] (backspace) key on the keyboard."
-                }
-            }
-        },
-        "evaluation": {
-            "addMoreResults": "Add more reference links",
-            "noResults": "No linking results available. Please add reference links.",
-            "scoreWidget": {
-                "title": "Evaluation",
-                "notStarted": "Click button to run evaluation",
-                "showExamples": "Show Examples",
-                "noScore": "No evaluation score",
-                "noScoreTooltip": "No linking evaluation score available. Add positive and/or negative reference links in order to show a score",
-                "referenceLinks": "Open reference links UI in new tab"
-            },
-            "PathNotInCacheModal": {
-                "loadAndReEvaluate": "Load and re-evaluate",
-                "missingPath": "Path not loaded",
-                "pathCouldNotBeAdded": "Path could not be loaded.",
-                "messagePartA": "Values for the input path",
-                "messagePartB": "are not available for evaluation. Fetching the path values from the data source may take some time. Do you want to load the values and repeat the evaluation?"
-            }
-        },
-        "node": {
-            "menu": {
-                "description": {
-                    "label": "Show documentation"
-                },
-                "remove": {
-                    "label": "Remove"
-                },
-                "subtree": {
-                    "label": "Evaluate subtree",
-                    "description": "Evaluate linking tree partially until this operator node."
-                }
-            },
-            "executionButtons": {
-                "edit": {
-                    "tooltip": "Open edit dialog"
-                }
-            }
-        },
-        "selection": {
-            "menu": {
-                "delete": {
-                    "label": "Remove selected nodes",
-                    "tooltip": "Removes all selected nodes and connected edges. Alternatively you can delete (multiple) selected rule elements by pressing the [←] (backspace) key on the keyboard."
-                },
-                "clone": {
-                    "label": "Clone selected nodes",
-                    "tooltip": "Clones all selected nodes and inter-connections and inserts them as new selection. Following key combination also triggers this action: CTRL/CMD + d"
-                },
-                "copy": {
-                    "label": "Copy selected nodes to clipboard",
-                    "tooltip": "Copy all selected nodes and inter-connections. Can be also triggered with following keyboard shortcut: ^Ctrl + c / ⌘Command + c. The copied elements can be inserted as copies with following keyboard shortcut: ^Ctrl + v / ⌘Command + v.The copied elements can also be inserted in editors in different tabs, windows or browsers."
-                }
-            }
-        },
-        "sidebar": {
-            "cancelCycling": "Cancel cycling",
-            "cycleTooltip": "Cycle through {{totalMatches}} current usages of this operator",
-            "emptyList": "No operator found.",
-            "searchInput": "Search for operators and paths...",
-            "searchTooltip": "Search for rule operators and input paths.",
-            "tab": {
-                "all": "All",
-                "sourcePaths": "Source paths",
-                "targetPaths": "Target paths",
-                "transform": "Transform",
-                "comparison": "Comparison",
-                "aggregation": "Aggregation"
-            },
-            "operator": {
-                "markdownTooltip": "{{shortDescription}}\n\nClick to view full documentation",
-                "markdownModalTitle": "{{operatorName}}'s documentation",
-                "sourcePathLabel": "Source path",
-                "sourcePathDesc": "The value path of the source input of the linking task.",
-                "targetPathLabel": "Target path",
-                "targetPathDesc": "The value path of the target input of the linking task."
-            },
-            "parameter": {
-                "weightLabel": "Weight",
-                "weightDesc": "The weight parameter can be used by the parent aggregation when combining its input values. Only certain aggregations will consider weighted inputs. Examples are the weighted average aggregation, quadraticMean and geometricMean.",
-                "thresholdLabel": "Threshold",
-                "thresholdRequired": {
-                    "normalized": "required 0...1",
-                    "unbounded": "required 0...∞"
-                },
-                "thresholdDesc": {
-                    "normalized": "The maximum distance. This distance measure is normalized, i.e., the threshold must be between 0 (exact match) and 1 (no similarity).",
-                    "unbounded": "The maximum distance. Distances start at 0 (exact match) and increase the more different the values may be."
-                }
-            }
-        },
-        "toolbar": {
-            "advancedParameterMode": "advanced",
-            "autoLayout": "Layout automatically the rule tree",
-            "readOnly": "Read-only mode is enabled. No saving possible.",
-            "save": "Save",
-            "saveError": {
-                "nodeError": {
-                    "tooltip": "Center rule node"
-                }
-            },
-            "startEvaluation": "Start evaluation",
-            "showEvaluation": "Show evaluation examples",
-            "hideEvaluation": "Hide evaluation examples",
-            "copiedNotificationText": "Copied {{numberOfNodes}} to clipboard"
-        }
-    },
-    "taskViews": {
-        "linkRulesEditor": {
-            "errors": {
-                "partialPathAutoCompletion": {
-                    "msg": "Could not fetch partial autocompletion"
-                },
-                "fetchTaskData": {
-                    "msg": "An error has occurred while fetching the linking task."
-                },
-                "fetchLinkingRuleOperatorDetails": {
-                    "msg": "An error has occurred while fetching the list of linking rule operators."
-                },
-                "fetchLinkingPaths": {
-                    "msg": "Could not fetch source paths for linking task."
-                },
-                "inputPathAutoCompletion": {
-                    "msg": "Could not fetch path auto-completions."
-                },
-                "missingPathsInCache": {
-                    "msg": "Input path '{{inputPath}}' is not available in the cache. Please save the rule in order for the caches to add the missing paths."
-                },
-                "saveLinkageRule": {
-                    "msg": "Could not save linking rule!"
-                },
-                "startEvaluation": {
-                    "msg": "Could not fetch evaluation results."
-                },
-                "beforeStartEvaluation": {
-                    "msg": "Could not start evaluation."
-                },
-                "fetchReferenceLinks": {
-                    "msg": "Could not fetch evaluation results for reference links. Need to fallback to executing linking evaluation."
-                }
-            },
-            "cacheWidgets": {
-                "pathsCache": "Paths cache",
-                "evaluationCache": "Evaluation cache"
-            }
-        },
-        "ruleEditor": {
-            "errors": {
-                "loadExternalOperators": "Could not load operator list for tab '{{tabName}}'!"
-            },
-            "warnings": {
-                "unsavedChanges": "There are unsaved changes. Do you still want to close the rule editor?"
-            }
-        },
-        "transformRulesEditor": {
-            "evaluation": {
-                "noResults": "No evaluation examples to show",
-                "evaluationDifferentContext": "The input source of the transform context is different from the configured input of the transformation. Evaluation results are only shown for the configured input."
-            },
-            "warning": {
-                "modal": {
-                    "title": "Discard unsaved changes?",
-                    "body": "There are still unsaved changes. Do you want to discard them?",
-                    "discard": "Discard changes"
-                }
-            },
-            "errors": {
-                "partialPathAutoCompletion": {
-                    "msg": "Could not fetch partial autocompletion"
-                },
-                "fetchTransformRule": {
-                    "msg": "An error has occurred while fetching the transform rule."
-                },
-                "fetchTransformRuleOperatorDetails": {
-                    "msg": "An error has occurred while fetching the list of transform rule operators."
-                },
-                "saveTransformRule": {
-                    "msg": "Could not save transform rule!"
-                },
-                "fetchTransformEvaluationValues": {
-                    "msg": "Could not fetch evaluation results"
-                }
-            }
-        }
-    },
-    "copyModal": {
-        "copyPrefixes": "Copy prefixes",
-        "projectVarInfo": "Project variables that are missing in the target project will be copied.",
-        "errorMessages": {
-            "searchFailure": "Retrieving project list failed",
-            "copyFailure": "Failed to copy"
-        }
-    },
-    "cloneModal": {
-        "info": "Cloning a task means creating a copy of the task configuration in the same project. The related (used) tasks of this cloned task are not copied or changed (e.g., a cloned workflow processes the same workflow tasks as the original and not copies of them)."
-    },
-    "widget": {
-        "ActivityInfoWidget": {
-            "title": "Activities",
-            "view": "View project activities"
-        },
-        "ConfigWidget": {
-            "loading": "Loading configuration list.",
-            "loadingPrefix": "Loading prefix configuration.",
-            "prefix": "Prefix",
-            "prefixTitle": "Manage Prefixes",
-            "prefix_plural": "Prefixes",
-            "title": "Configuration",
-            "modal": {
-                "errors": {
-                    "prefixDeletionFailure": "Prefix deletion failed",
-                    "prefixChangeFailure": "Prefix change failed"
-                }
-            }
-        },
-        "FacetsList": {
-            "facet": {
-                "createdBy": {
-                    "description": "The user who created the item.",
-                    "label": "Created by",
-                    "valueLabels": {
-                        "": "Unknown user"
-                    }
-                },
-                "datasetFileResource": {
-                    "description": "The file resource of a file based dataset.",
-                    "label": "Dataset file"
-                },
-                "datasetType": {
-                    "description": "The concrete type of a dataset, e.g. its data model and format etc.",
-                    "label": "Dataset type"
-                },
-                "readOnly": {
-                    "description": "Filters datasets based on their access permissions.",
-                    "label": "Dataset accessibility"
-                },
-                "lastModifiedBy": {
-                    "description": "The user who last modified the item.",
-                    "label": "Last modified by",
-                    "valueLabels": {
-                        "": "Unknown user"
-                    }
-                },
-                "taskType": {
-                    "description": "The concrete type of a task.",
-                    "label": "Task type"
-                },
-                "transformInputResource": {
-                    "description": "In case the input is a file resource based dataset, these are the file names of these resources.",
-                    "label": "Transformed file resource"
-                },
-                "workflowExecutionStatus": {
-                    "description": "Allows to filter by the status of the last execution of the workflow.",
-                    "label": "Last execution status"
-                }
-            }
-        },
-        "FileWidget": {
-            "deleteFile": "Delete File",
-            "deleted": "File '{{fileName}}' will be deleted.",
-            "edit": "Edit prefix settings",
-            "empty": "No files are found, add them here to use it later",
-            "file": "File",
-            "files": "Files",
-            "loading": "Loading file list.",
-            "removeFromDatasets": "File '{{fileName}}' is in use by following items:",
-            "removeText": "Do you really want to delete file {{file}}?",
-            "sort": {
-                "modified": "Last modified",
-                "name": "Name",
-                "size": "Size (bytes)"
-            },
-            "modal": {
-                "errorMessages": {
-                    "deleteFile": "File deletion failed"
-                }
-            }
-        },
-        "Filterbar": {
-            "subsections": {
-                "titles": {
-                    "itemType": "Item type"
-                },
-                "valueLabels": {
-                    "itemType": {
-                        "dataset": "Dataset",
-                        "linking": "Linking",
-                        "project": "Project",
-                        "task": "Task",
-                        "transform": "Transform",
-                        "workflow": "Workflow"
-                    }
-                }
-            }
-        },
-        "LinkingRuleConfigWidget": {
-            "fetchError": "An error occurred while fetching the linkage rule configuration.",
-            "modal": {
-                "title": "Edit linkage rule configuration"
-            },
-            "parameters": {
-                "inverseLinkType": {
-                    "label": "Inverse link type",
-                    "description": "The inverse property URI of the link. For RDF based datasets this will be the property that connects the target to the source resources."
-                },
-                "excludeSelfReferences": {
-                    "label": "Exclude self references",
-                    "description": "If enabled, no links are generated from a resource to itself."
-                },
-                "linkType": {
-                    "label": "Link type",
-                    "description": "The property URI of the link. For RDF based datasets this will be the property that connects the source to the target resource."
-                },
-                "limit": {
-                    "label": "Target link limit",
-                    "description": "If set to an number N, then per source entity only for the N best matching target resources links will be generated."
-                }
-            },
-            "saveError": "An error has occurred while saving the linkage rule config.",
-            "title": "Configuration: Linkage rule"
-        },
-        "TargetVocabularySelection": {
-            "multiSelectionRadioButtonLabel": "Select individual vocabularies",
-            "staticEntryLabel": {
-                "none": "No vocabularies",
-                "all": "All installed vocabularies"
-            }
-        },
-        "TaskActivityOverview": {
-            "activities": {
-                "ExecuteDefaultWorkflow": {
-                    "title": "Execute workflow"
-                },
-                "ExecuteLinking": {
-                    "title": "Execute linking"
-                },
-                "ExecuteScheduler": {
-                    "title": "Execute scheduler"
-                },
-                "ExecuteTransform": {
-                    "title": "Execute transformation"
-                },
-                "GlobalVocabularyCache": {
-                    "title": "Primary vocabulary cache"
-                },
-                "LinkingPathsCache": {
-                    "title": "Source path cache"
-                },
-                "ReferenceEntitiesCache": {
-                    "title": "Reference entities cache"
-                },
-                "TransformPathsCache": {
-                    "title": "Source paths cache"
-                },
-                "TypesCache": {
-                    "title": "Types cache"
-                },
-                "VocabularyCache": {
-                    "title": "Target vocabulary cache"
-                }
-            },
-            "cacheGroup": {
-                "title": "Caches",
-                "cacheAgePrefix": "Updated ",
-                "cacheAgeSuffix": " ago",
-                "cacheAgePrefixIndividual": "updated "
-            },
-            "activityControl": {
-                "startActivity": "Start activity",
-                "reloadActivity": "Restart activity",
-                "stopActivity": "Stop activity",
-                "showErrorReport": "Show error report",
-                "viewCachedData": "View cached data in new tab",
-                "startPrioritized": "Run prioritized and skip the waiting queue"
-            },
-            "errorMessages": {
-                "actions": {
-                    "start": "Starting activity {{activityName}} has failed.",
-                    "cancel": "Stopping activity {{activityName}} has failed.",
-                    "restart": "Restarting activity {{activityName}} has failed."
-                },
-                "errorReport": {
-                    "fetchReport": "Fetching activity execution error report has failed."
-                },
-                "fetchActivityInfo": "Fetching activities list has failed."
-            },
-            "reloadAllCaches": "Reload all caches",
-            "title": "Activity overview"
-        },
-        "VariableWidget": {
-            "title": "Project Variables",
-            "noVariables": "No variables set.",
-            "form": {
-                "name": "Name",
-                "value": "Value",
-                "description": "Description",
-                "infoBoxTitle": "Project variables",
-                "infoBoxDescription": "User-defined project variables. They can be used in dataset and task parameters and in the template transform operator. Variables may use templates that access other preceding project variables or globally configured variables."
-            },
-            "dependencyTypes": {
-                "tasks": "Dependent tasks",
-                "variables": "Dependent variables"
-            },
-            "modalMessages": {
-                "deleteModalTitle": "Delete variable",
-                "deletePromptWithDependencies": "The variable '{{varname}}' cannot be deleted because it is used at the following places:",
-                "deletePromptNoDep": "Are you sure you want to delete variable '{{varname}}'?"
-            },
-            "actions": {
-                "add": "Add variable",
-                "edit": "Edit variable"
-            },
-            "formErrors": {
-                "nameAlreadyExists": "Name already exists",
-                "nameMustBeSpecified": "Name must be specified",
-                "mustProvideValOrTemplate": "Must provide value or template"
-            },
-            "errorMessages": {
-                "loadingVariables": "Could not load variables for project '{{projectId}}'",
-                "orderingVariables": "Cannot change position of variable: its own dependencies must be defined beforehand",
-                "variableUpsertFailure": "Variable add/update failed",
-                "templateUpdateFailure": "Variable template error",
-                "dependencyRetrievalFailure": "Failed to retrieve dependencies",
-                "variableDeletionFailure": "Failed to delete variable"
-            }
-        },
-        "TaskConfigWidget": {
-            "loading": "Loading update dialog...",
-            "noPreview": "No preview available",
-            "title": "Configuration",
-            "templateValueInfo": "The parameter value is derived from the following variable template: "
-        },
-        "WarningWidget": {
-            "loading": "Loading log messages.",
-            "title": "Error log",
-            "fixTask": "Fix task",
-            "fixTaskInitFailed": "Could not load data in oder to fix task.",
-            "fixTaskModalTitle": "Fix task '{{taskLabel}}'",
-            "FixTaskDataNotFoundModal": {
-                "title": "Reload failed task",
-                "warningMessage": "Either the plugin data or the original task data was not available. Click button to reload the task. Details: {{details}}",
-                "reloadButton": "Reload task"
-            }
-        }
-    },
-    "DatasetUriPropertyParameter": {
-        "label": "URI attribute",
-        "description": "When reading data from the dataset, the specified attribute will be used to get the URIs of the entities. When writing to a dataset, the specified attribute will be automatically added to the schema as well as the generated entity URIs will be added as values for each entity. If the entered value is not a valid URI, it will be converted to a valid URI.",
-        "invalid": "The URI you have entered is not a valid URI and/or cannot be converted to a valid URI."
-    },
-    "ActiveLearning": {
-        "config": {
-            "title": "Configuration: Define properties to compare between entities of each data source",
-            "buttons": {
-                "startLearning": "Start learning",
-                "continueLearning": "Continue learning",
-                "resetTooltip": "Reset learning state",
-                "showInfo": "Show more information",
-                "closeInfo": "Close"
-            },
-            "errors": {
-                "fetchAutoCompletionResult": "An error occurred while trying to fetch path auto-completions.",
-                "invalidPath": "The path you have entered is invalid.",
-                "fetchComparisionConfig": "Could not fetch comparison config.",
-                "addFailed": "Adding comparison pair has failed."
-            },
-            "manualSelection": {
-                "title": "Add property paths pair",
-                "sourcePath": "Source path",
-                "targetPath": "Target path",
-                "info": "Specify property paths to be compared.",
-                "cannotAdd": "At least one paths is not valid.",
-                "insertPath": "Enter an input path"
-            },
-            "entitiyPair": {
-                "title": "Selected properties to compare entities",
-                "info": "Choose properties to compare. Select from the suggestions or add them by specifying property paths for both entities.",
-                "sourceColumnTitle": "Source dataset",
-                "targetColumnTitle": "Target dataset"
-            },
-            "suggestions": {
-                "title": "Add suggestions",
-                "foundSuggestions": "Found one comparison suggestion.",
-                "foundSuggestions_plural": "Found {{count}} comparison suggestions. Add them in the order you want to see them in the entity comparision later.",
-                "emptyList": "No suggestions available. You can add further comparison pairs manually by connection their property paths.",
-                "warningsTitle": "Warnings",
-                "warningsButton": "Show warnings"
-            }
-        },
-        "toolbar": {
-            "title": "Compare resources"
-        },
-        "bestLearnedRule": {
-            "title": "Top-performing learned rule",
-            "scoreInfo": "Score: {{score}}",
-            "titleTooltip": "The best rule that has been learned so far. The performance score ranges from 0.0 (worst) to 1.0 (best).",
-            "noRule": "No rule has been learned yet. You need to confirm/decline at least three candidate links for a rule to be learned.",
-            "hideRule": "Hide best learned rule",
-            "showRule": "Show best learned rule",
-            "showRuleFullscreen": "Show best learned rule in full-screen mode.",
-            "visualRuleTitle": "Best learned linking rule"
-        },
-        "feedback": {
-            "title": "Reference feedback",
-            "info": "Confirm or decline if the configured relation is correct between the entities. The colors of the connections indicate the equality score of the property values, equal values are highlighted. Properties can be marked so that one of the values is used for the title in the decision history table.",
-            "confirm": "Confirm",
-            "confirmDescription": "Confirm that the shown entities are a valid link.",
-            "decline": "Decline",
-            "declineDescription": "Decline that the shown entities are a valid link.",
-            "uncertain": "Uncertain",
-            "uncertainDescription": "Positive or negative link reference cannot be decided yet.",
-            "cancel": "Cancel selection and show next link candidate.",
-            "couldNotLoadCandidateError": "Could not load entity link candidate.",
-            "propertyConfiguration": "Configure which properties should be shown for reference feedback",
-            "noSelection": "No entity link selected and no further candidates left.",
-            "addToLabel": "Select property value to be part of the entity label",
-            "removeFromLabel": "Remove property value from entity label",
-            "scoreProbablyEqual": "probably equal",
-            "scoreProbablyUnequal": "probably unequal",
-            "sourceColumnTitle": "Source entity",
-            "targetColumnTitle": "Target entity",
-            "equalValues": "equal example values"
-        },
-        "referenceLinks": {
-            "title": "Decision history & reference links"
-        },
-        "resetDialog": {
-            "title": "Reset learning session",
-            "description": "This will reset the current learning session, e.g. changes made to the reference links and the configuration.",
-            "reset": "Reset",
-            "failed": "Could not reset learning session."
-        },
-        "saveDialog": {
-            "title": "Save reference links and/or best learned rule",
-            "saveReferenceLinks": {
-                "label": "Save reference links",
-                "noReferenceLinksMessage": "No unsaved reference links exist.",
-                "referenceLinksInfoMessage": "There are {{nr}} new, updated or deleted reference links that will be saved."
-            },
-            "bestLearnedRule": {
-                "label": "Save best learned rule",
-                "noBestLearnedRuleMessage": "No best learned rule exists so far."
-            },
-            "saveFailureMessage": "Saving the rule and/or the reference links has failed.",
-            "overwriteWarning": "Your current linking rule will be overwritten."
-        },
-        "sessionExistsModal": {
-            "title": "Existing session detected",
-            "description": "There is already an existing session running that you did not participate in, yet. Please be cautious."
-        },
-        "statistics": {
-            "fetchError": "Could not fetch active learning session infos.",
-            "noStats": "No session information available.",
-            "referenceLinksChangeStats": "Change statistics for reference links:",
-            "users": "Following users have contributed to the current active learning session:"
-        }
-    },
-    "ReferenceLinks": {
-        "mismatchCheckboxTitle": "Mismatches ({{nrMismatches}})",
-        "mismatchCheckboxTooltip": "If active, show only reference links where the currently best learned rule has computed a different decision than the user.",
-        "mismatchWithRule": "Current best rule decides differently",
-        "showList": "Show link list",
-        "hideList": "Hide link list",
-        "confirmedOnly": "Confirmed only ({{nr}})",
-        "confirmedOnlyTooltip": "If this filter is active only confirmed reference links are shown.",
-        "declinedOnly": "Declined only ({{nr}})",
-        "declinedOnlyTooltip": "If this filter is active only declined reference links are shown.",
-        "confirmed": "Confirmed",
-        "declined": "Declined",
-        "certainOnly": "Certain",
-        "certainOnlyTooltip": "Show only reference links that are either confirmed or declined.",
-        "uncertain": "Uncertain",
-        "uncertainOnly": "Uncertain",
-        "uncertainOnlyTooltip": "Show only reference links without a decision.",
-        "removeLink": "Delete reference link",
-        "checkFeedback": "Re-evaluate feedback decision",
+    "table": {
+      "header": {
         "source": "Source",
         "target": "Target",
-        "type": "Type",
-        "warnings": {
-            "entityHasNoValues": "This entity has no value available for all of its input paths. Maybe the entity does not exist in the data source."
-        },
-        "showEntityUris": {
-            "menuText": "Show entity URIs",
-            "modalTitle": "Reference link entity URIs",
-            "sourceEntity": "Source entity",
-            "targetEntity": "Target entity"
-        },
-        "contextMenu": {
-            "add": "Add reference link",
-            "import": "Import reference links",
-            "export": "Export reference links",
-            "removeReferenceLinks": "Remove reference links"
-        },
-        "removeModal": {
-            "title": "Remove reference links",
-            "infoMessage": "All reference links for every of the selected categories will be deleted."
-        },
-        "importModal": {
-            "title": "Import reference Links",
-            "generateDeclinedLinks": "Generate declined links",
-            "generateDeclinedLinksTooltip": "If enabled, declined reference links will be generated by interchanging the source and targets of the provided positive links. This will only produce correct results if the provided positive reference links are complete and model 1:1 relations."
-        },
-        "addLinkModal": {
-            "title": "Add reference link",
-            "sourceUri": "Source URI",
-            "targetUri": "Target URI"
-        },
-        "evaluationScoreTooltipWidget": {
-            "range": "Ranging from 0.0 (worst) to 1.0 (best).",
-            "fMeasureText": "<h3>F1-measure: {{fMeasure}}</h3><p>This is the combination of precision and recall. {{range}}</p>",
-            "precisionText": "<h3>Precision: {{precision}}</h3><p>How precise the rule is, i.e. the ratio of correctly evaluated positive items ({{truePositives}}) vs. all positively evaluated items ({{allEvaluatedTrue}}). {{range}}</p>",
-            "recallText": "<h3>Recall: {{recall}}</h3><p>Specifies how many of all the positive items are categorized correctly, i.e the ratio of correctly evaluated positive items ({{truePositives}}) vs all existing positive items ({{allTrue}}). {{range}}</p>"
-        }
-    },
-    "HierarchicalMapping": {
-        "ExampleView": {
-            "errors": {
-                "emptyResult": "Preview has returned no results.",
-                "emptyWithExceptions": "Preview has returned no results, possibly because of transform validation errors.",
-                "notSupported": "Input source does not support the transform preview.",
-                "withExceptions": "At least one problem has been detected: {{error}}"
-            }
-        }
-    },
-    "MappingSuggestion": {
-        "suggestionIssues": {
-            "noFoundClass": "None of the target classes have been found in the target vocabularies. Falling back to matching against all properties instead.",
-            "notAllClassesFound": "Following target classes have not been found in any of the target vocabularies: {{classesString}}.\n\nMatching only against {{numberOfFoundClasses}} of {{numberOfAllClasses}} target classes."
-        },
-        "SourceElement": {
-            "infobox": {
-                "exampleData": "Example data",
-                "sourcePath": "Source path",
-                "objectPath": "Object path",
-                "valuePath": "Value path",
-                "dataTypeSubPaths": "Datatype sub-paths",
-                "objectTypeSubPaths": "Object type sub-paths"
-            }
-        }
-    },
-    "InvisibleCharacterHandling": {
-        "iconTooltip": "One or more invisible characters have been detected in the input text. Click to show possible actions.",
-        "modal": {
-            "title": "Invisible characters found",
-            "description": "Following invisible characters have been detected in the input string:",
-            "cleanAction": "Clean text",
-            "cleanActionTooltip": "Removes all detected characters from the input text"
-        }
-    },
-    "ArtefactFormParameter": {
-        "evaluatedValue": "Evaluated template value: {{value}}",
-        "invalidTemplate": "Invalid template value",
-        "switchToTemplate": "Switch to template input that allows to use global variables like this 'EXAMPLE'. Templates follows the Jinja syntax.",
-        "switchToValue": "Variable template usage is active. You can use Jinja template syntax, e.g. for accessing global variables use 'EXAMPLE'. Click to switch back to direct value input.",
-        "passwordCleared": "Password was removed because it would be visible in clear text"
-    },
-    "PathInputOperator": {
-        "languageButtonTooltip": "Set a language filter. Only values for the chosen language will be fetched.",
-        "noFilter": "No language filter"
-    },
-    "MappingTree": {
-        "loadingRules": "Loading rules",
-        "noRulesFound": "No rules found"
-    },
-    "SampleError": {
-        "title": "Sample error report"
-    },
-    "ExecutionReport": {
-        "defaultTitle": "Execution report",
-        "execution": "Execution",
-        "statusMessages": {
-            "taskCancelled": "Task {{label}} has been cancelled.",
-            "taskError": "Task {{label}} failed to execute. Details: {{error}}",
-            "taskFailed": "Task {{label}} failed to execute.",
-            "running": "Task {{label}} has not finished execution yet.",
-            "done": "Task {{label}} has been executed without any issues."
-        },
-        "samplePreview": {
-            "title": "Sample output entities"
-        },
-        "transform": {
-            "messages": {
-                "selectMapping": "Select a mapping for detailed results.",
-                "noIssues": "This mapping rule executed successfully without any issues.",
-                "validationIssues": "This mapping rule generated {{errors}} validation issues during execution. Examples are shown below.",
-                "InvalidTypeUris": "There exist invalid type URIs: {{typeUris}}",
-                "notExecuted": "This mapping rule has not been executed at all. The transform execution has been stopped before for some reason.",
-                "notFinished": "This mapping rule has not been executed over all source entities. The transform execution has been stopped for some reason."
-            }
-        },
-        "errorTable": {
-            "entity": "Entity",
-            "values": "Values",
-            "issue": "Issue"
-        }
-    },
-    "Editor": {
-        "markdown": {
-            "toolbar": {
-                "paragraphs": "Paragraphs",
-                "heading-1": "Heading 1",
-                "heading-2": "Heading 2",
-                "heading-3": "Heading 3",
-                "heading-4": "Heading 4",
-                "heading-5": "Heading 5",
-                "heading-6": "Heading 6",
-                "block-quote": "Block quote",
-                "code-block": "Monospaced block",
-                "bold": "Bold",
-                "italic": "Italic",
-                "strikethrough": "Strike through",
-                "inline-code": "Monospaced",
-                "unordered-list": "Bulleted list",
-                "ordered-list": "Numbered list",
-                "todo-list": "Todo list",
-                "link": "Web link",
-                "image": "Image media",
-                "preview": "Preview",
-                "continue-editing": "Continue editing"
-            }
-        }
+        "score": "Score",
+        "linkState": "Link state",
+        "expandRows": "Expand all rows",
+        "expandTrees": "Expand all trees",
+        "collapseRows": "Collapse all rows"
+      },
+      "infoCollapsedInputValue": "Input values available",
+      "expandRow": "Expand row",
+      "collapseRow": "Collapse row"
     }
+  },
+  "navigation": {
+    "side": {
+      "di": {
+        "datasets": "Datasets",
+        "datasetsTooltip": "Shows the list of all datasets across all build projects.",
+        "projects": "Projects",
+        "projectsTooltip": "Shows the list of all data-integration build projects.",
+        "activities": "Activities",
+        "activitiesTooltip": "Shows the list of all data-integration build activities",
+        "workflows": "Workflows",
+        "workflowsTooltip": "Shows the list of all workflows across all build projects."
+      },
+      "diBrowse": "Silk",
+      "diBrowseTooltip": "Used to manage data-integration projects to build a knowledge graph from existing datasources",
+      "dm": {
+        "explore": "Knowledge Graphs",
+        "exploreTooltip": "A generic RDF graph data browser and editor.",
+        "query": "Queries",
+        "queryTooltip": "Used to write, store, describe, search and run SPARQL queries.",
+        "vocab": "Vocabularies",
+        "vocabTooltip": "Shows the list of all managed vocabularies. It let's you (un-)install vocabularies from RDF files or the integrated catalog.",
+        "thesaurus": "Thesauri",
+        "thesaurusTooltip": "The thesaurus module provides an interface for browsing, editing, structuring and linking concepts in a taxonomy based on SKOS."
+      },
+      "dmBrowser": "Explore",
+      "open": "Open navigation",
+      "close": "Close navigation"
+    },
+    "user": {
+      "open": "Open user menu",
+      "close": "Close user menu"
+    }
+  },
+  "pages": {
+    "dataset": {
+      "title": "Data preview"
+    },
+    "activities": {
+      "title": "Activities",
+      "noActivities": "No Activities found"
+    },
+    "deprecatedPlugins": {
+      "title": "Deprecated Plugins",
+      "noPluginsFound": "No deprecated plugins found.",
+      "unknownTask": "Unknown Task",
+      "fields": {
+        "task": "Task",
+        "project": "Project",
+        "message": "Message"
+      },
+      "errors": {
+        "fetchPlugins": "Failed to load deprecated plugins"
+      }
+    },
+    "notFound": {
+      "backLink": "Go to homepage",
+      "text": "The page you requested does not exist.",
+      "title": "Page not found"
+    },
+    "project": {
+      "content": "Contents",
+      "loading": "Loading project data"
+    },
+    "workspace": {
+      "contents": "Contents",
+      "createProject": "Create Project",
+      "empty": "Your workspace is empty. In order to start, create a new project or import an existing project from an exported project file.",
+      "firstWorkflow": "Workflow 1"
+    }
+  },
+  "RuleEditor": {
+    "edge": {
+      "menu": {
+        "delete": {
+          "label": "Remove edge",
+          "tooltip": "Removes the edge. Alternatively you can delete (multiple) selected rule elements by pressing the [←] (backspace) key on the keyboard."
+        }
+      }
+    },
+    "evaluation": {
+      "addMoreResults": "Add more reference links",
+      "noResults": "No linking results available. Please add reference links.",
+      "scoreWidget": {
+        "title": "Evaluation",
+        "notStarted": "Click button to run evaluation",
+        "showExamples": "Show Examples",
+        "noScore": "No evaluation score",
+        "noScoreTooltip": "No linking evaluation score available. Add positive and/or negative reference links in order to show a score",
+        "referenceLinks": "Open reference links UI in new tab"
+      },
+      "PathNotInCacheModal": {
+        "loadAndReEvaluate": "Load and re-evaluate",
+        "missingPath": "Path not loaded",
+        "pathCouldNotBeAdded": "Path could not be loaded.",
+        "messagePartA": "Values for the input path",
+        "messagePartB": "are not available for evaluation. Fetching the path values from the data source may take some time. Do you want to load the values and repeat the evaluation?"
+      }
+    },
+    "node": {
+      "menu": {
+        "description": {
+          "label": "Show documentation"
+        },
+        "remove": {
+          "label": "Remove"
+        },
+        "subtree": {
+          "label": "Evaluate subtree",
+          "description": "Evaluate linking tree partially until this operator node."
+        }
+      },
+      "executionButtons": {
+        "edit": {
+          "tooltip": "Open edit dialog"
+        }
+      }
+    },
+    "selection": {
+      "menu": {
+        "delete": {
+          "label": "Remove selected nodes",
+          "tooltip": "Removes all selected nodes and connected edges. Alternatively you can delete (multiple) selected rule elements by pressing the [←] (backspace) key on the keyboard."
+        },
+        "clone": {
+          "label": "Clone selected nodes",
+          "tooltip": "Clones all selected nodes and inter-connections and inserts them as new selection. Following key combination also triggers this action: CTRL/CMD + d"
+        },
+        "copy": {
+          "label": "Copy selected nodes to clipboard",
+          "tooltip": "Copy all selected nodes and inter-connections. Can be also triggered with following keyboard shortcut: ^Ctrl + c / ⌘Command + c. The copied elements can be inserted as copies with following keyboard shortcut: ^Ctrl + v / ⌘Command + v.The copied elements can also be inserted in editors in different tabs, windows or browsers."
+        }
+      }
+    },
+    "sidebar": {
+      "cancelCycling": "Cancel cycling",
+      "cycleTooltip": "Cycle through {{totalMatches}} current usages of this operator",
+      "emptyList": "No operator found.",
+      "searchInput": "Search for operators and paths...",
+      "searchTooltip": "Search for rule operators and input paths.",
+      "tab": {
+        "all": "All",
+        "sourcePaths": "Source paths",
+        "targetPaths": "Target paths",
+        "transform": "Transform",
+        "comparison": "Comparison",
+        "aggregation": "Aggregation"
+      },
+      "operator": {
+        "markdownTooltip": "{{shortDescription}}\n\nClick to view full documentation",
+        "markdownModalTitle": "{{operatorName}}'s documentation",
+        "sourcePathLabel": "Source path",
+        "sourcePathDesc": "The value path of the source input of the linking task.",
+        "targetPathLabel": "Target path",
+        "targetPathDesc": "The value path of the target input of the linking task."
+      },
+      "parameter": {
+        "weightLabel": "Weight",
+        "weightDesc": "The weight parameter can be used by the parent aggregation when combining its input values. Only certain aggregations will consider weighted inputs. Examples are the weighted average aggregation, quadraticMean and geometricMean.",
+        "thresholdLabel": "Threshold",
+        "thresholdRequired": {
+          "normalized": "required 0...1",
+          "unbounded": "required 0...∞"
+        },
+        "thresholdDesc": {
+          "normalized": "The maximum distance. This distance measure is normalized, i.e., the threshold must be between 0 (exact match) and 1 (no similarity).",
+          "unbounded": "The maximum distance. Distances start at 0 (exact match) and increase the more different the values may be."
+        }
+      }
+    },
+    "toolbar": {
+      "advancedParameterMode": "advanced",
+      "autoLayout": "Layout automatically the rule tree",
+      "readOnly": "Read-only mode is enabled. No saving possible.",
+      "save": "Save",
+      "saveError": {
+        "nodeError": {
+          "tooltip": "Center rule node"
+        }
+      },
+      "startEvaluation": "Start evaluation",
+      "showEvaluation": "Show evaluation examples",
+      "hideEvaluation": "Hide evaluation examples",
+      "copiedNotificationText": "Copied {{numberOfNodes}} to clipboard"
+    }
+  },
+  "taskViews": {
+    "linkRulesEditor": {
+      "errors": {
+        "partialPathAutoCompletion": {
+          "msg": "Could not fetch partial autocompletion"
+        },
+        "fetchTaskData": {
+          "msg": "An error has occurred while fetching the linking task."
+        },
+        "fetchLinkingRuleOperatorDetails": {
+          "msg": "An error has occurred while fetching the list of linking rule operators."
+        },
+        "fetchLinkingPaths": {
+          "msg": "Could not fetch source paths for linking task."
+        },
+        "inputPathAutoCompletion": {
+          "msg": "Could not fetch path auto-completions."
+        },
+        "missingPathsInCache": {
+          "msg": "Input path '{{inputPath}}' is not available in the cache. Please save the rule in order for the caches to add the missing paths."
+        },
+        "saveLinkageRule": {
+          "msg": "Could not save linking rule!"
+        },
+        "startEvaluation": {
+          "msg": "Could not fetch evaluation results."
+        },
+        "beforeStartEvaluation": {
+          "msg": "Could not start evaluation."
+        },
+        "fetchReferenceLinks": {
+          "msg": "Could not fetch evaluation results for reference links. Need to fallback to executing linking evaluation."
+        }
+      },
+      "cacheWidgets": {
+        "pathsCache": "Paths cache",
+        "evaluationCache": "Evaluation cache"
+      }
+    },
+    "ruleEditor": {
+      "errors": {
+        "loadExternalOperators": "Could not load operator list for tab '{{tabName}}'!"
+      },
+      "warnings": {
+        "unsavedChanges": "There are unsaved changes. Do you still want to close the rule editor?"
+      }
+    },
+    "transformRulesEditor": {
+      "evaluation": {
+        "noResults": "No evaluation examples to show",
+        "evaluationDifferentContext": "The input source of the transform context is different from the configured input of the transformation. Evaluation results are only shown for the configured input."
+      },
+      "warning": {
+        "modal": {
+          "title": "Discard unsaved changes?",
+          "body": "There are still unsaved changes. Do you want to discard them?",
+          "discard": "Discard changes"
+        }
+      },
+      "errors": {
+        "partialPathAutoCompletion": {
+          "msg": "Could not fetch partial autocompletion"
+        },
+        "fetchTransformRule": {
+          "msg": "An error has occurred while fetching the transform rule."
+        },
+        "fetchTransformRuleOperatorDetails": {
+          "msg": "An error has occurred while fetching the list of transform rule operators."
+        },
+        "saveTransformRule": {
+          "msg": "Could not save transform rule!"
+        },
+        "fetchTransformEvaluationValues": {
+          "msg": "Could not fetch evaluation results"
+        }
+      }
+    }
+  },
+  "copyModal": {
+    "copyPrefixes": "Copy prefixes",
+    "projectVarInfo": "Project variables that are missing in the target project will be copied.",
+    "errorMessages": {
+      "searchFailure": "Retrieving project list failed",
+      "copyFailure": "Failed to copy"
+    }
+  },
+  "cloneModal": {
+    "info": "Cloning a task means creating a copy of the task configuration in the same project. The related (used) tasks of this cloned task are not copied or changed (e.g., a cloned workflow processes the same workflow tasks as the original and not copies of them)."
+  },
+  "widget": {
+    "ActivityInfoWidget": {
+      "title": "Activities",
+      "view": "View project activities"
+    },
+    "ConfigWidget": {
+      "loading": "Loading configuration list.",
+      "loadingPrefix": "Loading prefix configuration.",
+      "prefix": "Prefix",
+      "prefixTitle": "Manage Prefixes",
+      "prefix_plural": "Prefixes",
+      "title": "Configuration",
+      "modal": {
+        "errors": {
+          "prefixDeletionFailure": "Prefix deletion failed",
+          "prefixChangeFailure": "Prefix change failed"
+        }
+      }
+    },
+    "FacetsList": {
+      "facet": {
+        "createdBy": {
+          "description": "The user who created the item.",
+          "label": "Created by",
+          "valueLabels": {
+            "": "Unknown user"
+          }
+        },
+        "datasetFileResource": {
+          "description": "The file resource of a file based dataset.",
+          "label": "Dataset file"
+        },
+        "datasetType": {
+          "description": "The concrete type of a dataset, e.g. its data model and format etc.",
+          "label": "Dataset type"
+        },
+        "readOnly": {
+          "description": "Filters datasets based on their access permissions.",
+          "label": "Dataset accessibility"
+        },
+        "lastModifiedBy": {
+          "description": "The user who last modified the item.",
+          "label": "Last modified by",
+          "valueLabels": {
+            "": "Unknown user"
+          }
+        },
+        "taskType": {
+          "description": "The concrete type of a task.",
+          "label": "Task type"
+        },
+        "transformInputResource": {
+          "description": "In case the input is a file resource based dataset, these are the file names of these resources.",
+          "label": "Transformed file resource"
+        },
+        "workflowExecutionStatus": {
+          "description": "Allows to filter by the status of the last execution of the workflow.",
+          "label": "Last execution status"
+        }
+      }
+    },
+    "FileWidget": {
+      "deleteFile": "Delete File",
+      "deleted": "File '{{fileName}}' will be deleted.",
+      "edit": "Edit prefix settings",
+      "empty": "No files are found, add them here to use it later",
+      "file": "File",
+      "files": "Files",
+      "loading": "Loading file list.",
+      "removeFromDatasets": "File '{{fileName}}' is in use by following items:",
+      "removeText": "Do you really want to delete file {{file}}?",
+      "sort": {
+        "modified": "Last modified",
+        "name": "Name",
+        "size": "Size (bytes)"
+      },
+      "modal": {
+        "errorMessages": {
+          "deleteFile": "File deletion failed"
+        }
+      }
+    },
+    "Filterbar": {
+      "subsections": {
+        "titles": {
+          "itemType": "Item type"
+        },
+        "valueLabels": {
+          "itemType": {
+            "dataset": "Dataset",
+            "linking": "Linking",
+            "project": "Project",
+            "task": "Task",
+            "transform": "Transform",
+            "workflow": "Workflow"
+          }
+        }
+      }
+    },
+    "LinkingRuleConfigWidget": {
+      "fetchError": "An error occurred while fetching the linkage rule configuration.",
+      "modal": {
+        "title": "Edit linkage rule configuration"
+      },
+      "parameters": {
+        "inverseLinkType": {
+          "label": "Inverse link type",
+          "description": "The inverse property URI of the link. For RDF based datasets this will be the property that connects the target to the source resources."
+        },
+        "excludeSelfReferences": {
+          "label": "Exclude self references",
+          "description": "If enabled, no links are generated from a resource to itself."
+        },
+        "linkType": {
+          "label": "Link type",
+          "description": "The property URI of the link. For RDF based datasets this will be the property that connects the source to the target resource."
+        },
+        "limit": {
+          "label": "Target link limit",
+          "description": "If set to an number N, then per source entity only for the N best matching target resources links will be generated."
+        }
+      },
+      "saveError": "An error has occurred while saving the linkage rule config.",
+      "title": "Configuration: Linkage rule"
+    },
+    "TargetVocabularySelection": {
+      "multiSelectionRadioButtonLabel": "Select individual vocabularies",
+      "staticEntryLabel": {
+        "none": "No vocabularies",
+        "all": "All installed vocabularies"
+      }
+    },
+    "TaskActivityOverview": {
+      "activities": {
+        "ExecuteDefaultWorkflow": {
+          "title": "Execute workflow"
+        },
+        "ExecuteLinking": {
+          "title": "Execute linking"
+        },
+        "ExecuteScheduler": {
+          "title": "Execute scheduler"
+        },
+        "ExecuteTransform": {
+          "title": "Execute transformation"
+        },
+        "GlobalVocabularyCache": {
+          "title": "Primary vocabulary cache"
+        },
+        "LinkingPathsCache": {
+          "title": "Source path cache"
+        },
+        "ReferenceEntitiesCache": {
+          "title": "Reference entities cache"
+        },
+        "TransformPathsCache": {
+          "title": "Source paths cache"
+        },
+        "TypesCache": {
+          "title": "Types cache"
+        },
+        "VocabularyCache": {
+          "title": "Target vocabulary cache"
+        }
+      },
+      "cacheGroup": {
+        "title": "Caches",
+        "cacheAgePrefix": "Updated ",
+        "cacheAgeSuffix": " ago",
+        "cacheAgePrefixIndividual": "updated "
+      },
+      "activityControl": {
+        "startActivity": "Start activity",
+        "reloadActivity": "Restart activity",
+        "stopActivity": "Stop activity",
+        "showErrorReport": "Show error report",
+        "viewCachedData": "View cached data in new tab",
+        "startPrioritized": "Run prioritized and skip the waiting queue"
+      },
+      "errorMessages": {
+        "actions": {
+          "start": "Starting activity {{activityName}} has failed.",
+          "cancel": "Stopping activity {{activityName}} has failed.",
+          "restart": "Restarting activity {{activityName}} has failed."
+        },
+        "errorReport": {
+          "fetchReport": "Fetching activity execution error report has failed."
+        },
+        "fetchActivityInfo": "Fetching activities list has failed."
+      },
+      "reloadAllCaches": "Reload all caches",
+      "title": "Activity overview"
+    },
+    "VariableWidget": {
+      "title": "Project Variables",
+      "noVariables": "No variables set.",
+      "form": {
+        "name": "Name",
+        "value": "Value",
+        "description": "Description",
+        "infoBoxTitle": "Project variables",
+        "infoBoxDescription": "User-defined project variables. They can be used in dataset and task parameters and in the template transform operator. Variables may use templates that access other preceding project variables or globally configured variables."
+      },
+      "dependencyTypes": {
+        "tasks": "Dependent tasks",
+        "variables": "Dependent variables"
+      },
+      "modalMessages": {
+        "deleteModalTitle": "Delete variable",
+        "deletePromptWithDependencies": "The variable '{{varname}}' cannot be deleted because it is used at the following places:",
+        "deletePromptNoDep": "Are you sure you want to delete variable '{{varname}}'?"
+      },
+      "actions": {
+        "add": "Add variable",
+        "edit": "Edit variable"
+      },
+      "formErrors": {
+        "nameAlreadyExists": "Name already exists",
+        "nameMustBeSpecified": "Name must be specified",
+        "mustProvideValOrTemplate": "Must provide value or template"
+      },
+      "errorMessages": {
+        "loadingVariables": "Could not load variables for project '{{projectId}}'",
+        "orderingVariables": "Cannot change position of variable: its own dependencies must be defined beforehand",
+        "variableUpsertFailure": "Variable add/update failed",
+        "templateUpdateFailure": "Variable template error",
+        "dependencyRetrievalFailure": "Failed to retrieve dependencies",
+        "variableDeletionFailure": "Failed to delete variable"
+      }
+    },
+    "TaskConfigWidget": {
+      "loading": "Loading update dialog...",
+      "noPreview": "No preview available",
+      "title": "Configuration",
+      "templateValueInfo": "The parameter value is derived from the following variable template: "
+    },
+    "WarningWidget": {
+      "loading": "Loading log messages.",
+      "title": "Error log",
+      "fixTask": "Fix task",
+      "fixTaskInitFailed": "Could not load data in oder to fix task.",
+      "fixTaskModalTitle": "Fix task '{{taskLabel}}'",
+      "FixTaskDataNotFoundModal": {
+        "title": "Reload failed task",
+        "warningMessage": "Either the plugin data or the original task data was not available. Click button to reload the task. Details: {{details}}",
+        "reloadButton": "Reload task"
+      }
+    }
+  },
+  "DatasetUriPropertyParameter": {
+    "label": "URI attribute",
+    "description": "When reading data from the dataset, the specified attribute will be used to get the URIs of the entities. When writing to a dataset, the specified attribute will be automatically added to the schema as well as the generated entity URIs will be added as values for each entity. If the entered value is not a valid URI, it will be converted to a valid URI.",
+    "invalid": "The URI you have entered is not a valid URI and/or cannot be converted to a valid URI."
+  },
+  "ActiveLearning": {
+    "config": {
+      "title": "Configuration: Define properties to compare between entities of each data source",
+      "buttons": {
+        "startLearning": "Start learning",
+        "continueLearning": "Continue learning",
+        "resetTooltip": "Reset learning state",
+        "showInfo": "Show more information",
+        "closeInfo": "Close"
+      },
+      "errors": {
+        "fetchAutoCompletionResult": "An error occurred while trying to fetch path auto-completions.",
+        "invalidPath": "The path you have entered is invalid.",
+        "fetchComparisionConfig": "Could not fetch comparison config.",
+        "addFailed": "Adding comparison pair has failed."
+      },
+      "manualSelection": {
+        "title": "Add property paths pair",
+        "sourcePath": "Source path",
+        "targetPath": "Target path",
+        "info": "Specify property paths to be compared.",
+        "cannotAdd": "At least one paths is not valid.",
+        "insertPath": "Enter an input path"
+      },
+      "entitiyPair": {
+        "title": "Selected properties to compare entities",
+        "info": "Choose properties to compare. Select from the suggestions or add them by specifying property paths for both entities.",
+        "sourceColumnTitle": "Source dataset",
+        "targetColumnTitle": "Target dataset"
+      },
+      "suggestions": {
+        "title": "Add suggestions",
+        "foundSuggestions": "Found one comparison suggestion.",
+        "foundSuggestions_plural": "Found {{count}} comparison suggestions. Add them in the order you want to see them in the entity comparision later.",
+        "emptyList": "No suggestions available. You can add further comparison pairs manually by connection their property paths.",
+        "warningsTitle": "Warnings",
+        "warningsButton": "Show warnings"
+      }
+    },
+    "toolbar": {
+      "title": "Compare resources"
+    },
+    "bestLearnedRule": {
+      "title": "Top-performing learned rule",
+      "scoreInfo": "Score: {{score}}",
+      "titleTooltip": "The best rule that has been learned so far. The performance score ranges from 0.0 (worst) to 1.0 (best).",
+      "noRule": "No rule has been learned yet. You need to confirm/decline at least three candidate links for a rule to be learned.",
+      "hideRule": "Hide best learned rule",
+      "showRule": "Show best learned rule",
+      "showRuleFullscreen": "Show best learned rule in full-screen mode.",
+      "visualRuleTitle": "Best learned linking rule"
+    },
+    "feedback": {
+      "title": "Reference feedback",
+      "info": "Confirm or decline if the configured relation is correct between the entities. The colors of the connections indicate the equality score of the property values, equal values are highlighted. Properties can be marked so that one of the values is used for the title in the decision history table.",
+      "confirm": "Confirm",
+      "confirmDescription": "Confirm that the shown entities are a valid link.",
+      "decline": "Decline",
+      "declineDescription": "Decline that the shown entities are a valid link.",
+      "uncertain": "Uncertain",
+      "uncertainDescription": "Positive or negative link reference cannot be decided yet.",
+      "cancel": "Cancel selection and show next link candidate.",
+      "couldNotLoadCandidateError": "Could not load entity link candidate.",
+      "propertyConfiguration": "Configure which properties should be shown for reference feedback",
+      "noSelection": "No entity link selected and no further candidates left.",
+      "addToLabel": "Select property value to be part of the entity label",
+      "removeFromLabel": "Remove property value from entity label",
+      "scoreProbablyEqual": "probably equal",
+      "scoreProbablyUnequal": "probably unequal",
+      "sourceColumnTitle": "Source entity",
+      "targetColumnTitle": "Target entity",
+      "equalValues": "equal example values"
+    },
+    "referenceLinks": {
+      "title": "Decision history & reference links"
+    },
+    "resetDialog": {
+      "title": "Reset learning session",
+      "description": "This will reset the current learning session, e.g. changes made to the reference links and the configuration.",
+      "reset": "Reset",
+      "failed": "Could not reset learning session."
+    },
+    "saveDialog": {
+      "title": "Save reference links and/or best learned rule",
+      "saveReferenceLinks": {
+        "label": "Save reference links",
+        "noReferenceLinksMessage": "No unsaved reference links exist.",
+        "referenceLinksInfoMessage": "There are {{nr}} new, updated or deleted reference links that will be saved."
+      },
+      "bestLearnedRule": {
+        "label": "Save best learned rule",
+        "noBestLearnedRuleMessage": "No best learned rule exists so far."
+      },
+      "saveFailureMessage": "Saving the rule and/or the reference links has failed.",
+      "overwriteWarning": "Your current linking rule will be overwritten."
+    },
+    "sessionExistsModal": {
+      "title": "Existing session detected",
+      "description": "There is already an existing session running that you did not participate in, yet. Please be cautious."
+    },
+    "statistics": {
+      "fetchError": "Could not fetch active learning session infos.",
+      "noStats": "No session information available.",
+      "referenceLinksChangeStats": "Change statistics for reference links:",
+      "users": "Following users have contributed to the current active learning session:"
+    }
+  },
+  "ReferenceLinks": {
+    "mismatchCheckboxTitle": "Mismatches ({{nrMismatches}})",
+    "mismatchCheckboxTooltip": "If active, show only reference links where the currently best learned rule has computed a different decision than the user.",
+    "mismatchWithRule": "Current best rule decides differently",
+    "showList": "Show link list",
+    "hideList": "Hide link list",
+    "confirmedOnly": "Confirmed only ({{nr}})",
+    "confirmedOnlyTooltip": "If this filter is active only confirmed reference links are shown.",
+    "declinedOnly": "Declined only ({{nr}})",
+    "declinedOnlyTooltip": "If this filter is active only declined reference links are shown.",
+    "confirmed": "Confirmed",
+    "declined": "Declined",
+    "certainOnly": "Certain",
+    "certainOnlyTooltip": "Show only reference links that are either confirmed or declined.",
+    "uncertain": "Uncertain",
+    "uncertainOnly": "Uncertain",
+    "uncertainOnlyTooltip": "Show only reference links without a decision.",
+    "removeLink": "Delete reference link",
+    "checkFeedback": "Re-evaluate feedback decision",
+    "source": "Source",
+    "target": "Target",
+    "type": "Type",
+    "warnings": {
+      "entityHasNoValues": "This entity has no value available for all of its input paths. Maybe the entity does not exist in the data source."
+    },
+    "showEntityUris": {
+      "menuText": "Show entity URIs",
+      "modalTitle": "Reference link entity URIs",
+      "sourceEntity": "Source entity",
+      "targetEntity": "Target entity"
+    },
+    "contextMenu": {
+      "add": "Add reference link",
+      "import": "Import reference links",
+      "export": "Export reference links",
+      "removeReferenceLinks": "Remove reference links"
+    },
+    "removeModal": {
+      "title": "Remove reference links",
+      "infoMessage": "All reference links for every of the selected categories will be deleted."
+    },
+    "importModal": {
+      "title": "Import reference Links",
+      "generateDeclinedLinks": "Generate declined links",
+      "generateDeclinedLinksTooltip": "If enabled, declined reference links will be generated by interchanging the source and targets of the provided positive links. This will only produce correct results if the provided positive reference links are complete and model 1:1 relations."
+    },
+    "addLinkModal": {
+      "title": "Add reference link",
+      "sourceUri": "Source URI",
+      "targetUri": "Target URI"
+    },
+    "evaluationScoreTooltipWidget": {
+      "range": "Ranging from 0.0 (worst) to 1.0 (best).",
+      "fMeasureText": "<h3>F1-measure: {{fMeasure}}</h3><p>This is the combination of precision and recall. {{range}}</p>",
+      "precisionText": "<h3>Precision: {{precision}}</h3><p>How precise the rule is, i.e. the ratio of correctly evaluated positive items ({{truePositives}}) vs. all positively evaluated items ({{allEvaluatedTrue}}). {{range}}</p>",
+      "recallText": "<h3>Recall: {{recall}}</h3><p>Specifies how many of all the positive items are categorized correctly, i.e the ratio of correctly evaluated positive items ({{truePositives}}) vs all existing positive items ({{allTrue}}). {{range}}</p>"
+    }
+  },
+  "HierarchicalMapping": {
+    "ExampleView": {
+      "errors": {
+        "emptyResult": "Preview has returned no results.",
+        "emptyWithExceptions": "Preview has returned no results, possibly because of transform validation errors.",
+        "notSupported": "Input source does not support the transform preview.",
+        "withExceptions": "At least one problem has been detected: {{error}}"
+      }
+    }
+  },
+  "MappingSuggestion": {
+    "suggestionIssues": {
+      "noFoundClass": "None of the target classes have been found in the target vocabularies. Falling back to matching against all properties instead.",
+      "notAllClassesFound": "Following target classes have not been found in any of the target vocabularies: {{classesString}}.\n\nMatching only against {{numberOfFoundClasses}} of {{numberOfAllClasses}} target classes."
+    },
+    "SourceElement": {
+      "infobox": {
+        "exampleData": "Example data",
+        "sourcePath": "Source path",
+        "objectPath": "Object path",
+        "valuePath": "Value path",
+        "dataTypeSubPaths": "Datatype sub-paths",
+        "objectTypeSubPaths": "Object type sub-paths"
+      }
+    }
+  },
+  "InvisibleCharacterHandling": {
+    "iconTooltip": "One or more invisible characters have been detected in the input text. Click to show possible actions.",
+    "modal": {
+      "title": "Invisible characters found",
+      "description": "Following invisible characters have been detected in the input string:",
+      "cleanAction": "Clean text",
+      "cleanActionTooltip": "Removes all detected characters from the input text"
+    }
+  },
+  "ArtefactFormParameter": {
+    "evaluatedValue": "Evaluated template value: {{value}}",
+    "invalidTemplate": "Invalid template value",
+    "switchToTemplate": "Switch to template input that allows to use global variables like this 'EXAMPLE'. Templates follows the Jinja syntax.",
+    "switchToValue": "Variable template usage is active. You can use Jinja template syntax, e.g. for accessing global variables use 'EXAMPLE'. Click to switch back to direct value input.",
+    "passwordCleared": "Password was removed because it would be visible in clear text"
+  },
+  "PathInputOperator": {
+    "languageButtonTooltip": "Set a language filter. Only values for the chosen language will be fetched.",
+    "noFilter": "No language filter"
+  },
+  "MappingTree": {
+    "loadingRules": "Loading rules",
+    "noRulesFound": "No rules found"
+  },
+  "SampleError": {
+    "title": "Sample error report"
+  },
+  "ExecutionReport": {
+    "defaultTitle": "Execution report",
+    "execution": "Execution",
+    "statusMessages": {
+      "taskCancelled": "Task {{label}} has been cancelled.",
+      "taskError": "Task {{label}} failed to execute. Details: {{error}}",
+      "taskFailed": "Task {{label}} failed to execute.",
+      "running": "Task {{label}} has not finished execution yet.",
+      "done": "Task {{label}} has been executed without any issues."
+    },
+    "samplePreview": {
+      "title": "Sample output entities"
+    },
+    "transform": {
+      "messages": {
+        "selectMapping": "Select a mapping for detailed results.",
+        "noIssues": "This mapping rule executed successfully without any issues.",
+        "validationIssues": "This mapping rule generated {{errors}} validation issues during execution. Examples are shown below.",
+        "InvalidTypeUris": "There exist invalid type URIs: {{typeUris}}",
+        "notExecuted": "This mapping rule has not been executed at all. The transform execution has been stopped before for some reason.",
+        "notFinished": "This mapping rule has not been executed over all source entities. The transform execution has been stopped for some reason."
+      }
+    },
+    "errorTable": {
+      "entity": "Entity",
+      "values": "Values",
+      "issue": "Issue"
+    }
+  },
+  "Editor": {
+    "markdown": {
+      "toolbar": {
+        "paragraphs": "Paragraphs",
+        "heading-1": "Heading 1",
+        "heading-2": "Heading 2",
+        "heading-3": "Heading 3",
+        "heading-4": "Heading 4",
+        "heading-5": "Heading 5",
+        "heading-6": "Heading 6",
+        "block-quote": "Block quote",
+        "code-block": "Monospaced block",
+        "bold": "Bold",
+        "italic": "Italic",
+        "strikethrough": "Strike through",
+        "inline-code": "Monospaced",
+        "unordered-list": "Bulleted list",
+        "ordered-list": "Numbered list",
+        "todo-list": "Todo list",
+        "link": "Web link",
+        "image": "Image media",
+        "preview": "Preview",
+        "continue-editing": "Continue editing"
+      }
+    }
+  }
 }
