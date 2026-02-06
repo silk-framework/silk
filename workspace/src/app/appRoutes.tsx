@@ -8,74 +8,82 @@ const WorkflowPage = lazy(() => import("./views/pages/Workflow"));
 const TransformPage = lazy(() => import("./views/pages/Transform"));
 const LinkingPage = lazy(() => import("./views/pages/Linking"));
 const TaskPage = lazy(() => import("./views/pages/Task"));
-const TaskPluginView = lazy(() => import("./views/pages/TaskPluginView/TaskPluginView"));
+const TaskPluginView = lazy(
+  () => import("./views/pages/TaskPluginView/TaskPluginView"),
+);
 const NotFoundPage = lazy(() => import("./views/pages/NotFound"));
 const Activities = lazy(() => import("./views/pages/Activities"));
+const DeprecatedPlugins = lazy(() => import("./views/pages/DeprecatedPlugins"));
 
 export interface IRouteProps extends RouteProps {
-    /** Path of the route. */
-    path: string;
-    /** If true then only the component is shown without header etc. */
-    componentOnly?: boolean;
+  /** Path of the route. */
+  path: string;
+  /** If true then only the component is shown without header etc. */
+  componentOnly?: boolean;
 }
 
 const appRoutes: IRouteProps[] = [
-    {
-        path: "/",
-        component: DashboardPage,
-        exact: true,
-    },
-    {
-        path: "/projects/:projectId",
-        component: ProjectPage,
-        exact: true,
-    },
-    {
-        path: "/projects/:projectId/dataset/:taskId/:tab?",
-        component: DatasetPage,
-        exact: true,
-    },
-    {
-        path: "/projects/:projectId/workflow/:taskId/:tab?",
-        component: WorkflowPage,
-        exact: true,
-    },
-    {
-        path: "/projects/:projectId/transform/:taskId/:tab?",
-        component: TransformPage,
-        exact: true,
-    },
-    {
-        path: "/projects/:projectId/linking/:taskId/:tab?",
-        component: LinkingPage,
-        exact: true,
-    },
-    {
-        path: "/projects/:projectId/task/:taskId/:tab?",
-        component: TaskPage,
-        exact: true,
-    },
-    {
-        path: "/projects/:projectId/activities",
-        component: Activities,
-        exact: true,
-    },
-    {
-        path: "/activities",
-        component: Activities,
-        exact: true,
-    },
-    {
-        path: "/projects/:projectId/item/:pluginId/:taskId/view/:viewId",
-        component: TaskPluginView,
-        exact: true,
-        componentOnly: true,
-    },
-    {
-        path: "*",
-        component: NotFoundPage,
-        exact: false,
-    },
+  {
+    path: "/",
+    component: DashboardPage,
+    exact: true,
+  },
+  {
+    path: "/projects/:projectId",
+    component: ProjectPage,
+    exact: true,
+  },
+  {
+    path: "/projects/:projectId/dataset/:taskId/:tab?",
+    component: DatasetPage,
+    exact: true,
+  },
+  {
+    path: "/projects/:projectId/workflow/:taskId/:tab?",
+    component: WorkflowPage,
+    exact: true,
+  },
+  {
+    path: "/projects/:projectId/transform/:taskId/:tab?",
+    component: TransformPage,
+    exact: true,
+  },
+  {
+    path: "/projects/:projectId/linking/:taskId/:tab?",
+    component: LinkingPage,
+    exact: true,
+  },
+  {
+    path: "/projects/:projectId/task/:taskId/:tab?",
+    component: TaskPage,
+    exact: true,
+  },
+  {
+    path: "/projects/:projectId/activities",
+    component: Activities,
+    exact: true,
+  },
+  {
+    path: "/activities",
+    component: Activities,
+    exact: true,
+  },
+  {
+    path: "/projects/:projectId/item/:pluginId/:taskId/view/:viewId",
+    component: TaskPluginView,
+    exact: true,
+    componentOnly: true,
+  },
+  {
+    path: "/deprecatedPlugins",
+    component: DeprecatedPlugins,
+    exact: true,
+  },
+  {
+    path: "*",
+    component: NotFoundPage,
+    exact: false,
+  },
 ];
 
 export default appRoutes;
