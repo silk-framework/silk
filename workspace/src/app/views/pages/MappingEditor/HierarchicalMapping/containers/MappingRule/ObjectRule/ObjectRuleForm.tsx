@@ -15,6 +15,7 @@ import {
     CardTitle,
     CardHeader,
     Divider,
+    MultiSuggestField
 } from "@eccenca/gui-elements";
 import _ from "lodash";
 import ExampleView from "../ExampleView";
@@ -36,7 +37,7 @@ import { trimValue } from "../../../utils/trimValue";
 import { wasTouched } from "../../../utils/wasTouched";
 import { newValueIsIRI } from "../../../utils/newValueIsIRI";
 import TargetCardinality from "../../../components/TargetCardinality";
-import MultiAutoComplete from "../../../components/MultiAutoComplete";
+import TargetTypeMultiAutoComplete from "../../../components/TargetTypeMultiAutoComplete";
 import silkApi from "../../../../api/silkRestApi";
 import { IUriPattern } from "../../../../api/types";
 import { UriPatternSelectionModal } from "./UriPatternSelectionModal";
@@ -45,6 +46,7 @@ import { defaultUriPattern } from "./ObjectRule.utils";
 import { GlobalMappingEditorContext } from "../../../../contexts/GlobalMappingEditorContext";
 import { EntityRelationshipSelection } from "../../../components/EntityRelationshipSelection";
 import { MAPPING_ROOT_RULE_ID } from "../../../HierarchicalMapping";
+import {Keyword} from "@ducks/workspace/typings";
 
 interface IProps {
     id?: string;
@@ -510,18 +512,14 @@ export const ObjectRuleForm = (props: IProps) => {
                 {errorMessage}
                 {targetPropertyInput}
                 {entityRelationInput}
-                <MultiAutoComplete
+                <TargetTypeMultiAutoComplete
                     placeholder="Target entity type"
                     className="ecc-silk-mapping__ruleseditor__targetEntityType"
-                    entity="targetEntityType"
-                    isValidNewOption={newValueIsIRI}
-                    ruleId={autoCompleteRuleId}
+                    isValidNewOption={(text: string) => newValueIsIRI({label: text})}
                     value={modifiedValues().targetEntityType}
-                    creatable
                     onChange={(value) => {
-                        handleChangeValue("targetEntityType", value);
+                        handleChangeValue("targetEntityType", value.selectedItems);
                     }}
-                    taskContext={mappingEditorContext.taskContext}
                 />
                 {targetCardinality}
                 {sourcePropertyInput}
