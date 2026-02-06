@@ -20,7 +20,8 @@ import { wrapTooltip } from "../../../utils/uiUtils";
 import { coreApi } from "../../../utils/getApiEndpoint";
 import useErrorHandler from "../../../hooks/useErrorHandler";
 import { useTranslation } from "react-i18next";
-import { usePageHeader } from "views/shared/PageHeader/PageHeader";
+import { usePageHeader } from "../../../views/shared/PageHeader/PageHeader";
+import { SERVE_PATH } from "../../../constants/path";
 
 interface DeprecatedPluginsModel {
   project?: string;
@@ -29,7 +30,7 @@ interface DeprecatedPluginsModel {
   deprecationMessage?: string;
 }
 
-export default function DepricatedPlugins() {
+export default function DeprecatedPlugins() {
   const [deprecatedPlugins, setDeprecatedPlugins] = useState<
     DeprecatedPluginsModel[]
   >([]);
@@ -55,6 +56,7 @@ export default function DepricatedPlugins() {
   });
 
   useEffect(() => {
+
     const fetchDeprecatedPlugins = async () => {
       try {
         const response = await fetch<DeprecatedPluginsModel[]>({
@@ -77,10 +79,9 @@ export default function DepricatedPlugins() {
     };
 
     fetchDeprecatedPlugins();
-  }, [registerError]);
+  }, []);
 
   const goToTaskPage = (link: string) => (e: React.MouseEvent) => {
-    // Only open page in same tab if user did not try to open in new tab
     if (!e?.ctrlKey) {
       e.preventDefault();
       window.location.href = link;
@@ -89,12 +90,23 @@ export default function DepricatedPlugins() {
 
   return (
     <div>
-      <h1>{t("pages.deprecatedPlugins.title", "Deprecated Plugins")}</h1>
+      {/* page header in app bar */}
+      {pageHeader}
+      {/* information alert to user when no deprecated plugins are found */}
+      <Notification>
+        {t(
+          "pages.deprecatedPlugins.infoMessage",
+          "This page lists plugins that are used in existing projects but have been marked as deprecated. It is recommended to replace these plugins to ensure compatibility with future versions of the application.",
+        )}
+      </Notification>
+      <br/>
+      {/* list of deprecated plugins in two column layout */}
       <Datalist
         data-test-id="deprecated-plugins-list"
         isEmpty={!isLoading && deprecatedPlugins.length === 0}
         isLoading={isLoading}
         hasSpacing
+        columns={2}
         emptyContainer={
           <Notification>
             {t(
@@ -116,13 +128,15 @@ export default function DepricatedPlugins() {
               </OverviewItemDepiction>
               <OverviewItemDescription>
                 <OverviewItemLine>
-                  <h4>
+                  {/* task label */}
+                  <h4 style={{ display: "inline" }}>
                     <ResourceLink
                       url={plugin.link || false}
                       handlerResourcePageLoader={
                         plugin.link ? goToTaskPage(plugin.link) : false
                       }
                     >
+
                       <OverflowText>
                         {plugin.task ||
                           t(
@@ -132,20 +146,29 @@ export default function DepricatedPlugins() {
                       </OverflowText>
                     </ResourceLink>
                   </h4>
+                  {/* deprecation message (cut by 80 characters) */}
                   {plugin.deprecationMessage && (
-                    <>
-                      {" "}
+                    <span style={{ marginLeft: "0.2rem" }}>
                       {wrapTooltip(
                         plugin.deprecationMessage.length > 80,
                         <OverflowText passDown={true} inline={true}>
-                          {plugin.deprecationMessage}
+                          {plugin.deprecationMessage ||
+                          t(
+                            "pages.deprecatedPlugins.deprecationMessage",
+                            "Plugin is deprecated.",
+                          )}
                         </OverflowText>,
-                        <div>{plugin.deprecationMessage}</div>,
+                        <div>{plugin.deprecationMessage.substring(0, 80) ||
+                          t(
+                            "pages.deprecatedPlugins.deprecationMessage",
+                            "Plugin is deprecated.",
+                          )}</div>,
                       )}
-                    </>
+                    </span>
                   )}
                 </OverviewItemLine>
                 <OverviewItemLine small>
+                  {/* Tags (Plugin label, project label, item label) */}
                   <TagList>
                     {plugin.project && (
                       <Tag emphasis="weak">{plugin.project}</Tag>
@@ -153,6 +176,7 @@ export default function DepricatedPlugins() {
                   </TagList>
                 </OverviewItemLine>
               </OverviewItemDescription>
+              {/* interaction element to link to task page */}
               <OverviewItemActions>
                 {plugin.link && (
                   <IconButton
