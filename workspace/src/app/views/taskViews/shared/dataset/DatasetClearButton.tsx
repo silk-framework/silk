@@ -5,7 +5,7 @@ import { useTranslation } from "react-i18next";
 import DeleteModal from "../../../shared/modals/DeleteModal";
 import { clearDataset } from "./dataset.requests";
 import { ErrorResponse, FetchError } from "../../../../services/fetch/responseInterceptor";
-import { IMetaData } from "../../../pages/MappingEditor/HierarchicalMapping/store";
+import { IMetadata } from "@ducks/shared/typings";
 import { requestTaskData } from "@ducks/shared/requests";
 import useErrorHandler from "../../../../hooks/useErrorHandler";
 
@@ -19,7 +19,7 @@ interface Props {
 export const DatasetClearButton = ({ projectId, datasetId }: Props) => {
     const [t] = useTranslation();
     const [showModal, setShowModal] = React.useState(false);
-    const [datasetMetaData, setDatasetMetaData] = React.useState<IMetaData | undefined>(undefined);
+    const [datasetMetaData, setDatasetMetaData] = React.useState<IMetadata | undefined>(undefined);
     const [outputIsReadOnly, setOutputIsReadOnly] = React.useState(false);
     const { registerError } = useErrorHandler();
 
@@ -79,7 +79,7 @@ export const DatasetClearButton = ({ projectId, datasetId }: Props) => {
 
 interface ModalProps extends Props {
     onClose: () => any;
-    datasetMetaData: IMetaData;
+    datasetMetaData: IMetadata;
 }
 
 const DatasetClearButtonModal = ({ projectId, datasetId, onClose, datasetMetaData }: ModalProps) => {
