@@ -133,30 +133,6 @@ class ValueRule extends React.Component {
                 <Card elevation={-1}>
                     <CardContent>
                         <PropertyValueList>
-                            {(metaLabel || metaDesc) && (
-                                <>
-                                    <PropertyValuePair singleColumn>
-                                        {metaLabel && metaDesc ? (
-                                            <>
-                                                {_.get(metadata, "label") && (
-                                                    <MetadataLabel label={metaLabel} hasDescription />
-                                                )}
-                                                {_.get(metadata, "description") && (
-                                                    <MetadataDesc description={metaDesc} hasLabel />
-                                                )}
-                                            </>
-                                        ) : (
-                                            <>
-                                                {_.get(metadata, "label") && <MetadataLabel label={metaLabel} />}
-                                                {_.get(metadata, "description") && (
-                                                    <MetadataDesc description={metaDesc} />
-                                                )}
-                                            </>
-                                        )}
-                                    </PropertyValuePair>
-                                    <Spacing size={"small"} />
-                                </>
-                            )}
                             {mappingTarget.uri ? (
                                 <TargetProperty
                                     key={"ObjectTargetProperty"}
@@ -191,6 +167,30 @@ class ValueRule extends React.Component {
                                 </ValueSourcePaths>
                             ) : null}
                             {id ? <ExampleTarget uriRuleId={id} /> : null}
+                            {(metaLabel || metaDesc) && (
+                                <>
+                                    <PropertyValuePair singleColumn>
+                                        {metaLabel && metaDesc ? (
+                                            <>
+                                                {_.get(metadata, "label") && (
+                                                    <MetadataLabel label={metaLabel} hasDescription />
+                                                )}
+                                                {_.get(metadata, "description") && (
+                                                    <MetadataDesc description={metaDesc} hasLabel />
+                                                )}
+                                            </>
+                                        ) : (
+                                            <>
+                                                {_.get(metadata, "label") && <MetadataLabel label={metaLabel} />}
+                                                {_.get(metadata, "description") && (
+                                                    <MetadataDesc description={metaDesc} />
+                                                )}
+                                            </>
+                                        )}
+                                    </PropertyValuePair>
+                                    <Spacing size={"small"} />
+                                </>
+                            )}
                         </PropertyValueList>
                     </CardContent>
                     <Divider />

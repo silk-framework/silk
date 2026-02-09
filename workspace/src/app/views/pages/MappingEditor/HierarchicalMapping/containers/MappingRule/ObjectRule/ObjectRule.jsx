@@ -181,28 +181,6 @@ class ObjectRule extends React.Component {
             <div>
                 <div className="ecc-silk-mapping__rulesviewer">
                     <CardContent>
-                        {(metaLabel || metaDesc) && (
-                            <>
-                                <PropertyValuePair singleColumn>
-                                    {metaLabel && metaDesc ? (
-                                        <>
-                                            {_.get(metadata, "label") && (
-                                                <MetadataLabel label={metaLabel} hasDescription />
-                                            )}
-                                            {_.get(metadata, "description") && (
-                                                <MetadataDesc description={metaDesc} hasLabel />
-                                            )}
-                                        </>
-                                    ) : (
-                                        <>
-                                            {_.get(metadata, "label") && <MetadataLabel label={metaLabel} />}
-                                            {_.get(metadata, "description") && <MetadataDesc description={metaDesc} />}
-                                        </>
-                                    )}
-                                </PropertyValuePair>
-                                <Spacing size={"small"} />
-                            </>
-                        )}
                         {!isRootRule(type) ? (
                             [
                                 <ObjectEntityRelation
@@ -250,6 +228,28 @@ class ObjectRule extends React.Component {
                         }
                         {_.get(ruleData, "rules.uriRule.id") && (
                             <ExampleTarget uriRuleId={_.get(ruleData, "rules.uriRule.id")} />
+                        )}
+                        {(metaLabel || metaDesc) && (
+                            <>
+                                <PropertyValuePair singleColumn>
+                                    {metaLabel && metaDesc ? (
+                                        <>
+                                            {_.get(metadata, "label") && (
+                                                <MetadataLabel label={metaLabel} hasDescription />
+                                            )}
+                                            {_.get(metadata, "description") && (
+                                                <MetadataDesc description={metaDesc} hasLabel />
+                                            )}
+                                        </>
+                                    ) : (
+                                        <>
+                                            {_.get(metadata, "label") && <MetadataLabel label={metaLabel} />}
+                                            {_.get(metadata, "description") && <MetadataDesc description={metaDesc} />}
+                                        </>
+                                    )}
+                                </PropertyValuePair>
+                                <Spacing size={"small"} />
+                            </>
                         )}
                     </CardContent>
                     <Divider />
