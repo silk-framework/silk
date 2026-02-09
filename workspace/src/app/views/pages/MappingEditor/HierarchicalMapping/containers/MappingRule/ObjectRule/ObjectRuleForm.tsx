@@ -1,21 +1,20 @@
-import React, { useEffect, useState } from "react";
-import { ScrollingHOC } from "../../../utils/ScrollingHOC";
+import React, {useEffect, useState} from "react";
+import {ScrollingHOC} from "../../../utils/ScrollingHOC";
 import {
     Button,
+    Card,
+    CardActions,
+    CardContent,
+    CardHeader,
+    CardTitle,
     CodeAutocompleteField,
+    Divider,
     FieldItem,
     Notification,
     Spacing,
     Spinner,
     TextArea,
-    TextField,
-    Card,
-    CardActions,
-    CardContent,
-    CardTitle,
-    CardHeader,
-    Divider,
-    MultiSuggestField
+    TextField
 } from "@eccenca/gui-elements";
 import _ from "lodash";
 import ExampleView from "../ExampleView";
@@ -28,25 +27,24 @@ import {
     updateVocabularyCacheEntry,
     useApiDetails,
 } from "../../../store";
-import { convertToUri } from "../../../utils/convertToUri";
+import {convertToUri} from "../../../utils/convertToUri";
 import ErrorView from "../../../components/ErrorView";
 import AutoComplete from "../../../components/AutoComplete";
-import { MAPPING_RULE_TYPE_ROOT, MAPPING_RULE_TYPE_URI, MESSAGES } from "../../../utils/constants";
+import {MAPPING_RULE_TYPE_ROOT, MAPPING_RULE_TYPE_URI, MESSAGES} from "../../../utils/constants";
 import EventEmitter from "../../../utils/EventEmitter";
-import { trimValue } from "../../../utils/trimValue";
-import { wasTouched } from "../../../utils/wasTouched";
-import { newValueIsIRI } from "../../../utils/newValueIsIRI";
+import {trimValue} from "../../../utils/trimValue";
+import {wasTouched} from "../../../utils/wasTouched";
+import {newValueIsIRI} from "../../../utils/newValueIsIRI";
 import TargetCardinality from "../../../components/TargetCardinality";
 import TargetTypeMultiAutoComplete from "../../../components/TargetTypeMultiAutoComplete";
 import silkApi from "../../../../api/silkRestApi";
-import { IUriPattern } from "../../../../api/types";
-import { UriPatternSelectionModal } from "./UriPatternSelectionModal";
-import { IViewActions } from "../../../../../../../views/plugins/PluginRegistry";
-import { defaultUriPattern } from "./ObjectRule.utils";
-import { GlobalMappingEditorContext } from "../../../../contexts/GlobalMappingEditorContext";
-import { EntityRelationshipSelection } from "../../../components/EntityRelationshipSelection";
-import { MAPPING_ROOT_RULE_ID } from "../../../HierarchicalMapping";
-import {Keyword} from "@ducks/workspace/typings";
+import {IUriPattern} from "../../../../api/types";
+import {UriPatternSelectionModal} from "./UriPatternSelectionModal";
+import {IViewActions} from "../../../../../../../views/plugins/PluginRegistry";
+import {defaultUriPattern} from "./ObjectRule.utils";
+import {GlobalMappingEditorContext} from "../../../../contexts/GlobalMappingEditorContext";
+import {EntityRelationshipSelection} from "../../../components/EntityRelationshipSelection";
+import {MAPPING_ROOT_RULE_ID} from "../../../HierarchicalMapping";
 
 interface IProps {
     id?: string;
