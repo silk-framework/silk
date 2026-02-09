@@ -20,7 +20,11 @@ class JsonSourceStreaming(taskId: Identifier, resource: Resource, basePath: Stri
 
   protected def createParser(): JsonParser = {
     val factory = new JsonFactoryBuilder().configure(StreamReadFeature.AUTO_CLOSE_SOURCE, true).build()
-    factory.createParser(resource.inputStream)
+    if(resource.exists) {
+      factory.createParser(resource.inputStream)
+    } else {
+      factory.createParser("{}")
+    }
   }
 
   override def retrieve(entitySchema: EntitySchema, limit: Option[Int])(implicit context: PluginContext): EntityHolder = {

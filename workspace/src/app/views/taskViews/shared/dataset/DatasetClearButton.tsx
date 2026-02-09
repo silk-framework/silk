@@ -5,9 +5,9 @@ import { useTranslation } from "react-i18next";
 import DeleteModal from "../../../shared/modals/DeleteModal";
 import { clearDataset } from "./dataset.requests";
 import { ErrorResponse, FetchError } from "../../../../services/fetch/responseInterceptor";
-import { IMetadata } from "@ducks/shared/typings";
 import { requestTaskData } from "@ducks/shared/requests";
 import useErrorHandler from "../../../../hooks/useErrorHandler";
+import {IMetadata} from "@ducks/shared/typings";
 
 interface Props {
     projectId: string;
@@ -86,6 +86,7 @@ const DatasetClearButtonModal = ({ projectId, datasetId, onClose, datasetMetaDat
     const [t] = useTranslation();
     const [error, setError] = useState<ErrorResponse | undefined>(undefined);
     const [clearing, setClearing] = React.useState(false);
+    const datasetLabel = datasetMetaData.label ?? datasetId
 
     const onConfirm = async () => {
         setError(undefined);
@@ -101,7 +102,6 @@ const DatasetClearButtonModal = ({ projectId, datasetId, onClose, datasetMetaDat
             setClearing(false);
         }
     };
-    const datasetLabel = datasetMetaData.label;
     return (
         <DeleteModal
             title={t("DatasetClearButton.modalTitle", { datasetLabel })}
@@ -111,7 +111,7 @@ const DatasetClearButtonModal = ({ projectId, datasetId, onClose, datasetMetaDat
             removeLoading={clearing}
             alternativeDeleteButtonText={t("DatasetClearButton.modalButtonText")}
             errorMessage={
-                error ? `Clearing dataset '${datasetMetaData.label}' has failed. ${error.asString()}` : undefined
+                error ? `Clearing dataset '${datasetLabel}' has failed. ${error.asString()}` : undefined
             }
         >
             {t("DatasetClearButton.modalText", { datasetLabel })}
