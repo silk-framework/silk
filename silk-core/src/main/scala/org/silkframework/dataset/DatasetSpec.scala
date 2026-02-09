@@ -232,12 +232,16 @@ object DatasetSpec {
 
     private var extraTypeUri: Option[String] = None
 
+    private def checkReadOnly(): Unit = {
+      checkDatasetAllowsWriteAccess(None, datasetSpec.readOnly)
+    }
+
     /**
       * Initializes this writer.
       */
     override def openTable(typeUri: Uri, properties: Seq[TypedProperty], singleEntity: Boolean = false)
                           (implicit userContext: UserContext, prefixes: Prefixes): Unit = {
-      checkDatasetAllowsWriteAccess(None, datasetSpec.readOnly)
+      checkReadOnly()
       if (isOpen) {
         entitySink.close()
         isOpen = false
@@ -295,9 +299,7 @@ object DatasetSpec {
       * Makes sure that the next write will start from an empty dataset.
       */
     override def clear(force: Boolean = false)(implicit userContext: UserContext): Unit = {
-      if(datasetSpec.readOnly) {
-        throw new RuntimeException(s"Cannot clear dataset, because it is configured as read-only.")
-      }
+      checkReadOnly()
       entitySink.clear(force)
     }
 
@@ -330,7 +332,12 @@ object DatasetSpec {
 
     private var isOpen = false
 
+    private def checkReadOnly(): Unit = {
+      checkDatasetAllowsWriteAccess(None, datasetSpec.readOnly)
+    }
+
     override def init()(implicit userContext: UserContext, prefixes: Prefixes): Unit = {
+      checkReadOnly()
       if (isOpen) {
         linkSink.close()
         isOpen = false
@@ -363,9 +370,7 @@ object DatasetSpec {
       * Makes sure that the next write will start from an empty dataset.
       */
     override def clear(force: Boolean = false)(implicit userContext: UserContext): Unit = {
-      if(datasetSpec.readOnly) {
-        throw new RuntimeException(s"Cannot clear dataset, because it is configured as read-only.")
-      }
+      checkReadOnly()
       linkSink.clear(force)
     }
   }

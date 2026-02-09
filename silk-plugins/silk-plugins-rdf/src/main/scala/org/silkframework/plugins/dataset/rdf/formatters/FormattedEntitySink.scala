@@ -12,11 +12,13 @@ import java.io._
 /**
  * An entity sink that writes formatted entity output to an output resource.
  */
-class FormattedEntitySink(resource: WritableResource, formatter: EntityFormatter) extends EntitySink with TripleSink {
+class FormattedEntitySink(resource: WritableResource, formatterFactory: => EntityFormatter) extends EntitySink with TripleSink {
 
   private var properties = Seq[TypedProperty]()
 
   private var writer: Writer = _
+
+  private lazy val formatter: EntityFormatter = formatterFactory
 
   override def openTable(typeUri: Uri, properties: Seq[TypedProperty], singleEntity: Boolean = false)
                         (implicit userContext: UserContext, prefixes: Prefixes): Unit = {

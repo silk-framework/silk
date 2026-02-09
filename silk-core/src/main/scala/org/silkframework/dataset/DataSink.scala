@@ -7,10 +7,9 @@ import org.silkframework.runtime.activity.UserContext
  */
 trait DataSink extends CloseableDataset {
 
-  /**
-    * Makes sure that the next write will start from an empty dataset.
+  /** Makes sure that the next write will start from an empty dataset.
     *
-    * @param force If set to true, it should clear the dataset no matter what the config is.
+    * @param force Forces the clearing of the dataset. E.g. even when "clear before execution" flag is not set.
     */
   def clear(force: Boolean = false)(implicit userContext: UserContext): Unit = { }
 }
