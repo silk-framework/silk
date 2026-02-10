@@ -89,7 +89,7 @@ export function RelatedItems(props: IProps) {
     const relatedItemsSizeInfo = (length: number, total: number) => {
         if (total > 0) {
             if (length === total) {
-                return ` (${total})`; // Don't repeat if they are the same
+                return ` (${total})`; // Don't repeat if they are the ^me
             } else {
                 return ` (${length} / ${total})`;
             }

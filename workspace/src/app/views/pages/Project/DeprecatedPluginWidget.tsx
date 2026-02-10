@@ -19,6 +19,7 @@ export function DeprecatedPluginWidget({ projectId, taskId }: DeprecatedPluginsP
             try {
                 const response = await fetch<DeprecatedPluginsModel[]>({
                     url: coreApi("/usages/deprecatedPlugins"),
+                    query: { project: projectId, task: taskId },
                     method: "GET",
                 });
                 setDeprecatedPlugins(response.data);
@@ -33,14 +34,28 @@ export function DeprecatedPluginWidget({ projectId, taskId }: DeprecatedPluginsP
             }
         };
 
+        // Initial fetch
         fetchDeprecatedPlugins();
-    }, []);
 
-    const deprecatedPluginsOfProjectOrTask = projectId
-        ? deprecatedPlugins.filter((plugin) => plugin.project === projectId || plugin.task === taskId)
-        : deprecatedPlugins;
+        // Listen for workflow save events
+        const handleWorkflowSaved = (event: CustomEvent) => {
+            const { projectId: savedProjectId, taskId: savedTaskId } = event.detail;
 
-    if (isLoading || deprecatedPluginsOfProjectOrTask.length === 0) {
+            // Only refetch if it's relevant to this widget
+            if (savedProjectId === projectId || savedTaskId === taskId) {
+                fetchDeprecatedPlugins();
+            }
+        };
+
+        window.addEventListener("workflow:saved", handleWorkflowSaved as EventListener);
+
+        // Cleanup listener on unmount
+        return () => {
+            window.removeEventListener("workflow:saved", handleWorkflowSaved as EventListener);
+        };
+    }, [projectId, taskId, t, registerError]);
+
+    if (isLoading || deprecatedPlugins.length === 0) {
         return null;
     }
 
@@ -49,14 +64,13 @@ export function DeprecatedPluginWidget({ projectId, taskId }: DeprecatedPluginsP
             <CardHeader>
                 <CardTitle>
                     <h2>
-                        {t("widget.deprecatedPluginWidget.title", "Deprecated Plugins")} (
-                        {deprecatedPluginsOfProjectOrTask.length})
+                        {t("widget.deprecatedPluginWidget.title", "Deprecated Plugins")} ({deprecatedPlugins.length})
                     </h2>
                 </CardTitle>
             </CardHeader>
             <Divider />
             <CardContent>
-                <p>{deprecatedPluginsOfProjectOrTask.map((plugin) => plugin.pluginLabel).join(", ")}</p>
+                <p>{deprecatedPlugins.map((plugin) => plugin.pluginLabel).join(", ")}</p>
                 <Spacing />
                 <Notification intent="warning">
                     {t(
