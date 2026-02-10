@@ -269,6 +269,12 @@ export function Header({ onClickApplicationSidebarExpand, isApplicationSidebarEx
                                                 href={CONTEXT_PATH + "/doc/api"}
                                                 icon={"application-homepage"}
                                             />
+
+                                            <MenuItem
+                                                text={t("common.action.listDeprecatedPlugins", "Deprecated Plugins")}
+                                                href={CONTEXT_PATH + "/workbench/deprecatedPlugins"}
+                                                icon={"state-warning"}
+                                            />
                                             <ExampleProjectImportMenu />
                                             {!!dmBaseUrl && diUserMenuItems && <diUserMenuItems.Component />}
                                         </Menu>

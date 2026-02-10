@@ -7,11 +7,11 @@ import controllers.projectApi.ProjectApi.{CreateTagsRequest, ProjectTagsResponse
 import controllers.projectApi.doc.ProjectApiDoc
 import controllers.projectApi.requests.OriginalTaskDataResponse.OriginalTaskDataJsonFormat
 import controllers.projectApi.requests.ReloadFailedTaskRequest
+import controllers.util.ItemType
 import controllers.workspace.JsonSerializer
 import controllers.workspaceApi.project.ProjectApiRestPayloads.{ItemMetaData, ProjectCreationData}
 import controllers.workspaceApi.project.ProjectLoadingErrors
 import controllers.workspaceApi.projectTask.{ItemCloneRequest, ItemCloneResponse}
-import controllers.workspaceApi.search.ItemType
 import io.swagger.v3.oas.annotations.enums.ParameterIn
 import io.swagger.v3.oas.annotations.headers.Header
 import io.swagger.v3.oas.annotations.media.{ArraySchema, Content, ExampleObject, Schema}

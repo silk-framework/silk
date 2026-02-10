@@ -2,7 +2,7 @@ package controllers.workspaceApi.coreApi
 
 import config.WorkbenchLinks
 import controllers.core.UserContextActions
-import controllers.util.{PluginUsageCollector, TextSearchUtils}
+import controllers.util.{ItemType, PluginUsageCollector, TextSearchUtils}
 import controllers.workspaceApi.coreApi.doc.PluginApiDoc
 import io.swagger.v3.oas.annotations.enums.ParameterIn
 import io.swagger.v3.oas.annotations.media.{ArraySchema, Content, ExampleObject, Schema}
@@ -252,7 +252,8 @@ class PluginApi @Inject()() extends InjectedController with UserContextActions {
 
   @Operation(
     summary = "Deprecated plugin usages",
-    description = "Returns a list of usages of deprecated plugins. Currently lists usages in projects as tasks and as within linking and transform rules.",
+    description = "Returns a list of usages of deprecated plugins. " +
+      "Lists usages of deprecated workflow operators as well as deprecated rule operators within linking and transform tasks.",
     responses = Array(
       new ApiResponse(
         responseCode = "200",
@@ -265,12 +266,25 @@ class PluginApi @Inject()() extends InjectedController with UserContextActions {
         ))
       )
     ))
-  def deprecatedPluginUsages(): Action[AnyContent] = UserContextAction { implicit userContext =>
+  def deprecatedPluginUsages(@Parameter(
+                               name = "project",
+                               description = "Project id to filter results. If not provided, all projects are considered.",
+                               required = false,
+                               in = ParameterIn.QUERY,
+                             )
+                             projectName: Option[String],
+                             @Parameter(
+                               name = "task",
+                               description = "Task id to filter results. If not provided, all tasks are considered.",
+                               required = false,
+                               in = ParameterIn.QUERY,
+                             )
+                             taskName: Option[String]): Action[AnyContent] = UserContextAction { implicit userContext =>
     val usages = mutable.Buffer[PluginUsage]()
 
     for {
-      project <- WorkspaceFactory().workspace.projects
-      task <- project.allTasks
+      project <- WorkspaceFactory().workspace.projects if projectName.forall(_ == project.id.toString)
+      task <- project.allTasks if taskName.forall(_ == task.id.toString)
       plugin <- PluginUsageCollector.pluginUsages(task.data).values
       if plugin.deprecation.isDefined
     } {
@@ -549,7 +563,12 @@ object PluginTypesJson {
 }
 
 case class PluginUsage(project: Option[String],
+                       projectLabel: Option[String],
                        task: Option[String],
+                       taskLabel: Option[String],
+                       itemType: Option[String] = None,
+                       pluginId: String,
+                       pluginLabel: String,
                        link: Option[String],
                        deprecationMessage: Option[String])
 
@@ -559,7 +578,12 @@ object PluginUsage {
   def forTask(task: ProjectTask[_ <: TaskSpec], pluginDesc: PluginDescription[AnyPlugin]): PluginUsage = {
     PluginUsage(
       project = Some(task.project.id.toString),
+      projectLabel = Some(task.project.fullLabel),
       task = Some(task.id.toString),
+      taskLabel = Some(task.fullLabel),
+      itemType = Some(ItemType.itemType(task.data).id),
+      pluginId = pluginDesc.id.toString,
+      pluginLabel = pluginDesc.label,
       link = Some(WorkbenchLinks.editorLink(task)),
       deprecationMessage = pluginDesc.deprecation
     )
