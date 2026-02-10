@@ -350,6 +350,7 @@
             "submit": "Submit",
             "update": "Update",
             "showApiDoc": "API",
+            "listDeprecatedPlugins": "Deprecated plugins",
             "copyClipboard": "Copy to clipboard",
             "configure": "Configure",
             "clearInput": "Clear input",
@@ -601,6 +602,21 @@
             "title": "Activities",
             "noActivities": "No Activities found"
         },
+        "deprecatedPlugins": {
+            "title": "Deprecated Plugins",
+            "noPluginsFound": "This page lists plugins that are used in existing projects but have been marked as deprecated. Good news: No deprecated plugins were found in your workspace!",
+            "unknownTask": "Unknown Task",
+            "infoMessage": "This page lists plugins that are used in existing projects but have been marked as deprecated. It is recommended to replace these plugins to ensure compatibility with future versions of the application.",
+            "deprecationMessage": "Plugin is deprecated.",
+            "fields": {
+                "task": "Task",
+                "project": "Project",
+                "message": "Message"
+            },
+            "errors": {
+                "fetchPlugins": "Failed to load deprecated plugins"
+            }
+        },
         "notFound": {
             "backLink": "Go to homepage",
             "text": "The page you requested does not exist.",
@@ -822,6 +838,10 @@
         "info": "Cloning a task means creating a copy of the task configuration in the same project. The related (used) tasks of this cloned task are not copied or changed (e.g., a cloned workflow processes the same workflow tasks as the original and not copies of them)."
     },
     "widget": {
+        "deprecatedPluginWidget": {
+            "title": "Deprecated Plugins",
+            "message": "The above listed plugins are deprecated and will be removed in future versions. Please check the documentation for alternatives."
+        },
         "ActivityInfoWidget": {
             "title": "Activities",
             "view": "View project activities"

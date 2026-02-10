@@ -37,6 +37,7 @@ import { previewSlice } from "@ducks/workspace/previewSlice";
 import VariablesWidget from "../../../views/shared/VariablesWidget/VariablesWidget";
 import { useSelectFirstResult } from "../../../hooks/useSelectFirstResult";
 import { GlobalTableContext } from "../../../GlobalContextsWrapper";
+import { DeprecatedPluginWidget } from "./DeprecatedPluginWidget";
 
 const Project = () => {
     const dispatch = useDispatch();
@@ -49,7 +50,6 @@ const Project = () => {
     const data = useSelector(workspaceSel.resultsSelector);
     const projectId = useSelector(commonSel.currentProjectIdSelector);
     const qs = useSelector(routerSel.routerSearchSelector);
-    const pagination = useSelector(workspaceSel.paginationSelector);
     const { clearSearchResults } = previewSlice.actions;
     const [t] = useTranslation();
 
@@ -181,6 +181,8 @@ const Project = () => {
                     <ActivityInfoWidget />
                     <Spacing />
                     <FileWidget />
+                    <Spacing />
+                    <DeprecatedPluginWidget projectId={projectId} />
                 </Section>
             </WorkspaceSide>
         </WorkspaceContent>
