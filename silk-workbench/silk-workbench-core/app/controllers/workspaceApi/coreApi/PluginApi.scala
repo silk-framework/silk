@@ -236,16 +236,13 @@ class PluginApi @Inject()() extends InjectedController with UserContextActions {
                      schema = new Schema(implementation = classOf[String], example = "csv")
                    )
                    pluginId: String): Action[AnyContent] = RequestUserContextAction { request => implicit userContext =>
-    val usages = mutable.Buffer[PluginUsage]()
-
-    for(project <- WorkspaceFactory().workspace.projects) {
-      for(task <- project.allTasks) {
-        val pluginIds = PluginUsageCollector.pluginUsages(project, task.data)
-        if(pluginIds.contains(pluginId)) {
-          usages += PluginUsage.forTask(task, pluginIds.head._2)
-        }
-      }
-    }
+    val usages =
+      for {
+        project <- WorkspaceFactory().workspace.projects
+        task <- project.allTasks
+        usage <- PluginUsageCollector.pluginUsages(task)
+        if usage.pluginId == pluginId
+      } yield usage
 
     Ok(Json.toJson(usages))
   }
@@ -280,16 +277,13 @@ class PluginApi @Inject()() extends InjectedController with UserContextActions {
                                in = ParameterIn.QUERY,
                              )
                              taskName: Option[String]): Action[AnyContent] = UserContextAction { implicit userContext =>
-    val usages = mutable.Buffer[PluginUsage]()
-
-    for {
-      project <- WorkspaceFactory().workspace.projects if projectName.forall(_ == project.id.toString)
-      task <- project.allTasks if taskName.forall(_ == task.id.toString)
-      plugin <- PluginUsageCollector.pluginUsages(project, task.data).values
-      if plugin.deprecation.isDefined
-    } {
-      usages += PluginUsage.forTask(task, plugin)
-    }
+    val usages =
+      for {
+        project <- WorkspaceFactory().workspace.projects if projectName.forall(_ == project.id.toString)
+        task <- project.allTasks if taskName.forall(_ == task.id.toString)
+        usage <- PluginUsageCollector.pluginUsages(task)
+        if usage.deprecationMessage.isDefined
+      } yield usage
 
     Ok(Json.toJson(usages))
   }
