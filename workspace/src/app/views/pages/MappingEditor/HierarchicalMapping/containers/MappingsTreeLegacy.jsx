@@ -2,12 +2,17 @@ import React from "react";
 import PropTypes from "prop-types";
 import _ from "lodash";
 import {
+    Button,
+    FlexibleLayoutContainer,
+    FlexibleLayoutItem,
+    OverflowText,
     InteractionGate,
     Notification,
     Icon,
     IconButton,
     GridColumn,
     WhiteSpaceContainer,
+    ClassNames,
 } from "@eccenca/gui-elements";
 
 import RuleTypes from "../elements/RuleTypes";
@@ -244,9 +249,13 @@ class MappingsTree extends React.Component {
             .filter(({ type }) => showValueMappings || type === MAPPING_RULE_TYPE_OBJECT)
             .value();
         const element = () => (
-            <button
+            <Button
                 className="ecc-silk-mapping__treenav--item-handler"
                 data-test-id={`ecc-silk-mapping__treenav__button-${id}`}
+                minimal
+                fill
+                alignText={"start"}
+                active={isHighlighted}
                 onClick={() => {
                     if (!this.props.startFullScreen && this.props.trackRuleInUrl) {
                         const history = getHistory();
@@ -257,49 +266,49 @@ class MappingsTree extends React.Component {
                     handleRuleNavigation({ newRuleId: id, parentId: undefined, containerRuleId: id });
                 }}
             >
-                <span className="ecc-silk-mapping__treenav--item-maintitle">
-                    <span>
-                        {this.renderRuleIcon(id)}
-                        <RuleTitle rule={parent} />
-                    </span>
-                </span>
+                <OverflowText className="ecc-silk-mapping__treenav--item-maintitle">
+                    {this.renderRuleIcon(id)}
+                    <RuleTitle rule={parent} />
+                </OverflowText>
                 {parentType === MAPPING_RULE_TYPE_OBJECT && (
-                    <small className="ecc-silk-mapping__treenav--item-subtitle">
+                    <OverflowText className={`ecc-silk-mapping__treenav--item-subtitle ${ClassNames.Typography.SMALL}`}>
                         <RuleTypes rule={parent} />
-                    </small>
+                    </OverflowText>
                 )}
-            </button>
+            </Button>
         );
 
         return (
-            <div>
-                <div
-                    className={`ecc-silk-mapping__treenav--item${
-                        isHighlighted ? " ecc-silk-mapping__treenav--item-active" : ""
-                    }`}
+            <>
+                <FlexibleLayoutContainer
+                    noEqualItemSpace
+                    className={`ecc-silk-mapping__treenav--item`}
+                    style={{ alignItems: "center" }}
                 >
-                    {!_.isEmpty(childs) ? (
-                        <IconButton
-                            data-test-id={`ecc-silk-mapping__treenav--item-toggler-${id}`}
-                            className="ecc-silk-mapping__treenav--item-toggler"
-                            name={expanded ? "toggler-showmore" : "toggler-moveright"}
-                            tooltip={expanded ? "Hide sub tree" : "Open sub tree"}
-                            onClick={() => {
-                                this.handleToggleExpandNavigationTree(id);
-                            }}
-                        />
-                    ) : (
-                        <IconButton
-                            data-test-id={`ecc-silk-mapping__treenav--item-toggler-${id}`}
-                            className="ecc-silk-mapping__treenav--item-toggler"
-                            name="toggler-radio"
-                            tooltip=""
-                            disabled
-                            small
-                        />
-                    )}
-                    {element()}
-                </div>
+                    <FlexibleLayoutItem growFactor={0} shrinkFactor={0}>
+                        {!_.isEmpty(childs) ? (
+                            <IconButton
+                                data-test-id={`ecc-silk-mapping__treenav--item-toggler-${id}`}
+                                className="ecc-silk-mapping__treenav--item-toggler"
+                                name={expanded ? "toggler-showmore" : "toggler-moveright"}
+                                tooltip={expanded ? "Hide sub tree" : "Open sub tree"}
+                                onClick={() => {
+                                    this.handleToggleExpandNavigationTree(id);
+                                }}
+                            />
+                        ) : (
+                            <IconButton
+                                data-test-id={`ecc-silk-mapping__treenav--item-toggler-${id}`}
+                                className="ecc-silk-mapping__treenav--item-toggler"
+                                name="toggler-radio"
+                                tooltip=""
+                                disabled
+                                small
+                            />
+                        )}
+                    </FlexibleLayoutItem>
+                    <FlexibleLayoutItem>{element()}</FlexibleLayoutItem>
+                </FlexibleLayoutContainer>
                 {expanded && (
                     <ul className="ecc-silk-mapping__treenav--subtree">
                         {_.map(childs, (child) => (
@@ -307,7 +316,7 @@ class MappingsTree extends React.Component {
                         ))}
                     </ul>
                 )}
-            </div>
+            </>
         );
     };
 
