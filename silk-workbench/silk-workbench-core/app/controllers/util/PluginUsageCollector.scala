@@ -8,11 +8,22 @@ import org.silkframework.rule.{LinkSpec, TransformRule, TransformSpec}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.{AnyPlugin, PluginDescription}
 import org.silkframework.util.Identifier
+import org.silkframework.workspace.Project
+import org.silkframework.workspace.activity.workflow.Workflow
 
 object PluginUsageCollector {
 
-  def pluginUsages(taskSpec: TaskSpec): Map[Identifier, PluginDescription[AnyPlugin]] = {
+  /**
+   * Collects all plugin usages in the given task specification.
+   * Includes all plugins that are directly used in the task specification and all plugins that are used in any referenced task specifications.
+   *
+   * @return A map from plugin identifier to plugin description.
+   */
+  def pluginUsages(project: Project, taskSpec: TaskSpec)
+                  (implicit user: UserContext): Map[Identifier, PluginDescription[AnyPlugin]] = {
     taskSpec match {
+      case workflow: Workflow =>
+        workflow.nodes.flatMap(node => pluginUsages(project, project.anyTask(node.nodeId))).toMap
       case transformSpec: TransformSpec =>
         transformSpec.rules.allRules.flatMap(pluginUsagesInTransform).toMap
       case linkSpec: LinkSpec =>
