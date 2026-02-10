@@ -23,8 +23,7 @@ import org.silkframework.runtime.plugin.annotations.Plugin
   id = "lowerCase",
   categories = Array("Normalize", PluginCategories.recommended),
   label = "Lower case",
-  description = "Converts a string to lower case.",
-  deprecation = "Test deprecation notice for plugins"
+  description = "Converts a string to lower case."
 )
 @TransformExamples(Array(
   new TransformExample(
