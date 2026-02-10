@@ -6,7 +6,6 @@ interface TextTogglerProps {
     toggleLength?: number;
 }
 export const TextToggler = ({ text, toggleLength = 64 }: TextTogglerProps) => {
-    console.log(text);
     let previewText = typeof text === "string" ? text : utils.reduceToText(text);
     React.useEffect(() => {
         previewText = typeof text === "string" ? text : utils.reduceToText(text);

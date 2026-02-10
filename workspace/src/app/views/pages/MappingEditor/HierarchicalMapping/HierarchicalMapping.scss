@@ -47,19 +47,6 @@
     margin-bottom: $eccgui-size-block-whitespace;
 }
 
-.ecc-silk-mapping__suggestionlist__target-dropdown {
-    // workaround to prevent to high select dropdowns without providing own rendering functions
-    .#{$ns}-menu {
-        max-height: 45vh;
-        overflow: auto;
-    }
-
-    .#{$ns}-input {
-        width: 40rem;
-        max-width: 90vw;
-    }
-}
-
 .ecc-silk-mapping__ruleitem {
     max-width: 100%;
     position: relative;
@@ -76,12 +63,6 @@
 
 .ecc-silk-mapping__ruleitem-headline {
     font-weight: 500;
-}
-
-.ecc-silk-mapping__suggestitem-checkbox {
-    align-self: flex-start;
-    flex-grow: 0;
-    flex-shrink: 0;
 }
 
 .ecc-silk-mapping__ruleitem-summary {
