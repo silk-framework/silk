@@ -231,7 +231,7 @@ export class MappingRule extends React.Component {
             false
         );
         return (
-            <li
+            <div
                 data-test-id={`mapping-rule-${id}`}
                 className={className("ecc-silk-mapping__ruleitem", {
                     "ecc-silk-mapping__ruleitem--object": type === "object",
@@ -302,7 +302,7 @@ export class MappingRule extends React.Component {
                     )}
                 </div>
                 {this.props.provided.placeholder}
-            </li>
+            </div>
         );
     }
 }

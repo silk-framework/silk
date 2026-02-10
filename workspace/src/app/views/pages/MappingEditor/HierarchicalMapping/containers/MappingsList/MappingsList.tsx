@@ -7,6 +7,7 @@ import {
     Divider,
     StickyTarget,
     StickyTargetProps,
+    OverviewItemList,
 } from "@eccenca/gui-elements";
 import { DndContext, KeyboardSensor, useSensor, useSensors } from "@dnd-kit/core";
 import {
@@ -152,7 +153,7 @@ const MappingsList = ({
                             items={items.map((item) => `draggable-${item.key}`)}
                             strategy={verticalListSortingStrategy}
                         >
-                            <ol>
+                            <OverviewItemList hasDivider>
                                 {items.map((item, index) => (
                                     <DraggableItem
                                         key={item.key}
@@ -171,7 +172,7 @@ const MappingsList = ({
                                         viewActions={viewActions}
                                     />
                                 ))}
-                            </ol>
+                            </OverviewItemList>
                         </SortableContext>
                     </DndContext>
                 )}

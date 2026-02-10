@@ -1,6 +1,3 @@
-@import "~@eccenca/gui-elements/src/includes/blueprintjs/variables";
-@import "~@eccenca/gui-elements/src/includes/blueprintjs/requisits";
-
 // TODO: we need to check if this is still necessary
 .ecc-component-messagehandler {
     .ecc-temp__appmessages & {
@@ -17,32 +14,10 @@
     }
 }
 
-// TODO (left here as marker): switch back from gui elements reset to prevent display problems with other parts of the app
-*:not([class*="#{$eccgui}"]) {
-    // box-sizing: inherit;
-}
-
 .ecc-silk-mapping__treenav {
-    ul,
-    li {
-        list-style-type: none;
-    }
-
     ul {
-        margin: 0;
-        padding: 0;
-
         &.ecc-silk-mapping__treenav--subtree {
-            padding-left: $button-icon-size;
-        }
-    }
-
-    & > .#{$eccgui}-card {
-        .#{$eccgui}__content {
-            max-height: calc(
-                100vh - #{$layout-header-desktop-row-height} - #{$tab-height} - #{2 * $ecc-size-block-whitespace}
-            );
-            overflow: auto;
+            padding-left: $button-height;
         }
     }
 
@@ -58,72 +33,18 @@
             background-color: transparent;
         }
         .#{$ns}-tree-node-content {
-            margin-bottom: $ecc-size-block-whitespace;
+            margin-bottom: $eccgui-size-block-whitespace;
         }
 
         .#{$ns}-tree-node-caret-none {
             min-width: 0;
         }
     }
-
-    .ecc-silk-mapping__treenav--item {
-        display: flex;
-        justify-content: flex-start;
-        align-items: center;
-        color: $button-secondary-color;
-    }
-
-    .ecc-silk-mapping__treenav--item-active:not(.ecc-silk-mapping__treenav--item--ignorestyles) {
-        font-weight: 500;
-        background-color: $chip-bg-active-color;
-    }
-
-    .ecc-silk-mapping__treenav--item-toggler {
-        flex-grow: 0;
-        flex-shrink: 0;
-        min-width: $button-height !important;
-    }
-
-    .ecc-silk-mapping__treenav--item-handler:not(.#{$eccgui}-button) {
-        flex-grow: 1;
-        flex-shrink: 1;
-        padding: $ecc-size-block-whitespace * 0.25 0;
-        @include typo-body-1();
-        cursor: pointer;
-        border: none;
-        text-align: left;
-        background-color: transparent;
-        outline: none;
-        max-width: calc(100% - $button-height);
-
-        &:hover,
-        &:focus {
-            background-color: $button-hover-color;
-        }
-
-        & .material-icons {
-            margin-right: $ecc-size-block-whitespace * 0.25;
-            vertical-align: text-bottom;
-        }
-    }
-
-    span.ecc-silk-mapping__treenav--item-maintitle,
-    span.ecc-silk-mapping__treenav--item-subtitle {
-        display: block;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-    }
-
-    span.ecc-silk-mapping__treenav--item-subtitle,
-    span.ecc-silk-mapping__treenav--item-rule-subtitle {
-        @include typo-caption();
-    }
 }
 
 .ecc-silk-mapping__rulesobject {
     position: relative;
-    margin-bottom: $ecc-size-block-whitespace;
+    margin-bottom: $eccgui-size-block-whitespace;
 }
 
 .ecc-silk-mapping__suggestionlist__target-dropdown {
@@ -140,14 +61,8 @@
 }
 
 .ecc-silk-mapping__ruleitem {
-    @include typo-body-1();
     max-width: 100%;
     position: relative;
-    border-bottom: $data-table-dividers;
-
-    &:last-child {
-        border-bottom: none;
-    }
 }
 
 .ecc-silk-mapping__ruleitem--dnd {
@@ -155,33 +70,12 @@
 }
 
 .ecc-silk-mapping__ruleitem--defect {
-    color: to_color($ecc-color-warning-text);
-    background-color: to_color($ecc-color-warning-background);
-    border-color: darken(to_color($ecc-color-warning-background), 5%);
+    color: $eccgui-color-warning-text;
+    background-color: $eccgui-color-warning-background;
 }
 
 .ecc-silk-mapping__ruleitem-headline {
     font-weight: 500;
-}
-
-.ecc-silk-mapping__ruleitem-extraline {
-    display: block;
-    margin-right: $ecc-size-blockelement-margin-horizontal;
-    font-size: $ecc-size-typo-caption;
-    font-weight: normal;
-    opacity: 0.61;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-.ecc-silk-mapping__ruleitem-label {
-    display: inline;
-}
-
-.ecc-silk-mapping__ruleitem-url {
-    direction: rtl;
-    text-align: left;
 }
 
 .ecc-silk-mapping__suggestitem-checkbox {
@@ -190,17 +84,9 @@
     flex-shrink: 0;
 }
 
-.ecc-silk-mapping__suggestitem-typeselect {
-    @include typo-caption();
-
-    & > .mdl-textfield {
-        display: block;
-    }
-}
-
 .ecc-silk-mapping__ruleitem-summary {
     &:hover {
-        background-color: $data-table-hover-color;
+        background-color: $button-background-color-hover;
     }
 
     &.ecc-silk-mapping__ruleitem-summary--expanded {
@@ -208,15 +94,11 @@
     }
 
     .#{eccgui}-overviewitem__item.#{eccgui}-overviewitem__item--hasspacing {
-        padding-left: $ecc-size-block-whitespace;
+        padding-left: $eccgui-size-block-whitespace;
     }
 
     .Select.is-disabled .Select-value {
         opacity: 0.61;
-    }
-
-    .ecc-silk-mapping__suggestitem-typeselect {
-        margin-top: 0.5 * $ecc-size-block-whitespace;
     }
 
     .ecc-silk-mapping__ruleheader {
@@ -235,11 +117,11 @@
 .ecc-silk-mapping__ruleitem-reorderhandler {
     width: $eccgui-size-block-whitespace;
     position: absolute;
-    top: $ecc-size-block-whitespace * 0.5;
-    left: $ecc-size-block-whitespace * 0.5;
-    bottom: $ecc-size-block-whitespace * 0.5;
-    border: $data-table-dividers;
-    background-color: to_color($color-white);
+    top: $eccgui-size-block-whitespace * 0.5;
+    left: $eccgui-size-block-whitespace * 0.5;
+    bottom: $eccgui-size-block-whitespace * 0.5;
+    box-shadow: $button-box-shadow;
+    background-color: eccgui-color-var("identity", "background", "100");
 
     & + .#{eccgui}-overviewitem__item.#{eccgui}-overviewitem__item--hasspacing {
         padding-left: 2 * $eccgui-size-block-whitespace;
@@ -278,10 +160,6 @@
         &:active {
             opacity: $eccgui-opacity-regular;
         }
-    }
-
-    .material-icons {
-        transform: translate(-1px, calc(50% - #{$button-fab-font-size * 0.5}));
     }
 }
 
@@ -335,12 +213,8 @@
     }
 }
 
-.clickable {
-    cursor: pointer;
-}
-
 .ecc-silk-mapping__ruleseditor__actionrow-complex-edit {
-    margin: 0 $ecc-size-block-whitespace * 0.5;
+    margin: 0 $eccgui-size-block-whitespace * 0.5;
 }
 
 .ecc-silk-mapping__ruleitem--new {
@@ -351,7 +225,7 @@
 
 @keyframes anim-new-element {
     25% {
-        background-color: darken($ecc-color-info-background, 30%);
-        color: $ecc-color-info-text;
+        background-color: $eccgui-color-info-background;
+        color: $eccgui-color-info-text;
     }
 }
