@@ -277,6 +277,7 @@ class PluginApi @Inject()() extends InjectedController with UserContextActions {
                                in = ParameterIn.QUERY,
                              )
                              taskName: Option[String]): Action[AnyContent] = UserContextAction { implicit userContext =>
+    // Collect all plugin usages of deprecated plugins.
     val usages =
       for {
         project <- WorkspaceFactory().workspace.projects if projectName.forall(_ == project.id.toString)
@@ -285,7 +286,10 @@ class PluginApi @Inject()() extends InjectedController with UserContextActions {
         if usage.deprecationMessage.isDefined
       } yield usage
 
-    Ok(Json.toJson(usages))
+    // Filter out duplicate plugin usages
+    val distinctUsages = usages.distinctBy(u => (u.task, u.pluginId))
+
+    Ok(Json.toJson(distinctUsages))
   }
 
   lazy val resourceBasedDatasetPluginIds: Seq[JsString] = DatasetUtils.resourceBasedDatasetPluginIds
