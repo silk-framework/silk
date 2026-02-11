@@ -44,6 +44,8 @@ class Project(initialConfig: ProjectConfig, provider: WorkspaceProvider, val res
 
   private implicit val logger: Logger = Logger.getLogger(classOf[Project].getName)
 
+  val userGroupManager = new UserGroupManager()
+
   val tagManager = new TagManager(initialConfig.id, provider)
 
   val templateVariables: TemplateVariablesManager = new ProjectTemplateVariablesManager(provider.projectVariables(initialConfig.id)(loadingUser), loadingUser)

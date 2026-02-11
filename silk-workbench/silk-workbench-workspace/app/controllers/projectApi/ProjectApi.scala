@@ -8,7 +8,7 @@ import controllers.projectApi.doc.ProjectApiDoc
 import controllers.projectApi.requests.OriginalTaskDataResponse.OriginalTaskDataJsonFormat
 import controllers.projectApi.requests.ReloadFailedTaskRequest
 import controllers.workspace.JsonSerializer
-import controllers.workspaceApi.project.ProjectApiRestPayloads.{ItemMetaData, ProjectCreationData}
+import controllers.workspaceApi.project.ProjectApiRestPayloads.{ItemMetaData, CreateProjectRequest}
 import controllers.workspaceApi.project.ProjectLoadingErrors
 import controllers.workspaceApi.projectTask.{ItemCloneRequest, ItemCloneResponse}
 import controllers.workspaceApi.search.ItemType
@@ -103,27 +103,15 @@ class ProjectApi @Inject()(accessMonitor: WorkbenchAccessMonitor) extends Inject
     content = Array(
       new Content(
         mediaType = "application/json",
-        schema = new Schema(implementation = classOf[ProjectCreationData]),
+        schema = new Schema(implementation = classOf[CreateProjectRequest]),
         examples = Array(new ExampleObject("{ \"id\": \"Project id\" \"metaData\": { \"label\": \"Project label\", \"description\": \"Project description\" } }"))
       ))
   )
   def createNewProject(): Action[JsValue] = RequestUserContextAction(parse.json) { implicit request => implicit userContext =>
-      validateJson[ProjectCreationData] { projectCreationData =>
-        val id = projectCreationData.id
-        val metaData = projectCreationData.metaData.asMetaData
-        val generatedId = metaData.label match {
-          case Some(label) if label.trim.nonEmpty =>
-            IdentifierUtils.generateProjectId(label)
-          case _ =>
-            throw BadUserInputException("The label must not be empty!")
-        }
-        val projectId = id match {
-           case Some(v) => Identifier(v)
-           case None => generatedId
-        }
-        val project = workspace.createProject(ProjectConfig(projectId, metaData = cleanUpMetaData(metaData).asNewMetaData))
+      validateJson[CreateProjectRequest] { createProjectRequest =>
+        val project = createProjectRequest()
         Created(JsonSerializer.projectJson(project)).
-            withHeaders(LOCATION -> s"${WorkbenchConfig.applicationContext}/api/workspace/projects/$projectId")
+            withHeaders(LOCATION -> s"${WorkbenchConfig.applicationContext}/api/workspace/projects/${project.config.id}")
       }
   }
 
@@ -195,10 +183,6 @@ class ProjectApi @Inject()(accessMonitor: WorkbenchAccessMonitor) extends Inject
       val projectLink = ItemType.itemDetailsPage(ItemType.project, projectId, projectId).path
       Created(Json.toJson(ItemCloneResponse(projectId, projectLink)))
     }
-  }
-
-  private def cleanUpMetaData(metaData: MetaData) = {
-    MetaData(metaData.label.map(_.trim).filter(_.nonEmpty), metaData.description.filter(_.trim.nonEmpty))
   }
 
   /** Update the project meta data. */

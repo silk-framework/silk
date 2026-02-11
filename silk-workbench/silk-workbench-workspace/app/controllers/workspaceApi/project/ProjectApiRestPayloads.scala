@@ -2,7 +2,10 @@ package controllers.workspaceApi.project
 
 import io.swagger.v3.oas.annotations.media.{ArraySchema, Schema}
 import org.silkframework.config.MetaData
-import org.silkframework.util.Uri
+import org.silkframework.runtime.activity.UserContext
+import org.silkframework.runtime.validation.BadUserInputException
+import org.silkframework.util.{Identifier, IdentifierUtils, Uri}
+import org.silkframework.workspace.{Project, ProjectConfig, WorkspaceFactory}
 import play.api.libs.json.{Format, Json}
 
 /**
@@ -26,10 +29,37 @@ object ProjectApiRestPayloads {
     implicit val itemMetaDataFormat: Format[ItemMetaData] = Json.format[ItemMetaData]
   }
 
-  /** Data to create a project. */
-  case class ProjectCreationData(metaData: ItemMetaData, id:Option[String])
+  /** Request to create a new project. */
+  case class CreateProjectRequest(metaData: ItemMetaData, id: Option[String], groups: Option[Set[String]]) {
 
-  object ProjectCreationData {
-    implicit val projectCreationData: Format[ProjectCreationData] = Json.format[ProjectCreationData]
+    /**
+     * Executes the request.
+     *
+     * @return The created project.
+     */
+    def apply()(implicit user: UserContext): Project = {
+      val parsedMetaData = metaData.asMetaData
+      val generatedId = parsedMetaData.label match {
+        case Some(label) if label.trim.nonEmpty =>
+          IdentifierUtils.generateProjectId(label)
+        case _ =>
+          throw BadUserInputException("The label must not be empty!")
+      }
+      val projectId = id match {
+        case Some(v) => Identifier(v)
+        case None => generatedId
+      }
+      val project = WorkspaceFactory().workspace.createProject(ProjectConfig(projectId, metaData = cleanUpMetaData(parsedMetaData).asNewMetaData))
+      project.userGroupManager.setGroups(groups.getOrElse(Seq.empty))
+      project
+    }
+
+    private def cleanUpMetaData(metaData: MetaData) = {
+      MetaData(metaData.label.map(_.trim).filter(_.nonEmpty), metaData.description.filter(_.trim.nonEmpty))
+    }
+  }
+
+  object CreateProjectRequest {
+    implicit val projectCreationData: Format[CreateProjectRequest] = Json.format[CreateProjectRequest]
   }
 }
