@@ -10,7 +10,6 @@ const props = {
     id: "1",
     parentId: "2",
     scrollIntoView: jest.fn(),
-    scrollElementIntoView: jest.fn(),
     viewActions: {
         savedChanges: jest.fn(),
     },

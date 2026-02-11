@@ -183,22 +183,22 @@ class ObjectRule extends React.Component {
                     <CardContent>
                         {!isRootRule(type) ? (
                             [
-                                <ObjectEntityRelation
-                                    key={"ObjectEntityRelation"}
-                                    isBackwardProperty={_.get(ruleData, "mappingTarget.isBackwardProperty")}
-                                    parent={this.props.parent}
-                                />,
                                 <TargetProperty
                                     key={"ObjectTargetProperty"}
                                     mappingTargetUri={_.get(ruleData, "mappingTarget.uri")}
                                     isObjectMapping={true}
                                     isAttribute={_.get(ruleData, "mappingTarget.isAttribute")}
                                 />,
+                                <ObjectEntityRelation
+                                    key={"ObjectEntityRelation"}
+                                    isBackwardProperty={_.get(ruleData, "mappingTarget.isBackwardProperty")}
+                                    parent={this.props.parent}
+                                />,
                             ]
                         ) : (
                             <>
                                 <TargetCardinality
-                                    isAttribute={_.get(ruleData, "mappingTarget.isAttribute")}
+                                    isAttribute={_.get(ruleData, "mappingTarget.isAttribute") ?? false}
                                     isObjectMapping={true}
                                     editable={false}
                                 />

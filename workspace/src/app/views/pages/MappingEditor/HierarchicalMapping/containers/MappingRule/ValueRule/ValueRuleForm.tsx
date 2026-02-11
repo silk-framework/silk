@@ -1,38 +1,37 @@
-import React, { useEffect, useState } from "react";
-import { ScrollingHOC } from "../../../utils/ScrollingHOC";
-import { debounce } from "lodash";
+import React, {useEffect, useState} from "react";
+import {useScrollIntoView} from "../../../utils/useScrollIntoView";
+import _, {debounce} from "lodash";
 import {
+    Button,
     Card,
     CardActions,
     CardContent,
     CardHeader,
     CardTitle,
-    Divider,
     CodeAutocompleteField,
+    Divider,
     FieldItem,
     IconButton,
     Spacing,
     Spinner,
-    TextField,
     TextArea,
-    Button,
+    TextField,
 } from "@eccenca/gui-elements";
-import _ from "lodash";
 import ExampleView from "../ExampleView";
-import store, { checkValuePathValidity, fetchValuePathSuggestions } from "../../../store";
-import { convertToUri } from "../../../utils/convertToUri";
+import store, {checkValuePathValidity, fetchValuePathSuggestions} from "../../../store";
+import {convertToUri} from "../../../utils/convertToUri";
 import ErrorView from "../../../components/ErrorView";
 import AutoComplete from "../../../components/AutoComplete";
-import { trimValue } from "../../../utils/trimValue";
-import { MAPPING_RULE_TYPE_COMPLEX, MAPPING_RULE_TYPE_DIRECT, MESSAGES } from "../../../utils/constants";
+import {trimValue} from "../../../utils/trimValue";
+import {MAPPING_RULE_TYPE_COMPLEX, MAPPING_RULE_TYPE_DIRECT, MESSAGES} from "../../../utils/constants";
 import EventEmitter from "../../../utils/EventEmitter";
-import { wasTouched } from "../../../utils/wasTouched";
-import { newValueIsIRI } from "../../../utils/newValueIsIRI";
+import {wasTouched} from "../../../utils/wasTouched";
+import {newValueIsIRI} from "../../../utils/newValueIsIRI";
 import TargetCardinality from "../../../components/TargetCardinality";
-import { IViewActions } from "../../../../../../../views/plugins/PluginRegistry";
-import { GlobalMappingEditorContext } from "../../../../contexts/GlobalMappingEditorContext";
-import { MAPPING_ROOT_RULE_ID } from "../../../HierarchicalMapping";
-import { RuleParameterType } from "../../../../../../taskViews/transform/transform.types";
+import {IViewActions} from "../../../../../../../views/plugins/PluginRegistry";
+import {GlobalMappingEditorContext} from "../../../../contexts/GlobalMappingEditorContext";
+import {MAPPING_ROOT_RULE_ID} from "../../../HierarchicalMapping";
+import {RuleParameterType} from "../../../../../../taskViews/transform/transform.types";
 
 const LANGUAGES_LIST = [
     "en",
@@ -104,8 +103,6 @@ interface IState {
 interface IProps {
     // ID of the rule
     id?: string;
-    //
-    scrollIntoView: ({ topOffset }) => any;
     parentId?: string;
     // Called when the rule has been saved
     onAddNewRule?: (call: () => any) => any;
@@ -122,6 +119,7 @@ interface IProps {
 /** The edit form of a value mapping rule. */
 export function ValueRuleForm(props: IProps) {
     const mappingEditorContext = React.useContext(GlobalMappingEditorContext);
+    const { elementRef, scrollIntoView } = useScrollIntoView<HTMLDivElement>();
     const [loading, setLoading] = useState<boolean>(false);
     const [changed, setChanged] = useState(false);
     const [type, setType] = useState(MAPPING_RULE_TYPE_DIRECT);
@@ -179,11 +177,9 @@ export function ValueRuleForm(props: IProps) {
 
     useEffect(() => {
         if (!loading) {
-            props.scrollIntoView({
-                topOffset: 75,
-            });
+            scrollIntoView(75);
         }
-    }, [loading]);
+    }, [loading, scrollIntoView]);
 
     const loadData = () => {
         setLoading(true);
@@ -612,16 +608,18 @@ export function ValueRuleForm(props: IProps) {
         );
 
         return !props.noCardWrapper ? (
-            <div className="ecc-silk-mapping__ruleseditor">
+            <div ref={elementRef} className="ecc-silk-mapping__ruleseditor">
                 <Card elevation={!id ? 1 : -1}>
                     {title}
                     {editForm}
                 </Card>
             </div>
         ) : (
-            editForm
+            <div ref={elementRef}>
+                {editForm}
+            </div>
         );
     };
     return render();
 }
-export default ScrollingHOC(ValueRuleForm);
+export default ValueRuleForm;

@@ -4,8 +4,8 @@
 
 import React from "react";
 import _ from "lodash";
-import { copyRuleAsync, errorChannel, getApiDetails, getRuleAsync } from "../store";
-import { Spinner, Spacing, Notification, ClassNames, GridColumn, WhiteSpaceContainer } from "@eccenca/gui-elements";
+import {copyRuleAsync, errorChannel, getApiDetails, getRuleAsync} from "../store";
+import {ClassNames, GridColumn, Notification, Spacing, Spinner, WhiteSpaceContainer} from "@eccenca/gui-elements";
 import RootMappingRule from "./RootMappingRule";
 import ObjectMappingRuleForm from "./MappingRule/ObjectRule/ObjectRuleForm";
 import ValueMappingRuleForm from "./MappingRule/ValueRule/ValueRuleForm";
@@ -20,12 +20,11 @@ import {
     MESSAGES,
 } from "../utils/constants";
 import EventEmitter from "../utils/EventEmitter";
-import { diErrorMessage } from "@ducks/error/typings";
-import { IViewActions } from "../../../../plugins/PluginRegistry";
-import { SuggestionNGProps } from "../../../../plugins/plugin.types";
-import { ParentStructure } from "../components/ParentStructure";
+import {diErrorMessage} from "@ducks/error/typings";
+import {IViewActions} from "../../../../plugins/PluginRegistry";
+import {ParentStructure} from "../components/ParentStructure";
 import RuleTitle from "../elements/RuleTitle";
-import { MAPPING_ROOT_RULE_ID } from "../HierarchicalMapping";
+import {MAPPING_ROOT_RULE_ID} from "../HierarchicalMapping";
 
 interface MappingsWorkviewProps {
     onRuleIdChange: (param: any) => any;
@@ -263,20 +262,13 @@ const MappingsWorkview = ({
             {createType === MAPPING_RULE_TYPE_OBJECT ? (
                 <ObjectMappingRuleForm
                     parentId={ruleData.id}
-                    parent={{
-                        id: ruleData.id,
-                        property: _.get(ruleData, "mappingTarget.uri"),
-                        type: _.get(ruleData, "rules.typeRules[0].typeUri"),
-                    }}
                     ruleData={{ type: MAPPING_RULE_TYPE_OBJECT }}
                     onAddNewRule={handleAddNewRule}
                     viewActions={viewActions}
                 />
             ) : (
                 <ValueMappingRuleForm
-                    type={createType}
                     parentId={ruleData.id}
-                    edit
                     onAddNewRule={handleAddNewRule}
                     openMappingEditor={openMappingEditor}
                     viewActions={viewActions}

@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { MappingRule } from "./MappingRule";
-import { ScrollingHOC } from "../../utils/ScrollingHOC";
+import { useScrollIntoView } from "../../utils/useScrollIntoView";
 
 import { URI } from "ecc-utils";
 import { MAPPING_RULE_TYPE_OBJECT } from "../../utils/constants";
@@ -25,10 +25,22 @@ const DraggableItem = (props) => {
     const [isPastedState, setIsPastedState] = useState(isPasted(props.id));
     const [expanded, setExpanded] = useState(isExpanded(props.id) || isPasted(props.id));
 
+    // Use the custom hook for scrolling functionality
+    const { elementRef, scrollIntoView } = useScrollIntoView();
+
     const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
         id: `draggable-${props.id}`,
         disabled: expanded,
     });
+
+    // Combine the sortable ref and scroll ref using a callback ref
+    const combinedRef = useCallback(
+        (node) => {
+            setNodeRef(node);
+            elementRef.current = node;
+        },
+        [setNodeRef, elementRef],
+    );
 
     const style = {
         transform: CSS.Transform.toString(transform),
@@ -38,15 +50,14 @@ const DraggableItem = (props) => {
     useEffect(() => {
         if (isPastedState) {
             sessionStorage.removeItem("pastedId");
-            props.scrollIntoView();
+            scrollIntoView();
         }
 
         const searchQuery = new URLSearchParams(window.location.search).get("ruleId");
         if (searchQuery === props.id) {
             setExpanded(true);
-            props.scrollIntoView();
         }
-    }, []); // Only run on mount
+    }, [props.id, scrollIntoView]); // Added dependencies
 
     const updateHistory = useCallback(
         (ruleId) => {
@@ -63,11 +74,11 @@ const DraggableItem = (props) => {
     const updateQueryOnExpansion = useCallback(() => {
         if (expanded) {
             updateHistory(props.id);
-            props.scrollIntoView();
+            scrollIntoView();
         } else {
             updateHistory(props.parentRuleId ?? "");
         }
-    }, [expanded, props.id, props.parentRuleId, props.scrollIntoView, updateHistory]);
+    }, [expanded, props.id, props.parentRuleId, scrollIntoView, updateHistory]);
 
     const handleExpand = useCallback(
         (newExpanded = !expanded, id = true) => {
@@ -90,7 +101,7 @@ const DraggableItem = (props) => {
 
     // Create provided and snapshot objects compatible with the existing MappingRule component
     const provided = {
-        innerRef: setNodeRef,
+        innerRef: combinedRef,
         draggableProps: {
             style,
             ...attributes,
@@ -119,4 +130,4 @@ const DraggableItem = (props) => {
     );
 };
 
-export default ScrollingHOC(DraggableItem);
+export default DraggableItem;

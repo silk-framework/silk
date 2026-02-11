@@ -4,7 +4,7 @@ import { ParentElement } from "../ParentElement";
 
 const ObjectEntityRelation = ({ isBackwardProperty, parent }) => {
     return (
-        <div>
+        <div data-test-id={"object-entity-relation"}>
             {isBackwardProperty ? (
                 <>
                     <Icon name={"navigation-left"} small />

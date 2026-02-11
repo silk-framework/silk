@@ -1,5 +1,5 @@
 import React, {useEffect, useState} from "react";
-import {ScrollingHOC} from "../../../utils/ScrollingHOC";
+import {useScrollIntoView} from "../../../utils/useScrollIntoView";
 import {
     Button,
     Card,
@@ -49,11 +49,9 @@ import {MAPPING_ROOT_RULE_ID} from "../../../HierarchicalMapping";
 interface IProps {
     id?: string;
     parentId?: string;
-    scrollIntoView: ({ topOffset }) => any;
     onAddNewRule: (callback: () => any) => any;
     // Called when the edit mode got cancelled
     onCancelEdit?: () => any;
-    scrollElementIntoView: () => any;
     ruleData: object;
     viewActions: IViewActions;
     /** do not use Card around content */
@@ -68,6 +66,7 @@ const pureUri = (uri: string) => (uri ? uri.replace(/^<|>$/g, "") : uri);
  */
 export const ObjectRuleForm = (props: IProps) => {
     const mappingEditorContext = React.useContext(GlobalMappingEditorContext);
+    const { elementRef, scrollIntoView } = useScrollIntoView<HTMLDivElement>();
     const [loading, setLoading] = useState(false);
     const [changed, setChanged] = useState(false);
     const [allowConfirm, setAllowConfirm] = useState(false);
@@ -112,13 +111,13 @@ export const ObjectRuleForm = (props: IProps) => {
     currentUriPatterns.current = distinctUriPatterns;
 
     useEffect(() => {
-        const { id, scrollIntoView } = props;
+        const { id } = props;
         // set screen focus to this element
-        scrollIntoView({ topOffset: 75 });
+        scrollIntoView(75);
         if (!id) {
             EventEmitter.emit(MESSAGES.RULE_VIEW.CHANGE, { id: 0 });
         }
-    }, []);
+    }, [props.id, scrollIntoView]);
 
     const toggleTabViewDirtyState = React.useCallback((status: boolean) => {
         props.viewActions.unsavedChanges && props.viewActions.unsavedChanges(status);
@@ -357,7 +356,7 @@ export const ObjectRuleForm = (props: IProps) => {
     targetCardinality = (
         <TargetCardinality
             className="ecc-silk-mapping__ruleseditor__isAttribute"
-            isAttribute={modifiedValues().isAttribute}
+            isAttribute={modifiedValues().isAttribute ?? false}
             isObjectMapping={true}
             onChange={(value) => handleChangeValue("isAttribute", value)}
         />
@@ -514,7 +513,7 @@ export const ObjectRuleForm = (props: IProps) => {
                     placeholder="Target entity type"
                     className="ecc-silk-mapping__ruleseditor__targetEntityType"
                     isValidNewOption={(text: string) => newValueIsIRI({label: text})}
-                    value={modifiedValues().targetEntityType}
+                    value={modifiedValues().targetEntityType ?? []}
                     onChange={(value) => {
                         handleChangeValue("targetEntityType", value.selectedItems);
                     }}
@@ -591,15 +590,17 @@ export const ObjectRuleForm = (props: IProps) => {
     );
 
     return !props.noCardWrapper ? (
-        <div className="ecc-silk-mapping__ruleseditor">
+        <div ref={elementRef} className="ecc-silk-mapping__ruleseditor">
             <Card elevation={!id ? 1 : -1}>
                 {title}
                 {editForm}
             </Card>
         </div>
     ) : (
-        editForm
+        <div ref={elementRef}>
+            {editForm}
+        </div>
     );
 };
 
-export default ScrollingHOC(ObjectRuleForm);
+export default ObjectRuleForm;
