@@ -22,6 +22,7 @@ import useErrorHandler from "../../../hooks/useErrorHandler";
 import { useTranslation } from "react-i18next";
 import { usePageHeader } from "../../../views/shared/PageHeader/PageHeader";
 import { SERVE_PATH } from "../../../constants/path";
+import { ItemDepiction } from "../../shared/ItemDepiction/ItemDepiction";
 
 export interface DeprecatedPluginsModel {
     project: string;
@@ -122,7 +123,7 @@ export default function DeprecatedPlugins() {
                     <Card key={`${plugin.project}_${plugin.task}_${index}`} isOnlyLayout className="diapp-searchitem">
                         <OverviewItem hasSpacing data-test-id="deprecated-plugin-item">
                             <OverviewItemDepiction>
-                                <Icon name="artefact-task" large />
+                                <ItemDepiction itemType={plugin.itemType} pluginId={plugin.pluginLabel} />
                             </OverviewItemDepiction>
                             <OverviewItemDescription>
                                 <OverviewItemLine>

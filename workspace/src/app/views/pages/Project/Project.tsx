@@ -110,7 +110,6 @@ const Project = () => {
                 itemType={DATA_TYPES.PROJECT}
                 updateActionsMenu={updateActionsMenu}
             />
-            <DeprecatedPluginsWidget projectId={projectId} />
             <WorkspaceMain>
                 <Section>
                     <Metadata />
