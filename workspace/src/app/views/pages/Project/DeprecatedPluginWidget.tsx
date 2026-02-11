@@ -1,4 +1,4 @@
-import { Card, CardContent, CardHeader, CardTitle, Divider, Notification, Spacing } from "@eccenca/gui-elements";
+import { Card, CardContent, CardHeader, CardTitle, Divider, Link, Notification, Spacing } from "@eccenca/gui-elements";
 import useErrorHandler from "../../../hooks/useErrorHandler";
 import React, { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
@@ -7,6 +7,16 @@ import { coreApi } from "../../../utils/getApiEndpoint";
 import { fetch } from "../../../services/fetch/fetch";
 
 type DeprecatedPluginsProps = { projectId: string; taskId?: never } | { projectId?: never; taskId: string };
+
+type GroupedTask = {
+    label: string;
+    link: string;
+};
+
+type GroupedDataWithLinks = {
+    pluginLabel: string;
+    tasks: GroupedTask[];
+};
 
 export function DeprecatedPluginWidget({ projectId, taskId }: DeprecatedPluginsProps) {
     const [t] = useTranslation();
@@ -59,6 +69,24 @@ export function DeprecatedPluginWidget({ projectId, taskId }: DeprecatedPluginsP
         return null;
     }
 
+    const length = deprecatedPlugins.length;
+
+    function groupByPluginWithLinks(data: DeprecatedPluginsModel[]): GroupedDataWithLinks[] {
+        const groupedMap: Record<string, GroupedTask[]> = {};
+
+        data.forEach((item) => {
+            if (!groupedMap[item.pluginLabel]) {
+                groupedMap[item.pluginLabel] = [];
+            }
+            groupedMap[item.pluginLabel].push({ label: item.taskLabel, link: item.link });
+        });
+
+        return Object.entries(groupedMap).map(([pluginLabel, tasks]) => ({
+            pluginLabel,
+            tasks,
+        }));
+    }
+
     return (
         <Card>
             <CardHeader>
@@ -70,7 +98,19 @@ export function DeprecatedPluginWidget({ projectId, taskId }: DeprecatedPluginsP
             </CardHeader>
             <Divider />
             <CardContent>
-                <p>{deprecatedPlugins.map((plugin) => plugin.pluginLabel).join(", ")}</p>
+                <ul style={{ display: "flex", flexDirection: "column", gap: "0.2rem" }}>
+                    {groupByPluginWithLinks(deprecatedPlugins).map((plugin) => (
+                        <li key={plugin.pluginLabel} style={{ display: "flex", flexDirection: "row", gap: "0.2rem" }}>
+                            <p style={{}}>{plugin.pluginLabel}:</p>
+                            {plugin.tasks.map((task, index) => (
+                                <span key={task.link}>
+                                    <Link href={task.link}>{task.label}</Link>
+                                    {index < plugin.tasks.length - 1 ? ", " : ""}
+                                </span>
+                            ))}
+                        </li>
+                    ))}
+                </ul>
                 <Spacing />
                 <Notification intent="warning">
                     {t(
