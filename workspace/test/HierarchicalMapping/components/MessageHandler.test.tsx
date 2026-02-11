@@ -15,7 +15,7 @@ describe("MessageHandler Component", () => {
             errorChannel.subject("message.alert").onNext({ errorType: "alert", message: "lorem" });
             await waitFor(() => {
                 expect(findAllDOMElements(wrapper, notificationSelector("neutral")).length).toBeGreaterThan(0);
-                expect(findElement(wrapper, notificationSelector("neutral")).textContent).toContainHTML("lorem")
+                expect(findElement(wrapper, notificationSelector("neutral")).textContent).toMatch("lorem")
             });
         });
 

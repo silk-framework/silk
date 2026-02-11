@@ -39,7 +39,7 @@ const DraggableItem = (props) => {
             setNodeRef(node);
             elementRef.current = node;
         },
-        [setNodeRef, elementRef],
+        [setNodeRef],
     );
 
     const style = {

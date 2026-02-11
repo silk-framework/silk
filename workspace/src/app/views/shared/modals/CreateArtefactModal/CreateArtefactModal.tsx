@@ -914,6 +914,7 @@ export function CreateArtefactModal() {
 
         notifications.push(
             <Notification
+                key={"errorNotification"}
                 onDismiss={resetModalError}
                 message={taskLoadingError || error.errorMessage || actionFailed()}
                 intent="danger"
@@ -922,16 +923,17 @@ export function CreateArtefactModal() {
     }
 
     if (info) {
-        notifications.push(<Notification onDismiss={resetModalInfo} message={info} timeout={30000} />);
+        notifications.push(<Notification key={"infoNotification"} onDismiss={resetModalInfo} message={info} timeout={30000} />);
     }
 
     if (infoMessage) {
-        notifications.push(<Notification message={infoMessage.message} />);
+        notifications.push(<Notification key={"infoMessage"} message={infoMessage.message} />);
     }
 
     if (projectArtefactSelected) {
         notifications.push(
             <Notification
+                key={"ProjectNotSelectedNote"}
                 message={t("ProjectImportModal.restoreNotice", "Want to restore an existing project?")}
                 actions={[
                     <Button
@@ -949,7 +951,7 @@ export function CreateArtefactModal() {
 
     if (taskFormGeneralWarning) {
         notifications.push(
-            <Notification message={taskFormGeneralWarning} onDismiss={() => setTaskFormGeneralWarning(undefined)} />,
+            <Notification key={"generalWarning"} message={taskFormGeneralWarning} onDismiss={() => setTaskFormGeneralWarning(undefined)} />,
         );
     }
 
@@ -959,6 +961,7 @@ export function CreateArtefactModal() {
     if (taskActionResult) {
         notifications.push(
             <Notification
+                key={"taskActionResult"}
                 intent="success"
                 message={
                     <Accordion whitespaceSize={"none"}>
