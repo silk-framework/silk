@@ -37,7 +37,7 @@ import { previewSlice } from "@ducks/workspace/previewSlice";
 import VariablesWidget from "../../../views/shared/VariablesWidget/VariablesWidget";
 import { useSelectFirstResult } from "../../../hooks/useSelectFirstResult";
 import { GlobalTableContext } from "../../../GlobalContextsWrapper";
-import { DeprecatedPluginWidget } from "./DeprecatedPluginWidget";
+import { DeprecatedPluginsWidget } from "./DeprecatedPlugins/DeprecatedPluginsWidget";
 
 const Project = () => {
     const dispatch = useDispatch();
@@ -110,6 +110,7 @@ const Project = () => {
                 itemType={DATA_TYPES.PROJECT}
                 updateActionsMenu={updateActionsMenu}
             />
+            <DeprecatedPluginsWidget projectId={projectId} />
             <WorkspaceMain>
                 <Section>
                     <Metadata />
@@ -182,7 +183,7 @@ const Project = () => {
                     <Spacing />
                     <FileWidget />
                     <Spacing />
-                    <DeprecatedPluginWidget projectId={projectId} />
+                    <DeprecatedPluginsWidget projectId={projectId} />
                 </Section>
             </WorkspaceSide>
         </WorkspaceContent>

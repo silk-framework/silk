@@ -410,7 +410,8 @@
             "noTypes": "No types found",
             "serverError": "Server error",
             "taskOverwrittenPrompt": "I understand that some tasks will be overwritten",
-            "temporarilyUnavailableMessage": "Service is temporarily unavailable. Details: {{detailMessage}}"
+            "temporarilyUnavailableMessage": "Service is temporarily unavailable. Details: {{detailMessage}}",
+            "deprecatedPluginBanner": "This plugin is deprecated and will be removed in the future. Please exchange it for a supported plugin as soon as possible."
         },
         "sorter": {
             "recentlyViewed": "Recently viewed"
@@ -608,11 +609,6 @@
             "unknownTask": "Unknown Task",
             "infoMessage": "This page lists plugins that are used in existing projects but have been marked as deprecated. It is recommended to replace these plugins to ensure compatibility with future versions of the application.",
             "deprecationMessage": "Plugin is deprecated.",
-            "fields": {
-                "task": "Task",
-                "project": "Project",
-                "message": "Message"
-            },
             "errors": {
                 "fetchPlugins": "Failed to load deprecated plugins"
             }

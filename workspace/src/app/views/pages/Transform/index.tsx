@@ -11,6 +11,7 @@ import { ArtefactManagementOptions } from "../../shared/ActionsMenu/ArtefactMana
 import NotFound from "../NotFound";
 import { TaskActivityOverview } from "../../shared/TaskActivityOverview/TaskActivityOverview";
 import { ProjectTaskParams } from "../../shared/typings";
+import DeprecatedPluginsBanner from "../Project/DeprecatedPlugins/DeprecatedPluginsBanner";
 
 export default function TransformPage() {
     const { taskId, projectId } = useParams<ProjectTaskParams>();
@@ -37,6 +38,7 @@ export default function TransformPage() {
             />
             <WorkspaceMain>
                 <Section>
+                    <DeprecatedPluginsBanner projectId={projectId} taskId={taskId} />
                     <Metadata />
                     <Spacing />
                     <ProjectTaskTabView

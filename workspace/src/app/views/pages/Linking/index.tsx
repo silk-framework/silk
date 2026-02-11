@@ -12,6 +12,7 @@ import NotFound from "../NotFound";
 import { TaskActivityOverview } from "../../shared/TaskActivityOverview/TaskActivityOverview";
 import { ProjectTaskParams } from "../../shared/typings";
 import { LinkageRuleConfig } from "./config/LinkageRuleConfig";
+import DeprecatedPluginsBanner from "../Project/DeprecatedPlugins/DeprecatedPluginsBanner";
 
 export default function LinkingPage() {
     const { projectId, taskId } = useParams<ProjectTaskParams>();
@@ -37,6 +38,7 @@ export default function LinkingPage() {
             />
             <WorkspaceMain>
                 <Section>
+                    <DeprecatedPluginsBanner projectId={projectId} taskId={taskId} />
                     <Metadata />
                     <Spacing />
                     <ProjectTaskTabView

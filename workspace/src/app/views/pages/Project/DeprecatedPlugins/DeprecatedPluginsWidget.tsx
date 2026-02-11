@@ -1,10 +1,10 @@
 import { Card, CardContent, CardHeader, CardTitle, Divider, Link, Notification, Spacing } from "@eccenca/gui-elements";
-import useErrorHandler from "../../../hooks/useErrorHandler";
+import useErrorHandler from "../../../../hooks/useErrorHandler";
 import React, { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
-import { DeprecatedPluginsModel } from "../DeprecatedPlugins";
-import { coreApi } from "../../../utils/getApiEndpoint";
-import { fetch } from "../../../services/fetch/fetch";
+import { DeprecatedPluginsModel } from "../../DeprecatedPlugins";
+import { coreApi } from "../../../../utils/getApiEndpoint";
+import { fetch } from "../../../../services/fetch/fetch";
 
 type DeprecatedPluginsProps = { projectId: string; taskId?: never } | { projectId?: never; taskId: string };
 
@@ -18,7 +18,7 @@ type GroupedDataWithLinks = {
     tasks: GroupedTask[];
 };
 
-export function DeprecatedPluginWidget({ projectId, taskId }: DeprecatedPluginsProps) {
+export function DeprecatedPluginsWidget({ projectId, taskId }: DeprecatedPluginsProps) {
     const [t] = useTranslation();
     const [deprecatedPlugins, setDeprecatedPlugins] = useState<DeprecatedPluginsModel[]>([]);
     const [isLoading, setIsLoading] = useState(true);
