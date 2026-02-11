@@ -30,7 +30,7 @@ object ProjectApiRestPayloads {
   }
 
   /** Request to create a new project. */
-  case class CreateProjectRequest(metaData: ItemMetaData, id: Option[String], groups: Option[Set[String]]) {
+  case class CreateProjectRequest(metaData: ItemMetaData, id: Option[String], groups: Option[Set[String]] = None) {
 
     /**
      * Executes the request.
@@ -50,7 +50,7 @@ object ProjectApiRestPayloads {
         case None => generatedId
       }
       val project = WorkspaceFactory().workspace.createProject(ProjectConfig(projectId, metaData = cleanUpMetaData(parsedMetaData).asNewMetaData))
-      project.userGroupManager.setGroups(groups.getOrElse(Seq.empty))
+      project.userGroupManager.setGroups(groups.getOrElse(Set.empty))
       project
     }
 
