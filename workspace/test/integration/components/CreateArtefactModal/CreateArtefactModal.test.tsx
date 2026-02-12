@@ -15,7 +15,7 @@ import {
     clickRenderedElement,
     findAllDOMElements,
     findElement,
-    legacyApiUrl, logPageHtml,
+    legacyApiUrl,
     mockAxiosResponse,
     mockedAxiosError,
     mockedAxiosResponse,
