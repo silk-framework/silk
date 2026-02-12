@@ -66,12 +66,12 @@
 }
 
 .ecc-silk-mapping__ruleitem-summary {
-    &:hover {
-        background-color: $button-background-color-hover;
+    .#{$eccgui}-overviewitem__list li:nth-child(odd) &:not(:hover) {
+        background-color: $eccgui-color-tablerow-background-even;
     }
 
-    &.ecc-silk-mapping__ruleitem-summary--expanded {
-        background-color: transparent;
+    &:hover {
+        background-color: $button-background-color-hover;
     }
 
     .#{eccgui}-overviewitem__item.#{eccgui}-overviewitem__item--hasspacing {
