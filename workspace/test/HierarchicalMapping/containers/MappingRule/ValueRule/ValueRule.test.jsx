@@ -12,17 +12,15 @@ const onClickedRemoveFn = jest.fn();
 const props = {
     id: "1",
     parentId: "",
-    parent: undefined,
     edit: false,
     type: "direct",
-    sourcePath: [],
-    sourcePaths: ["fields/customfield_12408", "fields/summary"],
     mappingTarget: {
         uri: "uri",
         valueType: {
             nodeType: "div",
         },
     },
+    sourcePaths: ["a", "b"],
     viewActions: {
         savedChanges: jest.fn(),
     },

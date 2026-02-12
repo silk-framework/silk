@@ -1,22 +1,23 @@
 import React from "react";
-import { createBrowserHistory, createMemoryHistory, History, LocationState } from "history";
-import { Provider } from "react-redux";
-import { configureStore } from "@reduxjs/toolkit";
+import {createBrowserHistory, createMemoryHistory, History, LocationState} from "history";
+import {Provider} from "react-redux";
+import {configureStore} from "@reduxjs/toolkit";
 import rootReducer from "../../src/app/store/reducers";
-import { ConnectedRouter, routerMiddleware } from "connected-react-router";
-import { AxiosMockQueueItem, AxiosMockRequestCriteria, AxiosMockType, HttpResponse } from "jest-mock-axios";
+import {ConnectedRouter, routerMiddleware} from "connected-react-router";
+import {AxiosMockQueueItem, AxiosMockRequestCriteria, AxiosMockType, HttpResponse} from "jest-mock-axios";
 import mockAxios from "../__mocks__/axios";
-import { CONTEXT_PATH, SERVE_PATH } from "../../src/app/constants/path";
-import { mergeDeepRight } from "ramda";
-import { IStore } from "../../src/app/store/typings/IStore";
-import { render, RenderResult, waitFor, fireEvent } from "@testing-library/react";
+import {CONTEXT_PATH, SERVE_PATH} from "../../src/app/constants/path";
+import {mergeDeepRight} from "ramda";
+import {IStore} from "../../src/app/store/typings/IStore";
+import {fireEvent, render, RenderResult, waitFor} from "@testing-library/react";
 import "@testing-library/jest-dom";
+import {CLASSPREFIX as eccgui,} from "@eccenca/gui-elements"
 
 import {
     responseInterceptorOnError,
     responseInterceptorOnSuccess,
 } from "../../src/app/services/fetch/responseInterceptor";
-import { AxiosError } from "axios";
+import {AxiosError} from "axios";
 
 interface IMockValues {
     history: History;
@@ -146,6 +147,15 @@ export const logRequests = (axiosMock?: AxiosMockType) => {
         console.log(request);
     });
 };
+
+/** Checks if the NotAvailable element is found. */
+export const checkForNotAvailableElement = (wrapper: RenderResult, noTag: boolean = true): void => {
+    if(noTag) {
+        expect(wrapper.queryAllByText("n/a", {exact: false}).length).toBeGreaterThan(0);
+    } else {
+        expect(findAllDOMElements(wrapper, `${eccgui}-notavailable`).length).toBeGreaterThan(0);
+    }
+}
 
 /**Clicks an element specified by a selector. */
 export const clickFoundElement = (root: RenderResult | Element, selector: string) => {

@@ -4,7 +4,7 @@ import _ from "lodash";
 import { Spacing, Notification, IconButton, HtmlContentBlock } from "@eccenca/gui-elements";
 
 export const ErrorCause = ({ errorCause }) => (
-    <ul>
+    <ul data-test-id={"hierarchical-mapping-error-list"}>
         {_.map(errorCause, ({ title, detail, cause }) => {
             let renderedCause: React.ReactElement | undefined = undefined;
 
@@ -27,17 +27,18 @@ export const ErrorCause = ({ errorCause }) => (
     </ul>
 );
 
-export const ErrorIssue = ({ errorCause }) => (
-    <ul>
-        {_.map(errorCause, ({ message }) => (
-            <li>
+export const ErrorIssue = ({errorCause}) => {
+    let idx = 1
+    return <ul data-test-id={"hierarchical-mapping-error-list"}>
+        {_.map(errorCause, ({message}) => (
+            <li key={message+idx}>
                 <HtmlContentBlock>
                     <p>{message}</p>
                 </HtmlContentBlock>
             </li>
         ))}
     </ul>
-);
+};
 
 interface IProps {
     // Error title

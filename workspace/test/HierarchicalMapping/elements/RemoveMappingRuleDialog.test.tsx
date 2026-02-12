@@ -1,21 +1,24 @@
 import React from "react";
-import RemoveMappingRuleDialog from "../../../src/app/views/pages/MappingEditor/HierarchicalMapping/elements/RemoveMappingRuleDialog";
-import { render } from "@testing-library/react";
-import { clickFoundElement, findElement } from "../../integration/TestHelper";
+import RemoveMappingRuleDialog
+    from "../../../src/app/views/pages/MappingEditor/HierarchicalMapping/elements/RemoveMappingRuleDialog";
+import {waitFor} from "@testing-library/react";
+import {clickFoundElement, renderWrapper} from "../../integration/TestHelper";
+import {logWrapperHtml} from "../utils/TestHelpers";
 
 const handleRemoveCancelMock = jest.fn();
 const handleRemoveConfirmMock = jest.fn();
 const props = {
+    label: "",
     numberEditingElements: 2,
     handleCancelRemove: handleRemoveCancelMock,
     handleConfirmRemove: handleRemoveConfirmMock,
 };
 
-const getWrapper = () => render(<RemoveMappingRuleDialog {...props} />);
+const getWrapper = () => renderWrapper(<RemoveMappingRuleDialog {...props} />);
 
 const selectors = {
-    REMOVE_BUTTON: "button.ecc-hm-delete-accept",
-    CANCEL_BUTTON: "button.ecc-hm-delete-cancel",
+    REMOVE_BUTTON: ".ecc-hm-delete-accept",
+    CANCEL_BUTTON: ".ecc-hm-delete-cancel",
 };
 
 describe("RemoveMappingRuleDialog Component", () => {
@@ -25,8 +28,11 @@ describe("RemoveMappingRuleDialog Component", () => {
             wrapper = getWrapper();
         });
 
-        it("should handleDiscardConfirm called, when click on Discard button", () => {
-            clickFoundElement(wrapper, selectors.REMOVE_BUTTON);
+        it("should handleDiscardConfirm called, when click on Discard button", async () => {
+            logWrapperHtml(wrapper)
+            await waitFor(() => {
+                clickFoundElement(wrapper, selectors.REMOVE_BUTTON);
+            })
             expect(handleRemoveConfirmMock).toHaveBeenCalled();
         });
 

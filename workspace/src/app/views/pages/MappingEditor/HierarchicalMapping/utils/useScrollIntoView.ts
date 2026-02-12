@@ -26,11 +26,6 @@ export function useScrollIntoView<T extends HTMLElement = HTMLElement>() {
         if (elementRef.current) {
             const element = elementRef.current;
 
-            // Check if scrollIntoView is available (not available in some test environments)
-            if (typeof element.scrollIntoView !== "function") {
-                return;
-            }
-
             // Scroll element to top of container
             element.scrollIntoView({
                 behavior: "smooth",

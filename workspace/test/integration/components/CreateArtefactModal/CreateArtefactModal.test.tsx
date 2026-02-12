@@ -365,7 +365,9 @@ describe("Task creation widget", () => {
         const autoCompleteInput = findElement(element, "#optionalAutoCompletionParamCustom");
         expect(window.document.querySelectorAll(".eccgui-spinner").length).toBe(0);
         // input must be focused in order to fire requests
-        autoCompleteInput.focus();
+        act(() => {
+            autoCompleteInput.focus();
+        });
         changeInputValue(autoCompleteInput as HTMLInputElement, "abc");
         const beforePortals = window.document.querySelectorAll(`div.${bluePrintClassPrefix}-portal`).length;
         await waitFor(() => {

@@ -1,17 +1,19 @@
 import React from "react";
 import MessageHandler from "../../../src/app/views/pages/MappingEditor/HierarchicalMapping/components/MessageHandler";
-import {errorChannel} from "../../../src/app/views/pages/MappingEditor/HierarchicalMapping/store";
 import {render, waitFor} from "@testing-library/react";
 import {findAllDOMElements, findElement} from "../../integration/TestHelper";
 import {CLASSPREFIX, NotificationProps} from "@eccenca/gui-elements"
+import rxmq from "ecc-messagebus";
 
 const getWrapper = () => render(<MessageHandler />);
 export const notificationSelector = (intent: NotificationProps["intent"]) => `.${CLASSPREFIX}-notification.${CLASSPREFIX}-intent--${intent}`
+const errorChannel = rxmq.channel("errors");
 
 describe("MessageHandler Component", () => {
     describe("on component mounted,", () => {
         it("should render Alert component, when `errorType` is equal to `alert`", async () => {
             const wrapper = getWrapper();
+            await waitFor(() => expect(errorChannel).toBeDefined());
             errorChannel.subject("message.alert").onNext({ errorType: "alert", message: "lorem" });
             await waitFor(() => {
                 expect(findAllDOMElements(wrapper, notificationSelector("neutral")).length).toBeGreaterThan(0);

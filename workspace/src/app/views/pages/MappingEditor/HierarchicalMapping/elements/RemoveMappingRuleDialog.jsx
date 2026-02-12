@@ -12,10 +12,10 @@ const RemoveMappingRuleDialog = ({ mappingType = "", handleConfirmRemove, handle
             intent={"danger"}
             size={"small"}
             actions={[
-                <Button disruptive className="ecc-hm-delete-accept" onClick={handleConfirmRemove}>
+                <Button key={"remove"} disruptive className="ecc-hm-delete-accept" onClick={handleConfirmRemove}>
                     Remove
                 </Button>,
-                <Button className="ecc-hm-delete-cancel" onClick={handleCancelRemove}>
+                <Button key={"cancel"} className="ecc-hm-delete-cancel" onClick={handleCancelRemove}>
                     Cancel
                 </Button>,
             ]}

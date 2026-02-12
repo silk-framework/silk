@@ -102,7 +102,7 @@
         ]
     },
     "jest": {
-        "testEnvironment": "jsdom",
+        "testEnvironment": "jest-fixed-jsdom",
         "testEnvironmentOptions": {
             "url": "http://localhost/",
             "globalsCleanup": "on"
@@ -226,7 +226,7 @@
         "i18next-scanner": "^4.6.0",
         "identity-obj-proxy": "^3.0.0",
         "jest": "^30.0.5",
-        "jest-environment-jsdom": "^30.0.5",
+        "jest-fixed-jsdom": "^0.0.11",
         "jest-junit": "^16.0.0",
         "jest-mock-axios": "^4.8.0",
         "jest-pnp-resolver": "^1.2.3",

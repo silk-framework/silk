@@ -133,7 +133,7 @@ describe("MappingsList Component", () => {
         });
 
         it("should render ListActions component", () => {
-            expect(wrapper.getByText("Add value mapping")).toBeInTheDocument();
+            expect(wrapper.getByText("Add mapping")).toBeInTheDocument();
         });
 
         afterEach(() => {
