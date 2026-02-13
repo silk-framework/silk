@@ -1,5 +1,4 @@
 import {
-    Button,
     FieldItem,
     Highlighter,
     highlighterUtils,
@@ -24,8 +23,13 @@ interface IProps {
     allowCustomEntries?: boolean;
 }
 
-const vocabLabel = (vocabInfo: IVocabularyInfo) => {
+export const vocabularyLabel = (vocabInfo: IVocabularyInfo) => {
     return vocabInfo.label ? vocabInfo.label : vocabInfo.uri;
+};
+
+// Renders the entries of the (search) options list
+export const vocabularyOptionRenderer = (vocabInfo: IVocabularyInfo, query: string) => {
+    return <Highlighter label={vocabularyLabel(vocabInfo)} searchValue={query} />;
 };
 
 /** Vocabulary multi-select component. */
@@ -59,11 +63,6 @@ export default function VocabularyMultiSelect({
         }
     }, []);
 
-    // Renders the entries of the (search) options list
-    const optionRenderer = (vocabInfo: IVocabularyInfo, searchQuery: string) => {
-        return <Highlighter label={vocabLabel(vocabInfo)} searchValue={searchQuery} />;
-    };
-
     const vocabSelected = (vocab: IVocabularyInfo): boolean => {
         return selectedVocabs.current.some((v) => v.uri === vocab.uri);
     };
@@ -83,7 +82,7 @@ export default function VocabularyMultiSelect({
                 key={vocabInfo.uri}
                 label={vocabInfoString(vocabInfo)}
                 onClick={handleClick}
-                text={optionRenderer(vocabInfo, query)}
+                text={vocabularyOptionRenderer(vocabInfo, query)}
                 shouldDismissPopover={false}
             />
         );
@@ -126,7 +125,7 @@ export default function VocabularyMultiSelect({
         >
             <MultiSuggestField<IVocabularyInfo>
                 itemId={(vocab) => vocab.uri}
-                itemLabel={(vocab) => vocabLabel(vocab)}
+                itemLabel={(vocab) => vocabularyLabel(vocab)}
                 items={availableVocabularies}
                 searchListPredicate={(items, query) => {
                     const searchWords = highlighterUtils.extractSearchWords(query, true);
