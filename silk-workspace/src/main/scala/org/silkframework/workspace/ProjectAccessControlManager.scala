@@ -1,14 +1,14 @@
 package org.silkframework.workspace
 
 import org.silkframework.runtime.users.User
-import org.silkframework.workspace.exceptions.AccessDeniedException
+import org.silkframework.workspace.exceptions.ProjectAccessDeniedException
 
 /**
  * Manages the user groups of the current user. This is used to determine which projects a user has access to.
  *
  * Thread safe.
  */
-class AccessControlManager {
+class ProjectAccessControlManager {
 
   // TODO we should persist the groups in the backend as well
   @volatile
@@ -32,12 +32,11 @@ class AccessControlManager {
    * Checks if the current user has access to the project.
    * Returns silently if the user has access.
    *
-   * @throws AccessDeniedException If the user does not have access to the project.
+   * @throws ProjectAccessDeniedException If the user does not have access to the project.
    */
   def checkAccess(user: User): Unit = {
-    if(!user.groups.exists(groups.contains)) {
-      throw AccessDeniedException("User does not have access to this project.")
-
+    if(!(groups.isEmpty || user.groups.exists(groups.contains))) {
+      throw ProjectAccessDeniedException(s"User does not have access to this project. Required groups: ${groups.mkString(", ")}. User groups: ${user.groups.mkString(", ")}")
     }
   }
 

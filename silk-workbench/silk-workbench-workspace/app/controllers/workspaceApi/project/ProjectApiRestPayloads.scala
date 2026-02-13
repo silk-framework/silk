@@ -50,7 +50,8 @@ object ProjectApiRestPayloads {
         case None => generatedId
       }
       val project = WorkspaceFactory().workspace.createProject(ProjectConfig(projectId, metaData = cleanUpMetaData(parsedMetaData).asNewMetaData))
-      project.accessControl.setGroups(groups.getOrElse(Set.empty))
+      // TODO For testing, discuss if this is a good default
+      project.accessControl.setGroups(groups.getOrElse(user.user.map(_.groups).getOrElse(Set.empty)))
       project
     }
 
