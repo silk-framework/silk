@@ -3,11 +3,11 @@ import React, { useState } from "react";
 import { IconButton } from "@eccenca/gui-elements";
 import { useTranslation } from "react-i18next";
 import DeleteModal from "../../../shared/modals/DeleteModal";
-import { clearDataset } from "./dataset.requests";
 import { ErrorResponse, FetchError } from "../../../../services/fetch/responseInterceptor";
 import { requestTaskData } from "@ducks/shared/requests";
 import useErrorHandler from "../../../../hooks/useErrorHandler";
-import {IMetadata} from "@ducks/shared/typings";
+import { IMetadata } from "@ducks/shared/typings";
+import { clearDataset } from "workspacePlugins/src/plugins/components/DataPreview/DataPreview.requests";
 
 interface Props {
     projectId: string;
@@ -86,7 +86,7 @@ const DatasetClearButtonModal = ({ projectId, datasetId, onClose, datasetMetaDat
     const [t] = useTranslation();
     const [error, setError] = useState<ErrorResponse | undefined>(undefined);
     const [clearing, setClearing] = React.useState(false);
-    const datasetLabel = datasetMetaData.label ?? datasetId
+    const datasetLabel = datasetMetaData.label ?? datasetId;
 
     const onConfirm = async () => {
         setError(undefined);
@@ -110,9 +110,7 @@ const DatasetClearButtonModal = ({ projectId, datasetId, onClose, datasetMetaDat
             onDiscard={onClose}
             removeLoading={clearing}
             alternativeDeleteButtonText={t("DatasetClearButton.modalButtonText")}
-            errorMessage={
-                error ? `Clearing dataset '${datasetLabel}' has failed. ${error.asString()}` : undefined
-            }
+            errorMessage={error ? `Clearing dataset '${datasetLabel}' has failed. ${error.asString()}` : undefined}
         >
             {t("DatasetClearButton.modalText", { datasetLabel })}
         </DeleteModal>

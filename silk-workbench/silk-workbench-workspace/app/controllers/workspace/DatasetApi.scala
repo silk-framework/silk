@@ -265,49 +265,6 @@ class LegacyDatasetApi @Inject() (implicit workspaceReact: WorkspaceReact) exten
     NoContent
   }
 
-  @Operation(
-    summary = "Clear dataset",
-    description = "Clears the data/content of a dataset.",
-    responses = Array(
-      new ApiResponse(
-        responseCode = "204",
-        description = "If the dataset has cleared."
-      ),
-      new ApiResponse(
-        responseCode = "404",
-        description = "If the specified project or dataset has not been found."
-      ),
-      new ApiResponse(
-        responseCode = "409",
-        description = "If the dataset is currently configured as read-only. The user needs to change the config before trying again."
-      )
-    )
-  )
-  def clearDataset(@Parameter(
-                      name = "projectId",
-                      description = "The project identifier",
-                      required = true,
-                      in = ParameterIn.PATH,
-                      schema = new Schema(implementation = classOf[String])
-                    )
-                    projectId: String,
-                    @Parameter(
-                      name = "datasetId",
-                      description = "The dataset identifier",
-                      required = true,
-                      in = ParameterIn.PATH,
-                      schema = new Schema(implementation = classOf[String])
-                    )
-                    datasetId: String): Action[AnyContent] = UserContextAction { implicit userContext =>
-    val dataset = task[GenericDatasetSpec](projectId, datasetId)
-    if(dataset.readOnly) {
-      throw ConflictRequestException(s"Dataset '${dataset.fullLabel}' is set to read-only and cannot be cleared!")
-    } else {
-      dataset.data.entitySink.clear(force = true)
-      NoContent
-    }
-  }
-
   def datasetDialog(projectName: String,
                     datasetName: String,
                     title: String = "Edit Dataset",
