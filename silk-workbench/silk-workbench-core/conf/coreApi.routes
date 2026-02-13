@@ -6,6 +6,7 @@ GET        /plugins/:pluginId             controllers.workspaceApi.coreApi.Plugi
 GET        /pluginTypes                   controllers.workspaceApi.coreApi.PluginApi.pluginTypes()
 GET        /usages/plugins/:pluginId      controllers.workspaceApi.coreApi.PluginApi.pluginUsages(pluginId: String)
 GET        /usages/deprecatedPlugins      controllers.workspaceApi.coreApi.PluginApi.deprecatedPluginUsages()
+GET        /datasets/resourceBased        controllers.workspaceApi.coreApi.PluginApi.resourceBasedDatasetIds()
 
 # Template variables
 GET        /variableTemplate/variables        controllers.workspaceApi.coreApi.VariableTemplateApi.getVariables(project: String)
@@ -18,6 +19,8 @@ POST       /variableTemplate/reorderVariables controllers.workspaceApi.coreApi.V
 POST       /variableTemplate/validation       controllers.workspaceApi.coreApi.VariableTemplateApi.validateTemplate()
 POST       /variableTemplate/completion       controllers.workspaceApi.coreApi.VariableTemplateApi.autoCompleteTemplate()
 
-GET        /datasets/resourceBased    controllers.workspaceApi.coreApi.PluginApi.resourceBasedDatasetIds()
-
+# System
 GET        /system/threadDump            controllers.workspaceApi.coreApi.SystemApi.threadDump()
+
+# User
+GET        /user                        controllers.workspaceApi.coreApi.UserApi.userData()
