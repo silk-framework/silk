@@ -63,4 +63,15 @@ object ProjectApiRestPayloads {
   object CreateProjectRequest {
     implicit val projectCreationData: Format[CreateProjectRequest] = Json.format[CreateProjectRequest]
   }
+
+  /**
+   * Project access control information.
+   *
+   * @param groups The user groups that have access to this project.
+   */
+  case class ProjectAccessControl(groups: Set[String])
+
+  object ProjectAccessControl {
+    implicit val format: Format[ProjectAccessControl] = Json.format[ProjectAccessControl]
+  }
 }
