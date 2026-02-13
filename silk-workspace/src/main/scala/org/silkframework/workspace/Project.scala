@@ -44,7 +44,7 @@ class Project(initialConfig: ProjectConfig, provider: WorkspaceProvider, val res
 
   private implicit val logger: Logger = Logger.getLogger(classOf[Project].getName)
 
-  val userGroupManager = new UserGroupManager()
+  val accessControl = new AccessControlManager()
 
   val tagManager = new TagManager(initialConfig.id, provider)
 

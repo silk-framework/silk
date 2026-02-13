@@ -16,6 +16,7 @@ class ActivityExecutionTest extends AnyFlatSpec with Matchers with Eventually  {
 
   private val testUser = new User {
     override def uri = "urn:user:user1"
+    override def groups: Set[String] = Set.empty
   }
   implicit val userContext: UserContext = new UserContext {
     def user: Option[User] = Some(testUser)

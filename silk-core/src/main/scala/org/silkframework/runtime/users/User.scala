@@ -7,6 +7,9 @@ trait User {
   /** The URI of the user */
   def uri: String
 
+  /** The groups this user belongs to */
+  def groups: Set[String]
+
   /** user information that can appear in logs to debug issues  */
   def logInfo: String = s"User(URI = $uri)"
 

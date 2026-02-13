@@ -50,7 +50,7 @@ object ProjectApiRestPayloads {
         case None => generatedId
       }
       val project = WorkspaceFactory().workspace.createProject(ProjectConfig(projectId, metaData = cleanUpMetaData(parsedMetaData).asNewMetaData))
-      project.userGroupManager.setGroups(groups.getOrElse(Set.empty))
+      project.accessControl.setGroups(groups.getOrElse(Set.empty))
       project
     }
 

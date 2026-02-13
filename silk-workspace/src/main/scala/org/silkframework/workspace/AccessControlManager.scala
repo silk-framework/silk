@@ -5,9 +5,9 @@ package org.silkframework.workspace
  *
  * Thread safe.
  */
-class UserGroupManager {
+class AccessControlManager {
 
-  // TODO we should persist the tags in the backend as well
+  // TODO we should persist the groups in the backend as well
   @volatile
   private var groups = Set[String]()
 
