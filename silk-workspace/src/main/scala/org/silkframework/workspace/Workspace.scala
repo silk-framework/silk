@@ -143,7 +143,11 @@ class Workspace(val provider: WorkspaceProvider,
    */
   override def project(name: Identifier)(implicit userContext: UserContext): Project = {
     loadUserProjects()
-    findProject(name).getOrElse(throw ProjectNotFoundException(name))
+    val project = findProject(name).getOrElse(throw ProjectNotFoundException(name))
+    for(user <- userContext.user) {
+      project.accessControl.checkAccess(user)
+    }
+    project
   }
 
   override def findProject(name: Identifier)(implicit userContext: UserContext): Option[Project] = {

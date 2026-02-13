@@ -1,0 +1,22 @@
+package org.silkframework.workspace.exceptions
+
+import org.silkframework.runtime.validation.RequestException
+
+import java.net.HttpURLConnection
+
+/**
+ * Thrown if the user tries to access a resource (e.g., a project) that they are not allowed to access.
+ */
+case class AccessDeniedException(msg: String) extends RequestException(msg, None) {
+
+  /**
+   * The HTTP error code..
+   */
+  override val httpErrorCode: Option[Int] = Some(HttpURLConnection.HTTP_FORBIDDEN)
+
+  /**
+   * A short error title.
+   */
+  override val errorTitle: String = "No Access"
+
+}
