@@ -12,6 +12,7 @@ import {
     TagList,
     Notification,
     Spacing,
+    Markdown,
 } from "@eccenca/gui-elements";
 import { Datalist } from "../../shared/Datalist/Datalist";
 import { ResourceLink } from "../../shared/ResourceLink/ResourceLink";
@@ -65,7 +66,11 @@ export default function DeprecatedPlugins() {
                 setDeprecatedPlugins(response.data);
             })
             .catch((error) => {
-                registerError("DeprecatedPlugins_FetchPlugins", t("pages.deprecatedPlugins.errors.fetchPlugins"), error);
+                registerError(
+                    "DeprecatedPlugins_FetchPlugins",
+                    t("pages.deprecatedPlugins.errors.fetchPlugins"),
+                    error,
+                );
             })
             .finally(() => {
                 setIsLoading(false);
@@ -122,14 +127,14 @@ export default function DeprecatedPlugins() {
                                         <span style={{ marginLeft: "0.2rem" }}>
                                             {wrapTooltip(
                                                 plugin.deprecationMessage.length > 80,
-                                                <OverflowText passDown={true} inline={true}>
+                                                <Markdown>
                                                     {plugin.deprecationMessage ||
                                                         t("pages.deprecatedPlugins.deprecationMessage")}
-                                                </OverflowText>,
-                                                <div>
+                                                </Markdown>,
+                                                <OverflowText passDown={true} inline={true}>
                                                     {plugin.deprecationMessage.substring(0, 80) ||
                                                         t("pages.deprecatedPlugins.deprecationMessage")}
-                                                </div>,
+                                                </OverflowText>,
                                             )}
                                         </span>
                                     )}
