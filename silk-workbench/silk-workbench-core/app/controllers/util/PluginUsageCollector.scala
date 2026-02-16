@@ -21,7 +21,7 @@ object PluginUsageCollector {
                   (implicit user: UserContext): Seq[PluginUsage] = {
     task.data match {
       case workflow: Workflow =>
-        workflow.nodes.flatMap(node => pluginUsages(task.project.anyTask(node.nodeId)))
+        workflow.nodes.flatMap(node => pluginUsages(task.project.anyTask(node.task)))
       case transformSpec: TransformSpec =>
         val collector = new RuleUsageCollector(task)
         transformSpec.rules.allRules.flatMap(collector.pluginUsagesInTransform)
