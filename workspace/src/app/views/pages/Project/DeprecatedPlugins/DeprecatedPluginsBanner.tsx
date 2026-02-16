@@ -1,60 +1,44 @@
+import { Notification, Spacing } from "@eccenca/gui-elements";
 import React, { useEffect, useState } from "react";
-import useErrorHandler from "../../../../hooks/useErrorHandler";
 import { useTranslation } from "react-i18next";
 import { DeprecatedPluginsModel } from "views/pages/DeprecatedPlugins";
-import { coreApi } from "../../../../utils/getApiEndpoint";
-import { fetch } from "../../../../services/fetch/fetch";
-import { Notification } from "@eccenca/gui-elements";
+import useErrorHandler from "../../../../hooks/useErrorHandler";
+import { requestDeprecatedPlugins } from "@ducks/common/requests";
 
-export default function DeprecatedPluginsBanner({
-  projectId,
-  taskId,
-}: {
-  projectId: string;
-  taskId: string;
-}) {
-  const [t] = useTranslation();
-  const [isDeprecated, setIsDeprecated] = useState(false);
-  const { registerError } = useErrorHandler();
+// Banner component to display a warning message if deprecated plugins are used in the current project/task, encouraging users to replace them with supported alternatives.
+export default function DeprecatedPluginsBanner({ projectId, taskId }: { projectId: string; taskId: string }) {
+    const [t] = useTranslation();
+    const [deprecatedPlugin, setDeprecatedPlugin] = useState<DeprecatedPluginsModel[]>([]);
+    const { registerError } = useErrorHandler();
 
-  useEffect(() => {
-    const fetchDeprecatedPlugins = async () => {
-      try {
-        const response = await fetch<DeprecatedPluginsModel[]>({
-          url: coreApi("/usages/deprecatedPlugins"),
-          query: { project: projectId, task: taskId },
-          method: "GET",
-        });
-        setIsDeprecated(response.data.length > 0);
-      } catch (error) {
-        registerError(
-          "DeprecatedPlugins_FetchPlugins",
-          t(
-            "pages.deprecatedPlugins.errors.fetchPlugins",
-            "Failed to load deprecated plugins",
-          ),
-          error,
-        );
-      }
-    };
+    useEffect(() => {
+        requestDeprecatedPlugins(projectId, taskId)
+            .then((response) => {
+                setDeprecatedPlugin(response.data);
+            })
+            .catch((error) => {
+                registerError(
+                    "DeprecatedPlugins_FetchPlugins",
+                    t("pages.deprecatedPlugins.errors.fetchPlugins"),
+                    error,
+                );
+            });
 
-    // Initial fetch
-    fetchDeprecatedPlugins();
+        return () => {};
+    }, [projectId, taskId]);
 
-    return () => {};
-  }, [projectId, taskId]);
+    if (deprecatedPlugin.length === 0) return null;
 
-  if (!isDeprecated) return null;
+    return (
+        <>
+            <Notification intent="warning">
+                {t("common.messages.deprecatedPluginBanner")}
+                {`${t("common.messages.deprecatedPluginBanner")}`}
+                <Spacing size="small" />
 
-  return (
-    <>
-      <Notification intent="warning">
-        {t(
-          "common.messages.deprecatedPluginBanner",
-          "This plugin is deprecated and will be removed in the future. Please exchange it for a supported plugin as soon as possible.",
-        )}
-      </Notification>
-      <br />
-    </>
-  );
+                {deprecatedPlugin[0].deprecationMessage && <strong>{deprecatedPlugin[0].deprecationMessage}</strong>}
+            </Notification>
+            <br />
+        </>
+    );
 }

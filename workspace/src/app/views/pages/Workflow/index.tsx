@@ -10,7 +10,6 @@ import { ArtefactManagementOptions } from "../../shared/ActionsMenu/ArtefactMana
 import NotFound from "../NotFound";
 import { ProjectTaskParams } from "../../shared/typings";
 import VariablesWidget from "../../../views/shared/VariablesWidget/VariablesWidget";
-import DeprecatedPluginsBanner from "../Project/DeprecatedPlugins/DeprecatedPluginsBanner";
 import { DeprecatedPluginsWidget } from "../Project/DeprecatedPlugins/DeprecatedPluginsWidget";
 
 export default function WorkflowPage() {
@@ -48,7 +47,6 @@ export default function WorkflowPage() {
             />
             <WorkspaceMain>
                 <Section>
-                    <DeprecatedPluginsBanner projectId={projectId} taskId={taskId} />
                     <Metadata />
                     <Spacing />
                     <ProjectTaskTabView

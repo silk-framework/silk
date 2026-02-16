@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import {
     Card,
-    Icon,
     IconButton,
     OverflowText,
     OverviewItem,
@@ -12,17 +11,17 @@ import {
     Tag,
     TagList,
     Notification,
+    Spacing,
 } from "@eccenca/gui-elements";
 import { Datalist } from "../../shared/Datalist/Datalist";
-import { fetch } from "../../../services/fetch/fetch";
 import { ResourceLink } from "../../shared/ResourceLink/ResourceLink";
 import { wrapTooltip } from "../../../utils/uiUtils";
-import { coreApi } from "../../../utils/getApiEndpoint";
 import useErrorHandler from "../../../hooks/useErrorHandler";
 import { useTranslation } from "react-i18next";
 import { usePageHeader } from "../../../views/shared/PageHeader/PageHeader";
 import { SERVE_PATH } from "../../../constants/path";
 import { ItemDepiction } from "../../shared/ItemDepiction/ItemDepiction";
+import { requestDeprecatedPlugins } from "@ducks/common/requests";
 
 export interface DeprecatedPluginsModel {
     project: string;
@@ -36,6 +35,7 @@ export interface DeprecatedPluginsModel {
     deprecationMessage: string;
 }
 
+// This page is used to display deprecated plugins that are still in use in existing projects. It serves as an overview for users to identify and replace deprecated plugins in their projects.
 export default function DeprecatedPlugins() {
     const [deprecatedPlugins, setDeprecatedPlugins] = useState<DeprecatedPluginsModel[]>([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -48,7 +48,7 @@ export default function DeprecatedPlugins() {
             href: SERVE_PATH,
         },
         {
-            text: t("pages.deprecatedPlugins.title", "Deprecated Plugins"),
+            text: t("pages.deprecatedPlugins.title"),
             current: true,
         },
     ];
@@ -60,25 +60,18 @@ export default function DeprecatedPlugins() {
     });
 
     useEffect(() => {
-        const fetchDeprecatedPlugins = async () => {
-            try {
-                const response = await fetch<DeprecatedPluginsModel[]>({
-                    url: coreApi("/usages/deprecatedPlugins"),
-                    method: "GET",
-                });
+        requestDeprecatedPlugins()
+            .then((response) => {
                 setDeprecatedPlugins(response.data);
-            } catch (error) {
-                registerError(
-                    "DeprecatedPlugins_FetchPlugins",
-                    t("pages.deprecatedPlugins.errors.fetchPlugins", "Failed to load deprecated plugins"),
-                    error,
-                );
-            } finally {
+            })
+            .catch((error) => {
+                registerError("DeprecatedPlugins_FetchPlugins", t("pages.deprecatedPlugins.errors.fetchPlugins"), error);
+            })
+            .finally(() => {
                 setIsLoading(false);
-            }
-        };
+            });
 
-        fetchDeprecatedPlugins();
+        return () => {};
     }, []);
 
     const goToTaskPage = (link: string) => (e: React.MouseEvent) => {
@@ -94,15 +87,8 @@ export default function DeprecatedPlugins() {
             {pageHeader}
             {/* information alert to user when no deprecated plugins are found */}
 
-            {deprecatedPlugins.length > 0 && (
-                <Notification>
-                    {t(
-                        "pages.deprecatedPlugins.infoMessage",
-                        "This page lists plugins that are used in existing projects but have been marked as deprecated. It is recommended to replace these plugins to ensure compatibility with future versions of the application.",
-                    )}
-                </Notification>
-            )}
-            <br />
+            {deprecatedPlugins.length > 0 && <Notification>{t("pages.deprecatedPlugins.infoMessage")}</Notification>}
+            <Spacing />
             {/* list of deprecated plugins in two column layout */}
             <Datalist
                 data-test-id="deprecated-plugins-list"
@@ -110,14 +96,7 @@ export default function DeprecatedPlugins() {
                 isLoading={isLoading}
                 hasSpacing
                 columns={2}
-                emptyContainer={
-                    <Notification>
-                        {t(
-                            "pages.deprecatedPlugins.noPluginsFound",
-                            "This page lists plugins that are used in existing projects but have been marked as deprecated. Good news: No deprecated plugins were found in your workspace!",
-                        )}
-                    </Notification>
-                }
+                emptyContainer={<Notification>{t("pages.deprecatedPlugins.noPluginsFound")}</Notification>}
             >
                 {deprecatedPlugins.map((plugin, index) => (
                     <Card key={`${plugin.project}_${plugin.task}_${index}`} isOnlyLayout className="diapp-searchitem">
@@ -134,8 +113,7 @@ export default function DeprecatedPlugins() {
                                             handlerResourcePageLoader={plugin.link ? goToTaskPage(plugin.link) : false}
                                         >
                                             <OverflowText>
-                                                {plugin.taskLabel ||
-                                                    t("pages.deprecatedPlugins.unknownTask", "Unknown Task")}
+                                                {plugin.taskLabel || t("pages.deprecatedPlugins.unknownTask")}
                                             </OverflowText>
                                         </ResourceLink>
                                     </h4>
@@ -146,17 +124,11 @@ export default function DeprecatedPlugins() {
                                                 plugin.deprecationMessage.length > 80,
                                                 <OverflowText passDown={true} inline={true}>
                                                     {plugin.deprecationMessage ||
-                                                        t(
-                                                            "pages.deprecatedPlugins.deprecationMessage",
-                                                            "Plugin is deprecated.",
-                                                        )}
+                                                        t("pages.deprecatedPlugins.deprecationMessage")}
                                                 </OverflowText>,
                                                 <div>
                                                     {plugin.deprecationMessage.substring(0, 80) ||
-                                                        t(
-                                                            "pages.deprecatedPlugins.deprecationMessage",
-                                                            "Plugin is deprecated.",
-                                                        )}
+                                                        t("pages.deprecatedPlugins.deprecationMessage")}
                                                 </div>,
                                             )}
                                         </span>
@@ -165,9 +137,21 @@ export default function DeprecatedPlugins() {
                                 <OverviewItemLine small>
                                     {/* Tags (Plugin label, project label, item label) */}
                                     <TagList>
-                                        {plugin.pluginLabel && <Tag emphasis="weak">{plugin.pluginLabel}</Tag>}
-                                        {plugin.projectLabel && <Tag emphasis="weak">{plugin.projectLabel}</Tag>}
-                                        {plugin.itemType && <Tag emphasis="weak">{plugin.itemType}</Tag>}
+                                        {plugin.pluginLabel && (
+                                            <Tag emphasis="weak" itemType={plugin.itemType}>
+                                                {plugin.pluginLabel}
+                                            </Tag>
+                                        )}
+                                        {plugin.projectLabel && (
+                                            <Tag emphasis="weak" itemType={plugin.itemType}>
+                                                {plugin.projectLabel}
+                                            </Tag>
+                                        )}
+                                        {plugin.itemType && (
+                                            <Tag emphasis="weak" itemType={plugin.itemType}>
+                                                {plugin.itemType}
+                                            </Tag>
+                                        )}
                                     </TagList>
                                 </OverviewItemLine>
                             </OverviewItemDescription>
@@ -176,7 +160,7 @@ export default function DeprecatedPlugins() {
                                 {plugin.link && (
                                     <IconButton
                                         name="item-viewdetails"
-                                        text={t("common.action.showDetails", "Show details")}
+                                        text={t("common.action.showDetails")}
                                         onClick={goToTaskPage(plugin.link)}
                                         href={plugin.link}
                                     />
