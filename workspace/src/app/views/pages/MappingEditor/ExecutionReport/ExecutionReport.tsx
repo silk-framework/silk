@@ -213,7 +213,7 @@ export const ExecutionReport = ({ executionReport, executionMetaData, trackRuleI
         return (
             <Grid condensed>
                 <GridRow>
-                    <GridColumn medium>
+                    <GridColumn carbonSizeConfig={{ md: 3, lg: 4 }}>
                         <MappingsTree
                             currentRuleId={currentRuleId ?? MAPPING_ROOT_RULE_ID}
                             ruleTree={mappingRule}

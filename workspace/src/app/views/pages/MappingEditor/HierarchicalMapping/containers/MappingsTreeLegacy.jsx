@@ -337,12 +337,9 @@ class MappingsTree extends React.Component {
 
         return (
             <GridColumn
-                medium
+                carbonSizeConfig={{ md: 3, lg: 4 }}
                 className="ecc-silk-mapping__treenav"
-                style={{
-                    maxHeight: "100%",
-                    overflowY: "auto",
-                }}
+                style={{ maxHeight: "100%", overflowY: "auto" }}
             >
                 <InteractionGate inert={navigationLoading} showSpinner={navigationLoading}>
                     <WhiteSpaceContainer
