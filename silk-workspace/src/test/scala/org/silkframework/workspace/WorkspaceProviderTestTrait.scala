@@ -650,6 +650,33 @@ trait WorkspaceProviderTestTrait extends AnyFlatSpec with Matchers with MockitoS
     }
   }
 
+  it should "allow managing access control groups" in {
+    implicit val us: UserContext = emptyUserContext
+
+    // Initially empty
+    workspaceProvider.readAccessControlGroups(PROJECT_NAME) shouldBe AccessControl.empty
+
+    // Set access control groups and read them back
+    val accessControl = AccessControl(Set("group1", "group2"))
+    workspaceProvider.putAccessControlGroups(PROJECT_NAME, accessControl)
+    refreshTest {
+      workspaceProvider.readAccessControlGroups(PROJECT_NAME) shouldBe accessControl
+    }
+
+    // Update access control groups
+    val updatedAccessControl = AccessControl(Set("group1", "group3"))
+    workspaceProvider.putAccessControlGroups(PROJECT_NAME, updatedAccessControl)
+    refreshTest {
+      workspaceProvider.readAccessControlGroups(PROJECT_NAME) shouldBe updatedAccessControl
+    }
+
+    // Clear access control groups
+    workspaceProvider.putAccessControlGroups(PROJECT_NAME, AccessControl.empty)
+    refreshTest {
+      workspaceProvider.readAccessControlGroups(PROJECT_NAME) shouldBe AccessControl.empty
+    }
+  }
+
   it should "allow managing project template variables" in {
     implicit val us: UserContext = emptyUserContext
 
