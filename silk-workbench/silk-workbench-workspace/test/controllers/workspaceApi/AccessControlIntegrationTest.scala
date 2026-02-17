@@ -3,7 +3,7 @@ package controllers.workspaceApi
 import controllers.projectApi.routes.ProjectApi
 import controllers.util.ProjectApiClient
 import controllers.workspaceApi.TestWebUserManager._
-import controllers.workspaceApi.project.ProjectApiRestPayloads.{CreateProjectRequest, ItemMetaData}
+import controllers.workspaceApi.project.ProjectApiRestPayloads.{CreateProjectRequest, ItemMetaData, ProjectAccessControl}
 import helper.IntegrationTestTrait
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
@@ -14,10 +14,12 @@ import org.silkframework.runtime.plugin.annotations.Plugin
 import org.silkframework.runtime.users.{User, WebUser, WebUserManager}
 import org.silkframework.serialization.json.MetaDataSerializers.MetaDataPlain
 import org.silkframework.util.ConfigTestTrait
+import org.silkframework.workspace.{Workspace, WorkspaceFactory}
 import play.api.libs.json.{JsValue, Json}
 import play.api.libs.ws.WSRequest
 import play.api.mvc.RequestHeader
 import play.api.routing.Router
+import sun.jvm.hotspot.debugger.cdbg.AccessControl
 
 import scala.concurrent.Await
 
@@ -43,6 +45,13 @@ class AccessControlIntegrationTest extends AnyFlatSpec with IntegrationTestTrait
     createProject("project1", user1, Set(group1))
     testGetProject("project1", user1, shouldHaveAccess = true)
     testGetProject("project1", user2, shouldHaveAccess = false)
+  }
+
+  it should "persist project groups to the workspace backend" in {
+    createProject("project2", user1, Set(group1))
+    getProjectAccessControl("project2", user1).groups shouldBe Set(group1)
+    WorkspaceFactory().workspace.reload()
+    getProjectAccessControl("project2", user1).groups shouldBe Set(group1)
   }
 
   /**
@@ -78,6 +87,12 @@ class AccessControlIntegrationTest extends AnyFlatSpec with IntegrationTestTrait
     } else {
       response.status shouldBe 403
     }
+  }
+
+  def getProjectAccessControl(projectId: String, user: User): ProjectAccessControl = {
+    val request = withUser(createRequest(ProjectApi.getProjectAccessControl(projectId)), user)
+    val response = Await.result(request.get(), 200.seconds)
+    Json.fromJson[ProjectAccessControl](response.body[JsValue]).get
   }
 
   private def withUser(request: WSRequest, user: User): WSRequest = {
