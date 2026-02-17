@@ -1,6 +1,6 @@
-import React, {useEffect, useState} from "react";
-import {useScrollIntoView} from "../../../utils/useScrollIntoView";
-import _, {debounce} from "lodash";
+import React, { useEffect, useState } from "react";
+import { useScrollIntoView } from "../../../utils/useScrollIntoView";
+import _, { debounce } from "lodash";
 import {
     Button,
     Card,
@@ -18,20 +18,20 @@ import {
     TextField,
 } from "@eccenca/gui-elements";
 import ExampleView from "../ExampleView";
-import store, {checkValuePathValidity, fetchValuePathSuggestions} from "../../../store";
-import {convertToUri} from "../../../utils/convertToUri";
+import store, { checkValuePathValidity, fetchValuePathSuggestions } from "../../../store";
+import { convertToUri } from "../../../utils/convertToUri";
 import ErrorView from "../../../components/ErrorView";
 import AutoComplete from "../../../components/AutoComplete";
-import {trimValue} from "../../../utils/trimValue";
-import {MAPPING_RULE_TYPE_COMPLEX, MAPPING_RULE_TYPE_DIRECT, MESSAGES} from "../../../utils/constants";
+import { trimValue } from "../../../utils/trimValue";
+import { MAPPING_RULE_TYPE_COMPLEX, MAPPING_RULE_TYPE_DIRECT, MESSAGES } from "../../../utils/constants";
 import EventEmitter from "../../../utils/EventEmitter";
-import {wasTouched} from "../../../utils/wasTouched";
-import {newValueIsIRI} from "../../../utils/newValueIsIRI";
+import { wasTouched } from "../../../utils/wasTouched";
+import { newValueIsIRI } from "../../../utils/newValueIsIRI";
 import TargetCardinality from "../../../components/TargetCardinality";
-import {IViewActions} from "../../../../../../../views/plugins/PluginRegistry";
-import {GlobalMappingEditorContext} from "../../../../contexts/GlobalMappingEditorContext";
-import {MAPPING_ROOT_RULE_ID} from "../../../HierarchicalMapping";
-import {RuleParameterType} from "../../../../../../taskViews/transform/transform.types";
+import { IViewActions } from "../../../../../../../views/plugins/PluginRegistry";
+import { GlobalMappingEditorContext } from "../../../../contexts/GlobalMappingEditorContext";
+import { MAPPING_ROOT_RULE_ID } from "../../../HierarchicalMapping";
+import { RuleParameterType } from "../../../../../../taskViews/transform/transform.types";
 
 const LANGUAGES_LIST = [
     "en",
@@ -507,6 +507,12 @@ export function ValueRuleForm(props: IProps) {
                         itemDisplayLabel={(item) => (item.label ? `${item.label} (${item.value})` : item.value)}
                         taskContext={mappingEditorContext.taskContext}
                     />
+                    <TargetCardinality
+                        className="ecc-silk-mapping__ruleseditor__isAttribute"
+                        isAttribute={isAttribute}
+                        isObjectMapping={false}
+                        onChange={() => handleChangeValue("isAttribute", !isAttribute, setIsAttribute)}
+                    />
                     <AutoComplete
                         placeholder="Data type"
                         className="ecc-silk-mapping__ruleseditor__propertyType"
@@ -537,7 +543,7 @@ export function ValueRuleForm(props: IProps) {
                     {valueType.nodeType === "LanguageValueType" && (
                         <AutoComplete
                             data-id="lng-select-box"
-                            placeholder="Language Tag"
+                            placeholder="Language tag"
                             className="ecc-silk-mapping__ruleseditor__languageTag"
                             entity="langTag"
                             ruleId={autoCompleteRuleId}
@@ -551,12 +557,6 @@ export function ValueRuleForm(props: IProps) {
                             clearable={false} // hide 'remove all selected values' button
                         />
                     )}
-                    <TargetCardinality
-                        className="ecc-silk-mapping__ruleseditor__isAttribute"
-                        isAttribute={isAttribute}
-                        isObjectMapping={false}
-                        onChange={() => handleChangeValue("isAttribute", !isAttribute, setIsAttribute)}
-                    />
                     {sourcePropertyInput}
                     <Spacing size={"small"} />
                     {exampleView}
@@ -615,9 +615,7 @@ export function ValueRuleForm(props: IProps) {
                 </Card>
             </div>
         ) : (
-            <div ref={elementRef}>
-                {editForm}
-            </div>
+            <div ref={elementRef}>{editForm}</div>
         );
     };
     return render();

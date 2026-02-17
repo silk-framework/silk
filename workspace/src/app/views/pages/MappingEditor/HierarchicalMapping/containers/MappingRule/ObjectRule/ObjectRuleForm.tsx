@@ -1,5 +1,5 @@
-import React, {useEffect, useState} from "react";
-import {useScrollIntoView} from "../../../utils/useScrollIntoView";
+import React, { useEffect, useState } from "react";
+import { useScrollIntoView } from "../../../utils/useScrollIntoView";
 import {
     Button,
     Card,
@@ -14,7 +14,7 @@ import {
     Spacing,
     Spinner,
     TextArea,
-    TextField
+    TextField,
 } from "@eccenca/gui-elements";
 import _ from "lodash";
 import ExampleView from "../ExampleView";
@@ -27,24 +27,24 @@ import {
     updateVocabularyCacheEntry,
     useApiDetails,
 } from "../../../store";
-import {convertToUri} from "../../../utils/convertToUri";
+import { convertToUri } from "../../../utils/convertToUri";
 import ErrorView from "../../../components/ErrorView";
 import AutoComplete from "../../../components/AutoComplete";
-import {MAPPING_RULE_TYPE_ROOT, MAPPING_RULE_TYPE_URI, MESSAGES} from "../../../utils/constants";
+import { MAPPING_RULE_TYPE_ROOT, MAPPING_RULE_TYPE_URI, MESSAGES } from "../../../utils/constants";
 import EventEmitter from "../../../utils/EventEmitter";
-import {trimValue} from "../../../utils/trimValue";
-import {wasTouched} from "../../../utils/wasTouched";
-import {newValueIsIRI} from "../../../utils/newValueIsIRI";
+import { trimValue } from "../../../utils/trimValue";
+import { wasTouched } from "../../../utils/wasTouched";
+import { newValueIsIRI } from "../../../utils/newValueIsIRI";
 import TargetCardinality from "../../../components/TargetCardinality";
 import TargetTypeMultiAutoComplete from "../../../components/TargetTypeMultiAutoComplete";
 import silkApi from "../../../../api/silkRestApi";
-import {IUriPattern} from "../../../../api/types";
-import {UriPatternSelectionModal} from "./UriPatternSelectionModal";
-import {IViewActions} from "../../../../../../../views/plugins/PluginRegistry";
-import {defaultUriPattern} from "./ObjectRule.utils";
-import {GlobalMappingEditorContext} from "../../../../contexts/GlobalMappingEditorContext";
-import {EntityRelationshipSelection} from "../../../components/EntityRelationshipSelection";
-import {MAPPING_ROOT_RULE_ID} from "../../../HierarchicalMapping";
+import { IUriPattern } from "../../../../api/types";
+import { UriPatternSelectionModal } from "./UriPatternSelectionModal";
+import { IViewActions } from "../../../../../../../views/plugins/PluginRegistry";
+import { defaultUriPattern } from "./ObjectRule.utils";
+import { GlobalMappingEditorContext } from "../../../../contexts/GlobalMappingEditorContext";
+import { EntityRelationshipSelection } from "../../../components/EntityRelationshipSelection";
+import { MAPPING_ROOT_RULE_ID } from "../../../HierarchicalMapping";
 
 interface IProps {
     id?: string;
@@ -508,17 +508,17 @@ export const ObjectRuleForm = (props: IProps) => {
             <CardContent className="ecc-silk-mapping__ruleseditor">
                 {errorMessage}
                 {targetPropertyInput}
+                {targetCardinality}
                 {entityRelationInput}
                 <TargetTypeMultiAutoComplete
                     placeholder="Target entity type"
                     className="ecc-silk-mapping__ruleseditor__targetEntityType"
-                    isValidNewOption={(text: string) => newValueIsIRI({label: text})}
+                    isValidNewOption={(text: string) => newValueIsIRI({ label: text })}
                     value={modifiedValues().targetEntityType ?? []}
                     onChange={(value) => {
                         handleChangeValue("targetEntityType", value.selectedItems);
                     }}
                 />
-                {targetCardinality}
                 {sourcePropertyInput}
                 {patternInput}
                 {showUriPatternModal && distinctUriPatterns.length > 0 && (
@@ -597,9 +597,7 @@ export const ObjectRuleForm = (props: IProps) => {
             </Card>
         </div>
     ) : (
-        <div ref={elementRef}>
-            {editForm}
-        </div>
+        <div ref={elementRef}>{editForm}</div>
     );
 };
 
