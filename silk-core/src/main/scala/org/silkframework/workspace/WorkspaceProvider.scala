@@ -127,6 +127,18 @@ trait WorkspaceProvider extends AnyPlugin {
                (implicit userContext: UserContext): Unit
 
   /**
+    * Reads the access control configuration for a project.
+    */
+  def readAccessControlGroups(project: Identifier)
+                             (implicit userContext: UserContext): AccessControl
+
+  /**
+    * Updates the access control configuration for a project.
+    */
+  def putAccessControlGroups(project: Identifier, accessControl: AccessControl)
+                            (implicit userContext: UserContext): Unit
+
+  /**
     * Refreshes a single project, i.e. cleans all possible caches if there are any and reloads the project freshly.
     */
   def refreshProject(project: Identifier, projectResources: ResourceManager)(implicit userContext: UserContext): Unit = { }

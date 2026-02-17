@@ -173,6 +173,31 @@ class XmlWorkspaceProvider(val resources: ResourceManager) extends WorkspaceProv
     updateTags(project, tags)
   }
 
+  /**
+    * Reads the access control configuration for a project.
+    */
+  override def readAccessControlGroups(project: Identifier)
+                                      (implicit userContext: UserContext): AccessControl = {
+    val accessControlFile = resources.child(project).get("accessControl.xml")
+    if(accessControlFile.nonEmpty) {
+      val accessControlXml = accessControlFile.read(XML.load)
+      implicit val readContext: ReadContext = ReadContext(EmptyResourceManager(), Prefixes.empty)
+      XmlSerialization.fromXml[AccessControl](accessControlXml)
+    } else {
+      AccessControl.empty
+    }
+  }
+
+  /**
+    * Updates the access control configuration for a project.
+    */
+  override def putAccessControlGroups(project: Identifier, accessControl: AccessControl)
+                                     (implicit userContext: UserContext): Unit = {
+    val accessControlXml = XmlSerialization.toXml(accessControl)
+    val accessControlFile = resources.child(project).get("accessControl.xml")
+    accessControlFile.write()(accessControlXml.write)
+  }
+
   private def updateTags(project: Identifier, tags: Iterable[Tag]): Unit = {
     implicit val writeContext: WriteContext[Node] = WriteContext.empty[Node]
     val tagXml =

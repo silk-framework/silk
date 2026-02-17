@@ -1,6 +1,9 @@
 package org.silkframework.workspace
 
+import org.silkframework.config.AccessControl
+import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.users.User
+import org.silkframework.util.Identifier
 import org.silkframework.workspace.exceptions.ProjectAccessDeniedException
 
 /**
@@ -8,24 +11,29 @@ import org.silkframework.workspace.exceptions.ProjectAccessDeniedException
  *
  * Thread safe.
  */
-class ProjectAccessControlManager {
+class ProjectAccessControlManager(project: Identifier, provider: WorkspaceProvider) {
 
-  // TODO we should persist the groups in the backend as well
   @volatile
-  private var groups = Set[String]()
+  private var accessControl = AccessControl.empty
+
+  private var loaded: Boolean = false
 
   /**
-   * Sets the user groups of the current user.
+   * Sets the access control groups for the project.
    */
-  def setGroups(groups: Set[String]): Unit = {
-    this.groups = groups
+  def setGroups(groups: Set[String])(implicit userContext: UserContext): Unit = synchronized {
+    loadIfRequired()
+    val newAccessControl = AccessControl(groups)
+    provider.putAccessControlGroups(project, newAccessControl)
+    this.accessControl = newAccessControl
   }
 
   /**
-   * Returns the user groups of the current user.
+   * Returns the access control groups for the project.
    */
-  def getGroups: Set[String] = {
-    groups
+  def getGroups(implicit userContext: UserContext): Set[String] = synchronized {
+    loadIfRequired()
+    accessControl.groups
   }
 
   /**
@@ -34,9 +42,18 @@ class ProjectAccessControlManager {
    *
    * @throws ProjectAccessDeniedException If the user does not have access to the project.
    */
-  def checkAccess(user: User): Unit = {
+  def checkAccess(user: User)(implicit userContext: UserContext): Unit = synchronized {
+    loadIfRequired()
+    val groups = accessControl.groups
     if(!(groups.isEmpty || user.groups.exists(groups.contains))) {
       throw ProjectAccessDeniedException(s"User does not have access to this project. Required groups: ${groups.mkString(", ")}. User groups: ${user.groups.mkString(", ")}")
+    }
+  }
+
+  private def loadIfRequired()(implicit userContext: UserContext): Unit = {
+    if(!loaded) {
+      accessControl = provider.readAccessControlGroups(project)
+      loaded = true
     }
   }
 
