@@ -466,12 +466,14 @@ export function ValueRuleForm(props: IProps) {
                 </span>
             );
             sourcePropertyInput = (
-                <TextField
-                    data-id="test-complex-input"
-                    disabled
-                    value="The value formula cannot be modified in the edit form."
-                    rightElement={actions}
-                />
+                <FieldItem labelProps={{ text: "Value formula" }}>
+                    <TextField
+                        data-id="test-complex-input"
+                        disabled
+                        value="The value formula cannot be directly modified in the edit form."
+                        rightElement={actions}
+                    />
+                </FieldItem>
             );
         }
         const exampleView =
