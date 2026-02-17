@@ -695,13 +695,10 @@ export function CreateArtefactModal() {
         artefactListWithProject = [...titleMatches, ...nonTitleMatches];
     }
 
-    // If search is active pre-select first item in (final) list
-    useEffect(() => {
-        setToBeAdded(undefined);
-        if (artefactListWithProject.length > 0 && searchValue) {
-            setToBeAdded(artefactListWithProject[0]);
-        }
-    }, [artefactListWithProject.map((item) => item.key).join("|"), selectedDType]);
+    setToBeAdded(undefined);
+    if (artefactListWithProject.length > 0 && searchValue) {
+        setToBeAdded(artefactListWithProject[0]);
+    }
 
     const handleAutoConfigure = async (projectId: string, artefactId: string) => {
         const isValidFields = await form.triggerValidation();
