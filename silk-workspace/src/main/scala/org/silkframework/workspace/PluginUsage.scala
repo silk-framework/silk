@@ -5,9 +5,7 @@ import org.silkframework.dataset.DatasetSpec
 import org.silkframework.rule.input.{Input, PathInput, TransformInput}
 import org.silkframework.rule.similarity.{Aggregation, Comparison, SimilarityOperator}
 import org.silkframework.rule.{LinkSpec, TransformRule, TransformSpec}
-import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.{AnyPlugin, PluginDescription}
-import org.silkframework.workspace.activity.workflow.Workflow
 
 case class PluginUsage(project: Option[String],
                        projectLabel: Option[String],
@@ -37,13 +35,10 @@ object PluginUsage {
 
   /**
    * Collects all plugin usages in the given task specification.
-   * Includes all plugins that are directly used in the task specification and all plugins that are used in any referenced task specifications.
+   * Only includes plugins directly used in the task spec itself (no referenced tasks).
    */
-  def pluginUsages(task: ProjectTask[_ <: TaskSpec])
-                  (implicit user: UserContext): Seq[PluginUsage] = {
+  def pluginUsages(task: ProjectTask[_ <: TaskSpec]): Seq[PluginUsage] = {
     task.data match {
-      case workflow: Workflow =>
-        workflow.nodes.flatMap(node => pluginUsages(task.project.anyTask(node.task)))
       case transformSpec: TransformSpec =>
         val collector = new RuleUsageCollector(task)
         transformSpec.rules.allRules.flatMap(collector.pluginUsagesInTransform)

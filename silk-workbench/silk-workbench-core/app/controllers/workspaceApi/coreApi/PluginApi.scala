@@ -242,7 +242,7 @@ class PluginApi @Inject()() extends InjectedController with UserContextActions {
       for {
         project <- WorkspaceFactory().workspace.projects
         task <- project.allTasks
-        usage <- PluginUsage.pluginUsages(task)
+        usage <- task.ownPluginUsages
         if usage.pluginId == pluginId
       } yield usage
 
@@ -284,7 +284,7 @@ class PluginApi @Inject()() extends InjectedController with UserContextActions {
       for {
         project <- WorkspaceFactory().workspace.projects if projectName.forall(_ == project.id.toString)
         task <- project.allTasks if taskName.forall(_ == task.id.toString)
-        usage <- PluginUsage.pluginUsages(task)
+        usage <- task.ownPluginUsages
         if usage.deprecationMessage.isDefined
       } yield usage
 
