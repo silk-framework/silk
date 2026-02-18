@@ -410,3 +410,15 @@ export const validateYaml = async (
         },
     });
 };
+
+/** Clears (the content of) a dataset. */
+export const clearDataset = async (
+    projectId: string,
+    datasetId: string
+): Promise<FetchResponse<void>> => {
+    const url = projectApi(`${projectId}/datasets/${datasetId}/content`);
+    return fetch({
+        url,
+        method: "DELETE",
+    });
+}
