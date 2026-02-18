@@ -98,19 +98,32 @@ export function DeprecatedPluginsWidget({ projectId, taskId }: DeprecatedPlugins
             </CardHeader>
             <Divider />
             <CardContent>
-                <ul style={{ display: "flex", flexDirection: "column", gap: "0.2rem" }}>
+                <div style={{ display: "flex", flexDirection: "column", gap: "0.2rem" }}>
                     {groupByPluginWithLinks(deprecatedPlugins).map((plugin) => (
-                        <li key={plugin.pluginLabel} style={{ display: "flex", flexDirection: "row", gap: "0.2rem" }}>
-                            <p style={{}}>{plugin.pluginLabel}:</p>
-                            {plugin.tasks.map((task, index) => (
-                                <span key={task.link}>
-                                    <Link href={contextualPath(task.link)}>{task.label}</Link>
-                                    {index < plugin.tasks.length - 1 ? ", " : ""}
-                                </span>
-                            ))}
-                        </li>
+                        <div
+                            key={plugin.pluginLabel}
+                            style={{ display: "flex", flexDirection: "column", gap: "0.2rem" }}
+                        >
+                            <p style={{ fontWeight: "bold", textDecoration: "underline" }}>
+                                {plugin.pluginLabel} ({plugin.tasks.length}):
+                            </p>
+                            <ul
+                                style={{
+                                    display: "flex",
+                                    flexWrap: "wrap",
+                                    gap: "0.2rem",
+                                }}
+                            >
+                                {plugin.tasks.map((task, index) => (
+                                    <li key={task.link}>
+                                        <Link href={contextualPath(task.link)}>{task.label}</Link>
+                                        {index < plugin.tasks.length - 1 ? ", " : ""}
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
                     ))}
-                </ul>
+                </div>
                 <Spacing />
                 <Notification intent="warning">{t("widget.deprecatedPluginWidget.message")}</Notification>
             </CardContent>
