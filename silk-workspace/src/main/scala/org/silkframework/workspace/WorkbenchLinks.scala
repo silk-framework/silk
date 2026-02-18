@@ -13,6 +13,13 @@ object WorkbenchLinks {
     s"/workbench/projects/$projectId/${taskType(task)}/$taskId"
   }
 
+  /** Generates a link to a specific rule within a transform task editor. */
+  def transformRuleLink(task: ProjectTask[_ <: TaskSpec], ruleId: String): String = {
+    val projectId = task.project.id
+    val taskId = task.id
+    s"/workbench/projects/$projectId/transform/$taskId?rule=$ruleId"
+  }
+
   def taskType(task: ProjectTask[_ <: TaskSpec]): String = {
     task.data match {
       case _: GenericDatasetSpec => "dataset"

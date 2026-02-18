@@ -15,9 +15,25 @@ case class PluginUsage(project: Option[String],
                        pluginId: String,
                        pluginLabel: String,
                        link: Option[String],
+                       linkLabel: Option[String],
                        deprecationMessage: Option[String])
 
 object PluginUsage {
+
+  def forTransformRule(task: ProjectTask[_ <: TaskSpec], pluginDesc: PluginDescription[AnyPlugin], ruleId: String, ruleLabel: String): PluginUsage = {
+    PluginUsage(
+      project = Some(task.project.id.toString),
+      projectLabel = Some(task.project.fullLabel),
+      task = Some(task.id.toString),
+      taskLabel = Some(task.fullLabel),
+      itemType = Some(WorkbenchLinks.taskType(task)),
+      pluginId = pluginDesc.id.toString,
+      pluginLabel = pluginDesc.label,
+      link = Some(WorkbenchLinks.transformRuleLink(task, ruleId)),
+      linkLabel = Some(s"${task.fullLabel} > $ruleLabel"),
+      deprecationMessage = pluginDesc.deprecation
+    )
+  }
 
   def forTask(task: ProjectTask[_ <: TaskSpec], pluginDesc: PluginDescription[AnyPlugin]): PluginUsage = {
     PluginUsage(
@@ -29,6 +45,7 @@ object PluginUsage {
       pluginId = pluginDesc.id.toString,
       pluginLabel = pluginDesc.label,
       link = Some(WorkbenchLinks.editorLink(task)),
+      linkLabel = Some(task.fullLabel),
       deprecationMessage = pluginDesc.deprecation
     )
   }
@@ -57,29 +74,33 @@ object PluginUsage {
   private class RuleUsageCollector(task: ProjectTask[_ <: TaskSpec]) {
 
     def pluginUsagesInTransform(transformRule: TransformRule): Seq[PluginUsage] = {
-      transformRule.rules.allRules.flatMap(pluginUsagesInTransform) ++ pluginUsagesInInputOperator(transformRule.operator)
+      transformRule.rules.allRules.flatMap(pluginUsagesInTransform) ++
+        pluginUsagesInInputOperator(transformRule.operator, Some(transformRule.id.toString, transformRule.fullLabel))
     }
 
     def pluginUsagesInSimilarityOperator(op: SimilarityOperator): Seq[PluginUsage] = {
       op match {
         case comparison: Comparison =>
-          comparison.inputs.flatMap(pluginUsagesInInputOperator) :+ usage(comparison.metric)
+          comparison.inputs.flatMap(pluginUsagesInInputOperator(_)) :+ usage(comparison.metric)
         case aggregation: Aggregation =>
           aggregation.operators.flatMap(pluginUsagesInSimilarityOperator) :+ usage(aggregation.aggregator)
       }
     }
 
-    private def pluginUsagesInInputOperator(op: Input): Seq[PluginUsage] = {
+    private def pluginUsagesInInputOperator(op: Input, ruleInfo: Option[(String, String)] = None): Seq[PluginUsage] = {
       op match {
         case transform: TransformInput =>
-          transform.inputs.flatMap(pluginUsagesInInputOperator) :+ usage(transform.transformer)
+          transform.inputs.flatMap(pluginUsagesInInputOperator(_, ruleInfo)) :+ usage(transform.transformer, ruleInfo)
         case _: PathInput =>
           Seq.empty
       }
     }
 
-    private def usage(plugin: AnyPlugin): PluginUsage = {
-      forTask(task, plugin.pluginSpec)
+    private def usage(plugin: AnyPlugin, ruleInfo: Option[(String, String)] = None): PluginUsage = {
+      ruleInfo match {
+        case Some((id, label)) => forTransformRule(task, plugin.pluginSpec, id, label)
+        case None              => forTask(task, plugin.pluginSpec)
+      }
     }
   }
 
