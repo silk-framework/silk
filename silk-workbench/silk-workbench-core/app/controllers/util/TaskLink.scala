@@ -1,6 +1,6 @@
 package controllers.util
 
-import config.WorkbenchLinks
+import org.silkframework.workspace.WorkbenchLinks
 import org.silkframework.config.TaskSpec
 import org.silkframework.workspace.ProjectTask
 import play.api.libs.json.{Format, Json}

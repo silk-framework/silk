@@ -20,7 +20,7 @@ import { wrapTooltip } from "../../../utils/uiUtils";
 import useErrorHandler from "../../../hooks/useErrorHandler";
 import { useTranslation } from "react-i18next";
 import { usePageHeader } from "../../../views/shared/PageHeader/PageHeader";
-import { SERVE_PATH } from "../../../constants/path";
+import { SERVE_PATH, contextualPath } from "../../../constants/path";
 import { ItemDepiction } from "../../shared/ItemDepiction/ItemDepiction";
 import { requestDeprecatedPlugins } from "@ducks/common/requests";
 
@@ -115,7 +115,7 @@ export default function DeprecatedPlugins() {
                                     <h4 style={{ display: "inline" }}>
                                         <ResourceLink
                                             url={plugin.taskLabel || false}
-                                            handlerResourcePageLoader={plugin.link ? goToTaskPage(plugin.link) : false}
+                                            handlerResourcePageLoader={plugin.link ? goToTaskPage(contextualPath(plugin.link)) : false}
                                         >
                                             <OverflowText>
                                                 {plugin.taskLabel || t("pages.deprecatedPlugins.unknownTask")}
@@ -166,8 +166,8 @@ export default function DeprecatedPlugins() {
                                     <IconButton
                                         name="item-viewdetails"
                                         text={t("common.action.showDetails")}
-                                        onClick={goToTaskPage(plugin.link)}
-                                        href={plugin.link}
+                                        onClick={goToTaskPage(contextualPath(plugin.link))}
+                                        href={contextualPath(plugin.link)}
                                     />
                                 )}
                             </OverviewItemActions>

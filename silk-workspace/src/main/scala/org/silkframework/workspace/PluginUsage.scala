@@ -1,17 +1,39 @@
-package controllers.util
+package org.silkframework.workspace
 
-import controllers.workspaceApi.coreApi.PluginUsage
 import org.silkframework.config.{CustomTask, TaskSpec}
 import org.silkframework.dataset.DatasetSpec
 import org.silkframework.rule.input.{Input, PathInput, TransformInput}
 import org.silkframework.rule.similarity.{Aggregation, Comparison, SimilarityOperator}
 import org.silkframework.rule.{LinkSpec, TransformRule, TransformSpec}
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.runtime.plugin.AnyPlugin
-import org.silkframework.workspace.ProjectTask
+import org.silkframework.runtime.plugin.{AnyPlugin, PluginDescription}
 import org.silkframework.workspace.activity.workflow.Workflow
 
-object PluginUsageCollector {
+case class PluginUsage(project: Option[String],
+                       projectLabel: Option[String],
+                       task: Option[String],
+                       taskLabel: Option[String],
+                       itemType: Option[String] = None,
+                       pluginId: String,
+                       pluginLabel: String,
+                       link: Option[String],
+                       deprecationMessage: Option[String])
+
+object PluginUsage {
+
+  def forTask(task: ProjectTask[_ <: TaskSpec], pluginDesc: PluginDescription[AnyPlugin]): PluginUsage = {
+    PluginUsage(
+      project = Some(task.project.id.toString),
+      projectLabel = Some(task.project.fullLabel),
+      task = Some(task.id.toString),
+      taskLabel = Some(task.fullLabel),
+      itemType = Some(WorkbenchLinks.taskType(task)),
+      pluginId = pluginDesc.id.toString,
+      pluginLabel = pluginDesc.label,
+      link = Some(WorkbenchLinks.editorLink(task)),
+      deprecationMessage = pluginDesc.deprecation
+    )
+  }
 
   /**
    * Collects all plugin usages in the given task specification.
@@ -29,9 +51,9 @@ object PluginUsageCollector {
         val collector = new RuleUsageCollector(task)
         linkSpec.rule.operator.toSeq.flatMap(collector.pluginUsagesInSimilarityOperator)
       case customTask: CustomTask =>
-        Seq(PluginUsage.forTask(task, customTask.pluginSpec))
+        Seq(forTask(task, customTask.pluginSpec))
       case dataset: DatasetSpec[_] =>
-        Seq(PluginUsage.forTask(task, dataset.plugin.pluginSpec))
+        Seq(forTask(task, dataset.plugin.pluginSpec))
       case _ =>
         Seq.empty
     }
@@ -39,7 +61,7 @@ object PluginUsageCollector {
 
   private class RuleUsageCollector(task: ProjectTask[_ <: TaskSpec]) {
 
-    def pluginUsagesInTransform(transformRule: TransformRule): Seq[PluginUsage] =  {
+    def pluginUsagesInTransform(transformRule: TransformRule): Seq[PluginUsage] = {
       transformRule.rules.allRules.flatMap(pluginUsagesInTransform) ++ pluginUsagesInInputOperator(transformRule.operator)
     }
 
@@ -62,7 +84,7 @@ object PluginUsageCollector {
     }
 
     private def usage(plugin: AnyPlugin): PluginUsage = {
-      PluginUsage.forTask(task, plugin.pluginSpec)
+      forTask(task, plugin.pluginSpec)
     }
   }
 

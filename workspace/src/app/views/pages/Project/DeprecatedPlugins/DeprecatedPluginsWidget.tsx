@@ -1,5 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle, Divider, Link, Notification, Spacing } from "@eccenca/gui-elements";
 import useErrorHandler from "../../../../hooks/useErrorHandler";
+import { contextualPath } from "../../../../constants/path";
 import React, { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { DeprecatedPluginsModel } from "../../DeprecatedPlugins";
@@ -103,7 +104,7 @@ export function DeprecatedPluginsWidget({ projectId, taskId }: DeprecatedPlugins
                             <p style={{}}>{plugin.pluginLabel}:</p>
                             {plugin.tasks.map((task, index) => (
                                 <span key={task.link}>
-                                    <Link href={task.link}>{task.label}</Link>
+                                    <Link href={contextualPath(task.link)}>{task.label}</Link>
                                     {index < plugin.tasks.length - 1 ? ", " : ""}
                                 </span>
                             ))}

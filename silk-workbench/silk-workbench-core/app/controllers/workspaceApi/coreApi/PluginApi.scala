@@ -1,8 +1,8 @@
 package controllers.workspaceApi.coreApi
 
-import config.WorkbenchLinks
 import controllers.core.UserContextActions
-import controllers.util.{ItemType, PluginUsageCollector, TextSearchUtils}
+import controllers.util.{ItemType, TextSearchUtils}
+import org.silkframework.workspace.{PluginUsage, WorkbenchLinks}
 import controllers.workspaceApi.coreApi.doc.PluginApiDoc
 import io.swagger.v3.oas.annotations.enums.ParameterIn
 import io.swagger.v3.oas.annotations.media.{ArraySchema, Content, ExampleObject, Schema}
@@ -35,6 +35,8 @@ import scala.collection.mutable
   */
 @Tag(name = "Plugins", description = "Provides information about all installed plugins.")
 class PluginApi @Inject()() extends InjectedController with UserContextActions {
+
+  private implicit val pluginUsageWrites: Writes[PluginUsage] = Json.writes[PluginUsage]
 
   /** All plugins that can be created in the workspace. */
   @Operation(
@@ -240,7 +242,7 @@ class PluginApi @Inject()() extends InjectedController with UserContextActions {
       for {
         project <- WorkspaceFactory().workspace.projects
         task <- project.allTasks
-        usage <- PluginUsageCollector.pluginUsages(task)
+        usage <- PluginUsage.pluginUsages(task)
         if usage.pluginId == pluginId
       } yield usage
 
@@ -282,7 +284,7 @@ class PluginApi @Inject()() extends InjectedController with UserContextActions {
       for {
         project <- WorkspaceFactory().workspace.projects if projectName.forall(_ == project.id.toString)
         task <- project.allTasks if taskName.forall(_ == task.id.toString)
-        usage <- PluginUsageCollector.pluginUsages(task)
+        usage <- PluginUsage.pluginUsages(task)
         if usage.deprecationMessage.isDefined
       } yield usage
 
@@ -560,30 +562,3 @@ object PluginTypesJson {
   }
 }
 
-case class PluginUsage(project: Option[String],
-                       projectLabel: Option[String],
-                       task: Option[String],
-                       taskLabel: Option[String],
-                       itemType: Option[String] = None,
-                       pluginId: String,
-                       pluginLabel: String,
-                       link: Option[String],
-                       deprecationMessage: Option[String])
-
-object PluginUsage {
-  implicit val pluginUsageWrites: Writes[PluginUsage] = Json.writes[PluginUsage]
-
-  def forTask(task: ProjectTask[_ <: TaskSpec], pluginDesc: PluginDescription[AnyPlugin]): PluginUsage = {
-    PluginUsage(
-      project = Some(task.project.id.toString),
-      projectLabel = Some(task.project.fullLabel),
-      task = Some(task.id.toString),
-      taskLabel = Some(task.fullLabel),
-      itemType = Some(ItemType.itemType(task.data).id),
-      pluginId = pluginDesc.id.toString,
-      pluginLabel = pluginDesc.label,
-      link = Some(WorkbenchLinks.editorLink(task)),
-      deprecationMessage = pluginDesc.deprecation
-    )
-  }
-}
