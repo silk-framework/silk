@@ -216,7 +216,7 @@ class PluginApi @Inject()() extends InjectedController with UserContextActions {
 
   @Operation(
     summary = "Plugin usages",
-    description = "Returns a list of all usages of a given plugin. Currently lists usages in projects as tasks and as within linking and transform rules.",
+    description = "Returns a list of all usages of a given plugin. Currently lists usages in projects as tasks and as within workflows, linking and transform rules.",
     responses = Array(
       new ApiResponse(
         responseCode = "200",
@@ -242,7 +242,7 @@ class PluginApi @Inject()() extends InjectedController with UserContextActions {
       for {
         project <- WorkspaceFactory().workspace.projects
         task <- project.allTasks
-        usage <- task.ownPluginUsages
+        usage <- task.pluginUsages
         if usage.pluginId == pluginId
       } yield usage
 
@@ -284,7 +284,7 @@ class PluginApi @Inject()() extends InjectedController with UserContextActions {
       for {
         project <- WorkspaceFactory().workspace.projects if projectName.forall(_ == project.id.toString)
         task <- project.allTasks if taskName.forall(_ == task.id.toString)
-        usage <- task.ownPluginUsages
+        usage <- task.pluginUsages
         if usage.deprecationMessage.isDefined
       } yield usage
 
