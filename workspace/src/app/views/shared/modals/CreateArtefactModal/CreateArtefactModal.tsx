@@ -122,6 +122,7 @@ export function CreateArtefactModal() {
 
     // The artefact that is selected from the artefact selection list. This can be pre-selected via the Redux state.
     // A successive 'Add' action will open the creation dialog for this artefact.
+    const [_toBeAdded, _setToBeAdded] = React.useState<IPluginOverview | undefined>(selectedArtefactFromStore)
     const toBeAdded = useRef<IPluginOverview | undefined>(selectedArtefactFromStore);
     const toBeAddedKey = useRef<string | undefined>(selectedArtefactFromStore?.key);
     const [lastSelectedClick, setLastSelectedClick] = useState<number>(0);
@@ -151,9 +152,12 @@ export function CreateArtefactModal() {
     );
     const templateParameters = React.useRef(new Set<string>());
 
-    const setToBeAdded = React.useCallback((plugin: IPluginOverview | undefined) => {
+    const setToBeAdded = React.useCallback((plugin: IPluginOverview | undefined, stateChange: boolean = false) => {
         toBeAdded.current = plugin;
         toBeAddedKey.current = plugin?.key;
+        if(stateChange) {
+            _setToBeAdded(plugin)
+        }
     }, []);
     const [taskActionResult, setTaskActionResult] = React.useState<{ label: string; message: string }>();
     const [taskActionLoading, setTaskActionLoading] = React.useState<string | null>(null);
@@ -695,10 +699,13 @@ export function CreateArtefactModal() {
         artefactListWithProject = [...titleMatches, ...nonTitleMatches];
     }
 
-    setToBeAdded(undefined);
-    if (artefactListWithProject.length > 0 && searchValue) {
-        setToBeAdded(artefactListWithProject[0]);
-    }
+    React.useEffect(() => {
+        if (artefactListWithProject.length > 0 && searchValue) {
+            setToBeAdded(artefactListWithProject[0], true);
+        } else {
+            setToBeAdded(undefined, true);
+        }
+    }, [artefactListWithProject.map((item) => item.key).join("|"), selectedDType])
 
     const handleAutoConfigure = async (projectId: string, artefactId: string) => {
         const isValidFields = await form.triggerValidation();
