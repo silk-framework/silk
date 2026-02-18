@@ -39,12 +39,12 @@ The **XSL transform** turns the so-called **source tree** into a **result tree**
 
 A minimal example of the (1) XML input data, (2) a corresponding XSL transformation and the (3) generated output is the following:
 
-**XML data** (`.xml` file):
+##### XML data (`.xml` file):
 ```xml
 <book><title>1984</title></book>
 ```
 
-**XSL stylesheet** (`.xslt` file):
+##### XSL stylesheet (`.xslt` file):
 ```xml
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="1.0">
   <xsl:template match="/book">
@@ -53,7 +53,7 @@ A minimal example of the (1) XML input data, (2) a corresponding XSL transformat
 </xsl:stylesheet>
 ```
 
-**Output:** (`.html` file)
+##### Output: (`.html` file)
 ```html
 <html><body><h1>1984</h1></body></html>
 ```
