@@ -94,7 +94,7 @@ export function InputMapper({
     useEffect(() => {
         if (externalValue) {
             setShow(false);
-            setTimeout(() => setShow(true), 0);
+            setTimeout(() => setShow(true), 1);
         }
     }, [externalValue]);
 

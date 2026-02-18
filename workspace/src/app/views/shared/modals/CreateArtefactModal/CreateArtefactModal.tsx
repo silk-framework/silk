@@ -239,7 +239,7 @@ export function CreateArtefactModal() {
             resetModal(true);
         } else {
             // Clear errors when freshly opened
-            form.clearError();
+            form.clearErrors();
         }
     }, [isOpen]);
 
@@ -367,7 +367,7 @@ export function CreateArtefactModal() {
             }
             e.preventDefault();
             setActionLoading(true);
-            const isValidFields = await form.triggerValidation();
+            const isValidFields = await form.trigger();
             try {
                 if (isValidFields) {
                     const formValues = form.getValues();
@@ -405,7 +405,7 @@ export function CreateArtefactModal() {
                         setSearchValue("");
                     }
                 } else {
-                    const errKey = Object.keys(form.errors)[0];
+                    const errKey = Object.keys(form.formState.errors)[0];
                     const el = document.getElementById(errKey);
                     if (el) {
                         el.scrollIntoView({
@@ -433,7 +433,7 @@ export function CreateArtefactModal() {
         newTaskPreConfiguration?.onCloseCallback?.();
     };
 
-    const isErrorPresented = () => !!Object.keys(form.errors).length;
+    const isErrorPresented = () => !!Object.keys(form.formState.errors).length;
 
     const handleSelectDType = (value: string) => {
         dispatch(commonOp.setSelectedArtefactDType(value));
@@ -447,7 +447,7 @@ export function CreateArtefactModal() {
         setTaskActionResult(undefined);
         form.reset();
         setFormValueChanges({});
-        form.clearError();
+        form.clearErrors();
         dispatch(commonOp.resetArtefactModal(closeModal));
     };
 
@@ -708,7 +708,7 @@ export function CreateArtefactModal() {
     }, [artefactListWithProject.map((item) => item.key).join("|"), selectedDType])
 
     const handleAutoConfigure = async (projectId: string, artefactId: string) => {
-        const isValidFields = await form.triggerValidation();
+        const isValidFields = await form.trigger();
         if (!isValidFields) {
             return;
         }

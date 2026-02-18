@@ -530,7 +530,7 @@ export const ObjectRuleForm = (props: IProps) => {
                             if (initialUriPattern === uriPattern.value) {
                                 setInitialUriPattern("");
                             }
-                            setTimeout(() => setInitialUriPattern(uriPattern.value), 0);
+                            setTimeout(() => setInitialUriPattern(uriPattern.value), 1);
                             handleChangeValue("pattern", uriPattern.value);
                         }}
                     />
