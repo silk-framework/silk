@@ -511,6 +511,7 @@ export const ObjectRuleForm = (props: IProps) => {
                 {targetCardinality}
                 {entityRelationInput}
                 <TargetTypeMultiAutoComplete
+                    data-test-id={"target_entity_type_input"}
                     placeholder="Target entity type"
                     className="ecc-silk-mapping__ruleseditor__targetEntityType"
                     isValidNewOption={(text: string) => newValueIsIRI({ label: text })}

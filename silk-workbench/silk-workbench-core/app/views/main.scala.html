@@ -1,9 +1,6 @@
-@import config.WorkbenchConfig
-@import controllers.core.Start
+@import config.WorkbenchConfig.WorkspaceReact
 @import org.silkframework.config.TaskSpec
 @import org.silkframework.workbench.Context
-
-@import config.WorkbenchConfig.WorkspaceReact
 @(context: Option[Context[_ <: TaskSpec]], selectedTab: String = "", titleLabel: String = "")(header: Html)(toolbar: Html)(content: Html)(implicit request: RequestHeader, workspaceReact: WorkspaceReact)
 
 @frame(header) {

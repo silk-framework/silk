@@ -17,9 +17,6 @@ interface ListActionsProps {
 const ListActions = ({ onMappingCreate, onPaste, onShowSuggestions, listLoading }: ListActionsProps) => {
     return listLoading ? null : (
         <ContextMenu
-            contextOverlayProps={{
-                "data-test-id": "add-mapping-menu"
-            }}
             togglerText={""}
             togglerElement={
                 <Button
