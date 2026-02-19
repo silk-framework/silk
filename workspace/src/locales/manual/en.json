@@ -611,6 +611,12 @@
             "deprecationMessage": "Plugin is deprecated.",
             "errors": {
                 "fetchPlugins": "Failed to load deprecated plugins"
+            },
+            "groupBy": {
+                "label": "Group by",
+                "groupedBy": "Grouped by",
+                "pluginLabel": "Plugin",
+                "project": "Project"
             }
         },
         "notFound": {
