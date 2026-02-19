@@ -4,5 +4,5 @@ import React from "react";
 
 export const SourcePath = ({ rule }) => {
     const path = _.get(rule, "sourcePath", <NotAvailable />);
-    return <span className={"nodrag"}>{_.isArray(path) ? path.join(", ") : path}</span>;
+    return <span data-test-id={"mapping-rule-source-path-readmode"} className={"nodrag"}>{_.isArray(path) ? path.join(", ") : path}</span>;
 };

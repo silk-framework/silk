@@ -17,23 +17,24 @@ class MappingRuleRow extends React.Component {
         return (
             <>
                 <OverviewItemDescription style={{ width: "40%" }}>
-                    <OverviewItemLine className="nodrag ecc-silk-mapping__ruleitem-headline">
+                    <OverviewItemLine className="ecc-silk-mapping__ruleitem-headline">
                         <OverflowText>
                             <ThingIcon type={type} status={statusType} message={statusMsg} />
-                            {ruleLabelData.displayLabel}
+                            <span className={"nodrag"}>{ruleLabelData.displayLabel}</span>
                         </OverflowText>
                     </OverviewItemLine>
                     {ruleLabelData.uri && (
-                        <OverviewItemLine small className="nodrag">
-                            <OverflowText>{ruleLabelData.uri}</OverflowText>
+                        <OverviewItemLine small>
+                            <OverflowText className="nodrag">{ruleLabelData.uri}</OverflowText>
                         </OverviewItemLine>
                     )}
                 </OverviewItemDescription>
                 <OverviewItemDescription style={{ width: "20%" }}>
-                    <OverviewItemLine className="nodrag">
+                    <OverviewItemLine>
                         <OverflowText>
                             <span className="hide-in-table">DataType:</span>{" "}
                             <RuleTypes
+                                className="nodrag"
                                 rule={{
                                     type,
                                     mappingTarget,
@@ -44,7 +45,7 @@ class MappingRuleRow extends React.Component {
                     </OverviewItemLine>
                 </OverviewItemDescription>
                 <OverviewItemDescription style={{ width: "40%" }}>
-                    <OverviewItemLine className="nodrag">
+                    <OverviewItemLine>
                         <OverflowText>
                             <span className="hide-in-table">from</span>{" "}
                             <SourcePath
