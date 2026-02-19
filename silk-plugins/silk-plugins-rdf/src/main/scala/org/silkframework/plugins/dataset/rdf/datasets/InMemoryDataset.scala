@@ -12,7 +12,8 @@ import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
   id = "inMemory",
   label = "In-memory dataset",
   categories = Array(DatasetCategories.embedded),
-  description = "A Dataset that holds all data in-memory."
+  description = "A Dataset that holds all data in-memory.",
+  documentationFile = "InMemoryDataset.md"
 )
 case class InMemoryDataset(@Param(label = "Clear graph before workflow execution",
                                   value = "If set to true this will clear this dataset before it is used in a workflow execution.")
