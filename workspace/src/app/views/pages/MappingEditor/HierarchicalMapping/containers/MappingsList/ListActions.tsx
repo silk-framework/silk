@@ -17,9 +17,13 @@ interface ListActionsProps {
 const ListActions = ({ onMappingCreate, onPaste, onShowSuggestions, listLoading }: ListActionsProps) => {
     return listLoading ? null : (
         <ContextMenu
+            contextOverlayProps={{
+                "data-test-id": "add-mapping-menu"
+            }}
             togglerText={""}
             togglerElement={
                 <Button
+                    data-test-id={"add-mapping-button"}
                     text={"Add mapping"}
                     icon={"item-add-artefact"}
                     rightIcon={"toggler-caretdown"}
@@ -29,6 +33,7 @@ const ListActions = ({ onMappingCreate, onPaste, onShowSuggestions, listLoading 
             }
         >
             <MenuItem
+                data-test-id={"add-value-mapping-btn"}
                 text={"Add value mapping"}
                 icon={"artefact-file"}
                 onClick={() => {
@@ -38,6 +43,7 @@ const ListActions = ({ onMappingCreate, onPaste, onShowSuggestions, listLoading 
                 }}
             />
             <MenuItem
+                data-test-id={"add-object-mapping-btn"}
                 text={"Add object mapping"}
                 icon={"artefact-project"}
                 onClick={() => {
@@ -47,11 +53,13 @@ const ListActions = ({ onMappingCreate, onPaste, onShowSuggestions, listLoading 
                 }}
             />
             {sessionStorage.getItem("copyingData") !== null ? (
-                <MenuItem text={"Paste mapping"} icon={"artefact-project"} onClick={() => onPaste()} />
+                <MenuItem data-test-id={"paste-mapping-btn"} text={"Paste mapping"} icon={"artefact-project"}
+                          onClick={() => onPaste()}/>
             ) : (
                 <></>
             )}
             <MenuItem
+                data-test-id={"suggest-mapping-btn"}
                 text={"Suggest mappings"}
                 icon={"item-magic-edit"}
                 onClick={(e) => {
