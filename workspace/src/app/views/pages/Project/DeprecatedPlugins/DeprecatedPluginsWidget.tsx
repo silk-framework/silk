@@ -6,8 +6,6 @@ import { useTranslation } from "react-i18next";
 import { DeprecatedPluginsModel } from "../../DeprecatedPlugins";
 import { requestDeprecatedPlugins } from "@ducks/common/requests";
 
-type DeprecatedPluginsProps = { projectId: string; taskId?: never } | { projectId?: never; taskId: string };
-
 type GroupedTask = {
     label: string;
     link: string;
@@ -16,9 +14,10 @@ type GroupedTask = {
 type GroupedDataWithLinks = {
     pluginLabel: string;
     tasks: GroupedTask[];
+    deprecationMessage: string;
 };
 
-export function DeprecatedPluginsWidget({ projectId, taskId }: DeprecatedPluginsProps) {
+export function DeprecatedPluginsWidget({ projectId, taskId }: { projectId?: string; taskId?: string }) {
     const [t] = useTranslation();
     const [deprecatedPlugins, setDeprecatedPlugins] = useState<DeprecatedPluginsModel[]>([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -84,6 +83,7 @@ export function DeprecatedPluginsWidget({ projectId, taskId }: DeprecatedPlugins
         return Object.entries(groupedMap).map(([pluginLabel, tasks]) => ({
             pluginLabel,
             tasks,
+            deprecationMessage: data.find((item) => item.pluginLabel === pluginLabel)?.deprecationMessage || "",
         }));
     }
 
@@ -98,26 +98,85 @@ export function DeprecatedPluginsWidget({ projectId, taskId }: DeprecatedPlugins
             </CardHeader>
             <Divider />
             <CardContent>
-                <div style={{ display: "flex", flexDirection: "column", gap: "0.2rem" }}>
+                <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
                     {groupByPluginWithLinks(deprecatedPlugins).map((plugin) => (
                         <div
                             key={plugin.pluginLabel}
-                            style={{ display: "flex", flexDirection: "column", gap: "0.2rem" }}
+                            style={{
+                                display: "flex",
+                                flexDirection: "column",
+                                gap: "0.35rem",
+                                borderLeft: "3px solid var(--eccenca-color-warning, #f5a623)",
+                                paddingLeft: "0.75rem",
+                            }}
                         >
-                            <p style={{ fontWeight: "bold", textDecoration: "underline" }}>
-                                {plugin.pluginLabel} ({plugin.tasks.length}):
+                            <p style={{ fontWeight: 700, margin: 0 }}>
+                                {plugin.pluginLabel}
+                                <span
+                                    style={{
+                                        fontWeight: 400,
+                                        color: "var(--eccenca-color-greyscale-medium, #888)",
+                                        marginLeft: "0.3rem",
+                                    }}
+                                >
+                                    ({plugin.tasks.length})
+                                </span>
+                            </p>
+                            {plugin.deprecationMessage && (
+                                <p
+                                    style={{
+                                        fontStyle: "italic",
+                                        color: "var(--eccenca-color-greyscale-medium, #888)",
+                                        margin: 0,
+                                        fontSize: "0.875rem",
+                                    }}
+                                >
+                                    {plugin.deprecationMessage}
+                                </p>
+                            )}
+                            <p
+                                style={{
+                                    fontSize: "0.7rem",
+                                    fontWeight: 600,
+                                    letterSpacing: "0.08em",
+                                    textTransform: "uppercase",
+                                    color: "var(--eccencia-color-greyscale-medium, #888)",
+                                    margin: "0.15rem 0 0",
+                                }}
+                            >
+                                {t("widget.deprecatedPluginWidget.tasks")}
                             </p>
                             <ul
                                 style={{
                                     display: "flex",
                                     flexWrap: "wrap",
-                                    gap: "0.2rem",
+                                    gap: "0.25rem 0.5rem",
+                                    margin: 0,
+                                    padding: 0,
+                                    listStyle: "none",
                                 }}
                             >
-                                {plugin.tasks.map((task, index) => (
-                                    <li key={task.link}>
-                                        <Link href={contextualPath(task.link)}>{task.label}</Link>
-                                        {index < plugin.tasks.length - 1 ? ", " : ""}
+                                {plugin.tasks.map((task) => (
+                                    <li
+                                        key={task.link}
+                                        style={{
+                                            display: "flex",
+                                            flexWrap: "wrap",
+                                            alignItems: "center",
+                                            gap: "0.5rem",
+                                        }}
+                                    >
+                                        <Link
+                                            onClick={(e) => {
+                                                if (!e?.ctrlKey) {
+                                                    e.preventDefault();
+                                                    window.location.href = contextualPath(task.link);
+                                                }
+                                            }}
+                                            href={task.link}
+                                        >
+                                            {task.label}
+                                        </Link>
                                     </li>
                                 ))}
                             </ul>

@@ -115,7 +115,9 @@ export default function DeprecatedPlugins() {
                                     <h4 style={{ display: "inline" }}>
                                         <ResourceLink
                                             url={plugin.taskLabel || false}
-                                            handlerResourcePageLoader={plugin.link ? goToTaskPage(contextualPath(plugin.link)) : false}
+                                            handlerResourcePageLoader={
+                                                plugin.link ? goToTaskPage(contextualPath(plugin.link)) : false
+                                            }
                                         >
                                             <OverflowText>
                                                 {plugin.taskLabel || t("pages.deprecatedPlugins.unknownTask")}
@@ -167,7 +169,7 @@ export default function DeprecatedPlugins() {
                                         name="item-viewdetails"
                                         text={t("common.action.showDetails")}
                                         onClick={goToTaskPage(contextualPath(plugin.link))}
-                                        href={contextualPath(plugin.link)}
+                                        href={plugin.link}
                                     />
                                 )}
                             </OverviewItemActions>

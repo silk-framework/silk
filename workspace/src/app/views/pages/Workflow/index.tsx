@@ -64,7 +64,7 @@ export default function WorkflowPage() {
                     <Spacing />
                     <VariablesWidget projectId={projectId} taskId={taskId} />
                     <Spacing />
-                    <DeprecatedPluginsWidget taskId={taskId} />
+                    <DeprecatedPluginsWidget taskId={taskId} projectId={projectId} />
                 </Section>
             </WorkspaceSide>
         </WorkspaceContent>

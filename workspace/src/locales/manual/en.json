@@ -836,7 +836,8 @@
     "widget": {
         "deprecatedPluginWidget": {
             "title": "Deprecated Plugins",
-            "message": "The above listed plugins are deprecated and will be removed in future versions. Please check the documentation for alternatives."
+            "message": "The above listed plugins are deprecated and will be removed in future versions. Please check the documentation for alternatives.",
+            "tasks": "Tasks"
         },
         "ActivityInfoWidget": {
             "title": "Activities",

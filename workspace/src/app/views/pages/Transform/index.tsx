@@ -55,7 +55,7 @@ export default function TransformPage() {
                     <Spacing />
                     <TaskActivityOverview projectId={projectId} taskId={taskId} />
                     <Spacing />
-                    <DeprecatedPluginsWidget projectId={projectId} />
+                    <DeprecatedPluginsWidget projectId={projectId} taskId={taskId} />
                 </Section>
             </WorkspaceSide>
         </WorkspaceContent>
