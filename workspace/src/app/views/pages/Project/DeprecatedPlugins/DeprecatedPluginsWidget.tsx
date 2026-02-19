@@ -5,6 +5,7 @@ import React, { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { DeprecatedPluginsModel } from "../../DeprecatedPlugins";
 import { requestDeprecatedPlugins } from "@ducks/common/requests";
+import styles from "./index.module.scss";
 
 type GroupedTask = {
     label: string;
@@ -98,74 +99,20 @@ export function DeprecatedPluginsWidget({ projectId, taskId }: { projectId?: str
             </CardHeader>
             <Divider />
             <CardContent>
-                <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
+                <div className={styles.pluginList}>
                     {groupByPluginWithLinks(deprecatedPlugins).map((plugin) => (
-                        <div
-                            key={plugin.pluginLabel}
-                            style={{
-                                display: "flex",
-                                flexDirection: "column",
-                                gap: "0.35rem",
-                                borderLeft: "3px solid var(--eccenca-color-warning, #f5a623)",
-                                paddingLeft: "0.75rem",
-                            }}
-                        >
-                            <p style={{ fontWeight: 700, margin: 0 }}>
+                        <div key={plugin.pluginLabel} className={styles.pluginEntry}>
+                            <p className={styles.pluginName}>
                                 {plugin.pluginLabel}
-                                <span
-                                    style={{
-                                        fontWeight: 400,
-                                        color: "var(--eccenca-color-greyscale-medium, #888)",
-                                        marginLeft: "0.3rem",
-                                    }}
-                                >
-                                    ({plugin.tasks.length})
-                                </span>
+                                <span className={styles.pluginCount}>({plugin.tasks.length})</span>
                             </p>
                             {plugin.deprecationMessage && (
-                                <p
-                                    style={{
-                                        fontStyle: "italic",
-                                        color: "var(--eccenca-color-greyscale-medium, #888)",
-                                        margin: 0,
-                                        fontSize: "0.875rem",
-                                    }}
-                                >
-                                    {plugin.deprecationMessage}
-                                </p>
+                                <p className={styles.deprecationMessage}>{plugin.deprecationMessage}</p>
                             )}
-                            <p
-                                style={{
-                                    fontSize: "0.7rem",
-                                    fontWeight: 600,
-                                    letterSpacing: "0.08em",
-                                    textTransform: "uppercase",
-                                    color: "var(--eccencia-color-greyscale-medium, #888)",
-                                    margin: "0.15rem 0 0",
-                                }}
-                            >
-                                {t("widget.deprecatedPluginWidget.tasks")}
-                            </p>
-                            <ul
-                                style={{
-                                    display: "flex",
-                                    flexWrap: "wrap",
-                                    gap: "0.25rem 0.5rem",
-                                    margin: 0,
-                                    padding: 0,
-                                    listStyle: "none",
-                                }}
-                            >
+                            <p className={styles.tasksLabel}>{t("widget.deprecatedPluginWidget.tasks")}</p>
+                            <ul className={styles.taskList}>
                                 {plugin.tasks.map((task) => (
-                                    <li
-                                        key={task.link}
-                                        style={{
-                                            display: "flex",
-                                            flexWrap: "wrap",
-                                            alignItems: "center",
-                                            gap: "0.5rem",
-                                        }}
-                                    >
+                                    <li key={task.link} className={styles.taskItem}>
                                         <Link
                                             onClick={(e) => {
                                                 if (!e?.ctrlKey) {
