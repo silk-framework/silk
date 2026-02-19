@@ -11,8 +11,8 @@
       @* Filled with template dialog.scala.html *@
     </dialog>
 
-    <div class="mdl-layout mdl-js-layout mdl-layout--fixed-header">
-      <div class="mdl-layout__inner-container">
+    <div class="eccgui-application__container">
+      <main class="cds--content eccgui-application__content">
 
       @if(config.workbench.showHeader(request)) {
         @tabbar(context, selectedTab, titleLabel)
@@ -31,6 +31,6 @@
           </div>
         </div>
       </main>
-    </div>
+    </main>
     </div>
 }
