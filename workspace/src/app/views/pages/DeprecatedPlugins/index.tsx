@@ -18,8 +18,6 @@ import {
     Tag,
     TagList,
     TitleSubsection,
-    Toolbar,
-    ToolbarSection,
 } from "@eccenca/gui-elements";
 import { Datalist } from "../../shared/Datalist/Datalist";
 import { ResourceLink } from "../../shared/ResourceLink/ResourceLink";
@@ -129,48 +127,38 @@ export default function DeprecatedPlugins() {
             ? t("pages.deprecatedPlugins.groupBy.pluginLabel")
             : t("pages.deprecatedPlugins.groupBy.project");
 
-    const otherGroupLabel =
-        groupBy === "pluginLabel"
-            ? t("pages.deprecatedPlugins.groupBy.project")
-            : t("pages.deprecatedPlugins.groupBy.pluginLabel");
-
     return (
         <div>
             {/* page header in app bar */}
             {pageHeader}
-            {deprecatedPlugins.length > 0 && <Notification>{t("pages.deprecatedPlugins.infoMessage")}</Notification>}
-            <Spacing size="small" />
             {deprecatedPlugins.length > 0 && (
-                <Toolbar noWrap>
-                    <ToolbarSection canGrow>
-                        <TitleSubsection>
-                            {`${t("pages.deprecatedPlugins.groupBy.groupedBy")}: ${currentGroupLabel}`}
-                        </TitleSubsection>
-                    </ToolbarSection>
-                    <ToolbarSection>
-                        <ContextMenu
-                            togglerElement={
-                                <Button
-                                    text={`${t("pages.deprecatedPlugins.groupBy.label")}: ${currentGroupLabel}`}
-                                    rightIcon="toggler-caretdown"
-                                />
-                            }
-                        >
-                            <MenuItem
-                                text={t("pages.deprecatedPlugins.groupBy.pluginLabel")}
-                                active={groupBy === "pluginLabel"}
-                                icon={groupBy === "pluginLabel" ? "state-checked" : undefined}
-                                onClick={() => setGroupBy("pluginLabel")}
+                <div style={{ display: "flex", alignItems: "flex-end", gap: "0.5rem" }}>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                        <Notification>{t("pages.deprecatedPlugins.infoMessage")}</Notification>
+                    </div>
+                    <ContextMenu
+                        togglerElement={
+                            <Button
+                                text={`${t("pages.deprecatedPlugins.groupBy.label")}: ${currentGroupLabel}`}
+                                rightIcon="toggler-caretdown"
+                                style={{ whiteSpace: "nowrap" }}
                             />
-                            <MenuItem
-                                text={t("pages.deprecatedPlugins.groupBy.project")}
-                                active={groupBy === "project"}
-                                icon={groupBy === "project" ? "state-checked" : undefined}
-                                onClick={() => setGroupBy("project")}
-                            />
-                        </ContextMenu>
-                    </ToolbarSection>
-                </Toolbar>
+                        }
+                    >
+                        <MenuItem
+                            text={t("pages.deprecatedPlugins.groupBy.pluginLabel")}
+                            active={groupBy === "pluginLabel"}
+                            icon={groupBy === "pluginLabel" ? "state-checked" : undefined}
+                            onClick={() => setGroupBy("pluginLabel")}
+                        />
+                        <MenuItem
+                            text={t("pages.deprecatedPlugins.groupBy.project")}
+                            active={groupBy === "project"}
+                            icon={groupBy === "project" ? "state-checked" : undefined}
+                            onClick={() => setGroupBy("project")}
+                        />
+                    </ContextMenu>
+                </div>
             )}
             <Spacing />
             <Datalist
@@ -185,7 +173,10 @@ export default function DeprecatedPlugins() {
                     <React.Fragment key={key}>
                         {/* Group heading */}
                         <div style={{ paddingTop: "1rem", paddingBottom: "0.5rem" }}>
-                            <TitleSubsection useHtmlElement="h3" style={{ margin: "0 0 0.25rem", display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                            <TitleSubsection
+                                useHtmlElement="h3"
+                                style={{ margin: "0 0 0.25rem", display: "flex", alignItems: "center", gap: "0.5rem" }}
+                            >
                                 {key}
                                 <Tag emphasis="weak" style={{ fontWeight: "normal" }}>
                                     {items.length}
@@ -223,9 +214,7 @@ export default function DeprecatedPlugins() {
                                                 <ResourceLink
                                                     url={plugin.taskLabel || false}
                                                     handlerResourcePageLoader={
-                                                        plugin.link
-                                                            ? goToTaskPage(contextualPath(plugin.link))
-                                                            : false
+                                                        plugin.link ? goToTaskPage(contextualPath(plugin.link)) : false
                                                     }
                                                 >
                                                     <OverflowText>
