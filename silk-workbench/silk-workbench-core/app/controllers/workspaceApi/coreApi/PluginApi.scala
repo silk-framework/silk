@@ -291,7 +291,14 @@ class PluginApi @Inject()() extends InjectedController with UserContextActions {
     // Filter out duplicate plugin usages
     val distinctUsages = usages.distinctBy(u => (u.task, u.pluginId))
 
-    Ok(Json.toJson(distinctUsages))
+    // Sort by project label, then task label, then plugin label
+    val sortedUsages = distinctUsages.sortBy(u => (
+      u.projectLabel.getOrElse(u.project.getOrElse("")),
+      u.taskLabel.getOrElse(u.task.getOrElse("")),
+      u.pluginLabel
+    ))
+
+    Ok(Json.toJson(sortedUsages))
   }
 
   lazy val resourceBasedDatasetPluginIds: Seq[JsString] = DatasetUtils.resourceBasedDatasetPluginIds
