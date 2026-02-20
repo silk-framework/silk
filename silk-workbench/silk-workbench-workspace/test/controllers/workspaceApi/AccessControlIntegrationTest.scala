@@ -54,17 +54,20 @@ class AccessControlIntegrationTest extends AnyFlatSpec with IntegrationTestTrait
     getProjectAccessControl("project2", user1).groups shouldBe Set(group1)
   }
 
-  it should "preserve project groups when exporting and re-importing the project" in {
+  it should "apply groups specified on import, not groups from the exported project" in {
     val projectId = "project3"
 
+    // Create a new project with group 1
     createProject(projectId, user1, Set(group1))
     getProjectAccessControl(projectId, user1).groups shouldBe Set(group1)
 
+    // Export the project and delete it
     val exportedBytes = exportProject(projectId, user1)
     deleteProject(projectId, user1)
-    importProject(projectId, exportedBytes, user1)
 
-    getProjectAccessControl(projectId, user1).groups shouldBe Set(group1)
+    // Import the project with group 2
+    importProject(projectId, exportedBytes, user2, groups = Set(group2))
+    getProjectAccessControl(projectId, user2).groups shouldBe Set(group2)
   }
 
   /**
@@ -84,8 +87,8 @@ class AccessControlIntegrationTest extends AnyFlatSpec with IntegrationTestTrait
   /**
    * Imports a project from the given bytes.
    */
-  def importProject(projectId: String, projectBytes: Array[Byte], user: User): Unit = {
-    checkResponse(userRequest(controllers.workspace.routes.ProjectMarshalingApi.importProject(projectId), user).post(projectBytes))
+  def importProject(projectId: String, projectBytes: Array[Byte], user: User, groups: Set[String] = Set.empty): Unit = {
+    checkResponse(userRequest(controllers.workspace.routes.ProjectMarshalingApi.importProject(projectId, groups.toList), user).post(projectBytes))
   }
 
   /**
@@ -124,8 +127,7 @@ class AccessControlIntegrationTest extends AnyFlatSpec with IntegrationTestTrait
   }
 
   def getProjectAccessControl(projectId: String, user: User): ProjectAccessControl = {
-    val request = userRequest(ProjectApi.getProjectAccessControl(projectId), user)
-    val response = Await.result(request.get(), 200.seconds)
+    val response = checkResponse(userRequest(ProjectApi.getProjectAccessControl(projectId), user).get())
     Json.fromJson[ProjectAccessControl](response.body[JsValue]).get
   }
 

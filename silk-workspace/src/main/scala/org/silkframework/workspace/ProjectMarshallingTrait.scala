@@ -1,6 +1,6 @@
 package org.silkframework.workspace
 
-import org.silkframework.config.{AccessControl, CustomTask}
+import org.silkframework.config.CustomTask
 import org.silkframework.dataset.{Dataset, DatasetSpec}
 import org.silkframework.rule.{LinkSpec, TransformSpec}
 import org.silkframework.runtime.activity.UserContext
@@ -144,7 +144,6 @@ trait ProjectMarshallingTrait extends AnyPlugin {
     val projectId = updatedProjectConfig.id
     outputWorkspaceProvider.putProject(updatedProjectConfig)
     outputWorkspaceProvider.putTags(updatedProjectConfig.id, project.tagManager.allTags())
-    outputWorkspaceProvider.putAccessControlGroups(updatedProjectConfig.id, AccessControl(project.accessControl.getGroups))
     outputWorkspaceProvider.projectVariables(updatedProjectConfig.id).putVariables(project.templateVariables.all)
     if(alsoExportResources) {
       copyResources(resources, exportToResources)

@@ -53,7 +53,7 @@ class ProjectMarshalingApi @Inject() () extends InjectedController with UserCont
     Ok(JsArray(marshaller.map(JsonSerializer.marshaller)))
   }
 
-  def importProject(project: String): Action[AnyContent] = importProjectViaPlugin(project, XmlZipWithResourcesProjectMarshaling.marshallerId)
+  def importProject(project: String, groups: List[String] = List.empty): Action[AnyContent] = importProjectViaPlugin(project, XmlZipWithResourcesProjectMarshaling.marshallerId, groups)
 
   @Operation(
     summary = "Import project",
@@ -93,10 +93,21 @@ class ProjectMarshalingApi @Inject() () extends InjectedController with UserCont
                                in = ParameterIn.PATH,
                                schema = new Schema(implementation = classOf[String])
                              )
-                             marshallerId: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
+                             marshallerId: String,
+                             @Parameter(
+                               name = "groups",
+                               description = "Optional list of groups to assign to the imported project. If provided, these groups will be applied after import.",
+                               required = false,
+                               in = ParameterIn.QUERY,
+                               schema = new Schema(implementation = classOf[String])
+                             )
+                             groups: List[String] = List.empty): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     withMarshaller(marshallerId) { marshaller =>
       val workspace = WorkspaceFactory().workspace
       workspace.importProject(project, bodyAsFile, marshaller)
+      if (groups.nonEmpty) {
+        workspace.project(project).accessControl.setGroups(groups.toSet)
+      }
       Ok
     }
   }
