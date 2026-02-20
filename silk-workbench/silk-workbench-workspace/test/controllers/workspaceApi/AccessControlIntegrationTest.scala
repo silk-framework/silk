@@ -17,7 +17,7 @@ import org.silkframework.util.ConfigTestTrait
 import org.silkframework.workspace.{Workspace, WorkspaceFactory}
 import play.api.libs.json.{JsValue, Json}
 import play.api.libs.ws.WSRequest
-import play.api.mvc.RequestHeader
+import play.api.mvc.{Call, RequestHeader}
 import play.api.routing.Router
 import sun.jvm.hotspot.debugger.cdbg.AccessControl
 
@@ -54,6 +54,40 @@ class AccessControlIntegrationTest extends AnyFlatSpec with IntegrationTestTrait
     getProjectAccessControl("project2", user1).groups shouldBe Set(group1)
   }
 
+  it should "preserve project groups when exporting and re-importing the project" in {
+    val projectId = "project3"
+
+    createProject(projectId, user1, Set(group1))
+    getProjectAccessControl(projectId, user1).groups shouldBe Set(group1)
+
+    val exportedBytes = exportProject(projectId, user1)
+    deleteProject(projectId, user1)
+    importProject(projectId, exportedBytes, user1)
+
+    getProjectAccessControl(projectId, user1).groups shouldBe Set(group1)
+  }
+
+  /**
+   * Exports the project with the given id and returns the exported bytes.
+   */
+  def exportProject(projectId: String, user: User): Array[Byte] = {
+    checkResponse(userRequest(controllers.workspace.routes.ProjectMarshalingApi.exportProject(projectId), user).get()).bodyAsBytes.toArray
+  }
+
+  /**
+   * Deletes the project with the given id.
+   */
+  def deleteProject(projectId: String, user: User): Unit = {
+    checkResponse(userRequest(controllers.workspace.routes.WorkspaceApi.deleteProject(projectId), user).delete())
+  }
+
+  /**
+   * Imports a project from the given bytes.
+   */
+  def importProject(projectId: String, projectBytes: Array[Byte], user: User): Unit = {
+    checkResponse(userRequest(controllers.workspace.routes.ProjectMarshalingApi.importProject(projectId), user).post(projectBytes))
+  }
+
   /**
    * Creates a new project with the given id and initial groups.
    */
@@ -64,7 +98,7 @@ class AccessControlIntegrationTest extends AnyFlatSpec with IntegrationTestTrait
         id = Some(projectId),
         groups = Some(groups),
       )
-    val request = withUser(createRequest(ProjectApi.createNewProject()), user)
+    val request = userRequest(ProjectApi.createNewProject(), user)
     val response = request.post(Json.toJson(createProjectRequest))
     checkResponse(response)
   }
@@ -74,7 +108,7 @@ class AccessControlIntegrationTest extends AnyFlatSpec with IntegrationTestTrait
    * Fails if the project does not exist or the user does not have access rights.
    */
   def testGetProject(projectId: String, user: User, shouldHaveAccess: Boolean): Unit = {
-    val request = withUser(createRequest(ProjectApi.getProjectMetaData(projectId)), user)
+    val request = userRequest(ProjectApi.getProjectMetaData(projectId), user)
     val response = Await.result(request.get(), 200.seconds)
 
     // Check the response code
@@ -90,13 +124,13 @@ class AccessControlIntegrationTest extends AnyFlatSpec with IntegrationTestTrait
   }
 
   def getProjectAccessControl(projectId: String, user: User): ProjectAccessControl = {
-    val request = withUser(createRequest(ProjectApi.getProjectAccessControl(projectId)), user)
+    val request = userRequest(ProjectApi.getProjectAccessControl(projectId), user)
     val response = Await.result(request.get(), 200.seconds)
     Json.fromJson[ProjectAccessControl](response.body[JsValue]).get
   }
 
-  private def withUser(request: WSRequest, user: User): WSRequest = {
-    request.addHttpHeaders("X-Forwarded-User" -> user.uri)
+  private def userRequest(call: Call, user: User): WSRequest = {
+    createRequest(call).addHttpHeaders("X-Forwarded-User" -> user.uri)
   }
 }
 
