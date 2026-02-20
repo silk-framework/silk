@@ -1,13 +1,16 @@
 package org.silkframework.workspace
 
-import org.silkframework.config.{AccessControl, DefaultConfig}
+import com.typesafe.config.Config
+import org.silkframework.config.{AccessControl, ConfigValue}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.users.User
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.exceptions.ProjectAccessDeniedException
 
 object ProjectAccessControlManager {
-  private val enabled: Boolean = DefaultConfig.instance().getBoolean("workspace.accessControl.enabled")
+  val enabled: ConfigValue[Boolean] = (config: Config) => {
+    config.getBoolean("workspace.accessControl.enabled")
+  }
 }
 
 /**
@@ -47,7 +50,7 @@ class ProjectAccessControlManager(project: Identifier, provider: WorkspaceProvid
    * @throws ProjectAccessDeniedException If the user does not have access to the project.
    */
   def checkAccess(user: User)(implicit userContext: UserContext): Unit = synchronized {
-    if (ProjectAccessControlManager.enabled) {
+    if (ProjectAccessControlManager.enabled()) {
       loadIfRequired()
       val groups = accessControl.groups
       if(!(groups.isEmpty || user.groups.exists(groups.contains))) {
