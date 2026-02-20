@@ -12,7 +12,10 @@ case class Dictionary(override  val id: String,
                       override val param:String) extends ManualExtractor{
 
 
-  val values = Source.fromFile(param)(Codec.UTF8).getLines.mkString("\n")
+  val values = {
+    val source = Source.fromFile(param)(Codec.UTF8)
+    try { source.getLines.mkString("\n") } finally { source.close() }
+  }
 
 
   def solvePath(s: String) = {

@@ -13,8 +13,12 @@ import scala.xml.{Node, XML}
 object ReferenceLinksReader {
   def read(file: File): ReferenceLinks = {
     file.getName.split('.').last match {
-      case "nt" => readNTriples(Source.fromFile(file)(Codec.UTF8))
-      case "n3debug" => readN3Debug(Source.fromFile(file)(Codec.UTF8))
+      case "nt" =>
+        val source = Source.fromFile(file)(Codec.UTF8)
+        try { readNTriples(source) } finally { source.close() }
+      case "n3debug" =>
+        val source = Source.fromFile(file)(Codec.UTF8)
+        try { readN3Debug(source) } finally { source.close() }
       case "xml" | "rdf" => readReferenceLinks(file)
       case format => throw new IllegalArgumentException("Unsupported format: " + format)
     }
