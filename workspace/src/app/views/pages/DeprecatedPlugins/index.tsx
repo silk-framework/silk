@@ -35,6 +35,7 @@ export interface DeprecatedPluginsModel {
     pluginId: string;
     pluginLabel: string;
     link: string;
+    linkLabel: string;
     deprecationMessage: string;
 }
 

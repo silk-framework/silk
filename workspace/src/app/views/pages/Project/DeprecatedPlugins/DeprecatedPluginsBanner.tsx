@@ -29,14 +29,25 @@ export default function DeprecatedPluginsBanner({ projectId, taskId }: { project
 
     if (deprecatedPlugin.length === 0) return null;
 
+    const plugin = deprecatedPlugin[0];
+
     return (
         <>
             <Notification intent="warning">
-                {t("common.messages.deprecatedPluginBanner")}
-                {`${t("common.messages.deprecatedPluginBanner")}`}
+                <p>{t("common.messages.deprecatedPluginBanner")}</p>
                 <Spacing size="small" />
-
-                {deprecatedPlugin[0].deprecationMessage && <strong>{deprecatedPlugin[0].deprecationMessage}</strong>}
+                <p>
+                    <strong>{t("common.messages.deprecatedPluginBannerPluginLabel")}:</strong> {plugin.pluginLabel}
+                </p>
+                <p>
+                    <strong>{t("common.messages.deprecatedPluginBannerTaskLabel")}:</strong> {plugin.linkLabel}
+                </p>
+                {plugin.deprecationMessage && (
+                    <p>
+                        <strong>{t("common.messages.deprecatedPluginBannerDeprecationMessage")}:</strong>{" "}
+                        {plugin.deprecationMessage}
+                    </p>
+                )}
             </Notification>
             <br />
         </>
