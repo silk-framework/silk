@@ -4,33 +4,9 @@
 @(context: Option[Context[_ <: TaskSpec]], selectedTab: String = "", titleLabel: String = "")(header: Html)(toolbar: Html)(content: Html)(implicit request: RequestHeader, workspaceReact: WorkspaceReact)
 
 @frame(header) {
-    <dialog id="primary_dialog" class="mdl-dialog__container">
-      @* Filled with template dialog.scala.html *@
-    </dialog>
-    <dialog id="secondary_dialog" class="mdl-dialog__container">
-      @* Filled with template dialog.scala.html *@
-    </dialog>
-
     <div class="eccgui-application__container">
       <main class="cds--content eccgui-application__content">
-
-      @if(config.workbench.showHeader(request)) {
-        @tabbar(context, selectedTab, titleLabel)
-      }
-      @if(toolbar != null) {
-        <div id="toolbar" class="clearfix">
-        @toolbar
-        </div>
-      }
-      <main class="mdl-layout__content">
-        <div id="content" class="mdl-tabs__panel is-active">
-          @content
-        </div>
-        <div id="dialogContainer">
-          <div class="dialog">
-          </div>
-        </div>
+        @content
       </main>
-    </main>
     </div>
 }
