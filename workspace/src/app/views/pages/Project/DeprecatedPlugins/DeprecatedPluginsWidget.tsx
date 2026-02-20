@@ -15,6 +15,7 @@ type GroupedTask = {
 type GroupedDataWithLinks = {
     pluginLabel: string;
     tasks: GroupedTask[];
+    link: string;
     deprecationMessage: string;
 };
 
@@ -24,7 +25,7 @@ export function DeprecatedPluginsWidget({ projectId, taskId }: { projectId?: str
     const [isLoading, setIsLoading] = useState(true);
     const { registerError } = useErrorHandler();
     const path = window.location.pathname;
-
+    const isOnLinkingOrTransformPage = /\/projects\/[^/]+\/(linking|transform)\/[^/]+/.test(path);
 
     const fetchDeprecatedPlugins = () => {
         requestDeprecatedPlugins(projectId, taskId)
@@ -86,6 +87,7 @@ export function DeprecatedPluginsWidget({ projectId, taskId }: { projectId?: str
         return Object.entries(groupedMap).map(([pluginLabel, tasks]) => ({
             pluginLabel,
             tasks,
+            link: data.find((item) => item.pluginLabel === pluginLabel)?.link || "",
             deprecationMessage: data.find((item) => item.pluginLabel === pluginLabel)?.deprecationMessage || "",
         }));
     }
@@ -102,7 +104,11 @@ export function DeprecatedPluginsWidget({ projectId, taskId }: { projectId?: str
             <Divider />
             <CardContent>
                 <div className={styles.pluginList}>
-                    {groupByPluginWithLinks(deprecatedPlugins).map((plugin) => (
+                    {groupByPluginWithLinks(deprecatedPlugins).map((plugin) => {
+                        const visibleTasks = isOnLinkingOrTransformPage
+                            ? plugin.tasks.filter((task) => !path.startsWith(task.link.split("?")[0]))
+                            : plugin.tasks;
+                        return (
                         <div key={plugin.pluginLabel} className={styles.pluginEntry}>
                             <p className={styles.pluginName}>
                                 {plugin.pluginLabel}
@@ -111,27 +117,31 @@ export function DeprecatedPluginsWidget({ projectId, taskId }: { projectId?: str
                             {plugin.deprecationMessage && (
                                 <p className={styles.deprecationMessage}>{plugin.deprecationMessage}</p>
                             )}
-                            <p className={styles.tasksLabel}>{t("widget.deprecatedPluginWidget.tasks")}</p>
-                            <ul className={styles.taskList}>
-                                {plugin.tasks.map((task) => (
-                                    <li key={task.link} className={styles.taskItem}>
-                                        <Link
-                                            disabled={task.link.includes(path)}
-                                            onClick={(e) => {
-                                                if (!e?.ctrlKey) {
-                                                    e.preventDefault();
-                                                    window.location.href = contextualPath(task.link);
-                                                }
-                                            }}
-                                            href={task.link}
-                                        >
-                                            {task.label}
-                                        </Link>
-                                    </li>
-                                ))}
-                            </ul>
+                            {visibleTasks.length > 0 && (
+                                <>
+                                    <p className={styles.tasksLabel}>{t("widget.deprecatedPluginWidget.tasks")}</p>
+                                    <ul className={styles.taskList}>
+                                        {visibleTasks.map((task) => (
+                                            <li key={task.link} className={styles.taskItem}>
+                                                <Link
+                                                    onClick={(e) => {
+                                                        if (!e?.ctrlKey) {
+                                                            e.preventDefault();
+                                                            window.location.href = contextualPath(task.link);
+                                                        }
+                                                    }}
+                                                    href={task.link}
+                                                >
+                                                    {task.label}
+                                                </Link>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </>
+                            )}
                         </div>
-                    ))}
+                        );
+                    })}
                 </div>
                 <Spacing />
                 <Notification intent="warning">{t("widget.deprecatedPluginWidget.message")}</Notification>
