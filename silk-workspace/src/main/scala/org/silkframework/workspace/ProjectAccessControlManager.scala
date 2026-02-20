@@ -1,10 +1,14 @@
 package org.silkframework.workspace
 
-import org.silkframework.config.AccessControl
+import org.silkframework.config.{AccessControl, DefaultConfig}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.users.User
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.exceptions.ProjectAccessDeniedException
+
+object ProjectAccessControlManager {
+  private val enabled: Boolean = DefaultConfig.instance().getBoolean("workspace.accessControl.enabled")
+}
 
 /**
  * Manages the user groups of the current user. This is used to determine which projects a user has access to.
@@ -43,10 +47,12 @@ class ProjectAccessControlManager(project: Identifier, provider: WorkspaceProvid
    * @throws ProjectAccessDeniedException If the user does not have access to the project.
    */
   def checkAccess(user: User)(implicit userContext: UserContext): Unit = synchronized {
-    loadIfRequired()
-    val groups = accessControl.groups
-    if(!(groups.isEmpty || user.groups.exists(groups.contains))) {
-      throw ProjectAccessDeniedException(s"User does not have access to this project. Required groups: ${groups.mkString(", ")}. User groups: ${user.groups.mkString(", ")}")
+    if (ProjectAccessControlManager.enabled) {
+      loadIfRequired()
+      val groups = accessControl.groups
+      if(!(groups.isEmpty || user.groups.exists(groups.contains))) {
+        throw ProjectAccessDeniedException(s"User does not have access to this project. Required groups: ${groups.mkString(", ")}. User groups: ${user.groups.mkString(", ")}")
+      }
     }
   }
 
