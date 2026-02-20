@@ -38,24 +38,27 @@ class AccessControlIntegrationTest extends AnyFlatSpec with IntegrationTestTrait
     PluginRegistry.registerPlugin(classOf[TestWebUserManager])
     Map(
       "user.manager.web.plugin" -> Some("testWebUserManager"),
+      "workspace.accessControl.enabled" -> Some("true")
     )
   }
 
   it should "only allow users from one of the project groups to access it" in {
-    createProject("project1", user1, Set(group1))
-    testGetProject("project1", user1, shouldHaveAccess = true)
-    testGetProject("project1", user2, shouldHaveAccess = false)
+    val projectId = "groupAccess"
+    createProject(projectId, user1, Set(group1))
+    testGetProject(projectId, user1, shouldHaveAccess = true)
+    testGetProject(projectId, user2, shouldHaveAccess = false)
   }
 
   it should "persist project groups to the workspace backend" in {
-    createProject("project2", user1, Set(group1))
-    getProjectAccessControl("project2", user1).groups shouldBe Set(group1)
+    val projectId = "groupPersistence"
+    createProject(projectId, user1, Set(group1))
+    getProjectAccessControl(projectId, user1).groups shouldBe Set(group1)
     WorkspaceFactory().workspace.reload()
-    getProjectAccessControl("project2", user1).groups shouldBe Set(group1)
+    getProjectAccessControl(projectId, user1).groups shouldBe Set(group1)
   }
 
-  it should "apply groups specified on import, not groups from the exported project" in {
-    val projectId = "project3"
+  it should "apply groups specified on import" in {
+    val projectId = "importWithGroup"
 
     // Create a new project with group 1
     createProject(projectId, user1, Set(group1))
@@ -68,6 +71,56 @@ class AccessControlIntegrationTest extends AnyFlatSpec with IntegrationTestTrait
     // Import the project with group 2
     importProject(projectId, exportedBytes, user2, groups = Set(group2))
     getProjectAccessControl(projectId, user2).groups shouldBe Set(group2)
+  }
+
+  it should "allow any user to access a project with no groups assigned" in {
+    val projectId = "openAccess"
+    createProject(projectId, user1, Set())
+    testGetProject(projectId, user1, shouldHaveAccess = true)
+    testGetProject(projectId, user2, shouldHaveAccess = true)
+  }
+
+  it should "allow users from any of multiple assigned groups to access the project" in {
+    val projectId = "multiGroupAccess"
+    createProject(projectId, user1, Set(group1, group2))
+    testGetProject(projectId, user1, shouldHaveAccess = true)
+    testGetProject(projectId, user2, shouldHaveAccess = true)
+  }
+
+  it should "grant access to a previously unauthorized user after updating access control" in {
+    val projectId = "accessGrant"
+    createProject(projectId, user1, Set(group1))
+    testGetProject(projectId, user2, shouldHaveAccess = false)
+    updateProjectAccessControl(projectId, user1, Set(group1, group2)) shouldBe 200
+    testGetProject(projectId, user2, shouldHaveAccess = true)
+  }
+
+  it should "revoke access after updating access control" in {
+    val projectId = "accessRevoke"
+    createProject(projectId, user1, Set(group1, group2))
+    testGetProject(projectId, user2, shouldHaveAccess = true)
+    updateProjectAccessControl(projectId, user1, Set(group1)) shouldBe 200
+    testGetProject(projectId, user2, shouldHaveAccess = false)
+  }
+
+  it should "not allow an unauthorized user to update access control" in {
+    val projectId = "unauthorizedUpdate"
+    createProject(projectId, user1, Set(group1))
+    // user2 is not in group1, so should not be allowed to update access control
+    updateProjectAccessControl(projectId, user2, Set(group1, group2)) shouldBe 403
+    // Access control should remain unchanged
+    getProjectAccessControl(projectId, user1).groups shouldBe Set(group1)
+  }
+
+  it should "apply specified groups to a cloned project" in {
+    val sourceId = "cloneSourceGroup"
+    val cloneId = "cloneWithGroup"
+    createProject(sourceId, user1, Set(group1))
+    cloneProject(sourceId, cloneId, cloneId, user1, groups = Some(Set(group1)))
+    // user2 is only in group2, so should not be able to access the clone restricted to group1
+    testGetProject(cloneId, user2, shouldHaveAccess = false)
+    // The clone should have group1 set
+    getProjectAccessControl(cloneId, user1).groups shouldBe Set(group1)
   }
 
   /**
@@ -131,6 +184,22 @@ class AccessControlIntegrationTest extends AnyFlatSpec with IntegrationTestTrait
     Json.fromJson[ProjectAccessControl](response.body[JsValue]).get
   }
 
+  /** Updates the access control groups for a project. Returns the HTTP status code. */
+  def updateProjectAccessControl(projectId: String, user: User, groups: Set[String]): Int = {
+    val response = Await.result(
+      userRequest(ProjectApi.updateProjectAccessControl(projectId), user)
+        .put(Json.toJson(ProjectAccessControl(groups))),
+      200.seconds)
+    response.status
+  }
+
+  /** Clones a project. */
+  def cloneProject(fromProjectId: String, newProjectId: String, newLabel: String, user: User, groups: Option[Set[String]] = None): Unit = {
+    val baseBody = Json.obj("metaData" -> Json.obj("label" -> newLabel), "newTaskId" -> newProjectId)
+    val body = groups.fold(baseBody)(g => baseBody + ("groups" -> Json.toJson(g)))
+    checkResponse(userRequest(ProjectApi.cloneProject(fromProjectId), user).post(body))
+  }
+
   private def userRequest(call: Call, user: User): WSRequest = {
     createRequest(call).addHttpHeaders("X-Forwarded-User" -> user.uri)
   }
@@ -160,6 +229,6 @@ object TestWebUserManager {
   val user1 = new WebUser("http://dummyUri/user1", Some("Dummy User 1"), groups = Set(group1))
   val user2 = new WebUser("http://dummyUri/user2", Some("Dummy User 2"), groups = Set(group2))
 
-  val users = Seq(user1, user2)
+  val users: Seq[WebUser] = Seq(user1, user2)
   val usersByUri: Map[String, WebUser] = users.map(u => u.uri -> u).toMap
 }
