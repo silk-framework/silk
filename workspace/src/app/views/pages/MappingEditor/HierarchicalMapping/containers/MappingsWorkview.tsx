@@ -143,7 +143,7 @@ const MappingsWorkview = ({
                 if (onFinish) {
                     onFinish();
                 }
-                setLoading(false);
+                setTimeout(() => setLoading(false), 1);
             },
         );
     };
