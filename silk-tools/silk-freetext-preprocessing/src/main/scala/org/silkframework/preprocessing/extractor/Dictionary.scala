@@ -1,6 +1,6 @@
 package org.silkframework.preprocessing.extractor
 
-import scala.io.Source
+import scala.io.{Codec, Source}
 
 /**
  * A Dictionary extractor.
@@ -12,7 +12,7 @@ case class Dictionary(override  val id: String,
                       override val param:String) extends ManualExtractor{
 
 
-  val values = Source.fromFile(param).getLines.mkString("\n")
+  val values = Source.fromFile(param)(Codec.UTF8).getLines.mkString("\n")
 
 
   def solvePath(s: String) = {

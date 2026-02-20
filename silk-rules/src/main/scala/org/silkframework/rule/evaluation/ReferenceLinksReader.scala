@@ -4,7 +4,7 @@ import java.io.{File, InputStream}
 
 import org.silkframework.entity.{Link, MinimalLink, LinkWithConfidence}
 
-import scala.io.Source
+import scala.io.{Codec, Source}
 import scala.xml.{Node, XML}
 
 /**
@@ -13,8 +13,8 @@ import scala.xml.{Node, XML}
 object ReferenceLinksReader {
   def read(file: File): ReferenceLinks = {
     file.getName.split('.').last match {
-      case "nt" => readNTriples(Source.fromFile(file))
-      case "n3debug" => readN3Debug(Source.fromFile(file))
+      case "nt" => readNTriples(Source.fromFile(file)(Codec.UTF8))
+      case "n3debug" => readN3Debug(Source.fromFile(file)(Codec.UTF8))
       case "xml" | "rdf" => readReferenceLinks(file)
       case format => throw new IllegalArgumentException("Unsupported format: " + format)
     }
