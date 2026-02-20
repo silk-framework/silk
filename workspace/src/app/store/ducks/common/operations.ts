@@ -181,26 +181,14 @@ const splitParameterAndVariableTemplateParameters = (formData: any, variableTemp
 };
 
 /** Builds a request object for project/task create call. */
-const buildNestedTaskParameterObject = (formData: Record<string, any>): TaskParameters => {
+const buildStringValuedObject = (formData: Record<string, any>): TaskParameters => {
     const returnObject: TaskParameters = Object.create(null);
-    const nestedParamsFlat = Object.entries(formData).filter(([k, v]) => k.includes("."));
-    const directParams = Object.entries(formData).filter(([k, v]) => !k.includes("."));
-    // Add direct parameters
-    directParams.forEach(([paramId, param]) => {
-        returnObject[paramId] = "" + param;
-    });
-    // Group nested parameters by first parameter ID, create nested value objects
-    const nestedParamsMap = nestedParamsFlat.reduce((obj, [combinedParamId, param]) => {
-        const firstDot = combinedParamId.indexOf(".");
-        const paramId = combinedParamId.substring(0, firstDot);
-        const nestedParamId = combinedParamId.substring(firstDot + 1);
-        obj[paramId] = obj[paramId] || {};
-        obj[paramId][nestedParamId] = param;
-        return obj;
-    }, {});
-    // Add nested parameters to result object and call buildTaskObject recursively
-    Object.entries(nestedParamsMap).forEach(([propName, value]) => {
-        returnObject[propName] = buildNestedTaskParameterObject(value as Record<string, any>);
+    const params = Object.entries(formData)
+    params.forEach(([paramId, param]) => {
+        const convertedParam: TaskParameters | string = typeof param === "object" ?
+            buildStringValuedObject(param) :
+            "" + param
+        returnObject[paramId] = convertedParam;
     });
     return returnObject;
 };
@@ -297,8 +285,8 @@ const fetchCreateTaskAsync = (
             restFormData,
             variableTemplateParameterSet,
         );
-        const parameterData = buildNestedTaskParameterObject(parameters);
-        const variableTemplateData = buildNestedTaskParameterObject(variableTemplateParameters);
+        const parameterData = buildStringValuedObject(parameters);
+        const variableTemplateData = buildStringValuedObject(variableTemplateParameters);
         const metadata = {
             label,
             description,
@@ -370,8 +358,8 @@ const fetchUpdateTaskAsync = (
             formData,
             variableTemplateParameterSet,
         );
-        const parameterData = buildNestedTaskParameterObject(parameters);
-        const variableTemplateData = buildNestedTaskParameterObject(variableTemplateParameters);
+        const parameterData = buildStringValuedObject(parameters);
+        const variableTemplateData = buildStringValuedObject(variableTemplateParameters);
         const payload = {
             data: {
                 ...dataParameters,
@@ -463,7 +451,7 @@ const commonOps = {
     setSelectedArtefactDType,
     setModalError,
     setModalInfo,
-    buildNestedTaskParameterObject: buildNestedTaskParameterObject,
+    buildNestedTaskParameterObject: buildStringValuedObject,
     fetchCreateTaskAsync,
     fetchUpdateTaskAsync,
     fetchCreateProjectAsync,

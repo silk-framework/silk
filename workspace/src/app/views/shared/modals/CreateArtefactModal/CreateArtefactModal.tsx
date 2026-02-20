@@ -134,7 +134,8 @@ export function CreateArtefactModal() {
         ? { ...updateExistingTask.taskPluginDetails, key: updateExistingTask.taskPluginDetails.pluginId }
         : undefined;
     const selectedArtefact: IPluginOverview | undefined = updateTaskPluginDetails ?? selectedArtefactFromStore;
-    const selectedArtefactKey: string | undefined = selectedArtefactFromStore?.key;
+    const selectedArtefactKey = React.useRef<string | undefined>();
+    selectedArtefactKey.current = selectedArtefactFromStore?.key
     const selectedArtefactTitle: string | undefined = selectedArtefact?.title;
     const [currentProject, setCurrentProject] = useState<ProjectIdAndLabel | undefined>(undefined);
     const [showProjectSelection, setShowProjectSelection] = useState<boolean>(false);
@@ -231,7 +232,7 @@ export function CreateArtefactModal() {
                 }
             })();
         }
-    }, [projectId, selectedArtefactKey, isOpen]);
+    }, [projectId, selectedArtefactKey.current, isOpen]);
 
     useEffect(() => {
         if (!isOpen) {
@@ -371,7 +372,7 @@ export function CreateArtefactModal() {
             try {
                 if (isValidFields) {
                     const formValues = form.getValues();
-                    const type = updateExistingTask?.taskPluginDetails.taskType ?? taskType(selectedArtefactKey);
+                    const type = updateExistingTask?.taskPluginDetails.taskType ?? taskType(selectedArtefactKey.current);
                     let dataParameters: any;
                     if (type === "Dataset") {
                         dataParameters = commonOp.extractDataAttributes(formValues);
@@ -554,12 +555,12 @@ export function CreateArtefactModal() {
         return artefactForm;
     };
 
-    const projectArtefactSelected = selectedArtefactKey === DATA_TYPES.PROJECT;
+    const projectArtefactSelected = selectedArtefactKey.current === DATA_TYPES.PROJECT;
 
     let artefactForm: React.JSX.Element | null = null;
 
     /** if no current Project context, redirect to project selection first */
-    if (selectedArtefactKey && !currentProject) {
+    if (selectedArtefactKey.current && !currentProject) {
         artefactForm = (
             <ProjectSelection
                 resetForm={resetFormOnConfirmation}
@@ -611,11 +612,11 @@ export function CreateArtefactModal() {
         );
     } else {
         // Project / task creation
-        if (selectedArtefactKey) {
+        if (selectedArtefactKey.current) {
             if (projectArtefactSelected) {
                 artefactForm = <ProjectForm form={form} goBackOnEscape={handleBack} />;
             } else {
-                const detailedArtefact = cachedArtefactProperties[selectedArtefactKey];
+                const detailedArtefact = cachedArtefactProperties[selectedArtefactKey.current];
                 const activeProjectId = currentProject?.id ?? projectId;
                 if (detailedArtefact && activeProjectId) {
                     let updatedNewTaskPreConfiguration: TaskPreConfiguration | undefined = {
@@ -753,12 +754,12 @@ export function CreateArtefactModal() {
         }
     };
 
-    const isCreationUpdateDialog = selectedArtefactKey || updateExistingTask;
+    const isCreationUpdateDialog = selectedArtefactKey.current || updateExistingTask;
     const additionalButtons: React.JSX.Element[] = [];
     if (
         (projectId || currentProject) &&
         ((updateExistingTask && updateExistingTask.taskPluginDetails.autoConfigurable) ||
-            (selectedArtefactKey && cachedArtefactProperties[selectedArtefactKey]?.autoConfigurable))
+            (selectedArtefactKey.current && cachedArtefactProperties[selectedArtefactKey.current]?.autoConfigurable))
     ) {
         additionalButtons.push(
             <Button
@@ -769,7 +770,7 @@ export function CreateArtefactModal() {
                 onClick={() =>
                     handleAutoConfigure(
                         projectId ?? currentProject!.id,
-                        selectedArtefactKey ?? updateExistingTask!.taskPluginDetails.pluginId,
+                        selectedArtefactKey.current ?? updateExistingTask!.taskPluginDetails.pluginId,
                     )
                 }
                 loading={autoConfigPending}
@@ -804,7 +805,7 @@ export function CreateArtefactModal() {
                             actionKey,
                             taskPayload: {
                                 taskType: (updateExistingTask?.taskPluginDetails.taskType ??
-                                    taskType(selectedArtefactKey)) as TaskType,
+                                    taskType(selectedArtefactKey.current)) as TaskType,
                                 type: selectedArtefact.key,
                                 parameters: {
                                     ...parameterData,
