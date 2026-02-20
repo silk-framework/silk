@@ -16,11 +16,11 @@ class MappingRuleRow extends React.Component {
         const statusMsg = _.get(this.props, "status[0].message", false);
         return (
             <>
-                <OverviewItemDescription style={{ width: "40%" }}>
+                <OverviewItemDescription data-test-id={"mapping-rule-title"} style={{ width: "40%" }}>
                     <OverviewItemLine className="ecc-silk-mapping__ruleitem-headline">
                         <OverflowText>
                             <ThingIcon type={type} status={statusType} message={statusMsg} />
-                            <span className={"nodrag"}>{ruleLabelData.displayLabel}</span>
+                            <span data-test-id={"mapping-rule-title-label"} className={"nodrag"}>{ruleLabelData.displayLabel}</span>
                         </OverflowText>
                     </OverviewItemLine>
                     {ruleLabelData.uri && (

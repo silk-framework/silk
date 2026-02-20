@@ -17,6 +17,9 @@ import ExpandButton from "../../elements/buttons/ExpandButton";
 import { ContextMenu, MenuItem, Spinner, OverviewItem, OverviewItemActions } from "@eccenca/gui-elements";
 import { getRuleLabel } from "../../utils/getRuleLabel";
 
+/** A mapping rule in the mapping rule list of the current parent container rule.
+ *  The current container rule is represented by RootMappingRule.
+ */
 export class MappingRule extends React.Component {
     // define property types
     static propTypes = {
