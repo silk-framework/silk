@@ -2,6 +2,7 @@ package controllers.workspace.workspaceRequests
 
 import controllers.workspace.workspaceRequests.CopyTasksRequest.CopyTaskExecutor
 import io.swagger.v3.oas.annotations.media.Schema
+import io.swagger.v3.oas.annotations.media.Schema.RequiredMode
 import org.silkframework.config.{Prefixes, TaskSpec}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.{InvalidPluginParameterValueException, PluginContext}
@@ -19,19 +20,19 @@ import scala.collection.mutable
   */
 case class CopyTasksRequest(@Schema(
                               description = "If true, the copy operation will be simulated, i.e., the response listing the tasks to be copied and overwritten can be checked first.",
-                              required = false,
+                              requiredMode = RequiredMode.NOT_REQUIRED,
                               nullable = true
                             )
                             dryRun: Option[Boolean],
                             @Schema(
                               description = "If true, tasks in the target project will be overwritten.",
-                              required = false,
+                              requiredMode = RequiredMode.NOT_REQUIRED,
                               nullable = true
                             )
                             overwriteTasks: Option[Boolean],
                             @Schema(
                               description = "If true, all prefixes from the source project are copied to the target project.",
-                              required = false,
+                              requiredMode = RequiredMode.NOT_REQUIRED,
                               nullable = true
                             )
                             copyPrefixes: Option[Boolean] = None,

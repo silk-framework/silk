@@ -1,6 +1,7 @@
 package org.silkframework.serialization.json
 
 import io.swagger.v3.oas.annotations.media.Schema
+import io.swagger.v3.oas.annotations.media.Schema.RequiredMode
 import org.silkframework.config._
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.dataset.{Dataset, DatasetSpec, DatasetTask}
@@ -1252,7 +1253,7 @@ object JsonSerializers {
                                @Schema(
                                  description = "Include relations to other tasks.",
                                  defaultValue = "false",
-                                 required = false,
+                                 requiredMode = RequiredMode.NOT_REQUIRED,
                                  implementation = classOf[Boolean]
                                )
                                includeRelations: Option[Boolean] = None,

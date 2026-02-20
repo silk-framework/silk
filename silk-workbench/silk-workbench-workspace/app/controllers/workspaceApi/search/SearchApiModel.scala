@@ -2,6 +2,7 @@ package controllers.workspaceApi.search
 
 import controllers.util.{ItemLink, ItemType, TextSearchUtils}
 import io.swagger.v3.oas.annotations.media.{ArraySchema, Schema}
+import io.swagger.v3.oas.annotations.media.Schema.RequiredMode
 import org.silkframework.config.{CustomTask, TaskSpec}
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.dataset.{Dataset, DatasetSpec}
@@ -289,13 +290,13 @@ object SearchApiModel {
   /** A search request that supports types and facets. */
   case class FacetedSearchRequest(@Schema(
                                     description = "If defined, only artifacts from that project are fetched.",
-                                    required = false,
+                                    requiredMode = RequiredMode.NOT_REQUIRED,
                                     nullable = true
                                   )
                                   project: Option[String] = None,
                                   @Schema(
                                     description = "If defined, only artifacts of this type are fetched.",
-                                    required = false,
+                                    requiredMode = RequiredMode.NOT_REQUIRED,
                                     nullable = true,
                                     implementation = classOf[String], // The ItemType JSON reader expects a single string instead of the whole object
                                     allowableValues = Array("project", "dataset", "transform", "linking", "workflow", "task")
@@ -303,20 +304,20 @@ object SearchApiModel {
                                   itemType: Option[ItemType] = None,
                                   @Schema(
                                     description = "Conjunctive multi word query. The single words can be scattered over different artifact properties, e.g. one in label and one in description.",
-                                    required = false,
+                                    requiredMode = RequiredMode.NOT_REQUIRED,
                                     nullable = true
                                   )
                                   textQuery: Option[String] = None,
                                   @Schema(
                                     description = "Search result offset to allow for paging.",
-                                    required = false,
+                                    requiredMode = RequiredMode.NOT_REQUIRED,
                                     nullable = true,
                                     implementation = classOf[Int]
                                   )
                                   offset: Option[Int] = None,
                                   @Schema(
                                     description = "Search result limit to allow for paging. Can be disabled by setting it to '0', which will return all results.",
-                                    required = false,
+                                    requiredMode = RequiredMode.NOT_REQUIRED,
                                     nullable = true,
                                     defaultValue = "10",
                                     implementation = classOf[Int]
@@ -324,14 +325,14 @@ object SearchApiModel {
                                   limit: Option[Int] = None,
                                   @Schema(
                                     description = "Optional sort parameter allows for sorting the result list by a specific artifact property, e.g. label, creation date, update date.",
-                                    required = false,
+                                    requiredMode = RequiredMode.NOT_REQUIRED,
                                     nullable = true,
                                     allowableValues = Array("label")
                                   )
                                   sortBy: Option[SortBy.Value] = None,
                                   @Schema(
                                     description = "If defined, only artifacts from that project are fetched.",
-                                    required = false,
+                                    requiredMode = RequiredMode.NOT_REQUIRED,
                                     nullable = true,
                                     allowableValues = Array("ASC", "DESC")
                                   )
@@ -339,14 +340,14 @@ object SearchApiModel {
                                   @ArraySchema(
                                     schema = new Schema(
                                       description = "Defines what facets are set to which values. The 'keyword' facet allows multiple values to be set.",
-                                      required = false,
+                                      requiredMode = RequiredMode.NOT_REQUIRED,
                                       nullable = true,
                                       implementation = classOf[String]
                                     ))
                                   facets: Option[Seq[FacetSetting]] = None,
                                   @Schema(
                                     description = "If set to true, the current configuration for each task item is returned in the search response.",
-                                    required = false,
+                                    requiredMode = RequiredMode.NOT_REQUIRED,
                                     nullable = true,
                                     implementation = classOf[Boolean]
                                   )
@@ -577,17 +578,17 @@ object SearchApiModel {
   case class SearchRequest(@Schema(
                              description = "Restrict search to a specific project.",
                              nullable = true,
-                             required = false)
+                             requiredMode = RequiredMode.NOT_REQUIRED)
                            project: Option[String],
                            @Schema(
                              description = "Only return tasks that match a search term. Currently, the search covers the ID, the label, the description and the task properties.",
                              nullable = true,
-                             required = false)
+                             requiredMode = RequiredMode.NOT_REQUIRED)
                            searchTerm: Option[String],
                            @Schema(
                              description = "The format options specify which parts are to be included in the response.",
                              nullable = true,
-                             required = false)
+                             requiredMode = RequiredMode.NOT_REQUIRED)
                            formatOptions: Option[TaskFormatOptions]) extends SearchRequestTrait {
 
     // JSON format to serialize tasks according to the options

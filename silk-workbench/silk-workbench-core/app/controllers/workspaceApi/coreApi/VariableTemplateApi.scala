@@ -8,6 +8,7 @@ import controllers.workspaceApi.coreApi.doc.VariableTemplateApiDoc
 import controllers.workspaceApi.coreApi.variableTemplate.{AutoCompleteVariableTemplateRequest, ValidateVariableTemplateRequest}
 import io.swagger.v3.oas.annotations.enums.ParameterIn
 import io.swagger.v3.oas.annotations.media.{ArraySchema, Content, ExampleObject, Schema}
+import io.swagger.v3.oas.annotations.media.Schema.RequiredMode
 import io.swagger.v3.oas.annotations.parameters.RequestBody
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.tags.Tag
@@ -408,36 +409,36 @@ object VariableTemplateApi {
   case class TemplateVariableFormat(@Schema(
                                       description = "The name of the variable.",
                                       example = "myVar",
-                                      required = true
+                                      requiredMode = RequiredMode.REQUIRED
                                     )
                                     name: String,
                                     @Schema(
                                       description = "The value of the variable.",
                                       example = "example value",
-                                      required = false
+                                      requiredMode = RequiredMode.NOT_REQUIRED
                                     )
                                     value: Option[String],
                                     @Schema(
                                       description = "Template to generate the variable value.",
-                                      required = false
+                                      requiredMode = RequiredMode.NOT_REQUIRED
                                     )
                                     template: Option[String],
                                     @Schema(
                                       description = "Optional description for documentation.",
                                       example = "Example description",
-                                      required = false
+                                      requiredMode = RequiredMode.NOT_REQUIRED
                                     )
                                     description: Option[String],
                                     @Schema(
                                       description = "True, if this is a sensitive variable that should not be exposed to the user.",
                                       example = "false",
-                                      required = true
+                                      requiredMode = RequiredMode.REQUIRED
                                     )
                                     isSensitive: Boolean,
                                     @Schema(
                                       description = "The scope of the variable.",
                                       example = "project",
-                                      required = true
+                                      requiredMode = RequiredMode.REQUIRED
                                     )
                                     scope: String) {
     def convert: TemplateVariable = {
@@ -458,7 +459,7 @@ object VariableTemplateApi {
   case class TemplateVariablesFormat(@ArraySchema(
                                        schema = new Schema(
                                         description = "List of variables.",
-                                        required = true,
+                                        requiredMode = RequiredMode.REQUIRED,
                                         implementation = classOf[TemplateVariableFormat]
                                      ))
                                      variables: Seq[TemplateVariableFormat]) {

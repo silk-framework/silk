@@ -75,6 +75,10 @@ class DatasetApi @Inject() () extends InjectedController with UserContextActions
       new ApiResponse(
         responseCode = "404",
         description = "If the specified project or dataset has not been found."
+      ),
+      new ApiResponse(
+        responseCode = "409",
+        description = "If the dataset is currently configured as read-only. The user needs to change the config before trying again."
       )
     )
   )
@@ -101,7 +105,7 @@ class DatasetApi @Inject() () extends InjectedController with UserContextActions
     val sink = dataset.data.entitySink
     sink.clear(force = true)
     val typeCache = dataset.activity[TypesCache].control
-    // This will throw an exception if the previous cache execution as failed.
+    // This will throw an exception if the previous cache execution has failed.
     Try(typeCache.waitUntilFinished())
     Try(typeCache.start())
     NoContent
