@@ -451,7 +451,7 @@ const commonOps = {
     setSelectedArtefactDType,
     setModalError,
     setModalInfo,
-    buildNestedTaskParameterObject: buildStringValuedObject,
+    buildStringValuedObject,
     fetchCreateTaskAsync,
     fetchUpdateTaskAsync,
     fetchCreateProjectAsync,

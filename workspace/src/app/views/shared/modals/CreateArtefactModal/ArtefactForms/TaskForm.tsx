@@ -478,7 +478,7 @@ export function TaskForm({
     );
 
     const datasetConfigValues = React.useCallback(() => {
-        return commonOp.buildNestedTaskParameterObject(getValues());
+        return commonOp.buildStringValuedObject(getValues());
     }, []);
 
     return doChange ? (

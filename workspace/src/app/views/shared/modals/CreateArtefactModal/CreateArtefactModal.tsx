@@ -720,8 +720,8 @@ export function CreateArtefactModal() {
                 form.getValues(),
                 templateParameters.current,
             );
-            const parameterData = commonOp.buildNestedTaskParameterObject(parameters);
-            const variableTemplateData = commonOp.buildNestedTaskParameterObject(variableTemplateParameters);
+            const parameterData = commonOp.buildStringValuedObject(parameters);
+            const variableTemplateData = commonOp.buildStringValuedObject(variableTemplateParameters);
             const requestBody: DatasetTaskPlugin<any> = {
                 taskType: taskType(artefactId) as TaskType,
                 type: artefactId,
@@ -796,9 +796,9 @@ export function CreateArtefactModal() {
                                 formValues,
                                 templateParameters.current,
                             );
-                        const parameterData = commonOp.buildNestedTaskParameterObject(parameters);
+                        const parameterData = commonOp.buildStringValuedObject(parameters);
                         const variableTemplateData =
-                            commonOp.buildNestedTaskParameterObject(variableTemplateParameters);
+                            commonOp.buildStringValuedObject(variableTemplateParameters);
                         const result = await performAction({
                             projectId: project,
                             taskId: updateExistingTask?.taskId ?? "task",
