@@ -1,12 +1,9 @@
 import React, { useEffect, useMemo, useState } from "react";
 import {
-    Button,
     Card,
-    ContextMenu,
     Divider,
     IconButton,
     Markdown,
-    MenuItem,
     Notification,
     OverflowText,
     OverviewItem,
@@ -41,8 +38,6 @@ export interface DeprecatedPluginsModel {
     deprecationMessage: string;
 }
 
-type GroupMode = "pluginLabel" | "project";
-
 type GroupedSection = {
     key: string;
     items: DeprecatedPluginsModel[];
@@ -53,7 +48,6 @@ type GroupedSection = {
 export default function DeprecatedPlugins() {
     const [deprecatedPlugins, setDeprecatedPlugins] = useState<DeprecatedPluginsModel[]>([]);
     const [isLoading, setIsLoading] = useState(true);
-    const [groupBy, setGroupBy] = useState<GroupMode>("pluginLabel");
     const { registerError } = useErrorHandler();
     const [t] = useTranslation();
 
@@ -95,15 +89,13 @@ export default function DeprecatedPlugins() {
 
     const groupedSections = useMemo((): GroupedSection[] => {
         const sorted = [...deprecatedPlugins].sort((a, b) => {
-            const keyA = groupBy === "pluginLabel" ? (a.pluginLabel ?? "") : (a.projectLabel ?? "");
-            const keyB = groupBy === "pluginLabel" ? (b.pluginLabel ?? "") : (b.projectLabel ?? "");
-            const keyCmp = keyA.localeCompare(keyB);
+            const keyCmp = (a.pluginLabel ?? "").localeCompare(b.pluginLabel ?? "");
             return keyCmp !== 0 ? keyCmp : (a.taskLabel ?? "").localeCompare(b.taskLabel ?? "");
         });
 
         const groups = new Map<string, DeprecatedPluginsModel[]>();
         sorted.forEach((plugin) => {
-            const key = groupBy === "pluginLabel" ? (plugin.pluginLabel ?? "") : (plugin.projectLabel ?? "");
+            const key = plugin.pluginLabel ?? "";
             if (!groups.has(key)) groups.set(key, []);
             groups.get(key)!.push(plugin);
         });
@@ -111,9 +103,9 @@ export default function DeprecatedPlugins() {
         return Array.from(groups.entries()).map(([key, items]) => ({
             key,
             items,
-            deprecationMessage: groupBy === "pluginLabel" ? items[0]?.deprecationMessage : undefined,
+            deprecationMessage: items[0]?.deprecationMessage,
         }));
-    }, [deprecatedPlugins, groupBy]);
+    }, [deprecatedPlugins]);
 
     const goToTaskPage = (link: string) => (e: React.MouseEvent) => {
         if (!e?.ctrlKey) {
@@ -122,43 +114,12 @@ export default function DeprecatedPlugins() {
         }
     };
 
-    const currentGroupLabel =
-        groupBy === "pluginLabel"
-            ? t("pages.deprecatedPlugins.groupBy.pluginLabel")
-            : t("pages.deprecatedPlugins.groupBy.project");
-
     return (
         <div>
             {/* page header in app bar */}
             {pageHeader}
             {deprecatedPlugins.length > 0 && (
-                <div style={{ display: "flex", alignItems: "flex-end", gap: "0.5rem" }}>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                        <Notification>{t("pages.deprecatedPlugins.infoMessage")}</Notification>
-                    </div>
-                    <ContextMenu
-                        togglerElement={
-                            <Button
-                                text={`${t("pages.deprecatedPlugins.groupBy.label")}: ${currentGroupLabel}`}
-                                rightIcon="toggler-caretdown"
-                                style={{ whiteSpace: "nowrap" }}
-                            />
-                        }
-                    >
-                        <MenuItem
-                            text={t("pages.deprecatedPlugins.groupBy.pluginLabel")}
-                            active={groupBy === "pluginLabel"}
-                            icon={groupBy === "pluginLabel" ? "state-checked" : undefined}
-                            onClick={() => setGroupBy("pluginLabel")}
-                        />
-                        <MenuItem
-                            text={t("pages.deprecatedPlugins.groupBy.project")}
-                            active={groupBy === "project"}
-                            icon={groupBy === "project" ? "state-checked" : undefined}
-                            onClick={() => setGroupBy("project")}
-                        />
-                    </ContextMenu>
-                </div>
+                <Notification>{t("pages.deprecatedPlugins.infoMessage")}</Notification>
             )}
             <Spacing />
             <Datalist
@@ -226,14 +187,9 @@ export default function DeprecatedPlugins() {
                                         {/* Line 2: context tags */}
                                         <OverviewItemLine small>
                                             <TagList>
-                                                {groupBy === "pluginLabel" && plugin.projectLabel && (
+                                                {plugin.projectLabel && (
                                                     <Tag emphasis="weak" itemType={plugin.itemType}>
                                                         {plugin.projectLabel}
-                                                    </Tag>
-                                                )}
-                                                {groupBy === "project" && plugin.pluginLabel && (
-                                                    <Tag emphasis="weak" intent="warning">
-                                                        {plugin.pluginLabel}
                                                     </Tag>
                                                 )}
                                                 {plugin.itemType && (
@@ -243,18 +199,6 @@ export default function DeprecatedPlugins() {
                                                 )}
                                             </TagList>
                                         </OverviewItemLine>
-                                        {/* Line 3: deprecation message per item (group by project only) */}
-                                        {groupBy === "project" && plugin.deprecationMessage && (
-                                            <OverviewItemLine small>
-                                                {wrapTooltip(
-                                                    plugin.deprecationMessage.length > 80,
-                                                    <Markdown>{plugin.deprecationMessage}</Markdown>,
-                                                    <OverflowText passDown={true} inline={true}>
-                                                        {plugin.deprecationMessage.substring(0, 80)}
-                                                    </OverflowText>,
-                                                )}
-                                            </OverviewItemLine>
-                                        )}
                                     </OverviewItemDescription>
                                     {/* interaction element to link to task page */}
                                     <OverviewItemActions>

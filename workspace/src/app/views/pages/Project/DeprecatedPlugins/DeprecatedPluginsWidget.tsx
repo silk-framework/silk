@@ -23,6 +23,8 @@ export function DeprecatedPluginsWidget({ projectId, taskId }: { projectId?: str
     const [deprecatedPlugins, setDeprecatedPlugins] = useState<DeprecatedPluginsModel[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const { registerError } = useErrorHandler();
+    const path = window.location.pathname;
+
 
     const fetchDeprecatedPlugins = () => {
         requestDeprecatedPlugins(projectId, taskId)
@@ -114,6 +116,7 @@ export function DeprecatedPluginsWidget({ projectId, taskId }: { projectId?: str
                                 {plugin.tasks.map((task) => (
                                     <li key={task.link} className={styles.taskItem}>
                                         <Link
+                                            disabled={task.link.includes(path)}
                                             onClick={(e) => {
                                                 if (!e?.ctrlKey) {
                                                     e.preventDefault();
