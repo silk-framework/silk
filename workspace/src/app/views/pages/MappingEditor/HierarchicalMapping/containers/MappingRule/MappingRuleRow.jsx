@@ -25,7 +25,7 @@ class MappingRuleRow extends React.Component {
                     </OverviewItemLine>
                     {ruleLabelData.uri && (
                         <OverviewItemLine small>
-                            <OverflowText className="nodrag">{ruleLabelData.uri}</OverflowText>
+                            <OverflowText data-test-id={"mapping-rule-title-uri"} className="nodrag">{ruleLabelData.uri}</OverflowText>
                         </OverviewItemLine>
                     )}
                 </OverviewItemDescription>
