@@ -52,6 +52,11 @@ trait PluginDescription[+T] {
   val deprecation: Option[String]
 
   /**
+   * References to related plugins.
+   */
+  val relatedPlugins: Seq[PluginReference]
+
+  /**
    * The type of the backend that this plugin is comming from, e.g. native or python.
    */
   val backendType: String
