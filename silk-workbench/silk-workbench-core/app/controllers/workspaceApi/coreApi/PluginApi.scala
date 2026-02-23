@@ -124,7 +124,7 @@ class PluginApi @Inject()() extends InjectedController with UserContextActions {
                schema = new Schema(implementation = classOf[Boolean])
              )
              withLabels: Boolean): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
-    PluginRegistry.pluginDescriptionsById(pluginId, Some(Seq(classOf[TaskSpec], classOf[Dataset]))).headOption match {
+    PluginRegistry.pluginDescriptionsById(pluginId).headOption match {
       case Some(pluginDesc) =>
         implicit val writeContext: WriteContext[JsValue] = WriteContext(prefixes = Prefixes.default, user = userContext, resources = EmptyResourceManager())
         var resultJson = PluginListJsonFormat.serializePlugin(pluginDesc, addMarkdownDocumentation, overviewOnly = false,

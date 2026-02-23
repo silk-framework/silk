@@ -759,7 +759,7 @@ trait WorkspaceProviderTestTrait extends AnyFlatSpec with Matchers with MockitoS
 
 @Plugin(id = "WorkspaceProviderTestTask", label = "test task")
 case class TestCustomTask(stringParam: String, numberParam: Int) extends CustomTask {
-  override def inputPorts: InputPorts = FixedNumberOfInputs(Seq.empty)
+  override def inputPorts: InputPorts = InputPorts.NoInputPorts
   override def outputPort: Option[Port] = None
 }
 
@@ -776,7 +776,7 @@ object WorkspaceProviderTestPlugins {
       throw new FailingTaskException("Failed!")
     }
 
-    override def inputPorts: InputPorts = FixedNumberOfInputs(Seq.empty)
+    override def inputPorts: InputPorts = InputPorts.NoInputPorts
 
     override def outputPort: Option[Port] = None
   }

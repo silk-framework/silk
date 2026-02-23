@@ -54,7 +54,8 @@ class ClassPluginDescription[+T <: AnyPlugin](val id: Identifier,
                                               val pluginTypes: Seq[PluginTypeDescription],
                                               val icon: Option[String],
                                               val actions: SeqMap[String, PluginAction],
-                                              val deprecation: Option[String]) extends PluginDescription[T] {
+                                              val deprecation: Option[String],
+                                              val relatedPlugins: Seq[PluginReference]) extends PluginDescription[T] {
 
   val backendType: String = "native"
 
@@ -160,7 +161,10 @@ object ClassPluginDescription {
       pluginTypes = pluginTypes,
       icon = loadIcon(pluginClass, annotation.iconFile()),
       actions = getActions(pluginClass),
-      deprecation = Option(annotation.deprecation).filter(_.trim.nonEmpty)
+      deprecation = Option(annotation.deprecation).filter(_.trim.nonEmpty),
+      relatedPlugins = ArraySeq.unsafeWrapArray(annotation.relatedPlugins).map { ref =>
+        PluginReference(ref.id, Option(ref.description).filter(_.nonEmpty))
+      }
     )
   }
 
@@ -177,7 +181,8 @@ object ClassPluginDescription {
         pluginTypes = getPluginTypes(pluginClass),
         icon = None,
         actions = SeqMap.empty,
-        deprecation = None
+        deprecation = None,
+        relatedPlugins = Seq.empty
       )
     } catch {
       case ex: InvalidPluginException =>

@@ -26,7 +26,7 @@ import org.silkframework.rule.TransformSpec
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.{ParameterValues, PluginContext}
 import org.silkframework.runtime.serialization.ReadContext
-import org.silkframework.runtime.validation.{BadUserInputException, RequestException}
+import org.silkframework.runtime.validation.{BadUserInputException, ConflictRequestException, RequestException}
 import org.silkframework.util.Uri
 import org.silkframework.workbench.Context
 import org.silkframework.workbench.utils.ErrorResult

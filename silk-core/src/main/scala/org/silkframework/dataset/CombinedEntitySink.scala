@@ -28,9 +28,9 @@ class CombinedEntitySink(val sinks: Seq[EntitySink]) extends EntitySink {
     }
   }
 
-  override def clear()(implicit userContext: UserContext): Unit = {
+  override def clear(force: Boolean = false)(implicit userContext: UserContext): Unit = {
     for(sink <- sinks) {
-      sink.clear()
+      sink.clear(force)
     }
   }
 
