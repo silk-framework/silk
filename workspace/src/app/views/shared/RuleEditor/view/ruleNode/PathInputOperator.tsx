@@ -285,6 +285,10 @@ const LanguageSwitcher = ({ onLanguageChange, initialLanguage }: LanguageSwitche
         <Select<string>
             inputProps={{
                 id: "language-filter-input",
+                className: "nodrag"
+            }}
+            menuProps={{
+                className: "nodrag"
             }}
             items={languageFilterItems}
             filterable={true}
@@ -344,6 +348,7 @@ const LanguageSwitcher = ({ onLanguageChange, initialLanguage }: LanguageSwitche
         >
             {languageFilter ? (
                 <Button
+                    className={"nodrag"}
                     data-test-id={"language-filter-btn"}
                     tooltip={t("PathInputOperator.languageButtonTooltip")}
                     outlined={true}
@@ -352,6 +357,7 @@ const LanguageSwitcher = ({ onLanguageChange, initialLanguage }: LanguageSwitche
                 </Button>
             ) : (
                 <IconButton
+                    className={"nodrag"}
                     data-test-id={"language-filter-btn"}
                     text={t("PathInputOperator.languageButtonTooltip")}
                     name={"operation-translate"}
