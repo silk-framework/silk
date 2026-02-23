@@ -4,6 +4,7 @@ import controllers.core.UserContextActions
 import controllers.core.util.ControllerUtilsTrait
 import io.swagger.v3.oas.annotations.enums.ParameterIn
 import io.swagger.v3.oas.annotations.media.{Content, Schema}
+import io.swagger.v3.oas.annotations.media.Schema.RequiredMode
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.tags.Tag
 import io.swagger.v3.oas.annotations.{Operation, Parameter}
@@ -145,11 +146,11 @@ class TaskDownloadApi @Inject() extends InjectedController with UserContextActio
   @Schema(description = "Information on whether the result of a task can be downloaded.")
   case class DownloadInfo(@Schema(
                             description = "True, if the result of this task can be downloaded. False, otherwise.",
-                            required = true)
+                            requiredMode = RequiredMode.REQUIRED)
                           downloadSupported: Boolean,
                           @Schema(
                             description = "User-readable explanation why the result cannot be downloaded.",
-                            required = true)
+                            requiredMode = RequiredMode.REQUIRED)
                           info: String)
 
   implicit val downloadInfoFormat: Format[DownloadInfo] = Json.format[DownloadInfo]

@@ -29,5 +29,6 @@ class XmlSink(val resource: WritableResource,
    */
   override def clear(force: Boolean = false)(implicit userContext: UserContext): Unit = {
     resource.delete()
+    super.clear(force)
   }
 }

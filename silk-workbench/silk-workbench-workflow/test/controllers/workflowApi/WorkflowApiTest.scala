@@ -146,7 +146,7 @@ object BlockingTask {
 
 /** Task that blocks until externally released. */
 case class BlockingTask() extends CustomTask {
-  override def inputPorts: InputPorts = FixedNumberOfInputs(Seq.empty)
+  override def inputPorts: InputPorts = InputPorts.NoInputPorts
   override def outputPort: Option[Port] = None
 }
 

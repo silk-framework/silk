@@ -529,6 +529,9 @@ class XmlSourceStreaming(file: Resource, basePath: String, uriPattern: String) e
     paths.put(Nil, 0)
     val idx = new AtomicInteger(1)
     var currentPath = List[String]()
+    if(!file.exists) {
+      return Seq.empty
+    }
     val inputStream = file.inputStream
     try {
       val reader: XMLStreamReader = initStreamReader(inputStream)
