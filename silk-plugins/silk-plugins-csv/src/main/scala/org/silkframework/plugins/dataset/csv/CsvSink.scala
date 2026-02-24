@@ -9,7 +9,7 @@ import org.silkframework.util.Uri
 import java.io.{File, IOException}
 import java.util.logging.Logger
 
-class CsvSink(val resource: WritableResource, settings: CsvSettings) extends DataSink with DirtyTrackingFileDataSink {
+class CsvSink(val resource: WritableResource, settings: CsvSettings) extends DirtyTrackingFileDataSink {
   private val log: Logger = Logger.getLogger(getClass.getName)
 
   @volatile
@@ -56,6 +56,7 @@ class CsvSink(val resource: WritableResource, settings: CsvSettings) extends Dat
         case e: IOException =>
           log.warning("IO exception occurred when deleting CRC file: " + e.getMessage)
       }
+      super.clear(force)
     }
   }
 }

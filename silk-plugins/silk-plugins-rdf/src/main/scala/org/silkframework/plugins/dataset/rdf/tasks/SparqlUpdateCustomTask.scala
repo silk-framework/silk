@@ -57,7 +57,7 @@ case class SparqlUpdateCustomTask(
 
   override def inputPorts: InputPorts = {
     if(isStaticTemplate) {
-      FixedNumberOfInputs(Seq.empty)
+      InputPorts.NoInputPorts
     } else {
       FixedNumberOfInputs(Seq(FixedSchemaPort(expectedInputSchema)))
     }
