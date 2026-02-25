@@ -31,7 +31,7 @@ case class InitApi @Inject()() extends InjectedController with UserContextAction
   private val dmLinkIcon = "icon"
   private val dmLinkDefaultLabel = "defaultLabel"
   private val playMaxFileUploadSizeKey = "play.http.parser.maxDiskBuffer"
-  private val apiKey = "com.eccenca.di.assistant.ApiConfig.apiKey"
+  private val assistantConfigKey = "com.eccenca.di.assistant.ApiConfig"
   private val mappingCreatorEnabledKey = "com.eccenca.di.mappingCreatorEnabled"
   private val versionKey = "workbench.version"
   private lazy val cfg = DefaultConfig.instance()
@@ -54,7 +54,12 @@ case class InitApi @Inject()() extends InjectedController with UserContextAction
   }
 
   lazy val assistantSupported: Boolean = {
-    cfg.hasPath(apiKey) && cfg.getString(apiKey) != ""
+    cfg.hasPath(assistantConfigKey) && {
+      val assistantCfg = cfg.getConfig(assistantConfigKey)
+      (assistantCfg.hasPath("apiKey") && assistantCfg.getString("apiKey") != "") ||
+        assistantCfg.hasPath("coreUrl") ||
+        (assistantCfg.hasPath("useDataPlatformGateway") && assistantCfg.getBoolean("useDataPlatformGateway"))
+    }
   }
 
   lazy val mappingCreatorEnabled: Boolean = {
