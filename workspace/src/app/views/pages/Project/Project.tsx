@@ -37,6 +37,8 @@ import { previewSlice } from "@ducks/workspace/previewSlice";
 import VariablesWidget from "../../../views/shared/VariablesWidget/VariablesWidget";
 import { useSelectFirstResult } from "../../../hooks/useSelectFirstResult";
 import { GlobalTableContext } from "../../../GlobalContextsWrapper";
+import { pluginRegistry, SUPPORTED_PLUGINS } from "../../plugins/PluginRegistry";
+import { ProjectAccessControlProps } from "../../plugins/plugin.types";
 
 const Project = () => {
     const dispatch = useDispatch();
@@ -49,9 +51,12 @@ const Project = () => {
     const data = useSelector(workspaceSel.resultsSelector);
     const projectId = useSelector(commonSel.currentProjectIdSelector);
     const qs = useSelector(routerSel.routerSearchSelector);
-    const pagination = useSelector(workspaceSel.paginationSelector);
     const { clearSearchResults } = previewSlice.actions;
     const [t] = useTranslation();
+
+    const projectAccessControl = pluginRegistry.pluginReactComponent<ProjectAccessControlProps>(
+        SUPPORTED_PLUGINS.DI_PROJECT_ACL,
+    );
 
     // FIXME: Workaround to prevent search with a text query from another page sharing the same Redux state. Needs refactoring.
     const [searchInitialized, setSearchInitialized] = React.useState(false);
@@ -181,6 +186,12 @@ const Project = () => {
                     <ActivityInfoWidget />
                     <Spacing />
                     <FileWidget />
+                    {projectAccessControl ? (
+                        <>
+                            <Spacing key={"spacing"} />
+                            <projectAccessControl.Component key={"component"} projectId={projectId} />
+                        </>
+                    ) : null}
                 </Section>
             </WorkspaceSide>
         </WorkspaceContent>

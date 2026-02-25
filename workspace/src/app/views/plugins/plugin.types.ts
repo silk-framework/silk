@@ -139,3 +139,8 @@ interface PreviewContent {
     /** The values for each attribute. This must have the same length as the attributes array. */
     values: string[][];
 }
+
+/** Project ACL plugin props. */
+export interface ProjectAccessControlProps {
+    projectId: string;
+}
