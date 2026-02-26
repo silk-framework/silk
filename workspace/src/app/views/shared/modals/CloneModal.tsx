@@ -10,7 +10,12 @@ import {
     TextField,
 } from "@eccenca/gui-elements";
 import { ErrorResponse, FetchError } from "../../../services/fetch/responseInterceptor";
-import { requestCloneProject, requestCloneTask } from "@ducks/workspace/requests";
+import {
+    fetchProjectAccessControl,
+    fetchUserData,
+    requestCloneProject,
+    requestCloneTask,
+} from "@ducks/workspace/requests";
 import { requestProjectMetadata, requestTaskMetadata } from "@ducks/shared/requests";
 import { useTranslation } from "react-i18next";
 import { IModalItem } from "@ducks/shared/typings";
@@ -18,6 +23,10 @@ import useHotKey from "../HotKeyHandler/HotKeyHandler";
 import { requestProjectIdValidation, requestTaskIdValidation } from "@ducks/common/requests";
 import { debounce } from "lodash";
 import { TaskDocumentationModal } from "./CreateArtefactModal/TaskDocumentationModal";
+import { useSelector } from "react-redux";
+import { commonSel } from "@ducks/common";
+import { pluginRegistry, SUPPORTED_PLUGINS } from "../../plugins/PluginRegistry";
+import { ProjectAccessControlManagementProps } from "../../plugins/plugin.types";
 
 export interface ICloneOptions {
     item: IModalItem;
@@ -40,6 +49,13 @@ export default function CloneModal({ item, onDiscard, onConfirmed }: ICloneOptio
     const [label, setLabel] = useState<string | undefined>(item.label);
     const [t] = useTranslation();
     const [showDocumentation, setShowDocumentation] = React.useState<boolean>(false);
+    const initialSettings = useSelector(commonSel.initialSettingsSelector);
+    const aclEnabled = initialSettings?.aclEnabled ?? false;
+    const [initialAclGroups, setInitialAclGroups] = useState<string[] | undefined>(undefined);
+    const [aclGroups, setAclGroups] = useState<string[]>([]);
+    const projectAclManagement = pluginRegistry.pluginReactComponent<ProjectAccessControlManagementProps>(
+        SUPPORTED_PLUGINS.DI_PROJECT_ACL_MANAGEMENT,
+    );
 
     useEffect(() => {
         prepareCloning();
@@ -56,6 +72,19 @@ export default function CloneModal({ item, onDiscard, onConfirmed }: ICloneOptio
             setLabel(currentLabel);
             setDescription(response.data.description);
             setNewLabel(t("common.messages.cloneOf", { item: currentLabel }));
+            if (!item.id && aclEnabled) {
+                try {
+                    const [aclRes, userRes] = await Promise.all([
+                        fetchProjectAccessControl(item.projectId),
+                        fetchUserData(),
+                    ]);
+                    const intersection = userRes.data.groups.filter((g) => aclRes.data.groups.includes(g));
+                    setInitialAclGroups(intersection);
+                    setAclGroups(intersection);
+                } catch {
+                    // swallow exception, ACL widget will fall back to fetching from project
+                }
+            }
         } catch (ex) {
             // swallow exception, fallback to ID
         } finally {
@@ -114,7 +143,7 @@ export default function CloneModal({ item, onDiscard, onConfirmed }: ICloneOptio
 
             const response = id
                 ? await requestCloneTask(id, projectId, payload, customId)
-                : await requestCloneProject(projectId, { ...payload, newTaskId: customId });
+                : await requestCloneProject(projectId, { ...payload, newTaskId: customId, groups: aclGroups });
             onConfirmed && onConfirmed(newLabel, response.data.detailsPage);
         } catch (e) {
             if (e.isFetchError) {
@@ -210,6 +239,16 @@ export default function CloneModal({ item, onDiscard, onConfirmed }: ICloneOptio
                     onKeyUp={enterHandler}
                 />
             </FieldItem>
+            {!item.id && aclEnabled && !initialLoading && projectAclManagement && (
+                <>
+                    <Spacing />
+                    <projectAclManagement.Component
+                        projectId={item.projectId}
+                        initialGroups={initialAclGroups}
+                        onChange={setAclGroups}
+                    />
+                </>
+            )}
             {error && (
                 <>
                     <Spacing />

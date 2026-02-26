@@ -152,6 +152,7 @@ export const SUPPORTED_PLUGINS = {
     DI_PARAMETER_EXTENSIONS: "di:parameterExtensions",
     DI_MATCHING: "di:matchingNG",
     DI_PROJECT_ACL: "di:projectAcl",
+    DI_PROJECT_ACL_MANAGEMENT: "di:projectAclManagement",
 };
 
 registerCorePlugins();

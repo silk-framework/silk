@@ -11,7 +11,7 @@ import {
     TaskContextResponse,
 } from "@ducks/workspace/typings";
 import fetch from "../../../services/fetch";
-import { legacyApiEndpoint, projectApi, workspaceApi } from "../../../utils/getApiEndpoint";
+import { coreApi, legacyApiEndpoint, projectApi, workspaceApi } from "../../../utils/getApiEndpoint";
 import { FetchResponse } from "../../../services/fetch/responseInterceptor";
 import { IAutocompleteDefaultResponse, IProjectTask } from "@ducks/shared/typings";
 import { TaskContext } from "../../../views/shared/projectTaskTabView/projectTaskTabView.typing";
@@ -79,10 +79,45 @@ export const requestRemoveTask = async (
     });
 };
 
+interface CloneProjectRequestData {
+    metaData: ItemMetaData;
+    newTaskId?: string;
+    groups?: string[];
+}
+
+export interface ItemMetaData {
+    label: string;
+    description?: string;
+    tags?: string[];
+}
+
 interface IClonedItem {
     id: string;
     detailsPage: string;
 }
+
+export interface ProjectAcl {
+    groups: string[];
+}
+
+export interface UserData {
+    uri: string;
+    label: string;
+    groups: string[];
+}
+
+const accessControlEndpoint = (projectId: string) => projectApi(`${projectId}/accessControl`);
+
+export const fetchProjectAccessControl = (projectId: string): Promise<FetchResponse<ProjectAcl>> =>
+    fetch({ url: accessControlEndpoint(projectId), method: "GET" });
+
+export const updateProjectAccessControl = (
+    projectId: string,
+    projectAcl: ProjectAcl,
+): Promise<FetchResponse<ProjectAcl>> =>
+    fetch({ url: accessControlEndpoint(projectId), method: "PUT", body: projectAcl });
+
+export const fetchUserData = (): Promise<FetchResponse<UserData>> => fetch({ url: coreApi("/user"), method: "GET" });
 
 export const requestCopyProject = async (projectId: string, payload: any) => {
     return fetch({
@@ -124,7 +159,11 @@ export const requestCloneTask = async (
     });
 };
 
-export const requestCloneProject = async (projectId: string, payload: any): Promise<FetchResponse<IClonedItem>> => {
+/** Clones an existing project. */
+export const requestCloneProject = async (
+    projectId: string,
+    payload: CloneProjectRequestData,
+): Promise<FetchResponse<IClonedItem>> => {
     return fetch({
         url: workspaceApi(`/projects/${projectId}/clone`),
         method: "POST",
@@ -412,13 +451,10 @@ export const validateYaml = async (
 };
 
 /** Clears (the content of) a dataset. */
-export const clearDataset = async (
-    projectId: string,
-    datasetId: string
-): Promise<FetchResponse<void>> => {
+export const clearDataset = async (projectId: string, datasetId: string): Promise<FetchResponse<void>> => {
     const url = projectApi(`${projectId}/datasets/${datasetId}/content`);
     return fetch({
         url,
         method: "DELETE",
     });
-}
+};

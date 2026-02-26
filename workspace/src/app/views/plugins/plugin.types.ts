@@ -144,3 +144,12 @@ interface PreviewContent {
 export interface ProjectAccessControlProps {
     projectId: string;
 }
+
+/** Project ACL management plugin props. */
+export interface ProjectAccessControlManagementProps {
+    projectId: string;
+    readOnly?: boolean;
+    onChange: (groups: string[]) => void;
+    /** Initial group selection. If omitted, the groups are fetched from the project's ACL. */
+    initialGroups?: string[];
+}
