@@ -3,7 +3,6 @@ import {
     Divider,
     IconButton,
     Markdown,
-    Notification,
     OverflowText,
     OverviewItem,
     OverviewItemActions,
@@ -122,9 +121,6 @@ export function DeprecatedPluginsList({
 
         return (
             <>
-                {!isLoading && filteredPlugins.length === 0 && (
-                    <Notification>{t("pages.deprecatedPlugins.noPluginsFound")}</Notification>
-                )}
                 {Object.entries(groups).map(([pluginId, group], index) => (
                     <React.Fragment key={pluginId}>
                         {index > 0 && <Divider addSpacing="small" />}
@@ -168,7 +164,6 @@ export function DeprecatedPluginsList({
                 isLoading={isLoading}
                 hasSpacing
                 columns={1}
-                emptyContainer={<Notification>{t("pages.deprecatedPlugins.noPluginsFound")}</Notification>}
             >
                 {filteredPlugins.map(renderItem)}
             </Datalist>

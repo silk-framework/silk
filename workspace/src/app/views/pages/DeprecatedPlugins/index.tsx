@@ -125,11 +125,13 @@ export default function DeprecatedPlugins() {
         <WorkspaceContent>
             {/* page header in app bar */}
             {pageHeader}
-            {deprecatedPlugins.length > 0 && (
-                <Notification>{t("pages.deprecatedPlugins.infoMessage")}</Notification>
+            <Spacing />
+            {!isLoading && deprecatedPlugins.length === 0 && (
+                <Notification>{t("pages.deprecatedPlugins.noPluginsFound")}</Notification>
             )}
+            {deprecatedPlugins.length > 0 && <Notification>{t("pages.deprecatedPlugins.infoMessage")}</Notification>}
+            <Spacing />
             <WorkspaceMain>
-                <Spacing />
                 <Grid>
                     <GridRow>
                         {/* Left sidebar: plugin filter */}
