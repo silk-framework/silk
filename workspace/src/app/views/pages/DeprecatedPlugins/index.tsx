@@ -2,7 +2,11 @@ import React, { useEffect, useMemo, useState } from "react";
 import {
     Card,
     Divider,
+    Grid,
+    GridColumn,
+    GridRow,
     IconButton,
+    Label,
     Markdown,
     Notification,
     OverflowText,
@@ -11,6 +15,7 @@ import {
     OverviewItemDepiction,
     OverviewItemDescription,
     OverviewItemLine,
+    RadioButton,
     Spacing,
     Tag,
     TagList,
@@ -39,16 +44,17 @@ export interface DeprecatedPluginsModel {
     deprecationMessage: string;
 }
 
-type GroupedSection = {
+type PluginGroup = {
     key: string;
-    items: DeprecatedPluginsModel[];
-    deprecationMessage?: string;
+    count: number;
+    deprecationMessage: string;
 };
 
 // This page is used to display deprecated plugins that are still in use in existing projects. It serves as an overview for users to identify and replace deprecated plugins in their projects.
 export default function DeprecatedPlugins() {
     const [deprecatedPlugins, setDeprecatedPlugins] = useState<DeprecatedPluginsModel[]>([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [selectedPluginKey, setSelectedPluginKey] = useState<string | null>(null);
     const { registerError } = useErrorHandler();
     const [t] = useTranslation();
 
@@ -88,25 +94,37 @@ export default function DeprecatedPlugins() {
         return () => {};
     }, []);
 
-    const groupedSections = useMemo((): GroupedSection[] => {
-        const sorted = [...deprecatedPlugins].sort((a, b) => {
+    const sortedPlugins = useMemo((): DeprecatedPluginsModel[] => {
+        return [...deprecatedPlugins].sort((a, b) => {
             const keyCmp = (a.pluginLabel ?? "").localeCompare(b.pluginLabel ?? "");
             return keyCmp !== 0 ? keyCmp : (a.taskLabel ?? "").localeCompare(b.taskLabel ?? "");
         });
-
-        const groups = new Map<string, DeprecatedPluginsModel[]>();
-        sorted.forEach((plugin) => {
-            const key = plugin.pluginLabel ?? "";
-            if (!groups.has(key)) groups.set(key, []);
-            groups.get(key)!.push(plugin);
-        });
-
-        return Array.from(groups.entries()).map(([key, items]) => ({
-            key,
-            items,
-            deprecationMessage: items[0]?.deprecationMessage,
-        }));
     }, [deprecatedPlugins]);
+
+    const pluginGroups = useMemo((): PluginGroup[] => {
+        const groups = new Map<string, PluginGroup>();
+        sortedPlugins.forEach((plugin) => {
+            const key = plugin.pluginLabel ?? "";
+            if (!groups.has(key)) {
+                groups.set(key, { key, count: 0, deprecationMessage: plugin.deprecationMessage ?? "" });
+            }
+            groups.get(key)!.count++;
+        });
+        return Array.from(groups.values());
+    }, [sortedPlugins]);
+
+    const selectedPlugin = useMemo(
+        () => pluginGroups.find((g) => g.key === selectedPluginKey) ?? null,
+        [pluginGroups, selectedPluginKey],
+    );
+
+    const filteredPlugins = useMemo(
+        () =>
+            selectedPluginKey
+                ? sortedPlugins.filter((p) => p.pluginLabel === selectedPluginKey)
+                : sortedPlugins,
+        [sortedPlugins, selectedPluginKey],
+    );
 
     const goToTaskPage = (link: string) => (e: React.MouseEvent) => {
         if (!e?.ctrlKey) {
@@ -123,101 +141,135 @@ export default function DeprecatedPlugins() {
                 <Notification>{t("pages.deprecatedPlugins.infoMessage")}</Notification>
             )}
             <Spacing />
-            <Datalist
-                data-test-id="deprecated-plugins-list"
-                isEmpty={!isLoading && deprecatedPlugins.length === 0}
-                isLoading={isLoading}
-                hasSpacing
-                columns={1}
-                emptyContainer={<Notification>{t("pages.deprecatedPlugins.noPluginsFound")}</Notification>}
-            >
-                {groupedSections.map(({ key, items, deprecationMessage }) => (
-                    <React.Fragment key={key}>
-                        {/* Group heading */}
-                        <div style={{ paddingTop: "1rem", paddingBottom: "0.5rem" }}>
-                            <TitleSubsection
-                                useHtmlElement="h3"
-                                style={{ margin: "0 0 0.25rem", display: "flex", alignItems: "center", gap: "0.5rem" }}
-                            >
-                                {key}
-                                <Tag emphasis="weak" style={{ fontWeight: "normal" }}>
-                                    {items.length}
-                                </Tag>
+            <Grid>
+                <GridRow>
+                    {/* Left sidebar: plugin filter */}
+                    <GridColumn small>
+                        <nav>
+                            <TitleSubsection>
+                                <Label
+                                    isLayoutForElement="h3"
+                                    text={t("pages.deprecatedPlugins.title")}
+                                />
                             </TitleSubsection>
-                            {deprecationMessage && (
-                                <div style={{ marginBottom: "0.5rem", opacity: 0.75, fontSize: "0.875em" }}>
-                                    {wrapTooltip(
-                                        deprecationMessage.length > 120,
-                                        <Markdown>{deprecationMessage}</Markdown>,
-                                        <OverflowText passDown={true} inline={true}>
-                                            {deprecationMessage.substring(0, 120)}
-                                        </OverflowText>,
-                                    )}
-                                </div>
-                            )}
-                            <Divider />
-                        </div>
-                        {/* Items in this group */}
-                        {items.map((plugin, index) => (
-                            <Card
-                                key={`${plugin.project}_${plugin.task}_${index}`}
-                                isOnlyLayout
-                                className="diapp-searchitem"
-                                style={{ marginBottom: "0.375rem" }}
-                            >
-                                <OverviewItem hasSpacing data-test-id="deprecated-plugin-item">
-                                    <OverviewItemDepiction>
-                                        <ItemDepiction itemType={plugin.itemType} pluginId={plugin.pluginLabel} />
-                                    </OverviewItemDepiction>
-                                    <OverviewItemDescription>
-                                        {/* Line 1: task name */}
-                                        <OverviewItemLine>
-                                            <h4 style={{ margin: 0 }}>
-                                                <ResourceLink
-                                                    url={plugin.taskLabel || false}
-                                                    handlerResourcePageLoader={
-                                                        plugin.link ? goToTaskPage(contextualPath(plugin.link)) : false
-                                                    }
-                                                >
-                                                    <OverflowText>
-                                                        {plugin.taskLabel || t("pages.deprecatedPlugins.unknownTask")}
-                                                    </OverflowText>
-                                                </ResourceLink>
-                                            </h4>
-                                        </OverviewItemLine>
-                                        {/* Line 2: context tags */}
-                                        <OverviewItemLine small>
-                                            <TagList>
-                                                {plugin.projectLabel && (
-                                                    <Tag emphasis="weak" itemType={plugin.itemType}>
-                                                        {plugin.projectLabel}
-                                                    </Tag>
-                                                )}
-                                                {plugin.itemType && (
-                                                    <Tag emphasis="weak" itemType={plugin.itemType}>
-                                                        {plugin.itemType}
-                                                    </Tag>
-                                                )}
-                                            </TagList>
-                                        </OverviewItemLine>
-                                    </OverviewItemDescription>
-                                    {/* interaction element to link to task page */}
-                                    <OverviewItemActions>
-                                        {plugin.link && (
-                                            <IconButton
-                                                name="item-viewdetails"
-                                                text={t("common.action.showDetails")}
-                                                onClick={goToTaskPage(contextualPath(plugin.link))}
-                                                href={plugin.link}
-                                            />
-                                        )}
-                                    </OverviewItemActions>
-                                </OverviewItem>
-                            </Card>
-                        ))}
-                    </React.Fragment>
-                ))}
-            </Datalist>
+                            <Spacing size="tiny" />
+                            <ul>
+                                <li>
+                                    <RadioButton
+                                        checked={selectedPluginKey === null}
+                                        label={t("common.messages.allTypes", "All")}
+                                        onChange={() => setSelectedPluginKey(null)}
+                                        value=""
+                                    />
+                                </li>
+                                {pluginGroups.map(({ key, count }) => (
+                                    <li key={key}>
+                                        <RadioButton
+                                            checked={selectedPluginKey === key}
+                                            label={`${key} (${count})`}
+                                            onChange={() => setSelectedPluginKey(key)}
+                                            value={key}
+                                        />
+                                    </li>
+                                ))}
+                            </ul>
+                        </nav>
+                    </GridColumn>
+                    {/* Right content: heading + task list */}
+                    <GridColumn>
+                        {selectedPlugin && (
+                            <>
+                                <TitleSubsection useHtmlElement="h3">{selectedPlugin.key}</TitleSubsection>
+                                {selectedPlugin.deprecationMessage && (
+                                    <div style={{ marginBottom: "0.75rem", opacity: 0.75 }}>
+                                        <Markdown>{selectedPlugin.deprecationMessage}</Markdown>
+                                    </div>
+                                )}
+                                <Divider addSpacing="small" />
+                            </>
+                        )}
+                        <Datalist
+                            data-test-id="deprecated-plugins-list"
+                            isEmpty={!isLoading && filteredPlugins.length === 0}
+                            isLoading={isLoading}
+                            hasSpacing
+                            columns={1}
+                            emptyContainer={
+                                <Notification>{t("pages.deprecatedPlugins.noPluginsFound")}</Notification>
+                            }
+                        >
+                            {filteredPlugins.map((plugin, index) => (
+                                <Card
+                                    key={`${plugin.project}_${plugin.task}_${index}`}
+                                    isOnlyLayout
+                                    className="diapp-searchitem"
+                                    style={{ marginBottom: "0.375rem" }}
+                                >
+                                    <OverviewItem hasSpacing data-test-id="deprecated-plugin-item">
+                                        <OverviewItemDepiction>
+                                            <ItemDepiction itemType={plugin.itemType} pluginId={plugin.pluginLabel} />
+                                        </OverviewItemDepiction>
+                                        <OverviewItemDescription>
+                                            {/* Line 1: task name */}
+                                            <OverviewItemLine>
+                                                <h4 style={{ margin: 0 }}>
+                                                    <ResourceLink
+                                                        url={plugin.taskLabel || false}
+                                                        handlerResourcePageLoader={
+                                                            plugin.link
+                                                                ? goToTaskPage(contextualPath(plugin.link))
+                                                                : false
+                                                        }
+                                                    >
+                                                        <OverflowText>
+                                                            {plugin.taskLabel ||
+                                                                t("pages.deprecatedPlugins.unknownTask")}
+                                                        </OverflowText>
+                                                    </ResourceLink>
+                                                </h4>
+                                            </OverviewItemLine>
+                                            {/* Line 2: context tags */}
+                                            <OverviewItemLine small>
+                                                <TagList>
+                                                    {plugin.projectLabel && (
+                                                        <Tag emphasis="weak" itemType={plugin.itemType}>
+                                                            {plugin.projectLabel}
+                                                        </Tag>
+                                                    )}
+                                                    {plugin.itemType && (
+                                                        <Tag emphasis="weak" itemType={plugin.itemType}>
+                                                            {plugin.itemType}
+                                                        </Tag>
+                                                    )}
+                                                    {/* Only show plugin tag when not filtered to a single plugin */}
+                                                    {!selectedPluginKey &&
+                                                        plugin.pluginLabel &&
+                                                        wrapTooltip(
+                                                            !!plugin.deprecationMessage,
+                                                            <Markdown>{plugin.deprecationMessage}</Markdown>,
+                                                            <Tag emphasis="weak">{plugin.pluginLabel}</Tag>,
+                                                        )}
+                                                </TagList>
+                                            </OverviewItemLine>
+                                        </OverviewItemDescription>
+                                        {/* interaction element to link to task page */}
+                                        <OverviewItemActions>
+                                            {plugin.link && (
+                                                <IconButton
+                                                    name="item-viewdetails"
+                                                    text={t("common.action.showDetails")}
+                                                    onClick={goToTaskPage(contextualPath(plugin.link))}
+                                                    href={plugin.link}
+                                                />
+                                            )}
+                                        </OverviewItemActions>
+                                    </OverviewItem>
+                                </Card>
+                            ))}
+                        </Datalist>
+                    </GridColumn>
+                </GridRow>
+            </Grid>
         </div>
     );
 }
