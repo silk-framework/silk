@@ -1,23 +1,10 @@
-import { Card, CardContent, CardHeader, CardTitle, Divider, Link, Notification, Spacing } from "@eccenca/gui-elements";
+import { Card, CardContent, CardHeader, CardTitle, Divider, Notification, Spacing } from "@eccenca/gui-elements";
 import useErrorHandler from "../../../../hooks/useErrorHandler";
-import { contextualPath } from "../../../../constants/path";
 import React, { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { DeprecatedPluginsModel } from "../../DeprecatedPlugins";
+import { DeprecatedPluginsList } from "../../DeprecatedPlugins/DeprecatedPluginsList";
 import { requestDeprecatedPlugins } from "@ducks/common/requests";
-import styles from "./index.module.scss";
-
-type GroupedTask = {
-    label: string;
-    link: string;
-};
-
-type GroupedDataWithLinks = {
-    pluginLabel: string;
-    tasks: GroupedTask[];
-    link: string;
-    deprecationMessage: string;
-};
 
 export function DeprecatedPluginsWidget({ projectId, taskId }: { projectId?: string; taskId?: string }) {
     const [t] = useTranslation();
@@ -71,26 +58,9 @@ export function DeprecatedPluginsWidget({ projectId, taskId }: { projectId?: str
         return null;
     }
 
-    function groupByPluginWithLinks(data: DeprecatedPluginsModel[]): GroupedDataWithLinks[] {
-        const groupedMap: Record<string, GroupedTask[]> = {};
-
-        data.forEach((item) => {
-            if (!groupedMap[item.pluginLabel]) {
-                groupedMap[item.pluginLabel] = [];
-            }
-            groupedMap[item.pluginLabel].push({
-                label: item.taskLabel,
-                link: item.link,
-            });
-        });
-
-        return Object.entries(groupedMap).map(([pluginLabel, tasks]) => ({
-            pluginLabel,
-            tasks,
-            link: data.find((item) => item.pluginLabel === pluginLabel)?.link || "",
-            deprecationMessage: data.find((item) => item.pluginLabel === pluginLabel)?.deprecationMessage || "",
-        }));
-    }
+    const visiblePlugins = isOnLinkingOrTransformPage
+        ? deprecatedPlugins.filter((plugin) => !path.startsWith((plugin.link || "").split("?")[0]))
+        : deprecatedPlugins;
 
     return (
         <Card>
@@ -105,46 +75,13 @@ export function DeprecatedPluginsWidget({ projectId, taskId }: { projectId?: str
             <CardContent>
                 <Notification intent="warning">{t("widget.deprecatedPluginWidget.message")}</Notification>
                 <Spacing />
-                <div className={styles.pluginList}>
-                    {groupByPluginWithLinks(deprecatedPlugins).map((plugin) => {
-                        const visibleTasks = isOnLinkingOrTransformPage
-                            ? plugin.tasks.filter((task) => !path.startsWith(task.link.split("?")[0]))
-                            : plugin.tasks;
-                        return (
-                        <div key={plugin.pluginLabel} className={styles.pluginEntry}>
-                            <p className={styles.pluginName}>
-                                {plugin.pluginLabel}
-                                <span className={styles.pluginCount}>({plugin.tasks.length})</span>
-                            </p>
-                            {plugin.deprecationMessage && (
-                                <p className={styles.deprecationMessage}>{plugin.deprecationMessage}</p>
-                            )}
-                            {visibleTasks.length > 0 && (
-                                <>
-                                    <p className={styles.tasksLabel}>{t("widget.deprecatedPluginWidget.tasks")}</p>
-                                    <ul className={styles.taskList}>
-                                        {visibleTasks.map((task) => (
-                                            <li key={task.link} className={styles.taskItem}>
-                                                <Link
-                                                    onClick={(e) => {
-                                                        if (!e?.ctrlKey) {
-                                                            e.preventDefault();
-                                                            window.location.href = contextualPath(task.link);
-                                                        }
-                                                    }}
-                                                    href={task.link}
-                                                >
-                                                    {task.label}
-                                                </Link>
-                                            </li>
-                                        ))}
-                                    </ul>
-                                </>
-                            )}
-                        </div>
-                        );
-                    })}
-                </div>
+                <DeprecatedPluginsList
+                    filteredPlugins={visiblePlugins}
+                    selectedPlugin={null}
+                    selectedPluginKey={null}
+                    isLoading={false}
+                    hasCardWrapper={false}
+                />
             </CardContent>
         </Card>
     );
