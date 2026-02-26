@@ -54,21 +54,26 @@ trait GraphStoreTrait {
   /**
    * Allows to write triples directly into a graph. The [[OutputStream]] must be closed by the caller.
     *
-    * @param graph
-   * @param contentType
+    * @param graph The graph to write to.
+   * @param contentType The content type of the data.
    * @return A buffered output stream
    */
   def postDataToGraph(graph: String,
                       contentType: String = "application/n-triples",
                       chunkedStreamingMode: Option[Int] = Some(1000),
-                      comment: Option[String] = None)
+                      comment: Option[String] = None,
+                      forceStreaming: Boolean = false)
                      (implicit userContext: UserContext): OutputStream = {
-    this match {
-      case uploadGraphStore: GraphStoreFileUploadTrait =>
-        // If file upload is available, use different approach. GSP file upload is much more stable and usually offers a retry mechanism.
-        postDataToGraphViaFileUpload(uploadGraphStore, graph, contentType, comment)
-      case _ =>
-        postDataToGraphViaPostRequest(graph, contentType, chunkedStreamingMode, comment)
+    if (!forceStreaming) {
+      this match {
+        case uploadGraphStore: GraphStoreFileUploadTrait =>
+          // If file upload is available, use different approach. GSP file upload is much more stable and usually offers a retry mechanism.
+          postDataToGraphViaFileUpload(uploadGraphStore, graph, contentType, comment)
+        case _ =>
+          postDataToGraphViaPostRequest(graph, contentType, chunkedStreamingMode, comment)
+      }
+    } else {
+      postDataToGraphViaPostRequest(graph, contentType, chunkedStreamingMode, comment)
     }
   }
 
