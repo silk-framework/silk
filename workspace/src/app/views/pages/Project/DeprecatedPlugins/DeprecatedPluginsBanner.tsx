@@ -1,4 +1,4 @@
-import { Notification, Spacing } from "@eccenca/gui-elements";
+import { HtmlContentBlock, Notification, Spacing } from "@eccenca/gui-elements";
 import React, { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { DeprecatedPluginsModel } from "views/pages/DeprecatedPlugins";
@@ -34,22 +34,25 @@ export default function DeprecatedPluginsBanner({ projectId, taskId }: { project
     return (
         <>
             <Notification intent="warning">
-                <p>{t("common.messages.deprecatedPluginBanner")}</p>
-                <Spacing size="small" />
-                <p>
-                    <strong>{t("common.messages.deprecatedPluginBannerPluginLabel")}:</strong> {plugin.pluginLabel}
-                </p>
-                <p>
-                    <strong>{t("common.messages.deprecatedPluginBannerTaskLabel")}:</strong> {plugin.linkLabel}
-                </p>
-                {plugin.deprecationMessage && (
-                    <p>
-                        <strong>{t("common.messages.deprecatedPluginBannerDeprecationMessage")}:</strong>{" "}
-                        {plugin.deprecationMessage}
-                    </p>
-                )}
+                <HtmlContentBlock>
+                    <p>{t("common.messages.deprecatedPluginBanner")}</p>
+                    <ul>
+                        <li>
+                            <strong>{t("common.messages.deprecatedPluginBannerPluginLabel")}:</strong> {plugin.pluginLabel}
+                        </li>
+                        <li>
+                            <strong>{t("common.messages.deprecatedPluginBannerTaskLabel")}:</strong> {plugin.linkLabel}
+                        </li>
+                        {plugin.deprecationMessage && (
+                            <li>
+                                <strong>{t("common.messages.deprecatedPluginBannerDeprecationMessage")}:</strong>{" "}
+                                {plugin.deprecationMessage}
+                            </li>
+                        )}
+                    </ul>
+                </HtmlContentBlock>
             </Notification>
-            <br />
+            <Spacing />
         </>
     );
 }
