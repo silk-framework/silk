@@ -45,7 +45,8 @@ export interface DeprecatedPluginsModel {
 }
 
 type PluginGroup = {
-    key: string;
+    pluginId: string;
+    pluginLabel: string;
     count: number;
     deprecationMessage: string;
 };
@@ -90,8 +91,6 @@ export default function DeprecatedPlugins() {
             .finally(() => {
                 setIsLoading(false);
             });
-
-        return () => {};
     }, []);
 
     const sortedPlugins = useMemo((): DeprecatedPluginsModel[] => {
@@ -104,30 +103,37 @@ export default function DeprecatedPlugins() {
     const pluginGroups = useMemo((): PluginGroup[] => {
         const groups = new Map<string, PluginGroup>();
         sortedPlugins.forEach((plugin) => {
-            const key = plugin.pluginLabel ?? "";
-            if (!groups.has(key)) {
-                groups.set(key, { key, count: 0, deprecationMessage: plugin.deprecationMessage ?? "" });
+            const id = plugin.pluginId;
+            if (!groups.has(id)) {
+                groups.set(id, {
+                    pluginId: id,
+                    pluginLabel: plugin.pluginLabel ?? "",
+                    count: 0,
+                    deprecationMessage: plugin.deprecationMessage ?? "",
+                });
             }
-            groups.get(key)!.count++;
+            groups.get(id)!.count++;
         });
         return Array.from(groups.values());
     }, [sortedPlugins]);
 
     useEffect(() => {
-        if (pluginGroups.length > 0 && selectedPluginKey === null) {
-            setSelectedPluginKey(pluginGroups[0].key);
+        if (pluginGroups.length === 0) return;
+        const isValidSelection = pluginGroups.some((g) => g.pluginId === selectedPluginKey);
+        if (!isValidSelection) {
+            setSelectedPluginKey(pluginGroups[0].pluginId);
         }
     }, [pluginGroups]);
 
     const selectedPlugin = useMemo(
-        () => pluginGroups.find((g) => g.key === selectedPluginKey) ?? null,
+        () => pluginGroups.find((g) => g.pluginId === selectedPluginKey) ?? null,
         [pluginGroups, selectedPluginKey],
     );
 
     const filteredPlugins = useMemo(
         () =>
             selectedPluginKey
-                ? sortedPlugins.filter((p) => p.pluginLabel === selectedPluginKey)
+                ? sortedPlugins.filter((p) => p.pluginId === selectedPluginKey)
                 : sortedPlugins,
         [sortedPlugins, selectedPluginKey],
     );
@@ -160,13 +166,13 @@ export default function DeprecatedPlugins() {
                             </TitleSubsection>
                             <Spacing size="tiny" />
                             <ul>
-                                {pluginGroups.map(({ key, count }) => (
-                                    <li key={key}>
+                                {pluginGroups.map(({ pluginId, pluginLabel, count }) => (
+                                    <li key={pluginId}>
                                         <RadioButton
-                                            checked={selectedPluginKey === key}
-                                            label={`${key} (${count})`}
-                                            onChange={() => setSelectedPluginKey(key)}
-                                            value={key}
+                                            checked={selectedPluginKey === pluginId}
+                                            label={`${pluginLabel} (${count})`}
+                                            onChange={() => setSelectedPluginKey(pluginId)}
+                                            value={pluginId}
                                         />
                                     </li>
                                 ))}
@@ -177,7 +183,7 @@ export default function DeprecatedPlugins() {
                     <GridColumn>
                         {selectedPlugin && (
                             <>
-                                <TitleSubsection useHtmlElement="h3">{selectedPlugin.key}</TitleSubsection>
+                                <TitleSubsection useHtmlElement="h3">{selectedPlugin.pluginLabel}</TitleSubsection>
                                 {selectedPlugin.deprecationMessage && (
                                     <div style={{ marginBottom: "0.75rem", opacity: 0.75 }}>
                                         <Markdown>{selectedPlugin.deprecationMessage}</Markdown>
@@ -196,22 +202,22 @@ export default function DeprecatedPlugins() {
                                 <Notification>{t("pages.deprecatedPlugins.noPluginsFound")}</Notification>
                             }
                         >
-                            {filteredPlugins.map((plugin, index) => (
+                            {filteredPlugins.map((plugin) => (
                                 <Card
-                                    key={`${plugin.project}_${plugin.task}_${index}`}
+                                    key={`${plugin.project}_${plugin.task}_${plugin.pluginId}`}
                                     isOnlyLayout
                                     className="diapp-searchitem"
                                 >
                                     <OverviewItem hasSpacing data-test-id="deprecated-plugin-item">
                                         <OverviewItemDepiction>
-                                            <ItemDepiction itemType={plugin.itemType} pluginId={plugin.pluginLabel} />
+                                            <ItemDepiction itemType={plugin.itemType} pluginId={plugin.pluginId} />
                                         </OverviewItemDepiction>
                                         <OverviewItemDescription>
                                             {/* Line 1: task name */}
                                             <OverviewItemLine>
                                                 <h4 style={{ margin: 0 }}>
                                                     <ResourceLink
-                                                        url={plugin.taskLabel || false}
+                                                        url={plugin.link || false}
                                                         handlerResourcePageLoader={
                                                             plugin.link
                                                                 ? goToTaskPage(contextualPath(plugin.link))
