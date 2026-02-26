@@ -1,6 +1,7 @@
 package controllers.workspace.doc
 
 import io.swagger.v3.oas.annotations.media.Schema
+import io.swagger.v3.oas.annotations.media.Schema.RequiredMode
 
 object ResourceApiDoc {
 
@@ -44,9 +45,9 @@ The options are exclusive, i.e., only one option can be used per request."""
   /**
     * Models a multipart request for uploading resources.
     */
-  case class ResourceMultiPartRequest(@Schema(`type` = "string", format = "binary", description = "Resource contents", required = false)
+  case class ResourceMultiPartRequest(@Schema(`type` = "string", format = "binary", description = "Resource contents", requiredMode = RequiredMode.NOT_REQUIRED)
                                       file: Option[String],
-                                      @Schema(description = "Resource URL", required = false)
+                                      @Schema(description = "Resource URL", requiredMode = RequiredMode.NOT_REQUIRED)
                                       `resource-url`: Option[String])
 
 }

@@ -1,6 +1,7 @@
 package controllers.transform.transformTask
 
 import io.swagger.v3.oas.annotations.media.{ArraySchema, Schema}
+import io.swagger.v3.oas.annotations.media.Schema.RequiredMode
 import play.api.libs.json.{Format, Json}
 
 /**
@@ -25,7 +26,7 @@ case class ValueSourcePathInfo(@Schema(
                                alreadyMapped: Boolean,
                                @Schema(
                                  description = "Added when the `objectInfo` query parameters has been enabled and the path is of type 'object'.",
-                                 required = false
+                                 requiredMode = RequiredMode.NOT_REQUIRED
                                )
                                objectInfo: Option[ObjectValueSourcePathInfo])
 
@@ -37,14 +38,14 @@ case class ValueSourcePathInfo(@Schema(
 case class ObjectValueSourcePathInfo(@ArraySchema(
                                        schema = new Schema(
                                          description = "Direct value paths, i.e. of all direct sub-paths of length 1 of the object values of the path.",
-                                         required = true,
+                                         requiredMode = RequiredMode.REQUIRED,
                                          implementation = classOf[String]
                                      ))
                                      dataTypeSubPaths: Seq[String],
                                      @ArraySchema(
                                        schema = new Schema(
                                          description = "Direct object paths, i.e. of all direct sub-paths of length 1 of the object values of the path.",
-                                         required = true,
+                                         requiredMode = RequiredMode.REQUIRED,
                                          implementation = classOf[String]
                                      ))
                                      objectSubPaths: Seq[String])

@@ -15,6 +15,11 @@ trait DirtyTrackingFileDataSink extends DataSink {
     DirtyTrackingFileDataSink.addUpdatedFile(resource.name)
     super.close()
   }
+
+  abstract override def clear(force: Boolean)(implicit userContext: UserContext): Unit = {
+    DirtyTrackingFileDataSink.addUpdatedFile(resource.name)
+    super.clear(force)
+  }
 }
 
 object DirtyTrackingFileDataSink {

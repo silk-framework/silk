@@ -15,6 +15,7 @@ import controllers.workspaceApi.projectTask.{ItemCloneRequest, ItemCloneResponse
 import io.swagger.v3.oas.annotations.enums.ParameterIn
 import io.swagger.v3.oas.annotations.headers.Header
 import io.swagger.v3.oas.annotations.media.{ArraySchema, Content, ExampleObject, Schema}
+import io.swagger.v3.oas.annotations.media.Schema.RequiredMode
 import io.swagger.v3.oas.annotations.parameters.RequestBody
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.tags.{Tag => OpenApiTag}
@@ -801,9 +802,9 @@ object ProjectApi {
     implicit val projectUriResponseFormat: Format[ProjectUriResponse] = Json.format[ProjectUriResponse]
   }
 
-  case class CreateTag(@Schema(description = "The URI of the new tag. Leave empty to generate a new URI automatically.", required = false, nullable = true)
+  case class CreateTag(@Schema(description = "The URI of the new tag. Leave empty to generate a new URI automatically.", requiredMode = RequiredMode.NOT_REQUIRED, nullable = true)
                        uri: Option[String],
-                       @Schema(description = "Default label of the tag.", required = true, example = "My Tag")
+                       @Schema(description = "Default label of the tag.", requiredMode = RequiredMode.REQUIRED, example = "My Tag")
                        label: String)
 
   @Schema(description = "Request to add a new tag.")

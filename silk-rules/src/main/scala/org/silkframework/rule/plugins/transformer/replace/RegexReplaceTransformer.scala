@@ -21,7 +21,7 @@ import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
 import scala.util.matching.Regex
 
 @Plugin(
-  id = "regexReplace",
+  id = RegexReplaceTransformer.pluginId,
   categories = Array("Replace"),
   label = "Regex replace",
   description = "Replace all occurrences of a regular expression in a string." +
@@ -75,4 +75,10 @@ case class RegexReplaceTransformer(@Param(value = "The regular expression to mat
   def evaluate(value: String): String = {
     compiledRegex.replaceAllIn(value, replace)
   }
+}
+
+object RegexReplaceTransformer {
+
+  final val pluginId = "regexReplace"
+
 }

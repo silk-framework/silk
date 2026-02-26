@@ -11,5 +11,5 @@ trait DataSink extends CloseableDataset {
     *
     * @param force Forces the clearing of the dataset. E.g. even when "clear before execution" flag is not set.
     */
-  def clear(force: Boolean = false)(implicit userContext: UserContext): Unit
+  def clear(force: Boolean = false)(implicit userContext: UserContext): Unit = { }
 }
