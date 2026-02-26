@@ -36,10 +36,19 @@ const goToTaskPage = (link: string) => (e: React.MouseEvent) => {
     }
 };
 
-export function DeprecatedPluginsList({ filteredPlugins, selectedPlugin, selectedPluginKey, isLoading, hasCardWrapper = true }: DeprecatedPluginsListProps) {
+export function DeprecatedPluginsList({
+    filteredPlugins,
+    selectedPlugin,
+    selectedPluginKey,
+    isLoading,
+    hasCardWrapper = true,
+}: DeprecatedPluginsListProps) {
     const [t] = useTranslation();
 
-    const renderItem = (plugin: DeprecatedPluginsModel) => (
+    const currentPath = window.location.pathname;
+    const renderItem = (plugin: DeprecatedPluginsModel) => {
+        const isCurrentPage = !!plugin.link && currentPath.startsWith(plugin.link.split("?")[0]);
+        return (
         <OverviewItem
             key={`${plugin.project}_${plugin.task}_${plugin.pluginId}`}
             hasSpacing
@@ -55,17 +64,10 @@ export function DeprecatedPluginsList({ filteredPlugins, selectedPlugin, selecte
                 <OverviewItemLine>
                     <h4 style={{ margin: 0 }}>
                         <ResourceLink
-                            url={plugin.link || false}
-                            handlerResourcePageLoader={
-                                plugin.link
-                                    ? goToTaskPage(contextualPath(plugin.link))
-                                    : false
-                            }
+                            url={(!isCurrentPage && plugin.link) || false}
+                            handlerResourcePageLoader={!isCurrentPage && plugin.link ? goToTaskPage(contextualPath(plugin.link)) : false}
                         >
-                            <OverflowText>
-                                {plugin.taskLabel ||
-                                    t("pages.deprecatedPlugins.unknownTask")}
-                            </OverflowText>
+                            <OverflowText>{plugin.taskLabel || t("pages.deprecatedPlugins.unknownTask")}</OverflowText>
                         </ResourceLink>
                     </h4>
                 </OverviewItemLine>
@@ -87,7 +89,7 @@ export function DeprecatedPluginsList({ filteredPlugins, selectedPlugin, selecte
             </OverviewItemDescription>
             {/* interaction element to link to task page */}
             <OverviewItemActions>
-                {plugin.link && (
+                {plugin.link && !isCurrentPage && (
                     <IconButton
                         name="item-viewdetails"
                         text={t("common.action.showDetails")}
@@ -97,22 +99,26 @@ export function DeprecatedPluginsList({ filteredPlugins, selectedPlugin, selecte
                 )}
             </OverviewItemActions>
         </OverviewItem>
-    );
+        );
+    };
 
     // When no plugin filter is active, group items by plugin and render section headers
     if (!selectedPluginKey) {
         type GroupEntry = { pluginLabel: string; deprecationMessage: string; items: DeprecatedPluginsModel[] };
-        const groups = filteredPlugins.reduce((acc, plugin) => {
-            if (!acc[plugin.pluginId]) {
-                acc[plugin.pluginId] = {
-                    pluginLabel: plugin.pluginLabel,
-                    deprecationMessage: plugin.deprecationMessage,
-                    items: [],
-                };
-            }
-            acc[plugin.pluginId].items.push(plugin);
-            return acc;
-        }, {} as Record<string, GroupEntry>);
+        const groups = filteredPlugins.reduce(
+            (acc, plugin) => {
+                if (!acc[plugin.pluginId]) {
+                    acc[plugin.pluginId] = {
+                        pluginLabel: plugin.pluginLabel,
+                        deprecationMessage: plugin.deprecationMessage,
+                        items: [],
+                    };
+                }
+                acc[plugin.pluginId].items.push(plugin);
+                return acc;
+            },
+            {} as Record<string, GroupEntry>,
+        );
 
         return (
             <>
@@ -129,6 +135,7 @@ export function DeprecatedPluginsList({ filteredPlugins, selectedPlugin, selecte
                             </div>
                         )}
                         <Datalist
+                            isEmpty={!isLoading && group.items.length === 0}
                             data-test-id="deprecated-plugins-list"
                             isLoading={isLoading}
                             hasSpacing
@@ -161,9 +168,7 @@ export function DeprecatedPluginsList({ filteredPlugins, selectedPlugin, selecte
                 isLoading={isLoading}
                 hasSpacing
                 columns={1}
-                emptyContainer={
-                    <Notification>{t("pages.deprecatedPlugins.noPluginsFound")}</Notification>
-                }
+                emptyContainer={<Notification>{t("pages.deprecatedPlugins.noPluginsFound")}</Notification>}
             >
                 {filteredPlugins.map(renderItem)}
             </Datalist>

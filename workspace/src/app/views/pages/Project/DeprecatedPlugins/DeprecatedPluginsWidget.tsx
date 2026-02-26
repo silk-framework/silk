@@ -1,4 +1,4 @@
-import { Card, CardContent, CardHeader, CardTitle, Divider, Notification, Spacing } from "@eccenca/gui-elements";
+import { Card, CardContent, CardHeader, CardTitle, Divider } from "@eccenca/gui-elements";
 import useErrorHandler from "../../../../hooks/useErrorHandler";
 import React, { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
@@ -12,7 +12,10 @@ export function DeprecatedPluginsWidget({ projectId, taskId }: { projectId?: str
     const [isLoading, setIsLoading] = useState(true);
     const { registerError } = useErrorHandler();
     const path = window.location.pathname;
-    const isOnLinkingOrTransformPage = /\/projects\/[^/]+\/(linking|transform)\/[^/]+/.test(path);
+    // Only filter self-links when showing project-level plugins (no taskId scoped).
+    // When taskId is provided the widget is scoped to that task — show all its plugins.
+    const isOnLinkingOrTransformPage =
+        !taskId && /\/projects\/[^/]+\/(linking|transform)\/[^/]+/.test(path);
 
     const fetchDeprecatedPlugins = () => {
         requestDeprecatedPlugins(projectId, taskId)
@@ -54,27 +57,25 @@ export function DeprecatedPluginsWidget({ projectId, taskId }: { projectId?: str
         };
     }, [projectId, taskId]);
 
-    if (isLoading || deprecatedPlugins.length === 0) {
-        return null;
-    }
-
     const visiblePlugins = isOnLinkingOrTransformPage
         ? deprecatedPlugins.filter((plugin) => !path.startsWith((plugin.link || "").split("?")[0]))
         : deprecatedPlugins;
+
+    if (isLoading || visiblePlugins.length === 0) {
+        return null;
+    }
 
     return (
         <Card>
             <CardHeader>
                 <CardTitle>
                     <h2>
-                        {t("widget.deprecatedPluginWidget.title")} ({deprecatedPlugins.length})
+                        {t("widget.deprecatedPluginWidget.title")} ({visiblePlugins.length})
                     </h2>
                 </CardTitle>
             </CardHeader>
             <Divider />
             <CardContent>
-                <Notification intent="warning">{t("widget.deprecatedPluginWidget.message")}</Notification>
-                <Spacing />
                 <DeprecatedPluginsList
                     filteredPlugins={visiblePlugins}
                     selectedPlugin={null}
