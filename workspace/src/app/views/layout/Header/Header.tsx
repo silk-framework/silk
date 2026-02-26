@@ -271,7 +271,7 @@ export function Header({ onClickApplicationSidebarExpand, isApplicationSidebarEx
                                             />
 
                                             <MenuItem
-                                                text={t("common.action.listDeprecatedPlugins", "Deprecated Plugins")}
+                                                text={t("common.action.listDeprecatedPlugins")}
                                                 href={CONTEXT_PATH + "/workbench/deprecatedPlugins"}
                                                 icon={"state-warning"}
                                             />

@@ -350,7 +350,7 @@
             "submit": "Submit",
             "update": "Update",
             "showApiDoc": "API",
-            "listDeprecatedPlugins": "Deprecated plugins",
+            "listDeprecatedPlugins": "Deprecated plugins usage",
             "copyClipboard": "Copy to clipboard",
             "configure": "Configure",
             "clearInput": "Clear input",
@@ -845,7 +845,7 @@
     "widget": {
         "deprecatedPluginWidget": {
             "title": "Deprecated Plugins",
-            "message": "The above listed plugins are deprecated and will be removed in future versions. Please check the documentation for alternatives.",
+            "message": "The listed plugins are deprecated and will be removed in future versions. Please check the documentation for alternatives.",
             "tasks": "Tasks"
         },
         "ActivityInfoWidget": {

@@ -103,6 +103,8 @@ export function DeprecatedPluginsWidget({ projectId, taskId }: { projectId?: str
             </CardHeader>
             <Divider />
             <CardContent>
+                <Notification intent="warning">{t("widget.deprecatedPluginWidget.message")}</Notification>
+                <Spacing />
                 <div className={styles.pluginList}>
                     {groupByPluginWithLinks(deprecatedPlugins).map((plugin) => {
                         const visibleTasks = isOnLinkingOrTransformPage
@@ -143,8 +145,6 @@ export function DeprecatedPluginsWidget({ projectId, taskId }: { projectId?: str
                         );
                     })}
                 </div>
-                <Spacing />
-                <Notification intent="warning">{t("widget.deprecatedPluginWidget.message")}</Notification>
             </CardContent>
         </Card>
     );
