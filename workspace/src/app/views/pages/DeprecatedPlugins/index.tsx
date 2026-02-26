@@ -113,6 +113,12 @@ export default function DeprecatedPlugins() {
         return Array.from(groups.values());
     }, [sortedPlugins]);
 
+    useEffect(() => {
+        if (pluginGroups.length > 0 && selectedPluginKey === null) {
+            setSelectedPluginKey(pluginGroups[0].key);
+        }
+    }, [pluginGroups]);
+
     const selectedPlugin = useMemo(
         () => pluginGroups.find((g) => g.key === selectedPluginKey) ?? null,
         [pluginGroups, selectedPluginKey],
@@ -154,14 +160,6 @@ export default function DeprecatedPlugins() {
                             </TitleSubsection>
                             <Spacing size="tiny" />
                             <ul>
-                                <li>
-                                    <RadioButton
-                                        checked={selectedPluginKey === null}
-                                        label={t("common.messages.allTypes", "All")}
-                                        onChange={() => setSelectedPluginKey(null)}
-                                        value=""
-                                    />
-                                </li>
                                 {pluginGroups.map(({ key, count }) => (
                                     <li key={key}>
                                         <RadioButton
@@ -203,7 +201,6 @@ export default function DeprecatedPlugins() {
                                     key={`${plugin.project}_${plugin.task}_${index}`}
                                     isOnlyLayout
                                     className="diapp-searchitem"
-                                    style={{ marginBottom: "0.375rem" }}
                                 >
                                     <OverviewItem hasSpacing data-test-id="deprecated-plugin-item">
                                         <OverviewItemDepiction>
