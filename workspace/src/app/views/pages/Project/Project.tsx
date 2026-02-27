@@ -182,16 +182,16 @@ const Project = () => {
                     <ConfigurationWidget />
                     <Spacing />
                     <VariablesWidget projectId={projectId} />
-                    <Spacing />
-                    <ActivityInfoWidget />
-                    <Spacing />
-                    <FileWidget />
                     {projectAccessControl ? (
                         <>
                             <Spacing key={"spacing"} />
                             <projectAccessControl.Component key={"component"} projectId={projectId} />
                         </>
                     ) : null}
+                    <Spacing />
+                    <ActivityInfoWidget />
+                    <Spacing />
+                    <FileWidget />
                 </Section>
             </WorkspaceSide>
         </WorkspaceContent>

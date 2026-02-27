@@ -10,7 +10,12 @@ import {
 } from "@ducks/common/requests";
 import { AlternativeTaskUpdateFunction, IPluginOverview } from "@ducks/common/typings";
 import { commonOp, commonSel } from "@ducks/common/index";
-import { requestCreateProject, requestCreateTask, requestUpdateProjectTask } from "@ducks/workspace/requests";
+import {
+    ICreateProjectPayload,
+    requestCreateProject,
+    requestCreateTask,
+    requestUpdateProjectTask,
+} from "@ducks/workspace/requests";
 import { routerOp } from "@ducks/router";
 import { IProjectTask, TaskType } from "@ducks/shared/typings";
 import { HttpError } from "../../../services/fetch/responseInterceptor";
@@ -217,13 +222,14 @@ const createArtefactAsync = (
     variableTemplateParameterSet: Set<string>,
     /** If this is set, then instead of redirecting to the newly created task, this function is called. */
     alternativeCallback?: (newTask: IProjectTask) => any,
+    groups?: string[],
 ) => {
     return async (dispatch, getState) => {
         const { selectedArtefact } = commonSel.artefactModalSelector(getState());
 
         switch (taskType) {
             case "Project":
-                await dispatch(fetchCreateProjectAsync(formData));
+                await dispatch(fetchCreateProjectAsync(formData, groups));
                 break;
             default:
                 if (selectedArtefact) {
@@ -397,22 +403,28 @@ const fetchUpdateTaskAsync = (
     };
 };
 
-const fetchCreateProjectAsync = (formData: {
-    label: string;
-    description?: string;
-    id?: string;
-    tags?: MultiSuggestFieldSelectionProps<Keyword>;
-}) => {
+const fetchCreateProjectAsync = (
+    formData: {
+        label: string;
+        description?: string;
+        id?: string;
+        tags?: MultiSuggestFieldSelectionProps<Keyword>;
+    },
+    groups?: string[],
+) => {
     return async (dispatch) => {
         dispatch(setModalError({}));
         const { label, description, id, tags } = formData;
-        const payload = {
+        const payload: ICreateProjectPayload = {
             metaData: {
                 label,
                 description,
             },
         };
-        if (id) payload["id"] = id;
+        if (id) {
+            payload.id = id;
+        }
+        payload.groups = groups;
         try {
             const data = await requestCreateProject(payload);
             await createTagsAndAddToMetadata({ label, description, tags, projectId: data.name });

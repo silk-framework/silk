@@ -41,6 +41,7 @@ export interface ICreateProjectPayload {
         label: string;
         description?: string;
     };
+    groups?: string[];
 }
 
 const handleError = (e) => {

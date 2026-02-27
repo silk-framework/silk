@@ -51,7 +51,7 @@ import { ProjectImportModal } from "../ProjectImportModal";
 import ItemDepiction from "../../../shared/ItemDepiction";
 import ProjectSelection from "./ArtefactForms/ProjectSelection";
 import { workspaceSel } from "@ducks/workspace";
-import { requestSearchList } from "@ducks/workspace/requests";
+import { ProjectAcl, requestSearchList } from "@ducks/workspace/requests";
 import { objectToFlatRecord, uppercaseFirstChar } from "../../../../utils/transformers";
 import { performAction, requestProjectMetadata } from "@ducks/shared/requests";
 import { requestAutoConfiguredDataset } from "./CreateArtefactModal.requests";
@@ -158,6 +158,13 @@ export function CreateArtefactModal() {
     const [taskActionLoading, setTaskActionLoading] = React.useState<string | null>(null);
     const [taskFormGeneralWarning, setTaskFormGeneralWarning] = React.useState<string | undefined>();
     const generalWarningTimeout = React.useRef<number | undefined>();
+    const projectAcl = React.useRef<ProjectAcl | undefined>();
+    const [aclRequirementSatisfied, setAclRequirementSatisfied] = React.useState(true);
+
+    const updateProjectAcl = React.useCallback((newProjectAcl: ProjectAcl) => {
+        projectAcl.current = newProjectAcl;
+        setAclRequirementSatisfied(newProjectAcl.groups.length > 0);
+    }, []);
 
     const taskFormWarning = React.useCallback((message: string) => {
         if (generalWarningTimeout.current) {
@@ -395,6 +402,7 @@ export function CreateArtefactModal() {
                                 dataParameters,
                                 templateParameters.current,
                                 newTaskPreConfiguration?.alternativeCallback,
+                                projectAcl.current?.groups,
                             ),
                         );
                         setSearchValue("");
@@ -443,6 +451,7 @@ export function CreateArtefactModal() {
         form.reset();
         setFormValueChanges({});
         form.clearError();
+        setAclRequirementSatisfied(true);
         dispatch(commonOp.resetArtefactModal(closeModal));
     };
 
@@ -608,7 +617,9 @@ export function CreateArtefactModal() {
         // Project / task creation
         if (selectedArtefactKey) {
             if (projectArtefactSelected) {
-                artefactForm = <ProjectForm form={form} goBackOnEscape={handleBack} />;
+                artefactForm = (
+                    <ProjectForm form={form} goBackOnEscape={handleBack} updateProjectAcl={updateProjectAcl} />
+                );
             } else {
                 const detailedArtefact = cachedArtefactProperties[selectedArtefactKey];
                 const activeProjectId = currentProject?.id ?? projectId;
@@ -1027,7 +1038,7 @@ export function CreateArtefactModal() {
                                 key="create"
                                 affirmative={true}
                                 onClick={handleCreate}
-                                disabled={isErrorPresented()}
+                                disabled={isErrorPresented() || !aclRequirementSatisfied}
                             >
                                 {updateExistingTask ? t("common.action.update") : t("common.action.create")}
                             </Button>,
