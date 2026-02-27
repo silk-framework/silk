@@ -11,7 +11,7 @@ import org.scalatest.time.SpanSugar.convertIntToGrainOfTime
 import org.silkframework.runtime.activity.{SimpleUserContext, UserContext}
 import org.silkframework.runtime.plugin.PluginRegistry
 import org.silkframework.runtime.plugin.annotations.Plugin
-import org.silkframework.runtime.users.{User, WebUser, WebUserManager}
+import org.silkframework.runtime.users.{User, UserActions, WebUser, WebUserManager}
 import org.silkframework.serialization.json.MetaDataSerializers.MetaDataPlain
 import org.silkframework.util.ConfigTestTrait
 import org.silkframework.workspace.{Workspace, WorkspaceFactory}
@@ -226,8 +226,8 @@ object TestWebUserManager {
   val group1 = "testGroup"
   val group2 = "otherGroup"
 
-  val user1 = new WebUser("http://dummyUri/user1", Some("Dummy User 1"), groups = Set(group1))
-  val user2 = new WebUser("http://dummyUri/user2", Some("Dummy User 2"), groups = Set(group2))
+  val user1 = new WebUser("http://dummyUri/user1", Some("Dummy User 1"), groups = Set(group1), actions = UserActions.all)
+  val user2 = new WebUser("http://dummyUri/user2", Some("Dummy User 2"), groups = Set(group2), actions = UserActions.all)
 
   val users: Seq[WebUser] = Seq(user1, user2)
   val usersByUri: Map[String, WebUser] = users.map(u => u.uri -> u).toMap
