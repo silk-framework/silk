@@ -65,6 +65,8 @@ class Workspace(val provider: WorkspaceProvider,
   // Additional prefixes loaded from the workspace provider that will be added to every project
   private var workspacePrefixes: Prefixes = Prefixes.default
 
+  // TODO CMEM-7264 need to remember super user and use it to access all projects. Also update OAuth super user loading of workspace
+
   // All global workspace activities
   lazy val activities: Seq[GlobalWorkspaceActivity[_ <: HasValue]] = {
     val factories = PluginRegistry.availablePlugins[GlobalWorkspaceActivityFactory[_ <: HasValue]].toList
@@ -109,7 +111,6 @@ class Workspace(val provider: WorkspaceProvider,
   /** Load the projects of a user into the workspace. At the moment all users have access to all projects, so this is only,
     * executed once. */
   private def loadUserProjects()(implicit userContext: UserContext): Unit = {
-    // TODO: Extension for access control should happen here.
     if (!initialized) { // Avoid lock
       if(loadProjectsLock.tryLock(waitForWorkspaceInitialization, TimeUnit.MILLISECONDS)) {
         try {
@@ -131,13 +132,16 @@ class Workspace(val provider: WorkspaceProvider,
     }
   }
 
-  override def projects(implicit userContext: UserContext): Seq[Project] = {
+  /**
+   * Returns all projects that the user has access to.
+   */
+  override def userProjects(implicit userContext: UserContext): Seq[Project] = {
     if(ProjectAccessControlManager.enabled()) {
       // Filter projects the user has access to
       allProjects.filter(project => {
         userContext.user match {
           case Some(user) =>
-            project.accessControl.hasProjectAccess(user)
+            project.accessControl.hasAccess(user)
           case None =>
             throw new RuntimeException("Access control is enabled, but no user available!")
         }
@@ -147,7 +151,11 @@ class Workspace(val provider: WorkspaceProvider,
     }
   }
 
+  /**
+   * TODO CMEM-7262 update doc
+   */
   def allProjects(implicit userContext: UserContext): Seq[Project] = {
+    // TODO CMEM-7262 needs update
     loadUserProjects()
     cachedProjects
   }
@@ -168,7 +176,7 @@ class Workspace(val provider: WorkspaceProvider,
 
   override def findProject(name: Identifier)(implicit userContext: UserContext): Option[Project] = {
     loadUserProjects()
-    projects.find(_.id == name)
+    userProjects.find(_.id == name)
   }
 
   def createProject(config: ProjectConfig)
@@ -257,12 +265,12 @@ class Workspace(val provider: WorkspaceProvider,
   /**
     * Reloads this workspace.
     */
-  // TODO: CMEM-7264: How does project ACL affects this code?
+  // TODO CMEM-7264 check if user has acl-admin action
   def reload()(implicit userContext: UserContext): Unit = synchronized {
     loadUserProjects()
 
     // Stop all activities
-    for(project <- projects) { // Should not work directly on the cached projects
+    for(project <- userProjects) { // Should not work directly on the cached projects
       project.cancelActivities()
     }
     for(workspaceActivity <- activities) {
@@ -323,9 +331,10 @@ class Workspace(val provider: WorkspaceProvider,
     * Removes all projects from this workspace.
     */
   def clear()(implicit userContext: UserContext): Unit = {
+    // TODO CMEM-7264 check if user has acl-admin action
     loadUserProjects()
-    for(project <- projects) {
-      removeProject(project.config.id) // FIXME: This works directly on the cached projects and not the ones the user can see. Will be fixed in CMEM-998
+    for(project <- userProjects) {
+      removeProject(project.config.id)
     }
   }
 
@@ -347,9 +356,8 @@ class Workspace(val provider: WorkspaceProvider,
     log.info(s"${cachedProjects.size} projects loaded.")
   }
 
-  // TODO: CMEM-7264: How does project ACL affects this code?
   private def registerWorkspaceMetrics(implicit userContext: UserContext): Unit =
-    new WorkspaceMetrics(prefix, () => projects, () => projects.flatMap(_.allTasks))
+    new WorkspaceMetrics(prefix, () => allProjects, () => allProjects.flatMap(_.allTasks))
       .bindTo(MeterRegistryProvider.meterRegistry)
 }
 

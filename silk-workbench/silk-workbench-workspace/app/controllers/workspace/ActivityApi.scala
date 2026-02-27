@@ -466,7 +466,7 @@ class ActivityApi @Inject() (implicit system: ActorSystem, mat: Materializer) ex
   @deprecated
   def recentActivities(maxCount: Int): Action[AnyContent] = UserContextAction { implicit userContext: UserContext =>
     // Get all projects and tasks
-    val projects = WorkspaceFactory().workspace.projects
+    val projects = WorkspaceFactory().workspace.userProjects
     val tasks: Seq[ProjectTask[_]] = projects.flatMap(_.allTasks)
 
     // Get all activities
@@ -892,7 +892,7 @@ class ActivityApi @Inject() (implicit system: ActorSystem, mat: Materializer) ex
       if (projectName.nonEmpty) {
         Seq(WorkspaceFactory().workspace.project(projectName))
       } else {
-        WorkspaceFactory().workspace.projects
+        WorkspaceFactory().workspace.userProjects
       }
 
     def tasks(project: Project): Seq[ProjectTask[_ <: TaskSpec]] =

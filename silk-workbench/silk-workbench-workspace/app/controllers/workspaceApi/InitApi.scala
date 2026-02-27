@@ -77,7 +77,7 @@ case class InitApi @Inject()() extends InjectedController with UserContextAction
       )
     ))
   def init(): Action[AnyContent] = RequestUserContextAction { request => implicit userContext =>
-    val emptyWorkspace = workspace.projects.isEmpty
+    val emptyWorkspace = workspace.userProjects.isEmpty
     val resultJson = Json.obj(
       "emptyWorkspace" -> emptyWorkspace,
       "initialLanguage" -> initialLanguage(request),

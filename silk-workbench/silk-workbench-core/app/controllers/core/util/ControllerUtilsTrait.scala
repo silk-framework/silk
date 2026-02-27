@@ -80,7 +80,7 @@ trait ControllerUtilsTrait {
 
   /** All projects the user has access to. */
   def allProjects(implicit userContext: UserContext): Seq[Project] = {
-    workspace.projects
+    workspace.userProjects
   }
 
   def task[T <: TaskSpec : ClassTag](projectName: String, taskName: String)

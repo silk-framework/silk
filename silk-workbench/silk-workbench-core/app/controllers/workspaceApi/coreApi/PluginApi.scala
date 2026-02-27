@@ -238,7 +238,7 @@ class PluginApi @Inject()() extends InjectedController with UserContextActions {
                    pluginId: String): Action[AnyContent] = RequestUserContextAction { request => implicit userContext =>
     val usages = mutable.Buffer[PluginUsage]()
 
-    for(project <- WorkspaceFactory().workspace.projects) {
+    for(project <- WorkspaceFactory().workspace.userProjects) {
       for(task <- project.allTasks) {
         val pluginIds = PluginUsageCollector.pluginUsages(task.data)
         if(pluginIds.contains(pluginId)) {
@@ -269,7 +269,7 @@ class PluginApi @Inject()() extends InjectedController with UserContextActions {
     val usages = mutable.Buffer[PluginUsage]()
 
     for {
-      project <- WorkspaceFactory().workspace.projects
+      project <- WorkspaceFactory().workspace.userProjects
       task <- project.allTasks
       plugin <- PluginUsageCollector.pluginUsages(task.data).values
       if plugin.deprecation.isDefined

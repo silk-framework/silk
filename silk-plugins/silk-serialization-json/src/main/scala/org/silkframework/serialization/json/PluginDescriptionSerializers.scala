@@ -182,7 +182,7 @@ object PluginDescriptionSerializers {
   }
 
   object DummyWorkspaceRead extends WorkspaceReadTrait {
-    override def projects(implicit userContext: UserContext): Seq[ProjectTrait] = Seq.empty
+    override def userProjects(implicit userContext: UserContext): Seq[ProjectTrait] = Seq.empty
     override def project(name: Identifier)(implicit userContext: UserContext): ProjectTrait = throw new RuntimeException("Cannot retrieve projects!")
     override def findProject(name: Identifier)(implicit userContext: UserContext): Option[ProjectTrait] = None
   }

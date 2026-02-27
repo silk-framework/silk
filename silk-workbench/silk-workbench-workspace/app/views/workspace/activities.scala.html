@@ -128,7 +128,7 @@
   <div id="workspace_root">
     @globalWorkspaceActivities(workspace)
     <ul class="filetree">
-    @for(project <- workspace.projects) {
+    @for(project <- workspace.userProjects) {
       @projectActivities(project)
     }
     </ul>

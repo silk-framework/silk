@@ -47,7 +47,7 @@ class WorkspaceApi  @Inject() (accessMonitor: WorkbenchAccessMonitor) extends In
   def reload: Action[AnyContent] = UserContextAction { implicit userContext =>
     val workspace = WorkspaceFactory().workspace
     workspace.reload()
-    for(project <- workspace.projects) {
+    for(project <- workspace.userProjects) {
       ProjectLoadingErrors.tryReloadTasks(project)
     }
     Ok

@@ -8,7 +8,7 @@ import org.silkframework.util.Identifier
   */
 trait WorkspaceReadTrait {
   /** The projects of the workspace the user has access to.  */
-  def projects(implicit userContext: UserContext): Seq[ProjectTrait]
+  def userProjects(implicit userContext: UserContext): Seq[ProjectTrait]
 
   /** A specific project. */
   def project(name: Identifier)(implicit userContext: UserContext): ProjectTrait

@@ -39,14 +39,14 @@ class WorkspaceTest extends AnyFlatSpec with Matchers with ConfigTestTrait with 
     val started = new AtomicBoolean(false)
     Future {
       started.set(true)
-      workspace.projects.headOption
+      workspace.userProjects.headOption
     }
     while(!started.get()) {
       Thread.sleep(1)
     }
     Thread.sleep(1)
     intercept[ServiceUnavailableException] {
-      workspace.projects.headOption
+      workspace.userProjects.headOption
     }
   }
 
@@ -67,12 +67,12 @@ class WorkspaceTest extends AnyFlatSpec with Matchers with ConfigTestTrait with 
     val workspace = new Workspace(workspaceProvider, InMemoryResourceRepository())
 
     // Make sure that all projects and tasks have been loaded
-    workspace.projects.map(_.config.id) mustBe Seq(project1, project2)
+    workspace.userProjects.map(_.config.id) mustBe Seq(project1, project2)
     workspace.project(project1).allTasks.map(_.id) mustBe Seq(task1)
     workspace.project(project2).allTasks.map(_.id) mustBe Seq(task2)
 
     // Wait until the test activities have been started
-    val testActivities = workspace.projects.flatMap(_.tasks[TestTask]).map(_.activity[TestActivity].control)
+    val testActivities = workspace.userProjects.flatMap(_.tasks[TestTask]).map(_.activity[TestActivity].control)
     while(testActivities.exists(_.startTime.isEmpty)) {
       Thread.sleep(50)
     }

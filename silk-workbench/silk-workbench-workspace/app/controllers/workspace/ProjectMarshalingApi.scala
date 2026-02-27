@@ -211,7 +211,7 @@ class ProjectMarshalingApi @Inject() () extends InjectedController with UserCont
       val fileName = s"${LocalDate.now()}-${request.domain}${qualifier(marshaller)}.workspace.${marshaller.fileExtension}"
       sendFile(fileName) { outputStream =>
         val workspace = WorkspaceFactory().workspace
-        marshaller.marshalWorkspace(outputStream, workspace.projects, workspace.repository)
+        marshaller.marshalWorkspace(outputStream, workspace.userProjects, workspace.repository)
       }
     }
   }

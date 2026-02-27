@@ -144,7 +144,7 @@ object SearchApiModel {
         case Some(projectName) =>
           Seq(WorkspaceFactory().workspace.project(projectName))
         case None =>
-          WorkspaceFactory().workspace.projects
+          WorkspaceFactory().workspace.userProjects
       }
     }
 
