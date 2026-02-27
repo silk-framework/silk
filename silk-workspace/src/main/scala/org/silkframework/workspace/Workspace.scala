@@ -109,7 +109,7 @@ class Workspace(val provider: WorkspaceProvider,
   /** Load the projects of a user into the workspace. At the moment all users have access to all projects, so this is only,
     * executed once. */
   private def loadUserProjects()(implicit userContext: UserContext): Unit = {
-    // FIXME: Extension for access control should happen here.
+    // TODO: Extension for access control should happen here.
     if (!initialized) { // Avoid lock
       if(loadProjectsLock.tryLock(waitForWorkspaceInitialization, TimeUnit.MILLISECONDS)) {
         try {
@@ -132,6 +132,22 @@ class Workspace(val provider: WorkspaceProvider,
   }
 
   override def projects(implicit userContext: UserContext): Seq[Project] = {
+    if(ProjectAccessControlManager.enabled()) {
+      // Filter projects the user has access to
+      allProjects.filter(project => {
+        userContext.user match {
+          case Some(user) =>
+            project.accessControl.hasProjectAccess(user)
+          case None =>
+            throw new RuntimeException("Access control is enabled, but no user available!")
+        }
+      })
+    } else {
+      allProjects
+    }
+  }
+
+  def allProjects(implicit userContext: UserContext): Seq[Project] = {
     loadUserProjects()
     cachedProjects
   }
@@ -241,6 +257,7 @@ class Workspace(val provider: WorkspaceProvider,
   /**
     * Reloads this workspace.
     */
+  // TODO: CMEM-7264: How does project ACL affects this code?
   def reload()(implicit userContext: UserContext): Unit = synchronized {
     loadUserProjects()
 
@@ -330,6 +347,7 @@ class Workspace(val provider: WorkspaceProvider,
     log.info(s"${cachedProjects.size} projects loaded.")
   }
 
+  // TODO: CMEM-7264: How does project ACL affects this code?
   private def registerWorkspaceMetrics(implicit userContext: UserContext): Unit =
     new WorkspaceMetrics(prefix, () => projects, () => projects.flatMap(_.allTasks))
       .bindTo(MeterRegistryProvider.meterRegistry)

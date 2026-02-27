@@ -59,6 +59,16 @@ class ProjectAccessControlManager(project: Identifier, provider: WorkspaceProvid
     }
   }
 
+  def hasProjectAccess(user: User)(implicit userContext: UserContext): Boolean = synchronized {
+    if(ProjectAccessControlManager.enabled()) {
+      loadIfRequired()
+      val groups = accessControl.groups
+      groups.isEmpty || user.groups.exists(groups.contains)
+    } else {
+      true
+    }
+  }
+
   private def loadIfRequired()(implicit userContext: UserContext): Unit = {
     if(!loaded) {
       accessControl = provider.readAccessControlGroups(project)
