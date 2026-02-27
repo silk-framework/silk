@@ -426,7 +426,15 @@ class ProjectImportApi @Inject() (api: ProjectMarshalingApi) extends InjectedCon
                            in = ParameterIn.QUERY,
                            schema = new Schema(implementation = classOf[String])
                          )
-                         newProjectId: Option[String]): Action[AnyContent] = UserContextAction { implicit userContext =>
+                         newProjectId: Option[String],
+                         @Parameter(
+                           name = "groups",
+                           description = "Optional list of groups to assign to the imported project. If provided, these groups will be applied after import.",
+                           required = false,
+                           in = ParameterIn.QUERY,
+                           schema = new Schema(implementation = classOf[String])
+                         )
+                         groups: List[String] = List.empty): Action[AnyContent] = UserContextAction { implicit userContext =>
     withProjectImportQueue {
       _.get(projectImportId) match {
         case Some(projectImport) =>
@@ -449,7 +457,7 @@ class ProjectImportApi @Inject() (api: ProjectMarshalingApi) extends InjectedCon
               if(projectExists(projectId) && !overwriteExisting) {
                 throw ConflictRequestException(s"A project with ID $projectId already exists!")
               }
-              executeProjectImportAsync(projectImport, details, projectId, overwriteExisting)
+              executeProjectImportAsync(projectImport, details, projectId, overwriteExisting, groups)
             case _ =>
           }
           Created.
@@ -464,7 +472,8 @@ class ProjectImportApi @Inject() (api: ProjectMarshalingApi) extends InjectedCon
   private def executeProjectImportAsync(projectImport: ProjectImport,
                                         details: ProjectImportDetails,
                                         newProjectId: String,
-                                        overwriteExisting: Boolean)
+                                        overwriteExisting: Boolean,
+                                        groups: List[String])
                                        (implicit userContext: UserContext): Unit = {
     api.withMarshaller(details.marshallerId) { marshaller =>
       withProjectImportQueue { outerQueue =>
@@ -472,6 +481,9 @@ class ProjectImportApi @Inject() (api: ProjectMarshalingApi) extends InjectedCon
         val importProcess: Future[Try[Unit]] = Future {
           val result = Try[Unit] {
             workspace.importProject(newProjectId, projectImport.projectFileResource.file, marshaller, overwrite = overwriteExisting)
+            if (groups.nonEmpty) {
+              workspace.project(newProjectId).accessControl.setGroups(groups.toSet)
+            }
           }
           // Remove file and update project import object
           withProjectImportQueue { queue =>
