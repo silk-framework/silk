@@ -10,12 +10,7 @@ import {
     TextField,
 } from "@eccenca/gui-elements";
 import { ErrorResponse, FetchError } from "../../../services/fetch/responseInterceptor";
-import {
-    fetchProjectAccessControl,
-    fetchUserData,
-    requestCloneProject,
-    requestCloneTask,
-} from "@ducks/workspace/requests";
+import { ProjectAcl, requestCloneProject, requestCloneTask } from "@ducks/workspace/requests";
 import { requestProjectMetadata, requestTaskMetadata } from "@ducks/shared/requests";
 import { useTranslation } from "react-i18next";
 import { IModalItem } from "@ducks/shared/typings";
@@ -23,10 +18,7 @@ import useHotKey from "../HotKeyHandler/HotKeyHandler";
 import { requestProjectIdValidation, requestTaskIdValidation } from "@ducks/common/requests";
 import { debounce } from "lodash";
 import { TaskDocumentationModal } from "./CreateArtefactModal/TaskDocumentationModal";
-import { useSelector } from "react-redux";
-import { commonSel } from "@ducks/common";
-import { pluginRegistry, SUPPORTED_PLUGINS } from "../../plugins/PluginRegistry";
-import { ProjectAccessControlManagementProps } from "../../plugins/plugin.types";
+import { useProjectAclManagementComponent } from "../../../hooks/useProjectAclManagementComponent";
 
 export interface ICloneOptions {
     item: IModalItem;
@@ -49,13 +41,21 @@ export default function CloneModal({ item, onDiscard, onConfirmed }: ICloneOptio
     const [label, setLabel] = useState<string | undefined>(item.label);
     const [t] = useTranslation();
     const [showDocumentation, setShowDocumentation] = React.useState<boolean>(false);
-    const initialSettings = useSelector(commonSel.initialSettingsSelector);
-    const aclEnabled = initialSettings?.aclEnabled ?? false;
-    const [initialAclGroups, setInitialAclGroups] = useState<string[] | undefined>(undefined);
-    const [aclGroups, setAclGroups] = useState<string[]>([]);
-    const projectAclManagement = pluginRegistry.pluginReactComponent<ProjectAccessControlManagementProps>(
-        SUPPORTED_PLUGINS.DI_PROJECT_ACL_MANAGEMENT,
-    );
+    const projectAcl = React.useRef<ProjectAcl | undefined>();
+    const onChangeProjectAcl = React.useCallback((newProjectAcl: ProjectAcl) => {
+        projectAcl.current = newProjectAcl;
+    }, []);
+    const computeInitialAcl = React.useCallback((userAcl: ProjectAcl, projectAcl: ProjectAcl): Promise<ProjectAcl> => {
+        return Promise.resolve({
+            groups: userAcl.groups.filter((g) => projectAcl.groups.includes(g)),
+        });
+    }, []);
+
+    const projectAclManagement = useProjectAclManagementComponent({
+        projectId: item.projectId,
+        onChange: onChangeProjectAcl,
+        computeInitialAcl,
+    });
 
     useEffect(() => {
         prepareCloning();
@@ -72,19 +72,6 @@ export default function CloneModal({ item, onDiscard, onConfirmed }: ICloneOptio
             setLabel(currentLabel);
             setDescription(response.data.description);
             setNewLabel(t("common.messages.cloneOf", { item: currentLabel }));
-            if (!item.id && aclEnabled) {
-                try {
-                    const [aclRes, userRes] = await Promise.all([
-                        fetchProjectAccessControl(item.projectId),
-                        fetchUserData(),
-                    ]);
-                    const intersection = userRes.data.groups.filter((g) => aclRes.data.groups.includes(g));
-                    setInitialAclGroups(intersection);
-                    setAclGroups(intersection);
-                } catch {
-                    // swallow exception, ACL widget will fall back to fetching from project
-                }
-            }
         } catch (ex) {
             // swallow exception, fallback to ID
         } finally {
@@ -143,7 +130,11 @@ export default function CloneModal({ item, onDiscard, onConfirmed }: ICloneOptio
 
             const response = id
                 ? await requestCloneTask(id, projectId, payload, customId)
-                : await requestCloneProject(projectId, { ...payload, newTaskId: customId, groups: aclGroups });
+                : await requestCloneProject(projectId, {
+                      ...payload,
+                      newTaskId: customId,
+                      groups: projectAcl.current?.groups,
+                  });
             onConfirmed && onConfirmed(newLabel, response.data.detailsPage);
         } catch (e) {
             if (e.isFetchError) {
@@ -239,16 +230,13 @@ export default function CloneModal({ item, onDiscard, onConfirmed }: ICloneOptio
                     onKeyUp={enterHandler}
                 />
             </FieldItem>
-            {!item.id && aclEnabled && !initialLoading && projectAclManagement && (
+            {projectAclManagement.loading ? <Spinner /> : null}
+            {projectAclManagement.component ? (
                 <>
                     <Spacing />
-                    <projectAclManagement.Component
-                        projectId={item.projectId}
-                        initialGroups={initialAclGroups}
-                        onChange={setAclGroups}
-                    />
+                    {projectAclManagement.component}
                 </>
-            )}
+            ) : null}
             {error && (
                 <>
                     <Spacing />

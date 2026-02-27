@@ -20,6 +20,7 @@ import Uppy, { UppyFile } from "@uppy/core";
 import { workspaceApi } from "../../../utils/getApiEndpoint";
 import XHR from "@uppy/xhr-upload";
 import {
+    ProjectAcl,
     requestDeleteProjectImport,
     requestProjectImportDetails,
     requestProjectImportExecutionStatus,
@@ -31,6 +32,7 @@ import { useDispatch } from "react-redux";
 import { routerOp } from "@ducks/router";
 import { absoluteProjectPath } from "../../../utils/routerUtils";
 import { UploadNewFile } from "../FileUploader/cases/UploadNewFile/UploadNewFile";
+import { useProjectAclManagementComponent } from "../../../hooks/useProjectAclManagementComponent";
 
 interface IProps {
     // Called when closing the modal
@@ -57,6 +59,16 @@ export function ProjectImportModal({ close, back, maxFileUploadSizeBytes }: IPro
     const [startProjectImportExecutionError, setStartProjectImportExecutionError] = useState<
         [string, boolean, boolean] | null
     >(null);
+    const projectAcl = React.useRef<ProjectAcl | undefined>();
+    const [aclRequirementSatisfied, setAclRequirementSatisfied] = React.useState(false);
+    const onChangeProjectAcl = React.useCallback((newProjectAcl: ProjectAcl) => {
+        projectAcl.current = newProjectAcl;
+        setAclRequirementSatisfied(newProjectAcl.groups.length > 0);
+    }, []);
+    const aclManagement = useProjectAclManagementComponent({
+        onChange: onChangeProjectAcl,
+        externalInitialAclGroups: { groups: [] },
+    });
 
     useEffect(() => {
         uppy.use(XHR, {
@@ -130,7 +142,12 @@ export function ProjectImportModal({ close, back, maxFileUploadSizeBytes }: IPro
         if (projectImportId) {
             try {
                 setLoading(true);
-                await requestStartProjectImport(projectImportId, generateNewProjectId, overWriteExistingProject);
+                await requestStartProjectImport(
+                    projectImportId,
+                    generateNewProjectId,
+                    overWriteExistingProject,
+                    projectAcl.current?.groups,
+                );
                 let status: Partial<IProjectExecutionStatus> = {};
                 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
                 let errorCounter = 0;
@@ -227,7 +244,7 @@ export function ProjectImportModal({ close, back, maxFileUploadSizeBytes }: IPro
                     key="importProject"
                     affirmative={true}
                     onClick={() => startProjectImport(false, false)}
-                    disabled={false}
+                    disabled={aclManagement.enabled && !aclRequirementSatisfied}
                 >
                     {t("ProjectImportModal.importBtn")}
                 </Button>,
@@ -240,7 +257,7 @@ export function ProjectImportModal({ close, back, maxFileUploadSizeBytes }: IPro
                           key="replaceProject"
                           disruptive={true}
                           onClick={() => startProjectImport(false, true)}
-                          disabled={false}
+                          disabled={aclManagement.enabled && !aclRequirementSatisfied}
                       >
                           {t("ProjectImportModal.replaceImportBtn")}
                       </Button>,
@@ -251,7 +268,7 @@ export function ProjectImportModal({ close, back, maxFileUploadSizeBytes }: IPro
                           key="importAsFreshProject"
                           affirmative={true}
                           onClick={() => startProjectImport(true, false)}
-                          disabled={false}
+                          disabled={aclManagement.enabled && !aclRequirementSatisfied}
                       >
                           {t("ProjectImportModal.importUnderFreshIdBtn")}
                       </Button>,
@@ -320,6 +337,7 @@ export function ProjectImportModal({ close, back, maxFileUploadSizeBytes }: IPro
                     </PropertyValuePair>
                 )}
             </PropertyValueList>
+            {aclManagement.component ? aclManagement.component : null}
         </>
     );
 

@@ -16,6 +16,7 @@ import { FetchResponse } from "../../../services/fetch/responseInterceptor";
 import { IAutocompleteDefaultResponse, IProjectTask } from "@ducks/shared/typings";
 import { TaskContext } from "../../../views/shared/projectTaskTabView/projectTaskTabView.typing";
 import { CodeAutocompleteFieldValidationResult } from "@eccenca/gui-elements/src/components/AutoSuggestion/AutoSuggestion";
+import qs from "qs";
 
 export interface ISearchListRequest {
     limit?: number;
@@ -96,14 +97,14 @@ interface IClonedItem {
     detailsPage: string;
 }
 
+/** ACL of a project. */
 export interface ProjectAcl {
     groups: string[];
 }
 
-export interface UserData {
+export interface UserData extends ProjectAcl {
     uri: string;
     label: string;
-    groups: string[];
 }
 
 const accessControlEndpoint = (projectId: string) => projectApi(`${projectId}/accessControl`);
@@ -347,16 +348,21 @@ export const requestDeleteProjectImport = async (projectImportId: string): Promi
  *
  * @param projectImportId The project import ID.
  * @param generateNewId   If the project should be imported under a freshly generated ID. E.g. when there already exists a project with the same ID.
+ * @param overwriteExistingProject If set to true, then a project with the same ID will be overwritten, else the request would fail.
+ * @param groups Groups for the ACL.
  */
 export const requestStartProjectImport = async (
     projectImportId: string,
     generateNewId: boolean,
     overwriteExistingProject: boolean,
+    groups?: string[],
 ): Promise<FetchResponse<void>> => {
+    const url =
+        projectImportEndpoint(projectImportId) +
+        `?generateNewId=${generateNewId}&overwriteExisting=${overwriteExistingProject}` +
+        (groups ? `&${qs.stringify({ groups }, { arrayFormat: "repeat" })}` : "");
     return fetch({
-        url:
-            projectImportEndpoint(projectImportId) +
-            `?generateNewId=${generateNewId}&overwriteExisting=${overwriteExistingProject}`,
+        url,
         method: "POST",
     });
 };
