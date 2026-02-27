@@ -14,7 +14,7 @@ import io.swagger.v3.oas.annotations.tags.Tag
 import javax.inject.Inject
 import org.silkframework.config.DefaultConfig
 import org.silkframework.runtime.templating.GlobalTemplateVariablesConfig
-import org.silkframework.workspace.ProjectAccessControlManager
+import org.silkframework.workspace.access.AccessControlConfig
 import play.api.libs.json.{Format, JsArray, JsString, Json}
 import play.api.mvc.{Action, AnyContent, InjectedController, Request}
 
@@ -86,7 +86,7 @@ case class InitApi @Inject()() extends InjectedController with UserContextAction
       "templatingEnabled" -> GlobalTemplateVariablesConfig.isEnabled,
       "assistantSupported" -> assistantSupported,
       "mappingCreatorEnabled" -> mappingCreatorEnabled,
-      "aclEnabled" -> ProjectAccessControlManager.enabled()
+      "aclEnabled" -> AccessControlConfig().enabled
     )
     val withDmUrl = dmBaseUrl.map { url =>
       resultJson + ("dmBaseUrl" -> url) + ("dmModuleLinks" -> JsArray(dmLinks.map(Json.toJson(_))))

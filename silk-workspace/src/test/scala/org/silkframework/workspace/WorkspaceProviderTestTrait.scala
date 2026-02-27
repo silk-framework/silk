@@ -778,7 +778,7 @@ trait WorkspaceProviderTestTrait extends AnyFlatSpec with Matchers with MockitoS
     * This should make sure that not only the possible cache version is up to date, but also the background model. */
   private def refreshProject(projectName: String)(implicit userContext: UserContext): Unit = {
     workspaceProvider.refreshProject(projectName, repository.get(projectName))
-    if(workspace.findProject(projectName).isDefined) {
+    if(workspace.projectOption(projectName).isDefined) {
       workspace.reloadProject(projectName)
     }
   }

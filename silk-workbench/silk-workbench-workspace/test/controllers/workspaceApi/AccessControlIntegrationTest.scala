@@ -53,7 +53,7 @@ class AccessControlIntegrationTest extends AnyFlatSpec with IntegrationTestTrait
     val projectId = "groupPersistence"
     createProject(projectId, user1, Set(group1))
     getProjectAccessControl(projectId, user1).groups shouldBe Set(group1)
-    WorkspaceFactory().workspace.reload()
+    WorkspaceFactory().workspace.reload()(SimpleUserContext(admin))
     getProjectAccessControl(projectId, user1).groups shouldBe Set(group1)
   }
 
@@ -226,9 +226,10 @@ object TestWebUserManager {
   val group1 = "testGroup"
   val group2 = "otherGroup"
 
-  val user1 = new WebUser("http://dummyUri/user1", Some("Dummy User 1"), groups = Set(group1), actions = UserActions.all)
-  val user2 = new WebUser("http://dummyUri/user2", Some("Dummy User 2"), groups = Set(group2), actions = UserActions.all)
+  val user1 = new WebUser("http://dummyUri/user1", Some("User 1"), groups = Set(group1))
+  val user2 = new WebUser("http://dummyUri/user2", Some("User 2"), groups = Set(group2))
+  val admin = new WebUser("http://dummyUri/admin", Some("Admin"), groups = Set(), actions = UserActions.all)
 
-  val users: Seq[WebUser] = Seq(user1, user2)
+  val users: Seq[WebUser] = Seq(user1, user2, admin)
   val usersByUri: Map[String, WebUser] = users.map(u => u.uri -> u).toMap
 }

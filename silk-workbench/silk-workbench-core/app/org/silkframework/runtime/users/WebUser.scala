@@ -6,7 +6,7 @@ package org.silkframework.runtime.users
 class WebUser(val uri: String,
               val name: Option[String],
               val groups: Set[String] = Set.empty,
-              val actions: UserActions = UserActions.empty) extends User {
+              val actions: UserActions = UserActions.all) extends User {
   /** A unique ID for the request this user has initiated. */
   def requestId: Option[String] = None
 

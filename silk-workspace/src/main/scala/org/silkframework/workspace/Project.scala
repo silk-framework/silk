@@ -23,6 +23,7 @@ import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.runtime.templating.TemplateVariablesManager
 import org.silkframework.runtime.validation.{NotFoundException, ValidationException}
 import org.silkframework.util.Identifier
+import org.silkframework.workspace.access.ProjectAccessControlManager
 import org.silkframework.workspace.activity.workflow.{Workflow, WorkflowValidator}
 import org.silkframework.workspace.activity.{ProjectActivity, ProjectActivityFactory}
 import org.silkframework.workspace.exceptions.{IdentifierAlreadyExistsException, TaskNotFoundException}

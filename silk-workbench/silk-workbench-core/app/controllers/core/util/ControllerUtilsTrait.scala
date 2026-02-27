@@ -75,7 +75,7 @@ trait ControllerUtilsTrait {
 
   /** Returns true if the project exists, false otherwise. */
   def projectExists(projectId: String)(implicit userContext: UserContext): Boolean = {
-    workspace.findProject(projectId).isDefined
+    workspace.projectOption(projectId).isDefined
   }
 
   /** All projects the user has access to. */

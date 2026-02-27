@@ -1,4 +1,4 @@
-package org.silkframework.workspace.exceptions
+package org.silkframework.workspace.access
 
 import org.silkframework.runtime.validation.RequestException
 

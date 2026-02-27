@@ -22,6 +22,7 @@ import org.silkframework.runtime.plugin.{PluginContext, PluginRegistry}
 import org.silkframework.runtime.validation.{NotFoundException, ServiceUnavailableException}
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.TaskCleanupPlugin.CleanUpAfterTaskDeletionFunction
+import org.silkframework.workspace.access.{AccessControlConfig, ProjectAccessDeniedException}
 import org.silkframework.workspace.activity.{GlobalWorkspaceActivity, GlobalWorkspaceActivityFactory}
 import org.silkframework.workspace.exceptions.{IdentifierAlreadyExistsException, ProjectNotFoundException}
 import org.silkframework.workspace.metrics.WorkspaceMetrics
@@ -32,7 +33,7 @@ import java.util.concurrent.TimeUnit
 import java.util.concurrent.locks.ReentrantLock
 import java.util.logging.{Level, Logger}
 import scala.reflect.ClassTag
-import scala.util.{Success, Try}
+import scala.util.Try
 import scala.util.control.NonFatal
 
 /**
@@ -61,11 +62,15 @@ class Workspace(val provider: WorkspaceProvider,
   @volatile
   private var cachedProjects: Seq[Project] = Seq.empty
 
+  /**
+   * The user that has been used to load the projects.
+   */
   @volatile
-  // Additional prefixes loaded from the workspace provider that will be added to every project
-  private var workspacePrefixes: Prefixes = Prefixes.default
+  private var cachedProjectsUser: Option[UserContext] = None
 
-  // TODO CMEM-7264 need to remember super user and use it to access all projects. Also update OAuth super user loading of workspace
+  // Additional prefixes loaded from the workspace provider that will be added to every project
+  @volatile
+  private var workspacePrefixes: Prefixes = Prefixes.default
 
   // All global workspace activities
   lazy val activities: Seq[GlobalWorkspaceActivity[_ <: HasValue]] = {
@@ -108,9 +113,11 @@ class Workspace(val provider: WorkspaceProvider,
     }
   }
 
-  /** Load the projects of a user into the workspace. At the moment all users have access to all projects, so this is only,
-    * executed once. */
-  private def loadUserProjects()(implicit userContext: UserContext): Unit = {
+  /**
+   * Load the projects of a user into the workspace initially.
+   * If the projects are already loaded, then this method does nothing.
+   */
+  def initProjects()(implicit userContext: UserContext): Unit = {
     if (!initialized) { // Avoid lock
       if(loadProjectsLock.tryLock(waitForWorkspaceInitialization, TimeUnit.MILLISECONDS)) {
         try {
@@ -136,7 +143,7 @@ class Workspace(val provider: WorkspaceProvider,
    * Returns all projects that the user has access to.
    */
   override def userProjects(implicit userContext: UserContext): Seq[Project] = {
-    if(ProjectAccessControlManager.enabled()) {
+    if(AccessControlConfig().enabled) {
       // Filter projects the user has access to
       allProjects.filter(project => {
         userContext.user match {
@@ -152,11 +159,10 @@ class Workspace(val provider: WorkspaceProvider,
   }
 
   /**
-   * TODO CMEM-7262 update doc
+   * Returns all projects of all users.
    */
   def allProjects(implicit userContext: UserContext): Seq[Project] = {
-    // TODO CMEM-7262 needs update
-    loadUserProjects()
+    initProjects()
     cachedProjects
   }
 
@@ -164,25 +170,30 @@ class Workspace(val provider: WorkspaceProvider,
    * Retrieves a project by name.
    *
    * @throws java.util.NoSuchElementException If no project with the given name has been found
+   * @throws ProjectAccessDeniedException If the user does not have access to the project.
    */
   override def project(name: Identifier)(implicit userContext: UserContext): Project = {
-    loadUserProjects()
-    val project = findProject(name).getOrElse(throw ProjectNotFoundException(name))
-    for(user <- userContext.user) {
-      project.accessControl.checkAccess(user)
-    }
-    project
+    projectOption(name).getOrElse(throw ProjectNotFoundException(name))
   }
 
-  override def findProject(name: Identifier)(implicit userContext: UserContext): Option[Project] = {
-    loadUserProjects()
-    userProjects.find(_.id == name)
+  /**
+   * Retrieves a project by name. If no project with the given name has been found, then None is returned.
+   *
+   * @throws ProjectAccessDeniedException If the user does not have access to the project.
+   */
+  override def projectOption(name: Identifier)(implicit userContext: UserContext): Option[Project] = {
+    for(project <- allProjects.find(_.id == name)) yield {
+      for(user <- userContext.user) {
+        project.accessControl.checkAccess(user)
+      }
+      project
+    }
   }
 
   def createProject(config: ProjectConfig)
                    (implicit userContext: UserContext): Project = synchronized {
     val creationConfig = config.withMetaData(config.metaData.asNewMetaData)
-    loadUserProjects()
+    initProjects()
     if(cachedProjects.exists(_.id == creationConfig.id)) {
       throw IdentifierAlreadyExistsException("Project " + creationConfig.id + " does already exist!")
     }
@@ -196,7 +207,7 @@ class Workspace(val provider: WorkspaceProvider,
 
   def removeProject(name: Identifier)
                    (implicit userContext: UserContext): Unit = synchronized {
-    loadUserProjects()
+    initProjects()
     // Cancel all project and task activities
     project(name).activities.foreach(_.control.cancel())
     val projectTasks = project(name).allTasks
@@ -228,7 +239,7 @@ class Workspace(val provider: WorkspaceProvider,
     */
   def exportProject(name: Identifier, outputStream: OutputStream, marshaller: ProjectMarshallingTrait)
                    (implicit userContext: UserContext): String = {
-    loadUserProjects()
+    initProjects()
     marshaller.marshalProject(project(name), outputStream, repository.get(name))
   }
 
@@ -245,9 +256,9 @@ class Workspace(val provider: WorkspaceProvider,
                     marshaller: ProjectMarshallingTrait,
                     overwrite: Boolean = false)
                    (implicit userContext: UserContext): Unit = {
-    loadUserProjects()
+    initProjects()
     synchronized {
-      findProject(name) match {
+      projectOption(name) match {
         case Some(_) if !overwrite =>
           throw IdentifierAlreadyExistsException("Project " + name.toString + " does already exist!")
         case Some(_) =>
@@ -265,9 +276,9 @@ class Workspace(val provider: WorkspaceProvider,
   /**
     * Reloads this workspace.
     */
-  // TODO CMEM-7264 check if user has acl-admin action
   def reload()(implicit userContext: UserContext): Unit = synchronized {
-    loadUserProjects()
+    requireAdminUser()
+    initProjects()
 
     // Stop all activities
     for(project <- userProjects) { // Should not work directly on the cached projects
@@ -289,7 +300,7 @@ class Workspace(val provider: WorkspaceProvider,
 
   def reloadProject(projectId: Identifier)
                    (implicit userContext: UserContext): Unit = synchronized {
-    loadUserProjects()
+    initProjects()
     log.info(s"Reloading project with ID '$projectId' from backend.")
     reloadProjectInternal(projectId, throwError = true)
   }
@@ -331,14 +342,16 @@ class Workspace(val provider: WorkspaceProvider,
     * Removes all projects from this workspace.
     */
   def clear()(implicit userContext: UserContext): Unit = {
-    // TODO CMEM-7264 check if user has acl-admin action
-    loadUserProjects()
+    requireAdminUser()
+    initProjects()
     for(project <- userProjects) {
       removeProject(project.config.id)
     }
   }
 
   private def loadProjects()(implicit userContext: UserContext): Unit = {
+    // Make sure that the supplied user has access to all projects.
+    requireAdminUser()
     cachedProjects = for(projectConfig <- provider.readProjects()) yield {
       log.info("Loading project: " + projectConfig.id)
       val project = new Project(projectConfig, provider, repository.get(projectConfig.id), userContext)
@@ -353,7 +366,24 @@ class Workspace(val provider: WorkspaceProvider,
     for(project <- cachedProjects) {
       project.startActivities()
     }
+    cachedProjectsUser = Some(userContext)
     log.info(s"${cachedProjects.size} projects loaded.")
+  }
+
+  /**
+   * Throws an exception if the current user context does not have the admin action.
+   */
+  private def requireAdminUser()(implicit userContext: UserContext): Unit = {
+    if(AccessControlConfig().enabled) {
+      userContext.user match {
+        case None =>
+          throw ProjectAccessDeniedException("Access control is enabled, but no (super) user has been provided!")
+        case Some(user) if !user.actions.contains(AccessControlConfig().adminAction)  =>
+          throw ProjectAccessDeniedException("Access control is enabled, but the provided (super) user does not have the admin action!")
+        case _ =>
+        // User is fine, so do nothing
+      }
+    }
   }
 
   private def registerWorkspaceMetrics(implicit userContext: UserContext): Unit =

@@ -1,17 +1,10 @@
-package org.silkframework.workspace
+package org.silkframework.workspace.access
 
-import com.typesafe.config.Config
-import org.silkframework.config.{AccessControl, ConfigValue}
+import org.silkframework.config.AccessControl
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.users.User
 import org.silkframework.util.Identifier
-import org.silkframework.workspace.exceptions.ProjectAccessDeniedException
-
-object ProjectAccessControlManager {
-  val enabled: ConfigValue[Boolean] = (config: Config) => {
-    config.getBoolean("workspace.accessControl.enabled")
-  }
-}
+import org.silkframework.workspace.WorkspaceProvider
 
 /**
  * Manages the user groups of the current user. This is used to determine which projects a user has access to.
@@ -61,7 +54,7 @@ class ProjectAccessControlManager(project: Identifier, provider: WorkspaceProvid
    * @return True if the user has access to the project, false otherwise.
    */
   def hasAccess(user: User)(implicit userContext: UserContext): Boolean = synchronized {
-    if(ProjectAccessControlManager.enabled()) {
+    if(AccessControlConfig().enabled) {
       loadIfRequired()
       val groups = accessControl.groups
       groups.isEmpty || user.groups.exists(groups.contains)

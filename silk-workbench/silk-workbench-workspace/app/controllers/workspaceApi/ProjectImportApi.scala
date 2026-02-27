@@ -197,7 +197,7 @@ class ProjectImportApi @Inject() (api: ProjectMarshalingApi) extends InjectedCon
                            projectImportId: String): Action[AnyContent] = UserContextAction { implicit userContext =>
     val details = fetchProjectImportDetails(projectImportId)
     val projectExists = if(details.projectId != "") {
-      workspace.findProject(details.projectId).isDefined
+      workspace.projectOption(details.projectId).isDefined
     } else { false }
     Ok(Json.toJson(details.copy(projectAlreadyExists = projectExists)))
   }
