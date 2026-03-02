@@ -223,9 +223,11 @@ object SearchApiModel {
     final val activityStatus: Facet = Facet("status", "Status", "The activity status.", FacetType.keyword)
     final val activityType: Facet = Facet("activityType", "Activity type", "Activity type (either cache or non-cache activity).", FacetType.keyword)
     final val activityStartedBy: Facet = Facet("startedBy", "Started by", "The user that started the activity", FacetType.keyword)
+    // Project facets
+    final val groups: Facet = Facet("groups", "Groups", "The groups that have access to this project", FacetType.keyword)
 
     val facetIds: Seq[String] = Seq(datasetType, fileResource, readOnly, taskType, transformInputResource, workflowExecutionStatus,
-      createdBy, lastModifiedBy, tags, activityStatus, activityType, activityStartedBy, workflowInputOutput).map(_.id)
+      createdBy, lastModifiedBy, tags, activityStatus, activityType, activityStartedBy, workflowInputOutput, groups).map(_.id)
     assert(facetIds.distinct.size == facetIds.size, "Facet IDs must be unique!")
   }
 
@@ -374,7 +376,7 @@ object SearchApiModel {
       val overallFacetCollector = OverallFacetCollector()
       val facetSettings = facets.getOrElse(Seq.empty)
       tasks = tasks.map(t => filterTasksByFacetSettings(t, overallFacetCollector, facetSettings))
-      selectedProjects = selectedProjects.filter(p => overallFacetCollector.filterAndCollectProjects(p, facetSettings))
+      selectedProjects = filterProjectsByFacetSettings(selectedProjects, overallFacetCollector, facetSettings)
       val tasksWithTypedTask: Seq[ProjectOrTask] = tasks.flatMap(typedTasks =>
         typedTasks.tasks.map(typedTask => Left((typedTask, typedTasks))))
       val selectProjectsEither: Seq[ProjectOrTask] = selectedProjects.map(Right.apply)
@@ -478,6 +480,19 @@ object SearchApiModel {
           typedTasks.copy(tasks = typedTasks.tasks.filter { task => facetCollector.filterAndCollectByItemType(typ, task, facetSettings) })
         case _ =>
           typedTasks.copy(tasks = typedTasks.tasks.filter { task => facetCollector.filterAndCollectAllItems(task, facetSettings)})
+      }
+    }
+
+    private def filterProjectsByFacetSettings(projects: Seq[Project],
+                                             facetCollector: OverallFacetCollector,
+                                             facetSettings: Seq[FacetSetting])
+                                            (implicit user: UserContext): Seq[Project] = {
+      if(itemType.contains(ItemType.project)) {
+        projects.filter(project => facetCollector.filterAndCollectProjectsSpecific(project, facetSettings))
+      } else if(itemType.isEmpty) {
+        projects.filter(project => facetCollector.filterAndCollectProjectsGeneric(project, facetSettings))
+      } else {
+        Seq.empty
       }
     }
 
