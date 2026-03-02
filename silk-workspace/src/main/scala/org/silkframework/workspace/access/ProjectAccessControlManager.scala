@@ -42,9 +42,16 @@ class ProjectAccessControlManager(project: Identifier, provider: WorkspaceProvid
    *
    * @throws ProjectAccessDeniedException If the user does not have access to the project.
    */
-  def checkAccess(user: User)(implicit userContext: UserContext): Unit = synchronized {
-    if(!hasAccess(user)) {
-      throw ProjectAccessDeniedException(s"User does not have access to this project. Required groups: ${user.groups.mkString(", ")}. User groups: ${user.groups.mkString(", ")}")
+  def checkAccess()(implicit userContext: UserContext): Unit = synchronized {
+    if(!hasAccess()) {
+      userContext.user match {
+        case Some(user) =>
+          throw ProjectAccessDeniedException(
+            s"User does not have access to this project. Required groups: ${accessControl.groups.mkString(", ")}. User groups: ${user.groups.mkString(", ")}")
+        case None =>
+          throw ProjectAccessDeniedException("No user supplied.")
+      }
+
     }
   }
 
@@ -53,11 +60,17 @@ class ProjectAccessControlManager(project: Identifier, provider: WorkspaceProvid
    *
    * @return True if the user has access to the project, false otherwise.
    */
-  def hasAccess(user: User)(implicit userContext: UserContext): Boolean = synchronized {
-    if(AccessControlConfig().enabled) {
+  def hasAccess()(implicit userContext: UserContext): Boolean = synchronized {
+    val config = AccessControlConfig()
+    if(config.enabled) {
       loadIfRequired()
-      val groups = accessControl.groups
-      groups.isEmpty || user.groups.exists(groups.contains)
+      userContext.user match {
+        case Some(user) =>
+          val requiredGroups = accessControl.groups
+          user.actions.contains(config.adminAction) || requiredGroups.isEmpty || user.groups.exists(requiredGroups.contains)
+        case None =>
+          false
+      }
     } else {
       true
     }

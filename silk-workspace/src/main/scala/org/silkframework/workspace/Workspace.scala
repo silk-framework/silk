@@ -145,14 +145,7 @@ class Workspace(val provider: WorkspaceProvider,
   override def userProjects(implicit userContext: UserContext): Seq[Project] = {
     if(AccessControlConfig().enabled) {
       // Filter projects the user has access to
-      allProjects.filter(project => {
-        userContext.user match {
-          case Some(user) =>
-            project.accessControl.hasAccess(user)
-          case None =>
-            throw new RuntimeException("Access control is enabled, but no user available!")
-        }
-      })
+      allProjects.filter(_.accessControl.hasAccess())
     } else {
       allProjects
     }
@@ -183,9 +176,7 @@ class Workspace(val provider: WorkspaceProvider,
    */
   override def projectOption(name: Identifier)(implicit userContext: UserContext): Option[Project] = {
     for(project <- allProjects.find(_.id == name)) yield {
-      for(user <- userContext.user) {
-        project.accessControl.checkAccess(user)
-      }
+      project.accessControl.checkAccess()
       project
     }
   }
