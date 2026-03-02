@@ -2,7 +2,6 @@ package org.silkframework.workspace.access
 
 import com.typesafe.config.Config
 import org.silkframework.config.ConfigValue
-import org.silkframework.runtime.activity.UserContext
 
 /**
  * Holds the access control configuration.
@@ -10,11 +9,7 @@ import org.silkframework.runtime.activity.UserContext
  * @param enabled True, if access control is enabled.
  * @param adminAction Users with this action may read and modify all projects.
  */
-case class AccessControlConfig(enabled: Boolean, adminAction: String) {
-
-
-
-}
+case class AccessControlConfig(enabled: Boolean, adminAction: String)
 
 /**
  * Currrent access control configuration.

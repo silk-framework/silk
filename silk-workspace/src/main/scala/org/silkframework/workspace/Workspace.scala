@@ -379,9 +379,9 @@ class Workspace(val provider: WorkspaceProvider,
         case None =>
           throw ProjectAccessDeniedException("Access control is enabled, but no (super) user has been provided!")
         case Some(user) if !user.actions.contains(AccessControlConfig().adminAction)  =>
-          throw ProjectAccessDeniedException("Access control is enabled, but the provided (super) user does not have the admin action!")
+          throw ProjectAccessDeniedException(s"Access control is enabled, but the provided user ${user.label} does not have the admin action!")
         case _ =>
-        // User is fine, so do nothing
+          // User is fine, so do nothing
       }
     }
   }
