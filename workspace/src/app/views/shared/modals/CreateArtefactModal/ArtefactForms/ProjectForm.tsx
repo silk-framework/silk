@@ -48,8 +48,13 @@ export function ProjectForm({ form, goBackOnEscape = () => {}, updateProjectAcl 
         register({ name: DESCRIPTION });
         register({ name: IDENTIFIER });
         register({ name: TAGS });
-        updateProjectAcl({ groups: [] });
     }, []);
+
+    React.useEffect(() => {
+        if (aclManagement.enabled) {
+            updateProjectAcl({ groups: [] });
+        }
+    }, [aclManagement.enabled]);
 
     const onValueChange = (key) => {
         return async (e) => {
