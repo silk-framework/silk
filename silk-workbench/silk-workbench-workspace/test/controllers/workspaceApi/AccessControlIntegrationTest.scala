@@ -226,8 +226,8 @@ object TestWebUserManager {
   val group1 = "testGroup"
   val group2 = "otherGroup"
 
-  val user1 = new WebUser("http://dummyUri/user1", Some("User 1"), groups = Set(group1))
-  val user2 = new WebUser("http://dummyUri/user2", Some("User 2"), groups = Set(group2))
+  val user1 = new WebUser("http://dummyUri/user1", Some("User 1"), groups = Set(group1), actions = UserActions.empty)
+  val user2 = new WebUser("http://dummyUri/user2", Some("User 2"), groups = Set(group2), actions = UserActions.empty)
   val admin = new WebUser("http://dummyUri/admin", Some("Admin"), groups = Set(), actions = UserActions.all)
 
   val users: Seq[WebUser] = Seq(user1, user2, admin)
