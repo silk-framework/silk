@@ -18,16 +18,16 @@ import { DeprecatedPluginsSidebar } from "./DeprecatedPluginsSidebar";
 import { DeprecatedPluginsList } from "./DeprecatedPluginsList";
 
 export interface DeprecatedPluginsModel {
-    project: string;
-    projectLabel: string;
-    task: string;
-    taskLabel: string;
-    itemType: string;
+    project?: string;
+    projectLabel?: string;
+    task?: string;
+    taskLabel?: string;
+    itemType?: string;
     pluginId: string;
     pluginLabel: string;
-    link: string;
-    linkLabel: string;
-    deprecationMessage: string;
+    link?: string;
+    linkLabel?: string;
+    deprecationMessage?: string;
 }
 
 export type PluginGroup = {

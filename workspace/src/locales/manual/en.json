@@ -411,7 +411,7 @@
             "serverError": "Server error",
             "taskOverwrittenPrompt": "I understand that some tasks will be overwritten",
             "temporarilyUnavailableMessage": "Service is temporarily unavailable. Details: {{detailMessage}}",
-            "deprecatedPluginBanner": "This plugin is deprecated and will be removed in the future. Please exchange it for a supported plugin as soon as possible.",
+            "deprecatedPluginBanner": "The '{{pluginLabel}}' plugin is deprecated and will be removed in the future. Please exchange it for a supported plugin as soon as possible.",
             "deprecatedPluginBannerPluginLabel": "Deprecated Plugin",
             "deprecatedPluginBannerTaskLabel": "Used in Task",
             "deprecatedPluginBannerDeprecationMessage": "Deprecation Message"

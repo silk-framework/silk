@@ -6,6 +6,7 @@ import { DeprecatedPluginsModel } from "../../DeprecatedPlugins";
 import { DeprecatedPluginsList } from "../../DeprecatedPlugins/DeprecatedPluginsList";
 import { requestDeprecatedPlugins } from "@ducks/common/requests";
 
+/** Shows all deprecated plugins related to the project or task. */
 export function DeprecatedPluginsWidget({ projectId, taskId }: { projectId?: string; taskId?: string }) {
     const [t] = useTranslation();
     const [deprecatedPlugins, setDeprecatedPlugins] = useState<DeprecatedPluginsModel[]>([]);

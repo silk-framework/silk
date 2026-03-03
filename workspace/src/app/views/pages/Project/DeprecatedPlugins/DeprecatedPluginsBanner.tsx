@@ -8,13 +8,13 @@ import { requestDeprecatedPlugins } from "@ducks/common/requests";
 // Banner component to display a warning message if deprecated plugins are used in the current project/task, encouraging users to replace them with supported alternatives.
 export default function DeprecatedPluginsBanner({ projectId, taskId }: { projectId: string; taskId: string }) {
     const [t] = useTranslation();
-    const [deprecatedPlugin, setDeprecatedPlugin] = useState<DeprecatedPluginsModel[]>([]);
+    const [deprecatedPlugins, setDeprecatedPlugins] = useState<DeprecatedPluginsModel[]>([]);
     const { registerError } = useErrorHandler();
 
     useEffect(() => {
         requestDeprecatedPlugins(projectId, taskId)
             .then((response) => {
-                setDeprecatedPlugin(response.data);
+                setDeprecatedPlugins(response.data);
             })
             .catch((error) => {
                 registerError(
@@ -23,25 +23,20 @@ export default function DeprecatedPluginsBanner({ projectId, taskId }: { project
                     error,
                 );
             });
-
-        return () => {};
     }, [projectId, taskId]);
 
-    if (deprecatedPlugin.length === 0) return null;
+    if (deprecatedPlugins.length === 0) return null;
 
-    const plugin = deprecatedPlugin[0];
+    const plugin = deprecatedPlugins[0];
 
     return (
         <>
             <Notification intent="warning">
                 <HtmlContentBlock>
-                    <p>{t("common.messages.deprecatedPluginBanner")}</p>
+                    <p>{t("common.messages.deprecatedPluginBanner", {pluginLabel: plugin.pluginLabel})}</p>
                     <ul>
                         <li>
                             <strong>{t("common.messages.deprecatedPluginBannerPluginLabel")}:</strong> {plugin.pluginLabel}
-                        </li>
-                        <li>
-                            <strong>{t("common.messages.deprecatedPluginBannerTaskLabel")}:</strong> {plugin.linkLabel}
                         </li>
                         {plugin.deprecationMessage && (
                             <li>

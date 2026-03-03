@@ -45,8 +45,10 @@ export function DeprecatedPluginsList({
     const [t] = useTranslation();
 
     const currentPath = window.location.pathname;
+    const currentSearch = window.location.search;
     const renderItem = (plugin: DeprecatedPluginsModel) => {
-        const isCurrentPage = !!plugin.link && currentPath.startsWith(plugin.link.split("?")[0]);
+        const [linkPath, search] = (plugin.link ?? "#").split("?")
+        const isCurrentPage = !!plugin.link && currentPath == linkPath && (!search || currentSearch.includes(search));
         return (
         <OverviewItem
             key={`${plugin.project}_${plugin.task}_${plugin.pluginId}`}
@@ -66,7 +68,7 @@ export function DeprecatedPluginsList({
                             url={(!isCurrentPage && plugin.link) || false}
                             handlerResourcePageLoader={!isCurrentPage && plugin.link ? goToTaskPage(contextualPath(plugin.link)) : false}
                         >
-                            <OverflowText>{plugin.taskLabel || t("pages.deprecatedPlugins.unknownTask")}</OverflowText>
+                            <OverflowText>{plugin.linkLabel || plugin.taskLabel || t("pages.deprecatedPlugins.unknownTask")}</OverflowText>
                         </ResourceLink>
                     </h4>
                 </OverviewItemLine>
@@ -109,7 +111,7 @@ export function DeprecatedPluginsList({
                 if (!acc[plugin.pluginId]) {
                     acc[plugin.pluginId] = {
                         pluginLabel: plugin.pluginLabel,
-                        deprecationMessage: plugin.deprecationMessage,
+                        deprecationMessage: plugin.deprecationMessage ?? "N/A",
                         items: [],
                     };
                 }
