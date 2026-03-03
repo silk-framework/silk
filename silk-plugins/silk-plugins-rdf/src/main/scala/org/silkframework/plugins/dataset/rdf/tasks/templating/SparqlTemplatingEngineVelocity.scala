@@ -1,24 +1,43 @@
 package org.silkframework.plugins.dataset.rdf.tasks.templating
+
 import org.apache.jena.update.UpdateFactory
 import org.apache.velocity.runtime.parser.node._
 import org.silkframework.entity.EntitySchema
 import org.silkframework.entity.paths.UntypedPath
 import org.silkframework.execution.local.EmptyEntityTable
+import org.silkframework.runtime.plugin.annotations.Plugin
+import org.silkframework.runtime.templating.{CompiledTemplate, EvaluationConfig, TemplateEngine, TemplateVariableValue}
 import org.silkframework.runtime.validation.ValidationException
 
+import java.io.Writer
 import scala.util.{Failure, Success, Try}
 
 /**
   * A SPARQL Update templating engine based on Velocity.
   */
-case class SparqlTemplatingEngineVelocity(sparqlUpdateTemplate: String, batchSize: Int) extends SparqlUpdateTemplatingEngine {
+@Plugin(
+  id = "sparqlVelocity",
+  label = "SPARQL Velocity",
+  description = "A SPARQL Update templating engine based on Apache Velocity."
+)
+case class SparqlVelocityTemplateEngine() extends TemplateEngine {
+
+  override def compile(templateString: String): SparqlVelocityCompiledTemplate = {
+    new SparqlVelocityCompiledTemplate(templateString)
+  }
+}
+
+/**
+  * A compiled SPARQL Update template based on Velocity.
+  */
+class SparqlVelocityCompiledTemplate(val sparqlUpdateTemplate: String) extends SparqlCompiledTemplate {
   private val sparqlTemplate = SparqlVelocityTemplating.createTemplate(sparqlUpdateTemplate)
 
   override def generate(placeholderAssignments: Map[String, String], taskProperties: TaskProperties): String = {
     SparqlVelocityTemplating.renderTemplate(sparqlTemplate, Row(placeholderAssignments), taskProperties)
   }
 
-  override def validate(): Unit = {
+  override def validate(batchSize: Int): Unit = {
     // We cannot generate meaningful example values for the template if $row.rawUnsafe() is used, because it could generate arbitrary SPARQL syntax.
     if(!usesRawUnsafe()) {
       // Generate example input assignments
@@ -111,8 +130,6 @@ case class SparqlTemplatingEngineVelocity(sparqlUpdateTemplate: String, batchSiz
     }
   }
 
-  case class TemplateVariableMethodUsage(rowMethod: String, parameterValue: String)
-
   private def astReferenceName(node: Node): Option[String] = {
     node match {
       case reference: ASTReference =>
@@ -129,9 +146,20 @@ case class SparqlTemplatingEngineVelocity(sparqlUpdateTemplate: String, batchSiz
     childPaths.fold(List.empty[TemplateVariableMethodUsage])((a, b) => a ::: b)
   }
 
+  override def evaluate(values: Map[String, AnyRef], writer: Writer): Unit = {
+    val stringValues = values.map { case (k, v) => k -> String.valueOf(v) }
+    writer.write(generate(stringValues, TaskProperties(Map.empty, Map.empty)))
+  }
+
+  override def evaluate(values: Seq[TemplateVariableValue], writer: Writer, evaluationConfig: EvaluationConfig): Unit = {
+    evaluate(convertValues(values), writer)
+  }
+
   override def isStaticTemplate: Boolean = {
     SparqlVelocityTemplating.templatingVariables.forall { variableName =>
       variableMethodUsages(variableName).isEmpty
     }
   }
 }
+
+case class TemplateVariableMethodUsage(rowMethod: String, parameterValue: String)

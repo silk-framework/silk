@@ -35,16 +35,16 @@ case class SparqlUpdateCustomTask(
 ) extends CustomTask {
   assert(batchSize >= 1, "Batch size must be greater zero!")
 
-  val templatingEngine: SparqlUpdateTemplatingEngine = templatingMode match {
-    case SparqlUpdateTemplatingMode.simple => SparqlUpdateTemplatingEngineSimple(sparqlUpdateTemplate.str, batchSize)
-    case SparqlUpdateTemplatingMode.velocity => SparqlTemplatingEngineVelocity(sparqlUpdateTemplate.str, batchSize)
+  val compiledTemplate: SparqlCompiledTemplate = templatingMode match {
+    case SparqlUpdateTemplatingMode.simple => SparqlSimpleTemplateEngine().compile(sparqlUpdateTemplate.str)
+    case SparqlUpdateTemplatingMode.velocity => SparqlVelocityTemplateEngine().compile(sparqlUpdateTemplate.str)
   }
 
-  templatingEngine.validate()
+  compiledTemplate.validate(batchSize)
 
-  def isStaticTemplate: Boolean = templatingEngine.isStaticTemplate
+  def isStaticTemplate: Boolean = compiledTemplate.isStaticTemplate
 
-  def expectedInputSchema: EntitySchema = templatingEngine.inputSchema
+  def expectedInputSchema: EntitySchema = compiledTemplate.inputSchema
 
   /**
     * Generates The SPARQL Update query based on the placeholder assignments.
@@ -52,7 +52,7 @@ case class SparqlUpdateCustomTask(
     * @return
     */
   def generate(placeholderAssignments: Map[String, String], taskProperties: TaskProperties): String = {
-    templatingEngine.generate(placeholderAssignments, taskProperties)
+    compiledTemplate.generate(placeholderAssignments, taskProperties)
   }
 
   override def inputPorts: InputPorts = {

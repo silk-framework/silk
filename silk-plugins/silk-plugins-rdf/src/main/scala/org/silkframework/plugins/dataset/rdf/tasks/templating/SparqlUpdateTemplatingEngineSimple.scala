@@ -6,23 +6,41 @@ import org.silkframework.entity.EntitySchema
 import org.silkframework.entity.paths.UntypedPath
 import org.silkframework.execution.local.EmptyEntityTable
 import org.silkframework.rule.util.JenaSerializationUtil
+import org.silkframework.runtime.plugin.annotations.Plugin
+import org.silkframework.runtime.templating.{CompiledTemplate, EvaluationConfig, TemplateEngine, TemplateVariableValue}
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.Uri
 
+import java.io.Writer
 import scala.collection.mutable.ArrayBuffer
 import scala.util.Try
 import scala.util.matching.Regex
 
+/**
+  * A simple SPARQL Update templating engine that supports plain literal and URI placeholders.
+  */
+@Plugin(
+  id = "sparqlSimple",
+  label = "Simple SPARQL",
+  description = "A simple SPARQL Update templating engine that supports plain literal and URI placeholders."
+)
+case class SparqlSimpleTemplateEngine() extends TemplateEngine {
+
+  override def compile(templateString: String): SparqlSimpleCompiledTemplate = {
+    new SparqlSimpleCompiledTemplate(templateString)
+  }
+}
 
 /**
-  * A simple templating engine that can only render plain literals and URIs.
+  * A compiled simple SPARQL Update template that can only render plain literals and URIs.
   * Example:
   *
   * DELETE DATA { ${<PROP_FROM_ENTITY_SCHEMA1>} rdf:label ${"PROP_FROM_ENTITY_SCHEMA2"} }
   */
-case class SparqlUpdateTemplatingEngineSimple(sparqlUpdateTemplate: String, batchSize: Int) extends SparqlUpdateTemplatingEngine {
+class SparqlSimpleCompiledTemplate(val sparqlUpdateTemplate: String) extends SparqlCompiledTemplate {
+
   /** Validate the generated SPARQL of the template and check for batch execution characteristics */
-  override def validate(): Unit = {
+  override def validate(batchSize: Int): Unit = {
     val sparql = (sparqlUpdateTemplateParts map {
       case SparqlUpdateTemplatePlainLiteralPlaceholder(prop) =>
         validateUri(prop)
@@ -67,6 +85,15 @@ case class SparqlUpdateTemplatingEngineSimple(sparqlUpdateTemplate: String, batc
       case SparqlUpdateTemplateStaticPart(partialSparql) =>
         partialSparql
     }).mkString
+  }
+
+  override def evaluate(values: Map[String, AnyRef], writer: Writer): Unit = {
+    val stringValues = values.map { case (k, v) => k -> String.valueOf(v) }
+    writer.write(generate(stringValues, TaskProperties(Map.empty, Map.empty)))
+  }
+
+  override def evaluate(values: Seq[TemplateVariableValue], writer: Writer, evaluationConfig: EvaluationConfig): Unit = {
+    evaluate(convertValues(values), writer)
   }
 
   private def validateUri(uri: String): Unit = {

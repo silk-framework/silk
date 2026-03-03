@@ -23,8 +23,8 @@ class SparqlTemplatingEngineVelocityTest extends AnyFlatSpec with Matchers {
         |  Raw: $row.rawUnsafe("trustedValuePath")
         |#end
         |""".stripMargin
-    val engine = SparqlTemplatingEngineVelocity(templateString, 1)
-    engine.inputPaths().sorted mustBe Seq("somePath", "subject", "trustedValuePath")
+    val compiled = SparqlVelocityTemplateEngine().compile(templateString)
+    compiled.inputPaths().sorted mustBe Seq("somePath", "subject", "trustedValuePath")
   }
 
   private val templateWithLogic = s"""PREFIX xsd: <${XSD.getURI}>
@@ -38,7 +38,7 @@ class SparqlTemplatingEngineVelocityTest extends AnyFlatSpec with Matchers {
 
   it should "validate without problems for valid templates" in {
     validate(sparqlUpdateTemplate)
-    SparqlTemplatingEngineVelocity(templateWithLogic, 1).inputPaths().sorted mustBe Seq("input1", "input2")
+    SparqlVelocityTemplateEngine().compile(templateWithLogic).inputPaths().sorted mustBe Seq("input1", "input2")
     validate(templateWithLogic)
   }
 
@@ -72,6 +72,6 @@ class SparqlTemplatingEngineVelocityTest extends AnyFlatSpec with Matchers {
   }
 
   def validate(template: String, batchSize: Int = 2): Unit = {
-    SparqlTemplatingEngineVelocity(template, batchSize).validate()
+    SparqlVelocityTemplateEngine().compile(template).validate(batchSize)
   }
 }
