@@ -1,26 +1,21 @@
 package org.silkframework.plugins.dataset.rdf.tasks.templating
 
 import org.apache.jena.graph.NodeFactory
-import org.apache.jena.update.UpdateFactory
-import org.silkframework.entity.EntitySchema
-import org.silkframework.entity.paths.UntypedPath
-import org.silkframework.execution.local.EmptyEntityTable
 import org.silkframework.rule.util.JenaSerializationUtil
 import org.silkframework.runtime.plugin.annotations.Plugin
-import org.silkframework.runtime.templating.{CompiledTemplate, EvaluationConfig, TemplateEngine, TemplateVariableValue}
+import org.silkframework.runtime.templating.{CompiledTemplate, EvaluationConfig, TemplateEngine, TemplateVariableName, TemplateVariableValue}
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.Uri
 
 import java.io.Writer
 import scala.collection.mutable.ArrayBuffer
-import scala.util.Try
 import scala.util.matching.Regex
 
 /**
   * A simple SPARQL Update templating engine that supports plain literal and URI placeholders.
   */
 @Plugin(
-  id = "sparqlSimple",
+  id = SparqlSimpleTemplateEngine.id,
   label = "Simple SPARQL",
   description = "A simple SPARQL Update templating engine that supports plain literal and URI placeholders."
 )
@@ -31,45 +26,32 @@ case class SparqlSimpleTemplateEngine() extends TemplateEngine {
   }
 }
 
+object SparqlSimpleTemplateEngine {
+  final val id = "sparqlSimple"
+}
+
 /**
   * A compiled simple SPARQL Update template that can only render plain literals and URIs.
   * Example:
   *
   * DELETE DATA { ${<PROP_FROM_ENTITY_SCHEMA1>} rdf:label ${"PROP_FROM_ENTITY_SCHEMA2"} }
   */
-class SparqlSimpleCompiledTemplate(val sparqlUpdateTemplate: String) extends SparqlCompiledTemplate {
+class SparqlSimpleCompiledTemplate(val sparqlUpdateTemplate: String) extends CompiledTemplate {
 
-  /** Validate the generated SPARQL of the template and check for batch execution characteristics */
-  override def validate(batchSize: Int): Unit = {
-    val sparql = (sparqlUpdateTemplateParts map {
-      case SparqlUpdateTemplatePlainLiteralPlaceholder(prop) =>
-        validateUri(prop)
-        "\"placeholder value\""
-      case SparqlUpdateTemplateURIPlaceholder(prop) =>
-        validateUri(prop)
-        "<urn:placeholder:uri>"
-      case SparqlUpdateTemplateStaticPart(partialSparql) =>
-        partialSparql
-    }).mkString
-    Try(UpdateFactory.create(sparql)).failed.toOption foreach { parseError =>
-      throw new ValidationException("The SPARQL Update template does not generate valid SPARQL Update queries. Error message: " +
-          parseError.getMessage + ", example query: " + sparql)
-    }
-    if(batchSize > 1) {
-      val batchSparql = sparql + "\n" + sparql
-      Try(UpdateFactory.create(batchSparql)).failed.toOption foreach { parseError =>
-        throw new ValidationException("The SPARQL Update template cannot be batched processed. There is probably a ';' missing at the end. Error message: " +
-            parseError.getMessage + ", example batch query: " + batchSparql)
-      }
-    }
+  override lazy val variables: Option[Seq[TemplateVariableName]] = Some(
+    properties.map(p => new TemplateVariableName(p, ""))
+  )
+
+  override def evaluate(values: Map[String, AnyRef], writer: Writer): Unit = {
+    val stringValues = values.map { case (k, v) => k -> String.valueOf(v) }
+    writer.write(render(stringValues))
   }
 
-  /**
-    * Generates The SPARQL Update query based on the placeholder assignments.
-    * @param placeholderAssignments For each placeholder in the query template
-    * @return
-    */
-  override def generate(placeholderAssignments: Map[String, String], taskProperties: TaskProperties): String = {
+  override def evaluate(values: Seq[TemplateVariableValue], writer: Writer, evaluationConfig: EvaluationConfig): Unit = {
+    evaluate(convertValues(values), writer)
+  }
+
+  private def render(placeholderAssignments: Map[String, String]): String = {
     def assignmentValue(prop: String): String = placeholderAssignments.get(prop) match {
       case Some(value) => value
       case None => throw new ValidationException(s"No value assignment for placeholder property $prop")
@@ -85,15 +67,6 @@ class SparqlSimpleCompiledTemplate(val sparqlUpdateTemplate: String) extends Spa
       case SparqlUpdateTemplateStaticPart(partialSparql) =>
         partialSparql
     }).mkString
-  }
-
-  override def evaluate(values: Map[String, AnyRef], writer: Writer): Unit = {
-    val stringValues = values.map { case (k, v) => k -> String.valueOf(v) }
-    writer.write(generate(stringValues, TaskProperties(Map.empty, Map.empty)))
-  }
-
-  override def evaluate(values: Seq[TemplateVariableValue], writer: Writer, evaluationConfig: EvaluationConfig): Unit = {
-    evaluate(convertValues(values), writer)
   }
 
   private def validateUri(uri: String): Unit = {
@@ -162,22 +135,10 @@ class SparqlSimpleCompiledTemplate(val sparqlUpdateTemplate: String) extends Spa
     templateParts.toSeq
   }
 
-  override def inputSchema: EntitySchema = {
-    if (isStaticTemplate) {
-      EmptyEntityTable.schema // Static template, no input data needed
-    } else {
-      EntitySchema("", properties.map(p => UntypedPath(p).asUntypedValueType).toIndexedSeq)
-    }
-  }
-
   private val properties: Seq[String] = sparqlUpdateTemplateParts.
       filter(_.isInstanceOf[SparqlUpdateTemplatePlaceholder]).
       map(_.asInstanceOf[SparqlUpdateTemplatePlaceholder].prop).
       distinct
-
-  override def isStaticTemplate: Boolean = {
-    properties.isEmpty
-  }
 }
 
 sealed trait SparqlUpdateTemplatePart

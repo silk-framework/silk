@@ -6,6 +6,7 @@ import org.silkframework.execution.typed.SparqlUpdateEntitySchema
 import org.silkframework.plugins.dataset.rdf.tasks.templating._
 import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
 import org.silkframework.runtime.plugin.types.SparqlCodeParameter
+import org.silkframework.runtime.templating.{TemplateEngineAutocompletionProvider, TemplateEngines}
 
 @Plugin(
   id = "sparqlUpdateOperator",
@@ -20,7 +21,7 @@ case class SparqlUpdateCustomTask(
   @Param(
     label = "SPARQL update query",
     value = "The SPARQL UPDATE template for constructing SPARQL UPDATE queries for every entity from the input." +
-      " The possible values for the template engine are `Simple` and `Velocity Engine`." +
+      " The possible values for the template engine are `Simple`, `Velocity Engine` and `Jinja`." +
       " See the general documentation of this plugin for further details on the features of each template engine.",
     example = "DELETE DATA { ${<PROP_FROM_ENTITY_SCHEMA1>} rdf:label ${\"PROP_FROM_ENTITY_SCHEMA2\"} }"
   )
@@ -28,16 +29,16 @@ case class SparqlUpdateCustomTask(
   @Param(label = "Batch size", value = "How many entities should be handled in a single update request.")
   batchSize: Int = SparqlUpdateCustomTask.defaultBatchSize,
   @Param(
-    "The templating mode for the template engine. The possible values are `Simple` and `Velocity Engine`." +
-      " See the general documentation of this plugin for further details on the features of each template engine.",
+    value = "The templating mode for the template engine. See the general documentation of this plugin for further details on the features of each template engine.",
+    autoCompletionProvider = classOf[TemplateEngineAutocompletionProvider]
   )
-  templatingMode: SparqlUpdateTemplatingMode = SparqlUpdateTemplatingMode.simple
+  language: String = SparqlSimpleTemplateEngine.id
 ) extends CustomTask {
   assert(batchSize >= 1, "Batch size must be greater zero!")
 
-  val compiledTemplate: SparqlCompiledTemplate = templatingMode match {
-    case SparqlUpdateTemplatingMode.simple => SparqlSimpleTemplateEngine().compile(sparqlUpdateTemplate.str)
-    case SparqlUpdateTemplatingMode.velocity => SparqlVelocityTemplateEngine().compile(sparqlUpdateTemplate.str)
+  val compiledTemplate: SparqlCompiledTemplate = {
+    val templateEngine = TemplateEngines.create(language)
+    new SparqlCompiledTemplate(templateEngine.compile(sparqlUpdateTemplate.str))
   }
 
   compiledTemplate.validate(batchSize)

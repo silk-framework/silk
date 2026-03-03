@@ -21,7 +21,7 @@ object TemplateEngines {
     */
   def create(id: String): TemplateEngine = {
     implicit val pluginContext: PluginContext = PluginContext.empty
-    PluginRegistry.create[TemplateEngine](id.toLowerCase)
+    PluginRegistry.create[TemplateEngine](id)
   }
 
 }

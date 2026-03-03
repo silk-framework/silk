@@ -8,7 +8,7 @@ import org.silkframework.execution.{ExecutionReport, ExecutorOutput}
 import org.silkframework.execution.local.{GenericEntityTable, LocalEntities, LocalExecution}
 import org.silkframework.plugins.dataset.rdf.executors.LocalSparqlUpdateExecutor
 import org.silkframework.plugins.dataset.rdf.tasks.SparqlUpdateCustomTask
-import org.silkframework.plugins.dataset.rdf.tasks.templating.SparqlUpdateTemplatingMode
+import org.silkframework.plugins.dataset.rdf.tasks.templating.{SparqlSimpleTemplateEngine, SparqlVelocityTemplateEngine}
 import org.silkframework.runtime.activity.{ActivityContext, UserContext}
 import org.silkframework.runtime.plugin.{ParameterValues, PluginContext, TestPluginContext}
 import org.silkframework.runtime.validation.ValidationException
@@ -96,7 +96,7 @@ class LocalSparqlUpdateExecutorTest extends AnyFlatSpec with Matchers with TestW
   it should "output one UPDATE query per input task when the template contains input property placeholders" in {
     val templateWithInputPropertyPlaceholders = """INSERT DATA { $inputProperties.uri("graph") <urn:prop:label> $inputProperties.plainLiteral("graph") };"""
     val result = executeTask(templateWithInputPropertyPlaceholders, Seq(mockInputTable(Seq("graph" -> "g1")),
-      mockInputTable(Seq("graph" -> "g2"))), SparqlUpdateTemplatingMode.velocity)
+      mockInputTable(Seq("graph" -> "g2"))), SparqlVelocityTemplateEngine.id)
     result.entities.map(_.values.flatten.head).toList mustBe List("INSERT DATA { <g1> <urn:prop:label> \"g1\" };\n" +
                                                                   "INSERT DATA { <g2> <urn:prop:label> \"g2\" };")
   }
@@ -104,20 +104,20 @@ class LocalSparqlUpdateExecutorTest extends AnyFlatSpec with Matchers with TestW
   it should "output one UPDATE query overall even for multiple inputs when no placeholder is used at all" in {
     val staticTemplate = """INSERT DATA { <urn:subject:1> <urn:prop:label> "1" };"""
     val result = executeTask(staticTemplate, Seq(mockInputTable(Seq("graph" -> "g1")),
-      mockInputTable(Seq("graph" -> "g2"))), SparqlUpdateTemplatingMode.velocity)
+      mockInputTable(Seq("graph" -> "g2"))), SparqlVelocityTemplateEngine.id)
     result.entities.map(_.values.flatten.head).toList mustBe List(staticTemplate)
   }
 
   private def sparqlUpdateTask(template: String,
-                               mode: SparqlUpdateTemplatingMode): Task[SparqlUpdateCustomTask] = {
-    project.updateTask("task", SparqlUpdateCustomTask(template, batchSize = batchSize, templatingMode = mode))
+                               language: String): Task[SparqlUpdateCustomTask] = {
+    project.updateTask("task", SparqlUpdateCustomTask(template, batchSize = batchSize, language = language))
   }
 
   private def executeTask(template: String,
                           input: Seq[GenericEntityTable],
-                          mode: SparqlUpdateTemplatingMode = SparqlUpdateTemplatingMode.simple,
+                          language: String = SparqlSimpleTemplateEngine.id,
                           activityContext: ActivityContext[ExecutionReport] = context): LocalEntities = {
-    val result = executor.execute(sparqlUpdateTask(template, mode), input, ExecutorOutput.empty, LocalExecution(true), activityContext)
+    val result = executor.execute(sparqlUpdateTask(template, language), input, ExecutorOutput.empty, LocalExecution(true), activityContext)
     result mustBe defined
     result.get
   }

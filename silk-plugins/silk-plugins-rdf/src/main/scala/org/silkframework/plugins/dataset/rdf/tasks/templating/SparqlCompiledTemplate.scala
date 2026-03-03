@@ -1,24 +1,115 @@
 package org.silkframework.plugins.dataset.rdf.tasks.templating
 
+import org.apache.jena.update.UpdateFactory
 import org.silkframework.entity.EntitySchema
-import org.silkframework.runtime.templating.CompiledTemplate
+import org.silkframework.entity.paths.UntypedPath
+import org.silkframework.execution.local.EmptyEntityTable
+import org.silkframework.runtime.templating.{CompiledTemplate, EvaluationConfig, TemplateVariableValue}
+import org.silkframework.runtime.validation.ValidationException
+
+import java.io.{StringWriter, Writer}
+import scala.collection.JavaConverters._
+import scala.util.{Failure, Success, Try}
 
 /**
-  * Extension of CompiledTemplate with SPARQL Update specific capabilities.
+  * Wraps a [[CompiledTemplate]] and adds SPARQL Update specific capabilities.
   */
-trait SparqlCompiledTemplate extends CompiledTemplate {
+class SparqlCompiledTemplate(delegate: CompiledTemplate) extends CompiledTemplate {
 
   /** Renders the template based on the variable assignments. */
-  def generate(placeholderAssignments: Map[String, String], taskProperties: TaskProperties): String
+  def generate(placeholderAssignments: Map[String, String], taskProperties: TaskProperties): String = {
+    val values = new java.util.LinkedHashMap[String, AnyRef]()
+    placeholderAssignments.foreach { case (k, v) => values.put(k, v) }
+    if (taskProperties.inputTask.nonEmpty) {
+      values.put("inputProperties", taskProperties.inputTask.asJava)
+    }
+    if (taskProperties.outputTask.nonEmpty) {
+      values.put("outputProperties", taskProperties.outputTask.asJava)
+    }
+    val writer = new StringWriter()
+    delegate.evaluate(values.asScala.toMap, writer)
+    writer.toString
+  }
 
   /** Validates the template, including batch validation if batchSize > 1. */
-  def validate(batchSize: Int): Unit
+  def validate(batchSize: Int): Unit = {
+    // Skip validation if variables cannot be determined (e.g. Velocity templates using rawUnsafe)
+    delegate.variables match {
+      case None => return
+      case Some(_) =>
+    }
+    val genericUri = "urn:generic:1"
+    val entityVariables = entityVariableNames
+    val assignments = entityVariables.map(_ -> genericUri).toMap
+    val inputPropVars = taskPropertyVariableNames("inputProperties").map(_ -> genericUri).toMap
+    val outputPropVars = taskPropertyVariableNames("outputProperties").map(_ -> genericUri).toMap
+    val taskProps = TaskProperties(inputPropVars, outputPropVars)
+    val sparqlQuery = Try(generate(assignments, taskProps)) match {
+      case Failure(exception) =>
+        throw new ValidationException(
+          "The SPARQL Update template could not be rendered with example values. Error message: " + exception.getMessage, exception)
+      case Success(value) => value
+    }
+    Try(UpdateFactory.create(sparqlQuery)).failed.toOption.foreach { parseError =>
+      throw new ValidationException(
+        "The SPARQL Update template does not generate valid SPARQL Update queries. Error message: " +
+          parseError.getMessage + ", example query: " + sparqlQuery)
+    }
+    if (batchSize > 1) {
+      val batchSparql = sparqlQuery + "\n" + sparqlQuery
+      Try(UpdateFactory.create(batchSparql)).failed.toOption.foreach { parseError =>
+        throw new ValidationException(
+          "The SPARQL Update template cannot be batched processed. There is probably a ';' missing at the end. Error message: " +
+            parseError.getMessage + ", example batch query: " + batchSparql)
+      }
+    }
+  }
 
   /** The input entity schema that is expected by the template. */
-  def inputSchema: EntitySchema
+  def inputSchema: EntitySchema = {
+    val properties = entityVariableNames
+    if (properties.isEmpty) {
+      EmptyEntityTable.schema
+    } else {
+      EntitySchema("", properties.map(p => UntypedPath(p).asUntypedValueType).toIndexedSeq)
+    }
+  }
 
   /** True if the given template is static, i.e. contains no placeholder variables. */
-  def isStaticTemplate: Boolean
+  def isStaticTemplate: Boolean = {
+    delegate.variables match {
+      case Some(vars) => vars.isEmpty
+      case None => false
+    }
+  }
+
+  override def evaluate(values: Map[String, AnyRef], writer: Writer): Unit = {
+    delegate.evaluate(values, writer)
+  }
+
+  override def evaluate(values: Seq[TemplateVariableValue], writer: Writer, evaluationConfig: EvaluationConfig): Unit = {
+    delegate.evaluate(values, writer, evaluationConfig)
+  }
+
+  /** Returns entity variable names (those with empty scope). */
+  private def entityVariableNames: Seq[String] = {
+    delegate.variables match {
+      case Some(vars) =>
+        vars.filter(_.scope.isEmpty).map(_.name).distinct
+      case None =>
+        Seq.empty
+    }
+  }
+
+  /** Returns variable names for a specific scope (e.g. "inputProperties", "outputProperties"). */
+  private def taskPropertyVariableNames(scope: String): Seq[String] = {
+    delegate.variables match {
+      case Some(vars) =>
+        vars.filter(_.scope == scope).map(_.name).distinct
+      case None =>
+        Seq.empty
+    }
+  }
 }
 
 /** Makes properties of the input and output task of a SPARQL Update operator execution available. */
