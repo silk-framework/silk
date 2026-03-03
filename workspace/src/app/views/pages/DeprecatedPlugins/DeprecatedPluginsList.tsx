@@ -9,6 +9,7 @@ import {
     OverviewItemDepiction,
     OverviewItemDescription,
     OverviewItemLine,
+    Spacing,
     Tag,
     TagList,
     TitleSubsection,
@@ -47,59 +48,65 @@ export function DeprecatedPluginsList({
     const currentPath = window.location.pathname;
     const currentSearch = window.location.search;
     const renderItem = (plugin: DeprecatedPluginsModel) => {
-        const [linkPath, search] = (plugin.link ?? "#").split("?")
+        const [linkPath, search] = (plugin.link ?? "#").split("?");
         const isCurrentPage = !!plugin.link && currentPath == linkPath && (!search || currentSearch.includes(search));
         return (
-        <OverviewItem
-            key={`${plugin.project}_${plugin.task}_${plugin.pluginId}`}
-            hasSpacing
-            hasCardWrapper={hasCardWrapper}
-            cardProps={hasCardWrapper ? { className: "diapp-searchitem" } : undefined}
-            data-test-id="deprecated-plugin-item"
-        >
-            <OverviewItemDepiction>
-                <ItemDepiction itemType={plugin.itemType} pluginId={plugin.pluginId} />
-            </OverviewItemDepiction>
-            <OverviewItemDescription>
-                {/* Line 1: task name */}
-                <OverviewItemLine>
-                    <h4 style={{ margin: 0 }}>
-                        <ResourceLink
-                            url={(!isCurrentPage && plugin.link) || false}
-                            handlerResourcePageLoader={!isCurrentPage && plugin.link ? goToTaskPage(contextualPath(plugin.link)) : false}
-                        >
-                            <OverflowText>{plugin.linkLabel || plugin.taskLabel || t("pages.deprecatedPlugins.unknownTask")}</OverflowText>
-                        </ResourceLink>
-                    </h4>
-                </OverviewItemLine>
-                {/* Line 2: context tags */}
-                <OverviewItemLine small>
-                    <TagList>
-                        {plugin.projectLabel && (
-                            <Tag emphasis="weak" itemType={plugin.itemType}>
-                                {plugin.projectLabel}
-                            </Tag>
-                        )}
-                        {plugin.itemType && (
-                            <Tag emphasis="weak" itemType={plugin.itemType}>
-                                {plugin.itemType}
-                            </Tag>
-                        )}
-                    </TagList>
-                </OverviewItemLine>
-            </OverviewItemDescription>
-            {/* interaction element to link to task page */}
-            <OverviewItemActions>
-                {plugin.link && !isCurrentPage && (
-                    <IconButton
-                        name="item-viewdetails"
-                        text={t("common.action.showDetails")}
-                        onClick={goToTaskPage(contextualPath(plugin.link))}
-                        href={plugin.link}
-                    />
+            <OverviewItem
+                key={`${plugin.project}_${plugin.task}_${plugin.pluginId}`}
+                hasSpacing={hasCardWrapper}
+                hasCardWrapper={hasCardWrapper}
+                cardProps={hasCardWrapper ? { className: "diapp-searchitem" } : undefined}
+                data-test-id="deprecated-plugin-item"
+            >
+                {hasCardWrapper && (
+                    <OverviewItemDepiction>
+                        <ItemDepiction itemType={plugin.itemType} pluginId={plugin.pluginId} />
+                    </OverviewItemDepiction>
                 )}
-            </OverviewItemActions>
-        </OverviewItem>
+                <OverviewItemDescription>
+                    {/* Line 1: task name */}
+                    <OverviewItemLine small={!hasCardWrapper}>
+                        <h4>
+                            <ResourceLink
+                                url={(!isCurrentPage && plugin.link) || false}
+                                handlerResourcePageLoader={
+                                    !isCurrentPage && plugin.link ? goToTaskPage(contextualPath(plugin.link)) : false
+                                }
+                            >
+                                <OverflowText>
+                                    {plugin.linkLabel || plugin.taskLabel || t("pages.deprecatedPlugins.unknownTask")}
+                                </OverflowText>
+                            </ResourceLink>
+                        </h4>
+                    </OverviewItemLine>
+                    {/* Line 2: context tags */}
+                    <OverviewItemLine small>
+                        <TagList>
+                            {plugin.projectLabel && (
+                                <Tag emphasis="weak" itemType={plugin.itemType}>
+                                    {plugin.projectLabel}
+                                </Tag>
+                            )}
+                            {plugin.itemType && (
+                                <Tag emphasis="weak" itemType={plugin.itemType}>
+                                    {plugin.itemType}
+                                </Tag>
+                            )}
+                        </TagList>
+                    </OverviewItemLine>
+                </OverviewItemDescription>
+                {/* interaction element to link to task page */}
+                <OverviewItemActions>
+                    {plugin.link && !isCurrentPage && (
+                        <IconButton
+                            name="item-viewdetails"
+                            text={t("common.action.showDetails")}
+                            onClick={goToTaskPage(contextualPath(plugin.link))}
+                            href={plugin.link}
+                        />
+                    )}
+                </OverviewItemActions>
+            </OverviewItem>
         );
     };
 
@@ -125,22 +132,24 @@ export function DeprecatedPluginsList({
             <>
                 {Object.entries(groups).map(([pluginId, group], index) => (
                     <React.Fragment key={pluginId}>
-                        {index > 0 && <Divider addSpacing="small" />}
-                        <TitleSubsection useHtmlElement="h3">{group.pluginLabel}</TitleSubsection>
-                        {group.deprecationMessage && (
-                            <div style={{ marginBottom: "0.75rem", opacity: 0.75 }}>
-                                <Markdown>{group.deprecationMessage}</Markdown>
-                            </div>
-                        )}
-                        <Datalist
-                            isEmpty={!isLoading && group.items.length === 0}
-                            data-test-id="deprecated-plugins-list"
-                            isLoading={isLoading}
-                            hasSpacing
-                            columns={1}
-                        >
-                            {group.items.map(renderItem)}
-                        </Datalist>
+                        {index > 0 && <Divider addSpacing="medium" />}
+                        <section>
+                            <header>
+                                <TitleSubsection useHtmlElement="h3">{group.pluginLabel}</TitleSubsection>
+                                {group.deprecationMessage && <Markdown>{group.deprecationMessage}</Markdown>}
+                                <Spacing size={"small"} />
+                            </header>
+                            <Datalist
+                                isEmpty={!isLoading && group.items.length === 0}
+                                data-test-id="deprecated-plugins-list"
+                                isLoading={isLoading}
+                                hasSpacing
+                                hasDivider
+                                columns={1}
+                            >
+                                {group.items.map(renderItem)}
+                            </Datalist>
+                        </section>
                     </React.Fragment>
                 ))}
             </>
@@ -152,12 +161,8 @@ export function DeprecatedPluginsList({
             {selectedPlugin && (
                 <>
                     <TitleSubsection useHtmlElement="h3">{selectedPlugin.pluginLabel}</TitleSubsection>
-                    {selectedPlugin.deprecationMessage && (
-                        <div style={{ marginBottom: "0.75rem", opacity: 0.75 }}>
-                            <Markdown>{selectedPlugin.deprecationMessage}</Markdown>
-                        </div>
-                    )}
-                    <Divider addSpacing="small" />
+                    {selectedPlugin.deprecationMessage && <Markdown>{selectedPlugin.deprecationMessage}</Markdown>}
+                    <Divider addSpacing="medium" />
                 </>
             )}
             <Datalist

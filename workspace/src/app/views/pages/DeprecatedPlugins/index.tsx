@@ -123,9 +123,7 @@ export default function DeprecatedPlugins() {
 
     return (
         <WorkspaceContent>
-            {/* page header in app bar */}
-            {pageHeader}
-            <Spacing />
+            {pageHeader /* page header in app bar */}
             {!isLoading && deprecatedPlugins.length === 0 && (
                 <Notification>{t("pages.deprecatedPlugins.noPluginsFound")}</Notification>
             )}
