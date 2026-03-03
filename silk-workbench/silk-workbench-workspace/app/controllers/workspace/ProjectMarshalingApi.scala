@@ -53,7 +53,7 @@ class ProjectMarshalingApi @Inject() () extends InjectedController with UserCont
     Ok(JsArray(marshaller.map(JsonSerializer.marshaller)))
   }
 
-  def importProject(project: String, groups: List[String] = List.empty): Action[AnyContent] = importProjectViaPlugin(project, XmlZipWithResourcesProjectMarshaling.marshallerId, groups)
+  def importProject(project: String, groups: List[String] = List.empty, importGroups: Boolean = false): Action[AnyContent] = importProjectViaPlugin(project, XmlZipWithResourcesProjectMarshaling.marshallerId, groups, importGroups)
 
   @Operation(
     summary = "Import project",
@@ -101,18 +101,26 @@ class ProjectMarshalingApi @Inject() () extends InjectedController with UserCont
                                in = ParameterIn.QUERY,
                                schema = new Schema(implementation = classOf[String])
                              )
-                             groups: List[String] = List.empty): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
+                             groups: List[String] = List.empty,
+                             @Parameter(
+                               name = "importGroups",
+                               description = "If true, use the access control groups from the archive. Cannot be used together with the 'groups' parameter.",
+                               required = false,
+                               in = ParameterIn.QUERY,
+                               schema = new Schema(implementation = classOf[Boolean])
+                             )
+                             importGroups: Boolean = false): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
+    if (importGroups && groups.nonEmpty) {
+      throw BadUserInputException("The 'importGroups' and 'groups' parameters are mutually exclusive and cannot be used together.")
+    }
     withMarshaller(marshallerId) { marshaller =>
       val workspace = WorkspaceFactory().workspace
-      workspace.importProject(project, bodyAsFile, marshaller)
-      if (groups.nonEmpty) {
-        workspace.project(project).accessControl.setGroups(groups.toSet)
-      }
+      workspace.importProject(project, bodyAsFile, marshaller, importGroups = importGroups, groups = groups.toSet)
       Ok
     }
   }
 
-  def exportProject(projectName: String): Action[AnyContent] = exportProjectViaPlugin(projectName, XmlZipWithResourcesProjectMarshaling.marshallerId)
+  def exportProject(projectName: String, exportGroups: Boolean = false): Action[AnyContent] = exportProjectViaPlugin(projectName, XmlZipWithResourcesProjectMarshaling.marshallerId, exportGroups)
 
   @Operation(
     summary = "Export project",
@@ -139,11 +147,19 @@ class ProjectMarshalingApi @Inject() () extends InjectedController with UserCont
                                in = ParameterIn.PATH,
                                schema = new Schema(implementation = classOf[String])
                              )
-                             marshallerPluginId: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
+                             marshallerPluginId: String,
+                             @Parameter(
+                               name = "exportGroups",
+                               description = "If true, include access control groups in the exported archive.",
+                               required = false,
+                               in = ParameterIn.QUERY,
+                               schema = new Schema(implementation = classOf[Boolean])
+                             )
+                             exportGroups: Boolean = false): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     withMarshaller(marshallerPluginId) { marshaller =>
       val fileName = s"${LocalDate.now()}-${request.domain}-$projectName${qualifier(marshaller)}.project.${marshaller.fileExtension}"
       sendFile(fileName) { outputStream =>
-        WorkspaceFactory().workspace.exportProject(projectName, outputStream, marshaller)
+        WorkspaceFactory().workspace.exportProject(projectName, outputStream, marshaller, exportGroups)
       }
     }
   }
@@ -178,12 +194,26 @@ class ProjectMarshalingApi @Inject() () extends InjectedController with UserCont
                                  in = ParameterIn.PATH,
                                  schema = new Schema(implementation = classOf[String])
                                )
-                               marshallerId: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
+                               marshallerId: String,
+                               @Parameter(
+                                 name = "importGroups",
+                                 description = "If true, use the access control groups from the archive for all imported projects.",
+                                 required = false,
+                                 in = ParameterIn.QUERY,
+                                 schema = new Schema(implementation = classOf[Boolean])
+                               )
+                               importGroups: Boolean = false): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     WorkspaceFactory().workspace.clear()
     withMarshaller(marshallerId) { marshaller =>
       val workspace = WorkspaceFactory().workspace
       marshaller.unmarshalWorkspace(workspace.provider, workspace.repository, bodyAsFile)
       workspace.reload()
+      if (!importGroups) {
+        // Clear groups on all imported projects
+        for (project <- workspace.userProjects) {
+          project.accessControl.setGroups(Set.empty)
+        }
+      }
       log.info(s"Imported workspace. " + userContext.logInfo)
       Ok
     }
@@ -206,12 +236,20 @@ class ProjectMarshalingApi @Inject() () extends InjectedController with UserCont
                                  in = ParameterIn.PATH,
                                  schema = new Schema(implementation = classOf[String])
                                )
-                               marshallerPluginId: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
+                               marshallerPluginId: String,
+                               @Parameter(
+                                 name = "exportGroups",
+                                 description = "If true, include access control groups in the exported archive.",
+                                 required = false,
+                                 in = ParameterIn.QUERY,
+                                 schema = new Schema(implementation = classOf[Boolean])
+                               )
+                               exportGroups: Boolean = false): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     withMarshaller(marshallerPluginId) { marshaller =>
       val fileName = s"${LocalDate.now()}-${request.domain}${qualifier(marshaller)}.workspace.${marshaller.fileExtension}"
       sendFile(fileName) { outputStream =>
         val workspace = WorkspaceFactory().workspace
-        marshaller.marshalWorkspace(outputStream, workspace.userProjects, workspace.repository)
+        marshaller.marshalWorkspace(outputStream, workspace.userProjects, workspace.repository, exportGroups)
       }
     }
   }

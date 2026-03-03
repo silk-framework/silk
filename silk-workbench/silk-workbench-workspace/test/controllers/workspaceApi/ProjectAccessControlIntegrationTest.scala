@@ -112,6 +112,49 @@ class ProjectAccessControlIntegrationTest extends AnyFlatSpec with IntegrationTe
     getProjectAccessControl(projectId, user1).groups shouldBe Set(group1)
   }
 
+  it should "round-trip groups through export with exportGroups and import with importGroups" in {
+    val projectId = "exportImportGroups"
+
+    // Create a project with group1
+    createProject(projectId, user1, Set(group1))
+    getProjectAccessControl(projectId, user1).groups shouldBe Set(group1)
+
+    // Export with exportGroups=true
+    val exportedBytes = exportProject(projectId, user1, exportGroups = true)
+    deleteProject(projectId, user1)
+
+    // Import with importGroups=true — groups from archive should be preserved
+    importProject(projectId, exportedBytes, user1, importGroups = true)
+    getProjectAccessControl(projectId, user1).groups shouldBe Set(group1)
+  }
+
+  it should "clear groups from archive when importing with importGroups=false" in {
+    val projectId = "exportClearGroups"
+
+    // Create a project with group1
+    createProject(projectId, user1, Set(group1))
+    getProjectAccessControl(projectId, user1).groups shouldBe Set(group1)
+
+    // Export with exportGroups=true (archive contains group1)
+    val exportedBytes = exportProject(projectId, user1, exportGroups = true)
+    deleteProject(projectId, user1)
+
+    // Import with importGroups=false (default) — groups should be cleared
+    importProject(projectId, exportedBytes, user1)
+    getProjectAccessControl(projectId, user1).groups shouldBe Set.empty
+  }
+
+  it should "reject import with both importGroups and groups parameters" in {
+    val projectId = "importGroupsConflict"
+
+    createProject(projectId, user1, Set(group1))
+    val exportedBytes = exportProject(projectId, user1)
+    deleteProject(projectId, user1)
+
+    // Import with both importGroups=true and groups — should fail with 400
+    importProjectStatus(projectId, exportedBytes, user1, groups = Set(group2), importGroups = true) shouldBe 400
+  }
+
   it should "apply specified groups to a cloned project" in {
     val sourceId = "cloneSourceGroup"
     val cloneId = "cloneWithGroup"
@@ -126,8 +169,8 @@ class ProjectAccessControlIntegrationTest extends AnyFlatSpec with IntegrationTe
   /**
    * Exports the project with the given id and returns the exported bytes.
    */
-  def exportProject(projectId: String, user: User): Array[Byte] = {
-    checkResponse(userRequest(controllers.workspace.routes.ProjectMarshalingApi.exportProject(projectId), user).get()).bodyAsBytes.toArray
+  def exportProject(projectId: String, user: User, exportGroups: Boolean = false): Array[Byte] = {
+    checkResponse(userRequest(controllers.workspace.routes.ProjectMarshalingApi.exportProject(projectId, exportGroups), user).get()).bodyAsBytes.toArray
   }
 
   /**
@@ -140,8 +183,16 @@ class ProjectAccessControlIntegrationTest extends AnyFlatSpec with IntegrationTe
   /**
    * Imports a project from the given bytes.
    */
-  def importProject(projectId: String, projectBytes: Array[Byte], user: User, groups: Set[String] = Set.empty): Unit = {
-    checkResponse(userRequest(controllers.workspace.routes.ProjectMarshalingApi.importProject(projectId, groups.toList), user).post(projectBytes))
+  def importProject(projectId: String, projectBytes: Array[Byte], user: User, groups: Set[String] = Set.empty, importGroups: Boolean = false): Unit = {
+    checkResponse(userRequest(controllers.workspace.routes.ProjectMarshalingApi.importProject(projectId, groups.toList, importGroups), user).post(projectBytes))
+  }
+
+  /** Imports a project and returns the HTTP status code instead of asserting success. */
+  def importProjectStatus(projectId: String, projectBytes: Array[Byte], user: User, groups: Set[String] = Set.empty, importGroups: Boolean = false): Int = {
+    Await.result(
+      userRequest(controllers.workspace.routes.ProjectMarshalingApi.importProject(projectId, groups.toList, importGroups), user).post(projectBytes),
+      200.seconds
+    ).status
   }
 
   /**

@@ -1,6 +1,6 @@
 package org.silkframework.workspace
 
-import org.silkframework.config.CustomTask
+import org.silkframework.config.{AccessControl, CustomTask}
 import org.silkframework.dataset.{Dataset, DatasetSpec}
 import org.silkframework.rule.{LinkSpec, TransformSpec}
 import org.silkframework.runtime.activity.UserContext
@@ -50,7 +50,8 @@ trait ProjectMarshallingTrait extends AnyPlugin {
     */
   def marshalProject(project: Project,
                      outputStream: OutputStream,
-                     resourceManager: ResourceManager)
+                     resourceManager: ResourceManager,
+                     exportGroups: Boolean = false)
                     (implicit userContext: UserContext): String
 
   /**
@@ -76,7 +77,8 @@ trait ProjectMarshallingTrait extends AnyPlugin {
     */
   def marshalWorkspace(outputStream: OutputStream,
                        projects: Seq[Project],
-                       resourceRepository: ResourceRepository)
+                       resourceRepository: ResourceRepository,
+                       exportGroups: Boolean = false)
                       (implicit userContext: UserContext): String
 
 
@@ -137,7 +139,8 @@ trait ProjectMarshallingTrait extends AnyPlugin {
                               outputWorkspaceProvider: WorkspaceProvider,
                               resources: ResourceManager,
                               exportToResources: ResourceManager,
-                              alsoExportResources: Boolean)
+                              alsoExportResources: Boolean,
+                              alsoExportGroups: Boolean = false)
                              (implicit userContext: UserContext): Unit = {
     // Load project into temporary XML workspace provider
     val updatedProjectConfig = project.config.copy(projectResourceUriOpt = Some(project.config.resourceUriOrElseDefaultUri))
@@ -145,6 +148,9 @@ trait ProjectMarshallingTrait extends AnyPlugin {
     outputWorkspaceProvider.putProject(updatedProjectConfig)
     outputWorkspaceProvider.putTags(updatedProjectConfig.id, project.tagManager.allTags())
     outputWorkspaceProvider.projectVariables(updatedProjectConfig.id).putVariables(project.templateVariables.all)
+    if(alsoExportGroups) {
+      outputWorkspaceProvider.putAccessControlGroups(projectId, AccessControl(project.accessControl.getGroups))
+    }
     if(alsoExportResources) {
       copyResources(resources, exportToResources)
     }

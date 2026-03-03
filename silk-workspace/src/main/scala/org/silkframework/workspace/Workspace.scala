@@ -228,24 +228,29 @@ class Workspace(val provider: WorkspaceProvider,
     * @param marshaller object that defines how the project should be marshaled.
     * @return
     */
-  def exportProject(name: Identifier, outputStream: OutputStream, marshaller: ProjectMarshallingTrait)
+  def exportProject(name: Identifier, outputStream: OutputStream, marshaller: ProjectMarshallingTrait, exportGroups: Boolean = false)
                    (implicit userContext: UserContext): String = {
     initProjects()
-    marshaller.marshalProject(project(name), outputStream, repository.get(name))
+    marshaller.marshalProject(project(name), outputStream, repository.get(name), exportGroups)
   }
 
   /**
     * Generic project import method that unmarshals the project as implemented in the given [[ProjectMarshallingTrait]] object.
     *
-    * @param name       project name
-    * @param file       the file to read the project to import from
-    * @param marshaller object that defines how the project should be unmarshaled.
-    * @param overwrite  If true, then it will overwrite an existing project, else an exception is thrown.
+    * @param name         project name
+    * @param file         the file to read the project to import from
+    * @param marshaller   object that defines how the project should be unmarshaled.
+    * @param overwrite    If true, then it will overwrite an existing project, else an exception is thrown.
+    * @param importGroups If true, keep the access control groups from the archive.
+    *                     If false, clear the groups after import (unless explicit groups are provided via `groups`).
+    * @param groups       Explicit groups to set on the imported project. Only used when `importGroups` is false.
     */
   def importProject(name: Identifier,
                     file: File,
                     marshaller: ProjectMarshallingTrait,
-                    overwrite: Boolean = false)
+                    overwrite: Boolean = false,
+                    importGroups: Boolean = false,
+                    groups: Set[String] = Set.empty)
                    (implicit userContext: UserContext): Unit = {
     initProjects()
     synchronized {
@@ -261,6 +266,10 @@ class Workspace(val provider: WorkspaceProvider,
     val start = System.currentTimeMillis()
     marshaller.unmarshalProject(name, provider, repository.get(name), file)
     reloadProjectInternal(name)
+    if (!importGroups) {
+      // Either apply explicit groups or clear any groups that came from the archive
+      project(name).accessControl.setGroups(groups)
+    }
     log.info(s"Imported project '$name' in ${(System.currentTimeMillis() - start).toDouble / 1000}s. " + userContext.logInfo)
   }
 
