@@ -26,7 +26,7 @@ import scala.concurrent.Await
 /**
  * Integration test for the access control of the project API.
  */
-class AccessControlIntegrationTest extends AnyFlatSpec with IntegrationTestTrait with Matchers with ProjectApiClient with ConfigTestTrait {
+class ProjectAccessControlIntegrationTest extends AnyFlatSpec with IntegrationTestTrait with Matchers with ProjectApiClient with ConfigTestTrait {
 
   behavior of "Project Access Control"
 
