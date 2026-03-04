@@ -73,6 +73,8 @@ class JsonReaderTest extends AnyFlatSpec with Matchers {
     evaluate(rootItems, "data/#text") should equal (Seq("\"A\"", "\"B\""))
     evaluate(rootItems, "data/#arrayText") should equal (Seq("[\"A\",\"B\"]"))
     evaluate(rootItems, "emptyData/#arrayText") should equal (Seq("[]"))
+
+    evaluate(rootItems, "nonExistingProperty/#arrayText") should equal (Seq.empty)
   }
 
   it should "allow retrieving ids and texts from array values (if navigateToArrays is false)" in {

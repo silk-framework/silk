@@ -61,7 +61,14 @@
         "reload": "Reload preview",
         "typeSelection": "Type Selection",
         "typeSelectionBack": "Back to type selection",
-        "typeSelectionTooltip": "The data source consists of multiple types. Select one type from the list for a preview. There are max. 1000 types fetched at any time."
+        "typeSelectionTooltip": "The data source consists of multiple types. Select one type from the list for a preview. There are max. 1000 types fetched at any time.",
+        "clearDatasetModal": {
+            "title": "Clear dataset",
+            "content": "Are you sure you want to clear the dataset? This action cannot be undone.",
+            "actionBtn": "Clear dataset",
+            "error": "Error while clearing dataset",
+            "readOnly": "The dataset is set to read-only and cannot be cleared."
+        }
     },
     "DataProfiling": {
         "attributes": {
@@ -1340,5 +1347,12 @@
                 "continue-editing": "Continue editing"
             }
         }
+    },
+    "DatasetClearButton": {
+        "tooltip": "Clears the output dataset",
+        "readOnlyTooltip": "Output dataset is read-only and cannot be cleared.",
+        "modalTitle": "Clear dataset '{{datasetLabel}}'",
+        "modalText": "Are you sure that you want to clear the dataset '{{datasetLabel}}'?'",
+        "modalButtonText": "Clear dataset"
     }
 }

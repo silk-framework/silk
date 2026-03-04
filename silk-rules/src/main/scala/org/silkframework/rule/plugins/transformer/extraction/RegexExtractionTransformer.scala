@@ -2,7 +2,8 @@ package org.silkframework.rule.plugins.transformer.extraction
 
 import org.silkframework.rule.annotations.{TransformExample, TransformExamples}
 import org.silkframework.rule.input.Transformer
-import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
+import org.silkframework.rule.plugins.transformer.replace.RegexReplaceTransformer
+import org.silkframework.runtime.plugin.annotations.{Param, Plugin, PluginReference}
 
 /**
   * Extracts values from a String based on a regular expression.
@@ -13,7 +14,11 @@ import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
   label = "Regex extract",
   description = "Extracts one or all matches of a regular expression within the input." +
     " If the regular expression contains one or more capturing groups, only the first group will be considered.",
-  documentationFile = "RegexExtractionTransformer.md"
+  documentationFile = "RegexExtractionTransformer.md",
+  relatedPlugins = Array(new PluginReference(
+    id = RegexReplaceTransformer.pluginId,
+    description = "Instead of extracting matching parts from a string, this plugin replaces them with a given replacement string."
+  ))
 )
 @TransformExamples(Array(
   new TransformExample(

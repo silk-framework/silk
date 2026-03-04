@@ -1,5 +1,5 @@
 import React from "react";
-import { Button, ContextMenu, IconButton, MenuItem, OverflowText } from "@eccenca/gui-elements";
+import { Button, ContextMenu, IconButton, MenuDivider, MenuItem, OverflowText } from "@eccenca/gui-elements";
 import { ValidIconName } from "@eccenca/gui-elements/src/components/Icon/canonicalIconNames";
 
 interface IActionBasicProps {
@@ -9,6 +9,8 @@ interface IActionBasicProps {
     disruptive?: boolean;
     disabled?: boolean;
     "data-test-id"?: string;
+    // In cases where the text property is written out (instead of used as a tooltip), e.g. in a context menu, an optional tooltip can be added.
+    tooltipText?: string;
 }
 
 export interface IActionButtonItemProps extends IActionBasicProps {
@@ -30,12 +32,18 @@ export interface IActionsMenuProps extends React.HTMLAttributes<HTMLDivElement> 
     actionPrimary?: IActionButtonItemProps;
     actionsSecondary?: IActionButtonItemProps[];
     actionsFullMenu?: TActionsMenuItem[];
+    disruptiveActions?: IActionButtonItemProps[];
 }
 
-export function ActionsMenu({ actionPrimary, actionsSecondary, actionsFullMenu }: IActionsMenuProps) {
+export function ActionsMenu({
+    actionPrimary,
+    actionsSecondary,
+    actionsFullMenu,
+    disruptiveActions,
+}: IActionsMenuProps) {
     const renderMenuItems = (items) => {
         return items.map((item, index) => {
-            const { text, icon, actionHandler, disabled, subitems, ...otherProps } = item;
+            const { text, icon, actionHandler, disabled, subitems, disruptive, tooltipText, ...otherProps } = item;
             return subitems && subitems.length > 0 ? (
                 <MenuItem
                     {...otherProps}
@@ -56,6 +64,8 @@ export function ActionsMenu({ actionPrimary, actionsSecondary, actionsFullMenu }
                     text={<OverflowText>{text}</OverflowText>}
                     onClick={actionHandler}
                     disabled={disabled ? true : false}
+                    intent={disruptive ? "danger" : "none"}
+                    tooltip={tooltipText}
                 />
             );
         });
@@ -79,7 +89,7 @@ export function ActionsMenu({ actionPrimary, actionsSecondary, actionsFullMenu }
             {actionsSecondary &&
                 actionsSecondary.length > 0 &&
                 actionsSecondary.map((actionItem) => {
-                    const { icon, text, affirmative, disruptive, disabled, actionHandler, ...otherProps } = actionItem;
+                    const { icon, text, affirmative, disruptive, disabled, actionHandler, tooltipText, ...otherProps } = actionItem;
                     return (
                         <IconButton
                             {...otherProps}
@@ -94,7 +104,15 @@ export function ActionsMenu({ actionPrimary, actionsSecondary, actionsFullMenu }
                     );
                 })}
             {actionsFullMenu && actionsFullMenu.length > 0 && (
-                <ContextMenu data-test-id={"header-context-menu-btn"}>{renderMenuItems(actionsFullMenu)}</ContextMenu>
+                <ContextMenu data-test-id={"header-context-menu-btn"}>
+                    {renderMenuItems(actionsFullMenu)}
+                    {disruptiveActions && disruptiveActions.length > 0 && (
+                        <>
+                            <MenuDivider />
+                            {renderMenuItems(disruptiveActions)}
+                        </>
+                    )}
+                </ContextMenu>
             )}
         </>
     );

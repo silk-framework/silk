@@ -36,7 +36,7 @@ object EntitySerializers {
       Json.obj(
         "typeUri" -> value.typeUri.uri,
         "paths" -> JsArray(paths),
-        "filter" -> value.filter.serialize,
+        "filter" -> value.filter.generateCustomRestriction(writeContext.prefixes).toSparql,
         "subPath" -> value.subPath.serialize(),
         "singleEntity" -> value.singleEntity
       )

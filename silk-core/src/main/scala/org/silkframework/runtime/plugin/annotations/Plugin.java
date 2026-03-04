@@ -73,4 +73,7 @@ public @interface Plugin {
    * If set, the plugin will be marked as deprecated in the UI.
    */
   String deprecation() default "";
+
+  /** Related plugins. */
+  PluginReference[] relatedPlugins() default {};
 }

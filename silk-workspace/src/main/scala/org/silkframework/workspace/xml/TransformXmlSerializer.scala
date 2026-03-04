@@ -33,7 +33,7 @@ private class TransformXmlSerializer extends XmlSerializer[TransformSpec] {
     // Only serialize file paths correctly, paths should not be prefixed
     implicit val writeContext: WriteContext[Node] = WriteContext[Node](resources = projectResourceManager, prefixes = Prefixes.empty)
 
-    val datasetXml = data.selection.toXML(asSource = true)
+    val datasetXml = data.selection.toXML(asSource = true, writeContext.prefixes)
     val rulesXml = toXml(data)
     taskResources.get("dataset.xml").write() { os => datasetXml.write(os) }
     taskResources.get("rules.xml").write() { os => rulesXml.write(os) }

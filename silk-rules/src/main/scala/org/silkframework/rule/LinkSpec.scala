@@ -257,8 +257,8 @@ object LinkSpec {
      */
     def write(spec: LinkSpec)(implicit writeContext: WriteContext[Node]): Node =
       <Interlink linkLimit={spec.linkLimit.toString} matchingExecutionTimeout={spec.matchingExecutionTimeout.toString}>
-        {spec.dataSelections.source.toXML(asSource = true)}
-        {spec.dataSelections.target.toXML(asSource = false)}
+        {spec.dataSelections.source.toXML(asSource = true, writeContext.prefixes)}
+        {spec.dataSelections.target.toXML(asSource = false, writeContext.prefixes)}
         {toXml(spec.rule)}
         <Outputs>
           {spec.output.value.toSeq.map(o => <Output id={o}></Output>)}

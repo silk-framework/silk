@@ -161,8 +161,17 @@ case class JsonTraverser(taskId: Identifier, parentOpt: Option[ParentTraverser],
           case _ =>
             val nodes = children(prop)
             if(nodes.isEmpty && tail == Seq(ForwardOperator(JsonDataset.specialPaths.ARRAY_TEXT))) {
-              // Special case: if the next and final operator is #arrayText, we need to return an empty array representation
-              Seq("[]")
+              // Special case: if the next and final operator is #arrayText and the property exists but is empty, return an empty array representation
+              val decodedProp = URLDecoder.decode(prop.uri, StandardCharsets.UTF_8.name)
+              val propertyExists = value match {
+                case obj: JsonObject => obj.values.contains(decodedProp)
+                case _ => false
+              }
+              if(propertyExists) {
+                Seq("[]")
+              } else {
+                Seq.empty
+              }
             } else {
               nodes.flatMap(child => child.evaluate(tail, generateUris))
             }
