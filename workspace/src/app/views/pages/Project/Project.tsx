@@ -39,6 +39,7 @@ import { useSelectFirstResult } from "../../../hooks/useSelectFirstResult";
 import { GlobalTableContext } from "../../../GlobalContextsWrapper";
 import { pluginRegistry, SUPPORTED_PLUGINS } from "../../plugins/PluginRegistry";
 import { ProjectAccessControlProps } from "../../plugins/plugin.types";
+import useErrorHandler from "../../../hooks/useErrorHandler";
 
 const Project = () => {
     const dispatch = useDispatch();
@@ -53,6 +54,8 @@ const Project = () => {
     const qs = useSelector(routerSel.routerSearchSelector);
     const { clearSearchResults } = previewSlice.actions;
     const [t] = useTranslation();
+    const { clearErrors } = useErrorHandler();
+    const accessForbidden = error?.status === 403;
 
     const projectAccessControl = pluginRegistry.pluginReactComponent<ProjectAccessControlProps>(
         SUPPORTED_PLUGINS.DI_PROJECT_ACL,
@@ -67,6 +70,13 @@ const Project = () => {
     React.useEffect(() => {
         setSearchInitialized(true);
     }, []);
+
+    React.useEffect(() => {
+        // Clear all errors from the queue, since they will only repeat what's being displayed in the notification
+        if (accessForbidden) {
+            clearErrors();
+        }
+    }, [accessForbidden]);
 
     /**
      * Get available Datatypes
@@ -107,6 +117,14 @@ const Project = () => {
         <Loading posGlobal description={t("pages.project.loading", "Loading project data")} />
     ) : error?.status === 404 ? (
         <NotFound />
+    ) : accessForbidden ? (
+        <WorkspaceContent>
+            <Notification intent="warning">
+                {t("pages.project.errors.forbidden")}
+                <Spacing size={"small"} />
+                {error.detail ? ` ${error.detail}` : null}
+            </Notification>
+        </WorkspaceContent>
     ) : (
         <WorkspaceContent className="eccapp-di__project">
             {pageHeader}
