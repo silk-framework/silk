@@ -1,4 +1,4 @@
-import { Card, Grid, GridColumn, GridRow, IconButton, OverviewItem, Spacing } from "@eccenca/gui-elements";
+import { Button, Divider, Grid, GridColumn, GridRow, Spacing, Toolbar, ToolbarSection } from "@eccenca/gui-elements";
 import { CONTEXT_PATH } from "../../../../constants/path";
 import React from "react";
 import { useTranslation } from "react-i18next";
@@ -8,6 +8,10 @@ import { checkIfTaskSupportsDownload } from "@ducks/common/requests";
 
 //styles
 import { ProjectTaskDownloadInfo } from "@ducks/common/typings";
+import { DatasetClearButton } from "../../shared/dataset/DatasetClearButton";
+import { requestTaskData } from "@ducks/shared/requests";
+import { ILinkingTaskParameters } from "../linking.types";
+import useErrorHandler from "../../../../hooks/useErrorHandler";
 
 interface IProps {
     projectId: string;
@@ -17,6 +21,8 @@ const LinkingExecutionTab = ({ projectId, taskId }: IProps) => {
     const [t] = useTranslation();
     const [executionUpdateCounter, setExecutionUpdateCounter] = React.useState<number>(0);
     const [taskDownloadInfo, setTaskDownloadInfo] = React.useState<ProjectTaskDownloadInfo | undefined>();
+    const [outputDatasetId, setOutputDatasetId] = React.useState<string | undefined>(undefined);
+    const { registerError } = useErrorHandler();
 
     const handleActivityUpdates = React.useCallback((status) => {
         if (status.statusName === "Finished") {
@@ -24,9 +30,22 @@ const LinkingExecutionTab = ({ projectId, taskId }: IProps) => {
         }
     }, []);
 
+    const fetchOutputInfo = async () => {
+        try {
+            const linkingTask = (await requestTaskData<ILinkingTaskParameters>(projectId, taskId)).data;
+            const outputTaskId = linkingTask.data.parameters.output;
+            if (outputTaskId) {
+                setOutputDatasetId(typeof outputTaskId === "string" ? outputTaskId : outputTaskId.value);
+            }
+        } catch (error) {
+            registerError("LinkingExecutionTab.fetchOutputInfo", "Could not fetch linking task data.", error);
+        }
+    };
+
     React.useEffect(() => {
         (async () => {
             try {
+                fetchOutputInfo();
                 const response = await checkIfTaskSupportsDownload(projectId, taskId);
                 setTaskDownloadInfo(response.data);
             } catch (err) {}
@@ -36,25 +55,40 @@ const LinkingExecutionTab = ({ projectId, taskId }: IProps) => {
     return (
         <Grid>
             <GridRow>
-                <OverviewItem hasSpacing>
-                    <Spacing size="small" vertical />
-                    <Card>
-                        <TaskActivityWidget
-                            updateCallback={handleActivityUpdates}
-                            projectId={projectId}
-                            taskId={taskId}
-                            activityName="ExecuteLinking"
-                            label="Execute Linking"
-                        />
-                    </Card>
-                    <Spacing size="tiny" vertical />
-                    <IconButton
-                        name="item-download"
-                        text={taskDownloadInfo?.info || t("common.action.download")}
-                        disabled={!taskDownloadInfo?.downloadSupported}
-                        href={`${CONTEXT_PATH}/workspace/projects/${projectId}/tasks/${taskId}/downloadOutput`}
-                    />
-                </OverviewItem>
+                <GridColumn>
+                    <Toolbar noWrap>
+                        <ToolbarSection canGrow canShrink />
+                        {outputDatasetId ? (
+                            <DatasetClearButton projectId={projectId} datasetId={outputDatasetId} />
+                        ) : null}
+                        <ToolbarSection canShrink>
+                            <TaskActivityWidget
+                                updateCallback={handleActivityUpdates}
+                                projectId={projectId}
+                                taskId={taskId}
+                                activityName="ExecuteLinking"
+                                label="Execute Linking"
+                                layoutConfig={{
+                                    border: true,
+                                    small: true,
+                                    hasSpacing: true,
+                                    canShrink: true,
+                                }}
+                            />
+                        </ToolbarSection>
+                        <ToolbarSection>
+                            <Spacing vertical size="small" />
+                            <Button
+                                text={t("common.action.download")}
+                                tooltip={taskDownloadInfo?.info || undefined}
+                                disabled={!taskDownloadInfo?.downloadSupported}
+                                href={`${CONTEXT_PATH}/workspace/projects/${projectId}/tasks/${taskId}/downloadOutput`}
+                            />
+                        </ToolbarSection>
+                    </Toolbar>
+                    <Divider addSpacing="small" />
+                    <Spacing size="small" />
+                </GridColumn>
             </GridRow>
             <Spacing size="large" />
             <GridRow>

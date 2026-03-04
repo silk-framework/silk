@@ -1,0 +1,181 @@
+import React from "react";
+import {
+    Divider,
+    IconButton,
+    Markdown,
+    OverflowText,
+    OverviewItem,
+    OverviewItemActions,
+    OverviewItemDepiction,
+    OverviewItemDescription,
+    OverviewItemLine,
+    Spacing,
+    Tag,
+    TagList,
+    TitleSubsection,
+} from "@eccenca/gui-elements";
+import { Datalist } from "../../shared/Datalist/Datalist";
+import { ResourceLink } from "../../shared/ResourceLink/ResourceLink";
+import { useTranslation } from "react-i18next";
+import { contextualPath } from "../../../constants/path";
+import { ItemDepiction } from "../../shared/ItemDepiction/ItemDepiction";
+import { DeprecatedPluginsModel, PluginGroup } from "./index";
+import { useHistory, useLocation } from "react-router";
+
+interface DeprecatedPluginsListProps {
+    filteredPlugins: DeprecatedPluginsModel[];
+    selectedPlugin: PluginGroup | null;
+    selectedPluginKey: string | null;
+    isLoading: boolean;
+    hasCardWrapper?: boolean;
+}
+
+export function DeprecatedPluginsList({
+    filteredPlugins,
+    selectedPlugin,
+    selectedPluginKey,
+    isLoading,
+    hasCardWrapper = true,
+}: DeprecatedPluginsListProps) {
+    const [t] = useTranslation();
+    const history = useHistory();
+    const location = useLocation();
+
+    const goToTaskPage = (link: string) => (e: React.MouseEvent) => {
+        if (!e?.ctrlKey) {
+            e.preventDefault();
+            history.push(link);
+        }
+    };
+
+    const renderItem = (plugin: DeprecatedPluginsModel) => {
+        const [linkPath, search] = (plugin.link ?? "#").split("?");
+        const isCurrentPage =
+            !!plugin.link && location.pathname == linkPath && (!search || location.search.includes(search));
+        return (
+            <OverviewItem
+                key={`${plugin.project}_${plugin.task}_${plugin.pluginId}`}
+                hasSpacing={hasCardWrapper}
+                hasCardWrapper={hasCardWrapper}
+                cardProps={hasCardWrapper ? { className: "diapp-searchitem" } : undefined}
+                data-test-id="deprecated-plugin-item"
+            >
+                {hasCardWrapper && (
+                    <OverviewItemDepiction>
+                        <ItemDepiction itemType={plugin.itemType} pluginId={plugin.pluginId} />
+                    </OverviewItemDepiction>
+                )}
+                <OverviewItemDescription>
+                    {/* Line 1: task name */}
+                    <OverviewItemLine small={!hasCardWrapper}>
+                        <h4>
+                            <ResourceLink
+                                url={(!isCurrentPage && plugin.link) || false}
+                                handlerResourcePageLoader={
+                                    !isCurrentPage && plugin.link ? goToTaskPage(contextualPath(plugin.link)) : false
+                                }
+                            >
+                                <OverflowText>
+                                    {plugin.linkLabel || plugin.taskLabel || t("pages.deprecatedPlugins.unknownTask")}
+                                </OverflowText>
+                            </ResourceLink>
+                        </h4>
+                    </OverviewItemLine>
+                    {/* Line 2: context tags */}
+                    <OverviewItemLine small>
+                        <TagList>
+                            {plugin.projectLabel && (
+                                <Tag emphasis="weak" itemType={plugin.itemType}>
+                                    {plugin.projectLabel}
+                                </Tag>
+                            )}
+                            {plugin.itemType && (
+                                <Tag emphasis="weak" itemType={plugin.itemType}>
+                                    {plugin.itemType}
+                                </Tag>
+                            )}
+                        </TagList>
+                    </OverviewItemLine>
+                </OverviewItemDescription>
+                {/* interaction element to link to task page */}
+                <OverviewItemActions>
+                    {plugin.link && !isCurrentPage && (
+                        <IconButton
+                            name="item-viewdetails"
+                            text={t("common.action.showDetails")}
+                            onClick={goToTaskPage(contextualPath(plugin.link))}
+                            href={plugin.link}
+                        />
+                    )}
+                </OverviewItemActions>
+            </OverviewItem>
+        );
+    };
+
+    // When no plugin filter is active, group items by plugin and render section headers
+    if (!selectedPluginKey) {
+        type GroupEntry = { pluginLabel: string; deprecationMessage: string; items: DeprecatedPluginsModel[] };
+        const groups = filteredPlugins.reduce(
+            (acc, plugin) => {
+                if (!acc[plugin.pluginId]) {
+                    acc[plugin.pluginId] = {
+                        pluginLabel: plugin.pluginLabel,
+                        deprecationMessage: plugin.deprecationMessage ?? "N/A",
+                        items: [],
+                    };
+                }
+                acc[plugin.pluginId].items.push(plugin);
+                return acc;
+            },
+            {} as Record<string, GroupEntry>,
+        );
+
+        return (
+            <>
+                {Object.entries(groups).map(([pluginId, group], index) => (
+                    <React.Fragment key={pluginId}>
+                        {index > 0 && <Divider addSpacing="medium" />}
+                        <section>
+                            <header>
+                                <TitleSubsection useHtmlElement="h3">{group.pluginLabel}</TitleSubsection>
+                                {group.deprecationMessage && <Markdown>{group.deprecationMessage}</Markdown>}
+                                <Spacing size={"small"} />
+                            </header>
+                            <Datalist
+                                isEmpty={!isLoading && group.items.length === 0}
+                                data-test-id="deprecated-plugins-list"
+                                isLoading={isLoading}
+                                hasSpacing
+                                hasDivider
+                                columns={1}
+                            >
+                                {group.items.map(renderItem)}
+                            </Datalist>
+                        </section>
+                    </React.Fragment>
+                ))}
+            </>
+        );
+    }
+
+    return (
+        <>
+            {selectedPlugin && (
+                <>
+                    <TitleSubsection useHtmlElement="h3">{selectedPlugin.pluginLabel}</TitleSubsection>
+                    {selectedPlugin.deprecationMessage && <Markdown>{selectedPlugin.deprecationMessage}</Markdown>}
+                    <Divider addSpacing="medium" />
+                </>
+            )}
+            <Datalist
+                data-test-id="deprecated-plugins-list"
+                isEmpty={!isLoading && filteredPlugins.length === 0}
+                isLoading={isLoading}
+                hasSpacing
+                columns={1}
+            >
+                {filteredPlugins.map(renderItem)}
+            </Datalist>
+        </>
+    );
+}

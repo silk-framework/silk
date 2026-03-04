@@ -1,8 +1,7 @@
 package controllers.workspaceApi.coreApi
 
 import controllers.core.UserContextActions
-import controllers.util.{ItemType, TextSearchUtils}
-import org.silkframework.workspace.{PluginUsage, WorkbenchLinks}
+import controllers.util.TextSearchUtils
 import controllers.workspaceApi.coreApi.doc.PluginApiDoc
 import io.swagger.v3.oas.annotations.enums.ParameterIn
 import io.swagger.v3.oas.annotations.media.{ArraySchema, Content, ExampleObject, Schema}
@@ -15,12 +14,12 @@ import org.silkframework.rule.input.Transformer
 import org.silkframework.rule.similarity.{Aggregator, DistanceMeasure}
 import org.silkframework.rule.{LinkSpec, TransformSpec}
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.runtime.plugin.{AnyPlugin, PluginDescription, PluginList, PluginRegistry, PluginTypeDescription}
+import org.silkframework.runtime.plugin.{PluginDescription, PluginList, PluginRegistry, PluginTypeDescription}
 import org.silkframework.runtime.resource.EmptyResourceManager
 import org.silkframework.runtime.serialization.WriteContext
 import org.silkframework.serialization.json.JsonSerializers
 import org.silkframework.serialization.json.PluginDescriptionSerializers.PluginListJsonFormat
-import org.silkframework.workspace.{ProjectTask, WorkspaceFactory}
+import org.silkframework.workspace.{PluginUsage, WorkspaceFactory}
 import org.silkframework.workspace.activity.dataset.DatasetUtils
 import org.silkframework.workspace.activity.workflow.Workflow
 import play.api.libs.json._
@@ -28,7 +27,6 @@ import play.api.mvc._
 
 import javax.inject.Inject
 import scala.collection.immutable.ListMap
-import scala.collection.mutable
 
 /**
   * Workspace task plugin related endpoints.
@@ -317,7 +315,7 @@ class PluginApi @Inject()() extends InjectedController with UserContextActions {
         ))
       )
     ))
-  def resourceBasedDatasetIds(): Action[AnyContent] = UserContextAction { implicit userContext =>
+  def resourceBasedDatasetIds(): Action[AnyContent] = Action {
     Ok(JsArray(resourceBasedDatasetPluginIds))
   }
 

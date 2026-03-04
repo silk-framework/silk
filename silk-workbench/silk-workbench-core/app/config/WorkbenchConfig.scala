@@ -51,7 +51,10 @@ object WorkbenchConfig {
   lazy val publicProtocol: String = if(WorkbenchConfig.useHttps(cfg)) "https" else "http"
   lazy val publicHost: String = WorkbenchConfig.host(cfg).getOrElse("localhost:9000")
   lazy val publicBaseUrl: String = s"$publicProtocol://$publicHost"
+  private lazy val localPort: Int = if (cfg.hasPath("http.port")) cfg.getInt("http.port") else 9000
+  lazy val localBaseUrl: String = s"http://localhost:$localPort"
   lazy val applicationContext: String = WorkbenchConfig.applicationContext(cfg)
+  def dataIntegrationUrl: String = localBaseUrl + applicationContext
   lazy val defaultProjectPageSuffix: Option[String] = {
     if(cfg.hasPath(defaultProjectPageSuffixKey)) {
       Some(cfg.getString(defaultProjectPageSuffixKey))

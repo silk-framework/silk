@@ -17,7 +17,7 @@ object WorkbenchLinks {
   def transformRuleLink(task: ProjectTask[_ <: TaskSpec], ruleId: String): String = {
     val projectId = task.project.id
     val taskId = task.id
-    s"/workbench/projects/$projectId/transform/$taskId?rule=$ruleId"
+    s"/workbench/projects/$projectId/transform/$taskId?ruleId=$ruleId"
   }
 
   def taskType(task: ProjectTask[_ <: TaskSpec]): String = {

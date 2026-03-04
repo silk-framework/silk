@@ -350,7 +350,7 @@
             "submit": "Submit",
             "update": "Update",
             "showApiDoc": "API",
-            "listDeprecatedPlugins": "Deprecated plugins",
+            "listDeprecatedPlugins": "Deprecated plugins usage",
             "copyClipboard": "Copy to clipboard",
             "configure": "Configure",
             "clearInput": "Clear input",
@@ -411,7 +411,9 @@
             "serverError": "Server error",
             "taskOverwrittenPrompt": "I understand that some tasks will be overwritten",
             "temporarilyUnavailableMessage": "Service is temporarily unavailable. Details: {{detailMessage}}",
-            "deprecatedPluginBanner": "This plugin is deprecated and will be removed in the future. Please exchange it for a supported plugin as soon as possible."
+            "deprecatedPluginBanner": "The '{{pluginLabel}}' plugin is deprecated and will be removed in the future. Please exchange it for a supported plugin as soon as possible.",
+            "deprecatedPluginBannerPluginLabel": "Deprecated Plugin",
+            "deprecatedPluginBannerDeprecationMessage": "Deprecation Message"
         },
         "sorter": {
             "recentlyViewed": "Recently viewed"
@@ -611,6 +613,12 @@
             "deprecationMessage": "Plugin is deprecated.",
             "errors": {
                 "fetchPlugins": "Failed to load deprecated plugins"
+            },
+            "groupBy": {
+                "label": "Group by",
+                "groupedBy": "Grouped by",
+                "pluginLabel": "Plugin",
+                "project": "Project"
             }
         },
         "notFound": {
@@ -836,7 +844,8 @@
     "widget": {
         "deprecatedPluginWidget": {
             "title": "Deprecated Plugins",
-            "message": "The above listed plugins are deprecated and will be removed in future versions. Please check the documentation for alternatives."
+            "message": "The listed plugins are deprecated and will be removed in future versions. Please check the documentation for alternatives.",
+            "tasks": "Tasks"
         },
         "ActivityInfoWidget": {
             "title": "Activities",
@@ -1363,5 +1372,12 @@
                 "continue-editing": "Continue editing"
             }
         }
+    },
+    "DatasetClearButton": {
+        "tooltip": "Clears the output dataset",
+        "readOnlyTooltip": "Output dataset is read-only and cannot be cleared.",
+        "modalTitle": "Clear dataset '{{datasetLabel}}'",
+        "modalText": "Are you sure that you want to clear the dataset '{{datasetLabel}}'?'",
+        "modalButtonText": "Clear dataset"
     }
 }

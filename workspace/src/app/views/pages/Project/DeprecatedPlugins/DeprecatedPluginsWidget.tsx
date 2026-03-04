@@ -1,28 +1,22 @@
-import { Card, CardContent, CardHeader, CardTitle, Divider, Link, Notification, Spacing } from "@eccenca/gui-elements";
+import { Card, CardContent, CardHeader, CardTitle, Divider } from "@eccenca/gui-elements";
 import useErrorHandler from "../../../../hooks/useErrorHandler";
-import { contextualPath } from "../../../../constants/path";
 import React, { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { DeprecatedPluginsModel } from "../../DeprecatedPlugins";
+import { DeprecatedPluginsList } from "../../DeprecatedPlugins/DeprecatedPluginsList";
 import { requestDeprecatedPlugins } from "@ducks/common/requests";
 
-type DeprecatedPluginsProps = { projectId: string; taskId?: never } | { projectId?: never; taskId: string };
-
-type GroupedTask = {
-    label: string;
-    link: string;
-};
-
-type GroupedDataWithLinks = {
-    pluginLabel: string;
-    tasks: GroupedTask[];
-};
-
-export function DeprecatedPluginsWidget({ projectId, taskId }: DeprecatedPluginsProps) {
+/** Shows all deprecated plugins related to the project or task. */
+export function DeprecatedPluginsWidget({ projectId, taskId }: { projectId?: string; taskId?: string }) {
     const [t] = useTranslation();
     const [deprecatedPlugins, setDeprecatedPlugins] = useState<DeprecatedPluginsModel[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const { registerError } = useErrorHandler();
+    const path = window.location.pathname;
+    // Only filter self-links when showing project-level plugins (no taskId scoped).
+    // When taskId is provided the widget is scoped to that task — show all its plugins.
+    const isOnLinkingOrTransformPage =
+        !taskId && /\/projects\/[^/]+\/(linking|transform)\/[^/]+/.test(path);
 
     const fetchDeprecatedPlugins = () => {
         requestDeprecatedPlugins(projectId, taskId)
@@ -64,27 +58,12 @@ export function DeprecatedPluginsWidget({ projectId, taskId }: DeprecatedPlugins
         };
     }, [projectId, taskId]);
 
-    if (isLoading || deprecatedPlugins.length === 0) {
+    const visiblePlugins = isOnLinkingOrTransformPage
+        ? deprecatedPlugins.filter((plugin) => !path.startsWith((plugin.link || "").split("?")[0]))
+        : deprecatedPlugins;
+
+    if (isLoading || visiblePlugins.length === 0) {
         return null;
-    }
-
-    function groupByPluginWithLinks(data: DeprecatedPluginsModel[]): GroupedDataWithLinks[] {
-        const groupedMap: Record<string, GroupedTask[]> = {};
-
-        data.forEach((item) => {
-            if (!groupedMap[item.pluginLabel]) {
-                groupedMap[item.pluginLabel] = [];
-            }
-            groupedMap[item.pluginLabel].push({
-                label: item.taskLabel,
-                link: item.link,
-            });
-        });
-
-        return Object.entries(groupedMap).map(([pluginLabel, tasks]) => ({
-            pluginLabel,
-            tasks,
-        }));
     }
 
     return (
@@ -92,40 +71,19 @@ export function DeprecatedPluginsWidget({ projectId, taskId }: DeprecatedPlugins
             <CardHeader>
                 <CardTitle>
                     <h2>
-                        {t("widget.deprecatedPluginWidget.title")} ({deprecatedPlugins.length})
+                        {t("widget.deprecatedPluginWidget.title")} ({visiblePlugins.length})
                     </h2>
                 </CardTitle>
             </CardHeader>
             <Divider />
             <CardContent>
-                <div style={{ display: "flex", flexDirection: "column", gap: "0.2rem" }}>
-                    {groupByPluginWithLinks(deprecatedPlugins).map((plugin) => (
-                        <div
-                            key={plugin.pluginLabel}
-                            style={{ display: "flex", flexDirection: "column", gap: "0.2rem" }}
-                        >
-                            <p style={{ fontWeight: "bold", textDecoration: "underline" }}>
-                                {plugin.pluginLabel} ({plugin.tasks.length}):
-                            </p>
-                            <ul
-                                style={{
-                                    display: "flex",
-                                    flexWrap: "wrap",
-                                    gap: "0.2rem",
-                                }}
-                            >
-                                {plugin.tasks.map((task, index) => (
-                                    <li key={task.link}>
-                                        <Link href={contextualPath(task.link)}>{task.label}</Link>
-                                        {index < plugin.tasks.length - 1 ? ", " : ""}
-                                    </li>
-                                ))}
-                            </ul>
-                        </div>
-                    ))}
-                </div>
-                <Spacing />
-                <Notification intent="warning">{t("widget.deprecatedPluginWidget.message")}</Notification>
+                <DeprecatedPluginsList
+                    filteredPlugins={visiblePlugins}
+                    selectedPlugin={null}
+                    selectedPluginKey={null}
+                    isLoading={false}
+                    hasCardWrapper={false}
+                />
             </CardContent>
         </Card>
     );
