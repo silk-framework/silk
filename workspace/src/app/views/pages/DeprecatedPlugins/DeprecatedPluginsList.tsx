@@ -53,7 +53,7 @@ export function DeprecatedPluginsList({
         const isCurrentPage = !!plugin.link && currentPath == linkPath && (!search || currentSearch.includes(search));
         return (
             <OverviewItem
-                key={`${plugin.project}_${plugin.task}_${plugin.pluginId}`}
+                key={`${plugin.project}_${plugin.task}_${plugin.pluginId}_${plugin.link}`}
                 hasSpacing={hasCardWrapper}
                 hasCardWrapper={hasCardWrapper}
                 cardProps={hasCardWrapper ? { className: "diapp-searchitem" } : undefined}
