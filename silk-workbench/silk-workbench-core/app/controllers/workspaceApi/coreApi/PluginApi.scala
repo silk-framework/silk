@@ -289,7 +289,7 @@ class PluginApi @Inject()() extends InjectedController with UserContextActions {
       } yield usage
 
     // Filter out duplicate plugin usages
-    val distinctUsages = usages.distinctBy(u => (u.task, u.pluginId))
+    val distinctUsages = usages.distinctBy(u => u.link)
 
     // Sort by project label, then task label, then plugin label
     val sortedUsages = distinctUsages.sortBy(u => (
