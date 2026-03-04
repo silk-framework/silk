@@ -12,10 +12,12 @@ import NotFound from "../NotFound";
 import { TaskActivityOverview } from "../../shared/TaskActivityOverview/TaskActivityOverview";
 import { ProjectTaskParams } from "../../shared/typings";
 import { LinkageRuleConfig } from "./config/LinkageRuleConfig";
+import { ProjectForbiddenNotification } from "../../shared/ProjectForbiddenNotification";
 
 export default function LinkingPage() {
     const { projectId, taskId } = useParams<ProjectTaskParams>();
     const [notFound, setNotFound] = useState(false);
+    const [forbidden, setForbidden] = useState(false);
 
     const { pageHeader, updateActionsMenu } = usePageHeader({
         type: DATA_TYPES.LINKING,
@@ -23,7 +25,9 @@ export default function LinkingPage() {
         autogeneratePageTitle: true,
     });
 
-    return notFound ? (
+    return forbidden ? (
+        <ProjectForbiddenNotification />
+    ) : notFound ? (
         <NotFound />
     ) : (
         <WorkspaceContent className="eccapp-di__linking">
@@ -34,6 +38,7 @@ export default function LinkingPage() {
                 itemType={DATA_TYPES.LINKING}
                 updateActionsMenu={updateActionsMenu}
                 notFoundCallback={setNotFound}
+                forbiddenCallback={setForbidden}
             />
             <WorkspaceMain>
                 <Section>

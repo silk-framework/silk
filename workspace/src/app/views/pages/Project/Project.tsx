@@ -40,6 +40,7 @@ import { GlobalTableContext } from "../../../GlobalContextsWrapper";
 import { pluginRegistry, SUPPORTED_PLUGINS } from "../../plugins/PluginRegistry";
 import { ProjectAccessControlProps } from "../../plugins/plugin.types";
 import useErrorHandler from "../../../hooks/useErrorHandler";
+import { ProjectForbiddenNotification } from "../../shared/ProjectForbiddenNotification";
 
 const Project = () => {
     const dispatch = useDispatch();
@@ -118,13 +119,7 @@ const Project = () => {
     ) : error?.status === 404 ? (
         <NotFound />
     ) : accessForbidden ? (
-        <WorkspaceContent>
-            <Notification intent="warning">
-                {t("pages.project.errors.forbidden")}
-                <Spacing size={"small"} />
-                {error.detail ? ` ${error.detail}` : null}
-            </Notification>
-        </WorkspaceContent>
+        <ProjectForbiddenNotification detail={error.detail} />
     ) : (
         <WorkspaceContent className="eccapp-di__project">
             {pageHeader}
