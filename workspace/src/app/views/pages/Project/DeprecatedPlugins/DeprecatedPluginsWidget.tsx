@@ -61,7 +61,7 @@ export function DeprecatedPluginsWidget({ projectId, taskId }: { projectId?: str
             <CardHeader>
                 <CardTitle>
                     <h2>
-                        {t("widget.deprecatedPlugins.title")} ({deprecatedPlugins.length})
+                        {t("pages.deprecatedPlugins.title")} ({deprecatedPlugins.length})
                     </h2>
                 </CardTitle>
             </CardHeader>
