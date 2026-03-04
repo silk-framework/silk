@@ -24,7 +24,7 @@ Community documentation is maintained in the [doc](doc/) folder.
 - [Yarn](https://yarnpkg.com) for React/JavaScript build pipeline (e.g. ^1.22.0)
 - Node (e.g. ^14.17.0)
 
-Downloading and installing sbt is not necessary as it is available from this directory. Depending on the operating system you may need to adapt the commands below to run it from the local directory, i.e., by using `./sbt` instead of `sbt`
+sbt needs to be installed on the system. See [sbt download](https://www.scala-sbt.org/download) for instructions.
 
 ### docker based build
 
