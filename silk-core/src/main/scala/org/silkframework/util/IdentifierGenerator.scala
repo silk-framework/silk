@@ -48,6 +48,13 @@ class IdentifierGenerator {
   }
 
   /**
+    * Checks whether the given identifier already exists.
+    */
+  def contains(identifier: Identifier): Boolean = synchronized {
+    identifiers.contains(identifier)
+  }
+
+  /**
     * Splits an identifier into a name and a number.
     * For instance 'name3' is split into (name, 3)
     */

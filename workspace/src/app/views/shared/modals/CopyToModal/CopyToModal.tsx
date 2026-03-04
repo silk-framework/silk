@@ -23,7 +23,7 @@ import {
 import { ICloneOptions } from "../CloneModal";
 import { useTranslation } from "react-i18next";
 import { requestProjectMetadata, requestTaskMetadata } from "@ducks/shared/requests";
-import { requestCopyProject, requestCopyTask, requestSearchList } from "@ducks/workspace/requests";
+import { ISearchListRequest, requestCopyProject, requestCopyTask, requestSearchList } from "@ducks/workspace/requests";
 import ItemDepiction from "../../ItemDepiction";
 import { ErrorResponse } from "../../../../services/fetch/responseInterceptor";
 import { useModalError } from "../../../../hooks/useModalError";
@@ -134,7 +134,7 @@ const CopyToModal: React.FC<CopyToModalProps> = ({ item, onDiscard, onConfirmed 
     const handleSearch: (value: string) => Promise<any[]> = async (textQuery: string) => {
         setError(null); //reset modal error here
         try {
-            const payload = {
+            const payload: ISearchListRequest = {
                 limit: 50,
                 offset: 0,
                 itemType: "project",

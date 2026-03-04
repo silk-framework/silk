@@ -5,6 +5,7 @@ import { IComplexMappingRule, ITransformRule, NewTransformRule, PartialBy } from
 import { IAutocompleteDefaultResponse } from "@ducks/shared/typings";
 import { TaskContext } from "../../shared/projectTaskTabView/projectTaskTabView.typing";
 import { CodeAutocompleteFieldPartialAutoCompleteResult } from "@eccenca/gui-elements/src/components/AutoSuggestion/AutoSuggestion";
+import { AutoCompletionBase } from "../../pages/MappingEditor/api/types";
 
 /** Fetches a transform rule. */
 export const requestTransformRule = async (
@@ -120,6 +121,26 @@ export const appendTransformRule = async (
         ),
         method: "POST",
         body: newRule,
+    });
+};
+
+/** Finds all transform rules matching the search criteria. */
+export const searchTransformRules = async (
+    projectId: string,
+    transformId: string,
+    searchQuery: string,
+    limit: number,
+    ruleType?: "value" | "object",
+): Promise<FetchResponse<AutoCompletionBase[]>> => {
+    return fetch({
+        url: legacyTransformEndpoint(`/tasks/${projectId}/${transformId}/rules/search`),
+        method: "POST",
+        body: {
+            searchQuery,
+            limit,
+            valueRulesOnly: ruleType === "value",
+            objectRulesOnly: ruleType === "object",
+        },
     });
 };
 
