@@ -608,7 +608,10 @@
         },
         "project": {
             "content": "Contents",
-            "loading": "Loading project data"
+            "loading": "Loading project data",
+            "errors": {
+                "forbidden": "Access to project is forbidden!"
+            }
         },
         "workspace": {
             "contents": "Contents",

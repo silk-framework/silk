@@ -8,6 +8,7 @@ import { TaskConfig } from "../../shared/TaskConfig/TaskConfig";
 import { usePageHeader } from "../../shared/PageHeader/PageHeader";
 import { ArtefactManagementOptions } from "../../shared/ActionsMenu/ArtefactManagementOptions";
 import NotFound from "../NotFound";
+import { ProjectForbiddenNotification } from "../../shared/ProjectForbiddenNotification";
 import { TaskActivityOverview } from "../../shared/TaskActivityOverview/TaskActivityOverview";
 import { ProjectTaskParams } from "../../shared/typings";
 import { IPluginDetails } from "@ducks/common/typings";
@@ -15,6 +16,7 @@ import { IPluginDetails } from "@ducks/common/typings";
 export default function TaskPage() {
     const { taskId, projectId } = useParams<ProjectTaskParams>();
     const [notFound, setNotFound] = useState(false);
+    const [forbidden, setForbidden] = useState(false);
     const [pluginDetails, setPluginDetails] = React.useState<IPluginDetails | undefined>();
 
     const { pageHeader, updateActionsMenu, updateType } = usePageHeader({
@@ -35,7 +37,9 @@ export default function TaskPage() {
         }
     }, [pluginDetails]);
 
-    return notFound ? (
+    return forbidden ? (
+        <ProjectForbiddenNotification />
+    ) : notFound ? (
         <NotFound />
     ) : (
         <WorkspaceContent className="eccapp-di__task">
@@ -46,6 +50,7 @@ export default function TaskPage() {
                 itemType={DATA_TYPES.TASK}
                 updateActionsMenu={updateActionsMenu}
                 notFoundCallback={setNotFound}
+                forbiddenCallback={setForbidden}
             />
             <WorkspaceMain>
                 <Section>

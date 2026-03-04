@@ -13,6 +13,7 @@ import { usePageHeader } from "../../shared/PageHeader/PageHeader";
 import { ArtefactManagementOptions } from "../../shared/ActionsMenu/ArtefactManagementOptions";
 import Metadata from "../../shared/Metadata";
 import NotFound from "../NotFound";
+import { ProjectForbiddenNotification } from "../../shared/ProjectForbiddenNotification";
 import { ProjectTaskParams } from "../../shared/typings";
 import { TaskActivityOverview } from "../../shared/TaskActivityOverview/TaskActivityOverview";
 import { pluginRegistry, SUPPORTED_PLUGINS } from "../../plugins/PluginRegistry";
@@ -29,6 +30,7 @@ export function Dataset() {
     const [t] = useTranslation();
     const [pluginDetails, setPluginDetails] = React.useState<IPluginDetails | undefined>();
     const [notFound, setNotFound] = useState(false);
+    const [forbidden, setForbidden] = useState(false);
     const { dmBaseUrl } = useSelector(commonSel.initialSettingsSelector);
 
     const pluginId = pluginDetails?.pluginId;
@@ -73,7 +75,9 @@ export function Dataset() {
         setPluginDetails(details);
     }, []);
 
-    return notFound ? (
+    return forbidden ? (
+        <ProjectForbiddenNotification />
+    ) : notFound ? (
         <NotFound />
     ) : (
         <WorkspaceContent className="eccapp-di__dataset">
@@ -84,6 +88,7 @@ export function Dataset() {
                 itemType={DATA_TYPES.DATASET}
                 updateActionsMenu={updateActionsMenu}
                 notFoundCallback={setNotFound}
+                forbiddenCallback={setForbidden}
             />
             <WorkspaceMain>
                 <Section>
