@@ -68,6 +68,9 @@ case class TransformSpec(@Param(label = "Input", value = "The source from which 
   /** Retrieves the root rules of this transform spec. */
   def rules: MappingRules = mappingRule.rules
 
+  /** All rules (recursively) contained in this transform spec. */
+  def allRulesRecursive: Seq[TransformRule] = mappingRule.rules.allRulesRecursive.prepended(mappingRule)
+
   /**
     * Retrieves a rule by its identifier.
     * Searches in the entire rule tree.

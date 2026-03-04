@@ -4,6 +4,7 @@ import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFo
 import org.silkframework.runtime.serialization.XmlSerialization.{fromXml, toXml}
 import org.silkframework.util.Identifier
 
+import scala.collection.mutable.ArrayBuffer
 import scala.language.implicitConversions
 import scala.xml.{Node, Null}
 
@@ -17,6 +18,23 @@ case class MappingRules(uriRule: Option[UriMapping] = None,
   /** All rules (URI rule, type rules and property rules). Does not include recursive children. */
   def allRules: Seq[TransformRule] = uriRule.toSeq ++ typeRules ++ propertyRules
 
+  /** All rules (URI rule, type rules and property rules) of the complete transform tree, i.e. including children etc. */
+  def allRulesRecursive: Seq[TransformRule] = {
+    val rules = new ArrayBuffer[TransformRule]()
+    def addRulesRecursively(mappingRules: MappingRules): Unit = {
+      val allRules = mappingRules.allRules
+      if(allRules.nonEmpty) {
+        rules.addAll(allRules)
+        allRules.foreach {
+          case r: ContainerTransformRule =>
+            addRulesRecursively(r.rules)
+          case _ =>
+        }
+      }
+    }
+    addRulesRecursively(this)
+    rules.toSeq
+  }
 }
 
 object MappingRules {

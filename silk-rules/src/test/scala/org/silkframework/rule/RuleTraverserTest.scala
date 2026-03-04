@@ -1,5 +1,6 @@
 package org.silkframework.rule
-
+
+
 import org.silkframework.util.Identifier
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
@@ -32,6 +33,7 @@ class RuleTraverserTest extends AnyFlatSpec with Matchers {
   }
 
   case class Node(id: Identifier, children: Seq[Node] = Seq.empty) extends Operator {
+    override def withId(newId: Identifier): Operator = copy(id = newId)
     override def withChildren(newChildren: Seq[Operator]): Operator = copy(children = newChildren.map(_.asInstanceOf[Node]))
   }
 
