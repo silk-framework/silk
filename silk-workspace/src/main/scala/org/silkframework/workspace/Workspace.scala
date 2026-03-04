@@ -188,8 +188,8 @@ class Workspace(val provider: WorkspaceProvider,
     if(cachedProjects.exists(_.id == creationConfig.id)) {
       throw IdentifierAlreadyExistsException("Project " + creationConfig.id + " does already exist!")
     }
-    provider.putProject(creationConfig)
-    val newProject = new Project(creationConfig, provider, repository.get(creationConfig.id), userContext)
+    provider.putProject(creationConfig)(readWriteUser)
+    val newProject = new Project(creationConfig, provider, repository.get(creationConfig.id), readWriteUser)
     addProjectToCache(newProject)
     newProject.setWorkspacePrefixes(workspacePrefixes)
     log.info(s"Created new project '${creationConfig.id}'. " + userContext.logInfo)
@@ -206,7 +206,7 @@ class Workspace(val provider: WorkspaceProvider,
         activity <- task.activities) {
       activity.control.cancel()
     }
-    provider.deleteProject(name)
+    provider.deleteProject(name)(readWriteUser)
     repository.removeProjectResources(name)
     provider.removeExternalTaskLoadingErrors(name)
     removeProjectFromCache(name)
@@ -264,11 +264,11 @@ class Workspace(val provider: WorkspaceProvider,
     }
     log.info(s"Starting import of project '$name'...")
     val start = System.currentTimeMillis()
-    marshaller.unmarshalProject(name, provider, repository.get(name), file)
-    reloadProjectInternal(name)
+    marshaller.unmarshalProject(name, provider, repository.get(name), file)(readWriteUser)
+    reloadProjectInternal(name)(readWriteUser)
     if (!importGroups) {
       // Either apply explicit groups or clear any groups that came from the archive
-      project(name).accessControl.setGroups(groups)
+      project(name).accessControl.setGroups(groups)(readWriteUser)
     }
     log.info(s"Imported project '$name' in ${(System.currentTimeMillis() - start).toDouble / 1000}s. " + userContext.logInfo)
   }
@@ -300,6 +300,7 @@ class Workspace(val provider: WorkspaceProvider,
 
   def reloadProject(projectId: Identifier)
                    (implicit userContext: UserContext): Unit = synchronized {
+    requireAdminUser()
     initProjects()
     log.info(s"Reloading project with ID '$projectId' from backend.")
     reloadProjectInternal(projectId, throwError = true)
@@ -307,7 +308,7 @@ class Workspace(val provider: WorkspaceProvider,
 
   /** Reloads the registered prefixes if the workspace provider supports this operation. */
   def reloadPrefixes()(implicit userContext: UserContext): Unit = {
-    workspacePrefixes = provider.fetchRegisteredPrefixes() ++ Prefixes.default
+    workspacePrefixes = provider.fetchRegisteredPrefixes()(readWriteUser) ++ Prefixes.default
     cachedProjects foreach { project =>
       project.setWorkspacePrefixes(workspacePrefixes)
     }
@@ -319,9 +320,9 @@ class Workspace(val provider: WorkspaceProvider,
     // remove project
     Try(project(id).cancelActivities())
     removeProjectFromCache(id)
-    provider.readProject(id) match {
+    provider.readProject(id)(readWriteUser) match {
       case Some(projectConfig) =>
-        val project = new Project(projectConfig, provider, repository.get(projectConfig.id), userContext)
+        val project = new Project(projectConfig, provider, repository.get(projectConfig.id), readWriteUser)
         project.setWorkspacePrefixes(workspacePrefixes)
         addProjectToCache(project)
         project.startActivities()
@@ -368,6 +369,15 @@ class Workspace(val provider: WorkspaceProvider,
     }
     cachedProjectsUser = Some(userContext)
     log.info(s"${cachedProjects.size} projects loaded.")
+  }
+
+  /** Returns the user context for read and write operations to the workspace provider. */
+  private def readWriteUser(implicit userContext: UserContext): UserContext = {
+    if (AccessControlConfig().enabled) {
+      cachedProjectsUser.getOrElse(userContext)
+    } else {
+      userContext
+    }
   }
 
   /**
