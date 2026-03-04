@@ -22,5 +22,8 @@ POST       /variableTemplate/completion       controllers.workspaceApi.coreApi.V
 # System
 GET        /system/threadDump            controllers.workspaceApi.coreApi.SystemApi.threadDump()
 
+# Access Control
+GET        /accessControl               controllers.workspaceApi.coreApi.AccessControlApi.accessControl()
+
 # User
 GET        /user                        controllers.workspaceApi.coreApi.UserApi.userData()
