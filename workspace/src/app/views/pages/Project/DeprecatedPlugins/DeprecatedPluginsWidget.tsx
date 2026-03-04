@@ -12,12 +12,6 @@ export function DeprecatedPluginsWidget({ projectId, taskId }: { projectId?: str
     const [deprecatedPlugins, setDeprecatedPlugins] = useState<DeprecatedPluginsModel[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const { registerError } = useErrorHandler();
-    const path = window.location.pathname;
-    // Only filter self-links when showing project-level plugins (no taskId scoped).
-    // When taskId is provided the widget is scoped to that task — show all its plugins.
-    const isOnLinkingOrTransformPage =
-        !taskId && /\/projects\/[^/]+\/(linking|transform)\/[^/]+/.test(path);
-
     const fetchDeprecatedPlugins = () => {
         requestDeprecatedPlugins(projectId, taskId)
             .then((response) => {
@@ -58,11 +52,7 @@ export function DeprecatedPluginsWidget({ projectId, taskId }: { projectId?: str
         };
     }, [projectId, taskId]);
 
-    const visiblePlugins = isOnLinkingOrTransformPage
-        ? deprecatedPlugins.filter((plugin) => !path.startsWith((plugin.link || "").split("?")[0]))
-        : deprecatedPlugins;
-
-    if (isLoading || visiblePlugins.length === 0) {
+    if (isLoading || deprecatedPlugins.length === 0) {
         return null;
     }
 
@@ -71,14 +61,14 @@ export function DeprecatedPluginsWidget({ projectId, taskId }: { projectId?: str
             <CardHeader>
                 <CardTitle>
                     <h2>
-                        {t("widget.deprecatedPluginWidget.title")} ({visiblePlugins.length})
+                        {t("widget.deprecatedPlugins.title")} ({deprecatedPlugins.length})
                     </h2>
                 </CardTitle>
             </CardHeader>
             <Divider />
             <CardContent>
                 <DeprecatedPluginsList
-                    filteredPlugins={visiblePlugins}
+                    filteredPlugins={deprecatedPlugins}
                     selectedPlugin={null}
                     selectedPluginKey={null}
                     isLoading={false}

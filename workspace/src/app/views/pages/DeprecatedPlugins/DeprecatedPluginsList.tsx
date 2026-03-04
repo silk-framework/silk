@@ -20,7 +20,7 @@ import { useTranslation } from "react-i18next";
 import { contextualPath } from "../../../constants/path";
 import { ItemDepiction } from "../../shared/ItemDepiction/ItemDepiction";
 import { DeprecatedPluginsModel, PluginGroup } from "./index";
-import { useHistory, useLocation } from "react-router";
+
 
 interface DeprecatedPluginsListProps {
     filteredPlugins: DeprecatedPluginsModel[];
@@ -30,6 +30,13 @@ interface DeprecatedPluginsListProps {
     hasCardWrapper?: boolean;
 }
 
+const goToTaskPage = (link: string) => (e: React.MouseEvent) => {
+    if (!e?.ctrlKey) {
+        e.preventDefault();
+        window.location.href = link;
+    }
+};
+
 export function DeprecatedPluginsList({
     filteredPlugins,
     selectedPlugin,
@@ -38,20 +45,12 @@ export function DeprecatedPluginsList({
     hasCardWrapper = true,
 }: DeprecatedPluginsListProps) {
     const [t] = useTranslation();
-    const history = useHistory();
-    const location = useLocation();
 
-    const goToTaskPage = (link: string) => (e: React.MouseEvent) => {
-        if (!e?.ctrlKey) {
-            e.preventDefault();
-            history.push(link);
-        }
-    };
-
+    const currentPath = window.location.pathname;
+    const currentSearch = window.location.search;
     const renderItem = (plugin: DeprecatedPluginsModel) => {
         const [linkPath, search] = (plugin.link ?? "#").split("?");
-        const isCurrentPage =
-            !!plugin.link && location.pathname == linkPath && (!search || location.search.includes(search));
+        const isCurrentPage = !!plugin.link && currentPath == linkPath && (!search || currentSearch.includes(search));
         return (
             <OverviewItem
                 key={`${plugin.project}_${plugin.task}_${plugin.pluginId}`}
