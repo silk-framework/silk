@@ -16,6 +16,7 @@ import { SERVE_PATH } from "../../../constants/path";
 import { requestDeprecatedPlugins } from "@ducks/common/requests";
 import { DeprecatedPluginsSidebar } from "./DeprecatedPluginsSidebar";
 import { DeprecatedPluginsList } from "./DeprecatedPluginsList";
+import { useHistory, useLocation } from "react-router";
 
 export interface DeprecatedPluginsModel {
     project?: string;
@@ -41,9 +42,24 @@ export type PluginGroup = {
 export default function DeprecatedPlugins() {
     const [deprecatedPlugins, setDeprecatedPlugins] = useState<DeprecatedPluginsModel[]>([]);
     const [isLoading, setIsLoading] = useState(true);
-    const [selectedPluginKey, setSelectedPluginKey] = useState<string | null>(null);
     const { registerError } = useErrorHandler();
     const [t] = useTranslation();
+    const history = useHistory();
+    const location = useLocation();
+
+    const selectedPluginKey = useMemo(() => {
+        return new URLSearchParams(location.search).get("plugin");
+    }, [location.search]);
+
+    const setSelectedPluginKey = (pluginId: string | null) => {
+        const params = new URLSearchParams(location.search);
+        if (pluginId) {
+            params.set("plugin", pluginId);
+        } else {
+            params.delete("plugin");
+        }
+        history.replace({ search: params.toString() });
+    };
 
     const breadcrumbs = [
         {
@@ -107,7 +123,9 @@ export default function DeprecatedPlugins() {
         if (pluginGroups.length === 0) return;
         const isValidSelection = pluginGroups.some((g) => g.pluginId === selectedPluginKey);
         if (!isValidSelection) {
-            setSelectedPluginKey(pluginGroups[0].pluginId);
+            const params = new URLSearchParams(location.search);
+            params.set("plugin", pluginGroups[0].pluginId);
+            history.replace({ search: params.toString() });
         }
     }, [pluginGroups]);
 
