@@ -144,6 +144,18 @@ class ProjectAccessControlIntegrationTest extends AnyFlatSpec with IntegrationTe
     getProjectAccessControl(projectId, user1).groups shouldBe Set.empty
   }
 
+  it should "reject import with importGroups if archive does not contain groups" in {
+    val projectId = "importGroupsMissing"
+
+    // Create a project, export WITHOUT exportGroups, then delete
+    createProject(projectId, user1, Set(group1))
+    val exportedBytes = exportProject(projectId, user1)
+    deleteProject(projectId, user1)
+
+    // Import with importGroups=true — should fail because archive has no groups
+    importProjectStatus(projectId, exportedBytes, user1, importGroups = true) shouldBe 400
+  }
+
   it should "reject import with both importGroups and groups parameters" in {
     val projectId = "importGroupsConflict"
 

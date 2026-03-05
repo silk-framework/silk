@@ -1,10 +1,8 @@
 package org.silkframework.workspace.access
 
-import org.silkframework.config.AccessControl
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.runtime.users.User
 import org.silkframework.util.Identifier
-import org.silkframework.workspace.WorkspaceProvider
+import org.silkframework.workspace.{AccessControl, WorkspaceProvider}
 
 /**
  * Manages the user groups of the current user. This is used to determine which projects a user has access to.
@@ -24,7 +22,7 @@ class ProjectAccessControlManager(project: Identifier, provider: WorkspaceProvid
   def setGroups(groups: Set[String])(implicit userContext: UserContext): Unit = synchronized {
     loadIfRequired()
     val newAccessControl = AccessControl(groups)
-    provider.putAccessControlGroups(project, newAccessControl)
+    provider.putAccessControl(project, newAccessControl)
     this.accessControl = newAccessControl
   }
 
@@ -78,7 +76,7 @@ class ProjectAccessControlManager(project: Identifier, provider: WorkspaceProvid
 
   private def loadIfRequired()(implicit userContext: UserContext): Unit = {
     if(!loaded) {
-      accessControl = provider.readAccessControlGroups(project)
+      accessControl = provider.readAccessControl(project).getOrElse(AccessControl.empty)
       loaded = true
     }
   }

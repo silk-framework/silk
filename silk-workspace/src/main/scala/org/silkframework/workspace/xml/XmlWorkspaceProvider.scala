@@ -11,7 +11,7 @@ import org.silkframework.util.Identifier
 import org.silkframework.util.XMLUtils._
 import org.silkframework.workspace.io.WorkspaceIO
 import org.silkframework.workspace.resources.ResourceRepository
-import org.silkframework.workspace.{LoadedTask, ProjectConfig, TemplateVariablesSerializer, WorkspaceProvider}
+import org.silkframework.workspace.{AccessControl, LoadedTask, ProjectConfig, TemplateVariablesSerializer, WorkspaceProvider}
 
 import java.util.logging.{Level, Logger}
 import scala.reflect.ClassTag
@@ -176,23 +176,23 @@ class XmlWorkspaceProvider(val resources: ResourceManager) extends WorkspaceProv
   /**
     * Reads the access control configuration for a project.
     */
-  override def readAccessControlGroups(project: Identifier)
-                                      (implicit userContext: UserContext): AccessControl = {
+  override def readAccessControl(project: Identifier)
+                                (implicit userContext: UserContext): Option[AccessControl] = {
     val accessControlFile = resources.child(project).get("accessControl.xml")
     if(accessControlFile.nonEmpty) {
       val accessControlXml = accessControlFile.read(XML.load)
       implicit val readContext: ReadContext = ReadContext(EmptyResourceManager(), Prefixes.empty)
-      XmlSerialization.fromXml[AccessControl](accessControlXml)
+      Some(XmlSerialization.fromXml[AccessControl](accessControlXml))
     } else {
-      AccessControl.empty
+      None
     }
   }
 
   /**
     * Updates the access control configuration for a project.
     */
-  override def putAccessControlGroups(project: Identifier, accessControl: AccessControl)
-                                     (implicit userContext: UserContext): Unit = {
+  override def putAccessControl(project: Identifier, accessControl: AccessControl)
+                               (implicit userContext: UserContext): Unit = {
     val accessControlXml = XmlSerialization.toXml(accessControl)
     val accessControlFile = resources.child(project).get("accessControl.xml")
     accessControlFile.write()(accessControlXml.write)

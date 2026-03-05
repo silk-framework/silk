@@ -49,8 +49,9 @@ object WorkspaceIO {
     val tags = inputWorkspace.readTags(updatedProjectConfig.id)
     outputWorkspace.putTags(updatedProjectConfig.id, tags)
     // Access control
-    val accessControl = inputWorkspace.readAccessControlGroups(updatedProjectConfig.id)
-    outputWorkspace.putAccessControlGroups(updatedProjectConfig.id, accessControl)
+    for(accessControl <- inputWorkspace.readAccessControl(updatedProjectConfig.id)) {
+      outputWorkspace.putAccessControl(updatedProjectConfig.id, accessControl)
+    }
     // Resources
     if(alsoCopyResources) {
       copyResources(inputResources, outputResources)

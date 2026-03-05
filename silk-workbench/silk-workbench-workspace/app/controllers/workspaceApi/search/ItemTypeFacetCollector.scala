@@ -2,10 +2,10 @@ package controllers.workspaceApi.search
 
 import controllers.workspaceApi.search.SearchApiModel.{Facet, FacetSetting, KeywordFacetSetting}
 import io.swagger.v3.oas.annotations.media.{ArraySchema, Schema}
-import org.silkframework.config.{AccessControl, TaskSpec}
+import org.silkframework.config.{TaskSpec}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.workspace.access.AccessControlConfig
-import org.silkframework.workspace.{Project, ProjectTask}
+import org.silkframework.workspace.{AccessControl, Project, ProjectTask}
 
 import java.util.concurrent.ConcurrentHashMap
 import java.util.logging.Logger

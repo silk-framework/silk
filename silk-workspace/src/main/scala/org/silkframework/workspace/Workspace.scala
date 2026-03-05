@@ -19,7 +19,7 @@ import org.silkframework.runtime.activity.{HasValue, UserContext}
 import org.silkframework.runtime.metrics.MeterRegistryProvider
 import org.silkframework.runtime.metrics.MetricsConfig.prefix
 import org.silkframework.runtime.plugin.{PluginContext, PluginRegistry}
-import org.silkframework.runtime.validation.{NotFoundException, ServiceUnavailableException}
+import org.silkframework.runtime.validation.{BadUserInputException, NotFoundException, ServiceUnavailableException}
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.TaskCleanupPlugin.CleanUpAfterTaskDeletionFunction
 import org.silkframework.workspace.access.{AccessControlConfig, ProjectAccessDeniedException}
@@ -266,7 +266,12 @@ class Workspace(val provider: WorkspaceProvider,
     val start = System.currentTimeMillis()
     marshaller.unmarshalProject(name, provider, repository.get(name), file)(readWriteUser)
     reloadProjectInternal(name)(readWriteUser)
-    if (!importGroups) {
+    if (importGroups) {
+      // Validate that the archive actually contains access control groups
+      if (provider.readAccessControl(name)(readWriteUser).isEmpty) {
+        throw new BadUserInputException("The archive does not contain access control groups. Export the project with exportGroups enabled.")
+      }
+    } else {
       // Either apply explicit groups or clear any groups that came from the archive
       project(name).accessControl.setGroups(groups)(readWriteUser)
     }

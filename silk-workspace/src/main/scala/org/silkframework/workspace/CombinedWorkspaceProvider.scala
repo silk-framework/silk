@@ -1,6 +1,6 @@
 package org.silkframework.workspace
 
-import org.silkframework.config.{AccessControl, Tag, Task, TaskSpec}
+import org.silkframework.config.{Tag, Task, TaskSpec}
 import org.silkframework.dataset.rdf.{GraphStoreTrait, SparqlEndpoint}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.PluginContext
@@ -153,17 +153,17 @@ class CombinedWorkspaceProvider(val primaryWorkspace: WorkspaceProvider,
   /**
     * Reads the access control configuration for a project.
     */
-  override def readAccessControlGroups(project: Identifier)
-                                      (implicit userContext: UserContext): AccessControl = {
-    primaryWorkspace.readAccessControlGroups(project)
+  override def readAccessControl(project: Identifier)
+                                (implicit userContext: UserContext): Option[AccessControl] = {
+    primaryWorkspace.readAccessControl(project)
   }
 
   /**
     * Updates the access control configuration for a project.
     */
-  override def putAccessControlGroups(project: Identifier, accessControl: AccessControl)
-                                     (implicit userContext: UserContext): Unit = {
-    executeOnBackends(_.putAccessControlGroups(project, accessControl), s"Updating access control in project $project")
+  override def putAccessControl(project: Identifier, accessControl: AccessControl)
+                               (implicit userContext: UserContext): Unit = {
+    executeOnBackends(_.putAccessControl(project, accessControl), s"Updating access control in project $project")
   }
 
   /**

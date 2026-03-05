@@ -1,4 +1,4 @@
-package org.silkframework.config
+package org.silkframework.workspace
 
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat}
 
