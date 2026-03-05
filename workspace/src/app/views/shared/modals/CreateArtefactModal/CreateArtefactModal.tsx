@@ -159,11 +159,9 @@ export function CreateArtefactModal() {
     const [taskFormGeneralWarning, setTaskFormGeneralWarning] = React.useState<string | undefined>();
     const generalWarningTimeout = React.useRef<number | undefined>();
     const projectAcl = React.useRef<ProjectAcl | undefined>();
-    const [aclRequirementSatisfied, setAclRequirementSatisfied] = React.useState(true);
 
     const updateProjectAcl = React.useCallback((newProjectAcl: ProjectAcl) => {
         projectAcl.current = newProjectAcl;
-        setAclRequirementSatisfied(newProjectAcl.groups.length > 0);
     }, []);
 
     const taskFormWarning = React.useCallback((message: string) => {
@@ -451,7 +449,6 @@ export function CreateArtefactModal() {
         form.reset();
         setFormValueChanges({});
         form.clearError();
-        setAclRequirementSatisfied(true);
         dispatch(commonOp.resetArtefactModal(closeModal));
     };
 
@@ -1038,7 +1035,7 @@ export function CreateArtefactModal() {
                                 key="create"
                                 affirmative={true}
                                 onClick={handleCreate}
-                                disabled={isErrorPresented() || !aclRequirementSatisfied}
+                                disabled={isErrorPresented()}
                             >
                                 {updateExistingTask ? t("common.action.update") : t("common.action.create")}
                             </Button>,

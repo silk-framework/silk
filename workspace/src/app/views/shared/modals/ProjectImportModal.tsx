@@ -60,10 +60,8 @@ export function ProjectImportModal({ close, back, maxFileUploadSizeBytes }: IPro
         [string, boolean, boolean] | null
     >(null);
     const projectAcl = React.useRef<ProjectAcl | undefined>();
-    const [aclRequirementSatisfied, setAclRequirementSatisfied] = React.useState(false);
     const onChangeProjectAcl = React.useCallback((newProjectAcl: ProjectAcl) => {
         projectAcl.current = newProjectAcl;
-        setAclRequirementSatisfied(newProjectAcl.groups.length > 0);
     }, []);
     const aclManagement = useProjectAclManagementComponent({
         onChange: onChangeProjectAcl,
@@ -244,7 +242,6 @@ export function ProjectImportModal({ close, back, maxFileUploadSizeBytes }: IPro
                     key="importProject"
                     affirmative={true}
                     onClick={() => startProjectImport(false, false)}
-                    disabled={aclManagement.enabled && !aclRequirementSatisfied}
                 >
                     {t("ProjectImportModal.importBtn")}
                 </Button>,
@@ -257,7 +254,6 @@ export function ProjectImportModal({ close, back, maxFileUploadSizeBytes }: IPro
                           key="replaceProject"
                           disruptive={true}
                           onClick={() => startProjectImport(false, true)}
-                          disabled={aclManagement.enabled && !aclRequirementSatisfied}
                       >
                           {t("ProjectImportModal.replaceImportBtn")}
                       </Button>,
@@ -268,7 +264,6 @@ export function ProjectImportModal({ close, back, maxFileUploadSizeBytes }: IPro
                           key="importAsFreshProject"
                           affirmative={true}
                           onClick={() => startProjectImport(true, false)}
-                          disabled={aclManagement.enabled && !aclRequirementSatisfied}
                       >
                           {t("ProjectImportModal.importUnderFreshIdBtn")}
                       </Button>,
