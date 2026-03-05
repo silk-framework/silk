@@ -653,14 +653,16 @@ trait WorkspaceProviderTestTrait extends AnyFlatSpec with Matchers with MockitoS
   it should "allow managing access control groups" in {
     implicit val us: UserContext = emptyUserContext
 
-    // Initially None
+    // Initially no access control should be defined
     workspaceProvider.readAccessControl(PROJECT_NAME) shouldBe None
+    workspaceProvider.containsAccessControl(PROJECT_NAME) shouldBe false
 
     // Set access control groups and read them back
     val accessControl = AccessControl(Set("group1", "group2"))
     workspaceProvider.putAccessControl(PROJECT_NAME, accessControl)
     refreshTest {
       workspaceProvider.readAccessControl(PROJECT_NAME) shouldBe Some(accessControl)
+      workspaceProvider.containsAccessControl(PROJECT_NAME) shouldBe true
     }
 
     // Update access control groups
@@ -668,12 +670,14 @@ trait WorkspaceProviderTestTrait extends AnyFlatSpec with Matchers with MockitoS
     workspaceProvider.putAccessControl(PROJECT_NAME, updatedAccessControl)
     refreshTest {
       workspaceProvider.readAccessControl(PROJECT_NAME) shouldBe Some(updatedAccessControl)
+      workspaceProvider.containsAccessControl(PROJECT_NAME) shouldBe true
     }
 
     // Clear access control groups
     workspaceProvider.putAccessControl(PROJECT_NAME, AccessControl.empty)
     refreshTest {
       workspaceProvider.readAccessControl(PROJECT_NAME) shouldBe Some(AccessControl.empty)
+      workspaceProvider.containsAccessControl(PROJECT_NAME) shouldBe true
     }
   }
 
