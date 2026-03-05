@@ -150,6 +150,11 @@ class CombinedWorkspaceProvider(val primaryWorkspace: WorkspaceProvider,
     executeOnBackends(_.deleteTag(project, tagUri), s"Deleting tag $tagUri in project $project")
   }
 
+  override def containsAccessControl(project: Identifier)
+                                    (implicit userContext: UserContext): Boolean = {
+    primaryWorkspace.containsAccessControl(project)
+  }
+
   /**
     * Reads the access control configuration for a project.
     */

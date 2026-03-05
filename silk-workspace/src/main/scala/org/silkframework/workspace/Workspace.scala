@@ -262,19 +262,17 @@ class Workspace(val provider: WorkspaceProvider,
         case None =>
       }
     }
+    if (importGroups && !AccessControlConfig().enabled) {
+      throw new BadUserInputException("Cannot import groups because access control is not enabled.")
+    }
     log.info(s"Starting import of project '$name'...")
     val start = System.currentTimeMillis()
     marshaller.unmarshalProject(name, provider, repository.get(name), file)(readWriteUser)
     reloadProjectInternal(name)(readWriteUser)
-    if (importGroups) {
-      if (!AccessControlConfig().enabled) {
-        throw new BadUserInputException("Cannot import groups because access control is not enabled.")
-      }
-      // Validate that the archive actually contains access control groups
-      if (provider.readAccessControl(name)(readWriteUser).isEmpty) {
-        throw new BadUserInputException("The archive does not contain access control groups. Export the project with exportGroups enabled.")
-      }
-    } else {
+    if (importGroups && !provider.containsAccessControl(name)(readWriteUser)) {
+      throw new BadUserInputException("The archive does not contain access control groups. Export the project with exportGroups enabled.")
+    }
+    if (!importGroups) {
       // Either apply explicit groups or clear any groups that came from the archive
       project(name).accessControl.setGroups(groups)(readWriteUser)
     }

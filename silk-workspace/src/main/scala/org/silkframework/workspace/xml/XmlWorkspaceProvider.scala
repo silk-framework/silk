@@ -173,6 +173,11 @@ class XmlWorkspaceProvider(val resources: ResourceManager) extends WorkspaceProv
     updateTags(project, tags)
   }
 
+  override def containsAccessControl(project: Identifier)
+                                    (implicit userContext: UserContext): Boolean = {
+    resources.child(project).get("accessControl.xml").nonEmpty
+  }
+
   /**
     * Reads the access control configuration for a project.
     */

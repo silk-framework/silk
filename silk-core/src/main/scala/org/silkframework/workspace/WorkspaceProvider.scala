@@ -134,6 +134,14 @@ trait WorkspaceProvider extends AnyPlugin {
                        (implicit userContext: UserContext): Option[AccessControl]
 
   /**
+    * Returns true if the project has an access control configuration.
+    */
+  def containsAccessControl(project: Identifier)
+                            (implicit userContext: UserContext): Boolean = {
+    readAccessControl(project).isDefined
+  }
+
+  /**
     * Updates the access control configuration for a project.
     */
   def putAccessControl(project: Identifier, accessControl: AccessControl)
