@@ -267,6 +267,9 @@ class Workspace(val provider: WorkspaceProvider,
     marshaller.unmarshalProject(name, provider, repository.get(name), file)(readWriteUser)
     reloadProjectInternal(name)(readWriteUser)
     if (importGroups) {
+      if (!AccessControlConfig().enabled) {
+        throw new BadUserInputException("Cannot import groups because access control is not enabled.")
+      }
       // Validate that the archive actually contains access control groups
       if (provider.readAccessControl(name)(readWriteUser).isEmpty) {
         throw new BadUserInputException("The archive does not contain access control groups. Export the project with exportGroups enabled.")

@@ -13,6 +13,7 @@ import io.swagger.v3.oas.annotations.tags.Tag
 import io.swagger.v3.oas.annotations.{Operation, Parameter}
 import org.silkframework.runtime.execution.Execution
 import org.silkframework.runtime.validation.BadUserInputException
+import org.silkframework.workspace.access.AccessControlConfig
 import org.silkframework.workspace.xml.XmlZipWithResourcesProjectMarshaling
 import org.silkframework.workspace.{ProjectMarshallerRegistry, ProjectMarshallingTrait, WorkspaceFactory}
 import play.api.libs.json.JsArray
@@ -203,6 +204,9 @@ class ProjectMarshalingApi @Inject() () extends InjectedController with UserCont
                                  schema = new Schema(implementation = classOf[Boolean])
                                )
                                importGroups: Boolean = false): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
+    if (importGroups && !AccessControlConfig().enabled) {
+      throw BadUserInputException("Cannot import groups because access control is not enabled.")
+    }
     WorkspaceFactory().workspace.clear()
     withMarshaller(marshallerId) { marshaller =>
       val workspace = WorkspaceFactory().workspace
