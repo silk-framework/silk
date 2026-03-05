@@ -1,6 +1,6 @@
 package org.silkframework.workspace
 
-import org.silkframework.config.{AccessControl, CustomTask}
+import org.silkframework.config.CustomTask
 import org.silkframework.dataset.{Dataset, DatasetSpec}
 import org.silkframework.rule.{LinkSpec, TransformSpec}
 import org.silkframework.runtime.activity.UserContext
@@ -149,7 +149,7 @@ trait ProjectMarshallingTrait extends AnyPlugin {
     outputWorkspaceProvider.putTags(updatedProjectConfig.id, project.tagManager.allTags())
     outputWorkspaceProvider.projectVariables(updatedProjectConfig.id).putVariables(project.templateVariables.all)
     if(alsoExportGroups) {
-      outputWorkspaceProvider.putAccessControlGroups(projectId, AccessControl(project.accessControl.getGroups))
+      outputWorkspaceProvider.putAccessControl(projectId, AccessControl(project.accessControl.getGroups))
     }
     if(alsoExportResources) {
       copyResources(resources, exportToResources)

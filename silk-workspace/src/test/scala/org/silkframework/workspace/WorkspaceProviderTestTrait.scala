@@ -653,27 +653,31 @@ trait WorkspaceProviderTestTrait extends AnyFlatSpec with Matchers with MockitoS
   it should "allow managing access control groups" in {
     implicit val us: UserContext = emptyUserContext
 
-    // Initially empty
-    workspaceProvider.readAccessControlGroups(PROJECT_NAME) shouldBe AccessControl.empty
+    // Initially no access control should be defined
+    workspaceProvider.readAccessControl(PROJECT_NAME) shouldBe None
+    workspaceProvider.containsAccessControl(PROJECT_NAME) shouldBe false
 
     // Set access control groups and read them back
     val accessControl = AccessControl(Set("group1", "group2"))
-    workspaceProvider.putAccessControlGroups(PROJECT_NAME, accessControl)
+    workspaceProvider.putAccessControl(PROJECT_NAME, accessControl)
     refreshTest {
-      workspaceProvider.readAccessControlGroups(PROJECT_NAME) shouldBe accessControl
+      workspaceProvider.readAccessControl(PROJECT_NAME) shouldBe Some(accessControl)
+      workspaceProvider.containsAccessControl(PROJECT_NAME) shouldBe true
     }
 
     // Update access control groups
     val updatedAccessControl = AccessControl(Set("group1", "group3"))
-    workspaceProvider.putAccessControlGroups(PROJECT_NAME, updatedAccessControl)
+    workspaceProvider.putAccessControl(PROJECT_NAME, updatedAccessControl)
     refreshTest {
-      workspaceProvider.readAccessControlGroups(PROJECT_NAME) shouldBe updatedAccessControl
+      workspaceProvider.readAccessControl(PROJECT_NAME) shouldBe Some(updatedAccessControl)
+      workspaceProvider.containsAccessControl(PROJECT_NAME) shouldBe true
     }
 
     // Clear access control groups
-    workspaceProvider.putAccessControlGroups(PROJECT_NAME, AccessControl.empty)
+    workspaceProvider.putAccessControl(PROJECT_NAME, AccessControl.empty)
     refreshTest {
-      workspaceProvider.readAccessControlGroups(PROJECT_NAME) shouldBe AccessControl.empty
+      workspaceProvider.readAccessControl(PROJECT_NAME) shouldBe Some(AccessControl.empty)
+      workspaceProvider.containsAccessControl(PROJECT_NAME) shouldBe true
     }
   }
 

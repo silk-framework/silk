@@ -154,17 +154,17 @@ class InMemoryWorkspaceProvider() extends WorkspaceProvider {
   /**
     * Reads the access control configuration for a project.
     */
-  override def readAccessControlGroups(project: Identifier)
-                                      (implicit userContext: UserContext): AccessControl = synchronized {
+  override def readAccessControl(project: Identifier)
+                                (implicit userContext: UserContext): Option[AccessControl] = synchronized {
     projects(project).accessControl
   }
 
   /**
     * Updates the access control configuration for a project.
     */
-  override def putAccessControlGroups(project: Identifier, accessControl: AccessControl)
-                                     (implicit userContext: UserContext): Unit = synchronized {
-    projects(project).accessControl = accessControl
+  override def putAccessControl(project: Identifier, accessControl: AccessControl)
+                               (implicit userContext: UserContext): Unit = synchronized {
+    projects(project).accessControl = Some(accessControl)
   }
 
   /**
@@ -178,7 +178,7 @@ class InMemoryWorkspaceProvider() extends WorkspaceProvider {
 
     var tags: Map[String, Tag] = Map.empty
 
-    var accessControl: AccessControl = AccessControl.empty
+    var accessControl: Option[AccessControl] = None
 
     val resources = new InMemoryResourceManager
 
