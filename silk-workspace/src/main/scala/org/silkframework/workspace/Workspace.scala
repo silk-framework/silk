@@ -242,7 +242,7 @@ class Workspace(val provider: WorkspaceProvider,
     * @param marshaller   object that defines how the project should be unmarshaled.
     * @param overwrite    If true, then it will overwrite an existing project, else an exception is thrown.
     * @param importGroups If true, keep the access control groups from the archive.
-    *                     If false, clear the groups after import (unless explicit groups are provided via `groups`).
+    *                     If false, apply explicit groups if provided, restore the existing project's groups if overwriting, or clear them otherwise.
     * @param groups       Explicit groups to set on the imported project. Only used when `importGroups` is false.
     */
   def importProject(name: Identifier,
@@ -253,13 +253,17 @@ class Workspace(val provider: WorkspaceProvider,
                     groups: Set[String] = Set.empty)
                    (implicit userContext: UserContext): Unit = {
     initProjects()
-    synchronized {
+    // If overwriting, save existing groups so they can be restored when importGroups is false and no explicit groups are provided
+    val existingGroups: Option[Set[String]] = synchronized {
       projectOption(name) match {
         case Some(_) if !overwrite =>
           throw IdentifierAlreadyExistsException("Project " + name.toString + " does already exist!")
-        case Some(_) =>
+        case Some(p) =>
+          val savedGroups = Some(p.accessControl.getGroups(readWriteUser))
           removeProject(name)
+          savedGroups
         case None =>
+          None
       }
     }
     if (importGroups && !AccessControlConfig().enabled) {
@@ -273,8 +277,16 @@ class Workspace(val provider: WorkspaceProvider,
       throw new BadUserInputException("The archive does not contain access control groups. Export the project with exportGroups enabled.")
     }
     if (!importGroups) {
-      // Either apply explicit groups or clear any groups that came from the archive
-      project(name).accessControl.setGroups(groups)(readWriteUser)
+      if (groups.nonEmpty) {
+        // Apply explicitly provided groups
+        project(name).accessControl.setGroups(groups)(readWriteUser)
+      } else if (existingGroups.isDefined) {
+        // Overwriting an existing project without explicit groups: restore the existing project's groups
+        project(name).accessControl.setGroups(existingGroups.get)(readWriteUser)
+      } else {
+        // New project without explicit groups: clear any groups that came from the archive
+        project(name).accessControl.setGroups(Set.empty)(readWriteUser)
+      }
     }
     log.info(s"Imported project '$name' in ${(System.currentTimeMillis() - start).toDouble / 1000}s. " + userContext.logInfo)
   }

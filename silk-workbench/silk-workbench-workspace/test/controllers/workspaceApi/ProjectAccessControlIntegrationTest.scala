@@ -15,6 +15,7 @@ import org.silkframework.runtime.users.{User, UserActions, WebUser, WebUserManag
 import org.silkframework.serialization.json.MetaDataSerializers.MetaDataPlain
 import org.silkframework.util.ConfigTestTrait
 import org.silkframework.workspace.{Workspace, WorkspaceFactory}
+import org.silkframework.workspace.xml.XmlZipWithResourcesProjectMarshaling
 import play.api.libs.json.{JsValue, Json}
 import play.api.libs.ws.WSRequest
 import play.api.mvc.{Call, RequestHeader}
@@ -165,6 +166,31 @@ class ProjectAccessControlIntegrationTest extends AnyFlatSpec with IntegrationTe
 
     // Import with both importGroups=true and groups — should fail with 400
     importProjectStatus(projectId, exportedBytes, user1, groups = Set(group2), importGroups = true) shouldBe 400
+  }
+
+  it should "preserve existing groups when overwriting a project without explicit groups" in {
+    val projectId = "overwritePreserveGroups"
+
+    // Create a project with group1
+    createProject(projectId, user1, Set(group1))
+    getProjectAccessControl(projectId, user1).groups shouldBe Set(group1)
+
+    // Export the project (without groups in the archive)
+    val exportedBytes = exportProject(projectId, user1)
+
+    // Re-import the project with overwrite, without importGroups and without explicit groups
+    val workspace = WorkspaceFactory().workspace
+    val marshaller = XmlZipWithResourcesProjectMarshaling()
+    val tempFile = java.io.File.createTempFile("import", ".zip")
+    try {
+      java.nio.file.Files.write(tempFile.toPath, exportedBytes)
+      workspace.importProject(projectId, tempFile, marshaller, overwrite = true, importGroups = false, groups = Set.empty)(SimpleUserContext(admin))
+    } finally {
+      tempFile.delete()
+    }
+
+    // The existing project's groups should be preserved
+    getProjectAccessControl(projectId, user1).groups shouldBe Set(group1)
   }
 
   it should "apply specified groups to a cloned project" in {
