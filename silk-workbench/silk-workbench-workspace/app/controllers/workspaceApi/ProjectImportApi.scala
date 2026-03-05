@@ -21,6 +21,7 @@ import org.silkframework.runtime.serialization.ReadContext
 import org.silkframework.runtime.validation.{BadUserInputException, ConflictRequestException, NotFoundException, RequestException}
 import org.silkframework.util.DurationConverters._
 import org.silkframework.util.{IdentifierUtils, StreamUtils}
+import org.silkframework.workspace.access.ProjectAccessDeniedException
 import org.silkframework.workspace.xml.XmlZipWithResourcesProjectMarshaling
 import play.api.libs.json._
 import play.api.mvc._
@@ -196,10 +197,15 @@ class ProjectImportApi @Inject() (api: ProjectMarshalingApi) extends InjectedCon
                            )
                            projectImportId: String): Action[AnyContent] = UserContextAction { implicit userContext =>
     val details = fetchProjectImportDetails(projectImportId)
-    val projectExists = if(details.projectId != "") {
-      workspace.projectOption(details.projectId).isDefined
-    } else { false }
-    Ok(Json.toJson(details.copy(projectAlreadyExists = projectExists)))
+    val (projectExists, noAccess) = if(details.projectId != "") {
+      try {
+        (workspace.projectOption(details.projectId).isDefined, false)
+      } catch {
+        case _: ProjectAccessDeniedException =>
+          (true, true)
+      }
+    } else { (false, false) }
+    Ok(Json.toJson(details.copy(projectAlreadyExists = projectExists, noAccess = Some(noAccess))))
   }
 
   // Returns the project import details. Caches the result.
@@ -555,13 +561,15 @@ object ProjectImportApi {
     * @param errorMessage         An error was encountered and the import cannot proceed.
     *                             This error message should include all information for the user, other fields should be ignored
     *                             by the client.
+    * @param noAccess             If set to true then the project with the ID from the import request already exists and the user has no access to this project in order to replace it.
     */
   case class ProjectImportDetails(projectId: String,
                                   label: String,
                                   description: Option[String],
                                   marshallerId: String,
                                   projectAlreadyExists: Boolean,
-                                  errorMessage: Option[String])
+                                  errorMessage: Option[String],
+                                  noAccess: Option[Boolean] = None)
 
   def errorProjectImportDetails(errorMessage: String): ProjectImportDetails = {
     ProjectImportDetails("", "", None, "", projectAlreadyExists = false, Some(errorMessage))
