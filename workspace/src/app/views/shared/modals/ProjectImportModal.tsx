@@ -144,7 +144,7 @@ export function ProjectImportModal({ close, back, maxFileUploadSizeBytes }: IPro
                     projectImportId,
                     generateNewProjectId,
                     overWriteExistingProject,
-                    projectAcl.current?.groups,
+                    overWriteExistingProject ? undefined : projectAcl.current?.groups,
                 );
                 let status: Partial<IProjectExecutionStatus> = {};
                 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -332,7 +332,7 @@ export function ProjectImportModal({ close, back, maxFileUploadSizeBytes }: IPro
                     </PropertyValuePair>
                 )}
             </PropertyValueList>
-            {aclManagement.component ? aclManagement.component : null}
+            {!approveReplacement && aclManagement.component ? aclManagement.component : null}
         </>
     );
 
