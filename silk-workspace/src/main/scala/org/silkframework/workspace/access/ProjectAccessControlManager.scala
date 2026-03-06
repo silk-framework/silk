@@ -9,7 +9,7 @@ import org.silkframework.workspace.{AccessControl, WorkspaceProvider}
  *
  * Thread safe.
  */
-class ProjectAccessControlManager(project: Identifier, provider: WorkspaceProvider) {
+class ProjectAccessControlManager(project: Identifier, provider: WorkspaceProvider, loadingUser: UserContext) {
 
   @volatile
   private var accessControl = AccessControl.empty
@@ -19,7 +19,8 @@ class ProjectAccessControlManager(project: Identifier, provider: WorkspaceProvid
   /**
    * Sets the access control groups for the project.
    */
-  def setGroups(groups: Set[String])(implicit userContext: UserContext): Unit = synchronized {
+  def setGroups(groups: Set[String]): Unit = synchronized {
+    implicit val userContext: UserContext = loadingUser
     loadIfRequired()
     val newAccessControl = AccessControl(groups)
     provider.putAccessControl(project, newAccessControl)
@@ -29,7 +30,8 @@ class ProjectAccessControlManager(project: Identifier, provider: WorkspaceProvid
   /**
    * Returns the access control groups for the project.
    */
-  def getGroups(implicit userContext: UserContext): Set[String] = synchronized {
+  def getGroups: Set[String] = synchronized {
+    implicit val userContext: UserContext = loadingUser
     loadIfRequired()
     accessControl.groups
   }
