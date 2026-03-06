@@ -259,7 +259,7 @@ class Workspace(val provider: WorkspaceProvider,
         case Some(_) if !overwrite =>
           throw IdentifierAlreadyExistsException("Project " + name.toString + " does already exist!")
         case Some(p) =>
-          val savedGroups = Some(p.accessControl.getGroups(readWriteUser))
+          val savedGroups = Some(p.accessControl.getGroups)
           removeProject(name)
           savedGroups
         case None =>
@@ -279,13 +279,13 @@ class Workspace(val provider: WorkspaceProvider,
     if (!importGroups) {
       if (groups.nonEmpty) {
         // Apply explicitly provided groups
-        project(name).accessControl.setGroups(groups)(readWriteUser)
+        project(name).accessControl.setGroups(groups)
       } else if (existingGroups.isDefined) {
         // Overwriting an existing project without explicit groups: restore the existing project's groups
-        project(name).accessControl.setGroups(existingGroups.get)(readWriteUser)
+        project(name).accessControl.setGroups(existingGroups.get)
       } else {
         // New project without explicit groups: clear any groups that came from the archive
-        project(name).accessControl.setGroups(Set.empty)(readWriteUser)
+        project(name).accessControl.setGroups(Set.empty)
       }
     }
     log.info(s"Imported project '$name' in ${(System.currentTimeMillis() - start).toDouble / 1000}s. " + userContext.logInfo)
