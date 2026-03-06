@@ -1,7 +1,8 @@
 package org.silkframework.rule.plugins.transformer.replace
 
 import org.silkframework.rule.input.Transformer
-import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
+import org.silkframework.rule.plugins.transformer.value.InputHashTransformer
+import org.silkframework.runtime.plugin.annotations.{Param, Plugin, PluginReference}
 
 /**
   * Transformer that takes two inputs.
@@ -10,11 +11,17 @@ import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
   * default value that should be returned if it cannot be mapped.
   */
 @Plugin(
-  id = "mapWithDefaultInput",
+  id = MapTransformerWithDefaultInput.pluginId,
   categories = Array("Replace"),
   label = "Map with default",
   description = """Maps input values from the first input using a predefined map, with fallback to default values provided by the second input.""",
-  documentationFile = "MapTransformerWithDefaultInput.md"
+  documentationFile = "MapTransformerWithDefaultInput.md",
+  relatedPlugins = Array(
+    new PluginReference(
+      id = InputHashTransformer.pluginId,
+      description = "The Map with default plugin maps each input value and returns one output value per position, using the second input as the fallback when a value is not found in the map. The Input hash plugin returns one hash value for all input values combined, so the result is one combined identifier rather than a mapped value sequence."
+    )
+  )
 )
 case class MapTransformerWithDefaultInput(@Param(value = "A map of values", example = "A:1,B:2,C:3")
                                           map: Map[String, String]) extends Transformer {
@@ -43,4 +50,8 @@ case class MapTransformerWithDefaultInput(@Param(value = "A map of values", exam
   private def evaluate(value: String): Option[String] = {
     map.get(value)
   }
+}
+
+object MapTransformerWithDefaultInput {
+  final val pluginId = "mapWithDefaultInput"
 }
