@@ -181,6 +181,9 @@ case class ConnectionClosingOutputStream(connection: HttpURLConnection,
                                          errorHandler: ErrorHandler) extends OutputStream {
   private val log: Logger = Logger.getLogger(this.getClass.getName)
 
+  @volatile
+  private var disconnected = false
+
   private lazy val outputStream = {
     connection.connect()
     new BufferedOutputStream(connection.getOutputStream)
@@ -191,9 +194,27 @@ case class ConnectionClosingOutputStream(connection: HttpURLConnection,
   }
 
   override def close(): Unit = {
+    val callingThread = Thread.currentThread()
+    // Watch for thread interrupts and disconnect the connection to unblock getResponseCode
+    val watcher = new Thread(() => {
+      try {
+        while (!callingThread.isInterrupted) {
+          Thread.sleep(50)
+        }
+      } catch {
+        case _: InterruptedException => return
+      }
+      disconnected = true
+      connection.disconnect()
+    })
+    watcher.setDaemon(true)
+    watcher.start()
     try {
       GraphStoreTrait.handleTimeoutErrors(connection.getReadTimeout) {
         outputStream.close()
+        if(Thread.currentThread().isInterrupted) {
+          throw new InterruptedException()
+        }
         val responseCode = connection.getResponseCode
         if(responseCode / 100 == 2) {
           log.fine("Successfully written to graph store output stream.")
@@ -204,7 +225,11 @@ case class ConnectionClosingOutputStream(connection: HttpURLConnection,
           errorHandler.genericErrorHandler(connection, s"Could not write to graph store. Got $responseCode response code.")
         }
       }
+    } catch {
+      case _: IOException if disconnected =>
+        throw new InterruptedException()
     } finally {
+      watcher.interrupt()
       connection.disconnect()
     }
   }
