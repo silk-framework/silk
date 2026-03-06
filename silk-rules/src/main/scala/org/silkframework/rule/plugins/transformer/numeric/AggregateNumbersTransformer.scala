@@ -16,7 +16,7 @@ package org.silkframework.rule.plugins.transformer.numeric
 
 import org.silkframework.rule.annotations.{TransformExample, TransformExamples}
 import org.silkframework.rule.input.Transformer
-import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
+import org.silkframework.runtime.plugin.annotations.{Param, Plugin, PluginReference}
 import org.silkframework.util.StringUtils.DoubleLiteral
 
 /**
@@ -25,11 +25,17 @@ import org.silkframework.util.StringUtils.DoubleLiteral
  * @author Robert Isele
  */
 @Plugin(
-  id = "aggregateNumbers",
+  id = AggregateNumbersTransformer.pluginId,
   categories = Array("Numeric"),
   label = "Aggregate numbers",
   description = "Applies one of the aggregation operators (`+`, `*`, `min`, `max` or `average`) to the sequence of input values.",
-  documentationFile = "AggregateNumbersTransformer.md"
+  documentationFile = "AggregateNumbersTransformer.md",
+  relatedPlugins = Array(
+    new PluginReference(
+      id = NumOperationTransformer.pluginId,
+      description = "The Aggregate numbers plugin and the Numeric operation plugin both reduce a sequence of numeric inputs to one result, overlapping on addition and multiplication. Aggregate numbers ignores non-numeric values and adds min, max, and average, while Numeric operation fails on non-numeric input and adds subtraction and division."
+    )
+  )
 )
 @TransformExamples(Array(
   new TransformExample(
@@ -135,4 +141,8 @@ case class AggregateNumbersTransformer(
     // Return result
     Seq(result.toString)
   }
+}
+
+object AggregateNumbersTransformer {
+  final val pluginId = "aggregateNumbers"
 }
