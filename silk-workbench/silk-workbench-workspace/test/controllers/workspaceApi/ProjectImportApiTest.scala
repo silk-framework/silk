@@ -43,7 +43,7 @@ class ProjectImportApiTest extends AnyFlatSpec with SingleProjectWorkspaceProvid
 
     // Fetch project import details
     requestProjectImportDetails(projectImportId) mustBe ProjectImportDetails("configProject", expectedProjectLabel, Some(expectedProjectDescription),
-      XmlZipWithResourcesProjectMarshaling.marshallerId, projectAlreadyExists = true, None)
+      XmlZipWithResourcesProjectMarshaling.marshallerId, projectAlreadyExists = true, noAccess = Some(false))
 
     // Start project import without conflict resolve strategy -> 409
     val importStartUrl = controllers.workspaceApi.routes.ProjectImportApi.startProjectImport(projectImportId)

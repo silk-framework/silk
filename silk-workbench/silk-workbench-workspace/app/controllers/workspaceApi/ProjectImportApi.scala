@@ -568,7 +568,7 @@ object ProjectImportApi {
                                   description: Option[String],
                                   marshallerId: String,
                                   projectAlreadyExists: Boolean,
-                                  errorMessage: Option[String],
+                                  errorMessage: Option[String] = None,
                                   noAccess: Option[Boolean] = None)
 
   def errorProjectImportDetails(errorMessage: String): ProjectImportDetails = {
