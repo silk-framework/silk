@@ -24,6 +24,7 @@ GET        /system/threadDump            controllers.workspaceApi.coreApi.System
 
 # Access Control
 GET        /accessControl               controllers.workspaceApi.coreApi.AccessControlApi.accessControl()
+GET        /accessControl/groups        controllers.workspaceApi.coreApi.AccessControlApi.accessControlGroups()
 
 # User
 GET        /user                        controllers.workspaceApi.coreApi.UserApi.userData()

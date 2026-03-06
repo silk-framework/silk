@@ -110,6 +110,7 @@ export interface UserData extends ProjectAcl {
 
 const accessControlEndpoint = (projectId: string) => projectApi(`${projectId}/accessControl`);
 
+/** Fetches project access control information. */
 export const fetchProjectAccessControl = (projectId: string): Promise<FetchResponse<ProjectAcl>> =>
     fetch({ url: accessControlEndpoint(projectId), method: "GET" });
 
@@ -119,7 +120,16 @@ export const updateProjectAccessControl = (
 ): Promise<FetchResponse<ProjectAcl>> =>
     fetch({ url: accessControlEndpoint(projectId), method: "PUT", body: projectAcl });
 
+/** Fetches data about the logged-in user. */
 export const fetchUserData = (): Promise<FetchResponse<UserData>> => fetch({ url: coreApi("/user"), method: "GET" });
+
+/** Fetches the list of known access control groups. */
+export const fetchAccessControlGroups = (): Promise<FetchResponse<AccessControlGroup[]>> =>
+    fetch({ url: coreApi("/accessControl/groups"), method: "GET" });
+
+interface AccessControlGroup {
+    id: string;
+}
 
 export const requestCopyProject = async (projectId: string, payload: any) => {
     return fetch({

@@ -36,7 +36,7 @@ class UserApi @Inject()(cc: ControllerComponents) extends AbstractController(cc)
         ))
       )
     ))
-  def userData: Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
+  def userData: Action[AnyContent] = UserContextAction { implicit userContext =>
     userContext.user match {
       case Some(user) =>
         Ok(Json.toJson(UserData(user.uri, user.label, user.groups.toSeq.sorted)))

@@ -12,7 +12,7 @@ import org.silkframework.config.ConfigValue
 case class AccessControlConfig(enabled: Boolean, adminAction: String)
 
 /**
- * Currrent access control configuration.
+ * Current access control configuration.
  */
 object AccessControlConfig extends ConfigValue[AccessControlConfig] {
 
