@@ -22,7 +22,7 @@ import org.silkframework.runtime.plugin.annotations.Plugin
   id = "numReduce",
   categories = Array("Numeric"),
   label = "Numeric reduce",
-  description = "Strip all non-numeric characters from a string."
+  description = "Strips all non-numeric characters from a string."
 )
 @TransformExamples(Array(
   new TransformExample(
