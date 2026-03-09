@@ -42,7 +42,11 @@ import scala.util.matching.Regex
     new PluginReference(
       id = ValidateRegex.pluginId,
       description = "The Regex replace plugin rewrites a string by substituting every regex match and returns the rewritten value. The Validate regex plugin keeps the value only when the full value matches the regex and otherwise fails validation, so it serves as a format check before or after rewriting."
-    )
+    ),
+    new PluginReference(
+      id = ReplaceTransformer.pluginId,
+      description = "The Replace plugin swaps one fixed substring for another everywhere it occurs. The Regex replace plugin does the same global substitution, but what counts as a hit is described by a regular expression."
+    ),
   )
 )
 @TransformExamples(Array(
