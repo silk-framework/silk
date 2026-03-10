@@ -4,7 +4,7 @@ import controllers.projectApi.routes.ProjectApi
 import controllers.util.ProjectApiClient
 import controllers.workspaceApi.TestWebUserManager._
 import controllers.workspaceApi.project.ProjectApiRestPayloads.{CreateProjectRequest, ItemMetaData, ProjectAccessControl}
-import helper.IntegrationTestTrait
+import helper.{IntegrationTestTrait, RequestFailedException}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.time.SpanSugar.convertIntToGrainOfTime
@@ -191,6 +191,19 @@ class ProjectAccessControlIntegrationTest extends AnyFlatSpec with IntegrationTe
 
     // The existing project's groups should be preserved
     getProjectAccessControl(projectId, user1).groups shouldBe Set(group1)
+  }
+
+  it should "reject export with exportGroups if access control is disabled" in {
+    val projectId = "exportGroupsAclDisabled"
+
+    createProject(projectId, user1, Set(group1))
+
+    ConfigTestTrait.withConfig("workspace.accessControl.enabled" -> Some("false")) {
+      val ex = intercept[RequestFailedException] {
+        exportProject(projectId, user1, exportGroups = true)
+      }
+      ex.response.status shouldBe 400
+    }
   }
 
   it should "apply specified groups to a cloned project" in {

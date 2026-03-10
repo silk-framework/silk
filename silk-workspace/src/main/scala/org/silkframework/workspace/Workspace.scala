@@ -231,7 +231,34 @@ class Workspace(val provider: WorkspaceProvider,
   def exportProject(name: Identifier, outputStream: OutputStream, marshaller: ProjectMarshallingTrait, exportGroups: Boolean = false)
                    (implicit userContext: UserContext): String = {
     initProjects()
+    if (exportGroups && !AccessControlConfig().enabled) {
+      throw BadUserInputException("Cannot export groups because access control is not enabled.")
+    }
     marshaller.marshalProject(project(name), outputStream, repository.get(name), exportGroups)
+  }
+
+  def exportWorkspace(outputStream: OutputStream, marshaller: ProjectMarshallingTrait, exportGroups: Boolean = false)
+                     (implicit userContext: UserContext): String = {
+    initProjects()
+    if (exportGroups && !AccessControlConfig().enabled) {
+      throw BadUserInputException("Cannot export groups because access control is not enabled.")
+    }
+    marshaller.marshalWorkspace(outputStream, userProjects, repository, exportGroups)
+  }
+
+  def importWorkspace(file: File, marshaller: ProjectMarshallingTrait, importGroups: Boolean = false)
+                     (implicit userContext: UserContext): Unit = {
+    if (importGroups && !AccessControlConfig().enabled) {
+      throw new BadUserInputException("Cannot import groups because access control is not enabled.")
+    }
+    clear()
+    marshaller.unmarshalWorkspace(provider, repository, file)
+    reload()
+    if (!importGroups) {
+      for (project <- userProjects) {
+        project.accessControl.setGroups(Set.empty)
+      }
+    }
   }
 
   /**
