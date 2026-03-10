@@ -10,6 +10,7 @@ import { ArtefactManagementOptions } from "../../shared/ActionsMenu/ArtefactMana
 import NotFound from "../NotFound";
 import { ProjectTaskParams } from "../../shared/typings";
 import VariablesWidget from "../../../views/shared/VariablesWidget/VariablesWidget";
+import { DeprecatedPluginsWidget } from "../Project/DeprecatedPlugins/DeprecatedPluginsWidget";
 
 export default function WorkflowPage() {
     const { taskId, projectId } = useParams<ProjectTaskParams>();
@@ -28,13 +29,13 @@ export default function WorkflowPage() {
                 id: "workflowSaved",
                 message: "Workflow updated",
             }),
-            "*"
+            "*",
         );
     };
 
-    return notFound ? (
-        <NotFound />
-    ) : (
+    if (notFound) return <NotFound />;
+
+    return (
         <WorkspaceContent className="eccapp-di__workflow">
             {pageHeader}
             <ArtefactManagementOptions
@@ -62,6 +63,8 @@ export default function WorkflowPage() {
                     <RelatedItems messageEventReloadTrigger={(messageId) => messageId === "workflowSaved"} />
                     <Spacing />
                     <VariablesWidget projectId={projectId} taskId={taskId} />
+                    <Spacing />
+                    <DeprecatedPluginsWidget taskId={taskId} projectId={projectId} />
                 </Section>
             </WorkspaceSide>
         </WorkspaceContent>

@@ -1,5 +1,6 @@
 package controllers.workspaceApi.search
 
+import controllers.util.ItemType
 import controllers.workspaceApi.search.SearchApiModel.{Facet, FacetSetting, KeywordFacetSetting}
 import io.swagger.v3.oas.annotations.media.{ArraySchema, Schema}
 import org.silkframework.config.TaskSpec

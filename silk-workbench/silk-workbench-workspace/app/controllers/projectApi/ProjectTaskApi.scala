@@ -4,10 +4,9 @@ import controllers.core.UserContextActions
 import controllers.core.util.ControllerUtilsTrait
 import controllers.projectApi.requests.{TaskContextRequest, TaskContextResponse, TaskMetaData}
 import controllers.util.SerializationUtils.serializeCompileTime
-import controllers.util.{SerializationUtils, TextSearchUtils}
+import controllers.util.{ItemType, SerializationUtils, TextSearchUtils}
 import controllers.workspace.doc.{TaskApiDoc, LegacyDatasetApiDoc => DatasetApiDoc}
 import controllers.workspaceApi.projectTask.{ItemCloneRequest, ItemCloneResponse, RelatedItem, RelatedItems}
-import controllers.workspaceApi.search.ItemType
 import controllers.workspaceApi.search.SearchApiModel.{READ_ONLY, URI_PROPERTY}
 import io.swagger.v3.oas.annotations.enums.ParameterIn
 import io.swagger.v3.oas.annotations.media.{Content, ExampleObject, Schema}
