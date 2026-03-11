@@ -311,6 +311,7 @@
             "showIdentifier": "Show identifier",
             "AddSmth": "Add {{smth}}",
             "CloneSmth": "Clone {{smth}}",
+            "CloneSmthShallow": "Clone {{smth}} (shallow clone)",
             "CopySmth": "Copy {{smth}} artefacts",
             "CreateSmth": "Create {{smth}}",
             "DeleteSmth": "Delete {{smth}}",
@@ -839,7 +840,9 @@
         }
     },
     "cloneModal": {
-        "info": "Cloning a task means creating a copy of the task configuration in the same project. The related (used) tasks of this cloned task are not copied or changed (e.g., a cloned workflow processes the same workflow tasks as the original and not copies of them)."
+        "infoTask": "Cloning a task creates a copy of the task configuration in the same project. The related (used) tasks of this cloned task are not copied or changed (e.g., a cloned workflow processes the same workflow tasks as the original and not copies of them).",
+        "infoProject": "Cloning a project creates a full copy of the project including all its tasks.",
+        "shallowCloneInfo": "This creates a copy of the task configuration only. Referenced tasks or sub-task steps are not duplicated."
     },
     "widget": {
         "deprecatedPluginWidget": {
