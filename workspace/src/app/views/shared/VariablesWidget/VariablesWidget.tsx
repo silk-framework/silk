@@ -33,6 +33,7 @@ import NewVariableModal from "./modals/NewVariableModal";
 import reorderArray from "../../../views/pages/MappingEditor/HierarchicalMapping/utils/reorderArray";
 import DeleteModal from "../modals/DeleteModal";
 import { ErrorResponse, FetchError } from "../../../services/fetch/responseInterceptor";
+import { contextualPath } from "../../../constants/path";
 import { useModalError } from "../../../hooks/useModalError";
 
 const VariablesWidget: React.FC<VariableWidgetProps> = ({ projectId, taskId }) => {
@@ -181,7 +182,7 @@ const VariablesWidget: React.FC<VariableWidgetProps> = ({ projectId, taskId }) =
                         <ul>
                             {dependencies.dependentTasks.map((task) => (
                                 <li key={task.id}>
-                                    <Link href={task.taskLink} target="_blank">
+                                    <Link href={contextualPath(task.taskLink)} target="_blank">
                                         <Tooltip content={t("common.action.openInNewTab")}>
                                             {task.label ?? task.id}
                                         </Tooltip>

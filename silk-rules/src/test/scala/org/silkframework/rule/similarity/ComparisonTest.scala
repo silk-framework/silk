@@ -52,6 +52,7 @@ class ComparisonTest extends AnyFlatSpec with Matchers {
     def apply(entity: Entity): Value = Value(Seq("dummy"))
     def toXML(implicit prefixes: Prefixes): Node = null
     def children = Seq.empty
+    def withId(newId: Identifier): Operator = ???
     def withChildren(newChildren: Seq[Operator]) = ???
   }
 }

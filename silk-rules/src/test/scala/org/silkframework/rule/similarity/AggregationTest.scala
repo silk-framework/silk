@@ -13,7 +13,8 @@
  */
 
 package org.silkframework.rule.plugins.similarity
-
+
+
 import org.silkframework.config.Prefixes
 import org.silkframework.entity.{Entity, Index}
 import org.silkframework.rule.plugins.aggegrator.AverageAggregator
@@ -77,6 +78,7 @@ class AggregationTest extends AnyFlatSpec with Matchers {
       def index(entity: Entity, sourceOrTarget: Boolean, limit: Double): Index = indices
       def toXML(implicit prefixes: Prefixes): Node = null
       def children = Seq.empty
+      override def withId(newId: Identifier): Operator = ???
       def withChildren(newChildren: Seq[Operator]): Operator = ???
     }
   }

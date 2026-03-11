@@ -62,6 +62,8 @@ case class TransformInput(id: Identifier = Operator.generateId, transformer: Tra
 
   override def children: Seq[Input] = inputs
 
+  override def withId(newId: Identifier): Operator = copy(id = newId)
+
   override def withChildren(newChildren: Seq[Operator]): TransformInput = {
     copy(inputs = newChildren.map(_.asInstanceOf[Input]).toIndexedSeq)
   }

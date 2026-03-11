@@ -36,6 +36,13 @@ case class PathInput(id: Identifier = Operator.generateId, path: Path) extends I
   override def children: Seq[Operator] = Seq.empty
 
   /**
+    * Generates the same operator with a new identifier.
+    */
+  override def withId(newId: Identifier): Operator = {
+    copy(id = newId)
+  }
+
+  /**
     * As a path input does not have any children, an [IllegalArgumentException] will be thrown if the provided children sequence is nonempty.
     */
   override def withChildren(newChildren: Seq[Operator]): PathInput = {
