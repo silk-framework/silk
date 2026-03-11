@@ -1066,6 +1066,9 @@
                 "nameMustBeSpecified": "Name must be specified",
                 "mustProvideValOrTemplate": "Must provide value or template"
             },
+            "evaluationErrors": {
+                "title": "Some variables could not be evaluated."
+            },
             "errorMessages": {
                 "loadingVariables": "Could not load variables for project '{{projectId}}'",
                 "orderingVariables": "Cannot change position of variable: its own dependencies must be defined beforehand",

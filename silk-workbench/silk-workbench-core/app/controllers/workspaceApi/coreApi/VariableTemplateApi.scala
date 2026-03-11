@@ -494,7 +494,7 @@ object VariableTemplateApi {
     }
 
     def apply(variables: TemplateVariables, ex: TemplateVariablesEvaluationException): TemplateVariablesJson = {
-      TemplateVariablesJson(variables.variables.map(TemplateVariableJson(_)), ex.issues.map(e => TemplateVariableErrorJson(e.variable.name, e.getMessage)))
+      TemplateVariablesJson(variables.variables.map(TemplateVariableJson(_)), ex.issues.map(e => TemplateVariableErrorJson(e.variable.name, e.ex.getMessage)))
     }
   }
 

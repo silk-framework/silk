@@ -1,14 +1,14 @@
 import { coreApi } from "../../../utils/getApiEndpoint";
 import fetch from "../../../services/fetch";
 import { FetchResponse } from "../../../services/fetch/responseInterceptor";
-import { Variable, VariableDependencies } from "./typing";
+import { TemplateVariableError, Variable, VariableDependencies } from "./typing";
 
 /**
  * Get variables per project
  * @param project
  * @returns
  */
-export const getVariables = (project: string): Promise<FetchResponse<{ variables: Variable[] }>> =>
+export const getVariables = (project: string): Promise<FetchResponse<{ variables: Variable[]; errors: TemplateVariableError[] }>> =>
     fetch({
         url: coreApi("/variableTemplate/variables"),
         query: {

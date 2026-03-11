@@ -2,7 +2,7 @@ import React from "react";
 import { DragDropContext, Draggable, Droppable } from "react-beautiful-dnd";
 
 //typing
-import { Variable, VariableDependencies, VariableWidgetProps } from "./typing";
+import { TemplateVariableError, Variable, VariableDependencies, VariableWidgetProps } from "./typing";
 import {
     Card,
     CardContent,
@@ -50,9 +50,15 @@ const VariablesWidget: React.FC<VariableWidgetProps> = ({ projectId, taskId }) =
     const [dropChangeLoading, setDropChangeLoading] = React.useState<boolean>(false);
     const [dependencies, setVariableDependencies] = React.useState<VariableDependencies>();
     const [errorNotification, setErrorNotification] = React.useState<JSX.Element | null>(null);
+    const [evaluationErrors, setEvaluationErrors] = React.useState<TemplateVariableError[]>([]);
     const [t] = useTranslation();
 
     const variableHasDependencies = dependencies?.dependentTasks.length || dependencies?.dependentVariables.length;
+
+    const evaluationErrorByName = React.useMemo(
+        () => new Map(evaluationErrors.map((e) => [e.variableName, e.message])),
+        [evaluationErrors]
+    );
 
     // initial loading of variables
     React.useEffect(() => {
@@ -61,6 +67,7 @@ const VariablesWidget: React.FC<VariableWidgetProps> = ({ projectId, taskId }) =
                 setLoadingVariables(true);
                 const { data } = await getVariables(projectId);
                 setVariables(data?.variables ?? []);
+                setEvaluationErrors(data?.errors ?? []);
             } catch (err) {
                 registerError("variable-config", t("widget.VariableWidget.errorMessages.loadingVariables"), err);
             } finally {
@@ -238,6 +245,9 @@ const VariablesWidget: React.FC<VariableWidgetProps> = ({ projectId, taskId }) =
                 {errorNotification}
                 <Divider />
                 <CardContent style={{ maxHeight: "25vh" }}>
+                    {evaluationErrors.length > 0 && (
+                        <Notification intent="warning" message={t("widget.VariableWidget.evaluationErrors.title", "Some variables could not be evaluated.")} />
+                    )}
                     {loadingVariables ? (
                         <Loading />
                     ) : !variables.length ? (
@@ -296,6 +306,15 @@ const VariablesWidget: React.FC<VariableWidgetProps> = ({ projectId, taskId }) =
                                                                                 <code>{variable.value}</code>
                                                                             </PropertyValue>
                                                                         </PropertyValuePair>
+                                                                    </ToolbarSection>
+                                                                    <ToolbarSection>
+                                                                        <Icon
+                                                                            name={"state-warning"}
+                                                                            intent={"warning"}
+                                                                            style={evaluationErrorByName.has(variable.name) ? undefined : { visibility: "hidden" }}
+                                                                            tooltipText={evaluationErrorByName.get(variable.name) ?? ""}
+                                                                            tooltipProps={{ placement: "top" }}
+                                                                        />
                                                                     </ToolbarSection>
                                                                     <ToolbarSection
                                                                         style={{
