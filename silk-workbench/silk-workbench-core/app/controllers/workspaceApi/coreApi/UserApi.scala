@@ -7,6 +7,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.tags.Tag
 import org.silkframework.workbench.utils.ErrorResult
 import org.silkframework.workbench.utils.ErrorResult.ErrorResultFormat
+import org.silkframework.workspace.access.AccessControlConfig
 import play.api.libs.json.{Format, Json}
 import play.api.mvc.{AbstractController, Action, AnyContent, ControllerComponents}
 
@@ -39,7 +40,8 @@ class UserApi @Inject()(cc: ControllerComponents) extends AbstractController(cc)
   def userData: Action[AnyContent] = UserContextAction { implicit userContext =>
     userContext.user match {
       case Some(user) =>
-        Ok(Json.toJson(UserData(user.uri, user.label, user.groups.toSeq.sorted)))
+        val isAccessControlAdmin = user.actions.contains(AccessControlConfig().adminAction)
+        Ok(Json.toJson(UserData(user.uri, user.label, user.groups.toSeq.sorted, isAccessControlAdmin)))
       case None =>
         ErrorResult(401, "Unauthorized", "No user logged in.")
     }
@@ -49,7 +51,8 @@ class UserApi @Inject()(cc: ControllerComponents) extends AbstractController(cc)
 
 case class UserData(uri: String,
                     label: String,
-                    groups: Seq[String])
+                    groups: Seq[String],
+                    isAccessControlAdmin: Boolean)
 
 object UserData {
   implicit val userDataFormat: Format[UserData] = Json.format[UserData]
