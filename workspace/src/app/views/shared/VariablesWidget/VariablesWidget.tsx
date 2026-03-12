@@ -57,7 +57,7 @@ const VariablesWidget: React.FC<VariableWidgetProps> = ({ projectId, taskId }) =
 
     const evaluationErrorByName = React.useMemo(
         () => new Map(evaluationErrors.map((e) => [e.variableName, e.message])),
-        [evaluationErrors]
+        [evaluationErrors],
     );
 
     // initial loading of variables
@@ -92,7 +92,7 @@ const VariablesWidget: React.FC<VariableWidgetProps> = ({ projectId, taskId }) =
         } catch (err) {
             checkAndDisplayDeletionError(
                 err,
-                t("widget.VariableWidget.errorMessages.dependencyRetrievalFailure", "Failed to retrieve variable")
+                t("widget.VariableWidget.errorMessages.dependencyRetrievalFailure", "Failed to retrieve variable"),
             );
         }
     }, []);
@@ -111,7 +111,7 @@ const VariablesWidget: React.FC<VariableWidgetProps> = ({ projectId, taskId }) =
         } catch (err) {
             checkAndDisplayDeletionError(
                 err,
-                t("widget.VariableWidget.errorMessages.variableDeletionFailure", "Failed to delete variable")
+                t("widget.VariableWidget.errorMessages.variableDeletionFailure", "Failed to delete variable"),
             );
         } finally {
             setIsDeleting(false);
@@ -141,7 +141,7 @@ const VariablesWidget: React.FC<VariableWidgetProps> = ({ projectId, taskId }) =
                 setDropChangeLoading(true);
                 const res = await reorderVariablesRequest(
                     projectId,
-                    reorderedVariables.map((v) => v.name)
+                    reorderedVariables.map((v) => v.name),
                 );
                 if (res.axiosResponse.status === 200) {
                     setVariables(reorderedVariables);
@@ -158,7 +158,7 @@ const VariablesWidget: React.FC<VariableWidgetProps> = ({ projectId, taskId }) =
                 setDropChangeLoading(false);
             }
         },
-        [variables]
+        [variables],
     );
 
     const renderDeleteVariable = React.useCallback(() => {
@@ -246,7 +246,13 @@ const VariablesWidget: React.FC<VariableWidgetProps> = ({ projectId, taskId }) =
                 <Divider />
                 <CardContent style={{ maxHeight: "25vh" }}>
                     {evaluationErrors.length > 0 && (
-                        <Notification intent="warning" message={t("widget.VariableWidget.evaluationErrors.title", "Some variables could not be evaluated.")} />
+                        <Notification
+                            intent="warning"
+                            message={t(
+                                "widget.VariableWidget.evaluationErrors.title",
+                                "Some variables could not be evaluated.",
+                            )}
+                        />
                     )}
                     {loadingVariables ? (
                         <Loading />
@@ -307,15 +313,19 @@ const VariablesWidget: React.FC<VariableWidgetProps> = ({ projectId, taskId }) =
                                                                             </PropertyValue>
                                                                         </PropertyValuePair>
                                                                     </ToolbarSection>
-                                                                    <ToolbarSection>
-                                                                        <Icon
-                                                                            name={"state-warning"}
-                                                                            intent={"warning"}
-                                                                            style={evaluationErrorByName.has(variable.name) ? undefined : { visibility: "hidden" }}
-                                                                            tooltipText={evaluationErrorByName.get(variable.name) ?? ""}
-                                                                            tooltipProps={{ placement: "top" }}
-                                                                        />
-                                                                    </ToolbarSection>
+                                                                    {evaluationErrorByName.has(variable.name) ? (
+                                                                        <ToolbarSection>
+                                                                            <Icon
+                                                                                name={"state-warning"}
+                                                                                intent={"warning"}
+                                                                                tooltipText={
+                                                                                    evaluationErrorByName.get(
+                                                                                        variable.name,
+                                                                                    ) ?? ""
+                                                                                }
+                                                                            />
+                                                                        </ToolbarSection>
+                                                                    ) : null}
                                                                     <ToolbarSection
                                                                         style={{
                                                                             minWidth: "75px",
@@ -330,7 +340,7 @@ const VariablesWidget: React.FC<VariableWidgetProps> = ({ projectId, taskId }) =
                                                                                     data-test-id="template-variable-delimiter"
                                                                                     tooltipText={
                                                                                         t(
-                                                                                            "widget.TaskConfigWidget.templateValueInfo"
+                                                                                            "widget.TaskConfigWidget.templateValueInfo",
                                                                                         ) +
                                                                                         `\n\n\`\`\`${variable.template}\`\`\``
                                                                                     }
