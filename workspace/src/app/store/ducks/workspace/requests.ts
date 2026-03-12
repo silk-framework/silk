@@ -106,6 +106,7 @@ export interface ProjectAcl {
 export interface UserData extends ProjectAcl {
     uri: string;
     label: string;
+    isAccessControlAdmin: boolean;
 }
 
 const accessControlEndpoint = (projectId: string) => projectApi(`${projectId}/accessControl`);
