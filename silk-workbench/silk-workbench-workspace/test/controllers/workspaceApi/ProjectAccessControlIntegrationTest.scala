@@ -8,19 +8,20 @@ import helper.{IntegrationTestTrait, RequestFailedException}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.time.SpanSugar.convertIntToGrainOfTime
-import org.silkframework.runtime.activity.{SimpleUserContext, UserContext}
-import org.silkframework.runtime.plugin.PluginRegistry
+import org.silkframework.execution.ExecutionReport
+import org.silkframework.runtime.activity.{ActivityExecutionMetaData, ActivityExecutionResult, SimpleUserContext, UserContext}
+import org.silkframework.runtime.plugin.{PluginContext, PluginRegistry}
 import org.silkframework.runtime.plugin.annotations.Plugin
 import org.silkframework.runtime.users.{User, UserActions, WebUser, WebUserManager}
 import org.silkframework.serialization.json.MetaDataSerializers.MetaDataPlain
 import org.silkframework.util.ConfigTestTrait
 import org.silkframework.workspace.{Workspace, WorkspaceFactory}
+import org.silkframework.workspace.reports.{ExecutionReportManager, ReportIdentifier}
 import org.silkframework.workspace.xml.XmlZipWithResourcesProjectMarshaling
-import play.api.libs.json.{JsValue, Json}
+import play.api.libs.json.{JsArray, JsValue, Json}
 import play.api.libs.ws.WSRequest
 import play.api.mvc.{Call, RequestHeader}
 import play.api.routing.Router
-import sun.jvm.hotspot.debugger.cdbg.AccessControl
 
 import scala.concurrent.Await
 
@@ -39,7 +40,8 @@ class ProjectAccessControlIntegrationTest extends AnyFlatSpec with IntegrationTe
     PluginRegistry.registerPlugin(classOf[TestWebUserManager])
     Map(
       "user.manager.web.plugin" -> Some("testWebUserManager"),
-      "workspace.accessControl.enabled" -> Some("true")
+      "workspace.accessControl.enabled" -> Some("true"),
+      "workspace.reportManager.plugin" -> Some("inMemoryExecutionReportManager")
     )
   }
 
@@ -215,6 +217,27 @@ class ProjectAccessControlIntegrationTest extends AnyFlatSpec with IntegrationTe
     testGetProject(cloneId, user2, shouldHaveAccess = false)
     // The clone should have group1 set
     getProjectAccessControl(cloneId, user1).groups shouldBe Set(group1)
+  }
+
+  it should "only list reports for projects the user has access to" in {
+    val accessibleProjectId = "reportsAccessible"
+    val restrictedProjectId = "reportsRestricted"
+    createProject(accessibleProjectId, user1, Set(group1))
+    createProject(restrictedProjectId, user1, Set(group2))
+
+    implicit val pluginContext: PluginContext = PluginContext.empty
+    val dummyReport = ActivityExecutionResult[ExecutionReport](ActivityExecutionMetaData(), None)
+    ExecutionReportManager().addReport(ReportIdentifier.create(accessibleProjectId, "someTask"), dummyReport)
+    ExecutionReportManager().addReport(ReportIdentifier.create(restrictedProjectId, "someTask"), dummyReport)
+
+    val projectIds = listReportsAsUser(user1)
+    projectIds should contain(accessibleProjectId)
+    projectIds should not contain restrictedProjectId
+  }
+
+  private def listReportsAsUser(user: User): Seq[String] = {
+    val response = checkResponse(userRequest(controllers.workspaceApi.routes.ReportsApi.listReports(), user).get())
+    response.body[JsValue].as[JsArray].value.map(v => (v \ "project").as[String]).toSeq
   }
 
   /**

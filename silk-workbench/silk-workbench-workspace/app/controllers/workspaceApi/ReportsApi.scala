@@ -16,7 +16,7 @@ import org.silkframework.runtime.serialization.WriteContext
 import org.silkframework.serialization.json.ActivitySerializers.ActivityExecutionResultJsonFormat
 import org.silkframework.serialization.json.ExecutionReportSerializers.ExecutionReportJsonFormat
 import org.silkframework.util.Identifier
-import org.silkframework.workspace.WorkspaceFactory
+import org.silkframework.workspace.{Project, WorkspaceFactory}
 import org.silkframework.workspace.activity.workflow.{LocalWorkflowExecutorGeneratingProvenance, Workflow, WorkflowExecutionReportWithProvenance, WorkflowTaskReport}
 import org.silkframework.workspace.reports.{ExecutionReportManager, ReportIdentifier}
 import play.api.libs.json.{JsArray, JsValue, Json, OFormat}
@@ -56,8 +56,13 @@ class ReportsApi @Inject() (implicit system: ActorSystem, mat: Materializer) ext
                     in = ParameterIn.QUERY,
                     schema = new Schema(implementation = classOf[String])
                   )
-                  taskId: Option[String]): Action[AnyContent] = Action(parse.json) {
-    val reports = ExecutionReportManager().listReports(projectId.map(Identifier(_)), taskId.map(Identifier(_)))
+                  taskId: Option[String]): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
+    val projectIds = projectId match {
+      case Some(id) => Set(Identifier(id))
+      case None => WorkspaceFactory().workspace.userProjects.map(_.id).toSet
+    }
+
+    val reports = ExecutionReportManager().listReports(projectIds, taskId.map(Identifier(_)))
     val jsonObjects =
       for(report <- reports.sortBy(_.time)(Ordering[Instant].reverse)) yield {
         Json.obj(
