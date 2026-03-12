@@ -311,13 +311,12 @@ export function Metadata(props: IProps) {
                                 }
                             >
                                 <CodeEditor
-                                    name="description"
                                     mode="markdown"
+                                    useToolbar
+                                    name="description"
                                     id="description"
-                                    preventLineNumbers
                                     defaultValue={formEditData?.description}
                                     onChange={onDescriptionChange}
-                                    useToolbar
                                     data-test-id="codemirror-wrapper"
                                     translate={(key) => {
                                         const translationKey = `Editor.markdown.toolbar.${key}`;

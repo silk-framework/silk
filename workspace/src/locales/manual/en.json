@@ -1368,7 +1368,9 @@
                 "link": "Web link",
                 "image": "Image media",
                 "preview": "Preview",
-                "continue-editing": "Continue editing"
+                "continue-editing": "Continue editing",
+                "wrapLines": "Wordwrap",
+                "preventLineNumbers": "Hide line numbers"
             }
         }
     },
