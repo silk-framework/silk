@@ -83,8 +83,9 @@ lazy val commonSettings = Seq(
   (Test / testOptions) += Tests.Argument(TestFrameworks.ScalaTest, "-u", "target/test-reports", scalaTestOptions),
 
   // We need to overwrite the versions of the Jackson modules. We might be able to remove this after a Play upgrade
-  dependencyOverrides += "com.fasterxml.jackson.module" %% "jackson-module-scala" % "2.19.2",
-  dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-databind" % "2.19.2",
+  dependencyOverrides += "com.fasterxml.jackson.module" %% "jackson-module-scala" % "2.21.1",
+  dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-databind" % "2.21.1",
+  dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-core" % "2.21.1",
 
   scalacOptions ++= compilerParams._2,
   javacOptions ++= compilerParams._1,
