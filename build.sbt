@@ -82,10 +82,11 @@ lazy val commonSettings = Seq(
   libraryDependencies += "javax.inject" % "javax.inject" % "1",
   (Test / testOptions) += Tests.Argument(TestFrameworks.ScalaTest, "-u", "target/test-reports", scalaTestOptions),
 
-  // We need to overwrite the versions of the Jackson modules. We might be able to remove this after a Play upgrade
-  dependencyOverrides += "com.fasterxml.jackson.module" %% "jackson-module-scala" % "2.21.1",
-  dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-databind" % "2.21.1",
-  dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-core" % "2.21.1",
+  // We need to overwrite the versions of the Jackson modules.
+  // Pinned to 2.19.4 — see root build.sbt for the full explanation (S3Mock/Spring Boot BOM constraint).
+  dependencyOverrides += "com.fasterxml.jackson.module" %% "jackson-module-scala" % "2.19.4",
+  dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-databind" % "2.19.4",
+  dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-core" % "2.19.4",
 
   scalacOptions ++= compilerParams._2,
   javacOptions ++= compilerParams._1,
