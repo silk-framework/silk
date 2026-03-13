@@ -840,7 +840,7 @@
         }
     },
     "cloneModal": {
-        "infoTask": "Cloning a task creates a copy of the task configuration in the same project. The related (used) tasks of this cloned task are not copied or changed (e.g., a cloned workflow processes the same workflow tasks as the original and not copies of them).",
+        "infoTask": "Cloning creates a shallow copy of the task within the same project. Referenced tasks are not duplicated — e.g., a cloned workflow still operates on the original workflow tasks.",
         "infoProject": "Cloning a project creates a full copy of the project including all its tasks.",
         "shallowCloneInfo": "This creates a copy of the task configuration only. Referenced tasks or sub-task steps are not duplicated."
     },
