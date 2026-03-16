@@ -142,7 +142,7 @@ const handleCreatedSelectBoxValue = (data, path): any => {
     return _.get(data, [path]);
 };
 
-export interface IMetaData {
+interface IMetaData {
     // A human-readable label
     label: string;
     // An optional description

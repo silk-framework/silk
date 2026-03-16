@@ -7,6 +7,7 @@ import controllers.util.AkkaUtils
 import controllers.workspaceApi.doc.ReportsApiDoc
 import io.swagger.v3.oas.annotations.enums.ParameterIn
 import io.swagger.v3.oas.annotations.media.{ArraySchema, Content, ExampleObject, Schema}
+import io.swagger.v3.oas.annotations.media.Schema.RequiredMode
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.tags.Tag
 import io.swagger.v3.oas.annotations.{Operation, Parameter}
@@ -319,7 +320,7 @@ class ReportsApi @Inject() (implicit system: ActorSystem, mat: Materializer) ext
 )
 case class ReportUpdates(@Schema(
                            description = "Timestamp (milliseconds since the epoch of 1970-01-01T00:00:00).",
-                           required = true
+                           requiredMode = RequiredMode.REQUIRED
                          )
                          timestamp: Long,
                          @ArraySchema(
@@ -336,22 +337,22 @@ object ReportUpdates {
 
 case class ReportSummary(@Schema(
                            description = "The identifier of the updated node.",
-                           required = true
+                           requiredMode = RequiredMode.REQUIRED
                          )
                          node: String,
                          @Schema(
                            description = "Timestamp of the last update to this node (milliseconds since the epoch of 1970-01-01T00:00:00).",
-                           required = true
+                           requiredMode = RequiredMode.REQUIRED
                          )
                          timestamp: Long,
                          @Schema(
                            description = "Short label for the executed operation, e.g., 'read' or 'write' (optional).",
-                           required = false
+                           requiredMode = RequiredMode.NOT_REQUIRED
                          )
                          operation: Option[String],
                          @Schema(
                            description = "Short description of the operation (plural, past tense).",
-                           required = true,
+                           requiredMode = RequiredMode.REQUIRED,
                            example = "entities processed"
                          )
                          operationDesc: String,
@@ -364,7 +365,7 @@ case class ReportSummary(@Schema(
                          warnings: Seq[String],
                          @Schema(
                            description = "Error message in case a fatal error occurred.",
-                           required = false
+                           requiredMode = RequiredMode.NOT_REQUIRED
                          )
                          error: Option[String],
                          @Schema(

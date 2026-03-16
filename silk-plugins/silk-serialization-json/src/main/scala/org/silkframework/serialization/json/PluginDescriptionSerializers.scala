@@ -2,7 +2,7 @@ package org.silkframework.serialization.json
 
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin._
-import org.silkframework.runtime.serialization.{Serialization, WriteContext}
+import org.silkframework.runtime.serialization.{ReadContext, Serialization, WriteContext}
 import org.silkframework.serialization.json.PluginSerializers.ParameterValuesJsonFormat
 import org.silkframework.serialization.json.PluginSerializers.ParameterValuesJsonFormat.writeParameters
 import org.silkframework.util.Identifier
@@ -53,7 +53,9 @@ object PluginDescriptionSerializers {
         "type" -> JsString("object"),
         "properties" -> JsObject(serializeParams(plugin.parameters, withLabels)),
         "required" -> JsArray(plugin.parameters.filterNot(_.defaultValue.isDefined).map(_.name).map(JsString)),
-        "pluginId" -> JsString(plugin.id)
+        "pluginId" -> JsString(plugin.id),
+        "deprecation" -> plugin.deprecation.map(JsString).getOrElse(JsNull),
+        "relatedPlugins" -> JsArray(plugin.relatedPlugins.map(PluginReferenceJson.writeJson(_)(WriteContext.empty)))
       ).filter(_ => !overviewOnly)
       val optionalPluginIcon = plugin.icon.map(content => "pluginIcon" -> JsString(content))
       val pluginTypeSpecificProperties = plugin.customDescriptions.flatMap(_.additionalProperties().view.mapValues(JsString))
@@ -86,7 +88,7 @@ object PluginDescriptionSerializers {
           (Some(parameters), Some(requiredParameters))
         case _ => (None, None)
       }
-      Json.toJson(PluginParameterJsonPayload(
+      Json.toJson(PluginParameterJson(
         name = param.name,
         title = param.label,
         description = param.description,
@@ -95,7 +97,7 @@ object PluginDescriptionSerializers {
         value = defaultValue,
         advanced = param.advanced,
         visibleInDialog = param.visibleInDialog,
-        autoCompletion = param.autoCompletion.map(autoComplete => ParameterAutoCompletionJsonPayload(
+        autoCompletion = param.autoCompletion.map(autoComplete => ParameterAutoCompletionJson(
           allowOnlyAutoCompletedValues = autoComplete.allowOnlyAutoCompletedValues,
           autoCompleteValueWithLabels = autoComplete.autoCompleteValueWithLabels,
           autoCompletionDependsOnParameters = autoComplete.autoCompletionDependsOnParameters
@@ -200,24 +202,46 @@ object PluginDescriptionSerializers {
   * @param pluginId        Optional plugin ID, if this parameter is itself a plugin.
   * @param required For object parameter types it will list the required parameters.
   */
-case class PluginParameterJsonPayload(name: String,
-                                      title: String,
-                                      description: String,
-                                     `type`: String,
-                                      parameterType: String,
-                                      value: JsValue,
-                                      advanced: Boolean,
-                                      visibleInDialog: Boolean,
-                                      autoCompletion: Option[ParameterAutoCompletionJsonPayload],
-                                      properties: Option[JsObject],
-                                      pluginId: Option[String],
-                                      required: Option[Seq[String]])
+case class PluginParameterJson(name: String,
+                               title: String,
+                               description: String,
+                               `type`: String,
+                               parameterType: String,
+                               value: JsValue,
+                               advanced: Boolean,
+                               visibleInDialog: Boolean,
+                               autoCompletion: Option[ParameterAutoCompletionJson],
+                               properties: Option[JsObject],
+                               pluginId: Option[String],
+                               required: Option[Seq[String]])
 
-case class ParameterAutoCompletionJsonPayload(allowOnlyAutoCompletedValues: Boolean,
-                                              autoCompleteValueWithLabels: Boolean,
-                                              autoCompletionDependsOnParameters: Seq[String])
+case class ParameterAutoCompletionJson(allowOnlyAutoCompletedValues: Boolean,
+                                       autoCompleteValueWithLabels: Boolean,
+                                       autoCompletionDependsOnParameters: Seq[String])
 
-object PluginParameterJsonPayload {
-  implicit val parameterAutoCompletionJsonPayloadFormat: Format[ParameterAutoCompletionJsonPayload] = Json.format[ParameterAutoCompletionJsonPayload]
-  implicit val pluginParameterJsonPayloadFormat: Format[PluginParameterJsonPayload] = Json.format[PluginParameterJsonPayload]
+object PluginParameterJson {
+  implicit val parameterAutoCompletionJsonPayloadFormat: Format[ParameterAutoCompletionJson] = Json.format[ParameterAutoCompletionJson]
+  implicit val pluginParameterJsonPayloadFormat: Format[PluginParameterJson] = Json.format[PluginParameterJson]
+}
+
+case class PluginReferenceJson(id: String,
+                               description: Option[String])
+
+object PluginReferenceJson extends JsonCompanion[PluginReference, PluginReferenceJson] {
+
+  override implicit lazy val jsonFormat: OFormat[PluginReferenceJson] = Json.format[PluginReferenceJson]
+
+  override def read(json: PluginReferenceJson)(implicit readContext: ReadContext): PluginReference = {
+    PluginReference(
+      id = json.id,
+      description = json.description
+    )
+  }
+
+  override def write(data: PluginReference)(implicit writeContext: WriteContext[JsValue]): PluginReferenceJson = {
+    PluginReferenceJson(
+      id = data.id,
+      description = data.description
+    )
+  }
 }

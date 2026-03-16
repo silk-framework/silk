@@ -295,7 +295,7 @@ object EntitySchema {
   def write(desc: EntitySchema)(implicit writeContext: WriteContext[Node]): Node =
     <EntityDescription singleEntity={desc.singleEntity.toString}>
       <Type>{desc.typeUri}</Type>
-      <Restriction>{desc.filter.serialize}</Restriction>
+      <Restriction>{desc.filter.generateCustomRestriction(writeContext.prefixes).toSparql}</Restriction>
       <Paths> {
         for (path <- desc.typedPaths) yield {
           XmlSerialization.toXml(path)
