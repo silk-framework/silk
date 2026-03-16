@@ -18,6 +18,10 @@ import scala.util.matching.Regex.Match
     new PluginReference(
       id = NumOperationTransformer.pluginId,
       description = "The Physical quantity extractor plugin turns number plus unit strings into plain numeric values in the configured base unit. The Numeric operation plugin is the arithmetic reducer once the inputs are already numbers, so unit parsing and calculation stay separate."
+    ),
+    new PluginReference(
+      id = FormatNumber.pluginId,
+      description = "Extract physical quantity returns a plain numeric string in the base unit. Format number takes that value and renders it according to a decimal format pattern, controlling precision, digit grouping, and separators."
     )
   )
 )

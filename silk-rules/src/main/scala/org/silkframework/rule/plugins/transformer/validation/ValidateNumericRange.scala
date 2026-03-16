@@ -15,14 +15,21 @@
 package org.silkframework.rule.plugins.transformer.validation
 
 import org.silkframework.rule.input.SimpleTransformer
-import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
+import org.silkframework.rule.plugins.transformer.numeric.CompareNumbersTransformer
+import org.silkframework.runtime.plugin.annotations.{Param, Plugin, PluginReference}
 import org.silkframework.runtime.validation.ValidationException
 
 @Plugin(
-  id = "validateNumericRange",
+  id = ValidateNumericRange.pluginId,
   categories = Array("Validation", "Date"),
   label = "Validate numeric range",
-  description = "Validates if a number is within a specified range."
+  description = "Validates if a number is within a specified range.",
+  relatedPlugins = Array(
+    new PluginReference(
+      id = CompareNumbersTransformer.pluginId,
+      description = "Validate numeric range either passes a number through or throws, producing no output on violation. Compare numbers always produces a 1 or 0 regardless of which side is larger, so the downstream pipeline continues in either case."
+    )
+  )
 )
 case class ValidateNumericRange(
   @Param(value = "Minimum allowed number", example = "0.0")
@@ -47,4 +54,8 @@ case class ValidateNumericRange(
       value
     }
   }
+}
+
+object ValidateNumericRange {
+  final val pluginId = "validateNumericRange"
 }
