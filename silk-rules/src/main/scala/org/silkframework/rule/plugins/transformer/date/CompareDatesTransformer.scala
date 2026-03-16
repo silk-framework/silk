@@ -5,7 +5,7 @@ import org.silkframework.rule.input.Transformer
 import org.silkframework.rule.plugins.transformer.ComparatorEnum
 import org.silkframework.util.StringUtils.XSDDateLiteral
 import org.silkframework.rule.plugins.transformer.ComparatorEnum._
-import org.silkframework.rule.plugins.transformer.numeric.NumOperationTransformer
+import org.silkframework.rule.plugins.transformer.numeric.CompareNumbersTransformer
 import org.silkframework.rule.plugins.transformer.validation.ValidateRegex
 import org.silkframework.runtime.plugin.annotations.{Param, Plugin, PluginReference}
 
@@ -13,7 +13,7 @@ import org.silkframework.runtime.plugin.annotations.{Param, Plugin, PluginRefere
  * Compares two dates.
  */
 @Plugin(
-  id = "compareDates",
+  id = CompareDatesTransformer.pluginId,
   categories = Array("Date"),
   label = "Compare dates",
   description = """Compares two dates.""",
@@ -24,8 +24,8 @@ import org.silkframework.runtime.plugin.annotations.{Param, Plugin, PluginRefere
       description = "The Compare dates plugin filters both inputs down to valid XSD date literals and returns 1 or 0 based on the comparator, returning 0 when one side contains no valid date at all. The Validate regex plugin enforces a pattern as a hard boundary and fails when a value does not conform, rather than turning invalid input into a 0 result."
     ),
     new PluginReference(
-      id = NumOperationTransformer.pluginId,
-      description = "The Compare dates plugin is a comparator that collapses two date inputs into a boolean-style result (1 or 0) using the configured ordering or equality semantics across the input sequences. The Numeric operation plugin performs arithmetic over numeric inputs, so the only meaningful overlap is treating the comparison result as a numeric signal, not as a date computation."
+      id = CompareNumbersTransformer.pluginId,
+      description = "Compare dates applies ordering and equality comparators to XSD date literals and returns 1 or 0. Compare numbers applies the same comparators to doubles — the two plugins are not interchangeable, as each rejects the other's input type entirely."
     ),
   )
 )
@@ -92,4 +92,8 @@ case class CompareDatesTransformer(comparator: ComparatorEnum = ComparatorEnum.l
     // Return result
     Seq(if(result) "1" else "0")
   }
+}
+
+object CompareDatesTransformer {
+  final val pluginId = "compareDates"
 }

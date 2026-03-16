@@ -40,6 +40,10 @@ import org.silkframework.util.StringUtils.DoubleLiteral
     new PluginReference(
       id = PhysicalQuantityExtractor.pluginId,
       description = "The Extract physical quantity plugin converts number-and-unit text into base-unit numeric values as plain numeric output. The Numeric operation plugin combines those numeric values using one arithmetic operator across the operand sequence."
+    ),
+    new PluginReference(
+      id = NumReduceTransformer.pluginId,
+      description = "Numeric reduce strips non-numeric characters from each value. Numeric operation then applies an arithmetic operator across the resulting values, since it throws on any input that is not a number."
     )
   )
 )
