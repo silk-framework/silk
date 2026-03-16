@@ -1,6 +1,6 @@
 package controllers.workspaceApi.search
 
-import controllers.util.TextSearchUtils
+import controllers.util.{ItemLink, ItemType, TextSearchUtils}
 import io.swagger.v3.oas.annotations.media.{ArraySchema, Schema}
 import io.swagger.v3.oas.annotations.media.Schema.RequiredMode
 import org.silkframework.config.{CustomTask, TaskSpec}

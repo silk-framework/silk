@@ -64,12 +64,11 @@ export function ProjectForm({ form, goBackOnEscape = () => {} }: IProps) {
     const CodeEditorMemoed = React.useMemo(
         () => (
             <CodeEditor
-                id={DESCRIPTION}
-                preventLineNumbers
-                name={DESCRIPTION}
                 mode="markdown"
-                onChange={onValueChange(DESCRIPTION)}
                 useToolbar
+                id={DESCRIPTION}
+                name={DESCRIPTION}
+                onChange={onValueChange(DESCRIPTION)}
                 data-test-id="codemirror-wrapper"
                 translate={(key) => {
                     const translationKey = `Editor.markdown.toolbar.${key}`;

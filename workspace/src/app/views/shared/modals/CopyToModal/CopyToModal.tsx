@@ -27,6 +27,7 @@ import { ISearchListRequest, requestCopyProject, requestCopyTask, requestSearchL
 import ItemDepiction from "../../ItemDepiction";
 import { ErrorResponse } from "../../../../services/fetch/responseInterceptor";
 import { useModalError } from "../../../../hooks/useModalError";
+import { contextualPath } from "../../../../constants/path";
 
 //Component Interface
 interface CopyToModalProps extends ICloneOptions {
@@ -257,7 +258,7 @@ const CopyToModal: React.FC<CopyToModalProps> = ({ item, onDiscard, onConfirmed 
                                     <OverviewItemDescription>
                                         <OverviewItemLine>
                                             <Tooltip content={`Open ${t.taskType} "${t.label}" in a new window`}>
-                                                <Link href={t.originalTaskLink} target="_blank">
+                                                <Link href={contextualPath(t.originalTaskLink)} target="_blank">
                                                     {t.label}
                                                 </Link>
                                             </Tooltip>
@@ -266,7 +267,7 @@ const CopyToModal: React.FC<CopyToModalProps> = ({ item, onDiscard, onConfirmed 
                                             <Tooltip
                                                 content={`Open to-be-replaced ${t.taskType} "${t.label}" in a new window`}
                                             >
-                                                <Link href={t.overwrittenTaskLink} target="_blank">
+                                                <Link href={contextualPath(t.overwrittenTaskLink ?? "")} target="_blank">
                                                     To be overwritten: {t.label}
                                                 </Link>
                                             </Tooltip>
@@ -295,7 +296,7 @@ const CopyToModal: React.FC<CopyToModalProps> = ({ item, onDiscard, onConfirmed 
                                     </OverviewItemDepiction>
                                     <OverviewItemDescription>
                                         <OverviewItemLine>
-                                            <Link href={item.originalTaskLink} target="_blank">
+                                            <Link href={contextualPath(item.originalTaskLink)} target="_blank">
                                                 <Tooltip content={t("common.action.openInNewTab")}>
                                                     {item.label}
                                                 </Tooltip>

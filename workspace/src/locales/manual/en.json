@@ -311,6 +311,7 @@
             "showIdentifier": "Show identifier",
             "AddSmth": "Add {{smth}}",
             "CloneSmth": "Clone {{smth}}",
+            "CloneSmthShallow": "Clone {{smth}} (shallow clone)",
             "CopySmth": "Copy {{smth}} artefacts",
             "CreateSmth": "Create {{smth}}",
             "DeleteSmth": "Delete {{smth}}",
@@ -350,6 +351,7 @@
             "submit": "Submit",
             "update": "Update",
             "showApiDoc": "API",
+            "listDeprecatedPlugins": "Deprecated plugins usage",
             "copyClipboard": "Copy to clipboard",
             "configure": "Configure",
             "clearInput": "Clear input",
@@ -409,7 +411,10 @@
             "noTypes": "No types found",
             "serverError": "Server error",
             "taskOverwrittenPrompt": "I understand that some tasks will be overwritten",
-            "temporarilyUnavailableMessage": "Service is temporarily unavailable. Details: {{detailMessage}}"
+            "temporarilyUnavailableMessage": "Service is temporarily unavailable. Details: {{detailMessage}}",
+            "deprecatedPluginBanner": "The '{{pluginLabel}}' plugin is deprecated and will be removed in the future. Please exchange it for a supported plugin as soon as possible.",
+            "deprecatedPluginBannerPluginLabel": "Deprecated Plugin",
+            "deprecatedPluginBannerDeprecationMessage": "Deprecation Message"
         },
         "sorter": {
             "recentlyViewed": "Recently viewed"
@@ -600,6 +605,22 @@
         "activities": {
             "title": "Activities",
             "noActivities": "No Activities found"
+        },
+        "deprecatedPlugins": {
+            "title": "Deprecated plugins usage",
+            "noPluginsFound": "This page lists plugins that are used in existing projects but have been marked as deprecated. Good news: No deprecated plugins were found in your workspace!",
+            "unknownTask": "N/A",
+            "infoMessage": "This page lists plugins that are used in existing projects but have been marked as deprecated. It is recommended to replace these plugins to ensure compatibility with future versions of the application.",
+            "deprecationMessage": "Plugin is deprecated.",
+            "errors": {
+                "fetchPlugins": "Failed to load deprecated plugins"
+            },
+            "groupBy": {
+                "label": "Group by",
+                "groupedBy": "Grouped by",
+                "pluginLabel": "Plugin",
+                "project": "Project"
+            }
         },
         "notFound": {
             "backLink": "Go to homepage",
@@ -819,9 +840,15 @@
         }
     },
     "cloneModal": {
-        "info": "Cloning a task means creating a copy of the task configuration in the same project. The related (used) tasks of this cloned task are not copied or changed (e.g., a cloned workflow processes the same workflow tasks as the original and not copies of them)."
+        "infoTask": "Cloning creates a shallow copy of the task within the same project. Referenced tasks are not duplicated — e.g., a cloned workflow still operates on the original workflow tasks.",
+        "infoProject": "Cloning a project creates a full copy of the project including all its tasks.",
+        "shallowCloneInfo": "This creates a copy of the task configuration only. Referenced tasks or sub-task steps are not duplicated."
     },
     "widget": {
+        "deprecatedPluginWidget": {
+            "message": "The listed plugins are deprecated and will be removed in future versions. Please check the documentation for alternatives.",
+            "tasks": "Tasks"
+        },
         "ActivityInfoWidget": {
             "title": "Activities",
             "view": "View project activities"
@@ -1041,6 +1068,9 @@
                 "nameAlreadyExists": "Name already exists",
                 "nameMustBeSpecified": "Name must be specified",
                 "mustProvideValOrTemplate": "Must provide value or template"
+            },
+            "evaluationErrors": {
+                "title": "Some variables could not be evaluated."
             },
             "errorMessages": {
                 "loadingVariables": "Could not load variables for project '{{projectId}}'",
@@ -1344,7 +1374,9 @@
                 "link": "Web link",
                 "image": "Image media",
                 "preview": "Preview",
-                "continue-editing": "Continue editing"
+                "continue-editing": "Continue editing",
+                "wrapLines": "Wordwrap",
+                "preventLineNumbers": "Hide line numbers"
             }
         }
     },

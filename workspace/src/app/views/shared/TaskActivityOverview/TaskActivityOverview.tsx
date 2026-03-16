@@ -100,13 +100,13 @@ export function TaskActivityOverview({ projectId, taskId }: IProps) {
         updateActivityStatus: (activityStatus: SilkActivityStatusProps) => any,
         project: StringOrUndefined,
         task: StringOrUndefined,
-        activityName: StringOrUndefined
+        activityName: StringOrUndefined,
     ) => {
         const query = activityQueryString(project, task, activityName);
         return connectWebSocket(
             legacyApiEndpoint(`/activities/updatesWebSocket${query}`),
             legacyApiEndpoint(`/activities/updates${query}`),
-            updateActivityStatus
+            updateActivityStatus,
         );
     };
 
@@ -127,7 +127,7 @@ export function TaskActivityOverview({ projectId, taskId }: IProps) {
         //check if any caches activity is running
         const currentlyRunningCacheActivity = !!Array.from(activityStatusMap.entries()).find(
             ([activityKey, a]) =>
-                cacheActivityIds.has(activityKey) && !["Waiting", "Finished", "Idle"].includes(a.statusName)
+                cacheActivityIds.has(activityKey) && !["Waiting", "Finished", "Idle"].includes(a.statusName),
         );
         if (!currentlyRunningCacheActivity && nonExecutedCacheActivities.current.length) {
             executeAllNonExecutedCacheActivities();
@@ -180,7 +180,7 @@ export function TaskActivityOverview({ projectId, taskId }: IProps) {
             registerError(
                 `taskActivityOverview-fetchTaskActivityInfos`,
                 t("widget.TaskActivityOverview.errorMessages.fetchActivityInfo"),
-                ex
+                ex,
             );
             setLoading(false);
         }
@@ -218,7 +218,7 @@ export function TaskActivityOverview({ projectId, taskId }: IProps) {
             registerError(
                 `taskActivityOverview-fetchTaskActivityInfos`,
                 t("widget.TaskActivityOverview.errorMessages.fetchActivityInfo"),
-                ex
+                ex,
             );
         } finally {
             setLoading(false);
@@ -233,7 +233,7 @@ export function TaskActivityOverview({ projectId, taskId }: IProps) {
             registerError(
                 `taskActivityOverview-fetchErrorReport`,
                 t("widget.TaskActivityOverview.errorMessages.errorReport.fetchReport"),
-                ex
+                ex,
             );
         });
     };
@@ -243,16 +243,16 @@ export function TaskActivityOverview({ projectId, taskId }: IProps) {
     const handleActivityActionError = (
         activityName: string,
         action: SilkActivityControlAction,
-        error: DIErrorTypes
+        error: DIErrorTypes,
     ) => {
         const errorIsStillRunningError = !!/running/.test(
-            (error as FetchError)?.errorDetails?.response?.data?.detail ?? ""
+            (error as FetchError)?.errorDetails?.response?.data?.detail ?? "",
         );
         if (ignoreStillRunningError.current && errorIsStillRunningError) return;
         registerError(
             `taskActivityOverview-${activityName}-${action}`,
             t("widget.TaskActivityOverview.errorMessages.actions." + action, { activityName: activityName }),
-            error
+            error,
         );
     };
 
@@ -282,7 +282,7 @@ export function TaskActivityOverview({ projectId, taskId }: IProps) {
                     activity.name,
                     metaData.projectId,
                     metaData.taskId,
-                    handleActivityActionError
+                    handleActivityActionError,
                 ),
                 registerForUpdates: createRegisterForUpdatesFn(key),
                 unregisterFromUpdates: createUnregisterFromUpdateFn(key),
@@ -319,10 +319,10 @@ export function TaskActivityOverview({ projectId, taskId }: IProps) {
     const cacheActivities = nonMainActivities.filter((a) => a.activityCharacteristics.isCacheActivity);
     const cacheActivityIds = new Set(cacheActivities.map((c) => activityKeyOfEntry(c)));
     const runningNonMainActivities = nonMainActivities.filter(
-        (a) => activityStatusMap.get(activityKeyOfEntry(a))?.isRunning && !a.activityCharacteristics.isCacheActivity
+        (a) => activityStatusMap.get(activityKeyOfEntry(a))?.isRunning && !a.activityCharacteristics.isCacheActivity,
     );
     const failedNonMainActivities = nonMainActivities.filter(
-        (a) => activityStatusMap.get(activityKeyOfEntry(a))?.failed && !a.activityCharacteristics.isCacheActivity
+        (a) => activityStatusMap.get(activityKeyOfEntry(a))?.failed && !a.activityCharacteristics.isCacheActivity,
     );
     // to decide if the widget should be shown at all
     const nrActivitiesToShow =
@@ -347,7 +347,7 @@ export function TaskActivityOverview({ projectId, taskId }: IProps) {
             registerError(
                 `TaskActivityOverview.startPrioritized`,
                 `Activity action 'Run prioritized' against activity '${activityName}' has failed, see details.`,
-                error
+                error,
             );
         };
         await activityStartPrioritized(activityName, project, task, registerActivityError);
@@ -356,7 +356,7 @@ export function TaskActivityOverview({ projectId, taskId }: IProps) {
     // A single activity control
     const activityControl = (
         activity: IActivityListEntry,
-        layoutConfig: SilkActivityControlLayoutProps
+        layoutConfig: SilkActivityControlLayoutProps,
     ): JSX.Element => {
         const activityFunctions = activityFunctionsCreator(activity);
         const activityLabel = t(`widget.TaskActivityOverview.activities.${activity.name}.title`, activity.label);
@@ -425,7 +425,7 @@ export function TaskActivityOverview({ projectId, taskId }: IProps) {
             // check that all cache activities are in waiting or idle state
             const currentlyRunningActivity = !!Array.from(activityStatusMap.entries()).find(
                 ([activityKey, a]) =>
-                    cacheActivityIds.has(activityKey) && !["Waiting", "Finished", "Idle"].includes(a.statusName)
+                    cacheActivityIds.has(activityKey) && !["Waiting", "Finished", "Idle"].includes(a.statusName),
             );
 
             if (!currentlyRunningActivity) {
@@ -439,7 +439,7 @@ export function TaskActivityOverview({ projectId, taskId }: IProps) {
                             if (!wasExecuted) {
                                 notExecutedActivities.push(activity);
                             }
-                        })
+                        }),
                     );
                     if (notExecutedActivities.length) {
                         nonExecutedCacheActivities.current = notExecutedActivities;
@@ -478,6 +478,7 @@ export function TaskActivityOverview({ projectId, taskId }: IProps) {
                 </OverviewItemDescription>
                 <OverviewItemActions>
                     <IconButton
+                        data-test-id={"reload-all-caches-btn"}
                         name="item-reload"
                         text={t("widget.TaskActivityOverview.reloadAllCaches")}
                         onClick={reloadAllCaches}
@@ -497,13 +498,13 @@ export function TaskActivityOverview({ projectId, taskId }: IProps) {
     // Returns the sorted list of activity controls
     function activityWidgets(
         activities: IActivityListEntry[],
-        layoutConfig: SilkActivityControlLayoutProps
+        layoutConfig: SilkActivityControlLayoutProps,
     ): JSX.Element[] {
         const activitiesWithLabels = activities
             .map((activity) => {
                 const activityLabel = t(
                     `widget.TaskActivityOverview.activities.${activity.name}.title`,
-                    activity.label
+                    activity.label,
                 );
                 return [activityLabel, activityControl(activity, layoutConfig)];
             })
