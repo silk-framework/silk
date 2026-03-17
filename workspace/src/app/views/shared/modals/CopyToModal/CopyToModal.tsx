@@ -267,7 +267,10 @@ const CopyToModal: React.FC<CopyToModalProps> = ({ item, onDiscard, onConfirmed 
                                             <Tooltip
                                                 content={`Open to-be-replaced ${t.taskType} "${t.label}" in a new window`}
                                             >
-                                                <Link href={contextualPath(t.overwrittenTaskLink ?? "")} target="_blank">
+                                                <Link
+                                                    href={contextualPath(t.overwrittenTaskLink ?? "")}
+                                                    target="_blank"
+                                                >
                                                     To be overwritten: {t.label}
                                                 </Link>
                                             </Tooltip>

@@ -33,7 +33,7 @@ class LocalWorkflowExecutorTest extends AnyFlatSpec with Matchers with SinglePro
     workflow.activity[LocalWorkflowExecutorGeneratingProvenance].startBlocking()
 
     // Test if a report has been written
-    val availableReports = executionMgr.listReports(projectId = Some(projectId))
+    val availableReports = executionMgr.listReports(projectIds = Set(projectId))
     availableReports should have size 1
 
     // Retrieve transform report

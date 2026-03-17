@@ -1,6 +1,7 @@
 import { IArtefactItemProperty } from "@ducks/common/typings";
 import { IViewActions } from "../../views/plugins/PluginRegistry";
 import { TestableComponent } from "@eccenca/gui-elements";
+import { AccessControlConfig } from "@ducks/workspace/requests";
 
 export type IPreview = IDatasetConfigPreview | IResourcePreview | IDatasetPreview | FixedPreview;
 
@@ -138,4 +139,18 @@ interface PreviewContent {
     attributes: string[];
     /** The values for each attribute. This must have the same length as the attributes array. */
     values: string[][];
+}
+
+/** Project ACL plugin props. */
+export interface ProjectAccessControlProps {
+    projectId: string;
+}
+
+/** Project ACL management plugin props. */
+export interface ProjectAccessControlManagementProps {
+    projectId?: string;
+    readOnly?: boolean;
+    onChange: (projectAcl: AccessControlConfig) => void;
+    /** Initial ACL selection. If omitted, the ACL is fetched for the provided project ID. */
+    initialGroups?: AccessControlConfig;
 }

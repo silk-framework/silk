@@ -8,7 +8,9 @@ import { TemplateVariableError, Variable, VariableDependencies } from "./typing"
  * @param project
  * @returns
  */
-export const getVariables = (project: string): Promise<FetchResponse<{ variables: Variable[]; errors: TemplateVariableError[] }>> =>
+export const getVariables = (
+    project: string,
+): Promise<FetchResponse<{ variables: Variable[]; errors: TemplateVariableError[] }>> =>
     fetch({
         url: coreApi("/variableTemplate/variables"),
         query: {
@@ -27,7 +29,7 @@ export const getVariables = (project: string): Promise<FetchResponse<{ variables
 export const createNewVariable = (
     payload,
     project: string,
-    task?: string
+    task?: string,
 ): Promise<FetchResponse<{ variables: Variable[] }>> =>
     fetch({
         url: coreApi("/variableTemplate/variables"),
@@ -85,6 +87,6 @@ export const reorderVariablesRequest = (project, reorderedVariables: string[]) =
 
 export const getVariableDependencies = (
     project: string,
-    variable: string
+    variable: string,
 ): Promise<FetchResponse<VariableDependencies>> =>
     fetch({ url: coreApi(`/variableTemplate/variables/${variable}/dependencies`), query: { project }, method: "get" });

@@ -25,14 +25,15 @@ abstract class XmlZipProjectMarshaling extends ProjectMarshallingTrait {
     */
   override def marshalProject(project: Project,
                               outputStream: OutputStream,
-                              resourceManager: ResourceManager)
+                              resourceManager: ResourceManager,
+                              exportGroups: Boolean = false)
                              (implicit userContext: UserContext): String = {
     val zipResourceManager = new ZipOutputStreamResourceManager(outputStream)
     try {
       val outputWorkspaceProvider = new XmlWorkspaceProvider(zipResourceManager)
       val exportResources = getProjectResources(outputWorkspaceProvider, project.config.id)
 
-      exportProject(project, outputWorkspaceProvider, resourceManager, exportResources, includeResources)
+      exportProject(project, outputWorkspaceProvider, resourceManager, exportResources, includeResources, alsoExportGroups = exportGroups)
     } finally {
       zipResourceManager.close()
     }
@@ -76,7 +77,8 @@ abstract class XmlZipProjectMarshaling extends ProjectMarshallingTrait {
 
   override def marshalWorkspace(outputStream: OutputStream,
                                 projects: Seq[Project],
-                                resourceRepository: ResourceRepository)
+                                resourceRepository: ResourceRepository,
+                                exportGroups: Boolean = false)
                                (implicit userContext: UserContext): String = {
     val zipResourceManager = new ZipOutputStreamResourceManager(outputStream)
     try {
@@ -85,7 +87,7 @@ abstract class XmlZipProjectMarshaling extends ProjectMarshallingTrait {
       // Load all projects into temporary XML workspace provider
       for (project <- projects) {
         val projectResources = resourceRepository.get(project.config.id)
-        exportProject(project, xmlWorkspaceProvider, projectResources, getProjectResources(xmlWorkspaceProvider, project.config.id), alsoExportResources = includeResources)
+        exportProject(project, xmlWorkspaceProvider, projectResources, getProjectResources(xmlWorkspaceProvider, project.config.id), alsoExportResources = includeResources, alsoExportGroups = exportGroups)
       }
     } finally {
       // Close ZIP

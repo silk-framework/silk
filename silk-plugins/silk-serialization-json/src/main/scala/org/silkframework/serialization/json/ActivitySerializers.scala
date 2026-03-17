@@ -120,12 +120,12 @@ object ActivitySerializers {
 
     override def read(value: JsValue)(implicit readContext: ReadContext): ActivityExecutionMetaData = {
       ActivityExecutionMetaData(
-        startedByUser = stringValueOption(value, STARTED_BY_USER).map(SimpleUser),
+        startedByUser = stringValueOption(value, STARTED_BY_USER).map(SimpleUser(_)),
         queuedAt = instantValueOption(value, QUEUED_AT),
         startedAt = instantValueOption(value, STARTED_AT),
         finishedAt = instantValueOption(value, FINISHED_AT),
         cancelledAt = instantValueOption(value, CANCELLED_AT),
-        cancelledBy = stringValueOption(value, CANCELLED_BY).map(SimpleUser),
+        cancelledBy = stringValueOption(value, CANCELLED_BY).map(SimpleUser(_)),
         finishStatus = optionalValue(value, FINISH_STATUS).map(StatusJsonFormat.read)
       )
     }

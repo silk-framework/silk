@@ -9,7 +9,7 @@ import controllers.projectApi.requests.OriginalTaskDataResponse.OriginalTaskData
 import controllers.projectApi.requests.ReloadFailedTaskRequest
 import controllers.util.ItemType
 import controllers.workspace.JsonSerializer
-import controllers.workspaceApi.project.ProjectApiRestPayloads.{ItemMetaData, ProjectCreationData}
+import controllers.workspaceApi.project.ProjectApiRestPayloads.{CreateProjectRequest, ItemMetaData, ProjectAccessControl}
 import controllers.workspaceApi.project.ProjectLoadingErrors
 import controllers.workspaceApi.projectTask.{ItemCloneRequest, ItemCloneResponse}
 import io.swagger.v3.oas.annotations.enums.ParameterIn
@@ -104,27 +104,15 @@ class ProjectApi @Inject()(accessMonitor: WorkbenchAccessMonitor) extends Inject
     content = Array(
       new Content(
         mediaType = "application/json",
-        schema = new Schema(implementation = classOf[ProjectCreationData]),
+        schema = new Schema(implementation = classOf[CreateProjectRequest]),
         examples = Array(new ExampleObject("{ \"id\": \"Project id\" \"metaData\": { \"label\": \"Project label\", \"description\": \"Project description\" } }"))
       ))
   )
   def createNewProject(): Action[JsValue] = RequestUserContextAction(parse.json) { implicit request => implicit userContext =>
-      validateJson[ProjectCreationData] { projectCreationData =>
-        val id = projectCreationData.id
-        val metaData = projectCreationData.metaData.asMetaData
-        val generatedId = metaData.label match {
-          case Some(label) if label.trim.nonEmpty =>
-            IdentifierUtils.generateProjectId(label)
-          case _ =>
-            throw BadUserInputException("The label must not be empty!")
-        }
-        val projectId = id match {
-           case Some(v) => Identifier(v)
-           case None => generatedId
-        }
-        val project = workspace.createProject(ProjectConfig(projectId, metaData = cleanUpMetaData(metaData).asNewMetaData))
+      validateJson[CreateProjectRequest] { createProjectRequest =>
+        val project = createProjectRequest()
         Created(JsonSerializer.projectJson(project)).
-            withHeaders(LOCATION -> s"${WorkbenchConfig.applicationContext}/api/workspace/projects/$projectId")
+            withHeaders(LOCATION -> s"${WorkbenchConfig.applicationContext}/api/workspace/projects/${project.config.id}")
       }
   }
 
@@ -179,6 +167,7 @@ class ProjectApi @Inject()(accessMonitor: WorkbenchAccessMonitor) extends Inject
       val requestMetaData = request.metaData.asMetaData
       val clonedProjectConfig = project.config.copy(id = projectId, metaData = requestMetaData.copy(tags = requestMetaData.tags ++ project.metaData.tags))
       val clonedProject = workspace.createProject(clonedProjectConfig.copy(projectResourceUriOpt = Some(clonedProjectConfig.generateDefaultUri)))
+      clonedProject.accessControl.setGroups(request.groups.getOrElse(Set.empty))
       // Clone resources
       WorkspaceIO.copyResources(project.resources, clonedProject.resources)
       // Clone tags
@@ -196,10 +185,6 @@ class ProjectApi @Inject()(accessMonitor: WorkbenchAccessMonitor) extends Inject
       val projectLink = ItemType.itemDetailsPage(ItemType.project, projectId, projectId).path
       Created(Json.toJson(ItemCloneResponse(projectId, projectLink)))
     }
-  }
-
-  private def cleanUpMetaData(metaData: MetaData) = {
-    MetaData(metaData.label.map(_.trim).filter(_.nonEmpty), metaData.description.filter(_.trim.nonEmpty))
   }
 
   /** Update the project meta data. */
@@ -306,6 +291,77 @@ class ProjectApi @Inject()(accessMonitor: WorkbenchAccessMonitor) extends Inject
                                  projectId: String): Action[AnyContent] = UserContextAction { implicit userContext =>
     val project = getProject(projectId)
     Ok(Json.toJson(MetaDataExpanded.fromMetaData(project.config.metaData, project.tagManager)))
+  }
+
+  @Operation(
+    summary = "Retrieve project access control",
+    description = "Retrieves the access control information for a project.",
+    responses = Array(
+      new ApiResponse(
+        responseCode = "200",
+        description = "Success",
+        content = Array(new Content(
+          mediaType = "application/json",
+          schema = new Schema(implementation = classOf[ProjectAccessControl])
+        ))
+      ),
+      new ApiResponse(
+        responseCode = "404",
+        description = "If the project does not exist."
+      )
+    ))
+  def getProjectAccessControl(@Parameter(
+                                 name = "projectId",
+                                 description = "The project identifier",
+                                 required = true,
+                                 in = ParameterIn.PATH,
+                                 schema = new Schema(implementation = classOf[String])
+                               )
+                               projectId: String): Action[AnyContent] = UserContextAction { implicit userContext =>
+    val project = getProject(projectId)
+    Ok(Json.toJson(ProjectAccessControl(project.accessControl.getGroups)))
+  }
+
+  @Operation(
+    summary = "Update project access control",
+    description = "Updates the access control information for a project.",
+    responses = Array(
+      new ApiResponse(
+        responseCode = "200",
+        description = "Success",
+        content = Array(new Content(
+          mediaType = "application/json",
+          schema = new Schema(implementation = classOf[ProjectAccessControl])
+        ))
+      ),
+      new ApiResponse(
+        responseCode = "404",
+        description = "If the project does not exist."
+      )
+    ))
+  @RequestBody(
+    description = "Project access control",
+    required = true,
+    content = Array(
+      new Content(
+        mediaType = "application/json",
+        schema = new Schema(implementation = classOf[ProjectAccessControl]),
+        examples = Array(new ExampleObject("{ \"groups\": [\"group1\", \"group2\"] }"))
+      ))
+  )
+  def updateProjectAccessControl(@Parameter(
+                                    name = "projectId",
+                                    description = "The project identifier",
+                                    required = true,
+                                    in = ParameterIn.PATH,
+                                    schema = new Schema(implementation = classOf[String])
+                                  )
+                                  projectId: String): Action[JsValue] = RequestUserContextAction(parse.json) { implicit request => implicit userContext =>
+    val project = getProject(projectId)
+    validateJson[ProjectAccessControl] { accessControl =>
+      project.accessControl.setGroups(accessControl.groups)
+      Ok(Json.toJson(ProjectAccessControl(project.accessControl.getGroups)))
+    }
   }
 
   /** Returns all project prefixes */

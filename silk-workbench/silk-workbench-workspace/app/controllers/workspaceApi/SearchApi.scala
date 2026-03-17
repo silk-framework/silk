@@ -109,7 +109,7 @@ class SearchApi @Inject() (implicit accessMonitor: WorkbenchAccessMonitor) exten
   def recentlyViewedItems(): Action[AnyContent] = UserContextAction { implicit userContext =>
     val w = workspace
     val accessedItems = accessMonitor.getAccessItems.reverse
-    val projects = accessedItems.map(_.projectId).distinct.flatMap(projectId => w.findProject(projectId))
+    val projects = accessedItems.map(_.projectId).distinct.flatMap(projectId => w.projectOption(projectId))
     val availableProjects = projects.map(p => (p.id.toString, p)).toMap
     val availableItems = accessedItems.filter(item => availableProjects.contains(item.projectId))
     val items = availableItems flatMap { item =>

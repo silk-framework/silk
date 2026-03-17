@@ -36,11 +36,11 @@ case class FileExecutionReportManager(dir: String, retentionTime: Duration = DEF
   // JSON format to read and write execution reports.
   private val reportJsonFormat = new ActivityExecutionResultJsonFormat()(ExecutionReportJsonFormat)
 
-  override def listReports(projectId: Option[Identifier], taskId: Option[Identifier]): Seq[ReportIdentifier] = synchronized {
+  override def listReports(projectIds: Set[Identifier], taskId: Option[Identifier]): Seq[ReportIdentifier] = synchronized {
     for {
       reportFile <- ArraySeq.unsafeWrapArray(reportDirectory.listFiles())
       report <- fromReportFile(reportFile)
-      if projectId.forall(_ == report.projectId)
+      if projectIds.isEmpty || projectIds.contains(report.projectId)
       if taskId.forall(_ == report.taskId)
     } yield {
      report

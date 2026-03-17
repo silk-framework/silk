@@ -9,7 +9,11 @@ interface DeprecatedPluginsSidebarProps {
     onSelectPlugin: (pluginId: string) => void;
 }
 
-export function DeprecatedPluginsSidebar({ pluginGroups, selectedPluginKey, onSelectPlugin }: DeprecatedPluginsSidebarProps) {
+export function DeprecatedPluginsSidebar({
+    pluginGroups,
+    selectedPluginKey,
+    onSelectPlugin,
+}: DeprecatedPluginsSidebarProps) {
     const [t] = useTranslation();
 
     if (pluginGroups.length === 0) return null;

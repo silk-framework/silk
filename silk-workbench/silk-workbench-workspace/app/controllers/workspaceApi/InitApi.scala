@@ -14,6 +14,7 @@ import io.swagger.v3.oas.annotations.tags.Tag
 import javax.inject.Inject
 import org.silkframework.config.DefaultConfig
 import org.silkframework.runtime.templating.GlobalTemplateVariablesConfig
+import org.silkframework.workspace.access.AccessControlConfig
 import play.api.libs.json.{Format, JsArray, JsString, Json}
 import play.api.mvc.{Action, AnyContent, InjectedController, Request}
 
@@ -81,7 +82,7 @@ case class InitApi @Inject()() extends InjectedController with UserContextAction
       )
     ))
   def init(): Action[AnyContent] = RequestUserContextAction { request => implicit userContext =>
-    val emptyWorkspace = workspace.projects.isEmpty
+    val emptyWorkspace = workspace.userProjects.isEmpty
     val resultJson = Json.obj(
       "emptyWorkspace" -> emptyWorkspace,
       "initialLanguage" -> initialLanguage(request),
@@ -89,7 +90,8 @@ case class InitApi @Inject()() extends InjectedController with UserContextAction
       "maxFileUploadSize" -> maxUploadSize,
       "templatingEnabled" -> GlobalTemplateVariablesConfig.isEnabled,
       "assistantSupported" -> assistantSupported,
-      "mappingCreatorEnabled" -> mappingCreatorEnabled
+      "mappingCreatorEnabled" -> mappingCreatorEnabled,
+      "aclEnabled" -> AccessControlConfig().enabled
     )
     val withDmUrl = dmBaseUrl.map { url =>
       resultJson + ("dmBaseUrl" -> url) + ("dmModuleLinks" -> JsArray(dmLinks.map(Json.toJson(_))))

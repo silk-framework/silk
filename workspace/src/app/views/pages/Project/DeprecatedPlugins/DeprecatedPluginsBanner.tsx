@@ -33,10 +33,11 @@ export default function DeprecatedPluginsBanner({ projectId, taskId }: { project
         <>
             <Notification intent="warning">
                 <HtmlContentBlock>
-                    <p>{t("common.messages.deprecatedPluginBanner", {pluginLabel: plugin.pluginLabel})}</p>
+                    <p>{t("common.messages.deprecatedPluginBanner", { pluginLabel: plugin.pluginLabel })}</p>
                     <ul>
                         <li>
-                            <strong>{t("common.messages.deprecatedPluginBannerPluginLabel")}:</strong> {plugin.pluginLabel}
+                            <strong>{t("common.messages.deprecatedPluginBannerPluginLabel")}:</strong>{" "}
+                            {plugin.pluginLabel}
                         </li>
                         {plugin.deprecationMessage && (
                             <li>
