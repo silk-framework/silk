@@ -14,7 +14,7 @@ import org.silkframework.util.Uri
 
 import scala.collection.mutable
 
-/** Local executor for link specifications. */
+/** Local executor for transform specifications. */
 class LocalTransformSpecExecutor extends Executor[TransformSpec, LocalExecution] {
 
   override def execute(task: Task[TransformSpec],
@@ -29,9 +29,9 @@ class LocalTransformSpecExecutor extends Executor[TransformSpec, LocalExecution]
     val transformContext = context.asInstanceOf[ActivityContext[TransformReport]]
     val transformReportExecutionContext = output.task.map(t => TransformReportExecutionContext(t)).getOrElse(TransformReportExecutionContext.default)
     transformContext.value() = TransformReport(task, context = Some(transformReportExecutionContext))
-    val flatInputs = flattenInputs(input).toIndexedSeq
-    val outputTables = mutable.Buffer[LocalEntities]()
     val ruleSchemata = task.data.ruleSchemataWithoutEmptyObjectRules
+    val flatInputs = flattenInputs(input, Some(ruleSchemata.size)).toIndexedSeq
+    val outputTables = mutable.Buffer[LocalEntities]()
     val report = new TransformReportBuilder(task, transformContext)
     report.setExecutionContext(transformReportExecutionContext)
     implicit val prefixes: Prefixes = pluginContext.prefixes
@@ -127,11 +127,29 @@ class LocalTransformSpecExecutor extends Executor[TransformSpec, LocalExecution]
     childRules.copy(uriRule = childRules.uriRule.orElse(objectMapping.uriRule()))
   }
 
-  private def flattenInputs(input: LocalEntities): Seq[LocalEntities] = {
+  /**
+   * Flattens the input to a sequence of input tables.
+   *
+   * @param input The input to be flattened.
+   * @param expectedInputCount Optional: expected number of input tables for validation.
+   */
+  private def flattenInputs(input: LocalEntities, expectedInputCount: Option[Int] = None): Seq[LocalEntities] = {
     input match {
       case mt: MultiEntityTable =>
+        // Validate number of tables
+        for(count <- expectedInputCount) {
+          if(mt.allTables.size != count) {
+            throw TaskException(s"Expected $count input entity tables, but got ${mt.allTables.size} by the previous operator.")
+          }
+        }
         mt.allTables
       case _ =>
+        // Validate number of tables
+        for(count <- expectedInputCount) {
+          if (count > 1) {
+            throw TaskException(s"Expected $count input entity tables, but got only one by the previous operator. Try persisting the entities by putting a dataset in-between.")
+          }
+        }
         Seq(input)
     }
   }
