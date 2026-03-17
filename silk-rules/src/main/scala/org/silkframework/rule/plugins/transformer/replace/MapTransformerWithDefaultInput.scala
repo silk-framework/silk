@@ -20,6 +20,10 @@ import org.silkframework.runtime.plugin.annotations.{Param, Plugin, PluginRefere
     new PluginReference(
       id = InputHashTransformer.pluginId,
       description = "The Map with default plugin maps each input value and returns one output value per position, using the second input as the fallback when a value is not found in the map. The Input hash plugin returns one hash value for all input values combined, so the result is one combined identifier rather than a mapped value sequence."
+    ),
+    new PluginReference(
+      id = MapTransformer.pluginId,
+      description = "Map with default takes its fallback values from a second input, one per input value, so the fallback can differ per value. If the fallback is a fixed string that applies to all unmapped values, the Map plugin accepts it as a parameter and requires only one input."
     )
   )
 )
