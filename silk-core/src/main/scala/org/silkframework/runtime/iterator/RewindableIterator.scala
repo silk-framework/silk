@@ -1,9 +1,8 @@
-package org.silkframework.plugins.dataset.json
+package org.silkframework.runtime.iterator
 
 import org.silkframework.entity.Entity.EntitySerializer
 import org.silkframework.entity.{Entity, EntitySchema}
-import org.silkframework.plugins.dataset.json.FileRewindableEntityIterator.TempFileHolder
-import org.silkframework.runtime.iterator.CloseableIterator
+import org.silkframework.runtime.iterator.FileRewindableEntityIterator.TempFileHolder
 
 import java.io.{DataInputStream, DataOutputStream, File, FileInputStream, FileOutputStream}
 import java.nio.file.Files
@@ -159,4 +158,32 @@ object FileRewindableEntityIterator {
 
   }
 
+}
+
+/**
+ * Entity iterator that may re-create the iterator using a creation fuction and thus can be rewinded.
+ *
+ * Implementing classes need to override the newIterator() method.
+ */
+abstract class FunctionRewindableEntityIterator extends RewindableEntityIterator {
+
+  private var initialEntityIterator: Option[CloseableIterator[Entity]] = None
+
+  override final def hasNext: Boolean = {
+    createInitialEntityIterator().hasNext
+  }
+
+  override final def next(): Entity = {
+    createInitialEntityIterator().next()
+  }
+
+  override final def close(): Unit = {
+    initialEntityIterator.foreach(_.close())
+    initialEntityIterator = None
+  }
+
+  private def createInitialEntityIterator(): CloseableIterator[Entity] = {
+    initialEntityIterator = Some(newIterator())
+    initialEntityIterator.get
+  }
 }
