@@ -9,7 +9,7 @@ import org.silkframework.execution.typed.SparqlEndpointEntitySchema
 import org.silkframework.execution.{ExecutionReport, ExecutionReportUpdater, ExecutorOutput, TaskException}
 import org.silkframework.plugins.dataset.rdf.tasks.SparqlSelectCustomTask
 import org.silkframework.runtime.activity.{ActivityContext, UserContext}
-import org.silkframework.runtime.iterator.{CloseableIterator, FunctionRewindableEntityIterator}
+import org.silkframework.runtime.iterator.{AbstractRewindableEntityIterator, CloseableIterator}
 import org.silkframework.runtime.plugin.PluginContext
 
 /**
@@ -43,7 +43,7 @@ class LocalSparqlSelectIterator(sparqlSelectTask: SparqlSelectCustomTask,
                                 sparql: SparqlEndpoint,
                                 limit: Int = Integer.MAX_VALUE,
                                 executionReportUpdater: Option[SparqlSelectExecutionReportUpdater])
-                               (implicit userContext: UserContext) extends FunctionRewindableEntityIterator {
+                               (implicit userContext: UserContext) extends AbstractRewindableEntityIterator {
 
   override def newIterator(): CloseableIterator[Entity] = {
     val selectLimit = math.min(sparqlSelectTask.intLimit.getOrElse(Integer.MAX_VALUE), limit)

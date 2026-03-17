@@ -50,28 +50,48 @@ object RewindableEntityIterator {
 }
 
 /**
+ * Entity iterator that may re-create the iterator using a single fuction.
+ *
+ * Implementing classes need to override the `newIterator()` method.
+ */
+abstract class AbstractRewindableEntityIterator extends RewindableEntityIterator {
+
+  @volatile
+  private var initialEntityIterator: Option[CloseableIterator[Entity]] = None
+
+  override final def hasNext: Boolean = {
+    createInitialEntityIterator().hasNext
+  }
+
+  override final def next(): Entity = {
+    createInitialEntityIterator().next()
+  }
+
+  override final def close(): Unit = {
+    initialEntityIterator.foreach(_.close())
+    initialEntityIterator = None
+  }
+
+  private def createInitialEntityIterator(): CloseableIterator[Entity] = {
+    initialEntityIterator match {
+      case Some(iterator) =>
+        iterator
+      case None =>
+        initialEntityIterator = Some(newIterator())
+        initialEntityIterator.get
+    }
+  }
+}
+
+/**
   * Entity iterator that holds all entities in memory and thus can be rewinded.
   */
-class InMemoryRewindableEntityIterator(entities: Iterable[Entity]) extends RewindableEntityIterator {
-
-  private val entityIterator = entities.iterator
-
+class InMemoryRewindableEntityIterator(entities: Iterable[Entity]) extends AbstractRewindableEntityIterator {
   /**
     * Returns a new iterator that starts at the beginning.
     */
   override def newIterator(): CloseableIterator[Entity] = {
-    new InMemoryRewindableEntityIterator(entities)
-  }
-
-  override def hasNext: Boolean = {
-    entityIterator.hasNext
-  }
-
-  override def next(): Entity = {
-    entityIterator.next()
-  }
-
-  override def close(): Unit = {
+    CloseableIterator(entities.iterator)
   }
 }
 
@@ -158,38 +178,4 @@ object FileRewindableEntityIterator {
 
   }
 
-}
-
-/**
- * Entity iterator that may re-create the iterator using a creation fuction and thus can be rewinded.
- *
- * Implementing classes need to override the newIterator() method.
- */
-abstract class FunctionRewindableEntityIterator extends RewindableEntityIterator {
-
-  @volatile
-  private var initialEntityIterator: Option[CloseableIterator[Entity]] = None
-
-  override final def hasNext: Boolean = {
-    createInitialEntityIterator().hasNext
-  }
-
-  override final def next(): Entity = {
-    createInitialEntityIterator().next()
-  }
-
-  override final def close(): Unit = {
-    initialEntityIterator.foreach(_.close())
-    initialEntityIterator = None
-  }
-
-  private def createInitialEntityIterator(): CloseableIterator[Entity] = {
-    initialEntityIterator match {
-      case Some(iterator) =>
-        iterator
-      case None =>
-        initialEntityIterator = Some(newIterator())
-        initialEntityIterator.get
-    }
-  }
 }
