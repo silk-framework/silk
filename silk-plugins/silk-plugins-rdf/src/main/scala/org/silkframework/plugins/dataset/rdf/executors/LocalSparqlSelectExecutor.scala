@@ -9,7 +9,7 @@ import org.silkframework.execution.typed.SparqlEndpointEntitySchema
 import org.silkframework.execution.{ExecutionReport, ExecutionReportUpdater, ExecutorOutput, TaskException}
 import org.silkframework.plugins.dataset.rdf.tasks.SparqlSelectCustomTask
 import org.silkframework.runtime.activity.{ActivityContext, UserContext}
-import org.silkframework.runtime.iterator.CloseableIterator
+import org.silkframework.runtime.iterator.{CloseableIterator, FunctionRewindableEntityIterator}
 import org.silkframework.runtime.plugin.PluginContext
 
 /**
@@ -28,18 +28,24 @@ case class LocalSparqlSelectExecutor() extends LocalExecutor[SparqlSelectCustomT
     inputs match {
       case Seq(SparqlEndpointEntitySchema(sparql)) =>
         implicit val executionReportUpdater: SparqlSelectExecutionReportUpdater = SparqlSelectExecutionReportUpdater(task, context)
-        val entities = executeOnSparqlEndpoint(taskData, sparql.task.data.plugin.sparqlEndpoint, executionReportUpdater = Some(executionReportUpdater))
+        val entities = new LocalSparqlSelectIterator(taskData, sparql.task.data.plugin.sparqlEndpoint, executionReportUpdater = Some(executionReportUpdater))
         Some(GenericEntityTable(entities, entitySchema = taskData.outputSchema, task))
       case _ =>
         throw TaskException("SPARQL select executor did not receive a SPARQL endpoint as requested!")
     }
   }
+}
 
-  def executeOnSparqlEndpoint(sparqlSelectTask: SparqlSelectCustomTask,
-                              sparql: SparqlEndpoint,
-                              limit: Int = Integer.MAX_VALUE,
-                              executionReportUpdater: Option[SparqlSelectExecutionReportUpdater])
-                             (implicit userContext: UserContext): CloseableIterator[Entity] = {
+/**
+ * Iterator that executes a SPARQL SELECT query on a SPARQL endpoint and returns the results as entities.
+ */
+class LocalSparqlSelectIterator(sparqlSelectTask: SparqlSelectCustomTask,
+                                sparql: SparqlEndpoint,
+                                limit: Int = Integer.MAX_VALUE,
+                                executionReportUpdater: Option[SparqlSelectExecutionReportUpdater])
+                               (implicit userContext: UserContext) extends FunctionRewindableEntityIterator {
+
+  override def newIterator(): CloseableIterator[Entity] = {
     val selectLimit = math.min(sparqlSelectTask.intLimit.getOrElse(Integer.MAX_VALUE), limit)
     val results = select(sparqlSelectTask, sparql, selectLimit)
     val vars: IndexedSeq[String] = getSparqlVars(sparqlSelectTask)
