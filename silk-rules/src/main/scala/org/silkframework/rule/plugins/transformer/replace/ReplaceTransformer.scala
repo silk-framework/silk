@@ -27,6 +27,10 @@ import org.silkframework.runtime.plugin.annotations.{Param, Plugin, PluginRefere
     new PluginReference(
       id = RegexReplaceTransformer.pluginId,
       description = "The Replace plugin substitutes a literal search string everywhere it occurs. The Regex replace plugin does the same kind of rewrite, but the match is defined by a regular expression rather than a fixed substring."
+    ),
+    new PluginReference(
+      id = MapTransformer.pluginId,
+      description = "Replace performs in-place substitution of a substring, leaving the rest of the value intact. The Map plugin replaces entire values based on exact key matches and returns a configured default when no match is found."
     )
   )
 )
