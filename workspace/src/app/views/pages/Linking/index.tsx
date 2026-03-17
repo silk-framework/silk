@@ -25,11 +25,13 @@ export default function LinkingPage() {
         autogeneratePageTitle: true,
     });
 
-    return forbidden ? (
-        <ProjectForbiddenNotification />
-    ) : notFound ? (
-        <NotFound />
-    ) : (
+    if (forbidden) {
+        return <ProjectForbiddenNotification />;
+    } else if (notFound) {
+        return <NotFound />;
+    }
+
+    return (
         <WorkspaceContent className="eccapp-di__linking">
             {pageHeader}
             <ArtefactManagementOptions

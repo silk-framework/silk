@@ -20,7 +20,7 @@ import Uppy, { UppyFile } from "@uppy/core";
 import { workspaceApi } from "../../../utils/getApiEndpoint";
 import XHR from "@uppy/xhr-upload";
 import {
-    ProjectAcl,
+    AccessControlConfig,
     requestDeleteProjectImport,
     requestProjectImportDetails,
     requestProjectImportExecutionStatus,
@@ -59,8 +59,8 @@ export function ProjectImportModal({ close, back, maxFileUploadSizeBytes }: IPro
     const [startProjectImportExecutionError, setStartProjectImportExecutionError] = useState<
         [string, boolean, boolean] | null
     >(null);
-    const projectAcl = React.useRef<ProjectAcl | undefined>();
-    const onChangeProjectAcl = React.useCallback((newProjectAcl: ProjectAcl) => {
+    const projectAcl = React.useRef<AccessControlConfig | undefined>();
+    const onChangeProjectAcl = React.useCallback((newProjectAcl: AccessControlConfig) => {
         projectAcl.current = newProjectAcl;
     }, []);
     const aclManagement = useProjectAclManagementComponent({

@@ -98,27 +98,28 @@ interface IClonedItem {
     detailsPage: string;
 }
 
-/** ACL of a project. */
-export interface ProjectAcl {
+/** Properties required for access control. In general access control is currently only decided on group membership. */
+export interface AccessControlConfig {
     groups: string[];
 }
 
-export interface UserData extends ProjectAcl {
+export interface UserData extends AccessControlConfig {
     uri: string;
     label: string;
+    /** An admin always has access to all projects. */
     isAccessControlAdmin: boolean;
 }
 
 const accessControlEndpoint = (projectId: string) => projectApi(`${projectId}/accessControl`);
 
 /** Fetches project access control information. */
-export const fetchProjectAccessControl = (projectId: string): Promise<FetchResponse<ProjectAcl>> =>
+export const fetchProjectAccessControl = (projectId: string): Promise<FetchResponse<AccessControlConfig>> =>
     fetch({ url: accessControlEndpoint(projectId), method: "GET" });
 
 export const updateProjectAccessControl = (
     projectId: string,
-    projectAcl: ProjectAcl,
-): Promise<FetchResponse<ProjectAcl>> =>
+    projectAcl: AccessControlConfig,
+): Promise<FetchResponse<AccessControlConfig>> =>
     fetch({ url: accessControlEndpoint(projectId), method: "PUT", body: projectAcl });
 
 /** Fetches data about the logged-in user. */
@@ -128,7 +129,7 @@ export const fetchUserData = (): Promise<FetchResponse<UserData>> => fetch({ url
 export const fetchAccessControlGroups = (): Promise<FetchResponse<AccessControlGroup[]>> =>
     fetch({ url: coreApi("/accessControl/groups"), method: "GET" });
 
-interface AccessControlGroup {
+export interface AccessControlGroup {
     id: string;
 }
 
@@ -369,10 +370,14 @@ export const requestStartProjectImport = async (
     overwriteExistingProject: boolean,
     groups?: string[],
 ): Promise<FetchResponse<void>> => {
-    const url =
-        projectImportEndpoint(projectImportId) +
-        `?generateNewId=${generateNewId}&overwriteExisting=${overwriteExistingProject}` +
-        (groups ? `&${qs.stringify({ groups }, { arrayFormat: "repeat" })}` : "");
+    const params: any = {
+        generateNewId,
+        overwriteExistingProject,
+    };
+    if (groups) {
+        params.groups = groups;
+    }
+    const url = projectImportEndpoint(projectImportId) + "?" + qs.stringify(params, { arrayFormat: "repeat" });
     return fetch({
         url,
         method: "POST",

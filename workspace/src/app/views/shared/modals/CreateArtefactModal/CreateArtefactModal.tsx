@@ -51,7 +51,7 @@ import { ProjectImportModal } from "../ProjectImportModal";
 import ItemDepiction from "../../../shared/ItemDepiction";
 import ProjectSelection from "./ArtefactForms/ProjectSelection";
 import { workspaceSel } from "@ducks/workspace";
-import { ProjectAcl, requestSearchList } from "@ducks/workspace/requests";
+import { AccessControlConfig, requestSearchList } from "@ducks/workspace/requests";
 import { objectToFlatRecord, uppercaseFirstChar } from "../../../../utils/transformers";
 import { performAction, requestProjectMetadata } from "@ducks/shared/requests";
 import { requestAutoConfiguredDataset } from "./CreateArtefactModal.requests";
@@ -158,9 +158,9 @@ export function CreateArtefactModal() {
     const [taskActionLoading, setTaskActionLoading] = React.useState<string | null>(null);
     const [taskFormGeneralWarning, setTaskFormGeneralWarning] = React.useState<string | undefined>();
     const generalWarningTimeout = React.useRef<number | undefined>();
-    const projectAcl = React.useRef<ProjectAcl | undefined>();
+    const projectAcl = React.useRef<AccessControlConfig | undefined>();
 
-    const updateProjectAcl = React.useCallback((newProjectAcl: ProjectAcl) => {
+    const updateProjectAcl = React.useCallback((newProjectAcl: AccessControlConfig) => {
         projectAcl.current = newProjectAcl;
     }, []);
 

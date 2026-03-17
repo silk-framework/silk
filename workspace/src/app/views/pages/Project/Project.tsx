@@ -77,7 +77,7 @@ const Project = () => {
         if (accessForbidden) {
             clearErrors();
         }
-    }, [accessForbidden]);
+    }, [accessForbidden, clearErrors]);
 
     /**
      * Get available Datatypes
@@ -114,13 +114,14 @@ const Project = () => {
         autogeneratePageTitle: true,
     });
 
-    return !projectId ? (
-        <Loading posGlobal description={t("pages.project.loading", "Loading project data")} />
-    ) : error?.status === 404 ? (
-        <NotFound />
-    ) : accessForbidden ? (
-        <ProjectForbiddenNotification detail={error.detail} />
-    ) : (
+    if (accessForbidden) {
+        return <ProjectForbiddenNotification detail={error.detail} />;
+    } else if (error?.status === 404) {
+        return <NotFound />;
+    } else if (!projectId) {
+        return <Loading posGlobal description={t("pages.project.loading", "Loading project data")} />;
+    }
+    return (
         <WorkspaceContent className="eccapp-di__project">
             {pageHeader}
             <ArtefactManagementOptions

@@ -1,4 +1,4 @@
-import { fetchProjectAccessControl, fetchUserData, ProjectAcl } from "@ducks/workspace/requests";
+import { fetchProjectAccessControl, fetchUserData, AccessControlConfig } from "@ducks/workspace/requests";
 import React, { useState } from "react";
 import { useSelector } from "react-redux";
 import { commonSel } from "@ducks/common";
@@ -10,14 +10,14 @@ import useErrorHandler from "./useErrorHandler";
 interface UseAclManagementComponentProps {
     projectId?: string;
     /** Called when the groups change. */
-    onChange: (aclData: ProjectAcl) => void;
+    onChange: (aclData: AccessControlConfig) => void;
     /** Optional error handler. If not set, the error is output to the global error queue. */
     errorHandler?: (error) => void;
     /** If set, this is used as the initial value.*/
-    externalInitialAclGroups?: ProjectAcl;
+    externalInitialAclGroups?: AccessControlConfig;
     /** Receives the current user and project ACLs and returns a custom ACL that should be used as initial value.
      * This is not executed if externalInitialAclGroups is defined. */
-    computeInitialAcl?: (userAcl: ProjectAcl, projectAcl: ProjectAcl) => Promise<ProjectAcl>;
+    computeInitialAcl?: (userAcl: AccessControlConfig, projectAcl: AccessControlConfig) => Promise<AccessControlConfig>;
 }
 
 interface UseAclManagementComponentReturnProps {
@@ -40,7 +40,7 @@ export const useProjectAclManagementComponent = ({
 }: UseAclManagementComponentProps): UseAclManagementComponentReturnProps => {
     const initialSettings = useSelector(commonSel.initialSettingsSelector);
     const aclEnabled = initialSettings?.aclEnabled ?? false;
-    const [initialAcl, setInitialAcl] = useState<ProjectAcl | undefined>(externalInitialAclGroups);
+    const [initialAcl, setInitialAcl] = useState<AccessControlConfig | undefined>(externalInitialAclGroups);
     const projectAclManagement = pluginRegistry.pluginReactComponent<ProjectAccessControlManagementProps>(
         SUPPORTED_PLUGINS.DI_PROJECT_ACL_MANAGEMENT,
     );
@@ -49,6 +49,7 @@ export const useProjectAclManagementComponent = ({
 
     const fetchAclData = React.useCallback(async () => {
         if (projectId && aclEnabled && !externalInitialAclGroups) {
+            setLoading(true);
             try {
                 const [projectAcl, userAcl] = await Promise.all([
                     fetchProjectAccessControl(projectId),

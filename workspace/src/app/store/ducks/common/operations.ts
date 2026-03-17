@@ -424,7 +424,9 @@ const fetchCreateProjectAsync = (
         if (id) {
             payload.id = id;
         }
-        payload.groups = groups;
+        if (groups) {
+            payload.groups = groups;
+        }
         try {
             const data = await requestCreateProject(payload);
             await createTagsAndAddToMetadata({ label, description, tags, projectId: data.name });

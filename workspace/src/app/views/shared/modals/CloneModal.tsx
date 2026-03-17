@@ -10,7 +10,7 @@ import {
     TextField,
 } from "@eccenca/gui-elements";
 import { ErrorResponse, FetchError } from "../../../services/fetch/responseInterceptor";
-import { ProjectAcl, requestCloneProject, requestCloneTask } from "@ducks/workspace/requests";
+import { AccessControlConfig, requestCloneProject, requestCloneTask } from "@ducks/workspace/requests";
 import { requestProjectMetadata, requestTaskMetadata } from "@ducks/shared/requests";
 import { useTranslation } from "react-i18next";
 import { IModalItem } from "@ducks/shared/typings";
@@ -41,15 +41,18 @@ export default function CloneModal({ item, onDiscard, onConfirmed }: ICloneOptio
     const [label, setLabel] = useState<string | undefined>(item.label);
     const [t] = useTranslation();
     const [showDocumentation, setShowDocumentation] = React.useState<boolean>(false);
-    const projectAcl = React.useRef<ProjectAcl | undefined>();
-    const onChangeProjectAcl = React.useCallback((newProjectAcl: ProjectAcl) => {
+    const projectAcl = React.useRef<AccessControlConfig | undefined>();
+    const onChangeProjectAcl = React.useCallback((newProjectAcl: AccessControlConfig) => {
         projectAcl.current = newProjectAcl;
     }, []);
-    const computeInitialAcl = React.useCallback((userAcl: ProjectAcl, projectAcl: ProjectAcl): Promise<ProjectAcl> => {
-        return Promise.resolve({
-            groups: userAcl.groups.filter((g) => projectAcl.groups.includes(g)),
-        });
-    }, []);
+    const computeInitialAcl = React.useCallback(
+        (userAcl: AccessControlConfig, projectAcl: AccessControlConfig): Promise<AccessControlConfig> => {
+            return Promise.resolve({
+                groups: userAcl.groups.filter((g) => projectAcl.groups.includes(g)),
+            });
+        },
+        [],
+    );
 
     const projectAclManagement = useProjectAclManagementComponent({
         projectId: item.projectId,

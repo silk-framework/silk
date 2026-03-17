@@ -8,7 +8,7 @@ import useErrorHandler from "../../../../../hooks/useErrorHandler";
 import { Keyword } from "@ducks/workspace/typings";
 import { MultiTagSelect } from "../../../MultiTagSelect";
 import useHotKey from "../../../HotKeyHandler/HotKeyHandler";
-import { ProjectAcl } from "@ducks/workspace/requests";
+import { AccessControlConfig } from "@ducks/workspace/requests";
 import { useProjectAclManagementComponent } from "../../../../../hooks/useProjectAclManagementComponent";
 
 interface IProps {
@@ -16,7 +16,7 @@ interface IProps {
 
     /** Called when no changes were done in the form and the ESC key is pressed. */
     goBackOnEscape?: () => any;
-    updateProjectAcl: (projectAcl: ProjectAcl) => void;
+    updateProjectAcl: (projectAcl: AccessControlConfig) => void;
 }
 
 const LABEL = "label";
