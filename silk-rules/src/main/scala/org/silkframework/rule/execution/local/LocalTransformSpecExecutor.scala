@@ -139,7 +139,7 @@ class LocalTransformSpecExecutor extends Executor[TransformSpec, LocalExecution]
         // Validate number of tables
         for(count <- expectedInputCount) {
           if(mt.allTables.size != count) {
-            throw TaskException(s"Expected $count input entity tables, but got ${mt.allTables.size} by the previous operator.")
+            throw InputCountMismatchException(s"Expected $count input entity tables, but got ${mt.allTables.size} by the previous operator.")
           }
         }
         mt.allTables
@@ -147,7 +147,7 @@ class LocalTransformSpecExecutor extends Executor[TransformSpec, LocalExecution]
         // Validate number of tables
         for(count <- expectedInputCount) {
           if (count > 1) {
-            throw TaskException(s"Expected $count input entity tables, but got only one by the previous operator. Try persisting the entities by putting a dataset in-between.")
+            throw InputCountMismatchException(s"Expected $count input entity tables, but got only one by the previous operator. Try persisting the entities by putting a dataset in-between.")
           }
         }
         Seq(input)
