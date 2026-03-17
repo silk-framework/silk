@@ -167,6 +167,7 @@ object FileRewindableEntityIterator {
  */
 abstract class FunctionRewindableEntityIterator extends RewindableEntityIterator {
 
+  @volatile
   private var initialEntityIterator: Option[CloseableIterator[Entity]] = None
 
   override final def hasNext: Boolean = {
@@ -183,7 +184,12 @@ abstract class FunctionRewindableEntityIterator extends RewindableEntityIterator
   }
 
   private def createInitialEntityIterator(): CloseableIterator[Entity] = {
-    initialEntityIterator = Some(newIterator())
-    initialEntityIterator.get
+    initialEntityIterator match {
+      case Some(iterator) =>
+        iterator
+      case None =>
+        initialEntityIterator = Some(newIterator())
+        initialEntityIterator.get
+    }
   }
 }
