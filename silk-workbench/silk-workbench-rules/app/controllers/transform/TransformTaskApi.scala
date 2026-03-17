@@ -1,7 +1,11 @@
 package controllers.transform
 
+import controllers.autoCompletion.{Completion, Completions}
 import controllers.core.UserContextActions
+import controllers.core.util.ControllerUtilsTrait
+import controllers.transform.AutoCompletionApi.Categories
 import controllers.transform.TransformTaskApi._
+import controllers.transform.autoCompletion.RuleAutoCompletionRequest
 import controllers.transform.doc.TransformTaskApiDoc
 import controllers.util.ProjectUtils._
 import controllers.util.SerializationUtils._
@@ -40,7 +44,7 @@ import javax.inject.Inject
   name = "Transform",
   description = "Endpoints related to transformation tasks and mapping rules."
 )
-class TransformTaskApi @Inject() () extends InjectedController with UserContextActions {
+class TransformTaskApi @Inject() () extends InjectedController with UserContextActions with ControllerUtilsTrait {
 
   private val log = Logger.getLogger(getClass.getName)
 
@@ -227,6 +231,68 @@ class TransformTaskApi @Inject() () extends InjectedController with UserContextA
     implicit val prefixes: Prefixes = project.config.prefixes
 
     serializeCompileTime(task.data.mappingRule, Some(project))
+  }
+
+  @Operation(
+    summary = "Search mapping rules",
+    description = "Search through all mapping rules of the transform task.",
+    responses = Array(
+      new ApiResponse(
+        responseCode = "200",
+        description = "Success",
+        content = Array(
+          new Content(
+            mediaType = "application/json",
+            examples = Array(new ExampleObject(TransformTaskApiDoc.searchMappingRulesExample))
+          )
+      )))
+  )
+  @RequestBody(
+    required = true,
+    content = Array(
+      new Content(
+        mediaType = "application/json",
+        schema = new Schema(implementation = classOf[RuleAutoCompletionRequest]),
+        examples = Array(new ExampleObject(TransformTaskApiDoc.searchMappingRulesRequestExample))
+      )
+    )
+  )
+  def searchRules(@Parameter(
+                 name = "project",
+                 description = "The project identifier",
+                 required = true,
+                 in = ParameterIn.PATH,
+                 schema = new Schema(implementation = classOf[String])
+               )
+               projectName: String,
+               @Parameter(
+                 name = "task",
+                 description = "The task identifier",
+                 required = true,
+                 in = ParameterIn.PATH,
+                 schema = new Schema(implementation = classOf[String])
+               )
+               taskName: String): Action[JsValue] = RequestUserContextAction(parse.json) { implicit request => implicit userContext =>
+    implicit val (project, task) = getProjectAndTask[TransformSpec](projectName, taskName)
+    implicit val prefixes: Prefixes = project.config.prefixes
+    validateJson[RuleAutoCompletionRequest] { requestData =>
+      val allRules = task.data.allRulesRecursive
+      val filter: TransformRule => Boolean = (requestData.objectRulesOnly.getOrElse(false), requestData.valueRulesOnly.getOrElse(false)) match {
+        case (true, false) => (r: TransformRule) => r.isInstanceOf[ContainerTransformRule]
+        case (false, true) => (r: TransformRule) => r.isInstanceOf[ValueTransformRule]
+        case _ => (_: TransformRule) => true
+      }
+      val completions: Seq[Completion] = allRules
+        .filter(filter)
+        .map(r => Completion(
+          value = r.id,
+          label = Some(r.fullLabel),
+          description = r.metaData.description,
+          category = Categories.rules,
+          isCompletion = true
+        ))
+      Ok(Completions(completions).filterAndSort(requestData.searchQuery.getOrElse(""), requestData.limit.getOrElse(Int.MaxValue), multiWordFilter = true).toJson)
+    }
   }
 
   @Operation(

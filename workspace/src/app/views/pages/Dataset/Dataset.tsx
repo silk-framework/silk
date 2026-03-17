@@ -19,6 +19,7 @@ import { TaskActivityOverview } from "../../shared/TaskActivityOverview/TaskActi
 import { pluginRegistry, SUPPORTED_PLUGINS } from "../../plugins/PluginRegistry";
 import { DataPreviewProps } from "../../plugins/plugin.types";
 import { IPluginDetails } from "@ducks/common/typings";
+import DeprecatedPluginsBanner from "../Project/DeprecatedPlugins/DeprecatedPluginsBanner";
 
 // The dataset plugins that should show the data preview automatically without user interaction.
 const automaticallyPreviewedDatasets = ["json", "xml", "csv"];
@@ -92,6 +93,7 @@ export function Dataset() {
             />
             <WorkspaceMain>
                 <Section>
+                    <DeprecatedPluginsBanner projectId={projectId} taskId={taskId} />
                     <Metadata />
                     <Spacing />
                     {!pluginDetails ? (

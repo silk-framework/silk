@@ -12,8 +12,8 @@ import org.silkframework.util.Uri
   id = "alignment",
   label = "Alignment",
   categories = Array(DatasetCategories.file),
-  description =
-    """Writes the alignment format specified at http://alignapi.gforge.inria.fr/format.html."""
+  description = """Writes the alignment format specified at http://alignapi.gforge.inria.fr/format.html.""",
+  documentationFile = "AlignmentDataset.md"
 )
 case class AlignmentDataset(
   @Param("The alignment file.")

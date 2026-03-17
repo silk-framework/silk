@@ -1,6 +1,7 @@
 package org.silkframework.serialization.json
 
 import io.swagger.v3.oas.annotations.media.{ArraySchema, Schema}
+import io.swagger.v3.oas.annotations.media.Schema.RequiredMode
 import org.silkframework.config.{MetaData, Tag}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.users.User
@@ -46,7 +47,7 @@ object MetaDataSerializers {
                            created: Option[Instant] = None,
                            createdByUser: Option[String] = None,
                            lastModifiedByUser: Option[String] = None,
-                           @ArraySchema(schema = new Schema(implementation = classOf[String], required = false, nullable = true))
+                           @ArraySchema(schema = new Schema(implementation = classOf[String], requiredMode = RequiredMode.NOT_REQUIRED, nullable = true))
                            tags: Option[Set[String]] = None) {
     def toMetaData: MetaData = {
       MetaDataPlain.toMetaData(this)

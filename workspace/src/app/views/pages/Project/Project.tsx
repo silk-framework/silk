@@ -37,6 +37,7 @@ import { previewSlice } from "@ducks/workspace/previewSlice";
 import VariablesWidget from "../../../views/shared/VariablesWidget/VariablesWidget";
 import { useSelectFirstResult } from "../../../hooks/useSelectFirstResult";
 import { GlobalTableContext } from "../../../GlobalContextsWrapper";
+import { DeprecatedPluginsWidget } from "./DeprecatedPlugins/DeprecatedPluginsWidget";
 import { pluginRegistry, SUPPORTED_PLUGINS } from "../../plugins/PluginRegistry";
 import { ProjectAccessControlProps } from "../../plugins/plugin.types";
 import useErrorHandler from "../../../hooks/useErrorHandler";
@@ -206,6 +207,8 @@ const Project = () => {
                     <ActivityInfoWidget />
                     <Spacing />
                     <FileWidget />
+                    <Spacing />
+                    <DeprecatedPluginsWidget projectId={projectId} />
                 </Section>
             </WorkspaceSide>
         </WorkspaceContent>

@@ -3,7 +3,7 @@ package org.silkframework.preprocessing.util.jena
 import com.hp.hpl.jena.query.{QueryExecutionFactory, ResultSet}
 import com.hp.hpl.jena.rdf.model.Model
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 
 /**
  * A SPARQL endpoint which executes all queries on a Jena Model.

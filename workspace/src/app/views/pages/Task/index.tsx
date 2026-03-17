@@ -12,6 +12,7 @@ import { ProjectForbiddenNotification } from "../../shared/ProjectForbiddenNotif
 import { TaskActivityOverview } from "../../shared/TaskActivityOverview/TaskActivityOverview";
 import { ProjectTaskParams } from "../../shared/typings";
 import { IPluginDetails } from "@ducks/common/typings";
+import DeprecatedPluginsBanner from "../Project/DeprecatedPlugins/DeprecatedPluginsBanner";
 
 export default function TaskPage() {
     const { taskId, projectId } = useParams<ProjectTaskParams>();
@@ -55,6 +56,7 @@ export default function TaskPage() {
             />
             <WorkspaceMain>
                 <Section>
+                    <DeprecatedPluginsBanner projectId={projectId} taskId={taskId} />
                     <Metadata />
                 </Section>
             </WorkspaceMain>

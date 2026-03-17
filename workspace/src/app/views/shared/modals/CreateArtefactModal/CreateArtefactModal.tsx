@@ -51,7 +51,7 @@ import { ProjectImportModal } from "../ProjectImportModal";
 import ItemDepiction from "../../../shared/ItemDepiction";
 import ProjectSelection from "./ArtefactForms/ProjectSelection";
 import { workspaceSel } from "@ducks/workspace";
-import { AccessControlConfig, requestSearchList } from "@ducks/workspace/requests";
+import { AccessControlConfig, requestSearchList, ISearchListRequest } from "@ducks/workspace/requests";
 import { objectToFlatRecord, uppercaseFirstChar } from "../../../../utils/transformers";
 import { performAction, requestProjectMetadata } from "@ducks/shared/requests";
 import { requestAutoConfiguredDataset } from "./CreateArtefactModal.requests";
@@ -282,7 +282,7 @@ export function CreateArtefactModal() {
 
     const getWorkspaceProjects = async (textQuery: string = "") => {
         try {
-            const payload = {
+            const payload: ISearchListRequest = {
                 limit: 10,
                 offset: 0,
                 itemType: "project",

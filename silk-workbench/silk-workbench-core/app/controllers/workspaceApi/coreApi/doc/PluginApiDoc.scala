@@ -263,7 +263,8 @@ a specific parameter depends on. These must be send in the auto-completion reque
         {
           "project": "projectId",
           "task": "taskId",
-          "link": "{editor URL}"
+          "link": "{editor URL}",
+          "linkLabel": "{label of the link target}"
         }
       ]
     """

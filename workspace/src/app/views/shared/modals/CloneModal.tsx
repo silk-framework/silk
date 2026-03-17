@@ -165,7 +165,7 @@ export default function CloneModal({ item, onDiscard, onConfirmed }: ICloneOptio
             data-test-id={"clone-item-to-modal"}
             size="small"
             title={
-                t("common.action.CloneSmth", {
+                t(item.id ? "common.action.CloneSmthShallow" : "common.action.CloneSmth", {
                     smth: t(item.id ? "common.dataTypes.task" : "common.dataTypes.project"),
                 }) +
                     ": " +
@@ -199,6 +199,12 @@ export default function CloneModal({ item, onDiscard, onConfirmed }: ICloneOptio
                 </Button>,
             ]}
         >
+            {item.id && (
+                <>
+                    <Notification message={t("cloneModal.shallowCloneInfo")} />
+                    <Spacing />
+                </>
+            )}
             <FieldItem
                 labelProps={{
                     htmlFor: "label",
@@ -248,7 +254,11 @@ export default function CloneModal({ item, onDiscard, onConfirmed }: ICloneOptio
             )}
             {showDocumentation && (
                 <TaskDocumentationModal
-                    documentationToShow={{ key: "", namedAnchor: "", description: t("cloneModal.info") }}
+                    documentationToShow={{
+                        key: "",
+                        namedAnchor: "",
+                        description: t(item.id ? "cloneModal.infoTask" : "cloneModal.infoProject"),
+                    }}
                     onClose={() => setShowDocumentation(false)}
                     size="tiny"
                 />
