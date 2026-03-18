@@ -1,7 +1,7 @@
 package controllers.workspace.workspaceRequests
 
-import config.WorkbenchLinks
-import controllers.workspaceApi.search.ItemType
+import org.silkframework.workspace.WorkbenchLinks
+import controllers.util.ItemType
 import io.swagger.v3.oas.annotations.media.{ArraySchema, Schema}
 import org.silkframework.config.TaskSpec
 import org.silkframework.runtime.plugin.PluginDescription

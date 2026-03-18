@@ -11,7 +11,7 @@ import controllers.workflowApi.variableWorkflow.VariableWorkflowRequestUtils.Var
 import controllers.workflowApi.workflow._
 import controllers.workspace.activityApi.StartActivityResponse
 import controllers.workspaceApi.coreApi.PluginApi
-import controllers.workspaceApi.search.ItemType
+import controllers.util.ItemType
 import io.swagger.v3.oas.annotations.enums.ParameterIn
 import io.swagger.v3.oas.annotations.media.{Content, ExampleObject, Schema}
 import io.swagger.v3.oas.annotations.parameters.RequestBody

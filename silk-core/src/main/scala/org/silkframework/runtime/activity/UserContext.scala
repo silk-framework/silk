@@ -39,3 +39,7 @@ object UserContext {
 case class SimpleUserContext(user: Option[User], executionContext: UserExecutionContext = UserExecutionContext()) extends UserContext {
   override def withExecutionContext(userExecutionContext: UserExecutionContext): UserContext = this.copy(executionContext = userExecutionContext)
 }
+
+object SimpleUserContext {
+  def apply(user: User): SimpleUserContext = SimpleUserContext(Some(user))
+}

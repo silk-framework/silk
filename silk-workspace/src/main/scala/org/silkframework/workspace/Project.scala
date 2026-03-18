@@ -23,6 +23,7 @@ import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.runtime.templating.TemplateVariablesManager
 import org.silkframework.runtime.validation.{NotFoundException, ValidationException}
 import org.silkframework.util.Identifier
+import org.silkframework.workspace.access.{AccessControlConfig, ProjectAccessControlManager, ProjectAccessDeniedException}
 import org.silkframework.workspace.activity.workflow.{Workflow, WorkflowValidator}
 import org.silkframework.workspace.activity.{ProjectActivity, ProjectActivityFactory}
 import org.silkframework.workspace.exceptions.{IdentifierAlreadyExistsException, TaskNotFoundException}
@@ -43,6 +44,8 @@ import scala.util.control.NonFatal
 class Project(initialConfig: ProjectConfig, provider: WorkspaceProvider, val resources: ResourceManager, loadingUser: UserContext) extends ProjectTrait {
 
   private implicit val logger: Logger = Logger.getLogger(classOf[Project].getName)
+
+  val accessControl = new ProjectAccessControlManager(initialConfig.id, provider, loadingUser)
 
   val tagManager = new TagManager(initialConfig.id, provider)
 
@@ -152,7 +155,7 @@ class Project(initialConfig: ProjectConfig, provider: WorkspaceProvider, val res
    * Writes the updated project configuration.
    */
   def config_=(project : ProjectConfig)(implicit userContext: UserContext): Unit = {
-    provider.putProject(project)
+    provider.putProject(project)(readWriteUser)
     logger.info(s"Project meta data updated for ${project.labelAndId()}.")
     cachedConfig = project
   }
@@ -243,7 +246,7 @@ class Project(initialConfig: ProjectConfig, provider: WorkspaceProvider, val res
     if(allTasks.exists(_.id == name)) {
       throw IdentifierAlreadyExistsException(s"Task name '$name' is not unique as there is already a task in project '${this.id}' with this name.")
     }
-    val task = module[T].add(name, taskData, metaData.asNewMetaData)
+    val task = module[T].add(name, taskData, metaData.asNewMetaData)(readWriteUser)
     provider.removeExternalTaskLoadingError(config.id, name)
     task
   }
@@ -260,7 +263,7 @@ class Project(initialConfig: ProjectConfig, provider: WorkspaceProvider, val res
       throw IdentifierAlreadyExistsException(s"Task name '$name' is not unique as there is already a task in project '${this.id}' with this name.")
     }
     modules.find(_.taskType.isAssignableFrom(taskData.getClass)) match {
-      case Some(module) => module.asInstanceOf[Module[TaskSpec]].add(name, taskData, metaData.asNewMetaData)
+      case Some(module) => module.asInstanceOf[Module[TaskSpec]].add(name, taskData, metaData.asNewMetaData)(readWriteUser)
       case None => throw new NoSuchElementException(s"No module for task type ${taskData.getClass} has been registered. Registered task types: ${modules.map(_.taskType).mkString(";")}")
     }
   }
@@ -279,7 +282,7 @@ class Project(initialConfig: ProjectConfig, provider: WorkspaceProvider, val res
     module[T].taskOption(name) match {
       case Some(task) =>
         val mergedMetaData = mergeMetaData(task.metaData, metaData)
-        task.update(taskData, Some(mergedMetaData.asUpdatedMetaData))
+        task.update(taskData, Some(mergedMetaData.asUpdatedMetaData))(readWriteUser)
         task
       case None =>
         addTask[T](name, taskData, metaData.getOrElse(MetaData.empty).asNewMetaData)
@@ -307,7 +310,7 @@ class Project(initialConfig: ProjectConfig, provider: WorkspaceProvider, val res
         module.taskOption(name) match {
           case Some(task) =>
             val mergedMetaData = mergeMetaData(task.metaData, metaData)
-            task.asInstanceOf[ProjectTask[TaskSpec]].update(taskData, Some(mergedMetaData.asUpdatedMetaData))
+            task.asInstanceOf[ProjectTask[TaskSpec]].update(taskData, Some(mergedMetaData.asUpdatedMetaData))(readWriteUser)
           case None =>
             addAnyTask(name, taskData, metaData.getOrElse(MetaData.empty).asNewMetaData)
         }
@@ -331,7 +334,7 @@ class Project(initialConfig: ProjectConfig, provider: WorkspaceProvider, val res
    */
   def removeTask[T <: TaskSpec : ClassTag](taskName: Identifier)
                                           (implicit userContext: UserContext): Unit = synchronized {
-    module[T].remove(taskName)
+    module[T].remove(taskName)(readWriteUser)
   }
 
   /**
@@ -359,7 +362,16 @@ class Project(initialConfig: ProjectConfig, provider: WorkspaceProvider, val res
 
     // Find the module which holds the named task and remove it
     for(m <- modules.find(_.taskOption(taskName).isDefined)) {
-      m.remove(taskName)
+      m.remove(taskName)(readWriteUser)
+    }
+  }
+
+  /** Returns the user context for read and write operations to the workspace provider. */
+  private def readWriteUser(implicit userContext: UserContext): UserContext = {
+    if(AccessControlConfig().enabled) {
+      loadingUser
+    } else {
+      userContext
     }
   }
 

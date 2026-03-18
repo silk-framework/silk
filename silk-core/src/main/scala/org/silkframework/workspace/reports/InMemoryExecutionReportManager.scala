@@ -18,10 +18,10 @@ case class InMemoryExecutionReportManager(retentionTime: Duration = ExecutionRep
 
   private var reports = ListMap[ReportIdentifier, ActivityExecutionResult[ExecutionReport]]()
 
-  override def listReports(projectId: Option[Identifier], taskId: Option[Identifier]): Seq[ReportIdentifier] = synchronized {
+  override def listReports(projectIds: Set[Identifier], taskId: Option[Identifier]): Seq[ReportIdentifier] = synchronized {
     for {
       reportId <- reports.keys.toSeq
-      if projectId.forall(_ == reportId.projectId)
+      if projectIds.isEmpty || projectIds.contains(reportId.projectId)
       if taskId.forall(_ == reportId.taskId)
     } yield {
       reportId

@@ -172,9 +172,12 @@ const useErrorHandler = (): ErrorHandlerDict => {
      * deletes all errors corresponding to the ids passed in the parameter,
      * if no parameter is passed it clears all errors.
      *  ***/
-    const clearErrors = (errorIds?: Array<string> | undefined) => {
-        dispatch(clearOneOrMoreErrors({ errorIds }));
-    };
+    const clearErrors = React.useCallback(
+        (errorIds?: Array<string> | undefined) => {
+            dispatch(clearOneOrMoreErrors({ errorIds }));
+        },
+        [dispatch],
+    );
 
     return {
         registerError,

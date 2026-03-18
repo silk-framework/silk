@@ -1,24 +1,24 @@
-import React, {useEffect, useState} from "react";
-import {useDispatch, useSelector} from "react-redux";
-import {useHistory, useLocation} from "react-router";
-import {useTranslation} from "react-i18next";
-import {routerOp} from "@ducks/router";
-import {IItemLink} from "@ducks/shared/typings";
-import {commonOp, commonSel} from "@ducks/common";
-import {requestItemLinks, requestTaskData} from "@ducks/shared/requests";
-import {IExportTypes} from "@ducks/common/typings";
-import {downloadProject} from "../../../utils/downloadProject";
-import {DATA_TYPES} from "../../../constants";
-import {ItemDeleteModal} from "../modals/ItemDeleteModal";
+import React, { useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { useHistory, useLocation } from "react-router";
+import { useTranslation } from "react-i18next";
+import { routerOp } from "@ducks/router";
+import { IItemLink } from "@ducks/shared/typings";
+import { commonOp, commonSel } from "@ducks/common";
+import { requestItemLinks, requestTaskData } from "@ducks/shared/requests";
+import { IExportTypes } from "@ducks/common/typings";
+import { downloadProject } from "../../../utils/downloadProject";
+import { DATA_TYPES } from "../../../constants";
+import { ItemDeleteModal } from "../modals/ItemDeleteModal";
 import CloneModal from "../modals/CloneModal";
-import {ActionsMenu, IActionsMenuProps, TActionsMenuItem} from "./ActionsMenu";
+import { ActionsMenu, IActionsMenuProps, TActionsMenuItem } from "./ActionsMenu";
 import CopyToModal from "../modals/CopyToModal/CopyToModal";
 import ShowIdentifierModal from "../modals/ShowIdentifierModal";
-import {SERVE_PATH} from "../../../constants/path";
-import {absoluteProjectPath} from "../../../utils/routerUtils";
-import {AlertDialog, Button, HtmlContentBlock, Notification} from "@eccenca/gui-elements";
-import {FetchError} from "../../../services/fetch/responseInterceptor";
-import {clearDataset} from "@ducks/workspace/requests";
+import { SERVE_PATH } from "../../../constants/path";
+import { absoluteProjectPath } from "../../../utils/routerUtils";
+import { AlertDialog, Button, HtmlContentBlock, Notification } from "@eccenca/gui-elements";
+import { FetchError } from "../../../services/fetch/responseInterceptor";
+import { clearDataset } from "@ducks/workspace/requests";
 
 interface IProps {
     projectId: string;
@@ -28,6 +28,8 @@ interface IProps {
     updateActionsMenu: (actionMenu: JSX.Element) => any;
     // Called with true when the item links endpoint returns a 404
     notFoundCallback?: (boolean) => any;
+    // Called with true when the item links endpoint returns a 403
+    forbiddenCallback?: (boolean) => any;
 }
 
 export function ArtefactManagementOptions({
@@ -36,6 +38,7 @@ export function ArtefactManagementOptions({
     itemType,
     updateActionsMenu,
     notFoundCallback = () => {},
+    forbiddenCallback = () => {},
 }: IProps) {
     const dispatch = useDispatch();
     const location = useLocation<any>();
@@ -64,12 +67,12 @@ export function ArtefactManagementOptions({
     useEffect(() => {
         if (projectId && taskId) {
             getItemLinks(taskId);
-            if(itemType === DATA_TYPES.DATASET) {
+            if (itemType === DATA_TYPES.DATASET) {
                 const checkReadOnly = async () => {
-                    const response = await requestTaskData(projectId, taskId)
-                    setIsReadOnlyDataset(response.data.data.readOnly)
-                }
-                checkReadOnly()
+                    const response = await requestTaskData(projectId, taskId);
+                    setIsReadOnlyDataset(response.data.data.readOnly);
+                };
+                checkReadOnly();
             }
         } else {
             setItemLinks([]);
@@ -86,6 +89,8 @@ export function ArtefactManagementOptions({
         } catch (e) {
             if (e?.httpStatus === 404) {
                 notFoundCallback(true);
+            } else if (e?.httpStatus === 403) {
+                forbiddenCallback(true);
             }
         }
     };
@@ -156,28 +161,30 @@ export function ArtefactManagementOptions({
     };
 
     const ConfirmClearDatasetPrompt = () => {
-        if(itemType !== DATA_TYPES.DATASET) {
-            return null
+        if (itemType !== DATA_TYPES.DATASET) {
+            return null;
         }
-        return <AlertDialog
-            isOpen={showClearDatasetPrompt}
-            size="tiny"
-            warning
-            title={`${t("DataPreview.clearDatasetModal.title", "Clear dataset")}?`}
-            actions={[
-                <Button key="1" affirmative onClick={handleClearDataset} loading={erasingDataset}>
-                    {t("DataPreview.clearDatasetModal.actionBtn")}
-                </Button>,
-                <Button key="2" onClick={() => setShowClearDatasetPrompt(false)}>
-                    {t("common.action.cancel")}
-                </Button>,
-            ]}
-            notifications={notifications.current}
-        >
-            <HtmlContentBlock>
-                <p>{t("DataPreview.clearDatasetModal.content")}</p>
-            </HtmlContentBlock>
-        </AlertDialog>
+        return (
+            <AlertDialog
+                isOpen={showClearDatasetPrompt}
+                size="tiny"
+                warning
+                title={`${t("DataPreview.clearDatasetModal.title", "Clear dataset")}?`}
+                actions={[
+                    <Button key="1" affirmative onClick={handleClearDataset} loading={erasingDataset}>
+                        {t("DataPreview.clearDatasetModal.actionBtn")}
+                    </Button>,
+                    <Button key="2" onClick={() => setShowClearDatasetPrompt(false)}>
+                        {t("common.action.cancel")}
+                    </Button>,
+                ]}
+                notifications={notifications.current}
+            >
+                <HtmlContentBlock>
+                    <p>{t("DataPreview.clearDatasetModal.content")}</p>
+                </HtmlContentBlock>
+            </AlertDialog>
+        );
     };
 
     const getFullMenu = () => {
@@ -263,7 +270,7 @@ export function ArtefactManagementOptions({
                               disruptive: true,
                               actionHandler: () => setShowClearDatasetPrompt(true),
                               "data-test-id": "header-item-erase-dataset-button",
-                              tooltipText: isReadOnlyDataset ? t("DataPreview.clearDatasetModal.readOnly") : undefined
+                              tooltipText: isReadOnlyDataset ? t("DataPreview.clearDatasetModal.readOnly") : undefined,
                           },
                       ]
                     : [],

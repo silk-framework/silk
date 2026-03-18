@@ -56,7 +56,7 @@ class XmlZipProjectMarshalingTest extends AnyFlatSpec with Matchers with ConfigT
                             exportResources: Boolean, importResources: Boolean): Unit = {
 
     val exportMarshaller = XmlZipProjectMarshaling(exportResources)
-    val project = workspace.projects.head
+    val project = workspace.userProjects.head
     val marshalledFile = Files.createTempFile("project", ".zip")
     val outputStream = new FileOutputStream(marshalledFile.toFile)
     try {

@@ -48,7 +48,7 @@ object Input {
 
     def read(node: Node)(implicit readContext: ReadContext): Input = {
       node match {
-        case node @ <Input/> => fromXml[PathInput](node)
+        case node @ <Input>{_*}</Input> => fromXml[PathInput](node)
         case node @ <TransformInput>{_*}</TransformInput> => fromXml[TransformInput](node)
       }
     }

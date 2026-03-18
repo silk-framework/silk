@@ -2,7 +2,7 @@ import React from "react";
 import { DragDropContext, Draggable, Droppable } from "react-beautiful-dnd";
 
 //typing
-import { Variable, VariableDependencies, VariableWidgetProps } from "./typing";
+import { TemplateVariableError, Variable, VariableDependencies, VariableWidgetProps } from "./typing";
 import {
     Card,
     CardContent,
@@ -33,6 +33,7 @@ import NewVariableModal from "./modals/NewVariableModal";
 import reorderArray from "../../../views/pages/MappingEditor/HierarchicalMapping/utils/reorderArray";
 import DeleteModal from "../modals/DeleteModal";
 import { ErrorResponse, FetchError } from "../../../services/fetch/responseInterceptor";
+import { contextualPath } from "../../../constants/path";
 import { useModalError } from "../../../hooks/useModalError";
 
 const VariablesWidget: React.FC<VariableWidgetProps> = ({ projectId, taskId }) => {
@@ -49,9 +50,15 @@ const VariablesWidget: React.FC<VariableWidgetProps> = ({ projectId, taskId }) =
     const [dropChangeLoading, setDropChangeLoading] = React.useState<boolean>(false);
     const [dependencies, setVariableDependencies] = React.useState<VariableDependencies>();
     const [errorNotification, setErrorNotification] = React.useState<JSX.Element | null>(null);
+    const [evaluationErrors, setEvaluationErrors] = React.useState<TemplateVariableError[]>([]);
     const [t] = useTranslation();
 
     const variableHasDependencies = dependencies?.dependentTasks.length || dependencies?.dependentVariables.length;
+
+    const evaluationErrorByName = React.useMemo(
+        () => new Map(evaluationErrors.map((e) => [e.variableName, e.message])),
+        [evaluationErrors],
+    );
 
     // initial loading of variables
     React.useEffect(() => {
@@ -60,6 +67,7 @@ const VariablesWidget: React.FC<VariableWidgetProps> = ({ projectId, taskId }) =
                 setLoadingVariables(true);
                 const { data } = await getVariables(projectId);
                 setVariables(data?.variables ?? []);
+                setEvaluationErrors(data?.errors ?? []);
             } catch (err) {
                 registerError("variable-config", t("widget.VariableWidget.errorMessages.loadingVariables"), err);
             } finally {
@@ -84,7 +92,7 @@ const VariablesWidget: React.FC<VariableWidgetProps> = ({ projectId, taskId }) =
         } catch (err) {
             checkAndDisplayDeletionError(
                 err,
-                t("widget.VariableWidget.errorMessages.dependencyRetrievalFailure", "Failed to retrieve variable")
+                t("widget.VariableWidget.errorMessages.dependencyRetrievalFailure", "Failed to retrieve variable"),
             );
         }
     }, []);
@@ -103,7 +111,7 @@ const VariablesWidget: React.FC<VariableWidgetProps> = ({ projectId, taskId }) =
         } catch (err) {
             checkAndDisplayDeletionError(
                 err,
-                t("widget.VariableWidget.errorMessages.variableDeletionFailure", "Failed to delete variable")
+                t("widget.VariableWidget.errorMessages.variableDeletionFailure", "Failed to delete variable"),
             );
         } finally {
             setIsDeleting(false);
@@ -133,7 +141,7 @@ const VariablesWidget: React.FC<VariableWidgetProps> = ({ projectId, taskId }) =
                 setDropChangeLoading(true);
                 const res = await reorderVariablesRequest(
                     projectId,
-                    reorderedVariables.map((v) => v.name)
+                    reorderedVariables.map((v) => v.name),
                 );
                 if (res.axiosResponse.status === 200) {
                     setVariables(reorderedVariables);
@@ -150,7 +158,7 @@ const VariablesWidget: React.FC<VariableWidgetProps> = ({ projectId, taskId }) =
                 setDropChangeLoading(false);
             }
         },
-        [variables]
+        [variables],
     );
 
     const renderDeleteVariable = React.useCallback(() => {
@@ -181,7 +189,7 @@ const VariablesWidget: React.FC<VariableWidgetProps> = ({ projectId, taskId }) =
                         <ul>
                             {dependencies.dependentTasks.map((task) => (
                                 <li key={task.id}>
-                                    <Link href={task.taskLink} target="_blank">
+                                    <Link href={contextualPath(task.taskLink)} target="_blank">
                                         <Tooltip content={t("common.action.openInNewTab")}>
                                             {task.label ?? task.id}
                                         </Tooltip>
@@ -237,6 +245,15 @@ const VariablesWidget: React.FC<VariableWidgetProps> = ({ projectId, taskId }) =
                 {errorNotification}
                 <Divider />
                 <CardContent style={{ maxHeight: "25vh" }}>
+                    {evaluationErrors.length > 0 && (
+                        <Notification
+                            intent="warning"
+                            message={t(
+                                "widget.VariableWidget.evaluationErrors.title",
+                                "Some variables could not be evaluated.",
+                            )}
+                        />
+                    )}
                     {loadingVariables ? (
                         <Loading />
                     ) : !variables.length ? (
@@ -296,6 +313,19 @@ const VariablesWidget: React.FC<VariableWidgetProps> = ({ projectId, taskId }) =
                                                                             </PropertyValue>
                                                                         </PropertyValuePair>
                                                                     </ToolbarSection>
+                                                                    {evaluationErrorByName.has(variable.name) ? (
+                                                                        <ToolbarSection>
+                                                                            <Icon
+                                                                                name={"state-warning"}
+                                                                                intent={"warning"}
+                                                                                tooltipText={
+                                                                                    evaluationErrorByName.get(
+                                                                                        variable.name,
+                                                                                    ) ?? ""
+                                                                                }
+                                                                            />
+                                                                        </ToolbarSection>
+                                                                    ) : null}
                                                                     <ToolbarSection
                                                                         style={{
                                                                             minWidth: "75px",
@@ -310,7 +340,7 @@ const VariablesWidget: React.FC<VariableWidgetProps> = ({ projectId, taskId }) =
                                                                                     data-test-id="template-variable-delimiter"
                                                                                     tooltipText={
                                                                                         t(
-                                                                                            "widget.TaskConfigWidget.templateValueInfo"
+                                                                                            "widget.TaskConfigWidget.templateValueInfo",
                                                                                         ) +
                                                                                         `\n\n\`\`\`${variable.template}\`\`\``
                                                                                     }

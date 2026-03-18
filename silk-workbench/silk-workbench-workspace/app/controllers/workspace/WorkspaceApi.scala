@@ -47,7 +47,7 @@ class WorkspaceApi  @Inject() (accessMonitor: WorkbenchAccessMonitor) extends In
   def reload: Action[AnyContent] = UserContextAction { implicit userContext =>
     val workspace = WorkspaceFactory().workspace
     workspace.reload()
-    for(project <- workspace.projects) {
+    for(project <- workspace.userProjects) {
       ProjectLoadingErrors.tryReloadTasks(project)
     }
     Ok
@@ -143,7 +143,8 @@ class WorkspaceApi  @Inject() (accessMonitor: WorkbenchAccessMonitor) extends In
                    schema = new Schema(implementation = classOf[String])
                  )
                  project: String): Action[AnyContent] = UserContextAction { implicit userContext =>
-    if (WorkspaceFactory().workspace.projects.exists(_.id.toString == project)) {
+    // This needs to use allProject to include projects the user does not see.
+    if (WorkspaceFactory().workspace.allProjects.exists(_.id.toString == project)) {
       ErrorResult(CONFLICT, "Conflict", s"Project with name '$project' already exists. Creation failed.")
     } else {
       val projectConfig = ProjectConfig(project, metaData = MetaData(Some(project)).asNewMetaData)

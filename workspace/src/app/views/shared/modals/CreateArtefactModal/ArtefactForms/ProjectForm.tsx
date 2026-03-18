@@ -8,12 +8,15 @@ import useErrorHandler from "../../../../../hooks/useErrorHandler";
 import { Keyword } from "@ducks/workspace/typings";
 import { MultiTagSelect } from "../../../MultiTagSelect";
 import useHotKey from "../../../HotKeyHandler/HotKeyHandler";
+import { AccessControlConfig } from "@ducks/workspace/requests";
+import { useProjectAclManagementComponent } from "../../../../../hooks/useProjectAclManagementComponent";
 
 interface IProps {
     form: any;
 
     /** Called when no changes were done in the form and the ESC key is pressed. */
     goBackOnEscape?: () => any;
+    updateProjectAcl: (projectAcl: AccessControlConfig) => void;
 }
 
 const LABEL = "label";
@@ -22,11 +25,15 @@ const IDENTIFIER = "id";
 const TAGS = "tags";
 
 /** The project create form */
-export function ProjectForm({ form, goBackOnEscape = () => {} }: IProps) {
+export function ProjectForm({ form, goBackOnEscape = () => {}, updateProjectAcl }: IProps) {
     const { register, errors, triggerValidation, setValue } = form;
     const [t] = useTranslation();
     const { registerError } = useErrorHandler();
     const escapeKeyDisabled = React.useRef(false);
+    const aclManagement = useProjectAclManagementComponent({
+        onChange: updateProjectAcl,
+        externalInitialAclGroups: { groups: [] },
+    });
 
     const handleEscapeKey = React.useCallback(() => {
         if (!escapeKeyDisabled.current) {
@@ -42,6 +49,12 @@ export function ProjectForm({ form, goBackOnEscape = () => {} }: IProps) {
         register({ name: IDENTIFIER });
         register({ name: TAGS });
     }, []);
+
+    React.useEffect(() => {
+        if (aclManagement.enabled) {
+            updateProjectAcl({ groups: [] });
+        }
+    }, [aclManagement.enabled]);
 
     const onValueChange = (key) => {
         return async (e) => {
@@ -64,12 +77,11 @@ export function ProjectForm({ form, goBackOnEscape = () => {} }: IProps) {
     const CodeEditorMemoed = React.useMemo(
         () => (
             <CodeEditor
-                id={DESCRIPTION}
-                preventLineNumbers
-                name={DESCRIPTION}
                 mode="markdown"
-                onChange={onValueChange(DESCRIPTION)}
                 useToolbar
+                id={DESCRIPTION}
+                name={DESCRIPTION}
+                onChange={onValueChange(DESCRIPTION)}
                 data-test-id="codemirror-wrapper"
                 translate={(key) => {
                     const translationKey = `Editor.markdown.toolbar.${key}`;
@@ -128,6 +140,7 @@ export function ProjectForm({ form, goBackOnEscape = () => {} }: IProps) {
             >
                 <MultiTagSelect handleTagSelectionChange={handleTagSelectionChange} />
             </FieldItem>
+            {aclManagement.component}
             <AdvancedOptionsArea>
                 <CustomIdentifierInput form={form} onValueChange={onValueChange} />
             </AdvancedOptionsArea>
