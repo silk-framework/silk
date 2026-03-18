@@ -17,13 +17,20 @@ package org.silkframework.rule.plugins.transformer.tokenization
 import org.silkframework.rule.annotations.{TransformExample, TransformExamples}
 import org.silkframework.rule.input.Transformer
 import org.silkframework.runtime.plugin.PluginCategories
-import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
+import org.silkframework.runtime.plugin.annotations.{Param, Plugin, PluginReference}
 
 @Plugin(
-  id = "tokenize",
+  id = Tokenizer.pluginId,
   categories = Array("Tokenization", PluginCategories.recommended),
   label = "Tokenize",
-  description = "Tokenizes all input values.")
+  description = "Tokenizes all input values.",
+  relatedPlugins = Array(
+    new PluginReference(
+      id = CamelCaseTokenizer.pluginId,
+      description = "A value written in camel case produces a single token under Tokenize, because there is no separator character to split on. Camel case tokenizer reads case transitions as boundaries and splits accordingly."
+    )
+  )
+)
 @TransformExamples(Array(
   new TransformExample(
     description = "By default, splits values at whitespaces.",
@@ -46,4 +53,8 @@ case class Tokenizer(
   override def apply(values: Seq[Seq[String]]): Seq[String] = {
     values.reduce(_ ++ _).flatMap(compiledRegex.split)
   }
+}
+
+object Tokenizer {
+  final val pluginId = "tokenize"
 }

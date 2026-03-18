@@ -16,14 +16,24 @@ package org.silkframework.rule.plugins.transformer.normalize
 
 import org.silkframework.rule.annotations.{TransformExample, TransformExamples}
 import org.silkframework.rule.input.SimpleTransformer
-import org.silkframework.runtime.plugin.annotations.Plugin
+import org.silkframework.runtime.plugin.annotations.{Plugin, PluginReference}
 
 @Plugin(
-  id = "capitalize",
+  id = CapitalizeTransformer.pluginId,
   categories = Array("Normalize"),
   label = "Capitalize",
   description = "Capitalizes the string i.e. converts the first character to upper case. " +
-    "If 'allWords' is set to true, all words are capitalized and not only the first character."
+    "If 'allWords' is set to true, all words are capitalized and not only the first character.",
+  relatedPlugins = Array(
+    new PluginReference(
+      id = LowerCaseTransformer.pluginId,
+      description = "Capitalize raises only the first character, or the first of each word, leaving the rest of the string unchanged. Lower case converts every character, making it the right choice when the entire string needs to be normalized rather than just its initial character."
+    ),
+    new PluginReference(
+      id = UpperCaseTransformer.pluginId,
+      description = "Capitalize changes only the first character, leaving the rest of the string as-is. Upper case is the right plugin when every character needs to be raised, not just the initial one."
+    )
+  )
 )
 @TransformExamples(Array(
   new TransformExample(
@@ -44,4 +54,8 @@ case class CapitalizeTransformer(allWords: Boolean = false) extends SimpleTransf
     else
       value.split("\\s+").map(_.capitalize).mkString(" ")
   }
+}
+
+object CapitalizeTransformer {
+  final val pluginId = "capitalize"
 }
