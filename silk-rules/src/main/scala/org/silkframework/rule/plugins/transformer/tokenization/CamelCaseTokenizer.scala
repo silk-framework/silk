@@ -16,15 +16,21 @@ package org.silkframework.rule.plugins.transformer.tokenization
 
 import org.silkframework.rule.annotations.{TransformExample, TransformExamples}
 import org.silkframework.rule.input.Transformer
-import org.silkframework.runtime.plugin.annotations.Plugin
+import org.silkframework.runtime.plugin.annotations.{Plugin, PluginReference}
 
 import scala.collection.mutable.ArrayBuffer
 
 @Plugin(
-  id = "camelcasetokenizer",
+  id = CamelCaseTokenizer.pluginId,
   categories = Array("Tokenization"),
   label = "Camel case tokenizer",
-  description = "Tokenizes a camel case string. That is it splits strings between a lower case character and an upper case character."
+  description = "Tokenizes a camel case string. That is it splits strings between a lower case character and an upper case character.",
+  relatedPlugins = Array(
+    new PluginReference(
+      id = Tokenizer.pluginId,
+      description = "When word boundaries are implicit in case rather than marked by a separator, camel case tokenizer is the right tool. Tokenize requires a separator to be present in the string — it cannot infer boundaries from case alone."
+    )
+  )
 )
 @TransformExamples(Array(
   new TransformExample(
@@ -58,4 +64,8 @@ case class CamelCaseTokenizer() extends Transformer {
     }
     tokens.toSeq
   }
+}
+
+object CamelCaseTokenizer {
+  final val pluginId = "camelcasetokenizer"
 }
