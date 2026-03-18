@@ -32,12 +32,12 @@ case class SparqlUpdateCustomTask(
     value = "The templating mode for the template engine. See the general documentation of this plugin for further details on the features of each template engine.",
     autoCompletionProvider = classOf[TemplateEngineAutocompletionProvider]
   )
-  language: String = SparqlSimpleTemplateEngine.id
+  templatingMode: String = SparqlSimpleTemplateEngine.id
 ) extends CustomTask {
   assert(batchSize >= 1, "Batch size must be greater zero!")
 
   val compiledTemplate: SparqlCompiledTemplate = {
-    val templateEngine = TemplateEngines.create(language)
+    val templateEngine = TemplateEngines.create(templatingMode)
     new SparqlCompiledTemplate(templateEngine.compile(sparqlUpdateTemplate.str))
   }
 

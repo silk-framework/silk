@@ -33,34 +33,31 @@ class SparqlCompiledTemplate(delegate: CompiledTemplate) extends CompiledTemplat
 
   /** Validates the template, including batch validation if batchSize > 1. */
   def validate(batchSize: Int): Unit = {
-    // Skip validation if variables cannot be determined (e.g. Velocity templates using rawUnsafe)
-    delegate.variables match {
-      case None => return
-      case Some(_) =>
-    }
-    val genericUri = "urn:generic:1"
-    val entityVariables = entityVariableNames
-    val assignments = entityVariables.map(_ -> genericUri).toMap
-    val inputPropVars = taskPropertyVariableNames("inputProperties").map(_ -> genericUri).toMap
-    val outputPropVars = taskPropertyVariableNames("outputProperties").map(_ -> genericUri).toMap
-    val taskProps = TaskProperties(inputPropVars, outputPropVars)
-    val sparqlQuery = Try(generate(assignments, taskProps)) match {
-      case Failure(exception) =>
+    if(!delegate.usesRawUnsafe()) {
+      val genericUri = "urn:generic:1"
+      val entityVariables = entityVariableNames
+      val assignments = entityVariables.map(_ -> genericUri).toMap
+      val inputPropVars = taskPropertyVariableNames("inputProperties").map(_ -> genericUri).toMap
+      val outputPropVars = taskPropertyVariableNames("outputProperties").map(_ -> genericUri).toMap
+      val taskProps = TaskProperties(inputPropVars, outputPropVars)
+      val sparqlQuery = Try(generate(assignments, taskProps)) match {
+        case Failure(exception) =>
+          throw new ValidationException(
+            "The SPARQL Update template could not be rendered with example values. Error message: " + exception.getMessage, exception)
+        case Success(value) => value
+      }
+      Try(UpdateFactory.create(sparqlQuery)).failed.toOption.foreach { parseError =>
         throw new ValidationException(
-          "The SPARQL Update template could not be rendered with example values. Error message: " + exception.getMessage, exception)
-      case Success(value) => value
-    }
-    Try(UpdateFactory.create(sparqlQuery)).failed.toOption.foreach { parseError =>
-      throw new ValidationException(
-        "The SPARQL Update template does not generate valid SPARQL Update queries. Error message: " +
-          parseError.getMessage + ", example query: " + sparqlQuery)
-    }
-    if (batchSize > 1) {
-      val batchSparql = sparqlQuery + "\n" + sparqlQuery
-      Try(UpdateFactory.create(batchSparql)).failed.toOption.foreach { parseError =>
-        throw new ValidationException(
-          "The SPARQL Update template cannot be batched processed. There is probably a ';' missing at the end. Error message: " +
-            parseError.getMessage + ", example batch query: " + batchSparql)
+          "The SPARQL Update template does not generate valid SPARQL Update queries. Error message: " +
+            parseError.getMessage + ", example query: " + sparqlQuery)
+      }
+      if (batchSize > 1) {
+        val batchSparql = sparqlQuery + "\n" + sparqlQuery
+        Try(UpdateFactory.create(batchSparql)).failed.toOption.foreach { parseError =>
+          throw new ValidationException(
+            "The SPARQL Update template cannot be batched processed. There is probably a ';' missing at the end. Error message: " +
+              parseError.getMessage + ", example batch query: " + batchSparql)
+        }
       }
     }
   }

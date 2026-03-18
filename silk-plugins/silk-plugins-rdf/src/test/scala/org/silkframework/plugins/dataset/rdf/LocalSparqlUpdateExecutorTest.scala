@@ -110,7 +110,7 @@ class LocalSparqlUpdateExecutorTest extends AnyFlatSpec with Matchers with TestW
 
   private def sparqlUpdateTask(template: String,
                                language: String): Task[SparqlUpdateCustomTask] = {
-    project.updateTask("task", SparqlUpdateCustomTask(template, batchSize = batchSize, language = language))
+    project.updateTask("task", SparqlUpdateCustomTask(template, batchSize = batchSize, templatingMode = language))
   }
 
   private def executeTask(template: String,

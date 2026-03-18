@@ -27,7 +27,7 @@ case class SparqlSimpleTemplateEngine() extends TemplateEngine {
 }
 
 object SparqlSimpleTemplateEngine {
-  final val id = "sparqlSimple"
+  final val id = "simple"
 }
 
 /**

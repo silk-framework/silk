@@ -1,11 +1,14 @@
 package org.silkframework.plugins.dataset.rdf.tasks.templating
 
+import org.apache.jena.update.UpdateFactory
 import org.apache.velocity.runtime.parser.node._
 import org.silkframework.runtime.plugin.annotations.Plugin
 import org.silkframework.runtime.templating.{CompiledTemplate, EvaluationConfig, TemplateEngine, TemplateVariableName, TemplateVariableValue}
+import org.silkframework.runtime.validation.ValidationException
 
-import java.io.Writer
+import java.io.{StringWriter, Writer}
 import scala.collection.JavaConverters._
+import scala.util.{Failure, Success, Try}
 
 /**
   * A SPARQL Update templating engine based on Velocity.
@@ -23,27 +26,24 @@ case class SparqlVelocityTemplateEngine() extends TemplateEngine {
 }
 
 object SparqlVelocityTemplateEngine {
-  final val id = "sparqlVelocity"
+  final val id = "velocity"
 }
 
 /**
   * A compiled SPARQL Update template based on Velocity.
   */
 class SparqlVelocityCompiledTemplate(val sparqlUpdateTemplate: String) extends CompiledTemplate {
+
   private val sparqlTemplate = SparqlVelocityTemplating.createTemplate(sparqlUpdateTemplate)
 
   override lazy val variables: Option[Seq[TemplateVariableName]] = {
-    if (usesRawUnsafe()) {
-      None
-    } else {
-      val rowVars = variableMethodUsages(SparqlVelocityTemplating.ROW_VAR_NAME)
-        .map(u => new TemplateVariableName(u.parameterValue, ""))
-      val inputPropVars = variableMethodUsages(SparqlVelocityTemplating.INPUT_PROPERTIES_VAR_NAME)
-        .map(u => new TemplateVariableName(u.parameterValue, "inputProperties"))
-      val outputPropVars = variableMethodUsages(SparqlVelocityTemplating.OUTPUT_PROPERTIES_VAR_NAME)
-        .map(u => new TemplateVariableName(u.parameterValue, "outputProperties"))
-      Some((rowVars ++ inputPropVars ++ outputPropVars).distinct)
-    }
+    val rowVars = variableMethodUsages(SparqlVelocityTemplating.ROW_VAR_NAME)
+      .map(u => new TemplateVariableName(u.parameterValue, ""))
+    val inputPropVars = variableMethodUsages(SparqlVelocityTemplating.INPUT_PROPERTIES_VAR_NAME)
+      .map(u => new TemplateVariableName(u.parameterValue, "inputProperties"))
+    val outputPropVars = variableMethodUsages(SparqlVelocityTemplating.OUTPUT_PROPERTIES_VAR_NAME)
+      .map(u => new TemplateVariableName(u.parameterValue, "outputProperties"))
+    Some((rowVars ++ inputPropVars ++ outputPropVars).distinct)
   }
 
   override def evaluate(values: Map[String, AnyRef], writer: Writer): Unit = {
@@ -76,7 +76,7 @@ class SparqlVelocityCompiledTemplate(val sparqlUpdateTemplate: String) extends C
     }
   }
 
-  private def usesRawUnsafe(): Boolean = {
+  override def usesRawUnsafe(): Boolean = {
     SparqlVelocityTemplating.templatingVariables.exists { variableName =>
       variableMethodUsages(variableName).exists(_.rowMethod == rawUnsafeMethodName)
     }
