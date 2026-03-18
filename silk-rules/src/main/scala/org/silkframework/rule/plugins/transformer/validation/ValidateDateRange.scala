@@ -17,14 +17,20 @@ package org.silkframework.rule.plugins.transformer.validation
 import javax.xml.datatype.DatatypeFactory
 import org.silkframework.rule.input.SimpleTransformer
 import ValidateDateRange._
-import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
+import org.silkframework.runtime.plugin.annotations.{Param, Plugin, PluginReference}
 import org.silkframework.runtime.validation.ValidationException
 
 @Plugin(
-  id = "validateDateRange",
+  id = ValidateDateRange.pluginId,
   categories = Array("Validation", "Date"),
   label = "Validate date range",
-  description = "Validates if dates are within a specified range."
+  description = "Validates if dates are within a specified range.",
+  relatedPlugins = Array(
+    new PluginReference(
+      id = ValidateDateAfter.pluginId,
+      description = "Validate date range checks a date against a configured earliest and latest date. Validate date after checks whether one input date is later than another."
+    )
+  )
 )
 case class ValidateDateRange(
   @Param(value = "Earliest allowed date in YYYY-MM-DD", example = "1900-01-01")
@@ -36,7 +42,7 @@ case class ValidateDateRange(
 
   private val max = datatypeFactory.newXMLGregorianCalendar(maxDate)
 
-  override def evaluate(value: String) = {
+  override def evaluate(value: String): String = {
     val date = datatypeFactory.newXMLGregorianCalendar(value)
 
     if(date.compare(min) < 0) {
@@ -50,5 +56,6 @@ case class ValidateDateRange(
 }
 
 object ValidateDateRange {
+  final val pluginId = "validateDateRange"
   private val datatypeFactory = DatatypeFactory.newInstance()
 }
