@@ -18,14 +18,20 @@ import javax.xml.datatype.DatatypeFactory
 import org.silkframework.rule.input.Transformer
 import ValidateDateAfter._
 import org.silkframework.rule.annotations.{TransformExample, TransformExamples}
-import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
+import org.silkframework.runtime.plugin.annotations.{Param, Plugin, PluginReference}
 import org.silkframework.runtime.validation.ValidationException
 
 @Plugin(
-  id = "validateDateAfter",
+  id = ValidateDateAfter.pluginId,
   categories = Array("Validation", "Date"),
   label = "Validate date after",
-  description = "Validates if the first input date is after the second input date. Outputs the first input if the validation is successful."
+  description = "Validates if the first input date is after the second input date. Outputs the first input if the validation is successful.",
+  relatedPlugins = Array(
+    new PluginReference(
+      id = ValidateDateRange.pluginId,
+      description = "Validate date after checks whether one input date is later than another. Validate date range instead tests a single date against a fixed interval with a configured minimum and maximum."
+    )
+  )
 )
 @TransformExamples(Array(
   new TransformExample(
@@ -75,5 +81,6 @@ case class ValidateDateAfter(
 }
 
 object ValidateDateAfter {
+  final val pluginId = "validateDateAfter"
   private val datatypeFactory = DatatypeFactory.newInstance()
 }
