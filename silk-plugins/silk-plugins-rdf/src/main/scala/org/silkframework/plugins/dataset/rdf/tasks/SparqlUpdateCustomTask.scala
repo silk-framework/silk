@@ -36,9 +36,9 @@ case class SparqlUpdateCustomTask(
 ) extends CustomTask {
   assert(batchSize >= 1, "Batch size must be greater zero!")
 
-  val compiledTemplate: SparqlCompiledTemplate = {
+  val compiledTemplate: SparqlTemplate = {
     val templateEngine = TemplateEngines.create(templatingMode)
-    new SparqlCompiledTemplate(templateEngine.compile(sparqlUpdateTemplate.str))
+    new SparqlTemplate(templateEngine.compile(sparqlUpdateTemplate.str))
   }
 
   compiledTemplate.validate(batchSize)

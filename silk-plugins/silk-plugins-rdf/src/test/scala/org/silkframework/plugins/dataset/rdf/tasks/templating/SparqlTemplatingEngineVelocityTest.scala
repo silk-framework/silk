@@ -73,6 +73,6 @@ class SparqlTemplatingEngineVelocityTest extends AnyFlatSpec with Matchers {
   }
 
   def validate(template: String, batchSize: Int = 2): Unit = {
-    new SparqlCompiledTemplate(SparqlVelocityTemplateEngine().compile(template)).validate(batchSize)
+    new SparqlTemplate(SparqlVelocityTemplateEngine().compile(template)).validate(batchSize)
   }
 }

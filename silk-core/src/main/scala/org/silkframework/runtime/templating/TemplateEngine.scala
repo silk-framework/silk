@@ -24,8 +24,6 @@ trait TemplateEngine extends AnyPlugin {
   */
 trait CompiledTemplate {
 
-  def usesRawUnsafe(): Boolean = false
-
   /**
     * Holds all unbound variables in the template.
     * Returns None, if this functionality is not supported.

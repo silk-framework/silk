@@ -1,14 +1,11 @@
 package org.silkframework.plugins.dataset.rdf.tasks.templating
 
-import org.apache.jena.update.UpdateFactory
 import org.apache.velocity.runtime.parser.node._
 import org.silkframework.runtime.plugin.annotations.Plugin
-import org.silkframework.runtime.templating.{CompiledTemplate, EvaluationConfig, TemplateEngine, TemplateVariableName, TemplateVariableValue}
-import org.silkframework.runtime.validation.ValidationException
+import org.silkframework.runtime.templating._
 
-import java.io.{StringWriter, Writer}
-import scala.collection.JavaConverters._
-import scala.util.{Failure, Success, Try}
+import java.io.Writer
+import scala.jdk.CollectionConverters.MapHasAsScala
 
 /**
   * A SPARQL Update templating engine based on Velocity.
@@ -76,7 +73,7 @@ class SparqlVelocityCompiledTemplate(val sparqlUpdateTemplate: String) extends C
     }
   }
 
-  override def usesRawUnsafe(): Boolean = {
+  def usesRawUnsafe(): Boolean = {
     SparqlVelocityTemplating.templatingVariables.exists { variableName =>
       variableMethodUsages(variableName).exists(_.rowMethod == rawUnsafeMethodName)
     }
