@@ -21,10 +21,6 @@ import org.silkframework.runtime.plugin.annotations.{Param, Plugin, PluginRefere
   relatedPlugins = Array(
     new PluginReference(
       id = RegexReplaceTransformer.pluginId,
-      description = "Instead of extracting matching parts from a string, this plugin replaces them with a given replacement string."
-    ),
-    new PluginReference(
-      id = RegexReplaceTransformer.pluginId,
       description = "The Regex extract plugin returns what the regular expression matches, or the first capturing group if capturing groups exist. The Regex replace plugin returns the full input string after rewriting it by replacing every match with the configured replacement."
     ),
     new PluginReference(
