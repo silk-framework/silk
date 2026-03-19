@@ -2,7 +2,7 @@
 
 The Remove remote stop words plugin removes stop words from text based on a stop word list that is fetched from a remote URL. Concretely, the plugin first splits the input into tokens using the configured separator regular expression, then removes exactly those tokens whose lowercase form appears in the stop word list, and finally returns the remaining tokens as a single space-separated string.
 
-The stop word list is retrieved from a remote URL such as [this German stop word list](https://raw.githubusercontent.com/stopwords-iso/stopwords-de/refs/heads/master/stopwords-de.txt). The point of the remote URL is not “being remote” for its own sake, but being replaceable: it lets the same operator be used with different languages or project-specific vocabularies, for example German stop words instead of the [default stop word list](https://gist.githubusercontent.com/rg089/35e00abf8941d72d419224cfd5b5925d/raw/12d899b70156fd0041fa9778d657330b024b959c/stopwords.txt) for English.
+The stop word list is retrieved from a remote URL such as [this German stop word list](https://raw.githubusercontent.com/stopwords-iso/stopwords-de/refs/heads/master/stopwords-de.txt). The point of the remote URL is not “being remote” for its own sake, but being replaceable: it lets the same operator be used with different languages or project-specific vocabularies, for example German stop words instead of the default stop word list for English.
 
 ## Stop word list format and matching behavior
 
