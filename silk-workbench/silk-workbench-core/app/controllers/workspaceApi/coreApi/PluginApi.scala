@@ -238,7 +238,7 @@ class PluginApi @Inject()() extends InjectedController with UserContextActions {
                    pluginId: String): Action[AnyContent] = RequestUserContextAction { request => implicit userContext =>
     val usages =
       for {
-        project <- WorkspaceFactory().workspace.projects
+        project <- WorkspaceFactory().workspace.userProjects
         task <- project.allTasks
         usage <- task.pluginUsages
         if usage.pluginId == pluginId
@@ -280,7 +280,7 @@ class PluginApi @Inject()() extends InjectedController with UserContextActions {
     // Collect all plugin usages of deprecated plugins.
     val usages =
       for {
-        project <- WorkspaceFactory().workspace.projects if projectName.forall(_ == project.id.toString)
+        project <- WorkspaceFactory().workspace.userProjects if projectName.forall(_ == project.id.toString)
         task <- project.allTasks if taskName.forall(_ == task.id.toString)
         usage <- task.pluginUsages
         if usage.deprecationMessage.isDefined

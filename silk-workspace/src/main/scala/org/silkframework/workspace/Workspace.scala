@@ -19,9 +19,10 @@ import org.silkframework.runtime.activity.{HasValue, UserContext}
 import org.silkframework.runtime.metrics.MeterRegistryProvider
 import org.silkframework.runtime.metrics.MetricsConfig.prefix
 import org.silkframework.runtime.plugin.{PluginContext, PluginRegistry}
-import org.silkframework.runtime.validation.{NotFoundException, ServiceUnavailableException}
+import org.silkframework.runtime.validation.{BadUserInputException, NotFoundException, ServiceUnavailableException}
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.TaskCleanupPlugin.CleanUpAfterTaskDeletionFunction
+import org.silkframework.workspace.access.{AccessControlConfig, ProjectAccessDeniedException}
 import org.silkframework.workspace.activity.{GlobalWorkspaceActivity, GlobalWorkspaceActivityFactory}
 import org.silkframework.workspace.exceptions.{IdentifierAlreadyExistsException, ProjectNotFoundException}
 import org.silkframework.workspace.metrics.WorkspaceMetrics
@@ -32,7 +33,7 @@ import java.util.concurrent.TimeUnit
 import java.util.concurrent.locks.ReentrantLock
 import java.util.logging.{Level, Logger}
 import scala.reflect.ClassTag
-import scala.util.{Success, Try}
+import scala.util.Try
 import scala.util.control.NonFatal
 
 /**
@@ -61,8 +62,14 @@ class Workspace(val provider: WorkspaceProvider,
   @volatile
   private var cachedProjects: Seq[Project] = Seq.empty
 
+  /**
+   * The user that has been used to load the projects.
+   */
   @volatile
+  private var cachedProjectsUser: Option[UserContext] = None
+
   // Additional prefixes loaded from the workspace provider that will be added to every project
+  @volatile
   private var workspacePrefixes: Prefixes = Prefixes.default
 
   // All global workspace activities
@@ -106,10 +113,11 @@ class Workspace(val provider: WorkspaceProvider,
     }
   }
 
-  /** Load the projects of a user into the workspace. At the moment all users have access to all projects, so this is only,
-    * executed once. */
-  private def loadUserProjects()(implicit userContext: UserContext): Unit = {
-    // FIXME: Extension for access control should happen here.
+  /**
+   * Load the projects of a user into the workspace initially.
+   * If the projects are already loaded, then this method does nothing.
+   */
+  def initProjects()(implicit userContext: UserContext): Unit = {
     if (!initialized) { // Avoid lock
       if(loadProjectsLock.tryLock(waitForWorkspaceInitialization, TimeUnit.MILLISECONDS)) {
         try {
@@ -131,8 +139,23 @@ class Workspace(val provider: WorkspaceProvider,
     }
   }
 
-  override def projects(implicit userContext: UserContext): Seq[Project] = {
-    loadUserProjects()
+  /**
+   * Returns all projects that the user has access to.
+   */
+  override def userProjects(implicit userContext: UserContext): Seq[Project] = {
+    if(AccessControlConfig().enabled) {
+      // Filter projects the user has access to
+      allProjects.filter(_.accessControl.hasAccess())
+    } else {
+      allProjects
+    }
+  }
+
+  /**
+   * Returns all projects of all users.
+   */
+  def allProjects(implicit userContext: UserContext): Seq[Project] = {
+    initProjects()
     cachedProjects
   }
 
@@ -140,26 +163,33 @@ class Workspace(val provider: WorkspaceProvider,
    * Retrieves a project by name.
    *
    * @throws java.util.NoSuchElementException If no project with the given name has been found
+   * @throws ProjectAccessDeniedException If the user does not have access to the project.
    */
   override def project(name: Identifier)(implicit userContext: UserContext): Project = {
-    loadUserProjects()
-    findProject(name).getOrElse(throw ProjectNotFoundException(name))
+    projectOption(name).getOrElse(throw ProjectNotFoundException(name))
   }
 
-  override def findProject(name: Identifier)(implicit userContext: UserContext): Option[Project] = {
-    loadUserProjects()
-    projects.find(_.id == name)
+  /**
+   * Retrieves a project by name. If no project with the given name has been found, then None is returned.
+   *
+   * @throws ProjectAccessDeniedException If the user does not have access to the project.
+   */
+  override def projectOption(name: Identifier)(implicit userContext: UserContext): Option[Project] = {
+    for(project <- allProjects.find(_.id == name)) yield {
+      project.accessControl.checkAccess()
+      project
+    }
   }
 
   def createProject(config: ProjectConfig)
                    (implicit userContext: UserContext): Project = synchronized {
     val creationConfig = config.withMetaData(config.metaData.asNewMetaData)
-    loadUserProjects()
+    initProjects()
     if(cachedProjects.exists(_.id == creationConfig.id)) {
       throw IdentifierAlreadyExistsException("Project " + creationConfig.id + " does already exist!")
     }
-    provider.putProject(creationConfig)
-    val newProject = new Project(creationConfig, provider, repository.get(creationConfig.id), userContext)
+    provider.putProject(creationConfig)(readWriteUser)
+    val newProject = new Project(creationConfig, provider, repository.get(creationConfig.id), readWriteUser)
     addProjectToCache(newProject)
     newProject.setWorkspacePrefixes(workspacePrefixes)
     log.info(s"Created new project '${creationConfig.id}'. " + userContext.logInfo)
@@ -168,7 +198,7 @@ class Workspace(val provider: WorkspaceProvider,
 
   def removeProject(name: Identifier)
                    (implicit userContext: UserContext): Unit = synchronized {
-    loadUserProjects()
+    initProjects()
     // Cancel all project and task activities
     project(name).activities.foreach(_.control.cancel())
     val projectTasks = project(name).allTasks
@@ -176,7 +206,7 @@ class Workspace(val provider: WorkspaceProvider,
         activity <- task.activities) {
       activity.control.cancel()
     }
-    provider.deleteProject(name)
+    provider.deleteProject(name)(readWriteUser)
     repository.removeProjectResources(name)
     provider.removeExternalTaskLoadingErrors(name)
     removeProjectFromCache(name)
@@ -198,39 +228,93 @@ class Workspace(val provider: WorkspaceProvider,
     * @param marshaller object that defines how the project should be marshaled.
     * @return
     */
-  def exportProject(name: Identifier, outputStream: OutputStream, marshaller: ProjectMarshallingTrait)
+  def exportProject(name: Identifier, outputStream: OutputStream, marshaller: ProjectMarshallingTrait, exportGroups: Boolean = false)
                    (implicit userContext: UserContext): String = {
-    loadUserProjects()
-    marshaller.marshalProject(project(name), outputStream, repository.get(name))
+    initProjects()
+    if (exportGroups && !AccessControlConfig().enabled) {
+      throw BadUserInputException("Cannot export groups because access control is not enabled.")
+    }
+    marshaller.marshalProject(project(name), outputStream, repository.get(name), exportGroups)
+  }
+
+  def exportWorkspace(outputStream: OutputStream, marshaller: ProjectMarshallingTrait, exportGroups: Boolean = false)
+                     (implicit userContext: UserContext): String = {
+    initProjects()
+    if (exportGroups && !AccessControlConfig().enabled) {
+      throw BadUserInputException("Cannot export groups because access control is not enabled.")
+    }
+    marshaller.marshalWorkspace(outputStream, userProjects, repository, exportGroups)
+  }
+
+  def importWorkspace(file: File, marshaller: ProjectMarshallingTrait, importGroups: Boolean = false)
+                     (implicit userContext: UserContext): Unit = {
+    if (importGroups && !AccessControlConfig().enabled) {
+      throw new BadUserInputException("Cannot import groups because access control is not enabled.")
+    }
+    clear()
+    marshaller.unmarshalWorkspace(provider, repository, file)
+    reload()
+    if (!importGroups) {
+      for (project <- userProjects) {
+        project.accessControl.setGroups(Set.empty)
+      }
+    }
   }
 
   /**
     * Generic project import method that unmarshals the project as implemented in the given [[ProjectMarshallingTrait]] object.
     *
-    * @param name       project name
-    * @param file       the file to read the project to import from
-    * @param marshaller object that defines how the project should be unmarshaled.
-    * @param overwrite  If true, then it will overwrite an existing project, else an exception is thrown.
+    * @param name         project name
+    * @param file         the file to read the project to import from
+    * @param marshaller   object that defines how the project should be unmarshaled.
+    * @param overwrite    If true, then it will overwrite an existing project, else an exception is thrown.
+    * @param importGroups If true, keep the access control groups from the archive.
+    *                     If false, apply explicit groups if provided, restore the existing project's groups if overwriting, or clear them otherwise.
+    * @param groups       Explicit groups to set on the imported project. Only used when `importGroups` is false.
     */
   def importProject(name: Identifier,
                     file: File,
                     marshaller: ProjectMarshallingTrait,
-                    overwrite: Boolean = false)
+                    overwrite: Boolean = false,
+                    importGroups: Boolean = false,
+                    groups: Set[String] = Set.empty)
                    (implicit userContext: UserContext): Unit = {
-    loadUserProjects()
-    synchronized {
-      findProject(name) match {
+    initProjects()
+    // If overwriting, save existing groups so they can be restored when importGroups is false and no explicit groups are provided
+    val existingGroups: Option[Set[String]] = synchronized {
+      projectOption(name) match {
         case Some(_) if !overwrite =>
           throw IdentifierAlreadyExistsException("Project " + name.toString + " does already exist!")
-        case Some(_) =>
+        case Some(p) =>
+          val savedGroups = Some(p.accessControl.getGroups)
           removeProject(name)
+          savedGroups
         case None =>
+          None
       }
+    }
+    if (importGroups && !AccessControlConfig().enabled) {
+      throw new BadUserInputException("Cannot import groups because access control is not enabled.")
     }
     log.info(s"Starting import of project '$name'...")
     val start = System.currentTimeMillis()
-    marshaller.unmarshalProject(name, provider, repository.get(name), file)
-    reloadProjectInternal(name)
+    marshaller.unmarshalProject(name, provider, repository.get(name), file)(readWriteUser)
+    reloadProjectInternal(name)(readWriteUser)
+    if (importGroups && !provider.containsAccessControl(name)(readWriteUser)) {
+      throw new BadUserInputException("The archive does not contain access control groups. Export the project with exportGroups enabled.")
+    }
+    if (!importGroups) {
+      if (groups.nonEmpty) {
+        // Apply explicitly provided groups
+        project(name).accessControl.setGroups(groups)
+      } else if (existingGroups.isDefined) {
+        // Overwriting an existing project without explicit groups: restore the existing project's groups
+        project(name).accessControl.setGroups(existingGroups.get)
+      } else {
+        // New project without explicit groups: clear any groups that came from the archive
+        project(name).accessControl.setGroups(Set.empty)
+      }
+    }
     log.info(s"Imported project '$name' in ${(System.currentTimeMillis() - start).toDouble / 1000}s. " + userContext.logInfo)
   }
 
@@ -238,10 +322,11 @@ class Workspace(val provider: WorkspaceProvider,
     * Reloads this workspace.
     */
   def reload()(implicit userContext: UserContext): Unit = synchronized {
-    loadUserProjects()
+    requireAdminUser()
+    initProjects()
 
     // Stop all activities
-    for(project <- projects) { // Should not work directly on the cached projects
+    for(project <- userProjects) { // Should not work directly on the cached projects
       project.cancelActivities()
     }
     for(workspaceActivity <- activities) {
@@ -260,14 +345,15 @@ class Workspace(val provider: WorkspaceProvider,
 
   def reloadProject(projectId: Identifier)
                    (implicit userContext: UserContext): Unit = synchronized {
-    loadUserProjects()
+    requireAdminUser()
+    initProjects()
     log.info(s"Reloading project with ID '$projectId' from backend.")
     reloadProjectInternal(projectId, throwError = true)
   }
 
   /** Reloads the registered prefixes if the workspace provider supports this operation. */
   def reloadPrefixes()(implicit userContext: UserContext): Unit = {
-    workspacePrefixes = provider.fetchRegisteredPrefixes() ++ Prefixes.default
+    workspacePrefixes = provider.fetchRegisteredPrefixes()(readWriteUser) ++ Prefixes.default
     cachedProjects foreach { project =>
       project.setWorkspacePrefixes(workspacePrefixes)
     }
@@ -279,9 +365,9 @@ class Workspace(val provider: WorkspaceProvider,
     // remove project
     Try(project(id).cancelActivities())
     removeProjectFromCache(id)
-    provider.readProject(id) match {
+    provider.readProject(id)(readWriteUser) match {
       case Some(projectConfig) =>
-        val project = new Project(projectConfig, provider, repository.get(projectConfig.id), userContext)
+        val project = new Project(projectConfig, provider, repository.get(projectConfig.id), readWriteUser)
         project.setWorkspacePrefixes(workspacePrefixes)
         addProjectToCache(project)
         project.startActivities()
@@ -302,13 +388,16 @@ class Workspace(val provider: WorkspaceProvider,
     * Removes all projects from this workspace.
     */
   def clear()(implicit userContext: UserContext): Unit = {
-    loadUserProjects()
-    for(project <- projects) {
-      removeProject(project.config.id) // FIXME: This works directly on the cached projects and not the ones the user can see. Will be fixed in CMEM-998
+    requireAdminUser()
+    initProjects()
+    for(project <- userProjects) {
+      removeProject(project.config.id)
     }
   }
 
   private def loadProjects()(implicit userContext: UserContext): Unit = {
+    // Make sure that the supplied user has access to all projects.
+    requireAdminUser()
     cachedProjects = for(projectConfig <- provider.readProjects()) yield {
       log.info("Loading project: " + projectConfig.id)
       val project = new Project(projectConfig, provider, repository.get(projectConfig.id), userContext)
@@ -323,11 +412,37 @@ class Workspace(val provider: WorkspaceProvider,
     for(project <- cachedProjects) {
       project.startActivities()
     }
+    cachedProjectsUser = Some(userContext)
     log.info(s"${cachedProjects.size} projects loaded.")
   }
 
+  /** Returns the user context for read and write operations to the workspace provider. */
+  private def readWriteUser(implicit userContext: UserContext): UserContext = {
+    if (AccessControlConfig().enabled) {
+      cachedProjectsUser.getOrElse(userContext)
+    } else {
+      userContext
+    }
+  }
+
+  /**
+   * Throws an exception if the current user context does not have the admin action.
+   */
+  private def requireAdminUser()(implicit userContext: UserContext): Unit = {
+    if(AccessControlConfig().enabled) {
+      userContext.user match {
+        case None =>
+          throw ProjectAccessDeniedException("Access control is enabled, but no (super) user has been provided!")
+        case Some(user) if !user.actions.contains(AccessControlConfig().adminAction)  =>
+          throw ProjectAccessDeniedException(s"Access control is enabled, but the provided user ${user.label} does not have the admin action!")
+        case _ =>
+          // User is fine, so do nothing
+      }
+    }
+  }
+
   private def registerWorkspaceMetrics(implicit userContext: UserContext): Unit =
-    new WorkspaceMetrics(prefix, () => projects, () => projects.flatMap(_.allTasks))
+    new WorkspaceMetrics(prefix, () => allProjects, () => allProjects.flatMap(_.allTasks))
       .bindTo(MeterRegistryProvider.meterRegistry)
 }
 

@@ -1,6 +1,10 @@
-const arrayUtils = {
-    /** Returns a sorted array with duplicate values removed. */
-    distinctSort: <T>(arr: T[]): T[] => [...new Set(arr)].sort(),
+/** Sort and distinct operation for string arrays in one. */
+const distinctSort = (stringArray: string[]): string[] => {
+    return [...new Set(stringArray)].sort((a, b) => a.localeCompare(b));
 };
 
-export default arrayUtils;
+const utils = {
+    distinctSort,
+};
+
+export default utils;

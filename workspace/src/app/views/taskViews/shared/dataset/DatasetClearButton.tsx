@@ -7,7 +7,7 @@ import { ErrorResponse, FetchError } from "../../../../services/fetch/responseIn
 import { requestTaskData } from "@ducks/shared/requests";
 import useErrorHandler from "../../../../hooks/useErrorHandler";
 import { IMetadata } from "@ducks/shared/typings";
-import {clearDataset} from "@ducks/workspace/requests";
+import { clearDataset } from "@ducks/workspace/requests";
 
 interface Props {
     projectId: string;

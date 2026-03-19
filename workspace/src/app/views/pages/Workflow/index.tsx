@@ -8,6 +8,7 @@ import { ProjectTaskTabView } from "../../shared/projectTaskTabView/ProjectTaskT
 import { usePageHeader } from "../../shared/PageHeader/PageHeader";
 import { ArtefactManagementOptions } from "../../shared/ActionsMenu/ArtefactManagementOptions";
 import NotFound from "../NotFound";
+import { ProjectForbiddenNotification } from "../../shared/ProjectForbiddenNotification";
 import { ProjectTaskParams } from "../../shared/typings";
 import VariablesWidget from "../../../views/shared/VariablesWidget/VariablesWidget";
 import { DeprecatedPluginsWidget } from "../Project/DeprecatedPlugins/DeprecatedPluginsWidget";
@@ -15,6 +16,7 @@ import { DeprecatedPluginsWidget } from "../Project/DeprecatedPlugins/Deprecated
 export default function WorkflowPage() {
     const { taskId, projectId } = useParams<ProjectTaskParams>();
     const [notFound, setNotFound] = useState(false);
+    const [forbidden, setForbidden] = useState(false);
 
     const { pageHeader, updateActionsMenu } = usePageHeader({
         type: DATA_TYPES.WORKFLOW,
@@ -33,8 +35,11 @@ export default function WorkflowPage() {
         );
     };
 
-    if (notFound) return <NotFound />;
-
+    if (forbidden) {
+        return <ProjectForbiddenNotification />;
+    } else if (notFound) {
+        return <NotFound />;
+    }
     return (
         <WorkspaceContent className="eccapp-di__workflow">
             {pageHeader}
@@ -44,6 +49,7 @@ export default function WorkflowPage() {
                 itemType={DATA_TYPES.WORKFLOW}
                 updateActionsMenu={updateActionsMenu}
                 notFoundCallback={setNotFound}
+                forbiddenCallback={setForbidden}
             />
             <WorkspaceMain>
                 <Section>

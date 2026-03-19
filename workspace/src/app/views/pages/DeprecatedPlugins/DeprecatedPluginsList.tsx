@@ -21,7 +21,6 @@ import { contextualPath } from "../../../constants/path";
 import { ItemDepiction } from "../../shared/ItemDepiction/ItemDepiction";
 import { DeprecatedPluginsModel, PluginGroup } from "./index";
 
-
 interface DeprecatedPluginsListProps {
     filteredPlugins: DeprecatedPluginsModel[];
     selectedPlugin: PluginGroup | null;

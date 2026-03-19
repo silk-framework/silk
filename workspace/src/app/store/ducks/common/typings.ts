@@ -308,6 +308,9 @@ export interface IInitFrontend {
 
     /** The default project page suffix. */
     defaultProjectPageSuffix?: string;
+
+    /** If access control is enabled. */
+    aclEnabled: boolean;
 }
 
 type HotKeyIds = "quickSearch" | "overview";

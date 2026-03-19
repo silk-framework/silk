@@ -2,9 +2,8 @@ package org.silkframework.runtime.activity
 
 import org.scalatest.concurrent.Eventually
 import org.scalatest.time.{Seconds, Span}
-
 import org.silkframework.runtime.activity.Status.{Finished, Running, Waiting}
-import org.silkframework.runtime.users.User
+import org.silkframework.runtime.users.{User, UserActions}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -16,6 +15,8 @@ class ActivityExecutionTest extends AnyFlatSpec with Matchers with Eventually  {
 
   private val testUser = new User {
     override def uri = "urn:user:user1"
+    override def groups: Set[String] = Set.empty
+    override def actions: UserActions = UserActions.all
   }
   implicit val userContext: UserContext = new UserContext {
     def user: Option[User] = Some(testUser)

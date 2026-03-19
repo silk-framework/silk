@@ -150,6 +150,27 @@ class CombinedWorkspaceProvider(val primaryWorkspace: WorkspaceProvider,
     executeOnBackends(_.deleteTag(project, tagUri), s"Deleting tag $tagUri in project $project")
   }
 
+  override def containsAccessControl(project: Identifier)
+                                    (implicit userContext: UserContext): Boolean = {
+    primaryWorkspace.containsAccessControl(project)
+  }
+
+  /**
+    * Reads the access control configuration for a project.
+    */
+  override def readAccessControl(project: Identifier)
+                                (implicit userContext: UserContext): Option[AccessControl] = {
+    primaryWorkspace.readAccessControl(project)
+  }
+
+  /**
+    * Updates the access control configuration for a project.
+    */
+  override def putAccessControl(project: Identifier, accessControl: AccessControl)
+                               (implicit userContext: UserContext): Unit = {
+    executeOnBackends(_.putAccessControl(project, accessControl), s"Updating access control in project $project")
+  }
+
   /**
     * Executes an operation on both backends, e.g., updating a task.
     */

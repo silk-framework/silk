@@ -20,6 +20,7 @@ import Uppy, { UppyFile } from "@uppy/core";
 import { workspaceApi } from "../../../utils/getApiEndpoint";
 import XHR from "@uppy/xhr-upload";
 import {
+    AccessControlConfig,
     requestDeleteProjectImport,
     requestProjectImportDetails,
     requestProjectImportExecutionStatus,
@@ -31,6 +32,7 @@ import { useDispatch } from "react-redux";
 import { routerOp } from "@ducks/router";
 import { absoluteProjectPath } from "../../../utils/routerUtils";
 import { UploadNewFile } from "../FileUploader/cases/UploadNewFile/UploadNewFile";
+import { useProjectAclManagementComponent } from "../../../hooks/useProjectAclManagementComponent";
 
 interface IProps {
     // Called when closing the modal
@@ -57,6 +59,14 @@ export function ProjectImportModal({ close, back, maxFileUploadSizeBytes }: IPro
     const [startProjectImportExecutionError, setStartProjectImportExecutionError] = useState<
         [string, boolean, boolean] | null
     >(null);
+    const projectAcl = React.useRef<AccessControlConfig | undefined>();
+    const onChangeProjectAcl = React.useCallback((newProjectAcl: AccessControlConfig) => {
+        projectAcl.current = newProjectAcl;
+    }, []);
+    const aclManagement = useProjectAclManagementComponent({
+        onChange: onChangeProjectAcl,
+        externalInitialAclGroups: { groups: [] },
+    });
 
     useEffect(() => {
         uppy.use(XHR, {
@@ -130,7 +140,12 @@ export function ProjectImportModal({ close, back, maxFileUploadSizeBytes }: IPro
         if (projectImportId) {
             try {
                 setLoading(true);
-                await requestStartProjectImport(projectImportId, generateNewProjectId, overWriteExistingProject);
+                await requestStartProjectImport(
+                    projectImportId,
+                    generateNewProjectId,
+                    overWriteExistingProject,
+                    overWriteExistingProject ? undefined : projectAcl.current?.groups,
+                );
                 let status: Partial<IProjectExecutionStatus> = {};
                 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
                 let errorCounter = 0;
@@ -227,7 +242,6 @@ export function ProjectImportModal({ close, back, maxFileUploadSizeBytes }: IPro
                     key="importProject"
                     affirmative={true}
                     onClick={() => startProjectImport(false, false)}
-                    disabled={false}
                 >
                     {t("ProjectImportModal.importBtn")}
                 </Button>,
@@ -240,7 +254,6 @@ export function ProjectImportModal({ close, back, maxFileUploadSizeBytes }: IPro
                           key="replaceProject"
                           disruptive={true}
                           onClick={() => startProjectImport(false, true)}
-                          disabled={false}
                       >
                           {t("ProjectImportModal.replaceImportBtn")}
                       </Button>,
@@ -251,7 +264,6 @@ export function ProjectImportModal({ close, back, maxFileUploadSizeBytes }: IPro
                           key="importAsFreshProject"
                           affirmative={true}
                           onClick={() => startProjectImport(true, false)}
-                          disabled={false}
                       >
                           {t("ProjectImportModal.importUnderFreshIdBtn")}
                       </Button>,
@@ -289,72 +301,87 @@ export function ProjectImportModal({ close, back, maxFileUploadSizeBytes }: IPro
         </FieldItem>
     );
 
-    const projectDetails = (details: IProjectImportDetails) => (
-        <>
-            <TitleSubsection>{t("ProjectImportModal.importSummary", "Imported project summary")}</TitleSubsection>
-            <PropertyValueList>
-                {!!details.label && (
-                    <PropertyValuePair hasDivider key={"label"}>
-                        <PropertyName>{t("form.field.label", "Label")}</PropertyName>
-                        <PropertyValue>{details.label}</PropertyValue>
-                    </PropertyValuePair>
-                )}
-                {!!details.description && (
-                    <PropertyValuePair hasSpacing hasDivider>
-                        <PropertyName>{t("form.field.description", "Description")}</PropertyName>
-                        <PropertyValue>
-                            <StringPreviewContentBlobToggler
-                                className="di__dataset__metadata-description"
-                                content={details.description}
-                                previewMaxLength={128}
-                                fullviewContent={
-                                    <Markdown htmlContentBlockProps={{ linebreakForced: true }}>
-                                        {details.description}
-                                    </Markdown>
-                                }
-                                toggleExtendText={t("common.words.more", "more")}
-                                toggleReduceText={t("common.words.less", "less")}
-                                firstNonEmptyLineOnly={true}
-                            />
-                        </PropertyValue>
-                    </PropertyValuePair>
-                )}
-            </PropertyValueList>
-        </>
-    );
+    const projectDetails = (details: IProjectImportDetails) => {
+        return (
+            <>
+                <TitleSubsection>{t("ProjectImportModal.importSummary", "Imported project summary")}</TitleSubsection>
+                <PropertyValueList>
+                    {!!details.label && (
+                        <PropertyValuePair hasDivider key={"label"}>
+                            <PropertyName>{t("form.field.label", "Label")}</PropertyName>
+                            <PropertyValue>{details.label}</PropertyValue>
+                        </PropertyValuePair>
+                    )}
+                    {!!details.description && (
+                        <PropertyValuePair hasSpacing hasDivider>
+                            <PropertyName>{t("form.field.description", "Description")}</PropertyName>
+                            <PropertyValue>
+                                <StringPreviewContentBlobToggler
+                                    className="di__dataset__metadata-description"
+                                    content={details.description}
+                                    previewMaxLength={128}
+                                    fullviewContent={
+                                        <Markdown htmlContentBlockProps={{ linebreakForced: true }}>
+                                            {details.description}
+                                        </Markdown>
+                                    }
+                                    toggleExtendText={t("common.words.more", "more")}
+                                    toggleReduceText={t("common.words.less", "less")}
+                                    firstNonEmptyLineOnly={true}
+                                />
+                            </PropertyValue>
+                        </PropertyValuePair>
+                    )}
+                </PropertyValueList>
+                {!approveReplacement && aclManagement.component ? aclManagement.component : null}
+            </>
+        );
+    };
+
+    const projectExistsNotification = (details: IProjectImportDetails) => {
+        const cannotOverwrite = details.noAccess;
+        return (
+            <Notification
+                intent="warning"
+                actions={
+                    cannotOverwrite
+                        ? undefined
+                        : [
+                              <Button
+                                  key={"openExistingProjectKey"}
+                                  href={absoluteProjectPath(details.projectId)}
+                                  target={"_empty"}
+                              >
+                                  {t("ProjectImportModal.openExistingProject")}
+                              </Button>,
+                          ]
+                }
+            >
+                <Markdown>
+                    {t(
+                        cannotOverwrite
+                            ? "ProjectImportModal.warningExistingProjectForbidden"
+                            : "ProjectImportModal.warningExistingProject",
+                    )}
+                </Markdown>
+                <Spacing />
+                <Checkbox
+                    data-test-id={"replaceExistingProjectCheckBox"}
+                    inline={true}
+                    checked={approveReplacement}
+                    onChange={handleApproveReplacement}
+                >
+                    <strong>{t("ProjectImportModal.replaceImportBtn")}</strong>
+                </Checkbox>
+            </Notification>
+        );
+    };
 
     const projectDetailElement = (details: IProjectImportDetails) => {
         if (details.projectAlreadyExists) {
             return (
                 <>
-                    <Notification
-                        intent="warning"
-                        actions={[
-                            <Button
-                                key={"openExistingProjectKey"}
-                                href={absoluteProjectPath(details.projectId)}
-                                target={"_empty"}
-                            >
-                                {t("ProjectImportModal.openExistingProject", "Open existing project page")}
-                            </Button>,
-                        ]}
-                    >
-                        <p>
-                            {t(
-                                "ProjectImportModal.warningExistingProject",
-                                "A project with the same ID already exists! Choose to either overwrite the existing project or import the project under a freshly generated ID.",
-                            )}
-                        </p>
-                        <Spacing />
-                        <Checkbox
-                            data-test-id={"replaceExistingProjectCheckBox"}
-                            inline={true}
-                            checked={approveReplacement}
-                            onChange={handleApproveReplacement}
-                        >
-                            <strong>{t("ProjectImportModal.replaceImportBtn")}</strong>
-                        </Checkbox>
-                    </Notification>
+                    {projectExistsNotification(details)}
                     <Spacing />
                     {projectDetails(details)}
                 </>

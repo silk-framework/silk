@@ -32,11 +32,11 @@ abstract class ExecutionReportManagerTest extends AnyFlatSpec with Matchers {
       reportManager.addReport(ReportIdentifier.create(projectId, taskId), testReportResult)
 
       // Make sure that the report will only be retrieved if project and task match
-      reportManager.listReports(Some(projectId + "x"), Some(taskId)) should have size 0
-      reportManager.listReports(Some(projectId), Some(taskId + "x")) should have size 0
+      reportManager.listReports(Set(projectId + "x"), Some(taskId)) should have size 0
+      reportManager.listReports(Set(projectId), Some(taskId + "x")) should have size 0
 
       // Make sure that retrieved report is equal to the committed one
-      val reports = reportManager.listReports(Some(projectId), Some(taskId))
+      val reports = reportManager.listReports(Set(projectId), Some(taskId))
       reports should have size 1
       val retrievedReport = reportManager.retrieveReport(reports.head).resultValue.get
       retrievedReport.toString.replaceAll("Vector", "List") shouldEqual testReport.toString.replaceAll("Vector", "List")
@@ -49,13 +49,13 @@ abstract class ExecutionReportManagerTest extends AnyFlatSpec with Matchers {
       reportManager.addReport(ReportIdentifier.create(projectId, taskId), testReportResult)
       Thread.sleep(1)
       reportManager.addReport(ReportIdentifier.create(projectId, taskId), testReportResult)
-      reportManager.listReports(Some(projectId), Some(taskId)) should have size 2
+      reportManager.listReports(Set(projectId), Some(taskId)) should have size 2
 
       Thread.sleep(retentionTimeInMillis)
 
       // Adding a third report should delete both of the previous ones because their retention time is exceeded
       reportManager.addReport(ReportIdentifier.create(projectId, taskId), testReportResult)
-      reportManager.listReports(Some(projectId), Some(taskId)) should have size 1
+      reportManager.listReports(Set(projectId), Some(taskId)) should have size 1
     }
   }
 

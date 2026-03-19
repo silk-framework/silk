@@ -4,9 +4,10 @@ import org.mockito.Mockito._
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.must.Matchers
 import org.silkframework.config._
-import org.silkframework.runtime.activity.{Activity, ActivityContext, TestUserContextTrait, UserContext}
+import org.silkframework.runtime.activity.{Activity, ActivityContext, SimpleUserContext, TestUserContextTrait, UserContext}
 import org.silkframework.runtime.plugin.{PluginContext, PluginRegistry}
-import org.silkframework.runtime.resource.TestResourceManager
+import org.silkframework.runtime.resource.{ResourceManager, TestResourceManager}
+import org.silkframework.runtime.users.DefaultUserManager
 import org.silkframework.runtime.validation.ServiceUnavailableException
 import org.silkframework.util.{ConfigTestTrait, Identifier, MockitoSugar}
 import org.silkframework.workspace.WorkspaceTest._
@@ -39,14 +40,14 @@ class WorkspaceTest extends AnyFlatSpec with Matchers with ConfigTestTrait with 
     val started = new AtomicBoolean(false)
     Future {
       started.set(true)
-      workspace.projects.headOption
+      workspace.userProjects.headOption
     }
     while(!started.get()) {
       Thread.sleep(1)
     }
     Thread.sleep(1)
     intercept[ServiceUnavailableException] {
-      workspace.projects.headOption
+      workspace.userProjects.headOption
     }
   }
 
@@ -67,12 +68,12 @@ class WorkspaceTest extends AnyFlatSpec with Matchers with ConfigTestTrait with 
     val workspace = new Workspace(workspaceProvider, InMemoryResourceRepository())
 
     // Make sure that all projects and tasks have been loaded
-    workspace.projects.map(_.config.id) mustBe Seq(project1, project2)
+    workspace.userProjects.map(_.config.id) mustBe Seq(project1, project2)
     workspace.project(project1).allTasks.map(_.id) mustBe Seq(task1)
     workspace.project(project2).allTasks.map(_.id) mustBe Seq(task2)
 
     // Wait until the test activities have been started
-    val testActivities = workspace.projects.flatMap(_.tasks[TestTask]).map(_.activity[TestActivity].control)
+    val testActivities = workspace.userProjects.flatMap(_.tasks[TestTask]).map(_.activity[TestActivity].control)
     while(testActivities.exists(_.startTime.isEmpty)) {
       Thread.sleep(50)
     }
@@ -139,12 +140,67 @@ class WorkspaceTest extends AnyFlatSpec with Matchers with ConfigTestTrait with 
     projectConfig2.prefixes.get(projectPrefix) must not be defined
   }
 
+  it should "use the loading user for provider write calls when access control is enabled" in {
+    ConfigTestTrait.withConfig("workspace.accessControl.enabled" -> Some("true")) {
+      val recordingProvider = new RecordingWorkspaceProvider()
+      val workspace = new Workspace(recordingProvider, InMemoryResourceRepository())
+      val adminUser = SimpleUserContext(Some(DefaultUserManager.get("urn:admin")))
+      val regularUser = SimpleUserContext(Some(DefaultUserManager.get("urn:regular")))
+
+      // Initialize workspace with admin user
+      workspace.initProjects()(adminUser)
+      recordingProvider.recordedUsers.clear()
+
+      // Create project with regular user — provider should receive admin user
+      workspace.createProject(ProjectConfig("testProject", metaData = MetaData(Some("testProject"))))(regularUser)
+      recordingProvider.recordedUsers must contain(("putProject", adminUser))
+
+      recordingProvider.recordedUsers.clear()
+
+      // Remove project with regular user — provider should receive admin user
+      workspace.removeProject("testProject")(regularUser)
+      recordingProvider.recordedUsers must contain(("deleteProject", adminUser))
+    }
+  }
+
   override def propertyMap: Map[String, Option[String]] = Map(
     "workspace.timeouts.waitForWorkspaceInitialization" -> Some("1")
   )
 }
 
 object WorkspaceTest {
+
+  /**
+    * Workspace provider that records the UserContext passed to write methods.
+    */
+  class RecordingWorkspaceProvider extends InMemoryWorkspaceProvider {
+
+    import scala.collection.mutable
+
+    val recordedUsers: mutable.Buffer[(String, UserContext)] = mutable.Buffer.empty
+
+    override def putProject(project: ProjectConfig)(implicit userContext: UserContext): Unit = {
+      recordedUsers += (("putProject", userContext))
+      super.putProject(project)
+    }
+
+    override def deleteProject(name: Identifier)(implicit userContext: UserContext): Unit = {
+      recordedUsers += (("deleteProject", userContext))
+      super.deleteProject(name)
+    }
+
+    override def putTask[T <: TaskSpec : ClassTag](project: Identifier, task: Task[T], resources: ResourceManager)
+                                                   (implicit userContext: UserContext): Unit = {
+      recordedUsers += (("putTask", userContext))
+      super.putTask(project, task, resources)
+    }
+
+    override def deleteTask[T <: TaskSpec : ClassTag](project: Identifier, task: Identifier)
+                                                      (implicit userContext: UserContext): Unit = {
+      recordedUsers += (("deleteTask", userContext))
+      super.deleteTask(project, task)
+    }
+  }
 
   /**
     * Workspace provider that keeps track on when projects and tasks have been loaded.
