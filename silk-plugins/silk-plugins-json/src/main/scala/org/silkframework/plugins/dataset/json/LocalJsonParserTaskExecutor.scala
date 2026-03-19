@@ -6,7 +6,7 @@ import org.silkframework.entity.{Entity, EntitySchema, MultiEntitySchema}
 import org.silkframework.execution._
 import org.silkframework.execution.local._
 import org.silkframework.runtime.activity.{ActivityContext, ActivityMonitor}
-import org.silkframework.runtime.iterator.{CloseableIterator, RepeatedIterator}
+import org.silkframework.runtime.iterator.{CloseableIterator, RepeatedIterator, RewindableEntityIterator}
 import org.silkframework.runtime.plugin.PluginContext
 import org.silkframework.runtime.resource.InMemoryResourceManager
 
