@@ -16,6 +16,7 @@ package org.silkframework.rule.plugins.distance.numeric
 
 import java.util.logging.Logger
 import org.silkframework.entity.Index
+import org.silkframework.rule.plugins.distance.equality.NumericEqualityMetric
 import org.silkframework.rule.similarity.SingleValueDistanceMeasure
 import org.silkframework.runtime.plugin.annotations.{Param, Plugin, PluginReference}
 import org.silkframework.util.StringUtils._
@@ -29,7 +30,7 @@ import scala.math._
   description = "Computes the numeric distance between two numbers.",
   relatedPlugins = Array(
     new PluginReference(
-      id = "numericEquality",
+      id = NumericEqualityMetric.pluginId,
       description = "Numeric similarity measures how far apart two numbers are; Numeric equality asks only whether they match, with no in-between value."
     )
   )
