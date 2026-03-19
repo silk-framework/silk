@@ -12,9 +12,12 @@ The Compare dates plugin is therefore not a simple left-against-right comparison
 
 If several valid dates are present on one or both sides, the plugin does not compare them pairwise by position. It also does not return `1` merely because some date on the left side is smaller or greater than some date on the right side.
 
-For the ordering comparators, the relation must hold across the two inputs as a whole. This is decided through the extreme values on both sides.
+For the ordering comparators, the relation must hold across the two inputs as a whole. This is decided through the extreme values on both sides:
 
-For `<`, the latest valid date on the left side must still be earlier than the earliest valid date on the right side. For `<=`, the latest valid date on the left side must be earlier than or equal to the earliest valid date on the right side. For `>`, the earliest valid date on the left side must still be later than the latest valid date on the right side. For `>=`, the earliest valid date on the left side must be later than or equal to the latest valid date on the right side.
+* For `<`, the latest valid date on the left side must still be earlier than the earliest valid date on the right side.
+* For `<=`, the latest valid date on the left side must be earlier than or equal to the earliest valid date on the right side.
+* For `>`, the earliest valid date on the left side must still be later than the latest valid date on the right side.
+* For `>=`, the earliest valid date on the left side must be later than or equal to the latest valid date on the right side.
 
 In other words: for the ordering comparators, one side must lie completely before or completely after the other side, depending on the chosen comparator. That is the point of the extrema-based comparison.
 
