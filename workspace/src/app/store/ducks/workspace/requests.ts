@@ -373,8 +373,8 @@ export const requestStartProjectImport = async (
     groups?: string[],
 ): Promise<FetchResponse<void>> => {
     const params: any = {
-        generateNewId,
-        overwriteExistingProject,
+        generateNewId: generateNewId,
+        overwriteExisting: overwriteExistingProject,
     };
     if (groups) {
         params.groups = groups;
