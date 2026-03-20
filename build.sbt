@@ -147,6 +147,14 @@ lazy val workspace = (project in file("silk-workspace"))
 // Plugins
 //////////////////////////////////////////////////////////////////////////////
 
+lazy val pluginsTemplatingJinja = (project in file("silk-plugins/silk-plugins-templating-jinja"))
+  .dependsOn(rules % "compile->compile;test->test", workbenchCore)
+  .settings(commonSettings *)
+  .settings(
+    name := "Silk Plugins Templating Jinja",
+    libraryDependencies += "com.hubspot.jinjava" % "jinjava" % "2.8.3"
+  )
+
 lazy val pluginsRdf = (project in file("silk-plugins/silk-plugins-rdf"))
   .dependsOn(rules, workspace % "test->test;compile->compile", core % "test->test;compile->compile", pluginsCsv % "test->compile")
   .settings(commonSettings *)
@@ -222,8 +230,8 @@ lazy val persistentCaching = (project in file("silk-plugins/silk-persistent-cach
 
 // Aggregate all plugins
 lazy val plugins = (project in file("silk-plugins"))
-  .dependsOn(pluginsRdf, pluginsCsv, pluginsXml, pluginsJson, pluginsAsian, serializationJson, persistentCaching)
-  .aggregate(pluginsRdf, pluginsCsv, pluginsXml, pluginsJson, pluginsAsian, serializationJson, persistentCaching)
+  .dependsOn(pluginsRdf, pluginsCsv, pluginsXml, pluginsJson, pluginsAsian, serializationJson, persistentCaching, pluginsTemplatingJinja)
+  .aggregate(pluginsRdf, pluginsCsv, pluginsXml, pluginsJson, pluginsAsian, serializationJson, persistentCaching, pluginsTemplatingJinja)
   .settings(commonSettings *)
   .settings(
     name := "Silk Plugins"
