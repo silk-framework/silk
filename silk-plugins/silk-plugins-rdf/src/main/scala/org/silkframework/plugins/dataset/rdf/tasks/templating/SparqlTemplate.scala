@@ -4,11 +4,10 @@ import org.apache.jena.update.UpdateFactory
 import org.silkframework.entity.EntitySchema
 import org.silkframework.entity.paths.UntypedPath
 import org.silkframework.execution.local.EmptyEntityTable
-import org.silkframework.runtime.templating.CompiledTemplate
+import org.silkframework.runtime.templating.{CompiledTemplate, TemplateVariableName}
 import org.silkframework.runtime.validation.ValidationException
 
 import java.io.StringWriter
-import scala.jdk.CollectionConverters.{MapHasAsJava, MapHasAsScala}
 import scala.util.{Failure, Success, Try}
 
 /**
@@ -18,23 +17,24 @@ class SparqlTemplate(template: CompiledTemplate) {
 
   /** Renders the template based on the variable assignments. */
   def generate(placeholderAssignments: Map[String, String], taskProperties: TaskProperties): String = {
-    val values = new java.util.LinkedHashMap[String, AnyRef]()
-    placeholderAssignments.foreach { case (k, v) => values.put(k, v) }
-    if (taskProperties.inputTask.nonEmpty) {
-      values.put("inputProperties", taskProperties.inputTask.asJava)
-    }
-    if (taskProperties.outputTask.nonEmpty) {
-      values.put("outputProperties", taskProperties.outputTask.asJava)
-    }
+    val values = scala.collection.mutable.LinkedHashMap[String, AnyRef]()
+    // Flat entity values (used by simple template engine)
+    placeholderAssignments.foreach { case (k, v) => values(k) = v }
+    // SPARQL context objects (used by Velocity engine)
+    values(SparqlVelocityTemplating.ROW_VAR_NAME) = Row(placeholderAssignments)
+    values(SparqlVelocityTemplating.INPUT_PROPERTIES_VAR_NAME) = InputProperties(taskProperties.inputTask)
+    values(SparqlVelocityTemplating.OUTPUT_PROPERTIES_VAR_NAME) = OutputProperties(taskProperties.outputTask)
     val writer = new StringWriter()
-    template.evaluate(values.asScala.toMap, writer)
+    template.evaluate(values.toMap, writer)
     writer.toString
   }
 
   /** Validates the template, including batch validation if batchSize > 1. */
   def validate(batchSize: Int): Unit = {
     template match {
-      case compiled: SparqlVelocityCompiledTemplate if compiled.usesRawUnsafe() =>
+      case compiled: VelocityCompiledTemplate
+        if SparqlVelocityTemplating.templatingVariables.exists(varName =>
+          compiled.variableMethodUsages(varName).exists(_.rowMethod == "rawUnsafe")) =>
         // We cannot generate meaningful example values for the template if $row.rawUnsafe() is used, because it could generate arbitrary SPARQL syntax.
       case _ =>
         // Generate example input assignments
@@ -78,15 +78,28 @@ class SparqlTemplate(template: CompiledTemplate) {
 
   /** True if the given template is static, i.e. contains no placeholder variables. */
   def isStaticTemplate: Boolean = {
-    template.variables match {
+    sparqlVariables match {
       case Some(vars) => vars.isEmpty
       case None => false
     }
   }
 
+  /** Returns SPARQL-specific variables, extracting paths from method usages for Velocity templates. */
+  private lazy val sparqlVariables: Option[Seq[TemplateVariableName]] = template match {
+    case compiled: VelocityCompiledTemplate =>
+      val rowVars = compiled.variableMethodUsages(SparqlVelocityTemplating.ROW_VAR_NAME)
+        .map(u => new TemplateVariableName(u.parameterValue, ""))
+      val inputPropVars = compiled.variableMethodUsages(SparqlVelocityTemplating.INPUT_PROPERTIES_VAR_NAME)
+        .map(u => new TemplateVariableName(u.parameterValue, "inputProperties"))
+      val outputPropVars = compiled.variableMethodUsages(SparqlVelocityTemplating.OUTPUT_PROPERTIES_VAR_NAME)
+        .map(u => new TemplateVariableName(u.parameterValue, "outputProperties"))
+      Some((rowVars ++ inputPropVars ++ outputPropVars).distinct)
+    case _ => template.variables
+  }
+
   /** Returns entity variable names (those with empty scope). */
   private def entityVariableNames: Seq[String] = {
-    template.variables match {
+    sparqlVariables match {
       case Some(vars) =>
         vars.filter(_.scope.isEmpty).map(_.name).distinct
       case None =>
@@ -96,7 +109,7 @@ class SparqlTemplate(template: CompiledTemplate) {
 
   /** Returns variable names for a specific scope (e.g. "inputProperties", "outputProperties"). */
   private def taskPropertyVariableNames(scope: String): Seq[String] = {
-    template.variables match {
+    sparqlVariables match {
       case Some(vars) =>
         vars.filter(_.scope == scope).map(_.name).distinct
       case None =>
