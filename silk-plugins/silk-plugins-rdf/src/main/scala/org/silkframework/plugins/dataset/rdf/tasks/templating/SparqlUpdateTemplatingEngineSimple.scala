@@ -17,7 +17,8 @@ import scala.util.matching.Regex
 @Plugin(
   id = SparqlSimpleTemplateEngine.id,
   label = "Simple (deprecated)",
-  description = "A simple templating engine that supports plain literal and URI placeholders."
+  description = "A simple templating engine that supports plain literal and URI placeholders.",
+  deprecation = "This template engine is deprecated. Please use the 'Jinja' template engine instead."
 )
 case class SparqlSimpleTemplateEngine() extends TemplateEngine {
 

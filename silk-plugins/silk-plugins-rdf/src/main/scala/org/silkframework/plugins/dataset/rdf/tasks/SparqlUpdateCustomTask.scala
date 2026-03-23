@@ -30,9 +30,10 @@ case class SparqlUpdateCustomTask(
   batchSize: Int = SparqlUpdateCustomTask.defaultBatchSize,
   @Param(
     value = "The templating mode for the template engine. See the general documentation of this plugin for further details on the features of each template engine.",
-    autoCompletionProvider = classOf[TemplateEngineAutocompletionProvider]
+    autoCompletionProvider = classOf[TemplateEngineAutocompletionProvider],
+    autoCompleteValueWithLabels = true
   )
-  templatingMode: String = SparqlSimpleTemplateEngine.id
+  templatingMode: String = "Jinja"
 ) extends CustomTask {
   assert(batchSize >= 1, "Batch size must be greater zero!")
 

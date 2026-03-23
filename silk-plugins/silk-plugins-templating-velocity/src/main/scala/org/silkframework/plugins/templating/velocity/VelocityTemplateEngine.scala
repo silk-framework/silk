@@ -16,7 +16,8 @@ import java.io.{StringReader, StringWriter, Writer}
 @Plugin(
   id = VelocityTemplateEngine.id,
   label = "Velocity (deprecated)",
-  description = "A templating engine based on Apache Velocity."
+  description = "A templating engine based on Apache Velocity.",
+  deprecation = "This template engine is deprecated. Please use the 'Jinja' template engine instead."
 )
 case class VelocityTemplateEngine() extends TemplateEngine {
 

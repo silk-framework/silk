@@ -1,6 +1,6 @@
 package org.silkframework.runtime.templating
 
-import org.silkframework.runtime.plugin.{PluginContext, PluginRegistry}
+import org.silkframework.runtime.plugin.{PluginContext, PluginDescription, PluginRegistry}
 
 /**
   * Manages available template engines.
@@ -10,8 +10,8 @@ object TemplateEngines {
   /**
     * Returns a list of all available template engines.
     */
-  def availableEngines: Set[String] = {
-    PluginRegistry.availablePlugins[TemplateEngine].map(_.id.toString).toSet
+  def availableEngines: Seq[PluginDescription[TemplateEngine]] = {
+    PluginRegistry.availablePlugins[TemplateEngine]
   }
 
   /**
