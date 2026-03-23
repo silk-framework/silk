@@ -12,12 +12,12 @@ import scala.collection.mutable.ArrayBuffer
 import scala.util.matching.Regex
 
 /**
-  * A simple SPARQL Update templating engine that supports plain literal and URI placeholders.
+  * A simple templating engine that supports plain literal and URI placeholders.
   */
 @Plugin(
   id = SparqlSimpleTemplateEngine.id,
-  label = "Simple SPARQL",
-  description = "A simple SPARQL Update templating engine that supports plain literal and URI placeholders."
+  label = "Simple (deprecated)",
+  description = "A simple templating engine that supports plain literal and URI placeholders."
 )
 case class SparqlSimpleTemplateEngine() extends TemplateEngine {
 

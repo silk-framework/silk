@@ -155,13 +155,20 @@ lazy val pluginsTemplatingJinja = (project in file("silk-plugins/silk-plugins-te
     libraryDependencies += "com.hubspot.jinjava" % "jinjava" % "2.8.3"
   )
 
+lazy val pluginsTemplatingVelocity = (project in file("silk-plugins/silk-plugins-templating-velocity"))
+  .dependsOn(rules % "compile->compile;test->test")
+  .settings(commonSettings *)
+  .settings(
+    name := "Silk Plugins Templating Velocity",
+    libraryDependencies += "org.apache.velocity" % "velocity-engine-core" % "2.4.1"
+  )
+
 lazy val pluginsRdf = (project in file("silk-plugins/silk-plugins-rdf"))
-  .dependsOn(rules, workspace % "test->test;compile->compile", core % "test->test;compile->compile", pluginsCsv % "test->compile", pluginsTemplatingJinja % "test->compile")
+  .dependsOn(rules, workspace % "test->test;compile->compile", core % "test->test;compile->compile", pluginsCsv % "test->compile", pluginsTemplatingJinja % "test->compile", pluginsTemplatingVelocity % "test->compile")
   .settings(commonSettings *)
   .settings(
     name := "Silk Plugins RDF",
-    libraryDependencies += "org.apache.jena" % "jena-fuseki-main" % "5.6.0" % "test",
-    libraryDependencies += "org.apache.velocity" % "velocity-engine-core" % "2.4.1"
+    libraryDependencies += "org.apache.jena" % "jena-fuseki-main" % "5.6.0" % "test"
 )
 
 lazy val pluginsCsv = (project in file("silk-plugins/silk-plugins-csv"))
@@ -230,8 +237,8 @@ lazy val persistentCaching = (project in file("silk-plugins/silk-persistent-cach
 
 // Aggregate all plugins
 lazy val plugins = (project in file("silk-plugins"))
-  .dependsOn(pluginsRdf, pluginsCsv, pluginsXml, pluginsJson, pluginsAsian, serializationJson, persistentCaching, pluginsTemplatingJinja)
-  .aggregate(pluginsRdf, pluginsCsv, pluginsXml, pluginsJson, pluginsAsian, serializationJson, persistentCaching, pluginsTemplatingJinja)
+  .dependsOn(pluginsRdf, pluginsCsv, pluginsXml, pluginsJson, pluginsAsian, serializationJson, persistentCaching, pluginsTemplatingJinja, pluginsTemplatingVelocity)
+  .aggregate(pluginsRdf, pluginsCsv, pluginsXml, pluginsJson, pluginsAsian, serializationJson, persistentCaching, pluginsTemplatingJinja, pluginsTemplatingVelocity)
   .settings(commonSettings *)
   .settings(
     name := "Silk Plugins"

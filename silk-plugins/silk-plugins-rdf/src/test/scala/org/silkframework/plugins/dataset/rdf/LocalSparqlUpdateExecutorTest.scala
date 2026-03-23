@@ -8,7 +8,7 @@ import org.silkframework.execution.{ExecutionReport, ExecutorOutput}
 import org.silkframework.execution.local.{GenericEntityTable, LocalEntities, LocalExecution}
 import org.silkframework.plugins.dataset.rdf.executors.LocalSparqlUpdateExecutor
 import org.silkframework.plugins.dataset.rdf.tasks.SparqlUpdateCustomTask
-import org.silkframework.plugins.dataset.rdf.tasks.templating.{SparqlSimpleTemplateEngine, VelocityTemplateEngine}
+import org.silkframework.plugins.dataset.rdf.tasks.templating.SparqlSimpleTemplateEngine
 import org.silkframework.runtime.activity.{ActivityContext, UserContext}
 import org.silkframework.runtime.plugin.{ParameterValues, PluginContext, TestPluginContext}
 import org.silkframework.runtime.validation.ValidationException
@@ -17,6 +17,7 @@ import org.silkframework.workspace.TestWorkspaceProviderTestTrait
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.must.Matchers
 import org.silkframework.execution.typed.SparqlUpdateEntitySchema
+import org.silkframework.plugins.templating.velocity.VelocityTemplateEngine
 
 class LocalSparqlUpdateExecutorTest extends AnyFlatSpec with Matchers with TestWorkspaceProviderTestTrait {
   behavior of "Local SPARQL Update Executor"

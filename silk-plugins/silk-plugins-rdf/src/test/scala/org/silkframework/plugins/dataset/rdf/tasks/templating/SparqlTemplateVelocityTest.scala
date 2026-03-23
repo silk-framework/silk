@@ -1,10 +1,11 @@
 package org.silkframework.plugins.dataset.rdf.tasks.templating
 
 import org.apache.jena.vocabulary.XSD
-
+import org.silkframework.plugins.templating.velocity.VelocityTemplateEngine
 import org.silkframework.runtime.validation.ValidationException
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.must.Matchers
+import org.silkframework.runtime.templating.exceptions.TemplateEvaluationException
 
 class SparqlTemplateVelocityTest extends AnyFlatSpec with Matchers {
 
@@ -71,6 +72,48 @@ class SparqlTemplateVelocityTest extends AnyFlatSpec with Matchers {
     intercept[ValidationException] {
       validate(sparqlUpdateTemplate.dropRight(1)) // Dropped ';' at the end, not batch supported
     }
+  }
+
+  it should "render a simple Velocity template" in {
+    val stringTemplate =
+      """SELECT * WHERE {
+        |  $row.uri("uriProp") rdfs:label $row.plainLiteral("stringProp")
+        |}""".stripMargin
+    val template = new SparqlTemplate(VelocityTemplateEngine().compile(stringTemplate))
+    for(i <- 1 to 10) {
+      val rendered = template.generate(Map("uriProp" -> s"http://entity$i", "stringProp" -> s"some label $i"), TaskProperties(Map.empty, Map.empty))
+      rendered mustBe
+        s"""SELECT * WHERE {
+           |  <http://entity$i> rdfs:label "some label $i"
+           |}""".stripMargin
+    }
+  }
+
+  it should "render templates safely as long as safe methods are used, no injection attack possible" in {
+    val template = generate("""$row.plainLiteral("var")""", Map("var" -> "\"Delete everything!!!\""))
+    template mustBe "\"\\\"Delete everything!!!\\\"\""
+  }
+
+  it should "fail if the value for uri() is not an URI" in {
+    intercept[TemplateEvaluationException] {
+      generate("""$row.uri("uri")""", Map("uri" -> "http:// broken Uri >"))
+    }
+  }
+
+  it should "throw exception when a non-available method or variable is used" in {
+    intercept[TemplateEvaluationException] {
+      generate("""Not existing $test""", Map.empty)
+    }
+    intercept[TemplateEvaluationException] {
+      generate("""Not existing $row.notExisting("blah")""", Map("a" -> "A"))
+    }
+    intercept[TemplateEvaluationException] {
+      generate("""Not existing $row.uri("notExists")""", Map("a" -> "A"))
+    }
+  }
+
+  private def generate(templateString: String, bindings: Map[String, String]): String = {
+    new SparqlTemplate(VelocityTemplateEngine().compile(templateString)).generate(bindings, TaskProperties(Map.empty, Map.empty))
   }
 
   def validate(template: String, batchSize: Int = 2): Unit = {

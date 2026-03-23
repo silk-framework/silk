@@ -4,6 +4,7 @@ import org.apache.jena.update.UpdateFactory
 import org.silkframework.entity.EntitySchema
 import org.silkframework.entity.paths.UntypedPath
 import org.silkframework.execution.local.EmptyEntityTable
+import org.silkframework.plugins.dataset.rdf.tasks.templating.SparqlTemplate.{InputProperties, OutputProperties, Row}
 import org.silkframework.runtime.templating.{CompiledTemplate, TemplateMethodUsage, TemplateVariableName}
 import org.silkframework.runtime.validation.ValidationException
 
@@ -21,9 +22,9 @@ class SparqlTemplate(template: CompiledTemplate) {
     // Flat entity values (used by simple template engine)
     placeholderAssignments.foreach { case (k, v) => values(k) = v }
     // SPARQL context objects (used by Velocity engine)
-    values(SparqlVelocityTemplating.ROW_VAR_NAME) = Row(placeholderAssignments)
-    values(SparqlVelocityTemplating.INPUT_PROPERTIES_VAR_NAME) = InputProperties(taskProperties.inputTask)
-    values(SparqlVelocityTemplating.OUTPUT_PROPERTIES_VAR_NAME) = OutputProperties(taskProperties.outputTask)
+    values(SparqlTemplate.ROW_VAR_NAME) = Row(placeholderAssignments)
+    values(SparqlTemplate.INPUT_PROPERTIES_VAR_NAME) = InputProperties(taskProperties.inputTask)
+    values(SparqlTemplate.OUTPUT_PROPERTIES_VAR_NAME) = OutputProperties(taskProperties.outputTask)
     val writer = new StringWriter()
     template.evaluate(values.toMap, writer)
     writer.toString
@@ -86,13 +87,13 @@ class SparqlTemplate(template: CompiledTemplate) {
 
   /** Returns SPARQL-specific variables, extracting paths from method usages. */
   private lazy val sparqlVariables: Option[Seq[TemplateVariableName]] = {
-    val usages = SparqlVelocityTemplating.templatingVariables.flatMap(v => template.methodUsages(v))
+    val usages = SparqlTemplate.templatingVariables.flatMap(v => template.methodUsages(v))
     if (usages.nonEmpty) {
-      val rowVars = sparqlMethodUsages(SparqlVelocityTemplating.ROW_VAR_NAME)
+      val rowVars = sparqlMethodUsages(SparqlTemplate.ROW_VAR_NAME)
         .map(u => new TemplateVariableName(u.parameterValue, ""))
-      val inputPropVars = sparqlMethodUsages(SparqlVelocityTemplating.INPUT_PROPERTIES_VAR_NAME)
+      val inputPropVars = sparqlMethodUsages(SparqlTemplate.INPUT_PROPERTIES_VAR_NAME)
         .map(u => new TemplateVariableName(u.parameterValue, "inputProperties"))
-      val outputPropVars = sparqlMethodUsages(SparqlVelocityTemplating.OUTPUT_PROPERTIES_VAR_NAME)
+      val outputPropVars = sparqlMethodUsages(SparqlTemplate.OUTPUT_PROPERTIES_VAR_NAME)
         .map(u => new TemplateVariableName(u.parameterValue, "outputProperties"))
       Some((rowVars ++ inputPropVars ++ outputPropVars).distinct)
     } else {
@@ -107,7 +108,7 @@ class SparqlTemplate(template: CompiledTemplate) {
 
   /** Checks if any SPARQL templating variable uses the rawUnsafe method. */
   private lazy val usesRawUnsafe: Boolean = {
-    SparqlVelocityTemplating.templatingVariables.exists(varName =>
+    SparqlTemplate.templatingVariables.exists(varName =>
       sparqlMethodUsages(varName).exists(_.methodName == "rawUnsafe"))
   }
 
@@ -130,6 +131,47 @@ class SparqlTemplate(template: CompiledTemplate) {
         Seq.empty
     }
   }
+}
+
+object SparqlTemplate {
+
+  final val ROW_VAR_NAME = "row"
+  final val INPUT_PROPERTIES_VAR_NAME = "inputProperties"
+  final val OUTPUT_PROPERTIES_VAR_NAME = "outputProperties"
+
+  final val templatingVariables = Seq(ROW_VAR_NAME, INPUT_PROPERTIES_VAR_NAME, OUTPUT_PROPERTIES_VAR_NAME)
+
+  /** Row API used in SPARQL templates. Represents a single row where input paths are either exactly one value or empty.
+   *
+   * The Row object will be available in Velocity templates as 'row' variable.
+   *
+   * Examples:
+   *
+   * <pre>
+   *   $row.uri("urn:prop:uriProp") ## Renders the value of the input path as URI, e.g. <http://...>
+   *   $row.plainLiteral("urn:prop:stringProp") ## Renders the value of the input paths as plain string, e.g. "Quotes \" are escaped"
+   *   $row.rawUnsafe("urn:prop:trustedValuesOnly") ## Puts the value as it is into the rendered template. This is UNSAFE and prone to injection attacks.
+   *   #if ( $row.exists("urn:prop:valueMightNotExist") ) ## Checks if a value exists for the input path, i.e. values can always be optional.
+   *     $row.plainLiteral("urn:prop:valueMightNotExist") ## If no value exists for the input path then this would throw an exception
+   *   #end
+   * </pre>
+   *
+   * @param inputValues The map of existing input values, i.e. values that were defined by input paths, but where no value was available are not set.
+   */
+  case class Row(inputValues: Map[String, String]) extends TemplateValueAccessApi {
+    override val templateVarName: String = ROW_VAR_NAME
+  }
+
+  /** Similar to Row, but for the input task properties. */
+  case class InputProperties(inputValues: Map[String, String]) extends TemplateValueAccessApi {
+    override val templateVarName: String = INPUT_PROPERTIES_VAR_NAME
+  }
+
+  /** Similar to Row, but for the output task properties. */
+  case class OutputProperties(inputValues: Map[String, String]) extends TemplateValueAccessApi {
+    override val templateVarName: String = OUTPUT_PROPERTIES_VAR_NAME
+  }
+
 }
 
 /** Makes properties of the input and output task of a SPARQL Update operator execution available. */
