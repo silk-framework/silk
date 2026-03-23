@@ -10,7 +10,7 @@ SPARQL endpoint such as one of those [listed by the W3C](https://www.w3.org/wiki
 DBpedia.
 
 The **SPARQL dataset** (this plugin) is an instance of a **RDF dataset**. All RDF datasets provide the abstraction and
-functionality of a **SPARQL endpoint**. The SPARQL endpoint used in this plugin is a **remote** SPARQL endpoint. It can
+functionality of a SPARQL endpoint. The SPARQL endpoint used in this plugin is a remote SPARQL endpoint. It can
 handle and execute SPARQL [SELECT](https://www.w3.org/TR/rdf-sparql-query/#select),
 [ASK](https://www.w3.org/TR/rdf-sparql-query/#ask) and [CONSTRUCT](https://www.w3.org/TR/rdf-sparql-query/#construct)
 queries. Additionally, it can execute [updates](https://www.w3.org/TR/2013/REC-sparql11-update-20130321/#updateLanguage).
@@ -19,17 +19,17 @@ queries. Additionally, it can execute [updates](https://www.w3.org/TR/2013/REC-s
 
 A very simple example showcasing the usage of this plugin is the following idea: Use an online SPARQL Query Editor such
 as https://dbpedia.org/sparql, with a simple SPARQL query like `select distinct ?Concept where {[] a ?Concept} LIMIT 10`
-or similar. Use this plugin as a **source** dataset, and transform or transfer the SPARQL query results into a sink
-dataset such as a **CSV file**. A similar or related showcase example involves considering other output datasets such as
-an **in-memory dataset** or a **Knowledge Graph** such as the one handled by the Knowledge Graph plugin, which is
+or similar. Use this plugin as a source dataset, and transform or transfer the SPARQL query results into a sink
+dataset such as a CSV file. A similar or related showcase example involves considering other output datasets such as
+an in-memory dataset or a Knowledge Graph such as the one handled by the Knowledge Graph plugin, which is
 the flagship RDF dataset of
 [Corporate Memory](https://eccenca.com/products/enterprise-knowledge-graph-platform-corporate-memory).
 
 ## Related plugins
 
-Other types of RDF datasets are the **in-memory dataset**, the **RDF dataset**. These are worth considering if the
+Other types of RDF datasets are the in-memory dataset, the RDF dataset. These are worth considering if the
 information is short-lived or the dataset is small. A more durable and resilient solution is to use a proper
-**Knowledge Graph**.
+Knowledge Graph.
 
-The SPARQL dataset plugin can be used in conjunction with the **task** plugins for SPARQL `SELECT` and `CONSTRUCT`
+The SPARQL dataset plugin can be used in conjunction with the task plugins for SPARQL `SELECT` and `CONSTRUCT`
 queries, i.e. the plugins SPARQL Select query and SPARQL Construct query.
