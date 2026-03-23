@@ -4,7 +4,7 @@ import org.apache.jena.update.UpdateFactory
 import org.silkframework.entity.EntitySchema
 import org.silkframework.entity.paths.UntypedPath
 import org.silkframework.execution.local.EmptyEntityTable
-import org.silkframework.runtime.templating.{CompiledTemplate, TemplateVariableName}
+import org.silkframework.runtime.templating.{CompiledTemplate, TemplateMethodUsage, TemplateVariableName}
 import org.silkframework.runtime.validation.ValidationException
 
 import java.io.StringWriter
@@ -31,38 +31,35 @@ class SparqlTemplate(template: CompiledTemplate) {
 
   /** Validates the template, including batch validation if batchSize > 1. */
   def validate(batchSize: Int): Unit = {
-    template match {
-      case compiled: VelocityCompiledTemplate
-        if SparqlVelocityTemplating.templatingVariables.exists(varName =>
-          compiled.variableMethodUsages(varName).exists(_.rowMethod == "rawUnsafe")) =>
-        // We cannot generate meaningful example values for the template if $row.rawUnsafe() is used, because it could generate arbitrary SPARQL syntax.
-      case _ =>
-        // Generate example input assignments
-        val genericUri = "urn:generic:1"
-        val entityVariables = entityVariableNames
-        val assignments = entityVariables.map(_ -> genericUri).toMap
-        val inputPropVars = taskPropertyVariableNames("inputProperties").map(_ -> genericUri).toMap
-        val outputPropVars = taskPropertyVariableNames("outputProperties").map(_ -> genericUri).toMap
-        val taskProps = TaskProperties(inputPropVars, outputPropVars)
-        val sparqlQuery = Try(generate(assignments, taskProps)) match {
-          case Failure(exception) =>
-            throw new ValidationException(
-              "The SPARQL Update template could not be rendered with example values. Error message: " + exception.getMessage, exception)
-          case Success(value) => value
-        }
-        Try(UpdateFactory.create(sparqlQuery)).failed.toOption.foreach { parseError =>
+    if (usesRawUnsafe) {
+      // We cannot generate meaningful example values for the template if $row.rawUnsafe() is used, because it could generate arbitrary SPARQL syntax.
+    } else {
+      // Generate example input assignments
+      val genericUri = "urn:generic:1"
+      val entityVariables = entityVariableNames
+      val assignments = entityVariables.map(_ -> genericUri).toMap
+      val inputPropVars = taskPropertyVariableNames("inputProperties").map(_ -> genericUri).toMap
+      val outputPropVars = taskPropertyVariableNames("outputProperties").map(_ -> genericUri).toMap
+      val taskProps = TaskProperties(inputPropVars, outputPropVars)
+      val sparqlQuery = Try(generate(assignments, taskProps)) match {
+        case Failure(exception) =>
           throw new ValidationException(
-            "The SPARQL Update template does not generate valid SPARQL Update queries. Error message: " +
-              parseError.getMessage + ", example query: " + sparqlQuery)
+            "The SPARQL Update template could not be rendered with example values. Error message: " + exception.getMessage, exception)
+        case Success(value) => value
+      }
+      Try(UpdateFactory.create(sparqlQuery)).failed.toOption.foreach { parseError =>
+        throw new ValidationException(
+          "The SPARQL Update template does not generate valid SPARQL Update queries. Error message: " +
+            parseError.getMessage + ", example query: " + sparqlQuery)
+      }
+      if (batchSize > 1) {
+        val batchSparql = sparqlQuery + "\n" + sparqlQuery
+        Try(UpdateFactory.create(batchSparql)).failed.toOption.foreach { parseError =>
+          throw new ValidationException(
+            "The SPARQL Update template cannot be batched processed. There is probably a ';' missing at the end. Error message: " +
+              parseError.getMessage + ", example batch query: " + batchSparql)
         }
-        if (batchSize > 1) {
-          val batchSparql = sparqlQuery + "\n" + sparqlQuery
-          Try(UpdateFactory.create(batchSparql)).failed.toOption.foreach { parseError =>
-            throw new ValidationException(
-              "The SPARQL Update template cannot be batched processed. There is probably a ';' missing at the end. Error message: " +
-                parseError.getMessage + ", example batch query: " + batchSparql)
-          }
-        }
+      }
     }
   }
 
@@ -84,17 +81,34 @@ class SparqlTemplate(template: CompiledTemplate) {
     }
   }
 
-  /** Returns SPARQL-specific variables, extracting paths from method usages for Velocity templates. */
-  private lazy val sparqlVariables: Option[Seq[TemplateVariableName]] = template match {
-    case compiled: VelocityCompiledTemplate =>
-      val rowVars = compiled.variableMethodUsages(SparqlVelocityTemplating.ROW_VAR_NAME)
+  /** SPARQL-specific method names that accept a string parameter representing an input path. */
+  private val sparqlMethodNames = Set("uri", "plainLiteral", "rawUnsafe", "exists")
+
+  /** Returns SPARQL-specific variables, extracting paths from method usages. */
+  private lazy val sparqlVariables: Option[Seq[TemplateVariableName]] = {
+    val usages = SparqlVelocityTemplating.templatingVariables.flatMap(v => template.methodUsages(v))
+    if (usages.nonEmpty) {
+      val rowVars = sparqlMethodUsages(SparqlVelocityTemplating.ROW_VAR_NAME)
         .map(u => new TemplateVariableName(u.parameterValue, ""))
-      val inputPropVars = compiled.variableMethodUsages(SparqlVelocityTemplating.INPUT_PROPERTIES_VAR_NAME)
+      val inputPropVars = sparqlMethodUsages(SparqlVelocityTemplating.INPUT_PROPERTIES_VAR_NAME)
         .map(u => new TemplateVariableName(u.parameterValue, "inputProperties"))
-      val outputPropVars = compiled.variableMethodUsages(SparqlVelocityTemplating.OUTPUT_PROPERTIES_VAR_NAME)
+      val outputPropVars = sparqlMethodUsages(SparqlVelocityTemplating.OUTPUT_PROPERTIES_VAR_NAME)
         .map(u => new TemplateVariableName(u.parameterValue, "outputProperties"))
       Some((rowVars ++ inputPropVars ++ outputPropVars).distinct)
-    case _ => template.variables
+    } else {
+      template.variables
+    }
+  }
+
+  /** Returns method usages on the given variable filtered to SPARQL-specific methods. */
+  private def sparqlMethodUsages(variableName: String): Seq[TemplateMethodUsage] = {
+    template.methodUsages(variableName).filter(u => sparqlMethodNames.contains(u.methodName))
+  }
+
+  /** Checks if any SPARQL templating variable uses the rawUnsafe method. */
+  private lazy val usesRawUnsafe: Boolean = {
+    SparqlVelocityTemplating.templatingVariables.exists(varName =>
+      sparqlMethodUsages(varName).exists(_.methodName == "rawUnsafe"))
   }
 
   /** Returns entity variable names (those with empty scope). */

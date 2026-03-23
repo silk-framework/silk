@@ -3,7 +3,7 @@ package org.silkframework.plugins.dataset.rdf.tasks.templating
 import org.apache.velocity.VelocityContext
 import org.apache.velocity.runtime.parser.node._
 import org.silkframework.runtime.plugin.annotations.Plugin
-import org.silkframework.runtime.templating._
+import org.silkframework.runtime.templating.{CompiledTemplate, EvaluationConfig, TemplateEngine, TemplateMethodUsage, TemplateVariableName, TemplateVariableValue}
 
 import java.io.Writer
 
@@ -60,8 +60,7 @@ class VelocityCompiledTemplate(val templateString: String) extends CompiledTempl
     }
   }
 
-  // Extracts all method invocations on the given variable name in the template AST
-  private[templating] def variableMethodUsages(variableName: String): Seq[TemplateVariableMethodUsage] = {
+  override def methodUsages(variableName: String): Seq[TemplateMethodUsage] = {
     velocityTemplate.getData match {
       case simpleNode: SimpleNode =>
         retrieveMethodUsages(simpleNode, variableName)
@@ -70,18 +69,14 @@ class VelocityCompiledTemplate(val templateString: String) extends CompiledTempl
     }
   }
 
-  private final val methodsWithStringParameter = Set("uri", "plainLiteral", "rawUnsafe", "exists")
-
   /** Retrieves method usages on a given variable from the AST. */
-  private def retrieveMethodUsages(simpleNode: Node, varName: String): List[TemplateVariableMethodUsage] = {
+  private def retrieveMethodUsages(simpleNode: Node, varName: String): List[TemplateMethodUsage] = {
     simpleNode match {
       case astMethod: ASTMethod =>
         astReferenceName(astMethod.jjtGetParent()) match {
-          case Some(v) if v == varName &&
-              methodsWithStringParameter.contains(astMethod.getMethodName) &&
-              validStringMethodParameter(astMethod) =>
+          case Some(v) if v == varName && hasSingleStringParameter(astMethod) =>
             val parameterValue = astMethod.jjtGetChild(1).jjtGetChild(0).asInstanceOf[ASTStringLiteral].literal().stripPrefix("\"").stripSuffix("\"")
-            List(TemplateVariableMethodUsage(astMethod.getMethodName, parameterValue))
+            List(TemplateMethodUsage(astMethod.getMethodName, parameterValue))
           case _ =>
             List.empty
         }
@@ -90,8 +85,8 @@ class VelocityCompiledTemplate(val templateString: String) extends CompiledTempl
     }
   }
 
-  // Make sure that there is a single string constant as parameter
-  private def validStringMethodParameter(astMethod: ASTMethod): Boolean = {
+  /** Checks that there is a single string constant as parameter. */
+  private def hasSingleStringParameter(astMethod: ASTMethod): Boolean = {
     astMethod.jjtGetNumChildren() == 2 && {
       val parameter = astMethod.jjtGetChild(1)
       parameter.isInstanceOf[ASTExpression] &&
@@ -110,12 +105,10 @@ class VelocityCompiledTemplate(val templateString: String) extends CompiledTempl
     }
   }
 
-  private def retrieveChildMethodUsages(other: SimpleNode, varName: String): List[TemplateVariableMethodUsage] = {
+  private def retrieveChildMethodUsages(other: SimpleNode, varName: String): List[TemplateMethodUsage] = {
     val childPaths = for (idx <- 0 until other.jjtGetNumChildren()) yield {
       retrieveMethodUsages(other.jjtGetChild(idx), varName)
     }
-    childPaths.fold(List.empty[TemplateVariableMethodUsage])((a, b) => a ::: b)
+    childPaths.fold(List.empty[TemplateMethodUsage])((a, b) => a ::: b)
   }
 }
-
-case class TemplateVariableMethodUsage(rowMethod: String, parameterValue: String)
