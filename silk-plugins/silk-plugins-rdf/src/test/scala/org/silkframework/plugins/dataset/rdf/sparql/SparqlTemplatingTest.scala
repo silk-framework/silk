@@ -1,8 +1,10 @@
 package org.silkframework.plugins.dataset.rdf.sparql
-
-import org.silkframework.plugins.dataset.rdf.tasks.templating.{Row, SparqlVelocityTemplating, TaskProperties, TemplateExecutionException}
+
+
+import org.silkframework.plugins.dataset.rdf.tasks.templating.{Row, SparqlVelocityTemplating, TaskProperties}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.must.Matchers
+import org.silkframework.runtime.templating.exceptions.TemplateEvaluationException
 
 class SparqlTemplatingTest extends AnyFlatSpec with Matchers {
   behavior of "SPARQL Templating"
@@ -29,7 +31,7 @@ class SparqlTemplatingTest extends AnyFlatSpec with Matchers {
   }
 
   it should "fail if the value for uri() is not an URI" in {
-    intercept[TemplateExecutionException] {
+    intercept[TemplateEvaluationException] {
       executeTemplate("""$row.uri("uri")""", Map("uri" -> "http:// broken Uri >"))
     }
   }
@@ -39,13 +41,13 @@ class SparqlTemplatingTest extends AnyFlatSpec with Matchers {
   }
 
   it should "throw exception when a non-available method or variable is used" in {
-    intercept[TemplateExecutionException] {
+    intercept[TemplateEvaluationException] {
       executeTemplate("""Not existing $test""", Map.empty)
     }
-    intercept[TemplateExecutionException] {
+    intercept[TemplateEvaluationException] {
       executeTemplate("""Not existing $row.notExisting("blah")""", Map("a" -> "A"))
     }
-    intercept[TemplateExecutionException] {
+    intercept[TemplateEvaluationException] {
       executeTemplate("""Not existing $row.uri("notExists")""", Map("a" -> "A"))
     }
   }

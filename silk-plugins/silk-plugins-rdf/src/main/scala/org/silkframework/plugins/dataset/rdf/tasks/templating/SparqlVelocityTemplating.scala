@@ -9,6 +9,7 @@ import org.apache.velocity.exception.MethodInvocationException
 import org.apache.velocity.runtime.RuntimeSingleton
 import org.apache.velocity.{Template, VelocityContext}
 import org.silkframework.rule.util.JenaSerializationUtil
+import org.silkframework.runtime.templating.exceptions.TemplateEvaluationException
 
 import scala.util.Try
 
@@ -54,7 +55,7 @@ object SparqlVelocityTemplating {
     } catch {
       case ex: MethodInvocationException =>
         val adaptedMessage = prettifyExceptionMessage(Option(ex.getMessage).getOrElse(""))
-        throw TemplateExecutionException("Template could not be rendered. Error detail: " + adaptedMessage, ex)
+        throw new TemplateEvaluationException("Template could not be rendered. Error detail: " + adaptedMessage, Some(ex))
     }
   }
 
@@ -116,7 +117,7 @@ trait TemplateValueAccessApi {
   def uri(inputPath: String): String = {
     val value = objectValue(inputPath)
     if(Try(new URI(value)).isFailure) {
-      throw TemplateExecutionException(s"Value for input path '$inputPath' is not a valid URI: '$value'")
+      throw new TemplateEvaluationException(s"Value for input path '$inputPath' is not a valid URI: '$value'")
     }
     val uriNode = NodeFactory.createURI(value)
     JenaSerializationUtil.serializeSingleNode(uriNode)
@@ -132,7 +133,7 @@ trait TemplateValueAccessApi {
       case Some(value) =>
         value
       case None =>
-        throw TemplateExecutionException(s"Input path '$inputPath' did not exist in $$$templateVarName.")
+        throw new TemplateEvaluationException(s"Input path '$inputPath' did not exist in $$$templateVarName.")
     }
   }
 
@@ -149,5 +150,3 @@ trait TemplateValueAccessApi {
     objectValue(inputPath)
   }
 }
-
-case class TemplateExecutionException(message: String, cause: Throwable = null) extends RuntimeException(message, cause)
