@@ -6,8 +6,9 @@ import org.silkframework.runtime.validation.ValidationException
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.must.Matchers
 
-class SparqlTemplatingEngineVelocityTest extends AnyFlatSpec with Matchers {
-  behavior of "Velocity SPARQL Templating Engine"
+class SparqlTemplateVelocityTest extends AnyFlatSpec with Matchers {
+
+  behavior of "SPARQL templating with the Velocity Template Engine"
 
   private val sparqlUpdateTemplate =
     s"""PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>

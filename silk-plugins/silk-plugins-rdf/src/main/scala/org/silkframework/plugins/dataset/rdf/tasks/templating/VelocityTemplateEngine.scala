@@ -12,7 +12,7 @@ import java.io.Writer
   */
 @Plugin(
   id = VelocityTemplateEngine.id,
-  label = "Velocity Engine",
+  label = "Velocity",
   description = "A templating engine based on Apache Velocity."
 )
 case class VelocityTemplateEngine() extends TemplateEngine {
