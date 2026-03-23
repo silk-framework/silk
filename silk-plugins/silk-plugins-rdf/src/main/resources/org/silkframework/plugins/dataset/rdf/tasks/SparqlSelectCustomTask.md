@@ -2,7 +2,7 @@ The SPARQL SELECT plugin is a task for executing SPARQL SELECT queries on the in
 
 ## Description
 
-The `sparqlSelectOperator` plugin is an example of a _RDF task_ or _operator_. Such a task can be used in a workflow,
+The SPARQL Select query plugin is an example of a _RDF task_ or _operator_. Such a task can be used in a workflow,
 connecting an input to an output. In this specific case, the _input_ is — in essence — a _SPARQL endpoint_ and the
 _output_ is the entity table containing the _SPARQL results_ of the SPARQL SELECT query execution.
 
@@ -23,8 +23,8 @@ except when there already exists a `GRAPH` or `FROM` clause in the query. `FROM 
 
 ## Related plugins
 
-Other types of RDF tasks are the `sparqlCopyOperator` for executing SPARQL CONSTRUCT queries, and the
-`sparqlUpdateOperator` for building SPARQL UPDATE queries from a templating engine.
+Other types of RDF tasks are the SPARQL Construct query for executing SPARQL CONSTRUCT queries, and the
+SPARQL Update query for building SPARQL UPDATE queries from a templating engine.
 
 Regarding the input dataset, any RDF dataset is acceptable. For further details on the RDF datasets, see for example the
-documentation of the `sparqlEndpoint` plugin.
+documentation of the SPARQL endpoint plugin.
