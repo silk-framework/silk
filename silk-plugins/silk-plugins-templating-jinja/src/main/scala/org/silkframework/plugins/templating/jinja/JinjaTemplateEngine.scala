@@ -5,7 +5,7 @@ import com.hubspot.jinjava.tree.Node
 import com.hubspot.jinjava.{Jinjava, JinjavaConfig}
 import org.silkframework.runtime.plugin.annotations.Plugin
 import org.silkframework.runtime.templating.exceptions.{TemplateEvaluationException, UnboundVariablesException}
-import org.silkframework.runtime.templating.{CompiledTemplate, EvaluationConfig, TemplateEngine, TemplateVariableName, TemplateVariableValue}
+import org.silkframework.runtime.templating.{CompiledTemplate, EvaluationConfig, TemplateEngine, TemplateMethodUsage, TemplateVariableName, TemplateVariableValue}
 
 import java.io.Writer
 import java.util.EmptyStackException
@@ -77,6 +77,10 @@ class JinjaTemplate(val node: Node) extends CompiledTemplate {
   override val variables: Option[Seq[TemplateVariableName]] = {
     val result = new JinjaVariableCollector().collect(node)
     Some(result.unboundVars)
+  }
+
+  override def methodUsages(variableName: String): Seq[TemplateMethodUsage] = {
+    new JinjaMethodCollector().collect(node, variableName)
   }
 
   override def evaluate(values: Seq[TemplateVariableValue], writer: Writer, evaluationConfig: EvaluationConfig = EvaluationConfig()): Unit = {
