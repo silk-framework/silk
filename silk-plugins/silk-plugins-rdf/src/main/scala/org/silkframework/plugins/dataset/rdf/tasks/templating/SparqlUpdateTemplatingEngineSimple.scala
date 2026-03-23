@@ -23,7 +23,7 @@ import scala.util.matching.Regex
 case class SparqlSimpleTemplateEngine() extends TemplateEngine {
 
   override def compile(templateString: String): SparqlSimpleCompiledTemplate = {
-    new SparqlSimpleCompiledTemplate(templateString)
+    new SparqlSimpleCompiledTemplate(templateString.replace("\r\n", "\n"))
   }
 }
 

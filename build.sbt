@@ -164,7 +164,8 @@ lazy val pluginsTemplatingVelocity = (project in file("silk-plugins/silk-plugins
   )
 
 lazy val pluginsRdf = (project in file("silk-plugins/silk-plugins-rdf"))
-  .dependsOn(rules, workspace % "test->test;compile->compile", core % "test->test;compile->compile", pluginsCsv % "test->compile", pluginsTemplatingJinja % "test->compile", pluginsTemplatingVelocity % "test->compile")
+  .dependsOn(rules, workspace % "test->test;compile->compile", core % "test->test;compile->compile", pluginsCsv % "test->compile",
+             pluginsTemplatingJinja % "test->compile", pluginsTemplatingVelocity % "test->compile")
   .settings(commonSettings *)
   .settings(
     name := "Silk Plugins RDF",
@@ -380,7 +381,7 @@ lazy val workbenchCore = (project in file("silk-workbench/silk-workbench-core"))
 
 lazy val workbenchWorkspace = (project in file("silk-workbench/silk-workbench-workspace"))
   .enablePlugins(PlayScala)
-  .dependsOn(workbenchCore % "compile->compile;test->test", pluginsRdf, pluginsCsv % "test->compile", pluginsXml % "test->compile")
+  .dependsOn(workbenchCore % "compile->compile;test->test", pluginsRdf, pluginsCsv % "test->compile", pluginsXml % "test->compile", pluginsTemplatingJinja % "test->compile")
   .aggregate(workbenchCore)
   .settings(commonSettings *)
   .settings(

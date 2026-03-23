@@ -33,7 +33,7 @@ case class SparqlUpdateCustomTask(
     autoCompletionProvider = classOf[TemplateEngineAutocompletionProvider],
     autoCompleteValueWithLabels = true
   )
-  templatingMode: String = "Jinja"
+  templatingMode: String = "jinja"
 ) extends CustomTask {
   assert(batchSize >= 1, "Batch size must be greater zero!")
 
