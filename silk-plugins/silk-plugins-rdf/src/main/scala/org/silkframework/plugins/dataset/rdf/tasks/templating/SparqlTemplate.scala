@@ -5,7 +5,7 @@ import org.silkframework.entity.EntitySchema
 import org.silkframework.entity.paths.UntypedPath
 import org.silkframework.execution.local.EmptyEntityTable
 import org.silkframework.plugins.dataset.rdf.tasks.templating.SparqlTemplate.{InputProperties, OutputProperties, Row}
-import org.silkframework.runtime.templating.{CompiledTemplate, TemplateMethodUsage, TemplateVariableName}
+import org.silkframework.runtime.templating.{CompiledTemplate, TemplateEngines, TemplateMethodUsage, TemplateVariableName}
 import org.silkframework.runtime.validation.ValidationException
 
 import java.io.StringWriter
@@ -16,7 +16,12 @@ import scala.util.{Failure, Success, Try}
   */
 class SparqlTemplate(template: CompiledTemplate) {
 
-  /** Renders the template based on the variable assignments. */
+  /**
+   * Renders the template based on the variable assignments.
+   *
+   * @param placeholderAssignments For each placeholder in the query template.
+   * @param taskProperties The input and output task properties.
+   * */
   def generate(placeholderAssignments: Map[String, String], taskProperties: TaskProperties): String = {
     val values = scala.collection.mutable.LinkedHashMap[String, AnyRef]()
     // Flat entity values (used by simple template engine)
@@ -135,11 +140,21 @@ class SparqlTemplate(template: CompiledTemplate) {
 
 object SparqlTemplate {
 
-  final val ROW_VAR_NAME = "row"
-  final val INPUT_PROPERTIES_VAR_NAME = "inputProperties"
-  final val OUTPUT_PROPERTIES_VAR_NAME = "outputProperties"
+  private final val ROW_VAR_NAME = "row"
+  private final val INPUT_PROPERTIES_VAR_NAME = "inputProperties"
+  private final val OUTPUT_PROPERTIES_VAR_NAME = "outputProperties"
 
-  final val templatingVariables = Seq(ROW_VAR_NAME, INPUT_PROPERTIES_VAR_NAME, OUTPUT_PROPERTIES_VAR_NAME)
+  private final val templatingVariables = Seq(ROW_VAR_NAME, INPUT_PROPERTIES_VAR_NAME, OUTPUT_PROPERTIES_VAR_NAME)
+
+  /**
+   * Creates a SPARQL template from a string.
+   */
+  def create(templateEngineId: String, template: String, batchSize: Int): SparqlTemplate = {
+    val templateEngine = TemplateEngines.create(templateEngineId)
+    val sparqlTemplate = new SparqlTemplate(templateEngine.compile(template))
+    sparqlTemplate.validate(batchSize)
+    sparqlTemplate
+  }
 
   /** Row API used in SPARQL templates. Represents a single row where input paths are either exactly one value or empty.
    *

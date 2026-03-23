@@ -2,10 +2,12 @@ package org.silkframework.plugins.templating.velocity
 
 import org.apache.velocity.VelocityContext
 import org.apache.velocity.context.Context
+import org.apache.velocity.exception.MethodInvocationException
 import org.apache.velocity.runtime.parser.node._
 import org.apache.velocity.{Template => VelocityTemplate}
 import org.apache.velocity.runtime.RuntimeSingleton
 import org.silkframework.runtime.plugin.annotations.Plugin
+import org.silkframework.runtime.templating.exceptions.TemplateEvaluationException
 import org.silkframework.runtime.templating.{CompiledTemplate, EvaluationConfig, TemplateEngine, TemplateMethodUsage, TemplateVariableName, TemplateVariableValue}
 
 import java.io.{StringReader, StringWriter, Writer}
@@ -44,7 +46,15 @@ object VelocityTemplateEngine {
   /** Renders the template with the given context. */
   def renderTemplate(template: VelocityTemplate, context: Context): String = {
     val writer = new StringWriter()
-    template.merge(context, writer)
+    try {
+      template.merge(context, writer)
+    } catch {
+      case ex: MethodInvocationException =>
+        ex.getCause match {
+          case cause: TemplateEvaluationException => throw cause
+          case _ => throw new TemplateEvaluationException(ex.getMessage, Some(ex))
+        }
+    }
     writer.toString
   }
 }

@@ -69,7 +69,7 @@ class SparqlUpdateTemplatingEngineSimpleTest extends AnyFlatSpec with Matchers {
   }
 
   it should "generate the correct SPARQL Update query from the template" in {
-    SparqlUpdateCustomTask(sparqlUpdateTemplate).generate(Map(
+    SparqlUpdateCustomTask(sparqlUpdateTemplate).compiledTemplate.generate(Map(
       "PROP_FROM_ENTITY_SCHEMA1" -> "urn:some:uri",
       "PROP_FROM_ENTITY_SCHEMA2" -> "the old label",
       "PROP_FROM_ENTITY_SCHEMA3" ->

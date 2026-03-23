@@ -37,7 +37,7 @@ case class LocalSparqlUpdateExecutor() extends LocalExecutor[SparqlUpdateCustomT
            values = expectedSchema.typedPaths.map(tp => entity.valueOfPath(tp.toUntypedPath)) if values.forall(_.nonEmpty)) {
         val it = CrossProductIterator(values, expectedProperties)
         while (it.hasNext) {
-          val query = updateTask.generate(it.next(), taskProperties)
+          val query = updateTask.compiledTemplate.generate(it.next(), taskProperties)
           batchEmitter.update(query)
         }
       }
@@ -75,7 +75,7 @@ case class LocalSparqlUpdateExecutor() extends LocalExecutor[SparqlUpdateCustomT
                                  outputTask: Option[Task[_ <: TaskSpec]] = None)
                                 (implicit pluginContext: PluginContext): Unit = {
     val taskProperties = createTaskProperties(inputTask = inputTask, outputTask = outputTask, pluginContext = pluginContext)
-    val query = updateTask.generate(Map.empty, taskProperties)
+    val query = updateTask.compiledTemplate.generate(Map.empty, taskProperties)
     batchEmitter.update(query)
   }
 
