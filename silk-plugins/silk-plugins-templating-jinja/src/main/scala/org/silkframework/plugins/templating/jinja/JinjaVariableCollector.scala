@@ -93,11 +93,15 @@ class JinjaVariableCollector  {
   private def collectFromExpression(expression: String): Scope = {
     try {
       val tree = builder.build(EXPRESSION_START_TOKEN + expression + EXPRESSION_END_TOKEN)
-      // Manually treat simple expressions of the form `project.variable`
+      // Manually treat simple expressions of the form `project.variable` or `variable.method(...)`
       expression match {
         case JinjaVariableCollector.scopedName(scope, name) =>
           Scope(
             unboundVars = Seq(new TemplateVariableName(name, scope))
+          )
+        case JinjaVariableCollector.methodCallOnVar(varName) =>
+          Scope(
+            unboundVars = Seq(new TemplateVariableName(varName, ""))
           )
         case _ =>
           Scope(
@@ -106,7 +110,13 @@ class JinjaVariableCollector  {
       }
     } catch {
       case _: TreeBuilderException =>
-        Scope.empty
+        // Fallback: try to extract the leading variable from method call expressions like `var.method(...)`
+        expression match {
+          case JinjaVariableCollector.methodCallOnVar(varName) =>
+            Scope(unboundVars = Seq(new TemplateVariableName(varName, "")))
+          case _ =>
+            Scope.empty
+        }
     }
   }
 
@@ -159,5 +169,8 @@ object JinjaVariableCollector {
 
   // Regex for scoped names of the form scope.var
   private val scopedName = s"($variableRegex)\\.($variableRegex)".r
+
+  // Regex for method calls on a variable of the form var.method(...)
+  private val methodCallOnVar = s"($variableRegex)\\.$variableRegex\\(.*\\)".r
 
 }

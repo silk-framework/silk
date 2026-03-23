@@ -92,6 +92,17 @@ class JinjaVariableCollectorTest extends AnyFlatSpec with Matchers {
     collect("This is {{project.name}} from {{global.city}}.") shouldBe Seq("project.name", "global.city")
   }
 
+  it should "collect variables used in method calls" in {
+    collect(
+      """
+        | {{ row.uri("subject") }}
+        | {% if row.exists("somePath") %}
+        |   Plain: {{ row.plainLiteral("somePath") }}
+        |   Raw: {{ row.rawUnsafe("trustedValuePath") }}
+        | {% endif %}
+        |""".stripMargin) shouldBe Seq("row")
+  }
+
   it should "don't fail on empty expressions" in {
     collect("{{ }}".stripMargin) shouldBe Seq.empty
   }
