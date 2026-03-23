@@ -66,8 +66,10 @@ object ErrorResult {
     ex match {
       case requestEx: RequestException with JsonRequestException =>
         requestEx.additionalJson
-      case _ =>
-        Json.obj()
+      case requestEx: RequestException =>
+        JsObject(
+          requestEx.additionalData.map(data => data._1 -> JsString(data._2.toString)).toSeq
+        )
     }
   }
 

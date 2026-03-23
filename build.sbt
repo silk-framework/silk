@@ -148,7 +148,7 @@ lazy val workspace = (project in file("silk-workspace"))
 //////////////////////////////////////////////////////////////////////////////
 
 lazy val pluginsTemplatingJinja = (project in file("silk-plugins/silk-plugins-templating-jinja"))
-  .dependsOn(rules % "compile->compile;test->test", workbenchCore)
+  .dependsOn(rules % "compile->compile;test->test")
   .settings(commonSettings *)
   .settings(
     name := "Silk Plugins Templating Jinja",
@@ -156,7 +156,7 @@ lazy val pluginsTemplatingJinja = (project in file("silk-plugins/silk-plugins-te
   )
 
 lazy val pluginsRdf = (project in file("silk-plugins/silk-plugins-rdf"))
-  .dependsOn(rules, workspace % "test->test;compile->compile", core % "test->test;compile->compile", pluginsCsv % "test->compile")
+  .dependsOn(rules, workspace % "test->test;compile->compile", core % "test->test;compile->compile", pluginsCsv % "test->compile", pluginsTemplatingJinja % "test->compile")
   .settings(commonSettings *)
   .settings(
     name := "Silk Plugins RDF",

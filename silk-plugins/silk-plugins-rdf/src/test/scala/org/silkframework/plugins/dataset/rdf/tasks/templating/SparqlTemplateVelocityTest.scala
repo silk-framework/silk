@@ -29,16 +29,16 @@ class SparqlTemplateVelocityTest extends AnyFlatSpec with Matchers {
     compiled.variables.get.map(_.name).sorted mustBe Seq("row")
   }
 
-  private val templateWithLogic = s"""PREFIX xsd: <${XSD.getURI}>
-                                    |INSERT DATA {
-                                    |  <urn:entity:1> <urn:prop:1> "entity 1" .
-                                    |  #if ($$row.exists("input1"))
-                                    |    $$row.uri("input1") <urn:prop:2> $$row.plainLiteral("input2")^^xsd:string
-                                    |  #end
-                                    |};
-                                    |""".stripMargin
-
   it should "validate without problems for valid templates" in {
+    val templateWithLogic = s"""PREFIX xsd: <${XSD.getURI}>
+                               |INSERT DATA {
+                               |  <urn:entity:1> <urn:prop:1> "entity 1" .
+                               |  #if ($$row.exists("input1"))
+                               |    $$row.uri("input1") <urn:prop:2> $$row.plainLiteral("input2")^^xsd:string
+                               |  #end
+                               |};
+                               |""".stripMargin
+
     validate(sparqlUpdateTemplate)
     VelocityTemplateEngine().compile(templateWithLogic).variables.get.map(_.name).sorted mustBe Seq("row")
     validate(templateWithLogic)

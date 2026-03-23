@@ -75,7 +75,8 @@ object JinjaTemplateEngine {
 class JinjaTemplate(val node: Node) extends CompiledTemplate {
 
   override val variables: Option[Seq[TemplateVariableName]] = {
-    Some(new JinjaVariableCollector().collect(node).unboundVars)
+    val result = new JinjaVariableCollector().collect(node)
+    Some(result.unboundVars)
   }
 
   override def evaluate(values: Seq[TemplateVariableValue], writer: Writer, evaluationConfig: EvaluationConfig = EvaluationConfig()): Unit = {
