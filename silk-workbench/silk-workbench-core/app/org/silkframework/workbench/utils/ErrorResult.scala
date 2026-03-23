@@ -70,6 +70,8 @@ object ErrorResult {
         JsObject(
           requestEx.additionalData.map(data => data._1 -> JsString(data._2.toString)).toSeq
         )
+      case _ =>
+        Json.obj()
     }
   }
 
