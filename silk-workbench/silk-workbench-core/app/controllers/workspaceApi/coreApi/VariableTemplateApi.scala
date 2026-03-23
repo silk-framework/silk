@@ -17,6 +17,7 @@ import org.silkframework.runtime.templating.exceptions._
 import org.silkframework.runtime.templating.operations.{DeleteVariableModification, UpdateVariableModification, UpdateVariablesModification}
 import org.silkframework.runtime.templating.{GlobalTemplateVariables, TemplateVariable, TemplateVariables}
 import org.silkframework.runtime.validation.BadUserInputException
+import org.silkframework.serialization.json.JsonHelpers
 import org.silkframework.workspace.WorkspaceFactory
 import play.api.libs.json.{JsValue, Json, OFormat}
 import play.api.mvc.{Action, AnyContent, InjectedController}
@@ -101,7 +102,7 @@ class VariableTemplateApi @Inject()() extends InjectedController with UserContex
                    )
                    projectName: String): Action[JsValue] = RequestUserContextAction(parse.json) { implicit request => implicit userContext =>
     val project = WorkspaceFactory().workspace.project(projectName)
-    val variables = Json.fromJson[TemplateVariablesJson](request.body).get.convert
+    val variables = JsonHelpers.fromJsonValidated[TemplateVariablesJson](request.body).convert
     UpdateVariablesModification(project, variables).execute()
     Ok
   }
@@ -478,7 +479,7 @@ object VariableTemplateApi {
                                          requiredMode = RequiredMode.NOT_REQUIRED,
                                          implementation = classOf[TemplateVariableErrorJson]
                                      ))
-                                     errors: Seq[TemplateVariableErrorJson] = Seq.empty) {
+                                     errors: Option[Seq[TemplateVariableErrorJson]] = None) {
     def convert: TemplateVariables = {
       TemplateVariables(variables.map(_.convert))
     }
@@ -494,7 +495,7 @@ object VariableTemplateApi {
     }
 
     def apply(variables: TemplateVariables, ex: TemplateVariablesEvaluationException): TemplateVariablesJson = {
-      TemplateVariablesJson(variables.variables.map(TemplateVariableJson(_)), ex.issues.map(e => TemplateVariableErrorJson(e.variable.name, e.ex.getMessage)))
+      TemplateVariablesJson(variables.variables.map(TemplateVariableJson(_)), Some(ex.issues.map(e => TemplateVariableErrorJson(e.variable.name, e.ex.getMessage))))
     }
   }
 
