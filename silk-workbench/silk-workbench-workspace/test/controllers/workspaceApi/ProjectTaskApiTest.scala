@@ -94,7 +94,7 @@ class ProjectTaskApiTest extends AnyFlatSpec with SingleProjectWorkspaceProvider
     val datasetLabel = "In-memory dataset"
     val customLabel = "Custom SPARQL Update"
     val transformTask = "transformInContext"
-    project.addTask(customId, SparqlUpdateCustomTask("insert data {${<PROP_FROM_ENTITY_SCHEMA1>} <p> <o> }"), MetaData(Some(customLabel)))
+    project.addTask(customId, SparqlUpdateCustomTask("INSERT DATA { {{ row.uri(\"PROP_FROM_ENTITY_SCHEMA1\") }} <p> <o> }"), MetaData(Some(customLabel)))
     project.addTask(datasetId, DatasetSpec(InMemoryDataset()), metaData = MetaData(Some(datasetLabel)))
     project.addTask(transformTask, TransformSpec(DatasetSelection(datasetId), output = IdentifierOptionParameter(Some(Identifier(customId)))))
     val TaskContextResponse(inputTasks, outputTasks, originalInputs, originalOutputs) = taskContext(projectId, transformTask, WorkflowTaskContext(
