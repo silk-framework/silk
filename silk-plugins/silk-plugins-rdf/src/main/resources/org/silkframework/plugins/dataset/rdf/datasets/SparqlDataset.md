@@ -2,10 +2,10 @@ The SPARQL endpoint plugin is a dataset for connecting to an existing, remote SP
 
 ## Description
 
-The `sparqlEndpoint` plugin is an example of a _RDF dataset_. A **dataset** is a collection of data to be read from or
+The SPARQL endpoint plugin is an example of a _RDF dataset_. A **dataset** is a collection of data to be read from or
 written into, both a _source_ and a _sink_ of information. A **RDF dataset** is a dataset that can deal with RDF data.
 There are _several_ plugins for dealing with RDF datasets in the BUILD stage, depending on where the RDF dataset is
-located and how it is being accessed. In this case, the `sparqlEndpoint` dataset is a plugin that can access a _remote_
+located and how it is being accessed. In this case, the SPARQL endpoint dataset is a plugin that can access a _remote_
 SPARQL endpoint such as one of those [listed by the W3C](https://www.w3.org/wiki/SparqlEndpoints), e.g. Wikidata or
 DBpedia.
 
@@ -21,7 +21,7 @@ A very simple example showcasing the usage of this plugin is the following idea:
 as https://dbpedia.org/sparql, with a simple SPARQL query like `select distinct ?Concept where {[] a ?Concept} LIMIT 10`
 or similar. Use this plugin as a **source** dataset, and transform or transfer the SPARQL query results into a sink
 dataset such as a **CSV file**. A similar or related showcase example involves considering other output datasets such as
-an **in-memory dataset** or a **Knowledge Graph** such as the one handled by the `eccencaDataPlatform` plugin, which is
+an **in-memory dataset** or a **Knowledge Graph** such as the one handled by the Knowledge Graph plugin, which is
 the flagship RDF dataset of
 [Corporate Memory](https://eccenca.com/products/enterprise-knowledge-graph-platform-corporate-memory).
 
@@ -32,4 +32,4 @@ information is short-lived or the dataset is small. A more durable and resilient
 **Knowledge Graph**.
 
 The SPARQL dataset plugin can be used in conjunction with the **task** plugins for SPARQL `SELECT` and `CONSTRUCT`
-queries, i.e. the plugins `sparqlSelectOperator` and `sparqlCopyOperator`.
+queries, i.e. the plugins SPARQL Select query and SPARQL Construct query.
