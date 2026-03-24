@@ -16,18 +16,24 @@ package org.silkframework.rule.plugins.transformer.substring
 
 import org.silkframework.rule.annotations.{TransformExample, TransformExamples}
 import org.silkframework.rule.input.SimpleTransformer
-import org.silkframework.runtime.plugin.annotations.Plugin
+import org.silkframework.runtime.plugin.annotations.{Plugin, PluginReference}
 
 /**
- * Give a substring until the character given.
+ * Returns the substring preceding the first occurrence of a given character.
  *
  * @author Julien Plu
  */
 @Plugin(
-  id = "untilCharacter",
+  id = UntilCharacterTransformer.pluginId,
   categories = Array("Substring"),
   label = "Until character",
-  description = "Extracts the substring until the character given."
+  description = "Extracts the substring until the character given.",
+  relatedPlugins = Array(
+    new PluginReference(
+      id = SubstringTransformer.pluginId,
+      description = "Until character adapts to the content of each value: the extracted portion ends wherever the target character appears. Substring does not adapt; it cuts at configured numeric indices that are the same for every input."
+    )
+  )
 )
 @TransformExamples(Array(
   new TransformExample(
@@ -45,4 +51,8 @@ case class UntilCharacterTransformer(untilCharacter: Char) extends SimpleTransfo
   override def evaluate(value: String): String = {
     value.takeWhile(_ != untilCharacter)
   }
+}
+
+object UntilCharacterTransformer {
+  final val pluginId = "untilCharacter"
 }

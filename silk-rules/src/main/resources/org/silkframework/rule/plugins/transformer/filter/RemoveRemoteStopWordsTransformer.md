@@ -1,17 +1,19 @@
-The stop word list is retrieved from a remote URL such as
-[this German stop word list](https://raw.githubusercontent.com/stopwords-iso/stopwords-de/refs/heads/master/stopwords-de.txt).
+## Description
 
-Such an overridable stop word list file may be used, for instance, to specify the stop words of a different
-language, such as German instead of the
-[default stop word list](https://gist.githubusercontent.com/rg089/35e00abf8941d72d419224cfd5b5925d/raw/12d899b70156fd0041fa9778d657330b024b959c/stopwords.txt)
-for the English language.
+The Remove remote stop words plugin removes stop words from text based on a stop word list that is fetched from a remote URL. Concretely, the plugin first splits the input into tokens using the configured separator regular expression, then removes exactly those tokens whose lowercase form appears in the stop word list, and finally returns the remaining tokens as a single space-separated string.
 
-Regardless of the stop word list used, the following comments apply:
+The stop word list is retrieved from a remote URL such as [this German stop word list](https://raw.githubusercontent.com/stopwords-iso/stopwords-de/refs/heads/master/stopwords-de.txt). The point of the remote URL is not “being remote” for its own sake, but being replaceable: it lets the same operator be used with different languages or project-specific vocabularies, for example German stop words instead of the default stop word list for English.
 
-* Each line in the stop word list should contain a single stop word.
-* The removal of stop words is case-insensitive. For example, 'The' and 'the' are considered the same.
-* In the case of German words, notice that the upper-case letter of the lower-case 'ß' is 'ẞ', not 'SS'.
-* The separator defines a regular expression (regex) that is used for detecting words.
-* By default, the separator is a regular expression for non-whitespace characters.
+## Stop word list format and matching behavior
 
-Additionally, notice the simpler filter 'removeDefaultStopWords', which uses a default stop word list.
+The stop word list is expected to be a plain text file where each line contains exactly one stop word. Matching is case-insensitive, so `The` and `the` are treated as the same stop word. In the case of German words, that also means case mapping matters in the literal way: the uppercase letter of the lowercase `ß` is `ẞ`, not `SS`.
+
+## Splitting the input into words
+
+The separator parameter defines the regular expression used for detecting words, meaning it decides how the input is split into tokens before any lookup against the stop word list happens. By default, the separator is a regular expression for non-whitespace characters.
+
+This separator is therefore part of the semantic contract: it determines what even counts as a candidate token that could be removed by the stop word list.
+
+## Relation to other plugins
+
+The Remove default stop words plugin provides the same operation with a default stop word list.

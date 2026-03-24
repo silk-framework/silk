@@ -2,7 +2,11 @@ package org.silkframework.rule.plugins.transformer.selection
 
 import org.silkframework.rule.annotations.{TransformExample, TransformExamples}
 import org.silkframework.rule.input.Transformer
-import org.silkframework.runtime.plugin.annotations.Plugin
+import org.silkframework.rule.plugins.transformer.conditional.IfMatchesRegexTransformer
+import org.silkframework.rule.plugins.transformer.extraction.RegexExtractionTransformer
+import org.silkframework.rule.plugins.transformer.filter.FilterByRegex
+import org.silkframework.rule.plugins.transformer.replace.RegexReplaceTransformer
+import org.silkframework.runtime.plugin.annotations.{Plugin, PluginReference}
 
 /**
   * This transformer takes 3 inputs.
@@ -31,11 +35,29 @@ import org.silkframework.runtime.plugin.annotations.Plugin
   * }}}
   */
 @Plugin(
-  id = "regexSelect",
+  id = RegexSelectTransformer.pluginId,
   categories = Array("Selection"),
   label = "Regex selection",
   description = """This transformer takes 3 inputs: one output value, multiple regex patterns, and a value to check against those patterns. It returns the output value at positions where regex patterns match the input value.""",
-  documentationFile = "RegexSelectTransformer.md"
+  documentationFile = "RegexSelectTransformer.md",
+  relatedPlugins = Array(
+    new PluginReference(
+      id = RegexExtractionTransformer.pluginId,
+      description = "The Regex selection plugin returns the provided output value in a result sequence aligned with the regex list, filling only the positions whose pattern matches the checked value. The Regex extract plugin returns the matched substring itself, or the first capturing group, so the output is taken from the input text rather than from the provided output value."
+    ),
+    new PluginReference(
+      id = IfMatchesRegexTransformer.pluginId,
+      description = "The If matches regex plugin returns one of the provided branch inputs based on whether the checked value matches. The Regex selection plugin returns a result sequence aligned with the pattern list, placing the provided output value at every matching position."
+    ),
+    new PluginReference(
+      id = RegexReplaceTransformer.pluginId,
+      description = "The Regex replace plugin returns a rewritten string by replacing every match inside the input text with the configured replacement. The Regex selection plugin returns a result sequence aligned with the pattern list and fills each matching position with the provided output value."
+    ),
+    new PluginReference(
+      id = FilterByRegex.pluginId,
+      description = "The Regex selection plugin keeps the checked value out of the output and instead returns a pattern-list-shaped result filled with the provided output value where a pattern matches. The Filter by regex plugin keeps or drops values from the input sequence based on full-string matching."
+    )
+  )
 )
 @TransformExamples(Array(
   new TransformExample(
@@ -74,4 +96,8 @@ case class RegexSelectTransformer(oneOnly: Boolean = false) extends Transformer 
     }
     outputs
   }
+}
+
+object RegexSelectTransformer {
+  final val pluginId = "regexSelect"
 }
