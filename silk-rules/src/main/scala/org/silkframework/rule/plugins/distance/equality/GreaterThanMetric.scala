@@ -12,7 +12,7 @@ import org.silkframework.runtime.plugin.annotations.{Param, Plugin, PluginRefere
   relatedPlugins = Array(
     new PluginReference(
       id = LowerThanMetric.pluginId,
-      description = "The lower than plugin is the ordering complement: given the same inputs, it succeeds exactly where the greater than plugin does not."
+      description = "The Lower than plugin is the logical inverse of Greater than: given the same inputs, it returns 1.0 exactly where Greater than returns 0.0."
     )
   )
 )
