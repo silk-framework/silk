@@ -425,7 +425,7 @@ export function ProjectTaskTabView({
                                                     changeTab(tabItem.id ?? (tabItem as IItemLink));
                                                 }
                                             }}
-                                            tooltip={openInNewTab ? t("common.action.openInNewTabTooltip") : ""}
+                                            title={openInNewTab ? t("common.action.openInNewTabTooltip") : ""}
                                             href={
                                                 openInNewTab
                                                     ? tabItem.path
