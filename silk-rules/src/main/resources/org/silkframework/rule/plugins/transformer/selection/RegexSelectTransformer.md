@@ -23,7 +23,7 @@ characters, or `"\\D*"` for _non_-digits.
 Similarly, the hat sign `^` can be used for negating (arbitrary) character classes, such as `[^xyz]` for any character
 except `x`, `y` or `z`.
 
-**Attention**: Slashes in regular expressions have to be _escaped_, e.g. instead of `\s` we need to escape it as `\\s`.
+Attention: Slashes in regular expressions have to be _escaped_, e.g. instead of `\s` we need to escape it as `\\s`.
 
 ### Note for advanced users
 
@@ -32,10 +32,10 @@ A compilation of the available constructs for building regular expressions is av
 
 ## Relation to other plugins
 
-Additionally to the `regexSelect` plugin, there are related plugins such as `ifMatchesRegex`, `validateRegex`,
-`regexReplace` and `regexExtract`.
+Additionally to the Regex selection plugin, there are related plugins such as If matches regex, Validate regex,
+Regex replace and Regex extract.
 
 The distinctive feature of each of these plugins lies in what happens whenever the regular expression
-matches the input value(s): the `ifMatchesRegex` plugin is useful for _conditionally distinguishing_ which input to
-take, `validateRegex` is used for _validating_ the input, `regexReplace` _replaces_ all occurrences, and
-`regexExtract` _extracts_ them.
+matches the input value(s): the If matches regex plugin is useful for _conditionally distinguishing_ which input to
+take, Validate regex is used for _validating_ the input, Regex replace _replaces_ all occurrences, and
+Regex extract _extracts_ them.
