@@ -16,6 +16,7 @@ package org.silkframework.rule.plugins.transformer.numeric
 
 import org.silkframework.rule.annotations.{TransformExample, TransformExamples}
 import org.silkframework.rule.input.SimpleTransformer
+import org.silkframework.rule.plugins.transformer.replace.RegexReplaceTransformer
 import org.silkframework.runtime.plugin.annotations.{Plugin, PluginReference}
 
 @Plugin(
@@ -24,6 +25,10 @@ import org.silkframework.runtime.plugin.annotations.{Plugin, PluginReference}
   label = "Numeric reduce",
   description = "Strips all non-numeric characters from a string.",
   relatedPlugins = Array(
+    new PluginReference(
+      id = RegexReplaceTransformer.pluginId,
+      description = "Numeric reduce is a zero-configuration specialization of Regex replace using a non-digit stripping pattern. Regex replace is the choice when the stripping rule is not strictly numeric."
+    ),
     new PluginReference(
       id = AggregateNumbersTransformer.pluginId,
       description = "Numeric reduce strips non-numeric characters from each value. Aggregate numbers silently discards any value it cannot parse as a number, so values with embedded non-numeric characters are lost to the aggregation without this step."
