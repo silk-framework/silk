@@ -737,10 +737,19 @@ describe("Rule editor model", () => {
             ]),
         );
         recordCurrentState("Initial state");
+        expect(currentContext().canUndo).toBe(false);
         // Record every change and check that after undo and later redo the states match
-        await recordedTransaction("Add a node", () => {
-            currentContext().executeModelEditOperation.addNode(operator("pluginA"), { x: 1, y: 2 });
-        });
+        await recordedTransaction(
+            "Add a node",
+            () => {
+                currentContext().executeModelEditOperation.addNode(operator("pluginA"), { x: 1, y: 2 });
+            },
+            async () => {
+                await waitFor(() => {
+                    expect(currentContext().canUndo).toBe(true);
+                });
+            },
+        );
         await recordedTransaction("Move node", () => {
             currentContext().executeModelEditOperation.moveNode("nodeA", { x: 2, y: 3 });
         });
