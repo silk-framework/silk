@@ -340,6 +340,7 @@
             "remove": "Remove",
             "moreOptions": "Show more options",
             "openInNewTab": "Open link in new tab",
+            "openInNewTabTooltip": "The link will be opened in a new tab",
             "profilingStart": "Start profiling",
             "profilingUpdate": "Update profiling",
             "replace": "Replace",
