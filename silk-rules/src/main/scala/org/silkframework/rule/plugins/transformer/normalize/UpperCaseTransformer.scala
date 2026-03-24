@@ -29,7 +29,7 @@ import org.silkframework.runtime.plugin.annotations.{Plugin, PluginReference}
     ),
     new PluginReference(
       id = CapitalizeTransformer.pluginId,
-      description = "Upper case raises every character to upper case. Capitalize raises only the first character of the string, leaving the rest in whatever case it arrives in."
+      description = "Upper case raises every character to upper case. Capitalize raises only the first character of the string, leaving the rest in its original case."
     )
   )
 )

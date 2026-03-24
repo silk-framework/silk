@@ -12,7 +12,7 @@ import org.silkframework.runtime.plugin.annotations.{Plugin, PluginReference}
   relatedPlugins = Array(
     new PluginReference(
       id = RemoveValues.pluginId,
-      description = "Remove duplicates is content-agnostic: it keeps the first occurrence of every value and discards the rest. Remove values is occurrence-agnostic: it drops every instance of a blacklisted word, first or not."
+      description = "Remove values is driven by a reference list — it drops every instance of a blacklisted word. Remove duplicates needs no such list: it keeps the first occurrence of each value and discards the rest, based solely on the input values repeating themselves."
     )
   )
 )

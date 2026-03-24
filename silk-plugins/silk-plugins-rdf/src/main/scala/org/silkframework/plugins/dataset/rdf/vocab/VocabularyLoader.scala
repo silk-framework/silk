@@ -4,6 +4,7 @@ import org.apache.jena.vocabulary.{OWL2, RDF}
 import org.silkframework.dataset.rdf._
 import org.silkframework.rule.vocab._
 import org.silkframework.runtime.activity.UserContext
+import org.silkframework.util.Uri
 
 import scala.collection.immutable.SortedMap
 import scala.collection.mutable
@@ -12,17 +13,21 @@ class VocabularyLoader(endpoint: SparqlEndpoint with GraphStoreTrait) {
   final val languageRanking: IndexedSeq[String] = IndexedSeq("en", "de", "es", "fr", "it", "pt")
 
   def retrieveVocabulary(uri: String)(implicit userContext: UserContext): Option[Vocabulary] = {
-    val classes = retrieveClasses(uri)
-    val vocabGenericInfo = retrieveGenericVocabularyInfo(uri)
-    Some(Vocabulary(
-      info = vocabGenericInfo,
-      classes = classes,
-      properties = retrieveProperties(uri, classes),
-      endpoint = Some(endpoint)
-    ))
+    if(new Uri(uri).isValidUri) {
+      val classes = retrieveClasses(uri)
+      val vocabGenericInfo = retrieveGenericVocabularyInfo(uri)
+      Some(Vocabulary(
+        info = vocabGenericInfo,
+        classes = classes,
+        properties = retrieveProperties(uri, classes),
+        endpoint = Some(endpoint)
+      ))
+    } else {
+      None
+    }
   }
 
-  def retrieveGenericVocabularyInfo(vocabularyGraphUri: String)
+  private def retrieveGenericVocabularyInfo(vocabularyGraphUri: String)
                                    (implicit userContext: UserContext): GenericInfo = {
     val vocabQuery =
       s"""
@@ -50,7 +55,7 @@ class VocabularyLoader(endpoint: SparqlEndpoint with GraphStoreTrait) {
     )
   }
 
-  def genericInfoPropertiesPattern(varName: String): String =
+  private def genericInfoPropertiesPattern(varName: String): String =
     s"""
       |     # comments
       |     OPTIONAL { ?$varName rdfs:comment ?rdfsComment }

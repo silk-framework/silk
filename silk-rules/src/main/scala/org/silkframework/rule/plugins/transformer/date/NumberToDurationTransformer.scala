@@ -14,7 +14,7 @@ import org.silkframework.runtime.plugin.annotations.{Plugin, PluginReference}
    relatedPlugins = Array(
      new PluginReference(
        id = DurationInDaysTransformer.pluginId,
-       description = "The two plugins form a round-trip: Number to duration with days as the unit produces the duration that Duration in days would then convert back to a number."
+       description = "Number to duration and Duration in days form a round-trip: one builds a duration from days, the other extracts days from a duration."
      ),
      new PluginReference(
        id = DurationInSecondsTransformer.pluginId,
@@ -22,7 +22,7 @@ import org.silkframework.runtime.plugin.annotations.{Plugin, PluginReference}
      ),
      new PluginReference(
        id = DurationInYearsTransformer.pluginId,
-       description = "Number to duration with years as the unit produces the duration that Duration in years would consume. The two plugins are the write and read sides of the same year-based representation."
+       description = "Duration in years extracts a year count from a duration value. Number to duration reconstructs the duration from that count."
      ),
      new PluginReference(
        id = DurationTransformer.pluginId,
