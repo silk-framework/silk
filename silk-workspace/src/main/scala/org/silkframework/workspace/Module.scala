@@ -43,7 +43,7 @@ class Module[TaskData <: TaskSpec: ClassTag](private[workspace] val provider: Wo
   /**
     * Returns a validation exception if an error occured during task loading.
     */
-  private[workspace] def loadingError: List[TaskLoadingError] = errors
+  private[workspace] def loadingErrors: List[TaskLoadingError] = errors
 
   private[workspace] def removeLoadingError(taskId: Identifier): Unit = synchronized {
     errors = errors.filterNot(_.taskId == taskId)
