@@ -12,12 +12,35 @@ _execute_ these queries, we need to connect this task from an input into an outp
 ## Templating
 
 The `sparqlUpdateOperator` plugin uses a **template** in order to construct and output SPARQL update queries.
-There are two possible template engines supported by this plugin: a `Simple` engine and
+Three template engines are supported: `Jinja` (the default), `Simple`, and
 [`Velocity Engine`](https://velocity.apache.org/engine/2.4.1/user-guide.html).
-Each of these engines supports a different set of templating features, such as for example _variable interpolation_ with
-the dollar sign (`$`), i.e. filling in input values via placeholders in the template.
+The `Simple` and `Velocity Engine` modes are deprecated.
 
-### Example of the `Simple` mode
+### Example of the `Jinja` mode
+
+[Jinja](https://jinja.palletsprojects.com/) is the recommended template engine. It uses `{{ }}` for expressions and
+`{% %}` for control flow statements such as conditionals.
+
+```
+DELETE DATA { {{ row.uri("PROP_FROM_ENTITY_SCHEMA1") }} rdf:label {{ row.plainLiteral("PROP_FROM_ENTITY_SCHEMA2") }} } ;
+{% if row.exists("PROP_FROM_ENTITY_SCHEMA1") %}
+  INSERT DATA { {{ row.uri("PROP_FROM_ENTITY_SCHEMA1") }} rdf:label {{ row.plainLiteral("PROP_FROM_ENTITY_SCHEMA3") }} } ;
+{% endif %}
+```
+
+Input values are accessible via methods on the `row` variable:
+
+- `row.uri(inputPath)`: Renders an input value as **URI**. Throws an exception if the value isn't a valid URI.
+- `row.plainLiteral(inputPath)`: Renders an input value as **plain literal**, i.e. it escapes problematic characters.
+- `row.rawUnsafe(inputPath)`: Renders an input value as is, i.e. **no escaping** is done. This should **only** be used if the input values can be trusted.
+- `row.exists(inputPath)`: Returns `true` if a value for the input path **exists**, else `false`.
+
+The methods `uri`, `plainLiteral` and `rawUnsafe` throw an exception if no input value is available for the given input path.
+
+In addition to input values, properties of the input and output tasks can be accessed via the `inputProperties` and
+`outputProperties` objects in the same way as the `row` object. For example with `{{ inputProperties.uri("graph") }}`.
+
+### Example of the `Simple` mode (deprecated)
 
 ```
   DELETE DATA { ${<PROP_FROM_ENTITY_SCHEMA1>} rdf:label ${"PROP_FROM_ENTITY_SCHEMA2"} }
@@ -32,7 +55,7 @@ Furthermore, it will insert a plain literal serialization for the property value
 It is also possible to write something like `${"PROP"}^^<http://someDatatype>`  or `${"PROP"}@en`. In other words, we
 can combine variable substitutions with fixed expressions to construct semi-flexible expressions within the template.
 
-### Example of the `Velocity Engine` mode
+### Example of the `Velocity Engine` mode (deprecated)
 
 ```
   DELETE DATA { $row.uri("PROP_FROM_ENTITY_SCHEMA1") rdf:label $row.plainLiteral("PROP_FROM_ENTITY_SCHEMA2") }

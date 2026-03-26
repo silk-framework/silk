@@ -21,7 +21,7 @@ case class SparqlUpdateCustomTask(
   @Param(
     label = "SPARQL update query",
     value = "The SPARQL UPDATE template for constructing SPARQL UPDATE queries for every entity from the input." +
-      " The possible values for the template engine are `Simple`, `Velocity Engine` and `Jinja`." +
+      " The possible values for the template engine are `Jinja` (default), `Simple` and `Velocity Engine`." +
       " See the general documentation of this plugin for further details on the features of each template engine.",
     example = "DELETE DATA { ${<PROP_FROM_ENTITY_SCHEMA1>} rdf:label ${\"PROP_FROM_ENTITY_SCHEMA2\"} }"
   )
