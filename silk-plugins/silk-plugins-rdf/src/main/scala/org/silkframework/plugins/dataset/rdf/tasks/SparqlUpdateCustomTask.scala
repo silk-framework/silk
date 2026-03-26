@@ -8,7 +8,7 @@ import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
 import org.silkframework.runtime.plugin.types.SparqlCodeParameter
 
 @Plugin(
-  id = "sparqlUpdateOperator",
+  id = SparqlUpdateCustomTask.pluginId,
   label = "SPARQL Update query",
   description =
     "A task that outputs SPARQL Update queries for every entity from the input based on a SPARQL Update template." +
@@ -68,4 +68,5 @@ case class SparqlUpdateCustomTask(
 
 object SparqlUpdateCustomTask {
   final val defaultBatchSize = 1
+  final val pluginId = "sparqlUpdateOperator"
 }

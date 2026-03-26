@@ -19,7 +19,7 @@ import scala.util.Try
   * an Entity table.
   */
 @Plugin(
-  id = "sparqlSelectOperator",
+  id = SparqlSelectCustomTask.pluginId,
   label = "SPARQL Select query",
   description =
     "A task that executes a SPARQL Select query on a SPARQL enabled data source and outputs the SPARQL result." +
@@ -72,4 +72,8 @@ case class SparqlSelectCustomTask(
       typedPaths = typedPaths.toIndexedSeq
     )
   }
+}
+
+object SparqlSelectCustomTask {
+  final val pluginId = "sparqlSelectOperator"
 }
