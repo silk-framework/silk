@@ -29,8 +29,8 @@ class LocalSparqlSelectExecutorTest extends AnyFlatSpec
     val task = SparqlSelectCustomTask("SELECT * WHERE {?s ?p ?o}")
     val reportUpdater = SparqlSelectExecutionReportUpdater(PlainTask("task", task), activityContextMock)
     val sparqlEndpoint = new SparqlEndpoint {
-      override def sparqlParams: SparqlParams = ???
-      override def withSparqlParams(sparqlParams: SparqlParams): SparqlEndpoint = ???
+      override def sparqlParams: SparqlParams = SparqlParams()
+      override def withSparqlParams(sparqlParams: SparqlParams): SparqlEndpoint = this
       override def select(query: String, limit: Int)(implicit userContext: UserContext): SparqlResults = {
         val entities =
           for(i <- Iterator.range(0, limit)) yield {
