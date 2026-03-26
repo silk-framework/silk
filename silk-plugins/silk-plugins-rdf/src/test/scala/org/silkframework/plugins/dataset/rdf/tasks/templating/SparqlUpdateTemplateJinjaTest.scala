@@ -7,7 +7,7 @@ import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.must.Matchers
 import org.silkframework.runtime.templating.exceptions.TemplateEvaluationException
 
-class SparqlTemplateJinjaTest extends AnyFlatSpec with Matchers {
+class SparqlUpdateTemplateJinjaTest extends AnyFlatSpec with Matchers {
 
   behavior of "SPARQL templating with the Jinja Template Engine"
 
@@ -115,10 +115,10 @@ class SparqlTemplateJinjaTest extends AnyFlatSpec with Matchers {
   }
 
   def generate(template: String, assignments: Map[String, String], taskProps: TaskProperties = TaskProperties(Map.empty, Map.empty)): String = {
-    new SparqlTemplate(JinjaTemplateEngine().compile(template)).generate(assignments, taskProps)
+    new SparqlUpdateTemplate(JinjaTemplateEngine().compile(template)).generate(assignments, taskProps)
   }
 
   def validate(template: String, batchSize: Int = 2): Unit = {
-    new SparqlTemplate(JinjaTemplateEngine().compile(template)).validate(batchSize)
+    new SparqlUpdateTemplate(JinjaTemplateEngine().compile(template)).validate(batchSize)
   }
 }

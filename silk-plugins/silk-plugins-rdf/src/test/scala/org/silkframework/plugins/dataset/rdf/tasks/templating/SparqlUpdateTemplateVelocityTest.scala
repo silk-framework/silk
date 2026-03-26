@@ -7,7 +7,7 @@ import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.must.Matchers
 import org.silkframework.runtime.templating.exceptions.TemplateEvaluationException
 
-class SparqlTemplateVelocityTest extends AnyFlatSpec with Matchers {
+class SparqlUpdateTemplateVelocityTest extends AnyFlatSpec with Matchers {
 
   behavior of "SPARQL templating with the Velocity Template Engine"
 
@@ -79,7 +79,7 @@ class SparqlTemplateVelocityTest extends AnyFlatSpec with Matchers {
       """SELECT * WHERE {
         |  $row.uri("uriProp") rdfs:label $row.plainLiteral("stringProp")
         |}""".stripMargin
-    val template = new SparqlTemplate(VelocityTemplateEngine().compile(stringTemplate))
+    val template = new SparqlUpdateTemplate(VelocityTemplateEngine().compile(stringTemplate))
     for(i <- 1 to 10) {
       val rendered = template.generate(Map("uriProp" -> s"http://entity$i", "stringProp" -> s"some label $i"), TaskProperties(Map.empty, Map.empty))
       rendered mustBe
@@ -113,10 +113,10 @@ class SparqlTemplateVelocityTest extends AnyFlatSpec with Matchers {
   }
 
   private def generate(templateString: String, bindings: Map[String, String]): String = {
-    new SparqlTemplate(VelocityTemplateEngine().compile(templateString)).generate(bindings, TaskProperties(Map.empty, Map.empty))
+    new SparqlUpdateTemplate(VelocityTemplateEngine().compile(templateString)).generate(bindings, TaskProperties(Map.empty, Map.empty))
   }
 
   def validate(template: String, batchSize: Int = 2): Unit = {
-    new SparqlTemplate(VelocityTemplateEngine().compile(template)).validate(batchSize)
+    new SparqlUpdateTemplate(VelocityTemplateEngine().compile(template)).validate(batchSize)
   }
 }

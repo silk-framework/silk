@@ -83,7 +83,7 @@ class SparqlUpdateTemplatingEngineSimpleTest extends AnyFlatSpec with Matchers {
 
   def parse(sparqlUpdateTemplate: String, batchSize: Int = 2): Seq[SparqlUpdateTemplatePart] = {
     val compiled = SparqlSimpleTemplateEngine().compile(sparqlUpdateTemplate)
-    new SparqlTemplate(compiled).validate(batchSize)
+    new SparqlUpdateTemplate(compiled).validate(batchSize)
     compiled.sparqlUpdateTemplateParts
   }
 }

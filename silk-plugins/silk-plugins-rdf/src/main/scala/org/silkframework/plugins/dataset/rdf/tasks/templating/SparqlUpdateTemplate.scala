@@ -4,7 +4,7 @@ import org.apache.jena.update.UpdateFactory
 import org.silkframework.entity.EntitySchema
 import org.silkframework.entity.paths.UntypedPath
 import org.silkframework.execution.local.EmptyEntityTable
-import org.silkframework.plugins.dataset.rdf.tasks.templating.SparqlTemplate.{InputProperties, OutputProperties, Row}
+import org.silkframework.plugins.dataset.rdf.tasks.templating.SparqlUpdateTemplate.{InputProperties, OutputProperties, Row}
 import org.silkframework.runtime.templating.{CompiledTemplate, TemplateEngines, TemplateMethodUsage, TemplateVariableName}
 import org.silkframework.runtime.validation.ValidationException
 
@@ -14,7 +14,7 @@ import scala.util.{Failure, Success, Try}
 /**
   * Wraps a [[CompiledTemplate]] and adds SPARQL Update specific capabilities.
   */
-class SparqlTemplate(template: CompiledTemplate) {
+class SparqlUpdateTemplate(template: CompiledTemplate) {
 
   /**
    * Renders the template based on the variable assignments.
@@ -27,9 +27,9 @@ class SparqlTemplate(template: CompiledTemplate) {
     // Flat entity values (used by simple template engine)
     placeholderAssignments.foreach { case (k, v) => values(k) = v }
     // SPARQL context objects (used by Velocity engine)
-    values(SparqlTemplate.ROW_VAR_NAME) = Row(placeholderAssignments)
-    values(SparqlTemplate.INPUT_PROPERTIES_VAR_NAME) = InputProperties(taskProperties.inputTask)
-    values(SparqlTemplate.OUTPUT_PROPERTIES_VAR_NAME) = OutputProperties(taskProperties.outputTask)
+    values(SparqlUpdateTemplate.ROW_VAR_NAME) = Row(placeholderAssignments)
+    values(SparqlUpdateTemplate.INPUT_PROPERTIES_VAR_NAME) = InputProperties(taskProperties.inputTask)
+    values(SparqlUpdateTemplate.OUTPUT_PROPERTIES_VAR_NAME) = OutputProperties(taskProperties.outputTask)
     val writer = new StringWriter()
     template.evaluate(values.toMap, writer)
     writer.toString
@@ -92,13 +92,13 @@ class SparqlTemplate(template: CompiledTemplate) {
 
   /** Returns SPARQL-specific variables, extracting paths from method usages. */
   private lazy val sparqlVariables: Option[Seq[TemplateVariableName]] = {
-    val usages = SparqlTemplate.templatingVariables.flatMap(v => template.methodUsages(v))
+    val usages = SparqlUpdateTemplate.templatingVariables.flatMap(v => template.methodUsages(v))
     if (usages.nonEmpty) {
-      val rowVars = sparqlMethodUsages(SparqlTemplate.ROW_VAR_NAME)
+      val rowVars = sparqlMethodUsages(SparqlUpdateTemplate.ROW_VAR_NAME)
         .map(u => new TemplateVariableName(u.parameterValue, ""))
-      val inputPropVars = sparqlMethodUsages(SparqlTemplate.INPUT_PROPERTIES_VAR_NAME)
+      val inputPropVars = sparqlMethodUsages(SparqlUpdateTemplate.INPUT_PROPERTIES_VAR_NAME)
         .map(u => new TemplateVariableName(u.parameterValue, "inputProperties"))
-      val outputPropVars = sparqlMethodUsages(SparqlTemplate.OUTPUT_PROPERTIES_VAR_NAME)
+      val outputPropVars = sparqlMethodUsages(SparqlUpdateTemplate.OUTPUT_PROPERTIES_VAR_NAME)
         .map(u => new TemplateVariableName(u.parameterValue, "outputProperties"))
       Some((rowVars ++ inputPropVars ++ outputPropVars).distinct)
     } else {
@@ -113,7 +113,7 @@ class SparqlTemplate(template: CompiledTemplate) {
 
   /** Checks if any SPARQL templating variable uses the rawUnsafe method. */
   private lazy val usesRawUnsafe: Boolean = {
-    SparqlTemplate.templatingVariables.exists(varName =>
+    SparqlUpdateTemplate.templatingVariables.exists(varName =>
       sparqlMethodUsages(varName).exists(_.methodName == "rawUnsafe"))
   }
 
@@ -138,7 +138,7 @@ class SparqlTemplate(template: CompiledTemplate) {
   }
 }
 
-object SparqlTemplate {
+object SparqlUpdateTemplate {
 
   private final val ROW_VAR_NAME = "row"
   private final val INPUT_PROPERTIES_VAR_NAME = "inputProperties"
@@ -149,9 +149,9 @@ object SparqlTemplate {
   /**
    * Creates a SPARQL template from a string.
    */
-  def create(templateEngineId: String, template: String, batchSize: Int): SparqlTemplate = {
+  def create(templateEngineId: String, template: String, batchSize: Int): SparqlUpdateTemplate = {
     val templateEngine = TemplateEngines.create(templateEngineId)
-    val sparqlTemplate = new SparqlTemplate(templateEngine.compile(template))
+    val sparqlTemplate = new SparqlUpdateTemplate(templateEngine.compile(template))
     sparqlTemplate.validate(batchSize)
     sparqlTemplate
   }
