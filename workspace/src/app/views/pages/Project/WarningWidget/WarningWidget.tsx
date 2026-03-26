@@ -50,7 +50,7 @@ export const ProjectTaskLoadingErrors = ({ refreshProjectPage }: Props) => {
 
     const [currentMarkdown, setCurrentMarkdown] = useState("");
     const [isOpen, setIsOpen] = useState<boolean>(false);
-    const [taskToDelete, setTaskToDelete] = useState<string | null>(null);
+    const [taskToDelete, setTaskToDelete] = useState<{ taskId: string; taskLabel: string } | null>(null);
     const [t] = useTranslation();
 
     const fetchWarningList = () => {
@@ -194,7 +194,7 @@ export const ProjectTaskLoadingErrors = ({ refreshProjectPage }: Props) => {
                                           data-test-id={"taskLoadingDeleteBtn"}
                                           minimal
                                           text={t("common.action.DeleteSmth", { smth: t("common.dataTypes.task") })}
-                                          onClick={() => setTaskToDelete(warn.taskId)}
+                                          onClick={() => setTaskToDelete({ taskId: warn.taskId, taskLabel: warn.taskLabel })}
                                       />,
                                   ]
                                 : [];
@@ -213,7 +213,7 @@ export const ProjectTaskLoadingErrors = ({ refreshProjectPage }: Props) => {
             </Card>
             {taskToDelete && projectId && (
                 <ItemDeleteModal
-                    item={{ id: taskToDelete, projectId, type: "task" }}
+                    item={{ id: taskToDelete.taskId, label: taskToDelete.taskLabel, projectId, type: "task"  }}
                     onClose={() => setTaskToDelete(null)}
                     onConfirmed={() => {
                         setTaskToDelete(null);
