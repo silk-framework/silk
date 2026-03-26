@@ -6,9 +6,12 @@ import {
     OverflowText,
     MultiSuggestField,
     highlighterUtils,
+    Spacing,
 } from "@eccenca/gui-elements";
 import React, { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { IVocabularyInfo } from "./typings";
+import useErrorHandler from "../../../hooks/useErrorHandler";
 
 interface IProps {
     // Label for this widget
@@ -37,9 +40,14 @@ export default function VocabularyMultiSelect({
     label,
     allowCustomEntries,
 }: IProps) {
+    const [t] = useTranslation();
+    const { registerError } = useErrorHandler();
     const [selectedVocabs, setSelectedVocabs] = useState<IVocabularyInfo[]>([]);
     const [filteredVocabs, setFilteredVocabs] = useState<IVocabularyInfo[]>([]);
     const [searchQuery, setSearchQuery] = useState<string | undefined>(undefined);
+    const [warning, setWarning] = React.useState<React.JSX.Element | null>(null);
+
+    const availableVocabUris = new Set(availableVocabularies.map((v) => v.uri));
 
     const preselect = (): IVocabularyInfo[] => {
         const vocabMap = new Map<string, IVocabularyInfo>(availableVocabularies.map((vocab) => [vocab.uri, vocab]));
@@ -123,6 +131,20 @@ export default function VocabularyMultiSelect({
         if (vocabSelected(vocab)) {
             removeVocabFromSelection(vocab.uri);
         } else {
+            if (!availableVocabUris.has(vocab.uri)) {
+                setWarning(
+                    registerError(
+                        "VocabularyMultiSelect_customVocabularyWarning",
+                        t("widget.TargetVocabularySelection.customVocabularyWarning", { uri: vocab.uri }),
+                        null,
+                        {
+                            intent: "warning",
+                            errorNotificationInstanceId: "VocabularyMultiSelect",
+                            onDismiss: () => setWarning(null),
+                        },
+                    ),
+                );
+            }
             setSelectedVocabs([...selectedVocabs, vocab]);
         }
     };
@@ -203,6 +225,12 @@ export default function VocabularyMultiSelect({
                 createNewItemRenderer={newItemRenderer}
                 createNewItemFromQuery={createVocabularyFromQuery}
             />
+            {warning ? (
+                <>
+                    <Spacing size={"small"} />
+                    {warning}
+                </>
+            ) : null}
         </FieldItem>
     );
 }
