@@ -27,7 +27,7 @@ import java.nio.charset.StandardCharsets
 import scala.io.Codec
 
 @Plugin(
-  id = "file",
+  id = RdfFileDataset.pluginId,
   label = "RDF file",
   categories = Array(DatasetCategories.file),
   description = """Dataset which retrieves and writes all entities from/to an RDF file. For reading, the dataset is loaded in-memory and thus the size is restricted by the available memory. Large datasets should be loaded into an external RDF store and retrieved using the SPARQL dataset instead.""",

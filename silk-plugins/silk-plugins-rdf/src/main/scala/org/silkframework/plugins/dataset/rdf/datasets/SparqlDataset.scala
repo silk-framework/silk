@@ -9,7 +9,7 @@ import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
 import org.silkframework.runtime.plugin.types.{MultilineStringParameter, PasswordParameter}
 
 @Plugin(
-  id = "sparqlEndpoint",
+  id = SparqlDataset.pluginId,
   label = "SPARQL endpoint",
   categories = Array(DatasetCategories.remote),
   description = "Connects to an existing SPARQL endpoint.",

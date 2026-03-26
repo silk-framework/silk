@@ -9,7 +9,7 @@ import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
 
 @Plugin(
-  id = "inMemory",
+  id = InMemoryDataset.pluginId,
   label = "In-memory dataset",
   categories = Array(DatasetCategories.embedded),
   description = "A Dataset that holds all data in-memory.",
