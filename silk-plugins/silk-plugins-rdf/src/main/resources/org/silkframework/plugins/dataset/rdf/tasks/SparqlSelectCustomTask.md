@@ -16,6 +16,25 @@ As usual, the SPARQL results contain both "variables" and "bindings", such as in
 [this example](https://www.w3.org/TR/sparql11-results-json/#json-result-object).
 This tabular raw form is transformed into an _entity table_.
 
+### Templating
+
+The select query supports [Jinja](https://jinja.palletsprojects.com/) templating. The following variable is
+automatically provided at execution time:
+
+| Variable | Description |
+|----------|-------------|
+| `graph`  | The named graph URI from the input dataset's graph parameter. Empty if no graph is configured. |
+
+The `graph` variable can be used directly or combined with Jinja expressions. For example, to query a named graph
+whose URI is derived by appending a suffix to the configured graph URI:
+
+```sparql
+SELECT * WHERE { GRAPH <{{ graph ~ "/data" }}> { ?s ?p ?o } }
+```
+
+The output schema (i.e. the result variables) is derived from the query at configuration time by evaluating the
+template with default values (empty `graph`), so the query must remain valid SPARQL regardless of the graph value.
+
 ### Internal Specifics
 
 If the SPARQL source is defined on a specific graph, a `FROM` clause will be added to the query at execution time,
