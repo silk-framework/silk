@@ -9,9 +9,26 @@ import org.silkframework.util.Uri
 import scala.collection.immutable.SortedMap
 import scala.collection.mutable
 
-class VocabularyLoader(endpoint: SparqlEndpoint with GraphStoreTrait) {
+class VocabularyLoader(sparqlEndpoint: SparqlEndpoint with GraphStoreTrait) {
+  final val vocabCachePageSize = 30000
   final val languageRanking: IndexedSeq[String] = IndexedSeq("en", "de", "es", "fr", "it", "pt")
+  val newParameters = new SparqlParams(
+    uri = sparqlEndpoint.sparqlParams.uri,
+    user =  sparqlEndpoint.sparqlParams.user,
+    password = sparqlEndpoint.sparqlParams.password,
+    graph=  sparqlEndpoint.sparqlParams.graph,
+    pageSize =  vocabCachePageSize,
+    entityList = sparqlEndpoint.sparqlParams.entityList,
+    pauseTime =  sparqlEndpoint.sparqlParams.pauseTime,
+    retryCount =  sparqlEndpoint.sparqlParams.retryCount,
+    retryPause =   sparqlEndpoint.sparqlParams.retryPause,
+    queryParameters =  sparqlEndpoint.sparqlParams.queryParameters,
+    strategy =  sparqlEndpoint.sparqlParams.strategy,
+    useOrderBy =  sparqlEndpoint.sparqlParams.useOrderBy,
+    timeout =  sparqlEndpoint.sparqlParams.timeout
+  )
 
+  val endpoint: SparqlEndpoint = sparqlEndpoint.withSparqlParams(newParameters)
   def retrieveVocabulary(uri: String)(implicit userContext: UserContext): Option[Vocabulary] = {
     if(new Uri(uri).isValidUri) {
       val classes = retrieveClasses(uri)
@@ -20,7 +37,7 @@ class VocabularyLoader(endpoint: SparqlEndpoint with GraphStoreTrait) {
         info = vocabGenericInfo,
         classes = classes,
         properties = retrieveProperties(uri, classes),
-        endpoint = Some(endpoint)
+        endpoint = Some(sparqlEndpoint)
       ))
     } else {
       None
