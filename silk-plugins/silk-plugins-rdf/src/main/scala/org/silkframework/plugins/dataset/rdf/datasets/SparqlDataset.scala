@@ -5,7 +5,7 @@ import org.silkframework.dataset.{DatasetCategories, TripleSink, TripleSinkDatas
 import org.silkframework.plugins.dataset.rdf.access.{SparqlSink, SparqlSource}
 import org.silkframework.plugins.dataset.rdf.endpoint.RemoteSparqlEndpoint
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
+import org.silkframework.runtime.plugin.annotations.{Param, Plugin, PluginReference}
 import org.silkframework.runtime.plugin.types.{MultilineStringParameter, PasswordParameter}
 
 @Plugin(
@@ -13,7 +13,17 @@ import org.silkframework.runtime.plugin.types.{MultilineStringParameter, Passwor
   label = "SPARQL endpoint",
   categories = Array(DatasetCategories.remote),
   description = "Connects to an existing SPARQL endpoint.",
-  documentationFile = "SparqlDataset.md"
+  documentationFile = "SparqlDataset.md",
+  relatedPlugins = Array(
+    new PluginReference(
+      id = InMemoryDataset.pluginId,
+      description = "The SPARQL endpoint dataset reads from and writes to a remote endpoint that retains its contents between runs. The in-memory dataset starts empty every time the workflow runs and loses all its data when execution finishes — the two are not alternatives for the same storage need."
+    ),
+    new PluginReference(
+      id = RdfFileDataset.pluginId,
+      description = "The RDF file dataset loads its contents from a file into memory at read time and supports only N-Triples as output. The SPARQL endpoint dataset connects to a remote endpoint that handles queries and updates without loading the full dataset into process memory."
+    )
+  )
 )
 case class SparqlDataset(
   @Param(label = "Endpoint URI", value = "The URI of the SPARQL endpoint, e.g. `http://dbpedia.org/sparql`")

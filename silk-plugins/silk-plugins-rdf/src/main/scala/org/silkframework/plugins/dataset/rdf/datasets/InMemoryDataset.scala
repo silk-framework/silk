@@ -6,14 +6,20 @@ import org.silkframework.dataset.rdf.{RdfDataset, SparqlEndpoint, SparqlParams}
 import org.silkframework.plugins.dataset.rdf.endpoint.JenaModelEndpoint
 import org.silkframework.plugins.dataset.rdf.access.{SparqlSink, SparqlSource}
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
+import org.silkframework.runtime.plugin.annotations.{Param, Plugin, PluginReference}
 
 @Plugin(
   id = InMemoryDataset.pluginId,
   label = "In-memory dataset",
   categories = Array(DatasetCategories.embedded),
   description = "A Dataset that holds all data in-memory.",
-  documentationFile = "InMemoryDataset.md"
+  documentationFile = "InMemoryDataset.md",
+  relatedPlugins = Array(
+    new PluginReference(
+      id = SparqlDataset.pluginId,
+      description = "Data in the in-memory dataset exists only for the duration of a single workflow run. The SPARQL endpoint dataset connects to an external store that persists independently, which means switching between them changes not just where the data lives but whether it survives execution at all."
+    )
+  )
 )
 case class InMemoryDataset(@Param(label = "Clear graph before workflow execution (deprecated)",
                                   value = "This is deprecated, use the 'Clear dataset' operator instead to clear a dataset in a workflow. If set to true this will clear this dataset before it is used in a workflow execution.",
