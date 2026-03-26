@@ -1,13 +1,15 @@
 package org.silkframework.plugins.dataset.rdf.tasks
 
 import org.apache.jena.query.QueryFactory
-import org.silkframework.config.{CustomTask, FixedNumberOfInputs, FixedSchemaPort, InputPorts, Port}
+import org.silkframework.config._
 import org.silkframework.dataset.rdf.SparqlEndpointDatasetParameter
 import org.silkframework.entity._
 import org.silkframework.entity.paths.{TypedPath, UntypedPath}
 import org.silkframework.execution.typed.SparqlEndpointEntitySchema
+import org.silkframework.plugins.dataset.rdf.tasks.templating.SparqlSelectTemplate
 import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
 import org.silkframework.runtime.plugin.types.SparqlCodeParameter
+import org.silkframework.runtime.templating.TemplateEngineAutocompletionProvider
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.Uri
 
@@ -44,12 +46,20 @@ case class SparqlSelectCustomTask(
     value = "SPARQL query timeout (select/update) in milliseconds. A value of zero means that there is no timeout set explicitly." +
       " If a value greater zero is specified this overwrites possible default timeouts."
   )
-  sparqlTimeout: Int = 0
+  sparqlTimeout: Int = 0,
+  @Param(
+    value = "The templating mode for the template engine.",
+    autoCompletionProvider = classOf[TemplateEngineAutocompletionProvider],
+    autoCompleteValueWithLabels = true
+  )
+  templatingMode: String = "jinja"
 ) extends CustomTask {
   val intLimit: Option[Int] = {
     // Only allow positive ints
     Try(limit.toInt).filter(_ > 0).toOption
   }
+
+  val queryTemplate: SparqlSelectTemplate = SparqlSelectTemplate.create(templatingMode, selectQuery.str)
 
   override def inputPorts: InputPorts = {
     FixedNumberOfInputs(Seq(FixedSchemaPort(SparqlEndpointEntitySchema.schema)))
@@ -60,7 +70,7 @@ case class SparqlSelectCustomTask(
   }
 
   val outputSchema: EntitySchema = {
-    val query = QueryFactory.create(selectQuery.str)
+    val query = QueryFactory.create(queryTemplate.evaluateWithDefaults())
     if (!query.isSelectType) {
       throw new ValidationException("Query is not a SELECT query!")
     }

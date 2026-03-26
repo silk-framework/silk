@@ -63,9 +63,26 @@ class LocalSparqlSelectExecutorTest extends AnyFlatSpec
     correctTimeout mustBe true
   }
 
-  private def sparqlEndpointStub(selectCallback: SparqlEndpoint => Unit = _ => {}): SparqlEndpoint = {
+  it should "evaluate a Jinja query template using the graph variable from the SPARQL endpoint" in {
+    val graphUri = "http://example.org/testGraph"
+    val query = "SELECT * WHERE { GRAPH <{{ graph ~ \"/data\" }}> { ?s ?p ?o } }"
+    val task = SparqlSelectCustomTask(query)
+    var capturedQuery = ""
+    val activityContextMock = TestMocks.activityContextMock()
+    val reportUpdater = SparqlSelectExecutionReportUpdater(PlainTask("task", task), activityContextMock)
+    val sparqlEndpoint = sparqlEndpointStub(graphUri = Some(graphUri), queryCapture = q => capturedQuery = q)
+    LocalSparqlSelectExecutor().executeOnSparqlEndpoint(task, sparqlEndpoint, executionReportUpdater = Some(reportUpdater)).headOption
+
+    task.outputSchema.typedPaths.map(_.toUntypedPath.normalizedSerialization) mustBe IndexedSeq("s", "p", "o")
+    capturedQuery must include(s"<$graphUri/data>")
+    capturedQuery must not include "{{ graph"
+  }
+
+  private def sparqlEndpointStub(selectCallback: SparqlEndpoint => Unit = _ => {},
+                                 graphUri: Option[String] = None,
+                                 queryCapture: String => Unit = _ => {}): SparqlEndpoint = {
     new SparqlEndpoint {
-      var sparqlParamsIntern = SparqlParams()
+      var sparqlParamsIntern = SparqlParams(graph = graphUri)
       override def sparqlParams: SparqlParams = sparqlParamsIntern
 
       override def withSparqlParams(sparqlParams: SparqlParams): SparqlEndpoint = {
@@ -75,6 +92,7 @@ class LocalSparqlSelectExecutorTest extends AnyFlatSpec
 
       override def select(query: String, limit: Int)(implicit userContext: UserContext): SparqlResults = {
         selectCallback(this)
+        queryCapture(query)
         SparqlResults(Seq("s", "p", "o"), new TraversableIterator[SortedMap[String, RdfNode]] {
           override def foreach[U](f: SortedMap[String, RdfNode] => U): Unit = {
             var i = 0

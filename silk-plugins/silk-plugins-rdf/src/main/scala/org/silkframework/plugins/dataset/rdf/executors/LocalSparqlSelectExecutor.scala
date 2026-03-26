@@ -48,7 +48,7 @@ case class LocalSparqlSelectExecutor() extends LocalExecutor[SparqlSelectCustomT
 
   private def select(sparqlSelectTask: SparqlSelectCustomTask, sparql: SparqlEndpoint, selectLimit: Int)
                     (implicit userContext: UserContext): SparqlResults = {
-    executeSelect(sparql, sparqlSelectTask.selectQuery.str, selectLimit, Some(sparqlSelectTask.sparqlTimeout))
+    executeSelect(sparql, sparqlSelectTask.queryTemplate.evaluate(sparql), selectLimit, Some(sparqlSelectTask.sparqlTimeout))
   }
 
   /**
