@@ -89,3 +89,7 @@ case class SparqlDataset(
 
   override def tripleSink(implicit userContext: UserContext): TripleSink = new SparqlSink(params, sparqlEndpoint, dropGraphOnClear = clearGraphBeforeExecution)
 }
+
+object SparqlDataset {
+  final val pluginId = "sparqlEndpoint"
+}

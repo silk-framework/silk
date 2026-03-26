@@ -216,3 +216,7 @@ case class RdfFileDataset(
 
   override def tripleSink(implicit userContext: UserContext): TripleSink = new FormattedEntitySink(file, formatter)
 }
+
+object RdfFileDataset {
+  final val pluginId = "file"
+}

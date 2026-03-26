@@ -41,3 +41,7 @@ case class InMemoryDataset(@Param(label = "Clear graph before workflow execution
 
   override def tripleSink(implicit userContext: UserContext): TripleSink = new SparqlSink(SparqlParams(), sparqlEndpoint, dropGraphOnClear = clearGraphBeforeExecution)
 }
+
+object InMemoryDataset {
+  final val pluginId = "inMemory"
+}
