@@ -17,7 +17,7 @@ import org.silkframework.runtime.plugin.annotations.{Param, Plugin, PluginRefere
   relatedPlugins = Array(
     new PluginReference(
       id = SparqlDataset.pluginId,
-      description = "Data in the in-memory dataset exists only for the duration of a single workflow run. The SPARQL endpoint dataset connects to an external store that persists independently, which means switching between them changes not just where the data lives but whether it survives execution at all."
+      description = "Data in the in-memory dataset does not persist beyond the running process. The SPARQL endpoint dataset connects to an external store that persists independently, which means switching between them changes not just where the data lives but whether it survives execution at all."
     ),
     new PluginReference(
       id = RdfFileDataset.pluginId,

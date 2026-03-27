@@ -18,7 +18,7 @@ import org.silkframework.runtime.plugin.types.{MultilineStringParameter, Passwor
   relatedPlugins = Array(
     new PluginReference(
       id = InMemoryDataset.pluginId,
-      description = "The SPARQL endpoint dataset reads from and writes to a remote endpoint that retains its contents between runs. The in-memory dataset starts empty every time the workflow runs and loses all its data when execution finishes — the two are not alternatives for the same storage need."
+      description = "The SPARQL endpoint dataset reads from and writes to a remote endpoint that retains its contents independently of the running process. The in-memory dataset does not persist data beyond the running process — the two are not alternatives for the same storage need."
     ),
     new PluginReference(
       id = RdfFileDataset.pluginId,
