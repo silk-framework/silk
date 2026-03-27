@@ -2,7 +2,7 @@ package org.silkframework.workspace
 
 import org.silkframework.config.{CustomTask, PlainTask, Task, TaskSpec}
 import org.silkframework.dataset.{Dataset, DatasetSpec}
-import org.silkframework.rule.{LinkSpec, TransformSpec}
+import org.silkframework.rule.{LinkSpec, RootMappingRule, TransformSpec}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.AnyPlugin
 import org.silkframework.runtime.plugin.annotations.PluginType
@@ -150,7 +150,6 @@ trait ProjectMarshallingTrait extends AnyPlugin {
                               exportUserData: Boolean = true)
                              (implicit userContext: UserContext): Unit = {
 
-
     // Load project into temporary XML workspace provider
     val updatedProjectConfig = project.config.copy(projectResourceUriOpt = Some(project.config.resourceUriOrElseDefaultUri))
     val projectId = updatedProjectConfig.id
@@ -166,28 +165,35 @@ trait ProjectMarshallingTrait extends AnyPlugin {
     }
 
     // Export tasks
-    def stripUserData[T <: TaskSpec: ClassTag](task: Task[T]): Task[T] = {
-      if (!exportUserData) {
-        PlainTask(task.id, task.data, task.metaData.withoutUserData)
-      } else {
-        task
-      }
-    }
+    exportTasks[DatasetSpec[Dataset]](project, outputWorkspaceProvider, resources, exportUserData)
+    exportTasks[TransformSpec](project, outputWorkspaceProvider, resources, exportUserData)
+    exportTasks[LinkSpec](project, outputWorkspaceProvider, resources, exportUserData)
+    exportTasks[Workflow](project, outputWorkspaceProvider, resources, exportUserData)
+    exportTasks[CustomTask](project, outputWorkspaceProvider, resources, exportUserData)
+  }
 
-    for(dataset <- project.tasks[DatasetSpec[Dataset]]) {
-      outputWorkspaceProvider.putTask(projectId, stripUserData(dataset), resources)
-    }
-    for(transformTask <- project.tasks[TransformSpec]) {
-      outputWorkspaceProvider.putTask(projectId, stripUserData(transformTask), resources)
-    }
-    for(task <- project.tasks[LinkSpec]) {
-      outputWorkspaceProvider.putTask(projectId, stripUserData(task), resources)
-    }
-    for(task <- project.tasks[Workflow]) {
-      outputWorkspaceProvider.putTask(projectId, stripUserData(task), resources)
-    }
-    for(task <- project.tasks[CustomTask]) {
-      outputWorkspaceProvider.putTask(projectId, stripUserData(task), resources)
+  private def exportTasks[T <: TaskSpec: ClassTag](project: Project,
+                                                   workspaceProvider: WorkspaceProvider,
+                                                   resources: ResourceManager,
+                                                   exportUserData: Boolean = true)
+                                                  (implicit user: UserContext): Unit = {
+    for(task <- project.tasks[T]) {
+      // Strip user data from task data
+      val strippedTask = {
+        if (!exportUserData) {
+          val strippedData: T = task.data match {
+            case spec: TransformSpec =>
+              spec.copy(mappingRule = spec.mappingRule.withMetaDataRecursive(_.withoutUserData).asInstanceOf[RootMappingRule]).asInstanceOf[T]
+            case other: T =>
+              other
+          }
+          PlainTask[T](task.id, strippedData, task.metaData.withoutUserData)
+        } else {
+          task
+        }
+      }
+      // Export task
+      workspaceProvider.putTask(project.id, strippedTask, resources)
     }
   }
 }

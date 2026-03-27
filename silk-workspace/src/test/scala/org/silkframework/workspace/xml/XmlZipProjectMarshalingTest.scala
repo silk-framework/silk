@@ -6,7 +6,7 @@ import org.scalatest.matchers.should.Matchers
 import org.silkframework.config.{MetaData, PlainTask, Prefixes, Tag}
 import org.silkframework.dataset.{DatasetSpec, MockDataset}
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
-import org.silkframework.rule.LinkSpec
+import org.silkframework.rule.{DatasetSelection, DirectMapping, LinkSpec, MappingRules, RootMappingRule, TransformSpec}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.annotations.Plugin
 import org.silkframework.runtime.plugin.{PluginContext, PluginRegistry, TestPluginContext}
@@ -137,6 +137,11 @@ class XmlZipProjectMarshalingTest extends AnyFlatSpec with Matchers with ConfigT
     result.projectConfig.metaData.lastModifiedByUser shouldBe None
     result.tasks.head.task.metaData.createdByUser shouldBe None
     result.tasks.head.task.metaData.lastModifiedByUser shouldBe None
+    val rootRule = result.transformTasks.head.task.data.mappingRule
+    rootRule.metaData.createdByUser shouldBe None
+    rootRule.metaData.lastModifiedByUser shouldBe None
+    rootRule.rules.propertyRules.head.metaData.createdByUser shouldBe None
+    rootRule.rules.propertyRules.head.metaData.lastModifiedByUser shouldBe None
   }
 
   it should "preserve user data when exportUserData is true (default)" in {
@@ -146,19 +151,30 @@ class XmlZipProjectMarshalingTest extends AnyFlatSpec with Matchers with ConfigT
     result.projectConfig.metaData.lastModifiedByUser shouldBe Some(userUri)
     result.tasks.head.task.metaData.createdByUser shouldBe Some(userUri)
     result.tasks.head.task.metaData.lastModifiedByUser shouldBe Some(userUri)
+    val rootRule = result.transformTasks.head.task.data.mappingRule
+    rootRule.metaData.createdByUser shouldBe Some(userUri)
+    rootRule.metaData.lastModifiedByUser shouldBe Some(userUri)
+    rootRule.rules.propertyRules.head.metaData.createdByUser shouldBe Some(userUri)
+    rootRule.rules.propertyRules.head.metaData.lastModifiedByUser shouldBe Some(userUri)
   }
 
-  private case class ExportResult(projectConfig: ProjectConfig, tasks: Seq[LoadedTask[GenericDatasetSpec]])
+  private case class ExportResult(projectConfig: ProjectConfig, tasks: Seq[LoadedTask[GenericDatasetSpec]], transformTasks: Seq[LoadedTask[TransformSpec]])
 
   private def marshalAndUnmarshalWithUserData(exportUserData: Boolean): ExportResult = {
     val userUri = Uri("urn:user:alice")
     val metaWithUser = MetaData(label = Some("test"), createdByUser = Some(userUri), lastModifiedByUser = Some(userUri))
     val projectId = "testUserDataProject"
 
+    val rootRule = RootMappingRule(
+      rules = MappingRules(propertyRules = Seq(DirectMapping(id = "mapping1", metaData = metaWithUser))),
+      metaData = metaWithUser
+    )
+
     // Set up a workspace with user data in project and task metadata
     val workspaceProvider = new InMemoryWorkspaceProvider()
     workspaceProvider.putProject(ProjectConfig(projectId, metaData = metaWithUser))
     workspaceProvider.putTask(projectId, PlainTask("testDataset", DatasetSpec(MockDataset()), metaData = metaWithUser), InMemoryResourceManager())
+    workspaceProvider.putTask(projectId, PlainTask("testTransform", TransformSpec(DatasetSelection("source"), rootRule), metaData = metaWithUser), InMemoryResourceManager())
     val workspace = new Workspace(workspaceProvider, InMemoryResourceRepository())
 
     // Marshal
@@ -179,7 +195,9 @@ class XmlZipProjectMarshalingTest extends AnyFlatSpec with Matchers with ConfigT
     implicit val pluginContext: PluginContext = TestPluginContext()
     val tasks = workspaceProvider2.readTasks[GenericDatasetSpec](projectId)
     tasks should have size 1
-    ExportResult(workspaceProvider2.readProjects().head, tasks)
+    val transformTasks = workspaceProvider2.readTasks[TransformSpec](projectId)
+    transformTasks should have size 1
+    ExportResult(workspaceProvider2.readProjects().head, tasks, transformTasks)
   }
 
   override def propertyMap: Map[String, Option[String]] = Map(
