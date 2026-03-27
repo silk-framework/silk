@@ -120,7 +120,9 @@ class ProjectMarshalingApi @Inject() () extends InjectedController with UserCont
     }
   }
 
-  def exportProject(projectName: String, exportGroups: Boolean = false): Action[AnyContent] = exportProjectViaPlugin(projectName, XmlZipWithResourcesProjectMarshaling.marshallerId, exportGroups)
+  def exportProject(projectName: String, exportGroups: Boolean = false): Action[AnyContent] = {
+    exportProjectViaPlugin(projectName, XmlZipWithResourcesProjectMarshaling.marshallerId, exportGroups)
+  }
 
   @Operation(
     summary = "Export project",
