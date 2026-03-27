@@ -61,11 +61,3 @@ For more information about the Velocity Engine, visit http://velocity.apache.org
 ### Internal Specifics
 
 In contrast to the SPARQL select operator, no `FROM` clause gets injected into the query.
-
-## Related plugins
-
-As mentioned, this plugin is neither a RDF task nor a RDF dataset. Those two categories of plugins are, nevertheless,
-related. Specifically, the RDF dataset plugins such as the SPARQL endpoint can be used as data input. Similarly,
-possible output datasets could be an in-memory dataset or a Knowledge Graph such as the one handled by
-the Knowledge Graph plugin, which is the flagship RDF dataset of
-[Corporate Memory](https://eccenca.com/products/enterprise-knowledge-graph-platform-corporate-memory).

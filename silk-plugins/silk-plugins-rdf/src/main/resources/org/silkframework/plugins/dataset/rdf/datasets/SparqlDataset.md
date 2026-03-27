@@ -24,11 +24,3 @@ or similar. Use this plugin as a source dataset, and transform or transfer the S
 such as a CSV file. A similar or related showcase example involves considering other output datasets such as an
 in-memory dataset or a Knowledge Graph such as the one handled by the Knowledge Graph plugin, which is the flagship RDF
 dataset of [Corporate Memory](https://eccenca.com/products/enterprise-knowledge-graph-platform-corporate-memory).
-
-## Related plugins
-
-Other types of RDF datasets are the in-memory dataset, the RDF dataset. These are worth considering if the information
-is short-lived or the dataset is small. A more durable and resilient solution is to use a proper Knowledge Graph.
-
-The SPARQL dataset plugin can be used in conjunction with the task plugins for SPARQL `SELECT` and `CONSTRUCT` queries,
-i.e. the plugins SPARQL Select query and SPARQL Construct query.

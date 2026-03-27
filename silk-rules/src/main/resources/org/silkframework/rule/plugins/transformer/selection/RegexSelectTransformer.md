@@ -30,12 +30,3 @@ Attention: Slashes in regular expressions have to be _escaped_, e.g. instead of 
 A compilation of the available constructs for building regular expressions is available in the
 [API of the Java `Pattern`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/regex/Pattern.html#sum).
 
-## Relation to other plugins
-
-Additionally to the Regex selection plugin, there are related plugins such as If matches regex, Validate regex,
-Regex replace and Regex extract.
-
-The distinctive feature of each of these plugins lies in what happens whenever the regular expression
-matches the input value(s): the If matches regex plugin is useful for _conditionally distinguishing_ which input to
-take, Validate regex is used for _validating_ the input, Regex replace _replaces_ all occurrences, and
-Regex extract _extracts_ them.

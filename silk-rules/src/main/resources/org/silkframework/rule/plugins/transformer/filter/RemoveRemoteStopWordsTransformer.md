@@ -13,7 +13,3 @@ The stop word list is expected to be a plain text file where each line contains 
 The separator parameter defines the regular expression used for detecting words, meaning it decides how the input is split into tokens before any lookup against the stop word list happens. By default, the separator is a regular expression for non-whitespace characters.
 
 This separator is therefore part of the semantic contract: it determines what even counts as a candidate token that could be removed by the stop word list.
-
-## Relation to other plugins
-
-The Remove default stop words plugin provides the same operation with a default stop word list.
