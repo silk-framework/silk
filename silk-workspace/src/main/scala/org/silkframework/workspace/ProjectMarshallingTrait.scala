@@ -77,7 +77,7 @@ trait ProjectMarshallingTrait extends AnyPlugin {
     * @param resourceRepository The resource repository from which project resources should be marshaled.
     * @param exportGroups       If true, the access control groups are exported.
     * @param exportUserData     If true, the user data is exported.
-   *                            In particular, this includes the createdByUser and lastModifiedByUser fields of all MetaData objects.
+   *                            In particular, this includes the created, modified, createdByUser and lastModifiedByUser fields of all MetaData objects.
     * @return The proposed file name for the marshaled resource.
     */
   def marshalWorkspace(outputStream: OutputStream,
@@ -139,7 +139,7 @@ trait ProjectMarshallingTrait extends AnyPlugin {
    * @param exportResources         Whether to export the project resources.
    * @param exportGroups            If true, the access control groups are exported.
    * @param exportUserData          If true, the user data is exported.
-   *                                In particular, this includes the createdByUser and lastModifiedByUser fields of all MetaData objects.
+   *                                In particular, this includes the created, modified, createdByUser and lastModifiedByUser fields of all MetaData objects.
    */
   protected def exportProject(project: Project,
                               outputWorkspaceProvider: WorkspaceProvider,
