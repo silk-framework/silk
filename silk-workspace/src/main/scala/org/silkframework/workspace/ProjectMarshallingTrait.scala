@@ -1,6 +1,6 @@
 package org.silkframework.workspace
 
-import org.silkframework.config.CustomTask
+import org.silkframework.config.{CustomTask, PlainTask, Task, TaskSpec}
 import org.silkframework.dataset.{Dataset, DatasetSpec}
 import org.silkframework.rule.{LinkSpec, TransformSpec}
 import org.silkframework.runtime.activity.UserContext
@@ -14,6 +14,7 @@ import org.silkframework.workspace.io.WorkspaceIO.copyResources
 import org.silkframework.workspace.resources.ResourceRepository
 
 import java.io.{File, OutputStream}
+import scala.reflect.ClassTag
 
 /**
   * Trait defining methods for marshalling and unmarshalling of Silk projects.
@@ -51,7 +52,8 @@ trait ProjectMarshallingTrait extends AnyPlugin {
   def marshalProject(project: Project,
                      outputStream: OutputStream,
                      resourceManager: ResourceManager,
-                     exportGroups: Boolean = false)
+                     exportGroups: Boolean = false,
+                     exportUserData: Boolean = true)
                     (implicit userContext: UserContext): String
 
   /**
@@ -78,7 +80,8 @@ trait ProjectMarshallingTrait extends AnyPlugin {
   def marshalWorkspace(outputStream: OutputStream,
                        projects: Seq[Project],
                        resourceRepository: ResourceRepository,
-                       exportGroups: Boolean = false)
+                       exportGroups: Boolean = false,
+                       exportUserData: Boolean = true)
                       (implicit userContext: UserContext): String
 
 
@@ -123,51 +126,53 @@ trait ProjectMarshallingTrait extends AnyPlugin {
     }
   }
 
-  protected def exportProject(projectName: Identifier,
-                              workspaceProvider: WorkspaceProvider,
-                              exportToWorkspace: WorkspaceProvider,
-                              resources: ResourceManager,
-                              exportToResources: ResourceManager,
-                              alsoExportResources: Boolean)
-                             (implicit userContext: UserContext): Unit = {
-    // Export project
-    val project = workspaceProvider.readProjects().find(_.id == projectName).get
-    WorkspaceIO.copyProject(workspaceProvider, exportToWorkspace, resources, exportToResources, project, alsoExportResources)
-  }
-
   protected def exportProject(project: Project,
                               outputWorkspaceProvider: WorkspaceProvider,
                               resources: ResourceManager,
                               exportToResources: ResourceManager,
-                              alsoExportResources: Boolean,
-                              alsoExportGroups: Boolean = false)
+                              exportResources: Boolean,
+                              exportGroups: Boolean = false,
+                              exportUserData: Boolean = true)
                              (implicit userContext: UserContext): Unit = {
+
+
     // Load project into temporary XML workspace provider
     val updatedProjectConfig = project.config.copy(projectResourceUriOpt = Some(project.config.resourceUriOrElseDefaultUri))
     val projectId = updatedProjectConfig.id
-    outputWorkspaceProvider.putProject(updatedProjectConfig)
+    val projectConfigToStore = if (!exportUserData) updatedProjectConfig.copy(metaData = updatedProjectConfig.metaData.withoutUserData) else updatedProjectConfig
+    outputWorkspaceProvider.putProject(projectConfigToStore)
     outputWorkspaceProvider.putTags(updatedProjectConfig.id, project.tagManager.allTags())
     outputWorkspaceProvider.projectVariables(updatedProjectConfig.id).putVariables(project.templateVariables.all)
-    if(alsoExportGroups) {
+    if(exportGroups) {
       outputWorkspaceProvider.putAccessControl(projectId, AccessControl(project.accessControl.getGroups))
     }
-    if(alsoExportResources) {
+    if(exportResources) {
       copyResources(resources, exportToResources)
     }
+
+    // Export tasks
+    def stripUserData[T <: TaskSpec: ClassTag](task: Task[T]): Task[T] = {
+      if (!exportUserData) {
+        PlainTask(task.id, task.data, task.metaData.withoutUserData)
+      } else {
+        task
+      }
+    }
+
     for(dataset <- project.tasks[DatasetSpec[Dataset]]) {
-      outputWorkspaceProvider.putTask(projectId, dataset, resources)
+      outputWorkspaceProvider.putTask(projectId, stripUserData(dataset), resources)
     }
     for(transformTask <- project.tasks[TransformSpec]) {
-      outputWorkspaceProvider.putTask(projectId, transformTask, resources)
+      outputWorkspaceProvider.putTask(projectId, stripUserData(transformTask), resources)
     }
     for(task <- project.tasks[LinkSpec]) {
-      outputWorkspaceProvider.putTask(projectId, task, resources)
+      outputWorkspaceProvider.putTask(projectId, stripUserData(task), resources)
     }
     for(task <- project.tasks[Workflow]) {
-      outputWorkspaceProvider.putTask(projectId, task, resources)
+      outputWorkspaceProvider.putTask(projectId, stripUserData(task), resources)
     }
     for(task <- project.tasks[CustomTask]) {
-      outputWorkspaceProvider.putTask(projectId, task, resources)
+      outputWorkspaceProvider.putTask(projectId, stripUserData(task), resources)
     }
   }
 }

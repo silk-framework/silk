@@ -3,7 +3,8 @@ package org.silkframework.workspace.xml
 
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
-import org.silkframework.config.{Prefixes, Tag}
+import org.silkframework.config.{MetaData, PlainTask, Prefixes, Tag}
+import org.silkframework.dataset.{DatasetSpec, MockDataset}
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.rule.LinkSpec
 import org.silkframework.runtime.activity.UserContext
@@ -13,7 +14,7 @@ import org.silkframework.runtime.resource._
 import org.silkframework.runtime.templating.{CompiledTemplate, EvaluationConfig, InMemoryTemplateVariablesReader, TemplateEngine, TemplateVariableValue}
 import org.silkframework.util.{ConfigTestTrait, Uri}
 import org.silkframework.workspace.resources.InMemoryResourceRepository
-import org.silkframework.workspace.{InMemoryWorkspaceProvider, Workspace}
+import org.silkframework.workspace.{InMemoryWorkspaceProvider, LoadedTask, ProjectConfig, Workspace}
 
 import java.io.{File, FileOutputStream, Writer}
 import java.nio.file.Files
@@ -30,6 +31,8 @@ class XmlZipProjectMarshalingTest extends AnyFlatSpec with Matchers with ConfigT
   val projectName = "proj1"
 
   PluginRegistry.registerPlugin(classOf[MockTemplateEngine])
+  PluginRegistry.unregisterPlugin(classOf[MockDataset])
+  PluginRegistry.registerPlugin(classOf[MockDataset])
 
   private val externalPrefix = "externalPrefix"
 
@@ -126,6 +129,57 @@ class XmlZipProjectMarshalingTest extends AnyFlatSpec with Matchers with ConfigT
     project.metaData.tags shouldBe Set(tag1.uri, tag2.uri)
     dbpediaDataset.metaData.tags shouldBe Set(tag1.uri, tag2.uri)
     linkedmdbDataset.metaData.tags shouldBe Set()
+  }
+
+  it should "strip user data when exportUserData is false" in {
+    val result = marshalAndUnmarshalWithUserData(exportUserData = false)
+    result.projectConfig.metaData.createdByUser shouldBe None
+    result.projectConfig.metaData.lastModifiedByUser shouldBe None
+    result.tasks.head.task.metaData.createdByUser shouldBe None
+    result.tasks.head.task.metaData.lastModifiedByUser shouldBe None
+  }
+
+  it should "preserve user data when exportUserData is true (default)" in {
+    val userUri = Uri("urn:user:alice")
+    val result = marshalAndUnmarshalWithUserData(exportUserData = true)
+    result.projectConfig.metaData.createdByUser shouldBe Some(userUri)
+    result.projectConfig.metaData.lastModifiedByUser shouldBe Some(userUri)
+    result.tasks.head.task.metaData.createdByUser shouldBe Some(userUri)
+    result.tasks.head.task.metaData.lastModifiedByUser shouldBe Some(userUri)
+  }
+
+  private case class ExportResult(projectConfig: ProjectConfig, tasks: Seq[LoadedTask[GenericDatasetSpec]])
+
+  private def marshalAndUnmarshalWithUserData(exportUserData: Boolean): ExportResult = {
+    val userUri = Uri("urn:user:alice")
+    val metaWithUser = MetaData(label = Some("test"), createdByUser = Some(userUri), lastModifiedByUser = Some(userUri))
+    val projectId = "testUserDataProject"
+
+    // Set up a workspace with user data in project and task metadata
+    val workspaceProvider = new InMemoryWorkspaceProvider()
+    workspaceProvider.putProject(ProjectConfig(projectId, metaData = metaWithUser))
+    workspaceProvider.putTask(projectId, PlainTask("testDataset", DatasetSpec(MockDataset()), metaData = metaWithUser), InMemoryResourceManager())
+    val workspace = new Workspace(workspaceProvider, InMemoryResourceRepository())
+
+    // Marshal
+    val marshalledFile = Files.createTempFile("project", ".zip")
+    val outputStream = new FileOutputStream(marshalledFile.toFile)
+    try {
+      XmlZipWithoutResourcesProjectMarshaling().marshalProject(workspace.project(projectId), outputStream,
+        InMemoryResourceManager(), exportUserData = exportUserData)
+    } finally {
+      outputStream.close()
+    }
+
+    // Unmarshal into a fresh workspace
+    val workspaceProvider2 = new InMemoryWorkspaceProvider()
+    XmlZipWithoutResourcesProjectMarshaling().unmarshalProject(projectId, workspaceProvider2, InMemoryResourceManager(), marshalledFile.toFile)
+    Files.delete(marshalledFile)
+
+    implicit val pluginContext: PluginContext = TestPluginContext()
+    val tasks = workspaceProvider2.readTasks[GenericDatasetSpec](projectId)
+    tasks should have size 1
+    ExportResult(workspaceProvider2.readProjects().head, tasks)
   }
 
   override def propertyMap: Map[String, Option[String]] = Map(

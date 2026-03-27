@@ -66,6 +66,13 @@ case class MetaData(label: Option[String],
     )
   }
 
+  /**
+   * Returns a copy of this meta data object with the user data removed.
+   */
+  def withoutUserData: MetaData = {
+    copy(createdByUser = None, lastModifiedByUser = None)
+  }
+
   private def userUri(implicit userContext: UserContext): Option[Uri] = {
     userContext.user.map(user => Uri(user.uri))
   }
