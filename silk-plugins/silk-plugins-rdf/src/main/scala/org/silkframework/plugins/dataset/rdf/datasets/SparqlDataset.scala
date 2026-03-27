@@ -5,6 +5,7 @@ import org.silkframework.dataset.{DatasetCategories, TripleSink, TripleSinkDatas
 import org.silkframework.plugins.dataset.rdf.access.{SparqlSink, SparqlSource}
 import org.silkframework.plugins.dataset.rdf.endpoint.RemoteSparqlEndpoint
 import org.silkframework.runtime.activity.UserContext
+import org.silkframework.plugins.dataset.rdf.tasks.{SparqlSelectCustomTask, SparqlUpdateCustomTask}
 import org.silkframework.runtime.plugin.annotations.{Param, Plugin, PluginReference}
 import org.silkframework.runtime.plugin.types.{MultilineStringParameter, PasswordParameter}
 
@@ -22,6 +23,14 @@ import org.silkframework.runtime.plugin.types.{MultilineStringParameter, Passwor
     new PluginReference(
       id = RdfFileDataset.pluginId,
       description = "The RDF file dataset loads its contents from a file into memory at read time and supports only N-Triples as output. The SPARQL endpoint dataset connects to a remote endpoint that handles queries and updates without loading the full dataset into process memory."
+    ),
+    new PluginReference(
+      id = SparqlUpdateCustomTask.pluginId,
+      description = "The SPARQL Update query plugin generates SPARQL Update statements from entity input using a template; the SPARQL endpoint dataset is what those statements are written to. One produces the queries, the other executes them against the endpoint."
+    ),
+    new PluginReference(
+      id = SparqlSelectCustomTask.pluginId,
+      description = "The SPARQL Select query plugin reads from a SPARQL endpoint dataset by executing a SELECT query against it; the SPARQL Update query plugin writes to the same kind of dataset by sending update statements to it. The two plugins sit on opposite ends of the same data flow."
     )
   )
 )
