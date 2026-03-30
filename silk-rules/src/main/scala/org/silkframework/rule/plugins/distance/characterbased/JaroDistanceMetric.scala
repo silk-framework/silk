@@ -14,15 +14,26 @@
 
 package org.silkframework.rule.plugins.distance.characterbased
 
+import org.silkframework.rule.plugins.transformer.linguistic.MetaphoneTransformer
 import org.silkframework.rule.similarity.{NormalizedDistanceMeasure, SingleValueDistanceMeasure}
-import org.silkframework.runtime.plugin.annotations.Plugin
+import org.silkframework.runtime.plugin.annotations.{Plugin, PluginReference}
 
 @Plugin(
-  id = "jaro",
+  id = JaroDistanceMetric.pluginId,
   categories = Array("Characterbased"),
   label = "Jaro distance",
   description = "Matches strings based on the Jaro distance metric.",
-  documentationFile = "JaroDistanceMetric.md"
+  documentationFile = "JaroDistanceMetric.md",
+  relatedPlugins = Array(
+    new PluginReference(
+      id = JaroWinklerDistance.pluginId,
+      description = "The Jaro–Winkler distance plugin is a Jaro-style similarity measure that gives extra weight to shared prefixes. The Jaro distance metric plugin stays closer to the underlying common character and transposition signal without that prefix boost."
+    ),
+    new PluginReference(
+      id = MetaphoneTransformer.pluginId,
+      description = "The Metaphone plugin turns each input string into a phonetic key, reducing spelling variation before scoring. The Jaro distance metric plugin then compares those phonetic keys as ordinary strings."
+    )
+  )
 )
 case class JaroDistanceMetric() extends SingleValueDistanceMeasure with NormalizedDistanceMeasure {
 
@@ -32,6 +43,8 @@ case class JaroDistanceMetric() extends SingleValueDistanceMeasure with Normaliz
 }
 
 object JaroDistanceMetric {
+  final val pluginId = "jaro"
+
   def jaro(string1: String, string2: String): Double = {
     //get half the length of the string rounded up - (this is the distance used for acceptable transpositions)
     val halflen: Int = ((math.min(string1.length, string2.length)) / 2) + ((math.min(string1.length, string2.length)) % 2)

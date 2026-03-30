@@ -20,7 +20,7 @@ import org.silkframework.rule.annotations.{TransformExample, TransformExamples}
 import java.text.SimpleDateFormat
 import java.util.Date
 import org.silkframework.rule.input.SimpleTransformer
-import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
+import org.silkframework.runtime.plugin.annotations.{Param, Plugin, PluginReference}
 
 import java.time.Instant
 
@@ -30,10 +30,16 @@ import java.time.Instant
  * @author Julien Plu
  */
 @Plugin(
-  id = "timeToDate",
+  id = TimestampToDateTransformer.pluginId,
   categories = Array("Date"),
   label = "Timestamp to date",
-  description = "Convert a timestamp to xsd:date format. Expects an integer that denotes the passed time since the Unix Epoch (1970-01-01)"
+  description = "Convert a timestamp to xsd:date format. Expects an integer that denotes the passed time since the Unix Epoch (1970-01-01)",
+  relatedPlugins = Array(
+    new PluginReference(
+      id = DateToTimestampTransformer.pluginId,
+      description = "Timestamp to date converts a Unix integer to a date string; Date to timestamp is the reverse of that, converting a date string back to a Unix integer."
+    )
+  )
 )
 @TransformExamples(Array(
   new TransformExample(
@@ -75,4 +81,8 @@ case class TimestampToDateTransformer(
         instant.toString
     }
   }
+}
+
+object TimestampToDateTransformer {
+  final val pluginId = "timeToDate"
 }

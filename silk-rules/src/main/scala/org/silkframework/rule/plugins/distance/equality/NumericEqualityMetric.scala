@@ -5,14 +5,21 @@ import java.text.DecimalFormat
 import org.silkframework.entity.Index
 import org.silkframework.rule.annotations.{DistanceMeasureExample, DistanceMeasureExamples}
 import org.silkframework.rule.similarity.{BooleanDistanceMeasure, SingleValueDistanceMeasure}
-import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
+import org.silkframework.runtime.plugin.annotations.{Param, Plugin, PluginReference}
+import org.silkframework.rule.plugins.distance.numeric.NumMetric
 import org.silkframework.runtime.plugin.PluginCategories
 
 @Plugin(
-  id = "numericEquality",
+  id = NumericEqualityMetric.pluginId,
   categories = Array("Equality", PluginCategories.recommended),
   label = "Numeric equality",
-  description = NumericEqualityMetric.description
+  description = NumericEqualityMetric.description,
+  relatedPlugins = Array(
+    new PluginReference(
+      id = NumMetric.pluginId,
+      description = "Matching and measuring distance are not the same operation. Numeric equality returns match or no match; Numeric similarity returns the actual distance between the two numbers."
+    )
+  )
 )
 @DistanceMeasureExamples(Array(
   new DistanceMeasureExample(
@@ -42,8 +49,10 @@ import org.silkframework.runtime.plugin.PluginCategories
     output = 1.0
   )
 ))
-case class NumericEqualityMetric(@Param("The range of tolerance in floating point number comparisons. Must be 0 or a non-negative number smaller than 1.")
-                                 precision: Double = 0.0) extends SingleValueDistanceMeasure with BooleanDistanceMeasure {
+case class NumericEqualityMetric(
+    @Param("The range of tolerance in floating point number comparisons. Must be 0 or a non-negative number smaller than 1.")
+    precision: Double = 0.0
+) extends SingleValueDistanceMeasure with BooleanDistanceMeasure {
 
   val MAX_SIGNIFICANT_DECIMAL_PLACE = 50
 
@@ -116,6 +125,7 @@ case class NumericEqualityMetric(@Param("The range of tolerance in floating poin
 }
 
 object NumericEqualityMetric {
+  final val pluginId = "numericEquality"
   final val description = """Compares values numerically instead of their string representation as the 'String Equality' operator does.
 Allows to set the needed precision of the comparison. A value of 0.0 means that the values must represent exactly the same
 (floating point) value, values higher than that allow for a margin of tolerance."""

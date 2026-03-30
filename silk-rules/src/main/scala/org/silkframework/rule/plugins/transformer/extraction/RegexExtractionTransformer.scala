@@ -2,23 +2,40 @@ package org.silkframework.rule.plugins.transformer.extraction
 
 import org.silkframework.rule.annotations.{TransformExample, TransformExamples}
 import org.silkframework.rule.input.Transformer
+import org.silkframework.rule.plugins.transformer.conditional.IfMatchesRegexTransformer
 import org.silkframework.rule.plugins.transformer.replace.RegexReplaceTransformer
+import org.silkframework.rule.plugins.transformer.selection.RegexSelectTransformer
+import org.silkframework.rule.plugins.transformer.validation.ValidateRegex
 import org.silkframework.runtime.plugin.annotations.{Param, Plugin, PluginReference}
 
 /**
   * Extracts values from a String based on a regular expression.
   */
 @Plugin(
-  id = "regexExtract",
+  id = RegexExtractionTransformer.pluginId,
   categories = Array("Extract"),
   label = "Regex extract",
   description = "Extracts one or all matches of a regular expression within the input." +
     " If the regular expression contains one or more capturing groups, only the first group will be considered.",
   documentationFile = "RegexExtractionTransformer.md",
-  relatedPlugins = Array(new PluginReference(
-    id = RegexReplaceTransformer.pluginId,
-    description = "Instead of extracting matching parts from a string, this plugin replaces them with a given replacement string."
-  ))
+  relatedPlugins = Array(
+    new PluginReference(
+      id = RegexReplaceTransformer.pluginId,
+      description = "The Regex extract plugin returns what the regular expression matches, or the first capturing group if capturing groups exist. The Regex replace plugin returns the full input string after rewriting it by replacing every match with the configured replacement."
+    ),
+    new PluginReference(
+      id = RegexSelectTransformer.pluginId,
+      description = "The Regex selection plugin does not return matched text at all. It emits copies of a provided output value at the positions where the checked values match the regular expressions, while the Regex extract plugin returns the matched substring or capturing-group content."
+    ),
+    new PluginReference(
+      id = IfMatchesRegexTransformer.pluginId,
+      description = "The If matches regex plugin uses the match only as a decision about which provided input value to return. The Regex extract plugin uses the match as the produced content, so the output is derived from the matched region rather than from branch inputs."
+    ),
+    new PluginReference(
+      id = ValidateRegex.pluginId,
+      description = "The Validate regex plugin keeps the original value only when the full value matches the configured regular expression and otherwise fails validation. The Regex extract plugin returns match-derived output and can return an empty result when nothing matches."
+    ),
+  )
 )
 @TransformExamples(Array(
   new TransformExample(
@@ -98,4 +115,8 @@ case class RegexExtractionTransformer(
       Seq.empty
     }
   }
+}
+
+object RegexExtractionTransformer {
+  final val pluginId = "regexExtract"
 }

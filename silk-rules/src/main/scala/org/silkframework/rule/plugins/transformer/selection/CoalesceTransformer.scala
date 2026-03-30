@@ -38,7 +38,7 @@ import org.silkframework.runtime.plugin.annotations.Plugin
   ),
 ))
 @Plugin(
-  id = "coalesce",
+  id = CoalesceTransformer.pluginId,
   label = "Coalesce (first non-empty input)",
   categories = Array("Selection"),
   description = "Forwards the first non-empty input, i.e. for which any value(s) exist. A single empty string is considered a value."
@@ -48,4 +48,8 @@ case class CoalesceTransformer() extends Transformer {
   override def apply(values: Seq[Seq[String]]): Seq[String] = {
     values.find(_.nonEmpty).getOrElse(Seq.empty)
   }
+}
+
+object CoalesceTransformer {
+  final val pluginId = "coalesce"
 }
