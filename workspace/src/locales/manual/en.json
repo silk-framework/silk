@@ -980,6 +980,7 @@
         },
         "TargetVocabularySelection": {
             "customVocabularyWarning": "The vocabulary '{{uri}}' is not among the installed vocabularies.",
+            "notInstalledVocabulary": "This vocabulary is not among the installed vocabularies.",
             "multiSelectionRadioButtonLabel": "Select individual vocabularies",
             "staticEntryLabel": {
                 "none": "No vocabularies",

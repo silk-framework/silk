@@ -9,6 +9,7 @@ import {
     Spacing,
 } from "@eccenca/gui-elements";
 import React, { useEffect, useState } from "react";
+import type { TagProps } from "@blueprintjs/core/src/components/tag/tag";
 import { useTranslation } from "react-i18next";
 import { IVocabularyInfo } from "./typings";
 import useErrorHandler from "../../../hooks/useErrorHandler";
@@ -162,6 +163,20 @@ export default function VocabularyMultiSelect({
         setSearchQuery(query);
     };
 
+    const getTagProps = React.useCallback(
+        (_value: string, index: number): TagProps => {
+            const vocab = selectedVocabs[index];
+            const isAvailable = vocab && availableVocabUris.has(vocab.uri);
+            return {
+                intent: isAvailable ? undefined : "warning",
+                icon: isAvailable ? undefined : "warning-sign",
+                htmlTitle: isAvailable ? undefined : t("widget.TargetVocabularySelection.notInstalledVocabulary"),
+                minimal: true,
+            };
+        },
+        [selectedVocabs, availableVocabUris, t],
+    );
+
     const illegalCharsRegex = /\s|,|<|>/;
 
     const createVocabularyFromQuery = (query: string): IVocabularyInfo => {
@@ -196,8 +211,6 @@ export default function VocabularyMultiSelect({
             labelProps={{
                 text: label,
             }}
-            // hasStateDanger={hasError} TODO?
-            // messageText={hasError ? validationErrorText : undefined} TODO?
         >
             <VocabularyMultiSelectBP
                 popoverProps={{
@@ -219,7 +232,7 @@ export default function VocabularyMultiSelect({
                     },
                     onRemove: removeVocabFromSelectionViaIndex,
                     rightElement: clearButton,
-                    tagProps: { minimal: true },
+                    tagProps: getTagProps,
                 }}
                 selectedItems={selectedVocabs}
                 createNewItemRenderer={newItemRenderer}
