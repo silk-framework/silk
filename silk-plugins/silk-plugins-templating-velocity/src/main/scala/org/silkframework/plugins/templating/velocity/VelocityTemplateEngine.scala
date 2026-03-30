@@ -68,7 +68,7 @@ class VelocityCompiledTemplate(val templateString: String) extends CompiledTempl
 
   override lazy val variables: Option[Seq[TemplateVariableName]] = {
     Some(extractVariableReferences(velocityTemplate.getData.asInstanceOf[SimpleNode])
-      .map(name => new TemplateVariableName(name, "")).distinct)
+      .map(name => new TemplateVariableName(name, Seq.empty)).distinct)
   }
 
   override def evaluate(values: Map[String, AnyRef], writer: Writer): Unit = {

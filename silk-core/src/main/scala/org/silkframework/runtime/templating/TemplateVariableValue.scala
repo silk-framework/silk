@@ -7,7 +7,7 @@ package org.silkframework.runtime.templating
   * @param scope  The scope. May be empty.
   * @param values The values for this variable.
   */
-class TemplateVariableValue(name: String, scope: String = "", val values: Seq[String]) extends TemplateVariableName(name, scope) {
+class TemplateVariableValue(name: String, scope: Seq[String] = Seq.empty, val values: Seq[String]) extends TemplateVariableName(name, scope) {
 
   def asName: TemplateVariableName = {
     new TemplateVariableName(name, scope)

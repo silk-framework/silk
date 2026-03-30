@@ -6,17 +6,13 @@ package org.silkframework.runtime.templating
   * @param name  The local name of the variable.
   * @param scope The scope. May be empty.
   */
-class TemplateVariableName(val name: String, val scope: String) {
+class TemplateVariableName(val name: String, val scope: Seq[String] = Seq.empty) {
 
   /**
     * The variable name including its scope, e.g., `project.var`
     */
   def scopedName: String = {
-    if (scope.nonEmpty) {
-      scope + "." + name
-    } else {
-      name
-    }
+    (scope :+ name).mkString(".")
   }
 
   override def toString: String = {
@@ -37,11 +33,11 @@ class TemplateVariableName(val name: String, val scope: String) {
 object TemplateVariableName {
 
   def parse(fullName: String): TemplateVariableName = {
-    val pointIndex = fullName.indexOf('.'.toInt)
-    if(pointIndex != -1) {
-      new TemplateVariableName(fullName.substring(pointIndex + 1), fullName.substring(0, pointIndex))
+    val parts = fullName.split('.')
+    if (parts.length > 1) {
+      new TemplateVariableName(parts.last, parts.dropRight(1).toSeq)
     } else {
-      new TemplateVariableName(fullName, "")
+      new TemplateVariableName(fullName, Seq.empty)
     }
   }
 

@@ -11,7 +11,7 @@ trait TemplateVariablesReader {
   /**
     * The available variable scopes.
     */
-  def scopes: Set[String]
+  def scopes: Set[Seq[String]]
 
   /**
     * Retrieves all template variables.

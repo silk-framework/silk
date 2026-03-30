@@ -19,7 +19,7 @@ class ProjectTemplateVariablesManager(serializer: TemplateVariablesSerializer, l
   /**
     * The available variable scopes.
     */
-  def scopes: Set[String] = GlobalTemplateVariables.scopes + projectScope
+  def scopes: Set[Seq[String]] = GlobalTemplateVariables.scopes + projectScope
 
   /**
     * Retrieves all template variables.

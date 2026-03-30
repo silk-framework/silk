@@ -54,19 +54,13 @@ trait CompiledTemplate {
    * Converts template values to a Java Map
    */
   protected def convertValues(value: Seq[TemplateVariableValue]): Map[String, AnyRef] = {
-    value.groupBy(_.scope).flatMap { case (scope, values) =>
-      if (scope.isEmpty) {
-        for (value <- values) yield {
-          (value.name, IterableTemplateValues.fromValues(value.values))
-        }
-      } else {
-        val nestedValues =
-          for (value <- values) yield {
-            (value.name, IterableTemplateValues.fromValues(value.values))
-          }
-        Seq((scope, nestedValues.toMap.asJava))
-      }
+    val (flatVars, scopedVars) = value.partition(_.scope.isEmpty)
+    val flatEntries = flatVars.map(v => v.name -> IterableTemplateValues.fromValues(v.values).asInstanceOf[AnyRef])
+    val scopedEntries = scopedVars.groupBy(_.scope.head).map { case (topScope, vars) =>
+      val shallowVars = vars.map(v => new TemplateVariableValue(v.name, v.scope.tail, v.values))
+      topScope -> convertValues(shallowVars).asJava.asInstanceOf[AnyRef]
     }
+    (flatEntries ++ scopedEntries).toMap
   }
 }
 

@@ -5,11 +5,11 @@ object TemplateVariableScopes {
   /**
    * Global variables.
    */
-  final val global = "global"
+  final val global: Seq[String] = Seq("global")
 
   /**
    * Project variables.
    */
-  final val project = "project"
+  final val project: Seq[String] = Seq("project")
 
 }

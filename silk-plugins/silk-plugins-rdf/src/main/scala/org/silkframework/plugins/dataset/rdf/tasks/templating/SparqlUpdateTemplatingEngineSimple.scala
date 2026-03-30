@@ -40,7 +40,7 @@ object SparqlSimpleTemplateEngine {
 class SparqlSimpleCompiledTemplate(val sparqlUpdateTemplate: String) extends CompiledTemplate {
 
   override lazy val variables: Option[Seq[TemplateVariableName]] = Some(
-    properties.map(p => new TemplateVariableName(p, ""))
+    properties.map(p => new TemplateVariableName(p, Seq.empty))
   )
 
   override def evaluate(values: Map[String, AnyRef], writer: Writer): Unit = {

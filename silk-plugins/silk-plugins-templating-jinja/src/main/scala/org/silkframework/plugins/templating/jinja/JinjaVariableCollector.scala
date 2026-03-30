@@ -51,7 +51,7 @@ class JinjaVariableCollector  {
           val loopVars = new HelperStringTokenizer(parts(0)).splitComma(true).allTokens
           val loopedVars = collectFromExpression(parts(1))
           val childVars = collectFromChildren(tagNode, scope.withBoundNames(loopVars.asScala.toSeq))
-          val filtedChildVars = childVars.unboundVars.filterNot(v => v.scope == "loop" || v.name == "loop" )
+          val filtedChildVars = childVars.unboundVars.filterNot(v => v.scope == Seq("loop") || v.name == "loop" )
           loopedVars.withUnbound(filtedChildVars)
         } else {
           collectFromChildren(tagNode, scope)
@@ -95,17 +95,18 @@ class JinjaVariableCollector  {
       val tree = builder.build(EXPRESSION_START_TOKEN + expression + EXPRESSION_END_TOKEN)
       // Manually treat simple expressions of the form `project.variable` or `variable.method(...)`
       expression match {
-        case JinjaVariableCollector.scopedName(scope, name) =>
+        case JinjaVariableCollector.scopedName(scopePart, name) =>
+          val scope = scopePart.dropRight(1).split('.').toSeq
           Scope(
             unboundVars = Seq(new TemplateVariableName(name, scope))
           )
         case JinjaVariableCollector.methodCallOnVar(varName) =>
           Scope(
-            unboundVars = Seq(new TemplateVariableName(varName, ""))
+            unboundVars = Seq(new TemplateVariableName(varName, Seq.empty))
           )
         case _ =>
           Scope(
-            unboundVars = tree.getIdentifierNodes.asScala.map(_.getName).filterNot(ignoreIdentifierNode).toSeq.map(new TemplateVariableName(_, ""))
+            unboundVars = tree.getIdentifierNodes.asScala.map(_.getName).filterNot(ignoreIdentifierNode).toSeq.map(new TemplateVariableName(_, Seq.empty))
           )
       }
     } catch {
@@ -113,7 +114,7 @@ class JinjaVariableCollector  {
         // Fallback: try to extract the leading variable from method call expressions like `var.method(...)`
         expression match {
           case JinjaVariableCollector.methodCallOnVar(varName) =>
-            Scope(unboundVars = Seq(new TemplateVariableName(varName, "")))
+            Scope(unboundVars = Seq(new TemplateVariableName(varName, Seq.empty)))
           case _ =>
             Scope.empty
         }
@@ -132,7 +133,7 @@ class JinjaVariableCollector  {
   case class Scope(unboundVars: Seq[TemplateVariableName], boundVars: Seq[TemplateVariableName] = Seq.empty) {
 
     def withBoundNames(varNames: Seq[String]): Scope = {
-      withBound(varNames.map(new TemplateVariableName(_, "")))
+      withBound(varNames.map(new TemplateVariableName(_, Seq.empty)))
     }
 
     def withBound(varNames: Seq[TemplateVariableName]): Scope = {
@@ -167,8 +168,8 @@ object JinjaVariableCollector {
   // Regex for valid variable names
   private val variableRegex = "[a-zA-Z_][a-zA-Z0-9_]*".r
 
-  // Regex for scoped names of the form scope.var
-  private val scopedName = s"($variableRegex)\\.($variableRegex)".r
+  // Regex for scoped names of the form scope1[.scope2]*.var
+  private val scopedName = s"((?:$variableRegex\\.)+)($variableRegex)".r
 
   // Regex for method calls on a variable of the form var.method(...)
   private val methodCallOnVar = s"($variableRegex)\\.$variableRegex\\(.*\\)".r

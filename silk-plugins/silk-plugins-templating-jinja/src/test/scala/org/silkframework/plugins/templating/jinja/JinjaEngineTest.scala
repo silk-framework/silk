@@ -169,7 +169,7 @@ class JinjaEngineTest extends AnyFlatSpec with Matchers {
     val compileTemplate = JinjaTemplateEngine().compile(template)
     val templateValues =
       for((name, value) <- values.toSeq) yield {
-        new TemplateVariableValue(name, "", value)
+        new TemplateVariableValue(name, Seq.empty, value)
       }
     compileTemplate.evaluate(templateValues, writer)
     writer.toString

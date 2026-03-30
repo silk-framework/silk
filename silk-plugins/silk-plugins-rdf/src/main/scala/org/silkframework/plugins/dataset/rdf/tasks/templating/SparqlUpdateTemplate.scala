@@ -44,8 +44,8 @@ class SparqlUpdateTemplate(template: CompiledTemplate) {
       val genericUri = "urn:generic:1"
       val entityVariables = entityVariableNames
       val assignments = entityVariables.map(_ -> genericUri).toMap
-      val inputPropVars = taskPropertyVariableNames("inputProperties").map(_ -> genericUri).toMap
-      val outputPropVars = taskPropertyVariableNames("outputProperties").map(_ -> genericUri).toMap
+      val inputPropVars = taskPropertyVariableNames(Seq("inputProperties")).map(_ -> genericUri).toMap
+      val outputPropVars = taskPropertyVariableNames(Seq("outputProperties")).map(_ -> genericUri).toMap
       val taskProps = TaskProperties(inputPropVars, outputPropVars)
       val sparqlQuery = Try(generate(assignments, taskProps)) match {
         case Failure(exception) =>
@@ -95,11 +95,11 @@ class SparqlUpdateTemplate(template: CompiledTemplate) {
     val usages = SparqlUpdateTemplate.templatingVariables.flatMap(v => template.methodUsages(v))
     if (usages.nonEmpty) {
       val rowVars = sparqlMethodUsages(SparqlUpdateTemplate.ROW_VAR_NAME)
-        .map(u => new TemplateVariableName(u.parameterValue, ""))
+        .map(u => new TemplateVariableName(u.parameterValue))
       val inputPropVars = sparqlMethodUsages(SparqlUpdateTemplate.INPUT_PROPERTIES_VAR_NAME)
-        .map(u => new TemplateVariableName(u.parameterValue, "inputProperties"))
+        .map(u => new TemplateVariableName(u.parameterValue, Seq("inputProperties")))
       val outputPropVars = sparqlMethodUsages(SparqlUpdateTemplate.OUTPUT_PROPERTIES_VAR_NAME)
-        .map(u => new TemplateVariableName(u.parameterValue, "outputProperties"))
+        .map(u => new TemplateVariableName(u.parameterValue, Seq("outputProperties")))
       Some((rowVars ++ inputPropVars ++ outputPropVars).distinct)
     } else {
       template.variables
@@ -128,7 +128,7 @@ class SparqlUpdateTemplate(template: CompiledTemplate) {
   }
 
   /** Returns variable names for a specific scope (e.g. "inputProperties", "outputProperties"). */
-  private def taskPropertyVariableNames(scope: String): Seq[String] = {
+  private def taskPropertyVariableNames(scope: Seq[String]): Seq[String] = {
     sparqlVariables match {
       case Some(vars) =>
         vars.filter(_.scope == scope).map(_.name).distinct

@@ -2,13 +2,14 @@ package org.silkframework.runtime.templating
 
 import org.silkframework.config.{Task, TaskSpec}
 import org.silkframework.entity.Entity
+import org.silkframework.runtime.plugin.{AnyPlugin, ParameterValues, PluginContext, PluginDescription, PluginObjectParameterTypeTrait, StringParameterType}
 
 object TemplateVariableConversions {
 
   /**
    * Converts an entity to a sequence of template variables.
    */
-  def fromEntity(entity: Entity, scope: String = ""): Seq[TemplateVariableValue] = {
+  def fromEntity(entity: Entity, scope: Seq[String] = Seq.empty): Seq[TemplateVariableValue] = {
     for((path, value) <- entity.schema.typedPaths zip entity.values if value.nonEmpty) yield {
       new TemplateVariableValue(path.normalizedSerialization, scope, value)
     }
