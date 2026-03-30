@@ -13,7 +13,7 @@ case class TemplateVariable(override val name: String,
                             template: Option[String] = None,
                             description: Option[String] = None,
                             isSensitive: Boolean = false,
-                            override val scope: String) extends TemplateVariableValue(name, scope, values = Seq(value)) {
+                            override val scope: String = "") extends TemplateVariableValue(name, scope, values = Seq(value)) {
 
   validate()
 

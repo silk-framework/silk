@@ -51,24 +51,6 @@ trait CompiledTemplate {
   def evaluate(values: Seq[TemplateVariableValue], writer: Writer, evaluationConfig: EvaluationConfig = EvaluationConfig()): Unit
 
   /**
-    * Evaluates this template using a provided entity.
-    *
-    * @throws TemplateEvaluationException If the evaluation failed.
-    */
-  def evaluate(entity: Entity, writer: Writer): Unit = {
-    evaluate(entityToMap(entity), writer)
-  }
-
-  /**
-   * Converts an entity to a sequence of template variables.
-   */
-  protected def entityToMap(entity: Entity): Seq[TemplateVariableValue] = {
-    for((path, value) <- entity.schema.typedPaths zip entity.values if value.nonEmpty) yield {
-       new TemplateVariableValue(path.normalizedSerialization, "", value)
-    }
-  }
-
-  /**
    * Converts template values to a Java Map
    */
   protected def convertValues(value: Seq[TemplateVariableValue]): Map[String, AnyRef] = {
