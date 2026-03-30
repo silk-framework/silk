@@ -18,22 +18,24 @@ This tabular raw form is transformed into an _entity table_.
 
 ### Templating
 
-The select query supports [Jinja](https://jinja.palletsprojects.com/) templating. The following variable is
-automatically provided at execution time:
+The select query supports [Jinja](https://jinja.palletsprojects.com/) templating. All parameters of the input task
+are automatically provided at execution time under the `input.parameters` scope:
 
 | Variable | Description |
 |----------|-------------|
-| `graph`  | The named graph URI from the input dataset's graph parameter. Empty if no graph is configured. |
+| `input.parameters.graph` | The named graph URI from the input dataset's graph parameter. Empty if no graph is configured. |
+| `input.parameters.<param>` | Any other parameter of the input dataset, referenced by its parameter name. |
 
-The `graph` variable can be used directly or combined with Jinja expressions. For example, to query a named graph
+These variables can be used directly or combined with Jinja expressions. For example, to query a named graph
 whose URI is derived by appending a suffix to the configured graph URI:
 
 ```sparql
-SELECT * WHERE { GRAPH <{{ graph ~ "/data" }}> { ?s ?p ?o } }
+SELECT * WHERE { GRAPH <{{ input.parameters.graph ~ "/data" }}> { ?s ?p ?o } }
 ```
 
 The output schema (i.e. the result variables) is derived from the query at configuration time by evaluating the
-template with default values (empty `graph`), so the query must remain valid SPARQL regardless of the graph value.
+template with default values (empty strings for all parameters), so the query must remain valid SPARQL regardless
+of the parameter values.
 
 ### Internal Specifics
 

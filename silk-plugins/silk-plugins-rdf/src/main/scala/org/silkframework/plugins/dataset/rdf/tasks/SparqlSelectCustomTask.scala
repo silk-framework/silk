@@ -34,8 +34,9 @@ case class SparqlSelectCustomTask(
   @Param(
     label = "Select query",
     value = "A SPARQL 1.1 select query. The query supports Jinja templating. " +
-      "The 'graph' variable is automatically provided from the input dataset's graph parameter. " +
-      "Example with graph: SELECT * WHERE { GRAPH <{{ graph ~ \"/data\" }}> { ?s ?p ?o } }",
+      "All parameters of the input dataset are automatically provided under the 'input.parameters' scope, " +
+      "e.g., 'input.parameters.graph' for the graph parameter. " +
+      "Example with graph: SELECT * WHERE { GRAPH <{{ input.parameters.graph ~ \"/data\" }}> { ?s ?p ?o } }",
     example = "select * where { ?s ?p ?o }")
   selectQuery: SparqlCodeParameter,
   @Param(label = "Result limit", value = "If set to a positive integer, the number of results is limited")
