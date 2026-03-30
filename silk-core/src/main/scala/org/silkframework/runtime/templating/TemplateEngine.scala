@@ -51,7 +51,10 @@ trait CompiledTemplate {
   def evaluate(values: Seq[TemplateVariableValue], writer: Writer, evaluationConfig: EvaluationConfig = EvaluationConfig()): Unit
 
   /**
-   * Converts template values to a Java Map
+   * Converts template variable values to a nested Java-compatible map.
+   * Variables with an empty scope are placed at the top level.
+   * Variables with a scope are placed in nested maps corresponding to each scope element,
+   * e.g., scope Seq("project", "meta") produces Map("project" -> Map("meta" -> Map(name -> value))).
    */
   protected def convertValues(value: Seq[TemplateVariableValue]): Map[String, AnyRef] = {
     val (flatVars, scopedVars) = value.partition(_.scope.isEmpty)

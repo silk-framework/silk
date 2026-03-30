@@ -4,7 +4,7 @@ package org.silkframework.runtime.templating
   * Holds the full name and value of a template variable.
   *
   * @param name   The local name of the variable.
-  * @param scope  The scope. May be empty.
+  * @param scope  The scope as a sequence of strings forming a prefix path. May be empty.
   * @param values The values for this variable.
   */
 class TemplateVariableValue(name: String, scope: Seq[String] = Seq.empty, val values: Seq[String]) extends TemplateVariableName(name, scope) {

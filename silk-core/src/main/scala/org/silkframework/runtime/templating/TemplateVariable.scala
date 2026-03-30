@@ -7,6 +7,15 @@ import scala.xml.{Node, PCData}
 
 /**
   * A single template variable.
+  *
+  * @param name        The local name of the variable.
+  * @param value       The value of the variable.
+  * @param template    Optional template expression to compute the value dynamically.
+  * @param description Optional description for documentation.
+  * @param isSensitive True if the variable value should not be exposed to users.
+  * @param scope       The scope as a sequence of strings forming a prefix path. May be empty.
+  *                    For example, a variable with name "label" and scope Seq("project", "metaData")
+  *                    is addressed as "project.metaData.label".
   */
 case class TemplateVariable(override val name: String,
                             value: String,

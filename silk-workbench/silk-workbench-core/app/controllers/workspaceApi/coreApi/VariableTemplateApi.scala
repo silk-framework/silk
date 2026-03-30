@@ -445,8 +445,7 @@ object VariableTemplateApi {
                                   )
                                   isSensitive: Boolean,
                                   @Schema(
-                                    description = "The scope of the variable.",
-                                    example = "project",
+                                    description = "The scope of the variable as a sequence of strings forming a prefix path, e.g. [\"project\"] or [\"project\", \"metaData\"].",
                                     requiredMode = RequiredMode.REQUIRED
                                   )
                                   scope: Seq[String]) {
