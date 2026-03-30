@@ -105,9 +105,21 @@ class JinjaVariableCollector  {
             unboundVars = Seq(new TemplateVariableName(varName, Seq.empty))
           )
         case _ =>
-          Scope(
-            unboundVars = tree.getIdentifierNodes.asScala.map(_.getName).filterNot(ignoreIdentifierNode).toSeq.map(new TemplateVariableName(_, Seq.empty))
-          )
+          // Try to find scoped variable references (e.g. `scope.name`) within complex expressions
+          val scopedVars = JinjaVariableCollector.scopedName.findAllMatchIn(expression).map { m =>
+            val scopePart = m.group(1).dropRight(1)
+            val name = m.group(2)
+            new TemplateVariableName(name, scopePart.split('.').toSeq)
+          }.toSeq
+          // Collect plain (unscoped) identifiers, excluding roots of scoped vars (e.g. `loop` from `loop.index`)
+          val scopedRoots = scopedVars.flatMap(_.scope.headOption).toSet
+          val plainVars = tree.getIdentifierNodes.asScala
+            .map(_.getName)
+            .filterNot(ignoreIdentifierNode)
+            .filterNot(scopedRoots)
+            .toSeq
+            .map(new TemplateVariableName(_, Seq.empty))
+          Scope(unboundVars = (scopedVars ++ plainVars).distinct)
       }
     } catch {
       case _: TreeBuilderException =>

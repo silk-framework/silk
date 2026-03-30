@@ -91,8 +91,10 @@ class JinjaTemplate(val node: Node) extends CompiledTemplate {
     for (vars <- variables) {
       // Collect all scoped variables of the form 'scope.name'
       val names = values.map(_.asName)
-      // Variables of the form 'scope.name' can also be addressed as just 'scope'
-      val scopes = values.filter(_.scope.nonEmpty).map(v => new TemplateVariableName(v.scope.mkString("."), Seq.empty))
+      // Variables of the form 'scope.name' can also be addressed by any scope prefix (e.g., 'input' or 'input.parameters')
+      val scopes = values.filter(_.scope.nonEmpty).flatMap { v =>
+        (1 to v.scope.length).map(n => new TemplateVariableName(v.scope.take(n).mkString("."), Seq.empty))
+      }
       // Find missing vars
       val existingVars = (names ++ scopes).toSet
       missingVars = vars.filterNot(existingVars.contains)

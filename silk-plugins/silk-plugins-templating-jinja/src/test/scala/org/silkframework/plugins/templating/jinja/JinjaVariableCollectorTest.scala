@@ -92,6 +92,11 @@ class JinjaVariableCollectorTest extends AnyFlatSpec with Matchers {
     collect("This is {{project.name}} from {{global.city}}.") shouldBe Seq("project.name", "global.city")
   }
 
+  it should "collect scoped variables in complex expressions" in {
+    collect("{{ input.parameters.graph ~ \"/data\" }}") shouldBe Seq("input.parameters.graph")
+    collect("{{ a.b ~ c.d }}") shouldBe Seq("a.b", "c.d")
+  }
+
   it should "collect variables used in method calls" in {
     collect(
       """

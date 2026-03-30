@@ -2,7 +2,7 @@ package org.silkframework.runtime.templating
 
 import org.silkframework.config.{Task, TaskSpec}
 import org.silkframework.entity.Entity
-import org.silkframework.runtime.plugin.{ParameterValues, PluginContext, PluginObjectParameterTypeTrait, StringParameterType}
+import org.silkframework.runtime.plugin.{ParameterValues, PluginContext, SimpleParameterValue}
 
 object TemplateVariableConversions {
 
@@ -25,17 +25,19 @@ object TemplateVariableConversions {
    * @param task  The task whose parameters to convert.
    * @param scope The base scope. Nested parameters extend this scope with the parameter key.
    */
-  def fromTask(task: Task[_ <: TaskSpec], scope: Seq[String] = Seq.empty)(implicit pluginContext: PluginContext): Seq[TemplateVariableValue] = {
-    fromPluginParameters(task.data.parameters, scope)
+  def fromTask(task: Task[_ <: TaskSpec], scope: Seq[String] = Seq("task"))(implicit pluginContext: PluginContext): Seq[TemplateVariableValue] = {
+    fromPluginParameters(task.data.parameters, scope :+ "parameters")
   }
 
   private def fromPluginParameters(values: ParameterValues, scope: Seq[String] = Seq.empty)(implicit pluginContext: PluginContext): Seq[TemplateVariableValue] = {
     for((key, value) <- values.values) yield {
       value match {
-        case _: StringParameterType[_] =>
-          Seq(new TemplateVariableValue(key, scope, Seq(value.toString)))
-        case pt: PluginObjectParameterTypeTrait =>
-          fromPluginParameters(pt.parameters, scope :+ key)
+        case sv: SimpleParameterValue =>
+          Seq(new TemplateVariableValue(key, scope, Seq(sv.strValue)))
+        case nested: ParameterValues =>
+          fromPluginParameters(nested, scope :+ key)
+        case _ =>
+          Seq.empty
       }
     }
   }.flatten.toSeq
