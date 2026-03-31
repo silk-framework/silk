@@ -88,6 +88,10 @@ lazy val commonSettings = Seq(
   dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-databind" % "2.19.4",
   dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-core" % "2.19.4",
 
+  // Fix CVE-2026-29062 and GHSA-72hv-8253-57qq in tools.jackson.core (Jackson 3.x, from Jena 5.x)
+  dependencyOverrides += "tools.jackson.core" % "jackson-core" % "3.1.1",
+  dependencyOverrides += "tools.jackson.core" % "jackson-databind" % "3.1.1",
+
   scalacOptions ++= compilerParams._2,
   javacOptions ++= compilerParams._1,
 
