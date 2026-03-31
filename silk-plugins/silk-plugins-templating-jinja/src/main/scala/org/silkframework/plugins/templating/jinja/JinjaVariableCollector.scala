@@ -161,8 +161,12 @@ class JinjaVariableCollector  {
       */
     def ++(scope: Scope): Scope = {
       val boundVarsSet = boundVars.toSet
+      val boundSimpleNames = boundVars.filter(_.scope.isEmpty).map(_.name).toSet
+      def isBound(v: TemplateVariableName): Boolean = {
+        boundVarsSet.contains(v) || v.scope.headOption.exists(boundSimpleNames.contains)
+      }
       Scope(
-        unboundVars = (unboundVars ++ scope.unboundVars).distinct.filterNot(boundVarsSet),
+        unboundVars = (unboundVars ++ scope.unboundVars).distinct.filterNot(isBound),
         boundVars = (boundVars ++ scope.boundVars).distinct
       )
     }
