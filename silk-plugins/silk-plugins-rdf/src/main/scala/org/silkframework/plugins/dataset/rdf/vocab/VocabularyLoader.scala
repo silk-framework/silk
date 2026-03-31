@@ -10,7 +10,7 @@ import scala.collection.immutable.SortedMap
 import scala.collection.mutable
 
 class VocabularyLoader(endpoint: SparqlEndpoint with GraphStoreTrait) {
-  final val languageRanking: IndexedSeq[String] = IndexedSeq("en", "de", "es", "fr", "it", "pt")
+  private final val languageRanking: IndexedSeq[String] = IndexedSeq("en", "de", "fr", "es")
 
   def retrieveVocabulary(uri: String)(implicit userContext: UserContext): Option[Vocabulary] = {
     if(new Uri(uri).isValidUri) {
@@ -33,7 +33,7 @@ class VocabularyLoader(endpoint: SparqlEndpoint with GraphStoreTrait) {
       s"""
          | $prefixes
          |
-         | SELECT *
+         | SELECT ?v ?infoProp ?infoValue
          | FROM <$vocabularyGraphUri>
          | WHERE {
          |   { ?v a owl:Ontology }
@@ -42,42 +42,46 @@ class VocabularyLoader(endpoint: SparqlEndpoint with GraphStoreTrait) {
          | ORDER BY ?v
       """.stripMargin
     val bindings = endpoint.select(vocabQuery).bindings.use(_.toSeq)
-    val vocabUri = collectObjectNodes("v", bindings).headOption.map(_.value).getOrElse(vocabularyGraphUri)
-    val label = rankValues(labelVars.flatMap(collectObjectNodes(_, bindings))).headOption
-    val description = rankValues(commentVars.flatMap(collectObjectNodes(_, bindings))).headOption
-    val altLabels = rankValues(altLabelVars.flatMap(collectObjectNodes(_, bindings)))
-    GenericInfo(
-      vocabUri, // FIXME: At the moment we expect the graph to be the same as the vocab URI
-      label = label,
-      description = description,
-      altLabels = altLabels,
-      vocabularyUri = Some(vocabularyGraphUri)
-    )
+    val vocabUri = bindings.flatMap(_.get("v")).headOption.map(_.value).getOrElse(vocabularyGraphUri)
+    val valuesByProperty = extractValuesByProperty(bindings)
+    extractGenericInfo(vocabUri, valuesByProperty, vocabularyGraphUri)
   }
 
-  private def genericInfoPropertiesPattern(varName: String): String =
+  private def genericInfoPropertiesPattern(varName: String, additionalProperties: Seq[String] = Seq.empty): String = {
+    val allProperties = (baseInfoProperties ++ additionalProperties).distinct
+    val propertyFilter = allProperties.map(p => s"<$p>").mkString(", ")
     s"""
-      |     # comments
-      |     OPTIONAL { ?$varName rdfs:comment ?rdfsComment }
-      |     OPTIONAL { ?$varName skos:definition ?skosDefinition }
-      |     OPTIONAL { ?$varName dct:description ?dctDescription }
-      |     OPTIONAL { ?$varName skos:scopeNote ?scopeNote }
-      |     # label
-      |     OPTIONAL { ?$varName rdfs:label ?label }
-      |     # alternative labels
-      |     OPTIONAL { ?$varName skos:altLabel ?skosAltLabel }
-      |     OPTIONAL { ?$varName dct:title ?dctTitle }
-      |     OPTIONAL { ?$varName dc:title ?dcTitle }
-      |     OPTIONAL { ?$varName skos:prefLabel ?skosPrefLabel }
-      |     OPTIONAL { ?$varName dc:identifier ?dcIdentifier }
-      |     OPTIONAL { ?$varName dct:identifier ?dctIdentifier }
-      |     OPTIONAL { ?$varName foaf:name ?foafName }
-      |     OPTIONAL { ?$varName skos:notation ?skosNotation }
+      |     OPTIONAL {
+      |       ?$varName ?infoProp ?infoValue .
+      |       FILTER(?infoProp IN ($propertyFilter))
+      |     }
     """.stripMargin
+  }
 
-  val commentVars: Seq[String] = Seq("rdfsComment", "skosDefinition", "dctDescription", "scopeNote")
-  val labelVars: Seq[String] = Seq("label", "skosPrefLabel")
-  val altLabelVars: Seq[String] = Seq("skosAltLabel", "dctTitle", "dcTitle", "skosPrefLabel", "dcIdentifier", "dctIdentifier", "foafName", "skosNotation")
+  private val descriptionProperties: Seq[String] = Seq(
+    "http://www.w3.org/2000/01/rdf-schema#comment",
+    "http://www.w3.org/2004/02/skos/core#definition",
+    "http://purl.org/dc/terms/description",
+    "http://www.w3.org/2004/02/skos/core#scopeNote"
+  )
+  private val labelProperties: Seq[String] = Seq(
+    "http://www.w3.org/2000/01/rdf-schema#label",
+    "http://www.w3.org/2004/02/skos/core#prefLabel"
+  )
+  private val altLabelProperties: Seq[String] = Seq(
+    "http://www.w3.org/2004/02/skos/core#altLabel",
+    "http://purl.org/dc/terms/title",
+    "http://purl.org/dc/elements/1.1/title",
+    "http://www.w3.org/2004/02/skos/core#prefLabel",
+    "http://purl.org/dc/elements/1.1/identifier",
+    "http://purl.org/dc/terms/identifier",
+    "http://xmlns.com/foaf/0.1/name",
+    "http://www.w3.org/2004/02/skos/core#notation"
+  )
+  private val baseInfoProperties: Seq[String] = (descriptionProperties ++ labelProperties ++ altLabelProperties).distinct
+  private val subClassOfProperty: String = "http://www.w3.org/2000/01/rdf-schema#subClassOf"
+  private val domainProperty: String = "http://www.w3.org/2000/01/rdf-schema#domain"
+  private val rangeProperty: String = "http://www.w3.org/2000/01/rdf-schema#range"
 
   val prefixes: String =
     """PREFIX owl: <http://www.w3.org/2002/07/owl#>
@@ -95,14 +99,13 @@ class VocabularyLoader(endpoint: SparqlEndpoint with GraphStoreTrait) {
       s"""
          | $prefixes
          |
-         | SELECT *
+         | SELECT DISTINCT ?c ?infoProp ?infoValue
          | FROM <$vocabularyGraphUri>
          | WHERE {
-         |   { ?c a owl:Class }
-         |   UNION
-         |   { ?c a rdfs:Class }
-         |   OPTIONAL { ?c rdfs:subClassOf ?parent }
-         |   ${genericInfoPropertiesPattern("c")}
+         |   ?c a ?classType .
+         |   FILTER (ISIRI(?c))
+         |   FILTER (?classType IN ( rdfs:Class, owl:Class))
+         |   ${genericInfoPropertiesPattern("c", Seq(subClassOfProperty))}
          | }
          | ORDER BY ?c
       """.stripMargin
@@ -113,32 +116,57 @@ class VocabularyLoader(endpoint: SparqlEndpoint with GraphStoreTrait) {
     }
 
     for((classUri, bindings) <- resultsPerClass.result) yield {
-      val label = rankValues(labelVars.flatMap(collectObjectNodes(_, bindings))).headOption
-      val description = rankValues(commentVars.flatMap(collectObjectNodes(_, bindings))).headOption
-      val altLabels = rankValues(altLabelVars.flatMap(collectObjectNodes(_, bindings)))
-      val parents = collectValues("parent", bindings)
+      val valuesByProperty = extractValuesByProperty(bindings)
+      val parents = getPropertyValues(valuesByProperty, subClassOfProperty)
       VocabularyClass(
-        info =
-          GenericInfo(
-            uri = classUri,
-            label = label,
-            description = description,
-            altLabels = altLabels,
-            vocabularyUri = Some(vocabularyGraphUri)
-          ),
+        info = extractGenericInfo(classUri, valuesByProperty, vocabularyGraphUri),
         parentClasses = parents
       )
     }
   }
 
-  private def collectValues(varName: String,
-                            bindings: Iterable[SortedMap[String, RdfNode]]): Seq[String] = {
-    collectObjectNodes(varName, bindings).map(_.value).distinct
+  private def extractValuesByProperty(bindings: Iterable[SortedMap[String, RdfNode]]): Map[String, Seq[RdfNode]] = {
+    bindings
+      .flatMap { binding =>
+        for {
+          prop <- binding.get("infoProp")
+          value <- binding.get("infoValue")
+        } yield (prop.value, value)
+      }
+      .groupBy(_._1)
+      .view.mapValues(_.map(_._2).toSeq)
+      .toMap
   }
 
-  private def collectObjectNodes(varName: String,
-                                 bindings: Iterable[SortedMap[String, RdfNode]]): Seq[RdfNode] = {
-    bindings.flatMap(_.get(varName)).toSeq
+  private def getPropertyValues(valuesByProperty: Map[String, Seq[RdfNode]], propertyUri: String): Seq[String] = {
+    valuesByProperty.getOrElse(propertyUri, Seq.empty).map(_.value).distinct
+  }
+
+  private def getFirstPropertyValue(valuesByProperty: Map[String, Seq[RdfNode]], propertyUri: String): Option[String] = {
+    valuesByProperty.get(propertyUri).flatMap(_.headOption).map(_.value)
+  }
+
+  private def extractGenericInfo(uri: String,
+                                 valuesByProperty: Map[String, Seq[RdfNode]],
+                                 vocabularyUri: String): GenericInfo = {
+    GenericInfo(
+      uri = uri,
+      label = selectBestValue(valuesByProperty, labelProperties),
+      description = selectBestValue(valuesByProperty, descriptionProperties),
+      altLabels = rankAllValues(valuesByProperty, altLabelProperties),
+      vocabularyUri = Some(vocabularyUri)
+    )
+  }
+
+  private def rankAllValues(valuesByProperty: Map[String, Seq[RdfNode]],
+                            properties: Seq[String]): Seq[String] = {
+    val allValues = properties.flatMap(prop => valuesByProperty.getOrElse(prop, Seq.empty))
+    rankValues(allValues)
+  }
+
+  private def selectBestValue(valuesByProperty: Map[String, Seq[RdfNode]],
+                              properties: Seq[String]): Option[String] = {
+    rankAllValues(valuesByProperty, properties).headOption
   }
 
   private def extractLangRank(langTag: String): (Int, String) = {
@@ -149,17 +177,6 @@ class VocabularyLoader(endpoint: SparqlEndpoint with GraphStoreTrait) {
     } else {
       (idx, mainLang)
     }
-  }
-
-  private def collectLanguageRankedValueOpt(varName: String,
-                                            bindings: Iterable[SortedMap[String, RdfNode]]): Option[String] = {
-    collectLanguageRankedValues(varName, bindings).headOption
-  }
-
-  private def collectLanguageRankedValues(varName: String,
-                                          bindings: Iterable[SortedMap[String, RdfNode]]): Seq[String] = {
-    val values = bindings.flatMap(_.get(varName).toSeq).toSeq.distinct
-    rankValues(values)
   }
 
   /** Rank the list of RDF literals by language preference and lexicographically */
@@ -242,26 +259,18 @@ class VocabularyLoader(endpoint: SparqlEndpoint with GraphStoreTrait) {
     val propertiesGrouped = result.groupBy(_("p"))
 
     for((propertyResource, bindings) <- propertiesGrouped if !propertyResource.isInstanceOf[BlankNode]) yield {
-      val description = rankValues(commentVars.flatMap(collectObjectNodes(_, bindings))).headOption
-      val altLabels = rankValues(altLabelVars.flatMap(collectObjectNodes(_, bindings)))
-      val info =
-        GenericInfo(
-          uri = propertyResource.value,
-          label = rankValues(labelVars.flatMap(collectObjectNodes(_, bindings))).headOption,
-          description = description,
-          altLabels = altLabels,
-          vocabularyUri = Some(vocabularyUri)
-        )
+      val valuesByProperty = extractValuesByProperty(bindings)
+      val info = extractGenericInfo(propertyResource.value, valuesByProperty, vocabularyUri)
       val classes = bindings.flatMap(_.get("class"))
-      val propertyType = classes.toSeq.
-          map(_.value).
-          filter(propertyClasses). // Only interested in any of the property classes
-          map(PropertyType.uriToTypeMap). // convert to PropertyType instance
-          sortWith(_.preference > _.preference).headOption.getOrElse(BasePropertyType) // take the most preferred one
+      val propertyType = classes.toSeq
+          .map(_.value)
+          .filter(propertyClasses)
+          .map(PropertyType.uriToTypeMap)
+          .sortWith(_.preference > _.preference).headOption.getOrElse(BasePropertyType)
       VocabularyProperty(
         info = info,
-        domain = firstValue("domain", bindings).map(getClass),
-        range = firstValue("range", bindings).map(getClass),
+        domain = getFirstPropertyValue(valuesByProperty, domainProperty).map(getClass),
+        range = getFirstPropertyValue(valuesByProperty, rangeProperty).map(getClass),
         propertyType = propertyType
       )
     }
@@ -271,24 +280,13 @@ class VocabularyLoader(endpoint: SparqlEndpoint with GraphStoreTrait) {
     s"""
        | $prefixes
        |
-       | SELECT *
+       | SELECT DISTINCT ?p ?class ?infoProp ?infoValue
        | FROM <$uri>
        | WHERE {
-       |   { ?p a rdf:Property }
-       |   UNION
-       |   { ?p a owl:ObjectProperty }
-       |   UNION
-       |   { ?p a owl:DatatypeProperty }
-       |
-       |   ?p a ?class
-       |   OPTIONAL { ?p rdfs:domain ?domain }
-       |   OPTIONAL { ?p rdfs:range ?range }
-       |   ${genericInfoPropertiesPattern("p")}
+       |   ?p a ?class .
+       |   FILTER (?class IN ( rdf:Property, owl:ObjectProperty, owl:DatatypeProperty))
+       |   ${genericInfoPropertiesPattern("p", Seq(domainProperty, rangeProperty))}
        | }
       """.stripMargin
-  }
-
-  private def firstValue(variable: String, bindings: Iterable[SortedMap[String, RdfNode]]): Option[String] = {
-    bindings.flatMap(_.get(variable)).headOption.map(_.value)
   }
 }
