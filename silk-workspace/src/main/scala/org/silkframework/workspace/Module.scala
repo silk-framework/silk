@@ -57,6 +57,10 @@ class Module[TaskData <: TaskSpec: ClassTag](private[workspace] val provider: Wo
     implicitly[ClassTag[TaskData]].runtimeClass
   }
 
+  override def toString: String = {
+    s"Module[${taskType.getSimpleName}]"
+  }
+
   /**
    * Retrieves all tasks in this module.
    */

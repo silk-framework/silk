@@ -374,6 +374,7 @@ class Project(initialConfig: ProjectConfig, provider: WorkspaceProvider, val res
           module.remove(taskName)(readWriteUser)
           module.removeLoadingError(taskName)
         }
+        provider.removeExternalTaskLoadingError(id, taskName)
     }
   }
 
