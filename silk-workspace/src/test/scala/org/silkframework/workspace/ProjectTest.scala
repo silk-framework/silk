@@ -6,9 +6,10 @@ import org.scalatest.matchers.should.Matchers
 import org.silkframework.config.{CustomTask, InputPorts, MetaData, Port}
 import org.silkframework.rule.{DatasetSelection, TransformSpec}
 import org.silkframework.runtime.activity.{SimpleUserContext, TestUserContextTrait}
+import org.silkframework.runtime.plugin.PluginContext
 import org.silkframework.runtime.resource.InMemoryResourceManager
 import org.silkframework.runtime.users.DefaultUserManager
-import org.silkframework.util.ConfigTestTrait
+import org.silkframework.util.{ConfigTestTrait, Identifier}
 import org.silkframework.workspace.WorkspaceTest.RecordingWorkspaceProvider
 import org.silkframework.workspace.exceptions.CircularDependencyException
 
@@ -82,6 +83,28 @@ class ProjectTest extends AnyFlatSpec with Matchers with TestWorkspaceProviderTe
     }
   }
 
+  it should "remove a task that failed to load" in {
+    val projectId = "failedTaskRemovalTest"
+    val failedTaskId: Identifier = "failedTask"
+    val provider = new FailedTaskProvider(failedTaskId)
+    provider.putProject(ProjectConfig(projectId, metaData = MetaData(Some(projectId))))
+
+    val project = new Project(
+      ProjectConfig(projectId, metaData = MetaData(Some(projectId))),
+      provider,
+      new InMemoryResourceManager,
+      userContext
+    )
+
+    // The task should appear as a loading error before removal
+    project.loadingErrors.map(_.taskId) should contain(failedTaskId)
+
+    project.removeAnyTask(failedTaskId, removeDependentTasks = false)
+
+    // After removal the loading error must be gone
+    project.loadingErrors.map(_.taskId) should not contain failedTaskId
+  }
+
   override def workspaceProviderId: String = "inMemoryWorkspaceProvider"
 
 }
@@ -89,4 +112,13 @@ class ProjectTest extends AnyFlatSpec with Matchers with TestWorkspaceProviderTe
 case class ProjectTestTask(testParam: String = "test value") extends CustomTask {
   override def inputPorts: InputPorts = InputPorts.NoInputPorts
   override def outputPort: Option[Port] = None
+}
+
+/** Workspace provider that injects a single failing LoadedTask for `failedTaskId` on every readAllTasks call. */
+private class FailedTaskProvider(failedTaskId: Identifier) extends InMemoryWorkspaceProvider {
+  override def readAllTasks(project: Identifier)(implicit context: PluginContext): Seq[LoadedTask[_]] = {
+    val error = TaskLoadingError(Some(project), failedTaskId, new RuntimeException("Task failed to load"),
+      None, None, None, None)
+    super.readAllTasks(project) :+ LoadedTask.failed[CustomTask](error)
+  }
 }
