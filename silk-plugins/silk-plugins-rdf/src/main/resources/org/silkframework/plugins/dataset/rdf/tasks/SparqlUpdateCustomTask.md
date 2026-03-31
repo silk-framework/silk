@@ -54,7 +54,21 @@ The methods `uri`, `plainLiteral` and `rawUnsafe` throw an exception if no input
 input path.
 
 In addition to input values, properties of the input and output tasks can be accessed via the `inputProperties` and
-`outputProperties` objects in the same way as the `row` object. For example with `$inputProperties.uri("graph")`.
+`outputProperties` objects. The available keys in these objects are dynamic and correspond exactly to the configuration
+parameters of the tasks connected to the input and output ports of this operator.
+
+- To find the available keys for `$inputProperties`, check the parameter names of the task connected to the input port.
+- To find the available keys for `$outputProperties`, check the parameter names of the task connected to the output port.
+
+For example, if the connected input task has a parameter named `graph`, you can access it as `$inputProperties.uri("graph")`.
+Similarly, if the connected output task has a parameter named `endpoint`, you can access it as `$outputProperties.uri("endpoint")`.
+
+Both `inputProperties` and `outputProperties` support the same methods as the `row` object:
+
+- `uri(inputPath: String)`
+- `plainLiteral(inputPath: String)`
+- `rawUnsafe(inputPath: String)`
+- `exists(inputPath: String)`
 
 For more information about the Velocity Engine, visit http://velocity.apache.org.
 
