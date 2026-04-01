@@ -1,14 +1,20 @@
 package org.silkframework.rule.plugins.distance.equality
 
 import org.silkframework.rule.similarity.{BooleanDistanceMeasure, NonSymmetricDistanceMeasure, SingleValueDistanceMeasure}
-import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
+import org.silkframework.runtime.plugin.annotations.{Param, Plugin, PluginReference}
 import org.silkframework.util.StringUtils._
 
 @Plugin(
-  id = "lowerThan",
+  id = LowerThanMetric.pluginId,
   categories = Array("Equality"),
   label = "Lower than",
-  description = "Checks if the source value is lower than the target value."
+  description = "Checks if the source value is lower than the target value.",
+  relatedPlugins = Array(
+    new PluginReference(
+      id = GreaterThanMetric.pluginId,
+      description = "The greater than plugin tests the same pair of values with the ordering flipped: it succeeds where the lower than plugin fails."
+    )
+  )
 )
 case class LowerThanMetric(@Param("Accept equal values")
                            orEqual: Boolean = false,
@@ -23,6 +29,7 @@ case class LowerThanMetric(@Param("Accept equal values")
 }
 
 object LowerThanMetric {
+  final val pluginId = "lowerThan"
 
   @inline
   def evaluate(str1: String, str2: String, orEqual: Boolean, order: OrderEnum): Double = {
@@ -91,5 +98,4 @@ object LowerThanMetric {
       }
     }
   }
-
 }

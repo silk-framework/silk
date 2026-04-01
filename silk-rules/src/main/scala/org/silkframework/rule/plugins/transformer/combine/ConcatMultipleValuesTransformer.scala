@@ -4,7 +4,7 @@ import org.silkframework.rule.annotations.{TransformExample, TransformExamples}
 import java.util.regex.Pattern
 
 import org.silkframework.rule.input.Transformer
-import org.silkframework.runtime.plugin.annotations.Plugin
+import org.silkframework.runtime.plugin.annotations.{Plugin, PluginReference}
 
 /**
  * Transformer concatenating multiple values using a given glue string. Optionally removes duplicate values.
@@ -12,10 +12,16 @@ import org.silkframework.runtime.plugin.annotations.Plugin
  *
  */
 @Plugin(
-  id = "concatMultiValues",
+  id = ConcatMultipleValuesTransformer.pluginId,
   categories = Array("Combine"),
   label = "Concatenate multiple values",
-  description = "Concatenates multiple values received for an input. If applied to multiple inputs, yields at most one value per input. Optionally removes duplicate values."
+  description = "Concatenates multiple values received for an input. If applied to multiple inputs, yields at most one value per input. Optionally removes duplicate values.",
+  relatedPlugins = Array(
+    new PluginReference(
+      id = ConcatTransformer.pluginId,
+      description = "Concatenate multiple values collapses all values within each input into one string, preserving the boundary between inputs. Concatenate crosses that boundary — it takes one value from each input and produces all combinations, so the output grows with the number of inputs and values."
+    )
+  )
 )
 @TransformExamples(Array(
   new TransformExample(
@@ -45,7 +51,7 @@ import org.silkframework.runtime.plugin.annotations.Plugin
     output = Array("a\n\t\\b\n\t\\c")
   )
 ))
-case class ConcatMultipleValuesTransformer(glue: String = "", removeDuplicates:Boolean = false) extends Transformer {
+case class ConcatMultipleValuesTransformer(glue: String = "", removeDuplicates: Boolean = false) extends Transformer {
   // glue with escaped char sequences (\\, \n, \t) converted to actual character.
   lazy val parsedGlue: String = ConcatTransformer.parseGlue(glue)
 
@@ -60,4 +66,8 @@ case class ConcatMultipleValuesTransformer(glue: String = "", removeDuplicates:B
       }
     }
   }
+}
+
+object ConcatMultipleValuesTransformer {
+  final val pluginId = "concatMultiValues"
 }

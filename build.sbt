@@ -88,6 +88,10 @@ lazy val commonSettings = Seq(
   dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-databind" % "2.19.4",
   dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-core" % "2.19.4",
 
+  // Fix CVE-2026-29062 and GHSA-72hv-8253-57qq in tools.jackson.core (Jackson 3.x, from Jena 5.x)
+  dependencyOverrides += "tools.jackson.core" % "jackson-core" % "3.1.1",
+  dependencyOverrides += "tools.jackson.core" % "jackson-databind" % "3.1.1",
+
   scalacOptions ++= compilerParams._2,
   javacOptions ++= compilerParams._1,
 
@@ -400,7 +404,7 @@ lazy val workbenchOpenApi = (project in file("silk-workbench/silk-workbench-open
     libraryDependencies += "io.kinoplan" %% "swagger-play" % "0.0.7" exclude("org.scala-lang.modules", "scala-java8-compat_2.13") ,
     libraryDependencies += "io.swagger.parser.v3" % "swagger-parser-v3" % "2.1.39",
     libraryDependencies += "com.networknt" % "json-schema-validator" % "1.5.9",
-    libraryDependencies += "org.webjars" % "swagger-ui" % "5.32.0"
+    libraryDependencies += "org.webjars" % "swagger-ui" % "5.32.1"
   )
 
 lazy val workbench = (project in file("silk-workbench"))

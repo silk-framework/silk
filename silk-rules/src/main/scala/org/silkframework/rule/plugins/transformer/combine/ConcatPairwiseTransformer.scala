@@ -16,13 +16,23 @@ package org.silkframework.rule.plugins.transformer.combine
 
 import org.silkframework.rule.annotations.{TransformExample, TransformExamples}
 import org.silkframework.rule.input.Transformer
-import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
+import org.silkframework.runtime.plugin.annotations.{Param, Plugin, PluginReference}
 
 @Plugin(
-  id = "concatPairwise",
+  id = ConcatPairwiseTransformer.pluginId,
   categories = Array("Combine"),
   label = "Concatenate pairwise",
-  description = "Concatenates the values of multiple inputs pairwise."
+  description = "Concatenates the values of multiple inputs pairwise.",
+  relatedPlugins = Array(
+    new PluginReference(
+      id = ConcatTransformer.pluginId,
+      description = "Concatenate pairwise matches values by position and produces one combined string per position. Concatenate does not align by position — it produces every combination of values across inputs, so two inputs with three values each yield nine strings, not three."
+    ),
+    new PluginReference(
+      id = ZipTransformer.pluginId,
+      description = "When inputs have unequal lengths, Concatenate pairwise drops the extra values from the longer input. Zip solves the same alignment problem for exactly two inputs but keeps them by substituting a configurable placeholder for each missing value."
+    )
+  )
 )
 @TransformExamples(Array(
   new TransformExample(
@@ -71,6 +81,8 @@ case class ConcatPairwiseTransformer(
       values.reduce((v1, v2) => v1.zip(v2).map(v => v._1 + parsedGlue + v._2))
     }
   }
+}
 
-
+object ConcatPairwiseTransformer {
+  final val pluginId = "concatPairwise"
 }
