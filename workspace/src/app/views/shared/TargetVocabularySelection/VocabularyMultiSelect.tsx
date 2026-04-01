@@ -6,9 +6,13 @@ import {
     OverflowText,
     MultiSuggestField,
     highlighterUtils,
+    Spacing,
 } from "@eccenca/gui-elements";
 import React, { useEffect, useState } from "react";
+import type { TagProps } from "@blueprintjs/core/src/components/tag/tag";
+import { useTranslation } from "react-i18next";
 import { IVocabularyInfo } from "./typings";
+import useErrorHandler from "../../../hooks/useErrorHandler";
 
 interface IProps {
     // Label for this widget
@@ -37,9 +41,14 @@ export default function VocabularyMultiSelect({
     label,
     allowCustomEntries,
 }: IProps) {
+    const [t] = useTranslation();
+    const { registerError } = useErrorHandler();
     const [selectedVocabs, setSelectedVocabs] = useState<IVocabularyInfo[]>([]);
     const [filteredVocabs, setFilteredVocabs] = useState<IVocabularyInfo[]>([]);
     const [searchQuery, setSearchQuery] = useState<string | undefined>(undefined);
+    const [warning, setWarning] = React.useState<React.JSX.Element | null>(null);
+
+    const availableVocabUris = new Set(availableVocabularies.map((v) => v.uri));
 
     const preselect = (): IVocabularyInfo[] => {
         const vocabMap = new Map<string, IVocabularyInfo>(availableVocabularies.map((vocab) => [vocab.uri, vocab]));
@@ -123,6 +132,20 @@ export default function VocabularyMultiSelect({
         if (vocabSelected(vocab)) {
             removeVocabFromSelection(vocab.uri);
         } else {
+            if (!availableVocabUris.has(vocab.uri)) {
+                setWarning(
+                    registerError(
+                        "VocabularyMultiSelect_customVocabularyWarning",
+                        t("widget.TargetVocabularySelection.customVocabularyWarning", { uri: vocab.uri }),
+                        null,
+                        {
+                            intent: "warning",
+                            errorNotificationInstanceId: "VocabularyMultiSelect",
+                            onDismiss: () => setWarning(null),
+                        },
+                    ),
+                );
+            }
             setSelectedVocabs([...selectedVocabs, vocab]);
         }
     };
@@ -139,6 +162,20 @@ export default function VocabularyMultiSelect({
     const onQueryChange = (query: string) => {
         setSearchQuery(query);
     };
+
+    const getTagProps = React.useCallback(
+        (_value: string, index: number): TagProps => {
+            const vocab = selectedVocabs[index];
+            const isAvailable = vocab && availableVocabUris.has(vocab.uri);
+            return {
+                intent: isAvailable ? undefined : "warning",
+                icon: isAvailable ? undefined : "warning-sign",
+                htmlTitle: isAvailable ? undefined : t("widget.TargetVocabularySelection.notInstalledVocabulary"),
+                minimal: true,
+            };
+        },
+        [selectedVocabs, availableVocabUris, t],
+    );
 
     const illegalCharsRegex = /\s|,|<|>/;
 
@@ -174,8 +211,6 @@ export default function VocabularyMultiSelect({
             labelProps={{
                 text: label,
             }}
-            // hasStateDanger={hasError} TODO?
-            // messageText={hasError ? validationErrorText : undefined} TODO?
         >
             <VocabularyMultiSelectBP
                 popoverProps={{
@@ -197,12 +232,18 @@ export default function VocabularyMultiSelect({
                     },
                     onRemove: removeVocabFromSelectionViaIndex,
                     rightElement: clearButton,
-                    tagProps: { minimal: true },
+                    tagProps: getTagProps,
                 }}
                 selectedItems={selectedVocabs}
                 createNewItemRenderer={newItemRenderer}
                 createNewItemFromQuery={createVocabularyFromQuery}
             />
+            {warning ? (
+                <>
+                    <Spacing size={"small"} />
+                    {warning}
+                </>
+            ) : null}
         </FieldItem>
     );
 }

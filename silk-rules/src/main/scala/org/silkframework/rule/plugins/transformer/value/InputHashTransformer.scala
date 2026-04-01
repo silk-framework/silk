@@ -2,7 +2,8 @@ package org.silkframework.rule.plugins.transformer.value
 
 import org.silkframework.rule.annotations.{TransformExample, TransformExamples}
 import org.silkframework.rule.input.Transformer
-import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
+import org.silkframework.rule.plugins.transformer.replace.MapTransformerWithDefaultInput
+import org.silkframework.runtime.plugin.annotations.{Param, Plugin, PluginReference}
 import org.silkframework.runtime.plugin.{AutoCompletionResult, ParamValue, PluginContext, PluginParameterAutoCompletionProvider}
 import org.silkframework.workspace.WorkspaceReadTrait
 
@@ -11,11 +12,17 @@ import java.security.{MessageDigest, Security}
 import scala.jdk.CollectionConverters.IterableHasAsScala
 
 @Plugin(
-  id = "inputHash",
+  id = InputHashTransformer.pluginId,
   categories = Array("Value"),
   label = "Input hash",
   description = """Calculates the hash sum of the input values. Generates a single hash sum for all input values combined.""",
-  documentationFile = "InputHashTransformer.md"
+  documentationFile = "InputHashTransformer.md",
+  relatedPlugins = Array(
+    new PluginReference(
+      id = MapTransformerWithDefaultInput.pluginId,
+      description = "One hash value is produced for the entire set of inputs by the Input hash plugin. The Map with default plugin instead keeps a value sequence and rewrites it position by position through the mapping, falling back to the second input where no mapping entry is found."
+    )
+  )
 )
 @TransformExamples(Array(
   new TransformExample(
@@ -37,6 +44,10 @@ case class InputHashTransformer(@Param(value = "The hash algorithm to be used.",
     // Convert the byte array to a hexadecimal string
     Seq(hashSum.digest().map("%02x".format(_)).mkString)
   }
+}
+
+object InputHashTransformer {
+  final val pluginId = "inputHash"
 }
 
 /**
@@ -64,4 +75,3 @@ case class HashAlgorithmAutoCompletionProvider() extends PluginParameterAutoComp
     None
   }
 }
-

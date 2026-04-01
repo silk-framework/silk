@@ -70,7 +70,7 @@ POST          /reload                                                           
 POST          /reloadPrefixes                                                   controllers.workspace.WorkspaceApi.reloadPrefixes()
 POST          /updateGlobalVocabularyCache                                      controllers.workspace.WorkspaceApi.updateGlobalVocabularyCache()
 POST          /import/:importPlugin                                             controllers.workspace.ProjectMarshalingApi.importWorkspaceViaPlugin(importPlugin: String, importGroups: Boolean ?= false)
-GET           /export/:exportPlugin                                             controllers.workspace.ProjectMarshalingApi.exportWorkspaceViaPlugin(exportPlugin: String, exportGroups: Boolean ?= false)
+GET           /export/:exportPlugin                                             controllers.workspace.ProjectMarshalingApi.exportWorkspaceViaPlugin(exportPlugin: String, exportGroups: Boolean ?= false, exportUserData: Boolean ?= true)
 GET           /marshallingPlugins                                               controllers.workspace.ProjectMarshalingApi.availableMarshallingPlugins()
 
 # Projects
@@ -80,8 +80,8 @@ PUT           /projects/:project                                                
 DELETE        /projects/:project                                                controllers.workspace.WorkspaceApi.deleteProject(project: String)
 POST          /projects/:project/import                                         controllers.workspace.ProjectMarshalingApi.importProject(project: String, groups: List[String] ?= List[String](), importGroups: Boolean ?= false)
 POST          /projects/:project/import/:importPlugin                           controllers.workspace.ProjectMarshalingApi.importProjectViaPlugin(project: String, importPlugin: String, groups: List[String] ?= List[String](), importGroups: Boolean ?= false)
-GET           /projects/:project/export                                         controllers.workspace.ProjectMarshalingApi.exportProject(project: String, exportGroups: Boolean ?= false)
-GET           /projects/:project/export/:exportPlugin                           controllers.workspace.ProjectMarshalingApi.exportProjectViaPlugin(project: String, exportPlugin: String, exportGroups: Boolean ?= false)
+GET           /projects/:project/export                                         controllers.workspace.ProjectMarshalingApi.exportProject(project: String, exportGroups: Boolean ?= false, exportUserData: Boolean ?= true)
+GET           /projects/:project/export/:exportPlugin                           controllers.workspace.ProjectMarshalingApi.exportProjectViaPlugin(project: String, exportPlugin: String, exportGroups: Boolean ?= false, exportUserData: Boolean ?= true)
 POST          /projects/:project/importLinkSpec                                 controllers.workspace.WorkspaceApi.importLinkSpec(project: String)
 GET           /projects/:project/:task/exportLinkSpec                           controllers.workspace.WorkspaceApi.exportLinkSpec(project: String, task: String)
 PUT           /projects/:project/prefixes                                       controllers.workspace.WorkspaceApi.updatePrefixes(project: String)

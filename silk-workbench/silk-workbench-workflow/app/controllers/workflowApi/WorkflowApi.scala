@@ -175,7 +175,7 @@ class WorkflowApi @Inject()() extends InjectedController with ControllerUtilsTra
     content = Array(
       new Content(
         mediaType = "application/x-www-form-urlencoded",
-        schema = new Schema(implementation = classOf[String]),
+        schema = new Schema(`type` = "object", additionalProperties = Schema.AdditionalPropertiesValue.TRUE),
         examples = Array(
           new ExampleObject(
             description = "Multiple values are provided for an input property by having the same parameter multiple times in the request body.",
@@ -318,7 +318,7 @@ class WorkflowApi @Inject()() extends InjectedController with ControllerUtilsTra
     content = Array(
       new Content(
         mediaType = "application/x-www-form-urlencoded",
-        schema = new Schema(implementation = classOf[String]),
+        schema = new Schema(`type` = "object", additionalProperties = Schema.AdditionalPropertiesValue.TRUE),
         examples = Array(
           new ExampleObject(
             description = "Multiple values are provided for an input property by having the same parameter multiple times in the request body.",

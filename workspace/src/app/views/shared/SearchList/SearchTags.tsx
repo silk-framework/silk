@@ -7,7 +7,7 @@ interface SearchTagsProps {
     searchText?: string;
 }
 
-export const searchTagsRenderer = (props: SearchTagsProps): JSX.Element[] => {
+export const searchTagsRenderer = (props: SearchTagsProps): React.JSX.Element[] => {
     const { searchTags = [], searchText = "" } = props;
     return searchTags.map((searchTag) => {
         const tagContent = <Highlighter label={searchTag} searchValue={searchText} />;

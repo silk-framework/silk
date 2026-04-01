@@ -16,14 +16,28 @@ package org.silkframework.rule.plugins.transformer.substring
 
 import org.silkframework.rule.annotations.{TransformExample, TransformExamples}
 import org.silkframework.rule.input.SimpleTransformer
-import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
+import org.silkframework.runtime.plugin.annotations.{Param, Plugin, PluginReference}
 import org.silkframework.runtime.validation.ValidationException
 
 @Plugin(
-  id = "substring",
+  id = SubstringTransformer.pluginId,
   categories = Array("Substring"),
   label = "Substring",
-  description = """Returns a substring between 'beginIndex' (inclusive) and 'endIndex' (exclusive). If 'endIndex' is 0 (default), it is ignored and the entire remaining string starting with 'beginIndex' is returned. If 'endIndex' is negative, -endIndex characters are removed from the end."""
+  description = """Returns a substring between 'beginIndex' (inclusive) and 'endIndex' (exclusive). If 'endIndex' is 0 (default), it is ignored and the entire remaining string starting with 'beginIndex' is returned. If 'endIndex' is negative, -endIndex characters are removed from the end.""",
+  relatedPlugins = Array(
+    new PluginReference(
+      id = StripPrefixTransformer.pluginId,
+      description = "Substring removes a fixed number of characters from the start regardless of their content. Strip prefix is more selective: it only removes from the start if the configured string is actually found there."
+    ),
+    new PluginReference(
+      id = StripPostfixTransformer.pluginId,
+      description = "Substring works by index: it removes a fixed count of trailing characters regardless of their content. Strip postfix is the alternative when the trailing portion is a known string; it checks for it and leaves the value unchanged if not found."
+    ),
+    new PluginReference(
+      id = UntilCharacterTransformer.pluginId,
+      description = "Substring extracts by position: the start and end indices are fixed and apply to every input value regardless of its content. Until character extracts up to a specific character."
+    )
+  )
 )
 @TransformExamples(Array(
   new TransformExample(
@@ -71,10 +85,11 @@ import org.silkframework.runtime.validation.ValidationException
 case class SubstringTransformer(
   @Param("The beginning index, inclusive.")
   beginIndex: Int = 0,
-  @Param("The end index, exclusive. Ignored if set to 0, i.e., the entire remaining string starting with 'beginIndex' is returned. If negative, -endIndex characters are removed from the end ")
+  @Param("The end index, exclusive. Ignored if set to 0, i.e., the entire remaining string starting with 'beginIndex' is returned. If negative, -endIndex characters are removed from the end.")
   endIndex: Int = 0,
   @Param("If true, only strings will be accepted that are within the start and end indices, throwing a validating error if an index is out of range.")
-  stringMustBeInRange: Boolean = true) extends SimpleTransformer {
+  stringMustBeInRange: Boolean = true
+) extends SimpleTransformer {
 
   override def evaluate(value: String): String = {
     var start = beginIndex
@@ -110,4 +125,8 @@ case class SubstringTransformer(
       value.substring(start, end)
     }
   }
+}
+
+object SubstringTransformer {
+  final val pluginId = "substring"
 }

@@ -26,7 +26,6 @@ import org.silkframework.runtime.activity.{Activity, UserContext}
 import org.silkframework.runtime.plugin.PluginContext
 import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext}
-import org.silkframework.runtime.templating.{GlobalTemplateVariables, TemplateVariablesReader}
 import org.silkframework.runtime.validation.{BadUserInputException, NotFoundException, ValidationError, ValidationException}
 import org.silkframework.serialization.json.JsonParseException
 import org.silkframework.serialization.json.JsonSerializers._
@@ -276,22 +275,46 @@ class TransformTaskApi @Inject() () extends InjectedController with UserContextA
     implicit val (project, task) = getProjectAndTask[TransformSpec](projectName, taskName)
     implicit val prefixes: Prefixes = project.config.prefixes
     validateJson[RuleAutoCompletionRequest] { requestData =>
-      val allRules = task.data.allRulesRecursive
+      val searchQuery = requestData.searchQuery.getOrElse("")
+      val format = requestData.format.getOrElse(false)
+      val maxResults = requestData.limit.getOrElse(Int.MaxValue)
       val filter: TransformRule => Boolean = (requestData.objectRulesOnly.getOrElse(false), requestData.valueRulesOnly.getOrElse(false)) match {
         case (true, false) => (r: TransformRule) => r.isInstanceOf[ContainerTransformRule]
         case (false, true) => (r: TransformRule) => r.isInstanceOf[ValueTransformRule]
         case _ => (_: TransformRule) => true
       }
-      val completions: Seq[Completion] = allRules
-        .filter(filter)
-        .map(r => Completion(
-          value = r.id,
-          label = Some(r.fullLabel),
-          description = r.metaData.description,
-          category = Categories.rules,
-          isCompletion = true
-        ))
-      Ok(Completions(completions).filterAndSort(requestData.searchQuery.getOrElse(""), requestData.limit.getOrElse(Int.MaxValue), multiWordFilter = true).toJson)
+      if(searchQuery.trim.isEmpty) {
+        val formattedLabels = format && !requestData.valueRulesOnly.getOrElse(false)
+        val formattedLabelsByRule = if(formattedLabels) {
+          TransformTaskApi.formattedRulesInTreeOrder(task.data.mappingRule, filter).toMap
+        } else {
+          Map.empty[TransformRule, String]
+        }
+        val completions = TransformTaskApi.rulesInTreeOrder(task.data.mappingRule)
+          .filter(filter)
+          .map { rule =>
+            Completion(
+              value = rule.id,
+              label = Some(formattedLabelsByRule.getOrElse(rule, rule.fullLabel)),
+              description = rule.metaData.description,
+              category = Categories.rules,
+              isCompletion = true
+            )
+          }
+          .take(maxResults)
+        Ok(Completions(completions).toJson)
+      } else {
+        val completions: Seq[Completion] = task.data.allRulesRecursive
+          .filter(filter)
+          .map(r => Completion(
+            value = r.id,
+            label = Some(r.fullLabel),
+            description = r.metaData.description,
+            category = Categories.rules,
+            isCompletion = true
+          ))
+        Ok(Completions(completions).filterAndSort(searchQuery, maxResults, multiWordFilter = true).toJson)
+      }
     }
   }
 
@@ -1055,5 +1078,43 @@ object TransformTaskApi {
 
   // The property that is set when copying a root mapping rule that will be converted into an object mapping rule
   final val ROOT_COPY_TARGET_PROPERTY = "urn:temp:child"
-}
 
+  private def rulesInTreeOrder(rule: TransformRule): Seq[TransformRule] = {
+    rule +: rule.rules.allRules.flatMap(rulesInTreeOrder)
+  }
+
+  private def formattedRulesInTreeOrder(rule: TransformRule, filter: TransformRule => Boolean)
+                                       (implicit prefixes: Prefixes): Seq[(TransformRule, String)] = {
+    def hasVisibleNodes(currentRule: TransformRule): Boolean = {
+      filter(currentRule) || currentRule.rules.allRules.exists(hasVisibleNodes)
+    }
+
+    def visibleChildren(currentRule: TransformRule): Seq[TransformRule] = {
+      currentRule.rules.allRules.filter(hasVisibleNodes)
+    }
+
+    def render(currentRule: TransformRule,
+               ancestorLastStates: Seq[Boolean],
+               isLast: Boolean,
+               isRoot: Boolean): Seq[(TransformRule, String)] = {
+      val currentPrefix =
+        if(isRoot) {
+          ""
+        } else {
+          ancestorLastStates.map(last => if(last) "  " else "│ ").mkString + (if(isLast) "└─ " else "├─ ")
+        }
+      val currentEntry = if(filter(currentRule)) {
+        Seq(currentRule -> (currentPrefix + currentRule.fullLabel))
+      } else {
+        Seq.empty
+      }
+      val nextAncestorLastStates = if(isRoot) ancestorLastStates else ancestorLastStates :+ isLast
+      val children = visibleChildren(currentRule)
+      currentEntry ++ children.zipWithIndex.flatMap { case (child, index) =>
+        render(child, nextAncestorLastStates, isLast = index == children.size - 1, isRoot = false)
+      }
+    }
+
+    render(rule, Seq.empty, isLast = true, isRoot = true)
+  }
+}
