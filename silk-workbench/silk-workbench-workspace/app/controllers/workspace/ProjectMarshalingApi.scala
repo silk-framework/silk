@@ -120,7 +120,9 @@ class ProjectMarshalingApi @Inject() () extends InjectedController with UserCont
     }
   }
 
-  def exportProject(projectName: String, exportGroups: Boolean = false): Action[AnyContent] = exportProjectViaPlugin(projectName, XmlZipWithResourcesProjectMarshaling.marshallerId, exportGroups)
+  def exportProject(projectName: String, exportGroups: Boolean = false, exportUserData: Boolean = true): Action[AnyContent] = {
+    exportProjectViaPlugin(projectName, XmlZipWithResourcesProjectMarshaling.marshallerId, exportGroups, exportUserData)
+  }
 
   @Operation(
     summary = "Export project",
@@ -155,11 +157,19 @@ class ProjectMarshalingApi @Inject() () extends InjectedController with UserCont
                                in = ParameterIn.QUERY,
                                schema = new Schema(implementation = classOf[Boolean])
                              )
-                             exportGroups: Boolean = false): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
+                             exportGroups: Boolean = false,
+                             @Parameter(
+                               name = "exportUserData",
+                               description = "If false, user-identifying metadata (e.g. created, modified, createdByUser, lastModifiedByUser) is removed from the exported archive.",
+                               required = false,
+                               in = ParameterIn.QUERY,
+                               schema = new Schema(implementation = classOf[Boolean])
+                             )
+                             exportUserData: Boolean = true): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     withMarshaller(marshallerPluginId) { marshaller =>
       val fileName = s"${LocalDate.now()}-${request.domain}-$projectName${qualifier(marshaller)}.project.${marshaller.fileExtension}"
       sendFile(fileName) { outputStream =>
-        WorkspaceFactory().workspace.exportProject(projectName, outputStream, marshaller, exportGroups)
+        WorkspaceFactory().workspace.exportProject(projectName, outputStream, marshaller, exportGroups, exportUserData)
       }
     }
   }
@@ -235,11 +245,19 @@ class ProjectMarshalingApi @Inject() () extends InjectedController with UserCont
                                  in = ParameterIn.QUERY,
                                  schema = new Schema(implementation = classOf[Boolean])
                                )
-                               exportGroups: Boolean = false): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
+                               exportGroups: Boolean = false,
+                               @Parameter(
+                                 name = "exportUserData",
+                                 description = "If false, user-identifying metadata (e.g. created, modified, createdByUser, lastModifiedByUser) is removed from the exported archive.",
+                                 required = false,
+                                 in = ParameterIn.QUERY,
+                                 schema = new Schema(implementation = classOf[Boolean])
+                               )
+                               exportUserData: Boolean = true): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     withMarshaller(marshallerPluginId) { marshaller =>
       val fileName = s"${LocalDate.now()}-${request.domain}${qualifier(marshaller)}.workspace.${marshaller.fileExtension}"
       sendFile(fileName) { outputStream =>
-        WorkspaceFactory().workspace.exportWorkspace(outputStream, marshaller, exportGroups)
+        WorkspaceFactory().workspace.exportWorkspace(outputStream, marshaller, exportGroups, exportUserData)
       }
     }
   }

@@ -42,6 +42,13 @@ sealed trait TransformRule extends Operator with HasMetaData {
   /** The same rule with different meta data */
   def withMetaData(metaData: MetaData): TransformRule
 
+  /** Returns a copy of this rule with the given function applied to the metadata of this rule and all nested rules. */
+  def withMetaDataRecursive(f: MetaData => MetaData): TransformRule = {
+    val updated = withMetaData(f(metaData))
+    val newChildren = updated.children.map(_.asInstanceOf[TransformRule].withMetaDataRecursive(f))
+    updated.withChildren(newChildren)
+  }
+
   /** The input operator tree. */
   def operator: Input
 
