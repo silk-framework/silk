@@ -18,19 +18,21 @@ This tabular raw form is transformed into an _entity table_.
 
 ### Templating
 
-The select query supports [Jinja](https://jinja.palletsprojects.com/) templating. All parameters of the input task
-are automatically provided at execution time under the `input.parameters` scope:
+The select query supports [Jinja](https://jinja.palletsprojects.com/) templating. Properties of the input and output
+tasks can be accessed via the `inputProperties` and `outputProperties` objects. Both objects expose the same methods
+as the `row` object in the SPARQL Update operator:
 
-| Variable | Description |
-|----------|-------------|
-| `input.parameters.graph` | The named graph URI from the input dataset's graph parameter. Empty if no graph is configured. |
-| `input.parameters.<param>` | Any other parameter of the input dataset, referenced by its parameter name. |
+- `inputProperties.uri(param)`: Renders a parameter of the input task as **URI**.
+- `inputProperties.plainLiteral(param)`: Renders a parameter of the input task as **plain literal**.
+- `inputProperties.rawUnsafe(param)`: Renders a parameter of the input task as is, i.e. **no escaping** is done.
+- `inputProperties.exists(param)`: Returns `true` if the parameter **exists** in the input task, else `false`.
 
-These variables can be used directly or combined with Jinja expressions. For example, to query a named graph
-whose URI is derived by appending a suffix to the configured graph URI:
+The same methods are available on `outputProperties` for the output task.
+
+For example, to query the named graph that is configured on the input dataset:
 
 ```sparql
-SELECT * WHERE { GRAPH <{{ input.parameters.graph ~ "/data" }}> { ?s ?p ?o } }
+SELECT * WHERE { GRAPH {{ inputProperties.uri("graph") }} { ?s ?p ?o } }
 ```
 
 The output schema (i.e. the result variables) is derived from the query at configuration time by evaluating the

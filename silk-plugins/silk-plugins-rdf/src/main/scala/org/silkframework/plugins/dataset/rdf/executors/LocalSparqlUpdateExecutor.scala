@@ -31,7 +31,7 @@ case class LocalSparqlUpdateExecutor() extends LocalExecutor[SparqlUpdateCustomT
     // Generate SPARQL Update queries for input entities
     def executeOnInput[U](batchEmitter: BatchSparqlUpdateEmitter[U], expectedProperties: IndexedSeq[String], input: LocalEntities): Unit = {
       val inputProperties = getInputProperties(input.entitySchema).distinct
-      val taskProperties = createTaskProperties(Some(input.task), output.task, pluginContext)
+      val taskProperties = TaskProperties.create(Some(input.task), output.task, pluginContext)
       checkInputSchema(expectedProperties, inputProperties.toSet)
       for (entity <- input.entities;
            values = expectedSchema.typedPaths.map(tp => entity.valueOfPath(tp.toUntypedPath)) if values.forall(_.nonEmpty)) {
@@ -74,19 +74,9 @@ case class LocalSparqlUpdateExecutor() extends LocalExecutor[SparqlUpdateCustomT
                                  inputTask: Option[Task[_ <: TaskSpec]] = None,
                                  outputTask: Option[Task[_ <: TaskSpec]] = None)
                                 (implicit pluginContext: PluginContext): Unit = {
-    val taskProperties = createTaskProperties(inputTask = inputTask, outputTask = outputTask, pluginContext = pluginContext)
+    val taskProperties = TaskProperties.create(inputTask = inputTask, outputTask = outputTask, pluginContext = pluginContext)
     val query = updateTask.compiledTemplate.generate(Map.empty, taskProperties)
     batchEmitter.update(query)
-  }
-
-  private def createTaskProperties(inputTask: Option[Task[_ <: TaskSpec]],
-                                   outputTask: Option[Task[_ <: TaskSpec]],
-                                   pluginContext: PluginContext): TaskProperties = {
-    // It's obligatory to have empty prefixes here, since we do not want to have prefixed URIs for URI parameters
-    implicit val updatedPluginContext: PluginContext = PluginContext.updatedPluginContext(pluginContext, prefixes = Some(Prefixes.empty))
-    val inputProperties = inputTask.toSeq.flatMap(_.parameters.toStringMap).toMap
-    val outputProperties = outputTask.toSeq.flatMap(_.parameters.toStringMap).toMap
-    TaskProperties(inputProperties, outputProperties)
   }
 
   // Check that expected schema is subset of input schema

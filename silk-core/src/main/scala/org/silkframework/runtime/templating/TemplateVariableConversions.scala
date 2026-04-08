@@ -1,6 +1,6 @@
 package org.silkframework.runtime.templating
 
-import org.silkframework.config.{Task, TaskSpec}
+import org.silkframework.config.{Prefixes, Task, TaskSpec}
 import org.silkframework.entity.Entity
 import org.silkframework.runtime.plugin.{ParameterValues, PluginContext, SimpleParameterValue}
 

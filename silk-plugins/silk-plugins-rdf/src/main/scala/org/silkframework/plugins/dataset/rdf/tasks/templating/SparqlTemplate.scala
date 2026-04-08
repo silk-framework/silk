@@ -1,10 +1,12 @@
 package org.silkframework.plugins.dataset.rdf.tasks.templating
 
 import org.apache.jena.update.UpdateFactory
+import org.silkframework.config.{Prefixes, Task, TaskSpec}
 import org.silkframework.entity.EntitySchema
 import org.silkframework.entity.paths.UntypedPath
 import org.silkframework.execution.local.EmptyEntityTable
-import org.silkframework.plugins.dataset.rdf.tasks.templating.SparqlUpdateTemplate.{InputProperties, OutputProperties, Row}
+import org.silkframework.plugins.dataset.rdf.tasks.templating.SparqlTemplate.{INPUT_PROPERTIES_VAR_NAME, InputProperties, OUTPUT_PROPERTIES_VAR_NAME, OutputProperties, ROW_VAR_NAME, Row}
+import org.silkframework.runtime.plugin.PluginContext
 import org.silkframework.runtime.templating.{CompiledTemplate, TemplateEngines, TemplateMethodUsage, TemplateVariableName}
 import org.silkframework.runtime.validation.ValidationException
 
@@ -14,7 +16,7 @@ import scala.util.{Failure, Success, Try}
 /**
   * Wraps a [[CompiledTemplate]] and adds SPARQL Update specific capabilities.
   */
-class SparqlUpdateTemplate(template: CompiledTemplate) {
+class SparqlTemplate(template: CompiledTemplate) {
 
   /**
    * Renders the template based on the variable assignments.
@@ -26,33 +28,40 @@ class SparqlUpdateTemplate(template: CompiledTemplate) {
     val values = scala.collection.mutable.LinkedHashMap[String, AnyRef]()
     // Flat entity values (used by simple template engine)
     placeholderAssignments.foreach { case (k, v) => values(k) = v }
-    // SPARQL context objects (used by Velocity engine)
-    values(SparqlUpdateTemplate.ROW_VAR_NAME) = Row(placeholderAssignments)
-    values(SparqlUpdateTemplate.INPUT_PROPERTIES_VAR_NAME) = InputProperties(taskProperties.inputTask)
-    values(SparqlUpdateTemplate.OUTPUT_PROPERTIES_VAR_NAME) = OutputProperties(taskProperties.outputTask)
+    // SPARQL context objects
+    values(ROW_VAR_NAME) = Row(placeholderAssignments)
+    values(INPUT_PROPERTIES_VAR_NAME) = InputProperties(taskProperties.inputTask)
+    values(OUTPUT_PROPERTIES_VAR_NAME) = OutputProperties(taskProperties.outputTask)
     val writer = new StringWriter()
     template.evaluate(values.toMap, writer)
     writer.toString
   }
 
+  /**
+   * Renders the template based assigning default values for all variables.
+   */
+  def generateWithDefaults(): String = {
+    val genericUri = "urn:generic:1"
+    val entityVariables = entityVariableNames
+    val assignments = entityVariables.map(_ -> genericUri).toMap
+    val inputPropVars = taskPropertyVariableNames(Seq("inputProperties")).map(_ -> genericUri).toMap
+    val outputPropVars = taskPropertyVariableNames(Seq("outputProperties")).map(_ -> genericUri).toMap
+    val taskProps = TaskProperties(inputPropVars, outputPropVars)
+    Try(generate(assignments, taskProps)) match {
+      case Failure(exception) =>
+        throw new ValidationException(
+          "The SPARQL Update template could not be rendered with example values. Error message: " + exception.getMessage, exception)
+      case Success(value) => value
+    }
+  }
+
   /** Validates the template, including batch validation if batchSize > 1. */
-  def validate(batchSize: Int): Unit = {
+  def validateUpdateQuery(batchSize: Int): Unit = {
     if (usesRawUnsafe) {
       // We cannot generate meaningful example values for the template if $row.rawUnsafe() is used, because it could generate arbitrary SPARQL syntax.
     } else {
       // Generate example input assignments
-      val genericUri = "urn:generic:1"
-      val entityVariables = entityVariableNames
-      val assignments = entityVariables.map(_ -> genericUri).toMap
-      val inputPropVars = taskPropertyVariableNames(Seq("inputProperties")).map(_ -> genericUri).toMap
-      val outputPropVars = taskPropertyVariableNames(Seq("outputProperties")).map(_ -> genericUri).toMap
-      val taskProps = TaskProperties(inputPropVars, outputPropVars)
-      val sparqlQuery = Try(generate(assignments, taskProps)) match {
-        case Failure(exception) =>
-          throw new ValidationException(
-            "The SPARQL Update template could not be rendered with example values. Error message: " + exception.getMessage, exception)
-        case Success(value) => value
-      }
+      val sparqlQuery = generateWithDefaults()
       Try(UpdateFactory.create(sparqlQuery)).failed.toOption.foreach { parseError =>
         throw new ValidationException(
           "The SPARQL Update template does not generate valid SPARQL Update queries. Error message: " +
@@ -92,13 +101,13 @@ class SparqlUpdateTemplate(template: CompiledTemplate) {
 
   /** Returns SPARQL-specific variables, extracting paths from method usages. */
   private lazy val sparqlVariables: Option[Seq[TemplateVariableName]] = {
-    val usages = SparqlUpdateTemplate.templatingVariables.flatMap(v => template.methodUsages(v))
+    val usages = SparqlTemplate.templatingVariables.flatMap(v => template.methodUsages(v))
     if (usages.nonEmpty) {
-      val rowVars = sparqlMethodUsages(SparqlUpdateTemplate.ROW_VAR_NAME)
+      val rowVars = sparqlMethodUsages(SparqlTemplate.ROW_VAR_NAME)
         .map(u => new TemplateVariableName(u.parameterValue))
-      val inputPropVars = sparqlMethodUsages(SparqlUpdateTemplate.INPUT_PROPERTIES_VAR_NAME)
+      val inputPropVars = sparqlMethodUsages(INPUT_PROPERTIES_VAR_NAME)
         .map(u => new TemplateVariableName(u.parameterValue, Seq("inputProperties")))
-      val outputPropVars = sparqlMethodUsages(SparqlUpdateTemplate.OUTPUT_PROPERTIES_VAR_NAME)
+      val outputPropVars = sparqlMethodUsages(OUTPUT_PROPERTIES_VAR_NAME)
         .map(u => new TemplateVariableName(u.parameterValue, Seq("outputProperties")))
       Some((rowVars ++ inputPropVars ++ outputPropVars).distinct)
     } else {
@@ -113,7 +122,7 @@ class SparqlUpdateTemplate(template: CompiledTemplate) {
 
   /** Checks if any SPARQL templating variable uses the rawUnsafe method. */
   private lazy val usesRawUnsafe: Boolean = {
-    SparqlUpdateTemplate.templatingVariables.exists(varName =>
+    SparqlTemplate.templatingVariables.exists(varName =>
       sparqlMethodUsages(varName).exists(_.methodName == "rawUnsafe"))
   }
 
@@ -138,7 +147,7 @@ class SparqlUpdateTemplate(template: CompiledTemplate) {
   }
 }
 
-object SparqlUpdateTemplate {
+object SparqlTemplate {
 
   private final val ROW_VAR_NAME = "row"
   private final val INPUT_PROPERTIES_VAR_NAME = "inputProperties"
@@ -149,11 +158,9 @@ object SparqlUpdateTemplate {
   /**
    * Creates a SPARQL template from a string.
    */
-  def create(templateEngineId: String, template: String, batchSize: Int): SparqlUpdateTemplate = {
+  def create(templateEngineId: String, template: String): SparqlTemplate = {
     val templateEngine = TemplateEngines.create(templateEngineId)
-    val sparqlTemplate = new SparqlUpdateTemplate(templateEngine.compile(template))
-    sparqlTemplate.validate(batchSize)
-    sparqlTemplate
+    new SparqlTemplate(templateEngine.compile(template))
   }
 
   /** Row API used in SPARQL templates. Represents a single row where input paths are either exactly one value or empty.
@@ -186,8 +193,27 @@ object SparqlUpdateTemplate {
   case class OutputProperties(inputValues: Map[String, String]) extends TemplateValueAccessApi {
     override val templateVarName: String = OUTPUT_PROPERTIES_VAR_NAME
   }
-
 }
 
 /** Makes properties of the input and output task of a SPARQL Update operator execution available. */
 case class TaskProperties(inputTask: Map[String, String], outputTask: Map[String, String])
+
+object TaskProperties {
+
+  def create(inputTask: Option[Task[_ <: TaskSpec]],
+             outputTask: Option[Task[_ <: TaskSpec]],
+             pluginContext: PluginContext): TaskProperties = {
+    // It's obligatory to have empty prefixes here, since we do not want to have prefixed URIs for URI parameters
+    implicit val updatedPluginContext: PluginContext = PluginContext.updatedPluginContext(pluginContext, prefixes = Some(Prefixes.empty))
+    val inputProperties =  createTaskProperties(inputTask)
+    val outputProperties = createTaskProperties(outputTask)
+    TaskProperties(inputProperties, outputProperties)
+  }
+
+  private def createTaskProperties(task: Option[Task[_ <: TaskSpec]])
+                                  (implicit pluginContext: PluginContext): Map[String, String] = {
+    task.toSeq.flatMap(_.parameters.toStringMap).toMap
+  }
+
+
+}

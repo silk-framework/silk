@@ -6,7 +6,7 @@ import org.silkframework.dataset.rdf.SparqlEndpointDatasetParameter
 import org.silkframework.entity._
 import org.silkframework.entity.paths.{TypedPath, UntypedPath}
 import org.silkframework.execution.typed.SparqlEndpointEntitySchema
-import org.silkframework.plugins.dataset.rdf.tasks.templating.SparqlSelectTemplate
+import org.silkframework.plugins.dataset.rdf.tasks.templating.SparqlTemplate
 import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
 import org.silkframework.runtime.plugin.types.SparqlCodeParameter
 import org.silkframework.runtime.templating.TemplateEngineAutocompletionProvider
@@ -34,9 +34,8 @@ case class SparqlSelectCustomTask(
   @Param(
     label = "Select query",
     value = "A SPARQL 1.1 select query. The query supports Jinja templating. " +
-      "All parameters of the input dataset are automatically provided under the 'input.parameters' scope, " +
-      "e.g., 'input.parameters.graph' for the graph parameter. " +
-      "Example with graph: SELECT * WHERE { GRAPH <{{ input.parameters.graph ~ \"/data\" }}> { ?s ?p ?o } }",
+      "Properties of the input and output tasks can be accessed via the 'inputProperties' and 'outputProperties' objects. " +
+      "Example: SELECT * WHERE { GRAPH {{ inputProperties.uri(\"graph\") }} { ?s ?p ?o } }",
     example = "select * where { ?s ?p ?o }")
   selectQuery: SparqlCodeParameter,
   @Param(label = "Result limit", value = "If set to a positive integer, the number of results is limited")
@@ -65,7 +64,7 @@ case class SparqlSelectCustomTask(
     Try(limit.toInt).filter(_ > 0).toOption
   }
 
-  val queryTemplate: SparqlSelectTemplate = SparqlSelectTemplate.create(templatingMode, selectQuery.str)
+  val queryTemplate: SparqlTemplate = SparqlTemplate.create(templatingMode, selectQuery.str)
 
   override def inputPorts: InputPorts = {
     FixedNumberOfInputs(Seq(FixedSchemaPort(SparqlEndpointEntitySchema.schema)))
@@ -76,7 +75,7 @@ case class SparqlSelectCustomTask(
   }
 
   val outputSchema: EntitySchema = {
-    val query = QueryFactory.create(queryTemplate.evaluateWithDefaults())
+    val query = QueryFactory.create(queryTemplate.generateWithDefaults())
     if (!query.isSelectType) {
       throw new ValidationException("Query is not a SELECT query!")
     }

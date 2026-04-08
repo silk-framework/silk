@@ -8,6 +8,7 @@ import org.silkframework.execution.local.{GenericEntityTable, LocalEntities, Loc
 import org.silkframework.execution.typed.SparqlEndpointEntitySchema
 import org.silkframework.execution.{ExecutionReport, ExecutionReportUpdater, ExecutorOutput, TaskException}
 import org.silkframework.plugins.dataset.rdf.tasks.SparqlSelectCustomTask
+import org.silkframework.plugins.dataset.rdf.tasks.templating.TaskProperties
 import org.silkframework.runtime.activity.{ActivityContext, UserContext}
 import org.silkframework.runtime.iterator.CloseableIterator
 import org.silkframework.runtime.plugin.PluginContext
@@ -36,20 +37,25 @@ case class LocalSparqlSelectExecutor() extends LocalExecutor[SparqlSelectCustomT
 
   def executeOnSparqlEndpoint(sparqlSelectTask: SparqlSelectCustomTask,
                               inputTask: Task[DatasetSpec[RdfDataset]],
+                              outputTask: Task[_ <: TaskSpec],
                               limit: Int = Integer.MAX_VALUE,
                               executionReportUpdater: Option[SparqlSelectExecutionReportUpdater])
                              (implicit pluginContext: PluginContext): CloseableIterator[Entity] = {
     val selectLimit = math.min(sparqlSelectTask.intLimit.getOrElse(Integer.MAX_VALUE), limit)
-    val results = select(sparqlSelectTask, inputTask, selectLimit)
+    val results = select(sparqlSelectTask, inputTask, outputTask, selectLimit)
     val vars: IndexedSeq[String] = getSparqlVars(sparqlSelectTask)
     createEntities(sparqlSelectTask, results, vars, executionReportUpdater)
   }
 
-  private def select(sparqlSelectTask: SparqlSelectCustomTask, inputTask: Task[_ <: DatasetSpec[RdfDataset]], selectLimit: Int)
+  private def select(sparqlSelectTask: SparqlSelectCustomTask,
+                     inputTask: Task[_ <: DatasetSpec[RdfDataset]],
+                     outputTask: Task[_ <: TaskSpec],
+                     selectLimit: Int)
                     (implicit pluginContext: PluginContext): SparqlResults = {
     implicit val user: UserContext = pluginContext.user
     val sparqlEndpoint = inputTask.data.plugin.sparqlEndpoint
-    executeSelect(sparqlEndpoint, sparqlSelectTask.queryTemplate.evaluate(inputTask), selectLimit, Some(sparqlSelectTask.sparqlTimeout))
+    val taskProperties = TaskProperties.create(Some(inputTask), Some(outputTask), pluginContext)
+    executeSelect(sparqlEndpoint, sparqlSelectTask.queryTemplate.generate(Map.empty, taskProperties), selectLimit, Some(sparqlSelectTask.sparqlTimeout))
   }
 
   /**

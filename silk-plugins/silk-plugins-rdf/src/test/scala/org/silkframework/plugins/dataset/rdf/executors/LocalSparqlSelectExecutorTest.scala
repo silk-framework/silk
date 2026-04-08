@@ -66,7 +66,7 @@ class LocalSparqlSelectExecutorTest extends AnyFlatSpec
 
   it should "evaluate a Jinja query template using the graph variable from the task parameters" in {
     val graphUri = "http://example.org/testGraph"
-    val query = "SELECT * WHERE { GRAPH <{{ input.parameters.graph ~ \"/data\" }}> { ?s ?p ?o } }"
+    val query = """SELECT * WHERE { GRAPH {{ inputProperties.uri("graph") }} { ?s ?p ?o } }"""
     val task = SparqlSelectCustomTask(query)
     var capturedQuery = ""
     val activityContextMock = TestMocks.activityContextMock()
@@ -75,8 +75,8 @@ class LocalSparqlSelectExecutorTest extends AnyFlatSpec
     LocalSparqlSelectExecutor().executeOnSparqlEndpoint(task, taskWithEndpoint(sparqlEndpoint, graphUri = Some(graphUri)), executionReportUpdater = Some(reportUpdater)).headOption
 
     task.outputSchema.typedPaths.map(_.toUntypedPath.normalizedSerialization) mustBe IndexedSeq("s", "p", "o")
-    capturedQuery must include(s"<$graphUri/data>")
-    capturedQuery must not include "{{ input.parameters.graph"
+    capturedQuery must include(s"<$graphUri>")
+    capturedQuery must not include "inputProperties.uri"
   }
 
   private def taskWithEndpoint(sparqlEndpoint: SparqlEndpoint, graphUri: Option[String] = None): Task[DatasetSpec[RdfDataset]] = {
