@@ -43,7 +43,7 @@ class LocalSparqlSelectExecutorTest extends AnyFlatSpec
     }
     Entity.empty("") // Make sure that Entity class is loaded
     val start = System.currentTimeMillis()
-    val entities = LocalSparqlSelectExecutor().executeOnSparqlEndpoint(task, taskWithEndpoint(sparqlEndpoint), executionReportUpdater = Some(reportUpdater))
+    val entities = LocalSparqlSelectExecutor().executeOnSparqlEndpoint(task, taskWithEndpoint(sparqlEndpoint), None, executionReportUpdater = Some(reportUpdater))
     val entity = entities.head
     entity.values.flatten.head mustBe "subject 0"
     (System.currentTimeMillis() - start).toInt must be < quickReactionTime
@@ -59,7 +59,7 @@ class LocalSparqlSelectExecutorTest extends AnyFlatSpec
       correctTimeout = endpoint.sparqlParams.timeout.contains(timeout)
     })
     val limit = 1000 * 1000 * 1000
-    val entities = LocalSparqlSelectExecutor().executeOnSparqlEndpoint(task, taskWithEndpoint(sparqlEndpoint), limit, Some(reportUpdater))
+    val entities = LocalSparqlSelectExecutor().executeOnSparqlEndpoint(task, taskWithEndpoint(sparqlEndpoint), None, limit, Some(reportUpdater))
     entities.headOption // Needed to actually execute the query
     correctTimeout mustBe true
   }
@@ -72,7 +72,7 @@ class LocalSparqlSelectExecutorTest extends AnyFlatSpec
     val activityContextMock = TestMocks.activityContextMock()
     val reportUpdater = SparqlSelectExecutionReportUpdater(PlainTask("task", task), activityContextMock)
     val sparqlEndpoint = sparqlEndpointStub(queryCapture = q => capturedQuery = q)
-    LocalSparqlSelectExecutor().executeOnSparqlEndpoint(task, taskWithEndpoint(sparqlEndpoint, graphUri = Some(graphUri)), executionReportUpdater = Some(reportUpdater)).headOption
+    LocalSparqlSelectExecutor().executeOnSparqlEndpoint(task, taskWithEndpoint(sparqlEndpoint, graphUri = Some(graphUri)), None, executionReportUpdater = Some(reportUpdater)).headOption
 
     task.outputSchema.typedPaths.map(_.toUntypedPath.normalizedSerialization) mustBe IndexedSeq("s", "p", "o")
     capturedQuery must include(s"<$graphUri>")
