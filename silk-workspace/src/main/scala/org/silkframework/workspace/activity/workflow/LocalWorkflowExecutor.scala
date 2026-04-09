@@ -5,7 +5,7 @@ import org.silkframework.config._
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.dataset._
 import org.silkframework.execution.local.{ErrorOutputWriter, LocalEntities, LocalExecution}
-import org.silkframework.execution.{DatasetExecutor, EntityHolder, ExecutorOutput, ExecutorRegistry}
+import org.silkframework.execution.{DatasetExecutor, EntityHolder, ExecutorOutput}
 import org.silkframework.plugins.dataset.InternalDataset
 import org.silkframework.rule.TransformSpec
 import org.silkframework.runtime.activity.{ActivityContext, UserContext}
@@ -81,15 +81,10 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
   }
 
   private def runWorkflow(implicit context: ActivityContext[WorkflowExecutionReport], userContext: UserContext): Unit = {
-    implicit val workflowRunContext: WorkflowRunContext = WorkflowRunContext(
-      activityContext = context,
-      workflow = currentWorkflow,
-      userContext = userContext
-    )
+    implicit val workflowRunContext: WorkflowRunContext = createRunContext
 
     checkReadOnlyDatasets()
     checkVariableDatasets()
-    initializeExecutors()
     if(clearDatasets) {
       clearOutputDatasets()
     }
@@ -121,23 +116,6 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
           case NonFatal(ex) =>
             log.log(Level.WARNING, s"Exception while closing executor for node '$nodeId'.", ex)
         }
-      }
-    }
-  }
-
-  private def initializeExecutors()(implicit workflowRunContext: WorkflowRunContext): Unit = {
-    implicit val userContext: UserContext = workflowRunContext.userContext
-    for (node <- workflowNodes) {
-      val taskOpt: Option[Task[_ <: TaskSpec]] = node match {
-        case datasetNode: WorkflowDataset =>
-          project.taskOption[GenericDatasetSpec](datasetNode.task).map { dt =>
-            resolveDataset(dt, replaceDataSources ++ replaceSinks)
-          }
-        case operatorNode: WorkflowOperator =>
-          project.anyTaskOption(operatorNode.task)
-      }
-      for (t <- taskOpt) {
-        workflowRunContext.nodeExecutors.put(node.nodeId, ExecutorRegistry.instantiateExecutor(t.data, executionContext))
       }
     }
   }
@@ -438,32 +416,6 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
       case None =>
         throw WorkflowExecutionException(s"In workflow ${workflowTask.id.toString} the Dataset node ${workflowDataset.nodeId} did " +
             s"not return any result!")
-    }
-  }
-
-  /**
-    * Returns the dataset that should be used in the workflow. Specifically [[VariableDataset]]
-    * and [[InternalDataset]] need to be replaced by the corresponding real dataset.
-    *
-    * @param datasetTask
-    * @param replaceDatasets A map with replacement datasets for [[VariableDataset]] objects.
-    * @return
-    */
-  private def resolveDataset(datasetTask: Task[GenericDatasetSpec],
-                             replaceDatasets: Map[String, Dataset]): Task[GenericDatasetSpec] = {
-    replaceDatasets.get(datasetTask.id.toString) match {
-      case Some(d) =>
-        PlainTask(datasetTask.id, datasetTask.data.copy(plugin = d), metaData = datasetTask.metaData)
-      case None =>
-        datasetTask.data.plugin match {
-          case _: VariableDataset =>
-            throw new IllegalArgumentException("No replacement found for variable dataset " + datasetTask.id.toString)
-          case _: InternalDataset =>
-            val internalDataset = executionContext.createInternalDataset(Some(datasetTask.id.toString))
-            PlainTask(datasetTask.id, datasetTask.data.copy(plugin = internalDataset), metaData = datasetTask.metaData)
-          case _: Dataset =>
-            datasetTask
-        }
     }
   }
 
