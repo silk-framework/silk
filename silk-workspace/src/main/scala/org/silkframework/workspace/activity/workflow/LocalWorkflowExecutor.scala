@@ -5,7 +5,7 @@ import org.silkframework.config._
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.dataset._
 import org.silkframework.execution.local.{ErrorOutputWriter, LocalEntities, LocalExecution}
-import org.silkframework.execution.{DatasetExecutor, EntityHolder, ExecutorOutput}
+import org.silkframework.execution.{DatasetExecutor, EntityHolder, ExecutorOutput, ExecutorRegistry}
 import org.silkframework.plugins.dataset.InternalDataset
 import org.silkframework.rule.TransformSpec
 import org.silkframework.runtime.activity.{ActivityContext, UserContext}
@@ -89,6 +89,7 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
 
     checkReadOnlyDatasets()
     checkVariableDatasets()
+    initializeExecutors()
     if(clearDatasets) {
       clearOutputDatasets()
     }
@@ -113,6 +114,31 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
     } finally {
       context.value.updateWith(_.asDone())
       this.executionContext.executeShutdownHooks()
+      workflowRunContext.nodeExecutors.foreach { case (nodeId, exec) =>
+        try {
+          exec.close()
+        } catch {
+          case NonFatal(ex) =>
+            log.log(Level.WARNING, s"Exception while closing executor for node '$nodeId'.", ex)
+        }
+      }
+    }
+  }
+
+  private def initializeExecutors()(implicit workflowRunContext: WorkflowRunContext): Unit = {
+    implicit val userContext: UserContext = workflowRunContext.userContext
+    for (node <- workflowNodes) {
+      val taskOpt: Option[Task[_ <: TaskSpec]] = node match {
+        case datasetNode: WorkflowDataset =>
+          project.taskOption[GenericDatasetSpec](datasetNode.task).map { dt =>
+            resolveDataset(dt, replaceDataSources ++ replaceSinks)
+          }
+        case operatorNode: WorkflowOperator =>
+          project.anyTaskOption(operatorNode.task)
+      }
+      for (t <- taskOpt) {
+        workflowRunContext.nodeExecutors.put(node.nodeId, ExecutorRegistry.instantiateExecutor(t.data, executionContext))
+      }
     }
   }
 
@@ -412,35 +438,6 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
       case None =>
         throw WorkflowExecutionException(s"In workflow ${workflowTask.id.toString} the Dataset node ${workflowDataset.nodeId} did " +
             s"not return any result!")
-    }
-  }
-
-  /** NOT USED ANYMORE, only here for documentation reasons, should be deleted after everything in here is supported. */
-  def executeOperator(operator: WorkflowNode)
-                     (implicit workflowRunContext: WorkflowRunContext): Unit = {
-    // Get the error sinks for this operator
-    val errorOutputs = operator match {
-      case wo: WorkflowOperator => wo.errorOutputs.map(project.anyTask(_)(workflowRunContext.userContext))
-      case _ => Seq()
-    }
-    var errorSinks: Seq[DatasetWriteAccess] = errorOutputSinks(errorOutputs)
-
-
-    if (errorOutputs.exists(!_.data.isInstanceOf[Dataset])) {
-      // TODO: Needs proper graph
-      // TODO: How to handle error output in new model?
-      errorSinks +:= InternalDataset(null)
-    }
-
-    //        val activity = taskExecutor(dataSources, taskData, sinks, errorSinks)
-    //        val report = activityContext.child(activity, 0.0).startBlockingAndGetValue()
-    //        activityContext.value() = activityContext.value().withReport(operator.id, report)
-  }
-
-  private def errorOutputSinks(errorOutputs: Seq[ProjectTask[_ <: TaskSpec]]): Seq[DatasetWriteAccess] = {
-    errorOutputs.collect {
-      case pt: ProjectTask[_] if pt.data.isInstanceOf[Dataset] =>
-        pt.data.asInstanceOf[Dataset]
     }
   }
 
