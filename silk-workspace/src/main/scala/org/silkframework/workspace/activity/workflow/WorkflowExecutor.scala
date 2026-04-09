@@ -57,7 +57,12 @@ trait WorkflowExecutor[ExecType <: ExecutionType] extends Activity[WorkflowExecu
     updateProgress(operation, task)
     val result =
       try {
-        ExecutorRegistry.execute(task, inputs, output, executionContext, taskContext)
+        workflowRunContext.nodeExecutors.get(nodeId) match {
+          case Some(exec) =>
+            ExecutorRegistry.executeWith(exec.asInstanceOf[Executor[TaskType, ExecType]], task, inputs, output, executionContext, taskContext)
+          case None =>
+            ExecutorRegistry.execute(task, inputs, output, executionContext, taskContext)
+        }
       } catch {
         case NonFatal(ex) =>
           workflowRunContext.activityContext.value.updateWith(_.addFailedNode(nodeId, ex))
@@ -197,11 +202,22 @@ trait WorkflowExecutor[ExecType <: ExecutionType] extends Activity[WorkflowExecu
   }
 }
 
+/**
+ * A context for a single workflow execution.
+ *
+ * @param activityContext The activity context for the workflow execution.
+ * @param workflow The workflow that is being be executed.
+ * @param userContext The user that is executing the workflow.
+ * @param alreadyExecuted The workflow nodes that have already been executed.
+ * @param reconfiguredTasks The already tasks that have been reconfigured.
+ * @param nodeExecutors The node executors for each workflow node by node id.
+ */
 case class WorkflowRunContext(activityContext: ActivityContext[WorkflowExecutionReport],
                               workflow: Workflow,
                               userContext: UserContext,
                               alreadyExecuted: mutable.Set[WorkflowNode] = mutable.Set(),
-                              reconfiguredTasks: mutable.Map[WorkflowNode, Task[_ <: TaskSpec]] = mutable.Map()) {
+                              reconfiguredTasks: mutable.Map[WorkflowNode, Task[_ <: TaskSpec]] = mutable.Map(),
+                              nodeExecutors: mutable.Map[Identifier, Executor[_, _]] = mutable.Map()) {
   /**
     * Listeners for updates to task reports.
     * We need to hold them to prevent their garbage collection.
