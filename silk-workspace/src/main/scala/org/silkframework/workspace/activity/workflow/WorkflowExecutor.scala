@@ -61,7 +61,7 @@ trait WorkflowExecutor[ExecType <: ExecutionType] extends Activity[WorkflowExecu
           case Some(exec) =>
             ExecutorRegistry.executeWith(exec.asInstanceOf[Executor[TaskType, ExecType]], task, inputs, output, executionContext, taskContext)
           case None =>
-            ExecutorRegistry.execute(task, inputs, output, executionContext, taskContext)
+            throw WorkflowExecutionException(s"No executor found for node '$nodeId'. This is a bug: executors should have been initialized before execution.")
         }
       } catch {
         case NonFatal(ex) =>

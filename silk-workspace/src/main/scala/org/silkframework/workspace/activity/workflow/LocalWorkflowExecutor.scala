@@ -114,6 +114,14 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
     } finally {
       context.value.updateWith(_.asDone())
       this.executionContext.executeShutdownHooks()
+      workflowRunContext.nodeExecutors.foreach { case (nodeId, exec) =>
+        try {
+          exec.close()
+        } catch {
+          case NonFatal(ex) =>
+            log.log(Level.WARNING, s"Exception while closing executor for node '$nodeId'.", ex)
+        }
+      }
     }
   }
 
