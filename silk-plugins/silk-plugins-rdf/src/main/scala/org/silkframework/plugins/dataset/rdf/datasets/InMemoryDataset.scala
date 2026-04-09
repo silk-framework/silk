@@ -16,6 +16,10 @@ import org.silkframework.runtime.plugin.annotations.{Param, Plugin, PluginRefere
   documentationFile = "InMemoryDataset.md",
   relatedPlugins = Array(
     new PluginReference(
+      id = InWorkflowDataset.pluginId,
+      description = "Both datasets hold data in-memory, but the in-workflow dataset is scoped to a single workflow execution and cleared afterwards, while the in-memory dataset persists for the lifetime of the application."
+    ),
+    new PluginReference(
       id = SparqlDataset.pluginId,
       description = "Data in the in-memory dataset does not persist beyond the running process. The SPARQL endpoint dataset connects to an external store that persists independently, which means switching between them changes not just where the data lives but whether it survives execution at all."
     ),
