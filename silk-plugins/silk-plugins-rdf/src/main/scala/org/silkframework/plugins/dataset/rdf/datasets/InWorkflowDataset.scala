@@ -36,17 +36,17 @@ case class InWorkflowDataset() extends RdfDataset with TripleSinkDataset {
   private var mostRecentSparqlEndpoint: SparqlEndpoint = new JenaModelEndpoint(ModelFactory.createDefaultModel())
 
   /**
-   * Models for all current workflow executions, keyed by execution ID.
-   * Uses a WeakHashMap so entries are cleaned up by GC if removeModel() is not called.
-   * The key (Identifier) is only strongly referenced by the LocalExecution instance,
-   * so when that execution is garbage collected, the entry is automatically removed.
+   * Models for all current workflow executions, keyed by [[ExecutionModelKey]].
+   * Uses a WeakHashMap so entries are automatically cleaned up by GC when the key is no longer referenced.
+   * When the executor is GC'd, the entry is cleaned up.
+   * Entries are also explicitly removed by [[InWorkflowDatasetExecutor.close()]] when the execution finishes.
    */
-  private val executionModels: java.util.Map[Identifier, Model] =
-    Collections.synchronizedMap(new java.util.WeakHashMap[Identifier, Model]())
+  private val executionModels: java.util.Map[ExecutionModelKey, Model] =
+    Collections.synchronizedMap(new java.util.WeakHashMap[ExecutionModelKey, Model]())
 
   /** Registers the model for a given execution. */
-  private[datasets] def registerModel(executionId: Identifier, model: Model): Unit = {
-    executionModels.put(executionId, model)
+  private[datasets] def registerModel(key: ExecutionModelKey, model: Model): Unit = {
+    executionModels.put(key, model)
   }
 
   /**
@@ -54,14 +54,14 @@ case class InWorkflowDataset() extends RdfDataset with TripleSinkDataset {
    * Walks up the parentExecution chain.
    */
   private[datasets] def findModel(execution: LocalExecution): Option[Model] = {
-    Option(executionModels.get(execution.executionId)).orElse(
+    Option(executionModels.get(ExecutionModelKey(execution.executionId))).orElse(
       execution.parentExecution.flatMap(findModel)
     )
   }
 
   /** Removes the model for a given execution. Called by the executor on close(). */
-  private[datasets] def removeModel(executionId: Identifier): Unit = {
-    executionModels.remove(executionId)
+  private[datasets] def removeModel(key: ExecutionModelKey): Unit = {
+    executionModels.remove(key)
   }
 
   /**
@@ -86,3 +86,8 @@ case class InWorkflowDataset() extends RdfDataset with TripleSinkDataset {
 object InWorkflowDataset {
   final val pluginId = "inWorkflow"
 }
+
+/**
+ * Key for the [[InWorkflowDataset.executionModels]] WeakHashMap.
+ */
+private[datasets] case class ExecutionModelKey(executionId: Identifier)
