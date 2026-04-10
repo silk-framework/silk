@@ -17,7 +17,8 @@ import java.util.Collections
   label = "In-workflow dataset",
   categories = Array(DatasetCategories.embedded),
   description = "A Dataset that holds all data in-memory, scoped to a single workflow execution. " +
-    "The data is stored separately for each workflow execution.",
+    "The data is stored separately for each workflow execution. " +
+    "Nested workflows share the same model as the parent, so data written by the parent is available in the nested workflow and vice versa.",
   documentationFile = "InWorkflowDataset.md",
   relatedPlugins = Array(
     new PluginReference(
