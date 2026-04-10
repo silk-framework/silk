@@ -21,9 +21,13 @@ import scala.jdk.CollectionConverters.ConcurrentMapHasAsScala
 case class LocalExecution(useLocalInternalDatasets: Boolean,
                           replaceDataSources: Map[String, Dataset] = Map.empty,
                           replaceSinks: Map[String, Dataset] = Map.empty,
-                          workflowId: Option[Identifier] = None) extends ExecutionType {
+                          workflowId: Option[Identifier] = None,
+                          parentExecution: Option[LocalExecution] = None) extends ExecutionType {
 
   type DataType = LocalEntities
+
+  /** Unique identifier for this execution instance. */
+  val executionId: Identifier = Identifier.random
 
   private val log: Logger = Logger.getLogger(this.getClass.getName)
 

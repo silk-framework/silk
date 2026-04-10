@@ -38,7 +38,8 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
                                  replaceDataSources: Map[String, Dataset] = Map.empty,
                                  replaceSinks: Map[String, Dataset] = Map.empty,
                                  useLocalInternalDatasets: Boolean = false,
-                                 clearDatasets: Boolean = true)
+                                 clearDatasets: Boolean = true,
+                                 parentExecution: Option[LocalExecution] = None)
     extends WorkflowExecutor[LocalExecution] {
 
   private val log = Logger.getLogger(getClass.getName)
@@ -423,7 +424,8 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
     useLocalInternalDatasets,
     replaceDataSources,
     replaceSinks,
-    Some(workflowTask.id)
+    Some(workflowTask.id),
+    parentExecution
   )
 
   override protected def workflowNodeEntities[T](workflowDependencyNode: WorkflowDependencyNode,

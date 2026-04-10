@@ -142,4 +142,80 @@ class InWorkflowDatasetIntegrationTest extends AnyFlatSpec with Matchers with Co
     // Isolation: inWorkflow1 (source1 data) and inWorkflow2 (source2 data) are separate.
     output1AModel.isIsomorphicWith(output2AModel) mustBe false
   }
+
+  it should "propagate InWorkflowDataset data from a parent workflow to a nested workflow" in {
+    val workspace = WorkspaceFactory().workspace
+    val project = workspace.createProject(ProjectConfig(metaData = MetaData(Some("nestedWorkflowTest"))))
+
+    // Source dataset with test data.
+    val sourceModel: Model = ModelFactory.createDefaultModel()
+    sourceModel.createResource("http://nested/s1")
+      .addProperty(sourceModel.createProperty("http://p"), sourceModel.createResource("http://nested/o1"))
+    sourceModel.createResource("http://nested/s2")
+      .addProperty(sourceModel.createProperty("http://p"), sourceModel.createResource("http://nested/o2"))
+
+    // Output dataset — empty initially, filled by the nested workflow.
+    val outputModel: Model = ModelFactory.createDefaultModel()
+
+    // Register tasks.
+    project.addTask("source", DatasetSpec(JenaModelDataset(sourceModel)))
+    project.addTask("inWorkflowDs", DatasetSpec(InWorkflowDataset()))
+    project.addTask("output", DatasetSpec(JenaModelDataset(outputModel)))
+
+    // SparqlCopyCustomTask: copies triples into the InWorkflowDataset.
+    val copyQuery = "CONSTRUCT { ?s ?p ?o } WHERE { ?s ?p ?o }"
+    project.addTask("copyToInWorkflow", SparqlCopyCustomTask(copyQuery, tempFile = false))
+
+    // TransformSpec: reads from InWorkflowDataset via MultiEntitySchema path.
+    val identityTransform = TransformSpec(
+      selection = DatasetSelection("dummy", Uri("")),
+      mappingRule = RootMappingRule(MappingRules(
+        propertyRules = Seq(
+          DirectMapping(
+            id = "pmap",
+            sourcePath = UntypedPath(Uri("http://p")),
+            mappingTarget = MappingTarget(Uri("http://p"))
+          )
+        )
+      ))
+    )
+    project.addTask("readFromInWorkflow", identityTransform)
+
+    // Nested workflow: reads from inWorkflowDs and writes to output.
+    val nestedWorkflow = Workflow(
+      operators = Seq(
+        WorkflowOperator(Seq(Some("inWorkflowDs")), "readFromInWorkflow", Seq("output"), Seq.empty, (100, 0), "readFromInWorkflow", None, Seq.empty, Seq.empty)
+      ),
+      datasets = Seq(
+        WorkflowDataset(Seq.empty,                       "inWorkflowDs", Seq("readFromInWorkflow"), (0, 0),   "inWorkflowDs", None, Seq.empty, Seq.empty),
+        WorkflowDataset(Seq(Some("readFromInWorkflow")), "output",       Seq.empty,                 (200, 0), "output",       None, Seq.empty, Seq.empty)
+      )
+    )
+    project.addTask("nestedWorkflow", nestedWorkflow)
+
+    // Parent workflow: source → copyToInWorkflow → inWorkflowDs → nestedWorkflow
+    val parentWorkflow = Workflow(
+      operators = Seq(
+        WorkflowOperator(Seq(Some("source")),       "copyToInWorkflow", Seq("inWorkflowDs"), Seq.empty, (100, 0), "copyToInWorkflow", None, Seq.empty, Seq.empty),
+        WorkflowOperator(Seq(Some("inWorkflowDs")), "nestedWorkflow",   Seq.empty,           Seq.empty, (300, 0), "nestedWorkflow",   None, Seq.empty, Seq.empty)
+      ),
+      datasets = Seq(
+        WorkflowDataset(Seq.empty,                     "source",       Seq("copyToInWorkflow"),  (0,   0), "source",       None, Seq.empty, Seq.empty),
+        WorkflowDataset(Seq(Some("copyToInWorkflow")), "inWorkflowDs", Seq("nestedWorkflow"),    (200, 0), "inWorkflowDs", None, Seq.empty, Seq.empty)
+      )
+    )
+    project.addTask("parentWorkflow", parentWorkflow)
+    val workflowTask = project.task[Workflow]("parentWorkflow")
+
+    // Execute the parent workflow.
+    val executor = LocalWorkflowExecutorGeneratingProvenance(workflowTask)
+    val monitor = new ActivityMonitor("nestedMonitor", initialValue = Some(WorkflowExecutionReportWithProvenance.empty))
+    executor.run(monitor)
+
+    // The nested workflow must have read the data written by the parent.
+    outputModel.size() must be > 0L
+
+    // Verify the output contains exactly the source triples (2 resources with <http://p> property).
+    outputModel.listSubjects().toList.size() mustBe 2
+  }
 }

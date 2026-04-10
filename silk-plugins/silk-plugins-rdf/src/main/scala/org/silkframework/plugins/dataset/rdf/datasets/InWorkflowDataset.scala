@@ -3,10 +3,14 @@ package org.silkframework.plugins.dataset.rdf.datasets
 import org.apache.jena.rdf.model.{Model, ModelFactory}
 import org.silkframework.dataset._
 import org.silkframework.dataset.rdf.{RdfDataset, SparqlEndpoint, SparqlParams}
+import org.silkframework.execution.local.LocalExecution
 import org.silkframework.plugins.dataset.rdf.access.{SparqlSink, SparqlSource}
 import org.silkframework.plugins.dataset.rdf.endpoint.JenaModelEndpoint
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.annotations.{Plugin, PluginReference}
+import org.silkframework.util.Identifier
+
+import java.util.Collections
 
 @Plugin(
   id = InWorkflowDataset.pluginId,
@@ -29,6 +33,35 @@ case class InWorkflowDataset() extends RdfDataset with TripleSinkDataset {
   // Replaced by a new JenaModelEndpoint when an executor registers its model via updateData.
   @volatile
   private var mostRecentSparqlEndpoint: SparqlEndpoint = new JenaModelEndpoint(ModelFactory.createDefaultModel())
+
+  /**
+   * Models for all current workflow executions, keyed by execution ID.
+   * Uses a WeakHashMap so entries are cleaned up by GC if removeModel() is not called.
+   * The key (Identifier) is only strongly referenced by the LocalExecution instance,
+   * so when that execution is garbage collected, the entry is automatically removed.
+   */
+  private val executionModels: java.util.Map[Identifier, Model] =
+    Collections.synchronizedMap(new java.util.WeakHashMap[Identifier, Model]())
+
+  /** Registers the model for a given execution. */
+  private[datasets] def registerModel(executionId: Identifier, model: Model): Unit = {
+    executionModels.put(executionId, model)
+  }
+
+  /**
+   * Finds the model for the closest ancestor execution that has one registered.
+   * Walks up the parentExecution chain.
+   */
+  private[datasets] def findModel(execution: LocalExecution): Option[Model] = {
+    Option(executionModels.get(execution.executionId)).orElse(
+      execution.parentExecution.flatMap(findModel)
+    )
+  }
+
+  /** Removes the model for a given execution. Called by the executor on close(). */
+  private[datasets] def removeModel(executionId: Identifier): Unit = {
+    executionModels.remove(executionId)
+  }
 
   /**
    * Called by [[InWorkflowDatasetExecutor]] when a new execution starts.
