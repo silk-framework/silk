@@ -53,9 +53,9 @@ case class InWorkflowDataset() extends RdfDataset with TripleSinkDataset {
    * Finds the model for the closest ancestor execution that has one registered.
    * Walks up the parentExecution chain.
    */
-  private[datasets] def findModel(execution: LocalExecution): Option[Model] = {
-    Option(executionModels.get(ExecutionModelKey(execution.executionId))).orElse(
-      execution.parentExecution.flatMap(findModel)
+  private[datasets] def findModel(execution: LocalExecution, taskId: Identifier): Option[Model] = {
+    Option(executionModels.get(ExecutionModelKey(execution.executionId, taskId))).orElse(
+      execution.parentExecution.flatMap(findModel(_, taskId))
     )
   }
 
@@ -90,4 +90,4 @@ object InWorkflowDataset {
 /**
  * Key for the [[InWorkflowDataset.executionModels]] WeakHashMap.
  */
-private[datasets] case class ExecutionModelKey(executionId: Identifier)
+private[datasets] case class ExecutionModelKey(executionId: Identifier, taskId: Identifier)

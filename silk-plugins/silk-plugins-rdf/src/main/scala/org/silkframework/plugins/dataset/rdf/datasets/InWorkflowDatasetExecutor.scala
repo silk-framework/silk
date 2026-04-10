@@ -29,11 +29,11 @@ class InWorkflowDatasetExecutor extends LocalDatasetExecutor[InWorkflowDataset] 
     if (!initialized) {
       initialized = true
       val datasetPlugin = task.data.plugin
-      // Reuse the parent execution's model if available, otherwise create a new one.
-      model = execution.parentExecution.flatMap(datasetPlugin.findModel).getOrElse(ModelFactory.createDefaultModel())
+      // Reuse the execution's model if available, otherwise create a new one.
+      model = execution.parentExecution.flatMap(datasetPlugin.findModel(_, task.id)).getOrElse(ModelFactory.createDefaultModel())
       modelDataset = JenaModelDataset(model)
       // Register this executor's model so nested workflows can find it.
-      val key = ExecutionModelKey(execution.executionId)
+      val key = ExecutionModelKey(execution.executionId, task.id)
       datasetPlugin.registerModel(key, model)
       modelKey = Some(key)
       plugin = Some(datasetPlugin)

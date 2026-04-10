@@ -119,6 +119,54 @@ class InWorkflowDatasetTest extends AnyFlatSpec with Matchers {
     parentEndpoint.select(tripleCountQuery).bindings.size mustBe 2
   }
 
+  it should "only reuse the parent model with the same task id in a nested execution" in {
+    val sharedDataset = InWorkflowDataset()
+    val taskA = PlainTask("datasetA", DatasetSpec(sharedDataset))
+    val taskB = PlainTask("datasetB", DatasetSpec(sharedDataset))
+
+    val parentExecution = LocalExecution(false, workflowId = Some(Identifier("parentWf")))
+
+    // Parent registers models for both taskA and taskB
+    val parentExecutorA = new InWorkflowDatasetExecutor()
+    val endpointA = parentExecutorA.access(taskA, parentExecution).asInstanceOf[RdfDataset].sparqlEndpoint
+    endpointA.update("INSERT DATA { <http://a1> <http://p> <http://oA> }")
+
+    val parentExecutorB = new InWorkflowDatasetExecutor()
+    val endpointB = parentExecutorB.access(taskB, parentExecution).asInstanceOf[RdfDataset].sparqlEndpoint
+    endpointB.update("INSERT DATA { <http://b1> <http://p> <http://oB> }")
+    endpointB.update("INSERT DATA { <http://b2> <http://p> <http://oB> }")
+
+    // Child execution for taskA — must see only taskA's data (1 triple), not taskB's (2 triples)
+    val childExecution = LocalExecution(false, workflowId = Some(Identifier("childWf")), parentExecution = Some(parentExecution))
+    val childExecutorA = new InWorkflowDatasetExecutor()
+    val childEndpointA = childExecutorA.access(taskA, childExecution).asInstanceOf[RdfDataset].sparqlEndpoint
+    childEndpointA.select(tripleCountQuery).bindings.size mustBe 1
+
+    // Child execution for taskB — must see only taskB's data (2 triples)
+    val childExecutorB = new InWorkflowDatasetExecutor()
+    val childEndpointB = childExecutorB.access(taskB, childExecution).asInstanceOf[RdfDataset].sparqlEndpoint
+    childEndpointB.select(tripleCountQuery).bindings.size mustBe 2
+  }
+
+  it should "create a new model in a nested execution if the parent has no matching task id" in {
+    val sharedDataset = InWorkflowDataset()
+    val parentTask = PlainTask("parentOnly", DatasetSpec(sharedDataset))
+    val childTask = PlainTask("childOnly", DatasetSpec(sharedDataset))
+
+    val parentExecution = LocalExecution(false, workflowId = Some(Identifier("parentWf")))
+
+    // Parent registers a model for parentOnly
+    val parentExecutor = new InWorkflowDatasetExecutor()
+    val parentEndpoint = parentExecutor.access(parentTask, parentExecution).asInstanceOf[RdfDataset].sparqlEndpoint
+    parentEndpoint.update("INSERT DATA { <http://s> <http://p> <http://o> }")
+
+    // Child execution for a different task id — must NOT see parent data
+    val childExecution = LocalExecution(false, workflowId = Some(Identifier("childWf")), parentExecution = Some(parentExecution))
+    val childExecutor = new InWorkflowDatasetExecutor()
+    val childEndpoint = childExecutor.access(childTask, childExecution).asInstanceOf[RdfDataset].sparqlEndpoint
+    childEndpoint.select(tripleCountQuery).bindings.size mustBe 0
+  }
+
   it should "clean up model on close()" in {
     val nestedDataset = InWorkflowDataset()
     val nestedTask = PlainTask("cleanupTest", DatasetSpec(nestedDataset))
@@ -129,10 +177,10 @@ class InWorkflowDatasetTest extends AnyFlatSpec with Matchers {
       .update("INSERT DATA { <http://s> <http://p> <http://o> }")
 
     // Model is registered
-    nestedDataset.findModel(exec) must not be empty
+    nestedDataset.findModel(exec, nestedTask.id) must not be empty
 
     // After close, model is removed from the dataset's map
     executor.close()
-    nestedDataset.findModel(exec) mustBe empty
+    nestedDataset.findModel(exec, nestedTask.id) mustBe empty
   }
 }

@@ -59,11 +59,11 @@ trait WorkflowExecutor[ExecType <: ExecutionType] extends Activity[WorkflowExecu
     updateProgress(operation, task)
     val result =
       try {
-        workflowRunContext.nodeExecutors.get(nodeId) match {
+        workflowRunContext.taskExecutors.get(task.id) match {
           case Some(exec) =>
             ExecutorRegistry.executeWith(exec.asInstanceOf[Executor[TaskType, ExecType]], task, inputs, output, executionContext, taskContext)
           case None =>
-            throw WorkflowExecutionException(s"No executor found for node '$nodeId'. This is a bug: executors should have been initialized before execution.")
+            throw WorkflowExecutionException(s"No executor found for task '${task.id}'. This is a bug: executors should have been initialized before execution.")
         }
       } catch {
         case NonFatal(ex) =>
@@ -112,7 +112,7 @@ trait WorkflowExecutor[ExecType <: ExecutionType] extends Activity[WorkflowExecu
           project.anyTaskOption(operatorNode.task)
       }
       for (t <- taskOpt) {
-        workflowRunContext.nodeExecutors.put(node.nodeId, ExecutorRegistry.instantiateExecutor(t.data, executionContext))
+        workflowRunContext.taskExecutors.getOrElseUpdate(t.id, ExecutorRegistry.instantiateExecutor(t.data, executionContext))
       }
     }
 
@@ -267,14 +267,14 @@ trait WorkflowExecutor[ExecType <: ExecutionType] extends Activity[WorkflowExecu
  * @param userContext The user that is executing the workflow.
  * @param alreadyExecuted The workflow nodes that have already been executed.
  * @param reconfiguredTasks The already tasks that have been reconfigured.
- * @param nodeExecutors The node executors for each workflow node by node id.
+ * @param taskExecutors The executors for each task by task id.
  */
 case class WorkflowRunContext(activityContext: ActivityContext[WorkflowExecutionReport],
                               workflow: Workflow,
                               userContext: UserContext,
                               alreadyExecuted: mutable.Set[WorkflowNode] = mutable.Set(),
                               reconfiguredTasks: mutable.Map[WorkflowNode, Task[_ <: TaskSpec]] = mutable.Map(),
-                              nodeExecutors: mutable.Map[Identifier, Executor[_, _]] = mutable.Map()) {
+                              taskExecutors: mutable.Map[Identifier, Executor[_, _]] = mutable.Map()) {
   /**
     * Listeners for updates to task reports.
     * We need to hold them to prevent their garbage collection.
