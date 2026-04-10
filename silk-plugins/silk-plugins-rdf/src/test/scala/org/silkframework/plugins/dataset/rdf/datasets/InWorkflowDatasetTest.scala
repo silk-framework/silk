@@ -29,11 +29,11 @@ class InWorkflowDatasetTest extends AnyFlatSpec with Matchers {
 
     // The executor's model contains the written data
     executorEndpoint.select(tripleCountQuery).bindings.size mustBe 1
-    // The dataset's own placeholder endpoint is not affected
-    dataset.sparqlEndpoint.select(tripleCountQuery).bindings.size mustBe 0
+    // After access() the dataset's sparqlEndpoint reflects the executor's model
+    dataset.sparqlEndpoint.select(tripleCountQuery).bindings.size mustBe 1
   }
 
-  it should "clear all data when close() is called" in {
+  it should "retain data after close() is called" in {
     val executor = new InWorkflowDatasetExecutor()
     val executorEndpoint = executor.access(task, execution).asInstanceOf[RdfDataset].sparqlEndpoint
 
@@ -42,7 +42,23 @@ class InWorkflowDatasetTest extends AnyFlatSpec with Matchers {
 
     executor.close()
 
-    executorEndpoint.select(tripleCountQuery).bindings.size mustBe 0
+    executorEndpoint.select(tripleCountQuery).bindings.size mustBe 1
+  }
+
+  it should "update the dataset sparqlEndpoint to the latest executor's model" in {
+    val dataset2 = InWorkflowDataset()
+    val task2 = PlainTask("test2", DatasetSpec(dataset2))
+    val executor1 = new InWorkflowDatasetExecutor()
+    val executor2 = new InWorkflowDatasetExecutor()
+
+    val endpoint1 = executor1.access(task2, execution).asInstanceOf[RdfDataset].sparqlEndpoint
+    endpoint1.update("INSERT DATA { <http://s1> <http://p> <http://o1> }")
+    // dataset2 now points to executor1's model — one triple visible
+    dataset2.sparqlEndpoint.select(tripleCountQuery).bindings.size mustBe 1
+
+    // executor2.access() replaces the endpoint — dataset2 now sees executor2's (empty) model
+    executor2.access(task2, execution)
+    dataset2.sparqlEndpoint.select(tripleCountQuery).bindings.size mustBe 0
   }
 
   it should "isolate data between concurrent executions" in {
