@@ -18,7 +18,7 @@ import java.util.Collections
   categories = Array(DatasetCategories.embedded),
   description = "A Dataset that holds all data in-memory, scoped to a single workflow execution. " +
     "The data is stored separately for each workflow execution. " +
-    "Nested workflows share the same model as the parent, so data written by the parent is available in the nested workflow and vice versa.",
+    "A dataset in a nested workflow shares the same model as the parent, so data written by the parent is available in the nested workflow and vice versa.",
   documentationFile = "InWorkflowDataset.md",
   relatedPlugins = Array(
     new PluginReference(
@@ -50,8 +50,8 @@ case class InWorkflowDataset() extends RdfDataset with TripleSinkDataset {
   }
 
   /**
-   * Finds the model for the closest ancestor execution that has one registered.
-   * Walks up the parentExecution chain.
+   * Finds the model for the closest ancestor execution that has one registered for the given task.
+   * Walks up the parentExecution chain, matching by both execution ID and task ID.
    */
   private[datasets] def findModel(execution: LocalExecution, taskId: Identifier): Option[Model] = {
     Option(executionModels.get(ExecutionModelKey(execution.executionId, taskId))).orElse(

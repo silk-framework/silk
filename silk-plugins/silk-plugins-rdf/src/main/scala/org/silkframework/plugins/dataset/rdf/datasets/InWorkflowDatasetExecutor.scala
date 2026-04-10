@@ -10,8 +10,8 @@ import org.silkframework.execution.local.{LocalDatasetExecutor, LocalExecution}
  *
  * Holds the actual Jena model for the duration of a workflow execution.
  *
- * If the execution has a parent (nested workflow), the parent's model is
- * reused so that the nested workflow sees the data written by the parent.
+ * If the execution has a parent (nested workflow), the parent's model for the
+ * same task is reused so that the nested workflow sees the data written by the parent.
  */
 class InWorkflowDatasetExecutor extends LocalDatasetExecutor[InWorkflowDataset] {
 
