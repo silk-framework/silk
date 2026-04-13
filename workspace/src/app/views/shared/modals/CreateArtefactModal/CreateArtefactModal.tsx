@@ -51,7 +51,7 @@ import { ProjectImportModal } from "../ProjectImportModal";
 import ItemDepiction from "../../../shared/ItemDepiction";
 import ProjectSelection from "./ArtefactForms/ProjectSelection";
 import { workspaceSel } from "@ducks/workspace";
-import { requestSearchList } from "@ducks/workspace/requests";
+import { AccessControlConfig, requestSearchList, ISearchListRequest } from "@ducks/workspace/requests";
 import { objectToFlatRecord, uppercaseFirstChar } from "../../../../utils/transformers";
 import { performAction, requestProjectMetadata } from "@ducks/shared/requests";
 import { requestAutoConfiguredDataset } from "./CreateArtefactModal.requests";
@@ -159,6 +159,11 @@ export function CreateArtefactModal() {
     const [taskActionLoading, setTaskActionLoading] = React.useState<string | null>(null);
     const [taskFormGeneralWarning, setTaskFormGeneralWarning] = React.useState<string | undefined>();
     const generalWarningTimeout = React.useRef<number | undefined>(undefined);
+    const projectAcl = React.useRef<AccessControlConfig | undefined>(undefined);
+
+    const updateProjectAcl = React.useCallback((newProjectAcl: AccessControlConfig) => {
+        projectAcl.current = newProjectAcl;
+    }, []);
 
     const taskFormWarning = React.useCallback((message: string) => {
         if (generalWarningTimeout.current) {
@@ -278,7 +283,7 @@ export function CreateArtefactModal() {
 
     const getWorkspaceProjects = async (textQuery: string = "") => {
         try {
-            const payload = {
+            const payload: ISearchListRequest = {
                 limit: 10,
                 offset: 0,
                 itemType: "project",
@@ -396,6 +401,7 @@ export function CreateArtefactModal() {
                                 dataParameters,
                                 templateParameters.current,
                                 newTaskPreConfiguration?.alternativeCallback,
+                                projectAcl.current?.groups,
                             ),
                         );
                         setSearchValue("");
@@ -609,7 +615,9 @@ export function CreateArtefactModal() {
         // Project / task creation
         if (selectedArtefactKey) {
             if (projectArtefactSelected) {
-                artefactForm = <ProjectForm form={form} goBackOnEscape={handleBack} />;
+                artefactForm = (
+                    <ProjectForm form={form} goBackOnEscape={handleBack} updateProjectAcl={updateProjectAcl} />
+                );
             } else {
                 const detailedArtefact = cachedArtefactProperties[selectedArtefactKey];
                 const activeProjectId = currentProject?.id ?? projectId;

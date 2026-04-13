@@ -12,7 +12,6 @@ import org.scalatest.matchers.should.Matchers
 class VocabularyLoaderTest extends AnyFlatSpec with Matchers {
   private implicit val userContext: UserContext = UserContext.Empty
   private val MOVIE = "Movie"
-  private val FILM = "Film"
   private val PERSON = "Person"
   private val HAS_DIRECTOR = "hasDirector"
 

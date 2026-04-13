@@ -16,13 +16,23 @@ package org.silkframework.rule.plugins.transformer.replace
 
 import org.silkframework.rule.annotations.{TransformExample, TransformExamples}
 import org.silkframework.rule.input.SimpleTransformer
-import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
+import org.silkframework.runtime.plugin.annotations.{Param, Plugin, PluginReference}
 
 @Plugin(
-  id = "replace",
+  id = ReplaceTransformer.pluginId,
   categories = Array("Replace"),
   label = "Replace",
-  description = "Replace all occurrences of a string with another string."
+  description = "Replace all occurrences of a string with another string.",
+  relatedPlugins = Array(
+    new PluginReference(
+      id = RegexReplaceTransformer.pluginId,
+      description = "The Replace plugin substitutes a literal search string everywhere it occurs. The Regex replace plugin does the same kind of rewrite, but the match is defined by a regular expression rather than a fixed substring."
+    ),
+    new PluginReference(
+      id = MapTransformer.pluginId,
+      description = "Replace performs in-place substitution of a substring, leaving the rest of the value intact. The Map plugin replaces entire values based on exact key matches and returns a configured default when no match is found."
+    )
+  )
 )
 @TransformExamples(Array(
   new TransformExample(
@@ -51,3 +61,8 @@ case class ReplaceTransformer(@Param(value = "The string to search for")
     value.replace(search, replace)
   }
 }
+
+object ReplaceTransformer {
+  final val pluginId = "replace"
+}
+

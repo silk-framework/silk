@@ -25,7 +25,8 @@ case class GraphStoreSink(graphStore: GraphStoreTrait,
                           formatterOpt: Option[RdfFormatter],
                           comment: Option[String],
                           dropGraphOnClear: Boolean,
-                          graphTypeUri: Option[String] = None) extends EntitySink with LinkSink with TripleSink with RdfSink {
+                          graphTypeUri: Option[String] = None,
+                          useStreaming: Boolean = false) extends EntitySink with LinkSink with TripleSink with RdfSink {
 
   private var properties = Seq[TypedProperty]()
   private var output: Option[OutputStream] = None
@@ -93,17 +94,21 @@ case class GraphStoreSink(graphStore: GraphStoreTrait,
   }
 
   private def initOutputStream(implicit userContext: UserContext): Option[OutputStream] = {
-    graphStore match {
-      case _: GraphStoreFileUploadTrait =>
-        val file = Files.createTempFile("graphStoreUpload", ".nt").toFile
-        file.deleteOnExit()
-        tempFile = Some(file)
-        log.fine("Created temporary file for graphstore file upload.")
-        Some(new BufferedOutputStream(new FileOutputStream(file)))
-      case _: GraphStoreTrait =>
-        // Always use N-Triples because of stream-ability
-        val out = graphStore.postDataToGraph(graphUri, comment = comment)
-        Some(out)
+    if (useStreaming) {
+      Some(graphStore.postDataToGraph(graphUri, comment = comment, forceStreaming = true))
+    } else {
+      graphStore match {
+        case _: GraphStoreFileUploadTrait =>
+          val file = Files.createTempFile("graphStoreUpload", ".nt").toFile
+          file.deleteOnExit()
+          tempFile = Some(file)
+          log.fine("Created temporary file for graphstore file upload.")
+          Some(new BufferedOutputStream(new FileOutputStream(file)))
+        case _: GraphStoreTrait =>
+          // Always use N-Triples because of stream-ability
+          val out = graphStore.postDataToGraph(graphUri, comment = comment)
+          Some(out)
+      }
     }
   }
 
@@ -138,8 +143,8 @@ case class GraphStoreSink(graphStore: GraphStoreTrait,
     writeStatement(subject, predicate, obj, valueType)
   }
 
-  override def clear()(implicit userContext: UserContext): Unit = {
-    if(dropGraphOnClear) {
+  override def clear(force: Boolean = false)(implicit userContext: UserContext): Unit = {
+    if(dropGraphOnClear || force) {
       log.fine("Clearing graph " + graphUri)
       graphStore.deleteGraph(graphUri)
     }
@@ -153,19 +158,23 @@ case class GraphStoreSink(graphStore: GraphStoreTrait,
       case Some(o) =>
         try {
           o.close()
-          graphStore match {
-            case fileUploadGraphStore: GraphStoreFileUploadTrait =>
-              tempFile match {
-                case Some(fileToUpload) =>
-                  fileUploadGraphStore.uploadFileToGraph(graphUri, fileToUpload, "application/n-triples", comment)
-                  nrGraphStoreRequests += 1
-                case None =>
-                  throw new IllegalStateException("GraphStore file upload error: No temporary file exists even though an output stream exists!")
-              }
-            case _: GraphStoreTrait =>
+          if (!useStreaming) {
+            graphStore match {
+              case fileUploadGraphStore: GraphStoreFileUploadTrait =>
+                tempFile match {
+                  case Some(fileToUpload) =>
+                    fileUploadGraphStore.uploadFileToGraph(graphUri, fileToUpload, "application/n-triples", comment)
+                    nrGraphStoreRequests += 1
+                  case None =>
+                    throw new IllegalStateException("GraphStore file upload error: No temporary file exists even though an output stream exists!")
+                }
+              case _: GraphStoreTrait =>
+            }
           }
         } finally {
-          tempFile foreach { file => Try(file.delete()) }
+          if (!useStreaming) {
+            tempFile foreach { file => Try(file.delete()) }
+          }
           output = None
         }
       case None =>

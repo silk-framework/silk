@@ -43,7 +43,7 @@ class ProjectImportApiTest extends AnyFlatSpec with SingleProjectWorkspaceProvid
 
     // Fetch project import details
     requestProjectImportDetails(projectImportId) mustBe ProjectImportDetails("configProject", expectedProjectLabel, Some(expectedProjectDescription),
-      XmlZipWithResourcesProjectMarshaling.marshallerId, projectAlreadyExists = true, None)
+      XmlZipWithResourcesProjectMarshaling.marshallerId, projectAlreadyExists = true, noAccess = Some(false))
 
     // Start project import without conflict resolve strategy -> 409
     val importStartUrl = controllers.workspaceApi.routes.ProjectImportApi.startProjectImport(projectImportId)
@@ -116,7 +116,7 @@ class ProjectImportApiTest extends AnyFlatSpec with SingleProjectWorkspaceProvid
 
   it should "adopt a custom project id" in {
     val customProjectId = "myCustomProjectId"
-    WorkspaceFactory().workspace.findProject(customProjectId) mustBe None
+    WorkspaceFactory().workspace.projectOption(customProjectId) mustBe None
     val projectImportId = uploadProjectFile()
     // Fail if generateNewId and newProjectId are both set
     val failingResponse = controllers.workspaceApi.routes.ProjectImportApi.startProjectImport(projectImportId, generateNewId = true, newProjectId = Some(customProjectId))

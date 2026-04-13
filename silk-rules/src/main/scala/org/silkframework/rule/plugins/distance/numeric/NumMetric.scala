@@ -16,22 +16,31 @@ package org.silkframework.rule.plugins.distance.numeric
 
 import java.util.logging.Logger
 import org.silkframework.entity.Index
+import org.silkframework.rule.plugins.distance.equality.NumericEqualityMetric
 import org.silkframework.rule.similarity.SingleValueDistanceMeasure
-import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
+import org.silkframework.runtime.plugin.annotations.{Param, Plugin, PluginReference}
 import org.silkframework.util.StringUtils._
 
 import scala.math._
 
 @Plugin(
-  id = "num",
+  id = NumMetric.pluginId,
   categories = Array("Numeric"),
   label = "Numeric similarity",
-  description = "Computes the numeric distance between two numbers."
+  description = "Computes the numeric distance between two numbers.",
+  relatedPlugins = Array(
+    new PluginReference(
+      id = NumericEqualityMetric.pluginId,
+      description = "Numeric similarity measures how far apart two numbers are; Numeric equality asks only whether they match, with no in-between value."
+    )
+  )
 )
-case class NumMetric(@Param(label = "Min index value", value = "The minimum number that is used for indexing", advanced = true)
-                     minValue: Double = Double.NegativeInfinity,
-                     @Param(label = "Max index value", value = "The maximum number that is used for indexing", advanced = true)
-                     maxValue: Double = Double.PositiveInfinity) extends SingleValueDistanceMeasure {
+case class NumMetric(
+    @Param(label = "Min index value", value = "The minimum number that is used for indexing", advanced = true)
+    minValue: Double = Double.NegativeInfinity,
+    @Param(label = "Max index value", value = "The maximum number that is used for indexing", advanced = true)
+    maxValue: Double = Double.PositiveInfinity
+) extends SingleValueDistanceMeasure {
 
   @transient
   private val logger = Logger.getLogger(classOf[NumMetric].getName)
@@ -74,4 +83,8 @@ case class NumMetric(@Param(label = "Min index value", value = "The minimum numb
       Index.default
     }
   }
+}
+
+object NumMetric {
+  final val pluginId = "num"
 }

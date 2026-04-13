@@ -12,8 +12,8 @@ import org.silkframework.util.Uri
   id = "alignment",
   label = "Alignment",
   categories = Array(DatasetCategories.file),
-  description =
-    """Writes the alignment format specified at http://alignapi.gforge.inria.fr/format.html."""
+  description = """Writes the alignment format specified at http://alignapi.gforge.inria.fr/format.html.""",
+  documentationFile = "AlignmentDataset.md"
 )
 case class AlignmentDataset(
   @Param("The alignment file.")
@@ -44,7 +44,7 @@ case class AlignmentDataset(
    * The alignment dataset cannot write generic entities, but it needs to support the clear method.
    */
   private class AlignmentEntitySink extends EntitySink {
-    override def clear()(implicit userContext: UserContext): Unit = {
+    override def clear(force: Boolean = false)(implicit userContext: UserContext): Unit = {
       file.delete()
     }
 

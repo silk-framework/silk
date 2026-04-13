@@ -10,6 +10,8 @@ export interface DatasetCharacteristics {
     /** If true, the dataset supports reading and writing multiple tables, which includes hierarchical datasets (XML, JSON, etc.).
      * If false, the dataset only supports a single table (e.g., CSV). */
     supportsMultipleTables: boolean;
+    /** If the dataset supports an explicit schema, i.e. an ordered flat schema. */
+    explicitSchema: boolean;
 }
 
 interface SupportedPathExpressions {

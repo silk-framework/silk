@@ -65,7 +65,7 @@ object CacheUpdaterTask {
       log.info(s"Cache updater task running. ${updatedFiles.size} updated file(s) found. Triggering cache updates...")
       implicit val userContext: UserContext = UserContext.INTERNAL_USER
       val workspace = WorkspaceFactory().workspace
-      val projects = workspace.projects
+      val projects = workspace.allProjects
       for(project <- projects) {
         val pr = project.resources
         val updatedProjectFiles = pr.listRecursive.toSet.intersect(updatedFiles)

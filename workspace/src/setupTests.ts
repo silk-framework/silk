@@ -36,17 +36,23 @@ if (window.document) {
             width: 0,
             x: 0,
             y: 0,
-            toJSON: () => {}
+            toJSON: () => {},
         }));
-        range.getClientRects = () => ({
-            item: () => null,
-            length: 0,
-            [Symbol.iterator]: jest.fn(),
-        } as any);
+        range.getClientRects = () =>
+            ({
+                item: () => null,
+                length: 0,
+                [Symbol.iterator]: jest.fn(),
+            }) as any;
         return range;
     };
-
 }
+
+global.ResizeObserver = jest.fn().mockImplementation(() => ({
+    observe: jest.fn(),
+    unobserve: jest.fn(),
+    disconnect: jest.fn(),
+}));
 
 Object.defineProperty(window, "matchMedia", {
     writable: true,

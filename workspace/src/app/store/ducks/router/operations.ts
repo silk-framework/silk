@@ -15,7 +15,7 @@ export interface IPageLabels {
     itemType?: string;
 }
 
-export type ItemType = "dataset" | "transform" | "linking" | "workflow" | "task";
+export type ItemType = "dataset" | "transform" | "linking" | "workflow" | "task" | "project";
 
 const itemTypeToPathMap: Record<string, ItemType> = {
     Transform: "transform",
@@ -68,7 +68,7 @@ const goToPage = (path: string, pageLabels: IPageLabels = {} as IPageLabels) => 
         dispatch(
             push(absolutePageUrl(path), {
                 pageLabels: pageLabels,
-            })
+            }),
         );
     };
 };
@@ -94,7 +94,7 @@ const goToTaskPage = (task: ISearchResultsServer) => {
             goToPage(`projects/${projectId}/${itemTypeToPath(type)}/${id}`, {
                 taskLabel: label,
                 itemType: itemTypeToPath(type),
-            })
+            }),
         );
     };
 };

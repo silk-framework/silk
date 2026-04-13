@@ -15,13 +15,24 @@
 package org.silkframework.rule.plugins.transformer.filter
 
 import org.silkframework.rule.input.Transformer
-import org.silkframework.runtime.plugin.annotations.Plugin
+import org.silkframework.rule.plugins.transformer.normalize.RemoveDuplicates
+import org.silkframework.runtime.plugin.annotations.{Plugin, PluginReference}
 
 @Plugin(
-  id = "removeValues",
+  id = RemoveValues.pluginId,
   categories = Array("Filter"),
   label = "Remove values",
-  description = "Removes values that contain words from a blacklist. The blacklist values are separated with commas."
+  description = "Removes values that contain words from a blacklist. The blacklist values are separated with commas.",
+  relatedPlugins = Array(
+    new PluginReference(
+      id = RemoveEmptyValues.pluginId,
+      description = "Remove values works from a blacklist: any value matching a word in that list is dropped. Remove empty values has no such list; it removes only empty strings."
+    ),
+    new PluginReference(
+      id = RemoveDuplicates.pluginId,
+      description = "The two plugins filter on different grounds. Remove values drops a value because of what it is; Remove duplicates drops a value because it already appeared earlier in the sequence."
+    )
+  )
 )
 case class RemoveValues(blacklist: String) extends Transformer {
   val filterValues = blacklist.split(",").map(_.toLowerCase).toSet
@@ -29,4 +40,8 @@ case class RemoveValues(blacklist: String) extends Transformer {
   override def apply(values: Seq[Seq[String]]) = {
     values.head.filterNot(v => filterValues.contains(v.toLowerCase))
   }
+}
+
+object RemoveValues {
+  final val pluginId = "removeValues"
 }

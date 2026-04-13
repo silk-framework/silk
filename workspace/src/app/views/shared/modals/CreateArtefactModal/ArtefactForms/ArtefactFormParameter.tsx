@@ -224,7 +224,7 @@ export const ArtefactFormParameter = ({
                         inputElementFactory(valueState.current.inputValueBeforeSwitch, onElementValueChange)
                     )}
                 </FlexibleLayoutItem>
-                {templatingEnabled && supportVariableTemplateElement && (
+                {!isTemplateInputType && templatingEnabled && supportVariableTemplateElement && (
                     <FlexibleLayoutItem growFactor={0} shrinkFactor={0}>
                         <IconButton
                             tooltipProps={{

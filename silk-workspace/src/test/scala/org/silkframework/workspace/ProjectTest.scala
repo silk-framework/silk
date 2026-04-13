@@ -1,11 +1,17 @@
 package org.silkframework.workspace
 
 
-import org.silkframework.rule.{DatasetSelection, TransformSpec}
-import org.silkframework.runtime.activity.TestUserContextTrait
-import org.silkframework.workspace.exceptions.CircularDependencyException
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
+import org.silkframework.config.{CustomTask, InputPorts, MetaData, Port}
+import org.silkframework.rule.{DatasetSelection, TransformSpec}
+import org.silkframework.runtime.activity.{SimpleUserContext, TestUserContextTrait}
+import org.silkframework.runtime.plugin.PluginContext
+import org.silkframework.runtime.resource.InMemoryResourceManager
+import org.silkframework.runtime.users.DefaultUserManager
+import org.silkframework.util.{ConfigTestTrait, Identifier}
+import org.silkframework.workspace.WorkspaceTest.RecordingWorkspaceProvider
+import org.silkframework.workspace.exceptions.CircularDependencyException
 
 class ProjectTest extends AnyFlatSpec with Matchers with TestWorkspaceProviderTestTrait with TestUserContextTrait {
 
@@ -45,6 +51,74 @@ class ProjectTest extends AnyFlatSpec with Matchers with TestWorkspaceProviderTe
     thrown1.circularTaskChain shouldBe Seq("transform1", "transform1")
   }
 
+  it should "use the loading user for provider write calls when access control is enabled" in {
+    ConfigTestTrait.withConfig("workspace.accessControl.enabled" -> Some("true")) {
+      val recordingProvider = new RecordingWorkspaceProvider()
+      val adminUser = SimpleUserContext(Some(DefaultUserManager.get("urn:admin")))
+      val regularUser = SimpleUserContext(Some(DefaultUserManager.get("urn:regular")))
+
+      // Register project in the provider so the Project constructor can load it
+      val projectId = "aclTestProject"
+      recordingProvider.putProject(ProjectConfig(projectId, metaData = MetaData(Some(projectId))))(adminUser)
+
+      // Create a Project with adminUser as loadingUser
+      val project = new Project(ProjectConfig(projectId, metaData = MetaData(Some(projectId))), recordingProvider, new InMemoryResourceManager, adminUser)
+      recordingProvider.recordedUsers.clear()
+
+      // Add task with regular user — provider should receive admin user
+      project.addAnyTask("task1", ProjectTestTask())(regularUser)
+      recordingProvider.recordedUsers should contain(("putTask", adminUser))
+
+      recordingProvider.recordedUsers.clear()
+
+      // Update task with regular user — provider should receive admin user
+      project.updateAnyTask("task1", ProjectTestTask("updated"))(regularUser)
+      recordingProvider.recordedUsers should contain(("putTask", adminUser))
+
+      recordingProvider.recordedUsers.clear()
+
+      // Remove task with regular user — provider should receive admin user
+      project.removeAnyTask("task1", removeDependentTasks = false)(regularUser)
+      recordingProvider.recordedUsers should contain(("deleteTask", adminUser))
+    }
+  }
+
+  it should "remove a task that failed to load" in {
+    val projectId = "failedTaskRemovalTest"
+    val failedTaskId: Identifier = "failedTask"
+    val provider = new FailedTaskProvider(failedTaskId)
+    provider.putProject(ProjectConfig(projectId, metaData = MetaData(Some(projectId))))
+
+    val project = new Project(
+      ProjectConfig(projectId, metaData = MetaData(Some(projectId))),
+      provider,
+      new InMemoryResourceManager,
+      userContext
+    )
+
+    // The task should appear as a loading error before removal
+    project.loadingErrors.map(_.taskId) should contain(failedTaskId)
+
+    project.removeAnyTask(failedTaskId, removeDependentTasks = false)
+
+    // After removal the loading error must be gone
+    project.loadingErrors.map(_.taskId) should not contain failedTaskId
+  }
+
   override def workspaceProviderId: String = "inMemoryWorkspaceProvider"
 
+}
+
+case class ProjectTestTask(testParam: String = "test value") extends CustomTask {
+  override def inputPorts: InputPorts = InputPorts.NoInputPorts
+  override def outputPort: Option[Port] = None
+}
+
+/** Workspace provider that injects a single failing LoadedTask for `failedTaskId` on every readAllTasks call. */
+private class FailedTaskProvider(failedTaskId: Identifier) extends InMemoryWorkspaceProvider {
+  override def readAllTasks(project: Identifier)(implicit context: PluginContext): Seq[LoadedTask[_]] = {
+    val error = TaskLoadingError(Some(project), failedTaskId, new RuntimeException("Task failed to load"),
+      None, None, None, None)
+    super.readAllTasks(project) :+ LoadedTask.failed[CustomTask](error)
+  }
 }

@@ -5,15 +5,34 @@ import org.silkframework.dataset.{DatasetCategories, TripleSink, TripleSinkDatas
 import org.silkframework.plugins.dataset.rdf.access.{SparqlSink, SparqlSource}
 import org.silkframework.plugins.dataset.rdf.endpoint.RemoteSparqlEndpoint
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
+import org.silkframework.plugins.dataset.rdf.tasks.{SparqlSelectCustomTask, SparqlUpdateCustomTask}
+import org.silkframework.runtime.plugin.annotations.{Param, Plugin, PluginReference}
 import org.silkframework.runtime.plugin.types.{MultilineStringParameter, PasswordParameter}
 
 @Plugin(
-  id = "sparqlEndpoint",
+  id = SparqlDataset.pluginId,
   label = "SPARQL endpoint",
   categories = Array(DatasetCategories.remote),
   description = "Connects to an existing SPARQL endpoint.",
-  documentationFile = "SparqlDataset.md"
+  documentationFile = "SparqlDataset.md",
+  relatedPlugins = Array(
+    new PluginReference(
+      id = InMemoryDataset.pluginId,
+      description = "The SPARQL endpoint dataset reads from and writes to a remote endpoint that retains its contents independently of the running process. The in-memory dataset does not persist data beyond the running process — the two are not alternatives for the same storage need."
+    ),
+    new PluginReference(
+      id = RdfFileDataset.pluginId,
+      description = "The RDF file dataset loads its contents from a file into memory at read time and supports only N-Triples as output. The SPARQL endpoint dataset connects to a remote endpoint that handles queries and updates without loading the full dataset into process memory."
+    ),
+    new PluginReference(
+      id = SparqlUpdateCustomTask.pluginId,
+      description = "The SPARQL Update query plugin generates SPARQL Update statements from entity input using a template; the SPARQL endpoint dataset is what those statements are written to. One produces the queries, the other executes them against the endpoint."
+    ),
+    new PluginReference(
+      id = SparqlSelectCustomTask.pluginId,
+      description = "The SPARQL Select query plugin reads from a SPARQL endpoint dataset by executing a SELECT query against it; the SPARQL Update query plugin writes to the same kind of dataset by sending update statements to it. The two plugins sit on opposite ends of the same data flow."
+    )
+  )
 )
 case class SparqlDataset(
   @Param(label = "Endpoint URI", value = "The URI of the SPARQL endpoint, e.g. `http://dbpedia.org/sparql`")
@@ -44,8 +63,9 @@ case class SparqlDataset(
   strategy: EntityRetrieverStrategy = EntityRetrieverStrategy.parallel,
   @Param("Enforces the correct ordering of values, if set to `true` (default).")
   useOrderBy: Boolean = true,
-  @Param(label = "Clear graph before workflow execution",
-    value = "If set to `true`, this will clear the specified graph before executing a workflow that writes into it.")
+  @Param(label = "Clear graph before workflow execution (deprecated)",
+    value = "This is deprecated, use the 'Clear dataset' operator instead to clear a dataset in a workflow. If set to `true`, this will clear the specified graph before executing a workflow that writes into it.",
+    advanced = true)
   clearGraphBeforeExecution: Boolean = false,
   @Param(
     label = "SPARQL query timeout (ms)",
@@ -87,4 +107,8 @@ case class SparqlDataset(
   override def entitySink(implicit userContext: UserContext) = new SparqlSink(params, sparqlEndpoint, dropGraphOnClear = clearGraphBeforeExecution)
 
   override def tripleSink(implicit userContext: UserContext): TripleSink = new SparqlSink(params, sparqlEndpoint, dropGraphOnClear = clearGraphBeforeExecution)
+}
+
+object SparqlDataset {
+  final val pluginId = "sparqlEndpoint"
 }

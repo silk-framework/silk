@@ -4,17 +4,29 @@ import org.silkframework.config._
 import org.silkframework.entity._
 import org.silkframework.execution.typed.SparqlUpdateEntitySchema
 import org.silkframework.plugins.dataset.rdf.tasks.templating._
-import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
+import org.silkframework.plugins.dataset.rdf.datasets.SparqlDataset
+import org.silkframework.runtime.plugin.annotations.{Param, Plugin, PluginReference}
+
 import org.silkframework.runtime.plugin.types.SparqlCodeParameter
 
 @Plugin(
-  id = "sparqlUpdateOperator",
+  id = SparqlUpdateCustomTask.pluginId,
   label = "SPARQL Update query",
   description =
     "A task that outputs SPARQL Update queries for every entity from the input based on a SPARQL Update template." +
       " The output of this operator should be connected to the SPARQL datasets to which the results should be written.",
   documentationFile = "SparqlUpdateCustomTask.md",
-  iconFile = "sparql-update-query.svg"
+  iconFile = "sparql-update-query.svg",
+  relatedPlugins = Array(
+    new PluginReference(
+      id = SparqlDataset.pluginId,
+      description = "A SPARQL endpoint dataset in the workflow receives the update statements this plugin generates and executes them against the remote store."
+    ),
+    new PluginReference(
+      id = SparqlSelectCustomTask.pluginId,
+      description = "This plugin turns entity input into SPARQL Update statements that modify a store. The SPARQL Select query plugin reads from the same kind of store by executing a SELECT query and outputting the results as an entity table."
+    )
+  )
 )
 case class SparqlUpdateCustomTask(
   @Param(
@@ -57,7 +69,7 @@ case class SparqlUpdateCustomTask(
 
   override def inputPorts: InputPorts = {
     if(isStaticTemplate) {
-      FixedNumberOfInputs(Seq.empty)
+      InputPorts.NoInputPorts
     } else {
       FixedNumberOfInputs(Seq(FixedSchemaPort(expectedInputSchema)))
     }
@@ -68,4 +80,5 @@ case class SparqlUpdateCustomTask(
 
 object SparqlUpdateCustomTask {
   final val defaultBatchSize = 1
+  final val pluginId = "sparqlUpdateOperator"
 }

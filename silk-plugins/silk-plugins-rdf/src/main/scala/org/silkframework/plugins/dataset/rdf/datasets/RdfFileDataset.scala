@@ -18,7 +18,7 @@ import org.silkframework.plugins.dataset.rdf.sparql.EntityRetriever
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.iterator.CloseableIterator
 import org.silkframework.runtime.plugin.PluginContext
-import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
+import org.silkframework.runtime.plugin.annotations.{Param, Plugin, PluginReference}
 import org.silkframework.runtime.plugin.types.MultilineStringParameter
 import org.silkframework.runtime.resource.{Resource, WritableResource}
 import org.silkframework.util.{Identifier, Uri}
@@ -27,10 +27,21 @@ import java.nio.charset.StandardCharsets
 import scala.io.Codec
 
 @Plugin(
-  id = "file",
+  id = RdfFileDataset.pluginId,
   label = "RDF file",
   categories = Array(DatasetCategories.file),
-  description = """Dataset which retrieves and writes all entities from/to an RDF file. For reading, the dataset is loaded in-memory and thus the size is restricted by the available memory. Large datasets should be loaded into an external RDF store and retrieved using the SPARQL dataset instead."""
+  description = """Dataset which retrieves and writes all entities from/to an RDF file. For reading, the dataset is loaded in-memory and thus the size is restricted by the available memory. Large datasets should be loaded into an external RDF store and retrieved using the SPARQL dataset instead.""",
+  documentationFile = "RdfFileDataset.md",
+  relatedPlugins = Array(
+    new PluginReference(
+      id = SparqlDataset.pluginId,
+      description = "The RDF file dataset loads a file into memory at read time and constrains output to N-Triples. The SPARQL endpoint dataset connects to a remote queryable store that handles queries and updates without those restrictions."
+    ),
+    new PluginReference(
+      id = InMemoryDataset.pluginId,
+      description = "The RDF file dataset writes to disk but only in N-Triples, and it loads the full file into memory to read; the in-memory dataset skips the filesystem entirely but discards all data when execution finishes."
+    )
+  )
 )
 case class RdfFileDataset(
   @Param("The RDF file. This may also be a zip archive of multiple RDF files.")
@@ -214,4 +225,8 @@ case class RdfFileDataset(
   }
 
   override def tripleSink(implicit userContext: UserContext): TripleSink = new FormattedEntitySink(file, formatter)
+}
+
+object RdfFileDataset {
+  final val pluginId = "file"
 }

@@ -1,10 +1,9 @@
-This stop word list filter uses the following
-[list of English stop words](https://gist.githubusercontent.com/rg089/35e00abf8941d72d419224cfd5b5925d/raw/12d899b70156fd0041fa9778d657330b024b959c/stopwords.txt)
-as a default.
+## Description
 
-The removal of stop words is case-insensitive. For example, 'The' and 'the' are considered the same.
+The Remove default stop words plugin removes stop words from text using a built-in default stop word list.
 
-In the case of German words, notice that the upper-case letter of the lower-case 'ß' is 'ẞ', not 'SS'.
+Conceptually, it works like a standard stop word filter: the input is split into word tokens, each token is checked against the default list, and all tokens that appear in the list are removed. The remaining tokens are kept and returned as the filtered text.
 
-Should you want to provide your own stop word list, either as a resource (e.g. a file) or a remote URL, see the filters
-'removeStopWords' and 'removeRemoteStopWords'.
+Stop word removal is case-insensitive. For example, `The` and `the` are treated as the same stop word. In the case of German words, notice that the upper-case letter of the lower-case `ß` is `ẞ`, not `SS`.
+
+If a different stop word list is needed, the Remove stop words plugin supports providing a stop word list as a resource, and the Remove remote stop words plugin supports fetching the stop word list from a remote URL.

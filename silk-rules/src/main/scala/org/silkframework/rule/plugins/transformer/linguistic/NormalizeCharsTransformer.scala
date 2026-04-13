@@ -4,7 +4,8 @@ import java.text.Normalizer
 import java.util.regex.Pattern
 
 import org.silkframework.rule.input.SimpleTransformer
-import org.silkframework.runtime.plugin.annotations.Plugin
+import org.silkframework.rule.plugins.transformer.normalize.{AlphaReduceTransformer, RemoveSpecialCharsTransformer}
+import org.silkframework.runtime.plugin.annotations.{Plugin, PluginReference}
 
 /**
  * Normalizes strings by removing diacritics, converting ß to ss, etc.
@@ -13,10 +14,20 @@ import org.silkframework.runtime.plugin.annotations.Plugin
  * @author Florian Kleedorfer, Research Studios Austria
  */
 @Plugin(
-  id = "normalizeChars",
+  id = NormalizeCharsTransformer.pluginId,
   categories = Array("Linguistic"),
   label = "Normalize chars",
-  description = "Replaces diacritical characters with non-diacritical ones (eg, ö -> o), plus some specialities like transforming æ -> ae, ß -> ss."
+  description = "Replaces diacritical characters with non-diacritical ones (eg, ö -> o), plus some specialities like transforming æ -> ae, ß -> ss.",
+  relatedPlugins = Array(
+    new PluginReference(
+      id = RemoveSpecialCharsTransformer.pluginId,
+      description = "After Normalize chars, a string still contains its original punctuation, spaces, and symbols. Remove special chars removes all of those, keeping only letters, digits, and underscores."
+    ),
+    new PluginReference(
+      id = AlphaReduceTransformer.pluginId,
+      description = "Normalize chars is a substitution-only plugin: it converts diacritics but does not remove anything. Strip non-alphabetic characters is a removal-only plugin: it strips digits and punctuation while keeping letters and spaces, but leaves diacritical letters in their original form."
+    )
+  )
 )
 case class NormalizeCharsTransformer() extends SimpleTransformer {
 
@@ -46,7 +57,7 @@ case class NormalizeCharsTransformer() extends SimpleTransformer {
     ('\u00FE' -> "th")) // thorn þ
 
 
-  def evaluate(value: String) = {
+  def evaluate(value: String): String = {
     simplifyString(value)
   }
 
@@ -74,4 +85,8 @@ case class NormalizeCharsTransformer() extends SimpleTransformer {
   }
 
 
+}
+
+object NormalizeCharsTransformer {
+  final val pluginId = "normalizeChars"
 }

@@ -1,7 +1,6 @@
-package controllers.workspaceApi.search
+package controllers.util
 
 import config.WorkbenchConfig
-import controllers.workspaceApi.search.SearchApiModel.PROJECT_TYPE
 import org.silkframework.config.{CustomTask, Task, TaskSpec}
 import org.silkframework.dataset.DatasetSpec
 import org.silkframework.rule.{LinkSpec, TransformSpec}
@@ -14,7 +13,7 @@ sealed abstract class ItemType(val id: String, val label: String)
 
 object ItemType {
   case object global extends ItemType("global", "Global")
-  case object project extends ItemType(PROJECT_TYPE, "Project")
+  case object project extends ItemType("project", "Project")
   case object dataset extends ItemType("dataset", "Dataset")
   case object transform extends ItemType("transform", "Transform")
   case object linking extends ItemType("linking", "Linking")
@@ -28,7 +27,6 @@ object ItemType {
 
   private def context: String = WorkbenchConfig.applicationContext
 
-  // TODO: Update URL after deciding on path for new workspace
   private def workspaceProjectPath(projectId: String) = s"workbench/projects/$projectId"
 
   /** Link to the item details page. */
@@ -64,7 +62,7 @@ object ItemType {
         ItemLink("editor", "Workflow editor (legacy)", s"$context/workflow/editor/$projectId/$itemId"),
       )
       case _: ItemType if taskSpec.isDefined =>
-        taskSpec.get.taskLinks.map(taskLink => ItemLink(taskLink.id, taskLink.id, taskLink.url))
+        taskSpec.get.taskLinks.map(taskLink => ItemLink(taskLink.id, taskLink.id, taskLink.url, taskLink.openInNewTab))
       case _ => Seq()
     }
     Seq(itemDetailsPage(itemType, projectId, itemId)) ++ itemTypeSpecificLinks
@@ -101,7 +99,8 @@ object ItemType {
   }
 }
 
-case class ItemLink(id: String, label: String, path: String)
+/** Link of a task, e.g. dataset. */
+case class ItemLink(id: String, label: String, path: String, openInNewTab: Boolean = false)
 
 object ItemLink {
   implicit val itemLinkFormat: Format[ItemLink] = Json.format[ItemLink]

@@ -2,19 +2,28 @@ package org.silkframework.rule.plugins.transformer.numeric
 
 import java.text.NumberFormat
 import java.util.Locale
-
 import org.silkframework.rule.input.Transformer
-import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
+import org.silkframework.runtime.plugin.annotations.{Param, Plugin, PluginReference}
 
 import scala.util.matching.Regex
 import scala.util.matching.Regex.Match
 
 @Plugin(
-  id = "extractPhysicalQuantity",
+  id = PhysicalQuantityExtractor.pluginId,
   label = "Extract physical quantity",
   categories = Array("Numeric", "Normalize"),
   description = "Extracts physical quantities, such as length or weight values. Values are expected to be formatted as `{Number}{UnitPrefix}{Symbol}` and are converted to the base unit.",
-  documentationFile = "PhysicalQuantityExtractor.md"
+  documentationFile = "PhysicalQuantityExtractor.md",
+  relatedPlugins = Array(
+    new PluginReference(
+      id = NumOperationTransformer.pluginId,
+      description = "The Physical quantity extractor plugin turns number plus unit strings into plain numeric values in the configured base unit. The Numeric operation plugin is the arithmetic reducer once the inputs are already numbers, so unit parsing and calculation stay separate."
+    ),
+    new PluginReference(
+      id = FormatNumber.pluginId,
+      description = "Extract physical quantity returns a plain numeric string in the base unit. Format number takes that value and renders it according to a decimal format pattern, controlling precision, digit grouping, and separators."
+    )
+  )
 )
 case class PhysicalQuantityExtractor(@Param("The symbol of the dimension, e.g., 'm' for meter.")
                                      symbol: String = "",
@@ -81,4 +90,8 @@ case class PhysicalQuantityExtractor(@Param("The symbol of the dimension, e.g., 
     }
   }
 
+}
+
+object PhysicalQuantityExtractor {
+  final val pluginId = "extractPhysicalQuantity"
 }

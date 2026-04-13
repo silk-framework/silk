@@ -97,6 +97,10 @@ case class Comparison(id: Identifier = Operator.generateId,
 
   override def children: Seq[Input] = inputs.toSeq
 
+  override def withId(newId: Identifier): Operator = {
+    copy(id = newId)
+  }
+
   override def withChildren(newChildren: Seq[Operator]): Comparison = {
     copy(inputs = DPair.fromSeq(newChildren.collect{ case input: Input => input }))
   }

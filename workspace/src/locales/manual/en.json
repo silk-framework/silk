@@ -59,9 +59,16 @@
         "notLoading": "Validation failed. Not loading preview.",
         "previewOf": "Preview of",
         "reload": "Reload preview",
-        "typeSelection": "Type Selection",
+        "typeSelection": "Type selection",
         "typeSelectionBack": "Back to type selection",
-        "typeSelectionTooltip": "The data source consists of multiple types. Select one type from the list for a preview. There are max. 1000 types fetched at any time."
+        "typeSelectionTooltip": "The data source consists of multiple types. Select one type from the list for a preview. There are max. 1000 types fetched at any time.",
+        "clearDatasetModal": {
+            "title": "Clear dataset",
+            "content": "Are you sure you want to clear the dataset? This action cannot be undone.",
+            "actionBtn": "Clear dataset",
+            "error": "Error while clearing dataset",
+            "readOnly": "The dataset is set to read-only and cannot be cleared."
+        }
     },
     "DataProfiling": {
         "attributes": {
@@ -139,7 +146,7 @@
     },
     "FileUploader": {
         "abort": "Abort and keep file",
-        "abortOnly": "Abort Upload",
+        "abortOnly": "Abort upload",
         "abortProcess": "Abort upload process?",
         "changeFile": "Change file",
         "createNewFile": "New file name",
@@ -208,7 +215,8 @@
         "restoreNotice": "Want to restore an existing project?",
         "restoreStarter": "Import project file",
         "title": "Project import",
-        "warningExistingProject": "A project with the same ID already exists! Choose to either overwrite the existing project or import the project under a freshly generated ID."
+        "warningExistingProject": "A project with the same ID already exists! Choose to either overwrite the existing project or import the project under a freshly generated ID.",
+        "warningExistingProjectForbidden": "A project with the same ID already exists and you do **not** have the necessary **access rights** to replace it. Trying to replace the project will most likely result in an error!"
     },
     "RecentlyViewedModal": {
         "globalSearch": "Search in workspace for '{{query}}'",
@@ -242,23 +250,23 @@
                         "create-project": "Create project",
                         "create-workflow": "Create workflow",
                         "create-dataset": "Create dataset",
-                        "create-transform": "Create Transform",
-                        "create-linking": "Create Linking",
-                        "create-task": "Create Task",
+                        "create-transform": "Create transform",
+                        "create-linking": "Create linking",
+                        "create-task": "Create task",
                         "create-new-item": "Create new item"
                     }
                 },
                 "projects": {
                     "label": "Projects",
                     "shortcuts": {
-                        "manage-prefixes": "Manage Prefixes",
-                        "edit-summary": "Edit Summary"
+                        "manage-prefixes": "Manage prefixes",
+                        "edit-summary": "Edit summary"
                     }
                 },
                 "tasks": {
                     "label": "Tasks",
                     "shortcuts": {
-                        "edit-summary": "Edit Summary",
+                        "edit-summary": "Edit summary",
                         "update-tasks": "Update tasks"
                     }
                 },
@@ -282,9 +290,9 @@
                         "multiselect": "Select multiple nodes",
                         "multiselectDesc": "Select nodes either by clicking on them or by dragging a selection area",
                         "create-dataset": "Create dataset",
-                        "create-transform": "Create Transform",
-                        "create-linking": "Create Linking",
-                        "create-task": "Create Task",
+                        "create-transform": "Create transform",
+                        "create-linking": "Create linking",
+                        "create-task": "Create task",
                         "create-new-item": "Create new item"
                     }
                 }
@@ -304,6 +312,7 @@
             "showIdentifier": "Show identifier",
             "AddSmth": "Add {{smth}}",
             "CloneSmth": "Clone {{smth}}",
+            "CloneSmthShallow": "Clone {{smth}} (shallow clone)",
             "CopySmth": "Copy {{smth}} artefacts",
             "CreateSmth": "Create {{smth}}",
             "DeleteSmth": "Delete {{smth}}",
@@ -331,6 +340,7 @@
             "remove": "Remove",
             "moreOptions": "Show more options",
             "openInNewTab": "Open link in new tab",
+            "openInNewTabTooltip": "The link will be opened in a new tab",
             "profilingStart": "Start profiling",
             "profilingUpdate": "Update profiling",
             "replace": "Replace",
@@ -343,6 +353,7 @@
             "submit": "Submit",
             "update": "Update",
             "showApiDoc": "API",
+            "listDeprecatedPlugins": "Deprecated plugins usage",
             "copyClipboard": "Copy to clipboard",
             "configure": "Configure",
             "clearInput": "Clear input",
@@ -390,7 +401,7 @@
             "cloneModalIdentifier": "Custom identifier for {{item}} (optional)",
             "cloneOf": "Copy of {{item}}",
             "copyModalTitle": "New name of copied {{item}}",
-            "copyModalProjectSelect": "Select Project Target",
+            "copyModalProjectSelect": "Select project target",
             "copyModalOverwrittenTasks": " Overwritten tasks ({{tasks}})",
             "copyModalCopiedTasks": "Copied tasks ({{tasks}})",
             "createFirstItems": "Create your first {{items}} now.",
@@ -402,7 +413,10 @@
             "noTypes": "No types found",
             "serverError": "Server error",
             "taskOverwrittenPrompt": "I understand that some tasks will be overwritten",
-            "temporarilyUnavailableMessage": "Service is temporarily unavailable. Details: {{detailMessage}}"
+            "temporarilyUnavailableMessage": "Service is temporarily unavailable. Details: {{detailMessage}}",
+            "deprecatedPluginBanner": "The '{{pluginLabel}}' plugin is deprecated and will be removed in the future. Please exchange it for a supported plugin as soon as possible.",
+            "deprecatedPluginBannerPluginLabel": "Deprecated Plugin",
+            "deprecatedPluginBannerDeprecationMessage": "Deprecation Message"
         },
         "sorter": {
             "recentlyViewed": "Recently viewed"
@@ -482,7 +496,7 @@
     },
     "http": {
         "error": {
-            "aborted": "Request Aborted",
+            "aborted": "Request aborted",
             "fetchNotResult": "Error, cannot fetch results.",
             "largeRequest": "Request too large",
             "networkFileUpload": "Can't upload file '{{fileName}}', please check your connection and try again",
@@ -506,7 +520,7 @@
     "transformEvaluationTabView": {
         "table": {
             "header": {
-                "transformEntities": "Transformed Entities"
+                "transformEntities": "Transformed entities"
             }
         },
         "couldNotLoad": "Could not load evaluation."
@@ -568,7 +582,7 @@
             "diBrowse": "Silk",
             "diBrowseTooltip": "Used to manage data-integration projects to build a knowledge graph from existing datasources",
             "dm": {
-                "explore": "Knowledge Graphs",
+                "explore": "Knowledge graphs",
                 "exploreTooltip": "A generic RDF graph data browser and editor.",
                 "query": "Queries",
                 "queryTooltip": "Used to write, store, describe, search and run SPARQL queries.",
@@ -592,7 +606,23 @@
         },
         "activities": {
             "title": "Activities",
-            "noActivities": "No Activities found"
+            "noActivities": "No activities found"
+        },
+        "deprecatedPlugins": {
+            "title": "Deprecated plugins usage",
+            "noPluginsFound": "This page lists plugins that are used in existing projects but have been marked as deprecated. Good news: No deprecated plugins were found in your workspace!",
+            "unknownTask": "N/A",
+            "infoMessage": "This page lists plugins that are used in existing projects but have been marked as deprecated. It is recommended to replace these plugins to ensure compatibility with future versions of the application.",
+            "deprecationMessage": "Plugin is deprecated.",
+            "errors": {
+                "fetchPlugins": "Failed to load deprecated plugins"
+            },
+            "groupBy": {
+                "label": "Group by",
+                "groupedBy": "Grouped by",
+                "pluginLabel": "Plugin",
+                "project": "Project"
+            }
         },
         "notFound": {
             "backLink": "Go to homepage",
@@ -601,11 +631,14 @@
         },
         "project": {
             "content": "Contents",
-            "loading": "Loading project data"
+            "loading": "Loading project data",
+            "errors": {
+                "forbidden": "Access to project is forbidden!"
+            }
         },
         "workspace": {
             "contents": "Contents",
-            "createProject": "Create Project",
+            "createProject": "Create project",
             "empty": "Your workspace is empty. In order to start, create a new project or import an existing project from an exported project file.",
             "firstWorkflow": "Workflow 1"
         }
@@ -625,7 +658,7 @@
             "scoreWidget": {
                 "title": "Evaluation",
                 "notStarted": "Click button to run evaluation",
-                "showExamples": "Show Examples",
+                "showExamples": "Show examples",
                 "noScore": "No evaluation score",
                 "noScoreTooltip": "No linking evaluation score available. Add positive and/or negative reference links in order to show a score",
                 "referenceLinks": "Open reference links UI in new tab"
@@ -812,9 +845,15 @@
         }
     },
     "cloneModal": {
-        "info": "Cloning a task means creating a copy of the task configuration in the same project. The related (used) tasks of this cloned task are not copied or changed (e.g., a cloned workflow processes the same workflow tasks as the original and not copies of them)."
+        "infoTask": "Cloning creates a shallow copy of the task within the same project. Referenced tasks are not duplicated — e.g., a cloned workflow still operates on the original workflow tasks.",
+        "infoProject": "Cloning a project creates a full copy of the project including all its tasks.",
+        "shallowCloneInfo": "This creates a copy of the task configuration only. Referenced tasks or sub-task steps are not duplicated."
     },
     "widget": {
+        "deprecatedPluginWidget": {
+            "message": "The listed plugins are deprecated and will be removed in future versions. Please check the documentation for alternatives.",
+            "tasks": "Tasks"
+        },
         "ActivityInfoWidget": {
             "title": "Activities",
             "view": "View project activities"
@@ -823,7 +862,7 @@
             "loading": "Loading configuration list.",
             "loadingPrefix": "Loading prefix configuration.",
             "prefix": "Prefix",
-            "prefixTitle": "Manage Prefixes",
+            "prefixTitle": "Manage prefixes",
             "prefix_plural": "Prefixes",
             "title": "Configuration",
             "modal": {
@@ -876,7 +915,7 @@
             }
         },
         "FileWidget": {
-            "deleteFile": "Delete File",
+            "deleteFile": "Delete file",
             "deleted": "File '{{fileName}}' will be deleted.",
             "edit": "Edit prefix settings",
             "empty": "No files are found, add them here to use it later",
@@ -940,6 +979,8 @@
             "title": "Configuration: Linkage rule"
         },
         "TargetVocabularySelection": {
+            "customVocabularyWarning": "The vocabulary '{{uri}}' is not among the installed vocabularies.",
+            "notInstalledVocabulary": "This vocabulary is not among the installed vocabularies.",
             "multiSelectionRadioButtonLabel": "Select individual vocabularies",
             "staticEntryLabel": {
                 "none": "No vocabularies",
@@ -1008,7 +1049,7 @@
             "title": "Activity overview"
         },
         "VariableWidget": {
-            "title": "Project Variables",
+            "title": "Project variables",
             "noVariables": "No variables set.",
             "form": {
                 "name": "Name",
@@ -1034,6 +1075,9 @@
                 "nameAlreadyExists": "Name already exists",
                 "nameMustBeSpecified": "Name must be specified",
                 "mustProvideValOrTemplate": "Must provide value or template"
+            },
+            "evaluationErrors": {
+                "title": "Some variables could not be evaluated."
             },
             "errorMessages": {
                 "loadingVariables": "Could not load variables for project '{{projectId}}'",
@@ -1217,7 +1261,7 @@
             "infoMessage": "All reference links for every of the selected categories will be deleted."
         },
         "importModal": {
-            "title": "Import reference Links",
+            "title": "Import reference links",
             "generateDeclinedLinks": "Generate declined links",
             "generateDeclinedLinksTooltip": "If enabled, declined reference links will be generated by interchanging the source and targets of the provided positive links. This will only produce correct results if the provided positive reference links are complete and model 1:1 relations."
         },
@@ -1271,8 +1315,8 @@
     "ArtefactFormParameter": {
         "evaluatedValue": "Evaluated template value: {{value}}",
         "invalidTemplate": "Invalid template value",
-        "switchToTemplate": "Switch to template input that allows to use global variables like this 'EXAMPLE'. Templates follows the Jinja syntax.",
-        "switchToValue": "Variable template usage is active. You can use Jinja template syntax, e.g. for accessing global variables use 'EXAMPLE'. Click to switch back to direct value input.",
+        "switchToTemplate": "Switch to template input that allows to use project and global variables like this 'EXAMPLE'. Templates follows the Jinja syntax.",
+        "switchToValue": "Variable template usage is active. You can use Jinja template syntax, e.g. for accessing project and global variables use 'EXAMPLE'. Click to switch back to direct value input.",
         "passwordCleared": "Password was removed because it would be visible in clear text"
     },
     "PathInputOperator": {
@@ -1337,8 +1381,17 @@
                 "link": "Web link",
                 "image": "Image media",
                 "preview": "Preview",
-                "continue-editing": "Continue editing"
+                "continue-editing": "Continue editing",
+                "wrapLines": "Wordwrap",
+                "preventLineNumbers": "Hide line numbers"
             }
         }
+    },
+    "DatasetClearButton": {
+        "tooltip": "Clears the output dataset",
+        "readOnlyTooltip": "Output dataset is read-only and cannot be cleared.",
+        "modalTitle": "Clear dataset '{{datasetLabel}}'",
+        "modalText": "Are you sure that you want to clear the dataset '{{datasetLabel}}'?'",
+        "modalButtonText": "Clear dataset"
     }
 }

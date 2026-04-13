@@ -7,12 +7,12 @@ import java.io.File
 import java.net.URLDecoder
 import org.silkframework.runtime.activity.UserContext
 
-import scala.io.Source
+import scala.io.{Codec, Source}
 
 class SilkTest extends AnyFlatSpec with Matchers {
   implicit val userContext: UserContext = UserContext.Empty
 
-  val exampleDir = URLDecoder.decode(getClass.getClassLoader.getResource("org/silkframework/example/").getFile, "UTF-8")
+  val exampleDir: String = URLDecoder.decode(getClass.getClassLoader.getResource("org/silkframework/example/").getFile, "UTF-8")
   val linkSpecFile = new File(exampleDir, "linkSpec.xml")
   val outputFile = new File(exampleDir, "links.nt")
   val projectFile = new File(exampleDir, "project.zip")
@@ -21,7 +21,11 @@ class SilkTest extends AnyFlatSpec with Matchers {
   "Silk" should "execute the example link spec" in {
     Silk.executeFile(linkSpecFile)
     outputFile.exists() should be(true)
-    Source.fromFile(outputFile).getLines().size should be (110)
+    val lineCount = {
+      val source = Source.fromFile(outputFile)(Codec.UTF8)
+      try { source.getLines().size } finally { source.close() }
+    }
+    lineCount should be (110)
   }
 
   "Silk" should "execute workflows" in {

@@ -76,7 +76,7 @@ export interface IPluginComponent<I> {
     // The label that should be shown to the user
     label: string;
     // Function that renders the view
-    Component: (params: I) => React.JSX.Element;
+    Component: (params: I) => React.JSX.Element | null;
 }
 
 class PluginRegistry {
@@ -156,6 +156,8 @@ export const SUPPORTED_PLUGINS = {
     DI_BRANDING: "di:branding",
     DI_PARAMETER_EXTENSIONS: "di:parameterExtensions",
     DI_MATCHING: "di:matchingNG",
+    DI_PROJECT_ACL: "di:projectAcl",
+    DI_PROJECT_ACL_MANAGEMENT: "di:projectAclManagement",
 };
 
 registerCorePlugins();

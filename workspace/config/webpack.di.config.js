@@ -250,6 +250,9 @@ module.exports = function (webpackEnv, isWatch) {
                 "vfile/do-not-use-conditional-minpath": "vfile/lib/minpath.browser.js",
                 "vfile/do-not-use-conditional-minproc": "vfile/lib/minproc.browser.js",
                 "vfile/do-not-use-conditional-minurl": "vfile/lib/minurl.browser.js",
+                "#minpath": "vfile/lib/minpath.browser.js",
+                "#minproc": "vfile/lib/minproc.browser.js",
+                "#minurl": "vfile/lib/minurl.browser.js",
             },
             plugins: [
                 // Adds support for installing with Plug'n'Play, leading to faster installs and adding

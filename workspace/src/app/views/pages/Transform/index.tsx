@@ -11,10 +11,13 @@ import { ArtefactManagementOptions } from "../../shared/ActionsMenu/ArtefactMana
 import NotFound from "../NotFound";
 import { TaskActivityOverview } from "../../shared/TaskActivityOverview/TaskActivityOverview";
 import { ProjectTaskParams } from "../../shared/typings";
+import { DeprecatedPluginsWidget } from "../Project/DeprecatedPlugins/DeprecatedPluginsWidget";
+import { ProjectForbiddenNotification } from "../../shared/ProjectForbiddenNotification";
 
 export default function TransformPage() {
     const { taskId, projectId } = useParams<ProjectTaskParams>();
     const [notFound, setNotFound] = useState(false);
+    const [forbidden, setForbidden] = useState(false);
 
     const { pageHeader, updateActionsMenu, updateBreadcrumbsExtensions } = usePageHeader({
         type: DATA_TYPES.TRANSFORM,
@@ -23,9 +26,12 @@ export default function TransformPage() {
         autogeneratePageTitle: true,
     });
 
-    return notFound ? (
-        <NotFound />
-    ) : (
+    if (forbidden) {
+        return <ProjectForbiddenNotification />;
+    } else if (notFound) {
+        return <NotFound />;
+    }
+    return (
         <WorkspaceContent className="eccapp-di__transformation">
             {pageHeader}
             <ArtefactManagementOptions
@@ -34,6 +40,7 @@ export default function TransformPage() {
                 itemType={DATA_TYPES.TRANSFORM}
                 updateActionsMenu={updateActionsMenu}
                 notFoundCallback={setNotFound}
+                forbiddenCallback={setForbidden}
             />
             <WorkspaceMain>
                 <Section>
@@ -53,6 +60,8 @@ export default function TransformPage() {
                     <TaskConfig projectId={projectId} taskId={taskId} />
                     <Spacing />
                     <TaskActivityOverview projectId={projectId} taskId={taskId} />
+                    <Spacing />
+                    <DeprecatedPluginsWidget projectId={projectId} taskId={taskId} />
                 </Section>
             </WorkspaceSide>
         </WorkspaceContent>

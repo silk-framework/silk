@@ -2,19 +2,20 @@ package org.silkframework.rule.execution.local
 
 import org.silkframework.config.{Prefixes, Task}
 import org.silkframework.entity.EntitySchema
-import org.silkframework.execution.local.{GenericEntityTable, LocalEntities, LocalExecution, MultiEntityTable}
+import org.silkframework.execution.local.{EmptyEntityTable, GenericEntityTable, LocalEntities, LocalExecution, MultiEntityTable}
 import org.silkframework.execution.{ExecutionReport, Executor, ExecutorOutput, TaskException}
 import org.silkframework.rule.TransformSpec.RuleSchemata
 import org.silkframework.rule._
 import org.silkframework.rule.execution.{TransformReport, TransformReportBuilder, TransformReportExecutionContext}
 import org.silkframework.rule.TaskContext
 import org.silkframework.runtime.activity.ActivityContext
+import org.silkframework.runtime.iterator.RewindableEntityIterator
 import org.silkframework.runtime.plugin.PluginContext
 import org.silkframework.util.Uri
 
 import scala.collection.mutable
 
-/** Local executor for link specifications. */
+/** Local executor for transform specifications. */
 class LocalTransformSpecExecutor extends Executor[TransformSpec, LocalExecution] {
 
   override def execute(task: Task[TransformSpec],
@@ -29,9 +30,9 @@ class LocalTransformSpecExecutor extends Executor[TransformSpec, LocalExecution]
     val transformContext = context.asInstanceOf[ActivityContext[TransformReport]]
     val transformReportExecutionContext = output.task.map(t => TransformReportExecutionContext(t)).getOrElse(TransformReportExecutionContext.default)
     transformContext.value() = TransformReport(task, context = Some(transformReportExecutionContext))
-    val flatInputs = flattenInputs(input).toIndexedSeq
-    val outputTables = mutable.Buffer[LocalEntities]()
     val ruleSchemata = task.data.ruleSchemataWithoutEmptyObjectRules
+    val flatInputs = flattenInputs(input, Some(ruleSchemata.size)).toIndexedSeq
+    val outputTables = mutable.Buffer[LocalEntities]()
     val report = new TransformReportBuilder(task, transformContext)
     report.setExecutionContext(transformReportExecutionContext)
     implicit val prefixes: Prefixes = pluginContext.prefixes
@@ -127,12 +128,35 @@ class LocalTransformSpecExecutor extends Executor[TransformSpec, LocalExecution]
     childRules.copy(uriRule = childRules.uriRule.orElse(objectMapping.uriRule()))
   }
 
-  private def flattenInputs(input: LocalEntities): Seq[LocalEntities] = {
+  /**
+   * Flattens the input to a sequence of input tables.
+   *
+   * @param input The input to be flattened.
+   * @param expectedInputCount Optional: expected number of input tables.
+   */
+  private def flattenInputs(input: LocalEntities, expectedInputCount: Option[Int] = None): Seq[LocalEntities] = {
     input match {
       case mt: MultiEntityTable =>
+        // Validate number of tables
+        for(count <- expectedInputCount) {
+          if(mt.allTables.size != count) {
+            throw InputCountMismatchException(s"Expected $count input entity tables, but got ${mt.allTables.size} by the previous operator.")
+          }
+        }
         mt.allTables
       case _ =>
-        Seq(input)
+        expectedInputCount match {
+          case Some(count) if count > 1 =>
+            input.entities match {
+              case rewindableEntityIterator: RewindableEntityIterator =>
+                input +: Seq.fill(count - 1)(input.updateEntities(rewindableEntityIterator.newIterator(), input.entitySchema))
+              case _ =>
+                throw InputCountMismatchException(s"Expected $count input entity tables, but got only one by the previous operator. " +
+                  "Try persisting the entities by putting a dataset in-between.")
+            }
+          case _ =>
+            Seq(input)
+        }
     }
   }
 }

@@ -21,6 +21,7 @@ PUT           /tasks/:project/:task                                             
 DELETE        /tasks/:project/:task                                                controllers.transform.TransformTaskApi.deleteTransformTask(project: String, task: String, removeDependentTasks: Boolean ?= false)
 GET           /tasks/:project/:task/rules                                          controllers.transform.TransformTaskApi.getRules(project: String, task: String)
 PUT           /tasks/:project/:task/rules                                          controllers.transform.TransformTaskApi.putRules(project: String, task: String)
+POST          /tasks/:project/:task/rules/search                                   controllers.transform.TransformTaskApi.searchRules(project: String, task: String)
 GET           /tasks/:project/:task/rule/:rule                                     controllers.transform.TransformTaskApi.getRule(project: String, task: String, rule: String, convertToComplex: Option[Boolean] ?= None)
 PUT           /tasks/:project/:task/rule/:rule                                     controllers.transform.TransformTaskApi.putRule(project: String, task: String, rule: String)
 DELETE        /tasks/:project/:task/rule/:rule                                     controllers.transform.TransformTaskApi.deleteRule(project: String, task: String, rule: String)

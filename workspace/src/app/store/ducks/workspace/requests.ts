@@ -11,11 +11,13 @@ import {
     TaskContextResponse,
 } from "@ducks/workspace/typings";
 import fetch from "../../../services/fetch";
-import { legacyApiEndpoint, projectApi, workspaceApi } from "../../../utils/getApiEndpoint";
+import { coreApi, legacyApiEndpoint, projectApi, workspaceApi } from "../../../utils/getApiEndpoint";
 import { FetchResponse } from "../../../services/fetch/responseInterceptor";
 import { IAutocompleteDefaultResponse, IProjectTask } from "@ducks/shared/typings";
 import { TaskContext } from "../../../views/shared/projectTaskTabView/projectTaskTabView.typing";
 import { CodeAutocompleteFieldValidationResult } from "@eccenca/gui-elements/src/components/AutoSuggestion/AutoSuggestion";
+import { ItemType } from "@ducks/router/operations";
+import qs from "qs";
 
 export interface ISearchListRequest {
     limit?: number;
@@ -25,6 +27,7 @@ export interface ISearchListRequest {
     project?: string;
     facets?: IAppliedFacetState[];
     textQuery?: string;
+    itemType?: ItemType;
 }
 
 export interface ISearchListResponse {
@@ -40,6 +43,7 @@ export interface ICreateProjectPayload {
         label: string;
         description?: string;
     };
+    groups?: string[];
 }
 
 const handleError = (e) => {
@@ -79,9 +83,56 @@ export const requestRemoveTask = async (
     });
 };
 
+interface CloneProjectRequestData {
+    metaData: ItemMetaData;
+    newTaskId?: string;
+    groups?: string[];
+}
+
+export interface ItemMetaData {
+    label: string;
+    description?: string;
+    tags?: string[];
+}
+
 interface IClonedItem {
     id: string;
     detailsPage: string;
+}
+
+/** Properties required for access control. In general access control is currently only decided on group membership. */
+export interface AccessControlConfig {
+    groups: string[];
+}
+
+export interface UserData extends AccessControlConfig {
+    uri: string;
+    label: string;
+    /** An admin always has access to all projects. */
+    isAccessControlAdmin: boolean;
+}
+
+const accessControlEndpoint = (projectId: string) => projectApi(`${projectId}/accessControl`);
+
+/** Fetches project access control information. */
+export const fetchProjectAccessControl = (projectId: string): Promise<FetchResponse<AccessControlConfig>> =>
+    fetch({ url: accessControlEndpoint(projectId), method: "GET" });
+
+export const updateProjectAccessControl = (
+    projectId: string,
+    projectAcl: AccessControlConfig,
+): Promise<FetchResponse<AccessControlConfig>> =>
+    fetch({ url: accessControlEndpoint(projectId), method: "PUT", body: projectAcl });
+
+/** Fetches data about the logged-in user. */
+export const fetchUserData = (): Promise<FetchResponse<UserData>> => fetch({ url: coreApi("/user"), method: "GET" });
+
+/** Fetches the list of known access control groups. */
+export const fetchAccessControlGroups = (): Promise<FetchResponse<AccessControlGroup[]>> =>
+    fetch({ url: coreApi("/accessControl/groups"), method: "GET" });
+
+export interface AccessControlGroup {
+    id: string;
 }
 
 export const requestCopyProject = async (projectId: string, payload: any) => {
@@ -124,7 +175,11 @@ export const requestCloneTask = async (
     });
 };
 
-export const requestCloneProject = async (projectId: string, payload: any): Promise<FetchResponse<IClonedItem>> => {
+/** Clones an existing project. */
+export const requestCloneProject = async (
+    projectId: string,
+    payload: CloneProjectRequestData,
+): Promise<FetchResponse<IClonedItem>> => {
     return fetch({
         url: workspaceApi(`/projects/${projectId}/clone`),
         method: "POST",
@@ -308,16 +363,25 @@ export const requestDeleteProjectImport = async (projectImportId: string): Promi
  *
  * @param projectImportId The project import ID.
  * @param generateNewId   If the project should be imported under a freshly generated ID. E.g. when there already exists a project with the same ID.
+ * @param overwriteExistingProject If set to true, then a project with the same ID will be overwritten, else the request would fail.
+ * @param groups Groups for the ACL.
  */
 export const requestStartProjectImport = async (
     projectImportId: string,
     generateNewId: boolean,
     overwriteExistingProject: boolean,
+    groups?: string[],
 ): Promise<FetchResponse<void>> => {
+    const params: any = {
+        generateNewId: generateNewId,
+        overwriteExisting: overwriteExistingProject,
+    };
+    if (groups) {
+        params.groups = groups;
+    }
+    const url = projectImportEndpoint(projectImportId) + "?" + qs.stringify(params, { arrayFormat: "repeat" });
     return fetch({
-        url:
-            projectImportEndpoint(projectImportId) +
-            `?generateNewId=${generateNewId}&overwriteExisting=${overwriteExistingProject}`,
+        url,
         method: "POST",
     });
 };
@@ -408,5 +472,14 @@ export const validateYaml = async (
             nestingAllowed,
             expectMap,
         },
+    });
+};
+
+/** Clears (the content of) a dataset. */
+export const clearDataset = async (projectId: string, datasetId: string): Promise<FetchResponse<void>> => {
+    const url = projectApi(`${projectId}/datasets/${datasetId}/content`);
+    return fetch({
+        url,
+        method: "DELETE",
     });
 };

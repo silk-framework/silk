@@ -1,20 +1,34 @@
 package org.silkframework.rule.plugins.transformer.linguistic
 
 import org.silkframework.rule.input.SimpleTransformer
-import org.silkframework.runtime.plugin.annotations.Plugin
+import org.silkframework.runtime.plugin.annotations.{Plugin, PluginReference}
 
 @Plugin(
-  id = "metaphone",
+  id = MetaphoneTransformer.pluginId,
   categories = Array("Linguistic"),
   label = "Metaphone",
   description = "Metaphone phonetic encoding.",
-  documentationFile = "MetaphoneTransformer.md"
+  documentationFile = "MetaphoneTransformer.md",
+  relatedPlugins = Array(
+    new PluginReference(
+      id = SoundexTransformer.pluginId,
+      description = "The Metaphone plugin returns a phonetic encoding whose length depends on the input. The Soundex plugin returns a fixed four-character code, so it forces a much coarser normalization. This is not a similarity score; it is an encoding step."
+    ),
+    new PluginReference(
+      id = NysiisTransformer.pluginId,
+      description = "The Metaphone plugin and the NYSIIS plugin both produce phonetic encodings, but they do so under different encoding rules. The NYSIIS plugin also exposes a refined versus non-refined mode, while the Metaphone plugin has a single fixed encoding path."
+    )
+  )
 )
 case class MetaphoneTransformer() extends SimpleTransformer {
 
   override def evaluate(value: String) = {
     MetaphoneAlgorithm.compute(value).getOrElse("")
   }
+}
+
+object MetaphoneTransformer {
+  final val pluginId = "metaphone"
 }
 
 // Based on code of the StringMetric library: http://rockymadden.com/stringmetric/.

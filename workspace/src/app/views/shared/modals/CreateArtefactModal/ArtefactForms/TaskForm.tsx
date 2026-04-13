@@ -467,10 +467,10 @@ export function TaskForm({
     const CodeEditorMemoed = React.useMemo(
         () => (
             <CodeEditor
-                id={DESCRIPTION}
-                preventLineNumbers
-                name={DESCRIPTION}
                 mode="markdown"
+                useToolbar
+                id={DESCRIPTION}
+                name={DESCRIPTION}
                 defaultValue={description}
                 onChange={handleChange(DESCRIPTION)}
                 data-test-id="codemirror-wrapper"

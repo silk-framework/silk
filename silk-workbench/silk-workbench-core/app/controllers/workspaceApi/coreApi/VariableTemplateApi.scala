@@ -3,11 +3,12 @@ package controllers.workspaceApi.coreApi
 import controllers.core.UserContextActions
 import controllers.core.util.ControllerUtilsTrait
 import controllers.util.TaskLink
-import controllers.workspaceApi.coreApi.VariableTemplateApi.{TemplateVariableFormat, TemplateVariablesFormat, VariableDependencies}
+import controllers.workspaceApi.coreApi.VariableTemplateApi.{TemplateVariableJson, TemplateVariablesJson, VariableDependencies}
 import controllers.workspaceApi.coreApi.doc.VariableTemplateApiDoc
 import controllers.workspaceApi.coreApi.variableTemplate.{AutoCompleteVariableTemplateRequest, ValidateVariableTemplateRequest}
 import io.swagger.v3.oas.annotations.enums.ParameterIn
 import io.swagger.v3.oas.annotations.media.{ArraySchema, Content, ExampleObject, Schema}
+import io.swagger.v3.oas.annotations.media.Schema.RequiredMode
 import io.swagger.v3.oas.annotations.parameters.RequestBody
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.tags.Tag
@@ -16,6 +17,7 @@ import org.silkframework.runtime.templating.exceptions._
 import org.silkframework.runtime.templating.operations.{DeleteVariableModification, UpdateVariableModification, UpdateVariablesModification}
 import org.silkframework.runtime.templating.{GlobalTemplateVariables, TemplateVariable, TemplateVariables}
 import org.silkframework.runtime.validation.BadUserInputException
+import org.silkframework.serialization.json.JsonHelpers
 import org.silkframework.workspace.WorkspaceFactory
 import play.api.libs.json.{JsValue, Json, OFormat}
 import play.api.mvc.{Action, AnyContent, InjectedController}
@@ -37,7 +39,7 @@ class VariableTemplateApi @Inject()() extends InjectedController with UserContex
         content = Array(new Content(
           mediaType = "application/json",
           schema = new Schema(
-            implementation = classOf[TemplateVariablesFormat]
+            implementation = classOf[TemplateVariablesJson]
           )
         ))
       ),
@@ -56,7 +58,16 @@ class VariableTemplateApi @Inject()() extends InjectedController with UserContex
                    )
                    projectName: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     val project = WorkspaceFactory().workspace.project(projectName)
-    Ok(Json.toJson(TemplateVariablesFormat(project.templateVariables.all)))
+    val allVariables = project.templateVariables.all
+    val variablesJson = {
+      try {
+        TemplateVariablesJson(allVariables.resolved())
+      } catch {
+        case ex: TemplateVariablesEvaluationException =>
+          TemplateVariablesJson(allVariables, ex)
+      }
+    }
+    Ok(Json.toJson(variablesJson))
   }
 
   @Operation(
@@ -78,7 +89,7 @@ class VariableTemplateApi @Inject()() extends InjectedController with UserContex
     content = Array(
       new Content(
         mediaType = "application/json",
-        schema = new Schema(implementation = classOf[TemplateVariablesFormat]),
+        schema = new Schema(implementation = classOf[TemplateVariablesJson]),
       )
     )
   )
@@ -91,7 +102,7 @@ class VariableTemplateApi @Inject()() extends InjectedController with UserContex
                    )
                    projectName: String): Action[JsValue] = RequestUserContextAction(parse.json) { implicit request => implicit userContext =>
     val project = WorkspaceFactory().workspace.project(projectName)
-    val variables = Json.fromJson[TemplateVariablesFormat](request.body).get.convert
+    val variables = JsonHelpers.fromJsonValidated[TemplateVariablesJson](request.body).convert
     UpdateVariablesModification(project, variables).execute()
     Ok
   }
@@ -106,7 +117,7 @@ class VariableTemplateApi @Inject()() extends InjectedController with UserContex
         content = Array(new Content(
           mediaType = "application/json",
           schema = new Schema(
-            implementation = classOf[TemplateVariableFormat]
+            implementation = classOf[TemplateVariableJson]
           )
         ))
       ),
@@ -133,7 +144,7 @@ class VariableTemplateApi @Inject()() extends InjectedController with UserContex
                   )
                   variableName: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
       val project = WorkspaceFactory().workspace.project(projectName)
-      Ok(Json.toJson(TemplateVariableFormat(project.templateVariables.get(variableName))))
+      Ok(Json.toJson(TemplateVariableJson(project.templateVariables.get(variableName))))
   }
 
   @Operation(
@@ -154,7 +165,7 @@ class VariableTemplateApi @Inject()() extends InjectedController with UserContex
     content = Array(
       new Content(
         mediaType = "application/json",
-        schema = new Schema(implementation = classOf[TemplateVariableFormat]),
+        schema = new Schema(implementation = classOf[TemplateVariableJson]),
       )
     )
   )
@@ -175,7 +186,7 @@ class VariableTemplateApi @Inject()() extends InjectedController with UserContex
                   )
                   variableName: String): Action[JsValue] = RequestUserContextAction(parse.json) { implicit request => implicit userContext =>
     val project = WorkspaceFactory().workspace.project(projectName)
-    val variable = Json.fromJson[TemplateVariableFormat](request.body).get.convert
+    val variable = Json.fromJson[TemplateVariableJson](request.body).get.convert
     if(variable.name != variableName) {
       throw new BadUserInputException(s"Variable name provided in the URL ($variableName) does not match variable name in the request body (${variable.name})")
     }
@@ -405,41 +416,41 @@ class VariableTemplateApi @Inject()() extends InjectedController with UserContex
 object VariableTemplateApi {
 
   @Schema(description = "A single template variable")
-  case class TemplateVariableFormat(@Schema(
+  case class TemplateVariableJson(@Schema(
                                       description = "The name of the variable.",
                                       example = "myVar",
-                                      required = true
-                                    )
-                                    name: String,
-                                    @Schema(
-                                      description = "The value of the variable.",
-                                      example = "example value",
-                                      required = false
-                                    )
-                                    value: Option[String],
-                                    @Schema(
-                                      description = "Template to generate the variable value.",
-                                      required = false
-                                    )
-                                    template: Option[String],
-                                    @Schema(
-                                      description = "Optional description for documentation.",
-                                      example = "Example description",
-                                      required = false
-                                    )
-                                    description: Option[String],
-                                    @Schema(
-                                      description = "True, if this is a sensitive variable that should not be exposed to the user.",
-                                      example = "false",
-                                      required = true
-                                    )
-                                    isSensitive: Boolean,
-                                    @Schema(
-                                      description = "The scope of the variable.",
-                                      example = "project",
-                                      required = true
-                                    )
-                                    scope: String) {
+                                      requiredMode = RequiredMode.REQUIRED
+                                  )
+                                  name: String,
+                                  @Schema(
+                                    description = "The value of the variable.",
+                                    example = "example value",
+                                    requiredMode = RequiredMode.NOT_REQUIRED
+                                  )
+                                  value: Option[String],
+                                  @Schema(
+                                    description = "Template to generate the variable value.",
+                                    requiredMode = RequiredMode.NOT_REQUIRED
+                                  )
+                                  template: Option[String],
+                                  @Schema(
+                                    description = "Optional description for documentation.",
+                                    example = "Example description",
+                                    requiredMode = RequiredMode.NOT_REQUIRED
+                                  )
+                                  description: Option[String],
+                                  @Schema(
+                                    description = "True, if this is a sensitive variable that should not be exposed to the user.",
+                                    example = "false",
+                                    requiredMode = RequiredMode.REQUIRED
+                                  )
+                                  isSensitive: Boolean,
+                                  @Schema(
+                                    description = "The scope of the variable.",
+                                    example = "project",
+                                    requiredMode = RequiredMode.REQUIRED
+                                  )
+                                  scope: String) {
     def convert: TemplateVariable = {
       if (value.isEmpty && template.isEmpty) {
         throw new BadUserInputException("Either the variable value or its template has to be defined.")
@@ -448,28 +459,43 @@ object VariableTemplateApi {
     }
   }
 
-  object TemplateVariableFormat {
-    def apply(variable: TemplateVariable): TemplateVariableFormat = {
-      TemplateVariableFormat(variable.name, Some(variable.value), variable.template, variable.description, variable.isSensitive, variable.scope)
+  object TemplateVariableJson {
+    def apply(variable: TemplateVariable): TemplateVariableJson = {
+      TemplateVariableJson(variable.name, Some(variable.value), variable.template, variable.description, variable.isSensitive, variable.scope)
     }
   }
 
   @Schema(description = "A list of template variables.")
-  case class TemplateVariablesFormat(@ArraySchema(
+  case class TemplateVariablesJson(@ArraySchema(
                                        schema = new Schema(
                                         description = "List of variables.",
-                                        required = true,
-                                        implementation = classOf[TemplateVariableFormat]
+                                        requiredMode = RequiredMode.REQUIRED,
+                                        implementation = classOf[TemplateVariableJson]
                                      ))
-                                     variables: Seq[TemplateVariableFormat]) {
+                                     variables: Seq[TemplateVariableJson],
+                                   @ArraySchema(
+                                       schema = new Schema(
+                                         description = "List of evaluation errors.",
+                                         requiredMode = RequiredMode.NOT_REQUIRED,
+                                         implementation = classOf[TemplateVariableErrorJson]
+                                     ))
+                                     errors: Option[Seq[TemplateVariableErrorJson]] = None) {
     def convert: TemplateVariables = {
       TemplateVariables(variables.map(_.convert))
     }
   }
 
-  object TemplateVariablesFormat {
-    def apply(variables: TemplateVariables): TemplateVariablesFormat = {
-      TemplateVariablesFormat(variables.variables.map(TemplateVariableFormat(_)))
+  @Schema(description = "An error message related to a variable.")
+  case class TemplateVariableErrorJson(variableName: String, message: String)
+
+
+  object TemplateVariablesJson {
+    def apply(variables: TemplateVariables): TemplateVariablesJson = {
+      TemplateVariablesJson(variables.variables.map(TemplateVariableJson(_)))
+    }
+
+    def apply(variables: TemplateVariables, ex: TemplateVariablesEvaluationException): TemplateVariablesJson = {
+      TemplateVariablesJson(variables.variables.map(TemplateVariableJson(_)), Some(ex.issues.map(e => TemplateVariableErrorJson(e.variable.name, e.ex.getMessage))))
     }
   }
 
@@ -486,7 +512,8 @@ object VariableTemplateApi {
                                     ))
                                   dependentTasks: Seq[TaskLink])
 
-  implicit val templateVariableFormat: OFormat[TemplateVariableFormat] = Json.format[TemplateVariableFormat]
-  implicit val templateVariablesFormat: OFormat[TemplateVariablesFormat] = Json.format[TemplateVariablesFormat]
+  implicit val templateVariableErrorFormat: OFormat[TemplateVariableErrorJson] = Json.format[TemplateVariableErrorJson]
+  implicit val templateVariableFormat: OFormat[TemplateVariableJson] = Json.format[TemplateVariableJson]
+  implicit val templateVariablesFormat: OFormat[TemplateVariablesJson] = Json.format[TemplateVariablesJson]
   implicit val variableDependenciesFormat: OFormat[VariableDependencies] = Json.format[VariableDependencies]
 }
