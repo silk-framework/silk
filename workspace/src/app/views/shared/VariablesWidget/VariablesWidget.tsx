@@ -69,7 +69,7 @@ const VariablesWidget: React.FC<VariableWidgetProps> = ({ projectId, taskId }) =
 
     const variableHasDependencies = dependencies?.dependentTasks.length || dependencies?.dependentVariables.length;
 
-    const evaluationErrorByName = React.useMemo(
+    const evaluationErrorByName: Map<string, string> = React.useMemo(
         () => new Map(evaluationErrors.map((e) => [e.variableName, e.message])),
         [evaluationErrors],
     );
@@ -291,6 +291,7 @@ const VariablesWidget: React.FC<VariableWidgetProps> = ({ projectId, taskId }) =
                                             isOnlyItem={variables.length === 1}
                                             onEdit={handleModalOpen}
                                             onDelete={handleDeleteModalOpen}
+                                            evaluationError={evaluationErrorByName.get(variable.name)}
                                         />
                                     ))}
                                 </OverviewItemList>
@@ -308,10 +309,17 @@ interface SortableVariableItemProps {
     isOnlyItem: boolean;
     onEdit: (variable: Variable) => void;
     onDelete: (variable: Variable) => void;
+    evaluationError: string | undefined;
 }
 
 /** A single variable entry. */
-const SortableVariableItem: React.FC<SortableVariableItemProps> = ({ variable, isOnlyItem, onEdit, onDelete }) => {
+const SortableVariableItem: React.FC<SortableVariableItemProps> = ({
+    variable,
+    isOnlyItem,
+    onEdit,
+    onDelete,
+    evaluationError,
+}) => {
     const [t] = useTranslation();
     const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
         id: variable.name,
@@ -356,13 +364,9 @@ const SortableVariableItem: React.FC<SortableVariableItemProps> = ({ variable, i
                         </PropertyValue>
                     </PropertyValuePair>
                 </ToolbarSection>
-                {evaluationErrorByName.has(variable.name) ? (
+                {evaluationError ? (
                     <ToolbarSection>
-                        <Icon
-                            name={"state-warning"}
-                            intent={"warning"}
-                            tooltipText={evaluationErrorByName.get(variable.name) ?? ""}
-                        />
+                        <Icon name={"state-warning"} intent={"warning"} tooltipText={evaluationError} />
                     </ToolbarSection>
                 ) : null}
                 <ToolbarSection
