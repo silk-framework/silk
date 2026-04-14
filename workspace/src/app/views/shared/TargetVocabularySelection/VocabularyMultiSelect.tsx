@@ -4,10 +4,9 @@ import {
     highlighterUtils,
     MenuItem,
     MultiSuggestField,
-    highlighterUtils,
-    Spacing,
     MultiSuggestFieldCommonProps,
     OverflowText,
+    Spacing,
 } from "@eccenca/gui-elements";
 import React, { useEffect, useState } from "react";
 import type { TagProps } from "@blueprintjs/core/src/components/tag/tag";
@@ -49,9 +48,6 @@ export default function VocabularyMultiSelect({
     const selectedVocabs = React.useRef<IVocabularyInfo[]>([]);
     const [t] = useTranslation();
     const { registerError } = useErrorHandler();
-    const [selectedVocabs, setSelectedVocabs] = useState<IVocabularyInfo[]>([]);
-    const [filteredVocabs, setFilteredVocabs] = useState<IVocabularyInfo[]>([]);
-    const [searchQuery, setSearchQuery] = useState<string | undefined>(undefined);
     const [warning, setWarning] = React.useState<React.JSX.Element | null>(null);
 
     const availableVocabUris = new Set(availableVocabularies.map((v) => v.uri));
@@ -127,7 +123,7 @@ export default function VocabularyMultiSelect({
     };
 
     const getTagProps = React.useCallback(
-        (_value: string, index: number): TagProps => {
+        (_value: React.ReactNode, index: number): TagProps => {
             const vocab = selectedVocabs[index];
             const isAvailable = vocab && availableVocabUris.has(vocab.uri);
             return {
@@ -190,6 +186,21 @@ export default function VocabularyMultiSelect({
                 selectedItems={preselectedVocabs}
                 onSelection={(selection) => {
                     selectedVocabs.current = selection.selectedItems;
+                    const vocab = selection.newlySelected;
+                    if (vocab && !availableVocabUris.has(vocab.uri)) {
+                        setWarning(
+                            registerError(
+                                "VocabularyMultiSelect_customVocabularyWarning",
+                                t("widget.TargetVocabularySelection.customVocabularyWarning", { uri: vocab.uri }),
+                                null,
+                                {
+                                    intent: "warning",
+                                    errorNotificationInstanceId: "VocabularyMultiSelect",
+                                    onDismiss: () => setWarning(null),
+                                },
+                            ),
+                        );
+                    }
                     if (onSelection) {
                         onSelection(selection.selectedItems);
                     }
@@ -198,6 +209,9 @@ export default function VocabularyMultiSelect({
                 newItemCreationText={allowCustomEntries ? "Add custom vocabulary" : undefined}
                 inputProps={{
                     id: "vocselect",
+                }}
+                tagInputProps={{
+                    tagProps: getTagProps,
                 }}
                 placeholder={"Select vocabularies..."}
                 clearQueryOnSelection={true}
