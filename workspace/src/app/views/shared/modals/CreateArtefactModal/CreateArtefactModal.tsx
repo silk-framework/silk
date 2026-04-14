@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { Fragment, useEffect, useRef, useState } from "react";
 import { batch, useDispatch, useSelector } from "react-redux";
 import { useForm } from "react-hook-form";
 import {
@@ -1102,10 +1102,10 @@ export function CreateArtefactModal() {
             notifications={
                 notifications.length > 0
                     ? notifications.map((notification, idx) => (
-                          <>
+                          <Fragment key={notification.key}>
                               {notification}
                               {idx < notifications.length - 1 && <Spacing size="small" />}
-                          </>
+                          </Fragment>
                       ))
                     : undefined
             }

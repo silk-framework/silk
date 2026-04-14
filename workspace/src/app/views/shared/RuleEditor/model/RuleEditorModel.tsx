@@ -47,6 +47,7 @@ import { RuleEditorEvaluationContext, RuleEditorEvaluationContextProps } from ".
 import {
     InteractionGate,
     Markdown,
+    NodeContentHandleProps,
     NodeContentProps,
     nodeDefaultUtils,
     NodeDimensions,

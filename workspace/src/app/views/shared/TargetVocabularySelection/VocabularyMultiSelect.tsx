@@ -100,28 +100,6 @@ export default function VocabularyMultiSelect({
         );
     };
 
-    const handleVocabSelect = (vocab: IVocabularyInfo) => {
-        if (vocabSelected(vocab)) {
-            removeVocabFromSelection(vocab.uri);
-        } else {
-            if (!availableVocabUris.has(vocab.uri)) {
-                setWarning(
-                    registerError(
-                        "VocabularyMultiSelect_customVocabularyWarning",
-                        t("widget.TargetVocabularySelection.customVocabularyWarning", { uri: vocab.uri }),
-                        null,
-                        {
-                            intent: "warning",
-                            errorNotificationInstanceId: "VocabularyMultiSelect",
-                            onDismiss: () => setWarning(null),
-                        },
-                    ),
-                );
-            }
-            setSelectedVocabs([...selectedVocabs, vocab]);
-        }
-    };
-
     const getTagProps = React.useCallback(
         (_value: React.ReactNode, index: number): TagProps => {
             const vocab = selectedVocabs[index];
