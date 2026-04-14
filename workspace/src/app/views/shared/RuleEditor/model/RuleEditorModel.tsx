@@ -47,16 +47,15 @@ import { RuleEditorEvaluationContext, RuleEditorEvaluationContextProps } from ".
 import {
     InteractionGate,
     Markdown,
-    nodeDefaultUtils,
     NodeContentProps,
-    NodeContentHandleProps,
-    StickyNote,
+    nodeDefaultUtils,
     NodeDimensions,
     Notification,
+    StickyNote,
 } from "@eccenca/gui-elements";
 import { LINKING_NODE_TYPES } from "@eccenca/gui-elements/src/cmem/react-flow/configuration/typing";
 import StickyMenuButton from "../view/components/StickyMenuButton";
-import { InputPathFunctions, LanguageFilterProps } from "../view/ruleNode/PathInputOperator";
+import { InputPathFunctions } from "../view/ruleNode/PathInputOperator";
 import { requestRuleOperatorPluginDetails } from "@ducks/common/requests";
 import useErrorHandler from "../../../../hooks/useErrorHandler";
 import { PUBLIC_URL } from "../../../../constants/path";
