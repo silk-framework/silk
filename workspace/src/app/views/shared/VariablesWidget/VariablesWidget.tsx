@@ -1,17 +1,17 @@
 import React from "react";
-import {DndContext, KeyboardSensor, useSensor, useSensors} from "@dnd-kit/core";
+import { DndContext, KeyboardSensor, useSensor, useSensors } from "@dnd-kit/core";
 import {
     arrayMove,
     SortableContext,
     sortableKeyboardCoordinates,
     useSortable,
-    verticalListSortingStrategy
+    verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
-import {CSS} from "@dnd-kit/utilities";
-import {restrictToVerticalAxis} from "@dnd-kit/modifiers";
+import { CSS } from "@dnd-kit/utilities";
+import { restrictToVerticalAxis } from "@dnd-kit/modifiers";
 
 //typing
-import {Variable, VariableDependencies, VariableWidgetProps} from "./typing";
+import { TemplateVariableError, Variable, VariableDependencies, VariableWidgetProps } from "./typing";
 import {
     Card,
     CardContent,
@@ -32,14 +32,15 @@ import {
     ToolbarSection,
     Tooltip,
 } from "@eccenca/gui-elements";
-import {useTranslation} from "react-i18next";
-import {deleteVariableRequest, getVariableDependencies, getVariables, reorderVariablesRequest} from "./requests";
+import { useTranslation } from "react-i18next";
+import { deleteVariableRequest, getVariableDependencies, getVariables, reorderVariablesRequest } from "./requests";
 import useErrorHandler from "../../../hooks/useErrorHandler";
 import Loading from "../Loading";
 import NewVariableModal from "./modals/NewVariableModal";
 import DeleteModal from "../modals/DeleteModal";
-import {ErrorResponse, FetchError} from "../../../services/fetch/responseInterceptor";
-import {useModalError} from "../../../hooks/useModalError";
+import { ErrorResponse, FetchError } from "../../../services/fetch/responseInterceptor";
+import { contextualPath } from "../../../constants/path";
+import { useModalError } from "../../../hooks/useModalError";
 import dndkitUtils from "../../../utils/dndkitUtils";
 
 const VariablesWidget: React.FC<VariableWidgetProps> = ({ projectId, taskId }) => {
@@ -56,16 +57,22 @@ const VariablesWidget: React.FC<VariableWidgetProps> = ({ projectId, taskId }) =
     const [dropChangeLoading, setDropChangeLoading] = React.useState<boolean>(false);
     const [dependencies, setVariableDependencies] = React.useState<VariableDependencies>();
     const [errorNotification, setErrorNotification] = React.useState<React.JSX.Element | null>(null);
+    const [evaluationErrors, setEvaluationErrors] = React.useState<TemplateVariableError[]>([]);
     const [t] = useTranslation();
 
     const sensors = useSensors(
         useSensor(dndkitUtils.DefaultMouseSensor, dndkitUtils.defaultMouseSensorOptions),
         useSensor(KeyboardSensor, {
             coordinateGetter: sortableKeyboardCoordinates,
-        })
+        }),
     );
 
     const variableHasDependencies = dependencies?.dependentTasks.length || dependencies?.dependentVariables.length;
+
+    const evaluationErrorByName: Map<string, string> = React.useMemo(
+        () => new Map(evaluationErrors.map((e) => [e.variableName, e.message])),
+        [evaluationErrors],
+    );
 
     // initial loading of variables
     React.useEffect(() => {
@@ -74,6 +81,7 @@ const VariablesWidget: React.FC<VariableWidgetProps> = ({ projectId, taskId }) =
                 setLoadingVariables(true);
                 const { data } = await getVariables(projectId);
                 setVariables(data?.variables ?? []);
+                setEvaluationErrors(data?.errors ?? []);
             } catch (err) {
                 registerError("variable-config", t("widget.VariableWidget.errorMessages.loadingVariables"), err);
             } finally {
@@ -138,8 +146,8 @@ const VariablesWidget: React.FC<VariableWidgetProps> = ({ projectId, taskId }) =
                 return;
             }
 
-            const oldIndex = variables.findIndex(v => v.name === active.id);
-            const newIndex = variables.findIndex(v => v.name === over.id);
+            const oldIndex = variables.findIndex((v) => v.name === active.id);
+            const newIndex = variables.findIndex((v) => v.name === over.id);
 
             const reorderedVariables = arrayMove(variables, oldIndex, newIndex);
 
@@ -196,7 +204,7 @@ const VariablesWidget: React.FC<VariableWidgetProps> = ({ projectId, taskId }) =
                         <ul>
                             {dependencies.dependentTasks.map((task) => (
                                 <li key={task.id}>
-                                    <Link href={task.taskLink} target="_blank">
+                                    <Link href={contextualPath(task.taskLink)} target="_blank">
                                         <Tooltip content={t("common.action.openInNewTab")}>
                                             {task.label ?? task.id}
                                         </Tooltip>
@@ -252,13 +260,29 @@ const VariablesWidget: React.FC<VariableWidgetProps> = ({ projectId, taskId }) =
                 {errorNotification}
                 <Divider />
                 <CardContent style={{ maxHeight: "25vh" }}>
+                    {evaluationErrors.length > 0 && (
+                        <Notification
+                            intent="warning"
+                            message={t(
+                                "widget.VariableWidget.evaluationErrors.title",
+                                "Some variables could not be evaluated.",
+                            )}
+                        />
+                    )}
                     {loadingVariables ? (
                         <Loading />
                     ) : !variables.length ? (
                         <Notification message={t("widget.VariableWidget.noVariables", "No  Variables set")} />
                     ) : (
-                        <DndContext sensors={sensors} onDragEnd={handleVariableDragEnd} modifiers={[restrictToVerticalAxis]}>
-                            <SortableContext items={variables.map((v) => v.name)} strategy={verticalListSortingStrategy}>
+                        <DndContext
+                            sensors={sensors}
+                            onDragEnd={handleVariableDragEnd}
+                            modifiers={[restrictToVerticalAxis]}
+                        >
+                            <SortableContext
+                                items={variables.map((v) => v.name)}
+                                strategy={verticalListSortingStrategy}
+                            >
                                 <OverviewItemList hasDivider>
                                     {variables.map((variable) => (
                                         <SortableVariableItem
@@ -267,6 +291,7 @@ const VariablesWidget: React.FC<VariableWidgetProps> = ({ projectId, taskId }) =
                                             isOnlyItem={variables.length === 1}
                                             onEdit={handleModalOpen}
                                             onDelete={handleDeleteModalOpen}
+                                            evaluationError={evaluationErrorByName.get(variable.name)}
                                         />
                                     ))}
                                 </OverviewItemList>
@@ -284,19 +309,22 @@ interface SortableVariableItemProps {
     isOnlyItem: boolean;
     onEdit: (variable: Variable) => void;
     onDelete: (variable: Variable) => void;
+    evaluationError: string | undefined;
 }
 
 /** A single variable entry. */
-const SortableVariableItem: React.FC<SortableVariableItemProps> = ({ variable, isOnlyItem, onEdit, onDelete }) => {
-    const [t] = useTranslation()
-    const {
-        attributes,
-        listeners,
-        setNodeRef,
-        transform,
-        transition,
-        isDragging,
-    } = useSortable({ id: variable.name, disabled: isOnlyItem });
+const SortableVariableItem: React.FC<SortableVariableItemProps> = ({
+    variable,
+    isOnlyItem,
+    onEdit,
+    onDelete,
+    evaluationError,
+}) => {
+    const [t] = useTranslation();
+    const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+        id: variable.name,
+        disabled: isOnlyItem,
+    });
 
     const style = {
         transform: CSS.Transform.toString(transform),
@@ -307,12 +335,7 @@ const SortableVariableItem: React.FC<SortableVariableItemProps> = ({ variable, i
     const draggableProps = isOnlyItem ? {} : { ...attributes, ...listeners };
 
     return (
-        <div
-            data-test-id="variable-list-item"
-            ref={setNodeRef}
-            style={style}
-            {...draggableProps}
-        >
+        <div data-test-id="variable-list-item" ref={setNodeRef} style={style} {...draggableProps}>
             <Toolbar noWrap>
                 {!isOnlyItem ? (
                     <ToolbarSection>
@@ -341,6 +364,11 @@ const SortableVariableItem: React.FC<SortableVariableItemProps> = ({ variable, i
                         </PropertyValue>
                     </PropertyValuePair>
                 </ToolbarSection>
+                {evaluationError ? (
+                    <ToolbarSection>
+                        <Icon name={"state-warning"} intent={"warning"} tooltipText={evaluationError} />
+                    </ToolbarSection>
+                ) : null}
                 <ToolbarSection
                     style={{
                         minWidth: "75px",

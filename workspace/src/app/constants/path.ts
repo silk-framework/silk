@@ -18,6 +18,9 @@ export const CONTEXT_PATH = DI.basePath || "";
  */
 export const SERVE_PATH = CONTEXT_PATH + "/workbench";
 
+/** Prepend the application context path to a server-supplied relative path. */
+export const contextualPath = (path: string): string => CONTEXT_PATH + path;
+
 /**
  * Full hostname
  */

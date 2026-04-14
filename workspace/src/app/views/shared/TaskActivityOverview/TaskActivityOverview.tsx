@@ -478,6 +478,7 @@ export function TaskActivityOverview({ projectId, taskId }: IProps) {
                 </OverviewItemDescription>
                 <OverviewItemActions>
                     <IconButton
+                        data-test-id={"reload-all-caches-btn"}
                         name="item-reload"
                         text={t("widget.TaskActivityOverview.reloadAllCaches")}
                         onClick={reloadAllCaches}

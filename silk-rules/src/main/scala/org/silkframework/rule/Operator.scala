@@ -37,6 +37,11 @@ trait Operator {
   def children: Seq[Operator]
 
   /**
+    * Generates the same operator with a new identifier.
+    */
+  def withId(newId: Identifier): Operator
+
+  /**
     * Generates the same operator with new children.
     */
   def withChildren(newChildren: Seq[Operator]): Operator

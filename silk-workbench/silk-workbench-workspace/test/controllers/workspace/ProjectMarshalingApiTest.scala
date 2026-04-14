@@ -5,7 +5,7 @@ import org.scalatestplus.play.PlaySpec
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.resource._
 import org.silkframework.runtime.validation.RequestException
-import org.silkframework.util.Identifier
+import org.silkframework.util.{Identifier, Uri}
 import org.silkframework.workspace.WorkspaceFactory
 import org.silkframework.workspace.resources.ResourceRepository
 import play.api.libs.ws.WSResponse
@@ -15,7 +15,9 @@ import play.shaded.ahc.org.asynchttpclient.{AsyncCompletionHandler, AsyncHttpCli
 
 import java.io._
 import java.nio.charset.StandardCharsets
+import java.util.zip.ZipInputStream
 import scala.concurrent.{Future, Promise}
+import scala.io.{Codec, Source}
 import scala.util.Try
 
 class ProjectMarshalingApiTest extends PlaySpec with IntegrationTestTrait {
@@ -36,7 +38,7 @@ class ProjectMarshalingApiTest extends PlaySpec with IntegrationTestTrait {
     val workspaceBytes = ClasspathResource("controllers/workspace/workspace.zip").loadAsBytes
     importWorkspace(workspaceBytes)
 
-    WorkspaceFactory().workspace.projects.map(_.config.id).toSet mustBe Set("example", "movies")
+    WorkspaceFactory().workspace.userProjects.map(_.config.id).toSet mustBe Set("example", "movies")
   }
 
   "export the entire workspace" in {
@@ -44,7 +46,7 @@ class ProjectMarshalingApiTest extends PlaySpec with IntegrationTestTrait {
     clearWorkspace()
     importWorkspace(exportedWorkspace)
 
-    WorkspaceFactory().workspace.projects.map(_.config.id).toSet mustBe Set("example", "movies")
+    WorkspaceFactory().workspace.userProjects.map(_.config.id).toSet mustBe Set("example", "movies")
   }
 
   "fail to export if a project file cannot be accessed" in {
@@ -52,12 +54,15 @@ class ProjectMarshalingApiTest extends PlaySpec with IntegrationTestTrait {
     importWorkspace(workspaceBytes)
 
     failOnResources = Set("source.nt")
+    try {
+      val exception = the[RequestFailedException] thrownBy exportProject("example")
+      (exception.response.json \ "title").as[String] mustBe CannotAccessResourceException.errorTitle
 
-    val exception = the[RequestFailedException] thrownBy exportProject("example")
-    (exception.response.json \ "title").as[String] mustBe CannotAccessResourceException.errorTitle
-
-    val exception2 = the[RequestFailedException] thrownBy exportWorkspace()
-    (exception2.response.json \ "title").as[String] mustBe CannotAccessResourceException.errorTitle
+      val exception2 = the[RequestFailedException] thrownBy exportWorkspace()
+      (exception2.response.json \ "title").as[String] mustBe CannotAccessResourceException.errorTitle
+    } finally {
+      failOnResources = Set.empty
+    }
   }
 
   "import single project workspace as project" in {
@@ -65,7 +70,7 @@ class ProjectMarshalingApiTest extends PlaySpec with IntegrationTestTrait {
     val projectZipBytes = ClasspathResource("controllers/workspace/singleProjectWorkspace.zip").loadAsBytes
     importProject(projectId, projectZipBytes)
 
-    WorkspaceFactory().workspace.projects.map(_.config.id).toSet must contain (projectId)
+    WorkspaceFactory().workspace.userProjects.map(_.config.id).toSet must contain (projectId)
   }
 
   "throw error if no project is found" in {
@@ -73,7 +78,65 @@ class ProjectMarshalingApiTest extends PlaySpec with IntegrationTestTrait {
     val projectZipBytes = ClasspathResource("controllers/workspace/nonProject.zip").loadAsBytes
     importProject(projectId, projectZipBytes, expectedResponseCodePrefix = '4')
 
-    WorkspaceFactory().workspace.projects.map(_.config.id).toSet must not contain projectId
+    WorkspaceFactory().workspace.userProjects.map(_.config.id).toSet must not contain projectId
+  }
+
+  "export project without user data when exportUserData is false" in {
+    implicit val userContext: UserContext = UserContext.Empty
+    importWorkspace(ClasspathResource("controllers/workspace/workspace.zip").loadAsBytes)
+
+    // Set user data directly on the "example" project config
+    val userUri = Uri("urn:user:testuser")
+    val workspace = WorkspaceFactory().workspace
+    val project = workspace.project("example")
+    val updatedConfig = project.config.copy(metaData = project.config.metaData.copy(
+      createdByUser = Some(userUri),
+      lastModifiedByUser = Some(userUri)
+    ))
+    workspace.provider.putProject(updatedConfig)
+    workspace.reload()
+
+    val noUserDataBytes = checkResponse(client.url(s"$baseUrl/projects/example/export/xmlZip?exportUserData=false").get()).bodyAsBytes.toArray
+    getZipEntry(noUserDataBytes, "example/config.xml") must not include ("urn:user:testuser")
+
+    val withUserDataBytes = checkResponse(client.url(s"$baseUrl/projects/example/export/xmlZip?exportUserData=true").get()).bodyAsBytes.toArray
+    getZipEntry(withUserDataBytes, "example/config.xml") must include ("urn:user:testuser")
+  }
+
+  "export workspace without user data when exportUserData is false" in {
+    implicit val userContext: UserContext = UserContext.Empty
+    importWorkspace(ClasspathResource("controllers/workspace/workspace.zip").loadAsBytes)
+
+    // Set user data directly on the "example" project config
+    val userUri = Uri("urn:user:testuser")
+    val workspace = WorkspaceFactory().workspace
+    val project = workspace.project("example")
+    val updatedConfig = project.config.copy(metaData = project.config.metaData.copy(
+      createdByUser = Some(userUri),
+      lastModifiedByUser = Some(userUri)
+    ))
+    workspace.provider.putProject(updatedConfig)
+    workspace.reload()
+
+    val noUserDataBytes = checkResponse(client.url(s"$baseUrl/export/xmlZip?exportUserData=false").get()).bodyAsBytes.toArray
+    getZipEntry(noUserDataBytes, "example/config.xml") must not include ("urn:user:testuser")
+
+    val withUserDataBytes = checkResponse(client.url(s"$baseUrl/export/xmlZip?exportUserData=true").get()).bodyAsBytes.toArray
+    getZipEntry(withUserDataBytes, "example/config.xml") must include ("urn:user:testuser")
+  }
+
+  private def getZipEntry(zipBytes: Array[Byte], entryName: String): String = {
+    val zip = new ZipInputStream(new ByteArrayInputStream(zipBytes))
+    var nextEntry = zip.getNextEntry
+    var result = ""
+    while (nextEntry != null && result.isEmpty) {
+      if (nextEntry.getName == entryName) {
+        result = Source.fromInputStream(zip)(Codec.UTF8).mkString
+      }
+      nextEntry = zip.getNextEntry
+    }
+    zip.close()
+    result
   }
 
   private def importProject(projectId: String, xmlZipInputBytes: Array[Byte], expectedResponseCodePrefix: Char = '2'): Unit = {
@@ -123,7 +186,7 @@ class ProjectMarshalingApiTest extends PlaySpec with IntegrationTestTrait {
   private def clearWorkspace()
                             (implicit userContext: UserContext): Unit = {
     WorkspaceFactory().workspace.clear()
-    WorkspaceFactory().workspace.projects.map(_.config.id).toSet mustBe Set.empty
+    WorkspaceFactory().workspace.userProjects.map(_.config.id).toSet mustBe Set.empty
   }
 
   private def executeAsyncRequest(asyncHttpClient: AsyncHttpClient,

@@ -23,7 +23,7 @@ object JsonSerializer {
 
   def projectsJson(implicit userContext: UserContext): JsArray = {
     JsArray(
-      for (project <- WorkspaceFactory().workspace.projects) yield {
+      for (project <- WorkspaceFactory().workspace.userProjects) yield {
         projectJson(project)
       }
     )

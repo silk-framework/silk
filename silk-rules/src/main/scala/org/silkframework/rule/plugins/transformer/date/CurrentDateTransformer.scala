@@ -5,13 +5,19 @@ import java.util.GregorianCalendar
 import javax.xml.datatype.DatatypeFactory
 import org.silkframework.rule.plugins.transformer.date.CurrentDateTransformer._
 import org.silkframework.rule.input.Transformer
-import org.silkframework.runtime.plugin.annotations.Plugin
+import org.silkframework.runtime.plugin.annotations.{Plugin, PluginReference}
 
 @Plugin(
-  id = "currentDate",
+  id = CurrentDateTransformer.pluginId,
   label = "Current date",
   categories = Array("Date", "Value"),
-  description = "Outputs the current date."
+  description = "Outputs the current date.",
+  relatedPlugins = Array(
+    new PluginReference(
+      id = ParseDateTransformer.pluginId,
+      description = "Current date always outputs today's date, ignoring whatever values it receives. Parse date is input-driven: it reads a date from the input string and converts it according to a configured format."
+    )
+  )
 )
 case class CurrentDateTransformer() extends Transformer {
 
@@ -22,7 +28,6 @@ case class CurrentDateTransformer() extends Transformer {
 }
 
 object CurrentDateTransformer {
-
+  final val pluginId = "currentDate"
   private val datatypeFactory = DatatypeFactory.newInstance()
-
 }

@@ -63,7 +63,7 @@ trait TestWorkspaceProviderTestTrait extends BeforeAndAfterAll { this: TestSuite
     WorkspaceFactory.factory = rdfWorkspaceFactory
     implicit val testUserContext: UserContext.Empty.type = UserContext.Empty
     if(initWorkspaceBeforeAll) {
-      WorkspaceFactory().workspace.projects // Initialize workspace before starting tests
+      WorkspaceFactory().workspace.userProjects // Initialize workspace before starting tests
     }
     runAfterWorkspaceInit()
   }
@@ -79,7 +79,7 @@ trait TestWorkspaceProviderTestTrait extends BeforeAndAfterAll { this: TestSuite
   }
 
   def retrieveOrCreateProject(projectId: Identifier, prefixes: Prefixes = Prefixes.default)(implicit userContext: UserContext): Project = {
-    WorkspaceFactory().workspace(userContext).findProject(projectId) match{
+    WorkspaceFactory().workspace(userContext).projectOption(projectId) match{
       case Some(p) => p
       case None => WorkspaceFactory().workspace(userContext).createProject(new ProjectConfig(projectId, metaData = MetaData(Some(projectId)), projectPrefixes = prefixes))
     }

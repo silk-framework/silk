@@ -1,17 +1,17 @@
 import React from "react";
-import {RuleEditorModel} from "../RuleEditorModel";
-import {RenderResultApi, renderWrapper} from "../../../../../../../test/integration/TestHelper";
-import {RuleEditorModelContext, RuleEditorModelContextProps} from "../../contexts/RuleEditorModelContext";
+import { RuleEditorModel } from "../RuleEditorModel";
+import { RenderResultApi, renderWrapper } from "../../../../../../../test/integration/TestHelper";
+import { RuleEditorModelContext, RuleEditorModelContextProps } from "../../contexts/RuleEditorModelContext";
 import {
     Elements,
     FitViewParams,
     FlowElement,
     FlowExportObject,
     FlowTransform,
-    ReactFlowProvider
+    ReactFlowProvider,
 } from "react-flow-renderer";
-import {act, cleanup, waitFor} from "@testing-library/react";
-import {RuleEditorContext} from "../../contexts/RuleEditorContext";
+import { act, cleanup, waitFor } from "@testing-library/react";
+import { RuleEditorContext } from "../../contexts/RuleEditorContext";
 import {
     IParameterSpecification,
     IPortSpecification,
@@ -21,13 +21,13 @@ import {
     RuleOperatorNodeParameters,
     RuleSaveResult,
 } from "../../RuleEditor.typings";
-import {XYPosition} from "react-flow-renderer/dist/types";
+import { XYPosition } from "react-flow-renderer/dist/types";
 import utils from "../../RuleEditor.utils";
-import {DEFAULT_NODE_HEIGHT, DEFAULT_NODE_WIDTH, ruleEditorModelUtilsFactory} from "../RuleEditorModel.utils";
-import {RuleEditorNode} from "../RuleEditorModel.typings";
-import {rangeArray} from "../../../../../utils/basicUtils";
-import {LINKING_NODE_TYPES} from "@eccenca/gui-elements/src/cmem/react-flow/configuration/typing";
-import {nodeDefaultUtils, StickyNote} from "@eccenca/gui-elements";
+import { DEFAULT_NODE_HEIGHT, DEFAULT_NODE_WIDTH, ruleEditorModelUtilsFactory } from "../RuleEditorModel.utils";
+import { RuleEditorNode } from "../RuleEditorModel.typings";
+import { rangeArray } from "../../../../../utils/basicUtils";
+import { LINKING_NODE_TYPES } from "@eccenca/gui-elements/src/cmem/react-flow/configuration/typing";
+import { nodeDefaultUtils, StickyNote } from "@eccenca/gui-elements";
 
 let modelContext: RuleEditorModelContextProps | undefined;
 const currentContext = () => modelContext as RuleEditorModelContextProps;
@@ -83,7 +83,7 @@ describe("Rule editor model", () => {
         stickyNotes: StickyNote[] = [],
     ) => {
         // Remove previously mounted components (needed if called multiple times in the same test)
-        cleanup()
+        cleanup();
         modelContext = undefined;
         const Provider: React.FC<{ children: React.JSX.Element }> = ReactFlowProvider;
         const ruleModel = await act(() => {
@@ -99,7 +99,7 @@ describe("Rule editor model", () => {
                         stickyNotes,
                         saveRule: (ruleOperatorNodes): RuleSaveResult => {
                             savedRuleOperatorNodes = ruleOperatorNodes;
-                            return {success: true};
+                            return { success: true };
                         },
                         convertRuleOperatorToRuleNode: utils.defaults.convertRuleOperatorToRuleNode,
                         operatorSpec,
@@ -112,12 +112,12 @@ describe("Rule editor model", () => {
                 >
                     <Provider>
                         <RuleEditorModel>
-                            <RuleEditorModelTestComponent/>
+                            <RuleEditorModelTestComponent />
                         </RuleEditorModel>
                     </Provider>
-                </RuleEditorContext.Provider>
+                </RuleEditorContext.Provider>,
             );
-        })
+        });
         await waitFor(() => {
             expect(modelContext).toBeTruthy();
             modelContext!!.setReactFlowInstance({
@@ -296,7 +296,7 @@ describe("Rule editor model", () => {
                     .sort((left, right) => (left < right ? 1 : -1)),
             ).toStrictEqual(["pluginA", "node B", "1"]);
         };
-        await waitFor(checkBeforeAdd)
+        await waitFor(checkBeforeAdd);
 
         // Add nodes
         const position = { x: 5, y: 10 };
@@ -335,9 +335,9 @@ describe("Rule editor model", () => {
         const checkBeforeChange = () => {
             const node = allStickyNodes()[0];
             expect(node.data.style).toEqual(defaultStyle);
-            return node
+            return node;
         };
-        const node = await waitFor(checkBeforeChange)
+        const node = await waitFor(checkBeforeChange);
 
         const checkAfterChange = () => {
             expect(modelUtils.nodeById(currentContext().elements, node.id)!!.data.style).not.toStrictEqual(
@@ -359,8 +359,8 @@ describe("Rule editor model", () => {
             return await waitFor(() => {
                 const node = allStickyNodes()[0];
                 expect(node.data.businessData.stickyNote).toStrictEqual(stickyNote);
-                return node
-            })
+                return node;
+            });
         };
         const node = await checkBeforeChange();
         const newContent = "**new Content**";
@@ -384,7 +384,7 @@ describe("Rule editor model", () => {
         const checkBeforeChange = () => {
             expect(node.data.nodeDimensions).toEqual(defaultNodeDimensions);
         };
-        await waitFor(checkBeforeChange)
+        await waitFor(checkBeforeChange);
         const randomNewNodeDimensions = { width: DEFAULT_NODE_WIDTH + 30, height: DEFAULT_NODE_HEIGHT + 10 };
         const checkAfterChange = () => {
             expect(modelUtils.nodeById(currentContext().elements, node.id)!!.data.nodeDimensions).toEqual(
@@ -412,7 +412,7 @@ describe("Rule editor model", () => {
             // 3 nodes, 3 edges
             expect(currentContext().elements).toHaveLength(6);
         };
-        await waitFor(checkBeforeDelete)
+        await waitFor(checkBeforeDelete);
 
         // Delete node
         act(() => {
@@ -443,7 +443,7 @@ describe("Rule editor model", () => {
         const checkBeforeMove = () => {
             expect(modelUtils.nodeById(currentContext().elements, nodeId)!!.position).toStrictEqual(startPosition);
         };
-        await waitFor(checkBeforeMove)
+        await waitFor(checkBeforeMove);
 
         // Move node
         const newPosition = { x: 100, y: 102 };
@@ -609,7 +609,7 @@ describe("Rule editor model", () => {
         const checkBeforeDelete = () => {
             expect(currentContext().elements).toHaveLength(6);
         };
-        await waitFor(checkBeforeDelete)
+        await waitFor(checkBeforeDelete);
         act(() => {
             currentContext().executeModelEditOperation.deleteNodes(["nodeA", "nodeC"]);
         });
@@ -631,7 +631,7 @@ describe("Rule editor model", () => {
         const checkBeforeCopyAndPaste = () => {
             expect(currentContext().elements).toHaveLength(6);
         };
-        await waitFor(checkBeforeCopyAndPaste)
+        await waitFor(checkBeforeCopyAndPaste);
 
         // Copy and paste first time
         act(() => {
@@ -667,7 +667,7 @@ describe("Rule editor model", () => {
         const checkBeforeAdd = () => {
             expect(currentContext().elements).toHaveLength(2);
         };
-        await waitFor(checkBeforeAdd)
+        await waitFor(checkBeforeAdd);
 
         // Add edge
         act(() => {
@@ -753,10 +753,19 @@ describe("Rule editor model", () => {
             ]),
         );
         recordCurrentState("Initial state");
+        expect(currentContext().canUndo).toBe(false);
         // Record every change and check that after undo and later redo the states match
-        await recordedTransaction("Add a node", () => {
-            currentContext().executeModelEditOperation.addNode(operator("pluginA"), { x: 1, y: 2 });
-        });
+        await recordedTransaction(
+            "Add a node",
+            () => {
+                currentContext().executeModelEditOperation.addNode(operator("pluginA"), { x: 1, y: 2 });
+            },
+            async () => {
+                await waitFor(() => {
+                    expect(currentContext().canUndo).toBe(true);
+                });
+            },
+        );
         await recordedTransaction("Move node", () => {
             currentContext().executeModelEditOperation.moveNode("nodeA", { x: 2, y: 3 });
         });
@@ -819,7 +828,7 @@ describe("Rule editor model", () => {
             for (let changeIdx = stateHistory.length - 1; changeIdx > 0; changeIdx--) {
                 await waitFor(() => {
                     expect(allNodes()).toStrictEqual(stateHistory[changeIdx]);
-                })
+                });
                 resultApi.assert(
                     currentContext().canUndo,
                     `Undo changes failed because 'can undo' is false. Round: ${i + 1}, Change: ${changeIdx + 1}/${stateHistory.length}. Currently at '${stateHistoryLabel[changeIdx]}' trying to undo to state '${stateHistoryLabel[changeIdx - 1]}'.'`,
@@ -830,7 +839,7 @@ describe("Rule editor model", () => {
                 await waitFor(() => {
                     expect(allNodes()).not.toStrictEqual(stateHistory[changeIdx]);
                     expect(allNodes()).toStrictEqual(stateHistory[changeIdx - 1]);
-                })
+                });
             }
             console.log("Test REDO");
             for (let changeIdx = 1; changeIdx < stateHistory.length; changeIdx++) {

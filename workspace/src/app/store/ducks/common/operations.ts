@@ -10,7 +10,12 @@ import {
 } from "@ducks/common/requests";
 import { AlternativeTaskUpdateFunction, IPluginOverview } from "@ducks/common/typings";
 import { commonOp, commonSel } from "@ducks/common/index";
-import { requestCreateProject, requestCreateTask, requestUpdateProjectTask } from "@ducks/workspace/requests";
+import {
+    ICreateProjectPayload,
+    requestCreateProject,
+    requestCreateTask,
+    requestUpdateProjectTask,
+} from "@ducks/workspace/requests";
 import { routerOp } from "@ducks/router";
 import { IProjectTask, TaskType } from "@ducks/shared/typings";
 import { HttpError } from "../../../services/fetch/responseInterceptor";
@@ -183,11 +188,10 @@ const splitParameterAndVariableTemplateParameters = (formData: any, variableTemp
 /** Builds a request object for project/task create call. */
 const buildStringValuedObject = (formData: Record<string, any>): TaskParameters => {
     const returnObject: TaskParameters = Object.create(null);
-    const params = Object.entries(formData)
+    const params = Object.entries(formData);
     params.forEach(([paramId, param]) => {
-        const convertedParam: TaskParameters | string = typeof param === "object" ?
-            buildStringValuedObject(param) :
-            "" + param
+        const convertedParam: TaskParameters | string =
+            typeof param === "object" ? buildStringValuedObject(param) : "" + param;
         returnObject[paramId] = convertedParam;
     });
     return returnObject;
@@ -205,13 +209,14 @@ const createArtefactAsync = (
     variableTemplateParameterSet: Set<string>,
     /** If this is set, then instead of redirecting to the newly created task, this function is called. */
     alternativeCallback?: (newTask: IProjectTask) => any,
+    groups?: string[],
 ) => {
     return async (dispatch, getState) => {
         const { selectedArtefact } = commonSel.artefactModalSelector(getState());
 
         switch (taskType) {
             case "Project":
-                await dispatch(fetchCreateProjectAsync(formData));
+                await dispatch(fetchCreateProjectAsync(formData, groups));
                 break;
             default:
                 if (selectedArtefact) {
@@ -239,7 +244,7 @@ const createTagsAndAddToMetadata = async (payload: {
     label: string;
     description?: string;
     tags?: MultiSuggestFieldSelectionProps<Keyword>;
-    projectId?: string;
+    projectId: string;
     taskId?: string;
 }) => {
     if (!payload.tags?.createdItems.length || !payload.tags.selectedItems.length) return;
@@ -249,15 +254,12 @@ const createTagsAndAddToMetadata = async (payload: {
         payload.tags?.selectedItems,
     );
 
-    await utils.updateMetaData(
-        {
-            label: payload.label,
-            description: payload.description,
-            tags: tags ?? [],
-        },
-        payload.projectId,
-        payload.taskId,
-    );
+    const metaData = { label: payload.label, description: payload.description, tags: tags ?? [] };
+    if (payload.taskId) {
+        await utils.updateTaskMetaData(metaData, payload.projectId, payload.taskId);
+    } else {
+        await utils.updateProjectMetaData(metaData, payload.projectId);
+    }
 };
 
 /** Extracts form attributes that should be added to the data object directly instead of the parameter object. */
@@ -310,6 +312,9 @@ const fetchCreateTaskAsync = (
 
         dispatch(setModalError({}));
         try {
+            if (!currentProjectId) {
+                throw new Error("Not in a project context!");
+            }
             const data = await requestCreateTask(payload, currentProjectId);
             const newTask = data.data;
             const newTaskId = newTask.id;
@@ -385,22 +390,30 @@ const fetchUpdateTaskAsync = (
     };
 };
 
-const fetchCreateProjectAsync = (formData: {
-    label: string;
-    description?: string;
-    id?: string;
-    tags?: MultiSuggestFieldSelectionProps<Keyword>;
-}) => {
+const fetchCreateProjectAsync = (
+    formData: {
+        label: string;
+        description?: string;
+        id?: string;
+        tags?: MultiSuggestFieldSelectionProps<Keyword>;
+    },
+    groups?: string[],
+) => {
     return async (dispatch) => {
         dispatch(setModalError({}));
         const { label, description, id, tags } = formData;
-        const payload = {
+        const payload: ICreateProjectPayload = {
             metaData: {
                 label,
                 description,
             },
         };
-        if (id) payload["id"] = id;
+        if (id) {
+            payload.id = id;
+        }
+        if (groups) {
+            payload.groups = groups;
+        }
         try {
             const data = await requestCreateProject(payload);
             await createTagsAndAddToMetadata({ label, description, tags, projectId: data.name });

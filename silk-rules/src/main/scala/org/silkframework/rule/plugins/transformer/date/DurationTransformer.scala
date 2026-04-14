@@ -3,13 +3,19 @@ package org.silkframework.rule.plugins.transformer.date
 import javax.xml.bind.DatatypeConverter
 import javax.xml.datatype.DatatypeFactory
 import org.silkframework.rule.input.Transformer
-import org.silkframework.runtime.plugin.annotations.Plugin
+import org.silkframework.runtime.plugin.annotations.{Plugin, PluginReference}
 
 @Plugin(
-  id = "duration",
+  id = DurationTransformer.pluginId,
   categories = Array("Date"),
   label = "Duration",
-  description = "Computes the time difference between two data times."
+  description = "Computes the time difference between two data times.",
+  relatedPlugins = Array(
+    new PluginReference(
+      id = NumberToDurationTransformer.pluginId,
+      description = "Duration is a measurement plugin: it takes a start and an end date and returns the interval between them as a duration. Number to duration is a construction plugin: it takes a number and builds a duration from it."
+    )
+  )
 )
 case class DurationTransformer() extends Transformer {
 
@@ -37,4 +43,8 @@ case class DurationTransformer() extends Transformer {
     // Convert to xsd:duration
     duration.toString
   }
+}
+
+object DurationTransformer {
+  final val pluginId = "duration"
 }

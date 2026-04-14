@@ -650,6 +650,37 @@ trait WorkspaceProviderTestTrait extends AnyFlatSpec with Matchers with MockitoS
     }
   }
 
+  it should "allow managing access control groups" in {
+    implicit val us: UserContext = emptyUserContext
+
+    // Initially no access control should be defined
+    workspaceProvider.readAccessControl(PROJECT_NAME) shouldBe None
+    workspaceProvider.containsAccessControl(PROJECT_NAME) shouldBe false
+
+    // Set access control groups and read them back
+    val accessControl = AccessControl(Set("group1", "group2"))
+    workspaceProvider.putAccessControl(PROJECT_NAME, accessControl)
+    refreshTest {
+      workspaceProvider.readAccessControl(PROJECT_NAME) shouldBe Some(accessControl)
+      workspaceProvider.containsAccessControl(PROJECT_NAME) shouldBe true
+    }
+
+    // Update access control groups
+    val updatedAccessControl = AccessControl(Set("group1", "group3"))
+    workspaceProvider.putAccessControl(PROJECT_NAME, updatedAccessControl)
+    refreshTest {
+      workspaceProvider.readAccessControl(PROJECT_NAME) shouldBe Some(updatedAccessControl)
+      workspaceProvider.containsAccessControl(PROJECT_NAME) shouldBe true
+    }
+
+    // Clear access control groups
+    workspaceProvider.putAccessControl(PROJECT_NAME, AccessControl.empty)
+    refreshTest {
+      workspaceProvider.readAccessControl(PROJECT_NAME) shouldBe Some(AccessControl.empty)
+      workspaceProvider.containsAccessControl(PROJECT_NAME) shouldBe true
+    }
+  }
+
   it should "allow managing project template variables" in {
     implicit val us: UserContext = emptyUserContext
 
@@ -751,7 +782,7 @@ trait WorkspaceProviderTestTrait extends AnyFlatSpec with Matchers with MockitoS
     * This should make sure that not only the possible cache version is up to date, but also the background model. */
   private def refreshProject(projectName: String)(implicit userContext: UserContext): Unit = {
     workspaceProvider.refreshProject(projectName, repository.get(projectName))
-    if(workspace.findProject(projectName).isDefined) {
+    if(workspace.projectOption(projectName).isDefined) {
       workspace.reloadProject(projectName)
     }
   }

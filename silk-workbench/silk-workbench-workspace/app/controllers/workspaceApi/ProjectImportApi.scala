@@ -21,6 +21,7 @@ import org.silkframework.runtime.serialization.ReadContext
 import org.silkframework.runtime.validation.{BadUserInputException, ConflictRequestException, NotFoundException, RequestException}
 import org.silkframework.util.DurationConverters._
 import org.silkframework.util.{IdentifierUtils, StreamUtils}
+import org.silkframework.workspace.access.ProjectAccessDeniedException
 import org.silkframework.workspace.xml.XmlZipWithResourcesProjectMarshaling
 import play.api.libs.json._
 import play.api.mvc._
@@ -196,10 +197,15 @@ class ProjectImportApi @Inject() (api: ProjectMarshalingApi) extends InjectedCon
                            )
                            projectImportId: String): Action[AnyContent] = UserContextAction { implicit userContext =>
     val details = fetchProjectImportDetails(projectImportId)
-    val projectExists = if(details.projectId != "") {
-      workspace.findProject(details.projectId).isDefined
-    } else { false }
-    Ok(Json.toJson(details.copy(projectAlreadyExists = projectExists)))
+    val (projectExists, noAccess) = if(details.projectId != "") {
+      try {
+        (workspace.projectOption(details.projectId).isDefined, false)
+      } catch {
+        case _: ProjectAccessDeniedException =>
+          (true, true)
+      }
+    } else { (false, false) }
+    Ok(Json.toJson(details.copy(projectAlreadyExists = projectExists, noAccess = Some(noAccess))))
   }
 
   // Returns the project import details. Caches the result.
@@ -426,7 +432,26 @@ class ProjectImportApi @Inject() (api: ProjectMarshalingApi) extends InjectedCon
                            in = ParameterIn.QUERY,
                            schema = new Schema(implementation = classOf[String])
                          )
-                         newProjectId: Option[String]): Action[AnyContent] = UserContextAction { implicit userContext =>
+                         newProjectId: Option[String],
+                         @Parameter(
+                           name = "groups",
+                           description = "Optional list of groups to assign to the imported project. If provided, these groups will be applied after import.",
+                           required = false,
+                           in = ParameterIn.QUERY,
+                           schema = new Schema(implementation = classOf[String])
+                         )
+                         groups: List[String] = List.empty,
+                         @Parameter(
+                           name = "importGroups",
+                           description = "If true, use the access control groups from the archive. Cannot be used together with the 'groups' parameter.",
+                           required = false,
+                           in = ParameterIn.QUERY,
+                           schema = new Schema(implementation = classOf[Boolean])
+                         )
+                         importGroups: Boolean = false): Action[AnyContent] = UserContextAction { implicit userContext =>
+    if (importGroups && groups.nonEmpty) {
+      throw BadUserInputException("The 'importGroups' and 'groups' parameters are mutually exclusive and cannot be used together.")
+    }
     withProjectImportQueue {
       _.get(projectImportId) match {
         case Some(projectImport) =>
@@ -449,7 +474,7 @@ class ProjectImportApi @Inject() (api: ProjectMarshalingApi) extends InjectedCon
               if(projectExists(projectId) && !overwriteExisting) {
                 throw ConflictRequestException(s"A project with ID $projectId already exists!")
               }
-              executeProjectImportAsync(projectImport, details, projectId, overwriteExisting)
+              executeProjectImportAsync(projectImport, details, projectId, overwriteExisting, groups, importGroups)
             case _ =>
           }
           Created.
@@ -464,14 +489,16 @@ class ProjectImportApi @Inject() (api: ProjectMarshalingApi) extends InjectedCon
   private def executeProjectImportAsync(projectImport: ProjectImport,
                                         details: ProjectImportDetails,
                                         newProjectId: String,
-                                        overwriteExisting: Boolean)
+                                        overwriteExisting: Boolean,
+                                        groups: List[String],
+                                        importGroups: Boolean)
                                        (implicit userContext: UserContext): Unit = {
     api.withMarshaller(details.marshallerId) { marshaller =>
       withProjectImportQueue { outerQueue =>
         // Start async import
         val importProcess: Future[Try[Unit]] = Future {
           val result = Try[Unit] {
-            workspace.importProject(newProjectId, projectImport.projectFileResource.file, marshaller, overwrite = overwriteExisting)
+            workspace.importProject(newProjectId, projectImport.projectFileResource.file, marshaller, overwrite = overwriteExisting, importGroups = importGroups, groups = groups.toSet)
           }
           // Remove file and update project import object
           withProjectImportQueue { queue =>
@@ -534,13 +561,15 @@ object ProjectImportApi {
     * @param errorMessage         An error was encountered and the import cannot proceed.
     *                             This error message should include all information for the user, other fields should be ignored
     *                             by the client.
+    * @param noAccess             If set to true then the project with the ID from the import request already exists and the user has no access to this project in order to replace it.
     */
   case class ProjectImportDetails(projectId: String,
                                   label: String,
                                   description: Option[String],
                                   marshallerId: String,
                                   projectAlreadyExists: Boolean,
-                                  errorMessage: Option[String])
+                                  errorMessage: Option[String] = None,
+                                  noAccess: Option[Boolean] = None)
 
   def errorProjectImportDetails(errorMessage: String): ProjectImportDetails = {
     ProjectImportDetails("", "", None, "", projectAlreadyExists = false, Some(errorMessage))

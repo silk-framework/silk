@@ -25,7 +25,7 @@ module.exports = {
         "^(?!.*\\.(js|jsx|ts|tsx|css|json)$)": "<rootDir>/config/jest/fileTransform.js",
     },
     transformIgnorePatterns: [
-        "[/\\\\]node_modules[/\\\\](?!react-markdown|vfile|unist-util-stringify-position|@reduxjs/toolkit|).+\\.(js|jsx|ts|tsx)$",
+        "[/\\\\]node_modules[/\\\\](?!react-markdown|vfile|unist-util-stringify-position|@reduxjs/toolkit|).+\\.(js|jsx|ts|tsx|mjs|cjs)$",
         "^.+\\.module\\.(css|sass|scss)$",
     ],
     moduleNameMapper: {

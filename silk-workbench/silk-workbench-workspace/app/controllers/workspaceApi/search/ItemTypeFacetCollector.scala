@@ -1,10 +1,12 @@
 package controllers.workspaceApi.search
 
+import controllers.util.ItemType
 import controllers.workspaceApi.search.SearchApiModel.{Facet, FacetSetting, KeywordFacetSetting}
 import io.swagger.v3.oas.annotations.media.{ArraySchema, Schema}
-import org.silkframework.config.TaskSpec
+import org.silkframework.config.{TaskSpec}
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.workspace.{Project, ProjectTask}
+import org.silkframework.workspace.access.AccessControlConfig
+import org.silkframework.workspace.{AccessControl, Project, ProjectTask}
 
 import java.util.concurrent.ConcurrentHashMap
 import java.util.logging.Logger
@@ -220,9 +222,15 @@ trait IdAndLabelKeywordFacetCollector[T] extends KeywordFacetCollector[T] {
 
 /** Collects values for all facets of all types. */
 case class OverallFacetCollector() {
+
+  private def projectFacetCollector: ItemTypeFacetCollectors[AnyRef] = if (AccessControlConfig().enabled) {
+    facetCollectors(ProjectFacetCollector(), MetaDataFacetCollector())
+  } else {
+    facetCollectors(MetaDataFacetCollector())
+  }
   // Item type specific facet collectors
   private val itemTypeFacetCollectors = ListMap[ItemType, ItemTypeFacetCollectors[AnyRef]](
-    ItemType.project -> ItemTypeFacetCollectors(Seq()), // This is never used, but still listed for completeness
+    ItemType.project -> projectFacetCollector,
     ItemType.dataset -> facetCollectors(DatasetFacetCollector(), MetaDataFacetCollector()),
     ItemType.transform -> facetCollectors(TransformFacetCollector(), MetaDataFacetCollector()),
     ItemType.linking -> facetCollectors(MetaDataFacetCollector()),
@@ -245,9 +253,17 @@ case class OverallFacetCollector() {
     genericItemTypeFacetCollectors.filterAndCollect(projectTask, facetSettings)
   }
 
-  def filterAndCollectProjects(project: Project,
-                               facetSettings: Seq[FacetSetting])
-                              (implicit user: UserContext): Boolean = {
+  /** Used for filtering projects when the projects tab is selected. */
+  def filterAndCollectProjectsSpecific(project: Project,
+                                       facetSettings: Seq[FacetSetting])
+                                      (implicit user: UserContext): Boolean = {
+    itemTypeFacetCollectors(ItemType.project).filterAndCollect(project, facetSettings)
+  }
+
+  /** Used for filtering projects when "All items" are selected. */
+  def filterAndCollectProjectsGeneric(project: Project,
+                                       facetSettings: Seq[FacetSetting])
+                                      (implicit user: UserContext): Boolean = {
     genericItemTypeFacetCollectors.filterAndCollect(project, facetSettings)
   }
 

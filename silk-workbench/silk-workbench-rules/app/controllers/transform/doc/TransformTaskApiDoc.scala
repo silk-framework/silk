@@ -190,4 +190,33 @@ object TransformTaskApiDoc {
         </resource>
       </Transform>
     """
+
+  final val searchMappingRulesRequestExample =
+    """
+       {
+         "searchQuery":"",
+         "limit":50,
+         "valueRulesOnly":false,
+         "objectRulesOnly":true
+       }
+    """
+  final val searchMappingRulesExample =
+    """
+[
+    {
+        "value": "Concept",
+        "label": "rdf:type",
+        "description": null,
+        "category": "Rules",
+        "isCompletion": true
+    },
+    {
+        "value": "ValueMapping",
+        "label": "ValueMapping",
+        "description": null,
+        "category": "Rules",
+        "isCompletion": true
+    }
+]
+    """
 }

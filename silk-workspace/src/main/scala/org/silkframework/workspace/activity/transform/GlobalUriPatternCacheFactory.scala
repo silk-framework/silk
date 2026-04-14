@@ -76,7 +76,7 @@ case class GlobalUriPatternCache() extends Activity[GlobalUriPatternCacheValue] 
       uriPatternMap.clear()
     }
     val workspace = WorkspaceFactory().workspace
-    val projects = workspace.projects
+    val projects = workspace.userProjects
     for(project <- projects;
         transformTask <- project.tasks[TransformSpec] if fullRun || !loadedProjects.contains(project.id) || modifiedSinceLastRun(transformTask.metaData.modified)) {
       GlobalUriPatternCache.extractUriPatterns(transformTask.data.mappingRule, uriPatternMap)

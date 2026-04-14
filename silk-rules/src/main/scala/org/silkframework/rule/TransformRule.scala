@@ -42,6 +42,13 @@ sealed trait TransformRule extends Operator with HasMetaData {
   /** The same rule with different meta data */
   def withMetaData(metaData: MetaData): TransformRule
 
+  /** Returns a copy of this rule with the given function applied to the metadata of this rule and all nested rules. */
+  def withMetaDataRecursive(f: MetaData => MetaData): TransformRule = {
+    val updated = withMetaData(f(metaData))
+    val newChildren = updated.children.map(_.asInstanceOf[TransformRule].withMetaDataRecursive(f))
+    updated.withChildren(newChildren)
+  }
+
   /** The input operator tree. */
   def operator: Input
 
@@ -179,6 +186,8 @@ sealed trait ValueTransformRule extends TransformRule {
 
   def uiAnnotations: UiAnnotations = UiAnnotations()
 
+  override def withId(newId: Identifier): ValueTransformRule
+
   override def withContext(taskContext: TaskContext): ValueTransformRule = {
     this
   }
@@ -213,6 +222,13 @@ case class RootMappingRule(override val rules: MappingRules,
     * The children operators.
     */
   override def children: Seq[Operator] = rules.allRules
+
+  /**
+    * Generates the same operator with new id.
+    */
+  override def withId(newId: Identifier): Operator = {
+    copy(id = newId)
+  }
 
   /**
     * Generates the same operator with new children.
@@ -293,6 +309,13 @@ case class DirectMapping(id: Identifier = "sourcePath",
 
   override val typeString = "Direct"
 
+  /**
+   * Generates the same operator with new id.
+   */
+  override def withId(newId: Identifier): ValueTransformRule = {
+    copy(id = newId)
+  }
+
   override def withMetaData(metaData: MetaData): TransformRule = this.copy(metaData = metaData)
 }
 
@@ -318,6 +341,8 @@ case class PatternUriMapping(id: Identifier = "URI",
 
   override val typeString = "URI"
 
+  override def withId(newId: Identifier): PatternUriMapping = copy(id = newId)
+
   override def withMetaData(metaData: MetaData): TransformRule = this.copy(metaData = metaData)
 }
 
@@ -338,6 +363,8 @@ case class ComplexUriMapping(id: Identifier = "complexURI",
   override val target: Option[MappingTarget] = None
 
   override val typeString = "ComplexURI"
+
+  override def withId(newId: Identifier): ComplexUriMapping = copy(id = newId)
 
   override def withMetaData(metaData: MetaData): TransformRule = this.copy(metaData = metaData)
 
@@ -372,6 +399,8 @@ case class TypeMapping(id: Identifier = "type",
 
   override val typeString = "Type"
 
+  override def withId(newId: Identifier): TypeMapping = copy(id = newId)
+
   override def withMetaData(metaData: MetaData): TransformRule = this.copy(metaData = metaData)
 
 }
@@ -392,6 +421,8 @@ case class ComplexMapping(id: Identifier = "mapping",
                          ) extends ValueTransformRule {
 
   override val typeString = "Complex"
+
+  override def withId(newId: Identifier): ComplexMapping = copy(id = newId)
 
   override def withMetaData(metaData: MetaData): TransformRule = this.copy(metaData = metaData)
 
@@ -447,6 +478,8 @@ case class ObjectMapping(id: Identifier = "mapping",
         PathInput(path = UntypedPath.empty)
     }
   }
+
+  override def withId(newId: Identifier): ObjectMapping = copy(id = newId)
 
   /**
     * Generates the same operator with new children.

@@ -23,6 +23,7 @@ import { TemplateValueType } from "@ducks/shared/typings";
 import { requestArtefactProperties } from "@ducks/common/requests";
 import { commonSlice } from "../../../../store/ducks/common/commonSlice";
 import { failedTaskParameters, fixFailedTask } from "./TaskLoadingError.requests";
+import { ItemDeleteModal } from "../../../shared/modals/ItemDeleteModal";
 import { AlternativeTaskUpdateFunction } from "@ducks/common/typings";
 import { FixTaskDataNotFoundModal } from "./FixTaskDataNotFoundModal";
 import { TaskParameterValues } from "./TaskLoadingError.typing";
@@ -50,6 +51,7 @@ export const ProjectTaskLoadingErrors = ({ refreshProjectPage }: Props) => {
 
     const [currentMarkdown, setCurrentMarkdown] = useState("");
     const [isOpen, setIsOpen] = useState<boolean>(false);
+    const [taskToDelete, setTaskToDelete] = useState<{ taskId: string; taskLabel: string } | null>(null);
     const [t] = useTranslation();
 
     const fetchWarningList = () => {
@@ -188,6 +190,15 @@ export const ProjectTaskLoadingErrors = ({ refreshProjectPage }: Props) => {
                                           text={t("common.action.ShowSmth", { smth: "report" })}
                                           onClick={() => handleOpenMarkDown(warn.taskId, projectId)}
                                       />,
+                                      <IconButton
+                                          name={"item-remove"}
+                                          data-test-id={"taskLoadingDeleteBtn"}
+                                          minimal
+                                          text={t("common.action.DeleteSmth", { smth: t("common.dataTypes.task") })}
+                                          onClick={() =>
+                                              setTaskToDelete({ taskId: warn.taskId, taskLabel: warn.taskLabel })
+                                          }
+                                      />,
                                   ]
                                 : [];
                             return (
@@ -203,6 +214,17 @@ export const ProjectTaskLoadingErrors = ({ refreshProjectPage }: Props) => {
                     <MarkdownModal isOpen={isOpen} onDiscard={handleClose} markdown={currentMarkdown} />
                 </CardContent>
             </Card>
+            {taskToDelete && projectId && (
+                <ItemDeleteModal
+                    item={{ id: taskToDelete.taskId, label: taskToDelete.taskLabel, projectId, type: "task" }}
+                    onClose={() => setTaskToDelete(null)}
+                    onConfirmed={() => {
+                        setTaskToDelete(null);
+                        fetchWarningList();
+                        refreshProjectPage();
+                    }}
+                />
+            )}
             <Spacing />
         </>
     ) : null;

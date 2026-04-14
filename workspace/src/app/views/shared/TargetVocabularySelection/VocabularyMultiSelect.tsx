@@ -4,11 +4,16 @@ import {
     highlighterUtils,
     MenuItem,
     MultiSuggestField,
+    highlighterUtils,
+    Spacing,
     MultiSuggestFieldCommonProps,
     OverflowText,
 } from "@eccenca/gui-elements";
-import React, {useEffect, useState} from "react";
-import {IVocabularyInfo} from "./typings";
+import React, { useEffect, useState } from "react";
+import type { TagProps } from "@blueprintjs/core/src/components/tag/tag";
+import { useTranslation } from "react-i18next";
+import { IVocabularyInfo } from "./typings";
+import useErrorHandler from "../../../hooks/useErrorHandler";
 
 interface IProps {
     // Label for this widget
@@ -41,7 +46,15 @@ export default function VocabularyMultiSelect({
     allowCustomEntries,
 }: IProps) {
     const [preselectedVocabs, setPreselectedVocabs] = useState<IVocabularyInfo[]>([]);
-    const selectedVocabs = React.useRef<IVocabularyInfo[]>([])
+    const selectedVocabs = React.useRef<IVocabularyInfo[]>([]);
+    const [t] = useTranslation();
+    const { registerError } = useErrorHandler();
+    const [selectedVocabs, setSelectedVocabs] = useState<IVocabularyInfo[]>([]);
+    const [filteredVocabs, setFilteredVocabs] = useState<IVocabularyInfo[]>([]);
+    const [searchQuery, setSearchQuery] = useState<string | undefined>(undefined);
+    const [warning, setWarning] = React.useState<React.JSX.Element | null>(null);
+
+    const availableVocabUris = new Set(availableVocabularies.map((v) => v.uri));
 
     const preselect = (): IVocabularyInfo[] => {
         const vocabMap = new Map<string, IVocabularyInfo>(availableVocabularies.map((vocab) => [vocab.uri, vocab]));
@@ -74,7 +87,10 @@ export default function VocabularyMultiSelect({
         return classInfo || propertyInfo ? `(${classInfo}${infix}${propertyInfo})` : "";
     };
 
-    const renderVocabulary: MultiSuggestFieldCommonProps<IVocabularyInfo>["itemRenderer"] = (vocabInfo: IVocabularyInfo, { modifiers, handleClick, query }) => {
+    const renderVocabulary: MultiSuggestFieldCommonProps<IVocabularyInfo>["itemRenderer"] = (
+        vocabInfo: IVocabularyInfo,
+        { modifiers, handleClick, query },
+    ) => {
         return (
             <MenuItem
                 icon={vocabSelected(vocabInfo) ? "state-checked" : "state-unchecked"}
@@ -87,6 +103,42 @@ export default function VocabularyMultiSelect({
             />
         );
     };
+
+    const handleVocabSelect = (vocab: IVocabularyInfo) => {
+        if (vocabSelected(vocab)) {
+            removeVocabFromSelection(vocab.uri);
+        } else {
+            if (!availableVocabUris.has(vocab.uri)) {
+                setWarning(
+                    registerError(
+                        "VocabularyMultiSelect_customVocabularyWarning",
+                        t("widget.TargetVocabularySelection.customVocabularyWarning", { uri: vocab.uri }),
+                        null,
+                        {
+                            intent: "warning",
+                            errorNotificationInstanceId: "VocabularyMultiSelect",
+                            onDismiss: () => setWarning(null),
+                        },
+                    ),
+                );
+            }
+            setSelectedVocabs([...selectedVocabs, vocab]);
+        }
+    };
+
+    const getTagProps = React.useCallback(
+        (_value: string, index: number): TagProps => {
+            const vocab = selectedVocabs[index];
+            const isAvailable = vocab && availableVocabUris.has(vocab.uri);
+            return {
+                intent: isAvailable ? undefined : "warning",
+                icon: isAvailable ? undefined : "warning-sign",
+                htmlTitle: isAvailable ? undefined : t("widget.TargetVocabularySelection.notInstalledVocabulary"),
+                minimal: true,
+            };
+        },
+        [selectedVocabs, availableVocabUris, t],
+    );
 
     const illegalCharsRegex = /\s|,|<|>/;
 
@@ -129,11 +181,11 @@ export default function VocabularyMultiSelect({
                 items={availableVocabularies}
                 searchListPredicate={(items, query) => {
                     const searchWords = highlighterUtils.extractSearchWords(query, true);
-                    return items.filter(item => {
+                    return items.filter((item) => {
                         const vocabLabel = item.label ? item.label : "";
                         const searchIn = `${vocabLabel} ${item.uri}`.toLowerCase();
                         return highlighterUtils.matchesAllWords(searchIn, searchWords);
-                    })
+                    });
                 }}
                 selectedItems={preselectedVocabs}
                 onSelection={(selection) => {
@@ -145,7 +197,7 @@ export default function VocabularyMultiSelect({
                 createNewItemFromQuery={allowCustomEntries ? createVocabularyFromQuery : undefined}
                 newItemCreationText={allowCustomEntries ? "Add custom vocabulary" : undefined}
                 inputProps={{
-                    id: "vocselect"
+                    id: "vocselect",
                 }}
                 placeholder={"Select vocabularies..."}
                 clearQueryOnSelection={true}
@@ -153,6 +205,12 @@ export default function VocabularyMultiSelect({
                 noResults={<MenuItem disabled={true} text="No results." />}
                 itemRenderer={renderVocabulary}
             />
+            {warning ? (
+                <>
+                    <Spacing size={"small"} />
+                    {warning}
+                </>
+            ) : null}
         </FieldItem>
     );
 }

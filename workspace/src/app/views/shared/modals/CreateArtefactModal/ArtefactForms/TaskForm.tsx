@@ -138,7 +138,14 @@ export function TaskForm({
     showWarningMessage,
 }: IProps) {
     const { properties, required: requiredRootParameters } = artefact;
-    const { register, formState: { errors }, getValues, setValue, unregister, trigger } = form;
+    const {
+        register,
+        formState: { errors },
+        getValues,
+        setValue,
+        unregister,
+        trigger,
+    } = form;
     const [formValueKeys, setFormValueKeys] = useState<string[]>([]);
     const dependentValues: React.MutableRefObject<Record<string, DependsOnParameterValueAny | undefined>> =
         React.useRef<Record<string, DependsOnParameterValueAny | undefined>>({});
@@ -296,14 +303,11 @@ export function TaskForm({
                 } else {
                     let value = defaultValueAsJs(param, false);
                     returnKeys.push(fullParameterId);
-                    register(
-                        fullParameterId,
-                        {
-                            // Boolean is by default set to false
-                            required: requiredParameters.includes(paramId) && param.parameterType !== "boolean",
-                            ...valueRestrictions(fullParameterId, param),
-                        },
-                    );
+                    register(fullParameterId, {
+                        // Boolean is by default set to false
+                        required: requiredParameters.includes(paramId) && param.parameterType !== "boolean",
+                        ...valueRestrictions(fullParameterId, param),
+                    });
                     // Set default value
                     let currentValue = value;
                     if ((updateTask || newTaskPreConfiguration) && parameterValues[paramId] !== undefined) {
@@ -465,10 +469,10 @@ export function TaskForm({
     const CodeEditorMemoed = React.useMemo(
         () => (
             <CodeEditor
-                id={DESCRIPTION}
-                preventLineNumbers
-                name={DESCRIPTION}
                 mode="markdown"
+                useToolbar
+                id={DESCRIPTION}
+                name={DESCRIPTION}
                 defaultValue={description}
                 onChange={handleChange(DESCRIPTION)}
                 data-test-id="codemirror-wrapper"

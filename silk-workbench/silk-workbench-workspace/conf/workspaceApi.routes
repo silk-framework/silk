@@ -12,7 +12,7 @@ POST          /searchActivities                                                 
 POST          /projectImport                                                    controllers.workspaceApi.ProjectImportApi.uploadProjectArchiveFile()
 GET           /projectImport/:projectImportId                                   controllers.workspaceApi.ProjectImportApi.projectImportDetails(projectImportId: String)
 DELETE        /projectImport/:projectImportId                                   controllers.workspaceApi.ProjectImportApi.removeProjectImport(projectImportId: String)
-POST          /projectImport/:projectImportId                                   controllers.workspaceApi.ProjectImportApi.startProjectImport(projectImportId: String, generateNewId: Boolean ?= false, overwriteExisting: Boolean ?= false, newProjectId: Option[String] ?= None)
+POST          /projectImport/:projectImportId                                   controllers.workspaceApi.ProjectImportApi.startProjectImport(projectImportId: String, generateNewId: Boolean ?= false, overwriteExisting: Boolean ?= false, newProjectId: Option[String] ?= None, groups: List[String] ?= List[String](), importGroups: Boolean ?= false)
 GET           /projectImport/:projectImportId/status                            controllers.workspaceApi.ProjectImportApi.projectImportExecutionStatus(projectImportId: String, timeout: Int ?= 20000)
 GET           /vocabularies                                                     controllers.workspaceApi.WorkspaceVocabularyApi.vocabularies()
 GET           /vocabularies/property/search                                     controllers.workspaceApi.WorkspaceVocabularyApi.findPropertyInGlobalVocabularyCache(textQuery: String, projectId: String ?= "", limit: Int)
