@@ -1,14 +1,10 @@
 import React from "react";
-import ObjectRule
-    from "../../../../../src/app/views/pages/MappingEditor/HierarchicalMapping/containers/MappingRule/ObjectRule/ObjectRule";
+import ObjectRule from "../../../../../src/app/views/pages/MappingEditor/HierarchicalMapping/containers/MappingRule/ObjectRule/ObjectRule";
 
-import {
-    MAPPING_ROOT_RULE_ID
-} from "../../../../../src/app/views/pages/MappingEditor/HierarchicalMapping/HierarchicalMapping";
+import { MAPPING_ROOT_RULE_ID } from "../../../../../src/app/views/pages/MappingEditor/HierarchicalMapping/HierarchicalMapping";
 
-import {render} from "@testing-library/react";
-import {byTestId, clickFoundElement, findAllDOMElements, findElement} from "../../../../integration/TestHelper";
-import {logPageHtml} from "../../../utils/TestHelpers";
+import { render } from "@testing-library/react";
+import { byTestId, clickFoundElement, findAllDOMElements, findElement } from "../../../../integration/TestHelper";
 
 const handleCopyFn = jest.fn();
 const handleCloneFn = jest.fn();
@@ -41,7 +37,7 @@ const props = {
         },
         mappingTarget: {
             uri: "uri",
-            isAttribute: false
+            isAttribute: false,
         },
         type: "root",
     },
@@ -65,7 +61,6 @@ describe("ObjectMappingRule Component", () => {
                 ...props,
                 edit: {},
             });
-            logPageHtml()
             expect(findAllDOMElements(wrapper, ".ecc-silk-mapping__ruleseditor").length).toBeGreaterThan(0);
         });
 

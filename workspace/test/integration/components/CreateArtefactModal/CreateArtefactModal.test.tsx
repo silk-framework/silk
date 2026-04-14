@@ -1,11 +1,10 @@
 import React from "react";
 import "@testing-library/jest-dom";
 import mockAxios from "../../../__mocks__/axios";
-import {SERVE_PATH} from "../../../../src/app/constants/path";
-import {createMemoryHistory} from "history";
+import { SERVE_PATH } from "../../../../src/app/constants/path";
+import { createMemoryHistory } from "history";
 
 import {
-    addDocumentCreateRangeMethod,
     apiUrl,
     byName,
     byTestId,
@@ -22,18 +21,18 @@ import {
     RecursivePartial,
     renderWrapper,
 } from "../../TestHelper";
-import {CreateArtefactModal} from "../../../../src/app/views/shared/modals/CreateArtefactModal/CreateArtefactModal";
-import {act, fireEvent, RenderResult, waitFor} from "@testing-library/react";
+import { CreateArtefactModal } from "../../../../src/app/views/shared/modals/CreateArtefactModal/CreateArtefactModal";
+import { act, fireEvent, RenderResult, waitFor } from "@testing-library/react";
 import {
     IOverviewArtefactItemList,
     IPluginDetails,
     IProjectTaskUpdatePayload,
 } from "../../../../src/app/store/ducks/common/typings";
-import {atomicParamDescription, mockAutoCompleteResponse, objectParamDescription} from "./CreateArtefactModalHelper";
-import {INPUT_TYPES} from "../../../../src/app/constants";
-import {TaskTypes} from "../../../../src/app/store/ducks/shared/typings";
-import {MemoryHistory} from "history/createMemoryHistory";
-import {bluePrintClassPrefix} from "../../../HierarchicalMapping/utils/TestHelpers";
+import { atomicParamDescription, mockAutoCompleteResponse, objectParamDescription } from "./CreateArtefactModalHelper";
+import { INPUT_TYPES } from "../../../../src/app/constants";
+import { TaskTypes } from "../../../../src/app/store/ducks/shared/typings";
+import { MemoryHistory } from "history/createMemoryHistory";
+import { bluePrintClassPrefix } from "../../../HierarchicalMapping/utils/TestHelpers";
 
 describe("Task creation widget", () => {
     beforeAll(() => {
@@ -98,7 +97,10 @@ describe("Task creation widget", () => {
         return findAllDOMElements(dialogWrapper, ".eccgui-overviewitem__list .eccgui-overviewitem__item");
     };
 
-    const pluginCreationDialogWrapper: (doubleClickToAdd?: boolean, existingTask?: RecursivePartial<IProjectTaskUpdatePayload>) => Promise<IWrapper> = async (
+    const pluginCreationDialogWrapper: (
+        doubleClickToAdd?: boolean,
+        existingTask?: RecursivePartial<IProjectTaskUpdatePayload>,
+    ) => Promise<IWrapper> = async (
         doubleClickToAdd: boolean = true,
         // The current data of a task that is being updated
         existingTask?: RecursivePartial<IProjectTaskUpdatePayload>,
@@ -116,8 +118,8 @@ describe("Task creation widget", () => {
                 clickRenderedElement(findElement(wrapper.element, byTestId("item-add-btn")));
             }
             mockAxios.mockResponseFor(
-                {url: apiUrl("core/plugins/pluginA")},
-                mockedAxiosResponse({data: mockPluginDescription}),
+                { url: apiUrl("core/plugins/pluginA") },
+                mockedAxiosResponse({ data: mockPluginDescription }),
             );
         }
         const waitForTaskFormLoaded = async () => {
@@ -129,10 +131,10 @@ describe("Task creation widget", () => {
                     expect(labels).toContain(attributes.title),
                 );
             });
-        }
-        await waitForTaskFormLoaded()
+        };
+        await waitForTaskFormLoaded();
         // For some reason the task form inits twice
-        await waitForTaskFormLoaded()
+        await waitForTaskFormLoaded();
         return wrapper;
     };
 
@@ -235,7 +237,7 @@ describe("Task creation widget", () => {
     });
 
     it("should show a form with parameters of different types", async () => {
-        const {element} = await pluginCreationDialogWrapper()
+        const { element } = await pluginCreationDialogWrapper();
         // boolean parameter
         expect(findAllDOMElements(element, 'input[type="checkbox"]')).toHaveLength(1);
         // password parameter
@@ -251,7 +253,8 @@ describe("Task creation widget", () => {
     });
 
     // Click the create button in the create dialog
-    const clickCreate = (wrapper: HTMLElement) => clickRenderedElement(findElement(wrapper, byTestId("createArtefactButton")));
+    const clickCreate = (wrapper: HTMLElement) =>
+        clickRenderedElement(findElement(wrapper, byTestId("createArtefactButton")));
     // Checks the number of expected validation errors
     const expectValidationErrors = async (wrapper, nrErrors: number) =>
         await waitFor(() => {
@@ -353,8 +356,6 @@ describe("Task creation widget", () => {
     });
 
     it("should allow to reset optional auto-completed values", async () => {
-        // document.createRange is needed from the popover of the auto-complete element
-        addDocumentCreateRangeMethod();
         const { element } = await pluginCreationDialogWrapper();
         const autoCompleteInput = findElement(element, "#optionalAutoCompletionParamCustom");
         expect(window.document.querySelectorAll(".eccgui-spinner").length).toBe(0);
