@@ -432,7 +432,7 @@ export function CreateArtefactModal() {
                 setActionLoading(false);
             }
         },
-        [form, updateExistingTask, taskType],
+        [form, updateExistingTask, taskType, currentProject],
     );
 
     const closeModal = () => {
