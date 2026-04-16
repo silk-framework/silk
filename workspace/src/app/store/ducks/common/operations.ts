@@ -54,6 +54,23 @@ const {
     toggleUserMenuDisplay,
 } = commonSlice.actions;
 
+let artefactModalLoadingRequests = 0;
+let artefactListRequestId = 0;
+
+const beginArtefactModalLoading = (dispatch) => {
+    artefactModalLoadingRequests += 1;
+    if (artefactModalLoadingRequests === 1) {
+        dispatch(setArtefactLoading(true));
+    }
+};
+
+const endArtefactModalLoading = (dispatch) => {
+    artefactModalLoadingRequests = Math.max(artefactModalLoadingRequests - 1, 0);
+    if (artefactModalLoadingRequests === 0) {
+        dispatch(setArtefactLoading(false));
+    }
+};
+
 const fetchCommonSettingsAsync = () => {
     return async (dispatch) => {
         try {
@@ -123,10 +140,11 @@ const fetchAvailableDTypesAsync = (id?: string) => {
 
 const fetchArtefactsListAsync = (filters: any = {}) => {
     return async (dispatch) => {
+        const requestId = ++artefactListRequestId;
         batch(() => {
             dispatch(fetchArtefactsList());
-            dispatch(setArtefactLoading(true));
         });
+        beginArtefactModalLoading(dispatch);
 
         try {
             const data = await requestArtefactList(filters);
@@ -135,11 +153,15 @@ const fetchArtefactsListAsync = (filters: any = {}) => {
                 ...data[key],
             }));
 
-            dispatch(setArtefactsList(result));
+            if (requestId === artefactListRequestId) {
+                dispatch(setArtefactsList(result));
+            }
         } catch (e) {
-            dispatch(setError(e));
+            if (requestId === artefactListRequestId) {
+                dispatch(setError(e));
+            }
         } finally {
-            dispatch(setArtefactLoading(false));
+            endArtefactModalLoading(dispatch);
         }
     };
 };
@@ -157,13 +179,13 @@ const getArtefactPropertiesAsync = (artefact: IPluginOverview) => {
         dispatch(selectArtefact(artefact));
 
         if (!cachedArtefactProperties[artefact.key]) {
-            dispatch(setArtefactLoading(true));
-
-            const data = await requestArtefactProperties(artefact.key);
-            batch(() => {
-                dispatch(setArtefactLoading(false));
+            beginArtefactModalLoading(dispatch);
+            try {
+                const data = await requestArtefactProperties(artefact.key);
                 dispatch(setCachedArtefactProperty(data));
-            });
+            } finally {
+                endArtefactModalLoading(dispatch);
+            }
         }
     };
 };
@@ -430,10 +452,13 @@ const fetchCreateProjectAsync = (
 const resetArtefactModal =
     (shouldClose: boolean = false) =>
     (dispatch) => {
+        artefactModalLoadingRequests = 0;
+        artefactListRequestId += 1;
         batch(() => {
             dispatch(selectArtefact(undefined));
             dispatch(setModalError({}));
             dispatch(setModalInfo(undefined));
+            dispatch(setArtefactLoading(false));
             if (shouldClose) {
                 dispatch(closeArtefactModal());
             }
