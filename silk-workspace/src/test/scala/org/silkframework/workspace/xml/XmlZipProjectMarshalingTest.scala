@@ -11,7 +11,7 @@ import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.annotations.Plugin
 import org.silkframework.runtime.plugin.{PluginContext, PluginRegistry, TestPluginContext}
 import org.silkframework.runtime.resource._
-import org.silkframework.runtime.templating.{CompiledTemplate, EvaluationConfig, InMemoryTemplateVariablesReader, TemplateEngine, TemplateVariableValue}
+import org.silkframework.runtime.templating.{CompiledTemplate, EvaluationConfig, InMemoryTemplateVariablesReader, TemplateEngine, TemplateVariableScopes, TemplateVariableValue}
 import org.silkframework.util.{ConfigTestTrait, Uri}
 import org.silkframework.workspace.resources.InMemoryResourceRepository
 import org.silkframework.workspace.{InMemoryWorkspaceProvider, LoadedTask, ProjectConfig, Workspace}
@@ -106,7 +106,7 @@ class XmlZipProjectMarshalingTest extends AnyFlatSpec with Matchers with ConfigT
     variables.map("linkLimitTimesTen").value shouldBe "10000"
 
     implicit val pluginContext: PluginContext = TestPluginContext(prefixes = Prefixes.default, resources = resources,
-      templateVariables = InMemoryTemplateVariablesReader(variables, Set("project")))
+      templateVariables = InMemoryTemplateVariablesReader(variables, Set(TemplateVariableScopes.project)))
 
     // Datasets
     val datasets = workspace.provider.readTasks[GenericDatasetSpec](projectName)

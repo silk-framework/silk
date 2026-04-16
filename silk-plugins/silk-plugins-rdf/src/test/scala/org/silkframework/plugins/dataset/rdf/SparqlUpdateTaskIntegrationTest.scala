@@ -23,7 +23,11 @@ class SparqlUpdateTaskIntegrationTest extends AnyFlatSpec with Matchers with Sin
     // Uses Velocity templating mode
     ("Velocity", "workflowVelocity", "outputVelocity.csv", identity),
     // Uses Velocity templating mode and accessed input and output task properties
-    ("Velocity with task properties", "workflowVelocityTaskProperties", "outputVelocity.csv", taskPropertyConcatenate) //
+    ("Velocity with task properties", "workflowVelocityTaskProperties", "outputVelocity.csv", taskPropertyConcatenate),
+    // Uses Jinja templating mode
+    ("Jinja", "workflowJinja", "outputJinja.csv", identity),
+    // Uses Jinja templating mode and accessed input and output task properties
+    ("Jinja with task properties", "workflowJinjaTaskProperties", "outputJinja.csv", taskPropertyConcatenate)
   )) {
     it should s"generate the correct result in '$templatingMode' templating mode" in {
       executeWorkflow(workflowId)

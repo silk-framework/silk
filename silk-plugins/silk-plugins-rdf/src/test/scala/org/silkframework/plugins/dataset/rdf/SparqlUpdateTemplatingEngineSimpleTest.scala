@@ -56,7 +56,7 @@ class SparqlUpdateTemplatingEngineSimpleTest extends AnyFlatSpec with Matchers {
   }
 
   it should "generate the correct input schema from the template" in {
-    SparqlUpdateCustomTask(sparqlUpdateTemplate).inputPorts match {
+    SparqlUpdateCustomTask(sparqlUpdateTemplate, templatingMode = SparqlSimpleTemplateEngine.id).inputPorts match {
       case FixedNumberOfInputs(Seq(FixedSchemaPort(schema))) =>
         schema.typedPaths.flatMap(_.propertyUri).map(_.uri).toSet mustBe Set(
           "PROP_FROM_ENTITY_SCHEMA1",
@@ -69,7 +69,7 @@ class SparqlUpdateTemplatingEngineSimpleTest extends AnyFlatSpec with Matchers {
   }
 
   it should "generate the correct SPARQL Update query from the template" in {
-    SparqlUpdateCustomTask(sparqlUpdateTemplate).generate(Map(
+    SparqlUpdateCustomTask(sparqlUpdateTemplate, templatingMode = SparqlSimpleTemplateEngine.id).compiledTemplate.generate(Map(
       "PROP_FROM_ENTITY_SCHEMA1" -> "urn:some:uri",
       "PROP_FROM_ENTITY_SCHEMA2" -> "the old label",
       "PROP_FROM_ENTITY_SCHEMA3" ->
@@ -82,8 +82,8 @@ class SparqlUpdateTemplatingEngineSimpleTest extends AnyFlatSpec with Matchers {
   }
 
   def parse(sparqlUpdateTemplate: String, batchSize: Int = 2): Seq[SparqlUpdateTemplatePart] = {
-    val engine = SparqlUpdateTemplatingEngineSimple(sparqlUpdateTemplate, batchSize)
-    engine.validate()
-    engine.sparqlUpdateTemplateParts
+    val compiled = SparqlSimpleTemplateEngine().compile(sparqlUpdateTemplate)
+    new SparqlTemplate(compiled).validateUpdateQuery(batchSize)
+    compiled.sparqlUpdateTemplateParts
   }
 }

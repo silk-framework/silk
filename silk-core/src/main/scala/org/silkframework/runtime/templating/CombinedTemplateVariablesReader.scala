@@ -6,7 +6,7 @@ case class CombinedTemplateVariablesReader(readers: Seq[TemplateVariablesReader]
   /**
     * The available variable scopes.
     */
-  override def scopes: Set[String] = {
+  override def scopes: Set[Seq[String]] = {
     readers.flatMap(_.scopes).toSet
   }
 

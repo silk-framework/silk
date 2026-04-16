@@ -1,14 +1,17 @@
 package org.silkframework.plugins.dataset.rdf.tasks
 
 import org.apache.jena.query.QueryFactory
-import org.silkframework.config.{CustomTask, FixedNumberOfInputs, FixedSchemaPort, InputPorts, Port}
+import org.silkframework.config._
 import org.silkframework.dataset.rdf.SparqlEndpointDatasetParameter
 import org.silkframework.entity._
 import org.silkframework.entity.paths.{TypedPath, UntypedPath}
 import org.silkframework.execution.typed.SparqlEndpointEntitySchema
 import org.silkframework.plugins.dataset.rdf.datasets.SparqlDataset
 import org.silkframework.runtime.plugin.annotations.{Param, Plugin, PluginReference}
+import org.silkframework.plugins.dataset.rdf.tasks.templating.SparqlTemplate
+import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
 import org.silkframework.runtime.plugin.types.SparqlCodeParameter
+import org.silkframework.runtime.templating.TemplateEngineAutocompletionProvider
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.Uri
 
@@ -40,7 +43,12 @@ import scala.util.Try
   )
 )
 case class SparqlSelectCustomTask(
-  @Param(label = "Select query", value = "A SPARQL 1.1 select query", example = "select * where { ?s ?p ?o }")
+  @Param(
+    label = "Select query",
+    value = "A SPARQL 1.1 select query. The query supports Jinja templating. " +
+      "Properties of the input and output tasks can be accessed via the 'inputProperties' and 'outputProperties' objects. " +
+      "Example: SELECT * WHERE { GRAPH {{ inputProperties.uri(\"graph\") }} { ?s ?p ?o } }",
+    example = "select * where { ?s ?p ?o }")
   selectQuery: SparqlCodeParameter,
   @Param(label = "Result limit", value = "If set to a positive integer, the number of results is limited")
   limit: String = "",
@@ -55,12 +63,20 @@ case class SparqlSelectCustomTask(
     value = "SPARQL query timeout (select/update) in milliseconds. A value of zero means that there is no timeout set explicitly." +
       " If a value greater zero is specified this overwrites possible default timeouts."
   )
-  sparqlTimeout: Int = 0
+  sparqlTimeout: Int = 0,
+  @Param(
+    value = "The templating mode for the template engine.",
+    autoCompletionProvider = classOf[TemplateEngineAutocompletionProvider],
+    autoCompleteValueWithLabels = true
+  )
+  templatingMode: String = "jinja"
 ) extends CustomTask {
   val intLimit: Option[Int] = {
     // Only allow positive ints
     Try(limit.toInt).filter(_ > 0).toOption
   }
+
+  val queryTemplate: SparqlTemplate = SparqlTemplate.create(templatingMode, selectQuery.str)
 
   override def inputPorts: InputPorts = {
     FixedNumberOfInputs(Seq(FixedSchemaPort(SparqlEndpointEntitySchema.schema)))
@@ -71,7 +87,7 @@ case class SparqlSelectCustomTask(
   }
 
   val outputSchema: EntitySchema = {
-    val query = QueryFactory.create(selectQuery.str)
+    val query = QueryFactory.create(queryTemplate.generateWithDefaults())
     if (!query.isSelectType) {
       throw new ValidationException("Query is not a SELECT query!")
     }

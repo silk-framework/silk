@@ -19,6 +19,6 @@ class TemplateVariableTest extends AnyFlatSpec with Matchers {
     }
   }
 
-  private def variableName(name: String) = TemplateVariable(name, "test value", None, None, isSensitive = false, "testScope")
+  private def variableName(name: String) = TemplateVariable(name, "test value", None, None, isSensitive = false, Seq("testScope"))
 
 }
