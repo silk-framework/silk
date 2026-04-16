@@ -7,6 +7,8 @@ import org.silkframework.runtime.activity.{Activity, ActivityContext, UserContex
 import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
 import org.silkframework.runtime.plugin.types.MultilineStringParameter
 import org.silkframework.runtime.plugin.{PluginContext, PluginObjectParameterNoSchemaAndSerialization}
+import org.silkframework.runtime.templating.TemplateVariablesParameter
+import org.silkframework.runtime.templating.TemplateVariables
 import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat}
 import org.silkframework.serialization.json.WriteOnlyJsonFormat
@@ -28,13 +30,16 @@ import scala.xml.{Node, NodeSeq, XML}
 case class WorkflowWithPayloadExecutorFactory(configuration: MultilineStringParameter = MultilineStringParameter(DEFAULT_CONFIGURATION),
                                               configurationType: String = "application/json",
                                               @Param(label = "", value = "", visibleInDialog = false)
-                                              optionalPrimaryResourceManager: OptionalPrimaryResourceManagerParameter = OptionalPrimaryResourceManagerParameter(None))
+                                              optionalPrimaryResourceManager: OptionalPrimaryResourceManagerParameter = OptionalPrimaryResourceManagerParameter(None),
+                                              @Param(label = "Workflow variables", value = "Variables for this workflow execution.", visibleInDialog = false)
+                                              workflowVariables: TemplateVariablesParameter = TemplateVariablesParameter.empty)
   extends TaskActivityFactory[Workflow, WorkflowWithPayloadExecutor] {
 
   override def isSingleton: Boolean = false
 
   def apply(task: ProjectTask[Workflow]): Activity[WorkflowOutput] = {
-    new WorkflowWithPayloadExecutor(task, WorkflowWithPayloadConfiguration(configuration.str, configurationType, optionalPrimaryResourceManager.manager))
+    val mergedVars = task.data.workflowVariables.merge(workflowVariables).toTemplateVariables
+    new WorkflowWithPayloadExecutor(task, WorkflowWithPayloadConfiguration(configuration.str, configurationType, optionalPrimaryResourceManager.manager, mergedVars))
   }
 }
 
@@ -89,7 +94,8 @@ object WorkflowWithPayloadExecutorFactory {
   */
 case class WorkflowWithPayloadConfiguration(configurationString: String,
                                             format: String,
-                                            optionalPrimaryResourceManager: Option[ResourceManager])
+                                            optionalPrimaryResourceManager: Option[ResourceManager],
+                                            workflowVariables: TemplateVariables = TemplateVariables.empty)
 
 class WorkflowWithPayloadExecutor(task: ProjectTask[Workflow], config: WorkflowWithPayloadConfiguration) extends Activity[WorkflowOutput] {
 
@@ -118,7 +124,7 @@ class WorkflowWithPayloadExecutor(task: ProjectTask[Workflow], config: WorkflowW
     checkReplaceableDatasetsCovered(allReplaceableDatasets, dataSources.keySet, sinks.keySet)
     context.value() = WorkflowOutput(sinks, replaceableSinks, resultResourceManager)
 
-    val activity = LocalWorkflowExecutorGeneratingProvenance(task, dataSources, sinks, useLocalInternalDatasets = true)
+    val activity = LocalWorkflowExecutorGeneratingProvenance(task, dataSources, sinks, useLocalInternalDatasets = true, workflowVariables = config.workflowVariables)
     context.child(activity, 1.0).startBlocking()
   }
 

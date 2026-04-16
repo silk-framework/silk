@@ -12,4 +12,9 @@ object TemplateVariableScopes {
    */
   final val project = "project"
 
+  /**
+   * Workflow variables.
+   */
+  final val workflow = "workflow"
+
 }

@@ -6,6 +6,8 @@ import org.silkframework.plugins.dataset.BinaryFileDataset
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin._
 import org.silkframework.runtime.resource.FileMapResourceManager
+import org.silkframework.runtime.templating.TemplateVariablesParameter
+import org.silkframework.runtime.templating.{TemplateVariable, TemplateVariableScopes, TemplateVariables}
 import org.silkframework.runtime.validation.BadUserInputException
 import org.silkframework.util.FileUtils
 import org.silkframework.workbench.utils.{NotAcceptableException, UnsupportedMediaTypeException}
@@ -236,7 +238,8 @@ object VariableWorkflowRequestUtils {
     * @param variableDataSinkConfig Optional data sink config.
     */
   case class VariableWorkflowRequestConfig(configParameters: ParameterValues,
-                                           variableDataSinkConfig: Option[String])
+                                           variableDataSinkConfig: Option[String],
+                                           workflowVariables: TemplateVariables = TemplateVariables.empty)
 
   private def variableWorkflowFileResourceManager(implicit request: Request[AnyContent]): FileMapResourceManager = {
     val baseDir = Files.createTempDirectory(tempFileBaseDir, "variableWorkflowResourceManager")
@@ -304,13 +307,16 @@ object VariableWorkflowRequestUtils {
       )
     )
     implicit val pluginContext: PluginContext = PluginContext.fromProject(project)
+    val workflowVars = parseWorkflowVariables
     VariableWorkflowRequestConfig(
       configParameters = ParameterValues(Map(
         "configuration" -> ParameterStringValue(workflowConfig.toString()),
         "configurationType" -> ParameterStringValue(jsonMimeType),
-        "optionalPrimaryResourceManager" -> ParameterObjectValue(OptionalPrimaryResourceManagerParameter(Some(variableWorkflowFileResourceManager)))
+        "optionalPrimaryResourceManager" -> ParameterObjectValue(OptionalPrimaryResourceManagerParameter(Some(variableWorkflowFileResourceManager))),
+        "workflowVariables" -> ParameterObjectValue(toTemplateVariablesParameter(workflowVars))
       )),
-      variableDataSinkConfig = replaceableDataSinkConfigOpt.map(_.mimeType)
+      variableDataSinkConfig = replaceableDataSinkConfigOpt.map(_.mimeType),
+      workflowVariables = workflowVars
     )
   }
 
@@ -369,5 +375,30 @@ object VariableWorkflowRequestUtils {
       (paramName, jsValues)
     }
     JsObject(jsonProperties)
+  }
+
+  /**
+    * Parses execution variables from a request.
+    * Workflow variables can be provided in the JSON body under the "workflowVariables" key as a simple name-value map.
+    */
+  def parseWorkflowVariables(implicit request: Request[AnyContent]): TemplateVariables = {
+    val fromBody = request.body.asJson.flatMap { json =>
+      (json \ "workflowVariables").asOpt[Map[String, String]]
+    }.getOrElse(Map.empty)
+
+    if(fromBody.nonEmpty) {
+      TemplateVariables(fromBody.map { case (name, value) =>
+        TemplateVariable(name, value, scope = TemplateVariableScopes.workflow)
+      }.toSeq)
+    } else {
+      TemplateVariables.empty
+    }
+  }
+
+  /**
+    * Converts template variables to a TemplateVariablesParameter.
+    */
+  private def toTemplateVariablesParameter(vars: TemplateVariables): TemplateVariablesParameter = {
+    TemplateVariablesParameter(vars)
   }
 }

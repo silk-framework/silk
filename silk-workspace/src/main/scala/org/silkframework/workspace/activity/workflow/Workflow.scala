@@ -5,6 +5,7 @@ import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.dataset.{Dataset, DatasetSpec, VariableDataset}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
+import org.silkframework.runtime.templating.TemplateVariablesParameter
 import org.silkframework.runtime.plugin.{AnyPlugin, PluginContext, PluginObjectParameterNoSchema}
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat}
 import org.silkframework.runtime.validation.ValidationException
@@ -38,7 +39,9 @@ case class Workflow(@Param(label = "Workflow operators", value = "Workflow opera
                     @Param(label = "Replaceable input datasets", value = "The IDs of input datasets that can be replaced in the workflow with other user defined datasets.", visibleInDialog = false)
                     replaceableInputs: TaskIdentifierParameter = TaskIdentifierParameter(Seq.empty),
                     @Param(label = "Replaceable output datasets", value = "The IDs of output datasets that can be replaced in the workflow with other user defined datasets.", visibleInDialog = false)
-                    replaceableOutputs: TaskIdentifierParameter = TaskIdentifierParameter(Seq.empty)) extends TaskSpec with AnyPlugin {
+                    replaceableOutputs: TaskIdentifierParameter = TaskIdentifierParameter(Seq.empty),
+                    @Param(label = "Workflow variables", value = "Default variables for this workflow. Can be overridden when starting the workflow execution.", visibleInDialog = false)
+                    workflowVariables: TemplateVariablesParameter = TemplateVariablesParameter.empty) extends TaskSpec with AnyPlugin {
 
   lazy val nodes: Seq[WorkflowNode] = operators ++ datasets
 

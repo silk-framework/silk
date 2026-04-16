@@ -4,7 +4,7 @@ import org.silkframework.config.Prefixes
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.resource.{EmptyResourceManager, ResourceManager}
 import org.silkframework.runtime.serialization.ReadContext
-import org.silkframework.runtime.templating.{GlobalTemplateVariables, TemplateVariablesReader}
+import org.silkframework.runtime.templating.{CombinedTemplateVariablesReader, GlobalTemplateVariables, TemplateVariablesReader}
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.{ProjectConfig, ProjectTrait}
 
@@ -54,6 +54,11 @@ object PluginContext {
 
   def fromProject(project: ProjectTrait)(implicit user: UserContext): PlainPluginContext = {
     PlainPluginContext(project.config.prefixes, project.resources, user, Some(project.id), project.combinedTemplateVariables)
+  }
+
+  def fromProject(project: ProjectTrait, additionalVariables: TemplateVariablesReader)(implicit user: UserContext): PlainPluginContext = {
+    val combinedVariables = CombinedTemplateVariablesReader(Seq(GlobalTemplateVariables, project.templateVariables, additionalVariables))
+    PlainPluginContext(project.config.prefixes, project.resources, user, Some(project.id), combinedVariables)
   }
 
   def fromProjectConfig(config: ProjectConfig,

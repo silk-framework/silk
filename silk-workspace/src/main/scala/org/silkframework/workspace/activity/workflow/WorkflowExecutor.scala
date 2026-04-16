@@ -7,6 +7,7 @@ import org.silkframework.execution._
 import org.silkframework.runtime.activity.Status.Canceling
 import org.silkframework.runtime.activity._
 import org.silkframework.runtime.plugin.PluginContext
+import org.silkframework.runtime.templating.{InMemoryTemplateVariablesReader, TemplateVariableScopes, TemplateVariables}
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.ProjectTask
@@ -28,10 +29,25 @@ trait WorkflowExecutor[ExecType <: ExecutionType] extends Activity[WorkflowExecu
   /** Returns a map of datasets that can replace variable datasets used as data sinks in a workflow */
   protected def replaceSinks: Map[String, Dataset]
 
+  /** Returns the execution variables for this workflow execution. */
+  protected def workflowVariables: TemplateVariables
+
   protected def currentWorkflow = workflowTask.data
 
   protected def project = workflowTask.project
   protected def workflowNodes = currentWorkflow.nodes
+
+  /**
+    * Creates a plugin context that includes execution variables from the workflow run context.
+    */
+  protected def pluginContextWithExecutionVars(implicit workflowRunContext: WorkflowRunContext): PluginContext = {
+    if(workflowRunContext.workflowVariables.variables.nonEmpty) {
+      val execVarsReader = InMemoryTemplateVariablesReader(workflowRunContext.workflowVariables, Set(TemplateVariableScopes.workflow))
+      PluginContext.fromProject(project, execVarsReader)(workflowRunContext.userContext)
+    } else {
+      PluginContext.fromProject(project)(workflowRunContext.userContext)
+    }
+  }
 
   /**
     * Executes a workflow operator.
@@ -52,7 +68,7 @@ trait WorkflowExecutor[ExecType <: ExecutionType] extends Activity[WorkflowExecu
                                               inputs: Seq[ExecType#DataType],
                                               output: ExecutorOutput)
                                              (implicit workflowRunContext: WorkflowRunContext, prefixes: Prefixes): Option[ExecType#DataType] = {
-    implicit val pluginContext: PluginContext = PluginContext.fromProject(project)(workflowRunContext.userContext)
+    implicit val pluginContext: PluginContext = pluginContextWithExecutionVars
     val taskContext = workflowRunContext.taskContext(nodeId, task)
     updateProgress(operation, task)
     val result =
@@ -162,7 +178,7 @@ trait WorkflowExecutor[ExecType <: ExecutionType] extends Activity[WorkflowExecu
   private def reconfigureTask[T <: TaskSpec](workflowNode: WorkflowDependencyNode,
                                              task: Task[T])
                                             (implicit workflowRunContext: WorkflowRunContext): Task[T] = {
-    implicit val pluginContext: PluginContext = PluginContext.fromProject(project)(workflowRunContext.userContext)
+    implicit val pluginContext: PluginContext = pluginContextWithExecutionVars
     try {
       workflowRunContext.reconfiguredTasks.getOrElseUpdate(
         workflowNode.workflowNode, {
@@ -201,7 +217,8 @@ case class WorkflowRunContext(activityContext: ActivityContext[WorkflowExecution
                               workflow: Workflow,
                               userContext: UserContext,
                               alreadyExecuted: mutable.Set[WorkflowNode] = mutable.Set(),
-                              reconfiguredTasks: mutable.Map[WorkflowNode, Task[_ <: TaskSpec]] = mutable.Map()) {
+                              reconfiguredTasks: mutable.Map[WorkflowNode, Task[_ <: TaskSpec]] = mutable.Map(),
+                              workflowVariables: TemplateVariables = TemplateVariables.empty) {
   /**
     * Listeners for updates to task reports.
     * We need to hold them to prevent their garbage collection.
