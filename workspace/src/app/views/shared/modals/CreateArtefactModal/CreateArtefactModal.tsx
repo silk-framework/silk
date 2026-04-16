@@ -122,10 +122,10 @@ export function CreateArtefactModal() {
 
     // The artefact that is selected from the artefact selection list. This can be pre-selected via the Redux state.
     // A successive 'Add' action will open the creation dialog for this artefact.
-    const [_toBeAdded, _setToBeAdded] = React.useState<IPluginOverview | undefined>(selectedArtefactFromStore);
+    const [toBeAddedState, _setToBeAdded] = React.useState<IPluginOverview | undefined>(selectedArtefactFromStore);
     const toBeAdded = useRef<IPluginOverview | undefined>(selectedArtefactFromStore);
     const toBeAddedKey = useRef<string | undefined>(selectedArtefactFromStore?.key);
-    const [lastSelectedClick, setLastSelectedClick] = useState<number>(0);
+    const lastSelectedClick = useRef<number>(0);
     const [isProjectImport, setIsProjectImport] = useState<boolean>(false);
     const [autoConfigPending, setAutoConfigPending] = useState(false);
     const DOUBLE_CLICK_LIMIT_MS = 500;
@@ -153,12 +153,10 @@ export function CreateArtefactModal() {
     );
     const templateParameters = React.useRef(new Set<string>());
 
-    const setToBeAdded = React.useCallback((plugin: IPluginOverview | undefined, stateChange: boolean = false) => {
+    const setToBeAdded = React.useCallback((plugin: IPluginOverview | undefined) => {
         toBeAdded.current = plugin;
         toBeAddedKey.current = plugin?.key;
-        if (stateChange) {
-            _setToBeAdded(plugin);
-        }
+        _setToBeAdded(plugin);
     }, []);
     const [taskActionResult, setTaskActionResult] = React.useState<{ label: string; message: string }>();
     const [taskActionLoading, setTaskActionLoading] = React.useState<string | null>(null);
@@ -175,6 +173,14 @@ export function CreateArtefactModal() {
             clearTimeout(generalWarningTimeout.current);
         }
         generalWarningTimeout.current = window.setTimeout(() => setTaskFormGeneralWarning(message), 250);
+    }, []);
+
+    React.useEffect(() => {
+        return () => {
+            if (generalWarningTimeout.current) {
+                clearTimeout(generalWarningTimeout.current);
+            }
+        };
     }, []);
 
     React.useEffect(() => {
@@ -224,20 +230,28 @@ export function CreateArtefactModal() {
      * i.e project id already exists **/
     React.useEffect(() => {
         if (projectId && isOpen) {
+            let cancelled = false;
             (async () => {
                 try {
                     const projectLabel = (await requestProjectMetadata(projectId)).data.label;
-                    setCurrentProject({ id: projectId, label: projectLabel });
+                    if (!cancelled) {
+                        setCurrentProject({ id: projectId, label: projectLabel });
+                    }
                 } catch (e) {
-                    registerError(
-                        "CreateArtefactModal-fetch-project-meta-data",
-                        "Could not fetch project information",
-                        e,
-                    );
+                    if (!cancelled) {
+                        registerError(
+                            "CreateArtefactModal-fetch-project-meta-data",
+                            "Could not fetch project information",
+                            e,
+                        );
+                    }
                 }
             })();
+            return () => {
+                cancelled = true;
+            };
         }
-    }, [projectId, selectedArtefactKey.current, isOpen]);
+    }, [projectId, isOpen, registerError]);
 
     useEffect(() => {
         if (!isOpen) {
@@ -304,16 +318,13 @@ export function CreateArtefactModal() {
 
     // Handles that an artefact is selected (highlighted) in the artefact selection list (not added, yet    )
     const handleArtefactSelect = (artefact: IPluginOverview) => {
-        if (
-            toBeAddedKey.current === artefact.key &&
-            lastSelectedClick &&
-            Date.now() - lastSelectedClick < DOUBLE_CLICK_LIMIT_MS
-        ) {
+        const now = Date.now();
+        if (toBeAddedKey.current === artefact.key && now - lastSelectedClick.current < DOUBLE_CLICK_LIMIT_MS) {
             handleAdd();
         } else {
             setToBeAdded(artefact);
         }
-        setLastSelectedClick(Date.now);
+        lastSelectedClick.current = now;
     };
 
     const handleShowEnhancedDescriptionClickHandler = (event, artefactDocumentation: ArtefactDocumentation) => {
@@ -453,6 +464,12 @@ export function CreateArtefactModal() {
         setToBeAdded(undefined);
         setCurrentProject(undefined);
         setTaskActionResult(undefined);
+        if (generalWarningTimeout.current) {
+            clearTimeout(generalWarningTimeout.current);
+            generalWarningTimeout.current = undefined;
+        }
+        setTaskFormGeneralWarning(undefined);
+        externalParameterUpdateMap.current = new Map();
         form.reset();
         setFormValueChanges({});
         form.clearErrors();
@@ -711,9 +728,9 @@ export function CreateArtefactModal() {
 
     React.useEffect(() => {
         if (artefactListWithProject.length > 0 && searchValue) {
-            setToBeAdded(artefactListWithProject[0], true);
+            setToBeAdded(artefactListWithProject[0]);
         } else {
-            setToBeAdded(undefined, true);
+            setToBeAdded(undefined);
         }
     }, [artefactListWithProject.map((item) => item.key).join("|"), selectedDType]);
 
@@ -1083,7 +1100,7 @@ export function CreateArtefactModal() {
                             key="add"
                             affirmative={true}
                             onClick={handleAdd}
-                            disabled={!toBeAddedKey.current}
+                            disabled={!toBeAddedState?.key}
                             data-test-id={"item-add-btn"}
                         >
                             {t("common.action.add")}
@@ -1153,7 +1170,7 @@ export function CreateArtefactModal() {
                                                         isOnlyLayout
                                                         key={artefact.key}
                                                         className={
-                                                            toBeAddedKey.current === artefact.key
+                                                            toBeAddedState?.key === artefact.key
                                                                 ? ClassNames.Intent.ACCENT
                                                                 : ""
                                                         }
