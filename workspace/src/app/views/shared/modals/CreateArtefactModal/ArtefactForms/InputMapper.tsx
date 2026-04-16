@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
 import { INPUT_TYPES } from "../../../../../constants";
-import { CodeEditor, Spinner, Switch, TextField } from "@eccenca/gui-elements";
+import { CodeEditor, Switch, TextField } from "@eccenca/gui-elements";
 import { ITaskParameter } from "@ducks/common/typings";
 import { IntentTypes as Intent } from "@eccenca/gui-elements/src/common/Intent";
 import FileSelectionMenu from "../../../FileUploader/FileSelectionMenu";
@@ -46,6 +46,7 @@ export interface IInputAttributes {
     defaultValue?: any;
     inputRef?: (e) => void;
     defaultChecked?: boolean;
+    key?: string | null;
 }
 
 /** Maps an atomic value to the corresponding value type widget. */
@@ -65,7 +66,6 @@ export function InputMapper({
     const { maxFileUploadSize } = useSelector(commonSel.initialSettingsSelector);
     const { paramId, param } = parameter;
     const [externalValue, setExternalValue] = React.useState<{ value: string; label?: string } | undefined>(undefined);
-    const [show, setShow] = React.useState(true);
     const [highlightInput, setHighlightInput] = React.useState(false);
     const initialOrExternalValue = externalValue ? externalValue.value : initialParameterValue;
     const initialValue =
@@ -90,20 +90,13 @@ export function InputMapper({
         parameterCallbacks.registerForExternalChanges(paramId, handleUpdates);
     }, []);
 
-    // Re-init element when value is set from outside
-    useEffect(() => {
-        if (externalValue) {
-            setShow(false);
-            setTimeout(() => setShow(true), 1);
-        }
-    }, [externalValue]);
-
     const inputAttributes: IInputAttributes = {
         id: paramId,
         name: paramId,
         intent: highlightInput ? "success" : intent,
         onChange: onChangeUsed,
         defaultValue: initialValue,
+        key: externalValue?.value ? `${paramId}_${externalValue.value}` : undefined,
     };
 
     const handleFileSearch = async (input: string) => {
@@ -121,10 +114,6 @@ export function InputMapper({
 
     if (param.parameterType === INPUT_TYPES.BOOLEAN) {
         inputAttributes.defaultChecked = initialValue;
-    }
-
-    if (!show) {
-        return <Spinner />;
     }
 
     if (param.parameterType.startsWith("code-")) {
