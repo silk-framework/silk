@@ -17,7 +17,7 @@ import org.silkframework.dataset._
 import org.silkframework.dataset.rdf.RdfDataset
 import org.silkframework.entity._
 import org.silkframework.entity.paths.{Path, UntypedPath}
-import org.silkframework.plugins.dataset.rdf.executors.{LocalSparqlSelectExecutor, LocalSparqlSelectIterator}
+import org.silkframework.plugins.dataset.rdf.executors.LocalSparqlSelectExecutor
 import org.silkframework.plugins.dataset.rdf.tasks.SparqlSelectCustomTask
 import org.silkframework.rule.TransformSpec.RuleSchemata
 import org.silkframework.rule.{ComplexUriMapping, TaskContext, TransformRule, TransformSpec}
@@ -171,7 +171,8 @@ class PeakTransformApi @Inject() () extends InjectedController with UserContextA
     val transformSpec = task.data
     val parentRule = transformSpec.oneRuleEntitySchemaById(ruleName).get
     val inputTaskId = transformSpec.selection.inputId
-    implicit val readContext: ReadContext = ReadContext.fromProject(project)
+    implicit val prefixes: Prefixes = project.config.prefixes
+    implicit val readContext: ReadContext = ReadContext(prefixes = prefixes, resources = project.resources)
 
     deserializeCompileTime[TransformRule]() { rule =>
       val updatedParentRule = parentRule.transformRule.withChildren(Seq(rule)).asInstanceOf[TransformRule]
@@ -239,7 +240,8 @@ class PeakTransformApi @Inject() () extends InjectedController with UserContextA
       val datasetTask = project.task[GenericDatasetSpec](sparqlDataset)
       datasetTask.data.plugin match {
         case _: RdfDataset with Dataset =>
-          val entities = new LocalSparqlSelectIterator(sparqlSelectTask, datasetTask.asInstanceOf[Task[_ <: DatasetSpec[RdfDataset]]], None, maxTryEntities, executionReportUpdater = None)
+          val executor = LocalSparqlSelectExecutor()
+          val entities = executor.executeOnSparqlEndpoint(sparqlSelectTask, datasetTask.asInstanceOf[Task[_ <: DatasetSpec[RdfDataset]]], None, maxTryEntities, executionReportUpdater = None)
           val entityDatasource = EntityDatasource(datasetTask, entities, sparqlSelectTask.outputSchema)
           try {
             entityDatasource.peak(ruleSchemata.inputSchema, maxTryEntities).use { exampleEntities =>

@@ -53,6 +53,7 @@ class JsonPluginModule extends PluginModule {
       ReferenceLinksJsonFormat.getClass ::
       ComplexMappingJsonFormat.getClass ::
       UiAnnotationsJsonFormat.getClass ::
+      TemplateVariablesParameterJsonFormat.getClass ::
       TaskIdentifierParameterFormat.getClass ::
       classOf[InputTaskAttributesTransformer] ::
       classOf[InputFileAttributesTransformer] ::

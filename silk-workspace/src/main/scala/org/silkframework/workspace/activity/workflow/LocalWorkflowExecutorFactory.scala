@@ -21,6 +21,6 @@ case class LocalWorkflowExecutorFactory(@Param(label = "Workflow variables", val
 
   override def apply(task: ProjectTask[Workflow]): Activity[WorkflowExecutionReportWithProvenance] = {
     val mergedVars = task.data.workflowVariables.merge(workflowVariables)
-    LocalWorkflowExecutorGeneratingProvenance(task, workflowVariables = mergedVars.toTemplateVariables)
+    LocalWorkflowExecutorGeneratingProvenance(task, workflowVariables = mergedVars.variables)
   }
 }

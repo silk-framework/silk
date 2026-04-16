@@ -17,8 +17,8 @@ object TemplateVariableScopes {
   final val project: Seq[String] = Seq("project")
 
   /**
-   * Workflow variables.
+   * Scope for workflow variables, addressed as "workflow.variableName".
    */
-  final val workflow = "workflow"
+  final val workflow: Seq[String] = Seq("workflow")
 
 }
