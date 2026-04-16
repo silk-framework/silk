@@ -1890,6 +1890,12 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
         });
     };
 
+    const centerAndFitView = () => {
+        reactFlowInstance?.fitView({ maxZoom: 1 });
+        ruleEditorContext.initialFitToViewZoomLevel &&
+            reactFlowInstance?.zoomTo(ruleEditorContext.initialFitToViewZoomLevel);
+    };
+
     /** Save the current rule. */
     const saveRule = async () => {
         const stickyNodes = current.elements.reduce((stickyNodes, elem) => {
@@ -2006,17 +2012,21 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                 </Notification>,
             );
         }
+
         // Center and then zoom not too far out
         setTimeout(async () => {
             if (needsLayout) {
                 await autoLayoutInternal(elems, false, false);
             }
-            reactFlowInstance?.fitView({ maxZoom: 1 });
-            ruleEditorContext.initialFitToViewZoomLevel &&
-                reactFlowInstance?.zoomTo(ruleEditorContext.initialFitToViewZoomLevel);
             setInitializing(false);
         }, 1);
     };
+
+    React.useEffect(() => {
+        if (!initializing) {
+            centerAndFitView();
+        }
+    }, [initializing]);
 
     return (
         <RuleEditorModelContext.Provider
