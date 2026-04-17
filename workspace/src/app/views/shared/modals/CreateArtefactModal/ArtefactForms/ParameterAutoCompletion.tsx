@@ -102,7 +102,6 @@ export const ParameterAutoCompletion = ({
     const [externalValue, setExternalValue] = React.useState<{ value: string; label?: string } | undefined>(undefined);
     const initialOrExternalValue = externalValue ? externalValue : initialValue;
     const [highlightInput, setHighlightInput] = React.useState(false);
-    const [show, setShow] = React.useState(true);
     const [limit, setLimit] = React.useState<number>(AUTOCOMPLETION_LIMIT);
     const [searchQuery, setSearchQuery] = React.useState<string>("");
     //determines if when the user scrolls to the bottom it is necessary to request more content or not
@@ -127,14 +126,6 @@ export const ParameterAutoCompletion = ({
             registerForExternalChanges(formParamId, handleUpdates);
         }
     }, [registerForExternalChanges]);
-
-    // Re-init element when value is set from outside
-    useEffect(() => {
-        if (externalValue) {
-            setShow(false);
-            setTimeout(() => setShow(true), 1);
-        }
-    }, [externalValue]);
 
     const selectDependentValues = (autoCompletion: IPropertyAutocomplete): DependsOnParameterValue[] => {
         const prefixIdx = formParamId.lastIndexOf(".");
@@ -206,10 +197,6 @@ export const ParameterAutoCompletion = ({
             return results.slice(limit);
         }
     };
-
-    if (!show) {
-        return <Spinner position={"inline"} />;
-    }
 
     return (
         <SuggestField<StringOrReifiedValue, IAutocompleteDefaultResponse>
