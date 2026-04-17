@@ -3,21 +3,20 @@ package controllers.workspaceApi.coreApi
 import controllers.core.UserContextActions
 import controllers.core.util.ControllerUtilsTrait
 import controllers.util.TaskLink
-import controllers.workspaceApi.coreApi.VariableTemplateApi.{TemplateVariableJson, TemplateVariablesJson, VariableDependencies}
+import controllers.workspaceApi.coreApi.VariableTemplateApi.VariableDependencies
 import controllers.workspaceApi.coreApi.doc.VariableTemplateApiDoc
 import controllers.workspaceApi.coreApi.variableTemplate.{AutoCompleteVariableTemplateRequest, ValidateVariableTemplateRequest}
 import io.swagger.v3.oas.annotations.enums.ParameterIn
 import io.swagger.v3.oas.annotations.media.{ArraySchema, Content, ExampleObject, Schema}
-import io.swagger.v3.oas.annotations.media.Schema.RequiredMode
 import io.swagger.v3.oas.annotations.parameters.RequestBody
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.tags.Tag
 import io.swagger.v3.oas.annotations.{Operation, Parameter}
 import org.silkframework.runtime.templating.exceptions._
 import org.silkframework.runtime.templating.operations.{DeleteVariableModification, UpdateVariableModification, UpdateVariablesModification}
-import org.silkframework.runtime.templating.{GlobalTemplateVariables, TemplateVariable, TemplateVariableScopes, TemplateVariables}
+import org.silkframework.runtime.templating.{GlobalTemplateVariables, TemplateVariableScopes, TemplateVariables}
 import org.silkframework.runtime.validation.BadUserInputException
-import org.silkframework.serialization.json.JsonHelpers
+import org.silkframework.serialization.json.{JsonHelpers, TemplateVariableJson, TemplateVariablesJson}
 import org.silkframework.workspace.WorkspaceFactory
 import play.api.libs.json.{JsValue, Json, OFormat}
 import play.api.mvc.{Action, AnyContent, InjectedController}
@@ -415,89 +414,6 @@ class VariableTemplateApi @Inject()() extends InjectedController with UserContex
 
 object VariableTemplateApi {
 
-  @Schema(description = "A single template variable")
-  case class TemplateVariableJson(@Schema(
-                                      description = "The name of the variable.",
-                                      example = "myVar",
-                                      requiredMode = RequiredMode.REQUIRED
-                                  )
-                                  name: String,
-                                  @Schema(
-                                    description = "The value of the variable.",
-                                    example = "example value",
-                                    requiredMode = RequiredMode.NOT_REQUIRED
-                                  )
-                                  value: Option[String],
-                                  @Schema(
-                                    description = "Template to generate the variable value.",
-                                    requiredMode = RequiredMode.NOT_REQUIRED
-                                  )
-                                  template: Option[String],
-                                  @Schema(
-                                    description = "Optional description for documentation.",
-                                    example = "Example description",
-                                    requiredMode = RequiredMode.NOT_REQUIRED
-                                  )
-                                  description: Option[String],
-                                  @Schema(
-                                    description = "True, if this is a sensitive variable that should not be exposed to the user.",
-                                    example = "false",
-                                    requiredMode = RequiredMode.REQUIRED
-                                  )
-                                  isSensitive: Boolean,
-                                  @Schema(
-                                    description = "The scope of the variable as a sequence of strings forming a prefix path, e.g. [\"project\"] or [\"project\", \"metaData\"].",
-                                    requiredMode = RequiredMode.REQUIRED
-                                  )
-                                  scope: Seq[String]) {
-    def convert: TemplateVariable = {
-      if (value.isEmpty && template.isEmpty) {
-        throw new BadUserInputException("Either the variable value or its template has to be defined.")
-      }
-      TemplateVariable(name, value.getOrElse(""), template, description, isSensitive, scope)
-    }
-  }
-
-  object TemplateVariableJson {
-    def apply(variable: TemplateVariable): TemplateVariableJson = {
-      TemplateVariableJson(variable.name, Some(variable.value), variable.template, variable.description, variable.isSensitive, variable.scope)
-    }
-  }
-
-  @Schema(description = "A list of template variables.")
-  case class TemplateVariablesJson(@ArraySchema(
-                                       schema = new Schema(
-                                        description = "List of variables.",
-                                        requiredMode = RequiredMode.REQUIRED,
-                                        implementation = classOf[TemplateVariableJson]
-                                     ))
-                                     variables: Seq[TemplateVariableJson],
-                                   @ArraySchema(
-                                       schema = new Schema(
-                                         description = "List of evaluation errors.",
-                                         requiredMode = RequiredMode.NOT_REQUIRED,
-                                         implementation = classOf[TemplateVariableErrorJson]
-                                     ))
-                                     errors: Option[Seq[TemplateVariableErrorJson]] = None) {
-    def convert: TemplateVariables = {
-      TemplateVariables(variables.map(_.convert))
-    }
-  }
-
-  @Schema(description = "An error message related to a variable.")
-  case class TemplateVariableErrorJson(variableName: String, message: String)
-
-
-  object TemplateVariablesJson {
-    def apply(variables: TemplateVariables): TemplateVariablesJson = {
-      TemplateVariablesJson(variables.variables.map(TemplateVariableJson(_)))
-    }
-
-    def apply(variables: TemplateVariables, ex: TemplateVariablesEvaluationException): TemplateVariablesJson = {
-      TemplateVariablesJson(variables.variables.map(TemplateVariableJson(_)), Some(ex.issues.map(e => TemplateVariableErrorJson(e.variable.name, e.ex.getMessage))))
-    }
-  }
-
   case class VariableDependencies(@ArraySchema(
                                     schema = new Schema(
                                       description = "List of dependent variables.",
@@ -511,8 +427,5 @@ object VariableTemplateApi {
                                     ))
                                   dependentTasks: Seq[TaskLink])
 
-  implicit val templateVariableErrorFormat: OFormat[TemplateVariableErrorJson] = Json.format[TemplateVariableErrorJson]
-  implicit val templateVariableFormat: OFormat[TemplateVariableJson] = Json.format[TemplateVariableJson]
-  implicit val templateVariablesFormat: OFormat[TemplateVariablesJson] = Json.format[TemplateVariablesJson]
   implicit val variableDependenciesFormat: OFormat[VariableDependencies] = Json.format[VariableDependencies]
 }

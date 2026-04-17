@@ -14,7 +14,7 @@ import org.silkframework.rule.similarity._
 import org.silkframework.rule.util.UriPatternParser
 import org.silkframework.rule.vocab.{GenericInfo, Vocabulary, VocabularyClass, VocabularyProperty}
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.runtime.templating.{TemplateVariable, TemplateVariables, TemplateVariablesParameter}
+import org.silkframework.runtime.templating.{TemplateVariables, TemplateVariablesParameter}
 import org.silkframework.runtime.plugin._
 import org.silkframework.runtime.serialization.{ReadContext, Serialization, WriteContext}
 import org.silkframework.runtime.validation.{BadUserInputException, ValidationException}
@@ -117,57 +117,26 @@ object JsonSerializers {
 
   /**
     * JSON format for [[TemplateVariablesParameter]].
-    * Uses the same JSON structure as [[controllers.workspaceApi.coreApi.VariableTemplateApi.TemplateVariablesJson]].
     */
   implicit object TemplateVariablesParameterJsonFormat extends JsonFormat[TemplateVariablesParameter] {
-    final val VARIABLES = "variables"
 
     override def read(value: JsValue)(implicit readContext: ReadContext): TemplateVariablesParameter = {
-      val variables = arrayValue(value, VARIABLES).value.map { json =>
-        TemplateVariablesJsonFormat.readVariable(json)
-      }
-      TemplateVariablesParameter(TemplateVariables(variables.toSeq))
+      TemplateVariablesParameter(Json.fromJson[TemplateVariablesJson](value).get.convert)
     }
 
     override def write(value: TemplateVariablesParameter)(implicit writeContext: WriteContext[JsValue]): JsValue = {
-      Json.obj(
-        VARIABLES -> JsArray(value.variables.variables.map(TemplateVariablesJsonFormat.writeVariable))
-      )
+      Json.toJson(TemplateVariablesJson(value.variables))
     }
   }
 
   implicit object TemplateVariablesJsonFormat extends JsonFormat[TemplateVariables] {
 
     override def read(value: JsValue)(implicit readContext: ReadContext): TemplateVariables = {
-      val variables = value.as[JsArray].value.map(readVariable)
-      TemplateVariables(variables.toSeq)
+      TemplateVariables(value.as[JsArray].value.toSeq.map(Json.fromJson[TemplateVariableJson](_).get.convert))
     }
 
     override def write(value: TemplateVariables)(implicit writeContext: WriteContext[JsValue]): JsValue = {
-      JsArray(value.variables.map(writeVariable))
-    }
-
-    def readVariable(json: JsValue): TemplateVariable = {
-      TemplateVariable(
-        name = stringValue(json, "name"),
-        value = stringValueOption(json, "value").getOrElse(""),
-        template = stringValueOption(json, "template"),
-        description = stringValueOption(json, "description"),
-        isSensitive = booleanValueOption(json, "isSensitive").getOrElse(false),
-        scope = (json \ "scope").asOpt[Seq[String]].getOrElse(Seq.empty)
-      )
-    }
-
-    def writeVariable(v: TemplateVariable)(implicit writeContext: WriteContext[JsValue]): JsObject = {
-      var obj = Json.obj(
-        "name" -> v.name,
-        "value" -> v.value,
-        "isSensitive" -> v.isSensitive,
-        "scope" -> v.scope
-      )
-      for (t <- v.template) obj = obj + ("template" -> JsString(t))
-      for (d <- v.description) obj = obj + ("description" -> JsString(d))
-      obj
+      JsArray(value.variables.map(v => Json.toJson(TemplateVariableJson(v))))
     }
   }
 
