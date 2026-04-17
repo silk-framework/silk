@@ -2,6 +2,7 @@ package org.silkframework.workspace
 
 import org.silkframework.config.{MetaData, TaskSpec}
 import org.silkframework.runtime.activity.UserContext
+import org.silkframework.runtime.templating.TemplateVariables
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.TaskCleanupPlugin.CleanUpAfterTaskDeletionFunction
 import org.silkframework.workspace.exceptions.TaskNotFoundException
@@ -86,10 +87,10 @@ class Module[TaskData <: TaskSpec: ClassTag](private[workspace] val provider: Wo
     cachedTasks.get(name)
   }
 
-  def add(name: Identifier, taskData: TaskData, metaData: MetaData)
+  def add(name: Identifier, taskData: TaskData, metaData: MetaData, variables: TemplateVariables = TemplateVariables.empty)
          (implicit userContext: UserContext) : ProjectTask[TaskData] = {
     assertLoaded()
-    val task = new ProjectTask(name, taskData, metaData, this)
+    val task = new ProjectTask(name, taskData, metaData, variables, this)
     validator.validate(project, task)
     provider.putTask(project.id, task, project.resources)
     task.startActivities()
@@ -132,7 +133,7 @@ class Module[TaskData <: TaskSpec: ClassTag](private[workspace] val provider: Wo
           (for (taskTry <- tasks) yield {
             taskTry.taskOrError match {
               case Right(task) =>
-                Some((task.id, new ProjectTask(task.id, task.data, task.metaData, this)))
+                Some((task.id, new ProjectTask(task.id, task.data, task.metaData, task.variables, this)))
               case Left(taskLoadingError) =>
                 errors ::= taskLoadingError
                 None

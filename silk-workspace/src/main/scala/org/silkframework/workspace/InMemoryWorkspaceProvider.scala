@@ -87,9 +87,9 @@ class InMemoryWorkspaceProvider() extends WorkspaceProvider {
     val inMemoryTask =
       task.data match {
         case plugin: AnyPlugin =>
-          InMemoryPluginTask(task.id, taskType, plugin.pluginSpec, plugin.parameters, task.metaData)
+          InMemoryPluginTask(task.id, taskType, plugin.pluginSpec, plugin.parameters, task.metaData, task.variables)
         case dataset: GenericDatasetSpec =>
-          InMemoryDataset(task.id, taskType, dataset.plugin.pluginSpec, dataset.plugin.parameters, task.metaData, dataset.uriAttribute, dataset.readOnly)
+          InMemoryDataset(task.id, taskType, dataset.plugin.pluginSpec, dataset.plugin.parameters, task.metaData, task.variables, dataset.uriAttribute, dataset.readOnly)
         case _ =>
           throw new IllegalArgumentException("Non-plugin tasks are not supported: " + task)
     }
@@ -197,13 +197,14 @@ class InMemoryWorkspaceProvider() extends WorkspaceProvider {
                                                                     taskType: Class[_],
                                                                     pluginDesc: PluginDescription[_],
                                                                     parameters: ParameterValues,
-                                                                    metaData: MetaData) extends InMemoryTask[T] {
+                                                                    metaData: MetaData,
+                                                                    variables: TemplateVariables = TemplateVariables.empty) extends InMemoryTask[T] {
 
     def load(projectId: Identifier)(implicit pluginContext: PluginContext): LoadedTask[T] = {
       def loadInternal(parameterValues: ParameterValues, pluginContext: PluginContext): Task[T] = {
         val mergedParameters = parameters.merge(parameterValues)
         TaskLoadingException.withTaskLoadingException(OriginalTaskData(pluginDesc.id, mergedParameters)) { params =>
-          LoadedTask.success[T](PlainTask(id, pluginDesc(params)(pluginContext).asInstanceOf[T], metaData)).task
+          LoadedTask.success[T](PlainTask(id, pluginDesc(params)(pluginContext).asInstanceOf[T], metaData, variables)).task
         }
       }
       LoadedTask.factory[T](loadInternal, parameters, pluginContext, Some(projectId), id, metaData.label, metaData.description)
@@ -215,12 +216,13 @@ class InMemoryWorkspaceProvider() extends WorkspaceProvider {
                                                                  pluginDesc: PluginDescription[_],
                                                                  parameters: ParameterValues,
                                                                  metaData: MetaData,
+                                                                 variables: TemplateVariables = TemplateVariables.empty,
                                                                  uriAttribute: Option[Uri],
                                                                  readOnly: Boolean) extends InMemoryTask[T] {
     def load(projectId: Identifier)(implicit pluginContext: PluginContext): LoadedTask[T] = {
       def loadInternal(parameterValues: ParameterValues, pluginContext: PluginContext): Task[T] = {
         LoadedTask.success[T](PlainTask[TaskSpec](id, DatasetSpec[Dataset](pluginDesc(parameterValues)(pluginContext).asInstanceOf[Dataset],
-          uriAttribute, readOnly), metaData).asInstanceOf[Task[T]])
+          uriAttribute, readOnly), metaData, variables).asInstanceOf[Task[T]])
       }
 
       LoadedTask.factory[T](loadInternal, parameters, pluginContext, Some(projectId), id, metaData.label, metaData.description)

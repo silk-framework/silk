@@ -2,6 +2,7 @@ package org.silkframework.config
 
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat, XmlSerialization}
+import org.silkframework.runtime.templating.TemplateVariables
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.LoadedTask
 
@@ -23,6 +24,9 @@ trait Task[+TaskType <: TaskSpec] extends HasMetaData {
 
   /** Meta data about this task. */
   def metaData: MetaData
+
+  /** Variables that are defined on this task. */
+  def variables: TemplateVariables
 
   /**
     * Type of task data.
@@ -51,13 +55,17 @@ trait Task[+TaskType <: TaskSpec] extends HasMetaData {
     case task: Task[_] =>
       id == task.id &&
       data == task.data &&
-      metaData == task.metaData
+      metaData == task.metaData &&
+      variables == task.variables
     case _ =>
       false
   }
 }
 
-case class PlainTask[+TaskType <: TaskSpec : ClassTag](id: Identifier, data: TaskType, metaData: MetaData = MetaData.empty) extends Task[TaskType] {
+case class PlainTask[+TaskType <: TaskSpec : ClassTag](id: Identifier,
+                                                       data: TaskType,
+                                                       metaData: MetaData = MetaData.empty,
+                                                       variables: TemplateVariables = TemplateVariables.empty) extends Task[TaskType] {
 
   override def taskType: Class[_] = implicitly[ClassTag[TaskType]].runtimeClass
 
@@ -65,7 +73,7 @@ case class PlainTask[+TaskType <: TaskSpec : ClassTag](id: Identifier, data: Tas
 
 object PlainTask {
   def fromTask[T <: TaskSpec : ClassTag](task: Task[T]): PlainTask[T] = {
-    PlainTask(task.id, task.data, task.metaData)
+    PlainTask(task.id, task.data, task.metaData, task.variables)
   }
 }
 
@@ -104,7 +112,8 @@ object Task {
       PlainTask(
         id = (node \ "@id").text,
         data = fromXml[T](node),
-        metaData = (node \ "MetaData").headOption.map(fromXml[MetaData]).getOrElse(MetaData.empty)
+        metaData = (node \ "MetaData").headOption.map(fromXml[MetaData]).getOrElse(MetaData.empty),
+        variables = (node \ "Variables").headOption.map(fromXml[TemplateVariables]).getOrElse(TemplateVariables.empty)
       )
     }
 
@@ -115,6 +124,9 @@ object Task {
       var node = toXml(task.data).head.asInstanceOf[Elem]
       node = node % Attribute("id", Text(task.id), Null)
       node = node.copy(child = toXml[MetaData](task.metaData) +: node.child)
+      if(task.variables.variables.nonEmpty) {
+        node = node.copy(child = node.child :+ toXml[TemplateVariables](task.variables))
+      }
       node
     }
   }

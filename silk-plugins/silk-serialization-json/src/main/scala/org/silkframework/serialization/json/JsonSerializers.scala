@@ -124,32 +124,50 @@ object JsonSerializers {
 
     override def read(value: JsValue)(implicit readContext: ReadContext): TemplateVariablesParameter = {
       val variables = arrayValue(value, VARIABLES).value.map { json =>
-        TemplateVariable(
-          name = stringValue(json, "name"),
-          value = stringValueOption(json, "value").getOrElse(""),
-          template = stringValueOption(json, "template"),
-          description = stringValueOption(json, "description"),
-          isSensitive = booleanValueOption(json, "isSensitive").getOrElse(false),
-          scope = (json \ "scope").asOpt[Seq[String]].getOrElse(Seq.empty)
-        )
+        TemplateVariablesJsonFormat.readVariable(json)
       }
       TemplateVariablesParameter(TemplateVariables(variables.toSeq))
     }
 
     override def write(value: TemplateVariablesParameter)(implicit writeContext: WriteContext[JsValue]): JsValue = {
       Json.obj(
-        VARIABLES -> JsArray(value.variables.variables.map { v =>
-          var obj = Json.obj(
-            "name" -> v.name,
-            "value" -> v.value,
-            "isSensitive" -> v.isSensitive,
-            "scope" -> v.scope
-          )
-          for (t <- v.template) obj = obj + ("template" -> JsString(t))
-          for (d <- v.description) obj = obj + ("description" -> JsString(d))
-          obj
-        })
+        VARIABLES -> JsArray(value.variables.variables.map(TemplateVariablesJsonFormat.writeVariable))
       )
+    }
+  }
+
+  implicit object TemplateVariablesJsonFormat extends JsonFormat[TemplateVariables] {
+
+    override def read(value: JsValue)(implicit readContext: ReadContext): TemplateVariables = {
+      val variables = value.as[JsArray].value.map(readVariable)
+      TemplateVariables(variables.toSeq)
+    }
+
+    override def write(value: TemplateVariables)(implicit writeContext: WriteContext[JsValue]): JsValue = {
+      JsArray(value.variables.map(writeVariable))
+    }
+
+    def readVariable(json: JsValue): TemplateVariable = {
+      TemplateVariable(
+        name = stringValue(json, "name"),
+        value = stringValueOption(json, "value").getOrElse(""),
+        template = stringValueOption(json, "template"),
+        description = stringValueOption(json, "description"),
+        isSensitive = booleanValueOption(json, "isSensitive").getOrElse(false),
+        scope = (json \ "scope").asOpt[Seq[String]].getOrElse(Seq.empty)
+      )
+    }
+
+    def writeVariable(v: TemplateVariable)(implicit writeContext: WriteContext[JsValue]): JsObject = {
+      var obj = Json.obj(
+        "name" -> v.name,
+        "value" -> v.value,
+        "isSensitive" -> v.isSensitive,
+        "scope" -> v.scope
+      )
+      for (t <- v.template) obj = obj + ("template" -> JsString(t))
+      for (d <- v.description) obj = obj + ("description" -> JsString(d))
+      obj
     }
   }
 
@@ -1122,6 +1140,7 @@ object JsonSerializers {
                                                  dependentTaskFormatter: Option[String => JsValue] = None)(implicit dataFormat: JsonFormat[T]) extends JsonFormat[LoadedTask[T]] {
 
     final val PROJECT = "project"
+    final val TASK_VARIABLES = "variables"
     final val PROPERTIES = "properties"
     final val RELATIONS = "relations"
     final val SCHEMATA = "schemata"
@@ -1151,7 +1170,8 @@ object JsonSerializers {
         val task = PlainTask(
           id = id,
           data = fromJson[T](dataJson),
-          metaData = metaData(value)
+          metaData = metaData(value),
+          variables = optionalValue(value, TASK_VARIABLES).map(fromJson[TemplateVariables]).getOrElse(TemplateVariables.empty)
         )
 
         LoadedTask.success(task)
@@ -1175,6 +1195,10 @@ object JsonSerializers {
 
       if(options.includeMetaData.getOrElse(true)) {
         json += METADATA -> toJson(task.metaData)
+      }
+
+      if(task.variables.variables.nonEmpty) {
+        json += TASK_VARIABLES -> toJson(task.variables)
       }
 
       // Serialize task data

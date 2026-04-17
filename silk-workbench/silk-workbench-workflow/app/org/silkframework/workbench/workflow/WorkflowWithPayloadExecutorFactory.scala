@@ -38,7 +38,7 @@ case class WorkflowWithPayloadExecutorFactory(configuration: MultilineStringPara
   override def isSingleton: Boolean = false
 
   def apply(task: ProjectTask[Workflow]): Activity[WorkflowOutput] = {
-    val mergedVars = task.data.workflowVariables.merge(workflowVariables).variables
+    val mergedVars = task.variables.merge(workflowVariables.variables)
     new WorkflowWithPayloadExecutor(task, WorkflowWithPayloadConfiguration(configuration.str, configurationType, optionalPrimaryResourceManager.manager, mergedVars))
   }
 }

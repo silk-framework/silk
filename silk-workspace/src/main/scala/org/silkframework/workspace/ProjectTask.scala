@@ -17,6 +17,7 @@ package org.silkframework.workspace
 import org.silkframework.config._
 import org.silkframework.runtime.activity.{HasValue, Status, UserContext, ValueHolder}
 import org.silkframework.runtime.plugin.{PluginContext, PluginRegistry}
+import org.silkframework.runtime.templating.TemplateVariables
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.activity.workflow.Workflow
 import org.silkframework.workspace.activity.{CachedActivity, TaskActivity, TaskActivityFactory}
@@ -36,6 +37,7 @@ import scala.util.control.NonFatal
 class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
                                                    private val initialData: TaskType,
                                                    private val initialMetaData: MetaData,
+                                                   private val initialVariables: TemplateVariables = TemplateVariables.empty,
                                                    private val module: Module[TaskType]) extends Task[TaskType] {
 
   private val log = Logger.getLogger(getClass.getName)
@@ -50,6 +52,9 @@ class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
     // Make sure that the modified timestamp is set
     initialMetaData.copy(modified = Some(initialMetaData.modified.getOrElse(Instant.now)))
   ))
+
+  // Should be used to observe the task variables
+  val variablesValueHolder: ValueHolder[TemplateVariables] = new ValueHolder(Some(initialVariables))
 
   lazy private val taskActivities: Seq[TaskActivity[TaskType, _ <: HasValue]] = {
     // Get all task activity factories for this task type
@@ -87,6 +92,11 @@ class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
     */
   override def metaData: MetaData = metaDataValueHolder()
 
+  /**
+    * Retrieves the current variables of this task.
+    */
+  override def variables: TemplateVariables = variablesValueHolder()
+
   override def taskType: Class[_] = implicitly[ClassTag[TaskType]].runtimeClass
 
   /**
@@ -117,7 +127,7 @@ class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
   /**
     * Updates the data of this task.
     */
-  def update(newData: TaskType, newMetaData: Option[MetaData] = None)
+  def update(newData: TaskType, newMetaData: Option[MetaData] = None, newVariables: Option[TemplateVariables] = None)
             (implicit userContext: UserContext): Unit = synchronized {
     // Validate
     module.validator.validate(project, PlainTask(id, newData, newMetaData.getOrElse(metaData)))
@@ -130,13 +140,15 @@ class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
       modified = Some(newMetaData.flatMap(_.modified).getOrElse(Instant.now)),
       lastModifiedByUser = newMetaData.flatMap(_.lastModifiedByUser).orElse(userContext.user.map(_.uri))
     )
+    val variablesToPersist = newVariables.getOrElse(variablesValueHolder())
     // First persist task
-    persistTask(PlainTask.fromTask(ProjectTask.this).copy(data = newData, metaData = metaDataToPersist))
+    persistTask(PlainTask.fromTask(ProjectTask.this).copy(data = newData, metaData = metaDataToPersist, variables = variablesToPersist))
     // Invalidate plugin usage cache
     _cachedPluginUsages = None
     // Update (in-memory) data
     dataValueHolder.update(newData)
     metaDataValueHolder.update(metaDataToPersist)
+    variablesValueHolder.update(variablesToPersist)
     // Restart each activity, don't wait for completion.
     for (activity <- taskActivities if shouldAutoRun(activity)) {
       activity.control.restart()
@@ -151,6 +163,14 @@ class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
   def updateMetaData(newMetaData: MetaData)
                     (implicit userContext: UserContext): Unit = {
     update(dataValueHolder(), Some(newMetaData))
+  }
+
+  /**
+    * Updates the variables of this task.
+    */
+  def updateVariables(newVariables: TemplateVariables)
+                     (implicit userContext: UserContext): Unit = {
+    update(dataValueHolder(), newVariables = Some(newVariables))
   }
 
   /**

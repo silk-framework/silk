@@ -84,7 +84,7 @@ class TaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends Injected
     val project = WorkspaceFactory().workspace.project(projectName)
     implicit val readContext: ReadContext = ReadContext.fromProject(project)
     SerializationUtils.deserializeCompileTime[Task[TaskSpec]]() { task =>
-      project.addAnyTask(task.id, task.data, task.metaData)
+      project.addAnyTask(task.id, task.data, task.metaData, task.variables)
       accessMonitor.saveProjectTaskAccess(projectName, task.id)
       implicit val writeContext: WriteContext[JsValue] = WriteContext.fromProject[JsValue](project)
       Created(JsonSerializers.GenericTaskJsonFormat.write(task)).
@@ -141,7 +141,7 @@ class TaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends Injected
       if(task.id.toString != taskName) {
         throw new BadUserInputException(s"Inconsistent task identifiers: Got $taskName in URL, but ${task.id} in payload.")
       }
-      project.updateAnyTask(task.id, task.data, Some(task.metaData))
+      project.updateAnyTask(task.id, task.data, Some(task.metaData), Some(task.variables))
       accessMonitor.saveProjectTaskAccess(projectName, taskName)
       Ok
     }
@@ -211,7 +211,7 @@ class TaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends Injected
     if(updatedTask.id.toString != taskName) {
       throw new BadUserInputException(s"Inconsistent task identifiers: Got $taskName in URL, but ${updatedTask.id} in payload.")
     }
-    project.updateAnyTask(updatedTask.id, updatedTask.data, Some(updatedTask.metaData))
+    project.updateAnyTask(updatedTask.id, updatedTask.data, Some(updatedTask.metaData), Some(updatedTask.variables))
 
     accessMonitor.saveProjectTaskAccess(projectName, taskName)
     Ok
@@ -544,7 +544,7 @@ class TaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends Injected
     // Clone task spec, since task specs may contain state, e.g. RDF file dataset
     implicit val context: PluginContext = PluginContext.fromProject(project)
     val clonedTaskSpec = Try(fromTask.data.withParameters(ParameterValues.empty)).getOrElse(fromTask.data)
-    project.addAnyTask(newTask, clonedTaskSpec, MetaData.empty.copy(tags = fromTask.metaData.tags))
+    project.addAnyTask(newTask, clonedTaskSpec, MetaData.empty.copy(tags = fromTask.metaData.tags), fromTask.variables)
     Ok
   }
 
