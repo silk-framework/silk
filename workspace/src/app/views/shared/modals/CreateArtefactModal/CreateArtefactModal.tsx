@@ -759,6 +759,7 @@ export function CreateArtefactModal() {
             ).data.parameters;
             const formValues = form.getValues();
             let valuesUpdated = 0;
+            let firstUpdatedParamId: string | undefined;
             Object.entries(parameterChanges).forEach(([paramId, value]) => {
                 if (
                     formValues[paramId] != null &&
@@ -767,8 +768,14 @@ export function CreateArtefactModal() {
                 ) {
                     externalParameterUpdateMap.current.get(paramId)!({ value });
                     valuesUpdated += 1;
+                    if (!firstUpdatedParamId) {
+                        firstUpdatedParamId = paramId;
+                    }
                 }
             });
+            if (firstUpdatedParamId) {
+                document.getElementById(firstUpdatedParamId)?.scrollIntoView({ behavior: "smooth", block: "center" });
+            }
             setInfoMessage({
                 message: t("CreateModal.autoConfigParametersUpdated", { number: valuesUpdated }),
                 removeAfterSeconds: 5,

@@ -213,6 +213,7 @@ export const ParameterAutoCompletion = ({
 
     return (
         <SuggestField<StringOrReifiedValue, IAutocompleteDefaultResponse>
+            key={initialOrExternalValue?.value ? `${formParamId}_${initialOrExternalValue.value}` : undefined}
             onSearch={handleSearch}
             onChange={onChangeUsed}
             initialValue={initialOrExternalValue}
