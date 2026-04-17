@@ -22,6 +22,11 @@ class ProjectTemplateVariablesManager(serializer: TemplateVariablesSerializer, l
   def scopes: Set[Seq[String]] = GlobalTemplateVariables.scopes + projectScope
 
   /**
+    * Returns the global variables as the parent scope.
+    */
+  override def parentVariables: TemplateVariables = GlobalTemplateVariables.all
+
+  /**
     * Retrieves all template variables.
     */
   override def all: TemplateVariables = {

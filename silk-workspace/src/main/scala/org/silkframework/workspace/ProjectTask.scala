@@ -17,7 +17,7 @@ package org.silkframework.workspace
 import org.silkframework.config._
 import org.silkframework.runtime.activity.{HasValue, Status, UserContext, ValueHolder}
 import org.silkframework.runtime.plugin.{PluginContext, PluginRegistry}
-import org.silkframework.runtime.templating.TemplateVariables
+import org.silkframework.runtime.templating.{GlobalTemplateVariables, TemplateVariables}
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.activity.workflow.Workflow
 import org.silkframework.workspace.activity.{CachedActivity, TaskActivity, TaskActivityFactory}
@@ -53,8 +53,8 @@ class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
     initialMetaData.copy(modified = Some(initialMetaData.modified.getOrElse(Instant.now)))
   ))
 
-  // Should be used to observe the task variables
-  val variablesValueHolder: ValueHolder[TemplateVariables] = new ValueHolder(Some(initialVariables))
+  // Should be used to access and update the task variables
+  val variablesValueHolder: TaskTemplateVariablesManager = new TaskTemplateVariablesManager(initialVariables, Seq(GlobalTemplateVariables, module.project.templateVariables))
 
   lazy private val taskActivities: Seq[TaskActivity[TaskType, _ <: HasValue]] = {
     // Get all task activity factories for this task type
@@ -95,7 +95,7 @@ class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
   /**
     * Retrieves the current variables of this task.
     */
-  override def variables: TemplateVariables = variablesValueHolder()
+  override def variables: TemplateVariables = variablesValueHolder.all
 
   override def taskType: Class[_] = implicitly[ClassTag[TaskType]].runtimeClass
 
@@ -140,7 +140,7 @@ class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
       modified = Some(newMetaData.flatMap(_.modified).getOrElse(Instant.now)),
       lastModifiedByUser = newMetaData.flatMap(_.lastModifiedByUser).orElse(userContext.user.map(_.uri))
     )
-    val variablesToPersist = newVariables.getOrElse(variablesValueHolder())
+    val variablesToPersist = newVariables.getOrElse(variablesValueHolder.all)
     // First persist task
     persistTask(PlainTask.fromTask(ProjectTask.this).copy(data = newData, metaData = metaDataToPersist, variables = variablesToPersist))
     // Invalidate plugin usage cache
@@ -148,7 +148,7 @@ class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
     // Update (in-memory) data
     dataValueHolder.update(newData)
     metaDataValueHolder.update(metaDataToPersist)
-    variablesValueHolder.update(variablesToPersist)
+    variablesValueHolder.put(variablesToPersist)
     // Restart each activity, don't wait for completion.
     for (activity <- taskActivities if shouldAutoRun(activity)) {
       activity.control.restart()

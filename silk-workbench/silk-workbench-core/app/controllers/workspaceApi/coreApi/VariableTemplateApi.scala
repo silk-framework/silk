@@ -12,12 +12,13 @@ import io.swagger.v3.oas.annotations.parameters.RequestBody
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.tags.Tag
 import io.swagger.v3.oas.annotations.{Operation, Parameter}
+import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.templating.exceptions._
 import org.silkframework.runtime.templating.operations.{DeleteVariableModification, UpdateVariableModification, UpdateVariablesModification}
-import org.silkframework.runtime.templating.{GlobalTemplateVariables, TemplateVariableScopes, TemplateVariables}
+import org.silkframework.runtime.templating.{TemplateVariableScopes, TemplateVariables, TemplateVariablesManager}
 import org.silkframework.runtime.validation.BadUserInputException
 import org.silkframework.serialization.json.{JsonHelpers, TemplateVariableJson, TemplateVariablesJson}
-import org.silkframework.workspace.WorkspaceFactory
+import org.silkframework.workspace.{Project, WorkspaceFactory}
 import play.api.libs.json.{JsValue, Json, OFormat}
 import play.api.mvc.{Action, AnyContent, InjectedController}
 
@@ -55,12 +56,21 @@ class VariableTemplateApi @Inject()() extends InjectedController with UserContex
                      in = ParameterIn.QUERY,
                      schema = new Schema(implementation = classOf[String])
                    )
-                   projectName: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
+                   projectName: String,
+                   @Parameter(
+                     name = "task",
+                     description = "The task identifier. If provided, retrieves task variables instead of project variables.",
+                     required = false,
+                     in = ParameterIn.QUERY,
+                     schema = new Schema(implementation = classOf[String])
+                   )
+                   task: Option[String]): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     val project = WorkspaceFactory().workspace.project(projectName)
-    val allVariables = project.templateVariables.all
+    val manager = templateVariablesManager(project, task)
+    val allVariables = manager.all
     val variablesJson = {
       try {
-        TemplateVariablesJson(allVariables.resolved())
+        TemplateVariablesJson(allVariables.resolved(manager.parentVariables))
       } catch {
         case ex: TemplateVariablesEvaluationException =>
           TemplateVariablesJson(allVariables, ex)
@@ -99,10 +109,18 @@ class VariableTemplateApi @Inject()() extends InjectedController with UserContex
                      in = ParameterIn.QUERY,
                      schema = new Schema(implementation = classOf[String])
                    )
-                   projectName: String): Action[JsValue] = RequestUserContextAction(parse.json) { implicit request => implicit userContext =>
+                   projectName: String,
+                   @Parameter(
+                     name = "task",
+                     description = "The task identifier. If provided, updates task variables instead of project variables.",
+                     required = false,
+                     in = ParameterIn.QUERY,
+                     schema = new Schema(implementation = classOf[String])
+                   )
+                   task: Option[String]): Action[JsValue] = RequestUserContextAction(parse.json) { implicit request => implicit userContext =>
     val project = WorkspaceFactory().workspace.project(projectName)
     val variables = JsonHelpers.fromJsonValidated[TemplateVariablesJson](request.body).convert
-    UpdateVariablesModification(project, variables).execute()
+    UpdateVariablesModification(project, variables, task).execute()
     Ok
   }
 
@@ -141,9 +159,17 @@ class VariableTemplateApi @Inject()() extends InjectedController with UserContex
                     in = ParameterIn.PATH,
                     schema = new Schema(implementation = classOf[String])
                   )
-                  variableName: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
+                  variableName: String,
+                  @Parameter(
+                    name = "task",
+                    description = "The task identifier. If provided, retrieves a task variable instead of a project variable.",
+                    required = false,
+                    in = ParameterIn.QUERY,
+                    schema = new Schema(implementation = classOf[String])
+                  )
+                  task: Option[String]): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
       val project = WorkspaceFactory().workspace.project(projectName)
-      Ok(Json.toJson(TemplateVariableJson(project.templateVariables.get(variableName))))
+      Ok(Json.toJson(TemplateVariableJson(templateVariablesManager(project, task).get(variableName))))
   }
 
   @Operation(
@@ -183,13 +209,21 @@ class VariableTemplateApi @Inject()() extends InjectedController with UserContex
                     in = ParameterIn.PATH,
                     schema = new Schema(implementation = classOf[String])
                   )
-                  variableName: String): Action[JsValue] = RequestUserContextAction(parse.json) { implicit request => implicit userContext =>
+                  variableName: String,
+                  @Parameter(
+                    name = "task",
+                    description = "The task identifier. If provided, adds or updates a task variable instead of a project variable.",
+                    required = false,
+                    in = ParameterIn.QUERY,
+                    schema = new Schema(implementation = classOf[String])
+                  )
+                  task: Option[String]): Action[JsValue] = RequestUserContextAction(parse.json) { implicit request => implicit userContext =>
     val project = WorkspaceFactory().workspace.project(projectName)
     val variable = Json.fromJson[TemplateVariableJson](request.body).get.convert
     if(variable.name != variableName) {
       throw new BadUserInputException(s"Variable name provided in the URL ($variableName) does not match variable name in the request body (${variable.name})")
     }
-    UpdateVariableModification(project, variable).execute()
+    UpdateVariableModification(project, variable, task).execute()
     Ok
   }
 
@@ -230,9 +264,17 @@ class VariableTemplateApi @Inject()() extends InjectedController with UserContex
                        in = ParameterIn.PATH,
                        schema = new Schema(implementation = classOf[String])
                      )
-                     variableName: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
+                     variableName: String,
+                     @Parameter(
+                       name = "task",
+                       description = "The task identifier. If provided, deletes a task variable instead of a project variable.",
+                       required = false,
+                       in = ParameterIn.QUERY,
+                       schema = new Schema(implementation = classOf[String])
+                     )
+                     task: Option[String]): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     val project = WorkspaceFactory().workspace.project(projectName)
-    DeleteVariableModification(project, variableName).execute()
+    DeleteVariableModification(project, variableName, task).execute()
     Ok
   }
 
@@ -265,12 +307,26 @@ class VariableTemplateApi @Inject()() extends InjectedController with UserContex
                              in = ParameterIn.PATH,
                              schema = new Schema(implementation = classOf[String])
                            )
-                           variableName: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
+                           variableName: String,
+                           @Parameter(
+                             name = "task",
+                             description = "The task identifier. If provided, checks dependencies for a task variable instead of a project variable.",
+                             required = false,
+                             in = ParameterIn.QUERY,
+                             schema = new Schema(implementation = classOf[String])
+                           )
+                           task: Option[String]): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     val project = WorkspaceFactory().workspace.project(projectName)
-    val modification = DeleteVariableModification(project, variableName)
-    val dependentVariables = modification.dependentVariables()
-    val dependentTaskLinks = modification.invalidTasks().map(task => TaskLink.fromTask(task))
-    Ok(Json.toJson(VariableDependencies(dependentVariables, dependentTaskLinks)))
+    task match {
+      case Some(_) =>
+        // Task variables are only scoped to the task itself and have no cross-task dependencies
+        Ok(Json.toJson(VariableDependencies(Seq.empty, Seq.empty)))
+      case None =>
+        val modification = DeleteVariableModification(project, variableName)
+        val dependentVariables = modification.dependentVariables()
+        val dependentTaskLinks = modification.invalidTasks().map(task => TaskLink.fromTask(task))
+        Ok(Json.toJson(VariableDependencies(dependentVariables, dependentTaskLinks)))
+    }
   }
 
   @Operation(
@@ -312,12 +368,21 @@ class VariableTemplateApi @Inject()() extends InjectedController with UserContex
                         in = ParameterIn.QUERY,
                         schema = new Schema(implementation = classOf[String])
                       )
-                      projectName: String): Action[JsValue] = RequestUserContextAction(parse.json) { implicit request => implicit userContext =>
+                      projectName: String,
+                      @Parameter(
+                        name = "task",
+                        description = "The task identifier. If provided, reorders task variables instead of project variables.",
+                        required = false,
+                        in = ParameterIn.QUERY,
+                        schema = new Schema(implementation = classOf[String])
+                      )
+                      task: Option[String]): Action[JsValue] = RequestUserContextAction(parse.json) { implicit request => implicit userContext =>
       val project = WorkspaceFactory().workspace.project(projectName)
       val variableNames = ArraySeq.unsafeWrapArray(Json.fromJson[Array[String]](request.body).get)
+      val manager = templateVariablesManager(project, task)
+      val currentVariables = manager.all
 
-      val currentVariables = project.templateVariables.all
-      if(project.templateVariables.all.map.keySet != variableNames.toSet) {
+      if(currentVariables.map.keySet != variableNames.toSet) {
         throw new BadUserInputException("Provided variable names don't match the existing variables.")
       }
 
@@ -326,20 +391,13 @@ class VariableTemplateApi @Inject()() extends InjectedController with UserContex
            currentVariables.map(variableName)
         }
 
-      try {
-        project.templateVariables.put(TemplateVariables(newVariables).resolved(GlobalTemplateVariables.all))
-      } catch {
-        case ex: TemplateVariablesEvaluationException =>
-          val dependencyErrors =
-            ex.issues.collect {
-              case TemplateVariableEvaluationException(dependentVar, unboundEx: UnboundVariablesException) =>
-                (dependentVar.name, unboundEx.missingVars.filter(_.scope == TemplateVariableScopes.project).map(_.name))
-            }.filter(_._2.nonEmpty).toMap
-          if(dependencyErrors.nonEmpty) {
-            throw new CannotReorderVariablesException(dependencyErrors)
-          } else {
-            throw ex
-          }
+      val scope = task.map(_ => TemplateVariableScopes.task).getOrElse(TemplateVariableScopes.project)
+      val resolved = resolveWithDependencyCheck(TemplateVariables(newVariables), manager.parentVariables, scope)
+      task match {
+        case Some(taskId) =>
+          project.anyTask(taskId).updateVariables(resolved)
+        case None =>
+          project.templateVariables.put(resolved)
       }
       Ok
   }
@@ -408,6 +466,40 @@ class VariableTemplateApi @Inject()() extends InjectedController with UserContex
     validateJson[AutoCompleteVariableTemplateRequest] { autoCompleteRequest =>
       val response = autoCompleteRequest.execute()
       Ok(Json.toJson(response))
+    }
+  }
+
+  /**
+   * Returns the TemplateVariablesManager for either the project or a specific task within the project.
+   */
+  private def templateVariablesManager(project: Project, task: Option[String])
+                                      (implicit userContext: UserContext): TemplateVariablesManager = {
+    task match {
+      case Some(taskId) => project.anyTask(taskId).variablesValueHolder
+      case None => project.templateVariables
+    }
+  }
+
+  /**
+   * Resolves variables with dependency order checking.
+   * If the resolution fails because a variable references another variable that is defined after it,
+   * a CannotReorderVariablesException is thrown.
+   */
+  private def resolveWithDependencyCheck(variables: TemplateVariables, parentVars: TemplateVariables, scope: Seq[String]): TemplateVariables = {
+    try {
+      variables.resolved(parentVars)
+    } catch {
+      case ex: TemplateVariablesEvaluationException =>
+        val dependencyErrors =
+          ex.issues.collect {
+            case TemplateVariableEvaluationException(dependentVar, unboundEx: UnboundVariablesException) =>
+              (dependentVar.name, unboundEx.missingVars.filter(_.scope == scope).map(_.name))
+          }.filter(_._2.nonEmpty).toMap
+        if(dependencyErrors.nonEmpty) {
+          throw new CannotReorderVariablesException(dependencyErrors)
+        } else {
+          throw ex
+        }
     }
   }
 }

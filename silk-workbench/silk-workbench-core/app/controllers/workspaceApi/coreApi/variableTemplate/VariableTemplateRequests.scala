@@ -17,19 +17,34 @@ trait VariableTemplateRequest {
 
   def variableName: Option[String]
 
+  def task: Option[String]
+
   /**
-    * Collects all variables given the optional project and variable name.
+    * Collects all variables given the optional project, task, and variable name.
     */
   def collectVariables(ignoreVariableName: Boolean = false, includeSensitiveVariables: Boolean = false)(implicit user: UserContext): TemplateVariables = {
     val collectedVariables = project match {
       case Some(projectName) =>
-        val project = WorkspaceFactory().workspace.project(projectName)
-        var variables = project.templateVariables.all.variables
-        for (name <- variableName if !ignoreVariableName) {
-          variables = variables.takeWhile(_.name != name)
+        val proj = WorkspaceFactory().workspace.project(projectName)
+        task match {
+          case Some(taskId) =>
+            // Task scope: global + all project variables + task variables (up to current variable)
+            val globalVars = GlobalTemplateVariables.all.variables
+            val projectVars = proj.templateVariables.all.variables
+            var taskVars = proj.anyTask(taskId).variablesValueHolder.all.variables
+            for (name <- variableName if !ignoreVariableName) {
+              taskVars = taskVars.takeWhile(_.name != name)
+            }
+            TemplateVariables(globalVars ++ projectVars ++ taskVars)
+          case None =>
+            // Project scope: global + project variables (up to current variable)
+            var variables = proj.templateVariables.all.variables
+            for (name <- variableName if !ignoreVariableName) {
+              variables = variables.takeWhile(_.name != name)
+            }
+            variables = GlobalTemplateVariables.all.variables ++ variables
+            TemplateVariables(variables)
         }
-        variables = GlobalTemplateVariables.all.variables ++ variables
-        TemplateVariables(variables)
       case None =>
         GlobalTemplateVariables.all
     }
@@ -46,6 +61,7 @@ trait VariableTemplateRequest {
 case class ValidateVariableTemplateRequest(templateString: String,
                                            project: Option[String] = None,
                                            variableName: Option[String] = None,
+                                           task: Option[String] = None,
                                            includeSensitiveVariables: Option[Boolean] = None,
                                            ignoreUnboundVariables: Option[Boolean] = None) extends VariableTemplateRequest {
   private val evaluationConfig: EvaluationConfig = EvaluationConfig(ignoreUnboundVariables = ignoreUnboundVariables.getOrElse(false))
@@ -107,6 +123,7 @@ case class AutoCompleteVariableTemplateRequest(inputString: String,
                                                maxSuggestions: Option[Int],
                                                project: Option[String] = None,
                                                variableName: Option[String] = None,
+                                               task: Option[String] = None,
                                                includeSensitiveVariables: Option[Boolean] = None) extends AutoSuggestAutoCompletionRequest with VariableTemplateRequest {
   def execute()(implicit user: UserContext): AutoSuggestAutoCompletionResponse = {
     AutoCompleteVariableTemplateRequest.suggestions(this, collectVariables(includeSensitiveVariables = includeSensitiveVariables.getOrElse(false)).variableNames)

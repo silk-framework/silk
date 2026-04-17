@@ -14,8 +14,8 @@ import scala.util.control.Breaks.{break, breakable}
 import scala.util.control.NonFatal
 
 /**
-  * Modifies the current project variables.
-  * Updates all tasks that use variables that have been modified.
+  * Modifies variables at either the project or task scope.
+  * For project scope, also updates all tasks that use variables that have been modified.
   */
 abstract class Modification {
 
@@ -27,14 +27,22 @@ abstract class Modification {
   def project: Project
 
   /**
+    * Optional task identifier. If set, the modification operates on task variables instead of project variables.
+    */
+  def taskId: Option[String]
+
+  /**
     * Brief description of the done operation, e.g., "Deleted variables".
     */
   def operation: String
 
   /**
     * Implements the concrete variables modification.
+    *
+    * @param currentVariables The current variables at the target scope.
+    * @param parentVariables The resolved parent scope variables (without sensitive values) available for template resolution.
     */
-  protected def updateVariables(currentVariables: TemplateVariables): TemplateVariables
+  protected def updateVariables(currentVariables: TemplateVariables, parentVariables: TemplateVariables): TemplateVariables
 
   /**
     * Generates an exception if a variable could not be updated, because a task would become invalid.
@@ -42,17 +50,30 @@ abstract class Modification {
   protected def generateException(task: Task[_ <: TaskSpec], cause: Throwable): CannotModifyVariablesUsedByTaskException
 
   /**
-    * Updates the project variables and all tasks that use updated variables.
+    * Updates variables and persists the changes.
+    * For project scope, also updates all tasks that use modified variables.
+    * For task scope, updates and persists the task variables.
     */
   def execute()(implicit user: UserContext): Unit = {
-    val currentVariables = project.templateVariables.all
-    val newVariables = updateVariables(currentVariables)
-    val updatedTaskIds = updateTasks(newVariables)
-    project.templateVariables.put(newVariables)
-    if(updatedTaskIds.nonEmpty) {
-      log.info(s"$operation. The following tasks have been updated: " + updatedTaskIds)
-    } else {
-      log.info(s"$operation. No tasks have been updated.")
+    taskId match {
+      case Some(id) =>
+        val projectTask = project.anyTask(id)
+        val manager = projectTask.variablesValueHolder
+        val currentVariables = manager.all
+        val newVariables = updateVariables(currentVariables, manager.parentVariables.withoutSensitiveVariables())
+        projectTask.updateVariables(newVariables)
+        log.info(s"$operation.")
+      case None =>
+        val manager = project.templateVariables
+        val currentVariables = manager.all
+        val newVariables = updateVariables(currentVariables, manager.parentVariables.withoutSensitiveVariables())
+        val updatedTaskIds = updateTasks(newVariables)
+        manager.put(newVariables)
+        if(updatedTaskIds.nonEmpty) {
+          log.info(s"$operation. The following tasks have been updated: " + updatedTaskIds)
+        } else {
+          log.info(s"$operation. No tasks have been updated.")
+        }
     }
   }
 

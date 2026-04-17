@@ -9,7 +9,7 @@ import org.silkframework.workspace.{Project, ProjectTask}
 
 import scala.collection.mutable
 
-case class DeleteVariableModification(project: Project, variableName: String) extends Modification {
+case class DeleteVariableModification(project: Project, variableName: String, taskId: Option[String] = None) extends Modification {
 
   override def operation: String = s"Deleted variable '$variableName'"
 
@@ -18,7 +18,7 @@ case class DeleteVariableModification(project: Project, variableName: String) ex
     */
   def dependentVariables(): Seq[String] = {
     try {
-      updateVariables(project.templateVariables.all)
+      updateVariables(project.templateVariables.all, project.templateVariables.parentVariables)
       Seq.empty
     } catch {
       case ex: CannotDeleteUsedVariableException =>
@@ -58,13 +58,14 @@ case class DeleteVariableModification(project: Project, variableName: String) ex
     updatedTasks.toSeq
   }
 
-  override protected def updateVariables(currentVariables: TemplateVariables): TemplateVariables = {
+  override protected def updateVariables(currentVariables: TemplateVariables, parentVariables: TemplateVariables): TemplateVariables = {
     // Make sure that variable exists
-    val variable = project.templateVariables.get(variableName)
+    val variable = currentVariables.map.getOrElse(variableName,
+      throw new org.silkframework.runtime.validation.NotFoundException(s"No variable '$variableName' has been found."))
 
     val updatedVariables = TemplateVariables(currentVariables.variables.filter(_.name != variableName))
     try {
-      updatedVariables.resolved(GlobalTemplateVariables.all)
+      updatedVariables.resolved(parentVariables)
     } catch {
       case ex: TemplateVariablesEvaluationException =>
         // Check if the evaluation failed because this variable is used in other variables.
