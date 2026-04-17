@@ -7,8 +7,7 @@ import org.silkframework.runtime.activity.{Activity, ActivityContext, UserContex
 import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
 import org.silkframework.runtime.plugin.types.MultilineStringParameter
 import org.silkframework.runtime.plugin.{PluginContext, PluginObjectParameterNoSchemaAndSerialization}
-import org.silkframework.runtime.templating.TemplateVariablesParameter
-import org.silkframework.runtime.templating.TemplateVariables
+import org.silkframework.runtime.templating.{TemplateVariablesParameter, TemplateVariables}
 import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat}
 import org.silkframework.serialization.json.WriteOnlyJsonFormat
@@ -16,7 +15,7 @@ import org.silkframework.workbench.utils.UnsupportedMediaTypeException
 import org.silkframework.workbench.workflow.WorkflowWithPayloadExecutorFactory._
 import org.silkframework.workspace.ProjectTask
 import org.silkframework.workspace.activity.TaskActivityFactory
-import org.silkframework.workspace.activity.workflow.{AllReplaceableDatasets, LocalWorkflowExecutorGeneratingProvenance, Workflow}
+import org.silkframework.workspace.activity.workflow.{AllReplaceableDatasets, LocalWorkflowExecutorGeneratingProvenance, Workflow, WorkflowExecutor}
 import play.api.libs.json._
 
 import scala.xml.{Node, NodeSeq, XML}
@@ -38,8 +37,8 @@ case class WorkflowWithPayloadExecutorFactory(configuration: MultilineStringPara
   override def isSingleton: Boolean = false
 
   def apply(task: ProjectTask[Workflow]): Activity[WorkflowOutput] = {
-    val mergedVars = task.variables.merge(workflowVariables.variables)
-    new WorkflowWithPayloadExecutor(task, WorkflowWithPayloadConfiguration(configuration.str, configurationType, optionalPrimaryResourceManager.manager, mergedVars))
+    val allVars = WorkflowExecutor.buildExecutionVariables(task.variables, workflowVariables.variables)
+    new WorkflowWithPayloadExecutor(task, WorkflowWithPayloadConfiguration(configuration.str, configurationType, optionalPrimaryResourceManager.manager, allVars))
   }
 }
 

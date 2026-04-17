@@ -36,7 +36,7 @@ trait WorkflowExecutorGeneratingProvenance extends Activity[WorkflowExecutionRep
                   (implicit userContext: UserContext): Unit = {
     implicit val pluginContext: PluginContext = {
       if(workflowVariables.variables.nonEmpty) {
-        val execVarsReader = InMemoryTemplateVariablesReader(workflowVariables, Set(TemplateVariableScopes.workflow))
+        val execVarsReader = InMemoryTemplateVariablesReader(workflowVariables, Set(TemplateVariableScopes.task, TemplateVariableScopes.execution))
         PluginContext.fromProject(workflowTask.project, execVarsReader)
       } else {
         PluginContext.fromProject(workflowTask.project)

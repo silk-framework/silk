@@ -388,7 +388,7 @@ object VariableWorkflowRequestUtils {
 
     if(fromBody.nonEmpty) {
       TemplateVariables(fromBody.map { case (name, value) =>
-        TemplateVariable(name, value, scope = TemplateVariableScopes.workflow)
+        TemplateVariable(name, value, scope = TemplateVariableScopes.execution)
       }.toSeq)
     } else {
       TemplateVariables.empty

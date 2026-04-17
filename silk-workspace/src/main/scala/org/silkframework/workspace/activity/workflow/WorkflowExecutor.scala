@@ -42,7 +42,7 @@ trait WorkflowExecutor[ExecType <: ExecutionType] extends Activity[WorkflowExecu
     */
   protected def pluginContextWithExecutionVars(implicit workflowRunContext: WorkflowRunContext): PluginContext = {
     if(workflowRunContext.workflowVariables.variables.nonEmpty) {
-      val execVarsReader = InMemoryTemplateVariablesReader(workflowRunContext.workflowVariables, Set(TemplateVariableScopes.workflow))
+      val execVarsReader = InMemoryTemplateVariablesReader(workflowRunContext.workflowVariables, Set(TemplateVariableScopes.task, TemplateVariableScopes.execution))
       PluginContext.fromProject(project, execVarsReader)(workflowRunContext.userContext)
     } else {
       PluginContext.fromProject(project)(workflowRunContext.userContext)
@@ -279,6 +279,36 @@ case class WorkflowRunContext(activityContext: ActivityContext[WorkflowExecution
         }
       }
     }
+  }
+}
+
+object WorkflowExecutor {
+
+  /**
+    * Creates the combined task and execution variables for a workflow execution.
+    * The returned variables contain both scopes:
+    * - Task scope: the original task variables (addressed as task.varName).
+    * - Execution scope: task variables as defaults, overridden by execution overrides (addressed as execution.varName).
+    *
+    * @param taskVariables      The variables defined on the task.
+    * @param executionOverrides Variables provided at execution time that override task defaults.
+    */
+  def buildExecutionVariables(taskVariables: TemplateVariables, executionOverrides: TemplateVariables): TemplateVariables = {
+    val taskScopedVars = taskVariables.variables.map(_.copy(scope = TemplateVariableScopes.task))
+    val overrideMap = executionOverrides.variables.map(v => v.name -> v).toMap
+    val executionVars = taskVariables.variables.map { taskVar =>
+      overrideMap.get(taskVar.name) match {
+        case Some(overrideVar) =>
+          overrideVar.copy(scope = TemplateVariableScopes.execution)
+        case None =>
+          taskVar.copy(scope = TemplateVariableScopes.execution)
+      }
+    }
+    val taskVarNames = taskVariables.variables.map(_.name).toSet
+    val additionalOverrides = executionOverrides.variables
+      .filterNot(v => taskVarNames.contains(v.name))
+      .map(_.copy(scope = TemplateVariableScopes.execution))
+    TemplateVariables(taskScopedVars ++ executionVars ++ additionalOverrides)
   }
 }
 
