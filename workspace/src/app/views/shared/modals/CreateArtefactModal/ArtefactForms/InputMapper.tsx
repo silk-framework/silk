@@ -65,7 +65,9 @@ export function InputMapper({
     const registerError = modalContext.registerModalError ? modalContext.registerModalError : globalErrorHandler;
     const { maxFileUploadSize } = useSelector(commonSel.initialSettingsSelector);
     const { paramId, param } = parameter;
-    const [externalValue, setExternalValue] = React.useState<{ value: string; label?: string } | undefined>(undefined);
+    const [externalValue, setExternalValue] = React.useState<
+        { value: string; label?: string; version: number } | undefined
+    >(undefined);
     const [highlightInput, setHighlightInput] = React.useState(false);
     const initialOrExternalValue = externalValue ? externalValue.value : initialParameterValue;
     const initialValue =
@@ -82,8 +84,10 @@ export function InputMapper({
     }
 
     useEffect(() => {
+        let version = 0;
         const handleUpdates = (externalValue: { value: string; label?: string }) => {
-            setExternalValue(externalValue);
+            version += 1;
+            setExternalValue({ ...externalValue, version });
             setHighlightInput(true);
             onChange(stringValueAsJs(parameter.param.parameterType, externalValue.value));
         };
@@ -96,7 +100,7 @@ export function InputMapper({
         intent: highlightInput ? "success" : intent,
         onChange: onChangeUsed,
         defaultValue: initialValue,
-        key: externalValue?.value ? `${paramId}_${externalValue.value}` : undefined,
+        key: externalValue?.version != null ? `${paramId}_${externalValue.version}` : undefined,
     };
 
     const handleFileSearch = async (input: string) => {

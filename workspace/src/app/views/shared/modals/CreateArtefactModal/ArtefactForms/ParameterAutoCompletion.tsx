@@ -99,7 +99,9 @@ export const ParameterAutoCompletion = ({
     const [t] = useTranslation();
     const { registerError: globalErrorHandler } = useErrorHandler();
     const modalContext = React.useContext(CreateArtefactModalContext);
-    const [externalValue, setExternalValue] = React.useState<{ value: string; label?: string } | undefined>(undefined);
+    const [externalValue, setExternalValue] = React.useState<
+        { value: string; label?: string; version: number } | undefined
+    >(undefined);
     const initialOrExternalValue = externalValue ? externalValue : initialValue;
     const [highlightInput, setHighlightInput] = React.useState(false);
     const [limit, setLimit] = React.useState<number>(AUTOCOMPLETION_LIMIT);
@@ -118,8 +120,10 @@ export const ParameterAutoCompletion = ({
 
     useEffect(() => {
         if (registerForExternalChanges) {
+            let version = 0;
             const handleUpdates = (externalValue: { value: string; label?: string }) => {
-                setExternalValue(externalValue);
+                version += 1;
+                setExternalValue({ ...externalValue, version });
                 setHighlightInput(true);
                 onChange(externalValue);
             };
@@ -200,7 +204,7 @@ export const ParameterAutoCompletion = ({
 
     return (
         <SuggestField<StringOrReifiedValue, IAutocompleteDefaultResponse>
-            key={initialOrExternalValue?.value ? `${formParamId}_${initialOrExternalValue.value}` : undefined}
+            key={externalValue?.version != null ? `${formParamId}_${externalValue.version}` : undefined}
             onSearch={handleSearch}
             onChange={onChangeUsed}
             initialValue={initialOrExternalValue}
