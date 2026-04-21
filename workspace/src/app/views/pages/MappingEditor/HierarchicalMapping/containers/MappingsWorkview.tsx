@@ -4,8 +4,8 @@
 
 import React from "react";
 import _ from "lodash";
-import {copyRuleAsync, errorChannel, getApiDetails, getRuleAsync} from "../store";
-import {ClassNames, GridColumn, Notification, Spacing, Spinner, WhiteSpaceContainer} from "@eccenca/gui-elements";
+import { copyRuleAsync, errorChannel, getApiDetails, getRuleAsync } from "../store";
+import { ClassNames, GridColumn, Notification, Spacing, Spinner, WhiteSpaceContainer } from "@eccenca/gui-elements";
 import RootMappingRule from "./RootMappingRule";
 import ObjectMappingRuleForm from "./MappingRule/ObjectRule/ObjectRuleForm";
 import ValueMappingRuleForm from "./MappingRule/ValueRule/ValueRuleForm";
@@ -20,11 +20,11 @@ import {
     MESSAGES,
 } from "../utils/constants";
 import EventEmitter from "../utils/EventEmitter";
-import {diErrorMessage} from "@ducks/error/typings";
-import {IViewActions} from "../../../../plugins/PluginRegistry";
-import {ParentStructure} from "../components/ParentStructure";
+import { diErrorMessage } from "@ducks/error/typings";
+import { IViewActions } from "../../../../plugins/PluginRegistry";
+import { ParentStructure } from "../components/ParentStructure";
 import RuleTitle from "../elements/RuleTitle";
-import {MAPPING_ROOT_RULE_ID} from "../HierarchicalMapping";
+import { MAPPING_ROOT_RULE_ID } from "../HierarchicalMapping";
 
 interface MappingsWorkviewProps {
     onRuleIdChange: (param: any) => any;
@@ -54,6 +54,7 @@ const MappingsWorkview = ({
     const [showSuggestions, setShowSuggestions] = React.useState(false);
     const [selectedVocabs, setSelectedVocabs] = React.useState([]);
     const [error, setError] = React.useState<string | null | undefined>(undefined);
+    const activeRequestRef = React.useRef(0);
 
     React.useEffect(() => {
         loadData({ initialLoad: true });
@@ -114,10 +115,13 @@ const MappingsWorkview = ({
 
     const loadData = (params: any = {}) => {
         const { initialLoad = false, onFinish } = params;
+        const requestId = ++activeRequestRef.current;
+        const isStale = () => requestId !== activeRequestRef.current;
         setLoading(true);
         setError(undefined);
         getRuleAsync(currentRuleId, true).subscribe(
             ({ rule }) => {
+                if (isStale()) return;
                 if (initialLoad && currentRuleId && rule.id !== currentRuleId) {
                     let toBeOpened;
 
@@ -136,10 +140,12 @@ const MappingsWorkview = ({
                 setRuleData(rule);
             },
             (err) => {
+                if (isStale()) return;
                 setError(diErrorMessage(err));
                 setLoading(false);
             },
             () => {
+                if (isStale()) return;
                 if (onFinish) {
                     onFinish();
                 }
