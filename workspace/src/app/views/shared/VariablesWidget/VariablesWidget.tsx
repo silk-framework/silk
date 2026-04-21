@@ -65,7 +65,7 @@ const VariablesWidget: React.FC<VariableWidgetProps> = ({ projectId, taskId }) =
         (async () => {
             try {
                 setLoadingVariables(true);
-                const { data } = await getVariables(projectId);
+                const { data } = await getVariables(projectId, taskId);
                 setVariables(data?.variables ?? []);
                 setEvaluationErrors(data?.errors ?? []);
             } catch (err) {
@@ -74,7 +74,7 @@ const VariablesWidget: React.FC<VariableWidgetProps> = ({ projectId, taskId }) =
                 setLoadingVariables(false);
             }
         })();
-    }, [refetch, projectId]);
+    }, [refetch, projectId, taskId]);
 
     const handleModalOpen = React.useCallback((variable = undefined) => {
         setSelectedVariable(variable);
@@ -82,20 +82,23 @@ const VariablesWidget: React.FC<VariableWidgetProps> = ({ projectId, taskId }) =
         setModalOpen(true);
     }, []);
 
-    const handleDeleteModalOpen = React.useCallback(async (variable: Variable) => {
-        setDeleteError(undefined);
-        setSelectedVariable(variable);
-        setDeleteModalOpen(true);
-        try {
-            setErrorNotification(null);
-            setVariableDependencies((await getVariableDependencies(projectId, variable.name)).data);
-        } catch (err) {
-            checkAndDisplayDeletionError(
-                err,
-                t("widget.VariableWidget.errorMessages.dependencyRetrievalFailure", "Failed to retrieve variable"),
-            );
-        }
-    }, []);
+    const handleDeleteModalOpen = React.useCallback(
+        async (variable: Variable) => {
+            setDeleteError(undefined);
+            setSelectedVariable(variable);
+            setDeleteModalOpen(true);
+            try {
+                setErrorNotification(null);
+                setVariableDependencies((await getVariableDependencies(projectId, variable.name, taskId)).data);
+            } catch (err) {
+                checkAndDisplayDeletionError(
+                    err,
+                    t("widget.VariableWidget.errorMessages.dependencyRetrievalFailure", "Failed to retrieve variable"),
+                );
+            }
+        },
+        [projectId, taskId],
+    );
 
     /**
      * upon acceptance on the delete prompt, it deletes the selected variable.
@@ -105,7 +108,7 @@ const VariablesWidget: React.FC<VariableWidgetProps> = ({ projectId, taskId }) =
         setIsDeleting(true);
         setDeleteError(undefined);
         try {
-            await deleteVariableRequest(projectId, selectedVariable.name);
+            await deleteVariableRequest(projectId, selectedVariable.name, taskId);
             setRefetch((r) => ++r);
             setDeleteModalOpen(false);
         } catch (err) {
@@ -116,7 +119,7 @@ const VariablesWidget: React.FC<VariableWidgetProps> = ({ projectId, taskId }) =
         } finally {
             setIsDeleting(false);
         }
-    }, [selectedVariable]);
+    }, [selectedVariable, projectId, taskId]);
 
     const handleVariableDragStart = React.useCallback(() => {
         if (variables.length === 1) return;
@@ -142,6 +145,7 @@ const VariablesWidget: React.FC<VariableWidgetProps> = ({ projectId, taskId }) =
                 const res = await reorderVariablesRequest(
                     projectId,
                     reorderedVariables.map((v) => v.name),
+                    taskId,
                 );
                 if (res.axiosResponse.status === 200) {
                     setVariables(reorderedVariables);
@@ -158,7 +162,7 @@ const VariablesWidget: React.FC<VariableWidgetProps> = ({ projectId, taskId }) =
                 setDropChangeLoading(false);
             }
         },
-        [variables],
+        [variables, projectId, taskId],
     );
 
     const renderDeleteVariable = React.useCallback(() => {
@@ -230,7 +234,11 @@ const VariablesWidget: React.FC<VariableWidgetProps> = ({ projectId, taskId }) =
             <Card>
                 <CardHeader>
                     <CardTitle>
-                        <h2>{t("widget.VariableWidget.title", "Project Variables")}</h2>
+                        <h2>
+                            {taskId
+                                ? t("widget.VariableWidget.title.task", "Task Variables")
+                                : t("widget.VariableWidget.title.project", "Project Variables")}
+                        </h2>
                     </CardTitle>
                     <CardOptions>
                         <IconButton

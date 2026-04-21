@@ -1049,7 +1049,10 @@
             "title": "Activity overview"
         },
         "VariableWidget": {
-            "title": "Project variables",
+            "title": {
+                "project": "Project variables",
+                "task": "Task variables"
+            },
             "noVariables": "No variables set.",
             "form": {
                 "name": "Name",

@@ -38,21 +38,22 @@ case class TemplateVariableJson(@Schema(
                                 )
                                 isSensitive: Boolean,
                                 @Schema(
-                                  description = "The scope of the variable as a sequence of strings forming a prefix path, e.g. [\"project\"] or [\"project\", \"metaData\"].",
+                                  description = "The scope of the variable, e.g., \"project\" or \"task\".",
+                                  example = "project",
                                   requiredMode = RequiredMode.REQUIRED
                                 )
-                                scope: Seq[String]) {
+                                scope: String) {
   def convert: TemplateVariable = {
     if (value.isEmpty && template.isEmpty) {
       throw new BadUserInputException("Either the variable value or its template has to be defined.")
     }
-    TemplateVariable(name, value.getOrElse(""), template, description, isSensitive, scope)
+    TemplateVariable(name, value.getOrElse(""), template, description, isSensitive, scope.split('.').toIndexedSeq)
   }
 }
 
 object TemplateVariableJson {
   def apply(variable: TemplateVariable): TemplateVariableJson = {
-    TemplateVariableJson(variable.name, Some(variable.value), variable.template, variable.description, variable.isSensitive, variable.scope)
+    TemplateVariableJson(variable.name, Some(variable.value), variable.template, variable.description, variable.isSensitive, variable.scope.mkString("."))
   }
 
   implicit val templateVariableFormat: OFormat[TemplateVariableJson] = Json.format[TemplateVariableJson]
