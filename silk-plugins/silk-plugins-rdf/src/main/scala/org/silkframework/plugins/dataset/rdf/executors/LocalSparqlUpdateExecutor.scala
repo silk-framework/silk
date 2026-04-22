@@ -37,9 +37,8 @@ case class LocalSparqlUpdateExecutor() extends LocalExecutor[SparqlUpdateCustomT
       checkInputSchema(expectedProperties, inputProperties.toSet)
       for (entity <- input.entities;
            values = expectedSchema.typedPaths.map(tp => entity.valueOfPath(tp.toUntypedPath)) if values.forall(_.nonEmpty)) {
-        val it = CrossProductIterator(values, expectedProperties)
-        while (it.hasNext) {
-          val query = updateTask.compiledTemplate.generate(it.next(), taskProperties, templateVariables)
+        val projected = Entity(entity.uri, values, expectedSchema)
+        for (query <- updateTask.compiledTemplate.generate(Some(projected), taskProperties, templateVariables)) {
           batchEmitter.update(query)
         }
       }
@@ -78,8 +77,7 @@ case class LocalSparqlUpdateExecutor() extends LocalExecutor[SparqlUpdateCustomT
                                 (implicit pluginContext: PluginContext): Unit = {
     val taskProperties = TaskProperties.create(inputTask = inputTask, outputTask = outputTask, pluginContext = pluginContext)
     val templateVariables = pluginContext.templateVariables.all.variables
-    val query = updateTask.compiledTemplate.generate(Map.empty, taskProperties, templateVariables)
-    batchEmitter.update(query)
+    updateTask.compiledTemplate.generate(None, taskProperties, templateVariables).foreach(batchEmitter.update)
   }
 
   // Check that expected schema is subset of input schema
@@ -108,49 +106,6 @@ case class SparqlUpdateExecutionReportUpdater(task: Task[TaskSpec],
   override def entityProcessVerb: String = "generated"
 
   override def minEntitiesBetweenUpdates: Int = 1
-}
-
-case class CrossProductIterator(values: IndexedSeq[Seq[String]],
-                                properties: IndexedSeq[String]) extends Iterator[Map[String, String]] {
-  assert(values.nonEmpty)
-  private val sizes = values.map(_.size).toArray
-  // Holds the current index combination
-  private val indexes = new Array[Int](values.size)
-  private val firstNonEmptyIdx = sizes.zipWithIndex.filter(_._1 > 0).map(_._2).headOption.getOrElse(-1) // -1 if all are empty
-  private val lastIndex = values.size - 1
-  private var first: Boolean = true // This makes sure that at least one assignment is always generated
-
-  override def hasNext: Boolean = first || firstNonEmptyIdx > -1 && (indexes(firstNonEmptyIdx) < sizes(firstNonEmptyIdx))
-
-  override def next(): Map[String, String] = {
-    if(!hasNext) {
-      throw new IllegalStateException("Iterator is fully consumed and has no more values!")
-    }
-    val nextAssignment = indexes.zipWithIndex.collect {
-      case (valueIdx, propertyIndex) if sizes(propertyIndex) > 0 => properties(propertyIndex) -> values(propertyIndex)(valueIdx)
-    }.toMap
-    setNextIndexCombinations()
-    first = false
-    nextAssignment
-  }
-
-  private def setNextIndexCombinations(): Unit = {
-    var idx = lastIndex
-    while(idx > -1) {
-      indexes(idx) += 1
-      if(indexes(idx) >= sizes(idx) && idx != firstNonEmptyIdx) { // Do not reset the first index, because of hasNext check
-        indexes(idx) = 0
-        idx -= 1
-      } else if(idx > 0) {
-        for(i <- (idx + 1) to lastIndex) { // null all index values after this index
-          indexes(i) = 0
-        }
-        idx = -1
-      } else {
-        idx = -1
-      }
-    }
-  }
 }
 
 case class BatchSparqlUpdateEmitter[U](f: String => U, batchSize: Int, reportUpdater: SparqlUpdateExecutionReportUpdater) {

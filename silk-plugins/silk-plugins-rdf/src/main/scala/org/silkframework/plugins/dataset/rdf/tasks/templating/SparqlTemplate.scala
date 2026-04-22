@@ -1,7 +1,7 @@
 package org.silkframework.plugins.dataset.rdf.tasks.templating
 
 import org.silkframework.config.{Prefixes, Task, TaskSpec}
-import org.silkframework.entity.EntitySchema
+import org.silkframework.entity.{Entity, EntitySchema}
 import org.silkframework.runtime.plugin.PluginContext
 import org.silkframework.runtime.templating.{TemplateEngines, TemplateVariableValue}
 
@@ -21,14 +21,18 @@ trait SparqlTemplate {
   /**
    * Renders the template.
    *
-   * @param placeholderAssignments Values from the current input entity, keyed by the entity path.
-   * @param taskProperties         Parameter values of the connected input and output tasks.
-   * @param templateVariables      Project and global template variables (scoped as `Seq("project")` / `Seq("global")`).
-   *                               Only used by the Jinja implementation; the legacy implementation ignores them.
+   * @param entity            The current input entity, or `None` for static templates / Select queries.
+   *                          The Jinja implementation exposes each entity property as a list of values
+   *                          under `input.entity.*`. The legacy implementation iterates over the
+   *                          cross-product of property values and emits one query per combination.
+   * @param taskProperties    Parameter values of the connected input and output tasks.
+   * @param templateVariables Project and global template variables (scoped as `Seq("project")` / `Seq("global")`).
+   *                          Only used by the Jinja implementation; the legacy implementation ignores them.
+   * @return One rendered query for Jinja, or one query per cross-product combination for the legacy engine.
    */
-  def generate(placeholderAssignments: Map[String, String],
+  def generate(entity: Option[Entity],
                taskProperties: TaskProperties,
-               templateVariables: Seq[TemplateVariableValue] = Seq.empty): String
+               templateVariables: Seq[TemplateVariableValue] = Seq.empty): Iterable[String]
 
   /** Renders the template with example values for every variable. Used to derive schemas and validate queries. */
   def generateWithDefaults(): String

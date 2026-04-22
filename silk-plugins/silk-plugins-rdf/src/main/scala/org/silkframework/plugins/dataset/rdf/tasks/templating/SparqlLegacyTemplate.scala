@@ -1,7 +1,7 @@
 package org.silkframework.plugins.dataset.rdf.tasks.templating
 
 import org.apache.jena.update.UpdateFactory
-import org.silkframework.entity.EntitySchema
+import org.silkframework.entity.{Entity, EntitySchema}
 import org.silkframework.entity.paths.UntypedPath
 import org.silkframework.execution.local.EmptyEntityTable
 import org.silkframework.plugins.dataset.rdf.tasks.templating.SparqlLegacyTemplate._
@@ -20,9 +20,20 @@ import scala.util.{Failure, Success, Try}
   */
 class SparqlLegacyTemplate(template: CompiledTemplate) extends SparqlTemplate {
 
-  override def generate(placeholderAssignments: Map[String, String],
+  override def generate(entity: Option[Entity],
                         taskProperties: TaskProperties,
-                        templateVariables: Seq[TemplateVariableValue] = Seq.empty): String = {
+                        templateVariables: Seq[TemplateVariableValue] = Seq.empty): Iterable[String] = {
+    entity match {
+      case Some(e) if e.values.nonEmpty =>
+        val properties = e.schema.typedPaths.map(_.normalizedSerialization)
+        CrossProductIterator(e.values, properties).map(renderOnce(_, taskProperties)).toSeq
+      case _ =>
+        Seq(renderOnce(Map.empty, taskProperties))
+    }
+  }
+
+  private def renderOnce(placeholderAssignments: Map[String, String],
+                         taskProperties: TaskProperties): String = {
     val values = scala.collection.mutable.LinkedHashMap[String, AnyRef]()
     // Flat entity values (used by simple template engine)
     placeholderAssignments.foreach { case (k, v) => values(k) = v }
@@ -42,7 +53,7 @@ class SparqlLegacyTemplate(template: CompiledTemplate) extends SparqlTemplate {
     val inputPropVars = taskPropertyVariableNames(Seq(INPUT_PROPERTIES_VAR_NAME)).map(_ -> genericUri).toMap
     val outputPropVars = taskPropertyVariableNames(Seq(OUTPUT_PROPERTIES_VAR_NAME)).map(_ -> genericUri).toMap
     val taskProps = TaskProperties(inputPropVars, outputPropVars)
-    Try(generate(assignments, taskProps)) match {
+    Try(renderOnce(assignments, taskProps)) match {
       case Failure(exception) =>
         throw new ValidationException(
           "The SPARQL Update template could not be rendered with example values. Error message: " + exception.getMessage, exception)
@@ -176,5 +187,55 @@ object SparqlLegacyTemplate {
   /** Similar to Row, but for the output task properties. */
   case class OutputProperties(inputValues: Map[String, String]) extends TemplateValueAccessApi {
     override val templateVarName: String = OUTPUT_PROPERTIES_VAR_NAME
+  }
+
+  /**
+    * Iterates over the cross-product of per-property value lists, producing one `Map[String, String]`
+    * per combination. Used by the legacy template engine, which renders one query per combination.
+    *
+    * Preserves the existing behavior of emitting at least one (empty) assignment, even if all value
+    * lists are empty.
+    */
+  private[templating] case class CrossProductIterator(values: IndexedSeq[Seq[String]],
+                                                      properties: IndexedSeq[String]) extends Iterator[Map[String, String]] {
+    assert(values.nonEmpty)
+    private val sizes = values.map(_.size).toArray
+    // Holds the current index combination
+    private val indexes = new Array[Int](values.size)
+    private val firstNonEmptyIdx = sizes.zipWithIndex.filter(_._1 > 0).map(_._2).headOption.getOrElse(-1) // -1 if all are empty
+    private val lastIndex = values.size - 1
+    private var first: Boolean = true // This makes sure that at least one assignment is always generated
+
+    override def hasNext: Boolean = first || firstNonEmptyIdx > -1 && (indexes(firstNonEmptyIdx) < sizes(firstNonEmptyIdx))
+
+    override def next(): Map[String, String] = {
+      if (!hasNext) {
+        throw new IllegalStateException("Iterator is fully consumed and has no more values!")
+      }
+      val nextAssignment = indexes.zipWithIndex.collect {
+        case (valueIdx, propertyIndex) if sizes(propertyIndex) > 0 => properties(propertyIndex) -> values(propertyIndex)(valueIdx)
+      }.toMap
+      setNextIndexCombinations()
+      first = false
+      nextAssignment
+    }
+
+    private def setNextIndexCombinations(): Unit = {
+      var idx = lastIndex
+      while (idx > -1) {
+        indexes(idx) += 1
+        if (indexes(idx) >= sizes(idx) && idx != firstNonEmptyIdx) { // Do not reset the first index, because of hasNext check
+          indexes(idx) = 0
+          idx -= 1
+        } else if (idx > 0) {
+          for (i <- (idx + 1) to lastIndex) { // null all index values after this index
+            indexes(i) = 0
+          }
+          idx = -1
+        } else {
+          idx = -1
+        }
+      }
+    }
   }
 }

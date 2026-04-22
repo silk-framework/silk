@@ -2,6 +2,8 @@ package org.silkframework.plugins.dataset.rdf.tasks.templating
 
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.must.Matchers
+import org.silkframework.entity.paths.UntypedPath
+import org.silkframework.entity.{Entity, EntitySchema}
 import org.silkframework.plugins.templating.jinja.JinjaTemplateEngine
 import org.silkframework.runtime.templating.TemplateVariableValue
 import org.silkframework.runtime.templating.exceptions.{TemplateEvaluationException, UnboundVariablesException}
@@ -102,14 +104,14 @@ class SparqlTemplateJinjaTest extends AnyFlatSpec with Matchers {
     )
 
     val rendered = template.generate(
-      placeholderAssignments = Map(
+      entity = Some(entityFromMap(Map(
         "subject" -> "urn:entity:1",
         "label" -> """O'Reilly & "friends"""",
         "comment" -> "has ''' triple quotes"
-      ),
+      ))),
       taskProperties = taskProps,
       templateVariables = projectAndGlobal
-    )
+    ).head
 
     rendered must include("WITH <urn:graph:out>")
     rendered must include("<urn:entity:1>")
@@ -120,26 +122,44 @@ class SparqlTemplateJinjaTest extends AnyFlatSpec with Matchers {
 
     // With an empty `comment`, the {% if %} branch is skipped.
     val withoutComment = template.generate(
-      placeholderAssignments = Map("subject" -> "urn:entity:1", "label" -> "plain", "comment" -> ""),
+      entity = Some(entityFromMap(Map("subject" -> "urn:entity:1", "label" -> "plain", "comment" -> ""))),
       taskProperties = taskProps,
       templateVariables = projectAndGlobal
-    )
+    ).head
     withoutComment must not include "rdfs:comment"
 
     // An invalid IRI piped through validate_uri surfaces as a TemplateEvaluationException.
     intercept[TemplateEvaluationException] {
       template.generate(
-        placeholderAssignments = Map("subject" -> "not a uri", "label" -> "plain", "comment" -> ""),
+        entity = Some(entityFromMap(Map("subject" -> "not a uri", "label" -> "plain", "comment" -> ""))),
         taskProperties = taskProps,
         templateVariables = projectAndGlobal
-      )
+      ).head
     }
+  }
+
+  it should "expose multi-valued entity properties as lists iterable in the Jinja template" in {
+    val template = SparqlTemplate.create(JinjaTemplateEngine.id,
+      """{% for s in input.entity.subject %}INSERT DATA { <{{ s }}> <urn:p> "x" } ;
+        |{% endfor %}""".stripMargin)
+    val schema = EntitySchema("", IndexedSeq(UntypedPath("subject").asUntypedValueType))
+    val entity = Entity("urn:e:1", IndexedSeq(Seq("urn:a:1", "urn:a:2")), schema)
+    val rendered = template.generate(Some(entity), TaskProperties(Map.empty, Map.empty)).head
+    rendered must include("<urn:a:1>")
+    rendered must include("<urn:a:2>")
   }
 
   private def generate(template: String,
                        assignments: Map[String, String] = Map.empty,
                        taskProps: TaskProperties = TaskProperties(Map.empty, Map.empty),
                        templateVariables: Seq[TemplateVariableValue] = Seq.empty): String = {
-    SparqlTemplate.create(JinjaTemplateEngine.id, template).generate(assignments, taskProps, templateVariables)
+    val entity = if (assignments.isEmpty) None else Some(entityFromMap(assignments))
+    SparqlTemplate.create(JinjaTemplateEngine.id, template).generate(entity, taskProps, templateVariables).head
+  }
+
+  private def entityFromMap(values: Map[String, String]): Entity = {
+    val entries = values.toIndexedSeq
+    val schema = EntitySchema("", entries.map { case (k, _) => UntypedPath(k).asUntypedValueType })
+    Entity("urn:test", entries.map { case (_, v) => Seq(v) }, schema)
   }
 }

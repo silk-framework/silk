@@ -1,9 +1,9 @@
 package org.silkframework.plugins.dataset.rdf.tasks.templating
 
-import org.silkframework.entity.EntitySchema
+import org.silkframework.entity.{Entity, EntitySchema}
 import org.silkframework.entity.paths.UntypedPath
 import org.silkframework.execution.local.EmptyEntityTable
-import org.silkframework.runtime.templating.{CompiledTemplate, TemplateVariableName, TemplateVariableValue}
+import org.silkframework.runtime.templating.{CompiledTemplate, TemplateVariableConversions, TemplateVariableName, TemplateVariableValue}
 
 import java.io.StringWriter
 
@@ -18,21 +18,19 @@ import java.io.StringWriter
   *   {{ project.<key>           }} -- project-scoped template variable
   *   {{ global.<key>            }} -- global template variable
   *
-  * Entity property names must be valid Jinja identifiers (`[a-zA-Z_][a-zA-Z0-9_]*`); bracket-subscript
-  * access is not supported. SPARQL-rendering filters (`| uri`, `| plainLiteral`, `| rawUnsafe`, `| exists`)
-  * are not implemented in this iteration and are a follow-up.
+  * Entity property names must be valid Jinja identifiers (`[a-zA-Z_][a-zA-Z0-9_]*`)
   */
 class SparqlJinjaTemplate(template: CompiledTemplate) extends SparqlTemplate {
 
   import SparqlJinjaTemplate._
 
-  override def generate(placeholderAssignments: Map[String, String],
+  override def generate(entity: Option[Entity],
                         taskProperties: TaskProperties,
-                        templateVariables: Seq[TemplateVariableValue] = Seq.empty): String = {
-    val values = buildValues(placeholderAssignments, taskProperties, templateVariables)
+                        templateVariables: Seq[TemplateVariableValue] = Seq.empty): Iterable[String] = {
+    val values = buildValues(entity, taskProperties, templateVariables)
     val writer = new StringWriter()
     template.evaluate(values, writer)
-    writer.toString
+    Seq(writer.toString)
   }
 
   override def generateWithDefaults(): String = {
@@ -63,15 +61,13 @@ class SparqlJinjaTemplate(template: CompiledTemplate) extends SparqlTemplate {
     entityPropertyNames.isEmpty
   }
 
-  private def buildValues(placeholderAssignments: Map[String, String],
+  private def buildValues(entity: Option[Entity],
                           taskProperties: TaskProperties,
                           templateVariables: Seq[TemplateVariableValue]): Seq[TemplateVariableValue] = {
     val inputConfig = taskProperties.inputTask.map { case (k, v) =>
       new TemplateVariableValue(k, INPUT_CONFIG_SCOPE, Seq(v))
     }
-    val inputEntity = placeholderAssignments.map { case (k, v) =>
-      new TemplateVariableValue(k, INPUT_ENTITY_SCOPE, Seq(v))
-    }
+    val inputEntity = entity.toSeq.flatMap(e => TemplateVariableConversions.fromEntity(e, INPUT_ENTITY_SCOPE))
     val outputConfig = taskProperties.outputTask.map { case (k, v) =>
       new TemplateVariableValue(k, OUTPUT_CONFIG_SCOPE, Seq(v))
     }

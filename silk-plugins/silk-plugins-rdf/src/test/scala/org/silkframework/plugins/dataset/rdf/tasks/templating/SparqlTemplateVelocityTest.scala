@@ -1,6 +1,8 @@
 package org.silkframework.plugins.dataset.rdf.tasks.templating
 
 import org.apache.jena.vocabulary.XSD
+import org.silkframework.entity.paths.UntypedPath
+import org.silkframework.entity.{Entity, EntitySchema}
 import org.silkframework.plugins.templating.velocity.VelocityTemplateEngine
 import org.silkframework.runtime.validation.ValidationException
 import org.scalatest.flatspec.AnyFlatSpec
@@ -81,7 +83,7 @@ class SparqlTemplateVelocityTest extends AnyFlatSpec with Matchers {
         |}""".stripMargin
     val template = new SparqlLegacyTemplate(VelocityTemplateEngine().compile(stringTemplate))
     for(i <- 1 to 10) {
-      val rendered = template.generate(Map("uriProp" -> s"http://entity$i", "stringProp" -> s"some label $i"), TaskProperties(Map.empty, Map.empty))
+      val rendered = template.generate(Some(entityFromMap(Map("uriProp" -> s"http://entity$i", "stringProp" -> s"some label $i"))), TaskProperties(Map.empty, Map.empty)).head
       rendered mustBe
         s"""SELECT * WHERE {
            |  <http://entity$i> rdfs:label "some label $i"
@@ -113,7 +115,14 @@ class SparqlTemplateVelocityTest extends AnyFlatSpec with Matchers {
   }
 
   private def generate(templateString: String, bindings: Map[String, String]): String = {
-    new SparqlLegacyTemplate(VelocityTemplateEngine().compile(templateString)).generate(bindings, TaskProperties(Map.empty, Map.empty))
+    val entity = if (bindings.isEmpty) None else Some(entityFromMap(bindings))
+    new SparqlLegacyTemplate(VelocityTemplateEngine().compile(templateString)).generate(entity, TaskProperties(Map.empty, Map.empty)).head
+  }
+
+  private def entityFromMap(values: Map[String, String]): Entity = {
+    val entries = values.toIndexedSeq
+    val schema = EntitySchema("", entries.map { case (k, _) => UntypedPath(k).asUntypedValueType })
+    Entity("urn:test", entries.map { case (_, v) => Seq(v) }, schema)
   }
 
   def validate(template: String, batchSize: Int = 2): Unit = {
