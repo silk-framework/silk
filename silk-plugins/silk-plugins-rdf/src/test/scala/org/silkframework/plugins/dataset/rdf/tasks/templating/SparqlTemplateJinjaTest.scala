@@ -4,7 +4,7 @@ import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.must.Matchers
 import org.silkframework.plugins.templating.jinja.JinjaTemplateEngine
 import org.silkframework.runtime.templating.TemplateVariableValue
-import org.silkframework.runtime.templating.exceptions.UnboundVariablesException
+import org.silkframework.runtime.templating.exceptions.{TemplateEvaluationException, UnboundVariablesException}
 
 class SparqlTemplateJinjaTest extends AnyFlatSpec with Matchers {
 
@@ -73,6 +73,67 @@ class SparqlTemplateJinjaTest extends AnyFlatSpec with Matchers {
     val dynamicTemplate = SparqlTemplate.create(JinjaTemplateEngine.id,
       """INSERT DATA { <{{ input.entity.subject }}> <urn:p> "v" } ;""")
     dynamicTemplate.isStaticTemplate mustBe false
+  }
+
+  it should "render a realistic SPARQL Update template combining all variable scopes, filters and a conditional" in {
+    val templateString =
+      """PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+        |WITH <{{ output.config.graph | validate_uri }}>
+        |DELETE { <{{ input.entity.subject | validate_uri }}> ?p ?o }
+        |INSERT {
+        |  <{{ input.entity.subject | validate_uri }}> rdfs:label "{{ input.entity.label | escape_literal }}" .
+        |  <{{ input.entity.subject | validate_uri }}> <{{ project.labelProp | validate_uri }}> "{{ global.author | escape_literal }}" .
+        |  {% if input.entity.comment %}
+        |  <{{ input.entity.subject | validate_uri }}> rdfs:comment '''{{ input.entity.comment | escape_multiline_literal }}''' .
+        |  {% endif %}
+        |}
+        |WHERE { <{{ input.entity.subject | validate_uri }}> ?p ?o } ;
+        |""".stripMargin
+    val template = SparqlTemplate.create(JinjaTemplateEngine.id, templateString)
+
+    template.inputSchema.typedPaths.flatMap(_.property).map(_.propertyUri.uri).toSet mustBe
+      Set("subject", "label", "comment")
+    template.isStaticTemplate mustBe false
+
+    val taskProps = TaskProperties(inputTask = Map.empty, outputTask = Map("graph" -> "urn:graph:out"))
+    val projectAndGlobal = Seq(
+      new TemplateVariableValue("labelProp", Seq("project"), Seq("urn:prop:label")),
+      new TemplateVariableValue("author", Seq("global"), Seq("Jane"))
+    )
+
+    val rendered = template.generate(
+      placeholderAssignments = Map(
+        "subject" -> "urn:entity:1",
+        "label" -> """O'Reilly & "friends"""",
+        "comment" -> "has ''' triple quotes"
+      ),
+      taskProperties = taskProps,
+      templateVariables = projectAndGlobal
+    )
+
+    rendered must include("WITH <urn:graph:out>")
+    rendered must include("<urn:entity:1>")
+    rendered must include(""""O\'Reilly & \"friends\""""")
+    rendered must include("<urn:prop:label>")
+    rendered must include(""""Jane"""")
+    rendered must include("""has \'\'\' triple quotes""")
+
+    // With an empty `comment`, the {% if %} branch is skipped.
+    val withoutComment = template.generate(
+      placeholderAssignments = Map("subject" -> "urn:entity:1", "label" -> "plain", "comment" -> ""),
+      taskProperties = taskProps,
+      templateVariables = projectAndGlobal
+    )
+    withoutComment must not include "rdfs:comment"
+
+    // An invalid IRI piped through validate_uri surfaces as a TemplateEvaluationException.
+    intercept[TemplateEvaluationException] {
+      template.generate(
+        placeholderAssignments = Map("subject" -> "not a uri", "label" -> "plain", "comment" -> ""),
+        taskProperties = taskProps,
+        templateVariables = projectAndGlobal
+      )
+    }
   }
 
   private def generate(template: String,

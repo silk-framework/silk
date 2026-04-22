@@ -26,7 +26,7 @@ object TemplateVariableConversions {
    * @param scope The base scope. Nested parameters extend this scope with the parameter key.
    */
   def fromTask(task: Task[_ <: TaskSpec], scope: Seq[String] = Seq("task"))(implicit pluginContext: PluginContext): Seq[TemplateVariableValue] = {
-    fromPluginParameters(task.data.parameters, scope :+ "parameters")
+    fromPluginParameters(task.data.parameters, scope)
   }
 
   private def fromPluginParameters(values: ParameterValues, scope: Seq[String] = Seq.empty)(implicit pluginContext: PluginContext): Seq[TemplateVariableValue] = {
