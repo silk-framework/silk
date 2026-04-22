@@ -55,7 +55,8 @@ case class LocalSparqlSelectExecutor() extends LocalExecutor[SparqlSelectCustomT
     implicit val user: UserContext = pluginContext.user
     val sparqlEndpoint = inputTask.data.plugin.sparqlEndpoint
     val taskProperties = TaskProperties.create(Some(inputTask), outputTask, pluginContext)
-    executeSelect(sparqlEndpoint, sparqlSelectTask.queryTemplate.generate(Map.empty, taskProperties), selectLimit, Some(sparqlSelectTask.sparqlTimeout))
+    val templateVariables = pluginContext.templateVariables.all.variables
+    executeSelect(sparqlEndpoint, sparqlSelectTask.queryTemplate.generate(Map.empty, taskProperties, templateVariables), selectLimit, Some(sparqlSelectTask.sparqlTimeout))
   }
 
   /**

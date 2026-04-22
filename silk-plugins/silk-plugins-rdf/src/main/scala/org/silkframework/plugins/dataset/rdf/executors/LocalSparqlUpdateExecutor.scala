@@ -28,6 +28,8 @@ case class LocalSparqlUpdateExecutor() extends LocalExecutor[SparqlUpdateCustomT
     val updateTask = task.data
     val expectedSchema = updateTask.expectedInputSchema
 
+    val templateVariables = pluginContext.templateVariables.all.variables
+
     // Generate SPARQL Update queries for input entities
     def executeOnInput[U](batchEmitter: BatchSparqlUpdateEmitter[U], expectedProperties: IndexedSeq[String], input: LocalEntities): Unit = {
       val inputProperties = getInputProperties(input.entitySchema).distinct
@@ -37,7 +39,7 @@ case class LocalSparqlUpdateExecutor() extends LocalExecutor[SparqlUpdateCustomT
            values = expectedSchema.typedPaths.map(tp => entity.valueOfPath(tp.toUntypedPath)) if values.forall(_.nonEmpty)) {
         val it = CrossProductIterator(values, expectedProperties)
         while (it.hasNext) {
-          val query = updateTask.compiledTemplate.generate(it.next(), taskProperties)
+          val query = updateTask.compiledTemplate.generate(it.next(), taskProperties, templateVariables)
           batchEmitter.update(query)
         }
       }
@@ -75,7 +77,8 @@ case class LocalSparqlUpdateExecutor() extends LocalExecutor[SparqlUpdateCustomT
                                  outputTask: Option[Task[_ <: TaskSpec]] = None)
                                 (implicit pluginContext: PluginContext): Unit = {
     val taskProperties = TaskProperties.create(inputTask = inputTask, outputTask = outputTask, pluginContext = pluginContext)
-    val query = updateTask.compiledTemplate.generate(Map.empty, taskProperties)
+    val templateVariables = pluginContext.templateVariables.all.variables
+    val query = updateTask.compiledTemplate.generate(Map.empty, taskProperties, templateVariables)
     batchEmitter.update(query)
   }
 

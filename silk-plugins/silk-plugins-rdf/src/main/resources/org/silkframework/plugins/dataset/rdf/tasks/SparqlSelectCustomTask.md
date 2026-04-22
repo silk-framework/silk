@@ -18,26 +18,27 @@ This tabular raw form is transformed into an _entity table_.
 
 ### Templating
 
-The select query supports [Jinja](https://jinja.palletsprojects.com/) templating. Properties of the input and output
-tasks can be accessed via the `inputProperties` and `outputProperties` objects. Both objects expose the same methods
-as the `row` object in the SPARQL Update operator:
+The select query supports [Jinja](https://jinja.palletsprojects.com/) templating. The following variables are available:
 
-- `inputProperties.uri(param)`: Renders a parameter of the input task as **URI**.
-- `inputProperties.plainLiteral(param)`: Renders a parameter of the input task as **plain literal**.
-- `inputProperties.rawUnsafe(param)`: Renders a parameter of the input task as is, i.e. **no escaping** is done.
-- `inputProperties.exists(param)`: Returns `true` if the parameter **exists** in the input task, else `false`.
-
-The same methods are available on `outputProperties` for the output task.
+- `input.config.<param>`: a parameter of the connected input task.
+- `output.config.<param>`: a parameter of the connected output task.
+- `project.<key>`: a project-scoped template variable.
+- `global.<key>`: a global template variable.
 
 For example, to query the named graph that is configured on the input dataset:
 
 ```sparql
-SELECT * WHERE { GRAPH {{ inputProperties.uri("graph") }} { ?s ?p ?o } }
+SELECT * WHERE { GRAPH <{{ input.config.graph }}> { ?s ?p ?o } }
 ```
 
+Parameter and variable names must be valid Jinja identifiers (`[a-zA-Z_][a-zA-Z0-9_]*`); bracket-subscript access
+is not supported.
+
+Rendering helpers such as `| uri` or `| plainLiteral` filters are not yet implemented; values are inserted
+verbatim and any quoting / URI brackets must be written explicitly in the template.
+
 The output schema (i.e. the result variables) is derived from the query at configuration time by evaluating the
-template with default values (empty strings for all parameters), so the query must remain valid SPARQL regardless
-of the parameter values.
+template with default values, so the query must remain valid SPARQL regardless of the parameter values.
 
 ### Internal Specifics
 

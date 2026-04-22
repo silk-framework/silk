@@ -23,7 +23,7 @@ case class SparqlUpdateCustomTask(
     value = "The SPARQL UPDATE template for constructing SPARQL UPDATE queries for every entity from the input." +
       " The possible values for the template engine are `Jinja` (default), `Simple` and `Velocity Engine`." +
       " See the general documentation of this plugin for further details on the features of each template engine.",
-    example = "INSERT DATA { {{ row.uri(\"PROP_FROM_ENTITY_SCHEMA1\") }} rdf:label {{ row.plainLiteral(\"PROP_FROM_ENTITY_SCHEMA2\") }} } ;"
+    example = "INSERT DATA { <{{ input.entity.subject }}> rdfs:label \"{{ input.entity.label }}\" } ;"
   )
   sparqlUpdateTemplate: SparqlCodeParameter,
   @Param(label = "Batch size", value = "How many entities should be handled in a single update request.")

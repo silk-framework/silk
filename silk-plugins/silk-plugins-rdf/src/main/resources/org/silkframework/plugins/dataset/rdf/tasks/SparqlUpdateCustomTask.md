@@ -22,23 +22,25 @@ The `Simple` and `Velocity Engine` modes are deprecated.
 `{% %}` for control flow statements such as conditionals.
 
 ```
-DELETE DATA { {{ row.uri("PROP_FROM_ENTITY_SCHEMA1") }} rdf:label {{ row.plainLiteral("PROP_FROM_ENTITY_SCHEMA2") }} } ;
-{% if row.exists("PROP_FROM_ENTITY_SCHEMA1") %}
-  INSERT DATA { {{ row.uri("PROP_FROM_ENTITY_SCHEMA1") }} rdf:label {{ row.plainLiteral("PROP_FROM_ENTITY_SCHEMA3") }} } ;
+DELETE DATA { <{{ input.entity.subject }}> rdfs:label "{{ input.entity.oldLabel }}" } ;
+{% if input.entity.subject %}
+  INSERT DATA { <{{ input.entity.subject }}> rdfs:label "{{ input.entity.newLabel }}" } ;
 {% endif %}
 ```
 
-Input values are accessible via methods on the `row` variable:
+The following variables are available:
 
-- `row.uri(inputPath)`: Renders an input value as **URI**. Throws an exception if the value isn't a valid URI.
-- `row.plainLiteral(inputPath)`: Renders an input value as **plain literal**, i.e. it escapes problematic characters.
-- `row.rawUnsafe(inputPath)`: Renders an input value as is, i.e. **no escaping** is done. This should **only** be used if the input values can be trusted.
-- `row.exists(inputPath)`: Returns `true` if a value for the input path **exists**, else `false`.
+- `input.entity.<property>`: the value of the given property on the current input entity.
+- `input.config.<param>`: a parameter of the connected input task.
+- `output.config.<param>`: a parameter of the connected output task.
+- `project.<key>`: a project-scoped template variable.
+- `global.<key>`: a global template variable.
 
-The methods `uri`, `plainLiteral` and `rawUnsafe` throw an exception if no input value is available for the given input path.
+Entity property names must be valid Jinja identifiers (`[a-zA-Z_][a-zA-Z0-9_]*`); bracket-subscript access such as
+`input.entity["urn:prop:label"]` is not supported.
 
-In addition to input values, properties of the input and output tasks can be accessed via the `inputProperties` and
-`outputProperties` objects in the same way as the `row` object. For example with `{{ inputProperties.uri("graph") }}`.
+Rendering helpers such as `| uri` or `| plainLiteral` filters are not yet implemented; values are inserted
+verbatim and any quoting / URI brackets must be written explicitly in the template.
 
 ### Example of the `Simple` mode (deprecated)
 
