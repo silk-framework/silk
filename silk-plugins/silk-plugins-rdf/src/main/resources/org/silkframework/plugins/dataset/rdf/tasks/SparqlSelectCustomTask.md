@@ -28,14 +28,24 @@ The select query supports [Jinja](https://jinja.palletsprojects.com/) templating
 For example, to query the named graph that is configured on the input dataset:
 
 ```sparql
-SELECT * WHERE { GRAPH <{{ input.config.graph }}> { ?s ?p ?o } }
+SELECT * WHERE { GRAPH <{{ input.config.graph | validate_uri }}> { ?s ?p ?o } }
 ```
 
 Parameter and variable names must be valid Jinja identifiers (`[a-zA-Z_][a-zA-Z0-9_]*`); bracket-subscript access
 is not supported.
 
-Rendering helpers such as `| uri` or `| plainLiteral` filters are not yet implemented; values are inserted
-verbatim and any quoting / URI brackets must be written explicitly in the template.
+Values are inserted verbatim by default, so URI brackets (`<...>`) and quotation marks around literals must be
+written in the template. The following filters are provided to render values safely:
+
+- `validate_uri`: validates that the value is a valid absolute IRI and returns it unchanged. Throws a validation
+  error otherwise. Wrap the output in `<...>` in the template.
+- `escape_literal`: escapes backslashes, quotes, newlines, carriage returns and tabs so the value can be used
+  inside a short-form SPARQL string literal (`"..."` or `'...'`). No enclosing quotes are added.
+- `escape_multiline_literal`: escapes backslashes and breaks any run of three or more consecutive single or double
+  quotes. Use for values that are wrapped in triple-quoted SPARQL literals (`"""..."""` or `'''...'''`).
+
+All transformer plugins are also available as Jinja filters under their plugin id (for example `lowerCase`,
+`trim`, `urlEncode`).
 
 The output schema (i.e. the result variables) is derived from the query at configuration time by evaluating the
 template with default values, so the query must remain valid SPARQL regardless of the parameter values.
