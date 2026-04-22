@@ -44,6 +44,7 @@ class JenaModelEndpoint(model: Model) extends JenaEndpoint {
   override def update(query: String)
                      (implicit userContext: UserContext): Unit = {
     this.synchronized {
+      println("Update query: " + query)
       super.update(query)
     }
   }

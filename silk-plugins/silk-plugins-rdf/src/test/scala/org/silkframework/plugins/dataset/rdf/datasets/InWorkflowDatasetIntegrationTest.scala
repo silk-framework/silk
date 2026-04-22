@@ -61,14 +61,14 @@ class InWorkflowDatasetIntegrationTest extends AnyFlatSpec with Matchers with Co
     val output2BModel: Model = ModelFactory.createDefaultModel()
 
     // Register dataset tasks.
-    project.addTask("source1",     DatasetSpec(JenaModelDataset(source1Model)))
-    project.addTask("source2",     DatasetSpec(JenaModelDataset(source2Model)))
+    project.addTask("source1",     DatasetSpec(JenaModelDataset.fromModel(source1Model)))
+    project.addTask("source2",     DatasetSpec(JenaModelDataset.fromModel(source2Model)))
     project.addTask("inWorkflow1", DatasetSpec(InWorkflowDataset()))
     project.addTask("inWorkflow2", DatasetSpec(InWorkflowDataset()))
-    project.addTask("output1A",    DatasetSpec(JenaModelDataset(output1AModel)))
-    project.addTask("output1B",    DatasetSpec(JenaModelDataset(output1BModel)))
-    project.addTask("output2A",    DatasetSpec(JenaModelDataset(output2AModel)))
-    project.addTask("output2B",    DatasetSpec(JenaModelDataset(output2BModel)))
+    project.addTask("output1A",    DatasetSpec(JenaModelDataset.fromModel(output1AModel)))
+    project.addTask("output1B",    DatasetSpec(JenaModelDataset.fromModel(output1BModel)))
+    project.addTask("output2A",    DatasetSpec(JenaModelDataset.fromModel(output2AModel)))
+    project.addTask("output2B",    DatasetSpec(JenaModelDataset.fromModel(output2BModel)))
 
     // SparqlCopyCustomTask: reads via SparqlEndpointEntitySchema, outputs QuadEntitySchema.
     // Quads are written to InWorkflowDataset via withEntitySink → access() → executor model.
@@ -158,9 +158,9 @@ class InWorkflowDatasetIntegrationTest extends AnyFlatSpec with Matchers with Co
     val outputModel: Model = ModelFactory.createDefaultModel()
 
     // Register tasks.
-    project.addTask("source", DatasetSpec(JenaModelDataset(sourceModel)))
+    project.addTask("source", DatasetSpec(JenaModelDataset.fromModel(sourceModel)))
     project.addTask("inWorkflowDs", DatasetSpec(InWorkflowDataset()))
-    project.addTask("output", DatasetSpec(JenaModelDataset(outputModel)))
+    project.addTask("output", DatasetSpec(JenaModelDataset.fromModel(outputModel)))
 
     // SparqlCopyCustomTask: copies triples into the InWorkflowDataset.
     val copyQuery = "CONSTRUCT { ?s ?p ?o } WHERE { ?s ?p ?o }"
