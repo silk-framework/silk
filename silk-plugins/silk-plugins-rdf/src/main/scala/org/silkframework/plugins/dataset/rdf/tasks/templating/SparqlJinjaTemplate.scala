@@ -21,8 +21,13 @@ import scala.util.{Failure, Success, Try}
   *   {{ global.<key>            }} -- global template variable
   *
   * Entity property names must be valid Jinja identifiers (`[a-zA-Z_][a-zA-Z0-9_]*`)
+  *
+  * @param defaultScope If non-empty, every variable at this scope is also exposed at the top level of the
+  *                     Jinja context, so the template may reference it without the scope prefix. For example,
+  *                     with `defaultScope = Seq("input", "entity")`, a template may use `{{ property }}` in
+  *                     place of `{{ input.entity.property }}`.
   */
-class SparqlJinjaTemplate(template: CompiledTemplate) extends SparqlTemplate {
+class SparqlJinjaTemplate(template: CompiledTemplate, defaultScope: Seq[String] = Seq.empty) extends SparqlTemplate {
 
   import SparqlJinjaTemplate._
 
@@ -78,7 +83,14 @@ class SparqlJinjaTemplate(template: CompiledTemplate) extends SparqlTemplate {
     val outputConfig = taskProperties.outputTask.map { case (k, v) =>
       new TemplateVariableValue(k, OUTPUT_CONFIG_SCOPE, Seq(v))
     }
-    (inputConfig ++ inputEntity ++ outputConfig).toSeq ++ templateVariables
+    val scoped = (inputConfig ++ inputEntity ++ outputConfig).toSeq ++ templateVariables
+    val aliased =
+      if (defaultScope.nonEmpty) {
+        scoped.filter(_.scope == defaultScope).map(v => new TemplateVariableValue(v.name, Seq.empty, v.values))
+      } else {
+        Seq.empty
+      }
+    scoped ++ aliased
   }
 
   private def referencedVariables: Seq[TemplateVariableName] = {
@@ -86,7 +98,14 @@ class SparqlJinjaTemplate(template: CompiledTemplate) extends SparqlTemplate {
   }
 
   private def entityPropertyNames: Seq[String] = {
-    referencedVariables.filter(_.scope == INPUT_ENTITY_SCOPE).map(_.name).distinct
+    val scoped = referencedVariables.filter(_.scope == INPUT_ENTITY_SCOPE).map(_.name)
+    val aliased =
+      if (defaultScope == INPUT_ENTITY_SCOPE) {
+        referencedVariables.filter(_.scope.isEmpty).map(_.name)
+      } else {
+        Seq.empty
+      }
+    (scoped ++ aliased).distinct
   }
 }
 

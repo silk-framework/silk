@@ -64,14 +64,23 @@ case class SparqlSelectCustomTask(
     autoCompletionProvider = classOf[TemplateEngineAutocompletionProvider],
     autoCompleteValueWithLabels = true
   )
-  templatingMode: String = "jinja"
+  templatingMode: String = "jinja",
+  @Param(
+    label = "Default scope",
+    value = "Variables from this scope can be accessed without the scope prefix. " +
+      "For example, with default scope 'input.entity', a template may reference '{{ property }}' instead of '{{ input.entity.property }}'. " +
+      "Leave empty to disable."
+  )
+  defaultScope: String = "input.entity"
 ) extends CustomTask {
   val intLimit: Option[Int] = {
     // Only allow positive ints
     Try(limit.toInt).filter(_ > 0).toOption
   }
 
-  val queryTemplate: SparqlTemplate = SparqlTemplate.create(templatingMode, selectQuery.str)
+  private val defaultScopePath: Seq[String] = defaultScope.split('.').map(_.trim).filter(_.nonEmpty).toSeq
+
+  val queryTemplate: SparqlTemplate = SparqlTemplate.create(templatingMode, selectQuery.str, defaultScopePath)
 
   def isStaticTemplate: Boolean = queryTemplate.isStaticTemplate
 

@@ -59,12 +59,16 @@ object SparqlTemplate {
 
   /**
    * Creates a SPARQL template using the given template engine.
+   *
+   * @param defaultScope Scope whose variables are additionally exposed at the top level of the Jinja context,
+   *                     so templates may reference them without the scope prefix. Only honored by the Jinja
+   *                     implementation. Pass `Seq.empty` to disable aliasing.
    */
-  def create(templateEngineId: String, template: String): SparqlTemplate = {
+  def create(templateEngineId: String, template: String, defaultScope: Seq[String] = Seq.empty): SparqlTemplate = {
     val engine = TemplateEngines.create(templateEngineId)
     val compiled = engine.compile(template)
     if (templateEngineId == JINJA_ENGINE_ID) {
-      new SparqlJinjaTemplate(compiled)
+      new SparqlJinjaTemplate(compiled, defaultScope)
     } else {
       new SparqlLegacyTemplate(compiled)
     }

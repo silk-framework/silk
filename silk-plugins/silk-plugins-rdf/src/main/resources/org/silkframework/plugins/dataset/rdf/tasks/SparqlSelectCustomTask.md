@@ -34,6 +34,11 @@ SELECT * WHERE { GRAPH <{{ input.config.graph | validate_uri }}> { ?s ?p ?o } }
 Parameter and variable names must be valid Jinja identifiers (`[a-zA-Z_][a-zA-Z0-9_]*`); bracket-subscript access
 is not supported.
 
+The `defaultScope` parameter (default `input.entity`) makes variables from one scope accessible directly, without
+the scope prefix. With the default, a template may reference `{{ property }}` as a shorthand for
+`{{ input.entity.property }}`; both forms resolve to the same value. Setting `defaultScope` to the empty string
+disables this aliasing and requires every variable to be addressed with its full scope.
+
 Values are inserted verbatim by default, so URI brackets (`<...>`) and quotation marks around literals must be
 written in the template. The following filters are provided to render values safely:
 

@@ -161,6 +161,30 @@ class SparqlTemplateJinjaTest extends AnyFlatSpec with Matchers {
     }
   }
 
+  it should "alias input.entity variables to bare references when defaultScope = input.entity" in {
+    val template = SparqlTemplate.create(JinjaTemplateEngine.id,
+      """<{{ subject }}> <urn:prop:1> "{{ input.entity.label }}"""",
+      defaultScope = Seq("input", "entity"))
+    template.inputSchema.typedPaths.flatMap(_.property).map(_.propertyUri.uri).toSet mustBe Set("subject", "label")
+    val rendered = template.generate(
+      entity = Some(entityFromMap(Map("subject" -> "urn:entity:1", "label" -> "hello"))),
+      taskProperties = TaskProperties(Map.empty, Map.empty)
+    ).head
+    rendered mustBe """<urn:entity:1> <urn:prop:1> "hello""""
+  }
+
+  it should "alias variables from an arbitrary scope without polluting the input entity schema" in {
+    val template = SparqlTemplate.create(JinjaTemplateEngine.id,
+      """SELECT * WHERE { GRAPH <{{ graph }}> { ?s ?p ?o } }""",
+      defaultScope = Seq("input", "config"))
+    val rendered = template.generate(
+      entity = None,
+      taskProperties = TaskProperties(Map("graph" -> "urn:graph:1"), Map.empty)
+    ).head
+    rendered must include("<urn:graph:1>")
+    template.inputSchema.typedPaths mustBe empty
+  }
+
   it should "expose multi-valued entity properties as lists iterable in the Jinja template" in {
     val template = SparqlTemplate.create(JinjaTemplateEngine.id,
       """{% for s in input.entity.subject %}INSERT DATA { <{{ s }}> <urn:p> "x" } ;
