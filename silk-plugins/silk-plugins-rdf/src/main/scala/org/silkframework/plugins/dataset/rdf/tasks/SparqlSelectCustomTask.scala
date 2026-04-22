@@ -48,6 +48,12 @@ case class SparqlSelectCustomTask(
     autoCompleteValueWithLabels = true, allowOnlyAutoCompletedValues = true)
   optionalInputDataset: SparqlEndpointDatasetParameter = SparqlEndpointDatasetParameter(""),
   @Param(
+    label = "Use default RDF dataset",
+    value = "If enabled, the task no longer exposes a SPARQL endpoint input port. Instead the SELECT query is submitted" +
+      " directly to the RDF dataset."
+  )
+  useDefaultDataset: Boolean = false,
+  @Param(
     label = "SPARQL query timeout (ms)",
     value = "SPARQL query timeout (select/update) in milliseconds. A value of zero means that there is no timeout set explicitly." +
       " If a value greater zero is specified this overwrites possible default timeouts."
@@ -68,7 +74,11 @@ case class SparqlSelectCustomTask(
   val queryTemplate: SparqlTemplate = SparqlTemplate.create(templatingMode, selectQuery.str)
 
   override def inputPorts: InputPorts = {
-    FixedNumberOfInputs(Seq(FixedSchemaPort(SparqlEndpointEntitySchema.schema)))
+    if (useDefaultDataset) {
+      InputPorts.NoInputPorts
+    } else {
+      FixedNumberOfInputs(Seq(FixedSchemaPort(SparqlEndpointEntitySchema.schema)))
+    }
   }
 
   override def outputPort: Option[Port] = {
