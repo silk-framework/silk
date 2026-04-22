@@ -27,7 +27,6 @@ class InWorkflowDatasetExecutor extends LocalDatasetExecutor[InWorkflowDataset] 
 
   override def access(task: Task[DatasetSpec[InWorkflowDataset]], execution: LocalExecution): DatasetAccess = {
     if (!initialized) {
-      println("INITIALIZED")
       initialized = true
       val datasetPlugin = task.data.plugin
       // Reuse the execution's model if available, otherwise create a new one.
@@ -38,8 +37,6 @@ class InWorkflowDatasetExecutor extends LocalDatasetExecutor[InWorkflowDataset] 
       datasetPlugin.registerModel(key, model)
       modelKey = Some(key)
       plugin = Some(datasetPlugin)
-    } else {
-      println("FOUND: " + model)
     }
     task.data.plugin.updateData(model)
     modelDataset
