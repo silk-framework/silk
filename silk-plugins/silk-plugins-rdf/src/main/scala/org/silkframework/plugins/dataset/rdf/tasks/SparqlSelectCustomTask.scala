@@ -49,8 +49,8 @@ case class SparqlSelectCustomTask(
   optionalInputDataset: SparqlEndpointDatasetParameter = SparqlEndpointDatasetParameter(""),
   @Param(
     label = "Use default RDF dataset",
-    value = "If enabled, the task no longer exposes a SPARQL endpoint input port. Instead the SELECT query is submitted" +
-      " directly to the RDF dataset."
+    value = "If enabled, the SELECT query is submitted directly to the configured default RDF dataset." +
+      " If the query template references input entities, one query is generated per input entity."
   )
   useDefaultDataset: Boolean = false,
   @Param(
@@ -73,9 +73,17 @@ case class SparqlSelectCustomTask(
 
   val queryTemplate: SparqlTemplate = SparqlTemplate.create(templatingMode, selectQuery.str)
 
+  def isStaticTemplate: Boolean = queryTemplate.isStaticTemplate
+
+  def expectedInputSchema: EntitySchema = queryTemplate.inputSchema
+
   override def inputPorts: InputPorts = {
     if (useDefaultDataset) {
-      InputPorts.NoInputPorts
+      if (isStaticTemplate) {
+        InputPorts.NoInputPorts
+      } else {
+        FixedNumberOfInputs(Seq(FixedSchemaPort(expectedInputSchema)))
+      }
     } else {
       FixedNumberOfInputs(Seq(FixedSchemaPort(SparqlEndpointEntitySchema.schema)))
     }

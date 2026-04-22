@@ -6,7 +6,9 @@ import org.scalatest.matchers.must.Matchers
 import org.silkframework.config.{PlainTask, Task}
 import org.silkframework.dataset.rdf._
 import org.silkframework.dataset.{DataSource, DatasetSpec, EntitySink, LinkSink}
-import org.silkframework.entity.Entity
+import org.silkframework.entity.paths.TypedPath
+import org.silkframework.entity.{Entity, EntitySchema, ValueType}
+import org.silkframework.execution.local.GenericEntityTable
 import org.silkframework.plugins.dataset.rdf.tasks.SparqlSelectCustomTask
 import org.silkframework.runtime.activity.{TestUserContextTrait, UserContext}
 import org.silkframework.runtime.iterator.{CloseableIterator, TraversableIterator}
@@ -62,6 +64,37 @@ class LocalSparqlSelectExecutorTest extends AnyFlatSpec
     val entities = LocalSparqlSelectExecutor().executeOnSparqlEndpoint(task, taskWithEndpoint(sparqlEndpoint), None, limit, Some(reportUpdater))
     entities.headOption // Needed to actually execute the query
     correctTimeout mustBe true
+  }
+
+  it should "generate one query per input entity when useDefaultDataset is set and the template references entity values" in {
+    val query = """SELECT ?p ?o WHERE { <{{ input.entity.s }}> ?p ?o }"""
+    val rowsPerQuery = 2
+    val task = SparqlSelectCustomTask(query, limit = rowsPerQuery.toString, useDefaultDataset = true)
+
+    val capturedQueries = collection.mutable.ArrayBuffer.empty[String]
+    val sparqlEndpoint = sparqlEndpointStub(queryCapture = q => capturedQueries += q)
+    val stubDataset = new StubRdfDataset(sparqlEndpoint)
+
+    val inputSchema = EntitySchema("", typedPaths = IndexedSeq(TypedPath("s", ValueType.URI)))
+    val inputEntities = Seq(
+      Entity("urn:in:1", IndexedSeq(Seq("http://example.org/a")), inputSchema),
+      Entity("urn:in:2", IndexedSeq(Seq("http://example.org/b")), inputSchema),
+      Entity("urn:in:3", IndexedSeq(Seq()), inputSchema) // skipped: missing value
+    )
+    val inputTable = GenericEntityTable(inputEntities, inputSchema, PlainTask("inputTask", DatasetSpec(stubDataset)))
+
+    val activityContextMock = TestMocks.activityContextMock()
+    val reportUpdater = SparqlSelectExecutionReportUpdater(PlainTask("task", task), activityContextMock)
+
+    val results = LocalSparqlSelectExecutor()
+      .executeOnDefaultDatasetPerEntity(task, stubDataset, inputTable, outputTask = None, executionReportUpdater = Some(reportUpdater))
+      .toList
+
+    capturedQueries.toSeq must have size 2
+    capturedQueries(0) must include ("<http://example.org/a>")
+    capturedQueries(1) must include ("<http://example.org/b>")
+    // Bindings from both queries are flattened into the output: rowsPerQuery rows × 2 queries.
+    results.size mustBe (rowsPerQuery * 2)
   }
 
   it should "evaluate a Jinja query template using the graph variable from the task parameters" in {

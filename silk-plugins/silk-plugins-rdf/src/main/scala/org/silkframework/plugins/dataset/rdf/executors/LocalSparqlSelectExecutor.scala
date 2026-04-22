@@ -2,7 +2,7 @@ package org.silkframework.plugins.dataset.rdf.executors
 
 import org.silkframework.config.{Prefixes, Task, TaskSpec}
 import org.silkframework.dataset.{DataSource, DatasetSpec}
-import org.silkframework.dataset.rdf.{RdfDataset, SparqlEndpoint, SparqlResults}
+import org.silkframework.dataset.rdf.{RdfDataset, RdfNode, SparqlEndpoint, SparqlResults}
 import org.silkframework.entity.Entity
 import org.silkframework.execution.local.{GenericEntityTable, LocalEntities, LocalExecution, LocalExecutor}
 import org.silkframework.execution.typed.SparqlEndpointEntitySchema
@@ -13,6 +13,8 @@ import org.silkframework.plugins.dataset.rdf.tasks.templating.TaskProperties
 import org.silkframework.runtime.activity.{ActivityContext, UserContext}
 import org.silkframework.runtime.iterator.CloseableIterator
 import org.silkframework.runtime.plugin.PluginContext
+
+import scala.collection.immutable.SortedMap
 
 /**
   * Local executor for [[SparqlSelectCustomTask]].
@@ -34,6 +36,10 @@ case class LocalSparqlSelectExecutor() extends LocalExecutor[SparqlSelectCustomT
       case Seq() if taskData.useDefaultDataset =>
         val rdfDataset = DefaultRdfDataset.resolve()
         val entities = executeOnDefaultDataset(taskData, rdfDataset, output.task, executionReportUpdater = Some(executionReportUpdater))
+        Some(GenericEntityTable(entities, entitySchema = taskData.outputSchema, task))
+      case Seq(input) if taskData.useDefaultDataset =>
+        val rdfDataset = DefaultRdfDataset.resolve()
+        val entities = executeOnDefaultDatasetPerEntity(taskData, rdfDataset, input, output.task, executionReportUpdater = Some(executionReportUpdater))
         Some(GenericEntityTable(entities, entitySchema = taskData.outputSchema, task))
       case _ =>
         throw TaskException("SPARQL select executor did not receive a SPARQL endpoint as requested!")
@@ -58,6 +64,36 @@ case class LocalSparqlSelectExecutor() extends LocalExecutor[SparqlSelectCustomT
     runSelect(sparqlSelectTask, rdfDataset.sparqlEndpoint, None, outputTask, limit, executionReportUpdater)
   }
 
+  def executeOnDefaultDatasetPerEntity(sparqlSelectTask: SparqlSelectCustomTask,
+                                       rdfDataset: RdfDataset,
+                                       input: LocalEntities,
+                                       outputTask: Option[Task[_ <: TaskSpec]],
+                                       limit: Int = Integer.MAX_VALUE,
+                                       executionReportUpdater: Option[SparqlSelectExecutionReportUpdater])
+                                      (implicit pluginContext: PluginContext): CloseableIterator[Entity] = {
+    implicit val user: UserContext = pluginContext.user
+    val sparqlEndpoint = rdfDataset.sparqlEndpoint
+    val selectLimit = math.min(sparqlSelectTask.intLimit.getOrElse(Integer.MAX_VALUE), limit)
+    val taskProperties = TaskProperties.create(Some(input.task), outputTask, pluginContext)
+    val templateVariables = pluginContext.templateVariables.all.variables
+    val expectedSchema = sparqlSelectTask.expectedInputSchema
+    val vars = getSparqlVars(sparqlSelectTask)
+
+    val bindings = input.entities.flatMap { entity =>
+      val values = expectedSchema.typedPaths.map(tp => entity.valueOfPath(tp.toUntypedPath))
+      if (values.forall(_.nonEmpty)) {
+        val projected = Entity(entity.uri, values, expectedSchema)
+        val queries = sparqlSelectTask.queryTemplate.generate(Some(projected), taskProperties, templateVariables)
+        queries.iterator.flatMap { query =>
+          executeSelect(sparqlEndpoint, query, selectLimit, Some(sparqlSelectTask.sparqlTimeout)).bindings
+        }
+      } else {
+        Iterator.empty
+      }
+    }
+    createEntities(sparqlSelectTask, bindings, vars, executionReportUpdater)
+  }
+
   private def runSelect(sparqlSelectTask: SparqlSelectCustomTask,
                         sparqlEndpoint: SparqlEndpoint,
                         inputTask: Option[Task[_ <: TaskSpec]],
@@ -72,7 +108,7 @@ case class LocalSparqlSelectExecutor() extends LocalExecutor[SparqlSelectCustomT
     val query = sparqlSelectTask.queryTemplate.generate(None, taskProperties, templateVariables).head
     val results = executeSelect(sparqlEndpoint, query, selectLimit, Some(sparqlSelectTask.sparqlTimeout))
     val vars: IndexedSeq[String] = getSparqlVars(sparqlSelectTask)
-    createEntities(sparqlSelectTask, results, vars, executionReportUpdater)
+    createEntities(sparqlSelectTask, results.bindings, vars, executionReportUpdater)
   }
 
   /**
@@ -110,12 +146,12 @@ case class LocalSparqlSelectExecutor() extends LocalExecutor[SparqlSelectCustomT
   }
 
   private def createEntities(taskData: SparqlSelectCustomTask,
-                             results: SparqlResults,
+                             bindings: CloseableIterator[SortedMap[String, RdfNode]],
                              vars: IndexedSeq[String],
                              executionReportUpdater: Option[SparqlSelectExecutionReportUpdater]): CloseableIterator[Entity] = {
     implicit val prefixes: Prefixes = Prefixes.empty
     var schemaReported = false
-    val increase: (Entity => Unit) = (entity: Entity) => executionReportUpdater match {
+    val increase: Entity => Unit = (entity: Entity) => executionReportUpdater match {
       case Some(updater) =>
         if (!schemaReported) {
           schemaReported = true
@@ -127,7 +163,7 @@ case class LocalSparqlSelectExecutor() extends LocalExecutor[SparqlSelectCustomT
     }
 
     var count = 0
-    val entityIterator = results.bindings.map { binding =>
+    val entityIterator = bindings.map { binding =>
       count += 1
       val values = vars map { v =>
         binding.get(v).toSeq.map(_.value)
