@@ -7,6 +7,7 @@ import org.silkframework.entity.{Entity, EntitySchema}
 import org.silkframework.plugins.templating.jinja.JinjaTemplateEngine
 import org.silkframework.runtime.templating.TemplateVariableValue
 import org.silkframework.runtime.templating.exceptions.{TemplateEvaluationException, UnboundVariablesException}
+import org.silkframework.runtime.validation.ValidationException
 
 class SparqlTemplateJinjaTest extends AnyFlatSpec with Matchers {
 
@@ -135,6 +136,28 @@ class SparqlTemplateJinjaTest extends AnyFlatSpec with Matchers {
         taskProperties = taskProps,
         templateVariables = projectAndGlobal
       ).head
+    }
+  }
+
+  it should "validate Jinja SPARQL Update templates by parsing an example query" in {
+    val validTemplate = SparqlTemplate.create(JinjaTemplateEngine.id,
+      """INSERT DATA { <{{ input.entity.subject | validate_uri }}> <urn:p> "{{ input.entity.label | escape_literal }}" } ;""")
+    // Well-formed template with batch size > 1 must not throw.
+    validTemplate.validateUpdateQuery(batchSize = 2)
+
+    // Template that forgets to wrap the URI variable with `<...>` produces unparseable SPARQL.
+    val unwrappedUri = SparqlTemplate.create(JinjaTemplateEngine.id,
+      """INSERT DATA { {{ input.entity.subject }} <urn:p> "x" } ;""")
+    intercept[ValidationException] {
+      unwrappedUri.validateUpdateQuery(batchSize = 1)
+    }
+
+    // Template without a trailing `;` is fine for batchSize = 1 but fails for batchSize > 1.
+    val missingSemicolon = SparqlTemplate.create(JinjaTemplateEngine.id,
+      """INSERT DATA { <{{ input.entity.subject | validate_uri }}> <urn:p> "x" }""")
+    missingSemicolon.validateUpdateQuery(batchSize = 1)
+    intercept[ValidationException] {
+      missingSemicolon.validateUpdateQuery(batchSize = 2)
     }
   }
 

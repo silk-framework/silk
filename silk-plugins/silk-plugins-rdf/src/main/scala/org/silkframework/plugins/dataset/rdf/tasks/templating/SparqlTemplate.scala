@@ -1,9 +1,13 @@
 package org.silkframework.plugins.dataset.rdf.tasks.templating
 
+import org.apache.jena.update.UpdateFactory
 import org.silkframework.config.{Prefixes, Task, TaskSpec}
 import org.silkframework.entity.{Entity, EntitySchema}
 import org.silkframework.runtime.plugin.PluginContext
 import org.silkframework.runtime.templating.{TemplateEngines, TemplateVariableValue}
+import org.silkframework.runtime.validation.ValidationException
+
+import scala.util.Try
 
 /**
   * Compiled SPARQL template. Encapsulates rendering a SPARQL query from a template and the associated
@@ -63,6 +67,29 @@ object SparqlTemplate {
       new SparqlJinjaTemplate(compiled)
     } else {
       new SparqlLegacyTemplate(compiled)
+    }
+  }
+
+  /**
+   * Verifies that a rendered example query parses as SPARQL Update, and — when batchSize > 1 — that two
+   * consecutive copies also parse (so batching in [[org.silkframework.plugins.dataset.rdf.executors.BatchSparqlUpdateEmitter]]
+   * produces valid queries).
+   *
+   * Shared between [[SparqlJinjaTemplate]] and [[SparqlLegacyTemplate]].
+   */
+  private[templating] def validateParseability(query: String, batchSize: Int): Unit = {
+    Try(UpdateFactory.create(query)).failed.toOption.foreach { parseError =>
+      throw new ValidationException(
+        "The SPARQL Update template does not generate valid SPARQL Update queries. Error message: " +
+          parseError.getMessage + ", example query: " + query)
+    }
+    if (batchSize > 1) {
+      val batchSparql = query + "\n" + query
+      Try(UpdateFactory.create(batchSparql)).failed.toOption.foreach { parseError =>
+        throw new ValidationException(
+          "The SPARQL Update template cannot be batched processed. There is probably a ';' missing at the end. Error message: " +
+            parseError.getMessage + ", example batch query: " + batchSparql)
+      }
     }
   }
 }

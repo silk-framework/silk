@@ -4,8 +4,10 @@ import org.silkframework.entity.{Entity, EntitySchema}
 import org.silkframework.entity.paths.UntypedPath
 import org.silkframework.execution.local.EmptyEntityTable
 import org.silkframework.runtime.templating.{CompiledTemplate, TemplateVariableConversions, TemplateVariableName, TemplateVariableValue}
+import org.silkframework.runtime.validation.ValidationException
 
 import java.io.StringWriter
+import scala.util.{Failure, Success, Try}
 
 /**
   * SPARQL template implementation for the Jinja engine.
@@ -37,15 +39,20 @@ class SparqlJinjaTemplate(template: CompiledTemplate) extends SparqlTemplate {
     // Seed every referenced variable with a URI-like default so that QueryFactory can parse the result.
     val genericUri = "urn:generic:1"
     val defaults = referencedVariables.distinct.map(v => new TemplateVariableValue(v.name, v.scope, Seq(genericUri)))
-    val writer = new StringWriter()
-    template.evaluate(defaults, writer)
-    writer.toString
+    Try {
+      val writer = new StringWriter()
+      template.evaluate(defaults, writer)
+      writer.toString
+    } match {
+      case Success(query) => query
+      case Failure(exception) =>
+        throw new ValidationException(
+          "The SPARQL Update template could not be rendered with example values. Error message: " + exception.getMessage, exception)
+    }
   }
 
   override def validateUpdateQuery(batchSize: Int): Unit = {
-    // Without SPARQL rendering filters (| uri, | plainLiteral, ...), every entity reference inserts the
-    // raw string value with no escaping. Generating meaningful example queries for parse validation is
-    // therefore not possible in the current iteration. Skip validation until the filter follow-up lands.
+    SparqlTemplate.validateParseability(generateWithDefaults(), batchSize)
   }
 
   override def inputSchema: EntitySchema = {

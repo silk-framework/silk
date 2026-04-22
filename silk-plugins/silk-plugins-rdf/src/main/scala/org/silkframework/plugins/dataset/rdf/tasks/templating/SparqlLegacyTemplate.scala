@@ -1,6 +1,5 @@
 package org.silkframework.plugins.dataset.rdf.tasks.templating
 
-import org.apache.jena.update.UpdateFactory
 import org.silkframework.entity.{Entity, EntitySchema}
 import org.silkframework.entity.paths.UntypedPath
 import org.silkframework.execution.local.EmptyEntityTable
@@ -62,24 +61,9 @@ class SparqlLegacyTemplate(template: CompiledTemplate) extends SparqlTemplate {
   }
 
   override def validateUpdateQuery(batchSize: Int): Unit = {
-    if (usesRawUnsafe) {
-      // We cannot generate meaningful example values for the template if $row.rawUnsafe() is used, because it could generate arbitrary SPARQL syntax.
-    } else {
-      // Generate example input assignments
-      val sparqlQuery = generateWithDefaults()
-      Try(UpdateFactory.create(sparqlQuery)).failed.toOption.foreach { parseError =>
-        throw new ValidationException(
-          "The SPARQL Update template does not generate valid SPARQL Update queries. Error message: " +
-            parseError.getMessage + ", example query: " + sparqlQuery)
-      }
-      if (batchSize > 1) {
-        val batchSparql = sparqlQuery + "\n" + sparqlQuery
-        Try(UpdateFactory.create(batchSparql)).failed.toOption.foreach { parseError =>
-          throw new ValidationException(
-            "The SPARQL Update template cannot be batched processed. There is probably a ';' missing at the end. Error message: " +
-              parseError.getMessage + ", example batch query: " + batchSparql)
-        }
-      }
+    if (!usesRawUnsafe) {
+      // Skipped for rawUnsafe templates: they can generate arbitrary SPARQL syntax so example-query validation is unreliable.
+      SparqlTemplate.validateParseability(generateWithDefaults(), batchSize)
     }
   }
 
