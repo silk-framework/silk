@@ -16,7 +16,7 @@ package org.silkframework.rule.plugins.transformer.numeric
 
 import org.silkframework.rule.annotations.{TransformExample, TransformExamples}
 import org.silkframework.rule.input.Transformer
-import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
+import org.silkframework.runtime.plugin.annotations.{Param, Plugin, PluginReference}
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.StringUtils.DoubleLiteral
 
@@ -27,11 +27,25 @@ import org.silkframework.util.StringUtils.DoubleLiteral
  * @author Robert Isele
  */
 @Plugin(
-  id = "numOperation",
+  id = NumOperationTransformer.pluginId,
   categories = Array("Numeric"),
   label = "Numeric operation",
   description = """Applies one of the four basic arithmetic operators to the sequence of input values.""",
-  documentationFile = "NumOperationTransformer.md"
+  documentationFile = "NumOperationTransformer.md",
+  relatedPlugins = Array(
+    new PluginReference(
+      id = AggregateNumbersTransformer.pluginId,
+      description = "The Numeric operation plugin reduces all input numbers into one result using one arithmetic operator and fails when any value is not a number. The Aggregate numbers plugin also reduces to one result, but it ignores non-numeric values and shifts the operator set toward aggregation semantics such as minimum, maximum, and average."
+    ),
+    new PluginReference(
+      id = PhysicalQuantityExtractor.pluginId,
+      description = "The Extract physical quantity plugin converts number-and-unit text into base-unit numeric values as plain numeric output. The Numeric operation plugin combines those numeric values using one arithmetic operator across the operand sequence."
+    ),
+    new PluginReference(
+      id = NumReduceTransformer.pluginId,
+      description = "Numeric reduce strips non-numeric characters from each value. Numeric operation then applies an arithmetic operator across the resulting values, since it throws on any input that is not a number."
+    )
+  )
 )
 @TransformExamples(Array(
   new TransformExample(
@@ -110,4 +124,8 @@ case class NumOperationTransformer(
       case "/" => value1 / value2
     }
   }
+}
+
+object NumOperationTransformer {
+  final val pluginId = "numOperation"
 }

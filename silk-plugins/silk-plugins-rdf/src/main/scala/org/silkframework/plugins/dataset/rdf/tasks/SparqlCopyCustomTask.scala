@@ -10,7 +10,7 @@ import org.silkframework.runtime.validation.ValidationException
 import scala.util.{Failure, Success, Try}
 
 @Plugin(
-  id = "sparqlCopyOperator",
+  id = SparqlCopyCustomTask.pluginId,
   label = "SPARQL Construct query",
   description =
     "A task that executes a SPARQL Construct query on a SPARQL enabled data source and outputs the SPARQL result. " +
@@ -49,4 +49,8 @@ case class SparqlCopyCustomTask(
   override def outputPort: Option[Port] = {
     Some(FixedSchemaPort(QuadEntitySchema.schema))
   }
+}
+
+object SparqlCopyCustomTask {
+  final val pluginId = "sparqlCopyOperator"
 }

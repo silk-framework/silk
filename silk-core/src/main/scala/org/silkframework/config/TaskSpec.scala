@@ -95,8 +95,9 @@ trait TaskSpec {
   *
   * @param id  The ID of the link.
   * @param url The absolute URL of the link.
+  * @param openInNewTab If the link should open a new tab, i.e. it cannot be shown inline or an i-frame.
   */
-case class TaskLink(id: String, url: String)
+case class TaskLink(id: String, url: String, openInNewTab: Boolean = false)
 
 object TaskSpec {
 

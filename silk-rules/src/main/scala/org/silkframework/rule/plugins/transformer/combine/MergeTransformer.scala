@@ -19,7 +19,7 @@ import org.silkframework.rule.input.Transformer
 import org.silkframework.runtime.plugin.annotations.Plugin
 
 @Plugin(
-  id = "merge",
+  id = MergeTransformer.pluginId,
   categories = Array("Combine"),
   label = "Merge",
   description = "Merges the values of all inputs."
@@ -41,6 +41,9 @@ case class MergeTransformer() extends Transformer {
     } else {
       Seq.empty
     }
-
   }
+}
+
+object MergeTransformer {
+  final val pluginId = "merge"
 }

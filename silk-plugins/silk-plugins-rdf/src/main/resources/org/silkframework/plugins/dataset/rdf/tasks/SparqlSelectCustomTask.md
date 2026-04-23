@@ -75,11 +75,3 @@ except when there already exists a `GRAPH` or `FROM` clause in the query. `FROM 
 In addition to Jinja, two deprecated template engines are supported for backwards compatibility: `Simple`
 and [`Velocity Engine`](https://velocity.apache.org/engine/2.4.1/user-guide.html). Their syntax is identical
 to the one used by the `SPARQL Update operator` and is documented there.
-
-### Related plugins
-
-Other types of RDF tasks are the `sparqlCopyOperator` for executing SPARQL CONSTRUCT queries, and the
-`sparqlUpdateOperator` for building SPARQL UPDATE queries from a templating engine.
-
-Regarding the input dataset, any RDF dataset is acceptable. For further details on the RDF datasets, see for example the
-documentation of the `sparqlEndpoint` plugin.

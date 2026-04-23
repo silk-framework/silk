@@ -228,22 +228,24 @@ class Workspace(val provider: WorkspaceProvider,
     * @param marshaller object that defines how the project should be marshaled.
     * @return
     */
-  def exportProject(name: Identifier, outputStream: OutputStream, marshaller: ProjectMarshallingTrait, exportGroups: Boolean = false)
+  def exportProject(name: Identifier, outputStream: OutputStream, marshaller: ProjectMarshallingTrait,
+                    exportGroups: Boolean = false, exportUserData: Boolean = true)
                    (implicit userContext: UserContext): String = {
     initProjects()
     if (exportGroups && !AccessControlConfig().enabled) {
       throw BadUserInputException("Cannot export groups because access control is not enabled.")
     }
-    marshaller.marshalProject(project(name), outputStream, repository.get(name), exportGroups)
+    marshaller.marshalProject(project(name), outputStream, repository.get(name), exportGroups, exportUserData)
   }
 
-  def exportWorkspace(outputStream: OutputStream, marshaller: ProjectMarshallingTrait, exportGroups: Boolean = false)
+  def exportWorkspace(outputStream: OutputStream, marshaller: ProjectMarshallingTrait,
+                      exportGroups: Boolean = false, exportUserData: Boolean = true)
                      (implicit userContext: UserContext): String = {
     initProjects()
     if (exportGroups && !AccessControlConfig().enabled) {
       throw BadUserInputException("Cannot export groups because access control is not enabled.")
     }
-    marshaller.marshalWorkspace(outputStream, userProjects, repository, exportGroups)
+    marshaller.marshalWorkspace(outputStream, userProjects, repository, exportGroups, exportUserData)
   }
 
   def importWorkspace(file: File, marshaller: ProjectMarshallingTrait, importGroups: Boolean = false)

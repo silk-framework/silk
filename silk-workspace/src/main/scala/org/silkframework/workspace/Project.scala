@@ -103,7 +103,7 @@ class Project(initialConfig: ProjectConfig, provider: WorkspaceProvider, val res
     * Retrieves all errors that occurred during loading this project.
     */
   def loadingErrors: Seq[TaskLoadingError] = {
-    val errors = modules.flatMap(_.loadingError)
+    val errors = modules.flatMap(_.loadingErrors)
     val errorIds = errors.map(_.taskId).toSet
     val externalLoadingErrors = provider.externalTaskLoadingErrors(config.id).filterNot(extError => errorIds.contains(extError.taskId))
     // Some workspaces have duplicate loading errors, make them distinct.
@@ -346,23 +346,35 @@ class Project(initialConfig: ProjectConfig, provider: WorkspaceProvider, val res
     */
   def removeAnyTask(taskName: Identifier, removeDependentTasks: Boolean)
                    (implicit userContext: UserContext): Unit = synchronized {
-    if(removeDependentTasks) {
-      // Remove all dependent tasks
-      for(dependentTask <- anyTask(taskName).findDependentTasks(recursive = false) if anyTaskOption(dependentTask).isDefined) {
-        removeAnyTask(dependentTask, removeDependentTasks = true)
-      }
-    } else {
-      // Make sure that no other task depends on this task
-      for(task <- allTasks) {
-        if(task.data.inputTasks.contains(taskName)) {
-          throw new ValidationException(s"Cannot delete task $taskName as it is referenced by task ${task.id}")
+    // Find the task in the project
+    modules.view.flatMap(module => module.taskOption(taskName).map(task => (module, task))).headOption match {
+      case Some((module, task)) =>
+        // Task has been found, remove it
+        if(removeDependentTasks) {
+          // Remove all dependent tasks
+          for(dependentTask <- task.findDependentTasks(recursive = false) if anyTaskOption(dependentTask).isDefined) {
+            removeAnyTask(dependentTask, removeDependentTasks = true)
+          }
+        } else {
+          // Make sure that no other task depends on this task
+          for(task <- allTasks) {
+            if(task.data.inputTasks.contains(taskName)) {
+              throw new ValidationException(s"Cannot delete task $taskName as it is referenced by task ${task.id}")
+            }
+          }
         }
-      }
-    }
-
-    // Find the module which holds the named task and remove it
-    for(m <- modules.find(_.taskOption(taskName).isDefined)) {
-      m.remove(taskName)(readWriteUser)
+        // Remove the task from the module
+        module.remove(taskName)(readWriteUser)
+      case None =>
+        // Task not found, check if it failed to load
+        for {
+          module <- modules
+          _ <- module.loadingErrors.find(_.taskId == taskName)
+        } {
+          module.remove(taskName)(readWriteUser)
+          module.removeLoadingError(taskName)
+        }
+        provider.removeExternalTaskLoadingError(id, taskName)
     }
   }
 

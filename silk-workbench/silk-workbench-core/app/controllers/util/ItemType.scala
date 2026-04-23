@@ -62,7 +62,7 @@ object ItemType {
         ItemLink("editor", "Workflow editor (legacy)", s"$context/workflow/editor/$projectId/$itemId"),
       )
       case _: ItemType if taskSpec.isDefined =>
-        taskSpec.get.taskLinks.map(taskLink => ItemLink(taskLink.id, taskLink.id, taskLink.url))
+        taskSpec.get.taskLinks.map(taskLink => ItemLink(taskLink.id, taskLink.id, taskLink.url, taskLink.openInNewTab))
       case _ => Seq()
     }
     Seq(itemDetailsPage(itemType, projectId, itemId)) ++ itemTypeSpecificLinks
@@ -99,7 +99,8 @@ object ItemType {
   }
 }
 
-case class ItemLink(id: String, label: String, path: String)
+/** Link of a task, e.g. dataset. */
+case class ItemLink(id: String, label: String, path: String, openInNewTab: Boolean = false)
 
 object ItemLink {
   implicit val itemLinkFormat: Format[ItemLink] = Json.format[ItemLink]

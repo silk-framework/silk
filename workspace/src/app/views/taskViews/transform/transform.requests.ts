@@ -130,6 +130,7 @@ export const searchTransformRules = async (
     transformId: string,
     searchQuery: string,
     limit: number,
+    format: boolean,
     ruleType?: "value" | "object",
 ): Promise<FetchResponse<AutoCompletionBase[]>> => {
     return fetch({
@@ -140,6 +141,7 @@ export const searchTransformRules = async (
             limit,
             valueRulesOnly: ruleType === "value",
             objectRulesOnly: ruleType === "object",
+            format,
         },
     });
 };

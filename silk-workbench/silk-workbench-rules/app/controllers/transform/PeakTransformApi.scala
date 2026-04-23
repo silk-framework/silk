@@ -171,8 +171,7 @@ class PeakTransformApi @Inject() () extends InjectedController with UserContextA
     val transformSpec = task.data
     val parentRule = transformSpec.oneRuleEntitySchemaById(ruleName).get
     val inputTaskId = transformSpec.selection.inputId
-    implicit val prefixes: Prefixes = project.config.prefixes
-    implicit val readContext: ReadContext = ReadContext(prefixes = prefixes, resources = project.resources)
+    implicit val readContext: ReadContext = ReadContext.fromProject(project)
 
     deserializeCompileTime[TransformRule]() { rule =>
       val updatedParentRule = parentRule.transformRule.withChildren(Seq(rule)).asInstanceOf[TransformRule]

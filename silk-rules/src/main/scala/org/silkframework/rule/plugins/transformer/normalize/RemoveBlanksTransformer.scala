@@ -15,16 +15,26 @@
 package org.silkframework.rule.plugins.transformer.normalize
 
 import org.silkframework.rule.input.SimpleTransformer
-import org.silkframework.runtime.plugin.annotations.Plugin
+import org.silkframework.runtime.plugin.annotations.{Plugin, PluginReference}
 
 @Plugin(
-  id = "removeBlanks",
+  id = RemoveBlanksTransformer.pluginId,
   categories = Array("Normalize"),
   label = "Remove blanks",
-  description = "Remove whitespace from a string."
+  description = "Remove whitespace from a string.",
+  relatedPlugins = Array(
+    new PluginReference(
+      id = TrimTransformer.pluginId,
+      description = "Remove blanks removes only plain space characters and does so throughout the entire string regardless of position. Trim is the choice when only the surrounding whitespace needs to go and the internal structure must be preserved; unlike Remove blanks, it also handles tabs and newlines at the edges."
+    )
+  )
 )
 case class RemoveBlanksTransformer() extends SimpleTransformer {
   override def evaluate(value: String) = {
     value.replace(" ", "")
   }
+}
+
+object RemoveBlanksTransformer {
+  final val pluginId = "removeBlanks"
 }
