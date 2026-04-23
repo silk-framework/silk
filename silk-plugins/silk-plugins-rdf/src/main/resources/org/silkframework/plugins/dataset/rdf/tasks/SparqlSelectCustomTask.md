@@ -1,16 +1,19 @@
-The SPARQL SELECT plugin is a task for executing SPARQL SELECT queries on the input RDF data source.
+The SPARQL SELECT plugin is a task for executing SPARQL SELECT queries on an RDF data source.
 
-## Description
+It can be used in a workflow, connecting an input to an output. The _output_ is an entity table containing the _SPARQL results_ of the query
+execution. A [SPARQL 1.1 SELECT](https://www.w3.org/TR/sparql11-query/#select) query is supported; the simplest
+example is `SELECT * WHERE { ?s ?p ?o }`.
 
-The `sparqlSelectOperator` plugin is an example of a _RDF task_ or _operator_. Such a task can be used in a workflow,
-connecting an input to an output. In this specific case, the _input_ is — in essence — a _SPARQL endpoint_ and the
-_output_ is the entity table containing the _SPARQL results_ of the SPARQL SELECT query execution.
+The _input_ depends on the configuration:
 
-In general terms, a [SPARQL 1.1 SELECT](https://www.w3.org/TR/sparql11-query/#select) query is supported. One of the
-simplest examples is `SELECT * WHERE { ?s ?p ?o }`.
+- By default, the query is executed against the connected input, which must be a _SPARQL endpoint_
+  (i.e. an RDF dataset).
+- When **Use default RDF dataset** (`useDefaultDataset`) is enabled, the query is executed against the project's
+  default RDF dataset instead. If the template references input entity properties, the task accepts an entity
+  input and generates one query per entity; otherwise it needs no input at all.
 
-The [result limit](https://www.w3.org/TR/sparql11-query/#modResultLimit) can be specified for the SPARQL SELECT plugin
-itself, with the parameter `limit`. Additionally, a timeout can be specified with the parameter `sparqlTimeout`.
+The [result limit](https://www.w3.org/TR/sparql11-query/#modResultLimit) can be restricted with the `limit`
+parameter. A query timeout (in milliseconds) can be set via `sparqlTimeout`.
 
 As usual, the SPARQL results contain both "variables" and "bindings", such as in
 [this example](https://www.w3.org/TR/sparql11-results-json/#json-result-object).
@@ -18,10 +21,16 @@ This tabular raw form is transformed into an _entity table_.
 
 ### Templating
 
-The select query supports [Jinja](https://jinja.palletsprojects.com/) templating. The following variables are available:
+The select query is rendered by a template engine.
+[`Jinja`](https://jinja.palletsprojects.com/) is the default and is described below; for the deprecated `Simple`
+and `Velocity Engine` modes, see the "Legacy template engines" section further down.
+
+The following variables are available:
 
 - `input.config.<param>`: a parameter of the connected input task.
 - `output.config.<param>`: a parameter of the connected output task.
+- `input.entity.<property>`: the value of the given property on the current input entity. Only populated when
+  the task is configured to receive input entities (see **Use default RDF dataset** above).
 - `project.<key>`: a project-scoped template variable.
 - `global.<key>`: a global template variable.
 
@@ -31,13 +40,14 @@ For example, to query the named graph that is configured on the input dataset:
 SELECT * WHERE { GRAPH <{{ input.config.graph | validate_uri }}> { ?s ?p ?o } }
 ```
 
-Parameter and variable names must be valid Jinja identifiers (`[a-zA-Z_][a-zA-Z0-9_]*`); bracket-subscript access
-is not supported.
+Parameter, property and variable names must be valid Jinja identifiers (`[a-zA-Z_][a-zA-Z0-9_]*`);
+bracket-subscript access such as `input.entity["urn:prop:label"]` is not supported.
 
-The `defaultScope` parameter (default `input.entity`) makes variables from one scope accessible directly, without
-the scope prefix. With the default, a template may reference `{{ property }}` as a shorthand for
-`{{ input.entity.property }}`; both forms resolve to the same value. Setting `defaultScope` to the empty string
-disables this aliasing and requires every variable to be addressed with its full scope.
+The `defaultScope` parameter declares one scope whose variables are additionally exposed at the top level of the
+template context, so they can be referenced without the scope prefix. It defaults to `input.entity`: a template
+may write `{{ property }}` as a shorthand for `{{ input.entity.property }}`, and both forms resolve to the same
+value. Set `defaultScope` to the empty string to disable this aliasing and require every variable to be addressed
+with its full scope.
 
 Values are inserted verbatim by default, so URI brackets (`<...>`) and quotation marks around literals must be
 written in the template. The following filters are provided to render values safely:
@@ -55,12 +65,18 @@ All transformer plugins are also available as Jinja filters under their plugin i
 The output schema (i.e. the result variables) is derived from the query at configuration time by evaluating the
 template with default values, so the query must remain valid SPARQL regardless of the parameter values.
 
-### Internal Specifics
+### Automatic `FROM` clause injection
 
 If the SPARQL source is defined on a specific graph, a `FROM` clause will be added to the query at execution time,
 except when there already exists a `GRAPH` or `FROM` clause in the query. `FROM NAMED` clauses are not injected.
 
-## Related plugins
+### Legacy template engines
+
+In addition to Jinja, two deprecated template engines are supported for backwards compatibility: `Simple`
+and [`Velocity Engine`](https://velocity.apache.org/engine/2.4.1/user-guide.html). Their syntax is identical
+to the one used by the `SPARQL Update operator` and is documented there.
+
+### Related plugins
 
 Other types of RDF tasks are the `sparqlCopyOperator` for executing SPARQL CONSTRUCT queries, and the
 `sparqlUpdateOperator` for building SPARQL UPDATE queries from a templating engine.
