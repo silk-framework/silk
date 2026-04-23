@@ -46,10 +46,4 @@ class CustomTasks @Inject() () extends InjectedController with UserContextAction
     WorkspaceFactory().workspace.project(project).removeTask[CustomTask](source)
     Ok
   }
-
-  def taskDialog(projectName: String, taskName: String, createDialog: Boolean): Action[AnyContent] = UserContextAction { implicit userContext =>
-    val project = WorkspaceFactory().workspace.project(projectName)
-    val customTask = if(taskName.isEmpty) None else project.taskOption[CustomTask](taskName).map(p => p.data)
-    Ok(views.html.workspace.customTask.customTaskDialog(project, taskName, customTask, createDialog))
-  }
 }

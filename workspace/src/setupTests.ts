@@ -2,29 +2,9 @@ import "regenerator-runtime/runtime";
 import "@testing-library/jest-dom";
 import { TextEncoder, TextDecoder } from "util";
 
-(global as any).TextEncoder = TextEncoder;
-(global as any).TextDecoder = TextDecoder;
-
 jest.setTimeout(30000);
 
 if (window.document) {
-    (window.document.body as any).createTextRange = function () {
-        return {
-            setEnd: function () {},
-            setStart: function () {},
-            getBoundingClientRect: function () {
-                return { right: 0 };
-            },
-            getClientRects: function () {
-                return {
-                    length: 0,
-                    left: 0,
-                    right: 0,
-                };
-            },
-        };
-    };
-
     window.document.createRange = () => {
         const range = new Range();
         range.getBoundingClientRect = jest.fn(() => ({
@@ -38,12 +18,12 @@ if (window.document) {
             y: 0,
             toJSON: () => {},
         }));
-        range.getClientRects = () =>
-            ({
-                item: () => null,
-                length: 0,
-                [Symbol.iterator]: jest.fn(),
-            }) as any;
+        range.getClientRects = jest.fn(() => {
+            const rects: any = [];
+            rects.item = () => null;
+            rects.length = 0;
+            return rects;
+        });
         return range;
     };
 }
@@ -72,4 +52,14 @@ Object.defineProperty(window, "matchMedia", {
 Object.defineProperty(window, "scrollTo", {
     writable: true,
     value: jest.fn(),
+});
+
+// Mock Element.prototype.scrollIntoView for useScrollIntoView hook
+Element.prototype.scrollIntoView = jest.fn();
+
+// Mock window.scrollY for scroll offset calculations
+Object.defineProperty(window, "scrollY", {
+    writable: true,
+    value: 0,
+    configurable: true,
 });

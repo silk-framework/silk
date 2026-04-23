@@ -9,8 +9,9 @@ import mockAxios from "../__mocks__/axios";
 import { CONTEXT_PATH, SERVE_PATH } from "../../src/app/constants/path";
 import { mergeDeepRight } from "ramda";
 import { IStore } from "../../src/app/store/typings/IStore";
-import { render, RenderResult, waitFor, fireEvent } from "@testing-library/react";
+import { fireEvent, render, RenderResult, waitFor } from "@testing-library/react";
 import "@testing-library/jest-dom";
+import { CLASSPREFIX as eccgui } from "@eccenca/gui-elements";
 
 import {
     responseInterceptorOnError,
@@ -147,6 +148,15 @@ export const logRequests = (axiosMock?: AxiosMockType) => {
     });
 };
 
+/** Checks if the NotAvailable element is found. */
+export const checkForNotAvailableElement = (wrapper: RenderResult, noTag: boolean = true): void => {
+    if (noTag) {
+        expect(wrapper.queryAllByText("n/a", { exact: false }).length).toBeGreaterThan(0);
+    } else {
+        expect(findAllDOMElements(wrapper, `${eccgui}-notavailable`).length).toBeGreaterThan(0);
+    }
+};
+
 /**Clicks an element specified by a selector. */
 export const clickFoundElement = (root: RenderResult | Element, selector: string) => {
     const container = "container" in root ? root.container : root;
@@ -201,18 +211,6 @@ export const elementHtmlToContain = async (wrapper: RenderResult | Element, sele
             );
             logWrapperHtml(wrapper);
             return err;
-        },
-    });
-};
-
-/** Adds the document.createRange method */
-export const addDocumentCreateRangeMethod = () => {
-    (global as any).document.createRange = () => ({
-        setStart: () => {},
-        setEnd: () => {},
-        commonAncestorContainer: {
-            nodeName: "BODY",
-            ownerDocument: document,
         },
     });
 };

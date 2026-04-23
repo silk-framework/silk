@@ -1,14 +1,12 @@
-import React from 'react';
-import { CardContent, Info } from 'gui-elements-deprecated';
+import React from "react";
+import { CardContent, Notification } from "@eccenca/gui-elements";
 
 const EmptyList = () => {
     return (
         <CardContent>
-            <Info vertSpacing border>
-                No existing mapping rules.
-            </Info>
+            <Notification>No existing mapping rules.</Notification>
         </CardContent>
-    )
+    );
 };
 
 export default EmptyList;

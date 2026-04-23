@@ -12,7 +12,6 @@ const onClickedRemoveFn = jest.fn();
 
 const props = {
     parentId: "",
-    parent: { id: "", type: false },
     edit: false,
     type: "root",
     viewActions: {
@@ -38,7 +37,7 @@ const props = {
         },
         mappingTarget: {
             uri: "uri",
-            isAttribute: false
+            isAttribute: false,
         },
         type: "root",
     },
@@ -78,7 +77,7 @@ describe("ObjectMappingRule Component", () => {
                 ...props,
                 type: "complex",
             });
-            findElement(wrapper, ".mdl-radio-group");
+            findElement(wrapper, byTestId("object-entity-relation"));
         });
 
         it("should ObjectTypeRules component rendered, when `props.typeRules` first object have `uri` property", () => {

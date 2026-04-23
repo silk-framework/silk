@@ -1,6 +1,6 @@
 import React from "react";
 import "@testing-library/jest-dom";
-import { createBrowserHistory, History, LocationState } from "history";
+import {createBrowserHistory, History, LocationState} from "history";
 import mockAxios from "../../../__mocks__/axios";
 import {
     checkRequestMade,
@@ -10,23 +10,19 @@ import {
     renderWrapper,
     workspacePath,
 } from "../../TestHelper";
-import { RelatedItems } from "../../../../src/app/views/shared/RelatedItems/RelatedItems";
-import { RelatedItemsTestHelper } from "./RelatedItemsTestHelper";
-import { CONTEXT_PATH, SERVE_PATH } from "../../../../src/app/constants/path";
-import { ReactWrapper } from "enzyme";
+import {RelatedItems} from "../../../../src/app/views/shared/RelatedItems/RelatedItems";
+import {RelatedItemsTestHelper} from "./RelatedItemsTestHelper";
+import {SERVE_PATH} from "../../../../src/app/constants/path";
 import {act, RenderResult, waitFor} from "@testing-library/react";
 
 describe("Related items", () => {
     let hostPath = process.env.HOST;
-    let history: History<LocationState> = null;
+    let history: History<LocationState> = createBrowserHistory();
     let wrapper: RenderResult;
     const nrOverallItems = 11;
     beforeEach(async () => {
-        console.log("before has started");
         wrapper = loadRelatedItems();
-        console.log("items loaded");
         await checkRelatedItems(nrOverallItems, wrapper);
-        console.log("Finished beforeEach");
     }, 120000);
     afterEach(() => {
         mockAxios.reset();

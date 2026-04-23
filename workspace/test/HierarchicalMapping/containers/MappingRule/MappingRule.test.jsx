@@ -43,7 +43,6 @@ const props = {
         draggableProps: {},
         innerRef: jest.fn(),
     },
-    scrollElementIntoView: jest.fn(),
     scrollIntoView: jest.fn(),
     snapshot: { isDragging: false },
     sourcePaths: ["birthdate"],

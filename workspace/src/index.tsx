@@ -12,7 +12,6 @@ import appRoutes, { IRouteProps } from "./app/appRoutes";
 import { createPlugin } from "./app/services/pluginApi";
 import configureStore from "./app/store/configureStore";
 
-import "./app/views/pages/MappingEditor/style/style.scss"; // FIXME: remove legacy styles import when not necessary anymore
 import "./theme/index.scss";
 import mappingEditor from "./app/views/pages/MappingEditor/index";
 import "./language";

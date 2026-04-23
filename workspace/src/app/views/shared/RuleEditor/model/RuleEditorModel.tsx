@@ -47,16 +47,16 @@ import { RuleEditorEvaluationContext, RuleEditorEvaluationContextProps } from ".
 import {
     InteractionGate,
     Markdown,
-    nodeDefaultUtils,
-    NodeContentProps,
     NodeContentHandleProps,
-    StickyNote,
+    NodeContentProps,
+    nodeDefaultUtils,
     NodeDimensions,
     Notification,
+    StickyNote,
 } from "@eccenca/gui-elements";
 import { LINKING_NODE_TYPES } from "@eccenca/gui-elements/src/cmem/react-flow/configuration/typing";
 import StickyMenuButton from "../view/components/StickyMenuButton";
-import { InputPathFunctions, LanguageFilterProps } from "../view/ruleNode/PathInputOperator";
+import { InputPathFunctions } from "../view/ruleNode/PathInputOperator";
 import { requestRuleOperatorPluginDetails } from "@ducks/common/requests";
 import useErrorHandler from "../../../../hooks/useErrorHandler";
 import { PUBLIC_URL } from "../../../../constants/path";
@@ -1890,6 +1890,12 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
         });
     };
 
+    const centerAndFitView = () => {
+        reactFlowInstance?.fitView({ maxZoom: 1 });
+        ruleEditorContext.initialFitToViewZoomLevel &&
+            reactFlowInstance?.zoomTo(ruleEditorContext.initialFitToViewZoomLevel);
+    };
+
     /** Save the current rule. */
     const saveRule = async () => {
         const stickyNodes = current.elements.reduce((stickyNodes, elem) => {
@@ -2006,17 +2012,21 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                 </Notification>,
             );
         }
+
         // Center and then zoom not too far out
         setTimeout(async () => {
             if (needsLayout) {
                 await autoLayoutInternal(elems, false, false);
             }
-            reactFlowInstance?.fitView({ maxZoom: 1 });
-            ruleEditorContext.initialFitToViewZoomLevel &&
-                reactFlowInstance?.zoomTo(ruleEditorContext.initialFitToViewZoomLevel);
             setInitializing(false);
         }, 1);
     };
+
+    React.useEffect(() => {
+        if (!initializing) {
+            centerAndFitView();
+        }
+    }, [initializing]);
 
     return (
         <RuleEditorModelContext.Provider

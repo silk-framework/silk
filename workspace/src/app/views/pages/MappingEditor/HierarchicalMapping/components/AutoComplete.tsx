@@ -202,7 +202,6 @@ export const autoCompleteItemRenderer = autoCompleteItemRendererFactory(true);
 // Does not render the value when a label exists
 export const autoCompleteItemRendererWithoutValue = autoCompleteItemRendererFactory(false);
 
-// Necessary because else popovers won't be shown (still unclear why, maybe interaction with MDL)
 const portalContainer = () => document.body;
 // Creates a new, custom option element
 const queryToNewOption: (label: string) => INewOptionCreatorParams = (label: string) => ({

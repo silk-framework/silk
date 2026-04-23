@@ -2,7 +2,7 @@
 
 module.exports = {
     rootDir: "./../../",
-    testEnvironment: "jsdom",
+    testEnvironment: "jest-fixed-jsdom",
     testEnvironmentOptions: {
         url: "http://localhost/",
         globalsCleanup: "on",
