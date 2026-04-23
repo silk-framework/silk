@@ -23,10 +23,7 @@ import scala.util.Try
 @Plugin(
   id = "sparqlSelectOperator",
   label = "SPARQL Select query",
-  description =
-    "A task that executes a SPARQL Select query on a SPARQL enabled data source and outputs the SPARQL result." +
-    " If the SPARQL source is defined on a specific graph, a FROM clause will be added to the query at execution time," +
-    " except when there already exists a GRAPH or FROM clause in the query. FROM NAMED clauses are not injected.",
+  description = "A task that executes a SPARQL Select query and outputs the SPARQL result.",
   documentationFile = "SparqlSelectCustomTask.md",
   iconFile = "sparql-select-query.svg"
 )
@@ -54,12 +51,6 @@ case class SparqlSelectCustomTask(
   )
   useDefaultDataset: Boolean = false,
   @Param(
-    label = "SPARQL query timeout (ms)",
-    value = "SPARQL query timeout (select/update) in milliseconds. A value of zero means that there is no timeout set explicitly." +
-      " If a value greater zero is specified this overwrites possible default timeouts."
-  )
-  sparqlTimeout: Int = 0,
-  @Param(
     value = "The templating mode for the template engine.",
     autoCompletionProvider = classOf[TemplateEngineAutocompletionProvider],
     autoCompleteValueWithLabels = true
@@ -67,11 +58,18 @@ case class SparqlSelectCustomTask(
   templatingMode: String = "jinja",
   @Param(
     label = "Default scope",
-    value = "Variables from this scope can be accessed without the scope prefix. " +
+    value = "Variables from this scope can be accessed without the scope prefix in Jinja. " +
       "For example, with default scope 'input.entity', a template may reference '{{ property }}' instead of '{{ input.entity.property }}'. " +
       "Leave empty to disable."
   )
-  defaultScope: String = "input.entity"
+  defaultScope: String = "input.entity",
+  @Param(
+    label = "SPARQL query timeout (ms)",
+    value = "SPARQL query timeout (select/update) in milliseconds. A value of zero means that there is no timeout set explicitly." +
+      " If a value greater zero is specified this overwrites possible default timeouts.",
+    advanced = true
+  )
+  sparqlTimeout: Int = 0,
 ) extends CustomTask {
   val intLimit: Option[Int] = {
     // Only allow positive ints
