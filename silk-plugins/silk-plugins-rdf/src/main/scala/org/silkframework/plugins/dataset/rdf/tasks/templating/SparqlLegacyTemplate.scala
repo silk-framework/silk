@@ -1,13 +1,16 @@
 package org.silkframework.plugins.dataset.rdf.tasks.templating
 
-import org.silkframework.entity.{Entity, EntitySchema}
-import org.silkframework.entity.paths.UntypedPath
+import org.apache.jena.query.QueryFactory
+import org.silkframework.entity.paths.{TypedPath, UntypedPath}
+import org.silkframework.entity.{Entity, EntitySchema, ValueType}
 import org.silkframework.execution.local.EmptyEntityTable
 import org.silkframework.plugins.dataset.rdf.tasks.templating.SparqlLegacyTemplate._
 import org.silkframework.runtime.templating.{CompiledTemplate, TemplateMethodUsage, TemplateVariableName, TemplateVariableValue}
 import org.silkframework.runtime.validation.ValidationException
+import org.silkframework.util.Uri
 
 import java.io.StringWriter
+import scala.jdk.CollectionConverters.ListHasAsScala
 import scala.util.{Failure, Success, Try}
 
 /**
@@ -74,6 +77,17 @@ class SparqlLegacyTemplate(template: CompiledTemplate) extends SparqlTemplate {
     } else {
       EntitySchema("", properties.map(p => UntypedPath(p).asUntypedValueType).toIndexedSeq)
     }
+  }
+
+  override lazy val outputSchema: EntitySchema = {
+    val query = QueryFactory.create(generateWithDefaults())
+    if (!query.isSelectType) {
+      throw new ValidationException("Query is not a SELECT query!")
+    }
+    val typedPaths = query.getResultVars.asScala.map { v =>
+      TypedPath(UntypedPath(v), ValueType.STRING, isAttribute = false)
+    }
+    EntitySchema(typeUri = Uri(""), typedPaths = typedPaths.toIndexedSeq)
   }
 
   override def isStaticTemplate: Boolean = {

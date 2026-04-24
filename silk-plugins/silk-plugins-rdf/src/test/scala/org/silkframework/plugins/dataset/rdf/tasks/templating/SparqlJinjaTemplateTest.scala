@@ -9,7 +9,7 @@ import org.silkframework.runtime.templating.TemplateVariableValue
 import org.silkframework.runtime.templating.exceptions.{TemplateEvaluationException, UnboundVariablesException}
 import org.silkframework.runtime.validation.ValidationException
 
-class SparqlTemplateJinjaTest extends AnyFlatSpec with Matchers {
+class SparqlJinjaTemplateTest extends AnyFlatSpec with Matchers {
 
   behavior of "SPARQL templating with the Jinja Template Engine"
 

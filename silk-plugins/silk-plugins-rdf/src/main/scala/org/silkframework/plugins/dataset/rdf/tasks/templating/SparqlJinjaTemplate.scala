@@ -1,10 +1,11 @@
 package org.silkframework.plugins.dataset.rdf.tasks.templating
 
-import org.silkframework.entity.{Entity, EntitySchema}
-import org.silkframework.entity.paths.UntypedPath
+import org.silkframework.entity.paths.{TypedPath, UntypedPath}
+import org.silkframework.entity.{Entity, EntitySchema, ValueType}
 import org.silkframework.execution.local.EmptyEntityTable
-import org.silkframework.runtime.templating.{CompiledTemplate, TemplateVariableConversions, TemplateVariableName, TemplateVariableValue}
+import org.silkframework.runtime.templating.{CompiledTemplate, TemplateEngines, TemplateVariableConversions, TemplateVariableName, TemplateVariableValue}
 import org.silkframework.runtime.validation.ValidationException
+import org.silkframework.util.Uri
 
 import java.io.StringWriter
 import scala.util.{Failure, Success, Try}
@@ -22,14 +23,18 @@ import scala.util.{Failure, Success, Try}
   *
   * Entity property names must be valid Jinja identifiers (`[a-zA-Z_][a-zA-Z0-9_]*`)
   *
+  * @param rawTemplate  The raw template source. Compiled internally via the Jinja engine and also used
+  *                     to derive the output schema heuristically without rendering.
   * @param defaultScope If non-empty, every variable at this scope is also exposed at the top level of the
   *                     Jinja context, so the template may reference it without the scope prefix. For example,
   *                     with `defaultScope = Seq("input", "entity")`, a template may use `{{ property }}` in
   *                     place of `{{ input.entity.property }}`.
   */
-class SparqlJinjaTemplate(template: CompiledTemplate, defaultScope: Seq[String] = Seq.empty) extends SparqlTemplate {
+class SparqlJinjaTemplate(rawTemplate: String, defaultScope: Seq[String] = Seq.empty) extends SparqlTemplate {
 
   import SparqlJinjaTemplate._
+
+  private val template: CompiledTemplate = TemplateEngines.create(JINJA_ENGINE_ID).compile(rawTemplate)
 
   override def generate(entity: Option[Entity],
                         taskProperties: TaskProperties,
@@ -67,6 +72,12 @@ class SparqlJinjaTemplate(template: CompiledTemplate, defaultScope: Seq[String] 
     } else {
       EntitySchema("", properties.map(p => UntypedPath(p).asUntypedValueType).toIndexedSeq)
     }
+  }
+
+  override lazy val outputSchema: EntitySchema = {
+    val vars = SparqlSelectVarExtractor.extractSelectVars(rawTemplate)
+    val paths = vars.map(v => TypedPath(UntypedPath(v), ValueType.STRING, isAttribute = false))
+    EntitySchema(typeUri = Uri(""), typedPaths = paths.toIndexedSeq)
   }
 
   override def isStaticTemplate: Boolean = {
@@ -110,6 +121,8 @@ class SparqlJinjaTemplate(template: CompiledTemplate, defaultScope: Seq[String] 
 }
 
 object SparqlJinjaTemplate {
+
+  private[templating] final val JINJA_ENGINE_ID = "jinja"
 
   private[templating] final val INPUT_CONFIG_SCOPE: Seq[String] = Seq("input", "config")
   private[templating] final val INPUT_ENTITY_SCOPE: Seq[String] = Seq("input", "entity")

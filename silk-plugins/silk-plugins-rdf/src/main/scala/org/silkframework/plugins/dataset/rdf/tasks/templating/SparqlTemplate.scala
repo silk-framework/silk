@@ -25,13 +25,9 @@ trait SparqlTemplate {
   /**
    * Renders the template.
    *
-   * @param entity            The current input entity, or `None` for static templates / Select queries.
-   *                          The Jinja implementation exposes each entity property as a list of values
-   *                          under `input.entity.*`. The legacy implementation iterates over the
-   *                          cross-product of property values and emits one query per combination.
+   * @param entity            The current input entity, or `None` for static templates.
    * @param taskProperties    Parameter values of the connected input and output tasks.
-   * @param templateVariables Project and global template variables (scoped as `Seq("project")` / `Seq("global")`).
-   *                          Only used by the Jinja implementation; the legacy implementation ignores them.
+   * @param templateVariables Project and global template variables
    * @return One rendered query for Jinja, or one query per cross-product combination for the legacy engine.
    */
   def generate(entity: Option[Entity],
@@ -47,15 +43,14 @@ trait SparqlTemplate {
   /** Entity schema that the template expects on its input port. */
   def inputSchema: EntitySchema
 
+  /** Output schema projected by a SELECT query. Unused for UPDATE templates. */
+  def outputSchema: EntitySchema
+
   /** True if the template does not reference any entity values and thus needs no input port. */
   def isStaticTemplate: Boolean
 }
 
 object SparqlTemplate {
-
-  // Must match JinjaTemplateEngine.id. Duplicated here because silk-plugins-rdf does not depend on
-  // silk-plugins-templating-jinja at compile time (only at test scope).
-  private final val JINJA_ENGINE_ID = "jinja"
 
   /**
    * Creates a SPARQL template using the given template engine.
@@ -65,11 +60,10 @@ object SparqlTemplate {
    *                     implementation. Pass `Seq.empty` to disable aliasing.
    */
   def create(templateEngineId: String, template: String, defaultScope: Seq[String] = Seq.empty): SparqlTemplate = {
-    val engine = TemplateEngines.create(templateEngineId)
-    val compiled = engine.compile(template)
-    if (templateEngineId == JINJA_ENGINE_ID) {
-      new SparqlJinjaTemplate(compiled, defaultScope)
+    if (templateEngineId == SparqlJinjaTemplate.JINJA_ENGINE_ID) {
+      new SparqlJinjaTemplate(template, defaultScope)
     } else {
+      val compiled = TemplateEngines.create(templateEngineId).compile(template)
       new SparqlLegacyTemplate(compiled)
     }
   }

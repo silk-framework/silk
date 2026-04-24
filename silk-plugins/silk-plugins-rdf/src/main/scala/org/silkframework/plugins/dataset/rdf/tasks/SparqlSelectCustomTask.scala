@@ -1,20 +1,15 @@
 package org.silkframework.plugins.dataset.rdf.tasks
 
-import org.apache.jena.query.QueryFactory
 import org.silkframework.config._
 import org.silkframework.dataset.rdf.SparqlEndpointDatasetParameter
 import org.silkframework.entity._
-import org.silkframework.entity.paths.{TypedPath, UntypedPath}
 import org.silkframework.execution.typed.SparqlEndpointEntitySchema
 import org.silkframework.plugins.dataset.rdf.datasets.SparqlDataset
 import org.silkframework.plugins.dataset.rdf.tasks.templating.SparqlTemplate
 import org.silkframework.runtime.plugin.annotations.{Param, Plugin, PluginReference}
 import org.silkframework.runtime.plugin.types.SparqlCodeParameter
 import org.silkframework.runtime.templating.TemplateEngineAutocompletionProvider
-import org.silkframework.runtime.validation.ValidationException
-import org.silkframework.util.Uri
 
-import scala.jdk.CollectionConverters.ListHasAsScala
 import scala.util.Try
 
 /**
@@ -108,22 +103,14 @@ case class SparqlSelectCustomTask(
   }
 
   override def outputPort: Option[Port] = {
-    Some(FixedSchemaPort(outputSchema))
+    if (outputSchema.typedPaths.isEmpty) {
+      Some(UnknownSchemaPort)
+    } else {
+      Some(FixedSchemaPort(outputSchema))
+    }
   }
 
-  val outputSchema: EntitySchema = {
-    val query = QueryFactory.create(queryTemplate.generateWithDefaults())
-    if (!query.isSelectType) {
-      throw new ValidationException("Query is not a SELECT query!")
-    }
-    val typedPaths = query.getResultVars.asScala map { v =>
-      TypedPath(UntypedPath(v), ValueType.STRING, isAttribute = false)
-    }
-    EntitySchema(
-      typeUri = Uri(""),
-      typedPaths = typedPaths.toIndexedSeq
-    )
-  }
+  val outputSchema: EntitySchema = queryTemplate.outputSchema
 }
 
 object SparqlSelectCustomTask {

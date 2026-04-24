@@ -62,8 +62,9 @@ written in the template. The following filters are provided to render values saf
 All transformer plugins are also available as Jinja filters under their plugin id (for example `lowerCase`,
 `trim`, `urlEncode`).
 
-The output schema (i.e. the result variables) is derived from the query at configuration time by evaluating the
-template with default values, so the query must remain valid SPARQL regardless of the parameter values.
+The output schema (i.e. the result variables) is derived from the query via a heuristic on the raw template text,
+without evaluating it. If the heuristic cannot determine any output variables (for example, when the `SELECT` clause itself is produced
+by a Jinja expression), the output port is reported with an unknown schema instead.
 
 ### Automatic `FROM` clause injection
 
