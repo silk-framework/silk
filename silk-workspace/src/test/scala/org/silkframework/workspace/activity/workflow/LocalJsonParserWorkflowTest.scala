@@ -101,11 +101,9 @@ class LocalJsonParserWorkflowTest extends AnyFlatSpec with Matchers with ConfigT
     val workflowTask = project.task[Workflow](WorkflowId)
     workflowTask.activity[LocalWorkflowExecutorGeneratingProvenance].startBlocking()
 
-    // Currently FAILS — nothing written because Parse JSON returns None
-    // After fix — file contains entities with "name" fields
-    outputResource.size shouldBe >(0L)
+    outputResource.size.getOrElse(0L) should be > 0L
 
-    val names = (Json.parse(outputResource.loadAsString()) \\ "name").map(_.as[String])
+    val names = (Json.parse(outputResource.loadAsString()) \\ "name").flatMap(_.as[Seq[String]])
     names should contain allOf ("John", "Max")
   }
 }

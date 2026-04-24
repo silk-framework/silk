@@ -91,8 +91,6 @@ class LocalJsonParserTaskExecutorTest extends AnyFlatSpec with Matchers with Moc
     val execution = LocalExecution(useLocalInternalDatasets = false)
     val result = executor.execute(task, inputs, output, execution)
 
-    // Currently FAILS — executor returns None because FlexibleSchemaPort.schemaOpt = None
-    // After fix — returns Some(...) with the parsed entities
     result mustBe defined
   }
 
