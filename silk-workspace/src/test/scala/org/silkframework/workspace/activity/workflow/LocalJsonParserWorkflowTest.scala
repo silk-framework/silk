@@ -14,13 +14,19 @@ import org.silkframework.plugins.dataset.json.{JsonDataset, JsonParserTask}
 import play.api.libs.json.{JsString, Json}
 import LocalJsonParserWorkflowTest._
 
-object LocalJsonParserWorkflowTest {
-  val SourceDatasetId = "sourceDataset"
-  val ParseJsonId = "parseJson"
-  val OutputDatasetId = "outputDataset"
-  val WorkflowId = "workflow"
-}
-
+/**
+ * Integration test for the Parse JSON operator in a workflow context.
+ *
+ * When running from IntelliJ, add the following to the run configuration VM options:
+ *   --add-opens=java.base/java.nio=ALL-UNNAMED
+ *
+ * lmdbjava (the Java binding for LMDB, used by the persistent caching layer initialised
+ * as part of the workspace infrastructure) accesses java.nio.Buffer.address via reflection
+ * to obtain raw memory addresses for direct buffers. Since Java 9 the module system blocks
+ * this by default, causing an InaccessibleObjectException before the test assertions run.
+ * The flag opens the java.nio package to unnamed modules (classpath code), restoring the
+ * access lmdbjava requires. sbt picks this up automatically from build.sbt; IntelliJ does not.
+ */
 class LocalJsonParserWorkflowTest extends AnyFlatSpec with Matchers with ConfigTestTrait {
 
   override def propertyMap: Map[String, Option[String]] = Map(
@@ -106,4 +112,11 @@ class LocalJsonParserWorkflowTest extends AnyFlatSpec with Matchers with ConfigT
     val names = (Json.parse(outputResource.loadAsString()) \\ "name").flatMap(_.as[Seq[String]])
     names should contain allOf ("John", "Max")
   }
+}
+
+object LocalJsonParserWorkflowTest {
+  val SourceDatasetId = "sourceDataset"
+  val ParseJsonId = "parseJson"
+  val OutputDatasetId = "outputDataset"
+  val WorkflowId = "workflow"
 }
