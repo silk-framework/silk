@@ -25,23 +25,23 @@ class LocalDeleteFilesOperatorExecutorTest extends AnyFlatSpec with Matchers wit
     ) shouldBe List("file.csv")
     execute(
       regex = "file.*\\.csv",
-      existingFiles = Seq("file.csv", "file1.csv", "File1.csv", "files.csv", "subdir/file.csv"),
+      existingFiles = Seq("file.csv", "file1.csv", "other.csv", "files.csv", "subdir/file.csv"),
       entityOutput = true
-    ) shouldBe List("File1.csv", "subdir/file.csv")
+    ) shouldBe List("other.csv", "subdir/file.csv")
   }
 
   it should "remove files based on a regex in sub-directories" in {
     execute(
       regex = "subdir.*",
-      existingFiles = Seq("another", "subdir/file.csv", "subdir/file1.csv", "subdir/File1.csv", "subdir/files.csv", "subdirFile.csv", "this"),
+      existingFiles = Seq("another", "subdir/file.csv", "subdir/file1.csv", "subdir/other.csv", "subdir/files.csv", "subdirFile.csv", "this"),
       entityOutput = true
     ) shouldBe List("another", "this")
     // The regex needs to match the full path
     execute(
       regex = "subdir",
-      existingFiles = Seq("another", "subdir/file.csv", "subdir/file1.csv", "subdir/File1.csv", "subdir/files.csv", "subdirFile.csv", "this"),
+      existingFiles = Seq("another", "subdir/file.csv", "subdir/file1.csv", "subdir/other.csv", "subdir/files.csv", "subdirFile.csv", "this"),
       entityOutput = true
-    ) shouldBe List("another", "subdir/File1.csv", "subdir/file.csv", "subdir/file1.csv", "subdir/files.csv", "subdirFile.csv", "this")
+    ) shouldBe List("another", "subdir/file.csv", "subdir/file1.csv", "subdir/files.csv", "subdir/other.csv", "subdirFile.csv", "this")
   }
 
   /** Returns the still existing files after the operator gets executed sorted. */
