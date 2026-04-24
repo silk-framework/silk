@@ -71,6 +71,7 @@ interface Props {
         defaultValue?: string | number | boolean | OptionallyLabelledParameter<string | number | boolean>;
     };
     parameterType?: string;
+    highlightForReview?: boolean;
 }
 
 /** Wrapper around the input element of a parameter. Supports switching to variable templates. */
@@ -88,6 +89,7 @@ export const ArtefactFormParameter = ({
     disabled = false,
     tooltip,
     supportVariableTemplateElement,
+    highlightForReview = false,
 }: Props) => {
     const [t] = useTranslation();
     const [toggledTemplateSwitchBefore, setToggledTemplateSwitchBefore] = React.useState<boolean>(false);
@@ -186,13 +188,14 @@ export const ArtefactFormParameter = ({
     return (
         <FieldItem
             key={parameterId}
+            data-test-id={`task-form-parameter-${parameterId}`}
             labelProps={{
                 text: label,
                 info: required ? t("common.words.required") : undefined,
                 htmlFor: parameterId,
                 tooltip: tooltip,
             }}
-            intent={infoMessageDanger || !!validationError ? "danger" : undefined}
+            intent={infoMessageDanger || !!validationError ? "danger" : highlightForReview ? "warning" : undefined}
             messageText={infoMessage || validationError || templateInfoMessage || passwordMsgText}
             disabled={disabled}
             helperText={helperText}

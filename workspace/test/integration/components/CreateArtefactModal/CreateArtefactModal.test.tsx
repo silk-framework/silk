@@ -380,6 +380,65 @@ describe("Task creation widget", () => {
         });
     });
 
+    it("should keep dependent values, highlight them, and clear them only via the warning action", async () => {
+        addDocumentCreateRangeMethod();
+        const dependentParameterPluginDescription: IPluginDetails = {
+            ...mockPluginDescription,
+            required: [],
+            properties: {
+                password: atomicParamDescription({
+                    title: "password",
+                    parameterType: INPUT_TYPES.PASSWORD,
+                }),
+                database: atomicParamDescription(
+                    {
+                        title: "database",
+                        parameterType: INPUT_TYPES.STRING,
+                    },
+                    {
+                        allowOnlyAutoCompletedValues: false,
+                        autoCompletionDependsOnParameters: ["password"],
+                    },
+                ),
+            },
+        };
+        const existingTaskWithDependentValue: RecursivePartial<IProjectTaskUpdatePayload> = {
+            projectId: PROJECT_ID,
+            taskId: TASK_ID,
+            taskPluginDetails: dependentParameterPluginDescription,
+            metaData: {
+                label: "Task label",
+            },
+            currentParameterValues: {
+                password: value("old-secret"),
+                database: value("analytics"),
+            },
+            currentTemplateValues: {},
+        };
+        const { element } = await createMockedListWrapper(existingTaskWithDependentValue);
+        await waitFor(() => {
+            expect(findElement(element, "#password")).toBeInTheDocument();
+            expect(findElement(element, "#database")).toBeInTheDocument();
+        });
+
+        changeInputValue(findElement(element, "#password") as HTMLInputElement, "new-secret");
+
+        await waitFor(() => {
+            expect((findElement(element, "#database") as HTMLInputElement).value).toBe("analytics");
+            expect(findElement(element, byTestId("task-form-dependent-values-warning"))).toBeInTheDocument();
+        });
+
+        expect(findElement(element, byTestId("task-form-parameter-database")).className).toContain(
+            "eccgui-intent--warning",
+        );
+
+        clickRenderedElement(findElement(element, byTestId("task-form-clear-highlighted-dependent-values")));
+
+        await waitFor(() => {
+            expect((findElement(element, "#database") as HTMLInputElement).value).toBe("");
+        });
+    });
+
     const value = (value: string, label?: string) => {
         const result: { value: string; label?: string } = { value };
         if (label) {

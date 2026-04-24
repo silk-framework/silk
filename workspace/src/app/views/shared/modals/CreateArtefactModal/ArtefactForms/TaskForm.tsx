@@ -32,6 +32,7 @@ import utils from "@eccenca/gui-elements/src/cmem/markdown/markdown.utils";
 import { commonOp } from "@ducks/common";
 import { DependsOnParameterValueAny } from "./ParameterAutoCompletion";
 import { FieldValues, FormContextValues } from "react-hook-form";
+import { collectPopulatedDependentParameters } from "./TaskForm.utils";
 
 export const READ_ONLY_PARAMETER = "readOnly";
 
@@ -63,8 +64,13 @@ export interface IProps {
     /** If a parameter value is changed in a way that did not use the parameter widget, this must be called in order to update the value in the widget itself. */
     propagateExternallyChangedParameterValue: (fullParamId: string, value: string) => any;
 
-    /** Shows a warning notification with the following message in the dialog popup that can be removed by the user. */
-    showWarningMessage: (message: string) => void;
+    /** Shows or clears a warning notification in the dialog popup. */
+    showWarningMessage: (warning?: TaskFormReviewWarning) => void;
+}
+
+export interface TaskFormReviewWarning {
+    message: React.JSX.Element | string;
+    onClearHighlightedValues?: () => void;
 }
 
 export interface UpdateTaskProps {
@@ -144,8 +150,10 @@ export function TaskForm({
         React.useRef<Record<string, DependsOnParameterValueAny | undefined>>({});
     const dependentParameters = React.useRef<Map<string, Set<string>>>(new Map());
     const [doChange, setDoChange] = useState<boolean>(false);
+    const [staleDependentParameterIds, setStaleDependentParameterIds] = useState<string[]>([]);
     const { registerError } = useErrorHandler();
     const parameterDefaultValues = React.useRef<Map<string, string | null>>(new Map());
+    const staleDependentParameterIdsRef = React.useRef<string[]>([]);
     parameterDefaultValues.current = extractDefaultValues(artefact);
 
     const addDependentParameter = React.useCallback((dependentParameter: string, dependsOn: string) => {
@@ -252,6 +260,34 @@ export function TaskForm({
             setDoChange(false);
         }
     }, [doChange]);
+
+    const scrollParameterIntoView = React.useCallback((fullParameterId: string) => {
+        const parameterElement = window.document.querySelector(
+            `[data-test-id="task-form-parameter-${fullParameterId}"]`,
+        ) as HTMLElement | null;
+        parameterElement?.scrollIntoView({ behavior: "smooth", block: "center" });
+    }, []);
+
+    useEffect(() => {
+        staleDependentParameterIdsRef.current = staleDependentParameterIds;
+        if (staleDependentParameterIds.length) {
+            const parameterLabelsToReview = staleDependentParameterIds.map(
+                (paramId) => parameterLabels.current.get(paramId) ?? paramId,
+            );
+            showWarningMessage({
+                message: t(
+                    "form.taskForm.dependentValuesNeedReview",
+                    {
+                        count: parameterLabelsToReview.length,
+                        parameters: parameterLabelsToReview.join(", ")
+                    },
+                ),
+                onClearHighlightedValues: () => void clearHighlightedDependentParameters(),
+            });
+        } else {
+            showWarningMessage(undefined);
+        }
+    }, [staleDependentParameterIds, showWarningMessage, t]);
 
     /** Initialize: register parameters, set default/existing values etc. */
     useEffect(() => {
@@ -382,6 +418,25 @@ export function TaskForm({
     }, [properties, register, projectId]);
 
     /** Change handler for a specific parameter. */
+    const clearHighlightedDependentParameters = React.useCallback(async () => {
+        const highlightedParameterIds = staleDependentParameterIdsRef.current;
+        highlightedParameterIds.forEach((paramId) => {
+            const oldValue = getValues(paramId);
+            if (dependentValues.current[paramId] !== undefined) {
+                dependentValues.current[paramId] = {
+                    value: "",
+                    isTemplate: parameterCallbacks.templateFlag(paramId),
+                };
+            }
+            setValue(paramId, "");
+            detectChange(paramId, "", oldValue);
+            propagateExternallyChangedParameterValue(paramId, "");
+        });
+        await Promise.all(highlightedParameterIds.map((paramId) => triggerValidation(paramId)));
+        setStaleDependentParameterIds([]);
+    }, [detectChange, getValues, propagateExternallyChangedParameterValue, setValue, triggerValidation]);
+
+    /** Change handler for a specific parameter. */
     const handleChange = useCallback(
         (key: string) => async (e) => {
             const { triggerValidation } = form;
@@ -403,40 +458,36 @@ export function TaskForm({
             if (!escapeKeyDisabled.current) {
                 escapeKeyDisabled.current = true;
             }
-            if (dependentParameters.current.has(key)) {
-                // collect all dependent parameters
-                const dependentParametersTransitiveSet = new Set<string>();
-                // Dependent parameters that were actually reset
-                const resetDependentParameters: string[] = [];
-                const collect = (currentParamId: string) => {
-                    const params = dependentParameters.current?.get(currentParamId) ?? [];
-                    params.forEach((p: string) => {
-                        if (!dependentParametersTransitiveSet.has(p)) {
-                            dependentParametersTransitiveSet.add(p);
-                            collect(p);
-                        }
-                    });
-                };
-                collect(key);
-                dependentParametersTransitiveSet.forEach((paramId) => {
-                    const currentValue = getValues(paramId);
-                    if (currentValue && paramId !== key) {
-                        resetDependentParameters.push(parameterLabels.current.get(paramId) ?? paramId);
-                        handleChange(paramId)("");
-                        propagateExternallyChangedParameterValue(paramId, "");
-                    }
-                });
-                if (resetDependentParameters.length) {
-                    showWarningMessage(
-                        t("form.taskForm.resetMessage", {
-                            parameters: resetDependentParameters.join(", "),
-                            dependOn: parameterLabels.current.get(key) ?? key,
-                        }),
-                    );
-                }
+            const populatedDependentParameters = dependentParameters.current.has(key)
+                ? collectPopulatedDependentParameters(
+                    key,
+                    dependentParameters.current,
+                    (paramId) => getValues(paramId),
+                )
+                : [];
+            if (populatedDependentParameters.length) {
+                scrollParameterIntoView(populatedDependentParameters[0]);
             }
+            setStaleDependentParameterIds((previousIds) => {
+                const nextIds = new Set(previousIds);
+                nextIds.delete(key);
+                populatedDependentParameters.forEach((paramId) => nextIds.add(paramId));
+                return Array.from(nextIds);
+            });
         },
-        [],
+        [
+            detectChange,
+            form,
+            getValues,
+            projectId,
+            propagateExternallyChangedParameterValue,
+            registerError,
+            setValue,
+            showWarningMessage,
+            scrollParameterIntoView,
+            t,
+            triggerValidation,
+        ],
     );
 
     const handleTagSelectionChange = React.useCallback(
@@ -458,7 +509,12 @@ export function TaskForm({
             handlers[key] = handleChange(key);
         });
         return handlers;
-    }, [formValueKeys]);
+    }, [formValueKeys, handleChange]);
+
+    const isDependencyReviewHighlighted = React.useCallback(
+        (fullParameterId: string) => staleDependentParameterIds.includes(fullParameterId),
+        [staleDependentParameterIds],
+    );
 
     const normalParams = visibleParams.filter(([k, param]) => !param.advanced);
     const advancedParams = visibleParams.filter(([k, param]) => param.advanced);
@@ -561,6 +617,7 @@ export function TaskForm({
                         initialValues={initialValues}
                         dependentValues={dependentValues}
                         parameterCallbacks={extendedCallbacks}
+                        isDependencyReviewHighlighted={isDependencyReviewHighlighted}
                     />
                 ))}
                 {
@@ -618,6 +675,7 @@ export function TaskForm({
                             initialValues={initialValues}
                             dependentValues={dependentValues}
                             parameterCallbacks={extendedCallbacks}
+                            isDependencyReviewHighlighted={isDependencyReviewHighlighted}
                         />
                     ))}
                 </AdvancedOptionsArea>

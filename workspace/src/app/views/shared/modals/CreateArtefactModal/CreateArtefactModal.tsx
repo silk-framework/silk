@@ -40,7 +40,7 @@ import {
 } from "@ducks/common/typings";
 import Loading from "../../Loading";
 import { ProjectForm } from "./ArtefactForms/ProjectForm";
-import { TaskForm } from "./ArtefactForms/TaskForm";
+import { TaskForm, TaskFormReviewWarning } from "./ArtefactForms/TaskForm";
 import { DATA_TYPES } from "../../../../constants";
 import ArtefactTypesList from "./ArtefactTypesList";
 import { SearchBar } from "../../SearchBar/SearchBar";
@@ -156,7 +156,7 @@ export function CreateArtefactModal() {
     }, []);
     const [taskActionResult, setTaskActionResult] = React.useState<{ label: string; message: string }>();
     const [taskActionLoading, setTaskActionLoading] = React.useState<string | null>(null);
-    const [taskFormGeneralWarning, setTaskFormGeneralWarning] = React.useState<string | undefined>();
+    const [taskFormGeneralWarning, setTaskFormGeneralWarning] = React.useState<TaskFormReviewWarning | undefined>();
     const generalWarningTimeout = React.useRef<number | undefined>();
     const projectAcl = React.useRef<AccessControlConfig | undefined>();
 
@@ -164,11 +164,15 @@ export function CreateArtefactModal() {
         projectAcl.current = newProjectAcl;
     }, []);
 
-    const taskFormWarning = React.useCallback((message: string) => {
+    const taskFormWarning = React.useCallback((warning?: TaskFormReviewWarning) => {
         if (generalWarningTimeout.current) {
             clearTimeout(generalWarningTimeout.current);
         }
-        generalWarningTimeout.current = window.setTimeout(() => setTaskFormGeneralWarning(message), 250);
+        if (!warning) {
+            setTaskFormGeneralWarning(undefined);
+            return;
+        }
+        generalWarningTimeout.current = window.setTimeout(() => setTaskFormGeneralWarning(warning), 250);
     }, []);
 
     React.useEffect(() => {
@@ -956,7 +960,26 @@ export function CreateArtefactModal() {
 
     if (taskFormGeneralWarning) {
         notifications.push(
-            <Notification message={taskFormGeneralWarning} onDismiss={() => setTaskFormGeneralWarning(undefined)} />,
+            <Notification
+                data-test-id="task-form-dependent-values-warning"
+                intent="warning"
+                message={taskFormGeneralWarning.message}
+                actions={
+                    taskFormGeneralWarning.onClearHighlightedValues
+                        ? [
+                            <Button
+                                data-test-id="task-form-clear-highlighted-dependent-values"
+                                key="clear-highlighted-dependent-values"
+                                disruptive
+                                onClick={taskFormGeneralWarning.onClearHighlightedValues}
+                            >
+                                {t("form.taskForm.clearHighlightedValues")}
+                            </Button>,
+                        ]
+                        : undefined
+                }
+                onDismiss={() => setTaskFormGeneralWarning(undefined)}
+            />,
         );
     }
 
