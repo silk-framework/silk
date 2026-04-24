@@ -29,19 +29,30 @@ object JinjaTemplateEngine {
 
   private val interpreters = new ThreadLocal[JinjavaInterpreter] {
     override protected def initialValue(): JinjavaInterpreter = {
-      // There is a bug in Jinja 2.6.0, if a different context class loader is used: https://github.com/HubSpot/jinjava/issues/317
-      val curClassLoader = Thread.currentThread.getContextClassLoader
-      try {
-        Thread.currentThread.setContextClassLoader(this.getClass.getClassLoader)
+      withPluginClassLoader {
         val config = JinjavaConfig.newBuilder.withFailOnUnknownTokens(true).build()
         val jinja = new Jinjava(config)
         TransformFilters.register(jinja.getGlobalContext)
         val interpreter = jinja.newInterpreter()
         JinjavaInterpreter.pushCurrent(interpreter) // Macros will request the current interpreter (thread-local)
         interpreter
-      } finally {
-        Thread.currentThread.setContextClassLoader(curClassLoader)
       }
+    }
+  }
+
+  /**
+   * Runs `body` with the thread context class loader set to this plugin's class loader.
+   * Jinjava loads its shaded EL `ExpressionFactory` via the context class loader (ServiceLoader),
+   * so both parsing and evaluation must run under a class loader that can see the plugin jar.
+   * See https://github.com/HubSpot/jinjava/issues/317.
+   */
+  def withPluginClassLoader[T](body: => T): T = {
+    val curClassLoader = Thread.currentThread.getContextClassLoader
+    try {
+      Thread.currentThread.setContextClassLoader(this.getClass.getClassLoader)
+      body
+    } finally {
+      Thread.currentThread.setContextClassLoader(curClassLoader)
     }
   }
 
@@ -119,7 +130,8 @@ class JinjaTemplate(val node: Node) extends CompiledTemplate {
       interpreter.getContext.put(key, value)
     }
     try {
-      writer.write(interpreter.render(node, false))
+      val rendered = JinjaTemplateEngine.withPluginClassLoader(interpreter.render(node, false))
+      writer.write(rendered)
     } catch {
       case ex: UnknownTokenException =>
         throw new UnboundVariablesException(Seq(TemplateVariableName.parse(ex.getToken)), Some(ex))
