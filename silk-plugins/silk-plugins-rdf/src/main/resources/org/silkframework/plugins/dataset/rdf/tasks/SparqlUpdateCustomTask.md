@@ -52,6 +52,20 @@ written in the template. The following filters are provided to render values saf
 All transformer plugins are also available as Jinja filters under their plugin id (for example `lowerCase`,
 `trim`, `urlEncode`).
 
+### Validation
+
+At task creation, the template is checked against the available template variables. What is checked depends
+on the selected templating mode:
+
+- `Jinja`:
+    - Every `project.<...>` or `global.<...>` reference must resolve to a known variable, matched on the full
+      scoped name (so e.g. `project.metaData.label` is looked up at that exact scope).
+    - Every `input.<...>` or `output.<...>` reference must use `config` or `entity` as its second segment.
+    - The template is not rendered and the resulting SPARQL is not parsed.
+- `Simple` / `Velocity Engine`:
+    - The template is rendered once with placeholder values and the result must parse as a SPARQL Update query.
+    - Templates that use `rawUnsafe` skip this parse check.
+
 ### Example of the `Simple` mode (deprecated)
 
 ```

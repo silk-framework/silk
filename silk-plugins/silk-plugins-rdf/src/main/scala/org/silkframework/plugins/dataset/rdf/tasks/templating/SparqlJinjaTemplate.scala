@@ -8,7 +8,6 @@ import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.Uri
 
 import java.io.StringWriter
-import scala.util.{Failure, Success, Try}
 
 /**
   * SPARQL template implementation for the Jinja engine.
@@ -46,7 +45,30 @@ class SparqlJinjaTemplate(rawTemplate: String, defaultScope: Seq[String] = Seq.e
   }
 
   override def validate(variables: TemplateVariablesReader, batchSize: Option[Int]): Unit = {
-    // TODO
+    val available = variables.all.variables.map(v => (v.name, v.scope)).toSet
+    for (variable <- referencedVariables.distinct) {
+      val effectiveScope = if (variable.scope.isEmpty) defaultScope else variable.scope
+      validateReference(variable, effectiveScope, available)
+    }
+  }
+
+  private def validateReference(variable: TemplateVariableName,
+                                effectiveScope: Seq[String],
+                                available: Set[(String, Seq[String])]): Unit = {
+    effectiveScope.headOption match {
+      case Some(top) if VARIABLE_SCOPES.contains(top) =>
+        if (!available.contains((variable.name, effectiveScope))) {
+          throw new ValidationException(s"Unknown template variable '${variable.scopedName}'.")
+        }
+      case Some(top) if TASK_SCOPES.contains(top) =>
+        val subSection = effectiveScope.lift(1).getOrElse("")
+        if (!TASK_SUB_SECTIONS.contains(subSection)) {
+          throw new ValidationException(
+            s"Invalid template variable '${variable.scopedName}'. " +
+              s"Only '$top.config.<param>' and '$top.entity.<param>' are valid.")
+        }
+      case _ =>
+    }
   }
 
   override def inputSchema: EntitySchema = {
@@ -111,4 +133,8 @@ object SparqlJinjaTemplate {
   private[templating] final val INPUT_CONFIG_SCOPE: Seq[String] = Seq("input", "config")
   private[templating] final val INPUT_ENTITY_SCOPE: Seq[String] = Seq("input", "entity")
   private[templating] final val OUTPUT_CONFIG_SCOPE: Seq[String] = Seq("output", "config")
+
+  private final val VARIABLE_SCOPES: Set[String] = Set("project", "global")
+  private final val TASK_SCOPES: Set[String] = Set("input", "output")
+  private final val TASK_SUB_SECTIONS: Set[String] = Set("config", "entity")
 }

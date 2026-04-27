@@ -83,9 +83,27 @@ All transformer plugins are also available as Jinja filters under their plugin i
 
 ### Output schema inference
 
-The output schema (i.e. the result variables) is derived from the query via a heuristic on the raw template text,
-without evaluating it. If the heuristic cannot determine any output variables (for example, when the `SELECT`
-clause itself is produced by a Jinja expression), the output port is reported with an unknown schema instead.
+The output schema is derived from the raw template by a heuristic, without rendering it. The heuristic takes
+the projection between `SELECT` and the first `WHERE`, `FROM` or `{`, drops a leading `DISTINCT` / `REDUCED`,
+and then:
+
+- For `SELECT *`, collects every distinct `?var` token in the query.
+- Otherwise, collects each top-level `?var` and the trailing `AS ?alias` from parenthesised expressions
+  (e.g. `(COUNT(?s) AS ?count)` yields `count`).
+
+Each variable becomes a string-typed path. If no variables can be detected (e.g. the projection is produced by
+a Jinja expression), the output port is reported with an unknown schema.
+
+### Validation
+
+At task creation, the Jinja template is checked against the available template variables:
+
+- Every `project.<...>` or `global.<...>` reference must resolve to a known variable, matched on the full
+  scoped name (so e.g. `project.metaData.label` is looked up at that exact scope).
+- Every `input.<...>` or `output.<...>` reference must use `config` or `entity` as its second segment.
+
+Bare references are resolved through `defaultScope` before applying the same rules. The template is not
+rendered and the resulting SPARQL is not parsed.
 
 ### Legacy template engines
 
