@@ -53,7 +53,7 @@ object LinkageRuleIndex {
       case BooleanNot(child) => LinkageRuleIndexNot(convert(child, entity, sourceOrTarget))
       case BooleanComparisonOperator(id, sourceInput, targetInput, comparison) =>
         val inputId = if(sourceOrTarget) sourceInput.inputOperator.id else targetInput.inputOperator.id
-        val index = comparison.index(entity, sourceOrTarget, limit = 0.0)
+        val index = comparison.execution(TaskContext(Seq.empty, org.silkframework.runtime.plugin.PluginContext.empty)).index(entity, sourceOrTarget, limit = 0.0)
         LinkageRuleIndexComparison(id, LinkageRuleIndexInput(inputId, index.flatten))
     }
   }

@@ -17,10 +17,11 @@ package org.silkframework.rule.evaluation
 import org.silkframework.entity.Entity
 import org.silkframework.rule.input.{Input, PathInput, TransformInput}
 import org.silkframework.rule.similarity.{Aggregation, Comparison, SimilarityOperator}
-import org.silkframework.rule.{ComplexUriMapping, LinkageRule, TransformRule}
+import org.silkframework.rule.{ComplexUriMapping, LinkageRule, TransformRule, ValueTransformRuleExecution}
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.{DPair, Uri}
 
+import scala.collection.immutable.ArraySeq
 import scala.util.control.NonFatal
 
 object DetailedEvaluator {
@@ -70,7 +71,7 @@ object DetailedEvaluator {
   def apply(rules: Seq[TransformRule], entity: Entity): DetailedEntity = {
     val subjectRule = rules.find(_.target.isEmpty)
     val uris = subjectRule match {
-      case Some(rule) => rule(entity).values
+      case Some(rule) => rule.execution(TransformRule.defaultTaskContext).asInstanceOf[ValueTransformRuleExecution].apply(entity).values
       case None => Seq(entity.uri.toString)
     }
     val values = for(rule <- rules) yield apply(rule, entity)
@@ -115,13 +116,15 @@ object DetailedEvaluator {
       }
     }
 
-    val aggregatedValue = agg.aggregator(agg.operators, entities, threshold)
+    val operatorExecutions = agg.operators.map(_.execution(TransformRule.defaultTaskContext))
+    val aggregatedValue = agg.aggregator(operatorExecutions, entities, threshold)
     AggregatorConfidence(aggregatedValue.score, agg, operatorValues)
   }
 
   private def evaluateComparison(comparison: Comparison, entities: DPair[Entity], threshold: Double): ComparisonConfidence = {
+    val comparisonExecution = comparison.execution(TransformRule.defaultTaskContext)
     ComparisonConfidence(
-      score = comparison.apply(entities, threshold),
+      score = comparisonExecution(entities, threshold),
       comparison = comparison,
       sourceValue = evaluateInput(comparison.inputs.source, entities.source),
       targetValue = evaluateInput(comparison.inputs.target, entities.target)
@@ -132,12 +135,14 @@ object DetailedEvaluator {
     case ti: TransformInput =>
       val children = ti.inputs.map(i => evaluateInput(i, entity))
       try {
-        TransformedValue(ti, ti.executor(children.map(_.values)), children)
+        val transformerExecution = ti.transformer.execution(TransformRule.defaultTaskContext)
+        val transformed = transformerExecution(ArraySeq.unsafeWrapArray(children.map(_.values).toArray[Seq[String]]))
+        TransformedValue(ti, transformed, children)
       } catch {
         case NonFatal(ex) =>
           TransformedValue(ti, Seq.empty, children, Some(ex))
       }
 
-    case pi: PathInput => InputValue(pi, input(entity).values)
+    case pi: PathInput => InputValue(pi, pi.execution(TransformRule.defaultTaskContext)(entity).values)
   }
 }

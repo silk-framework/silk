@@ -388,9 +388,23 @@ object TransformSpec {
       }
     }
 
-    def withContext(taskContext: TaskContext): RuleSchemata = {
-      copy(transformRule = transformRule.withContext(taskContext))
+    /**
+     * Builds a [[RuleSchemataExecution]] for the given task context, contextualizing the
+     * underlying transform rule.
+     */
+    def execution(taskContext: TaskContext): RuleSchemataExecution = {
+      RuleSchemataExecution(transformRule.execution(taskContext), inputSchema, outputSchema)
     }
+  }
+
+  /**
+   * Runtime form of a [[RuleSchemata]] with the contained transform rule contextualized for
+   * a specific task context.
+   */
+  case class RuleSchemataExecution(transformRuleExecution: TransformRuleExecution,
+                                   inputSchema: EntitySchema,
+                                   outputSchema: EntitySchema) {
+    def transformRule: TransformRule = transformRuleExecution.operator
   }
 
   object RuleSchemata {

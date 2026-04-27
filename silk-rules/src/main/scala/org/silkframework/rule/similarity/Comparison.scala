@@ -16,7 +16,7 @@ package org.silkframework.rule.similarity
 
 import org.silkframework.entity.{Entity, Index}
 import org.silkframework.rule.{Operator, TaskContext}
-import org.silkframework.rule.input.Input
+import org.silkframework.rule.input.{Input, InputExecution}
 import org.silkframework.rule.similarity.Comparison.distanceToScore
 import org.silkframework.runtime.plugin.PluginBackwardCompatibility
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat, XmlSerialization}
@@ -39,15 +39,52 @@ case class Comparison(id: Identifier = Operator.generateId,
 
   require(weight > 0, "weight > 0")
 
-  private val sourceInput = inputs.source
-  private val targetInput = inputs.target
+  override def validate(): Seq[ValidationIssue] = {
+    for(message <- metric.validateThreshold(threshold).toSeq) yield {
+      ValidationWarning(message, Some(id), Some("Comparison"))
+    }
+  }
+
+  override def children: Seq[Input] = inputs.toSeq
+
+  override def withId(newId: Identifier): Operator = {
+    copy(id = newId)
+  }
+
+  override def withChildren(newChildren: Seq[Operator]): Comparison = {
+    copy(inputs = DPair.fromSeq(newChildren.collect{ case input: Input => input }))
+  }
+
+  override def execution(taskContext: TaskContext): SimilarityOperatorExecution = {
+    // Each input should receive only the task that it refers to (source or target).
+    // For non-linking contexts (e.g. detailed evaluation in the workbench) the task
+    // context may be empty; in that case the same context is propagated to both inputs.
+    taskContext.inputTasks match {
+      case Seq(sourceTask, targetTask) =>
+        new ComparisonExecution(
+          operator = this,
+          sourceInput = inputs.source.execution(taskContext.copy(inputTasks = Seq(sourceTask))),
+          targetInput = inputs.target.execution(taskContext.copy(inputTasks = Seq(targetTask))))
+      case Seq() =>
+        new ComparisonExecution(
+          operator = this,
+          sourceInput = inputs.source.execution(taskContext),
+          targetInput = inputs.target.execution(taskContext))
+      case _ =>
+        throw new ValidationException("Comparison operator expects exactly two inputs")
+    }
+  }
+}
+
+/**
+ * Runtime executor for a [[Comparison]] with both child input executors resolved.
+ */
+final class ComparisonExecution(override val operator: Comparison,
+                                sourceInput: InputExecution,
+                                targetInput: InputExecution) extends SimilarityOperatorExecution {
 
   /**
    * Computes the similarity between two entities.
-   *
-   * @param entities The entities to be compared.
-   * @param limit The confidence limit.
-   * @return The confidence as a value between -1.0 and 1.0.
    */
   override def apply(entities: DPair[Entity], limit: Double): Option[Double] = {
     val values1 =
@@ -68,53 +105,21 @@ case class Comparison(id: Identifier = Operator.generateId,
     if (values1.isEmpty || values2.isEmpty) {
       None
     } else {
-      val distance = metric(values1, values2, threshold * (1.0 - limit))
-      Some(distanceToScore(distance, threshold))
+      val distance = operator.metric(values1, values2, operator.threshold * (1.0 - limit))
+      Some(distanceToScore(distance, operator.threshold))
     }
   }
 
   /**
-    * Indexes an entity.
-    *
-    * @param entity         The entity to be indexed
-    * @param limit          The similarity threshold.
-    * @param sourceOrTarget If true the value comes from the source, else from the target.
-    * @return A set of (multidimensional) indexes. Entities within the threshold will always get the same index.
-    */
+   * Indexes an entity.
+   */
   override def index(entity: Entity, sourceOrTarget: Boolean, limit: Double): Index = {
-    val values = Try(inputs.select(sourceOrTarget)(entity).values).getOrElse(Seq.empty)
+    val input = if (sourceOrTarget) sourceInput else targetInput
+    val values = Try(input(entity).values).getOrElse(Seq.empty)
 
-    val distanceLimit = threshold * (1.0 - limit)
+    val distanceLimit = operator.threshold * (1.0 - limit)
 
-    metric.index(values, distanceLimit, sourceOrTarget)
-  }
-
-  override def validate(): Seq[ValidationIssue] = {
-    for(message <- metric.validateThreshold(threshold).toSeq) yield {
-      ValidationWarning(message, Some(id), Some("Comparison"))
-    }
-  }
-
-  override def children: Seq[Input] = inputs.toSeq
-
-  override def withId(newId: Identifier): Operator = {
-    copy(id = newId)
-  }
-
-  override def withChildren(newChildren: Seq[Operator]): Comparison = {
-    copy(inputs = DPair.fromSeq(newChildren.collect{ case input: Input => input }))
-  }
-
-  override def withContext(taskContext: TaskContext): Comparison = {
-    // Each input should receive only the task that it refers to (source or target)
-    taskContext.inputTasks match {
-      case Seq(sourceTask, targetTask) =>
-        val newSourceInput = inputs.source.withContext(taskContext.copy(inputTasks = Seq(sourceTask)))
-        val newTargetInput = inputs.target.withContext(taskContext.copy(inputTasks = Seq(targetTask)))
-        copy(inputs = DPair(newSourceInput, newTargetInput))
-      case _ =>
-        throw new ValidationException("Comparison operator expects exactly two inputs")
-    }
+    operator.metric.index(values, distanceLimit, sourceOrTarget)
   }
 }
 

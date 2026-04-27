@@ -15,8 +15,8 @@
 package org.silkframework.rule
 
 import org.silkframework.entity.{Entity, Index}
-import org.silkframework.rule.similarity.SimilarityOperator
-import org.silkframework.runtime.plugin.PluginObjectParameterNoSchema
+import org.silkframework.rule.similarity.{SimilarityOperator, SimilarityOperatorExecution}
+import org.silkframework.runtime.plugin.{PluginContext, PluginObjectParameterNoSchema}
 import org.silkframework.runtime.serialization._
 import org.silkframework.runtime.validation.ValidationIssue
 import org.silkframework.util.{DPair, Uri}
@@ -39,12 +39,28 @@ case class LinkageRule(operator: Option[SimilarityOperator] = None,
   // Make sure that all operators use unique identifiers
   operator.foreach(_.validateIds())
 
+  // Holds the resolved similarity operator execution after `withContext` has been called.
+  // Not part of the case class structure, so equality and pattern matching keep working
+  // on (operator, filter, linkType, ...).
+  @transient private var resolvedExecution: Option[SimilarityOperatorExecution] = _
+
   /**
-   * Generates a copy of this rule that has been configured with a given task context.
-   * This is relevant for operators whose results are based on the input task(s), i.e., the file hash transformer.
+   * Generates a copy of this rule contextualized for the given task context. The returned rule
+   * caches a [[SimilarityOperatorExecution]] for its operator that subsequent calls to
+   * [[apply]] and [[index]] will use.
    */
   def withContext(taskContext: TaskContext): LinkageRule = {
-    copy(operator = operator.map(_.withContext(taskContext)))
+    val contextualized = copy()
+    contextualized.resolvedExecution = operator.map(_.execution(taskContext))
+    contextualized
+  }
+
+  private def operatorExecution: Option[SimilarityOperatorExecution] = {
+    if (resolvedExecution != null) {
+      resolvedExecution
+    } else {
+      operator.map(_.execution(TaskContext(Seq.empty, PluginContext.empty)))
+    }
   }
 
   /**
@@ -52,12 +68,12 @@ case class LinkageRule(operator: Option[SimilarityOperator] = None,
    *
    * @param entities The entities to be compared.
    * @param limit If the confidence is below this limit, it will be capped to -1.0.
-    * @return The confidence as a value between -1.0 and 1.0.
+   * @return The confidence as a value between -1.0 and 1.0.
    *         -1.0 for definitive non-matches.
    *         +1.0 for definitive matches.
    */
   def apply(entities: DPair[Entity], limit: Double = 0.0): Double = {
-    operator match {
+    operatorExecution match {
       case Some(op) => op(entities, limit).getOrElse(-1.0)
       case None => -1.0
     }
@@ -67,11 +83,12 @@ case class LinkageRule(operator: Option[SimilarityOperator] = None,
    * Indexes an entity.
    *
    * @param entity The entity to be indexed
+   * @param sourceOrTarget If true, the index will be for the source entity. If false, the index will be for the target entity.
    * @param limit The confidence limit
     * @return A set of (multidimensional) indexes. Entities within the threshold will always get the same index.
    */
   def index(entity: Entity, sourceOrTarget: Boolean, limit: Double = 0.0): Index = {
-    operator match {
+    operatorExecution match {
       case Some(op) => op.index(entity, sourceOrTarget, limit)
       case None => Index.empty
     }

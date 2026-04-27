@@ -1,7 +1,7 @@
 package org.silkframework.rule.evaluation
 
 import org.silkframework.entity.{Entity, Index}
-import org.silkframework.rule.LinkageRule
+import org.silkframework.rule.{LinkageRule, TransformRule}
 import org.silkframework.rule.evaluation.DetailedIndex._
 import org.silkframework.rule.similarity.{Aggregation, Comparison, SimilarityOperator}
 
@@ -38,7 +38,8 @@ object DetailedIndexer {
   }
 
   def indexComparison(cmp: Comparison, entity: Entity, sourceOrTarget: Boolean, limit: Double): ComparisonIndex = {
-    val values = if(sourceOrTarget) cmp.inputs.source(entity) else cmp.inputs.target(entity)
+    val ctx = TransformRule.defaultTaskContext
+    val values = if(sourceOrTarget) cmp.inputs.source.execution(ctx)(entity) else cmp.inputs.target.execution(ctx)(entity)
     val distanceLimit = cmp.threshold * (1.0 - limit)
 
     ComparisonIndex(cmp.metric.index(values.values, distanceLimit, sourceOrTarget), values.values, cmp)

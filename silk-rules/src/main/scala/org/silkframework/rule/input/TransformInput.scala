@@ -37,42 +37,6 @@ case class TransformInput(id: Identifier = Operator.generateId,
                           transformer: Transformer,
                           inputs: IndexedSeq[Input] = IndexedSeq.empty) extends Input {
 
-  // Holds the executor produced by withContext. Not part of the case class structure so that
-  // pattern matches and equality on (id, transformer, inputs) keep working. For transformers
-  // that are also TransformerExecution (InlineTransformer), `executor` resolves to the
-  // transformer itself; for context-aware transformers, withContext must run first.
-  @transient private var resolvedExecutor: TransformerExecution = _
-
-  def executor: TransformerExecution = {
-    if (resolvedExecutor != null) resolvedExecutor
-    else TransformInput.defaultExecutor(transformer)
-  }
-
-  def apply(entity: Entity): Value = {
-    val inputValues = new Array[Seq[String]](inputs.length)
-    var errors = Seq[OperatorEvaluationError]()
-
-    // Evaluate input operators
-    for(i <- inputs.indices) {
-      val result = inputs(i)(entity)
-      inputValues(i) = result.values
-      for(error <- result.errors) {
-        errors +:= error
-      }
-    }
-
-    // Evaluate transform
-    try {
-      Value(executor(ArraySeq.unsafeWrapArray(inputValues)), errors)
-    } catch {
-      case ex: ExecutionException if ex.abortExecution =>
-        throw ex
-      case NonFatal(ex) =>
-        errors +:= OperatorEvaluationError(id, ex)
-        Value(Seq.empty, errors)
-    }
-  }
-
   override def children: Seq[Input] = inputs
 
   override def withId(newId: Identifier): Operator = copy(id = newId)
@@ -81,27 +45,49 @@ case class TransformInput(id: Identifier = Operator.generateId,
     copy(inputs = newChildren.map(_.asInstanceOf[Input]).toIndexedSeq)
   }
 
-  override def withContext(taskContext: TaskContext): Input = {
-    val newInput = copy(inputs = inputs.map(_.withContext(taskContext)))
-    newInput.resolvedExecutor = transformer.execution(taskContext)
-    newInput
+  override def execution(taskContext: TaskContext): InputExecution = {
+    new TransformInputExecution(
+      operator = this,
+      inputExecutions = inputs.map(_.execution(taskContext)),
+      transformerExecution = transformer.execution(taskContext))
+  }
+}
+
+/**
+ * Runtime executor of a [[TransformInput]] with all child input executors and the
+ * transformer execution resolved against a specific [[TaskContext]].
+ */
+final class TransformInputExecution(override val operator: TransformInput,
+                                    inputExecutions: IndexedSeq[InputExecution],
+                                    transformerExecution: TransformerExecution) extends InputExecution {
+
+  override def apply(entity: Entity): Value = {
+    val inputValues = new Array[Seq[String]](inputExecutions.length)
+    var errors = Seq[OperatorEvaluationError]()
+
+    // Evaluate input operators
+    for(i <- inputExecutions.indices) {
+      val result = inputExecutions(i)(entity)
+      inputValues(i) = result.values
+      for(error <- result.errors) {
+        errors +:= error
+      }
+    }
+
+    // Evaluate transform
+    try {
+      Value(transformerExecution(ArraySeq.unsafeWrapArray(inputValues)), errors)
+    } catch {
+      case ex: ExecutionException if ex.abortExecution =>
+        throw ex
+      case NonFatal(ex) =>
+        errors +:= OperatorEvaluationError(operator.id, ex)
+        Value(Seq.empty, errors)
+    }
   }
 }
 
 object TransformInput {
-
-  /**
-   * Builds the fallback executor used when no `providedExecutor` is supplied: the transformer
-   * itself if it is also a `TransformerExecution`, otherwise a stub that throws on apply.
-   */
-  private[input] def defaultExecutor(transformer: Transformer): TransformerExecution = transformer match {
-    case te: TransformerExecution => te
-    case _ => new TransformerExecution {
-      def apply(values: Seq[Seq[String]]): Seq[String] =
-        throw new IllegalStateException(
-          s"Transformer '${transformer.pluginSpec.id}' requires withContext to be called before it can be applied.")
-    }
-  }
 
   /**
    * XML serialization format.

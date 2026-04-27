@@ -18,8 +18,8 @@ package org.silkframework.rule.plugins.similarity
 import org.silkframework.config.Prefixes
 import org.silkframework.entity.{Entity, Index}
 import org.silkframework.rule.plugins.aggegrator.AverageAggregator
-import org.silkframework.rule.Operator
-import org.silkframework.rule.similarity.{Aggregation, SimilarityOperator}
+import org.silkframework.rule.{Operator, TaskContext, TransformRule}
+import org.silkframework.rule.similarity.{Aggregation, InlineSimilarityOperator, SimilarityOperator, SimilarityOperatorExecution}
 import org.silkframework.testutil.approximatelyEqualToOption
 import org.silkframework.util.{DPair, Identifier}
 
@@ -62,22 +62,22 @@ class AggregationTest extends AnyFlatSpec with Matchers {
   }
 
   private def eval(ops: Seq[SimilarityOperator]) = {
-    Aggregation(operators = ops, aggregator = aggregator).apply(null)
+    Aggregation(operators = ops, aggregator = aggregator).execution(TransformRule.defaultTaskContext).apply(null)
   }
 
   private def index(ops: Seq[SimilarityOperator]) = {
-    Aggregation(operators = ops, aggregator = aggregator).index(null, true, 0.0)
+    Aggregation(operators = ops, aggregator = aggregator).execution(TransformRule.defaultTaskContext).index(null, true, 0.0)
   }
 
   private def operator(_weight: Int = 1, _required: Boolean = false, value: Option[Double] = None, indices: Index = Index.default) = {
-    new SimilarityOperator {
+    new InlineSimilarityOperator {
       val id: Identifier = Identifier.random
       val weight: Int = _weight
       val indexing: Boolean = true
-      def apply(entities: DPair[Entity], limit: Double): Option[Double] = value
-      def index(entity: Entity, sourceOrTarget: Boolean, limit: Double): Index = indices
+      override def apply(entities: DPair[Entity], limit: Double): Option[Double] = value
+      override def index(entity: Entity, sourceOrTarget: Boolean, limit: Double): Index = indices
       def toXML(implicit prefixes: Prefixes): Node = null
-      def children = Seq.empty
+      def children: Seq[Operator] = Seq.empty
       override def withId(newId: Identifier): Operator = ???
       def withChildren(newChildren: Seq[Operator]): Operator = ???
     }
