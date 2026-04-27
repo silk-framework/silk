@@ -75,7 +75,7 @@ trait Operator {
  * [[org.silkframework.rule.similarity.SimilarityOperatorExecution]])
  * that declares the actual execution methods.
  */
-trait OperatorExecution {
+trait OperatorExecution extends Serializable {
   /** Backlink to the operator that produced this execution. */
   def operator: Operator
 }
