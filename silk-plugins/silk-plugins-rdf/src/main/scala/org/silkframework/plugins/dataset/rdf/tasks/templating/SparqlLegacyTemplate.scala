@@ -5,7 +5,7 @@ import org.silkframework.entity.paths.{TypedPath, UntypedPath}
 import org.silkframework.entity.{Entity, EntitySchema, ValueType}
 import org.silkframework.execution.local.EmptyEntityTable
 import org.silkframework.plugins.dataset.rdf.tasks.templating.SparqlLegacyTemplate._
-import org.silkframework.runtime.templating.{CompiledTemplate, TemplateMethodUsage, TemplateVariableName, TemplateVariableValue}
+import org.silkframework.runtime.templating.{CompiledTemplate, TemplateMethodUsage, TemplateVariableName, TemplateVariableValue, TemplateVariablesReader}
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.Uri
 
@@ -48,7 +48,8 @@ class SparqlLegacyTemplate(template: CompiledTemplate) extends SparqlTemplate {
     writer.toString
   }
 
-  override def generateWithDefaults(): String = {
+  /** Renders the template with example values for every variable. Used to derive schemas and validate queries. */
+  private def generateWithDefaults(): String = {
     val genericUri = "urn:generic:1"
     val entityVariables = entityVariableNames
     val assignments = entityVariables.map(_ -> genericUri).toMap
@@ -63,10 +64,10 @@ class SparqlLegacyTemplate(template: CompiledTemplate) extends SparqlTemplate {
     }
   }
 
-  override def validateUpdateQuery(batchSize: Int): Unit = {
+  override def validate(variables: TemplateVariablesReader, batchSize: Option[Int]): Unit = {
     if (!usesRawUnsafe) {
       // Skipped for rawUnsafe templates: they can generate arbitrary SPARQL syntax so example-query validation is unreliable.
-      SparqlTemplate.validateParseability(generateWithDefaults(), batchSize)
+      SparqlTemplate.validateParseability(generateWithDefaults(), batchSize.getOrElse(1))
     }
   }
 

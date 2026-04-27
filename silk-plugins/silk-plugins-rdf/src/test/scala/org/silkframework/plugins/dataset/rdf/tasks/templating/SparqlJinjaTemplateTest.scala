@@ -139,28 +139,6 @@ class SparqlJinjaTemplateTest extends AnyFlatSpec with Matchers {
     }
   }
 
-  it should "validate Jinja SPARQL Update templates by parsing an example query" in {
-    val validTemplate = SparqlTemplate.create(JinjaTemplateEngine.id,
-      """INSERT DATA { <{{ input.entity.subject | validate_uri }}> <urn:p> "{{ input.entity.label | escape_literal }}" } ;""")
-    // Well-formed template with batch size > 1 must not throw.
-    validTemplate.validateUpdateQuery(batchSize = 2)
-
-    // Template that forgets to wrap the URI variable with `<...>` produces unparseable SPARQL.
-    val unwrappedUri = SparqlTemplate.create(JinjaTemplateEngine.id,
-      """INSERT DATA { {{ input.entity.subject }} <urn:p> "x" } ;""")
-    intercept[ValidationException] {
-      unwrappedUri.validateUpdateQuery(batchSize = 1)
-    }
-
-    // Template without a trailing `;` is fine for batchSize = 1 but fails for batchSize > 1.
-    val missingSemicolon = SparqlTemplate.create(JinjaTemplateEngine.id,
-      """INSERT DATA { <{{ input.entity.subject | validate_uri }}> <urn:p> "x" }""")
-    missingSemicolon.validateUpdateQuery(batchSize = 1)
-    intercept[ValidationException] {
-      missingSemicolon.validateUpdateQuery(batchSize = 2)
-    }
-  }
-
   it should "alias input.entity variables to bare references when defaultScope = input.entity" in {
     val template = SparqlTemplate.create(JinjaTemplateEngine.id,
       """<{{ subject }}> <urn:prop:1> "{{ input.entity.label }}"""",

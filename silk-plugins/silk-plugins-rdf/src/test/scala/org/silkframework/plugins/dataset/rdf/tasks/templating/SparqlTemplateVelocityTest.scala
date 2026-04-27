@@ -7,6 +7,7 @@ import org.silkframework.plugins.templating.velocity.VelocityTemplateEngine
 import org.silkframework.runtime.validation.ValidationException
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.must.Matchers
+import org.silkframework.runtime.templating.{InMemoryTemplateVariablesReader, TemplateVariables}
 import org.silkframework.runtime.templating.exceptions.TemplateEvaluationException
 
 class SparqlTemplateVelocityTest extends AnyFlatSpec with Matchers {
@@ -126,6 +127,6 @@ class SparqlTemplateVelocityTest extends AnyFlatSpec with Matchers {
   }
 
   def validate(template: String, batchSize: Int = 2): Unit = {
-    new SparqlLegacyTemplate(VelocityTemplateEngine().compile(template)).validateUpdateQuery(batchSize)
+    new SparqlLegacyTemplate(VelocityTemplateEngine().compile(template)).validate(InMemoryTemplateVariablesReader(TemplateVariables.empty, Set.empty), Some(batchSize))
   }
 }

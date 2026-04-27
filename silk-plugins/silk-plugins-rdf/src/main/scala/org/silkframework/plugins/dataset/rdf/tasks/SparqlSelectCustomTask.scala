@@ -85,6 +85,9 @@ case class SparqlSelectCustomTask(
   private val defaultScopePath: Seq[String] = defaultScope.split('.').map(_.trim).filter(_.nonEmpty).toSeq
 
   val queryTemplate: SparqlTemplate = SparqlTemplate.create(templatingMode, selectQuery.str, defaultScopePath)
+  for(variables <- selectQuery.variables) {
+    queryTemplate.validate(variables, None)
+  }
 
   def isStaticTemplate: Boolean = queryTemplate.isStaticTemplate
 

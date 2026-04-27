@@ -9,6 +9,7 @@ import org.silkframework.runtime.validation.ValidationException
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.must.Matchers
 import org.silkframework.config.{FixedNumberOfInputs, FixedSchemaPort}
+import org.silkframework.runtime.templating.{InMemoryTemplateVariablesReader, TemplateVariables}
 
 class SparqlUpdateTemplatingEngineSimpleTest extends AnyFlatSpec with Matchers {
   behavior of "SPARQL Update Simple Templating Engine"
@@ -93,7 +94,7 @@ class SparqlUpdateTemplatingEngineSimpleTest extends AnyFlatSpec with Matchers {
 
   def parse(sparqlUpdateTemplate: String, batchSize: Int = 2): Seq[SparqlUpdateTemplatePart] = {
     val compiled = SparqlSimpleTemplateEngine().compile(sparqlUpdateTemplate)
-    new SparqlLegacyTemplate(compiled).validateUpdateQuery(batchSize)
+    new SparqlLegacyTemplate(compiled).validate(InMemoryTemplateVariablesReader(TemplateVariables.empty, Set.empty), Some(batchSize))
     compiled.sparqlUpdateTemplateParts
   }
 }

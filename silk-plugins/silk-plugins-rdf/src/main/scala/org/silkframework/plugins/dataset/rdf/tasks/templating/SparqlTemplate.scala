@@ -4,7 +4,7 @@ import org.apache.jena.update.UpdateFactory
 import org.silkframework.config.{Prefixes, Task, TaskSpec}
 import org.silkframework.entity.{Entity, EntitySchema}
 import org.silkframework.runtime.plugin.PluginContext
-import org.silkframework.runtime.templating.{TemplateEngines, TemplateVariableValue}
+import org.silkframework.runtime.templating.{TemplateEngines, TemplateVariableValue, TemplateVariablesReader}
 import org.silkframework.runtime.validation.ValidationException
 
 import scala.util.Try
@@ -34,11 +34,8 @@ trait SparqlTemplate {
                taskProperties: TaskProperties,
                templateVariables: Seq[TemplateVariableValue] = Seq.empty): Iterable[String]
 
-  /** Renders the template with example values for every variable. Used to derive schemas and validate queries. */
-  def generateWithDefaults(): String
-
   /** Validates the template and, if batchSize > 1, that batching produces valid SPARQL. */
-  def validateUpdateQuery(batchSize: Int): Unit
+  def validate(variables: TemplateVariablesReader, batchSize: Option[Int]): Unit
 
   /** Entity schema that the template expects on its input port. */
   def inputSchema: EntitySchema
@@ -72,8 +69,6 @@ object SparqlTemplate {
    * Verifies that a rendered example query parses as SPARQL Update, and — when batchSize > 1 — that two
    * consecutive copies also parse (so batching in [[org.silkframework.plugins.dataset.rdf.executors.BatchSparqlUpdateEmitter]]
    * produces valid queries).
-   *
-   * Shared between [[SparqlJinjaTemplate]] and [[SparqlLegacyTemplate]].
    */
   private[templating] def validateParseability(query: String, batchSize: Int): Unit = {
     Try(UpdateFactory.create(query)).failed.toOption.foreach { parseError =>

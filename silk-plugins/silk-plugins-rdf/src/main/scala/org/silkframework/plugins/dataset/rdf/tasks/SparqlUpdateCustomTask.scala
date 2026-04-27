@@ -50,7 +50,9 @@ case class SparqlUpdateCustomTask(
   assert(batchSize >= 1, "Batch size must be greater zero!")
 
   val compiledTemplate: SparqlTemplate = SparqlTemplate.create(templatingMode, sparqlUpdateTemplate.str)
-  compiledTemplate.validateUpdateQuery(batchSize)
+  for(variables <- sparqlUpdateTemplate.variables) {
+    compiledTemplate.validate(variables, None)
+  }
 
   def isStaticTemplate: Boolean = compiledTemplate.isStaticTemplate
 

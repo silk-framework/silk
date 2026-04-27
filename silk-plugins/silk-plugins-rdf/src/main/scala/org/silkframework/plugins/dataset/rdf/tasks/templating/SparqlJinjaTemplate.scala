@@ -3,7 +3,7 @@ package org.silkframework.plugins.dataset.rdf.tasks.templating
 import org.silkframework.entity.paths.{TypedPath, UntypedPath}
 import org.silkframework.entity.{Entity, EntitySchema, ValueType}
 import org.silkframework.execution.local.EmptyEntityTable
-import org.silkframework.runtime.templating.{CompiledTemplate, TemplateEngines, TemplateVariableConversions, TemplateVariableName, TemplateVariableValue}
+import org.silkframework.runtime.templating.{CompiledTemplate, TemplateEngines, TemplateVariableConversions, TemplateVariableName, TemplateVariableValue, TemplateVariablesReader}
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.Uri
 
@@ -45,24 +45,8 @@ class SparqlJinjaTemplate(rawTemplate: String, defaultScope: Seq[String] = Seq.e
     Seq(writer.toString)
   }
 
-  override def generateWithDefaults(): String = {
-    // Seed every referenced variable with a URI-like default so that QueryFactory can parse the result.
-    val genericUri = "urn:generic:1"
-    val defaults = referencedVariables.distinct.map(v => new TemplateVariableValue(v.name, v.scope, Seq(genericUri)))
-    Try {
-      val writer = new StringWriter()
-      template.evaluate(defaults, writer)
-      writer.toString
-    } match {
-      case Success(query) => query
-      case Failure(exception) =>
-        throw new ValidationException(
-          "The SPARQL Update template could not be rendered with example values. Error message: " + exception.getMessage, exception)
-    }
-  }
-
-  override def validateUpdateQuery(batchSize: Int): Unit = {
-    SparqlTemplate.validateParseability(generateWithDefaults(), batchSize)
+  override def validate(variables: TemplateVariablesReader, batchSize: Option[Int]): Unit = {
+    // TODO
   }
 
   override def inputSchema: EntitySchema = {

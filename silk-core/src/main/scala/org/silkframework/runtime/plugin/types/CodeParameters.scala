@@ -1,7 +1,9 @@
 package org.silkframework.runtime.plugin.types
 
-import scala.language.implicitConversions
+import org.silkframework.runtime.templating.TemplateVariablesReader
+
 import scala.collection.immutable.ArraySeq
+import scala.language.implicitConversions
 
 sealed trait CodeParameter {
   def str: String
@@ -23,7 +25,13 @@ object Jinja2CodeParameter {
 
 case class JsonCodeParameter(var str: String) extends CodeParameter
 
-case class SparqlCodeParameter(var str: String) extends CodeParameter
+/**
+ * A SPARQL code parameter that might contain Jinja template variables.
+ *
+ * @param str The SPARQL query
+ * @param variables That variables that are available at creation time
+ */
+case class SparqlCodeParameter(var str: String, val variables: Option[TemplateVariablesReader] = None) extends CodeParameter
 
 object SparqlCodeParameter {
   implicit def str2parameter(str: String): SparqlCodeParameter = SparqlCodeParameter(str)
