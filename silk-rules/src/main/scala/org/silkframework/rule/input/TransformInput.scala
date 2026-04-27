@@ -33,7 +33,20 @@ import scala.collection.immutable.ArraySeq
   * @param transformer The transformer used to transform values.
   * @param inputs The children operators from which input values are read.
  */
-case class TransformInput(id: Identifier = Operator.generateId, transformer: Transformer, inputs: IndexedSeq[Input] = IndexedSeq.empty) extends Input {
+case class TransformInput(id: Identifier = Operator.generateId,
+                          transformer: Transformer,
+                          inputs: IndexedSeq[Input] = IndexedSeq.empty) extends Input {
+
+  // Holds the executor produced by withContext. Not part of the case class structure so that
+  // pattern matches and equality on (id, transformer, inputs) keep working. For transformers
+  // that are also TransformerExecution (InlineTransformer), `executor` resolves to the
+  // transformer itself; for context-aware transformers, withContext must run first.
+  @transient private var resolvedExecutor: TransformerExecution = _
+
+  def executor: TransformerExecution = {
+    if (resolvedExecutor != null) resolvedExecutor
+    else TransformInput.defaultExecutor(transformer)
+  }
 
   def apply(entity: Entity): Value = {
     val inputValues = new Array[Seq[String]](inputs.length)
@@ -50,7 +63,7 @@ case class TransformInput(id: Identifier = Operator.generateId, transformer: Tra
 
     // Evaluate transform
     try {
-      Value(transformer(ArraySeq.unsafeWrapArray(inputValues)), errors)
+      Value(executor(ArraySeq.unsafeWrapArray(inputValues)), errors)
     } catch {
       case ex: ExecutionException if ex.abortExecution =>
         throw ex
@@ -69,11 +82,26 @@ case class TransformInput(id: Identifier = Operator.generateId, transformer: Tra
   }
 
   override def withContext(taskContext: TaskContext): Input = {
-    copy(transformer = transformer.withContext(taskContext), inputs = inputs.map(_.withContext(taskContext)))
+    val newInput = copy(inputs = inputs.map(_.withContext(taskContext)))
+    newInput.resolvedExecutor = transformer.execution(taskContext)
+    newInput
   }
 }
 
 object TransformInput {
+
+  /**
+   * Builds the fallback executor used when no `providedExecutor` is supplied: the transformer
+   * itself if it is also a `TransformerExecution`, otherwise a stub that throws on apply.
+   */
+  private[input] def defaultExecutor(transformer: Transformer): TransformerExecution = transformer match {
+    case te: TransformerExecution => te
+    case _ => new TransformerExecution {
+      def apply(values: Seq[Seq[String]]): Seq[String] =
+        throw new IllegalStateException(
+          s"Transformer '${transformer.pluginSpec.id}' requires withContext to be called before it can be applied.")
+    }
+  }
 
   /**
    * XML serialization format.

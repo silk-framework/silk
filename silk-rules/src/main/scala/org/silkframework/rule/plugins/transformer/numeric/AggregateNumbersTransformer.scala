@@ -15,7 +15,7 @@
 package org.silkframework.rule.plugins.transformer.numeric
 
 import org.silkframework.rule.annotations.{TransformExample, TransformExamples}
-import org.silkframework.rule.input.Transformer
+import org.silkframework.rule.input.InlineTransformer
 import org.silkframework.runtime.plugin.annotations.{Param, Plugin, PluginReference}
 import org.silkframework.util.StringUtils.DoubleLiteral
 
@@ -126,7 +126,7 @@ import org.silkframework.util.StringUtils.DoubleLiteral
 case class AggregateNumbersTransformer(
   @Param("The aggregation operation to be applied to all values. One of `+`, `*`, `min`, `max`, `average`.")
   operator: String
-) extends Transformer {
+) extends InlineTransformer {
 
   require(Set("+", "*", "min", "max", "average") contains operator, "Operator must be one of '+', '*', 'min', 'max', 'average'")
 

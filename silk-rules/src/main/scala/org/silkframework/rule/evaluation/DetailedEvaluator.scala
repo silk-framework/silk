@@ -132,7 +132,7 @@ object DetailedEvaluator {
     case ti: TransformInput =>
       val children = ti.inputs.map(i => evaluateInput(i, entity))
       try {
-        TransformedValue(ti, ti.transformer(children.map(_.values)), children)
+        TransformedValue(ti, ti.executor(children.map(_.values)), children)
       } catch {
         case NonFatal(ex) =>
           TransformedValue(ti, Seq.empty, children, Some(ex))

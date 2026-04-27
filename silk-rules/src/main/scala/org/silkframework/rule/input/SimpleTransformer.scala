@@ -19,7 +19,7 @@ import scala.collection.immutable.ArraySeq
 /**
  * Simple transformer which transforms all values of all inputs.
  */
-abstract class SimpleTransformer extends Transformer {
+abstract class SimpleTransformer extends InlineTransformer {
 
   override final def apply(values: Seq[Seq[String]]): Seq[String] = {
     var numberOfValues = 0

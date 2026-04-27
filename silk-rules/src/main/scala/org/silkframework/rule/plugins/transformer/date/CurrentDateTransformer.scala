@@ -4,7 +4,7 @@ import java.util.GregorianCalendar
 
 import javax.xml.datatype.DatatypeFactory
 import org.silkframework.rule.plugins.transformer.date.CurrentDateTransformer._
-import org.silkframework.rule.input.Transformer
+import org.silkframework.rule.input.InlineTransformer
 import org.silkframework.runtime.plugin.annotations.{Plugin, PluginReference}
 
 @Plugin(
@@ -19,7 +19,7 @@ import org.silkframework.runtime.plugin.annotations.{Plugin, PluginReference}
     )
   )
 )
-case class CurrentDateTransformer() extends Transformer {
+case class CurrentDateTransformer() extends InlineTransformer {
 
   override def apply(values: Seq[Seq[String]]): Seq[String] = {
     val currentDate = datatypeFactory.newXMLGregorianCalendar(new GregorianCalendar).toXMLFormat

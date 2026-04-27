@@ -3,7 +3,7 @@ package org.silkframework.rule.plugins.transformer.value
 import java.nio.charset.Charset
 import java.util.UUID
 
-import org.silkframework.rule.input.Transformer
+import org.silkframework.rule.input.InlineTransformer
 import org.silkframework.runtime.plugin.annotations.Plugin
 import GenerateUUID._
 import org.silkframework.rule.annotations.{TransformExample, TransformExamples}
@@ -29,7 +29,7 @@ Each input value will generate a separate UUID. For building a UUID from multipl
     output = Array("690802dd-a317-335f-807c-e4e1e32b7b5b", "925cbd7f-377b-3fbd-8f4c-ca41529b74ad")
   )
 ))
-case class GenerateUUID() extends Transformer {
+case class GenerateUUID() extends InlineTransformer {
 
   override def apply(values: Seq[Seq[String]]): Seq[String] = {
     if(values.isEmpty) {

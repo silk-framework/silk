@@ -11,7 +11,7 @@ import org.silkframework.entity.{Entity, EntitySchema}
 import org.silkframework.execution.local.GenericEntityTable
 import org.silkframework.plugins.dataset.InternalDataset
 import org.silkframework.rule._
-import org.silkframework.rule.input.{PathInput, TransformInput, Transformer}
+import org.silkframework.rule.input.{InlineTransformer, PathInput, TransformInput, Transformer}
 import org.silkframework.runtime.activity.{ActivityContext, StatusHolder, UserContext, ValueHolder}
 import org.silkframework.runtime.iterator.CloseableIterator
 import org.silkframework.runtime.plugin.PluginContext
@@ -53,7 +53,7 @@ class ExecuteTransformTest extends AnyFlatSpec with Matchers with MockitoSugar {
   }
 
   private def transformerWithExceptions(): Transformer = {
-    new Transformer {
+    new InlineTransformer {
       override def apply(values: Seq[Seq[String]]): Seq[String] = {
         values.flatten map { v =>
           if(v == "invalid") {

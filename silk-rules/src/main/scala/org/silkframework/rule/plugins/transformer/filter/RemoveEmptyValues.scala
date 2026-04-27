@@ -15,7 +15,7 @@
 package org.silkframework.rule.plugins.transformer.filter
 
 import org.silkframework.rule.annotations.{TransformExample, TransformExamples}
-import org.silkframework.rule.input.Transformer
+import org.silkframework.rule.input.InlineTransformer
 import org.silkframework.rule.plugins.transformer.value.EmptyValueTransformer
 import org.silkframework.runtime.plugin.annotations.{Plugin, PluginReference}
 
@@ -45,7 +45,7 @@ import org.silkframework.runtime.plugin.annotations.{Plugin, PluginReference}
     output = Array()
   )
 ))
-case class RemoveEmptyValues() extends Transformer {
+case class RemoveEmptyValues() extends InlineTransformer {
   override def apply(values: Seq[Seq[String]]): Seq[String] = {
     values.head.filter(!_.isEmpty)
   }

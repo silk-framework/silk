@@ -28,7 +28,7 @@ class InputFileAttributesTransformerTest extends AnyFlatSpec with Matchers with 
 
     def retrieve(attribute: FileAttributeEnum): String = {
       val taskContext = TaskContext(Seq(dataset), PluginContext(Prefixes.empty, resources, UserContext.Empty))
-      val transformer = InputFileAttributesTransformer(attribute).withContext(taskContext)
+      val transformer = InputFileAttributesTransformer(attribute).execution(taskContext)
       transformer(Seq.empty).head
     }
 

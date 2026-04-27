@@ -10,7 +10,7 @@ import org.scalatest.time.Span
 import org.silkframework.dataset.DatasetSpec
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.plugins.dataset.json.{JsonDataset, JsonSink}
-import org.silkframework.rule.input.{TransformInput, Transformer}
+import org.silkframework.rule.input.{InlineTransformer, TransformInput}
 import org.silkframework.rule._
 import org.silkframework.runtime.resource.Resource
 import org.silkframework.util.ConfigTestTrait
@@ -75,7 +75,7 @@ class CacheUpdaterIntegrationTest() extends AnyFlatSpec with IntegrationTestTrai
 /**
  * Counts each update of the provided file resource.
  */
-case class CountingTransformer(file: Resource) extends Transformer {
+case class CountingTransformer(file: Resource) extends InlineTransformer {
 
   val updateCounter = new AtomicInteger()
 

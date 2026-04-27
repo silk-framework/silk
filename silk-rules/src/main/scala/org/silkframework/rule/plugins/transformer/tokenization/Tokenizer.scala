@@ -15,7 +15,7 @@
 package org.silkframework.rule.plugins.transformer.tokenization
 
 import org.silkframework.rule.annotations.{TransformExample, TransformExamples}
-import org.silkframework.rule.input.Transformer
+import org.silkframework.rule.input.InlineTransformer
 import org.silkframework.runtime.plugin.PluginCategories
 import org.silkframework.runtime.plugin.annotations.{Param, Plugin, PluginReference}
 
@@ -46,7 +46,7 @@ import org.silkframework.runtime.plugin.annotations.{Param, Plugin, PluginRefere
 ))
 case class Tokenizer(
   @Param("The regular expression used to split values.")
-  regex: String = "\\s") extends Transformer {
+  regex: String = "\\s") extends InlineTransformer {
 
   private[this] val compiledRegex = regex.r
 
