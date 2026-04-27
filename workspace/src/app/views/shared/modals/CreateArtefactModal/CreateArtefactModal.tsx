@@ -978,7 +978,10 @@ export function CreateArtefactModal() {
                         ]
                         : undefined
                 }
-                onDismiss={() => setTaskFormGeneralWarning(undefined)}
+                onDismiss={() => {
+                    taskFormGeneralWarning.onDismiss?.();
+                    setTaskFormGeneralWarning(undefined);
+                }}
             />,
         );
     }

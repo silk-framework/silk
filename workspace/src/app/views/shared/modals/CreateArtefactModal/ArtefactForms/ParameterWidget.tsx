@@ -304,6 +304,7 @@ export const ParameterWidget = (props: IProps) => {
                                 projectId={projectId}
                                 pluginId={pluginId}
                                 autoCompletion={autoCompletion}
+                                intent={errors ? "danger" : dependencyReviewHighlighted ? "warning" : undefined}
                                 id={formParamId}
                                 initialValue={initialValue?.value ?? initialValue}
                                 onChange={(value) => (onChange ? onChange(value) : changeHandlers[formParamId](value))}
@@ -330,7 +331,7 @@ export const ParameterWidget = (props: IProps) => {
                                         : defaultValueAsJs(propertyDetails, true))
                                 }
                                 autoCompletion={autoCompletion}
-                                intent={errors ? Intent.DANGER : Intent.NONE}
+                                intent={errors ? Intent.DANGER : dependencyReviewHighlighted ? Intent.WARNING : undefined}
                                 formParamId={formParamId}
                                 dependentValue={dependentValue}
                                 defaultValue={parameterCallbacks.defaultValue}
@@ -347,7 +348,7 @@ export const ParameterWidget = (props: IProps) => {
                             <InputMapper
                                 projectId={projectId}
                                 parameter={{ paramId: formParamId, param: propertyDetails }}
-                                intent={errors ? Intent.DANGER : Intent.NONE}
+                                intent={errors ? Intent.DANGER : dependencyReviewHighlighted ? Intent.WARNING : undefined}
                                 onChange={onChange ?? changeHandlers[formParamId]}
                                 initialParameterValue={initialParameterValue}
                                 required={required}

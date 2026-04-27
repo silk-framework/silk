@@ -71,6 +71,7 @@ export interface IProps {
 export interface TaskFormReviewWarning {
     message: React.JSX.Element | string;
     onClearHighlightedValues?: () => void;
+    onDismiss?: () => void;
 }
 
 export interface UpdateTaskProps {
@@ -268,26 +269,9 @@ export function TaskForm({
         parameterElement?.scrollIntoView({ behavior: "smooth", block: "center" });
     }, []);
 
-    useEffect(() => {
-        staleDependentParameterIdsRef.current = staleDependentParameterIds;
-        if (staleDependentParameterIds.length) {
-            const parameterLabelsToReview = staleDependentParameterIds.map(
-                (paramId) => parameterLabels.current.get(paramId) ?? paramId,
-            );
-            showWarningMessage({
-                message: t(
-                    "form.taskForm.dependentValuesNeedReview",
-                    {
-                        count: parameterLabelsToReview.length,
-                        parameters: parameterLabelsToReview.join(", ")
-                    },
-                ),
-                onClearHighlightedValues: () => void clearHighlightedDependentParameters(),
-            });
-        } else {
-            showWarningMessage(undefined);
-        }
-    }, [staleDependentParameterIds, showWarningMessage, t]);
+    const dismissHighlightedDependentParameters = React.useCallback(() => {
+        setStaleDependentParameterIds([]);
+    }, []);
 
     /** Initialize: register parameters, set default/existing values etc. */
     useEffect(() => {
@@ -433,8 +417,40 @@ export function TaskForm({
             propagateExternallyChangedParameterValue(paramId, "");
         });
         await Promise.all(highlightedParameterIds.map((paramId) => triggerValidation(paramId)));
-        setStaleDependentParameterIds([]);
-    }, [detectChange, getValues, propagateExternallyChangedParameterValue, setValue, triggerValidation]);
+        dismissHighlightedDependentParameters();
+    }, [
+        detectChange,
+        dismissHighlightedDependentParameters,
+        getValues,
+        propagateExternallyChangedParameterValue,
+        setValue,
+        triggerValidation,
+    ]);
+
+    useEffect(() => {
+        staleDependentParameterIdsRef.current = staleDependentParameterIds;
+        if (staleDependentParameterIds.length) {
+            const parameterLabelsToReview = staleDependentParameterIds.map(
+                (paramId) => parameterLabels.current.get(paramId) ?? paramId,
+            );
+            showWarningMessage({
+                message: t("form.taskForm.dependentValuesNeedReview", {
+                    count: parameterLabelsToReview.length,
+                    parameters: parameterLabelsToReview.join(", "),
+                }),
+                onDismiss: dismissHighlightedDependentParameters,
+                onClearHighlightedValues: () => void clearHighlightedDependentParameters(),
+            });
+        } else {
+            showWarningMessage(undefined);
+        }
+    }, [
+        clearHighlightedDependentParameters,
+        dismissHighlightedDependentParameters,
+        staleDependentParameterIds,
+        showWarningMessage,
+        t,
+    ]);
 
     /** Change handler for a specific parameter. */
     const handleChange = useCallback(
