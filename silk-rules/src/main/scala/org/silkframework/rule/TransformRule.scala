@@ -143,6 +143,20 @@ sealed trait TransformRuleExecution extends OperatorExecution {
 
   /** Resolved executions of the rule's direct child rules. Empty for value-producing rules. */
   def childExecutions: Seq[TransformRuleExecution]
+
+  /** The contextualized input that produces this rule's values for an entity. */
+  def inputExecution: InputExecution
+
+  /**
+   * Generates the transformed values.
+   *
+   * @throws ValidationException If a value failed to be transformed or a generated value doesn't match the target type.
+   */
+  def apply(entity: Entity): Value = {
+    val values = inputExecution(entity)
+    operator.target.foreach(_.validate(values.values))
+    values
+  }
 }
 
 /**
@@ -160,7 +174,7 @@ sealed trait ContainerTransformRule extends TransformRule {
   }
 
   override def execution(taskContext: TaskContext): ContainerTransformRuleExecution = {
-    new ContainerTransformRuleExecution(this, rules.map(_.execution(taskContext)))
+    new ContainerTransformRuleExecution(this, rules.map(_.execution(taskContext)), operator.execution(taskContext))
   }
 }
 
@@ -169,7 +183,8 @@ sealed trait ContainerTransformRule extends TransformRule {
  * child rule.
  */
 class ContainerTransformRuleExecution(override val operator: ContainerTransformRule,
-                                      override val childExecutions: Seq[TransformRuleExecution]) extends TransformRuleExecution
+                                      override val childExecutions: Seq[TransformRuleExecution],
+                                      override val inputExecution: InputExecution) extends TransformRuleExecution
 
 /**
   * Base trait for all rule that generate a value and do not have any child rules.
@@ -203,21 +218,10 @@ sealed trait ValueTransformRule extends TransformRule {
  * [[InputExecution]] used to evaluate the rule on an entity.
  */
 class ValueTransformRuleExecution(override val operator: ValueTransformRule,
-                                  val inputExecution: InputExecution) extends TransformRuleExecution {
+                                  override val inputExecution: InputExecution) extends TransformRuleExecution {
 
   /** Value rules have no child rules. */
   override def childExecutions: Seq[TransformRuleExecution] = Seq.empty
-
-  /**
-   * Generates the transformed values.
-   *
-   * @throws ValidationException If a value failed to be transformed or a generated value doesn't match the target type.
-   */
-  def apply(entity: Entity): Value = {
-    val values = inputExecution(entity)
-    operator.target.foreach(_.validate(values.values))
-    values
-  }
 }
 
 /**

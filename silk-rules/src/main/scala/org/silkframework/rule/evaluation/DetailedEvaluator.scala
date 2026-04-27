@@ -17,7 +17,7 @@ package org.silkframework.rule.evaluation
 import org.silkframework.entity.Entity
 import org.silkframework.rule.input.{Input, PathInput, TransformInput}
 import org.silkframework.rule.similarity.{Aggregation, Comparison, SimilarityOperator}
-import org.silkframework.rule.{ComplexUriMapping, LinkageRule, TransformRule, ValueTransformRuleExecution}
+import org.silkframework.rule.{ComplexUriMapping, LinkageRule, TransformRule}
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.{DPair, Uri}
 
@@ -71,7 +71,7 @@ object DetailedEvaluator {
   def apply(rules: Seq[TransformRule], entity: Entity): DetailedEntity = {
     val subjectRule = rules.find(_.target.isEmpty)
     val uris = subjectRule match {
-      case Some(rule) => rule.execution(TransformRule.defaultTaskContext).asInstanceOf[ValueTransformRuleExecution].apply(entity).values
+      case Some(rule) => rule.execution(TransformRule.defaultTaskContext).apply(entity).values
       case None => Seq(entity.uri.toString)
     }
     val values = for(rule <- rules) yield apply(rule, entity)

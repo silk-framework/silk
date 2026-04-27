@@ -42,7 +42,7 @@ class LocalLinkSpecExecutor extends Executor[LinkSpec, LocalExecution] {
       executionTimeout = Some(task.matchingExecutionTimeout * 1000L).filter(_ > 0)
     )
     val taskContext = TaskContext(inputs.map(_.task), pluginContext)
-    val activity = new GenerateLinks(task, sources, None, linkConfig, Some(task.data.rule.withContext(taskContext)))
+    val activity = new GenerateLinks(task, sources, None, linkConfig, Some(task.data.rule.execution(taskContext)))
     var linking = context.child(activity, progressContribution = 1.0).startBlockingAndGetValue()
     if(adaptedLinkLimit < task.linkLimit) {
       linking = linking.copy(matcherWarnings = linking.matcherWarnings ++ Seq(

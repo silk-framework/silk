@@ -16,7 +16,7 @@ package org.silkframework.rule
 
 import org.silkframework.entity.{Entity, Index}
 import org.silkframework.rule.similarity.{SimilarityOperator, SimilarityOperatorExecution}
-import org.silkframework.runtime.plugin.{PluginContext, PluginObjectParameterNoSchema}
+import org.silkframework.runtime.plugin.PluginObjectParameterNoSchema
 import org.silkframework.runtime.serialization._
 import org.silkframework.runtime.validation.ValidationIssue
 import org.silkframework.util.{DPair, Uri}
@@ -39,29 +39,29 @@ case class LinkageRule(operator: Option[SimilarityOperator] = None,
   // Make sure that all operators use unique identifiers
   operator.foreach(_.validateIds())
 
-  // Holds the resolved similarity operator execution after `withContext` has been called.
-  // Not part of the case class structure, so equality and pattern matching keep working
-  // on (operator, filter, linkType, ...).
-  @transient private var resolvedExecution: Option[SimilarityOperatorExecution] = _
+  /**
+   * Validates this rule.
+   * This should cover non-fatal issues that should be fixed by the user after rule creation.
+   * Issues that lead to an inconsistent and unusable rule should not be checked here, but instead throw an exception in the constructor.
+   */
+  def validate(): Seq[ValidationIssue] = {
+    operator.toSeq.flatMap(_.validate())
+  }
 
   /**
-   * Generates a copy of this rule contextualized for the given task context. The returned rule
-   * caches a [[SimilarityOperatorExecution]] for its operator that subsequent calls to
-   * [[apply]] and [[index]] will use.
+   * Builds a runtime executor for this rule resolved against the given task context.
    */
-  def withContext(taskContext: TaskContext): LinkageRule = {
-    val contextualized = copy()
-    contextualized.resolvedExecution = operator.map(_.execution(taskContext))
-    contextualized
+  def execution(taskContext: TaskContext = TaskContext.empty): LinkageRuleExecution = {
+    new LinkageRuleExecution(this, operator.map(_.execution(taskContext)))
   }
+}
 
-  private def operatorExecution: Option[SimilarityOperatorExecution] = {
-    if (resolvedExecution != null) {
-      resolvedExecution
-    } else {
-      operator.map(_.execution(TaskContext(Seq.empty, PluginContext.empty)))
-    }
-  }
+/**
+ * Runtime executor for a [[LinkageRule]]. Holds the contextualized
+ * [[SimilarityOperatorExecution]] used to evaluate the rule against entities.
+ */
+final class LinkageRuleExecution(val operator: LinkageRule,
+                                 operatorExecution: Option[SimilarityOperatorExecution]) extends Serializable {
 
   /**
    * Computes the similarity between two entities.
@@ -85,22 +85,13 @@ case class LinkageRule(operator: Option[SimilarityOperator] = None,
    * @param entity The entity to be indexed
    * @param sourceOrTarget If true, the index will be for the source entity. If false, the index will be for the target entity.
    * @param limit The confidence limit
-    * @return A set of (multidimensional) indexes. Entities within the threshold will always get the same index.
+   * @return A set of (multidimensional) indexes. Entities within the threshold will always get the same index.
    */
   def index(entity: Entity, sourceOrTarget: Boolean, limit: Double = 0.0): Index = {
     operatorExecution match {
       case Some(op) => op.index(entity, sourceOrTarget, limit)
       case None => Index.empty
     }
-  }
-
-  /**
-    * Validates this rule.
-    * This should cover non-fatal issues that should be fixed by the user after rule creation.
-    * Issues that lead to an inconsistent and unusable rule should not be checked here, but instead throw an exception in the constructor.
-    */
-  def validate(): Seq[ValidationIssue] = {
-    operator.toSeq.flatMap(_.validate())
   }
 }
 

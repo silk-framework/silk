@@ -15,6 +15,11 @@ case class TaskContext(inputTasks: Seq[Task[_ <: TaskSpec]], pluginContext: Plug
 object TaskContext {
 
   /**
+   * The empty task context.
+   */
+  def empty: TaskContext = TaskContext(Seq.empty, PluginContext.empty)
+
+  /**
    * Creates a task context for a single input task.
    */
   def forInput(inputTask: Task[_ <: TaskSpec])(implicit pluginContext: PluginContext): TaskContext = {

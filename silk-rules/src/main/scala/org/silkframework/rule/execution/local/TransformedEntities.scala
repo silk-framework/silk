@@ -7,7 +7,7 @@ import org.silkframework.execution.report.EntitySample
 import org.silkframework.execution.{AbortExecutionException, ExecutionException, ExecutionReport}
 import org.silkframework.failures.EntityException
 import org.silkframework.rule.execution.TransformReportBuilder
-import org.silkframework.rule.{RootMappingRule, TransformRule, TransformRuleExecution, TransformSpec, ValueTransformRuleExecution}
+import org.silkframework.rule.{RootMappingRule, TransformRule, TransformRuleExecution, TransformSpec}
 import org.silkframework.runtime.iterator.CloseableIterator
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.{Identifier, Uri}
@@ -155,11 +155,7 @@ class TransformedEntities(task: Task[TransformSpec],
   private def evaluateRule(entity: Entity, exec: TransformRuleExecution, report: TransformReportBuilder): Seq[String] = {
     val rule = exec.operator
     try {
-      val result = exec match {
-        case ve: ValueTransformRuleExecution => ve(entity)
-        case _ =>
-          throw new IllegalStateException(s"Cannot evaluate non-value rule '${rule.id}' on an entity.")
-      }
+      val result = exec(entity)
       for(error <- result.errors) {
         addError(report, rule, entity, error.error, Some(error.operatorId))
       }
