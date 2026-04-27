@@ -22,7 +22,7 @@ Community documentation is maintained in the [doc](doc/) folder.
 - JDK 21
 - [Simple Build Tool](http://www.scala-sbt.org/) (sbt)
 - [Yarn](https://yarnpkg.com) for React/JavaScript build pipeline (e.g. ^1.22.0)
-- Node (e.g. ^14.17.0)
+- Node (version >=20)
 
 sbt needs to be installed on the system. See [sbt download](https://www.scala-sbt.org/download) for instructions.
 
