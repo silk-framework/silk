@@ -51,7 +51,7 @@ trait Operator {
    * The returned [[OperatorExecution]] holds any state that depends on the task context
    * (e.g. resolved input task data). Pure operators may return themselves.
    */
-  def execution(taskContext: TaskContext): OperatorExecution
+  def execution(taskContext: TaskContext = TaskContext.empty): OperatorExecution
 
   /**
     * Asserts that all identifiers in this rule tree are unique.

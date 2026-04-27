@@ -14,7 +14,7 @@ import org.silkframework.rule.plugins.transformer.normalize.{UriFixTransformer, 
 import org.silkframework.rule.plugins.transformer.value.{ConstantTransformer, ConstantUriTransformer, EmptyValueTransformer}
 import org.silkframework.rule.util.UriPatternParser
 import org.silkframework.rule.util.UriPatternParser.{ConstantPart, PathPart}
-import org.silkframework.runtime.plugin.{PluginContext, PluginObjectParameterNoSchema}
+import org.silkframework.runtime.plugin.PluginObjectParameterNoSchema
 import org.silkframework.runtime.serialization.XmlSerialization.{fromXml, toXml}
 import org.silkframework.runtime.serialization._
 import org.silkframework.runtime.validation.ValidationException
@@ -126,7 +126,7 @@ sealed trait TransformRule extends Operator with HasMetaData {
     }
   }
 
-  override def execution(taskContext: TaskContext): TransformRuleExecution
+  override def execution(taskContext: TaskContext = TaskContext.empty): TransformRuleExecution
 
   def representsDefaultUriRule: Boolean = {
     false
@@ -173,18 +173,24 @@ sealed trait ContainerTransformRule extends TransformRule {
     }
   }
 
-  override def execution(taskContext: TaskContext): ContainerTransformRuleExecution = {
+  override def execution(taskContext: TaskContext = TaskContext.empty): ContainerTransformRuleExecution = {
     new ContainerTransformRuleExecution(this, rules.map(_.execution(taskContext)), operator.execution(taskContext))
   }
 }
 
 /**
- * Runtime executor for container transform rules. Holds the resolved executions for each
- * child rule.
+ * Runtime executor for container transform rules.
+ *
+ * Child executions are built lazily: when a container appears as a property of its parent,
+ * the parent only needs this execution's [[inputExecution]] (to generate the URIs linking to
+ * the child entities). Its grandchildren are contextualized in their own schema iteration,
+ * so deferring this expansion avoids building those executions twice.
  */
 class ContainerTransformRuleExecution(override val operator: ContainerTransformRule,
-                                      override val childExecutions: Seq[TransformRuleExecution],
-                                      override val inputExecution: InputExecution) extends TransformRuleExecution
+                                      childExecs: => Seq[TransformRuleExecution],
+                                      override val inputExecution: InputExecution) extends TransformRuleExecution {
+  override lazy val childExecutions: Seq[TransformRuleExecution] = childExecs
+}
 
 /**
   * Base trait for all rule that generate a value and do not have any child rules.
@@ -208,7 +214,7 @@ sealed trait ValueTransformRule extends TransformRule {
 
   override def withId(newId: Identifier): ValueTransformRule
 
-  override def execution(taskContext: TaskContext): ValueTransformRuleExecution = {
+  override def execution(taskContext: TaskContext = TaskContext.empty): ValueTransformRuleExecution = {
     new ValueTransformRuleExecution(this, operator.execution(taskContext))
   }
 }
@@ -399,7 +405,7 @@ case class ComplexUriMapping(id: Identifier = "complexURI",
 
   override def withMetaData(metaData: MetaData): TransformRule = this.copy(metaData = metaData)
 
-  override def execution(taskContext: TaskContext): ValueTransformRuleExecution = {
+  override def execution(taskContext: TaskContext = TaskContext.empty): ValueTransformRuleExecution = {
     new ComplexUriMappingExecution(this, operator.execution(taskContext))
   }
 }
@@ -539,9 +545,6 @@ case class ObjectMapping(id: Identifier = "mapping",
   */
 object TransformRule {
   val RDF_TYPE = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type"
-
-  /** Default empty task context for callers that need a [[TransformRuleExecution]] but have no specific context. */
-  def defaultTaskContext: TaskContext = TaskContext(Seq.empty, PluginContext.empty)
 
   /**
     * XML serialization format.

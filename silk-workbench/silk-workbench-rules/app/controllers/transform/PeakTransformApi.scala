@@ -244,7 +244,7 @@ class PeakTransformApi @Inject() () extends InjectedController with UserContextA
           val entityDatasource = EntityDatasource(datasetTask, entities, sparqlSelectTask.outputSchema)
           try {
             entityDatasource.peak(ruleSchemata.inputSchema, maxTryEntities).use { exampleEntities =>
-              generateMappingPreviewResponse(ruleSchemata.transformRule.execution(TransformRule.defaultTaskContext), exampleEntities, limit)
+              generateMappingPreviewResponse(ruleSchemata.transformRule.execution(TaskContext.noInput), exampleEntities, limit)
             }
           } catch {
             case pe: PeakException =>

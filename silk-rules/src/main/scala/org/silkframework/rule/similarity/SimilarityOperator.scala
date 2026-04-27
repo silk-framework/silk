@@ -42,7 +42,7 @@ trait SimilarityOperator extends Operator {
     Seq.empty
   }
 
-  override def execution(taskContext: TaskContext): SimilarityOperatorExecution
+  override def execution(taskContext: TaskContext = TaskContext.empty): SimilarityOperatorExecution
 }
 
 /**
@@ -77,7 +77,7 @@ trait SimilarityOperatorExecution extends OperatorExecution {
  */
 trait InlineSimilarityOperator extends SimilarityOperator with SimilarityOperatorExecution {
   override def operator: SimilarityOperator = this
-  override def execution(taskContext: TaskContext): SimilarityOperatorExecution = this
+  override def execution(taskContext: TaskContext = TaskContext.empty): SimilarityOperatorExecution = this
 }
 
 object SimilarityOperator {

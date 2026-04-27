@@ -50,7 +50,7 @@ case class Aggregation(id: Identifier = Operator.generateId,
     copy(operators = newChildren.map(_.asInstanceOf[SimilarityOperator]))
   }
 
-  override def execution(taskContext: TaskContext): SimilarityOperatorExecution = {
+  override def execution(taskContext: TaskContext = TaskContext.empty): SimilarityOperatorExecution = {
     new AggregationExecution(this, operators.map(_.execution(taskContext)))
   }
 }

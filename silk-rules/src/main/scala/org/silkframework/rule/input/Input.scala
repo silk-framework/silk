@@ -25,7 +25,7 @@ import scala.xml.Node
  * An input that retrieves a set of values.
  */
 trait Input extends Operator {
-  override def execution(taskContext: TaskContext): InputExecution
+  override def execution(taskContext: TaskContext = TaskContext.empty): InputExecution
 }
 
 /**
@@ -48,7 +48,7 @@ trait InputExecution extends OperatorExecution {
  */
 trait InlineInput extends Input with InputExecution {
   override def operator: Input = this
-  override def execution(taskContext: TaskContext): InputExecution = this
+  override def execution(taskContext: TaskContext = TaskContext.empty): InputExecution = this
 }
 
 object Input {

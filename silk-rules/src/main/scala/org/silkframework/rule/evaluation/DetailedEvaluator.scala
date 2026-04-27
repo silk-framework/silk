@@ -71,7 +71,7 @@ object DetailedEvaluator {
   def apply(rules: Seq[TransformRule], entity: Entity): DetailedEntity = {
     val subjectRule = rules.find(_.target.isEmpty)
     val uris = subjectRule match {
-      case Some(rule) => rule.execution(TransformRule.defaultTaskContext).apply(entity).values
+      case Some(rule) => rule.execution().apply(entity).values
       case None => Seq(entity.uri.toString)
     }
     val values = for(rule <- rules) yield apply(rule, entity)
@@ -116,13 +116,13 @@ object DetailedEvaluator {
       }
     }
 
-    val operatorExecutions = agg.operators.map(_.execution(TransformRule.defaultTaskContext))
+    val operatorExecutions = agg.operators.map(_.execution())
     val aggregatedValue = agg.aggregator(operatorExecutions, entities, threshold)
     AggregatorConfidence(aggregatedValue.score, agg, operatorValues)
   }
 
   private def evaluateComparison(comparison: Comparison, entities: DPair[Entity], threshold: Double): ComparisonConfidence = {
-    val comparisonExecution = comparison.execution(TransformRule.defaultTaskContext)
+    val comparisonExecution = comparison.execution()
     ComparisonConfidence(
       score = comparisonExecution(entities, threshold),
       comparison = comparison,
@@ -135,7 +135,7 @@ object DetailedEvaluator {
     case ti: TransformInput =>
       val children = ti.inputs.map(i => evaluateInput(i, entity))
       try {
-        val transformerExecution = ti.transformer.execution(TransformRule.defaultTaskContext)
+        val transformerExecution = ti.transformer.execution()
         val transformed = transformerExecution(ArraySeq.unsafeWrapArray(children.map(_.values).toArray[Seq[String]]))
         TransformedValue(ti, transformed, children)
       } catch {
@@ -143,6 +143,6 @@ object DetailedEvaluator {
           TransformedValue(ti, Seq.empty, children, Some(ex))
       }
 
-    case pi: PathInput => InputValue(pi, pi.execution(TransformRule.defaultTaskContext)(entity).values)
+    case pi: PathInput => InputValue(pi, pi.execution()(entity).values)
   }
 }

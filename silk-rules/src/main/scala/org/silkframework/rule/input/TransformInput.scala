@@ -45,7 +45,7 @@ case class TransformInput(id: Identifier = Operator.generateId,
     copy(inputs = newChildren.map(_.asInstanceOf[Input]).toIndexedSeq)
   }
 
-  override def execution(taskContext: TaskContext): InputExecution = {
+  override def execution(taskContext: TaskContext = TaskContext.empty): InputExecution = {
     new TransformInputExecution(
       operator = this,
       inputExecutions = inputs.map(_.execution(taskContext)),

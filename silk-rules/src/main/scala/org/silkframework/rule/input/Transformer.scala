@@ -34,7 +34,7 @@ trait Transformer extends AnyPlugin {
    * Returns an executor that performs the actual transformation.
    * Simple transformers may return this object itself.
    */
-  def execution(taskContext: TaskContext): TransformerExecution
+  def execution(taskContext: TaskContext = TaskContext.empty): TransformerExecution
 
   /**
     * The resources that are directly referenced by this transformer.
@@ -79,5 +79,5 @@ trait TransformerExecution {
  * `withContext` returns `this`, so the same object serves as both descriptor and runtime executor.
  */
 trait InlineTransformer extends Transformer with TransformerExecution {
-  override def execution(taskContext: TaskContext): TransformerExecution = this
+  override def execution(taskContext: TaskContext = TaskContext.empty): TransformerExecution = this
 }

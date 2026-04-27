@@ -18,7 +18,7 @@ package org.silkframework.rule.plugins.similarity
 import org.silkframework.config.Prefixes
 import org.silkframework.entity.{Entity, Index}
 import org.silkframework.rule.plugins.aggegrator.AverageAggregator
-import org.silkframework.rule.{Operator, TaskContext, TransformRule}
+import org.silkframework.rule.Operator
 import org.silkframework.rule.similarity.{Aggregation, InlineSimilarityOperator, SimilarityOperator, SimilarityOperatorExecution}
 import org.silkframework.testutil.approximatelyEqualToOption
 import org.silkframework.util.{DPair, Identifier}
@@ -62,11 +62,11 @@ class AggregationTest extends AnyFlatSpec with Matchers {
   }
 
   private def eval(ops: Seq[SimilarityOperator]) = {
-    Aggregation(operators = ops, aggregator = aggregator).execution(TransformRule.defaultTaskContext).apply(null)
+    Aggregation(operators = ops, aggregator = aggregator).execution().apply(null)
   }
 
   private def index(ops: Seq[SimilarityOperator]) = {
-    Aggregation(operators = ops, aggregator = aggregator).execution(TransformRule.defaultTaskContext).index(null, true, 0.0)
+    Aggregation(operators = ops, aggregator = aggregator).execution().index(null, true, 0.0)
   }
 
   private def operator(_weight: Int = 1, _required: Boolean = false, value: Option[Double] = None, indices: Index = Index.default) = {

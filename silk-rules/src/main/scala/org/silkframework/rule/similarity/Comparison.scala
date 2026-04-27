@@ -55,7 +55,7 @@ case class Comparison(id: Identifier = Operator.generateId,
     copy(inputs = DPair.fromSeq(newChildren.collect{ case input: Input => input }))
   }
 
-  override def execution(taskContext: TaskContext): SimilarityOperatorExecution = {
+  override def execution(taskContext: TaskContext = TaskContext.empty): SimilarityOperatorExecution = {
     // Each input should receive only the task that it refers to (source or target).
     // For non-linking contexts (e.g. detailed evaluation in the workbench) the task
     // context may be empty; in that case the same context is propagated to both inputs.
