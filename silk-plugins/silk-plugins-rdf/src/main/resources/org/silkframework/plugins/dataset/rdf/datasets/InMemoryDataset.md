@@ -9,23 +9,27 @@ Typical use cases:
 
 ## 2. Behaviour and lifecycle
 
-- The dataset maintains a single in-memory RDF model.
-- All read and write operations go through a SPARQL endpoint over this model.
-- Data exists only **in memory**:
-    - It is not persisted to disk by this dataset.
-    - After an application restart, the dataset contents are empty again.
+The dataset maintains a single in-memory RDF model and exposes it via a SPARQL endpoint. Two lifecycle modes are available, controlled by the `workflowScoped` parameter:
 
-Within a workflow:
-- The dataset can be used as both **input** and **output**:
-    - Upstream operators can write triples/entities/links into it.
-    - Downstream operators can read from it via SPARQL-based mechanisms.
+**Application-scoped mode** (default, `workflowScoped = false`):
+- A single shared model is created when the dataset is instantiated.
+- Data persists for the lifetime of the running application process.
+- All workflow executions share the same in-memory graph.
+- After an application restart, the dataset contents are empty again.
+
+**Workflow-scoped mode** (`workflowScoped = true`):
+- A separate model is created for each workflow execution.
+- Concurrent workflow executions are fully isolated from each other.
+- A dataset task in a nested workflow shares the same model as the parent workflow for the same task identifier. Data written by the parent is available in the nested workflow and vice versa.
+- If the dataset is read from outside a workflow context, the data from the most recently started executor is returned.
+- When the workflow execution ends, the per-execution data is removed automatically.
 
 ## 3. Reading data
 
 - When used as a **source**, the dataset exposes its data as a SPARQL endpoint.
 - Queries and retrievals behave like against a normal SPARQL dataset:
     - Entity retrieval, path/type discovery, sampling, etc. are executed via SPARQL.
-- There is no file backing this dataset; everything comes from what has been written into the in-memory model during the lifetime of the process.
+- There is no file backing this dataset; everything comes from what has been written into the in-memory model during the lifetime of the process (application-scoped) or the workflow execution (workflow-scoped).
 
 ## 4. Writing data
 
@@ -44,22 +48,40 @@ All three sinks ultimately write into the same in-memory graph; there is no sepa
 
 ## 5. Configuration
 
-### Clear graph before workflow execution
+### Workflow scoped <a id="parameter_doc_workflowScoped"></a>
 
-- **Parameter:** `Clear graph before workflow execution` (boolean)
-- **Default:** `true`
+- **Parameter:** `workflowScoped` (boolean)
+- **Default:** `false`
 
-Behaviour:
+When `true` (workflow-scoped mode):
+- Data is stored in a separate in-memory graph for each workflow execution.
+- Concurrent workflow executions are fully isolated from each other.
+- A dataset task in a nested workflow shares the same graph as the parent for the same task identifier. Data written by the parent is available in the nested workflow and vice versa.
+- If the dataset is read from outside a workflow context, the data from the most recently started executor is returned.
+- When the workflow execution ends, the per-execution data is removed automatically.
+
+When `false` (default, application-scoped mode):
+- Data persists in a single shared graph for the lifetime of the running process.
+- All workflow executions share the same graph.
+
+### Clear graph before workflow execution <a id="parameter_doc_clearGraphBeforeExecution"></a>
+
+- **Parameter:** `clearGraphBeforeExecution` (boolean, **deprecated**)
+- **Default:** `false`
+
+This parameter is deprecated. Use the **Clear dataset** operator in the workflow instead.
+
+Behaviour (application-scoped mode only):
 
 - If **true**:
-    - Before the dataset is used in a workflow execution, the graph is cleared (for writes via this dataset).
+    - Before the dataset is used in a workflow execution, the graph is cleared.
     - The workflow sees a **fresh, empty in-memory graph** at the start of the run.
 
 - If **false**:
     - Existing data in the in-memory graph is **preserved** when the workflow starts.
     - New data is added on top of whatever is already stored in the model.
 
-This parameter controls whether the dataset behaves as a **fresh scratch graph per workflow run** or as a **longer-lived in-memory graph** within the lifetime of the running application.
+This parameter has no effect when `workflowScoped = true` (the executor manages the lifecycle).
 
 ## 6. Limitations and recommendations
 
@@ -79,14 +101,23 @@ This parameter controls whether the dataset behaves as a **fresh scratch graph p
 
 ## 7. Example usage scenarios
 
-- Use as a **temporary integration graph**:
+- Use as a **temporary integration graph** (application-scoped):
     - Multiple sources write into the in-memory dataset.
     - A downstream SPARQL-based operator queries the combined graph.
 
-- Use as a **scratch area for experimentation**:
+- Use as a **scratch area for experimentation** (application-scoped):
     - Quickly test mapping or linking logic by writing output into the in-memory dataset.
     - Inspect the result via SPARQL without configuring an external endpoint.
 
-- Use as a **small lookup store**:
+- Use as a **small lookup store** (application-scoped):
     - Preload a small set of reference triples (e.g. codes or mappings).
     - Let workflows query these during execution.
+
+- Use as a **workflow-local intermediate store** (workflow-scoped):
+    - Multiple operators in a single workflow run write intermediate RDF results.
+    - Downstream operators in the same run read from the dataset without affecting parallel runs.
+
+- Use in **nested workflows** (workflow-scoped):
+    - A parent workflow writes data into a workflow-scoped dataset.
+    - A nested sub-workflow reads and enriches the same data.
+    - After the nested workflow completes, the parent can read the enriched result.
