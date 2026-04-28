@@ -31,6 +31,11 @@ trait Dataset extends AnyPlugin with DatasetAccess {
 
   /** Additional tags that will be displayed in the UI for this task. These tags are covered by the workspace search. */
   def searchTags(pluginContext: PluginContext): Seq[String] = Seq.empty
+
+  /** Additional search strings that will be covered by the workspace search, but NOT shown in the UI.
+    * Because they are hidden, they only count as a search match when a search term is exactly equal to one of them
+    * (case-insensitive); substring matches are not considered. This should be used rarely, since it could lead to confusing UX. */
+  def hiddenSearchTags(pluginContext: PluginContext): Seq[String] = Seq.empty
 }
 
 trait DatasetPluginAutoConfigurable[T <: Dataset] {

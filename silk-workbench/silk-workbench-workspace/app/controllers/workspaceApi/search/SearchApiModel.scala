@@ -171,8 +171,9 @@ object SearchApiModel {
       val searchInItemType = if(task.data.isInstanceOf[DatasetSpec[_]]) "dataset" else ""
       val tagLabels = task.tags().map(_.label)
       val searchTags = task.searchTags(pluginContext)
+      val hiddenSearchTags = task.hiddenSearchTags(pluginContext)
       val searchInTerms = Seq(taskLabel, description, searchInProperties, searchInProject, pluginLabel, searchInItemType) ++ tagLabels ++ searchTags
-      matchesSearchTerm(lowerCaseSearchTerms, searchInTerms: _*)
+      TextSearchUtils.matchesSearchTerm(lowerCaseSearchTerms, searchInTerms, hiddenSearchTags)
     }
 
     /** Match search terms against project. */

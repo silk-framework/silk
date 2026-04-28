@@ -131,7 +131,7 @@ class ProjectTaskApi @Inject()() extends InjectedController with UserContextActi
     val task = project.anyTask(taskId)
     val relatedTasks = (task.data.referencedTasks.toSeq ++ task.findDependentTasks(recursive = false).toSeq ++ task.findRelatedTasksInsideWorkflows().toSeq).distinct.
         flatMap(id => project.anyTaskOption(id))
-    val relatedItems = relatedTasks map { task =>
+    val relatedItemsWithHiddenTags = relatedTasks map { task =>
       val pd = PluginDescription.forTask(task)
       val itemType = ItemType.itemType(task)
       val itemLinks = ItemType.itemTypeLinks(itemType, projectId, task.id, Some(task.data))
@@ -143,15 +143,17 @@ class ProjectTaskApi @Inject()() extends InjectedController with UserContextActi
             None
         }
       }
-      RelatedItem(task.id, task.fullLabel, task.metaData.description, itemType.label, itemLinks, pd.label, task.tags().map(FullTag.fromTag),
-        task.searchTags(PluginContext.fromProject(project)),
+      val pluginContext = PluginContext.fromProject(project)
+      val item = RelatedItem(task.id, task.fullLabel, task.metaData.description, itemType.label, itemLinks, pd.label, task.tags().map(FullTag.fromTag),
+        task.searchTags(pluginContext),
         Some(pd.id),
         Some(project.id),
         readOnly
       )
+      (item, task.hiddenSearchTags(pluginContext))
     }
-    val filteredItems = filterRelatedItems(relatedItems, textQuery)
-    val total = relatedItems.size
+    val filteredItems = filterRelatedItems(relatedItemsWithHiddenTags, textQuery)
+    val total = relatedItemsWithHiddenTags.size
     val result = RelatedItems(total, filteredItems)
     Ok(Json.toJson(result))
   }
@@ -429,17 +431,18 @@ class ProjectTaskApi @Inject()() extends InjectedController with UserContextActi
     }
   }
 
-  private def filterRelatedItems(relatedItems: Seq[RelatedItem], textQuery: Option[String]): Seq[RelatedItem] = {
+  private def filterRelatedItems(relatedItems: Seq[(RelatedItem, Seq[String])], textQuery: Option[String]): Seq[RelatedItem] = {
     val searchWords =  TextSearchUtils.extractSearchTerms(textQuery.getOrElse(""))
     if(searchWords.isEmpty) {
-      relatedItems
+      relatedItems.map(_._1)
     } else {
-      relatedItems.filter(relatedItem => // Description is not displayed, so don't search in description.
-        TextSearchUtils.matchesSearchTerm(
+      relatedItems.collect { case (relatedItem, hiddenSearchTags) // Description is not displayed, so don't search in description.
+        if TextSearchUtils.matchesSearchTerm(
           searchWords,
-          s"${relatedItem.label} ${relatedItem.`type`} ${relatedItem.pluginLabel} ${relatedItem.tags.map(_.label).mkString(" ")} ${relatedItem.searchTags.mkString(" ")}".toLowerCase
-        )
-      )
+          Seq(s"${relatedItem.label} ${relatedItem.`type`} ${relatedItem.pluginLabel} ${relatedItem.tags.map(_.label).mkString(" ")} ${relatedItem.searchTags.mkString(" ")}".toLowerCase),
+          hiddenSearchTags
+        ) => relatedItem
+      }
     }
   }
 }
