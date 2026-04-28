@@ -92,6 +92,7 @@ class LocalJsonParserTaskExecutorTest extends AnyFlatSpec with Matchers with Moc
     val result = executor.execute(task, inputs, output, execution)
 
     result mustBe defined
+    result.get.entities.flatMap(_.values).flatten.toSeq mustBe Seq("0", "John", "1", "Max")
   }
 
   it should "parse the JSON of multiple entities" in {
