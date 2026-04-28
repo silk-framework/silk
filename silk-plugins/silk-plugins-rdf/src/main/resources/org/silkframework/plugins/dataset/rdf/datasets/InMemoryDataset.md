@@ -88,6 +88,7 @@ This parameter has no effect when `workflowScoped = true` (the executor manages 
 - **Memory-bound**
     - All data is kept in memory; large graphs will increase memory usage and may impact performance.
     - For large or production RDF graphs, use an external RDF store and a SPARQL dataset instead.
+    - A size limit is enforced: once the estimated size of data written to the dataset exceeds the value of `org.silkframework.runtime.resource.Resource.maxInMemorySize`, the workflow fails with an error. This prevents the JVM from running out of heap memory.
 
 - **No persistence**
     - Contents are lost when the application/server is restarted.
