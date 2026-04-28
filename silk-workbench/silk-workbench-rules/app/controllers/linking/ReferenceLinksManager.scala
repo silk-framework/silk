@@ -33,6 +33,7 @@ class ReferenceLinksManager @Inject() (implicit workspaceReact: WorkspaceReact) 
     val referenceLinks = task.data.referenceLinks
     def linkSpec = task.data
     def linkageRule = linkSpec.rule
+    val ruleExec = linkageRule.execution()
     def entities = task.activity[ReferenceEntitiesCache].value()
     val linkSorter = LinkSorter.fromId(sorting)
     val linkResolvers = LinkResolver.forLinkingTask(task)
@@ -47,7 +48,7 @@ class ReferenceLinksManager @Inject() (implicit workspaceReact: WorkspaceReact) 
       case "positive" => {
         for (link <- referenceLinks.positive.toSeq.view) yield entities.positiveLinkToEntities(link) match {
           case Some(entities) if hasPaths(entities) => {
-            val evaluatedLink = DetailedEvaluator(linkageRule, entities, -1.0).get
+            val evaluatedLink = DetailedEvaluator(ruleExec, entities, -1.0).get
 
             new EvalLink(
               link = evaluatedLink,
@@ -69,7 +70,7 @@ class ReferenceLinksManager @Inject() (implicit workspaceReact: WorkspaceReact) 
       case "negative" => {
         for (link <- referenceLinks.negative.toSeq.view) yield entities.negativeLinkToEntities(link) match {
           case Some(entities) if hasPaths(entities) => {
-            val evaluatedLink = DetailedEvaluator(linkageRule, entities, -1.0).get
+            val evaluatedLink = DetailedEvaluator(ruleExec, entities, -1.0).get
 
             new EvalLink(
               link = evaluatedLink,
@@ -91,7 +92,7 @@ class ReferenceLinksManager @Inject() (implicit workspaceReact: WorkspaceReact) 
       case "unlabeled" => {
         for (link <- referenceLinks.unlabeled.toSeq.view) yield entities.unlabeledLinkToEntities(link) match {
           case Some(entities) if hasPaths(entities) => {
-            val evaluatedLink = DetailedEvaluator(linkageRule, entities, -1.0).get
+            val evaluatedLink = DetailedEvaluator(ruleExec, entities, -1.0).get
 
             new EvalLink(
               link = evaluatedLink,

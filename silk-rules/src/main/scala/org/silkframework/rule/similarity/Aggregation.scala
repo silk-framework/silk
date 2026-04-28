@@ -59,7 +59,7 @@ case class Aggregation(id: Identifier = Operator.generateId,
  * Runtime executor for an [[Aggregation]] with all child similarity operator executions resolved.
  */
 final class AggregationExecution(override val operator: Aggregation,
-                                 operatorExecutions: Seq[SimilarityOperatorExecution]) extends SimilarityOperatorExecution {
+                                 val operatorExecutions: Seq[SimilarityOperatorExecution]) extends SimilarityOperatorExecution {
 
   override def apply(entities: DPair[Entity], limit: Double): Option[Double] = {
     operator.aggregator(operatorExecutions, entities, limit).score

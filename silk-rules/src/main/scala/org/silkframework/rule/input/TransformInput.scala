@@ -58,8 +58,8 @@ case class TransformInput(id: Identifier = Operator.generateId,
  * transformer execution resolved against a specific [[TaskContext]].
  */
 final class TransformInputExecution(override val operator: TransformInput,
-                                    inputExecutions: IndexedSeq[InputExecution],
-                                    transformerExecution: TransformerExecution) extends InputExecution {
+                                    val inputExecutions: IndexedSeq[InputExecution],
+                                    val transformerExecution: TransformerExecution) extends InputExecution {
 
   override def apply(entity: Entity): Value = {
     val inputValues = new Array[Seq[String]](inputExecutions.length)

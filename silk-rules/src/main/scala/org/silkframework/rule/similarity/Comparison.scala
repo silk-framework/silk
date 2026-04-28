@@ -80,8 +80,8 @@ case class Comparison(id: Identifier = Operator.generateId,
  * Runtime executor for a [[Comparison]] with both child input executors resolved.
  */
 final class ComparisonExecution(override val operator: Comparison,
-                                sourceInput: InputExecution,
-                                targetInput: InputExecution) extends SimilarityOperatorExecution {
+                                val sourceInput: InputExecution,
+                                val targetInput: InputExecution) extends SimilarityOperatorExecution {
 
   /**
    * Computes the similarity between two entities.

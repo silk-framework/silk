@@ -232,8 +232,9 @@ class EvaluateTransformApi @Inject()(implicit accessMonitor: WorkbenchAccessMoni
     val inputSchema = ruleSchema.inputSchema.copy(typedPaths = transformRule.sourcePaths.toIndexedSeq)
 
     val entities = task.dataSource.retrieve(inputSchema, Some(limit)).entities.take(limit)
+    val ruleExec = transformRule.execution()
     for(entity <- entities) yield {
-      DetailedEvaluator(transformRule, entity)
+      DetailedEvaluator(ruleExec, entity)
     }
   }
 

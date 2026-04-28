@@ -1159,6 +1159,7 @@ class LinkingTaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends I
     if (evaluationActivity.control.status.get.isEmpty) {
       evaluationActivity.control.startBlocking()
     }
+    val ruleExec = linkTask.data.rule.execution()
     for(link <- evaluationActivity.value().links) yield {
       val evaluatedLink =
         link match {
@@ -1167,7 +1168,7 @@ class LinkingTaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends I
           case link: Link =>
             link.entities match {
               case Some(entities) =>
-                DetailedEvaluator(linkTask.data.rule, entities)
+                DetailedEvaluator(ruleExec, entities)
               case None =>
                 throw new IllegalArgumentException("Evaluation links are missing entities.")
             }
@@ -1179,8 +1180,9 @@ class LinkingTaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends I
   private def retrieveReferenceLinksSafe(linkTask: ProjectTask[LinkSpec]): Seq[EvaluatedLinkWithDecision] = {
     val referenceEntityCache = linkTask.activity[ReferenceEntitiesCache].value()
     val DPair(sourceEntitySchema, targetEntitySchema) = linkTask.data.entityDescriptions
+    val ruleExec = linkTask.data.rule.execution()
     for(link <- referenceEntityCache.toReferenceLinksSafe(sourceEntitySchema, targetEntitySchema)) yield {
-      val evaluatedLink = DetailedEvaluator(linkTask.data.rule, link.linkEntities)
+      val evaluatedLink = DetailedEvaluator(ruleExec, link.linkEntities)
       evaluatedLink.withDecision(link.decision)
     }
   }

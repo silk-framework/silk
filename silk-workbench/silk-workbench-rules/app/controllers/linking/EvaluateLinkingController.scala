@@ -51,9 +51,10 @@ class EvaluateLinkingController @Inject() (implicit system: ActorSystem,
 
     if(showLinks) {
       val referenceLinks = task.data.referenceLinks
+      val ruleExec = task.data.rule.execution()
       def links =
         for (link <- linking.links.view) yield {
-          val detailedLink = DetailedEvaluator(task.data.rule, link.entities.get)
+          val detailedLink = DetailedEvaluator(ruleExec, link.entities.get)
           if (referenceLinks.positive.contains(link))
             new EvalLink(detailedLink, Correct, Generated)
           else if (referenceLinks.negative.contains(link))

@@ -61,7 +61,7 @@ case class LinkageRule(operator: Option[SimilarityOperator] = None,
  * [[SimilarityOperatorExecution]] used to evaluate the rule against entities.
  */
 final class LinkageRuleExecution(val operator: LinkageRule,
-                                 operatorExecution: Option[SimilarityOperatorExecution]) extends Serializable {
+                                 val operatorExecution: Option[SimilarityOperatorExecution]) extends Serializable {
 
   /**
    * Computes the similarity between two entities.
