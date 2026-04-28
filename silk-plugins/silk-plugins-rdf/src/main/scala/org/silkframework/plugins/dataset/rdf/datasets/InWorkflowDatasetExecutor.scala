@@ -2,7 +2,7 @@ package org.silkframework.plugins.dataset.rdf.datasets
 
 import org.apache.jena.rdf.model.{Model, ModelFactory}
 import org.silkframework.config.Task
-import org.silkframework.dataset.{DatasetAccess, DatasetSpec}
+import org.silkframework.dataset.{DatasetAccess, DatasetSpec, DatasetSpecAccess}
 import org.silkframework.execution.local.{LocalDatasetExecutor, LocalExecution}
 
 /**
@@ -39,7 +39,7 @@ class InWorkflowDatasetExecutor extends LocalDatasetExecutor[InWorkflowDataset] 
       plugin = Some(datasetPlugin)
     }
     task.data.plugin.updateData(model)
-    modelDataset
+    DatasetSpecAccess(task.data, modelDataset)
   }
 
   override def close(): Unit = {
