@@ -14,7 +14,7 @@ import java.util.Collections
 
 @Plugin(
   id = InMemoryDataset.pluginId,
-  label = "In-memory dataset",
+  label = "In-memory Knowledge Graph",
   categories = Array(DatasetCategories.embedded),
   description = "A dataset that holds all data in-memory. " +
     "In the default (application-scoped) mode, data persists for the lifetime of the running process. " +

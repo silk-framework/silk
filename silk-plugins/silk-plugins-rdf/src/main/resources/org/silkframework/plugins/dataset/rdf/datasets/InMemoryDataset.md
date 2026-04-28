@@ -93,6 +93,12 @@ This parameter has no effect when `workflowScoped = true` (the executor manages 
     - Contents are lost when the application/server is restarted.
     - Do not treat this dataset as long-term storage.
 
+- **SPARQL engine**
+  - The dataset is backed by [Apache Jena](https://jena.apache.org/), exposed through a Jena in-memory SPARQL endpoint.
+
+- **No named-graph support**
+  - Only the **default graph** is available. Writing triples into a named graph is not possible.
+
 - **Scope**
     - Best suited for:
         - small to medium intermediate results,
