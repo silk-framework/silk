@@ -123,6 +123,12 @@ const extractDefaultValues = (pluginDetails: IPluginDetails): Map<string, string
     return m;
 };
 
+const serializeTagSelection = (selection?: MultiSuggestFieldSelectionProps<Keyword>): string =>
+    JSON.stringify({
+        createdItems: (selection?.createdItems ?? []).map((tag) => tag.uri).sort(),
+        selectedItems: (selection?.selectedItems ?? []).map((tag) => tag.uri).sort(),
+    });
+
 /** The task creation/update form. */
 export function TaskForm({
     form,
@@ -172,6 +178,7 @@ export function TaskForm({
     const [t] = useTranslation();
     const parameterLabels = React.useRef(new Map<string, string>());
     const { label, description } = form.watch([LABEL, DESCRIPTION]);
+    const tagSelection = form.watch(TAGS) as MultiSuggestFieldSelectionProps<Keyword> | undefined;
     const dataPreviewPlugin = pluginRegistry.pluginReactComponent<DataPreviewProps>(SUPPORTED_PLUGINS.DATA_PREVIEW);
     const escapeKeyDisabled = React.useRef(false);
 
@@ -440,8 +447,19 @@ export function TaskForm({
     );
 
     const handleTagSelectionChange = React.useCallback(
-        (params: MultiSuggestFieldSelectionProps<Keyword>) => setValue(TAGS, params),
-        [],
+        (params: MultiSuggestFieldSelectionProps<Keyword>) => {
+            const oldValue = getValues()[TAGS] as MultiSuggestFieldSelectionProps<Keyword> | undefined;
+            if (params.newlySelected || params.newlyRemoved) {
+                setValue(TAGS, params);
+                detectChange(TAGS, serializeTagSelection(params), serializeTagSelection(oldValue));
+                if (!escapeKeyDisabled.current) {
+                    escapeKeyDisabled.current = true;
+                }
+            } else if (!oldValue) {
+                setValue(TAGS, params);
+            }
+        },
+        [detectChange, getValues, setValue],
     );
     const preConfiguredFileAndLabel =
         newTaskPreConfiguration?.preConfiguredParameterValues?.file && newTaskPreConfiguration?.metaData?.label;
@@ -538,8 +556,10 @@ export function TaskForm({
                             label={t("form.field.tags")}
                             inputElementFactory={() => (
                                 <MultiTagSelect
+                                    dataTestId="task-tags-select"
                                     projectId={projectId}
                                     handleTagSelectionChange={handleTagSelectionChange}
+                                    selectedTags={tagSelection?.selectedItems}
                                 />
                             )}
                         />

@@ -2,9 +2,11 @@ import React, { useEffect, useRef, useState } from "react";
 import { batch, useDispatch, useSelector } from "react-redux";
 import { useForm } from "react-hook-form";
 import {
+    AlertDialog,
     Button,
     Card,
     CardActionsAux,
+    HtmlContentBlock,
     Grid,
     GridColumn,
     GridRow,
@@ -31,11 +33,13 @@ import {
     Spinner,
 } from "@eccenca/gui-elements";
 import { commonOp, commonSel } from "@ducks/common";
+import { requestArtefactProperties } from "@ducks/common/requests";
 import {
     IArtefactModal,
     IPluginDetails,
     IPluginOverview,
     IProjectTaskUpdatePayload,
+    RelatedPlugin,
     TaskPreConfiguration,
 } from "@ducks/common/typings";
 import Loading from "../../Loading";
@@ -61,7 +65,8 @@ import { CreateArtefactModalContext } from "./CreateArtefactModalContext";
 import { TaskDocumentationModal } from "./TaskDocumentationModal";
 import { PARAMETER_DOC_PREFIX } from "./ArtefactForms/TaskForm";
 
-const ignorableFields = new Set(["label", "description"]);
+const projectChangePreservedFields = new Set(["label", "description"]);
+const relatedPluginSwitchPreservedFields = new Set(["label", "description", "tags"]);
 
 export interface ProjectIdAndLabel {
     id: string;
@@ -79,6 +84,12 @@ export interface ArtefactDocumentation {
     description?: string;
     markdownDocumentation?: string;
     namedAnchor: string | undefined;
+    relatedPlugins?: RelatedPluginDocumentation[];
+}
+
+interface RelatedPluginDocumentation {
+    plugin: IPluginOverview;
+    description: string;
 }
 
 export function CreateArtefactModal() {
@@ -91,11 +102,13 @@ export function CreateArtefactModal() {
     const [documentationToShow, setDocumentationToShow] = useState<ArtefactDocumentation | undefined>(undefined);
     const documentationIsShown = React.useRef(false);
     documentationIsShown.current = !!documentationToShow;
+    const [relatedPluginToSwitch, setRelatedPluginToSwitch] = useState<IPluginOverview | undefined>(undefined);
     const [actionLoading, setActionLoading] = useState(false);
     const [t] = useTranslation();
 
     const { maxFileUploadSize } = useSelector(commonSel.initialSettingsSelector);
     const modalStore = useSelector(commonSel.artefactModalSelector);
+    const taskPluginOverviews = useSelector(commonSel.taskPluginOverviewsSelector);
 
     const {
         selectedArtefact: selectedArtefactFromStore,
@@ -310,27 +323,69 @@ export function CreateArtefactModal() {
         setLastSelectedClick(Date.now);
     };
 
-    const handleShowEnhancedDescriptionClickHandler = (event, artefactDocumentation: ArtefactDocumentation) => {
+    const handleShowEnhancedDescriptionClickHandler = (
+        event,
+        pluginOverview: IPluginOverview,
+        namedAnchor?: string,
+    ) => {
         event.preventDefault();
         event.stopPropagation();
-        showEnhancedDescription(artefactDocumentation);
+        showEnhancedDescription(pluginOverview, namedAnchor);
     };
 
-    const showEnhancedDescription = React.useCallback((artefactDocumentation: ArtefactDocumentation) => {
-        setDocumentationToShow(artefactDocumentation);
-    }, []);
+    const showEnhancedDescription = React.useCallback(
+        (pluginOverview: IPluginOverview, namedAnchor?: string) => {
+            const pluginDetails = cachedArtefactProperties[pluginOverview.key];
+            setDocumentationToShow(
+                pluginOverviewToArtefactDocumentation(
+                    pluginOverview,
+                    taskPluginOverviews,
+                    cachedArtefactProperties,
+                    pluginDetails,
+                    namedAnchor,
+                ),
+            );
+
+            if (!pluginDetails) {
+                void (async () => {
+                    try {
+                        const fetchedPluginDetails = await requestArtefactProperties(pluginOverview.key);
+                        setDocumentationToShow((currentDocumentation) => {
+                            if (
+                                !currentDocumentation ||
+                                currentDocumentation.key !== pluginOverview.key ||
+                                currentDocumentation.namedAnchor !== namedAnchor
+                            ) {
+                                return currentDocumentation;
+                            }
+                            return pluginOverviewToArtefactDocumentation(
+                                pluginOverview,
+                                taskPluginOverviews,
+                                cachedArtefactProperties,
+                                fetchedPluginDetails,
+                                namedAnchor,
+                            );
+                        });
+                    } catch (error) {
+                        registerError(
+                            "CreateArtefactModal.showEnhancedDescription",
+                            "Could not fetch plugin documentation.",
+                            error,
+                        );
+                    }
+                })();
+            }
+        },
+        [taskPluginOverviews, cachedArtefactProperties, registerError],
+    );
 
     const showDetailedParameterDocumentation = React.useCallback(
         (parameterId: string) => {
             if (selectedArtefact) {
-                const artefactDocumentation: ArtefactDocumentation = pluginOverviewToArtefactDocumentation(
-                    selectedArtefact,
-                    PARAMETER_DOC_PREFIX + parameterId,
-                );
-                showEnhancedDescription(artefactDocumentation);
+                showEnhancedDescription(selectedArtefact, PARAMETER_DOC_PREFIX + parameterId);
             }
         },
-        [selectedArtefact],
+        [selectedArtefact, showEnhancedDescription],
     );
 
     const handleEnter = (e) => {
@@ -446,7 +501,7 @@ export function CreateArtefactModal() {
         setToBeAdded(undefined);
         setCurrentProject(undefined);
         setTaskActionResult(undefined);
-        form.reset();
+        form.reset(Object.create(null));
         setFormValueChanges({});
         form.clearError();
         dispatch(commonOp.resetArtefactModal(closeModal));
@@ -474,30 +529,38 @@ export function CreateArtefactModal() {
 
     /**
      *
-     * Returns true if any of item parameters has been modified. Meta data fields like label and description are excluded.
+     * Returns true if any item parameter has been modified. Specific metadata fields can be excluded depending on the reset flow.
      * @returns {boolean}
      */
-    const modifiedParameterValuesExist = (): boolean => {
-        let shouldShow = false;
+    const hasModifiedValuesOutside = (ignoredFields: Set<string>): boolean => {
         for (let field in formValueChanges) {
-            if (!ignorableFields.has(field) && formValueChanges[field].isModified && !shouldShow) shouldShow = true;
-            else continue;
+            if (!ignoredFields.has(field) && formValueChanges[field].isModified) {
+                return true;
+            }
         }
-        return shouldShow;
+        return false;
     };
 
-    // reset to defaults, if label/description already existed they remain.
-    const resetFormOnConfirmation = () => {
+    const hasModifiedValuesForRelatedPluginSwitch = (): boolean =>
+        hasModifiedValuesOutside(relatedPluginSwitchPreservedFields);
+
+    const hasModifiedValuesForProjectChange = (): boolean => hasModifiedValuesOutside(projectChangePreservedFields);
+
+    const resetFormPreservingFields = (preservedFields: Set<string>) => {
         const resetValue = Object.create(null);
-        Object.keys(formValueChanges).forEach((field) => {
-            if (!ignorableFields.has(field)) {
-                delete formValueChanges[field];
-            } else {
-                resetValue[field] = form.getValues()[field];
+        const currentValues = form.getValues();
+        preservedFields.forEach((field) => {
+            if (Object.prototype.hasOwnProperty.call(currentValues, field)) {
+                resetValue[field] = currentValues[field];
             }
         });
         form.reset(resetValue);
+        setFormValueChanges({});
     };
+
+    const resetFormForProjectChange = () => resetFormPreservingFields(projectChangePreservedFields);
+
+    const resetFormForRelatedPluginSwitch = () => resetFormPreservingFields(relatedPluginSwitchPreservedFields);
 
     /**
      * sets to selected project from ProjectSelection
@@ -506,6 +569,21 @@ export function CreateArtefactModal() {
     const updateCurrentSelectedProject = (item: ProjectIdAndLabel) => {
         setShowProjectSelection(false);
         setCurrentProject(item);
+    };
+
+    const switchToRelatedPlugin = (relatedPlugin: IPluginOverview) => {
+        resetFormForRelatedPluginSwitch();
+        setDocumentationToShow(undefined);
+        setRelatedPluginToSwitch(undefined);
+        dispatch(commonOp.getArtefactPropertiesAsync(relatedPlugin));
+    };
+
+    const handleRelatedPluginSwitch = (relatedPlugin: IPluginOverview) => {
+        if (hasModifiedValuesForRelatedPluginSwitch()) {
+            setRelatedPluginToSwitch(relatedPlugin);
+        } else {
+            switchToRelatedPlugin(relatedPlugin);
+        }
     };
 
     /**
@@ -523,9 +601,9 @@ export function CreateArtefactModal() {
                 <>
                     {showProjectSelection ? (
                         <ProjectSelection
-                            resetForm={resetFormOnConfirmation}
+                            resetForm={resetFormForProjectChange}
                             setCurrentProject={updateCurrentSelectedProject}
-                            modifiedValuesExist={modifiedParameterValuesExist}
+                            modifiedValuesExist={hasModifiedValuesForProjectChange}
                             selectedProject={currentProject}
                             onClose={() => setShowProjectSelection(false)}
                             getWorkspaceProjects={getWorkspaceProjects}
@@ -563,8 +641,8 @@ export function CreateArtefactModal() {
     if (selectedArtefactKey && !currentProject) {
         artefactForm = (
             <ProjectSelection
-                resetForm={resetFormOnConfirmation}
-                modifiedValuesExist={modifiedParameterValuesExist}
+                resetForm={resetFormForProjectChange}
+                modifiedValuesExist={hasModifiedValuesForProjectChange}
                 setCurrentProject={updateCurrentSelectedProject}
                 selectedProject={currentProject}
                 onClose={() => setShowProjectSelection(false)}
@@ -889,13 +967,9 @@ export function CreateArtefactModal() {
         headerOptions.push(
             <IconButton
                 key={"show-enhanced-description-btn"}
+                data-test-id="show-enhanced-description-btn"
                 name="item-question"
-                onClick={(e) =>
-                    handleShowEnhancedDescriptionClickHandler(
-                        e,
-                        pluginOverviewToArtefactDocumentation(selectedArtefact),
-                    )
-                }
+                onClick={(e) => handleShowEnhancedDescriptionClickHandler(e, selectedArtefact)}
             />,
         );
     }
@@ -1175,17 +1249,16 @@ export function CreateArtefactModal() {
                                                             </OverviewItemDescription>
                                                             {description ? (
                                                                 <OverviewItemActions>
-                                                                    <IconButton
-                                                                        name="item-question"
-                                                                        onClick={(e) => {
-                                                                            handleShowEnhancedDescriptionClickHandler(
-                                                                                e,
-                                                                                pluginOverviewToArtefactDocumentation(
+                                                                        <IconButton
+                                                                            data-test-id={`artefact-plugin-${artefact.key}-documentation-btn`}
+                                                                            name="item-question"
+                                                                            onClick={(e) => {
+                                                                                handleShowEnhancedDescriptionClickHandler(
+                                                                                    e,
                                                                                     artefact,
-                                                                                ),
-                                                                            );
-                                                                        }}
-                                                                    />
+                                                                                );
+                                                                            }}
+                                                                        />
                                                                 </OverviewItemActions>
                                                             ) : null}
                                                         </OverviewItem>
@@ -1201,9 +1274,18 @@ export function CreateArtefactModal() {
                     {documentationToShow && (
                         <TaskDocumentationModal
                             documentationToShow={documentationToShow}
-                            onClose={() => setDocumentationToShow(undefined)}
+                            onClose={() => {
+                                setDocumentationToShow(undefined);
+                                setRelatedPluginToSwitch(undefined);
+                            }}
+                            onSwitchToRelatedPlugin={updateExistingTask ? undefined : handleRelatedPluginSwitch}
                         />
                     )}
+                    <RelatedPluginSwitchWarningModal
+                        pluginToSwitch={relatedPluginToSwitch}
+                        onClose={() => setRelatedPluginToSwitch(undefined)}
+                        onConfirm={switchToRelatedPlugin}
+                    />
                 </>
             }
         </SimpleDialog>
@@ -1225,15 +1307,115 @@ export function CreateArtefactModal() {
     );
 }
 
+const pluginOverviewLabel = (pluginOverview: Pick<IPluginOverview, "key" | "pluginId" | "title">) =>
+    pluginOverview.title ?? pluginOverview.pluginId ?? pluginOverview.key;
+
+interface RelatedPluginSwitchWarningModalProps {
+    pluginToSwitch?: IPluginOverview;
+    onClose: () => void;
+    onConfirm: (plugin: IPluginOverview) => void;
+}
+
+const RelatedPluginSwitchWarningModal = ({
+    pluginToSwitch,
+    onClose,
+    onConfirm,
+}: RelatedPluginSwitchWarningModalProps) => {
+    const [t] = useTranslation();
+
+    if (!pluginToSwitch) {
+        return null;
+    }
+
+    return (
+        <AlertDialog
+            data-test-id="related-plugin-switch-warning-modal"
+            warning
+            size="tiny"
+            isOpen
+            title={t("CreateModal.relatedPlugins.switchWarningTitle")}
+            onClose={onClose}
+            actions={[
+                <Button
+                    data-test-id="related-plugin-switch-confirm-btn"
+                    affirmative
+                    key="switch"
+                    onClick={() => onConfirm(pluginToSwitch)}
+                >
+                    {t("CreateModal.relatedPlugins.switchAction", {
+                        pluginLabel: pluginOverviewLabel(pluginToSwitch),
+                    })}
+                </Button>,
+                <Button data-test-id="related-plugin-switch-cancel-btn" key="cancel" onClick={onClose}>
+                    {t("common.action.cancel")}
+                </Button>,
+            ]}
+        >
+            <HtmlContentBlock>
+                <p>{t("CreateModal.relatedPlugins.switchWarningMessage")}</p>
+            </HtmlContentBlock>
+        </AlertDialog>
+    );
+};
+
+const pluginDetailsToPluginOverview = (pluginDetails: IPluginDetails): IPluginOverview => {
+    return {
+        key: pluginDetails.pluginId,
+        title: pluginDetails.title,
+        description: pluginDetails.description,
+        taskType: pluginDetails.taskType,
+        categories: pluginDetails.categories,
+        markdownDocumentation: pluginDetails.markdownDocumentation,
+    };
+};
+
+const relatedPluginsToDocumentation = (
+    relatedPlugins: RelatedPlugin[] | undefined,
+    allPluginOverviews: IPluginOverview[],
+    cachedArtefactProperties: Record<string, IPluginDetails>,
+): RelatedPluginDocumentation[] | undefined => {
+    if (!relatedPlugins?.length) {
+        return undefined;
+    }
+
+    return relatedPlugins.map((relatedPlugin) => {
+        const overview =
+            allPluginOverviews.find(
+                (artefact) => artefact.pluginId === relatedPlugin.id || artefact.key === relatedPlugin.id,
+            ) ??
+            (cachedArtefactProperties[relatedPlugin.id]
+                ? pluginDetailsToPluginOverview(cachedArtefactProperties[relatedPlugin.id])
+                : {
+                      key: relatedPlugin.id,
+                      title: relatedPlugin.id,
+                      description: relatedPlugin.description,
+                  });
+
+        return {
+            plugin: overview,
+            description: relatedPlugin.description || overview.description || "",
+        };
+    });
+};
+
 const pluginOverviewToArtefactDocumentation = (
     pluginOverview: IPluginOverview,
+    allPluginOverviews: IPluginOverview[],
+    cachedArtefactProperties: Record<string, IPluginDetails>,
+    pluginDetails?: IPluginDetails,
     namedAnchor?: string,
 ): ArtefactDocumentation => {
+    const resolvedPluginDetails = pluginDetails ?? cachedArtefactProperties[pluginOverview.key];
     return {
         key: pluginOverview.key,
-        title: pluginOverview.title,
-        description: pluginOverview.description,
-        markdownDocumentation: pluginOverview.markdownDocumentation,
+        title: resolvedPluginDetails?.title ?? pluginOverview.title,
+        description: resolvedPluginDetails?.description ?? pluginOverview.description,
+        markdownDocumentation: resolvedPluginDetails?.markdownDocumentation ?? pluginOverview.markdownDocumentation,
         namedAnchor,
+        relatedPlugins: relatedPluginsToDocumentation(
+            resolvedPluginDetails?.relatedPlugins,
+            allPluginOverviews,
+            cachedArtefactProperties,
+        ),
     };
 };
