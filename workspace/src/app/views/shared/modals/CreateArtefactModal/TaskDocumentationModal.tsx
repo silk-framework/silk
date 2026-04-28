@@ -4,16 +4,25 @@ import {
     Button,
     HtmlContentBlock,
     Markdown,
+    OverviewItem,
+    OverviewItemActions,
+    OverviewItemDescription,
+    OverviewItemLine,
+    OverviewItemList,
+    Spacing,
     SimpleDialog,
     SimpleDialogProps,
-    CLASSPREFIX as eccgui,
+    CLASSPREFIX as eccgui, OverflowText, Tooltip,
 } from "@eccenca/gui-elements";
+import { useTranslation } from "react-i18next";
 import { ArtefactDocumentation } from "./CreateArtefactModal";
+import { IPluginOverview } from "@ducks/common/typings";
 
 interface TaskDocumentationModalProps {
     documentationToShow: ArtefactDocumentation;
     size?: SimpleDialogProps["size"];
     onClose: () => any;
+    onSwitchToRelatedPlugin?: (plugin: IPluginOverview) => void;
 }
 
 const testId = "artefact-documentation-modal";
@@ -44,9 +53,11 @@ const findHeadingBefore = (element: Element): Element | undefined => {
 export const TaskDocumentationModal = ({
     documentationToShow,
     onClose,
+    onSwitchToRelatedPlugin,
     size = "large",
 }: TaskDocumentationModalProps) => {
     const [initialized, setInitialized] = React.useState(false);
+    const [t] = useTranslation();
 
     React.useEffect(() => {
         // If an anchor is defined, jump to it
@@ -105,6 +116,51 @@ export const TaskDocumentationModal = ({
                 <Markdown allowHtml>
                     {documentationToShow.markdownDocumentation || documentationToShow.description || ""}
                 </Markdown>
+                {documentationToShow.relatedPlugins && documentationToShow.relatedPlugins.length > 0 && (
+                    <>
+                        <Spacing size="small" vertical />
+                        <h3>{t("CreateModal.relatedPlugins.title")}</h3>
+                        <OverviewItemList data-test-id="related-plugins-list" columns={1} hasSpacing>
+                            {documentationToShow.relatedPlugins.map((relatedPlugin) => {
+                                const pluginLabel = relatedPlugin.plugin.title ?? relatedPlugin.plugin.key;
+                                return (
+                                    <OverviewItem
+                                        key={relatedPlugin.plugin.key}
+                                        data-test-id={`related-plugin-${relatedPlugin.plugin.key}`}
+                                        densityHigh
+                                    >
+                                        <OverviewItemDescription>
+                                            <OverviewItemLine>
+                                                <strong>{pluginLabel}</strong>
+                                            </OverviewItemLine>
+                                            <OverviewItemLine small>
+                                                <Tooltip content={relatedPlugin.description}>
+                                                    <OverflowText>{relatedPlugin.description}</OverflowText>
+                                                </Tooltip>
+                                            </OverviewItemLine>
+                                        </OverviewItemDescription>
+                                        {onSwitchToRelatedPlugin && (
+                                            <OverviewItemActions>
+                                                <Button
+                                                    data-test-id={`related-plugin-${relatedPlugin.plugin.key}-use-btn`}
+                                                    affirmative={true}
+                                                    tooltip={t("CreateModal.relatedPlugins.switchTooltip", {
+                                                        pluginLabel,
+                                                    })}
+                                                    onClick={() => onSwitchToRelatedPlugin(relatedPlugin.plugin)}
+                                                >
+                                                    {t("CreateModal.relatedPlugins.switchAction", {
+                                                        pluginLabel,
+                                                    })}
+                                                </Button>
+                                            </OverviewItemActions>
+                                        )}
+                                    </OverviewItem>
+                                );
+                            })}
+                        </OverviewItemList>
+                    </>
+                )}
             </HtmlContentBlock>
         </SimpleDialog>
     );

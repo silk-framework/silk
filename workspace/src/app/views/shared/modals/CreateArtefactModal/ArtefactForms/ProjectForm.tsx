@@ -70,8 +70,13 @@ export function ProjectForm({ form, goBackOnEscape = () => {}, updateProjectAcl 
     };
 
     const handleTagSelectionChange = React.useCallback(
-        (params: MultiSuggestFieldSelectionProps<Keyword>) => setValue("tags", params),
-        [],
+        (params: MultiSuggestFieldSelectionProps<Keyword>) => {
+            setValue(TAGS, params);
+            if ((params.newlySelected || params.newlyRemoved) && !escapeKeyDisabled.current) {
+                escapeKeyDisabled.current = true;
+            }
+        },
+        [setValue],
     );
 
     const CodeEditorMemoed = React.useMemo(

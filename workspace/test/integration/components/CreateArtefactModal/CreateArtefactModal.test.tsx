@@ -13,18 +13,18 @@ import {
     checkRequestMade,
     cleanUpDOM,
     clickRenderedElement,
-    elementHtmlToContain,
     findAllDOMElements,
     findElement,
     legacyApiUrl,
     mockAxiosResponse,
     mockedAxiosError,
     mockedAxiosResponse,
+    pressKeyDown,
     RecursivePartial,
     renderWrapper,
 } from "../../TestHelper";
 import { CreateArtefactModal } from "../../../../src/app/views/shared/modals/CreateArtefactModal/CreateArtefactModal";
-import { fireEvent, RenderResult, waitFor, screen, within } from "@testing-library/react";
+import { RenderResult, waitFor } from "@testing-library/react";
 import {
     IOverviewArtefactItemList,
     IPluginDetails,
@@ -35,7 +35,6 @@ import { INPUT_TYPES } from "../../../../src/app/constants";
 import { TaskTypes } from "../../../../src/app/store/ducks/shared/typings";
 import { MemoryHistory } from "history/createMemoryHistory";
 import { bluePrintClassPrefix } from "../../../HierarchicalMapping/utils/TestHelpers";
-
 describe("Task creation widget", () => {
     beforeAll(() => {
         window.HTMLElement.prototype.scrollIntoView = function () {};
@@ -96,7 +95,10 @@ describe("Task creation widget", () => {
     };
 
     const selectionItems = (dialogWrapper: RenderResult | Element): Element[] => {
-        return findAllDOMElements(dialogWrapper, ".eccgui-overviewitem__list .eccgui-overviewitem__item");
+        return findAllDOMElements(
+            dialogWrapper,
+            `${byTestId("item-to-create-selection-list")} [data-test-id^="artefact-plugin-"]:not([data-test-id$="-documentation-btn"])`,
+        );
     };
 
     const pluginCreationDialogWrapper = async (
@@ -132,6 +134,85 @@ describe("Task creation widget", () => {
         return wrapper;
     };
 
+    const respondWithPluginDetails = async (pluginId: string, pluginDetails: IPluginDetails) => {
+        await waitFor(() => {
+            mockAxiosResponse(apiUrl(`core/plugins/${pluginId}`), mockedAxiosResponse({ data: pluginDetails }));
+        });
+    };
+
+    const expectFormParameterLabels = async (wrapper: RenderResult | Element, ...expectedLabels: string[]) => {
+        await waitFor(() => {
+            const labels = findAllDOMElements(wrapper, ".eccgui-label .eccgui-label__text").map((e) => e.textContent);
+            expectedLabels.forEach((label) => expect(labels).toContain(label));
+        });
+    };
+
+    const respondWithProjectTags = async (
+        projectId: string,
+        filter: string,
+        tags: Array<{ uri: string; label: string }>,
+    ) => {
+        await waitFor(() => {
+            mockAxiosResponse(
+                apiUrl(`/workspace/projects/${projectId}/tags?filter=${filter}`),
+                mockedAxiosResponse({ data: { tags } }),
+            );
+        });
+    };
+
+    const expectTaskTags = async (wrapper: RenderResult | Element, ...expectedTags: string[]) => {
+        await waitFor(() => {
+            const tagSelection = findElement(wrapper, byTestId("task-tags-select"));
+            expectedTags.forEach((tag) => expect(tagSelection.textContent).toContain(tag));
+        });
+    };
+
+    const selectTaskTag = async (
+        wrapper: RenderResult | Element,
+        tag: {
+            uri: string;
+            label: string;
+        },
+    ) => {
+        const tagSelection = findElement(wrapper, byTestId("task-tags-select"));
+        const tagInput = findElement(tagSelection, "input") as HTMLInputElement;
+
+        clickRenderedElement(tagInput);
+        await pressKeyDown(tagInput, tag.label[0]);
+        changeInputValue(tagInput, tag.label);
+        await respondWithProjectTags(PROJECT_ID, tag.label, [tag]);
+
+        const tagOption = await waitFor(() => {
+            const listbox = findElement(document.body, '[role="listbox"]');
+            const option = findAllDOMElements(listbox, ".eccgui-menu__item").find((item) =>
+                item.textContent?.includes(tag.label),
+            );
+            expect(option).toBeTruthy();
+            return option as HTMLElement;
+        });
+        clickRenderedElement(tagOption);
+        await expectTaskTags(wrapper, tag.label);
+    };
+
+    const openSelectionDocumentation = async (
+        wrapper: RenderResult | Element,
+        pluginId: string,
+        pluginDetails: IPluginDetails,
+    ) => {
+        clickRenderedElement(findElement(wrapper, byTestId(`artefact-plugin-${pluginId}-documentation-btn`)));
+        await respondWithPluginDetails(pluginId, pluginDetails);
+        return await waitFor(() => findElement(wrapper, byTestId("artefact-documentation-modal")));
+    };
+
+    const openSelectedPluginDocumentation = async (wrapper: RenderResult | Element) => {
+        clickRenderedElement(findElement(wrapper, byTestId("show-enhanced-description-btn")));
+        return await waitFor(() => findElement(wrapper, byTestId("artefact-documentation-modal")));
+    };
+
+    const useRelatedPlugin = (documentationModal: RenderResult | Element, pluginId: string) => {
+        clickRenderedElement(findElement(documentationModal, byTestId(`related-plugin-${pluginId}-use-btn`)));
+    };
+
     const mockArtefactListResponse: IOverviewArtefactItemList = {
         pluginA: {
             title: "Plugin A",
@@ -155,6 +236,12 @@ describe("Task creation widget", () => {
         categories: ["category A", "category B"],
         required: ["intParam"],
         pluginId: "pluginA",
+        relatedPlugins: [
+            {
+                id: "pluginB",
+                description: "Use Plugin B when you need dataset-specific handling.",
+            },
+        ],
         properties: {
             intParam: atomicParamDescription({ title: "integer param", parameterType: INPUT_TYPES.INTEGER }),
             booleanParam: atomicParamDescription({ title: "boolean param", parameterType: INPUT_TYPES.BOOLEAN }),
@@ -201,6 +288,27 @@ describe("Task creation widget", () => {
                 {},
             ),
         },
+    };
+
+    const mockPluginBDescription: IPluginDetails = {
+        title: "Plugin B",
+        description: "This is plugin B",
+        type: "object",
+        taskType: TaskTypes.DATASET,
+        categories: ["category C"],
+        required: ["bParam"],
+        pluginId: "pluginB",
+        properties: {
+            bParam: atomicParamDescription({
+                title: "plugin B param",
+                parameterType: INPUT_TYPES.STRING,
+            }),
+        },
+    };
+
+    const mockTag = {
+        uri: "tag1",
+        label: "Tag1",
     };
 
     it("should show only the project artefact to select when on the main search page", async () => {
@@ -474,21 +582,65 @@ describe("Task creation widget", () => {
 
     it("should check if the info Icon for task artefact exist", async () => {
         const { element } = await createMockedListWrapper();
-        const dialog = await fetchDialog(element);
-        const items = selectionItems(dialog);
-        const randomItem = items[0];
-        const iconButton = randomItem.querySelector(".eccgui-overviewitem__actions .eccgui-button--icon");
-        expect(iconButton !== null).toBeTruthy();
+        const iconButton = await waitFor(() =>
+            findElement(element, byTestId("artefact-plugin-pluginA-documentation-btn")),
+        );
+        expect(iconButton).toBeTruthy();
     });
 
     it("should show the info dialog when info icon is clicked", async () => {
         const { element } = await createMockedListWrapper();
-        const dialog = await fetchDialog(element);
-        const items = selectionItems(dialog);
-        const randomItem = items[0];
-        const iconButton = randomItem.querySelector(".eccgui-overviewitem__actions button.eccgui-button--icon");
-        iconButton && fireEvent.click(iconButton);
-        const infoDialog = element.querySelector(".eccgui-card");
-        expect(infoDialog !== null).toBeTruthy();
+        const infoDialog = await openSelectionDocumentation(element, "pluginA", mockPluginDescription);
+        expect(infoDialog).toBeTruthy();
+        expect(infoDialog.textContent).toContain("Related plugins");
+        expect(infoDialog.textContent).toContain("Plugin B");
+        expect(infoDialog.textContent).toContain("Use Plugin B when you need dataset-specific handling.");
+    });
+
+    it("should switch to a related plugin from the documentation modal", async () => {
+        const { element } = await createMockedListWrapper();
+        const documentationModal = await openSelectionDocumentation(element, "pluginA", mockPluginDescription);
+        useRelatedPlugin(documentationModal, "pluginB");
+        await respondWithPluginDetails("pluginB", mockPluginBDescription);
+        await expectFormParameterLabels(element, "plugin B param");
+    });
+
+    it("should not show the related plugin action in update mode", async () => {
+        const { element } = await pluginCreationDialogWrapper(true, existingTask);
+        const documentationModal = await openSelectedPluginDocumentation(element);
+        expect(findAllDOMElements(documentationModal, byTestId("related-plugin-pluginB-use-btn"))).toHaveLength(0);
+    });
+
+    it("should keep tags when switching to a related plugin", async () => {
+        const { element } = await pluginCreationDialogWrapper();
+        await selectTaskTag(element, mockTag);
+        const documentationModal = await openSelectedPluginDocumentation(element);
+        useRelatedPlugin(documentationModal, "pluginB");
+        await respondWithPluginDetails("pluginB", mockPluginBDescription);
+        await expectFormParameterLabels(element, "plugin B param");
+        await expectTaskTags(element, mockTag.label);
+    });
+
+    it("should ask for confirmation before switching to a related plugin when the form has changed", async () => {
+        const { element } = await pluginCreationDialogWrapper();
+        changeInputValue(findElement(element, "#intParam") as HTMLInputElement, "100");
+        const documentationModal = await openSelectedPluginDocumentation(element);
+        useRelatedPlugin(documentationModal, "pluginB");
+        const warningModal = await waitFor(() =>
+            findElement(element, byTestId("related-plugin-switch-warning-modal")),
+        );
+        expect(warningModal.textContent).toContain("There are unsaved changes in the form.");
+        expect(mockAxios.getReqByUrl(apiUrl("/core/plugins/pluginB"))).toBeFalsy();
+
+        clickRenderedElement(findElement(element, byTestId("related-plugin-switch-cancel-btn")));
+        await waitFor(() => {
+            expect(findAllDOMElements(element, byTestId("related-plugin-switch-warning-modal"))).toHaveLength(0);
+        });
+        expect((findElement(element, "#intParam") as HTMLInputElement).value).toBe("100");
+
+        useRelatedPlugin(documentationModal, "pluginB");
+        clickRenderedElement(findElement(element, byTestId("related-plugin-switch-confirm-btn")));
+        await respondWithPluginDetails("pluginB", mockPluginBDescription);
+        await expectFormParameterLabels(element, "plugin B param");
     });
 });
