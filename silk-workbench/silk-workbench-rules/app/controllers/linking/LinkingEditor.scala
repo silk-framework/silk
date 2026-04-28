@@ -71,7 +71,11 @@ class LinkingEditor @Inject() (implicit accessMonitor: WorkbenchAccessMonitor, w
     } else {
       try {
         implicit val pluginContext: PluginContext = PluginContext.fromProject(project)
-        val result = LinkageRuleEvaluator(task.data.rule.execution(TaskContext.forInput(task)), entitiesCache.value())
+        val ruleTaskContext = TaskContext.forInputs(Seq(
+          project.anyTask(task.data.source.inputId),
+          project.anyTask(task.data.target.inputId)
+        ))
+        val result = LinkageRuleEvaluator(task.data.rule.execution(ruleTaskContext), entitiesCache.value())
         val score = f"Precision: ${result.precision}%.2f | Recall: ${result.recall}%.2f | F-measure: ${result.fMeasure}%.2f"
         Ok(views.html.editor.score(score))
       } catch {
