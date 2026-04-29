@@ -81,15 +81,11 @@ case class LocalSparqlSelectExecutor() extends LocalExecutor[SparqlSelectCustomT
 
     val bindings = input.entities.flatMap { entity =>
       val values = expectedSchema.typedPaths.map(tp => entity.valueOfPath(tp.toUntypedPath))
-      if (values.forall(_.nonEmpty)) {
-        val projected = Entity(entity.uri, values, expectedSchema)
-        val queries = sparqlSelectTask.queryTemplate.generate(Some(projected), taskProperties, templateVariables)
-        queries.iterator.flatMap { query =>
-          executionReportUpdater.foreach(_.increaseQueryCounter())
-          LocalSparqlSelectIterator.executeSelect(sparqlEndpoint, query, selectLimit, Some(sparqlSelectTask.sparqlTimeout)).bindings
-        }
-      } else {
-        Iterator.empty
+      val projected = Entity(entity.uri, values, expectedSchema)
+      val queries = sparqlSelectTask.queryTemplate.generate(Some(projected), taskProperties, templateVariables)
+      queries.iterator.flatMap { query =>
+        executionReportUpdater.foreach(_.increaseQueryCounter())
+        LocalSparqlSelectIterator.executeSelect(sparqlEndpoint, query, selectLimit, Some(sparqlSelectTask.sparqlTimeout)).bindings
       }
     }
     LocalSparqlSelectIterator.createEntities(sparqlSelectTask, bindings, vars, executionReportUpdater)

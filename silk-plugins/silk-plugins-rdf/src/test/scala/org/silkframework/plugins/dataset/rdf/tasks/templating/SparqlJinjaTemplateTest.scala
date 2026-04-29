@@ -47,13 +47,29 @@ class SparqlJinjaTemplateTest extends AnyFlatSpec with Matchers {
     result must include("projectValue / globalValue")
   }
 
-  it should "reject old Jinja syntax (row, inputProperties, outputProperties)" in {
+  it should "reject old syntax (row, inputProperties, outputProperties)" in {
     intercept[UnboundVariablesException] {
       generate("""{{ row.uri("x") }}""", assignments = Map("x" -> "urn:a:b"))
     }
     intercept[UnboundVariablesException] {
       generate("""{{ inputProperties.uri("graph") }}""",
         taskProps = TaskProperties(Map("graph" -> "urn:g:1"), Map.empty))
+    }
+  }
+
+  it should "fail if a referenced variable is not provided" in {
+    intercept[UnboundVariablesException] {
+      generate("""{{ project.missing }}""")
+    }
+    intercept[UnboundVariablesException] {
+      generate("""{{ global.missing }}""")
+    }
+    intercept[UnboundVariablesException] {
+      SparqlTemplate.create(JinjaTemplateEngine.id, """{{ input.entity.subject }}""")
+        .generate(None, TaskProperties(Map.empty, Map.empty)).head
+    }
+    intercept[UnboundVariablesException] {
+      generate("""{{ input.entity.existing }} {{ input.entity.missing }}""", assignments = Map("existing" -> "urn:x:1"))
     }
   }
 
