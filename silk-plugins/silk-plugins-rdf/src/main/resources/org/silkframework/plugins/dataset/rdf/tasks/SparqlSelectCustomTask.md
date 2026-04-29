@@ -81,6 +81,19 @@ written in the template. The following filters are provided to render values saf
 All transformer plugins are also available as Jinja filters under their plugin id (for example `lowerCase`,
 `trim`, `urlEncode`).
 
+### Input schema inference
+
+The input schema (the entity properties the task expects) is derived by scanning the raw template for
+`input.entity.<property>` references (or bare references resolved via `defaultScope`). This scan operates
+on the template text before rendering, so SPARQL line comments (`# ...`) are **not** stripped: a
+commented-out line such as
+
+```sparql
+# {{ input.entity.property }}
+```
+
+will still cause `property` to appear in the inferred input schema.
+
 ### Output schema inference
 
 The output schema is derived from the raw template by a heuristic, without rendering it. The heuristic takes
