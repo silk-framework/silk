@@ -80,8 +80,7 @@ class LocalSparqlSelectExecutorTest extends AnyFlatSpec
     val inputSchema = EntitySchema("", typedPaths = IndexedSeq(TypedPath("s", ValueType.URI)))
     val inputEntities = Seq(
       Entity("urn:in:1", IndexedSeq(Seq("http://example.org/a")), inputSchema),
-      Entity("urn:in:2", IndexedSeq(Seq("http://example.org/b")), inputSchema),
-      Entity("urn:in:3", IndexedSeq(Seq()), inputSchema) // skipped: missing value
+      Entity("urn:in:2", IndexedSeq(Seq("http://example.org/b")), inputSchema)
     )
     val inputTable = GenericEntityTable(inputEntities, inputSchema, PlainTask("inputTask", DatasetSpec(stubDataset)))
 
@@ -97,6 +96,29 @@ class LocalSparqlSelectExecutorTest extends AnyFlatSpec
     capturedQueries(1) must include ("<http://example.org/b>")
     // Bindings from both queries are flattened into the output: rowsPerQuery rows × 2 queries.
     results.size mustBe (rowsPerQuery * 2)
+  }
+
+  it should "fail when an input entity is missing a value referenced by the template" in {
+    val query = """SELECT ?p ?o WHERE { <{{ input.entity.s }}> ?p ?o }"""
+    val task = SparqlSelectCustomTask(query, useDefaultDataset = true)
+
+    val sparqlEndpoint = sparqlEndpointStub()
+    val stubDataset = new StubRdfDataset(sparqlEndpoint)
+
+    val inputSchema = EntitySchema("", typedPaths = IndexedSeq(TypedPath("s", ValueType.URI)))
+    val inputEntities = Seq(
+      Entity("urn:in:1", IndexedSeq(Seq()), inputSchema)
+    )
+    val inputTable = GenericEntityTable(inputEntities, inputSchema, PlainTask("inputTask", DatasetSpec(stubDataset)))
+
+    val activityContextMock = TestMocks.activityContextMock()
+    val reportUpdater = SparqlSelectExecutionReportUpdater(PlainTask("task", task), activityContextMock)
+
+    an[UnboundVariablesException] must be thrownBy {
+      LocalSparqlSelectExecutor()
+        .executeOnDefaultDatasetPerEntity(task, stubDataset, inputTable, outputTask = None, executionReportUpdater = reportUpdater)
+        .toList
+    }
   }
 
   it should "evaluate a Jinja query template using the graph variable from the task parameters" in {
