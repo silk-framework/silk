@@ -81,8 +81,8 @@ const PrefixNew = ({ onAdd, existingPrefixes }: IProps) => {
         }
     };
 
-    let prefixNameErrorIcon: JSX.Element | undefined = undefined;
-    let prefixValueErrorIcon: JSX.Element | undefined = undefined;
+    let prefixNameErrorIcon: React.JSX.Element | undefined = undefined;
+    let prefixValueErrorIcon: React.JSX.Element | undefined = undefined;
 
     if (!isValidPrefixName && prefixDefinition.prefixName) {
         prefixNameErrorIcon = <Icon name={"state-warning"} tooltipText={t("PrefixDialog.prefixNameInvalid")} />;
@@ -114,7 +114,7 @@ const PrefixNew = ({ onAdd, existingPrefixes }: IProps) => {
                 handleSubmit();
             }
         },
-        [submitButtonDisabled, prefixDefinition]
+        [submitButtonDisabled, prefixDefinition],
     );
 
     const closeOverwriteDialog = React.useCallback(() => setOverwriteDialogOpen(false), []);

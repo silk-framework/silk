@@ -1,16 +1,15 @@
 import React from "react";
-import ExampleView from "../../../../../src/app/views/pages/MappingEditor/HierarchicalMapping/containers/MappingRule/ExampleView";
-import * as Store from "../../../../../src/app/views/pages/MappingEditor/HierarchicalMapping/store";
 import EventEmitter from "../../../../../src/app/views/pages/MappingEditor/HierarchicalMapping/utils/EventEmitter";
-import { ValueRuleForm } from "../../../../../src/app/views/pages/MappingEditor/HierarchicalMapping/containers/MappingRule/ValueRule/ValueRuleForm";
-import { render, waitFor } from "@testing-library/react";
-import { clickFoundElement, findAllDOMElements } from "../../../../integration/TestHelper";
+import {
+    ValueRuleForm
+} from "../../../../../src/app/views/pages/MappingEditor/HierarchicalMapping/containers/MappingRule/ValueRule/ValueRuleForm";
+import {render, waitFor} from "@testing-library/react";
+import {clickFoundElement, findAllDOMElements} from "../../../../integration/TestHelper";
 
 const props = {
     id: "1",
     parentId: "2",
     scrollIntoView: jest.fn(),
-    scrollElementIntoView: jest.fn(),
     viewActions: {
         savedChanges: jest.fn(),
     },

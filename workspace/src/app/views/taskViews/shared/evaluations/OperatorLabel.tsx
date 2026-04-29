@@ -9,6 +9,7 @@ interface OperatorLabelProps {
     tagPluginType: "Input" | "Transform" | "Comparison" | "Aggregation" | "Source path" | "Target path";
     operator: any;
     operatorPlugins: Array<IPluginDetails>;
+    children: React.ReactNode;
 }
 
 export const OperatorLabel: React.FC<OperatorLabelProps> = React.memo(
@@ -23,5 +24,5 @@ export const OperatorLabel: React.FC<OperatorLabelProps> = React.memo(
                 {children}
             </TagList>
         );
-    }
+    },
 );

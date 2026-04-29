@@ -161,7 +161,7 @@ const logError = (error: FetchError | Error, reactErrorInfo?: ErrorInfo): boolea
         } else if (error instanceof Error) {
             const { name, message, stack } = error;
             const newStack = reactErrorInfo ? reactErrorInfo.componentStack : stack;
-            err = generateDefaultError(name, message, newStack);
+            err = generateDefaultError(name, message, newStack || undefined);
         } else {
             err = generateDefaultError("Uncaught Error type received ", error);
         }

@@ -1,8 +1,9 @@
 import React from "react";
-import ValueRule from "../../../../../src/app/views/pages/MappingEditor/HierarchicalMapping/containers/MappingRule/ValueRule/ValueRule";
+import ValueRule
+    from "../../../../../src/app/views/pages/MappingEditor/HierarchicalMapping/containers/MappingRule/ValueRule/ValueRule";
 
-import { waitFor, render, waitForElementToBeRemoved } from "@testing-library/react";
-import { byTestId, clickFoundElement, findAllDOMElements, findElement } from "../../../../integration/TestHelper";
+import {act, cleanup, render, waitFor} from "@testing-library/react";
+import {byTestId, clickFoundElement, findAllDOMElements, findElement} from "../../../../integration/TestHelper";
 
 const handleCopyFn = jest.fn();
 const handleCloneFn = jest.fn();
@@ -11,17 +12,15 @@ const onClickedRemoveFn = jest.fn();
 const props = {
     id: "1",
     parentId: "",
-    parent: undefined,
     edit: false,
     type: "direct",
-    sourcePath: [],
-    sourcePaths: ["fields/customfield_12408", "fields/summary"],
     mappingTarget: {
         uri: "uri",
         valueType: {
             nodeType: "div",
         },
     },
+    sourcePaths: ["a", "b"],
     viewActions: {
         savedChanges: jest.fn(),
     },
@@ -34,7 +33,10 @@ const props = {
     onClickedRemove: onClickedRemoveFn,
 };
 
-const getWrapper = (arg = props) => render(<ValueRule {...arg} />);
+const getWrapper = (arg = props) => {
+    cleanup()
+    return render(<ValueRule {...arg} />);
+}
 
 describe("ValueRule Component", () => {
     describe("on component mounted, ", () => {
@@ -45,11 +47,11 @@ describe("ValueRule Component", () => {
         });
 
         it("should ValueRuleForm rendered, when `props.edit` is true", async () => {
-            await waitFor(() => {
-                const wrapper = getWrapper({
-                    ...props,
-                    edit: true,
-                });
+            const wrapper = await act(() => getWrapper(({
+                ...props,
+                edit: true,
+            })));
+            waitFor( () => {
                 expect(findAllDOMElements(wrapper, ".ecc-silk-mapping__ruleseditor").length).toBeGreaterThan(0);
             });
         });

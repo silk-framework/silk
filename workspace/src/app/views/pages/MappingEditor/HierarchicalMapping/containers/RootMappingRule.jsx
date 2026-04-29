@@ -1,8 +1,19 @@
 import React from "react";
 import _ from "lodash";
 import className from "classnames";
-import { NotAvailable } from "gui-elements-deprecated";
-import { Card, CardHeader, CardTitle, CardOptions, Divider } from "@eccenca/gui-elements";
+import {
+    Card,
+    CardHeader,
+    CardTitle,
+    CardOptions,
+    Divider,
+    NotAvailable,
+    OverviewItem,
+    OverviewItemDescription,
+    OverviewItemLine,
+    OverviewItemActions,
+    OverflowText,
+} from "@eccenca/gui-elements";
 import { ThingIcon } from "../components/ThingIcon";
 import RuleTitle from "../elements/RuleTitle";
 import RuleTypes from "../elements/RuleTypes";
@@ -101,7 +112,7 @@ class RootMappingRule extends React.Component {
                 {
                     expanded: !this.state.expanded,
                 },
-                this.updateQueryOnExpansion
+                this.updateQueryOnExpansion,
             );
         }
     }
@@ -119,7 +130,7 @@ class RootMappingRule extends React.Component {
         const breadcrumbs = _.get(this.props, "rule.breadcrumbs", []);
         const parent = _.last(breadcrumbs);
 
-        let uriPattern = <NotAvailable label="automatic default pattern" inline />;
+        let uriPattern = <NotAvailable label="automatic default pattern" tooltip={""} noTag />;
 
         const uriRuleType = _.get(this.props.rule.rules, "uriRule.type", false);
         if (uriRuleType === MAPPING_RULE_TYPE_URI) {
@@ -140,25 +151,30 @@ class RootMappingRule extends React.Component {
                                     })}
                                     style={{ backgroundColor: "transparent" }}
                                 >
-                                    <div className="mdl-list__item" style={{ padding: "0", cursor: "inherit" }}>
-                                        <div className="mdl-list__item-primary-content">
-                                            <div className="ecc-silk-mapping__ruleitem-headline">
+                                    <OverviewItem>
+                                        <OverviewItemDescription data-test-id={"mapping-rule-title"} style={{ width: "40%" }}>
+                                            <OverviewItemLine className="ecc-silk-mapping__ruleitem-headline">
                                                 <ThingIcon type="object" />
                                                 <RuleTitle
                                                     rule={this.props.rule}
                                                     className="ecc-silk-mapping__rulesobject__title-property"
                                                 />
-                                            </div>
-                                            <RuleTypes
-                                                rule={this.props.rule}
-                                                className="ecc-silk-mapping__ruleitem-subline ecc-silk-mapping__rulesobject__title-type"
-                                            />
-                                            <div className="ecc-silk-mapping__ruleitem-subline ecc-silk-mapping__rulesobject__title-uripattern">
+                                            </OverviewItemLine>
+                                        </OverviewItemDescription>
+                                        <OverviewItemDescription style={{ width: "20%" }}>
+                                            <OverviewItemLine>
+                                                <RuleTypes
+                                                    rule={this.props.rule}
+                                                    className="ecc-silk-mapping__ruleitem-subline ecc-silk-mapping__rulesobject__title-type"
+                                                />
+                                            </OverviewItemLine>
+                                        </OverviewItemDescription>
+                                        <OverviewItemDescription style={{ width: "40%" }}>
+                                            <OverviewItemLine className="ecc-silk-mapping__ruleitem-subline ecc-silk-mapping__rulesobject__title-uripattern">
                                                 {uriPattern}
-                                            </div>
-                                        </div>
-                                        <div className="mdl-list__item-secondary-content" key="action"></div>
-                                    </div>
+                                            </OverviewItemLine>
+                                        </OverviewItemDescription>
+                                    </OverviewItem>
                                 </div>
                             </div>
                         </CardTitle>

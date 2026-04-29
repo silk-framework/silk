@@ -1,13 +1,23 @@
 import React from "react";
+import { PropertyValue, PropertyName, Label } from "@eccenca/gui-elements";
+import { TextToggler } from "../TextToggler";
 
-const MetadataDesc = ({ description }) => {
+const MetadataDesc = ({ description, hasLabel }) => {
     return (
-        <div className="ecc-silk-mapping__rulesviewer__comment">
-            <dl className="ecc-silk-mapping__rulesviewer__attribute">
-                <dt className="ecc-silk-mapping__rulesviewer__attribute-label">Mapping description</dt>
-                <dd className="ecc-silk-mapping__rulesviewer__attribute-info">{description}</dd>
-            </dl>
-        </div>
+        <>
+            {hasLabel ? (
+                <PropertyValue className="ecc-silk-mapping__rulesviewer__comment">{description}</PropertyValue>
+            ) : (
+                <>
+                    <PropertyName>
+                        <Label text={"Mapping description"} emphasis={"strong"} />
+                    </PropertyName>
+                    <PropertyName className="ecc-silk-mapping__rulesviewer__comment">
+                        <TextToggler text={description} />
+                    </PropertyName>
+                </>
+            )}
+        </>
     );
 };
 

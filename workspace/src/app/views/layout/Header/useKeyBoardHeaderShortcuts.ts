@@ -9,10 +9,11 @@ import { DATA_TYPES } from "../../../constants";
 import { uppercaseFirstChar } from "../../../utils/transformers";
 import { useTranslation } from "react-i18next";
 import { absoluteProjectPath } from "../../../utils/routerUtils";
+import { AppDispatch } from "store/configureStore";
 import { ModalContext } from "@eccenca/gui-elements/src/components/Dialog/ModalContext";
 
 export const useKeyboardHeaderShortcuts = () => {
-    const dispatch = useDispatch();
+    const dispatch = useDispatch<AppDispatch>();
     const [t] = useTranslation();
     const projectId = useSelector(commonSel.currentProjectIdSelector);
     const modalContext = React.useContext(ModalContext);

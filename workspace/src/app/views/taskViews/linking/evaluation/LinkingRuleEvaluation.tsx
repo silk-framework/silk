@@ -76,7 +76,7 @@ export const LinkingRuleEvaluation = ({
     const popupErrorsEnabled = React.useRef(true);
     popupErrorsEnabled.current = errorModalEnabled;
     // The root node of the sub-tree that will be evaluated
-    const evaluatedSubTreeNode = React.useRef<string>();
+    const evaluatedSubTreeNode = React.useRef<string>(undefined);
 
     const [pathNotInCacheValidationError, setPathNotInCacheValidationError] = React.useState<
         { path: string; toTarget: boolean } | undefined
@@ -256,7 +256,7 @@ export const LinkingRuleEvaluation = ({
     };
 
     /** Factory method used by the rule editor to create an evaluation element. */
-    const createRuleEditorEvaluationComponent = (ruleOperatorId: string): JSX.Element => {
+    const createRuleEditorEvaluationComponent = (ruleOperatorId: string): React.JSX.Element => {
         return (
             <LinkRuleNodeEvaluation
                 ruleOperatorId={ruleOperatorId}

@@ -4,10 +4,10 @@ import { OverviewItemList, Notification } from "@eccenca/gui-elements";
 import { useTranslation } from "react-i18next";
 
 interface IProps {
-    children: JSX.Element | JSX.Element[];
+    children: React.JSX.Element | React.JSX.Element[];
     isLoading: boolean;
     isEmpty: boolean;
-    emptyContainer?: JSX.Element;
+    emptyContainer?: React.JSX.Element;
     emptyListMessage?: string;
     [key: string]: any;
 }

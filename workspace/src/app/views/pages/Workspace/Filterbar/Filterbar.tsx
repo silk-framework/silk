@@ -6,6 +6,7 @@ import { RadioButton, Spacing, TitleSubsection, Label } from "@eccenca/gui-eleme
 import FacetsList from "./FacetsList";
 import { useTranslation } from "react-i18next";
 import { IAvailableDataTypeOption } from "@ducks/common/typings";
+import { AppDispatch } from "store/configureStore";
 
 interface IFilterBarProps {
     extraItemTypeModifiers?: IAvailableDataTypeOption[];
@@ -15,7 +16,7 @@ interface IFilterBarProps {
 /** The filter menu that allows to filter the search results by selecting a specific item type and
  * filter by type specific facets. */
 export function Filterbar({ extraItemTypeModifiers = [], projectId }: IFilterBarProps) {
-    const dispatch = useDispatch();
+    const dispatch = useDispatch<AppDispatch>();
     const [t] = useTranslation();
 
     const appliedFilters = useSelector(workspaceSel.appliedFiltersSelector);
@@ -63,7 +64,7 @@ export function Filterbar({ extraItemTypeModifiers = [], projectId }: IFilterBar
                                         checked={appliedFilters[typeModifier.field] === opt.id}
                                         label={t(
                                             `widget.Filterbar.subsections.valueLabels.itemType.${opt.id}`,
-                                            opt.label
+                                            opt.label,
                                         )}
                                         onChange={() => handleFilterSelect(typeModifier.field, opt.id)}
                                         value={opt.id}

@@ -13,6 +13,7 @@ import { requestChangePrefixes, requestRemoveProjectPrefix } from "@ducks/worksp
 import { widgetsSlice } from "@ducks/workspace/widgetsSlice";
 import { ErrorResponse } from "../../../../services/fetch/responseInterceptor";
 import { useModalError } from "../../../../hooks/useModalError";
+import { AppDispatch } from "store/configureStore";
 
 interface IProps {
     projectId: string;
@@ -23,7 +24,7 @@ interface IProps {
 
 /** Manages project prefix definitions. */
 const PrefixesDialog = ({ onCloseModal, isOpen, existingPrefixes, projectId }: IProps) => {
-    const dispatch = useDispatch();
+    const dispatch = useDispatch<AppDispatch>();
     const prefixList = useSelector(workspaceSel.prefixListSelector);
     const [loading, setLoading] = React.useState<boolean>(false);
     const [error, setError] = React.useState<ErrorResponse | undefined>();

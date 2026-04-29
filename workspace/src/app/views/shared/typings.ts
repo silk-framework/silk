@@ -11,7 +11,7 @@ export interface DatasetCharacteristics {
      * If false, the dataset only supports a single table (e.g., CSV). */
     supportsMultipleTables: boolean;
     /** If the dataset supports an explicit schema, i.e. an ordered flat schema. */
-    explicitSchema: boolean
+    explicitSchema: boolean;
 }
 
 interface SupportedPathExpressions {

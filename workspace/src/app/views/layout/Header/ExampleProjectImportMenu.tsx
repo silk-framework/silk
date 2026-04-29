@@ -6,11 +6,12 @@ import React from "react";
 import { useTranslation } from "react-i18next";
 import { routerOp } from "@ducks/router";
 import { requestProjectMetadata } from "@ducks/shared/requests";
+import { AppDispatch } from "store/configureStore";
 
 /** Component to load the "movies" example project. */
 export const ExampleProjectImportMenu = () => {
     const { registerError } = useErrorHandler();
-    const dispatch = useDispatch();
+    const dispatch = useDispatch<AppDispatch>();
     const [t] = useTranslation();
     const [exampleProjectLoaded, setExampleProjectLoaded] = React.useState<boolean | undefined>(undefined);
     const [loading, setLoading] = React.useState(false);

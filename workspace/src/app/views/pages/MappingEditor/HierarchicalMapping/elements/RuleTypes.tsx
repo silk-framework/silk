@@ -1,6 +1,6 @@
 import React from "react";
 import _ from "lodash";
-import { NotAvailable } from "gui-elements-deprecated";
+import { NotAvailable } from "@eccenca/gui-elements";
 import { ThingName } from "../components/ThingName";
 
 import { MAPPING_RULE_TYPE_ROOT } from "../utils/constants";
@@ -28,7 +28,11 @@ const RuleTypes = ({ rule, ...otherProps }) => {
                 // add language tag if available
                 appendText = ` (${appendText})`;
             }
-            let dataTypeLabel: string | JSX.Element = _.get(rule, "mappingTarget.valueType.nodeType", <NotAvailable />);
+            let dataTypeLabel: string | React.JSX.Element = _.get(
+                rule,
+                "mappingTarget.valueType.nodeType",
+                <NotAvailable />,
+            );
             if (typeof dataTypeLabel === "string") {
                 const label = mappingEditorContext.valueTypeLabels.get(dataTypeLabel);
                 if (label) {

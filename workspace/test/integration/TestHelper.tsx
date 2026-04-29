@@ -1,7 +1,7 @@
 import React from "react";
 import { createBrowserHistory, createMemoryHistory, History, LocationState } from "history";
 import { Provider } from "react-redux";
-import { configureStore, getDefaultMiddleware } from "@reduxjs/toolkit";
+import { configureStore } from "@reduxjs/toolkit";
 import rootReducer from "../../src/app/store/reducers";
 import { ConnectedRouter, routerMiddleware } from "connected-react-router";
 import { AxiosMockQueueItem, AxiosMockRequestCriteria, AxiosMockType, HttpResponse } from "jest-mock-axios";
@@ -9,8 +9,9 @@ import mockAxios from "../__mocks__/axios";
 import { CONTEXT_PATH, SERVE_PATH } from "../../src/app/constants/path";
 import { mergeDeepRight } from "ramda";
 import { IStore } from "../../src/app/store/typings/IStore";
-import { render, RenderResult, waitFor, fireEvent } from "@testing-library/react";
+import { fireEvent, render, RenderResult, waitFor } from "@testing-library/react";
 import "@testing-library/jest-dom";
+import { CLASSPREFIX as eccgui } from "@eccenca/gui-elements";
 
 import {
     responseInterceptorOnError,
@@ -65,18 +66,13 @@ jest.mock("react-router", () => ({
  */
 export const createStore = (history: History<LocationState>, initialState: RecursivePartial<IStore>) => {
     const root = rootReducer(history);
-    const middleware = [
-        ...getDefaultMiddleware({
-            serializableCheck: false,
-        }),
-        routerMiddleware(history),
-    ];
+    const middleware = [routerMiddleware(history)];
 
     // Get the initial state (defaults) of the store
     // FIXME: Is there a better way to get the initial state of the store?
     const tempStore = configureStore({
         reducer: root,
-        middleware,
+        middleware: (getDefaultMiddleWare) => getDefaultMiddleWare({ serializableCheck: false }).concat(middleware),
     });
 
     const rootState = tempStore.getState();
@@ -85,7 +81,7 @@ export const createStore = (history: History<LocationState>, initialState: Recur
     // Create store with merged state
     return configureStore({
         reducer: root,
-        middleware,
+        middleware: (getDefaultMiddleWare) => getDefaultMiddleWare({ serializableCheck: false }).concat(middleware),
         preloadedState: state,
     });
 };
@@ -102,7 +98,7 @@ export type RecursivePartial<T> = {
 export const withRender = (component) => render(component);
 
 export const renderWrapper = (
-    ui: JSX.Element,
+    ui: React.JSX.Element,
     history: History<LocationState> = createBrowserHistory<LocationState>(),
     initialState: RecursivePartial<IStore> = {},
     options = {},
@@ -150,6 +146,15 @@ export const logRequests = (axiosMock?: AxiosMockType) => {
     mock.queue().forEach((request) => {
         console.log(request);
     });
+};
+
+/** Checks if the NotAvailable element is found. */
+export const checkForNotAvailableElement = (wrapper: RenderResult, noTag: boolean = true): void => {
+    if (noTag) {
+        expect(wrapper.queryAllByText("n/a", { exact: false }).length).toBeGreaterThan(0);
+    } else {
+        expect(findAllDOMElements(wrapper, `${eccgui}-notavailable`).length).toBeGreaterThan(0);
+    }
 };
 
 /**Clicks an element specified by a selector. */
@@ -206,18 +211,6 @@ export const elementHtmlToContain = async (wrapper: RenderResult | Element, sele
             );
             logWrapperHtml(wrapper);
             return err;
-        },
-    });
-};
-
-/** Adds the document.createRange method */
-export const addDocumentCreateRangeMethod = () => {
-    (global as any).document.createRange = () => ({
-        setStart: () => {},
-        setEnd: () => {},
-        commonAncestorContainer: {
-            nodeName: "BODY",
-            ownerDocument: document,
         },
     });
 };
