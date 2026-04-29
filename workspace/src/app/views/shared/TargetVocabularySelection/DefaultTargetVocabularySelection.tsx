@@ -8,7 +8,7 @@ import { IInputAttributes } from "../modals/CreateArtefactModal/ArtefactForms/In
 
 /** Target vocabulary selection component that has static entries 'all installed vocabularies' and 'none'.
  *  And alternatively allows to multi-select all available vocabularies (from the global vocabulary cache). */
-export function DefaultTargetVocabularySelection({ id, name, intent, defaultValue, onChange }: IInputAttributes) {
+export function DefaultTargetVocabularySelection({ id, name, defaultValue, onChange }: IInputAttributes) {
     const [vocabularies, setVocabularies] = useState<IVocabularyInfo[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
     const [t] = useTranslation();

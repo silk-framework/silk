@@ -481,7 +481,11 @@
             "title": "Title"
         },
         "taskForm": {
-            "resetMessage": "Following parameters have been reset because they depend on the changed parameter '{{dependOn}}': {{parameters}}"
+            "resetMessage": "Following parameters have been reset because they depend on the changed parameter '{{dependOn}}': {{parameters}}",
+            "dependentValuesNeedReview": "You have changed a parameter that {{count}} other parameter depends on. Following parameter needs to be checked: {{parameters}}",
+            "dependentValuesNeedReview_plural": "You have changed a parameter that {{count}} other parameters depend on. Following parameters need to be checked: {{parameters}}",
+            "affectedParameterNeedsReview": "This parameter depends on a changed parameter. Please check whether its value is still correct.",
+            "clearHighlightedValues": "Clear highlighted values"
         },
         "validations": {
             "float": "must be a valid floating point number",
