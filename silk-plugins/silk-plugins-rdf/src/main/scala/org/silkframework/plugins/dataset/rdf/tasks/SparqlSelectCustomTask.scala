@@ -6,7 +6,8 @@ import org.silkframework.entity._
 import org.silkframework.execution.typed.SparqlEndpointEntitySchema
 import org.silkframework.plugins.dataset.rdf.datasets.SparqlDataset
 import org.silkframework.plugins.dataset.rdf.tasks.templating.SparqlTemplate
-import org.silkframework.runtime.plugin.annotations.{Param, Plugin, PluginReference}
+import org.silkframework.runtime.plugin.PluginContext
+import org.silkframework.runtime.plugin.annotations.{Action, Param, Plugin, PluginReference}
 import org.silkframework.runtime.plugin.types.SparqlCodeParameter
 import org.silkframework.runtime.templating.TemplateEngineAutocompletionProvider
 
@@ -114,6 +115,19 @@ case class SparqlSelectCustomTask(
   }
 
   val outputSchema: EntitySchema = queryTemplate.outputSchema
+
+  @Action(
+    label = "Show prefixes",
+    description = "Shows the available namespace prefixes as a SPARQL header that can be copied into the query."
+  )
+  def showPrefixes(implicit pluginContext: PluginContext): String = {
+    val prefixes = pluginContext.prefixes
+    if (prefixes.prefixMap.isEmpty) {
+      "No prefixes are defined."
+    } else {
+      "```sparql\n" + prefixes.toSparql + "\n```"
+    }
+  }
 }
 
 object SparqlSelectCustomTask {

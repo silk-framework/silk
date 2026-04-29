@@ -5,7 +5,8 @@ import org.silkframework.entity._
 import org.silkframework.execution.typed.SparqlUpdateEntitySchema
 import org.silkframework.plugins.dataset.rdf.tasks.templating._
 import org.silkframework.plugins.dataset.rdf.datasets.SparqlDataset
-import org.silkframework.runtime.plugin.annotations.{Param, Plugin, PluginReference}
+import org.silkframework.runtime.plugin.PluginContext
+import org.silkframework.runtime.plugin.annotations.{Action, Param, Plugin, PluginReference}
 
 import org.silkframework.runtime.plugin.types.SparqlCodeParameter
 import org.silkframework.runtime.templating.{TemplateEngineAutocompletionProvider, TemplateEngines}
@@ -67,6 +68,19 @@ case class SparqlUpdateCustomTask(
   }
 
   override def outputPort: Option[Port] = Some(FixedSchemaPort(SparqlUpdateEntitySchema.schema))
+
+  @Action(
+    label = "Show prefixes",
+    description = "Shows the available namespace prefixes as a SPARQL header that can be copied into the query."
+  )
+  def showPrefixes(implicit pluginContext: PluginContext): String = {
+    val prefixes = pluginContext.prefixes
+    if (prefixes.prefixMap.isEmpty) {
+      "No prefixes are defined."
+    } else {
+      "```sparql\n" + prefixes.toSparql + "\n```"
+    }
+  }
 }
 
 object SparqlUpdateCustomTask {
