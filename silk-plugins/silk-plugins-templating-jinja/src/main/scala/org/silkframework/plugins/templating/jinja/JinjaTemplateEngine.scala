@@ -141,11 +141,21 @@ class JinjaTemplate(val node: Node) extends CompiledTemplate {
 
     // For now, we just throw any errors. In the future, we could improve this and add an error collector.
     if (!interpreter.getErrors.isEmpty) {
-      val msg = "Errors in template: " + interpreter.getErrors.asScala.map(_.getMessage).mkString(" ")
+      val messages = interpreter.getErrors.asScala.map { error =>
+        Option(error.getException).map(rootCauseMessage).getOrElse(error.getMessage)
+      }
+      val prefix = if (messages.size == 1) "Error in template: " else "Errors in template: "
+      val msg = prefix + messages.mkString(" ")
       val cause = Option(interpreter.getErrors.get(0).getException)
       throw new TemplateEvaluationException(msg, cause)
     }
   }
 
+  private def rootCauseMessage(throwable: Throwable): String = {
+    Option(throwable.getCause) match {
+      case Some(cause) if cause ne throwable => rootCauseMessage(cause)
+      case _ => throwable.getMessage
+    }
+  }
 
 }

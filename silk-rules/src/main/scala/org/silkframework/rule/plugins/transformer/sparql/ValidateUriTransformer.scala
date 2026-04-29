@@ -39,7 +39,7 @@ case class ValidateUriTransformer() extends SimpleTransformer {
     Try(new URI(value)) match {
       case scala.util.Success(uri) if uri.isAbsolute => value
       case _ =>
-        throw new ValidationException(s"Value is not a valid absolute IRI: '$value'")
+        throw new ValidationException(s"'$value' is not a valid absolute IRI")
     }
   }
 }

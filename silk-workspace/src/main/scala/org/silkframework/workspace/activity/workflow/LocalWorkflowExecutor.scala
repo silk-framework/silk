@@ -375,7 +375,7 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
       ()
     } catch {
       case NonFatal(ex) =>
-        throw WorkflowExecutionException(s"Exception occurred while writing to dataset '${resolvedDataset.label()}'. Cause: " + ex.getMessage, Some(ex))
+        throw WorkflowExecutionException(s"Failed to write to dataset '${resolvedDataset.label()}': " + ex.getMessage, Some(ex))
     }
   }
 
