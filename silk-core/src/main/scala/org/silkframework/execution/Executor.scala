@@ -13,11 +13,16 @@ import org.silkframework.runtime.plugin.{AnyPlugin, PluginContext}
   * @tparam ExecType The execution type, e.g., SparkExecution
   */
 @PluginType()
-trait Executor[TaskType <: TaskSpec, ExecType <: ExecutionType] extends AnyPlugin {
+trait Executor[TaskType <: TaskSpec, ExecType <: ExecutionType] extends AnyPlugin with java.io.Closeable {
 
   def execute(task: Task[TaskType], inputs: Seq[ExecType#DataType], output: ExecutorOutput,
               execution: ExecType, context: ActivityContext[ExecutionReport] = new ActivityMonitor(getClass.getSimpleName))
              (implicit pluginContext: PluginContext): Option[ExecType#DataType]
+
+  /**
+   * Called after the (worklow) execution has finished.
+   */
+  override def close(): Unit = {}
 
 }
 

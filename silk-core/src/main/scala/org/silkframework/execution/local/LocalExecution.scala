@@ -21,9 +21,13 @@ import scala.jdk.CollectionConverters.ConcurrentMapHasAsScala
 case class LocalExecution(useLocalInternalDatasets: Boolean,
                           replaceDataSources: Map[String, Dataset] = Map.empty,
                           replaceSinks: Map[String, Dataset] = Map.empty,
-                          workflowId: Option[Identifier] = None) extends ExecutionType {
+                          workflowId: Option[Identifier] = None,
+                          parentExecution: Option[LocalExecution] = None) extends ExecutionType {
 
   type DataType = LocalEntities
+
+  /** Unique identifier for this execution instance. */
+  val executionId: Identifier = Identifier.random
 
   private val log: Logger = Logger.getLogger(this.getClass.getName)
 
@@ -107,7 +111,8 @@ object LocalExecution {
   id = "LocalInternalDataset",
   label = "Internal dataset (single graph)",
   description =
-    """Dataset for storing entities between workflow steps. This variant does use the same graph for all internal datasets in a workflow. The underlying dataset type can be configured using the `dataset.internal.*` configuration parameters."""
+    """Dataset for storing entities between workflow steps. This variant does use the same graph for all internal datasets in a workflow. The underlying dataset type can be configured using the `dataset.internal.*` configuration parameters.""",
+  deprecation = "This dataset is deprecated and will be removed in a future version. Instead use either the \"In-workflow dataset\" or the \"In-memory dataset\"."
 )
 case class LocalInternalDataset() extends InternalDatasetTrait {
   override protected def internalDatasetPluginImpl: Dataset = InternalDataset.createInternalDataset()

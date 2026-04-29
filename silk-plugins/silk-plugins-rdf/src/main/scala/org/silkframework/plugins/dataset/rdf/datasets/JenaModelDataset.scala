@@ -7,7 +7,7 @@ import org.silkframework.plugins.dataset.rdf.endpoint.JenaModelEndpoint
 import org.silkframework.plugins.dataset.rdf.access.{SparqlSink, SparqlSource}
 import org.silkframework.runtime.activity.UserContext
 
-case class JenaModelDataset() extends RdfDataset {
+case class JenaModelDataset(dropGraphOnClear: Boolean = true) extends RdfDataset {
 
   private val sparqlParams = SparqlParams()
 
@@ -27,21 +27,21 @@ case class JenaModelDataset() extends RdfDataset {
     * Returns a link sink for writing entity links to the data set.
     */
   override def linkSink(implicit userContext: UserContext): LinkSink = {
-    new SparqlSink(sparqlParams, sparqlEndpoint, dropGraphOnClear = true)
+    new SparqlSink(sparqlParams, sparqlEndpoint, dropGraphOnClear = dropGraphOnClear)
   }
 
   /**
     * Returns an entity sink for writing entities to the data set.
     */
   override def entitySink(implicit userContext: UserContext): EntitySink = {
-    new SparqlSink(sparqlParams, sparqlEndpoint, dropGraphOnClear = true)
+    new SparqlSink(sparqlParams, sparqlEndpoint, dropGraphOnClear = dropGraphOnClear)
   }
 }
 
 object JenaModelDataset {
 
-  def apply(model: Model): JenaModelDataset = {
-    val ds = JenaModelDataset()
+  def fromModel(model: Model, dropGraphOnClear: Boolean = true): JenaModelDataset = {
+    val ds = new JenaModelDataset(dropGraphOnClear)
     ds.sparqlEndpoint = new JenaModelEndpoint(model)
     ds
   }

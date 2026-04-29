@@ -38,7 +38,8 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
                                  replaceDataSources: Map[String, Dataset] = Map.empty,
                                  replaceSinks: Map[String, Dataset] = Map.empty,
                                  useLocalInternalDatasets: Boolean = false,
-                                 clearDatasets: Boolean = true)
+                                 clearDatasets: Boolean = true,
+                                 parentExecution: Option[LocalExecution] = None)
     extends WorkflowExecutor[LocalExecution] {
 
   private val log = Logger.getLogger(getClass.getName)
@@ -81,11 +82,7 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
   }
 
   private def runWorkflow(implicit context: ActivityContext[WorkflowExecutionReport], userContext: UserContext): Unit = {
-    implicit val workflowRunContext: WorkflowRunContext = WorkflowRunContext(
-      activityContext = context,
-      workflow = currentWorkflow,
-      userContext = userContext
-    )
+    implicit val workflowRunContext: WorkflowRunContext = createRunContext
 
     checkReadOnlyDatasets()
     checkVariableDatasets()
@@ -113,6 +110,14 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
     } finally {
       context.value.updateWith(_.asDone())
       this.executionContext.executeShutdownHooks()
+      workflowRunContext.taskExecutors.foreach { case (taskId, exec) =>
+        try {
+          exec.close()
+        } catch {
+          case NonFatal(ex) =>
+            log.log(Level.WARNING, s"Exception while closing executor for task '$taskId'.", ex)
+        }
+      }
     }
   }
 
@@ -415,66 +420,12 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
     }
   }
 
-  /** NOT USED ANYMORE, only here for documentation reasons, should be deleted after everything in here is supported. */
-  def executeOperator(operator: WorkflowNode)
-                     (implicit workflowRunContext: WorkflowRunContext): Unit = {
-    // Get the error sinks for this operator
-    val errorOutputs = operator match {
-      case wo: WorkflowOperator => wo.errorOutputs.map(project.anyTask(_)(workflowRunContext.userContext))
-      case _ => Seq()
-    }
-    var errorSinks: Seq[DatasetWriteAccess] = errorOutputSinks(errorOutputs)
-
-
-    if (errorOutputs.exists(!_.data.isInstanceOf[Dataset])) {
-      // TODO: Needs proper graph
-      // TODO: How to handle error output in new model?
-      errorSinks +:= InternalDataset(null)
-    }
-
-    //        val activity = taskExecutor(dataSources, taskData, sinks, errorSinks)
-    //        val report = activityContext.child(activity, 0.0).startBlockingAndGetValue()
-    //        activityContext.value() = activityContext.value().withReport(operator.id, report)
-  }
-
-  private def errorOutputSinks(errorOutputs: Seq[ProjectTask[_ <: TaskSpec]]): Seq[DatasetWriteAccess] = {
-    errorOutputs.collect {
-      case pt: ProjectTask[_] if pt.data.isInstanceOf[Dataset] =>
-        pt.data.asInstanceOf[Dataset]
-    }
-  }
-
-  /**
-    * Returns the dataset that should be used in the workflow. Specifically [[VariableDataset]]
-    * and [[InternalDataset]] need to be replaced by the corresponding real dataset.
-    *
-    * @param datasetTask
-    * @param replaceDatasets A map with replacement datasets for [[VariableDataset]] objects.
-    * @return
-    */
-  private def resolveDataset(datasetTask: Task[GenericDatasetSpec],
-                             replaceDatasets: Map[String, Dataset]): Task[GenericDatasetSpec] = {
-    replaceDatasets.get(datasetTask.id.toString) match {
-      case Some(d) =>
-        PlainTask(datasetTask.id, datasetTask.data.copy(plugin = d), metaData = datasetTask.metaData)
-      case None =>
-        datasetTask.data.plugin match {
-          case _: VariableDataset =>
-            throw new IllegalArgumentException("No replacement found for variable dataset " + datasetTask.id.toString)
-          case _: InternalDataset =>
-            val internalDataset = executionContext.createInternalDataset(Some(datasetTask.id.toString))
-            PlainTask(datasetTask.id, datasetTask.data.copy(plugin = internalDataset), metaData = datasetTask.metaData)
-          case _: Dataset =>
-            datasetTask
-        }
-    }
-  }
-
   override protected val executionContext: LocalExecution = LocalExecution(
     useLocalInternalDatasets,
     replaceDataSources,
     replaceSinks,
-    Some(workflowTask.id)
+    Some(workflowTask.id),
+    parentExecution
   )
 
   override protected def workflowNodeEntities[T](workflowDependencyNode: WorkflowDependencyNode,

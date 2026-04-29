@@ -1,9 +1,11 @@
 package org.silkframework.workspace.activity.workflow
 
-import org.silkframework.config.{Prefixes, Task, TaskSpec}
-import org.silkframework.dataset.Dataset
+import org.silkframework.config.{PlainTask, Prefixes, Task, TaskSpec}
+import org.silkframework.dataset.{Dataset, VariableDataset}
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.execution._
+import org.silkframework.execution.local.LocalExecution
+import org.silkframework.plugins.dataset.InternalDataset
 import org.silkframework.runtime.activity.Status.Canceling
 import org.silkframework.runtime.activity._
 import org.silkframework.runtime.plugin.PluginContext
@@ -57,7 +59,12 @@ trait WorkflowExecutor[ExecType <: ExecutionType] extends Activity[WorkflowExecu
     updateProgress(operation, task)
     val result =
       try {
-        ExecutorRegistry.execute(task, inputs, output, executionContext, taskContext)
+        workflowRunContext.taskExecutors.get(task.id) match {
+          case Some(exec) =>
+            ExecutorRegistry.executeWith(exec.asInstanceOf[Executor[TaskType, ExecType]], task, inputs, output, executionContext, taskContext)
+          case None =>
+            throw WorkflowExecutionException(s"No executor found for task '${task.id}'. This is a bug: executors should have been initialized before execution.")
+        }
       } catch {
         case NonFatal(ex) =>
           workflowRunContext.activityContext.value.updateWith(_.addFailedNode(nodeId, ex))
@@ -86,6 +93,30 @@ trait WorkflowExecutor[ExecType <: ExecutionType] extends Activity[WorkflowExecu
         r.close()
       }
     }
+  }
+
+  protected def createRunContext(implicit userContext: UserContext, context: ActivityContext[WorkflowExecutionReport]): WorkflowRunContext = {
+    val workflowRunContext = WorkflowRunContext(
+      activityContext = context,
+      workflow = currentWorkflow,
+      userContext = userContext
+    )
+
+    for (node <- workflowNodes) {
+      val taskOpt: Option[Task[_ <: TaskSpec]] = node match {
+        case datasetNode: WorkflowDataset =>
+          project.taskOption[GenericDatasetSpec](datasetNode.task).map { dt =>
+            resolveDataset(dt, replaceDataSources ++ replaceSinks)
+          }
+        case operatorNode: WorkflowOperator =>
+          project.anyTaskOption(operatorNode.task)
+      }
+      for (t <- taskOpt) {
+        workflowRunContext.taskExecutors.getOrElseUpdate(t.id, ExecutorRegistry.instantiateExecutor(t.data, executionContext))
+      }
+    }
+
+    workflowRunContext
   }
 
   /**
@@ -189,6 +220,37 @@ trait WorkflowExecutor[ExecType <: ExecutionType] extends Activity[WorkflowExecu
     }
   }
 
+  /**
+   * Returns the dataset that should be used in the workflow. Specifically [[VariableDataset]]
+   * and [[InternalDataset]] need to be replaced by the corresponding real dataset.
+   *
+   * @param datasetTask
+   * @param replaceDatasets A map with replacement datasets for [[VariableDataset]] objects.
+   * @return
+   */
+  protected def resolveDataset(datasetTask: Task[GenericDatasetSpec],
+                               replaceDatasets: Map[String, Dataset]): Task[GenericDatasetSpec] = {
+    replaceDatasets.get(datasetTask.id.toString) match {
+      case Some(d) =>
+        PlainTask(datasetTask.id, datasetTask.data.copy(plugin = d), metaData = datasetTask.metaData)
+      case None =>
+        datasetTask.data.plugin match {
+          case _: VariableDataset =>
+            throw new IllegalArgumentException("No replacement found for variable dataset " + datasetTask.id.toString)
+          case _: InternalDataset =>
+            executionContext match {
+              case localExecution: LocalExecution =>
+                val internalDataset = localExecution.createInternalDataset(Some(datasetTask.id.toString))
+                PlainTask(datasetTask.id, datasetTask.data.copy(plugin = internalDataset), metaData = datasetTask.metaData)
+              case _ =>
+                datasetTask
+            }
+          case _: Dataset =>
+            datasetTask
+        }
+    }
+  }
+
   /** Necessary update for the user context, so external datasets can be accessed in safe-mode inside a workflow execution. */
   def updateUserContext(userContext: UserContext): UserContext = {
     val executionContext = userContext.executionContext
@@ -197,11 +259,22 @@ trait WorkflowExecutor[ExecType <: ExecutionType] extends Activity[WorkflowExecu
   }
 }
 
+/**
+ * A context for a single workflow execution.
+ *
+ * @param activityContext The activity context for the workflow execution.
+ * @param workflow The workflow that is being be executed.
+ * @param userContext The user that is executing the workflow.
+ * @param alreadyExecuted The workflow nodes that have already been executed.
+ * @param reconfiguredTasks The already tasks that have been reconfigured.
+ * @param taskExecutors The executors for each task by task id.
+ */
 case class WorkflowRunContext(activityContext: ActivityContext[WorkflowExecutionReport],
                               workflow: Workflow,
                               userContext: UserContext,
                               alreadyExecuted: mutable.Set[WorkflowNode] = mutable.Set(),
-                              reconfiguredTasks: mutable.Map[WorkflowNode, Task[_ <: TaskSpec]] = mutable.Map()) {
+                              reconfiguredTasks: mutable.Map[WorkflowNode, Task[_ <: TaskSpec]] = mutable.Map(),
+                              taskExecutors: mutable.Map[Identifier, Executor[_, _]] = mutable.Map()) {
   /**
     * Listeners for updates to task reports.
     * We need to hold them to prevent their garbage collection.
