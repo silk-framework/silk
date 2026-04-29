@@ -85,6 +85,7 @@ case class LocalSparqlSelectExecutor() extends LocalExecutor[SparqlSelectCustomT
         val projected = Entity(entity.uri, values, expectedSchema)
         val queries = sparqlSelectTask.queryTemplate.generate(Some(projected), taskProperties, templateVariables)
         queries.iterator.flatMap { query =>
+          executionReportUpdater.foreach(_.increaseQueryCounter())
           LocalSparqlSelectIterator.executeSelect(sparqlEndpoint, query, selectLimit, Some(sparqlSelectTask.sparqlTimeout)).bindings
         }
       } else {
@@ -112,6 +113,7 @@ class LocalSparqlSelectIterator(sparqlSelectTask: SparqlSelectCustomTask,
     val taskProperties = TaskProperties.create(inputTask, outputTask, pluginContext)
     val templateVariables = pluginContext.templateVariables.all.variables
     val query = sparqlSelectTask.queryTemplate.generate(None, taskProperties, templateVariables).head
+    executionReportUpdater.foreach(_.increaseQueryCounter())
     val results = LocalSparqlSelectIterator.executeSelect(sparqlEndpoint, query, selectLimit, Some(sparqlSelectTask.sparqlTimeout))
     val vars = LocalSparqlSelectIterator.getSparqlVars(sparqlSelectTask)
     LocalSparqlSelectIterator.createEntities(sparqlSelectTask, results.bindings, vars, executionReportUpdater)
@@ -186,11 +188,22 @@ object LocalSparqlSelectIterator {
 case class SparqlSelectExecutionReportUpdater(task: Task[TaskSpec],
                                               context: ActivityContext[ExecutionReport]) extends ExecutionReportUpdater {
 
-  override def operationLabel: Option[String] = Some("generate queries")
+  private var queriesStarted = 0
+
+  def increaseQueryCounter(): Unit = {
+    queriesStarted += 1
+  }
 
   override def entityLabelSingle: String = "Row"
 
   override def entityLabelPlural: String = "Rows"
 
-  override def minEntitiesBetweenUpdates: Int = 1
+  override def entityProcessVerb: String = {
+    val queryWord = if (queriesStarted == 1) "query" else "queries"
+    s"processed ($queriesStarted $queryWord)"
+  }
+
+  override def additionalFields(): Seq[(String, String)] = {
+    Seq("Queries" -> queriesStarted.toString).filter(_ => queriesStarted > 0)
+  }
 }
