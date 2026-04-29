@@ -1,15 +1,19 @@
 package org.silkframework.runtime.templating
 
+/**
+ * Predefined variable scopes. Each scope is a sequence of strings that forms a prefix path
+ * used to address variables, e.g., a variable "label" in scope Seq("project") is addressed as "project.label".
+ */
 object TemplateVariableScopes {
 
   /**
-   * Global variables.
+   * Scope for global variables, addressed as "global.variableName".
    */
-  final val global = "global"
+  final val global: Seq[String] = Seq("global")
 
   /**
-   * Project variables.
+   * Scope for project variables, addressed as "project.variableName".
    */
-  final val project = "project"
+  final val project: Seq[String] = Seq("project")
 
 }

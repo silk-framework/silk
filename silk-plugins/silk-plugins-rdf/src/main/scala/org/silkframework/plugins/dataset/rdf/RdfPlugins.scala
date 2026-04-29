@@ -3,6 +3,7 @@ package org.silkframework.plugins.dataset.rdf
 import org.silkframework.plugins.dataset.rdf.datasets.{AlignmentDataset, InMemoryDataset, RdfFileDataset, SparqlDataset}
 import org.silkframework.plugins.dataset.rdf.executors.{LocalSparqlCopyExecutor, LocalSparqlSelectExecutor, LocalSparqlUpdateExecutor}
 import org.silkframework.plugins.dataset.rdf.tasks.{SparqlCopyCustomTask, SparqlSelectCustomTask, SparqlUpdateCustomTask}
+import org.silkframework.plugins.dataset.rdf.tasks.templating.SparqlSimpleTemplateEngine
 import org.silkframework.plugins.dataset.rdf.vocab.{InMemoryVocabularyManager, RdfFilesVocabularyManager, RdfProjectFilesVocabularyManager, RdfVocabularyManager}
 import org.silkframework.runtime.plugin.{AnyPlugin, PluginModule}
 
@@ -20,7 +21,8 @@ class RdfPlugins extends PluginModule {
       classOf[InMemoryVocabularyManager],
       classOf[SparqlSelectCustomTask],
       classOf[SparqlCopyCustomTask],
-      classOf[SparqlUpdateCustomTask]
+      classOf[SparqlUpdateCustomTask],
+      classOf[SparqlSimpleTemplateEngine]
     ) ++ executors
 
   val executors = Seq(

@@ -38,6 +38,7 @@ import org.silkframework.rule.plugins.transformer.numeric._
 import org.silkframework.rule.plugins.transformer.replace.{MapTransformer, MapTransformerWithDefaultInput, RegexReplaceTransformer, ReplaceTransformer}
 import org.silkframework.rule.plugins.transformer.selection.{CoalesceTransformer, RegexSelectTransformer}
 import org.silkframework.rule.plugins.transformer.sequence.{GetValueByIndexTransformer, SortTransformer, ValuesToIndexesTransformer}
+import org.silkframework.rule.plugins.transformer.sparql.{EscapeLiteralTransformer, EscapeMultilineLiteralTransformer, ValidateUriTransformer}
 import org.silkframework.rule.plugins.transformer.substring._
 import org.silkframework.rule.plugins.transformer.tokenization.{CamelCaseTokenizer, Tokenizer}
 import org.silkframework.rule.plugins.transformer.validation._
@@ -148,6 +149,10 @@ class RulePlugins extends PluginModule {
         // Selection
         classOf[RegexSelectTransformer] ::
         classOf[CoalesceTransformer] ::
+        // SPARQL
+        classOf[ValidateUriTransformer] ::
+        classOf[EscapeLiteralTransformer] ::
+        classOf[EscapeMultilineLiteralTransformer] ::
         Nil
 
   private def measures: List[Class[_ <: AnyPlugin]] =

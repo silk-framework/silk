@@ -1,0 +1,109 @@
+package org.silkframework.plugins.dataset.rdf.tasks.templating
+
+import org.apache.jena.update.UpdateFactory
+import org.silkframework.config.{Prefixes, Task, TaskSpec}
+import org.silkframework.entity.{Entity, EntitySchema}
+import org.silkframework.runtime.plugin.PluginContext
+import org.silkframework.runtime.templating.{TemplateEngines, TemplateVariableValue, TemplateVariablesReader}
+import org.silkframework.runtime.validation.ValidationException
+
+import scala.util.Try
+
+/**
+  * Compiled SPARQL template. Encapsulates rendering a SPARQL query from a template and the associated
+  * context (connected input/output task properties, current entity values, project/global variables).
+  *
+  * Two concrete implementations exist:
+  *
+  * - [[SparqlJinjaTemplate]] for the Jinja engine, which exposes variables as `input.config.*`,
+  *   `input.entity.*`, `output.config.*`, `project.*` and `global.*`.
+  * - [[SparqlLegacyTemplate]] for the Velocity and Simple engines, which exposes the historical
+  *   `row` / `inputProperties` / `outputProperties` object API.
+  */
+trait SparqlTemplate {
+
+  /**
+   * Renders the template.
+   *
+   * @param entity            The current input entity, or `None` for static templates.
+   * @param taskProperties    Parameter values of the connected input and output tasks.
+   * @param templateVariables Project and global template variables
+   * @return One rendered query for Jinja, or one query per cross-product combination for the legacy engine.
+   */
+  def generate(entity: Option[Entity],
+               taskProperties: TaskProperties,
+               templateVariables: Seq[TemplateVariableValue] = Seq.empty): Iterable[String]
+
+  /** Validates the template and, if batchSize > 1, that batching produces valid SPARQL. */
+  def validate(variables: TemplateVariablesReader, batchSize: Option[Int]): Unit
+
+  /** Entity schema that the template expects on its input port. */
+  def inputSchema: EntitySchema
+
+  /** Output schema projected by a SELECT query. Unused for UPDATE templates. */
+  def outputSchema: EntitySchema
+
+  /** True if the template does not reference any entity values and thus needs no input port. */
+  def isStaticTemplate: Boolean
+}
+
+object SparqlTemplate {
+
+  /**
+   * Creates a SPARQL template using the given template engine.
+   *
+   * @param defaultScope Scope whose variables are additionally exposed at the top level of the Jinja context,
+   *                     so templates may reference them without the scope prefix. Only honored by the Jinja
+   *                     implementation. Pass `Seq.empty` to disable aliasing.
+   */
+  def create(templateEngineId: String, template: String, defaultScope: Seq[String] = Seq.empty): SparqlTemplate = {
+    if (templateEngineId == SparqlJinjaTemplate.JINJA_ENGINE_ID) {
+      new SparqlJinjaTemplate(template, defaultScope)
+    } else {
+      val compiled = TemplateEngines.create(templateEngineId).compile(template)
+      new SparqlLegacyTemplate(compiled)
+    }
+  }
+
+  /**
+   * Verifies that a rendered example query parses as SPARQL Update, and — when batchSize > 1 — that two
+   * consecutive copies also parse (so batching in [[org.silkframework.plugins.dataset.rdf.executors.BatchSparqlUpdateEmitter]]
+   * produces valid queries).
+   */
+  private[templating] def validateParseability(query: String, batchSize: Int): Unit = {
+    Try(UpdateFactory.create(query)).failed.toOption.foreach { parseError =>
+      throw new ValidationException(
+        "The SPARQL Update template does not generate valid SPARQL Update queries. Error message: " +
+          parseError.getMessage + ", example query: " + query)
+    }
+    if (batchSize > 1) {
+      val batchSparql = query + "\n" + query
+      Try(UpdateFactory.create(batchSparql)).failed.toOption.foreach { parseError =>
+        throw new ValidationException(
+          "The SPARQL Update template cannot be batched processed. There is probably a ';' missing at the end. Error message: " +
+            parseError.getMessage + ", example batch query: " + batchSparql)
+      }
+    }
+  }
+}
+
+/** Makes properties of the input and output task of a SPARQL operator execution available to the template. */
+case class TaskProperties(inputTask: Map[String, String], outputTask: Map[String, String])
+
+object TaskProperties {
+
+  def create(inputTask: Option[Task[_ <: TaskSpec]],
+             outputTask: Option[Task[_ <: TaskSpec]],
+             pluginContext: PluginContext): TaskProperties = {
+    // It's obligatory to have empty prefixes here, since we do not want to have prefixed URIs for URI parameters
+    implicit val updatedPluginContext: PluginContext = PluginContext.updatedPluginContext(pluginContext, prefixes = Some(Prefixes.empty))
+    val inputProperties = createTaskProperties(inputTask)
+    val outputProperties = createTaskProperties(outputTask)
+    TaskProperties(inputProperties, outputProperties)
+  }
+
+  private def createTaskProperties(task: Option[Task[_ <: TaskSpec]])
+                                  (implicit pluginContext: PluginContext): Map[String, String] = {
+    task.toSeq.flatMap(_.parameters.toStringMap).toMap
+  }
+}

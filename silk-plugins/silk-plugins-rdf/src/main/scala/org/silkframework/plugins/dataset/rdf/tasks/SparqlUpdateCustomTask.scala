@@ -5,9 +5,11 @@ import org.silkframework.entity._
 import org.silkframework.execution.typed.SparqlUpdateEntitySchema
 import org.silkframework.plugins.dataset.rdf.tasks.templating._
 import org.silkframework.plugins.dataset.rdf.datasets.SparqlDataset
-import org.silkframework.runtime.plugin.annotations.{Param, Plugin, PluginReference}
+import org.silkframework.runtime.plugin.PluginContext
+import org.silkframework.runtime.plugin.annotations.{Action, Param, Plugin, PluginReference}
 
 import org.silkframework.runtime.plugin.types.SparqlCodeParameter
+import org.silkframework.runtime.templating.{TemplateEngineAutocompletionProvider, TemplateEngines}
 
 @Plugin(
   id = SparqlUpdateCustomTask.pluginId,
@@ -32,40 +34,30 @@ case class SparqlUpdateCustomTask(
   @Param(
     label = "SPARQL update query",
     value = "The SPARQL UPDATE template for constructing SPARQL UPDATE queries for every entity from the input." +
-      " The possible values for the template engine are `Simple` and `Velocity Engine`." +
+      " The possible values for the template engine are `Jinja` (default), `Simple` and `Velocity Engine`." +
       " See the general documentation of this plugin for further details on the features of each template engine.",
-    example = "DELETE DATA { ${<PROP_FROM_ENTITY_SCHEMA1>} rdf:label ${\"PROP_FROM_ENTITY_SCHEMA2\"} }"
+    example = "INSERT DATA { <{{ input.entity.subject }}> rdfs:label \"{{ input.entity.label }}\" } ;"
   )
   sparqlUpdateTemplate: SparqlCodeParameter,
   @Param(label = "Batch size", value = "How many entities should be handled in a single update request.")
   batchSize: Int = SparqlUpdateCustomTask.defaultBatchSize,
   @Param(
-    "The templating mode for the template engine. The possible values are `Simple` and `Velocity Engine`." +
-      " See the general documentation of this plugin for further details on the features of each template engine.",
+    value = "The templating mode for the template engine. See the general documentation of this plugin for further details on the features of each template engine.",
+    autoCompletionProvider = classOf[TemplateEngineAutocompletionProvider],
+    autoCompleteValueWithLabels = true
   )
-  templatingMode: SparqlUpdateTemplatingMode = SparqlUpdateTemplatingMode.simple
+  templatingMode: String = "jinja"
 ) extends CustomTask {
   assert(batchSize >= 1, "Batch size must be greater zero!")
 
-  val templatingEngine: SparqlUpdateTemplatingEngine = templatingMode match {
-    case SparqlUpdateTemplatingMode.simple => SparqlUpdateTemplatingEngineSimple(sparqlUpdateTemplate.str, batchSize)
-    case SparqlUpdateTemplatingMode.velocity => SparqlTemplatingEngineVelocity(sparqlUpdateTemplate.str, batchSize)
+  val compiledTemplate: SparqlTemplate = SparqlTemplate.create(templatingMode, sparqlUpdateTemplate.str)
+  for(variables <- sparqlUpdateTemplate.variables) {
+    compiledTemplate.validate(variables, None)
   }
 
-  templatingEngine.validate()
+  def isStaticTemplate: Boolean = compiledTemplate.isStaticTemplate
 
-  def isStaticTemplate: Boolean = templatingEngine.isStaticTemplate
-
-  def expectedInputSchema: EntitySchema = templatingEngine.inputSchema
-
-  /**
-    * Generates The SPARQL Update query based on the placeholder assignments.
-    * @param placeholderAssignments For each placeholder in the query template
-    * @return
-    */
-  def generate(placeholderAssignments: Map[String, String], taskProperties: TaskProperties): String = {
-    templatingEngine.generate(placeholderAssignments, taskProperties)
-  }
+  def expectedInputSchema: EntitySchema = compiledTemplate.inputSchema
 
   override def inputPorts: InputPorts = {
     if(isStaticTemplate) {
@@ -76,6 +68,19 @@ case class SparqlUpdateCustomTask(
   }
 
   override def outputPort: Option[Port] = Some(FixedSchemaPort(SparqlUpdateEntitySchema.schema))
+
+  @Action(
+    label = "Show prefixes",
+    description = "Shows the available namespace prefixes as a SPARQL header that can be copied into the query."
+  )
+  def showPrefixes(implicit pluginContext: PluginContext): String = {
+    val prefixes = pluginContext.prefixes
+    if (prefixes.prefixMap.isEmpty) {
+      "No prefixes are defined."
+    } else {
+      "```sparql\n" + prefixes.toSparql + "\n```"
+    }
+  }
 }
 
 object SparqlUpdateCustomTask {

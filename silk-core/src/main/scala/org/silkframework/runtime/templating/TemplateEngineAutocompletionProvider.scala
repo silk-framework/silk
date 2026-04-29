@@ -12,10 +12,10 @@ class TemplateEngineAutocompletionProvider extends PluginParameterAutoCompletion
                            (implicit context: PluginContext): Iterable[AutoCompletionResult] = {
     val multiSearchWords = extractSearchTerms(searchQuery)
     TemplateEngines.availableEngines
-      .filter(_ != DisabledTemplateEngine.id) // Disabled template engine should not be suggested to the user
-      .filter(_ != UnresolvedTemplateEngine.id) // Unresolved template engine should not be suggested to the user
-      .filter(r => matchesSearchTerm(multiSearchWords, r.toLowerCase))
-      .map(r => AutoCompletionResult(r, None))
+      .filter(_.id.toString != DisabledTemplateEngine.id) // Disabled template engine should not be suggested to the user
+      .filter(_.id.toString != UnresolvedTemplateEngine.id) // Unresolved template engine should not be suggested to the user
+      .filter(engine => matchesSearchTerm(multiSearchWords, engine.id.toLowerCase))
+      .map(engine => AutoCompletionResult(engine.id, Some(engine.label)))
   }
 
   /** Returns the label if exists for the given auto-completion value. This is needed if a value should

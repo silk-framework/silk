@@ -23,7 +23,11 @@ class SparqlUpdateTaskIntegrationTest extends AnyFlatSpec with Matchers with Sin
     // Uses Velocity templating mode
     ("Velocity", "workflowVelocity", "outputVelocity.csv", identity),
     // Uses Velocity templating mode and accessed input and output task properties
-    ("Velocity with task properties", "workflowVelocityTaskProperties", "outputVelocity.csv", taskPropertyConcatenate) //
+    ("Velocity with task properties", "workflowVelocityTaskProperties", "outputVelocity.csv", taskPropertyConcatenate),
+    // Uses Jinja templating mode
+    ("Jinja", "workflowJinja", "outputJinja.csv", identity),
+    // Uses Jinja templating mode and accessed input and output task properties
+    ("Jinja with task properties", "workflowJinjaTaskProperties", "outputJinja.csv", taskPropertyConcatenate)
   )) {
     it should s"generate the correct result in '$templatingMode' templating mode" in {
       executeWorkflow(workflowId)
@@ -49,7 +53,7 @@ class SparqlUpdateTaskIntegrationTest extends AnyFlatSpec with Matchers with Sin
       )
       val sparqlSelectTaskReport = taskReports(4).report
       sparqlSelectTaskReport.entityCount mustBe 8
-      sparqlSelectTaskReport.summary.filter(r => r._1 == "No. of rows processed").map(_._2) mustBe Seq("8")
+      sparqlSelectTaskReport.summary.filter(r => r._1.startsWith("No. of rows processed")).map(_._2) mustBe Seq("8")
 
       val sparqlUpdateTaskReport = taskReports(5).report
       // Batch size is set to 2, so half the number of the SPARQL Select task
