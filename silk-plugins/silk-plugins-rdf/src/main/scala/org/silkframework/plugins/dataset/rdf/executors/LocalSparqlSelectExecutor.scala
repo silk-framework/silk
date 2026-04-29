@@ -6,7 +6,7 @@ import org.silkframework.dataset.rdf.{RdfDataset, RdfNode, SparqlEndpoint, Sparq
 import org.silkframework.entity.Entity
 import org.silkframework.execution.local.{GenericEntityTable, LocalEntities, LocalExecution, LocalExecutor}
 import org.silkframework.execution.typed.SparqlEndpointEntitySchema
-import org.silkframework.execution.{ExecutionReport, ExecutionReportUpdater, ExecutorOutput, TaskException}
+import org.silkframework.execution.{ExecutionReport, ExecutionReportUpdater, ExecutorOutput, ReportingIterator, TaskException}
 import org.silkframework.plugins.dataset.rdf.DefaultRdfDataset
 import org.silkframework.plugins.dataset.rdf.tasks.SparqlSelectCustomTask
 import org.silkframework.plugins.dataset.rdf.tasks.templating.TaskProperties
@@ -27,20 +27,21 @@ case class LocalSparqlSelectExecutor() extends LocalExecutor[SparqlSelectCustomT
                        context: ActivityContext[ExecutionReport])
                       (implicit pluginContext: PluginContext): Option[LocalEntities] = {
     val taskData = task.data
+    implicit val prefixes: Prefixes = pluginContext.prefixes
     implicit val executionReportUpdater: SparqlSelectExecutionReportUpdater = SparqlSelectExecutionReportUpdater(task, context)
 
     inputs match {
       case Seq(SparqlEndpointEntitySchema(sparql)) =>
         val entities = executeOnSparqlEndpoint(taskData, sparql.task, output.task, executionReportUpdater = Some(executionReportUpdater))
-        Some(GenericEntityTable(entities, entitySchema = taskData.outputSchema, task))
+        Some(ReportingIterator.addReporter(GenericEntityTable(entities, entitySchema = taskData.outputSchema, task)))
       case Seq() if taskData.useDefaultDataset =>
         val rdfDataset = DefaultRdfDataset.resolve()
         val entities = executeOnDefaultDataset(taskData, rdfDataset, output.task, executionReportUpdater = Some(executionReportUpdater))
-        Some(GenericEntityTable(entities, entitySchema = taskData.outputSchema, task))
+        Some(ReportingIterator.addReporter(GenericEntityTable(entities, entitySchema = taskData.outputSchema, task)))
       case Seq(input) if taskData.useDefaultDataset =>
         val rdfDataset = DefaultRdfDataset.resolve()
-        val entities = executeOnDefaultDatasetPerEntity(taskData, rdfDataset, input, output.task, executionReportUpdater = Some(executionReportUpdater))
-        Some(GenericEntityTable(entities, entitySchema = taskData.outputSchema, task))
+        val entities = executeOnDefaultDatasetPerEntity(taskData, rdfDataset, input, output.task, executionReportUpdater)
+        Some(ReportingIterator.addReporter(GenericEntityTable(entities, entitySchema = taskData.outputSchema, task)))
       case _ =>
         throw TaskException("SPARQL select executor did not receive a SPARQL endpoint as requested!")
     }
@@ -68,8 +69,8 @@ case class LocalSparqlSelectExecutor() extends LocalExecutor[SparqlSelectCustomT
                                        rdfDataset: RdfDataset,
                                        input: LocalEntities,
                                        outputTask: Option[Task[_ <: TaskSpec]],
-                                       limit: Int = Integer.MAX_VALUE,
-                                       executionReportUpdater: Option[SparqlSelectExecutionReportUpdater])
+                                       executionReportUpdater: SparqlSelectExecutionReportUpdater,
+                                       limit: Int = Integer.MAX_VALUE)
                                       (implicit pluginContext: PluginContext): CloseableIterator[Entity] = {
     implicit val user: UserContext = pluginContext.user
     val sparqlEndpoint = rdfDataset.sparqlEndpoint
@@ -84,11 +85,11 @@ case class LocalSparqlSelectExecutor() extends LocalExecutor[SparqlSelectCustomT
       val projected = Entity(entity.uri, values, expectedSchema)
       val queries = sparqlSelectTask.queryTemplate.generate(Some(projected), taskProperties, templateVariables)
       queries.iterator.flatMap { query =>
-        executionReportUpdater.foreach(_.increaseQueryCounter())
+        executionReportUpdater.increaseQueryCounter()
         LocalSparqlSelectIterator.executeSelect(sparqlEndpoint, query, selectLimit, Some(sparqlSelectTask.sparqlTimeout)).bindings
       }
     }
-    LocalSparqlSelectIterator.createEntities(sparqlSelectTask, bindings, vars, executionReportUpdater)
+    LocalSparqlSelectIterator.createEntities(sparqlSelectTask, bindings, vars)
   }
 }
 
@@ -112,7 +113,7 @@ class LocalSparqlSelectIterator(sparqlSelectTask: SparqlSelectCustomTask,
     executionReportUpdater.foreach(_.increaseQueryCounter())
     val results = LocalSparqlSelectIterator.executeSelect(sparqlEndpoint, query, selectLimit, Some(sparqlSelectTask.sparqlTimeout))
     val vars = LocalSparqlSelectIterator.getSparqlVars(sparqlSelectTask)
-    LocalSparqlSelectIterator.createEntities(sparqlSelectTask, results.bindings, vars, executionReportUpdater)
+    LocalSparqlSelectIterator.createEntities(sparqlSelectTask, results.bindings, vars)
   }
 }
 
@@ -152,32 +153,13 @@ object LocalSparqlSelectIterator {
 
   def createEntities(taskData: SparqlSelectCustomTask,
                      bindings: CloseableIterator[SortedMap[String, RdfNode]],
-                     vars: IndexedSeq[String],
-                     executionReportUpdater: Option[SparqlSelectExecutionReportUpdater]): CloseableIterator[Entity] = {
-    implicit val prefixes: Prefixes = Prefixes.empty
-    var schemaReported = false
-    val increase: Entity => Unit = (entity: Entity) => executionReportUpdater match {
-      case Some(updater) =>
-        if (!schemaReported) {
-          schemaReported = true
-          updater.startNewOutputSamples(entity.schema)
-        }
-        updater.addEntityAsSampleEntity(entity)
-        updater.increaseEntityCounter()
-      case None => // no-op
-    }
-
+                     vars: IndexedSeq[String]): CloseableIterator[Entity] = {
     var count = 0
-    val entityIterator = bindings.map { binding =>
+    bindings.map { binding =>
       count += 1
-      val values = vars map { v =>
-        binding.get(v).toSeq.map(_.value)
-      }
-      val entity = Entity(DataSource.URN_NID_PREFIX + count, values = values, schema = taskData.outputSchema)
-      increase(entity)
-      entity
+      val values = vars.map(v => binding.get(v).toSeq.map(_.value))
+      Entity(DataSource.URN_NID_PREFIX + count, values = values, schema = taskData.outputSchema)
     }
-    entityIterator.thenClose(() => executionReportUpdater.foreach(updater => updater.executionDone()))
   }
 }
 

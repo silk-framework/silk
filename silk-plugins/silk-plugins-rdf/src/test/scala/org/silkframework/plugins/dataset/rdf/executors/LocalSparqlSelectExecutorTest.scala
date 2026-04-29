@@ -3,16 +3,18 @@ package org.silkframework.plugins.dataset.rdf.executors
 
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.must.Matchers
-import org.silkframework.config.{PlainTask, Task}
+import org.silkframework.config.{PlainTask, Prefixes, Task}
 import org.silkframework.dataset.rdf._
 import org.silkframework.dataset.{DataSource, DatasetSpec, EntitySink, LinkSink}
 import org.silkframework.entity.paths.TypedPath
 import org.silkframework.entity.{Entity, EntitySchema, ValueType}
+import org.silkframework.execution.ReportingIterator
 import org.silkframework.execution.local.GenericEntityTable
 import org.silkframework.plugins.dataset.rdf.tasks.SparqlSelectCustomTask
 import org.silkframework.runtime.activity.{TestUserContextTrait, UserContext}
 import org.silkframework.runtime.iterator.{CloseableIterator, TraversableIterator}
 import org.silkframework.runtime.plugin.{ParameterValues, PluginContext}
+import org.silkframework.runtime.templating.exceptions.UnboundVariablesException
 import org.silkframework.util.{MockitoSugar, TestMocks}
 
 import scala.collection.immutable.SortedMap
@@ -87,7 +89,7 @@ class LocalSparqlSelectExecutorTest extends AnyFlatSpec
     val reportUpdater = SparqlSelectExecutionReportUpdater(PlainTask("task", task), activityContextMock)
 
     val results = LocalSparqlSelectExecutor()
-      .executeOnDefaultDatasetPerEntity(task, stubDataset, inputTable, outputTask = None, executionReportUpdater = Some(reportUpdater))
+      .executeOnDefaultDatasetPerEntity(task, stubDataset, inputTable, outputTask = None, executionReportUpdater = reportUpdater)
       .toList
 
     capturedQueries.toSeq must have size 2
