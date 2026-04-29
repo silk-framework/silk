@@ -35,8 +35,8 @@ case class LocalSparqlUpdateExecutor() extends LocalExecutor[SparqlUpdateCustomT
       val inputProperties = getInputProperties(input.entitySchema).distinct
       val taskProperties = TaskProperties.create(Some(input.task), output.task, pluginContext)
       checkInputSchema(expectedProperties, inputProperties.toSet)
-      for (entity <- input.entities;
-           values = expectedSchema.typedPaths.map(tp => entity.valueOfPath(tp.toUntypedPath)) if values.forall(_.nonEmpty)) {
+      for (entity <- input.entities) {
+        val values = expectedSchema.typedPaths.map(tp => entity.valueOfPath(tp.toUntypedPath))
         val projected = Entity(entity.uri, values, expectedSchema)
         for (query <- updateTask.compiledTemplate.generate(Some(projected), taskProperties, templateVariables)) {
           batchEmitter.update(query)
