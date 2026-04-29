@@ -2,7 +2,7 @@ package org.silkframework.rule.plugins.transformer.date
 
 import javax.xml.bind.DatatypeConverter
 import javax.xml.datatype.DatatypeFactory
-import org.silkframework.rule.input.Transformer
+import org.silkframework.rule.input.InlineTransformer
 import org.silkframework.runtime.plugin.annotations.{Plugin, PluginReference}
 
 @Plugin(
@@ -17,7 +17,7 @@ import org.silkframework.runtime.plugin.annotations.{Plugin, PluginReference}
     )
   )
 )
-case class DurationTransformer() extends Transformer {
+case class DurationTransformer() extends InlineTransformer {
 
   private val datatypeFactory = DatatypeFactory.newInstance()
 

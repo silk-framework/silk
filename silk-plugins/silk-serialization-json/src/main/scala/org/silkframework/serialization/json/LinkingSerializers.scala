@@ -64,7 +64,7 @@ object LinkingSerializers {
         case _ =>
           // Link does not provide evaluation details, need to evaluate it first
           for (linkingRule <- rule; entities <- link.entities) {
-            val details = DetailedEvaluator(linkingRule, entities).details
+            val details = DetailedEvaluator(linkingRule.execution(), entities).details
             json += (RULE_VALUES -> ConfidenceJsonFormat.write(details))
           }
       }

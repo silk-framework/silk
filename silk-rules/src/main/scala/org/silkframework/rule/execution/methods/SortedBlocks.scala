@@ -3,7 +3,7 @@ package org.silkframework.rule.execution.methods
 import org.silkframework.entity.paths.UntypedPath
 import org.silkframework.entity.{Entity, Index}
 import org.silkframework.rule.execution.ExecutionMethod
-import org.silkframework.rule.LinkageRule
+import org.silkframework.rule.LinkageRuleExecution
 
 import scala.math.{max, min, pow}
 
@@ -15,7 +15,7 @@ case class SortedBlocks(sourceKey: UntypedPath, targetKey: UntypedPath, overlap:
 
   private val blockCount = pow(maxChar - minChar + 1, 2).toInt
 
-  override def indexEntity(entity: Entity, rule: LinkageRule, sourceOrTarget: Boolean): Index = {
+  override def indexEntity(entity: Entity, rule: LinkageRuleExecution, sourceOrTarget: Boolean): Index = {
     val key = if(sourceOrTarget) sourceKey else targetKey
     val values = entity.evaluate(key)
 

@@ -8,7 +8,7 @@ import org.silkframework.plugins.path.PathMetaDataPlugin
 import org.silkframework.rule.evaluation.{EvaluationResult, LinkageRuleEvaluator, ReferenceEntities}
 import org.silkframework.rule.input.Transformer
 import org.silkframework.rule.similarity.{Aggregator, DistanceMeasure}
-import org.silkframework.rule.{LinkSpec, LinkageRule}
+import org.silkframework.rule.{LinkSpec, LinkageRuleExecution}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.{PluginContext, PluginRegistry}
 import org.silkframework.runtime.serialization.WriteContext
@@ -156,13 +156,13 @@ object LinkingTaskApiUtils {
   }
 
   /** Score of reference links for a given linking rule. */
-  def referenceLinkEvaluationScore(linkageRule: LinkageRule, referenceEntityCacheValue: ReferenceEntities): LinkageRuleEvaluationResult = {
+  def referenceLinkEvaluationScore(linkageRule: LinkageRuleExecution, referenceEntityCacheValue: ReferenceEntities): LinkageRuleEvaluationResult = {
     val score = LinkageRuleEvaluator(linkageRule, referenceEntityCacheValue)
     linkRuleEvaluationResult(score)
   }
 
   /** Score of reference links for a given linking rule. */
-  def referenceLinkEvaluationScore(linkageRule: LinkageRule, referenceLinks: Seq[ReferenceLink], threshold: Double = 0.0): LinkageRuleEvaluationResult = {
+  def referenceLinkEvaluationScore(linkageRule: LinkageRuleExecution, referenceLinks: Seq[ReferenceLink], threshold: Double = 0.0): LinkageRuleEvaluationResult = {
     val score = LinkageRuleEvaluator(linkageRule, referenceLinks, threshold)
     linkRuleEvaluationResult(score)
   }

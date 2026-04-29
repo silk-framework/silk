@@ -1,7 +1,7 @@
 package org.silkframework.rule.plugins.transformer.sequence
 
 import org.silkframework.rule.annotations.{TransformExample, TransformExamples}
-import org.silkframework.rule.input.Transformer
+import org.silkframework.rule.input.InlineTransformer
 import org.silkframework.runtime.plugin.annotations.Plugin
 
 /**
@@ -22,7 +22,7 @@ import org.silkframework.runtime.plugin.annotations.Plugin
     output = Array("0", "1", "2")
   ))
 )
-case class ValuesToIndexesTransformer() extends Transformer {
+case class ValuesToIndexesTransformer() extends InlineTransformer {
   override def apply(values: Seq[Seq[String]]): Seq[String] = {
     values.flatten.zipWithIndex map { _._2.toString }
   }

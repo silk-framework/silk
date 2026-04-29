@@ -24,12 +24,13 @@ class EvaluateTransform(source: DataSource,
   private var cachedValues = Seq[DetailedEntity]()
 
   def execute()(implicit context: PluginContext): Seq[DetailedEntity] = {
+    val ruleExecs = rules.map(_.execution())
     // Retrieve entities
     source.retrieve(entitySchema, Some(maxEntities)).entities.use { entities =>
       // Read all entities
       for (entity <- entities) {
         // Transform entity
-        val transformedEntity = DetailedEvaluator(rules, entity)
+        val transformedEntity = DetailedEvaluator(ruleExecs, entity)
         // Write transformed entity to cache
         cachedValues = cachedValues :+ transformedEntity
         if (cachedValues.size >= maxEntities) return cachedValues

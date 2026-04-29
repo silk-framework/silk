@@ -3,12 +3,12 @@ package org.silkframework.rule.evaluation
 import org.silkframework.entity.{LinkDecision, ReferenceLink}
 
 import java.util.logging.Logger
-import org.silkframework.rule.LinkageRule
+import org.silkframework.rule.LinkageRuleExecution
 
 object LinkageRuleEvaluator {
   val log: Logger = Logger.getLogger(this.getClass.getName)
 
-  def apply(rule: LinkageRule,
+  def apply(rule: LinkageRuleExecution,
             referenceLinks: Seq[ReferenceLink],
             threshold: Double): EvaluationResult = {
     var truePositives: Int = 0
@@ -38,7 +38,7 @@ object LinkageRuleEvaluator {
     new EvaluationResult(truePositives, trueNegatives, falsePositives, falseNegatives)
   }
 
-  def apply(rule: LinkageRule,
+  def apply(rule: LinkageRuleExecution,
             entity: ReferenceEntities,
             threshold: Double = 0.0,
             logFalseNegatives: Boolean = false,

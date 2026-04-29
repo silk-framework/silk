@@ -1,6 +1,6 @@
 package org.silkframework.rule.plugins.transformer.value
 
-import org.silkframework.rule.input.Transformer
+import org.silkframework.rule.input.InlineTransformer
 import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
 import org.silkframework.util.Uri
 
@@ -12,7 +12,7 @@ import org.silkframework.util.Uri
 )
 case class ConstantUriTransformer(
   @Param("The constant URI to be generated")
-  value: Uri = Uri("http://www.w3.org/2002/07/owl#Class")) extends Transformer {
+  value: Uri = Uri("http://www.w3.org/2002/07/owl#Class")) extends InlineTransformer {
 
   override def apply(values: Seq[Seq[String]]): Seq[String] = {
     Seq(value.toString)

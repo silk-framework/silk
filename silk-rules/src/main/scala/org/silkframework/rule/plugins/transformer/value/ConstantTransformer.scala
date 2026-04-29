@@ -1,7 +1,7 @@
 package org.silkframework.rule.plugins.transformer.value
 
 import org.silkframework.rule.annotations.{TransformExample, TransformExamples}
-import org.silkframework.rule.input.Transformer
+import org.silkframework.rule.input.InlineTransformer
 import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
 import org.silkframework.runtime.plugin.PluginCategories
 
@@ -20,7 +20,7 @@ import org.silkframework.runtime.plugin.PluginCategories
 ))
 case class ConstantTransformer(
   @Param("The constant value to be generated")
-  value: String = "") extends Transformer {
+  value: String = "") extends InlineTransformer {
 
   override def apply(values: Seq[Seq[String]]): Seq[String] = {
     Seq(value)

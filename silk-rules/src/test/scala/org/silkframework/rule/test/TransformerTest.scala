@@ -1,6 +1,6 @@
 package org.silkframework.rule.test
 
-import org.silkframework.rule.input.{TransformExampleValue, Transformer}
+import org.silkframework.rule.input.{InlineTransformer, TransformExampleValue}
 import org.silkframework.runtime.plugin.{AnyPlugin, ClassPluginDescription, ParameterValues, PluginContext, TestPluginContext}
 import org.silkframework.test.PluginTest
 
@@ -8,7 +8,7 @@ import java.util.logging.Logger
 import scala.reflect.ClassTag
 import scala.util.control.NonFatal
 
-abstract class TransformerTest[T <: Transformer : ClassTag] extends PluginTest {
+abstract class TransformerTest[T <: InlineTransformer : ClassTag] extends PluginTest {
 
   /** Numeric values may differ slightly from their expected values. */
   private val epsilon = 0.0001

@@ -2,7 +2,7 @@ package org.silkframework.rule.execution
 
 import org.silkframework.cache.{EntityCache, Partition}
 import org.silkframework.entity.{Entity, Index}
-import org.silkframework.rule.LinkageRule
+import org.silkframework.rule.LinkageRuleExecution
 import org.silkframework.util.DPair
 
 /**
@@ -13,7 +13,7 @@ trait ExecutionMethod {
   /**
    * Generates an index for a single entity.
    */
-  def indexEntity(entity: Entity, rule: LinkageRule, sourceOrTarget: Boolean): Index = Index.default
+  def indexEntity(entity: Entity, rule: LinkageRuleExecution, sourceOrTarget: Boolean): Index = Index.default
 
   /**
    * Iterates over all pairs of partitions that should be compared.

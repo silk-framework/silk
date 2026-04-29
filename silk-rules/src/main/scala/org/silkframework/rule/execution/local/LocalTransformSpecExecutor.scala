@@ -68,13 +68,13 @@ class LocalTransformSpecExecutor extends Executor[TransformSpec, LocalExecution]
         val (requestedRuleLabel, requestedRules, inputTable) = findMappingRulesMatchingRequestedOutputSchema(rules, ruleLabel, outputType, inputTables)
         addInputErrorsToTransformReport(inputTable, report)
         val transformedEntities = new TransformedEntities(task, inputTable.entities, requestedRuleLabel,
-          rule.withChildren(requestedRules).withContext(taskContext), activeOutputSchema,
+          rule.withChildren(requestedRules).execution(taskContext), activeOutputSchema,
           isRequestedSchema = true, abortIfErrorsOccur = task.data.abortIfErrorsOccur, report).iterator
         GenericEntityTable(transformedEntities, activeOutputSchema, task)
       case _ =>
         // Else execute the complete mapping
         addInputErrorsToTransformReport(input, report)
-        val transformedEntities = new TransformedEntities(task, input.entities, ruleLabel, rule.withContext(taskContext), schemata.outputSchema,
+        val transformedEntities = new TransformedEntities(task, input.entities, ruleLabel, rule.execution(taskContext), schemata.outputSchema,
           isRequestedSchema = false, abortIfErrorsOccur = task.data.abortIfErrorsOccur, report).iterator
         GenericEntityTable(transformedEntities, schemata.outputSchema, task)
     }

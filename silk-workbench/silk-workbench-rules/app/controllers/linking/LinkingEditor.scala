@@ -9,6 +9,7 @@ import org.silkframework.util.DPair
 import org.silkframework.workbench.Context
 import org.silkframework.workbench.workspace.WorkbenchAccessMonitor
 import org.silkframework.workspace.WorkspaceFactory
+import org.silkframework.workspace.activity.linking.LinkingTaskUtils._
 import org.silkframework.workspace.activity.linking.{LinkingPathsCache, ReferenceEntitiesCache}
 import play.api.mvc.{Action, AnyContent, InjectedController}
 
@@ -69,7 +70,7 @@ class LinkingEditor @Inject() (implicit accessMonitor: WorkbenchAccessMonitor, w
     // If everything needed for computing a score is available
     } else {
       try {
-        val result = LinkageRuleEvaluator(task.data.rule, entitiesCache.value())
+        val result = LinkageRuleEvaluator(task.ruleWithContext, entitiesCache.value())
         val score = f"Precision: ${result.precision}%.2f | Recall: ${result.recall}%.2f | F-measure: ${result.fMeasure}%.2f"
         Ok(views.html.editor.score(score))
       } catch {
