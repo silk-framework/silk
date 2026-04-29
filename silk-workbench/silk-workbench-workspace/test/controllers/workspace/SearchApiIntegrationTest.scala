@@ -5,8 +5,8 @@ import controllers.util.ItemType
 import controllers.workspaceApi.search.SearchApiModel.{DESCRIPTION, FacetSetting, FacetType, FacetedSearchRequest, FacetedSearchResult, Facets, ID, KeywordFacetSetting, LABEL, PARAMETERS, PLUGIN_ID, PLUGIN_LABEL, PROJECT_ID, PROJECT_LABEL, SortBy, SortOrder, SortableProperty}
 import controllers.workspaceApi.search._
 import helper.IntegrationTestTrait
-import org.silkframework.config.MetaData
-import org.silkframework.runtime.plugin.{AutoCompletionResult, PluginRegistry}
+import org.silkframework.config.{CustomTask, InputPorts, MetaData, Port}
+import org.silkframework.runtime.plugin.{AutoCompletionResult, PluginContext, PluginRegistry}
 import org.silkframework.workspace.activity.workflow.Workflow
 import org.silkframework.workspace.{SingleProjectWorkspaceProviderTestTrait, WorkspaceFactory}
 import play.api.libs.json._
@@ -301,6 +301,30 @@ class SearchApiIntegrationTest extends AnyFlatSpec
     (results.head \ ID).as[String] mustBe "jsonXYZ"
   }
 
+  it should "match hidden search tags only on exact (case-insensitive) terms while still matching regular search tags as substrings" in {
+    PluginRegistry.registerPlugin(classOf[HiddenSearchTagsTestTask])
+    val newProject = "hiddenSearchTagsProject"
+    val taskId = "hiddenSearchTagsTask"
+    val project = retrieveOrCreateProject(newProject)
+    try {
+      project.addTask(taskId, HiddenSearchTagsTestTask())
+      def search(query: String): Seq[String] = resultItemIds(facetedSearchRequest(
+        FacetedSearchRequest(project = Some(newProject), textQuery = Some(query))
+      )._1)
+
+      // Regular searchTag still matches as substring (regression)
+      search(HiddenSearchTagsTestTask.visibleTagSubstring) must contain(taskId)
+      // Hidden tag matches when search term equals it exactly
+      search(HiddenSearchTagsTestTask.hiddenTag) must contain(taskId)
+      // Case-insensitive on the hidden-tag side
+      search(HiddenSearchTagsTestTask.hiddenTag.toUpperCase) must contain(taskId)
+      // A substring of the hidden tag does NOT match
+      search(HiddenSearchTagsTestTask.hiddenTagSubstring) must not contain taskId
+    } finally {
+      WorkspaceFactory().workspace.removeProject(newProject)
+    }
+  }
+
   private val testAutoCompletionProvider = TestAutoCompletionProvider()
   implicit private val autoCompleteResultReads: Writes[AutoCompletionResult] = Json.writes[AutoCompletionResult]
 
@@ -370,4 +394,18 @@ class SearchApiIntegrationTest extends AnyFlatSpec
         map(_.asInstanceOf[KeywordFacetValue]).
         map(k => (k.id, k.count.get))
   }
+}
+
+object HiddenSearchTagsTestTask {
+  val visibleTag: String = "visibleTagAbcDef"
+  val visibleTagSubstring: String = "AbcD"
+  val hiddenTag: String = "hiddenTagXyz"
+  val hiddenTagSubstring: String = "TagX"
+}
+
+case class HiddenSearchTagsTestTask() extends CustomTask {
+  override def inputPorts: InputPorts = InputPorts.NoInputPorts
+  override def outputPort: Option[Port] = None
+  override def searchTags(pluginContext: PluginContext): Seq[String] = Seq(HiddenSearchTagsTestTask.visibleTag)
+  override def hiddenSearchTags(pluginContext: PluginContext): Seq[String] = Seq(HiddenSearchTagsTestTask.hiddenTag)
 }

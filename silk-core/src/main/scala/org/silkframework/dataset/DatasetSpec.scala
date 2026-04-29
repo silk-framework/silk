@@ -111,6 +111,10 @@ case class DatasetSpec[+DatasetType <: Dataset](plugin: DatasetType,
   override def searchTags(pluginContext: PluginContext): Seq[String] = {
     plugin.searchTags(pluginContext)
   }
+
+  override def hiddenSearchTags(pluginContext: PluginContext): Seq[String] = {
+    plugin.hiddenSearchTags(pluginContext)
+  }
 }
 
 case class DatasetTask(id: Identifier, data: DatasetSpec[Dataset], metaData: MetaData = MetaData.empty) extends Task[DatasetSpec[Dataset]] {
