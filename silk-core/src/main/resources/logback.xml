@@ -1,9 +1,9 @@
 <configuration>
 
-  <property name="elds.home" value="${ELDS_HOME:-${user.home}/.elds}"/>
+  <property name="logDir" value="${DATAINTEGRATION_LOGS:-${user.home}/.cmem/dataintegration/logs}"/>
 
   <appender name="FILE" class="ch.qos.logback.core.FileAppender">
-    <file>${elds.home}/var/log/dataintegration.log</file>
+    <file>${logDir}/dataintegration.log</file>
     <encoder>
       <pattern>%d{yyyy-MM-dd'T'HH:mm:ss.SSSX,UTC} %-5level %logger{15} - %message%n%xException</pattern>
     </encoder>
@@ -20,7 +20,7 @@
   <!--<logger name="org.silkframework.plugins.dataset.rdf" level="TRACE" />-->
 
   <appender name="sparkFileAppender" class="ch.qos.logback.core.rolling.RollingFileAppender">
-    <file>/tmp/spark.log</file>
+    <file>${logDir}/spark.log</file>
     <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
       <!-- rotate every day -->
       <fileNamePattern>/spark.%d{yyyyMMdd}.log.zip</fileNamePattern>
