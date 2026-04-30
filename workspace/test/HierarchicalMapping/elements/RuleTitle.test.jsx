@@ -1,7 +1,7 @@
 import React from "react";
 import RuleTitle from "../../../src/app/views/pages/MappingEditor/HierarchicalMapping/elements/RuleTitle";
-import { render } from "@testing-library/react";
-import { findAllDOMElements, findElement } from "../../integration/TestHelper";
+import {render} from "@testing-library/react";
+import {checkForNotAvailableElement, findElement} from "../../integration/TestHelper";
 
 const getWrapper = (props = {}) => render(<RuleTitle {...props} />);
 
@@ -84,7 +84,7 @@ describe("RuleTitle Component", () => {
                 const wrapper = getWrapper({
                     rule: {},
                 });
-                expect(findAllDOMElements(wrapper, "[class*='__notavailable']").length).toBeGreaterThan(0);
+                checkForNotAvailableElement(wrapper)
             });
 
             it("when `rule.type` equal to `root` and uri NOT presented", () => {
@@ -120,7 +120,7 @@ describe("RuleTitle Component", () => {
                 });
 
                 it("and `rule.type` equal to `object` ", () => {
-                    expect(findAllDOMElements(wrapper, "[class*='__notavailable']").length).toBeGreaterThan(0);
+                    checkForNotAvailableElement(wrapper)
                 });
 
                 it("and `rule.type` equal to `direct`", () => {
@@ -130,7 +130,7 @@ describe("RuleTitle Component", () => {
                             type: "direct",
                         },
                     });
-                    expect(findAllDOMElements(wrapper, "[class*='__notavailable']").length).toBeGreaterThan(0);
+                    checkForNotAvailableElement(wrapper)
                 });
 
                 it("and `rule.type` equal to `complex` ", () => {
@@ -140,7 +140,7 @@ describe("RuleTitle Component", () => {
                             type: "complex",
                         },
                     });
-                    expect(findAllDOMElements(wrapper, "[class*='__notavailable']").length).toBeGreaterThan(0);
+                    checkForNotAvailableElement(wrapper)
                 });
 
                 afterEach(() => {

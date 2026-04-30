@@ -1,61 +1,61 @@
 // react
-import React from 'react';
-import _ from 'lodash';
-import rxmq from 'ecc-messagebus';
+import React from "react";
+import _ from "lodash";
+import rxmq from "ecc-messagebus";
 
-import { Alert, Error, Info, Success, Warning } from 'gui-elements-deprecated';
+import { Notification } from "@eccenca/gui-elements";
 
-const RENDER_CLASSES = {
-    alert: Alert,
-    error: Error,
-    info: Info,
-    success: Success,
-    warning: Warning,
+const RENDER_INTENT = {
+    alert: "neutral",
+    error: "danger",
+    info: "info",
+    success: "success",
+    warning: "warning",
 };
 
-const errorChannel = rxmq.channel('errors');
+const errorChannel = rxmq.channel("errors");
 
+// TODO: we need to check if we can re-write this to our new message queue
 class MessageHandler extends React.Component {
     state = {
         errorMessages: [],
     };
 
     componentDidMount() {
-		// listen for graphs loading
-        errorChannel.subject('message').subscribe(data => this.onError('alert', data));
-        errorChannel.subject('message.alert').subscribe(data => this.onError('alert', data));
-        errorChannel.subject('message.error').subscribe(data => this.onError('error', data));
-        errorChannel.subject('message.info').subscribe(data => this.onError('info', data));
-        errorChannel.subject('message.success').subscribe(data => this.onError('success', data));
-        errorChannel.subject('message.warning').subscribe(data => this.onError('warning', data));
+        // listen for graphs loading
+        errorChannel.subject("message").subscribe((data) => this.onError("alert", data));
+        errorChannel.subject("message.alert").subscribe((data) => this.onError("alert", data));
+        errorChannel.subject("message.error").subscribe((data) => this.onError("error", data));
+        errorChannel.subject("message.info").subscribe((data) => this.onError("info", data));
+        errorChannel.subject("message.success").subscribe((data) => this.onError("success", data));
+        errorChannel.subject("message.warning").subscribe((data) => this.onError("warning", data));
     }
 
-	// handle graphs loaded
+    // handle graphs loaded
     onError = (errorType, data) => {
-		// get current messages
+        // get current messages
         const { errorMessages } = this.state;
-        const messageKey = _.uniqueId('messageHandler--message-');
+        const messageKey = _.uniqueId("messageHandler--message-");
         const result = { message: _.isString(data) ? data : data.message };
 
-        if (data.response && data.response.type === 'application/json') {
+        if (data.response && data.response.type === "application/json") {
             try {
                 const body = JSON.parse(data.response.text);
                 result.message = body.message || result.message;
-            } catch (syntax) {
-            }
+            } catch (syntax) {}
         }
 
-		// assign errorType
+        // assign errorType
         result.errorType = errorType;
         result.key = messageKey;
 
-		// prevent doublettes (same type/same message)
+        // prevent doublettes (same type/same message)
         if (!_.some(errorMessages, { message: result.message, errorType })) {
             errorMessages.unshift(result);
 
             this.removeAfterDelay(errorType, messageKey);
 
-			// apply to state
+            // apply to state
             this.setState({
                 errorMessages,
             });
@@ -68,33 +68,28 @@ class MessageHandler extends React.Component {
         }, 3000);
     }
 
-    removeMessage = key => {
-        const errorMessages = _.reject(this.state.errorMessages, ['key', key]);
-		// apply to state
+    removeMessage = (key) => {
+        const errorMessages = _.reject(this.state.errorMessages, ["key", key]);
+        // apply to state
         this.setState({ errorMessages });
     };
 
     render() {
         const messages = this.state.errorMessages.map(({ message, errorType, key }, index) => {
-            const Class = RENDER_CLASSES[errorType];
-
             return (
-                <Class
+                <Notification
                     key={`error_${index}`}
-                    border={true}
-                    vertSpacing={true}
-                    handlerDismiss={this.removeMessage}
+                    intent={RENDER_INTENT[errorType]}
+                    onDismiss={this.removeMessage}
+                    timeout={0}
+                    isCloseButtonShown={true}
                 >
                     {message}
-                </Class>
+                </Notification>
             );
         });
 
-        return (messages.length > 0) ? (
-            <div className="ecc-component-messagehandler">
-                {messages}
-            </div>
-        ) : false;
+        return messages.length > 0 ? <div className="ecc-component-messagehandler">{messages}</div> : false;
     }
 }
 

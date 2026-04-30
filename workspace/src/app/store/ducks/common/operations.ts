@@ -54,6 +54,23 @@ const {
     toggleUserMenuDisplay,
 } = commonSlice.actions;
 
+let artefactModalLoadingRequests = 0;
+let artefactListRequestId = 0;
+
+const beginArtefactModalLoading = (dispatch) => {
+    artefactModalLoadingRequests += 1;
+    if (artefactModalLoadingRequests === 1) {
+        dispatch(setArtefactLoading(true));
+    }
+};
+
+const endArtefactModalLoading = (dispatch) => {
+    artefactModalLoadingRequests = Math.max(artefactModalLoadingRequests - 1, 0);
+    if (artefactModalLoadingRequests === 0) {
+        dispatch(setArtefactLoading(false));
+    }
+};
+
 const fetchCommonSettingsAsync = () => {
     return async (dispatch) => {
         try {
@@ -123,10 +140,11 @@ const fetchAvailableDTypesAsync = (id?: string) => {
 
 const fetchArtefactsListAsync = (filters: any = {}) => {
     return async (dispatch) => {
+        const requestId = ++artefactListRequestId;
         batch(() => {
             dispatch(fetchArtefactsList());
-            dispatch(setArtefactLoading(true));
         });
+        beginArtefactModalLoading(dispatch);
 
         try {
             const data = await requestArtefactList(filters);
@@ -135,11 +153,15 @@ const fetchArtefactsListAsync = (filters: any = {}) => {
                 ...data[key],
             }));
 
-            dispatch(setArtefactsList(result));
+            if (requestId === artefactListRequestId) {
+                dispatch(setArtefactsList(result));
+            }
         } catch (e) {
-            dispatch(setError(e));
+            if (requestId === artefactListRequestId) {
+                dispatch(setError(e));
+            }
         } finally {
-            dispatch(setArtefactLoading(false));
+            endArtefactModalLoading(dispatch);
         }
     };
 };
@@ -157,13 +179,13 @@ const getArtefactPropertiesAsync = (artefact: IPluginOverview) => {
         dispatch(selectArtefact(artefact));
 
         if (!cachedArtefactProperties[artefact.key]) {
-            dispatch(setArtefactLoading(true));
-
-            const data = await requestArtefactProperties(artefact.key);
-            batch(() => {
-                dispatch(setArtefactLoading(false));
+            beginArtefactModalLoading(dispatch);
+            try {
+                const data = await requestArtefactProperties(artefact.key);
                 dispatch(setCachedArtefactProperty(data));
-            });
+            } finally {
+                endArtefactModalLoading(dispatch);
+            }
         }
     };
 };
@@ -186,26 +208,13 @@ const splitParameterAndVariableTemplateParameters = (formData: any, variableTemp
 };
 
 /** Builds a request object for project/task create call. */
-const buildNestedTaskParameterObject = (formData: Record<string, any>): TaskParameters => {
+const buildStringValuedObject = (formData: Record<string, any>): TaskParameters => {
     const returnObject: TaskParameters = Object.create(null);
-    const nestedParamsFlat = Object.entries(formData).filter(([k, v]) => k.includes("."));
-    const directParams = Object.entries(formData).filter(([k, v]) => !k.includes("."));
-    // Add direct parameters
-    directParams.forEach(([paramId, param]) => {
-        returnObject[paramId] = "" + param;
-    });
-    // Group nested parameters by first parameter ID, create nested value objects
-    const nestedParamsMap = nestedParamsFlat.reduce((obj, [combinedParamId, param]) => {
-        const firstDot = combinedParamId.indexOf(".");
-        const paramId = combinedParamId.substring(0, firstDot);
-        const nestedParamId = combinedParamId.substring(firstDot + 1);
-        obj[paramId] = obj[paramId] || {};
-        obj[paramId][nestedParamId] = param;
-        return obj;
-    }, {});
-    // Add nested parameters to result object and call buildTaskObject recursively
-    Object.entries(nestedParamsMap).forEach(([propName, value]) => {
-        returnObject[propName] = buildNestedTaskParameterObject(value as Record<string, any>);
+    const params = Object.entries(formData);
+    params.forEach(([paramId, param]) => {
+        const convertedParam: TaskParameters | string =
+            typeof param === "object" ? buildStringValuedObject(param) : "" + param;
+        returnObject[paramId] = convertedParam;
     });
     return returnObject;
 };
@@ -300,8 +309,8 @@ const fetchCreateTaskAsync = (
             restFormData,
             variableTemplateParameterSet,
         );
-        const parameterData = buildNestedTaskParameterObject(parameters);
-        const variableTemplateData = buildNestedTaskParameterObject(variableTemplateParameters);
+        const parameterData = buildStringValuedObject(parameters);
+        const variableTemplateData = buildStringValuedObject(variableTemplateParameters);
         const metadata = {
             label,
             description,
@@ -376,8 +385,8 @@ const fetchUpdateTaskAsync = (
             formData,
             variableTemplateParameterSet,
         );
-        const parameterData = buildNestedTaskParameterObject(parameters);
-        const variableTemplateData = buildNestedTaskParameterObject(variableTemplateParameters);
+        const parameterData = buildStringValuedObject(parameters);
+        const variableTemplateData = buildStringValuedObject(variableTemplateParameters);
         const payload = {
             data: {
                 ...dataParameters,
@@ -443,10 +452,13 @@ const fetchCreateProjectAsync = (
 const resetArtefactModal =
     (shouldClose: boolean = false) =>
     (dispatch) => {
+        artefactModalLoadingRequests = 0;
+        artefactListRequestId += 1;
         batch(() => {
             dispatch(selectArtefact(undefined));
             dispatch(setModalError({}));
             dispatch(setModalInfo(undefined));
+            dispatch(setArtefactLoading(false));
             if (shouldClose) {
                 dispatch(closeArtefactModal());
             }
@@ -477,7 +489,7 @@ const commonOps = {
     setSelectedArtefactDType,
     setModalError,
     setModalInfo,
-    buildNestedTaskParameterObject: buildNestedTaskParameterObject,
+    buildStringValuedObject,
     fetchCreateTaskAsync,
     fetchUpdateTaskAsync,
     fetchCreateProjectAsync,

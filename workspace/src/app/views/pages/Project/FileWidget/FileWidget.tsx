@@ -30,12 +30,13 @@ import { useTranslation } from "react-i18next";
 import { FileRemoveModal } from "../../../shared/modals/FileRemoveModal";
 import { CONTEXT_PATH } from "../../../../constants/path";
 import { fileValue } from "@ducks/shared/typings";
+import { AppDispatch } from "store/configureStore";
 import { useStoreGlobalTableSettings } from "../../../../hooks/useStoreGlobalTableSettings";
 import { GlobalTableContext } from "../../../../GlobalContextsWrapper";
 
 /** Project file management widget. */
 export const FileWidget = () => {
-    const dispatch = useDispatch();
+    const dispatch = useDispatch<AppDispatch>();
 
     const filesList = useSelector(workspaceSel.filesListSelector);
     const fileWidget = useSelector(workspaceSel.widgetsSelector).files;

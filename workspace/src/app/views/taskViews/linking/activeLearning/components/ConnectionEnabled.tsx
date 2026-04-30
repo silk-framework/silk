@@ -7,29 +7,19 @@ interface ArrowProps {
 
 /** Arrow giond to the left. */
 export const ArrowLeft = ({ color = "#000" }: ArrowProps) => {
-    return (
-        <div
-            className={"diapp-linking-connectionenabled__arrow-left"}
-            style={{ color }}
-        />
-    );
-}
+    return <div className={"diapp-linking-connectionenabled__arrow-left"} style={{ color }} />;
+};
 
 /** Arrow going to the right. */
 export const ArrowRight = ({ color = "#000" }: ArrowProps) => {
-    return (
-        <div
-            className={"diapp-linking-connectionenabled__arrow-right"}
-            style={{ color }}
-        />
-    );
-}
+    return <div className={"diapp-linking-connectionenabled__arrow-right"} style={{ color }} />;
+};
 
 export interface ConnectionEnabledProps {
     /**
      * Action buttons (or other content) displayed when the connection element is hovered.
      */
-    actions?: JSX.Element;
+    actions?: React.JSX.Element;
     /**
      * Color used to display the connection.
      */
@@ -47,7 +37,7 @@ const ConnectionEnabled = ({ label, actions, color }: ConnectionEnabledProps) =>
                 <ArrowLeft color={color} />
             </ToolbarSection>
             <ToolbarSection>
-                <Tag backgroundColor={color} >{ label }</Tag>
+                <Tag backgroundColor={color}>{label}</Tag>
             </ToolbarSection>
             <ToolbarSection canGrow={true}>
                 <ArrowRight color={color} />

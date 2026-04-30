@@ -1,4 +1,4 @@
-import React, { useDebugValue, useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { matchPath, useLocation } from "react-router";
 import { useTranslation } from "react-i18next";
 import { BreadcrumbList, BreadcrumbItemProps } from "@eccenca/gui-elements";
@@ -106,8 +106,7 @@ export function fetchBreadcrumbs(WrappedComponent) {
                     // Label does not exists, but it is a valid breadcrumb ID, fetch label from backend.
                     return await fetchLabel(breadcrumbId, params);
                 } else {
-                    // return the value for breadcrumb ID specified in params. We are not able to get a label for is yet.
-                    useDebugValue(`Invalid breadcrumb ID for label substitution: '${breadcrumbId}'.`);
+                    console.debug(`Invalid breadcrumb ID for label substitution: '${breadcrumbId}'.`);
                     return params[breadcrumbId];
                 }
             };

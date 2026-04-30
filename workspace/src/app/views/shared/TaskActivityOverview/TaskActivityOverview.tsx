@@ -357,7 +357,7 @@ export function TaskActivityOverview({ projectId, taskId }: IProps) {
     const activityControl = (
         activity: IActivityListEntry,
         layoutConfig: SilkActivityControlLayoutProps,
-    ): JSX.Element => {
+    ): React.JSX.Element => {
         const activityFunctions = activityFunctionsCreator(activity);
         const activityLabel = t(`widget.TaskActivityOverview.activities.${activity.name}.title`, activity.label);
         const elapsedTime = activity.activityCharacteristics.isCacheActivity
@@ -499,7 +499,7 @@ export function TaskActivityOverview({ projectId, taskId }: IProps) {
     function activityWidgets(
         activities: IActivityListEntry[],
         layoutConfig: SilkActivityControlLayoutProps,
-    ): JSX.Element[] {
+    ): React.JSX.Element[] {
         const activitiesWithLabels = activities
             .map((activity) => {
                 const activityLabel = t(
@@ -509,7 +509,7 @@ export function TaskActivityOverview({ projectId, taskId }: IProps) {
                 return [activityLabel, activityControl(activity, layoutConfig)];
             })
             .sort(([aLabel], [bLabel]) => (aLabel < bLabel ? -1 : 1));
-        return activitiesWithLabels.map(([label, activityControl]) => activityControl) as JSX.Element[];
+        return activitiesWithLabels.map(([label, activityControl]) => activityControl) as React.JSX.Element[];
     }
 
     return nrActivitiesToShow > 0 ? (

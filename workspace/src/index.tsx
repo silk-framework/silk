@@ -2,7 +2,7 @@ import "react-app-polyfill/ie11";
 import "react-app-polyfill/stable";
 
 import React from "react";
-import ReactDOM from "react-dom";
+import { createRoot } from "react-dom/client";
 import { Provider } from "react-redux";
 import ErrorBoundary from "./app/ErrorBoundary";
 import registerGlobalListeners from "./global";
@@ -12,7 +12,6 @@ import appRoutes, { IRouteProps } from "./app/appRoutes";
 import { createPlugin } from "./app/services/pluginApi";
 import configureStore from "./app/store/configureStore";
 
-import "./app/views/pages/MappingEditor/style/style.scss"; // FIXME: remove legacy styles import when not necessary anymore
 import "./theme/index.scss";
 import mappingEditor from "./app/views/pages/MappingEditor/index";
 import "./language";
@@ -27,13 +26,15 @@ const bootstrapPlugins = (plugins) => plugins.map((plugin) => createPlugin(plugi
 
 const bootstrapApp = (routes: IRouteProps[], externalRoutes) => {
     const store = configureStore(configs.dev);
-    ReactDOM.render(
+    const rootDIv = document.getElementById("root");
+    if (!rootDIv) return null;
+    const root = createRoot(rootDIv);
+    root.render(
         <ErrorBoundary>
             <Provider store={store}>
                 <App routes={routes} externalRoutes={externalRoutes} />
             </Provider>
         </ErrorBoundary>,
-        document.getElementById("root"),
     );
 };
 

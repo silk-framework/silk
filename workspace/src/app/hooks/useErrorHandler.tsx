@@ -19,7 +19,7 @@ export type ErrorHandlerRegisterFuncType = (
     errorMessage: string,
     cause: DIErrorTypes | null,
     options?: ErrorHandlerOptions,
-) => JSX.Element | null;
+) => React.JSX.Element | null;
 
 interface ErrorHandlerOptions {
     /** The notification instance where the error should be displayed. If this is set, the
@@ -40,7 +40,7 @@ type ErrorHandlerRegisterShortFuncType = (
     /** The error cause. */
     cause: DIErrorTypes | null,
     options?: ErrorHandlerOptions,
-) => JSX.Element | null;
+) => React.JSX.Element | null;
 
 interface ErrorHandlerDict {
     registerError: ErrorHandlerRegisterFuncType;

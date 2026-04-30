@@ -31,13 +31,13 @@ import useHotKey from "../../../HotKeyHandler/HotKeyHandler";
 import utils from "@eccenca/gui-elements/src/cmem/markdown/markdown.utils";
 import { commonOp } from "@ducks/common";
 import { DependsOnParameterValueAny } from "./ParameterAutoCompletion";
-import { FieldValues, FormContextValues } from "react-hook-form";
+import { FieldValues, UseFormReturn } from "react-hook-form";
 import { collectPopulatedDependentParameters } from "./TaskForm.utils";
 
 export const READ_ONLY_PARAMETER = "readOnly";
 
 export interface IProps {
-    form: FormContextValues<FieldValues>;
+    form: UseFormReturn<FieldValues>;
 
     detectChange: (key: string, val: any, oldValue: any) => void;
 
@@ -145,7 +145,14 @@ export function TaskForm({
     showWarningMessage,
 }: IProps) {
     const { properties, required: requiredRootParameters } = artefact;
-    const { register, errors, getValues, setValue, unregister, triggerValidation } = form;
+    const {
+        register,
+        formState: { errors },
+        getValues,
+        setValue,
+        unregister,
+        trigger,
+    } = form;
     const [formValueKeys, setFormValueKeys] = useState<string[]>([]);
     const dependentValues: React.MutableRefObject<Record<string, DependsOnParameterValueAny | undefined>> =
         React.useRef<Record<string, DependsOnParameterValueAny | undefined>>({});
@@ -180,7 +187,7 @@ export function TaskForm({
     );
     const [t] = useTranslation();
     const parameterLabels = React.useRef(new Map<string, string>());
-    const { label, description } = form.watch([LABEL, DESCRIPTION]);
+    const [label, description] = form.watch([LABEL, DESCRIPTION]);
     const dataPreviewPlugin = pluginRegistry.pluginReactComponent<DataPreviewProps>(SUPPORTED_PLUGINS.DATA_PREVIEW);
     const escapeKeyDisabled = React.useRef(false);
 
@@ -316,16 +323,11 @@ export function TaskForm({
                 } else {
                     let value = defaultValueAsJs(param, false);
                     returnKeys.push(fullParameterId);
-                    register(
-                        {
-                            name: fullParameterId,
-                        },
-                        {
-                            // Boolean is by default set to false
-                            required: requiredParameters.includes(paramId) && param.parameterType !== "boolean",
-                            ...valueRestrictions(fullParameterId, param),
-                        },
-                    );
+                    register(fullParameterId, {
+                        // Boolean is by default set to false
+                        required: requiredParameters.includes(paramId) && param.parameterType !== "boolean",
+                        ...valueRestrictions(fullParameterId, param),
+                    });
                     // Set default value
                     let currentValue = value;
                     if ((updateTask || newTaskPreConfiguration) && parameterValues[paramId] !== undefined) {
@@ -357,10 +359,10 @@ export function TaskForm({
         };
 
         if (!updateTask) {
-            register({ name: LABEL }, { required: true });
-            register({ name: DESCRIPTION });
-            register({ name: IDENTIFIER });
-            register({ name: TAGS });
+            register(LABEL, { required: true });
+            register(DESCRIPTION);
+            register(IDENTIFIER);
+            register(TAGS);
         }
         if (newTaskPreConfiguration) {
             newTaskPreConfiguration.metaData?.label && setValue(LABEL, newTaskPreConfiguration.metaData?.label);
@@ -368,8 +370,8 @@ export function TaskForm({
                 setValue(DESCRIPTION, newTaskPreConfiguration.metaData?.description);
         }
         if (artefact.taskType === "Dataset") {
-            register({ name: URI_PROPERTY_PARAMETER_ID });
-            register({ name: READ_ONLY_PARAMETER });
+            register(URI_PROPERTY_PARAMETER_ID);
+            register(READ_ONLY_PARAMETER);
             if (newTaskPreConfiguration?.preConfiguredDataParameters) {
                 const dataParameters = newTaskPreConfiguration.preConfiguredDataParameters;
                 if (dataParameters.readOnly) {
@@ -416,7 +418,7 @@ export function TaskForm({
             detectChange(paramId, "", oldValue);
             propagateExternallyChangedParameterValue(paramId, "");
         });
-        await Promise.all(highlightedParameterIds.map((paramId) => triggerValidation(paramId)));
+        await Promise.all(highlightedParameterIds.map((paramId) => trigger(paramId)));
         dismissHighlightedDependentParameters();
     }, [
         detectChange,
@@ -424,7 +426,7 @@ export function TaskForm({
         getValues,
         propagateExternallyChangedParameterValue,
         setValue,
-        triggerValidation,
+        trigger,
     ]);
 
     useEffect(() => {
@@ -455,7 +457,7 @@ export function TaskForm({
     /** Change handler for a specific parameter. */
     const handleChange = useCallback(
         (key: string) => async (e) => {
-            const { triggerValidation } = form;
+            const { trigger } = form;
             const value = e.target ? e.target.value : e;
 
             if (dependentValues.current[key] !== undefined) {
@@ -468,18 +470,14 @@ export function TaskForm({
             const oldValue = getValues()[key];
             setValue(key, value);
             detectChange(key, value, oldValue);
-            await triggerValidation(key);
+            await trigger(key);
             //verify task identifier
             if (key === IDENTIFIER) handleCustomIdValidation(t, form, registerError, value, projectId);
             if (!escapeKeyDisabled.current) {
                 escapeKeyDisabled.current = true;
             }
             const populatedDependentParameters = dependentParameters.current.has(key)
-                ? collectPopulatedDependentParameters(
-                    key,
-                    dependentParameters.current,
-                    (paramId) => getValues(paramId),
-                )
+                ? collectPopulatedDependentParameters(key, dependentParameters.current, (paramId) => getValues(paramId))
                 : [];
             if (populatedDependentParameters.length) {
                 scrollParameterIntoView(populatedDependentParameters[0]);
@@ -502,7 +500,7 @@ export function TaskForm({
             showWarningMessage,
             scrollParameterIntoView,
             t,
-            triggerValidation,
+            trigger,
         ],
     );
 
@@ -552,7 +550,7 @@ export function TaskForm({
     );
 
     const datasetConfigValues = React.useCallback(() => {
-        return commonOp.buildNestedTaskParameterObject(getValues());
+        return commonOp.buildStringValuedObject(getValues());
     }, []);
 
     return doChange ? (
@@ -703,7 +701,7 @@ export function TaskForm({
                                 title={t("pages.dataset.title")}
                                 preview={datasetConfigPreview(projectId, artefact.pluginId, datasetConfigValues())}
                                 externalValidation={{
-                                    validate: triggerValidation,
+                                    validate: trigger,
                                     errorMessage: t(
                                         "form.validations.parameter",
                                         "Parameter validation failed. Please fix the issues first.",

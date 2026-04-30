@@ -150,10 +150,10 @@ export const ParameterWidget = (props: IProps) => {
     const dependencyReviewMessage = dependencyReviewHighlighted
         ? (t("form.taskForm.affectedParameterNeedsReview") as string)
         : undefined;
-    let propertyHelperText: JSX.Element | undefined = undefined;
+    let propertyHelperText: React.JSX.Element | undefined = undefined;
     if ((description && description.length > MAXLENGTH_TOOLTIP) || detailedDocumentationAvailable) {
-        let parameterDescription: JSX.Element = <Markdown>{description}</Markdown>;
-        let detailedLink: JSX.Element | undefined = undefined;
+        let parameterDescription: React.JSX.Element = <Markdown>{description}</Markdown>;
+        let detailedLink: React.JSX.Element | undefined = undefined;
         if (detailedDocumentationAvailable) {
             detailedLink = (
                 <Link
@@ -255,7 +255,7 @@ export const ParameterWidget = (props: IProps) => {
                 }
                 helperText={propertyHelperText}
                 intent={!!errorMessage(title, errors) ? "danger" : dependencyReviewHighlighted ? "warning" : undefined}
-                messageText={errorText ? errorText : dependencyReviewMessage ?? infoHelperText}
+                messageText={errorText ? errorText : (dependencyReviewMessage ?? infoHelperText)}
             >
                 <InputMapper
                     projectId={projectId}
@@ -285,7 +285,7 @@ export const ParameterWidget = (props: IProps) => {
                 required={required && propertyDetails.parameterType !== "boolean"}
                 tooltip={description && description.length <= MAXLENGTH_TOOLTIP ? description : undefined}
                 helperText={propertyHelperText}
-                infoMessage={errorText ? errorText : dependencyReviewMessage ?? infoHelperText}
+                infoMessage={errorText ? errorText : (dependencyReviewMessage ?? infoHelperText)}
                 infoMessageDanger={!!errorText}
                 parameterType={propertyDetails.parameterType}
                 highlightForReview={dependencyReviewHighlighted}
@@ -331,7 +331,9 @@ export const ParameterWidget = (props: IProps) => {
                                         : defaultValueAsJs(propertyDetails, true))
                                 }
                                 autoCompletion={autoCompletion}
-                                intent={errors ? Intent.DANGER : dependencyReviewHighlighted ? Intent.WARNING : undefined}
+                                intent={
+                                    errors ? Intent.DANGER : dependencyReviewHighlighted ? Intent.WARNING : undefined
+                                }
                                 formParamId={formParamId}
                                 dependentValue={dependentValue}
                                 defaultValue={parameterCallbacks.defaultValue}
@@ -348,7 +350,9 @@ export const ParameterWidget = (props: IProps) => {
                             <InputMapper
                                 projectId={projectId}
                                 parameter={{ paramId: formParamId, param: propertyDetails }}
-                                intent={errors ? Intent.DANGER : dependencyReviewHighlighted ? Intent.WARNING : undefined}
+                                intent={
+                                    errors ? Intent.DANGER : dependencyReviewHighlighted ? Intent.WARNING : undefined
+                                }
                                 onChange={onChange ?? changeHandlers[formParamId]}
                                 initialParameterValue={initialParameterValue}
                                 required={required}

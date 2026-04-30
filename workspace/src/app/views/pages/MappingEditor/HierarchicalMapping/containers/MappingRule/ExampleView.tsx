@@ -95,14 +95,7 @@ export const ExampleView = ({ id, rawRule, ruleType, objectSourcePathContext, up
     }, [id, objectSourcePathContext, ruleType, rawRule]);
 
     if (loading) {
-        return (
-            <Toolbar>
-                <ToolbarSection>
-                    <Spinner position={"local"} stroke={"thin"} delay={10} />
-                </ToolbarSection>
-                <ToolbarSection canGrow={true}></ToolbarSection>
-            </Toolbar>
-        );
+        return <Spinner position={"inline"} delay={10} />;
     }
 
     if (error) {

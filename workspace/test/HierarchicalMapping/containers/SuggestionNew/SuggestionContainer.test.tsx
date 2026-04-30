@@ -1,6 +1,6 @@
 import React from "react";
 import SuggestionContainer from "../../../../src/app/views/pages/MappingEditor/HierarchicalMapping/containers/SuggestionNew/SuggestionContainer";
-import { fireEvent, RenderResult, waitFor } from "@testing-library/react";
+import {act, fireEvent, RenderResult, waitFor} from "@testing-library/react";
 import { logWrapperHtmlOnError, rangeArray } from "../../utils/TestHelpers";
 import {
     findElement,
@@ -76,11 +76,11 @@ const props = {
     setSelectedVocabs: jest.fn(),
 };
 
-const getWrapper = (args = props): RenderResult => {
+const getWrapper = async (args = props): Promise<RenderResult> => {
     let history = createBrowserHistory();
-    return renderWrapper(<SuggestionContainer {...args} />, history, {
+    return await act(() => renderWrapper(<SuggestionContainer {...args} />, history, {
         common: { initialSettings: { dmBaseUrl: "http://docker.local" } },
-    });
+    }));
 };
 
 jest.mock("../../../../src/app/views/pages/MappingEditor/HierarchicalMapping/store", () => {
@@ -137,7 +137,7 @@ describe("Suggestion Container Component", () => {
     });
 
     it("should request suggestions, examples and prefixes on mount", async () => {
-        getWrapper();
+        await getWrapper();
         expect(getSuggestionsAsync).toHaveBeenCalledWith(
             {
                 targetClassUris: props.targetClassUris,
@@ -152,7 +152,7 @@ describe("Suggestion Container Component", () => {
     });
 
     it("should load suggestion with reverted `matchFromDataset` value on swap action", async () => {
-        const wrapper = getWrapper();
+        const wrapper = await getWrapper();
         const btn = await waitFor(() => findElement(wrapper, byTestId("SWAP_BUTTON")));
         fireEvent.click(btn);
         expect(getSuggestionsAsync).toHaveBeenCalledWith(
@@ -168,7 +168,7 @@ describe("Suggestion Container Component", () => {
 
     //FIXME: This test does not work, presumably because the add button is disabled, if no mappings are selected
     it.skip("should add action works without selected items", async () => {
-        const wrapper = getWrapper();
+        const wrapper = await getWrapper();
         await waitFor(
             () => {
                 expect(findAllDOMElements(wrapper, "table tbody tr")).toHaveLength(3);

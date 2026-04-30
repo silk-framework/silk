@@ -2,7 +2,7 @@ import "react-app-polyfill/ie11";
 import "react-app-polyfill/stable";
 
 import React from "react";
-import ReactDom from "react-dom";
+import {createRoot} from "react-dom/client"
 
 import HierarchicalMappingComponent from "./HierarchicalMapping/HierarchicalMapping";
 import ExecutionReport from "./ExecutionReport/ExecutionReport";
@@ -15,27 +15,32 @@ import SilkStore from "./SilkStore/silkStore";
 import WorkflowNodeExecutionReport from "./ExecutionReport/WorkflowNodeExecutionReport";
 import LinkingExecutionReport from "./ExecutionReport/LinkingExecutionReport";
 
+const render = (elementId, reactNode) => {
+    const root = createRoot(document.getElementById(elementId));
+    root.render(reactNode);
+}
+
 const silkReactComponents = {
     hierarchicalMapping: (containerId, apiSettings) => {
-        ReactDom.render(<HierarchicalMappingComponent {...apiSettings} />, document.getElementById(containerId));
+        render(containerId, <HierarchicalMappingComponent {...apiSettings} />);
     },
     executionReport: (containerId, apiSettings) => {
-        ReactDom.render(<ExecutionReport {...apiSettings} />, document.getElementById(containerId));
+        render(containerId, <ExecutionReport {...apiSettings} />);
     },
     transformExecutionReport: (containerId, apiSettings) => {
-        ReactDom.render(<TransformExecutionReport {...apiSettings} />, document.getElementById(containerId));
+        render(containerId, <TransformExecutionReport {...apiSettings} />);
     },
     linkingExecutionReport: (containerId, apiSettings) => {
-        ReactDom.render(<LinkingExecutionReport {...apiSettings} />, document.getElementById(containerId));
+        render(containerId, <LinkingExecutionReport {...apiSettings} />);
     },
     workflowExecutionReport: (containerId, apiSettings) => {
-        ReactDom.render(<WorkflowExecutionReport {...apiSettings} />, document.getElementById(containerId));
+        render(containerId, <WorkflowExecutionReport {...apiSettings} />);
     },
     workflowNodeExecutionReport: (containerId, apiSettings) => {
-        ReactDom.render(<WorkflowNodeExecutionReport {...apiSettings} />, document.getElementById(containerId));
+        render(containerId, <WorkflowNodeExecutionReport {...apiSettings} />);
     },
     workflowReportManager: (containerId, apiSettings) => {
-        ReactDom.render(<WorkflowReportManager {...apiSettings} />, document.getElementById(containerId));
+        render(containerId, <WorkflowReportManager {...apiSettings} />);
     },
 };
 

@@ -6,8 +6,8 @@ import {
     OverviewItemDescription,
     OverviewItemLine,
     Spacing,
-    Toolbar,
-    ToolbarSection,
+    FlexibleLayoutContainer,
+    FlexibleLayoutItem,
     Tooltip,
 } from "@eccenca/gui-elements";
 import { SourcePathInfoBox } from "./SourcePathInfoBox";
@@ -33,14 +33,17 @@ export function SourceCellData({ label, sourcePath, search, pathType, objectInfo
     );
     if (label.length > 20) {
         labelElem = (
-            <Tooltip size="large" content={label}>
+            <Tooltip size="large" content={label} fill>
                 {labelElem}
             </Tooltip>
         );
     }
     return (
-        <Toolbar noWrap={true}>
-            <ToolbarSection canShrink={true}>
+        <FlexibleLayoutContainer
+            noEqualItemSpace
+            style={{ flexWrap: "nowrap", justifyContent: "start", alignItems: "center" }}
+        >
+            <FlexibleLayoutItem growFactor={0}>
                 {sourcePath && sourcePath !== label ? (
                     <OverviewItem>
                         <OverviewItemDescription>
@@ -51,11 +54,11 @@ export function SourceCellData({ label, sourcePath, search, pathType, objectInfo
                 ) : (
                     labelElem
                 )}
-            </ToolbarSection>
-            <ToolbarSection>
+            </FlexibleLayoutItem>
+            <FlexibleLayoutItem growFactor={0} shrinkFactor={0}>
                 <Spacing vertical={true} size="tiny" />
                 <SourcePathInfoBox source={label} pathType={pathType} objectInfo={objectInfo} />
-            </ToolbarSection>
-        </Toolbar>
+            </FlexibleLayoutItem>
+        </FlexibleLayoutContainer>
     );
 }

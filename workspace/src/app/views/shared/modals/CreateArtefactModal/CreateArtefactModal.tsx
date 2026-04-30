@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { Fragment, useEffect, useRef, useState } from "react";
 import { batch, useDispatch, useSelector } from "react-redux";
 import { useForm } from "react-hook-form";
 import {
@@ -60,6 +60,7 @@ import useHotKey from "../../HotKeyHandler/HotKeyHandler";
 import { CreateArtefactModalContext } from "./CreateArtefactModalContext";
 import { TaskDocumentationModal } from "./TaskDocumentationModal";
 import { PARAMETER_DOC_PREFIX } from "./ArtefactForms/TaskForm";
+import { AppDispatch } from "store/configureStore";
 
 const ignorableFields = new Set(["label", "description"]);
 
@@ -84,7 +85,7 @@ export interface ArtefactDocumentation {
 export function CreateArtefactModal() {
     const MAX_SINGLEPLUGINBUTTONS = 2;
 
-    const dispatch = useDispatch();
+    const dispatch = useDispatch<AppDispatch>();
     const form = useForm();
 
     const [searchValue, setSearchValue] = useState("");
@@ -121,9 +122,10 @@ export function CreateArtefactModal() {
 
     // The artefact that is selected from the artefact selection list. This can be pre-selected via the Redux state.
     // A successive 'Add' action will open the creation dialog for this artefact.
+    const [toBeAddedState, _setToBeAdded] = React.useState<IPluginOverview | undefined>(selectedArtefactFromStore);
     const toBeAdded = useRef<IPluginOverview | undefined>(selectedArtefactFromStore);
     const toBeAddedKey = useRef<string | undefined>(selectedArtefactFromStore?.key);
-    const [lastSelectedClick, setLastSelectedClick] = useState<number>(0);
+    const lastSelectedClick = useRef<number>(0);
     const [isProjectImport, setIsProjectImport] = useState<boolean>(false);
     const [autoConfigPending, setAutoConfigPending] = useState(false);
     const DOUBLE_CLICK_LIMIT_MS = 500;
@@ -132,7 +134,8 @@ export function CreateArtefactModal() {
         ? { ...updateExistingTask.taskPluginDetails, key: updateExistingTask.taskPluginDetails.pluginId }
         : undefined;
     const selectedArtefact: IPluginOverview | undefined = updateTaskPluginDetails ?? selectedArtefactFromStore;
-    const selectedArtefactKey: string | undefined = selectedArtefactFromStore?.key;
+    const selectedArtefactKey = React.useRef<string | undefined>();
+    selectedArtefactKey.current = selectedArtefactFromStore?.key;
     const selectedArtefactTitle: string | undefined = selectedArtefact?.title;
     const [currentProject, setCurrentProject] = useState<ProjectIdAndLabel | undefined>(undefined);
     const [showProjectSelection, setShowProjectSelection] = useState<boolean>(false);
@@ -153,12 +156,13 @@ export function CreateArtefactModal() {
     const setToBeAdded = React.useCallback((plugin: IPluginOverview | undefined) => {
         toBeAdded.current = plugin;
         toBeAddedKey.current = plugin?.key;
+        _setToBeAdded(plugin);
     }, []);
     const [taskActionResult, setTaskActionResult] = React.useState<{ label: string; message: string }>();
     const [taskActionLoading, setTaskActionLoading] = React.useState<string | null>(null);
     const [taskFormGeneralWarning, setTaskFormGeneralWarning] = React.useState<TaskFormReviewWarning | undefined>();
-    const generalWarningTimeout = React.useRef<number | undefined>();
-    const projectAcl = React.useRef<AccessControlConfig | undefined>();
+    const generalWarningTimeout = React.useRef<number | undefined>(undefined);
+    const projectAcl = React.useRef<AccessControlConfig | undefined>(undefined);
 
     const updateProjectAcl = React.useCallback((newProjectAcl: AccessControlConfig) => {
         projectAcl.current = newProjectAcl;
@@ -173,6 +177,14 @@ export function CreateArtefactModal() {
             return;
         }
         generalWarningTimeout.current = window.setTimeout(() => setTaskFormGeneralWarning(warning), 250);
+    }, []);
+
+    React.useEffect(() => {
+        return () => {
+            if (generalWarningTimeout.current) {
+                clearTimeout(generalWarningTimeout.current);
+            }
+        };
     }, []);
 
     React.useEffect(() => {
@@ -222,20 +234,28 @@ export function CreateArtefactModal() {
      * i.e project id already exists **/
     React.useEffect(() => {
         if (projectId && isOpen) {
+            let cancelled = false;
             (async () => {
                 try {
                     const projectLabel = (await requestProjectMetadata(projectId)).data.label;
-                    setCurrentProject({ id: projectId, label: projectLabel });
+                    if (!cancelled) {
+                        setCurrentProject({ id: projectId, label: projectLabel });
+                    }
                 } catch (e) {
-                    registerError(
-                        "CreateArtefactModal-fetch-project-meta-data",
-                        "Could not fetch project information",
-                        e,
-                    );
+                    if (!cancelled) {
+                        registerError(
+                            "CreateArtefactModal-fetch-project-meta-data",
+                            "Could not fetch project information",
+                            e,
+                        );
+                    }
                 }
             })();
+            return () => {
+                cancelled = true;
+            };
         }
-    }, [projectId, selectedArtefactKey, isOpen]);
+    }, [projectId, isOpen, registerError]);
 
     useEffect(() => {
         if (!isOpen) {
@@ -243,7 +263,7 @@ export function CreateArtefactModal() {
             resetModal(true);
         } else {
             // Clear errors when freshly opened
-            form.clearError();
+            form.clearErrors();
         }
     }, [isOpen]);
 
@@ -302,16 +322,13 @@ export function CreateArtefactModal() {
 
     // Handles that an artefact is selected (highlighted) in the artefact selection list (not added, yet    )
     const handleArtefactSelect = (artefact: IPluginOverview) => {
-        if (
-            toBeAddedKey.current === artefact.key &&
-            lastSelectedClick &&
-            Date.now() - lastSelectedClick < DOUBLE_CLICK_LIMIT_MS
-        ) {
+        const now = Date.now();
+        if (toBeAddedKey.current === artefact.key && now - lastSelectedClick.current < DOUBLE_CLICK_LIMIT_MS) {
             handleAdd();
         } else {
             setToBeAdded(artefact);
         }
-        setLastSelectedClick(Date.now);
+        lastSelectedClick.current = now;
     };
 
     const handleShowEnhancedDescriptionClickHandler = (event, artefactDocumentation: ArtefactDocumentation) => {
@@ -371,11 +388,12 @@ export function CreateArtefactModal() {
             }
             e.preventDefault();
             setActionLoading(true);
-            const isValidFields = await form.triggerValidation();
+            const isValidFields = await form.trigger();
             try {
                 if (isValidFields) {
                     const formValues = form.getValues();
-                    const type = updateExistingTask?.taskPluginDetails.taskType ?? taskType(selectedArtefactKey);
+                    const type =
+                        updateExistingTask?.taskPluginDetails.taskType ?? taskType(selectedArtefactKey.current);
                     let dataParameters: any;
                     if (type === "Dataset") {
                         dataParameters = commonOp.extractDataAttributes(formValues);
@@ -410,7 +428,7 @@ export function CreateArtefactModal() {
                         setSearchValue("");
                     }
                 } else {
-                    const errKey = Object.keys(form.errors)[0];
+                    const errKey = Object.keys(form.formState.errors)[0];
                     const el = document.getElementById(errKey);
                     if (el) {
                         el.scrollIntoView({
@@ -429,7 +447,7 @@ export function CreateArtefactModal() {
                 setActionLoading(false);
             }
         },
-        [form, updateExistingTask, taskType],
+        [form, updateExistingTask, taskType, currentProject],
     );
 
     const closeModal = () => {
@@ -438,7 +456,7 @@ export function CreateArtefactModal() {
         newTaskPreConfiguration?.onCloseCallback?.();
     };
 
-    const isErrorPresented = () => !!Object.keys(form.errors).length;
+    const isErrorPresented = () => !!Object.keys(form.formState.errors).length;
 
     const handleSelectDType = (value: string) => {
         dispatch(commonOp.setSelectedArtefactDType(value));
@@ -450,9 +468,15 @@ export function CreateArtefactModal() {
         setToBeAdded(undefined);
         setCurrentProject(undefined);
         setTaskActionResult(undefined);
+        if (generalWarningTimeout.current) {
+            clearTimeout(generalWarningTimeout.current);
+            generalWarningTimeout.current = undefined;
+        }
+        setTaskFormGeneralWarning(undefined);
+        externalParameterUpdateMap.current = new Map();
         form.reset();
         setFormValueChanges({});
-        form.clearError();
+        form.clearErrors();
         dispatch(commonOp.resetArtefactModal(closeModal));
     };
 
@@ -517,7 +541,7 @@ export function CreateArtefactModal() {
      * @param artefactForm
      * @returns
      */
-    const addChangeProjectHandler = (artefactForm: JSX.Element): JSX.Element => {
+    const addChangeProjectHandler = (artefactForm: React.JSX.Element): React.JSX.Element => {
         if (
             currentProject &&
             (newTaskPreConfiguration?.showProjectChangeWidget == null ||
@@ -559,12 +583,12 @@ export function CreateArtefactModal() {
         return artefactForm;
     };
 
-    const projectArtefactSelected = selectedArtefactKey === DATA_TYPES.PROJECT;
+    const projectArtefactSelected = selectedArtefactKey.current === DATA_TYPES.PROJECT;
 
-    let artefactForm: JSX.Element | null = null;
+    let artefactForm: React.JSX.Element | null = null;
 
     /** if no current Project context, redirect to project selection first */
-    if (selectedArtefactKey && !currentProject) {
+    if (selectedArtefactKey.current && !currentProject) {
         artefactForm = (
             <ProjectSelection
                 resetForm={resetFormOnConfirmation}
@@ -616,13 +640,13 @@ export function CreateArtefactModal() {
         );
     } else {
         // Project / task creation
-        if (selectedArtefactKey) {
+        if (selectedArtefactKey.current) {
             if (projectArtefactSelected) {
                 artefactForm = (
                     <ProjectForm form={form} goBackOnEscape={handleBack} updateProjectAcl={updateProjectAcl} />
                 );
             } else {
-                const detailedArtefact = cachedArtefactProperties[selectedArtefactKey];
+                const detailedArtefact = cachedArtefactProperties[selectedArtefactKey.current];
                 const activeProjectId = currentProject?.id ?? projectId;
                 if (detailedArtefact && activeProjectId) {
                     let updatedNewTaskPreConfiguration: TaskPreConfiguration | undefined = {
@@ -706,16 +730,16 @@ export function CreateArtefactModal() {
         artefactListWithProject = [...titleMatches, ...nonTitleMatches];
     }
 
-    // If search is active pre-select first item in (final) list
-    useEffect(() => {
-        setToBeAdded(undefined);
+    React.useEffect(() => {
         if (artefactListWithProject.length > 0 && searchValue) {
             setToBeAdded(artefactListWithProject[0]);
+        } else {
+            setToBeAdded(undefined);
         }
     }, [artefactListWithProject.map((item) => item.key).join("|"), selectedDType]);
 
     const handleAutoConfigure = async (projectId: string, artefactId: string) => {
-        const isValidFields = await form.triggerValidation();
+        const isValidFields = await form.trigger();
         if (!isValidFields) {
             return;
         }
@@ -726,8 +750,8 @@ export function CreateArtefactModal() {
                 form.getValues(),
                 templateParameters.current,
             );
-            const parameterData = commonOp.buildNestedTaskParameterObject(parameters);
-            const variableTemplateData = commonOp.buildNestedTaskParameterObject(variableTemplateParameters);
+            const parameterData = commonOp.buildStringValuedObject(parameters);
+            const variableTemplateData = commonOp.buildStringValuedObject(variableTemplateParameters);
             const requestBody: DatasetTaskPlugin<any> = {
                 taskType: taskType(artefactId) as TaskType,
                 type: artefactId,
@@ -739,6 +763,7 @@ export function CreateArtefactModal() {
             ).data.parameters;
             const formValues = form.getValues();
             let valuesUpdated = 0;
+            let firstUpdatedParamId: string | undefined;
             Object.entries(parameterChanges).forEach(([paramId, value]) => {
                 if (
                     formValues[paramId] != null &&
@@ -747,8 +772,14 @@ export function CreateArtefactModal() {
                 ) {
                     externalParameterUpdateMap.current.get(paramId)!({ value });
                     valuesUpdated += 1;
+                    if (!firstUpdatedParamId) {
+                        firstUpdatedParamId = paramId;
+                    }
                 }
             });
+            if (firstUpdatedParamId) {
+                document.getElementById(firstUpdatedParamId)?.scrollIntoView({ behavior: "smooth", block: "center" });
+            }
             setInfoMessage({
                 message: t("CreateModal.autoConfigParametersUpdated", { number: valuesUpdated }),
                 removeAfterSeconds: 5,
@@ -760,12 +791,12 @@ export function CreateArtefactModal() {
         }
     };
 
-    const isCreationUpdateDialog = selectedArtefactKey || updateExistingTask;
-    const additionalButtons: JSX.Element[] = [];
+    const isCreationUpdateDialog = selectedArtefactKey.current || updateExistingTask;
+    const additionalButtons: React.JSX.Element[] = [];
     if (
         (projectId || currentProject) &&
         ((updateExistingTask && updateExistingTask.taskPluginDetails.autoConfigurable) ||
-            (selectedArtefactKey && cachedArtefactProperties[selectedArtefactKey]?.autoConfigurable))
+            (selectedArtefactKey.current && cachedArtefactProperties[selectedArtefactKey.current]?.autoConfigurable))
     ) {
         additionalButtons.push(
             <Button
@@ -776,7 +807,7 @@ export function CreateArtefactModal() {
                 onClick={() =>
                     handleAutoConfigure(
                         projectId ?? currentProject!.id,
-                        selectedArtefactKey ?? updateExistingTask!.taskPluginDetails.pluginId,
+                        selectedArtefactKey.current ?? updateExistingTask!.taskPluginDetails.pluginId,
                     )
                 }
                 loading={autoConfigPending}
@@ -786,7 +817,7 @@ export function CreateArtefactModal() {
         );
     }
 
-    const pluginActions: JSX.Element[] = [];
+    const pluginActions: React.JSX.Element[] = [];
     if (selectedArtefact?.actions) {
         const describedActions = Object.entries(selectedArtefact.actions);
         pluginActions.push(
@@ -802,16 +833,15 @@ export function CreateArtefactModal() {
                                 formValues,
                                 templateParameters.current,
                             );
-                        const parameterData = commonOp.buildNestedTaskParameterObject(parameters);
-                        const variableTemplateData =
-                            commonOp.buildNestedTaskParameterObject(variableTemplateParameters);
+                        const parameterData = commonOp.buildStringValuedObject(parameters);
+                        const variableTemplateData = commonOp.buildStringValuedObject(variableTemplateParameters);
                         const result = await performAction({
                             projectId: project,
                             taskId: updateExistingTask?.taskId ?? "task",
                             actionKey,
                             taskPayload: {
                                 taskType: (updateExistingTask?.taskPluginDetails.taskType ??
-                                    taskType(selectedArtefactKey)) as TaskType,
+                                    taskType(selectedArtefactKey.current)) as TaskType,
                                 type: selectedArtefact.key,
                                 parameters: {
                                     ...parameterData,
@@ -888,7 +918,7 @@ export function CreateArtefactModal() {
               ]
             : pluginActions;
 
-    const headerOptions: JSX.Element[] = [];
+    const headerOptions: React.JSX.Element[] = [];
     if (selectedArtefactTitle && (selectedArtefact?.markdownDocumentation || selectedArtefact?.description)) {
         headerOptions.push(
             <IconButton
@@ -905,7 +935,7 @@ export function CreateArtefactModal() {
     }
 
     const updateModalTitle = (updateData: IProjectTaskUpdatePayload) => updateData.metaData.label ?? updateData.taskId;
-    const notifications: JSX.Element[] = [];
+    const notifications: React.JSX.Element[] = [];
 
     if (!!error.detail || !!error.errorMessage || !!error.body?.taskLoadingError?.errorMessage || error.isFetchError) {
         // Special case for fix task loading error
@@ -925,6 +955,7 @@ export function CreateArtefactModal() {
 
         notifications.push(
             <Notification
+                key={"errorNotification"}
                 onDismiss={resetModalError}
                 message={taskLoadingError || error.errorMessage || actionFailed()}
                 intent="danger"
@@ -933,16 +964,19 @@ export function CreateArtefactModal() {
     }
 
     if (info) {
-        notifications.push(<Notification onDismiss={resetModalInfo} message={info} timeout={30000} />);
+        notifications.push(
+            <Notification key={"infoNotification"} onDismiss={resetModalInfo} message={info} timeout={30000} />,
+        );
     }
 
     if (infoMessage) {
-        notifications.push(<Notification message={infoMessage.message} />);
+        notifications.push(<Notification key={"infoMessage"} message={infoMessage.message} />);
     }
 
     if (projectArtefactSelected) {
         notifications.push(
             <Notification
+                key={"ProjectNotSelectedNote"}
                 message={t("ProjectImportModal.restoreNotice", "Want to restore an existing project?")}
                 actions={[
                     <Button
@@ -961,21 +995,22 @@ export function CreateArtefactModal() {
     if (taskFormGeneralWarning) {
         notifications.push(
             <Notification
+                key={"generalWarning"}
                 data-test-id="task-form-dependent-values-warning"
                 intent="warning"
                 message={taskFormGeneralWarning.message}
                 actions={
                     taskFormGeneralWarning.onClearHighlightedValues
                         ? [
-                            <Button
-                                data-test-id="task-form-clear-highlighted-dependent-values"
-                                key="clear-highlighted-dependent-values"
-                                disruptive
-                                onClick={taskFormGeneralWarning.onClearHighlightedValues}
-                            >
-                                {t("form.taskForm.clearHighlightedValues")}
-                            </Button>,
-                        ]
+                              <Button
+                                  data-test-id="task-form-clear-highlighted-dependent-values"
+                                  key="clear-highlighted-dependent-values"
+                                  disruptive
+                                  onClick={taskFormGeneralWarning.onClearHighlightedValues}
+                              >
+                                  {t("form.taskForm.clearHighlightedValues")}
+                              </Button>,
+                          ]
                         : undefined
                 }
                 onDismiss={() => {
@@ -992,6 +1027,7 @@ export function CreateArtefactModal() {
     if (taskActionResult) {
         notifications.push(
             <Notification
+                key={"taskActionResult"}
                 intent="success"
                 message={
                     <Accordion whitespaceSize={"none"}>
@@ -1094,7 +1130,7 @@ export function CreateArtefactModal() {
                             key="add"
                             affirmative={true}
                             onClick={handleAdd}
-                            disabled={!toBeAddedKey.current}
+                            disabled={!toBeAddedState?.key}
                             data-test-id={"item-add-btn"}
                         >
                             {t("common.action.add")}
@@ -1113,10 +1149,10 @@ export function CreateArtefactModal() {
             notifications={
                 notifications.length > 0
                     ? notifications.map((notification, idx) => (
-                          <>
+                          <Fragment key={notification.key}>
                               {notification}
                               {idx < notifications.length - 1 && <Spacing size="small" />}
-                          </>
+                          </Fragment>
                       ))
                     : undefined
             }
@@ -1164,7 +1200,7 @@ export function CreateArtefactModal() {
                                                         isOnlyLayout
                                                         key={artefact.key}
                                                         className={
-                                                            toBeAddedKey.current === artefact.key
+                                                            toBeAddedState?.key === artefact.key
                                                                 ? ClassNames.Intent.ACCENT
                                                                 : ""
                                                         }
