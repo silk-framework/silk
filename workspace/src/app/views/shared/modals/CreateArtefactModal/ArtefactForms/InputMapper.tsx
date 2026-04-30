@@ -21,7 +21,7 @@ interface IProps {
     projectId: string;
     parameter: ITaskParameter;
     // Blueprint intent
-    intent: Intent;
+    intent?: Intent;
     onChange: (value) => void;
     // Initial values in a flat form, e.g. "nestedParam.param1". This is either set for all parameters or not set for none.
     // The prefixed values can be addressed with help of the 'formParamId' parameter.
@@ -40,7 +40,7 @@ export type RegisterForExternalChangesFn = (
 export interface IInputAttributes {
     id: string;
     name: string;
-    intent: Intent;
+    intent?: Intent;
     onChange: (value) => void;
     value?: any;
     defaultValue?: any;

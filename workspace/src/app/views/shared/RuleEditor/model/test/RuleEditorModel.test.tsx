@@ -137,6 +137,10 @@ describe("Rule editor model", () => {
                 zoomTo(zoomLevel: number): void {},
             });
         });
+        await act(async () => {
+            // Allow RuleEditorModel's delayed fit-view/init completion timeout to settle before tests continue.
+            await new Promise((resolve) => setTimeout(resolve, 1));
+        });
         return ruleModel;
     };
 
@@ -262,12 +266,15 @@ describe("Rule editor model", () => {
         }
     };
 
-    it("should load the internal model", async () => {
+    it("should load an empty internal model", async () => {
         await ruleEditorModel();
         expect(currentContext().canUndo).toBe(false);
         expect(currentContext().canRedo).toBe(false);
         expect(currentContext().elements).toHaveLength(0);
         expect(currentContext().ruleOperatorNodes()).toHaveLength(0);
+    });
+
+    it("should load initial rule nodes into the internal model", async () => {
         await ruleEditorModel(
             [
                 node({ nodeId: "node A", portSpecification: { minInputPorts: 0 } }),
@@ -715,7 +722,6 @@ describe("Rule editor model", () => {
     it("should undo and redo complex change chains", async () => {
         const stateHistory: (IRuleOperatorNode | StickyNote)[][] = [];
         const stateHistoryLabel: string[] = [];
-        await stickyNoteNodeBootstrap();
         const currentStickyNodes = () =>
             currentContext().elements.reduce((stickyNodes, elem) => {
                 if (modelUtils.isNode(elem) && elem.type === LINKING_NODE_TYPES.stickynote) {

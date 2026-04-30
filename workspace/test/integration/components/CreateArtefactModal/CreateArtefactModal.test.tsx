@@ -380,6 +380,114 @@ describe("Task creation widget", () => {
         });
     });
 
+    const createDependentParameterWrapper = async () => {
+        addDocumentCreateRangeMethod();
+        const dependentParameterPluginDescription: IPluginDetails = {
+            ...mockPluginDescription,
+            required: [],
+            properties: {
+                password: atomicParamDescription({
+                    title: "password",
+                    parameterType: INPUT_TYPES.PASSWORD,
+                }),
+                database: atomicParamDescription(
+                    {
+                        title: "database",
+                        parameterType: INPUT_TYPES.STRING,
+                    },
+                    {
+                        allowOnlyAutoCompletedValues: false,
+                        autoCompletionDependsOnParameters: ["password"],
+                    },
+                ),
+            },
+        };
+        const existingTaskWithDependentValue: RecursivePartial<IProjectTaskUpdatePayload> = {
+            projectId: PROJECT_ID,
+            taskId: TASK_ID,
+            taskPluginDetails: dependentParameterPluginDescription,
+            metaData: {
+                label: "Task label",
+            },
+            currentParameterValues: {
+                password: value("old-secret"),
+                database: value("analytics"),
+            },
+            currentTemplateValues: {},
+        };
+        const { element } = await createMockedListWrapper(existingTaskWithDependentValue);
+        await waitFor(() => {
+            expect(findElement(element, "#password")).toBeInTheDocument();
+            expect(findElement(element, "#database")).toBeInTheDocument();
+        });
+        return { element };
+    };
+
+    const databaseInput = (element: Element | RenderResult) => findElement(element, "#database") as HTMLInputElement;
+    const databaseInputGroupClassName = (element: Element | RenderResult) =>
+        databaseInput(element).closest(`.${bluePrintClassPrefix}-input-group`)?.className ?? "";
+
+    const expectDependentDatabaseWarning = async (
+        element: Element | RenderResult,
+        expectedValue: string = "analytics",
+    ) => {
+        await waitFor(() => {
+            expect(databaseInput(element).value).toBe(expectedValue);
+            expect(findElement(element, byTestId("task-form-dependent-values-warning"))).toBeInTheDocument();
+            expect(databaseInputGroupClassName(element)).toContain(`${bluePrintClassPrefix}-intent-warning`);
+        });
+    };
+
+    const expectDependentDatabaseWarningCleared = async (element: Element | RenderResult, expectedValue: string) => {
+        await waitFor(() => {
+            expect(databaseInput(element).value).toBe(expectedValue);
+            expect(
+                ("container" in element ? element.container : element).querySelector(
+                    byTestId("task-form-dependent-values-warning"),
+                ),
+            ).not.toBeInTheDocument();
+            expect(databaseInputGroupClassName(element)).not.toContain(`${bluePrintClassPrefix}-intent-warning`);
+        });
+    };
+
+    const dismissDependentDatabaseWarning = (element: Element | RenderResult) => {
+        const warning = findElement(element, byTestId("task-form-dependent-values-warning"));
+        clickRenderedElement(within(warning).getByLabelText("Close"));
+    };
+
+    it("should keep dependent values, highlight them, and clear them only via the warning action", async () => {
+        const { element } = await createDependentParameterWrapper();
+        changeInputValue(findElement(element, "#password") as HTMLInputElement, "new-secret");
+        await expectDependentDatabaseWarning(element);
+
+        clickRenderedElement(findElement(element, byTestId("task-form-clear-highlighted-dependent-values")));
+        await expectDependentDatabaseWarningCleared(element, "");
+    });
+
+    it("should remove dependent value highlighting but keep the value when dismissing the warning", async () => {
+        const { element } = await createDependentParameterWrapper();
+        changeInputValue(findElement(element, "#password") as HTMLInputElement, "new-secret");
+        await expectDependentDatabaseWarning(element);
+
+        dismissDependentDatabaseWarning(element);
+
+        await expectDependentDatabaseWarningCleared(element, "analytics");
+    });
+
+    it("should highlight dependent values again after dismissing the warning and changing the dependency again", async () => {
+        const { element } = await createDependentParameterWrapper();
+        const passwordInput = findElement(element, "#password") as HTMLInputElement;
+
+        changeInputValue(passwordInput, "new-secret");
+        await expectDependentDatabaseWarning(element);
+
+        dismissDependentDatabaseWarning(element);
+        await expectDependentDatabaseWarningCleared(element, "analytics");
+
+        changeInputValue(passwordInput, "newer-secret");
+        await expectDependentDatabaseWarning(element);
+    });
+
     const value = (value: string, label?: string) => {
         const result: { value: string; label?: string } = { value };
         if (label) {
