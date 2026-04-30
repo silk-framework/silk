@@ -42,7 +42,7 @@ export interface ParameterAutoCompletionProps {
     /** If a value is required. If true, a reset won't be possible. */
     required: boolean;
     onChange: (value: IAutocompleteDefaultResponse) => any;
-    intent: Intent;
+    intent?: Intent;
     /** Show errors in the auto-completion list instead of the global error notification widget. */
     showErrorsInline?: boolean;
     /** When set to true the auto-complete input field will be in read-only mode and cannot be edited. */

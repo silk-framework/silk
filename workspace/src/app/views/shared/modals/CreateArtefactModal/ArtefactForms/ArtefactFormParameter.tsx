@@ -19,7 +19,10 @@ import {
     OptionallyLabelledParameter,
     optionallyLabelledParameterToValue,
 } from "../../../../taskViews/linking/linking.types";
-import { CodeAutocompleteFieldValidationResult } from "@eccenca/gui-elements/src/components/AutoSuggestion/AutoSuggestion";
+import {
+    CodeAutocompleteFieldProps,
+    CodeAutocompleteFieldValidationResult,
+} from "@eccenca/gui-elements/src/components/AutoSuggestion/AutoSuggestion";
 import { useSelector } from "react-redux";
 import { commonSel } from "@ducks/common";
 import { CreateArtefactModalContext } from "../CreateArtefactModalContext";
@@ -71,6 +74,7 @@ interface Props {
         defaultValue?: string | number | boolean | OptionallyLabelledParameter<string | number | boolean>;
     };
     parameterType?: string;
+    highlightForReview?: boolean;
 }
 
 /** Wrapper around the input element of a parameter. Supports switching to variable templates. */
@@ -88,6 +92,7 @@ export const ArtefactFormParameter = ({
     disabled = false,
     tooltip,
     supportVariableTemplateElement,
+    highlightForReview = false,
 }: Props) => {
     const [t] = useTranslation();
     const [toggledTemplateSwitchBefore, setToggledTemplateSwitchBefore] = React.useState<boolean>(false);
@@ -182,17 +187,20 @@ export const ArtefactFormParameter = ({
                     parameterType,
                 ))) ||
         isTemplateInputType;
+    const inputIntent: CodeAutocompleteFieldProps["intent"] =
+        infoMessageDanger || !!validationError ? "danger" : highlightForReview ? "warning" : undefined;
 
     return (
         <FieldItem
             key={parameterId}
+            data-test-id={`task-form-parameter-${parameterId}`}
             labelProps={{
                 text: label,
                 info: required ? t("common.words.required") : undefined,
                 htmlFor: parameterId,
                 tooltip: tooltip,
             }}
-            intent={infoMessageDanger || !!validationError ? "danger" : undefined}
+            intent={inputIntent}
             messageText={infoMessage || validationError || templateInfoMessage || passwordMsgText}
             disabled={disabled}
             helperText={helperText}
@@ -216,6 +224,7 @@ export const ArtefactFormParameter = ({
                             evaluatedValueMessage={
                                 supportVariableTemplateElement?.showTemplatePreview ? setTemplateInfoMessage : undefined
                             }
+                            intent={inputIntent}
                             allowSensitiveVariables={isPasswordInput}
                             // If the parameter is a template parameter, the validation is not aware in general what variables exist
                             ignoreUnboundVariables={isTemplateInputType && !showVariableTemplateInput}
@@ -271,6 +280,7 @@ interface TemplateInputComponentProps {
     allowSensitiveVariables?: boolean;
     /** If the validation of the template string should ignore unbound variables. */
     ignoreUnboundVariables: boolean;
+    intent?: CodeAutocompleteFieldProps["intent"];
 }
 
 /** The input component for the template value. */
@@ -287,6 +297,7 @@ export const TemplateInputComponent = memo(
         multiline,
         allowSensitiveVariables,
         ignoreUnboundVariables,
+        intent,
     }: TemplateInputComponentProps) => {
         const currentUB = React.useRef<boolean>(ignoreUnboundVariables);
         currentUB.current = ignoreUnboundVariables;
@@ -383,6 +394,7 @@ export const TemplateInputComponent = memo(
                 checkInput={checkTemplate}
                 autoCompletionRequestDelay={200}
                 multiline={multiline}
+                intent={intent}
                 outerDivAttributes={
                     {
                         "data-test-id": "codemirror-wrapper",
