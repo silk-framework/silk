@@ -588,6 +588,106 @@ describe("Rule editor model", () => {
         });
     });
 
+    it("should keep undo history after saving and track the saved state marker", async () => {
+        await ruleEditorModel([node({ nodeId: "nodeA", position: { x: 1, y: 2 } })], [operator("pluginA")]);
+
+        act(() => {
+            currentContext().executeModelEditOperation.startChangeTransaction();
+            currentContext().executeModelEditOperation.moveNode("nodeA", { x: 10, y: 20 });
+        });
+        expect(currentContext().unsavedChanges).toBe(true);
+
+        await act(async () => {
+            await currentContext().saveRule();
+        });
+        expect(currentContext().canUndo).toBe(true);
+        expect(currentContext().unsavedChanges).toBe(false);
+        expect(currentContext().savedStatePosition).toBe("current");
+
+        act(() => {
+            currentContext().undo();
+        });
+        expect(nodeById("nodeA").position).toStrictEqual({ x: 1, y: 2 });
+        expect(currentContext().canRedo).toBe(true);
+        expect(currentContext().unsavedChanges).toBe(true);
+        expect(currentContext().savedStatePosition).toBe("before");
+
+        act(() => {
+            currentContext().redo();
+        });
+        expect(nodeById("nodeA").position).toStrictEqual({ x: 10, y: 20 });
+        expect(currentContext().unsavedChanges).toBe(false);
+        expect(currentContext().savedStatePosition).toBe("current");
+    });
+
+    it("should reset to saved state without clearing undo and redo history when the saved marker is still available", async () => {
+        await ruleEditorModel([node({ nodeId: "nodeA", position: { x: 1, y: 2 } })], [operator("pluginA")]);
+
+        act(() => {
+            currentContext().executeModelEditOperation.startChangeTransaction();
+            currentContext().executeModelEditOperation.moveNode("nodeA", { x: 10, y: 20 });
+        });
+        await act(async () => {
+            await currentContext().saveRule();
+        });
+        act(() => {
+            currentContext().executeModelEditOperation.startChangeTransaction();
+            currentContext().executeModelEditOperation.moveNode("nodeA", { x: 100, y: 200 });
+        });
+        expect(currentContext().savedStatePosition).toBe("after");
+        expect(currentContext().resetToSavedStateClearsHistory).toBe(false);
+
+        await act(async () => {
+            currentContext().resetToSavedState();
+        });
+        expect(nodeById("nodeA").position).toStrictEqual({ x: 10, y: 20 });
+        expect(currentContext().savedStatePosition).toBe("current");
+        expect(currentContext().canUndo).toBe(true);
+        expect(currentContext().canRedo).toBe(true);
+
+        act(() => {
+            currentContext().undo();
+        });
+        expect(nodeById("nodeA").position).toStrictEqual({ x: 1, y: 2 });
+        act(() => {
+            currentContext().redo();
+        });
+        expect(nodeById("nodeA").position).toStrictEqual({ x: 10, y: 20 });
+        act(() => {
+            currentContext().redo();
+        });
+        expect(nodeById("nodeA").position).toStrictEqual({ x: 100, y: 200 });
+    });
+
+    it("should clear undo and redo history when resetting to a saved state that is no longer in history", async () => {
+        await ruleEditorModel([node({ nodeId: "nodeA", position: { x: 1, y: 2 } })], [operator("pluginA")]);
+
+        act(() => {
+            currentContext().executeModelEditOperation.startChangeTransaction();
+            currentContext().executeModelEditOperation.moveNode("nodeA", { x: 10, y: 20 });
+        });
+        await act(async () => {
+            await currentContext().saveRule();
+        });
+        act(() => {
+            currentContext().undo();
+        });
+        act(() => {
+            currentContext().executeModelEditOperation.startChangeTransaction();
+            currentContext().executeModelEditOperation.moveNode("nodeA", { x: 50, y: 60 });
+        });
+        expect(currentContext().savedStatePosition).toBe("before");
+        expect(currentContext().resetToSavedStateClearsHistory).toBe(true);
+
+        await act(async () => {
+            currentContext().resetToSavedState();
+        });
+        expect(nodeById("nodeA").position).toStrictEqual({ x: 10, y: 20 });
+        expect(currentContext().savedStatePosition).toBe("current");
+        expect(currentContext().canUndo).toBe(false);
+        expect(currentContext().canRedo).toBe(false);
+    });
+
     it("should delete multiple nodes and undo & redo", async () => {
         await ruleEditorModel(
             [

@@ -139,6 +139,11 @@ export const RuleEditorToolbar = () => {
     };
 
     const numberOfCopiedNodes = modelContext.copiedNodesCount;
+    const showResetToSavedState =
+        modelContext.savedStatePosition === "before" || modelContext.savedStatePosition === "after";
+    const resetToSavedStateText = modelContext.resetToSavedStateClearsHistory
+        ? t("RuleEditor.toolbar.resetToSavedStateWithHistoryReset")
+        : t("RuleEditor.toolbar.resetToSavedState");
 
     return (
         <>
@@ -180,14 +185,24 @@ export const RuleEditorToolbar = () => {
                         data-test-id={"rule-editor-undo-btn"}
                         disabled={modelContext.isReadOnly() || !modelContext.canUndo}
                         name="operation-undo"
-                        text="Undo"
+                        text={t("RuleEditor.toolbar.undo")}
                         onClick={modelContext.undo}
                     />
+                    {showResetToSavedState ? (
+                        <IconButton
+                            data-test-id={"rule-editor-reset-to-saved-btn"}
+                            disabled={modelContext.isReadOnly()}
+                            disruptive={modelContext.resetToSavedStateClearsHistory}
+                            name="item-reload"
+                            text={resetToSavedStateText}
+                            onClick={modelContext.resetToSavedState}
+                        />
+                    ) : null}
                     <IconButton
                         data-test-id={"rule-editor-redo-btn"}
                         disabled={modelContext.isReadOnly() || !modelContext.canRedo}
                         name="operation-redo"
-                        text="Redo"
+                        text={t("RuleEditor.toolbar.redo")}
                         onClick={modelContext.redo}
                     />
                     <Spacing vertical hasDivider />

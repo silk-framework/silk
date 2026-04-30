@@ -69,7 +69,13 @@ export interface RuleEditorModelProps {
 
 // Object to denote transaction boundaries between change operations
 const TRANSACTION_BOUNDARY = "Transaction boundary";
-type ChangeStackType = RuleModelChanges | "Transaction boundary";
+const SAVED_STATE_MARKER = "Saved state marker";
+type SavedStatePosition = "before" | "current" | "after";
+interface SavedStateMarker {
+    type: typeof SAVED_STATE_MARKER;
+    version: number;
+}
+type ChangeStackType = RuleModelChanges | typeof TRANSACTION_BOUNDARY | SavedStateMarker;
 
 /** Used for internal use. Allows to traverse the rule tree efficiently. */
 interface RuleTreeNode {
@@ -138,6 +144,10 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
     // Flag if the rule has already been changed once
     const [savedOnce, setSavedOnce] = React.useState(false);
     const [notification, setNotification] = React.useState<React.JSX.Element | undefined>();
+    const savedStateVersion = React.useRef(0);
+    const [savedStatePosition, setSavedStatePosition] = React.useState<SavedStatePosition | undefined>(undefined);
+    const savedRuleState = React.useRef<{ ruleOperatorNodes: IRuleOperatorNode[]; stickyNotes: StickyNote[] }>();
+    const unsavedChanges = savedStatePosition !== "current" || (!savedOnce && ruleEditorContext.saveInitiallyEnabled);
 
     const clearTextSelection = React.useCallback(() => {
         if (document.getSelection) {
@@ -234,8 +244,8 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
 
     React.useEffect(() => {
         const unSavedChangesFunc = ruleEditorContext.viewActions?.unsavedChanges;
-        unSavedChangesFunc && unSavedChangesFunc(canUndo);
-    }, [canUndo]);
+        unSavedChangesFunc && unSavedChangesFunc(unsavedChanges);
+    }, [unsavedChanges]);
 
     React.useEffect(() => {
         // Reset model on ID changes
@@ -420,6 +430,69 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
      * UNDO/REDO handling.
      **/
 
+    const isSavedStateMarker = (change: ChangeStackType | undefined): change is SavedStateMarker => {
+        return typeof change === "object" && "type" in change && change.type === SAVED_STATE_MARKER;
+    };
+
+    const isRuleModelChanges = (change: ChangeStackType | undefined): change is RuleModelChanges => {
+        return typeof change === "object" && "operations" in change;
+    };
+
+    const hasRuleModelChanges = (changeStack: ChangeStackType[]) => {
+        return changeStack.some(isRuleModelChanges);
+    };
+
+    const updateCanUndo = () => setCanUndo(hasRuleModelChanges(ruleUndoStack));
+    const updateCanRedo = () => setCanRedo(hasRuleModelChanges(ruleRedoStack));
+
+    const moveTopSavedStateMarkers = (fromStack: ChangeStackType[], toStack: ChangeStackType[]) => {
+        while (isSavedStateMarker(fromStack[fromStack.length - 1])) {
+            toStack.push(fromStack.pop()!);
+        }
+    };
+
+    const isCurrentSavedStateMarker = (change: ChangeStackType | undefined): change is SavedStateMarker => {
+        return isSavedStateMarker(change) && change.version === savedStateVersion.current;
+    };
+
+    const currentSavedStateMarkerIndex = (changeStack: ChangeStackType[]) => {
+        return changeStack.findIndex(isCurrentSavedStateMarker);
+    };
+
+    const syncSavedStatePosition = () => {
+        const currentVersion = savedStateVersion.current;
+        if (!currentVersion) {
+            setSavedStatePosition(undefined);
+            return;
+        }
+        let undoStackMarkerIndex = -1;
+        for (let idx = ruleUndoStack.length - 1; idx >= 0; idx--) {
+            const change = ruleUndoStack[idx];
+            if (isSavedStateMarker(change) && change.version === currentVersion) {
+                undoStackMarkerIndex = idx;
+                break;
+            }
+        }
+        if (undoStackMarkerIndex >= 0) {
+            setSavedStatePosition(undoStackMarkerIndex === ruleUndoStack.length - 1 ? "current" : "after");
+            return;
+        }
+        const redoStackHasMarker = ruleRedoStack.some(
+            (change) => isSavedStateMarker(change) && change.version === currentVersion,
+        );
+        setSavedStatePosition(redoStackHasMarker || savedStatePosition === "before" ? "before" : "after");
+    };
+
+    const markSavedState = (ruleOperatorNodesToMark: IRuleOperatorNode[], stickyNotesToMark: StickyNote[]) => {
+        savedStateVersion.current += 1;
+        savedRuleState.current = {
+            ruleOperatorNodes: JSON.parse(JSON.stringify(ruleOperatorNodesToMark)),
+            stickyNotes: JSON.parse(JSON.stringify(stickyNotesToMark)),
+        };
+        ruleUndoStack.push({ type: SAVED_STATE_MARKER, version: savedStateVersion.current });
+        setSavedStatePosition("current");
+    };
+
     /** Starts a new change transaction than can be undone/redone in one step. */
     const startChangeTransaction = () => {
         ruleUndoStack.push(TRANSACTION_BOUNDARY);
@@ -482,7 +555,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
 
     /** Undo the last change-transaction. */
     const undo = (): boolean => {
-        const changesToUndo = changeTransactionOperations(ruleUndoStack);
+        const changesToUndo = changeTransactionOperations(ruleUndoStack, ruleRedoStack);
         if (changesToUndo.length > 0) {
             // Undo changes and create redo transaction
             startRedoChangeTransaction();
@@ -499,16 +572,15 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
             });
             resetSelectedElements();
         }
-        if (ruleUndoStack.length === 0 || !ruleUndoStack.find((change) => change !== "Transaction boundary")) {
-            // If stack is empty or only transaction markers exist
-            setCanUndo(false);
-        }
+        updateCanUndo();
+        updateCanRedo();
+        syncSavedStatePosition();
         return changesToUndo.length > 0;
     };
 
     /** Redo the last change-transaction. */
     const redo = () => {
-        const changesToRedo = changeTransactionOperations(ruleRedoStack);
+        const changesToRedo = changeTransactionOperations(ruleRedoStack, ruleUndoStack);
         if (changesToRedo.length > 0) {
             // Redo changes and create Undo transaction
             startChangeTransaction();
@@ -524,26 +596,89 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                 return currentElements;
             });
         }
-        if (ruleRedoStack.length === 0) {
-            setCanRedo(false);
-        }
+        moveTopSavedStateMarkers(ruleRedoStack, ruleUndoStack);
+        updateCanUndo();
+        updateCanRedo();
+        syncSavedStatePosition();
         return changesToRedo.length > 0;
     };
 
     /** Returns the last change transaction of the given change stack. */
-    const changeTransactionOperations = (changeStack: ChangeStackType[]) => {
+    const changeTransactionOperations = (changeStack: ChangeStackType[], skippedMarkerTargetStack: ChangeStackType[]) => {
         // Find first real operation
         let op = changeStack.pop();
+        while (isSavedStateMarker(op)) {
+            skippedMarkerTargetStack.push(op);
+            op = changeStack.pop();
+        }
         while (changeStack.length > 0 && op === TRANSACTION_BOUNDARY) {
             op = changeStack.pop();
+            while (isSavedStateMarker(op)) {
+                skippedMarkerTargetStack.push(op);
+                op = changeStack.pop();
+            }
         }
         // Add all operations until transaction boundary is hit
         const changesToUndo: RuleModelChanges[] = [];
         while (op != null && op !== TRANSACTION_BOUNDARY) {
-            changesToUndo.push(op);
+            if (isSavedStateMarker(op)) {
+                skippedMarkerTargetStack.push(op);
+            } else {
+                changesToUndo.push(op);
+            }
             op = changeStack.pop();
         }
         return changesToUndo.reverse();
+    };
+
+    const moveUndoQueueToSavedState = (): boolean => {
+        const savedStateIndex = currentSavedStateMarkerIndex(ruleUndoStack);
+        if (savedStateIndex < 0) {
+            return false;
+        }
+        while (!isCurrentSavedStateMarker(ruleUndoStack[ruleUndoStack.length - 1])) {
+            const changesToUndo = changeTransactionOperations(ruleUndoStack, ruleRedoStack);
+            if (changesToUndo.length === 0) {
+                return false;
+            }
+            startRedoChangeTransaction();
+            [...changesToUndo]
+                .reverse()
+                .map((change) => invertModelChanges(change))
+                .forEach((change) => addRedoRuleModelChange(change));
+        }
+        return true;
+    };
+
+    const moveRedoQueueToSavedState = (): boolean => {
+        if (currentSavedStateMarkerIndex(ruleRedoStack) < 0) {
+            return false;
+        }
+        while (!isCurrentSavedStateMarker(ruleUndoStack[ruleUndoStack.length - 1])) {
+            const changesToRedo = changeTransactionOperations(ruleRedoStack, ruleUndoStack);
+            if (changesToRedo.length === 0) {
+                moveTopSavedStateMarkers(ruleRedoStack, ruleUndoStack);
+                break;
+            }
+            startChangeTransaction();
+            [...changesToRedo]
+                .reverse()
+                .map((change) => invertModelChanges(change))
+                .forEach((change) => addRuleModelChange(change, false));
+            moveTopSavedStateMarkers(ruleRedoStack, ruleUndoStack);
+        }
+        return isCurrentSavedStateMarker(ruleUndoStack[ruleUndoStack.length - 1]);
+    };
+
+    const moveHistoryQueuesToSavedState = (): boolean => {
+        if (isCurrentSavedStateMarker(ruleUndoStack[ruleUndoStack.length - 1])) {
+            return true;
+        }
+        return moveUndoQueueToSavedState() || moveRedoQueueToSavedState();
+    };
+
+    const savedStateCanBeRestoredFromHistory = (): boolean => {
+        return currentSavedStateMarkerIndex(ruleUndoStack) >= 0 || currentSavedStateMarkerIndex(ruleRedoStack) >= 0;
     };
 
     /** Adds a change action to the REDO stack. */
@@ -561,9 +696,10 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
         addOrMergeRuleModelChange(ruleModelChange);
         if (resetRedoStack) {
             ruleRedoStack.splice(0);
-            setCanRedo(false);
+            updateCanRedo();
         }
-        setCanUndo(true);
+        updateCanUndo();
+        setSavedStatePosition((position) => (position === "before" ? "before" : savedStateVersion.current ? "after" : undefined));
     };
 
     /** Adds a rule model change and in some cases merges them. */
@@ -1507,7 +1643,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
 
     /** Converts this rule change to a single 'change node parameter' action if possible, else returns undefined. */
     const asChangeNodeParameter = (ruleModelChanges: ChangeStackType | undefined): ChangeNodeParameter | undefined => {
-        return typeof ruleModelChanges === "object" &&
+        return isRuleModelChanges(ruleModelChanges) &&
             ruleModelChanges.operations.length === 1 &&
             ruleModelChanges.operations[0].type === "Change node parameter"
             ? (ruleModelChanges.operations[0] as ChangeNodeParameter)
@@ -1902,9 +2038,8 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
 
         const saveResult = await ruleEditorContext.saveRule(ruleOperatorNodes(), stickyNodes);
         if (saveResult.success) {
-            // Reset UNDO state
-            ruleUndoStack.splice(0);
-            setCanUndo(false);
+            markSavedState(ruleOperatorNodes(), stickyNodes);
+            updateCanUndo();
             setSavedOnce(true);
         }
         if ((saveResult.nodeErrors ?? []).length > 0) {
@@ -1925,7 +2060,12 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
         return saveResult.success;
     };
 
-    const initModel = async () => {
+    const initModelFrom = async (
+        operatorsNodes: IRuleOperatorNode[],
+        stickyNotes: StickyNote[],
+        markAsSaved: boolean,
+        resetHistory: boolean = true,
+    ) => {
         setInitializing(true);
         const handleDeleteNode = (nodeId: string) => {
             startChangeTransaction();
@@ -1933,10 +2073,9 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
         };
         nodeMap.clear();
         nodeParameters.clear();
-        const operatorsNodes = ruleEditorContext.initialRuleOperatorNodes;
         // Create nodes
         let needsLayout = false;
-        const nodes = operatorsNodes!!.map((operatorNode) => {
+        const nodes = operatorsNodes.map((operatorNode) => {
             needsLayout = needsLayout || !operatorNode.position;
             return utils.createOperatorNode(
                 operatorNode,
@@ -1945,14 +2084,14 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
             );
         });
         // Init node map for edgeType, set inputs and output further below
-        operatorsNodes!!.forEach((opNode) =>
+        operatorsNodes.forEach((opNode) =>
             nodeMap.set(opNode.nodeId, { node: opNode, inputs: [], output: undefined }),
         );
         // Create edges
         const edges: Edge[] = [];
         // Mapping from source to target node. Each source node can only have on connection to a target node.
         const targetNode = new Map<string, string>();
-        operatorsNodes!!.forEach((node) => {
+        operatorsNodes.forEach((node) => {
             node.inputs.forEach((inputNodeId, idx) => {
                 if (inputNodeId) {
                     // Edge IDs do not currently matter
@@ -1965,7 +2104,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
         });
 
         // Set helper data-structures for fast access to operator data
-        operatorsNodes!!.forEach((opNode) =>
+        operatorsNodes.forEach((opNode) =>
             nodeMap.set(opNode.nodeId, {
                 node: opNode,
                 inputs: opNode.inputs,
@@ -1973,19 +2112,28 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
             }),
         );
 
-        const stickyNodes = ruleEditorContext.stickyNotes.map(({ color, content, position, id }) => {
+        const stickyNodeElements = stickyNotes.map(({ color, content, position, id }) => {
             const { x, y, width, height } = position;
             return createStickyNodeInternal(color, content, { x, y }, { width, height }, id);
         });
 
-        let elems: Elements = [...nodes, ...edges, ...stickyNodes];
+        let elems: Elements = [...nodes, ...edges, ...stickyNodeElements];
         if (needsLayout) {
             elems = await autoLayoutInternal(elems, false, false);
         }
         setElements(elems);
-        utils.initNodeBaseIds([...nodes, ...stickyNodes]);
-        ruleUndoStack.splice(0);
-        ruleRedoStack.splice(0);
+        utils.initNodeBaseIds([...nodes, ...stickyNodeElements]);
+        if (resetHistory) {
+            ruleUndoStack.splice(0);
+            ruleRedoStack.splice(0);
+            updateCanUndo();
+            updateCanRedo();
+            if (markAsSaved) {
+                markSavedState(operatorsNodes, stickyNotes);
+            } else {
+                setSavedStatePosition(undefined);
+            }
+        }
         if (ruleEditorContext.initialHighlighting) {
             const h = ruleEditorContext.initialHighlighting;
             let closeFn = () => {};
@@ -2018,6 +2166,29 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
         }, 1);
     };
 
+    const initModel = async () => {
+        await initModelFrom(
+            ruleEditorContext.initialRuleOperatorNodes!!,
+            ruleEditorContext.stickyNotes,
+            !ruleEditorContext.saveInitiallyEnabled,
+        );
+    };
+
+    const resetToSavedState = (): boolean => {
+        if (!savedRuleState.current) {
+            return false;
+        }
+        const keepHistory = moveHistoryQueuesToSavedState();
+        initModelFrom(savedRuleState.current.ruleOperatorNodes, savedRuleState.current.stickyNotes, !keepHistory, !keepHistory);
+        setSavedOnce(true);
+        if (keepHistory) {
+            updateCanUndo();
+            updateCanRedo();
+            syncSavedStatePosition();
+        }
+        return true;
+    };
+
     return (
         <RuleEditorModelContext.Provider
             value={{
@@ -2031,6 +2202,9 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                 canUndo,
                 redo,
                 canRedo,
+                resetToSavedState,
+                resetToSavedStateClearsHistory: !!savedRuleState.current && !savedStateCanBeRestoredFromHistory(),
+                savedStatePosition,
                 canvasId,
                 updateSelectedElements,
                 copiedNodesCount,
@@ -2054,7 +2228,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                     fixNodeInputs,
                     copyNodes,
                 },
-                unsavedChanges: canUndo || (!savedOnce && ruleEditorContext.saveInitiallyEnabled),
+                unsavedChanges,
                 isValidEdge,
                 centerNode,
                 ruleOperatorNodes,
