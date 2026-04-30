@@ -10,6 +10,7 @@ import org.silkframework.util.Uri
   id = JsonParserTask.pluginId,
   label = "Parse JSON",
   description = "Parses an incoming entity as a JSON dataset. Typically, it is used before a transformation task. Takes exactly one input of which only the first entity is processed.",
+  documentationFile = "JsonParserTaskDocumentation.md",
   relatedPlugins = Array(
     new PluginReference(
       id = JsonDataset.pluginId,
