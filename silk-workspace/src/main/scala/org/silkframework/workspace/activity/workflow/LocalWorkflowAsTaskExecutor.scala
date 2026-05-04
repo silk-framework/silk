@@ -24,7 +24,7 @@ class LocalWorkflowAsTaskExecutor extends Executor[Workflow, LocalExecution] {
       case _ => throw new IllegalArgumentException("Workflow has to be executed in a project context.")
     }
     val workflowContext = context.asInstanceOf[ActivityContext[WorkflowExecutionReport]]
-    workflowContext.value() = WorkflowExecutionReport(task)
+    workflowContext.value() = WorkflowExecutionReport(task).withAuthDiagnostics(user)
 
     LocalWorkflowExecutor(
       projectTask,
