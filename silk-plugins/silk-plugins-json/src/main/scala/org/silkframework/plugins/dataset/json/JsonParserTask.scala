@@ -3,13 +3,20 @@ package org.silkframework.plugins.dataset.json
 import org.silkframework.config.{CustomTask, FixedNumberOfInputs, FixedSchemaPort, FlexibleSchemaPort, InputPorts, Port}
 import org.silkframework.entity.paths.UntypedPath
 import org.silkframework.entity.EntitySchema
-import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
+import org.silkframework.runtime.plugin.annotations.{Param, Plugin, PluginReference}
 import org.silkframework.util.Uri
 
 @Plugin(
-  id = "JsonParserOperator",
+  id = JsonParserTask.pluginId,
   label = "Parse JSON",
-  description = "Parses an incoming entity as a JSON dataset. Typically, it is used before a transformation task. Takes exactly one input of which only the first entity is processed."
+  description = "Parses an incoming entity as a JSON dataset. Typically, it is used before a transformation task. Takes exactly one input of which only the first entity is processed.",
+  documentationFile = "JsonParserTaskDocumentation.md",
+  relatedPlugins = Array(
+    new PluginReference(
+      id = JsonDataset.pluginId,
+      description = "Parse JSON and the JSON dataset share path syntax but not a content source: Parse JSON reads from a field value in an incoming entity, the JSON dataset from a file resource it opens directly."
+    )
+  )
 )
 case class JsonParserTask(@Param("The Silk path expression of the input entity that contains the JSON document. If " +
     "not set, the value of the first defined property will be taken.")
@@ -57,4 +64,8 @@ case class JsonParserTask(@Param("The Silk path expression of the input entity t
   override def outputPort: Option[Port] = {
     Some(FlexibleSchemaPort())
   }
+}
+
+object JsonParserTask {
+  final val pluginId = "JsonParserOperator"
 }
