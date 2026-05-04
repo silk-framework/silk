@@ -51,9 +51,11 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
                   (implicit userContext: UserContext): Unit = {
     val registry = MeterRegistryProvider.meterRegistry
     val stopwatch: Timer.Sample = Timer.start()
+    val workflowUserContext = updateUserContext(userContext)
+    context.value.updateWith(_.withAuthDiagnostics(workflowUserContext))
     cancelled = false
     try {
-      runWorkflow(context, updateUserContext(userContext))
+      runWorkflow(context, workflowUserContext)
     } catch {
       case cancelledWorkflowException: StopWorkflowExecutionException if !cancelledWorkflowException.failWorkflow =>
         // In case of an cancelled workflow from an operator, the workflow should still be successful
@@ -111,7 +113,7 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
           throw e // Only rethrow exception if the activity was not cancelled, else the error could be due to the cancellation.
         }
     } finally {
-      context.value.updateWith(_.asDone())
+      context.value.updateWith(_.withAuthDiagnostics(userContext).asDone())
       this.executionContext.executeShutdownHooks()
     }
   }

@@ -3,6 +3,8 @@ package org.silkframework.workspace.activity.workflow
 import org.silkframework.config.{Task, TaskSpec}
 import org.silkframework.execution.report.{EntitySample, SampleEntities}
 import org.silkframework.execution.{ExecutionReport, SimpleExecutionReport}
+import org.silkframework.runtime.activity.UserContext
+import org.silkframework.runtime.users.AuthDiagnosticsProvider
 import org.silkframework.util.Identifier
 
 import java.time.Instant
@@ -17,6 +19,7 @@ case class WorkflowExecutionReport(task: Task[TaskSpec],
                                    taskReports: IndexedSeq[WorkflowTaskReport] = IndexedSeq.empty,
                                    isDone: Boolean = false,
                                    override val error : Option[String] = None,
+                                   authDiagnostics: Option[String] = None,
                                    version: Int = 0) extends ExecutionReport {
 
   /**
@@ -93,7 +96,16 @@ case class WorkflowExecutionReport(task: Task[TaskSpec],
     copy(taskReports = taskReports.map(updateReport), isDone = true, version = version + 1)
   }
 
-  override def summary: Seq[(String, String)] = Seq.empty
+  def withAuthDiagnostics(userContext: UserContext): WorkflowExecutionReport = {
+    copy(authDiagnostics = WorkflowExecutionReport.authDiagnostics(userContext).orElse(authDiagnostics))
+  }
+
+  override def summary: Seq[(String, String)] = {
+    authDiagnostics match {
+      case Some(str) => Seq("Authentification diagnostics" -> str)
+      case _ => Seq.empty
+    }
+  }
 
   override def warnings: Seq[String] = {
     if(taskReports.exists(_.report.warnings.nonEmpty)) {
@@ -123,3 +135,14 @@ case class WorkflowTaskReport(nodeId: Identifier,
                               report: ExecutionReport,
                               version: Int = 0,
                               timestamp: Instant = Instant.now())
+
+object WorkflowExecutionReport {
+  def authDiagnostics(userContext: UserContext): Option[String] = {
+    userContext.user match {
+      case Some(provider: AuthDiagnosticsProvider) =>
+        provider.authDiagnostics.map(_.jsonString)
+      case _ =>
+        None
+    }
+  }
+}
