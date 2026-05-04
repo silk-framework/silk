@@ -139,7 +139,7 @@ export const RuleEditorToolbar = () => {
     };
 
     const numberOfCopiedNodes = modelContext.copiedNodesCount;
-    const showResetToSavedState =
+    const canResetToSavedState =
         modelContext.savedStatePosition === "before" || modelContext.savedStatePosition === "after";
     const resetToSavedStateText = modelContext.resetToSavedStateClearsHistory
         ? t("RuleEditor.toolbar.resetToSavedStateWithHistoryReset")
@@ -188,16 +188,14 @@ export const RuleEditorToolbar = () => {
                         text={t("RuleEditor.toolbar.undo")}
                         onClick={modelContext.undo}
                     />
-                    {showResetToSavedState ? (
-                        <IconButton
-                            data-test-id={"rule-editor-reset-to-saved-btn"}
-                            disabled={modelContext.isReadOnly()}
-                            disruptive={modelContext.resetToSavedStateClearsHistory}
-                            name="item-reload"
-                            text={resetToSavedStateText}
-                            onClick={modelContext.resetToSavedState}
-                        />
-                    ) : null}
+                    <IconButton
+                        data-test-id={"rule-editor-reset-to-saved-btn"}
+                        disabled={modelContext.isReadOnly() || !canResetToSavedState}
+                        disruptive={modelContext.resetToSavedStateClearsHistory}
+                        name="item-reload"
+                        text={resetToSavedStateText}
+                        onClick={modelContext.resetToSavedState}
+                    />
                     <IconButton
                         data-test-id={"rule-editor-redo-btn"}
                         disabled={modelContext.isReadOnly() || !modelContext.canRedo}
