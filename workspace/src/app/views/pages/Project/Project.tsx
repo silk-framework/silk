@@ -36,6 +36,7 @@ import ActivityInfoWidget from "./ActivityInfoWidget";
 import { previewSlice } from "@ducks/workspace/previewSlice";
 import VariablesWidget from "../../../views/shared/VariablesWidget/VariablesWidget";
 import { useSelectFirstResult } from "../../../hooks/useSelectFirstResult";
+import { AppDispatch } from "store/configureStore";
 import { GlobalTableContext } from "../../../GlobalContextsWrapper";
 import { DeprecatedPluginsWidget } from "./DeprecatedPlugins/DeprecatedPluginsWidget";
 import { pluginRegistry, SUPPORTED_PLUGINS } from "../../plugins/PluginRegistry";
@@ -44,7 +45,7 @@ import useErrorHandler from "../../../hooks/useErrorHandler";
 import { ProjectForbiddenNotification } from "../../shared/ProjectForbiddenNotification";
 
 const Project = () => {
-    const dispatch = useDispatch();
+    const dispatch = useDispatch<AppDispatch>();
 
     const { textQuery } = useSelector(workspaceSel.appliedFiltersSelector);
     const currentSearchQuery = useRef<string>("");

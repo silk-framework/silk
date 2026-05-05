@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
 import { INPUT_TYPES } from "../../../../../constants";
-import { CodeEditor, Spinner, Switch, TextField } from "@eccenca/gui-elements";
+import { CodeEditor, Switch, TextField } from "@eccenca/gui-elements";
 import { ITaskParameter } from "@ducks/common/typings";
 import { IntentTypes as Intent } from "@eccenca/gui-elements/src/common/Intent";
 import FileSelectionMenu from "../../../FileUploader/FileSelectionMenu";
@@ -21,7 +21,7 @@ interface IProps {
     projectId: string;
     parameter: ITaskParameter;
     // Blueprint intent
-    intent: Intent;
+    intent?: Intent;
     onChange: (value) => void;
     // Initial values in a flat form, e.g. "nestedParam.param1". This is either set for all parameters or not set for none.
     // The prefixed values can be addressed with help of the 'formParamId' parameter.
@@ -40,12 +40,13 @@ export type RegisterForExternalChangesFn = (
 export interface IInputAttributes {
     id: string;
     name: string;
-    intent: Intent;
+    intent?: Intent;
     onChange: (value) => void;
     value?: any;
     defaultValue?: any;
     inputRef?: (e) => void;
     defaultChecked?: boolean;
+    key?: string | null;
 }
 
 /** Maps an atomic value to the corresponding value type widget. */
@@ -64,8 +65,9 @@ export function InputMapper({
     const registerError = modalContext.registerModalError ? modalContext.registerModalError : globalErrorHandler;
     const { maxFileUploadSize } = useSelector(commonSel.initialSettingsSelector);
     const { paramId, param } = parameter;
-    const [externalValue, setExternalValue] = React.useState<{ value: string; label?: string } | undefined>(undefined);
-    const [show, setShow] = React.useState(true);
+    const [externalValue, setExternalValue] = React.useState<
+        { value: string; label?: string; version: number } | undefined
+    >(undefined);
     const [highlightInput, setHighlightInput] = React.useState(false);
     const initialOrExternalValue = externalValue ? externalValue.value : initialParameterValue;
     const initialValue =
@@ -82,21 +84,15 @@ export function InputMapper({
     }
 
     useEffect(() => {
+        let version = 0;
         const handleUpdates = (externalValue: { value: string; label?: string }) => {
-            setExternalValue(externalValue);
+            version += 1;
+            setExternalValue({ ...externalValue, version });
             setHighlightInput(true);
             onChange(stringValueAsJs(parameter.param.parameterType, externalValue.value));
         };
         parameterCallbacks.registerForExternalChanges(paramId, handleUpdates);
     }, []);
-
-    // Re-init element when value is set from outside
-    useEffect(() => {
-        if (externalValue) {
-            setShow(false);
-            setTimeout(() => setShow(true), 0);
-        }
-    }, [externalValue]);
 
     const inputAttributes: IInputAttributes = {
         id: paramId,
@@ -104,6 +100,7 @@ export function InputMapper({
         intent: highlightInput ? "success" : intent,
         onChange: onChangeUsed,
         defaultValue: initialValue,
+        key: externalValue?.version != null ? `${paramId}_${externalValue.version}` : undefined,
     };
 
     const handleFileSearch = async (input: string) => {
@@ -121,10 +118,6 @@ export function InputMapper({
 
     if (param.parameterType === INPUT_TYPES.BOOLEAN) {
         inputAttributes.defaultChecked = initialValue;
-    }
-
-    if (!show) {
-        return <Spinner />;
     }
 
     if (param.parameterType.startsWith("code-")) {

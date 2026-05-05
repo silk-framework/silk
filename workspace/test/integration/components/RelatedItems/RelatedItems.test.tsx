@@ -12,21 +12,17 @@ import {
 } from "../../TestHelper";
 import { RelatedItems } from "../../../../src/app/views/shared/RelatedItems/RelatedItems";
 import { RelatedItemsTestHelper } from "./RelatedItemsTestHelper";
-import { CONTEXT_PATH, SERVE_PATH } from "../../../../src/app/constants/path";
-import { ReactWrapper } from "enzyme";
-import { RenderResult, waitFor } from "@testing-library/react";
+import { SERVE_PATH } from "../../../../src/app/constants/path";
+import { act, RenderResult, waitFor } from "@testing-library/react";
 
 describe("Related items", () => {
     let hostPath = process.env.HOST;
-    let history: History<LocationState> = null;
+    let history: History<LocationState> = createBrowserHistory();
     let wrapper: RenderResult;
     const nrOverallItems = 11;
     beforeEach(async () => {
-        console.log("before has started");
         wrapper = loadRelatedItems();
-        console.log("items loaded");
         await checkRelatedItems(nrOverallItems, wrapper);
-        console.log("Finished beforeEach");
     }, 120000);
     afterEach(() => {
         mockAxios.reset();
@@ -41,7 +37,7 @@ describe("Related items", () => {
 
     it("should reload the related items when changing the project or task", async () => {
         const otherTask = "otherTask";
-        history.push(workspacePath(`/projects/${PROJECT_ID}/task/${otherTask}`));
+        act(() => history.push(workspacePath(`/projects/${PROJECT_ID}/task/${otherTask}`)));
         await waitFor(() => {
             checkRequestMade(relatedItemsUrl(otherTask));
         });

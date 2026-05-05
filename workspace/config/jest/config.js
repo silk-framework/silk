@@ -2,7 +2,7 @@
 
 module.exports = {
     rootDir: "./../../",
-    testEnvironment: "jsdom",
+    testEnvironment: "jest-fixed-jsdom",
     testEnvironmentOptions: {
         url: "http://localhost/",
         globalsCleanup: "on",
@@ -20,12 +20,12 @@ module.exports = {
         "<rootDir>/test/**/*(*.)@(spec|test).{js,jsx,ts,tsx}",
     ],
     transform: {
-        "^.+\\.(js|jsx|ts|tsx)$": "babel-jest",
+        "^.+\\.(js|jsx|ts|tsx|mjs|cjs)$": "babel-jest",
         "^.+\\.css$": "<rootDir>/config/jest/cssTransform.js",
         "^(?!.*\\.(js|jsx|ts|tsx|css|json)$)": "<rootDir>/config/jest/fileTransform.js",
     },
     transformIgnorePatterns: [
-        "[/\\\\]node_modules[/\\\\](?!react-markdown|vfile|unist-util-stringify-position|).+\\.(js|jsx|ts|tsx)$",
+        "[/\\\\]node_modules[/\\\\](?!react-markdown|vfile|unist-util-stringify-position|@reduxjs/toolkit|).+\\.(js|jsx|ts|tsx|mjs|cjs)$",
         "^.+\\.module\\.(css|sass|scss)$",
     ],
     moduleNameMapper: {
@@ -33,6 +33,7 @@ module.exports = {
         "^react-markdown$": "<rootDir>/../node_modules/react-markdown",
         "^@eccenca/gui-elements$": "<rootDir>/../node_modules/@eccenca/gui-elements",
         "^@eccenca/gui-elements/(.*)$": "<rootDir>/../node_modules/@eccenca/gui-elements/$1",
+        "^@reduxjs/toolkit$": "<rootDir>/../node_modules/@reduxjs/toolkit/dist/cjs/redux-toolkit.development.cjs",
         "^.+\\.module\\.(css|sass|scss)$": "identity-obj-proxy",
         "@ducks(.*)$": "<rootDir>/src/app/store/ducks/$1",
     },

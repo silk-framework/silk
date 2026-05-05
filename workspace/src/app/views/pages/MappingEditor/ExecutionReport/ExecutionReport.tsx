@@ -70,7 +70,7 @@ export const ExecutionReport = ({ executionReport, executionMetaData, trackRuleI
             title = t("ExecutionReport.defaultTitle");
         }
 
-        let executionMetaDataPairs: JSX.Element[] = [];
+        let executionMetaDataPairs: React.JSX.Element[] = [];
         if (executionMetaData != null) {
             executionMetaDataPairs = executionMetaDataPairs.concat([
                 <PropertyValuePair hasDivider key="queuedAt">
@@ -213,7 +213,7 @@ export const ExecutionReport = ({ executionReport, executionMetaData, trackRuleI
         return (
             <Grid condensed>
                 <GridRow>
-                    <GridColumn medium>
+                    <GridColumn carbonSizeConfig={{ md: 3, lg: 4 }}>
                         <MappingsTree
                             currentRuleId={currentRuleId ?? MAPPING_ROOT_RULE_ID}
                             ruleTree={mappingRule}

@@ -57,7 +57,7 @@ export const RuleEditorCanvas = () => {
         transactionStarted: false,
     });
     // Context menu that is shown on specific user actions
-    const [contextMenu, setContextMenu] = React.useState<JSX.Element | null>(null);
+    const [contextMenu, setContextMenu] = React.useState<React.JSX.Element | null>(null);
     // At the moment react-flow's selection logic is buggy in some places, e.g. https://github.com/wbkd/react-flow/issues/1314
     // Until fixed, we will track selections ourselves and use them where bugs exist.
     const [selectionState] = React.useState<{ elements: Elements | null }>({ elements: null });

@@ -54,5 +54,5 @@ if (
 if (argv.indexOf("--no-watch") !== -1) {
     argv = argv.filter((arg) => arg !== "--no-watch");
 }
-
+argv.push("--detectOpenHandles", "--logHeapUsage");
 jest.run(argv);

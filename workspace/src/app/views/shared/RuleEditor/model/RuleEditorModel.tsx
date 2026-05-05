@@ -47,16 +47,16 @@ import { RuleEditorEvaluationContext, RuleEditorEvaluationContextProps } from ".
 import {
     InteractionGate,
     Markdown,
-    nodeDefaultUtils,
-    NodeContentProps,
     NodeContentHandleProps,
-    StickyNote,
+    NodeContentProps,
+    nodeDefaultUtils,
     NodeDimensions,
     Notification,
+    StickyNote,
 } from "@eccenca/gui-elements";
 import { LINKING_NODE_TYPES } from "@eccenca/gui-elements/src/cmem/react-flow/configuration/typing";
 import StickyMenuButton from "../view/components/StickyMenuButton";
-import { InputPathFunctions, LanguageFilterProps } from "../view/ruleNode/PathInputOperator";
+import { InputPathFunctions } from "../view/ruleNode/PathInputOperator";
 import { requestRuleOperatorPluginDetails } from "@ducks/common/requests";
 import useErrorHandler from "../../../../hooks/useErrorHandler";
 import { PUBLIC_URL } from "../../../../constants/path";
@@ -64,7 +64,7 @@ import { copyToClipboard } from "../../../../utils/copyToClipboard";
 
 export interface RuleEditorModelProps {
     /** The children that work on this rule model. */
-    children: JSX.Element | JSX.Element[];
+    children: React.JSX.Element | React.JSX.Element[];
 }
 
 // Object to denote transaction boundaries between change operations
@@ -604,7 +604,10 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
     };
 
     /** Returns the last change transaction of the given change stack. */
-    const changeTransactionOperations = (changeStack: ChangeStackType[], skippedMarkerTargetStack: ChangeStackType[]) => {
+    const changeTransactionOperations = (
+        changeStack: ChangeStackType[],
+        skippedMarkerTargetStack: ChangeStackType[],
+    ) => {
         // Find first real operation
         let op = changeStack.pop();
         while (isSavedStateMarker(op)) {
@@ -699,7 +702,9 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
             updateCanRedo();
         }
         updateCanUndo();
-        setSavedStatePosition((position) => (position === "before" ? "before" : savedStateVersion.current ? "after" : undefined));
+        setSavedStatePosition((position) =>
+            position === "before" ? "before" : savedStateVersion.current ? "after" : undefined,
+        );
     };
 
     /** Adds a rule model change and in some cases merges them. */
@@ -2026,6 +2031,12 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
         });
     };
 
+    const centerAndFitView = () => {
+        reactFlowInstance?.fitView({ maxZoom: 1 });
+        ruleEditorContext.initialFitToViewZoomLevel &&
+            reactFlowInstance?.zoomTo(ruleEditorContext.initialFitToViewZoomLevel);
+    };
+
     /** Save the current rule. */
     const saveRule = async () => {
         const stickyNodes = current.elements.reduce((stickyNodes, elem) => {
@@ -2084,9 +2095,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
             );
         });
         // Init node map for edgeType, set inputs and output further below
-        operatorsNodes.forEach((opNode) =>
-            nodeMap.set(opNode.nodeId, { node: opNode, inputs: [], output: undefined }),
-        );
+        operatorsNodes.forEach((opNode) => nodeMap.set(opNode.nodeId, { node: opNode, inputs: [], output: undefined }));
         // Create edges
         const edges: Edge[] = [];
         // Mapping from source to target node. Each source node can only have on connection to a target node.
@@ -2154,14 +2163,12 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                 </Notification>,
             );
         }
+
         // Center and then zoom not too far out
         setTimeout(async () => {
             if (needsLayout) {
                 await autoLayoutInternal(elems, false, false);
             }
-            reactFlowInstance?.fitView({ maxZoom: 1 });
-            ruleEditorContext.initialFitToViewZoomLevel &&
-                reactFlowInstance?.zoomTo(ruleEditorContext.initialFitToViewZoomLevel);
             setInitializing(false);
         }, 1);
     };
@@ -2179,7 +2186,12 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
             return false;
         }
         const keepHistory = moveHistoryQueuesToSavedState();
-        initModelFrom(savedRuleState.current.ruleOperatorNodes, savedRuleState.current.stickyNotes, !keepHistory, !keepHistory);
+        initModelFrom(
+            savedRuleState.current.ruleOperatorNodes,
+            savedRuleState.current.stickyNotes,
+            !keepHistory,
+            !keepHistory,
+        );
         setSavedOnce(true);
         if (keepHistory) {
             updateCanUndo();
@@ -2188,6 +2200,12 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
         }
         return true;
     };
+
+    React.useEffect(() => {
+        if (!initializing) {
+            centerAndFitView();
+        }
+    }, [initializing]);
 
     return (
         <RuleEditorModelContext.Provider

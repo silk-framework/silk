@@ -1,5 +1,5 @@
 import React from "react";
-import { RenderResult, waitFor } from "@testing-library/react";
+import { act, RenderResult, waitFor } from "@testing-library/react";
 import mockAxios from "../../__mocks__/axios";
 import {
     apiUrl,
@@ -87,7 +87,7 @@ describe("Project page", () => {
     it("should search items when switching from one project to another", async () => {
         const otherProject = "otherProject";
         checkRequestMade(apiUrl("/workspace/searchItems"), "POST", { project: testProjectId }, true);
-        history.push(workspacePath("/projects/" + otherProject));
+        act(() => history.push(workspacePath("/projects/" + otherProject)));
         await waitFor(() => {
             checkRequestMade(apiUrl("/workspace/searchItems"), "POST", { project: otherProject }, true);
         });

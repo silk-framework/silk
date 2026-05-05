@@ -89,7 +89,8 @@ export function ActionsMenu({
             {actionsSecondary &&
                 actionsSecondary.length > 0 &&
                 actionsSecondary.map((actionItem) => {
-                    const { icon, text, affirmative, disruptive, disabled, actionHandler, tooltipText, ...otherProps } = actionItem;
+                    const { icon, text, affirmative, disruptive, disabled, actionHandler, tooltipText, ...otherProps } =
+                        actionItem;
                     return (
                         <IconButton
                             {...otherProps}

@@ -5,7 +5,7 @@ import {
     ErrorIssue,
 } from "../../../src/app/views/pages/MappingEditor/HierarchicalMapping/components/ErrorView";
 import { render } from "@testing-library/react";
-import { clickFoundElement, findElement } from "../../integration/TestHelper";
+import { byTestId, clickFoundElement, findElement } from "../../integration/TestHelper";
 
 const props = {
     title: "text",
@@ -16,7 +16,7 @@ const props = {
 
 const getWrapper = (args = props) => render(<ErrorView {...args} />);
 
-const errorClass = ".ecc-hierarchical-mapping-error-list";
+const errorClass = byTestId("hierarchical-mapping-error-list");
 describe("ErrorView Component", () => {
     describe("on component mounted, ", () => {
         it("should render ErrorCause component, when `errorExpanded` and `props.cause` presented", () => {

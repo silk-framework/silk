@@ -42,7 +42,7 @@ export interface ParameterAutoCompletionProps {
     /** If a value is required. If true, a reset won't be possible. */
     required: boolean;
     onChange: (value: IAutocompleteDefaultResponse) => any;
-    intent: Intent;
+    intent?: Intent;
     /** Show errors in the auto-completion list instead of the global error notification widget. */
     showErrorsInline?: boolean;
     /** When set to true the auto-complete input field will be in read-only mode and cannot be edited. */
@@ -99,10 +99,11 @@ export const ParameterAutoCompletion = ({
     const [t] = useTranslation();
     const { registerError: globalErrorHandler } = useErrorHandler();
     const modalContext = React.useContext(CreateArtefactModalContext);
-    const [externalValue, setExternalValue] = React.useState<{ value: string; label?: string } | undefined>(undefined);
+    const [externalValue, setExternalValue] = React.useState<
+        { value: string; label?: string; version: number } | undefined
+    >(undefined);
     const initialOrExternalValue = externalValue ? externalValue : initialValue;
     const [highlightInput, setHighlightInput] = React.useState(false);
-    const [show, setShow] = React.useState(true);
     const [limit, setLimit] = React.useState<number>(AUTOCOMPLETION_LIMIT);
     const [searchQuery, setSearchQuery] = React.useState<string>("");
     //determines if when the user scrolls to the bottom it is necessary to request more content or not
@@ -119,22 +120,16 @@ export const ParameterAutoCompletion = ({
 
     useEffect(() => {
         if (registerForExternalChanges) {
+            let version = 0;
             const handleUpdates = (externalValue: { value: string; label?: string }) => {
-                setExternalValue(externalValue);
+                version += 1;
+                setExternalValue({ ...externalValue, version });
                 setHighlightInput(true);
                 onChange(externalValue);
             };
             registerForExternalChanges(formParamId, handleUpdates);
         }
     }, [registerForExternalChanges]);
-
-    // Re-init element when value is set from outside
-    useEffect(() => {
-        if (externalValue) {
-            setShow(false);
-            setTimeout(() => setShow(true), 0);
-        }
-    }, [externalValue]);
 
     const selectDependentValues = (autoCompletion: IPropertyAutocomplete): DependsOnParameterValue[] => {
         const prefixIdx = formParamId.lastIndexOf(".");
@@ -207,12 +202,9 @@ export const ParameterAutoCompletion = ({
         }
     };
 
-    if (!show) {
-        return <Spinner position={"inline"} />;
-    }
-
     return (
         <SuggestField<StringOrReifiedValue, IAutocompleteDefaultResponse>
+            key={externalValue?.version != null ? `${formParamId}_${externalValue.version}` : undefined}
             onSearch={handleSearch}
             onChange={onChangeUsed}
             initialValue={initialOrExternalValue}
@@ -280,7 +272,7 @@ export const labelAndOrValueItemRenderer = (
     query: string,
     modifiers: SuggestFieldItemRendererModifierProps,
     handleSelectClick: () => any,
-): JSX.Element | string => {
+): React.JSX.Element | string => {
     const labelValueKindOfSame =
         (autoCompleteResponse.label ?? "").toLowerCase() === autoCompleteResponse.value.toLowerCase();
     const showLabel = autoCompleteResponse.label && !labelValueKindOfSame;
