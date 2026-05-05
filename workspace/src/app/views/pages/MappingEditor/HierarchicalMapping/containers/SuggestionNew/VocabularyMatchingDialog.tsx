@@ -7,12 +7,12 @@ import {
     MultiSuggestFieldCommonProps,
     SimpleDialog,
 } from "@eccenca/gui-elements";
-import React, {useContext, useEffect, useState} from "react";
-import {IVocabularyInfo} from "./suggestion.typings";
-import {SuggestionListContext} from "./SuggestionContainer";
+import React, { useContext, useEffect, useState } from "react";
+import { IVocabularyInfo } from "./suggestion.typings";
+import { SuggestionListContext } from "./SuggestionContainer";
 import {
     vocabularyLabel,
-    vocabularyOptionRenderer
+    vocabularyOptionRenderer,
 } from "../../../../../shared/TargetVocabularySelection/VocabularyMultiSelect";
 
 interface IProps {
@@ -53,7 +53,10 @@ export default function VocabularyMatchingDialog({
         return selectedVocabs.current.some((v) => v.uri === vocab.uri);
     };
 
-    const renderVocabulary: MultiSuggestFieldCommonProps<IVocabularyInfo>["itemRenderer"] = (vocabInfo: IVocabularyInfo, { modifiers, handleClick, query }) => {
+    const renderVocabulary: MultiSuggestFieldCommonProps<IVocabularyInfo>["itemRenderer"] = (
+        vocabInfo: IVocabularyInfo,
+        { modifiers, handleClick, query },
+    ) => {
         return (
             <MenuItem
                 icon={vocabSelected(vocabInfo) ? "state-checked" : "state-unchecked"}
@@ -124,14 +127,14 @@ export default function VocabularyMatchingDialog({
                         }
                     }}
                     inputProps={{
-                        id: "vocselect"
+                        id: "vocselect",
                     }}
                     placeholder={"Select vocabularies..."}
                     clearQueryOnSelection={true}
                     noResults={<MenuItem disabled={true} text="No results." />}
                     itemRenderer={renderVocabulary}
                     contextOverlayProps={{
-                        portalContainer: context.portalContainer
+                        portalContainer: context.portalContainer,
                     }}
                 />
             </FieldItem>

@@ -2,7 +2,7 @@ import "react-app-polyfill/ie11";
 import "react-app-polyfill/stable";
 
 import React from "react";
-import {createRoot} from "react-dom/client"
+import { createRoot } from "react-dom/client";
 
 import HierarchicalMappingComponent from "./HierarchicalMapping/HierarchicalMapping";
 import ExecutionReport from "./ExecutionReport/ExecutionReport";
@@ -18,7 +18,7 @@ import LinkingExecutionReport from "./ExecutionReport/LinkingExecutionReport";
 const render = (elementId, reactNode) => {
     const root = createRoot(document.getElementById(elementId));
     root.render(reactNode);
-}
+};
 
 const silkReactComponents = {
     hierarchicalMapping: (containerId, apiSettings) => {

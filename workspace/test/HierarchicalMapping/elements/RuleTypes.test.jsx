@@ -1,7 +1,7 @@
 import React from "react";
 import { render } from "@testing-library/react";
 import RuleTypes from "../../../src/app/views/pages/MappingEditor/HierarchicalMapping/elements/RuleTypes";
-import {checkForNotAvailableElement, findAllDOMElements, findElement} from "../../integration/TestHelper";
+import { checkForNotAvailableElement, findAllDOMElements, findElement } from "../../integration/TestHelper";
 
 const getWrapper = (props = {}) => render(<RuleTypes {...props} />);
 
@@ -36,7 +36,7 @@ describe("RuleTypes Component", () => {
                         },
                     },
                 });
-                checkForNotAvailableElement(wrapper)
+                checkForNotAvailableElement(wrapper);
             });
         });
 
@@ -77,7 +77,7 @@ describe("RuleTypes Component", () => {
                     type: "root",
                 },
             });
-            checkForNotAvailableElement(wrapperNoType)
+            checkForNotAvailableElement(wrapperNoType);
             const wrapperWithType = getWrapper({
                 rule: {
                     type: "root",

@@ -750,6 +750,10 @@
             "advancedParameterMode": "advanced",
             "autoLayout": "Layout automatically the rule tree",
             "readOnly": "Read-only mode is enabled. No saving possible.",
+            "undo": "Undo",
+            "redo": "Redo",
+            "resetToSavedState": "Reset to saved state.",
+            "resetToSavedStateWithHistoryReset": "Reset to saved state. This will clear the undo/redo history.",
             "save": "Save",
             "saveError": {
                 "nodeError": {

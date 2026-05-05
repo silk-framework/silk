@@ -5,7 +5,7 @@ import {
     ErrorIssue,
 } from "../../../src/app/views/pages/MappingEditor/HierarchicalMapping/components/ErrorView";
 import { render } from "@testing-library/react";
-import {byTestId, clickFoundElement, findElement} from "../../integration/TestHelper";
+import { byTestId, clickFoundElement, findElement } from "../../integration/TestHelper";
 
 const props = {
     title: "text",

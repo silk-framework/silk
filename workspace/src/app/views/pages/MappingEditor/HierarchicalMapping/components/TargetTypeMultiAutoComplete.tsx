@@ -1,5 +1,10 @@
 import React from "react";
-import {MultiSuggestField, MultiSuggestFieldSelectionProps, FieldItem, TestableComponent} from "@eccenca/gui-elements";
+import {
+    MultiSuggestField,
+    MultiSuggestFieldSelectionProps,
+    FieldItem,
+    TestableComponent,
+} from "@eccenca/gui-elements";
 import silkRestApi from "../../api/silkRestApi";
 import { GlobalMappingEditorContext } from "../../contexts/GlobalMappingEditorContext";
 import { TargetPropertyAutoCompletion } from "../../api/types";
@@ -14,7 +19,14 @@ interface Props extends TestableComponent {
 }
 
 /** Multi-selection auto-complete component */
-const TargetTypeMultiAutoComplete = ({ placeholder, className, isValidNewOption, value, onChange, ...otherProps }: Props) => {
+const TargetTypeMultiAutoComplete = ({
+    placeholder,
+    className,
+    isValidNewOption,
+    value,
+    onChange,
+    ...otherProps
+}: Props) => {
     const mappingEditorContext = React.useContext(GlobalMappingEditorContext);
     const runOnQueryChange = React.useCallback(
         (query: string) => {
@@ -41,8 +53,7 @@ const TargetTypeMultiAutoComplete = ({ placeholder, className, isValidNewOption,
                 newItemCreationText={"Create option"}
                 inputProps={{
                     placeholder: placeholder,
-                    ...otherProps
-
+                    ...otherProps,
                 }}
                 tagInputProps={{
                     placeholder: placeholder,

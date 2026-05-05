@@ -1,9 +1,8 @@
 import React from "react";
-import ExampleView
-    from "../../../../src/app/views/pages/MappingEditor/HierarchicalMapping/containers/MappingRule/ExampleView";
-import {render, waitFor} from "@testing-library/react";
-import {findAllDOMElements, findElement} from "../../../integration/TestHelper";
-import {notificationSelector} from "../../components/MessageHandler.test";
+import ExampleView from "../../../../src/app/views/pages/MappingEditor/HierarchicalMapping/containers/MappingRule/ExampleView";
+import { render, waitFor } from "@testing-library/react";
+import { findAllDOMElements, findElement } from "../../../integration/TestHelper";
+import { notificationSelector } from "../../components/MessageHandler.test";
 
 const props = {
     id: "id",

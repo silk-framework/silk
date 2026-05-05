@@ -1,10 +1,8 @@
 import React from "react";
 import EventEmitter from "../../../../../src/app/views/pages/MappingEditor/HierarchicalMapping/utils/EventEmitter";
-import {
-    ValueRuleForm
-} from "../../../../../src/app/views/pages/MappingEditor/HierarchicalMapping/containers/MappingRule/ValueRule/ValueRuleForm";
-import {render, waitFor} from "@testing-library/react";
-import {clickFoundElement, findAllDOMElements} from "../../../../integration/TestHelper";
+import { ValueRuleForm } from "../../../../../src/app/views/pages/MappingEditor/HierarchicalMapping/containers/MappingRule/ValueRule/ValueRuleForm";
+import { render, waitFor } from "@testing-library/react";
+import { clickFoundElement, findAllDOMElements } from "../../../../integration/TestHelper";
 
 const props = {
     id: "1",

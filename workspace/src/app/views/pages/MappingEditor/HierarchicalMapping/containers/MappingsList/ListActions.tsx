@@ -50,8 +50,12 @@ const ListActions = ({ onMappingCreate, onPaste, onShowSuggestions, listLoading 
                 }}
             />
             {sessionStorage.getItem("copyingData") !== null ? (
-                <MenuItem data-test-id={"paste-mapping-btn"} text={"Paste mapping"} icon={"artefact-project"}
-                          onClick={() => onPaste()}/>
+                <MenuItem
+                    data-test-id={"paste-mapping-btn"}
+                    text={"Paste mapping"}
+                    icon={"artefact-project"}
+                    onClick={() => onPaste()}
+                />
             ) : (
                 <></>
             )}

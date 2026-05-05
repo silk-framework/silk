@@ -10,13 +10,13 @@ describe("commonOps", () => {
                 name: "2",
                 extra: {
                     id: 4,
-                    name: "extra"
-                }
+                    name: "extra",
+                },
             },
             target: {
                 id: 3,
-                name: "3"
-            }
+                name: "3",
+            },
         };
         const expectedResult = {
             id: "1",

@@ -1,7 +1,7 @@
 import React from "react";
 import RuleTitle from "../../../src/app/views/pages/MappingEditor/HierarchicalMapping/elements/RuleTitle";
-import {render} from "@testing-library/react";
-import {checkForNotAvailableElement, findElement} from "../../integration/TestHelper";
+import { render } from "@testing-library/react";
+import { checkForNotAvailableElement, findElement } from "../../integration/TestHelper";
 
 const getWrapper = (props = {}) => render(<RuleTitle {...props} />);
 
@@ -84,7 +84,7 @@ describe("RuleTitle Component", () => {
                 const wrapper = getWrapper({
                     rule: {},
                 });
-                checkForNotAvailableElement(wrapper)
+                checkForNotAvailableElement(wrapper);
             });
 
             it("when `rule.type` equal to `root` and uri NOT presented", () => {
@@ -120,7 +120,7 @@ describe("RuleTitle Component", () => {
                 });
 
                 it("and `rule.type` equal to `object` ", () => {
-                    checkForNotAvailableElement(wrapper)
+                    checkForNotAvailableElement(wrapper);
                 });
 
                 it("and `rule.type` equal to `direct`", () => {
@@ -130,7 +130,7 @@ describe("RuleTitle Component", () => {
                             type: "direct",
                         },
                     });
-                    checkForNotAvailableElement(wrapper)
+                    checkForNotAvailableElement(wrapper);
                 });
 
                 it("and `rule.type` equal to `complex` ", () => {
@@ -140,7 +140,7 @@ describe("RuleTitle Component", () => {
                             type: "complex",
                         },
                     });
-                    checkForNotAvailableElement(wrapper)
+                    checkForNotAvailableElement(wrapper);
                 });
 
                 afterEach(() => {
