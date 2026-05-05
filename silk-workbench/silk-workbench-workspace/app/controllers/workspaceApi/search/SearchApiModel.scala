@@ -38,6 +38,7 @@ object SearchApiModel {
   final val PLUGIN_LABEL = "pluginLabel"
   final val TAGS = "tags"
   final val SEARCH_TAGS = "searchTags"
+  final val HIDDEN_SEARCH_TAGS = "hiddenSearchTags"
   final val PARAMETERS = "parameters"
   final val READ_ONLY = "readOnly"
   final val URI_PROPERTY = "uriProperty"

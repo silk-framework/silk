@@ -62,6 +62,7 @@ export interface IRecentlyViewedItem {
     itemLinks: IItemLink[];
     tags?: Keywords;
     searchTags?: string[];
+    hiddenSearchTags?: string[];
     readOnly?: boolean;
 }
 

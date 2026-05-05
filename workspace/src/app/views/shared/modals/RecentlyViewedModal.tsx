@@ -65,6 +65,7 @@ export function RecentlyViewedModal() {
                 // swap 1. and 2. result if 1. result is the same page we are already on
                 [recentItems[0], recentItems[1]] = [recentItems[1], recentItems[0]];
             }
+            recentItems.forEach((item) => (item.hiddenSearchTags = item.hiddenSearchTags?.map((t) => t.toLowerCase())));
             setRecentItems(recentItems);
         } catch (ex) {
             if (ex.isFetchError && ex.errorResponse) {
@@ -187,7 +188,8 @@ export function RecentlyViewedModal() {
         const searchWords = highlighterUtils.extractSearchWords(textQuery.toLowerCase());
         return recentItems.filter((item) => {
             const label = itemSearchableString(item).toLowerCase();
-            return searchWords.every((word) => label.includes(word));
+            const hiddenSearchTags = item.hiddenSearchTags ?? [];
+            return searchWords.every((word) => hiddenSearchTags.includes(word) || label.includes(word));
         });
     };
     // Warning when an error has occurred
