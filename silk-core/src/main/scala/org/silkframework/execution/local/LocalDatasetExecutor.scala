@@ -98,7 +98,7 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
   }
 
   private def handleQuadEntitySchema(dataset: Task[DatasetSpec[Dataset]])
-                                    (implicit pluginContext: PluginContext): TypedEntities[Quad, TaskSpec] = {
+                                    (implicit pluginContext: PluginContext, context: ActivityContext[ExecutionReport]): LocalEntities = {
     dataset.data match {
       case rdfDataset: RdfDataset =>
         readTriples(dataset, rdfDataset)
@@ -110,7 +110,9 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
   }
 
   private def readTriples(dataset: Task[GenericDatasetSpec], rdfDataset: RdfDataset)
-                         (implicit pluginContext: PluginContext): TypedEntities[Quad, TaskSpec] = {
+                         (implicit pluginContext: PluginContext, context: ActivityContext[ExecutionReport]): LocalEntities = {
+    implicit val executionReport: ExecutionReportUpdater = ReadTriplesReportUpdater(dataset, context)
+    implicit val prefixes: Prefixes = pluginContext.prefixes
     val sparqlResult = rdfDataset.sparqlEndpoint.select("SELECT ?s ?p ?o WHERE {?s ?p ?o}")(pluginContext.user)
     val tripleEntities = sparqlResult.bindings map { resultMap =>
       val s = resultMap("s").asInstanceOf[ConcreteNode]
@@ -118,7 +120,7 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
       val v = resultMap("o")
       Triple(s, p, v)
     }
-    QuadEntitySchema.create(tripleEntities, dataset)
+    ReportingIterator.addReporter(QuadEntitySchema.create(tripleEntities, dataset))
   }
 
 
@@ -495,6 +497,13 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
     override def entityProcessVerb: String = "read"
   }
 
+  private case class ReadTriplesReportUpdater(task: Task[TaskSpec], context: ActivityContext[ExecutionReport]) extends ExecutionReportUpdater {
+    override def entityLabelSingle: String = "Triple"
+    override def entityLabelPlural: String = "Triples"
+    override def operationLabel: Option[String] = Some("read")
+    override def entityProcessVerb: String = "read"
+  }
+
   private case class WriteLinksReportUpdater(task: Task[TaskSpec], context: ActivityContext[ExecutionReport]) extends ExecutionReportUpdater {
     override def entityLabelSingle: String = "Link"
     override def entityLabelPlural: String = "Links"
@@ -523,7 +532,7 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
     override def entityProcessVerb: String = "uploaded"
   }
 
-  case class WriteTriplesReportUpdater(task: Task[TaskSpec], context: ActivityContext[ExecutionReport]) extends ExecutionReportUpdater {
+  private case class WriteTriplesReportUpdater(task: Task[TaskSpec], context: ActivityContext[ExecutionReport]) extends ExecutionReportUpdater {
     override def entityLabelSingle: String = "Triple"
     override def entityLabelPlural: String = "Triples"
     override def operationLabel: Option[String] = Some("write")
