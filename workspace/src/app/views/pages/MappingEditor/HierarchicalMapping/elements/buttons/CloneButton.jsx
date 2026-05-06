@@ -6,7 +6,6 @@ const CloneButton = ({ onClone }) => {
         <Button
             data-test-id={"mapping-rule-clone-btn"}
             className="ecc-silk-mapping__rulesviewer__actionrow-clone"
-            raised
             onClick={onClone}
         >
             Clone

@@ -118,7 +118,6 @@ function createOperatorNode(
         />
     );
     const type = nodeType(node.pluginType, node.pluginId);
-    console.log("NODE ==>", node);
 
     let data: NodeContentPropsWithBusinessData<IRuleNodeData> = {
         size: "medium",

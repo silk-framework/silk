@@ -1,8 +1,8 @@
 import React, { memo } from "react";
-import { Button } from "@eccenca/gui-elements";
+import { Button, ButtonProps } from "@eccenca/gui-elements";
 import { useTranslation } from "react-i18next";
 
-const CreateButton = memo<any>((props) => {
+const CreateButton = memo<ButtonProps>((props) => {
     const [t] = useTranslation();
 
     return (

@@ -3,6 +3,7 @@ import React from "react";
 import { CodeAutocompleteField } from "@eccenca/gui-elements";
 import {
     CodeAutocompleteFieldPartialAutoCompleteResult,
+    CodeAutocompleteFieldProps,
     CodeAutocompleteFieldReplacementResult,
     CodeAutocompleteFieldValidationResult,
 } from "@eccenca/gui-elements/src/components/AutoSuggestion/AutoSuggestion";
@@ -34,6 +35,7 @@ interface YamlEditorProps {
     onChange: (currentValue: string) => any;
     /** The auto-completion config. */
     autoCompletion?: IPropertyAutocomplete;
+    intent?: CodeAutocompleteFieldProps["intent"];
 }
 
 export const YamlEditor: React.FC<YamlEditorProps> = ({
@@ -46,6 +48,7 @@ export const YamlEditor: React.FC<YamlEditorProps> = ({
     autoCompletion,
     id,
     onChange,
+    intent,
 }) => {
     const { registerError } = useErrorHandler();
 
@@ -125,6 +128,7 @@ export const YamlEditor: React.FC<YamlEditorProps> = ({
             initialValue={initialValue ?? ""}
             multiline={true}
             onChange={onChange}
+            intent={intent}
             fetchSuggestions={fetchSuggestions}
             autoCompletionRequestDelay={200}
             checkInput={checkYamlString}

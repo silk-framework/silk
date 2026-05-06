@@ -30,10 +30,11 @@ import { useHistory, useParams } from "react-router";
 import { SERVE_PATH } from "../../../constants/path";
 import { ProjectTaskParams } from "views/shared/typings";
 import { previewSlice } from "@ducks/workspace/previewSlice";
+import { AppDispatch } from "store/configureStore";
 import { GlobalTableContext } from "../../../GlobalContextsWrapper";
 
 const Activities = () => {
-    const dispatch = useDispatch();
+    const dispatch = useDispatch<AppDispatch>();
     const { registerError } = useErrorHandler();
     const history = useHistory();
     const error = useSelector(workspaceSel.errorSelector);
