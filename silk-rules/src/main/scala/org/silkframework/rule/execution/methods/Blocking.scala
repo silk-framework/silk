@@ -4,7 +4,7 @@ import org.silkframework.entity.paths.UntypedPath
 import org.silkframework.entity.{Entity, Index}
 import org.silkframework.rule.execution.ExecutionMethod
 import org.silkframework.rule.plugins.transformer.linguistic.SoundexTransformer
-import org.silkframework.rule.LinkageRule
+import org.silkframework.rule.LinkageRuleExecution
 import org.silkframework.rule.input.SimpleTransformer
 
 /**
@@ -17,7 +17,7 @@ import org.silkframework.rule.input.SimpleTransformer
  *  @param transformers A list of transformers that are applied to each value prior to blocking
   */
 case class Blocking(sourceKey: UntypedPath, targetKey: UntypedPath, q: Int = 100, transformers: List[SimpleTransformer] = SoundexTransformer() :: Nil) extends ExecutionMethod {
-   override def indexEntity(entity: Entity, rule: LinkageRule, sourceOrTarget: Boolean): Index = {
+   override def indexEntity(entity: Entity, rule: LinkageRuleExecution, sourceOrTarget: Boolean): Index = {
      val key = if(sourceOrTarget) sourceKey else targetKey
      val values = entity.evaluate(key)
 

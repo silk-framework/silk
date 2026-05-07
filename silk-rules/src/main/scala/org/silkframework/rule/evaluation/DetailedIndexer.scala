@@ -38,7 +38,7 @@ object DetailedIndexer {
   }
 
   def indexComparison(cmp: Comparison, entity: Entity, sourceOrTarget: Boolean, limit: Double): ComparisonIndex = {
-    val values = if(sourceOrTarget) cmp.inputs.source(entity) else cmp.inputs.target(entity)
+    val values = if(sourceOrTarget) cmp.inputs.source.execution()(entity) else cmp.inputs.target.execution()(entity)
     val distanceLimit = cmp.threshold * (1.0 - limit)
 
     ComparisonIndex(cmp.metric.index(values.values, distanceLimit, sourceOrTarget), values.values, cmp)

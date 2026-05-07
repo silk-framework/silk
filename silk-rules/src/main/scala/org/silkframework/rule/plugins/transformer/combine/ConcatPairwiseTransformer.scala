@@ -15,7 +15,7 @@
 package org.silkframework.rule.plugins.transformer.combine
 
 import org.silkframework.rule.annotations.{TransformExample, TransformExamples}
-import org.silkframework.rule.input.Transformer
+import org.silkframework.rule.input.InlineTransformer
 import org.silkframework.runtime.plugin.annotations.{Param, Plugin, PluginReference}
 
 @Plugin(
@@ -67,7 +67,7 @@ import org.silkframework.runtime.plugin.annotations.{Param, Plugin, PluginRefere
 case class ConcatPairwiseTransformer(
   @Param("Separator to be inserted between two concatenated strings. The text can contain escaped characters \\n, \\t and" +
      " \\\\ that are replaced by a newline, tab or backslash respectively.")
-  glue: String = "") extends Transformer {
+  glue: String = "") extends InlineTransformer {
 
   // glue with escaped char sequences (\\, \n, \t) converted to actual character.
   private lazy val parsedGlue: String = ConcatTransformer.parseGlue(glue)

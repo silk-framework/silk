@@ -36,36 +36,6 @@ case class Aggregation(id: Identifier = Operator.generateId,
 
   def indexing: Boolean = operators.exists(_.indexing)
 
-  /**
-   * Computes the similarity between two entities.
-   *
-   * @param entities The entities to be compared.
-   * @param limit The similarity threshold.
-   * @return The similarity as a value between -1.0 and 1.0.
-   *         None, if no similarity could be computed.
-   */
-  override def apply(entities: DPair[Entity], limit: Double): Option[Double] = {
-    aggregator(operators, entities, limit).score
-  }
-
-  /**
-   * Indexes an entity.
-   *
-   * @param entity The entity to be indexed
-   * @param threshold The similarity threshold.
-   * @return A set of (multidimensional) indexes. Entities within the threshold will always get the same index.
-   */
-  override def index(entity: Entity, sourceOrTarget: Boolean, threshold: Double): Index = {
-    val indexSets = {
-      for (op <- operators if op.indexing) yield {
-        val index = op.index(entity, sourceOrTarget, threshold)
-        index
-      }
-    }
-
-    aggregator.aggregateIndexes(indexSets)
-  }
-
   override def validate(): Seq[ValidationIssue] = {
     operators.flatMap(_.validate())
   }
@@ -80,8 +50,29 @@ case class Aggregation(id: Identifier = Operator.generateId,
     copy(operators = newChildren.map(_.asInstanceOf[SimilarityOperator]))
   }
 
-  override def withContext(taskContext: TaskContext): Aggregation = {
-    copy(operators = operators.map(_.withContext(taskContext)))
+  override def execution(taskContext: TaskContext = TaskContext.empty): SimilarityOperatorExecution = {
+    new AggregationExecution(this, operators.map(_.execution(taskContext)))
+  }
+}
+
+/**
+ * Runtime executor for an [[Aggregation]] with all child similarity operator executions resolved.
+ */
+final class AggregationExecution(override val operator: Aggregation,
+                                 val operatorExecutions: Seq[SimilarityOperatorExecution]) extends SimilarityOperatorExecution {
+
+  override def apply(entities: DPair[Entity], limit: Double): Option[Double] = {
+    operator.aggregator(operatorExecutions, entities, limit).score
+  }
+
+  override def index(entity: Entity, sourceOrTarget: Boolean, threshold: Double): Index = {
+    val indexSets = {
+      for (op <- operatorExecutions if op.operator.indexing) yield {
+        op.index(entity, sourceOrTarget, threshold)
+      }
+    }
+
+    operator.aggregator.aggregateIndexes(indexSets)
   }
 }
 

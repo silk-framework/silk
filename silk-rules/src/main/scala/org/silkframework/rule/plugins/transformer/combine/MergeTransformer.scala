@@ -15,7 +15,7 @@
 package org.silkframework.rule.plugins.transformer.combine
 
 import org.silkframework.rule.annotations.{TransformExample, TransformExamples}
-import org.silkframework.rule.input.Transformer
+import org.silkframework.rule.input.InlineTransformer
 import org.silkframework.runtime.plugin.annotations.Plugin
 
 @Plugin(
@@ -34,7 +34,7 @@ import org.silkframework.runtime.plugin.annotations.Plugin
     output = Array("a", "b", "c")
   )
 ))
-case class MergeTransformer() extends Transformer {
+case class MergeTransformer() extends InlineTransformer {
   override def apply(values: Seq[Seq[String]]): Seq[String] = {
     if(values.nonEmpty) {
       values.reduce(_ concat _)

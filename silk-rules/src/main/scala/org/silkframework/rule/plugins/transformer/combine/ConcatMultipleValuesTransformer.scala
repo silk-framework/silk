@@ -3,7 +3,7 @@ package org.silkframework.rule.plugins.transformer.combine
 import org.silkframework.rule.annotations.{TransformExample, TransformExamples}
 import java.util.regex.Pattern
 
-import org.silkframework.rule.input.Transformer
+import org.silkframework.rule.input.InlineTransformer
 import org.silkframework.runtime.plugin.annotations.{Plugin, PluginReference}
 
 /**
@@ -51,7 +51,7 @@ import org.silkframework.runtime.plugin.annotations.{Plugin, PluginReference}
     output = Array("a\n\t\\b\n\t\\c")
   )
 ))
-case class ConcatMultipleValuesTransformer(glue: String = "", removeDuplicates: Boolean = false) extends Transformer {
+case class ConcatMultipleValuesTransformer(glue: String = "", removeDuplicates: Boolean = false) extends InlineTransformer {
   // glue with escaped char sequences (\\, \n, \t) converted to actual character.
   lazy val parsedGlue: String = ConcatTransformer.parseGlue(glue)
 

@@ -18,7 +18,7 @@ package org.silkframework.rule.plugins.similarity
 import org.silkframework.config.Prefixes
 import org.silkframework.entity.Entity
 import org.silkframework.rule.Operator
-import org.silkframework.rule.input.{Input, Value}
+import org.silkframework.rule.input.{InlineInput, Input, Value}
 import org.silkframework.rule.similarity.{Comparison, DistanceMeasure}
 import org.silkframework.testutil.approximatelyEqualTo
 import org.silkframework.util.{DPair, Identifier}
@@ -44,15 +44,15 @@ class ComparisonTest extends AnyFlatSpec with Matchers {
       threshold = threshold,
       metric = new DistanceMeasure { def apply(values1: Seq[String], values2: Seq[String], limit: Double) = distance },
       inputs = DPair.fill(DummyInput)
-    ).apply(DPair.fill(null), -1.0).get
+    ).execution().apply(DPair.fill(null), -1.0).get
   }
 
-  private object DummyInput extends Input {
+  private object DummyInput extends InlineInput {
     val id = Identifier.random
-    def apply(entity: Entity): Value = Value(Seq("dummy"))
+    override def apply(entity: Entity): Value = Value(Seq("dummy"))
     def toXML(implicit prefixes: Prefixes): Node = null
-    def children = Seq.empty
+    def children: Seq[Operator] = Seq.empty
     def withId(newId: Identifier): Operator = ???
-    def withChildren(newChildren: Seq[Operator]) = ???
+    def withChildren(newChildren: Seq[Operator]): Operator = ???
   }
 }

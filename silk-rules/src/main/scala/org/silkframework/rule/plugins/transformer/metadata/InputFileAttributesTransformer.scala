@@ -2,7 +2,7 @@ package org.silkframework.rule.plugins.transformer.metadata
 
 import org.silkframework.dataset.{DatasetSpec, ResourceBasedDataset}
 import org.silkframework.rule.TaskContext
-import org.silkframework.rule.input.Transformer
+import org.silkframework.rule.input.{Transformer, TransformerExecution}
 import org.silkframework.rule.plugins.transformer.value.ConstantTransformer
 import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
 import org.silkframework.runtime.resource.{Resource, ResourceManager}
@@ -19,17 +19,13 @@ case class InputFileAttributesTransformer(@Param("File attribute to be retrieved
                                           attribute: FileAttributeEnum = FileAttributeEnum.name) extends Transformer {
 
 
-  override def withContext(taskContext: TaskContext): Transformer = {
+  override def execution(taskContext: TaskContext): TransformerExecution = {
     taskContext.inputTasks.headOption.map(_.data) match {
       case Some(DatasetSpec(ds: ResourceBasedDataset, _, _)) =>
         ConstantTransformer(getAttribute(ds.file, taskContext.pluginContext.resources))
       case _ =>
-        this
+        throw new ValidationException("No resource supplied by input dataset.")
     }
-  }
-
-  override def apply(values: Seq[Seq[String]]): Seq[String] = {
-    throw new ValidationException("No resource supplied by input dataset.")
   }
 
   private def getAttribute(file: Resource, resourceManager: ResourceManager): String = {

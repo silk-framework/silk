@@ -1,7 +1,7 @@
 package org.silkframework.rule.plugins.transformer.conditional
 
 import org.silkframework.rule.annotations.{TransformExample, TransformExamples}
-import org.silkframework.rule.input.Transformer
+import org.silkframework.rule.input.InlineTransformer
 import org.silkframework.rule.plugins.transformer.extraction.RegexExtractionTransformer
 import org.silkframework.rule.plugins.transformer.selection.RegexSelectTransformer
 import org.silkframework.rule.plugins.transformer.validation.ValidateRegex
@@ -54,7 +54,7 @@ import org.silkframework.runtime.plugin.annotations.{Plugin, PluginReference}
     output = Array()
   ),
 ))
-case class IfMatchesRegexTransformer(regex: String, negate: Boolean = false) extends Transformer {
+case class IfMatchesRegexTransformer(regex: String, negate: Boolean = false) extends InlineTransformer {
   val r = regex.r
   override def apply(values: Seq[Seq[String]]): Seq[String] = {
     require(values.size >= 2, "ifMatchesRegex operator needs at least two inputs!")

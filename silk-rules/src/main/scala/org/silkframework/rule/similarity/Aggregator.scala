@@ -26,7 +26,7 @@ import org.silkframework.util.DPair
 )
 trait Aggregator extends AnyPlugin {
 
-  def apply(operators: Seq[SimilarityOperator], entities: DPair[Entity], limit: Double): SimilarityScore
+  def apply(operators: Seq[SimilarityOperatorExecution], entities: DPair[Entity], limit: Double): SimilarityScore
 
   /**
     * Aggregates or manipulates the child indexes. The default implementation leaves the indexes as they are.

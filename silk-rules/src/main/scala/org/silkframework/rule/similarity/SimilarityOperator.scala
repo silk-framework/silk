@@ -15,7 +15,7 @@
 package org.silkframework.rule.similarity
 
 import org.silkframework.entity.{Entity, Index}
-import org.silkframework.rule.{Operator, TaskContext}
+import org.silkframework.rule.{Operator, OperatorExecution, TaskContext}
 import org.silkframework.runtime.serialization.XmlSerialization._
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat}
 import org.silkframework.runtime.validation.ValidationIssue
@@ -32,6 +32,25 @@ trait SimilarityOperator extends Operator {
   def weight: Int
 
   def indexing: Boolean
+
+  /**
+    * Validates this rule operator.
+    * This should cover non-fatal issues that should be fixed by the user after rule creation.
+    * Issues that lead to an inconsistent and unusable rule should not be checked here, but instead throw an exception in the constructor.
+    */
+  def validate(): Seq[ValidationIssue] = {
+    Seq.empty
+  }
+
+  override def execution(taskContext: TaskContext = TaskContext.empty): SimilarityOperatorExecution
+}
+
+/**
+ * Runtime executor for a [[SimilarityOperator]].
+ */
+trait SimilarityOperatorExecution extends OperatorExecution {
+
+  override def operator: SimilarityOperator
 
   /**
    * Computes the similarity between two entities.
@@ -51,19 +70,14 @@ trait SimilarityOperator extends Operator {
     * @return A set of (multidimensional) indexes. Entities within the threshold will always get the same index.
    */
   def index(entity: Entity, sourceOrTarget: Boolean, limit: Double): Index
+}
 
-  /**
-    * Validates this rule operator.
-    * This should cover non-fatal issues that should be fixed by the user after rule creation.
-    * Issues that lead to an inconsistent and unusable rule should not be checked here, but instead throw an exception in the constructor.
-    */
-  def validate(): Seq[ValidationIssue] = {
-    Seq.empty
-  }
-
-  override def withContext(taskContext: TaskContext): SimilarityOperator = {
-    this
-  }
+/**
+ * A [[SimilarityOperator]] that has no task-context dependency and serves as its own executor.
+ */
+trait InlineSimilarityOperator extends SimilarityOperator with SimilarityOperatorExecution {
+  override def operator: SimilarityOperator = this
+  override def execution(taskContext: TaskContext = TaskContext.empty): SimilarityOperatorExecution = this
 }
 
 object SimilarityOperator {
