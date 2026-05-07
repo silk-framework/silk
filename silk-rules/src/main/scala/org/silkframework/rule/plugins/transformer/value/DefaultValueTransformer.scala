@@ -1,7 +1,7 @@
 package org.silkframework.rule.plugins.transformer.value
 
 import org.silkframework.rule.annotations.{TransformExample, TransformExamples}
-import org.silkframework.rule.input.Transformer
+import org.silkframework.rule.input.InlineTransformer
 import org.silkframework.runtime.plugin.PluginCategories
 import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
 
@@ -26,7 +26,7 @@ import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
 ))
 case class DefaultValueTransformer(
                                 @Param("The default value to be generated, if input values are empty")
-                                value: String = "default") extends Transformer {
+                                value: String = "default") extends InlineTransformer {
 
   override def apply(values: Seq[Seq[String]]): Seq[String] = {
     val allValues = values.flatten

@@ -3,7 +3,7 @@ package org.silkframework.rule.execution
 import org.silkframework.config.{Prefixes, Task, TaskSpec}
 import org.silkframework.dataset.{DataSource, EntitySink}
 import org.silkframework.execution.local.ErrorOutputWriter
-import org.silkframework.rule.TransformSpec.RuleSchemata
+import org.silkframework.rule.TransformSpec.RuleSchemataExecution
 import org.silkframework.rule._
 import org.silkframework.rule.execution.local.TransformedEntities
 import org.silkframework.runtime.activity.{Activity, ActivityContext, UserContext}
@@ -63,7 +63,7 @@ class ExecuteTransform(task: Task[TransformSpec],
     context.status.updateMessage("Retrieving entities")
     try {
       for ((ruleSchemata, index) <- transform.ruleSchemataWithoutEmptyObjectRules.zipWithIndex) {
-        transformEntities(dataSource, ruleSchemata.withContext(taskContext), entitySink, errorEntitySink, report, context)
+        transformEntities(dataSource, ruleSchemata.execution(taskContext), entitySink, errorEntitySink, report, context)
         context.status.updateProgress((index + 1.0) / transform.ruleSchemataWithoutEmptyObjectRules.size)
       }
     } finally {
@@ -73,7 +73,7 @@ class ExecuteTransform(task: Task[TransformSpec],
   }
 
   private def transformEntities(dataSource: DataSource,
-                                rule: RuleSchemata,
+                                rule: RuleSchemataExecution,
                                 entitySink: EntitySink,
                                 errorEntitySink: Option[EntitySink],
                                 reportBuilder: TransformReportBuilder,
@@ -92,7 +92,7 @@ class ExecuteTransform(task: Task[TransformSpec],
       case NonFatal(ex) =>
         throw new RuntimeException("Failed to retrieve input entities from data source.", ex)
     }
-    val transformedEntities = new TransformedEntities(task, entityTable.entities, rule.transformRule.label(), rule.transformRule, rule.outputSchema,
+    val transformedEntities = new TransformedEntities(task, entityTable.entities, rule.transformRule.label(), rule.transformRuleExecution, rule.outputSchema,
       isRequestedSchema = false, abortIfErrorsOccur = task.data.abortIfErrorsOccur, report = reportBuilder).iterator
     var count = 0
     breakable {

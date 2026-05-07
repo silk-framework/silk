@@ -1,7 +1,7 @@
 package org.silkframework.rule.plugins.transformer.conditional
 
 import org.silkframework.rule.annotations.{TransformExample, TransformExamples}
-import org.silkframework.rule.input.Transformer
+import org.silkframework.rule.input.InlineTransformer
 import org.silkframework.runtime.plugin.annotations.Plugin
 
 @Plugin(
@@ -29,7 +29,7 @@ import org.silkframework.runtime.plugin.annotations.Plugin
     output = Array()
   )
 ))
-case class IfExists() extends Transformer {
+case class IfExists() extends InlineTransformer {
   override def apply(values: Seq[Seq[String]]): Seq[String] = {
     require(values.size >= 2, "The ifExists transformation requires at least two inputs")
     if(values.head.nonEmpty)

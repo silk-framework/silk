@@ -1,6 +1,6 @@
 package org.silkframework.rule.plugins.transformer.value
 
-import org.silkframework.rule.input.Transformer
+import org.silkframework.rule.input.InlineTransformer
 import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
 
 import scala.util.Random
@@ -19,7 +19,7 @@ case class RandomNumberTransformer(
   @Param("The minimum number of values to generate in each set.")
   minCount: Int = 1,
   @Param("The maximum number of values to generate in each set.")
-  maxCount: Int = 1) extends Transformer {
+  maxCount: Int = 1) extends InlineTransformer {
 
    override def apply(values: Seq[Seq[String]]): Seq[String] = {
      val count = minCount + Random.nextInt(1 + maxCount - minCount)

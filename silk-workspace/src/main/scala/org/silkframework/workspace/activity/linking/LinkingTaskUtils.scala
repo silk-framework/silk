@@ -2,7 +2,7 @@ package org.silkframework.workspace.activity.linking
 
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.dataset.{DataSource, Dataset, DatasetSpec, EmptySource, LinkSink}
-import org.silkframework.rule.{DatasetSelection, LinkSpec, LinkageRule, TaskContext, TransformSpec}
+import org.silkframework.rule.{DatasetSelection, LinkSpec, LinkageRuleExecution, TaskContext, TransformSpec}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.PluginContext
 import org.silkframework.util.DPair
@@ -56,10 +56,10 @@ object LinkingTaskUtils {
     }
 
     /**
-     * Returns the linking rule with the task context.
+     * Returns the linking rule executor resolved against the task context.
      */
-    def ruleWithContext(implicit userContext: UserContext): LinkageRule = {
-      task.data.rule.withContext(taskContext)
+    def ruleExecution(implicit userContext: UserContext): LinkageRuleExecution = {
+      task.data.rule.execution(taskContext)
     }
   }
 

@@ -18,7 +18,7 @@ import org.silkframework.plugins.dataset.rdf.datasets.InMemoryDataset
 import org.silkframework.plugins.dataset.rdf.tasks.SparqlUpdateCustomTask
 import org.silkframework.plugins.dataset.xml.XSLTOperator
 import org.silkframework.rule._
-import org.silkframework.rule.input.{TransformInput, Transformer}
+import org.silkframework.rule.input.{InlineTransformer, TransformInput}
 import org.silkframework.rule.plugins.distance.equality.EqualityMetric
 import org.silkframework.rule.similarity.Comparison
 import org.silkframework.runtime.resource.Resource
@@ -184,7 +184,7 @@ class WorkspaceApiTest extends PlaySpec with IntegrationTestTrait with Matchers 
 }
 
 object WorkspaceApiTest {
-  case class TestTransformer(referencedResource: Resource) extends Transformer {
+  case class TestTransformer(referencedResource: Resource) extends InlineTransformer {
     override def apply(values: Seq[Seq[String]]): Seq[String] = Seq.empty
 
     override def referencedResources: Seq[Resource] = {

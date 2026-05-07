@@ -2,7 +2,7 @@ package org.silkframework.rule.plugins.transformer.metadata
 
 import org.silkframework.dataset.{DatasetSpec, ResourceBasedDataset}
 import org.silkframework.rule.TaskContext
-import org.silkframework.rule.input.Transformer
+import org.silkframework.rule.input.{InlineTransformer, TransformerExecution}
 import org.silkframework.rule.plugins.transformer.value.HashAlgorithmAutoCompletionProvider
 import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
 import org.silkframework.runtime.plugin.types.ResourceOption
@@ -27,13 +27,13 @@ case class FileHashTransformer(@Param(value = "File for which the hash sum will 
                                file: ResourceOption = None,
                                @Param(value = "The hash algorithm to be used.",
                                       autoCompletionProvider = classOf[HashAlgorithmAutoCompletionProvider], allowOnlyAutoCompletedValues = true)
-                               algorithm: String = "SHA256") extends Transformer {
+                               algorithm: String = "SHA256") extends InlineTransformer {
 
   require(algorithm.trim.nonEmpty, "Algorithm must not be empty. Please specify an algorithm, such as 'SHA256'.")
 
   private val cache = file.resource.map(new Cache(_, algorithm))
 
-  override def withContext(taskContext: TaskContext): Transformer = {
+  override def execution(taskContext: TaskContext): TransformerExecution = {
     taskContext.inputTasks.headOption.map(_.data) match {
       case Some(DatasetSpec(ds: ResourceBasedDataset, _, _)) if file.isEmpty =>
         FileHashTransformer(Some(ds.file), algorithm)
