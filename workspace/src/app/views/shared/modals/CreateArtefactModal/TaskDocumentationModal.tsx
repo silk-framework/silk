@@ -1,18 +1,22 @@
-import React from "react";
+import React, { useCallback } from "react";
 
 import {
     Button,
-    HtmlContentBlock,
     Markdown,
     OverviewItem,
     OverviewItemActions,
     OverviewItemDescription,
     OverviewItemLine,
     OverviewItemList,
-    Spacing,
+    TitleSubsection,
     SimpleDialog,
     SimpleDialogProps,
-    CLASSPREFIX as eccgui, OverflowText, Tooltip,
+    Spacing,
+    CLASSPREFIX as eccgui,
+    OverflowText,
+    Tooltip,
+    Notification,
+    CardActionsAux,
 } from "@eccenca/gui-elements";
 import { useTranslation } from "react-i18next";
 import { ArtefactDocumentation } from "./CreateArtefactModal";
@@ -57,7 +61,20 @@ export const TaskDocumentationModal = ({
     size = "large",
 }: TaskDocumentationModalProps) => {
     const [initialized, setInitialized] = React.useState(false);
+    const [shrinkRelatedPlugins, setShrinkRelatedPlugins] = React.useState<string | null>(
+        localStorage.getItem("shrinkRelatedPlugins"),
+    );
     const [t] = useTranslation();
+
+    const toggleRelatedPlugins = () => {
+        if (shrinkRelatedPlugins) {
+            localStorage.removeItem("shrinkRelatedPlugins");
+            setShrinkRelatedPlugins(null);
+        } else {
+            localStorage.setItem("shrinkRelatedPlugins", "true");
+            setShrinkRelatedPlugins("true");
+        }
+    };
 
     React.useEffect(() => {
         // If an anchor is defined, jump to it
@@ -108,18 +125,29 @@ export const TaskDocumentationModal = ({
             enforceFocus={true}
             onClose={onClose}
             title={documentationToShow.title ?? "Documentation"}
-            actions={<Button text="Close" onClick={onClose} />}
+            actions={
+                <>
+                    <Button text={t("common.action.close")} onClick={onClose} />
+                    {shrinkRelatedPlugins && (
+                        <CardActionsAux>
+                            <Button
+                                outlined
+                                icon={"toggler-showless"}
+                                text={t("CreateModal.relatedPlugins.displayPlugins")}
+                                onClick={() => toggleRelatedPlugins()}
+                            />
+                        </CardActionsAux>
+                    )}
+                </>
+            }
             size={size}
-        >
-            <HtmlContentBlock>
-                <span ref={() => setInitialized(true)} />
-                <Markdown allowHtml>
-                    {documentationToShow.markdownDocumentation || documentationToShow.description || ""}
-                </Markdown>
-                {documentationToShow.relatedPlugins && documentationToShow.relatedPlugins.length > 0 && (
-                    <>
-                        <Spacing size="small" vertical />
-                        <h3>{t("CreateModal.relatedPlugins.title")}</h3>
+            notifications={
+                !shrinkRelatedPlugins &&
+                documentationToShow.relatedPlugins &&
+                documentationToShow.relatedPlugins.length > 0 && (
+                    <Notification intent={"neutral"} onDismiss={() => toggleRelatedPlugins()} timeout={0}>
+                        <TitleSubsection>{t("CreateModal.relatedPlugins.title")}</TitleSubsection>
+                        <Spacing size={"tiny"} />
                         <OverviewItemList data-test-id="related-plugins-list" columns={1} hasSpacing>
                             {documentationToShow.relatedPlugins.map((relatedPlugin) => {
                                 const pluginLabel = relatedPlugin.plugin.title ?? relatedPlugin.plugin.key;
@@ -127,7 +155,8 @@ export const TaskDocumentationModal = ({
                                     <OverviewItem
                                         key={relatedPlugin.plugin.key}
                                         data-test-id={`related-plugin-${relatedPlugin.plugin.key}`}
-                                        densityHigh
+                                        hasCardWrapper
+                                        hasSpacing
                                     >
                                         <OverviewItemDescription>
                                             <OverviewItemLine>
@@ -142,8 +171,9 @@ export const TaskDocumentationModal = ({
                                         {onSwitchToRelatedPlugin && (
                                             <OverviewItemActions>
                                                 <Button
+                                                    outlined
+                                                    elevated
                                                     data-test-id={`related-plugin-${relatedPlugin.plugin.key}-use-btn`}
-                                                    affirmative={true}
                                                     tooltip={t("CreateModal.relatedPlugins.switchTooltip", {
                                                         pluginLabel,
                                                     })}
@@ -159,9 +189,14 @@ export const TaskDocumentationModal = ({
                                 );
                             })}
                         </OverviewItemList>
-                    </>
-                )}
-            </HtmlContentBlock>
+                    </Notification>
+                )
+            }
+        >
+            <span ref={() => setInitialized(true)} />
+            <Markdown allowHtml>
+                {documentationToShow.markdownDocumentation || documentationToShow.description || ""}
+            </Markdown>
         </SimpleDialog>
     );
 };

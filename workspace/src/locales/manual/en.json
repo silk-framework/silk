@@ -20,6 +20,7 @@
         },
         "relatedPlugins": {
             "title": "Related plugins",
+            "displayPlugins": "Show related plugins",
             "switchAction": "Use {{pluginLabel}}",
             "switchTooltip": "Loads the '{{pluginLabel}}' plugin into the form. Label, description, and tags are kept; all other settings are reset.",
             "switchWarningTitle": "Switch plugin",
