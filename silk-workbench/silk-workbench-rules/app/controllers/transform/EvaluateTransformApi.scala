@@ -180,7 +180,8 @@ class EvaluateTransformApi @Inject()(implicit accessMonitor: WorkbenchAccessMoni
         source = task.dataSource,
         entitySchema = ruleSchema.inputSchema,
         rules = ruleSchema.transformRule.rules,
-        maxEntities = limit
+        maxEntities = limit,
+        taskContext = task.taskContext
       )
     val entities = evaluateTransform.execute()
     // FIXME: This only filters the limit# entities. Unclear how to do this in a performant way to fetch entities until the limit is met.

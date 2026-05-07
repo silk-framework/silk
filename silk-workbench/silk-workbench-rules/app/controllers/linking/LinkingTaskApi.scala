@@ -21,7 +21,7 @@ import org.silkframework.entity.paths.{TypedPath, UntypedPath}
 import org.silkframework.plugins.path.{PathMetaDataPlugin, StandardMetaDataPlugin}
 import org.silkframework.rule.evaluation._
 import org.silkframework.rule.execution.{Linking, GenerateLinks => GenerateLinksActivity}
-import org.silkframework.rule.{DatasetSelection, LinkSpec, LinkageRule, LinkageRuleExecution, RuntimeLinkingConfig}
+import org.silkframework.rule.{DatasetSelection, LinkSpec, LinkageRule, LinkageRuleExecution, RuntimeLinkingConfig, TaskContext}
 import org.silkframework.runtime.activity.{Activity, UserContext}
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlSerialization}
 import org.silkframework.runtime.validation._
@@ -680,12 +680,13 @@ class LinkingTaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends I
 
   private def serializeLinks(entities: Iterable[DPair[Entity]],
                              linkageRule: LinkageRuleExecution,
+                             taskContext: TaskContext,
                              withEntitiesAndSchema: Boolean = false)
                             (implicit writeContext: WriteContext[JsValue]): JsValue = {
     JsArray(
       for(entities <- entities.toSeq) yield {
         val link = new FullLink(entities.source.uri, entities.target.uri, linkageRule(entities), entities)
-        new LinkJsonFormat(Some(linkageRule.operator), writeEntities = withEntitiesAndSchema, writeEntitySchema = withEntitiesAndSchema).write(link)
+        new LinkJsonFormat(Some(linkageRule.operator), writeEntities = withEntitiesAndSchema, writeEntitySchema = withEntitiesAndSchema, taskContext = taskContext).write(link)
       }
     )
   }
@@ -744,8 +745,8 @@ class LinkingTaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends I
     implicit val writeContext: WriteContext[JsValue] = WriteContext.fromProject[JsValue](project)
     val result =
       Json.obj(
-        "positive" -> serializeLinks(referenceEntityCacheValue.positiveEntities, rule, withEntitiesAndSchema),
-        "negative" -> serializeLinks(referenceEntityCacheValue.negativeEntities, rule, withEntitiesAndSchema),
+        "positive" -> serializeLinks(referenceEntityCacheValue.positiveEntities, rule, task.taskContext, withEntitiesAndSchema),
+        "negative" -> serializeLinks(referenceEntityCacheValue.negativeEntities, rule, task.taskContext, withEntitiesAndSchema),
         "evaluationScore" -> Json.toJson(evaluationResult)
       )
 
@@ -793,7 +794,7 @@ class LinkingTaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends I
       val referenceEntityCacheValue = updateAndGetReferenceEntityCacheValue(task, refreshCache = false)
       implicit val writeContext: WriteContext[JsValue] = WriteContext.fromProject[JsValue](project)
       def serialize(links: Iterable[DPair[Entity]]): JsValue = {
-        serializeLinks(links.take(linkLimit), ruleWithContext)
+        serializeLinks(links.take(linkLimit), ruleWithContext, task.taskContext)
       }
       val evaluationResult: LinkageRuleEvaluationResult = LinkingTaskApiUtils.referenceLinkEvaluationScore(ruleWithContext, referenceEntityCacheValue)
 
@@ -972,7 +973,7 @@ class LinkingTaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends I
       control.startBlocking()
       control.value.get match {
         case Some(linking) =>
-          val linkJsonFormat = new LinkJsonFormat(Some(linking.rule))
+          val linkJsonFormat = new LinkJsonFormat(Some(linking.rule), taskContext = task.taskContext)
           implicit val writeContext: WriteContext[JsValue] = WriteContext.fromProject[JsValue](project)
           Ok(JsArray(
             for(link <- linking.links) yield {

@@ -2,7 +2,7 @@ package org.silkframework.serialization.json
 
 import org.silkframework.entity.{Link, LinkWithDecision}
 import org.silkframework.execution.report.Stacktrace
-import org.silkframework.rule.LinkageRule
+import org.silkframework.rule.{LinkageRule, TaskContext}
 import org.silkframework.rule.evaluation._
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext}
 import org.silkframework.serialization.json.EntitySerializers.{EntityJsonFormat, PairJsonFormat}
@@ -15,7 +15,8 @@ object LinkingSerializers {
   class LinkJsonFormat(rule: Option[LinkageRule],
                        writeEntities: Boolean = false,
                        writeEntitySchema: Boolean = false,
-                       distinctValues: Boolean = false) extends JsonFormat[Link] {
+                       distinctValues: Boolean = false,
+                       taskContext: TaskContext = TaskContext.empty) extends JsonFormat[Link] {
     import LinkJsonFormat._
 
     final val SOURCE = "source"
@@ -64,7 +65,7 @@ object LinkingSerializers {
         case _ =>
           // Link does not provide evaluation details, need to evaluate it first
           for (linkingRule <- rule; entities <- link.entities) {
-            val details = DetailedEvaluator(linkingRule.execution(), entities).details
+            val details = DetailedEvaluator(linkingRule.execution(taskContext), entities).details
             json += (RULE_VALUES -> ConfidenceJsonFormat.write(details))
           }
       }
@@ -73,7 +74,7 @@ object LinkingSerializers {
     }
   }
 
-  implicit object LinkJsonFormat extends LinkJsonFormat(None, writeEntities = false, writeEntitySchema = false, distinctValues = false) {
+  implicit object LinkJsonFormat extends LinkJsonFormat(None, writeEntities = false, writeEntitySchema = false, distinctValues = false, taskContext = TaskContext.empty) {
     final val RULE_VALUES = "ruleValues"
   }
 
