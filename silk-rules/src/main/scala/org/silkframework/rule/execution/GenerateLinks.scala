@@ -38,12 +38,13 @@ class GenerateLinks(task: Task[LinkSpec],
                     inputs: DPair[DataSource],
                     output: Option[LinkSink],
                     runtimeConfig: RuntimeLinkingConfig = RuntimeLinkingConfig(),
-                    overrideLinkageRule: Option[LinkageRuleExecution] = None)
+                    overrideLinkageRule: Option[LinkageRuleExecution] = None,
+                    taskContext: TaskContext = TaskContext.empty)
                    (implicit prefixes: Prefixes) extends Activity[Linking] {
 
   private val log: Logger = Logger.getLogger(this.getClass.getName)
 
-  private val rule = overrideLinkageRule.getOrElse(task.data.rule.execution(TaskContext.empty))
+  private val rule = overrideLinkageRule.getOrElse(task.data.rule.execution(taskContext))
 
   private val linkSpec = task.data.copy(rule = rule.operator)
 
