@@ -21,7 +21,7 @@ import org.silkframework.entity.{Entity, EntitySchema, Link}
 import org.silkframework.execution.ExecutionReport
 import org.silkframework.execution.report.{EntitySample, SampleEntities, SampleEntitiesSchema}
 import org.silkframework.rule.execution.rdb.RDBEntityIndex
-import org.silkframework.rule.{LinkSpec, LinkageRuleExecution, LinkingExecutionBackend, RuntimeLinkingConfig}
+import org.silkframework.rule.{LinkSpec, LinkageRuleExecution, LinkingExecutionBackend, RuntimeLinkingConfig, TaskContext}
 import org.silkframework.runtime.activity._
 import org.silkframework.util.FileUtils._
 import org.silkframework.util.{CollectLogs, DPair}
@@ -43,7 +43,7 @@ class GenerateLinks(task: Task[LinkSpec],
 
   private val log: Logger = Logger.getLogger(this.getClass.getName)
 
-  private val rule = overrideLinkageRule.getOrElse(task.data.rule.execution())
+  private val rule = overrideLinkageRule.getOrElse(task.data.rule.execution(TaskContext.empty))
 
   private val linkSpec = task.data.copy(rule = rule.operator)
 

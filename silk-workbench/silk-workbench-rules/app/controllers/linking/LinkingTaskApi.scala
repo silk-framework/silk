@@ -1178,10 +1178,11 @@ class LinkingTaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends I
     }
   }
 
-  private def retrieveReferenceLinksSafe(linkTask: ProjectTask[LinkSpec]): Seq[EvaluatedLinkWithDecision] = {
+  private def retrieveReferenceLinksSafe(linkTask: ProjectTask[LinkSpec])
+                                        (implicit user: UserContext): Seq[EvaluatedLinkWithDecision] = {
     val referenceEntityCache = linkTask.activity[ReferenceEntitiesCache].value()
     val DPair(sourceEntitySchema, targetEntitySchema) = linkTask.data.entityDescriptions
-    val ruleExec = linkTask.data.rule.execution()
+    val ruleExec = linkTask.ruleExecution
     for(link <- referenceEntityCache.toReferenceLinksSafe(sourceEntitySchema, targetEntitySchema)) yield {
       val evaluatedLink = DetailedEvaluator(ruleExec, link.linkEntities)
       evaluatedLink.withDecision(link.decision)
