@@ -736,7 +736,7 @@ class LinkingTaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends I
                               withEntitiesAndSchema: Boolean): Action[AnyContent] = RequestUserContextAction { request => implicit userContext =>
     val project = WorkspaceFactory().workspace.project(projectName)
     val task = project.task[LinkSpec](taskName)
-    val rule = task.ruleWithContext
+    val rule = task.ruleExecution
 
     val referenceEntityCacheValue = updateAndGetReferenceEntityCacheValue(task, refreshCache = true)
     val evaluationResult: LinkageRuleEvaluationResult = LinkingTaskApiUtils.referenceLinkEvaluationScore(rule, referenceEntityCacheValue)
@@ -1159,7 +1159,7 @@ class LinkingTaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends I
     if (evaluationActivity.control.status.get.isEmpty) {
       evaluationActivity.control.startBlocking()
     }
-    val ruleExec = linkTask.data.rule.execution()
+    val ruleExec = linkTask.ruleExecution
     for(link <- evaluationActivity.value().links) yield {
       val evaluatedLink =
         link match {
