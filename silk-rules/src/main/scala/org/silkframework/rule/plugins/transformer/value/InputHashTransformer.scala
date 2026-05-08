@@ -35,7 +35,7 @@ import java.security.MessageDigest
 )
 @TransformExamples(Array(
   new TransformExample(
-    description = "One SHA-256 hash per input value.",
+    description = "A single input value produces one combined SHA-256 hash.",
     input1 = Array("input value"),
     output = Array("f708c2afff0ed197e8551c4dd549ee5b848e0b407106cbdb8e451c8cd1479362")
   ),
