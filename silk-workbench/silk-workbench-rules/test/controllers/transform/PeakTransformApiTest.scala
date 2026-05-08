@@ -8,7 +8,7 @@ import org.silkframework.rule.plugins.transformer.combine.ConcatTransformer
 import org.silkframework.rule.plugins.transformer.date.DateToTimestampTransformer
 import org.silkframework.rule.plugins.transformer.normalize.LowerCaseTransformer
 import org.silkframework.rule.plugins.transformer.tokenization.CamelCaseTokenizer
-import org.silkframework.rule.{ComplexMapping, PatternUriMapping, TransformRule, TransformRuleExecution}
+import org.silkframework.rule.{ComplexMapping, PatternUriMapping, TaskContext, TransformRule, TransformRuleExecution}
 import org.silkframework.serialization.json.JsonSerializers.TransformRuleJsonFormat
 import org.silkframework.serialization.json.{JsonHelpers, JsonSerialization}
 import org.silkframework.util.Uri
@@ -53,7 +53,7 @@ class PeakTransformApiTest extends AnyFlatSpec with SingleProjectWorkspaceProvid
   private def transformRule(transformer: Transformer): TransformRuleExecution = {
     val transformation = TransformInput(transformer = transformer,
       inputs = IndexedSeq(PathInput("p", UntypedPath("a")), PathInput("p", UntypedPath("b"))))
-    ComplexMapping(operator = transformation).execution()
+    ComplexMapping(operator = transformation).execution(TaskContext.empty)
   }
 
   it should "collect transformation examples skipping empty transformation results" in {

@@ -180,7 +180,8 @@ class EvaluateTransformApi @Inject()(implicit accessMonitor: WorkbenchAccessMoni
         source = task.dataSource,
         entitySchema = ruleSchema.inputSchema,
         rules = ruleSchema.transformRule.rules,
-        maxEntities = limit
+        maxEntities = limit,
+        taskContext = task.taskContext
       )
     val entities = evaluateTransform.execute()
     // FIXME: This only filters the limit# entities. Unclear how to do this in a performant way to fetch entities until the limit is met.
@@ -232,7 +233,7 @@ class EvaluateTransformApi @Inject()(implicit accessMonitor: WorkbenchAccessMoni
     val inputSchema = ruleSchema.inputSchema.copy(typedPaths = transformRule.sourcePaths.toIndexedSeq)
 
     val entities = task.dataSource.retrieve(inputSchema, Some(limit)).entities.take(limit)
-    val ruleExec = transformRule.execution()
+    val ruleExec = transformRule.execution(task.taskContext)
     for(entity <- entities) yield {
       DetailedEvaluator(ruleExec, entity)
     }

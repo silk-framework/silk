@@ -2,7 +2,7 @@ package org.silkframework.rule.execution
 
 import org.silkframework.dataset.DataSource
 import org.silkframework.entity.EntitySchema
-import org.silkframework.rule.TransformRule
+import org.silkframework.rule.{TaskContext, TransformRule}
 import org.silkframework.rule.evaluation.{DetailedEntity, DetailedEvaluator}
 import org.silkframework.runtime.plugin.PluginContext
 
@@ -16,7 +16,8 @@ import java.util.logging.Logger
 class EvaluateTransform(source: DataSource,
                         entitySchema: EntitySchema,
                         rules: Seq[TransformRule],
-                        maxEntities: Int = 100) {
+                        maxEntities: Int = 100,
+                        taskContext: TaskContext = TaskContext.empty) {
 
   private val log = Logger.getLogger(getClass.getName)
 
@@ -24,7 +25,7 @@ class EvaluateTransform(source: DataSource,
   private var cachedValues = Seq[DetailedEntity]()
 
   def execute()(implicit context: PluginContext): Seq[DetailedEntity] = {
-    val ruleExecs = rules.map(_.execution())
+    val ruleExecs = rules.map(_.execution(taskContext))
     // Retrieve entities
     source.retrieve(entitySchema, Some(maxEntities)).entities.use { entities =>
       // Read all entities

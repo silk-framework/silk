@@ -51,7 +51,7 @@ case class LinkageRule(operator: Option[SimilarityOperator] = None,
   /**
    * Builds a runtime executor for this rule resolved against the given task context.
    */
-  def execution(taskContext: TaskContext = TaskContext.empty): LinkageRuleExecution = {
+  def execution(taskContext: TaskContext): LinkageRuleExecution = {
     new LinkageRuleExecution(this, operator.map(_.execution(taskContext)))
   }
 }

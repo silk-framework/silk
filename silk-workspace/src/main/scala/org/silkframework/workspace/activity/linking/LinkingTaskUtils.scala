@@ -58,7 +58,7 @@ object LinkingTaskUtils {
     /**
      * Returns the linking rule executor resolved against the task context.
      */
-    def ruleWithContext(implicit userContext: UserContext): LinkageRuleExecution = {
+    def ruleExecution(implicit userContext: UserContext): LinkageRuleExecution = {
       task.data.rule.execution(taskContext)
     }
   }

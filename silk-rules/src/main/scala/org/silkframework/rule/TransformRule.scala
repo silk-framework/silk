@@ -174,7 +174,7 @@ sealed trait ContainerTransformRule extends TransformRule {
   }
 
   override def execution(taskContext: TaskContext = TaskContext.empty): ContainerTransformRuleExecution = {
-    new ContainerTransformRuleExecution(this, rules.map(_.execution(taskContext)), operator.execution(taskContext))
+    new ContainerTransformRuleExecution(this, () => rules.map(_.execution(taskContext)), operator.execution(taskContext))
   }
 }
 
@@ -187,9 +187,10 @@ sealed trait ContainerTransformRule extends TransformRule {
  * so deferring this expansion avoids building those executions twice.
  */
 class ContainerTransformRuleExecution(override val operator: ContainerTransformRule,
-                                      childExecs: => Seq[TransformRuleExecution],
+                                      @transient private val childExecsFunc: () => Seq[TransformRuleExecution],
                                       override val inputExecution: InputExecution) extends TransformRuleExecution {
-  override lazy val childExecutions: Seq[TransformRuleExecution] = childExecs
+  override lazy val childExecutions: Seq[TransformRuleExecution] =
+    if (childExecsFunc != null) childExecsFunc() else Seq.empty
 }
 
 /**
