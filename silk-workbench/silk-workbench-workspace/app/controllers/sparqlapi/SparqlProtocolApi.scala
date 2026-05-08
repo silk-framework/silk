@@ -7,6 +7,7 @@ import javax.inject.Inject
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.dataset.rdf.RdfDataset
 import org.silkframework.runtime.activity.UserContext
+import org.silkframework.runtime.plugin.TaskResolver
 import org.silkframework.runtime.serialization.WriteContext
 import org.silkframework.runtime.validation.{BadUserInputException, RequestException}
 import org.silkframework.workbench.Context
@@ -34,7 +35,8 @@ class SparqlProtocolApi @Inject() () extends InjectedController with UserContext
     Some(context.project.config.id),
     context.project.config.projectResourceUriOpt,
     context.project.resources,
-    UserContext.Empty
+    UserContext.Empty,
+    taskResolver = TaskResolver.empty
   )
 
   private def checkGraphParams(query: String, defaultGraphUri: List[String], namedGraphUri: List[String]): String ={

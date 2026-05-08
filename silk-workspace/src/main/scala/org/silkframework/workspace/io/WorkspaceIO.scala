@@ -4,7 +4,7 @@ import org.silkframework.config.{CustomTask, Prefixes, TaskSpec}
 import org.silkframework.dataset.{Dataset, DatasetSpec}
 import org.silkframework.rule.{LinkSpec, TransformSpec}
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.runtime.plugin.PluginContext
+import org.silkframework.runtime.plugin.{PluginContext, TaskResolver}
 import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.runtime.templating.{CombinedTemplateVariablesReader, GlobalTemplateVariables, InMemoryTemplateVariablesReader, TemplateVariables}
 import org.silkframework.util.Identifier
@@ -89,7 +89,7 @@ object WorkspaceIO {
                                                   variables: TemplateVariables)
                                                  (implicit userContext: UserContext): Unit = {
     val variablesReader = CombinedTemplateVariablesReader(Seq(GlobalTemplateVariables, InMemoryTemplateVariablesReader(variables, Set("project"))))
-    implicit val inputContext: PluginContext = PluginContext(resources = inputResources, prefixes = prefixes, user = userContext, templateVariables = variablesReader)
+    implicit val inputContext: PluginContext = PluginContext(resources = inputResources, prefixes = prefixes, user = userContext, templateVariables = variablesReader, taskResolver = TaskResolver.empty)
     for(taskTry <- inputWorkspace.readTasks[T](projectName)) {
       taskTry.taskOrError match {
         case Right(task) =>

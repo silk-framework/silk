@@ -7,7 +7,7 @@ import org.silkframework.dataset.operations.DeleteFilesOperatorTest.createResour
 import org.silkframework.execution.local.LocalExecution
 import org.silkframework.execution.{ExecutionReport, ExecutorOutput}
 import org.silkframework.runtime.activity.TestUserContextTrait
-import org.silkframework.runtime.plugin.PluginContext
+import org.silkframework.runtime.plugin.{PluginContext, TaskResolver}
 import org.silkframework.util.{ActivityContextMock, MockitoSugar}
 
 class LocalDeleteFilesOperatorExecutorTest extends AnyFlatSpec with Matchers with TestUserContextTrait with MockitoSugar {
@@ -48,7 +48,7 @@ class LocalDeleteFilesOperatorExecutorTest extends AnyFlatSpec with Matchers wit
   private def execute(regex: String, existingFiles: Seq[String], entityOutput: Boolean): Seq[String] = {
     val task = PlainTask("task", DeleteFilesOperator(regex, outputEntities = entityOutput))
     val resourceManager = createResourceManager(existingFiles)
-    implicit val pluginContext: PluginContext = PluginContext(Prefixes.empty, resourceManager)
+    implicit val pluginContext: PluginContext = PluginContext(Prefixes.empty, resourceManager, taskResolver = TaskResolver.empty)
     val activityContext = ActivityContextMock[ExecutionReport]()
     val outputEntities = executor.execute(task, Seq.empty, output = ExecutorOutput.empty, execution = LocalExecution(), context = activityContext)
     if(entityOutput) {

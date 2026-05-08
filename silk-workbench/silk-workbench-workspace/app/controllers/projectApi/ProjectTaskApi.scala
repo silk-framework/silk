@@ -7,7 +7,6 @@ import controllers.util.SerializationUtils.serializeCompileTime
 import controllers.util.{ItemType, SerializationUtils, TextSearchUtils}
 import controllers.workspace.doc.{TaskApiDoc, LegacyDatasetApiDoc => DatasetApiDoc}
 import controllers.workspaceApi.projectTask.{ItemCloneRequest, ItemCloneResponse, RelatedItem, RelatedItems}
-import controllers.workspaceApi.search.SearchApiModel.{READ_ONLY, URI_PROPERTY}
 import io.swagger.v3.oas.annotations.enums.ParameterIn
 import io.swagger.v3.oas.annotations.media.{Content, ExampleObject, Schema}
 import io.swagger.v3.oas.annotations.parameters.RequestBody
@@ -21,7 +20,7 @@ import org.silkframework.entity.EntitySchema
 import org.silkframework.entity.paths.{Path, TypedPath, UntypedPath}
 import org.silkframework.rule.{LinkSpec, TransformSpec}
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.runtime.plugin.{ParameterValues, PluginContext, PluginDescription}
+import org.silkframework.runtime.plugin.{ParameterValues, PluginContext, PluginDescription, TaskResolver}
 import org.silkframework.runtime.serialization.ReadContext
 import org.silkframework.runtime.validation.BadUserInputException
 import org.silkframework.serialization.json.MetaDataSerializers.FullTag
@@ -30,7 +29,7 @@ import org.silkframework.workbench.utils.ErrorResult
 import org.silkframework.workspace.activity.workflow.{WorkflowTaskContext, WorkflowTaskContextInputTask, WorkflowTaskContextOutputTask, WorkflowTaskContextTask}
 import org.silkframework.workspace.exceptions.IdentifierAlreadyExistsException
 import org.silkframework.workspace.{Project, WorkspaceFactory}
-import play.api.libs.json.{JsBoolean, JsString, JsValue, Json}
+import play.api.libs.json.{JsValue, Json}
 import play.api.mvc.{Action, AnyContent, InjectedController}
 
 import javax.inject.Inject
@@ -333,8 +332,7 @@ class ProjectTaskApi @Inject()() extends InjectedController with UserContextActi
                                 )
                                 projectId: String): Action[AnyContent] = RequestUserContextAction { implicit request =>implicit userContext =>
     implicit val project: Project = WorkspaceFactory().workspace.project(projectId)
-    implicit val context: PluginContext = PluginContext.fromProject(project)
-    implicit val readContext: ReadContext = ReadContext(project.resources, project.config.prefixes, user = userContext)
+    implicit val readContext: ReadContext = ReadContext(project.resources, project.config.prefixes, user = userContext, taskResolver = TaskResolver.empty)
     SerializationUtils.deserializeCompileTime[GenericDatasetSpec]() { datasetSpec =>
       val datasetPlugin = datasetSpec.plugin
       datasetPlugin match {

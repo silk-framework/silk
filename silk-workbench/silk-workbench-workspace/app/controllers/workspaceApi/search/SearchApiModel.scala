@@ -8,7 +8,7 @@ import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.dataset.{Dataset, DatasetSpec}
 import org.silkframework.rule.{LinkSpec, TransformSpec}
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.runtime.plugin.{PluginContext, PluginDescription}
+import org.silkframework.runtime.plugin.{PluginContext, PluginDescription, TaskResolver}
 import org.silkframework.runtime.serialization.WriteContext
 import org.silkframework.runtime.validation.BadUserInputException
 import org.silkframework.serialization.json.JsonSerializers.{TaskFormatOptions, TaskJsonFormat, TaskSpecJsonFormat}
@@ -628,7 +628,7 @@ object SearchApiModel {
     private def writeTask(task: ProjectTask[_ <: TaskSpec])
                          (implicit userContext: UserContext): JsValue = {
       taskFormat(userContext).write(task)(WriteContext[JsValue](prefixes = task.project.config.prefixes, projectId = Some(task.project.id),
-        resources = task.project.resources))
+        resources = task.project.resources, taskResolver = TaskResolver.empty))
     }
   }
 }

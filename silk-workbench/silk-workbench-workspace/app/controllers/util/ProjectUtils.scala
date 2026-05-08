@@ -10,7 +10,7 @@ import org.silkframework.plugins.dataset.rdf.access.SparqlSink
 import org.silkframework.plugins.dataset.rdf.endpoint.JenaModelEndpoint
 import org.silkframework.plugins.dataset.rdf.formatters.{FormattedJenaLinkSink, NTriplesRdfFormatter}
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.runtime.plugin.{ParameterStringValue, ParameterValues}
+import org.silkframework.runtime.plugin.{ParameterStringValue, ParameterValues, TaskResolver}
 import org.silkframework.runtime.resource.{FallbackResourceManager, InMemoryResourceManager, ResourceManager}
 import org.silkframework.runtime.serialization.{ReadContext, XmlSerialization}
 import org.silkframework.runtime.validation.BadUserInputException
@@ -87,6 +87,10 @@ object ProjectUtils {
     datasets.map { ds => (ds.id.toString, ds.data.plugin) }.toMap
   }
 
+  private def readContextFromResourceManager(resourceLoader: ResourceManager): ReadContext = {
+    ReadContext(resourceLoader, Prefixes.empty, taskResolver = TaskResolver.empty)
+  }
+
   /**
     * Returns the first dataset it can find in the DataSources element if datasetId is None
     * else returns the Dataset with the id defined by datasetId.
@@ -108,7 +112,7 @@ object ProjectUtils {
     if (dataSource.isEmpty) {
       throw new IllegalArgumentException(s"No data source with id $datasetIdOpt specified")
     }
-    implicit val readContext: ReadContext = ReadContext(resourceLoader, Prefixes.empty)
+    implicit val readContext: ReadContext = readContextFromResourceManager(resourceLoader)
     val dataset = XmlSerialization.fromXml[GenericDatasetSpec](dataSource.head)
     dataset
   }
@@ -120,7 +124,7 @@ object ProjectUtils {
                                 originalDatasetParameters: (String, String) => Map[String, String])
                                (implicit resourceLoader: ResourceManager): Seq[Task[GenericDatasetSpec]] = {
     val dataSourcesXml = xmlRoot \ xmlElementName \ "_"
-    implicit val readContext: ReadContext = ReadContext(resourceLoader, Prefixes.empty)
+    implicit val readContext: ReadContext = readContextFromResourceManager(resourceLoader)
     val datasets = for (dataSourceXml <- dataSourcesXml) yield {
       val dataset = XmlSerialization.fromXml[Task[GenericDatasetSpec]](dataSourceXml)
       val pluginId = (dataSourceXml \ "DatasetPlugin" \ "@type").text.trim
@@ -152,7 +156,7 @@ object ProjectUtils {
                                 originalDatasetParameters: (String, String) => Map[String, String])
                                (implicit resourceLoader: ResourceManager): Seq[Task[GenericDatasetSpec]] = {
     val datasetsJson = (workflowJson \ propertyName).as[JsArray]
-    implicit val readContext: ReadContext = ReadContext(resourceLoader, Prefixes.empty)
+    implicit val readContext: ReadContext = readContextFromResourceManager(resourceLoader)
     val datasets = for (datasetJson <- datasetsJson.value.toIndexedSeq) yield {
       val dataset = JsonSerializers.fromJson[LoadedTask[GenericDatasetSpec]](datasetJson).task
       val datasetPluginJson = JsonHelpers.objectValue(datasetJson, "data")

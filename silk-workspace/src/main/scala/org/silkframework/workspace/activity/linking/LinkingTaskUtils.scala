@@ -6,7 +6,7 @@ import org.silkframework.rule.{DatasetSelection, LinkSpec, LinkageRuleExecution,
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.PluginContext
 import org.silkframework.util.DPair
-import org.silkframework.workspace.ProjectTask
+import org.silkframework.workspace.{ProjectTask}
 import org.silkframework.workspace.activity.transform.TransformTaskUtils._
 
 /**

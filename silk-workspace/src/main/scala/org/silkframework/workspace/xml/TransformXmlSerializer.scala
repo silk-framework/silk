@@ -2,7 +2,7 @@ package org.silkframework.workspace.xml
 
 import org.silkframework.config._
 import org.silkframework.rule.TransformSpec
-import org.silkframework.runtime.plugin.PluginContext
+import org.silkframework.runtime.plugin.{PluginContext, TaskResolver}
 import org.silkframework.runtime.resource.{ResourceLoader, ResourceManager}
 import org.silkframework.runtime.serialization.XmlSerialization._
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext}
@@ -31,7 +31,8 @@ private class TransformXmlSerializer extends XmlSerializer[TransformSpec] {
     val taskResources = resources.child(data.id)
 
     // Only serialize file paths correctly, paths should not be prefixed
-    implicit val writeContext: WriteContext[Node] = WriteContext[Node](resources = projectResourceManager, prefixes = Prefixes.empty)
+    implicit val writeContext: WriteContext[Node] = WriteContext[Node](resources = projectResourceManager, prefixes = Prefixes.empty,
+      taskResolver = TaskResolver.empty)
 
     val datasetXml = data.selection.toXML(asSource = true, writeContext.prefixes)
     val rulesXml = toXml(data)

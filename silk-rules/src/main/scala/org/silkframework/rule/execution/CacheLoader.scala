@@ -20,7 +20,7 @@ import org.silkframework.dataset.DataSource
 import org.silkframework.entity.Entity
 import org.silkframework.runtime.activity.{Activity, ActivityContext, Status, UserContext}
 import org.silkframework.runtime.iterator.CloseableIterator
-import org.silkframework.runtime.plugin.PluginContext
+import org.silkframework.runtime.plugin.{PluginContext, TaskResolver}
 import org.silkframework.runtime.resource.EmptyResourceManager
 
 import scala.util.Random
@@ -63,7 +63,7 @@ class CacheLoader(source: DataSource,
   }
 
   private def retrieveEntities(implicit userContext: UserContext): CloseableIterator[Entity] = {
-    implicit val pluginContext: PluginContext = PluginContext(prefixes = prefixes, resources = EmptyResourceManager(), user = userContext)
+    implicit val pluginContext: PluginContext = PluginContext(prefixes = prefixes, resources = EmptyResourceManager(), user = userContext, taskResolver = TaskResolver.empty)
     sampleSizeOpt match {
       case Some(sampleSize) =>
         implicit val random: Random = Random
