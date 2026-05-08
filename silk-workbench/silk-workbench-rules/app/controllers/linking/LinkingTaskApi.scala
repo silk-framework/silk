@@ -969,7 +969,7 @@ class LinkingTaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends I
     SerializationUtils.deserializeCompileTime[LinkageRule](defaultMimeType = SerializationUtils.APPLICATION_JSON) { linkageRule =>
       val runtimeConfig = RuntimeLinkingConfig(executionTimeout = Some(timeoutInMs), linkLimit = Some(linkLimit),
         generateLinksWithEntities = true, includeReferenceLinks = includeReferenceLinks)
-      val linksActivity = new GenerateLinksActivity(task, sources, None, runtimeConfig, Some(linkageRule.execution(task.taskContext)))
+      val linksActivity = new GenerateLinksActivity(task, sources, None, task.taskContext, runtimeConfig, Some(linkageRule.execution(task.taskContext)))
       val control = Activity(linksActivity)
       control.startBlocking()
       control.value.get match {

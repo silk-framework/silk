@@ -37,9 +37,9 @@ import scala.util.Try
 class GenerateLinks(task: Task[LinkSpec],
                     inputs: DPair[DataSource],
                     output: Option[LinkSink],
+                    taskContext: TaskContext,
                     runtimeConfig: RuntimeLinkingConfig = RuntimeLinkingConfig(),
-                    overrideLinkageRule: Option[LinkageRuleExecution] = None,
-                    taskContext: TaskContext = TaskContext.empty)
+                    overrideLinkageRule: Option[LinkageRuleExecution] = None)
                    (implicit prefixes: Prefixes) extends Activity[Linking] {
 
   private val log: Logger = Logger.getLogger(this.getClass.getName)

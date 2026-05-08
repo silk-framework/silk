@@ -2,7 +2,7 @@ package org.silkframework.serialization.json
 
 import org.silkframework.execution.report.{EntitySample, SampleEntities, SampleEntitiesSchema, Stacktrace}
 import org.silkframework.execution.{ExecutionReport, SimpleExecutionReport}
-import org.silkframework.rule.TransformSpec
+import org.silkframework.rule.{TaskContext, TransformSpec}
 import org.silkframework.rule.execution.TransformReport.{RuleError, RuleResult}
 import org.silkframework.rule.execution.{Linking, TransformReport, TransformReportExecutionContext}
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext}
@@ -96,7 +96,7 @@ object ExecutionReportSerializers {
     override def write(value: Linking)(implicit writeContext: WriteContext[JsValue]): JsValue = {
       val firstEntityOption = value.links.headOption.flatMap(_.entities)
       val entitySchemataOption = firstEntityOption.map(_.map(_.schema))
-      val linkFormat = new LinkJsonFormat(Some(value.rule))
+      val linkFormat = new LinkJsonFormat(Some(value.rule), TaskContext(Seq.empty, writeContext))
 
       ExecutionReportJsonFormat.serializeBasicValues(value) ++
         Json.obj(

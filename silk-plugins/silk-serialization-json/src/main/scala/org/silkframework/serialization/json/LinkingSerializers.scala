@@ -13,10 +13,10 @@ import play.api.libs.json._
 object LinkingSerializers {
 
   class LinkJsonFormat(rule: Option[LinkageRule],
+                       taskContext: TaskContext,
                        writeEntities: Boolean = false,
                        writeEntitySchema: Boolean = false,
-                       distinctValues: Boolean = false,
-                       taskContext: TaskContext = TaskContext.empty) extends JsonFormat[Link] {
+                       distinctValues: Boolean = false) extends JsonFormat[Link] {
     import LinkJsonFormat._
 
     final val SOURCE = "source"
@@ -74,7 +74,7 @@ object LinkingSerializers {
     }
   }
 
-  implicit object LinkJsonFormat extends LinkJsonFormat(None, writeEntities = false, writeEntitySchema = false, distinctValues = false, taskContext = TaskContext.empty) {
+  implicit object LinkJsonFormat extends LinkJsonFormat(None, taskContext = TaskContext.empty, writeEntities = false, writeEntitySchema = false, distinctValues = false) {
     final val RULE_VALUES = "ruleValues"
   }
 

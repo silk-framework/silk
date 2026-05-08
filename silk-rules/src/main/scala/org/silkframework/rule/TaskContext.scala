@@ -1,6 +1,7 @@
 package org.silkframework.rule
 
 import org.silkframework.config.{Task, TaskSpec}
+import org.silkframework.dataset.DataSource
 import org.silkframework.runtime.plugin.PluginContext
 
 /**
@@ -38,6 +39,13 @@ object TaskContext {
    */
   def noInput(implicit pluginContext: PluginContext): TaskContext = {
     TaskContext(Seq.empty, pluginContext)
+  }
+
+  /**
+   * Creates a task context from the given data sources, using their underlying tasks as input tasks.
+   */
+  def fromSources(sources: Iterable[DataSource])(implicit pluginContext: PluginContext): TaskContext = {
+    TaskContext(sources.map(_.underlyingTask).toSeq, pluginContext)
   }
 
 }
