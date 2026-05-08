@@ -1,7 +1,6 @@
 package org.silkframework.rule.plugins.transformer.value
 
 import org.silkframework.rule.annotations.{TransformExample, TransformExamples}
-import org.silkframework.rule.input.Transformer
 import org.silkframework.rule.plugins.transformer.replace.MapTransformerWithDefaultInput
 import org.silkframework.runtime.plugin.annotations.{Param, Plugin, PluginReference}
 
@@ -24,6 +23,10 @@ import java.security.MessageDigest
   description = """Calculates a single hash value covering all input values combined, across all input ports. Values are fed into the hash function in port order without any separator between them.""",
   documentationFile = "InputHashTransformer.md",
   relatedPlugins = Array(
+    new PluginReference(
+      id = PerValueHashTransformer.pluginId,
+      description = "The Per-value hash plugin hashes each input value independently and returns one hash per value, preserving cardinality. The Combined input hash plugin instead feeds all values into a single hash function, producing one combined hash regardless of input size."
+    ),
     new PluginReference(
       id = MapTransformerWithDefaultInput.pluginId,
       description = "One hash value is produced for the entire set of inputs by the Combined input hash plugin. The Map with default plugin instead keeps a value sequence and rewrites it position by position through the mapping, falling back to the second input where no mapping entry is found."
@@ -84,17 +87,14 @@ import java.security.MessageDigest
 ))
 case class InputHashTransformer(@Param(value = "The hash algorithm to be used.",
                                       autoCompletionProvider = classOf[HashAlgorithmAutoCompletionProvider], allowOnlyAutoCompletedValues = true)
-                                algorithm: String = "SHA256") extends Transformer {
+                                algorithm: String = "SHA256") extends HashTransformer {
 
   require(algorithm.trim.nonEmpty, "Algorithm must not be empty. Please specify an algorithm, such as 'SHA256'.")
 
   override def apply(values: Seq[Seq[String]]): Seq[String] = {
-    val hashSum = MessageDigest.getInstance(algorithm)
-    for(value <- values; v <- value) {
-      hashSum.update(v.getBytes(StandardCharsets.UTF_8))
-    }
-    // Convert the byte array to a hexadecimal string
-    Seq(hashSum.digest().map("%02x".format(_)).mkString)
+    val digest = MessageDigest.getInstance(algorithm)
+    values.flatten.foreach(v => digest.update(v.getBytes(StandardCharsets.UTF_8)))
+    Seq(toHex(digest.digest()))
   }
 }
 

@@ -1,11 +1,9 @@
 package org.silkframework.rule.plugins.transformer.value
 
 import org.silkframework.rule.annotations.{TransformExample, TransformExamples}
-import org.silkframework.rule.input.Transformer
 import org.silkframework.runtime.plugin.annotations.{Param, Plugin, PluginReference}
 
-import java.nio.charset.StandardCharsets
-import java.security.{MessageDigest, NoSuchAlgorithmException}
+import java.security.NoSuchAlgorithmException
 
 /**
  * Hashes each input value independently and returns one hash per value, preserving cardinality.
@@ -95,18 +93,9 @@ case class PerValueHashTransformer(
     autoCompletionProvider = classOf[HashAlgorithmAutoCompletionProvider],
     allowOnlyAutoCompletedValues = true
   )
-  algorithm: String = "SHA256") extends Transformer {
+  algorithm: String = "SHA256") extends HashTransformer {
 
   require(algorithm.trim.nonEmpty, "Algorithm must not be empty. Please specify an algorithm, such as 'SHA256'.")
-
-  private def toHex(bytes: Array[Byte]): String =
-    bytes.map("%02x".format(_)).mkString
-
-  private def hashValue(v: String): String = {
-    val digest = MessageDigest.getInstance(algorithm)
-    digest.update(v.getBytes(StandardCharsets.UTF_8))
-    toHex(digest.digest())
-  }
 
   override def apply(values: Seq[Seq[String]]): Seq[String] = {
     require(values.size == 1,
