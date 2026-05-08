@@ -21,7 +21,7 @@ import java.security.{MessageDigest, NoSuchAlgorithmException}
   categories = Array("Value"),
   label = "Per-value hash",
   description = """Hashes each input value independently and returns one hash per value. Accepts exactly one input port.""",
-  // TODO: documentationFile = "PerValueHashTransformer.md",
+  documentationFile = "PerValueHashTransformer.md",
   relatedPlugins = Array(
     new PluginReference(
       id = InputHashTransformer.pluginId,
