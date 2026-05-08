@@ -4,13 +4,19 @@ import org.silkframework.rule.annotations.{TransformExample, TransformExamples}
 import org.silkframework.rule.input.Transformer
 import org.silkframework.rule.plugins.transformer.replace.MapTransformerWithDefaultInput
 import org.silkframework.runtime.plugin.annotations.{Param, Plugin, PluginReference}
-import org.silkframework.runtime.plugin.{AutoCompletionResult, ParamValue, PluginContext, PluginParameterAutoCompletionProvider}
-import org.silkframework.workspace.WorkspaceReadTrait
 
 import java.nio.charset.StandardCharsets
-import java.security.{MessageDigest, Security}
-import scala.jdk.CollectionConverters.IterableHasAsScala
+import java.security.MessageDigest
 
+/**
+ * Combines all input values across all connected ports into a single hash.
+ *
+ * Values are fed sequentially into a single [[java.security.MessageDigest]] instance — port 1 first, then port 2,
+ * and so on; within each port, values are processed in order. No separator is inserted between values or ports.
+ * The output is always exactly one lowercase hexadecimal string, regardless of how many values or ports are provided.
+ *
+ * @see [[PerValueHashTransformer]] for the per-value variant that produces one hash per input value.
+ */
 @Plugin(
   id = InputHashTransformer.pluginId,
   categories = Array("Value"),
@@ -94,30 +100,4 @@ case class InputHashTransformer(@Param(value = "The hash algorithm to be used.",
 
 object InputHashTransformer {
   final val pluginId = "inputHash"
-}
-
-/**
- * Auto-completion for project resources.
- */
-case class HashAlgorithmAutoCompletionProvider() extends PluginParameterAutoCompletionProvider {
-
-  private lazy val algorithms = {
-    Security.getAlgorithms("MessageDigest").asScala.toSeq
-  }
-
-  override def autoComplete(searchQuery: String, dependOnParameterValues: Seq[ParamValue],
-                            workspace: WorkspaceReadTrait)
-                           (implicit context: PluginContext): Iterable[AutoCompletionResult] = {
-
-    val multiSearchWords = extractSearchTerms(searchQuery)
-    algorithms
-      .filter(r => matchesSearchTerm(multiSearchWords, r.toLowerCase))
-      .map(r => AutoCompletionResult(r, None))
-  }
-
-  override def valueToLabel(value: String, dependOnParameterValues: Seq[ParamValue],
-                            workspace: WorkspaceReadTrait)
-                           (implicit context: PluginContext): Option[String] = {
-    None
-  }
 }
