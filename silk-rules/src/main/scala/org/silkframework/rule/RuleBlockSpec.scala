@@ -6,16 +6,18 @@ import org.silkframework.rule.input.{Input, PathInput, TransformInput, Transform
 import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
 import org.silkframework.runtime.plugin.{AnyPlugin, PluginObjectParameterNoSchema}
 import org.silkframework.runtime.resource.Resource
+import org.silkframework.runtime.serialization.XmlSerialization
 import org.silkframework.runtime.serialization.XmlSerialization.{fromXml, toXml}
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat}
 import org.silkframework.runtime.templating.TemplateVariableName
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.Identifier
+import org.silkframework.workspace.{OriginalTaskData, TaskLoadingException}
 import org.silkframework.workspace.annotation.UiAnnotations
 
 import scala.collection.mutable
 import scala.language.implicitConversions
-import scala.xml.{Elem, Node, PCData}
+import scala.xml.{Elem, Node, Null, PCData}
 
 @Plugin(
   id = "ruleBlock",
@@ -118,8 +120,7 @@ object RuleBlockContent {
   implicit object RuleBlockContentXmlFormat extends XmlFormat[RuleBlockContent] {
     override def read(xml: Node)(implicit readContext: ReadContext): RuleBlockContent = {
       val ports = (xml \ "Ports" \ "Port").map(RuleBlockPort.RuleBlockPortXmlFormat.read).toIndexedSeq
-      val operator = (xml \ "OperatorTree").headOption
-        .flatMap(_.child.collectFirst { case elem: Elem => elem })
+      val operator = (xml \ "OperatorTree" \ "_").headOption
         .map(fromXml[Input])
       val layout = (xml \ "RuleLayout").headOption.map(fromXml[RuleLayout]).getOrElse(RuleLayout())
       val uiAnnotations = (xml \ "UiAnnotations").headOption.map(fromXml[UiAnnotations]).getOrElse(UiAnnotations())
@@ -132,7 +133,10 @@ object RuleBlockContent {
           {value.ports.map(RuleBlockPort.RuleBlockPortXmlFormat.write)}
         </Ports>
         <OperatorTree>
-          {value.operator.map(toXml[Input])}
+          {value.operator match {
+          case Some(op) => toXml[Input](op)
+          case None => Null
+        }}
         </OperatorTree>
         {toXml[RuleLayout](value.layout)}
         {toXml[UiAnnotations](value.uiAnnotations)}
@@ -183,13 +187,18 @@ object RuleBlockSpec {
     override def tagNames: Set[String] = Set("RuleBlock")
 
     override def read(node: Node)(implicit readContext: ReadContext): RuleBlockSpec = {
-      val content = (node \ "RuleBlockContent").headOption.map(fromXml[RuleBlockContent]).getOrElse(RuleBlockContent.empty)
-      RuleBlockSpec(content)
+      val contentNode = (node \ "RuleBlockContent").headOption.getOrElse(node)
+      val ruleBlockSpec = RuleBlockSpec(RuleBlockContent.RuleBlockContentXmlFormat.read(contentNode))
+
+      TaskLoadingException.withTaskLoadingException(OriginalTaskData("ruleBlock", XmlSerialization.deserializeParameters(node))) { params =>
+        ruleBlockSpec.withParameters(params)
+      }
     }
 
     override def write(value: RuleBlockSpec)(implicit writeContext: WriteContext[Node]): Node = {
       <RuleBlock>
-        {toXml[RuleBlockContent](value.content)}
+        {RuleBlockContent.RuleBlockContentXmlFormat.write(value.content).child}
+        {XmlSerialization.serializeParameters(value.parameters.filterTemplates)}
       </RuleBlock>
     }
   }
