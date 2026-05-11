@@ -1,8 +1,11 @@
 
 import org.silkframework.dataset._
+import org.silkframework.config.TaskSpec
 import org.silkframework.entity.ValueType
 import org.silkframework.rule.vocab._
-import org.silkframework.rule.{MappingTarget, NodePosition, RuleLayout}
+import org.silkframework.rule.input.TransformInput
+import org.silkframework.rule.plugins.transformer.value.ConstantTransformer
+import org.silkframework.rule.{MappingTarget, NodePosition, RuleBlockContent, RuleBlockPort, RuleBlockSpec, RuleLayout}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.PluginRegistry
 import org.silkframework.runtime.serialization.{ReadContext, Serialization, TestReadContext, TestWriteContext, WriteContext}
@@ -93,6 +96,35 @@ class JsonSerializersTest  extends AnyFlatSpec with Matchers {
       replaceableOutputs = Seq(OUTPUT)
     )
     testSerialization(workflow)
+  }
+
+  "RuleBlockSpec" should "be serializable to and from JSON via TaskSpec dispatch" in {
+    val ruleBlockSpec: TaskSpec = RuleBlockSpec(
+      RuleBlockContent(
+        ports = IndexedSeq(
+          RuleBlockPort(
+            id = "firstInput",
+            label = "First input",
+            description = "Used in the main branch.",
+            exampleValues = "---\n- value 1\n- value 2\n",
+            displayOrder = 0
+          ),
+          RuleBlockPort(
+            id = "secondInput",
+            label = "Second input",
+            description = "Deprecated fallback.",
+            exampleValues = "---\n- fallback\n",
+            displayOrder = 1,
+            deprecated = true
+          )
+        ),
+        operator = Some(TransformInput(id = "rootTransform", transformer = ConstantTransformer("constant result"))),
+        layout = RuleLayout(Map("rootTransform" -> NodePosition(10, 20, Some(120), Some(60)))),
+        uiAnnotations = UiAnnotations(Seq(stickyNote))
+      )
+    )
+
+    testSerialization(ruleBlockSpec)
   }
 
   def testSerialization[T](obj: T)(implicit format: JsonFormat[T]): Unit = {

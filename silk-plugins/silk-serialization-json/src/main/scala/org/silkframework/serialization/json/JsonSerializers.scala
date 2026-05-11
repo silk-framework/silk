@@ -31,7 +31,7 @@ import org.silkframework.workspace.annotation.{StickyNote, UiAnnotations}
 import org.silkframework.workspace.{LoadedTask, TaskLoadingError}
 import play.api.libs.json._
 
-import scala.collection.IndexedSeq
+import scala.collection.immutable.IndexedSeq
 import scala.reflect.ClassTag
 import scala.util.control.NonFatal
 
@@ -55,6 +55,7 @@ object JsonSerializers {
   final val TASK_TYPE_CUSTOM_TASK = "CustomTask"
   final val TASK_TYPE_TRANSFORM = "Transform"
   final val TASK_TYPE_LINKING = "Linking"
+  final val TASK_TYPE_RULE_BLOCK = "RuleBlock"
   final val TASK_TYPE_WORKFLOW = "Workflow"
   // Plugin types
   final val PLUGIN_TYPE = "pluginType"
@@ -1030,6 +1031,83 @@ object JsonSerializers {
           TASKTYPE -> TASK_TYPE_LINKING,
         ) ++ pluginFormat.write(value)
       json
+    }
+  }
+
+  implicit object RuleBlockPortJsonFormat extends JsonFormat[RuleBlockPort] {
+    final val LABEL = "label"
+    final val DESCRIPTION = "description"
+    final val EXAMPLE_VALUES = "exampleValues"
+    final val DISPLAY_ORDER = "displayOrder"
+    final val DEPRECATED = "deprecated"
+
+    override def read(value: JsValue)(implicit readContext: ReadContext): RuleBlockPort = {
+      RuleBlockPort(
+        id = stringValueOption(value, ID).map(Identifier.apply).getOrElse(Operator.generateId),
+        label = stringValueOption(value, LABEL).getOrElse(""),
+        description = stringValueOption(value, DESCRIPTION).getOrElse(""),
+        exampleValues = stringValueOption(value, EXAMPLE_VALUES).getOrElse(""),
+        displayOrder = numberValueOption(value, DISPLAY_ORDER).map(_.intValue).getOrElse(0),
+        deprecated = booleanValueOption(value, DEPRECATED).getOrElse(false)
+      )
+    }
+
+    override def write(value: RuleBlockPort)(implicit writeContext: WriteContext[JsValue]): JsValue = {
+      Json.obj(
+        ID -> value.id.toString,
+        LABEL -> value.label,
+        DESCRIPTION -> value.description,
+        EXAMPLE_VALUES -> value.exampleValues,
+        DISPLAY_ORDER -> value.displayOrder,
+        DEPRECATED -> value.deprecated
+      )
+    }
+  }
+
+  implicit object RuleBlockContentJsonFormat extends JsonFormat[RuleBlockContent] {
+    final val PORTS = "ports"
+    final val OPERATOR_TREE = "operatorTree"
+
+    override def read(value: JsValue)(implicit readContext: ReadContext): RuleBlockContent = {
+      RuleBlockContent(
+        ports = arrayValueOption(value, PORTS)
+          .map(_.value.map(fromJson[RuleBlockPort]).toIndexedSeq)
+          .getOrElse(IndexedSeq.empty[RuleBlockPort]),
+        operator = optionalValue(value, OPERATOR_TREE).map(fromJson[Input]),
+        layout = optionalValue(value, LAYOUT).map(fromJson[RuleLayout]).getOrElse(RuleLayout()),
+        uiAnnotations = optionalValue(value, UI_ANNOTATIONS).map(fromJson[UiAnnotations]).getOrElse(UiAnnotations())
+      )
+    }
+
+    override def write(value: RuleBlockContent)(implicit writeContext: WriteContext[JsValue]): JsValue = {
+      Json.obj(
+        PORTS -> JsArray(value.ports.map(toJson[RuleBlockPort])),
+        OPERATOR_TREE -> toJsonOpt(value.operator),
+        LAYOUT -> toJson(value.layout),
+        UI_ANNOTATIONS -> toJson(value.uiAnnotations)
+      )
+    }
+  }
+
+  implicit object RuleBlockSpecJsonFormat extends JsonFormat[RuleBlockSpec] {
+    final val CONTENT = "content"
+
+    private val pluginFormat = new PluginJsonFormat[RuleBlockSpec](Some(ClassPluginDescription.create(classOf[RuleBlockSpec])))
+
+    override def typeNames: Set[String] = Set(TASK_TYPE_RULE_BLOCK)
+
+    override def read(value: JsValue)(implicit readContext: ReadContext): RuleBlockSpec = {
+      val jsonParameters = objectValue(value, PARAMETERS)
+      val objParameters = ParameterValues(Map(
+        CONTENT -> ParameterObjectValue(optionalValue(jsonParameters, CONTENT).map(fromJson[RuleBlockContent]).getOrElse(RuleBlockContent.empty))
+      ))
+      pluginFormat.read(value, objParameters)
+    }
+
+    override def write(value: RuleBlockSpec)(implicit writeContext: WriteContext[JsValue]): JsValue = {
+      Json.obj(
+        TASKTYPE -> TASK_TYPE_RULE_BLOCK
+      ) ++ pluginFormat.write(value)
     }
   }
 

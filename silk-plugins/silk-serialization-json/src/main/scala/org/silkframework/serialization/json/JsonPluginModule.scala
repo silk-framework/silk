@@ -22,6 +22,9 @@ class JsonPluginModule extends PluginModule {
       CustomTaskJsonFormat.getClass ::
       TransformSpecJsonFormat.getClass ::
       LinkSpecJsonFormat.getClass ::
+      RuleBlockSpecJsonFormat.getClass ::
+      RuleBlockContentJsonFormat.getClass ::
+      RuleBlockPortJsonFormat.getClass ::
       TransformRuleJsonFormat.getClass ::
       MappingRulesJsonFormat.getClass ::
       DatasetTaskJsonFormat.getClass ::
