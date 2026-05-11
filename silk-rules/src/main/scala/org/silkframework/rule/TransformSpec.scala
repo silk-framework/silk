@@ -6,7 +6,7 @@ import org.silkframework.entity._
 import org.silkframework.entity.paths._
 import org.silkframework.rule.RootMappingRule.RootMappingRuleFormat
 import org.silkframework.rule.TransformSpec.{RuleSchemata, TargetVocabularyCategory, TargetVocabularyParameter}
-import org.silkframework.rule.input.{TransformInput, Transformer}
+import org.silkframework.rule.input.{RuleBlockInput, TransformInput, Transformer}
 import org.silkframework.rule.vocab.TargetVocabularyParameterEnum
 import org.silkframework.runtime.plugin.StringParameterType.{EnumerationType, StringIterableParameterType}
 import org.silkframework.runtime.plugin._
@@ -132,6 +132,8 @@ case class TransformSpec(@Param(label = "Input", value = "The source from which 
       case TransformInput(_, transformer, inputs) =>
         inputs.foreach(input => iterateAllTransformersFromOperator(input, f))
         f(transformer)
+      case RuleBlockInput(_, _, bindings) =>
+        bindings.foreach(binding => iterateAllTransformersFromOperator(binding.input, f))
       case _ =>
     }
   }
@@ -148,6 +150,8 @@ case class TransformSpec(@Param(label = "Input", value = "The source from which 
         if(transformer.referencedResources.exists(_.path == resource.path)) {
           transformer.resourceUpdated(resource)
         }
+      case RuleBlockInput(_, _, bindings) =>
+        bindings.foreach(binding => updateResourceOfOperator(binding.input, resource))
       case _ =>
     }
   }

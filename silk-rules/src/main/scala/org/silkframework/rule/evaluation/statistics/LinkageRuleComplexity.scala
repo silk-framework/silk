@@ -17,7 +17,7 @@
 package org.silkframework.rule.evaluation.statistics
 
 
-import org.silkframework.rule.input.{PathInput, TransformInput}
+import org.silkframework.rule.input.{InputPortInput, PathInput, RuleBlockInput, TransformInput}
 import org.silkframework.rule.similarity.{Aggregation, Comparison}
 import org.silkframework.rule.{LinkageRule, Operator}
 
@@ -61,6 +61,8 @@ object LinkageRuleComplexity {
     case Aggregation(_, _, _, ops) => root +: ops.flatMap(collectOperators)
     case Comparison(_, _, _, _, _, inputs) => root +: inputs.flatMap(collectOperators)
     case TransformInput(_, _, inputs) => root +: inputs.flatMap(collectOperators)
+    case RuleBlockInput(_, _, bindings) => root +: bindings.flatMap(binding => collectOperators(binding.input))
     case PathInput(_, _) => Iterable(root)
+    case InputPortInput(_, _) => Iterable(root)
   }
 }

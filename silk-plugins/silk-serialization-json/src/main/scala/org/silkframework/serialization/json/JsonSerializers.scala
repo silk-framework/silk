@@ -9,7 +9,7 @@ import org.silkframework.entity._
 import org.silkframework.rule.TransformSpec.TargetVocabularyListParameter
 import org.silkframework.rule._
 import org.silkframework.rule.evaluation.ReferenceLinks
-import org.silkframework.rule.input.{Input, PathInput, TransformInput, Transformer}
+import org.silkframework.rule.input.{Input, InputPortInput, PathInput, RuleBlockBinding, RuleBlockInput, TransformInput, Transformer}
 import org.silkframework.rule.similarity._
 import org.silkframework.rule.util.UriPatternParser
 import org.silkframework.rule.vocab.{GenericInfo, Vocabulary, VocabularyClass, VocabularyProperty}
@@ -221,6 +221,30 @@ object JsonSerializers {
   }
 
   /**
+    * Input Port Input
+    */
+  implicit object InputPortInputJsonFormat extends JsonFormat[InputPortInput] {
+    final val PORT_ID = "portId"
+
+    override def read(value: JsValue)(implicit readContext: ReadContext): InputPortInput = {
+      InputPortInput(
+        id = Identifier(stringValue(value, ID)),
+        portId = Identifier(stringValue(value, PORT_ID))
+      )
+    }
+
+    override def write(value: InputPortInput)(implicit writeContext: WriteContext[JsValue]): JsValue = {
+      JsObject(
+        Seq(
+          TYPE -> JsString(INPUT_PORT_INPUT),
+          ID -> JsString(value.id.toString),
+          PORT_ID -> JsString(value.portId.toString)
+        )
+      )
+    }
+  }
+
+  /**
     * Transform Input
     */
   implicit object TransformInputJsonFormat extends JsonFormat[TransformInput] {
@@ -250,6 +274,55 @@ object JsonSerializers {
           INPUTS -> JsArray(value.inputs.map(toJson[Input])),
         )
       ) ++ ParameterValuesJsonFormat.write(value.transformer.parameters)
+    }
+  }
+
+  /**
+    * Rule Block Binding
+    */
+  implicit object RuleBlockBindingJsonFormat extends JsonFormat[RuleBlockBinding] {
+    final val PORT_ID = "portId"
+    final val INPUT = "input"
+
+    override def read(value: JsValue)(implicit readContext: ReadContext): RuleBlockBinding = {
+      RuleBlockBinding(
+        portId = Identifier(stringValue(value, PORT_ID)),
+        input = fromJson[Input](mustBeDefined(value, INPUT))
+      )
+    }
+
+    override def write(value: RuleBlockBinding)(implicit writeContext: WriteContext[JsValue]): JsValue = {
+      Json.obj(
+        PORT_ID -> value.portId.toString,
+        INPUT -> toJson(value.input)
+      )
+    }
+  }
+
+  /**
+    * Rule Block Input
+    */
+  implicit object RuleBlockInputJsonFormat extends JsonFormat[RuleBlockInput] {
+    final val RULE_BLOCK_ID = "ruleBlockId"
+    final val BINDINGS = "bindings"
+
+    override def read(value: JsValue)(implicit readContext: ReadContext): RuleBlockInput = {
+      RuleBlockInput(
+        id = Identifier(stringValue(value, ID)),
+        ruleBlockId = Identifier(stringValue(value, RULE_BLOCK_ID)),
+        bindings = arrayValueOption(value, BINDINGS)
+          .map(_.value.map(fromJson[RuleBlockBinding]).toIndexedSeq)
+          .getOrElse(IndexedSeq.empty[RuleBlockBinding])
+      )
+    }
+
+    override def write(value: RuleBlockInput)(implicit writeContext: WriteContext[JsValue]): JsValue = {
+      Json.obj(
+        TYPE -> JsString(RULE_BLOCK_INPUT),
+        ID -> value.id.toString,
+        RULE_BLOCK_ID -> value.ruleBlockId.toString,
+        BINDINGS -> JsArray(value.bindings.map(toJson[RuleBlockBinding]))
+      )
     }
   }
 
@@ -1526,6 +1599,8 @@ object JsonSerializers {
 object InputJsonSerializer {
   final val PATH_INPUT: String ="pathInput"
   final val TRANSFORM_INPUT: String = "transformInput"
+  final val INPUT_PORT_INPUT: String = "inputPortInput"
+  final val RULE_BLOCK_INPUT: String = "ruleBlockInput"
 
   implicit object InputJsonFormat extends JsonFormat[Input] {
 
@@ -1538,6 +1613,10 @@ object InputJsonSerializer {
                 fromJson[PathInput](jsObject)
               case TRANSFORM_INPUT =>
                 fromJson[TransformInput](jsObject)
+              case INPUT_PORT_INPUT =>
+                fromJson[InputPortInput](jsObject)
+              case RULE_BLOCK_INPUT =>
+                fromJson[RuleBlockInput](jsObject)
             }
           case _ =>
             throw JsonParseException("Input JSON object has no 'type' attribute! Instead found: " + jsObject.value.keys.mkString(", "))
@@ -1549,6 +1628,8 @@ object InputJsonSerializer {
       value match {
         case path: PathInput => toJson(path)
         case transform: TransformInput => toJson(transform)
+        case inputPort: InputPortInput => toJson(inputPort)
+        case ruleBlock: RuleBlockInput => toJson(ruleBlock)
       }
     }
   }

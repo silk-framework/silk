@@ -20,7 +20,7 @@ import org.silkframework.entity.paths.{TypedPath, UntypedPath}
 import org.silkframework.entity.{EntitySchema, Restriction, ValueType}
 import org.silkframework.execution.typed.{LinkGenerator, LinksEntitySchema}
 import org.silkframework.rule.evaluation.ReferenceLinks
-import org.silkframework.rule.input.{Input, PathInput, TransformInput, Transformer}
+import org.silkframework.rule.input.{Input, PathInput, RuleBlockInput, TransformInput, Transformer}
 import org.silkframework.rule.similarity.{Aggregation, Comparison, SimilarityOperator}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.AnyPlugin
@@ -114,6 +114,7 @@ case class LinkSpec(@Param(label = "Source input", value = "The source input to 
       val typedPath = TypedPath(p.path, ValueType.STRING, isAttribute = false)
       Set(typedPath)
     case p: TransformInput => p.inputs.flatMap(collectPathsFromInput).toSet
+    case rb: RuleBlockInput => rb.bindings.flatMap(binding => collectPathsFromInput(binding.input)).toSet
     case _ => Set()
   }
 
@@ -164,6 +165,8 @@ case class LinkSpec(@Param(label = "Source input", value = "The source input to 
       case TransformInput(_, transformer, inputs) =>
         inputs.foreach(input => iterateAllTransformersFromOperator(input, f))
         f(transformer)
+      case RuleBlockInput(_, _, bindings) =>
+        bindings.foreach(binding => iterateAllTransformersFromOperator(binding.input, f))
       case _ =>
     }
   }

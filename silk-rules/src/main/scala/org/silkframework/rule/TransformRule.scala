@@ -8,7 +8,7 @@ import org.silkframework.entity.paths.{TypedPath, UntypedPath}
 import org.silkframework.rule.MappingRules.MappingRulesFormat
 import org.silkframework.rule.MappingTarget.MappingTargetFormat
 import org.silkframework.rule.TransformRule.RDF_TYPE
-import org.silkframework.rule.input.{Input, InputExecution, OperatorEvaluationError, PathInput, TransformInput, Value}
+import org.silkframework.rule.input.{Input, InputExecution, InputValidation, OperatorEvaluationError, PathInput, RuleBlockInput, TransformInput, Value}
 import org.silkframework.rule.plugins.transformer.combine.ConcatTransformer
 import org.silkframework.rule.plugins.transformer.normalize.{UriFixTransformer, UrlEncodeTransformer}
 import org.silkframework.rule.plugins.transformer.value.{ConstantTransformer, ConstantUriTransformer, EmptyValueTransformer}
@@ -82,6 +82,7 @@ sealed trait TransformRule extends Operator with HasMetaData {
       case PathInput(_, path: TypedPath) => Seq(path)
       case PathInput(_, path: UntypedPath) => Seq(TypedPath(path, ValueType.UNTYPED, isAttribute = false))
       case p: TransformInput => p.inputs.flatMap(collectPaths)
+      case rb: RuleBlockInput => rb.bindings.flatMap(binding => collectPaths(binding.input))
     }
 
     collectPaths(operator).distinct
@@ -90,6 +91,7 @@ sealed trait TransformRule extends Operator with HasMetaData {
   /** Throws ValidationException if this transform rule is not valid. */
   protected def validate(): Unit = {
     validateTargetUri()
+    InputValidation.validateNoInputPortsOutsideRuleBlocks(operator, new ValidationException("Input ports may only be used inside rule block definitions."))
     // Validate that the operator tree uses unique identifiers
     operator.validateIds()
     // Validate all child transform rules
@@ -591,7 +593,7 @@ object TransformRule {
       val complex =
         ComplexMapping(
           id = (node \ "@name").text,
-          operator = fromXml[Input]((node \ "Input" ++ node \ "TransformInput").head),
+          operator = fromXml[Input]((node \ "_").find(child => Input.InputFormat.tagNames.contains(child.label)).get),
           target = target,
           metaData = metaData,
           layout = (node \ "RuleLayout").headOption.map(rl => XmlSerialization.fromXml[RuleLayout](rl)).getOrElse(RuleLayout()),

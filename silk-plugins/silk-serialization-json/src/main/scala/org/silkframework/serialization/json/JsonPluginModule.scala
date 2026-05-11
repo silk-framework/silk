@@ -34,7 +34,10 @@ class JsonPluginModule extends PluginModule {
       GenericInfoJsonFormat.getClass ::
       MappingTargetJsonFormat.getClass ::
       PathInputJsonFormat.getClass ::
+      InputPortInputJsonFormat.getClass ::
       TransformInputJsonFormat.getClass ::
+      RuleBlockBindingJsonFormat.getClass ::
+      RuleBlockInputJsonFormat.getClass ::
       ValueTypeJsonFormat.getClass ::
       VocabularyCacheValueJsonFormat.getClass ::
       VocabularyClassJsonFormat.getClass ::

@@ -2,7 +2,7 @@ package org.silkframework.rule
 
 import org.silkframework.config.Task.TaskFormat
 import org.silkframework.config.{InputPorts, MetaData, Port, Task, TaskSpec}
-import org.silkframework.rule.input.{Input, PathInput, TransformInput, Transformer}
+import org.silkframework.rule.input.{Input, InputPortInput, PathInput, TransformInput, Transformer}
 import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
 import org.silkframework.runtime.plugin.{AnyPlugin, PluginObjectParameterNoSchema}
 import org.silkframework.runtime.resource.Resource
@@ -59,6 +59,7 @@ case class RuleBlockSpec(@Param(label = "", value = "", visibleInDialog = false)
   }
 
   private def validate(): Unit = {
+    val definedPortIds = ports.map(_.id).toSet
     val duplicatePortIds = ports.map(_.id).groupBy(identity).collect {
       case (id, duplicates) if duplicates.size > 1 => id
     }.toSeq
@@ -66,16 +67,20 @@ case class RuleBlockSpec(@Param(label = "", value = "", visibleInDialog = false)
       throw new ValidationException(s"Duplicate rule block port IDs found: ${duplicatePortIds.mkString(", ")}")
     }
     operator.foreach { op =>
-      validateOperatorTree(op)
+      validateOperatorTree(op, definedPortIds)
       op.validateIds()
     }
   }
 
-  private def validateOperatorTree(op: Input): Unit = op match {
+  private def validateOperatorTree(op: Input, definedPortIds: Set[Identifier]): Unit = op match {
     case _: PathInput =>
       throw new ValidationException("Rule blocks must not contain path inputs.")
+    case inputPort: InputPortInput =>
+      if(!definedPortIds.contains(inputPort.portId)) {
+        throw new ValidationException(s"Rule block input port reference '${inputPort.portId}' does not exist in the rule block port definitions.")
+      }
     case TransformInput(_, _, inputs) =>
-      inputs.foreach(validateOperatorTree)
+      inputs.foreach(validateOperatorTree(_, definedPortIds))
     case other =>
       throw new ValidationException(
         s"Rule blocks currently only support transform operators inside the internal tree, but found '${other.getClass.getSimpleName}'."

@@ -1,6 +1,6 @@
 package org.silkframework.rule
 
-import org.silkframework.rule.input.{Input, PathInput, TransformInput}
+import org.silkframework.rule.input.{Input, PathInput, RuleBlockInput, TransformInput}
 import org.silkframework.rule.plugins.aggegrator.{MaximumAggregator, MinimumAggregator, NegationAggregator}
 import org.silkframework.rule.similarity.{Aggregation, Aggregator, Comparison, SimilarityOperator}
 import org.silkframework.util.Identifier
@@ -210,9 +210,10 @@ object BooleanLinkageRule {
         InputPathOperator(pi.path.asUntypedPath.asStringTypedPath, pi)
       case ti: TransformInput =>
         TransformationOperator(ti.inputs.map(convert), ti)
+      case rb: RuleBlockInput =>
+        TransformationOperator(rb.bindings.map(binding => convert(binding.input)), rb)
     }
   }
 
   case class NonBooleanConvertibleException(msg: String) extends IllegalArgumentException(msg)
 }
-

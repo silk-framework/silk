@@ -15,7 +15,7 @@
 package org.silkframework.rule.evaluation
 
 import org.silkframework.entity.Entity
-import org.silkframework.rule.input.{InputExecution, PathInput, TransformInputExecution}
+import org.silkframework.rule.input.{InputExecution, InputPortExecution, PathInput, RuleBlockInputExecution, TransformInputExecution}
 import org.silkframework.rule.similarity.{AggregationExecution, ComparisonExecution, SimilarityOperatorExecution}
 import org.silkframework.rule.{ComplexUriMapping, LinkageRuleExecution, TransformRuleExecution}
 import org.silkframework.runtime.validation.ValidationException
@@ -137,6 +137,14 @@ object DetailedEvaluator {
         case NonFatal(ex) =>
           TransformedValue(ti.operator, Seq.empty, children, Some(ex))
       }
+
+    case rb: RuleBlockInputExecution =>
+      val internalValue = rb.ruleBlockExecution.rootExecution.map(rootExecution => evaluateInput(rootExecution, entity))
+      RuleBlockValue(rb.operator, internalValue.map(_.values).getOrElse(Seq.empty), internalValue)
+
+    case ip: InputPortExecution =>
+      val bindingValue = ip.bindingExecution.map(bindingExecution => evaluateInput(bindingExecution, entity))
+      InputPortValue(ip.operator, bindingValue.map(_.values).getOrElse(Seq.empty), bindingValue)
 
     case pi: PathInput => InputValue(pi, pi(entity).values)
   }

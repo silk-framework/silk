@@ -57,13 +57,16 @@ object Input {
    * XML serialization format.
    */
   implicit object InputFormat extends XmlFormat[Input] {
+    override def tagNames: Set[String] = Set("Input", "TransformInput", "InputPortInput", "RuleBlockInput")
 
     import XmlSerialization._
 
     def read(node: Node)(implicit readContext: ReadContext): Input = {
-      node match {
-        case node @ <Input>{_*}</Input> => fromXml[PathInput](node)
-        case node @ <TransformInput>{_*}</TransformInput> => fromXml[TransformInput](node)
+      node.label match {
+        case "Input" => fromXml[PathInput](node)
+        case "TransformInput" => fromXml[TransformInput](node)
+        case "InputPortInput" => fromXml[InputPortInput](node)
+        case "RuleBlockInput" => fromXml[RuleBlockInput](node)
       }
     }
 
@@ -71,6 +74,8 @@ object Input {
       value match {
         case path: PathInput => toXml(path)
         case transform: TransformInput => toXml(transform)
+        case inputPort: InputPortInput => toXml(inputPort)
+        case ruleBlock: RuleBlockInput => toXml(ruleBlock)
       }
     }
   }
@@ -81,6 +86,10 @@ object Input {
         TransformInput(id, transformer, inputs.map(rewriteSourcePaths(_, rewriteFn)))
       case PathInput(id, path) =>
         PathInput(id, rewriteFn(path.asUntypedPath))
+      case inputPort: InputPortInput =>
+        inputPort
+      case ruleBlock: RuleBlockInput =>
+        ruleBlock.copy(bindings = ruleBlock.bindings.map(binding => binding.copy(input = rewriteSourcePaths(binding.input, rewriteFn))))
     }
   }
 }

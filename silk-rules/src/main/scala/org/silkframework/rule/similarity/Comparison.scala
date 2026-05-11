@@ -16,7 +16,7 @@ package org.silkframework.rule.similarity
 
 import org.silkframework.entity.{Entity, Index}
 import org.silkframework.rule.{Operator, TaskContext}
-import org.silkframework.rule.input.{Input, InputExecution}
+import org.silkframework.rule.input.{Input, InputExecution, InputValidation}
 import org.silkframework.rule.similarity.Comparison.distanceToScore
 import org.silkframework.runtime.plugin.PluginBackwardCompatibility
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat, XmlSerialization}
@@ -38,6 +38,7 @@ case class Comparison(id: Identifier = Operator.generateId,
                       inputs: DPair[Input]) extends SimilarityOperator {
 
   require(weight > 0, "weight > 0")
+  inputs.toSeq.foreach(InputValidation.validateNoInputPortsOutsideRuleBlocks(_, new ValidationException("Input ports may only be used inside rule block definitions.", id, "Comparison")))
 
   override def validate(): Seq[ValidationIssue] = {
     for(message <- metric.validateThreshold(threshold).toSeq) yield {
@@ -153,7 +154,7 @@ object Comparison {
 
     def read(node: Node)(implicit readContext: ReadContext): Comparison = {
       val id = Operator.readId(node)
-      val inputs = node.child.filter(n => n.label == "Input" || n.label == "TransformInput").map(fromXml[Input]).toIndexedSeq
+      val inputs = node.child.filter(n => Input.InputFormat.tagNames.contains(n.label)).map(fromXml[Input]).toIndexedSeq
       if(inputs.size != 2) throw new ValidationException("A comparison must have exactly two inputs ", id, "Comparison")
 
       try {
