@@ -143,6 +143,7 @@ export const RuleBlockEditor = ({ projectId, ruleBlockTaskId, viewActions, insta
             ruleUtils.sidebarTabs.all as IRuleSideBarFilterTabConfig,
             {
                 id: "inputPorts",
+                icon: "data-sourcepath",
                 label: t("taskViews.ruleBlock.inputPortsTab"),
                 filterAndSort: (operators) => operators.filter((op) => op.pluginType === "InputPortOperator"),
                 showOperatorsFromPreConfiguredOperatorTabsForQuery: false,

@@ -1,18 +1,17 @@
-import React, { useState } from "react";
-import { useParams } from "react-router";
-import { Section, Spacing, WorkspaceContent, WorkspaceMain, WorkspaceSide } from "@eccenca/gui-elements";
-import { DATA_TYPES } from "../../../constants";
+import React, {useState} from "react";
+import {useParams} from "react-router";
+import {Section, Spacing, WorkspaceContent, WorkspaceMain, WorkspaceSide} from "@eccenca/gui-elements";
+import {DATA_TYPES} from "../../../constants";
 import Metadata from "../../shared/Metadata";
-import { RelatedItems } from "../../shared/RelatedItems/RelatedItems";
-import { TaskConfig } from "../../shared/TaskConfig/TaskConfig";
-import { ProjectTaskTabView } from "../../shared/projectTaskTabView/ProjectTaskTabView";
-import { usePageHeader } from "../../shared/PageHeader/PageHeader";
-import { ArtefactManagementOptions } from "../../shared/ActionsMenu/ArtefactManagementOptions";
+import {RelatedItems} from "../../shared/RelatedItems/RelatedItems";
+import {ProjectTaskTabView} from "../../shared/projectTaskTabView/ProjectTaskTabView";
+import {usePageHeader} from "../../shared/PageHeader/PageHeader";
+import {ArtefactManagementOptions} from "../../shared/ActionsMenu/ArtefactManagementOptions";
 import NotFound from "../NotFound";
-import { TaskActivityOverview } from "../../shared/TaskActivityOverview/TaskActivityOverview";
-import { ProjectTaskParams } from "../../shared/typings";
-import { DeprecatedPluginsWidget } from "../Project/DeprecatedPlugins/DeprecatedPluginsWidget";
-import { ProjectForbiddenNotification } from "../../shared/ProjectForbiddenNotification";
+import {TaskActivityOverview} from "../../shared/TaskActivityOverview/TaskActivityOverview";
+import {ProjectTaskParams} from "../../shared/typings";
+import {DeprecatedPluginsWidget} from "../Project/DeprecatedPlugins/DeprecatedPluginsWidget";
+import {ProjectForbiddenNotification} from "../../shared/ProjectForbiddenNotification";
 
 export default function RuleBlockPage() {
     const { taskId, projectId } = useParams<ProjectTaskParams>();
@@ -57,8 +56,6 @@ export default function RuleBlockPage() {
             <WorkspaceSide>
                 <Section>
                     <RelatedItems projectId={projectId} taskId={taskId} />
-                    <Spacing />
-                    <TaskConfig projectId={projectId} taskId={taskId} />
                     <Spacing />
                     <TaskActivityOverview projectId={projectId} taskId={taskId} />
                     <Spacing />
