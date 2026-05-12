@@ -18,11 +18,6 @@ class Branding @Inject() () extends InjectedController {
     Ok(bytes).as("image/png").withHeaders("Cache-Control" -> "public, max-age=86400")
   }
 
-  def aboutDialog = Action {
-    val aboutHtml = Html(WorkbenchConfig.get.about.loadAsString())
-    Ok(views.html.aboutDialog(aboutHtml))
-  }
-
   def mdlStyle = Action {
     val bytes = WorkbenchConfig.get.mdlStyle.get.loadAsBytes
     Ok(bytes).as("text/css")

@@ -17,11 +17,11 @@ export const EntityRelationshipSelection = ({ initialValue, onChange }: Props) =
             onChange(value);
             setValue(value);
         },
-        [onChange]
+        [onChange],
     );
 
     return (
-        <FieldItem data-test-id={"entity-relationship-selection"}>
+        <FieldItem data-test-id={"entity-relationship-selection"} labelProps={{ text: "Property direction" }}>
             <RadioButton
                 checked={value === "from"}
                 labelElement={

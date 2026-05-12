@@ -1,20 +1,3 @@
-# Transformation Editor
-GET           /:project/:task/editor                                               controllers.transform.TransformEditor.start(project: String, task: String, rule = "")
-GET           /:project/:task/editor/rule/:rule                                    controllers.transform.TransformEditor.start(project: String, task: String, rule: String)
-GET           /:project/:task/editor/:rule                                         controllers.transform.TransformEditor.editor(project: String, task: String, rule: String)
-GET           /:project/:task/editor/widgets/property                              controllers.transform.TransformEditor.propertyDetails(project: String, task: String, property: String)
-GET           /:project/:task/editor/widgets/paths                                 controllers.transform.TransformEditor.paths(project: String, task: String)
-GET           /:project/:task/editor/rule/:rule/widgets/paths                      controllers.transform.TransformEditor.rulePaths(project: String, task: String, rule: String, groupPaths: Boolean ?= true)
-GET           /:project/:task/editor/widgets/score                                 controllers.transform.TransformEditor.score(project: String, task: String)
-
-# Evaluate Transformation
-GET           /:project/:task/evaluate                                             controllers.transform.EvaluateTransform.evaluate(project: String, task: String, rule: Option[String] ?= None, offset: Int ?= 0, limit: Int ?= 100)
-GET           /:project/:task/evaluate/generatedEntities                           controllers.transform.EvaluateTransform.generatedEntities(project: String, task: String, rule: Option[String] ?= None, offset: Int ?= 0, limit: Int ?= 100)
-
-# Execute Transformation
-GET           /:project/:task/execute                                              controllers.transform.ExecuteTransformTab.execute(project: String, task: String)
-GET           /:project/:task/execute/report                                       controllers.transform.ExecuteTransformTab.executionReport(project: String, task: String)
-
 # API
 GET           /tasks/:project/:task                                                controllers.transform.TransformTaskApi.getTransformTask(project: String, task: String)
 PUT           /tasks/:project/:task                                                controllers.transform.TransformTaskApi.putTransformTask(project: String, task: String, createOnly: Boolean = false)
