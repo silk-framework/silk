@@ -2,39 +2,12 @@
 # Workspace
 ############################################################################################################################################
 
-GET           /                                                                 controllers.workspace.WorkspaceController.index()
-GET           /tree                                                             controllers.workspace.WorkspaceController.tree()
-GET           /allActivities                                                    controllers.workspace.WorkspaceController.activities()
-
-GET           /dialogs/newproject                                               controllers.workspace.WorkspaceController.newProjectDialog()
-GET           /dialogs/importproject                                            controllers.workspace.WorkspaceController.importProjectDialog()
-GET           /dialogs/removeproject/:project                                   controllers.workspace.WorkspaceController.removeProjectDialog(project: String)
-GET           /dialogs/removetask/:project/:task                                controllers.workspace.WorkspaceController.removeTaskDialog(project: String, task: String)
-GET           /dialogs/removeresource/:name                                     controllers.workspace.WorkspaceController.removeResourceDialog(name: String, path: String)
-GET           /dialogs/importlinkspec/:project                                  controllers.workspace.WorkspaceController.importLinkSpecDialog(project: String)
-GET           /dialogs/prefixes/:project                                        controllers.workspace.WorkspaceController.prefixDialog(project: String)
-GET           /dialogs/resources/:project                                       controllers.workspace.WorkspaceController.resourcesDialog(project: String)
-GET           /dialogs/executeProject/:project                                  controllers.workspace.WorkspaceController.executeProjectDialog(project: String)
-GET           /dialogs/cloneProject                                             controllers.workspace.WorkspaceController.cloneProjectDialog(project)
-GET           /dialogs/cloneTask                                                controllers.workspace.WorkspaceController.cloneTaskDialog(project, task)
-GET           /dialogs/activityConfig/:project/:activity                        controllers.workspace.WorkspaceController.projectActivityConfigDialog(project: String, activity: String)
-GET           /dialogs/activityConfig/:project/:task/:activity                  controllers.workspace.WorkspaceController.taskActivityConfigDialog(project: String, task: String, activity: String)
 POST          /:project/importExample                                           controllers.workspace.WorkspaceController.importExample(project: String)
 
 ############################################################################################################################################
 # Datasets
 ############################################################################################################################################
 
-# Dialogs
-GET           /dialogs/newDataset/:project                                      controllers.workspace.DatasetController.datasetDialog(project: String, task = "", title = "Create Dataset", createDialog: Boolean = true)
-GET           /dialogs/editDataset/:project/:task                               controllers.workspace.DatasetController.datasetDialog(project: String, task: String, title = "Edit Dataset", createDialog: Boolean = false)
-GET           /dialogs/editDatasetAutoConfigured/:project/:task/:pluginId       controllers.workspace.DatasetController.datasetDialogAutoConfigured(project, task, pluginId)
-
-# Tabs
-GET           /datasets/:project/:task/dataset                                  controllers.workspace.DatasetController.dataset(project, task)
-GET           /datasets/:project/:task/table                                    controllers.workspace.DatasetController.table(project, task, maxEntities: Int ?= 20)
-GET           /datasets/:project/:task/sparql                                   controllers.workspace.DatasetController.sparql(project, task, query ?= "")
-GET           /datasets/:project/:task/types                                    controllers.workspace.LegacyDatasetApi.types(project, task, search, limit: Option[Int] ?= None)
 
 # API
 PUT           /projects/:project/datasets/:name                                 controllers.workspace.LegacyDatasetApi.putDataset(project: String, name: String, autoConfigure: Boolean ?= false)
@@ -50,10 +23,6 @@ POST          /projects/:project/datasets/:name/mappingCoverage/values          
 ############################################################################################################################################
 # CustomTasks
 ############################################################################################################################################
-
-# Dialogs
-GET           /customTasks/newTaskDialog/:project                                controllers.workspace.CustomTasks.taskDialog(project: String, task = "", createDialog: Boolean = true)
-GET           /customTasks/editTaskDialog/:project/:task                         controllers.workspace.CustomTasks.taskDialog(project: String, task: String, createDialog: Boolean = false)
 
 # API
 GET           /projects/:project/customTasks/:name                               controllers.workspace.CustomTasks.getTask(project: String, name: String)

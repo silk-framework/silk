@@ -5,10 +5,11 @@ import { useDispatch, useSelector } from "react-redux";
 import { commonSel } from "@ducks/common";
 import { routerOp } from "@ducks/router";
 import { SERVE_PATH } from "../../../constants/path";
+import { AppDispatch } from "store/configureStore";
 
 const ActivityInfoWidget = () => {
     const projectId = useSelector(commonSel.currentProjectIdSelector);
-    const dispatch = useDispatch();
+    const dispatch = useDispatch<AppDispatch>();
     const [t] = useTranslation();
 
     const projectPath = `projects/${projectId}/activities?page=1&limit=25&sortBy=recentlyUpdated&sortOrder=ASC`;

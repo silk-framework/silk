@@ -27,6 +27,7 @@ import { ItemDeleteModal } from "../../../shared/modals/ItemDeleteModal";
 import { AlternativeTaskUpdateFunction } from "@ducks/common/typings";
 import { FixTaskDataNotFoundModal } from "./FixTaskDataNotFoundModal";
 import { TaskParameterValues } from "./TaskLoadingError.typing";
+import { AppDispatch } from "store/configureStore";
 
 interface Props {
     refreshProjectPage: () => any;
@@ -34,7 +35,7 @@ interface Props {
 /** Displays the task loading errors for a project, i.e. tasks that could not be loaded/initialized. */
 export const ProjectTaskLoadingErrors = ({ refreshProjectPage }: Props) => {
     const { registerErrorI18N } = useErrorHandler();
-    const dispatch = useDispatch();
+    const dispatch = useDispatch<AppDispatch>();
     const projectId = useSelector(commonSel.currentProjectIdSelector);
     const warningList = useSelector(workspaceSel.warningListSelector);
     const { cachedArtefactProperties } = useSelector(commonSel.artefactModalSelector);
@@ -176,7 +177,7 @@ export const ProjectTaskLoadingErrors = ({ refreshProjectPage }: Props) => {
                 <CardContent>
                     <ul>
                         {warningList.map((warn, id) => {
-                            const actions: JSX.Element[] = projectId
+                            const actions: React.JSX.Element[] = projectId
                                 ? [
                                       <FixTaskButton
                                           text={t("widget.WarningWidget.fixTask")}
@@ -194,7 +195,9 @@ export const ProjectTaskLoadingErrors = ({ refreshProjectPage }: Props) => {
                                           data-test-id={"taskLoadingDeleteBtn"}
                                           minimal
                                           text={t("common.action.DeleteSmth", { smth: t("common.dataTypes.task") })}
-                                          onClick={() => setTaskToDelete({ taskId: warn.taskId, taskLabel: warn.taskLabel })}
+                                          onClick={() =>
+                                              setTaskToDelete({ taskId: warn.taskId, taskLabel: warn.taskLabel })
+                                          }
                                       />,
                                   ]
                                 : [];
@@ -213,7 +216,7 @@ export const ProjectTaskLoadingErrors = ({ refreshProjectPage }: Props) => {
             </Card>
             {taskToDelete && projectId && (
                 <ItemDeleteModal
-                    item={{ id: taskToDelete.taskId, label: taskToDelete.taskLabel, projectId, type: "task"  }}
+                    item={{ id: taskToDelete.taskId, label: taskToDelete.taskLabel, projectId, type: "task" }}
                     onClose={() => setTaskToDelete(null)}
                     onConfirmed={() => {
                         setTaskToDelete(null);

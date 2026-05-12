@@ -29,7 +29,7 @@ export interface ViewActionsTaskContext {
     // The task context
     context: TaskContext;
     /** Additional suffix that is shown in the tab title for views that support a task context. */
-    taskViewSuffix?: (taskContext: TaskContext) => JSX.Element | undefined;
+    taskViewSuffix?: (taskContext: TaskContext) => React.JSX.Element | undefined;
     /** A notification shown in the tab view regarding the task context, e.g. a warning. */
     taskContextNotification?: (
         taskContext: TaskContext,
@@ -48,7 +48,12 @@ export interface IProjectTaskView {
     // The label that should be shown to the user
     label: string;
     // Function that renders the view
-    render: (projectId: string, taskId: string, viewActions?: IViewActions, startInFullScreen?: boolean) => JSX.Element;
+    render: (
+        projectId: string,
+        taskId: string,
+        viewActions?: IViewActions,
+        startInFullScreen?: boolean,
+    ) => React.JSX.Element;
     /** The query parameters to get from other tabs or propagate to other tabs. */
     queryParametersToKeep?: string[];
     /** Specifies the task context support for this view, e.g. that it uses the information given with the task context. */
@@ -71,7 +76,7 @@ export interface IPluginComponent<I> {
     // The label that should be shown to the user
     label: string;
     // Function that renders the view
-    Component: (params: I) => JSX.Element | null;
+    Component: (params: I) => React.JSX.Element | null;
 }
 
 class PluginRegistry {

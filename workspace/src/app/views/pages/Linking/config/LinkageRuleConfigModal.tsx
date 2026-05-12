@@ -18,7 +18,7 @@ export const LinkageRuleConfigModal = ({ onClose, parameters, submit }: IProps) 
     const [t] = useTranslation();
     const [parameterDiff] = useState<Map<string, string>>(new Map());
     const [changed, setChanged] = useState(false);
-    const [requestError, setRequestError] = useState<JSX.Element | undefined>(undefined);
+    const [requestError, setRequestError] = useState<React.JSX.Element | undefined>(undefined);
     const [errorCount, setErrorCount] = useState(0);
     const initialParameters = new Map(parameters.map((p) => [p.id, p]));
     const [errors] = useState(new Map<string, string>());

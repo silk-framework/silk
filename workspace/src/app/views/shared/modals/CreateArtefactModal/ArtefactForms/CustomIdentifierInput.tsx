@@ -7,11 +7,12 @@ import useCopyButton from "../../../../../hooks/useCopyButton";
 import { useTranslation, TFunction } from "react-i18next";
 import { ErrorHandlerRegisterFuncType } from "../../../../../hooks/useErrorHandler";
 import { ArtefactFormParameter } from "./ArtefactFormParameter";
+import type {UseFormReturn} from "react-hook-form/dist/types";
 
 const IDENTIFIER = "id";
 
 interface IProps {
-    form: any;
+    form: UseFormReturn;
     /** handles input change */
     onValueChange: (val: string) => (event: any) => Promise<void>;
 
@@ -31,24 +32,30 @@ interface IProps {
 export const handleCustomIdValidation = debounce(
     async (
         t: TFunction,
-        form: any,
+        form: UseFormReturn,
         registerError: ErrorHandlerRegisterFuncType,
         customId: string,
         projectId?: string,
     ) => {
-        if (!customId) return form.clearError(IDENTIFIER);
+        if (!customId) return form.clearErrors(IDENTIFIER);
         try {
             const res = !projectId
                 ? await requestProjectIdValidation(customId)
                 : await requestTaskIdValidation(customId, projectId);
             if (res.axiosResponse.status === 204) {
-                form.clearError(IDENTIFIER);
+                form.clearErrors(IDENTIFIER);
             }
         } catch (err) {
             if (err.httpStatus === 409) {
-                form.setError("id", "manual", t("CreateModal.CustomIdentifierInput.validations.unique"));
+                form.setError("id", {
+                    type: "manual",
+                    message: t("CreateModal.CustomIdentifierInput.validations.unique")
+                });
             } else if (err.httpStatus === 400) {
-                form.setError("id", "manual", t("CreateModal.CustomIdentifierInput.validations.invalid"));
+                form.setError("id", {
+                    type: "manual",
+                    message: t("CreateModal.CustomIdentifierInput.validations.invalid")
+                });
             } else {
                 registerError("handleCustomIdValidation", "There has been an error validating the custom ID.", err);
             }
@@ -58,7 +65,7 @@ export const handleCustomIdValidation = debounce(
 );
 
 const CustomIdentifierInput = ({ form, onValueChange, taskId, projectId }: IProps) => {
-    const { errors } = form;
+    const { formState: { errors } } = form;
     const [copyButton] = useCopyButton([{ text: taskId ?? "" }]);
     const [t] = useTranslation();
     const otherProps = taskId ? { value: taskId } : {};

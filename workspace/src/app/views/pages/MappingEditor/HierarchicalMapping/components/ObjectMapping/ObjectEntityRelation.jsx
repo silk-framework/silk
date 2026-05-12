@@ -1,41 +1,28 @@
-import React from 'react';
-import {
-    Radio,
-    RadioGroup,
-} from 'gui-elements-deprecated';
-import { ParentElement } from '../ParentElement';
+import React from "react";
+import { Icon, PropertyValuePair, PropertyName, PropertyValue } from "@eccenca/gui-elements";
+import { ParentElement } from "../ParentElement";
 
 const ObjectEntityRelation = ({ isBackwardProperty, parent }) => {
     return (
-        <RadioGroup
-            value={isBackwardProperty ? 'to' : 'from'}
-            name=""
-            disabled
-        >
-            <Radio
-                name="from"
-                checked={!isBackwardProperty}
-                value="from"
-                label={
-                    <div>
-                        Connect from{' '}
-                        <ParentElement parent={parent} />
-                    </div>
-                }
-            />
-            <Radio
-                name="to"
-                checked={isBackwardProperty}
-                value="to"
-                label={
-                    <div>
-                        Connect to{' '}
-                        <ParentElement parent={parent} />
-                    </div>
-                }
-            />
-        </RadioGroup>
-    )
+        <PropertyValuePair singleColumn>
+            <PropertyName labelProps={{ emphasis: "strong" }}>Property direction</PropertyName>
+            <PropertyValue>
+                <div data-test-id={"object-entity-relation"}>
+                    {isBackwardProperty ? (
+                        <>
+                            <Icon name={"navigation-left"} small />
+                            &nbsp; Connect to <ParentElement parent={parent} />
+                        </>
+                    ) : (
+                        <>
+                            <Icon name={"navigation-right"} small />
+                            &nbsp; Connect from <ParentElement parent={parent} />
+                        </>
+                    )}
+                </div>
+            </PropertyValue>
+        </PropertyValuePair>
+    );
 };
 
 export default ObjectEntityRelation;
