@@ -516,7 +516,8 @@ object PluginApi {
   lazy val specialTaskPlugins: Seq[PluginDescription[_]] = Seq(
     "workflow",
     "transform",
-    "linking"
+    "linking",
+    "ruleBlock"
   ) flatMap (pluginId => PluginRegistry.pluginDescriptionsById(pluginId, Some(Seq(classOf[TaskSpec]))))
 
   def taskplugins(): Seq[PluginDescription[_]] = {

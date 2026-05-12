@@ -25,6 +25,7 @@ class JsonPluginModule extends PluginModule {
       RuleBlockSpecJsonFormat.getClass ::
       RuleBlockContentJsonFormat.getClass ::
       RuleBlockPortJsonFormat.getClass ::
+      RuleBlockTaskJsonFormat.getClass ::
       TransformRuleJsonFormat.getClass ::
       MappingRulesJsonFormat.getClass ::
       DatasetTaskJsonFormat.getClass ::

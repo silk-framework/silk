@@ -1137,12 +1137,12 @@ object JsonSerializers {
     }
   }
 
-  implicit object RuleBlockContentJsonFormat extends JsonFormat[RuleBlockContent] {
+  implicit object RuleBlockContentJsonFormat extends JsonFormat[RuleBlockModel] {
     final val PORTS = "ports"
     final val OPERATOR_TREE = "operatorTree"
 
-    override def read(value: JsValue)(implicit readContext: ReadContext): RuleBlockContent = {
-      RuleBlockContent(
+    override def read(value: JsValue)(implicit readContext: ReadContext): RuleBlockModel = {
+      RuleBlockModel(
         ports = arrayValueOption(value, PORTS)
           .map(_.value.map(fromJson[RuleBlockPort]).toIndexedSeq)
           .getOrElse(IndexedSeq.empty[RuleBlockPort]),
@@ -1152,7 +1152,7 @@ object JsonSerializers {
       )
     }
 
-    override def write(value: RuleBlockContent)(implicit writeContext: WriteContext[JsValue]): JsValue = {
+    override def write(value: RuleBlockModel)(implicit writeContext: WriteContext[JsValue]): JsValue = {
       Json.obj(
         PORTS -> JsArray(value.ports.map(toJson[RuleBlockPort])),
         OPERATOR_TREE -> toJsonOpt(value.operator),
@@ -1172,7 +1172,7 @@ object JsonSerializers {
     override def read(value: JsValue)(implicit readContext: ReadContext): RuleBlockSpec = {
       val jsonParameters = objectValue(value, PARAMETERS)
       val objParameters = ParameterValues(Map(
-        CONTENT -> ParameterObjectValue(optionalValue(jsonParameters, CONTENT).map(fromJson[RuleBlockContent]).getOrElse(RuleBlockContent.empty))
+        CONTENT -> ParameterObjectValue(optionalValue(jsonParameters, CONTENT).map(fromJson[RuleBlockModel]).getOrElse(RuleBlockModel.empty))
       ))
       pluginFormat.read(value, objParameters)
     }
@@ -1438,6 +1438,19 @@ object JsonSerializers {
     }
     override def write(value: TransformTask)(implicit writeContext: WriteContext[JsValue]): JsValue = {
       new TaskJsonFormat[TransformSpec].write(value)
+    }
+  }
+
+  /**
+    * Rule block Task
+    */
+  implicit object RuleBlockTaskJsonFormat extends JsonFormat[RuleBlockTask] {
+    override def read(value: JsValue)(implicit readContext: ReadContext): RuleBlockTask = {
+      val task = new TaskJsonFormat[RuleBlockSpec].read(value)
+      RuleBlockTask(task.id, task.data, task.metaData)
+    }
+    override def write(value: RuleBlockTask)(implicit writeContext: WriteContext[JsValue]): JsValue = {
+      new TaskJsonFormat[RuleBlockSpec].write(value)
     }
   }
 

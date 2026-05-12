@@ -15,7 +15,7 @@ class RuleBlockSpecTest extends AnyFlatSpec with XmlSerializationHelperTrait {
 
   it should "serialize and deserialize rule block specs and tasks" in {
     val spec = RuleBlockSpec(
-      RuleBlockContent(
+      RuleBlockModel(
         ports = IndexedSeq(
           RuleBlockPort(
             id = "firstInput",
@@ -49,7 +49,7 @@ class RuleBlockSpecTest extends AnyFlatSpec with XmlSerializationHelperTrait {
   it should "reject duplicate port identifiers" in {
     val ex = the[ValidationException] thrownBy {
       RuleBlockSpec(
-        RuleBlockContent(
+        RuleBlockModel(
           ports = IndexedSeq(
             RuleBlockPort(id = "duplicate"),
             RuleBlockPort(id = "duplicate")
@@ -64,7 +64,7 @@ class RuleBlockSpecTest extends AnyFlatSpec with XmlSerializationHelperTrait {
   it should "reject path inputs in the internal operator tree" in {
     val ex = the[ValidationException] thrownBy {
       RuleBlockSpec(
-        RuleBlockContent(
+        RuleBlockModel(
           operator = Some(PathInput(id = "pathInput", path = UntypedPath("foaf:name")))
         )
       )

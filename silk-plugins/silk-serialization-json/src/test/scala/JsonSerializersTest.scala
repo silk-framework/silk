@@ -5,7 +5,7 @@ import org.silkframework.entity.ValueType
 import org.silkframework.rule.vocab._
 import org.silkframework.rule.input.TransformInput
 import org.silkframework.rule.plugins.transformer.value.ConstantTransformer
-import org.silkframework.rule.{MappingTarget, NodePosition, RuleBlockContent, RuleBlockPort, RuleBlockSpec, RuleLayout}
+import org.silkframework.rule.{MappingTarget, NodePosition, RuleBlockModel, RuleBlockPort, RuleBlockSpec, RuleLayout}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.PluginRegistry
 import org.silkframework.runtime.serialization.{ReadContext, Serialization, TestReadContext, TestWriteContext, WriteContext}
@@ -100,7 +100,7 @@ class JsonSerializersTest  extends AnyFlatSpec with Matchers {
 
   "RuleBlockSpec" should "be serializable to and from JSON via TaskSpec dispatch" in {
     val ruleBlockSpec: TaskSpec = RuleBlockSpec(
-      RuleBlockContent(
+      RuleBlockModel(
         ports = IndexedSeq(
           RuleBlockPort(
             id = "firstInput",

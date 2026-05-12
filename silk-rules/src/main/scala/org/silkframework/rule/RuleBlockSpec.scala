@@ -25,18 +25,20 @@ import scala.xml.{Elem, Node, Null, PCData}
   categories = Array("Transform"),
   description = "Defines a reusable transform rule block that can be referenced from transform and linking rules."
 )
-case class RuleBlockSpec(@Param(label = "", value = "", visibleInDialog = false)
-                         content: RuleBlockContent = RuleBlockContent.empty) extends TaskSpec with AnyPlugin {
+case class RuleBlockSpec(@Param(label = "Rule block model",
+                                value = "The complete rule block model, i.e. rule tree, port definitions, layout and UI annotations.",
+                                visibleInDialog = false)
+                         ruleBlockModel: RuleBlockModel = RuleBlockModel.empty) extends TaskSpec with AnyPlugin {
 
   validate()
 
-  def ports: IndexedSeq[RuleBlockPort] = content.ports
+  def ports: IndexedSeq[RuleBlockPort] = ruleBlockModel.ports
 
-  def operator: Option[Input] = content.operator
+  def operator: Option[Input] = ruleBlockModel.operator
 
-  def layout: RuleLayout = content.layout
+  def layout: RuleLayout = ruleBlockModel.layout
 
-  def uiAnnotations: UiAnnotations = content.uiAnnotations
+  def uiAnnotations: UiAnnotations = ruleBlockModel.uiAnnotations
 
   override def inputPorts: InputPorts = InputPorts.NoInputPorts
 
@@ -114,26 +116,26 @@ case class RuleBlockTask(id: Identifier,
   override def taskType: Class[_] = classOf[RuleBlockSpec]
 }
 
-case class RuleBlockContent(ports: IndexedSeq[RuleBlockPort] = IndexedSeq.empty,
-                            operator: Option[Input] = None,
-                            layout: RuleLayout = RuleLayout(),
-                            uiAnnotations: UiAnnotations = UiAnnotations()) extends PluginObjectParameterNoSchema
+case class RuleBlockModel(ports: IndexedSeq[RuleBlockPort] = IndexedSeq.empty,
+                          operator: Option[Input] = None,
+                          layout: RuleLayout = RuleLayout(),
+                          uiAnnotations: UiAnnotations = UiAnnotations()) extends PluginObjectParameterNoSchema
 
-object RuleBlockContent {
-  val empty: RuleBlockContent = RuleBlockContent()
+object RuleBlockModel {
+  val empty: RuleBlockModel = RuleBlockModel()
 
-  implicit object RuleBlockContentXmlFormat extends XmlFormat[RuleBlockContent] {
-    override def read(xml: Node)(implicit readContext: ReadContext): RuleBlockContent = {
+  implicit object RuleBlockModelXmlFormat extends XmlFormat[RuleBlockModel] {
+    override def read(xml: Node)(implicit readContext: ReadContext): RuleBlockModel = {
       val ports = (xml \ "Ports" \ "Port").map(RuleBlockPort.RuleBlockPortXmlFormat.read).toIndexedSeq
       val operator = (xml \ "OperatorTree" \ "_").headOption
         .map(fromXml[Input])
       val layout = (xml \ "RuleLayout").headOption.map(fromXml[RuleLayout]).getOrElse(RuleLayout())
       val uiAnnotations = (xml \ "UiAnnotations").headOption.map(fromXml[UiAnnotations]).getOrElse(UiAnnotations())
-      RuleBlockContent(ports, operator, layout, uiAnnotations)
+      RuleBlockModel(ports, operator, layout, uiAnnotations)
     }
 
-    override def write(value: RuleBlockContent)(implicit writeContext: WriteContext[Node]): Node = {
-      <RuleBlockContent>
+    override def write(value: RuleBlockModel)(implicit writeContext: WriteContext[Node]): Node = {
+      <RuleBlockModel>
         <Ports>
           {value.ports.map(RuleBlockPort.RuleBlockPortXmlFormat.write)}
         </Ports>
@@ -145,7 +147,7 @@ object RuleBlockContent {
         </OperatorTree>
         {toXml[RuleLayout](value.layout)}
         {toXml[UiAnnotations](value.uiAnnotations)}
-      </RuleBlockContent>
+      </RuleBlockModel>
     }
   }
 }
@@ -192,8 +194,8 @@ object RuleBlockSpec {
     override def tagNames: Set[String] = Set("RuleBlock")
 
     override def read(node: Node)(implicit readContext: ReadContext): RuleBlockSpec = {
-      val contentNode = (node \ "RuleBlockContent").headOption.getOrElse(node)
-      val ruleBlockSpec = RuleBlockSpec(RuleBlockContent.RuleBlockContentXmlFormat.read(contentNode))
+      val modelNode = (node \ "RuleBlockModel").headOption.getOrElse(node)
+      val ruleBlockSpec = RuleBlockSpec(RuleBlockModel.RuleBlockModelXmlFormat.read(modelNode))
 
       TaskLoadingException.withTaskLoadingException(OriginalTaskData("ruleBlock", XmlSerialization.deserializeParameters(node))) { params =>
         ruleBlockSpec.withParameters(params)
@@ -202,7 +204,7 @@ object RuleBlockSpec {
 
     override def write(value: RuleBlockSpec)(implicit writeContext: WriteContext[Node]): Node = {
       <RuleBlock>
-        {RuleBlockContent.RuleBlockContentXmlFormat.write(value.content).child}
+        {RuleBlockModel.RuleBlockModelXmlFormat.write(value.ruleBlockModel).child}
         {XmlSerialization.serializeParameters(value.parameters.filterTemplates)}
       </RuleBlock>
     }
