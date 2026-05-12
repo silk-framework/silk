@@ -6,8 +6,8 @@ export interface IOperatorNode {
 
 /** A value input that can either be plugged into a comparison or transform operator. */
 export interface IValueInputBase extends IOperatorNode {
-    /** A value input can either be a path input or a transform operator. */
-    type: "pathInput" | "transformInput";
+    /** A value input can either be a path input, an input port or a transform operator. */
+    type: "pathInput" | "inputPortInput" | "transformInput";
 }
 
 /** Input operator that returns inputs for a specific path expression of a resource. */
@@ -28,7 +28,14 @@ export interface ITransformOperator extends IValueInputBase {
     parameters: IOperatorNodeParameters;
 }
 
-export type IValueInput = IPathInput | ITransformOperator;
+/** Input operator that references a reusable rule block input port. */
+export interface IInputPortInput extends IValueInputBase {
+    type: "inputPortInput";
+    /** Stable ID of the referenced rule block input port. */
+    portId: string;
+}
+
+export type IValueInput = IPathInput | IInputPortInput | ITransformOperator;
 
 /** Labelled value. In order to show human-readable versions of values, e.g. in auto-completion. */
 export interface IOperatorNodeParameterValueWithLabel {

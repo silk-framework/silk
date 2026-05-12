@@ -6,7 +6,7 @@ import io.swagger.v3.oas.annotations.media.Schema.RequiredMode
 import org.silkframework.config.{CustomTask, TaskSpec}
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.dataset.{Dataset, DatasetSpec}
-import org.silkframework.rule.{LinkSpec, TransformSpec}
+import org.silkframework.rule.{LinkSpec, RuleBlockSpec, TransformSpec}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.{PluginContext, PluginDescription, TaskResolver}
 import org.silkframework.runtime.serialization.WriteContext
@@ -280,6 +280,7 @@ object SearchApiModel {
         case ItemType.dataset => project.tasks[DatasetSpec[Dataset]]
         case ItemType.linking => project.tasks[LinkSpec]
         case ItemType.transform => project.tasks[TransformSpec]
+        case ItemType.ruleBlock => project.tasks[RuleBlockSpec]
         case ItemType.workflow => project.tasks[Workflow]
         case ItemType.task => project.tasks[CustomTask]
         case ItemType.project => Seq.empty

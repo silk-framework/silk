@@ -1,4 +1,4 @@
-import { IPathInput, ITransformOperator, IValueInput, RuleLayout } from "./rule.typings";
+import { IInputPortInput, IPathInput, ITransformOperator, IValueInput, RuleLayout } from "./rule.typings";
 import {
     IParameterSpecification,
     IParameterValidationResult,
@@ -31,6 +31,7 @@ import {
     CLASSPREFIX as eccguiprefix,
 } from "@eccenca/gui-elements";
 import { optionallyLabelledParameterToValue } from "../../linking/linking.types";
+import i18next from "i18next";
 
 /** Extracts the operator node from a path input. */
 const extractOperatorNodeFromPathInput = (
@@ -95,6 +96,31 @@ const extractOperatorNodeFromTransformInput = (
     return transformInput.id;
 };
 
+/** Extract the operator node from an input port input. */
+const extractOperatorNodeFromInputPortInput = (
+    inputPortInput: IInputPortInput,
+    result: IRuleOperatorNode[],
+): string => {
+    result.push({
+        nodeId: inputPortInput.id,
+        label: i18next.t("taskViews.ruleBlock.inputPortOperator"),
+        pluginType: "InputPortOperator",
+        pluginId: "inputPort",
+        inputs: [],
+        parameters: {
+            portId: inputPortInput.portId,
+        },
+        portSpecification: {
+            minInputPorts: 0,
+            maxInputPorts: 0,
+        },
+        description: i18next.t("taskViews.ruleBlock.inputPortOperatorDescription"),
+        inputsCanBeSwitched: false,
+        tags: [i18next.t("taskViews.ruleBlock.inputPortOperator")],
+    });
+    return inputPortInput.id;
+};
+
 /** Extract operator nodes from an value input node, i.e. path input or transform operator.
  *
  * @param operator The value input operator.
@@ -108,11 +134,19 @@ const extractOperatorNodeFromValueInput = (
     ruleOperator: (pluginId: string, pluginType?: string) => IRuleOperator | undefined,
 ): string | undefined => {
     if (operator) {
-        const nodeId =
-            operator.type === "pathInput"
-                ? extractOperatorNodeFromPathInput(operator as IPathInput, result, isTarget)
-                : extractOperatorNodeFromTransformInput(operator as ITransformOperator, result, isTarget, ruleOperator);
-        return nodeId;
+        switch (operator.type) {
+            case "pathInput":
+                return extractOperatorNodeFromPathInput(operator as IPathInput, result, isTarget);
+            case "inputPortInput":
+                return extractOperatorNodeFromInputPortInput(operator as IInputPortInput, result);
+            case "transformInput":
+                return extractOperatorNodeFromTransformInput(
+                    operator as ITransformOperator,
+                    result,
+                    isTarget,
+                    ruleOperator,
+                );
+        }
     }
 };
 
@@ -370,6 +404,13 @@ const convertRuleOperatorNodeToValueInput = (
             type: "transformInput",
         };
         return transformOperator;
+    } else if (ruleOperatorNode.pluginType === "InputPortOperator") {
+        const inputPortInput: IInputPortInput = {
+            id: ruleOperatorNode.nodeId,
+            portId: ruleEditorNodeParameterValue(ruleOperatorNode.parameters["portId"]) ?? ruleOperatorNode.nodeId,
+            type: "inputPortInput",
+        };
+        return inputPortInput;
     } else if (ruleOperatorNode.pluginType === "PathInputOperator") {
         const pathInput: IPathInput = {
             id: ruleOperatorNode.nodeId,

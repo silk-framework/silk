@@ -12,7 +12,7 @@ import org.silkframework.config.{CustomTask, Prefixes, TaskSpec}
 import org.silkframework.dataset.{Dataset, DatasetPluginAutoConfigurable, DatasetSpec}
 import org.silkframework.rule.input.Transformer
 import org.silkframework.rule.similarity.{Aggregator, DistanceMeasure}
-import org.silkframework.rule.{LinkSpec, TransformSpec}
+import org.silkframework.rule.{LinkSpec, RuleBlockSpec, TransformSpec}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.{PluginDescription, PluginList, PluginRegistry, PluginTypeDescription, TaskResolver}
 import org.silkframework.runtime.resource.EmptyResourceManager
@@ -463,7 +463,8 @@ object PluginApiCache {
     JsonSerializers.TASK_TYPE_CUSTOM_TASK -> classOf[CustomTask],
     JsonSerializers.TASK_TYPE_WORKFLOW -> classOf[Workflow],
     JsonSerializers.TASK_TYPE_TRANSFORM -> classOf[TransformSpec],
-    JsonSerializers.TASK_TYPE_LINKING -> classOf[LinkSpec]
+    JsonSerializers.TASK_TYPE_LINKING -> classOf[LinkSpec],
+    JsonSerializers.TASK_TYPE_RULE_BLOCK -> classOf[RuleBlockSpec]
   )
 
   private val ruleOperatorTypes = Seq(
@@ -570,4 +571,3 @@ object PluginTypesJson {
     PluginTypesJson(PluginRegistry.pluginTypes.map(PluginTypeJson(_)).toSeq)
   }
 }
-

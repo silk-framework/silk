@@ -375,6 +375,7 @@
             "linking": "linking",
             "project": "project",
             "projectDesc": "Projects let you group related items. All items that depend on each other need to be in the same project.",
+            "ruleBlock": "rule block",
             "task": "task",
             "transform": "transform",
             "workflow": "workflow"
@@ -388,6 +389,7 @@
             "Mapping editor": "Mapping editor",
             "Query": "Query editor",
             "Reference links": "Reference links",
+            "ruleBlockEditor": "Rule block editor",
             "Transform evaluation": "Transform evaluation",
             "Transform execution": "Transform execution",
             "Workflow editor": "Workflow editor",
@@ -763,6 +765,22 @@
         }
     },
     "taskViews": {
+        "ruleBlock": {
+            "deprecated": "Deprecated",
+            "displayOrder": "Display order",
+            "errors": {
+                "conflictingPortDefinitions": "Input port '{{portId}}' is used with conflicting definitions.",
+                "fetchTaskData": "Could not load the rule block.",
+                "fetchTransformOperators": "Could not load the transform operators.",
+                "invalidDisplayOrder": "Display order must be an integer.",
+                "invalidPorts": "The rule block contains invalid input port definitions.",
+                "save": "Could not save the rule block."
+            },
+            "exampleValues": "Example values",
+            "inputPortOperator": "Input port",
+            "inputPortOperatorDescription": "Provides values from a reusable rule block input port.",
+            "inputPortsTab": "Input ports"
+        },
         "linkRulesEditor": {
             "errors": {
                 "partialPathAutoCompletion": {

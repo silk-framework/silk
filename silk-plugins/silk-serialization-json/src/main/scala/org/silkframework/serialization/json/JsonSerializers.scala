@@ -1163,7 +1163,7 @@ object JsonSerializers {
   }
 
   implicit object RuleBlockSpecJsonFormat extends JsonFormat[RuleBlockSpec] {
-    final val CONTENT = "content"
+    private final val MODEL = "ruleBlockModel"
 
     private val pluginFormat = new PluginJsonFormat[RuleBlockSpec](Some(ClassPluginDescription.create(classOf[RuleBlockSpec])))
 
@@ -1172,7 +1172,7 @@ object JsonSerializers {
     override def read(value: JsValue)(implicit readContext: ReadContext): RuleBlockSpec = {
       val jsonParameters = objectValue(value, PARAMETERS)
       val objParameters = ParameterValues(Map(
-        CONTENT -> ParameterObjectValue(optionalValue(jsonParameters, CONTENT).map(fromJson[RuleBlockModel]).getOrElse(RuleBlockModel.empty))
+        MODEL -> ParameterObjectValue(optionalValue(jsonParameters, MODEL).map(fromJson[RuleBlockModel]).getOrElse(RuleBlockModel.empty))
       ))
       pluginFormat.read(value, objParameters)
     }

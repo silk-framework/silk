@@ -7,8 +7,9 @@ import { DistanceMeasureRange, IPropertyAutocomplete } from "@ducks/common/typin
 import { RuleNodeContentProps } from "./view/ruleNode/NodeContent";
 
 export type PathInputOperator = "PathInputOperator";
+export type InputPortOperator = "InputPortOperator";
 
-export type RuleOperatorPluginType = PathInputOperator | RuleOperatorType;
+export type RuleOperatorPluginType = PathInputOperator | InputPortOperator | RuleOperatorType;
 
 interface IRuleOperatorBase {
     /** Plugin type. */
