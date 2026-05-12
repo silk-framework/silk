@@ -84,6 +84,12 @@ import java.security.MessageDigest
     input1 = Array(),
     output = Array("e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855")
   ),
+  new TransformExample(
+    description = "Empty algorithm string causes IllegalArgumentException.",
+    parameters = Array("algorithm", ""),
+    input1 = Array("foo"),
+    throwsException = classOf[IllegalArgumentException]
+  ),
 ))
 case class InputHashTransformer(@Param(value = "The hash algorithm to be used.",
                                       autoCompletionProvider = classOf[HashAlgorithmAutoCompletionProvider], allowOnlyAutoCompletedValues = true)

@@ -85,6 +85,12 @@ import java.security.NoSuchAlgorithmException
     parameters = Array("algorithm", "NONEXISTENT"),
     input1 = Array("foo"),
     throwsException = classOf[NoSuchAlgorithmException]
+  ),
+  new TransformExample(
+    description = "Empty algorithm string causes IllegalArgumentException.",
+    parameters = Array("algorithm", ""),
+    input1 = Array("foo"),
+    throwsException = classOf[IllegalArgumentException]
   )
 ))
 case class PerValueHashTransformer(
