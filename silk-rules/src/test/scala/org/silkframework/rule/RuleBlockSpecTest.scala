@@ -43,7 +43,7 @@ class RuleBlockSpecTest extends AnyFlatSpec with XmlSerializationHelperTrait {
     testRoundTripSerialization(RuleBlockTask("ruleBlock", spec))
 
     implicit val pluginContext: PluginContext = PluginContext.empty
-    spec.parameters.values.keySet must contain only "content"
+    spec.parameters.values.keySet must contain only "ruleBlockModel"
   }
 
   it should "reject duplicate port identifiers" in {

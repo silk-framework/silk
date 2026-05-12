@@ -7,9 +7,8 @@ import { IProjectTask } from "@ducks/shared/typings";
 import { requestTaskData } from "@ducks/shared/requests";
 import { requestUpdateProjectTask } from "@ducks/workspace/requests";
 import { IViewActions } from "../../plugins/PluginRegistry";
-import RuleEditor, { RuleOperatorFetchFnType } from "../../shared/RuleEditor/RuleEditor";
+import RuleEditor from "../../shared/RuleEditor/RuleEditor";
 import {
-    IRuleOperator,
     IRuleOperatorNode,
     IRuleSideBarFilterTabConfig,
     RULE_EDITOR_NOTIFICATION_INSTANCE,
@@ -22,6 +21,7 @@ import { FetchError } from "../../../services/fetch/responseInterceptor";
 import useErrorHandler from "../../../hooks/useErrorHandler";
 import { IRuleBlockModel, IRuleBlockTaskParameters } from "./ruleBlock.types";
 import ruleBlockUtils from "./ruleBlock.utils";
+import ruleBlockEditorUtils from "./RuleBlockEditor.utils";
 
 export interface RuleBlockEditorProps {
     projectId: string;
@@ -64,54 +64,7 @@ export const RuleBlockEditor = ({ projectId, ruleBlockTaskId, viewActions, insta
         }
     };
 
-    const inputPortOperator = React.useMemo<IRuleOperator>(
-        () => ({
-            pluginType: "InputPortOperator",
-            pluginId: "inputPort",
-            label: t("taskViews.ruleBlock.inputPortOperator"),
-            description: t("taskViews.ruleBlock.inputPortOperatorDescription"),
-            parameterSpecification: {
-                label: ruleUtils.parameterSpecification({
-                    label: t("form.field.label"),
-                    required: false,
-                    orderIdx: 0,
-                }),
-                description: ruleUtils.parameterSpecification({
-                    label: t("common.words.description"),
-                    required: false,
-                    type: "textArea",
-                    orderIdx: 1,
-                }),
-                exampleValues: ruleUtils.parameterSpecification({
-                    label: t("taskViews.ruleBlock.exampleValues"),
-                    required: false,
-                    type: "code-yaml",
-                    orderIdx: 2,
-                }),
-                displayOrder: ruleUtils.parameterSpecification({
-                    label: t("taskViews.ruleBlock.displayOrder"),
-                    required: false,
-                    type: "int",
-                    orderIdx: 3,
-                }),
-                deprecated: ruleUtils.parameterSpecification({
-                    label: t("taskViews.ruleBlock.deprecated"),
-                    required: false,
-                    type: "boolean",
-                    defaultValue: "false",
-                    orderIdx: 4,
-                }),
-            },
-            portSpecification: {
-                minInputPorts: 0,
-                maxInputPorts: 0,
-            },
-            categories: [t("taskViews.ruleBlock.inputPortsTab")],
-            tags: [],
-            inputsCanBeSwitched: false,
-        }),
-        [t],
-    );
+    const inputPortOperator = React.useMemo(() => ruleBlockEditorUtils.createInputPortOperator(), [t]);
 
     const saveRuleBlock = async (
         ruleOperatorNodes: IRuleOperatorNode[],
@@ -176,57 +129,6 @@ export const RuleBlockEditor = ({ projectId, ruleBlockTaskId, viewActions, insta
         }
     };
 
-    const convertToRuleOperatorNodes = (
-        ruleBlockTask: RuleBlockTaskData,
-        ruleOperator: RuleOperatorFetchFnType,
-    ): IRuleOperatorNode[] => {
-        const operatorTree = ruleBlockTask.data.parameters.ruleBlockModel?.operatorTree;
-        if (!operatorTree) {
-            return [];
-        }
-        const portDefinitions = new Map(
-            (ruleBlockTask.data.parameters.ruleBlockModel?.ports ?? []).map((port) => [port.id, port] as const),
-        );
-        const operatorNodes: IRuleOperatorNode[] = [];
-        ruleUtils.extractOperatorNodeFromValueInput(operatorTree, operatorNodes, undefined, ruleOperator);
-        operatorNodes.forEach((node) => {
-            if (node.pluginType === "InputPortOperator") {
-                const portId = ruleBlockUtils.resolvePortId(node);
-                const portDefinition = portDefinitions.get(portId);
-                node.label = portDefinition?.label || t("taskViews.ruleBlock.inputPortOperator");
-                node.description = t("taskViews.ruleBlock.inputPortOperatorDescription");
-                node.parameters = {
-                    ...node.parameters,
-                    label: portDefinition?.label ?? "",
-                    description: portDefinition?.description ?? "",
-                    exampleValues: portDefinition?.exampleValues ?? "",
-                    displayOrder:
-                        portDefinition?.displayOrder != null ? String(portDefinition.displayOrder) : "",
-                    deprecated: portDefinition?.deprecated ? "true" : "false",
-                };
-            }
-        });
-        const nodePositions = ruleBlockTask.data.parameters.ruleBlockModel?.layout?.nodePositions ?? {};
-        operatorNodes.forEach((node) => {
-            const position = nodePositions[node.nodeId];
-            if (position) {
-                node.position = {
-                    x: position.x,
-                    y: position.y,
-                };
-                node.dimension = {
-                    ...node.dimension,
-                    width: position.width ?? undefined,
-                    height: position.height ?? undefined,
-                };
-            }
-        });
-        return operatorNodes;
-    };
-
-    const getStickyNotes = (ruleBlockTask: RuleBlockTaskData | undefined): StickyNote[] =>
-        ruleBlockUtils.normalizeStickyNotes(ruleBlockTask?.data.parameters.ruleBlockModel?.uiAnnotations?.stickyNotes);
-
     const partialAutoCompletion = React.useCallback(
         (_inputType: "source" | "target") =>
             async (
@@ -258,10 +160,12 @@ export const RuleBlockEditor = ({ projectId, ruleBlockTaskId, viewActions, insta
             fetchRuleOperators={fetchTransformRuleOperatorList}
             saveRule={saveRuleBlock}
             convertRuleOperator={ruleUtils.convertRuleOperator}
-            convertToRuleOperatorNodes={convertToRuleOperatorNodes}
+            convertToRuleOperatorNodes={(ruleBlockTask, ruleOperator) =>
+                ruleBlockEditorUtils.convertRuleBlockTaskToRuleOperatorNodes(ruleBlockTask, ruleOperator)
+            }
             partialAutoCompletion={partialAutoCompletion}
             viewActions={viewActions}
-            getStickyNotes={getStickyNotes}
+            getStickyNotes={ruleBlockEditorUtils.getStickyNotes}
             additionalRuleOperators={[inputPortOperator]}
             validateConnection={ruleUtils.validateConnection}
             tabs={tabs}
