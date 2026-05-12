@@ -4,6 +4,7 @@ import org.silkframework.rule.input.Transformer
 
 import java.nio.charset.StandardCharsets
 import java.security.MessageDigest
+import java.util.HexFormat
 
 /**
  * Digest operations for hash transformer plugins.
@@ -18,11 +19,15 @@ trait HashTransformer extends Transformer {
    *  [[java.security.NoSuchAlgorithmException]] at runtime. */
   def algorithm: String
 
+  // @transient: HexFormat is not serializable. lazy: transient fields are null after deserialization;
+  // lazy ensures the instance is recreated on first use rather than remaining null.
+  @transient private lazy val hexFormat: HexFormat = HexFormat.of()
+
   /** Encodes a byte array as a fixed-length lowercase hex string. Each byte maps to exactly two
    *  characters; without zero-padding, a byte with value 5 would render as "5" instead of "05",
    *  producing a variable-length string that breaks any downstream comparison or length check. */
   def toHex(bytes: Array[Byte]): String =
-    bytes.map("%02x".format(_)).mkString
+    hexFormat.formatHex(bytes)
 
   /** Hashes a single string value and returns its hex digest. A fresh [[java.security.MessageDigest]]
    *  instance is created on every call: [[java.security.MessageDigest]] is stateful and not thread-safe,
