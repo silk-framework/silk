@@ -31,6 +31,7 @@ class XmlWorkspaceProvider(val resources: ResourceManager) extends WorkspaceProv
   // Register all module types
   registerModule(new DatasetXmlSerializer())
   registerModule(new LinkingXmlSerializer())
+  registerModule(new RuleBlockXmlSerializer())
   registerModule(new TransformXmlSerializer())
   registerModule(new WorkflowXmlSerializer())
   registerModule(new CustomTaskXmlSerializer())
