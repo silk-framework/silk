@@ -89,19 +89,43 @@ class PeakTransformApi @Inject() () extends InjectedController with UserContextA
             limit: Int = TRANSFORMATION_PREVIEW_LIMIT,
             @Parameter(
               name = "maxTryEntities",
-              description = "The maximum number of example entities to try to transform before giving up.",
+              description = "Per-page budget of example entities to try to transform before giving up. The actual number of source entities fetched is `offset + maxTryEntities`, so paginating into the result set scans proportionally more entities.",
               required = false,
               in = ParameterIn.QUERY,
               schema = new Schema(implementation = classOf[Int], defaultValue = MAX_TRY_ENTITIES_DEFAULT_STR)
             )
-            maxTryEntities: Int = MAX_TRY_ENTITIES_DEFAULT): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
+            maxTryEntities: Int = MAX_TRY_ENTITIES_DEFAULT,
+            @Parameter(
+              name = "offset",
+              description = "Number of successful example results to skip before collecting the page. Defaults to 0 (first page). Setting this implies `includeTotal=true`.",
+              required = false,
+              in = ParameterIn.QUERY,
+              schema = new Schema(implementation = classOf[Int], defaultValue = "0")
+            )
+            offset: Int = 0,
+            @Parameter(
+              name = "search",
+              description = "Optional case-insensitive substring filter. When set, only rows whose source values or transformed values contain the substring count toward offset/limit/total. Setting this implies `includeTotal=true`.",
+              required = false,
+              in = ParameterIn.QUERY,
+              schema = new Schema(implementation = classOf[String])
+            )
+            search: Option[String] = None,
+            @Parameter(
+              name = "includeTotal",
+              description = "If true, scan the full `offset + maxTryEntities` budget so the response can report `total`/`totalIsExact`/`nextOffset`. When false (the default) and no `offset`/`search` is set, scanning stops once `limit` results are collected, and the pagination metadata is omitted.",
+              required = false,
+              in = ParameterIn.QUERY,
+              schema = new Schema(implementation = classOf[Boolean], defaultValue = "false")
+            )
+            includeTotal: Boolean = false): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
       val (project, task) = projectAndTask(projectName, taskName)
       val transformSpec = task.data
       val ruleSchemata = transformSpec.oneRuleEntitySchemaById(ruleName).get
       val inputTaskId = transformSpec.selection.inputId
       implicit val context: PluginContext = PluginContext.fromProject(project)
 
-      peakRule(project, inputTaskId, ruleSchemata, limit, maxTryEntities)
+      peakRule(project, inputTaskId, ruleSchemata, limit, maxTryEntities, offset, search, includeTotal)
   }
 
   /**
@@ -158,7 +182,7 @@ class PeakTransformApi @Inject() () extends InjectedController with UserContextA
                       schema = new Schema(implementation = classOf[Int], defaultValue = TRANSFORMATION_PREVIEW_LIMIT_STR)
                     )
                     limit: Int = TRANSFORMATION_PREVIEW_LIMIT,
-                    @Parameter(name = "maxTryEntities", description = "The maximum number of example entities to try to transform before giving up.",
+                    @Parameter(name = "maxTryEntities", description = "Per-page budget of example entities to try to transform before giving up. The actual number of source entities fetched is `offset + maxTryEntities`, so paginating into the result set scans proportionally more entities.",
                       required = false,
                       in = ParameterIn.QUERY,
                       schema = new Schema(implementation = classOf[Int], defaultValue = MAX_TRY_ENTITIES_DEFAULT_STR)
@@ -166,7 +190,31 @@ class PeakTransformApi @Inject() () extends InjectedController with UserContextA
                     maxTryEntities: Int = MAX_TRY_ENTITIES_DEFAULT,
                     @Parameter(name = "objectPath", description = "An additional object path this auto-completion should be the context of.", required = false,
                       in = ParameterIn.QUERY, schema = new Schema(implementation = classOf[String]))
-                    objectPath: Option[String]): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
+                    objectPath: Option[String],
+                    @Parameter(
+                      name = "offset",
+                      description = "Number of successful example results to skip before collecting the page. Defaults to 0 (first page). Setting this implies `includeTotal=true`.",
+                      required = false,
+                      in = ParameterIn.QUERY,
+                      schema = new Schema(implementation = classOf[Int], defaultValue = "0")
+                    )
+                    offset: Int = 0,
+                    @Parameter(
+                      name = "search",
+                      description = "Optional case-insensitive substring filter. When set, only rows whose source values or transformed values contain the substring count toward offset/limit/total. Setting this implies `includeTotal=true`.",
+                      required = false,
+                      in = ParameterIn.QUERY,
+                      schema = new Schema(implementation = classOf[String])
+                    )
+                    search: Option[String] = None,
+                    @Parameter(
+                      name = "includeTotal",
+                      description = "If true, scan the full `offset + maxTryEntities` budget so the response can report `total`/`totalIsExact`/`nextOffset`. When false (the default) and no `offset`/`search` is set, scanning stops once `limit` results are collected, and the pagination metadata is omitted.",
+                      required = false,
+                      in = ParameterIn.QUERY,
+                      schema = new Schema(implementation = classOf[Boolean], defaultValue = "false")
+                    )
+                    includeTotal: Boolean = false): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     val (project, task) = projectAndTask(projectName, taskName)
     val transformSpec = task.data
     val parentRule = transformSpec.oneRuleEntitySchemaById(ruleName).get
@@ -183,25 +231,37 @@ class PeakTransformApi @Inject() () extends InjectedController with UserContextA
       } else {
         initialRuleSchemata
       }
-      peakRule(project, inputTaskId, ruleSchemata, limit, maxTryEntities)
+      peakRule(project, inputTaskId, ruleSchemata, limit, maxTryEntities, offset, search, includeTotal)
     }
   }
 
-  private def peakRule(project: Project, inputTaskId: Identifier, ruleSchemata: RuleSchemata, limit: Int, maxTryEntities: Int)
+  private def peakRule(project: Project, inputTaskId: Identifier, ruleSchemata: RuleSchemata, limit: Int, maxTryEntities: Int, offset: Int, search: Option[String], includeTotal: Boolean)
                       (implicit context: PluginContext): Result = {
+    if (offset < 0) {
+      throw new ValidationException(s"Query parameter 'offset' must be >= 0, but was $offset.")
+    }
+    if (limit <= 0) {
+      throw new ValidationException(s"Query parameter 'limit' must be > 0, but was $limit.")
+    }
     implicit val prefixes: Prefixes = project.config.prefixes
     implicit val user: UserContext = context.user
 
     val inputTask = project.anyTask(inputTaskId)
     val inputTaskLabel = inputTask.label()
+    // Treat blank search input as no filter so callers can safely send `?search=` from a UI textbox.
+    val effectiveSearch = search.map(_.trim).filter(_.nonEmpty)
+    // Pagination/filtering implies the caller wants the total; otherwise scanning stops at `limit`.
+    val computeTotal = includeTotal || offset > 0 || effectiveSearch.nonEmpty
+    // Source needs to yield enough entities to cover the skipped offset plus the per-page budget.
+    val sourceFetchSize = offset + maxTryEntities
     inputTask.data match {
       case dataset: GenericDatasetSpec =>
         val pluginLabel = dataset.plugin.pluginSpec.label
         DataSource.pluginSource(dataset) match {
           case peakDataSource: PeakDataSource =>
             try {
-              peakDataSource.peak(ruleSchemata.inputSchema, maxTryEntities).use { exampleEntities =>
-                generateMappingPreviewResponse(ruleSchemata.transformRule.withContext(TaskContext(Seq(inputTask), PluginContext.fromProject(project))), exampleEntities, limit)
+              peakDataSource.peak(ruleSchemata.inputSchema, sourceFetchSize).use { exampleEntities =>
+                generateMappingPreviewResponse(ruleSchemata.transformRule.withContext(TaskContext(Seq(inputTask), PluginContext.fromProject(project))), exampleEntities, limit, offset, sourceFetchSize, effectiveSearch, computeTotal)
               }
             } catch {
               case pe: PeakException =>
@@ -213,7 +273,7 @@ class PeakTransformApi @Inject() () extends InjectedController with UserContextA
               s" of type '$pluginLabel' does not support transformation preview!"))))
         }
       case sparqlSelectTask: SparqlSelectCustomTask =>
-        peakIntoSparqlSelectTask(project, inputTaskLabel, ruleSchemata, limit, maxTryEntities, sparqlSelectTask)
+        peakIntoSparqlSelectTask(project, inputTaskLabel, ruleSchemata, limit, sourceFetchSize, offset, effectiveSearch, computeTotal, sparqlSelectTask)
       case _: TransformSpec =>
         Ok(Json.toJson(PeakResults(None, None, PeakStatus(NOT_SUPPORTED_STATUS_MSG, s"Input task '$inputTaskLabel'" +
           " is not a Dataset. Currently mapping preview is only supported for dataset inputs."))))
@@ -227,7 +287,10 @@ class PeakTransformApi @Inject() () extends InjectedController with UserContextA
                                        inputTaskLabel: String,
                                        ruleSchemata: RuleSchemata,
                                        limit: Int,
-                                       maxTryEntities: Int,
+                                       sourceFetchSize: Int,
+                                       offset: Int,
+                                       search: Option[String],
+                                       computeTotal: Boolean,
                                        sparqlSelectTask: SparqlSelectCustomTask)
                                       (implicit userContext: UserContext, prefixes: Prefixes): Result = {
     implicit val context: PluginContext = PluginContext.fromProject(project)
@@ -239,11 +302,11 @@ class PeakTransformApi @Inject() () extends InjectedController with UserContextA
       val datasetTask = project.task[GenericDatasetSpec](sparqlDataset)
       datasetTask.data.plugin match {
         case rdfDataset: RdfDataset with Dataset =>
-          val entities = new LocalSparqlSelectIterator(sparqlSelectTask, rdfDataset.sparqlEndpoint, maxTryEntities, executionReportUpdater = None)
+          val entities = new LocalSparqlSelectIterator(sparqlSelectTask, rdfDataset.sparqlEndpoint, sourceFetchSize, executionReportUpdater = None)
           val entityDatasource = EntityDatasource(datasetTask, entities, sparqlSelectTask.outputSchema)
           try {
-            entityDatasource.peak(ruleSchemata.inputSchema, maxTryEntities).use { exampleEntities =>
-              generateMappingPreviewResponse(ruleSchemata.transformRule, exampleEntities, limit)
+            entityDatasource.peak(ruleSchemata.inputSchema, sourceFetchSize).use { exampleEntities =>
+              generateMappingPreviewResponse(ruleSchemata.transformRule, exampleEntities, limit, offset, sourceFetchSize, search, computeTotal)
             }
           } catch {
             case pe: PeakException =>
@@ -260,23 +323,35 @@ class PeakTransformApi @Inject() () extends InjectedController with UserContextA
   // Generate the HTTP response for the mapping transformation preview
   private def generateMappingPreviewResponse(rule: TransformRule,
                                              exampleEntities: Iterator[Entity],
-                                             limit: Int)
+                                             limit: Int,
+                                             offset: Int,
+                                             sourceFetchSize: Int,
+                                             search: Option[String],
+                                             computeTotal: Boolean)
                                             (implicit prefixes: Prefixes) = {
-    val (tryCounter, errorCounter, errorMessage, sourceAndTargetResults) = collectTransformationExamples(rule, exampleEntities, limit)
+    val (tryCounter, errorCounter, errorMessage, sourceAndTargetResults, hasMore, totalWithinBudget) =
+      collectTransformationExamples(rule, exampleEntities, limit, offset, search, computeTotal)
+    // Only expose pagination metadata when the caller asked for total/pagination. Otherwise scanning
+    // stopped at `limit` and the counts wouldn't be meaningful.
+    val nextOffset = if (computeTotal && hasMore) Some(offset + limit) else None
+    val total = if (computeTotal) Some(totalWithinBudget) else None
+    // The source returns at most `sourceFetchSize` entities. If we consumed fewer, the iterator
+    // ran dry naturally and `total` is the true count. If we hit the cap, more results may exist.
+    val totalIsExact = if (computeTotal) Some(tryCounter < sourceFetchSize) else None
     if (sourceAndTargetResults.nonEmpty && errorMessage.nonEmpty) {
       Ok(Json.toJson(PeakResults(Some(rule.sourcePaths.map(serializePath)), Some(sourceAndTargetResults),
-        status = PeakStatus("with exceptions", errorMessage))))
+        status = PeakStatus("with exceptions", errorMessage), nextOffset = nextOffset, total = total, totalIsExact = totalIsExact)))
     } else if (sourceAndTargetResults.nonEmpty) {
       Ok(Json.toJson(PeakResults(Some(rule.sourcePaths.map(serializePath)), Some(sourceAndTargetResults),
-        status = PeakStatus("success", ""))))
+        status = PeakStatus("success", ""), nextOffset = nextOffset, total = total, totalIsExact = totalIsExact)))
     } else if (errorCounter > 0) {
       Ok(Json.toJson(PeakResults(Some(rule.sourcePaths.map(serializePath)), Some(sourceAndTargetResults),
         status = PeakStatus("empty with exceptions",
           s"Transformation result has always been empty or exceptions occurred. $tryCounter processed and $errorCounter exceptions occurred. " +
-            "First exception: " + errorMessage))))
+            "First exception: " + errorMessage), nextOffset = nextOffset, total = total, totalIsExact = totalIsExact)))
     } else {
       Ok(Json.toJson(PeakResults(Some(rule.sourcePaths.map(serializePath)), Some(sourceAndTargetResults),
-        status = PeakStatus("empty", s"Transformation result has always been empty. Processed first $tryCounter entities."))))
+        status = PeakStatus("empty", s"Transformation result has always been empty. Processed first $tryCounter entities."), nextOffset = nextOffset, total = total, totalIsExact = totalIsExact)))
     }
   }
 
@@ -316,9 +391,18 @@ object PeakTransformApi {
     * @param limit           Limit of examples to return
     * @return
     */
-  def collectTransformationExamples(rule: TransformRule, exampleEntities: Iterator[Entity], limit: Int): (Int, Int, String, Seq[PeakResult]) = {
-    // Number of examples collected
+  def collectTransformationExamples(rule: TransformRule,
+                                    exampleEntities: Iterator[Entity],
+                                    limit: Int,
+                                    offset: Int = 0,
+                                    search: Option[String] = None,
+                                    computeTotal: Boolean = false): (Int, Int, String, Seq[PeakResult], Boolean, Int) = {
+    // Number of examples collected (after skipping `offset` successful ones)
     var exampleCounter = 0
+    // Number of successful (and matching) results skipped to honor `offset`
+    var skippedCounter = 0
+    // Number of successful (and matching) results encountered after the page was filled
+    var tailCounter = 0
     // Number of exceptions occurred
     var errorCounter = 0
     // Number of example entities tried
@@ -326,7 +410,12 @@ object PeakTransformApi {
     // Record the first error message
     var errorMessage: String = ""
     val resultBuffer = ArrayBuffer[PeakResult]()
-    while (exampleEntities.hasNext && exampleCounter < limit) {
+    // Lower-cased needle once; None means "no filter".
+    val needle = search.map(_.toLowerCase)
+    // When computeTotal is true we drain the iterator so we can report a true count of matching
+    // results within the budget passed to the underlying source. Otherwise stop as soon as the
+    // page is filled to avoid scanning the tail.
+    while (exampleEntities.hasNext && (computeTotal || skippedCounter < offset || exampleCounter < limit)) {
       tryCounter += 1
       val entity = exampleEntities.next()
       try {
@@ -337,9 +426,15 @@ object PeakTransformApi {
             errorMessage = error.error.getClass.getSimpleName + ": " + Option(error.error.getMessage).getOrElse("")
           }
         }
-        if (transformResult.values.nonEmpty) {
-          resultBuffer.append(PeakResult(entity.values, transformResult.values))
-          exampleCounter += 1
+        if (transformResult.values.nonEmpty && matchesSearch(entity.values, transformResult.values, needle)) {
+          if (skippedCounter < offset) {
+            skippedCounter += 1
+          } else if (exampleCounter < limit) {
+            resultBuffer.append(PeakResult(entity.values, transformResult.values))
+            exampleCounter += 1
+          } else {
+            tailCounter += 1
+          }
         }
       } catch {
         case NonFatal(ex) =>
@@ -349,12 +444,32 @@ object PeakTransformApi {
           }
       }
     }
-    (tryCounter, errorCounter, errorMessage, resultBuffer.toSeq)
+    // In drain mode `hasMore` is exact: it counts matching results past the page. In lazy mode
+    // we fall back to "is the source iterator exhausted?" - that may over-report (more entities
+    // exist but none of them would have matched) but never under-reports.
+    val hasMore = if (computeTotal) tailCounter > 0 else exampleEntities.hasNext
+    val totalWithinBudget = skippedCounter + exampleCounter + tailCounter
+    (tryCounter, errorCounter, errorMessage, resultBuffer.toSeq, hasMore, totalWithinBudget)
+  }
+
+  // Case-insensitive substring match against any source value or transformed value.
+  private def matchesSearch(sourceValues: Seq[Seq[String]], transformedValues: Seq[String], needle: Option[String]): Boolean = {
+    needle match {
+      case None => true
+      case Some(n) =>
+        sourceValues.exists(_.exists(v => v != null && v.toLowerCase.contains(n))) ||
+          transformedValues.exists(v => v != null && v.toLowerCase.contains(n))
+    }
   }
 }
 
 // Peak API
-case class PeakResults(sourcePaths: Option[Seq[Seq[String]]], results: Option[Seq[PeakResult]], status: PeakStatus)
+case class PeakResults(sourcePaths: Option[Seq[Seq[String]]],
+                       results: Option[Seq[PeakResult]],
+                       status: PeakStatus,
+                       nextOffset: Option[Int] = None,
+                       total: Option[Int] = None,
+                       totalIsExact: Option[Boolean] = None)
 
 case class PeakStatus(id: String, msg: String)
 
