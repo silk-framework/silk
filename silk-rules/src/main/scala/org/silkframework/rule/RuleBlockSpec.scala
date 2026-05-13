@@ -8,7 +8,7 @@ import org.silkframework.runtime.plugin.{AnyPlugin, PluginObjectParameterNoSchem
 import org.silkframework.runtime.resource.Resource
 import org.silkframework.runtime.serialization.XmlSerialization
 import org.silkframework.runtime.serialization.XmlSerialization.{fromXml, toXml}
-import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat}
+import org.silkframework.runtime.serialization.{ReadContext, ValidatingXMLReader, WriteContext, XmlFormat}
 import org.silkframework.runtime.templating.TemplateVariableName
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.Identifier
@@ -194,6 +194,7 @@ object RuleBlockSpec {
     override def tagNames: Set[String] = Set("RuleBlock")
 
     override def read(node: Node)(implicit readContext: ReadContext): RuleBlockSpec = {
+      ValidatingXMLReader.validate(node, "org/silkframework/LinkSpecificationLanguage.xsd")
       val modelNode = (node \ "RuleBlockModel").headOption.getOrElse(node)
       val ruleBlockSpec = RuleBlockSpec(RuleBlockModel.RuleBlockModelXmlFormat.read(modelNode))
 

@@ -8,7 +8,7 @@ import org.silkframework.entity.paths.{TypedPath, UntypedPath}
 import org.silkframework.rule.MappingRules.MappingRulesFormat
 import org.silkframework.rule.MappingTarget.MappingTargetFormat
 import org.silkframework.rule.TransformRule.RDF_TYPE
-import org.silkframework.rule.input.{Input, InputExecution, InputValidation, OperatorEvaluationError, PathInput, RuleBlockInput, TransformInput, Value}
+import org.silkframework.rule.input.{Input, InputExecution, InputPortInput, InputValidation, OperatorEvaluationError, PathInput, RuleBlockInput, TransformInput, Value}
 import org.silkframework.rule.plugins.transformer.combine.ConcatTransformer
 import org.silkframework.rule.plugins.transformer.normalize.{UriFixTransformer, UrlEncodeTransformer}
 import org.silkframework.rule.plugins.transformer.value.{ConstantTransformer, ConstantUriTransformer, EmptyValueTransformer}
@@ -83,6 +83,7 @@ sealed trait TransformRule extends Operator with HasMetaData {
       case PathInput(_, path: UntypedPath) => Seq(TypedPath(path, ValueType.UNTYPED, isAttribute = false))
       case p: TransformInput => p.inputs.flatMap(collectPaths)
       case rb: RuleBlockInput => rb.bindings.flatMap(binding => collectPaths(binding.input))
+      case _: InputPortInput => Seq.empty
     }
 
     collectPaths(operator).distinct
@@ -736,6 +737,8 @@ private object UriPattern {
       case TransformInput(id, UriFixTransformer(_), Seq(PathInput(_, path))) => "{" + path.serialize() + "}"
       case TransformInput(id, UrlEncodeTransformer(_), Seq(PathInput(_, path))) => "{" + path.serialize() + "}"
       case TransformInput(id, ConstantTransformer(constant), IndexedSeq()) => constant
+      case other =>
+        throw new IllegalArgumentException(s"Cannot build URI pattern from input of type ${other.getClass.getSimpleName}.")
     }.mkString("")
   }
 }

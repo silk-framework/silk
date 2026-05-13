@@ -2,8 +2,8 @@ package org.silkframework.rule
 
 import org.scalatest.flatspec.AnyFlatSpec
 import org.silkframework.entity.paths.UntypedPath
-import org.silkframework.rule.input.{PathInput, TransformInput}
-import org.silkframework.rule.plugins.transformer.value.ConstantTransformer
+import org.silkframework.rule.input.{InputPortInput, PathInput, TransformInput}
+import org.silkframework.rule.plugins.transformer.combine.ConcatTransformer
 import org.silkframework.runtime.plugin.PluginContext
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.XmlSerializationHelperTrait
@@ -33,7 +33,16 @@ class RuleBlockSpecTest extends AnyFlatSpec with XmlSerializationHelperTrait {
             deprecated = true
           )
         ),
-        operator = Some(TransformInput(id = "rootTransform", transformer = ConstantTransformer("constant result"))),
+        operator = Some(
+          TransformInput(
+            id = "rootTransform",
+            transformer = ConcatTransformer(glue = " "),
+            inputs = IndexedSeq(
+              InputPortInput(id = "firstInputNode", portId = "firstInput"),
+              InputPortInput(id = "secondInputNode", portId = "secondInput")
+            )
+          )
+        ),
         layout = RuleLayout(Map("rootTransform" -> NodePosition(10, 20, Some(120), Some(60)))),
         uiAnnotations = UiAnnotations(Seq(StickyNote("note", "review this", "#fff", NodePosition(5, 7, Some(100), Some(40)))))
       )
