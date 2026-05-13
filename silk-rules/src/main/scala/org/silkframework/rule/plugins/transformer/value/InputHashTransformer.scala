@@ -4,8 +4,8 @@ import org.silkframework.rule.annotations.{TransformExample, TransformExamples}
 import org.silkframework.rule.plugins.transformer.replace.MapTransformerWithDefaultInput
 import org.silkframework.runtime.plugin.annotations.{Param, Plugin, PluginReference}
 
-import java.nio.charset.StandardCharsets
 import java.security.MessageDigest
+
 
 /**
  * Combines all input values across all connected ports into a single hash.
@@ -98,9 +98,13 @@ case class InputHashTransformer(@Param(value = "The hash algorithm to be used.",
   require(algorithm.trim.nonEmpty, "Algorithm must not be empty. Please specify an algorithm, such as 'SHA256'.")
 
   override def apply(values: Seq[Seq[String]]): Seq[String] = {
-    val digest = MessageDigest.getInstance(algorithm)
-    values.flatten.foreach(v => digest.update(v.getBytes(StandardCharsets.UTF_8)))
-    Seq(toHex(digest.digest()))
+    def updateAll(digest: MessageDigest): Unit =
+      values.flatten.foreach(updateWith(digest, _))
+
+    Seq(withDigest { digest =>
+      updateAll(digest)
+      toHex(digest.digest())
+    })
   }
 }
 
