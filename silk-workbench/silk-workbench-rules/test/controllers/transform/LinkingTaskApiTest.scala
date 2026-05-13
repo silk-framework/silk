@@ -111,9 +111,12 @@ class LinkingTaskApiTest extends PlaySpec with IntegrationTestTrait {
 
   "Return evaluated links for the current linking rule" in {
     val jsonBody: JsValue = linkEvaluationResult()
-    (jsonBody \ "links").as[JsArray].value must have size 2
+    val links = (jsonBody \ "links").as[JsArray].value
+    links must have size 2
     (jsonBody \\ "decision").map(_.as[String]) mustBe Seq("unlabeled", "unlabeled")
     (jsonBody \ "evaluationActivityStats").as[LinkRuleEvaluationStats] mustBe LinkRuleEvaluationStats(2, 2, 2)
+    // Every link must carry rule evaluation details
+    links.foreach(link => (link \ LinkJsonFormat.RULE_VALUES).toOption mustBe defined)
   }
 
   "Return evaluated links for the current linking rule matching the search query" in {
@@ -150,6 +153,18 @@ class LinkingTaskApiTest extends PlaySpec with IntegrationTestTrait {
     linkCountMustBe(withReferenceLinks, 3)
     val links = linkCountMustBe(referenceLinksOnly, 2)
     links.filter(link => link.source.endsWith("1") && link.target.endsWith("2")) must not be empty
+  }
+
+  "referenceLinksEvaluated endpoint returns rule values for positive and negative links" in {
+    val response = client.url(s"$baseUrl/linking/tasks/$project/$csvLinkingTask/referenceLinksEvaluated").get()
+    val json = checkResponse(response).json
+    val positive = (json \ "positive").as[JsArray].value
+    val negative = (json \ "negative").as[JsArray].value
+    positive must not be empty
+    negative must not be empty
+    (positive ++ negative).foreach { link =>
+      (link \ LinkJsonFormat.RULE_VALUES).toOption mustBe defined
+    }
   }
 
   private def linkCountMustBe(resultJson: JsValue, expectedCount: Int): Seq[Link] = {
@@ -209,18 +224,6 @@ class LinkingTaskApiTest extends PlaySpec with IntegrationTestTrait {
     val ruleValues = (jsLinks.head \ LinkJsonFormat.RULE_VALUES).toOption
     ruleValues mustBe defined
     (ruleValues.get \ "sourceValue" \ "values").as[JsArray].value.map(_.as[String]) mustBe Seq("group 1")
-  }
-
-  private def defaultCsvLinkingRule: LinkageRule = {
-    LinkageRule(
-      Comparison(
-        metric = EqualityMetric(),
-        inputs = DPair(
-          PathInput(path = UntypedPath("label")),
-          PathInput(path = UntypedPath("label"))
-        )
-      )
-    )
   }
 
 }
