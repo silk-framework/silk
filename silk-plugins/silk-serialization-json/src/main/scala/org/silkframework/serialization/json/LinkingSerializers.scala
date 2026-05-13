@@ -17,14 +17,10 @@ object LinkingSerializers {
    * @param writeEntities If true, the entities of the link will be serialized as well.
    * @param writeEntitySchema If true, the entity schema of the link will be serialized as well.
    * @param distinctValues If true, the values of the entities will be serialized as distinct values.
-   * @param writeEvaluation If true, the evaluation details of the link will be serialized as well.
-   *                        In this case, serialization will fail if the link is not evaluated.
    */
   class LinkJsonFormat(writeEntities: Boolean = false,
                        writeEntitySchema: Boolean = false,
-                       distinctValues: Boolean = false,
-                       writeEvaluation: Boolean = false) extends JsonFormat[Link] {
-    import LinkJsonFormat._
+                       distinctValues: Boolean = false) extends JsonFormat[Link] {
 
     final val SOURCE = "source"
     final val TARGET = "target"
@@ -65,24 +61,27 @@ object LinkingSerializers {
         case _ =>
       }
 
-      // Add evaluation details
-      if(writeEvaluation) {
-        link match {
-          case linkWithDetails: LinkWithEvaluation =>
-            json += (RULE_VALUES -> ConfidenceJsonFormat.write(linkWithDetails.details))
-          case _ =>
-            throw new IllegalArgumentException(
-              s"LinkJsonFormat with writeRuleValues=true received a non-evaluated link of type ${link.getClass.getName}. " +
-                "Callers must pre-evaluate links (e.g. via DetailedEvaluator) before serialization.")
-        }
-      }
-
       json
     }
   }
 
-  implicit object LinkJsonFormat extends LinkJsonFormat(writeEntities = false, writeEntitySchema = false, distinctValues = false, writeEvaluation = false) {
+  implicit object LinkJsonFormat extends LinkJsonFormat(writeEntities = false, writeEntitySchema = false, distinctValues = false) {
     final val RULE_VALUES = "ruleValues"
+  }
+
+  /**
+   * JSON format for evaluated links.
+   */
+  class LinkWithEvaluationJsonFormat(writeEntities: Boolean = false,
+                                     writeEntitySchema: Boolean = false,
+                                     distinctValues: Boolean = false)
+      extends WriteOnlyJsonFormat[LinkWithEvaluation] {
+
+    private val linkFormat = new LinkJsonFormat(writeEntities, writeEntitySchema, distinctValues)
+
+    override def write(link: LinkWithEvaluation)(implicit writeContext: WriteContext[JsValue]): JsValue = {
+      linkFormat.write(link) + (LinkJsonFormat.RULE_VALUES -> ConfidenceJsonFormat.write(link.details))
+    }
   }
 
   implicit object ConfidenceJsonFormat extends WriteOnlyJsonFormat[Confidence] {
