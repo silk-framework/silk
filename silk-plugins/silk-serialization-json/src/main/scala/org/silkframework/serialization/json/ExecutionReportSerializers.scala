@@ -3,6 +3,7 @@ package org.silkframework.serialization.json
 import org.silkframework.execution.report.{EntitySample, SampleEntities, SampleEntitiesSchema, Stacktrace}
 import org.silkframework.execution.{ExecutionReport, SimpleExecutionReport}
 import org.silkframework.rule.{TaskContext, TransformSpec}
+import org.silkframework.rule.evaluation.DetailedEvaluator
 import org.silkframework.rule.execution.TransformReport.{RuleError, RuleResult}
 import org.silkframework.rule.execution.{Linking, TransformReport, TransformReportExecutionContext}
 import org.silkframework.runtime.activity.UserContext
@@ -23,17 +24,6 @@ import java.time.Instant
 import scala.util.Try
 
 object ExecutionReportSerializers {
-
-  private def linkingTaskContext(value: Linking)(implicit writeContext: WriteContext[JsValue]): TaskContext = {
-    val fallbackContext = TaskContext(Seq.empty, writeContext)
-    Try {
-      implicit val userContext: UserContext = writeContext.user
-      val project = WorkspaceFactory().workspace.project(writeContext.projectId.get)
-      implicit val pluginContext: PluginContext = PluginContext.fromProject(project)
-      val inputTasks = value.task.data.dataSelections.map(selection => project.anyTask(selection.inputId))
-      TaskContext(inputTasks, pluginContext)
-    }.getOrElse(fallbackContext)
-  }
 
   private def parseSampleEntities(value: JsValue): Seq[SampleEntities] = {
     arrayValueOption(value, OUTPUT_ENTITIES_SAMPLE)
@@ -111,7 +101,7 @@ object ExecutionReportSerializers {
     override def write(value: Linking)(implicit writeContext: WriteContext[JsValue]): JsValue = {
       val firstEntityOption = value.links.headOption.flatMap(_.entities)
       val entitySchemataOption = firstEntityOption.map(_.map(_.schema))
-      val linkFormat = new LinkJsonFormat(Some(value.rule), linkingTaskContext(value))
+      val linkFormat = new LinkJsonFormat()
 
       ExecutionReportJsonFormat.serializeBasicValues(value) ++
         Json.obj(

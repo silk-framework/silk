@@ -11,9 +11,8 @@ import org.silkframework.config.MetaData
 import org.silkframework.entity.Link
 import org.silkframework.entity.paths.UntypedPath
 import org.silkframework.rule.{LinkSpec, LinkageRule}
-import org.silkframework.rule.input.{PathInput, TransformInput}
+import org.silkframework.rule.input.PathInput
 import org.silkframework.rule.plugins.distance.equality.EqualityMetric
-import org.silkframework.rule.plugins.transformer.metadata.FileHashTransformer
 import org.silkframework.rule.similarity.Comparison
 import org.silkframework.runtime.serialization.{ReadContext, TestReadContext, TestWriteContext, WriteContext}
 import org.silkframework.serialization.json.JsonSerializers.LinkageRuleJsonFormat
@@ -117,35 +116,6 @@ class LinkingTaskApiTest extends PlaySpec with IntegrationTestTrait {
     (jsonBody \ "evaluationActivityStats").as[LinkRuleEvaluationStats] mustBe LinkRuleEvaluationStats(2, 2, 2)
   }
 
-  "Generic EvaluateLinking activity serialization should preserve task context for metadata-based rule values" in {
-    updateCsvLinkingRule(fileHashCsvLinkingRule)
-
-    try {
-      val specializedJson = linkEvaluationResult()
-      val specializedLinks = (specializedJson \ "links").as[JsArray].value
-      specializedLinks must have size csvLinkingNrOfLinks
-      val specializedRuleValues = firstRuleValues(specializedLinks.head)
-      val specializedSourceValues = (specializedRuleValues \ "sourceValue" \ "values").as[JsArray].value.map(_.as[String])
-      val specializedTargetValues = (specializedRuleValues \ "targetValue" \ "values").as[JsArray].value.map(_.as[String])
-
-      specializedSourceValues must have size 1
-      specializedTargetValues mustBe specializedSourceValues
-      (specializedRuleValues \ "score").asOpt[Double] mustBe Some(1.0)
-      (specializedRuleValues \ "sourceValue" \ "error").asOpt[String] mustBe None
-      (specializedRuleValues \ "targetValue" \ "error").asOpt[String] mustBe None
-
-      val genericJson = genericEvaluateLinkingActivityValue()
-      val genericLinks = (genericJson \ "links").as[JsArray].value
-      genericLinks must have size csvLinkingNrOfLinks
-      (genericLinks.head \ "confidence").asOpt[Double] mustBe Some(1.0)
-
-      val genericRuleValues = firstRuleValues(genericLinks.head)
-      genericRuleValues mustBe specializedRuleValues
-    } finally {
-      updateCsvLinkingRule(defaultCsvLinkingRule)
-    }
-  }
-
   "Return evaluated links for the current linking rule matching the search query" in {
     linkCountMustBe(linkEvaluationResult("simplecsv entry"), 2)
     linkCountMustBe(linkEvaluationResult("simplecsv entry 1"), 1)
@@ -189,15 +159,6 @@ class LinkingTaskApiTest extends PlaySpec with IntegrationTestTrait {
     links.map(link => LinkJsonFormat.read(link))
   }
 
-  private def firstRuleValues(linkJson: JsValue): JsValue = {
-    (linkJson \ LinkJsonFormat.RULE_VALUES).toOption.getOrElse(fail("Expected rule values in serialized link."))
-  }
-
-  private def updateCsvLinkingRule(rule: LinkageRule): Unit = {
-    val linkSpecTask = workspaceProject(project).task[LinkSpec](csvLinkingTask)
-    linkSpecTask.project.updateTask(csvLinkingTask, linkSpecTask.data.copy(rule = rule))
-  }
-
   private def updateReferenceLink(source: String, target: String, decision: String): Unit = {
     val response = client
       .url(s"$baseUrl/linking/tasks/$project/$csvLinkingTask/referenceLink?source=${URLEncoder.encode(source, "UTF-8")}" +
@@ -221,14 +182,6 @@ class LinkingTaskApiTest extends PlaySpec with IntegrationTestTrait {
       )))
     val jsonBody = checkResponse(response).json
     jsonBody
-  }
-
-  private def genericEvaluateLinkingActivityValue(): JsValue = {
-    val response = client
-      .url(s"$baseUrl/workspace/projects/$project/tasks/$csvLinkingTask/activities/EvaluateLinking/value")
-      .addHttpHeaders("ACCEPT" -> SerializationUtils.APPLICATION_JSON)
-      .get()
-    checkResponse(response).json
   }
 
   // Alternative linkage rule returns 4 links, the original rule only returns 2
@@ -270,15 +223,4 @@ class LinkingTaskApiTest extends PlaySpec with IntegrationTestTrait {
     )
   }
 
-  private def fileHashCsvLinkingRule: LinkageRule = {
-    LinkageRule(
-      Comparison(
-        metric = EqualityMetric(),
-        inputs = DPair(
-          TransformInput(transformer = FileHashTransformer()),
-          TransformInput(transformer = FileHashTransformer())
-        )
-      )
-    )
-  }
 }
