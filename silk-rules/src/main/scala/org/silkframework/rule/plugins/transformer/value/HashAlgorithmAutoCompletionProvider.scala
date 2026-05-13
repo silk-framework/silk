@@ -15,7 +15,7 @@ import scala.jdk.CollectionConverters.IterableHasAsScala
  */
 case class HashAlgorithmAutoCompletionProvider() extends PluginParameterAutoCompletionProvider {
 
-  private lazy val algorithms = Security.getAlgorithms("MessageDigest").asScala.toSeq
+  private lazy val algorithms: Seq[String] = Security.getAlgorithms("MessageDigest").asScala.toSeq.sorted
 
   override def autoComplete(searchQuery: String, dependOnParameterValues: Seq[ParamValue],
                             workspace: WorkspaceReadTrait)
