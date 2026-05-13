@@ -9,9 +9,9 @@ import {
     IRuleOperatorNode,
     IRuleSideBarFilterTabConfig,
     IRuleSidebarPreConfiguredOperatorsTabConfig,
+    RuleOperatorPluginType,
     PathMetaDataFunctions,
     RuleEditorValidationNode,
-    RuleOperatorPluginType,
     RuleSaveResult,
 } from "./RuleEditor.typings";
 import ErrorBoundary from "../../../ErrorBoundary";
@@ -22,11 +22,12 @@ import { ReactFlowHotkeyContext } from "@eccenca/gui-elements/src/cmem/react-flo
 import { StickyNote } from "@eccenca/gui-elements";
 import { CodeAutocompleteFieldPartialAutoCompleteResult } from "@eccenca/gui-elements/src/components/AutoSuggestion/AutoSuggestion";
 import { InitialRuleHighlighting } from "../../taskViews/transform/transform.types";
+import { PluginType } from "@ducks/shared/typings";
 
 /** Function to fetch the rule operator spec. */
 export type RuleOperatorFetchFnType = (
     pluginId: string,
-    pluginType?: RuleOperatorPluginType,
+    pluginType?: RuleOperatorPluginType | PluginType,
 ) => IRuleOperator | undefined;
 
 /** Properties that are used in multiple relevant interfaces in the rule editor. */

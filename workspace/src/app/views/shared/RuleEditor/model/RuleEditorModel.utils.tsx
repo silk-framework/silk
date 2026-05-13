@@ -2,6 +2,8 @@ import React from "react";
 import { ArrowHeadType, Edge, FlowElement, Position } from "react-flow-renderer";
 import { rangeArray } from "../../../../utils/basicUtils";
 import {
+    isDynamicPortSpecification,
+    maxInputPortCount,
     IParameterSpecification,
     IRuleNodeData,
     IRuleOperatorNode,
@@ -88,10 +90,7 @@ function createOperatorNode(
         y: node.position?.y ?? 0,
     };
     const usedInputs = node.inputs.length;
-    const numberOfInputPorts =
-        node.portSpecification.maxInputPorts != null
-            ? Math.max(node.portSpecification.maxInputPorts, node.portSpecification.minInputPorts, usedInputs)
-            : Math.max(node.portSpecification.minInputPorts, usedInputs + 1);
+    const numberOfInputPorts = maxInputPortCount(node.portSpecification, usedInputs);
 
     const handles: NodeContentHandleProps[] = [
         ...createInputHandles(numberOfInputPorts, operatorContext),
@@ -127,7 +126,7 @@ function createOperatorNode(
         iconName: node.icon,
         businessData: {
             originalRuleOperatorNode: node,
-            dynamicPorts: node.portSpecification.maxInputPorts == null,
+            dynamicPorts: isDynamicPortSpecification(node.portSpecification),
         },
         menuButtons: (
             <RuleNodeMenu
@@ -183,6 +182,7 @@ const nodeType = (pluginType: RuleOperatorPluginType | string, pluginId: string)
         case "ComparisonOperator":
             return "comparator";
         case "TransformOperator":
+        case "RuleBlock":
             return "transformation";
         case "PathInputOperator":
             return pluginId === "targetPathInput" ? "targetpath" : "sourcepath";

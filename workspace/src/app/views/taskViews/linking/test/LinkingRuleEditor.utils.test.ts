@@ -79,7 +79,7 @@ describe("Linking rule editor utils", () => {
         nodeId,
         pluginType = "PathInputOperator",
         pluginId = "unknown",
-        portSpecification = { minInputPorts: 0 },
+        portSpecification = { type: "count", minInputPorts: 0 },
         inputsCanBeSwitched = false,
         inputs = [],
         parameters = { reverse: "false" },

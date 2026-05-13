@@ -65,6 +65,7 @@ describe("Rule editor model", () => {
             tags: [],
             parameterSpecification: {},
             portSpecification: {
+                type: "count",
                 minInputPorts: 0,
             },
             inputsCanBeSwitched: false,
@@ -166,7 +167,7 @@ describe("Rule editor model", () => {
         nodeId,
         inputs = [],
         pluginId = "testPlugin",
-        portSpecification = { minInputPorts: 1 },
+        portSpecification = { type: "count", minInputPorts: 1 },
         position = nodeDefaultPosition,
         parameters = defaultParameters,
     }: NodeProps): IRuleOperatorNode => {
@@ -204,6 +205,7 @@ describe("Rule editor model", () => {
             pluginId: pluginId,
             pluginType: "unknown",
             portSpecification: {
+                type: "count",
                 minInputPorts: minInputPorts,
             },
             tags: [],
@@ -277,7 +279,7 @@ describe("Rule editor model", () => {
     it("should load initial rule nodes into the internal model", async () => {
         await ruleEditorModel(
             [
-                node({ nodeId: "node A", portSpecification: { minInputPorts: 0 } }),
+                node({ nodeId: "node A", portSpecification: { type: "count", minInputPorts: 0 } }),
                 node({ nodeId: "node B", inputs: ["node A"] }),
             ],
             [operator("pluginA", 0)],
@@ -921,6 +923,7 @@ describe("Rule editor model", () => {
                 nodeId: "nodeE",
                 inputs: [undefined, "nodeA"],
                 portSpecification: {
+                    type: "count",
                     minInputPorts: 3,
                     maxInputPorts: 3,
                 },
@@ -952,13 +955,13 @@ describe("Rule editor model", () => {
             // Each node can only have one output edge, so we need a lot of dummy nodes
             ...dummyNodes,
             node({ nodeId: "nodeA" }),
-            node({ nodeId: "nodeA2", portSpecification: { minInputPorts: 0, maxInputPorts: 0 } }),
+            node({ nodeId: "nodeA2", portSpecification: { type: "count", minInputPorts: 0, maxInputPorts: 0 } }),
             node({ nodeId: "nodeB" }),
             node({ nodeId: "nodeC", inputs: ["inputNode1", "inputNode2"] }),
             node({
                 nodeId: "nodeD",
                 inputs: ["inputNode3", "inputNode4"],
-                portSpecification: { minInputPorts: 2, maxInputPorts: 3 },
+                portSpecification: { type: "count", minInputPorts: 2, maxInputPorts: 3 },
             }),
             node({ nodeId: "nodeE", inputs: ["inputNode5", "inputNode6"] }),
             node({ nodeId: "nodeF", inputs: ["inputNode7", "inputNode8"] }),
@@ -1008,7 +1011,7 @@ describe("Rule editor model", () => {
             node({
                 nodeId: "nodeC",
                 position: initialPositions[2],
-                portSpecification: { minInputPorts: 2, maxInputPorts: 2 },
+                portSpecification: { type: "count", minInputPorts: 2, maxInputPorts: 2 },
             }),
         ]);
         const checkBefore = () => {

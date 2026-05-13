@@ -21,7 +21,7 @@ import scala.xml.{Elem, Node, Null, PCData}
 
 @Plugin(
   id = "ruleBlock",
-  label = "Rule Block",
+  label = "Rule block",
   categories = Array("Transform"),
   description = "Defines a reusable transform rule block that can be referenced from transform and linking rules."
 )

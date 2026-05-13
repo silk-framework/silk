@@ -48,6 +48,7 @@ const createInputPortOperator = (): IRuleOperator => {
             }),
         },
         portSpecification: {
+            type: "count",
             minInputPorts: 0,
             maxInputPorts: 0,
         },

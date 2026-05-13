@@ -17,7 +17,7 @@ object ItemType {
   case object dataset extends ItemType("dataset", "Dataset")
   case object transform extends ItemType("transform", "Transform")
   case object linking extends ItemType("linking", "Linking")
-  case object ruleBlock extends ItemType("ruleBlock", "Rule Block")
+  case object ruleBlock extends ItemType("ruleBlock", "Rule block")
   case object workflow extends ItemType("workflow", "Workflow")
   case object task extends ItemType("task", "Task")
 

@@ -23,6 +23,7 @@ import {
     requestTransformRule,
 } from "./transform.requests";
 import {
+    IParameterSpecification,
     IRuleOperatorNode,
     RULE_EDITOR_NOTIFICATION_INSTANCE,
     RuleSaveNodeError,
@@ -32,7 +33,7 @@ import {
 import ruleUtils from "../shared/rules/rule.utils";
 import { optionallyLabelledParameterToValue } from "../linking/linking.types";
 import { IAutocompleteDefaultResponse } from "@ducks/shared/typings";
-import { inputPathTab } from "./transformEditor.utils";
+import transformEditorUtils, { TransformRuleEditorOperator } from "./transformEditor.utils";
 import { FetchError } from "../../../services/fetch/responseInterceptor";
 import TransformRuleEvaluation from "./evaluation/TransformRuleEvaluation";
 import { DatasetCharacteristics } from "../../shared/typings";
@@ -40,6 +41,8 @@ import { requestDatasetCharacteristics, requestTaskData } from "@ducks/shared/re
 import { GlobalMappingEditorContext } from "../../pages/MappingEditor/contexts/GlobalMappingEditorContext";
 import { StickyNote } from "@eccenca/gui-elements";
 import { CodeAutocompleteFieldPartialAutoCompleteResult } from "@eccenca/gui-elements/src/components/AutoSuggestion/AutoSuggestion";
+import { requestSearchList } from "@ducks/workspace/requests";
+import { IRuleBlockTaskParameters } from "../ruleBlock/ruleBlock.types";
 
 export interface TransformRuleEditorProps {
     /** Project ID the task is in. */
@@ -99,11 +102,44 @@ export const TransformRuleEditor = ({
             );
         }
     };
+    /** Fetches reusable rule blocks that can be referenced from transform rules. */
+    const fetchRuleBlockOperators = async (): Promise<TransformRuleEditorOperator[]> => {
+        const limit = 100;
+        let offset = 0;
+        const ruleBlockTasks: TransformRuleEditorOperator[] = [];
+        while (true) {
+            const response = await requestSearchList({
+                project: projectId,
+                itemType: "ruleBlock",
+                limit,
+                offset,
+                sortBy: "label",
+            });
+            const results = response.results;
+            if (!results.length) {
+                break;
+            }
+            const taskResponses = await Promise.all(
+                results.map((result) => requestTaskData<IRuleBlockTaskParameters>(projectId, result.id)),
+            );
+            taskResponses.forEach((taskResponse) => {
+                ruleBlockTasks.push(transformEditorUtils.ruleBlockTaskToOperator(taskResponse.data));
+            });
+            offset += results.length;
+            if (offset >= response.total) {
+                break;
+            }
+        }
+        return ruleBlockTasks;
+    };
     /** Fetches the list of operators that can be used in a transform task. */
-    const fetchTransformRuleOperatorList = async () => {
+    const fetchTransformRuleOperatorList = async (): Promise<TransformRuleEditorOperator[] | undefined> => {
         try {
-            const response = (await requestRuleOperatorPluginsDetails(true)).data;
-            return Object.values(response);
+            const [response, ruleBlockOperators] = await Promise.all([
+                requestRuleOperatorPluginsDetails(true),
+                fetchRuleBlockOperators(),
+            ]);
+            return [...Object.values(response.data), ...ruleBlockOperators];
         } catch (err) {
             registerError(
                 "TransformRuleEditor_fetchTransformRuleOperatorDetails",
@@ -210,6 +246,21 @@ export const TransformRuleEditor = ({
         return operatorNodes;
     };
 
+    const convertRuleOperator = (
+        operator: TransformRuleEditorOperator,
+        addAdditionParameterSpecifications: (
+            pluginDetails: TransformRuleEditorOperator,
+        ) => [id: string, spec: IParameterSpecification][],
+    ) => {
+        if (transformEditorUtils.isRuleBlockOperator(operator)) {
+            return transformEditorUtils.convertRuleBlockOperator(operator);
+        } else {
+            return ruleUtils.convertRuleOperator(operator, (pluginDetails: IPluginDetails) =>
+                addAdditionParameterSpecifications(pluginDetails),
+            );
+        }
+    };
+
     const getStickyNotes = (mapping: IComplexMappingRule): StickyNote[] =>
         (mapping && optionallyLabelledParameterToValue(mapping.uiAnnotations.stickyNotes)) || [];
 
@@ -301,7 +352,7 @@ export const TransformRuleEditor = ({
     const tabs = React.useMemo(() => {
         return [
             ruleUtils.sidebarTabs.all,
-            inputPathTab(
+            transformEditorUtils.inputPathTab(
                 projectId,
                 transformTaskId,
                 isReferencedRule ? (ruleDefinition as RuleReference).ruleId : containerRuleId,
@@ -312,12 +363,13 @@ export const TransformRuleEditor = ({
                         t("taskViews.linkRulesEditor.errors.fetchLinkingPaths.msg"),
                         ex,
                         { errorNotificationInstanceId: RULE_EDITOR_NOTIFICATION_INSTANCE },
-                    ),
+                ),
                 mappingEditorContext.taskContext,
             ),
+            transformEditorUtils.ruleBlockTab(),
             ruleUtils.sidebarTabs.transform,
         ];
-    }, []);
+    }, [containerRuleId, isReferencedRule, mappingEditorContext.taskContext, projectId, ruleDefinition, t, transformTaskId]);
 
     return (
         <TransformRuleEvaluation
@@ -326,13 +378,13 @@ export const TransformRuleEditor = ({
             containerRuleId={containerRuleId}
             numberOfLinkToShow={5}
         >
-            <RuleEditor<IComplexMappingRule, IPluginDetails>
+            <RuleEditor<IComplexMappingRule, TransformRuleEditorOperator>
                 projectId={projectId}
                 taskId={transformTaskId}
                 fetchRuleData={fetchTransformRule}
                 fetchRuleOperators={fetchTransformRuleOperatorList}
                 saveRule={saveTransformRule}
-                convertRuleOperator={ruleUtils.convertRuleOperator}
+                convertRuleOperator={convertRuleOperator}
                 convertToRuleOperatorNodes={convertToRuleOperatorNodes}
                 partialAutoCompletion={fetchPartialAutoCompletionResult}
                 viewActions={viewActions}

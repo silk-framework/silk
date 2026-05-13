@@ -15,6 +15,8 @@ import { RuleEditorContext, RuleEditorContextProps } from "../contexts/RuleEdito
 import { IOperatorCreateContext, IOperatorNodeOperations, ruleEditorModelUtilsFactory } from "./RuleEditorModel.utils";
 import { useTranslation } from "react-i18next";
 import {
+    isDynamicPortSpecification,
+    minInputPortCount,
     IParameterSpecification,
     IRuleOperator,
     IRuleOperatorNode,
@@ -216,6 +218,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
             switch (ruleOperatorNode.pluginType) {
                 case "PathInputOperator":
                 case "TransformOperator":
+                case "RuleBlock":
                     return "value";
                 case "ComparisonOperator":
                 case "AggregationOperator":
@@ -1857,8 +1860,8 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
             const inputs = inputHandleIds.map((handleId) => inputEdgeMap.get(handleId));
             const portSpec = node.data.businessData.originalRuleOperatorNode.portSpecification;
             // Remove undefined input ports above last defined input if spec allows it
-            if (!portSpec.maxInputPorts) {
-                while (inputs.length > Math.max(portSpec.minInputPorts - 1, 0) && inputs[inputs.length - 1] == null) {
+            if (isDynamicPortSpecification(portSpec)) {
+                while (inputs.length > Math.max(minInputPortCount(portSpec) - 1, 0) && inputs[inputs.length - 1] == null) {
                     inputs.pop();
                 }
             }

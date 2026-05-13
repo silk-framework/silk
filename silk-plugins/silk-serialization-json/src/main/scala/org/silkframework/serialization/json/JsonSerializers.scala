@@ -278,7 +278,7 @@ object JsonSerializers {
   }
 
   /**
-    * Rule Block Binding
+    * Rule block binding
     */
   implicit object RuleBlockBindingJsonFormat extends JsonFormat[RuleBlockBinding] {
     final val PORT_ID = "portId"
@@ -300,7 +300,7 @@ object JsonSerializers {
   }
 
   /**
-    * Rule Block Input
+    * Rule block Input
     */
   implicit object RuleBlockInputJsonFormat extends JsonFormat[RuleBlockInput] {
     final val RULE_BLOCK_ID = "ruleBlockId"

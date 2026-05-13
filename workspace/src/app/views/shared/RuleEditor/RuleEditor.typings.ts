@@ -11,6 +11,55 @@ export type InputPortOperator = "InputPortOperator";
 
 export type RuleOperatorPluginType = PathInputOperator | InputPortOperator | RuleOperatorType;
 
+export interface INamedInputPortSpecification {
+    /** Stable ID of the input port. */
+    id: string;
+}
+
+export interface ICountPortSpecification {
+    /** Numeric input-port specification used by regular operators. */
+    type: "count";
+    /** Minimal number of input ports. */
+    minInputPorts: number;
+    /** Max. number of input ports. If this is missing, then there is a unlimited number allowed. */
+    maxInputPorts?: number;
+}
+
+export interface INamedPortSpecification {
+    /** Stable named input-port specification used by reusable rule blocks. */
+    type: "named";
+    /** Input ports in their UI order. */
+    inputPorts: INamedInputPortSpecification[];
+}
+
+export type IPortSpecification = ICountPortSpecification | INamedPortSpecification;
+
+export const isNamedPortSpecification = (
+    portSpecification: IPortSpecification,
+): portSpecification is INamedPortSpecification => portSpecification.type === "named";
+
+export const minInputPortCount = (portSpecification: IPortSpecification): number =>
+    isNamedPortSpecification(portSpecification) ? portSpecification.inputPorts.length : portSpecification.minInputPorts;
+
+export const maxInputPortCount = (
+    portSpecification: IPortSpecification,
+    usedInputs: number = 0,
+): number => {
+    if (isNamedPortSpecification(portSpecification)) {
+        return Math.max(portSpecification.inputPorts.length, usedInputs);
+    } else if (portSpecification.maxInputPorts != null) {
+        return Math.max(portSpecification.maxInputPorts, portSpecification.minInputPorts, usedInputs);
+    } else {
+        return Math.max(portSpecification.minInputPorts, usedInputs + 1);
+    }
+};
+
+export const isDynamicPortSpecification = (portSpecification: IPortSpecification): boolean =>
+    !isNamedPortSpecification(portSpecification) && portSpecification.maxInputPorts == null;
+
+export const inputPortId = (portSpecification: IPortSpecification, idx: number): string | undefined =>
+    isNamedPortSpecification(portSpecification) ? portSpecification.inputPorts[idx]?.id : undefined;
+
 interface IRuleOperatorBase {
     /** Plugin type. */
     pluginType: RuleOperatorPluginType | PluginType | "unknown";
@@ -22,14 +71,6 @@ interface IRuleOperatorBase {
     icon?: ValidIconName;
     /** Specification of input ports of the operator node. */
     portSpecification: IPortSpecification;
-}
-
-/** The specification of the number of ports. */
-export interface IPortSpecification {
-    /** Minimal number of input ports. */
-    minInputPorts: number;
-    /** Max. number of input ports. If this is missing, then there is a unlimited number allowed. */
-    maxInputPorts?: number;
 }
 
 /** Rule operator that can be added to a rule. Will be displayed in the sidebar. */
