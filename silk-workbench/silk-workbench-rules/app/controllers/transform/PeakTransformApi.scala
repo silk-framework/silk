@@ -426,7 +426,7 @@ object PeakTransformApi {
             errorMessage = error.error.getClass.getSimpleName + ": " + Option(error.error.getMessage).getOrElse("")
           }
         }
-        if (transformResult.values.nonEmpty && matchesSearch(entity.values, transformResult.values, needle)) {
+        if (matchesSearch(entity.values, transformResult.values, needle)) {
           if (skippedCounter < offset) {
             skippedCounter += 1
           } else if (exampleCounter < limit) {

@@ -41,16 +41,18 @@ class PeakTransformApiTest extends AnyFlatSpec with SingleProjectWorkspaceProvid
       entity(Seq(), Seq())
     )
     val (tries, errors, errorMsg, peakResult, hasMore, total) =
-      PeakTransformApi.collectTransformationExamples(rule, entities.iterator, limit = 3, computeTotal = true)
+      PeakTransformApi.collectTransformationExamples(rule, entities.iterator, limit = 10, computeTotal = true)
     tries mustBe 5
     errors mustBe 0
     errorMsg mustBe ""
     hasMore mustBe false
-    total mustBe 3
+    total mustBe 5
     peakResult mustBe Seq(
       PeakResult(Seq(Seq("aValue"), Seq("bValue")),Seq("a", "Value", "b", "Value")),
       PeakResult(Seq(Seq("aValue1"), Seq()),Seq("a", "Value1")),
-      PeakResult(Seq(Seq(), Seq("bValue2")),Seq("b", "Value2"))
+      PeakResult(Seq(Seq(), Seq()), Seq()),
+      PeakResult(Seq(Seq(), Seq("bValue2")),Seq("b", "Value2")),
+      PeakResult(Seq(Seq(), Seq()), Seq())
     )
   }
 
@@ -60,7 +62,7 @@ class PeakTransformApiTest extends AnyFlatSpec with SingleProjectWorkspaceProvid
     ComplexMapping(operator = transformation)
   }
 
-  it should "collect transformation examples skipping empty transformation results" in {
+  it should "collect transformation examples including entities whose transform result is empty" in {
     val rule = transformRule(ConcatTransformer(" "))
     val entities = Iterator(
       entity(Seq("aValue"), Seq("bValue")),
@@ -71,15 +73,19 @@ class PeakTransformApiTest extends AnyFlatSpec with SingleProjectWorkspaceProvid
       entity(Seq(), Seq())
     )
     val (tries, errors, errorMsg, peakResult, hasMore, total) =
-      PeakTransformApi.collectTransformationExamples(rule, entities, limit = 3, computeTotal = true)
+      PeakTransformApi.collectTransformationExamples(rule, entities, limit = 10, computeTotal = true)
     tries mustBe 6
     errors mustBe 0
     errorMsg mustBe ""
     hasMore mustBe false
-    total mustBe 2
+    total mustBe 6
     peakResult mustBe Seq(
       PeakResult(Seq(Seq("aValue"), Seq("bValue")), Seq("aValue bValue")),
-      PeakResult(Seq(Seq("aValue3"), Seq("bValue3")), Seq("aValue3 bValue3"))
+      PeakResult(Seq(Seq("aValue1"), Seq()), Seq()),
+      PeakResult(Seq(Seq(), Seq()), Seq()),
+      PeakResult(Seq(Seq(), Seq("bValue2")), Seq()),
+      PeakResult(Seq(Seq("aValue3"), Seq("bValue3")), Seq("aValue3 bValue3")),
+      PeakResult(Seq(Seq(), Seq()), Seq())
     )
   }
 
@@ -171,23 +177,24 @@ class PeakTransformApiTest extends AnyFlatSpec with SingleProjectWorkspaceProvid
     peakResult mustBe Seq()
   }
 
-  it should "skip only successful results, not entities that produced empty output" in {
+  it should "count every entity toward offset/total, even those with empty transform output" in {
     val rule = transformRule(ConcatTransformer(" "))
     val entities = Iterator(
-      entity(Seq("a1"), Seq("b1")),       // successful → skipped (counts toward offset)
-      entity(Seq("a2"), Seq()),           // empty → not counted toward offset
-      entity(Seq("a3"), Seq("b3")),       // successful → skipped
-      entity(Seq(), Seq()),               // empty → not counted
-      entity(Seq("a4"), Seq("b4")),       // successful → first result of page
-      entity(Seq("a5"), Seq("b5"))        // successful → second result of page
+      entity(Seq("a1"), Seq("b1")),       // skipped (counts toward offset)
+      entity(Seq("a2"), Seq()),           // skipped (counts toward offset)
+      entity(Seq("a3"), Seq("b3")),       // first result of page
+      entity(Seq(), Seq()),               // second result of page
+      entity(Seq("a4"), Seq("b4")),       // third result of page
+      entity(Seq("a5"), Seq("b5"))        // tail
     )
     val (_, _, _, peakResult, hasMore, total) =
       PeakTransformApi.collectTransformationExamples(rule, entities, limit = 3, offset = 2, computeTotal = true)
-    hasMore mustBe false
-    total mustBe 4
+    hasMore mustBe true
+    total mustBe 6
     peakResult mustBe Seq(
-      PeakResult(Seq(Seq("a4"), Seq("b4")), Seq("a4 b4")),
-      PeakResult(Seq(Seq("a5"), Seq("b5")), Seq("a5 b5"))
+      PeakResult(Seq(Seq("a3"), Seq("b3")), Seq("a3 b3")),
+      PeakResult(Seq(Seq(), Seq()), Seq()),
+      PeakResult(Seq(Seq("a4"), Seq("b4")), Seq("a4 b4"))
     )
   }
 
