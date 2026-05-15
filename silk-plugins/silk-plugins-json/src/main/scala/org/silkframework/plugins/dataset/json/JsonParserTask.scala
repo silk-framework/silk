@@ -9,7 +9,7 @@ import org.silkframework.util.Uri
 @Plugin(
   id = JsonParserTask.pluginId,
   label = "Parse JSON",
-  description = "Parses an incoming entity as a JSON dataset. Typically, it is used before a transformation task. Takes exactly one input of which only the first entity is processed.",
+  description = "Parses a JSON string carried as a field value on each incoming entity. Typically used before a transformation task. Takes exactly one input.",
   documentationFile = "JsonParserTaskDocumentation.md",
   relatedPlugins = Array(
     new PluginReference(

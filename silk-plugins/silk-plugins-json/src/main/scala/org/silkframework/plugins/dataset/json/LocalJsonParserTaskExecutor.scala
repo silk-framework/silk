@@ -12,8 +12,9 @@ import org.silkframework.runtime.resource.InMemoryResourceManager
 
 
 /**
-  * Only considers the first input and checks for the property path defined in the [[JsonParserTask]] specification.
-  * It will only read a property value of the first entity, following entities are ignored.
+  * Executor for [[JsonParserTask]]. Takes a single input table and iterates over every entity in it, reading the
+  * JSON string at the configured input path on each and parsing it according to the schema requested by the
+  * downstream consumer.
   */
 case class LocalJsonParserTaskExecutor() extends LocalExecutor[JsonParserTask] {
 

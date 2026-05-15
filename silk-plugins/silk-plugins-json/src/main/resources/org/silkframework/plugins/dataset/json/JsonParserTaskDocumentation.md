@@ -1,18 +1,18 @@
 ## Parse JSON
 
-Parse JSON is a workflow operator that extracts structured data from a JSON string carried as a field value by an
-incoming entity. It sits inside a pipeline between an upstream source and a downstream consumer — typically a
+Parse JSON is a workflow operator that extracts structured data from a JSON string carried as a field value by
+incoming entities. It sits inside a pipeline between an upstream source and a downstream consumer — typically a
 transformation — and turns the JSON content into entities ready for further processing.
 
 The operator is useful whenever JSON arrives not as a file but as a string stored in a field: the result of an HTTP
-request, a column in a database record, a payload embedded in another dataset. Rather than requiring that content to be
-written to a temporary file and read back through a dataset, Parse JSON handles it directly in the pipeline.
+request, a column in a database record, a payload embedded in another dataset. Parse JSON consumes that string in place
+and produces entities for the rest of the pipeline.
 
 ## Input
 
-Parse JSON accepts exactly one input operator. From that input it reads only the first entity — all subsequent entities
-in the input stream are ignored. The operator extracts the JSON string from a field on that entity, parses it, and
-produces output entities from its contents.
+Parse JSON accepts exactly one input. It iterates over every entity in that input, extracts the JSON string from a
+field on each entity, parses it, and produces output entities from its contents. The output entities from all input
+entities are concatenated into a single stream for the downstream consumer.
 
 Which field is used as the JSON source is controlled by the *Input path* parameter. When set, Parse JSON looks for the
 JSON string at the given path expression. When left empty, it reads the value of the first available field. If no value
@@ -46,13 +46,16 @@ string representation of a node, retrieving the current key name, and accessing 
 
 ## Schema
 
-Before producing output entities, Parse JSON needs to know which fields to extract. This schema is always supplied by a
-downstream operator — typically a transformation — that declares the fields it expects. Parse JSON receives that schema
-as part of the execution pipeline and uses it directly to extract values from the parsed JSON.
+Before producing output entities, Parse JSON needs to know which fields to extract. The set of fields — the output
+schema — is requested by the downstream consumer and reaches Parse JSON before any parsing happens. Parse JSON walks
+the parsed JSON once per requested field, evaluates the field's path expression against the configured base path, and
+writes the resulting values onto the output entity. When the consumer requests a multi-entity schema, Parse JSON
+produces the root entities and the nested sub-entity tables in a single pass. In practice that consumer is a
+transformation.
 
-Parse JSON cannot be connected directly to a dataset. A dataset does not declare an input schema, so there would be
-nothing to tell Parse JSON which fields to read. Workflows that wire Parse JSON straight into a dataset will fail with
-an explicit error at execution time.
+Parse JSON cannot be connected directly to a dataset. A dataset declares no fields to read, so Parse JSON has nothing
+to extract. Workflows that wire Parse JSON straight into a dataset fail at execution time with an error stating that
+the operator cannot be connected directly to a dataset and must feed an operator that declares a target schema.
 
 ## Example
 
