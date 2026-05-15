@@ -21,7 +21,7 @@ import org.silkframework.entity.paths.{TypedPath, UntypedPath}
 import org.silkframework.plugins.path.{PathMetaDataPlugin, StandardMetaDataPlugin}
 import org.silkframework.rule.evaluation._
 import org.silkframework.rule.execution.{Linking, GenerateLinks => GenerateLinksActivity}
-import org.silkframework.rule.{DatasetSelection, LinkSpec, LinkageRule, LinkageRuleExecution, RuntimeLinkingConfig, TaskContext}
+import org.silkframework.rule.{DatasetSelection, LinkSpec, LinkageRule, LinkageRuleExecution, RuntimeLinkingConfig}
 import org.silkframework.runtime.activity.{Activity, UserContext}
 import org.silkframework.runtime.plugin.TaskResolver
 import org.silkframework.runtime.resource.ResourceManager
@@ -29,7 +29,7 @@ import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlSe
 import org.silkframework.runtime.validation._
 import org.silkframework.serialization.json.JsonSerialization
 import org.silkframework.serialization.json.JsonSerializers.LinkageRuleJsonFormat
-import org.silkframework.serialization.json.LinkingSerializers.LinkJsonFormat
+import org.silkframework.serialization.json.LinkingSerializers.{LinkJsonFormat, LinkWithEvaluationJsonFormat}
 import org.silkframework.util.Identifier._
 import org.silkframework.util.{DPair, Identifier, StringUtils, Uri}
 import org.silkframework.workbench.utils.{ErrorResult, UnsupportedMediaTypeException}
@@ -681,13 +681,14 @@ class LinkingTaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends I
 
   private def serializeLinks(entities: Iterable[DPair[Entity]],
                              linkageRule: LinkageRuleExecution,
-                             taskContext: TaskContext,
                              withEntitiesAndSchema: Boolean = false)
                             (implicit writeContext: WriteContext[JsValue]): JsValue = {
+    val format = new LinkWithEvaluationJsonFormat(
+      writeEntities = withEntitiesAndSchema,
+      writeEntitySchema = withEntitiesAndSchema)
     JsArray(
       for(entities <- entities.toSeq) yield {
-        val link = new FullLink(entities.source.uri, entities.target.uri, linkageRule(entities), entities)
-        new LinkJsonFormat(Some(linkageRule.operator), writeEntities = withEntitiesAndSchema, writeEntitySchema = withEntitiesAndSchema, taskContext = taskContext).write(link)
+        format.write(DetailedEvaluator(linkageRule, entities))
       }
     )
   }
@@ -746,8 +747,8 @@ class LinkingTaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends I
     implicit val writeContext: WriteContext[JsValue] = WriteContext.fromProject[JsValue](project)
     val result =
       Json.obj(
-        "positive" -> serializeLinks(referenceEntityCacheValue.positiveEntities, rule, task.taskContext, withEntitiesAndSchema),
-        "negative" -> serializeLinks(referenceEntityCacheValue.negativeEntities, rule, task.taskContext, withEntitiesAndSchema),
+        "positive" -> serializeLinks(referenceEntityCacheValue.positiveEntities, rule, withEntitiesAndSchema),
+        "negative" -> serializeLinks(referenceEntityCacheValue.negativeEntities, rule, withEntitiesAndSchema),
         "evaluationScore" -> Json.toJson(evaluationResult)
       )
 
@@ -795,7 +796,7 @@ class LinkingTaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends I
       val referenceEntityCacheValue = updateAndGetReferenceEntityCacheValue(task, refreshCache = false)
       implicit val writeContext: WriteContext[JsValue] = WriteContext.fromProject[JsValue](project)
       def serialize(links: Iterable[DPair[Entity]]): JsValue = {
-        serializeLinks(links.take(linkLimit), ruleWithContext, task.taskContext)
+        serializeLinks(links.take(linkLimit), ruleWithContext)
       }
       val evaluationResult: LinkageRuleEvaluationResult = LinkingTaskApiUtils.referenceLinkEvaluationScore(ruleWithContext, referenceEntityCacheValue)
 
@@ -971,16 +972,19 @@ class LinkingTaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends I
     SerializationUtils.deserializeCompileTime[LinkageRule](defaultMimeType = SerializationUtils.APPLICATION_JSON) { linkageRule =>
       val runtimeConfig = RuntimeLinkingConfig(executionTimeout = Some(timeoutInMs), linkLimit = Some(linkLimit),
         generateLinksWithEntities = true, includeReferenceLinks = includeReferenceLinks)
-      val linksActivity = new GenerateLinksActivity(task, sources, None, runtimeConfig, Some(linkageRule.execution(task.taskContext)))
+      val ruleExecution = linkageRule.execution(task.taskContext)
+      val linksActivity = new GenerateLinksActivity(task, sources, None, task.taskContext, runtimeConfig, Some(ruleExecution))
       val control = Activity(linksActivity)
       control.startBlocking()
       control.value.get match {
         case Some(linking) =>
-          val linkJsonFormat = new LinkJsonFormat(Some(linking.rule), taskContext = task.taskContext)
+          val linkJsonFormat = new LinkWithEvaluationJsonFormat()
           implicit val writeContext: WriteContext[JsValue] = WriteContext.fromProject[JsValue](project)
           Ok(JsArray(
             for(link <- linking.links) yield {
-              linkJsonFormat.write(link)
+              val entities = link.entities.getOrElse(
+                throw new IllegalStateException("GenerateLinksActivity produced a link without entities"))
+              linkJsonFormat.write(DetailedEvaluator(ruleExecution, entities))
             }
           ))
         case None =>
@@ -1218,11 +1222,12 @@ class LinkingTaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends I
 
   private def linkEvaluationJsonResult(evaluationActivityStats: Option[LinkRuleEvaluationStats],
                                        linkingRule: LinkageRule,
-                                       links: Seq[Link],
+                                       links: Seq[LinkWithEvaluation],
                                        resultStats: ResultStats,
                                        inputTaskLabels: (String, String))
                                       (implicit writeContext: WriteContext[JsValue]) = {
-    val linksJson = links.map(LinkJsonFormat.write)
+    val linkFormat = new LinkWithEvaluationJsonFormat()
+    val linksJson = links.map(linkFormat.write)
     Ok(Json.obj(
       "links" -> linksJson,
       "linkRule" -> JsonSerialization.toJson(linkingRule),

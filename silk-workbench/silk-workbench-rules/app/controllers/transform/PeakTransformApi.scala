@@ -43,7 +43,7 @@ class PeakTransformApi @Inject() () extends InjectedController with UserContextA
     */
   @Operation(
     summary = "Mapping Rule Transformation Examples",
-    description = "Get transformation examples for the selected transformation rule. The input task of the transformation task has to be a Dataset task. Also the Dataset task must support this feature.",
+    description = "Get transformation examples for the selected transformation rule. Note: this endpoint only handles value rules. The input task of the transformation task has to be a Dataset task. Also the Dataset task must support this feature.",
     responses = Array(
       new ApiResponse(
         responseCode = "200",
@@ -74,7 +74,7 @@ class PeakTransformApi @Inject() () extends InjectedController with UserContextA
             taskName: String,
             @Parameter(
               name = "rule",
-              description = "The rule identifier",
+              description = "The value rule identifier",
               required = true,
               in = ParameterIn.PATH,
               schema = new Schema(implementation = classOf[String])
