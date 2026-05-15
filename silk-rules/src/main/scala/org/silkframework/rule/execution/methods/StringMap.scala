@@ -3,7 +3,7 @@ package org.silkframework.rule.execution.methods
 import org.silkframework.cache.Partition
 import org.silkframework.entity.paths.UntypedPath
 import org.silkframework.entity.{Entity, Index}
-import org.silkframework.rule.LinkageRule
+import org.silkframework.rule.LinkageRuleExecution
 import org.silkframework.rule.execution.ExecutionMethod
 import org.silkframework.rule.execution.methods.StringMap.Mapper
 import org.silkframework.rule.plugins.distance.characterbased.LevenshteinDistance
@@ -16,7 +16,7 @@ case class StringMap(sourceKey: UntypedPath, targetKey: UntypedPath, distThresho
    * Generates an index for a single entity.
    * StringMap don't uses the indexing.
    */
-  override def indexEntity(entity: Entity, rule: LinkageRule, sourceOrTarget: Boolean): Index = Index.default
+  override def indexEntity(entity: Entity, rule: LinkageRuleExecution, sourceOrTarget: Boolean): Index = Index.default
 
   /**
    * Generates comparison pairs from two partitions.

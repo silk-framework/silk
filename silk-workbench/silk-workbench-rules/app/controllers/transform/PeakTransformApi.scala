@@ -20,7 +20,8 @@ import org.silkframework.entity.paths.{Path, UntypedPath}
 import org.silkframework.plugins.dataset.rdf.executors.{LocalSparqlSelectExecutor, LocalSparqlSelectIterator}
 import org.silkframework.plugins.dataset.rdf.tasks.SparqlSelectCustomTask
 import org.silkframework.rule.TransformSpec.RuleSchemata
-import org.silkframework.rule.{ComplexUriMapping, TaskContext, TransformRule, TransformSpec}
+import org.silkframework.rule.input.Value
+import org.silkframework.rule.{ComplexUriMapping, TaskContext, TransformRule, TransformRuleExecution, TransformSpec, ValueTransformRuleExecution}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.PluginContext
 import org.silkframework.runtime.serialization.ReadContext
@@ -42,7 +43,7 @@ class PeakTransformApi @Inject() () extends InjectedController with UserContextA
     */
   @Operation(
     summary = "Mapping Rule Transformation Examples",
-    description = "Get transformation examples for the selected transformation rule. The input task of the transformation task has to be a Dataset task. Also the Dataset task must support this feature.",
+    description = "Get transformation examples for the selected transformation rule. Note: this endpoint only handles value rules. The input task of the transformation task has to be a Dataset task. Also the Dataset task must support this feature.",
     responses = Array(
       new ApiResponse(
         responseCode = "200",
@@ -73,7 +74,7 @@ class PeakTransformApi @Inject() () extends InjectedController with UserContextA
             taskName: String,
             @Parameter(
               name = "rule",
-              description = "The rule identifier",
+              description = "The value rule identifier",
               required = true,
               in = ParameterIn.PATH,
               schema = new Schema(implementation = classOf[String])
@@ -261,7 +262,7 @@ class PeakTransformApi @Inject() () extends InjectedController with UserContextA
           case peakDataSource: PeakDataSource =>
             try {
               peakDataSource.peak(ruleSchemata.inputSchema, sourceFetchSize).use { exampleEntities =>
-                generateMappingPreviewResponse(ruleSchemata.transformRule.withContext(TaskContext(Seq(inputTask), PluginContext.fromProject(project))), exampleEntities, limit, offset, sourceFetchSize, effectiveSearch, computeTotal)
+                generateMappingPreviewResponse(ruleSchemata.transformRule.execution(TaskContext.forInput(inputTask)), exampleEntities, limit, offset, sourceFetchSize, effectiveSearch, computeTotal)
               }
             } catch {
               case pe: PeakException =>
@@ -306,7 +307,7 @@ class PeakTransformApi @Inject() () extends InjectedController with UserContextA
           val entityDatasource = EntityDatasource(datasetTask, entities, sparqlSelectTask.outputSchema)
           try {
             entityDatasource.peak(ruleSchemata.inputSchema, sourceFetchSize).use { exampleEntities =>
-              generateMappingPreviewResponse(ruleSchemata.transformRule, exampleEntities, limit, offset, sourceFetchSize, search, computeTotal)
+              generateMappingPreviewResponse(ruleSchemata.transformRule.execution(TaskContext.noInput), exampleEntities, limit, offset, sourceFetchSize, search, computeTotal)
             }
           } catch {
             case pe: PeakException =>
@@ -321,7 +322,7 @@ class PeakTransformApi @Inject() () extends InjectedController with UserContextA
   }
 
   // Generate the HTTP response for the mapping transformation preview
-  private def generateMappingPreviewResponse(rule: TransformRule,
+  private def generateMappingPreviewResponse(ruleExecution: TransformRuleExecution,
                                              exampleEntities: Iterator[Entity],
                                              limit: Int,
                                              offset: Int,
@@ -329,8 +330,9 @@ class PeakTransformApi @Inject() () extends InjectedController with UserContextA
                                              search: Option[String],
                                              computeTotal: Boolean)
                                             (implicit prefixes: Prefixes) = {
+    val rule = ruleExecution.operator
     val (tryCounter, errorCounter, errorMessage, sourceAndTargetResults, hasMore, totalWithinBudget) =
-      collectTransformationExamples(rule, exampleEntities, limit, offset, search, computeTotal)
+      collectTransformationExamples(ruleExecution, exampleEntities, limit, offset, search, computeTotal)
     // Only expose pagination metadata when the caller asked for total/pagination. Otherwise scanning
     // stopped at `limit` and the counts wouldn't be meaningful.
     val nextOffset = if (computeTotal && hasMore) Some(offset + limit) else None
@@ -385,18 +387,21 @@ object PeakTransformApi {
   final val NOT_SUPPORTED_STATUS_MSG = "not supported"
 
   /**
-    *
-    * @param rule            The transformation rule to execute on the example entities.
-    * @param exampleEntities Entities to try executing the tranform rule on
+    * @param ruleExecution   The contextualized transformation rule to execute on the example entities.
+    * @param exampleEntities Entities to try executing the transform rule on
     * @param limit           Limit of examples to return
-    * @return
     */
-  def collectTransformationExamples(rule: TransformRule,
+  def collectTransformationExamples(ruleExecution: TransformRuleExecution,
                                     exampleEntities: Iterator[Entity],
                                     limit: Int,
                                     offset: Int = 0,
                                     search: Option[String] = None,
                                     computeTotal: Boolean = false): (Int, Int, String, Seq[PeakResult], Boolean, Int) = {
+    val ruleApply: Entity => Value = ruleExecution match {
+      case ve: ValueTransformRuleExecution => ve.apply
+      case other =>
+        throw new IllegalArgumentException(s"Cannot generate a mapping preview for non-value rule '${other.operator.id}'.")
+    }
     // Number of examples collected (after skipping `offset` successful ones)
     var exampleCounter = 0
     // Number of successful (and matching) results skipped to honor `offset`
@@ -419,7 +424,7 @@ object PeakTransformApi {
       tryCounter += 1
       val entity = exampleEntities.next()
       try {
-        val transformResult = rule(entity)
+        val transformResult = ruleApply(entity)
         for(error <- transformResult.errors) {
           errorCounter += 1
           if (errorMessage.isEmpty) {

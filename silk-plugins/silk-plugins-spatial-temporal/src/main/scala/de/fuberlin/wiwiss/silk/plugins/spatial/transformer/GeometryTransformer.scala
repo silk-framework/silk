@@ -15,7 +15,7 @@
 package org.silkframework.plugins.spatial.transformer
 
 import org.silkframework.plugins.spatial.utils._
-import org.silkframework.rule.input.Transformer
+import org.silkframework.rule.input.InlineTransformer
 import org.silkframework.runtime.plugin.annotations.Plugin
 
 /**
@@ -30,7 +30,7 @@ import org.silkframework.runtime.plugin.annotations.Plugin
   categories = Array("Spatial"),
   label = "Transform geometry",
   description = "Trasforms a geometry expressed in GeoSPARQL, stSPARQL or W3C Geo vocabulary from any serialization (WKT or GML) and any Coordinate Reference System (CRS) to WKT and WGS 84 (latitude-longitude).")
-case class GeometryTransformer() extends Transformer {
+case class GeometryTransformer() extends InlineTransformer {
 
   override final def apply(values: Seq[Seq[String]]): Seq[String] = {
 
