@@ -1,47 +1,33 @@
 import transformEditorUtils, { IRuleBlockOperatorDetails } from "./transformEditor.utils";
-import { IProjectTask } from "@ducks/shared/typings";
-import { IRuleBlockTaskParameters } from "../ruleBlock/ruleBlock.types";
+import { IRuleBlockSummary } from "../ruleBlock/ruleBlock.types";
 
 describe("transformEditorUtils", () => {
-    it("should convert a rule block task to a reusable operator summary with sorted ports", () => {
-        const ruleBlockTask: IProjectTask<IRuleBlockTaskParameters> = {
+    it("should convert a rule block summary to a reusable operator summary with sorted ports", () => {
+        const ruleBlockSummary: IRuleBlockSummary = {
             id: "normalizeName",
-            project: "projectA",
-            taskType: "RuleBlock",
-            metadata: {
-                label: "Normalize name",
-                description: "Reusable normalization",
-            },
-            data: {
-                type: "ruleBlock",
-                parameters: {
-                    ruleBlockModel: {
-                        ports: [
-                            {
-                                id: "b",
-                                label: "Second",
-                                description: "",
-                                exampleValues: "",
-                                displayOrder: 2,
-                                deprecated: false,
-                            },
-                            {
-                                id: "a",
-                                label: "First",
-                                description: "",
-                                exampleValues: "",
-                                displayOrder: 1,
-                                deprecated: false,
-                            },
-                        ],
-                        layout: { nodePositions: {} },
-                    },
+            label: "Normalize name",
+            description: "Reusable normalization",
+            ports: [
+                {
+                    id: "b",
+                    label: "Second",
+                    description: "",
+                    exampleValues: "",
+                    displayOrder: 2,
+                    deprecated: false,
                 },
-                taskType: "RuleBlock",
-            },
+                {
+                    id: "a",
+                    label: "First",
+                    description: "",
+                    exampleValues: "",
+                    displayOrder: 1,
+                    deprecated: false,
+                },
+            ],
         };
 
-        const result = transformEditorUtils.ruleBlockTaskToOperator(ruleBlockTask);
+        const result = transformEditorUtils.ruleBlockSummaryToOperator(ruleBlockSummary);
 
         expect(result).toStrictEqual({
             pluginType: "RuleBlock",

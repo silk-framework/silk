@@ -2,13 +2,13 @@ package controllers.projectApi
 
 import controllers.core.UserContextActions
 import controllers.core.util.ControllerUtilsTrait
-import controllers.projectApi.requests.{TaskContextRequest, TaskContextResponse, TaskMetaData}
+import controllers.projectApi.requests.{RuleBlockTaskSummary, TaskContextRequest, TaskContextResponse, TaskMetaData}
 import controllers.util.SerializationUtils.serializeCompileTime
 import controllers.util.{ItemType, SerializationUtils, TextSearchUtils}
 import controllers.workspace.doc.{TaskApiDoc, LegacyDatasetApiDoc => DatasetApiDoc}
 import controllers.workspaceApi.projectTask.{ItemCloneRequest, ItemCloneResponse, RelatedItem, RelatedItems}
 import io.swagger.v3.oas.annotations.enums.ParameterIn
-import io.swagger.v3.oas.annotations.media.{Content, ExampleObject, Schema}
+import io.swagger.v3.oas.annotations.media.{ArraySchema, Content, ExampleObject, Schema}
 import io.swagger.v3.oas.annotations.parameters.RequestBody
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.tags.Tag
@@ -18,7 +18,7 @@ import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.dataset.{Dataset, DatasetPluginAutoConfigurable, DatasetSpec}
 import org.silkframework.entity.EntitySchema
 import org.silkframework.entity.paths.{Path, TypedPath, UntypedPath}
-import org.silkframework.rule.{LinkSpec, TransformSpec}
+import org.silkframework.rule.{LinkSpec, RuleBlockSpec, TransformSpec}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.{ParameterValues, PluginContext, PluginDescription, TaskResolver}
 import org.silkframework.runtime.serialization.ReadContext
@@ -229,6 +229,36 @@ class ProjectTaskApi @Inject()() extends InjectedController with UserContextActi
         "label" -> itemType.label
       )
     ))
+  }
+
+  /** Returns lightweight summaries for all reusable rule blocks of a project. */
+  @Operation(
+    summary = "Reusable rule block summaries",
+    description = "Fetches lightweight summary information for all reusable rule block tasks of a project. The summaries are intended for rule editors and do not include the internal operator tree.",
+    responses = Array(
+      new ApiResponse(
+        responseCode = "200",
+        description = "Success",
+        content = Array(new Content(
+          mediaType = "application/json",
+          array = new ArraySchema(schema = new Schema(implementation = classOf[RuleBlockTaskSummary]))
+        ))
+      )
+    )
+  )
+  def ruleBlocks(@Parameter(
+                   name = "projectId",
+                   description = "The project identifier",
+                   required = true,
+                   in = ParameterIn.PATH,
+                   schema = new Schema(implementation = classOf[String])
+                 )
+                 projectId: String): Action[AnyContent] = UserContextAction { implicit userContext =>
+    val project = getProject(projectId)
+    val ruleBlocks = project.tasks[RuleBlockSpec]
+      .map(RuleBlockTaskSummary.fromTask)
+      .sortBy(summary => (summary.label.toLowerCase, summary.id))
+    Ok(Json.toJson(ruleBlocks))
   }
 
   /** Clones an existing task in the project. */

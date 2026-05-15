@@ -24,3 +24,10 @@ export interface IRuleBlockModel {
 export interface IRuleBlockTaskParameters {
     ruleBlockModel?: IRuleBlockModel;
 }
+
+export interface IRuleBlockSummary {
+    id: string;
+    label: string;
+    description?: string;
+    ports: IRuleBlockPort[];
+}

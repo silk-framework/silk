@@ -1,6 +1,6 @@
 package controllers.workspaceApi
 
-import controllers.projectApi.requests.{TaskContextResponse, TaskMetaData}
+import controllers.projectApi.requests.{RuleBlockTaskSummary, TaskContextResponse, TaskMetaData}
 import controllers.util.{ItemType, ProjectTaskApiClient}
 import controllers.workspaceApi.projectTask.RelatedItems
 import helper.IntegrationTestTrait
@@ -18,7 +18,7 @@ import org.scalatest.matchers.must.Matchers
 import org.silkframework.config.MetaData
 import org.silkframework.plugins.dataset.rdf.datasets.InMemoryDataset
 import org.silkframework.plugins.dataset.rdf.tasks.SparqlUpdateCustomTask
-import org.silkframework.rule.{DatasetSelection, TransformSpec}
+import org.silkframework.rule.{DatasetSelection, RuleBlockModel, RuleBlockPort, RuleBlockSpec, TransformSpec}
 import org.silkframework.runtime.plugin.types.IdentifierOptionParameter
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.activity.workflow.{WorkflowTaskContext, WorkflowTaskContextInputTask, WorkflowTaskContextOutputTask}
@@ -38,6 +38,11 @@ class ProjectTaskApiTest extends AnyFlatSpec with SingleProjectWorkspaceProvider
   private def relatedItems(taskId: String, textQuery: Option[String] = None): RelatedItems = {
     val path = controllers.projectApi.routes.ProjectTaskApi.relatedItems(projectId, taskId, textQuery).url
     Json.fromJson[RelatedItems](checkResponse(client.url(s"$baseUrl$path").get()).json).get
+  }
+
+  private def ruleBlocks(): Seq[RuleBlockTaskSummary] = {
+    val path = controllers.projectApi.routes.ProjectTaskApi.ruleBlocks(projectId).url
+    Json.fromJson[Seq[RuleBlockTaskSummary]](checkResponse(client.url(s"$baseUrl$path").get()).json).get
   }
 
   private val workflowTask = "workflow"
@@ -123,5 +128,32 @@ class ProjectTaskApiTest extends AnyFlatSpec with SingleProjectWorkspaceProvider
     )
     originalInputs mustBe Some(false)
     originalOutputs mustBe Some(false)
+  }
+
+  it should "return lightweight summaries of reusable rule blocks without the internal operator tree" in {
+    project.addTask(
+      "normalizeName",
+      RuleBlockSpec(
+        RuleBlockModel(
+          ports = IndexedSeq(
+            RuleBlockPort(Identifier("b"), label = "Second", description = "Desc B", exampleValues = "- second", displayOrder = 2),
+            RuleBlockPort(Identifier("a"), label = "First", description = "Desc A", exampleValues = "- first", displayOrder = 1, deprecated = true),
+          )
+        )
+      ),
+      MetaData(Some("Normalize name"), Some("Reusable normalization"))
+    )
+
+    ruleBlocks() must contain(
+      RuleBlockTaskSummary(
+        id = "normalizeName",
+        label = "Normalize name",
+        description = Some("Reusable normalization"),
+        ports = Seq(
+          controllers.projectApi.requests.RuleBlockPortSummary("a", "First", "Desc A", "- first", 1, deprecated = true),
+          controllers.projectApi.requests.RuleBlockPortSummary("b", "Second", "Desc B", "- second", 2, deprecated = false),
+        )
+      )
+    )
   }
 }

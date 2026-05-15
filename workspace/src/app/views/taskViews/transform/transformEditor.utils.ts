@@ -10,8 +10,7 @@ import { autoCompleteTransformSourcePath } from "./transform.requests";
 import { EvaluatedTransformEntity } from "./transform.types";
 import { SampleError } from "../../shared/SampleError/SampleError";
 import { TaskContext } from "../../shared/projectTaskTabView/projectTaskTabView.typing";
-import { IRuleBlockPort, IRuleBlockTaskParameters } from "../ruleBlock/ruleBlock.types";
-import { IProjectTask } from "@ducks/shared/typings";
+import { IRuleBlockPort, IRuleBlockSummary } from "../ruleBlock/ruleBlock.types";
 import { IPluginDetails } from "@ducks/common/typings";
 import i18next from "i18next";
 
@@ -35,14 +34,14 @@ const isRuleBlockOperator = (
     operator: TransformRuleEditorOperator,
 ): operator is IRuleBlockOperatorDetails => operator.pluginType === "RuleBlock";
 
-const ruleBlockTaskToOperator = (
-    ruleBlockTask: IProjectTask<IRuleBlockTaskParameters>,
+const ruleBlockSummaryToOperator = (
+    ruleBlockSummary: IRuleBlockSummary,
 ): IRuleBlockOperatorDetails => ({
     pluginType: "RuleBlock",
-    pluginId: ruleBlockTask.id,
-    label: ruleBlockTask.metadata.label ?? ruleBlockTask.id,
-    description: ruleBlockTask.metadata.description,
-    ports: sortRuleBlockPorts(ruleBlockTask.data.parameters.ruleBlockModel?.ports ?? []),
+    pluginId: ruleBlockSummary.id,
+    label: ruleBlockSummary.label,
+    description: ruleBlockSummary.description,
+    ports: sortRuleBlockPorts(ruleBlockSummary.ports),
 });
 
 const convertRuleBlockOperator = (ruleBlock: IRuleBlockOperatorDetails): IRuleOperator => ({
@@ -154,7 +153,7 @@ const transformEditorUtils = {
     inputPathTab,
     isRuleBlockOperator,
     ruleBlockTab,
-    ruleBlockTaskToOperator,
+    ruleBlockSummaryToOperator,
     transformToValueMap,
 };
 

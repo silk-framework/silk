@@ -41,8 +41,7 @@ import { requestDatasetCharacteristics, requestTaskData } from "@ducks/shared/re
 import { GlobalMappingEditorContext } from "../../pages/MappingEditor/contexts/GlobalMappingEditorContext";
 import { StickyNote } from "@eccenca/gui-elements";
 import { CodeAutocompleteFieldPartialAutoCompleteResult } from "@eccenca/gui-elements/src/components/AutoSuggestion/AutoSuggestion";
-import { requestSearchList } from "@ducks/workspace/requests";
-import { IRuleBlockTaskParameters } from "../ruleBlock/ruleBlock.types";
+import { requestRuleBlockSummaries } from "../ruleBlock/ruleBlock.requests";
 
 export interface TransformRuleEditorProps {
     /** Project ID the task is in. */
@@ -104,33 +103,8 @@ export const TransformRuleEditor = ({
     };
     /** Fetches reusable rule blocks that can be referenced from transform rules. */
     const fetchRuleBlockOperators = async (): Promise<TransformRuleEditorOperator[]> => {
-        const limit = 100;
-        let offset = 0;
-        const ruleBlockTasks: TransformRuleEditorOperator[] = [];
-        while (true) {
-            const response = await requestSearchList({
-                project: projectId,
-                itemType: "ruleBlock",
-                limit,
-                offset,
-                sortBy: "label",
-            });
-            const results = response.results;
-            if (!results.length) {
-                break;
-            }
-            const taskResponses = await Promise.all(
-                results.map((result) => requestTaskData<IRuleBlockTaskParameters>(projectId, result.id)),
-            );
-            taskResponses.forEach((taskResponse) => {
-                ruleBlockTasks.push(transformEditorUtils.ruleBlockTaskToOperator(taskResponse.data));
-            });
-            offset += results.length;
-            if (offset >= response.total) {
-                break;
-            }
-        }
-        return ruleBlockTasks;
+        const response = await requestRuleBlockSummaries(projectId);
+        return response.data.map(transformEditorUtils.ruleBlockSummaryToOperator);
     };
     /** Fetches the list of operators that can be used in a transform task. */
     const fetchTransformRuleOperatorList = async (): Promise<TransformRuleEditorOperator[] | undefined> => {
