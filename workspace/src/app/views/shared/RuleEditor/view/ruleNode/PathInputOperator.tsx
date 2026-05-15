@@ -36,13 +36,21 @@ const NO_LANG = "-";
 
 const DEFAULT_LANGUAGE_FILTER_SUPPORT = { enabled: true, pathType: () => undefined };
 
+const extractStrippedInitialValue = (
+    initialValue: IAutocompleteDefaultResponse | undefined,
+    languageFilterEnabled: boolean,
+): IAutocompleteDefaultResponse | undefined => {
+    if (!languageFilterEnabled || !initialValue) return initialValue;
+    const match = languageFilterRegex.exec(initialValue.value);
+    if (!match) return initialValue;
+    return { value: initialValue.value.substring(0, match.index), label: initialValue.label };
+};
+
 /** Rule operator that takes input paths. */
 export const PathInputOperator = ({ parameterAutoCompletionProps, inputPathFunctions }: Props) => {
     const [t] = useTranslation();
-    const [activeProps, setActiveProps] = React.useState<ParameterAutoCompletionProps>(parameterAutoCompletionProps);
-    const [initialLanguageFilter, setInitialLanguageFilter] = React.useState<string | undefined>();
+    const languageFilterSupport = inputPathFunctions.languageFilter ?? DEFAULT_LANGUAGE_FILTER_SUPPORT;
     const internalState = React.useRef<{
-        initialized: boolean;
         // The current value without the added language filter
         currentValue?: IAutocompleteDefaultResponse;
         // The current filter language
@@ -52,12 +60,24 @@ export const PathInputOperator = ({ parameterAutoCompletionProps, inputPathFunct
         // Current label language
         currentPathLabelLanguage: string | undefined;
     }>({
-        initialized: false,
-        currentValue: parameterAutoCompletionProps.initialValue,
+        currentValue: extractStrippedInitialValue(
+            parameterAutoCompletionProps.initialValue,
+            languageFilterSupport.enabled,
+        ),
         currentPathLabelLanguage: undefined,
     });
+    const [activeProps] = React.useState<ParameterAutoCompletionProps>(() => ({
+        ...parameterAutoCompletionProps,
+        onChange: (value: IAutocompleteDefaultResponse) => internalState.current.activeOnChangeHandler!(value),
+        initialValue: internalState.current.currentValue,
+    }));
+    const [initialLanguageFilter] = React.useState<string | undefined>(() => {
+        const raw = parameterAutoCompletionProps.initialValue?.value;
+        if (!languageFilterSupport.enabled || !raw) return undefined;
+        const match = languageFilterRegex.exec(raw);
+        return match ? match[1] : undefined;
+    });
     const [showLanguageFilterButton, setShowLanguageFilterButton] = React.useState(false);
-    const languageFilterSupport = inputPathFunctions.languageFilter ?? DEFAULT_LANGUAGE_FILTER_SUPPORT;
     const context = React.useContext(PathInputOperatorContext);
     const evaluationCallbackContext = React.useContext(RuleEditorEvaluationCallbackContext);
 
@@ -133,34 +153,6 @@ export const PathInputOperator = ({ parameterAutoCompletionProps, inputPathFunct
                 : {},
         [languageFilterSupport.enabled, onLanguageChange, initialLanguageFilter],
     );
-
-    // Initialize language filter and modify original props, e.g. onChange handler and initialValue
-    if (languageFilterSupport.enabled && !internalState.current.initialized) {
-        internalState.current.initialized = true;
-        const initialValue = parameterAutoCompletionProps.initialValue?.value ?? "";
-        const onChange = (value: IAutocompleteDefaultResponse) => {
-            return internalState.current.activeOnChangeHandler!(value);
-        };
-        const newProps: ParameterAutoCompletionProps = {
-            ...parameterAutoCompletionProps,
-            onChange,
-        };
-        const match = languageFilterRegex.exec(initialValue);
-        if (match) {
-            // Extract current language filter
-            const lang = match[1];
-            const pathWithoutLangFilter = initialValue.substring(0, match.index);
-            const newInitialValue = {
-                value: pathWithoutLangFilter,
-                label: parameterAutoCompletionProps.initialValue!.label,
-            };
-            internalState.current.currentValue = newInitialValue;
-            newProps.initialValue = newInitialValue;
-            setInitialLanguageFilter(lang);
-            overwrittenProps.initialValue = newInitialValue;
-        }
-        setActiveProps(newProps);
-    }
 
     const initialValue = React.useMemo(() => activeProps.initialValue?.value ?? "", [activeProps.initialValue]);
     const onChange = React.useMemo(() => (value: string) => activeProps.onChange({ value }), [activeProps.onChange]);
@@ -274,17 +266,21 @@ const LanguageSwitcherContext = React.createContext<LanguageSwitcherContextProps
     showLanguageFilterButton: false,
 });
 
-const LanguageSwitcher = ({onLanguageChange, initialLanguage}: LanguageSwitcherProps) => {
+const LanguageSwitcher = ({ onLanguageChange, initialLanguage }: LanguageSwitcherProps) => {
     const [t] = useTranslation();
     const [languageFilter, setLanguageFilter] = React.useState<string | undefined>(initialLanguage);
-    const currentLanguageFilter = React.useRef<string | undefined>();
+    const currentLanguageFilter = React.useRef<string | undefined>(undefined);
     currentLanguageFilter.current = languageFilter;
     const context = React.useContext(LanguageSwitcherContext);
 
-    return context.showLanguageFilterButton ?
+    return context.showLanguageFilterButton ? (
         <Select<string>
             inputProps={{
                 id: "language-filter-input",
+                className: "nodrag",
+            }}
+            menuProps={{
+                className: "nodrag",
             }}
             items={languageFilterItems}
             filterable={true}
@@ -310,7 +306,7 @@ const LanguageSwitcher = ({onLanguageChange, initialLanguage}: LanguageSwitcherP
                     );
                 }
             }}
-            itemRenderer={(lang, {handleClick, modifiers}) => {
+            itemRenderer={(lang, { handleClick, modifiers }) => {
                 return lang === NO_LANG ? (
                     currentLanguageFilter.current ? (
                         <MenuItem
@@ -344,6 +340,7 @@ const LanguageSwitcher = ({onLanguageChange, initialLanguage}: LanguageSwitcherP
         >
             {languageFilter ? (
                 <Button
+                    className={"nodrag"}
                     data-test-id={"language-filter-btn"}
                     tooltip={t("PathInputOperator.languageButtonTooltip")}
                     outlined={true}
@@ -352,14 +349,15 @@ const LanguageSwitcher = ({onLanguageChange, initialLanguage}: LanguageSwitcherP
                 </Button>
             ) : (
                 <IconButton
+                    className={"nodrag"}
                     data-test-id={"language-filter-btn"}
                     text={t("PathInputOperator.languageButtonTooltip")}
                     name={"operation-translate"}
                     outlined={true}
                 />
             )}
-        </Select> :
-        null
+        </Select>
+    ) : null;
 };
 
 /** Extract the last property of the path that is not in a filter. */

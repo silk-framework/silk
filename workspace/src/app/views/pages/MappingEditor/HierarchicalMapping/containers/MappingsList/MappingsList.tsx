@@ -1,16 +1,32 @@
 import React, { useEffect, useState } from "react";
-import { Card, CardTitle } from "gui-elements-deprecated";
-import { DragDropContext, Droppable } from "react-beautiful-dnd";
+import {
+    Card,
+    CardHeader,
+    CardOptions,
+    CardTitle,
+    Divider,
+    StickyTarget,
+    StickyTargetProps,
+    OverviewItemList,
+} from "@eccenca/gui-elements";
+import { DndContext, KeyboardSensor, useSensor, useSensors } from "@dnd-kit/core";
+import {
+    arrayMove,
+    SortableContext,
+    sortableKeyboardCoordinates,
+    verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
 import { getApiDetails } from "../../store";
 import DraggableItem from "../MappingRule/DraggableItem";
 import rulesToList from "../../utils/rulesToList";
 import ListActions from "./ListActions";
 import EmptyList from "./EmptyList";
-import reorderArray from "../../utils/reorderArray";
 import { Spinner } from "@eccenca/gui-elements";
 import silkRestApi from "../../../api/silkRestApi";
 import useErrorHandler from "../../../../../../hooks/useErrorHandler";
 import { IViewActions } from "../../../../../../views/plugins/PluginRegistry";
+import dndkitUtils from "../../../../../../utils/dndkitUtils";
+import { restrictToVerticalAxis } from "@dnd-kit/modifiers";
 
 interface MappingsListProps {
     rules: any[];
@@ -23,7 +39,7 @@ interface MappingsListProps {
     handleClone?: (id, type, parent) => any;
     onClickedRemove?: () => any;
     onShowSuggestions?: () => any;
-    onRuleIdChange?: (param:  any) => any;
+    onRuleIdChange?: (param: any) => any;
     onAskDiscardChanges?: (param: any) => any;
     openMappingEditor: () => void;
     startFullScreen: boolean;
@@ -56,22 +72,27 @@ const MappingsList = ({
     const [items, setItems] = useState<any[]>(rulesToList(rules, parentRuleId || currentRuleId));
     const [reorderingRequestPending, setReorderingRequestPending] = useState(false);
     const { registerError } = useErrorHandler();
+
+    const sensors = useSensors(
+        useSensor(dndkitUtils.DefaultMouseSensor, dndkitUtils.defaultMouseSensorOptions),
+        useSensor(KeyboardSensor, {
+            coordinateGetter: sortableKeyboardCoordinates,
+        }),
+    );
+
     useEffect(() => {
         setItems(rulesToList(rules, parentRuleId || currentRuleId));
     }, [rules, parentRuleId, currentRuleId]);
 
     const handleOrderRules = async ({ fromPos, toPos }: { fromPos: number; toPos: number }) => {
-        const childrenRules = reorderArray(
-            items.map((a) => a.key),
-            fromPos,
-            toPos
-        );
+        const reorderedItems = arrayMove(items, fromPos, toPos);
+        const childrenRules = reorderedItems.map((a) => a.key);
 
         const { project, transformTask } = getApiDetails();
         if (project != null && transformTask != null && parentRuleId != null) {
             setReorderingRequestPending(true);
             try {
-                setItems(reorderArray(items, fromPos, toPos));
+                setItems(reorderedItems);
                 await silkRestApi.reorderRules(project, transformTask, parentRuleId, childrenRules);
             } catch (ex) {
                 registerError("MappingsList.handleOrderRules", "Reordering of the mappings rules has failed.", ex);
@@ -83,70 +104,78 @@ const MappingsList = ({
         }
     };
 
-    const onDragStart = () => {};
+    const onDragEnd = (event) => {
+        const { active, over } = event;
 
-    // template rendering
-    const onDragEnd = (result) => {
         // dropped outside the list
-        if (!result.destination) {
+        if (!over) {
             return;
         }
-        const fromPos = result.source.index;
-        const toPos = result.destination.index;
         // no actual movement
-        if (fromPos === toPos) {
+        if (active.id === over.id) {
             return;
         }
 
-        handleOrderRules({
-            fromPos,
-            toPos,
-        });
+        const fromPos = items.findIndex((item) => `draggable-${item.key}` === active.id);
+        const toPos = items.findIndex((item) => `draggable-${item.key}` === over.id);
+
+        if (fromPos !== -1 && toPos !== -1) {
+            handleOrderRules({
+                fromPos,
+                toPos,
+            });
+        }
     };
 
     return (
         <div className="ecc-silk-mapping__ruleslist">
             {reorderingRequestPending && <Spinner position={"global"} />}
-            <Card shadow={0}>
-                <CardTitle>
-                    <div className="mdl-card__title-text">Mapping rules {`(${rules.length})`}</div>
-                </CardTitle>
+            <Card elevation={0}>
+                <StickyTarget local background={"card"} offset={`${-1}px` as StickyTargetProps["offset"]}>
+                    <CardHeader>
+                        <CardTitle>Mapping rules {`(${rules.length})`}</CardTitle>
+                        <CardOptions>
+                            <ListActions
+                                onMappingCreate={onMappingCreate}
+                                onPaste={handlePaste}
+                                onShowSuggestions={onShowSuggestions}
+                                listLoading={loading}
+                            />
+                        </CardOptions>
+                    </CardHeader>
+                    <Divider />
+                </StickyTarget>
                 {!rules.length ? (
                     <EmptyList />
                 ) : (
-                    <DragDropContext onDragStart={onDragStart} onDragEnd={onDragEnd}>
-                        <Droppable droppableId="droppable">
-                            {(provided) => (
-                                <ol className="mdl-list" ref={provided.innerRef} {...provided.droppableProps}>
-                                    {items.map((item, index) => (
-                                        <DraggableItem
-                                            {...item.props}
-                                            parentRuleId={currentRuleId}
-                                            pos={index}
-                                            handleCopy={handleCopy}
-                                            handleClone={handleClone}
-                                            onRuleIdChange={onRuleIdChange}
-                                            onAskDiscardChanges={onAskDiscardChanges}
-                                            onClickedRemove={onClickedRemove}
-                                            onOrderRules={handleOrderRules}
-                                            openMappingEditor={openMappingEditor}
-                                            mapRuleLoading={loading}
-                                            startFullScreen={startFullScreen}
-                                            viewActions={viewActions}
-                                        />
-                                    ))}
-                                    {provided.placeholder}
-                                </ol>
-                            )}
-                        </Droppable>
-                    </DragDropContext>
+                    <DndContext sensors={sensors} onDragEnd={onDragEnd} modifiers={[restrictToVerticalAxis]}>
+                        <SortableContext
+                            items={items.map((item) => `draggable-${item.key}`)}
+                            strategy={verticalListSortingStrategy}
+                        >
+                            <OverviewItemList hasDivider>
+                                {items.map((item, index) => (
+                                    <DraggableItem
+                                        key={item.key}
+                                        {...item.props}
+                                        parentRuleId={currentRuleId}
+                                        pos={index}
+                                        handleCopy={handleCopy}
+                                        handleClone={handleClone}
+                                        onRuleIdChange={onRuleIdChange}
+                                        onAskDiscardChanges={onAskDiscardChanges}
+                                        onClickedRemove={onClickedRemove}
+                                        onOrderRules={handleOrderRules}
+                                        openMappingEditor={openMappingEditor}
+                                        mapRuleLoading={loading}
+                                        startFullScreen={startFullScreen}
+                                        viewActions={viewActions}
+                                    />
+                                ))}
+                            </OverviewItemList>
+                        </SortableContext>
+                    </DndContext>
                 )}
-                <ListActions
-                    onMappingCreate={onMappingCreate}
-                    onPaste={handlePaste}
-                    onShowSuggestions={onShowSuggestions}
-                    listLoading={loading}
-                />
             </Card>
         </div>
     );

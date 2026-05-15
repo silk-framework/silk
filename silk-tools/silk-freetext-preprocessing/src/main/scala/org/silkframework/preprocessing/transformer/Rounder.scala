@@ -6,7 +6,7 @@ package org.silkframework.preprocessing.transformer
  *
  * @param round Takes floor or ceil as function
  */
-case class Rounder(round: Double => Double) extends Transformer{
+case class Rounder(round: Double => Double) extends InlineTransformer{
   private[this] val compiledRegex = "^[+-]?\\d+(\\.\\d+)?$".r
   private val empty = ""
 

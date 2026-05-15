@@ -26,7 +26,7 @@ import scala.xml.Node
 /**
  * A PathInput retrieves values from a data item by a given RDF path and optionally applies a transform to them.
  */
-case class PathInput(id: Identifier = Operator.generateId, path: Path) extends Input {
+case class PathInput(id: Identifier = Operator.generateId, path: Path) extends InlineInput {
 
   @volatile private var cachedPathIndex = -1
 

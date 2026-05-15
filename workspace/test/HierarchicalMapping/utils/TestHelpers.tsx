@@ -26,12 +26,12 @@ export const logPageHtml = (): void => {
 
 /** Returns a function that logs the page HTML and returns the error. */
 export const logPageOnError = (err: Error) => {
-    console.log(logPageHtml());
+    logPageHtml();
     return err;
 };
 
 export const logWrapperHtml = (wrapper: RenderResult) => {
-    expect(wrapper).toBeInTheDocument();
+    expect(wrapper.container).toBeInTheDocument();
     console.log(wrapper.container.innerHTML);
 };
 

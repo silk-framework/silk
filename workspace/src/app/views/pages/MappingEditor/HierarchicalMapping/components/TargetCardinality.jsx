@@ -1,7 +1,6 @@
 import React from "react";
-import { RadioGroup } from "gui-elements-deprecated";
 import * as PropTypes from "prop-types";
-import { FieldItem, RadioButton, Tooltip } from "@eccenca/gui-elements";
+import { FieldItem, RadioButton, Tooltip, PropertyValuePair, PropertyName, PropertyValue } from "@eccenca/gui-elements";
 
 /** Let's a user choose if a target property is single or multi-valued. Depending on the dataset type this will have different implications. */
 class TargetCardinality extends React.Component {
@@ -18,28 +17,39 @@ class TargetCardinality extends React.Component {
     }
 
     render() {
-        if (this.props.editable !== false) {
-            return this.renderRadioBox();
-        } else if (this.state.isAttribute) {
-            return this.renderSingleValue();
-        } else {
-            return this.renderMultipleValues();
-        }
+        return (
+            <>
+                {this.props.editable !== false ? (
+                    this.renderRadioBox()
+                ) : (
+                    <PropertyValuePair singleColumn>
+                        <PropertyName labelProps={{ emphasis: "strong" }}>Cardinality</PropertyName>
+                        <PropertyValue>
+                            {this.state.isAttribute ? this.renderSingleValue() : this.renderMultipleValues()}
+                        </PropertyValue>
+                    </PropertyValuePair>
+                )}
+            </>
+        );
     }
 
     renderRadioBox() {
         return (
-            <FieldItem className={this.props.className}>
-                <RadioGroup
-                    value={this.state.isAttribute ? "single" : "multiple"}
-                    name=""
-                    onChange={({ value }) => {
-                        this.onChange(value === "single");
-                    }}
-                >
-                    <RadioButton name="single" value="single" labelElement={this.renderSingleValue()} />
-                    <RadioButton name="multiple" value="multiple" labelElement={this.renderMultipleValues()} />
-                </RadioGroup>
+            <FieldItem className={this.props.className} labelProps={{ text: "Cardinality" }}>
+                <RadioButton
+                    name="single"
+                    value="single"
+                    labelElement={this.renderSingleValue()}
+                    onChange={() => this.onChange(true)}
+                    checked={this.state.isAttribute}
+                />
+                <RadioButton
+                    name="multiple"
+                    value="multiple"
+                    labelElement={this.renderMultipleValues()}
+                    onChange={() => this.onChange(false)}
+                    checked={!this.state.isAttribute}
+                />
             </FieldItem>
         );
     }

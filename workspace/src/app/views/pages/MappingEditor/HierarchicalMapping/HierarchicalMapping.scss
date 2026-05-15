@@ -1,6 +1,4 @@
-@import "~@eccenca/gui-elements/src/includes/blueprintjs/variables";
-@import "~@eccenca/gui-elements/src/includes/blueprintjs/requisits";
-
+// TODO: we need to check if this is still necessary
 .ecc-component-messagehandler {
     .ecc-temp__appmessages & {
         position: fixed;
@@ -16,84 +14,10 @@
     }
 }
 
-// TODO (left here as marker): switch back from gui elements reset to prevent display problems with other parts of the app
-*:not([class*="#{$eccgui}"]) {
-    // box-sizing: inherit;
-}
-
-.ecc-silk-mapping {
-    .mdl-alert--narrowed {
-        .mdl-alert__content > *:not(:first-child) {
-            display: none;
-        }
-
-        .mdl-alert__content,
-        .mdl-alert__content > * {
-            max-height: 5em;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-        }
-    }
-
-    .mdl-textfield__label {
-        pointer-events: none;
-    }
-}
-
-ul.ecc-hierarchical-mapping-error-list {
-    margin-left: 0;
-    padding-left: 0;
-    list-style-type: none;
-}
-
-.ecc-silk-mapping__header {
-    margin: $ecc-size-block-whitespace * 0.5 $ecc-size-block-whitespace;
-
-    &-action-row {
-        justify-content: flex-end;
-    }
-}
-
-.ecc-silk-mapping__content {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: stretch;
-}
-
 .ecc-silk-mapping__treenav {
-    flex-basis: calc(25% - #{$ecc-size-block-whitespace});
-    min-width: 15em;
-    max-width: 100%;
-    height: 100%;
-    flex-shrink: 1;
-    flex-grow: 1;
-    position: sticky;
-    left: 0;
-    top: 0;
-    margin: $ecc-size-block-whitespace * 0.5;
-    box-sizing: border-box;
-
-    ul,
-    li {
-        list-style-type: none;
-    }
-
     ul {
-        margin: 0;
-        padding: 0;
-
         &.ecc-silk-mapping__treenav--subtree {
-            padding-left: $button-icon-size;
-        }
-    }
-
-    & > .#{$eccgui}-card {
-        .#{$eccgui}__content {
-            max-height: calc(
-                100vh - #{$layout-header-desktop-row-height} - #{$tab-height} - #{2 * $ecc-size-block-whitespace}
-            );
-            overflow: auto;
+            padding-left: $button-height;
         }
     }
 
@@ -109,296 +33,53 @@ ul.ecc-hierarchical-mapping-error-list {
             background-color: transparent;
         }
         .#{$ns}-tree-node-content {
-            margin-bottom: $ecc-size-block-whitespace;
+            margin-bottom: $eccgui-size-block-whitespace;
         }
 
         .#{$ns}-tree-node-caret-none {
             min-width: 0;
         }
     }
-
-    .ecc-silk-mapping__treenav--item {
-        display: flex;
-        justify-content: flex-start;
-        align-items: center;
-        color: $button-secondary-color;
-    }
-
-    .ecc-silk-mapping__treenav--item-active:not(.ecc-silk-mapping__treenav--item--ignorestyles) {
-        font-weight: 500;
-        background-color: $chip-bg-active-color;
-    }
-
-    .ecc-silk-mapping__treenav--item-toggler {
-        flex-grow: 0;
-        flex-shrink: 0;
-        min-width: $button-height !important;
-    }
-
-    .ecc-silk-mapping__treenav--item-handler:not(.#{$eccgui}-button) {
-        flex-grow: 1;
-        flex-shrink: 1;
-        padding: $ecc-size-block-whitespace * 0.25 0;
-        @include typo-body-1();
-        cursor: pointer;
-        border: none;
-        text-align: left;
-        background-color: transparent;
-        outline: none;
-        max-width: calc(100% - $button-height);
-
-        &:hover,
-        &:focus {
-            background-color: $button-hover-color;
-        }
-
-        & .material-icons {
-            margin-right: $ecc-size-block-whitespace * 0.25;
-            vertical-align: text-bottom;
-        }
-    }
-
-    span.ecc-silk-mapping__treenav--item-maintitle,
-    span.ecc-silk-mapping__treenav--item-subtitle {
-        display: block;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-    }
-
-    span.ecc-silk-mapping__treenav--item-subtitle,
-    span.ecc-silk-mapping__treenav--item-rule-subtitle {
-        @include typo-caption();
-    }
-}
-
-.ecc-silk-mapping__rules {
-    flex-basis: calc(75% - #{$ecc-size-block-whitespace});
-    flex-grow: 4;
-    flex-shrink: 1;
-    min-width: 50%;
-    margin: $ecc-size-block-whitespace * 0.5;
-    box-sizing: border-box;
-
-    .mdl-card__title {
-        z-index: auto; // TODO: only if sticky, need to be moved to gui elements
-        background-color: $card-background-color; // TODO: 90% like action row, need to be moved to gui elements
-    }
-
-    .mdl-card__title-back {
-        align-self: flex-start;
-    }
-
-    .mdl-card__title-text {
-        align-self: center;
-        display: flex;
-    }
-
-    .ecc-breadcrumbs__button {
-        padding-top: 0;
-        padding-bottom: 0;
-    }
-}
-
-.ecc-silk-mapping__navheader {
-    position: sticky;
-    top: 0;
-    z-index: 10;
-    margin-bottom: $ecc-size-block-whitespace;
-}
-
-.ecc-silk-mapping__navheader-row {
-    //overflow: visible;
 }
 
 .ecc-silk-mapping__rulesobject {
     position: relative;
-    margin-bottom: $ecc-size-block-whitespace;
-
-    .mdl-card__title {
-        display: block;
-        padding: 0;
-    }
-
-    .mdl-card__actions {
-        border-bottom: 1px solid to_color($card-border-color);
-    }
-}
-
-.ecc-silk-mapping__ruleslist {
-    .ecc-floatingactionlist__wrapper--fixed {
-        z-index: 2; // TODO: need to be moved to gui elements
-    }
-
-    &:not(.ecc-silk-mapping__suggestionlist) {
-        & .mdl-card__actions {
-            background-color: transparent;
-        }
-    }
-
-    .mdl-list {
-        margin: 0;
-        padding: 0;
-
-        & > li:nth-child(odd):not(.ecc-silk-mapping__ruleitem--defect) {
-            background-color: rgba(to_color($data-table-hover-color), 0.12);
-        }
-
-        .mdl-card,
-        .mdl-data-table {
-            background-color: transparent;
-        }
-    }
-
-    &.ecc-silk-mapping__suggestionlist {
-        .mdl-list {
-            & > li:first-child {
-                background-color: transparent;
-            }
-        }
-    }
-}
-
-.ecc-silk-mapping__suggestionlist__target-dropdown {
-    // workaround to prevent to high select dropdowns without providing own rendering functions
-    .#{$ns}-menu {
-        max-height: 45vh;
-        overflow: auto;
-    }
-
-    .#{$ns}-input {
-        width: 40rem;
-        max-width: 90vw;
-    }
+    margin-bottom: $eccgui-size-block-whitespace;
 }
 
 .ecc-silk-mapping__ruleitem {
-    @include typo-body-1();
     max-width: 100%;
     position: relative;
-    border-bottom: $data-table-dividers;
-
-    &:last-child {
-        border-bottom: none;
-    }
-
-    .mdl-list__item {
-        color: inherit;
-    }
-
-    .mdl-list__item-primary-content {
-        display: block;
-        min-width: 0;
-    }
 }
 
 .ecc-silk-mapping__ruleitem--dnd {
     outline: none;
 }
 
-.mdl-list__item-secondary-content {
-    .ecc-silk-mapping__ruleitem--literal &,
-    .ecc-silk-mapping__ruleitem--object & {
-        align-self: stretch;
-        justify-content: center;
-        align-items: center;
-    }
-}
-
 .ecc-silk-mapping__ruleitem--defect {
-    color: to_color($ecc-color-warning-text);
-    background-color: to_color($ecc-color-warning-background);
-    border-color: darken(to_color($ecc-color-warning-background), 5%);
+    color: $eccgui-color-warning-text;
+    background-color: $eccgui-color-warning-background;
 }
 
 .ecc-silk-mapping__ruleitem-headline {
-    @include typo-body-1();
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
     font-weight: 500;
 }
 
-.ecc-silk-mapping__ruleitem-subline {
-    @include typo-caption();
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-.ecc-silk-mapping__ruleitem-extraline {
-    display: block;
-    margin-right: $ecc-size-blockelement-margin-horizontal;
-    font-size: $ecc-size-typo-caption;
-    font-weight: normal;
-    opacity: 0.61;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-.ecc-silk-mapping__ruleitem-label {
-    display: inline;
-}
-
-.ecc-silk-mapping__ruleitem-url {
-    direction: rtl;
-    text-align: left;
-}
-
-.ecc-silk-mapping__suggestitem-checkbox {
-    align-self: flex-start;
-    flex-grow: 0;
-    flex-shrink: 0;
-}
-
-.ecc-silk-mapping__suggestitem-typeselect {
-    @include typo-caption();
-
-    & > .mdl-textfield {
-        display: block;
-    }
-}
-
 .ecc-silk-mapping__ruleitem-summary {
-    @include material-animation-default(0.28s);
-    transition-property: background-color;
+    .#{$eccgui}-overviewitem__list li:nth-child(odd) &:not(:hover) {
+        background-color: $eccgui-color-tablerow-background-even;
+    }
 
     &:hover {
-        background-color: $data-table-hover-color;
+        background-color: $button-background-color-hover;
     }
 
-    &.ecc-silk-mapping__ruleitem-summary--expanded {
-        background-color: transparent;
-
-        .mdl-list__item-primary-content {
-            opacity: 0.39;
-        }
+    .#{eccgui}-overviewitem__item.#{eccgui}-overviewitem__item--hasspacing {
+        padding-left: $eccgui-size-block-whitespace;
     }
-
-    .mdl-list__item {
-        padding: $ecc-size-block-whitespace * 0.5;
-        overflow: visible;
-    }
-
-    /*
-    // probably not necessary anymore, just comment it out for the moment
-    .Select-input,
-    .Select-control {
-        height: calc(48px - #{2 * $ecc-size-block-whitespace});
-    }
-
-    .Select-placeholder, .Select--single > .Select-control .Select-value {
-        line-height: calc(48px - #{2 * $ecc-size-block-whitespace});
-    }
-    */
 
     .Select.is-disabled .Select-value {
         opacity: 0.61;
-    }
-
-    .ecc-silk-mapping__suggestitem-typeselect {
-        margin-top: 0.5 * $ecc-size-block-whitespace;
     }
 
     .ecc-silk-mapping__ruleheader {
@@ -407,70 +88,23 @@ ul.ecc-hierarchical-mapping-error-list {
         &:hover {
             background-color: transparent;
         }
-
-        .ecc-silk-mapping__ruleitem-headline,
-        .ecc-silk-mapping__ruleitem-subline,
-        .ecc-silk-mapping__suggestitem-typeselect {
-            @include typo-body-1();
-            font-size: $data-table-header-font-size;
-            color: $data-table-header-color;
-        }
     }
 
-    @media (min-width: $grid-desktop-breakpoint) {
-        .mdl-list__item-primary-content {
-            display: flex;
-            flex-direction: row;
-            flex-wrap: nowrap;
-            align-items: baseline;
-        }
-
-        .ecc-silk-mapping__ruleitem-headline,
-        .ecc-silk-mapping__ruleitem-subline,
-        .ecc-silk-mapping__suggestitem-typeselect {
-            font-size: $data-table-font-size;
-            flex-grow: 1;
-            flex-shrink: 0;
-            box-sizing: border-box;
-            padding: $ecc-size-inline-whitespace * 0.5;
-            max-width: 33%;
-            margin-right: 0.333%;
-        }
-        .hide-in-table {
-            display: none;
-        }
-
-        .ecc-silk-mapping__suggestitem-headline {
-            width: 40%;
-            max-width: 40%;
-        }
-
-        .ecc-silk-mapping__suggestitem-subline {
-            width: 40%;
-            max-width: 40%;
-        }
-        .ecc-silk-mapping__suggestitem-checkbox {
-            align-self: center;
-        }
-        .ecc-silk-mapping__suggestitem-typeselect {
-            margin-top: -4px;
-            width: 20%;
-            max-width: 20%;
-            margin-right: 0;
-        }
+    .hide-in-table {
+        display: none;
     }
 }
 
 .ecc-silk-mapping__ruleitem-reorderhandler {
     width: $eccgui-size-block-whitespace;
     position: absolute;
-    top: $ecc-size-block-whitespace * 0.5;
-    left: $ecc-size-block-whitespace * 0.5;
-    bottom: $ecc-size-block-whitespace * 0.5;
-    border: $data-table-dividers;
-    background-color: to_color($color-white);
+    top: $eccgui-size-block-whitespace * 0.5;
+    left: $eccgui-size-block-whitespace * 0.5;
+    bottom: $eccgui-size-block-whitespace * 0.5;
+    box-shadow: $button-box-shadow;
+    background-color: eccgui-color-var("identity", "background", "100");
 
-    & + .mdl-list__item {
+    & + .#{eccgui}-overviewitem__item.#{eccgui}-overviewitem__item--hasspacing {
         padding-left: 2 * $eccgui-size-block-whitespace;
     }
 
@@ -508,143 +142,11 @@ ul.ecc-hierarchical-mapping-error-list {
             opacity: $eccgui-opacity-regular;
         }
     }
-
-    .material-icons {
-        transform: translate(-1px, calc(50% - #{$button-fab-font-size * 0.5}));
-    }
-}
-
-.ecc-silk-mapping__rulesviewer,
-.ecc-silk-mapping__ruleseditor {
-    .mdl-card__content {
-        padding-top: 0;
-    }
-}
-
-.ecc-silk-mapping__rulesviewer__title {
-    .mdl-card__title-text {
-        @include typo-subhead();
-    }
-}
-
-.ecc-silk-mapping__rulesviewer__attribute {
-    margin: $ecc-size-block-whitespace * 0.5 0 $ecc-size-block-whitespace * 0.5 0;
-
-    dt,
-    dd {
-        margin: 0 0 $ecc-size-block-whitespace * 0.25 0;
-        padding: 0;
-    }
-
-    code {
-        @include typo-caption();
-    }
-
-    .ecc-silk-mapping__rulesviewer__attribute-label {
-        @include typo-caption();
-        font-weight: 700;
-        list-style-type: square;
-        list-style-position: inside;
-    }
-
-    .ecc-silk-mapping__rulesviewer__attribute-info {
-        max-width: 100%;
-        overflow: visible;
-        font-weight: 300;
-
-        p {
-            font-weight: 300;
-            margin-bottom: 0;
-        }
-    }
 }
 
 .ecc-silk-mapping__rulesviewer__sourcePath {
     code {
         word-wrap: break-word;
-    }
-}
-
-.ecc-silk-mapping__rulesviewer__infobox {
-    display: flex;
-
-    &.is-narrowed {
-        .ecc-silk-mapping__rulesviewer__infobox-main,
-        .ecc-silk-mapping__rulesviewer__infobox-sub {
-            max-height: $typo-body-1-line-height * 1em;
-            overflow: hidden;
-
-            * {
-                display: inline;
-            }
-
-            & > * {
-                display: inline-block;
-                overflow: hidden;
-                text-overflow: ellipsis;
-
-                &:not(:first-child) {
-                    display: none;
-                }
-            }
-        }
-
-        @media (min-width: $grid-desktop-breakpoint) {
-            .ecc-silk-mapping__rulesviewer__infobox-content {
-                display: flex;
-                flex-wrap: nowrap;
-
-                .ecc-silk-mapping__rulesviewer__examples & {
-                    display: block;
-                    width: auto;
-                }
-
-                & > div + div {
-                    padding-left: 1rem;
-                    box-sizing: border-box;
-                    position: relative;
-
-                    &:before {
-                        content: "•";
-                        width: $ecc-size-block-whitespace;
-                        height: $typo-body-1-line-height * 1em;
-                        position: absolute;
-                        top: 0;
-                        left: 0;
-                        text-align: center;
-                        vertical-align: middle;
-                    }
-                }
-            }
-
-            .ecc-silk-mapping__rulesviewer__infobox-main {
-                flex-grow: 0;
-                flex-shrink: 0;
-                max-width: 61%;
-            }
-
-            .ecc-silk-mapping__rulesviewer__infobox-sub {
-                flex-grow: 1;
-                flex-shrink: 1;
-            }
-        }
-    }
-}
-
-.ecc-silk-mapping__rulesviewer__infobox-toggler {
-    flex-grow: 0;
-    flex-shrink: 0;
-    margin: -0.5 * $ecc-size-block-whitespace 0 0 -1 * $ecc-size-block-whitespace;
-}
-
-.ecc-silk-mapping__rulesviewer__infobox-content {
-    flex-grow: 1;
-    flex-shrink: 1;
-    width: 50vw; // this is a spooky hack but it prevents that the layout explodes
-    overflow: auto;
-
-    .ecc-silk-mapping__rulesviewer__infobox-sub {
-        @include typo-caption();
     }
 }
 
@@ -692,15 +194,11 @@ ul.ecc-hierarchical-mapping-error-list {
     }
 }
 
-.clickable {
-    cursor: pointer;
-}
-
 .ecc-silk-mapping__ruleseditor__actionrow-complex-edit {
-    margin: 0 $ecc-size-block-whitespace * 0.5;
+    margin: 0 $eccgui-size-block-whitespace * 0.5;
 }
 
-.mdl-layout_item--background-flash {
+.ecc-silk-mapping__ruleitem--new {
     animation-name: anim-new-element;
     animation-duration: 1s;
     animation-timing-function: cubic-bezier(0, 0, 0.2, 1);
@@ -708,14 +206,7 @@ ul.ecc-hierarchical-mapping-error-list {
 
 @keyframes anim-new-element {
     25% {
-        background-color: darken($ecc-color-info-background, 30%);
-        color: $ecc-color-info-text;
+        background-color: $eccgui-color-info-background;
+        color: $eccgui-color-info-text;
     }
-}
-
-.ecc-silk-mapping__tree-label-wrapper {
-    cursor: pointer;
-    flex-grow: 1;
-    flex-shrink: 1;
-    padding: $ecc-size-block-whitespace * 0.25 $ecc-size-block-whitespace * 0.5;
 }

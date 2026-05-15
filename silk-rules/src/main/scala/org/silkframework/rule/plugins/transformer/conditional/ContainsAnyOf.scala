@@ -1,7 +1,7 @@
 package org.silkframework.rule.plugins.transformer.conditional
 
 import org.silkframework.rule.annotations.{TransformExample, TransformExamples}
-import org.silkframework.rule.input.Transformer
+import org.silkframework.rule.input.InlineTransformer
 import org.silkframework.runtime.plugin.annotations.Plugin
 
 @Plugin(
@@ -47,7 +47,7 @@ import org.silkframework.runtime.plugin.annotations.Plugin
     throwsException = classOf[java.lang.IllegalArgumentException]
   )
 ))
-case class ContainsAnyOf() extends Transformer {
+case class ContainsAnyOf() extends InlineTransformer {
   override def apply(values: Seq[Seq[String]]): Seq[String] = {
     require(values.size == 2, "The containsAnyOf transformation accepts exactly two inputs")
     val input1 = values.head

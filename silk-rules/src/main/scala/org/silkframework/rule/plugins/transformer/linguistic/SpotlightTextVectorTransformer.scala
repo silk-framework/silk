@@ -2,7 +2,7 @@ package org.silkframework.rule.plugins.transformer.linguistic
 
 import java.net.{HttpURLConnection, URL, URLEncoder}
 
-import org.silkframework.rule.input.Transformer
+import org.silkframework.rule.input.InlineTransformer
 import org.silkframework.runtime.plugin.annotations.Plugin
 import org.silkframework.util.HttpURLConnectionUtils._
 
@@ -23,7 +23,7 @@ import scala.xml.{Elem, XML}
   label = "Spotlight",
   description = "Concatenates all values to a string and gets a weighted entity vector from the Spotlight service."
 )
-case class SpotlightTextVectorTransformer() extends Transformer {
+case class SpotlightTextVectorTransformer() extends InlineTransformer {
   def apply(values: Seq[Seq[String]]): Seq[String] = {
     val stringSet = values.reduce(_ concat _)
     if(stringSet.isEmpty)

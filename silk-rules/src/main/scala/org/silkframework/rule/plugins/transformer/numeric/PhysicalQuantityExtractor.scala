@@ -2,7 +2,7 @@ package org.silkframework.rule.plugins.transformer.numeric
 
 import java.text.NumberFormat
 import java.util.Locale
-import org.silkframework.rule.input.Transformer
+import org.silkframework.rule.input.InlineTransformer
 import org.silkframework.runtime.plugin.annotations.{Param, Plugin, PluginReference}
 
 import scala.util.matching.Regex
@@ -32,7 +32,7 @@ case class PhysicalQuantityExtractor(@Param("The symbol of the dimension, e.g., 
                                      @Param("Only extracts from values that contain the given regex (case-insensitive).")
                                      filter: String = "",
                                      @Param("If there are multiple matches, retrieve the value with the given index (zero-based).")
-                                     index: Int = 0) extends Transformer {
+                                     index: Int = 0) extends InlineTransformer {
 
   private val unitPrefixes = Map(
     "p" -> 0.000000000001,

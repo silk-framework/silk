@@ -1,6 +1,6 @@
 import React from "react";
 import _ from "lodash";
-import { Spinner } from "@eccenca/gui-elements";
+import { Spinner, Grid, GridRow } from "@eccenca/gui-elements";
 import PropTypes from "prop-types";
 
 import { ruleRemoveAsync, setApiDetails } from "./store";
@@ -262,7 +262,14 @@ class HierarchicalMapping extends React.Component {
                     transformTaskId: this.props.transformTask,
                 }}
             >
-                <section className="ecc-silk-mapping" data-test-id={"hierarchical-mappings"}>
+                <Grid
+                    as={"section"}
+                    verticalStretchable
+                    useAbsoluteSpace
+                    condensed
+                    className="ecc-silk-mapping"
+                    data-test-id={"hierarchical-mappings"}
+                >
                     {showMappingEditor && this.state.mappingEditorRuleDefinition ? (
                         <MappingEditorModal
                             projectId={this.props.project}
@@ -297,7 +304,7 @@ class HierarchicalMapping extends React.Component {
                     <div className="ecc-temp__appmessages">
                         <MessageHandler />
                     </div>
-                    <div className="ecc-silk-mapping__content">
+                    <GridRow verticalStretched className="ecc-silk-mapping__content">
                         <MappingsTree
                             currentRuleId={currentRuleId}
                             handleRuleNavigation={this.onRuleNavigation}
@@ -313,8 +320,8 @@ class HierarchicalMapping extends React.Component {
                             startFullScreen={this.props.startFullScreen}
                             viewActions={this.props.viewActions}
                         />
-                    </div>
-                </section>
+                    </GridRow>
+                </Grid>
             </GlobalMappingEditorContext.Provider>
         );
     }

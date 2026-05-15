@@ -36,13 +36,31 @@
 }
 
 @content = {
-  <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
-    <input class="mdl-textfield__input" type="text" id="configRootSearch">
-    <label class="mdl-textfield__label" for="configRootSearch">Search</label>
-  </div>
-
-  <div id="configRoot">
-    @render(config.root())
+  <div style="max-width: 80rem; margin: 0 auto; padding: 1rem; ">
+    <div class="eccgui-card bp5-card">
+      <header>
+        <div class="eccgui-card__header">
+          <h3 class="mdl-card__title-text">
+            Configuration
+          </h3>
+        </div>
+      </header>
+      <hr class="eccgui-separation__divider-horizontal">
+      <div class="eccgui-card__content">
+        <div class="bp5-input-group bp5-fill bp5-round eccgui-textfield eccgui-textfield--searchinput">
+          <span class="bp5-input-left-container">
+            <span class="bp5-icon">
+              <svg focusable="false" preserveAspectRatio="xMidYMid meet" fill="currentColor" width="20" height="20" viewBox="0 0 32 32" aria-hidden="true" class="eccgui-icon" xmlns="http://www.w3.org/2000/svg"><path d="M29,27.5859l-7.5521-7.5521a11.0177,11.0177,0,1,0-1.4141,1.4141L27.5859,29ZM4,13a9,9,0,1,1,9,9A9.01,9.01,0,0,1,4,13Z"></path></svg>
+            </span>
+          </span>
+          <input id="configRootSearch" type="search" class="bp5-input" dir="auto" placeholder="Enter search term" aria-label="Enter search term" value="" style="padding-left: 33px;">
+        </div>
+        <div class="eccgui-separation__spacing-horizontal eccgui-separation__spacing--medium"></div>
+        <div id="configRoot" style="max-height: 75vh; overflow: auto;">
+          @render(config.root())
+        </div>
+      </div>
+    </div>
   </div>
 }
 

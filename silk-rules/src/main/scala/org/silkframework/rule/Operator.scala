@@ -47,10 +47,11 @@ trait Operator {
   def withChildren(newChildren: Seq[Operator]): Operator
 
   /**
-   * Generates a copy of this operator tree that has been configured with a given task context.
-   * This is relevant for operators whose results are based on the input task(s), i.e., the file hash transformer.
+   * Builds an executor that performs this operator's runtime work for a given task context.
+   * The returned [[OperatorExecution]] holds any state that depends on the task context
+   * (e.g. resolved input task data). Pure operators may return themselves.
    */
-  def withContext(taskContext: TaskContext): Operator = this
+  def execution(taskContext: TaskContext = TaskContext.empty): OperatorExecution
 
   /**
     * Asserts that all identifiers in this rule tree are unique.
@@ -65,6 +66,18 @@ trait Operator {
     }
   }
 
+}
+
+/**
+ * Runtime form of an [[Operator]], contextualized for a specific [[TaskContext]].
+ * Each [[Operator]] subclass has a corresponding [[OperatorExecution]] sub-trait
+ * (e.g. [[org.silkframework.rule.input.InputExecution]],
+ * [[org.silkframework.rule.similarity.SimilarityOperatorExecution]])
+ * that declares the actual execution methods.
+ */
+trait OperatorExecution extends Serializable {
+  /** Backlink to the operator that produced this execution. */
+  def operator: Operator
 }
 
 /**

@@ -4,7 +4,7 @@ import java.time.Instant
 import java.util.Properties
 import java.util.logging.Logger
 
-import org.silkframework.rule.input.Transformer
+import org.silkframework.rule.input.InlineTransformer
 import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
 import org.silkframework.runtime.resource.Resource
 import org.silkframework.runtime.validation.ValidationException
@@ -20,7 +20,7 @@ case class ReadParameter(
   @Param(value = "The Java properties file to read the parameter from.", autoCompletionProvider = classOf[ResourceAutoCompletionProvider], allowOnlyAutoCompletedValues = true)
   resource: Resource,
   @Param("The name of the parameter.")
-  parameter: String) extends Transformer {
+  parameter: String) extends InlineTransformer {
 
   private val logger = Logger.getLogger(classOf[ReadParameter].getName)
 

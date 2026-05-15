@@ -15,7 +15,7 @@
 package org.silkframework.rule.plugins.transformer.combine
 
 import org.silkframework.rule.annotations.{TransformExample, TransformExamples}
-import org.silkframework.rule.input.Transformer
+import org.silkframework.rule.input.InlineTransformer
 import org.silkframework.runtime.plugin.annotations.{Param, Plugin, PluginReference}
 
 @Plugin(
@@ -97,7 +97,7 @@ case class ConcatTransformer(
   @Param(ConcatTransformer.glueDescription)
   glue: String = "",
   @Param("Handle missing values as empty strings.")
-  missingValuesAsEmptyStrings: Boolean = false) extends Transformer {
+  missingValuesAsEmptyStrings: Boolean = false) extends InlineTransformer {
 
   // glue with escaped char sequences (\\, \n, \t) converted to actual character.
   lazy val parsedGlue: String = ConcatTransformer.parseGlue(glue)
