@@ -1,7 +1,7 @@
 package org.silkframework.rule.plugins.transformer.value
 
 import org.silkframework.rule.annotations.{TransformExample, TransformExamples}
-import org.silkframework.rule.input.Transformer
+import org.silkframework.rule.input.InlineTransformer
 import org.silkframework.rule.plugins.transformer.replace.MapTransformerWithDefaultInput
 import org.silkframework.runtime.plugin.annotations.{Param, Plugin, PluginReference}
 import org.silkframework.runtime.plugin.{AutoCompletionResult, ParamValue, PluginContext, PluginParameterAutoCompletionProvider}
@@ -32,7 +32,7 @@ import scala.jdk.CollectionConverters.IterableHasAsScala
 ))
 case class InputHashTransformer(@Param(value = "The hash algorithm to be used.",
                                       autoCompletionProvider = classOf[HashAlgorithmAutoCompletionProvider], allowOnlyAutoCompletedValues = true)
-                                algorithm: String = "SHA256") extends Transformer {
+                                algorithm: String = "SHA256") extends InlineTransformer {
 
   require(algorithm.trim.nonEmpty, "Algorithm must not be empty. Please specify an algorithm, such as 'SHA256'.")
 

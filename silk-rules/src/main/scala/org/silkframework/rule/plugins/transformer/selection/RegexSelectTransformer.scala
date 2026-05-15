@@ -1,7 +1,7 @@
 package org.silkframework.rule.plugins.transformer.selection
 
 import org.silkframework.rule.annotations.{TransformExample, TransformExamples}
-import org.silkframework.rule.input.Transformer
+import org.silkframework.rule.input.InlineTransformer
 import org.silkframework.rule.plugins.transformer.conditional.IfMatchesRegexTransformer
 import org.silkframework.rule.plugins.transformer.extraction.RegexExtractionTransformer
 import org.silkframework.rule.plugins.transformer.filter.FilterByRegex
@@ -77,7 +77,7 @@ import org.silkframework.runtime.plugin.annotations.{Plugin, PluginReference}
     output = Array("output", "", "")
   ),
 ))
-case class RegexSelectTransformer(oneOnly: Boolean = false) extends Transformer {
+case class RegexSelectTransformer(oneOnly: Boolean = false) extends InlineTransformer {
   override def apply(inputs: Seq[Seq[String]]): Seq[String] = {
     require(inputs.size == 3, "The ")
     require(inputs.head.nonEmpty, "The first input needs to have at least one value!")
