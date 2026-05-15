@@ -11,6 +11,7 @@ import org.silkframework.util.Uri
   id = JsonToFileOperator.pluginId,
   label = "JSON to File",
   description = "Writes a JSON string carried as a field value on each incoming entity to a file. Produces a file entity downstream, suitable for wiring into a file-backed dataset or any operator that consumes file entities.",
+  documentationFile = "JsonToFileTaskDocumentation.md",
   relatedPlugins = Array(
     new PluginReference(
       id = JsonParserTask.pluginId,

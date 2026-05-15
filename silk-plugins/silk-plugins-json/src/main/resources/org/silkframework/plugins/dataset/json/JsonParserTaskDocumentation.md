@@ -1,8 +1,8 @@
 ## Parse JSON
 
-Parse JSON is a workflow operator that extracts structured data from a JSON string carried as a field value by
-incoming entities. It sits inside a pipeline between an upstream source and a downstream consumer — typically a
-transformation — and turns the JSON content into entities ready for further processing.
+Parse JSON is a workflow operator that extracts structured data from a JSON string held in a field on incoming
+entities. It sits inside a pipeline between an upstream source and a downstream consumer — typically a transformation
+— and turns the JSON content into entities ready for further processing.
 
 The operator is useful whenever JSON arrives not as a file but as a string stored in a field: the result of an HTTP
 request, a column in a database record, a payload embedded in another dataset. Parse JSON consumes that string in place
@@ -40,10 +40,8 @@ enabled — the default — the operator descends into arrays automatically, so 
 Person elements directly even if Persons is an array. When disabled, the array is treated as an explicit step in the
 path: to reach the same Person elements, the path must be written as */Persons/#array/Person*.
 
-The full path model of the JSON dataset applies in Parse JSON without restriction. This covers forward paths into nested
-objects, the wildcard for selecting all direct children, the double wildcard for all descendants at any depth, the
-backward path for navigating to the parent element, and special paths for generating hash-based identifiers, reading the
-string representation of a node, retrieving the current key name, and accessing array elements explicitly.
+Parse JSON supports the same path expressions as the JSON dataset, including wildcards for children and descendants,
+backward paths, and special paths for hash IDs, key names, and array elements.
 
 ## Schema
 
@@ -60,8 +58,8 @@ the operator cannot be connected directly to a dataset and must feed an operator
 
 ## Example
 
-Consider an upstream operator that produces a single entity carrying the following JSON string in its first field.
-Because *Input path* is not set, Parse JSON reads from that first field by default.
+An upstream operator produces a single entity with the following JSON string in its first field. Because *Input path*
+is not set, Parse JSON reads from that first field by default.
 
 ```json
 {
@@ -79,7 +77,7 @@ the persons array as a separate entity. The array is crossed automatically becau
 With *URI suffix pattern* set to */{id}*, the two output entities receive URIs constructed by appending the value of
 their id field to the URI of the input entity.
 
-The result is two entities — one for Alice, one for Bob — each carrying id, name, and city as fields.
+The result is two entities — one for Alice, one for Bob — each with id, name, and city as fields.
 
-If the upstream operator produces several entities, Parse JSON parses the JSON string carried by each one in turn and
+If the upstream operator produces several entities, Parse JSON parses the JSON string in each one in turn and
 concatenates the resulting entities into a single output stream.
