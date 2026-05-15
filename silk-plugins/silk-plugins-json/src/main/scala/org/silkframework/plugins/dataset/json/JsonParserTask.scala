@@ -15,6 +15,10 @@ import org.silkframework.util.Uri
     new PluginReference(
       id = JsonDataset.pluginId,
       description = "Parse JSON and the JSON dataset share path syntax but not a content source: Parse JSON reads from a field value in an incoming entity, the JSON dataset from a file resource it opens directly."
+    ),
+    new PluginReference(
+      id = JsonToFileOperator.pluginId,
+      description = "Parse JSON parses a JSON string on each input entity into structured entities driven by a downstream schema; JSON to File persists the same kind of input as a file artifact for downstream file consumers."
     )
   )
 )

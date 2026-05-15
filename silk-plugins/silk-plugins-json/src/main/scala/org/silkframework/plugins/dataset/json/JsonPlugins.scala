@@ -8,6 +8,8 @@ class JsonPlugins extends PluginModule {
     classOf[JsonDataset] ::
      classOf[JsonParserTask] ::
      classOf[LocalJsonParserTaskExecutor] ::
+     classOf[JsonToFileOperator] ::
+     classOf[LocalJsonToFileOperatorExecutor] ::
      Nil
 
 }
