@@ -29,8 +29,9 @@ direct children of the root element are read.
 
 **URI suffix pattern** controls how the URIs of the output entities are constructed. The pattern is evaluated relative
 to the URI of the input entity: whatever suffix is specified gets appended to that URI. For example, a pattern of
-*/{id}* applied to an input entity with URI *http://example.org/record/42* would produce output entity URIs like
-*http://example.org/record/42/value-of-id*. When left empty, URIs are generated automatically.
+*/{id}* applied to an input entity with URI *http://example.org/record/42* produces URIs by appending the value of the
+*id* field — so an entity whose *id* is *7* receives URI *http://example.org/record/42/7*. When left empty, URIs are
+generated automatically.
 
 **Navigate into arrays** controls how JSON arrays are handled during path traversal. In JSON, an array is an anonymous
 container with no name of its own — just a list of items. When a path expression crosses an array mid-way, it is
@@ -47,10 +48,10 @@ string representation of a node, retrieving the current key name, and accessing 
 ## Schema
 
 Before producing output entities, Parse JSON needs to know which fields to extract. The set of fields — the output
-schema — is requested by the downstream consumer and reaches Parse JSON before any parsing happens. Parse JSON walks
-the parsed JSON once per requested field, evaluates the field's path expression against the configured base path, and
-writes the resulting values onto the output entity. When the consumer requests a multi-entity schema, Parse JSON
-produces the root entities and the nested sub-entity tables in a single pass. In practice that consumer is a
+schema — is requested by the downstream consumer and reaches Parse JSON before any parsing happens. For each
+requested field, Parse JSON evaluates its path expression against the parsed JSON, starting from the configured base
+path, and writes the resulting values onto the output entity. When the consumer requests a multi-entity schema, Parse
+JSON produces the root entities and the nested sub-entity tables in a single pass. In practice that consumer is a
 transformation.
 
 Parse JSON cannot be connected directly to a dataset. A dataset declares no fields to read, so Parse JSON has nothing
@@ -79,3 +80,6 @@ With *URI suffix pattern* set to */{id}*, the two output entities receive URIs c
 their id field to the URI of the input entity.
 
 The result is two entities — one for Alice, one for Bob — each carrying id, name, and city as fields.
+
+If the upstream operator produces several entities, Parse JSON parses the JSON string carried by each one in turn and
+concatenates the resulting entities into a single output stream.
