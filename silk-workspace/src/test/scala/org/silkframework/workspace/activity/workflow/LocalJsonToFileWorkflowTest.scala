@@ -47,7 +47,7 @@ class LocalJsonToFileWorkflowTest extends AnyFlatSpec with Matchers with ConfigT
       |  ]
       |}""".stripMargin
 
-  it should "persist the JSON string carried on an input entity as a file in a downstream dataset" in {
+  it should "write the JSON string on an input entity to a file in a downstream dataset" in {
     val resources = InMemoryResourceManager()
 
     // Source: one entity whose "jsonContent" field holds the JSON blob

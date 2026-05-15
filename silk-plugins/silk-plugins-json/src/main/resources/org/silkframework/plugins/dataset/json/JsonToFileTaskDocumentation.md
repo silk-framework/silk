@@ -1,7 +1,7 @@
 ## JSON to File
 
 The JSON to File operator takes a JSON string held in a field on each incoming entity and writes it verbatim to a
-file. The resulting file is surfaced downstream as a file entity, so any consumer that accepts file entities — a
+file. The resulting file is surfaced downstream as a file entity, so any operator that accepts file entities — a
 file-backed dataset, another file-processing operator — can pick it up.
 
 The operator does not parse the JSON into structured entities. It validates that the value is well-formed JSON and then
@@ -11,7 +11,7 @@ writes the bytes as they are. The produced file is tagged with *application/json
 
 JSON to File accepts exactly one input. It iterates over every entity in that input, reads the JSON string from a
 field on each entity, validates it, and produces one file per entity. The output entities from all input entities are
-concatenated into a single stream for the downstream consumer.
+concatenated into a single stream for the downstream operator.
 
 Which field holds the JSON string is controlled by the *Input path* parameter. When set, the operator reads the value
 at the given path expression. When left empty, it reads the value of the first available field. If no value is found
@@ -35,7 +35,7 @@ the first available field.
 
 **Output file name** controls how the produced files are named. When left empty, each file is allocated with an
 auto-generated temporary name. When set, the parameter is used as the literal filename for single-entity input; when
-the input carries more than one entity, an index suffix is appended before the extension to keep filenames unique.
+the input contains more than one entity, an index suffix is appended before the extension to keep filenames unique.
 For example, *out.json* applied to three input entities produces *out-0.json*, *out-1.json*, *out-2.json*.
 
 ## Example

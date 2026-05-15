@@ -9,7 +9,7 @@ import org.silkframework.util.Uri
 @Plugin(
   id = JsonParserTask.pluginId,
   label = "Parse JSON",
-  description = "Parses a JSON string carried as a field value on each incoming entity. Typically used before a transformation task. Takes exactly one input.",
+  description = "Parses a JSON string held in a field on each incoming entity. Typically used before a transformation task. Takes exactly one input.",
   documentationFile = "JsonParserTaskDocumentation.md",
   relatedPlugins = Array(
     new PluginReference(
@@ -18,7 +18,7 @@ import org.silkframework.util.Uri
     ),
     new PluginReference(
       id = JsonToFileOperator.pluginId,
-      description = "Parse JSON parses a JSON string on each input entity into structured entities driven by a downstream schema; JSON to File persists the same kind of input as a file artifact for downstream file consumers."
+      description = "Parse JSON parses a JSON string on each input entity into structured entities driven by a downstream schema; JSON to File writes the same kind of input to a file for downstream operators that read files."
     )
   )
 )
