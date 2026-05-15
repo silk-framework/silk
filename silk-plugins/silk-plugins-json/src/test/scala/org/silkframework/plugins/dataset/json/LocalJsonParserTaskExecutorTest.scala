@@ -97,6 +97,27 @@ class LocalJsonParserTaskExecutorTest extends AnyFlatSpec with Matchers with Moc
     ex.getMessage must include ("schema")
   }
 
+  it should "throw a TaskException when no requested schema and no downstream task are present" in {
+    val ex = intercept[TaskException] {
+      executor.execute(task, Seq(inputEntities), ExecutorOutput.empty, LocalExecution(useLocalInternalDatasets = false))
+    }
+    ex.getMessage must include ("Parse JSON")
+    ex.getMessage must include ("schema")
+  }
+
+  it should "throw a TaskException for FlexibleSchemaPort even when the input entity stream is empty" in {
+    val outputResource = InMemoryResourceManager().get("output.json")
+    val downstreamTask = PlainTask("outputDataset", DatasetSpec(JsonDataset(outputResource)))
+    val emptyInput = GenericEntityTable(CloseableIterator.empty, entitySchema, task)
+
+    val output = ExecutorOutput(Some(downstreamTask), Some(FlexibleSchemaPort()))
+    val ex = intercept[TaskException] {
+      executor.execute(task, Seq(emptyInput), output, LocalExecution(useLocalInternalDatasets = false))
+    }
+    ex.getMessage must include ("Parse JSON")
+    ex.getMessage must include ("schema")
+  }
+
   it should "parse the JSON of multiple entities" in {
     def jsonContent(id: Int): String =
       s"""{
