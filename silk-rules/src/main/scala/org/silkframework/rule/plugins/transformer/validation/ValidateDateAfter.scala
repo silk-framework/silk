@@ -15,7 +15,7 @@
 package org.silkframework.rule.plugins.transformer.validation
 
 import javax.xml.datatype.DatatypeFactory
-import org.silkframework.rule.input.Transformer
+import org.silkframework.rule.input.InlineTransformer
 import ValidateDateAfter._
 import org.silkframework.rule.annotations.{TransformExample, TransformExamples}
 import org.silkframework.runtime.plugin.annotations.{Param, Plugin, PluginReference}
@@ -59,7 +59,7 @@ import org.silkframework.runtime.validation.ValidationException
 ))
 case class ValidateDateAfter(
   @Param(value = "Allow both dates to be equal.")
-  allowEqual: Boolean = false) extends Transformer {
+  allowEqual: Boolean = false) extends InlineTransformer {
 
   def apply(values: Seq[Seq[String]]): Seq[String] = {
     require(values.length == 2, "ValidateDateOrder accepts exactly two inputs")

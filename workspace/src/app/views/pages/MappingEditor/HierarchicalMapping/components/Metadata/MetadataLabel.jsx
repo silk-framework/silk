@@ -1,13 +1,22 @@
 import React from "react";
+import { PropertyValue, PropertyName, Label } from "@eccenca/gui-elements";
 
-const MetadataLabel = ({ label }) => {
+const MetadataLabel = ({ label, hasDescription }) => {
     return (
-        <div className="ecc-silk-mapping__rulesviewer__label">
-            <dl className="ecc-silk-mapping__rulesviewer__attribute">
-                <dt className="ecc-silk-mapping__rulesviewer__attribute-label">Mapping label</dt>
-                <dd className="ecc-silk-mapping__rulesviewer__attribute-info">{label}</dd>
-            </dl>
-        </div>
+        <>
+            {hasDescription ? (
+                <PropertyName className="ecc-silk-mapping__rulesviewer__label">
+                    <Label text={label} emphasis={"strong"} />
+                </PropertyName>
+            ) : (
+                <>
+                    <PropertyName>
+                        <Label text={"Mapping label"} emphasis={"strong"} />
+                    </PropertyName>
+                    <PropertyValue className="ecc-silk-mapping__rulesviewer__label">{label}</PropertyValue>
+                </>
+            )}
+        </>
     );
 };
 

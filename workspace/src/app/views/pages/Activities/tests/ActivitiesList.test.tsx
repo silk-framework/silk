@@ -1,7 +1,7 @@
 import React from "react";
 import "@testing-library/jest-dom";
 import { render as rtlRender } from "@testing-library/react";
-import { configureStore } from "@reduxjs/toolkit";
+import { combineReducers, configureStore } from "@reduxjs/toolkit";
 import { createMemoryHistory } from "history";
 import { connectRouter, routerMiddleware } from "connected-react-router";
 import { Provider } from "react-redux";
@@ -50,13 +50,17 @@ const dummyState = {
     },
 };
 
+const rootReducer = combineReducers({
+    workspace: workspaceReducer,
+});
+
 const render = (
-    ui: JSX.Element,
+    ui: React.JSX.Element,
     {
         store = configureStore({
-            reducer: { workspace: workspaceReducer, router: connectRouter(history) },
+            reducer: rootReducer,
+            middleware: (getDefaultMiddleware) => getDefaultMiddleware().concat(routerMiddleware(history)),
             preloadedState: {
-                middleware: (getDefaultMiddleware) => getDefaultMiddleware().concat(routerMiddleware(history)),
                 ...(dummyState as any),
             },
         }),

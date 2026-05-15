@@ -9,6 +9,8 @@ const ComplexDeleteButton = ({ onDelete }) => {
             className="ecc-silk-mapping__ruleseditor__actionrow-complex-delete"
             onClick={onDelete}
             text="Reset to default pattern"
+            small
+            disruptive
         />
     );
 };

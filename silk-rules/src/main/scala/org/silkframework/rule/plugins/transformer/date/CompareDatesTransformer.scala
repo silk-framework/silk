@@ -1,7 +1,7 @@
 package org.silkframework.rule.plugins.transformer.date
 
 import org.silkframework.rule.annotations.{TransformExample, TransformExamples}
-import org.silkframework.rule.input.Transformer
+import org.silkframework.rule.input.InlineTransformer
 import org.silkframework.rule.plugins.transformer.ComparatorEnum
 import org.silkframework.util.StringUtils.XSDDateLiteral
 import org.silkframework.rule.plugins.transformer.ComparatorEnum._
@@ -67,7 +67,7 @@ import org.silkframework.runtime.plugin.annotations.{Param, Plugin, PluginRefere
     output = Array("0")
   )
 ))
-case class CompareDatesTransformer(comparator: ComparatorEnum = ComparatorEnum.less) extends Transformer {
+case class CompareDatesTransformer(comparator: ComparatorEnum = ComparatorEnum.less) extends InlineTransformer {
 
   override def apply(values: Seq[Seq[String]]): Seq[String] = {
     // Collect all dates in milliseconds

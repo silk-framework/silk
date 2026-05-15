@@ -1,5 +1,5 @@
 import rootReducer from "./reducers";
-import { configureStore, getDefaultMiddleware } from "@reduxjs/toolkit";
+import { configureStore } from "@reduxjs/toolkit";
 import { createBrowserHistory } from "history";
 import { routerMiddleware } from "connected-react-router";
 import { createLogger } from "redux-logger";
@@ -16,12 +16,7 @@ export const getHistory = () => history;
 
 export default function configStore(options: any = {}) {
     const enhancers: any[] = [];
-    const middleware = [
-        ...getDefaultMiddleware({
-            serializableCheck: false,
-        }),
-        routerMiddleware(getHistory()),
-    ];
+    const middleware = [routerMiddleware(getHistory())];
     if (isDevelopment) {
         const { enableStoreDevUtils, monitorPerformance, logReduxActions, logUselessRenders } = options;
         // Enable redux development actions, e.g. reset store
@@ -59,10 +54,13 @@ export default function configStore(options: any = {}) {
 
     store = configureStore({
         reducer: rootReducer(getHistory()),
-        middleware,
+        middleware: (getDefaultMiddleware) => getDefaultMiddleware({ serializableCheck: false }).concat(middleware),
         devTools: isDevelopment,
-        enhancers,
+        enhancers: (defaultEnhancers) => defaultEnhancers().concat(enhancers),
     });
 
     return store;
 }
+
+export type AppDispatch = typeof store.dispatch;
+export type RootState = ReturnType<typeof store.getState>;

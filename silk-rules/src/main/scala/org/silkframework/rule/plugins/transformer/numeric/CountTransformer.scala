@@ -15,7 +15,7 @@
 package org.silkframework.rule.plugins.transformer.numeric
 
 import org.silkframework.rule.annotations.{TransformExample, TransformExamples}
-import org.silkframework.rule.input.Transformer
+import org.silkframework.rule.input.InlineTransformer
 import org.silkframework.runtime.plugin.annotations.Plugin
 
 /**
@@ -40,7 +40,7 @@ import org.silkframework.runtime.plugin.annotations.Plugin
     output = Array("2")
   )
 ))
-case class CountTransformer() extends Transformer {
+case class CountTransformer() extends InlineTransformer {
 
   def apply(values: Seq[Seq[String]]): Seq[String] = {
     Seq(values.flatten.size.toString)

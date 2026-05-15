@@ -2,18 +2,23 @@
 @(errorMessage: String)(implicit request: RequestHeader, workspaceReact: WorkspaceReact)
 
 @content = {
-  <div class="mdl-grid mdl-grid--centered">
-    <div class="mdl-cell mdl-cell--6-col mdl-cell--8-col-tablet">
-      <div class="mdl-card mdl-shadow--2dp mdl-card--stretch">
-        <div class="mdl-card__title mdl-card--border">
+  <div style="max-width: 60rem; margin: 0 auto; padding: 1rem; ">
+    <div class="eccgui-card bp5-card">
+      <header>
+        <div class="eccgui-card__header">
           <h3 class="mdl-card__title-text">
             Error
           </h3>
         </div>
-        <div class="mdl-card__content">
-          <div class="mdl-alert mdl-alert--danger mdl-alert--border mdl-alert--spacing">
-            <div class="mdl-alert__content">
-              <p>@errorMessage</p>
+      </header>
+      <hr class="eccgui-separation__divider-horizontal">
+      <div class="eccgui-card__content">
+        <div class='@{s"bp5-toast eccgui-notification eccgui-intent--warning eccgui-notification--static"}'>
+          <div class="bp5-toast-message" role="alert">
+            <div class="eccgui-notification__content">
+              <div class="eccgui-notification__messagebody">
+                <p>@errorMessage</p>
+              </div>
             </div>
           </div>
         </div>

@@ -16,7 +16,7 @@ package org.silkframework.rule.execution
 
 import org.silkframework.cache.EntityCache
 import org.silkframework.entity.Link
-import org.silkframework.rule.{LinkageRule, RuntimeLinkingConfig}
+import org.silkframework.rule.{LinkageRuleExecution, RuntimeLinkingConfig}
 import org.silkframework.runtime.activity.Status.Waiting
 import org.silkframework.runtime.activity.{Activity, ActivityContext, ActivityControl, UserContext}
 import org.silkframework.runtime.execution.Execution
@@ -37,7 +37,7 @@ import scala.math.min
  * @param sourceEqualsTarget Can be set to true if the source and the target cache are equal to enable faster matching in that case.
  */
 class Matcher(loaders: DPair[ActivityControl[Unit]],
-              linkageRule: LinkageRule,
+              linkageRule: LinkageRuleExecution,
               caches: DPair[EntityCache],
               runtimeConfig: RuntimeLinkingConfig = RuntimeLinkingConfig(),
               sourceEqualsTarget: Boolean = false) extends Activity[MatcherResult] {
@@ -283,7 +283,7 @@ class Matcher(loaders: DPair[ActivityControl[Unit]],
           val attachedEntities = if(runtimeConfig.generateLinksWithEntities) Some(entityPair) else None
 
           if(!runtimeConfig.indexingOnly) {
-            if(!linkageRule.excludeSelfReferences || entityPair.source.uri != entityPair.target.uri) {
+            if(!linkageRule.operator.excludeSelfReferences || entityPair.source.uri != entityPair.target.uri) {
               val confidence = linkageRule(entityPair, 0.0)
               if (confidence >= 0.0) {
                 links = links :+ Link(entityPair.source.uri, entityPair.target.uri, Some(confidence), attachedEntities)

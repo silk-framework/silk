@@ -15,7 +15,7 @@
 package org.silkframework.rule.plugins.transformer.numeric
 
 import org.silkframework.rule.annotations.{TransformExample, TransformExamples}
-import org.silkframework.rule.input.Transformer
+import org.silkframework.rule.input.InlineTransformer
 import org.silkframework.runtime.plugin.annotations.{Param, Plugin, PluginReference}
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.StringUtils.DoubleLiteral
@@ -100,7 +100,7 @@ import org.silkframework.util.StringUtils.DoubleLiteral
 case class NumOperationTransformer(
   @Param("The operator to be applied to all values. One of `+`, `-`, `*`, `/`")
   operator: String
-) extends Transformer {
+) extends InlineTransformer {
 
   require(Set("+", "-", "*", "/") contains operator, "Operator must be one of '+', '-', '*', '/'")
 

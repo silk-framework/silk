@@ -37,6 +37,7 @@ import { UserMenuFooterProps } from "../../plugins/plugin.types";
 import { ExampleProjectImportMenu } from "./ExampleProjectImportMenu";
 import { useKeyboardHeaderShortcuts } from "./useKeyBoardHeaderShortcuts";
 import { getFullRoutePath } from "../../../utils/routerUtils";
+import { AppDispatch } from "store/configureStore";
 
 interface IProps {
     onClickApplicationSidebarExpand: any;
@@ -44,7 +45,7 @@ interface IProps {
 }
 
 export function Header({ onClickApplicationSidebarExpand, isApplicationSidebarExpanded }: IProps) {
-    const dispatch = useDispatch();
+    const dispatch = useDispatch<AppDispatch>();
     const location = useLocation();
     const locationParams = new URLSearchParams(location.search?.substring(1));
     const { hotKeys } = useSelector(commonSel.initialSettingsSelector);
