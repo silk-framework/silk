@@ -40,6 +40,8 @@ import { Notification, highlighterUtils, StickyNote } from "@eccenca/gui-element
 import { CodeAutocompleteFieldPartialAutoCompleteResult } from "@eccenca/gui-elements/src/components/AutoSuggestion/AutoSuggestion";
 import { languageFilterRegex, PathInputOperatorContext } from "../../shared/RuleEditor/view/ruleNode/PathInputOperator";
 import { documentationPageUrl } from "workspace/src/app/utils/getApiEndpoint";
+import ruleBlockOperatorUtils, { IRuleBlockOperatorDetails } from "../ruleBlock/ruleBlockOperator.utils";
+import { requestRuleBlockSummaries } from "../ruleBlock/ruleBlock.requests";
 
 export interface LinkingRuleEditorProps {
     /** Project ID the task is in. */
@@ -69,6 +71,8 @@ export const LinkingRuleEditorOptionalContext = React.createContext<LinkingRuleE
 const HIDE_GREY_LISTED_OPERATORS_QUERY_PARAMETER = "hideGreyListedParameters";
 
 const NUMBER_OF_LINKS_TO_SHOW = 5;
+
+type LinkingRuleEditorOperator = IPluginDetails | IRuleBlockOperatorDetails;
 
 /** Editor for creating and changing linking rule operator trees. */
 export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions, instanceId }: LinkingRuleEditorProps) => {
@@ -170,6 +174,12 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions, insta
         }
     };
 
+    /** Fetches reusable rule blocks that can be referenced from linking rules. */
+    const fetchRuleBlockOperators = async (): Promise<LinkingRuleEditorOperator[]> => {
+        const response = await requestRuleBlockSummaries(projectId);
+        return response.data.map(ruleBlockOperatorUtils.ruleBlockSummaryToOperator);
+    };
+
     const inputPathAutoCompletion =
         (inputType: "source" | "target") =>
         async (term: string, limit: number): Promise<IAutocompleteDefaultResponse[]> => {
@@ -207,14 +217,17 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions, insta
     );
 
     /** Fetches the list of operators that can be used in a linking task. */
-    const fetchLinkingRuleOperatorDetails = async () => {
+    const fetchLinkingRuleOperatorDetails = async (): Promise<LinkingRuleEditorOperator[] | undefined> => {
         try {
-            const responseData = (await requestRuleOperatorPluginsDetails(false)).data;
+            const [responseData, ruleBlockOperators] = await Promise.all([
+                requestRuleOperatorPluginsDetails(false).then((response) => response.data),
+                fetchRuleBlockOperators(),
+            ]);
             let operatorPlugins = Object.values(responseData);
             if (hideGreyListedParameters) {
                 operatorPlugins = operatorPlugins.filter((pd) => !pd.categories.includes("Excel"));
             }
-            return operatorPlugins;
+            return [...operatorPlugins, ...ruleBlockOperators];
         } catch (err) {
             registerError(
                 "LinkingRuleEditor_fetchLinkingRuleOperatorDetails",
@@ -401,6 +414,7 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions, insta
                     { errorNotificationInstanceId: RULE_EDITOR_NOTIFICATION_INSTANCE },
                 ),
             ),
+            ruleBlockOperatorUtils.ruleBlockTab(),
             ruleUtils.sidebarTabs.transform,
             ruleUtils.sidebarTabs.comparison,
             ruleUtils.sidebarTabs.aggregation,
@@ -463,7 +477,7 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions, insta
                 linkingTaskId={linkingTaskId}
                 numberOfLinkToShow={NUMBER_OF_LINKS_TO_SHOW}
             >
-                <RuleEditor<TaskPlugin<ILinkingTaskParameters>, IPluginDetails>
+                <RuleEditor<TaskPlugin<ILinkingTaskParameters>, LinkingRuleEditorOperator>
                     projectId={projectId}
                     taskId={linkingTaskId}
                     fetchRuleData={fetchTaskData}
@@ -471,11 +485,18 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions, insta
                     partialAutoCompletion={fetchPartialAutoCompletionResult}
                     saveRule={saveLinkageRule}
                     getStickyNotes={utils.getStickyNotes}
-                    convertRuleOperator={ruleUtils.convertRuleOperator}
+                    convertRuleOperator={(operator, addAdditionParameterSpecifications) =>
+                        ruleBlockOperatorUtils.isRuleBlockOperator(operator)
+                            ? ruleBlockOperatorUtils.convertRuleBlockOperator(operator)
+                            : ruleUtils.convertRuleOperator(operator, addAdditionParameterSpecifications)
+                    }
                     viewActions={viewActions}
                     convertToRuleOperatorNodes={utils.convertLinkingTaskToRuleOperatorNodes}
                     additionalRuleOperators={[sourcePathInput(), targetPathInput()]}
                     addAdditionParameterSpecifications={(pluginDetails) => {
+                        if (ruleBlockOperatorUtils.isRuleBlockOperator(pluginDetails)) {
+                            return [];
+                        }
                         switch (pluginDetails.pluginType) {
                             case "ComparisonOperator":
                                 return pluginDetails.distanceMeasureRange === "boolean"

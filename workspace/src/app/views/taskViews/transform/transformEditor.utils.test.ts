@@ -1,4 +1,5 @@
-import transformEditorUtils, { IRuleBlockOperatorDetails } from "./transformEditor.utils";
+import transformEditorUtils from "./transformEditor.utils";
+import { IRuleBlockOperatorDetails } from "../ruleBlock/ruleBlockOperator.utils";
 import { IRuleBlockSummary } from "../ruleBlock/ruleBlock.types";
 
 describe("transformEditorUtils", () => {
