@@ -112,8 +112,8 @@ case class DatasetSpec[+DatasetType <: Dataset](plugin: DatasetType,
     plugin.searchTags(pluginContext)
   }
 
-  override def hiddenSearchTags(pluginContext: PluginContext): Seq[String] = {
-    plugin.hiddenSearchTags(pluginContext)
+  override def hiddenSearchTokens(pluginContext: PluginContext): Seq[String] = {
+    plugin.hiddenSearchTokens(pluginContext)
   }
 }
 

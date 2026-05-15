@@ -38,7 +38,7 @@ object SearchApiModel {
   final val PLUGIN_LABEL = "pluginLabel"
   final val TAGS = "tags"
   final val SEARCH_TAGS = "searchTags"
-  final val HIDDEN_SEARCH_TAGS = "hiddenSearchTags"
+  final val HIDDEN_SEARCH_TOKENS = "hiddenSearchTokens"
   final val PARAMETERS = "parameters"
   final val READ_ONLY = "readOnly"
   final val URI_PROPERTY = "uriProperty"
@@ -172,9 +172,9 @@ object SearchApiModel {
       val searchInItemType = if(task.data.isInstanceOf[DatasetSpec[_]]) "dataset" else ""
       val tagLabels = task.tags().map(_.label)
       val searchTags = task.searchTags(pluginContext)
-      val hiddenSearchTags = task.hiddenSearchTags(pluginContext)
+      val hiddenSearchTokens = task.hiddenSearchTokens(pluginContext)
       val searchInTerms = Seq(taskLabel, description, searchInProperties, searchInProject, pluginLabel, searchInItemType) ++ tagLabels ++ searchTags
-      TextSearchUtils.matchesSearchTerm(lowerCaseSearchTerms, searchInTerms, hiddenSearchTags)
+      TextSearchUtils.matchesSearchTerm(lowerCaseSearchTerms, searchInTerms, hiddenSearchTokens)
     }
 
     /** Match search terms against project. */

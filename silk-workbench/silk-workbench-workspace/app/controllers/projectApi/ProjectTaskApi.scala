@@ -150,7 +150,7 @@ class ProjectTaskApi @Inject()() extends InjectedController with UserContextActi
         Some(project.id),
         readOnly
       )
-      (item, task.hiddenSearchTags(pluginContext))
+      (item, task.hiddenSearchTokens(pluginContext))
     }
     val filteredItems = filterRelatedItems(relatedItemsWithHiddenTags, textQuery)
     val total = relatedItemsWithHiddenTags.size
@@ -436,11 +436,11 @@ class ProjectTaskApi @Inject()() extends InjectedController with UserContextActi
     if(searchWords.isEmpty) {
       relatedItems.map(_._1)
     } else {
-      relatedItems.collect { case (relatedItem, hiddenSearchTags) // Description is not displayed, so don't search in description.
+      relatedItems.collect { case (relatedItem, hiddenSearchTokens) // Description is not displayed, so don't search in description.
         if TextSearchUtils.matchesSearchTerm(
           searchWords,
           Seq(s"${relatedItem.label} ${relatedItem.`type`} ${relatedItem.pluginLabel} ${relatedItem.tags.map(_.label).mkString(" ")} ${relatedItem.searchTags.mkString(" ")}".toLowerCase),
-          hiddenSearchTags
+          hiddenSearchTokens
         ) => relatedItem
       }
     }

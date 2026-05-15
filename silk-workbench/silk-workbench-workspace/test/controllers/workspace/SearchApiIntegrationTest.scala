@@ -407,5 +407,5 @@ case class HiddenSearchTagsTestTask() extends CustomTask {
   override def inputPorts: InputPorts = InputPorts.NoInputPorts
   override def outputPort: Option[Port] = None
   override def searchTags(pluginContext: PluginContext): Seq[String] = Seq(HiddenSearchTagsTestTask.visibleTag)
-  override def hiddenSearchTags(pluginContext: PluginContext): Seq[String] = Seq(HiddenSearchTagsTestTask.hiddenTag)
+  override def hiddenSearchTokens(pluginContext: PluginContext): Seq[String] = Seq(HiddenSearchTagsTestTask.hiddenTag)
 }
