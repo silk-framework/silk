@@ -46,16 +46,13 @@ string representation of a node, retrieving the current key name, and accessing 
 
 ## Schema
 
-Before producing output entities, Parse JSON needs to know which fields to extract. This schema comes from one of two
-places.
+Before producing output entities, Parse JSON needs to know which fields to extract. This schema is always supplied by a
+downstream operator — typically a transformation — that declares the fields it expects. Parse JSON receives that schema
+as part of the execution pipeline and uses it directly to extract values from the parsed JSON.
 
-In the normal case, a downstream operator — typically a transformation — specifies the fields it expects. Parse JSON
-receives this schema as part of the execution pipeline and uses it directly to extract the right values from the parsed
-JSON.
-
-When no schema is specified by a downstream operator, Parse JSON infers one. It does this by inspecting the JSON content
-of the first input entity and collecting all paths present in the document. The inferred schema covers every field
-reachable from the configured base path. This inference happens automatically and requires no configuration.
+Parse JSON cannot be connected directly to a dataset. A dataset does not declare an input schema, so there would be
+nothing to tell Parse JSON which fields to read. Workflows that wire Parse JSON straight into a dataset will fail with
+an explicit error at execution time.
 
 ## Example
 

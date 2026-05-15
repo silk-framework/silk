@@ -3,14 +3,12 @@ package org.silkframework.plugins.dataset.json
 import org.silkframework.config.{FixedSchemaPort, PlainTask, Prefixes, Task, TaskSpec}
 import org.silkframework.dataset.DatasetSpec
 import org.silkframework.entity.{Entity, EntitySchema, MultiEntitySchema}
-import org.silkframework.entity.paths.{ForwardOperator, UntypedPath}
 import org.silkframework.execution._
 import org.silkframework.execution.local._
 import org.silkframework.runtime.activity.{ActivityContext, ActivityMonitor}
 import org.silkframework.runtime.iterator.{CloseableIterator, RepeatedIterator, RewindableEntityIterator}
 import org.silkframework.runtime.plugin.PluginContext
 import org.silkframework.runtime.resource.InMemoryResourceManager
-import org.silkframework.util.Uri
 
 
 /**
@@ -34,9 +32,10 @@ case class LocalJsonParserTaskExecutor() extends LocalExecutor[JsonParserTask] {
       case None => 0 // Take the value of the first path
     }
 
-    output.requestedSchema
-      .orElse(output.task.flatMap(_ => inferSchema(task, entities.newIterator(), pathIndex)))
-      .map(executeWithSchema(task, _, entities, output, execution, context, pathIndex))
+    val schema = output.requestedSchema.getOrElse(
+      throw TaskException("The Parse JSON operator cannot be connected directly to a dataset. It must feed an operator (typically a transformation) that declares a target schema, since Parse JSON's output schema depends on what the consumer requests.")
+    )
+    Some(executeWithSchema(task, schema, entities, output, execution, context, pathIndex))
   }
 
   /** Runs the parse once a schema is known, dispatching on single vs. multi-entity schema. */
@@ -58,28 +57,6 @@ case class LocalJsonParserTaskExecutor() extends LocalExecutor[JsonParserTask] {
         MultiEntityTable(rootEntities, requestedSchema, task, subEntities)
       case _ =>
         GenericEntityTable(entityIterator(requestedSchema, entities, task, output, execution, context, pathIndex), requestedSchema, task)
-    }
-  }
-
-  /** Infers an entity schema from the JSON content of the first input entity when no schema is prescribed downstream. */
-  private def inferSchema(task: Task[JsonParserTask],
-                          iterator: CloseableIterator[Entity],
-                          pathIndex: Int): Option[EntitySchema] = {
-    iterator.nextOption().flatMap { entity =>
-      entity.values.lift(pathIndex).flatMap(_.headOption).map { jsonString =>
-        val jsonSource = JsonSourceInMemory.fromString(
-          taskId = task.id,
-          str = jsonString,
-          basePath = task.data.basePath,
-          uriPattern = "",
-          navigateIntoArrays = task.data.navigateIntoArrays
-        )
-        val typedPaths = jsonSource.collectPaths(limit = Int.MaxValue)
-          .filter(_.nonEmpty)
-          .map(segments => UntypedPath(segments.map(seg => ForwardOperator(Uri(seg)))).asStringTypedPath)
-          .toIndexedSeq
-        EntitySchema("", typedPaths)
-      }
     }
   }
 

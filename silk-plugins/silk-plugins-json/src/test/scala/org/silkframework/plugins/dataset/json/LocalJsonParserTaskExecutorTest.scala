@@ -6,7 +6,7 @@ import org.silkframework.dataset.DatasetSpec
 import org.silkframework.runtime.resource.InMemoryResourceManager
 import org.silkframework.entity.paths.UntypedPath
 import org.silkframework.entity.{Entity, EntitySchema, MultiEntitySchema}
-import org.silkframework.execution.{ExecutorOutput, ExecutorRegistry}
+import org.silkframework.execution.{ExecutorOutput, ExecutorRegistry, TaskException}
 import org.silkframework.execution.local.{GenericEntityTable, GenericLocalDatasetExecutor, LocalExecution, MultiEntityTable}
 import org.silkframework.runtime.activity.TestUserContextTrait
 import org.silkframework.runtime.plugin.{PluginContext, PluginRegistry}
@@ -81,7 +81,7 @@ class LocalJsonParserTaskExecutorTest extends AnyFlatSpec with Matchers with Moc
     values mustBe Seq("1", "1")
   }
 
-  it should "produce entities when the downstream port is a FlexibleSchemaPort" in {
+  it should "throw a TaskException when wired directly to a dataset (FlexibleSchemaPort)" in {
     // InMemoryResourceManager.get() creates the resource object even if no content has been written yet
     val outputResource = InMemoryResourceManager().get("output.json")
     val downstreamTask = PlainTask("outputDataset", DatasetSpec(JsonDataset(outputResource)))
@@ -89,10 +89,12 @@ class LocalJsonParserTaskExecutorTest extends AnyFlatSpec with Matchers with Moc
     val output = ExecutorOutput(Some(downstreamTask), Some(FlexibleSchemaPort()))
     val inputs = Seq(inputEntities)
     val execution = LocalExecution(useLocalInternalDatasets = false)
-    val result = executor.execute(task, inputs, output, execution)
 
-    result mustBe defined
-    result.get.entities.flatMap(_.values).flatten.toSeq mustBe Seq("0", "John", "1", "Max")
+    val ex = intercept[TaskException] {
+      executor.execute(task, inputs, output, execution)
+    }
+    ex.getMessage must include ("Parse JSON")
+    ex.getMessage must include ("schema")
   }
 
   it should "parse the JSON of multiple entities" in {

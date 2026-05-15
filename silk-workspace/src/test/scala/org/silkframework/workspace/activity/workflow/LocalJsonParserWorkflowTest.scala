@@ -10,6 +10,7 @@ import org.silkframework.runtime.resource.InMemoryResourceManager
 import org.silkframework.util.ConfigTestTrait
 import org.silkframework.workspace.resources.ConstantResourceRepository
 import org.silkframework.workspace.{InMemoryWorkspaceProvider, ProjectConfig, Workspace}
+import org.silkframework.execution.TaskException
 import org.silkframework.plugins.dataset.json.{JsonDataset, JsonParserTask}
 import play.api.libs.json.{JsString, Json}
 import LocalJsonParserWorkflowTest._
@@ -47,7 +48,7 @@ class LocalJsonParserWorkflowTest extends AnyFlatSpec with Matchers with ConfigT
       |  ]
       |}""".stripMargin
 
-  it should "write parsed entities to a downstream JSON dataset" in {
+  it should "fail loudly when Parse JSON feeds a dataset directly" in {
     val resources = InMemoryResourceManager()
 
     // Source: one entity whose "jsonContent" field holds the JSON blob Parse JSON will parse
@@ -105,12 +106,12 @@ class LocalJsonParserWorkflowTest extends AnyFlatSpec with Matchers with ConfigT
     ))
 
     val workflowTask = project.task[Workflow](WorkflowId)
-    workflowTask.activity[LocalWorkflowExecutorGeneratingProvenance].startBlocking()
-
-    outputResource.size.getOrElse(0L) should be > 0L
-
-    val names = (Json.parse(outputResource.loadAsString()) \\ "name").flatMap(_.as[Seq[String]])
-    names should contain allOf ("John", "Max")
+    val ex = intercept[WorkflowExecutionException] {
+      workflowTask.activity[LocalWorkflowExecutorGeneratingProvenance].startBlocking()
+    }
+    ex.getCause shouldBe a [TaskException]
+    ex.getCause.getMessage should include ("Parse JSON")
+    outputResource.size.getOrElse(0L) shouldBe 0L
   }
 }
 
