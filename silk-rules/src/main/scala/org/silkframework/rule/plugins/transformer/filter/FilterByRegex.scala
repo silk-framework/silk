@@ -1,6 +1,6 @@
 package org.silkframework.rule.plugins.transformer.filter
 
-import org.silkframework.rule.input.Transformer
+import org.silkframework.rule.input.InlineTransformer
 import org.silkframework.rule.plugins.transformer.selection.RegexSelectTransformer
 import org.silkframework.runtime.plugin.annotations.{Plugin, PluginReference}
 
@@ -19,7 +19,7 @@ import org.silkframework.runtime.plugin.annotations.{Plugin, PluginReference}
     )
   )
 )
-case class FilterByRegex(regex: String, negate: Boolean = false) extends Transformer {
+case class FilterByRegex(regex: String, negate: Boolean = false) extends InlineTransformer {
 
   override def apply(values: Seq[Seq[String]]): Seq[String] = {
     if(!negate) {

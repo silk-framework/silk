@@ -29,6 +29,7 @@ import { IProjectTaskView, IViewActions, pluginRegistry } from "../../plugins/Pl
 import PromptModal from "./PromptModal";
 import ErrorBoundary from "../../../ErrorBoundary";
 import { ProjectTaskTabViewContext } from "./ProjectTaskTabViewContext";
+import { AppDispatch } from "store/configureStore";
 
 const getBookmark = () => window.location.pathname.split("/").slice(-1)[0];
 
@@ -103,7 +104,7 @@ export function ProjectTaskTabView({
     const globalTaskId = useSelector(commonSel.currentTaskIdSelector);
     const projectId = taskViewConfig?.projectId ?? globalProjectId;
     const taskId = taskViewConfig?.taskId ?? globalTaskId;
-    const dispatch = useDispatch();
+    const dispatch = useDispatch<AppDispatch>();
     const history = useHistory();
     const [t] = useTranslation();
     const [isFetchingLinks, setIsFetchingLinks] = useState(true);

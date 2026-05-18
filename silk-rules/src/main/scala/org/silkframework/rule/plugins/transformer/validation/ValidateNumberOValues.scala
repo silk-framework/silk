@@ -15,7 +15,7 @@
 package org.silkframework.rule.plugins.transformer.validation
 
 import org.silkframework.rule.annotations.{TransformExample, TransformExamples}
-import org.silkframework.rule.input.Transformer
+import org.silkframework.rule.input.InlineTransformer
 import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
 import org.silkframework.runtime.validation.ValidationException
 
@@ -42,7 +42,7 @@ case class ValidateNumberOValues(
   @Param(value = "Minimum allowed number of values")
   min: Int = 0,
   @Param(value = "Maximum allowed number of values")
-  max: Int = 1) extends Transformer {
+  max: Int = 1) extends InlineTransformer {
 
   def apply(values: Seq[Seq[String]]): Seq[String] = {
     val allValues = values.flatten

@@ -1,23 +1,22 @@
 import React, { useEffect, useState } from "react";
-import { ScrollingHOC } from "gui-elements-deprecated";
-import { debounce } from "lodash";
+import { useScrollIntoView } from "../../../utils/useScrollIntoView";
+import _, { debounce } from "lodash";
 import {
+    Button,
     Card,
     CardActions,
     CardContent,
     CardHeader,
     CardTitle,
-    Divider,
     CodeAutocompleteField,
+    Divider,
     FieldItem,
     IconButton,
     Spacing,
     Spinner,
-    TextField,
     TextArea,
-    Button,
+    TextField,
 } from "@eccenca/gui-elements";
-import _ from "lodash";
 import ExampleView from "../ExampleView";
 import store, { checkValuePathValidity, fetchValuePathSuggestions } from "../../../store";
 import { convertToUri } from "../../../utils/convertToUri";
@@ -104,8 +103,6 @@ interface IState {
 interface IProps {
     // ID of the rule
     id?: string;
-    //
-    scrollIntoView: ({ topOffset }) => any;
     parentId?: string;
     // Called when the rule has been saved
     onAddNewRule?: (call: () => any) => any;
@@ -122,6 +119,7 @@ interface IProps {
 /** The edit form of a value mapping rule. */
 export function ValueRuleForm(props: IProps) {
     const mappingEditorContext = React.useContext(GlobalMappingEditorContext);
+    const { elementRef, scrollIntoView } = useScrollIntoView<HTMLDivElement>();
     const [loading, setLoading] = useState<boolean>(false);
     const [changed, setChanged] = useState(false);
     const [type, setType] = useState(MAPPING_RULE_TYPE_DIRECT);
@@ -179,11 +177,9 @@ export function ValueRuleForm(props: IProps) {
 
     useEffect(() => {
         if (!loading) {
-            props.scrollIntoView({
-                topOffset: 75,
-            });
+            scrollIntoView(75);
         }
-    }, [loading]);
+    }, [loading, scrollIntoView]);
 
     const loadData = () => {
         setLoading(true);
@@ -439,29 +435,27 @@ export function ValueRuleForm(props: IProps) {
 
         if (type === MAPPING_RULE_TYPE_DIRECT) {
             sourcePropertyInput = (
-                <>
-                    <CodeAutocompleteField
-                        id={"value-path-auto-suggestion"}
-                        label="Value path"
-                        initialValue={initialValues.sourceProperty ?? ""}
-                        clearIconText={"Clear value path"}
-                        validationErrorText={"The entered value path is invalid."}
-                        onChange={handleChangeSelectBox.bind(null, "sourceProperty", updateSourceProperty)}
-                        fetchSuggestions={(input, cursorPosition) =>
-                            fetchValuePathSuggestions(
-                                autoCompleteRuleId,
-                                input,
-                                cursorPosition,
-                                false,
-                                mappingEditorContext.taskContext,
-                            )
-                        }
-                        checkInput={checkValuePathValidity}
-                        onInputChecked={setValuePathValid}
-                        onFocusChange={changeValuePathInputHasFocus}
-                        rightElement={<ComplexRuleEditButton />}
-                    />
-                </>
+                <CodeAutocompleteField
+                    id={"value-path-auto-suggestion"}
+                    label="Value path"
+                    initialValue={initialValues.sourceProperty ?? ""}
+                    clearIconText={"Clear value path"}
+                    validationErrorText={"The entered value path is invalid."}
+                    onChange={handleChangeSelectBox.bind(null, "sourceProperty", updateSourceProperty)}
+                    fetchSuggestions={(input, cursorPosition) =>
+                        fetchValuePathSuggestions(
+                            autoCompleteRuleId,
+                            input,
+                            cursorPosition,
+                            false,
+                            mappingEditorContext.taskContext,
+                        )
+                    }
+                    checkInput={checkValuePathValidity}
+                    onInputChecked={setValuePathValid}
+                    onFocusChange={changeValuePathInputHasFocus}
+                    rightElement={<ComplexRuleEditButton />}
+                />
             );
         } else if (type === MAPPING_RULE_TYPE_COMPLEX) {
             const editButton = <ComplexRuleEditButton />;
@@ -472,12 +466,14 @@ export function ValueRuleForm(props: IProps) {
                 </span>
             );
             sourcePropertyInput = (
-                <TextField
-                    data-id="test-complex-input"
-                    disabled
-                    value="The value formula cannot be modified in the edit form."
-                    rightElement={actions}
-                />
+                <FieldItem labelProps={{ text: "Value formula" }}>
+                    <TextField
+                        data-id="test-complex-input"
+                        disabled
+                        value="The value formula cannot be directly modified in the edit form."
+                        rightElement={actions}
+                    />
+                </FieldItem>
             );
         }
         const exampleView =
@@ -513,6 +509,12 @@ export function ValueRuleForm(props: IProps) {
                         itemDisplayLabel={(item) => (item.label ? `${item.label} (${item.value})` : item.value)}
                         taskContext={mappingEditorContext.taskContext}
                     />
+                    <TargetCardinality
+                        className="ecc-silk-mapping__ruleseditor__isAttribute"
+                        isAttribute={isAttribute}
+                        isObjectMapping={false}
+                        onChange={() => handleChangeValue("isAttribute", !isAttribute, setIsAttribute)}
+                    />
                     <AutoComplete
                         placeholder="Data type"
                         className="ecc-silk-mapping__ruleseditor__propertyType"
@@ -543,7 +545,7 @@ export function ValueRuleForm(props: IProps) {
                     {valueType.nodeType === "LanguageValueType" && (
                         <AutoComplete
                             data-id="lng-select-box"
-                            placeholder="Language Tag"
+                            placeholder="Language tag"
                             className="ecc-silk-mapping__ruleseditor__languageTag"
                             entity="langTag"
                             ruleId={autoCompleteRuleId}
@@ -557,12 +559,6 @@ export function ValueRuleForm(props: IProps) {
                             clearable={false} // hide 'remove all selected values' button
                         />
                     )}
-                    <TargetCardinality
-                        className="ecc-silk-mapping__ruleseditor__isAttribute"
-                        isAttribute={isAttribute}
-                        isObjectMapping={false}
-                        onChange={() => handleChangeValue("isAttribute", !isAttribute, setIsAttribute)}
-                    />
                     {sourcePropertyInput}
                     <Spacing size={"small"} />
                     {exampleView}
@@ -614,16 +610,16 @@ export function ValueRuleForm(props: IProps) {
         );
 
         return !props.noCardWrapper ? (
-            <div className="ecc-silk-mapping__ruleseditor">
+            <div ref={elementRef} className="ecc-silk-mapping__ruleseditor">
                 <Card elevation={!id ? 1 : -1}>
                     {title}
                     {editForm}
                 </Card>
             </div>
         ) : (
-            editForm
+            <div ref={elementRef}>{editForm}</div>
         );
     };
     return render();
 }
-export default ScrollingHOC(ValueRuleForm);
+export default ValueRuleForm;

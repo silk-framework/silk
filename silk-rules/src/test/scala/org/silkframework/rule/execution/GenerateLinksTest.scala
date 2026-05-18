@@ -23,7 +23,7 @@ import org.silkframework.entity.paths.UntypedPath
 import org.silkframework.rule.evaluation.ReferenceLinksReader
 import org.silkframework.rule.execution.methods._
 import org.silkframework.rule.plugins.transformer.linguistic.{MetaphoneTransformer, NysiisTransformer, SoundexTransformer}
-import org.silkframework.rule.{LinkSpec, LinkingConfig, RuntimeLinkingConfig}
+import org.silkframework.rule.{LinkSpec, LinkingConfig, RuntimeLinkingConfig, TaskContext}
 import org.silkframework.runtime.activity.{Activity, UserContext}
 import org.silkframework.runtime.resource.ClasspathResourceLoader
 import org.silkframework.runtime.serialization.{ReadContext, TestReadContext, XmlSerialization}
@@ -159,7 +159,7 @@ object GenerateLinksTest {
                             runtimeConfig: RuntimeLinkingConfig = RuntimeLinkingConfig()): GenerateLinks = {
       val sourcePair = linkSpec.findSources(datasets)
       val outputs = linkSpec.output.flatMap(o => datasets.find(_.id == o)).map(_.linkSink)
-      new GenerateLinks(PlainTask(id, linkSpec), sourcePair, outputs, runtimeConfig)
+      new GenerateLinks(PlainTask(id, linkSpec), sourcePair, outputs, TaskContext.empty, runtimeConfig)
     }
 
     private def run(runtimeConfig: RuntimeLinkingConfig): Set[Link] = {

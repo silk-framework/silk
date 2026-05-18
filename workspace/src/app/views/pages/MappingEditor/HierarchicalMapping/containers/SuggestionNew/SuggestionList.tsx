@@ -476,7 +476,14 @@ export default function SuggestionList({
                 <>
                     <Table style={{ tableLayout: "fixed" }}>
                         <colgroup>
-                            <col style={{ width: "60px" }} />
+                            <col
+                                style={{
+                                    width: "60px",
+                                    padding: "unset",
+                                    textAlign: "center",
+                                    verticalAlign: "center",
+                                }}
+                            />
                             <col style={{ width: headers[0].key === "source" ? "15em" : "20em" }} />
                             <col style={{ width: "60px" }} />
                             <col style={{ width: headers[0].key === "source" ? "20em" : "15em" }} />

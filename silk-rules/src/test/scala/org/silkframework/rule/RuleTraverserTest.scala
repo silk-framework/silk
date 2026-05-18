@@ -35,6 +35,7 @@ class RuleTraverserTest extends AnyFlatSpec with Matchers {
   case class Node(id: Identifier, children: Seq[Node] = Seq.empty) extends Operator {
     override def withId(newId: Identifier): Operator = copy(id = newId)
     override def withChildren(newChildren: Seq[Operator]): Operator = copy(children = newChildren.map(_.asInstanceOf[Node]))
+    override def execution(taskContext: TaskContext): OperatorExecution = new OperatorExecution { override def operator: Operator = Node.this }
   }
 
 }

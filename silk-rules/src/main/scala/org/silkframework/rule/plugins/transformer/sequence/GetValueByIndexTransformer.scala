@@ -1,6 +1,6 @@
 package org.silkframework.rule.plugins.transformer.sequence
 
-import org.silkframework.rule.input.Transformer
+import org.silkframework.rule.input.InlineTransformer
 import org.silkframework.runtime.plugin.annotations.Plugin
 
 /**
@@ -21,7 +21,7 @@ import org.silkframework.runtime.plugin.annotations.Plugin
 )
 case class GetValueByIndexTransformer(index: Int,
                                       failIfNotFound: Boolean = false,
-                                      emptyStringToEmptyResult: Boolean = false) extends Transformer {
+                                      emptyStringToEmptyResult: Boolean = false) extends InlineTransformer {
   override def apply(values: Seq[Seq[String]]): Seq[String] = {
     values.flatMap { vs =>
       vs.drop(index).headOption match {

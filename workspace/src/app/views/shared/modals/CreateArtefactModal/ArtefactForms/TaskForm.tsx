@@ -31,12 +31,13 @@ import useHotKey from "../../../HotKeyHandler/HotKeyHandler";
 import utils from "@eccenca/gui-elements/src/cmem/markdown/markdown.utils";
 import { commonOp } from "@ducks/common";
 import { DependsOnParameterValueAny } from "./ParameterAutoCompletion";
-import { FieldValues, FormContextValues } from "react-hook-form";
+import { FieldValues, UseFormReturn } from "react-hook-form";
+import { collectPopulatedDependentParameters } from "./TaskForm.utils";
 
 export const READ_ONLY_PARAMETER = "readOnly";
 
 export interface IProps {
-    form: FormContextValues<FieldValues>;
+    form: UseFormReturn<FieldValues>;
 
     detectChange: (key: string, val: any, oldValue: any) => void;
 
@@ -63,8 +64,14 @@ export interface IProps {
     /** If a parameter value is changed in a way that did not use the parameter widget, this must be called in order to update the value in the widget itself. */
     propagateExternallyChangedParameterValue: (fullParamId: string, value: string) => any;
 
-    /** Shows a warning notification with the following message in the dialog popup that can be removed by the user. */
-    showWarningMessage: (message: string) => void;
+    /** Shows or clears a warning notification in the dialog popup. */
+    showWarningMessage: (warning?: TaskFormReviewWarning) => void;
+}
+
+export interface TaskFormReviewWarning {
+    message: React.JSX.Element | string;
+    onClearHighlightedValues?: () => void;
+    onDismiss?: () => void;
 }
 
 export interface UpdateTaskProps {
@@ -138,14 +145,23 @@ export function TaskForm({
     showWarningMessage,
 }: IProps) {
     const { properties, required: requiredRootParameters } = artefact;
-    const { register, errors, getValues, setValue, unregister, triggerValidation } = form;
+    const {
+        register,
+        formState: { errors },
+        getValues,
+        setValue,
+        unregister,
+        trigger,
+    } = form;
     const [formValueKeys, setFormValueKeys] = useState<string[]>([]);
     const dependentValues: React.MutableRefObject<Record<string, DependsOnParameterValueAny | undefined>> =
         React.useRef<Record<string, DependsOnParameterValueAny | undefined>>({});
     const dependentParameters = React.useRef<Map<string, Set<string>>>(new Map());
     const [doChange, setDoChange] = useState<boolean>(false);
+    const [staleDependentParameterIds, setStaleDependentParameterIds] = useState<string[]>([]);
     const { registerError } = useErrorHandler();
     const parameterDefaultValues = React.useRef<Map<string, string | null>>(new Map());
+    const staleDependentParameterIdsRef = React.useRef<string[]>([]);
     parameterDefaultValues.current = extractDefaultValues(artefact);
 
     const addDependentParameter = React.useCallback((dependentParameter: string, dependsOn: string) => {
@@ -171,7 +187,7 @@ export function TaskForm({
     );
     const [t] = useTranslation();
     const parameterLabels = React.useRef(new Map<string, string>());
-    const { label, description } = form.watch([LABEL, DESCRIPTION]);
+    const [label, description] = form.watch([LABEL, DESCRIPTION]);
     const dataPreviewPlugin = pluginRegistry.pluginReactComponent<DataPreviewProps>(SUPPORTED_PLUGINS.DATA_PREVIEW);
     const escapeKeyDisabled = React.useRef(false);
 
@@ -253,6 +269,17 @@ export function TaskForm({
         }
     }, [doChange]);
 
+    const scrollParameterIntoView = React.useCallback((fullParameterId: string) => {
+        const parameterElement = window.document.querySelector(
+            `[data-test-id="task-form-parameter-${fullParameterId}"]`,
+        ) as HTMLElement | null;
+        parameterElement?.scrollIntoView({ behavior: "smooth", block: "center" });
+    }, []);
+
+    const dismissHighlightedDependentParameters = React.useCallback(() => {
+        setStaleDependentParameterIds([]);
+    }, []);
+
     /** Initialize: register parameters, set default/existing values etc. */
     useEffect(() => {
         // All keys (also nested ones are stores in here)
@@ -296,16 +323,11 @@ export function TaskForm({
                 } else {
                     let value = defaultValueAsJs(param, false);
                     returnKeys.push(fullParameterId);
-                    register(
-                        {
-                            name: fullParameterId,
-                        },
-                        {
-                            // Boolean is by default set to false
-                            required: requiredParameters.includes(paramId) && param.parameterType !== "boolean",
-                            ...valueRestrictions(fullParameterId, param),
-                        },
-                    );
+                    register(fullParameterId, {
+                        // Boolean is by default set to false
+                        required: requiredParameters.includes(paramId) && param.parameterType !== "boolean",
+                        ...valueRestrictions(fullParameterId, param),
+                    });
                     // Set default value
                     let currentValue = value;
                     if ((updateTask || newTaskPreConfiguration) && parameterValues[paramId] !== undefined) {
@@ -337,10 +359,10 @@ export function TaskForm({
         };
 
         if (!updateTask) {
-            register({ name: LABEL }, { required: true });
-            register({ name: DESCRIPTION });
-            register({ name: IDENTIFIER });
-            register({ name: TAGS });
+            register(LABEL, { required: true });
+            register(DESCRIPTION);
+            register(IDENTIFIER);
+            register(TAGS);
         }
         if (newTaskPreConfiguration) {
             newTaskPreConfiguration.metaData?.label && setValue(LABEL, newTaskPreConfiguration.metaData?.label);
@@ -348,8 +370,8 @@ export function TaskForm({
                 setValue(DESCRIPTION, newTaskPreConfiguration.metaData?.description);
         }
         if (artefact.taskType === "Dataset") {
-            register({ name: URI_PROPERTY_PARAMETER_ID });
-            register({ name: READ_ONLY_PARAMETER });
+            register(URI_PROPERTY_PARAMETER_ID);
+            register(READ_ONLY_PARAMETER);
             if (newTaskPreConfiguration?.preConfiguredDataParameters) {
                 const dataParameters = newTaskPreConfiguration.preConfiguredDataParameters;
                 if (dataParameters.readOnly) {
@@ -382,9 +404,60 @@ export function TaskForm({
     }, [properties, register, projectId]);
 
     /** Change handler for a specific parameter. */
+    const clearHighlightedDependentParameters = React.useCallback(async () => {
+        const highlightedParameterIds = staleDependentParameterIdsRef.current;
+        highlightedParameterIds.forEach((paramId) => {
+            const oldValue = getValues(paramId);
+            if (dependentValues.current[paramId] !== undefined) {
+                dependentValues.current[paramId] = {
+                    value: "",
+                    isTemplate: parameterCallbacks.templateFlag(paramId),
+                };
+            }
+            setValue(paramId, "");
+            detectChange(paramId, "", oldValue);
+            propagateExternallyChangedParameterValue(paramId, "");
+        });
+        await Promise.all(highlightedParameterIds.map((paramId) => trigger(paramId)));
+        dismissHighlightedDependentParameters();
+    }, [
+        detectChange,
+        dismissHighlightedDependentParameters,
+        getValues,
+        propagateExternallyChangedParameterValue,
+        setValue,
+        trigger,
+    ]);
+
+    useEffect(() => {
+        staleDependentParameterIdsRef.current = staleDependentParameterIds;
+        if (staleDependentParameterIds.length) {
+            const parameterLabelsToReview = staleDependentParameterIds.map(
+                (paramId) => parameterLabels.current.get(paramId) ?? paramId,
+            );
+            showWarningMessage({
+                message: t("form.taskForm.dependentValuesNeedReview", {
+                    count: parameterLabelsToReview.length,
+                    parameters: parameterLabelsToReview.join(", "),
+                }),
+                onDismiss: dismissHighlightedDependentParameters,
+                onClearHighlightedValues: () => void clearHighlightedDependentParameters(),
+            });
+        } else {
+            showWarningMessage(undefined);
+        }
+    }, [
+        clearHighlightedDependentParameters,
+        dismissHighlightedDependentParameters,
+        staleDependentParameterIds,
+        showWarningMessage,
+        t,
+    ]);
+
+    /** Change handler for a specific parameter. */
     const handleChange = useCallback(
         (key: string) => async (e) => {
-            const { triggerValidation } = form;
+            const { trigger } = form;
             const value = e.target ? e.target.value : e;
 
             if (dependentValues.current[key] !== undefined) {
@@ -397,46 +470,38 @@ export function TaskForm({
             const oldValue = getValues()[key];
             setValue(key, value);
             detectChange(key, value, oldValue);
-            await triggerValidation(key);
+            await trigger(key);
             //verify task identifier
             if (key === IDENTIFIER) handleCustomIdValidation(t, form, registerError, value, projectId);
             if (!escapeKeyDisabled.current) {
                 escapeKeyDisabled.current = true;
             }
-            if (dependentParameters.current.has(key)) {
-                // collect all dependent parameters
-                const dependentParametersTransitiveSet = new Set<string>();
-                // Dependent parameters that were actually reset
-                const resetDependentParameters: string[] = [];
-                const collect = (currentParamId: string) => {
-                    const params = dependentParameters.current?.get(currentParamId) ?? [];
-                    params.forEach((p: string) => {
-                        if (!dependentParametersTransitiveSet.has(p)) {
-                            dependentParametersTransitiveSet.add(p);
-                            collect(p);
-                        }
-                    });
-                };
-                collect(key);
-                dependentParametersTransitiveSet.forEach((paramId) => {
-                    const currentValue = getValues(paramId);
-                    if (currentValue && paramId !== key) {
-                        resetDependentParameters.push(parameterLabels.current.get(paramId) ?? paramId);
-                        handleChange(paramId)("");
-                        propagateExternallyChangedParameterValue(paramId, "");
-                    }
-                });
-                if (resetDependentParameters.length) {
-                    showWarningMessage(
-                        t("form.taskForm.resetMessage", {
-                            parameters: resetDependentParameters.join(", "),
-                            dependOn: parameterLabels.current.get(key) ?? key,
-                        }),
-                    );
-                }
+            const populatedDependentParameters = dependentParameters.current.has(key)
+                ? collectPopulatedDependentParameters(key, dependentParameters.current, (paramId) => getValues(paramId))
+                : [];
+            if (populatedDependentParameters.length) {
+                scrollParameterIntoView(populatedDependentParameters[0]);
             }
+            setStaleDependentParameterIds((previousIds) => {
+                const nextIds = new Set(previousIds);
+                nextIds.delete(key);
+                populatedDependentParameters.forEach((paramId) => nextIds.add(paramId));
+                return Array.from(nextIds);
+            });
         },
-        [],
+        [
+            detectChange,
+            form,
+            getValues,
+            projectId,
+            propagateExternallyChangedParameterValue,
+            registerError,
+            setValue,
+            showWarningMessage,
+            scrollParameterIntoView,
+            t,
+            trigger,
+        ],
     );
 
     const handleTagSelectionChange = React.useCallback(
@@ -458,7 +523,12 @@ export function TaskForm({
             handlers[key] = handleChange(key);
         });
         return handlers;
-    }, [formValueKeys]);
+    }, [formValueKeys, handleChange]);
+
+    const isDependencyReviewHighlighted = React.useCallback(
+        (fullParameterId: string) => staleDependentParameterIds.includes(fullParameterId),
+        [staleDependentParameterIds],
+    );
 
     const normalParams = visibleParams.filter(([k, param]) => !param.advanced);
     const advancedParams = visibleParams.filter(([k, param]) => param.advanced);
@@ -480,7 +550,7 @@ export function TaskForm({
     );
 
     const datasetConfigValues = React.useCallback(() => {
-        return commonOp.buildNestedTaskParameterObject(getValues());
+        return commonOp.buildStringValuedObject(getValues());
     }, []);
 
     return doChange ? (
@@ -561,6 +631,7 @@ export function TaskForm({
                         initialValues={initialValues}
                         dependentValues={dependentValues}
                         parameterCallbacks={extendedCallbacks}
+                        isDependencyReviewHighlighted={isDependencyReviewHighlighted}
                     />
                 ))}
                 {
@@ -618,6 +689,7 @@ export function TaskForm({
                             initialValues={initialValues}
                             dependentValues={dependentValues}
                             parameterCallbacks={extendedCallbacks}
+                            isDependencyReviewHighlighted={isDependencyReviewHighlighted}
                         />
                     ))}
                 </AdvancedOptionsArea>
@@ -629,7 +701,7 @@ export function TaskForm({
                                 title={t("pages.dataset.title")}
                                 preview={datasetConfigPreview(projectId, artefact.pluginId, datasetConfigValues())}
                                 externalValidation={{
-                                    validate: triggerValidation,
+                                    validate: trigger,
                                     errorMessage: t(
                                         "form.validations.parameter",
                                         "Parameter validation failed. Please fix the issues first.",

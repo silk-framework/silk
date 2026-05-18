@@ -14,7 +14,7 @@
 
 package org.silkframework.rule.plugins.transformer.filter
 
-import org.silkframework.rule.input.Transformer
+import org.silkframework.rule.input.InlineTransformer
 import org.silkframework.rule.plugins.transformer.normalize.RemoveDuplicates
 import org.silkframework.runtime.plugin.annotations.{Plugin, PluginReference}
 
@@ -34,7 +34,7 @@ import org.silkframework.runtime.plugin.annotations.{Plugin, PluginReference}
     )
   )
 )
-case class RemoveValues(blacklist: String) extends Transformer {
+case class RemoveValues(blacklist: String) extends InlineTransformer {
   val filterValues = blacklist.split(",").map(_.toLowerCase).toSet
 
   override def apply(values: Seq[Seq[String]]) = {

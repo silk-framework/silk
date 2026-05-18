@@ -77,8 +77,9 @@ class EvaluateLinkingActivity(task: ProjectTask[LinkSpec],
       task,
       inputs = task.dataSources,
       output = task.linkSink.filter(_ => writeOutputs),
+      taskContext = task.taskContext,
       runtimeConfig = runtimeConfig,
-      overrideLinkageRule = Some(task.ruleWithContext)
+      overrideLinkageRule = Some(task.ruleExecution)
     )
   }
 

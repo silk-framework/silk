@@ -1,7 +1,7 @@
 import React from "react";
 import { render } from "@testing-library/react";
 import RuleTypes from "../../../src/app/views/pages/MappingEditor/HierarchicalMapping/elements/RuleTypes";
-import { findAllDOMElements, findElement } from "../../integration/TestHelper";
+import {checkForNotAvailableElement, findAllDOMElements, findElement} from "../../integration/TestHelper";
 
 const getWrapper = (props = {}) => render(<RuleTypes {...props} />);
 
@@ -36,7 +36,7 @@ describe("RuleTypes Component", () => {
                         },
                     },
                 });
-                expect(findAllDOMElements(wrapper, "[class*='__notavailable']").length).toBeGreaterThan(0);
+                checkForNotAvailableElement(wrapper)
             });
         });
 
@@ -77,10 +77,7 @@ describe("RuleTypes Component", () => {
                     type: "root",
                 },
             });
-            const notAvailable = findAllDOMElements(wrapperNoType, "[class*='__notavailable']");
-            const span = findAllDOMElements(wrapperNoType, "span");
-            expect(span[0].innerHTML).toContain(notAvailable[0].innerHTML);
-            expect(wrapperNoType.container.innerHTML).toContain("not available");
+            checkForNotAvailableElement(wrapperNoType)
             const wrapperWithType = getWrapper({
                 rule: {
                     type: "root",

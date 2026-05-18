@@ -1,7 +1,7 @@
 package org.silkframework.rule.plugins.transformer.sequence
 
 import org.silkframework.rule.annotations.{TransformExample, TransformExamples}
-import org.silkframework.rule.input.Transformer
+import org.silkframework.rule.input.InlineTransformer
 import org.silkframework.runtime.plugin.annotations.Plugin
 
 @Plugin(
@@ -24,7 +24,7 @@ import org.silkframework.runtime.plugin.annotations.Plugin
     output = Array("Hamburg", "Hans", "Hansa")
   )
 ))
-case class SortTransformer() extends Transformer {
+case class SortTransformer() extends InlineTransformer {
 
   override def apply(values: Seq[Seq[String]]): Seq[String] = {
     values.flatten.sorted
