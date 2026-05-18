@@ -2,7 +2,7 @@ package org.silkframework.plugins.templating.jinja
 
 import com.hubspot.jinjava.interpret.{Context, JinjavaInterpreter}
 import com.hubspot.jinjava.lib.filter.Filter
-import org.silkframework.rule.input.Transformer
+import org.silkframework.rule.input.{Transformer, TransformerExecution}
 import org.silkframework.runtime.plugin.{ParameterValues, PluginContext, PluginDescription, PluginRegistry}
 import org.silkframework.runtime.templating.IterableTemplateValues
 
@@ -43,7 +43,12 @@ object TransformFilters {
         case r: IterableTemplateValues => r.values
         case v: Any => Seq(v.toString)
       }
-      val transformedValues = transformer(Seq(inputValues))
+      val transformedValues = transformer match {
+        case te: TransformerExecution => te(Seq(inputValues))
+        case _ => throw new IllegalStateException(
+          s"Transformer '${transformerPlugin.id}' requires a task context and cannot be used in a template filter.")
+      }
+
 
       // Return result
       IterableTemplateValues.fromValues(transformedValues)
