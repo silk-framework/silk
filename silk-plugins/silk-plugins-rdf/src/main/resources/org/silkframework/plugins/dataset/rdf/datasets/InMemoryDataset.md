@@ -11,18 +11,18 @@ Typical use cases:
 
 The dataset maintains a single in-memory RDF model and exposes it via a SPARQL endpoint. Two lifecycle modes are available, controlled by the `workflowScoped` parameter:
 
-**Application-scoped mode** (default, `workflowScoped = false`):
-- A single shared model is created when the dataset is instantiated.
-- Data persists for the lifetime of the running application process.
-- All workflow executions share the same in-memory graph.
-- After an application restart, the dataset contents are empty again.
-
-**Workflow-scoped mode** (`workflowScoped = true`):
+**Workflow-scoped mode** (default, `workflowScoped = true`):
 - A separate model is created for each workflow execution.
 - Concurrent workflow executions are fully isolated from each other.
 - A dataset task in a nested workflow shares the same model as the parent workflow for the same task identifier. Data written by the parent is available in the nested workflow and vice versa.
 - If the dataset is read from outside a workflow context, the data from the most recently started executor is returned.
 - When the workflow execution ends, the per-execution data is removed automatically.
+
+**Application-scoped mode** (`workflowScoped = false`):
+- A single shared model is created when the dataset is instantiated.
+- Data persists for the lifetime of the running application process.
+- All workflow executions share the same in-memory graph.
+- After an application restart, the dataset contents are empty again.
 
 ## 3. Reading data
 
@@ -51,16 +51,16 @@ All three sinks ultimately write into the same in-memory graph; there is no sepa
 ### Workflow scoped <a id="parameter_doc_workflowScoped"></a>
 
 - **Parameter:** `workflowScoped` (boolean)
-- **Default:** `false`
+- **Default:** `true`
 
-When `true` (workflow-scoped mode):
+When `true` (default, workflow-scoped mode):
 - Data is stored in a separate in-memory graph for each workflow execution.
 - Concurrent workflow executions are fully isolated from each other.
 - A dataset task in a nested workflow shares the same graph as the parent for the same task identifier. Data written by the parent is available in the nested workflow and vice versa.
 - If the dataset is read from outside a workflow context, the data from the most recently started executor is returned.
 - When the workflow execution ends, the per-execution data is removed automatically.
 
-When `false` (default, application-scoped mode):
+When `false` (application-scoped mode):
 - Data persists in a single shared graph for the lifetime of the running process.
 - All workflow executions share the same graph.
 

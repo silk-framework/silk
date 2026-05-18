@@ -17,8 +17,8 @@ import java.util.Collections
   label = "In-memory Knowledge Graph",
   categories = Array(DatasetCategories.embedded),
   description = "A dataset that holds all data in-memory. " +
-    "In the default (application-scoped) mode, data persists for the lifetime of the running process. " +
-    "In workflow-scoped mode, data is isolated per workflow execution and shared with nested workflows that reference the same dataset task.",
+    "In the default (workflow-scoped) mode, data is isolated per workflow execution and shared with nested workflows that reference the same dataset task. " +
+    "In application-scoped mode, data persists for the lifetime of the running process.",
   documentationFile = "InMemoryDataset.md",
   relatedPlugins = Array(
     new PluginReference(
@@ -33,10 +33,10 @@ import java.util.Collections
 )
 case class InMemoryDataset(
   @Param(label = "Workflow-scoped",
-         value = "If true, data is isolated per workflow execution and cleared after the execution ends, " +
+         value = "If true (default), data is isolated per workflow execution and cleared after the execution ends, " +
                  "sharing data with nested workflows that reference the same dataset task. " +
-                 "If false (default), data persists for the lifetime of the application process.")
-  workflowScoped: Boolean = false,
+                 "If false, data persists for the lifetime of the application process.")
+  workflowScoped: Boolean = true,
   @Param(label = "Clear graph before workflow execution (deprecated)",
          value = "This is deprecated, use the 'Clear dataset' operator instead to clear a dataset in a workflow. If set to true this will clear this dataset before it is used in a workflow execution.",
          advanced = true)
