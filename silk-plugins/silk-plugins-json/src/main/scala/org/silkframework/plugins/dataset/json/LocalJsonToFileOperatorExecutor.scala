@@ -19,32 +19,33 @@ import java.io.File
   */
 case class LocalJsonToFileOperatorExecutor() extends LocalExecutor[JsonToFileOperator] {
 
-  private val outputMimeType: Option[String] = Some("application/json")
-
   override def execute(task: Task[JsonToFileOperator],
                        inputs: Seq[LocalEntities],
                        output: ExecutorOutput,
                        execution: LocalExecution,
                        context: ActivityContext[ExecutionReport] = new ActivityMonitor(getClass.getSimpleName))
                       (implicit pluginContext: PluginContext): Option[LocalEntities] = {
-    if (inputs.size != 1) throw TaskException("JsonToFileOperator takes exactly one input!")
+    if (inputs.size != 1) throw TaskException("'JSON to File' takes exactly one input!")
     val entityTable = inputs.head
-    val entities = entityTable.entities.toIndexedSeq
-
     val pathIndex = task.data.parsedInputPath match {
       case Some(path) => entityTable.entitySchema.indexOfPath(path)
       case None => 0 // Take the value of the first path
     }
-
+    val outputMimeType = Some(task.data.mimeType)
+    val trimmedFileName = task.data.outputFileName.trim
+    val entities = entityTable.entities.toIndexedSeq
     val multiple = entities.size > 1
     val fileEntities = entities.zipWithIndex.map { case (entity, index) =>
       val jsonString = readJsonValue(entity, pathIndex)
       validateJson(jsonString)
-      val fileEntity = allocateFileEntity(task.data.outputFileName, index, multiple)
+      val fileEntity = if (trimmedFileName.isEmpty) {
+        FileEntity.createTemp("jsonOutput", ".json").copy(mimeType = outputMimeType)
+      } else {
+        allocateNamedFileEntity(trimmedFileName, index, multiple, outputMimeType)
+      }
       fileEntity.file.writeString(jsonString)
       fileEntity
     }
-
     Some(FileEntitySchema.create(fileEntities, task))
   }
 
@@ -69,20 +70,15 @@ case class LocalJsonToFileOperatorExecutor() extends LocalExecutor[JsonToFileOpe
     }
   }
 
-  /** Allocates a file entity for one input entity, applying the filename rule. */
-  private def allocateFileEntity(outputFileName: String, index: Int, multiple: Boolean): FileEntity = {
-    val trimmedName = outputFileName.trim
-    if (trimmedName.isEmpty) {
-      FileEntity.createTemp("jsonOutput", ".json").copy(mimeType = outputMimeType)
-    } else {
-      val name = if (multiple) suffixedName(trimmedName, index) else trimmedName
-      val parentDir = new File(System.getProperty("java.io.tmpdir"))
-      val file = new File(parentDir, name)
-      file.deleteOnExit()
-      val resource = FileResource(file)
-      resource.setDeleteOnGC(true)
-      FileEntity(resource, FileType.Local, outputMimeType)
-    }
+  /** Allocates a file entity with a caller-supplied name in the system temp directory. */
+  private def allocateNamedFileEntity(name: String, index: Int, multiple: Boolean, mimeType: Option[String]): FileEntity = {
+    val finalName = if (multiple) suffixedName(name, index) else name
+    val parentDir = new File(System.getProperty("java.io.tmpdir"))
+    val file = new File(parentDir, finalName)
+    file.deleteOnExit()
+    val resource = FileResource(file)
+    resource.setDeleteOnGC(true)
+    FileEntity(resource, FileType.Local, mimeType)
   }
 
   /** Inserts an index suffix before the file extension; appends it if there is no extension. */

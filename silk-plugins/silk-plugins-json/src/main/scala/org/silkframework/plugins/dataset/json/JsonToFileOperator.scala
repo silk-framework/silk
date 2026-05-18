@@ -25,7 +25,9 @@ case class JsonToFileOperator(@Param("The Silk path expression of the input enti
                               @Param("Filename for the produced file. If left empty, an auto-generated temporary name is used. " +
                                   "When the input contains more than one entity, an index suffix is appended before the extension " +
                                   "(e.g. `out-0.json`, `out-1.json`) to keep filenames unique.")
-                              outputFileName: String = "") extends CustomTask {
+                              outputFileName: String = "",
+                              @Param("MIME type of the produced file.")
+                              mimeType: String = "application/json") extends CustomTask {
 
   val parsedInputPath: Option[UntypedPath] = {
     if (inputPath != "") {

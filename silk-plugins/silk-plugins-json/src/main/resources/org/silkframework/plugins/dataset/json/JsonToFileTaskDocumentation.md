@@ -1,11 +1,12 @@
 ## JSON to File
 
-The JSON to File operator takes a JSON string held in a field on each incoming entity and writes it verbatim to a
-file. The resulting file is surfaced downstream as a file entity, so any operator that accepts file entities — a
-file-backed dataset, another file-processing operator — can pick it up.
+The JSON to File operator takes a JSON string held in a field on each incoming entity and writes it to a file. The
+resulting file is surfaced downstream as a file entity, so any operator that accepts file entities — a file-backed
+dataset, another file-processing operator — can pick it up.
 
 The operator does not parse the JSON into structured entities. It validates that the value is well-formed JSON and then
-writes the bytes as they are. The produced file is tagged with *application/json* as its content type.
+writes the JSON value to the file. The content type of the produced file is set via the *MIME type* parameter and
+defaults to *application/json*.
 
 ## Input
 
@@ -20,9 +21,9 @@ but is not valid JSON, the operator raises an error naming the parse failure.
 
 ## Output
 
-The output of JSON to File is a stream of file entities. Each file entity wraps a file holding the JSON bytes from one
-input entity, tagged with *application/json* as its MIME type. Downstream operators or datasets that accept file
-entities consume the stream directly.
+The output of JSON to File is a stream of file entities. Each file entity wraps a file holding the JSON value from one
+input entity, with the MIME type set to the value of the *MIME type* parameter. Downstream operators or datasets that
+accept file entities consume the stream directly.
 
 When the output is wired to a file-backed dataset, the dataset writes the file's bytes into its own resource. The end
 result is a JSON file on disk.
@@ -36,7 +37,10 @@ the first available field.
 **Output file name** controls how the produced files are named. When left empty, each file is allocated with an
 auto-generated temporary name. When set, the parameter is used as the literal filename for single-entity input; when
 the input contains more than one entity, an index suffix is appended before the extension to keep filenames unique.
-For example, *out.json* applied to three input entities produces *out-0.json*, *out-1.json*, *out-2.json*.
+For example, *out.json* applied to three input entities produces *out-0.json*, *out-1.json*, *out-2.json*. When the
+filename has no extension, the index is appended to the end: *out* produces *out-0*, *out-1*, *out-2*.
+
+**MIME type** sets the content type of every produced file. Defaults to *application/json*.
 
 ## Example
 
@@ -54,6 +58,6 @@ An upstream operator produces a single entity with the following JSON string in 
 }
 ```
 
-JSON to File validates the string and writes it verbatim to a file tagged with *application/json*. The produced file
+JSON to File validates the string and writes it to a file with a content type of *application/json*. The produced file
 entity can be wired into a downstream JSON dataset to persist the value as a file on disk, or fed into any other
 operator that accepts file entities.

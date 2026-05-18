@@ -53,8 +53,8 @@ schema, Parse JSON produces the root entities and the nested sub-entity tables i
 operator is a transformation.
 
 Parse JSON cannot be connected directly to a dataset. A dataset declares no fields to read, so Parse JSON has nothing
-to extract. Workflows that wire Parse JSON straight into a dataset fail at execution time with an error stating that
-the operator cannot be connected directly to a dataset and must feed an operator that declares a target schema.
+to extract. Workflows that wire Parse JSON straight into a dataset fail at execution time with an error naming the
+missing schema and asking for a downstream operator that declares one.
 
 ## Example
 
