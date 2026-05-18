@@ -142,8 +142,8 @@ export const RuleEditorToolbar = () => {
     const canResetToSavedState =
         modelContext.savedStatePosition === "before" || modelContext.savedStatePosition === "after";
     const resetToSavedStateText = modelContext.resetToSavedStateClearsHistory
-        ? t("RuleEditor.toolbar.resetToSavedStateWithHistoryReset")
-        : t("RuleEditor.toolbar.resetToSavedState");
+        ? t("common.editorHistory.resetToSavedStateWithHistoryReset")
+        : t("common.editorHistory.resetToSavedState");
 
     return (
         <>
@@ -185,7 +185,7 @@ export const RuleEditorToolbar = () => {
                         data-test-id={"rule-editor-undo-btn"}
                         disabled={modelContext.isReadOnly() || !modelContext.canUndo}
                         name="operation-undo"
-                        text={t("RuleEditor.toolbar.undo")}
+                        text={t("common.action.undo")}
                         onClick={modelContext.undo}
                     />
                     <IconButton
@@ -200,7 +200,7 @@ export const RuleEditorToolbar = () => {
                         data-test-id={"rule-editor-redo-btn"}
                         disabled={modelContext.isReadOnly() || !modelContext.canRedo}
                         name="operation-redo"
-                        text={t("RuleEditor.toolbar.redo")}
+                        text={t("common.action.redo")}
                         onClick={modelContext.redo}
                     />
                     <Spacing vertical hasDivider />
