@@ -9,6 +9,7 @@ import ruleBlockUtils from "./ruleBlock.utils";
 
 type RuleBlockTaskData = IProjectTask<IRuleBlockTaskParameters>;
 
+/** Creates the pseudo-operator used to edit rule block input ports inside the shared rule editor. */
 const createInputPortOperator = (): IRuleOperator => {
     return {
         pluginType: "InputPortOperator",
@@ -58,6 +59,7 @@ const createInputPortOperator = (): IRuleOperator => {
     };
 };
 
+/** Enriches an input port node with persisted port metadata from the current rule block model. */
 const updateInputPortNode = (
     node: IRuleOperatorNode,
     portDefinitions: Map<string, IRuleBlockPort>,
@@ -76,6 +78,7 @@ const updateInputPortNode = (
     };
 };
 
+/** Converts a persisted rule block task into the rule editor node list used by the canvas. */
 const convertRuleBlockTaskToRuleOperatorNodes = (
     ruleBlockTask: RuleBlockTaskData,
     ruleOperator: RuleOperatorFetchFnType,
@@ -112,6 +115,7 @@ const convertRuleBlockTaskToRuleOperatorNodes = (
     return operatorNodes;
 };
 
+/** Returns the sticky notes stored on the current rule block task. */
 const getStickyNotes = (ruleBlockTask: RuleBlockTaskData | undefined): StickyNote[] =>
     ruleBlockUtils.normalizeStickyNotes(ruleBlockTask?.data.parameters.ruleBlockModel?.uiAnnotations?.stickyNotes);
 

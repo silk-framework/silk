@@ -70,6 +70,21 @@ class RuleBlockSpecTest extends AnyFlatSpec with XmlSerializationHelperTrait {
     ex.getMessage must include ("Duplicate rule block port IDs")
   }
 
+  it should "reject duplicate display orders" in {
+    val ex = the[ValidationException] thrownBy {
+      RuleBlockSpec(
+        RuleBlockModel(
+          ports = IndexedSeq(
+            RuleBlockPort(id = "first", displayOrder = 1),
+            RuleBlockPort(id = "second", displayOrder = 1)
+          )
+        )
+      )
+    }
+
+    ex.getMessage must include ("Duplicate rule block port display orders")
+  }
+
   it should "reject path inputs in the internal operator tree" in {
     val ex = the[ValidationException] thrownBy {
       RuleBlockSpec(

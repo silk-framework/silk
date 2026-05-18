@@ -65,8 +65,14 @@ case class RuleBlockSpec(@Param(label = "Rule block model",
     val duplicatePortIds = ports.map(_.id).groupBy(identity).collect {
       case (id, duplicates) if duplicates.size > 1 => id
     }.toSeq
+    val duplicateDisplayOrders = ports.map(_.displayOrder).groupBy(identity).collect {
+      case (displayOrder, duplicates) if duplicates.size > 1 => displayOrder
+    }.toSeq.sorted
     if(duplicatePortIds.nonEmpty) {
       throw new ValidationException(s"Duplicate rule block port IDs found: ${duplicatePortIds.mkString(", ")}")
+    }
+    if(duplicateDisplayOrders.nonEmpty) {
+      throw new ValidationException(s"Duplicate rule block port display orders found: ${duplicateDisplayOrders.mkString(", ")}")
     }
     operator.foreach { op =>
       validateOperatorTree(op, definedPortIds)

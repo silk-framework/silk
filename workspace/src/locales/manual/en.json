@@ -770,6 +770,7 @@
             "displayOrder": "Display order",
             "errors": {
                 "conflictingPortDefinitions": "Input port '{{portId}}' is used with conflicting definitions.",
+                "duplicateDisplayOrder": "Display order {{displayOrder}} must be unique within the rule block.",
                 "fetchTaskData": "Could not load the rule block.",
                 "fetchTransformOperators": "Could not load the transform operators.",
                 "invalidDisplayOrder": "Display order must be an integer.",

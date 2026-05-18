@@ -19,10 +19,12 @@ const sortAlphabetically = (ruleOpA: IRuleOperator, ruleOpB: IRuleOperator) =>
 const sortRuleBlockPorts = (ports: IRuleBlockPort[]): IRuleBlockPort[] =>
     [...ports].sort((left, right) => left.displayOrder - right.displayOrder || left.id.localeCompare(right.id));
 
+/** Checks whether a rule editor operator represents a reusable rule block. */
 const isRuleBlockOperator = (
     operator: { pluginType?: string },
 ): operator is IRuleBlockOperatorDetails => operator.pluginType === "RuleBlock";
 
+/** Converts a lightweight rule block summary into the sidebar/operator representation. */
 const ruleBlockSummaryToOperator = (
     ruleBlockSummary: IRuleBlockSummary,
 ): IRuleBlockOperatorDetails => ({
@@ -33,6 +35,7 @@ const ruleBlockSummaryToOperator = (
     ports: sortRuleBlockPorts(ruleBlockSummary.ports),
 });
 
+/** Converts a reusable rule block summary into a named-port rule editor operator. */
 const convertRuleBlockOperator = (ruleBlock: IRuleBlockOperatorDetails): IRuleOperator => ({
     pluginType: "RuleBlock",
     pluginId: ruleBlock.pluginId,
@@ -49,6 +52,7 @@ const convertRuleBlockOperator = (ruleBlock: IRuleBlockOperatorDetails): IRuleOp
     inputsCanBeSwitched: false,
 });
 
+/** Creates the dedicated sidebar tab configuration for reusable rule blocks. */
 const ruleBlockTab = (): IRuleSideBarFilterTabConfig => ({
     id: "ruleBlock",
     icon: "artefact-ruleblock",

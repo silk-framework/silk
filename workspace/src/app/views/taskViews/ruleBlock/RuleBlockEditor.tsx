@@ -80,6 +80,7 @@ export const RuleBlockEditor = ({ projectId, ruleBlockTaskId, viewActions, insta
                 inputPortNodes,
                 t("taskViews.ruleBlock.errors.invalidDisplayOrder"),
                 (portId) => t("taskViews.ruleBlock.errors.conflictingPortDefinitions", { portId }),
+                (displayOrder) => t("taskViews.ruleBlock.errors.duplicateDisplayOrder", { displayOrder }),
             );
 
             if (nodeErrors.length) {
