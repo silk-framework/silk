@@ -1,6 +1,6 @@
 package org.silkframework.rule.plugins.transformer.normalize
 
-import org.silkframework.rule.input.Transformer
+import org.silkframework.rule.input.InlineTransformer
 import org.silkframework.rule.plugins.transformer.filter.RemoveValues
 import org.silkframework.runtime.plugin.annotations.{Plugin, PluginReference}
 
@@ -16,7 +16,7 @@ import org.silkframework.runtime.plugin.annotations.{Plugin, PluginReference}
     )
   )
 )
-case class RemoveDuplicates() extends Transformer {
+case class RemoveDuplicates() extends InlineTransformer {
 
   override def apply(values: Seq[Seq[String]]): Seq[String] = {
     values.flatten.distinct

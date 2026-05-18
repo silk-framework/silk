@@ -19,7 +19,7 @@ interface ICopyData {
 
 const COPY_RESET_TIMEOUT = 1000;
 
-const useCopyButton = (data: Array<ICopyData>, resetTimeout = COPY_RESET_TIMEOUT): JSX.Element[] => {
+const useCopyButton = (data: Array<ICopyData>, resetTimeout = COPY_RESET_TIMEOUT): React.JSX.Element[] => {
     const [activeButton, setActiveButton] = React.useState<string | undefined>();
     const { registerError } = useErrorHandler();
     const [t] = useTranslation();

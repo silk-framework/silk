@@ -1,5 +1,14 @@
 import React from "react";
-import { DragDropContext, Draggable, Droppable } from "react-beautiful-dnd";
+import { DndContext, KeyboardSensor, useSensor, useSensors } from "@dnd-kit/core";
+import {
+    arrayMove,
+    SortableContext,
+    sortableKeyboardCoordinates,
+    useSortable,
+    verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
+import { restrictToVerticalAxis } from "@dnd-kit/modifiers";
 
 //typing
 import { TemplateVariableError, Variable, VariableDependencies, VariableWidgetProps } from "./typing";
@@ -12,10 +21,8 @@ import {
     Divider,
     Icon,
     IconButton,
-    Label,
     Link,
     Notification,
-    OverflowText,
     OverviewItemList,
     PropertyName,
     PropertyValue,
@@ -30,11 +37,11 @@ import { deleteVariableRequest, getVariableDependencies, getVariables, reorderVa
 import useErrorHandler from "../../../hooks/useErrorHandler";
 import Loading from "../Loading";
 import NewVariableModal from "./modals/NewVariableModal";
-import reorderArray from "../../../views/pages/MappingEditor/HierarchicalMapping/utils/reorderArray";
 import DeleteModal from "../modals/DeleteModal";
 import { ErrorResponse, FetchError } from "../../../services/fetch/responseInterceptor";
 import { contextualPath } from "../../../constants/path";
 import { useModalError } from "../../../hooks/useModalError";
+import dndkitUtils from "../../../utils/dndkitUtils";
 
 const VariablesWidget: React.FC<VariableWidgetProps> = ({ projectId, taskId }) => {
     const { registerError } = useErrorHandler();
@@ -49,13 +56,20 @@ const VariablesWidget: React.FC<VariableWidgetProps> = ({ projectId, taskId }) =
     const checkAndDisplayDeletionError = useModalError({ setError: setDeleteError });
     const [dropChangeLoading, setDropChangeLoading] = React.useState<boolean>(false);
     const [dependencies, setVariableDependencies] = React.useState<VariableDependencies>();
-    const [errorNotification, setErrorNotification] = React.useState<JSX.Element | null>(null);
+    const [errorNotification, setErrorNotification] = React.useState<React.JSX.Element | null>(null);
     const [evaluationErrors, setEvaluationErrors] = React.useState<TemplateVariableError[]>([]);
     const [t] = useTranslation();
 
+    const sensors = useSensors(
+        useSensor(dndkitUtils.DefaultMouseSensor, dndkitUtils.defaultMouseSensorOptions),
+        useSensor(KeyboardSensor, {
+            coordinateGetter: sortableKeyboardCoordinates,
+        }),
+    );
+
     const variableHasDependencies = dependencies?.dependentTasks.length || dependencies?.dependentVariables.length;
 
-    const evaluationErrorByName = React.useMemo(
+    const evaluationErrorByName: Map<string, string> = React.useMemo(
         () => new Map(evaluationErrors.map((e) => [e.variableName, e.message])),
         [evaluationErrors],
     );
@@ -76,7 +90,7 @@ const VariablesWidget: React.FC<VariableWidgetProps> = ({ projectId, taskId }) =
         })();
     }, [refetch, projectId]);
 
-    const handleModalOpen = React.useCallback((variable = undefined) => {
+    const handleModalOpen = React.useCallback((variable: Variable | undefined = undefined) => {
         setSelectedVariable(variable);
         setErrorNotification(null);
         setModalOpen(true);
@@ -118,24 +132,25 @@ const VariablesWidget: React.FC<VariableWidgetProps> = ({ projectId, taskId }) =
         }
     }, [selectedVariable]);
 
-    const handleVariableDragStart = React.useCallback(() => {
-        if (variables.length === 1) return;
-    }, [variables]);
-
     const handleVariableDragEnd = React.useCallback(
-        async (result) => {
+        async (event) => {
+            const { active, over } = event;
+
             if (variables.length === 1) return;
             // dropped outside the list
-            if (!result.destination) {
+            if (!over) {
                 return;
             }
-            const fromPos = result.source.index;
-            const toPos = result.destination.index;
             // no actual movement
-            if (fromPos === toPos) {
+            if (active.id === over.id) {
                 return;
             }
-            const reorderedVariables = reorderArray(variables, fromPos, toPos) as Variable[];
+
+            const oldIndex = variables.findIndex((v) => v.name === active.id);
+            const newIndex = variables.findIndex((v) => v.name === over.id);
+
+            const reorderedVariables = arrayMove(variables, oldIndex, newIndex);
+
             try {
                 setErrorNotification(null);
                 setDropChangeLoading(true);
@@ -259,130 +274,141 @@ const VariablesWidget: React.FC<VariableWidgetProps> = ({ projectId, taskId }) =
                     ) : !variables.length ? (
                         <Notification message={t("widget.VariableWidget.noVariables", "No  Variables set")} />
                     ) : (
-                        <DragDropContext onDragStart={handleVariableDragStart} onDragEnd={handleVariableDragEnd}>
-                            <Droppable droppableId="variableDroppable">
-                                {(provided) => (
-                                    <div ref={provided.innerRef} {...provided.droppableProps}>
-                                        <OverviewItemList hasDivider>
-                                            {variables.map((variable, i) => (
-                                                <Draggable
-                                                    key={variable.name}
-                                                    pos={i}
-                                                    index={i}
-                                                    draggableId={variable.name}
-                                                >
-                                                    {(provided) => {
-                                                        const draggablePlugins =
-                                                            variables.length === 1
-                                                                ? {}
-                                                                : {
-                                                                      ...provided.draggableProps,
-                                                                      ...provided.dragHandleProps,
-                                                                  };
-                                                        return (
-                                                            <div
-                                                                data-test-id="variable-list-item"
-                                                                ref={provided.innerRef}
-                                                                {...draggablePlugins}
-                                                            >
-                                                                <Toolbar noWrap>
-                                                                    {variables.length > 1 ? (
-                                                                        <ToolbarSection>
-                                                                            <Icon small name="item-draggable" />
-                                                                            <Spacing size="tiny" vertical />
-                                                                        </ToolbarSection>
-                                                                    ) : null}
-                                                                    <ToolbarSection canGrow canShrink>
-                                                                        <PropertyValuePair nowrap>
-                                                                            <PropertyName
-                                                                                title={variable.name}
-                                                                                size="large"
-                                                                                labelProps={{
-                                                                                    tooltip: variable.description,
-                                                                                    style: { lineHeight: "normal" },
-                                                                                }}
-                                                                            >
-                                                                                {variable.name}
-                                                                            </PropertyName>
-                                                                            <PropertyValue
-                                                                                style={{
-                                                                                    marginLeft: "calc(31.25% + 14px)",
-                                                                                }}
-                                                                            >
-                                                                                <code>{variable.value}</code>
-                                                                            </PropertyValue>
-                                                                        </PropertyValuePair>
-                                                                    </ToolbarSection>
-                                                                    {evaluationErrorByName.has(variable.name) ? (
-                                                                        <ToolbarSection>
-                                                                            <Icon
-                                                                                name={"state-warning"}
-                                                                                intent={"warning"}
-                                                                                tooltipText={
-                                                                                    evaluationErrorByName.get(
-                                                                                        variable.name,
-                                                                                    ) ?? ""
-                                                                                }
-                                                                            />
-                                                                        </ToolbarSection>
-                                                                    ) : null}
-                                                                    <ToolbarSection
-                                                                        style={{
-                                                                            minWidth: "75px",
-                                                                            justifyContent: "right",
-                                                                        }}
-                                                                    >
-                                                                        {variable.template != null && (
-                                                                            <>
-                                                                                <Icon
-                                                                                    name={"form-template"}
-                                                                                    intent={"info"}
-                                                                                    data-test-id="template-variable-delimiter"
-                                                                                    tooltipText={
-                                                                                        t(
-                                                                                            "widget.TaskConfigWidget.templateValueInfo",
-                                                                                        ) +
-                                                                                        `\n\n\`\`\`${variable.template}\`\`\``
-                                                                                    }
-                                                                                    tooltipProps={{
-                                                                                        placement: "top",
-                                                                                        markdownEnabler: "```",
-                                                                                    }}
-                                                                                />
-                                                                                <Spacing size="tiny" vertical />
-                                                                            </>
-                                                                        )}
-                                                                        <IconButton
-                                                                            small
-                                                                            name="item-edit"
-                                                                            data-test-id="variable-edit-btn"
-                                                                            onClick={() => handleModalOpen(variable)}
-                                                                        />
-                                                                        <IconButton
-                                                                            small
-                                                                            name="item-remove"
-                                                                            data-test-id="variable-delete-btn"
-                                                                            onClick={() =>
-                                                                                handleDeleteModalOpen(variable)
-                                                                            }
-                                                                            disruptive
-                                                                        />
-                                                                    </ToolbarSection>
-                                                                </Toolbar>
-                                                            </div>
-                                                        );
-                                                    }}
-                                                </Draggable>
-                                            ))}
-                                        </OverviewItemList>
-                                    </div>
-                                )}
-                            </Droppable>
-                        </DragDropContext>
+                        <DndContext
+                            sensors={sensors}
+                            onDragEnd={handleVariableDragEnd}
+                            modifiers={[restrictToVerticalAxis]}
+                        >
+                            <SortableContext
+                                items={variables.map((v) => v.name)}
+                                strategy={verticalListSortingStrategy}
+                            >
+                                <OverviewItemList hasDivider>
+                                    {variables.map((variable) => (
+                                        <SortableVariableItem
+                                            key={variable.name}
+                                            variable={variable}
+                                            isOnlyItem={variables.length === 1}
+                                            onEdit={handleModalOpen}
+                                            onDelete={handleDeleteModalOpen}
+                                            evaluationError={evaluationErrorByName.get(variable.name)}
+                                        />
+                                    ))}
+                                </OverviewItemList>
+                            </SortableContext>
+                        </DndContext>
                     )}
                 </CardContent>
             </Card>
         </>
+    );
+};
+
+interface SortableVariableItemProps {
+    variable: Variable;
+    isOnlyItem: boolean;
+    onEdit: (variable: Variable) => void;
+    onDelete: (variable: Variable) => void;
+    evaluationError: string | undefined;
+}
+
+/** A single variable entry. */
+const SortableVariableItem: React.FC<SortableVariableItemProps> = ({
+    variable,
+    isOnlyItem,
+    onEdit,
+    onDelete,
+    evaluationError,
+}) => {
+    const [t] = useTranslation();
+    const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+        id: variable.name,
+        disabled: isOnlyItem,
+    });
+
+    const style = {
+        transform: CSS.Transform.toString(transform),
+        transition,
+        opacity: isDragging ? 0.5 : 1,
+    };
+
+    const draggableProps = isOnlyItem ? {} : { ...attributes, ...listeners };
+
+    return (
+        <div data-test-id="variable-list-item" ref={setNodeRef} style={style} {...draggableProps}>
+            <Toolbar noWrap>
+                {!isOnlyItem ? (
+                    <ToolbarSection>
+                        <Icon small name="item-draggable" />
+                        <Spacing size="tiny" vertical />
+                    </ToolbarSection>
+                ) : null}
+                <ToolbarSection canGrow canShrink>
+                    <PropertyValuePair nowrap>
+                        <PropertyName
+                            title={variable.name}
+                            size="large"
+                            labelProps={{
+                                tooltip: variable.description,
+                                style: { lineHeight: "normal" },
+                            }}
+                        >
+                            <span className={"nodrag"}>{variable.name}</span>
+                        </PropertyName>
+                        <PropertyValue
+                            style={{
+                                marginLeft: "calc(31.25% + 14px)",
+                            }}
+                        >
+                            <code className={"nodrag"}>{variable.value}</code>
+                        </PropertyValue>
+                    </PropertyValuePair>
+                </ToolbarSection>
+                {evaluationError ? (
+                    <ToolbarSection>
+                        <Icon name={"state-warning"} intent={"warning"} tooltipText={evaluationError} />
+                    </ToolbarSection>
+                ) : null}
+                <ToolbarSection
+                    style={{
+                        minWidth: "75px",
+                        justifyContent: "right",
+                    }}
+                >
+                    {variable.template != null && (
+                        <>
+                            <Icon
+                                name={"form-template"}
+                                intent={"info"}
+                                data-test-id="template-variable-delimiter"
+                                tooltipText={
+                                    t("widget.TaskConfigWidget.templateValueInfo") +
+                                    `\n\n\`\`\`${variable.template}\`\`\``
+                                }
+                                tooltipProps={{
+                                    placement: "top",
+                                    markdownEnabler: "```",
+                                }}
+                            />
+                            <Spacing size="tiny" vertical />
+                        </>
+                    )}
+                    <IconButton
+                        name="item-edit"
+                        data-test-id="variable-edit-btn"
+                        onClick={() => onEdit(variable)}
+                        size={"small"}
+                    />
+                    <IconButton
+                        name="item-remove"
+                        data-test-id="variable-delete-btn"
+                        onClick={() => onDelete(variable)}
+                        disruptive
+                        size={"small"}
+                    />
+                </ToolbarSection>
+            </Toolbar>
+        </div>
     );
 };
 

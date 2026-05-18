@@ -1,39 +1,12 @@
-@import config.WorkbenchConfig
-@import controllers.core.Start
+@import config.WorkbenchConfig.WorkspaceReact
 @import org.silkframework.config.TaskSpec
 @import org.silkframework.workbench.Context
-
-@import config.WorkbenchConfig.WorkspaceReact
 @(context: Option[Context[_ <: TaskSpec]], selectedTab: String = "", titleLabel: String = "")(header: Html)(toolbar: Html)(content: Html)(implicit request: RequestHeader, workspaceReact: WorkspaceReact)
 
 @frame(header) {
-    <dialog id="primary_dialog" class="mdl-dialog__container">
-      @* Filled with template dialog.scala.html *@
-    </dialog>
-    <dialog id="secondary_dialog" class="mdl-dialog__container">
-      @* Filled with template dialog.scala.html *@
-    </dialog>
-
-    <div class="mdl-layout mdl-js-layout mdl-layout--fixed-header">
-      <div class="mdl-layout__inner-container">
-
-      @if(config.workbench.showHeader(request)) {
-        @tabbar(context, selectedTab, titleLabel)
-      }
-      @if(toolbar != null) {
-        <div id="toolbar" class="clearfix">
-        @toolbar
-        </div>
-      }
-      <main class="mdl-layout__content">
-        <div id="content" class="mdl-tabs__panel is-active">
-          @content
-        </div>
-        <div id="dialogContainer">
-          <div class="dialog">
-          </div>
-        </div>
+    <div class="eccgui-application__container">
+      <main class="cds--content eccgui-application__content">
+        @content
       </main>
-    </div>
     </div>
 }

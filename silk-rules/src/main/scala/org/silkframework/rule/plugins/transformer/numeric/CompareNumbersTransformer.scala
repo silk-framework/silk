@@ -1,6 +1,6 @@
 package org.silkframework.rule.plugins.transformer.numeric
 
-import org.silkframework.rule.input.Transformer
+import org.silkframework.rule.input.InlineTransformer
 import org.silkframework.rule.plugins.transformer.ComparatorEnum
 import org.silkframework.rule.plugins.transformer.date.CompareDatesTransformer
 import org.silkframework.runtime.plugin.annotations.{Plugin, PluginReference}
@@ -25,7 +25,7 @@ For instance, {1,2} < {2,3} yields 0 as not all numbers in the first set are sma
     )
   )
 )
-case class CompareNumbersTransformer(comparator: ComparatorEnum = ComparatorEnum.less) extends Transformer {
+case class CompareNumbersTransformer(comparator: ComparatorEnum = ComparatorEnum.less) extends InlineTransformer {
 
   def apply(values: Seq[Seq[String]]): Seq[String] = {
     // Collect all numbers

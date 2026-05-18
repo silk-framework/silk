@@ -1,7 +1,7 @@
 package org.silkframework.rule.plugins.transformer.extraction
 
 import org.silkframework.rule.annotations.{TransformExample, TransformExamples}
-import org.silkframework.rule.input.Transformer
+import org.silkframework.rule.input.InlineTransformer
 import org.silkframework.rule.plugins.transformer.conditional.IfMatchesRegexTransformer
 import org.silkframework.rule.plugins.transformer.replace.RegexReplaceTransformer
 import org.silkframework.rule.plugins.transformer.selection.RegexSelectTransformer
@@ -91,7 +91,7 @@ case class RegexExtractionTransformer(
   @Param("Regular expression")
   regex: String,
   @Param("If true, all matches are extracted. If false, only the first match is extracted (default).")
-  extractAll: Boolean = false) extends Transformer {
+  extractAll: Boolean = false) extends InlineTransformer {
 
   lazy val r = regex.r
 

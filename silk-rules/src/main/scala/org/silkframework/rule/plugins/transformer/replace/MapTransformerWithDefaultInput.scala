@@ -1,6 +1,6 @@
 package org.silkframework.rule.plugins.transformer.replace
 
-import org.silkframework.rule.input.Transformer
+import org.silkframework.rule.input.InlineTransformer
 import org.silkframework.rule.plugins.transformer.value.InputHashTransformer
 import org.silkframework.runtime.plugin.annotations.{Param, Plugin, PluginReference}
 
@@ -28,7 +28,7 @@ import org.silkframework.runtime.plugin.annotations.{Param, Plugin, PluginRefere
   )
 )
 case class MapTransformerWithDefaultInput(@Param(value = "A map of values", example = "A:1,B:2,C:3")
-                                          map: Map[String, String]) extends Transformer {
+                                          map: Map[String, String]) extends InlineTransformer {
   override def apply(values: Seq[Seq[String]]): Seq[String] = {
     if(values.size != 2) {
       throw new IllegalArgumentException("MapDefaultInput takes exactly two inputs! Instead found " + values.size + " inputs.")

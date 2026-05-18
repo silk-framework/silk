@@ -5,7 +5,7 @@
 import React from "react";
 import _ from "lodash";
 import { copyRuleAsync, errorChannel, getApiDetails, getRuleAsync } from "../store";
-import { Spinner, Spacing, Notification, ClassNames } from "@eccenca/gui-elements";
+import { ClassNames, GridColumn, Notification, Spacing, Spinner, WhiteSpaceContainer } from "@eccenca/gui-elements";
 import RootMappingRule from "./RootMappingRule";
 import ObjectMappingRuleForm from "./MappingRule/ObjectRule/ObjectRuleForm";
 import ValueMappingRuleForm from "./MappingRule/ValueRule/ValueRuleForm";
@@ -22,7 +22,6 @@ import {
 import EventEmitter from "../utils/EventEmitter";
 import { diErrorMessage } from "@ducks/error/typings";
 import { IViewActions } from "../../../../plugins/PluginRegistry";
-import { SuggestionNGProps } from "../../../../plugins/plugin.types";
 import { ParentStructure } from "../components/ParentStructure";
 import RuleTitle from "../elements/RuleTitle";
 import { MAPPING_ROOT_RULE_ID } from "../HierarchicalMapping";
@@ -55,6 +54,7 @@ const MappingsWorkview = ({
     const [showSuggestions, setShowSuggestions] = React.useState(false);
     const [selectedVocabs, setSelectedVocabs] = React.useState([]);
     const [error, setError] = React.useState<string | null | undefined>(undefined);
+    const activeRequestRef = React.useRef(0);
 
     React.useEffect(() => {
         loadData({ initialLoad: true });
@@ -115,10 +115,13 @@ const MappingsWorkview = ({
 
     const loadData = (params: any = {}) => {
         const { initialLoad = false, onFinish } = params;
+        const requestId = ++activeRequestRef.current;
+        const isStale = () => requestId !== activeRequestRef.current;
         setLoading(true);
         setError(undefined);
         getRuleAsync(currentRuleId, true).subscribe(
             ({ rule }) => {
+                if (isStale()) return;
                 if (initialLoad && currentRuleId && rule.id !== currentRuleId) {
                     let toBeOpened;
 
@@ -137,14 +140,16 @@ const MappingsWorkview = ({
                 setRuleData(rule);
             },
             (err) => {
+                if (isStale()) return;
                 setError(diErrorMessage(err));
                 setLoading(false);
             },
             () => {
+                if (isStale()) return;
                 if (onFinish) {
                     onFinish();
                 }
-                setLoading(false);
+                setTimeout(() => setLoading(false), 1);
             },
         );
     };
@@ -263,20 +268,13 @@ const MappingsWorkview = ({
             {createType === MAPPING_RULE_TYPE_OBJECT ? (
                 <ObjectMappingRuleForm
                     parentId={ruleData.id}
-                    parent={{
-                        id: ruleData.id,
-                        property: _.get(ruleData, "mappingTarget.uri"),
-                        type: _.get(ruleData, "rules.typeRules[0].typeUri"),
-                    }}
                     ruleData={{ type: MAPPING_RULE_TYPE_OBJECT }}
                     onAddNewRule={handleAddNewRule}
                     viewActions={viewActions}
                 />
             ) : (
                 <ValueMappingRuleForm
-                    type={createType}
                     parentId={ruleData.id}
-                    edit
                     onAddNewRule={handleAddNewRule}
                     openMappingEditor={openMappingEditor}
                     viewActions={viewActions}
@@ -349,28 +347,41 @@ const MappingsWorkview = ({
         ) : null;
 
     return (
-        <div className="ecc-silk-mapping__rules">
-            {loadingWidget}
-            <RootMappingRule
-                rule={ruleData}
-                key={`objhead_${id}`}
-                handleCopy={handleCopy}
-                handleClone={handleClone}
-                onAskDiscardChanges={onAskDiscardChanges}
-                onClickedRemove={onClickedRemove}
-                openMappingEditor={openMappingEditor}
-                startFullScreen={startFullScreen}
-                viewActions={viewActions}
-            />
-            {listSuggestions || <div className={ClassNames.Blueprint.elevationClass(1)}>{listMappings}</div>}
-            {createRuleForm}
-            {error ? (
-                <>
-                    <Spacing />
-                    <Notification intent="warning" message={error} />
-                </>
-            ) : null}
-        </div>
+        <GridColumn
+            className="ecc-silk-mapping__rules"
+            style={{
+                maxHeight: "100%",
+                overflowY: "auto",
+            }}
+        >
+            <WhiteSpaceContainer
+                paddingTop={"regular"}
+                paddingRight={"regular"}
+                paddingBottom={"regular"}
+                paddingLeft={"small"}
+            >
+                {loadingWidget}
+                <RootMappingRule
+                    rule={ruleData}
+                    key={`objhead_${id}`}
+                    handleCopy={handleCopy}
+                    handleClone={handleClone}
+                    onAskDiscardChanges={onAskDiscardChanges}
+                    onClickedRemove={onClickedRemove}
+                    openMappingEditor={openMappingEditor}
+                    startFullScreen={startFullScreen}
+                    viewActions={viewActions}
+                />
+                {listSuggestions || <div className={ClassNames.Blueprint.elevationClass(1)}>{listMappings}</div>}
+                {createRuleForm}
+                {error ? (
+                    <>
+                        <Spacing />
+                        <Notification intent="warning" message={error} />
+                    </>
+                ) : null}
+            </WhiteSpaceContainer>
+        </GridColumn>
     );
 };
 

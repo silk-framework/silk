@@ -36,6 +36,7 @@ import { uppercaseFirstChar } from "../../../utils/transformers";
 import { projectTagsRenderer } from "../ProjectTags/ProjectTags";
 import { searchTagsRenderer } from "../SearchList/SearchTags";
 import { ArtefactTag } from "../ArtefactTag";
+import { AppDispatch } from "store/configureStore";
 
 /** Shows the recently viewed items a user has visited. Also allows to trigger a workspace search. */
 export function RecentlyViewedModal() {
@@ -50,7 +51,7 @@ export function RecentlyViewedModal() {
     // Current path name
     const { pathname } = useLocation();
     const { t } = useTranslation();
-    const dispatch = useDispatch();
+    const dispatch = useDispatch<AppDispatch>();
     const { hotKeys } = useSelector(commonSel.initialSettingsSelector);
     const loadRecentItems = async () => {
         setError(null);
@@ -65,6 +66,9 @@ export function RecentlyViewedModal() {
                 // swap 1. and 2. result if 1. result is the same page we are already on
                 [recentItems[0], recentItems[1]] = [recentItems[1], recentItems[0]];
             }
+            recentItems.forEach(
+                (item) => (item.hiddenSearchTokens = item.hiddenSearchTokens?.map((t) => t.toLowerCase())),
+            );
             setRecentItems(recentItems);
         } catch (ex) {
             if (ex.isFetchError && ex.errorResponse) {
@@ -187,7 +191,8 @@ export function RecentlyViewedModal() {
         const searchWords = highlighterUtils.extractSearchWords(textQuery.toLowerCase());
         return recentItems.filter((item) => {
             const label = itemSearchableString(item).toLowerCase();
-            return searchWords.every((word) => label.includes(word));
+            const hiddenSearchTokens = item.hiddenSearchTokens ?? [];
+            return searchWords.every((word) => hiddenSearchTokens.includes(word) || label.includes(word));
         });
     };
     // Warning when an error has occurred
