@@ -52,8 +52,8 @@ case class SparqlSelectCustomTask(
     autoCompleteValueWithLabels = true, allowOnlyAutoCompletedValues = true)
   optionalInputDataset: SparqlEndpointDatasetParameter = SparqlEndpointDatasetParameter(""),
   @Param(
-    label = "Use default RDF dataset",
-    value = "If enabled, the SELECT query is submitted directly to the configured default RDF dataset." +
+    label = "Use fallback RDF dataset",
+    value = "If enabled, the query executes against the configured fallback RDF dataset (as configured in `dataset.defaultRdf`) when no RDF dataset is connected." +
       " If the query template references input entities, one query is generated per input entity."
   )
   useDefaultDataset: Boolean = false,
