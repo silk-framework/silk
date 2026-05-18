@@ -89,7 +89,7 @@ module.exports = function (webpackEnv, isWatch) {
                     loader: require.resolve(preProcessor),
                     options: {
                         implementation: sass,
-                        sassOptions: sassRenderSyncOptions,
+                        sassOptions: { ...sassRenderSyncOptions, silenceDeprecations: ["import", "legacy-js-api"] },
                         sourceMap: false,
                     },
                 },
