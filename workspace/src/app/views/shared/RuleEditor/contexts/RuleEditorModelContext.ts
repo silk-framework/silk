@@ -38,6 +38,12 @@ export interface RuleEditorModelContextProps {
     redo: () => boolean;
     /** If there are changes that can be redone. */
     canRedo: boolean;
+    /** Reset the editor to the currently saved state. */
+    resetToSavedState: () => boolean;
+    /** True if resetting to the saved state must clear undo/redo history. */
+    resetToSavedStateClearsHistory: boolean;
+    /** Where the current editor state is relative to the latest saved state. */
+    savedStatePosition?: "before" | "current" | "after";
     /** Returns true if this is a valid edge, false otherwise. */
     isValidEdge: (sourceNodeId: string, targetNodeId: string, targetHandleId: string) => boolean;
     /** Center the node having the given ID.
@@ -160,6 +166,8 @@ export const RuleEditorModelContext = React.createContext<RuleEditorModelContext
     canUndo: false,
     redo: () => false,
     canRedo: false,
+    resetToSavedState: () => false,
+    resetToSavedStateClearsHistory: false,
     isValidEdge: () => true,
     centerNode: () => true,
     ruleOperatorNodes: () => [],
