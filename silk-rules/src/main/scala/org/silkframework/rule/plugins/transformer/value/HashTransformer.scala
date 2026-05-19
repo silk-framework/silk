@@ -1,6 +1,6 @@
 package org.silkframework.rule.plugins.transformer.value
 
-import org.silkframework.rule.input.Transformer
+import org.silkframework.rule.input.InlineTransformer
 
 import java.nio.charset.StandardCharsets
 import java.security.MessageDigest
@@ -17,7 +17,7 @@ import java.util.HexFormat
  *  - [[withDigest]] is suited to combining operators: it loans a reset digest for the duration of a
  *    single lambda, leaving the caller responsible for updates and finalization within that scope.
  */
-trait HashTransformer extends Transformer {
+trait HashTransformer extends InlineTransformer {
   /** The hash algorithm name, passed directly to [[java.security.MessageDigest#getInstance]].
    *  Must be recognized by the JVM's security provider registry; unrecognized names cause
    *  [[java.security.NoSuchAlgorithmException]] at runtime. */
