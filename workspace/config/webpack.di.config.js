@@ -253,7 +253,7 @@ module.exports = function (webpackEnv, isWatch) {
                 "#minpath": "vfile/lib/minpath.browser.js",
                 "#minproc": "vfile/lib/minproc.browser.js",
                 "#minurl": "vfile/lib/minurl.browser.js",
-                "es-toolkit/compat": "es-toolkit/compat.d.ts",
+                "es-toolkit/compat": "es-toolkit/dist/compat/index.mjs",
             },
             plugins: [
                 // Adds support for installing with Plug'n'Play, leading to faster installs and adding
