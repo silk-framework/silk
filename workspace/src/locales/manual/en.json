@@ -375,7 +375,7 @@
             "linking": "linking",
             "project": "project",
             "projectDesc": "Projects let you group related items. All items that depend on each other need to be in the same project.",
-            "ruleBlock": "rule block",
+            "ruleblock": "rule block",
             "task": "task",
             "transform": "transform",
             "workflow": "workflow"
@@ -775,7 +775,9 @@
                 "fetchTransformOperators": "Could not load the transform operators.",
                 "invalidDisplayOrder": "Display order must be an integer.",
                 "invalidPorts": "The rule block contains invalid input port definitions.",
-                "save": "Could not save the rule block."
+                "save": "Could not save the rule block.",
+                "usedPortRemoved": "Input port '{{portLabel}}' cannot be removed because this rule block is already in use.",
+                "usedPortReordered": "Display order of input port '{{portLabel}}' cannot be changed because this rule block is already in use."
             },
             "exampleValues": "Example values",
             "inputPortOperator": "Input port",

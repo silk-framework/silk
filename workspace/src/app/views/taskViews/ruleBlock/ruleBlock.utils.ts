@@ -21,6 +21,9 @@ const normalizeStickyNotes = (stickyNotes?: StickyNote[]): StickyNote[] => stick
 const resolvePortId = (node: IRuleOperatorNode): string =>
     (ruleEditorNodeParameterValue(node.parameters["portId"]) ?? node.nodeId).trim() || node.nodeId;
 
+const portDisplayName = (port: IRuleBlockPort | undefined, fallbackId: string): string =>
+    port?.label?.trim() || fallbackId;
+
 const samePortDefinition = (left: IRuleBlockPort, right: IRuleBlockPort): boolean => {
     return (
         left.id === right.id &&
@@ -64,24 +67,26 @@ interface PortDefinitionCollectionResult {
     portDefinitions?: IRuleBlockPort[];
 }
 
+interface UsedPortCompatibilityResult {
+    errorMessage?: string;
+    nodeErrors: RuleSaveNodeError[];
+}
+
 /** Collects and validates persisted port definitions from the current input port nodes. */
 const collectPortDefinitions = (
     persistedPorts: IRuleBlockPort[],
     inputPortNodes: IRuleOperatorNode[],
     invalidDisplayOrderMessage: string,
     conflictingPortDefinitionsMessage: (portId: string) => string,
-    duplicateDisplayOrderMessage: (displayOrder: number) => string,
 ): PortDefinitionCollectionResult => {
     const persistedPortDefinitions = new Map(persistedPorts.map((port) => [port.id, port] as const));
     const updatedPortDefinitions = new Map(persistedPortDefinitions);
     const referencedPortDefinitions = new Map<string, IRuleBlockPort>();
-    const nodeIdsByPortId = new Map<string, string[]>();
     const nodeErrors: RuleSaveNodeError[] = [];
     let generatedDisplayOrder = nextGeneratedDisplayOrder(persistedPorts);
 
     inputPortNodes.forEach((node) => {
         const portId = resolvePortId(node);
-        nodeIdsByPortId.set(portId, [...(nodeIdsByPortId.get(portId) ?? []), node.nodeId]);
         const persistedPortDefinition = persistedPortDefinitions.get(portId);
         const displayOrder = parseDisplayOrder(node, persistedPortDefinition?.displayOrder ?? generatedDisplayOrder);
         if (displayOrder == null) {
@@ -116,19 +121,6 @@ const collectPortDefinitions = (
         }
     });
 
-    duplicateDisplayOrders(updatedPortDefinitions.values()).forEach((displayOrder) => {
-        updatedPortDefinitions.forEach((portDefinition) => {
-            if (portDefinition.displayOrder === displayOrder) {
-                (nodeIdsByPortId.get(portDefinition.id) ?? []).forEach((nodeId) => {
-                    nodeErrors.push({
-                        nodeId,
-                        message: duplicateDisplayOrderMessage(displayOrder),
-                    });
-                });
-            }
-        });
-    });
-
     if (nodeErrors.length) {
         return {
             nodeErrors,
@@ -141,11 +133,89 @@ const collectPortDefinitions = (
     };
 };
 
+/** Validates that logical port display orders remain unique in the merged persisted rule block model. */
+const validateDuplicateDisplayOrders = (
+    updatedPorts: IRuleBlockPort[],
+    inputPortNodes: IRuleOperatorNode[],
+    duplicateDisplayOrderMessage: (displayOrder: number) => string,
+): RuleSaveNodeError[] => {
+    const nodeIdsByPortId = new Map<string, string[]>();
+    const nodeErrors: RuleSaveNodeError[] = [];
+
+    inputPortNodes.forEach((node) => {
+        const portId = resolvePortId(node);
+        nodeIdsByPortId.set(portId, [...(nodeIdsByPortId.get(portId) ?? []), node.nodeId]);
+    });
+
+    duplicateDisplayOrders(updatedPorts).forEach((displayOrder) => {
+        updatedPorts.forEach((portDefinition) => {
+            if (portDefinition.displayOrder === displayOrder) {
+                (nodeIdsByPortId.get(portDefinition.id) ?? []).forEach((nodeId) => {
+                    nodeErrors.push({
+                        nodeId,
+                        message: duplicateDisplayOrderMessage(displayOrder),
+                    });
+                });
+            }
+        });
+    });
+
+    return nodeErrors;
+};
+
+/** Validates that structurally frozen ports keep their ID and display order once the rule block is already in use. */
+const validateUsedPortCompatibility = (
+    persistedPorts: IRuleBlockPort[],
+    updatedPorts: IRuleBlockPort[],
+    inputPortNodes: IRuleOperatorNode[],
+    removedPortMessage: (portName: string) => string,
+    reorderedPortMessage: (portName: string) => string,
+): UsedPortCompatibilityResult => {
+    const updatedPortsById = new Map(updatedPorts.map((port) => [port.id, port] as const));
+    const nodeIdsByPortId = new Map<string, string[]>();
+    const removedPortIds: string[] = [];
+    const reorderedPortIds: string[] = [];
+    const nodeErrors: RuleSaveNodeError[] = [];
+
+    inputPortNodes.forEach((node) => {
+        const portId = resolvePortId(node);
+        nodeIdsByPortId.set(portId, [...(nodeIdsByPortId.get(portId) ?? []), node.nodeId]);
+    });
+
+    persistedPorts.forEach((persistedPort) => {
+        const updatedPort = updatedPortsById.get(persistedPort.id);
+        if (!updatedPort) {
+            removedPortIds.push(portDisplayName(persistedPort, persistedPort.id));
+        } else if (updatedPort.displayOrder !== persistedPort.displayOrder) {
+            const portName = portDisplayName(updatedPort, persistedPort.id);
+            reorderedPortIds.push(portName);
+            (nodeIdsByPortId.get(persistedPort.id) ?? []).forEach((nodeId) => {
+                nodeErrors.push({
+                    nodeId,
+                    message: reorderedPortMessage(portName),
+                });
+            });
+        }
+    });
+
+    const errorMessages = [
+        ...removedPortIds.map(removedPortMessage),
+        ...reorderedPortIds.map(reorderedPortMessage),
+    ];
+
+    return {
+        errorMessage: errorMessages.length > 0 ? errorMessages.join(" ") : undefined,
+        nodeErrors,
+    };
+};
+
 const ruleBlockUtils = {
     collectPortDefinitions,
     emptyRuleBlockModel,
     normalizeStickyNotes,
     resolvePortId,
+    validateDuplicateDisplayOrders,
+    validateUsedPortCompatibility,
 };
 
 export default ruleBlockUtils;

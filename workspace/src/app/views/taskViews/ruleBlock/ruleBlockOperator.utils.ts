@@ -42,7 +42,7 @@ const convertRuleBlockOperator = (ruleBlock: IRuleBlockOperatorDetails): IRuleOp
     label: ruleBlock.label,
     icon: "artefact-ruleblock",
     description: ruleBlock.description,
-    categories: [i18next.t("common.dataTypes.ruleBlock")],
+    categories: [i18next.t("common.dataTypes.ruleblock")],
     parameterSpecification: {},
     portSpecification: {
         type: "named",
@@ -56,7 +56,7 @@ const convertRuleBlockOperator = (ruleBlock: IRuleBlockOperatorDetails): IRuleOp
 const ruleBlockTab = (): IRuleSideBarFilterTabConfig => ({
     id: "ruleBlock",
     icon: "artefact-ruleblock",
-    label: i18next.t("common.dataTypes.ruleBlock"),
+    label: i18next.t("common.dataTypes.ruleblock"),
     filterAndSort: (ops) => ops.filter((op) => op.pluginType === "RuleBlock").sort(sortAlphabetically),
     showOperatorsFromPreConfiguredOperatorTabsForQuery: false,
 });

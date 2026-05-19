@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 import { requestRuleOperatorPluginsDetails } from "@ducks/common/requests";
 import { IPluginDetails } from "@ducks/common/typings";
 import { IProjectTask } from "@ducks/shared/typings";
-import { requestTaskData } from "@ducks/shared/requests";
+import { requestRelatedItems, requestTaskData } from "@ducks/shared/requests";
 import { requestUpdateProjectTask } from "@ducks/workspace/requests";
 import { IViewActions } from "../../plugins/PluginRegistry";
 import RuleEditor from "../../shared/RuleEditor/RuleEditor";
@@ -80,16 +80,42 @@ export const RuleBlockEditor = ({ projectId, ruleBlockTaskId, viewActions, insta
                 inputPortNodes,
                 t("taskViews.ruleBlock.errors.invalidDisplayOrder"),
                 (portId) => t("taskViews.ruleBlock.errors.conflictingPortDefinitions", { portId }),
-                (displayOrder) => t("taskViews.ruleBlock.errors.duplicateDisplayOrder", { displayOrder }),
             );
 
             if (nodeErrors.length) {
                 return new RuleValidationError(t("taskViews.ruleBlock.errors.invalidPorts"), nodeErrors);
             }
 
+            const nextPortDefinitions = portDefinitions ?? currentModel.ports;
+            const relatedItemsResponse = await requestRelatedItems(projectId, ruleBlockTaskId, "", 1);
+            if (relatedItemsResponse.data.total > 0) {
+                const compatibilityValidation = ruleBlockUtils.validateUsedPortCompatibility(
+                    currentModel.ports,
+                    nextPortDefinitions,
+                    inputPortNodes,
+                    (portLabel) => t("taskViews.ruleBlock.errors.usedPortRemoved", { portLabel }),
+                    (portLabel) => t("taskViews.ruleBlock.errors.usedPortReordered", { portLabel }),
+                );
+                if (compatibilityValidation.errorMessage) {
+                    return new RuleValidationError(
+                        compatibilityValidation.errorMessage,
+                        compatibilityValidation.nodeErrors,
+                    );
+                }
+            }
+
+            const duplicateDisplayOrderErrors = ruleBlockUtils.validateDuplicateDisplayOrders(
+                nextPortDefinitions,
+                inputPortNodes,
+                (displayOrder) => t("taskViews.ruleBlock.errors.duplicateDisplayOrder", { displayOrder }),
+            );
+            if (duplicateDisplayOrderErrors.length) {
+                return new RuleValidationError(t("taskViews.ruleBlock.errors.invalidPorts"), duplicateDisplayOrderErrors);
+            }
+
             const updatedModel: IRuleBlockModel = {
                 ...currentModel,
-                ports: portDefinitions ?? currentModel.ports,
+                ports: nextPortDefinitions,
                 operatorTree: rootNodes[0]
                     ? ruleUtils.convertRuleOperatorNodeToValueInput(rootNodes[0], operatorNodeMap)
                     : undefined,
@@ -122,6 +148,12 @@ export const RuleBlockEditor = ({ projectId, ruleBlockTaskId, viewActions, insta
                         message: issue.message,
                     })),
                 );
+            }
+            if (err?.isHttpError) {
+                return {
+                    success: false,
+                    errorMessage: `${t("taskViews.ruleBlock.errors.save")}${err.message ? ": " + err.message : ""}`,
+                };
             }
             return {
                 success: false,
