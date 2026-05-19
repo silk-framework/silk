@@ -1,22 +1,23 @@
-import React, { useCallback } from "react";
+import React from "react";
 
 import {
     Button,
+    CardActionsAux,
+    CLASSPREFIX as eccgui,
+    IconButton,
     Markdown,
+    Notification,
+    OverflowText,
     OverviewItem,
     OverviewItemActions,
     OverviewItemDescription,
     OverviewItemLine,
     OverviewItemList,
-    TitleSubsection,
     SimpleDialog,
     SimpleDialogProps,
     Spacing,
-    CLASSPREFIX as eccgui,
-    OverflowText,
+    TitleSubsection,
     Tooltip,
-    Notification,
-    CardActionsAux,
 } from "@eccenca/gui-elements";
 import { useTranslation } from "react-i18next";
 import { ArtefactDocumentation } from "./CreateArtefactModal";
@@ -131,10 +132,10 @@ export const TaskDocumentationModal = ({
                     {shrinkRelatedPlugins && (
                         <CardActionsAux>
                             <Button
-                                outlined
+                                variant={"outlined"}
                                 icon={"toggler-showless"}
                                 text={t("CreateModal.relatedPlugins.displayPlugins")}
-                                onClick={() => toggleRelatedPlugins()}
+                                onClick={toggleRelatedPlugins}
                             />
                         </CardActionsAux>
                     )}
@@ -145,7 +146,17 @@ export const TaskDocumentationModal = ({
                 !shrinkRelatedPlugins &&
                 documentationToShow.relatedPlugins &&
                 documentationToShow.relatedPlugins.length > 0 && (
-                    <Notification intent={"neutral"} onDismiss={() => toggleRelatedPlugins()} timeout={0}>
+                    <Notification
+                        intent={"neutral"}
+                        timeout={0}
+                        actions={
+                            <IconButton
+                                name={"toggler-showmore"}
+                                onClick={toggleRelatedPlugins}
+                                text={t("common.action.hide")}
+                            />
+                        }
+                    >
                         <TitleSubsection>{t("CreateModal.relatedPlugins.title")}</TitleSubsection>
                         <Spacing size={"tiny"} />
                         <OverviewItemList data-test-id="related-plugins-list" columns={1} hasSpacing>

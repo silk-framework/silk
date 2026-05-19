@@ -342,6 +342,7 @@
             "download": "Download",
             "export": "Export to",
             "exportTo": "Export to",
+            "hide": "Hide",
             "import": "Import",
             "loadExampleProject": "Add \"movies\" example project",
             "logout": "Logout",
