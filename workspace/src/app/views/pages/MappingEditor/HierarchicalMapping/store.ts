@@ -544,6 +544,7 @@ export const childExampleAsync = (data) => {
     return Rx.Observable();
 };
 
+// Calls `/peak/:rule`, which only handles stored value rules.
 export const ruleExampleAsync = (data) => {
     const { id } = data;
     if (id) {

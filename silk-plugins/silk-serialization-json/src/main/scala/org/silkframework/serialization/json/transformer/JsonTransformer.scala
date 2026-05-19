@@ -2,7 +2,7 @@ package org.silkframework.serialization.json.transformer
 
 import org.silkframework.config.{Task, TaskSpec}
 import org.silkframework.rule.TaskContext
-import org.silkframework.rule.input.Transformer
+import org.silkframework.rule.input.{Transformer, TransformerExecution}
 import org.silkframework.rule.plugins.transformer.value.ConstantTransformer
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.PluginContext
@@ -28,7 +28,7 @@ trait JsonTransformer extends Transformer {
   def getJson(inputTask: Task[_ <: TaskSpec], project: ProjectTrait)
              (implicit pluginContext: PluginContext): JsValue
 
-  override def withContext(taskContext: TaskContext): Transformer = {
+  override def execution(taskContext: TaskContext): TransformerExecution = {
     val inputTask = taskContext.inputTasks.headOption.getOrElse(throw new ValidationException("This task does not have an input"))
     val project = taskContext.pluginContext.projectId match {
       case Some(projectId) =>
@@ -45,10 +45,6 @@ trait JsonTransformer extends Transformer {
       case undefined: JsUndefined =>
         throw new IllegalArgumentException(undefined.error)
     }
-  }
-
-  def apply(values: Seq[Seq[String]]): Seq[String] = {
-    throw new ValidationException("No input task available.")
   }
 
   @tailrec

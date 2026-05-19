@@ -7,7 +7,7 @@ package org.silkframework.preprocessing.transformer
  * @param lower The lower bound
  * @param upper The upper bound
  */
-class Ngrams(lower: Int, upper: Int) extends Transformer{
+class Ngrams(lower: Int, upper: Int) extends InlineTransformer{
 
   def organize(ss: List[String]): String = {
     ss.reduce(_+" "+_)

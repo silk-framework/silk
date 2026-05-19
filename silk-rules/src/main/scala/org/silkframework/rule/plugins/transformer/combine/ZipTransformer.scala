@@ -15,7 +15,7 @@
 package org.silkframework.rule.plugins.transformer.combine
 
 import org.silkframework.rule.annotations.{TransformExample, TransformExamples}
-import org.silkframework.rule.input.Transformer
+import org.silkframework.rule.input.InlineTransformer
 import org.silkframework.runtime.plugin.annotations.{Param, Plugin, PluginReference}
 
 @Plugin(
@@ -64,7 +64,7 @@ case class ZipTransformer(@Param(value = "Placeholder to be used if the first in
                           @Param(value = "Placeholder to be used if the second input provides fewer values than the first one.")
                           secondPlaceholder: String = "",
                           @Param(value = ConcatTransformer.glueDescription)
-                          glue: String = "") extends Transformer {
+                          glue: String = "") extends InlineTransformer {
 
   // glue with escaped char sequences (\\, \n, \t) converted to actual character.
   lazy val parsedGlue: String = ConcatTransformer.parseGlue(glue)

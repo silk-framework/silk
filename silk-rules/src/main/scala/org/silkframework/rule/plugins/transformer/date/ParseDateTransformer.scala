@@ -17,7 +17,7 @@
 package org.silkframework.rule.plugins.transformer.date
 
 import org.silkframework.rule.annotations.{TransformExample, TransformExamples}
-import org.silkframework.rule.input.Transformer
+import org.silkframework.rule.input.InlineTransformer
 import org.silkframework.runtime.plugin.annotations.{Param, Plugin, PluginReference}
 import org.silkframework.runtime.plugin.types.LocaleOptionParameter
 import org.silkframework.runtime.plugin.types.autoComlpetionProviders.LocaleParameterAutoCompletionProvider
@@ -85,7 +85,7 @@ case class ParseDateTransformer(
   lenient: Boolean = false,
   @Param(value = "Optional locale for the date format. If not set the system's locale will be used.",
     autoCompletionProvider = classOf[LocaleParameterAutoCompletionProvider])
-  locale: LocaleOptionParameter = LocaleOptionParameter(None)) extends Transformer with Serializable {
+  locale: LocaleOptionParameter = LocaleOptionParameter(None)) extends InlineTransformer with Serializable {
 
   def apply(values: Seq[Seq[String]]): Seq[String] = {
     values.flatten.flatMap(parse)
