@@ -136,6 +136,8 @@ case class LinkSpec(@Param(label = "Source input", value = "The source input to 
 
   override def outputTasks: Set[Identifier] = output.value.toSet
 
+  override def referencedTasks: Set[Identifier] = inputTasks ++ outputTasks ++ referencedRuleBlocks
+
   override lazy val referencedResources: Seq[Resource] = {
     val resources = new mutable.HashSet[Resource]()
     rule.operator foreach (operator => iterateAllTransformersFromSimilarityOperator(operator, _.referencedResources.foreach(resources.add)))
@@ -148,6 +150,9 @@ case class LinkSpec(@Param(label = "Source input", value = "The source input to 
     variables.toSeq
   }
 
+  private lazy val referencedRuleBlocks: Set[Identifier] =
+    rule.operator.map(referencedRuleBlocksFromSimilarityOperator).getOrElse(Set.empty)
+
   private def iterateAllTransformersFromSimilarityOperator(rule: SimilarityOperator,
                                                            f: Transformer => Unit): Unit = {
     rule match {
@@ -156,6 +161,28 @@ case class LinkSpec(@Param(label = "Source input", value = "The source input to 
       case comp: Comparison =>
         comp.inputs.foreach(input => iterateAllTransformersFromOperator(input, f))
       case _ =>
+    }
+  }
+
+  private def referencedRuleBlocksFromSimilarityOperator(rule: SimilarityOperator): Set[Identifier] = {
+    rule match {
+      case agg: Aggregation =>
+        agg.operators.flatMap(referencedRuleBlocksFromSimilarityOperator).toSet
+      case comp: Comparison =>
+        comp.inputs.flatMap(referencedRuleBlocksFromOperator).toSet
+      case _ =>
+        Set.empty
+    }
+  }
+
+  private def referencedRuleBlocksFromOperator(operator: Operator): Set[Identifier] = {
+    operator match {
+      case TransformInput(_, _, inputs) =>
+        inputs.flatMap(referencedRuleBlocksFromOperator).toSet
+      case RuleBlockInput(_, ruleBlockId, bindings) =>
+        bindings.flatMap(binding => referencedRuleBlocksFromOperator(binding.input)).toSet + ruleBlockId
+      case _ =>
+        Set.empty
     }
   }
 

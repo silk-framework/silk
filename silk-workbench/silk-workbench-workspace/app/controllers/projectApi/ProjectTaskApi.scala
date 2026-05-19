@@ -125,7 +125,15 @@ class ProjectTaskApi @Inject()() extends InjectedController with UserContextActi
                      in = ParameterIn.QUERY,
                      schema = new Schema(implementation = classOf[String])
                    )
-                   textQuery: Option[String]): Action[AnyContent] = UserContextAction { implicit userContext =>
+                   textQuery: Option[String],
+                   @Parameter(
+                     name = "limit",
+                     description = "Optional maximum number of related items to return. The total still reports the full number of related items before limiting.",
+                     required = false,
+                     in = ParameterIn.QUERY,
+                     schema = new Schema(implementation = classOf[Int])
+                   )
+                   limit: Option[Int]): Action[AnyContent] = UserContextAction { implicit userContext =>
     val project = getProject(projectId)
     val task = project.anyTask(taskId)
     val relatedTasks = (task.data.referencedTasks.toSeq ++ task.findDependentTasks(recursive = false).toSeq ++ task.findRelatedTasksInsideWorkflows().toSeq).distinct.
@@ -151,7 +159,7 @@ class ProjectTaskApi @Inject()() extends InjectedController with UserContextActi
     }
     val filteredItems = filterRelatedItems(relatedItems, textQuery)
     val total = relatedItems.size
-    val result = RelatedItems(total, filteredItems)
+    val result = RelatedItems(total, limit.map(filteredItems.take).getOrElse(filteredItems))
     Ok(Json.toJson(result))
   }
 

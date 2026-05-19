@@ -103,7 +103,7 @@ case class TransformSpec(@Param(label = "Input", value = "The source from which 
     * The tasks that are directly referenced by this task.
     * This includes input tasks and output tasks.
     */
-  override def referencedTasks: Set[Identifier] = inputTasks ++ outputTasks
+  override def referencedTasks: Set[Identifier] = inputTasks ++ outputTasks ++ referencedRuleBlocks
 
   override lazy val referencedResources: Seq[Resource] = {
     val resources = new mutable.HashSet[Resource]()
@@ -121,9 +121,26 @@ case class TransformSpec(@Param(label = "Input", value = "The source from which 
     variables.toSeq
   }
 
+  private lazy val referencedRuleBlocks: Set[Identifier] = referencedRuleBlocksFromRule(mappingRule)
+
   private def iterateAllTransformersFromRule(rule: TransformRule, f: Transformer => Unit): Unit = {
     iterateAllTransformersFromOperator(rule.operator, f)
     rule.rules.foreach(rule => iterateAllTransformersFromRule(rule, f))
+  }
+
+  private def referencedRuleBlocksFromRule(rule: TransformRule): Set[Identifier] = {
+    referencedRuleBlocksFromOperator(rule.operator) ++ rule.rules.flatMap(referencedRuleBlocksFromRule)
+  }
+
+  private def referencedRuleBlocksFromOperator(operator: Operator): Set[Identifier] = {
+    operator match {
+      case TransformInput(_, _, inputs) =>
+        inputs.flatMap(referencedRuleBlocksFromOperator).toSet
+      case RuleBlockInput(_, ruleBlockId, bindings) =>
+        bindings.flatMap(binding => referencedRuleBlocksFromOperator(binding.input)).toSet + ruleBlockId
+      case _ =>
+        Set.empty
+    }
   }
 
   private def iterateAllTransformersFromOperator(operator: Operator,
