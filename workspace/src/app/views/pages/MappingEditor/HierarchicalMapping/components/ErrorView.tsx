@@ -27,17 +27,19 @@ export const ErrorCause = ({ errorCause }) => (
     </ul>
 );
 
-export const ErrorIssue = ({errorCause}) => {
-    let idx = 1
-    return <ul data-test-id={"hierarchical-mapping-error-list"}>
-        {_.map(errorCause, ({message}) => (
-            <li key={message+idx}>
-                <HtmlContentBlock>
-                    <p>{message}</p>
-                </HtmlContentBlock>
-            </li>
-        ))}
-    </ul>
+export const ErrorIssue = ({ errorCause }) => {
+    let idx = 1;
+    return (
+        <ul data-test-id={"hierarchical-mapping-error-list"}>
+            {_.map(errorCause, ({ message }) => (
+                <li key={message + idx}>
+                    <HtmlContentBlock>
+                        <p>{message}</p>
+                    </HtmlContentBlock>
+                </li>
+            ))}
+        </ul>
+    );
 };
 
 interface IProps {
