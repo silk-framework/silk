@@ -346,7 +346,7 @@ export function CreateArtefactModal() {
                 ),
             );
 
-            if (!pluginDetails) {
+            if (!pluginDetails && pluginOverview.key !== "project") {
                 void (async () => {
                     try {
                         const fetchedPluginDetails = await requestArtefactProperties(pluginOverview.key);
@@ -1249,16 +1249,16 @@ export function CreateArtefactModal() {
                                                             </OverviewItemDescription>
                                                             {description ? (
                                                                 <OverviewItemActions>
-                                                                        <IconButton
-                                                                            data-test-id={`artefact-plugin-${artefact.key}-documentation-btn`}
-                                                                            name="item-question"
-                                                                            onClick={(e) => {
-                                                                                handleShowEnhancedDescriptionClickHandler(
-                                                                                    e,
-                                                                                    artefact,
-                                                                                );
-                                                                            }}
-                                                                        />
+                                                                    <IconButton
+                                                                        data-test-id={`artefact-plugin-${artefact.key}-documentation-btn`}
+                                                                        name="item-question"
+                                                                        onClick={(e) => {
+                                                                            handleShowEnhancedDescriptionClickHandler(
+                                                                                e,
+                                                                                artefact,
+                                                                            );
+                                                                        }}
+                                                                    />
                                                                 </OverviewItemActions>
                                                             ) : null}
                                                         </OverviewItem>
