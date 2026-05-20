@@ -213,12 +213,16 @@ export interface IRuleSideBarFilterTabConfig extends IRuleSideBarTabBaseConfig {
     filterAndSort: (ruleOperators: IRuleOperator[]) => IRuleOperator[];
     /** Allows to also show operators from the pre-configured operator tabs, when a search query is entered. */
     showOperatorsFromPreConfiguredOperatorTabsForQuery: boolean;
+    /** Allows to always show operators from the pre-configured operator tabs, even without a search query. */
+    showOperatorsFromPreConfiguredOperatorTabsAlways?: boolean;
 }
 
 /** Allow to fetch and list pre-configured operators in a tab. This is used to have e.g. pre-configured path operators. */
 export interface IRuleSidebarPreConfiguredOperatorsTabConfig<ListItem = any> extends IRuleSideBarTabBaseConfig {
     /** Operators that are added by default and do not need to be fetched first. */
     defaultOperators: ListItem[];
+    /** Where the operators of this tab should be inserted when merged with another list. */
+    position?: "bottom" | "top";
     /** Fetches an array of items that can be transformed into rule operators. */
     fetchOperators: (langPref: string) => ListItem[] | undefined | Promise<ListItem[] | undefined>;
     /** Converts an operator into a rule operator. Only list items are converted that will currently be shown. */

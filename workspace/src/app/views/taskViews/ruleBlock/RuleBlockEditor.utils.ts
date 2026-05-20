@@ -132,6 +132,7 @@ const createInputPortsTab = (
     id: "inputPorts",
     icon: "data-sourcepath",
     label: i18next.t("taskViews.ruleBlock.inputPortsTab"),
+    position: "top",
     defaultOperators: [],
     fetchOperators: async () => [{ type: "create" }, ...ruleBlockUtils.sortRuleBlockPorts(ports)],
     convertToOperator: (listItem) =>

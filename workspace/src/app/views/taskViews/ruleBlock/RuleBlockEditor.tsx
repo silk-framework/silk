@@ -240,7 +240,13 @@ export const RuleBlockEditor = ({ projectId, ruleBlockTaskId, viewActions, insta
         (IRuleSideBarFilterTabConfig | ReturnType<typeof ruleBlockEditorUtils.createInputPortsTab>)[]
     >(
         () => [
-            ruleUtils.sidebarTabs.all as IRuleSideBarFilterTabConfig,
+            {
+                ...(ruleUtils.sidebarTabs.all as IRuleSideBarFilterTabConfig),
+                // The generic InputPortOperator is needed by the editor model, but the rule block UI should show
+                // logical input-port entries from local state instead of this internal operator definition.
+                filterAndSort: (operators) => operators.filter((operator) => operator.pluginType !== "InputPortOperator"),
+                showOperatorsFromPreConfiguredOperatorTabsAlways: true,
+            },
             ruleBlockEditorUtils.createInputPortsTab(ports, openCreateInputPortDialog, openEditInputPortDialog),
             ruleUtils.sidebarTabs.transform as IRuleSideBarFilterTabConfig,
         ],
@@ -263,6 +269,8 @@ export const RuleBlockEditor = ({ projectId, ruleBlockTaskId, viewActions, insta
                     partialAutoCompletion={partialAutoCompletion}
                     viewActions={viewActions}
                     getStickyNotes={ruleBlockEditorUtils.getStickyNotes}
+                    // Register the internal operator definition so existing canvas nodes and drag/drop-created nodes
+                    // can be materialized. User-facing sidebar entries come from the pre-configured input-port tab.
                     additionalRuleOperators={[inputPortOperator]}
                     validateConnection={ruleUtils.validateConnection}
                     tabs={tabs}

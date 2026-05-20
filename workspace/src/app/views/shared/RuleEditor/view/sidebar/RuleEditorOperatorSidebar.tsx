@@ -110,6 +110,13 @@ export const RuleEditorOperatorSidebar = () => {
         } else if (operatorList && !preConfiguredOperators) {
             filterOperatorList(operatorList);
             setFilteredPreConfiguredOperators(undefined);
+        } else if (operatorList && preConfiguredOperators && !showPreConfiguredOperatorsOnlyWithQuery) {
+            if (searchWords.length > 0) {
+                filterPreConfiguredOperatorsBasedOnTextQuery(preConfiguredOperators);
+            } else {
+                setFilteredPreConfiguredOperators(preConfiguredOperators);
+            }
+            filterOperatorList(operatorList);
         } else if (operatorList && preConfiguredOperators && showPreConfiguredOperatorsOnlyWithQuery) {
             if (searchWords.length > 0) {
                 // Only show operators when a search query exists
@@ -151,11 +158,15 @@ export const RuleEditorOperatorSidebar = () => {
                         setOperatorList(filteredOperators);
                         extractOperatorCategories(filteredOperators);
                         setPreconfiguredOperators(undefined);
-                        if (filterTabConfig.showOperatorsFromPreConfiguredOperatorTabsForQuery) {
+                        if (
+                            filterTabConfig.showOperatorsFromPreConfiguredOperatorTabsForQuery ||
+                            filterTabConfig.showOperatorsFromPreConfiguredOperatorTabsAlways
+                        ) {
                             loadExternalOperators(preConfiguredOperatorTabs, true);
                         }
                         setShowPreConfiguredOperatorsOnlyWithQuery(
-                            filterTabConfig.showOperatorsFromPreConfiguredOperatorTabsForQuery,
+                            filterTabConfig.showOperatorsFromPreConfiguredOperatorTabsForQuery &&
+                                !filterTabConfig.showOperatorsFromPreConfiguredOperatorTabsAlways,
                         );
                     } else {
                         const customTabConfig = tabConfig as IRuleSidebarPreConfiguredOperatorsTabConfig;
@@ -190,8 +201,7 @@ export const RuleEditorOperatorSidebar = () => {
                     originalOperators,
                     isOriginalOperator: config.isOriginalOperator,
                     toPreConfiguredRuleOperator: config.convertToOperator,
-                    // At the moment we don't mix pre-configured and "empty" operators, so the position does not matter.
-                    position: "bottom",
+                    position: config.position ?? "bottom",
                     itemSearchText: (item: any) => config.itemSearchText(item, mergeWithOperatorList),
                     itemLabel: config.itemLabel,
                     itemId: config.itemId,
