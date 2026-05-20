@@ -152,7 +152,10 @@ class RootMappingRule extends React.Component {
                                     style={{ backgroundColor: "transparent" }}
                                 >
                                     <OverviewItem>
-                                        <OverviewItemDescription data-test-id={"mapping-rule-title"} style={{ width: "40%" }}>
+                                        <OverviewItemDescription
+                                            data-test-id={"mapping-rule-title"}
+                                            style={{ width: "40%" }}
+                                        >
                                             <OverviewItemLine className="ecc-silk-mapping__ruleitem-headline">
                                                 <ThingIcon type="object" />
                                                 <RuleTitle
