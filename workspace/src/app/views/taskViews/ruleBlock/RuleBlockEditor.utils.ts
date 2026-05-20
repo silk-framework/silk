@@ -2,12 +2,18 @@ import { StickyNote } from "@eccenca/gui-elements";
 import { IProjectTask } from "@ducks/shared/typings";
 import i18next from "i18next";
 import { RuleOperatorFetchFnType } from "../../shared/RuleEditor/RuleEditor";
-import { IRuleOperator, IRuleOperatorNode } from "../../shared/RuleEditor/RuleEditor.typings";
+import {
+    IRuleOperator,
+    IRuleOperatorNode,
+    IRuleSidebarPreConfiguredOperatorsTabConfig,
+} from "../../shared/RuleEditor/RuleEditor.typings";
 import ruleUtils from "../shared/rules/rule.utils";
 import { IRuleBlockPort, IRuleBlockTaskParameters } from "./ruleBlock.types";
 import ruleBlockUtils from "./ruleBlock.utils";
+import { IPreConfiguredRuleOperator } from "../../shared/RuleEditor/view/sidebar/RuleEditorOperatorSidebar.typings";
 
 type RuleBlockTaskData = IProjectTask<IRuleBlockTaskParameters>;
+type InputPortListItem = IRuleBlockPort | { type: "create" };
 
 /** Creates the pseudo-operator used to edit rule block input ports inside the shared rule editor. */
 const createInputPortOperator = (): IRuleOperator => {
@@ -58,6 +64,68 @@ const createInputPortOperator = (): IRuleOperator => {
         inputsCanBeSwitched: false,
     };
 };
+
+/** Creates the synthetic sidebar entry used to start input-port creation. */
+const createNewInputPortSidebarItem = (): IPreConfiguredRuleOperator => {
+    const inputPortOperator = createInputPortOperator();
+    return {
+        pluginType: "InputPortOperator",
+        pluginId: "newInputPort",
+        label: i18next.t("taskViews.ruleBlock.newInputPort"),
+        description: inputPortOperator.description,
+        icon: "item-add-artefact",
+        categories: inputPortOperator.categories,
+        tags: [],
+        inputsCanBeSwitched: false,
+        parameterOverwrites: {},
+        draggable: false,
+    };
+};
+
+/** Converts one logical input port into a draggable pre-configured sidebar operator. */
+const convertInputPortToSidebarOperator = (port: IRuleBlockPort): IPreConfiguredRuleOperator => {
+    const inputPortOperator = createInputPortOperator();
+    return {
+        pluginType: inputPortOperator.pluginType,
+        pluginId: inputPortOperator.pluginId,
+        label: port.label,
+        description: inputPortOperator.description,
+        icon: inputPortOperator.icon,
+        categories: [],
+        tags: [i18next.t("taskViews.ruleBlock.inputPortsTab"), String(port.displayOrder)],
+        inputsCanBeSwitched: inputPortOperator.inputsCanBeSwitched,
+        markdownDocumentation: inputPortOperator.markdownDocumentation,
+        parameterOverwrites: {
+            portId: port.id,
+            label: port.label,
+            description: port.description,
+            exampleValues: port.exampleValues,
+            displayOrder: String(port.displayOrder),
+            deprecated: port.deprecated ? "true" : "false",
+        },
+    };
+};
+
+/** Creates the input-port pre-configured sidebar tab from the current logical input-port state. */
+const createInputPortsTab = (
+    ports: IRuleBlockPort[],
+): IRuleSidebarPreConfiguredOperatorsTabConfig<InputPortListItem> => ({
+    id: "inputPorts",
+    icon: "data-sourcepath",
+    label: i18next.t("taskViews.ruleBlock.inputPortsTab"),
+    defaultOperators: [],
+    fetchOperators: async () => [{ type: "create" }, ...ruleBlockUtils.sortRuleBlockPorts(ports)],
+    convertToOperator: (listItem) =>
+        "type" in listItem ? createNewInputPortSidebarItem() : convertInputPortToSidebarOperator(listItem),
+    isOriginalOperator: (item): item is InputPortListItem => "type" in (item as InputPortListItem) || "id" in item,
+    itemSearchText: (listItem) =>
+        "type" in listItem
+            ? i18next.t("taskViews.ruleBlock.newInputPort").toLowerCase()
+            : `${listItem.label} ${listItem.description ?? ""} ${listItem.displayOrder}`.toLowerCase(),
+    itemLabel: (listItem) =>
+        "type" in listItem ? i18next.t("taskViews.ruleBlock.newInputPort") : listItem.label,
+    itemId: (listItem) => ("type" in listItem ? "newInputPort" : listItem.id),
+});
 
 /** Enriches an input port node with persisted port metadata from the current rule block model. */
 const updateInputPortNode = (
@@ -120,7 +188,9 @@ const getStickyNotes = (ruleBlockTask: RuleBlockTaskData | undefined): StickyNot
     ruleBlockUtils.normalizeStickyNotes(ruleBlockTask?.data.parameters.ruleBlockModel?.uiAnnotations?.stickyNotes);
 
 const ruleBlockEditorUtils = {
+    convertInputPortToSidebarOperator,
     convertRuleBlockTaskToRuleOperatorNodes,
+    createInputPortsTab,
     createInputPortOperator,
     getStickyNotes,
 };

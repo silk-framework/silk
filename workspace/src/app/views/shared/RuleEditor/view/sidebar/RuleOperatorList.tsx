@@ -80,22 +80,34 @@ export function RuleOperatorList<T>({
     const itemRenderer = (ruleOperator: IRuleOperator | IPreConfiguredRuleOperator) => {
         /** currently active taskItem */
         const isActiveTaskItem = currentlyCycledTaskId === ruleOperator.pluginId;
+        const preConfiguredRuleOperator = ruleOperator as IPreConfiguredRuleOperator;
+        const preConfiguredActions = preConfiguredRuleOperator.actions
+            ? Array.isArray(preConfiguredRuleOperator.actions)
+                ? preConfiguredRuleOperator.actions
+                : [preConfiguredRuleOperator.actions]
+            : [];
+        const draggable = preConfiguredRuleOperator.draggable ?? true;
         return (
             <div
                 data-test-id={"ruleEditor-sidebar-draggable-operator"}
-                draggable={true}
-                onDragStart={onDragStartByPluginId(
-                    ruleOperator.pluginType,
-                    ruleOperator.pluginId,
-                    (ruleOperator as IPreConfiguredRuleOperator).parameterOverwrites,
-                )}
-                style={{ cursor: "grab" }}
+                draggable={draggable}
+                onDragStart={
+                    draggable
+                        ? onDragStartByPluginId(
+                              ruleOperator.pluginType,
+                              ruleOperator.pluginId,
+                              preConfiguredRuleOperator.parameterOverwrites,
+                          )
+                        : undefined
+                }
+                style={{ cursor: draggable ? "grab" : "default" }}
             >
                 <Card data-test-id={"ruleEditor-sidebar-draggable-operator-" + ruleOperator.pluginId} isOnlyLayout>
                     <OverviewItem hasSpacing={true}>
                         <RuleOperator ruleOperator={ruleOperator} searchWords={searchWords} textQuery={textQuery} />
-                        {totalMatches && totalMatches > 0 ? (
+                        {preConfiguredActions.length > 0 || (totalMatches && totalMatches > 0) ? (
                             <OverviewItemActions>
+                                {preConfiguredActions}
                                 {isActiveTaskItem ? (
                                     <Button
                                         minimal

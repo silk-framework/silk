@@ -22,6 +22,7 @@ import useErrorHandler from "../../../hooks/useErrorHandler";
 import { IRuleBlockModel, IRuleBlockTaskParameters } from "./ruleBlock.types";
 import ruleBlockUtils from "./ruleBlock.utils";
 import ruleBlockEditorUtils from "./RuleBlockEditor.utils";
+import { ExternalSidebarContext } from "../../shared/RuleEditor/contexts/ExternalSidebarContext";
 
 export interface RuleBlockEditorProps {
     projectId: string;
@@ -36,13 +37,25 @@ type RuleBlockTaskData = IProjectTask<IRuleBlockTaskParameters>;
 export const RuleBlockEditor = ({ projectId, ruleBlockTaskId, viewActions, instanceId }: RuleBlockEditorProps) => {
     const [t] = useTranslation();
     const { registerError } = useErrorHandler();
+    const [ports, setPorts] = React.useState(ruleBlockUtils.emptyRuleBlockModel().ports);
+    const [sidebarReloadTokensByTabId, setSidebarReloadTokensByTabId] = React.useState<Record<string, number>>({});
+
+    const bumpSidebarReloadToken = React.useCallback((tabId: string) => {
+        setSidebarReloadTokensByTabId((currentTokens) => ({
+            ...currentTokens,
+            [tabId]: (currentTokens[tabId] ?? 0) + 1,
+        }));
+    }, []);
 
     const fetchRuleBlockTask = async (
         currentProjectId: string,
         taskId: string,
     ): Promise<RuleBlockTaskData | undefined> => {
         try {
-            return (await requestTaskData<IRuleBlockTaskParameters>(currentProjectId, taskId)).data;
+            const taskData = (await requestTaskData<IRuleBlockTaskParameters>(currentProjectId, taskId)).data;
+            setPorts(ruleBlockUtils.sortRuleBlockPorts(taskData.data.parameters.ruleBlockModel?.ports ?? []));
+            bumpSidebarReloadToken("inputPorts");
+            return taskData;
         } catch (err) {
             registerError("RuleBlockEditor_fetchRuleBlockTask", t("taskViews.ruleBlock.errors.fetchTaskData"), err, {
                 errorNotificationInstanceId: RULE_EDITOR_NOTIFICATION_INSTANCE,
@@ -171,41 +184,37 @@ export const RuleBlockEditor = ({ projectId, ruleBlockTaskId, viewActions, insta
         [],
     );
 
-    const tabs = React.useMemo<IRuleSideBarFilterTabConfig[]>(
+    const tabs = React.useMemo<(IRuleSideBarFilterTabConfig | ReturnType<typeof ruleBlockEditorUtils.createInputPortsTab>)[]>(
         () => [
             ruleUtils.sidebarTabs.all as IRuleSideBarFilterTabConfig,
-            {
-                id: "inputPorts",
-                icon: "data-sourcepath",
-                label: t("taskViews.ruleBlock.inputPortsTab"),
-                filterAndSort: (operators) => operators.filter((op) => op.pluginType === "InputPortOperator"),
-                showOperatorsFromPreConfiguredOperatorTabsForQuery: false,
-            },
+            ruleBlockEditorUtils.createInputPortsTab(ports),
             ruleUtils.sidebarTabs.transform as IRuleSideBarFilterTabConfig,
         ],
-        [t],
+        [ports, t],
     );
 
     return (
-        <RuleEditor<RuleBlockTaskData, IPluginDetails>
-            projectId={projectId}
-            taskId={ruleBlockTaskId}
-            fetchRuleData={fetchRuleBlockTask}
-            fetchRuleOperators={fetchTransformRuleOperatorList}
-            saveRule={saveRuleBlock}
-            convertRuleOperator={ruleUtils.convertRuleOperator}
-            convertToRuleOperatorNodes={(ruleBlockTask, ruleOperator) =>
-                ruleBlockEditorUtils.convertRuleBlockTaskToRuleOperatorNodes(ruleBlockTask, ruleOperator)
-            }
-            partialAutoCompletion={partialAutoCompletion}
-            viewActions={viewActions}
-            getStickyNotes={ruleBlockEditorUtils.getStickyNotes}
-            additionalRuleOperators={[inputPortOperator]}
-            validateConnection={ruleUtils.validateConnection}
-            tabs={tabs}
-            showRuleOnly={false}
-            instanceId={instanceId}
-            saveInitiallyEnabled={false}
-        />
+        <ExternalSidebarContext.Provider value={{ reloadTokensByTabId: sidebarReloadTokensByTabId }}>
+            <RuleEditor<RuleBlockTaskData, IPluginDetails>
+                projectId={projectId}
+                taskId={ruleBlockTaskId}
+                fetchRuleData={fetchRuleBlockTask}
+                fetchRuleOperators={fetchTransformRuleOperatorList}
+                saveRule={saveRuleBlock}
+                convertRuleOperator={ruleUtils.convertRuleOperator}
+                convertToRuleOperatorNodes={(ruleBlockTask, ruleOperator) =>
+                    ruleBlockEditorUtils.convertRuleBlockTaskToRuleOperatorNodes(ruleBlockTask, ruleOperator)
+                }
+                partialAutoCompletion={partialAutoCompletion}
+                viewActions={viewActions}
+                getStickyNotes={ruleBlockEditorUtils.getStickyNotes}
+                additionalRuleOperators={[inputPortOperator]}
+                validateConnection={ruleUtils.validateConnection}
+                tabs={tabs}
+                showRuleOnly={false}
+                instanceId={instanceId}
+                saveInitiallyEnabled={false}
+            />
+        </ExternalSidebarContext.Provider>
     );
 };

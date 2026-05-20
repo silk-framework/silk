@@ -209,11 +209,15 @@ const validateUsedPortCompatibility = (
     };
 };
 
+/** Returns the input ports in their stable UI order. */
+const sortRuleBlockPorts = (ports: Iterable<IRuleBlockPort>): IRuleBlockPort[] => sortPortDefinitions(ports);
+
 const ruleBlockUtils = {
     collectPortDefinitions,
     emptyRuleBlockModel,
     normalizeStickyNotes,
     resolvePortId,
+    sortRuleBlockPorts,
     validateDuplicateDisplayOrders,
     validateUsedPortCompatibility,
 };

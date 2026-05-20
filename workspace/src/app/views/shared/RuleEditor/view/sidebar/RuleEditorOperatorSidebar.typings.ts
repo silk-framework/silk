@@ -1,3 +1,4 @@
+import type React from "react";
 import { IRuleOperator } from "../../RuleEditor.typings";
 import { RuleEditorNodeParameterValue } from "../../model/RuleEditorModel.typings";
 
@@ -10,4 +11,8 @@ export interface IPreConfiguredRuleOperator extends SidebarRuleOperatorBase {
     parameterOverwrites: {
         [key: string]: RuleEditorNodeParameterValue;
     };
+    /** If false, this pre-configured entry cannot be dragged onto the canvas. Defaults to true. */
+    draggable?: boolean;
+    /** Optional sidebar actions rendered for this pre-configured entry. */
+    actions?: React.JSX.Element | React.JSX.Element[];
 }

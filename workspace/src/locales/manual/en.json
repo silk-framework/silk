@@ -782,7 +782,8 @@
             "exampleValues": "Example values",
             "inputPortOperator": "Input port",
             "inputPortOperatorDescription": "Provides values from a reusable rule block input port.",
-            "inputPortsTab": "Input ports"
+            "inputPortsTab": "Input ports",
+            "newInputPort": "New input port"
         },
         "linkRulesEditor": {
             "errors": {

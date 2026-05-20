@@ -1,5 +1,6 @@
 import React from "react";
 import { RuleEditorContext } from "../../contexts/RuleEditorContext";
+import { ExternalSidebarContext } from "../../contexts/ExternalSidebarContext";
 import { Grid, GridColumn, GridRow, Icon, Spacing, Tabs, TabTitle, highlighterUtils } from "@eccenca/gui-elements";
 import Loading from "../../../Loading";
 import { IPreConfiguredOperators, RuleOperatorList } from "./RuleOperatorList";
@@ -27,6 +28,7 @@ type PreConfiguredOperatorConfig = IPreConfiguredOperators<any> & {
 /** Contains the list of operators that can be dragged and dropped onto the editor canvas and supports filtering. */
 export const RuleEditorOperatorSidebar = () => {
     const editorContext = React.useContext(RuleEditorContext);
+    const externalSidebarContext = React.useContext(ExternalSidebarContext);
     const [t] = useTranslation();
     const prefLang = useSelector(commonSel.localeSelector);
     const { registerError } = useErrorHandler();
@@ -56,6 +58,10 @@ export const RuleEditorOperatorSidebar = () => {
     const preConfiguredOperatorTabs = (editorContext.tabs ?? []).filter(
         (tabConfig) => !(tabConfig as IRuleSideBarFilterTabConfig).filterAndSort,
     ) as IRuleSidebarPreConfiguredOperatorsTabConfig[];
+    const activeTabReloadKey =
+        activeTab && !(activeTab as IRuleSideBarFilterTabConfig).filterAndSort
+            ? `${activeTab.id}:${externalSidebarContext.reloadTokensByTabId?.[activeTab.id] ?? 0}`
+            : activeTabId;
 
     // Filter operator list when active query or filters change
     React.useEffect(() => {
@@ -162,7 +168,7 @@ export const RuleEditorOperatorSidebar = () => {
                 extractOperatorCategories(editorContext.operatorList);
             }
         }
-    }, [editorContext.operatorList, activeTabId, prefLang]);
+    }, [editorContext.operatorList, activeTabId, activeTabReloadKey, prefLang]);
 
     // Load external operators
     const loadExternalOperators = async (
@@ -176,7 +182,7 @@ export const RuleEditorOperatorSidebar = () => {
             );
             const preConfiguredOperatorConfigs = originalOperatorsPerConfig.map((_originalOperators, idx) => {
                 const config = configs[idx];
-                const originalOperators = _originalOperators ?? [];
+                const originalOperators = [...(_originalOperators ?? [])];
                 if (config.defaultOperators.length) {
                     originalOperators.unshift(...config.defaultOperators);
                 }
