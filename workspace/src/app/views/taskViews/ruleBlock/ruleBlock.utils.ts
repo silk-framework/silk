@@ -212,11 +212,31 @@ const validateUsedPortCompatibility = (
 /** Returns the input ports in their stable UI order. */
 const sortRuleBlockPorts = (ports: Iterable<IRuleBlockPort>): IRuleBlockPort[] => sortPortDefinitions(ports);
 
+/** Generates the next suggested initial values for a newly created input port. */
+const nextInputPortDefaults = (
+    ports: IRuleBlockPort[],
+): Pick<IRuleBlockPort, "label" | "description" | "exampleValues" | "displayOrder" | "deprecated"> => {
+    const displayOrder = nextGeneratedDisplayOrder(ports);
+    return {
+        label: `Input ${displayOrder}`,
+        description: "",
+        exampleValues: "",
+        displayOrder,
+        deprecated: false,
+    };
+};
+
+/** Generates a stable client-side ID for a newly created logical input port. */
+const generateInputPortId = (): string =>
+    `inputPort_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`;
+
 const ruleBlockUtils = {
     collectPortDefinitions,
     emptyRuleBlockModel,
+    generateInputPortId,
     normalizeStickyNotes,
     resolvePortId,
+    nextInputPortDefaults,
     sortRuleBlockPorts,
     validateDuplicateDisplayOrders,
     validateUsedPortCompatibility,

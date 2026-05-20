@@ -79,6 +79,7 @@ export function RuleOperatorList<T>({
 
     const itemRenderer = (ruleOperator: IRuleOperator | IPreConfiguredRuleOperator) => {
         /** currently active taskItem */
+        const showCycleButton: boolean = !!totalMatches && totalMatches > 0;
         const isActiveTaskItem = currentlyCycledTaskId === ruleOperator.pluginId;
         const preConfiguredRuleOperator = ruleOperator as IPreConfiguredRuleOperator;
         const preConfiguredActions = preConfiguredRuleOperator.actions
@@ -105,7 +106,7 @@ export function RuleOperatorList<T>({
                 <Card data-test-id={"ruleEditor-sidebar-draggable-operator-" + ruleOperator.pluginId} isOnlyLayout>
                     <OverviewItem hasSpacing={true}>
                         <RuleOperator ruleOperator={ruleOperator} searchWords={searchWords} textQuery={textQuery} />
-                        {preConfiguredActions.length > 0 || (totalMatches && totalMatches > 0) ? (
+                        {preConfiguredActions.length > 0 || showCycleButton ? (
                             <OverviewItemActions>
                                 {preConfiguredActions}
                                 {isActiveTaskItem ? (
@@ -118,7 +119,7 @@ export function RuleOperatorList<T>({
                                         onClick={resetCycleTask}
                                     />
                                 ) : null}
-                                <Button
+                                {showCycleButton ? <Button
                                     minimal
                                     data-test-id={"cycle-through-nodes"}
                                     rightIcon={"navigation-jump"}
@@ -126,7 +127,7 @@ export function RuleOperatorList<T>({
                                     tooltip={t("RuleEditor.sidebar.cycleTooltip", { totalMatches })}
                                     tooltipProps={{ placement: "bottom", usePortal: false }}
                                     onClick={() => cycleThroughTaskNodes(ruleOperator.pluginId)}
-                                />
+                                /> : null}
                             </OverviewItemActions>
                         ) : null}
                     </OverviewItem>

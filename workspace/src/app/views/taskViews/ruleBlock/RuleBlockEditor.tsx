@@ -19,10 +19,11 @@ import { CodeAutocompleteFieldPartialAutoCompleteResult } from "@eccenca/gui-ele
 import ruleUtils from "../shared/rules/rule.utils";
 import { FetchError } from "../../../services/fetch/responseInterceptor";
 import useErrorHandler from "../../../hooks/useErrorHandler";
-import { IRuleBlockModel, IRuleBlockTaskParameters } from "./ruleBlock.types";
+import { IRuleBlockModel, IRuleBlockPort, IRuleBlockTaskParameters } from "./ruleBlock.types";
 import ruleBlockUtils from "./ruleBlock.utils";
 import ruleBlockEditorUtils from "./RuleBlockEditor.utils";
 import { ExternalSidebarContext } from "../../shared/RuleEditor/contexts/ExternalSidebarContext";
+import InputPortDialog, { InputPortDialogSubmitValue } from "./InputPortDialog";
 
 export interface RuleBlockEditorProps {
     projectId: string;
@@ -32,6 +33,7 @@ export interface RuleBlockEditorProps {
 }
 
 type RuleBlockTaskData = IProjectTask<IRuleBlockTaskParameters>;
+type InputPortDialogState = { mode: "create" } | { mode: "edit"; portId: string } | undefined;
 
 /** Editor for reusable rule block tasks. */
 export const RuleBlockEditor = ({ projectId, ruleBlockTaskId, viewActions, instanceId }: RuleBlockEditorProps) => {
@@ -39,6 +41,7 @@ export const RuleBlockEditor = ({ projectId, ruleBlockTaskId, viewActions, insta
     const { registerError } = useErrorHandler();
     const [ports, setPorts] = React.useState(ruleBlockUtils.emptyRuleBlockModel().ports);
     const [sidebarReloadTokensByTabId, setSidebarReloadTokensByTabId] = React.useState<Record<string, number>>({});
+    const [inputPortDialogState, setInputPortDialogState] = React.useState<InputPortDialogState>(undefined);
 
     const bumpSidebarReloadToken = React.useCallback((tabId: string) => {
         setSidebarReloadTokensByTabId((currentTokens) => ({
@@ -78,6 +81,66 @@ export const RuleBlockEditor = ({ projectId, ruleBlockTaskId, viewActions, insta
     };
 
     const inputPortOperator = React.useMemo(() => ruleBlockEditorUtils.createInputPortOperator(), [t]);
+    const editedPort =
+        inputPortDialogState?.mode === "edit"
+            ? ports.find((port) => port.id === inputPortDialogState.portId)
+            : undefined;
+    const inputPortDialogInitialValue = React.useMemo<InputPortDialogSubmitValue>(() => {
+        if (editedPort) {
+            return {
+                label: editedPort.label,
+                description: editedPort.description,
+                exampleValues: editedPort.exampleValues,
+                displayOrder: editedPort.displayOrder,
+                deprecated: editedPort.deprecated,
+            };
+        }
+        return ruleBlockUtils.nextInputPortDefaults(ports);
+    }, [editedPort, ports]);
+
+    const closeInputPortDialog = React.useCallback(() => {
+        setInputPortDialogState(undefined);
+    }, []);
+
+    const openCreateInputPortDialog = React.useCallback(() => {
+        setInputPortDialogState({ mode: "create" });
+    }, []);
+
+    const openEditInputPortDialog = React.useCallback((portId: string) => {
+        setInputPortDialogState({ mode: "edit", portId });
+    }, []);
+
+    const updatePorts = React.useCallback((nextPorts: IRuleBlockPort[]) => {
+        setPorts(ruleBlockUtils.sortRuleBlockPorts(nextPorts));
+        bumpSidebarReloadToken("inputPorts");
+    }, [bumpSidebarReloadToken]);
+
+    const submitInputPortDialog = React.useCallback(
+        (value: InputPortDialogSubmitValue) => {
+            if (inputPortDialogState?.mode === "edit" && editedPort) {
+                updatePorts(
+                    ports.map((port) =>
+                        port.id === editedPort.id
+                            ? {
+                                  ...port,
+                                  ...value,
+                              }
+                            : port,
+                    ),
+                );
+            } else {
+                updatePorts([
+                    ...ports,
+                    {
+                        id: ruleBlockUtils.generateInputPortId(),
+                        ...value,
+                    },
+                ]);
+            }
+            closeInputPortDialog();
+        },
+        [closeInputPortDialog, editedPort, inputPortDialogState?.mode, ports, updatePorts],
+    );
 
     const saveRuleBlock = async (
         ruleOperatorNodes: IRuleOperatorNode[],
@@ -88,18 +151,7 @@ export const RuleBlockEditor = ({ projectId, ruleBlockTaskId, viewActions, insta
             const currentModel = originalTask.data.parameters.ruleBlockModel ?? ruleBlockUtils.emptyRuleBlockModel();
             const [operatorNodeMap, rootNodes] = ruleUtils.convertToRuleOperatorNodeMap(ruleOperatorNodes, true);
             const inputPortNodes = ruleOperatorNodes.filter((node) => node.pluginType === "InputPortOperator");
-            const { nodeErrors, portDefinitions } = ruleBlockUtils.collectPortDefinitions(
-                currentModel.ports,
-                inputPortNodes,
-                t("taskViews.ruleBlock.errors.invalidDisplayOrder"),
-                (portId) => t("taskViews.ruleBlock.errors.conflictingPortDefinitions", { portId }),
-            );
-
-            if (nodeErrors.length) {
-                return new RuleValidationError(t("taskViews.ruleBlock.errors.invalidPorts"), nodeErrors);
-            }
-
-            const nextPortDefinitions = portDefinitions ?? currentModel.ports;
+            const nextPortDefinitions = ruleBlockUtils.sortRuleBlockPorts(ports);
             const relatedItemsResponse = await requestRelatedItems(projectId, ruleBlockTaskId, "", 1);
             if (relatedItemsResponse.data.total > 0) {
                 const compatibilityValidation = ruleBlockUtils.validateUsedPortCompatibility(
@@ -184,37 +236,50 @@ export const RuleBlockEditor = ({ projectId, ruleBlockTaskId, viewActions, insta
         [],
     );
 
-    const tabs = React.useMemo<(IRuleSideBarFilterTabConfig | ReturnType<typeof ruleBlockEditorUtils.createInputPortsTab>)[]>(
+    const tabs = React.useMemo<
+        (IRuleSideBarFilterTabConfig | ReturnType<typeof ruleBlockEditorUtils.createInputPortsTab>)[]
+    >(
         () => [
             ruleUtils.sidebarTabs.all as IRuleSideBarFilterTabConfig,
-            ruleBlockEditorUtils.createInputPortsTab(ports),
+            ruleBlockEditorUtils.createInputPortsTab(ports, openCreateInputPortDialog, openEditInputPortDialog),
             ruleUtils.sidebarTabs.transform as IRuleSideBarFilterTabConfig,
         ],
-        [ports, t],
+        [openCreateInputPortDialog, openEditInputPortDialog, ports, t],
     );
 
     return (
         <ExternalSidebarContext.Provider value={{ reloadTokensByTabId: sidebarReloadTokensByTabId }}>
-            <RuleEditor<RuleBlockTaskData, IPluginDetails>
-                projectId={projectId}
-                taskId={ruleBlockTaskId}
-                fetchRuleData={fetchRuleBlockTask}
-                fetchRuleOperators={fetchTransformRuleOperatorList}
-                saveRule={saveRuleBlock}
-                convertRuleOperator={ruleUtils.convertRuleOperator}
-                convertToRuleOperatorNodes={(ruleBlockTask, ruleOperator) =>
-                    ruleBlockEditorUtils.convertRuleBlockTaskToRuleOperatorNodes(ruleBlockTask, ruleOperator)
-                }
-                partialAutoCompletion={partialAutoCompletion}
-                viewActions={viewActions}
-                getStickyNotes={ruleBlockEditorUtils.getStickyNotes}
-                additionalRuleOperators={[inputPortOperator]}
-                validateConnection={ruleUtils.validateConnection}
-                tabs={tabs}
-                showRuleOnly={false}
-                instanceId={instanceId}
-                saveInitiallyEnabled={false}
-            />
+            <>
+                <RuleEditor<RuleBlockTaskData, IPluginDetails>
+                    projectId={projectId}
+                    taskId={ruleBlockTaskId}
+                    fetchRuleData={fetchRuleBlockTask}
+                    fetchRuleOperators={fetchTransformRuleOperatorList}
+                    saveRule={saveRuleBlock}
+                    convertRuleOperator={ruleUtils.convertRuleOperator}
+                    convertToRuleOperatorNodes={(ruleBlockTask, ruleOperator) =>
+                        ruleBlockEditorUtils.convertRuleBlockTaskToRuleOperatorNodes(ruleBlockTask, ruleOperator)
+                    }
+                    partialAutoCompletion={partialAutoCompletion}
+                    viewActions={viewActions}
+                    getStickyNotes={ruleBlockEditorUtils.getStickyNotes}
+                    additionalRuleOperators={[inputPortOperator]}
+                    validateConnection={ruleUtils.validateConnection}
+                    tabs={tabs}
+                    showRuleOnly={false}
+                    instanceId={instanceId}
+                    saveInitiallyEnabled={false}
+                />
+                <InputPortDialog
+                    isOpen={!!inputPortDialogState}
+                    mode={inputPortDialogState?.mode ?? "create"}
+                    initialPort={inputPortDialogInitialValue}
+                    existingPorts={ports}
+                    editedPortId={editedPort?.id}
+                    onClose={closeInputPortDialog}
+                    onSubmit={submitInputPortDialog}
+                />
+            </>
         </ExternalSidebarContext.Provider>
     );
 };

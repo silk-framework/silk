@@ -1,4 +1,5 @@
-import { StickyNote } from "@eccenca/gui-elements";
+import React from "react";
+import { IconButton, StickyNote } from "@eccenca/gui-elements";
 import { IProjectTask } from "@ducks/shared/typings";
 import i18next from "i18next";
 import { RuleOperatorFetchFnType } from "../../shared/RuleEditor/RuleEditor";
@@ -66,7 +67,7 @@ const createInputPortOperator = (): IRuleOperator => {
 };
 
 /** Creates the synthetic sidebar entry used to start input-port creation. */
-const createNewInputPortSidebarItem = (): IPreConfiguredRuleOperator => {
+const createNewInputPortSidebarItem = (onCreate: () => void): IPreConfiguredRuleOperator => {
     const inputPortOperator = createInputPortOperator();
     return {
         pluginType: "InputPortOperator",
@@ -79,11 +80,21 @@ const createNewInputPortSidebarItem = (): IPreConfiguredRuleOperator => {
         inputsCanBeSwitched: false,
         parameterOverwrites: {},
         draggable: false,
+        actions: React.createElement(IconButton, {
+            key: "create-input-port",
+            name: "item-add-artefact",
+            onClick: onCreate,
+            size: "small",
+            intent: "accent"
+        }),
     };
 };
 
 /** Converts one logical input port into a draggable pre-configured sidebar operator. */
-const convertInputPortToSidebarOperator = (port: IRuleBlockPort): IPreConfiguredRuleOperator => {
+const convertInputPortToSidebarOperator = (
+    port: IRuleBlockPort,
+    onEdit: (portId: string) => void,
+): IPreConfiguredRuleOperator => {
     const inputPortOperator = createInputPortOperator();
     return {
         pluginType: inputPortOperator.pluginType,
@@ -95,6 +106,12 @@ const convertInputPortToSidebarOperator = (port: IRuleBlockPort): IPreConfigured
         tags: [i18next.t("taskViews.ruleBlock.inputPortsTab"), String(port.displayOrder)],
         inputsCanBeSwitched: inputPortOperator.inputsCanBeSwitched,
         markdownDocumentation: inputPortOperator.markdownDocumentation,
+        actions: React.createElement(IconButton, {
+            key: `edit-input-port-${port.id}`,
+            name: "item-edit",
+            onClick: () => onEdit(port.id),
+            size: "small",
+        }),
         parameterOverwrites: {
             portId: port.id,
             label: port.label,
@@ -109,6 +126,8 @@ const convertInputPortToSidebarOperator = (port: IRuleBlockPort): IPreConfigured
 /** Creates the input-port pre-configured sidebar tab from the current logical input-port state. */
 const createInputPortsTab = (
     ports: IRuleBlockPort[],
+    onCreate: () => void,
+    onEdit: (portId: string) => void,
 ): IRuleSidebarPreConfiguredOperatorsTabConfig<InputPortListItem> => ({
     id: "inputPorts",
     icon: "data-sourcepath",
@@ -116,7 +135,7 @@ const createInputPortsTab = (
     defaultOperators: [],
     fetchOperators: async () => [{ type: "create" }, ...ruleBlockUtils.sortRuleBlockPorts(ports)],
     convertToOperator: (listItem) =>
-        "type" in listItem ? createNewInputPortSidebarItem() : convertInputPortToSidebarOperator(listItem),
+        "type" in listItem ? createNewInputPortSidebarItem(onCreate) : convertInputPortToSidebarOperator(listItem, onEdit),
     isOriginalOperator: (item): item is InputPortListItem => "type" in (item as InputPortListItem) || "id" in item,
     itemSearchText: (listItem) =>
         "type" in listItem
