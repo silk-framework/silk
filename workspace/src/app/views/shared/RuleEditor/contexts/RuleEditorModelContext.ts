@@ -6,6 +6,7 @@ import {
     RuleEditorPatchableNodeProjection,
     RuleOperatorNodeParameters,
 } from "../RuleEditor.typings";
+import { ExternalRuleModelChangeCallbacks } from "../model/RuleEditorModel.typings";
 import { XYPosition } from "react-flow-renderer/dist/types";
 import { NodeContentProps, NodeDimensions } from "@eccenca/gui-elements";
 
@@ -50,6 +51,8 @@ export interface RuleEditorModelContextProps {
     centerNode: (nodeId: string) => boolean;
     /** Get the current rule as IRuleOperatorNode objects. */
     ruleOperatorNodes: () => IRuleOperatorNode[];
+    /** Executes an external non-canvas change and registers it in the current undo/redo transaction. */
+    executeExternalRuleModelChange: (change: ExternalRuleModelChangeCallbacks) => void;
     /** Update specific current rule nodes' rendered metadata projection and record the change in model history. */
     updateRuleOperatorNodeMetaData: (
         nodeIds: string[],
@@ -173,6 +176,7 @@ export const RuleEditorModelContext = React.createContext<RuleEditorModelContext
     isValidEdge: () => true,
     centerNode: () => true,
     ruleOperatorNodes: () => [],
+    executeExternalRuleModelChange: NOP,
     updateRuleOperatorNodeMetaData: () => {},
     canvasId: "canvasId",
 });

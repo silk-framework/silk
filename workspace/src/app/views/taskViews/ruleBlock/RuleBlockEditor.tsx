@@ -108,7 +108,7 @@ export const RuleBlockEditor = ({ projectId, ruleBlockTaskId, viewActions, insta
         setInputPortDialogState({ mode: "edit", portId });
     }, []);
 
-    const updatePorts = React.useCallback((nextPorts: IRuleBlockPort[]) => {
+    const applyPorts = React.useCallback((nextPorts: IRuleBlockPort[]) => {
         setPorts(ruleBlockUtils.sortRuleBlockPorts(nextPorts));
         bumpSidebarReloadToken();
     }, [bumpSidebarReloadToken]);
@@ -128,7 +128,6 @@ export const RuleBlockEditor = ({ projectId, ruleBlockTaskId, viewActions, insta
         if (affectedNodeIds.length === 0) {
             return;
         }
-        ruleEditorApi.startChangeTransaction();
         ruleEditorApi.updateRuleOperatorNodeMetaData(affectedNodeIds, () =>
             ruleBlockEditorUtils.inputPortNodeMetaData(updatedPort),
         );
@@ -136,6 +135,7 @@ export const RuleBlockEditor = ({ projectId, ruleBlockTaskId, viewActions, insta
 
     const submitInputPortDialog = React.useCallback(
         (value: InputPortDialogSubmitValue) => {
+            const ruleEditorApi = ruleEditorRef.current;
             if (inputPortDialogState?.mode === "edit" && editedPort) {
                 const updatedPorts = ports.map((port) =>
                         port.id === editedPort.id
@@ -146,22 +146,42 @@ export const RuleBlockEditor = ({ projectId, ruleBlockTaskId, viewActions, insta
                             : port,
                     );
                 const updatedPort = updatedPorts.find((port) => port.id === editedPort.id);
-                updatePorts(updatedPorts);
-                if (updatedPort) {
-                    syncInputPortNodeMetaData(updatedPort);
+                if (ruleEditorApi) {
+                    ruleEditorApi.startChangeTransaction();
+                    ruleEditorApi.executeExternalRuleModelChange({
+                        do: () => applyPorts(updatedPorts),
+                        undo: () => applyPorts(ports),
+                    });
+                    if (updatedPort) {
+                        syncInputPortNodeMetaData(updatedPort);
+                    }
+                } else {
+                    applyPorts(updatedPorts);
+                    if (updatedPort) {
+                        syncInputPortNodeMetaData(updatedPort);
+                    }
                 }
             } else {
-                updatePorts([
+                const updatedPorts = [
                     ...ports,
                     {
                         id: ruleBlockUtils.generateInputPortId(),
                         ...value,
                     },
-                ]);
+                ];
+                if (ruleEditorApi) {
+                    ruleEditorApi.startChangeTransaction();
+                    ruleEditorApi.executeExternalRuleModelChange({
+                        do: () => applyPorts(updatedPorts),
+                        undo: () => applyPorts(ports),
+                    });
+                } else {
+                    applyPorts(updatedPorts);
+                }
             }
             closeInputPortDialog();
         },
-        [closeInputPortDialog, editedPort, inputPortDialogState?.mode, ports, updatePorts],
+        [applyPorts, closeInputPortDialog, editedPort, inputPortDialogState?.mode, ports, syncInputPortNodeMetaData],
     );
 
     const ruleEditorTabs = React.useMemo<

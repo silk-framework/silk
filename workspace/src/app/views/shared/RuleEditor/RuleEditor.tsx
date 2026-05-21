@@ -16,6 +16,7 @@ import {
     RuleEditorValidationNode,
     RuleSaveResult,
 } from "./RuleEditor.typings";
+import { ExternalRuleModelChangeCallbacks } from "./model/RuleEditorModel.typings";
 import ErrorBoundary from "../../../ErrorBoundary";
 import { ReactFlowProvider } from "react-flow-renderer";
 import utils from "./RuleEditor.utils";
@@ -132,6 +133,8 @@ export interface RuleEditorExternalApi {
     startChangeTransaction(): void;
     /** Returns the current rule nodes of the editor model. */
     ruleOperatorNodes(): IRuleOperatorNode[];
+    /** Executes an external non-canvas change and registers it in the current undo/redo transaction. */
+    executeExternalRuleModelChange(change: ExternalRuleModelChangeCallbacks): void;
     /** Updates current rule nodes' rendered metadata projection and records the change in model history. */
     updateRuleOperatorNodeMetaData(
         nodeIds: string[],
@@ -152,6 +155,7 @@ const RuleEditorExternalApiBridge = React.forwardRef<RuleEditorExternalApi>((_, 
         () => ({
             startChangeTransaction: ruleEditorModelContext.executeModelEditOperation.startChangeTransaction,
             ruleOperatorNodes: ruleEditorModelContext.ruleOperatorNodes,
+            executeExternalRuleModelChange: ruleEditorModelContext.executeExternalRuleModelChange,
             updateRuleOperatorNodeMetaData: ruleEditorModelContext.updateRuleOperatorNodeMetaData,
         }),
         [ruleEditorModelContext],

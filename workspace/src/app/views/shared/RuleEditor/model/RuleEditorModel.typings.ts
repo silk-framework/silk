@@ -16,6 +16,11 @@ export interface RuleModelChanges {
     operations: RuleModelChangeType[];
 }
 
+export interface ExternalRuleModelChangeCallbacks {
+    do: () => void;
+    undo: () => void;
+}
+
 export interface RuleEditorNode extends Node<NodeContentPropsWithBusinessData<IRuleNodeData>> {
     data: NodeContentPropsWithBusinessData<IRuleNodeData>;
 }
@@ -34,6 +39,7 @@ export type RuleModelChangeType =
     | DeleteNode
     | AddEdge
     | DeleteEdge
+    | ExecuteExternalRuleModelChange
     | ChangeNodePosition
     | ChangeNodeParameter
     | ChangeNodeMetaData
@@ -59,6 +65,10 @@ export interface AddEdge {
 export interface DeleteEdge {
     type: "Delete edge";
     edge: Edge;
+}
+
+export interface ExecuteExternalRuleModelChange extends ExternalRuleModelChangeCallbacks {
+    type: "Execute external rule model change";
 }
 
 export interface ChangeNodePosition {
@@ -163,6 +173,9 @@ export const RuleModelChangesFactory = {
         to: RuleEditorPatchableNodeProjection,
     ): RuleModelChanges => {
         return toRuleModelChanges({ type: "Change node metadata", nodeId, from, to });
+    },
+    executeExternalRuleModelChange: (change: ExternalRuleModelChangeCallbacks): RuleModelChanges => {
+        return toRuleModelChanges({ type: "Execute external rule model change", ...change });
     },
 };
 

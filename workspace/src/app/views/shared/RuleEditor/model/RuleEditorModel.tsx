@@ -29,6 +29,7 @@ import {
 import {
     AddEdge,
     AddNode,
+    ExternalRuleModelChangeCallbacks,
     ChangeNodeParameter,
     ChangeNodeMetaData,
     ChangeNodePosition,
@@ -37,6 +38,7 @@ import {
     ChangeStickyNodeProperties,
     DeleteEdge,
     DeleteNode,
+    ExecuteExternalRuleModelChange,
     RuleEditorNode,
     RuleEditorNodeParameterValue,
     RuleModelChanges,
@@ -457,6 +459,12 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                 return { type: "Delete node", node: undoOp.node };
             case "Delete node":
                 return { type: "Add node", node: undoOp.node };
+            case "Execute external rule model change":
+                return {
+                    type: "Execute external rule model change",
+                    do: undoOp.undo,
+                    undo: undoOp.do,
+                };
             case "Change node parameter":
                 return {
                     type: "Change node parameter",
@@ -680,6 +688,11 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                     );
                     triggerQuickEvaluation();
                     break;
+                case "Execute external rule model change":
+                    groupedChange.forEach((change) => {
+                        (change as ExecuteExternalRuleModelChange).do();
+                    });
+                    break;
                 case "Change node position":
                     changedElements = changeNodePositionsInternal(
                         new Map(
@@ -816,6 +829,12 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
     ): Elements => {
         addRuleModelChange(ruleModelChange, true);
         return executeRuleModelChangeInternal(ruleModelChange, currentElements);
+    };
+
+    const executeExternalRuleModelChange = (change: ExternalRuleModelChangeCallbacks): void => {
+        changeElementsInternal((els) =>
+            addAndExecuteRuleModelChangeInternal(RuleModelChangesFactory.executeExternalRuleModelChange(change), els),
+        );
     };
 
     const addEdgesToNodeMapInternal = (elementsToAdd: Elements) => {
@@ -2206,6 +2225,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                 isValidEdge,
                 centerNode,
                 ruleOperatorNodes,
+                executeExternalRuleModelChange,
                 updateRuleOperatorNodeMetaData,
                 notification,
             }}
