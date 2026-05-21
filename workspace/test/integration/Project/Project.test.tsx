@@ -1,5 +1,5 @@
 import React from "react";
-import {act, RenderResult, waitFor} from "@testing-library/react";
+import { act, RenderResult, waitFor } from "@testing-library/react";
 import mockAxios from "../../__mocks__/axios";
 import {
     apiUrl,

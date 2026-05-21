@@ -3,11 +3,7 @@ import React from "react";
 
 const DeleteButton = ({ onDelete }) => {
     return (
-        <Button
-            disruptive
-            data-test-id={"mapping-rule-delete-btn"}
-            onClick={onDelete}
-        >
+        <Button disruptive data-test-id={"mapping-rule-delete-btn"} onClick={onDelete}>
             Remove
         </Button>
     );

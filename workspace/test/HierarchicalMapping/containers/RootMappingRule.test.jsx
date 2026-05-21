@@ -1,8 +1,8 @@
 import React from "react";
 import RootMappingRule from "../../../src/app/views/pages/MappingEditor/HierarchicalMapping/containers/RootMappingRule";
-import {getByText, render} from "@testing-library/react";
-import {byTestId, clickFoundElement, findAllDOMElements, findElement} from "../../integration/TestHelper";
-import {CLASSPREFIX as eccgui} from "@eccenca/gui-elements";
+import { getByText, render } from "@testing-library/react";
+import { byTestId, clickFoundElement, findAllDOMElements, findElement } from "../../integration/TestHelper";
+import { CLASSPREFIX as eccgui } from "@eccenca/gui-elements";
 
 const props = {
     rule: {
@@ -75,8 +75,8 @@ describe("RootMappingRule Component", () => {
                     type: "root",
                 },
             });
-            const naElement = wrapper.queryByText("n/a", {exact: false})
-            expect(naElement).not.toBe(null)
+            const naElement = wrapper.queryByText("n/a", { exact: false });
+            expect(naElement).not.toBe(null);
         });
 
         it("should uriPattern is equal to `rules.uriRule.pattern`, when uriRule type is uri", () => {

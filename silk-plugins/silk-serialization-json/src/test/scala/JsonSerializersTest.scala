@@ -1,4 +1,5 @@
 
+import org.silkframework.config.PlainTask
 import org.silkframework.dataset._
 import org.silkframework.config.TaskSpec
 import org.silkframework.entity.ValueType
@@ -11,11 +12,13 @@ import org.silkframework.runtime.plugin.PluginRegistry
 import org.silkframework.runtime.serialization.{ReadContext, Serialization, TestReadContext, TestWriteContext, WriteContext}
 import org.silkframework.serialization.json.JsonSerializers._
 import org.silkframework.serialization.json.{JsonFormat, JsonSerialization}
+import org.silkframework.serialization.json.ExecutionReportSerializers.WorkflowExecutionReportJsonFormat
 import org.silkframework.workspace.activity.transform.VocabularyCacheValue
 import org.silkframework.serialization.json.WorkflowSerializers._
+import org.silkframework.workspace.activity.workflow.{WorkflowExecutionReport, WorkflowTest}
 import org.silkframework.workspace.activity.workflow.WorkflowTest.{DS_A1, OUTPUT, testWorkflow}
 import org.silkframework.workspace.annotation.{StickyNote, UiAnnotations}
-import play.api.libs.json.Json
+import play.api.libs.json.{JsObject, Json}
 
 import scala.reflect.ClassTag
 import org.scalatest.flatspec.AnyFlatSpec
@@ -96,6 +99,23 @@ class JsonSerializersTest  extends AnyFlatSpec with Matchers {
       replaceableOutputs = Seq(OUTPUT)
     )
     testSerialization(workflow)
+  }
+
+  "WorkflowExecutionReport" should "serialize auth diagnostics as a JSON object" in {
+    val authDiagnostics = Json.obj(
+      "scope" -> "read",
+      "refreshTokenPresent" -> true
+    )
+    val report = WorkflowExecutionReport(
+      task = PlainTask("workflowReport", WorkflowTest.testWorkflow),
+      authDiagnostics = Some(Json.stringify(authDiagnostics))
+    )
+
+    val reportJson = JsonSerialization.toJson(report)
+    (reportJson \ "authDiagnostics").as[JsObject] shouldBe authDiagnostics
+
+    val roundTrip = JsonSerialization.fromJson[WorkflowExecutionReport](reportJson)
+    roundTrip shouldBe report
   }
 
   "RuleBlockSpec" should "be serializable to and from JSON via TaskSpec dispatch" in {
