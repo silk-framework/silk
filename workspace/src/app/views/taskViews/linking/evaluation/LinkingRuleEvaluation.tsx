@@ -31,7 +31,7 @@ import { ruleEditorNodeParameterValue } from "../../../shared/RuleEditor/model/R
 import { PathNotInCacheModal } from "../../shared/evaluations/PathNotInCacheModal";
 import evaluationUtils from "../../shared/evaluations/evaluationOperations";
 import { SampleError } from "../../../shared/SampleError/SampleError";
-import { DIErrorTypes } from "@ducks/error/typings";
+import { diErrorMessage, DIErrorTypes } from "@ducks/error/typings";
 
 type EvaluationChildType = ReactElement<RuleEditorProps<TaskPlugin<ILinkingTaskParameters>, IPluginDetails>>;
 
@@ -87,7 +87,9 @@ export const LinkingRuleEvaluation = ({
     const [t] = useTranslation();
 
     const registerError = (errorKey: string, error: DIErrorTypes) => {
-        _registerError(errorKey, t(errorKey), error, {
+        const detail = diErrorMessage(error);
+        const message = detail ? `${t(errorKey)} ${detail}` : t(errorKey);
+        _registerError(errorKey, message, error, {
             errorNotificationInstanceId: RULE_EDITOR_NOTIFICATION_INSTANCE,
             notAutoOpen: !popupErrorsEnabled.current,
         });
