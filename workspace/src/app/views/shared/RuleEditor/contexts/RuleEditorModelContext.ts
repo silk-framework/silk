@@ -1,6 +1,11 @@
 import { Elements, OnLoadParams } from "react-flow-renderer";
 import React from "react";
-import { IRuleOperator, IRuleOperatorNode, RuleOperatorNodeParameters } from "../RuleEditor.typings";
+import {
+    IRuleOperator,
+    IRuleOperatorNode,
+    RuleEditorPatchableNodeProjection,
+    RuleOperatorNodeParameters,
+} from "../RuleEditor.typings";
 import { XYPosition } from "react-flow-renderer/dist/types";
 import { NodeContentProps, NodeDimensions } from "@eccenca/gui-elements";
 
@@ -45,6 +50,11 @@ export interface RuleEditorModelContextProps {
     centerNode: (nodeId: string) => boolean;
     /** Get the current rule as IRuleOperatorNode objects. */
     ruleOperatorNodes: () => IRuleOperatorNode[];
+    /** Update specific current rule nodes' rendered metadata projection and record the change in model history. */
+    updateRuleOperatorNodeMetaData: (
+        nodeIds: string[],
+        patch: (node: IRuleOperatorNode) => RuleEditorPatchableNodeProjection,
+    ) => void;
     /** The ID of the rule editor canvas element. */
     canvasId: string;
     updateSelectedElements: (elements: Elements | null) => void;
@@ -163,5 +173,6 @@ export const RuleEditorModelContext = React.createContext<RuleEditorModelContext
     isValidEdge: () => true,
     centerNode: () => true,
     ruleOperatorNodes: () => [],
+    updateRuleOperatorNodeMetaData: () => {},
     canvasId: "canvasId",
 });

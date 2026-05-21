@@ -113,6 +113,18 @@ export interface IRuleOperatorNode extends IRuleOperatorBase {
     markdownDocumentation?: string;
 }
 
+/** Minimal node shape needed for validation and rule-tree traversal helpers. */
+export type RuleEditorValidationOperatorNode = Pick<
+    IRuleOperatorNode,
+    "nodeId" | "pluginId" | "pluginType" | "inputsCanBeSwitched" | "label"
+>;
+
+/** Mutable display/projection fields that may be patched from outside the rule editor model. */
+export type RuleEditorPatchableNodeProjection = Pick<
+    IRuleOperatorNode,
+    "label" | "description" | "tags"
+>;
+
 export interface IParameterSpecification {
     /** Parameter label */
     label: string;
@@ -283,7 +295,7 @@ export interface RuleSaveNodeError {
 
 /** Data-structure use for validation. */
 export interface RuleEditorValidationNode {
-    node: IRuleOperatorNode;
+    node: RuleEditorValidationOperatorNode;
     inputs: () => (RuleEditorValidationNode | undefined)[];
     output: () => RuleEditorValidationNode | undefined;
 }

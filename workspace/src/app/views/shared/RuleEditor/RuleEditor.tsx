@@ -2,11 +2,13 @@ import { RuleEditorModel } from "./model/RuleEditorModel";
 import React from "react";
 import { RuleEditorView } from "./view/RuleEditorView";
 import { RuleEditorContext } from "./contexts/RuleEditorContext";
+import { RuleEditorModelContext } from "./contexts/RuleEditorModelContext";
 import { IViewActions } from "../../plugins/PluginRegistry";
 import {
     IParameterSpecification,
     IRuleOperator,
     IRuleOperatorNode,
+    RuleEditorPatchableNodeProjection,
     IRuleSideBarFilterTabConfig,
     IRuleSidebarPreConfiguredOperatorsTabConfig,
     RuleOperatorPluginType,
@@ -125,11 +127,41 @@ export interface RuleEditorProps<RULE_TYPE, OPERATOR_TYPE> extends RuleEditorBas
     ) => Map<string, DatasetCharacteristics> | Promise<Map<string, DatasetCharacteristics>>;
 }
 
+export interface RuleEditorExternalApi {
+    /** Returns the current rule nodes of the editor model. */
+    ruleOperatorNodes(): IRuleOperatorNode[];
+    /** Updates current rule nodes' rendered metadata projection and records the change in model history. */
+    updateRuleOperatorNodeMetaData(
+        nodeIds: string[],
+        patch: (node: IRuleOperatorNode) => RuleEditorPatchableNodeProjection,
+    ): void;
+}
+
 const READ_ONLY_QUERY_PARAMETER = "readOnly";
+
+/** Bridge the model-only context to the parent-facing RuleEditor ref.
+ * Use this from a RuleEditor instance via `const ref = React.useRef<RuleEditorExternalApi>(null)` and
+ * `<RuleEditor ref={ref} ... />`, e.g. when a parent needs to inspect current rule nodes or update their metadata. */
+const RuleEditorExternalApiBridge = React.forwardRef<RuleEditorExternalApi>((_, ref) => {
+    const ruleEditorModelContext = React.useContext(RuleEditorModelContext);
+
+    React.useImperativeHandle(
+        ref,
+        () => ({
+            ruleOperatorNodes: ruleEditorModelContext.ruleOperatorNodes,
+            updateRuleOperatorNodeMetaData: ruleEditorModelContext.updateRuleOperatorNodeMetaData,
+        }),
+        [ruleEditorModelContext],
+    );
+
+    return null;
+});
+
 /**
  * Generic rule editor that can be used to build tree-line rule operator graphs.
  */
-const RuleEditor = <TASK_TYPE extends object, OPERATOR_TYPE extends object>({
+const RuleEditorInner = <TASK_TYPE extends object, OPERATOR_TYPE extends object>(
+    {
     projectId,
     taskId,
     fetchRuleData,
@@ -155,7 +187,9 @@ const RuleEditor = <TASK_TYPE extends object, OPERATOR_TYPE extends object>({
     partialAutoCompletion,
     saveInitiallyEnabled,
     initialHighlighting,
-}: RuleEditorProps<TASK_TYPE, OPERATOR_TYPE>) => {
+}: RuleEditorProps<TASK_TYPE, OPERATOR_TYPE>,
+    ref: React.ForwardedRef<RuleEditorExternalApi>,
+) => {
     // The task that contains the rule, e.g. transform or linking task
     const [taskData, setTaskData] = React.useState<TASK_TYPE | undefined>(undefined);
     // True while the task data is loaded
@@ -327,27 +361,48 @@ const RuleEditor = <TASK_TYPE extends object, OPERATOR_TYPE extends object>({
                 }}
             >
                 <RuleEditorModel>
-                    <RuleEditorView
-                        showRuleOnly={showRuleOnly}
-                        hideMinimap={hideMinimap}
-                        zoomRange={zoomRange}
-                        readOnlyMode={readOnlyMode}
-                    />
+                    <>
+                        {/* The external API must be created inside RuleEditorModel so it can delegate to the current
+                            model context, while the parent still accesses it through the normal RuleEditor ref. */}
+                        <RuleEditorExternalApiBridge ref={ref} />
+                        <RuleEditorView
+                            showRuleOnly={showRuleOnly}
+                            hideMinimap={hideMinimap}
+                            zoomRange={zoomRange}
+                            readOnlyMode={readOnlyMode}
+                        />
+                    </>
                 </RuleEditorModel>
             </ReactFlowHotkeyContext.Provider>
         </RuleEditorContext.Provider>
     );
 };
 
+// Keep the imperative bridge opt-in per instance, e.g. `const ref = React.useRef<RuleEditorExternalApi>(null)`.
+const RuleEditor = React.forwardRef(RuleEditorInner) as <
+    TASK_TYPE extends object,
+    OPERATOR_TYPE extends object,
+>(
+    props: RuleEditorProps<TASK_TYPE, OPERATOR_TYPE> & React.RefAttributes<RuleEditorExternalApi>,
+) => React.ReactElement;
+
 const Provider: React.FC<{ children: React.JSX.Element }> = ReactFlowProvider;
-const WrappedRuleEditor = <RULE_TYPE extends object, OPERATOR_TYPE extends object>(
+const WrappedRuleEditor = React.forwardRef(function WrappedRuleEditorInner<
+    RULE_TYPE extends object,
+    OPERATOR_TYPE extends object,
+>(
     props: RuleEditorProps<RULE_TYPE, OPERATOR_TYPE>,
-) => (
-    <ErrorBoundary>
-        <Provider>
-            <RuleEditor<RULE_TYPE, OPERATOR_TYPE> {...props} />
-        </Provider>
-    </ErrorBoundary>
-);
+    ref: React.ForwardedRef<RuleEditorExternalApi>,
+) {
+    return (
+        <ErrorBoundary>
+            <Provider>
+                <RuleEditor<RULE_TYPE, OPERATOR_TYPE> {...props} ref={ref} />
+            </Provider>
+        </ErrorBoundary>
+    );
+}) as <RULE_TYPE extends object, OPERATOR_TYPE extends object>(
+    props: RuleEditorProps<RULE_TYPE, OPERATOR_TYPE> & React.RefAttributes<RuleEditorExternalApi>,
+) => React.ReactElement;
 
 export default WrappedRuleEditor;

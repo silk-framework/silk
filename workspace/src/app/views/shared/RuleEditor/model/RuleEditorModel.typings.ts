@@ -4,6 +4,7 @@ import {
     IRuleOperatorNode,
     NodeContentPropsWithBusinessData,
     NodePosition,
+    RuleEditorPatchableNodeProjection,
     RuleOperatorNodeParameters,
 } from "../RuleEditor.typings";
 import { XYPosition } from "react-flow-renderer/dist/types";
@@ -35,6 +36,7 @@ export type RuleModelChangeType =
     | DeleteEdge
     | ChangeNodePosition
     | ChangeNodeParameter
+    | ChangeNodeMetaData
     | ChangeNumberOfInputHandles
     | ChangeNodeSize
     | ChangeStickyNodeProperties;
@@ -84,6 +86,13 @@ export interface ChangeNodeParameter {
     parameterId: string;
     from: RuleEditorNodeParameterValue;
     to: RuleEditorNodeParameterValue;
+}
+
+export interface ChangeNodeMetaData {
+    type: "Change node metadata";
+    nodeId: string;
+    from: RuleEditorPatchableNodeProjection;
+    to: RuleEditorPatchableNodeProjection;
 }
 
 export interface ChangeNumberOfInputHandles {
@@ -147,6 +156,13 @@ export const RuleModelChangesFactory = {
         to: RuleEditorNodeParameterValue,
     ): RuleModelChanges => {
         return toRuleModelChanges({ type: "Change node parameter", nodeId, parameterId, from, to });
+    },
+    changeNodeMetaData: (
+        nodeId: string,
+        from: RuleEditorPatchableNodeProjection,
+        to: RuleEditorPatchableNodeProjection,
+    ): RuleModelChanges => {
+        return toRuleModelChanges({ type: "Change node metadata", nodeId, from, to });
     },
 };
 
