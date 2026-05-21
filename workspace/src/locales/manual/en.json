@@ -767,6 +767,11 @@
     "taskViews": {
         "ruleBlock": {
             "createInputPortTitle": "Create input port",
+            "deleteInputPort": {
+                "confirmMessage": "Delete input port '{{portLabel}}'? This will also remove {{count}} node from the rule tree.",
+                "confirmMessage_plural": "Delete input port '{{portLabel}}'? This will also remove {{count}} nodes from the rule tree.",
+                "title": "Delete input port"
+            },
             "deprecated": "Deprecated",
             "displayOrder": "Display order",
             "editInputPortTitle": "Edit input port",

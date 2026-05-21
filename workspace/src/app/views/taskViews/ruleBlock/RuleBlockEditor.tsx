@@ -1,5 +1,5 @@
 import React from "react";
-import { StickyNote } from "@eccenca/gui-elements";
+import { AlertDialog, Button, StickyNote } from "@eccenca/gui-elements";
 import { useTranslation } from "react-i18next";
 import { requestRuleOperatorPluginsDetails } from "@ducks/common/requests";
 import { IPluginDetails } from "@ducks/common/typings";
@@ -34,6 +34,7 @@ export interface RuleBlockEditorProps {
 
 type RuleBlockTaskData = IProjectTask<IRuleBlockTaskParameters>;
 type InputPortDialogState = { mode: "create" } | { mode: "edit"; portId: string } | undefined;
+type DeleteInputPortDialogState = { portId: string; instanceCount: number } | undefined;
 
 /** Editor for reusable rule block tasks. */
 export const RuleBlockEditor = ({ projectId, ruleBlockTaskId, viewActions, instanceId }: RuleBlockEditorProps) => {
@@ -42,6 +43,8 @@ export const RuleBlockEditor = ({ projectId, ruleBlockTaskId, viewActions, insta
     const [ports, setPorts] = React.useState(ruleBlockUtils.emptyRuleBlockModel().ports);
     const [sidebarReloadToken, setSidebarReloadToken] = React.useState(0);
     const [inputPortDialogState, setInputPortDialogState] = React.useState<InputPortDialogState>(undefined);
+    const [deleteInputPortDialogState, setDeleteInputPortDialogState] =
+        React.useState<DeleteInputPortDialogState>(undefined);
     const ruleEditorRef = React.useRef<RuleEditorExternalApi>(null);
 
     const bumpSidebarReloadToken = React.useCallback(() => {
@@ -100,6 +103,10 @@ export const RuleBlockEditor = ({ projectId, ruleBlockTaskId, viewActions, insta
         setInputPortDialogState(undefined);
     }, []);
 
+    const closeDeleteInputPortDialog = React.useCallback(() => {
+        setDeleteInputPortDialogState(undefined);
+    }, []);
+
     const openCreateInputPortDialog = React.useCallback(() => {
         setInputPortDialogState({ mode: "create" });
     }, []);
@@ -112,6 +119,20 @@ export const RuleBlockEditor = ({ projectId, ruleBlockTaskId, viewActions, insta
         setPorts(ruleBlockUtils.sortRuleBlockPorts(nextPorts));
         bumpSidebarReloadToken();
     }, [bumpSidebarReloadToken]);
+
+    const inputPortInstanceNodeIds = React.useCallback((portId: string): string[] => {
+        const ruleEditorApi = ruleEditorRef.current;
+        if (!ruleEditorApi) {
+            return [];
+        }
+        return ruleEditorApi
+            .ruleOperatorNodes()
+            .filter(
+                (node) =>
+                    node.pluginType === "InputPortOperator" && ruleBlockUtils.resolvePortId(node) === portId,
+            )
+            .map((node) => node.nodeId);
+    }, []);
 
     const syncInputPortNodeMetaData = React.useCallback((updatedPort: IRuleBlockPort) => {
         const ruleEditorApi = ruleEditorRef.current;
@@ -132,6 +153,48 @@ export const RuleBlockEditor = ({ projectId, ruleBlockTaskId, viewActions, insta
             ruleBlockEditorUtils.inputPortNodeMetaData(updatedPort),
         );
     }, []);
+
+    const deleteInputPort = React.useCallback(
+        (portId: string) => {
+            const ruleEditorApi = ruleEditorRef.current;
+            const previousPorts = ports;
+            const nextPorts = ports.filter((port) => port.id !== portId);
+            const affectedNodeIds = inputPortInstanceNodeIds(portId);
+            if (ruleEditorApi) {
+                ruleEditorApi.startChangeTransaction();
+                ruleEditorApi.executeExternalRuleModelChange({
+                    do: () => applyPorts(nextPorts),
+                    undo: () => applyPorts(previousPorts),
+                });
+                if (affectedNodeIds.length > 0) {
+                    ruleEditorApi.deleteNodes(affectedNodeIds);
+                }
+            } else {
+                applyPorts(nextPorts);
+            }
+        },
+        [applyPorts, inputPortInstanceNodeIds, ports],
+    );
+
+    const requestDeleteInputPort = React.useCallback(
+        (portId: string) => {
+            const instanceCount = inputPortInstanceNodeIds(portId).length;
+            if (instanceCount > 0) {
+                setDeleteInputPortDialogState({ portId, instanceCount });
+            } else {
+                deleteInputPort(portId);
+            }
+        },
+        [deleteInputPort, inputPortInstanceNodeIds],
+    );
+
+    const confirmDeleteInputPort = React.useCallback(() => {
+        if (!deleteInputPortDialogState) {
+            return;
+        }
+        deleteInputPort(deleteInputPortDialogState.portId);
+        closeDeleteInputPortDialog();
+    }, [closeDeleteInputPortDialog, deleteInputPort, deleteInputPortDialogState]);
 
     const submitInputPortDialog = React.useCallback(
         (value: InputPortDialogSubmitValue) => {
@@ -195,11 +258,20 @@ export const RuleBlockEditor = ({ projectId, ruleBlockTaskId, viewActions, insta
                 filterAndSort: (operators) => operators.filter((operator) => operator.pluginType !== "InputPortOperator"),
                 showOperatorsFromPreConfiguredOperatorTabsAlways: true,
             },
-            ruleBlockEditorUtils.createInputPortsTab(ports, openCreateInputPortDialog, openEditInputPortDialog),
+            ruleBlockEditorUtils.createInputPortsTab(
+                ports,
+                openCreateInputPortDialog,
+                openEditInputPortDialog,
+                requestDeleteInputPort,
+            ),
             ruleUtils.sidebarTabs.transform as IRuleSideBarFilterTabConfig,
         ],
-        [openCreateInputPortDialog, openEditInputPortDialog, ports, t],
+        [openCreateInputPortDialog, openEditInputPortDialog, ports, requestDeleteInputPort, t],
     );
+
+    const deletePort = deleteInputPortDialogState
+        ? ports.find((port) => port.id === deleteInputPortDialogState.portId)
+        : undefined;
 
     const saveRuleBlock = async (
         ruleOperatorNodes: IRuleOperatorNode[],
@@ -330,7 +402,55 @@ export const RuleBlockEditor = ({ projectId, ruleBlockTaskId, viewActions, insta
                     onClose={closeInputPortDialog}
                     onSubmit={submitInputPortDialog}
                 />
+                {
+                    deleteInputPortDialogState ?
+                        <ConfirmDeleteInputPortDialog
+                            instanceCount={deleteInputPortDialogState.instanceCount}
+                            portLabel={deletePort?.label}
+                            onConfirm={confirmDeleteInputPort}
+                            onClose={closeDeleteInputPortDialog}
+                        /> :
+                        null
+                }
             </>
         </ExternalSidebarContext.Provider>
     );
 };
+
+interface ConfirmDeleteInputPortDialogProps {
+    instanceCount: number;
+    portLabel?: string;
+    onConfirm: () => void;
+    onClose: () => void;
+}
+
+const ConfirmDeleteInputPortDialog = ({
+    instanceCount,
+    portLabel,
+    onConfirm,
+    onClose,
+}: ConfirmDeleteInputPortDialogProps) => {
+    const [t] = useTranslation()
+
+    return <AlertDialog
+        danger
+        isOpen={true}
+        title={t("taskViews.ruleBlock.deleteInputPort.title", "Delete input port")}
+        onClose={onClose}
+        actions={[
+            <Button key="delete-input-port" disruptive onClick={onConfirm}>
+                {t("common.action.delete", "Delete")}
+            </Button>,
+            <Button key="cancel-delete-input-port" onClick={onClose}>
+                {t("common.action.cancel", "Cancel")}
+            </Button>,
+        ]}
+    >
+        {t("taskViews.ruleBlock.deleteInputPort.confirmMessage", {
+            defaultValue:
+                "Delete input port '{{portLabel}}'? This will also remove {{count}} instances from the rule tree.",
+            portLabel: portLabel ?? t("taskViews.ruleBlock.inputPortOperator", "Input port"),
+            count: instanceCount,
+        })}
+    </AlertDialog>
+}

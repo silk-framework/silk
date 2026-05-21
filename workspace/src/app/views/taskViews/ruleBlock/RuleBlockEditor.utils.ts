@@ -64,6 +64,7 @@ const createNewInputPortSidebarItem = (onCreate: () => void): IPreConfiguredRule
 const convertInputPortToSidebarOperator = (
     port: IRuleBlockPort,
     onEdit: (portId: string) => void,
+    onDelete: (portId: string) => void,
 ): IPreConfiguredRuleOperator => {
     const inputPortOperator = createInputPortOperator();
     return {
@@ -80,12 +81,21 @@ const convertInputPortToSidebarOperator = (
         ],
         inputsCanBeSwitched: inputPortOperator.inputsCanBeSwitched,
         markdownDocumentation: inputPortOperator.markdownDocumentation,
-        actions: React.createElement(IconButton, {
-            key: `edit-input-port-${port.id}`,
-            name: "item-edit",
-            onClick: () => onEdit(port.id),
-            size: "small",
-        }),
+        actions: [
+            React.createElement(IconButton, {
+                key: `edit-input-port-${port.id}`,
+                name: "item-edit",
+                onClick: () => onEdit(port.id),
+                size: "small",
+            }),
+            React.createElement(IconButton, {
+                key: `delete-input-port-${port.id}`,
+                name: "item-remove",
+                onClick: () => onDelete(port.id),
+                size: "small",
+                intent: "danger"
+            }),
+        ],
         parameterOverwrites: {
             portId: port.id,
         },
@@ -98,6 +108,7 @@ const createInputPortsTab = (
     ports: IRuleBlockPort[],
     onCreate: () => void,
     onEdit: (portId: string) => void,
+    onDelete: (portId: string) => void,
 ): IRuleSidebarPreConfiguredOperatorsTabConfig<InputPortListItem> => ({
     id: "inputPorts",
     icon: "data-sourcepath",
@@ -106,7 +117,9 @@ const createInputPortsTab = (
     defaultOperators: [],
     fetchOperators: async () => [{ type: "create" }, ...ruleBlockUtils.sortRuleBlockPorts(ports)],
     convertToOperator: (listItem) =>
-        "type" in listItem ? createNewInputPortSidebarItem(onCreate) : convertInputPortToSidebarOperator(listItem, onEdit),
+        "type" in listItem
+            ? createNewInputPortSidebarItem(onCreate)
+            : convertInputPortToSidebarOperator(listItem, onEdit, onDelete),
     isOriginalOperator: (item): item is InputPortListItem => "type" in (item as InputPortListItem) || "id" in item,
     itemSearchText: (listItem) =>
         "type" in listItem

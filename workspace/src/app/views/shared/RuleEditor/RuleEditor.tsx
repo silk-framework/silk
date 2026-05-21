@@ -133,6 +133,8 @@ export interface RuleEditorExternalApi {
     startChangeTransaction(): void;
     /** Returns the current rule nodes of the editor model. */
     ruleOperatorNodes(): IRuleOperatorNode[];
+    /** Deletes current canvas nodes and records the change in model history. */
+    deleteNodes(nodeIds: string[]): void;
     /** Executes an external non-canvas change and registers it in the current undo/redo transaction. */
     executeExternalRuleModelChange(change: ExternalRuleModelChangeCallbacks): void;
     /** Updates current rule nodes' rendered metadata projection and records the change in model history. */
@@ -155,6 +157,7 @@ const RuleEditorExternalApiBridge = React.forwardRef<RuleEditorExternalApi>((_, 
         () => ({
             startChangeTransaction: ruleEditorModelContext.executeModelEditOperation.startChangeTransaction,
             ruleOperatorNodes: ruleEditorModelContext.ruleOperatorNodes,
+            deleteNodes: ruleEditorModelContext.executeModelEditOperation.deleteNodes,
             executeExternalRuleModelChange: ruleEditorModelContext.executeExternalRuleModelChange,
             updateRuleOperatorNodeMetaData: ruleEditorModelContext.updateRuleOperatorNodeMetaData,
         }),
