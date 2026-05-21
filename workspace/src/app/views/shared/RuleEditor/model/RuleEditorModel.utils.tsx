@@ -96,6 +96,9 @@ function createOperatorNode(
         ...createInputHandles(numberOfInputPorts, operatorContext),
         { type: SOURCE_HANDLE_TYPE, position: Position.Right, isValidConnection: operatorContext.isValidConnection },
     ];
+    const editableParameterCount = Object.keys(node.parameters).filter((parameterId) =>
+        operatorContext.operatorParameterSpecification.has(parameterId),
+    ).length;
 
     const editBtn = (setAdjustedContentProps: React.Dispatch<React.SetStateAction<Partial<RuleNodeContentProps>>>) => (
         <IconButton
@@ -141,7 +144,7 @@ function createOperatorNode(
             />
         ),
         executionButtons:
-            Object.keys(node.parameters).length > 0
+            editableParameterCount > 0
                 ? (adjustedContentProps, setAdjustedContentProps) => {
                       return editBtn(setAdjustedContentProps);
                   }

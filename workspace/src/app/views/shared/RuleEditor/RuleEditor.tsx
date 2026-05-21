@@ -128,6 +128,8 @@ export interface RuleEditorProps<RULE_TYPE, OPERATOR_TYPE> extends RuleEditorBas
 }
 
 export interface RuleEditorExternalApi {
+    /** Starts a new undo/redo transaction in the editor model. */
+    startChangeTransaction(): void;
     /** Returns the current rule nodes of the editor model. */
     ruleOperatorNodes(): IRuleOperatorNode[];
     /** Updates current rule nodes' rendered metadata projection and records the change in model history. */
@@ -148,6 +150,7 @@ const RuleEditorExternalApiBridge = React.forwardRef<RuleEditorExternalApi>((_, 
     React.useImperativeHandle(
         ref,
         () => ({
+            startChangeTransaction: ruleEditorModelContext.executeModelEditOperation.startChangeTransaction,
             ruleOperatorNodes: ruleEditorModelContext.ruleOperatorNodes,
             updateRuleOperatorNodeMetaData: ruleEditorModelContext.updateRuleOperatorNodeMetaData,
         }),

@@ -54,14 +54,10 @@ export const RuleEditorOperatorSidebar = () => {
     /** Show pre-configured operators together with the operator list, but only when a search query is entered. */
     const [showPreConfiguredOperatorsOnlyWithQuery, setShowPreConfiguredOperatorsOnlyWithQuery] = React.useState(false);
 
-    // All pre-configured tab configs
     const preConfiguredOperatorTabs = (editorContext.tabs ?? []).filter(
         (tabConfig) => !(tabConfig as IRuleSideBarFilterTabConfig).filterAndSort,
     ) as IRuleSidebarPreConfiguredOperatorsTabConfig[];
-    const activeTabReloadKey =
-        activeTab && !(activeTab as IRuleSideBarFilterTabConfig).filterAndSort
-            ? `${activeTab.id}:${externalSidebarContext.reloadTokensByTabId?.[activeTab.id] ?? 0}`
-            : activeTabId;
+    const activeTabReloadKey = `${activeTabId ?? ""}:${externalSidebarContext.reloadToken ?? 0}`;
 
     // Filter operator list when active query or filters change
     React.useEffect(() => {

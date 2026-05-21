@@ -7,7 +7,7 @@ import { IProjectTask } from "@ducks/shared/typings";
 import { requestRelatedItems, requestTaskData } from "@ducks/shared/requests";
 import { requestUpdateProjectTask } from "@ducks/workspace/requests";
 import { IViewActions } from "../../plugins/PluginRegistry";
-import RuleEditor from "../../shared/RuleEditor/RuleEditor";
+import RuleEditor, { RuleEditorExternalApi } from "../../shared/RuleEditor/RuleEditor";
 import {
     IRuleOperatorNode,
     IRuleSideBarFilterTabConfig,
@@ -40,14 +40,12 @@ export const RuleBlockEditor = ({ projectId, ruleBlockTaskId, viewActions, insta
     const [t] = useTranslation();
     const { registerError } = useErrorHandler();
     const [ports, setPorts] = React.useState(ruleBlockUtils.emptyRuleBlockModel().ports);
-    const [sidebarReloadTokensByTabId, setSidebarReloadTokensByTabId] = React.useState<Record<string, number>>({});
+    const [sidebarReloadToken, setSidebarReloadToken] = React.useState(0);
     const [inputPortDialogState, setInputPortDialogState] = React.useState<InputPortDialogState>(undefined);
+    const ruleEditorRef = React.useRef<RuleEditorExternalApi>(null);
 
-    const bumpSidebarReloadToken = React.useCallback((tabId: string) => {
-        setSidebarReloadTokensByTabId((currentTokens) => ({
-            ...currentTokens,
-            [tabId]: (currentTokens[tabId] ?? 0) + 1,
-        }));
+    const bumpSidebarReloadToken = React.useCallback(() => {
+        setSidebarReloadToken((currentToken) => currentToken + 1);
     }, []);
 
     const fetchRuleBlockTask = async (
@@ -57,7 +55,7 @@ export const RuleBlockEditor = ({ projectId, ruleBlockTaskId, viewActions, insta
         try {
             const taskData = (await requestTaskData<IRuleBlockTaskParameters>(currentProjectId, taskId)).data;
             setPorts(ruleBlockUtils.sortRuleBlockPorts(taskData.data.parameters.ruleBlockModel?.ports ?? []));
-            bumpSidebarReloadToken("inputPorts");
+            bumpSidebarReloadToken();
             return taskData;
         } catch (err) {
             registerError("RuleBlockEditor_fetchRuleBlockTask", t("taskViews.ruleBlock.errors.fetchTaskData"), err, {
@@ -112,22 +110,46 @@ export const RuleBlockEditor = ({ projectId, ruleBlockTaskId, viewActions, insta
 
     const updatePorts = React.useCallback((nextPorts: IRuleBlockPort[]) => {
         setPorts(ruleBlockUtils.sortRuleBlockPorts(nextPorts));
-        bumpSidebarReloadToken("inputPorts");
+        bumpSidebarReloadToken();
     }, [bumpSidebarReloadToken]);
+
+    const syncInputPortNodeMetaData = React.useCallback((updatedPort: IRuleBlockPort) => {
+        const ruleEditorApi = ruleEditorRef.current;
+        if (!ruleEditorApi) {
+            return;
+        }
+        const affectedNodeIds = ruleEditorApi
+            .ruleOperatorNodes()
+            .filter(
+                (node) =>
+                    node.pluginType === "InputPortOperator" && ruleBlockUtils.resolvePortId(node) === updatedPort.id,
+            )
+            .map((node) => node.nodeId);
+        if (affectedNodeIds.length === 0) {
+            return;
+        }
+        ruleEditorApi.startChangeTransaction();
+        ruleEditorApi.updateRuleOperatorNodeMetaData(affectedNodeIds, () =>
+            ruleBlockEditorUtils.inputPortNodeMetaData(updatedPort),
+        );
+    }, []);
 
     const submitInputPortDialog = React.useCallback(
         (value: InputPortDialogSubmitValue) => {
             if (inputPortDialogState?.mode === "edit" && editedPort) {
-                updatePorts(
-                    ports.map((port) =>
+                const updatedPorts = ports.map((port) =>
                         port.id === editedPort.id
                             ? {
                                   ...port,
                                   ...value,
                               }
                             : port,
-                    ),
-                );
+                    );
+                const updatedPort = updatedPorts.find((port) => port.id === editedPort.id);
+                updatePorts(updatedPorts);
+                if (updatedPort) {
+                    syncInputPortNodeMetaData(updatedPort);
+                }
             } else {
                 updatePorts([
                     ...ports,
@@ -140,6 +162,23 @@ export const RuleBlockEditor = ({ projectId, ruleBlockTaskId, viewActions, insta
             closeInputPortDialog();
         },
         [closeInputPortDialog, editedPort, inputPortDialogState?.mode, ports, updatePorts],
+    );
+
+    const ruleEditorTabs = React.useMemo<
+        (IRuleSideBarFilterTabConfig | ReturnType<typeof ruleBlockEditorUtils.createInputPortsTab>)[]
+    >(
+        () => [
+            {
+                ...(ruleUtils.sidebarTabs.all as IRuleSideBarFilterTabConfig),
+                // The generic InputPortOperator is needed by the editor model, but the rule block UI should show
+                // logical input-port entries from local state instead of this internal operator definition.
+                filterAndSort: (operators) => operators.filter((operator) => operator.pluginType !== "InputPortOperator"),
+                showOperatorsFromPreConfiguredOperatorTabsAlways: true,
+            },
+            ruleBlockEditorUtils.createInputPortsTab(ports, openCreateInputPortDialog, openEditInputPortDialog),
+            ruleUtils.sidebarTabs.transform as IRuleSideBarFilterTabConfig,
+        ],
+        [openCreateInputPortDialog, openEditInputPortDialog, ports, t],
     );
 
     const saveRuleBlock = async (
@@ -236,27 +275,11 @@ export const RuleBlockEditor = ({ projectId, ruleBlockTaskId, viewActions, insta
         [],
     );
 
-    const tabs = React.useMemo<
-        (IRuleSideBarFilterTabConfig | ReturnType<typeof ruleBlockEditorUtils.createInputPortsTab>)[]
-    >(
-        () => [
-            {
-                ...(ruleUtils.sidebarTabs.all as IRuleSideBarFilterTabConfig),
-                // The generic InputPortOperator is needed by the editor model, but the rule block UI should show
-                // logical input-port entries from local state instead of this internal operator definition.
-                filterAndSort: (operators) => operators.filter((operator) => operator.pluginType !== "InputPortOperator"),
-                showOperatorsFromPreConfiguredOperatorTabsAlways: true,
-            },
-            ruleBlockEditorUtils.createInputPortsTab(ports, openCreateInputPortDialog, openEditInputPortDialog),
-            ruleUtils.sidebarTabs.transform as IRuleSideBarFilterTabConfig,
-        ],
-        [openCreateInputPortDialog, openEditInputPortDialog, ports, t],
-    );
-
     return (
-        <ExternalSidebarContext.Provider value={{ reloadTokensByTabId: sidebarReloadTokensByTabId }}>
+        <ExternalSidebarContext.Provider value={{ reloadToken: sidebarReloadToken }}>
             <>
                 <RuleEditor<RuleBlockTaskData, IPluginDetails>
+                    ref={ruleEditorRef}
                     projectId={projectId}
                     taskId={ruleBlockTaskId}
                     fetchRuleData={fetchRuleBlockTask}
@@ -273,7 +296,7 @@ export const RuleBlockEditor = ({ projectId, ruleBlockTaskId, viewActions, insta
                     // can be materialized. User-facing sidebar entries come from the pre-configured input-port tab.
                     additionalRuleOperators={[inputPortOperator]}
                     validateConnection={ruleUtils.validateConnection}
-                    tabs={tabs}
+                    tabs={ruleEditorTabs}
                     showRuleOnly={false}
                     instanceId={instanceId}
                     saveInitiallyEnabled={false}

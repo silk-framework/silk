@@ -7,6 +7,7 @@ import {
     IRuleOperator,
     IRuleOperatorNode,
     IRuleSidebarPreConfiguredOperatorsTabConfig,
+    RuleEditorPatchableNodeProjection,
 } from "../../shared/RuleEditor/RuleEditor.typings";
 import ruleUtils from "../shared/rules/rule.utils";
 import { IRuleBlockPort, IRuleBlockTaskParameters } from "./ruleBlock.types";
@@ -23,38 +24,7 @@ const createInputPortOperator = (): IRuleOperator => {
         pluginId: "inputPort",
         label: i18next.t("taskViews.ruleBlock.inputPortOperator"),
         description: i18next.t("taskViews.ruleBlock.inputPortOperatorDescription"),
-        parameterSpecification: {
-            label: ruleUtils.parameterSpecification({
-                label: i18next.t("form.field.label"),
-                required: false,
-                orderIdx: 0,
-            }),
-            description: ruleUtils.parameterSpecification({
-                label: i18next.t("common.words.description"),
-                required: false,
-                type: "textArea",
-                orderIdx: 1,
-            }),
-            exampleValues: ruleUtils.parameterSpecification({
-                label: i18next.t("taskViews.ruleBlock.exampleValues"),
-                required: false,
-                type: "code-yaml",
-                orderIdx: 2,
-            }),
-            displayOrder: ruleUtils.parameterSpecification({
-                label: i18next.t("taskViews.ruleBlock.displayOrder"),
-                required: false,
-                type: "int",
-                orderIdx: 3,
-            }),
-            deprecated: ruleUtils.parameterSpecification({
-                label: i18next.t("taskViews.ruleBlock.deprecated"),
-                required: false,
-                type: "boolean",
-                defaultValue: "false",
-                orderIdx: 4,
-            }),
-        },
+        parameterSpecification: {},
         portSpecification: {
             type: "count",
             minInputPorts: 0,
@@ -100,7 +70,7 @@ const convertInputPortToSidebarOperator = (
         pluginType: inputPortOperator.pluginType,
         pluginId: inputPortOperator.pluginId,
         label: port.label,
-        description: inputPortOperator.description,
+        description: port.description,
         icon: inputPortOperator.icon,
         categories: [],
         tags: [i18next.t("taskViews.ruleBlock.inputPortsTab"), String(port.displayOrder)],
@@ -114,11 +84,6 @@ const convertInputPortToSidebarOperator = (
         }),
         parameterOverwrites: {
             portId: port.id,
-            label: port.label,
-            description: port.description,
-            exampleValues: port.exampleValues,
-            displayOrder: String(port.displayOrder),
-            deprecated: port.deprecated ? "true" : "false",
         },
     };
 };
@@ -148,21 +113,29 @@ const createInputPortsTab = (
 });
 
 /** Enriches an input port node with persisted port metadata from the current rule block model. */
+const inputPortNodeMetaData = (portDefinition: IRuleBlockPort | undefined): RuleEditorPatchableNodeProjection => ({
+    label: portDefinition?.label || i18next.t("taskViews.ruleBlock.inputPortOperator"),
+    description: portDefinition?.description ?? "",
+    tags: [
+        i18next.t("taskViews.ruleBlock.inputPortsTab"),
+        ...(portDefinition?.displayOrder != null ? [String(portDefinition.displayOrder)] : []),
+        ...(portDefinition?.deprecated ? [i18next.t("taskViews.ruleBlock.deprecated")] : []),
+    ],
+});
+
+/** Enriches an input port node with persisted port metadata from the current rule block model. */
 const updateInputPortNode = (
     node: IRuleOperatorNode,
     portDefinitions: Map<string, IRuleBlockPort>,
 ): void => {
     const portId = ruleBlockUtils.resolvePortId(node);
     const portDefinition = portDefinitions.get(portId);
-    node.label = portDefinition?.label || i18next.t("taskViews.ruleBlock.inputPortOperator");
-    node.description = i18next.t("taskViews.ruleBlock.inputPortOperatorDescription");
+    const metaData = inputPortNodeMetaData(portDefinition);
+    node.label = metaData.label;
+    node.description = metaData.description;
+    node.tags = metaData.tags;
     node.parameters = {
-        ...node.parameters,
-        label: portDefinition?.label ?? "",
-        description: portDefinition?.description ?? "",
-        exampleValues: portDefinition?.exampleValues ?? "",
-        displayOrder: portDefinition?.displayOrder != null ? String(portDefinition.displayOrder) : "",
-        deprecated: portDefinition?.deprecated ? "true" : "false",
+        portId,
     };
 };
 
@@ -213,6 +186,7 @@ const ruleBlockEditorUtils = {
     createInputPortsTab,
     createInputPortOperator,
     getStickyNotes,
+    inputPortNodeMetaData,
 };
 
 export default ruleBlockEditorUtils;

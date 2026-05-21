@@ -1999,13 +1999,16 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
             return;
         }
         const nodeIdsToPatch = new Set(nodeIds);
-        const currentRuleNodesById = new Map(ruleOperatorNodes().map((node) => [node.nodeId, node] as const));
         changeElementsInternal((els) => {
+            const currentCanvasNodesById = new Map(
+                utils.nodesById(els, [...nodeIdsToPatch]).map((node) => [node.id, node] as const),
+            );
             const changes = [...nodeIdsToPatch].reduce<ChangeNodeMetaData[]>((acc, nodeId) => {
-                    const currentRuleNode = currentRuleNodesById.get(nodeId);
-                    if (!currentRuleNode) {
+                    const currentCanvasNode = currentCanvasNodesById.get(nodeId);
+                    if (!currentCanvasNode || currentCanvasNode.type === "stickynote") {
                         return acc;
                     }
+                    const currentRuleNode = currentCanvasNode.data.businessData.originalRuleOperatorNode;
                     acc.push({
                         type: "Change node metadata" as const,
                         nodeId,
