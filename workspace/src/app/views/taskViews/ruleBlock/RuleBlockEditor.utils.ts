@@ -73,7 +73,11 @@ const convertInputPortToSidebarOperator = (
         description: port.description,
         icon: inputPortOperator.icon,
         categories: [],
-        tags: [i18next.t("taskViews.ruleBlock.inputPortsTab"), String(port.displayOrder)],
+        tags: [
+            i18next.t("taskViews.ruleBlock.inputPortsTab"),
+            String(port.displayOrder),
+            ...(port.deprecated ? [i18next.t("taskViews.ruleBlock.deprecated")] : []),
+        ],
         inputsCanBeSwitched: inputPortOperator.inputsCanBeSwitched,
         markdownDocumentation: inputPortOperator.markdownDocumentation,
         actions: React.createElement(IconButton, {
@@ -85,6 +89,7 @@ const convertInputPortToSidebarOperator = (
         parameterOverwrites: {
             portId: port.id,
         },
+        nodeMetaDataOverwrites: inputPortNodeMetaData(port),
     };
 };
 

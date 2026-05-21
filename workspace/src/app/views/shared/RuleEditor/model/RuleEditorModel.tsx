@@ -1054,11 +1054,13 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
         ruleOperator: IRuleOperator,
         position: XYPosition,
         overwriteParameterValues?: RuleOperatorNodeParameters,
+        overwriteNodeMetaData?: RuleEditorPatchableNodeProjection,
     ): RuleEditorNode | undefined => {
         if (reactFlowInstance && ruleEditorContext.operatorSpec) {
             const ruleNode = ruleEditorContext.convertRuleOperatorToRuleNode(ruleOperator);
             ruleNode.position = position;
             ruleNode.parameters = { ...ruleNode.parameters, ...overwriteParameterValues };
+            Object.assign(ruleNode, overwriteNodeMetaData);
             const newNode = utils.createNewOperatorNode(
                 ruleNode,
                 operatorNodeOperationsInternal,
@@ -1198,6 +1200,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
         ruleOperator: IRuleOperator,
         position: XYPosition,
         overwriteParameterValues?: RuleOperatorNodeParameters,
+        overwriteNodeMetaData?: RuleEditorPatchableNodeProjection,
     ) => {
         const parametersNeedingALabel = Object.entries(ruleOperator.parameterSpecification).filter(
             ([paramId, paramSpec]) => {
@@ -1231,13 +1234,24 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                 );
             }
         }
-        const newNode = createNodeInternal(ruleOperator, position, updatedOverwriteParameterValues);
+        const newNode = createNodeInternal(
+            ruleOperator,
+            position,
+            updatedOverwriteParameterValues,
+            overwriteNodeMetaData,
+        );
         if (newNode) {
             changeElementsInternal((els) => {
                 return addAndExecuteRuleModelChangeInternal(RuleModelChangesFactory.addNode(newNode), els);
             });
         } else {
-            console.warn("No new node has been created.", ruleOperator, position, overwriteParameterValues);
+            console.warn(
+                "No new node has been created.",
+                ruleOperator,
+                position,
+                overwriteParameterValues,
+                overwriteNodeMetaData,
+            );
         }
     };
 
@@ -1265,13 +1279,14 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
         pluginId: string,
         position: XYPosition,
         overwriteParameterValues?: RuleOperatorNodeParameters,
+        overwriteNodeMetaData?: RuleEditorPatchableNodeProjection,
         isCanvasPosition: boolean = false,
     ) => {
         // FIXME: Move position calculation into view code
         const realPosition = isCanvasPosition && reactFlowInstance ? reactFlowInstance.project(position) : position;
         const op = fetchRuleOperatorByPluginId(pluginId, pluginType);
         if (op) {
-            addNode(op, realPosition, overwriteParameterValues);
+            addNode(op, realPosition, overwriteParameterValues, overwriteNodeMetaData);
         }
     };
 

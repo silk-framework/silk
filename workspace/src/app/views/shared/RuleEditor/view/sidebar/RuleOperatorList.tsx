@@ -62,11 +62,16 @@ export function RuleOperatorList<T>({
         // FIXME: Node cycle logic
     };
 
-    /** Add operator plugin data to drag event. For pre-configured operators also serialize the parameter values. */
+    /** Add operator plugin data to drag event. For pre-configured operators also serialize initial parameter and metadata overwrites. */
     const onDragStartByPluginId =
-        (pluginType: string, pluginId: string, parameterValues?: RuleOperatorNodeParameters) =>
+        (
+            pluginType: string,
+            pluginId: string,
+            parameterValues?: RuleOperatorNodeParameters,
+            nodeMetaDataOverwrites?: IPreConfiguredRuleOperator["nodeMetaDataOverwrites"],
+        ) =>
         (e: React.DragEvent<HTMLDivElement>) => {
-            const pluginData = JSON.stringify({ pluginType, pluginId, parameterValues });
+            const pluginData = JSON.stringify({ pluginType, pluginId, parameterValues, nodeMetaDataOverwrites });
             e.dataTransfer.setData("application/reactflow", pluginData);
             e.dataTransfer.setData("application/x-reactflow-app", "ruleEditor");
             const draggedElement = e.currentTarget;
@@ -98,6 +103,7 @@ export function RuleOperatorList<T>({
                               ruleOperator.pluginType,
                               ruleOperator.pluginId,
                               preConfiguredRuleOperator.parameterOverwrites,
+                              preConfiguredRuleOperator.nodeMetaDataOverwrites,
                           )
                         : undefined
                 }

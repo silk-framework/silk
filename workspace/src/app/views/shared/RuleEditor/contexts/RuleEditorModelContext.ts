@@ -78,6 +78,7 @@ export interface IModelActions {
         pluginId: string,
         position: XYPosition,
         overwriteParameterValues?: RuleOperatorNodeParameters,
+        overwriteNodeMetaData?: RuleEditorPatchableNodeProjection,
         isCanvasPosition?: boolean,
     ) => void;
     /** Delete a rule node. */

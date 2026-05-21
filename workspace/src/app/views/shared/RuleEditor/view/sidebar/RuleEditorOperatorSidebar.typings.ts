@@ -1,5 +1,5 @@
 import type React from "react";
-import { IRuleOperator } from "../../RuleEditor.typings";
+import { IRuleOperator, RuleEditorPatchableNodeProjection } from "../../RuleEditor.typings";
 import { RuleEditorNodeParameterValue } from "../../model/RuleEditorModel.typings";
 
 /** The operator data that is used for rendering a rule operator in the sidebar. */
@@ -11,6 +11,8 @@ export interface IPreConfiguredRuleOperator extends SidebarRuleOperatorBase {
     parameterOverwrites: {
         [key: string]: RuleEditorNodeParameterValue;
     };
+    /** Optional initial metadata projection for the created node. */
+    nodeMetaDataOverwrites?: RuleEditorPatchableNodeProjection;
     /** If false, this pre-configured entry cannot be dragged onto the canvas. Defaults to true. */
     draggable?: boolean;
     /** Optional sidebar actions rendered for this pre-configured entry. */

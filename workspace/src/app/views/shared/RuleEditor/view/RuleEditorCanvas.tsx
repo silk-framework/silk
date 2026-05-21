@@ -474,7 +474,7 @@ export const RuleEditorCanvas = () => {
         const pluginData = e.dataTransfer.getData("application/reactflow");
         if (pluginData) {
             try {
-                const { pluginType, pluginId, parameterValues } = JSON.parse(pluginData);
+                const { pluginType, pluginId, parameterValues, nodeMetaDataOverwrites } = JSON.parse(pluginData);
                 if (pluginType && pluginId) {
                     // Position on react-flow canvas
                     const reactFlowPosition = {
@@ -487,6 +487,7 @@ export const RuleEditorCanvas = () => {
                         pluginId,
                         reactFlowPosition,
                         parameterValues,
+                        nodeMetaDataOverwrites,
                         true,
                     );
                 } else {
