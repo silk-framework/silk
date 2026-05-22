@@ -48,6 +48,8 @@ export interface RuleEditorContextProps extends RuleEditorBaseProps {
     readOnlyMode?: boolean;
     /** Additional components that will be placed in the tool bar left to the save button. */
     additionalToolBarComponents?: () => React.JSX.Element | React.JSX.Element[];
+    /** Optional additional menu entries for a specific rule node. These are rendered right before the Remove entry. */
+    extraRuleNodeMenuItems?: (node: IRuleOperatorNode, closeMenu: () => void) => React.JSX.Element[] | undefined;
     /** The last save result. */
     lastSaveResult?: RuleSaveResult;
     /** UI annotation sticky notes */

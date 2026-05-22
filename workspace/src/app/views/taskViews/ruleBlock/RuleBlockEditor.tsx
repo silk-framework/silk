@@ -491,6 +491,30 @@ export const RuleBlockEditor = ({ projectId, ruleBlockTaskId, viewActions, insta
         [canNormalizePortOrder, normalizeInputPortOrder],
     );
 
+    const extraRuleNodeMenuItems = React.useCallback(
+        (node: IRuleOperatorNode, closeMenu: () => void): React.JSX.Element[] | undefined => {
+            if (node.pluginType !== "InputPortOperator") {
+                return undefined;
+            }
+            const portId = ruleBlockUtils.resolvePortId(node);
+            if (!portId) {
+                return undefined;
+            }
+            return [
+                <MenuItem
+                    key={`edit-input-port-${node.nodeId}`}
+                    icon="item-edit"
+                    text={i18next.t("taskViews.ruleBlock.editInputPort", "Edit input port")}
+                    onClick={() => {
+                        closeMenu();
+                        openEditInputPortDialog(portId);
+                    }}
+                />,
+            ];
+        },
+        [openEditInputPortDialog],
+    );
+
     const externalSidebarContextValue = React.useMemo(() => ({ reloadToken: sidebarReloadToken }), [sidebarReloadToken]);
 
     return (
@@ -512,6 +536,7 @@ export const RuleBlockEditor = ({ projectId, ruleBlockTaskId, viewActions, insta
                     // can be materialized. User-facing sidebar entries come from the pre-configured input-port tab.
                     additionalRuleOperators={additionalRuleOperators}
                     additionalToolBarComponents={additionalToolBarComponents}
+                    extraRuleNodeMenuItems={extraRuleNodeMenuItems}
                     validateConnection={ruleUtils.validateConnection}
                     tabs={ruleEditorTabs}
                     captureExternalSavedState={captureExternalSavedState}

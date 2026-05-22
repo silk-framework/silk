@@ -41,6 +41,10 @@ export const RuleNodeMenu = ({
     };
     const menuFunctionsCallback = useMemo(() => (menuFunctions) => setMenuFns(menuFunctions), []);
     const operatorDoc = ruleOperatorDocumentation || ruleOperatorDescription || "";
+    const currentRuleNode = modelContext.ruleOperatorNodes().find((node) => node.nodeId === nodeId);
+    const extraMenuItems = currentRuleNode
+        ? ruleEditorContext.extraRuleNodeMenuItems?.(currentRuleNode, closeMenu)
+        : undefined;
 
     const nodeDimensions = utils.nodeById(modelContext.elements, nodeId)?.data.nodeDimensions;
     const resizeResetIsDisabled = !nodeDimensions?.width && !nodeDimensions?.height;
@@ -108,6 +112,12 @@ export const RuleNodeMenu = ({
                     text="Reset node size"
                 ></MenuItem>
                 <MenuDivider />
+                {extraMenuItems?.length ? (
+                    <>
+                        {extraMenuItems}
+                        <MenuDivider />
+                    </>
+                ) : null}
                 <MenuItem
                     data-test-id="rule-node-delete-btn"
                     key="delete"

@@ -69,6 +69,8 @@ export interface RuleEditorBaseProps {
     initialHighlighting?: InitialRuleHighlighting;
     /** Additional components that will be placed in the toolbar left to the save button. */
     additionalToolBarComponents?: () => React.JSX.Element | React.JSX.Element[];
+    /** Optional additional menu entries for a specific rule node. These are rendered right before the Remove entry. */
+    extraRuleNodeMenuItems?: (node: IRuleOperatorNode, closeMenu: () => void) => React.JSX.Element[] | undefined;
     /** When enabled only the rule is shown without side- and toolbar and any other means to edit the rule. */
     showRuleOnly?: boolean;
     /** When enabled the mini map is not displayed. */
@@ -189,6 +191,7 @@ const RuleEditorInner = <TASK_TYPE extends object, OPERATOR_TYPE extends object>
     tabs,
     viewActions,
     additionalToolBarComponents,
+    extraRuleNodeMenuItems,
     editorTitle,
     getStickyNotes = () => [],
     showRuleOnly,
@@ -364,6 +367,7 @@ const RuleEditorInner = <TASK_TYPE extends object, OPERATOR_TYPE extends object>
                 viewActions,
                 readOnlyMode: showRuleOnly || readOnlyMode,
                 additionalToolBarComponents,
+                extraRuleNodeMenuItems,
                 lastSaveResult: lastSaveResult,
                 editorTitle,
                 stickyNotes: getStickyNotes(taskData),
