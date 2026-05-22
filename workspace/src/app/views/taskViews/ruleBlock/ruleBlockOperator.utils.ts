@@ -13,6 +13,8 @@ export interface IRuleBlockOperatorDetails {
     ports: IRuleBlockPort[];
 }
 
+const RULE_BLOCK_TAG = "Rule block";
+
 const sortAlphabetically = (ruleOpA: IRuleOperator, ruleOpB: IRuleOperator) =>
     ruleOpA.label.toLowerCase() < ruleOpB.label.toLowerCase() ? -1 : 1;
 
@@ -42,13 +44,13 @@ const convertRuleBlockOperator = (ruleBlock: IRuleBlockOperatorDetails): IRuleOp
     label: ruleBlock.label,
     icon: "artefact-ruleblock",
     description: ruleBlock.description,
-    categories: [i18next.t("common.dataTypes.ruleblock")],
+    categories: [],
     parameterSpecification: {},
     portSpecification: {
         type: "named",
         inputPorts: ruleBlock.ports.map((port) => ({ id: port.id })),
     },
-    tags: [],
+    tags: [RULE_BLOCK_TAG],
     inputsCanBeSwitched: false,
 });
 

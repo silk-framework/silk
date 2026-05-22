@@ -164,7 +164,7 @@ const extractOperatorNodeFromRuleBlockInput = (
                       type: "named",
                       inputPorts: portIds.map((id) => ({ id })),
                   },
-        tags: op?.tags ?? [i18next.t("common.dataTypes.ruleblock")],
+        tags: op?.tags ?? ["Rule block"],
         icon: op?.icon,
         description: op?.description,
         inputsCanBeSwitched: false,
