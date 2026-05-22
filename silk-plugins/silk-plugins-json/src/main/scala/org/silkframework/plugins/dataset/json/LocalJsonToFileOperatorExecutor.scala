@@ -13,10 +13,13 @@ import org.silkframework.runtime.resource.zip.ZipOutputStreamResource
 
 import java.io.File
 import java.util.zip.ZipOutputStream
+import scala.util.Try
+import scala.util.control.NonFatal
 
 /**
   * Executor for [[JsonToFileOperator]]. Takes a single input table and iterates over every entity in it, reading the
-  * JSON string at the configured input path on each and writing it to a file. The produced file is wrapped in a
+  * JSON string at the configured input path on each and writing it to a file. When ZIP output is enabled, all entities
+  * are packed into a single ZIP archive with one entry per entity instead. The produced file is wrapped in a
   * [[FileEntity]] and surfaced downstream via [[FileEntitySchema]].
   */
 case class LocalJsonToFileOperatorExecutor() extends LocalExecutor[JsonToFileOperator] {
@@ -72,22 +75,28 @@ case class LocalJsonToFileOperatorExecutor() extends LocalExecutor[JsonToFileOpe
     } else {
       allocateNamedFileEntity(trimmedFileName, 0, multiple = false, Some(effectiveMimeType))
     }
-    zipFileEntity.file.write() { outputStream =>
-      val zip = new ZipOutputStream(outputStream)
-      for ((entity, index) <- entities.zipWithIndex) {
-        val jsonString = readJsonValue(entity, pathIndex)
-        validateJson(jsonString)
-        val entryName = if (trimmedFileName.nonEmpty) {
-          if (multiple) suffixedName(trimmedFileName, index) else trimmedFileName
-        } else {
-          if (multiple) suffixedName("entry.json", index) else "entry.json"
+    try {
+      zipFileEntity.file.write() { outputStream =>
+        val zip = new ZipOutputStream(outputStream)
+        for ((entity, index) <- entities.zipWithIndex) {
+          val jsonString = readJsonValue(entity, pathIndex)
+          validateJson(jsonString)
+          val entryName = if (trimmedFileName.nonEmpty) {
+            if (multiple) suffixedName(trimmedFileName, index) else trimmedFileName
+          } else {
+            if (multiple) suffixedName("entry.json", index) else "entry.json"
+          }
+          val entryResource = ZipOutputStreamResource(entryName, entryName, zip)
+          entryResource.writeString(jsonString)
         }
-        val entryResource = ZipOutputStreamResource(entryName, entryName, zip)
-        entryResource.writeString(jsonString)
+        zip.finish()
       }
-      zip.finish()
+      Some(FileEntitySchema.create(Seq(zipFileEntity), task))
+    } catch {
+      case NonFatal(e) =>
+        Try(zipFileEntity.file.delete())
+        throw e
     }
-    Some(FileEntitySchema.create(Seq(zipFileEntity), task))
   }
 
   /** Reads the JSON string from the configured field on an input entity. */

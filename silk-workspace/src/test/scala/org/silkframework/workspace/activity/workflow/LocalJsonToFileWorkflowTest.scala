@@ -176,12 +176,16 @@ class LocalJsonToFileWorkflowTest extends AnyFlatSpec with Matchers with ConfigT
     workflowTask.activity[LocalWorkflowExecutorGeneratingProvenance].startBlocking()
 
     val zip = new ZipInputStream(outputResource.inputStream)
-    val entries = Iterator.continually(zip.getNextEntry)
-      .takeWhile(_ != null)
-      .map { entry =>
-        val content = scala.io.Source.fromInputStream(zip).mkString
-        (entry.getName, content)
-      }.toSeq
+    val entries = try {
+      Iterator.continually(zip.getNextEntry)
+        .takeWhile(_ != null)
+        .map { entry =>
+          val content = scala.io.Source.fromInputStream(zip, "UTF-8").mkString
+          (entry.getName, content)
+        }.toSeq
+    } finally {
+      zip.close()
+    }
 
     entries.size shouldBe 2
     entries(0) shouldBe (("entry-0.json", json1))

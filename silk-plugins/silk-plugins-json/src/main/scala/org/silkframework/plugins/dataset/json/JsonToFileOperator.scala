@@ -10,7 +10,7 @@ import org.silkframework.util.Uri
 @Plugin(
   id = JsonToFileOperator.pluginId,
   label = "JSON to File",
-  description = "Writes a JSON string held in a field on each incoming entity to a file. Produces a file entity downstream, suitable for wiring into a file-backed dataset or any operator that consumes file entities.",
+  description = "Writes a JSON string held in a field on each incoming entity to a file. Optionally packs all entities into a single ZIP archive. Produces a file entity downstream, suitable for wiring into a file-backed dataset or any operator that consumes file entities.",
   documentationFile = "JsonToFileTaskDocumentation.md",
   relatedPlugins = Array(
     new PluginReference(
@@ -24,7 +24,8 @@ case class JsonToFileOperator(@Param("The Silk path expression of the input enti
                               inputPath: String = "",
                               @Param("Filename for the produced file. If left empty, an auto-generated temporary name is used. " +
                                   "When the input contains more than one entity, an index suffix is appended before the extension " +
-                                  "(e.g. `out-0.json`, `out-1.json`) to keep filenames unique.")
+                                  "(e.g. `out-0.json`, `out-1.json`) to keep filenames unique. " +
+                                  "In ZIP output mode, this name is used for the ZIP container file and as the base for entry names inside the archive.")
                               outputFileName: String = "",
                               @Param("MIME type of the produced file.")
                               mimeType: String = "application/json",

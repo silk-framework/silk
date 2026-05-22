@@ -195,6 +195,19 @@ class LocalJsonToFileOperatorExecutorTest extends AnyFlatSpec with Matchers with
     fileEntities.typedEntities.toIndexedSeq mustBe empty
   }
 
+  it should "produce one ZIP entry per entity for a large number of input entities" in {
+    val count = 500
+    val zipTask = PlainTask("JsonToFile", JsonToFileOperator(inputPath = "jsonContent", zipOutput = true))
+    val jsonValues = (0 until count).map(i => s"""{"i":$i}""")
+    val result = executor.execute(zipTask, Seq(inputTable(zipTask, jsonValues: _*)), ExecutorOutput.empty, LocalExecution(useLocalInternalDatasets = false))
+    result mustBe defined
+    val FileEntitySchema(fileEntities) = result.get
+    val entries = readZipEntries(fileEntities.typedEntities.toIndexedSeq.head)
+    entries.size mustBe count
+    entries.head mustBe (("entry-0.json", """{"i":0}"""))
+    entries.last mustBe ((s"entry-${count - 1}.json", s"""{"i":${count - 1}}"""))
+  }
+
   it should "throw a TaskException for invalid JSON in ZIP mode" in {
     val invalid = """{"unterminated":"""
     val zipTask = PlainTask("JsonToFile", JsonToFileOperator(inputPath = "jsonContent", zipOutput = true))
@@ -207,11 +220,15 @@ class LocalJsonToFileOperatorExecutorTest extends AnyFlatSpec with Matchers with
 
   private def readZipEntries(fileEntity: FileEntity): Seq[(String, String)] = {
     val zipInput = new ZipInputStream(fileEntity.file.inputStream)
-    Iterator.continually(zipInput.getNextEntry)
-      .takeWhile(_ != null)
-      .map { entry =>
-        val content = scala.io.Source.fromInputStream(zipInput).mkString
-        (entry.getName, content)
-      }.toSeq
+    try {
+      Iterator.continually(zipInput.getNextEntry)
+        .takeWhile(_ != null)
+        .map { entry =>
+          val content = scala.io.Source.fromInputStream(zipInput, "UTF-8").mkString
+          (entry.getName, content)
+        }.toSeq
+    } finally {
+      zipInput.close()
+    }
   }
 }
