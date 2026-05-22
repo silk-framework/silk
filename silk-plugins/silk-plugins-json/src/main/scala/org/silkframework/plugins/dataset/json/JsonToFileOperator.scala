@@ -27,7 +27,10 @@ case class JsonToFileOperator(@Param("The Silk path expression of the input enti
                                   "(e.g. `out-0.json`, `out-1.json`) to keep filenames unique.")
                               outputFileName: String = "",
                               @Param("MIME type of the produced file.")
-                              mimeType: String = "application/json") extends CustomTask {
+                              mimeType: String = "application/json",
+                              @Param("If enabled, all input entities are packed into a single ZIP file with one entry per entity. " +
+                                  "When disabled (default), one file is produced per entity.")
+                              zipOutput: Boolean = false) extends CustomTask {
 
   val parsedInputPath: Option[UntypedPath] = {
     if (inputPath != "") {

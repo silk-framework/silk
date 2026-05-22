@@ -9,8 +9,10 @@ import org.silkframework.execution.typed.{FileEntity, FileEntitySchema, FileType
 import org.silkframework.runtime.activity.{ActivityContext, ActivityMonitor}
 import org.silkframework.runtime.plugin.PluginContext
 import org.silkframework.runtime.resource.FileResource
+import org.silkframework.runtime.resource.zip.ZipOutputStreamResource
 
 import java.io.File
+import java.util.zip.ZipOutputStream
 
 /**
   * Executor for [[JsonToFileOperator]]. Takes a single input table and iterates over every entity in it, reading the
@@ -31,22 +33,61 @@ case class LocalJsonToFileOperatorExecutor() extends LocalExecutor[JsonToFileOpe
       case Some(path) => entityTable.entitySchema.indexOfPath(path)
       case None => 0 // Take the value of the first path
     }
-    val outputMimeType = Some(task.data.mimeType)
     val trimmedFileName = task.data.outputFileName.trim
     val entities = entityTable.entities.toIndexedSeq
-    val multiple = entities.size > 1
-    val fileEntities = entities.zipWithIndex.map { case (entity, index) =>
-      val jsonString = readJsonValue(entity, pathIndex)
-      validateJson(jsonString)
-      val fileEntity = if (trimmedFileName.isEmpty) {
-        FileEntity.createTemp("jsonOutput", ".json").copy(mimeType = outputMimeType)
-      } else {
-        allocateNamedFileEntity(trimmedFileName, index, multiple, outputMimeType)
+
+    if (task.data.zipOutput) {
+      executeZip(task, entities, pathIndex, trimmedFileName)
+    } else {
+      val outputMimeType = Some(task.data.mimeType)
+      val multiple = entities.size > 1
+      val fileEntities = entities.zipWithIndex.map { case (entity, index) =>
+        val jsonString = readJsonValue(entity, pathIndex)
+        validateJson(jsonString)
+        val fileEntity = if (trimmedFileName.isEmpty) {
+          FileEntity.createTemp("jsonOutput", ".json").copy(mimeType = outputMimeType)
+        } else {
+          allocateNamedFileEntity(trimmedFileName, index, multiple, outputMimeType)
+        }
+        fileEntity.file.writeString(jsonString)
+        fileEntity
       }
-      fileEntity.file.writeString(jsonString)
-      fileEntity
+      Some(FileEntitySchema.create(fileEntities, task))
     }
-    Some(FileEntitySchema.create(fileEntities, task))
+  }
+
+  /** Executes ZIP mode: writes all entities as entries into a single ZIP file and returns one FileEntity. */
+  private def executeZip(task: Task[JsonToFileOperator],
+                         entities: IndexedSeq[Entity],
+                         pathIndex: Int,
+                         trimmedFileName: String)
+                        (implicit pluginContext: PluginContext): Option[LocalEntities] = {
+    if (entities.isEmpty) {
+      return Some(FileEntitySchema.create(Seq.empty, task))
+    }
+    val effectiveMimeType = if (task.data.mimeType == "application/json") "application/zip" else task.data.mimeType
+    val multiple = entities.size > 1
+    val zipFileEntity = if (trimmedFileName.isEmpty) {
+      FileEntity.createTemp("jsonOutput", ".zip").copy(mimeType = Some(effectiveMimeType))
+    } else {
+      allocateNamedFileEntity(trimmedFileName, 0, multiple = false, Some(effectiveMimeType))
+    }
+    zipFileEntity.file.write() { outputStream =>
+      val zip = new ZipOutputStream(outputStream)
+      for ((entity, index) <- entities.zipWithIndex) {
+        val jsonString = readJsonValue(entity, pathIndex)
+        validateJson(jsonString)
+        val entryName = if (trimmedFileName.nonEmpty) {
+          if (multiple) suffixedName(trimmedFileName, index) else trimmedFileName
+        } else {
+          if (multiple) suffixedName("entry.json", index) else "entry.json"
+        }
+        val entryResource = ZipOutputStreamResource(entryName, entryName, zip)
+        entryResource.writeString(jsonString)
+      }
+      zip.finish()
+    }
+    Some(FileEntitySchema.create(Seq(zipFileEntity), task))
   }
 
   /** Reads the JSON string from the configured field on an input entity. */
