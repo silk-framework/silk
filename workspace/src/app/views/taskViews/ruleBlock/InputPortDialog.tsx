@@ -44,7 +44,16 @@ export const InputPortDialog = ({
         setExampleValues(initialPort.exampleValues);
         setDisplayOrder(String(initialPort.displayOrder));
         setDeprecated(initialPort.deprecated);
-    }, [initialPort, isOpen, mode, editedPortId]);
+    }, [
+        editedPortId,
+        initialPort.deprecated,
+        initialPort.description,
+        initialPort.displayOrder,
+        initialPort.exampleValues,
+        initialPort.label,
+        isOpen,
+        mode,
+    ]);
 
     const trimmedLabel = label.trim();
     const parsedDisplayOrder = Number.parseInt(displayOrder.trim(), 10);

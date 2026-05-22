@@ -53,6 +53,8 @@ const nextGeneratedDisplayOrder = (ports: IRuleBlockPort[]): number =>
 const sortPortDefinitions = (ports: Iterable<IRuleBlockPort>): IRuleBlockPort[] =>
     [...ports].sort((left, right) => left.displayOrder - right.displayOrder || left.id.localeCompare(right.id));
 
+const orderedPortIds = (ports: Iterable<IRuleBlockPort>): string[] => sortPortDefinitions(ports).map((port) => port.id);
+
 const duplicateDisplayOrders = (ports: Iterable<IRuleBlockPort>): number[] =>
     [...[...ports].reduce((displayOrderCount, port) => {
         displayOrderCount.set(port.displayOrder, (displayOrderCount.get(port.displayOrder) ?? 0) + 1);
@@ -174,7 +176,7 @@ const validateUsedPortCompatibility = (
     const updatedPortsById = new Map(updatedPorts.map((port) => [port.id, port] as const));
     const nodeIdsByPortId = new Map<string, string[]>();
     const removedPortIds: string[] = [];
-    const reorderedPortIds: string[] = [];
+    const reorderedPortIds = new Set<string>();
     const nodeErrors: RuleSaveNodeError[] = [];
 
     inputPortNodes.forEach((node) => {
@@ -186,21 +188,34 @@ const validateUsedPortCompatibility = (
         const updatedPort = updatedPortsById.get(persistedPort.id);
         if (!updatedPort) {
             removedPortIds.push(portDisplayName(persistedPort, persistedPort.id));
-        } else if (updatedPort.displayOrder !== persistedPort.displayOrder) {
-            const portName = portDisplayName(updatedPort, persistedPort.id);
-            reorderedPortIds.push(portName);
-            (nodeIdsByPortId.get(persistedPort.id) ?? []).forEach((nodeId) => {
-                nodeErrors.push({
-                    nodeId,
-                    message: reorderedPortMessage(portName),
-                });
-            });
         }
+    });
+
+    const persistedSharedPortIds = orderedPortIds(
+        persistedPorts.filter((port) => updatedPortsById.has(port.id)),
+    );
+    const updatedSharedPortIds = orderedPortIds(
+        updatedPorts.filter((port) => persistedSharedPortIds.includes(port.id)),
+    );
+    const changedOrderPortIds = persistedSharedPortIds.filter(
+        (portId, index) => updatedSharedPortIds[index] !== portId,
+    );
+
+    changedOrderPortIds.forEach((portId) => {
+        const updatedPort = updatedPortsById.get(portId);
+        const portName = portDisplayName(updatedPort, portId);
+        reorderedPortIds.add(portName);
+        (nodeIdsByPortId.get(portId) ?? []).forEach((nodeId) => {
+            nodeErrors.push({
+                nodeId,
+                message: reorderedPortMessage(portName),
+            });
+        });
     });
 
     const errorMessages = [
         ...removedPortIds.map(removedPortMessage),
-        ...reorderedPortIds.map(reorderedPortMessage),
+        ...[...reorderedPortIds].map(reorderedPortMessage),
     ];
 
     return {
@@ -211,6 +226,17 @@ const validateUsedPortCompatibility = (
 
 /** Returns the input ports in their stable UI order. */
 const sortRuleBlockPorts = (ports: Iterable<IRuleBlockPort>): IRuleBlockPort[] => sortPortDefinitions(ports);
+
+/** Returns true if the current display orders already match the dense canonical rank 1..n. */
+const isNormalizedPortDisplayOrder = (ports: IRuleBlockPort[]): boolean =>
+    sortPortDefinitions(ports).every((port, index) => port.displayOrder === index + 1);
+
+/** Renumbers display orders to dense ranks 1..n while preserving the current relative order. */
+const normalizePortDisplayOrder = (ports: IRuleBlockPort[]): IRuleBlockPort[] =>
+    sortPortDefinitions(ports).map((port, index) => ({
+        ...port,
+        displayOrder: index + 1,
+    }));
 
 /** Generates the next suggested initial values for a newly created input port. */
 const nextInputPortDefaults = (
@@ -234,6 +260,8 @@ const ruleBlockUtils = {
     collectPortDefinitions,
     emptyRuleBlockModel,
     generateInputPortId,
+    isNormalizedPortDisplayOrder,
+    normalizePortDisplayOrder,
     normalizeStickyNotes,
     resolvePortId,
     nextInputPortDefaults,

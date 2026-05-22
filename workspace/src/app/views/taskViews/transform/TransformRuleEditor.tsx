@@ -4,10 +4,8 @@ import {
     ActualRule,
     IComplexMappingRule,
     InitialRuleHighlighting,
-    ITransformRule,
     ITransformTaskParameters,
     NewTransformRule,
-    PartialBy,
     RuleParameterType,
     RuleReference,
 } from "./transform.types";
@@ -82,32 +80,35 @@ export const TransformRuleEditor = ({
     const mappingEditorContext = React.useContext(GlobalMappingEditorContext);
     const isReferencedRule = "ruleId" in ruleDefinition;
     /** Fetches the parameters of the transform rule. */
-    const fetchTransformRule = async (projectId: string, taskId: string): Promise<IComplexMappingRule | undefined> => {
-        try {
-            const taskData: NewTransformRule = isReferencedRule
-                ? (await requestTransformRule(projectId, taskId, (ruleDefinition as RuleReference).ruleId)).data
-                : (ruleDefinition as ActualRule).rule;
-            if (taskData.type !== "complex") {
-                throw new Error("Edit of container/object rules is not supported!");
-            } else {
-                return taskData as IComplexMappingRule;
+    const fetchTransformRule = React.useCallback(
+        async (projectId: string, taskId: string): Promise<IComplexMappingRule | undefined> => {
+            try {
+                const taskData: NewTransformRule = isReferencedRule
+                    ? (await requestTransformRule(projectId, taskId, (ruleDefinition as RuleReference).ruleId)).data
+                    : (ruleDefinition as ActualRule).rule;
+                if (taskData.type !== "complex") {
+                    throw new Error("Edit of container/object rules is not supported!");
+                } else {
+                    return taskData as IComplexMappingRule;
+                }
+            } catch (err) {
+                registerError(
+                    "transformRuleEditor_fetchTransformRule",
+                    t("taskViews.transformRulesEditor.errors.fetchTransformRule.msg"),
+                    err,
+                    { errorNotificationInstanceId: RULE_EDITOR_NOTIFICATION_INSTANCE },
+                );
             }
-        } catch (err) {
-            registerError(
-                "transformRuleEditor_fetchTransformRule",
-                t("taskViews.transformRulesEditor.errors.fetchTransformRule.msg"),
-                err,
-                { errorNotificationInstanceId: RULE_EDITOR_NOTIFICATION_INSTANCE },
-            );
-        }
-    };
+        },
+        [isReferencedRule, registerError, ruleDefinition, t],
+    );
     /** Fetches reusable rule blocks that can be referenced from transform rules. */
-    const fetchRuleBlockOperators = async (): Promise<TransformRuleEditorOperator[]> => {
+    const fetchRuleBlockOperators = React.useCallback(async (): Promise<TransformRuleEditorOperator[]> => {
         const response = await requestRuleBlockSummaries(projectId);
         return response.data.map(transformEditorUtils.ruleBlockSummaryToOperator);
-    };
+    }, [projectId]);
     /** Fetches the list of operators that can be used in a transform task. */
-    const fetchTransformRuleOperatorList = async (): Promise<TransformRuleEditorOperator[] | undefined> => {
+    const fetchTransformRuleOperatorList = React.useCallback(async (): Promise<TransformRuleEditorOperator[] | undefined> => {
         try {
             const [response, ruleBlockOperators] = await Promise.all([
                 requestRuleOperatorPluginsDetails(true),
@@ -122,81 +123,84 @@ export const TransformRuleEditor = ({
                 { errorNotificationInstanceId: RULE_EDITOR_NOTIFICATION_INSTANCE },
             );
         }
-    };
+    }, [fetchRuleBlockOperators, registerError, t]);
 
     /** Save the rule. */
-    const saveTransformRule = async (
-        ruleOperatorNodes: IRuleOperatorNode[],
-        stickyNotes: StickyNote[],
-        originalRule: IComplexMappingRule,
-    ): Promise<RuleSaveResult> => {
-        try {
-            const [operatorNodeMap, rootNodes] = ruleUtils.convertToRuleOperatorNodeMap(ruleOperatorNodes, true);
-            if (rootNodes.length !== 1) {
-                return {
-                    success: false,
-                    errorMessage: `There must be exactly one root node, but ${
-                        rootNodes.length
-                    } have been found! Root nodes: ${rootNodes.map((n) => n.label).join(", ")}`,
-                    nodeErrors: rootNodes.map((rootNode) => ({
-                        nodeId: rootNode.nodeId,
-                    })),
-                };
-            }
-            const rule: IComplexMappingRule = {
-                ...originalRule,
-                sourcePaths: [],
-                operator: ruleUtils.convertRuleOperatorNodeToValueInput(rootNodes[0], operatorNodeMap),
-                layout: ruleUtils.ruleLayout(ruleOperatorNodes),
-                uiAnnotations: {
-                    stickyNotes,
-                },
-            };
-            if (ruleDefinition.alternativeSave) {
-                await ruleDefinition.alternativeSave(rule);
-            } else if (isReferencedRule) {
-                await putTransformRule(projectId, transformTaskId, (ruleDefinition as RuleReference).ruleId, rule);
-            } else if ((ruleDefinition as ActualRule).rule?.id) {
-                await putTransformRule(projectId, transformTaskId, (ruleDefinition as ActualRule).rule.id!, rule);
-            } else {
-                const errorMessage = "No ID found to save rule to backend and no alternative save function defined!";
-                console.warn(errorMessage);
-                return {
-                    success: false,
-                    errorMessage: `Internal error: ${errorMessage}`,
-                };
-            }
-            return {
-                success: true,
-            };
-        } catch (err) {
-            if ((err as RuleValidationError).isRuleValidationError) {
-                return err;
-            } else {
-                if (err.isHttpError && err.httpStatus === 400 && Array.isArray((err as FetchError).body?.issues)) {
-                    const fetchError = err as FetchError;
-                    const nodeErrors: RuleSaveNodeError[] = fetchError.body.issues.map((issue) => ({
-                        nodeId: issue.id,
-                        message: issue.message,
-                    }));
-                    return new RuleValidationError(
-                        t("taskViews.transformRulesEditor.errors.saveTransformRule.msg"),
-                        nodeErrors,
-                    );
-                } else {
+    const saveTransformRule = React.useCallback(
+        async (
+            ruleOperatorNodes: IRuleOperatorNode[],
+            stickyNotes: StickyNote[],
+            originalRule: IComplexMappingRule,
+        ): Promise<RuleSaveResult> => {
+            try {
+                const [operatorNodeMap, rootNodes] = ruleUtils.convertToRuleOperatorNodeMap(ruleOperatorNodes, true);
+                if (rootNodes.length !== 1) {
                     return {
                         success: false,
-                        errorMessage: `${t("taskViews.transformRulesEditor.errors.saveTransformRule.msg")}${
-                            err.message ? ": " + err.message : ""
-                        }`,
+                        errorMessage: `There must be exactly one root node, but ${
+                            rootNodes.length
+                        } have been found! Root nodes: ${rootNodes.map((n) => n.label).join(", ")}`,
+                        nodeErrors: rootNodes.map((rootNode) => ({
+                            nodeId: rootNode.nodeId,
+                        })),
                     };
                 }
+                const rule: IComplexMappingRule = {
+                    ...originalRule,
+                    sourcePaths: [],
+                    operator: ruleUtils.convertRuleOperatorNodeToValueInput(rootNodes[0], operatorNodeMap),
+                    layout: ruleUtils.ruleLayout(ruleOperatorNodes),
+                    uiAnnotations: {
+                        stickyNotes,
+                    },
+                };
+                if (ruleDefinition.alternativeSave) {
+                    await ruleDefinition.alternativeSave(rule);
+                } else if (isReferencedRule) {
+                    await putTransformRule(projectId, transformTaskId, (ruleDefinition as RuleReference).ruleId, rule);
+                } else if ((ruleDefinition as ActualRule).rule?.id) {
+                    await putTransformRule(projectId, transformTaskId, (ruleDefinition as ActualRule).rule.id!, rule);
+                } else {
+                    const errorMessage = "No ID found to save rule to backend and no alternative save function defined!";
+                    console.warn(errorMessage);
+                    return {
+                        success: false,
+                        errorMessage: `Internal error: ${errorMessage}`,
+                    };
+                }
+                return {
+                    success: true,
+                };
+            } catch (err) {
+                if ((err as RuleValidationError).isRuleValidationError) {
+                    return err;
+                } else {
+                    if (err.isHttpError && err.httpStatus === 400 && Array.isArray((err as FetchError).body?.issues)) {
+                        const fetchError = err as FetchError;
+                        const nodeErrors: RuleSaveNodeError[] = fetchError.body.issues.map((issue) => ({
+                            nodeId: issue.id,
+                            message: issue.message,
+                        }));
+                        return new RuleValidationError(
+                            t("taskViews.transformRulesEditor.errors.saveTransformRule.msg"),
+                            nodeErrors,
+                        );
+                    } else {
+                        return {
+                            success: false,
+                            errorMessage: `${t("taskViews.transformRulesEditor.errors.saveTransformRule.msg")}${
+                                err.message ? ": " + err.message : ""
+                            }`,
+                        };
+                    }
+                }
             }
-        }
-    };
+        },
+        [isReferencedRule, projectId, ruleDefinition, t, transformTaskId],
+    );
 
     /** Converts the linking task rule to the internal representation. */
-    const convertToRuleOperatorNodes = (
+    const convertToRuleOperatorNodes = React.useCallback((
         mappingRule: IComplexMappingRule,
         ruleOperator: RuleOperatorFetchFnType,
     ): IRuleOperatorNode[] => {
@@ -218,9 +222,9 @@ export const TransformRuleEditor = ({
             }
         });
         return operatorNodes;
-    };
+    }, []);
 
-    const convertRuleOperator = (
+    const convertRuleOperator = React.useCallback((
         operator: TransformRuleEditorOperator,
         addAdditionParameterSpecifications: (
             pluginDetails: TransformRuleEditorOperator,
@@ -233,38 +237,44 @@ export const TransformRuleEditor = ({
                 addAdditionParameterSpecifications(pluginDetails),
             );
         }
-    };
+    }, []);
 
-    const getStickyNotes = (mapping: IComplexMappingRule): StickyNote[] =>
-        (mapping && optionallyLabelledParameterToValue(mapping.uiAnnotations.stickyNotes)) || [];
+    const getStickyNotes = React.useCallback(
+        (mapping: IComplexMappingRule): StickyNote[] =>
+            (mapping && optionallyLabelledParameterToValue(mapping.uiAnnotations.stickyNotes)) || [],
+        [],
+    );
 
-    const inputPathAutoCompletion = async (term: string, limit: number): Promise<IAutocompleteDefaultResponse[]> => {
-        try {
-            const response = await autoCompleteTransformSourcePath(
-                projectId,
-                transformTaskId,
-                isReferencedRule ? (ruleDefinition as RuleReference).ruleId : containerRuleId,
-                term,
-                mappingEditorContext.taskContext,
-                limit,
-            );
-            let results = response.data.map((data) => ({ ...data, valueType: "" }));
-            if (term.trim() === "") {
-                results.unshift({ value: "", label: `<${t("common.words.emptyPath")}>`, valueType: "StringValue" });
-                //remove keep at limit size
-                results = results.splice(0, limit);
+    const inputPathAutoCompletion = React.useCallback(
+        async (term: string, limit: number): Promise<IAutocompleteDefaultResponse[]> => {
+            try {
+                const response = await autoCompleteTransformSourcePath(
+                    projectId,
+                    transformTaskId,
+                    isReferencedRule ? (ruleDefinition as RuleReference).ruleId : containerRuleId,
+                    term,
+                    mappingEditorContext.taskContext,
+                    limit,
+                );
+                let results = response.data.map((data) => ({ ...data, valueType: "" }));
+                if (term.trim() === "") {
+                    results.unshift({ value: "", label: `<${t("common.words.emptyPath")}>`, valueType: "StringValue" });
+                    //remove keep at limit size
+                    results = results.splice(0, limit);
+                }
+                return results;
+            } catch (err) {
+                registerError(
+                    "LinkingRuleEditor_inputPathAutoCompletion",
+                    t("taskViews.linkRulesEditor.errors.inputPathAutoCompletion.msg"),
+                    err,
+                    { errorNotificationInstanceId: RULE_EDITOR_NOTIFICATION_INSTANCE },
+                );
+                return [];
             }
-            return results;
-        } catch (err) {
-            registerError(
-                "LinkingRuleEditor_inputPathAutoCompletion",
-                t("taskViews.linkRulesEditor.errors.inputPathAutoCompletion.msg"),
-                err,
-                { errorNotificationInstanceId: RULE_EDITOR_NOTIFICATION_INSTANCE },
-            );
-            return [];
-        }
-    };
+        },
+        [containerRuleId, isReferencedRule, mappingEditorContext.taskContext, projectId, registerError, ruleDefinition, t, transformTaskId],
+    );
 
     const fetchPartialAutoCompletionResult = React.useCallback(
         () =>
@@ -290,19 +300,22 @@ export const TransformRuleEditor = ({
                     );
                 }
             },
-        [],
+        [containerRuleId, projectId, registerError, t, transformTaskId],
     );
 
-    const sourcePathInput = () =>
-        ruleUtils.inputPathOperator(
-            "sourcePathInput",
-            "Source path",
-            ["Source path"],
-            "The value path of the input source of the transformation task.",
-            inputPathAutoCompletion,
-        );
+    const sourcePathOperator = React.useMemo(
+        () =>
+            ruleUtils.inputPathOperator(
+                "sourcePathInput",
+                "Source path",
+                ["Source path"],
+                "The value path of the input source of the transformation task.",
+                inputPathAutoCompletion,
+            ),
+        [inputPathAutoCompletion],
+    );
 
-    const fetchDatasetCharacteristics = async () => {
+    const fetchDatasetCharacteristics = React.useCallback(async () => {
         const result = new Map<string, DatasetCharacteristics>();
         try {
             const taskData = (await requestTaskData<ITransformTaskParameters>(projectId, transformTaskId)).data;
@@ -321,7 +334,18 @@ export const TransformRuleEditor = ({
             }
         }
         return result;
-    };
+    }, [projectId, registerError, transformTaskId]);
+
+    const registerFetchSourcePathsError = React.useCallback(
+        (ex: any) =>
+            registerError(
+                "linking-rule-editor-fetch-source-paths",
+                t("taskViews.linkRulesEditor.errors.fetchLinkingPaths.msg"),
+                ex,
+                { errorNotificationInstanceId: RULE_EDITOR_NOTIFICATION_INSTANCE },
+            ),
+        [registerError, t],
+    );
 
     const tabs = React.useMemo(() => {
         return [
@@ -330,20 +354,25 @@ export const TransformRuleEditor = ({
                 projectId,
                 transformTaskId,
                 isReferencedRule ? (ruleDefinition as RuleReference).ruleId : containerRuleId,
-                sourcePathInput(),
-                (ex) =>
-                    registerError(
-                        "linking-rule-editor-fetch-source-paths",
-                        t("taskViews.linkRulesEditor.errors.fetchLinkingPaths.msg"),
-                        ex,
-                        { errorNotificationInstanceId: RULE_EDITOR_NOTIFICATION_INSTANCE },
-                ),
+                sourcePathOperator,
+                registerFetchSourcePathsError,
                 mappingEditorContext.taskContext,
             ),
             transformEditorUtils.ruleBlockTab(),
             ruleUtils.sidebarTabs.transform,
         ];
-    }, [containerRuleId, isReferencedRule, mappingEditorContext.taskContext, projectId, ruleDefinition, t, transformTaskId]);
+    }, [
+        containerRuleId,
+        isReferencedRule,
+        mappingEditorContext.taskContext,
+        projectId,
+        registerFetchSourcePathsError,
+        ruleDefinition,
+        sourcePathOperator,
+        transformTaskId,
+    ]);
+
+    const additionalRuleOperators = React.useMemo(() => [sourcePathOperator], [sourcePathOperator]);
 
     return (
         <TransformRuleEvaluation
@@ -364,7 +393,7 @@ export const TransformRuleEditor = ({
                 viewActions={viewActions}
                 additionalToolBarComponents={additionalToolBarComponents}
                 getStickyNotes={getStickyNotes}
-                additionalRuleOperators={[sourcePathInput()]}
+                additionalRuleOperators={additionalRuleOperators}
                 validateConnection={ruleUtils.validateConnection}
                 tabs={tabs}
                 showRuleOnly={false}

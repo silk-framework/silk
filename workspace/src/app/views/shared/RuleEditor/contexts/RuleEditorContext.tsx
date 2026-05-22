@@ -54,6 +54,10 @@ export interface RuleEditorContextProps extends RuleEditorBaseProps {
     stickyNotes: StickyNote[];
     /** Dataset characteristics, e.g. used for the 'PathInputOperator' type. The key is the corresponding plugin ID. */
     datasetCharacteristics: Map<string, DatasetCharacteristics>;
+    /** Optional hook to capture additional parent-owned saved state that must follow reset-to-saved-state semantics. */
+    captureExternalSavedState?: () => unknown;
+    /** Optional hook to restore additional parent-owned saved state from the latest saved snapshot. */
+    restoreExternalSavedState?: (savedState: unknown) => void;
 }
 
 /** Creates a rule editor model context that contains the actual rule model and low-level update functions. */

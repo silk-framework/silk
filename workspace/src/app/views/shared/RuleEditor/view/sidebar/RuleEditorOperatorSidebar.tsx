@@ -40,9 +40,6 @@ export const RuleEditorOperatorSidebar = () => {
     /** Tab handling. */
     // The currently active tab
     const [activeTabId, setActiveTabId] = React.useState<string | undefined>(undefined);
-    const activeTab: IRuleSidebarPreConfiguredOperatorsTabConfig | IRuleSideBarFilterTabConfig | undefined = (
-        editorContext.tabs ?? []
-    ).find((tab) => tab.id === activeTabId);
     /** Pre-configured operators */
     const [preConfiguredOperatorListLoading, setPreConfiguredOperatorListLoading] = React.useState(false);
     const [preConfiguredOperators, setPreconfiguredOperators] = React.useState<
@@ -53,10 +50,15 @@ export const RuleEditorOperatorSidebar = () => {
     >(undefined);
     /** Show pre-configured operators together with the operator list, but only when a search query is entered. */
     const [showPreConfiguredOperatorsOnlyWithQuery, setShowPreConfiguredOperatorsOnlyWithQuery] = React.useState(false);
+    const tabsRef = React.useRef(editorContext.tabs);
+    const preConfiguredOperatorTabsRef = React.useRef<IRuleSidebarPreConfiguredOperatorsTabConfig[]>([]);
+
+    tabsRef.current = editorContext.tabs;
 
     const preConfiguredOperatorTabs = (editorContext.tabs ?? []).filter(
         (tabConfig) => !(tabConfig as IRuleSideBarFilterTabConfig).filterAndSort,
     ) as IRuleSidebarPreConfiguredOperatorsTabConfig[];
+    preConfiguredOperatorTabsRef.current = preConfiguredOperatorTabs;
     const activeTabReloadKey = `${activeTabId ?? ""}:${externalSidebarContext.reloadToken ?? 0}`;
 
     // Filter operator list when active query or filters change
@@ -145,8 +147,8 @@ export const RuleEditorOperatorSidebar = () => {
     // Handle tab changes
     React.useEffect(() => {
         if (editorContext.operatorList) {
-            if (editorContext.tabs && activeTabId) {
-                const tabConfig = activeTab;
+            if (tabsRef.current && activeTabId) {
+                const tabConfig = (tabsRef.current ?? []).find((tab) => tab.id === activeTabId);
                 if (tabConfig) {
                     if ((tabConfig as IRuleSideBarFilterTabConfig).filterAndSort) {
                         const filterTabConfig = tabConfig as IRuleSideBarFilterTabConfig;
@@ -158,7 +160,7 @@ export const RuleEditorOperatorSidebar = () => {
                             filterTabConfig.showOperatorsFromPreConfiguredOperatorTabsForQuery ||
                             filterTabConfig.showOperatorsFromPreConfiguredOperatorTabsAlways
                         ) {
-                            loadExternalOperators(preConfiguredOperatorTabs, true);
+                            loadExternalOperators(preConfiguredOperatorTabsRef.current, true);
                         }
                         setShowPreConfiguredOperatorsOnlyWithQuery(
                             filterTabConfig.showOperatorsFromPreConfiguredOperatorTabsForQuery &&

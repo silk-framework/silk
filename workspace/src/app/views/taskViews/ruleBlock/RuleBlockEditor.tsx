@@ -1,13 +1,23 @@
 import React from "react";
-import { AlertDialog, Button, StickyNote } from "@eccenca/gui-elements";
+import {
+    AlertDialog,
+    Button,
+    ContextMenu,
+    IconButton,
+    MenuItem,
+    Spacing,
+    StickyNote,
+    ToolbarSection
+} from "@eccenca/gui-elements";
 import { useTranslation } from "react-i18next";
+import i18next from "i18next";
 import { requestRuleOperatorPluginsDetails } from "@ducks/common/requests";
 import { IPluginDetails } from "@ducks/common/typings";
 import { IProjectTask } from "@ducks/shared/typings";
 import { requestRelatedItems, requestTaskData } from "@ducks/shared/requests";
 import { requestUpdateProjectTask } from "@ducks/workspace/requests";
 import { IViewActions } from "../../plugins/PluginRegistry";
-import RuleEditor, { RuleEditorExternalApi } from "../../shared/RuleEditor/RuleEditor";
+import RuleEditor, { RuleEditorExternalApi, RuleOperatorFetchFnType } from "../../shared/RuleEditor/RuleEditor";
 import {
     IRuleOperatorNode,
     IRuleSideBarFilterTabConfig,
@@ -38,7 +48,7 @@ type DeleteInputPortDialogState = { portId: string; instanceCount: number } | un
 
 /** Editor for reusable rule block tasks. */
 export const RuleBlockEditor = ({ projectId, ruleBlockTaskId, viewActions, instanceId }: RuleBlockEditorProps) => {
-    const [t] = useTranslation();
+    const { i18n } = useTranslation();
     const { registerError } = useErrorHandler();
     const [ports, setPorts] = React.useState(ruleBlockUtils.emptyRuleBlockModel().ports);
     const [sidebarReloadToken, setSidebarReloadToken] = React.useState(0);
@@ -46,42 +56,50 @@ export const RuleBlockEditor = ({ projectId, ruleBlockTaskId, viewActions, insta
     const [deleteInputPortDialogState, setDeleteInputPortDialogState] =
         React.useState<DeleteInputPortDialogState>(undefined);
     const ruleEditorRef = React.useRef<RuleEditorExternalApi>(null);
+    const portsRef = React.useRef(ports);
+    portsRef.current = ports;
 
     const bumpSidebarReloadToken = React.useCallback(() => {
         setSidebarReloadToken((currentToken) => currentToken + 1);
     }, []);
 
-    const fetchRuleBlockTask = async (
-        currentProjectId: string,
-        taskId: string,
-    ): Promise<RuleBlockTaskData | undefined> => {
-        try {
-            const taskData = (await requestTaskData<IRuleBlockTaskParameters>(currentProjectId, taskId)).data;
-            setPorts(ruleBlockUtils.sortRuleBlockPorts(taskData.data.parameters.ruleBlockModel?.ports ?? []));
-            bumpSidebarReloadToken();
-            return taskData;
-        } catch (err) {
-            registerError("RuleBlockEditor_fetchRuleBlockTask", t("taskViews.ruleBlock.errors.fetchTaskData"), err, {
-                errorNotificationInstanceId: RULE_EDITOR_NOTIFICATION_INSTANCE,
-            });
-        }
-    };
+    const fetchRuleBlockTask = React.useCallback(
+        async (currentProjectId: string, taskId: string): Promise<RuleBlockTaskData | undefined> => {
+            try {
+                const taskData = (await requestTaskData<IRuleBlockTaskParameters>(currentProjectId, taskId)).data;
+                setPorts(ruleBlockUtils.sortRuleBlockPorts(taskData.data.parameters.ruleBlockModel?.ports ?? []));
+                bumpSidebarReloadToken();
+                return taskData;
+            } catch (err) {
+                registerError(
+                    "RuleBlockEditor_fetchRuleBlockTask",
+                    i18next.t("taskViews.ruleBlock.errors.fetchTaskData"),
+                    err,
+                    {
+                        errorNotificationInstanceId: RULE_EDITOR_NOTIFICATION_INSTANCE,
+                    },
+                );
+            }
+        },
+        [bumpSidebarReloadToken, registerError],
+    );
 
-    const fetchTransformRuleOperatorList = async (): Promise<IPluginDetails[] | undefined> => {
+    const fetchTransformRuleOperatorList = React.useCallback(async (): Promise<IPluginDetails[] | undefined> => {
         try {
             const response = (await requestRuleOperatorPluginsDetails(true)).data;
             return Object.values(response).filter((plugin) => plugin.pluginType === "TransformOperator");
         } catch (err) {
             registerError(
                 "RuleBlockEditor_fetchTransformRuleOperatorDetails",
-                t("taskViews.ruleBlock.errors.fetchTransformOperators"),
+                i18next.t("taskViews.ruleBlock.errors.fetchTransformOperators"),
                 err,
                 { errorNotificationInstanceId: RULE_EDITOR_NOTIFICATION_INSTANCE },
             );
         }
-    };
+    }, [registerError]);
 
-    const inputPortOperator = React.useMemo(() => ruleBlockEditorUtils.createInputPortOperator(), [t]);
+    const inputPortOperator = React.useMemo(() => ruleBlockEditorUtils.createInputPortOperator(), [i18n.language]);
+    const additionalRuleOperators = React.useMemo(() => [inputPortOperator], [inputPortOperator]);
     const editedPort =
         inputPortDialogState?.mode === "edit"
             ? ports.find((port) => port.id === inputPortDialogState.portId)
@@ -120,6 +138,35 @@ export const RuleBlockEditor = ({ projectId, ruleBlockTaskId, viewActions, insta
         bumpSidebarReloadToken();
     }, [bumpSidebarReloadToken]);
 
+    const isRuleBlockPortArray = (savedState: unknown): savedState is IRuleBlockPort[] =>
+        Array.isArray(savedState) &&
+        savedState.every(
+            (port) =>
+                typeof port === "object" &&
+                port !== null &&
+                typeof port.id === "string" &&
+                typeof port.label === "string" &&
+                typeof port.description === "string" &&
+                typeof port.exampleValues === "string" &&
+                typeof port.displayOrder === "number" &&
+                typeof port.deprecated === "boolean",
+        );
+
+    const captureExternalSavedState = React.useCallback(() => {
+        return ruleBlockUtils.sortRuleBlockPorts(portsRef.current);
+    }, []);
+
+    const restoreExternalSavedState = React.useCallback(
+        (savedState: unknown) => {
+            if (isRuleBlockPortArray(savedState)) {
+                applyPorts(savedState);
+            }
+        },
+        [applyPorts],
+    );
+
+    const getPorts = React.useCallback(() => portsRef.current, []);
+
     const inputPortInstanceNodeIds = React.useCallback((portId: string): string[] => {
         const ruleEditorApi = ruleEditorRef.current;
         if (!ruleEditorApi) {
@@ -154,11 +201,24 @@ export const RuleBlockEditor = ({ projectId, ruleBlockTaskId, viewActions, insta
         );
     }, []);
 
+    const syncChangedInputPortNodeMetaData = React.useCallback(
+        (previousPorts: IRuleBlockPort[], nextPorts: IRuleBlockPort[]) => {
+            const previousPortsById = new Map(previousPorts.map((port) => [port.id, port] as const));
+            nextPorts.forEach((port) => {
+                const previousPort = previousPortsById.get(port.id);
+                if (!previousPort || previousPort.displayOrder !== port.displayOrder) {
+                    syncInputPortNodeMetaData(port);
+                }
+            });
+        },
+        [syncInputPortNodeMetaData],
+    );
+
     const deleteInputPort = React.useCallback(
         (portId: string) => {
             const ruleEditorApi = ruleEditorRef.current;
-            const previousPorts = ports;
-            const nextPorts = ports.filter((port) => port.id !== portId);
+            const previousPorts = portsRef.current;
+            const nextPorts = previousPorts.filter((port) => port.id !== portId);
             const affectedNodeIds = inputPortInstanceNodeIds(portId);
             if (ruleEditorApi) {
                 ruleEditorApi.startChangeTransaction();
@@ -173,7 +233,7 @@ export const RuleBlockEditor = ({ projectId, ruleBlockTaskId, viewActions, insta
                 applyPorts(nextPorts);
             }
         },
-        [applyPorts, inputPortInstanceNodeIds, ports],
+        [applyPorts, inputPortInstanceNodeIds],
     );
 
     const requestDeleteInputPort = React.useCallback(
@@ -196,11 +256,37 @@ export const RuleBlockEditor = ({ projectId, ruleBlockTaskId, viewActions, insta
         closeDeleteInputPortDialog();
     }, [closeDeleteInputPortDialog, deleteInputPort, deleteInputPortDialogState]);
 
+    const normalizeInputPortOrder = React.useCallback(() => {
+        const ruleEditorApi = ruleEditorRef.current;
+        const previousPorts = portsRef.current;
+        const nextPorts = ruleBlockUtils.normalizePortDisplayOrder(previousPorts);
+        if (
+            previousPorts.length === nextPorts.length &&
+            previousPorts.every(
+                (port, index) => port.id === nextPorts[index].id && port.displayOrder === nextPorts[index].displayOrder,
+            )
+        ) {
+            return;
+        }
+        if (ruleEditorApi) {
+            ruleEditorApi.startChangeTransaction();
+            ruleEditorApi.executeExternalRuleModelChange({
+                do: () => applyPorts(nextPorts),
+                undo: () => applyPorts(previousPorts),
+            });
+            syncChangedInputPortNodeMetaData(previousPorts, nextPorts);
+        } else {
+            applyPorts(nextPorts);
+            syncChangedInputPortNodeMetaData(previousPorts, nextPorts);
+        }
+    }, [applyPorts, syncChangedInputPortNodeMetaData]);
+
     const submitInputPortDialog = React.useCallback(
         (value: InputPortDialogSubmitValue) => {
             const ruleEditorApi = ruleEditorRef.current;
+            const previousPorts = portsRef.current;
             if (inputPortDialogState?.mode === "edit" && editedPort) {
-                const updatedPorts = ports.map((port) =>
+                const updatedPorts = previousPorts.map((port) =>
                         port.id === editedPort.id
                             ? {
                                   ...port,
@@ -213,7 +299,7 @@ export const RuleBlockEditor = ({ projectId, ruleBlockTaskId, viewActions, insta
                     ruleEditorApi.startChangeTransaction();
                     ruleEditorApi.executeExternalRuleModelChange({
                         do: () => applyPorts(updatedPorts),
-                        undo: () => applyPorts(ports),
+                        undo: () => applyPorts(previousPorts),
                     });
                     if (updatedPort) {
                         syncInputPortNodeMetaData(updatedPort);
@@ -226,7 +312,7 @@ export const RuleBlockEditor = ({ projectId, ruleBlockTaskId, viewActions, insta
                 }
             } else {
                 const updatedPorts = [
-                    ...ports,
+                    ...previousPorts,
                     {
                         id: ruleBlockUtils.generateInputPortId(),
                         ...value,
@@ -236,7 +322,7 @@ export const RuleBlockEditor = ({ projectId, ruleBlockTaskId, viewActions, insta
                     ruleEditorApi.startChangeTransaction();
                     ruleEditorApi.executeExternalRuleModelChange({
                         do: () => applyPorts(updatedPorts),
-                        undo: () => applyPorts(ports),
+                        undo: () => applyPorts(previousPorts),
                     });
                 } else {
                     applyPorts(updatedPorts);
@@ -244,7 +330,7 @@ export const RuleBlockEditor = ({ projectId, ruleBlockTaskId, viewActions, insta
             }
             closeInputPortDialog();
         },
-        [applyPorts, closeInputPortDialog, editedPort, inputPortDialogState?.mode, ports, syncInputPortNodeMetaData],
+        [applyPorts, closeInputPortDialog, editedPort, inputPortDialogState?.mode, syncInputPortNodeMetaData],
     );
 
     const ruleEditorTabs = React.useMemo<
@@ -259,104 +345,111 @@ export const RuleBlockEditor = ({ projectId, ruleBlockTaskId, viewActions, insta
                 showOperatorsFromPreConfiguredOperatorTabsAlways: true,
             },
             ruleBlockEditorUtils.createInputPortsTab(
-                ports,
+                getPorts,
                 openCreateInputPortDialog,
                 openEditInputPortDialog,
                 requestDeleteInputPort,
             ),
             ruleUtils.sidebarTabs.transform as IRuleSideBarFilterTabConfig,
         ],
-        [openCreateInputPortDialog, openEditInputPortDialog, ports, requestDeleteInputPort, t],
+        [getPorts, i18n.language, openCreateInputPortDialog, openEditInputPortDialog, requestDeleteInputPort],
     );
 
     const deletePort = deleteInputPortDialogState
         ? ports.find((port) => port.id === deleteInputPortDialogState.portId)
         : undefined;
+    const canNormalizePortOrder = !ruleBlockUtils.isNormalizedPortDisplayOrder(ports);
 
-    const saveRuleBlock = async (
-        ruleOperatorNodes: IRuleOperatorNode[],
-        stickyNotes: StickyNote[],
-        originalTask: RuleBlockTaskData,
-    ): Promise<RuleSaveResult> => {
-        try {
-            const currentModel = originalTask.data.parameters.ruleBlockModel ?? ruleBlockUtils.emptyRuleBlockModel();
-            const [operatorNodeMap, rootNodes] = ruleUtils.convertToRuleOperatorNodeMap(ruleOperatorNodes, true);
-            const inputPortNodes = ruleOperatorNodes.filter((node) => node.pluginType === "InputPortOperator");
-            const nextPortDefinitions = ruleBlockUtils.sortRuleBlockPorts(ports);
-            const relatedItemsResponse = await requestRelatedItems(projectId, ruleBlockTaskId, "", 1);
-            if (relatedItemsResponse.data.total > 0) {
-                const compatibilityValidation = ruleBlockUtils.validateUsedPortCompatibility(
-                    currentModel.ports,
+    const saveRuleBlock = React.useCallback(
+        async (
+            ruleOperatorNodes: IRuleOperatorNode[],
+            stickyNotes: StickyNote[],
+            originalTask: RuleBlockTaskData,
+        ): Promise<RuleSaveResult> => {
+            try {
+                const currentModel = originalTask.data.parameters.ruleBlockModel ?? ruleBlockUtils.emptyRuleBlockModel();
+                const [operatorNodeMap, rootNodes] = ruleUtils.convertToRuleOperatorNodeMap(ruleOperatorNodes, true);
+                const inputPortNodes = ruleOperatorNodes.filter((node) => node.pluginType === "InputPortOperator");
+                const nextPortDefinitions = ruleBlockUtils.sortRuleBlockPorts(portsRef.current);
+                const relatedItemsResponse = await requestRelatedItems(projectId, ruleBlockTaskId, "", 1);
+                if (relatedItemsResponse.data.total > 0) {
+                    const compatibilityValidation = ruleBlockUtils.validateUsedPortCompatibility(
+                        currentModel.ports,
+                        nextPortDefinitions,
+                        inputPortNodes,
+                        (portLabel) => i18next.t("taskViews.ruleBlock.errors.usedPortRemoved", { portLabel }),
+                        (portLabel) => i18next.t("taskViews.ruleBlock.errors.usedPortReordered", { portLabel }),
+                    );
+                    if (compatibilityValidation.errorMessage) {
+                        return new RuleValidationError(
+                            compatibilityValidation.errorMessage,
+                            compatibilityValidation.nodeErrors,
+                        );
+                    }
+                }
+
+                const duplicateDisplayOrderErrors = ruleBlockUtils.validateDuplicateDisplayOrders(
                     nextPortDefinitions,
                     inputPortNodes,
-                    (portLabel) => t("taskViews.ruleBlock.errors.usedPortRemoved", { portLabel }),
-                    (portLabel) => t("taskViews.ruleBlock.errors.usedPortReordered", { portLabel }),
+                    (displayOrder) => i18next.t("taskViews.ruleBlock.errors.duplicateDisplayOrder", { displayOrder }),
                 );
-                if (compatibilityValidation.errorMessage) {
+                if (duplicateDisplayOrderErrors.length) {
                     return new RuleValidationError(
-                        compatibilityValidation.errorMessage,
-                        compatibilityValidation.nodeErrors,
+                        i18next.t("taskViews.ruleBlock.errors.invalidPorts"),
+                        duplicateDisplayOrderErrors,
                     );
                 }
-            }
 
-            const duplicateDisplayOrderErrors = ruleBlockUtils.validateDuplicateDisplayOrders(
-                nextPortDefinitions,
-                inputPortNodes,
-                (displayOrder) => t("taskViews.ruleBlock.errors.duplicateDisplayOrder", { displayOrder }),
-            );
-            if (duplicateDisplayOrderErrors.length) {
-                return new RuleValidationError(t("taskViews.ruleBlock.errors.invalidPorts"), duplicateDisplayOrderErrors);
-            }
-
-            const updatedModel: IRuleBlockModel = {
-                ...currentModel,
-                ports: nextPortDefinitions,
-                operatorTree: rootNodes[0]
-                    ? ruleUtils.convertRuleOperatorNodeToValueInput(rootNodes[0], operatorNodeMap)
-                    : undefined,
-                layout: ruleUtils.ruleLayout(ruleOperatorNodes),
-                uiAnnotations: {
-                    ...(currentModel.uiAnnotations ?? {}),
-                    stickyNotes,
-                },
-            };
-
-            await requestUpdateProjectTask(projectId, ruleBlockTaskId, {
-                data: {
-                    parameters: {
-                        ruleBlockModel: updatedModel,
+                const updatedModel: IRuleBlockModel = {
+                    ...currentModel,
+                    ports: nextPortDefinitions,
+                    operatorTree: rootNodes[0]
+                        ? ruleUtils.convertRuleOperatorNodeToValueInput(rootNodes[0], operatorNodeMap)
+                        : undefined,
+                    layout: ruleUtils.ruleLayout(ruleOperatorNodes),
+                    uiAnnotations: {
+                        ...(currentModel.uiAnnotations ?? {}),
+                        stickyNotes,
                     },
-                },
-            });
-            return {
-                success: true,
-            };
-        } catch (err) {
-            if ((err as RuleValidationError).isRuleValidationError) {
-                return err;
-            }
-            if (err?.isHttpError && err.httpStatus === 400 && Array.isArray((err as FetchError).body?.issues)) {
-                return new RuleValidationError(
-                    t("taskViews.ruleBlock.errors.save"),
-                    (err as FetchError).body.issues.map((issue) => ({
-                        nodeId: issue.id,
-                        message: issue.message,
-                    })),
-                );
-            }
-            if (err?.isHttpError) {
+                };
+
+                await requestUpdateProjectTask(projectId, ruleBlockTaskId, {
+                    data: {
+                        parameters: {
+                            ruleBlockModel: updatedModel,
+                        },
+                    },
+                });
+                return {
+                    success: true,
+                };
+            } catch (err) {
+                if ((err as RuleValidationError).isRuleValidationError) {
+                    return err;
+                }
+                if (err?.isHttpError && err.httpStatus === 400 && Array.isArray((err as FetchError).body?.issues)) {
+                    return new RuleValidationError(
+                        i18next.t("taskViews.ruleBlock.errors.save"),
+                        (err as FetchError).body.issues.map((issue) => ({
+                            nodeId: issue.id,
+                            message: issue.message,
+                        })),
+                    );
+                }
+                if (err?.isHttpError) {
+                    return {
+                        success: false,
+                        errorMessage: `${i18next.t("taskViews.ruleBlock.errors.save")}${err.message ? ": " + err.message : ""}`,
+                    };
+                }
                 return {
                     success: false,
-                    errorMessage: `${t("taskViews.ruleBlock.errors.save")}${err.message ? ": " + err.message : ""}`,
+                    errorMessage: `${i18next.t("taskViews.ruleBlock.errors.save")}${err.message ? ": " + err.message : ""}`,
                 };
             }
-            return {
-                success: false,
-                errorMessage: `${t("taskViews.ruleBlock.errors.save")}${err.message ? ": " + err.message : ""}`,
-            };
-        }
-    };
+        },
+        [projectId, ruleBlockTaskId],
+    );
 
     const partialAutoCompletion = React.useCallback(
         (_inputType: "source" | "target") =>
@@ -367,8 +460,41 @@ export const RuleBlockEditor = ({ projectId, ruleBlockTaskId, viewActions, insta
         [],
     );
 
+    const convertToRuleOperatorNodes = React.useCallback(
+        (ruleBlockTask: RuleBlockTaskData, ruleOperator: RuleOperatorFetchFnType) =>
+            ruleBlockEditorUtils.convertRuleBlockTaskToRuleOperatorNodes(ruleBlockTask, ruleOperator),
+        [],
+    );
+
+    const additionalToolBarComponents = React.useCallback(
+        () => (
+            <ToolbarSection>
+                <ContextMenu
+                    togglerElement={
+                        <IconButton
+                            name="data-targetschema"
+                            text={i18next.t("taskViews.ruleBlock.portMenu")}
+                            tooltipAsTitle
+                        />
+                    }
+                >
+                    <MenuItem
+                        onClick={normalizeInputPortOrder}
+                        disabled={!canNormalizePortOrder}
+                        text={i18next.t("taskViews.ruleBlock.normalizePortOrder")}
+                        htmlTitle={i18next.t("taskViews.ruleBlock.normalizePortOrderTooltip")}
+                    />
+                </ContextMenu>
+                <Spacing vertical={true} hasDivider={true} />
+            </ToolbarSection>
+        ),
+        [canNormalizePortOrder, normalizeInputPortOrder],
+    );
+
+    const externalSidebarContextValue = React.useMemo(() => ({ reloadToken: sidebarReloadToken }), [sidebarReloadToken]);
+
     return (
-        <ExternalSidebarContext.Provider value={{ reloadToken: sidebarReloadToken }}>
+        <ExternalSidebarContext.Provider value={externalSidebarContextValue}>
             <>
                 <RuleEditor<RuleBlockTaskData, IPluginDetails>
                     ref={ruleEditorRef}
@@ -378,17 +504,18 @@ export const RuleBlockEditor = ({ projectId, ruleBlockTaskId, viewActions, insta
                     fetchRuleOperators={fetchTransformRuleOperatorList}
                     saveRule={saveRuleBlock}
                     convertRuleOperator={ruleUtils.convertRuleOperator}
-                    convertToRuleOperatorNodes={(ruleBlockTask, ruleOperator) =>
-                        ruleBlockEditorUtils.convertRuleBlockTaskToRuleOperatorNodes(ruleBlockTask, ruleOperator)
-                    }
+                    convertToRuleOperatorNodes={convertToRuleOperatorNodes}
                     partialAutoCompletion={partialAutoCompletion}
                     viewActions={viewActions}
                     getStickyNotes={ruleBlockEditorUtils.getStickyNotes}
                     // Register the internal operator definition so existing canvas nodes and drag/drop-created nodes
                     // can be materialized. User-facing sidebar entries come from the pre-configured input-port tab.
-                    additionalRuleOperators={[inputPortOperator]}
+                    additionalRuleOperators={additionalRuleOperators}
+                    additionalToolBarComponents={additionalToolBarComponents}
                     validateConnection={ruleUtils.validateConnection}
                     tabs={ruleEditorTabs}
+                    captureExternalSavedState={captureExternalSavedState}
+                    restoreExternalSavedState={restoreExternalSavedState}
                     showRuleOnly={false}
                     instanceId={instanceId}
                     saveInitiallyEnabled={false}
@@ -430,27 +557,29 @@ const ConfirmDeleteInputPortDialog = ({
     onConfirm,
     onClose,
 }: ConfirmDeleteInputPortDialogProps) => {
-    const [t] = useTranslation()
+    const [t] = useTranslation();
 
-    return <AlertDialog
-        danger
-        isOpen={true}
-        title={t("taskViews.ruleBlock.deleteInputPort.title", "Delete input port")}
-        onClose={onClose}
-        actions={[
-            <Button key="delete-input-port" disruptive onClick={onConfirm}>
-                {t("common.action.delete", "Delete")}
-            </Button>,
-            <Button key="cancel-delete-input-port" onClick={onClose}>
-                {t("common.action.cancel", "Cancel")}
-            </Button>,
-        ]}
-    >
-        {t("taskViews.ruleBlock.deleteInputPort.confirmMessage", {
-            defaultValue:
-                "Delete input port '{{portLabel}}'? This will also remove {{count}} instances from the rule tree.",
-            portLabel: portLabel ?? t("taskViews.ruleBlock.inputPortOperator", "Input port"),
-            count: instanceCount,
-        })}
-    </AlertDialog>
-}
+    return (
+        <AlertDialog
+            danger
+            isOpen={true}
+            title={t("taskViews.ruleBlock.deleteInputPort.title", "Delete input port")}
+            onClose={onClose}
+            actions={[
+                <Button key="delete-input-port" disruptive onClick={onConfirm}>
+                    {t("common.action.delete", "Delete")}
+                </Button>,
+                <Button key="cancel-delete-input-port" onClick={onClose}>
+                    {t("common.action.cancel", "Cancel")}
+                </Button>,
+            ]}
+        >
+            {t("taskViews.ruleBlock.deleteInputPort.confirmMessage", {
+                defaultValue:
+                    "Delete input port '{{portLabel}}'? This will also remove {{count}} instances from the rule tree.",
+                portLabel: portLabel ?? t("taskViews.ruleBlock.inputPortOperator", "Input port"),
+                count: instanceCount,
+            })}
+        </AlertDialog>
+    );
+};

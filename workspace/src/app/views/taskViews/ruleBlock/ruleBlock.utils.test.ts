@@ -79,23 +79,42 @@ describe("ruleBlockUtils", () => {
         });
     });
 
-    it("should reject reordering a persisted port when the rule block is already in use", () => {
+    it("should reject changing the relative order of persisted ports when the rule block is already in use", () => {
         const result = ruleBlockUtils.validateUsedPortCompatibility(
-            [port("lockedPort", 0, "Locked port")],
-            [port("lockedPort", 3, "Renamed port")],
-            [inputPortNode("portNode1", "lockedPort", 3)],
+            [port("firstPort", 0, "First port"), port("secondPort", 2, "Second port")],
+            [port("firstPort", 4, "First port"), port("secondPort", 1, "Second port")],
+            [inputPortNode("portNode1", "firstPort", 4), inputPortNode("portNode2", "secondPort", 1)],
             (portName) => `removed ${portName}`,
             (portName) => `reordered ${portName}`,
         );
 
         expect(result).toStrictEqual({
-            errorMessage: "reordered Renamed port",
+            errorMessage: "reordered First port reordered Second port",
             nodeErrors: [
                 {
                     nodeId: "portNode1",
-                    message: "reordered Renamed port",
+                    message: "reordered First port",
+                },
+                {
+                    nodeId: "portNode2",
+                    message: "reordered Second port",
                 },
             ],
+        });
+    });
+
+    it("should allow changing absolute display order numbers if the relative order stays the same", () => {
+        const result = ruleBlockUtils.validateUsedPortCompatibility(
+            [port("firstPort", 2, "First port"), port("secondPort", 5, "Second port")],
+            [port("firstPort", 1, "First port"), port("secondPort", 2, "Second port")],
+            [inputPortNode("portNode1", "firstPort", 1), inputPortNode("portNode2", "secondPort", 2)],
+            (portName) => `removed ${portName}`,
+            (portName) => `reordered ${portName}`,
+        );
+
+        expect(result).toStrictEqual({
+            errorMessage: undefined,
+            nodeErrors: [],
         });
     });
 
@@ -149,6 +168,35 @@ describe("ruleBlockUtils", () => {
             nodeErrors: [],
             portDefinitions: [port("hiddenPort", 1, "Hidden port"), port("lockedPort", 1, "lockedPort label")],
         });
+    });
+
+    it("should normalize display orders to dense ranks while preserving the current relative order", () => {
+        expect(
+            ruleBlockUtils.normalizePortDisplayOrder([
+                port("secondPort", 5, "Second port"),
+                port("firstPort", 2, "First port"),
+                port("thirdPort", 8, "Third port"),
+            ]),
+        ).toStrictEqual([
+            port("firstPort", 1, "First port"),
+            port("secondPort", 2, "Second port"),
+            port("thirdPort", 3, "Third port"),
+        ]);
+    });
+
+    it("should detect whether display orders are already normalized", () => {
+        expect(
+            ruleBlockUtils.isNormalizedPortDisplayOrder([
+                port("firstPort", 1, "First port"),
+                port("secondPort", 2, "Second port"),
+            ]),
+        ).toBe(true);
+        expect(
+            ruleBlockUtils.isNormalizedPortDisplayOrder([
+                port("firstPort", 2, "First port"),
+                port("secondPort", 5, "Second port"),
+            ]),
+        ).toBe(false);
     });
 });
 

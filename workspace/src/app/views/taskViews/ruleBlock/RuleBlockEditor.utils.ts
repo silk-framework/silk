@@ -72,7 +72,7 @@ const convertInputPortToSidebarOperator = (
         pluginId: inputPortOperator.pluginId,
         label: port.label,
         description: port.description,
-        icon: inputPortOperator.icon,
+        icon: "data-targetschema",
         categories: [],
         tags: [
             i18next.t("taskViews.ruleBlock.inputPortsTab"),
@@ -105,7 +105,7 @@ const convertInputPortToSidebarOperator = (
 
 /** Creates the input-port pre-configured sidebar tab from the current logical input-port state. */
 const createInputPortsTab = (
-    ports: IRuleBlockPort[],
+    getPorts: () => IRuleBlockPort[],
     onCreate: () => void,
     onEdit: (portId: string) => void,
     onDelete: (portId: string) => void,
@@ -115,7 +115,7 @@ const createInputPortsTab = (
     label: i18next.t("taskViews.ruleBlock.inputPortsTab"),
     position: "top",
     defaultOperators: [],
-    fetchOperators: async () => [{ type: "create" }, ...ruleBlockUtils.sortRuleBlockPorts(ports)],
+    fetchOperators: async () => [{ type: "create" }, ...ruleBlockUtils.sortRuleBlockPorts(getPorts())],
     convertToOperator: (listItem) =>
         "type" in listItem
             ? createNewInputPortSidebarItem(onCreate)

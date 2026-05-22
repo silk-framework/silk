@@ -126,6 +126,10 @@ export interface RuleEditorProps<RULE_TYPE, OPERATOR_TYPE> extends RuleEditorBas
     fetchDatasetCharacteristics?: (
         taskData: RULE_TYPE | undefined,
     ) => Map<string, DatasetCharacteristics> | Promise<Map<string, DatasetCharacteristics>>;
+    /** Optional hook to capture additional parent-owned state that should become part of the editor saved-state snapshot. */
+    captureExternalSavedState?: () => unknown;
+    /** Optional hook to restore additional parent-owned state from the latest saved-state snapshot. */
+    restoreExternalSavedState?: (savedState: unknown) => void;
 }
 
 export interface RuleEditorExternalApi {
@@ -193,6 +197,8 @@ const RuleEditorInner = <TASK_TYPE extends object, OPERATOR_TYPE extends object>
     initialFitToViewZoomLevel,
     instanceId,
     fetchDatasetCharacteristics,
+    captureExternalSavedState,
+    restoreExternalSavedState,
     pathMetaData,
     partialAutoCompletion,
     saveInitiallyEnabled,
@@ -228,6 +234,11 @@ const RuleEditorInner = <TASK_TYPE extends object, OPERATOR_TYPE extends object>
         new Map(),
     );
     const [hotKeysDisabled, setHotKeysDisabled] = React.useState<boolean>(false);
+    const fetchRuleDataRef = React.useRef(fetchRuleData);
+    const fetchDatasetCharacteristicsRef = React.useRef(fetchDatasetCharacteristics);
+
+    fetchRuleDataRef.current = fetchRuleData;
+    fetchDatasetCharacteristicsRef.current = fetchDatasetCharacteristics;
 
     const disableHotKeys = React.useCallback((disabled: boolean) => {
         setHotKeysDisabled(disabled);
@@ -241,11 +252,6 @@ const RuleEditorInner = <TASK_TYPE extends object, OPERATOR_TYPE extends object>
             setLastSaveResult(saveResult);
         }
     };
-
-    // Fetch the task data
-    React.useEffect(() => {
-        fetchData();
-    }, [projectId, taskId]);
 
     // Convert task data to internal model
     React.useEffect(() => {
@@ -282,19 +288,25 @@ const RuleEditorInner = <TASK_TYPE extends object, OPERATOR_TYPE extends object>
         }
     }, [operators]);
 
-    const fetchData = async () => {
+    const fetchData = React.useCallback(async () => {
         setTaskDataLoading(true);
         try {
-            const data = await fetchRuleData(projectId, taskId);
-            if (fetchDatasetCharacteristics) {
-                const datasetCharacteristics = await fetchDatasetCharacteristics(data);
+            const data = await fetchRuleDataRef.current(projectId, taskId);
+            if (fetchDatasetCharacteristicsRef.current) {
+                const datasetCharacteristics = await fetchDatasetCharacteristicsRef.current(data);
                 setDatasetCharacteristics(datasetCharacteristics);
             }
             setTaskData(data);
+            return data;
         } finally {
             setTaskDataLoading(false);
         }
-    };
+    }, [projectId, taskId]);
+
+    // Fetch the task data
+    React.useEffect(() => {
+        fetchData();
+    }, [fetchData, projectId, taskId]);
 
     const saveRuleOperatorNodes = async (
         ruleNodeOperators: IRuleOperatorNode[],
@@ -302,6 +314,9 @@ const RuleEditorInner = <TASK_TYPE extends object, OPERATOR_TYPE extends object>
     ): Promise<RuleSaveResult> => {
         if (taskData) {
             const result = await saveRule(ruleNodeOperators, stickyNotes, taskData);
+            if (result.success) {
+                await fetchData();
+            }
             updateLastSaveResult(result);
             viewActions?.onSave && viewActions.onSave();
             return result;
@@ -358,6 +373,8 @@ const RuleEditorInner = <TASK_TYPE extends object, OPERATOR_TYPE extends object>
                 initialFitToViewZoomLevel,
                 instanceId,
                 datasetCharacteristics,
+                captureExternalSavedState,
+                restoreExternalSavedState,
                 pathMetaData,
                 partialAutoCompletion,
                 saveInitiallyEnabled,
