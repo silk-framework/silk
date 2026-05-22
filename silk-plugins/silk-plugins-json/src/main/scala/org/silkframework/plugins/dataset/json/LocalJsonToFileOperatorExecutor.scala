@@ -5,13 +5,11 @@ import org.silkframework.config.Task
 import org.silkframework.entity.Entity
 import org.silkframework.execution._
 import org.silkframework.execution.local.{LocalEntities, LocalExecution, LocalExecutor}
-import org.silkframework.execution.typed.{FileEntity, FileEntitySchema, FileType}
+import org.silkframework.execution.typed.{FileEntity, FileEntitySchema}
 import org.silkframework.runtime.activity.{ActivityContext, ActivityMonitor}
 import org.silkframework.runtime.plugin.PluginContext
-import org.silkframework.runtime.resource.FileResource
 import org.silkframework.runtime.resource.zip.ZipOutputStreamResource
 
-import java.io.File
 import java.util.zip.ZipOutputStream
 import scala.util.Try
 import scala.util.control.NonFatal
@@ -48,11 +46,17 @@ case class LocalJsonToFileOperatorExecutor() extends LocalExecutor[JsonToFileOpe
         val jsonString = readJsonValue(entity, pathIndex)
         validateJson(jsonString)
         val fileEntity = if (trimmedFileName.isEmpty) {
-          FileEntity.createTemp("jsonOutput", ".json").copy(mimeType = outputMimeType)
+          FileEntity.createTemp("jsonOutput", ".json", mimeType = outputMimeType)
         } else {
           allocateNamedFileEntity(trimmedFileName, index, multiple, outputMimeType)
         }
-        fileEntity.file.writeString(jsonString)
+        try {
+          fileEntity.file.writeString(jsonString)
+        } catch {
+          case NonFatal(e) =>
+            Try(fileEntity.file.delete())
+            throw e
+        }
         fileEntity
       }
       Some(FileEntitySchema.create(fileEntities, task))
@@ -71,7 +75,7 @@ case class LocalJsonToFileOperatorExecutor() extends LocalExecutor[JsonToFileOpe
     val effectiveMimeType = if (task.data.mimeType == "application/json") "application/zip" else task.data.mimeType
     val multiple = entities.size > 1
     val zipFileEntity = if (trimmedFileName.isEmpty) {
-      FileEntity.createTemp("jsonOutput", ".zip").copy(mimeType = Some(effectiveMimeType))
+      FileEntity.createTemp("jsonOutput", ".zip", mimeType = Some(effectiveMimeType))
     } else {
       allocateNamedFileEntity(trimmedFileName, 0, multiple = false, Some(effectiveMimeType))
     }
@@ -123,12 +127,7 @@ case class LocalJsonToFileOperatorExecutor() extends LocalExecutor[JsonToFileOpe
   /** Allocates a file entity with a caller-supplied name in the system temp directory. */
   private def allocateNamedFileEntity(name: String, index: Int, multiple: Boolean, mimeType: Option[String]): FileEntity = {
     val finalName = if (multiple) suffixedName(name, index) else name
-    val parentDir = new File(System.getProperty("java.io.tmpdir"))
-    val file = new File(parentDir, finalName)
-    file.deleteOnExit()
-    val resource = FileResource(file)
-    resource.setDeleteOnGC(true)
-    FileEntity(resource, FileType.Local, mimeType)
+    FileEntity.createTemp("", name = Some(finalName), mimeType = mimeType)
   }
 
   /** Inserts an index suffix before the file extension; appends it if there is no extension. */

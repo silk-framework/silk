@@ -99,13 +99,22 @@ object FileEntity {
   /**
    * Creates a local temporary file entity.
    * File will be deleted on garbage collection of the returned entity and latest on exit.
+   *
+   * @param prefix   Prefix for the generated filename. Ignored when `name` is provided.
+   * @param suffix   Suffix (extension) for the generated filename. Ignored when `name` is provided.
+   * @param name     If provided, the file is created with this exact filename in the system temp directory.
+   *                 If absent, a unique name is generated from `prefix` and `suffix`.
+   * @param mimeType Optional MIME type to attach to the produced FileEntity.
    */
-  def createTemp(prefix: String, suffix: String = ".tmp"): FileEntity = {
-    val tempFile = File.createTempFile(prefix, suffix)
+  def createTemp(prefix: String, suffix: String = ".tmp", name: Option[String] = None, mimeType: Option[String] = None): FileEntity = {
+    val tempFile = name match {
+      case Some(n) => new File(System.getProperty("java.io.tmpdir"), n)
+      case None    => File.createTempFile(prefix, suffix)
+    }
     tempFile.deleteOnExit()
     val tempResource = FileResource(tempFile)
     tempResource.setDeleteOnGC(true) // Get rid of temporary file when file resource is garbage collected
-    FileEntity(tempResource, FileType.Local)
+    FileEntity(tempResource, FileType.Local, mimeType)
   }
 
 }
