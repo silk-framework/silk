@@ -11,7 +11,7 @@ import {
     ReactFlowProvider,
 } from "react-flow-renderer";
 import { act, cleanup, waitFor } from "@testing-library/react";
-import { RuleEditorContext } from "../../contexts/RuleEditorContext";
+import { RuleEditorContext, RuleEditorContextProps } from "../../contexts/RuleEditorContext";
 import {
     IParameterSpecification,
     IPortSpecification,
@@ -82,6 +82,7 @@ describe("Rule editor model", () => {
             targetPortIdx: number,
         ) => boolean = () => true,
         stickyNotes: StickyNote[] = [],
+        contextOverrides: Partial<RuleEditorContextProps> = {},
     ) => {
         // Remove previously mounted components (needed if called multiple times in the same test)
         cleanup();
@@ -109,6 +110,7 @@ describe("Rule editor model", () => {
                         datasetCharacteristics: new Map(),
                         partialAutoCompletion: () => async () => undefined,
                         saveInitiallyEnabled: false,
+                        ...contextOverrides,
                     }}
                 >
                     <Provider>
@@ -576,6 +578,108 @@ describe("Rule editor model", () => {
             checkParameters(expectedValueHistory[i + 1]);
         }
         checkAfterChange();
+    });
+
+    it("should execute external rule model changes and undo & redo them", async () => {
+        await ruleEditorModel([node({ nodeId: "nodeA" })], [operator("pluginA")]);
+        let externalState = "initial";
+
+        const checkBeforeChange = () => {
+            expect(externalState).toBe("initial");
+            expect(currentContext().canUndo).toBe(false);
+        };
+        checkBeforeChange();
+
+        act(() => {
+            currentContext().executeModelEditOperation.startChangeTransaction();
+            currentContext().executeExternalRuleModelChange({
+                do: () => {
+                    externalState = "updated";
+                },
+                undo: () => {
+                    externalState = "initial";
+                },
+            });
+        });
+
+        const checkAfterChange = () => {
+            expect(externalState).toBe("updated");
+            expect(currentContext().canUndo).toBe(true);
+            expect(currentContext().canRedo).toBe(false);
+        };
+        checkAfterChange();
+
+        checkUndoAndRedo(checkBeforeChange, checkAfterChange);
+    });
+
+    it("should execute external rule model changes in the same transaction as canvas changes", async () => {
+        await ruleEditorModel([node({ nodeId: "nodeA" })], [operator("pluginA")]);
+        let externalState = "present";
+
+        const checkBeforeDelete = () => {
+            expect(currentContext().elements).toHaveLength(1);
+            expect(externalState).toBe("present");
+        };
+        checkBeforeDelete();
+
+        act(() => {
+            currentContext().executeModelEditOperation.startChangeTransaction();
+            currentContext().executeModelEditOperation.deleteNode("nodeA");
+            currentContext().executeExternalRuleModelChange({
+                do: () => {
+                    externalState = "deleted";
+                },
+                undo: () => {
+                    externalState = "present";
+                },
+            });
+        });
+
+        const checkAfterDelete = () => {
+            expect(currentContext().elements).toHaveLength(0);
+            expect(externalState).toBe("deleted");
+            expect(currentContext().canUndo).toBe(true);
+            expect(currentContext().canRedo).toBe(false);
+        };
+        checkAfterDelete();
+
+        checkUndoAndRedo(checkBeforeDelete, checkAfterDelete);
+    });
+
+    it("should update node metadata without changing parameters and undo & redo", async () => {
+        await ruleEditorModel([node({ nodeId: "nodeA" })], [operator("pluginA")]);
+
+        const checkBeforeUpdate = () => {
+            const canvasNode = nodeById("nodeA");
+            expect(canvasNode.data.businessData.originalRuleOperatorNode.label).toBe("nodeA");
+            expect(canvasNode.data.businessData.originalRuleOperatorNode.description).toBeUndefined();
+            expect(canvasNode.data.businessData.originalRuleOperatorNode.tags).toBeUndefined();
+            expect(currentOperatorNodes()[0].parameters).toStrictEqual(defaultParameters);
+        };
+        checkBeforeUpdate();
+
+        act(() => {
+            currentContext().updateRuleOperatorNodeMetaData(["nodeA"], () => ({
+                label: "Updated node label",
+                description: "Updated node description",
+                tags: ["Rule block"],
+            }));
+        });
+
+        const checkAfterUpdate = () => {
+            const canvasNode = nodeById("nodeA");
+            expect(canvasNode.data.businessData.originalRuleOperatorNode.label).toBe("Updated node label");
+            expect(canvasNode.data.businessData.originalRuleOperatorNode.description).toBe("Updated node description");
+            expect(canvasNode.data.businessData.originalRuleOperatorNode.tags).toStrictEqual(["Rule block"]);
+            expect(currentOperatorNodes()[0].label).toBe("Updated node label");
+            expect(currentOperatorNodes()[0].description).toBe("Updated node description");
+            expect(currentOperatorNodes()[0].tags).toStrictEqual(["Rule block"]);
+            expect(currentOperatorNodes()[0].parameters).toStrictEqual(defaultParameters);
+            checkAfterChange();
+        };
+        checkAfterUpdate();
+
+        checkUndoAndRedo(checkBeforeUpdate, checkAfterUpdate);
     });
 
     it("should save rule parameters correctly", async () => {
