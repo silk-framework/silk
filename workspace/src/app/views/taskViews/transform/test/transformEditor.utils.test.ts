@@ -1,6 +1,6 @@
-import transformEditorUtils from "./transformEditor.utils";
-import { IRuleBlockOperatorDetails } from "../ruleBlock/ruleBlockOperator.utils";
-import { IRuleBlockSummary } from "../ruleBlock/ruleBlock.types";
+import transformEditorUtils from "../transformEditor.utils";
+import { IRuleBlockOperatorDetails } from "../../ruleBlock/ruleBlockOperator.utils";
+import { IRuleBlockSummary } from "../../ruleBlock/ruleBlock.types";
 
 describe("transformEditorUtils", () => {
     it("should convert a rule block summary to a reusable operator summary with sorted ports", () => {

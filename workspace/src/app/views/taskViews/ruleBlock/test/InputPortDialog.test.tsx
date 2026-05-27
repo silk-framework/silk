@@ -1,16 +1,16 @@
 import React from "react";
 import "@testing-library/jest-dom";
 import { fireEvent, render, screen } from "@testing-library/react";
-import { createFormGuiElementsModule, mockReactI18next } from "../../../test/jestTestUtils";
-import type { InputPortDialogSubmitValue } from "./InputPortDialog";
-import type { IRuleBlockPort } from "./ruleBlock.types";
+import { createFormGuiElementsModule, mockReactI18next } from "../../../../test/jestTestUtils";
+import type { InputPortDialogSubmitValue } from "../InputPortDialog";
+import type { IRuleBlockPort } from "../ruleBlock.types";
 
 const loadInputPortDialog = () => {
     jest.resetModules();
     jest.doMock("react", () => React);
     mockReactI18next((key) => key);
-    jest.doMock("@eccenca/gui-elements", createFormGuiElementsModule);
-    return require("./InputPortDialog").default as typeof import("./InputPortDialog").default;
+    jest.doMock("../../../../../../../libs/gui-elements", createFormGuiElementsModule);
+    return require("../InputPortDialog").default as typeof import("../InputPortDialog").default;
 };
 
 const existingPort = (overrides: Partial<IRuleBlockPort> = {}): IRuleBlockPort => ({
@@ -32,17 +32,51 @@ const initialPort = (overrides: Partial<InputPortDialogSubmitValue> = {}): Input
     ...overrides,
 });
 
+const getLabelField = (): HTMLInputElement => screen.getByRole("textbox", { name: /form\.field\.label/ });
+
+const getDisplayOrderField = (): HTMLInputElement =>
+    screen.getByRole("spinbutton", { name: "taskViews.ruleBlock.displayOrder" });
+
+const getDescriptionField = (): HTMLTextAreaElement =>
+    screen.getByRole("textbox", { name: "common.words.description" });
+
+const updatePortForm = ({
+    label,
+    displayOrder,
+    description,
+}: {
+    label?: string;
+    displayOrder?: string;
+    description?: string;
+}) => {
+    if (label !== undefined) {
+        fireEvent.change(getLabelField(), {
+            target: { value: label },
+        });
+    }
+    if (displayOrder !== undefined) {
+        fireEvent.change(getDisplayOrderField(), {
+            target: { value: displayOrder },
+        });
+    }
+    if (description !== undefined) {
+        fireEvent.change(getDescriptionField(), {
+            target: { value: description },
+        });
+    }
+};
+
 describe("InputPortDialog", () => {
     afterEach(() => {
         jest.dontMock("react-i18next");
-        jest.dontMock("@eccenca/gui-elements");
+        jest.dontMock("../../../../../../../libs/gui-elements");
     });
 
     it("should render edit mode values and submit the trimmed result", () => {
         const InputPortDialog = loadInputPortDialog();
         const onSubmit = jest.fn();
 
-        const { container } = render(
+        render(
             <InputPortDialog
                 isOpen={true}
                 mode="edit"
@@ -54,14 +88,10 @@ describe("InputPortDialog", () => {
             />,
         );
 
-        fireEvent.change(container.querySelector("#input-port-label") as HTMLInputElement, {
-            target: { value: "  Updated input  " },
-        });
-        fireEvent.change(container.querySelector("#input-port-display-order") as HTMLInputElement, {
-            target: { value: "4" },
-        });
-        fireEvent.change(container.querySelector("#input-port-description") as HTMLTextAreaElement, {
-            target: { value: "Updated description" },
+        updatePortForm({
+            label: "  Updated input  ",
+            displayOrder: "4",
+            description: "Updated description",
         });
         fireEvent.click(screen.getByRole("button", { name: "common.action.update" }));
 
@@ -77,7 +107,7 @@ describe("InputPortDialog", () => {
     it("should show duplicate validation errors and disable submit", () => {
         const InputPortDialog = loadInputPortDialog();
 
-        const { container } = render(
+        render(
             <InputPortDialog
                 isOpen={true}
                 mode="create"
@@ -91,11 +121,9 @@ describe("InputPortDialog", () => {
             />,
         );
 
-        fireEvent.change(container.querySelector("#input-port-label") as HTMLInputElement, {
-            target: { value: "Existing label" },
-        });
-        fireEvent.change(container.querySelector("#input-port-display-order") as HTMLInputElement, {
-            target: { value: "5" },
+        updatePortForm({
+            label: "Existing label",
+            displayOrder: "5",
         });
 
         expect(screen.getByText("taskViews.ruleBlock.errors.duplicateInputPortLabel")).toBeInTheDocument();
@@ -114,13 +142,11 @@ describe("InputPortDialog", () => {
             onClose: jest.fn(),
             onSubmit: jest.fn(),
         };
-        const { container, rerender } = render(<InputPortDialog {...props} />);
+        const { rerender } = render(<InputPortDialog {...props} />);
 
-        fireEvent.change(container.querySelector("#input-port-label") as HTMLInputElement, {
-            target: { value: "Typed label" },
-        });
-        fireEvent.change(container.querySelector("#input-port-display-order") as HTMLInputElement, {
-            target: { value: "11" },
+        updatePortForm({
+            label: "Typed label",
+            displayOrder: "11",
         });
 
         rerender(
@@ -130,7 +156,7 @@ describe("InputPortDialog", () => {
             />,
         );
 
-        expect(container.querySelector("#input-port-label")).toHaveValue("Typed label");
-        expect(container.querySelector("#input-port-display-order")).toHaveValue(11);
+        expect(getLabelField()).toHaveValue("Typed label");
+        expect(getDisplayOrderField()).toHaveValue(11);
     });
 });

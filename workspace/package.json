@@ -9,16 +9,17 @@
         "build-di-prod: Production build of the workspace UI.",
         "test: Interactive test execution with watch mode.",
         "test-ci: Test execution for the CI system that produces the result XML files.",
-        "sync-trans: Synchronizes entries from the English (manual) language file to the German (manual) language file, i.e. add or delete entries to/from the German language file. This will modify the manually curated de.json file.",
-        "i18n-parser: Parse code files for usages of keys not existing in the current (manual) languages files. This will add a placeholder entry to the language files."
+        "i18n-parser: Parse code files for usages of keys not existing in the current (manual) languages files. This will add a placeholder entry to the language files.",
+        "trace-resolution: Run the TypeScript compiler with module resolution tracing enabled to debug import/path resolution issues.",
+        "babel: Run Babel in production mode with the env and React presets, e.g. for ad-hoc transpilation outside the regular build.",
+        "lint:js: Lint all JavaScript/TypeScript source and test files via ESLint, honoring .gitignore."
     ],
     "scripts": {
         "watch": "node --openssl-legacy-provider --max_old_space_size=2048 scripts/build-di.dev.js --watch",
         "build-di-dev": "node --openssl-legacy-provider scripts/build-di.dev.js",
         "build-di-prod": "node --openssl-legacy-provider --max_old_space_size=2048 scripts/build-di.prod.js",
-        "test": "DEBUG=true node scripts/test.js",
+        "test": "node scripts/test.js",
         "test-ci": "export CI=true && node scripts/test.js --coverage --reporters=\"default\" --reporters=\"jest-junit\" --no-colors --ci --silent",
-        "sync-trans": "sync-i18n --files 'src/locales/manual/*.json' --primary en --languages de --space 4 -- --check",
         "i18n-parser": "node scripts/i18next-scanner.js",
         "trace-resolution": "tsc --traceResolution",
         "babel": "cross-env NODE_ENV=production babel --no-babelrc --presets=@babel/preset-env,@babel/preset-react",

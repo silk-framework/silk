@@ -1,6 +1,6 @@
-import ruleBlockUtils from "./ruleBlock.utils";
-import { IRuleOperatorNode } from "../../shared/RuleEditor/RuleEditor.typings";
-import { IRuleBlockPort } from "./ruleBlock.types";
+import ruleBlockUtils from "../ruleBlock.utils";
+import { IRuleOperatorNode } from "../../../shared/RuleEditor/RuleEditor.typings";
+import { IRuleBlockPort } from "../ruleBlock.types";
 
 describe("ruleBlockUtils", () => {
     it("should resolve the logical port ID from the node parameter value", () => {
