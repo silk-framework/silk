@@ -2,7 +2,9 @@ import React from "react";
 import {
     AlertDialog,
     Button,
+    ContextOverlay,
     ContextMenu,
+    Icon,
     IconButton,
     MenuItem,
     Spacing,
@@ -45,19 +47,34 @@ export interface RuleBlockEditorProps {
 type RuleBlockTaskData = IProjectTask<IRuleBlockTaskParameters>;
 type InputPortDialogState = { mode: "create" } | { mode: "edit"; portId: string } | undefined;
 type DeleteInputPortDialogState = { portId: string; instanceCount: number } | undefined;
+type RuleBlockUsageState = {
+    isInUse: boolean;
+    refreshFailed: boolean;
+    refreshRunning: boolean;
+};
 
 /** Editor for reusable rule block tasks. */
 export const RuleBlockEditor = ({ projectId, ruleBlockTaskId, viewActions, instanceId }: RuleBlockEditorProps) => {
     const { i18n } = useTranslation();
     const { registerError } = useErrorHandler();
     const [ports, setPorts] = React.useState(ruleBlockUtils.emptyRuleBlockModel().ports);
+    const [persistedPorts, setPersistedPorts] = React.useState(ruleBlockUtils.emptyRuleBlockModel().ports);
     const [sidebarReloadToken, setSidebarReloadToken] = React.useState(0);
     const [inputPortDialogState, setInputPortDialogState] = React.useState<InputPortDialogState>(undefined);
     const [deleteInputPortDialogState, setDeleteInputPortDialogState] =
         React.useState<DeleteInputPortDialogState>(undefined);
+    const [ruleBlockUsageState, setRuleBlockUsageState] = React.useState<RuleBlockUsageState>({
+        isInUse: false,
+        refreshFailed: false,
+        refreshRunning: false,
+    });
     const ruleEditorRef = React.useRef<RuleEditorExternalApi>(null);
     const portsRef = React.useRef(ports);
+    const persistedPortsRef = React.useRef(persistedPorts);
+    const ruleBlockUsageStateRef = React.useRef(ruleBlockUsageState);
     portsRef.current = ports;
+    persistedPortsRef.current = persistedPorts;
+    ruleBlockUsageStateRef.current = ruleBlockUsageState;
 
     const bumpSidebarReloadToken = React.useCallback(() => {
         setSidebarReloadToken((currentToken) => currentToken + 1);
@@ -69,11 +86,43 @@ export const RuleBlockEditor = ({ projectId, ruleBlockTaskId, viewActions, insta
         bumpSidebarReloadToken();
     }, [bumpSidebarReloadToken]);
 
+    const applyPersistedPorts = React.useCallback((nextPorts: IRuleBlockPort[]) => {
+        ruleBlockUtils.assertValidPorts(nextPorts);
+        setPersistedPorts(ruleBlockUtils.sortRuleBlockPorts(nextPorts));
+    }, []);
+
+    const refreshRuleBlockUsage = React.useCallback(async () => {
+        setRuleBlockUsageState((currentState) => ({
+            ...currentState,
+            refreshFailed: false,
+            refreshRunning: true,
+        }));
+        try {
+            const relatedItemsResponse = await requestRelatedItems(projectId, ruleBlockTaskId, "", 1);
+            setRuleBlockUsageState({
+                isInUse: relatedItemsResponse.data.total > 0,
+                refreshFailed: false,
+                refreshRunning: false,
+            });
+            bumpSidebarReloadToken();
+        } catch {
+            setRuleBlockUsageState({
+                isInUse: false,
+                refreshFailed: true,
+                refreshRunning: false,
+            });
+            bumpSidebarReloadToken();
+        }
+    }, [bumpSidebarReloadToken, projectId, ruleBlockTaskId]);
+
     const fetchRuleBlockTask = React.useCallback(
         async (currentProjectId: string, taskId: string): Promise<RuleBlockTaskData | undefined> => {
             try {
                 const taskData = (await requestTaskData<IRuleBlockTaskParameters>(currentProjectId, taskId)).data;
-                applyPorts(taskData.data.parameters.ruleBlockModel?.ports ?? []);
+                const loadedPorts = taskData.data.parameters.ruleBlockModel?.ports ?? [];
+                applyPersistedPorts(loadedPorts);
+                applyPorts(loadedPorts);
+                await refreshRuleBlockUsage();
                 return taskData;
             } catch (err) {
                 registerError(
@@ -86,7 +135,7 @@ export const RuleBlockEditor = ({ projectId, ruleBlockTaskId, viewActions, insta
                 );
             }
         },
-        [applyPorts, registerError],
+        [applyPersistedPorts, applyPorts, refreshRuleBlockUsage, registerError],
     );
 
     const fetchTransformRuleOperatorList = React.useCallback(async (): Promise<IPluginDetails[] | undefined> => {
@@ -159,13 +208,19 @@ export const RuleBlockEditor = ({ projectId, ruleBlockTaskId, viewActions, insta
     const restoreExternalSavedState = React.useCallback(
         (savedState: unknown) => {
             if (isRuleBlockPortArray(savedState)) {
+                applyPersistedPorts(savedState);
                 applyPorts(savedState);
             }
         },
-        [applyPorts],
+        [applyPersistedPorts, applyPorts],
     );
 
     const getPorts = React.useCallback(() => portsRef.current, []);
+    const getPersistedPorts = React.useCallback(() => persistedPortsRef.current, []);
+    const isRuleBlockInUse = React.useCallback(
+        () => ruleBlockUsageStateRef.current.isInUse,
+        [],
+    );
 
     const inputPortInstanceNodeIds = React.useCallback((portId: string): string[] => {
         const ruleEditorApi = ruleEditorRef.current;
@@ -340,19 +395,30 @@ export const RuleBlockEditor = ({ projectId, ruleBlockTaskId, viewActions, insta
             },
             ruleBlockEditorUtils.createInputPortsTab(
                 getPorts,
+                getPersistedPorts,
+                isRuleBlockInUse,
                 openCreateInputPortDialog,
                 openEditInputPortDialog,
                 requestDeleteInputPort,
             ),
             ruleUtils.sidebarTabs.transform as IRuleSideBarFilterTabConfig,
         ],
-        [getPorts, i18n.language, openCreateInputPortDialog, openEditInputPortDialog, requestDeleteInputPort],
+        [
+            getPersistedPorts,
+            getPorts,
+            i18n.language,
+            isRuleBlockInUse,
+            openCreateInputPortDialog,
+            openEditInputPortDialog,
+            requestDeleteInputPort,
+        ],
     );
 
     const deletePort = deleteInputPortDialogState
         ? ports.find((port) => port.id === deleteInputPortDialogState.portId)
         : undefined;
     const canNormalizePortOrder = !ruleBlockUtils.isNormalizedPortDisplayOrder(ports);
+    const ruleBlockIsInUse = ruleBlockUsageState.isInUse;
 
     const saveRuleBlock = React.useCallback(
         async (
@@ -376,6 +442,12 @@ export const RuleBlockEditor = ({ projectId, ruleBlockTaskId, viewActions, insta
                     );
                 }
                 const relatedItemsResponse = await requestRelatedItems(projectId, ruleBlockTaskId, "", 1);
+                setRuleBlockUsageState({
+                    isInUse: relatedItemsResponse.data.total > 0,
+                    refreshFailed: false,
+                    refreshRunning: false,
+                });
+                bumpSidebarReloadToken();
                 if (relatedItemsResponse.data.total > 0) {
                     const compatibilityValidation = ruleBlockUtils.validateUsedPortCompatibility(
                         currentModel.ports,
@@ -424,6 +496,7 @@ export const RuleBlockEditor = ({ projectId, ruleBlockTaskId, viewActions, insta
                         },
                     },
                 });
+                applyPersistedPorts(nextPortDefinitions);
                 return {
                     success: true,
                 };
@@ -452,7 +525,7 @@ export const RuleBlockEditor = ({ projectId, ruleBlockTaskId, viewActions, insta
                 };
             }
         },
-        [projectId, ruleBlockTaskId],
+        [applyPersistedPorts, bumpSidebarReloadToken, projectId, ruleBlockTaskId],
     );
 
     const partialAutoCompletion = React.useCallback(
@@ -473,6 +546,10 @@ export const RuleBlockEditor = ({ projectId, ruleBlockTaskId, viewActions, insta
     const additionalToolBarComponents = React.useCallback(
         () => (
             <ToolbarSection>
+                <RuleBlockUsageStatusControl
+                    usageState={ruleBlockUsageState}
+                    onRefresh={refreshRuleBlockUsage}
+                />
                 <ContextMenu
                     togglerElement={
                         <IconButton
@@ -492,7 +569,7 @@ export const RuleBlockEditor = ({ projectId, ruleBlockTaskId, viewActions, insta
                 <Spacing vertical={true} hasDivider={true} />
             </ToolbarSection>
         ),
-        [canNormalizePortOrder, normalizeInputPortOrder],
+        [canNormalizePortOrder, normalizeInputPortOrder, refreshRuleBlockUsage, ruleBlockUsageState],
     );
 
     const extraRuleNodeMenuItems = React.useCallback(
@@ -551,6 +628,8 @@ export const RuleBlockEditor = ({ projectId, ruleBlockTaskId, viewActions, insta
                     mode={inputPortDialogState?.mode ?? "create"}
                     initialPort={inputPortDialogInitialValue}
                     existingPorts={ports}
+                    persistedPorts={persistedPorts}
+                    isRuleBlockInUse={ruleBlockIsInUse}
                     editedPortId={editedPort?.id}
                     onClose={closeInputPortDialog}
                     onSubmit={submitInputPortDialog}
@@ -576,6 +655,58 @@ interface ConfirmDeleteInputPortDialogProps {
     onConfirm: () => void;
     onClose: () => void;
 }
+
+interface RuleBlockUsageStatusControlProps {
+    usageState: RuleBlockUsageState;
+    onRefresh: () => void;
+}
+
+const RuleBlockUsageStatusControl = ({ usageState, onRefresh }: RuleBlockUsageStatusControlProps) => {
+    const [t] = useTranslation();
+    const [showOverlay, setShowOverlay] = React.useState(false);
+    const isVisible = usageState.isInUse || usageState.refreshFailed;
+
+    const content = usageState.refreshFailed
+        ? t("taskViews.ruleBlock.usageRefreshError")
+        : t("taskViews.ruleBlock.usageInUse");
+    const tooltip = `${content} ${t("taskViews.ruleBlock.usageRefreshHint")}`;
+
+    React.useEffect(() => {
+        if (!isVisible) {
+            setShowOverlay(false);
+            return;
+        }
+        setShowOverlay(true);
+        const timeoutId = window.setTimeout(() => setShowOverlay(false), 5000);
+        return () => window.clearTimeout(timeoutId);
+    }, [isVisible, tooltip]);
+
+    if (!isVisible) {
+        return null;
+    }
+
+    return (
+        <>
+            <ContextOverlay
+                isOpen={showOverlay}
+                onClose={() => setShowOverlay(false)}
+                content={<div style={{ maxWidth: "26rem", padding: "0.5rem" }}>{tooltip}</div>}
+            >
+                <Button
+                    onClick={onRefresh}
+                    loading={usageState.refreshRunning}
+                    disabled={usageState.refreshRunning}
+                    tooltip={tooltip}
+                    tooltipProps={{ hoverCloseDelay: 0 }}
+                    aria-label={t("taskViews.ruleBlock.refreshUsage")}
+                >
+                    <Icon name={"state-warning"} />
+                </Button>
+            </ContextOverlay>
+            <Spacing vertical={true} size="small" />
+        </>
+    );
+};
 
 const ConfirmDeleteInputPortDialog = ({
     instanceCount,

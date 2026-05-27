@@ -2,6 +2,7 @@ import React from "react";
 import { Button, CodeEditor, FieldItem, SimpleDialog, Switch, TextArea, TextField } from "@eccenca/gui-elements";
 import { useTranslation } from "react-i18next";
 import { IRuleBlockPort } from "./ruleBlock.types";
+import ruleBlockUtils from "./ruleBlock.utils";
 
 export interface InputPortDialogSubmitValue {
     label: string;
@@ -16,6 +17,8 @@ interface InputPortDialogProps {
     mode: "create" | "edit";
     initialPort: InputPortDialogSubmitValue;
     existingPorts: IRuleBlockPort[];
+    persistedPorts: IRuleBlockPort[];
+    isRuleBlockInUse: boolean;
     editedPortId?: string;
     onClose: () => void;
     onSubmit: (value: InputPortDialogSubmitValue) => void;
@@ -27,6 +30,8 @@ export const InputPortDialog = ({
     mode,
     initialPort,
     existingPorts,
+    persistedPorts,
+    isRuleBlockInUse,
     editedPortId,
     onClose,
     onSubmit,
@@ -66,6 +71,23 @@ export const InputPortDialog = ({
             )
             ? t("taskViews.ruleBlock.errors.duplicateDisplayOrder", { displayOrder: parsedDisplayOrder })
             : undefined;
+    const usedPortCompatibilityError =
+        !displayOrderError && isRuleBlockInUse && editedPortId
+            ? ruleBlockUtils.validateUsedPortUpdateCompatibility(
+                  persistedPorts,
+                  existingPorts,
+                  editedPortId,
+                  {
+                      id: editedPortId,
+                      label: trimmedLabel,
+                      description,
+                      exampleValues,
+                      displayOrder: parsedDisplayOrder,
+                      deprecated,
+                  },
+                  (portLabel) => t("taskViews.ruleBlock.errors.usedPortReordered", { portLabel }),
+              )
+            : undefined;
     const labelError = !trimmedLabel
         ? t("taskViews.ruleBlock.errors.inputPortLabelRequired")
         : existingPorts.some((port) => port.id !== editedPortId && port.label.trim() === trimmedLabel)
@@ -73,7 +95,7 @@ export const InputPortDialog = ({
           : undefined;
 
     const handleSubmit = () => {
-        if (labelError || displayOrderError) {
+        if (labelError || displayOrderError || usedPortCompatibilityError) {
             return;
         }
         onSubmit({
@@ -100,7 +122,7 @@ export const InputPortDialog = ({
                     key="submit"
                     affirmative
                     onClick={handleSubmit}
-                    disabled={!!labelError || !!displayOrderError}
+                    disabled={!!labelError || !!displayOrderError || !!usedPortCompatibilityError}
                     data-test-id="input-port-dialog-submit"
                 >
                     {mode === "create" ? t("common.action.add") : t("common.action.update")}
@@ -124,8 +146,8 @@ export const InputPortDialog = ({
             </FieldItem>
             <FieldItem
                 labelProps={{ text: t("taskViews.ruleBlock.displayOrder"), htmlFor: "input-port-display-order" }}
-                intent={displayOrderError ? "danger" : undefined}
-                messageText={displayOrderError}
+                intent={displayOrderError || usedPortCompatibilityError ? "danger" : undefined}
+                messageText={displayOrderError || usedPortCompatibilityError}
             >
                 <TextField
                     id="input-port-display-order"

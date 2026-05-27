@@ -82,6 +82,8 @@ describe("InputPortDialog", () => {
                 mode="edit"
                 initialPort={initialPort()}
                 existingPorts={[existingPort()]}
+                persistedPorts={[existingPort()]}
+                isRuleBlockInUse={false}
                 editedPortId="inputPortA"
                 onClose={jest.fn()}
                 onSubmit={onSubmit}
@@ -116,6 +118,8 @@ describe("InputPortDialog", () => {
                     existingPort({ id: "inputPortA", label: "Existing label", displayOrder: 3 }),
                     existingPort({ id: "inputPortB", label: "Other label", displayOrder: 5 }),
                 ]}
+                persistedPorts={[]}
+                isRuleBlockInUse={false}
                 onClose={jest.fn()}
                 onSubmit={jest.fn()}
             />,
@@ -139,6 +143,8 @@ describe("InputPortDialog", () => {
             mode: "create" as const,
             initialPort: initial,
             existingPorts: [] as IRuleBlockPort[],
+            persistedPorts: [] as IRuleBlockPort[],
+            isRuleBlockInUse: false,
             onClose: jest.fn(),
             onSubmit: jest.fn(),
         };
@@ -158,5 +164,36 @@ describe("InputPortDialog", () => {
 
         expect(getLabelField()).toHaveValue("Typed label");
         expect(getDisplayOrderField()).toHaveValue(11);
+    });
+
+    it("should block reordering a persisted input port when the rule block is in use", () => {
+        const InputPortDialog = loadInputPortDialog();
+
+        render(
+            <InputPortDialog
+                isOpen={true}
+                mode="edit"
+                initialPort={initialPort({ label: "Input A", displayOrder: 1 })}
+                existingPorts={[
+                    existingPort({ id: "inputPortA", label: "Input A", displayOrder: 1 }),
+                    existingPort({ id: "inputPortB", label: "Input B", displayOrder: 2 }),
+                ]}
+                persistedPorts={[
+                    existingPort({ id: "inputPortA", label: "Input A", displayOrder: 1 }),
+                    existingPort({ id: "inputPortB", label: "Input B", displayOrder: 2 }),
+                ]}
+                isRuleBlockInUse={true}
+                editedPortId="inputPortA"
+                onClose={jest.fn()}
+                onSubmit={jest.fn()}
+            />,
+        );
+
+        updatePortForm({
+            displayOrder: "3",
+        });
+
+        expect(screen.getByText(/taskViews\.ruleBlock\.errors\.usedPortReordered/)).toBeInTheDocument();
+        expect(screen.getByRole("button", { name: "common.action.update" })).toBeDisabled();
     });
 });

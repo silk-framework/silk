@@ -38,6 +38,8 @@ type CapturedInputPortDialogProps = {
     editedPortId?: string;
     initialPort: InputPortDialogSubmitValue;
     existingPorts: IRuleBlockPort[];
+    persistedPorts: IRuleBlockPort[];
+    isRuleBlockInUse: boolean;
     onSubmit: (value: InputPortDialogSubmitValue) => void;
     onClose: () => void;
 };
@@ -198,13 +200,20 @@ const renderOperatorActions = (operator: IPreConfiguredRuleOperator) =>
 const renderRuleBlockEditor = async ({
     ports = [],
     ruleOperatorNodes = [],
+    relatedItemsTotal = 0,
 }: {
     ports?: IRuleBlockPort[];
     ruleOperatorNodes?: IRuleOperatorNode[];
+    relatedItemsTotal?: number;
 } = {}) => {
     const harness = createRuleBlockEditorHarness();
     harness.mockRequestTaskData.mockResolvedValue({
         data: createRuleBlockTask(ports),
+    });
+    harness.mockRequestRelatedItems.mockResolvedValue({
+        data: {
+            total: relatedItemsTotal,
+        },
     });
     harness.mockRuleEditorApi.ruleOperatorNodes.mockReturnValue(ruleOperatorNodes);
 
@@ -278,8 +287,52 @@ describe("RuleBlockEditor", () => {
                 message: testTranslate("taskViews.ruleBlock.errors.missingPortId"),
             },
         ]);
-        expect(editor.mockRequestRelatedItems).not.toHaveBeenCalled();
+        expect(editor.mockRequestRelatedItems).toHaveBeenCalledTimes(1);
         expect(editor.mockRequestUpdateProjectTask).not.toHaveBeenCalled();
+    });
+
+    it("should show the usage status control only when the rule block is in use and allow refreshing it", async () => {
+        const editor = await renderRuleBlockEditor({
+            ports: [createPersistedPort()],
+            relatedItemsTotal: 2,
+        });
+        await renderToolbarActions(editor);
+
+        await waitFor(() =>
+            expect(screen.getByTestId("context-overlay")).toHaveTextContent(
+                "taskViews.ruleBlock.usageInUse",
+            ),
+        );
+        expect(screen.getByRole("button", { name: "taskViews.ruleBlock.refreshUsage" })).toBeInTheDocument();
+        expect(editor.mockRequestRelatedItems).toHaveBeenCalledTimes(1);
+
+        fireEvent.click(screen.getByRole("button", { name: "taskViews.ruleBlock.refreshUsage" }));
+
+        await waitFor(() => expect(editor.mockRequestRelatedItems).toHaveBeenCalledTimes(2));
+    });
+
+    it("should not show the usage status control when the rule block is not in use", async () => {
+        const editor = await renderRuleBlockEditor({
+            ports: [createPersistedPort()],
+            relatedItemsTotal: 0,
+        });
+        await renderToolbarActions(editor);
+
+        expect(screen.queryByRole("button", { name: "taskViews.ruleBlock.refreshUsage" })).not.toBeInTheDocument();
+        expect(screen.queryByTestId("context-overlay")).not.toBeInTheDocument();
+    });
+
+    it("should disable deleting persisted input ports when the rule block is in use", async () => {
+        const editor = await renderRuleBlockEditor({
+            ports: [createPersistedPort()],
+            relatedItemsTotal: 1,
+        });
+        const { unmount } = await renderInputPortSidebarActions(editor, 1);
+
+        expect(screen.getByRole("button", { name: "item-remove" })).toBeDisabled();
+        expect(editor.getInputPortDialogProps()?.isRuleBlockInUse).toBe(true);
+
+        unmount();
     });
 
     it("should open the edit dialog when the input-port node menu item is clicked", async () => {

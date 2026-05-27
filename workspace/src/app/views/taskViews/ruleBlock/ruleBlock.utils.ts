@@ -101,6 +101,10 @@ interface UsedPortCompatibilityResult {
     nodeErrors: RuleSaveNodeError[];
 }
 
+/** Returns true if a logical port belongs to the persisted rule block baseline. */
+const isPersistedPort = (persistedPorts: Iterable<IRuleBlockPort>, portId: string): boolean =>
+    [...persistedPorts].some((port) => port.id === portId);
+
 /** Returns validation errors for malformed input-port nodes that are missing their logical port ID. */
 const validateMissingPortIds = (
     inputPortNodes: IRuleOperatorNode[],
@@ -276,6 +280,22 @@ const validateUsedPortCompatibility = (
     };
 };
 
+/** Validates whether editing a single logical port would violate the used-rule-block compatibility contract. */
+const validateUsedPortUpdateCompatibility = (
+    persistedPorts: IRuleBlockPort[],
+    currentPorts: IRuleBlockPort[],
+    editedPortId: string,
+    updatedPort: IRuleBlockPort,
+    reorderedPortMessage: (portName: string) => string,
+): string | undefined =>
+    validateUsedPortCompatibility(
+        persistedPorts,
+        currentPorts.map((port) => (port.id === editedPortId ? updatedPort : port)),
+        [],
+        () => "",
+        reorderedPortMessage,
+    ).errorMessage;
+
 /** Returns the input ports in their stable UI order. */
 const sortRuleBlockPorts = (ports: Iterable<IRuleBlockPort>): IRuleBlockPort[] => sortPortDefinitions(ports);
 
@@ -325,6 +345,7 @@ const ruleBlockUtils = {
     collectPortDefinitions,
     emptyRuleBlockModel,
     generateInputPortId,
+    isPersistedPort,
     isNormalizedPortDisplayOrder,
     normalizePortDisplayOrder,
     normalizeStickyNotes,
@@ -336,6 +357,7 @@ const ruleBlockUtils = {
     validateMissingPortIds,
     validateDuplicateDisplayOrders,
     validateUsedPortCompatibility,
+    validateUsedPortUpdateCompatibility,
 };
 
 export default ruleBlockUtils;

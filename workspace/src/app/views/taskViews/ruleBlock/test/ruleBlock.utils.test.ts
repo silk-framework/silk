@@ -93,6 +93,11 @@ describe("ruleBlockUtils", () => {
         });
     });
 
+    it("should detect whether a logical port belongs to the persisted rule block baseline", () => {
+        expect(ruleBlockUtils.isPersistedPort([port("firstPort", 1, "First port")], "firstPort")).toBe(true);
+        expect(ruleBlockUtils.isPersistedPort([port("firstPort", 1, "First port")], "secondPort")).toBe(false);
+    });
+
     it("should return the ports whose visible display order changed", () => {
         expect(
             ruleBlockUtils.portsWithChangedDisplayOrder(
@@ -245,6 +250,18 @@ describe("ruleBlockUtils", () => {
             errorMessage: undefined,
             nodeErrors: [],
         });
+    });
+
+    it("should detect invalid persisted-port updates that would reorder existing ports", () => {
+        expect(
+            ruleBlockUtils.validateUsedPortUpdateCompatibility(
+                [port("firstPort", 1, "First port"), port("secondPort", 2, "Second port")],
+                [port("firstPort", 1, "First port"), port("secondPort", 2, "Second port")],
+                "firstPort",
+                port("firstPort", 3, "First port"),
+                (portName) => `reordered ${portName}`,
+            ),
+        ).toBe("reordered First port reordered Second port");
     });
 
     it("should allow metadata changes on persisted ports when the rule block is already in use", () => {

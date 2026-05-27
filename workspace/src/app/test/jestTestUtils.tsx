@@ -85,10 +85,16 @@ export const createRuleBlockEditorGuiElementsModule = () => {
                     <div>{actions}</div>
                 </div>
             ) : null,
-        Button: ({ children, onClick, disabled }) => (
-            <button onClick={onClick} disabled={disabled}>
+        Button: ({ children, onClick, disabled, loading, affirmative, disruptive, tooltip, tooltipProps, ...props }) => (
+            <button onClick={onClick} disabled={disabled} data-loading={loading ? "true" : "false"} {...props}>
                 {children}
             </button>
+        ),
+        ContextOverlay: ({ children, content, isOpen }) => (
+            <div>
+                {children}
+                {isOpen ? <div data-testid="context-overlay">{content}</div> : null}
+            </div>
         ),
         // Tests render menu items eagerly to avoid coupling assertions to overlay open/close mechanics.
         ContextMenu: ({ togglerElement, children }) => (
@@ -97,6 +103,7 @@ export const createRuleBlockEditorGuiElementsModule = () => {
                 <div>{children}</div>
             </div>
         ),
+        Icon: ({ name }) => <span>{Array.isArray(name) ? name.join(" ") : name}</span>,
         IconButton: ({ text, name, onClick, disabled }) => (
             <button onClick={onClick} disabled={disabled}>
                 {text ?? name}
@@ -106,6 +113,12 @@ export const createRuleBlockEditorGuiElementsModule = () => {
             <button onClick={onClick} disabled={disabled}>
                 {text}
             </button>
+        ),
+        Notification: ({ children, actions, intent }) => (
+            <div data-testid="notification" data-intent={intent ?? ""}>
+                <div>{children}</div>
+                {actions ? <div>{actions}</div> : null}
+            </div>
         ),
         Spacing: () => <div />,
         ToolbarSection: ({ children }) => <div>{children}</div>,
