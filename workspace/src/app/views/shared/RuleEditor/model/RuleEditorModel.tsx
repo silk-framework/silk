@@ -2165,6 +2165,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                 position: node.position,
                 dimension: node.data.nodeDimensions,
                 description: originalNode.description,
+                tags: originalNode.tags,
                 inputsCanBeSwitched: originalNode.inputsCanBeSwitched,
             };
         });

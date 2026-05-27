@@ -30,7 +30,7 @@ export interface RuleEditorUiContextProps {
     selectionState: { elements: Elements | null };
 }
 
-export const RuleEditorUiContext = React.createContext<RuleEditorUiContextProps>({
+export const ruleEditorUiContextDefaultValue: RuleEditorUiContextProps = {
     modalShown: false,
     setModalShown(): any {},
     advancedParameterModeEnabled: false,
@@ -45,4 +45,6 @@ export const RuleEditorUiContext = React.createContext<RuleEditorUiContextProps>
     zoomRange: [0.25, 1.5],
     onSelection: () => {},
     selectionState: { elements: null },
-});
+};
+
+export const RuleEditorUiContext = React.createContext<RuleEditorUiContextProps>(ruleEditorUiContextDefaultValue);

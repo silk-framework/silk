@@ -70,7 +70,7 @@ export interface RuleEditorEvaluationNotification {
 const NOP = () => {};
 
 /** Context of rule editor evaluation component. */
-export const RuleEditorEvaluationContext = React.createContext<RuleEditorEvaluationContextProps>({
+export const ruleEditorEvaluationContextDefaultValue: RuleEditorEvaluationContextProps = {
     supportsEvaluation: false,
     supportsQuickEvaluation: false,
     startEvaluation: NOP,
@@ -86,13 +86,22 @@ export const RuleEditorEvaluationContext = React.createContext<RuleEditorEvaluat
     setEvaluationRootNode: NOP,
     evaluationRootNode: () => undefined,
     canBeEvaluated: () => false,
-});
+};
+
+/** Context of rule editor evaluation component. */
+export const RuleEditorEvaluationContext = React.createContext<RuleEditorEvaluationContextProps>(
+    ruleEditorEvaluationContextDefaultValue,
+);
 
 export interface RuleEditorEvaluationCallbackContextProps {
     /** Allows a sub-component, e.g. an input component of a rule operator, to disable the evaluation error modal. */
     enableErrorModal: (enabled: boolean) => void;
 }
 
-export const RuleEditorEvaluationCallbackContext = React.createContext<RuleEditorEvaluationCallbackContextProps>({
+export const ruleEditorEvaluationCallbackContextDefaultValue: RuleEditorEvaluationCallbackContextProps = {
     enableErrorModal: NOP,
-});
+};
+
+export const RuleEditorEvaluationCallbackContext = React.createContext<RuleEditorEvaluationCallbackContextProps>(
+    ruleEditorEvaluationCallbackContextDefaultValue,
+);

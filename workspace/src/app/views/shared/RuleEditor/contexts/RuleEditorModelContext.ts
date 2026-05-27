@@ -142,8 +142,28 @@ export interface IModelActions {
 
 const NOP = () => {};
 
-/** Creates a rule editor model context that contains the actual rule model and low-level update functions. */
-export const RuleEditorModelContext = React.createContext<RuleEditorModelContextProps>({
+export const ruleEditorModelActionsDefaultValue: IModelActions = {
+    startChangeTransaction: NOP,
+    addStickyNode: NOP,
+    deleteNode: NOP,
+    deleteNodes: NOP,
+    addNode: NOP,
+    copyAndPasteNodes: NOP,
+    moveNode: NOP,
+    moveNodes: NOP,
+    changeNodeParameter: NOP,
+    addEdge: NOP,
+    deleteEdge: NOP,
+    autoLayout: NOP,
+    addNodeByPlugin: NOP,
+    deleteEdges: NOP,
+    changeSize: NOP,
+    fixNodeInputs: NOP,
+    copyNodes: NOP,
+    changeStickyNodeProperties: NOP,
+};
+
+export const ruleEditorModelContextDefaultValue: RuleEditorModelContextProps = {
     /** The nodes and edges of the rules graph. */
     elements: [],
     /** Set to true if the model is in read-only mode. */
@@ -156,26 +176,7 @@ export const RuleEditorModelContext = React.createContext<RuleEditorModelContext
     unsavedChanges: false,
     copiedNodesCount: 0,
     updateSelectedElements: () => {},
-    executeModelEditOperation: {
-        startChangeTransaction: NOP,
-        addStickyNode: NOP,
-        deleteNode: NOP,
-        deleteNodes: NOP,
-        addNode: NOP,
-        copyAndPasteNodes: NOP,
-        moveNode: NOP,
-        moveNodes: NOP,
-        changeNodeParameter: NOP,
-        addEdge: NOP,
-        deleteEdge: NOP,
-        autoLayout: NOP,
-        addNodeByPlugin: NOP,
-        deleteEdges: NOP,
-        changeSize: NOP,
-        fixNodeInputs: NOP,
-        copyNodes: NOP,
-        changeStickyNodeProperties: NOP,
-    },
+    executeModelEditOperation: ruleEditorModelActionsDefaultValue,
     undo: () => false,
     canUndo: false,
     redo: () => false,
@@ -188,4 +189,9 @@ export const RuleEditorModelContext = React.createContext<RuleEditorModelContext
     executeExternalRuleModelChange: NOP,
     updateRuleOperatorNodeMetaData: () => {},
     canvasId: "canvasId",
-});
+};
+
+/** Creates a rule editor model context that contains the actual rule model and low-level update functions. */
+export const RuleEditorModelContext = React.createContext<RuleEditorModelContextProps>(
+    ruleEditorModelContextDefaultValue,
+);

@@ -76,12 +76,13 @@ const useErrorHandler = (): ErrorHandlerDict => {
     const error = useSelector(errorSelector);
     const dispatch = useDispatch();
     const [t] = useTranslation();
+    const currentErrors = error?.errors ?? [];
     const dispatchRef = React.useRef(dispatch);
-    const errorRef = React.useRef(error.errors);
+    const errorRef = React.useRef(currentErrors);
     const translateRef = React.useRef(t);
 
     dispatchRef.current = dispatch;
-    errorRef.current = error.errors;
+    errorRef.current = currentErrors;
     translateRef.current = t;
 
     /** register a new error to the error stack

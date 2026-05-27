@@ -62,8 +62,7 @@ export interface RuleEditorContextProps extends RuleEditorBaseProps {
     restoreExternalSavedState?: (savedState: unknown) => void;
 }
 
-/** Creates a rule editor model context that contains the actual rule model and low-level update functions. */
-export const RuleEditorContext = React.createContext<RuleEditorContextProps>({
+export const ruleEditorContextDefaultValue: RuleEditorContextProps = {
     projectId: "",
     editedItemLoading: false,
     operatorListLoading: false,
@@ -87,4 +86,7 @@ export const RuleEditorContext = React.createContext<RuleEditorContextProps>({
     },
     partialAutoCompletion: () => async () => undefined,
     saveInitiallyEnabled: false,
-});
+};
+
+/** Creates a rule editor model context that contains the actual rule model and low-level update functions. */
+export const RuleEditorContext = React.createContext<RuleEditorContextProps>(ruleEditorContextDefaultValue);
