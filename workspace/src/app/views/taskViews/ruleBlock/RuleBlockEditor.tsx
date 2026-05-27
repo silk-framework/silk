@@ -63,12 +63,17 @@ export const RuleBlockEditor = ({ projectId, ruleBlockTaskId, viewActions, insta
         setSidebarReloadToken((currentToken) => currentToken + 1);
     }, []);
 
+    const applyPorts = React.useCallback((nextPorts: IRuleBlockPort[]) => {
+        ruleBlockUtils.assertValidPorts(nextPorts);
+        setPorts(ruleBlockUtils.sortRuleBlockPorts(nextPorts));
+        bumpSidebarReloadToken();
+    }, [bumpSidebarReloadToken]);
+
     const fetchRuleBlockTask = React.useCallback(
         async (currentProjectId: string, taskId: string): Promise<RuleBlockTaskData | undefined> => {
             try {
                 const taskData = (await requestTaskData<IRuleBlockTaskParameters>(currentProjectId, taskId)).data;
-                setPorts(ruleBlockUtils.sortRuleBlockPorts(taskData.data.parameters.ruleBlockModel?.ports ?? []));
-                bumpSidebarReloadToken();
+                applyPorts(taskData.data.parameters.ruleBlockModel?.ports ?? []);
                 return taskData;
             } catch (err) {
                 registerError(
@@ -81,7 +86,7 @@ export const RuleBlockEditor = ({ projectId, ruleBlockTaskId, viewActions, insta
                 );
             }
         },
-        [bumpSidebarReloadToken, registerError],
+        [applyPorts, registerError],
     );
 
     const fetchTransformRuleOperatorList = React.useCallback(async (): Promise<IPluginDetails[] | undefined> => {
@@ -133,11 +138,6 @@ export const RuleBlockEditor = ({ projectId, ruleBlockTaskId, viewActions, insta
         setInputPortDialogState({ mode: "edit", portId });
     }, []);
 
-    const applyPorts = React.useCallback((nextPorts: IRuleBlockPort[]) => {
-        setPorts(ruleBlockUtils.sortRuleBlockPorts(nextPorts));
-        bumpSidebarReloadToken();
-    }, [bumpSidebarReloadToken]);
-
     const isRuleBlockPortArray = (savedState: unknown): savedState is IRuleBlockPort[] =>
         Array.isArray(savedState) &&
         savedState.every(
@@ -176,7 +176,7 @@ export const RuleBlockEditor = ({ projectId, ruleBlockTaskId, viewActions, insta
             .ruleOperatorNodes()
             .filter(
                 (node) =>
-                    node.pluginType === "InputPortOperator" && ruleBlockUtils.resolvePortId(node) === portId,
+                    node.pluginType === "InputPortOperator" && ruleBlockUtils.requirePortId(node) === portId,
             )
             .map((node) => node.nodeId);
     }, []);
@@ -190,7 +190,7 @@ export const RuleBlockEditor = ({ projectId, ruleBlockTaskId, viewActions, insta
             .ruleOperatorNodes()
             .filter(
                 (node) =>
-                    node.pluginType === "InputPortOperator" && ruleBlockUtils.resolvePortId(node) === updatedPort.id,
+                    node.pluginType === "InputPortOperator" && ruleBlockUtils.requirePortId(node) === updatedPort.id,
             )
             .map((node) => node.nodeId);
         if (affectedNodeIds.length === 0) {
@@ -203,13 +203,7 @@ export const RuleBlockEditor = ({ projectId, ruleBlockTaskId, viewActions, insta
 
     const syncChangedInputPortNodeMetaData = React.useCallback(
         (previousPorts: IRuleBlockPort[], nextPorts: IRuleBlockPort[]) => {
-            const previousPortsById = new Map(previousPorts.map((port) => [port.id, port] as const));
-            nextPorts.forEach((port) => {
-                const previousPort = previousPortsById.get(port.id);
-                if (!previousPort || previousPort.displayOrder !== port.displayOrder) {
-                    syncInputPortNodeMetaData(port);
-                }
-            });
+            ruleBlockUtils.portsWithChangedDisplayOrder(previousPorts, nextPorts).forEach(syncInputPortNodeMetaData);
         },
         [syncInputPortNodeMetaData],
     );
@@ -371,6 +365,16 @@ export const RuleBlockEditor = ({ projectId, ruleBlockTaskId, viewActions, insta
                 const [operatorNodeMap, rootNodes] = ruleUtils.convertToRuleOperatorNodeMap(ruleOperatorNodes, true);
                 const inputPortNodes = ruleOperatorNodes.filter((node) => node.pluginType === "InputPortOperator");
                 const nextPortDefinitions = ruleBlockUtils.sortRuleBlockPorts(portsRef.current);
+                const missingPortIdErrors = ruleBlockUtils.validateMissingPortIds(
+                    inputPortNodes,
+                    () => i18next.t("taskViews.ruleBlock.errors.missingPortId"),
+                );
+                if (missingPortIdErrors.length) {
+                    return new RuleValidationError(
+                        i18next.t("taskViews.ruleBlock.errors.invalidPorts"),
+                        missingPortIdErrors,
+                    );
+                }
                 const relatedItemsResponse = await requestRelatedItems(projectId, ruleBlockTaskId, "", 1);
                 if (relatedItemsResponse.data.total > 0) {
                     const compatibilityValidation = ruleBlockUtils.validateUsedPortCompatibility(
@@ -496,10 +500,7 @@ export const RuleBlockEditor = ({ projectId, ruleBlockTaskId, viewActions, insta
             if (node.pluginType !== "InputPortOperator") {
                 return undefined;
             }
-            const portId = ruleBlockUtils.resolvePortId(node);
-            if (!portId) {
-                return undefined;
-            }
+            const portId = ruleBlockUtils.requirePortId(node);
             return [
                 <MenuItem
                     key={`edit-input-port-${node.nodeId}`}

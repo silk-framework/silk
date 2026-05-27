@@ -146,15 +146,13 @@ const updateInputPortNode = (
     node: IRuleOperatorNode,
     portDefinitions: Map<string, IRuleBlockPort>,
 ): void => {
-    const portId = ruleBlockUtils.resolvePortId(node);
+    const portId = ruleBlockUtils.requirePortId(node);
     const portDefinition = portDefinitions.get(portId);
     const metaData = inputPortNodeMetaData(portDefinition);
     node.label = metaData.label;
     node.description = metaData.description;
     node.tags = metaData.tags;
-    node.parameters = {
-        portId,
-    };
+    node.parameters = { portId };
 };
 
 /** Converts a persisted rule block task into the rule editor node list used by the canvas. */

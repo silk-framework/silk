@@ -3,6 +3,112 @@ import { IRuleOperatorNode } from "../../shared/RuleEditor/RuleEditor.typings";
 import { IRuleBlockPort } from "./ruleBlock.types";
 
 describe("ruleBlockUtils", () => {
+    it("should resolve the logical port ID from the node parameter value", () => {
+        expect(
+            ruleBlockUtils.resolvePortId({
+                ...inputPortNode("portNode1", "resolvedPort", 1),
+                parameters: {
+                    ...inputPortNode("portNode1", "resolvedPort", 1).parameters,
+                    portId: "  resolvedPort  ",
+                },
+            }),
+        ).toBe("resolvedPort");
+    });
+
+    it("should return undefined when the logical port ID parameter is missing or blank", () => {
+        expect(
+            ruleBlockUtils.resolvePortId({
+                ...inputPortNode("portNode1", "ignoredPort", 1),
+                parameters: {
+                    ...inputPortNode("portNode1", "ignoredPort", 1).parameters,
+                    portId: "   ",
+                },
+            }),
+        ).toBeUndefined();
+        expect(
+            ruleBlockUtils.resolvePortId({
+                ...inputPortNode("portNode2", "ignoredPort", 1),
+                parameters: {
+                    ...inputPortNode("portNode2", "ignoredPort", 1).parameters,
+                    portId: undefined,
+                },
+            }),
+        ).toBeUndefined();
+    });
+
+    it("should throw when a logical port ID is required but missing", () => {
+        expect(() =>
+            ruleBlockUtils.requirePortId({
+                ...inputPortNode("portNode1", "ignoredPort", 1),
+                parameters: {
+                    ...inputPortNode("portNode1", "ignoredPort", 1).parameters,
+                    portId: "   ",
+                },
+            }),
+        ).toThrow("InputPortOperator node 'portNode1' is missing parameters.portId.");
+    });
+
+    it("should reject logical input-port states with missing or duplicate IDs", () => {
+        expect(() =>
+            ruleBlockUtils.assertValidPorts([
+                {
+                    ...port("firstPort", 1, "First port"),
+                    id: "   ",
+                },
+            ]),
+        ).toThrow("Rule block input ports must have a non-empty ID.");
+        expect(() =>
+            ruleBlockUtils.assertValidPorts([port("sharedPort", 1, "First port"), port("sharedPort", 2, "Second port")]),
+        ).toThrow("Rule block input port IDs must be unique. Duplicate ID 'sharedPort' found.");
+    });
+
+    it("should sort rule block ports by display order and then by ID as deterministic fallback for duplicated orders", () => {
+        // Valid editor state keeps display orders unique. The secondary ID sort is only needed for transiently
+        // duplicated orders while validation is still running.
+        expect(
+            ruleBlockUtils.sortRuleBlockPorts([
+                port("thirdPort", 2, "Third port"),
+                port("firstPort", 1, "First port"),
+                port("secondPort", 2, "Second port"),
+            ]),
+        ).toStrictEqual([
+            port("firstPort", 1, "First port"),
+            port("secondPort", 2, "Second port"),
+            port("thirdPort", 2, "Third port"),
+        ]);
+    });
+
+    it("should return the next input-port defaults based on the current max display order", () => {
+        expect(
+            ruleBlockUtils.nextInputPortDefaults([
+                port("firstPort", 2, "First port"),
+                port("secondPort", 5, "Second port"),
+            ]),
+        ).toStrictEqual({
+            label: "Input 6",
+            description: "",
+            exampleValues: "",
+            displayOrder: 6,
+            deprecated: false,
+        });
+    });
+
+    it("should return the ports whose visible display order changed", () => {
+        expect(
+            ruleBlockUtils.portsWithChangedDisplayOrder(
+                [port("firstPort", 1, "First port"), port("secondPort", 2, "Second port")],
+                [
+                    port("firstPort", 1, "First port"),
+                    port("secondPort", 3, "Second port"),
+                    port("thirdPort", 4, "Third port"),
+                ],
+            ),
+        ).toStrictEqual([
+            port("secondPort", 3, "Second port"),
+            port("thirdPort", 4, "Third port"),
+        ]);
+    });
+
     it("should reject duplicate display orders across different rule block ports", () => {
         const collectionResult = ruleBlockUtils.collectPortDefinitions(
             [],
@@ -36,6 +142,29 @@ describe("ruleBlockUtils", () => {
             {
                 nodeId: "portNode2",
                 message: "duplicate display order 1",
+            },
+        ]);
+    });
+
+    it("should report malformed input-port nodes that are missing their logical port ID", () => {
+        expect(
+            ruleBlockUtils.validateMissingPortIds(
+                [
+                    {
+                        ...inputPortNode("portNode1", "ignoredPort", 1),
+                        parameters: {
+                            ...inputPortNode("portNode1", "ignoredPort", 1).parameters,
+                            portId: "",
+                        },
+                    },
+                    inputPortNode("portNode2", "validPort", 2),
+                ],
+                () => "missing port ID",
+            ),
+        ).toStrictEqual([
+            {
+                nodeId: "portNode1",
+                message: "missing port ID",
             },
         ]);
     });

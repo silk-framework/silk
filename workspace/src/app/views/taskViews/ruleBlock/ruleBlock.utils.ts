@@ -18,8 +18,33 @@ const emptyRuleBlockModel = (): IRuleBlockModel => ({
 const normalizeStickyNotes = (stickyNotes?: StickyNote[]): StickyNote[] => stickyNotes ?? [];
 
 /** Resolves the stable logical port ID for an input port node. */
-const resolvePortId = (node: IRuleOperatorNode): string =>
-    (ruleEditorNodeParameterValue(node.parameters["portId"]) ?? node.nodeId).trim() || node.nodeId;
+const resolvePortId = (node: IRuleOperatorNode): string | undefined => {
+    const portId = ruleEditorNodeParameterValue(node.parameters["portId"])?.trim();
+    return portId ? portId : undefined;
+};
+
+/** Returns the logical port ID for an input port node or throws if the node is malformed. */
+const requirePortId = (node: IRuleOperatorNode): string => {
+    const portId = resolvePortId(node);
+    if (!portId) {
+        throw new Error(`InputPortOperator node '${node.nodeId}' is missing parameters.portId.`);
+    }
+    return portId;
+};
+
+/** Enforces the logical port invariants expected by the rule block editor runtime. */
+const assertValidPorts = (ports: IRuleBlockPort[]): void => {
+    const seenPortIds = new Set<string>();
+    ports.forEach((port) => {
+        if (!port.id.trim()) {
+            throw new Error("Rule block input ports must have a non-empty ID.");
+        }
+        if (seenPortIds.has(port.id)) {
+            throw new Error(`Rule block input port IDs must be unique. Duplicate ID '${port.id}' found.`);
+        }
+        seenPortIds.add(port.id);
+    });
+};
 
 const portDisplayName = (port: IRuleBlockPort | undefined, fallbackId: string): string =>
     port?.label?.trim() || fallbackId;
@@ -51,6 +76,8 @@ const nextGeneratedDisplayOrder = (ports: IRuleBlockPort[]): number =>
     ports.reduce((maxDisplayOrder, port) => Math.max(maxDisplayOrder, port.displayOrder), -1) + 1;
 
 const sortPortDefinitions = (ports: Iterable<IRuleBlockPort>): IRuleBlockPort[] =>
+    // Valid port definitions keep display orders unique. The secondary ID sort only provides deterministic order for
+    // transiently duplicated or malformed states while validation is still running.
     [...ports].sort((left, right) => left.displayOrder - right.displayOrder || left.id.localeCompare(right.id));
 
 const orderedPortIds = (ports: Iterable<IRuleBlockPort>): string[] => sortPortDefinitions(ports).map((port) => port.id);
@@ -74,6 +101,22 @@ interface UsedPortCompatibilityResult {
     nodeErrors: RuleSaveNodeError[];
 }
 
+/** Returns validation errors for malformed input-port nodes that are missing their logical port ID. */
+const validateMissingPortIds = (
+    inputPortNodes: IRuleOperatorNode[],
+    missingPortIdMessage: () => string,
+): RuleSaveNodeError[] =>
+    inputPortNodes.flatMap((node) =>
+        resolvePortId(node)
+            ? []
+            : [
+                  {
+                      nodeId: node.nodeId,
+                      message: missingPortIdMessage(),
+                  },
+              ],
+    );
+
 /** Collects and validates persisted port definitions from the current input port nodes. */
 const collectPortDefinitions = (
     persistedPorts: IRuleBlockPort[],
@@ -89,6 +132,9 @@ const collectPortDefinitions = (
 
     inputPortNodes.forEach((node) => {
         const portId = resolvePortId(node);
+        if (!portId) {
+            return;
+        }
         const persistedPortDefinition = persistedPortDefinitions.get(portId);
         const displayOrder = parseDisplayOrder(node, persistedPortDefinition?.displayOrder ?? generatedDisplayOrder);
         if (displayOrder == null) {
@@ -146,6 +192,9 @@ const validateDuplicateDisplayOrders = (
 
     inputPortNodes.forEach((node) => {
         const portId = resolvePortId(node);
+        if (!portId) {
+            return;
+        }
         nodeIdsByPortId.set(portId, [...(nodeIdsByPortId.get(portId) ?? []), node.nodeId]);
     });
 
@@ -181,6 +230,9 @@ const validateUsedPortCompatibility = (
 
     inputPortNodes.forEach((node) => {
         const portId = resolvePortId(node);
+        if (!portId) {
+            return;
+        }
         nodeIdsByPortId.set(portId, [...(nodeIdsByPortId.get(portId) ?? []), node.nodeId]);
     });
 
@@ -238,6 +290,18 @@ const normalizePortDisplayOrder = (ports: IRuleBlockPort[]): IRuleBlockPort[] =>
         displayOrder: index + 1,
     }));
 
+/** Returns the ports whose visible display order changed between two states. */
+const portsWithChangedDisplayOrder = (
+    previousPorts: IRuleBlockPort[],
+    nextPorts: IRuleBlockPort[],
+): IRuleBlockPort[] => {
+    const previousPortsById = new Map(previousPorts.map((port) => [port.id, port] as const));
+    return nextPorts.filter((port) => {
+        const previousPort = previousPortsById.get(port.id);
+        return !previousPort || previousPort.displayOrder !== port.displayOrder;
+    });
+};
+
 /** Generates the next suggested initial values for a newly created input port. */
 const nextInputPortDefaults = (
     ports: IRuleBlockPort[],
@@ -257,15 +321,19 @@ const generateInputPortId = (): string =>
     `inputPort_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`;
 
 const ruleBlockUtils = {
+    assertValidPorts,
     collectPortDefinitions,
     emptyRuleBlockModel,
     generateInputPortId,
     isNormalizedPortDisplayOrder,
     normalizePortDisplayOrder,
     normalizeStickyNotes,
+    portsWithChangedDisplayOrder,
+    requirePortId,
     resolvePortId,
     nextInputPortDefaults,
     sortRuleBlockPorts,
+    validateMissingPortIds,
     validateDuplicateDisplayOrders,
     validateUsedPortCompatibility,
 };

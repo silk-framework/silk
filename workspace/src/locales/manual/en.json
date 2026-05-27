@@ -780,6 +780,7 @@
             },
             "deprecated": "Deprecated",
             "displayOrder": "Display order",
+            "editInputPort": "Edit input port",
             "editInputPortTitle": "Edit input port",
             "errors": {
                 "conflictingPortDefinitions": "Input port '{{portId}}' is used with conflicting definitions.",
@@ -789,6 +790,7 @@
                 "fetchTransformOperators": "Could not load the transform operators.",
                 "inputPortLabelRequired": "Input port label is required.",
                 "invalidDisplayOrder": "Display order must be an integer.",
+                "missingPortId": "This input port instance is invalid because it has no logical port ID.",
                 "invalidPorts": "The rule block contains invalid input port definitions.",
                 "save": "Could not save the rule block.",
                 "displayOrderRequired": "Display order is required.",
