@@ -1,7 +1,7 @@
 package org.silkframework.workspace.activity.workflow
 
 import org.scalatest.flatspec.AnyFlatSpec
-import org.scalatest.matchers.should.Matchers
+import org.scalatest.matchers.must.Matchers
 import org.silkframework.config.{MetaData, Prefixes}
 import org.silkframework.dataset.DatasetSpec
 import org.silkframework.plugins.dataset.json.{JsonDataset, JsonToFileOperator}
@@ -54,7 +54,7 @@ class LocalJsonToFileWorkflowTest extends AnyFlatSpec with Matchers with ConfigT
       JsonToFileOperator(inputPath = "jsonContent"),
       s"""[{"jsonContent": ${Json.stringify(JsString(inputJson))}}]"""
     )
-    output.loadAsString() shouldBe inputJson
+    output.loadAsString() mustBe inputJson
   }
 
   it should "pack multiple input entities into a single ZIP file when zipOutput is enabled" in {
@@ -74,9 +74,9 @@ class LocalJsonToFileWorkflowTest extends AnyFlatSpec with Matchers with ConfigT
     } finally {
       zip.close()
     }
-    entries.size shouldBe 2
-    entries(0) shouldBe (("entry-0.json", json1))
-    entries(1) shouldBe (("entry-1.json", json2))
+    entries.size mustBe 2
+    entries(0) mustBe (("entry-0.json", json1))
+    entries(1) mustBe (("entry-1.json", json2))
   }
 }
 
