@@ -2,7 +2,7 @@ package org.silkframework.rule.test
 
 import org.silkframework.entity.{Entity, Index}
 import org.silkframework.rule.Operator
-import org.silkframework.rule.similarity.{Aggregator, AggregatorExampleValue, SimilarityOperator}
+import org.silkframework.rule.similarity.{Aggregator, AggregatorExampleValue, InlineSimilarityOperator, SimilarityOperator}
 import org.silkframework.runtime.plugin.{AnyPlugin, ClassPluginDescription, ParameterValues, PluginContext, TestPluginContext}
 import org.silkframework.test.PluginTest
 import org.silkframework.util.{DPair, Identifier}
@@ -95,7 +95,7 @@ abstract class AggregatorTest[T <: Aggregator : ClassTag] extends PluginTest {
     }
   }
 
-  private case class DummyOperator(score: Option[Double], weight: Int) extends SimilarityOperator {
+  private case class DummyOperator(score: Option[Double], weight: Int) extends InlineSimilarityOperator {
 
     override def id: Identifier = "dummy"
 

@@ -1,10 +1,9 @@
 import React from "react";
 import "@testing-library/jest-dom";
 
-import MappingsList
-    from "../../../../src/app/views/pages/MappingEditor/HierarchicalMapping/containers/MappingsList/MappingsList";
-import {findAllDOMElements, renderWrapper} from "../../../integration/TestHelper";
-import {RenderResult} from "@testing-library/react";
+import MappingsList from "../../../../src/app/views/pages/MappingEditor/HierarchicalMapping/containers/MappingsList/MappingsList";
+import { findAllDOMElements, renderWrapper } from "../../../integration/TestHelper";
+import { RenderResult } from "@testing-library/react";
 
 const props = {
     rules: [
@@ -111,7 +110,7 @@ const getWrapper = (args: any = props): RenderResult => {
     return renderWrapper(<MappingsList {...args} />);
 };
 
-const ruleItemSelector = ".ecc-silk-mapping__ruleitem"
+const ruleItemSelector = ".ecc-silk-mapping__ruleitem";
 
 describe("MappingsList Component", () => {
     describe("on component mounted, ", () => {

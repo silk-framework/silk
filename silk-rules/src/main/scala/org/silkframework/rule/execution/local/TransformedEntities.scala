@@ -7,7 +7,7 @@ import org.silkframework.execution.report.EntitySample
 import org.silkframework.execution.{AbortExecutionException, ExecutionException, ExecutionReport}
 import org.silkframework.failures.EntityException
 import org.silkframework.rule.execution.TransformReportBuilder
-import org.silkframework.rule.{RootMappingRule, TransformRule, TransformSpec}
+import org.silkframework.rule.{RootMappingRule, TransformRule, TransformRuleExecution, TransformSpec}
 import org.silkframework.runtime.iterator.CloseableIterator
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.{Identifier, Uri}
@@ -21,16 +21,15 @@ import scala.util.control.NonFatal
   *
   * @param task              The transform task these entities originate from.
   * @param entities          The source entities the transformation is applied to.
-  * @param rule              The transformation rules that are applied against the source entities.
+  * @param ruleExecution     The contextualized container rule that is applied against the source entities.
   * @param outputSchema      The output schema of the transformation.
   * @param isRequestedSchema True, if the output schema was requested by the following task. False if this is the output
   *                          schema defined by the mapping itself. A requested schema is type agnostic.
-  * @param context           The activity context.
   */
 class TransformedEntities(task: Task[TransformSpec],
                           entities: CloseableIterator[Entity],
                           ruleLabel: String,
-                          rule: TransformRule,
+                          ruleExecution: TransformRuleExecution,
                           outputSchema: EntitySchema,
                           isRequestedSchema: Boolean,
                           abortIfErrorsOccur: Boolean,
@@ -38,18 +37,22 @@ class TransformedEntities(task: Task[TransformSpec],
 
   private val log: Logger = Logger.getLogger(this.getClass.getName)
 
+  private val rule: TransformRule = ruleExecution.operator
+
   private val rules = rule.rules
 
-  private val subjectRule = rules.find(_.target.isEmpty)
+  private val ruleExecutions: Seq[TransformRuleExecution] = ruleExecution.childExecutions
 
-  private val propertyRules = rules.filter(_.target.nonEmpty).toIndexedSeq
+  private val subjectRuleExecution = ruleExecutions.find(_.operator.target.isEmpty)
 
-  // For each schema path, collect all rules that map to it
-  private val rulesPerPath = {
+  private val propertyRuleExecutions = ruleExecutions.filter(_.operator.target.nonEmpty).toIndexedSeq
+
+  // For each schema path, collect all rule executions that map to it
+  private val ruleExecutionsPerPath = {
     if(isRequestedSchema) {
-      for(path <- outputSchema.typedPaths) yield propertyRules.filter(_.target.get.asPath() == path.asUntypedPath)
+      for(path <- outputSchema.typedPaths) yield propertyRuleExecutions.filter(_.operator.target.get.asPath() == path.asUntypedPath)
     } else {
-      for(path <- outputSchema.typedPaths) yield propertyRules.filter(_.target.get.asTypedPath() == path)
+      for(path <- outputSchema.typedPaths) yield propertyRuleExecutions.filter(_.operator.target.get.asTypedPath() == path)
     }
   }
 
@@ -89,8 +92,8 @@ class TransformedEntities(task: Task[TransformSpec],
     errorFlag = false
     errors.clear()
 
-    val uris = subjectRule match {
-      case Some(rule) => evaluateRule(entity, rule, report).iterator
+    val uris = subjectRuleExecution match {
+      case Some(subjectExec) => evaluateRule(entity, subjectExec, report).iterator
       case None => Iterator(entity.uri.toString)
     }
 
@@ -107,16 +110,16 @@ class TransformedEntities(task: Task[TransformSpec],
           Entity(entity.uri, values, entity.schema.copy(typedPaths = typedPaths))
         }
 
-        def evalRule(rule: TransformRule): Seq[String] = { // evaluate rule on the correct entity representation
-          if (rule.representsDefaultUriRule) {
-            evaluateRule(objectEntity, rule, report)
+        def evalRule(exec: TransformRuleExecution): Seq[String] = { // evaluate rule on the correct entity representation
+          if (exec.operator.representsDefaultUriRule) {
+            evaluateRule(objectEntity, exec, report)
           } else {
-            evaluateRule(entity, rule, report) // This works even though there are still object paths mixed in, because they all are at the end
+            evaluateRule(entity, exec, report) // This works even though there are still object paths mixed in, because they all are at the end
           }
         }
 
-        val values = for (rules <- rulesPerPath) yield {
-          rules.flatMap(evalRule)
+        val values = for (rulesAtPath <- ruleExecutionsPerPath) yield {
+          rulesAtPath.flatMap(evalRule)
         }
 
         updateReport(report)
@@ -124,8 +127,8 @@ class TransformedEntities(task: Task[TransformSpec],
         Entity(uri, values, outputSchema, metadata = buildErrorMetadata())
       }
     } else {
-      for(uriRule <- subjectRule) {
-        report.addRuleError(uriRule, entity, new ValidationException("The URI pattern did not generate any URI for this entity."))
+      for(uriRuleExec <- subjectRuleExecution) {
+        report.addRuleError(uriRuleExec.operator, entity, new ValidationException("The URI pattern did not generate any URI for this entity."))
       }
       errorFlag = true
       Iterator.empty
@@ -149,9 +152,10 @@ class TransformedEntities(task: Task[TransformSpec],
     }
   }
 
-  private def evaluateRule(entity: Entity, rule: TransformRule, report: TransformReportBuilder): Seq[String] = {
+  private def evaluateRule(entity: Entity, exec: TransformRuleExecution, report: TransformReportBuilder): Seq[String] = {
+    val rule = exec.operator
     try {
-      val result = rule(entity)
+      val result = exec(entity)
       for(error <- result.errors) {
         addError(report, rule, entity, error.error, Some(error.operatorId))
       }

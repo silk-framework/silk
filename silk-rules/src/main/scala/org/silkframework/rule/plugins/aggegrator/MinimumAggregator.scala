@@ -16,7 +16,7 @@ package org.silkframework.rule.plugins.aggegrator
 
 import org.silkframework.entity.{Entity, Index}
 import org.silkframework.rule.annotations.{AggregatorExample, AggregatorExamples}
-import org.silkframework.rule.similarity.{Aggregator, SimilarityOperator, SimilarityScore}
+import org.silkframework.rule.similarity.{Aggregator, SimilarityOperatorExecution, SimilarityScore}
 import org.silkframework.runtime.plugin.PluginCategories
 import org.silkframework.runtime.plugin.annotations.Plugin
 import org.silkframework.util.DPair
@@ -54,7 +54,7 @@ case class MinimumAggregator() extends Aggregator {
   /**
    * Returns the minimum of the provided values.
    */
-  override def apply(operators: Seq[SimilarityOperator], entities: DPair[Entity], limit: Double): SimilarityScore = {
+  override def apply(operators: Seq[SimilarityOperatorExecution], entities: DPair[Entity], limit: Double): SimilarityScore = {
     var minScore = Double.MaxValue
     if(operators.isEmpty) {
       return SimilarityScore.none

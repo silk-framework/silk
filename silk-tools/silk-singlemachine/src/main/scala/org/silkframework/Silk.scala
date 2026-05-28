@@ -17,10 +17,10 @@ package org.silkframework
 import org.silkframework.config._
 import org.silkframework.dataset.CombinedEntitySink
 import org.silkframework.rule.execution.{ExecuteTransform, GenerateLinks}
-import org.silkframework.rule.{LinkSpec, LinkingConfig, TransformSpec}
+import org.silkframework.rule.{LinkSpec, LinkingConfig, TaskContext, TransformSpec}
 import org.silkframework.runtime.activity.{Activity, UserContext}
 import org.silkframework.runtime.plugin.PluginContext
-import org.silkframework.runtime.resource.FileResourceManager
+import org.silkframework.runtime.resource.{EmptyResourceManager, FileResourceManager}
 import org.silkframework.runtime.serialization.{ReadContext, XmlSerialization}
 import org.silkframework.util.StringUtils._
 import org.silkframework.util.{CollectLogs, Identifier}
@@ -165,11 +165,14 @@ object Silk {
   private def executeLinkSpec(config: LinkingConfig, linkSpec: Task[LinkSpec], numThreads: Int = DefaultThreads, reload: Boolean = true)
                              (implicit userContext: UserContext): Unit = {
     implicit val prefixes: Prefixes = config.prefixes
+    implicit val pluginContext: PluginContext = PluginContext(prefixes = prefixes, resources = EmptyResourceManager(), user = userContext)
+    val inputs = linkSpec.findSources(config.sources)
     val generateLinks =
       new GenerateLinks(
         linkSpec,
-        inputs = linkSpec.findSources(config.sources),
+        inputs = inputs,
         output = config.output.map(_.linkSink),
+        taskContext = TaskContext.fromSources(inputs),
         runtimeConfig = config.runtime.copy(numThreads = numThreads, reloadCache = reload)
       )
     Activity(generateLinks).startBlocking()

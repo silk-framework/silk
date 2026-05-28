@@ -30,17 +30,11 @@ import org.silkframework.runtime.templating.TemplateVariableName
 )
 trait Transformer extends AnyPlugin {
 
-  def withContext(taskContext: TaskContext): Transformer = this
-
   /**
-    * Transforms a sequence of values
-    *
-    * @param values A sequence which contains as many elements as there are input operators for this transformation.
-    *               For each input operator it contains a sequence of values.
-    *
-    * @return The transformed sequence of values.
-    */
-  def apply(values: Seq[Seq[String]]): Seq[String]
+   * Returns an executor that performs the actual transformation.
+   * Simple transformers may return this object itself.
+   */
+  def execution(taskContext: TaskContext = TaskContext.empty): TransformerExecution
 
   /**
     * The resources that are directly referenced by this transformer.
@@ -66,3 +60,24 @@ trait Transformer extends AnyPlugin {
 }
 
 object Transformer extends PluginFactory[Transformer]
+
+trait TransformerExecution {
+
+  /**
+   * Transforms a sequence of values
+   *
+   * @param values A sequence which contains as many elements as there are input operators for this transformation.
+   *               For each input operator it contains a sequence of values.
+   *
+   * @return The transformed sequence of values.
+   */
+  def apply(values: Seq[Seq[String]]): Seq[String]
+}
+
+/**
+ * A Transformer whose instance is also its own executor.
+ * `withContext` returns `this`, so the same object serves as both descriptor and runtime executor.
+ */
+trait InlineTransformer extends Transformer with TransformerExecution {
+  override def execution(taskContext: TaskContext = TaskContext.empty): TransformerExecution = this
+}
