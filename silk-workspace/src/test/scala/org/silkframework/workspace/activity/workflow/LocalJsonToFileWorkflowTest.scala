@@ -7,7 +7,7 @@ import org.silkframework.dataset.DatasetSpec
 import org.silkframework.plugins.dataset.json.{JsonDataset, JsonToFileOperator}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.PluginContext
-import org.silkframework.runtime.resource.InMemoryResourceManager
+import org.silkframework.runtime.resource.{InMemoryResourceManager, WritableResource}
 import org.silkframework.util.ConfigTestTrait
 import org.silkframework.workspace.resources.ConstantResourceRepository
 import org.silkframework.workspace.{InMemoryWorkspaceProvider, ProjectConfig, Workspace}
@@ -50,143 +50,30 @@ class LocalJsonToFileWorkflowTest extends AnyFlatSpec with Matchers with ConfigT
       |}""".stripMargin
 
   it should "write the JSON string on an input entity to a file in a downstream dataset" in {
-    val resources = InMemoryResourceManager()
-
-    // Source: one entity whose "jsonContent" field holds the JSON blob
-    val sourceResource = resources.get("source.json")
-    sourceResource.writeString(s"""[{"jsonContent": ${Json.stringify(JsString(inputJson))}}]""")
-
-    // Output: empty file the downstream dataset will receive from JSON to File
-    val outputResource = resources.get("output.json")
-
-    val workspace = new Workspace(
-      provider = new InMemoryWorkspaceProvider(),
-      repository = ConstantResourceRepository(resources)
+    val output = runWorkflow(
+      JsonToFileOperator(inputPath = "jsonContent"),
+      s"""[{"jsonContent": ${Json.stringify(JsString(inputJson))}}]"""
     )
-    val project = workspace.createProject(ProjectConfig(metaData = MetaData(Some("testProject"))))
-
-    project.addTask(SourceDatasetId, DatasetSpec(JsonDataset(sourceResource)))
-    project.addTask(JsonToFileId, JsonToFileOperator(inputPath = "jsonContent"))
-    project.addTask(OutputDatasetId, DatasetSpec(JsonDataset(outputResource)))
-
-    val sourceNode = WorkflowDataset(
-      inputs = Seq.empty,
-      task = SourceDatasetId,
-      outputs = Seq(JsonToFileId),
-      position = (0, 0),
-      nodeId = SourceDatasetId,
-      outputPriority = None,
-      configInputs = Seq.empty,
-      dependencyInputs = Seq.empty
-    )
-    val operatorNode = WorkflowOperator(
-      inputs = Seq(Some(SourceDatasetId)),
-      task = JsonToFileId,
-      outputs = Seq(OutputDatasetId),
-      errorOutputs = Seq.empty,
-      position = (100, 0),
-      nodeId = JsonToFileId,
-      outputPriority = None,
-      configInputs = Seq.empty,
-      dependencyInputs = Seq.empty
-    )
-    val outputNode = WorkflowDataset(
-      inputs = Seq(Some(JsonToFileId)),
-      task = OutputDatasetId,
-      outputs = Seq.empty,
-      position = (200, 0),
-      nodeId = OutputDatasetId,
-      outputPriority = None,
-      configInputs = Seq.empty,
-      dependencyInputs = Seq.empty
-    )
-
-    project.addTask(WorkflowId, Workflow(
-      operators = Seq(operatorNode),
-      datasets = Seq(sourceNode, outputNode)
-    ))
-
-    val workflowTask = project.task[Workflow](WorkflowId)
-    workflowTask.activity[LocalWorkflowExecutorGeneratingProvenance].startBlocking()
-
-    outputResource.loadAsString() shouldBe inputJson
+    output.loadAsString() shouldBe inputJson
   }
 
   it should "pack multiple input entities into a single ZIP file when zipOutput is enabled" in {
-    val resources = InMemoryResourceManager()
-
     val json1 = """{"value":"first"}"""
     val json2 = """{"value":"second"}"""
-
-    val sourceResource = resources.get("source.json")
-    sourceResource.writeString(
-      s"""[{"jsonContent": ${Json.stringify(JsString(json1))}}, {"jsonContent": ${Json.stringify(JsString(json2))}}]"""
+    val output = runWorkflow(
+      JsonToFileOperator(inputPath = "jsonContent", zipOutput = true),
+      s"""[{"jsonContent": ${Json.stringify(JsString(json1))}}, {"jsonContent": ${Json.stringify(JsString(json2))}}]""",
+      outputName = "output.zip"
     )
-
-    val outputResource = resources.get("output.zip")
-
-    val workspace = new Workspace(
-      provider = new InMemoryWorkspaceProvider(),
-      repository = ConstantResourceRepository(resources)
-    )
-    val project = workspace.createProject(ProjectConfig(metaData = MetaData(Some("testProjectZip"))))
-
-    project.addTask(SourceDatasetId, DatasetSpec(JsonDataset(sourceResource)))
-    project.addTask(JsonToFileId, JsonToFileOperator(inputPath = "jsonContent", zipOutput = true))
-    project.addTask(OutputDatasetId, DatasetSpec(JsonDataset(outputResource)))
-
-    val sourceNode = WorkflowDataset(
-      inputs = Seq.empty,
-      task = SourceDatasetId,
-      outputs = Seq(JsonToFileId),
-      position = (0, 0),
-      nodeId = SourceDatasetId,
-      outputPriority = None,
-      configInputs = Seq.empty,
-      dependencyInputs = Seq.empty
-    )
-    val operatorNode = WorkflowOperator(
-      inputs = Seq(Some(SourceDatasetId)),
-      task = JsonToFileId,
-      outputs = Seq(OutputDatasetId),
-      errorOutputs = Seq.empty,
-      position = (100, 0),
-      nodeId = JsonToFileId,
-      outputPriority = None,
-      configInputs = Seq.empty,
-      dependencyInputs = Seq.empty
-    )
-    val outputNode = WorkflowDataset(
-      inputs = Seq(Some(JsonToFileId)),
-      task = OutputDatasetId,
-      outputs = Seq.empty,
-      position = (200, 0),
-      nodeId = OutputDatasetId,
-      outputPriority = None,
-      configInputs = Seq.empty,
-      dependencyInputs = Seq.empty
-    )
-
-    project.addTask(WorkflowId, Workflow(
-      operators = Seq(operatorNode),
-      datasets = Seq(sourceNode, outputNode)
-    ))
-
-    val workflowTask = project.task[Workflow](WorkflowId)
-    workflowTask.activity[LocalWorkflowExecutorGeneratingProvenance].startBlocking()
-
-    val zip = new ZipInputStream(outputResource.inputStream)
+    val zip = new ZipInputStream(output.inputStream)
     val entries = try {
       Iterator.continually(zip.getNextEntry)
         .takeWhile(_ != null)
-        .map { entry =>
-          val content = scala.io.Source.fromInputStream(zip, "UTF-8").mkString
-          (entry.getName, content)
-        }.toSeq
+        .map(entry => (entry.getName, scala.io.Source.fromInputStream(zip, "UTF-8").mkString))
+        .toSeq
     } finally {
       zip.close()
     }
-
     entries.size shouldBe 2
     entries(0) shouldBe (("entry-0.json", json1))
     entries(1) shouldBe (("entry-1.json", json2))
@@ -198,4 +85,53 @@ object LocalJsonToFileWorkflowTest {
   val JsonToFileId = "jsonToFile"
   val OutputDatasetId = "outputDataset"
   val WorkflowId = "workflow"
+
+  /** Builds an in-memory workspace with a three-node workflow (source JSON dataset → JsonToFile operator →
+   * output dataset), runs it synchronously, and returns the output resource for assertion. */
+  def runWorkflow(operator: JsonToFileOperator, sourceContent: String, outputName: String = "output.json")
+                 (implicit userContext: UserContext, pluginContext: PluginContext, prefixes: Prefixes): WritableResource = {
+    val resources = InMemoryResourceManager()
+
+    val sourceResource = resources.get("source.json")
+    sourceResource.writeString(sourceContent)
+
+    val outputResource = resources.get(outputName)
+
+    val workspace = new Workspace(
+      provider = new InMemoryWorkspaceProvider(),
+      repository = ConstantResourceRepository(resources)
+    )
+    val project = workspace.createProject(ProjectConfig(metaData = MetaData(Some("testProject"))))
+
+    project.addTask(SourceDatasetId, DatasetSpec(JsonDataset(sourceResource)))
+    project.addTask(JsonToFileId, operator)
+    project.addTask(OutputDatasetId, DatasetSpec(JsonDataset(outputResource)))
+
+    val sourceNode = WorkflowDataset(
+      inputs = Seq.empty, task = SourceDatasetId, outputs = Seq(JsonToFileId),
+      position = (0, 0), nodeId = SourceDatasetId, outputPriority = None,
+      configInputs = Seq.empty, dependencyInputs = Seq.empty
+    )
+    val operatorNode = WorkflowOperator(
+      inputs = Seq(Some(SourceDatasetId)), task = JsonToFileId, outputs = Seq(OutputDatasetId),
+      errorOutputs = Seq.empty, position = (100, 0), nodeId = JsonToFileId,
+      outputPriority = None, configInputs = Seq.empty, dependencyInputs = Seq.empty
+    )
+    val outputNode = WorkflowDataset(
+      inputs = Seq(Some(JsonToFileId)), task = OutputDatasetId, outputs = Seq.empty,
+      position = (200, 0), nodeId = OutputDatasetId, outputPriority = None,
+      configInputs = Seq.empty, dependencyInputs = Seq.empty
+    )
+
+    project.addTask(WorkflowId, Workflow(
+      operators = Seq(operatorNode),
+      datasets = Seq(sourceNode, outputNode)
+    ))
+
+    project.task[Workflow](WorkflowId)
+      .activity[LocalWorkflowExecutorGeneratingProvenance]
+      .startBlocking()
+
+    outputResource
+  }
 }
