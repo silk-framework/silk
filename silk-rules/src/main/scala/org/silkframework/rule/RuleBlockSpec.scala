@@ -34,6 +34,8 @@ case class RuleBlockSpec(@Param(label = "Rule block model",
 
   def ports: IndexedSeq[RuleBlockPort] = ruleBlockModel.ports
 
+  def inputExamples: IndexedSeq[RuleBlockInputExample] = ruleBlockModel.inputExamples
+
   def operator: Option[Input] = ruleBlockModel.operator
 
   def layout: RuleLayout = ruleBlockModel.layout
@@ -65,6 +67,9 @@ case class RuleBlockSpec(@Param(label = "Rule block model",
     val duplicatePortIds = ports.map(_.id).groupBy(identity).collect {
       case (id, duplicates) if duplicates.size > 1 => id
     }.toSeq
+    val duplicateInputExampleIds = inputExamples.map(_.id).groupBy(identity).collect {
+      case (id, duplicates) if duplicates.size > 1 => id
+    }.toSeq
     val duplicateDisplayOrders = ports.map(_.displayOrder).groupBy(identity).collect {
       case (displayOrder, duplicates) if duplicates.size > 1 => displayOrder
     }.toSeq.sorted
@@ -73,6 +78,18 @@ case class RuleBlockSpec(@Param(label = "Rule block model",
     }
     if(duplicateDisplayOrders.nonEmpty) {
       throw new ValidationException(s"Duplicate rule block port display orders found: ${duplicateDisplayOrders.mkString(", ")}")
+    }
+    if(duplicateInputExampleIds.nonEmpty) {
+      throw new ValidationException(s"Duplicate rule block input example IDs found: ${duplicateInputExampleIds.mkString(", ")}")
+    }
+    inputExamples.foreach { example =>
+      example.inputs.keys.foreach { portId =>
+        if(!definedPortIds.contains(portId)) {
+          throw new ValidationException(
+            s"Rule block input example '${example.id}' references unknown input port '${portId}'."
+          )
+        }
+      }
     }
     operator.foreach { op =>
       validateOperatorTree(op, definedPortIds)
@@ -123,6 +140,7 @@ case class RuleBlockTask(id: Identifier,
 }
 
 case class RuleBlockModel(ports: IndexedSeq[RuleBlockPort] = IndexedSeq.empty,
+                          inputExamples: IndexedSeq[RuleBlockInputExample] = IndexedSeq.empty,
                           operator: Option[Input] = None,
                           layout: RuleLayout = RuleLayout(),
                           uiAnnotations: UiAnnotations = UiAnnotations()) extends PluginObjectParameterNoSchema
@@ -133,11 +151,12 @@ object RuleBlockModel {
   implicit object RuleBlockModelXmlFormat extends XmlFormat[RuleBlockModel] {
     override def read(xml: Node)(implicit readContext: ReadContext): RuleBlockModel = {
       val ports = (xml \ "Ports" \ "Port").map(RuleBlockPort.RuleBlockPortXmlFormat.read).toIndexedSeq
+      val inputExamples = (xml \ "InputExamples" \ "Example").map(RuleBlockInputExample.RuleBlockInputExampleXmlFormat.read).toIndexedSeq
       val operator = (xml \ "OperatorTree" \ "_").headOption
         .map(fromXml[Input])
       val layout = (xml \ "RuleLayout").headOption.map(fromXml[RuleLayout]).getOrElse(RuleLayout())
       val uiAnnotations = (xml \ "UiAnnotations").headOption.map(fromXml[UiAnnotations]).getOrElse(UiAnnotations())
-      RuleBlockModel(ports, operator, layout, uiAnnotations)
+      RuleBlockModel(ports, inputExamples, operator, layout, uiAnnotations)
     }
 
     override def write(value: RuleBlockModel)(implicit writeContext: WriteContext[Node]): Node = {
@@ -145,6 +164,9 @@ object RuleBlockModel {
         <Ports>
           {value.ports.map(RuleBlockPort.RuleBlockPortXmlFormat.write)}
         </Ports>
+        <InputExamples>
+          {value.inputExamples.map(RuleBlockInputExample.RuleBlockInputExampleXmlFormat.write)}
+        </InputExamples>
         <OperatorTree>
           {value.operator match {
           case Some(op) => toXml[Input](op)
@@ -161,9 +183,37 @@ object RuleBlockModel {
 case class RuleBlockPort(id: Identifier = Operator.generateId,
                          label: String = "",
                          description: String = "",
-                         exampleValues: String = "",
                          displayOrder: Int = 0,
                          deprecated: Boolean = false)
+
+case class RuleBlockInputExample(id: Identifier = Operator.generateId,
+                                 inputs: Map[Identifier, Seq[String]] = Map.empty)
+
+object RuleBlockInputExample {
+  implicit object RuleBlockInputExampleXmlFormat extends XmlFormat[RuleBlockInputExample] {
+    override def read(xml: Node)(implicit readContext: ReadContext): RuleBlockInputExample = {
+      val id = (xml \ "@id").headOption.map(attr => Identifier(attr.text)).getOrElse(Operator.generateId)
+      val inputs = (xml \ "Input").map { inputNode =>
+        val portId = (inputNode \ "@portId").headOption
+          .map(attr => Identifier(attr.text))
+          .getOrElse(throw new ValidationException(s"Rule block input example '${id}' contains an input without a portId attribute."))
+        val values = (inputNode \ "Value").map(_.text).toSeq
+        portId -> values
+      }.toMap
+      RuleBlockInputExample(id, inputs)
+    }
+
+    override def write(value: RuleBlockInputExample)(implicit writeContext: WriteContext[Node]): Node = {
+      <Example id={value.id.toString}>
+        {value.inputs.toSeq.sortBy(_._1.toString).map { case (portId, values) =>
+        <Input portId={portId.toString}>
+          {values.map(v => <Value xml:space="preserve">{PCData(v)}</Value>)}
+        </Input>
+      }}
+      </Example>
+    }
+  }
+}
 
 object RuleBlockPort {
   implicit object RuleBlockPortXmlFormat extends XmlFormat[RuleBlockPort] {
@@ -173,8 +223,7 @@ object RuleBlockPort {
       val displayOrder = (xml \ "@displayOrder").headOption.map(_.text.toInt).getOrElse(0)
       val deprecated = (xml \ "@deprecated").headOption.map(_.text.toBoolean).getOrElse(false)
       val description = (xml \ "Description").text
-      val exampleValues = (xml \ "ExampleValues").text
-      RuleBlockPort(id, label, description, exampleValues, displayOrder, deprecated)
+      RuleBlockPort(id, label, description, displayOrder, deprecated)
     }
 
     override def write(value: RuleBlockPort)(implicit writeContext: WriteContext[Node]): Node = {
@@ -183,7 +232,6 @@ object RuleBlockPort {
             displayOrder={value.displayOrder.toString}
             deprecated={value.deprecated.toString}>
         <Description xml:space="preserve">{PCData(value.description)}</Description>
-        <ExampleValues xml:space="preserve">{PCData(value.exampleValues)}</ExampleValues>
       </Port>
     }
   }

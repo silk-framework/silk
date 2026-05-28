@@ -206,23 +206,30 @@ trait WorkspaceProviderTestTrait extends AnyFlatSpec with Matchers with MockitoS
               id = Identifier("namePort"),
               label = "Name",
               description = "Input name values",
-              exampleValues = "- Alice\n- Bob",
               displayOrder = 0
             ),
             RuleBlockPort(
               id = Identifier("suffixPort"),
               label = "Suffix",
               description = "Optional suffix values",
-              exampleValues = "- Jr.",
               displayOrder = 1
             ),
             RuleBlockPort(
               id = Identifier("legacyPort"),
               label = "Legacy",
               description = "Deprecated legacy input",
-              exampleValues = "- legacy",
               displayOrder = 2,
               deprecated = true
+            )
+          ),
+          inputExamples = IndexedSeq(
+            RuleBlockInputExample(
+              id = Identifier("example-1"),
+              inputs = Map(
+                Identifier("namePort") -> Seq("Alice", "Bob"),
+                Identifier("suffixPort") -> Seq("Jr."),
+                Identifier("legacyPort") -> Seq("legacy")
+              )
             )
           ),
           operator = Some(
@@ -269,23 +276,30 @@ trait WorkspaceProviderTestTrait extends AnyFlatSpec with Matchers with MockitoS
               id = Identifier("namePort"),
               label = "Given Name",
               description = "Normalized input name values",
-              exampleValues = "- Alice\n- CHARLIE",
               displayOrder = 0
             ),
             RuleBlockPort(
               id = Identifier("suffixPort"),
               label = "Separator",
               description = "Optional separator values",
-              exampleValues = "- ::",
               displayOrder = 1
             ),
             RuleBlockPort(
               id = Identifier("legacyPort"),
               label = "Legacy",
               description = "Deprecated legacy input",
-              exampleValues = "- legacy",
               displayOrder = 2,
               deprecated = true
+            )
+          ),
+          inputExamples = IndexedSeq(
+            RuleBlockInputExample(
+              id = Identifier("example-1"),
+              inputs = Map(
+                Identifier("namePort") -> Seq("Alice", "CHARLIE"),
+                Identifier("suffixPort") -> Seq("::"),
+                Identifier("legacyPort") -> Seq("legacy")
+              )
             )
           ),
           operator = Some(

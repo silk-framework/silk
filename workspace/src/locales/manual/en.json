@@ -786,6 +786,7 @@
                 "conflictingPortDefinitions": "Input port '{{portId}}' is used with conflicting definitions.",
                 "duplicateDisplayOrder": "Display order {{displayOrder}} must be unique within the rule block.",
                 "duplicateInputPortLabel": "Input port label '{{label}}' must be unique within the rule block.",
+                "evaluate": "Could not evaluate the rule block.",
                 "fetchTaskData": "Could not load the rule block.",
                 "fetchTransformOperators": "Could not load the transform operators.",
                 "inputPortLabelRequired": "Input port label is required.",
@@ -804,6 +805,9 @@
             "newInputPort": "New input port",
             "portMenu": "Port menu",
             "deleteDisabledInUse": "Input port '{{portLabel}}' cannot be removed because this rule block is already in use.",
+            "evaluation": {
+                "noResults": "No evaluation results available."
+            },
             "normalizePortOrder": "Normalize port order",
             "normalizePortOrderTooltip": "Renumber input ports to 1..n while preserving their current order. This action is undoable.",
             "refreshUsage": "Refresh usage",

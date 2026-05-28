@@ -21,7 +21,7 @@ import org.silkframework.entity.paths.{Path, TypedPath, UntypedPath}
 import org.silkframework.rule.{LinkSpec, RuleBlockSpec, TransformSpec}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.{ParameterValues, PluginContext, PluginDescription, TaskResolver}
-import org.silkframework.runtime.serialization.ReadContext
+import org.silkframework.runtime.serialization.{ReadContext, WriteContext}
 import org.silkframework.runtime.validation.BadUserInputException
 import org.silkframework.serialization.json.MetaDataSerializers.FullTag
 import org.silkframework.util.{Identifier, IdentifierUtils}

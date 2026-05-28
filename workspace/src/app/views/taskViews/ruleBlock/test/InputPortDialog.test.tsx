@@ -17,7 +17,6 @@ const existingPort = (overrides: Partial<IRuleBlockPort> = {}): IRuleBlockPort =
     id: "inputPortA",
     label: "Input A",
     description: "Existing description",
-    exampleValues: "- existing",
     displayOrder: 2,
     deprecated: false,
     ...overrides,
@@ -26,7 +25,6 @@ const existingPort = (overrides: Partial<IRuleBlockPort> = {}): IRuleBlockPort =
 const initialPort = (overrides: Partial<InputPortDialogSubmitValue> = {}): InputPortDialogSubmitValue => ({
     label: "Input A",
     description: "Initial description",
-    exampleValues: "- initial",
     displayOrder: 2,
     deprecated: false,
     ...overrides,
@@ -100,7 +98,6 @@ describe("InputPortDialog", () => {
         expect(onSubmit).toHaveBeenCalledWith({
             label: "Updated input",
             description: "Updated description",
-            exampleValues: "- initial",
             displayOrder: 4,
             deprecated: false,
         });

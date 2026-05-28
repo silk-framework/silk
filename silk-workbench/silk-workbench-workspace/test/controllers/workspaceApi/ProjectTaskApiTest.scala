@@ -145,8 +145,17 @@ class ProjectTaskApiTest extends AnyFlatSpec with SingleProjectWorkspaceProvider
       RuleBlockSpec(
         RuleBlockModel(
           ports = IndexedSeq(
-            RuleBlockPort(Identifier("b"), label = "Second", description = "Desc B", exampleValues = "- second", displayOrder = 2),
-            RuleBlockPort(Identifier("a"), label = "First", description = "Desc A", exampleValues = "- first", displayOrder = 1, deprecated = true),
+            RuleBlockPort(Identifier("b"), label = "Second", description = "Desc B", displayOrder = 2),
+            RuleBlockPort(Identifier("a"), label = "First", description = "Desc A", displayOrder = 1, deprecated = true),
+          ),
+          inputExamples = IndexedSeq(
+            RuleBlockInputExample(
+              id = Identifier("example-1"),
+              inputs = Map(
+                Identifier("a") -> Seq("first example"),
+                Identifier("b") -> Seq("second example")
+              )
+            )
           )
         )
       ),
@@ -159,8 +168,8 @@ class ProjectTaskApiTest extends AnyFlatSpec with SingleProjectWorkspaceProvider
         label = "Normalize name",
         description = Some("Reusable normalization"),
         ports = Seq(
-          controllers.projectApi.requests.RuleBlockPortSummary("a", "First", "Desc A", "- first", 1, deprecated = true),
-          controllers.projectApi.requests.RuleBlockPortSummary("b", "Second", "Desc B", "- second", 2, deprecated = false),
+          controllers.projectApi.requests.RuleBlockPortSummary("a", "First", "Desc A", 1, deprecated = true),
+          controllers.projectApi.requests.RuleBlockPortSummary("b", "Second", "Desc B", 2, deprecated = false),
         )
       )
     )

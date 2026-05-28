@@ -1,5 +1,5 @@
 import React from "react";
-import { Button, CodeEditor, FieldItem, SimpleDialog, Switch, TextArea, TextField } from "@eccenca/gui-elements";
+import { Button, FieldItem, SimpleDialog, Switch, TextArea, TextField } from "@eccenca/gui-elements";
 import { useTranslation } from "react-i18next";
 import { IRuleBlockPort } from "./ruleBlock.types";
 import ruleBlockUtils from "./ruleBlock.utils";
@@ -7,7 +7,6 @@ import ruleBlockUtils from "./ruleBlock.utils";
 export interface InputPortDialogSubmitValue {
     label: string;
     description: string;
-    exampleValues: string;
     displayOrder: number;
     deprecated: boolean;
 }
@@ -39,14 +38,12 @@ export const InputPortDialog = ({
     const [t] = useTranslation();
     const [label, setLabel] = React.useState(initialPort.label);
     const [description, setDescription] = React.useState(initialPort.description);
-    const [exampleValues, setExampleValues] = React.useState(initialPort.exampleValues);
     const [displayOrder, setDisplayOrder] = React.useState(String(initialPort.displayOrder));
     const [deprecated, setDeprecated] = React.useState(initialPort.deprecated);
 
     React.useEffect(() => {
         setLabel(initialPort.label);
         setDescription(initialPort.description);
-        setExampleValues(initialPort.exampleValues);
         setDisplayOrder(String(initialPort.displayOrder));
         setDeprecated(initialPort.deprecated);
     }, [
@@ -54,7 +51,6 @@ export const InputPortDialog = ({
         initialPort.deprecated,
         initialPort.description,
         initialPort.displayOrder,
-        initialPort.exampleValues,
         initialPort.label,
         isOpen,
         mode,
@@ -81,7 +77,6 @@ export const InputPortDialog = ({
                       id: editedPortId,
                       label: trimmedLabel,
                       description,
-                      exampleValues,
                       displayOrder: parsedDisplayOrder,
                       deprecated,
                   },
@@ -101,7 +96,6 @@ export const InputPortDialog = ({
         onSubmit({
             label: trimmedLabel,
             description,
-            exampleValues,
             displayOrder: parsedDisplayOrder,
             deprecated,
         });
@@ -165,19 +159,6 @@ export const InputPortDialog = ({
                     onChange={(event: React.ChangeEvent<HTMLTextAreaElement>) => setDescription(event.target.value)}
                     rows={3}
                     growVertically={false}
-                />
-            </FieldItem>
-            <FieldItem
-                labelProps={{ text: t("taskViews.ruleBlock.exampleValues"), htmlFor: "input-port-example-values" }}
-            >
-                <CodeEditor
-                    id="input-port-example-values"
-                    name="input-port-example-values"
-                    key={`${mode}-${editedPortId ?? "create"}-${initialPort.exampleValues}`}
-                    mode="yaml"
-                    defaultValue={exampleValues}
-                    onChange={setExampleValues}
-                    data-test-id="input-port-example-values"
                 />
             </FieldItem>
             <FieldItem labelProps={{ text: t("taskViews.ruleBlock.deprecated"), htmlFor: "input-port-deprecated" }}>

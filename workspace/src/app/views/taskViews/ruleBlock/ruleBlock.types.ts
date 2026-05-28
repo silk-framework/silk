@@ -5,9 +5,13 @@ export interface IRuleBlockPort {
     id: string;
     label: string;
     description: string;
-    exampleValues: string;
     displayOrder: number;
     deprecated: boolean;
+}
+
+export interface IRuleBlockInputExample {
+    id: string;
+    inputs: Record<string, string[]>;
 }
 
 export interface IRuleBlockUiAnnotations {
@@ -16,6 +20,7 @@ export interface IRuleBlockUiAnnotations {
 
 export interface IRuleBlockModel {
     ports: IRuleBlockPort[];
+    inputExamples: IRuleBlockInputExample[];
     operatorTree?: IValueInput;
     layout: RuleLayout;
     uiAnnotations?: IRuleBlockUiAnnotations;

@@ -107,6 +107,14 @@ object DetailedEvaluator {
     result
   }
 
+  /**
+   * Evaluates a single pre-built input execution for an entity.
+   * This is useful for rule-block-specific evaluation flows that directly execute an input tree.
+   */
+  def apply(inputExecution: InputExecution, entity: Entity): Value = {
+    evaluateInput(inputExecution, entity)
+  }
+
   private def evaluateOperator(opExec: SimilarityOperatorExecution, entities: DPair[Entity], threshold: Double): Confidence = opExec match {
     case agg: AggregationExecution => evaluateAggregation(agg, entities, threshold)
     case cmp: ComparisonExecution => evaluateComparison(cmp, entities, threshold)

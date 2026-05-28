@@ -82,6 +82,10 @@ const createRuleBlockEditorHarness = () => {
             registerError: mockRegisterError,
         }),
     }));
+    jest.doMock("../RuleBlockEvaluation", () => ({
+        __esModule: true,
+        default: ({ children }) => <>{children}</>,
+    }));
     jest.doMock("../../../shared/RuleEditor/RuleEditor", () => {
         const React = require("react");
         return {
@@ -129,7 +133,6 @@ const createPersistedPort = (overrides: Partial<IRuleBlockPort> = {}): IRuleBloc
     id: "inputPortA",
     label: "Input A",
     description: "Input description",
-    exampleValues: "- example",
     displayOrder: 2,
     deprecated: false,
     ...overrides,
@@ -147,6 +150,7 @@ const createRuleBlockTask = (ports: IRuleBlockPort[] = []): IProjectTask<IRuleBl
         parameters: {
             ruleBlockModel: {
                 ports,
+                inputExamples: [],
                 layout: { nodePositions: {} },
                 uiAnnotations: { stickyNotes: [] },
             },
@@ -384,7 +388,6 @@ describe("RuleBlockEditor", () => {
             editor.getInputPortDialogProps()!.onSubmit({
                 label: "Created input",
                 description: "Created description",
-                exampleValues: "",
                 displayOrder: 3,
                 deprecated: false,
             });
@@ -401,7 +404,6 @@ describe("RuleBlockEditor", () => {
             expect.objectContaining({
                 label: "Created input",
                 description: "Created description",
-                exampleValues: "",
                 displayOrder: 3,
                 deprecated: false,
             }),
@@ -436,7 +438,6 @@ describe("RuleBlockEditor", () => {
             editor.getInputPortDialogProps()!.onSubmit({
                 label: "Updated input",
                 description: "Updated description",
-                exampleValues: "- changed",
                 displayOrder: 4,
                 deprecated: false,
             });
@@ -453,7 +454,6 @@ describe("RuleBlockEditor", () => {
             id: "inputPortA",
             label: "Updated input",
             description: "Updated description",
-            exampleValues: "- changed",
             displayOrder: 4,
             deprecated: false,
         });

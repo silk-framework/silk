@@ -6,6 +6,7 @@ import org.silkframework.rule.input.{InputPortInput, PathInput, TransformInput}
 import org.silkframework.rule.plugins.transformer.combine.ConcatTransformer
 import org.silkframework.runtime.plugin.PluginContext
 import org.silkframework.runtime.validation.ValidationException
+import org.silkframework.util.Identifier
 import org.silkframework.util.XmlSerializationHelperTrait
 import org.silkframework.workspace.annotation.{StickyNote, UiAnnotations}
 
@@ -21,16 +22,23 @@ class RuleBlockSpecTest extends AnyFlatSpec with XmlSerializationHelperTrait {
             id = "firstInput",
             label = "First input",
             description = "Used for the primary lookup.",
-            exampleValues = "---\n- value 1\n- |\n  multi\n  line\n",
             displayOrder = 0
           ),
           RuleBlockPort(
             id = "secondInput",
             label = "Second input",
             description = "Deprecated fallback.",
-            exampleValues = "---\n- fallback\n",
             displayOrder = 1,
             deprecated = true
+          )
+        ),
+        inputExamples = IndexedSeq(
+          RuleBlockInputExample(
+            id = "example-1",
+            inputs = Map(
+              Identifier("firstInput") -> Seq("value 1", "multi\nline"),
+              Identifier("secondInput") -> Seq("fallback")
+            )
           )
         ),
         operator = Some(
@@ -83,6 +91,41 @@ class RuleBlockSpecTest extends AnyFlatSpec with XmlSerializationHelperTrait {
     }
 
     ex.getMessage must include ("Duplicate rule block port display orders")
+  }
+
+  it should "reject duplicate input example identifiers" in {
+    val ex = the[ValidationException] thrownBy {
+      RuleBlockSpec(
+        RuleBlockModel(
+          inputExamples = IndexedSeq(
+            RuleBlockInputExample(id = "duplicate"),
+            RuleBlockInputExample(id = "duplicate")
+          )
+        )
+      )
+    }
+
+    ex.getMessage must include ("Duplicate rule block input example IDs")
+  }
+
+  it should "reject input examples that reference unknown ports" in {
+    val ex = the[ValidationException] thrownBy {
+      RuleBlockSpec(
+        RuleBlockModel(
+          ports = IndexedSeq(
+            RuleBlockPort(id = "knownPort")
+          ),
+          inputExamples = IndexedSeq(
+            RuleBlockInputExample(
+              id = "example-1",
+              inputs = Map(Identifier("unknownPort") -> Seq("value"))
+            )
+          )
+        )
+      )
+    }
+
+    ex.getMessage must include ("references unknown input port")
   }
 
   it should "reject path inputs in the internal operator tree" in {

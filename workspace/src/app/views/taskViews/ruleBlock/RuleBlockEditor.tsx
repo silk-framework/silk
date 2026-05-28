@@ -36,6 +36,7 @@ import ruleBlockUtils from "./ruleBlock.utils";
 import ruleBlockEditorUtils from "./RuleBlockEditor.utils";
 import { ExternalSidebarContext } from "../../shared/RuleEditor/contexts/ExternalSidebarContext";
 import InputPortDialog, { InputPortDialogSubmitValue } from "./InputPortDialog";
+import RuleBlockEvaluation from "./RuleBlockEvaluation";
 
 export interface RuleBlockEditorProps {
     projectId: string;
@@ -163,7 +164,6 @@ export const RuleBlockEditor = ({ projectId, ruleBlockTaskId, viewActions, insta
             return {
                 label: editedPort.label,
                 description: editedPort.description,
-                exampleValues: editedPort.exampleValues,
                 displayOrder: editedPort.displayOrder,
                 deprecated: editedPort.deprecated,
             };
@@ -196,7 +196,6 @@ export const RuleBlockEditor = ({ projectId, ruleBlockTaskId, viewActions, insta
                 typeof port.id === "string" &&
                 typeof port.label === "string" &&
                 typeof port.description === "string" &&
-                typeof port.exampleValues === "string" &&
                 typeof port.displayOrder === "number" &&
                 typeof port.deprecated === "boolean",
         );
@@ -598,31 +597,38 @@ export const RuleBlockEditor = ({ projectId, ruleBlockTaskId, viewActions, insta
     return (
         <ExternalSidebarContext.Provider value={externalSidebarContextValue}>
             <>
-                <RuleEditor<RuleBlockTaskData, IPluginDetails>
-                    ref={ruleEditorRef}
+                <RuleBlockEvaluation
                     projectId={projectId}
-                    taskId={ruleBlockTaskId}
-                    fetchRuleData={fetchRuleBlockTask}
-                    fetchRuleOperators={fetchTransformRuleOperatorList}
-                    saveRule={saveRuleBlock}
-                    convertRuleOperator={ruleUtils.convertRuleOperator}
-                    convertToRuleOperatorNodes={convertToRuleOperatorNodes}
-                    partialAutoCompletion={partialAutoCompletion}
-                    viewActions={viewActions}
-                    getStickyNotes={ruleBlockEditorUtils.getStickyNotes}
-                    // Register the internal operator definition so existing canvas nodes and drag/drop-created nodes
-                    // can be materialized. User-facing sidebar entries come from the pre-configured input-port tab.
-                    additionalRuleOperators={additionalRuleOperators}
-                    additionalToolBarComponents={additionalToolBarComponents}
-                    extraRuleNodeMenuItems={extraRuleNodeMenuItems}
-                    validateConnection={ruleUtils.validateConnection}
-                    tabs={ruleEditorTabs}
-                    captureExternalSavedState={captureExternalSavedState}
-                    restoreExternalSavedState={restoreExternalSavedState}
-                    showRuleOnly={false}
-                    instanceId={instanceId}
-                    saveInitiallyEnabled={false}
-                />
+                    ruleBlockTaskId={ruleBlockTaskId}
+                    numberOfEntitiesToShow={5}
+                    getPorts={getPorts}
+                >
+                    <RuleEditor<RuleBlockTaskData, IPluginDetails>
+                        ref={ruleEditorRef}
+                        projectId={projectId}
+                        taskId={ruleBlockTaskId}
+                        fetchRuleData={fetchRuleBlockTask}
+                        fetchRuleOperators={fetchTransformRuleOperatorList}
+                        saveRule={saveRuleBlock}
+                        convertRuleOperator={ruleUtils.convertRuleOperator}
+                        convertToRuleOperatorNodes={convertToRuleOperatorNodes}
+                        partialAutoCompletion={partialAutoCompletion}
+                        viewActions={viewActions}
+                        getStickyNotes={ruleBlockEditorUtils.getStickyNotes}
+                        // Register the internal operator definition so existing canvas nodes and drag/drop-created nodes
+                        // can be materialized. User-facing sidebar entries come from the pre-configured input-port tab.
+                        additionalRuleOperators={additionalRuleOperators}
+                        additionalToolBarComponents={additionalToolBarComponents}
+                        extraRuleNodeMenuItems={extraRuleNodeMenuItems}
+                        validateConnection={ruleUtils.validateConnection}
+                        tabs={ruleEditorTabs}
+                        captureExternalSavedState={captureExternalSavedState}
+                        restoreExternalSavedState={restoreExternalSavedState}
+                        showRuleOnly={false}
+                        instanceId={instanceId}
+                        saveInitiallyEnabled={false}
+                    />
+                </RuleBlockEvaluation>
                 <InputPortDialog
                     isOpen={!!inputPortDialogState}
                     mode={inputPortDialogState?.mode ?? "create"}

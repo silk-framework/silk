@@ -1110,7 +1110,6 @@ object JsonSerializers {
   implicit object RuleBlockPortJsonFormat extends JsonFormat[RuleBlockPort] {
     final val LABEL = "label"
     final val DESCRIPTION = "description"
-    final val EXAMPLE_VALUES = "exampleValues"
     final val DISPLAY_ORDER = "displayOrder"
     final val DEPRECATED = "deprecated"
 
@@ -1119,7 +1118,6 @@ object JsonSerializers {
         id = stringValueOption(value, ID).map(Identifier.apply).getOrElse(Operator.generateId),
         label = stringValueOption(value, LABEL).getOrElse(""),
         description = stringValueOption(value, DESCRIPTION).getOrElse(""),
-        exampleValues = stringValueOption(value, EXAMPLE_VALUES).getOrElse(""),
         displayOrder = numberValueOption(value, DISPLAY_ORDER).map(_.intValue).getOrElse(0),
         deprecated = booleanValueOption(value, DEPRECATED).getOrElse(false)
       )
@@ -1130,15 +1128,42 @@ object JsonSerializers {
         ID -> value.id.toString,
         LABEL -> value.label,
         DESCRIPTION -> value.description,
-        EXAMPLE_VALUES -> value.exampleValues,
         DISPLAY_ORDER -> value.displayOrder,
         DEPRECATED -> value.deprecated
       )
     }
   }
 
+  implicit object RuleBlockInputExampleJsonFormat extends JsonFormat[RuleBlockInputExample] {
+    final val INPUTS = "inputs"
+
+    override def read(value: JsValue)(implicit readContext: ReadContext): RuleBlockInputExample = {
+      val inputs = optionalValue(value, INPUTS)
+        .map(objectValue => mustBeJsObject(objectValue) { jsObject =>
+          jsObject.fields.map { case (portId, jsValues) =>
+            Identifier(portId) -> mustBeJsArray(jsValues)(_.value.map(_.as[String]).toSeq)
+          }.toMap
+        })
+        .getOrElse(Map.empty[Identifier, Seq[String]])
+      RuleBlockInputExample(
+        id = stringValueOption(value, ID).map(Identifier.apply).getOrElse(Operator.generateId),
+        inputs = inputs
+      )
+    }
+
+    override def write(value: RuleBlockInputExample)(implicit writeContext: WriteContext[JsValue]): JsValue = {
+      Json.obj(
+        ID -> value.id.toString,
+        INPUTS -> JsObject(value.inputs.toSeq.sortBy(_._1.toString).map { case (portId, values) =>
+          portId.toString -> JsArray(values.map(JsString))
+        })
+      )
+    }
+  }
+
   implicit object RuleBlockContentJsonFormat extends JsonFormat[RuleBlockModel] {
     final val PORTS = "ports"
+    final val INPUT_EXAMPLES = "inputExamples"
     final val OPERATOR_TREE = "operatorTree"
 
     override def read(value: JsValue)(implicit readContext: ReadContext): RuleBlockModel = {
@@ -1146,6 +1171,9 @@ object JsonSerializers {
         ports = arrayValueOption(value, PORTS)
           .map(_.value.map(fromJson[RuleBlockPort]).toIndexedSeq)
           .getOrElse(IndexedSeq.empty[RuleBlockPort]),
+        inputExamples = arrayValueOption(value, INPUT_EXAMPLES)
+          .map(_.value.map(fromJson[RuleBlockInputExample]).toIndexedSeq)
+          .getOrElse(IndexedSeq.empty[RuleBlockInputExample]),
         operator = optionalValue(value, OPERATOR_TREE).map(fromJson[Input]),
         layout = optionalValue(value, LAYOUT).map(fromJson[RuleLayout]).getOrElse(RuleLayout()),
         uiAnnotations = optionalValue(value, UI_ANNOTATIONS).map(fromJson[UiAnnotations]).getOrElse(UiAnnotations())
@@ -1155,6 +1183,7 @@ object JsonSerializers {
     override def write(value: RuleBlockModel)(implicit writeContext: WriteContext[JsValue]): JsValue = {
       Json.obj(
         PORTS -> JsArray(value.ports.map(toJson[RuleBlockPort])),
+        INPUT_EXAMPLES -> JsArray(value.inputExamples.map(toJson[RuleBlockInputExample])),
         OPERATOR_TREE -> toJsonOpt(value.operator),
         LAYOUT -> toJson(value.layout),
         UI_ANNOTATIONS -> toJson(value.uiAnnotations)

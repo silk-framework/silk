@@ -87,7 +87,6 @@ describe("ruleBlockUtils", () => {
         ).toStrictEqual({
             label: "Input 6",
             description: "",
-            exampleValues: "",
             displayOrder: 6,
             deprecated: false,
         });
@@ -191,7 +190,6 @@ describe("ruleBlockUtils", () => {
                 id: "sharedPort",
                 label: "Shared",
                 description: "",
-                exampleValues: "",
                 displayOrder: 1,
                 deprecated: false,
             },
@@ -272,7 +270,6 @@ describe("ruleBlockUtils", () => {
                     ...port("lockedPort", 0, "Locked port"),
                     label: "Updated label",
                     description: "Updated description",
-                    exampleValues: "- updated",
                     deprecated: true,
                 },
             ],
@@ -372,8 +369,7 @@ const inputPortNode = (nodeId: string, portId: string, displayOrder: number): IR
 const port = (id: string, displayOrder: number, label: string = id): IRuleBlockPort => ({
     id,
     label,
-    description: "",
-    exampleValues: "",
-    displayOrder,
-    deprecated: false,
+        description: "",
+        displayOrder,
+        deprecated: false,
 });

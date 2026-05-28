@@ -6,6 +6,7 @@ import { IRuleBlockModel, IRuleBlockPort } from "./ruleBlock.types";
 /** Creates the default empty rule block model used for new or incomplete tasks. */
 const emptyRuleBlockModel = (): IRuleBlockModel => ({
     ports: [],
+    inputExamples: [],
     layout: {
         nodePositions: {},
     },
@@ -54,7 +55,6 @@ const samePortDefinition = (left: IRuleBlockPort, right: IRuleBlockPort): boolea
         left.id === right.id &&
         left.label === right.label &&
         left.description === right.description &&
-        left.exampleValues === right.exampleValues &&
         left.displayOrder === right.displayOrder &&
         left.deprecated === right.deprecated
     );
@@ -152,7 +152,6 @@ const collectPortDefinitions = (
             id: portId,
             label: ruleEditorNodeParameterValue(node.parameters["label"]) ?? "",
             description: ruleEditorNodeParameterValue(node.parameters["description"]) ?? "",
-            exampleValues: ruleEditorNodeParameterValue(node.parameters["exampleValues"]) ?? "",
             displayOrder,
             deprecated: parseDeprecated(node),
         };
@@ -325,12 +324,11 @@ const portsWithChangedDisplayOrder = (
 /** Generates the next suggested initial values for a newly created input port. */
 const nextInputPortDefaults = (
     ports: IRuleBlockPort[],
-): Pick<IRuleBlockPort, "label" | "description" | "exampleValues" | "displayOrder" | "deprecated"> => {
+): Pick<IRuleBlockPort, "label" | "description" | "displayOrder" | "deprecated"> => {
     const displayOrder = nextGeneratedDisplayOrder(ports);
     return {
         label: `Input ${displayOrder}`,
         description: "",
-        exampleValues: "",
         displayOrder,
         deprecated: false,
     };

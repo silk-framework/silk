@@ -14,7 +14,6 @@ case class RuleBlockTaskSummary(id: String,
 case class RuleBlockPortSummary(id: String,
                                 label: String,
                                 description: String,
-                                exampleValues: String,
                                 displayOrder: Int,
                                 deprecated: Boolean)
 
@@ -39,7 +38,6 @@ object RuleBlockPortSummary {
       id = port.id.toString,
       label = port.label,
       description = port.description,
-      exampleValues = port.exampleValues,
       displayOrder = port.displayOrder,
       deprecated = port.deprecated
     )
