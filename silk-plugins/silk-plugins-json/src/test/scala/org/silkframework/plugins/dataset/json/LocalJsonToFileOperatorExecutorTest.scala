@@ -83,6 +83,7 @@ class LocalJsonToFileOperatorExecutorTest extends AnyFlatSpec with Matchers with
     val entities = fileEntities.typedEntities.toIndexedSeq
     entities.size mustBe 1
     entities.head.file.name mustBe "out.json"
+    entities.head.mimeType mustBe Some("application/json")
   }
 
   it should "append an index suffix when the output file name is set and the input has multiple entities" in {
