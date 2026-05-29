@@ -89,7 +89,7 @@ module.exports = function (webpackEnv, isWatch) {
                     loader: require.resolve(preProcessor),
                     options: {
                         implementation: sass,
-                        sassOptions: sassRenderSyncOptions,
+                        sassOptions: { ...sassRenderSyncOptions, silenceDeprecations: ["import", "legacy-js-api"] },
                         sourceMap: false,
                     },
                 },
@@ -253,6 +253,7 @@ module.exports = function (webpackEnv, isWatch) {
                 "#minpath": "vfile/lib/minpath.browser.js",
                 "#minproc": "vfile/lib/minproc.browser.js",
                 "#minurl": "vfile/lib/minurl.browser.js",
+                "es-toolkit/compat": "es-toolkit/dist/compat/index.mjs",
             },
             plugins: [
                 // Adds support for installing with Plug'n'Play, leading to faster installs and adding
@@ -329,6 +330,7 @@ module.exports = function (webpackEnv, isWatch) {
                             test: /\.(js|mjs)$/,
                             exclude: /@babel(?:\/|\\{1,2})runtime/,
                             loader: require.resolve("babel-loader"),
+                            type: "javascript/auto",
                             options: {
                                 babelrc: false,
                                 configFile: false,

@@ -1,7 +1,7 @@
 import React from "react";
-import {URIInfo} from "../../../src/app/views/pages/MappingEditor/HierarchicalMapping/components/URIInfo";
-import {render} from "@testing-library/react";
-import {checkForNotAvailableElement, findElement} from "../../integration/TestHelper";
+import { URIInfo } from "../../../src/app/views/pages/MappingEditor/HierarchicalMapping/components/URIInfo";
+import { render } from "@testing-library/react";
+import { checkForNotAvailableElement, findElement } from "../../integration/TestHelper";
 
 const getVocabInfoAsyncMock = jest.fn();
 
@@ -27,7 +27,7 @@ describe("URIInfo Component", () => {
                 uri: {},
                 fallback: undefined,
             });
-            checkForNotAvailableElement(wrapper)
+            checkForNotAvailableElement(wrapper);
         });
 
         it("should render text from `uri`, when `props.field` equal to 'label'", () => {

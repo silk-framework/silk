@@ -20,12 +20,16 @@ class MappingRuleRow extends React.Component {
                     <OverviewItemLine className="ecc-silk-mapping__ruleitem-headline">
                         <OverflowText>
                             <ThingIcon type={type} status={statusType} message={statusMsg} />
-                            <span data-test-id={"mapping-rule-title-label"} className={"nodrag"}>{ruleLabelData.displayLabel}</span>
+                            <span data-test-id={"mapping-rule-title-label"} className={"nodrag"}>
+                                {ruleLabelData.displayLabel}
+                            </span>
                         </OverflowText>
                     </OverviewItemLine>
                     {ruleLabelData.uri && (
                         <OverviewItemLine small>
-                            <OverflowText data-test-id={"mapping-rule-title-uri"} className="nodrag">{ruleLabelData.uri}</OverflowText>
+                            <OverflowText data-test-id={"mapping-rule-title-uri"} className="nodrag">
+                                {ruleLabelData.uri}
+                            </OverflowText>
                         </OverviewItemLine>
                     )}
                 </OverviewItemDescription>

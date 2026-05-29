@@ -7,7 +7,7 @@ import useCopyButton from "../../../../../hooks/useCopyButton";
 import { useTranslation, TFunction } from "react-i18next";
 import { ErrorHandlerRegisterFuncType } from "../../../../../hooks/useErrorHandler";
 import { ArtefactFormParameter } from "./ArtefactFormParameter";
-import type {UseFormReturn} from "react-hook-form/dist/types";
+import type { UseFormReturn } from "react-hook-form/dist/types";
 
 const IDENTIFIER = "id";
 
@@ -49,12 +49,12 @@ export const handleCustomIdValidation = debounce(
             if (err.httpStatus === 409) {
                 form.setError("id", {
                     type: "manual",
-                    message: t("CreateModal.CustomIdentifierInput.validations.unique")
+                    message: t("CreateModal.CustomIdentifierInput.validations.unique"),
                 });
             } else if (err.httpStatus === 400) {
                 form.setError("id", {
                     type: "manual",
-                    message: t("CreateModal.CustomIdentifierInput.validations.invalid")
+                    message: t("CreateModal.CustomIdentifierInput.validations.invalid"),
                 });
             } else {
                 registerError("handleCustomIdValidation", "There has been an error validating the custom ID.", err);
@@ -65,7 +65,9 @@ export const handleCustomIdValidation = debounce(
 );
 
 const CustomIdentifierInput = ({ form, onValueChange, taskId, projectId }: IProps) => {
-    const { formState: { errors } } = form;
+    const {
+        formState: { errors },
+    } = form;
     const [copyButton] = useCopyButton([{ text: taskId ?? "" }]);
     const [t] = useTranslation();
     const otherProps = taskId ? { value: taskId } : {};

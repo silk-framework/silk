@@ -1,12 +1,13 @@
 import React from "react";
 import MessageHandler from "../../../src/app/views/pages/MappingEditor/HierarchicalMapping/components/MessageHandler";
-import {render, waitFor} from "@testing-library/react";
-import {findAllDOMElements, findElement} from "../../integration/TestHelper";
-import {CLASSPREFIX, NotificationProps} from "@eccenca/gui-elements"
+import { render, waitFor } from "@testing-library/react";
+import { findAllDOMElements, findElement } from "../../integration/TestHelper";
+import { CLASSPREFIX, NotificationProps } from "@eccenca/gui-elements";
 import rxmq from "ecc-messagebus";
 
 const getWrapper = () => render(<MessageHandler />);
-export const notificationSelector = (intent: NotificationProps["intent"]) => `.${CLASSPREFIX}-notification.${CLASSPREFIX}-intent--${intent}`
+export const notificationSelector = (intent: NotificationProps["intent"]) =>
+    `.${CLASSPREFIX}-notification.${CLASSPREFIX}-intent--${intent}`;
 const errorChannel = rxmq.channel("errors");
 
 describe("MessageHandler Component", () => {
@@ -17,7 +18,7 @@ describe("MessageHandler Component", () => {
             errorChannel.subject("message.alert").onNext({ errorType: "alert", message: "lorem" });
             await waitFor(() => {
                 expect(findAllDOMElements(wrapper, notificationSelector("neutral")).length).toBeGreaterThan(0);
-                expect(findElement(wrapper, notificationSelector("neutral")).textContent).toMatch("lorem")
+                expect(findElement(wrapper, notificationSelector("neutral")).textContent).toMatch("lorem");
             });
         });
 

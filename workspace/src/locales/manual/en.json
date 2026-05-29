@@ -338,6 +338,7 @@
             "loadExampleProject": "Add \"movies\" example project",
             "logout": "Logout",
             "remove": "Remove",
+            "redo": "Redo",
             "moreOptions": "Show more options",
             "openInNewTab": "Open link in new tab",
             "openInNewTabTooltip": "The link will be opened in a new tab",
@@ -362,8 +363,13 @@
             "showMoreDetails": "Show more details",
             "restore": "Restore",
             "revert": "Revert",
+            "undo": "Undo",
             "edit": "Edit",
             "ok": "Ok"
+        },
+        "editorHistory": {
+            "resetToSavedState": "Reset to saved state.",
+            "resetToSavedStateWithHistoryReset": "Reset to saved state. This will clear the undo/redo history."
         },
         "app": {
             "build": "Workbench",
