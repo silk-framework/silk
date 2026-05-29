@@ -160,6 +160,14 @@ class EvaluateTransformApi @Inject()(implicit accessMonitor: WorkbenchAccessMoni
                            )
                            limit: Int,
                            @Parameter(
+                             name = "offset",
+                             description = "The number of results to skip before returning the page. Used together with 'limit' for pagination.",
+                             required = false,
+                             in = ParameterIn.QUERY,
+                             schema = new Schema(implementation = classOf[Int], defaultValue = "0")
+                           )
+                           offset: Int,
+                           @Parameter(
                              name = "showOnlyEntitiesWithUris",
                              description = "If true, only entities are returned that generated a valid entity URI.",
                              required = false,
@@ -175,23 +183,33 @@ class EvaluateTransformApi @Inject()(implicit accessMonitor: WorkbenchAccessMoni
     implicit val prefixes: Prefixes = project.config.prefixes
     val ruleSchema = ruleSchemaById(task, ruleId)
 
-    // Create execution task
+    val safeOffset = math.max(0, offset)
+    val safeLimit = math.max(0, limit)
+    // Exclusive end index of the requested page, clamped to avoid Int overflow for large limits/offsets.
+    val pageEnd = math.min(Int.MaxValue.toLong, safeOffset.toLong + safeLimit.toLong).toInt
+    // Fetch one entity beyond the page to detect whether a next page exists (clamped to the Int range).
+    val maxEntities = math.min(Int.MaxValue.toLong, pageEnd.toLong + 1L).toInt
+    // Create execution task. Pagination is done here at the controller layer;
+    // DataSource.retrieve has no offset and is left untouched.
     val evaluateTransform = new EvaluateTransformTask(
         source = task.dataSource,
         entitySchema = ruleSchema.inputSchema,
         rules = ruleSchema.transformRule.rules,
-        maxEntities = limit,
+        maxEntities = maxEntities,
         taskContext = task.taskContext
       )
     val entities = evaluateTransform.execute()
-    // FIXME: This only filters the limit# entities. Unclear how to do this in a performant way to fetch entities until the limit is met.
+    // FIXME: This only filters the fetched entities. Unclear how to do this in a performant way to fetch entities until the limit is met.
     val filteredEntities = if(showOnlyEntitiesWithUris) entities.filter(_.uris.nonEmpty) else entities
-    val jsonEntities = filteredEntities.map(DetailedEntityJsonFormat.write)
+    val hasNextPage = filteredEntities.size > pageEnd
+    val pageEntities = filteredEntities.slice(safeOffset, pageEnd)
+    val jsonEntities = pageEntities.map(DetailedEntityJsonFormat.write)
     val rules: Seq[JsValue] = evaluatedRulesJson(ruleSchema)
 
     Ok(Json.obj(
       "rules" -> rules,
       "evaluatedEntities" -> JsArray(jsonEntities),
+      "hasNextPage" -> hasNextPage,
     ))
   }
 

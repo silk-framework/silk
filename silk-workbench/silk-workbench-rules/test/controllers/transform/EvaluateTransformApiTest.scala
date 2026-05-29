@@ -74,6 +74,41 @@ class EvaluateTransformApiTest extends AnyFlatSpec with Matchers with SingleProj
     entitiesWithFilter should have size 1
   }
 
+  it should "paginate evaluated entities via limit and offset" in {
+    def entityUris(page: JsValue): Seq[String] =
+      (page \ "evaluatedEntities").as[JsArray].value.flatMap(e => (e \ "uris").as[Seq[String]]).toSeq
+
+    // Determine the total number of entities the root rule produces by requesting all of them.
+    val all = evaluatedJson(projectId, complexTransformId, "root", limit = Int.MaxValue, offset = 0)
+    val total = (all \ "evaluatedEntities").as[JsArray].value.size
+    (all \ "hasNextPage").as[Boolean] shouldBe false
+    total should be >= 3
+
+    // First page of 2 entities; a next page exists since there are more than 2 entities in total.
+    val firstPage = evaluatedJson(projectId, complexTransformId, "root", limit = 2, offset = 0)
+    (firstPage \ "evaluatedEntities").as[JsArray].value should have size 2
+    (firstPage \ "hasNextPage").as[Boolean] shouldBe true
+
+    // Second page starts at offset 2 and covers entities distinct from the first page.
+    val secondPage = evaluatedJson(projectId, complexTransformId, "root", limit = 2, offset = 2)
+    (secondPage \ "hasNextPage").as[Boolean] shouldBe (total > 4)
+    entityUris(firstPage).toSet intersect entityUris(secondPage).toSet shouldBe empty
+
+    // The offset shifts the window: a page of 1 at offset 1 is the second entity of the first page.
+    val secondEntity = evaluatedJson(projectId, complexTransformId, "root", limit = 1, offset = 1)
+    entityUris(secondEntity) shouldBe Seq(entityUris(firstPage)(1))
+
+    // A page sized to the full result reports no next page and returns everything.
+    val fullPage = evaluatedJson(projectId, complexTransformId, "root", limit = total, offset = 0)
+    (fullPage \ "evaluatedEntities").as[JsArray].value should have size total
+    (fullPage \ "hasNextPage").as[Boolean] shouldBe false
+
+    // An offset at or beyond the end returns an empty page with no next page.
+    val beyondEnd = evaluatedJson(projectId, complexTransformId, "root", limit = 2, offset = total)
+    (beyondEnd \ "evaluatedEntities").as[JsArray].value shouldBe empty
+    (beyondEnd \ "hasNextPage").as[Boolean] shouldBe false
+  }
+
   it should "return the evaluation for default URI rules" in {
     val (rules, entities) = evaluated(projectId, complexTransformId, ruleId = "child", showOnlyEntitiesWithUris = true)
     rules should have size 3
@@ -91,12 +126,16 @@ trait ActiveLearningApiClient extends ApiClient {
     response.json
   }
 
-  def evaluated(projectId: String, taskId: String, ruleId: String, limit: Int = 3, showOnlyEntitiesWithUris: Boolean = false): (Seq[JsValue], Seq[JsValue]) = {
-    val request = createRequest(EvaluateTransformApi.evaluateSpecificRule(projectId, taskId, ruleId, limit, showOnlyEntitiesWithUris))
-    val response = checkResponse(request.get())
-    val results = response.json
+  def evaluated(projectId: String, taskId: String, ruleId: String, limit: Int = 3, offset: Int = 0, showOnlyEntitiesWithUris: Boolean = false): (Seq[JsValue], Seq[JsValue]) = {
+    val results = evaluatedJson(projectId, taskId, ruleId, limit, offset, showOnlyEntitiesWithUris)
     val rules = (results \ "rules").as[JsArray].value.toSeq
     val entities = (results \ "evaluatedEntities").as[JsArray].value.toSeq
     (rules, entities)
+  }
+
+  def evaluatedJson(projectId: String, taskId: String, ruleId: String, limit: Int = 3, offset: Int = 0, showOnlyEntitiesWithUris: Boolean = false): JsValue = {
+    val request = createRequest(EvaluateTransformApi.evaluateSpecificRule(projectId, taskId, ruleId, limit, offset, showOnlyEntitiesWithUris))
+    val response = checkResponse(request.get())
+    response.json
   }
 }
