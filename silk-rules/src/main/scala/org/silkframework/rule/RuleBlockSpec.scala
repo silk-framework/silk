@@ -183,8 +183,10 @@ object RuleBlockModel {
 case class RuleBlockPort(id: Identifier = Operator.generateId,
                          label: String = "",
                          description: String = "",
-                         displayOrder: Int = 0,
-                         deprecated: Boolean = false)
+                         displayOrder: Int = 1,
+                         deprecated: Boolean = false) {
+  assert(label.nonEmpty, "Label of rule block port must not be empty!")
+}
 
 case class RuleBlockInputExample(id: Identifier = Operator.generateId,
                                  inputs: Map[Identifier, Seq[String]] = Map.empty)
@@ -220,7 +222,7 @@ object RuleBlockPort {
     override def read(xml: Node)(implicit readContext: ReadContext): RuleBlockPort = {
       val id = (xml \ "@id").headOption.map(attr => Identifier(attr.text)).getOrElse(Operator.generateId)
       val label = (xml \ "@label").text
-      val displayOrder = (xml \ "@displayOrder").headOption.map(_.text.toInt).getOrElse(0)
+      val displayOrder = (xml \ "@displayOrder").headOption.map(_.text.toInt).getOrElse(1)
       val deprecated = (xml \ "@deprecated").headOption.map(_.text.toBoolean).getOrElse(false)
       val description = (xml \ "Description").text
       RuleBlockPort(id, label, description, displayOrder, deprecated)

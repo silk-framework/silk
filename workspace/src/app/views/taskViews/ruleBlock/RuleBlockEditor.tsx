@@ -4,9 +4,9 @@ import {
     Button,
     ContextOverlay,
     ContextMenu,
-    Icon,
     IconButton,
     MenuItem,
+    Notification,
     Spacing,
     StickyNote,
     ToolbarSection
@@ -671,11 +671,13 @@ const RuleBlockUsageStatusControl = ({ usageState, onRefresh }: RuleBlockUsageSt
     const [t] = useTranslation();
     const [showOverlay, setShowOverlay] = React.useState(false);
     const isVisible = usageState.isInUse || usageState.refreshFailed;
+    const iconName = usageState.refreshFailed ? "state-warning" : "state-info";
 
     const content = usageState.refreshFailed
         ? t("taskViews.ruleBlock.usageRefreshError")
         : t("taskViews.ruleBlock.usageInUse");
     const tooltip = `${content} ${t("taskViews.ruleBlock.usageRefreshHint")}`;
+    const overlayContent = <Notification intent={usageState.refreshFailed ? "warning" : "info"}>{tooltip}</Notification>;
 
     React.useEffect(() => {
         if (!isVisible) {
@@ -696,18 +698,20 @@ const RuleBlockUsageStatusControl = ({ usageState, onRefresh }: RuleBlockUsageSt
             <ContextOverlay
                 isOpen={showOverlay}
                 onClose={() => setShowOverlay(false)}
-                content={<div style={{ maxWidth: "26rem", padding: "0.5rem" }}>{tooltip}</div>}
+                content={overlayContent}
             >
-                <Button
+                <IconButton
                     onClick={onRefresh}
+                    onMouseEnter={() => setShowOverlay(true)}
+                    onMouseLeave={() => setShowOverlay(false)}
+                    onFocus={() => setShowOverlay(true)}
+                    onBlur={() => setShowOverlay(false)}
+                    intent={usageState.refreshFailed ? "warning" : "accent"}
                     loading={usageState.refreshRunning}
                     disabled={usageState.refreshRunning}
-                    tooltip={tooltip}
-                    tooltipProps={{ hoverCloseDelay: 0 }}
+                    name={iconName}
                     aria-label={t("taskViews.ruleBlock.refreshUsage")}
-                >
-                    <Icon name={"state-warning"} />
-                </Button>
+                />
             </ContextOverlay>
             <Spacing vertical={true} size="small" />
         </>

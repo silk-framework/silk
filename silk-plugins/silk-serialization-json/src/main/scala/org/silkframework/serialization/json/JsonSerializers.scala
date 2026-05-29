@@ -1118,7 +1118,7 @@ object JsonSerializers {
         id = stringValueOption(value, ID).map(Identifier.apply).getOrElse(Operator.generateId),
         label = stringValueOption(value, LABEL).getOrElse(""),
         description = stringValueOption(value, DESCRIPTION).getOrElse(""),
-        displayOrder = numberValueOption(value, DISPLAY_ORDER).map(_.intValue).getOrElse(0),
+        displayOrder = numberValueOption(value, DISPLAY_ORDER).map(_.intValue).getOrElse(1),
         deprecated = booleanValueOption(value, DEPRECATED).getOrElse(false)
       )
     }

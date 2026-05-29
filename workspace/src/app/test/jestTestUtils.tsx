@@ -104,8 +104,21 @@ export const createRuleBlockEditorGuiElementsModule = () => {
             </div>
         ),
         Icon: ({ name }) => <span>{Array.isArray(name) ? name.join(" ") : name}</span>,
-        IconButton: ({ text, name, onClick, disabled }) => (
-            <button onClick={onClick} disabled={disabled}>
+        IconButton: ({
+            text,
+            name,
+            onClick,
+            disabled,
+            tooltipProps,
+            intent,
+            loading,
+            size,
+            tooltipAsTitle,
+            description,
+            minimal,
+            ...props
+        }) => (
+            <button onClick={onClick} disabled={disabled} {...props}>
                 {text ?? name}
             </button>
         ),

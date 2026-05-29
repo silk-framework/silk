@@ -73,7 +73,7 @@ const parseDisplayOrder = (node: IRuleOperatorNode, fallback: number): number | 
 };
 
 const nextGeneratedDisplayOrder = (ports: IRuleBlockPort[]): number =>
-    ports.reduce((maxDisplayOrder, port) => Math.max(maxDisplayOrder, port.displayOrder), -1) + 1;
+    ports.reduce((maxDisplayOrder, port) => Math.max(maxDisplayOrder, port.displayOrder), 0) + 1;
 
 const sortPortDefinitions = (ports: Iterable<IRuleBlockPort>): IRuleBlockPort[] =>
     // Valid port definitions keep display orders unique. The secondary ID sort only provides deterministic order for

@@ -206,19 +206,19 @@ trait WorkspaceProviderTestTrait extends AnyFlatSpec with Matchers with MockitoS
               id = Identifier("namePort"),
               label = "Name",
               description = "Input name values",
-              displayOrder = 0
+              displayOrder = 1
             ),
             RuleBlockPort(
               id = Identifier("suffixPort"),
               label = "Suffix",
               description = "Optional suffix values",
-              displayOrder = 1
+              displayOrder = 2
             ),
             RuleBlockPort(
               id = Identifier("legacyPort"),
               label = "Legacy",
               description = "Deprecated legacy input",
-              displayOrder = 2,
+              displayOrder = 3,
               deprecated = true
             )
           ),
@@ -276,19 +276,19 @@ trait WorkspaceProviderTestTrait extends AnyFlatSpec with Matchers with MockitoS
               id = Identifier("namePort"),
               label = "Given Name",
               description = "Normalized input name values",
-              displayOrder = 0
+              displayOrder = 1
             ),
             RuleBlockPort(
               id = Identifier("suffixPort"),
               label = "Separator",
               description = "Optional separator values",
-              displayOrder = 1
+              displayOrder = 2
             ),
             RuleBlockPort(
               id = Identifier("legacyPort"),
               label = "Legacy",
               description = "Deprecated legacy input",
-              displayOrder = 2,
+              displayOrder = 3,
               deprecated = true
             )
           ),

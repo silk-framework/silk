@@ -205,20 +205,26 @@ const renderRuleBlockEditor = async ({
     ports = [],
     ruleOperatorNodes = [],
     relatedItemsTotal = 0,
+    relatedItemsError = false,
 }: {
     ports?: IRuleBlockPort[];
     ruleOperatorNodes?: IRuleOperatorNode[];
     relatedItemsTotal?: number;
+    relatedItemsError?: boolean;
 } = {}) => {
     const harness = createRuleBlockEditorHarness();
     harness.mockRequestTaskData.mockResolvedValue({
         data: createRuleBlockTask(ports),
     });
-    harness.mockRequestRelatedItems.mockResolvedValue({
-        data: {
-            total: relatedItemsTotal,
-        },
-    });
+    if (relatedItemsError) {
+        harness.mockRequestRelatedItems.mockRejectedValue(new Error("fetch failed"));
+    } else {
+        harness.mockRequestRelatedItems.mockResolvedValue({
+            data: {
+                total: relatedItemsTotal,
+            },
+        });
+    }
     harness.mockRuleEditorApi.ruleOperatorNodes.mockReturnValue(ruleOperatorNodes);
 
     render(<harness.RuleBlockEditor projectId="project1" ruleBlockTaskId="task1" instanceId="instance1" />);
@@ -307,12 +313,32 @@ describe("RuleBlockEditor", () => {
                 "taskViews.ruleBlock.usageInUse",
             ),
         );
-        expect(screen.getByRole("button", { name: "taskViews.ruleBlock.refreshUsage" })).toBeInTheDocument();
+        expect(screen.getByRole("button", { name: "taskViews.ruleBlock.refreshUsage" })).toHaveTextContent(
+            "state-info",
+        );
         expect(editor.mockRequestRelatedItems).toHaveBeenCalledTimes(1);
 
         fireEvent.click(screen.getByRole("button", { name: "taskViews.ruleBlock.refreshUsage" }));
 
         await waitFor(() => expect(editor.mockRequestRelatedItems).toHaveBeenCalledTimes(2));
+    });
+
+    it("should show a warning icon when refreshing rule block usage failed", async () => {
+        const editor = await renderRuleBlockEditor({
+            ports: [createPersistedPort()],
+            relatedItemsError: true,
+        });
+        await renderToolbarActions(editor);
+
+        await waitFor(() =>
+            expect(screen.getByTestId("context-overlay")).toHaveTextContent(
+                "taskViews.ruleBlock.usageRefreshError",
+            ),
+        );
+        expect(screen.getByRole("button", { name: "taskViews.ruleBlock.refreshUsage" })).toHaveTextContent(
+            "state-warning",
+        );
+        expect(editor.mockRequestRelatedItems).toHaveBeenCalledTimes(1);
     });
 
     it("should not show the usage status control when the rule block is not in use", async () => {

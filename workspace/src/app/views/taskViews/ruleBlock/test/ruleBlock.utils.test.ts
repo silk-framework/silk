@@ -92,6 +92,15 @@ describe("ruleBlockUtils", () => {
         });
     });
 
+    it("should start generated input-port defaults at display order 1 for an empty rule block", () => {
+        expect(ruleBlockUtils.nextInputPortDefaults([])).toStrictEqual({
+            label: "Input 1",
+            description: "",
+            displayOrder: 1,
+            deprecated: false,
+        });
+    });
+
     it("should detect whether a logical port belongs to the persisted rule block baseline", () => {
         expect(ruleBlockUtils.isPersistedPort([port("firstPort", 1, "First port")], "firstPort")).toBe(true);
         expect(ruleBlockUtils.isPersistedPort([port("firstPort", 1, "First port")], "secondPort")).toBe(false);
@@ -198,7 +207,7 @@ describe("ruleBlockUtils", () => {
 
     it("should reject removing a persisted port when the rule block is already in use", () => {
         const result = ruleBlockUtils.validateUsedPortCompatibility(
-            [port("lockedPort", 0, "Locked port")],
+            [port("lockedPort", 1, "Locked port")],
             [],
             [],
             (portName) => `removed ${portName}`,
@@ -213,7 +222,7 @@ describe("ruleBlockUtils", () => {
 
     it("should reject changing the relative order of persisted ports when the rule block is already in use", () => {
         const result = ruleBlockUtils.validateUsedPortCompatibility(
-            [port("firstPort", 0, "First port"), port("secondPort", 2, "Second port")],
+            [port("firstPort", 1, "First port"), port("secondPort", 2, "Second port")],
             [port("firstPort", 4, "First port"), port("secondPort", 1, "Second port")],
             [inputPortNode("portNode1", "firstPort", 4), inputPortNode("portNode2", "secondPort", 1)],
             (portName) => `removed ${portName}`,
@@ -264,16 +273,16 @@ describe("ruleBlockUtils", () => {
 
     it("should allow metadata changes on persisted ports when the rule block is already in use", () => {
         const result = ruleBlockUtils.validateUsedPortCompatibility(
-            [port("lockedPort", 0, "Locked port")],
+            [port("lockedPort", 1, "Locked port")],
             [
                 {
-                    ...port("lockedPort", 0, "Locked port"),
+                    ...port("lockedPort", 1, "Locked port"),
                     label: "Updated label",
                     description: "Updated description",
                     deprecated: true,
                 },
             ],
-            [inputPortNode("portNode1", "lockedPort", 0)],
+            [inputPortNode("portNode1", "lockedPort", 1)],
             (portName) => `removed ${portName}`,
             (portName) => `reordered ${portName}`,
         );
@@ -286,7 +295,7 @@ describe("ruleBlockUtils", () => {
 
     it("should fall back to the port ID in compatibility errors if the label is empty", () => {
         const result = ruleBlockUtils.validateUsedPortCompatibility(
-            [port("lockedPort", 0, "")],
+            [port("lockedPort", 1, "")],
             [],
             [],
             (portName) => `removed ${portName}`,

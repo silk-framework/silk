@@ -5,6 +5,7 @@ import org.silkframework.entity.paths.UntypedPath
 import org.silkframework.rule.input.{InputPortInput, PathInput, TransformInput}
 import org.silkframework.rule.plugins.transformer.combine.ConcatTransformer
 import org.silkframework.runtime.plugin.PluginContext
+import org.silkframework.runtime.serialization.XmlSerialization.fromXml
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.Identifier
 import org.silkframework.util.XmlSerializationHelperTrait
@@ -22,13 +23,13 @@ class RuleBlockSpecTest extends AnyFlatSpec with XmlSerializationHelperTrait {
             id = "firstInput",
             label = "First input",
             description = "Used for the primary lookup.",
-            displayOrder = 0
+            displayOrder = 1
           ),
           RuleBlockPort(
             id = "secondInput",
             label = "Second input",
             description = "Deprecated fallback.",
-            displayOrder = 1,
+            displayOrder = 2,
             deprecated = true
           )
         ),
@@ -106,6 +107,22 @@ class RuleBlockSpecTest extends AnyFlatSpec with XmlSerializationHelperTrait {
     }
 
     ex.getMessage must include ("Duplicate rule block input example IDs")
+  }
+
+  it should "default missing port display orders in XML to one" in {
+    val spec = fromXml[RuleBlockSpec] {
+      <RuleBlock>
+        <RuleBlockModel>
+          <Ports>
+            <Port id="firstInput" label="First input" deprecated="false">
+              <Description>Used for the primary lookup.</Description>
+            </Port>
+          </Ports>
+        </RuleBlockModel>
+      </RuleBlock>
+    }
+
+    spec.ports.map(_.displayOrder) mustBe IndexedSeq(1)
   }
 
   it should "reject input examples that reference unknown ports" in {

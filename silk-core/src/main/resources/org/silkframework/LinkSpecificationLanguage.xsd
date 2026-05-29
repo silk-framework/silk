@@ -255,6 +255,30 @@
         </xs:complexType>
     </xs:element>
 
+    <xs:element name="Example">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="Input" minOccurs="0" maxOccurs="unbounded">
+                    <xs:complexType>
+                        <xs:sequence>
+                            <xs:element name="Value" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
+                        </xs:sequence>
+                        <xs:attribute name="portId" type="xs:string" use="required"/>
+                    </xs:complexType>
+                </xs:element>
+            </xs:sequence>
+            <xs:attribute name="id" type="xs:string" use="required"/>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="InputExamples">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element ref="Example" minOccurs="0" maxOccurs="unbounded"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
     <xs:element name="OperatorTree">
         <xs:complexType>
             <xs:choice minOccurs="0" maxOccurs="1">
@@ -268,6 +292,7 @@
         <xs:complexType>
             <xs:sequence>
                 <xs:element ref="Ports" minOccurs="0" maxOccurs="1"/>
+                <xs:element ref="InputExamples" minOccurs="0" maxOccurs="1"/>
                 <xs:element ref="OperatorTree" minOccurs="0" maxOccurs="1"/>
                 <xs:element ref="RuleLayout" minOccurs="0" maxOccurs="1"/>
                 <xs:element name="UiAnnotations" minOccurs="0" maxOccurs="1" />
@@ -282,6 +307,7 @@
                 <xs:choice minOccurs="0" maxOccurs="1">
                     <xs:sequence>
                         <xs:element ref="Ports" minOccurs="0" maxOccurs="1"/>
+                        <xs:element ref="InputExamples" minOccurs="0" maxOccurs="1"/>
                         <xs:element ref="OperatorTree" minOccurs="0" maxOccurs="1"/>
                         <xs:element ref="RuleLayout" minOccurs="0" maxOccurs="1"/>
                         <xs:element name="UiAnnotations" minOccurs="0" maxOccurs="1" />
