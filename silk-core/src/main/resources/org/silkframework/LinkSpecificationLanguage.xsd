@@ -261,7 +261,15 @@
                 <xs:element name="Input" minOccurs="0" maxOccurs="unbounded">
                     <xs:complexType>
                         <xs:sequence>
-                            <xs:element name="Value" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
+                            <xs:element name="Value" minOccurs="0" maxOccurs="unbounded">
+                                <xs:complexType>
+                                    <xs:simpleContent>
+                                        <xs:extension base="xs:string">
+                                            <xs:anyAttribute namespace="http://www.w3.org/XML/1998/namespace" processContents="skip" />
+                                        </xs:extension>
+                                    </xs:simpleContent>
+                                </xs:complexType>
+                            </xs:element>
                         </xs:sequence>
                         <xs:attribute name="portId" type="xs:string" use="required"/>
                     </xs:complexType>

@@ -6,6 +6,7 @@ import org.silkframework.rule.input.{InputPortInput, PathInput, TransformInput}
 import org.silkframework.rule.plugins.transformer.combine.ConcatTransformer
 import org.silkframework.runtime.plugin.PluginContext
 import org.silkframework.runtime.serialization.XmlSerialization.fromXml
+import org.silkframework.runtime.serialization.{ReadContext, TestReadContext}
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.Identifier
 import org.silkframework.util.XmlSerializationHelperTrait
@@ -69,8 +70,8 @@ class RuleBlockSpecTest extends AnyFlatSpec with XmlSerializationHelperTrait {
       RuleBlockSpec(
         RuleBlockModel(
           ports = IndexedSeq(
-            RuleBlockPort(id = "duplicate"),
-            RuleBlockPort(id = "duplicate")
+            RuleBlockPort(id = "duplicate", label = "Duplicate input A"),
+            RuleBlockPort(id = "duplicate", label = "Duplicate input B")
           )
         )
       )
@@ -84,8 +85,8 @@ class RuleBlockSpecTest extends AnyFlatSpec with XmlSerializationHelperTrait {
       RuleBlockSpec(
         RuleBlockModel(
           ports = IndexedSeq(
-            RuleBlockPort(id = "first", displayOrder = 1),
-            RuleBlockPort(id = "second", displayOrder = 1)
+            RuleBlockPort(id = "first", label = "First input", displayOrder = 1),
+            RuleBlockPort(id = "second", label = "Second input", displayOrder = 1)
           )
         )
       )
@@ -110,6 +111,7 @@ class RuleBlockSpecTest extends AnyFlatSpec with XmlSerializationHelperTrait {
   }
 
   it should "default missing port display orders in XML to one" in {
+    implicit val readContext: ReadContext = TestReadContext()
     val spec = fromXml[RuleBlockSpec] {
       <RuleBlock>
         <RuleBlockModel>
@@ -130,7 +132,7 @@ class RuleBlockSpecTest extends AnyFlatSpec with XmlSerializationHelperTrait {
       RuleBlockSpec(
         RuleBlockModel(
           ports = IndexedSeq(
-            RuleBlockPort(id = "knownPort")
+            RuleBlockPort(id = "knownPort", label = "Known input")
           ),
           inputExamples = IndexedSeq(
             RuleBlockInputExample(
