@@ -1,10 +1,12 @@
 package org.silkframework.plugins.dataset.json
 
 
-import org.silkframework.config.{FixedSchemaPort, PlainTask, Prefixes}
+import org.silkframework.config.{FixedSchemaPort, FlexibleSchemaPort, PlainTask, Prefixes}
+import org.silkframework.dataset.DatasetSpec
+import org.silkframework.runtime.resource.InMemoryResourceManager
 import org.silkframework.entity.paths.UntypedPath
 import org.silkframework.entity.{Entity, EntitySchema, MultiEntitySchema}
-import org.silkframework.execution.{ExecutorOutput, ExecutorRegistry}
+import org.silkframework.execution.{ExecutorOutput, ExecutorRegistry, TaskException}
 import org.silkframework.execution.local.{GenericEntityTable, GenericLocalDatasetExecutor, LocalExecution, MultiEntityTable}
 import org.silkframework.runtime.activity.TestUserContextTrait
 import org.silkframework.runtime.plugin.{PluginContext, PluginRegistry}
@@ -77,6 +79,43 @@ class LocalJsonParserTaskExecutorTest extends AnyFlatSpec with Matchers with Moc
     result mustBe defined
     val values = result.get.entities.flatMap(_.values).flatten.toSeq
     values mustBe Seq("1", "1")
+  }
+
+  it should "throw a TaskException when wired directly to a dataset (FlexibleSchemaPort)" in {
+    // InMemoryResourceManager.get() creates the resource object even if no content has been written yet
+    val outputResource = InMemoryResourceManager().get("output.json")
+    val downstreamTask = PlainTask("outputDataset", DatasetSpec(JsonDataset(outputResource)))
+
+    val output = ExecutorOutput(Some(downstreamTask), Some(FlexibleSchemaPort()))
+    val inputs = Seq(inputEntities)
+    val execution = LocalExecution(useLocalInternalDatasets = false)
+
+    val ex = intercept[TaskException] {
+      executor.execute(task, inputs, output, execution)
+    }
+    ex.getMessage must include ("Parse JSON")
+    ex.getMessage must include ("schema")
+  }
+
+  it should "throw a TaskException when no requested schema and no downstream task are present" in {
+    val ex = intercept[TaskException] {
+      executor.execute(task, Seq(inputEntities), ExecutorOutput.empty, LocalExecution(useLocalInternalDatasets = false))
+    }
+    ex.getMessage must include ("Parse JSON")
+    ex.getMessage must include ("schema")
+  }
+
+  it should "throw a TaskException for FlexibleSchemaPort even when the input entity stream is empty" in {
+    val outputResource = InMemoryResourceManager().get("output.json")
+    val downstreamTask = PlainTask("outputDataset", DatasetSpec(JsonDataset(outputResource)))
+    val emptyInput = GenericEntityTable(CloseableIterator.empty, entitySchema, task)
+
+    val output = ExecutorOutput(Some(downstreamTask), Some(FlexibleSchemaPort()))
+    val ex = intercept[TaskException] {
+      executor.execute(task, Seq(emptyInput), output, LocalExecution(useLocalInternalDatasets = false))
+    }
+    ex.getMessage must include ("Parse JSON")
+    ex.getMessage must include ("schema")
   }
 
   it should "parse the JSON of multiple entities" in {
