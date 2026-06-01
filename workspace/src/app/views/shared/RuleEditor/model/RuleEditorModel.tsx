@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, {useEffect} from "react";
 import {
     Edge,
     Elements,
@@ -10,28 +10,27 @@ import {
     useUpdateNodeInternals,
     useZoomPanHelper,
 } from "react-flow-renderer";
-import { RuleEditorModelContext } from "../contexts/RuleEditorModelContext";
-import { RuleEditorContext, RuleEditorContextProps } from "../contexts/RuleEditorContext";
-import { IOperatorCreateContext, IOperatorNodeOperations, ruleEditorModelUtilsFactory } from "./RuleEditorModel.utils";
-import { useTranslation } from "react-i18next";
+import {RuleEditorModelContext} from "../contexts/RuleEditorModelContext";
+import {RuleEditorContext, RuleEditorContextProps} from "../contexts/RuleEditorContext";
+import {IOperatorCreateContext, IOperatorNodeOperations, ruleEditorModelUtilsFactory} from "./RuleEditorModel.utils";
+import {useTranslation} from "react-i18next";
 import {
-    isDynamicPortSpecification,
-    minInputPortCount,
     IParameterSpecification,
     IRuleOperator,
     IRuleOperatorNode,
-    RuleEditorPatchableNodeProjection,
-    RuleEditorValidationOperatorNode,
+    isDynamicPortSpecification,
+    minInputPortCount,
     RULE_EDITOR_NOTIFICATION_INSTANCE,
+    RuleEditorPatchableNodeProjection,
     RuleEditorValidationNode,
+    RuleEditorValidationOperatorNode,
     RuleOperatorNodeParameters,
 } from "../RuleEditor.typings";
 import {
     AddEdge,
     AddNode,
-    ExternalRuleModelChangeCallbacks,
-    ChangeNodeParameter,
     ChangeNodeMetaData,
+    ChangeNodeParameter,
     ChangeNodePosition,
     ChangeNodeSize,
     ChangeNumberOfInputHandles,
@@ -39,6 +38,7 @@ import {
     DeleteEdge,
     DeleteNode,
     ExecuteExternalRuleModelChange,
+    ExternalRuleModelChangeCallbacks,
     PreparedClipboardPaste,
     RuleEditorNode,
     RuleEditorNodeParameterValue,
@@ -48,10 +48,10 @@ import {
     RuleNodeCopySerialization,
     StickyNodePropType,
 } from "./RuleEditorModel.typings";
-import { Connection, XYPosition } from "react-flow-renderer/dist/types";
-import { NodeContent, RuleNodeContentProps } from "../view/ruleNode/NodeContent";
-import { maxNumberValuePicker, setConditionalMap } from "../../../../utils/basicUtils";
-import { RuleEditorEvaluationContext, RuleEditorEvaluationContextProps } from "../contexts/RuleEditorEvaluationContext";
+import {Connection, XYPosition} from "react-flow-renderer/dist/types";
+import {NodeContent, RuleNodeContentProps} from "../view/ruleNode/NodeContent";
+import {maxNumberValuePicker, setConditionalMap} from "../../../../utils/basicUtils";
+import {RuleEditorEvaluationContext, RuleEditorEvaluationContextProps} from "../contexts/RuleEditorEvaluationContext";
 import {
     InteractionGate,
     Markdown,
@@ -62,14 +62,14 @@ import {
     Notification,
     StickyNote,
 } from "@eccenca/gui-elements";
-import { LINKING_NODE_TYPES } from "@eccenca/gui-elements/src/cmem/react-flow/configuration/typing";
+import {LINKING_NODE_TYPES} from "@eccenca/gui-elements/src/cmem/react-flow/configuration/typing";
 import StickyMenuButton from "../view/components/StickyMenuButton";
-import { InputPathFunctions } from "../view/ruleNode/PathInputOperator";
-import { RuleNodeMenu } from "../view/ruleNode/RuleNodeMenu";
-import { requestRuleOperatorPluginDetails } from "@ducks/common/requests";
+import {InputPathFunctions} from "../view/ruleNode/PathInputOperator";
+import {RuleNodeMenu} from "../view/ruleNode/RuleNodeMenu";
+import {requestRuleOperatorPluginDetails} from "@ducks/common/requests";
 import useErrorHandler from "../../../../hooks/useErrorHandler";
-import { PUBLIC_URL } from "../../../../constants/path";
-import { copyToClipboard } from "../../../../utils/copyToClipboard";
+import {PUBLIC_URL} from "../../../../constants/path";
+import {copyToClipboard} from "../../../../utils/copyToClipboard";
 
 export interface RuleEditorModelProps {
     /** The children that work on this rule model. */
@@ -240,7 +240,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
             window.removeEventListener("paste", handlePaste);
             window.removeEventListener("copy", handleCopy);
         };
-    }, [nodeParameters, ruleEditorContext.operatorList, selectedElements]);
+    }, [nodeParameters, ruleEditorContext.operatorList, selectedElements, reactFlowInstance]);
 
     const edgeType = (ruleOperatorNode?: RuleEditorValidationOperatorNode) => {
         if (ruleOperatorNode) {
