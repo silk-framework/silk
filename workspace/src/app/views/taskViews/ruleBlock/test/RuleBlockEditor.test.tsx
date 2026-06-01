@@ -11,6 +11,7 @@ import {
 } from "../../../../test/jestTestUtils";
 import { RuleValidationError } from "../../../shared/RuleEditor/RuleEditor.typings";
 import type { IRuleOperatorNode, RuleSaveResult } from "../../../shared/RuleEditor/RuleEditor.typings";
+import type { RuleClipboardTask } from "../../../shared/RuleEditor/model/RuleEditorModel.typings";
 import type { IRuleBlockPort, IRuleBlockTaskParameters } from "../ruleBlock.types";
 import type { IRuleSidebarPreConfiguredOperatorsTabConfig } from "../../../shared/RuleEditor/RuleEditor.typings";
 import type { IPreConfiguredRuleOperator } from "../../../shared/RuleEditor/view/sidebar/RuleEditorOperatorSidebar.typings";
@@ -29,6 +30,8 @@ type CapturedRuleEditorProps = {
     additionalToolBarComponents?: () => React.JSX.Element | React.JSX.Element[];
     captureExternalSavedState?: () => unknown;
     restoreExternalSavedState?: (savedState: unknown) => void;
+    extendClipboardCopy?: (task: RuleClipboardTask, nodeIds: string[]) => unknown;
+    prepareClipboardPaste?: (task: RuleClipboardTask) => Promise<unknown> | unknown;
     extraRuleNodeMenuItems?: (node: IRuleOperatorNode, closeMenu: () => void) => React.JSX.Element[] | undefined;
 };
 
@@ -161,7 +164,7 @@ const createRuleBlockTask = (ports: IRuleBlockPort[] = []): IProjectTask<IRuleBl
 const createInputPortNode = (overrides: Partial<IRuleOperatorNode> = {}): IRuleOperatorNode => ({
     nodeId: "nodeA",
     pluginType: "InputPortOperator",
-    pluginId: "InputPortOperator",
+    pluginId: "inputPort",
     label: "Input port node",
     parameters: {
         portId: "inputPortA",
@@ -173,6 +176,22 @@ const createInputPortNode = (overrides: Partial<IRuleOperatorNode> = {}): IRuleO
     },
     inputsCanBeSwitched: false,
     ...overrides,
+});
+
+const createClipboardTask = (
+    overrides: Partial<RuleClipboardTask> = {},
+): RuleClipboardTask => ({
+    data: {
+        nodes: [],
+        edges: [],
+        ...(overrides.data ?? {}),
+    },
+    metaData: {
+        project: "project1",
+        task: "task1",
+        ...(overrides.metaData ?? {}),
+    },
+    ...(overrides.editorData !== undefined ? { editorData: overrides.editorData } : {}),
 });
 
 const getInputPortsTab = (
@@ -601,6 +620,108 @@ describe("RuleBlockEditor", () => {
                 createPersistedPort({ id: "inputPortA", label: "Restored A", displayOrder: 2 }),
                 createPersistedPort({ id: "inputPortB", label: "Restored B", displayOrder: 4 }),
             ]),
+        );
+    });
+
+    it("should extend clipboard copies with logical input-port definitions of the selected nodes", async () => {
+        const editor = await renderRuleBlockEditor({
+            ports: [
+                createPersistedPort({ id: "inputPortA", label: "Input A", displayOrder: 1 }),
+                createPersistedPort({ id: "inputPortB", label: "Input B", displayOrder: 2 }),
+            ],
+            ruleOperatorNodes: [
+                createInputPortNode({ nodeId: "nodeA", parameters: { portId: "inputPortA" } }),
+                createInputPortNode({ nodeId: "nodeB", parameters: { portId: "inputPortB" } }),
+            ],
+        });
+
+        await waitFor(() => expect(editor.getRuleEditorProps().extendClipboardCopy).toBeDefined());
+
+        expect(
+            editor.getRuleEditorProps().extendClipboardCopy!(
+                createClipboardTask(),
+                ["nodeB"],
+            ),
+        ).toStrictEqual({
+            inputPorts: [createPersistedPort({ id: "inputPortB", label: "Input B", displayOrder: 2 })],
+        });
+    });
+
+    it("should create new input ports when preparing a clipboard paste from another rule block", async () => {
+        const editor = await renderRuleBlockEditor({
+            ports: [createPersistedPort({ id: "existingPort", label: "Existing", displayOrder: 4 })],
+        });
+
+        await waitFor(() => expect(editor.getRuleEditorProps().prepareClipboardPaste).toBeDefined());
+
+        const preparedPaste = await editor.getRuleEditorProps().prepareClipboardPaste!(
+            createClipboardTask({
+                data: {
+                    nodes: [
+                        {
+                            nodeId: "externalInputNode",
+                            pluginType: "InputPortOperator",
+                            pluginId: "inputPort",
+                            position: { x: 0, y: 0 },
+                            parameters: {
+                                portId: "externalPort",
+                            },
+                            inputHandleIds: [],
+                        },
+                    ],
+                    edges: [],
+                },
+                metaData: {
+                    project: "project1",
+                    task: "externalRuleBlock",
+                },
+                editorData: {
+                    inputPorts: [
+                        {
+                            id: "externalPort",
+                            label: "External input",
+                            description: "External description",
+                            displayOrder: 7,
+                            deprecated: false,
+                        },
+                    ],
+                },
+            }),
+        );
+
+        expect(preparedPaste).toMatchObject({
+            taskData: {
+                nodes: [
+                    expect.objectContaining({
+                        nodeId: "externalInputNode",
+                        pluginType: "InputPortOperator",
+                        parameters: {
+                            portId: expect.any(String),
+                        },
+                    }),
+                ],
+                edges: [],
+            },
+            externalChange: expect.objectContaining({
+                do: expect.any(Function),
+                undo: expect.any(Function),
+            }),
+        });
+        expect((preparedPaste as { taskData: RuleClipboardTask["data"] }).taskData.nodes[0].parameters?.portId).not.toBe(
+            "externalPort",
+        );
+
+        await act(async () => {
+            (preparedPaste as { externalChange: { do: () => void } }).externalChange.do();
+        });
+
+        expect(editor.getRuleEditorProps().captureExternalSavedState!()).toContainEqual(
+            expect.objectContaining({
+                label: "External input",
+                description: "External description",
+                displayOrder: 5,
+                deprecated: false,
+            }),
         );
     });
 });

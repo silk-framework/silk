@@ -27,6 +27,7 @@ import {
     RuleSaveResult,
     RuleValidationError,
 } from "../../shared/RuleEditor/RuleEditor.typings";
+import type { PreparedClipboardPaste, RuleClipboardTask } from "../../shared/RuleEditor/model/RuleEditorModel.typings";
 import { CodeAutocompleteFieldPartialAutoCompleteResult } from "@eccenca/gui-elements/src/components/AutoSuggestion/AutoSuggestion";
 import ruleUtils from "../shared/rules/rule.utils";
 import { FetchError } from "../../../services/fetch/responseInterceptor";
@@ -34,6 +35,7 @@ import useErrorHandler from "../../../hooks/useErrorHandler";
 import { IRuleBlockModel, IRuleBlockPort, IRuleBlockTaskParameters } from "./ruleBlock.types";
 import ruleBlockUtils from "./ruleBlock.utils";
 import ruleBlockEditorUtils from "./RuleBlockEditor.utils";
+import ruleBlockPasteUtils from "./ruleBlockPaste.utils";
 import { ExternalSidebarContext } from "../../shared/RuleEditor/contexts/ExternalSidebarContext";
 import InputPortDialog, { InputPortDialogSubmitValue } from "./InputPortDialog";
 import RuleBlockEvaluation from "./RuleBlockEvaluation";
@@ -592,6 +594,43 @@ export const RuleBlockEditor = ({ projectId, ruleBlockTaskId, viewActions, insta
         [openEditInputPortDialog],
     );
 
+    const extendClipboardCopy = React.useCallback(
+        (_task: RuleClipboardTask, nodeIds: string[]) =>
+            ruleBlockPasteUtils.collectRuleBlockClipboardCopy({
+                selectedNodeIds: nodeIds,
+                ruleOperatorNodes: ruleEditorRef.current?.ruleOperatorNodes() ?? [],
+                existingPorts: portsRef.current,
+            }),
+        [],
+    );
+
+    const prepareClipboardPaste = React.useCallback(
+        (task: RuleClipboardTask): PreparedClipboardPaste => {
+            const previousPorts = portsRef.current;
+            const preparedPaste = ruleBlockPasteUtils.prepareRuleBlockClipboardPaste(task, {
+                currentProjectId: projectId,
+                currentTaskId: ruleBlockTaskId,
+                existingPorts: previousPorts,
+                createInputPortId: ruleBlockUtils.generateInputPortId,
+                inputPortNodeMetaData: ruleBlockEditorUtils.inputPortNodeMetaData,
+            });
+            if (preparedPaste.createdPorts.length === 0) {
+                return {
+                    taskData: preparedPaste.taskData,
+                };
+            }
+            const nextPorts = [...previousPorts, ...preparedPaste.createdPorts];
+            return {
+                taskData: preparedPaste.taskData,
+                externalChange: {
+                    do: () => applyPorts(nextPorts),
+                    undo: () => applyPorts(previousPorts),
+                },
+            };
+        },
+        [applyPorts, projectId, ruleBlockTaskId],
+    );
+
     const externalSidebarContextValue = React.useMemo(() => ({ reloadToken: sidebarReloadToken }), [sidebarReloadToken]);
 
     return (
@@ -624,6 +663,8 @@ export const RuleBlockEditor = ({ projectId, ruleBlockTaskId, viewActions, insta
                         tabs={ruleEditorTabs}
                         captureExternalSavedState={captureExternalSavedState}
                         restoreExternalSavedState={restoreExternalSavedState}
+                        extendClipboardCopy={extendClipboardCopy}
+                        prepareClipboardPaste={prepareClipboardPaste}
                         showRuleOnly={false}
                         instanceId={instanceId}
                         saveInitiallyEnabled={false}

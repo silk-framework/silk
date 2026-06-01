@@ -9,7 +9,7 @@ import {
 } from "../RuleEditor.typings";
 import { XYPosition } from "react-flow-renderer/dist/types";
 import { IOperatorNodeParameterValueWithLabel } from "../../../taskViews/shared/rules/rule.typings";
-import { NodeContentProps, NodeDimensions } from "@eccenca/gui-elements";
+import { NodeDimensions } from "@eccenca/gui-elements";
 import { CSSProperties } from "react";
 
 export interface RuleModelChanges {
@@ -184,4 +184,41 @@ export interface RuleNodeCopySerialization
     position: NodePosition;
     parameters?: RuleOperatorNodeParameters;
     inputHandleIds: string[];
+    /** Optional inferred display metadata to apply when the pasted node is materialized. */
+    nodeMetaData?: RuleEditorPatchableNodeProjection;
 }
+
+/** Generic clipboard payload for a copied rule-editor subtree. */
+export interface RuleClipboardTaskData {
+    nodes: RuleNodeCopySerialization[];
+    edges: Partial<Edge>[];
+}
+
+/** Minimal provenance metadata attached to clipboard payloads for editor-specific reconciliation. */
+export interface RuleClipboardTaskMetaData {
+    domain?: string;
+    project?: string;
+    task?: string;
+}
+
+export interface RuleClipboardTask {
+    /** Serialized canvas nodes and edges copied from the source editor. */
+    data: RuleClipboardTaskData;
+    /** Identifies the source editor context, e.g. to detect same-task pastes. */
+    metaData: RuleClipboardTaskMetaData;
+    /** Optional editor-owned data that cannot be reconstructed from canvas nodes alone. */
+    editorData?: unknown;
+}
+
+/** Normalized result of an editor-specific clipboard paste preparation hook. */
+export interface PreparedClipboardPaste {
+    /** The final node/edge payload to materialize in the shared rule editor model. */
+    taskData: RuleClipboardTaskData;
+    /** Optional parent-owned state change that should participate in the same undo/redo transaction. */
+    externalChange?: ExternalRuleModelChangeCallbacks;
+}
+
+/** Optional editor hook to validate, rewrite and augment clipboard pastes before node creation. */
+export type PrepareClipboardPaste = (
+    task: RuleClipboardTask,
+) => PreparedClipboardPaste | Promise<PreparedClipboardPaste>;

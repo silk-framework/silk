@@ -16,7 +16,7 @@ import {
     RuleEditorValidationNode,
     RuleSaveResult,
 } from "./RuleEditor.typings";
-import { ExternalRuleModelChangeCallbacks } from "./model/RuleEditorModel.typings";
+import { ExternalRuleModelChangeCallbacks, PrepareClipboardPaste, RuleClipboardTask } from "./model/RuleEditorModel.typings";
 import ErrorBoundary from "../../../ErrorBoundary";
 import { ReactFlowProvider } from "react-flow-renderer";
 import utils from "./RuleEditor.utils";
@@ -71,6 +71,10 @@ export interface RuleEditorBaseProps {
     additionalToolBarComponents?: () => React.JSX.Element | React.JSX.Element[];
     /** Optional additional menu entries for a specific rule node. These are rendered right before the Remove entry. */
     extraRuleNodeMenuItems?: (node: IRuleOperatorNode, closeMenu: () => void) => React.JSX.Element[] | undefined;
+    /** Optional hook to attach editor-owned clipboard data, e.g. logical entities referenced by copied nodes. */
+    extendClipboardCopy?: (task: RuleClipboardTask, nodeIds: string[]) => unknown;
+    /** Optional hook to validate or rewrite a clipboard payload and enqueue parent-owned side effects for undo/redo. */
+    prepareClipboardPaste?: PrepareClipboardPaste;
     /** When enabled only the rule is shown without side- and toolbar and any other means to edit the rule. */
     showRuleOnly?: boolean;
     /** When enabled the mini map is not displayed. */
@@ -202,6 +206,8 @@ const RuleEditorInner = <TASK_TYPE extends object, OPERATOR_TYPE extends object>
     fetchDatasetCharacteristics,
     captureExternalSavedState,
     restoreExternalSavedState,
+    extendClipboardCopy,
+    prepareClipboardPaste,
     pathMetaData,
     partialAutoCompletion,
     saveInitiallyEnabled,
@@ -379,6 +385,8 @@ const RuleEditorInner = <TASK_TYPE extends object, OPERATOR_TYPE extends object>
                 datasetCharacteristics,
                 captureExternalSavedState,
                 restoreExternalSavedState,
+                extendClipboardCopy,
+                prepareClipboardPaste,
                 pathMetaData,
                 partialAutoCompletion,
                 saveInitiallyEnabled,

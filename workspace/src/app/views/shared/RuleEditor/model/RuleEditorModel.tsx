@@ -39,6 +39,7 @@ import {
     DeleteEdge,
     DeleteNode,
     ExecuteExternalRuleModelChange,
+    PreparedClipboardPaste,
     RuleEditorNode,
     RuleEditorNodeParameterValue,
     RuleModelChanges,
@@ -1594,18 +1595,23 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
 
     const pasteNodes = async (e: any) => {
         try {
-            const clipboardData = e.clipboardData?.getData("Text");
+            const clipboardData = e.clipboardData?.getData("text/plain") || e.clipboardData?.getData("Text");
             const pasteInfo = JSON.parse(clipboardData); // Parse JSON
             if (pasteInfo.task) {
+                const preparedPaste =
+                    ((await ruleEditorContext.prepareClipboardPaste?.(pasteInfo.task)) ?? {
+                        taskData: pasteInfo.task.data,
+                    }) as PreparedClipboardPaste;
+                const { taskData: preparedTaskData, externalChange } = preparedPaste;
                 changeElementsInternal((els) => {
-                    const nodes: RuleNodeCopySerialization[] = pasteInfo.task.data.nodes ?? [];
+                    const nodes: RuleNodeCopySerialization[] = preparedTaskData.nodes ?? [];
                     const nodeIdMap = new Map<string, string>();
                     const newNodes: RuleEditorNode[] = [];
                     nodes.forEach((node) => {
                         const position = { x: node.position.x + 100, y: node.position.y + 100 };
                         const op = fetchRuleOperatorByPluginId(node.pluginId, node.pluginType);
                         if (!op) throw new Error(`Missing plugins for operator plugin ${node.pluginId}`);
-                        const newNode = createNodeInternal(op, position, node.parameters);
+                        const newNode = createNodeInternal(op, position, node.parameters, node.nodeMetaData);
                         if (newNode) {
                             const existingInputHandleIds = new Set(utils.inputHandles(newNode).map((h) => h.id));
                             const missingInputHandleIds = node.inputHandleIds.filter(
@@ -1632,21 +1638,33 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                         }
                     });
                     const newEdges: Edge[] = [];
-                    pasteInfo.task.data.edges.forEach((edge) => {
-                        if (nodeIdMap.has(edge.source) && nodeIdMap.has(edge.target)) {
+                    preparedTaskData.edges.forEach((edge) => {
+                        if (
+                            typeof edge.source === "string" &&
+                            typeof edge.target === "string" &&
+                            typeof edge.targetHandle === "string" &&
+                            nodeIdMap.has(edge.source) &&
+                            nodeIdMap.has(edge.target)
+                        ) {
                             const newEdge = utils.createEdge(
                                 nodeIdMap.get(edge.source)!!,
                                 nodeIdMap.get(edge.target)!!,
-                                edge.targetHandle!!,
+                                edge.targetHandle,
                                 edge.type ?? "step",
                             );
                             newEdges.push(newEdge);
                         }
                     });
                     startChangeTransaction();
+                    const withExternalChange = externalChange
+                        ? addAndExecuteRuleModelChangeInternal(
+                              RuleModelChangesFactory.executeExternalRuleModelChange(externalChange),
+                              els,
+                          )
+                        : els;
                     const withNodes = addAndExecuteRuleModelChangeInternal(
                         RuleModelChangesFactory.addNodes(newNodes),
-                        els,
+                        withExternalChange,
                     );
                     resetSelectedElements();
                     setTimeout(() => {
@@ -1715,17 +1733,22 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
 
         //paste to clipboard.
         const { projectId, editedItemId } = ruleEditorContext;
+        const task = {
+            data: {
+                nodes,
+                edges,
+            },
+            metaData: {
+                domain: PUBLIC_URL,
+                project: projectId,
+                task: editedItemId,
+            },
+        };
+        const editorData = ruleEditorContext.extendClipboardCopy?.(task, nodeIds);
         const data = JSON.stringify({
             task: {
-                data: {
-                    nodes,
-                    edges,
-                },
-                metaData: {
-                    domain: PUBLIC_URL,
-                    project: projectId,
-                    task: editedItemId,
-                },
+                ...task,
+                ...(editorData !== undefined ? { editorData } : {}),
             },
         });
         if (event) {
