@@ -11,6 +11,7 @@ export interface IRuleBlockPort {
 
 export interface IRuleBlockInputExample {
     id: string;
+    label?: string;
     inputs: Record<string, string[]>;
 }
 

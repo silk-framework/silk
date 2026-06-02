@@ -21,7 +21,7 @@ import { RuleEditorEvaluationContext, RuleEditorEvaluationContextProps } from ".
 import { EvaluationActivityControl } from "./evaluation/EvaluationActivityControl";
 import { Prompt } from "react-router";
 import { RuleValidationError } from "../RuleEditor.typings";
-import utils, { DEFAULT_NODE_HEIGHT, DEFAULT_NODE_WIDTH } from "../model/RuleEditorModel.utils";
+import { DEFAULT_NODE_HEIGHT, DEFAULT_NODE_WIDTH } from "../model/RuleEditorModel.utils";
 import { RuleEditorBaseModal } from "./components/RuleEditorBaseModal";
 import { ReactFlowHotkeyContext } from "@eccenca/gui-elements/src/cmem/react-flow/extensions/ReactFlowHotkeyContext";
 
@@ -257,6 +257,7 @@ export const RuleEditorToolbar = () => {
                             loading={ruleEvaluationContext.evaluationRunning}
                             referenceLinksUrl={ruleEvaluationContext.referenceLinksUrl}
                             evaluationResultsShown={ruleEvaluationContext.evaluationResultsShown}
+                            evaluationConfigMenu={ruleEvaluationContext.evaluationConfigMenu}
                             evaluationResultsShownToggleButton={{
                                 "data-test-id": "rule-editor-start-evaluation-btn",
                                 disabled: ruleEvaluationContext.evaluationRunning,

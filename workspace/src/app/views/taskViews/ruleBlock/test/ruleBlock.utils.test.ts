@@ -1,6 +1,6 @@
 import ruleBlockUtils from "../ruleBlock.utils";
 import { IRuleOperatorNode } from "../../../shared/RuleEditor/RuleEditor.typings";
-import { IRuleBlockPort } from "../ruleBlock.types";
+import { IRuleBlockInputExample, IRuleBlockPort } from "../ruleBlock.types";
 
 describe("ruleBlockUtils", () => {
     it("should resolve the logical port ID from the node parameter value", () => {
@@ -75,6 +75,29 @@ describe("ruleBlockUtils", () => {
             port("firstPort", 1, "First port"),
             port("secondPort", 2, "Second port"),
             port("thirdPort", 2, "Third port"),
+        ]);
+    });
+
+    it("should prune example inputs that reference deleted logical ports", () => {
+        const inputExamples: IRuleBlockInputExample[] = [
+            {
+                id: "example-1",
+                label: "Example 1",
+                inputs: {
+                    firstPort: ["First value"],
+                    removedPort: ["Should disappear"],
+                },
+            },
+        ];
+
+        expect(ruleBlockUtils.pruneInputExamplesToPorts(inputExamples, [port("firstPort", 1, "First port")])).toStrictEqual([
+            {
+                id: "example-1",
+                label: "Example 1",
+                inputs: {
+                    firstPort: ["First value"],
+                },
+            },
         ]);
     });
 

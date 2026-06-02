@@ -189,12 +189,14 @@ case class RuleBlockPort(id: Identifier = Operator.generateId,
 }
 
 case class RuleBlockInputExample(id: Identifier = Operator.generateId,
+                                 label: Option[String] = None,
                                  inputs: Map[Identifier, Seq[String]] = Map.empty)
 
 object RuleBlockInputExample {
   implicit object RuleBlockInputExampleXmlFormat extends XmlFormat[RuleBlockInputExample] {
     override def read(xml: Node)(implicit readContext: ReadContext): RuleBlockInputExample = {
       val id = (xml \ "@id").headOption.map(attr => Identifier(attr.text)).getOrElse(Operator.generateId)
+      val label = (xml \ "@label").headOption.map(_.text).filter(_.nonEmpty)
       val inputs = (xml \ "Input").map { inputNode =>
         val portId = (inputNode \ "@portId").headOption
           .map(attr => Identifier(attr.text))
@@ -202,14 +204,16 @@ object RuleBlockInputExample {
         val values = (inputNode \ "Value").map(_.text).toSeq
         portId -> values
       }.toMap
-      RuleBlockInputExample(id, inputs)
+      RuleBlockInputExample(id, label, inputs)
     }
 
     override def write(value: RuleBlockInputExample)(implicit writeContext: WriteContext[Node]): Node = {
-      <Example id={value.id.toString}>
+      <Example id={value.id.toString} label={value.label.filter(_.nonEmpty).orNull}>
         {value.inputs.toSeq.sortBy(_._1.toString).map { case (portId, values) =>
         <Input portId={portId.toString}>
-          {values.map(v => <Value xml:space="preserve">{PCData(v)}</Value>)}
+          {values.map(v => <Value xml:space="preserve">
+          {PCData(v)}
+        </Value>)}
         </Input>
       }}
       </Example>

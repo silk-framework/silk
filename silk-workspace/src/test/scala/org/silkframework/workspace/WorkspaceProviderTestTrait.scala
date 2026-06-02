@@ -225,6 +225,7 @@ trait WorkspaceProviderTestTrait extends AnyFlatSpec with Matchers with MockitoS
           inputExamples = IndexedSeq(
             RuleBlockInputExample(
               id = Identifier("example-1"),
+              label = Some("Primary example"),
               inputs = Map(
                 Identifier("namePort") -> Seq("Alice", "Bob"),
                 Identifier("suffixPort") -> Seq("Jr."),
@@ -295,6 +296,7 @@ trait WorkspaceProviderTestTrait extends AnyFlatSpec with Matchers with MockitoS
           inputExamples = IndexedSeq(
             RuleBlockInputExample(
               id = Identifier("example-1"),
+              label = Some("Updated example"),
               inputs = Map(
                 Identifier("namePort") -> Seq("Alice", "CHARLIE"),
                 Identifier("suffixPort") -> Seq("::"),

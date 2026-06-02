@@ -780,6 +780,7 @@
             },
             "deprecated": "Deprecated",
             "displayOrder": "Display order",
+            "editExampleValues": "Edit example values",
             "editInputPort": "Edit input port",
             "editInputPortTitle": "Edit input port",
             "errors": {
@@ -799,6 +800,26 @@
                 "usedPortReordered": "Display order of input port '{{portLabel}}' cannot be changed because this rule block is already in use."
             },
             "exampleValues": "Example values",
+            "examples": {
+                "dialog": {
+                    "addValue": "Add value",
+                    "applyAndClose": "Apply and close",
+                    "deleteExample": "Delete example",
+                    "duplicateExample": "Duplicate example",
+                    "editingValue": "Editing {{portLabel}}",
+                    "exampleTitle": "Example {{index}}",
+                    "examples": "Examples",
+                    "inputsCount": "{{count}} inputs",
+                    "inputsCount_plural": "{{count}} inputs",
+                    "label": "Label",
+                    "labelHint": "Optional. If empty, the generated example title is shown.",
+                    "newExample": "New example",
+                    "noExamples": "No examples available yet.",
+                    "searchExamples": "Search examples",
+                    "selectValueHint": "Select a value chip or create a new value to edit it here.",
+                    "title": "Example editor"
+                }
+            },
             "inputPortOperator": "Input port",
             "inputPortOperatorDescription": "Provides values from a reusable rule block input port.",
             "inputPortsTab": "Input ports",
@@ -806,6 +827,7 @@
             "portMenu": "Port menu",
             "deleteDisabledInUse": "Input port '{{portLabel}}' cannot be removed because this rule block is already in use.",
             "evaluation": {
+                "noInputExamples": "No input examples exist yet. Example values can be added via the evaluation menu or input port node menu.",
                 "noResults": "No evaluation results available."
             },
             "normalizePortOrder": "Normalize port order",

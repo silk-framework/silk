@@ -1,6 +1,7 @@
 import React from "react";
 import { IRuleOperatorNode, RuleValidationError } from "../RuleEditor.typings";
 import { IEvaluatedReferenceLinksScore } from "../../../taskViews/linking/linking.types";
+import type { ActivityControlWidgetAction } from "@eccenca/gui-elements";
 import { NodeContentExtension } from "@eccenca/gui-elements/src/extensions/react-flow";
 import { IntentBlueprint as Intent } from "@eccenca/gui-elements/src/common/Intent";
 
@@ -46,6 +47,9 @@ export interface RuleEditorEvaluationContextProps {
     /** A notification from the evaluation that will be shown in the notification menu of the rule editor. */
     notifications?: RuleEditorEvaluationNotification[];
 
+    /** Optional configuration menu shown on the evaluation activity widget. */
+    evaluationConfigMenu?: RuleEditorEvaluationConfigMenu;
+
     /** Called by the rule editor to give the function to trigger an evaluation to the evaluation component. */
     fetchTriggerEvaluationFunction: (triggerFunction: () => any) => any;
 
@@ -67,6 +71,12 @@ export interface RuleEditorEvaluationNotification {
     onDiscard?: () => any;
 }
 
+export interface RuleEditorEvaluationConfigMenu {
+    tooltip?: string;
+    menuItems: ActivityControlWidgetAction[];
+    "data-test-id"?: string;
+}
+
 const NOP = () => {};
 
 /** Context of rule editor evaluation component. */
@@ -83,6 +93,7 @@ export const ruleEditorEvaluationContextDefaultValue: RuleEditorEvaluationContex
     ruleValidationError: undefined,
     clearRuleValidationError: NOP,
     fetchTriggerEvaluationFunction: NOP,
+    evaluationConfigMenu: undefined,
     setEvaluationRootNode: NOP,
     evaluationRootNode: () => undefined,
     canBeEvaluated: () => false,

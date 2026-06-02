@@ -1135,6 +1135,7 @@ object JsonSerializers {
   }
 
   implicit object RuleBlockInputExampleJsonFormat extends JsonFormat[RuleBlockInputExample] {
+    final val LABEL = "label"
     final val INPUTS = "inputs"
 
     override def read(value: JsValue)(implicit readContext: ReadContext): RuleBlockInputExample = {
@@ -1147,6 +1148,7 @@ object JsonSerializers {
         .getOrElse(Map.empty[Identifier, Seq[String]])
       RuleBlockInputExample(
         id = stringValueOption(value, ID).map(Identifier.apply).getOrElse(Operator.generateId),
+        label = stringValueOption(value, LABEL).filter(_.nonEmpty),
         inputs = inputs
       )
     }
@@ -1157,7 +1159,7 @@ object JsonSerializers {
         INPUTS -> JsObject(value.inputs.toSeq.sortBy(_._1.toString).map { case (portId, values) =>
           portId.toString -> JsArray(values.map(JsString))
         })
-      )
+      ) ++ value.label.filter(_.nonEmpty).map(label => Json.obj(LABEL -> label)).getOrElse(Json.obj())
     }
   }
 

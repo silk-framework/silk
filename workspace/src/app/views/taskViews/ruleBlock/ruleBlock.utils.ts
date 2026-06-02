@@ -1,7 +1,7 @@
 import { StickyNote } from "@eccenca/gui-elements";
 import { IRuleOperatorNode, RuleSaveNodeError } from "../../shared/RuleEditor/RuleEditor.typings";
 import { ruleEditorNodeParameterValue } from "../../shared/RuleEditor/model/RuleEditorModel.typings";
-import { IRuleBlockModel, IRuleBlockPort } from "./ruleBlock.types";
+import { IRuleBlockInputExample, IRuleBlockModel, IRuleBlockPort } from "./ruleBlock.types";
 
 /** Creates the default empty rule block model used for new or incomplete tasks. */
 const emptyRuleBlockModel = (): IRuleBlockModel => ({
@@ -17,6 +17,30 @@ const emptyRuleBlockModel = (): IRuleBlockModel => ({
 
 /** Normalizes optional sticky notes to the array shape expected by the editor. */
 const normalizeStickyNotes = (stickyNotes?: StickyNote[]): StickyNote[] => stickyNotes ?? [];
+
+/** Deep-clones persisted rule block examples to keep local editor state mutable without mutating task payloads. */
+const cloneInputExamples = (inputExamples?: IRuleBlockInputExample[]): IRuleBlockInputExample[] =>
+    (inputExamples ?? []).map((example) => ({
+        ...example,
+        label: typeof example.label === "string" && example.label.trim() ? example.label : undefined,
+        inputs: Object.fromEntries(
+            Object.entries(example.inputs ?? {}).map(([portId, values]) => [portId, [...values]] as const),
+        ),
+    }));
+
+/** Drops example inputs for ports that no longer exist in the current logical input-port set. */
+const pruneInputExamplesToPorts = (
+    inputExamples: IRuleBlockInputExample[],
+    ports: Iterable<IRuleBlockPort>,
+): IRuleBlockInputExample[] => {
+    const knownPortIds = new Set([...ports].map((port) => port.id));
+    return cloneInputExamples(inputExamples).map((example) => ({
+        ...example,
+        inputs: Object.fromEntries(
+            Object.entries(example.inputs).filter(([portId]) => knownPortIds.has(portId)),
+        ),
+    }));
+};
 
 /** Resolves the stable logical port ID for an input port node. */
 const resolvePortId = (node: IRuleOperatorNode): string | undefined => {
@@ -338,16 +362,23 @@ const nextInputPortDefaults = (
 const generateInputPortId = (): string =>
     `inputPort_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`;
 
+/** Generates a stable client-side ID for a newly created rule block input example. */
+const generateInputExampleId = (): string =>
+    `example_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`;
+
 const ruleBlockUtils = {
     assertValidPorts,
+    cloneInputExamples,
     collectPortDefinitions,
     emptyRuleBlockModel,
+    generateInputExampleId,
     generateInputPortId,
     isPersistedPort,
     isNormalizedPortDisplayOrder,
     normalizePortDisplayOrder,
     normalizeStickyNotes,
     portsWithChangedDisplayOrder,
+    pruneInputExamplesToPorts,
     requirePortId,
     resolvePortId,
     nextInputPortDefaults,

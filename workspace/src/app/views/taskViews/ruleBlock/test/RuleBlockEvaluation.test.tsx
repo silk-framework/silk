@@ -13,6 +13,7 @@ const createRuleBlockEvaluationHarness = () => {
 
     const mockRequestRuleBlockEvaluation = jest.fn();
     const mockRegisterError = jest.fn();
+    const mockLinkRuleNodeEvaluation = jest.fn(({ ruleOperatorId }) => <div data-testid={`evaluation-${ruleOperatorId}`} />);
 
     mockReactI18next(testTranslate);
     jest.doMock("../../../../hooks/useErrorHandler", () => ({
@@ -50,7 +51,7 @@ const createRuleBlockEvaluationHarness = () => {
         requestRuleBlockEvaluation: (...args) => mockRequestRuleBlockEvaluation(...args),
     }));
     jest.doMock("../../linking/evaluation/LinkRuleNodeEvaluation", () => ({
-        LinkRuleNodeEvaluation: ({ ruleOperatorId }) => <div data-testid={`evaluation-${ruleOperatorId}`} />,
+        LinkRuleNodeEvaluation: (props) => mockLinkRuleNodeEvaluation(props),
     }));
 
     const { default: RuleBlockEvaluation } = require("../RuleBlockEvaluation") as typeof import("../RuleBlockEvaluation");
@@ -59,6 +60,7 @@ const createRuleBlockEvaluationHarness = () => {
     return {
         RuleBlockEvaluation,
         RuleEditorEvaluationContext,
+        mockLinkRuleNodeEvaluation,
         mockRequestRuleBlockEvaluation,
         mockRegisterError,
     };
@@ -125,9 +127,18 @@ const createTransformNode = (): IRuleOperatorNode => ({
 });
 
 describe("RuleBlockEvaluation", () => {
-    it("should evaluate the current rule block model with synthetic input-port values", async () => {
+    it("should evaluate the current rule block model with the current example values", async () => {
         const harness = createRuleBlockEvaluationHarness();
         const ports = [createPort()];
+        const onOpenExampleValuesDialog = jest.fn();
+        const inputExamples = [
+            {
+                id: "example-1",
+                inputs: {
+                    inputPortA: ["Example value"],
+                },
+            },
+        ];
         const originalTask = createRuleBlockTask(ports);
         const capturedContexts: RuleEditorEvaluationContextProps[] = [];
 
@@ -163,6 +174,8 @@ describe("RuleBlockEvaluation", () => {
                 ruleBlockTaskId="task1"
                 numberOfEntitiesToShow={5}
                 getPorts={() => ports}
+                getInputExamples={() => inputExamples}
+                onOpenExampleValuesDialog={onOpenExampleValuesDialog}
             >
                 {(<ContextProbe /> as unknown) as React.ReactElement}
             </harness.RuleBlockEvaluation>,
@@ -177,14 +190,7 @@ describe("RuleBlockEvaluation", () => {
 
         expect(harness.mockRequestRuleBlockEvaluation).toHaveBeenCalledWith("project1", "task1", {
             ports,
-            inputExamples: [
-                {
-                    id: "mock-example-1",
-                    inputs: {
-                        inputPortA: ["Port 1 value"],
-                    },
-                },
-            ],
+            inputExamples,
             operatorTree: {
                 type: "transformInput",
                 id: "lowerCaseNode",
@@ -206,5 +212,57 @@ describe("RuleBlockEvaluation", () => {
             },
         });
         expect(harness.mockRegisterError).not.toHaveBeenCalled();
+    });
+
+    it("should provide evaluation config menu items for example values and the no-input-examples message", async () => {
+        const harness = createRuleBlockEvaluationHarness();
+        const ports = [createPort()];
+        const onOpenExampleValuesDialog = jest.fn();
+        const capturedContexts: RuleEditorEvaluationContextProps[] = [];
+
+        const ContextProbe = () => {
+            const evaluationContext = React.useContext(harness.RuleEditorEvaluationContext);
+            React.useEffect(() => {
+                capturedContexts.push(evaluationContext);
+            }, [evaluationContext]);
+            return evaluationContext.createRuleEditorEvaluationComponent("lowerCaseNode");
+        };
+
+        render(
+            <harness.RuleBlockEvaluation
+                projectId="project1"
+                ruleBlockTaskId="task1"
+                numberOfEntitiesToShow={5}
+                getPorts={() => ports}
+                getInputExamples={() => []}
+                onOpenExampleValuesDialog={onOpenExampleValuesDialog}
+            >
+                {(<ContextProbe /> as unknown) as React.ReactElement}
+            </harness.RuleBlockEvaluation>,
+        );
+
+        await waitFor(() => expect(capturedContexts.length).toBeGreaterThan(0));
+
+        const evaluationContext = capturedContexts[capturedContexts.length - 1];
+        expect(evaluationContext.evaluationConfigMenu).toMatchObject({
+            tooltip: "Show more options",
+            menuItems: [
+                expect.objectContaining({
+                    tooltip: "taskViews.ruleBlock.exampleValues",
+                    icon: "item-settings",
+                }),
+            ],
+        });
+
+        expect(harness.mockLinkRuleNodeEvaluation).toHaveBeenCalledWith(
+            expect.objectContaining({
+                ruleOperatorId: "lowerCaseNode",
+                noResultMsg:
+                    "No input examples exist yet. Example values can be added via the evaluation menu or input port node menu.",
+            }),
+        );
+
+        evaluationContext.evaluationConfigMenu?.menuItems[0].action();
+        expect(onOpenExampleValuesDialog).toHaveBeenCalledTimes(1);
     });
 });

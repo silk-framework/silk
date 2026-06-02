@@ -1,0 +1,132 @@
+.ecc-silk-rule-block-example-values-dialog {
+    position: relative;
+    width: 100%;
+    min-height: 35rem;
+    height: 72vh;
+    overflow: hidden;
+
+    &__left-column,
+    &__right-column,
+    &__detail-column {
+        display: flex;
+        flex-direction: column;
+        min-height: 0;
+    }
+
+    &__detail-column {
+        flex: 1 1 auto;
+    }
+
+    &__left-column {
+        padding-right: 1rem;
+        overflow: hidden;
+        border-right: 1px solid var(--cc-color-border-default, #d9d9d9);
+    }
+
+    &__header {
+        justify-content: space-between;
+    }
+
+    &__header-actions {
+        gap: 0.5rem;
+    }
+
+    &__example-list-scroll,
+    &__port-list-scroll {
+        flex: 1 1 auto;
+        min-height: 0;
+        overflow: auto;
+    }
+
+    &__example-list {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    &__port-list {
+        margin: 0;
+    }
+
+    &__example-item-card {
+        width: 100%;
+    }
+
+    &__title {
+        margin: 0;
+    }
+
+    &__port {
+        &-pair {
+            &--highlighted {
+                border-radius: 0.25rem;
+                background-color: rgba(15, 98, 254, 0.08);
+            }
+        }
+
+        &-name {
+            min-width: 5rem;
+            max-width: 5rem;
+
+            &--highlighted {
+                color: var(--cc-color-brand-primary, #0f62fe);
+                font-weight: 600;
+            }
+
+            > * {
+                display: block;
+                max-width: 100%;
+            }
+        }
+
+        &-value-content {
+            align-items: flex-start;
+            flex-wrap: nowrap;
+            width: 100%;
+        }
+
+        &-tags {
+            min-width: 0;
+
+            > * {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 0.25rem;
+            }
+
+            .bp5-tag,
+            .pt-tag {
+                max-width: 100%;
+            }
+        }
+
+        &-action {
+            flex: 0 0 auto;
+            margin-left: auto;
+        }
+    }
+
+    &__tooltip-value {
+        white-space: pre-wrap;
+    }
+
+    &__editor-pane {
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+    }
+
+    &__editor-section {
+        flex: 0 0 auto;
+        margin-top: auto;
+    }
+
+    &__editor-header {
+        margin-bottom: 0.5rem;
+    }
+
+    &__empty-editor,
+    &__empty-state {
+        padding: 0.5rem 0;
+    }
+}

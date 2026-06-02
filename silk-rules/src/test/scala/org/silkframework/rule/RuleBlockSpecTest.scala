@@ -37,6 +37,7 @@ class RuleBlockSpecTest extends AnyFlatSpec with XmlSerializationHelperTrait {
         inputExamples = IndexedSeq(
           RuleBlockInputExample(
             id = "example-1",
+            label = Some("Primary example"),
             inputs = Map(
               Identifier("firstInput") -> Seq("value 1", "multi\nline"),
               Identifier("secondInput") -> Seq("fallback")

@@ -13,7 +13,7 @@ export const requestRuleBlockSummaries = async (
     });
 };
 
-/** Evaluates the current rule block model against synthetic placeholder values for its input ports. */
+/** Evaluates the current rule block model against its current input examples. */
 export const requestRuleBlockEvaluation = async (
     projectId: string,
     taskId: string,

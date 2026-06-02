@@ -29,6 +29,8 @@ interface RuleBlockEvaluationProps {
     ruleBlockTaskId: string;
     numberOfEntitiesToShow: number;
     getPorts: () => IRuleBlockPort[];
+    getInputExamples: () => IRuleBlockInputExample[];
+    onOpenExampleValuesDialog: (highlightedPortId?: string) => void;
     children: EvaluationChildType;
 }
 
@@ -36,6 +38,7 @@ const createCurrentRuleBlockModel = (
     ruleOperatorNodes: IRuleOperatorNode[],
     originalTask: RuleBlockTaskData,
     ports: IRuleBlockPort[],
+    inputExamples: IRuleBlockInputExample[],
 ): IRuleBlockModel => {
     const [operatorNodeMap, rootNodes] = ruleUtils.convertToRuleOperatorNodeMap(ruleOperatorNodes, true);
     if (rootNodes.length !== 1) {
@@ -47,20 +50,9 @@ const createCurrentRuleBlockModel = (
         );
     }
     const currentModel = originalTask.data.parameters.ruleBlockModel;
-    const sortedPorts = [...ports].sort(
-        (left, right) => left.displayOrder - right.displayOrder || left.id.localeCompare(right.id),
-    );
-    const mockedInputExamples: IRuleBlockInputExample[] = [
-        {
-            id: "mock-example-1",
-            inputs: Object.fromEntries(
-                sortedPorts.map((port, index) => [port.id, [`Port ${index + 1} value`]] as const),
-            ),
-        },
-    ];
     return {
         ports,
-        inputExamples: mockedInputExamples,
+        inputExamples,
         operatorTree: ruleUtils.convertRuleOperatorNodeToValueInput(rootNodes[0], operatorNodeMap),
         layout: ruleUtils.ruleLayout(ruleOperatorNodes),
         uiAnnotations: currentModel?.uiAnnotations,
@@ -93,6 +85,8 @@ const RuleBlockEvaluation = ({
     ruleBlockTaskId,
     numberOfEntitiesToShow,
     getPorts,
+    getInputExamples,
+    onOpenExampleValuesDialog,
     children,
 }: RuleBlockEvaluationProps) => {
     const [evaluationRunning, setEvaluationRunning] = React.useState<boolean>(false);
@@ -165,7 +159,12 @@ const RuleBlockEvaluation = ({
             ruleOperatorNodes = evaluationUtils.getSubTreeNodes(ruleOperatorNodes, evaluatedSubTreeNode.current);
         }
         try {
-            const currentRuleBlockModel = createCurrentRuleBlockModel(ruleOperatorNodes, originalTask, getPorts());
+            const currentRuleBlockModel = createCurrentRuleBlockModel(
+                ruleOperatorNodes,
+                originalTask,
+                getPorts(),
+                getInputExamples(),
+            );
             const result = await requestRuleBlockEvaluation(projectId, ruleBlockTaskId, currentRuleBlockModel);
             setEvaluationResult(result.data ?? []);
         } catch (ex) {
@@ -193,13 +192,20 @@ const RuleBlockEvaluation = ({
     };
 
     const createRuleEditorEvaluationComponent = (ruleOperatorId: string): React.JSX.Element => {
+        const noResultMsg =
+            getInputExamples().length > 0
+                ? t("taskViews.ruleBlock.evaluation.noResults")
+                : t(
+                    "taskViews.ruleBlock.evaluation.noInputExamples",
+                    "No input examples exist yet. Example values can be added via the evaluation menu or input port node menu.",
+                );
         return (
             <LinkRuleNodeEvaluation
                 ruleOperatorId={ruleOperatorId}
                 registerForEvaluationResults={registerForEvaluationResults}
                 unregister={() => nodeUpdateCallbacks.delete(ruleOperatorId)}
                 numberOfLinksToShow={numberOfEntitiesToShow}
-                noResultMsg={t("taskViews.ruleBlock.evaluation.noResults")}
+                noResultMsg={noResultMsg}
             />
         );
     };
@@ -222,6 +228,18 @@ const RuleBlockEvaluation = ({
                 ruleValidationError,
                 clearRuleValidationError,
                 fetchTriggerEvaluationFunction: () => {},
+                evaluationConfigMenu: {
+                    "data-test-id": "rule-block-evaluation-config-menu",
+                    tooltip: t("common.action.moreOptions", "Show more options"),
+                    menuItems: [
+                        {
+                            "data-test-id": "rule-block-open-example-values",
+                            icon: "item-settings",
+                            action: onOpenExampleValuesDialog,
+                            tooltip: t("taskViews.ruleBlock.exampleValues"),
+                        },
+                    ],
+                },
                 setEvaluationRootNode,
                 evaluationRootNode,
                 canBeEvaluated,

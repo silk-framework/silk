@@ -12,7 +12,7 @@ import {
 import { RuleValidationError } from "../../../shared/RuleEditor/RuleEditor.typings";
 import type { IRuleOperatorNode, RuleSaveResult } from "../../../shared/RuleEditor/RuleEditor.typings";
 import type { RuleClipboardTask } from "../../../shared/RuleEditor/model/RuleEditorModel.typings";
-import type { IRuleBlockPort, IRuleBlockTaskParameters } from "../ruleBlock.types";
+import type { IRuleBlockInputExample, IRuleBlockPort, IRuleBlockTaskParameters } from "../ruleBlock.types";
 import type { IRuleSidebarPreConfiguredOperatorsTabConfig } from "../../../shared/RuleEditor/RuleEditor.typings";
 import type { IPreConfiguredRuleOperator } from "../../../shared/RuleEditor/view/sidebar/RuleEditorOperatorSidebar.typings";
 import type { InputPortDialogSubmitValue } from "../InputPortDialog";
@@ -47,6 +47,24 @@ type CapturedInputPortDialogProps = {
     onClose: () => void;
 };
 
+type CapturedExampleValuesDialogProps = {
+    ports: IRuleBlockPort[];
+    inputExamples: IRuleBlockInputExample[];
+    highlightedPortId?: string;
+    onClose: () => void;
+    onApply: (inputExamples: IRuleBlockInputExample[]) => void;
+};
+
+type CapturedRuleBlockEvaluationProps = {
+    projectId: string;
+    ruleBlockTaskId: string;
+    numberOfEntitiesToShow: number;
+    getPorts: () => IRuleBlockPort[];
+    getInputExamples: () => IRuleBlockInputExample[];
+    onOpenExampleValuesDialog: (highlightedPortId?: string) => void;
+    children: React.ReactNode;
+};
+
 const createRuleBlockEditorHarness = () => {
     jest.resetModules();
     jest.doMock("react", () => React);
@@ -58,6 +76,8 @@ const createRuleBlockEditorHarness = () => {
     const mockRegisterError = jest.fn();
     let mockCapturedRuleEditorProps: CapturedRuleEditorProps | undefined;
     let mockLastInputPortDialogProps: CapturedInputPortDialogProps | undefined;
+    let mockLastExampleValuesDialogProps: CapturedExampleValuesDialogProps | undefined;
+    let mockLastRuleBlockEvaluationProps: CapturedRuleBlockEvaluationProps | undefined;
     const mockRuleEditorApi = {
         ruleOperatorNodes: jest.fn<IRuleOperatorNode[], []>(() => []),
         startChangeTransaction: jest.fn(),
@@ -87,7 +107,10 @@ const createRuleBlockEditorHarness = () => {
     }));
     jest.doMock("../RuleBlockEvaluation", () => ({
         __esModule: true,
-        default: ({ children }) => <>{children}</>,
+        default: (props) => {
+            mockLastRuleBlockEvaluationProps = props;
+            return <>{props.children}</>;
+        },
     }));
     jest.doMock("../../../shared/RuleEditor/RuleEditor", () => {
         const React = require("react");
@@ -117,6 +140,19 @@ const createRuleBlockEditorHarness = () => {
             );
         },
     }));
+    jest.doMock("../ExampleValuesDialog", () => ({
+        __esModule: true,
+        default: function MockExampleValuesDialog(props) {
+            const React = require("react");
+            React.useEffect(() => {
+                mockLastExampleValuesDialogProps = props;
+                return () => {
+                    mockLastExampleValuesDialogProps = undefined;
+                };
+            }, [props]);
+            return <div data-testid="example-values-dialog" />;
+        },
+    }));
 
     const { RuleBlockEditor } = require("../RuleBlockEditor") as typeof import("../RuleBlockEditor");
     return {
@@ -127,6 +163,8 @@ const createRuleBlockEditorHarness = () => {
         mockRuleEditorApi,
         getCapturedRuleEditorProps: () => mockCapturedRuleEditorProps,
         getLastInputPortDialogProps: () => mockLastInputPortDialogProps,
+        getLastExampleValuesDialogProps: () => mockLastExampleValuesDialogProps,
+        getLastRuleBlockEvaluationProps: () => mockLastRuleBlockEvaluationProps,
     };
 };
 
@@ -141,7 +179,10 @@ const createPersistedPort = (overrides: Partial<IRuleBlockPort> = {}): IRuleBloc
     ...overrides,
 });
 
-const createRuleBlockTask = (ports: IRuleBlockPort[] = []): IProjectTask<IRuleBlockTaskParameters> => ({
+const createRuleBlockTask = (
+    ports: IRuleBlockPort[] = [],
+    inputExamples: IRuleBlockInputExample[] = [],
+): IProjectTask<IRuleBlockTaskParameters> => ({
     metadata: {
         label: "Rule block task",
     },
@@ -153,7 +194,7 @@ const createRuleBlockTask = (ports: IRuleBlockPort[] = []): IProjectTask<IRuleBl
         parameters: {
             ruleBlockModel: {
                 ports,
-                inputExamples: [],
+                inputExamples,
                 layout: { nodePositions: {} },
                 uiAnnotations: { stickyNotes: [] },
             },
@@ -222,18 +263,20 @@ const renderOperatorActions = (operator: IPreConfiguredRuleOperator) =>
 
 const renderRuleBlockEditor = async ({
     ports = [],
+    inputExamples = [],
     ruleOperatorNodes = [],
     relatedItemsTotal = 0,
     relatedItemsError = false,
 }: {
     ports?: IRuleBlockPort[];
+    inputExamples?: IRuleBlockInputExample[];
     ruleOperatorNodes?: IRuleOperatorNode[];
     relatedItemsTotal?: number;
     relatedItemsError?: boolean;
 } = {}) => {
     const harness = createRuleBlockEditorHarness();
     harness.mockRequestTaskData.mockResolvedValue({
-        data: createRuleBlockTask(ports),
+        data: createRuleBlockTask(ports, inputExamples),
     });
     if (relatedItemsError) {
         harness.mockRequestRelatedItems.mockRejectedValue(new Error("fetch failed"));
@@ -258,6 +301,8 @@ const renderRuleBlockEditor = async ({
             return capturedProps!;
         },
         getInputPortDialogProps: () => harness.getLastInputPortDialogProps(),
+        getExampleValuesDialogProps: () => harness.getLastExampleValuesDialogProps(),
+        getRuleBlockEvaluationProps: () => harness.getLastRuleBlockEvaluationProps(),
     };
 };
 
@@ -371,6 +416,56 @@ describe("RuleBlockEditor", () => {
         expect(screen.queryByTestId("context-overlay")).not.toBeInTheDocument();
     });
 
+    it("should open the example values dialog from the evaluation config action and apply example changes in one external transaction", async () => {
+        const editor = await renderRuleBlockEditor({
+            ports: [createPersistedPort({ id: "inputPortA", displayOrder: 1 })],
+        });
+
+        await act(async () => {
+            editor.getRuleBlockEvaluationProps()!.onOpenExampleValuesDialog();
+        });
+
+        await waitFor(() =>
+            expect(editor.getExampleValuesDialogProps()).toMatchObject({
+                ports: [createPersistedPort({ id: "inputPortA", displayOrder: 1 })],
+                inputExamples: [],
+            }),
+        );
+
+        await act(async () => {
+            editor.getExampleValuesDialogProps()!.onApply([
+                {
+                    id: "example-1",
+                    inputs: {
+                        inputPortA: ["Example value"],
+                    },
+                },
+            ]);
+        });
+
+        expect(editor.mockRuleEditorApi.startChangeTransaction).toHaveBeenCalledTimes(1);
+        expect(editor.mockRuleEditorApi.executeExternalRuleModelChange).toHaveBeenCalledTimes(1);
+
+        const updateChange = editor.mockRuleEditorApi.executeExternalRuleModelChange.mock.calls[0][0];
+        await act(async () => {
+            updateChange.do();
+        });
+
+        expect(editor.getRuleEditorProps().captureExternalSavedState!()).toStrictEqual({
+            ports: [createPersistedPort({ id: "inputPortA", displayOrder: 1 })],
+            inputExamples: [
+                {
+                    id: "example-1",
+                    label: undefined,
+                    inputs: {
+                        inputPortA: ["Example value"],
+                    },
+                },
+            ],
+        });
+        await waitFor(() => expect(editor.getExampleValuesDialogProps()).toBeUndefined());
+    });
+
     it("should disable deleting persisted input ports when the rule block is in use", async () => {
         const editor = await renderRuleBlockEditor({
             ports: [createPersistedPort()],
@@ -404,6 +499,25 @@ describe("RuleBlockEditor", () => {
                 isOpen: true,
                 mode: "edit",
                 editedPortId: "inputPortA",
+            }),
+        );
+
+        unmount();
+    });
+
+    it("should open the example values dialog from the input-port node menu and highlight the targeted port", async () => {
+        const editor = await renderRuleBlockEditor({
+            ports: [createPersistedPort()],
+        });
+
+        const { closeMenu, unmount } = await openInputPortNodeMenu(editor);
+
+        fireEvent.click(screen.getByRole("button", { name: "Edit example values" }));
+
+        expect(closeMenu).toHaveBeenCalled();
+        await waitFor(() =>
+            expect(editor.getExampleValuesDialogProps()).toMatchObject({
+                highlightedPortId: "inputPortA",
             }),
         );
 
@@ -445,7 +559,7 @@ describe("RuleBlockEditor", () => {
         await act(async () => {
             createChange.do();
         });
-        expect(editor.getRuleEditorProps().captureExternalSavedState!()).toContainEqual(
+        expect((editor.getRuleEditorProps().captureExternalSavedState!() as { ports: IRuleBlockPort[] }).ports).toContainEqual(
             expect.objectContaining({
                 label: "Created input",
                 description: "Created description",
@@ -495,7 +609,7 @@ describe("RuleBlockEditor", () => {
         await act(async () => {
             updateChange.do();
         });
-        expect(editor.getRuleEditorProps().captureExternalSavedState!()).toContainEqual({
+        expect((editor.getRuleEditorProps().captureExternalSavedState!() as { ports: IRuleBlockPort[] }).ports).toContainEqual({
             id: "inputPortA",
             label: "Updated input",
             description: "Updated description",
@@ -543,6 +657,71 @@ describe("RuleBlockEditor", () => {
         expect(editor.mockRuleEditorApi.startChangeTransaction).toHaveBeenCalledTimes(1);
         expect(editor.mockRuleEditorApi.executeExternalRuleModelChange).toHaveBeenCalledTimes(1);
         expect(editor.mockRuleEditorApi.deleteNodes).not.toHaveBeenCalled();
+
+        unmount();
+    });
+
+    it("should prune deleted-port example values from the saved state bridge and restore them on undo", async () => {
+        const editor = await renderRuleBlockEditor({
+            ports: [
+                createPersistedPort({ id: "inputPortA", displayOrder: 1 }),
+                createPersistedPort({ id: "inputPortB", label: "Input B", displayOrder: 2 }),
+            ],
+            inputExamples: [
+                {
+                    id: "example-1",
+                    label: "Example 1",
+                    inputs: {
+                        inputPortA: ["Value A"],
+                        inputPortB: ["Value B"],
+                    },
+                },
+            ],
+        });
+        const { unmount } = await renderInputPortSidebarActions(editor, 2);
+
+        fireEvent.click(screen.getByRole("button", { name: "item-remove" }));
+
+        expect(editor.mockRuleEditorApi.executeExternalRuleModelChange).toHaveBeenCalledTimes(1);
+        const deleteChange = editor.mockRuleEditorApi.executeExternalRuleModelChange.mock.calls[0][0];
+
+        await act(async () => {
+            deleteChange.do();
+        });
+
+        expect(editor.getRuleEditorProps().captureExternalSavedState!()).toStrictEqual({
+            ports: [createPersistedPort({ id: "inputPortA", displayOrder: 1 })],
+            inputExamples: [
+                {
+                    id: "example-1",
+                    label: "Example 1",
+                    inputs: {
+                        inputPortA: ["Value A"],
+                    },
+                },
+            ],
+        });
+
+        await act(async () => {
+            deleteChange.undo();
+        });
+
+        expect(editor.getRuleEditorProps().captureExternalSavedState!()).toStrictEqual({
+            ports: [
+                createPersistedPort({ id: "inputPortA", displayOrder: 1 }),
+                createPersistedPort({ id: "inputPortB", label: "Input B", displayOrder: 2 }),
+            ],
+            inputExamples: [
+                {
+                    id: "example-1",
+                    label: "Example 1",
+                    inputs: {
+                        inputPortA: ["Value A"],
+                        inputPortB: ["Value B"],
+                    },
+                },
+            ],
+        });
 
         unmount();
     });
@@ -603,23 +782,87 @@ describe("RuleBlockEditor", () => {
             expect(editor.getRuleEditorProps().restoreExternalSavedState).toBeDefined();
         });
 
-        expect(editor.getRuleEditorProps().captureExternalSavedState!()).toStrictEqual([
-            createPersistedPort({ id: "inputPortA", label: "Input A", displayOrder: 1 }),
-            createPersistedPort({ id: "inputPortB", label: "Input B", displayOrder: 2 }),
-        ]);
+        expect(editor.getRuleEditorProps().captureExternalSavedState!()).toStrictEqual({
+            ports: [
+                createPersistedPort({ id: "inputPortA", label: "Input A", displayOrder: 1 }),
+                createPersistedPort({ id: "inputPortB", label: "Input B", displayOrder: 2 }),
+            ],
+            inputExamples: [],
+        });
 
         await act(async () => {
-            editor.getRuleEditorProps().restoreExternalSavedState!([
-                createPersistedPort({ id: "inputPortB", label: "Restored B", displayOrder: 4 }),
-                createPersistedPort({ id: "inputPortA", label: "Restored A", displayOrder: 2 }),
-            ]);
+            editor.getRuleEditorProps().restoreExternalSavedState!({
+                ports: [
+                    createPersistedPort({ id: "inputPortB", label: "Restored B", displayOrder: 4 }),
+                    createPersistedPort({ id: "inputPortA", label: "Restored A", displayOrder: 2 }),
+                ],
+                inputExamples: [
+                    {
+                        id: "example-restored",
+                        label: undefined,
+                        inputs: {
+                            inputPortA: ["Restored value"],
+                        },
+                    },
+                ],
+            });
         });
 
         await waitFor(() =>
-            expect(editor.getRuleEditorProps().captureExternalSavedState!()).toStrictEqual([
-                createPersistedPort({ id: "inputPortA", label: "Restored A", displayOrder: 2 }),
-                createPersistedPort({ id: "inputPortB", label: "Restored B", displayOrder: 4 }),
-            ]),
+            expect(editor.getRuleEditorProps().captureExternalSavedState!()).toStrictEqual({
+                ports: [
+                    createPersistedPort({ id: "inputPortA", label: "Restored A", displayOrder: 2 }),
+                    createPersistedPort({ id: "inputPortB", label: "Restored B", displayOrder: 4 }),
+                ],
+                inputExamples: [
+                    {
+                        id: "example-restored",
+                        label: undefined,
+                        inputs: {
+                            inputPortA: ["Restored value"],
+                        },
+                    },
+                ],
+            }),
+        );
+    });
+
+    it("should prune restored example values that reference ports outside the restored port set", async () => {
+        const editor = await renderRuleBlockEditor({
+            ports: [createPersistedPort({ id: "inputPortA", label: "Input A", displayOrder: 1 })],
+        });
+
+        await waitFor(() => expect(editor.getRuleEditorProps().restoreExternalSavedState).toBeDefined());
+
+        await act(async () => {
+            editor.getRuleEditorProps().restoreExternalSavedState!({
+                ports: [createPersistedPort({ id: "inputPortA", label: "Restored A", displayOrder: 1 })],
+                inputExamples: [
+                    {
+                        id: "example-restored",
+                        label: "Restored example",
+                        inputs: {
+                            inputPortA: ["Kept value"],
+                            removedPort: ["Removed value"],
+                        },
+                    },
+                ],
+            });
+        });
+
+        await waitFor(() =>
+            expect(editor.getRuleEditorProps().captureExternalSavedState!()).toStrictEqual({
+                ports: [createPersistedPort({ id: "inputPortA", label: "Restored A", displayOrder: 1 })],
+                inputExamples: [
+                    {
+                        id: "example-restored",
+                        label: "Restored example",
+                        inputs: {
+                            inputPortA: ["Kept value"],
+                        },
+                    },
+                ],
+            }),
         );
     });
 
@@ -715,7 +958,7 @@ describe("RuleBlockEditor", () => {
             (preparedPaste as { externalChange: { do: () => void } }).externalChange.do();
         });
 
-        expect(editor.getRuleEditorProps().captureExternalSavedState!()).toContainEqual(
+        expect((editor.getRuleEditorProps().captureExternalSavedState!() as { ports: IRuleBlockPort[] }).ports).toContainEqual(
             expect.objectContaining({
                 label: "External input",
                 description: "External description",

@@ -32,11 +32,12 @@ import { CodeAutocompleteFieldPartialAutoCompleteResult } from "@eccenca/gui-ele
 import ruleUtils from "../shared/rules/rule.utils";
 import { FetchError } from "../../../services/fetch/responseInterceptor";
 import useErrorHandler from "../../../hooks/useErrorHandler";
-import { IRuleBlockModel, IRuleBlockPort, IRuleBlockTaskParameters } from "./ruleBlock.types";
+import { IRuleBlockInputExample, IRuleBlockModel, IRuleBlockPort, IRuleBlockTaskParameters } from "./ruleBlock.types";
 import ruleBlockUtils from "./ruleBlock.utils";
 import ruleBlockEditorUtils from "./RuleBlockEditor.utils";
 import ruleBlockPasteUtils from "./ruleBlockPaste.utils";
 import { ExternalSidebarContext } from "../../shared/RuleEditor/contexts/ExternalSidebarContext";
+import ExampleValuesDialog from "./ExampleValuesDialog";
 import InputPortDialog, { InputPortDialogSubmitValue } from "./InputPortDialog";
 import RuleBlockEvaluation from "./RuleBlockEvaluation";
 
@@ -48,6 +49,13 @@ export interface RuleBlockEditorProps {
 }
 
 type RuleBlockTaskData = IProjectTask<IRuleBlockTaskParameters>;
+type RuleBlockExternalSavedState = {
+    ports: IRuleBlockPort[];
+    inputExamples: IRuleBlockInputExample[];
+};
+type ExampleValuesDialogState = {
+    highlightedPortId?: string;
+} | undefined;
 type InputPortDialogState = { mode: "create" } | { mode: "edit"; portId: string } | undefined;
 type DeleteInputPortDialogState = { portId: string; instanceCount: number } | undefined;
 type RuleBlockUsageState = {
@@ -62,10 +70,12 @@ export const RuleBlockEditor = ({ projectId, ruleBlockTaskId, viewActions, insta
     const { registerError } = useErrorHandler();
     const [ports, setPorts] = React.useState(ruleBlockUtils.emptyRuleBlockModel().ports);
     const [persistedPorts, setPersistedPorts] = React.useState(ruleBlockUtils.emptyRuleBlockModel().ports);
+    const [inputExamples, setInputExamples] = React.useState(ruleBlockUtils.emptyRuleBlockModel().inputExamples);
     const [sidebarReloadToken, setSidebarReloadToken] = React.useState(0);
     const [inputPortDialogState, setInputPortDialogState] = React.useState<InputPortDialogState>(undefined);
     const [deleteInputPortDialogState, setDeleteInputPortDialogState] =
         React.useState<DeleteInputPortDialogState>(undefined);
+    const [exampleValuesDialogState, setExampleValuesDialogState] = React.useState<ExampleValuesDialogState>(undefined);
     const [ruleBlockUsageState, setRuleBlockUsageState] = React.useState<RuleBlockUsageState>({
         isInUse: false,
         refreshFailed: false,
@@ -74,9 +84,11 @@ export const RuleBlockEditor = ({ projectId, ruleBlockTaskId, viewActions, insta
     const ruleEditorRef = React.useRef<RuleEditorExternalApi>(null);
     const portsRef = React.useRef(ports);
     const persistedPortsRef = React.useRef(persistedPorts);
+    const inputExamplesRef = React.useRef(inputExamples);
     const ruleBlockUsageStateRef = React.useRef(ruleBlockUsageState);
     portsRef.current = ports;
     persistedPortsRef.current = persistedPorts;
+    inputExamplesRef.current = inputExamples;
     ruleBlockUsageStateRef.current = ruleBlockUsageState;
 
     const bumpSidebarReloadToken = React.useCallback(() => {
@@ -85,13 +97,24 @@ export const RuleBlockEditor = ({ projectId, ruleBlockTaskId, viewActions, insta
 
     const applyPorts = React.useCallback((nextPorts: IRuleBlockPort[]) => {
         ruleBlockUtils.assertValidPorts(nextPorts);
-        setPorts(ruleBlockUtils.sortRuleBlockPorts(nextPorts));
+        const normalizedPorts = ruleBlockUtils.sortRuleBlockPorts(nextPorts);
+        setPorts(normalizedPorts);
+        setInputExamples((currentInputExamples) =>
+            ruleBlockUtils.pruneInputExamplesToPorts(currentInputExamples, normalizedPorts),
+        );
         bumpSidebarReloadToken();
     }, [bumpSidebarReloadToken]);
 
     const applyPersistedPorts = React.useCallback((nextPorts: IRuleBlockPort[]) => {
         ruleBlockUtils.assertValidPorts(nextPorts);
         setPersistedPorts(ruleBlockUtils.sortRuleBlockPorts(nextPorts));
+    }, []);
+
+    const applyInputExamples = React.useCallback((
+        nextInputExamples: IRuleBlockInputExample[],
+        nextPorts: IRuleBlockPort[] = portsRef.current,
+    ) => {
+        setInputExamples(ruleBlockUtils.pruneInputExamplesToPorts(nextInputExamples, nextPorts));
     }, []);
 
     const refreshRuleBlockUsage = React.useCallback(async () => {
@@ -123,8 +146,10 @@ export const RuleBlockEditor = ({ projectId, ruleBlockTaskId, viewActions, insta
             try {
                 const taskData = (await requestTaskData<IRuleBlockTaskParameters>(currentProjectId, taskId)).data;
                 const loadedPorts = taskData.data.parameters.ruleBlockModel?.ports ?? [];
+                const loadedInputExamples = taskData.data.parameters.ruleBlockModel?.inputExamples ?? [];
                 applyPersistedPorts(loadedPorts);
                 applyPorts(loadedPorts);
+                applyInputExamples(loadedInputExamples, loadedPorts);
                 await refreshRuleBlockUsage();
                 return taskData;
             } catch (err) {
@@ -138,7 +163,7 @@ export const RuleBlockEditor = ({ projectId, ruleBlockTaskId, viewActions, insta
                 );
             }
         },
-        [applyPersistedPorts, applyPorts, refreshRuleBlockUsage, registerError],
+        [applyInputExamples, applyPersistedPorts, applyPorts, refreshRuleBlockUsage, registerError],
     );
 
     const fetchTransformRuleOperatorList = React.useCallback(async (): Promise<IPluginDetails[] | undefined> => {
@@ -189,6 +214,14 @@ export const RuleBlockEditor = ({ projectId, ruleBlockTaskId, viewActions, insta
         setInputPortDialogState({ mode: "edit", portId });
     }, []);
 
+    const openExampleValuesDialog = React.useCallback((highlightedPortId?: string) => {
+        setExampleValuesDialogState({ highlightedPortId });
+    }, []);
+
+    const closeExampleValuesDialog = React.useCallback(() => {
+        setExampleValuesDialogState(undefined);
+    }, []);
+
     const isRuleBlockPortArray = (savedState: unknown): savedState is IRuleBlockPort[] =>
         Array.isArray(savedState) &&
         savedState.every(
@@ -198,25 +231,54 @@ export const RuleBlockEditor = ({ projectId, ruleBlockTaskId, viewActions, insta
                 typeof port.id === "string" &&
                 typeof port.label === "string" &&
                 typeof port.description === "string" &&
-                typeof port.displayOrder === "number" &&
-                typeof port.deprecated === "boolean",
+                    typeof port.displayOrder === "number" &&
+                    typeof port.deprecated === "boolean",
         );
 
+    const isRuleBlockInputExampleArray = (savedState: unknown): savedState is IRuleBlockInputExample[] =>
+        Array.isArray(savedState) &&
+        savedState.every(
+            (example) =>
+                typeof example === "object" &&
+                example !== null &&
+                typeof example.id === "string" &&
+                (typeof example.label === "undefined" || typeof example.label === "string") &&
+                typeof example.inputs === "object" &&
+                example.inputs !== null &&
+                Object.values(example.inputs).every(
+                    (values) => Array.isArray(values) && values.every((value) => typeof value === "string"),
+                ),
+        );
+
+    const isRuleBlockExternalSavedState = (savedState: unknown): savedState is RuleBlockExternalSavedState =>
+        typeof savedState === "object" &&
+        savedState !== null &&
+        isRuleBlockPortArray((savedState as RuleBlockExternalSavedState).ports) &&
+        isRuleBlockInputExampleArray((savedState as RuleBlockExternalSavedState).inputExamples);
+
     const captureExternalSavedState = React.useCallback(() => {
-        return ruleBlockUtils.sortRuleBlockPorts(portsRef.current);
+        return {
+            ports: ruleBlockUtils.sortRuleBlockPorts(portsRef.current),
+            inputExamples: ruleBlockUtils.cloneInputExamples(inputExamplesRef.current),
+        };
     }, []);
 
     const restoreExternalSavedState = React.useCallback(
         (savedState: unknown) => {
-            if (isRuleBlockPortArray(savedState)) {
+            if (isRuleBlockExternalSavedState(savedState)) {
+                applyPersistedPorts(savedState.ports);
+                applyPorts(savedState.ports);
+                applyInputExamples(savedState.inputExamples, savedState.ports);
+            } else if (isRuleBlockPortArray(savedState)) {
                 applyPersistedPorts(savedState);
                 applyPorts(savedState);
             }
         },
-        [applyPersistedPorts, applyPorts],
+        [applyInputExamples, applyPersistedPorts, applyPorts],
     );
 
     const getPorts = React.useCallback(() => portsRef.current, []);
+    const getInputExamples = React.useCallback(() => inputExamplesRef.current, []);
     const getPersistedPorts = React.useCallback(() => persistedPortsRef.current, []);
     const isRuleBlockInUse = React.useCallback(
         () => ruleBlockUsageStateRef.current.isInUse,
@@ -268,13 +330,21 @@ export const RuleBlockEditor = ({ projectId, ruleBlockTaskId, viewActions, insta
         (portId: string) => {
             const ruleEditorApi = ruleEditorRef.current;
             const previousPorts = portsRef.current;
+            const previousInputExamples = ruleBlockUtils.cloneInputExamples(inputExamplesRef.current);
             const nextPorts = previousPorts.filter((port) => port.id !== portId);
+            const nextInputExamples = ruleBlockUtils.pruneInputExamplesToPorts(previousInputExamples, nextPorts);
             const affectedNodeIds = inputPortInstanceNodeIds(portId);
             if (ruleEditorApi) {
                 ruleEditorApi.startChangeTransaction();
                 ruleEditorApi.executeExternalRuleModelChange({
-                    do: () => applyPorts(nextPorts),
-                    undo: () => applyPorts(previousPorts),
+                    do: () => {
+                        applyPorts(nextPorts);
+                        applyInputExamples(nextInputExamples, nextPorts);
+                    },
+                    undo: () => {
+                        applyPorts(previousPorts);
+                        applyInputExamples(previousInputExamples, previousPorts);
+                    },
                 });
                 if (affectedNodeIds.length > 0) {
                     ruleEditorApi.deleteNodes(affectedNodeIds);
@@ -283,7 +353,7 @@ export const RuleBlockEditor = ({ projectId, ruleBlockTaskId, viewActions, insta
                 applyPorts(nextPorts);
             }
         },
-        [applyPorts, inputPortInstanceNodeIds],
+        [applyInputExamples, applyPorts, inputPortInstanceNodeIds],
     );
 
     const requestDeleteInputPort = React.useCallback(
@@ -480,6 +550,7 @@ export const RuleBlockEditor = ({ projectId, ruleBlockTaskId, viewActions, insta
                 const updatedModel: IRuleBlockModel = {
                     ...currentModel,
                     ports: nextPortDefinitions,
+                    inputExamples: ruleBlockUtils.cloneInputExamples(inputExamplesRef.current),
                     operatorTree: rootNodes[0]
                         ? ruleUtils.convertRuleOperatorNodeToValueInput(rootNodes[0], operatorNodeMap)
                         : undefined,
@@ -544,6 +615,25 @@ export const RuleBlockEditor = ({ projectId, ruleBlockTaskId, viewActions, insta
         [],
     );
 
+    const applyExampleValues = React.useCallback(
+        (nextInputExamples: IRuleBlockInputExample[]) => {
+            const ruleEditorApi = ruleEditorRef.current;
+            const previousInputExamples = inputExamplesRef.current;
+            const normalizedInputExamples = ruleBlockUtils.cloneInputExamples(nextInputExamples);
+            if (ruleEditorApi) {
+                ruleEditorApi.startChangeTransaction();
+                ruleEditorApi.executeExternalRuleModelChange({
+                    do: () => applyInputExamples(normalizedInputExamples),
+                    undo: () => applyInputExamples(previousInputExamples),
+                });
+            } else {
+                applyInputExamples(normalizedInputExamples);
+            }
+            closeExampleValuesDialog();
+        },
+        [applyInputExamples, closeExampleValuesDialog],
+    );
+
     const additionalToolBarComponents = React.useCallback(
         () => (
             <ToolbarSection>
@@ -589,9 +679,18 @@ export const RuleBlockEditor = ({ projectId, ruleBlockTaskId, viewActions, insta
                         openEditInputPortDialog(portId);
                     }}
                 />,
+                <MenuItem
+                    key={`edit-input-port-example-values-${node.nodeId}`}
+                    icon="item-settings"
+                    text={i18next.t("taskViews.ruleBlock.editExampleValues", "Edit example values")}
+                    onClick={() => {
+                        closeMenu();
+                        openExampleValuesDialog(portId);
+                    }}
+                />,
             ];
         },
-        [openEditInputPortDialog],
+        [openEditInputPortDialog, openExampleValuesDialog],
     );
 
     const extendClipboardCopy = React.useCallback(
@@ -641,6 +740,8 @@ export const RuleBlockEditor = ({ projectId, ruleBlockTaskId, viewActions, insta
                     ruleBlockTaskId={ruleBlockTaskId}
                     numberOfEntitiesToShow={5}
                     getPorts={getPorts}
+                    getInputExamples={getInputExamples}
+                    onOpenExampleValuesDialog={openExampleValuesDialog}
                 >
                     <RuleEditor<RuleBlockTaskData, IPluginDetails>
                         ref={ruleEditorRef}
@@ -681,6 +782,15 @@ export const RuleBlockEditor = ({ projectId, ruleBlockTaskId, viewActions, insta
                     onClose={closeInputPortDialog}
                     onSubmit={submitInputPortDialog}
                 />
+                {exampleValuesDialogState ? (
+                    <ExampleValuesDialog
+                        ports={ports}
+                        inputExamples={inputExamples}
+                        highlightedPortId={exampleValuesDialogState.highlightedPortId}
+                        onClose={closeExampleValuesDialog}
+                        onApply={applyExampleValues}
+                    />
+                ) : null}
                 {
                     deleteInputPortDialogState ?
                         <ConfirmDeleteInputPortDialog

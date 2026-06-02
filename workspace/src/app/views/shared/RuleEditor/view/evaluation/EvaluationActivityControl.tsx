@@ -9,6 +9,7 @@ import {
 } from "@eccenca/gui-elements";
 import { useTranslation } from "react-i18next";
 import { EvaluationScoreTooltip } from "./EvaluationScoreTooltip";
+import { RuleEditorEvaluationConfigMenu } from "../../contexts/RuleEditorEvaluationContext";
 
 interface EvaluationActivityControlProps {
     score: IEvaluatedReferenceLinksScore | undefined;
@@ -17,6 +18,7 @@ interface EvaluationActivityControlProps {
     evaluationResultsShown?: boolean;
     evaluationResultsShownToggleButton?: ActivityControlWidgetAction;
     manualStartButton?: ActivityControlWidgetAction;
+    evaluationConfigMenu?: RuleEditorEvaluationConfigMenu;
     ruleType?: "linking" | "transform";
 }
 
@@ -28,6 +30,7 @@ export const EvaluationActivityControl = ({
     evaluationResultsShown,
     evaluationResultsShownToggleButton,
     manualStartButton,
+    evaluationConfigMenu,
     ruleType,
 }: EvaluationActivityControlProps) => {
     const [t] = useTranslation();
@@ -96,7 +99,14 @@ export const EvaluationActivityControl = ({
 
     return (
         <EvaluationTooltip>
-            <ActivityControlWidget border small canShrink {...activityInfo} activityActions={Menu()} />
+            <ActivityControlWidget
+                border
+                small
+                canShrink
+                {...activityInfo}
+                activityActions={Menu()}
+                activityContextMenu={evaluationConfigMenu}
+            />
         </EvaluationTooltip>
     );
 };
