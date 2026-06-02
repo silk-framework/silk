@@ -11,6 +11,7 @@ import org.silkframework.runtime.plugin.PluginContext
 import org.silkframework.runtime.resource.zip.ZipOutputStreamResource
 
 import java.util.zip.ZipOutputStream
+import scala.collection.immutable.SeqMap
 import scala.util.Try
 import scala.util.control.NonFatal
 
@@ -44,14 +45,14 @@ case class LocalJsonToFileOperatorExecutor() extends LocalExecutor[JsonToFileOpe
       val multiple = entities.size > 1
       val fileEntities = entities.zipWithIndex.map { case (entity, index) =>
         val jsonString = readJsonValue(entity, pathIndex)
-        validateJson(jsonString)
+        val finalString = applyOutputProperty(jsonString, task.data.outputProperty)
         val fileEntity = if (trimmedFileName.isEmpty) {
           FileEntity.createTemp("jsonOutput", ".json", mimeType = outputMimeType)
         } else {
           allocateNamedFileEntity(trimmedFileName, index, multiple, outputMimeType)
         }
         try {
-          fileEntity.file.writeString(jsonString)
+          fileEntity.file.writeString(finalString)
         } catch {
           case NonFatal(e) =>
             Try(fileEntity.file.delete())
@@ -84,14 +85,14 @@ case class LocalJsonToFileOperatorExecutor() extends LocalExecutor[JsonToFileOpe
         val zip = new ZipOutputStream(outputStream)
         for ((entity, index) <- entities.zipWithIndex) {
           val jsonString = readJsonValue(entity, pathIndex)
-          validateJson(jsonString)
+          val finalString = applyOutputProperty(jsonString, task.data.outputProperty)
           val entryName = if (trimmedFileName.nonEmpty) {
             if (multiple) suffixedName(trimmedFileName, index) else trimmedFileName
           } else {
             if (multiple) suffixedName("entry.json", index) else "entry.json"
           }
           val entryResource = ZipOutputStreamResource(entryName, entryName, zip)
-          entryResource.writeString(jsonString)
+          entryResource.writeString(finalString)
         }
         zip.finish()
       }
@@ -114,13 +115,25 @@ case class LocalJsonToFileOperatorExecutor() extends LocalExecutor[JsonToFileOpe
     }
   }
 
-  /** Parses the input string with Jackson to confirm it is valid JSON; throws TaskException otherwise. */
-  private def validateJson(jsonString: String): Unit = {
+  /** Parses the input string into a JsonNode; throws TaskException if the string is not valid JSON. */
+  private def parseJson(jsonString: String): JsonNode = {
     try {
       JsonNodeSerializer.parse(jsonString)
     } catch {
       case ex: JsonParseException =>
         throw TaskException(s"Input value for 'JSON to File' operator is not valid JSON: ${ex.getMessage}")
+    }
+  }
+
+  /** Validates and returns the final string to write: the original when outputProperty is empty, or the JSON value
+    * wrapped in an object under the given key when outputProperty is set. Always validates the input as JSON. */
+  private def applyOutputProperty(jsonString: String, outputProperty: String): String = {
+    val node = parseJson(jsonString)
+    if (outputProperty.isEmpty) {
+      jsonString
+    } else {
+      // JsonPosition(1, 1): synthetic — this node has no source location.
+      JsonNodeSerializer.toString(JsonObject(SeqMap(outputProperty -> node), JsonPosition(1, 1)))
     }
   }
 

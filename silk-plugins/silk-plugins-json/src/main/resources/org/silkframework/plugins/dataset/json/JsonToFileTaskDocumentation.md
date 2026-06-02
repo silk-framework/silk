@@ -46,6 +46,8 @@ filename has no extension, the index is appended to the end: *out* produces *out
 and this parameter is left at its default value, the executor overrides it to *application/zip* automatically. If an
 explicit value is set, that value is used as-is even in ZIP mode.
 
+**Output property** wraps the JSON value in a JSON object under the given property key before writing. When set to *payload*, an input value of `{"name":"Alice"}` is written as `{"payload":{"name":"Alice"}}`. When left empty (default), the value is written as-is. The wrapping applies in both normal and ZIP output modes.
+
 **ZIP output** packs all input entities into a single ZIP file instead of producing one file per entity. When enabled,
 the operator writes one ZIP entry per input entity and produces a single file entity whose backing file is a ZIP
 archive. The entry naming inside the ZIP follows the same convention as the output file name in non-ZIP mode: a single
@@ -80,3 +82,18 @@ An upstream operator produces a single entity with the following JSON string in 
 JSON to File validates the string and writes it to a file with a content type of *application/json*. The produced file
 entity can be wired into a downstream JSON dataset to persist the value as a file on disk, or fed into any other
 operator that accepts file entities.
+
+With the `outputProperty` parameter set to `payload`, the same input is instead written as:
+
+```json
+{
+  "payload": {
+    "response": {
+      "persons": [
+        { "id": "1", "name": "Alice" },
+        { "id": "2", "name": "Bob" }
+      ]
+    }
+  }
+}
+```

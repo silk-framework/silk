@@ -219,6 +219,57 @@ class LocalJsonToFileOperatorExecutorTest extends AnyFlatSpec with Matchers with
     ex.getMessage.toLowerCase must include ("not valid json")
   }
 
+  // outputProperty tests
+
+  it should "wrap the JSON value in an object under the given key" in {
+    val wrappedTask = PlainTask("JsonToFile", JsonToFileOperator(inputPath = "jsonContent", outputProperty = "payload"))
+    val json = """{"name":"Alice"}"""
+    val result = executor.execute(wrappedTask, Seq(inputTable(wrappedTask, json)), ExecutorOutput.empty, LocalExecution(useLocalInternalDatasets = false))
+    result mustBe defined
+    val FileEntitySchema(fileEntities) = result.get
+    fileEntities.typedEntities.toIndexedSeq.map(_.file.loadAsString()) mustBe Seq("""{"payload":{"name":"Alice"}}""")
+  }
+
+  it should "wrap each entity independently when outputProperty is set and there are multiple entities" in {
+    val wrappedTask = PlainTask("JsonToFile", JsonToFileOperator(inputPath = "jsonContent", outputProperty = "payload"))
+    val json1 = """{"id":1}"""
+    val json2 = """{"id":2}"""
+    val result = executor.execute(wrappedTask, Seq(inputTable(wrappedTask, json1, json2)), ExecutorOutput.empty, LocalExecution(useLocalInternalDatasets = false))
+    result mustBe defined
+    val FileEntitySchema(fileEntities) = result.get
+    fileEntities.typedEntities.toIndexedSeq.map(_.file.loadAsString()) mustBe Seq("""{"payload":{"id":1}}""", """{"payload":{"id":2}}""")
+  }
+
+  it should "wrap each ZIP entry when outputProperty is set in ZIP mode" in {
+    val wrappedZipTask = PlainTask("JsonToFile", JsonToFileOperator(inputPath = "jsonContent", zipOutput = true, outputProperty = "payload"))
+    val json1 = """{"id":1}"""
+    val json2 = """{"id":2}"""
+    val result = executor.execute(wrappedZipTask, Seq(inputTable(wrappedZipTask, json1, json2)), ExecutorOutput.empty, LocalExecution(useLocalInternalDatasets = false))
+    result mustBe defined
+    val FileEntitySchema(fileEntities) = result.get
+    val entries = readZipEntries(fileEntities.typedEntities.toIndexedSeq.head)
+    entries mustBe Seq(("entry-0.json", """{"payload":{"id":1}}"""), ("entry-1.json", """{"payload":{"id":2}}"""))
+  }
+
+  it should "wrap a JSON array input when outputProperty is set" in {
+    val wrappedTask = PlainTask("JsonToFile", JsonToFileOperator(inputPath = "jsonContent", outputProperty = "payload"))
+    val json = """[{"id":1},{"id":2}]"""
+    val result = executor.execute(wrappedTask, Seq(inputTable(wrappedTask, json)), ExecutorOutput.empty, LocalExecution(useLocalInternalDatasets = false))
+    result mustBe defined
+    val FileEntitySchema(fileEntities) = result.get
+    fileEntities.typedEntities.toIndexedSeq.map(_.file.loadAsString()) mustBe Seq("""{"payload":[{"id":1},{"id":2}]}""")
+  }
+
+  it should "throw a TaskException for invalid JSON when outputProperty is set" in {
+    val wrappedTask = PlainTask("JsonToFile", JsonToFileOperator(inputPath = "jsonContent", outputProperty = "payload"))
+    val invalid = """{"unterminated":"""
+    val ex = intercept[TaskException] {
+      executor.execute(wrappedTask, Seq(inputTable(wrappedTask, invalid)), ExecutorOutput.empty, LocalExecution(useLocalInternalDatasets = false))
+    }
+    ex.getMessage must include ("JSON to File")
+    ex.getMessage.toLowerCase must include ("not valid json")
+  }
+
   private def readZipEntries(fileEntity: FileEntity): Seq[(String, String)] = {
     val zipInput = new ZipInputStream(fileEntity.file.inputStream)
     try {

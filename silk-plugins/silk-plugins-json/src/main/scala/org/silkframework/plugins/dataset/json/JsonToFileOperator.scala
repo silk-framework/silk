@@ -31,7 +31,11 @@ case class JsonToFileOperator(@Param("The Silk path expression of the input enti
                               mimeType: String = "application/json",
                               @Param("If enabled, all input entities are packed into a single ZIP file with one entry per entity. " +
                                   "When disabled (default), one file is produced per entity.")
-                              zipOutput: Boolean = false) extends CustomTask {
+                              zipOutput: Boolean = false,
+                              @Param("If set, the JSON value is wrapped in a JSON object under this property key before writing. " +
+                                  "For example, with outputProperty set to 'payload', the input {\"name\":\"Alice\"} is written as " +
+                                  "{\"payload\":{\"name\":\"Alice\"}}. When empty (default), the value is written as-is.")
+                              outputProperty: String = "") extends CustomTask {
 
   val parsedInputPath: Option[UntypedPath] = {
     if (inputPath != "") {
