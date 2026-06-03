@@ -7,7 +7,7 @@ import org.silkframework.execution._
 import org.silkframework.runtime.activity.Status.Canceling
 import org.silkframework.runtime.activity._
 import org.silkframework.runtime.plugin.PluginContext
-import org.silkframework.runtime.templating.{InMemoryTemplateVariablesReader, TemplateVariableScopes, TemplateVariables}
+import org.silkframework.runtime.templating.{GlobalTemplateVariables, InMemoryTemplateVariablesReader, TemplateVariableScopes, TemplateVariables, TemplateVariablesReader}
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.ProjectTask
@@ -39,14 +39,17 @@ trait WorkflowExecutor[ExecType <: ExecutionType] extends Activity[WorkflowExecu
 
   /**
     * Creates a plugin context that includes execution variables from the workflow run context.
+    * Execution-scope variables are backed by a shared, mutable holder, so a mutation by one task
+    * is visible to subsequent tasks in the same workflow run.
     */
   protected def pluginContextWithExecutionVars(implicit workflowRunContext: WorkflowRunContext): PluginContext = {
-    if(workflowRunContext.workflowVariables.variables.nonEmpty) {
-      val execVarsReader = InMemoryTemplateVariablesReader(workflowRunContext.workflowVariables, Set(TemplateVariableScopes.task, TemplateVariableScopes.execution))
-      PluginContext.fromProject(project, execVarsReader)(workflowRunContext.userContext)
-    } else {
-      PluginContext.fromProject(project)(workflowRunContext.userContext)
-    }
+    val immutableScopes: Seq[TemplateVariablesReader] = Seq(
+      GlobalTemplateVariables,
+      project.templateVariables,
+      workflowRunContext.taskScopedVariablesReader
+    )
+    val templateVars = WorkflowExecutionPluginTemplateVariables(immutableScopes, workflowRunContext.executionVariablesHolder)
+    PluginContext(project.config.prefixes, project.resources, workflowRunContext.userContext, Some(project.id), templateVars)
   }
 
   /**
@@ -219,6 +222,21 @@ case class WorkflowRunContext(activityContext: ActivityContext[WorkflowExecution
                               alreadyExecuted: mutable.Set[WorkflowNode] = mutable.Set(),
                               reconfiguredTasks: mutable.Map[WorkflowNode, Task[_ <: TaskSpec]] = mutable.Map(),
                               workflowVariables: TemplateVariables = TemplateVariables.empty) {
+
+  /** Initial task-scoped variables provided at workflow start. Immutable for the duration of the run. */
+  private val (taskScopedVars, executionScopedVars) = {
+    val (taskVars, otherVars) = workflowVariables.variables.partition(_.scope == TemplateVariableScopes.task)
+    val execVars = otherVars.filter(_.scope == TemplateVariableScopes.execution)
+    (TemplateVariables(taskVars), TemplateVariables(execVars))
+  }
+
+  /** Read-only reader for task-scoped variables seeded at workflow start. */
+  val taskScopedVariablesReader: TemplateVariablesReader =
+    InMemoryTemplateVariablesReader(taskScopedVars, Set(TemplateVariableScopes.task))
+
+  /** Shared, thread-safe holder for execution-scope variables. Mutated by plugin code during execution. */
+  val executionVariablesHolder: ExecutionVariablesHolder = new ExecutionVariablesHolder(executionScopedVars)
+
   /**
     * Listeners for updates to task reports.
     * We need to hold them to prevent their garbage collection.

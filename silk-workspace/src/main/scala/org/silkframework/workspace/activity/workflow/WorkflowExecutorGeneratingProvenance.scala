@@ -3,7 +3,7 @@ package org.silkframework.workspace.activity.workflow
 import org.silkframework.config.PlainTask
 import org.silkframework.runtime.activity._
 import org.silkframework.runtime.plugin.{PluginContext, PluginRegistry}
-import org.silkframework.runtime.templating.{InMemoryTemplateVariablesReader, TemplateVariableScopes, TemplateVariables}
+import org.silkframework.runtime.templating.{CombinedTemplateVariablesReader, GlobalTemplateVariables, InMemoryTemplateVariablesReader, TemplateVariableScopes, TemplateVariables}
 import org.silkframework.workspace.ProjectTask
 import org.silkframework.workspace.reports.{ExecutionReportManager, ReportIdentifier}
 
@@ -36,8 +36,10 @@ trait WorkflowExecutorGeneratingProvenance extends Activity[WorkflowExecutionRep
                   (implicit userContext: UserContext): Unit = {
     implicit val pluginContext: PluginContext = {
       if(workflowVariables.variables.nonEmpty) {
+        val project = workflowTask.project
         val execVarsReader = InMemoryTemplateVariablesReader(workflowVariables, Set(TemplateVariableScopes.task, TemplateVariableScopes.execution))
-        PluginContext.fromProject(workflowTask.project, execVarsReader)
+        val combined = CombinedTemplateVariablesReader(Seq(GlobalTemplateVariables, project.templateVariables, execVarsReader))
+        PluginContext(project.config.prefixes, project.resources, userContext, Some(project.id), combined)
       } else {
         PluginContext.fromProject(workflowTask.project)
       }
