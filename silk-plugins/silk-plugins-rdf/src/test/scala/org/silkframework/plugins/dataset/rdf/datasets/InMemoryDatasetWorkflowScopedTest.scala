@@ -160,10 +160,10 @@ class InMemoryDatasetWorkflowScopedTest extends AnyFlatSpec with Matchers {
     sparqlEndpoint(executor.access(nestedTask, exec))
       .update("INSERT DATA { <http://s> <http://p> <http://o> }")
 
-    nestedDataset.findModel(exec, nestedTask.id) must not be empty
+    nestedDataset.findEndpoint(exec, nestedTask.id) must not be empty
 
     executor.close()
-    nestedDataset.findModel(exec, nestedTask.id) mustBe empty
+    nestedDataset.findEndpoint(exec, nestedTask.id) mustBe empty
   }
 
   private def sparqlEndpoint(access: DatasetAccess): SparqlEndpoint =

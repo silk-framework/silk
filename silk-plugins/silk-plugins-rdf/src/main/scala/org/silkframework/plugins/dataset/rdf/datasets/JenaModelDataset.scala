@@ -46,5 +46,12 @@ object JenaModelDataset {
     ds
   }
 
+  /** Wraps an existing endpoint as a JenaModelDataset, preserving the endpoint's identity and state. */
+  def fromEndpoint(endpoint: SparqlEndpoint, dropGraphOnClear: Boolean = true): JenaModelDataset = {
+    val ds = new JenaModelDataset(dropGraphOnClear)
+    ds.sparqlEndpoint = endpoint
+    ds
+  }
+
 }
 
