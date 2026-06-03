@@ -1193,6 +1193,32 @@ object JsonSerializers {
     }
   }
 
+  implicit object RuleBlockInspectionSnapshotJsonFormat extends WriteOnlyJsonFormat[RuleBlockInspectionSnapshot] {
+    final val PORTS = "ports"
+    final val OPERATOR_TREE = "operatorTree"
+
+    override def write(value: RuleBlockInspectionSnapshot)(implicit writeContext: WriteContext[JsValue]): JsValue = {
+      Json.obj(
+        PORTS -> JsArray(value.ports.map(toJson[RuleBlockPort])),
+        OPERATOR_TREE -> toJsonOpt(value.operatorTree),
+        LAYOUT -> toJson(value.layout),
+        UI_ANNOTATIONS -> toJson(value.uiAnnotations)
+      )
+    }
+  }
+
+  implicit object RuleBlockInspectionJsonFormat extends WriteOnlyJsonFormat[RuleBlockInspection] {
+    final val SNAPSHOTS = "snapshots"
+
+    override def write(value: RuleBlockInspection)(implicit writeContext: WriteContext[JsValue]): JsValue = {
+      Json.obj(
+        SNAPSHOTS -> JsObject(value.snapshots.toSeq.sortBy(_._1.toString).map { case (ruleBlockId, snapshot) =>
+          ruleBlockId.toString -> RuleBlockInspectionSnapshotJsonFormat.write(snapshot)
+        })
+      )
+    }
+  }
+
   implicit object RuleBlockSpecJsonFormat extends JsonFormat[RuleBlockSpec] {
     private final val MODEL = "ruleBlockModel"
 

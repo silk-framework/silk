@@ -31,6 +31,17 @@ export interface IRuleBlockTaskParameters {
     ruleBlockModel?: IRuleBlockModel;
 }
 
+export interface IRuleBlockInspectionSnapshot {
+    ports: IRuleBlockPort[];
+    operatorTree?: IValueInput;
+    layout: RuleLayout;
+    uiAnnotations?: IRuleBlockUiAnnotations;
+}
+
+export interface IRuleBlockInspection {
+    snapshots: Record<string, IRuleBlockInspectionSnapshot>;
+}
+
 export interface IRuleBlockSummary {
     id: string;
     label: string;

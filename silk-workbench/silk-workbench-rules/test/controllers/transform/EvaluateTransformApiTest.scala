@@ -4,9 +4,17 @@ import controllers.transform.routes.EvaluateTransformApi
 import helper.{ApiClient, IntegrationTestTrait}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
+import org.silkframework.entity.paths.UntypedPath
+import org.silkframework.rule.input.{InputPortInput, PathInput, RuleBlockBinding, RuleBlockInput, TransformInput}
+import org.silkframework.rule.plugins.transformer.normalize.LowerCaseTransformer
+import org.silkframework.rule.{ComplexMapping, RuleBlockModel, RuleBlockPort, RuleBlockSpec, TransformRule}
+import org.silkframework.runtime.serialization.WriteContext
+import org.silkframework.serialization.json.JsonSerialization
+import org.silkframework.serialization.json.JsonSerializers.TransformRuleJsonFormat
 import org.silkframework.workspace.SingleProjectWorkspaceProviderTestTrait
 import play.api.libs.json.{JsArray, JsValue, Json}
 import play.api.routing.Router
+import org.silkframework.util.Identifier
 
 class EvaluateTransformApiTest extends AnyFlatSpec with Matchers with SingleProjectWorkspaceProviderTestTrait
   with IntegrationTestTrait with ActiveLearningApiClient {
@@ -20,6 +28,11 @@ class EvaluateTransformApiTest extends AnyFlatSpec with Matchers with SingleProj
   behavior of "EvaluateTransformApi"
 
   private val complexTransformId = "Complextransform_f100e44e303cc4fb"
+  private val ruleBlockDatasetId = "ruleBlockSource"
+  private val ruleBlockOutputId = "ruleBlockOutput"
+  private val ruleBlockTransformId = "transformWithRuleBlock"
+  private val ruleBlockTaskId = "normalizeName"
+  private val ruleBlockResource = "ruleBlockTransform.csv"
 
   it should "evaluate rules" in {
     val json = Json.parse(
@@ -81,12 +94,82 @@ class EvaluateTransformApiTest extends AnyFlatSpec with Matchers with SingleProj
     firstEntityValues map (js => (js \ "operatorId").as[String]) shouldBe Seq("buildUri", "childLabel", "zip")
     (entities.head \ "uris").as[Seq[String]] shouldBe (firstEntityValues.head \ "values").as[Seq[String]]
   }
+
+  it should "include reusable rule block snapshots keyed by task ID" in {
+    workspaceProject(projectId).resources.get(ruleBlockResource).writeString(
+      """id,name
+        |1,ALICE
+        |""".stripMargin
+    )
+    createCsvFileDataset(projectId, ruleBlockDatasetId, ruleBlockResource)
+    createVariableDataset(projectId, ruleBlockOutputId)
+    createTransformTask(projectId, ruleBlockTransformId, ruleBlockDatasetId, ruleBlockOutputId)
+    workspaceProject(projectId).addTask(
+      ruleBlockTaskId,
+      RuleBlockSpec(
+        RuleBlockModel(
+          ports = IndexedSeq(
+            RuleBlockPort(id = Identifier("nameInput"), label = "Name", displayOrder = 1)
+          ),
+          operator = Some(
+            TransformInput(
+              id = Identifier("normalizeInput"),
+              transformer = LowerCaseTransformer(),
+              inputs = IndexedSeq(
+                InputPortInput(id = Identifier("namePortInput"), portId = Identifier("nameInput"))
+              )
+            )
+          )
+        )
+      )
+    )
+
+    val postedRule = ComplexMapping(
+      id = Identifier("ruleBlockMapping"),
+      operator = RuleBlockInput(
+        id = Identifier("ruleBlockUsage"),
+        ruleBlockId = Identifier(ruleBlockTaskId),
+        bindings = IndexedSeq(
+          RuleBlockBinding(
+            portId = Identifier("nameInput"),
+            input = PathInput(id = Identifier("namePath"), path = UntypedPath("name"))
+          )
+        )
+      )
+    )
+    implicit val writeContext: WriteContext[JsValue] = WriteContext.fromProject[JsValue](workspaceProject(projectId))
+    val response = evaluateResponse(
+      projectId,
+      ruleBlockTransformId,
+      "root",
+      JsonSerialization.toJson[TransformRule](postedRule),
+      includeRuleBlockInspection = true
+    )
+
+    val snapshots = (response \ "ruleBlockInspection" \ "snapshots").as[Map[String, JsValue]]
+    snapshots.keySet shouldBe Set(ruleBlockTaskId)
+    (snapshots(ruleBlockTaskId) \ "operatorTree" \ "id").as[String] shouldBe "normalizeInput"
+
+    val evaluatedValues = (response \ "evaluatedValues").as[JsArray].value
+    evaluatedValues should have size 1
+    val internalOperatorId = (((evaluatedValues.head \ "children").as[JsArray].value.head) \ "operatorId").as[String]
+    internalOperatorId shouldBe (snapshots(ruleBlockTaskId) \ "operatorTree" \ "id").as[String]
+  }
 }
 
 trait ActiveLearningApiClient extends ApiClient {
 
   def evaluate(projectId: String, taskId: String, ruleId: String, rule: JsValue, limit: Int = 3): JsValue = {
-    val request = createRequest(EvaluateTransformApi.evaluateRule(projectId, taskId, ruleId, limit))
+    evaluateResponse(projectId, taskId, ruleId, rule, limit)
+  }
+
+  def evaluateResponse(projectId: String,
+                       taskId: String,
+                       ruleId: String,
+                       rule: JsValue,
+                       limit: Int = 3,
+                       includeRuleBlockInspection: Boolean = false): JsValue = {
+    val request = createRequest(EvaluateTransformApi.evaluateRule(projectId, taskId, ruleId, limit, includeRuleBlockInspection))
     val response = checkResponse(request.post(rule))
     response.json
   }
