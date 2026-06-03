@@ -585,6 +585,38 @@ trait WorkspaceProviderTestTrait extends AnyFlatSpec with Matchers with MockitoS
     }
   }
 
+  it should "persist rule block input examples exactly across refresh" in {
+    implicit val us: UserContext = emptyUserContext
+    val persistedRuleBlockTaskId = "ruleBlockWithPersistedExamples"
+    val persistedRuleBlockTask =
+      PlainTask(
+        id = persistedRuleBlockTaskId,
+        data = ruleBlockTask.data.copy(
+          ruleBlockModel = ruleBlockTask.data.ruleBlockModel.copy(
+            inputExamples = IndexedSeq(
+              RuleBlockInputExample(
+                id = Identifier("example-whitespace"),
+                label = Some("  Example with spaces  "),
+                inputs = Map(
+                  Identifier("namePort") -> Seq("  Alice  ", "Bob & Carol", "Line 1\nLine 2"),
+                  Identifier("suffixPort") -> Seq("", " <suffix> "),
+                  Identifier("legacyPort") -> Seq("\tlegacy\t")
+                )
+              )
+            )
+          )
+        ),
+        metaData = metaData
+      )
+    project.addTask[RuleBlockSpec](persistedRuleBlockTaskId, persistedRuleBlockTask.data, persistedRuleBlockTask.metaData)
+
+    withWorkspaceRefresh(PROJECT_NAME) {
+      val savedRuleBlockTask = workspaceProvider.readTasks[RuleBlockSpec](PROJECT_NAME).find(_.task.id.toString == persistedRuleBlockTaskId)
+      savedRuleBlockTask shouldBe defined
+      savedRuleBlockTask.get.task.data.inputExamples shouldBe persistedRuleBlockTask.data.inputExamples
+    }
+  }
+
   it should "update transformation tasks" in {
     implicit val us: UserContext = emptyUserContext
     workspaceProvider.putTask(PROJECT_NAME, transformTaskUpdated, projectResources)

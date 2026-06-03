@@ -305,7 +305,10 @@ export const ExamplePortValuesList = ({
                                                         interactive
                                                         intent={isActive ? "accent" : undefined}
                                                         onClick={() => onSelectValue(port.id, valueIndex)}
-                                                        onRemove={() => onDeleteValue(port.id, valueIndex)}
+                                                        onRemove={(event) => {
+                                                            event.stopPropagation();
+                                                            onDeleteValue(port.id, valueIndex);
+                                                        }}
                                                         minimal={!isActive}
                                                     >
                                                         {valuePreview(value)}

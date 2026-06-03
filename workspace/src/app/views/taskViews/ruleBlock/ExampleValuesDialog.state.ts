@@ -1,4 +1,4 @@
-import { IRuleBlockInputExample, IRuleBlockPort } from "./ruleBlock.types";
+import { IRuleBlockInputExample } from "./ruleBlock.types";
 import ruleBlockUtils from "./ruleBlock.utils";
 
 /** Identifies the currently edited input value inside the selected example. */
@@ -20,25 +20,6 @@ export interface DialogState {
     /** Free-text filter applied to the example list. */
     searchText: string;
 }
-
-const firstActiveValue = (
-    example: IRuleBlockInputExample | undefined,
-    ports: IRuleBlockPort[],
-): ActiveValueSelection | undefined => {
-    if (!example) {
-        return undefined;
-    }
-    for (const port of ports) {
-        const values = example.inputs[port.id] ?? [];
-        if (values.length > 0) {
-            return {
-                portId: port.id,
-                valueIndex: 0,
-            };
-        }
-    }
-    return undefined;
-};
 
 const exampleAfterDeletion = (
     examples: IRuleBlockInputExample[],
@@ -213,16 +194,15 @@ const updateValue = (state: DialogState, value: string): DialogState => {
 };
 
 /**
- * Removes a value from the selected example and adjusts the editor selection so it stays on a nearby valid value.
+ * Removes a value from the selected example. Deleting the currently edited value closes the editor instead of
+ * automatically switching to a different value.
  */
-const deleteValue = (state: DialogState, ports: IRuleBlockPort[], portId: string, valueIndex: number): DialogState => {
+const deleteValue = (state: DialogState, portId: string, valueIndex: number): DialogState => {
     const currentExample = selectedExample(state);
     if (!currentExample) {
         return state;
     }
     const currentSelection = state.selectedValue;
-    const currentValues = currentExample.inputs[portId] ?? [];
-    const nextValuesLength = Math.max(0, currentValues.length - 1);
     const nextDraftExamples = state.draftExamples.map((example) => {
         if (example.id !== currentExample.id) {
             return example;
@@ -239,18 +219,10 @@ const deleteValue = (state: DialogState, ports: IRuleBlockPort[], portId: string
             inputs: nextInputs,
         };
     });
-    const updatedExample =
-        nextDraftExamples.find((example) => example.id === currentExample.id) ?? nextDraftExamples[0];
     let nextSelectedValue = currentSelection;
     if (currentSelection?.portId === portId) {
         if (currentSelection.valueIndex === valueIndex) {
-            nextSelectedValue =
-                nextValuesLength > 0
-                    ? {
-                          portId,
-                          valueIndex: Math.max(0, Math.min(valueIndex, nextValuesLength - 1)),
-                      }
-                    : firstActiveValue(updatedExample, ports);
+            nextSelectedValue = undefined;
         } else if (valueIndex < currentSelection.valueIndex) {
             nextSelectedValue = {
                 portId: currentSelection.portId,

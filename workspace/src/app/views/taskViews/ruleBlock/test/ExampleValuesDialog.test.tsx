@@ -4,6 +4,25 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import jestTestUtils from "../../../../test/jestTestUtils";
 import type { IRuleBlockInputExample, IRuleBlockPort } from "../ruleBlock.types";
 
+const createBubblingTagMock = () =>
+    ({ children, onClick, onRemove, intent, ...props }) => (
+        <span>
+            <button onClick={onClick} data-intent={intent} {...jestTestUtils.omitUnsupportedDomProps(props)}>
+                {children}
+            </button>
+            {onRemove ? (
+                <button
+                    onClick={(event) => {
+                        onRemove(event);
+                        onClick?.(event);
+                    }}
+                >
+                    remove
+                </button>
+            ) : null}
+        </span>
+    );
+
 const createExampleValuesDialogGuiElementsModule = () => {
     const React = require("react");
     return {
@@ -37,7 +56,7 @@ const createExampleValuesDialogGuiElementsModule = () => {
         SearchField: jestTestUtils.createSearchFieldMock(),
         SimpleDialog: jestTestUtils.createSimpleDialogMock(),
         Spacing: jestTestUtils.createChildrenOnlyMock(),
-        Tag: jestTestUtils.createTagMock(),
+        Tag: createBubblingTagMock(),
         TagList: jestTestUtils.createChildrenOnlyMock(),
         TextField: jestTestUtils.createTextFieldMock({ includePlaceholder: true, includeTestId: true }),
         Toolbar: jestTestUtils.createDivPassthroughMock(),
@@ -269,6 +288,36 @@ describe("ExampleValuesDialog", () => {
 
         expect(screen.getByTestId("example-values-editor")).toHaveValue("Second value");
         expect(screen.getByRole("button", { name: "Second value" })).toHaveAttribute("data-intent", "accent");
+    });
+
+    it("should close the editor without activating another value when deleting the active value", () => {
+        const harness = createExampleValuesDialogHarness();
+
+        render(
+            <harness.ExampleValuesDialog
+                ports={[createPort()]}
+                inputExamples={[
+                    createExample({
+                        inputs: {
+                            inputPortA: ["First value", "Second value"],
+                        },
+                    }),
+                ]}
+                highlightedPortId={undefined}
+                onClose={jest.fn()}
+                onApply={jest.fn()}
+            />,
+        );
+
+        fireEvent.click(screen.getByRole("button", { name: "Second value" }));
+
+        expect(screen.getByTestId("example-values-editor")).toHaveValue("Second value");
+        expect(screen.getByRole("button", { name: "Second value" })).toHaveAttribute("data-intent", "accent");
+
+        fireEvent.click(screen.getAllByRole("button", { name: "remove" })[1]);
+
+        expect(screen.queryByTestId("example-values-editor")).not.toBeInTheDocument();
+        expect(screen.getByRole("button", { name: "First value" })).not.toHaveAttribute("data-intent", "accent");
     });
 
     it("should highlight the targeted port row and label", () => {

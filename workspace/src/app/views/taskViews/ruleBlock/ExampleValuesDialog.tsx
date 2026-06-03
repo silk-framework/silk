@@ -54,6 +54,10 @@ export const ExampleValuesDialog = ({
 
     const currentExample = exampleValuesDialogState.selectedExample(state);
     const currentExampleIndex = exampleValuesDialogState.selectedExampleIndex(state);
+    const activeValue =
+        currentExample && state.selectedValue
+            ? (currentExample.inputs[state.selectedValue.portId] ?? [])[state.selectedValue.valueIndex]
+            : undefined;
     const isEditorVisible = state.selectedValue !== undefined;
 
     const handleCreateNewExample = React.useCallback(() => {
@@ -97,11 +101,9 @@ export const ExampleValuesDialog = ({
 
     const handleDeleteValue = React.useCallback(
         (portId: string, valueIndex: number) => {
-            setState((currentState) =>
-                exampleValuesDialogState.deleteValue(currentState, sortedPorts, portId, valueIndex),
-            );
+            setState((currentState) => exampleValuesDialogState.deleteValue(currentState, portId, valueIndex));
         },
-        [sortedPorts],
+        [],
     );
 
     const handleUpdateActiveValue = React.useCallback((nextValue: string) => {
@@ -134,11 +136,6 @@ export const ExampleValuesDialog = ({
     const handleCloseEditor = React.useCallback(() => {
         setState((currentState) => exampleValuesDialogState.closeEditor(currentState));
     }, []);
-
-    const activeValue =
-        currentExample && state.selectedValue
-            ? (currentExample.inputs[state.selectedValue.portId] ?? [])[state.selectedValue.valueIndex]
-            : undefined;
 
     const editorKey = state.selectedValue
         ? `${currentExample?.id ?? "unknown"}:${state.selectedValue.portId}:${state.selectedValue.valueIndex}`

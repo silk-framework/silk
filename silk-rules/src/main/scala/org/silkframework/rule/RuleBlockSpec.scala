@@ -211,9 +211,7 @@ object RuleBlockInputExample {
       <Example id={value.id.toString} label={value.label.filter(_.nonEmpty).orNull}>
         {value.inputs.toSeq.sortBy(_._1.toString).map { case (portId, values) =>
         <Input portId={portId.toString}>
-          {values.map(v => <Value xml:space="preserve">
-          {PCData(v)}
-        </Value>)}
+          {values.map(v => <Value xml:space="preserve">{PCData(v)}</Value>)}
         </Input>
       }}
       </Example>
