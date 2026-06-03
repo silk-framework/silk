@@ -1,8 +1,7 @@
 import React from "react";
-import RemoveMappingRuleDialog
-    from "../../../src/app/views/pages/MappingEditor/HierarchicalMapping/elements/RemoveMappingRuleDialog";
-import {clickFoundElement, renderWrapper} from "../../integration/TestHelper";
-import {cleanup} from "@testing-library/react";
+import RemoveMappingRuleDialog from "../../../src/app/views/pages/MappingEditor/HierarchicalMapping/elements/RemoveMappingRuleDialog";
+import { clickFoundElement, renderWrapper } from "../../integration/TestHelper";
+import { cleanup } from "@testing-library/react";
 
 const handleRemoveCancelMock = jest.fn();
 const handleRemoveConfirmMock = jest.fn();
@@ -10,7 +9,7 @@ const props = {
     label: "",
     numberEditingElements: 2,
     handleCancelRemove: handleRemoveCancelMock,
-    handleConfirmRemove: handleRemoveConfirmMock
+    handleConfirmRemove: handleRemoveConfirmMock,
 };
 
 const getWrapper = () => renderWrapper(<RemoveMappingRuleDialog {...props} />);
@@ -40,7 +39,7 @@ describe("RemoveMappingRuleDialog Component", () => {
 
         afterEach(() => {
             wrapper.unmount();
-            cleanup()
+            cleanup();
         });
     });
 });
