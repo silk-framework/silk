@@ -1,135 +1,56 @@
 import React from "react";
 import "@testing-library/jest-dom";
 import { fireEvent, render, screen } from "@testing-library/react";
-import { mockReactI18next, testTranslate } from "../../../../test/jestTestUtils";
+import jestTestUtils from "../../../../test/jestTestUtils";
 import type { IRuleBlockInputExample, IRuleBlockPort } from "../ruleBlock.types";
+
+const createExampleValuesDialogGuiElementsModule = () => {
+    const React = require("react");
+    return {
+        Button: jestTestUtils.createButtonMock((props) => ({
+            ...jestTestUtils.omitUnsupportedDomProps(props),
+            onClick: props.onClick,
+            text: props.text,
+        })),
+        ClassNames: jestTestUtils.createClassNamesMock(),
+        CodeEditor: jestTestUtils.createCodeEditorMock(React),
+        FieldSet: jestTestUtils.createFieldSetMock(),
+        FieldItem: jestTestUtils.createFieldItemMock({ helperTextProp: "helperText" }),
+        Grid: jestTestUtils.createDivPassthroughMock(),
+        GridColumn: jestTestUtils.createDivPassthroughMock(),
+        GridRow: jestTestUtils.createDivPassthroughMock(),
+        IconButton: jestTestUtils.createButtonMock((props) => ({
+            ...jestTestUtils.omitUnsupportedDomProps(props),
+            onClick: props.onClick,
+            text: props.text ?? props.name,
+        })),
+        OverviewItem: jestTestUtils.createClickableContainerMock(),
+        OverviewItemActions: jestTestUtils.createChildrenOnlyMock(),
+        OverviewItemDescription: jestTestUtils.createChildrenOnlyMock(),
+        OverviewItemLine: jestTestUtils.createChildrenOnlyMock(),
+        OverviewItemList: jestTestUtils.createChildrenOnlyMock(),
+        OverflowText: jestTestUtils.createDivPassthroughMock("span"),
+        PropertyName: jestTestUtils.createDivPassthroughMock("dt"),
+        PropertyValue: jestTestUtils.createDivPassthroughMock("dd"),
+        PropertyValueList: jestTestUtils.createDivPassthroughMock("dl"),
+        PropertyValuePair: jestTestUtils.createDivPassthroughMock(),
+        SearchField: jestTestUtils.createSearchFieldMock(),
+        SimpleDialog: jestTestUtils.createSimpleDialogMock(),
+        Spacing: jestTestUtils.createChildrenOnlyMock(),
+        Tag: jestTestUtils.createTagMock(),
+        TagList: jestTestUtils.createChildrenOnlyMock(),
+        TextField: jestTestUtils.createTextFieldMock({ includePlaceholder: true, includeTestId: true }),
+        Toolbar: jestTestUtils.createDivPassthroughMock(),
+        ToolbarSection: jestTestUtils.createDivPassthroughMock(),
+        Tooltip: jestTestUtils.createFragmentMock(),
+    };
+};
 
 const createExampleValuesDialogHarness = () => {
     jest.resetModules();
     jest.doMock("react", () => React);
-    mockReactI18next(testTranslate);
-    jest.doMock("../../../../../../../libs/gui-elements", () => {
-        const React = require("react");
-        const omitUnsupportedDomProps = (props) => {
-            const {
-                "data-test-id": dataTestId,
-                affirmative,
-                boxed,
-                canGrow,
-                canShrink,
-                disruptive,
-                hasDivider,
-                hasSpacing,
-                hideOverflow,
-                intent,
-                interactive,
-                large,
-                medium,
-                minimal,
-                noWrap,
-                rightIcon,
-                size,
-                singleColumn,
-                title,
-                useAbsoluteSpace,
-                verticalStretchable,
-                verticalStretched,
-                ...domProps
-            } = props;
-            return dataTestId ? { ...domProps, "data-testid": dataTestId } : domProps;
-        };
-        return {
-            Button: ({ children, text, onClick, ...props }) => (
-                <button onClick={onClick} {...omitUnsupportedDomProps(props)}>
-                    {children ?? text}
-                </button>
-            ),
-            ClassNames: {
-                Intent: {
-                    ACCENT: "eccgui-intent--accent",
-                },
-            },
-            CodeEditor: ({ defaultValue, onChange, id, name, "data-test-id": dataTestId }) => {
-                const [value, setValue] = React.useState(defaultValue ?? "");
-                React.useEffect(() => {
-                    setValue(defaultValue ?? "");
-                }, [defaultValue]);
-                return (
-                    <textarea
-                        id={id}
-                        name={name}
-                        data-testid={dataTestId}
-                        value={value}
-                        onChange={(event) => {
-                            setValue(event.target.value);
-                            onChange(event.target.value);
-                        }}
-                    />
-                );
-            },
-            FieldSet: ({ children, title, ...props }) => (
-                <fieldset {...omitUnsupportedDomProps(props)}>
-                    {title ? <legend>{title}</legend> : null}
-                    {children}
-                </fieldset>
-            ),
-            FieldItem: ({ children, labelProps, helperText, ...props }) => (
-                <div {...omitUnsupportedDomProps(props)}>
-                    {labelProps?.text ? <label>{labelProps.text}</label> : null}
-                    {helperText ? <div>{helperText}</div> : null}
-                    {children}
-                </div>
-            ),
-            Grid: ({ children, ...props }) => <div {...omitUnsupportedDomProps(props)}>{children}</div>,
-            GridColumn: ({ children, ...props }) => <div {...omitUnsupportedDomProps(props)}>{children}</div>,
-            GridRow: ({ children, ...props }) => <div {...omitUnsupportedDomProps(props)}>{children}</div>,
-            IconButton: ({ text, name, onClick, ...props }) => (
-                <button onClick={onClick} {...omitUnsupportedDomProps(props)}>
-                    {text ?? name}
-                </button>
-            ),
-            OverviewItem: ({ children, onClick }) => <div onClick={onClick}>{children}</div>,
-            OverviewItemActions: ({ children }) => <div>{children}</div>,
-            OverviewItemDescription: ({ children }) => <div>{children}</div>,
-            OverviewItemLine: ({ children }) => <div>{children}</div>,
-            OverviewItemList: ({ children }) => <div>{children}</div>,
-            OverflowText: ({ children, ...props }) => <span {...omitUnsupportedDomProps(props)}>{children}</span>,
-            PropertyName: ({ children, ...props }) => <dt {...omitUnsupportedDomProps(props)}>{children}</dt>,
-            PropertyValue: ({ children, ...props }) => <dd {...omitUnsupportedDomProps(props)}>{children}</dd>,
-            PropertyValueList: ({ children, ...props }) => <dl {...omitUnsupportedDomProps(props)}>{children}</dl>,
-            PropertyValuePair: ({ children, ...props }) => <div {...omitUnsupportedDomProps(props)}>{children}</div>,
-            SearchField: ({ value, onChange, emptySearchInputMessage }) => (
-                <input
-                    aria-label={emptySearchInputMessage}
-                    value={value}
-                    onChange={onChange}
-                />
-            ),
-            SimpleDialog: ({ title, children, actions }) => (
-                <div>
-                    <h1>{title}</h1>
-                    <div>{children}</div>
-                    <div>{actions}</div>
-                </div>
-            ),
-            Spacing: () => <div />,
-            Tag: ({ children, onClick, onRemove, intent, ...props }) => (
-                <span>
-                    <button onClick={onClick} data-intent={intent} {...omitUnsupportedDomProps(props)}>
-                        {children}
-                    </button>
-                    {onRemove ? <button onClick={onRemove}>remove</button> : null}
-                </span>
-            ),
-            TagList: ({ children }) => <div>{children}</div>,
-            TextField: ({ value, onChange, placeholder, "data-test-id": dataTestId }) => (
-                <input value={value} onChange={onChange} placeholder={placeholder} data-testid={dataTestId} />
-            ),
-            Toolbar: ({ children, ...props }) => <div {...omitUnsupportedDomProps(props)}>{children}</div>,
-            ToolbarSection: ({ children, ...props }) => <div {...omitUnsupportedDomProps(props)}>{children}</div>,
-            Tooltip: ({ children }) => <>{children}</>,
-        };
-    });
+    jestTestUtils.mockReactI18next(jestTestUtils.testTranslate);
+    jest.doMock("../../../../../../../libs/gui-elements", createExampleValuesDialogGuiElementsModule);
 
     const { ExampleValuesDialog } = require("../ExampleValuesDialog") as typeof import("../ExampleValuesDialog");
     return { ExampleValuesDialog };
@@ -320,13 +241,45 @@ describe("ExampleValuesDialog", () => {
         expect(screen.queryByTestId("example-values-editor")).not.toBeInTheDocument();
     });
 
+    it("should keep the current editor selection when deleting a different value", () => {
+        const harness = createExampleValuesDialogHarness();
+
+        render(
+            <harness.ExampleValuesDialog
+                ports={[createPort()]}
+                inputExamples={[
+                    createExample({
+                        inputs: {
+                            inputPortA: ["First value", "Second value"],
+                        },
+                    }),
+                ]}
+                highlightedPortId={undefined}
+                onClose={jest.fn()}
+                onApply={jest.fn()}
+            />,
+        );
+
+        fireEvent.click(screen.getByRole("button", { name: "Second value" }));
+
+        expect(screen.getByTestId("example-values-editor")).toHaveValue("Second value");
+        expect(screen.getByRole("button", { name: "Second value" })).toHaveAttribute("data-intent", "accent");
+
+        fireEvent.click(screen.getAllByRole("button", { name: "remove" })[0]);
+
+        expect(screen.getByTestId("example-values-editor")).toHaveValue("Second value");
+        expect(screen.getByRole("button", { name: "Second value" })).toHaveAttribute("data-intent", "accent");
+    });
+
     it("should highlight the targeted port row and label", () => {
         const harness = createExampleValuesDialogHarness();
 
         render(
             <harness.ExampleValuesDialog
                 ports={[createPort(), createPort({ id: "inputPortB", label: "Input B", displayOrder: 2 })]}
-                inputExamples={[createExample({ inputs: { inputPortA: ["Original value"], inputPortB: ["Other value"] } })]}
+                inputExamples={[
+                    createExample({ inputs: { inputPortA: ["Original value"], inputPortB: ["Other value"] } }),
+                ]}
                 highlightedPortId="inputPortB"
                 onClose={jest.fn()}
                 onApply={jest.fn()}

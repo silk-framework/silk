@@ -1,14 +1,31 @@
 import React from "react";
 import "@testing-library/jest-dom";
 import { fireEvent, render, screen } from "@testing-library/react";
-import { createFormGuiElementsModule, mockReactI18next } from "../../../../test/jestTestUtils";
+import jestTestUtils from "../../../../test/jestTestUtils";
 import type { InputPortDialogSubmitValue } from "../InputPortDialog";
 import type { IRuleBlockPort } from "../ruleBlock.types";
+
+const createFormGuiElementsModule = () => {
+    const React = require("react");
+    return {
+        Button: jestTestUtils.createButtonMock(({ affirmative, disruptive, ...props }) => props),
+        CodeEditor: jestTestUtils.createCodeEditorMock(React),
+        FieldItem: jestTestUtils.createFieldItemMock({
+            wrapper: "label",
+            helperTextProp: "messageText",
+            useHtmlFor: true,
+        }),
+        SimpleDialog: jestTestUtils.createSimpleDialogMock({ respectIsOpen: true }),
+        Switch: jestTestUtils.createCheckboxMock(),
+        TextArea: jestTestUtils.createTextAreaMock(),
+        TextField: jestTestUtils.createTextFieldMock({ includeType: true }),
+    };
+};
 
 const loadInputPortDialog = () => {
     jest.resetModules();
     jest.doMock("react", () => React);
-    mockReactI18next((key) => key);
+    jestTestUtils.mockReactI18next((key) => key);
     jest.doMock("../../../../../../../libs/gui-elements", createFormGuiElementsModule);
     return require("../InputPortDialog").default as typeof import("../InputPortDialog").default;
 };
@@ -152,12 +169,7 @@ describe("InputPortDialog", () => {
             displayOrder: "11",
         });
 
-        rerender(
-            <InputPortDialog
-                {...props}
-                initialPort={{ ...initial }}
-            />,
-        );
+        rerender(<InputPortDialog {...props} initialPort={{ ...initial }} />);
 
         expect(getLabelField()).toHaveValue("Typed label");
         expect(getDisplayOrderField()).toHaveValue(11);

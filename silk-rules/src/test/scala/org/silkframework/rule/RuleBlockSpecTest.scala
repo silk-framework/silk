@@ -128,6 +128,38 @@ class RuleBlockSpecTest extends AnyFlatSpec with XmlSerializationHelperTrait {
     spec.ports.map(_.displayOrder) mustBe IndexedSeq(1)
   }
 
+  it should "read optional input example labels from XML" in {
+    implicit val readContext: ReadContext = TestReadContext()
+    val spec = fromXml[RuleBlockSpec] {
+      <RuleBlock>
+        <RuleBlockModel>
+          <Ports>
+            <Port id="firstInput" label="First input" deprecated="false">
+              <Description>Used for the primary lookup.</Description>
+            </Port>
+          </Ports>
+          <InputExamples>
+            <Example id="example-1" label="Primary example">
+              <Input portId="firstInput">
+                <Value xml:space="preserve">value 1</Value>
+              </Input>
+            </Example>
+          </InputExamples>
+        </RuleBlockModel>
+      </RuleBlock>
+    }
+
+    spec.inputExamples mustBe IndexedSeq(
+      RuleBlockInputExample(
+        id = "example-1",
+        label = Some("Primary example"),
+        inputs = Map(
+          Identifier("firstInput") -> Seq("value 1")
+        )
+      )
+    )
+  }
+
   it should "reject input examples that reference unknown ports" in {
     val ex = the[ValidationException] thrownBy {
       RuleBlockSpec(

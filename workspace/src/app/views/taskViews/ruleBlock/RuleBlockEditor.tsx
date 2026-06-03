@@ -850,6 +850,7 @@ const RuleBlockUsageStatusControl = ({ usageState, onRefresh }: RuleBlockUsageSt
                 isOpen={showOverlay}
                 onClose={() => setShowOverlay(false)}
                 content={overlayContent}
+                placement={"top"}
             >
                 <IconButton
                     onClick={onRefresh}

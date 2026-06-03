@@ -2,7 +2,7 @@ import React from "react";
 import "@testing-library/jest-dom";
 import { act, render, waitFor } from "@testing-library/react";
 import type { IProjectTask } from "@ducks/shared/typings";
-import { mockReactI18next, testTranslate } from "../../../../test/jestTestUtils";
+import jestTestUtils from "../../../../test/jestTestUtils";
 import type { RuleEditorEvaluationContextProps } from "../../../shared/RuleEditor/contexts/RuleEditorEvaluationContext";
 import type { IRuleOperatorNode } from "../../../shared/RuleEditor/RuleEditor.typings";
 import type { IRuleBlockPort, IRuleBlockTaskParameters } from "../ruleBlock.types";
@@ -13,9 +13,11 @@ const createRuleBlockEvaluationHarness = () => {
 
     const mockRequestRuleBlockEvaluation = jest.fn();
     const mockRegisterError = jest.fn();
-    const mockLinkRuleNodeEvaluation = jest.fn(({ ruleOperatorId }) => <div data-testid={`evaluation-${ruleOperatorId}`} />);
+    const mockLinkRuleNodeEvaluation = jest.fn(({ ruleOperatorId }) => (
+        <div data-testid={`evaluation-${ruleOperatorId}`} />
+    ));
 
-    mockReactI18next(testTranslate);
+    jestTestUtils.mockReactI18next(jestTestUtils.testTranslate);
     jest.doMock("../../../../hooks/useErrorHandler", () => ({
         __esModule: true,
         default: () => ({
@@ -54,9 +56,10 @@ const createRuleBlockEvaluationHarness = () => {
         LinkRuleNodeEvaluation: (props) => mockLinkRuleNodeEvaluation(props),
     }));
 
-    const { default: RuleBlockEvaluation } = require("../RuleBlockEvaluation") as typeof import("../RuleBlockEvaluation");
-    const { RuleEditorEvaluationContext } = require("../../../shared/RuleEditor/contexts/RuleEditorEvaluationContext") as
-        typeof import("../../../shared/RuleEditor/contexts/RuleEditorEvaluationContext");
+    const { default: RuleBlockEvaluation } =
+        require("../RuleBlockEvaluation") as typeof import("../RuleBlockEvaluation");
+    const { RuleEditorEvaluationContext } =
+        require("../../../shared/RuleEditor/contexts/RuleEditorEvaluationContext") as typeof import("../../../shared/RuleEditor/contexts/RuleEditorEvaluationContext");
     return {
         RuleBlockEvaluation,
         RuleEditorEvaluationContext,
@@ -75,25 +78,26 @@ const createPort = (overrides: Partial<IRuleBlockPort> = {}): IRuleBlockPort => 
     ...overrides,
 });
 
-const createRuleBlockTask = (ports: IRuleBlockPort[]): IProjectTask<IRuleBlockTaskParameters> => ({
-    metadata: {
-        label: "Rule block task",
-    },
-    taskType: "RuleBlock",
-    id: "ruleBlockTask",
-    project: "project1",
-    data: {
-        type: "RuleBlock",
-        parameters: {
-            ruleBlockModel: {
-                ports,
-                inputExamples: [],
-                layout: { nodePositions: {} },
-                uiAnnotations: { stickyNotes: [] },
+const createRuleBlockTask = (ports: IRuleBlockPort[]): IProjectTask<IRuleBlockTaskParameters> =>
+    ({
+        metadata: {
+            label: "Rule block task",
+        },
+        taskType: "RuleBlock",
+        id: "ruleBlockTask",
+        project: "project1",
+        data: {
+            type: "RuleBlock",
+            parameters: {
+                ruleBlockModel: {
+                    ports,
+                    inputExamples: [],
+                    layout: { nodePositions: {} },
+                    uiAnnotations: { stickyNotes: [] },
+                },
             },
         },
-    },
-} as IProjectTask<IRuleBlockTaskParameters>);
+    }) as IProjectTask<IRuleBlockTaskParameters>;
 
 const createInputPortNode = (): IRuleOperatorNode => ({
     nodeId: "inputPortNode",
@@ -177,7 +181,7 @@ describe("RuleBlockEvaluation", () => {
                 getInputExamples={() => inputExamples}
                 onOpenExampleValuesDialog={onOpenExampleValuesDialog}
             >
-                {(<ContextProbe /> as unknown) as React.ReactElement}
+                {(<ContextProbe />) as unknown as React.ReactElement}
             </harness.RuleBlockEvaluation>,
         );
 
@@ -185,7 +189,11 @@ describe("RuleBlockEvaluation", () => {
         const evaluationContext = capturedContexts[capturedContexts.length - 1];
 
         await act(async () => {
-            await evaluationContext.startEvaluation([createTransformNode(), createInputPortNode()], originalTask, false);
+            await evaluationContext.startEvaluation(
+                [createTransformNode(), createInputPortNode()],
+                originalTask,
+                false,
+            );
         });
 
         expect(harness.mockRequestRuleBlockEvaluation).toHaveBeenCalledWith("project1", "task1", {
@@ -237,7 +245,7 @@ describe("RuleBlockEvaluation", () => {
                 getInputExamples={() => []}
                 onOpenExampleValuesDialog={onOpenExampleValuesDialog}
             >
-                {(<ContextProbe /> as unknown) as React.ReactElement}
+                {(<ContextProbe />) as unknown as React.ReactElement}
             </harness.RuleBlockEvaluation>,
         );
 

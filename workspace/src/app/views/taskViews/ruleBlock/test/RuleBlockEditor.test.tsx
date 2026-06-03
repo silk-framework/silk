@@ -3,12 +3,7 @@ import "@testing-library/jest-dom";
 import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import type { IProjectTask } from "@ducks/shared/typings";
 import type { StickyNote } from "../../../../../../../libs/gui-elements";
-import {
-    createRuleBlockEditorGuiElementsModule,
-    mockI18next,
-    mockReactI18next,
-    testTranslate,
-} from "../../../../test/jestTestUtils";
+import jestTestUtils from "../../../../test/jestTestUtils";
 import { RuleValidationError } from "../../../shared/RuleEditor/RuleEditor.typings";
 import type { IRuleOperatorNode, RuleSaveResult } from "../../../shared/RuleEditor/RuleEditor.typings";
 import type { RuleClipboardTask } from "../../../shared/RuleEditor/model/RuleEditorModel.typings";
@@ -65,6 +60,30 @@ type CapturedRuleBlockEvaluationProps = {
     children: React.ReactNode;
 };
 
+const createRuleBlockEditorGuiElementsModule = () => ({
+    AlertDialog: jestTestUtils.createAlertDialogMock(),
+    Button: jestTestUtils.createButtonMock(({ affirmative, disruptive, tooltip, tooltipProps, loading, ...props }) => ({
+        ...props,
+        loading,
+        includeLoadingState: true,
+    })),
+    ContextOverlay: jestTestUtils.createContextOverlayMock(),
+    ContextMenu: jestTestUtils.createContextMenuMock(),
+    Icon: jestTestUtils.createIconMock(),
+    IconButton: jestTestUtils.createButtonMock(
+        ({ tooltipProps, intent, loading, size, tooltipAsTitle, description, minimal, ...props }) => ({
+            ...props,
+            text: props.text ?? props.name,
+            loading,
+            includeLoadingState: false,
+        }),
+    ),
+    MenuItem: jestTestUtils.createMenuItemMock(),
+    Notification: jestTestUtils.createNotificationMock(),
+    Spacing: jestTestUtils.createChildrenOnlyMock(),
+    ToolbarSection: jestTestUtils.createDivPassthroughMock(),
+});
+
 const createRuleBlockEditorHarness = () => {
     jest.resetModules();
     jest.doMock("react", () => React);
@@ -86,8 +105,8 @@ const createRuleBlockEditorHarness = () => {
         deleteNodes: jest.fn(),
     };
 
-    mockReactI18next(testTranslate);
-    mockI18next(testTranslate);
+    jestTestUtils.mockReactI18next(jestTestUtils.testTranslate);
+    jestTestUtils.mockI18next(jestTestUtils.testTranslate);
     jest.doMock("../../../../../../../libs/gui-elements", createRuleBlockEditorGuiElementsModule);
     jest.doMock("@ducks/shared/requests", () => ({
         requestTaskData: (...args) => mockRequestTaskData(...args),
@@ -182,25 +201,26 @@ const createPersistedPort = (overrides: Partial<IRuleBlockPort> = {}): IRuleBloc
 const createRuleBlockTask = (
     ports: IRuleBlockPort[] = [],
     inputExamples: IRuleBlockInputExample[] = [],
-): IProjectTask<IRuleBlockTaskParameters> => ({
-    metadata: {
-        label: "Rule block task",
-    },
-    taskType: "RuleBlock",
-    id: "ruleBlockTask",
-    project: "project1",
-    data: {
-        type: "RuleBlock",
-        parameters: {
-            ruleBlockModel: {
-                ports,
-                inputExamples,
-                layout: { nodePositions: {} },
-                uiAnnotations: { stickyNotes: [] },
+): IProjectTask<IRuleBlockTaskParameters> =>
+    ({
+        metadata: {
+            label: "Rule block task",
+        },
+        taskType: "RuleBlock",
+        id: "ruleBlockTask",
+        project: "project1",
+        data: {
+            type: "RuleBlock",
+            parameters: {
+                ruleBlockModel: {
+                    ports,
+                    inputExamples,
+                    layout: { nodePositions: {} },
+                    uiAnnotations: { stickyNotes: [] },
+                },
             },
         },
-    },
-} as IProjectTask<IRuleBlockTaskParameters>);
+    }) as IProjectTask<IRuleBlockTaskParameters>;
 
 const createInputPortNode = (overrides: Partial<IRuleOperatorNode> = {}): IRuleOperatorNode => ({
     nodeId: "nodeA",
@@ -219,9 +239,7 @@ const createInputPortNode = (overrides: Partial<IRuleOperatorNode> = {}): IRuleO
     ...overrides,
 });
 
-const createClipboardTask = (
-    overrides: Partial<RuleClipboardTask> = {},
-): RuleClipboardTask => ({
+const createClipboardTask = (overrides: Partial<RuleClipboardTask> = {}): RuleClipboardTask => ({
     data: {
         nodes: [],
         edges: [],
@@ -251,15 +269,7 @@ const fetchInputPortTabItems = async (
 };
 
 const renderOperatorActions = (operator: IPreConfiguredRuleOperator) =>
-    render(
-        <>
-            {Array.isArray(operator.actions)
-                ? operator.actions
-                : operator.actions
-                  ? [operator.actions]
-                  : null}
-        </>,
-    );
+    render(<>{Array.isArray(operator.actions) ? operator.actions : operator.actions ? [operator.actions] : null}</>);
 
 const renderRuleBlockEditor = async ({
     ports = [],
@@ -358,7 +368,7 @@ describe("RuleBlockEditor", () => {
         expect((saveResult as RuleValidationError).nodeErrors).toStrictEqual([
             {
                 nodeId: "nodeA",
-                message: testTranslate("taskViews.ruleBlock.errors.missingPortId"),
+                message: jestTestUtils.testTranslate("taskViews.ruleBlock.errors.missingPortId"),
             },
         ]);
         expect(editor.mockRequestRelatedItems).toHaveBeenCalledTimes(1);
@@ -373,9 +383,7 @@ describe("RuleBlockEditor", () => {
         await renderToolbarActions(editor);
 
         await waitFor(() =>
-            expect(screen.getByTestId("context-overlay")).toHaveTextContent(
-                "taskViews.ruleBlock.usageInUse",
-            ),
+            expect(screen.getByTestId("context-overlay")).toHaveTextContent("taskViews.ruleBlock.usageInUse"),
         );
         expect(screen.getByRole("button", { name: "taskViews.ruleBlock.refreshUsage" })).toHaveTextContent(
             "state-info",
@@ -395,9 +403,7 @@ describe("RuleBlockEditor", () => {
         await renderToolbarActions(editor);
 
         await waitFor(() =>
-            expect(screen.getByTestId("context-overlay")).toHaveTextContent(
-                "taskViews.ruleBlock.usageRefreshError",
-            ),
+            expect(screen.getByTestId("context-overlay")).toHaveTextContent("taskViews.ruleBlock.usageRefreshError"),
         );
         expect(screen.getByRole("button", { name: "taskViews.ruleBlock.refreshUsage" })).toHaveTextContent(
             "state-warning",
@@ -559,7 +565,9 @@ describe("RuleBlockEditor", () => {
         await act(async () => {
             createChange.do();
         });
-        expect((editor.getRuleEditorProps().captureExternalSavedState!() as { ports: IRuleBlockPort[] }).ports).toContainEqual(
+        expect(
+            (editor.getRuleEditorProps().captureExternalSavedState!() as { ports: IRuleBlockPort[] }).ports,
+        ).toContainEqual(
             expect.objectContaining({
                 label: "Created input",
                 description: "Created description",
@@ -609,7 +617,9 @@ describe("RuleBlockEditor", () => {
         await act(async () => {
             updateChange.do();
         });
-        expect((editor.getRuleEditorProps().captureExternalSavedState!() as { ports: IRuleBlockPort[] }).ports).toContainEqual({
+        expect(
+            (editor.getRuleEditorProps().captureExternalSavedState!() as { ports: IRuleBlockPort[] }).ports,
+        ).toContainEqual({
             id: "inputPortA",
             label: "Updated input",
             description: "Updated description",
@@ -880,12 +890,7 @@ describe("RuleBlockEditor", () => {
 
         await waitFor(() => expect(editor.getRuleEditorProps().extendClipboardCopy).toBeDefined());
 
-        expect(
-            editor.getRuleEditorProps().extendClipboardCopy!(
-                createClipboardTask(),
-                ["nodeB"],
-            ),
-        ).toStrictEqual({
+        expect(editor.getRuleEditorProps().extendClipboardCopy!(createClipboardTask(), ["nodeB"])).toStrictEqual({
             inputPorts: [createPersistedPort({ id: "inputPortB", label: "Input B", displayOrder: 2 })],
         });
     });
@@ -950,15 +955,17 @@ describe("RuleBlockEditor", () => {
                 undo: expect.any(Function),
             }),
         });
-        expect((preparedPaste as { taskData: RuleClipboardTask["data"] }).taskData.nodes[0].parameters?.portId).not.toBe(
-            "externalPort",
-        );
+        expect(
+            (preparedPaste as { taskData: RuleClipboardTask["data"] }).taskData.nodes[0].parameters?.portId,
+        ).not.toBe("externalPort");
 
         await act(async () => {
             (preparedPaste as { externalChange: { do: () => void } }).externalChange.do();
         });
 
-        expect((editor.getRuleEditorProps().captureExternalSavedState!() as { ports: IRuleBlockPort[] }).ports).toContainEqual(
+        expect(
+            (editor.getRuleEditorProps().captureExternalSavedState!() as { ports: IRuleBlockPort[] }).ports,
+        ).toContainEqual(
             expect.objectContaining({
                 label: "External input",
                 description: "External description",
