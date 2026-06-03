@@ -153,6 +153,7 @@ lazy val workspace = (project in file("silk-workspace"))
 
 lazy val pluginsRdf = (project in file("silk-plugins/silk-plugins-rdf"))
   .dependsOn(rules, workspace % "test->test;compile->compile", core % "test->test;compile->compile", pluginsCsv % "test->compile")
+  .enablePlugins(JmhPlugin)
   .settings(commonSettings *)
   .settings(
     name := "Silk Plugins RDF",
