@@ -131,13 +131,13 @@ object LinkingSerializers {
             STACKTRACE -> error.map(ex => Json.toJson(Stacktrace.fromException(ex))),
             CHILDREN -> children.map(write)
           )
-        case RuleBlockValue(input, values, internalValue, error) =>
+        case RuleBlockValue(input, values, bindingValues, error) =>
           Json.obj(
             OPERATOR_ID -> input.id.toString,
             VALUES -> values,
             ERROR -> error.map(_.getMessage),
             STACKTRACE -> error.map(ex => Json.toJson(Stacktrace.fromException(ex))),
-            CHILDREN -> internalValue.toSeq.map(write)
+            CHILDREN -> bindingValues.map(write)
           )
         case InputPortValue(input, values, bindingValue, error) =>
           Json.obj(

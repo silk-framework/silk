@@ -1,7 +1,7 @@
 import React from "react";
 import { Button, FieldItem, SimpleDialog, Switch, TextArea, TextField } from "@eccenca/gui-elements";
 import { useTranslation } from "react-i18next";
-import { IRuleBlockPort } from "./ruleBlock.types";
+import { RuleBlockPort } from "./ruleBlock.types";
 import ruleBlockUtils from "./ruleBlock.utils";
 
 export interface InputPortDialogSubmitValue {
@@ -15,8 +15,8 @@ interface InputPortDialogProps {
     isOpen: boolean;
     mode: "create" | "edit";
     initialPort: InputPortDialogSubmitValue;
-    existingPorts: IRuleBlockPort[];
-    persistedPorts: IRuleBlockPort[];
+    existingPorts: RuleBlockPort[];
+    persistedPorts: RuleBlockPort[];
     isRuleBlockInUse: boolean;
     editedPortId?: string;
     onClose: () => void;

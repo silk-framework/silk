@@ -116,10 +116,11 @@ class EvaluateTransformApi @Inject()(implicit accessMonitor: WorkbenchAccessMoni
     implicit val writeContext: WriteContext[JsValue] = WriteContext.fromProject[JsValue](project)
 
     SerializationUtils.deserializeCompileTime[TransformRule](defaultMimeType = SerializationUtils.APPLICATION_JSON) { transformRule =>
-      val transformedValues = evaluateRule(task, parentRuleId, transformRule, limit)(PluginContext.fromProject(project))
+      val pluginContext = PluginContext.fromProject(project)
+      val transformedValues = evaluateRule(task, parentRuleId, transformRule, limit)(pluginContext)
       val serializedValues = JsArray(transformedValues.map(ValueJsonFormat.write).toSeq)
       if(includeRuleBlockInspection) {
-        val ruleBlockInspection = RuleBlockInspectionCollector.fromTransformRule(transformRule, task.taskContext)
+        val ruleBlockInspection = RuleBlockInspectionCollector.fromTransformRule(transformRule, task.taskContext(pluginContext))
         Ok(Json.obj(
           "evaluatedValues" -> serializedValues,
           "ruleBlockInspection" -> RuleBlockInspectionJsonFormat.write(ruleBlockInspection)

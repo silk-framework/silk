@@ -115,6 +115,7 @@ case class RuleBlockBindingExecution(portId: Identifier,
  * Runtime form of a resolved rule block definition.
  */
 final class RuleBlockExecution(val task: Task[RuleBlockSpec],
+                               val bindingExecutions: IndexedSeq[RuleBlockBindingExecution],
                                val rootExecution: Option[InputExecution])
 
 object RuleBlockExecution {
@@ -140,7 +141,7 @@ object RuleBlockExecution {
       }
     }
 
-    new RuleBlockExecution(task, task.data.operator.map(buildExecution))
+    new RuleBlockExecution(task, bindingExecutions, task.data.operator.map(buildExecution))
   }
 }
 

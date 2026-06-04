@@ -13,14 +13,17 @@ import { RuleEditorProps } from "../../../shared/RuleEditor/RuleEditor";
 import { TaskPlugin } from "@ducks/shared/typings";
 import {
     IEntityLink,
-    IEvaluatedReferenceLinks,
     IEvaluatedReferenceLinksScore,
     ILinkingRule,
+    ISimilarityOperator,
     ILinkingTaskParameters,
 } from "../linking.types";
 import { IPluginDetails } from "@ducks/common/typings";
 import editorUtils from "../LinkingRuleEditor.utils";
-import { evaluateLinkingRule, evaluateLinkingRuleAgainstReferenceEntities } from "../LinkingRuleEditor.requests";
+import {
+    evaluateLinkingRuleAgainstReferenceEntitiesWithInspection,
+    evaluateLinkingRuleWithInspection,
+} from "../LinkingRuleEditor.requests";
 import useErrorHandler from "../../../../hooks/useErrorHandler";
 import { useTranslation } from "react-i18next";
 import { LinkRuleNodeEvaluation } from "./LinkRuleNodeEvaluation";
@@ -32,6 +35,14 @@ import { PathNotInCacheModal } from "../../shared/evaluations/PathNotInCacheModa
 import evaluationUtils from "../../shared/evaluations/evaluationOperations";
 import { SampleError } from "../../../shared/SampleError/SampleError";
 import { DIErrorTypes } from "@ducks/error/typings";
+import { IEvaluatedReferenceLinksWithInspection } from "../linking.types";
+import ruleBlockInternalEvaluationUtils from "../../ruleBlock/ruleBlockInternalEvaluation.utils";
+import { RuleBlockInternalEvaluationModal } from "../../ruleBlock/RuleBlockInternalEvaluationModal";
+import {
+    IRuleBlockInputExample,
+    IRuleBlockSnapshots,
+    RuleBlockSnapshot,
+} from "../../ruleBlock/ruleBlock.types";
 
 type EvaluationChildType = ReactElement<RuleEditorProps<TaskPlugin<ILinkingTaskParameters>, IPluginDetails>>;
 
@@ -43,6 +54,17 @@ interface LinkingRuleEvaluationProps {
     /** The children that should be able to use this linking rule evaluation component. */
     children: EvaluationChildType;
 }
+
+interface ActiveInternalRuleBlockEvaluation {
+    ruleBlockId: string;
+    snapshot: RuleBlockSnapshot;
+    inputExamples: IRuleBlockInputExample[];
+    ruleBlockLabel?: string;
+}
+
+const EMPTY_RULE_BLOCK_INSPECTION: IRuleBlockSnapshots = {
+    snapshots: {},
+};
 
 export type EvaluatedEntityLink = IEntityLink & { type: "positive" | "negative" | "unlabelled" };
 
@@ -85,6 +107,13 @@ export const LinkingRuleEvaluation = ({
     const triggerEvaluation = React.useRef<(() => any) | undefined>(undefined);
     const { registerError: _registerError } = useErrorHandler();
     const [t] = useTranslation();
+    const [ruleBlockInspection, setRuleBlockInspection] = React.useState<IRuleBlockSnapshots>(
+        EMPTY_RULE_BLOCK_INSPECTION,
+    );
+    const [evaluatedRuleOperator, setEvaluatedRuleOperator] = React.useState<ISimilarityOperator | undefined>(undefined);
+    const [activeInternalRuleBlockEvaluation, setActiveInternalRuleBlockEvaluation] = React.useState<ActiveInternalRuleBlockEvaluation | undefined>(
+        undefined,
+    );
 
     const registerError = (errorKey: string, error: DIErrorTypes) => {
         _registerError(errorKey, t(errorKey), error, {
@@ -108,6 +137,9 @@ export const LinkingRuleEvaluation = ({
         evaluationResultMap.clear();
         nodeUpdateCallbacks.clear();
         setReferenceLinksUrl(queryParameterValue(REFERENCE_LINK_URL_PARAMETER)[0]);
+        setRuleBlockInspection(EMPTY_RULE_BLOCK_INSPECTION);
+        setEvaluatedRuleOperator(undefined);
+        setActiveInternalRuleBlockEvaluation(undefined);
     }, [projectId, linkingTaskId]);
 
     React.useEffect(() => {
@@ -150,9 +182,9 @@ export const LinkingRuleEvaluation = ({
 
     const fetchReferenceLinksEvaluation: (
         linkageRule: ILinkingRule,
-    ) => Promise<IEvaluatedReferenceLinks | undefined> = async (linkageRule: ILinkingRule) => {
+    ) => Promise<IEvaluatedReferenceLinksWithInspection | undefined> = async (linkageRule: ILinkingRule) => {
         try {
-            const result = await evaluateLinkingRuleAgainstReferenceEntities(
+            const result = await evaluateLinkingRuleAgainstReferenceEntitiesWithInspection(
                 projectId,
                 linkingTaskId,
                 linkageRule,
@@ -180,6 +212,42 @@ export const LinkingRuleEvaluation = ({
         return nodeType === "aggregator" || nodeType === "comparator";
     }, []);
 
+    const canEvaluateRuleBlock = React.useCallback(
+        (nodeId: string, ruleBlockId: string) =>
+            !!evaluatedRuleOperator &&
+            !!ruleBlockInspection.snapshots[ruleBlockId] &&
+            ruleBlockInternalEvaluationUtils.createInputExamplesFromLinkingEvaluations(
+                evaluationResult,
+                nodeId,
+                evaluatedRuleOperator,
+            ).length > 0,
+        [evaluatedRuleOperator, evaluationResult, ruleBlockInspection.snapshots],
+    );
+
+    const openInternalRuleBlockEvaluation = React.useCallback(
+        (nodeId: string, ruleBlockId: string, ruleBlockLabel?: string) => {
+            const snapshot = ruleBlockInspection.snapshots[ruleBlockId];
+            if (!snapshot) {
+                return;
+            }
+            const inputExamples = ruleBlockInternalEvaluationUtils.createInputExamplesFromLinkingEvaluations(
+                evaluationResult,
+                nodeId,
+                evaluatedRuleOperator,
+            );
+            if (inputExamples.length === 0) {
+                return;
+            }
+            setActiveInternalRuleBlockEvaluation({
+                ruleBlockId,
+                snapshot,
+                inputExamples,
+                ruleBlockLabel,
+            });
+        },
+        [evaluatedRuleOperator, evaluationResult, ruleBlockInspection.snapshots],
+    );
+
     /** Start an evaluation of the linkage rule. */
     const startEvaluation = async (
         _ruleOperatorNodes: IRuleOperatorNode[],
@@ -187,6 +255,8 @@ export const LinkingRuleEvaluation = ({
         quickEvaluationOnly: boolean = false,
     ) => {
         setEvaluationRunning(true);
+        setActiveInternalRuleBlockEvaluation(undefined);
+        setEvaluatedRuleOperator(undefined);
         let ruleOperatorNodes = _ruleOperatorNodes;
         if (evaluatedSubTreeNode.current) {
             ruleOperatorNodes = evaluationUtils.getSubTreeNodes(ruleOperatorNodes, evaluatedSubTreeNode.current);
@@ -202,9 +272,14 @@ export const LinkingRuleEvaluation = ({
             if (!quickEvaluationOnly && (!result || (result.positive.length === 0 && result.negative.length === 0))) {
                 // Fallback to slower linking evaluation
                 setEvaluatesQuickly((previous) => !result);
-                const links = (await evaluateLinkingRule(projectId, linkingTaskId, newLinkageRule, numberOfLinkToShow))
-                    .data;
-                setEvaluationResult(links.slice(0, numberOfLinkToShow).map((l) => ({ ...l, type: "unlabelled" })));
+                const linkingResult = (
+                    await evaluateLinkingRuleWithInspection(projectId, linkingTaskId, newLinkageRule, numberOfLinkToShow)
+                ).data;
+                setEvaluationResult(
+                    linkingResult.links.slice(0, numberOfLinkToShow).map((l) => ({ ...l, type: "unlabelled" })),
+                );
+                setRuleBlockInspection(linkingResult.ruleBlockInspection ?? EMPTY_RULE_BLOCK_INSPECTION);
+                setEvaluatedRuleOperator(newLinkageRule.operator);
                 setEvaluationScore(undefined);
             } else if (result) {
                 // Fast reference links evaluation available
@@ -217,9 +292,13 @@ export const LinkingRuleEvaluation = ({
                     .slice(0, Math.max(Math.ceil(numberOfLinkToShow / 2), numberOfLinkToShow - result.negative.length))
                     .map((l) => ({ ...l, type: "positive" }));
                 setEvaluationResult([...positiveLinks, ...negativeLinks]);
+                setRuleBlockInspection(result.ruleBlockInspection ?? EMPTY_RULE_BLOCK_INSPECTION);
+                setEvaluatedRuleOperator(newLinkageRule.operator);
             } else {
                 setEvaluationScore(undefined);
                 setEvaluationResult([]);
+                setRuleBlockInspection(EMPTY_RULE_BLOCK_INSPECTION);
+                setEvaluatedRuleOperator(undefined);
             }
         } catch (ex) {
             if (ex.isFetchError) {
@@ -295,6 +374,8 @@ export const LinkingRuleEvaluation = ({
                     setEvaluationRootNode,
                     evaluationRootNode,
                     canBeEvaluated,
+                    canEvaluateRuleBlock,
+                    openInternalRuleBlockEvaluation,
                     ruleType: "linking",
                 }}
             >
@@ -312,6 +393,16 @@ export const LinkingRuleEvaluation = ({
                     />
                 )}
                 {children}
+                {activeInternalRuleBlockEvaluation ? (
+                    <RuleBlockInternalEvaluationModal
+                        projectId={projectId}
+                        ruleBlockId={activeInternalRuleBlockEvaluation.ruleBlockId}
+                        snapshot={activeInternalRuleBlockEvaluation.snapshot}
+                        inputExamples={activeInternalRuleBlockEvaluation.inputExamples}
+                        ruleBlockLabel={activeInternalRuleBlockEvaluation.ruleBlockLabel}
+                        onClose={() => setActiveInternalRuleBlockEvaluation(undefined)}
+                    />
+                ) : null}
             </RuleEditorEvaluationContext.Provider>
         </RuleEditorEvaluationCallbackContext.Provider>
     );

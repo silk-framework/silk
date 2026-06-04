@@ -27,7 +27,7 @@ import {
 } from "@eccenca/gui-elements";
 import { TFunction } from "react-i18next";
 import { ActiveValueSelection } from "./ExampleValuesDialog.state";
-import { IRuleBlockInputExample, IRuleBlockPort } from "./ruleBlock.types";
+import { IRuleBlockInputExample, RuleBlockPort } from "./ruleBlock.types";
 
 const EDITOR_HEIGHT = 220;
 const EDITOR_HEADER_HEIGHT = 56;
@@ -225,7 +225,7 @@ export const ExampleListPane = ({
 /** Props for the port/value list shown inside the example detail pane. */
 interface ExamplePortValuesListProps {
     /** Sorted ports rendered as rows. */
-    ports: IRuleBlockPort[];
+    ports: RuleBlockPort[];
     /** Example currently shown in the detail pane. */
     example: IRuleBlockInputExample;
     /** Optional highlighted port identifier. */
@@ -342,7 +342,7 @@ interface ExampleDetailPaneProps {
     /** Zero-based index of the current example in the full draft list. */
     exampleIndex: number;
     /** Sorted ports rendered in the port/value list and editor header. */
-    ports: IRuleBlockPort[];
+    ports: RuleBlockPort[];
     /** Optional highlighted port identifier. */
     highlightedPortId?: string;
     /** Current active value selection, if any. */

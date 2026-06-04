@@ -6,32 +6,32 @@ import type {
 import { ruleEditorNodeParameterValue } from "../../shared/RuleEditor/model/RuleEditorModel.typings";
 import type { RuleEditorPatchableNodeProjection } from "../../shared/RuleEditor/RuleEditor.typings";
 import type { IRuleOperatorNode } from "../../shared/RuleEditor/RuleEditor.typings";
-import type { IRuleBlockPort } from "./ruleBlock.types";
+import type { RuleBlockPort } from "./ruleBlock.types";
 import ruleBlockUtils from "./ruleBlock.utils";
 
 /** Rule-block-specific clipboard additions that travel alongside the generic copied node subtree. */
 export interface RuleBlockClipboardEditorData {
-    inputPorts: IRuleBlockPort[];
+    inputPorts: RuleBlockPort[];
 }
 
 /** Result of rewriting a generic clipboard subtree into a rule-block-compatible paste payload. */
 export interface RuleBlockPastePreparationResult {
     taskData: RuleClipboardTaskData;
-    createdPorts: IRuleBlockPort[];
+    createdPorts: RuleBlockPort[];
 }
 
 interface CollectRuleBlockClipboardCopyOptions {
     selectedNodeIds: string[];
     ruleOperatorNodes: IRuleOperatorNode[];
-    existingPorts: IRuleBlockPort[];
+    existingPorts: RuleBlockPort[];
 }
 
 interface PrepareRuleBlockClipboardPasteOptions {
     currentProjectId: string;
     currentTaskId: string;
-    existingPorts: IRuleBlockPort[];
+    existingPorts: RuleBlockPort[];
     createInputPortId: () => string;
-    inputPortNodeMetaData: (port: IRuleBlockPort) => RuleEditorPatchableNodeProjection;
+    inputPortNodeMetaData: (port: RuleBlockPort) => RuleEditorPatchableNodeProjection;
 }
 
 type LinkingPasteSide = "source" | "target";
@@ -41,15 +41,15 @@ type PathPasteNode = RuleNodeCopySerialization & { pluginType: "PathInputOperato
 type SupportedRuleBlockPasteNode = TransformPasteNode | InputPortPasteNode | PathPasteNode;
 
 interface RuleBlockPasteState {
-    portsById: Map<string, IRuleBlockPort>;
-    copiedPortsById: Map<string, IRuleBlockPort>;
-    createdPortsByPathIdentity: Map<string, IRuleBlockPort>;
-    createdPortsByCopiedPortId: Map<string, IRuleBlockPort>;
-    createdPorts: IRuleBlockPort[];
+    portsById: Map<string, RuleBlockPort>;
+    copiedPortsById: Map<string, RuleBlockPort>;
+    createdPortsByPathIdentity: Map<string, RuleBlockPort>;
+    createdPortsByCopiedPortId: Map<string, RuleBlockPort>;
+    createdPorts: RuleBlockPort[];
     nextDisplayOrder: number;
     reuseCurrentPorts: boolean;
     createInputPortId: () => string;
-    inputPortNodeMetaData: (port: IRuleBlockPort) => RuleEditorPatchableNodeProjection;
+    inputPortNodeMetaData: (port: RuleBlockPort) => RuleEditorPatchableNodeProjection;
 }
 
 const ALLOWED_PLUGIN_TYPES = new Set(["TransformOperator", "PathInputOperator", "InputPortOperator"]);
@@ -100,7 +100,7 @@ const validateSupportedRuleBlockPaste = (nodes: RuleNodeCopySerialization[]) => 
 };
 
 /** Reads copied logical input-port definitions from editor-owned clipboard data, if present. */
-const copiedInputPorts = (task: RuleClipboardTask): Map<string, IRuleBlockPort> => {
+const copiedInputPorts = (task: RuleClipboardTask): Map<string, RuleBlockPort> => {
     if (!isRuleBlockClipboardEditorData(task.editorData)) {
         return new Map();
     }
@@ -140,9 +140,9 @@ const createPasteState = (
 /** Allocates a new logical input port in the destination rule block and tracks it for the final external change. */
 const createGeneratedPort = (
     state: RuleBlockPasteState,
-    portDefinition: Omit<IRuleBlockPort, "id" | "displayOrder">,
-): IRuleBlockPort => {
-    const createdPort: IRuleBlockPort = {
+    portDefinition: Omit<RuleBlockPort, "id" | "displayOrder">,
+): RuleBlockPort => {
+    const createdPort: RuleBlockPort = {
         ...portDefinition,
         id: state.createInputPortId(),
         displayOrder: state.nextDisplayOrder++,
@@ -155,7 +155,7 @@ const createGeneratedPort = (
 const resolveInputPortNodePort = (
     node: RuleNodeCopySerialization,
     state: RuleBlockPasteState,
-): IRuleBlockPort => {
+): RuleBlockPort => {
     const copiedPortId = ruleEditorNodeParameterValue(node.parameters?.portId)?.trim();
     if (!copiedPortId) {
         throw new Error("Pasted input-port node is missing its logical port ID.");
@@ -188,7 +188,7 @@ const resolveInputPortNodePort = (
 const resolvePathDerivedPort = (
     node: RuleNodeCopySerialization,
     state: RuleBlockPasteState,
-): IRuleBlockPort => {
+): RuleBlockPort => {
     const identity = pathPortIdentity(node);
     const reusedCreatedPort = state.createdPortsByPathIdentity.get(identity);
     if (reusedCreatedPort) {

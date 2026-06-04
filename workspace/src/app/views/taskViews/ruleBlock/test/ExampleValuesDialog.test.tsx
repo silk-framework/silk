@@ -2,7 +2,8 @@ import React from "react";
 import "@testing-library/jest-dom";
 import { fireEvent, render, screen } from "@testing-library/react";
 import jestTestUtils from "../../../../test/jestTestUtils";
-import type { IRuleBlockInputExample, IRuleBlockPort } from "../ruleBlock.types";
+import ruleTestHelper from "../../shared/rules/tests/ruleTestHelper";
+import type { IRuleBlockInputExample, RuleBlockPort } from "../ruleBlock.types";
 
 const createBubblingTagMock = () =>
     ({ children, onClick, onRemove, intent, ...props }) => (
@@ -75,23 +76,11 @@ const createExampleValuesDialogHarness = () => {
     return { ExampleValuesDialog };
 };
 
-const createPort = (overrides: Partial<IRuleBlockPort> = {}): IRuleBlockPort => ({
-    id: "inputPortA",
-    label: "Input A",
-    description: "",
-    displayOrder: 1,
-    deprecated: false,
-    ...overrides,
-});
+const createPort = (overrides: Partial<RuleBlockPort> = {}): RuleBlockPort =>
+    ruleTestHelper.createRuleBlockPort(overrides);
 
-const createExample = (overrides: Partial<IRuleBlockInputExample> = {}): IRuleBlockInputExample => ({
-    id: "example-1",
-    label: "",
-    inputs: {
-        inputPortA: ["Original value"],
-    },
-    ...overrides,
-});
+const createExample = (overrides: Partial<IRuleBlockInputExample> = {}): IRuleBlockInputExample =>
+    ruleTestHelper.createRuleBlockInputExample(overrides);
 
 describe("ExampleValuesDialog", () => {
     it("should update the active chip preview immediately while editing and apply the changed examples", () => {

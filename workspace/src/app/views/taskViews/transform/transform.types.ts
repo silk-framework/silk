@@ -3,7 +3,7 @@ import { IMetadata } from "@ducks/shared/typings";
 import { IValueInput, RuleLayout } from "../shared/rules/rule.typings";
 import { Stacktrace } from "../../shared/SampleError/SampleError";
 import { StickyNote } from "@eccenca/gui-elements";
-import { IRuleBlockInspection } from "../ruleBlock/ruleBlock.types";
+import { IRuleBlockSnapshots } from "../ruleBlock/ruleBlock.types";
 
 export type PartialBy<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>;
 
@@ -72,7 +72,7 @@ export interface EvaluatedTransformEntity {
 
 export interface ITransformRuleEvaluationResponse {
     evaluatedValues: EvaluatedTransformEntity[];
-    ruleBlockInspection: IRuleBlockInspection;
+    ruleBlockInspection: IRuleBlockSnapshots;
 }
 
 export interface ITransformTaskParameters {

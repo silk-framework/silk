@@ -152,8 +152,11 @@ class EvaluateTransformApiTest extends AnyFlatSpec with Matchers with SingleProj
 
     val evaluatedValues = (response \ "evaluatedValues").as[JsArray].value
     evaluatedValues should have size 1
-    val internalOperatorId = (((evaluatedValues.head \ "children").as[JsArray].value.head) \ "operatorId").as[String]
-    internalOperatorId shouldBe (snapshots(ruleBlockTaskId) \ "operatorTree" \ "id").as[String]
+    val bindingValues = (evaluatedValues.head \ "children").as[JsArray].value
+    bindingValues should have size 1
+    (bindingValues.head \ "operatorId").as[String] shouldBe "namePath"
+    (bindingValues.head \ "values").as[Seq[String]] shouldBe Seq("ALICE")
+    (bindingValues.head \ "children").as[JsArray].value shouldBe empty
   }
 }
 

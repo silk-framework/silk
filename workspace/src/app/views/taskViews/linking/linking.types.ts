@@ -1,7 +1,7 @@
 import { IInputSource, IUiAnnotations } from "../shared/task.typings";
 import { IEntity, IOperatorNode, IOperatorNodeParameters, IValueInput, RuleLayout } from "../shared/rules/rule.typings";
 import { SampleError, Stacktrace } from "../../shared/SampleError/SampleError";
-import { IRuleBlockInspection } from "../ruleBlock/ruleBlock.types";
+import { IRuleBlockSnapshots } from "../ruleBlock/ruleBlock.types";
 
 /** A linking rule. */
 export interface ILinkingRule {
@@ -127,7 +127,7 @@ export interface IEvaluatedReferenceLinks extends ReferenceLinks {
 }
 
 export interface IEvaluatedReferenceLinksWithInspection extends IEvaluatedReferenceLinks {
-    ruleBlockInspection: IRuleBlockInspection;
+    ruleBlockInspection: IRuleBlockSnapshots;
 }
 
 /** The metrics of a rule evaluation over the reference elements. */
@@ -161,7 +161,7 @@ export interface IEntityLink {
 
 export interface ILinkingRuleEvaluationResponse {
     links: IEntityLink[];
-    ruleBlockInspection: IRuleBlockInspection;
+    ruleBlockInspection: IRuleBlockSnapshots;
 }
 
 /** The evaluation scores and values in the aggregator/comparator tree. */

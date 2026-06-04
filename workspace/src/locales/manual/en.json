@@ -694,6 +694,10 @@
                 "subtree": {
                     "label": "Evaluate subtree",
                     "description": "Evaluate linking tree partially until this operator node."
+                },
+                "openInternalRuleBlockEvaluation": {
+                    "label": "Show internal evaluation",
+                    "description": "Show the latest available internal evaluation for this reusable rule block usage."
                 }
             },
             "executionButtons": {
@@ -829,6 +833,9 @@
             "evaluation": {
                 "noInputExamples": "No input examples exist yet. Example values can be added via the evaluation menu or input port node menu.",
                 "noResults": "No evaluation results available."
+            },
+            "internalEvaluation": {
+                "title": "Evaluation of {{label}}"
             },
             "normalizePortOrder": "Normalize port order",
             "normalizePortOrderTooltip": "Renumber input ports to 1..n while preserving their current order. This action is undoable.",

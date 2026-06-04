@@ -3,14 +3,14 @@ import { Button, Grid, GridColumn, GridRow, SimpleDialog } from "@eccenca/gui-el
 import { useTranslation } from "react-i18next";
 import { exampleDisplayTitle, ExampleDetailPane, ExampleListPane } from "./ExampleValuesDialog.components";
 import { DialogState, default as exampleValuesDialogState } from "./ExampleValuesDialog.state";
-import { IRuleBlockInputExample, IRuleBlockPort } from "./ruleBlock.types";
+import { IRuleBlockInputExample, RuleBlockPort } from "./ruleBlock.types";
 import ruleBlockUtils from "./ruleBlock.utils";
 import "./ExampleValuesDialog.scss";
 
 /** Props for the example values dialog used to edit reusable rule block examples. */
 interface ExampleValuesDialogProps {
     /** Input ports shown in the detail view. */
-    ports: IRuleBlockPort[];
+    ports: RuleBlockPort[];
     /** Persisted examples copied into the dialog draft state. */
     inputExamples: IRuleBlockInputExample[];
     /** Optional port to visually highlight in the detail view. */

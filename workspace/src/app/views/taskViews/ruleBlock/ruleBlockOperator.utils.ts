@@ -2,7 +2,7 @@ import {
     IRuleOperator,
     IRuleSideBarFilterTabConfig,
 } from "../../../views/shared/RuleEditor/RuleEditor.typings";
-import { IRuleBlockPort, IRuleBlockSummary } from "./ruleBlock.types";
+import { RuleBlockPort, IRuleBlockSummary } from "./ruleBlock.types";
 import i18next from "i18next";
 
 export interface IRuleBlockOperatorDetails {
@@ -10,7 +10,7 @@ export interface IRuleBlockOperatorDetails {
     pluginId: string;
     label: string;
     description?: string;
-    ports: IRuleBlockPort[];
+    ports: RuleBlockPort[];
 }
 
 const RULE_BLOCK_TAG = "Rule block";
@@ -18,7 +18,7 @@ const RULE_BLOCK_TAG = "Rule block";
 const sortAlphabetically = (ruleOpA: IRuleOperator, ruleOpB: IRuleOperator) =>
     ruleOpA.label.toLowerCase() < ruleOpB.label.toLowerCase() ? -1 : 1;
 
-const sortRuleBlockPorts = (ports: IRuleBlockPort[]): IRuleBlockPort[] =>
+const sortRuleBlockPorts = (ports: RuleBlockPort[]): RuleBlockPort[] =>
     [...ports].sort((left, right) => left.displayOrder - right.displayOrder || left.id.localeCompare(right.id));
 
 /** Checks whether a rule editor operator represents a reusable rule block. */

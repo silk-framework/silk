@@ -3,10 +3,10 @@ import type {
     RuleClipboardTaskData,
     RuleNodeCopySerialization,
 } from "../../../shared/RuleEditor/model/RuleEditorModel.typings";
-import type { IRuleBlockPort } from "../ruleBlock.types";
+import type { RuleBlockPort } from "../ruleBlock.types";
 import ruleBlockPasteUtils from "../ruleBlockPaste.utils";
 
-const inputPortNodeMetaData = (port: IRuleBlockPort) => ({
+const inputPortNodeMetaData = (port: RuleBlockPort) => ({
     label: port.label,
     description: port.description,
     tags: [String(port.displayOrder)],
@@ -78,7 +78,7 @@ const clipboardTask = (
 
 const preparePaste = (
     task: RuleClipboardTask,
-    existingPorts: IRuleBlockPort[] = [],
+    existingPorts: RuleBlockPort[] = [],
     createdIds: string[] = [],
 ) =>
     ruleBlockPasteUtils.prepareRuleBlockClipboardPaste(task, {

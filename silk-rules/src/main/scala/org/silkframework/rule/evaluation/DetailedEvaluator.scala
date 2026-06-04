@@ -148,11 +148,19 @@ object DetailedEvaluator {
 
     case rb: RuleBlockInputExecution =>
       val internalValue = rb.ruleBlockExecution.rootExecution.map(rootExecution => evaluateInput(rootExecution, entity))
-      RuleBlockValue(rb.operator, internalValue.map(_.values).getOrElse(Seq.empty), internalValue)
+      val bindingValues = rb.ruleBlockExecution.bindingExecutions.map(bindingExecution =>
+        evaluateInput(bindingExecution.inputExecution, entity)
+      )
+      RuleBlockValue(
+        rb.operator,
+        internalValue.map(_.values).getOrElse(Seq.empty),
+        bindingValues,
+        internalValue.flatMap(_.error)
+      )
 
     case ip: InputPortExecution =>
       val bindingValue = ip.bindingExecution.map(bindingExecution => evaluateInput(bindingExecution, entity))
-      InputPortValue(ip.operator, bindingValue.map(_.values).getOrElse(Seq.empty), bindingValue)
+      InputPortValue(ip.operator, bindingValue.map(_.values).getOrElse(Seq.empty), bindingValue, bindingValue.flatMap(_.error))
 
     case pi: PathInput => InputValue(pi, pi(entity).values)
   }

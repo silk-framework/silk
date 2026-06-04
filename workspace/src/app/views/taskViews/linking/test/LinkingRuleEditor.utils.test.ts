@@ -8,6 +8,7 @@ import {
 import { PluginType } from "@ducks/shared/typings";
 import { IComparisonOperator } from "../linking.types";
 import { IRuleBlockInput, ITransformOperator } from "../../shared/rules/rule.typings";
+import ruleTestHelper from "../../shared/rules/tests/ruleTestHelper";
 
 describe("Linking rule editor utils", () => {
     it("should convert rule operator nodes with symmetric comparison to the corresponding linking rule tree", () => {
@@ -127,16 +128,15 @@ describe("Linking rule editor utils", () => {
         parameters = { reverse: "false" },
     }: NodeParams): IRuleOperatorNode => {
         const id = nodeId ?? `nodeID_${count++}`;
-        return {
+        return ruleTestHelper.createRuleOperatorNode({
             nodeId: id,
-            parameters,
             label: `Label ${id}`,
             pluginType,
             pluginId,
+            parameters,
             portSpecification,
-            tags: [],
             inputsCanBeSwitched,
             inputs,
-        };
+        });
     };
 });

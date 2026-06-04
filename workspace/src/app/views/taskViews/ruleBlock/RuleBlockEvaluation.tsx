@@ -9,6 +9,7 @@ import {
     RuleValidationError,
 } from "../../shared/RuleEditor/RuleEditor.typings";
 import {
+    RuleEditorEvaluationConfigMenu,
     RuleEditorEvaluationContext,
 } from "../../shared/RuleEditor/contexts/RuleEditorEvaluationContext";
 import { LinkRuleNodeEvaluation } from "../linking/evaluation/LinkRuleNodeEvaluation";
@@ -16,10 +17,11 @@ import { EvaluationResultType } from "../linking/evaluation/LinkingRuleEvaluatio
 import evaluationUtils from "../shared/evaluations/evaluationOperations";
 import ruleUtils from "../shared/rules/rule.utils";
 import { EvaluatedTransformEntity } from "../transform/transform.types";
-import { IRuleBlockInputExample, IRuleBlockModel, IRuleBlockPort, IRuleBlockTaskParameters } from "./ruleBlock.types";
+import { IRuleBlockInputExample, IRuleBlockModel, RuleBlockPort, IRuleBlockTaskParameters } from "./ruleBlock.types";
 import { requestRuleBlockEvaluation } from "./ruleBlock.requests";
 import { IProjectTask } from "@ducks/shared/typings";
 import { SampleError } from "../../shared/SampleError/SampleError";
+import { RuleBlockEvaluationOptionalContext } from "./RuleBlockEvaluationOptionalContext";
 
 type RuleBlockTaskData = IProjectTask<IRuleBlockTaskParameters>;
 type EvaluationChildType = ReactElement<RuleEditorProps<RuleBlockTaskData, IPluginDetails>>;
@@ -28,16 +30,16 @@ interface RuleBlockEvaluationProps {
     projectId: string;
     ruleBlockTaskId: string;
     numberOfEntitiesToShow: number;
-    getPorts: () => IRuleBlockPort[];
+    getPorts: () => RuleBlockPort[];
     getInputExamples: () => IRuleBlockInputExample[];
-    onOpenExampleValuesDialog: (highlightedPortId?: string) => void;
+    onOpenExampleValuesDialog?: (highlightedPortId?: string) => void;
     children: EvaluationChildType;
 }
 
 const createCurrentRuleBlockModel = (
     ruleOperatorNodes: IRuleOperatorNode[],
     originalTask: RuleBlockTaskData,
-    ports: IRuleBlockPort[],
+    ports: RuleBlockPort[],
     inputExamples: IRuleBlockInputExample[],
 ): IRuleBlockModel => {
     const [operatorNodeMap, rootNodes] = ruleUtils.convertToRuleOperatorNodeMap(ruleOperatorNodes, true);
@@ -89,6 +91,8 @@ const RuleBlockEvaluation = ({
     onOpenExampleValuesDialog,
     children,
 }: RuleBlockEvaluationProps) => {
+    const optionalContext = React.useContext(RuleBlockEvaluationOptionalContext);
+    const usesExternalEvaluation = optionalContext.externalEvaluationResults !== undefined;
     const [evaluationRunning, setEvaluationRunning] = React.useState<boolean>(false);
     const [evaluationResult, setEvaluationResult] = React.useState<EvaluatedTransformEntity[]>([]);
     const [evaluationResultMap] = React.useState<Map<string, EvaluationResultType>>(new Map());
@@ -102,30 +106,51 @@ const RuleBlockEvaluation = ({
     const evaluatedSubTreeNode = React.useRef<string>(undefined);
 
     React.useEffect(() => {
-        setEvaluationResult([]);
+        setEvaluationResult(optionalContext.externalEvaluationResults ?? []);
+        toggleEvaluationResults(usesExternalEvaluation);
+        setEvaluationRunning(false);
+        setRuleValidationError(undefined);
         evaluationResultMap.clear();
-        nodeUpdateCallbacks.clear();
-    }, [projectId, ruleBlockTaskId]);
+    }, [optionalContext.externalEvaluationResults, projectId, ruleBlockTaskId, usesExternalEvaluation]);
 
     React.useEffect(() => {
         try {
             const valueMaps = evaluationResult.map((transform) => evaluationTreeToValueMap(transform));
-            nodeUpdateCallbacks.forEach((updateCallback, operatorId) => {
+            const operatorIds = new Set<string>();
+            valueMaps.forEach((valueMap) => {
+                valueMap.forEach((_value, operatorId) => {
+                    operatorIds.add(operatorId);
+                });
+            });
+            evaluationResultMap.clear();
+            operatorIds.forEach((operatorId) => {
                 const evaluationValues = valueMaps.map((valueMap) => {
                     return valueMap.get(operatorId) ?? { value: [] };
                 });
                 evaluationResultMap.set(operatorId, evaluationValues);
-                updateCallback(evaluationResultsShown ? evaluationValues : undefined);
+            });
+            nodeUpdateCallbacks.forEach((updateCallback, operatorId) => {
+                updateCallback(evaluationValuesForOperator(operatorId, evaluationResultsShown));
             });
         } catch (ex) {
             console.warn("Unexpected error has occurred while processing the rule block evaluation result.", ex);
         }
     }, [evaluationResult, evaluationResultsShown]);
 
+    const evaluationValuesForOperator = (
+        operatorId: string,
+        showEvaluationResults: boolean,
+    ): EvaluationResultType | undefined => {
+        if (!showEvaluationResults) {
+            return undefined;
+        }
+        return evaluationResultMap.get(operatorId) ?? [];
+    };
+
     const toggleEvaluationResults = (show: boolean) => {
         if (show) {
             nodeUpdateCallbacks.forEach((updateCallback, ruleOperatorId) => {
-                updateCallback(evaluationResultMap.get(ruleOperatorId));
+                updateCallback(evaluationValuesForOperator(ruleOperatorId, true));
             });
         } else {
             nodeUpdateCallbacks.forEach((updateCallback) => {
@@ -152,6 +177,9 @@ const RuleBlockEvaluation = ({
         originalTask: RuleBlockTaskData,
         _quickEvaluationOnly: boolean = false,
     ) => {
+        if (usesExternalEvaluation) {
+            return;
+        }
         setEvaluationRunning(true);
         setRuleValidationError(undefined);
         let ruleOperatorNodes = _ruleOperatorNodes;
@@ -188,7 +216,7 @@ const RuleBlockEvaluation = ({
         evaluationUpdate: (evaluationValues: EvaluationResultType | undefined) => void,
     ) => {
         nodeUpdateCallbacks.set(ruleOperatorId, evaluationUpdate);
-        evaluationUpdate(evaluationResultMap.get(ruleOperatorId));
+        evaluationUpdate(evaluationValuesForOperator(ruleOperatorId, evaluationResultsShown));
     };
 
     const createRuleEditorEvaluationComponent = (ruleOperatorId: string): React.JSX.Element => {
@@ -214,6 +242,22 @@ const RuleBlockEvaluation = ({
         setRuleValidationError(undefined);
     };
 
+    const evaluationConfigMenu: RuleEditorEvaluationConfigMenu | undefined =
+        !usesExternalEvaluation && onOpenExampleValuesDialog
+            ? {
+                  "data-test-id": "rule-block-evaluation-config-menu",
+                  tooltip: t("common.action.moreOptions", "Show more options"),
+                  menuItems: [
+                      {
+                          "data-test-id": "rule-block-open-example-values",
+                          icon: "item-settings" as const,
+                          action: () => onOpenExampleValuesDialog(),
+                          tooltip: t("taskViews.ruleBlock.exampleValues"),
+                      },
+                  ],
+              }
+            : undefined;
+
     return (
         <RuleEditorEvaluationContext.Provider
             value={{
@@ -228,18 +272,7 @@ const RuleBlockEvaluation = ({
                 ruleValidationError,
                 clearRuleValidationError,
                 fetchTriggerEvaluationFunction: () => {},
-                evaluationConfigMenu: {
-                    "data-test-id": "rule-block-evaluation-config-menu",
-                    tooltip: t("common.action.moreOptions", "Show more options"),
-                    menuItems: [
-                        {
-                            "data-test-id": "rule-block-open-example-values",
-                            icon: "item-settings",
-                            action: onOpenExampleValuesDialog,
-                            tooltip: t("taskViews.ruleBlock.exampleValues"),
-                        },
-                    ],
-                },
+                evaluationConfigMenu,
                 setEvaluationRootNode,
                 evaluationRootNode,
                 canBeEvaluated,

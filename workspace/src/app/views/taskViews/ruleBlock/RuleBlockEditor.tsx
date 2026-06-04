@@ -32,7 +32,13 @@ import { CodeAutocompleteFieldPartialAutoCompleteResult } from "@eccenca/gui-ele
 import ruleUtils from "../shared/rules/rule.utils";
 import { FetchError } from "../../../services/fetch/responseInterceptor";
 import useErrorHandler from "../../../hooks/useErrorHandler";
-import { IRuleBlockInputExample, IRuleBlockModel, IRuleBlockPort, IRuleBlockTaskParameters } from "./ruleBlock.types";
+import {
+    IRuleBlockInputExample,
+    RuleBlockSnapshot,
+    IRuleBlockModel,
+    RuleBlockPort,
+    IRuleBlockTaskParameters,
+} from "./ruleBlock.types";
 import ruleBlockUtils from "./ruleBlock.utils";
 import ruleBlockEditorUtils from "./RuleBlockEditor.utils";
 import ruleBlockPasteUtils from "./ruleBlockPaste.utils";
@@ -40,6 +46,7 @@ import { ExternalSidebarContext } from "../../shared/RuleEditor/contexts/Externa
 import ExampleValuesDialog from "./ExampleValuesDialog";
 import InputPortDialog, { InputPortDialogSubmitValue } from "./InputPortDialog";
 import RuleBlockEvaluation from "./RuleBlockEvaluation";
+import { RuleBlockEvaluationOptionalContext } from "./RuleBlockEvaluationOptionalContext";
 
 export interface RuleBlockEditorProps {
     projectId: string;
@@ -48,9 +55,22 @@ export interface RuleBlockEditorProps {
     instanceId: string;
 }
 
+interface RuleBlockEditorOptionalContextProps {
+    /** When enabled only the rule canvas is shown without side- and toolbar or other editing controls. */
+    showRuleOnly?: boolean;
+    /** When this is defined it will show this rule block snapshot instead of loading the task from the backend. */
+    ruleBlockSnapshot?: RuleBlockSnapshot;
+    /** Optional example values injected for read-only internal evaluation of a concrete rule block usage. */
+    inputExamples?: IRuleBlockInputExample[];
+    /** Optional label used for the synthetic task backing an externally supplied snapshot. */
+    ruleBlockLabel?: string;
+}
+
+export const RuleBlockEditorOptionalContext = React.createContext<RuleBlockEditorOptionalContextProps>({});
+
 type RuleBlockTaskData = IProjectTask<IRuleBlockTaskParameters>;
 type RuleBlockExternalSavedState = {
-    ports: IRuleBlockPort[];
+    ports: RuleBlockPort[];
     inputExamples: IRuleBlockInputExample[];
 };
 type ExampleValuesDialogState = {
@@ -64,10 +84,58 @@ type RuleBlockUsageState = {
     refreshRunning: boolean;
 };
 
+const createRuleBlockTaskFromSnapshot = (
+    projectId: string,
+    ruleBlockTaskId: string,
+    snapshot: RuleBlockSnapshot,
+    inputExamples?: IRuleBlockInputExample[],
+    ruleBlockLabel?: string,
+): RuleBlockTaskData => ({
+    metadata: {
+        label: ruleBlockLabel ?? ruleBlockTaskId,
+    },
+    taskType: "RuleBlock",
+    id: ruleBlockTaskId,
+    project: projectId,
+    data: {
+        type: "RuleBlock",
+        parameters: {
+            ruleBlockModel: {
+                ...snapshot,
+                inputExamples: ruleBlockUtils.cloneInputExamples(inputExamples),
+            },
+        },
+    },
+});
+
 /** Editor for reusable rule block tasks. */
 export const RuleBlockEditor = ({ projectId, ruleBlockTaskId, viewActions, instanceId }: RuleBlockEditorProps) => {
     const { i18n } = useTranslation();
     const { registerError } = useErrorHandler();
+    const optionalContext = React.useContext(RuleBlockEditorOptionalContext);
+    const evaluationOptionalContext = React.useContext(RuleBlockEvaluationOptionalContext);
+    const externalRuleBlockTask = React.useMemo(
+        () =>
+            optionalContext.ruleBlockSnapshot
+                ? createRuleBlockTaskFromSnapshot(
+                      projectId,
+                      ruleBlockTaskId,
+                      optionalContext.ruleBlockSnapshot,
+                      optionalContext.inputExamples,
+                      optionalContext.ruleBlockLabel,
+                  )
+                : undefined,
+        [
+            optionalContext.inputExamples,
+            optionalContext.ruleBlockLabel,
+            optionalContext.ruleBlockSnapshot,
+            projectId,
+            ruleBlockTaskId,
+        ],
+    );
+    const showRuleOnly = !!optionalContext.showRuleOnly;
+    const isExternalSnapshotMode = !!externalRuleBlockTask;
+    const hasExternalEvaluationResults = evaluationOptionalContext.externalEvaluationResults !== undefined;
     const [ports, setPorts] = React.useState(ruleBlockUtils.emptyRuleBlockModel().ports);
     const [persistedPorts, setPersistedPorts] = React.useState(ruleBlockUtils.emptyRuleBlockModel().ports);
     const [inputExamples, setInputExamples] = React.useState(ruleBlockUtils.emptyRuleBlockModel().inputExamples);
@@ -95,7 +163,7 @@ export const RuleBlockEditor = ({ projectId, ruleBlockTaskId, viewActions, insta
         setSidebarReloadToken((currentToken) => currentToken + 1);
     }, []);
 
-    const applyPorts = React.useCallback((nextPorts: IRuleBlockPort[]) => {
+    const applyPorts = React.useCallback((nextPorts: RuleBlockPort[]) => {
         ruleBlockUtils.assertValidPorts(nextPorts);
         const normalizedPorts = ruleBlockUtils.sortRuleBlockPorts(nextPorts);
         setPorts(normalizedPorts);
@@ -105,19 +173,22 @@ export const RuleBlockEditor = ({ projectId, ruleBlockTaskId, viewActions, insta
         bumpSidebarReloadToken();
     }, [bumpSidebarReloadToken]);
 
-    const applyPersistedPorts = React.useCallback((nextPorts: IRuleBlockPort[]) => {
+    const applyPersistedPorts = React.useCallback((nextPorts: RuleBlockPort[]) => {
         ruleBlockUtils.assertValidPorts(nextPorts);
         setPersistedPorts(ruleBlockUtils.sortRuleBlockPorts(nextPorts));
     }, []);
 
     const applyInputExamples = React.useCallback((
         nextInputExamples: IRuleBlockInputExample[],
-        nextPorts: IRuleBlockPort[] = portsRef.current,
+        nextPorts: RuleBlockPort[] = portsRef.current,
     ) => {
         setInputExamples(ruleBlockUtils.pruneInputExamplesToPorts(nextInputExamples, nextPorts));
     }, []);
 
     const refreshRuleBlockUsage = React.useCallback(async () => {
+        if (isExternalSnapshotMode) {
+            return;
+        }
         setRuleBlockUsageState((currentState) => ({
             ...currentState,
             refreshFailed: false,
@@ -139,10 +210,23 @@ export const RuleBlockEditor = ({ projectId, ruleBlockTaskId, viewActions, insta
             });
             bumpSidebarReloadToken();
         }
-    }, [bumpSidebarReloadToken, projectId, ruleBlockTaskId]);
+    }, [bumpSidebarReloadToken, isExternalSnapshotMode, projectId, ruleBlockTaskId]);
 
     const fetchRuleBlockTask = React.useCallback(
         async (currentProjectId: string, taskId: string): Promise<RuleBlockTaskData | undefined> => {
+            if (externalRuleBlockTask) {
+                const loadedPorts = externalRuleBlockTask.data.parameters.ruleBlockModel?.ports ?? [];
+                const loadedInputExamples = externalRuleBlockTask.data.parameters.ruleBlockModel?.inputExamples ?? [];
+                applyPersistedPorts(loadedPorts);
+                applyPorts(loadedPorts);
+                applyInputExamples(loadedInputExamples, loadedPorts);
+                setRuleBlockUsageState({
+                    isInUse: false,
+                    refreshFailed: false,
+                    refreshRunning: false,
+                });
+                return externalRuleBlockTask;
+            }
             try {
                 const taskData = (await requestTaskData<IRuleBlockTaskParameters>(currentProjectId, taskId)).data;
                 const loadedPorts = taskData.data.parameters.ruleBlockModel?.ports ?? [];
@@ -163,7 +247,14 @@ export const RuleBlockEditor = ({ projectId, ruleBlockTaskId, viewActions, insta
                 );
             }
         },
-        [applyInputExamples, applyPersistedPorts, applyPorts, refreshRuleBlockUsage, registerError],
+        [
+            applyInputExamples,
+            applyPersistedPorts,
+            applyPorts,
+            externalRuleBlockTask,
+            refreshRuleBlockUsage,
+            registerError,
+        ],
     );
 
     const fetchTransformRuleOperatorList = React.useCallback(async (): Promise<IPluginDetails[] | undefined> => {
@@ -222,7 +313,7 @@ export const RuleBlockEditor = ({ projectId, ruleBlockTaskId, viewActions, insta
         setExampleValuesDialogState(undefined);
     }, []);
 
-    const isRuleBlockPortArray = (savedState: unknown): savedState is IRuleBlockPort[] =>
+    const isRuleBlockPortArray = (savedState: unknown): savedState is RuleBlockPort[] =>
         Array.isArray(savedState) &&
         savedState.every(
             (port) =>
@@ -299,7 +390,7 @@ export const RuleBlockEditor = ({ projectId, ruleBlockTaskId, viewActions, insta
             .map((node) => node.nodeId);
     }, []);
 
-    const syncInputPortNodeMetaData = React.useCallback((updatedPort: IRuleBlockPort) => {
+    const syncInputPortNodeMetaData = React.useCallback((updatedPort: RuleBlockPort) => {
         const ruleEditorApi = ruleEditorRef.current;
         if (!ruleEditorApi) {
             return;
@@ -320,7 +411,7 @@ export const RuleBlockEditor = ({ projectId, ruleBlockTaskId, viewActions, insta
     }, []);
 
     const syncChangedInputPortNodeMetaData = React.useCallback(
-        (previousPorts: IRuleBlockPort[], nextPorts: IRuleBlockPort[]) => {
+        (previousPorts: RuleBlockPort[], nextPorts: RuleBlockPort[]) => {
             ruleBlockUtils.portsWithChangedDisplayOrder(previousPorts, nextPorts).forEach(syncInputPortNodeMetaData);
         },
         [syncInputPortNodeMetaData],
@@ -731,76 +822,85 @@ export const RuleBlockEditor = ({ projectId, ruleBlockTaskId, viewActions, insta
     );
 
     const externalSidebarContextValue = React.useMemo(() => ({ reloadToken: sidebarReloadToken }), [sidebarReloadToken]);
+    const ruleEditor = (
+        <RuleEditor<RuleBlockTaskData, IPluginDetails>
+            ref={ruleEditorRef}
+            projectId={projectId}
+            taskId={ruleBlockTaskId}
+            fetchRuleData={fetchRuleBlockTask}
+            fetchRuleOperators={fetchTransformRuleOperatorList}
+            saveRule={saveRuleBlock}
+            convertRuleOperator={ruleUtils.convertRuleOperator}
+            convertToRuleOperatorNodes={convertToRuleOperatorNodes}
+            partialAutoCompletion={partialAutoCompletion}
+            viewActions={viewActions}
+            getStickyNotes={ruleBlockEditorUtils.getStickyNotes}
+            // Register the internal operator definition so existing canvas nodes and drag/drop-created nodes
+            // can be materialized. User-facing sidebar entries come from the pre-configured input-port tab.
+            additionalRuleOperators={additionalRuleOperators}
+            additionalToolBarComponents={additionalToolBarComponents}
+            extraRuleNodeMenuItems={extraRuleNodeMenuItems}
+            validateConnection={ruleUtils.validateConnection}
+            tabs={ruleEditorTabs}
+            captureExternalSavedState={captureExternalSavedState}
+            restoreExternalSavedState={restoreExternalSavedState}
+            extendClipboardCopy={extendClipboardCopy}
+            prepareClipboardPaste={prepareClipboardPaste}
+            showRuleOnly={showRuleOnly}
+            instanceId={instanceId}
+            saveInitiallyEnabled={false}
+        />
+    );
 
     return (
         <ExternalSidebarContext.Provider value={externalSidebarContextValue}>
             <>
-                <RuleBlockEvaluation
-                    projectId={projectId}
-                    ruleBlockTaskId={ruleBlockTaskId}
-                    numberOfEntitiesToShow={5}
-                    getPorts={getPorts}
-                    getInputExamples={getInputExamples}
-                    onOpenExampleValuesDialog={openExampleValuesDialog}
-                >
-                    <RuleEditor<RuleBlockTaskData, IPluginDetails>
-                        ref={ruleEditorRef}
+                {!isExternalSnapshotMode || hasExternalEvaluationResults ? (
+                    <RuleBlockEvaluation
                         projectId={projectId}
-                        taskId={ruleBlockTaskId}
-                        fetchRuleData={fetchRuleBlockTask}
-                        fetchRuleOperators={fetchTransformRuleOperatorList}
-                        saveRule={saveRuleBlock}
-                        convertRuleOperator={ruleUtils.convertRuleOperator}
-                        convertToRuleOperatorNodes={convertToRuleOperatorNodes}
-                        partialAutoCompletion={partialAutoCompletion}
-                        viewActions={viewActions}
-                        getStickyNotes={ruleBlockEditorUtils.getStickyNotes}
-                        // Register the internal operator definition so existing canvas nodes and drag/drop-created nodes
-                        // can be materialized. User-facing sidebar entries come from the pre-configured input-port tab.
-                        additionalRuleOperators={additionalRuleOperators}
-                        additionalToolBarComponents={additionalToolBarComponents}
-                        extraRuleNodeMenuItems={extraRuleNodeMenuItems}
-                        validateConnection={ruleUtils.validateConnection}
-                        tabs={ruleEditorTabs}
-                        captureExternalSavedState={captureExternalSavedState}
-                        restoreExternalSavedState={restoreExternalSavedState}
-                        extendClipboardCopy={extendClipboardCopy}
-                        prepareClipboardPaste={prepareClipboardPaste}
-                        showRuleOnly={false}
-                        instanceId={instanceId}
-                        saveInitiallyEnabled={false}
-                    />
-                </RuleBlockEvaluation>
-                <InputPortDialog
-                    isOpen={!!inputPortDialogState}
-                    mode={inputPortDialogState?.mode ?? "create"}
-                    initialPort={inputPortDialogInitialValue}
-                    existingPorts={ports}
-                    persistedPorts={persistedPorts}
-                    isRuleBlockInUse={ruleBlockIsInUse}
-                    editedPortId={editedPort?.id}
-                    onClose={closeInputPortDialog}
-                    onSubmit={submitInputPortDialog}
-                />
-                {exampleValuesDialogState ? (
-                    <ExampleValuesDialog
-                        ports={ports}
-                        inputExamples={inputExamples}
-                        highlightedPortId={exampleValuesDialogState.highlightedPortId}
-                        onClose={closeExampleValuesDialog}
-                        onApply={applyExampleValues}
-                    />
-                ) : null}
-                {
-                    deleteInputPortDialogState ?
+                        ruleBlockTaskId={ruleBlockTaskId}
+                        numberOfEntitiesToShow={5}
+                        getPorts={getPorts}
+                        getInputExamples={getInputExamples}
+                        onOpenExampleValuesDialog={!isExternalSnapshotMode ? openExampleValuesDialog : undefined}
+                    >
+                        {ruleEditor}
+                    </RuleBlockEvaluation>
+                ) : (
+                    ruleEditor
+                )}
+                {!isExternalSnapshotMode ? (
+                    <>
+                        <InputPortDialog
+                            isOpen={!!inputPortDialogState}
+                            mode={inputPortDialogState?.mode ?? "create"}
+                            initialPort={inputPortDialogInitialValue}
+                            existingPorts={ports}
+                            persistedPorts={persistedPorts}
+                            isRuleBlockInUse={ruleBlockIsInUse}
+                            editedPortId={editedPort?.id}
+                            onClose={closeInputPortDialog}
+                            onSubmit={submitInputPortDialog}
+                        />
+                        {exampleValuesDialogState ? (
+                            <ExampleValuesDialog
+                                ports={ports}
+                                inputExamples={inputExamples}
+                                highlightedPortId={exampleValuesDialogState.highlightedPortId}
+                                onClose={closeExampleValuesDialog}
+                                onApply={applyExampleValues}
+                            />
+                        ) : null}
+                        {deleteInputPortDialogState ?
                         <ConfirmDeleteInputPortDialog
                             instanceCount={deleteInputPortDialogState.instanceCount}
                             portLabel={deletePort?.label}
                             onConfirm={confirmDeleteInputPort}
                             onClose={closeDeleteInputPortDialog}
                         /> :
-                        null
-                }
+                        null}
+                    </>
+                ) : null}
             </>
         </ExternalSidebarContext.Provider>
     );

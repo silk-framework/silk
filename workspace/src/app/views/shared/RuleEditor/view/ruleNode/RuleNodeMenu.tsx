@@ -45,6 +45,9 @@ export const RuleNodeMenu = ({
     const extraMenuItems = currentRuleNode
         ? ruleEditorContext.extraRuleNodeMenuItems?.(currentRuleNode, closeMenu)
         : undefined;
+    const canEvaluateRuleBlock =
+        currentRuleNode?.pluginType === "RuleBlock" &&
+        !!ruleEvaluationContext.canEvaluateRuleBlock?.(nodeId, currentRuleNode.pluginId);
 
     const nodeDimensions = utils.nodeById(modelContext.elements, nodeId)?.data.nodeDimensions;
     const resizeResetIsDisabled = !nodeDimensions?.width && !nodeDimensions?.height;
@@ -101,6 +104,30 @@ export const RuleNodeMenu = ({
                         htmlTitle={t(
                             "RuleEditor.node.menu.subtree.description",
                             "Evaluate linking tree partially until this operator node.",
+                        )}
+                    />
+                ) : null}
+                {canEvaluateRuleBlock && currentRuleNode ? (
+                    <MenuItem
+                        data-test-id="rule-node-open-internal-rule-block-evaluation-btn"
+                        key="open-internal-rule-block-evaluation"
+                        icon="item-viewdetails"
+                        onClick={(e) => {
+                            e.preventDefault();
+                            closeMenu();
+                            ruleEvaluationContext.openInternalRuleBlockEvaluation?.(
+                                nodeId,
+                                currentRuleNode.pluginId,
+                                currentRuleNode.label,
+                            );
+                        }}
+                        text={t(
+                            "RuleEditor.node.menu.openInternalRuleBlockEvaluation.label",
+                            "Show internal evaluation",
+                        )}
+                        htmlTitle={t(
+                            "RuleEditor.node.menu.openInternalRuleBlockEvaluation.description",
+                            "Show the latest available internal evaluation for this reusable rule block usage.",
                         )}
                     />
                 ) : null}

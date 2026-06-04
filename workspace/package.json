@@ -19,6 +19,8 @@
         "build-di-dev": "node --openssl-legacy-provider scripts/build-di.dev.js",
         "build-di-prod": "node --openssl-legacy-provider --max_old_space_size=2048 scripts/build-di.prod.js",
         "test": "node scripts/test.js",
+        "test-debug": "cross-env DEBUG=true node scripts/test.js --detectOpenHandles --runInBand --no-watch",
+        "test-workers-debug": "cross-env DEBUG=true node scripts/test.js --detectOpenHandles --no-watch --maxWorkers=2",
         "test-ci": "export CI=true && node scripts/test.js --coverage --reporters=\"default\" --reporters=\"jest-junit\" --no-colors --ci --silent",
         "i18n-parser": "node scripts/i18next-scanner.js",
         "trace-resolution": "tsc --traceResolution",

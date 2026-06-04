@@ -1,7 +1,7 @@
 import { StickyNote } from "@eccenca/gui-elements";
 import { IValueInput, RuleLayout } from "../shared/rules/rule.typings";
 
-export interface IRuleBlockPort {
+export interface RuleBlockPort {
     id: string;
     label: string;
     description: string;
@@ -15,36 +15,37 @@ export interface IRuleBlockInputExample {
     inputs: Record<string, string[]>;
 }
 
-export interface IRuleBlockUiAnnotations {
+export interface RuleBlockUiAnnotations {
     stickyNotes?: StickyNote[];
 }
 
 export interface IRuleBlockModel {
-    ports: IRuleBlockPort[];
+    ports: RuleBlockPort[];
     inputExamples: IRuleBlockInputExample[];
     operatorTree?: IValueInput;
     layout: RuleLayout;
-    uiAnnotations?: IRuleBlockUiAnnotations;
+    uiAnnotations?: RuleBlockUiAnnotations;
 }
 
 export interface IRuleBlockTaskParameters {
     ruleBlockModel?: IRuleBlockModel;
 }
 
-export interface IRuleBlockInspectionSnapshot {
-    ports: IRuleBlockPort[];
+/** The relevant data of a rule block that allows evaluating it with external values. */
+export interface RuleBlockSnapshot {
+    ports: RuleBlockPort[];
     operatorTree?: IValueInput;
     layout: RuleLayout;
-    uiAnnotations?: IRuleBlockUiAnnotations;
+    uiAnnotations?: RuleBlockUiAnnotations;
 }
 
-export interface IRuleBlockInspection {
-    snapshots: Record<string, IRuleBlockInspectionSnapshot>;
+export interface IRuleBlockSnapshots {
+    snapshots: Record<string, RuleBlockSnapshot>;
 }
 
 export interface IRuleBlockSummary {
     id: string;
     label: string;
     description?: string;
-    ports: IRuleBlockPort[];
+    ports: RuleBlockPort[];
 }

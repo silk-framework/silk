@@ -217,9 +217,16 @@ class LinkingTaskApiTest extends PlaySpec with IntegrationTestTrait {
 
     val ruleValues = (jsLinks.head \ LinkJsonFormat.RULE_VALUES).toOption
     ruleValues mustBe defined
-    val snapshotOperatorId = (snapshots(ruleBlockTaskId) \ "operatorTree" \ "id").as[String]
-    (((ruleValues.get \ "sourceValue" \ "children").as[JsArray].value.head) \ "operatorId").as[String] mustBe snapshotOperatorId
-    (((ruleValues.get \ "targetValue" \ "children").as[JsArray].value.head) \ "operatorId").as[String] mustBe snapshotOperatorId
+    val sourceBindingValues = (ruleValues.get \ "sourceValue" \ "children").as[JsArray].value
+    sourceBindingValues must have size 1
+    (sourceBindingValues.head \ "operatorId").as[String] mustBe "sourceLabel"
+    (sourceBindingValues.head \ "values").as[Seq[String]] mustBe Seq("entry 1")
+    (sourceBindingValues.head \ "children").as[JsArray].value mustBe empty
+    val targetBindingValues = (ruleValues.get \ "targetValue" \ "children").as[JsArray].value
+    targetBindingValues must have size 1
+    (targetBindingValues.head \ "operatorId").as[String] mustBe "targetLabel"
+    (targetBindingValues.head \ "values").as[Seq[String]] mustBe Seq("entry 1")
+    (targetBindingValues.head \ "children").as[JsArray].value mustBe empty
   }
 
   private def linkCountMustBe(resultJson: JsValue, expectedCount: Int): Seq[Link] = {

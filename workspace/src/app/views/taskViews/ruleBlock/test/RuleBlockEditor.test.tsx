@@ -4,10 +4,17 @@ import { act, fireEvent, render, screen, waitFor } from "@testing-library/react"
 import type { IProjectTask } from "@ducks/shared/typings";
 import type { StickyNote } from "../../../../../../../libs/gui-elements";
 import jestTestUtils from "../../../../test/jestTestUtils";
+import ruleTestHelper from "../../shared/rules/tests/ruleTestHelper";
+import type { EvaluatedTransformEntity } from "../../transform/transform.types";
 import { RuleValidationError } from "../../../shared/RuleEditor/RuleEditor.typings";
 import type { IRuleOperatorNode, RuleSaveResult } from "../../../shared/RuleEditor/RuleEditor.typings";
 import type { RuleClipboardTask } from "../../../shared/RuleEditor/model/RuleEditorModel.typings";
-import type { IRuleBlockInputExample, IRuleBlockPort, IRuleBlockTaskParameters } from "../ruleBlock.types";
+import type {
+    IRuleBlockInputExample,
+    RuleBlockSnapshot,
+    RuleBlockPort,
+    IRuleBlockTaskParameters,
+} from "../ruleBlock.types";
 import type { IRuleSidebarPreConfiguredOperatorsTabConfig } from "../../../shared/RuleEditor/RuleEditor.typings";
 import type { IPreConfiguredRuleOperator } from "../../../shared/RuleEditor/view/sidebar/RuleEditorOperatorSidebar.typings";
 import type { InputPortDialogSubmitValue } from "../InputPortDialog";
@@ -15,6 +22,7 @@ import type { InputPortDialogSubmitValue } from "../InputPortDialog";
 type CapturedRuleEditorProps = {
     projectId: string;
     taskId: string;
+    showRuleOnly?: boolean;
     fetchRuleData: (projectId: string, taskId: string) => Promise<unknown> | unknown;
     saveRule: (
         ruleOperatorNodes: IRuleOperatorNode[],
@@ -35,15 +43,15 @@ type CapturedInputPortDialogProps = {
     mode: "create" | "edit";
     editedPortId?: string;
     initialPort: InputPortDialogSubmitValue;
-    existingPorts: IRuleBlockPort[];
-    persistedPorts: IRuleBlockPort[];
+    existingPorts: RuleBlockPort[];
+    persistedPorts: RuleBlockPort[];
     isRuleBlockInUse: boolean;
     onSubmit: (value: InputPortDialogSubmitValue) => void;
     onClose: () => void;
 };
 
 type CapturedExampleValuesDialogProps = {
-    ports: IRuleBlockPort[];
+    ports: RuleBlockPort[];
     inputExamples: IRuleBlockInputExample[];
     highlightedPortId?: string;
     onClose: () => void;
@@ -54,7 +62,7 @@ type CapturedRuleBlockEvaluationProps = {
     projectId: string;
     ruleBlockTaskId: string;
     numberOfEntitiesToShow: number;
-    getPorts: () => IRuleBlockPort[];
+    getPorts: () => RuleBlockPort[];
     getInputExamples: () => IRuleBlockInputExample[];
     onOpenExampleValuesDialog: (highlightedPortId?: string) => void;
     children: React.ReactNode;
@@ -173,9 +181,14 @@ const createRuleBlockEditorHarness = () => {
         },
     }));
 
-    const { RuleBlockEditor } = require("../RuleBlockEditor") as typeof import("../RuleBlockEditor");
+    const { RuleBlockEditor, RuleBlockEditorOptionalContext } =
+        require("../RuleBlockEditor") as typeof import("../RuleBlockEditor");
+    const { RuleBlockEvaluationOptionalContext } =
+        require("../RuleBlockEvaluationOptionalContext") as typeof import("../RuleBlockEvaluationOptionalContext");
     return {
         RuleBlockEditor,
+        RuleBlockEditorOptionalContext,
+        RuleBlockEvaluationOptionalContext,
         mockRequestTaskData,
         mockRequestRelatedItems,
         mockRequestUpdateProjectTask,
@@ -189,55 +202,34 @@ const createRuleBlockEditorHarness = () => {
 
 type RuleBlockEditorHarness = ReturnType<typeof createRuleBlockEditorHarness>;
 
-const createPersistedPort = (overrides: Partial<IRuleBlockPort> = {}): IRuleBlockPort => ({
-    id: "inputPortA",
-    label: "Input A",
-    description: "Input description",
-    displayOrder: 2,
-    deprecated: false,
-    ...overrides,
-});
+const createPersistedPort = (overrides: Partial<RuleBlockPort> = {}): RuleBlockPort =>
+    ruleTestHelper.createRuleBlockPort({
+        description: "Input description",
+        displayOrder: 2,
+        ...overrides,
+    });
 
 const createRuleBlockTask = (
-    ports: IRuleBlockPort[] = [],
+    ports: RuleBlockPort[] = [],
     inputExamples: IRuleBlockInputExample[] = [],
 ): IProjectTask<IRuleBlockTaskParameters> =>
-    ({
-        metadata: {
-            label: "Rule block task",
-        },
-        taskType: "RuleBlock",
-        id: "ruleBlockTask",
-        project: "project1",
-        data: {
-            type: "RuleBlock",
-            parameters: {
-                ruleBlockModel: {
-                    ports,
-                    inputExamples,
-                    layout: { nodePositions: {} },
-                    uiAnnotations: { stickyNotes: [] },
-                },
-            },
-        },
-    }) as IProjectTask<IRuleBlockTaskParameters>;
+    ruleTestHelper.createRuleBlockTask(ports, inputExamples) as IProjectTask<IRuleBlockTaskParameters>;
 
-const createInputPortNode = (overrides: Partial<IRuleOperatorNode> = {}): IRuleOperatorNode => ({
-    nodeId: "nodeA",
-    pluginType: "InputPortOperator",
-    pluginId: "inputPort",
-    label: "Input port node",
-    parameters: {
-        portId: "inputPortA",
-    },
-    inputs: [],
-    portSpecification: {
-        type: "count",
-        minInputPorts: 0,
-    },
-    inputsCanBeSwitched: false,
-    ...overrides,
-});
+const createRuleBlockInspectionSnapshot = (ports: RuleBlockPort[] = []): RuleBlockSnapshot =>
+    ruleTestHelper.createRuleBlockInspectionSnapshot({
+        ports,
+    });
+
+const createInputPortNode = (overrides: Partial<IRuleOperatorNode> = {}): IRuleOperatorNode =>
+    ruleTestHelper.createInputPortNode({
+        nodeId: "nodeA",
+        label: "Input port node",
+        portSpecification: {
+            type: "count",
+            minInputPorts: 0,
+        },
+        ...overrides,
+    });
 
 const createClipboardTask = (overrides: Partial<RuleClipboardTask> = {}): RuleClipboardTask => ({
     data: {
@@ -255,13 +247,13 @@ const createClipboardTask = (overrides: Partial<RuleClipboardTask> = {}): RuleCl
 
 const getInputPortsTab = (
     tabs: unknown[] | undefined,
-): IRuleSidebarPreConfiguredOperatorsTabConfig<IRuleBlockPort | { type: "create" }> =>
+): IRuleSidebarPreConfiguredOperatorsTabConfig<RuleBlockPort | { type: "create" }> =>
     tabs?.find((tab) => (tab as { id?: string }).id === "inputPorts") as IRuleSidebarPreConfiguredOperatorsTabConfig<
-        IRuleBlockPort | { type: "create" }
+        RuleBlockPort | { type: "create" }
     >;
 
 const fetchInputPortTabItems = async (
-    tab: IRuleSidebarPreConfiguredOperatorsTabConfig<IRuleBlockPort | { type: "create" }>,
+    tab: IRuleSidebarPreConfiguredOperatorsTabConfig<RuleBlockPort | { type: "create" }>,
 ) => {
     const items = await tab.fetchOperators("en");
     expect(items).toBeDefined();
@@ -277,12 +269,18 @@ const renderRuleBlockEditor = async ({
     ruleOperatorNodes = [],
     relatedItemsTotal = 0,
     relatedItemsError = false,
+    externalSnapshot,
+    externalEvaluationResults,
+    showRuleOnly = false,
 }: {
-    ports?: IRuleBlockPort[];
+    ports?: RuleBlockPort[];
     inputExamples?: IRuleBlockInputExample[];
     ruleOperatorNodes?: IRuleOperatorNode[];
     relatedItemsTotal?: number;
     relatedItemsError?: boolean;
+    externalSnapshot?: RuleBlockSnapshot;
+    externalEvaluationResults?: EvaluatedTransformEntity[];
+    showRuleOnly?: boolean;
 } = {}) => {
     const harness = createRuleBlockEditorHarness();
     harness.mockRequestTaskData.mockResolvedValue({
@@ -299,7 +297,28 @@ const renderRuleBlockEditor = async ({
     }
     harness.mockRuleEditorApi.ruleOperatorNodes.mockReturnValue(ruleOperatorNodes);
 
-    render(<harness.RuleBlockEditor projectId="project1" ruleBlockTaskId="task1" instanceId="instance1" />);
+    const editorElement = <harness.RuleBlockEditor projectId="project1" ruleBlockTaskId="task1" instanceId="instance1" />;
+    const maybeSnapshotWrappedEditor = externalSnapshot ? (
+        <harness.RuleBlockEditorOptionalContext.Provider
+            value={{
+                ruleBlockSnapshot: externalSnapshot,
+                showRuleOnly,
+            }}
+        >
+            {editorElement}
+        </harness.RuleBlockEditorOptionalContext.Provider>
+    ) : (
+        editorElement
+    );
+    render(
+        externalEvaluationResults !== undefined ? (
+            <harness.RuleBlockEvaluationOptionalContext.Provider value={{ externalEvaluationResults }}>
+                {maybeSnapshotWrappedEditor}
+            </harness.RuleBlockEvaluationOptionalContext.Provider>
+        ) : (
+            maybeSnapshotWrappedEditor
+        ),
+    );
 
     await waitFor(() => expect(harness.getCapturedRuleEditorProps()).toBeDefined());
 
@@ -347,6 +366,43 @@ const renderToolbarActions = async (harness: RuleBlockEditorHarness) => {
 };
 
 describe("RuleBlockEditor", () => {
+    it("should render an injected snapshot in canvas-only mode without fetching the task or evaluation state", async () => {
+        const snapshotPort = createPersistedPort({
+            id: "snapshotPort",
+            label: "Snapshot port",
+        });
+        const editor = await renderRuleBlockEditor({
+            externalSnapshot: createRuleBlockInspectionSnapshot([snapshotPort]),
+            showRuleOnly: true,
+        });
+
+        expect(editor.mockRequestTaskData).not.toHaveBeenCalled();
+        expect(editor.mockRequestRelatedItems).not.toHaveBeenCalled();
+        expect(editor.getRuleBlockEvaluationProps()).toBeUndefined();
+        expect(screen.queryByTestId("input-port-dialog")).not.toBeInTheDocument();
+        expect(screen.queryByTestId("example-values-dialog")).not.toBeInTheDocument();
+        expect(editor.getRuleEditorProps().showRuleOnly).toBe(true);
+        expect(editor.getRuleEditorProps().captureExternalSavedState?.()).toStrictEqual({
+            ports: [snapshotPort],
+            inputExamples: [],
+        });
+    });
+
+    it("should wrap an injected snapshot in the evaluation path even when external evaluation results are empty", async () => {
+        const editor = await renderRuleBlockEditor({
+            externalSnapshot: createRuleBlockInspectionSnapshot([createPersistedPort()]),
+            externalEvaluationResults: [],
+            showRuleOnly: true,
+        });
+
+        expect(editor.getRuleBlockEvaluationProps()).toMatchObject({
+            projectId: "project1",
+            ruleBlockTaskId: "task1",
+        });
+        expect(editor.mockRequestTaskData).not.toHaveBeenCalled();
+        expect(editor.mockRequestRelatedItems).not.toHaveBeenCalled();
+    });
+
     it("should return a validation error when saving malformed input-port nodes without a logical port ID", async () => {
         const editor = await renderRuleBlockEditor({
             ports: [createPersistedPort()],
@@ -566,7 +622,7 @@ describe("RuleBlockEditor", () => {
             createChange.do();
         });
         expect(
-            (editor.getRuleEditorProps().captureExternalSavedState!() as { ports: IRuleBlockPort[] }).ports,
+            (editor.getRuleEditorProps().captureExternalSavedState!() as { ports: RuleBlockPort[] }).ports,
         ).toContainEqual(
             expect.objectContaining({
                 label: "Created input",
@@ -618,7 +674,7 @@ describe("RuleBlockEditor", () => {
             updateChange.do();
         });
         expect(
-            (editor.getRuleEditorProps().captureExternalSavedState!() as { ports: IRuleBlockPort[] }).ports,
+            (editor.getRuleEditorProps().captureExternalSavedState!() as { ports: RuleBlockPort[] }).ports,
         ).toContainEqual({
             id: "inputPortA",
             label: "Updated input",
@@ -964,7 +1020,7 @@ describe("RuleBlockEditor", () => {
         });
 
         expect(
-            (editor.getRuleEditorProps().captureExternalSavedState!() as { ports: IRuleBlockPort[] }).ports,
+            (editor.getRuleEditorProps().captureExternalSavedState!() as { ports: RuleBlockPort[] }).ports,
         ).toContainEqual(
             expect.objectContaining({
                 label: "External input",

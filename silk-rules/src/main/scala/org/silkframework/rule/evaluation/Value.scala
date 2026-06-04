@@ -55,9 +55,9 @@ case class TransformedValue(input: TransformInput, values: Seq[String], children
 /**
  * An intermediate value of a rule block usage evaluation.
  */
-case class RuleBlockValue(input: RuleBlockInput, values: Seq[String], internalValue: Option[Value], error: Option[Throwable] = None) extends Value {
+case class RuleBlockValue(input: RuleBlockInput, values: Seq[String], bindingValues: Seq[Value], error: Option[Throwable] = None) extends Value {
 
-  override def children: Seq[Value] = internalValue.toSeq
+  override def children: Seq[Value] = bindingValues
 
   def withError(ex: Throwable): Value = copy(error = Some(ex))
 }

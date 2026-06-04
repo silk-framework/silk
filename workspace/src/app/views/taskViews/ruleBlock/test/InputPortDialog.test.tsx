@@ -3,7 +3,7 @@ import "@testing-library/jest-dom";
 import { fireEvent, render, screen } from "@testing-library/react";
 import jestTestUtils from "../../../../test/jestTestUtils";
 import type { InputPortDialogSubmitValue } from "../InputPortDialog";
-import type { IRuleBlockPort } from "../ruleBlock.types";
+import type { RuleBlockPort } from "../ruleBlock.types";
 
 const createFormGuiElementsModule = () => {
     const React = require("react");
@@ -30,7 +30,7 @@ const loadInputPortDialog = () => {
     return require("../InputPortDialog").default as typeof import("../InputPortDialog").default;
 };
 
-const existingPort = (overrides: Partial<IRuleBlockPort> = {}): IRuleBlockPort => ({
+const existingPort = (overrides: Partial<RuleBlockPort> = {}): RuleBlockPort => ({
     id: "inputPortA",
     label: "Input A",
     description: "Existing description",
@@ -156,8 +156,8 @@ describe("InputPortDialog", () => {
             isOpen: true,
             mode: "create" as const,
             initialPort: initial,
-            existingPorts: [] as IRuleBlockPort[],
-            persistedPorts: [] as IRuleBlockPort[],
+            existingPorts: [] as RuleBlockPort[],
+            persistedPorts: [] as RuleBlockPort[],
             isRuleBlockInUse: false,
             onClose: jest.fn(),
             onSubmit: jest.fn(),

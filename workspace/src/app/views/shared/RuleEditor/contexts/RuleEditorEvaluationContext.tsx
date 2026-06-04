@@ -62,6 +62,12 @@ export interface RuleEditorEvaluationContextProps {
     /** Checks if the sub-tree at the given node type can be evaluated. */
     canBeEvaluated: (nodeType: string | undefined) => boolean;
 
+    /** Checks if all necessary data is available in order to evaluate the internals of the given reusable rule block operator. */
+    canEvaluateRuleBlock?: (nodeId: string, ruleBlockId: string) => boolean;
+
+    /** Opens the internal evaluation view for the given reusable rule block usage node. */
+    openInternalRuleBlockEvaluation?: (nodeId: string, ruleBlockId: string, ruleBlockLabel?: string) => void;
+
     ruleType?: "transform" | "linking";
 }
 
@@ -97,6 +103,8 @@ export const ruleEditorEvaluationContextDefaultValue: RuleEditorEvaluationContex
     setEvaluationRootNode: NOP,
     evaluationRootNode: () => undefined,
     canBeEvaluated: () => false,
+    canEvaluateRuleBlock: () => false,
+    openInternalRuleBlockEvaluation: NOP,
 };
 
 /** Context of rule editor evaluation component. */

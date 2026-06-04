@@ -1,7 +1,7 @@
 import { StickyNote } from "@eccenca/gui-elements";
 import { IRuleOperatorNode, RuleSaveNodeError } from "../../shared/RuleEditor/RuleEditor.typings";
 import { ruleEditorNodeParameterValue } from "../../shared/RuleEditor/model/RuleEditorModel.typings";
-import { IRuleBlockInputExample, IRuleBlockModel, IRuleBlockPort } from "./ruleBlock.types";
+import { IRuleBlockInputExample, IRuleBlockModel, RuleBlockPort } from "./ruleBlock.types";
 
 /** Creates the default empty rule block model used for new or incomplete tasks. */
 const emptyRuleBlockModel = (): IRuleBlockModel => ({
@@ -31,7 +31,7 @@ const cloneInputExamples = (inputExamples?: IRuleBlockInputExample[]): IRuleBloc
 /** Drops example inputs for ports that no longer exist in the current logical input-port set. */
 const pruneInputExamplesToPorts = (
     inputExamples: IRuleBlockInputExample[],
-    ports: Iterable<IRuleBlockPort>,
+    ports: Iterable<RuleBlockPort>,
 ): IRuleBlockInputExample[] => {
     const knownPortIds = new Set([...ports].map((port) => port.id));
     return cloneInputExamples(inputExamples).map((example) => ({
@@ -58,7 +58,7 @@ const requirePortId = (node: IRuleOperatorNode): string => {
 };
 
 /** Enforces the logical port invariants expected by the rule block editor runtime. */
-const assertValidPorts = (ports: IRuleBlockPort[]): void => {
+const assertValidPorts = (ports: RuleBlockPort[]): void => {
     const seenPortIds = new Set<string>();
     ports.forEach((port) => {
         if (!port.id.trim()) {
@@ -71,10 +71,10 @@ const assertValidPorts = (ports: IRuleBlockPort[]): void => {
     });
 };
 
-const portDisplayName = (port: IRuleBlockPort | undefined, fallbackId: string): string =>
+const portDisplayName = (port: RuleBlockPort | undefined, fallbackId: string): string =>
     port?.label?.trim() || fallbackId;
 
-const samePortDefinition = (left: IRuleBlockPort, right: IRuleBlockPort): boolean => {
+const samePortDefinition = (left: RuleBlockPort, right: RuleBlockPort): boolean => {
     return (
         left.id === right.id &&
         left.label === right.label &&
@@ -96,17 +96,17 @@ const parseDisplayOrder = (node: IRuleOperatorNode, fallback: number): number | 
     return Number.isInteger(parsedValue) ? parsedValue : undefined;
 };
 
-const nextGeneratedDisplayOrder = (ports: IRuleBlockPort[]): number =>
+const nextGeneratedDisplayOrder = (ports: RuleBlockPort[]): number =>
     ports.reduce((maxDisplayOrder, port) => Math.max(maxDisplayOrder, port.displayOrder), 0) + 1;
 
-const sortPortDefinitions = (ports: Iterable<IRuleBlockPort>): IRuleBlockPort[] =>
+const sortPortDefinitions = (ports: Iterable<RuleBlockPort>): RuleBlockPort[] =>
     // Valid port definitions keep display orders unique. The secondary ID sort only provides deterministic order for
     // transiently duplicated or malformed states while validation is still running.
     [...ports].sort((left, right) => left.displayOrder - right.displayOrder || left.id.localeCompare(right.id));
 
-const orderedPortIds = (ports: Iterable<IRuleBlockPort>): string[] => sortPortDefinitions(ports).map((port) => port.id);
+const orderedPortIds = (ports: Iterable<RuleBlockPort>): string[] => sortPortDefinitions(ports).map((port) => port.id);
 
-const duplicateDisplayOrders = (ports: Iterable<IRuleBlockPort>): number[] =>
+const duplicateDisplayOrders = (ports: Iterable<RuleBlockPort>): number[] =>
     [...[...ports].reduce((displayOrderCount, port) => {
         displayOrderCount.set(port.displayOrder, (displayOrderCount.get(port.displayOrder) ?? 0) + 1);
         return displayOrderCount;
@@ -117,7 +117,7 @@ const duplicateDisplayOrders = (ports: Iterable<IRuleBlockPort>): number[] =>
 
 interface PortDefinitionCollectionResult {
     nodeErrors: RuleSaveNodeError[];
-    portDefinitions?: IRuleBlockPort[];
+    portDefinitions?: RuleBlockPort[];
 }
 
 interface UsedPortCompatibilityResult {
@@ -126,7 +126,7 @@ interface UsedPortCompatibilityResult {
 }
 
 /** Returns true if a logical port belongs to the persisted rule block baseline. */
-const isPersistedPort = (persistedPorts: Iterable<IRuleBlockPort>, portId: string): boolean =>
+const isPersistedPort = (persistedPorts: Iterable<RuleBlockPort>, portId: string): boolean =>
     [...persistedPorts].some((port) => port.id === portId);
 
 /** Returns validation errors for malformed input-port nodes that are missing their logical port ID. */
@@ -147,14 +147,14 @@ const validateMissingPortIds = (
 
 /** Collects and validates persisted port definitions from the current input port nodes. */
 const collectPortDefinitions = (
-    persistedPorts: IRuleBlockPort[],
+    persistedPorts: RuleBlockPort[],
     inputPortNodes: IRuleOperatorNode[],
     invalidDisplayOrderMessage: string,
     conflictingPortDefinitionsMessage: (portId: string) => string,
 ): PortDefinitionCollectionResult => {
     const persistedPortDefinitions = new Map(persistedPorts.map((port) => [port.id, port] as const));
     const updatedPortDefinitions = new Map(persistedPortDefinitions);
-    const referencedPortDefinitions = new Map<string, IRuleBlockPort>();
+    const referencedPortDefinitions = new Map<string, RuleBlockPort>();
     const nodeErrors: RuleSaveNodeError[] = [];
     let generatedDisplayOrder = nextGeneratedDisplayOrder(persistedPorts);
 
@@ -172,7 +172,7 @@ const collectPortDefinitions = (
             });
             return;
         }
-        const portDefinition: IRuleBlockPort = {
+        const portDefinition: RuleBlockPort = {
             id: portId,
             label: ruleEditorNodeParameterValue(node.parameters["label"]) ?? "",
             description: ruleEditorNodeParameterValue(node.parameters["description"]) ?? "",
@@ -210,7 +210,7 @@ const collectPortDefinitions = (
 
 /** Validates that logical port display orders remain unique in the merged persisted rule block model. */
 const validateDuplicateDisplayOrders = (
-    updatedPorts: IRuleBlockPort[],
+    updatedPorts: RuleBlockPort[],
     inputPortNodes: IRuleOperatorNode[],
     duplicateDisplayOrderMessage: (displayOrder: number) => string,
 ): RuleSaveNodeError[] => {
@@ -243,8 +243,8 @@ const validateDuplicateDisplayOrders = (
 
 /** Validates that structurally frozen ports keep their ID and display order once the rule block is already in use. */
 const validateUsedPortCompatibility = (
-    persistedPorts: IRuleBlockPort[],
-    updatedPorts: IRuleBlockPort[],
+    persistedPorts: RuleBlockPort[],
+    updatedPorts: RuleBlockPort[],
     inputPortNodes: IRuleOperatorNode[],
     removedPortMessage: (portName: string) => string,
     reorderedPortMessage: (portName: string) => string,
@@ -305,10 +305,10 @@ const validateUsedPortCompatibility = (
 
 /** Validates whether editing a single logical port would violate the used-rule-block compatibility contract. */
 const validateUsedPortUpdateCompatibility = (
-    persistedPorts: IRuleBlockPort[],
-    currentPorts: IRuleBlockPort[],
+    persistedPorts: RuleBlockPort[],
+    currentPorts: RuleBlockPort[],
     editedPortId: string,
-    updatedPort: IRuleBlockPort,
+    updatedPort: RuleBlockPort,
     reorderedPortMessage: (portName: string) => string,
 ): string | undefined =>
     validateUsedPortCompatibility(
@@ -320,14 +320,14 @@ const validateUsedPortUpdateCompatibility = (
     ).errorMessage;
 
 /** Returns the input ports in their stable UI order. */
-const sortRuleBlockPorts = (ports: Iterable<IRuleBlockPort>): IRuleBlockPort[] => sortPortDefinitions(ports);
+const sortRuleBlockPorts = (ports: Iterable<RuleBlockPort>): RuleBlockPort[] => sortPortDefinitions(ports);
 
 /** Returns true if the current display orders already match the dense canonical rank 1..n. */
-const isNormalizedPortDisplayOrder = (ports: IRuleBlockPort[]): boolean =>
+const isNormalizedPortDisplayOrder = (ports: RuleBlockPort[]): boolean =>
     sortPortDefinitions(ports).every((port, index) => port.displayOrder === index + 1);
 
 /** Renumbers display orders to dense ranks 1..n while preserving the current relative order. */
-const normalizePortDisplayOrder = (ports: IRuleBlockPort[]): IRuleBlockPort[] =>
+const normalizePortDisplayOrder = (ports: RuleBlockPort[]): RuleBlockPort[] =>
     sortPortDefinitions(ports).map((port, index) => ({
         ...port,
         displayOrder: index + 1,
@@ -335,9 +335,9 @@ const normalizePortDisplayOrder = (ports: IRuleBlockPort[]): IRuleBlockPort[] =>
 
 /** Returns the ports whose visible display order changed between two states. */
 const portsWithChangedDisplayOrder = (
-    previousPorts: IRuleBlockPort[],
-    nextPorts: IRuleBlockPort[],
-): IRuleBlockPort[] => {
+    previousPorts: RuleBlockPort[],
+    nextPorts: RuleBlockPort[],
+): RuleBlockPort[] => {
     const previousPortsById = new Map(previousPorts.map((port) => [port.id, port] as const));
     return nextPorts.filter((port) => {
         const previousPort = previousPortsById.get(port.id);
@@ -347,8 +347,8 @@ const portsWithChangedDisplayOrder = (
 
 /** Generates the next suggested initial values for a newly created input port. */
 const nextInputPortDefaults = (
-    ports: IRuleBlockPort[],
-): Pick<IRuleBlockPort, "label" | "description" | "displayOrder" | "deprecated"> => {
+    ports: RuleBlockPort[],
+): Pick<RuleBlockPort, "label" | "description" | "displayOrder" | "deprecated"> => {
     const displayOrder = nextGeneratedDisplayOrder(ports);
     return {
         label: `Input ${displayOrder}`,

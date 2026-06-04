@@ -10,12 +10,12 @@ import {
     RuleEditorPatchableNodeProjection,
 } from "../../shared/RuleEditor/RuleEditor.typings";
 import ruleUtils from "../shared/rules/rule.utils";
-import { IRuleBlockPort, IRuleBlockTaskParameters } from "./ruleBlock.types";
+import { RuleBlockPort, IRuleBlockTaskParameters } from "./ruleBlock.types";
 import ruleBlockUtils from "./ruleBlock.utils";
 import { IPreConfiguredRuleOperator } from "../../shared/RuleEditor/view/sidebar/RuleEditorOperatorSidebar.typings";
 
 type RuleBlockTaskData = IProjectTask<IRuleBlockTaskParameters>;
-type InputPortListItem = IRuleBlockPort | { type: "create" };
+type InputPortListItem = RuleBlockPort | { type: "create" };
 
 /** Creates the pseudo-operator used to edit rule block input ports inside the shared rule editor. */
 const createInputPortOperator = (): IRuleOperator => {
@@ -62,7 +62,7 @@ const createNewInputPortSidebarItem = (onCreate: () => void): IPreConfiguredRule
 
 /** Converts one logical input port into a draggable pre-configured sidebar operator. */
 const convertInputPortToSidebarOperator = (
-    port: IRuleBlockPort,
+    port: RuleBlockPort,
     onEdit: (portId: string) => void,
     onDelete: (portId: string) => void,
     isDeleteDisabled: boolean,
@@ -114,8 +114,8 @@ const convertInputPortToSidebarOperator = (
 
 /** Creates the input-port pre-configured sidebar tab from the current logical input-port state. */
 const createInputPortsTab = (
-    getPorts: () => IRuleBlockPort[],
-    getPersistedPorts: () => IRuleBlockPort[],
+    getPorts: () => RuleBlockPort[],
+    getPersistedPorts: () => RuleBlockPort[],
     isRuleBlockInUse: () => boolean,
     onCreate: () => void,
     onEdit: (portId: string) => void,
@@ -155,7 +155,7 @@ const createInputPortsTab = (
 });
 
 /** Enriches an input port node with persisted port metadata from the current rule block model. */
-const inputPortNodeMetaData = (portDefinition: IRuleBlockPort | undefined): RuleEditorPatchableNodeProjection => ({
+const inputPortNodeMetaData = (portDefinition: RuleBlockPort | undefined): RuleEditorPatchableNodeProjection => ({
     label: portDefinition?.label || i18next.t("taskViews.ruleBlock.inputPortOperator"),
     description: portDefinition?.description ?? "",
     tags: [
@@ -168,7 +168,7 @@ const inputPortNodeMetaData = (portDefinition: IRuleBlockPort | undefined): Rule
 /** Enriches an input port node with persisted port metadata from the current rule block model. */
 const updateInputPortNode = (
     node: IRuleOperatorNode,
-    portDefinitions: Map<string, IRuleBlockPort>,
+    portDefinitions: Map<string, RuleBlockPort>,
 ): void => {
     const portId = ruleBlockUtils.requirePortId(node);
     const portDefinition = portDefinitions.get(portId);

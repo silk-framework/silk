@@ -34,6 +34,50 @@ import { TaskTypes } from "../../../../src/app/store/ducks/shared/typings";
 import { MemoryHistory } from "history/createMemoryHistory";
 import { bluePrintClassPrefix } from "../../../HierarchicalMapping/utils/TestHelpers";
 
+jest.mock("@eccenca/gui-elements", () => {
+    const React = jest.requireActual("react");
+    const actual = jest.requireActual("@eccenca/gui-elements");
+    const jestTestUtils = jest.requireActual("../../../../src/app/test/jestTestUtils").default;
+    const BaseCodeEditor = jestTestUtils.createCodeEditorMock(React);
+    function CodeEditor(props) {
+        return React.createElement(
+            "div",
+            { "data-test-id": props["data-test-id"] },
+            React.createElement(BaseCodeEditor, props),
+        );
+    }
+    CodeEditor.supportedModes = [];
+    return {
+        ...actual,
+        CodeEditor,
+    };
+});
+
+jest.mock("../../../../src/app/views/shared/FileUploader/FileSelectionMenu", () => {
+    const React = jest.requireActual("react");
+
+    function MockFileSelectionMenu(props) {
+        const { id, onChange, defaultValue } = props;
+        const triggerChange = () => {
+            if (onChange) {
+                onChange(defaultValue ?? "");
+            }
+        };
+        return React.createElement(
+            "div",
+            { id, "data-test-id": "file-selection-menu-mock" },
+            React.createElement("input", { type: "radio", name: `${id}-upload`, onChange: triggerChange }),
+            React.createElement("input", { type: "radio", name: `${id}-select`, onChange: triggerChange }),
+            React.createElement("input", { type: "radio", name: `${id}-create`, onChange: triggerChange }),
+        );
+    }
+
+    return {
+        __esModule: true,
+        default: MockFileSelectionMenu,
+    };
+});
+
 describe("Task creation widget", () => {
     beforeAll(() => {
         window.HTMLElement.prototype.scrollIntoView = function () {};
@@ -356,28 +400,38 @@ describe("Task creation widget", () => {
     });
 
     it("should allow to reset optional auto-completed values", async () => {
-        const { element } = await pluginCreationDialogWrapper();
-        const autoCompleteInput = findElement(element, "#optionalAutoCompletionParamCustom");
-        expect(window.document.querySelectorAll(".eccgui-spinner").length).toBe(0);
-        // input must be focused in order to fire requests
-        act(() => {
-            autoCompleteInput.focus();
-        });
-        changeInputValue(autoCompleteInput as HTMLInputElement, "abc");
-        const beforePortals = window.document.querySelectorAll(`div.${bluePrintClassPrefix}-portal`).length;
-        await waitFor(() => {
-            expect(window.document.querySelectorAll(".eccgui-spinner").length).toBe(1);
-        });
-        await waitFor(() => {
-            // Request is delayed by 200ms
-            mockAutoCompleteResponse(
-                { textQuery: "abc" },
-                mockedAxiosResponse({ data: [{ value: "abc1" }, { value: "abc2" }] }),
-            );
-        });
-        await waitFor(() => {
+        jest.useFakeTimers();
+        try {
+            const { element } = await pluginCreationDialogWrapper();
+            const autoCompleteInput = findElement(element, "#optionalAutoCompletionParamCustom");
             expect(window.document.querySelectorAll(".eccgui-spinner").length).toBe(0);
-        });
+            // input must be focused in order to fire requests
+            act(() => {
+                autoCompleteInput.focus();
+            });
+            changeInputValue(autoCompleteInput as HTMLInputElement, "abc");
+            const beforePortals = window.document.querySelectorAll(`div.${bluePrintClassPrefix}-portal`).length;
+            await waitFor(() => {
+                expect(window.document.querySelectorAll(".eccgui-spinner").length).toBe(1);
+            });
+            await act(async () => {
+                jest.advanceTimersByTime(200);
+            });
+            await waitFor(() => {
+                mockAutoCompleteResponse(
+                    { textQuery: "abc" },
+                    mockedAxiosResponse({ data: [{ value: "abc1" }, { value: "abc2" }] }),
+                );
+            });
+            await waitFor(() => {
+                expect(window.document.querySelectorAll(".eccgui-spinner").length).toBe(0);
+            });
+        } finally {
+            await act(async () => {
+                jest.runOnlyPendingTimers();
+            });
+            jest.useRealTimers();
+        }
     });
 
     const createDependentParameterWrapper = async () => {

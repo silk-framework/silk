@@ -28,13 +28,15 @@ import { PreparedClipboardPaste, RuleClipboardTask, RuleEditorNode } from "../Ru
 import { rangeArray } from "../../../../../utils/basicUtils";
 import { LINKING_NODE_TYPES } from "@eccenca/gui-elements/src/cmem/react-flow/configuration/typing";
 import { nodeDefaultUtils, StickyNote } from "@eccenca/gui-elements";
-import type { IRuleBlockPort } from "../../../../taskViews/ruleBlock/ruleBlock.types";
+import type { RuleBlockPort } from "../../../../taskViews/ruleBlock/ruleBlock.types";
 import ruleBlockPasteUtils from "../../../../taskViews/ruleBlock/ruleBlockPaste.utils";
+import ruleTestHelper from "../../../../taskViews/shared/rules/tests/ruleTestHelper";
 
 let modelContext: RuleEditorModelContextProps | undefined;
 const currentContext = () => modelContext as RuleEditorModelContextProps;
 const execute = () => currentContext().executeModelEditOperation;
 const modelUtils = ruleEditorModelUtilsFactory();
+const isDebugLoggingEnabled = () => process.env.DEBUG === "true";
 const nodeById = (nodeId: string) => {
     const node = currentContext().elements.find((elem) => modelUtils.isNode(elem) && elem.id === nodeId);
     expect(node).toBeTruthy();
@@ -191,17 +193,17 @@ describe("Rule editor model", () => {
         position = nodeDefaultPosition,
         parameters = defaultParameters,
     }: NodeProps): IRuleOperatorNode => {
-        return {
-            inputs,
-            label: nodeId,
+        return ruleTestHelper.createRuleOperatorNode({
             nodeId,
             parameters,
+            label: nodeId,
+            inputs,
             pluginId,
             pluginType,
             portSpecification,
             position,
-            inputsCanBeSwitched: false,
-        };
+            tags: undefined,
+        });
     };
 
     const parameterSpecification = (paramId: string): IParameterSpecification => {
@@ -277,7 +279,7 @@ describe("Rule editor model", () => {
         displayOrder: number,
         description: string = "",
         deprecated: boolean = false,
-    ): IRuleBlockPort => ({
+    ): RuleBlockPort => ({
         id,
         label,
         description,
@@ -285,7 +287,7 @@ describe("Rule editor model", () => {
         deprecated,
     });
 
-    const ruleBlockInputPortNodeMetaData = (port: IRuleBlockPort) => ({
+    const ruleBlockInputPortNodeMetaData = (port: RuleBlockPort) => ({
         label: port.label,
         description: port.description,
         tags: [String(port.displayOrder)],
@@ -342,7 +344,7 @@ describe("Rule editor model", () => {
     }: {
         clipboardStore: ReturnType<typeof createClipboardStore>;
         currentTaskId: string;
-        existingPorts?: IRuleBlockPort[];
+        existingPorts?: RuleBlockPort[];
         instanceId: string;
         operatorList?: IRuleOperator[];
     }) => {
@@ -1461,13 +1463,19 @@ describe("Rule editor model", () => {
                     expect(allNodes()).toStrictEqual(stateHistory[changeIdx - 1]);
                 });
             }
-            console.log("Test REDO");
+            if (isDebugLoggingEnabled()) {
+                console.log("Test REDO");
+            }
             for (let changeIdx = 1; changeIdx < stateHistory.length; changeIdx++) {
                 expect(currentContext().canRedo).toBe(true);
                 act(() => {
                     currentContext().redo();
                 });
-                console.log(`Redone change: ${stateHistoryLabel[changeIdx]} (${changeIdx}/${stateHistory.length - 1})`);
+                if (isDebugLoggingEnabled()) {
+                    console.log(
+                        `Redone change: ${stateHistoryLabel[changeIdx]} (${changeIdx}/${stateHistory.length - 1})`
+                    );
+                }
                 expect(allNodes()).toStrictEqual(stateHistory[changeIdx]);
             }
         }

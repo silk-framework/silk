@@ -1,6 +1,6 @@
 import ruleBlockUtils from "../ruleBlock.utils";
 import { IRuleOperatorNode } from "../../../shared/RuleEditor/RuleEditor.typings";
-import { IRuleBlockInputExample, IRuleBlockPort } from "../ruleBlock.types";
+import { IRuleBlockInputExample, RuleBlockPort } from "../ruleBlock.types";
 
 describe("ruleBlockUtils", () => {
     it("should resolve the logical port ID from the node parameter value", () => {
@@ -398,7 +398,7 @@ const inputPortNode = (nodeId: string, portId: string, displayOrder: number): IR
     tags: [],
 });
 
-const port = (id: string, displayOrder: number, label: string = id): IRuleBlockPort => ({
+const port = (id: string, displayOrder: number, label: string = id): RuleBlockPort => ({
     id,
     label,
         description: "",
