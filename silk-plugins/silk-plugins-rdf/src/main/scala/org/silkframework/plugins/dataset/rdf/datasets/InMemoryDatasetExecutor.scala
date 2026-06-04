@@ -25,8 +25,10 @@ class InMemoryDatasetExecutor extends LocalDatasetExecutor[InMemoryDataset] {
   @volatile private var modelKey: Option[ExecutionModelKey] = None
   @volatile private var plugin: Option[InMemoryDataset] = None
   @volatile private var ownsEndpoint: Boolean = false
+  @volatile private var closed: Boolean = false
 
   override def access(task: Task[DatasetSpec[InMemoryDataset]], execution: LocalExecution): DatasetAccess = {
+    require(!closed, "Cannot access an InMemoryDatasetExecutor after it has been closed.")
     val datasetPlugin = task.data.plugin
     if (datasetPlugin.workflowScoped) {
       if (!initialized) {
@@ -50,11 +52,18 @@ class InMemoryDatasetExecutor extends LocalDatasetExecutor[InMemoryDataset] {
   }
 
   override def close(): Unit = {
+    // Only the root execution removes the shared sharing-map entry
     if (ownsEndpoint) {
       for {
         key <- modelKey
         p   <- plugin
       } p.removeEndpoint(key)
     }
+    // Drop this executor's references to the models
+    endpoint = null
+    modelDataset = null
+    modelKey = None
+    plugin = None
+    closed = true
   }
 }

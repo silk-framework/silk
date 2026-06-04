@@ -155,7 +155,7 @@ class InMemoryDatasetWorkflowScopedTest extends AnyFlatSpec with Matchers {
     childEndpoint.select(tripleCountQuery).bindings.size mustBe 0
   }
 
-  it should "clean up model on close()" in {
+  it should "drop the execution's references on close() while keeping the data readable through the dataset" in {
     val nestedDataset = InMemoryDataset(workflowScoped = true)
     val nestedTask = PlainTask("cleanupTest", DatasetSpec(nestedDataset))
 
@@ -167,7 +167,11 @@ class InMemoryDatasetWorkflowScopedTest extends AnyFlatSpec with Matchers {
     nestedDataset.findEndpoint(exec, nestedTask.id) must not be empty
 
     executor.close()
+
+    // The execution-scoped sharing entry is gone ...
     nestedDataset.findEndpoint(exec, nestedTask.id) mustBe empty
+    // ... but the data the workflow produced is still readable through the dataset itself.
+    nestedDataset.sparqlEndpoint.select(tripleCountQuery).bindings.size mustBe 1
   }
 
   it should "let the parent read data that a nested execution wrote first" in {
