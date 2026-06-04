@@ -46,6 +46,7 @@ export const RuleEditorView = ({ showRuleOnly, hideMinimap, zoomRange, readOnlyM
                 currentRuleNodeInfo,
                 setCurrentRuleNodeInfo,
                 showRuleOnly,
+                readOnly: readOnlyMode,
                 hideMinimap,
                 zoomRange,
                 onSelection,

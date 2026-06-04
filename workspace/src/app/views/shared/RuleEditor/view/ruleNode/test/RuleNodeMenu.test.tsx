@@ -15,6 +15,7 @@ import {
 import { RuleEditorContext, ruleEditorContextDefaultValue } from "../../../contexts/RuleEditorContext";
 import type { IRuleOperatorNode } from "../../../RuleEditor.typings";
 import ruleTestHelper from "../../../../../taskViews/shared/rules/tests/ruleTestHelper";
+import { taskUrl } from "../../../../../../store/ducks/router/operations";
 
 jest.mock("@eccenca/gui-elements/src/extensions/react-flow/nodes/NodeTools", () => {
     const React = require("react");
@@ -55,7 +56,7 @@ const createMenuUi = (
         <RuleEditorUiContext.Provider value={ruleEditorUiContextDefaultValue}>
             <RuleEditorEvaluationContext.Provider value={evaluationContext}>
                 <RuleEditorModelContext.Provider value={modelContext}>
-                    <RuleEditorContext.Provider value={ruleEditorContextDefaultValue}>
+                    <RuleEditorContext.Provider value={{ ...ruleEditorContextDefaultValue, projectId: "project1" }}>
                         <RuleNodeMenu
                             nodeId={ruleNode.nodeId}
                             t={translation}
@@ -77,8 +78,17 @@ const renderMenu = (
 
 const internalEvaluationMenuButton = () =>
     document.querySelector('[data-test-id="rule-node-open-internal-rule-block-evaluation-btn"]');
+const openRuleBlockMenuButton = () => document.querySelector('[data-test-id="rule-node-open-rule-block-btn"]');
 
 describe("RuleNodeMenu", () => {
+    beforeEach(() => {
+        jest.spyOn(window, "open").mockImplementation(() => null);
+    });
+
+    afterEach(() => {
+        jest.restoreAllMocks();
+    });
+
     it("only shows the internal evaluation entry while evaluation results are shown", () => {
         const ruleNode = createRuleBlockNode();
         const { rerender } = renderMenu(
@@ -101,6 +111,18 @@ describe("RuleNodeMenu", () => {
         );
 
         expect(internalEvaluationMenuButton()).toHaveAttribute("aria-disabled", "true");
+    });
+
+    it("opens the referenced rule block in a new tab from the menu", () => {
+        renderMenu();
+
+        fireEvent.click(openRuleBlockMenuButton() as Element);
+
+        expect(window.open).toHaveBeenCalledWith(
+            taskUrl("project1", "RuleBlock", "normalizeName"),
+            "_blank",
+            "noopener",
+        );
     });
 
     it("opens the internal evaluation from the menu when the rule block is evaluable", () => {

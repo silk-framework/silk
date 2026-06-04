@@ -77,6 +77,8 @@ export interface RuleEditorBaseProps {
     prepareClipboardPaste?: PrepareClipboardPaste;
     /** When enabled only the rule is shown without side- and toolbar and any other means to edit the rule. */
     showRuleOnly?: boolean;
+    /** If set to true the editor is permanently read-only. */
+    readOnly?: boolean;
     /** When enabled the mini map is not displayed. */
     hideMinimap?: boolean;
     /** Defines minimum and maximum of the available zoom levels */
@@ -199,6 +201,7 @@ const RuleEditorInner = <TASK_TYPE extends object, OPERATOR_TYPE extends object>
     editorTitle,
     getStickyNotes = () => [],
     showRuleOnly,
+    readOnly,
     hideMinimap,
     zoomRange,
     initialFitToViewZoomLevel,
@@ -235,8 +238,9 @@ const RuleEditorInner = <TASK_TYPE extends object, OPERATOR_TYPE extends object>
     const [operatorSpec, setOperatorSpec] = React.useState<
         Map<string, Map<string, IParameterSpecification>> | undefined
     >(undefined);
-    const readOnlyMode =
+    const readOnlyFromQuery =
         (new URLSearchParams(window.location.search).get(READ_ONLY_QUERY_PARAMETER) ?? "").toLowerCase() === "true";
+    const readOnlyMode = !!readOnly || readOnlyFromQuery;
     const [lastSaveResult, setLastSaveResult] = React.useState<RuleSaveResult | undefined>(undefined);
     // Dataset characteristics used for the 'PathInputOperator' type. The key is the corresponding plugin ID.
     const [datasetCharacteristics, setDatasetCharacteristics] = React.useState<Map<string, DatasetCharacteristics>>(
@@ -371,13 +375,14 @@ const RuleEditorInner = <TASK_TYPE extends object, OPERATOR_TYPE extends object>
                 validateConnection,
                 tabs,
                 viewActions,
-                readOnlyMode: showRuleOnly || readOnlyMode,
+                readOnlyMode,
                 additionalToolBarComponents,
                 extraRuleNodeMenuItems,
                 lastSaveResult: lastSaveResult,
                 editorTitle,
                 stickyNotes: getStickyNotes(taskData),
                 showRuleOnly,
+                readOnly,
                 hideMinimap,
                 zoomRange,
                 initialFitToViewZoomLevel,

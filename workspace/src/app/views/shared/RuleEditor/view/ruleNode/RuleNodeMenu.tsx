@@ -7,6 +7,7 @@ import { RuleEditorModelContext } from "../../contexts/RuleEditorModelContext";
 import { RuleEditorContext } from "../../contexts/RuleEditorContext";
 import { ruleEditorModelUtilsFactory } from "../../model/RuleEditorModel.utils";
 import { internalRuleBlockEvaluationActionState } from "./internalRuleBlockEvaluationAction.utils";
+import { taskUrl } from "../../../../../store/ducks/router/operations";
 
 interface NodeMenuProps {
     nodeId: string;
@@ -51,6 +52,10 @@ export const RuleNodeMenu = ({
         ruleEvaluationContext.evaluationResultsShown,
         ruleEvaluationContext.canEvaluateRuleBlock,
     );
+    const openRuleBlockUrl =
+        currentRuleNode?.pluginType === "RuleBlock" && ruleEditorContext.projectId
+            ? taskUrl(ruleEditorContext.projectId, "RuleBlock", currentRuleNode.pluginId)
+            : undefined;
 
     const nodeDimensions = utils.nodeById(modelContext.elements, nodeId)?.data.nodeDimensions;
     const resizeResetIsDisabled = !nodeDimensions?.width && !nodeDimensions?.height;
@@ -107,6 +112,23 @@ export const RuleNodeMenu = ({
                         htmlTitle={t(
                             "RuleEditor.node.menu.subtree.description",
                             "Evaluate linking tree partially until this operator node.",
+                        )}
+                    />
+                ) : null}
+                {openRuleBlockUrl ? (
+                    <MenuItem
+                        data-test-id="rule-node-open-rule-block-btn"
+                        key="open-rule-block"
+                        icon="item-viewdetails"
+                        onClick={(e) => {
+                            e.preventDefault();
+                            closeMenu();
+                            window.open(openRuleBlockUrl, "_blank", "noopener");
+                        }}
+                        text={t("RuleEditor.node.menu.openRuleBlock.label", "Open rule block")}
+                        htmlTitle={t(
+                            "RuleEditor.node.menu.openRuleBlock.description",
+                            "Open the referenced rule block in a new tab.",
                         )}
                     />
                 ) : null}

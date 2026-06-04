@@ -473,6 +473,34 @@ describe("Rule editor model", () => {
         });
     });
 
+    it("should keep node menus in rule-only layout when the editor is not read-only", async () => {
+        await ruleEditorModel({
+            initialRuleNodes: [node({ nodeId: "node A", pluginId: "pluginA", portSpecification: { type: "count", minInputPorts: 0 } })],
+            operatorList: [operator("pluginA", 0)],
+            contextOverrides: {
+                showRuleOnly: true,
+            },
+        });
+
+        await waitFor(() => {
+            expect(nodeById("node A").data.menuButtons).toBeTruthy();
+        });
+    });
+
+    it("should hide node menus in read-only mode", async () => {
+        await ruleEditorModel({
+            initialRuleNodes: [node({ nodeId: "node A", pluginId: "pluginA", portSpecification: { type: "count", minInputPorts: 0 } })],
+            operatorList: [operator("pluginA", 0)],
+            contextOverrides: {
+                readOnlyMode: true,
+            },
+        });
+
+        await waitFor(() => {
+            expect(nodeById("node A").data.menuButtons).toBeUndefined();
+        });
+    });
+
     it("should add new nodes and undo & redo", async () => {
         await ruleEditorModel({
             initialRuleNodes: [node({ nodeId: "pluginA" }), node({ nodeId: "node B", inputs: ["pluginA"] })],
@@ -1063,6 +1091,56 @@ describe("Rule editor model", () => {
         };
         checkAfterCopyAndPaste2nd();
         checkUndoAndRedo(checkBeforeCopyAndPaste, checkAfterCopyAndPaste, checkAfterCopyAndPaste2nd);
+    });
+
+    it("should ignore rule-editor copy and paste shortcuts in read-only mode", async () => {
+        const clipboardStore = createClipboardStore();
+        await ruleEditorModel({
+            initialRuleNodes: [node({ nodeId: "nodeA", pluginId: "pluginA", portSpecification: { type: "count", minInputPorts: 0 } })],
+            operatorList: [operator("pluginA", 0)],
+            contextOverrides: {
+                readOnlyMode: true,
+            },
+        });
+
+        act(() => {
+            currentContext().updateSelectedElements(
+                currentContext().elements.filter((element) => modelUtils.isNode(element) && element.id === "nodeA"),
+            );
+        });
+
+        const copyEvent = await dispatchClipboardEvent("copy", clipboardStore.clipboardData);
+        expect(copyEvent.preventDefault).not.toHaveBeenCalled();
+        expect(clipboardStore.clipboardData.setData).not.toHaveBeenCalled();
+
+        clipboardStore.clipboardData.setData!(
+            "text/plain",
+            JSON.stringify({
+                task: {
+                    data: {
+                        nodes: [
+                            {
+                                nodeId: "copiedNode",
+                                pluginId: "pluginA",
+                                pluginType: "unknown",
+                                position: { x: 10, y: 20 },
+                                dimension: undefined,
+                                parameters: defaultParameters,
+                                inputHandleIds: [],
+                            },
+                        ],
+                        edges: [],
+                    },
+                    metaData: {
+                        project: "testProject",
+                        task: "taskA",
+                    },
+                },
+            }),
+        );
+        const pasteEvent = await dispatchClipboardEvent("paste", clipboardStore.clipboardData);
+        expect(pasteEvent.preventDefault).not.toHaveBeenCalled();
+        expect(currentContext().ruleOperatorNodes()).toHaveLength(1);
     });
 
     it("should convert pasted paths into rule-block input ports, deduplicate identical source paths and keep target paths separate", async () => {

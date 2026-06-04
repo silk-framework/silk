@@ -199,6 +199,9 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
     }, [copiedNodesCount]);
 
     React.useEffect(() => {
+        if (ruleEditorContext.readOnlyMode) {
+            return;
+        }
         const handlePaste = async (e) => {
             const tagName = e.target?.tagName;
             if (
@@ -240,7 +243,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
             window.removeEventListener("paste", handlePaste);
             window.removeEventListener("copy", handleCopy);
         };
-    }, [nodeParameters, ruleEditorContext.operatorList, selectedElements, reactFlowInstance]);
+    }, [nodeParameters, ruleEditorContext.operatorList, reactFlowInstance, ruleEditorContext.readOnlyMode, selectedElements]);
 
     const edgeType = (ruleOperatorNode?: RuleEditorValidationOperatorNode) => {
         if (ruleOperatorNode) {
@@ -1097,18 +1100,20 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                     originalRuleOperatorNode: updatedOriginalRuleOperatorNode,
                     updateSwitch,
                 },
-                menuButtons: (
-                    <RuleNodeMenu
-                        nodeId={currentNode.id}
-                        t={t}
-                        nodeType={currentNode.type}
-                        handleDeleteNode={operatorNodeOperationsInternal.handleDeleteNode}
-                        ruleOperatorLabel={updatedOriginalRuleOperatorNode.label}
-                        ruleOperatorDescription={updatedOriginalRuleOperatorNode.description}
-                        ruleOperatorDocumentation={updatedOriginalRuleOperatorNode.markdownDocumentation}
-                        handleCloneNode={operatorNodeOperationsInternal.handleCloneNode}
-                    />
-                ),
+                menuButtons: ruleEditorContext.readOnlyMode
+                    ? undefined
+                    : (
+                          <RuleNodeMenu
+                              nodeId={currentNode.id}
+                              t={t}
+                              nodeType={currentNode.type}
+                              handleDeleteNode={operatorNodeOperationsInternal.handleDeleteNode}
+                              ruleOperatorLabel={updatedOriginalRuleOperatorNode.label}
+                              ruleOperatorDescription={updatedOriginalRuleOperatorNode.description}
+                              ruleOperatorDocumentation={updatedOriginalRuleOperatorNode.markdownDocumentation}
+                              handleCloneNode={operatorNodeOperationsInternal.handleCloneNode}
+                          />
+                      ),
                 content: (adjustedProps: Partial<RuleNodeContentProps>) => (
                     <NodeContent
                         nodeOperations={operatorNodeOperationsInternal}
@@ -1161,13 +1166,15 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                         ...node.data,
                         style,
                         content: <Markdown>{content!}</Markdown>,
-                        menuButtons: (
-                            <StickyMenuButton
-                                stickyNodeId={node.id}
-                                color={style?.borderColor!}
-                                stickyNote={content!}
-                            />
-                        ),
+                        menuButtons: ruleEditorContext.readOnlyMode
+                            ? undefined
+                            : (
+                                  <StickyMenuButton
+                                      stickyNodeId={node.id}
+                                      color={style?.borderColor!}
+                                      stickyNote={content!}
+                                  />
+                              ),
                         businessData: {
                             ...node.data.businessData,
                             stickyNote: content,
@@ -1294,7 +1301,9 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                     bottom: true,
                     right: true,
                 },
-                menuButtons: <StickyMenuButton stickyNodeId={stickyId} color={color} stickyNote={stickyNote} />,
+                menuButtons: ruleEditorContext.readOnlyMode
+                    ? undefined
+                    : <StickyMenuButton stickyNodeId={stickyId} color={color} stickyNote={stickyNote} />,
                 content: <Markdown>{stickyNote}</Markdown>,
                 style,
                 businessData: {
@@ -2105,6 +2114,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
         ruleEvaluationContext,
         updateNodeParameters: changeNodeParametersSingleTransaction,
         readOnlyMode: ruleEditorContext.readOnlyMode ?? false,
+        showNodeMenu: !ruleEditorContext.readOnlyMode,
         inputPathFunctions,
         changeNodeSize: changeSize,
     });

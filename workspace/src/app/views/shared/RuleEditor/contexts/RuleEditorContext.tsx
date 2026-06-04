@@ -75,6 +75,7 @@ export const ruleEditorContextDefaultValue: RuleEditorContextProps = {
     validateConnection: () => true,
     stickyNotes: [],
     showRuleOnly: false,
+    readOnly: false,
     hideMinimap: false,
     zoomRange: [0.25, 1.5],
     initialFitToViewZoomLevel: 0.75,

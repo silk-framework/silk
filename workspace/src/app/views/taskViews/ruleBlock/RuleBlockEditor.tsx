@@ -58,6 +58,8 @@ export interface RuleBlockEditorProps {
 interface RuleBlockEditorOptionalContextProps {
     /** When enabled only the rule canvas is shown without side- and toolbar or other editing controls. */
     showRuleOnly?: boolean;
+    /** If set the embedded editor is permanently read-only. */
+    readOnly?: boolean;
     /** When this is defined it will show this rule block snapshot instead of loading the task from the backend. */
     ruleBlockSnapshot?: RuleBlockSnapshot;
     /** Optional example values injected for read-only internal evaluation of a concrete rule block usage. */
@@ -134,6 +136,7 @@ export const RuleBlockEditor = ({ projectId, ruleBlockTaskId, viewActions, insta
         ],
     );
     const showRuleOnly = !!optionalContext.showRuleOnly;
+    const readOnly = !!optionalContext.readOnly;
     const isExternalSnapshotMode = !!externalRuleBlockTask;
     const hasExternalEvaluationResults = evaluationOptionalContext.externalEvaluationResults !== undefined;
     const [ports, setPorts] = React.useState(ruleBlockUtils.emptyRuleBlockModel().ports);
@@ -839,7 +842,7 @@ export const RuleBlockEditor = ({ projectId, ruleBlockTaskId, viewActions, insta
             // can be materialized. User-facing sidebar entries come from the pre-configured input-port tab.
             additionalRuleOperators={additionalRuleOperators}
             additionalToolBarComponents={additionalToolBarComponents}
-            extraRuleNodeMenuItems={extraRuleNodeMenuItems}
+            extraRuleNodeMenuItems={readOnly ? undefined : extraRuleNodeMenuItems}
             validateConnection={ruleUtils.validateConnection}
             tabs={ruleEditorTabs}
             captureExternalSavedState={captureExternalSavedState}
@@ -847,6 +850,7 @@ export const RuleBlockEditor = ({ projectId, ruleBlockTaskId, viewActions, insta
             extendClipboardCopy={extendClipboardCopy}
             prepareClipboardPaste={prepareClipboardPaste}
             showRuleOnly={showRuleOnly}
+            readOnly={readOnly}
             instanceId={instanceId}
             saveInitiallyEnabled={false}
         />

@@ -79,7 +79,7 @@ export const RuleEditorCanvas = () => {
                 cloneNodes(nodeIds);
             }
         },
-        enabled: !ruleEditorUiContext.modalShown && !hotKeysDisabled,
+        enabled: !ruleEditorUiContext.readOnly && !ruleEditorUiContext.modalShown && !hotKeysDisabled,
     });
 
     /** Selection helper methods. */
@@ -508,7 +508,7 @@ export const RuleEditorCanvas = () => {
         event.preventDefault();
     };
 
-    const permanentReadOnly = !!ruleEditorUiContext.showRuleOnly;
+    const permanentReadOnly = !!ruleEditorUiContext.readOnly;
     return (
         <>
             <GridColumn>
@@ -520,34 +520,36 @@ export const RuleEditorCanvas = () => {
                     ref={ruleEditorUiContext?.reactFlowWrapper}
                     elements={modelContext.elements}
                     onElementClick={onElementClick}
-                    onSelectionDragStart={handleSelectionDragStart}
-                    onSelectionDragStop={handleSelectionDragStop}
+                    onSelectionDragStart={permanentReadOnly ? undefined : handleSelectionDragStart}
+                    onSelectionDragStop={permanentReadOnly ? undefined : handleSelectionDragStop}
                     onEdgeContextMenu={permanentReadOnly ? undefined : onEdgeContextMenu}
-                    onElementsRemove={onElementsRemove}
-                    onConnectStart={onConnectStart}
-                    onConnect={onConnect}
-                    onConnectEnd={onConnectEnd}
-                    onNodeDragStart={handleNodeDragStart}
-                    onNodeDragStop={handleNodeDragStop}
-                    onNodeMouseEnter={onNodeMouseEnter}
-                    onNodeMouseLeave={onNodeMouseLeave}
+                    onElementsRemove={permanentReadOnly ? undefined : onElementsRemove}
+                    onConnectStart={permanentReadOnly ? undefined : onConnectStart}
+                    onConnect={permanentReadOnly ? undefined : onConnect}
+                    onConnectEnd={permanentReadOnly ? undefined : onConnectEnd}
+                    onNodeDragStart={permanentReadOnly ? undefined : handleNodeDragStart}
+                    onNodeDragStop={permanentReadOnly ? undefined : handleNodeDragStop}
+                    onNodeMouseEnter={permanentReadOnly ? undefined : onNodeMouseEnter}
+                    onNodeMouseLeave={permanentReadOnly ? undefined : onNodeMouseLeave}
                     onNodeContextMenu={permanentReadOnly ? undefined : onNodeContextMenu}
                     onSelectionContextMenu={permanentReadOnly ? undefined : onSelectionContextMenu}
                     onSelectionChange={onSelectionChange}
                     onLoad={onLoad}
                     onDrop={permanentReadOnly ? undefined : onDrop}
                     onDragOver={onDragOver}
-                    onEdgeUpdateStart={onEdgeUpdateStart}
-                    onEdgeUpdateEnd={onEdgeUpdateEnd}
-                    onEdgeUpdate={onEdgeUpdate}
+                    onEdgeUpdateStart={permanentReadOnly ? undefined : onEdgeUpdateStart}
+                    onEdgeUpdateEnd={permanentReadOnly ? undefined : onEdgeUpdateEnd}
+                    onEdgeUpdate={permanentReadOnly ? undefined : onEdgeUpdate}
                     connectionLineType={ConnectionLineType.Step}
                     snapGrid={snapGrid}
                     snapToGrid={true}
                     zoomOnDoubleClick={false}
                     minZoom={!!ruleEditorUiContext.zoomRange ? ruleEditorUiContext.zoomRange[0] : undefined}
                     maxZoom={!!ruleEditorUiContext.zoomRange ? ruleEditorUiContext.zoomRange[1] : 1.25}
+                    nodesDraggable={!permanentReadOnly}
+                    nodesConnectable={!permanentReadOnly}
                     multiSelectionKeyCode={isOpen ? null : (18 as any)} // ALT
-                    deleteKeyCode={isOpen ? null : (undefined as any)}
+                    deleteKeyCode={isOpen || permanentReadOnly ? null : (undefined as any)}
                     scrollOnDrag={{
                         scrollStepSize: 0.1,
                         scrollInterval: 50,

@@ -73,6 +73,8 @@ export interface IOperatorCreateContext {
     updateNodeParameters: (nodeId: string, parameterValues: Map<string, RuleEditorNodeParameterValue>) => any;
     // If the operator is in permanent read-only mode
     readOnlyMode: boolean;
+    // If true, the node action menu must not be rendered at all.
+    showNodeMenu: boolean;
     /** Fetch the input path functions for the given node. This will be an empty object for non-pah operators. */
     inputPathFunctions: (nodeId: string) => InputPathFunctions;
     /** change node size */
@@ -132,7 +134,7 @@ function createOperatorNode(
             originalRuleOperatorNode: node,
             dynamicPorts: isDynamicPortSpecification(node.portSpecification),
         },
-        menuButtons: (
+        menuButtons: operatorContext.showNodeMenu ? (
             <RuleNodeMenu
                 nodeId={node.nodeId}
                 t={operatorContext.t}
@@ -143,7 +145,7 @@ function createOperatorNode(
                 ruleOperatorDocumentation={node.markdownDocumentation}
                 handleCloneNode={nodeOperations.handleCloneNode}
             />
-        ),
+        ) : undefined,
         executionButtons:
             editableParameterCount > 0 || node.pluginType === "RuleBlock"
                 ? (adjustedContentProps, setAdjustedContentProps) => {

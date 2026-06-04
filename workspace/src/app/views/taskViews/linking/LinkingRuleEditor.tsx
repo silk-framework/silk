@@ -58,6 +58,8 @@ export interface LinkingRuleEditorProps {
 interface LinkingRuleEditorOptionalContextProps {
     /** When enabled only the rule is shown without side- and toolbar and any other means to edit the rule. */
     showRuleOnly?: boolean;
+    /** If set the editor is permanently read-only. */
+    readOnly?: boolean;
     /** When enabled the mini map is not displayed. */
     hideMinimap?: boolean;
     /** Defines minimum and maximum of the available zoom levels */
@@ -566,6 +568,7 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions, insta
                     tabs={tabs}
                     additionalToolBarComponents={additionalToolBarComponents}
                     showRuleOnly={!!optionalContext.showRuleOnly}
+                    readOnly={!!optionalContext.readOnly}
                     hideMinimap={!!optionalContext.hideMinimap}
                     zoomRange={optionalContext.zoomRange ?? [0.25, 1.5]}
                     initialFitToViewZoomLevel={optionalContext.initialFitToViewZoomLevel}

@@ -29,8 +29,12 @@ const createInternalEvaluationModalHarness = () => {
         default: () => <div data-testid="loading">Loading</div>,
     }));
     jest.doMock("../../../shared/RuleEditor/view/components/RuleEditorBaseModal", () => ({
-        RuleEditorBaseModal: ({ children, title, size, headerOptions }) => (
-            <div data-testid="internal-evaluation-modal" data-size={size}>
+        RuleEditorBaseModal: ({ children, title, size, headerOptions, preventReactFlowEvents }) => (
+            <div
+                data-testid="internal-evaluation-modal"
+                data-size={size}
+                data-prevent-react-flow-events={String(preventReactFlowEvents)}
+            >
                 <div>{title}</div>
                 <div>{headerOptions}</div>
                 {children}
@@ -54,6 +58,7 @@ const createInternalEvaluationModalHarness = () => {
                         data-testid="rule-block-editor"
                         data-label={optionalContext?.ruleBlockLabel ?? ""}
                         data-show-rule-only={String(optionalContext?.showRuleOnly)}
+                        data-read-only={String(optionalContext?.readOnly)}
                         data-results={JSON.stringify(evaluationContext.externalEvaluationResults ?? null)}
                     />
                 );
@@ -129,6 +134,10 @@ describe("RuleBlockInternalEvaluationModal", () => {
             uiAnnotations: snapshot.uiAnnotations,
         });
         expect(screen.getByTestId("internal-evaluation-modal")).toHaveAttribute("data-size", "xlarge");
+        expect(screen.getByTestId("internal-evaluation-modal")).toHaveAttribute(
+            "data-prevent-react-flow-events",
+            "false",
+        );
         expect(screen.getByText("Evaluation of Normalize Name")).toBeInTheDocument();
         expect(screen.getByTestId("loading")).toBeInTheDocument();
 
@@ -151,6 +160,7 @@ describe("RuleBlockInternalEvaluationModal", () => {
         await waitFor(() => expect(screen.getByTestId("rule-block-editor")).toBeInTheDocument());
         expect(screen.getByTestId("rule-block-editor")).toHaveAttribute("data-label", "Normalize Name");
         expect(screen.getByTestId("rule-block-editor")).toHaveAttribute("data-show-rule-only", "true");
+        expect(screen.getByTestId("rule-block-editor")).toHaveAttribute("data-read-only", "true");
         expect(screen.getByTestId("rule-block-editor")).toHaveAttribute(
             "data-results",
             JSON.stringify([

@@ -697,6 +697,10 @@
                     "label": "Evaluate subtree",
                     "description": "Evaluate linking tree partially until this operator node."
                 },
+                "openRuleBlock": {
+                    "label": "Open rule block",
+                    "description": "Open the referenced rule block in a new tab."
+                },
                 "openInternalRuleBlockEvaluation": {
                     "label": "Show internal evaluation",
                     "description": "Show the latest available internal evaluation for this reusable rule block usage."

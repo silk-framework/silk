@@ -81,6 +81,7 @@ export const RuleBlockInternalEvaluationModal = ({
             title={title}
             isOpen={true}
             size={fullScreen ? "fullscreen" : "xlarge"}
+            preventReactFlowEvents={false}
             wrapperDivProps={modalWrapperEventHandlers}
             headerOptions={[
                 <IconButton
@@ -104,6 +105,7 @@ export const RuleBlockInternalEvaluationModal = ({
             <RuleBlockEditorOptionalContext.Provider
                 value={{
                     showRuleOnly: true,
+                    readOnly: true,
                     ruleBlockSnapshot: snapshot,
                     inputExamples,
                     ruleBlockLabel,

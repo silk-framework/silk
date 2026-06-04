@@ -23,6 +23,7 @@ type CapturedRuleEditorProps = {
     projectId: string;
     taskId: string;
     showRuleOnly?: boolean;
+    readOnly?: boolean;
     fetchRuleData: (projectId: string, taskId: string) => Promise<unknown> | unknown;
     saveRule: (
         ruleOperatorNodes: IRuleOperatorNode[],
@@ -272,6 +273,7 @@ const renderRuleBlockEditor = async ({
     externalSnapshot,
     externalEvaluationResults,
     showRuleOnly = false,
+    readOnly = false,
 }: {
     ports?: RuleBlockPort[];
     inputExamples?: IRuleBlockInputExample[];
@@ -281,6 +283,7 @@ const renderRuleBlockEditor = async ({
     externalSnapshot?: RuleBlockSnapshot;
     externalEvaluationResults?: EvaluatedTransformEntity[];
     showRuleOnly?: boolean;
+    readOnly?: boolean;
 } = {}) => {
     const harness = createRuleBlockEditorHarness();
     harness.mockRequestTaskData.mockResolvedValue({
@@ -303,6 +306,7 @@ const renderRuleBlockEditor = async ({
             value={{
                 ruleBlockSnapshot: externalSnapshot,
                 showRuleOnly,
+                readOnly,
             }}
         >
             {editorElement}
@@ -382,6 +386,8 @@ describe("RuleBlockEditor", () => {
         expect(screen.queryByTestId("input-port-dialog")).not.toBeInTheDocument();
         expect(screen.queryByTestId("example-values-dialog")).not.toBeInTheDocument();
         expect(editor.getRuleEditorProps().showRuleOnly).toBe(true);
+        expect(editor.getRuleEditorProps().readOnly).toBe(false);
+        expect(editor.getRuleEditorProps().extraRuleNodeMenuItems).toBeDefined();
         expect(editor.getRuleEditorProps().captureExternalSavedState?.()).toStrictEqual({
             ports: [snapshotPort],
             inputExamples: [],
