@@ -171,21 +171,28 @@ describe("RuleBlockEvaluation", () => {
         await waitFor(() => expect(latestEvaluationContext).toBeDefined());
         const evaluationContext = latestEvaluationContext!;
 
-        await act(async () => {
-            await evaluationContext.startEvaluation(
+        let startEvaluationPromise: Promise<void>;
+        act(() => {
+            startEvaluationPromise = evaluationContext.startEvaluation(
                 [createTransformNode(), createInputPortNode()],
                 originalTask,
                 false,
             );
         });
 
-        expect(harness.mockRequestRuleBlockEvaluation).toHaveBeenCalledWith("project1", "task1", {
-            ports,
-            inputExamples,
-            operatorTree: ruleTestHelper.createTransformInput(),
-            layout: ruleTestHelper.defaultLayout(),
-            uiAnnotations: ruleTestHelper.defaultUiAnnotations(),
+        await waitFor(() =>
+            expect(harness.mockRequestRuleBlockEvaluation).toHaveBeenCalledWith("project1", "task1", {
+                ports,
+                inputExamples,
+                operatorTree: ruleTestHelper.createTransformInput(),
+                layout: ruleTestHelper.defaultLayout(),
+                uiAnnotations: ruleTestHelper.defaultUiAnnotations(),
+            }),
+        );
+        await act(async () => {
+            await startEvaluationPromise;
         });
+
         expect(harness.mockRegisterError).not.toHaveBeenCalled();
     });
 
