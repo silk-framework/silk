@@ -1663,6 +1663,26 @@ describe("Rule editor model", () => {
         await checkAfter();
         checkUndoAndRedo(checkBefore, checkAfter);
     });
+
+    it("adds execution buttons for rule block nodes even without editable parameters", async () => {
+        await ruleEditorModel({
+            initialRuleNodes: [node({ nodeId: "ruleBlockNode", pluginId: "normalizeName", pluginType: "RuleBlock" })],
+            operatorSpec: new Map(),
+        });
+
+        expect(currentReactFlowNodes()[0].data.executionButtons).toBeDefined();
+    });
+
+    it("does not add execution buttons for non-rule-block nodes without editable parameters", async () => {
+        await ruleEditorModel({
+            initialRuleNodes: [
+                node({ nodeId: "transformNode", pluginId: "normalizeName", pluginType: "TransformOperator" }),
+            ],
+            operatorSpec: new Map(),
+        });
+
+        expect(currentReactFlowNodes()[0].data.executionButtons).toBeUndefined();
+    });
 });
 
 /** Makes the rule model context available to the test. */

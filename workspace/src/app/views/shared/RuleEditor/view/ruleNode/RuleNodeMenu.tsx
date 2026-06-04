@@ -6,6 +6,7 @@ import { RuleEditorEvaluationContext } from "../../contexts/RuleEditorEvaluation
 import { RuleEditorModelContext } from "../../contexts/RuleEditorModelContext";
 import { RuleEditorContext } from "../../contexts/RuleEditorContext";
 import { ruleEditorModelUtilsFactory } from "../../model/RuleEditorModel.utils";
+import { internalRuleBlockEvaluationActionState } from "./internalRuleBlockEvaluationAction.utils";
 
 interface NodeMenuProps {
     nodeId: string;
@@ -45,9 +46,11 @@ export const RuleNodeMenu = ({
     const extraMenuItems = currentRuleNode
         ? ruleEditorContext.extraRuleNodeMenuItems?.(currentRuleNode, closeMenu)
         : undefined;
-    const canEvaluateRuleBlock =
-        currentRuleNode?.pluginType === "RuleBlock" &&
-        !!ruleEvaluationContext.canEvaluateRuleBlock?.(nodeId, currentRuleNode.pluginId);
+    const internalRuleBlockEvaluationAction = internalRuleBlockEvaluationActionState(
+        currentRuleNode,
+        ruleEvaluationContext.evaluationResultsShown,
+        ruleEvaluationContext.canEvaluateRuleBlock,
+    );
 
     const nodeDimensions = utils.nodeById(modelContext.elements, nodeId)?.data.nodeDimensions;
     const resizeResetIsDisabled = !nodeDimensions?.width && !nodeDimensions?.height;
@@ -107,11 +110,12 @@ export const RuleNodeMenu = ({
                         )}
                     />
                 ) : null}
-                {canEvaluateRuleBlock && currentRuleNode ? (
+                {internalRuleBlockEvaluationAction.visible && currentRuleNode ? (
                     <MenuItem
                         data-test-id="rule-node-open-internal-rule-block-evaluation-btn"
                         key="open-internal-rule-block-evaluation"
                         icon="item-viewdetails"
+                        disabled={!internalRuleBlockEvaluationAction.enabled}
                         onClick={(e) => {
                             e.preventDefault();
                             closeMenu();

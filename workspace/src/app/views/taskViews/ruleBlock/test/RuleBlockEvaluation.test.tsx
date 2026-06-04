@@ -2,76 +2,103 @@ import React from "react";
 import "@testing-library/jest-dom";
 import { act, render, screen, waitFor } from "@testing-library/react";
 import type { IProjectTask } from "@ducks/shared/typings";
-import jestTestUtils from "../../../../test/jestTestUtils";
 import ruleTestHelper from "../../shared/rules/tests/ruleTestHelper";
 import type { RuleEditorEvaluationContextProps } from "../../../shared/RuleEditor/contexts/RuleEditorEvaluationContext";
 import type { IRuleOperatorNode } from "../../../shared/RuleEditor/RuleEditor.typings";
 import type { RuleBlockPort, IRuleBlockTaskParameters } from "../ruleBlock.types";
+import RuleBlockEvaluation from "../RuleBlockEvaluation";
+import { RuleEditorEvaluationContext } from "../../../shared/RuleEditor/contexts/RuleEditorEvaluationContext";
+import { RuleBlockEvaluationOptionalContext } from "../RuleBlockEvaluationOptionalContext";
+import type { EvaluationResultType } from "../../linking/evaluation/LinkingRuleEvaluation";
 
-const createRuleBlockEvaluationHarness = () => {
-    jest.resetModules();
-    jest.doMock("react", () => React);
+const mockRequestRuleBlockEvaluation = jest.fn();
+const mockRegisterError = jest.fn();
+const mockConvertToRuleOperatorNodeMap = jest.fn();
+const mockConvertRuleOperatorNodeToValueInput = jest.fn();
+const mockRuleLayout = jest.fn();
+const mockTranslate = (key: string, options?: string | { defaultValue?: string }) =>
+    typeof options === "string" ? options : (options?.defaultValue ?? key);
 
-    const mockRequestRuleBlockEvaluation = jest.fn();
-    const mockRegisterError = jest.fn();
-    const mockLinkRuleNodeEvaluation = jest.fn(
-        ({ ruleOperatorId, registerForEvaluationResults, unregister, noResultMsg }) => {
-            const React = require("react");
-            const [evaluationValues, setEvaluationValues] = React.useState(undefined);
-            React.useEffect(() => {
-                registerForEvaluationResults(ruleOperatorId, (evaluationValues) => {
-                    setEvaluationValues(evaluationValues);
-                });
-                return unregister;
-            }, [registerForEvaluationResults, ruleOperatorId, unregister]);
-            if (evaluationValues === undefined) {
-                return <div data-testid={`evaluation-${ruleOperatorId}`} />;
-            }
-            const values = evaluationValues.flatMap((value) => value.value);
-            return <div data-testid={`evaluation-${ruleOperatorId}`}>{values.length ? values.join("|") : noResultMsg}</div>;
-        },
-    );
+const mockLinkRuleNodeEvaluation = jest.fn(
+    ({
+        ruleOperatorId,
+        registerForEvaluationResults,
+        unregister,
+        noResultMsg,
+    }: {
+        ruleOperatorId: string;
+        registerForEvaluationResults: (
+            ruleOperatorId: string,
+            evaluationUpdate: (evaluationValues: EvaluationResultType | undefined) => void,
+        ) => void;
+        unregister: () => void;
+        noResultMsg: string;
+    }) => {
+        const [evaluationValues, setEvaluationValues] = React.useState<EvaluationResultType | undefined>(undefined);
+        React.useEffect(() => {
+            registerForEvaluationResults(ruleOperatorId, (evaluationValues) => {
+                setEvaluationValues(evaluationValues);
+            });
+            return unregister;
+        }, [registerForEvaluationResults, ruleOperatorId, unregister]);
+        if (evaluationValues === undefined) {
+            return <div data-testid={`evaluation-${ruleOperatorId}`} />;
+        }
+        const values = evaluationValues.flatMap((value) => value.value);
+        return <div data-testid={`evaluation-${ruleOperatorId}`}>{values.length ? values.join("|") : noResultMsg}</div>;
+    },
+);
 
-    jestTestUtils.mockReactI18next(jestTestUtils.testTranslate);
-    jest.doMock("../../../../hooks/useErrorHandler", () => ({
-        __esModule: true,
-        default: () => ({
-            registerError: mockRegisterError,
+jest.mock("react-i18next", () => ({
+    useTranslation: () =>
+        Object.assign([mockTranslate], {
+            t: mockTranslate,
+            i18n: { language: "en" },
         }),
-    }));
-    jest.doMock("../../shared/rules/rule.utils", () => ({
-        __esModule: true,
-        default: {
-            convertToRuleOperatorNodeMap: jest.fn((ruleOperatorNodes) => [
-                new Map(ruleOperatorNodes.map((node) => [node.nodeId, node])),
-                [ruleOperatorNodes[0]],
-            ]),
-            convertRuleOperatorNodeToValueInput: jest.fn(() => ruleTestHelper.createTransformInput()),
-            ruleLayout: jest.fn(() => ruleTestHelper.defaultLayout()),
-        },
-    }));
-    jest.doMock("../ruleBlock.requests", () => ({
-        requestRuleBlockEvaluation: (...args) => mockRequestRuleBlockEvaluation(...args),
-    }));
-    jest.doMock("../../linking/evaluation/LinkRuleNodeEvaluation", () => ({
-        LinkRuleNodeEvaluation: (props) => mockLinkRuleNodeEvaluation(props),
-    }));
+}));
 
-    const { default: RuleBlockEvaluation } =
-        require("../RuleBlockEvaluation") as typeof import("../RuleBlockEvaluation");
-    const { RuleEditorEvaluationContext } =
-        require("../../../shared/RuleEditor/contexts/RuleEditorEvaluationContext") as typeof import("../../../shared/RuleEditor/contexts/RuleEditorEvaluationContext");
-    const { RuleBlockEvaluationOptionalContext } =
-        require("../RuleBlockEvaluationOptionalContext") as typeof import("../RuleBlockEvaluationOptionalContext");
-    return {
-        RuleBlockEvaluation,
-        RuleBlockEvaluationOptionalContext,
-        RuleEditorEvaluationContext,
-        mockLinkRuleNodeEvaluation,
-        mockRequestRuleBlockEvaluation,
-        mockRegisterError,
-    };
-};
+jest.mock("../../../../hooks/useErrorHandler", () => ({
+    __esModule: true,
+    default: () => ({
+        registerError: mockRegisterError,
+    }),
+}));
+
+jest.mock("../../shared/rules/rule.utils", () => ({
+    __esModule: true,
+    default: {
+        convertToRuleOperatorNodeMap: (...args) => mockConvertToRuleOperatorNodeMap(...args),
+        convertRuleOperatorNodeToValueInput: (...args) => mockConvertRuleOperatorNodeToValueInput(...args),
+        ruleLayout: (...args) => mockRuleLayout(...args),
+    },
+}));
+
+jest.mock("../ruleBlock.requests", () => ({
+    requestRuleBlockEvaluation: (...args) => mockRequestRuleBlockEvaluation(...args),
+}));
+
+jest.mock("../../linking/evaluation/LinkRuleNodeEvaluation", () => ({
+    LinkRuleNodeEvaluation: (props) => mockLinkRuleNodeEvaluation(props),
+}));
+
+const createRuleBlockEvaluationHarness = () => ({
+    RuleBlockEvaluation,
+    RuleBlockEvaluationOptionalContext,
+    RuleEditorEvaluationContext,
+    mockLinkRuleNodeEvaluation,
+    mockRequestRuleBlockEvaluation,
+    mockRegisterError,
+});
+
+beforeEach(() => {
+    jest.clearAllMocks();
+    mockConvertToRuleOperatorNodeMap.mockImplementation((ruleOperatorNodes: IRuleOperatorNode[]) => [
+        new Map(ruleOperatorNodes.map((node) => [node.nodeId, node])),
+        [ruleOperatorNodes[0]],
+    ]);
+    mockConvertRuleOperatorNodeToValueInput.mockImplementation(() => ruleTestHelper.createTransformInput());
+    mockRuleLayout.mockImplementation(() => ruleTestHelper.defaultLayout());
+});
 
 const createPort = (overrides: Partial<RuleBlockPort> = {}): RuleBlockPort =>
     ruleTestHelper.createRuleBlockPort({

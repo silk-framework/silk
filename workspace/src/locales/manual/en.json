@@ -702,6 +702,11 @@
                     "description": "Show the latest available internal evaluation for this reusable rule block usage."
                 }
             },
+            "action": {
+                "openInternalRuleBlockEvaluation": {
+                    "tooltip": "Show internal evaluation"
+                }
+            },
             "executionButtons": {
                 "edit": {
                     "tooltip": "Open edit dialog"

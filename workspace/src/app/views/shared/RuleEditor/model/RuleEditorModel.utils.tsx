@@ -19,6 +19,7 @@ import { NodeContent, RuleNodeContentProps } from "../view/ruleNode/NodeContent"
 import { IconButton, NodeContentHandleProps, NodeContentProps, NodeDimensions } from "@eccenca/gui-elements";
 import { RuleEditorEvaluationContextProps } from "../contexts/RuleEditorEvaluationContext";
 import { InputPathFunctions, LanguageFilterProps } from "../view/ruleNode/PathInputOperator";
+import { InternalRuleBlockEvaluationButton } from "../view/ruleNode/InternalRuleBlockEvaluationButton";
 
 /** Constants */
 
@@ -144,9 +145,15 @@ function createOperatorNode(
             />
         ),
         executionButtons:
-            editableParameterCount > 0
+            editableParameterCount > 0 || node.pluginType === "RuleBlock"
                 ? (adjustedContentProps, setAdjustedContentProps) => {
-                      return editBtn(setAdjustedContentProps);
+                      const editButton = editableParameterCount > 0 ? editBtn(setAdjustedContentProps) : null;
+                      return (
+                          <>
+                              {editButton}
+                              <InternalRuleBlockEvaluationButton nodeId={node.nodeId} t={operatorContext.t} />
+                          </>
+                      );
                   }
                 : undefined,
         content: (adjustedProps: Partial<RuleNodeContentProps>) => (
