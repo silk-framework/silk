@@ -337,6 +337,8 @@
             "import": "Import",
             "loadExampleProject": "Add \"movies\" example project",
             "logout": "Logout",
+            "maximize": "Maximize",
+            "minimize": "Minimize",
             "remove": "Remove",
             "redo": "Redo",
             "moreOptions": "Show more options",
