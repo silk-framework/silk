@@ -6,12 +6,14 @@ import org.scalatest.matchers.must.Matchers
 import org.silkframework.config.MetaData
 import org.silkframework.rule.input.{InputPortInput, TransformInput, Transformer}
 import org.silkframework.rule.{RuleBlockInputExample, RuleBlockModel, RuleBlockPort, RuleBlockSpec}
+import org.silkframework.runtime.plugin.PluginContext
 import org.silkframework.runtime.serialization.WriteContext
 import org.silkframework.serialization.json.JsonSerialization
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.SingleProjectWorkspaceProviderTestTrait
 import play.api.libs.json.JsValue
 import testWorkspace.Routes
+import org.silkframework.serialization.json.JsonSerializers._
 
 class RuleBlockTaskApiTest extends AnyFlatSpec
     with SingleProjectWorkspaceProviderTestTrait
@@ -34,9 +36,10 @@ class RuleBlockTaskApiTest extends AnyFlatSpec
 
   "evaluateRuleBlock" should "evaluate a rule block model against its stored input examples" in {
     val taskId = "evaluateRuleBlock"
+    implicit val pluginContext = PluginContext.empty
     val ruleBlockModel = RuleBlockModel(
       ports = IndexedSeq(
-        RuleBlockPort(Identifier("nameInput"), label = "Name", displayOrder = 1)
+        RuleBlockPort(Identifier("nameInput"), label = "Name")
       ),
       inputExamples = IndexedSeq(
         RuleBlockInputExample(

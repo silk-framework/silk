@@ -104,14 +104,26 @@ const RuleBlockEvaluation = ({
     const { registerError } = useErrorHandler();
     const [t] = useTranslation();
     const evaluatedSubTreeNode = React.useRef<string>(undefined);
+    const evaluationResultsShownRef = React.useRef(evaluationResultsShown);
+    evaluationResultsShownRef.current = evaluationResultsShown;
 
     React.useEffect(() => {
         setEvaluationResult(optionalContext.externalEvaluationResults ?? []);
-        toggleEvaluationResults(usesExternalEvaluation);
+        setEvaluationResultsShown(usesExternalEvaluation);
+        evaluationResultsShownRef.current = usesExternalEvaluation;
+        if (usesExternalEvaluation) {
+            nodeUpdateCallbacks.forEach((updateCallback, ruleOperatorId) => {
+                updateCallback(evaluationResultMap.get(ruleOperatorId) ?? []);
+            });
+        } else {
+            nodeUpdateCallbacks.forEach((updateCallback) => {
+                updateCallback(undefined);
+            });
+        }
         setEvaluationRunning(false);
         setRuleValidationError(undefined);
         evaluationResultMap.clear();
-    }, [optionalContext.externalEvaluationResults, projectId, ruleBlockTaskId, usesExternalEvaluation]);
+    }, [evaluationResultMap, nodeUpdateCallbacks, optionalContext.externalEvaluationResults, projectId, ruleBlockTaskId, usesExternalEvaluation]);
 
     React.useEffect(() => {
         try {
@@ -130,14 +142,14 @@ const RuleBlockEvaluation = ({
                 evaluationResultMap.set(operatorId, evaluationValues);
             });
             nodeUpdateCallbacks.forEach((updateCallback, operatorId) => {
-                updateCallback(evaluationValuesForOperator(operatorId, evaluationResultsShown));
+                updateCallback(evaluationValuesForOperator(operatorId, evaluationResultsShownRef.current));
             });
         } catch (ex) {
             console.warn("Unexpected error has occurred while processing the rule block evaluation result.", ex);
         }
     }, [evaluationResult, evaluationResultsShown]);
 
-    const evaluationValuesForOperator = (
+    const evaluationValuesForOperator = React.useCallback((
         operatorId: string,
         showEvaluationResults: boolean,
     ): EvaluationResultType | undefined => {
@@ -145,9 +157,9 @@ const RuleBlockEvaluation = ({
             return undefined;
         }
         return evaluationResultMap.get(operatorId) ?? [];
-    };
+    }, [evaluationResultMap]);
 
-    const toggleEvaluationResults = (show: boolean) => {
+    const toggleEvaluationResults = React.useCallback((show: boolean) => {
         if (show) {
             nodeUpdateCallbacks.forEach((updateCallback, ruleOperatorId) => {
                 updateCallback(evaluationValuesForOperator(ruleOperatorId, true));
@@ -157,8 +169,9 @@ const RuleBlockEvaluation = ({
                 updateCallback(undefined);
             });
         }
+        evaluationResultsShownRef.current = show;
         setEvaluationResultsShown(show);
-    };
+    }, [evaluationValuesForOperator, nodeUpdateCallbacks]);
 
     const setEvaluationRootNode = React.useCallback((nodeId: string | undefined) => {
         evaluatedSubTreeNode.current = nodeId;
@@ -172,7 +185,7 @@ const RuleBlockEvaluation = ({
         return true;
     }, []);
 
-    const startEvaluation = async (
+    const startEvaluation = React.useCallback(async (
         _ruleOperatorNodes: IRuleOperatorNode[],
         originalTask: RuleBlockTaskData,
         _quickEvaluationOnly: boolean = false,
@@ -209,17 +222,21 @@ const RuleBlockEvaluation = ({
         } finally {
             setEvaluationRunning(false);
         }
-    };
+    }, [getInputExamples, getPorts, projectId, registerError, ruleBlockTaskId, t, usesExternalEvaluation]);
 
-    const registerForEvaluationResults = (
+    const registerForEvaluationResults = React.useCallback((
         ruleOperatorId: string,
         evaluationUpdate: (evaluationValues: EvaluationResultType | undefined) => void,
     ) => {
         nodeUpdateCallbacks.set(ruleOperatorId, evaluationUpdate);
-        evaluationUpdate(evaluationValuesForOperator(ruleOperatorId, evaluationResultsShown));
-    };
+        evaluationUpdate(evaluationValuesForOperator(ruleOperatorId, evaluationResultsShownRef.current));
+    }, [evaluationValuesForOperator, nodeUpdateCallbacks]);
 
-    const createRuleEditorEvaluationComponent = (ruleOperatorId: string): React.JSX.Element => {
+    const unregisterForEvaluationResults = React.useCallback((ruleOperatorId: string) => {
+        nodeUpdateCallbacks.delete(ruleOperatorId);
+    }, [nodeUpdateCallbacks]);
+
+    const createRuleEditorEvaluationComponent = React.useCallback((ruleOperatorId: string): React.JSX.Element => {
         const noResultMsg =
             getInputExamples().length > 0
                 ? t("taskViews.ruleBlock.evaluation.noResults")
@@ -231,18 +248,18 @@ const RuleBlockEvaluation = ({
             <LinkRuleNodeEvaluation
                 ruleOperatorId={ruleOperatorId}
                 registerForEvaluationResults={registerForEvaluationResults}
-                unregister={() => nodeUpdateCallbacks.delete(ruleOperatorId)}
+                unregister={() => unregisterForEvaluationResults(ruleOperatorId)}
                 numberOfLinksToShow={numberOfEntitiesToShow}
                 noResultMsg={noResultMsg}
             />
         );
-    };
+    }, [getInputExamples, numberOfEntitiesToShow, registerForEvaluationResults, t, unregisterForEvaluationResults]);
 
-    const clearRuleValidationError = () => {
+    const clearRuleValidationError = React.useCallback(() => {
         setRuleValidationError(undefined);
-    };
+    }, []);
 
-    const evaluationConfigMenu: RuleEditorEvaluationConfigMenu | undefined =
+    const evaluationConfigMenu: RuleEditorEvaluationConfigMenu | undefined = React.useMemo(() =>
         !usesExternalEvaluation && onOpenExampleValuesDialog
             ? {
                   "data-test-id": "rule-block-evaluation-config-menu",
@@ -256,28 +273,46 @@ const RuleBlockEvaluation = ({
                       },
                   ],
               }
-            : undefined;
+            : undefined,
+    [onOpenExampleValuesDialog, t, usesExternalEvaluation]);
+
+    const evaluationContextValue = React.useMemo(
+        () => ({
+            supportsEvaluation: true,
+            supportsQuickEvaluation: false,
+            startEvaluation,
+            createRuleEditorEvaluationComponent,
+            evaluationRunning,
+            toggleEvaluationResults,
+            evaluationScore: undefined,
+            evaluationResultsShown,
+            ruleValidationError,
+            clearRuleValidationError,
+            fetchTriggerEvaluationFunction: () => {},
+            evaluationConfigMenu,
+            setEvaluationRootNode,
+            evaluationRootNode,
+            canBeEvaluated,
+            ruleType: "transform" as const,
+        }),
+        [
+            canBeEvaluated,
+            clearRuleValidationError,
+            createRuleEditorEvaluationComponent,
+            evaluationConfigMenu,
+            evaluationResultsShown,
+            evaluationRootNode,
+            evaluationRunning,
+            ruleValidationError,
+            setEvaluationRootNode,
+            startEvaluation,
+            toggleEvaluationResults,
+        ],
+    );
 
     return (
         <RuleEditorEvaluationContext.Provider
-            value={{
-                supportsEvaluation: true,
-                supportsQuickEvaluation: false,
-                startEvaluation,
-                createRuleEditorEvaluationComponent,
-                evaluationRunning,
-                toggleEvaluationResults,
-                evaluationScore: undefined,
-                evaluationResultsShown,
-                ruleValidationError,
-                clearRuleValidationError,
-                fetchTriggerEvaluationFunction: () => {},
-                evaluationConfigMenu,
-                setEvaluationRootNode,
-                evaluationRootNode,
-                canBeEvaluated,
-                ruleType: "transform",
-            }}
+            value={evaluationContextValue}
         >
             {children}
         </RuleEditorEvaluationContext.Provider>

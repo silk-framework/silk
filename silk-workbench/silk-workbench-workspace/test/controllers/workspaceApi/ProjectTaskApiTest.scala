@@ -20,7 +20,7 @@ import org.silkframework.plugins.dataset.rdf.datasets.InMemoryDataset
 import org.silkframework.plugins.dataset.rdf.tasks.SparqlUpdateCustomTask
 import org.silkframework.entity.paths.UntypedPath
 import org.silkframework.rule.input.{PathInput, RuleBlockBinding, RuleBlockInput}
-import org.silkframework.rule.{ComplexUriMapping, DatasetSelection, MappingRules, RootMappingRule, RuleBlockModel, RuleBlockPort, RuleBlockSpec, TransformSpec}
+import org.silkframework.rule.{ComplexUriMapping, DatasetSelection, MappingRules, RootMappingRule, RuleBlockInputExample, RuleBlockModel, RuleBlockPort, RuleBlockSpec, TransformSpec}
 import org.silkframework.runtime.plugin.types.IdentifierOptionParameter
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.activity.workflow.{WorkflowTaskContext, WorkflowTaskContextInputTask, WorkflowTaskContextOutputTask}
