@@ -11,9 +11,10 @@ import org.silkframework.plugins.dataset.rdf.endpoint.InMemoryJenaModelEndpoint
  * In application-scoped mode (`workflowScoped == false`), wraps the dataset's persistent endpoint.
  *
  * In workflow-scoped mode (`workflowScoped == true`), holds a separate [[InMemoryJenaModelEndpoint]]
- * for the duration of a workflow execution. If the execution has a parent (nested workflow), the
- * parent's endpoint for the same task is reused so that the nested workflow sees the data written
- * by the parent.
+ * for the duration of a workflow execution. The endpoint is anchored to the root execution of the
+ * workflow tree, so a workflow and its nested workflows that reference the same dataset task all
+ * share one endpoint regardless of which of them accesses the dataset first. The endpoint is
+ * disposed only when the root execution finishes.
  */
 class InMemoryDatasetExecutor extends LocalDatasetExecutor[InMemoryDataset] {
 
@@ -23,20 +24,22 @@ class InMemoryDatasetExecutor extends LocalDatasetExecutor[InMemoryDataset] {
   @volatile private var initialized: Boolean = false
   @volatile private var modelKey: Option[ExecutionModelKey] = None
   @volatile private var plugin: Option[InMemoryDataset] = None
+  @volatile private var ownsEndpoint: Boolean = false
 
   override def access(task: Task[DatasetSpec[InMemoryDataset]], execution: LocalExecution): DatasetAccess = {
     val datasetPlugin = task.data.plugin
     if (datasetPlugin.workflowScoped) {
       if (!initialized) {
         initialized = true
-        endpoint = execution.parentExecution
-          .flatMap(datasetPlugin.findEndpoint(_, task.id))
-          .getOrElse(new InMemoryJenaModelEndpoint())
+        // Anchor the endpoint to the root execution so the parent and all nested workflows
+        // share one endpoint regardless of which of them accesses the dataset first.
+        val key = ExecutionModelKey(execution.rootExecution.executionId, task.id)
+        endpoint = datasetPlugin.getOrCreateEndpoint(key)
         modelDataset = JenaModelDataset.fromEndpoint(endpoint, dropGraphOnClear = false)
-        val key = ExecutionModelKey(execution.executionId, task.id)
-        datasetPlugin.registerEndpoint(key, endpoint)
         modelKey = Some(key)
         plugin  = Some(datasetPlugin)
+        // Only the top-level (root) execution disposes the shared endpoint
+        ownsEndpoint = execution.parentExecution.isEmpty
       }
       datasetPlugin.updateEndpoint(endpoint)
       DatasetSpecAccess(task.data, modelDataset)
@@ -47,9 +50,11 @@ class InMemoryDatasetExecutor extends LocalDatasetExecutor[InMemoryDataset] {
   }
 
   override def close(): Unit = {
-    for {
-      key <- modelKey
-      p   <- plugin
-    } p.removeEndpoint(key)
+    if (ownsEndpoint) {
+      for {
+        key <- modelKey
+        p   <- plugin
+      } p.removeEndpoint(key)
+    }
   }
 }

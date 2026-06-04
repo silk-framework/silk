@@ -57,7 +57,7 @@ When `true` (default, workflow-scoped mode):
 - Data is stored in a separate in-memory graph for each workflow execution.
 - Concurrent workflow executions are fully isolated from each other.
 - A dataset task in a nested workflow shares the same graph as the parent for the same task identifier. Data written by the parent is available in the nested workflow and vice versa.
-- If the dataset is read from outside a workflow context, the data from the most recently started executor is returned.
+- If the dataset is read from outside a workflow context, the data of the workflow execution that most recently accessed this dataset is returned.
 - When the workflow execution ends, the per-execution data is removed automatically.
 
 When `false` (application-scoped mode):

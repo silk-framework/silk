@@ -47,22 +47,26 @@ class InMemoryDatasetWorkflowScopedTest extends AnyFlatSpec with Matchers {
   it should "update the dataset sparqlEndpoint to the latest executor's model" in {
     val dataset2 = InMemoryDataset(workflowScoped = true)
     val task2 = PlainTask("test2", DatasetSpec(dataset2))
+    val execution1 = LocalExecution(false, workflowId = Some(Identifier("wf1")))
+    val execution2 = LocalExecution(false, workflowId = Some(Identifier("wf2")))
     val executor1 = new InMemoryDatasetExecutor()
     val executor2 = new InMemoryDatasetExecutor()
 
-    val endpoint1 = sparqlEndpoint(executor1.access(task2, execution))
+    val endpoint1 = sparqlEndpoint(executor1.access(task2, execution1))
     endpoint1.update("INSERT DATA { <http://s1> <http://p> <http://o1> }")
     dataset2.sparqlEndpoint.select(tripleCountQuery).bindings.size mustBe 1
 
-    executor2.access(task2, execution)
+    executor2.access(task2, execution2)
     dataset2.sparqlEndpoint.select(tripleCountQuery).bindings.size mustBe 0
   }
 
   it should "isolate data between concurrent executions" in {
+    val execution1 = LocalExecution(false, workflowId = Some(Identifier("wf1")))
+    val execution2 = LocalExecution(false, workflowId = Some(Identifier("wf2")))
     val executor1 = new InMemoryDatasetExecutor()
     val executor2 = new InMemoryDatasetExecutor()
-    val endpoint1 = sparqlEndpoint(executor1.access(task, execution))
-    val endpoint2 = sparqlEndpoint(executor2.access(task, execution))
+    val endpoint1 = sparqlEndpoint(executor1.access(task, execution1))
+    val endpoint2 = sparqlEndpoint(executor2.access(task, execution2))
 
     endpoint1.update("INSERT DATA { <http://s1> <http://p> <http://o> }")
     endpoint2.update("INSERT DATA { <http://s2> <http://p> <http://o> }")
@@ -164,6 +168,52 @@ class InMemoryDatasetWorkflowScopedTest extends AnyFlatSpec with Matchers {
 
     executor.close()
     nestedDataset.findEndpoint(exec, nestedTask.id) mustBe empty
+  }
+
+  it should "let the parent read data that a nested execution wrote first" in {
+    // Regression: the nested workflow accesses and writes to the shared dataset before the parent reads it.
+    val nestedDataset = InMemoryDataset(workflowScoped = true)
+    val nestedTask = PlainTask("nestedFirst", DatasetSpec(nestedDataset))
+
+    val parentExecution = LocalExecution(false, workflowId = Some(Identifier("parentWf")))
+    val childExecution = LocalExecution(false, workflowId = Some(Identifier("childWf")), parentExecution = Some(parentExecution))
+
+    // The nested (child) executor accesses first and writes.
+    val childExecutor = new InMemoryDatasetExecutor()
+    val childEndpoint = sparqlEndpoint(childExecutor.access(nestedTask, childExecution))
+    childEndpoint.update("INSERT DATA { <http://s1> <http://p> <http://o1> }")
+    childEndpoint.update("INSERT DATA { <http://s2> <http://p> <http://o2> }")
+
+    // The nested workflow finishes before the parent continues.
+    childExecutor.close()
+
+    // The parent then reads and must see the data the nested workflow wrote.
+    val parentExecutor = new InMemoryDatasetExecutor()
+    val parentEndpoint = sparqlEndpoint(parentExecutor.access(nestedTask, parentExecution))
+    parentEndpoint.select(tripleCountQuery).bindings.size mustBe 2
+  }
+
+  it should "keep the shared endpoint when a nested execution closes and only drop it when the root closes" in {
+    val nestedDataset = InMemoryDataset(workflowScoped = true)
+    val nestedTask = PlainTask("cleanupOrder", DatasetSpec(nestedDataset))
+
+    val parentExecution = LocalExecution(false, workflowId = Some(Identifier("parentWf")))
+    val childExecution = LocalExecution(false, workflowId = Some(Identifier("childWf")), parentExecution = Some(parentExecution))
+
+    val childExecutor = new InMemoryDatasetExecutor()
+    sparqlEndpoint(childExecutor.access(nestedTask, childExecution))
+      .update("INSERT DATA { <http://s> <http://p> <http://o> }")
+
+    val parentExecutor = new InMemoryDatasetExecutor()
+    parentExecutor.access(nestedTask, parentExecution)
+
+    // A nested execution finishing must not drop the shared endpoint.
+    childExecutor.close()
+    nestedDataset.findEndpoint(parentExecution, nestedTask.id) must not be empty
+
+    // Only the root execution disposes the shared endpoint.
+    parentExecutor.close()
+    nestedDataset.findEndpoint(parentExecution, nestedTask.id) mustBe empty
   }
 
   private def sparqlEndpoint(access: DatasetAccess): SparqlEndpoint =

@@ -62,13 +62,22 @@ case class InMemoryDataset(
   private val executionEndpoints: java.util.Map[ExecutionModelKey, InMemoryJenaModelEndpoint] =
     Collections.synchronizedMap(new java.util.WeakHashMap[ExecutionModelKey, InMemoryJenaModelEndpoint]())
 
-  private[datasets] def registerEndpoint(key: ExecutionModelKey, endpoint: InMemoryJenaModelEndpoint): Unit =
-    executionEndpoints.put(key, endpoint)
+  /**
+   * Returns the endpoint registered under `key`, creating and registering a new one if absent.
+   * Access is synchronized.
+   */
+  private[datasets] def getOrCreateEndpoint(key: ExecutionModelKey): InMemoryJenaModelEndpoint =
+    executionEndpoints.synchronized {
+      Option(executionEndpoints.get(key)).getOrElse {
+        val newEndpoint = new InMemoryJenaModelEndpoint()
+        executionEndpoints.put(key, newEndpoint)
+        newEndpoint
+      }
+    }
 
+  /** Looks up the endpoint anchored to the given execution's root for `taskId`, without creating one. */
   private[datasets] def findEndpoint(execution: LocalExecution, taskId: Identifier): Option[InMemoryJenaModelEndpoint] =
-    Option(executionEndpoints.get(ExecutionModelKey(execution.executionId, taskId))).orElse(
-      execution.parentExecution.flatMap(findEndpoint(_, taskId))
-    )
+    Option(executionEndpoints.get(ExecutionModelKey(execution.rootExecution.executionId, taskId)))
 
   private[datasets] def removeEndpoint(key: ExecutionModelKey): Unit =
     executionEndpoints.remove(key)

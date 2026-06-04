@@ -29,6 +29,13 @@ case class LocalExecution(useLocalInternalDatasets: Boolean,
   /** Unique identifier for this execution instance. */
   val executionId: Identifier = Identifier.random
 
+  /** The root execution of the workflow tree, i.e. the top-most ancestor without a parent execution. */
+  @scala.annotation.tailrec
+  final def rootExecution: LocalExecution = parentExecution match {
+    case Some(parent) => parent.rootExecution
+    case None         => this
+  }
+
   private val log: Logger = Logger.getLogger(this.getClass.getName)
 
   private val internalDatasets: mutable.Map[Option[String], InternalDatasetTrait] = mutable.Map.empty
