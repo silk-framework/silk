@@ -95,35 +95,36 @@ const RuleBlockEvaluation = ({
     const usesExternalEvaluation = optionalContext.externalEvaluationResults !== undefined;
     const [evaluationRunning, setEvaluationRunning] = React.useState<boolean>(false);
     const [evaluationResult, setEvaluationResult] = React.useState<EvaluatedTransformEntity[]>([]);
-    const [evaluationResultMap] = React.useState<Map<string, EvaluationResultType>>(new Map());
     const [evaluationResultsShown, setEvaluationResultsShown] = React.useState<boolean>(false);
-    const [nodeUpdateCallbacks] = React.useState(
-        new Map<string, (evaluationValues: EvaluationResultType | undefined) => any>(),
-    );
     const [ruleValidationError, setRuleValidationError] = React.useState<RuleValidationError | undefined>(undefined);
     const { registerError } = useErrorHandler();
     const [t] = useTranslation();
     const evaluatedSubTreeNode = React.useRef<string>(undefined);
     const evaluationResultsShownRef = React.useRef(evaluationResultsShown);
+    const evaluationResultMap = React.useRef<Map<string, EvaluationResultType>>(new Map());
+    const nodeUpdateCallbacks = React.useRef(
+        new Map<string, (evaluationValues: EvaluationResultType | undefined) => any>(),
+    );
     evaluationResultsShownRef.current = evaluationResultsShown;
 
     React.useEffect(() => {
+        // Load external evaluations results if existing
         setEvaluationResult(optionalContext.externalEvaluationResults ?? []);
         setEvaluationResultsShown(usesExternalEvaluation);
         evaluationResultsShownRef.current = usesExternalEvaluation;
         if (usesExternalEvaluation) {
-            nodeUpdateCallbacks.forEach((updateCallback, ruleOperatorId) => {
-                updateCallback(evaluationResultMap.get(ruleOperatorId) ?? []);
+            nodeUpdateCallbacks.current.forEach((updateCallback, ruleOperatorId) => {
+                updateCallback(evaluationResultMap.current.get(ruleOperatorId) ?? []);
             });
         } else {
-            nodeUpdateCallbacks.forEach((updateCallback) => {
+            nodeUpdateCallbacks.current.forEach((updateCallback) => {
                 updateCallback(undefined);
             });
         }
         setEvaluationRunning(false);
         setRuleValidationError(undefined);
-        evaluationResultMap.clear();
-    }, [evaluationResultMap, nodeUpdateCallbacks, optionalContext.externalEvaluationResults, projectId, ruleBlockTaskId, usesExternalEvaluation]);
+        evaluationResultMap.current.clear();
+    }, [optionalContext.externalEvaluationResults, projectId, ruleBlockTaskId, usesExternalEvaluation]);
 
     React.useEffect(() => {
         try {
@@ -134,14 +135,14 @@ const RuleBlockEvaluation = ({
                     operatorIds.add(operatorId);
                 });
             });
-            evaluationResultMap.clear();
+            evaluationResultMap.current.clear();
             operatorIds.forEach((operatorId) => {
                 const evaluationValues = valueMaps.map((valueMap) => {
                     return valueMap.get(operatorId) ?? { value: [] };
                 });
-                evaluationResultMap.set(operatorId, evaluationValues);
+                evaluationResultMap.current.set(operatorId, evaluationValues);
             });
-            nodeUpdateCallbacks.forEach((updateCallback, operatorId) => {
+            nodeUpdateCallbacks.current.forEach((updateCallback, operatorId) => {
                 updateCallback(evaluationValuesForOperator(operatorId, evaluationResultsShownRef.current));
             });
         } catch (ex) {
@@ -156,22 +157,22 @@ const RuleBlockEvaluation = ({
         if (!showEvaluationResults) {
             return undefined;
         }
-        return evaluationResultMap.get(operatorId) ?? [];
-    }, [evaluationResultMap]);
+        return evaluationResultMap.current.get(operatorId) ?? [];
+    }, []);
 
     const toggleEvaluationResults = React.useCallback((show: boolean) => {
         if (show) {
-            nodeUpdateCallbacks.forEach((updateCallback, ruleOperatorId) => {
+            nodeUpdateCallbacks.current.forEach((updateCallback, ruleOperatorId) => {
                 updateCallback(evaluationValuesForOperator(ruleOperatorId, true));
             });
         } else {
-            nodeUpdateCallbacks.forEach((updateCallback) => {
+            nodeUpdateCallbacks.current.forEach((updateCallback) => {
                 updateCallback(undefined);
             });
         }
         evaluationResultsShownRef.current = show;
         setEvaluationResultsShown(show);
-    }, [evaluationValuesForOperator, nodeUpdateCallbacks]);
+    }, [evaluationValuesForOperator]);
 
     const setEvaluationRootNode = React.useCallback((nodeId: string | undefined) => {
         evaluatedSubTreeNode.current = nodeId;
@@ -228,13 +229,13 @@ const RuleBlockEvaluation = ({
         ruleOperatorId: string,
         evaluationUpdate: (evaluationValues: EvaluationResultType | undefined) => void,
     ) => {
-        nodeUpdateCallbacks.set(ruleOperatorId, evaluationUpdate);
+        nodeUpdateCallbacks.current.set(ruleOperatorId, evaluationUpdate);
         evaluationUpdate(evaluationValuesForOperator(ruleOperatorId, evaluationResultsShownRef.current));
-    }, [evaluationValuesForOperator, nodeUpdateCallbacks]);
+    }, [evaluationValuesForOperator]);
 
     const unregisterForEvaluationResults = React.useCallback((ruleOperatorId: string) => {
-        nodeUpdateCallbacks.delete(ruleOperatorId);
-    }, [nodeUpdateCallbacks]);
+        nodeUpdateCallbacks.current.delete(ruleOperatorId);
+    }, []);
 
     const createRuleEditorEvaluationComponent = React.useCallback((ruleOperatorId: string): React.JSX.Element => {
         const noResultMsg =

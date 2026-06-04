@@ -171,7 +171,7 @@ describe("RuleBlockEvaluation", () => {
         await waitFor(() => expect(latestEvaluationContext).toBeDefined());
         const evaluationContext = latestEvaluationContext!;
 
-        let startEvaluationPromise: Promise<void>;
+        let startEvaluationPromise: Promise<void> | void;
         act(() => {
             startEvaluationPromise = evaluationContext.startEvaluation(
                 [createTransformNode(), createInputPortNode()],
@@ -190,7 +190,7 @@ describe("RuleBlockEvaluation", () => {
             }),
         );
         await act(async () => {
-            await startEvaluationPromise;
+            await Promise.resolve(startEvaluationPromise);
         });
 
         expect(harness.mockRegisterError).not.toHaveBeenCalled();
