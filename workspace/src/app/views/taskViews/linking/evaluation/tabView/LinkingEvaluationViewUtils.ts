@@ -10,7 +10,7 @@ import {
 } from "./typings";
 import { IAggregationOperator, IComparisonOperator, ISimilarityOperator } from "../../linking.types";
 import { IPluginDetails } from "@ducks/common/typings";
-import { IPathInput, ITransformOperator } from "views/taskViews/shared/rules/rule.typings";
+import { IPathInput, IRuleBlockInput, ITransformOperator, IValueInput } from "views/taskViews/shared/rules/rule.typings";
 import { TreeNodeInfo } from "@eccenca/gui-elements";
 
 /**
@@ -85,34 +85,25 @@ export const referenceLinksChangeRequest = async (
         body,
     });
 
-export const getOperatorPath = (operatorInput: any): Array<{ id: string; path: string }> => {
-    if (operatorInput.path) {
+export const getOperatorPath = (operatorInput: IValueInput): Array<{ id: string; path: string }> => {
+    if (operatorInput.type === "pathInput") {
         return [{ path: operatorInput.path, id: operatorInput.id }];
     }
-
-    return operatorInput.inputs.reduce(
-        (acc, val) => {
-            acc = [...acc, ...getOperatorPath(val)];
-            return acc;
-        },
-        [] as Array<{ id: string; path: string }>,
-    );
+    if (operatorInput.type === "ruleBlockInput") {
+        return operatorInput.bindings.flatMap((binding) => getOperatorPath(binding.input));
+    }
+    return operatorInput.type === "transformInput"
+        ? operatorInput.inputs.flatMap((input) => getOperatorPath(input))
+        : [];
 };
 
 export const getLinkRuleInputPaths = (operatorInput: ISimilarityOperator) =>
     ["sourceInput", "targetInput"].reduce(
         (linkRuleInputPaths, inputPathType) => {
             const label = inputPathType.replace("Input", "");
-            //no intermittent inputs but are direct paths
-            if (!operatorInput[inputPathType]?.inputs) {
-                linkRuleInputPaths[label][operatorInput[inputPathType].path] = operatorInput[inputPathType].id;
-            } else {
-                operatorInput[inputPathType].inputs.forEach((i) => {
-                    getOperatorPath(i).forEach(({ path, id }) => {
-                        linkRuleInputPaths[label][path] = id;
-                    });
-                });
-            }
+            getOperatorPath(operatorInput[inputPathType]).forEach(({ path, id }) => {
+                linkRuleInputPaths[label][path] = id;
+            });
             return linkRuleInputPaths;
         },
         { source: {}, target: {} } as EvaluationLinkInputValue<string>,
@@ -122,6 +113,7 @@ export const getOperatorLabel = (
     operator: any,
     operatorPlugins: IPluginDetails[],
     emptyPathLabel: string,
+    ruleBlockLabels: Record<string, string> = {},
 ): string | undefined => {
     switch (operator.type) {
         case "Aggregation":
@@ -133,6 +125,8 @@ export const getOperatorLabel = (
         case "transformInput":
             return operatorPlugins.find((plugin) => plugin.pluginId === (operator as ITransformOperator).function)
                 ?.title;
+        case "ruleBlockInput":
+            return ruleBlockLabels[(operator as IRuleBlockInput).ruleBlockId] ?? (operator as IRuleBlockInput).ruleBlockId;
         case "pathInput":
             return (operator as IPathInput).path || emptyPathLabel;
         default:

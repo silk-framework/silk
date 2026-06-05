@@ -32,6 +32,7 @@ import {
 } from "@eccenca/gui-elements";
 import { OperatorLabel } from "../../../../../views/taskViews/shared/evaluations/OperatorLabel";
 import { LinkType } from "../../referenceLinks/LinkingRuleReferenceLinks.typing";
+import type { IRuleBlockInput, IValueInput } from "../../../shared/rules/rule.typings";
 
 interface ExpandedEvaluationRowProps {
     rowIdx: number;
@@ -51,6 +52,7 @@ interface ExpandedEvaluationRowProps {
     operatorTreeExpandedByDefault: boolean;
     inputValuesExpandedByDefault: boolean;
     operatorPlugins: Array<IPluginDetails>;
+    ruleBlockLabels: Record<string, string>;
     evaluationMap?: Map<string, EvaluationResultType[number]>;
     /** If the row is expanded because of a search match. Only the row values should be shown in that case. */
     expandedBySearch: boolean;
@@ -59,7 +61,17 @@ interface ExpandedEvaluationRowProps {
 const operatorInputMapping = {
     transformInput: "Transform",
     pathInput: "Input",
+    ruleBlockInput: "Rule block",
 };
+
+const nestedInputChildren = (input: IValueInput): IValueInput[] => {
+    if (input.type === "ruleBlockInput") {
+        return (input as IRuleBlockInput).bindings.map((binding) => binding.input);
+    }
+    return input.type === "transformInput" ? input.inputs : [];
+};
+
+const inputPath = (input: IValueInput): string => (input.type === "pathInput" ? input.path : "");
 
 const linkStateButtons: {
     icon: ValidIconName;
@@ -86,6 +98,7 @@ export const LinkingEvaluationRow = React.memo(
         operatorTreeExpandedByDefault,
         inputValuesExpandedByDefault,
         operatorPlugins,
+        ruleBlockLabels,
         evaluationMap,
         expandedBySearch,
     }: ExpandedEvaluationRowProps) => {
@@ -195,6 +208,7 @@ export const LinkingEvaluationRow = React.memo(
                         tagPluginType={operatorNode.type}
                         operator={operatorNode}
                         operatorPlugins={operatorPlugins}
+                        ruleBlockLabels={ruleBlockLabels}
                     >
                         {getOperatorConfidence(operatorNode.id)}
                     </OperatorLabel>
@@ -220,6 +234,7 @@ export const LinkingEvaluationRow = React.memo(
                                     tagPluginType={nodeInput.type}
                                     operator={nodeInput}
                                     operatorPlugins={operatorPlugins}
+                                    ruleBlockLabels={ruleBlockLabels}
                                 >
                                     {getOperatorConfidence(nodeInput.id)}
                                 </OperatorLabel>
@@ -244,6 +259,7 @@ export const LinkingEvaluationRow = React.memo(
                                     }
                                     operator={node[inputPath]}
                                     operatorPlugins={operatorPlugins}
+                                    ruleBlockLabels={ruleBlockLabels}
                                 >
                                     {getLinkValues(node[inputPath].id, rowIdx, treeInfo, {
                                         path: node[inputPath].path ?? "",
@@ -254,13 +270,16 @@ export const LinkingEvaluationRow = React.memo(
                             childNodes: [],
                         };
 
-                        if (node[inputPath].inputs?.length) {
-                            node[inputPath].inputs.forEach((i) => {
+                        const nodeInputChildren = nestedInputChildren(node[inputPath]);
+                        if (nodeInputChildren.length) {
+                            nodeInputChildren.forEach((i) => {
                                 buildInputTree(
                                     i,
                                     inputNode,
                                     rowIdx,
-                                    inputPathCategory[inputPath],
+                                    node[inputPath].type === "ruleBlockInput"
+                                        ? "Rule block"
+                                        : inputPathCategory[inputPath],
                                     treeInfo,
                                     isSourceEntity,
                                 );
@@ -284,7 +303,12 @@ export const LinkingEvaluationRow = React.memo(
                           isExpanded: true,
                           hasCaret: false,
                           label: (
-                              <OperatorLabel tagPluginType={i.type} operator={i} operatorPlugins={operatorPlugins}>
+                              <OperatorLabel
+                                  tagPluginType={i.type}
+                                  operator={i}
+                                  operatorPlugins={operatorPlugins}
+                                  ruleBlockLabels={ruleBlockLabels}
+                              >
                                   {getOperatorConfidence(i.id)}
                               </OperatorLabel>
                           ),
@@ -297,22 +321,28 @@ export const LinkingEvaluationRow = React.memo(
         }, [operatorPlugins.length, valueToHighlight, nodeParentHighlightedIds, operatorTreeExpansion]);
 
         const buildInputTree = (
-            input: any,
+            input: IValueInput,
             tree: TreeNodeInfo,
             index: number,
-            tagInputTag: "Source path" | "Target path",
+            tagInputTag: "Source path" | "Target path" | "Rule block",
             parentTree: TreeNodeInfo,
             isSourceEntity = false,
         ): TreeNodeInfo => {
-            if (!input.inputs?.length) {
+            const nextInputs = nestedInputChildren(input);
+            if (!nextInputs.length) {
                 const newChild = {
                     id: input.id,
                     hasCaret: false,
                     isExpanded: true,
                     label: (
-                        <OperatorLabel tagPluginType={tagInputTag} operator={input} operatorPlugins={operatorPlugins}>
+                        <OperatorLabel
+                            tagPluginType={tagInputTag}
+                            operator={input}
+                            operatorPlugins={operatorPlugins}
+                            ruleBlockLabels={ruleBlockLabels}
+                        >
                             {getLinkValues(input.id, index, parentTree, {
-                                path: input.path ?? "",
+                                path: inputPath(input),
                                 isSourceEntity,
                             })}
                         </OperatorLabel>
@@ -322,7 +352,7 @@ export const LinkingEvaluationRow = React.memo(
                 return tree;
             }
 
-            return input.inputs.reduce((acc, i) => {
+            return nextInputs.reduce((acc, i) => {
                 const newChildTree = {
                     id: input.id,
                     hasCaret: false,
@@ -332,9 +362,10 @@ export const LinkingEvaluationRow = React.memo(
                             tagPluginType={operatorInputMapping[input.type]}
                             operator={input}
                             operatorPlugins={operatorPlugins}
+                            ruleBlockLabels={ruleBlockLabels}
                         >
                             {getLinkValues(input.id, index, parentTree, {
-                                path: input.path ?? "",
+                                path: inputPath(input),
                                 isSourceEntity,
                             })}
                         </OperatorLabel>

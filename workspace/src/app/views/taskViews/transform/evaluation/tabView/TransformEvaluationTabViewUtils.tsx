@@ -26,6 +26,7 @@ export const getEvaluatedEntities = async (
 const operatorMapping = {
     pathInput: "Source path",
     transformInput: "Transform",
+    ruleBlockInput: "Rule block",
 } as const;
 
 interface NodeTagValuesProps {
@@ -72,11 +73,13 @@ export const newNode = ({
     rule,
     values,
     operatorPlugins,
+    ruleBlockLabels,
     error,
 }: {
     rule: EvaluatedRuleOperator;
     values: EvaluatedEntityOperator["values"];
     operatorPlugins: Array<IPluginDetails>;
+    ruleBlockLabels?: Record<string, string>;
     error?: string;
 }): TreeNodeInfo<Partial<{ root: boolean; label: string }>> => {
     return {
@@ -84,7 +87,12 @@ export const newNode = ({
         hasCaret: false,
         isExpanded: true,
         label: (
-            <OperatorLabel tagPluginType={operatorMapping[rule.type]} operator={rule} operatorPlugins={operatorPlugins}>
+            <OperatorLabel
+                tagPluginType={operatorMapping[rule.type]}
+                operator={rule}
+                operatorPlugins={operatorPlugins}
+                ruleBlockLabels={ruleBlockLabels}
+            >
                 <NodeTagValues values={values} error={error} />
             </OperatorLabel>
         ),

@@ -113,10 +113,12 @@ export const RuleOperator = ({ ruleOperator, textQuery, searchWords }: RuleOpera
 
 const tagColors = getColorConfiguration("react-flow-linking");
 export const tagColor = (
-    tag: "Input" | "Transform" | "Comparison" | "Aggregation" | "Source path" | "Target path",
+    tag: "Input" | "Transform" | "Comparison" | "Aggregation" | "Source path" | "Target path" | "Rule block",
 ): ColorLike | undefined => {
     switch (tag) {
         case "Transform":
+            return tagColors[`${eccgui}-transformation-node-bright`];
+        case "Rule block":
             return tagColors[`${eccgui}-transformation-node-bright`];
         case "Input":
             return tagColors[`${eccgui}-value-edge`];
