@@ -33,11 +33,9 @@ val buildReactExternally = {
 }
 
 // Additional compiler (javac, scalac) parameters
-val compilerParams: (Seq[String], Seq[String]) = if(System.getProperty("java.version").split("\\.").head.toInt >= 25) {
-  (Seq("--release", "25", "-Xlint"), Seq("-release", "25"))
-} else {
+// Note: keep the bytecode target at 21, because Spark 3.5.x does not support Java 25
+val compilerParams: (Seq[String], Seq[String]) =
   (Seq("--release", "21", "-Xlint"), Seq("-release", "21"))
-}
 
 (Global / concurrentRestrictions) += Tags.limit(Tags.Test, 1)
 
