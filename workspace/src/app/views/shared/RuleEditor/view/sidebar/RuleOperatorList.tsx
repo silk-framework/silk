@@ -9,7 +9,11 @@ import {
 } from "@eccenca/gui-elements";
 import React from "react";
 import { useTranslation } from "react-i18next";
-import { IRuleOperator, RuleOperatorNodeParameters } from "../../RuleEditor.typings";
+import {
+    IRuleOperator,
+    RuleEditorSidebarOperatorDragPayload,
+    RuleOperatorNodeParameters,
+} from "../../RuleEditor.typings";
 import { RuleOperator } from "./RuleOperator";
 import { IPreConfiguredRuleOperator } from "./RuleEditorOperatorSidebar.typings";
 
@@ -62,16 +66,11 @@ export function RuleOperatorList<T>({
         // FIXME: Node cycle logic
     };
 
-    /** Add operator plugin data to drag event. For pre-configured operators also serialize initial parameter and metadata overwrites. */
-    const onDragStartByPluginId =
-        (
-            pluginType: string,
-            pluginId: string,
-            parameterValues?: RuleOperatorNodeParameters,
-            nodeMetaDataOverwrites?: IPreConfiguredRuleOperator["nodeMetaDataOverwrites"],
-        ) =>
+    /** Add drag payload to the event. For ordinary operators this contains plugin identity plus optional initial overwrites. */
+    const onDragStart =
+        (dragPayload: IPreConfiguredRuleOperator["dragData"] | RuleEditorSidebarOperatorDragPayload) =>
         (e: React.DragEvent<HTMLDivElement>) => {
-            const pluginData = JSON.stringify({ pluginType, pluginId, parameterValues, nodeMetaDataOverwrites });
+            const pluginData = JSON.stringify(dragPayload);
             e.dataTransfer.setData("application/reactflow", pluginData);
             e.dataTransfer.setData("application/x-reactflow-app", "ruleEditor");
             const draggedElement = e.currentTarget;
@@ -93,20 +92,19 @@ export function RuleOperatorList<T>({
                 : [preConfiguredRuleOperator.actions]
             : [];
         const draggable = preConfiguredRuleOperator.draggable ?? true;
+        const dragPayload: IPreConfiguredRuleOperator["dragData"] | RuleEditorSidebarOperatorDragPayload =
+            preConfiguredRuleOperator.dragData ?? {
+                type: "operator",
+                pluginType: ruleOperator.pluginType,
+                pluginId: ruleOperator.pluginId,
+                parameterValues: preConfiguredRuleOperator.parameterOverwrites,
+                nodeMetaDataOverwrites: preConfiguredRuleOperator.nodeMetaDataOverwrites,
+            };
         return (
             <div
                 data-test-id={"ruleEditor-sidebar-draggable-operator"}
                 draggable={draggable}
-                onDragStart={
-                    draggable
-                        ? onDragStartByPluginId(
-                              ruleOperator.pluginType,
-                              ruleOperator.pluginId,
-                              preConfiguredRuleOperator.parameterOverwrites,
-                              preConfiguredRuleOperator.nodeMetaDataOverwrites,
-                          )
-                        : undefined
-                }
+                onDragStart={draggable ? onDragStart(dragPayload) : undefined}
                 style={{ cursor: draggable ? "grab" : "default" }}
             >
                 <Card data-test-id={"ruleEditor-sidebar-draggable-operator-" + ruleOperator.pluginId} isOnlyLayout>

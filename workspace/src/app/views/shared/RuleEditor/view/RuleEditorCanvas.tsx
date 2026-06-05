@@ -17,6 +17,7 @@ import {
     IRuleEditorViewSelectionDragState,
 } from "./RuleEditorView.typings";
 import { RuleEditorModelContext } from "../contexts/RuleEditorModelContext";
+import { RuleEditorContext } from "../contexts/RuleEditorContext";
 import { EdgeMenu } from "./ruleEdge/EdgeMenu";
 import { ruleEditorModelUtilsFactory, SOURCE_HANDLE_TYPE, TARGET_HANDLE_TYPE } from "../model/RuleEditorModel.utils";
 import { RuleEditorNode } from "../model/RuleEditorModel.typings";
@@ -24,6 +25,7 @@ import useHotKey from "../../HotKeyHandler/HotKeyHandler";
 import { RuleEditorUiContext } from "../contexts/RuleEditorUiContext";
 import { useSelector } from "react-redux";
 import { commonSel } from "@ducks/common";
+import { RuleEditorSidebarDragPayload, RuleEditorSidebarOperatorDragPayload } from "../RuleEditor.typings";
 
 //snap grid
 const snapGrid: [number, number] = [15, 15];
@@ -39,6 +41,7 @@ export const RuleEditorCanvas = () => {
         selectionStartPositions: new Map(),
     });
     const modelContext = React.useContext(RuleEditorModelContext);
+    const ruleEditorContext = React.useContext(RuleEditorContext);
     const ruleEditorUiContext = React.useContext(RuleEditorUiContext);
     // Stores the state when any edge connection operation is active, i.e. creating a new or updating an existing edge
     const [edgeConnectState] = React.useState<EditorEdgeConnectionState>({
@@ -474,27 +477,45 @@ export const RuleEditorCanvas = () => {
         const pluginData = e.dataTransfer.getData("application/reactflow");
         if (pluginData) {
             try {
-                const { pluginType, pluginId, parameterValues, nodeMetaDataOverwrites } = JSON.parse(pluginData);
-                if (pluginType && pluginId) {
-                    // Position on react-flow canvas
-                    const reactFlowPosition = {
-                        x: e.clientX - reactFlowBounds.left - 20,
-                        y: e.clientY - reactFlowBounds.top - 20,
-                    };
-                    modelContext.executeModelEditOperation.startChangeTransaction();
-                    modelContext.executeModelEditOperation.addNodeByPlugin(
-                        pluginType,
-                        pluginId,
-                        reactFlowPosition,
-                        parameterValues,
-                        nodeMetaDataOverwrites,
-                        true,
-                    );
+                const dragPayload = JSON.parse(pluginData) as
+                    | RuleEditorSidebarDragPayload
+                    | {
+                          pluginType?: string;
+                          pluginId?: string;
+                          parameterValues?: RuleEditorSidebarOperatorDragPayload["parameterValues"];
+                          nodeMetaDataOverwrites?: RuleEditorSidebarOperatorDragPayload["nodeMetaDataOverwrites"];
+                      };
+                // Position on react-flow canvas
+                const reactFlowPosition = {
+                    x: e.clientX - reactFlowBounds.left - 20,
+                    y: e.clientY - reactFlowBounds.top - 20,
+                };
+                if ("type" in dragPayload && dragPayload.type !== "operator") {
+                    if (ruleEditorContext.handleSidebarDropRequest?.(dragPayload, reactFlowPosition)) {
+                        return;
+                    }
+                    console.warn("The drag event contained an unsupported sidebar drop request: " + pluginData);
                 } else {
-                    console.warn(
-                        "The drag event did not contain the necessary parameters, pluginType and pluginId. Received: " +
-                            pluginData,
-                    );
+                    const { pluginType, pluginId, parameterValues, nodeMetaDataOverwrites } =
+                        "type" in dragPayload && dragPayload.type === "operator"
+                            ? dragPayload
+                            : dragPayload;
+                    if (pluginType && pluginId) {
+                        modelContext.executeModelEditOperation.startChangeTransaction();
+                        modelContext.executeModelEditOperation.addNodeByPlugin(
+                            pluginType,
+                            pluginId,
+                            reactFlowPosition,
+                            parameterValues,
+                            nodeMetaDataOverwrites,
+                            true,
+                        );
+                    } else {
+                        console.warn(
+                            "The drag event did not contain the necessary parameters, pluginType and pluginId. Received: " +
+                                pluginData,
+                        );
+                    }
                 }
             } catch (e) {
                 console.warn("Could not parse drag event data. Received: " + pluginData);

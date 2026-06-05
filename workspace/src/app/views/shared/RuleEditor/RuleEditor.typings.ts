@@ -5,11 +5,31 @@ import { IPreConfiguredRuleOperator } from "./view/sidebar/RuleEditorOperatorSid
 import { RuleEditorNodeParameterValue } from "./model/RuleEditorModel.typings";
 import { DistanceMeasureRange, IPropertyAutocomplete } from "@ducks/common/typings";
 import { RuleNodeContentProps } from "./view/ruleNode/NodeContent";
+import { XYPosition } from "react-flow-renderer/dist/types";
 
 export type PathInputOperator = "PathInputOperator";
 export type InputPortOperator = "InputPortOperator";
 
 export type RuleOperatorPluginType = PathInputOperator | InputPortOperator | RuleOperatorType;
+
+export interface RuleEditorSidebarOperatorDragPayload {
+    type: "operator";
+    pluginType: string;
+    pluginId: string;
+    parameterValues?: RuleOperatorNodeParameters;
+    nodeMetaDataOverwrites?: RuleEditorPatchableNodeProjection;
+}
+
+export interface RuleEditorSidebarCreateInputPortRequest {
+    type: "createInputPort";
+}
+
+export type RuleEditorSidebarDropRequest = RuleEditorSidebarCreateInputPortRequest;
+export type RuleEditorSidebarDragPayload = RuleEditorSidebarOperatorDragPayload | RuleEditorSidebarDropRequest;
+export type HandleRuleEditorSidebarDropRequest = (
+    request: RuleEditorSidebarDropRequest,
+    position: XYPosition,
+) => boolean;
 
 export interface INamedInputPortSpecification {
     /** Stable ID of the input port. */

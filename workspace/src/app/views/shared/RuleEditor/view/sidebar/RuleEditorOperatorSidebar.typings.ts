@@ -1,5 +1,9 @@
 import type React from "react";
-import { IRuleOperator, RuleEditorPatchableNodeProjection } from "../../RuleEditor.typings";
+import {
+    IRuleOperator,
+    RuleEditorPatchableNodeProjection,
+    RuleEditorSidebarDragPayload,
+} from "../../RuleEditor.typings";
 import { RuleEditorNodeParameterValue } from "../../model/RuleEditorModel.typings";
 
 /** The operator data that is used for rendering a rule operator in the sidebar. */
@@ -17,4 +21,6 @@ export interface IPreConfiguredRuleOperator extends SidebarRuleOperatorBase {
     draggable?: boolean;
     /** Optional sidebar actions rendered for this pre-configured entry. */
     actions?: React.JSX.Element | React.JSX.Element[];
+    /** Optional custom drag payload for special create-on-drop sidebar entries. */
+    dragData?: RuleEditorSidebarDragPayload;
 }

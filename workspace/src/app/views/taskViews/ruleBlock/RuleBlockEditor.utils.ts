@@ -49,7 +49,9 @@ const createNewInputPortSidebarItem = (onCreate: () => void): IPreConfiguredRule
         tags: [],
         inputsCanBeSwitched: false,
         parameterOverwrites: {},
-        draggable: false,
+        dragData: {
+            type: "createInputPort",
+        },
         actions: React.createElement(IconButton, {
             key: "create-input-port",
             name: "item-add-artefact",

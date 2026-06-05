@@ -18,6 +18,8 @@ import type {
 import type { IRuleSidebarPreConfiguredOperatorsTabConfig } from "../../../shared/RuleEditor/RuleEditor.typings";
 import type { IPreConfiguredRuleOperator } from "../../../shared/RuleEditor/view/sidebar/RuleEditorOperatorSidebar.typings";
 import type { InputPortDialogSubmitValue } from "../InputPortDialog";
+import type { XYPosition } from "react-flow-renderer/dist/types";
+import type { RuleEditorSidebarDropRequest } from "../../../shared/RuleEditor/RuleEditor.typings";
 
 type CapturedRuleEditorProps = {
     projectId: string;
@@ -37,6 +39,7 @@ type CapturedRuleEditorProps = {
     extendClipboardCopy?: (task: RuleClipboardTask, nodeIds: string[]) => unknown;
     prepareClipboardPaste?: (task: RuleClipboardTask) => Promise<unknown> | unknown;
     extraRuleNodeMenuItems?: (node: IRuleOperatorNode, closeMenu: () => void) => React.JSX.Element[] | undefined;
+    handleSidebarDropRequest?: (request: RuleEditorSidebarDropRequest, position: XYPosition) => boolean;
 };
 
 type CapturedInputPortDialogProps = {
@@ -112,6 +115,7 @@ const createRuleBlockEditorHarness = () => {
         executeExternalRuleModelChange: jest.fn(),
         updateRuleOperatorNodeMetaData: jest.fn(),
         deleteNodes: jest.fn(),
+        addNodeByPlugin: jest.fn(),
     };
 
     jestTestUtils.mockReactI18next(jestTestUtils.testTranslate);
@@ -545,6 +549,96 @@ describe("RuleBlockEditor", () => {
         expect(editor.getInputPortDialogProps()?.isRuleBlockInUse).toBe(true);
 
         unmount();
+    });
+
+    it("should open the create input port dialog from a dropped sidebar creation request and cancel without changing the model", async () => {
+        const editor = await renderRuleBlockEditor({
+            ports: [createPersistedPort()],
+        });
+
+        await act(async () => {
+            expect(
+                editor.getRuleEditorProps().handleSidebarDropRequest?.({ type: "createInputPort" }, { x: 120, y: 180 }),
+            ).toBe(true);
+        });
+
+        await waitFor(() =>
+            expect(editor.getInputPortDialogProps()).toMatchObject({
+                mode: "create",
+            }),
+        );
+
+        await act(async () => {
+            editor.getInputPortDialogProps()!.onClose();
+        });
+
+        await waitFor(() =>
+            expect(editor.getInputPortDialogProps()).toMatchObject({
+                isOpen: false,
+            }),
+        );
+        expect(editor.mockRuleEditorApi.startChangeTransaction).not.toHaveBeenCalled();
+        expect(editor.mockRuleEditorApi.executeExternalRuleModelChange).not.toHaveBeenCalled();
+        expect(editor.mockRuleEditorApi.addNodeByPlugin).not.toHaveBeenCalled();
+    });
+
+    it("should create the logical input port and a dropped node instance when the create dialog is confirmed after a drop request", async () => {
+        const editor = await renderRuleBlockEditor({
+            ports: [createPersistedPort({ id: "existingPort", label: "Existing input", displayOrder: 1 })],
+        });
+
+        await act(async () => {
+            expect(
+                editor.getRuleEditorProps().handleSidebarDropRequest?.({ type: "createInputPort" }, { x: 320, y: 240 }),
+            ).toBe(true);
+        });
+        await waitFor(() => expect(editor.getInputPortDialogProps()).toBeDefined());
+
+        await act(async () => {
+            editor.getInputPortDialogProps()!.onSubmit({
+                label: "Created by drop",
+                description: "Created from dragged sidebar item",
+                displayOrder: 2,
+                deprecated: false,
+            });
+        });
+
+        expect(editor.mockRuleEditorApi.startChangeTransaction).toHaveBeenCalledTimes(1);
+        expect(editor.mockRuleEditorApi.executeExternalRuleModelChange).toHaveBeenCalledTimes(1);
+        expect(editor.mockRuleEditorApi.addNodeByPlugin).toHaveBeenCalledTimes(1);
+        const createdPortId = editor.mockRuleEditorApi.addNodeByPlugin.mock.calls[0][3].portId;
+        expect(typeof createdPortId).toBe("string");
+
+        const externalChange = editor.mockRuleEditorApi.executeExternalRuleModelChange.mock.calls[0][0];
+        await act(async () => {
+            externalChange.do();
+        });
+
+        expect(editor.mockRuleEditorApi.addNodeByPlugin).toHaveBeenCalledWith(
+            "InputPortOperator",
+            "inputPort",
+            { x: 320, y: 240 },
+            { portId: createdPortId },
+            {
+                label: "Created by drop",
+                description: "Created from dragged sidebar item",
+                tags: ["taskViews.ruleBlock.inputPortsTab", "2"],
+            },
+            true,
+        );
+        expect(editor.getRuleEditorProps().captureExternalSavedState?.()).toStrictEqual({
+            ports: [
+                createPersistedPort({ id: "existingPort", label: "Existing input", displayOrder: 1 }),
+                ruleTestHelper.createRuleBlockPort({
+                    id: createdPortId,
+                    label: "Created by drop",
+                    description: "Created from dragged sidebar item",
+                    displayOrder: 2,
+                    deprecated: false,
+                }),
+            ],
+            inputExamples: [],
+        });
     });
 
     it("should open the edit dialog when the input-port node menu item is clicked", async () => {

@@ -15,6 +15,8 @@ import {
     PathMetaDataFunctions,
     RuleEditorValidationNode,
     RuleSaveResult,
+    HandleRuleEditorSidebarDropRequest,
+    RuleOperatorNodeParameters,
 } from "./RuleEditor.typings";
 import { ExternalRuleModelChangeCallbacks, PrepareClipboardPaste, RuleClipboardTask } from "./model/RuleEditorModel.typings";
 import ErrorBoundary from "../../../ErrorBoundary";
@@ -74,6 +76,8 @@ export interface RuleEditorBaseProps {
     extendClipboardCopy?: (task: RuleClipboardTask, nodeIds: string[]) => unknown;
     /** Optional hook to validate or rewrite a clipboard payload and enqueue parent-owned side effects for undo/redo. */
     prepareClipboardPaste?: PrepareClipboardPaste;
+    /** Optional hook for special sidebar entries that open a creation flow on drop instead of materializing a normal node directly. */
+    handleSidebarDropRequest?: HandleRuleEditorSidebarDropRequest;
     /** When enabled only the rule is shown without side- and toolbar and any other means to edit the rule. */
     showRuleOnly?: boolean;
     /** If set to true the editor is permanently read-only. */
@@ -155,6 +159,15 @@ export interface RuleEditorExternalApi {
         nodeIds: string[],
         patch: (node: IRuleOperatorNode) => RuleEditorPatchableNodeProjection,
     ): void;
+    /** Adds a node by plugin type and ID through the current editor model, e.g. for parent-owned create-on-drop flows. */
+    addNodeByPlugin(
+        pluginType: string,
+        pluginId: string,
+        position: { x: number; y: number },
+        overwriteParameterValues?: RuleOperatorNodeParameters,
+        overwriteNodeMetaData?: RuleEditorPatchableNodeProjection,
+        isCanvasPosition?: boolean,
+    ): void;
 }
 
 const READ_ONLY_QUERY_PARAMETER = "readOnly";
@@ -173,6 +186,7 @@ const RuleEditorExternalApiBridge = React.forwardRef<RuleEditorExternalApi>((_, 
             deleteNodes: ruleEditorModelContext.executeModelEditOperation.deleteNodes,
             executeExternalRuleModelChange: ruleEditorModelContext.executeExternalRuleModelChange,
             updateRuleOperatorNodeMetaData: ruleEditorModelContext.updateRuleOperatorNodeMetaData,
+            addNodeByPlugin: ruleEditorModelContext.executeModelEditOperation.addNodeByPlugin,
         }),
         [ruleEditorModelContext],
     );
@@ -213,6 +227,7 @@ const RuleEditorInner = <TASK_TYPE extends object, OPERATOR_TYPE extends object>
     restoreExternalSavedState,
     extendClipboardCopy,
     prepareClipboardPaste,
+    handleSidebarDropRequest,
     pathMetaData,
     partialAutoCompletion,
     saveInitiallyEnabled,
@@ -394,6 +409,7 @@ const RuleEditorInner = <TASK_TYPE extends object, OPERATOR_TYPE extends object>
                 restoreExternalSavedState,
                 extendClipboardCopy,
                 prepareClipboardPaste,
+                handleSidebarDropRequest,
                 pathMetaData,
                 partialAutoCompletion,
                 saveInitiallyEnabled,

@@ -1,5 +1,6 @@
 import React from "react";
 import {
+    HandleRuleEditorSidebarDropRequest,
     IParameterSpecification,
     IRuleOperator,
     IRuleOperatorNode,
@@ -60,6 +61,8 @@ export interface RuleEditorContextProps extends RuleEditorBaseProps {
     captureExternalSavedState?: () => unknown;
     /** Optional hook to restore additional parent-owned saved state from the latest saved snapshot. */
     restoreExternalSavedState?: (savedState: unknown) => void;
+    /** Optional hook for special sidebar items that trigger a parent-owned creation flow on drop. */
+    handleSidebarDropRequest?: HandleRuleEditorSidebarDropRequest;
 }
 
 export const ruleEditorContextDefaultValue: RuleEditorContextProps = {

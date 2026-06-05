@@ -21,6 +21,7 @@ import { requestUpdateProjectTask } from "@ducks/workspace/requests";
 import { IViewActions } from "../../plugins/PluginRegistry";
 import RuleEditor, { RuleEditorExternalApi, RuleOperatorFetchFnType } from "../../shared/RuleEditor/RuleEditor";
 import {
+    HandleRuleEditorSidebarDropRequest,
     IRuleOperatorNode,
     IRuleSideBarFilterTabConfig,
     RULE_EDITOR_NOTIFICATION_INSTANCE,
@@ -29,6 +30,7 @@ import {
 } from "../../shared/RuleEditor/RuleEditor.typings";
 import type { PreparedClipboardPaste, RuleClipboardTask } from "../../shared/RuleEditor/model/RuleEditorModel.typings";
 import { CodeAutocompleteFieldPartialAutoCompleteResult } from "@eccenca/gui-elements/src/components/AutoSuggestion/AutoSuggestion";
+import { XYPosition } from "react-flow-renderer/dist/types";
 import ruleUtils from "../shared/rules/rule.utils";
 import { FetchError } from "../../../services/fetch/responseInterceptor";
 import useErrorHandler from "../../../hooks/useErrorHandler";
@@ -78,7 +80,10 @@ type RuleBlockExternalSavedState = {
 type ExampleValuesDialogState = {
     highlightedPortId?: string;
 } | undefined;
-type InputPortDialogState = { mode: "create" } | { mode: "edit"; portId: string } | undefined;
+type InputPortDialogState =
+    | { mode: "create"; dropPosition?: XYPosition }
+    | { mode: "edit"; portId: string }
+    | undefined;
 type DeleteInputPortDialogState = { portId: string; instanceCount: number } | undefined;
 type RuleBlockUsageState = {
     isInUse: boolean;
@@ -299,13 +304,24 @@ export const RuleBlockEditor = ({ projectId, ruleBlockTaskId, viewActions, insta
         setDeleteInputPortDialogState(undefined);
     }, []);
 
-    const openCreateInputPortDialog = React.useCallback(() => {
-        setInputPortDialogState({ mode: "create" });
+    const openCreateInputPortDialog = React.useCallback((dropPosition?: XYPosition) => {
+        setInputPortDialogState({ mode: "create", dropPosition });
     }, []);
 
     const openEditInputPortDialog = React.useCallback((portId: string) => {
         setInputPortDialogState({ mode: "edit", portId });
     }, []);
+
+    const handleSidebarDropRequest = React.useCallback<HandleRuleEditorSidebarDropRequest>(
+        (request, position) => {
+            if (request.type !== "createInputPort") {
+                return false;
+            }
+            openCreateInputPortDialog(position);
+            return true;
+        },
+        [openCreateInputPortDialog],
+    );
 
     const openExampleValuesDialog = React.useCallback((highlightedPortId?: string) => {
         setExampleValuesDialogState({ highlightedPortId });
@@ -524,12 +540,13 @@ export const RuleBlockEditor = ({ projectId, ruleBlockTaskId, viewActions, insta
                     }
                 }
             } else {
+                const createdPort: RuleBlockPort = {
+                    id: ruleBlockUtils.generateInputPortId(),
+                    ...value,
+                };
                 const updatedPorts = [
                     ...previousPorts,
-                    {
-                        id: ruleBlockUtils.generateInputPortId(),
-                        ...value,
-                    },
+                    createdPort,
                 ];
                 if (ruleEditorApi) {
                     ruleEditorApi.startChangeTransaction();
@@ -537,6 +554,16 @@ export const RuleBlockEditor = ({ projectId, ruleBlockTaskId, viewActions, insta
                         do: () => applyPorts(updatedPorts),
                         undo: () => applyPorts(previousPorts),
                     });
+                    if (inputPortDialogState?.mode === "create" && inputPortDialogState.dropPosition) {
+                        ruleEditorApi.addNodeByPlugin(
+                            "InputPortOperator",
+                            "inputPort",
+                            inputPortDialogState.dropPosition,
+                            { portId: createdPort.id },
+                            ruleBlockEditorUtils.inputPortNodeMetaData(createdPort),
+                            true,
+                        );
+                    }
                 } else {
                     applyPorts(updatedPorts);
                 }
@@ -848,6 +875,7 @@ export const RuleBlockEditor = ({ projectId, ruleBlockTaskId, viewActions, insta
             restoreExternalSavedState={restoreExternalSavedState}
             extendClipboardCopy={extendClipboardCopy}
             prepareClipboardPaste={prepareClipboardPaste}
+            handleSidebarDropRequest={handleSidebarDropRequest}
             showRuleOnly={showRuleOnly}
             readOnly={readOnly}
             instanceId={instanceId}
