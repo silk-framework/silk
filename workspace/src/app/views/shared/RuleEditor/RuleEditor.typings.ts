@@ -34,6 +34,10 @@ export type HandleRuleEditorSidebarDropRequest = (
 export interface INamedInputPortSpecification {
     /** Stable ID of the input port. */
     id: string;
+    /** Optional human-readable input port label used for display and tooltips. */
+    label?: string;
+    /** Optional markdown description of the input port. */
+    description?: string;
 }
 
 export interface ICountPortSpecification {

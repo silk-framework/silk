@@ -1,25 +1,27 @@
 import React from "react";
-import { ArrowHeadType, Edge, FlowElement, Position } from "react-flow-renderer";
-import { rangeArray } from "../../../../utils/basicUtils";
+import {ArrowHeadType, Edge, FlowElement, Position} from "react-flow-renderer";
+import {rangeArray} from "../../../../utils/basicUtils";
 import {
-    isDynamicPortSpecification,
-    maxInputPortCount,
+    INamedInputPortSpecification,
     IParameterSpecification,
     IRuleNodeData,
     IRuleOperatorNode,
+    isDynamicPortSpecification,
+    isNamedPortSpecification,
+    maxInputPortCount,
     NodeContentPropsWithBusinessData,
     RuleOperatorNodeParameters,
     RuleOperatorPluginType,
 } from "../RuleEditor.typings";
-import { RuleNodeMenu } from "../view/ruleNode/RuleNodeMenu";
-import { RuleEditorNode, RuleEditorNodeParameterValue } from "./RuleEditorModel.typings";
-import { Connection, Elements, XYPosition } from "react-flow-renderer/dist/types";
+import {RuleNodeMenu} from "../view/ruleNode/RuleNodeMenu";
+import {RuleEditorNode, RuleEditorNodeParameterValue} from "./RuleEditorModel.typings";
+import {Connection, Elements, XYPosition} from "react-flow-renderer/dist/types";
 import dagre from "dagre";
-import { NodeContent, RuleNodeContentProps } from "../view/ruleNode/NodeContent";
-import { IconButton, NodeContentHandleProps, NodeContentProps, NodeDimensions } from "@eccenca/gui-elements";
-import { RuleEditorEvaluationContextProps } from "../contexts/RuleEditorEvaluationContext";
-import { InputPathFunctions, LanguageFilterProps } from "../view/ruleNode/PathInputOperator";
-import { InternalRuleBlockEvaluationButton } from "../view/ruleNode/InternalRuleBlockEvaluationButton";
+import {NodeContent, RuleNodeContentProps} from "../view/ruleNode/NodeContent";
+import {HandleDefaultProps, IconButton, Markdown, NodeContentHandleProps, NodeDimensions} from "@eccenca/gui-elements";
+import {RuleEditorEvaluationContextProps} from "../contexts/RuleEditorEvaluationContext";
+import {InputPathFunctions} from "../view/ruleNode/PathInputOperator";
+import {InternalRuleBlockEvaluationButton} from "../view/ruleNode/InternalRuleBlockEvaluationButton";
 
 /** Constants */
 
@@ -38,6 +40,38 @@ function createInputHandle(handleId: number, operatorContext?: IOperatorCreateCo
         type: TARGET_HANDLE_TYPE,
         position: Position.Left,
         isValidConnection: operatorContext?.isValidConnection,
+    };
+}
+
+const namedInputPortTooltip = (port: INamedInputPortSpecification): React.JSX.Element | string => {
+    const label = port.label?.trim() || port.id;
+    const description = port.description?.trim();
+    if (!description) {
+        return label;
+    }
+    return (
+        <>
+            <div>{label}</div>
+            <div style={{ marginTop: 8 }}>
+                <Markdown>{description}</Markdown>
+            </div>
+        </>
+    );
+};
+
+function createNamedInputHandle(
+    port: INamedInputPortSpecification,
+    handleId: number,
+    operatorContext?: IOperatorCreateContext,
+): HandleDefaultProps {
+    return {
+        id: `${handleId}`,
+        type: TARGET_HANDLE_TYPE,
+        position: Position.Left,
+        isValidConnection: operatorContext?.isValidConnection,
+        data: {
+            extendedTooltip: namedInputPortTooltip(port),
+        },
     };
 }
 
@@ -96,7 +130,9 @@ function createOperatorNode(
     const numberOfInputPorts = maxInputPortCount(node.portSpecification, usedInputs);
 
     const handles: NodeContentHandleProps[] = [
-        ...createInputHandles(numberOfInputPorts, operatorContext),
+        ...(isNamedPortSpecification(node.portSpecification)
+            ? node.portSpecification.inputPorts.map((port, idx) => createNamedInputHandle(port, idx, operatorContext))
+            : createInputHandles(numberOfInputPorts, operatorContext)),
         { type: SOURCE_HANDLE_TYPE, position: Position.Right, isValidConnection: operatorContext.isValidConnection },
     ];
     const editableParameterCount = Object.keys(node.parameters).filter((parameterId) =>

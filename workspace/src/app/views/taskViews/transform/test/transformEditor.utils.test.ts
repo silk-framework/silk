@@ -89,7 +89,10 @@ describe("transformEditorUtils", () => {
         });
         expect(result.portSpecification).toStrictEqual({
             type: "named",
-            inputPorts: [{ id: "first" }, { id: "second" }],
+            inputPorts: [
+                { id: "first", label: "First", description: "" },
+                { id: "second", label: "Second", description: "" },
+            ],
         });
     });
 });

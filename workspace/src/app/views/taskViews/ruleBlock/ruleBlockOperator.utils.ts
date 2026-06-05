@@ -48,7 +48,11 @@ const convertRuleBlockOperator = (ruleBlock: IRuleBlockOperatorDetails): IRuleOp
     parameterSpecification: {},
     portSpecification: {
         type: "named",
-        inputPorts: ruleBlock.ports.map((port) => ({ id: port.id })),
+        inputPorts: ruleBlock.ports.map((port) => ({
+            id: port.id,
+            label: port.label,
+            description: port.description,
+        })),
     },
     tags: [RULE_BLOCK_TAG],
     inputsCanBeSwitched: false,

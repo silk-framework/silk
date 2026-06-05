@@ -10,7 +10,7 @@ import {
     FlowTransform,
     ReactFlowProvider,
 } from "react-flow-renderer";
-import { act, cleanup, waitFor } from "@testing-library/react";
+import { act, cleanup, render, screen, waitFor } from "@testing-library/react";
 import { RuleEditorContext, RuleEditorContextProps } from "../../contexts/RuleEditorContext";
 import {
     IParameterSpecification,
@@ -1760,6 +1760,57 @@ describe("Rule editor model", () => {
         });
 
         expect(currentReactFlowNodes()[0].data.executionButtons).toBeUndefined();
+    });
+
+    it("adds Markdown-based tooltips to named rule block input handles", async () => {
+        await ruleEditorModel({
+            initialRuleNodes: [
+                node({
+                    nodeId: "ruleBlockNode",
+                    pluginId: "normalizeName",
+                    pluginType: "RuleBlock",
+                    portSpecification: {
+                        type: "named",
+                        inputPorts: [
+                            {
+                                id: "first",
+                                label: "First input",
+                                description: "- line one\n- line two",
+                            },
+                        ],
+                    },
+                    parameters: {},
+                }),
+            ],
+            operatorList: [
+                {
+                    label: "normalizeName",
+                    parameterSpecification: {},
+                    pluginId: "normalizeName",
+                    pluginType: "RuleBlock",
+                    portSpecification: {
+                        type: "named",
+                        inputPorts: [
+                            {
+                                id: "first",
+                                label: "First input",
+                                description: "- line one\n- line two",
+                            },
+                        ],
+                    },
+                    tags: [],
+                    inputsCanBeSwitched: false,
+                },
+            ],
+            operatorSpec: new Map(),
+        });
+
+        const handle = nodeById("ruleBlockNode").data.handles?.[0];
+        expect(handle?.data?.extendedTooltip).toBeTruthy();
+        render(<>{handle?.data?.extendedTooltip}</>);
+        expect(screen.getByText("First input")).toBeInTheDocument();
+        expect(screen.getByText("line one")).toBeInTheDocument();
+        expect(screen.getByText("line two")).toBeInTheDocument();
     });
 });
 
