@@ -509,6 +509,7 @@ export const RuleEditorCanvas = () => {
     };
 
     const permanentReadOnly = !!ruleEditorUiContext.readOnly;
+    const disableHotkeys = hotKeysDisabled || isOpen || permanentReadOnly
     return (
         <>
             <GridColumn>
@@ -548,8 +549,8 @@ export const RuleEditorCanvas = () => {
                     maxZoom={!!ruleEditorUiContext.zoomRange ? ruleEditorUiContext.zoomRange[1] : 1.25}
                     nodesDraggable={!permanentReadOnly}
                     nodesConnectable={!permanentReadOnly}
-                    multiSelectionKeyCode={isOpen ? null : (18 as any)} // ALT
-                    deleteKeyCode={isOpen || permanentReadOnly ? null : (undefined as any)}
+                    multiSelectionKeyCode={disableHotkeys ? null : (18 as any)} // ALT
+                    deleteKeyCode={disableHotkeys ? null : (undefined as any)}
                     scrollOnDrag={{
                         scrollStepSize: 0.1,
                         scrollInterval: 50,

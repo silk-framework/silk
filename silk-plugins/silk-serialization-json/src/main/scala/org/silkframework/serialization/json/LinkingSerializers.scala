@@ -152,7 +152,8 @@ object LinkingSerializers {
             OPERATOR_ID -> input.id.toString,
             VALUES -> values,
             ERROR -> error.map(_.getMessage),
-            STACKTRACE -> error.map(ex => Json.toJson(Stacktrace.fromException(ex)))
+            STACKTRACE -> error.map(ex => Json.toJson(Stacktrace.fromException(ex))),
+            CHILDREN -> Json.arr()
           )
       }
     }

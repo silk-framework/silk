@@ -146,12 +146,12 @@ describe("LinkingRuleEvaluation", () => {
         const harness = createLinkingInspectionHarness();
         let latestEvaluationContext: RuleEditorEvaluationContextProps | undefined;
 
-        const ContextProbe = () => {
+        const EvaluationChild = ({ overlayContent }: { overlayContent?: React.ReactNode }) => {
             const evaluationContext = React.useContext(harness.RuleEditorEvaluationContext);
             React.useEffect(() => {
                 latestEvaluationContext = evaluationContext;
             }, [evaluationContext]);
-            return null;
+            return <>{overlayContent}</>;
         };
 
         harness.mockEvaluateLinkingRuleAgainstReferenceEntitiesWithInspection.mockResolvedValue({
@@ -160,7 +160,7 @@ describe("LinkingRuleEvaluation", () => {
 
         render(
             <harness.LinkingRuleEvaluation projectId="project1" linkingTaskId="linkingTask" numberOfLinkToShow={5}>
-                {(<ContextProbe />) as unknown as React.ReactElement}
+                {(<EvaluationChild />) as unknown as React.ReactElement}
             </harness.LinkingRuleEvaluation>,
         );
 
@@ -207,12 +207,12 @@ describe("LinkingRuleEvaluation", () => {
         const harness = createLinkingInspectionHarness();
         let latestEvaluationContext: RuleEditorEvaluationContextProps | undefined;
 
-        const ContextProbe = () => {
+        const EvaluationChild = ({ overlayContent }: { overlayContent?: React.ReactNode }) => {
             const evaluationContext = React.useContext(harness.RuleEditorEvaluationContext);
             React.useEffect(() => {
                 latestEvaluationContext = evaluationContext;
             }, [evaluationContext]);
-            return null;
+            return <>{overlayContent}</>;
         };
 
         harness.mockEvaluateLinkingRuleAgainstReferenceEntitiesWithInspection.mockResolvedValue({
@@ -274,7 +274,7 @@ describe("LinkingRuleEvaluation", () => {
 
         render(
             <harness.LinkingRuleEvaluation projectId="project1" linkingTaskId="linkingTask" numberOfLinkToShow={5}>
-                {(<ContextProbe />) as unknown as React.ReactElement}
+                {(<EvaluationChild />) as unknown as React.ReactElement}
             </harness.LinkingRuleEvaluation>,
         );
 

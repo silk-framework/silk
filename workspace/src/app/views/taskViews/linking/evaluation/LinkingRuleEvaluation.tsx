@@ -392,17 +392,18 @@ export const LinkingRuleEvaluation = ({
                         onClose={() => clearRuleValidationErrors()}
                     />
                 )}
-                {children}
-                {activeInternalRuleBlockEvaluation ? (
-                    <RuleBlockInternalEvaluationModal
-                        projectId={projectId}
-                        ruleBlockId={activeInternalRuleBlockEvaluation.ruleBlockId}
-                        snapshot={activeInternalRuleBlockEvaluation.snapshot}
-                        inputExamples={activeInternalRuleBlockEvaluation.inputExamples}
-                        ruleBlockLabel={activeInternalRuleBlockEvaluation.ruleBlockLabel}
-                        onClose={() => setActiveInternalRuleBlockEvaluation(undefined)}
-                    />
-                ) : null}
+                {React.cloneElement(children, {
+                    overlayContent: activeInternalRuleBlockEvaluation ? (
+                        <RuleBlockInternalEvaluationModal
+                            projectId={projectId}
+                            ruleBlockId={activeInternalRuleBlockEvaluation.ruleBlockId}
+                            snapshot={activeInternalRuleBlockEvaluation.snapshot}
+                            inputExamples={activeInternalRuleBlockEvaluation.inputExamples}
+                            ruleBlockLabel={activeInternalRuleBlockEvaluation.ruleBlockLabel}
+                            onClose={() => setActiveInternalRuleBlockEvaluation(undefined)}
+                        />
+                    ) : null,
+                })}
             </RuleEditorEvaluationContext.Provider>
         </RuleEditorEvaluationCallbackContext.Provider>
     );

@@ -59,7 +59,7 @@ import {
     NodeContentProps,
     nodeDefaultUtils,
     NodeDimensions,
-    Notification,
+    Notification, ReactFlowHotkeyContext,
     StickyNote,
 } from "@eccenca/gui-elements";
 import {LINKING_NODE_TYPES} from "@eccenca/gui-elements/src/cmem/react-flow/configuration/typing";
@@ -161,6 +161,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
         externalSavedState?: unknown;
     }>();
     const unsavedChanges = savedStatePosition !== "current" || (!savedOnce && ruleEditorContext.saveInitiallyEnabled);
+    const hotkeyContext = React.useContext(ReactFlowHotkeyContext)
 
     const ruleTreeNodeData = (node: IRuleOperatorNode): RuleEditorValidationOperatorNode => ({
         nodeId: node.nodeId,
@@ -199,7 +200,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
     }, [copiedNodesCount]);
 
     React.useEffect(() => {
-        if (ruleEditorContext.readOnlyMode) {
+        if (ruleEditorContext.readOnlyMode || hotkeyContext.hotKeysDisabled) {
             return;
         }
         const handlePaste = async (e) => {
@@ -243,7 +244,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
             window.removeEventListener("paste", handlePaste);
             window.removeEventListener("copy", handleCopy);
         };
-    }, [nodeParameters, ruleEditorContext.operatorList, reactFlowInstance, ruleEditorContext.readOnlyMode, selectedElements]);
+    }, [nodeParameters, ruleEditorContext.operatorList, reactFlowInstance, ruleEditorContext.readOnlyMode, selectedElements, hotkeyContext.hotKeysDisabled]);
 
     const edgeType = (ruleOperatorNode?: RuleEditorValidationOperatorNode) => {
         if (ruleOperatorNode) {

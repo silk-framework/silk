@@ -215,14 +215,18 @@ export const RuleBlockEditor = ({ projectId, ruleBlockTaskId, viewActions, insta
         }
     }, [bumpSidebarReloadToken, isExternalSnapshotMode, projectId, ruleBlockTaskId]);
 
+    const applyLoadedRuleBlockTask = React.useCallback((taskData: RuleBlockTaskData) => {
+        const loadedPorts = taskData.data.parameters.ruleBlockModel?.ports ?? [];
+        const loadedInputExamples = taskData.data.parameters.ruleBlockModel?.inputExamples ?? [];
+        applyPersistedPorts(loadedPorts);
+        applyPorts(loadedPorts);
+        applyInputExamples(loadedInputExamples, loadedPorts);
+    }, [applyInputExamples, applyPersistedPorts, applyPorts]);
+
     const fetchRuleBlockTask = React.useCallback(
         async (currentProjectId: string, taskId: string): Promise<RuleBlockTaskData | undefined> => {
             if (externalRuleBlockTask) {
-                const loadedPorts = externalRuleBlockTask.data.parameters.ruleBlockModel?.ports ?? [];
-                const loadedInputExamples = externalRuleBlockTask.data.parameters.ruleBlockModel?.inputExamples ?? [];
-                applyPersistedPorts(loadedPorts);
-                applyPorts(loadedPorts);
-                applyInputExamples(loadedInputExamples, loadedPorts);
+                applyLoadedRuleBlockTask(externalRuleBlockTask);
                 setRuleBlockUsageState({
                     isInUse: false,
                     refreshFailed: false,
@@ -232,11 +236,7 @@ export const RuleBlockEditor = ({ projectId, ruleBlockTaskId, viewActions, insta
             }
             try {
                 const taskData = (await requestTaskData<IRuleBlockTaskParameters>(currentProjectId, taskId)).data;
-                const loadedPorts = taskData.data.parameters.ruleBlockModel?.ports ?? [];
-                const loadedInputExamples = taskData.data.parameters.ruleBlockModel?.inputExamples ?? [];
-                applyPersistedPorts(loadedPorts);
-                applyPorts(loadedPorts);
-                applyInputExamples(loadedInputExamples, loadedPorts);
+                applyLoadedRuleBlockTask(taskData);
                 await refreshRuleBlockUsage();
                 return taskData;
             } catch (err) {
@@ -251,9 +251,8 @@ export const RuleBlockEditor = ({ projectId, ruleBlockTaskId, viewActions, insta
             }
         },
         [
-            applyInputExamples,
+            applyLoadedRuleBlockTask,
             applyPersistedPorts,
-            applyPorts,
             externalRuleBlockTask,
             refreshRuleBlockUsage,
             registerError,

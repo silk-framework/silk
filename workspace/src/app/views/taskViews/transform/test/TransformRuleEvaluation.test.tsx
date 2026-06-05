@@ -92,12 +92,12 @@ describe("TransformRuleEvaluation", () => {
         const harness = createTransformInspectionHarness();
         let latestEvaluationContext: RuleEditorEvaluationContextProps | undefined;
 
-        const ContextProbe = () => {
+        const EvaluationChild = ({ overlayContent }: { overlayContent?: React.ReactNode }) => {
             const evaluationContext = React.useContext(harness.RuleEditorEvaluationContext);
             React.useEffect(() => {
                 latestEvaluationContext = evaluationContext;
             }, [evaluationContext]);
-            return null;
+            return <>{overlayContent}</>;
         };
 
         // The outer transform evaluation stays black-box for the rule block usage and only exposes the bound path value
@@ -133,7 +133,7 @@ describe("TransformRuleEvaluation", () => {
                 containerRuleId="root"
                 numberOfLinkToShow={5}
             >
-                {(<ContextProbe />) as unknown as React.ReactElement}
+                {(<EvaluationChild />) as unknown as React.ReactElement}
             </harness.TransformRuleEvaluation>,
         );
 

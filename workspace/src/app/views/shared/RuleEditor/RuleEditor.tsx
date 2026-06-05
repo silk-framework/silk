@@ -21,8 +21,7 @@ import ErrorBoundary from "../../../ErrorBoundary";
 import { ReactFlowProvider } from "react-flow-renderer";
 import utils from "./RuleEditor.utils";
 import { DatasetCharacteristics } from "../typings";
-import { ReactFlowHotkeyContext } from "@eccenca/gui-elements/src/cmem/react-flow/extensions/ReactFlowHotkeyContext";
-import { StickyNote } from "@eccenca/gui-elements";
+import { ReactFlowHotkeyContext, StickyNote } from "@eccenca/gui-elements";
 import { CodeAutocompleteFieldPartialAutoCompleteResult } from "@eccenca/gui-elements/src/components/AutoSuggestion/AutoSuggestion";
 import { InitialRuleHighlighting } from "../../taskViews/transform/transform.types";
 import { PluginType } from "@ducks/shared/typings";
@@ -87,6 +86,8 @@ export interface RuleEditorBaseProps {
     initialFitToViewZoomLevel?: number;
     /** The ID of the instance. If multiple instances are used in parallel, they need to have unique IDs, else there can be interferences. */
     instanceId: string;
+    /** Optional overlay content rendered inside the rule editor context tree, e.g. modals that should affect editor-local contexts. */
+    overlayContent?: React.ReactNode;
 }
 
 export interface RuleEditorProps<RULE_TYPE, OPERATOR_TYPE> extends RuleEditorBaseProps {
@@ -206,6 +207,7 @@ const RuleEditorInner = <TASK_TYPE extends object, OPERATOR_TYPE extends object>
     zoomRange,
     initialFitToViewZoomLevel,
     instanceId,
+    overlayContent,
     fetchDatasetCharacteristics,
     captureExternalSavedState,
     restoreExternalSavedState,
@@ -414,6 +416,7 @@ const RuleEditorInner = <TASK_TYPE extends object, OPERATOR_TYPE extends object>
                             hideMinimap={hideMinimap}
                             zoomRange={zoomRange}
                             readOnlyMode={readOnlyMode}
+                            overlayContent={overlayContent}
                         />
                     </>
                 </RuleEditorModel>
