@@ -33,10 +33,10 @@ val buildReactExternally = {
 }
 
 // Additional compiler (javac, scalac) parameters
-val compilerParams: (Seq[String], Seq[String]) = if(System.getProperty("java.version").split("\\.").head.toInt >= 21) {
-  (Seq("--release", "21", "-Xlint"), Seq("-release", "21"))
+val compilerParams: (Seq[String], Seq[String]) = if(System.getProperty("java.version").split("\\.").head.toInt >= 25) {
+  (Seq("--release", "25", "-Xlint"), Seq("-release", "25"))
 } else {
-  (Seq("--release", "17", "-Xlint"), Seq("-release", "17"))
+  (Seq("--release", "21", "-Xlint"), Seq("-release", "21"))
 }
 
 (Global / concurrentRestrictions) += Tags.limit(Tags.Test, 1)

@@ -44,10 +44,10 @@ jobs:
       run: yarn test-ci --config=./config/jest/config.js
       working-directory: ./workspace
 
-    - name: Set up JDK 21
+    - name: Set up JDK 25
       uses: actions/setup-java@v4
       with:
-        java-version: '21'
+        java-version: '25'
         distribution: 'temurin'
         cache: 'sbt'
 
