@@ -13,6 +13,8 @@ export interface ActiveValueSelection {
 export interface DialogState {
     /** Editable copy of the persisted examples shown in the dialog. */
     draftExamples: IRuleBlockInputExample[];
+    /** Ephemeral selection of example cases that should be used for evaluation. Empty means evaluate all. */
+    selectedExampleIdsForEvaluation: string[];
     /** Identifier of the example currently shown in the detail pane. */
     selectedExampleId?: string;
     /** Currently opened editor target, if the value editor is visible. */
@@ -37,10 +39,16 @@ const exampleAfterDeletion = (
 };
 
 /** Builds the initial dialog state from the persisted examples received via props. */
-const initializeDialogState = (inputExamples: IRuleBlockInputExample[]): DialogState => {
+const initializeDialogState = (
+    inputExamples: IRuleBlockInputExample[],
+    selectedExampleIdsForEvaluation: string[] = [],
+): DialogState => {
     const draftExamples = ruleBlockUtils.cloneInputExamples(inputExamples);
     return {
         draftExamples,
+        selectedExampleIdsForEvaluation: selectedExampleIdsForEvaluation.filter((selectedExampleId) =>
+            draftExamples.some((example) => example.id === selectedExampleId),
+        ),
         selectedExampleId: draftExamples[0]?.id,
         selectedValue: undefined,
         searchText: "",
@@ -59,6 +67,20 @@ const selectedExampleIndex = (state: DialogState): number =>
 const setSearchText = (state: DialogState, value: string): DialogState => ({
     ...state,
     searchText: value,
+});
+
+const clearSelectedExamplesForEvaluation = (state: DialogState): DialogState => ({
+    ...state,
+    selectedExampleIdsForEvaluation: [],
+});
+
+const toggleExampleSelectionForEvaluation = (state: DialogState, exampleId: string, checked: boolean): DialogState => ({
+    ...state,
+    selectedExampleIdsForEvaluation: checked
+        ? state.selectedExampleIdsForEvaluation.includes(exampleId)
+            ? state.selectedExampleIdsForEvaluation
+            : [...state.selectedExampleIdsForEvaluation, exampleId]
+        : state.selectedExampleIdsForEvaluation.filter((selectedExampleId) => selectedExampleId !== exampleId),
 });
 
 const selectExample = (state: DialogState, exampleId: string): DialogState => ({
@@ -106,6 +128,9 @@ const deleteExample = (state: DialogState, exampleId: string): DialogState => {
     return {
         ...state,
         draftExamples: state.draftExamples.filter((example) => example.id !== exampleId),
+        selectedExampleIdsForEvaluation: state.selectedExampleIdsForEvaluation.filter(
+            (selectedExampleId) => selectedExampleId !== exampleId,
+        ),
         selectedExampleId: nextSelectedExample?.id,
         selectedValue: undefined,
     };
@@ -242,6 +267,8 @@ const exampleValuesDialogState = {
     selectedExample,
     selectedExampleIndex,
     setSearchText,
+    clearSelectedExamplesForEvaluation,
+    toggleExampleSelectionForEvaluation,
     selectExample,
     createExample,
     duplicateExample,

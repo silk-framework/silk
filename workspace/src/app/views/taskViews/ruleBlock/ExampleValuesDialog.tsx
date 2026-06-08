@@ -15,8 +15,12 @@ interface ExampleValuesDialogProps {
     inputExamples: IRuleBlockInputExample[];
     /** Optional port to visually highlight in the detail view. */
     highlightedPortId?: string;
+    /** Ephemeral selection of example cases that should be used for evaluation. Empty means evaluate all examples. */
+    selectedExampleIdsForEvaluation: string[];
     /** Called when the dialog should close without applying changes. */
     onClose: () => void;
+    /** Receives the updated non-persistent evaluation selection when the dialog is closed or applied. */
+    onSelectedExampleIdsForEvaluationChange: (selectedExampleIdsForEvaluation: string[]) => void;
     /** Receives the edited examples when the user applies the dialog. */
     onApply: (inputExamples: IRuleBlockInputExample[]) => void;
 }
@@ -26,18 +30,20 @@ export const ExampleValuesDialog = ({
     ports,
     inputExamples,
     highlightedPortId,
+    selectedExampleIdsForEvaluation,
     onClose,
+    onSelectedExampleIdsForEvaluationChange,
     onApply,
 }: ExampleValuesDialogProps) => {
     const [t] = useTranslation();
     const sortedPorts = React.useMemo(() => ruleBlockUtils.sortRuleBlockPorts(ports), [ports]);
     const [state, setState] = React.useState<DialogState>(() =>
-        exampleValuesDialogState.initializeDialogState(inputExamples),
+        exampleValuesDialogState.initializeDialogState(inputExamples, selectedExampleIdsForEvaluation),
     );
 
     React.useEffect(() => {
-        setState(exampleValuesDialogState.initializeDialogState(inputExamples));
-    }, [inputExamples]);
+        setState(exampleValuesDialogState.initializeDialogState(inputExamples, selectedExampleIdsForEvaluation));
+    }, [inputExamples, selectedExampleIdsForEvaluation]);
 
     const filteredExamples = React.useMemo(() => {
         const normalizedSearchText = state.searchText.trim().toLowerCase();
@@ -137,25 +143,49 @@ export const ExampleValuesDialog = ({
         setState((currentState) => exampleValuesDialogState.closeEditor(currentState));
     }, []);
 
+    const handleToggleExampleSelectionForEvaluation = React.useCallback((exampleId: string, checked: boolean) => {
+        setState((currentState) =>
+            exampleValuesDialogState.toggleExampleSelectionForEvaluation(currentState, exampleId, checked),
+        );
+    }, []);
+
+    const handleClearSelectedExamplesForEvaluation = React.useCallback(() => {
+        setState((currentState) => exampleValuesDialogState.clearSelectedExamplesForEvaluation(currentState));
+    }, []);
+
     const editorKey = state.selectedValue
         ? `${currentExample?.id ?? "unknown"}:${state.selectedValue.portId}:${state.selectedValue.valueIndex}`
         : "no-selection";
 
+    const selectedExampleIdsForAvailableExamples = React.useCallback(
+        (availableExamples: IRuleBlockInputExample[]) =>
+            state.selectedExampleIdsForEvaluation.filter((selectedExampleId) =>
+                availableExamples.some((example) => example.id === selectedExampleId),
+            ),
+        [state.selectedExampleIdsForEvaluation],
+    );
+
+    const handleCloseDialog = React.useCallback(() => {
+        onSelectedExampleIdsForEvaluationChange(selectedExampleIdsForAvailableExamples(inputExamples));
+        onClose();
+    }, [inputExamples, onClose, onSelectedExampleIdsForEvaluationChange, selectedExampleIdsForAvailableExamples]);
+
     const handleApplyAndClose = React.useCallback(() => {
+        onSelectedExampleIdsForEvaluationChange(selectedExampleIdsForAvailableExamples(state.draftExamples));
         onApply(ruleBlockUtils.cloneInputExamples(state.draftExamples));
-    }, [onApply, state.draftExamples]);
+    }, [onApply, onSelectedExampleIdsForEvaluationChange, selectedExampleIdsForAvailableExamples, state.draftExamples]);
 
     return (
         <SimpleDialog
             isOpen={true}
             size="xlarge"
             title={t("taskViews.ruleBlock.examples.dialog.title", "Example editor")}
-            onClose={onClose}
+            onClose={handleCloseDialog}
             actions={[
                 <Button key="apply" affirmative onClick={handleApplyAndClose}>
                     {t("taskViews.ruleBlock.examples.dialog.applyAndClose", "Apply and close")}
                 </Button>,
-                <Button key="close" onClick={onClose}>
+                <Button key="close" onClick={handleCloseDialog}>
                     {t("common.action.close")}
                 </Button>,
             ]}
@@ -171,11 +201,14 @@ export const ExampleValuesDialog = ({
                                 filteredExamples={filteredExamples}
                                 selectedExampleId={currentExample?.id}
                                 searchText={state.searchText}
+                                selectedExampleIdsForEvaluation={state.selectedExampleIdsForEvaluation}
                                 t={t}
                                 onCreateExample={handleCreateNewExample}
                                 onSearchTextChange={handleSearchTextChange}
                                 onClearSearch={handleClearSearch}
+                                onClearSelectedExamplesForEvaluation={handleClearSelectedExamplesForEvaluation}
                                 onSelectExample={handleSelectExample}
+                                onToggleExampleSelectionForEvaluation={handleToggleExampleSelectionForEvaluation}
                                 onDuplicateExample={handleDuplicateExample}
                                 onDeleteExample={handleDeleteExample}
                             />

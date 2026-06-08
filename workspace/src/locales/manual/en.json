@@ -819,6 +819,7 @@
                 "dialog": {
                     "addValue": "Add value",
                     "applyAndClose": "Apply and close",
+                    "clearSelection": "Clear selection",
                     "deleteExample": "Delete example",
                     "duplicateExample": "Duplicate example",
                     "editingValue": "Editing {{portLabel}}",
@@ -831,6 +832,10 @@
                     "newExample": "New example",
                     "noExamples": "No examples available yet.",
                     "searchExamples": "Search examples",
+                    "selectionActiveTooltip": "Show more options. Evaluation is restricted to {{count}} selected examples.",
+                    "selectionActiveTooltip_plural": "Show more options. Evaluation is restricted to {{count}} selected examples.",
+                    "selectionInfo": "{{count}} selected for evaluation",
+                    "selectionInfo_plural": "{{count}} selected for evaluation",
                     "selectValueHint": "Select a value chip or create a new value to edit it here.",
                     "title": "Example editor"
                 }

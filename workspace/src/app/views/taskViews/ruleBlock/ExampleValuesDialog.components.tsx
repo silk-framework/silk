@@ -1,6 +1,7 @@
 import React from "react";
 import {
     Button,
+    Checkbox,
     ClassNames,
     CodeEditor,
     FieldItem,
@@ -62,10 +63,14 @@ interface ExampleListItemProps {
     exampleIndex: number;
     /** Whether the example is currently selected in the dialog. */
     isSelected: boolean;
+    /** Whether the example is selected for evaluation. */
+    isSelectedForEvaluation: boolean;
     /** Translation function used for labels. */
     t: TFunction;
     /** Selects the example when the item is clicked. */
     onSelectExample: (exampleId: string) => void;
+    /** Toggles whether the example is included in evaluation. */
+    onToggleExampleSelectionForEvaluation: (exampleId: string, checked: boolean) => void;
     /** Duplicates the example from the item action button. */
     onDuplicateExample: (example: IRuleBlockInputExample) => void;
     /** Deletes the example from the item action button. */
@@ -76,8 +81,10 @@ const ExampleListItem = ({
     example,
     exampleIndex,
     isSelected,
+    isSelectedForEvaluation,
     t,
     onSelectExample,
+    onToggleExampleSelectionForEvaluation,
     onDuplicateExample,
     onDeleteExample,
 }: ExampleListItemProps) => {
@@ -97,6 +104,13 @@ const ExampleListItem = ({
         [example.id, onDeleteExample],
     );
 
+    const handleSelectionChange = React.useCallback(
+        (event: React.ChangeEvent<HTMLInputElement>) => {
+            onToggleExampleSelectionForEvaluation(example.id, event.target.checked);
+        },
+        [example.id, onToggleExampleSelectionForEvaluation],
+    );
+
     return (
         <OverviewItem
             className="ecc-silk-rule-block-example-values-dialog__example-item"
@@ -108,6 +122,12 @@ const ExampleListItem = ({
             }}
             onClick={() => onSelectExample(example.id)}
         >
+            <div
+                className="ecc-silk-rule-block-example-values-dialog__example-selection"
+                onClick={(event) => event.stopPropagation()}
+            >
+                <Checkbox checked={isSelectedForEvaluation} onChange={handleSelectionChange} />
+            </div>
             <OverviewItemDescription>
                 <OverviewItemLine>
                     <strong>{exampleDisplayTitle(example, exampleIndex, t)}</strong>
@@ -146,6 +166,8 @@ interface ExampleListPaneProps {
     selectedExampleId?: string;
     /** Current search field content. */
     searchText: string;
+    /** Example IDs selected for evaluation. Empty means evaluate all examples. */
+    selectedExampleIdsForEvaluation: string[];
     /** Translation function used for labels. */
     t: TFunction;
     /** Creates a new example. */
@@ -154,8 +176,12 @@ interface ExampleListPaneProps {
     onSearchTextChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
     /** Clears the current search text. */
     onClearSearch: () => void;
+    /** Clears the current evaluation selection. */
+    onClearSelectedExamplesForEvaluation: () => void;
     /** Selects an example from the list. */
     onSelectExample: (exampleId: string) => void;
+    /** Toggles whether an example is included in evaluation. */
+    onToggleExampleSelectionForEvaluation: (exampleId: string, checked: boolean) => void;
     /** Duplicates an example from the list. */
     onDuplicateExample: (example: IRuleBlockInputExample) => void;
     /** Deletes an example from the list. */
@@ -167,11 +193,14 @@ export const ExampleListPane = ({
     filteredExamples,
     selectedExampleId,
     searchText,
+    selectedExampleIdsForEvaluation,
     t,
     onCreateExample,
     onSearchTextChange,
     onClearSearch,
+    onClearSelectedExamplesForEvaluation,
     onSelectExample,
+    onToggleExampleSelectionForEvaluation,
     onDuplicateExample,
     onDeleteExample,
 }: ExampleListPaneProps) => (
@@ -198,6 +227,22 @@ export const ExampleListPane = ({
             emptySearchInputMessage={t("taskViews.ruleBlock.examples.dialog.searchExamples")}
         />
         <Spacing size="small" />
+        {selectedExampleIdsForEvaluation.length > 0 ? (
+            <>
+                <TagList>
+                    <Tag
+                        onRemove={onClearSelectedExamplesForEvaluation}
+                        data-test-id={"example-values-clear-selection"}
+                    >
+                        {t("taskViews.ruleBlock.examples.dialog.selectionInfo", {
+                            defaultValue: "{{count}} selected for evaluation",
+                            count: selectedExampleIdsForEvaluation.length,
+                        })}
+                    </Tag>
+                </TagList>
+                <Spacing size="small" />
+            </>
+        ) : null}
         <div className="ecc-silk-rule-block-example-values-dialog__example-list-scroll">
             <OverviewItemList
                 className="ecc-silk-rule-block-example-values-dialog__example-list"
@@ -211,8 +256,10 @@ export const ExampleListPane = ({
                         example={example}
                         exampleIndex={allExamples.findIndex((draftExample) => draftExample.id === example.id)}
                         isSelected={example.id === selectedExampleId}
+                        isSelectedForEvaluation={selectedExampleIdsForEvaluation.includes(example.id)}
                         t={t}
                         onSelectExample={onSelectExample}
+                        onToggleExampleSelectionForEvaluation={onToggleExampleSelectionForEvaluation}
                         onDuplicateExample={onDuplicateExample}
                         onDeleteExample={onDeleteExample}
                     />

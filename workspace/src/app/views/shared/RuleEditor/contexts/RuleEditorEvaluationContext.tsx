@@ -79,6 +79,7 @@ export interface RuleEditorEvaluationNotification {
 
 export interface RuleEditorEvaluationConfigMenu {
     tooltip?: string;
+    badge?: string | number;
     menuItems: ActivityControlWidgetAction[];
     "data-test-id"?: string;
 }

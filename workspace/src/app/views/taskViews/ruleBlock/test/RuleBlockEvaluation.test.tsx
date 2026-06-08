@@ -125,7 +125,14 @@ describe("RuleBlockEvaluation", () => {
                     inputPortA: ["Example value"],
                 },
             },
+            {
+                id: "example-2",
+                inputs: {
+                    inputPortA: ["Other example value"],
+                },
+            },
         ];
+        const selectedEvaluationInputExamples = [inputExamples[1]];
         const originalTask = createRuleBlockTask(ports);
         let latestEvaluationContext: RuleEditorEvaluationContextProps | undefined;
 
@@ -162,6 +169,8 @@ describe("RuleBlockEvaluation", () => {
                 numberOfEntitiesToShow={5}
                 getPorts={() => ports}
                 getInputExamples={() => inputExamples}
+                getEvaluationInputExamples={() => selectedEvaluationInputExamples}
+                getSelectedEvaluationExampleIds={() => ["example-2"]}
                 onOpenExampleValuesDialog={onOpenExampleValuesDialog}
             >
                 {(<ContextProbe />) as unknown as React.ReactElement}
@@ -183,7 +192,7 @@ describe("RuleBlockEvaluation", () => {
         await waitFor(() =>
             expect(harness.mockRequestRuleBlockEvaluation).toHaveBeenCalledWith("project1", "task1", {
                 ports,
-                inputExamples,
+                inputExamples: selectedEvaluationInputExamples,
                 operatorTree: ruleTestHelper.createTransformInput(),
                 layout: ruleTestHelper.defaultLayout(),
                 uiAnnotations: ruleTestHelper.defaultUiAnnotations(),
@@ -217,6 +226,8 @@ describe("RuleBlockEvaluation", () => {
                 numberOfEntitiesToShow={5}
                 getPorts={() => ports}
                 getInputExamples={() => []}
+                getEvaluationInputExamples={() => []}
+                getSelectedEvaluationExampleIds={() => ["example-1", "example-2"]}
                 onOpenExampleValuesDialog={onOpenExampleValuesDialog}
             >
                 {(<ContextProbe />) as unknown as React.ReactElement}
@@ -227,7 +238,8 @@ describe("RuleBlockEvaluation", () => {
 
         const evaluationContext = latestEvaluationContext!;
         expect(evaluationContext.evaluationConfigMenu).toMatchObject({
-            tooltip: "Show more options",
+            badge: 2,
+            tooltip: "Show more options. Evaluation is restricted to {{count}} selected examples.",
             menuItems: [
                 expect.objectContaining({
                     tooltip: "taskViews.ruleBlock.exampleValues",
@@ -281,6 +293,8 @@ describe("RuleBlockEvaluation", () => {
                     numberOfEntitiesToShow={5}
                     getPorts={() => ports}
                     getInputExamples={() => []}
+                    getEvaluationInputExamples={() => []}
+                    getSelectedEvaluationExampleIds={() => []}
                 >
                     {(<ContextProbe />) as unknown as React.ReactElement}
                 </harness.RuleBlockEvaluation>
@@ -350,6 +364,8 @@ describe("RuleBlockEvaluation", () => {
                     numberOfEntitiesToShow={5}
                     getPorts={() => ports}
                     getInputExamples={() => []}
+                    getEvaluationInputExamples={() => []}
+                    getSelectedEvaluationExampleIds={() => []}
                 >
                     {(<ContextProbe showEvaluation={false} />) as unknown as React.ReactElement}
                 </harness.RuleBlockEvaluation>
@@ -370,6 +386,8 @@ describe("RuleBlockEvaluation", () => {
                     numberOfEntitiesToShow={5}
                     getPorts={() => ports}
                     getInputExamples={() => []}
+                    getEvaluationInputExamples={() => []}
+                    getSelectedEvaluationExampleIds={() => []}
                 >
                     {(<ContextProbe showEvaluation={true} />) as unknown as React.ReactElement}
                 </harness.RuleBlockEvaluation>
@@ -412,6 +430,8 @@ describe("RuleBlockEvaluation", () => {
                 numberOfEntitiesToShow={5}
                 getPorts={() => ports}
                 getInputExamples={() => inputExamples}
+                getEvaluationInputExamples={() => inputExamples}
+                getSelectedEvaluationExampleIds={() => []}
             >
                 {(<ContextProbe />) as unknown as React.ReactElement}
             </harness.RuleBlockEvaluation>,

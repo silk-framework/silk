@@ -32,6 +32,8 @@ interface RuleBlockEvaluationProps {
     numberOfEntitiesToShow: number;
     getPorts: () => RuleBlockPort[];
     getInputExamples: () => IRuleBlockInputExample[];
+    getEvaluationInputExamples: () => IRuleBlockInputExample[];
+    getSelectedEvaluationExampleIds: () => string[];
     onOpenExampleValuesDialog?: (highlightedPortId?: string) => void;
     children: EvaluationChildType;
 }
@@ -88,6 +90,8 @@ const RuleBlockEvaluation = ({
     numberOfEntitiesToShow,
     getPorts,
     getInputExamples,
+    getEvaluationInputExamples,
+    getSelectedEvaluationExampleIds,
     onOpenExampleValuesDialog,
     children,
 }: RuleBlockEvaluationProps) => {
@@ -205,7 +209,7 @@ const RuleBlockEvaluation = ({
                 ruleOperatorNodes,
                 originalTask,
                 getPorts(),
-                getInputExamples(),
+                getEvaluationInputExamples(),
             );
             const result = await requestRuleBlockEvaluation(projectId, ruleBlockTaskId, currentRuleBlockModel);
             setEvaluationResult(result.data ?? []);
@@ -223,7 +227,7 @@ const RuleBlockEvaluation = ({
         } finally {
             setEvaluationRunning(false);
         }
-    }, [getInputExamples, getPorts, projectId, registerError, ruleBlockTaskId, t, usesExternalEvaluation]);
+    }, [getEvaluationInputExamples, getPorts, projectId, registerError, ruleBlockTaskId, t, usesExternalEvaluation]);
 
     const registerForEvaluationResults = React.useCallback((
         ruleOperatorId: string,
@@ -260,11 +264,20 @@ const RuleBlockEvaluation = ({
         setRuleValidationError(undefined);
     }, []);
 
+    const selectedEvaluationExampleCount = getSelectedEvaluationExampleIds().length;
+
     const evaluationConfigMenu: RuleEditorEvaluationConfigMenu | undefined = React.useMemo(() =>
         !usesExternalEvaluation && onOpenExampleValuesDialog
             ? {
                   "data-test-id": "rule-block-evaluation-config-menu",
-                  tooltip: t("common.action.moreOptions", "Show more options"),
+                  badge: selectedEvaluationExampleCount > 0 ? selectedEvaluationExampleCount : undefined,
+                  tooltip:
+                      selectedEvaluationExampleCount > 0
+                          ? t("taskViews.ruleBlock.examples.dialog.selectionActiveTooltip", {
+                                defaultValue: "Show more options. Evaluation is restricted to {{count}} selected examples.",
+                                count: selectedEvaluationExampleCount,
+                            })
+                          : t("common.action.moreOptions", "Show more options"),
                   menuItems: [
                       {
                           "data-test-id": "rule-block-open-example-values",
@@ -275,7 +288,7 @@ const RuleBlockEvaluation = ({
                   ],
               }
             : undefined,
-    [onOpenExampleValuesDialog, t, usesExternalEvaluation]);
+    [onOpenExampleValuesDialog, selectedEvaluationExampleCount, t, usesExternalEvaluation]);
 
     const evaluationContextValue = React.useMemo(
         () => ({

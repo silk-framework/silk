@@ -58,7 +58,9 @@ type CapturedExampleValuesDialogProps = {
     ports: RuleBlockPort[];
     inputExamples: IRuleBlockInputExample[];
     highlightedPortId?: string;
+    selectedExampleIdsForEvaluation: string[];
     onClose: () => void;
+    onSelectedExampleIdsForEvaluationChange: (selectedExampleIdsForEvaluation: string[]) => void;
     onApply: (inputExamples: IRuleBlockInputExample[]) => void;
 };
 
@@ -68,6 +70,8 @@ type CapturedRuleBlockEvaluationProps = {
     numberOfEntitiesToShow: number;
     getPorts: () => RuleBlockPort[];
     getInputExamples: () => IRuleBlockInputExample[];
+    getEvaluationInputExamples: () => IRuleBlockInputExample[];
+    getSelectedEvaluationExampleIds: () => string[];
     onOpenExampleValuesDialog: (highlightedPortId?: string) => void;
     children: React.ReactNode;
 };
@@ -501,6 +505,7 @@ describe("RuleBlockEditor", () => {
             expect(editor.getExampleValuesDialogProps()).toMatchObject({
                 ports: [createPersistedPort({ id: "inputPortA", displayOrder: 1 })],
                 inputExamples: [],
+                selectedExampleIdsForEvaluation: [],
             }),
         );
 
@@ -536,6 +541,51 @@ describe("RuleBlockEditor", () => {
             ],
         });
         await waitFor(() => expect(editor.getExampleValuesDialogProps()).toBeUndefined());
+    });
+
+    it("should evaluate only the examples selected in the example dialog until the selection is cleared", async () => {
+        const inputExamples = [
+            ruleTestHelper.createRuleBlockInputExample({
+                id: "example-1",
+                inputs: {
+                    inputPortA: ["First value"],
+                },
+            }),
+            ruleTestHelper.createRuleBlockInputExample({
+                id: "example-2",
+                inputs: {
+                    inputPortA: ["Second value"],
+                },
+            }),
+        ];
+        const editor = await renderRuleBlockEditor({
+            ports: [createPersistedPort({ id: "inputPortA", displayOrder: 1 })],
+            inputExamples,
+        });
+
+        await act(async () => {
+            editor.getRuleBlockEvaluationProps()!.onOpenExampleValuesDialog();
+        });
+
+        await act(async () => {
+            editor.getExampleValuesDialogProps()!.onSelectedExampleIdsForEvaluationChange(["example-2"]);
+            editor.getExampleValuesDialogProps()!.onClose();
+        });
+
+        expect(editor.getRuleBlockEvaluationProps()!.getSelectedEvaluationExampleIds()).toStrictEqual(["example-2"]);
+        expect(editor.getRuleBlockEvaluationProps()!.getEvaluationInputExamples()).toMatchObject([inputExamples[1]]);
+
+        await act(async () => {
+            editor.getRuleBlockEvaluationProps()!.onOpenExampleValuesDialog();
+        });
+
+        await act(async () => {
+            editor.getExampleValuesDialogProps()!.onSelectedExampleIdsForEvaluationChange([]);
+            editor.getExampleValuesDialogProps()!.onClose();
+        });
+
+        expect(editor.getRuleBlockEvaluationProps()!.getSelectedEvaluationExampleIds()).toStrictEqual([]);
+        expect(editor.getRuleBlockEvaluationProps()!.getEvaluationInputExamples()).toMatchObject(inputExamples);
     });
 
     it("should disable deleting persisted input ports when the rule block is in use", async () => {

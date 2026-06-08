@@ -1,6 +1,6 @@
 import React from "react";
 import "@testing-library/jest-dom";
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, within } from "@testing-library/react";
 import jestTestUtils from "../../../../test/jestTestUtils";
 import ruleTestHelper from "../../shared/rules/tests/ruleTestHelper";
 import type { IRuleBlockInputExample, RuleBlockPort } from "../ruleBlock.types";
@@ -24,6 +24,16 @@ const createBubblingTagMock = () =>
         </span>
     );
 
+const createCheckboxMock = () =>
+    ({ checked, onChange, id }) => (
+        <input
+            id={id}
+            type="checkbox"
+            checked={checked}
+            onChange={(event) => onChange(event)}
+        />
+    );
+
 const createExampleValuesDialogGuiElementsModule = () => {
     const React = require("react");
     return {
@@ -32,6 +42,7 @@ const createExampleValuesDialogGuiElementsModule = () => {
             onClick: props.onClick,
             text: props.text,
         })),
+        Checkbox: createCheckboxMock(),
         ClassNames: jestTestUtils.createClassNamesMock(),
         CodeEditor: jestTestUtils.createCodeEditorMock(React),
         FieldSet: jestTestUtils.createFieldSetMock(),
@@ -93,7 +104,9 @@ describe("ExampleValuesDialog", () => {
                 ports={[createPort()]}
                 inputExamples={[createExample()]}
                 highlightedPortId={undefined}
+                selectedExampleIdsForEvaluation={[]}
                 onClose={onClose}
+                onSelectedExampleIdsForEvaluationChange={jest.fn()}
                 onApply={onApply}
             />,
         );
@@ -129,7 +142,9 @@ describe("ExampleValuesDialog", () => {
                 ports={[createPort()]}
                 inputExamples={[createExample()]}
                 highlightedPortId={undefined}
+                selectedExampleIdsForEvaluation={[]}
                 onClose={jest.fn()}
+                onSelectedExampleIdsForEvaluationChange={jest.fn()}
                 onApply={jest.fn()}
             />,
         );
@@ -147,7 +162,9 @@ describe("ExampleValuesDialog", () => {
                 ports={[createPort()]}
                 inputExamples={[createExample(), createExample({ id: "example-2", label: "Named example" })]}
                 highlightedPortId={undefined}
+                selectedExampleIdsForEvaluation={[]}
                 onClose={jest.fn()}
+                onSelectedExampleIdsForEvaluationChange={jest.fn()}
                 onApply={onApply}
             />,
         );
@@ -195,7 +212,9 @@ describe("ExampleValuesDialog", () => {
                 ports={[createPort()]}
                 inputExamples={[createExample()]}
                 highlightedPortId={undefined}
+                selectedExampleIdsForEvaluation={[]}
                 onClose={jest.fn()}
+                onSelectedExampleIdsForEvaluationChange={jest.fn()}
                 onApply={jest.fn()}
             />,
         );
@@ -233,7 +252,9 @@ describe("ExampleValuesDialog", () => {
                     }),
                 ]}
                 highlightedPortId={undefined}
+                selectedExampleIdsForEvaluation={[]}
                 onClose={jest.fn()}
+                onSelectedExampleIdsForEvaluationChange={jest.fn()}
                 onApply={jest.fn()}
             />,
         );
@@ -263,7 +284,9 @@ describe("ExampleValuesDialog", () => {
                     }),
                 ]}
                 highlightedPortId={undefined}
+                selectedExampleIdsForEvaluation={[]}
                 onClose={jest.fn()}
+                onSelectedExampleIdsForEvaluationChange={jest.fn()}
                 onApply={jest.fn()}
             />,
         );
@@ -293,7 +316,9 @@ describe("ExampleValuesDialog", () => {
                     }),
                 ]}
                 highlightedPortId={undefined}
+                selectedExampleIdsForEvaluation={[]}
                 onClose={jest.fn()}
+                onSelectedExampleIdsForEvaluationChange={jest.fn()}
                 onApply={jest.fn()}
             />,
         );
@@ -319,7 +344,9 @@ describe("ExampleValuesDialog", () => {
                     createExample({ inputs: { inputPortA: ["Original value"], inputPortB: ["Other value"] } }),
                 ]}
                 highlightedPortId="inputPortB"
+                selectedExampleIdsForEvaluation={[]}
                 onClose={jest.fn()}
+                onSelectedExampleIdsForEvaluationChange={jest.fn()}
                 onApply={jest.fn()}
             />,
         );
@@ -333,5 +360,44 @@ describe("ExampleValuesDialog", () => {
         expect(screen.getByTestId("example-values-row-inputPortA")).not.toHaveClass(
             "ecc-silk-rule-block-example-values-dialog__port-pair--highlighted",
         );
+    });
+
+    it("should commit the non-persistent evaluation selection on close and clear it on demand", () => {
+        const harness = createExampleValuesDialogHarness();
+        const onSelectedExampleIdsForEvaluationChange = jest.fn();
+
+        render(
+            <harness.ExampleValuesDialog
+                ports={[createPort()]}
+                inputExamples={[
+                    createExample(),
+                    createExample({ id: "example-2", label: "Second example" }),
+                ]}
+                highlightedPortId={undefined}
+                selectedExampleIdsForEvaluation={["example-1"]}
+                onClose={jest.fn()}
+                onSelectedExampleIdsForEvaluationChange={onSelectedExampleIdsForEvaluationChange}
+                onApply={jest.fn()}
+            />,
+        );
+
+        const checkboxes = screen.getAllByRole("checkbox");
+        expect(checkboxes[0]).toBeChecked();
+        expect(screen.getByText("{{count}} selected for evaluation")).toBeInTheDocument();
+
+        fireEvent.click(
+            within(screen.getByTestId("example-values-clear-selection").parentElement as HTMLElement).getByRole(
+                "button",
+                { name: "remove" },
+            ),
+        );
+
+        expect(checkboxes[0]).not.toBeChecked();
+        expect(screen.queryByText("{{count}} selected for evaluation")).not.toBeInTheDocument();
+
+        fireEvent.click(checkboxes[1]);
+        fireEvent.click(screen.getByRole("button", { name: "common.action.close" }));
+
+        expect(onSelectedExampleIdsForEvaluationChange).toHaveBeenCalledWith(["example-2"]);
     });
 });

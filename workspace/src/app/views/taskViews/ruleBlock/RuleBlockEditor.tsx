@@ -91,6 +91,14 @@ type RuleBlockUsageState = {
     refreshRunning: boolean;
 };
 
+const selectedEvaluationExampleIdsForAvailableExamples = (
+    selectedExampleIdsForEvaluation: string[],
+    availableExamples: IRuleBlockInputExample[],
+): string[] =>
+    selectedExampleIdsForEvaluation.filter((selectedExampleId) =>
+        availableExamples.some((example) => example.id === selectedExampleId),
+    );
+
 const createRuleBlockTaskFromSnapshot = (
     projectId: string,
     ruleBlockTaskId: string,
@@ -147,6 +155,7 @@ export const RuleBlockEditor = ({ projectId, ruleBlockTaskId, viewActions, insta
     const [ports, setPorts] = React.useState(ruleBlockUtils.emptyRuleBlockModel().ports);
     const [persistedPorts, setPersistedPorts] = React.useState(ruleBlockUtils.emptyRuleBlockModel().ports);
     const [inputExamples, setInputExamples] = React.useState(ruleBlockUtils.emptyRuleBlockModel().inputExamples);
+    const [selectedExampleIdsForEvaluation, setSelectedExampleIdsForEvaluation] = React.useState<string[]>([]);
     const [sidebarReloadToken, setSidebarReloadToken] = React.useState(0);
     const [inputPortDialogState, setInputPortDialogState] = React.useState<InputPortDialogState>(undefined);
     const [deleteInputPortDialogState, setDeleteInputPortDialogState] =
@@ -161,10 +170,12 @@ export const RuleBlockEditor = ({ projectId, ruleBlockTaskId, viewActions, insta
     const portsRef = React.useRef(ports);
     const persistedPortsRef = React.useRef(persistedPorts);
     const inputExamplesRef = React.useRef(inputExamples);
+    const selectedExampleIdsForEvaluationRef = React.useRef(selectedExampleIdsForEvaluation);
     const ruleBlockUsageStateRef = React.useRef(ruleBlockUsageState);
     portsRef.current = ports;
     persistedPortsRef.current = persistedPorts;
     inputExamplesRef.current = inputExamples;
+    selectedExampleIdsForEvaluationRef.current = selectedExampleIdsForEvaluation;
     ruleBlockUsageStateRef.current = ruleBlockUsageState;
 
     const bumpSidebarReloadToken = React.useCallback(() => {
@@ -226,6 +237,7 @@ export const RuleBlockEditor = ({ projectId, ruleBlockTaskId, viewActions, insta
         applyPersistedPorts(loadedPorts);
         applyPorts(loadedPorts);
         applyInputExamples(loadedInputExamples, loadedPorts);
+        setSelectedExampleIdsForEvaluation([]);
     }, [applyInputExamples, applyPersistedPorts, applyPorts]);
 
     const fetchRuleBlockTask = React.useCallback(
@@ -388,6 +400,16 @@ export const RuleBlockEditor = ({ projectId, ruleBlockTaskId, viewActions, insta
 
     const getPorts = React.useCallback(() => portsRef.current, []);
     const getInputExamples = React.useCallback(() => inputExamplesRef.current, []);
+    const getEvaluationInputExamples = React.useCallback(
+        () =>
+            selectedExampleIdsForEvaluationRef.current.length > 0
+                ? inputExamplesRef.current.filter((example) =>
+                      selectedExampleIdsForEvaluationRef.current.includes(example.id),
+                  )
+                : inputExamplesRef.current,
+        [],
+    );
+    const getSelectedEvaluationExampleIds = React.useCallback(() => selectedExampleIdsForEvaluationRef.current, []);
     const getPersistedPorts = React.useCallback(() => persistedPortsRef.current, []);
     const isRuleBlockInUse = React.useCallback(
         () => ruleBlockUsageStateRef.current.isInUse,
@@ -739,15 +761,27 @@ export const RuleBlockEditor = ({ projectId, ruleBlockTaskId, viewActions, insta
         (nextInputExamples: IRuleBlockInputExample[]) => {
             const ruleEditorApi = ruleEditorRef.current;
             const previousInputExamples = inputExamplesRef.current;
+            const previousSelectedExampleIdsForEvaluation = selectedExampleIdsForEvaluationRef.current;
             const normalizedInputExamples = ruleBlockUtils.cloneInputExamples(nextInputExamples);
+            const nextSelectedExampleIdsForEvaluation = selectedEvaluationExampleIdsForAvailableExamples(
+                previousSelectedExampleIdsForEvaluation,
+                normalizedInputExamples,
+            );
             if (ruleEditorApi) {
                 ruleEditorApi.startChangeTransaction();
                 ruleEditorApi.executeExternalRuleModelChange({
-                    do: () => applyInputExamples(normalizedInputExamples),
-                    undo: () => applyInputExamples(previousInputExamples),
+                    do: () => {
+                        applyInputExamples(normalizedInputExamples);
+                        setSelectedExampleIdsForEvaluation(nextSelectedExampleIdsForEvaluation);
+                    },
+                    undo: () => {
+                        applyInputExamples(previousInputExamples);
+                        setSelectedExampleIdsForEvaluation(previousSelectedExampleIdsForEvaluation);
+                    },
                 });
             } else {
                 applyInputExamples(normalizedInputExamples);
+                setSelectedExampleIdsForEvaluation(nextSelectedExampleIdsForEvaluation);
             }
             closeExampleValuesDialog();
         },
@@ -893,6 +927,8 @@ export const RuleBlockEditor = ({ projectId, ruleBlockTaskId, viewActions, insta
                         numberOfEntitiesToShow={5}
                         getPorts={getPorts}
                         getInputExamples={getInputExamples}
+                        getEvaluationInputExamples={getEvaluationInputExamples}
+                        getSelectedEvaluationExampleIds={getSelectedEvaluationExampleIds}
                         onOpenExampleValuesDialog={!isExternalSnapshotMode ? openExampleValuesDialog : undefined}
                     >
                         {ruleEditor}
@@ -918,7 +954,9 @@ export const RuleBlockEditor = ({ projectId, ruleBlockTaskId, viewActions, insta
                                 ports={ports}
                                 inputExamples={inputExamples}
                                 highlightedPortId={exampleValuesDialogState.highlightedPortId}
+                                selectedExampleIdsForEvaluation={selectedExampleIdsForEvaluation}
                                 onClose={closeExampleValuesDialog}
+                                onSelectedExampleIdsForEvaluationChange={setSelectedExampleIdsForEvaluation}
                                 onApply={applyExampleValues}
                             />
                         ) : null}
