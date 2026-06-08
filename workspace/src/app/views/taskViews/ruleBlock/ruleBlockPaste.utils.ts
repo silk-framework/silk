@@ -8,6 +8,7 @@ import type { RuleEditorPatchableNodeProjection } from "../../shared/RuleEditor/
 import type { IRuleOperatorNode } from "../../shared/RuleEditor/RuleEditor.typings";
 import type { RuleBlockPort } from "./ruleBlock.types";
 import ruleBlockUtils from "./ruleBlock.utils";
+import i18next from "i18next";
 
 /** Rule-block-specific clipboard additions that travel alongside the generic copied node subtree. */
 export interface RuleBlockClipboardEditorData {
@@ -91,11 +92,17 @@ const validateSupportedRuleBlockPaste = (nodes: RuleNodeCopySerialization[]) => 
     switch (disallowedPlugin.pluginType) {
         case "ComparisonOperator":
         case "AggregationOperator":
-            throw new Error("Only transform-compatible subtrees can be pasted into a rule block.");
+            throw new Error(
+                i18next.t("taskViews.ruleBlock.errors.pasteUnsupportedOperators"),
+            );
         case "RuleBlock":
-            throw new Error("Nested rule blocks are not allowed.");
+            throw new Error(i18next.t("taskViews.ruleBlock.errors.pasteNestedRuleBlocks"));
         default:
-            throw new Error(`Operator type '${disallowedPlugin.pluginType}' cannot be pasted into a rule block.`);
+            throw new Error(
+                i18next.t("taskViews.ruleBlock.errors.pasteUnsupportedOperatorType", {
+                    pluginType: disallowedPlugin.pluginType,
+                }),
+            );
     }
 };
 

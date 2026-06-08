@@ -6,6 +6,27 @@ import type {
 import type { RuleBlockPort } from "../ruleBlock.types";
 import ruleBlockPasteUtils from "../ruleBlockPaste.utils";
 
+function mockTranslate(key: string, options?: { pluginType?: string }) {
+    switch (key) {
+        case "taskViews.ruleBlock.errors.pasteUnsupportedOperators":
+            return "Only path, transform, and input port operators can be pasted into a rule block. Comparison and aggregation operators are not allowed.";
+        case "taskViews.ruleBlock.errors.pasteNestedRuleBlocks":
+            return "Nested rule blocks are not allowed.";
+        case "taskViews.ruleBlock.errors.pasteUnsupportedOperatorType":
+            return `Operator type '${options?.pluginType}' cannot be pasted into a rule block.`;
+        default:
+            return key;
+    }
+}
+
+jest.mock("i18next", () => ({
+    __esModule: true,
+    default: {
+        t: mockTranslate,
+    },
+    t: mockTranslate,
+}));
+
 const inputPortNodeMetaData = (port: RuleBlockPort) => ({
     label: port.label,
     description: port.description,
@@ -100,7 +121,9 @@ describe("ruleBlockPasteUtils", () => {
                 nodes: [comparisonNode()],
                 edges: [],
             })),
-        ).toThrow("Only transform-compatible subtrees can be pasted into a rule block.");
+        ).toThrow(
+            "Only path, transform, and input port operators can be pasted into a rule block. Comparison and aggregation operators are not allowed.",
+        );
     });
 
     it("should allow source-side and target-side path fragments in one paste and keep them as separate input ports", () => {
