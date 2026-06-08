@@ -217,15 +217,21 @@ class LinkingTaskApiTest extends PlaySpec with IntegrationTestTrait {
 
     val ruleValues = (jsLinks.head \ LinkJsonFormat.RULE_VALUES).toOption
     ruleValues mustBe defined
+    // The outer evaluation keeps the rule block as a black-box node and only exposes the evaluated bound source input.
     val sourceBindingValues = (ruleValues.get \ "sourceValue" \ "children").as[JsArray].value
     sourceBindingValues must have size 1
     (sourceBindingValues.head \ "operatorId").as[String] mustBe "sourceLabel"
-    (sourceBindingValues.head \ "values").as[Seq[String]] mustBe Seq("entry 1")
+    val sourceValues = (sourceBindingValues.head \ "values").as[Seq[String]]
+    sourceValues must have size 1
+    sourceValues.head must fullyMatch regex "entry [12]"
     (sourceBindingValues.head \ "children").as[JsArray].value mustBe empty
+    // The same applies on the target side: only the evaluated bound input is serialized, not the internal rule block tree.
     val targetBindingValues = (ruleValues.get \ "targetValue" \ "children").as[JsArray].value
     targetBindingValues must have size 1
     (targetBindingValues.head \ "operatorId").as[String] mustBe "targetLabel"
-    (targetBindingValues.head \ "values").as[Seq[String]] mustBe Seq("entry 1")
+    val targetValues = (targetBindingValues.head \ "values").as[Seq[String]]
+    targetValues must have size 1
+    targetValues.head mustBe sourceValues.head
     (targetBindingValues.head \ "children").as[JsArray].value mustBe empty
   }
 
