@@ -32,6 +32,9 @@ export interface RuleEditorEvaluationContextProps {
     /** If the evaluation results are currently shown. */
     evaluationResultsShown: boolean;
 
+    /** If an evaluation result exists and can be shown or hidden. */
+    hasEvaluationResult: boolean;
+
     /** The evaluation score. */
     evaluationScore?: IEvaluatedReferenceLinksScore;
 
@@ -95,6 +98,7 @@ export const ruleEditorEvaluationContextDefaultValue: RuleEditorEvaluationContex
         <NodeContentExtension isExpanded={true}>{`${nodeId}`}</NodeContentExtension>
     ),
     evaluationResultsShown: false,
+    hasEvaluationResult: false,
     evaluationRunning: false,
     toggleEvaluationResults: NOP,
     ruleValidationError: undefined,

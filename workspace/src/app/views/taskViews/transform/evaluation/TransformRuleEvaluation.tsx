@@ -320,6 +320,7 @@ export const TransformRuleEvaluation: React.FC<TransformRuleEvaluationProps> = (
                 evaluationScore: undefined,
                 // There is no evaluation result for mapping rules
                 evaluationResultsShown: evaluationResultsShown,
+                hasEvaluationResult: evaluationResult.length > 0,
                 ruleValidationError,
                 clearRuleValidationError,
                 // Not needed yet

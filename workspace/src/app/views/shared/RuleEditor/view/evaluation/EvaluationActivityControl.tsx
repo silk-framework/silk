@@ -16,6 +16,7 @@ interface EvaluationActivityControlProps {
     loading: boolean;
     referenceLinksUrl?: string;
     evaluationResultsShown?: boolean;
+    hasEvaluationResult: boolean;
     evaluationResultsShownToggleButton?: ActivityControlWidgetAction;
     manualStartButton?: ActivityControlWidgetAction;
     evaluationConfigMenu?: RuleEditorEvaluationConfigMenu;
@@ -28,6 +29,7 @@ export const EvaluationActivityControl = ({
     loading,
     referenceLinksUrl,
     evaluationResultsShown,
+    hasEvaluationResult,
     evaluationResultsShownToggleButton,
     manualStartButton,
     evaluationConfigMenu,
@@ -46,7 +48,7 @@ export const EvaluationActivityControl = ({
                 tooltip: t("RuleEditor.evaluation.scoreWidget.referenceLinks"),
             });
         }
-        if (evaluationResultsShownToggleButton && !loading && (score || !!evaluationResultsShown)) {
+        if (evaluationResultsShownToggleButton && !loading && (hasEvaluationResult || !!evaluationResultsShown)) {
             actionButtons.push(evaluationResultsShownToggleButton);
         }
         if (manualStartButton) {

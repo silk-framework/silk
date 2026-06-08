@@ -632,6 +632,60 @@ describe("RuleBlockEditor", () => {
         expect(editor.mockRuleEditorApi.addNodeByPlugin).not.toHaveBeenCalled();
     });
 
+    it("should create only the logical input port when the create dialog is opened via the sidebar action button", async () => {
+        const editor = await renderRuleBlockEditor({
+            ports: [createPersistedPort({ id: "existingPort", label: "Existing input", displayOrder: 1 })],
+        });
+        const { getByRole, unmount } = await renderInputPortSidebarActions(editor, 0);
+
+        await act(async () => {
+            fireEvent.click(getByRole("button", { name: "item-add-artefact" }));
+        });
+
+        await waitFor(() =>
+            expect(editor.getInputPortDialogProps()).toMatchObject({
+                mode: "create",
+            }),
+        );
+
+        await act(async () => {
+            editor.getInputPortDialogProps()!.onSubmit({
+                label: "Created by button",
+                description: "Created from sidebar action button",
+                displayOrder: 2,
+                deprecated: false,
+            });
+        });
+
+        expect(editor.mockRuleEditorApi.startChangeTransaction).toHaveBeenCalledTimes(1);
+        expect(editor.mockRuleEditorApi.executeExternalRuleModelChange).toHaveBeenCalledTimes(1);
+        expect(editor.mockRuleEditorApi.addNodeByPlugin).not.toHaveBeenCalled();
+
+        const externalChange = editor.mockRuleEditorApi.executeExternalRuleModelChange.mock.calls[0][0];
+        await act(async () => {
+            externalChange.do();
+        });
+
+        const savedState = editor.getRuleEditorProps().captureExternalSavedState?.() as
+            | { ports: RuleBlockPort[]; inputExamples: IRuleBlockInputExample[] }
+            | undefined;
+        expect(savedState).toMatchObject({
+            ports: [
+                createPersistedPort({ id: "existingPort", label: "Existing input", displayOrder: 1 }),
+                {
+                    label: "Created by button",
+                    description: "Created from sidebar action button",
+                    displayOrder: 2,
+                    deprecated: false,
+                },
+            ],
+            inputExamples: [],
+        });
+        expect(savedState?.ports[1].id).toEqual(expect.any(String));
+
+        unmount();
+    });
+
     it("should create the logical input port and a dropped node instance when the create dialog is confirmed after a drop request", async () => {
         const editor = await renderRuleBlockEditor({
             ports: [createPersistedPort({ id: "existingPort", label: "Existing input", displayOrder: 1 })],

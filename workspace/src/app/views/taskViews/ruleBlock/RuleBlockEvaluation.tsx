@@ -300,6 +300,7 @@ const RuleBlockEvaluation = ({
             toggleEvaluationResults,
             evaluationScore: undefined,
             evaluationResultsShown,
+            hasEvaluationResult: usesExternalEvaluation || evaluationResult.length > 0,
             ruleValidationError,
             clearRuleValidationError,
             fetchTriggerEvaluationFunction: () => {},

@@ -367,6 +367,7 @@ export const LinkingRuleEvaluation = ({
                     toggleEvaluationResults,
                     evaluationScore,
                     evaluationResultsShown,
+                    hasEvaluationResult: evaluationScore !== undefined || evaluationResult.length > 0,
                     referenceLinksUrl,
                     ruleValidationError,
                     clearRuleValidationError: clearRuleValidationErrors,

@@ -257,6 +257,7 @@ export const RuleEditorToolbar = () => {
                             loading={ruleEvaluationContext.evaluationRunning}
                             referenceLinksUrl={ruleEvaluationContext.referenceLinksUrl}
                             evaluationResultsShown={ruleEvaluationContext.evaluationResultsShown}
+                            hasEvaluationResult={ruleEvaluationContext.hasEvaluationResult}
                             evaluationConfigMenu={ruleEvaluationContext.evaluationConfigMenu}
                             evaluationResultsShownToggleButton={{
                                 "data-test-id": "rule-editor-start-evaluation-btn",

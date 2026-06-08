@@ -55,7 +55,7 @@ const createNewInputPortSidebarItem = (onCreate: () => void): IPreConfiguredRule
         actions: React.createElement(IconButton, {
             key: "create-input-port",
             name: "item-add-artefact",
-            onClick: onCreate,
+            onClick: () => onCreate(),
             size: "small",
             intent: "accent"
         }),
