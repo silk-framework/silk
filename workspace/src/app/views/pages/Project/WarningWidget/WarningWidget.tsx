@@ -13,7 +13,6 @@ import {
     Spacing,
 } from "@eccenca/gui-elements";
 import MarkdownModal from "../../../shared/modals/MarkdownModal";
-import { AppToaster } from "../../../../services/toaster";
 import { commonOp, commonSel } from "@ducks/common";
 import Loading from "../../../shared/Loading";
 import { useTranslation } from "react-i18next";
