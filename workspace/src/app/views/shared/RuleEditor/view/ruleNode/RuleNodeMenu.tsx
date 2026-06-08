@@ -119,7 +119,7 @@ export const RuleNodeMenu = ({
                     <MenuItem
                         data-test-id="rule-node-open-rule-block-btn"
                         key="open-rule-block"
-                        icon="item-viewdetails"
+                        icon="navigation-extern"
                         onClick={(e) => {
                             e.preventDefault();
                             closeMenu();
