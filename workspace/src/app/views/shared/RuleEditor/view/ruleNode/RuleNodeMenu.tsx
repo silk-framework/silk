@@ -140,12 +140,15 @@ export const RuleNodeMenu = ({
                         disabled={!internalRuleBlockEvaluationAction.enabled}
                         onClick={(e) => {
                             e.preventDefault();
+                            e.stopPropagation();
                             closeMenu();
-                            ruleEvaluationContext.openInternalRuleBlockEvaluation?.(
-                                nodeId,
-                                currentRuleNode.pluginId,
-                                currentRuleNode.label,
-                            );
+                            window.setTimeout(() => {
+                                ruleEvaluationContext.openInternalRuleBlockEvaluation?.(
+                                    nodeId,
+                                    currentRuleNode.pluginId,
+                                    currentRuleNode.label,
+                                );
+                            }, 0);
                         }}
                         text={t(
                             "RuleEditor.node.menu.openInternalRuleBlockEvaluation.label",

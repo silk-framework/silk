@@ -67,6 +67,7 @@ export const RuleEditorCanvas = () => {
     // Needed to disable hot keys
     const { isOpen } = useSelector(commonSel.artefactModalSelector);
     const { hotKeysDisabled } = React.useContext(ReactFlowHotkeyContext);
+    const hotKeysDisabledRef = React.useRef(false);
 
     /** Clones the given nodes with a small offset. */
     const cloneNodes = (nodeIds: string[]) => {
@@ -377,6 +378,11 @@ export const RuleEditorCanvas = () => {
 
     // Handles deletion of multiple elements, both nodes and edges
     const onElementsRemove = React.useCallback((elementsToRemove: Elements) => {
+        // FIXME: Work around react-flow v9 not supporting hotkey disabling reliably for delete/backspace.
+        // Remove this guard once the rule editors run on react-flow v12.
+        if (hotKeysDisabledRef.current) {
+            return;
+        }
         if (elementsToRemove.length > 0) {
             modelContext.executeModelEditOperation.startChangeTransaction();
             const edgeIds = modelUtils.elementEdges(elementsToRemove).map((e) => e.id);
@@ -530,7 +536,8 @@ export const RuleEditorCanvas = () => {
     };
 
     const permanentReadOnly = !!ruleEditorUiContext.readOnly;
-    const disableHotkeys = hotKeysDisabled || isOpen || permanentReadOnly
+    const disableHotkeys = hotKeysDisabled || isOpen || permanentReadOnly;
+    hotKeysDisabledRef.current = disableHotkeys;
     return (
         <>
             <GridColumn>
@@ -570,8 +577,8 @@ export const RuleEditorCanvas = () => {
                     maxZoom={!!ruleEditorUiContext.zoomRange ? ruleEditorUiContext.zoomRange[1] : 1.25}
                     nodesDraggable={!permanentReadOnly}
                     nodesConnectable={!permanentReadOnly}
-                    multiSelectionKeyCode={disableHotkeys ? null : (18 as any)} // ALT
-                    deleteKeyCode={disableHotkeys ? null : (undefined as any)}
+                    multiSelectionKeyCode={disableHotkeys ? undefined : (18 as any)} // ALT
+                    deleteKeyCode={disableHotkeys ? undefined : (undefined as any)}
                     scrollOnDrag={{
                         scrollStepSize: 0.1,
                         scrollInterval: 50,

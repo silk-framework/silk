@@ -1,5 +1,5 @@
 import React from "react";
-import { fireEvent, render } from "@testing-library/react";
+import { fireEvent, render, waitFor } from "@testing-library/react";
 import { RuleNodeMenu } from "../RuleNodeMenu";
 import { RuleEditorUiContext, ruleEditorUiContextDefaultValue } from "../../../contexts/RuleEditorUiContext";
 import {
@@ -125,7 +125,7 @@ describe("RuleNodeMenu", () => {
         );
     });
 
-    it("opens the internal evaluation from the menu when the rule block is evaluable", () => {
+    it("opens the internal evaluation from the menu when the rule block is evaluable", async () => {
         const openInternalRuleBlockEvaluation = jest.fn();
 
         renderMenu({
@@ -134,10 +134,12 @@ describe("RuleNodeMenu", () => {
 
         fireEvent.click(internalEvaluationMenuButton() as Element);
 
-        expect(openInternalRuleBlockEvaluation).toHaveBeenCalledWith(
-            "ruleBlockUsage",
-            "normalizeName",
-            "Normalize Name",
+        await waitFor(() =>
+            expect(openInternalRuleBlockEvaluation).toHaveBeenCalledWith(
+                "ruleBlockUsage",
+                "normalizeName",
+                "Normalize Name",
+            ),
         );
     });
 });
