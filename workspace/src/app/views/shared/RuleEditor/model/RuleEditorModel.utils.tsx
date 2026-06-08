@@ -232,6 +232,9 @@ const nodeType = (pluginType: RuleOperatorPluginType | string, pluginId: string)
         case "TransformOperator":
         case "RuleBlock":
             return "transformation";
+        case "InputPortOperator":
+            // TODO: CMEM-1590: Add node type and use it for styling?
+            return "default";
         case "PathInputOperator":
             return pluginId === "targetPathInput" ? "targetpath" : "sourcepath";
         default:

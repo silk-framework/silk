@@ -1329,6 +1329,33 @@ describe("Rule editor model", () => {
         checkAfterSameRulePaste();
     });
 
+    it("should create value edges for input port operators", async () => {
+        await ruleEditorModel({
+            initialRuleNodes: [
+                node({
+                    nodeId: "inputPortNode",
+                    pluginId: "inputPort",
+                    pluginType: "InputPortOperator",
+                    portSpecification: { type: "count", minInputPorts: 0 },
+                    parameters: {
+                        portId: "inputPortA",
+                    },
+                }),
+                node({
+                    nodeId: "transformNode",
+                    pluginId: "concat",
+                    pluginType: "TransformOperator",
+                    inputs: ["inputPortNode"],
+                }),
+            ],
+            operatorList: [operator("inputPort", 0, "InputPortOperator"), operator("concat", 1, "TransformOperator")],
+        });
+
+        expect(
+            currentContext().elements.filter((elem) => modelUtils.isEdge(elem)).map((edge) => modelUtils.asEdge(edge)?.type),
+        ).toStrictEqual(["value"]);
+    });
+
     it("should reject invalid clipboard content without creating nodes or external rule-block ports", async () => {
         const invalidClipboardStore = await copySelectedNodesToClipboard({
             initialRuleNodes: [

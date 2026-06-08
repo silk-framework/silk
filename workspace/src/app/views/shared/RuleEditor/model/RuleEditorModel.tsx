@@ -250,6 +250,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
         if (ruleOperatorNode) {
             switch (ruleOperatorNode.pluginType) {
                 case "PathInputOperator":
+                case "InputPortOperator":
                 case "TransformOperator":
                 case "RuleBlock":
                     return "value";
