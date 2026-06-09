@@ -17,11 +17,13 @@ import scala.util.control.NonFatal
 
 /**
   * Executor for [[JsonToFileOperator]]. Takes a single input table and iterates over every entity in it, reading the
-  * JSON string at the configured input path on each and writing it to a file. When ZIP output is enabled, all entities
-  * are packed into a single ZIP archive with one entry per entity instead. The produced file is wrapped in a
-  * [[FileEntity]] and surfaced downstream via [[FileEntitySchema]].
+  * JSON string at the configured input path on each. The output mode selects what is produced: `file` writes one file
+  * per entity, `zip` packs all entities into a single ZIP archive, and `jsonArray` merges all entities into a single
+  * JSON array file. The produced file(s) are wrapped in [[FileEntity]] and surfaced downstream via [[FileEntitySchema]].
   */
 case class LocalJsonToFileOperatorExecutor() extends LocalExecutor[JsonToFileOperator] {
+
+  import LocalJsonToFileOperatorExecutor.TempFilePrefix
 
   override def execute(task: Task[JsonToFileOperator],
                        inputs: Seq[LocalEntities],
@@ -38,30 +40,77 @@ case class LocalJsonToFileOperatorExecutor() extends LocalExecutor[JsonToFileOpe
     val trimmedFileName = task.data.outputFileName.trim
     val entities = entityTable.entities.toIndexedSeq
 
-    if (task.data.zipOutput) {
-      executeZip(task, entities, pathIndex, trimmedFileName)
-    } else {
-      val outputMimeType = Some(task.data.mimeType)
-      val multiple = entities.size > 1
-      val fileEntities = entities.zipWithIndex.map { case (entity, index) =>
-        val jsonString = readJsonValue(entity, pathIndex)
-        val finalString = applyOutputProperty(jsonString, task.data.outputProperty)
-        val fileEntity = if (trimmedFileName.isEmpty) {
-          FileEntity.createTemp("jsonOutput", ".json", mimeType = outputMimeType)
-        } else {
-          allocateNamedFileEntity(trimmedFileName, index, multiple, outputMimeType)
-        }
-        try {
-          fileEntity.file.writeString(finalString)
-        } catch {
-          case NonFatal(e) =>
-            Try(fileEntity.file.delete())
-            throw e
-        }
-        fileEntity
-      }
-      Some(FileEntitySchema.create(fileEntities, task))
+    task.data.outputMode match {
+      case JsonToFileOutputModeEnum.file      => executeFile(task, entities, pathIndex, trimmedFileName)
+      case JsonToFileOutputModeEnum.zip       => executeZip(task, entities, pathIndex, trimmedFileName)
+      case JsonToFileOutputModeEnum.jsonArray => executeMergedJson(task, entities, pathIndex, trimmedFileName)
+      case _                        => throw TaskException(s"Unsupported output mode for 'JSON to File': ${task.data.outputMode}")
     }
+  }
+
+  /** Executes file mode: writes one file per entity and returns one FileEntity per entity. */
+  private def executeFile(task: Task[JsonToFileOperator],
+                          entities: IndexedSeq[Entity],
+                          pathIndex: Int,
+                          trimmedFileName: String)
+                         (implicit pluginContext: PluginContext): Option[LocalEntities] = {
+    val outputMimeType = Some(task.data.mimeType)
+    val multiple = entities.size > 1
+    val fileEntities = IndexedSeq.newBuilder[FileEntity]
+    for ((entity, index) <- entities.zipWithIndex) {
+      val jsonString = readJsonValue(entity, pathIndex)
+      val finalString = applyOutputProperty(jsonString, task.data.outputProperty)
+      val fileEntity = if (trimmedFileName.isEmpty) {
+        FileEntity.createTemp(TempFilePrefix, ".json", mimeType = outputMimeType)
+      } else {
+        allocateNamedFileEntity(trimmedFileName, index, multiple, outputMimeType)
+      }
+      try {
+        fileEntity.file.writeString(finalString)
+      } catch {
+        case NonFatal(e) =>
+          Try(fileEntity.file.delete())
+          throw e
+      }
+      fileEntities += fileEntity
+    }
+    Some(FileEntitySchema.create(fileEntities.result(), task))
+  }
+
+  /** Executes merged JSON mode: merges all entities into a single JSON array file and returns one FileEntity. */
+  private def executeMergedJson(task: Task[JsonToFileOperator],
+                               entities: IndexedSeq[Entity],
+                               pathIndex: Int,
+                               trimmedFileName: String)
+                              (implicit pluginContext: PluginContext): Option[LocalEntities] = {
+    if (entities.isEmpty) {
+      return Some(FileEntitySchema.create(Seq.empty, task))
+    }
+    val outputMimeType = Some(task.data.mimeType)
+    val outputProperty = task.data.outputProperty
+    val nodes = entities.map { entity =>
+      val node = parseJson(readJsonValue(entity, pathIndex))
+      if (outputProperty.isEmpty) {
+        node
+      } else {
+        // JsonPosition(1, 1): synthetic — this node has no source location.
+        JsonObject(SeqMap(outputProperty -> node), JsonPosition(1, 1))
+      }
+    }
+    val serialized = JsonNodeSerializer.toString(JsonArray(nodes, JsonPosition(1, 1)))
+    val fileEntity = if (trimmedFileName.isEmpty) {
+      FileEntity.createTemp(TempFilePrefix, ".json", mimeType = outputMimeType)
+    } else {
+      allocateNamedFileEntity(trimmedFileName, 0, multiple = false, outputMimeType)
+    }
+    try {
+      fileEntity.file.writeString(serialized)
+    } catch {
+      case NonFatal(e) =>
+        Try(fileEntity.file.delete())
+        throw e
+    }
+    Some(FileEntitySchema.create(Seq(fileEntity), task))
   }
 
   /** Executes ZIP mode: writes all entities as entries into a single ZIP file and returns one FileEntity. */
@@ -76,7 +125,7 @@ case class LocalJsonToFileOperatorExecutor() extends LocalExecutor[JsonToFileOpe
     val effectiveMimeType = if (task.data.mimeType == "application/json") "application/zip" else task.data.mimeType
     val multiple = entities.size > 1
     val zipFileEntity = if (trimmedFileName.isEmpty) {
-      FileEntity.createTemp("jsonOutput", ".zip", mimeType = Some(effectiveMimeType))
+      FileEntity.createTemp(TempFilePrefix, ".zip", mimeType = Some(effectiveMimeType))
     } else {
       allocateNamedFileEntity(trimmedFileName, 0, multiple = false, Some(effectiveMimeType))
     }
@@ -152,4 +201,9 @@ case class LocalJsonToFileOperatorExecutor() extends LocalExecutor[JsonToFileOpe
       name + "-" + index
     }
   }
+}
+
+object LocalJsonToFileOperatorExecutor {
+  /** Prefix for temp files produced by this operator. */
+  private val TempFilePrefix = "jsonOutput"
 }
