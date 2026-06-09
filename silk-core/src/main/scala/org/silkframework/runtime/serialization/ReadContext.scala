@@ -4,7 +4,7 @@ import org.silkframework.config.Prefixes
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.PluginContext
 import org.silkframework.runtime.resource.{EmptyResourceManager, ResourceManager}
-import org.silkframework.runtime.templating.{GlobalTemplateVariables, PluginTemplateVariables, ReadOnlyPluginTemplateVariables}
+import org.silkframework.runtime.templating.{ExecutionTemplateVariables, GlobalTemplateVariables}
 import org.silkframework.util.{Identifier, IdentifierGenerator}
 import org.silkframework.workspace.ProjectTrait
 
@@ -23,7 +23,7 @@ case class ReadContext(resources: ResourceManager,
                        validationEnabled: Boolean = false,
                        user: UserContext = UserContext.Empty,
                        projectId: Option[Identifier] = None,
-                       templateVariables: PluginTemplateVariables = ReadOnlyPluginTemplateVariables(GlobalTemplateVariables)) extends PluginContext
+                       templateVariables: ExecutionTemplateVariables = ExecutionTemplateVariables(GlobalTemplateVariables)) extends PluginContext
 
 object ReadContext {
 
@@ -40,7 +40,7 @@ object ReadContext {
       prefixes = project.config.prefixes,
       user = user,
       projectId = Some(project.id),
-      templateVariables = PluginTemplateVariables(project.combinedTemplateVariables)
+      templateVariables = ExecutionTemplateVariables(project.combinedTemplateVariables)
     )
   }
 

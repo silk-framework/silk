@@ -17,7 +17,7 @@ package org.silkframework.rule.plugins.transformer.variable
 import org.silkframework.rule.TaskContext
 import org.silkframework.rule.input.{Transformer, TransformerExecution}
 import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
-import org.silkframework.runtime.templating.{PluginTemplateVariables, TemplateVariable, TemplateVariableScopes}
+import org.silkframework.runtime.templating.{ExecutionTemplateVariables, TemplateVariable, TemplateVariableScopes}
 import org.silkframework.runtime.validation.ValidationException
 
 @Plugin(
@@ -42,7 +42,7 @@ case class SetExecutionVariableTransformer(@Param("Name of the execution variabl
   * Captures the execution-time template variables so the variable can be set while values flow through.
   */
 private class SetExecutionVariableExecution(variableName: String,
-                                            templateVariables: PluginTemplateVariables) extends TransformerExecution {
+                                            templateVariables: ExecutionTemplateVariables) extends TransformerExecution {
 
   override def apply(values: Seq[Seq[String]]): Seq[String] = {
     if (values.size != 1) {

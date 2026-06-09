@@ -21,7 +21,7 @@ import org.silkframework.rule.TaskContext
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.PluginContext
 import org.silkframework.runtime.resource.InMemoryResourceManager
-import org.silkframework.runtime.templating.{PluginTemplateVariables, TemplateVariable, TemplateVariableScopes, TemplateVariables}
+import org.silkframework.runtime.templating.{ExecutionTemplateVariables, TemplateVariableScopes}
 import org.silkframework.runtime.validation.ValidationException
 
 class SetExecutionVariableTransformerTest extends AnyFlatSpec with Matchers {
@@ -29,7 +29,7 @@ class SetExecutionVariableTransformerTest extends AnyFlatSpec with Matchers {
   behavior of "SetExecutionVariableTransformer"
 
   it should "set the execution variable to the first value of the single input and pass the input through unchanged" in {
-    val variables = new RecordingTemplateVariables()
+    val variables = ExecutionTemplateVariables(Seq.empty)
     val transformer = SetExecutionVariableTransformer("myVar").execution(taskContext(variables))
 
     val result = transformer(Seq(Seq("first", "second")))
@@ -40,7 +40,7 @@ class SetExecutionVariableTransformerTest extends AnyFlatSpec with Matchers {
   }
 
   it should "overwrite the variable on each invocation, so the last processed value wins" in {
-    val variables = new RecordingTemplateVariables()
+    val variables = ExecutionTemplateVariables(Seq.empty)
     val transformer = SetExecutionVariableTransformer("myVar").execution(taskContext(variables))
 
     transformer(Seq(Seq("entity1")))
@@ -51,7 +51,7 @@ class SetExecutionVariableTransformerTest extends AnyFlatSpec with Matchers {
   }
 
   it should "leave the variable untouched but still pass through when the input has no values" in {
-    val variables = new RecordingTemplateVariables()
+    val variables = ExecutionTemplateVariables(Seq.empty)
     val transformer = SetExecutionVariableTransformer("myVar").execution(taskContext(variables))
 
     val result = transformer(Seq(Seq.empty))
@@ -61,14 +61,14 @@ class SetExecutionVariableTransformerTest extends AnyFlatSpec with Matchers {
   }
 
   it should "throw a ValidationException when not exactly one input is connected" in {
-    val variables = new RecordingTemplateVariables()
+    val variables = ExecutionTemplateVariables(Seq.empty)
     val transformer = SetExecutionVariableTransformer("myVar").execution(taskContext(variables))
 
     an[ValidationException] should be thrownBy transformer(Seq(Seq("a"), Seq("b")))
     an[ValidationException] should be thrownBy transformer(Seq.empty)
   }
 
-  private def taskContext(variables: PluginTemplateVariables): TaskContext = {
+  private def taskContext(variables: ExecutionTemplateVariables): TaskContext = {
     val pluginContext = PluginContext(
       prefixes = Prefixes.empty,
       resources = InMemoryResourceManager(),
@@ -76,24 +76,5 @@ class SetExecutionVariableTransformerTest extends AnyFlatSpec with Matchers {
       templateVariables = variables
     )
     TaskContext(Seq.empty, pluginContext)
-  }
-
-  /**
-    * Minimal mutable [[PluginTemplateVariables]] for the test, mirroring the replace-on-collision behaviour
-    * of the real execution-variable holder used during workflow runs.
-    */
-  private class RecordingTemplateVariables extends PluginTemplateVariables {
-
-    private var current: Seq[TemplateVariable] = Seq.empty
-
-    override def scopes: Set[Seq[String]] = Set(TemplateVariableScopes.execution)
-
-    override def all: TemplateVariables = TemplateVariables(current)
-
-    override def setExecutionVariable(variable: TemplateVariable): Unit = {
-      require(variable.scope == TemplateVariableScopes.execution,
-        s"Expected execution scope but got '${variable.scope.mkString(".")}'")
-      current = variable +: current.filterNot(_.name == variable.name)
-    }
   }
 }

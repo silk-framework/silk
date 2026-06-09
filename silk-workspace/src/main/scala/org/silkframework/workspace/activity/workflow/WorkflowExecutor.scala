@@ -7,7 +7,7 @@ import org.silkframework.execution._
 import org.silkframework.runtime.activity.Status.Canceling
 import org.silkframework.runtime.activity._
 import org.silkframework.runtime.plugin.PluginContext
-import org.silkframework.runtime.templating.{GlobalTemplateVariables, InMemoryTemplateVariablesReader, TemplateVariableScopes, TemplateVariables, TemplateVariablesReader}
+import org.silkframework.runtime.templating.{ExecutionTemplateVariables, ExecutionVariablesHolder, GlobalTemplateVariables, InMemoryTemplateVariablesReader, TemplateVariableScopes, TemplateVariables, TemplateVariablesReader}
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.ProjectTask
@@ -48,7 +48,7 @@ trait WorkflowExecutor[ExecType <: ExecutionType] extends Activity[WorkflowExecu
       project.templateVariables,
       workflowRunContext.taskScopedVariablesReader
     )
-    val templateVars = WorkflowExecutionPluginTemplateVariables(immutableScopes, workflowRunContext.executionVariablesHolder)
+    val templateVars = ExecutionTemplateVariables(immutableScopes, workflowRunContext.executionVariablesHolder)
     PluginContext(project.config.prefixes, project.resources, workflowRunContext.userContext, Some(project.id), templateVars)
   }
 

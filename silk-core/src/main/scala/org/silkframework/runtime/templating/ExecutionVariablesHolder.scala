@@ -1,7 +1,6 @@
-package org.silkframework.workspace.activity.workflow
+package org.silkframework.runtime.templating
 
 import org.silkframework.runtime.templating.exceptions.InvalidScopeException
-import org.silkframework.runtime.templating.{PluginTemplateVariables, TemplateVariable, TemplateVariableScopes, TemplateVariables, TemplateVariablesReader}
 
 import java.util.concurrent.atomic.AtomicReference
 
@@ -33,26 +32,4 @@ final class ExecutionVariablesHolder(initial: TemplateVariables = TemplateVariab
       TemplateVariables(variable +: current.variables.filterNot(_.name == variable.name))
     }
   }
-}
-
-/**
-  * A [[PluginTemplateVariables]] used during workflow execution.
-  * Combines a set of immutable parent readers (global, project, task scopes) with a shared
-  * mutable [[ExecutionVariablesHolder]] for the execution scope.
-  *
-  * Unlike [[org.silkframework.runtime.templating.CombinedTemplateVariablesReader]], `all` is NOT
-  * cached — it re-reads the holder snapshot on each call so that mutations are reflected.
-  */
-final case class WorkflowExecutionPluginTemplateVariables(immutableScopes: Seq[TemplateVariablesReader],
-                                                          holder: ExecutionVariablesHolder) extends PluginTemplateVariables {
-
-  override def scopes: Set[Seq[String]] =
-    immutableScopes.flatMap(_.scopes).toSet + TemplateVariableScopes.execution
-
-  override def all: TemplateVariables = {
-    val readerSnapshots = immutableScopes.map(_.all)
-    (readerSnapshots :+ holder.snapshot).reduceOption(_ merge _).getOrElse(TemplateVariables.empty)
-  }
-
-  override def setExecutionVariable(variable: TemplateVariable): Unit = holder.set(variable)
 }
