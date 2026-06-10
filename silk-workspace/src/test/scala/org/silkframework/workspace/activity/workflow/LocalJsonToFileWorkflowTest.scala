@@ -2,11 +2,10 @@ package org.silkframework.workspace.activity.workflow
 
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.must.Matchers
-import org.silkframework.config.{MetaData, Prefixes}
+import org.silkframework.config.MetaData
 import org.silkframework.dataset.DatasetSpec
 import org.silkframework.plugins.dataset.json.{JsonDataset, JsonToFileOperator, JsonToFileOutputModeEnum}
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.runtime.plugin.PluginContext
 import org.silkframework.runtime.resource.{InMemoryResourceManager, WritableResource}
 import org.silkframework.util.ConfigTestTrait
 import org.silkframework.workspace.resources.ConstantResourceRepository
@@ -38,8 +37,6 @@ class LocalJsonToFileWorkflowTest extends AnyFlatSpec with Matchers with ConfigT
   behavior of "JSON to File operator in a workflow"
 
   implicit val userContext: UserContext = UserContext.Empty
-  implicit val pluginContext: PluginContext = PluginContext.empty
-  implicit val prefixes: Prefixes = Prefixes.empty
 
   private val inputJson =
     """{
@@ -50,10 +47,7 @@ class LocalJsonToFileWorkflowTest extends AnyFlatSpec with Matchers with ConfigT
       |}""".stripMargin
 
   it should "write the JSON string on an input entity to a file in a downstream dataset" in {
-    val output = runWorkflow(
-      JsonToFileOperator(inputPath = "jsonContent"),
-      s"""[{"jsonContent": ${Json.stringify(JsString(inputJson))}}]"""
-    )
+    val output = runWorkflow(JsonToFileOperator(inputPath = "jsonContent"), sourceContent(inputJson))
     output.loadAsString() mustBe inputJson
   }
 
@@ -62,21 +56,10 @@ class LocalJsonToFileWorkflowTest extends AnyFlatSpec with Matchers with ConfigT
     val json2 = """{"value":"second"}"""
     val output = runWorkflow(
       JsonToFileOperator(inputPath = "jsonContent", outputMode = JsonToFileOutputModeEnum.zip),
-      s"""[{"jsonContent": ${Json.stringify(JsString(json1))}}, {"jsonContent": ${Json.stringify(JsString(json2))}}]""",
+      sourceContent(json1, json2),
       outputName = "output.zip"
     )
-    val zip = new ZipInputStream(output.inputStream)
-    val entries = try {
-      Iterator.continually(zip.getNextEntry)
-        .takeWhile(_ != null)
-        .map(entry => (entry.getName, scala.io.Source.fromInputStream(zip, "UTF-8").mkString))
-        .toSeq
-    } finally {
-      zip.close()
-    }
-    entries.size mustBe 2
-    entries(0) mustBe (("entry-0.json", json1))
-    entries(1) mustBe (("entry-1.json", json2))
+    zipEntries(output) mustBe Seq(("entry-0.json", json1), ("entry-1.json", json2))
   }
 
   it should "merge multiple input entities into a single JSON array in merged JSON output mode" in {
@@ -84,7 +67,7 @@ class LocalJsonToFileWorkflowTest extends AnyFlatSpec with Matchers with ConfigT
     val json2 = """{"value":"second"}"""
     val output = runWorkflow(
       JsonToFileOperator(inputPath = "jsonContent", outputMode = JsonToFileOutputModeEnum.jsonArray),
-      s"""[{"jsonContent": ${Json.stringify(JsString(json1))}}, {"jsonContent": ${Json.stringify(JsString(json2))}}]"""
+      sourceContent(json1, json2)
     )
     output.loadAsString() mustBe """[{"value":"first"},{"value":"second"}]"""
   }
@@ -95,6 +78,23 @@ object LocalJsonToFileWorkflowTest {
   val JsonToFileId = "jsonToFile"
   val OutputDatasetId = "outputDataset"
   val WorkflowId = "workflow"
+
+  /** Wraps each JSON value in an entity under the "jsonContent" field, forming the source dataset's content. */
+  def sourceContent(jsonValues: String*): String =
+    jsonValues.map(json => s"""{"jsonContent": ${Json.stringify(JsString(json))}}""").mkString("[", ", ", "]")
+
+  /** Reads a ZIP resource into its (entry name, content) pairs. */
+  def zipEntries(resource: WritableResource): Seq[(String, String)] = {
+    val zip = new ZipInputStream(resource.inputStream)
+    try {
+      Iterator.continually(zip.getNextEntry)
+        .takeWhile(_ != null)
+        .map(entry => (entry.getName, scala.io.Source.fromInputStream(zip, "UTF-8").mkString))
+        .toSeq
+    } finally {
+      zip.close()
+    }
+  }
 
   /** Builds an in-memory workspace with a three-node workflow (source JSON dataset → JsonToFile operator →
    * output dataset), runs it synchronously, and returns the output resource for assertion. */
