@@ -24,7 +24,6 @@ class LocalJsonToFileOperatorExecutorTest extends AnyFlatSpec with Matchers with
   private val task = PlainTask("JsonToFile", operator)
   private val executor = LocalJsonToFileOperatorExecutor()
   private val mergedTask = PlainTask("JsonToFile", JsonToFileOperator(inputPath = "jsonContent", outputMode = JsonToFileOutputModeEnum.jsonArray))
-  private implicit val prefixes: Prefixes = Prefixes.empty
   private implicit val pluginContext: PluginContext = PluginContext.empty
 
   private def inputTable(jsonStrings: String*): GenericEntityTable =
@@ -281,35 +280,20 @@ class LocalJsonToFileOperatorExecutorTest extends AnyFlatSpec with Matchers with
   // merged JSON mode tests
 
   it should "merge a single entity into a JSON array" in {
-    val mergedTask = PlainTask("JsonToFile", JsonToFileOperator(inputPath = "jsonContent", outputMode = JsonToFileOutputModeEnum.jsonArray))
-    val result = executor.execute(mergedTask, Seq(inputTable(mergedTask, """{"id":1}""")), ExecutorOutput.empty, LocalExecution(useLocalInternalDatasets = false))
-    result mustBe defined
-    val FileEntitySchema(fileEntities) = result.get
-    fileEntities.typedEntities.toIndexedSeq.map(_.file.loadAsString()) mustBe Seq("""[{"id":1}]""")
+    runMerged(mergedTask, """{"id":1}""") mustBe Seq("""[{"id":1}]""")
   }
 
   it should "merge multiple entities into a single JSON array in input order" in {
-    val mergedTask = PlainTask("JsonToFile", JsonToFileOperator(inputPath = "jsonContent", outputMode = JsonToFileOutputModeEnum.jsonArray))
-    val result = executor.execute(mergedTask, Seq(inputTable(mergedTask, """{"id":1}""", """{"id":2}""", """{"id":3}""")), ExecutorOutput.empty, LocalExecution(useLocalInternalDatasets = false))
-    result mustBe defined
-    val FileEntitySchema(fileEntities) = result.get
-    val entities = fileEntities.typedEntities.toIndexedSeq
-    entities.size mustBe 1
-    entities.map(_.file.loadAsString()) mustBe Seq("""[{"id":1},{"id":2},{"id":3}]""")
+    runMerged(mergedTask, """{"id":1}""", """{"id":2}""", """{"id":3}""") mustBe Seq("""[{"id":1},{"id":2},{"id":3}]""")
   }
 
   it should "return an empty FileEntitySchema when there are no input entities in merged JSON mode" in {
-    val mergedTask = PlainTask("JsonToFile", JsonToFileOperator(inputPath = "jsonContent", outputMode = JsonToFileOutputModeEnum.jsonArray))
-    val emptyTable = GenericEntityTable(CloseableIterator(Iterator.empty), entitySchema, mergedTask)
-    val result = executor.execute(mergedTask, Seq(emptyTable), ExecutorOutput.empty, LocalExecution(useLocalInternalDatasets = false))
-    result mustBe defined
-    val FileEntitySchema(fileEntities) = result.get
-    fileEntities.typedEntities.toIndexedSeq mustBe empty
+    runMerged(mergedTask) mustBe empty
   }
 
   it should "use the literal output file name with no index suffix in merged JSON mode" in {
-    val mergedTask = PlainTask("JsonToFile", JsonToFileOperator(inputPath = "jsonContent", outputFileName = "out.json", outputMode = JsonToFileOutputModeEnum.jsonArray))
-    val result = executor.execute(mergedTask, Seq(inputTable(mergedTask, """{"id":1}""", """{"id":2}""")), ExecutorOutput.empty, LocalExecution(useLocalInternalDatasets = false))
+    val namedMergedTask = PlainTask("JsonToFile", JsonToFileOperator(inputPath = "jsonContent", outputFileName = "out.json", outputMode = JsonToFileOutputModeEnum.jsonArray))
+    val result = executor.execute(namedMergedTask, Seq(inputTable(namedMergedTask, """{"id":1}""", """{"id":2}""")), ExecutorOutput.empty, LocalExecution(useLocalInternalDatasets = false))
     result mustBe defined
     val FileEntitySchema(fileEntities) = result.get
     val entities = fileEntities.typedEntities.toIndexedSeq
@@ -318,17 +302,13 @@ class LocalJsonToFileOperatorExecutorTest extends AnyFlatSpec with Matchers with
   }
 
   it should "wrap each element with outputProperty before merging in merged JSON mode" in {
-    val mergedTask = PlainTask("JsonToFile", JsonToFileOperator(inputPath = "jsonContent", outputMode = JsonToFileOutputModeEnum.jsonArray, outputProperty = "payload"))
-    val result = executor.execute(mergedTask, Seq(inputTable(mergedTask, """{"id":1}""", """{"id":2}""")), ExecutorOutput.empty, LocalExecution(useLocalInternalDatasets = false))
-    result mustBe defined
-    val FileEntitySchema(fileEntities) = result.get
-    fileEntities.typedEntities.toIndexedSeq.map(_.file.loadAsString()) mustBe Seq("""[{"payload":{"id":1}},{"payload":{"id":2}}]""")
+    val wrappedMergedTask = PlainTask("JsonToFile", JsonToFileOperator(inputPath = "jsonContent", outputMode = JsonToFileOutputModeEnum.jsonArray, outputProperty = "payload"))
+    runMerged(wrappedMergedTask, """{"id":1}""", """{"id":2}""") mustBe Seq("""[{"payload":{"id":1}},{"payload":{"id":2}}]""")
   }
 
   it should "throw a TaskException for invalid JSON in merged JSON mode" in {
-    val mergedTask = PlainTask("JsonToFile", JsonToFileOperator(inputPath = "jsonContent", outputMode = JsonToFileOutputModeEnum.jsonArray))
     val ex = intercept[TaskException] {
-      executor.execute(mergedTask, Seq(inputTable(mergedTask, """{"unterminated":""")), ExecutorOutput.empty, LocalExecution(useLocalInternalDatasets = false))
+      runMerged(mergedTask, """{"unterminated":""")
     }
     ex.getMessage must include ("JSON to File")
     ex.getMessage.toLowerCase must include ("not valid json")
