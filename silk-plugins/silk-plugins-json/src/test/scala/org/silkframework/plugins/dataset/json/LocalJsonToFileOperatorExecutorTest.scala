@@ -2,7 +2,7 @@ package org.silkframework.plugins.dataset.json
 
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.must.Matchers
-import org.silkframework.config.{PlainTask, Prefixes, Task}
+import org.silkframework.config.{PlainTask, Task}
 import org.silkframework.entity.paths.UntypedPath
 import org.silkframework.entity.{Entity, EntitySchema}
 import org.silkframework.execution.local.{GenericEntityTable, LocalExecution}
@@ -16,117 +16,61 @@ import org.silkframework.util.MockitoSugar
 import java.util.zip.ZipInputStream
 
 class LocalJsonToFileOperatorExecutorTest extends AnyFlatSpec with Matchers with MockitoSugar with TestUserContextTrait {
+  import LocalJsonToFileOperatorExecutorTest._
+
   behavior of "Local JSON to File Operator Executor"
 
   private val entitySchema = EntitySchema("type", IndexedSeq(UntypedPath("jsonContent")).map(_.asStringTypedPath))
-
   private val operator = JsonToFileOperator(inputPath = "jsonContent")
   private val task = PlainTask("JsonToFile", operator)
   private val executor = LocalJsonToFileOperatorExecutor()
   private val mergedTask = PlainTask("JsonToFile", JsonToFileOperator(inputPath = "jsonContent", outputMode = JsonToFileOutputModeEnum.jsonArray))
   private implicit val pluginContext: PluginContext = PluginContext.empty
 
-  private def inputTable(jsonStrings: String*): GenericEntityTable =
-    inputTable(task, jsonStrings: _*)
-
-  private def inputTable(t: Task[JsonToFileOperator], jsonStrings: String*): GenericEntityTable = {
-    val entities = jsonStrings.zipWithIndex.map { case (json, idx) =>
-      Entity(s"entity$idx", values = IndexedSeq(Seq(json)), schema = entitySchema)
-    }
-    GenericEntityTable(CloseableIterator(entities.iterator), entitySchema, t)
-  }
-
-  private def runAndReadFiles(table: GenericEntityTable): Seq[String] = {
-    val result = executor.execute(task, Seq(table), ExecutorOutput.empty, LocalExecution(useLocalInternalDatasets = false))
-    result mustBe defined
-    val FileEntitySchema(fileEntities) = result.get
-    fileEntities.typedEntities.toIndexedSeq.map(_.file.loadAsString())
-  }
-
-  private def runMerged(t: Task[JsonToFileOperator], jsonStrings: String*): Seq[String] = {
-    val result = executor.execute(t, Seq(inputTable(t, jsonStrings: _*)), ExecutorOutput.empty, LocalExecution(useLocalInternalDatasets = false))
-    result mustBe defined
-    val FileEntitySchema(fileEntities) = result.get
-    fileEntities.typedEntities.toIndexedSeq.map(_.file.loadAsString())
-  }
-
   it should "write the JSON of a single input entity to a file" in {
     val json = """{"hello":"world"}"""
-    val contents = runAndReadFiles(inputTable(json))
-    contents mustBe Seq(json)
+    runJsonToFile(executor, entitySchema, task, json).map(_.file.loadAsString()) mustBe Seq(json)
   }
 
   it should "default to the first field when no input path is configured" in {
     val defaultTask = PlainTask("JsonToFile", JsonToFileOperator())
     val json = """{"hello":"world"}"""
-    val table = GenericEntityTable(
-      CloseableIterator(Iterator(Entity("e", IndexedSeq(Seq(json)), entitySchema))),
-      entitySchema,
-      defaultTask
-    )
-    val result = executor.execute(defaultTask, Seq(table), ExecutorOutput.empty, LocalExecution(useLocalInternalDatasets = false))
-    val FileEntitySchema(fileEntities) = result.get
-    fileEntities.typedEntities.toIndexedSeq.map(_.file.loadAsString()) mustBe Seq(json)
+    runJsonToFile(executor, entitySchema, defaultTask, json).map(_.file.loadAsString()) mustBe Seq(json)
   }
 
   it should "produce one file per input entity" in {
     val json1 = """{"id":"1","name":"Alice"}"""
     val json2 = """{"id":"2","name":"Bob"}"""
     val json3 = """{"id":"3","name":"Carol"}"""
-    val contents = runAndReadFiles(inputTable(json1, json2, json3))
-    contents mustBe Seq(json1, json2, json3)
+    runJsonToFile(executor, entitySchema, task, json1, json2, json3).map(_.file.loadAsString()) mustBe Seq(json1, json2, json3)
   }
 
   it should "use the literal output file name for a single input entity" in {
     val namedTask = PlainTask("JsonToFile", JsonToFileOperator(inputPath = "jsonContent", outputFileName = "out.json"))
-    val json = """{"x":1}"""
-    val table = GenericEntityTable(
-      CloseableIterator(Iterator(Entity("e", IndexedSeq(Seq(json)), entitySchema))),
-      entitySchema,
-      namedTask
-    )
-    val result = executor.execute(namedTask, Seq(table), ExecutorOutput.empty, LocalExecution(useLocalInternalDatasets = false))
-    val FileEntitySchema(fileEntities) = result.get
-    val entities = fileEntities.typedEntities.toIndexedSeq
-    entities.size mustBe 1
-    entities.head.file.name mustBe "out.json"
-    entities.head.mimeType mustBe Some("application/json")
+    val files = runJsonToFile(executor, entitySchema, namedTask, """{"x":1}""")
+    files.map(_.file.name) mustBe Seq("out.json")
+    files.head.mimeType mustBe Some("application/json")
   }
 
   it should "append an index suffix when the output file name is set and the input has multiple entities" in {
     val namedTask = PlainTask("JsonToFile", JsonToFileOperator(inputPath = "jsonContent", outputFileName = "out.json"))
-    val entities = Seq("""{"a":1}""", """{"a":2}""", """{"a":3}""").zipWithIndex.map { case (json, idx) =>
-      Entity(s"e$idx", values = IndexedSeq(Seq(json)), schema = entitySchema)
-    }
-    val table = GenericEntityTable(CloseableIterator(entities.iterator), entitySchema, namedTask)
-    val result = executor.execute(namedTask, Seq(table), ExecutorOutput.empty, LocalExecution(useLocalInternalDatasets = false))
-    val FileEntitySchema(fileEntities) = result.get
-    val names = fileEntities.typedEntities.toIndexedSeq.map(_.file.name)
-    names mustBe Seq("out-0.json", "out-1.json", "out-2.json")
+    runJsonToFile(executor, entitySchema, namedTask, """{"a":1}""", """{"a":2}""", """{"a":3}""").map(_.file.name) mustBe Seq("out-0.json", "out-1.json", "out-2.json")
   }
 
   it should "tag the produced file entities with the application/json MIME type" in {
-    val json = """{"hello":"world"}"""
-    val result = executor.execute(task, Seq(inputTable(json)), ExecutorOutput.empty, LocalExecution(useLocalInternalDatasets = false))
-    val FileEntitySchema(fileEntities) = result.get
-    val entities = fileEntities.typedEntities.toIndexedSeq
-    entities.size mustBe 1
-    entities.head.mimeType mustBe Some("application/json")
+    runJsonToFile(executor, entitySchema, task, """{"hello":"world"}""").map(_.mimeType) mustBe Seq(Some("application/json"))
   }
 
   it should "throw a TaskException when the input value is empty" in {
-    val emptyEntity = Entity("e", IndexedSeq(Seq("")), entitySchema)
-    val table = GenericEntityTable(CloseableIterator(Iterator(emptyEntity)), entitySchema, task)
     val ex = intercept[TaskException] {
-      executor.execute(task, Seq(table), ExecutorOutput.empty, LocalExecution(useLocalInternalDatasets = false))
+      runJsonToFile(executor, entitySchema, task, "")
     }
     ex.getMessage must include ("JSON to File")
   }
 
   it should "throw a TaskException when the input value is not valid JSON" in {
-    val invalid = """{"unterminated":"""
     val ex = intercept[TaskException] {
-      executor.execute(task, Seq(inputTable(invalid)), ExecutorOutput.empty, LocalExecution(useLocalInternalDatasets = false))
+      runJsonToFile(executor, entitySchema, task, """{"unterminated":""")
     }
     ex.getMessage must include ("JSON to File")
     ex.getMessage.toLowerCase must include ("not valid json")
@@ -137,14 +81,10 @@ class LocalJsonToFileOperatorExecutorTest extends AnyFlatSpec with Matchers with
   it should "pack a single entity into a ZIP with entry name entry.json" in {
     val json = """{"hello":"world"}"""
     val zipTask = PlainTask("JsonToFile", JsonToFileOperator(inputPath = "jsonContent", outputMode = JsonToFileOutputModeEnum.zip))
-    val result = executor.execute(zipTask, Seq(inputTable(zipTask, json)), ExecutorOutput.empty, LocalExecution(useLocalInternalDatasets = false))
-    result mustBe defined
-    val FileEntitySchema(fileEntities) = result.get
-    val entities = fileEntities.typedEntities.toIndexedSeq
-    entities.size mustBe 1
-    entities.head.mimeType mustBe Some("application/zip")
-    val entries = readZipEntries(entities.head)
-    entries mustBe Seq(("entry.json", json))
+    val files = runJsonToFile(executor, entitySchema, zipTask, json)
+    files.size mustBe 1
+    files.head.mimeType mustBe Some("application/zip")
+    readZipEntries(files.head) mustBe Seq(("entry.json", json))
   }
 
   it should "pack multiple entities into a single ZIP with suffixed entry names" in {
@@ -152,75 +92,51 @@ class LocalJsonToFileOperatorExecutorTest extends AnyFlatSpec with Matchers with
     val json1 = """{"id":1}"""
     val json2 = """{"id":2}"""
     val zipTask = PlainTask("JsonToFile", JsonToFileOperator(inputPath = "jsonContent", outputMode = JsonToFileOutputModeEnum.zip))
-    val result = executor.execute(zipTask, Seq(inputTable(zipTask, json0, json1, json2)), ExecutorOutput.empty, LocalExecution(useLocalInternalDatasets = false))
-    result mustBe defined
-    val FileEntitySchema(fileEntities) = result.get
-    val entities = fileEntities.typedEntities.toIndexedSeq
-    entities.size mustBe 1
-    val entries = readZipEntries(entities.head)
-    entries mustBe Seq(("entry-0.json", json0), ("entry-1.json", json1), ("entry-2.json", json2))
+    val files = runJsonToFile(executor, entitySchema, zipTask, json0, json1, json2)
+    files.size mustBe 1
+    readZipEntries(files.head) mustBe Seq(("entry-0.json", json0), ("entry-1.json", json1), ("entry-2.json", json2))
   }
 
   it should "use the configured output file name as the ZIP container name and suffix entry names" in {
     val json0 = """{"a":1}"""
     val json1 = """{"a":2}"""
     val zipTask = PlainTask("JsonToFile", JsonToFileOperator(inputPath = "jsonContent", outputFileName = "out.json", outputMode = JsonToFileOutputModeEnum.zip))
-    val result = executor.execute(zipTask, Seq(inputTable(zipTask, json0, json1)), ExecutorOutput.empty, LocalExecution(useLocalInternalDatasets = false))
-    result mustBe defined
-    val FileEntitySchema(fileEntities) = result.get
-    val entities = fileEntities.typedEntities.toIndexedSeq
-    entities.size mustBe 1
-    entities.head.file.name mustBe "out.json"
-    val entries = readZipEntries(entities.head)
-    entries mustBe Seq(("out-0.json", json0), ("out-1.json", json1))
+    val files = runJsonToFile(executor, entitySchema, zipTask, json0, json1)
+    files.size mustBe 1
+    files.head.file.name mustBe "out.json"
+    readZipEntries(files.head) mustBe Seq(("out-0.json", json0), ("out-1.json", json1))
   }
 
   it should "use the literal output file name as the ZIP entry name for a single entity" in {
     val json = """{"x":42}"""
     val zipTask = PlainTask("JsonToFile", JsonToFileOperator(inputPath = "jsonContent", outputFileName = "out.json", outputMode = JsonToFileOutputModeEnum.zip))
-    val result = executor.execute(zipTask, Seq(inputTable(zipTask, json)), ExecutorOutput.empty, LocalExecution(useLocalInternalDatasets = false))
-    result mustBe defined
-    val FileEntitySchema(fileEntities) = result.get
-    val entries = readZipEntries(fileEntities.typedEntities.toIndexedSeq.head)
-    entries.map(_._1) mustBe Seq("out.json")
+    readZipEntries(runJsonToFile(executor, entitySchema, zipTask, json).head).map(_._1) mustBe Seq("out.json")
   }
 
   it should "preserve an explicitly configured MIME type in ZIP mode" in {
-    val json = """{"x":1}"""
     val zipTask = PlainTask("JsonToFile", JsonToFileOperator(inputPath = "jsonContent", outputMode = JsonToFileOutputModeEnum.zip, mimeType = "application/octet-stream"))
-    val result = executor.execute(zipTask, Seq(inputTable(zipTask, json)), ExecutorOutput.empty, LocalExecution(useLocalInternalDatasets = false))
-    result mustBe defined
-    val FileEntitySchema(fileEntities) = result.get
-    fileEntities.typedEntities.toIndexedSeq.head.mimeType mustBe Some("application/octet-stream")
+    runJsonToFile(executor, entitySchema, zipTask, """{"x":1}""").head.mimeType mustBe Some("application/octet-stream")
   }
 
   it should "return an empty FileEntitySchema when there are no input entities in ZIP mode" in {
     val zipTask = PlainTask("JsonToFile", JsonToFileOperator(inputPath = "jsonContent", outputMode = JsonToFileOutputModeEnum.zip))
-    val emptyTable = GenericEntityTable(CloseableIterator(Iterator.empty), entitySchema, zipTask)
-    val result = executor.execute(zipTask, Seq(emptyTable), ExecutorOutput.empty, LocalExecution(useLocalInternalDatasets = false))
-    result mustBe defined
-    val FileEntitySchema(fileEntities) = result.get
-    fileEntities.typedEntities.toIndexedSeq mustBe empty
+    runJsonToFile(executor, entitySchema, zipTask) mustBe empty
   }
 
   it should "produce one ZIP entry per entity for a large number of input entities" in {
     val count = 500
     val zipTask = PlainTask("JsonToFile", JsonToFileOperator(inputPath = "jsonContent", outputMode = JsonToFileOutputModeEnum.zip))
     val jsonValues = (0 until count).map(i => s"""{"i":$i}""")
-    val result = executor.execute(zipTask, Seq(inputTable(zipTask, jsonValues: _*)), ExecutorOutput.empty, LocalExecution(useLocalInternalDatasets = false))
-    result mustBe defined
-    val FileEntitySchema(fileEntities) = result.get
-    val entries = readZipEntries(fileEntities.typedEntities.toIndexedSeq.head)
+    val entries = readZipEntries(runJsonToFile(executor, entitySchema, zipTask, jsonValues: _*).head)
     entries.size mustBe count
     entries.head mustBe (("entry-0.json", """{"i":0}"""))
     entries.last mustBe ((s"entry-${count - 1}.json", s"""{"i":${count - 1}}"""))
   }
 
   it should "throw a TaskException for invalid JSON in ZIP mode" in {
-    val invalid = """{"unterminated":"""
     val zipTask = PlainTask("JsonToFile", JsonToFileOperator(inputPath = "jsonContent", outputMode = JsonToFileOutputModeEnum.zip))
     val ex = intercept[TaskException] {
-      executor.execute(zipTask, Seq(inputTable(zipTask, invalid)), ExecutorOutput.empty, LocalExecution(useLocalInternalDatasets = false))
+      runJsonToFile(executor, entitySchema, zipTask, """{"unterminated":""")
     }
     ex.getMessage must include ("JSON to File")
     ex.getMessage.toLowerCase must include ("not valid json")
@@ -230,48 +146,28 @@ class LocalJsonToFileOperatorExecutorTest extends AnyFlatSpec with Matchers with
 
   it should "wrap the JSON value in an object under the given key" in {
     val wrappedTask = PlainTask("JsonToFile", JsonToFileOperator(inputPath = "jsonContent", outputProperty = "payload"))
-    val json = """{"name":"Alice"}"""
-    val result = executor.execute(wrappedTask, Seq(inputTable(wrappedTask, json)), ExecutorOutput.empty, LocalExecution(useLocalInternalDatasets = false))
-    result mustBe defined
-    val FileEntitySchema(fileEntities) = result.get
-    fileEntities.typedEntities.toIndexedSeq.map(_.file.loadAsString()) mustBe Seq("""{"payload":{"name":"Alice"}}""")
+    runJsonToFile(executor, entitySchema, wrappedTask, """{"name":"Alice"}""").map(_.file.loadAsString()) mustBe Seq("""{"payload":{"name":"Alice"}}""")
   }
 
   it should "wrap each entity independently when outputProperty is set and there are multiple entities" in {
     val wrappedTask = PlainTask("JsonToFile", JsonToFileOperator(inputPath = "jsonContent", outputProperty = "payload"))
-    val json1 = """{"id":1}"""
-    val json2 = """{"id":2}"""
-    val result = executor.execute(wrappedTask, Seq(inputTable(wrappedTask, json1, json2)), ExecutorOutput.empty, LocalExecution(useLocalInternalDatasets = false))
-    result mustBe defined
-    val FileEntitySchema(fileEntities) = result.get
-    fileEntities.typedEntities.toIndexedSeq.map(_.file.loadAsString()) mustBe Seq("""{"payload":{"id":1}}""", """{"payload":{"id":2}}""")
+    runJsonToFile(executor, entitySchema, wrappedTask, """{"id":1}""", """{"id":2}""").map(_.file.loadAsString()) mustBe Seq("""{"payload":{"id":1}}""", """{"payload":{"id":2}}""")
   }
 
   it should "wrap each ZIP entry when outputProperty is set in ZIP mode" in {
     val wrappedZipTask = PlainTask("JsonToFile", JsonToFileOperator(inputPath = "jsonContent", outputMode = JsonToFileOutputModeEnum.zip, outputProperty = "payload"))
-    val json1 = """{"id":1}"""
-    val json2 = """{"id":2}"""
-    val result = executor.execute(wrappedZipTask, Seq(inputTable(wrappedZipTask, json1, json2)), ExecutorOutput.empty, LocalExecution(useLocalInternalDatasets = false))
-    result mustBe defined
-    val FileEntitySchema(fileEntities) = result.get
-    val entries = readZipEntries(fileEntities.typedEntities.toIndexedSeq.head)
-    entries mustBe Seq(("entry-0.json", """{"payload":{"id":1}}"""), ("entry-1.json", """{"payload":{"id":2}}"""))
+    readZipEntries(runJsonToFile(executor, entitySchema, wrappedZipTask, """{"id":1}""", """{"id":2}""").head) mustBe Seq(("entry-0.json", """{"payload":{"id":1}}"""), ("entry-1.json", """{"payload":{"id":2}}"""))
   }
 
   it should "wrap a JSON array input when outputProperty is set" in {
     val wrappedTask = PlainTask("JsonToFile", JsonToFileOperator(inputPath = "jsonContent", outputProperty = "payload"))
-    val json = """[{"id":1},{"id":2}]"""
-    val result = executor.execute(wrappedTask, Seq(inputTable(wrappedTask, json)), ExecutorOutput.empty, LocalExecution(useLocalInternalDatasets = false))
-    result mustBe defined
-    val FileEntitySchema(fileEntities) = result.get
-    fileEntities.typedEntities.toIndexedSeq.map(_.file.loadAsString()) mustBe Seq("""{"payload":[{"id":1},{"id":2}]}""")
+    runJsonToFile(executor, entitySchema, wrappedTask, """[{"id":1},{"id":2}]""").map(_.file.loadAsString()) mustBe Seq("""{"payload":[{"id":1},{"id":2}]}""")
   }
 
   it should "throw a TaskException for invalid JSON when outputProperty is set" in {
     val wrappedTask = PlainTask("JsonToFile", JsonToFileOperator(inputPath = "jsonContent", outputProperty = "payload"))
-    val invalid = """{"unterminated":"""
     val ex = intercept[TaskException] {
-      executor.execute(wrappedTask, Seq(inputTable(wrappedTask, invalid)), ExecutorOutput.empty, LocalExecution(useLocalInternalDatasets = false))
+      runJsonToFile(executor, entitySchema, wrappedTask, """{"unterminated":""")
     }
     ex.getMessage must include ("JSON to File")
     ex.getMessage.toLowerCase must include ("not valid json")
@@ -280,35 +176,30 @@ class LocalJsonToFileOperatorExecutorTest extends AnyFlatSpec with Matchers with
   // merged JSON mode tests
 
   it should "merge a single entity into a JSON array" in {
-    runMerged(mergedTask, """{"id":1}""") mustBe Seq("""[{"id":1}]""")
+    runJsonToFile(executor, entitySchema, mergedTask, """{"id":1}""").map(_.file.loadAsString()) mustBe Seq("""[{"id":1}]""")
   }
 
   it should "merge multiple entities into a single JSON array in input order" in {
-    runMerged(mergedTask, """{"id":1}""", """{"id":2}""", """{"id":3}""") mustBe Seq("""[{"id":1},{"id":2},{"id":3}]""")
+    runJsonToFile(executor, entitySchema, mergedTask, """{"id":1}""", """{"id":2}""", """{"id":3}""").map(_.file.loadAsString()) mustBe Seq("""[{"id":1},{"id":2},{"id":3}]""")
   }
 
   it should "return an empty FileEntitySchema when there are no input entities in merged JSON mode" in {
-    runMerged(mergedTask) mustBe empty
+    runJsonToFile(executor, entitySchema, mergedTask) mustBe empty
   }
 
   it should "use the literal output file name with no index suffix in merged JSON mode" in {
     val namedMergedTask = PlainTask("JsonToFile", JsonToFileOperator(inputPath = "jsonContent", outputFileName = "out.json", outputMode = JsonToFileOutputModeEnum.jsonArray))
-    val result = executor.execute(namedMergedTask, Seq(inputTable(namedMergedTask, """{"id":1}""", """{"id":2}""")), ExecutorOutput.empty, LocalExecution(useLocalInternalDatasets = false))
-    result mustBe defined
-    val FileEntitySchema(fileEntities) = result.get
-    val entities = fileEntities.typedEntities.toIndexedSeq
-    entities.size mustBe 1
-    entities.head.file.name mustBe "out.json"
+    runJsonToFile(executor, entitySchema, namedMergedTask, """{"id":1}""", """{"id":2}""").map(_.file.name) mustBe Seq("out.json")
   }
 
   it should "wrap each element with outputProperty before merging in merged JSON mode" in {
     val wrappedMergedTask = PlainTask("JsonToFile", JsonToFileOperator(inputPath = "jsonContent", outputMode = JsonToFileOutputModeEnum.jsonArray, outputProperty = "payload"))
-    runMerged(wrappedMergedTask, """{"id":1}""", """{"id":2}""") mustBe Seq("""[{"payload":{"id":1}},{"payload":{"id":2}}]""")
+    runJsonToFile(executor, entitySchema, wrappedMergedTask, """{"id":1}""", """{"id":2}""").map(_.file.loadAsString()) mustBe Seq("""[{"payload":{"id":1}},{"payload":{"id":2}}]""")
   }
 
   it should "throw a TaskException for invalid JSON in merged JSON mode" in {
     val ex = intercept[TaskException] {
-      runMerged(mergedTask, """{"unterminated":""")
+      runJsonToFile(executor, entitySchema, mergedTask, """{"unterminated":""")
     }
     ex.getMessage must include ("JSON to File")
     ex.getMessage.toLowerCase must include ("not valid json")
@@ -318,72 +209,68 @@ class LocalJsonToFileOperatorExecutorTest extends AnyFlatSpec with Matchers with
 
   // numeric values pass through verbatim
   it should "preserve a multiple-of-ten integer verbatim in merged JSON mode" in {
-    runMerged(mergedTask, """{"id":100}""") mustBe Seq("""[{"id":100}]""")
+    runJsonToFile(executor, entitySchema, mergedTask, """{"id":100}""").map(_.file.loadAsString()) mustBe Seq("""[{"id":100}]""")
   }
 
   it should "preserve trailing decimal zeros in merged JSON mode" in {
-    runMerged(mergedTask, """{"price":1.50}""") mustBe Seq("""[{"price":1.50}]""")
+    runJsonToFile(executor, entitySchema, mergedTask, """{"price":1.50}""").map(_.file.loadAsString()) mustBe Seq("""[{"price":1.50}]""")
   }
 
   it should "preserve a large integer verbatim in merged JSON mode" in {
-    runMerged(mergedTask, """{"big":1000000000000000000000}""") mustBe Seq("""[{"big":1000000000000000000000}]""")
+    runJsonToFile(executor, entitySchema, mergedTask, """{"big":1000000000000000000000}""").map(_.file.loadAsString()) mustBe Seq("""[{"big":1000000000000000000000}]""")
   }
 
   it should "preserve a plain integer verbatim in merged JSON mode" in {
-    runMerged(mergedTask, """{"n":7}""") mustBe Seq("""[{"n":7}]""")
+    runJsonToFile(executor, entitySchema, mergedTask, """{"n":7}""").map(_.file.loadAsString()) mustBe Seq("""[{"n":7}]""")
   }
 
   it should "preserve numeric scalar elements verbatim in merged JSON mode" in {
-    runMerged(mergedTask, "100") mustBe Seq("[100]")
-    runMerged(mergedTask, "2.00") mustBe Seq("[2.00]")
+    runJsonToFile(executor, entitySchema, mergedTask, "100").map(_.file.loadAsString()) mustBe Seq("[100]")
+    runJsonToFile(executor, entitySchema, mergedTask, "2.00").map(_.file.loadAsString()) mustBe Seq("[2.00]")
   }
 
   // element types: scalars, arrays, null (the other merged tests use objects)
   it should "merge scalar element values in input order in merged JSON mode" in {
-    runMerged(mergedTask, "1", "\"text\"", "true", "null") mustBe Seq("""[1,"text",true,null]""")
+    runJsonToFile(executor, entitySchema, mergedTask, "1", "\"text\"", "true", "null").map(_.file.loadAsString()) mustBe Seq("""[1,"text",true,null]""")
   }
 
   it should "merge array element values in merged JSON mode" in {
-    runMerged(mergedTask, "[1,2]", "[3]") mustBe Seq("[[1,2],[3]]")
+    runJsonToFile(executor, entitySchema, mergedTask, "[1,2]", "[3]").map(_.file.loadAsString()) mustBe Seq("[[1,2],[3]]")
   }
 
   it should "merge a single null element in merged JSON mode" in {
-    runMerged(mergedTask, "null") mustBe Seq("[null]")
+    runJsonToFile(executor, entitySchema, mergedTask, "null").map(_.file.loadAsString()) mustBe Seq("[null]")
   }
 
   it should "wrap a scalar element with outputProperty before merging in merged JSON mode" in {
     val wrappedMerged = PlainTask("JsonToFile", JsonToFileOperator(inputPath = "jsonContent", outputMode = JsonToFileOutputModeEnum.jsonArray, outputProperty = "p"))
-    runMerged(wrappedMerged, "5") mustBe Seq("""[{"p":5}]""")
+    runJsonToFile(executor, entitySchema, wrappedMerged, "5").map(_.file.loadAsString()) mustBe Seq("""[{"p":5}]""")
   }
 
   // MIME type
   it should "tag the merged file with the application/json MIME type by default" in {
-    val result = executor.execute(mergedTask, Seq(inputTable(mergedTask, """{"id":1}""")), ExecutorOutput.empty, LocalExecution(useLocalInternalDatasets = false))
-    val FileEntitySchema(fileEntities) = result.get
-    fileEntities.typedEntities.toIndexedSeq.head.mimeType mustBe Some("application/json")
+    runJsonToFile(executor, entitySchema, mergedTask, """{"id":1}""").head.mimeType mustBe Some("application/json")
   }
 
   it should "preserve an explicitly configured MIME type in merged JSON mode" in {
     val customMimeTask = PlainTask("JsonToFile", JsonToFileOperator(inputPath = "jsonContent", outputMode = JsonToFileOutputModeEnum.jsonArray, mimeType = "application/octet-stream"))
-    val result = executor.execute(customMimeTask, Seq(inputTable(customMimeTask, """{"id":1}""")), ExecutorOutput.empty, LocalExecution(useLocalInternalDatasets = false))
-    val FileEntitySchema(fileEntities) = result.get
-    fileEntities.typedEntities.toIndexedSeq.head.mimeType mustBe Some("application/octet-stream")
+    runJsonToFile(executor, entitySchema, customMimeTask, """{"id":1}""").head.mimeType mustBe Some("application/octet-stream")
   }
 
   // duplicate keys and per-element formatting preserved
   it should "preserve duplicate object keys in merged JSON mode" in {
-    runMerged(mergedTask, """{"a":1,"b":2,"a":3}""") mustBe Seq("""[{"a":1,"b":2,"a":3}]""")
+    runJsonToFile(executor, entitySchema, mergedTask, """{"a":1,"b":2,"a":3}""").map(_.file.loadAsString()) mustBe Seq("""[{"a":1,"b":2,"a":3}]""")
   }
 
   it should "preserve pretty-printed element formatting in merged JSON mode" in {
-    runMerged(mergedTask, "{\n  \"a\": 1\n}") mustBe Seq("[{\n  \"a\": 1\n}]")
+    runJsonToFile(executor, entitySchema, mergedTask, "{\n  \"a\": 1\n}").map(_.file.loadAsString()) mustBe Seq("[{\n  \"a\": 1\n}]")
   }
 
   // merged JSON mode — trailing content and whitespace padding
 
   it should "throw a TaskException for a non-JSON token after a valid value in merged JSON mode" in {
     val ex = intercept[TaskException] {
-      runMerged(mergedTask, """{"a":1} x""")
+      runJsonToFile(executor, entitySchema, mergedTask, """{"a":1} x""")
     }
     ex.getMessage must include ("JSON to File")
     ex.getMessage.toLowerCase must include ("not valid json")
@@ -391,17 +278,40 @@ class LocalJsonToFileOperatorExecutorTest extends AnyFlatSpec with Matchers with
 
   it should "throw a TaskException for a comma-separated trailing value at the root in merged JSON mode" in {
     val ex = intercept[TaskException] {
-      runMerged(mergedTask, "1, 2")
+      runJsonToFile(executor, entitySchema, mergedTask, "1, 2")
     }
     ex.getMessage must include ("JSON to File")
     ex.getMessage.toLowerCase must include ("not valid json")
   }
 
   it should "preserve leading and trailing whitespace around an element value in merged JSON mode" in {
-    runMerged(mergedTask, """  {"a":1}  """) mustBe Seq("""[  {"a":1}  ]""")
+    runJsonToFile(executor, entitySchema, mergedTask, """  {"a":1}  """).map(_.file.loadAsString()) mustBe Seq("""[  {"a":1}  ]""")
+  }
+}
+
+object LocalJsonToFileOperatorExecutorTest {
+
+  /** Builds an entity table holding one JSON string per entity under the given schema. */
+  def inputTable(entitySchema: EntitySchema, t: Task[JsonToFileOperator], jsonStrings: String*): GenericEntityTable = {
+    val entities = jsonStrings.zipWithIndex.map { case (json, idx) =>
+      Entity(s"entity$idx", values = IndexedSeq(Seq(json)), schema = entitySchema)
+    }
+    GenericEntityTable(CloseableIterator(entities.iterator), entitySchema, t)
   }
 
-  private def readZipEntries(fileEntity: FileEntity): Seq[(String, String)] = {
+  /** Runs the executor on a task with the given JSON inputs and returns the produced file entities. */
+  def runJsonToFile(executor: LocalJsonToFileOperatorExecutor,
+          entitySchema: EntitySchema,
+          t: Task[JsonToFileOperator],
+          jsonStrings: String*)
+         (implicit pluginContext: PluginContext): Seq[FileEntity] = {
+    val result = executor.execute(t, Seq(inputTable(entitySchema, t, jsonStrings: _*)), ExecutorOutput.empty, LocalExecution(useLocalInternalDatasets = false))
+    val FileEntitySchema(fileEntities) = result.getOrElse(throw new AssertionError("'JSON to File' executor returned no output"))
+    fileEntities.typedEntities.toIndexedSeq
+  }
+
+  /** Reads a ZIP file entity into its (entry name, content) pairs. */
+  def readZipEntries(fileEntity: FileEntity): Seq[(String, String)] = {
     val zipInput = new ZipInputStream(fileEntity.file.inputStream)
     try {
       Iterator.continually(zipInput.getNextEntry)
