@@ -99,7 +99,7 @@ object LocalJsonToFileWorkflowTest {
   /** Builds an in-memory workspace with a three-node workflow (source JSON dataset → JsonToFile operator →
    * output dataset), runs it synchronously, and returns the output resource for assertion. */
   def runWorkflow(operator: JsonToFileOperator, sourceContent: String, outputName: String = "output.json")
-                 (implicit userContext: UserContext, pluginContext: PluginContext, prefixes: Prefixes): WritableResource = {
+                 (implicit userContext: UserContext): WritableResource = {
     val resources = InMemoryResourceManager()
 
     val sourceResource = resources.get("source.json")
