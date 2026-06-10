@@ -48,13 +48,15 @@ case class WorkbenchConfig(title: String = "Silk Workbench",
 object WorkbenchConfig {
   private lazy val cfg = DefaultConfig.instance()
   private val defaultProjectPageSuffixKey = "workbench.project.defaultUrlSuffix"
+  private val dataManagerBaseUrlKey = "eccencaDataManager.baseUrl"
   lazy val publicProtocol: String = if(WorkbenchConfig.useHttps(cfg)) "https" else "http"
   lazy val publicHost: String = WorkbenchConfig.host(cfg).getOrElse("localhost:9000")
-  lazy val publicBaseUrl: String = s"$publicProtocol://$publicHost"
+  lazy val publicBaseUrl: String = configuredPublicBaseUrl(cfg)
   private lazy val localPort: Int = if (cfg.hasPath("http.port")) cfg.getInt("http.port") else 9000
   lazy val localBaseUrl: String = s"http://localhost:$localPort"
   lazy val applicationContext: String = WorkbenchConfig.applicationContext(cfg)
   def dataIntegrationUrl: String = localBaseUrl + applicationContext
+  def dataManagerBaseUrl: Option[String] = dataManagerBaseUrl(cfg)
   lazy val defaultProjectPageSuffix: Option[String] = {
     if(cfg.hasPath(defaultProjectPageSuffixKey)) {
       Some(cfg.getString(defaultProjectPageSuffixKey))
@@ -81,12 +83,33 @@ object WorkbenchConfig {
     }
   }
 
+  def configuredPublicBaseUrl(config: TypesafeConfig): String = {
+    val protocol = if(useHttps(config)) "https" else "http"
+    val publicHost = host(config).getOrElse("localhost:9000")
+    s"$protocol://$publicHost"
+  }
+
+  def requestPublicBaseUrl(request: RequestHeader, config: TypesafeConfig = cfg): String = {
+    val protocol = if(useHttps(config)) "https" else "http"
+    val publicHost = host(config).getOrElse(request.host)
+    s"$protocol://$publicHost"
+  }
+
   /** The application context, i.e. the base path of the absolute application paths. */
   def applicationContext(config: TypesafeConfig): String = {
     if (config.hasPath("play.http.context")) {
       config.getString("play.http.context").stripSuffix("/")
     } else {
       ""
+    }
+  }
+
+  /** The URL of the configured eccenca DataManager, if any. */
+  def dataManagerBaseUrl(config: TypesafeConfig): Option[String] = {
+    if(config.hasPath(dataManagerBaseUrlKey)) {
+      Some(config.getString(dataManagerBaseUrlKey).stripSuffix("/"))
+    } else {
+      None
     }
   }
 
