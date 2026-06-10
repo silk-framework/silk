@@ -90,6 +90,18 @@ lazy val commonSettings = Seq(
   dependencyOverrides += "tools.jackson.core" % "jackson-core" % "3.1.1",
   dependencyOverrides += "tools.jackson.core" % "jackson-databind" % "3.1.1",
 
+  // Fix netty vulnerabilities: CVE-2026-42583 (netty-codec), CVE-2026-42579 (netty-codec-dns),
+  // CVE-2026-45674 and CVE-2026-47691 (netty-resolver-dns)
+  dependencyOverrides += "io.netty" % "netty-codec" % "4.2.15.Final",
+  dependencyOverrides += "io.netty" % "netty-codec-dns" % "4.2.15.Final",
+  dependencyOverrides += "io.netty" % "netty-resolver-dns" % "4.2.15.Final",
+
+  // Fix CVE-2026-43869 in Apache Thrift (transitive from Spark/Hive thriftserver)
+  dependencyOverrides += "org.apache.thrift" % "libthrift" % "0.23.0",
+
+  // Fix CVE-2026-5598 in Bouncy Castle (private key leakage via non-constant time comparisons)
+  dependencyOverrides += "org.bouncycastle" % "bcprov-jdk18on" % "1.84",
+
   scalacOptions ++= compilerParams._2,
   javacOptions ++= compilerParams._1,
 
@@ -131,7 +143,7 @@ lazy val rules = (project in file("silk-rules"))
   .settings(commonSettings *)
   .settings(
     name := "Silk Rules",
-    libraryDependencies += "org.postgresql" % "postgresql" % "42.7.10",
+    libraryDependencies += "org.postgresql" % "postgresql" % "42.7.11",
     libraryDependencies += "org.apache.jena" % "jena-core" % "5.6.0" exclude("org.slf4j", "slf4j-log4j12"),
     libraryDependencies += "org.apache.jena" % "jena-arq" % "5.6.0" exclude("org.slf4j", "slf4j-log4j12")
   )
