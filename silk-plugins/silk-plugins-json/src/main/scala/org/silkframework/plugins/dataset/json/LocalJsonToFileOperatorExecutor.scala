@@ -91,18 +91,10 @@ case class LocalJsonToFileOperatorExecutor() extends LocalExecutor[JsonToFileOpe
     }
     val outputMimeType = Some(task.data.mimeType)
     val outputProperty = task.data.outputProperty
-    val elements = entities.map { entity =>
-      val raw = readJsonValue(entity, pathIndex)
-      parseJson(raw) // validate only; the parsed node is discarded so the original bytes survive
-      if (outputProperty.isEmpty) {
-        raw
-      } else {
-        // Build the wrapper key with a JsonString node (correct JSON escaping) and splice the raw value verbatim.
-        val key = JsonNodeSerializer.toString(JsonString(outputProperty, JsonPosition(1, 1)))
-        s"{$key:$raw}"
-      }
-    }
-    val serialized = elements.mkString("[", ",", "]")
+    val serialized = entities
+      .map(readValidatedJson(_, pathIndex))
+      .map(wrapRawValue(_, outputProperty))
+      .mkString("[", ",", "]")
     val fileEntity = if (trimmedFileName.isEmpty) {
       FileEntity.createTemp(TempFilePrefix, ".json", mimeType = outputMimeType)
     } else {
@@ -179,6 +171,14 @@ case class LocalJsonToFileOperatorExecutor() extends LocalExecutor[JsonToFileOpe
     }
   }
 
+  /** Reads the input value and validates that it parses as JSON, returning the original text. The parsed node is
+    * discarded so the raw bytes survive into the merged output. */
+  private def readValidatedJson(entity: Entity, pathIndex: Int): String = {
+    val raw = readJsonValue(entity, pathIndex)
+    parseJson(raw)
+    raw
+  }
+
   /** Validates and returns the final string to write: the original when outputProperty is empty, or the JSON value
     * wrapped in an object under the given key when outputProperty is set. Always validates the input as JSON. */
   private def applyOutputProperty(jsonString: String, outputProperty: String): String = {
@@ -188,6 +188,17 @@ case class LocalJsonToFileOperatorExecutor() extends LocalExecutor[JsonToFileOpe
     } else {
       // JsonPosition(1, 1): synthetic — this node has no source location.
       JsonNodeSerializer.toString(JsonObject(SeqMap(outputProperty -> node), JsonPosition(1, 1)))
+    }
+  }
+
+  /** Wraps a raw JSON value under the output property as a textual object, splicing the value verbatim, or returns it
+    * unchanged when no property is set. Unlike applyOutputProperty the raw bytes are preserved (no re-serialization). */
+  private def wrapRawValue(raw: String, outputProperty: String): String = {
+    if (outputProperty.isEmpty) {
+      raw
+    } else {
+      val key = JsonNodeSerializer.toString(JsonString(outputProperty, JsonPosition(1, 1)))
+      s"{$key:$raw}"
     }
   }
 
