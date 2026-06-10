@@ -7,8 +7,8 @@ import org.silkframework.entity.paths.UntypedPath
 import org.silkframework.entity.{Entity, EntitySchema}
 import org.silkframework.execution.local.{GenericEntityTable, LocalExecution}
 import org.silkframework.execution.typed.{FileEntity, FileEntitySchema}
-import org.silkframework.execution.{ExecutorOutput, TaskException}
-import org.silkframework.runtime.activity.TestUserContextTrait
+import org.silkframework.execution.{ExecutionReport, ExecutorOutput}
+import org.silkframework.runtime.activity.{ActivityMonitor, TestUserContextTrait}
 import org.silkframework.runtime.iterator.CloseableIterator
 import org.silkframework.runtime.plugin.PluginContext
 import org.silkframework.util.MockitoSugar
@@ -60,19 +60,23 @@ class LocalJsonToFileOperatorExecutorTest extends AnyFlatSpec with Matchers with
     runJsonToFile(task, """{"hello":"world"}""").map(_.mimeType) mustBe Seq(Some("application/json"))
   }
 
-  it should "throw a TaskException when the input value is empty" in {
-    val ex = intercept[TaskException] {
-      runJsonToFile(task, "")
-    }
-    ex.getMessage must include ("JSON to File")
+  it should "skip an entity with an empty value and warn in file mode" in {
+    val (files, warnings) = runWithReport(task, "")
+    files mustBe empty
+    warnings must have size 1
   }
 
-  it should "throw a TaskException when the input value is not valid JSON" in {
-    val ex = intercept[TaskException] {
-      runJsonToFile(task, """{"unterminated":""")
-    }
-    ex.getMessage must include ("JSON to File")
-    ex.getMessage.toLowerCase must include ("not valid json")
+  it should "skip an invalid JSON entity and warn in file mode" in {
+    val (files, warnings) = runWithReport(task, """{"unterminated":""")
+    files mustBe empty
+    warnings must have size 1
+    warnings.head.toLowerCase must include ("not valid json")
+  }
+
+  it should "write files for the valid entities and skip an invalid one in file mode" in {
+    val (files, warnings) = runWithReport(task, """{"id":1}""", """{"unterminated":""", """{"id":2}""")
+    files.map(_.file.loadAsString()) mustBe Seq("""{"id":1}""", """{"id":2}""")
+    warnings must have size 1
   }
 
   // ZIP mode tests
@@ -132,13 +136,18 @@ class LocalJsonToFileOperatorExecutorTest extends AnyFlatSpec with Matchers with
     entries.last mustBe ((s"entry-${count - 1}.json", s"""{"i":${count - 1}}"""))
   }
 
-  it should "throw a TaskException for invalid JSON in ZIP mode" in {
+  it should "skip an invalid JSON entity and warn in ZIP mode" in {
     val zipTask = PlainTask("JsonToFile", JsonToFileOperator(inputPath = "jsonContent", outputMode = JsonToFileOutputModeEnum.zip))
-    val ex = intercept[TaskException] {
-      runJsonToFile(zipTask, """{"unterminated":""")
-    }
-    ex.getMessage must include ("JSON to File")
-    ex.getMessage.toLowerCase must include ("not valid json")
+    val (files, warnings) = runWithReport(zipTask, """{"unterminated":""")
+    readZipEntries(files.head) mustBe empty
+    warnings must have size 1
+  }
+
+  it should "zip the valid entities with contiguous entry names and skip an invalid one in ZIP mode" in {
+    val zipTask = PlainTask("JsonToFile", JsonToFileOperator(inputPath = "jsonContent", outputMode = JsonToFileOutputModeEnum.zip))
+    val (files, warnings) = runWithReport(zipTask, """{"id":1}""", """{"unterminated":""", """{"id":2}""")
+    readZipEntries(files.head) mustBe Seq(("entry-0.json", """{"id":1}"""), ("entry-1.json", """{"id":2}"""))
+    warnings must have size 1
   }
 
   // outputProperty tests
@@ -163,13 +172,11 @@ class LocalJsonToFileOperatorExecutorTest extends AnyFlatSpec with Matchers with
     runJsonToFile(wrappedTask, """[{"id":1},{"id":2}]""").map(_.file.loadAsString()) mustBe Seq("""{"payload":[{"id":1},{"id":2}]}""")
   }
 
-  it should "throw a TaskException for invalid JSON when outputProperty is set" in {
+  it should "skip an invalid JSON entity and warn when outputProperty is set" in {
     val wrappedTask = PlainTask("JsonToFile", JsonToFileOperator(inputPath = "jsonContent", outputProperty = "payload"))
-    val ex = intercept[TaskException] {
-      runJsonToFile(wrappedTask, """{"unterminated":""")
-    }
-    ex.getMessage must include ("JSON to File")
-    ex.getMessage.toLowerCase must include ("not valid json")
+    val (files, warnings) = runWithReport(wrappedTask, """{"unterminated":""")
+    files mustBe empty
+    warnings must have size 1
   }
 
   // merged JSON mode tests
@@ -196,12 +203,16 @@ class LocalJsonToFileOperatorExecutorTest extends AnyFlatSpec with Matchers with
     runJsonToFile(wrappedMergedTask, """{"id":1}""", """{"id":2}""").map(_.file.loadAsString()) mustBe Seq("""[{"payload":{"id":1}},{"payload":{"id":2}}]""")
   }
 
-  it should "throw a TaskException for invalid JSON in merged JSON mode" in {
-    val ex = intercept[TaskException] {
-      runJsonToFile(mergedTask, """{"unterminated":""")
-    }
-    ex.getMessage must include ("JSON to File")
-    ex.getMessage.toLowerCase must include ("not valid json")
+  it should "skip an invalid JSON entity and warn in merged JSON mode" in {
+    val (files, warnings) = runWithReport(mergedTask, """{"unterminated":""")
+    files.map(_.file.loadAsString()) mustBe Seq("[]")
+    warnings must have size 1
+  }
+
+  it should "merge the valid entities and skip an invalid one in merged JSON mode" in {
+    val (files, warnings) = runWithReport(mergedTask, """{"id":1}""", """{"unterminated":""", """{"id":2}""")
+    files.map(_.file.loadAsString()) mustBe Seq("""[{"id":1},{"id":2}]""")
+    warnings must have size 1
   }
 
   // merged JSON mode — value preservation, element types, MIME, formatting
@@ -267,20 +278,16 @@ class LocalJsonToFileOperatorExecutorTest extends AnyFlatSpec with Matchers with
 
   // merged JSON mode — trailing content and whitespace padding
 
-  it should "throw a TaskException for a non-JSON token after a valid value in merged JSON mode" in {
-    val ex = intercept[TaskException] {
-      runJsonToFile(mergedTask, """{"a":1} x""")
-    }
-    ex.getMessage must include ("JSON to File")
-    ex.getMessage.toLowerCase must include ("not valid json")
+  it should "skip a non-JSON token after a valid value and warn in merged JSON mode" in {
+    val (files, warnings) = runWithReport(mergedTask, """{"a":1} x""")
+    files.map(_.file.loadAsString()) mustBe Seq("[]")
+    warnings must have size 1
   }
 
-  it should "throw a TaskException for a comma-separated trailing value at the root in merged JSON mode" in {
-    val ex = intercept[TaskException] {
-      runJsonToFile(mergedTask, "1, 2")
-    }
-    ex.getMessage must include ("JSON to File")
-    ex.getMessage.toLowerCase must include ("not valid json")
+  it should "skip a comma-separated trailing value at the root and warn in merged JSON mode" in {
+    val (files, warnings) = runWithReport(mergedTask, "1, 2")
+    files.map(_.file.loadAsString()) mustBe Seq("[]")
+    warnings must have size 1
   }
 
   it should "preserve leading and trailing whitespace around an element value in merged JSON mode" in {
@@ -306,6 +313,18 @@ object LocalJsonToFileOperatorExecutorTest {
     val result = executor.execute(t, Seq(inputTable(entitySchema, t, jsonStrings: _*)), ExecutorOutput.empty, LocalExecution(useLocalInternalDatasets = false))
     val FileEntitySchema(fileEntities) = result.getOrElse(throw new AssertionError("'JSON to File' executor returned no output"))
     fileEntities.typedEntities.toIndexedSeq
+  }
+
+  /** Runs the executor with an explicit report context, returning the produced file entities and any skip warnings. */
+  def runWithReport(t: Task[JsonToFileOperator], jsonStrings: String*)
+                   (implicit executor: LocalJsonToFileOperatorExecutor,
+                    entitySchema: EntitySchema,
+                    pluginContext: PluginContext): (Seq[FileEntity], Seq[String]) = {
+    val context = new ActivityMonitor[ExecutionReport]("test")
+    val result = executor.execute(t, Seq(inputTable(entitySchema, t, jsonStrings: _*)), ExecutorOutput.empty, LocalExecution(useLocalInternalDatasets = false), context)
+    val FileEntitySchema(fileEntities) = result.getOrElse(throw new AssertionError("'JSON to File' executor returned no output"))
+    val warnings = context.value.get.map(_.warnings).getOrElse(Seq.empty)
+    (fileEntities.typedEntities.toIndexedSeq, warnings)
   }
 
   /** Reads a ZIP file entity into its (entry name, content) pairs. */

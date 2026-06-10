@@ -41,25 +41,27 @@ case class LocalJsonToFileOperatorExecutor() extends LocalExecutor[JsonToFileOpe
     val entities = entityTable.entities.toIndexedSeq
 
     task.data.outputMode match {
-      case JsonToFileOutputModeEnum.file      => executeFile(task, entities, pathIndex, trimmedFileName)
-      case JsonToFileOutputModeEnum.zip       => executeZip(task, entities, pathIndex, trimmedFileName)
-      case JsonToFileOutputModeEnum.jsonArray => executeMergedJson(task, entities, pathIndex, trimmedFileName)
+      case JsonToFileOutputModeEnum.file      => executeFile(task, entities, pathIndex, trimmedFileName, context)
+      case JsonToFileOutputModeEnum.zip       => executeZip(task, entities, pathIndex, trimmedFileName, context)
+      case JsonToFileOutputModeEnum.jsonArray => executeMergedJson(task, entities, pathIndex, trimmedFileName, context)
       case _                        => throw TaskException(s"Unsupported output mode for 'JSON to File': ${task.data.outputMode}")
     }
   }
 
-  /** Executes file mode: writes one file per entity and returns one FileEntity per entity. */
+  /** Executes file mode: writes one file per valid entity and returns one FileEntity per valid entity. Entities whose
+    * value is not valid JSON are skipped and recorded as warnings on the execution report. */
   private def executeFile(task: Task[JsonToFileOperator],
                           entities: IndexedSeq[Entity],
                           pathIndex: Int,
-                          trimmedFileName: String)
+                          trimmedFileName: String,
+                          context: ActivityContext[ExecutionReport])
                          (implicit pluginContext: PluginContext): Option[LocalEntities] = {
     val outputMimeType = Some(task.data.mimeType)
-    val multiple = entities.size > 1
+    val outputProperty = task.data.outputProperty
+    val (contents, warnings) = partitionValid(entities)(reserializedContent(_, pathIndex, outputProperty))
+    val multiple = contents.size > 1
     val fileEntities = IndexedSeq.newBuilder[FileEntity]
-    for ((entity, index) <- entities.zipWithIndex) {
-      val jsonString = readJsonValue(entity, pathIndex)
-      val finalString = applyOutputProperty(jsonString, task.data.outputProperty)
+    for ((finalString, index) <- contents.zipWithIndex) {
       val fileEntity = if (trimmedFileName.isEmpty) {
         FileEntity.createTemp(TempFilePrefix, ".json", mimeType = outputMimeType)
       } else {
@@ -74,27 +76,28 @@ case class LocalJsonToFileOperatorExecutor() extends LocalExecutor[JsonToFileOpe
       }
       fileEntities += fileEntity
     }
+    reportSkipped(task, context, warnings, contents.size)
     Some(FileEntitySchema.create(fileEntities.result(), task))
   }
 
-  /** Executes merged JSON mode: merges all entities into a single JSON array file and returns one FileEntity.
+  /** Executes merged JSON mode: merges all valid entities into a single JSON array file and returns one FileEntity.
     * Each element's original JSON text is written through unchanged. Parsing only validates the input; the parsed
     * node is discarded, so numbers, key order, duplicate keys, and per-element formatting are preserved exactly,
-    * matching the byte preservation of file and zip modes. */
+    * matching the byte preservation of file and zip modes. Entities whose value is not valid JSON are skipped and
+    * recorded as warnings on the execution report. */
   private def executeMergedJson(task: Task[JsonToFileOperator],
                                entities: IndexedSeq[Entity],
                                pathIndex: Int,
-                               trimmedFileName: String)
+                               trimmedFileName: String,
+                               context: ActivityContext[ExecutionReport])
                               (implicit pluginContext: PluginContext): Option[LocalEntities] = {
     if (entities.isEmpty) {
       return Some(FileEntitySchema.create(Seq.empty, task))
     }
     val outputMimeType = Some(task.data.mimeType)
     val outputProperty = task.data.outputProperty
-    val serialized = entities
-      .map(readValidatedJson(_, pathIndex))
-      .map(wrapRawValue(_, outputProperty))
-      .mkString("[", ",", "]")
+    val (contents, warnings) = partitionValid(entities)(rawContent(_, pathIndex, outputProperty))
+    val serialized = contents.mkString("[", ",", "]")
     val fileEntity = if (trimmedFileName.isEmpty) {
       FileEntity.createTemp(TempFilePrefix, ".json", mimeType = outputMimeType)
     } else {
@@ -107,20 +110,25 @@ case class LocalJsonToFileOperatorExecutor() extends LocalExecutor[JsonToFileOpe
         Try(fileEntity.file.delete())
         throw e
     }
+    reportSkipped(task, context, warnings, contents.size)
     Some(FileEntitySchema.create(Seq(fileEntity), task))
   }
 
-  /** Executes ZIP mode: writes all entities as entries into a single ZIP file and returns one FileEntity. */
+  /** Executes ZIP mode: writes all valid entities as entries into a single ZIP file and returns one FileEntity.
+    * Entities whose value is not valid JSON are skipped and recorded as warnings on the execution report. */
   private def executeZip(task: Task[JsonToFileOperator],
                          entities: IndexedSeq[Entity],
                          pathIndex: Int,
-                         trimmedFileName: String)
+                         trimmedFileName: String,
+                         context: ActivityContext[ExecutionReport])
                         (implicit pluginContext: PluginContext): Option[LocalEntities] = {
     if (entities.isEmpty) {
       return Some(FileEntitySchema.create(Seq.empty, task))
     }
     val effectiveMimeType = if (task.data.mimeType == "application/json") "application/zip" else task.data.mimeType
-    val multiple = entities.size > 1
+    val outputProperty = task.data.outputProperty
+    val (contents, warnings) = partitionValid(entities)(reserializedContent(_, pathIndex, outputProperty))
+    val multiple = contents.size > 1
     val zipFileEntity = if (trimmedFileName.isEmpty) {
       FileEntity.createTemp(TempFilePrefix, ".zip", mimeType = Some(effectiveMimeType))
     } else {
@@ -129,9 +137,7 @@ case class LocalJsonToFileOperatorExecutor() extends LocalExecutor[JsonToFileOpe
     try {
       zipFileEntity.file.write() { outputStream =>
         val zip = new ZipOutputStream(outputStream)
-        for ((entity, index) <- entities.zipWithIndex) {
-          val jsonString = readJsonValue(entity, pathIndex)
-          val finalString = applyOutputProperty(jsonString, task.data.outputProperty)
+        for ((finalString, index) <- contents.zipWithIndex) {
           val entryName = if (trimmedFileName.nonEmpty) {
             if (multiple) suffixedName(trimmedFileName, index) else trimmedFileName
           } else {
@@ -142,6 +148,7 @@ case class LocalJsonToFileOperatorExecutor() extends LocalExecutor[JsonToFileOpe
         }
         zip.finish()
       }
+      reportSkipped(task, context, warnings, contents.size)
       Some(FileEntitySchema.create(Seq(zipFileEntity), task))
     } catch {
       case NonFatal(e) =>
@@ -199,6 +206,35 @@ case class LocalJsonToFileOperatorExecutor() extends LocalExecutor[JsonToFileOpe
     } else {
       val key = JsonNodeSerializer.toString(JsonString(outputProperty, JsonPosition(1, 1)))
       s"{$key:$raw}"
+    }
+  }
+
+  /** Per-entity content for file and zip modes: validate and wrap via re-serialization. */
+  private def   reserializedContent(entity: Entity, pathIndex: Int, outputProperty: String): String =
+    applyOutputProperty(readJsonValue(entity, pathIndex), outputProperty)
+
+  /** Per-entity content for merged mode: validate, preserving the original bytes. */
+  private def rawContent(entity: Entity, pathIndex: Int, outputProperty: String): String =
+    wrapRawValue(readValidatedJson(entity, pathIndex), outputProperty)
+
+  /** Turns each entity into its output string via `content`, skipping entities whose value fails validation
+    * (`TaskException`) and collecting one warning per skip. Non-validation errors propagate. */
+  private def partitionValid(entities: IndexedSeq[Entity])
+                            (content: Entity => String): (IndexedSeq[String], Seq[String]) = {
+    val (warnings, valid) = entities.partitionMap { entity =>
+      try Right(content(entity))
+      catch { case ex: TaskException => Left(s"Skipped entity ${entity.uri}: ${ex.getMessage}") }
+    }
+    (valid, warnings)
+  }
+
+  /** Records the skipped entities as warnings on the execution report. */
+  private def reportSkipped(task: Task[JsonToFileOperator],
+                           context: ActivityContext[ExecutionReport],
+                           warnings: Seq[String],
+                           validCount: Int): Unit = {
+    if (warnings.nonEmpty) {
+      context.value.update(SimpleExecutionReport(task, warnings = warnings, entityCount = validCount, isDone = true))
     }
   }
 
