@@ -78,6 +78,16 @@ class LocalJsonToFileWorkflowTest extends AnyFlatSpec with Matchers with ConfigT
     entries(0) mustBe (("entry-0.json", json1))
     entries(1) mustBe (("entry-1.json", json2))
   }
+
+  it should "merge multiple input entities into a single JSON array in merged JSON output mode" in {
+    val json1 = """{"value":"first"}"""
+    val json2 = """{"value":"second"}"""
+    val output = runWorkflow(
+      JsonToFileOperator(inputPath = "jsonContent", outputMode = JsonToFileOutputModeEnum.jsonArray),
+      s"""[{"jsonContent": ${Json.stringify(JsString(json1))}}, {"jsonContent": ${Json.stringify(JsString(json2))}}]"""
+    )
+    output.loadAsString() mustBe """[{"value":"first"},{"value":"second"}]"""
+  }
 }
 
 object LocalJsonToFileWorkflowTest {

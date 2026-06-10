@@ -23,6 +23,7 @@ class LocalJsonToFileOperatorExecutorTest extends AnyFlatSpec with Matchers with
   private val operator = JsonToFileOperator(inputPath = "jsonContent")
   private val task = PlainTask("JsonToFile", operator)
   private val executor = LocalJsonToFileOperatorExecutor()
+  private val mergedTask = PlainTask("JsonToFile", JsonToFileOperator(inputPath = "jsonContent", outputMode = JsonToFileOutputModeEnum.jsonArray))
   private implicit val prefixes: Prefixes = Prefixes.empty
   private implicit val pluginContext: PluginContext = PluginContext.empty
 
@@ -38,6 +39,13 @@ class LocalJsonToFileOperatorExecutorTest extends AnyFlatSpec with Matchers with
 
   private def runAndReadFiles(table: GenericEntityTable): Seq[String] = {
     val result = executor.execute(task, Seq(table), ExecutorOutput.empty, LocalExecution(useLocalInternalDatasets = false))
+    result mustBe defined
+    val FileEntitySchema(fileEntities) = result.get
+    fileEntities.typedEntities.toIndexedSeq.map(_.file.loadAsString())
+  }
+
+  private def runMerged(t: Task[JsonToFileOperator], jsonStrings: String*): Seq[String] = {
+    val result = executor.execute(t, Seq(inputTable(t, jsonStrings: _*)), ExecutorOutput.empty, LocalExecution(useLocalInternalDatasets = false))
     result mustBe defined
     val FileEntitySchema(fileEntities) = result.get
     fileEntities.typedEntities.toIndexedSeq.map(_.file.loadAsString())
@@ -324,6 +332,71 @@ class LocalJsonToFileOperatorExecutorTest extends AnyFlatSpec with Matchers with
     }
     ex.getMessage must include ("JSON to File")
     ex.getMessage.toLowerCase must include ("not valid json")
+  }
+
+  // merged JSON mode: numeric, element-type, MIME, and formatting behavior
+
+  // Numbers are re-serialized: multiples of ten and large integers become E-notation; trailing zeros drop.
+  it should "normalize a multiple-of-ten integer to E-notation in merged JSON mode" in {
+    runMerged(mergedTask, """{"id":100}""") mustBe Seq("""[{"id":1E+2}]""")
+  }
+
+  it should "drop trailing decimal zeros in merged JSON mode" in {
+    runMerged(mergedTask, """{"price":1.50}""") mustBe Seq("""[{"price":1.5}]""")
+  }
+
+  it should "render a large integer in E-notation in merged JSON mode" in {
+    runMerged(mergedTask, """{"big":1000000000000000000000}""") mustBe Seq("""[{"big":1E+21}]""")
+  }
+
+  it should "leave a plain integer unchanged in merged JSON mode" in {
+    runMerged(mergedTask, """{"n":7}""") mustBe Seq("""[{"n":7}]""")
+  }
+
+  it should "normalize numeric scalar elements in merged JSON mode" in {
+    runMerged(mergedTask, "100") mustBe Seq("[1E+2]")
+    runMerged(mergedTask, "2.00") mustBe Seq("[2]")
+  }
+
+  // Element types — the other merged tests all use object elements.
+  it should "merge scalar element values in input order in merged JSON mode" in {
+    runMerged(mergedTask, "1", "\"text\"", "true", "null") mustBe Seq("""[1,"text",true,null]""")
+  }
+
+  it should "merge array element values in merged JSON mode" in {
+    runMerged(mergedTask, "[1,2]", "[3]") mustBe Seq("[[1,2],[3]]")
+  }
+
+  it should "merge a single null element in merged JSON mode" in {
+    runMerged(mergedTask, "null") mustBe Seq("[null]")
+  }
+
+  it should "wrap a scalar element with outputProperty before merging in merged JSON mode" in {
+    val wrappedMerged = PlainTask("JsonToFile", JsonToFileOperator(inputPath = "jsonContent", outputMode = JsonToFileOutputModeEnum.jsonArray, outputProperty = "p"))
+    runMerged(wrappedMerged, "5") mustBe Seq("""[{"p":5}]""")
+  }
+
+  // Nothing else asserts the merged result's MIME type.
+  it should "tag the merged file with the application/json MIME type by default" in {
+    val result = executor.execute(mergedTask, Seq(inputTable(mergedTask, """{"id":1}""")), ExecutorOutput.empty, LocalExecution(useLocalInternalDatasets = false))
+    val FileEntitySchema(fileEntities) = result.get
+    fileEntities.typedEntities.toIndexedSeq.head.mimeType mustBe Some("application/json")
+  }
+
+  it should "preserve an explicitly configured MIME type in merged JSON mode" in {
+    val customMimeTask = PlainTask("JsonToFile", JsonToFileOperator(inputPath = "jsonContent", outputMode = JsonToFileOutputModeEnum.jsonArray, mimeType = "application/octet-stream"))
+    val result = executor.execute(customMimeTask, Seq(inputTable(customMimeTask, """{"id":1}""")), ExecutorOutput.empty, LocalExecution(useLocalInternalDatasets = false))
+    val FileEntitySchema(fileEntities) = result.get
+    fileEntities.typedEntities.toIndexedSeq.head.mimeType mustBe Some("application/octet-stream")
+  }
+
+  // Re-serialization collapses duplicate object keys and compacts whitespace.
+  it should "collapse duplicate object keys in merged JSON mode" in {
+    runMerged(mergedTask, """{"a":1,"b":2,"a":3}""") mustBe Seq("""[{"a":3,"b":2}]""")
+  }
+
+  it should "compact pretty-printed input in merged JSON mode" in {
+    runMerged(mergedTask, "{\n  \"a\": 1\n}") mustBe Seq("""[{"a":1}]""")
   }
 
   private def readZipEntries(fileEntity: FileEntity): Seq[(String, String)] = {
