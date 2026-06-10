@@ -399,6 +399,28 @@ class LocalJsonToFileOperatorExecutorTest extends AnyFlatSpec with Matchers with
     runMerged(mergedTask, "{\n  \"a\": 1\n}") mustBe Seq("[{\n  \"a\": 1\n}]")
   }
 
+  // merged JSON mode — trailing content and whitespace padding
+
+  it should "throw a TaskException for a non-JSON token after a valid value in merged JSON mode" in {
+    val ex = intercept[TaskException] {
+      runMerged(mergedTask, """{"a":1} x""")
+    }
+    ex.getMessage must include ("JSON to File")
+    ex.getMessage.toLowerCase must include ("not valid json")
+  }
+
+  it should "throw a TaskException for a comma-separated trailing value at the root in merged JSON mode" in {
+    val ex = intercept[TaskException] {
+      runMerged(mergedTask, "1, 2")
+    }
+    ex.getMessage must include ("JSON to File")
+    ex.getMessage.toLowerCase must include ("not valid json")
+  }
+
+  it should "preserve leading and trailing whitespace around an element value in merged JSON mode" in {
+    runMerged(mergedTask, """  {"a":1}  """) mustBe Seq("""[  {"a":1}  ]""")
+  }
+
   private def readZipEntries(fileEntity: FileEntity): Seq[(String, String)] = {
     val zipInput = new ZipInputStream(fileEntity.file.inputStream)
     try {
