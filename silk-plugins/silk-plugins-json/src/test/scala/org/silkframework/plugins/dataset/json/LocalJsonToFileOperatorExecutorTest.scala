@@ -334,31 +334,31 @@ class LocalJsonToFileOperatorExecutorTest extends AnyFlatSpec with Matchers with
     ex.getMessage.toLowerCase must include ("not valid json")
   }
 
-  // merged JSON mode: numeric, element-type, MIME, and formatting behavior
+  // merged JSON mode — value preservation, element types, MIME, formatting
 
-  // Numbers are re-serialized: multiples of ten and large integers become E-notation; trailing zeros drop.
-  it should "normalize a multiple-of-ten integer to E-notation in merged JSON mode" in {
-    runMerged(mergedTask, """{"id":100}""") mustBe Seq("""[{"id":1E+2}]""")
+  // numeric values pass through verbatim
+  it should "preserve a multiple-of-ten integer verbatim in merged JSON mode" in {
+    runMerged(mergedTask, """{"id":100}""") mustBe Seq("""[{"id":100}]""")
   }
 
-  it should "drop trailing decimal zeros in merged JSON mode" in {
-    runMerged(mergedTask, """{"price":1.50}""") mustBe Seq("""[{"price":1.5}]""")
+  it should "preserve trailing decimal zeros in merged JSON mode" in {
+    runMerged(mergedTask, """{"price":1.50}""") mustBe Seq("""[{"price":1.50}]""")
   }
 
-  it should "render a large integer in E-notation in merged JSON mode" in {
-    runMerged(mergedTask, """{"big":1000000000000000000000}""") mustBe Seq("""[{"big":1E+21}]""")
+  it should "preserve a large integer verbatim in merged JSON mode" in {
+    runMerged(mergedTask, """{"big":1000000000000000000000}""") mustBe Seq("""[{"big":1000000000000000000000}]""")
   }
 
-  it should "leave a plain integer unchanged in merged JSON mode" in {
+  it should "preserve a plain integer verbatim in merged JSON mode" in {
     runMerged(mergedTask, """{"n":7}""") mustBe Seq("""[{"n":7}]""")
   }
 
-  it should "normalize numeric scalar elements in merged JSON mode" in {
-    runMerged(mergedTask, "100") mustBe Seq("[1E+2]")
-    runMerged(mergedTask, "2.00") mustBe Seq("[2]")
+  it should "preserve numeric scalar elements verbatim in merged JSON mode" in {
+    runMerged(mergedTask, "100") mustBe Seq("[100]")
+    runMerged(mergedTask, "2.00") mustBe Seq("[2.00]")
   }
 
-  // Element types — the other merged tests all use object elements.
+  // element types: scalars, arrays, null (the other merged tests use objects)
   it should "merge scalar element values in input order in merged JSON mode" in {
     runMerged(mergedTask, "1", "\"text\"", "true", "null") mustBe Seq("""[1,"text",true,null]""")
   }
@@ -376,7 +376,7 @@ class LocalJsonToFileOperatorExecutorTest extends AnyFlatSpec with Matchers with
     runMerged(wrappedMerged, "5") mustBe Seq("""[{"p":5}]""")
   }
 
-  // Nothing else asserts the merged result's MIME type.
+  // MIME type
   it should "tag the merged file with the application/json MIME type by default" in {
     val result = executor.execute(mergedTask, Seq(inputTable(mergedTask, """{"id":1}""")), ExecutorOutput.empty, LocalExecution(useLocalInternalDatasets = false))
     val FileEntitySchema(fileEntities) = result.get
@@ -390,13 +390,13 @@ class LocalJsonToFileOperatorExecutorTest extends AnyFlatSpec with Matchers with
     fileEntities.typedEntities.toIndexedSeq.head.mimeType mustBe Some("application/octet-stream")
   }
 
-  // Re-serialization collapses duplicate object keys and compacts whitespace.
-  it should "collapse duplicate object keys in merged JSON mode" in {
-    runMerged(mergedTask, """{"a":1,"b":2,"a":3}""") mustBe Seq("""[{"a":3,"b":2}]""")
+  // duplicate keys and per-element formatting preserved
+  it should "preserve duplicate object keys in merged JSON mode" in {
+    runMerged(mergedTask, """{"a":1,"b":2,"a":3}""") mustBe Seq("""[{"a":1,"b":2,"a":3}]""")
   }
 
-  it should "compact pretty-printed input in merged JSON mode" in {
-    runMerged(mergedTask, "{\n  \"a\": 1\n}") mustBe Seq("""[{"a":1}]""")
+  it should "preserve pretty-printed element formatting in merged JSON mode" in {
+    runMerged(mergedTask, "{\n  \"a\": 1\n}") mustBe Seq("[{\n  \"a\": 1\n}]")
   }
 
   private def readZipEntries(fileEntity: FileEntity): Seq[(String, String)] = {

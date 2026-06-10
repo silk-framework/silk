@@ -77,7 +77,10 @@ case class LocalJsonToFileOperatorExecutor() extends LocalExecutor[JsonToFileOpe
     Some(FileEntitySchema.create(fileEntities.result(), task))
   }
 
-  /** Executes merged JSON mode: merges all entities into a single JSON array file and returns one FileEntity. */
+  /** Executes merged JSON mode: merges all entities into a single JSON array file and returns one FileEntity.
+    * Each element's original JSON text is written through unchanged. Parsing only validates the input; the parsed
+    * node is discarded, so numbers, key order, duplicate keys, and per-element formatting are preserved exactly,
+    * matching the byte preservation of file and zip modes. */
   private def executeMergedJson(task: Task[JsonToFileOperator],
                                entities: IndexedSeq[Entity],
                                pathIndex: Int,
@@ -88,16 +91,18 @@ case class LocalJsonToFileOperatorExecutor() extends LocalExecutor[JsonToFileOpe
     }
     val outputMimeType = Some(task.data.mimeType)
     val outputProperty = task.data.outputProperty
-    val nodes = entities.map { entity =>
-      val node = parseJson(readJsonValue(entity, pathIndex))
+    val elements = entities.map { entity =>
+      val raw = readJsonValue(entity, pathIndex)
+      parseJson(raw) // validate only; the parsed node is discarded so the original bytes survive
       if (outputProperty.isEmpty) {
-        node
+        raw
       } else {
-        // JsonPosition(1, 1): synthetic — this node has no source location.
-        JsonObject(SeqMap(outputProperty -> node), JsonPosition(1, 1))
+        // Build the wrapper key with a JsonString node (correct JSON escaping) and splice the raw value verbatim.
+        val key = JsonNodeSerializer.toString(JsonString(outputProperty, JsonPosition(1, 1)))
+        s"{$key:$raw}"
       }
     }
-    val serialized = JsonNodeSerializer.toString(JsonArray(nodes, JsonPosition(1, 1)))
+    val serialized = elements.mkString("[", ",", "]")
     val fileEntity = if (trimmedFileName.isEmpty) {
       FileEntity.createTemp(TempFilePrefix, ".json", mimeType = outputMimeType)
     } else {
