@@ -56,6 +56,19 @@ trait VariableTemplateRequest {
     }
   }
 
+  /**
+    * Collects variables and, for operator parameter contexts (no `variableName`), augments them with
+    * execution-scope fallbacks so that `{{execution.X}}` resolves to / is suggested for the task,
+    * project or global variable `X`. This matches how parameters are resolved at runtime. When editing
+    * a variable definition (`variableName` set), no fallback is applied: variable values are resolved at
+    * edit time without an execution scope, consistent with the variable update path.
+    */
+  def collectVariablesWithExecutionFallback(ignoreVariableName: Boolean = false, includeSensitiveVariables: Boolean = false)
+                                           (implicit user: UserContext): TemplateVariables = {
+    val collected = collectVariables(ignoreVariableName = ignoreVariableName, includeSensitiveVariables = includeSensitiveVariables)
+    if (variableName.isEmpty) collected.withExecutionScopeFallback else collected
+  }
+
 }
 
 case class ValidateVariableTemplateRequest(templateString: String,
@@ -68,11 +81,11 @@ case class ValidateVariableTemplateRequest(templateString: String,
 
   def execute()(implicit user: UserContext): VariableTemplateValidationResponse = {
     val resultOrError: Either[String, String] = try {
-      Left(collectVariables(includeSensitiveVariables = includeSensitiveVariables.getOrElse(false)).resolveTemplateValue(templateString, evaluationConfig))
+      Left(collectVariablesWithExecutionFallback(includeSensitiveVariables = includeSensitiveVariables.getOrElse(false)).resolveTemplateValue(templateString, evaluationConfig))
     } catch {
       case ex: UnboundVariablesException if variableName.isDefined && ex.missingVars.size == 1 =>
         // Check if the variable is unbound because it is defined after the current one
-        Try(collectVariables(ignoreVariableName = true).resolveTemplateValue(templateString, evaluationConfig)) match {
+        Try(collectVariablesWithExecutionFallback(ignoreVariableName = true).resolveTemplateValue(templateString, evaluationConfig)) match {
           case _: Success[_] =>
             Right(s"'${ex.missingVars.head}' cannot be used because it's defined after '${variableName.get}'.")
           case _: Failure[_] =>
@@ -126,7 +139,7 @@ case class AutoCompleteVariableTemplateRequest(inputString: String,
                                                task: Option[String] = None,
                                                includeSensitiveVariables: Option[Boolean] = None) extends AutoSuggestAutoCompletionRequest with VariableTemplateRequest {
   def execute()(implicit user: UserContext): AutoSuggestAutoCompletionResponse = {
-    AutoCompleteVariableTemplateRequest.suggestions(this, collectVariables(includeSensitiveVariables = includeSensitiveVariables.getOrElse(false)).variableNames)
+    AutoCompleteVariableTemplateRequest.suggestions(this, collectVariablesWithExecutionFallback(includeSensitiveVariables = includeSensitiveVariables.getOrElse(false)).variableNames)
   }
 }
 
