@@ -215,6 +215,17 @@ class LocalJsonToFileOperatorExecutorTest extends AnyFlatSpec with Matchers with
     warnings must have size 1
   }
 
+  it should "set no warnings when all entities are valid in merged JSON mode" in {
+    val (_, warnings) = runWithReport(mergedTask, """{"id":1}""", """{"id":2}""")
+    warnings mustBe empty
+  }
+
+  it should "report the valid entity count alongside the skip warnings in merged JSON mode" in {
+    val (_, report) = runCapturingReport(mergedTask, """{"id":1}""", """{"unterminated":""", """{"id":2}""")
+    report.map(_.entityCount) mustBe Some(2)
+    report.map(_.warnings.size) mustBe Some(1)
+  }
+
   // merged JSON mode — value preservation, element types, MIME, formatting
 
   // numeric values pass through verbatim
@@ -315,16 +326,25 @@ object LocalJsonToFileOperatorExecutorTest {
     fileEntities.typedEntities.toIndexedSeq
   }
 
-  /** Runs the executor with an explicit report context, returning the produced file entities and any skip warnings. */
+  /** Runs the executor with an explicit report context, returning the produced file entities and the execution report
+    * (present only when the operator set one, i.e. when entities were skipped). */
+  def runCapturingReport(t: Task[JsonToFileOperator], jsonStrings: String*)
+                        (implicit executor: LocalJsonToFileOperatorExecutor,
+                         entitySchema: EntitySchema,
+                         pluginContext: PluginContext): (Seq[FileEntity], Option[ExecutionReport]) = {
+    val context = new ActivityMonitor[ExecutionReport]("test")
+    val result = executor.execute(t, Seq(inputTable(entitySchema, t, jsonStrings: _*)), ExecutorOutput.empty, LocalExecution(useLocalInternalDatasets = false), context)
+    val FileEntitySchema(fileEntities) = result.getOrElse(throw new AssertionError("'JSON to File' executor returned no output"))
+    (fileEntities.typedEntities.toIndexedSeq, context.value.get)
+  }
+
+  /** Runs the executor and returns the produced file entities and any skip warnings. */
   def runWithReport(t: Task[JsonToFileOperator], jsonStrings: String*)
                    (implicit executor: LocalJsonToFileOperatorExecutor,
                     entitySchema: EntitySchema,
                     pluginContext: PluginContext): (Seq[FileEntity], Seq[String]) = {
-    val context = new ActivityMonitor[ExecutionReport]("test")
-    val result = executor.execute(t, Seq(inputTable(entitySchema, t, jsonStrings: _*)), ExecutorOutput.empty, LocalExecution(useLocalInternalDatasets = false), context)
-    val FileEntitySchema(fileEntities) = result.getOrElse(throw new AssertionError("'JSON to File' executor returned no output"))
-    val warnings = context.value.get.map(_.warnings).getOrElse(Seq.empty)
-    (fileEntities.typedEntities.toIndexedSeq, warnings)
+    val (files, report) = runCapturingReport(t, jsonStrings: _*)
+    (files, report.map(_.warnings).getOrElse(Seq.empty))
   }
 
   /** Reads a ZIP file entity into its (entry name, content) pairs. */
