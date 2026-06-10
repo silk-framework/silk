@@ -17,9 +17,20 @@ single file holding all the JSON values merged into one JSON array. The output i
 entities for the downstream operator.
 
 Which field holds the JSON string is controlled by the *Input path* parameter. When set, the operator reads the value
-at the given path expression. When left empty, it reads the value of the first available field. If no value is found
-at the expected location, or if the field is empty, the operator raises an error and stops. If the value is present
-but is not valid JSON, the operator raises an error naming the parse failure.
+at the given path expression. When left empty, it reads the value of the first available field.
+
+## Invalid input
+
+Validation is per entity. An entity whose value is missing, empty, or not valid JSON is skipped and recorded as a
+warning on the execution report, naming the entity and the reason; it produces no output. The remaining valid entities
+are written as usual, so a single malformed record no longer discards the whole batch. This applies in all three output
+modes.
+
+When every entity is skipped, the operator still produces the mode's natural empty output: no files in *file* mode, an
+empty JSON array `[]` in *jsonArray* mode, and a ZIP archive with no entries in *zip* mode.
+
+Configuration errors are not per-entity and still fail the task — for example, an input count other than one, or an
+unsupported output mode.
 
 ## Output
 
