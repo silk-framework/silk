@@ -45,7 +45,7 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
       case EmptyEntityTable.schema =>
         EmptyEntityTable(dataset)
       case QuadEntitySchema.schema =>
-        handleQuadEntitySchema(dataset)
+        handleQuadEntitySchema(dataset, execution)
       case SparqlEndpointEntitySchema.schema =>
         handleSparqlEndpointSchema(dataset)
       case multi: MultiEntitySchema =>
@@ -97,23 +97,24 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
     )
   }
 
-  private def handleQuadEntitySchema(dataset: Task[DatasetSpec[Dataset]])
+  private def handleQuadEntitySchema(dataset: Task[DatasetSpec[Dataset]], execution: LocalExecution)
                                     (implicit pluginContext: PluginContext, context: ActivityContext[ExecutionReport]): LocalEntities = {
     dataset.data match {
       case rdfDataset: RdfDataset =>
-        readTriples(dataset, rdfDataset)
+        readTriples(dataset, rdfDataset, execution)
       case DatasetSpec(rdfDataset: RdfDataset, _, _) =>
-        readTriples(dataset, rdfDataset)
+        readTriples(dataset, rdfDataset, execution)
       case _ =>
         throw TaskException("Dataset is not a RDF dataset and thus cannot output triples!")
     }
   }
 
-  private def readTriples(dataset: Task[GenericDatasetSpec], rdfDataset: RdfDataset)
+  private def readTriples(dataset: Task[GenericDatasetSpec], rdfDataset: RdfDataset, execution: LocalExecution)
                          (implicit pluginContext: PluginContext, context: ActivityContext[ExecutionReport]): LocalEntities = {
     implicit val executionReport: ExecutionReportUpdater = ReadTriplesReportUpdater(dataset, context)
     implicit val prefixes: Prefixes = pluginContext.prefixes
-    val sparqlResult = rdfDataset.sparqlEndpoint.select("SELECT ?s ?p ?o WHERE {?s ?p ?o}")(pluginContext.user)
+    val endpoint = RdfDatasetAccess.forExecutionOption(dataset, execution).map(_.sparqlEndpoint).getOrElse(rdfDataset.sparqlEndpoint)
+    val sparqlResult = endpoint.select("SELECT ?s ?p ?o WHERE {?s ?p ?o}")(pluginContext.user)
     val tripleEntities = sparqlResult.bindings map { resultMap =>
       val s = resultMap("s").asInstanceOf[ConcreteNode]
       val p = resultMap("p").asInstanceOf[Resource]
@@ -162,7 +163,7 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
       case FileEntitySchema(files) if dataset.data.plugin.isInstanceOf[ResourceBasedDataset] =>
         writeDatasetResource(dataset, files, WriteFilesReportUpdater(dataset, context), resource => execution.addUpdatedFile(resource.name))
       case FileEntitySchema(files) if dataset.data.plugin.isInstanceOf[RdfDataset] =>
-        uploadFilesViaGraphStore(dataset, files.typedEntities, UploadFilesViaGspReportUpdater(dataset, context))
+        uploadFilesViaGraphStore(dataset, files.typedEntities, UploadFilesViaGspReportUpdater(dataset, context), execution)
       case SparqlUpdateEntitySchema(queries) =>
         executeSparqlUpdateQueries(dataset, queries, execution)
       case _: ClearDatasetTable =>
@@ -304,34 +305,34 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
 
   private def uploadFilesViaGraphStore(dataset: Task[DatasetSpec[Dataset]],
                                        files: CloseableIterator[FileEntity],
-                                       reportUpdater: ExecutionReportUpdater)
+                                       reportUpdater: ExecutionReportUpdater,
+                                       execution: LocalExecution)
                                       (implicit userContext: UserContext): Unit = {
     val datasetLabelOrId = dataset.metaData.formattedLabel(dataset.id)
-    dataset.data match {
-      case datasetSpec: DatasetSpec[_] =>
-        datasetSpec.plugin match {
-          case rdfDataset: RdfDataset if rdfDataset.sparqlEndpoint.isInstanceOf[GraphStoreFileUploadTrait] =>
-            val sparqlEndpoint = rdfDataset.sparqlEndpoint
-            val targetGraph = sparqlEndpoint.sparqlParams.graph match {
-              case Some(g) => g
-              case None => throw new ValidationException(s"No graph defined on dataset $datasetLabelOrId of type '${dataset.plugin.pluginSpec.label}'!")
-            }
-            val graphStore = sparqlEndpoint.asInstanceOf[GraphStoreFileUploadTrait]
-            for(fileEntity <- files) {
-              val file = fileEntity.file match {
-                case FileResource(file) => file
-                case _ => throw new ValidationException(s"Cannot upload non-local file to GraphStore: $fileEntity")
-              }
-              val mimeType = fileEntity.mimeType.getOrElse(throw new ValidationException(s"Cannot upload file to GraphStore that is missing the MIME type: $fileEntity"))
-              graphStore.uploadFileToGraph(targetGraph, file, mimeType, None)
-              reportUpdater.increaseEntityCounter()
-            }
-          case _: Dataset =>
-            throw new ValidationException(s"Dataset task ${dataset.id} of type ${datasetSpec.plugin.pluginSpec.label} " +
-              s"has no support for graph store file uploads!")
-        }
+    val sparqlEndpoint = RdfDatasetAccess.forExecutionOption(dataset, execution) match {
+      case Some(rdfAccess) => rdfAccess.sparqlEndpoint
+      case None =>
+        throw new ValidationException(s"Dataset task ${dataset.id} of type ${dataset.plugin.pluginSpec.label} " +
+          s"is not an RDF dataset and has no support for graph store file uploads!")
+    }
+    val graphStore = sparqlEndpoint match {
+      case gs: GraphStoreFileUploadTrait => gs
       case _ =>
-        throw new ValidationException("No dataset spec found!")
+        throw new ValidationException(s"Dataset task ${dataset.id} of type ${dataset.plugin.pluginSpec.label} " +
+          s"has no support for graph store file uploads!")
+    }
+    val targetGraph = sparqlEndpoint.sparqlParams.graph match {
+      case Some(g) => g
+      case None => throw new ValidationException(s"No graph defined on dataset $datasetLabelOrId of type '${dataset.plugin.pluginSpec.label}'!")
+    }
+    for(fileEntity <- files) {
+      val file = fileEntity.file match {
+        case FileResource(file) => file
+        case _ => throw new ValidationException(s"Cannot upload non-local file to GraphStore: $fileEntity")
+      }
+      val mimeType = fileEntity.mimeType.getOrElse(throw new ValidationException(s"Cannot upload file to GraphStore that is missing the MIME type: $fileEntity"))
+      graphStore.uploadFileToGraph(targetGraph, file, mimeType, None)
+      reportUpdater.increaseEntityCounter()
     }
     reportUpdater.executionDone()
   }
