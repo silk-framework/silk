@@ -3,8 +3,7 @@ package org.silkframework.dataset.rdf
 import org.silkframework.config.Task
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.dataset.{DataSource, Dataset, DatasetAccess, DatasetSpec, EntitySink, LinkSink}
-import org.silkframework.execution.ExecutorRegistry
-import org.silkframework.execution.local.LocalExecution
+import org.silkframework.execution.{ExecutionType, ExecutorRegistry}
 import org.silkframework.runtime.activity.UserContext
 
 /**
@@ -26,7 +25,7 @@ object RdfDatasetAccess {
   /**
     * Resolves the RDF access of a dataset task for a specific execution.
     */
-  def forExecution(task: Task[DatasetSpec[RdfDataset]], execution: LocalExecution): RdfDatasetAccess = {
+  def forExecution(task: Task[DatasetSpec[RdfDataset]], execution: ExecutionType): RdfDatasetAccess = {
     forExecutionOption(task, execution).getOrElse(task.data.plugin)
   }
 
@@ -35,7 +34,7 @@ object RdfDatasetAccess {
     * if the task is not an RDF dataset.
     */
   def forExecutionOption[DatasetType <: Dataset](task: Task[DatasetSpec[DatasetType]],
-                                                 execution: LocalExecution): Option[RdfDatasetAccess] = {
+                                                 execution: ExecutionType): Option[RdfDatasetAccess] = {
     task.data.plugin match {
       case rdfDataset: RdfDataset =>
         Some(ExecutorRegistry.access(task, execution) match {
