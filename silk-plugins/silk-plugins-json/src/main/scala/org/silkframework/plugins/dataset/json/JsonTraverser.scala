@@ -235,7 +235,7 @@ case class JsonTraverser(taskId: Identifier, parentOpt: Option[ParentTraverser],
   }
 
   def nodeId(value: JsonNode): String = {
-    nodeToString(value).hashCode.toString
+    s"L${value.position.line}C${value.position.column}"
   }
 
   /**

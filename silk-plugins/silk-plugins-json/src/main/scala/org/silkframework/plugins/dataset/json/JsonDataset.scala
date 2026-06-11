@@ -94,7 +94,7 @@ object JsonDataset {
       backwardPaths = true,
       propertyFilter = true,
       specialPaths = Seq(
-        SpecialPathInfo(specialPaths.ID, Some("Hash value of the JSON node or value."), SuggestedForEnum.ValuePathOnly),
+        SpecialPathInfo(specialPaths.ID, Some("Source position identifier of the JSON node or value in the form L<line>C<column>."), SuggestedForEnum.ValuePathOnly),
         SpecialPathInfo(specialPaths.UUID, Some("Generates a type 3 (name based) UUID from the string representation of the JSON node or value."), SuggestedForEnum.ValuePathOnly),
         SpecialPathInfo(specialPaths.TEXT,
           Some("The string value of a node. This will turn a JSON object into it's string representation."), SuggestedForEnum.ValuePathOnly),
