@@ -172,6 +172,26 @@ class LocalJsonToFileOperatorExecutorTest extends AnyFlatSpec with Matchers with
     runJsonToFile(wrappedTask, """[{"id":1},{"id":2}]""").map(_.file.loadAsString()) mustBe Seq("""{"payload":[{"id":1},{"id":2}]}""")
   }
 
+  it should "preserve trailing decimal zeros in file mode with outputProperty set" in {
+    val wrappedTask = PlainTask("JsonToFile", JsonToFileOperator(inputPath = "jsonContent", outputProperty = "payload"))
+    runJsonToFile(wrappedTask, """{"price":1.50}""").map(_.file.loadAsString()) mustBe Seq("""{"payload":{"price":1.50}}""")
+  }
+
+  it should "preserve trailing decimal zeros in ZIP mode with outputProperty set" in {
+    val wrappedZipTask = PlainTask("JsonToFile", JsonToFileOperator(inputPath = "jsonContent", outputMode = JsonToFileOutputModeEnum.zip, outputProperty = "payload"))
+    readZipEntries(runJsonToFile(wrappedZipTask, """{"price":1.50}""").head) mustBe Seq(("entry.json", """{"payload":{"price":1.50}}"""))
+  }
+
+  it should "preserve whitespace around the value in file mode with outputProperty set" in {
+    val wrappedTask = PlainTask("JsonToFile", JsonToFileOperator(inputPath = "jsonContent", outputProperty = "payload"))
+    runJsonToFile(wrappedTask, """  {"a":1}  """).map(_.file.loadAsString()) mustBe Seq("""{"payload":  {"a":1}  }""")
+  }
+
+  it should "preserve whitespace around the value in ZIP mode with outputProperty set" in {
+    val wrappedZipTask = PlainTask("JsonToFile", JsonToFileOperator(inputPath = "jsonContent", outputMode = JsonToFileOutputModeEnum.zip, outputProperty = "payload"))
+    readZipEntries(runJsonToFile(wrappedZipTask, """  {"a":1}  """).head) mustBe Seq(("entry.json", """{"payload":  {"a":1}  }"""))
+  }
+
   it should "skip an invalid JSON entity and warn when outputProperty is set" in {
     val wrappedTask = PlainTask("JsonToFile", JsonToFileOperator(inputPath = "jsonContent", outputProperty = "payload"))
     val (files, warnings) = runWithReport(wrappedTask, """{"unterminated":""")
@@ -224,6 +244,17 @@ class LocalJsonToFileOperatorExecutorTest extends AnyFlatSpec with Matchers with
     val (_, report) = runCapturingReport(mergedTask, """{"id":1}""", """{"unterminated":""", """{"id":2}""")
     report.map(_.entityCount) mustBe Some(2)
     report.map(_.warnings.size) mustBe Some(1)
+  }
+
+  it should "report the valid entity count in file mode" in {
+    val (_, report) = runCapturingReport(task, """{"id":1}""", """{"id":2}""")
+    report.map(_.entityCount) mustBe Some(2)
+  }
+
+  it should "report the valid entity count in ZIP mode" in {
+    val zipTask = PlainTask("JsonToFile", JsonToFileOperator(inputPath = "jsonContent", outputMode = JsonToFileOutputModeEnum.zip))
+    val (_, report) = runCapturingReport(zipTask, """{"id":1}""", """{"id":2}""")
+    report.map(_.entityCount) mustBe Some(2)
   }
 
   // merged JSON mode — value preservation, element types, MIME, formatting
@@ -327,7 +358,7 @@ object LocalJsonToFileOperatorExecutorTest {
   }
 
   /** Runs the executor with an explicit report context, returning the produced file entities and the execution report
-    * (present only when the operator set one, i.e. when entities were skipped). */
+    * (present for any non-empty input; an empty input returns early without setting one). */
   def runCapturingReport(t: Task[JsonToFileOperator], jsonStrings: String*)
                         (implicit executor: LocalJsonToFileOperatorExecutor,
                          entitySchema: EntitySchema,

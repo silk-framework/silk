@@ -71,6 +71,16 @@ class LocalJsonToFileWorkflowTest extends AnyFlatSpec with Matchers with ConfigT
     )
     output.loadAsString() mustBe """[{"value":"first"},{"value":"second"}]"""
   }
+
+  it should "skip an invalid input entity and write only the valid ones in a workflow" in {
+    val valid1 = """{"value":"first"}"""
+    val valid2 = """{"value":"second"}"""
+    val output = runWorkflow(
+      JsonToFileOperator(inputPath = "jsonContent", outputMode = JsonToFileOutputModeEnum.jsonArray),
+      sourceContent(valid1, """{"unterminated":""", valid2)
+    )
+    output.loadAsString() mustBe """[{"value":"first"},{"value":"second"}]"""
+  }
 }
 
 object LocalJsonToFileWorkflowTest {

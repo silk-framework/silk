@@ -11,7 +11,6 @@ import org.silkframework.runtime.plugin.PluginContext
 import org.silkframework.runtime.resource.zip.ZipOutputStreamResource
 
 import java.util.zip.ZipOutputStream
-import scala.collection.immutable.SeqMap
 import scala.util.Try
 import scala.util.control.NonFatal
 
@@ -56,19 +55,22 @@ case class LocalJsonToFileOperatorExecutor() extends LocalExecutor[JsonToFileOpe
                           trimmedFileName: String,
                           context: ActivityContext[ExecutionReport])
                          (implicit pluginContext: PluginContext): Option[LocalEntities] = {
+    if (entities.isEmpty) {
+      return Some(FileEntitySchema.create(Seq.empty, task))
+    }
     val outputMimeType = Some(task.data.mimeType)
     val outputProperty = task.data.outputProperty
-    val (contents, warnings) = partitionValid(entities)(reserializedContent(_, pathIndex, outputProperty))
+    val (contents, warnings) = partitionValid(entities)(rawContent(_, pathIndex, outputProperty))
     val multiple = contents.size > 1
     val fileEntities = IndexedSeq.newBuilder[FileEntity]
-    for ((finalString, index) <- contents.zipWithIndex) {
+    for ((content, index) <- contents.zipWithIndex) {
       val fileEntity = if (trimmedFileName.isEmpty) {
         FileEntity.createTemp(TempFilePrefix, ".json", mimeType = outputMimeType)
       } else {
         allocateNamedFileEntity(trimmedFileName, index, multiple, outputMimeType)
       }
       try {
-        fileEntity.file.writeString(finalString)
+        fileEntity.file.writeString(content)
       } catch {
         case NonFatal(e) =>
           Try(fileEntity.file.delete())
@@ -76,7 +78,7 @@ case class LocalJsonToFileOperatorExecutor() extends LocalExecutor[JsonToFileOpe
       }
       fileEntities += fileEntity
     }
-    reportSkipped(task, context, warnings, contents.size)
+    report(task, context, warnings, contents.size)
     Some(FileEntitySchema.create(fileEntities.result(), task))
   }
 
@@ -110,7 +112,7 @@ case class LocalJsonToFileOperatorExecutor() extends LocalExecutor[JsonToFileOpe
         Try(fileEntity.file.delete())
         throw e
     }
-    reportSkipped(task, context, warnings, contents.size)
+    report(task, context, warnings, contents.size)
     Some(FileEntitySchema.create(Seq(fileEntity), task))
   }
 
@@ -127,7 +129,7 @@ case class LocalJsonToFileOperatorExecutor() extends LocalExecutor[JsonToFileOpe
     }
     val effectiveMimeType = if (task.data.mimeType == "application/json") "application/zip" else task.data.mimeType
     val outputProperty = task.data.outputProperty
-    val (contents, warnings) = partitionValid(entities)(reserializedContent(_, pathIndex, outputProperty))
+    val (contents, warnings) = partitionValid(entities)(rawContent(_, pathIndex, outputProperty))
     val multiple = contents.size > 1
     val zipFileEntity = if (trimmedFileName.isEmpty) {
       FileEntity.createTemp(TempFilePrefix, ".zip", mimeType = Some(effectiveMimeType))
@@ -137,18 +139,18 @@ case class LocalJsonToFileOperatorExecutor() extends LocalExecutor[JsonToFileOpe
     try {
       zipFileEntity.file.write() { outputStream =>
         val zip = new ZipOutputStream(outputStream)
-        for ((finalString, index) <- contents.zipWithIndex) {
+        for ((content, index) <- contents.zipWithIndex) {
           val entryName = if (trimmedFileName.nonEmpty) {
             if (multiple) suffixedName(trimmedFileName, index) else trimmedFileName
           } else {
             if (multiple) suffixedName("entry.json", index) else "entry.json"
           }
           val entryResource = ZipOutputStreamResource(entryName, entryName, zip)
-          entryResource.writeString(finalString)
+          entryResource.writeString(content)
         }
         zip.finish()
       }
-      reportSkipped(task, context, warnings, contents.size)
+      report(task, context, warnings, contents.size)
       Some(FileEntitySchema.create(Seq(zipFileEntity), task))
     } catch {
       case NonFatal(e) =>
@@ -178,29 +180,11 @@ case class LocalJsonToFileOperatorExecutor() extends LocalExecutor[JsonToFileOpe
     }
   }
 
-  /** Reads the input value and validates that it parses as JSON, returning the original text. The parsed node is
-    * discarded so the raw bytes survive into the merged output. */
-  private def readValidatedJson(entity: Entity, pathIndex: Int): String = {
+  /** Per-entity content for all modes: read the value, validate it parses as a single JSON document (the parsed node
+    * is discarded so the raw bytes survive), and wrap it under outputProperty when set, splicing the value verbatim. */
+  private def rawContent(entity: Entity, pathIndex: Int, outputProperty: String): String = {
     val raw = readJsonValue(entity, pathIndex)
-    parseJson(raw)
-    raw
-  }
-
-  /** Validates and returns the final string to write: the original when outputProperty is empty, or the JSON value
-    * wrapped in an object under the given key when outputProperty is set. Always validates the input as JSON. */
-  private def applyOutputProperty(jsonString: String, outputProperty: String): String = {
-    val node = parseJson(jsonString)
-    if (outputProperty.isEmpty) {
-      jsonString
-    } else {
-      // JsonPosition(1, 1): synthetic — this node has no source location.
-      JsonNodeSerializer.toString(JsonObject(SeqMap(outputProperty -> node), JsonPosition(1, 1)))
-    }
-  }
-
-  /** Wraps a raw JSON value under the output property as a textual object, splicing the value verbatim, or returns it
-    * unchanged when no property is set. Unlike applyOutputProperty the raw bytes are preserved (no re-serialization). */
-  private def wrapRawValue(raw: String, outputProperty: String): String = {
+    parseJson(raw) // validate only; the node is discarded so the original bytes are preserved
     if (outputProperty.isEmpty) {
       raw
     } else {
@@ -208,14 +192,6 @@ case class LocalJsonToFileOperatorExecutor() extends LocalExecutor[JsonToFileOpe
       s"{$key:$raw}"
     }
   }
-
-  /** Per-entity content for file and zip modes: validate and wrap via re-serialization. */
-  private def   reserializedContent(entity: Entity, pathIndex: Int, outputProperty: String): String =
-    applyOutputProperty(readJsonValue(entity, pathIndex), outputProperty)
-
-  /** Per-entity content for merged mode: validate, preserving the original bytes. */
-  private def rawContent(entity: Entity, pathIndex: Int, outputProperty: String): String =
-    wrapRawValue(readValidatedJson(entity, pathIndex), outputProperty)
 
   /** Turns each entity into its output string via `content`, skipping entities whose value fails validation
     * (`TaskException`) and collecting one warning per skip. Non-validation errors propagate. */
@@ -228,20 +204,18 @@ case class LocalJsonToFileOperatorExecutor() extends LocalExecutor[JsonToFileOpe
     (valid, warnings)
   }
 
-  /** Records the skipped entities as warnings on the execution report. */
-  private def reportSkipped(task: Task[JsonToFileOperator],
-                           context: ActivityContext[ExecutionReport],
-                           warnings: Seq[String],
-                           validCount: Int): Unit = {
-    if (warnings.nonEmpty) {
-      context.value.update(SimpleExecutionReport(task, warnings = warnings, entityCount = validCount, isDone = true))
-    }
+  /** Sets the execution report: the valid entity count, completion, and one warning per skipped entity. */
+  private def report(task: Task[JsonToFileOperator],
+                     context: ActivityContext[ExecutionReport],
+                     warnings: Seq[String],
+                     validCount: Int): Unit = {
+    context.value.update(SimpleExecutionReport(task, warnings = warnings, entityCount = validCount, isDone = true))
   }
 
   /** Allocates a file entity with a caller-supplied name in the system temp directory. */
   private def allocateNamedFileEntity(name: String, index: Int, multiple: Boolean, mimeType: Option[String]): FileEntity = {
-    val finalName = if (multiple) suffixedName(name, index) else name
-    FileEntity.createTemp("", name = Some(finalName), mimeType = mimeType)
+    val fileName = if (multiple) suffixedName(name, index) else name
+    FileEntity.createTemp("", name = Some(fileName), mimeType = mimeType)
   }
 
   /** Inserts an index suffix before the file extension; appends it if there is no extension. */
