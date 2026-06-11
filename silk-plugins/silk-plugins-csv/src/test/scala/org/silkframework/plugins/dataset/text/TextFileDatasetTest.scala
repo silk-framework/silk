@@ -3,7 +3,9 @@ package org.silkframework.plugins.dataset.text
 
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
-import org.silkframework.dataset.TypedProperty
+import org.silkframework.config.PlainTask
+import org.silkframework.dataset.{DatasetSpec, TypedProperty}
+import org.silkframework.execution.ExecutorRegistry
 import org.silkframework.entity.{EntitySchema, ValueType}
 import org.silkframework.runtime.activity.TestPluginContextTrait
 import org.silkframework.runtime.resource.InMemoryResourceManager
@@ -21,7 +23,7 @@ class TextFileDatasetTest extends AnyFlatSpec with Matchers with TestPluginConte
   private val testValue = "value"
 
   it should "write plain text files" in {
-    val sink = dataset.entitySink
+    val sink = ExecutorRegistry.access(PlainTask("text", DatasetSpec(dataset))).entitySink
     sink.openTable(dataset.typeName, Seq(TypedProperty(dataset.property, ValueType.STRING, isBackwardProperty = false)), singleEntity = false)
     sink.writeEntity("dummySubject", IndexedSeq(Seq(testValue)))
     sink.closeTable()
@@ -31,7 +33,7 @@ class TextFileDatasetTest extends AnyFlatSpec with Matchers with TestPluginConte
   }
 
   it should "read plain text files" in {
-    val source = dataset.source
+    val source = ExecutorRegistry.access(PlainTask("text", DatasetSpec(dataset))).source
     source.retrieveTypes().map(_._1) shouldBe Seq(dataset.typeName)
     source.retrievePaths(dataset.typeName) shouldBe Seq(dataset.path)
 

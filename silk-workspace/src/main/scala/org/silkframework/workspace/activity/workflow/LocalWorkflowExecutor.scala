@@ -5,7 +5,7 @@ import org.silkframework.config._
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.dataset._
 import org.silkframework.execution.local.{ErrorOutputWriter, LocalEntities, LocalExecution}
-import org.silkframework.execution.{DatasetExecutor, EntityHolder, ExecutorOutput}
+import org.silkframework.execution.{DatasetExecutor, EntityHolder, ExecutorOutput, ExecutorRegistry}
 import org.silkframework.plugins.dataset.InternalDataset
 import org.silkframework.rule.TransformSpec
 import org.silkframework.runtime.activity.{ActivityContext, UserContext}
@@ -130,7 +130,7 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
     for { currentWorkflow <- workflow +: workflow.subWorkflows(project).map(_.data)
           datasetTask <- currentWorkflow.outputDatasets(project)(workflowRunContext.userContext) } {
       val usedDatasetTask = resolveDataset(datasetTask, replaceSinks)
-      usedDatasetTask.data.entitySink.clear()
+      ExecutorRegistry.access(usedDatasetTask, executionContext).entitySink.clear()
     }
   }
 

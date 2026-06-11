@@ -25,11 +25,11 @@ case class InternalDataset(
 
   override def graphOpt: Option[String] = Option(graphUri).filterNot(_.isEmpty)
 
-  protected lazy val internalDatasetPluginImpl = InternalDataset.byGraph(graphOpt)
+  lazy val internalDatasetPluginImpl: Dataset = InternalDataset.byGraph(graphOpt)
 }
 
 trait InternalDatasetTrait extends Dataset with TripleSinkDataset with RdfDataset {
-  protected def internalDatasetPluginImpl: Dataset
+  def internalDatasetPluginImpl: Dataset
   private lazy val _internalDatasetPluginImpl = internalDatasetPluginImpl
 
   override def sparqlEndpoint: SparqlEndpoint = {
@@ -50,11 +50,16 @@ trait InternalDatasetTrait extends Dataset with TripleSinkDataset with RdfDatase
     }
   }
 
-  override def source(implicit userContext: UserContext): DataSource = _internalDatasetPluginImpl.source
+  private def innerAccess: DatasetAccess = _internalDatasetPluginImpl match {
+    case da: DatasetAccess => da
+    case _ => throw new RuntimeException("Internal dataset implementation does not provide data access.")
+  }
 
-  override def linkSink(implicit userContext: UserContext): LinkSink = _internalDatasetPluginImpl.linkSink
+  override def source(implicit userContext: UserContext): DataSource = innerAccess.source
 
-  override def entitySink(implicit userContext: UserContext): EntitySink = _internalDatasetPluginImpl.entitySink
+  override def linkSink(implicit userContext: UserContext): LinkSink = innerAccess.linkSink
+
+  override def entitySink(implicit userContext: UserContext): EntitySink = innerAccess.entitySink
 }
 
 /**

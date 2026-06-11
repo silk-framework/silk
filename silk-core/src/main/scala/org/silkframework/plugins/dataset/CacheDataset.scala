@@ -17,7 +17,7 @@ package org.silkframework.plugins.dataset
 import java.io.File
 import org.silkframework.cache.FileEntityCache
 import org.silkframework.config.{PlainTask, Prefixes, RuntimeConfig, Task}
-import org.silkframework.dataset.{DataSource, Dataset, DatasetCharacteristics, DatasetSpec}
+import org.silkframework.dataset.{DataSource, Dataset, DatasetAccess, DatasetCharacteristics, DatasetSpec}
 import org.silkframework.entity._
 import org.silkframework.entity.paths.TypedPath
 import org.silkframework.execution.EntityHolder
@@ -29,7 +29,7 @@ import org.silkframework.runtime.plugin.annotations.Plugin
 import org.silkframework.util.Uri
 
 @Plugin(id = "cache", label = "Cache", description= "Reads the entities from an existing Silk entity cache.")
-case class CacheDataset(dir: String) extends Dataset {
+case class CacheDataset(dir: String) extends Dataset with DatasetAccess {
 
   private val file = new File(dir)
 

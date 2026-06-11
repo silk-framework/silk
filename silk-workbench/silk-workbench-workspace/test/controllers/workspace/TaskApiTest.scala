@@ -8,6 +8,7 @@ import org.silkframework.config.{MetaData, Prefixes}
 import org.silkframework.dataset.DatasetSpec
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.dataset.rdf.SparqlEndpointDatasetParameter
+import org.silkframework.execution.ExecutorRegistry
 import org.silkframework.entity.StringValueType
 import org.silkframework.plugins.dataset.rdf.datasets.{InMemoryDataset, SparqlDataset}
 import org.silkframework.plugins.dataset.rdf.tasks.SparqlSelectCustomTask
@@ -496,7 +497,7 @@ class TaskApiTest extends PlaySpec with IntegrationTestTrait with Matchers {
       val p = retrieveOrCreateProject(project)
       p.addAnyTask(datasetName, new DatasetSpec(inMemoryDataset))
       checkResponse(client.url(s"$baseUrl/workspace/projects/$project/tasks/$datasetName/clone?newTask=$newDatasetName").post(""))
-      p.task[GenericDatasetSpec](newDatasetName).data.source.retrievePaths("") mustBe Seq()
+      ExecutorRegistry.access(p.task[GenericDatasetSpec](newDatasetName)).source.retrievePaths("") mustBe Seq()
     }
   }
 

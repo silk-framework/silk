@@ -77,7 +77,7 @@ case class SparqlDataset(
       " To overwrite these configured values, specify a (common) timeout greater than zero milliseconds.")
   sparqlTimeout: Int = 0) extends RdfDataset with TripleSinkDataset {
 
-  private val params =
+  val params: SparqlParams =
     SparqlParams(
       uri = endpointURI,
       user = login,

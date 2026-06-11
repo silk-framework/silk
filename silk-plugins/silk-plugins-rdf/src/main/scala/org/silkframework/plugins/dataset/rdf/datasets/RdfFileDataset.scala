@@ -78,7 +78,7 @@ case class RdfFileDataset(
   }
 
   /** Currently RDF is written using custom formatters (instead of using an RDF writer from Jena). */
-  private def formatter: LinkFormatter with EntityFormatter = {
+  def formatter: LinkFormatter with EntityFormatter = {
     if (lang == Lang.NTRIPLES) {
       NTriplesLinkFormatter()
     } else {
@@ -132,6 +132,8 @@ case class RdfFileDataset(
   override def mergeSchemata: Boolean = true
 
   override def createSource(resource: Resource): DataSource = new FileSource(resource)
+
+  override def source(implicit userContext: UserContext): DataSource = createDataSource
 
   override def linkSink(implicit userContext: UserContext): FormattedLinkSink = new FormattedLinkSink(bulkWritableResource, formatter)
 

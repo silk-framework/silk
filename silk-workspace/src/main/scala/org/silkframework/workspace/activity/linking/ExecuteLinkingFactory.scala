@@ -67,7 +67,7 @@ class ExecuteLinking(task: ProjectTask[LinkSpec]) extends Activity[ExecutionRepo
     context.status.updateMessage("Writing links to output")
     for(output <- task.data.output) {
       val outputTask = task.project.task[GenericDatasetSpec](output)
-      outputTask.data.linkSink.clear() // Clear link sink before writing in single execution mode
+      ExecutorRegistry.access(outputTask, execution).linkSink.clear() // Clear link sink before writing in single execution mode
       ExecutorRegistry.execute(outputTask, Seq(links), ExecutorOutput.empty, execution)
     }
   }

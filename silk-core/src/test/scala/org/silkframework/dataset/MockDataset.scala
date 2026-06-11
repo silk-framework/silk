@@ -14,7 +14,7 @@ import org.silkframework.util.Uri
   * Mock dataset for tests. The main methods for retrieving and writing can be defined as parameter.
   */
 case class MockDataset(@Param(label = "person name", value = "The full name of a person")
-                       name: String = "dummy") extends Dataset {
+                       name: String = "dummy") extends Dataset with DatasetAccess {
   var retrieveFn: (EntitySchema, Option[Int]) => CloseableIterator[Entity] = (_, _) => CloseableIterator.empty
   var retrieveByUriFn: (EntitySchema, Seq[Uri]) => CloseableIterator[Entity] = (_, _) => CloseableIterator.empty
   var writeLinkFn: (Link, String) => Unit = (_, _) => {}

@@ -43,37 +43,9 @@ import scala.xml.Node
 case class DatasetSpec[+DatasetType <: Dataset](plugin: DatasetType,
                                                 uriAttribute: Option[Uri] = None,
                                                 readOnly: Boolean = false)
-    extends TaskSpec with DatasetAccess {
-
-  def source(implicit userContext: UserContext): DataSource = {
-    safeAccess(DatasetSpec.DataSourceWrapper(plugin.source, this), SafeModeDataSource)
-  }
-
-  def entitySink(implicit userContext: UserContext): EntitySink = {
-    safeAccess(DatasetSpec.EntitySinkWrapper(plugin.entitySink, this), SafeModeSink)
-  }
-
-  def linkSink(implicit userContext: UserContext): LinkSink = {
-    checkDatasetAllowsWriteAccess(None, readOnly)
-    safeAccess(DatasetSpec.LinkSinkWrapper(plugin.linkSink, this), SafeModeSink)
-  }
+    extends TaskSpec {
 
   def characteristics: DatasetCharacteristics = plugin.characteristics
-
-  // True if access should be prevented regarding the dataset and safe-mode config
-  private def preventAccessInSafeMode(implicit userContext: UserContext): Boolean = {
-    ProductionConfig.inSafeMode && !plugin.isFileResourceBased && !userContext.executionContext.insideWorkflow
-  }
-
-  // Create data access object or return fallback
-  private def safeAccess[T](create: T, fallback: T)
-                           (implicit userContext: UserContext): T = {
-    if (preventAccessInSafeMode) {
-      fallback
-    } else {
-      create
-    }
-  }
 
   /** Datasets don't define input schemata, because any data can be written to them. */
   override def inputPorts: InputPorts = {

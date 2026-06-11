@@ -6,6 +6,7 @@ class JsonPlugins extends PluginModule {
 
   override def pluginClasses: Seq[Class[_ <: AnyPlugin]] =
     classOf[JsonDataset] ::
+     classOf[JsonDatasetExecutor] ::
      classOf[JsonParserTask] ::
      classOf[LocalJsonParserTaskExecutor] ::
      Nil

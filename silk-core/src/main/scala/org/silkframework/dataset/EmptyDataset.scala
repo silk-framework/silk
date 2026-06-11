@@ -8,7 +8,7 @@ import org.silkframework.util.Uri
 /**
  * An empty data set.
  */
-object EmptyDataset extends Dataset with Serializable {
+object EmptyDataset extends Dataset with DatasetAccess with Serializable {
 
   /**
     * Clears the contents of this dataset.

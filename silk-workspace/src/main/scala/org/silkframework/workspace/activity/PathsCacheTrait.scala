@@ -1,7 +1,8 @@
 package org.silkframework.workspace.activity
 
-import org.silkframework.config.{DefaultConfig, FixedSchemaPort, Prefixes, TaskSpec}
+import org.silkframework.config.{DefaultConfig, FixedSchemaPort, Prefixes, Task, TaskSpec}
 import org.silkframework.dataset.{DataSource, Dataset, DatasetSpec, SparqlRestrictionDataSource}
+import org.silkframework.execution.ExecutorRegistry
 import org.silkframework.entity.Restriction.CustomOperator
 import org.silkframework.entity.paths.TypedPath
 import org.silkframework.entity.rdf.{SparqlEntitySchema, SparqlRestriction}
@@ -25,12 +26,13 @@ trait PathsCacheTrait {
                                      project: Project,
                                      context: ActivityContext[_])
                                     (implicit userContext: UserContext, prefixes: Prefixes): IndexedSeq[TypedPath] = {
-    project.anyTask(inputTaskId).data match {
-      case dataset: DatasetSpec[Dataset] =>
+    val inputTask = project.anyTask(inputTaskId)
+    inputTask.data match {
+      case _: DatasetSpec[Dataset] =>
         context.status.update("Retrieving frequent paths", 0.0)
         dataSelection match {
           case Some(selection) =>
-            retrievePaths(dataset.source, selection)
+            retrievePaths(ExecutorRegistry.access(inputTask.asInstanceOf[Task[DatasetSpec[Dataset]]]).source, selection)
           case None => IndexedSeq()
         }
       case task: TaskSpec =>

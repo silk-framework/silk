@@ -122,7 +122,7 @@ class JsonSerializersTest  extends AnyFlatSpec with Matchers {
   }
 }
 
-case class SomeDatasetPlugin(param1: String, param2: Double) extends Dataset {
+case class SomeDatasetPlugin(param1: String, param2: Double) extends Dataset with DatasetAccess {
   override def source(implicit userContext: UserContext): DataSource = ???
   override def linkSink(implicit userContext: UserContext): LinkSink = ???
   override def entitySink(implicit userContext: UserContext): EntitySink = ???

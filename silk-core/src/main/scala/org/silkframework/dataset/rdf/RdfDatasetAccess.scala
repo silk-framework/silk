@@ -2,7 +2,7 @@ package org.silkframework.dataset.rdf
 
 import org.silkframework.config.Task
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
-import org.silkframework.dataset.{DataSource, Dataset, DatasetAccess, DatasetSpec, EntitySink, LinkSink}
+import org.silkframework.dataset.{DataSource, Dataset, DatasetAccess, DatasetSpec, DatasetSpecAccess, EntitySink, LinkSink, SafeModeDataSource, SafeModeSink}
 import org.silkframework.execution.{ExecutionType, ExecutorRegistry}
 import org.silkframework.runtime.activity.UserContext
 
@@ -55,9 +55,16 @@ case class RdfDatasetSpecAccess(datasetSpec: GenericDatasetSpec, datasetAccess: 
 
   override def sparqlEndpoint: SparqlEndpoint = datasetAccess.sparqlEndpoint
 
-  override def linkSink(implicit userContext: UserContext): LinkSink = DatasetSpec.LinkSinkWrapper(datasetAccess.linkSink, datasetSpec)
+  override def source(implicit userContext: UserContext): DataSource = {
+    DatasetSpecAccess.safeAccess(DatasetSpec.DataSourceWrapper(datasetAccess.source, datasetSpec), SafeModeDataSource, datasetSpec)
+  }
 
-  override def entitySink(implicit userContext: UserContext): EntitySink = DatasetSpec.EntitySinkWrapper(datasetAccess.entitySink, datasetSpec)
+  override def entitySink(implicit userContext: UserContext): EntitySink = {
+    DatasetSpecAccess.safeAccess(DatasetSpec.EntitySinkWrapper(datasetAccess.entitySink, datasetSpec), SafeModeSink, datasetSpec)
+  }
 
-  override def source(implicit userContext: UserContext): DataSource = DatasetSpec.DataSourceWrapper(datasetAccess.source, datasetSpec)
+  override def linkSink(implicit userContext: UserContext): LinkSink = {
+    DatasetSpec.checkDatasetAllowsWriteAccess(None, datasetSpec.readOnly)
+    DatasetSpecAccess.safeAccess(DatasetSpec.LinkSinkWrapper(datasetAccess.linkSink, datasetSpec), SafeModeSink, datasetSpec)
+  }
 }

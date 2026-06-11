@@ -23,7 +23,7 @@ class DatasetSpecTest extends AnyFlatSpec with Matchers {
     val datasetSpec = DatasetSpec(dataset, uriAttribute = Some("urn:schema:URI"))
     implicit val userContext: UserContext = UserContext.Empty
     implicit val prefixes: Prefixes = Prefixes.empty
-    val sink = datasetSpec.entitySink
+    val sink = DatasetSpecAccess(datasetSpec, dataset).entitySink
     sink.openTable("", Seq(TypedProperty("existingProperty", ValueType.STRING, isBackwardProperty = false)), singleEntity = false)
     sink.writeEntity("entityUri", IndexedSeq(Seq("someValue")))
     sink.closeTable()
@@ -40,7 +40,7 @@ class DatasetSpecTest extends AnyFlatSpec with Matchers {
     val datasetSpec = DatasetSpec(dataset, uriAttribute = Some("urn:schema:URI"))
     implicit val userContext: UserContext = UserContext.Empty
     implicit val prefixes: Prefixes = Prefixes.empty
-    val sink = datasetSpec.entitySink
+    val sink = DatasetSpecAccess(datasetSpec, dataset).entitySink
     sink.openTable("someType", Seq(TypedProperty("existingProperty", ValueType.STRING, isBackwardProperty = false)), singleEntity = false)
     sink.writeEntity("entityUri", IndexedSeq(Seq("someValue")))
     sink.closeTable()

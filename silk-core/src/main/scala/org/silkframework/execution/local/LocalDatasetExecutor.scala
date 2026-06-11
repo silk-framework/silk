@@ -167,7 +167,7 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
       case SparqlUpdateEntitySchema(queries) =>
         executeSparqlUpdateQueries(dataset, queries, execution)
       case _: ClearDatasetTable =>
-        executeClearDataset(dataset)
+        executeClearDataset(dataset, execution)
       case SqlUpdateEntitySchema(queries) =>
         executeSqlStatement(dataset, queries, execution)
       case et: LocalEntities =>
@@ -270,13 +270,13 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
     }
   }
 
-  private def executeClearDataset(dataset: Task[DatasetSpec[DatasetType]])
+  private def executeClearDataset(dataset: Task[DatasetSpec[DatasetType]], execution: LocalExecution)
                                  (implicit userContext: UserContext, context: ActivityContext[ExecutionReport]): Unit = {
     if(dataset.readOnly) {
       throw new RuntimeException(s"Cannot clear dataset '${dataset.fullLabel}', because it is configured as read-only.")
     }
     val executionReport = ClearDatasetOperatorExecutionReportUpdater(dataset, context)
-    dataset.entitySink.clear(force = true)
+    access(dataset, execution).entitySink.clear(force = true)
     executionReport.increaseEntityCounter()
     executionReport.executionDone()
   }

@@ -1,7 +1,7 @@
 package org.silkframework.execution
 
 import org.silkframework.config.{FixedSchemaPort, FlexibleSchemaPort, Prefixes, Task}
-import org.silkframework.dataset.{Dataset, DatasetAccess, DatasetSpec}
+import org.silkframework.dataset.{Dataset, DatasetAccess, DatasetSpec, DatasetSpecAccess}
 import org.silkframework.entity.EntitySchema
 import org.silkframework.runtime.activity.{ActivityContext, UserContext}
 import org.silkframework.runtime.plugin.PluginContext
@@ -19,9 +19,15 @@ trait DatasetExecutor[DatasetType <: Dataset, ExecType <: ExecutionType] extends
     * Fetch the execution specific access to a dataset.
     */
   def access(task: Task[DatasetSpec[DatasetType]], execution: ExecType): DatasetAccess = {
-    // Because the Dataset still inherits the DatasetAccess trait, we can just return it.
-    // In the future, each dataset executor should overwrite this method.
-    task.data
+    // Default for datasets whose plugin still provides the data access directly (e.g. datasets that
+    // have no dedicated executor yet). Dataset executors that build execution-specific access should
+    // override this method.
+    task.data.plugin match {
+      case rawAccess: DatasetAccess =>
+        DatasetSpecAccess(task.data, rawAccess)
+      case other =>
+        throw new ValidationException(s"Dataset '${task.id}' of type ${other.pluginSpec.label} has no executor providing data access.")
+    }
   }
 
   protected def read(task: Task[DatasetSpec[DatasetType]], schema: EntitySchema, execution: ExecType)

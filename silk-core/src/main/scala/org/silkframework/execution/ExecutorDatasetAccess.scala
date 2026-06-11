@@ -7,8 +7,9 @@ import org.silkframework.runtime.activity.UserContext
 import org.silkframework.util.Identifier
 
 /**
-  * This trait provides sources and sinks based on the LocalExecutor of the base dataset.
-  * Can be removed as soon as Datasets no longer derive from DatasetAccess.
+  * Mixin for dataset plugins that do not implement their data access directly but delegate it to the
+  * dataset's local [[DatasetExecutor]] via [[ExecutorRegistry.access]]. Use this for datasets whose
+  * source/sinks are built by a dedicated executor (e.g. the JDBC datasets).
   */
 trait ExecutorDatasetAccess[DatasetType <: Dataset] extends DatasetAccess {
 
