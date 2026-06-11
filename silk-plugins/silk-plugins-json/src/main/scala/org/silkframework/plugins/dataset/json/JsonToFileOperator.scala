@@ -10,7 +10,7 @@ import org.silkframework.util.Uri
 @Plugin(
   id = JsonToFileOperator.pluginId,
   label = "JSON to File",
-  description = "Writes a JSON string held in a field on each incoming entity to a file. Depending on the output mode, it produces one file per entity, packs all entities into a single ZIP archive, or merges them into a single JSON array file. Produces a file entity downstream, suitable for wiring into a file-backed dataset or any operator that consumes file entities.",
+  description = "Writes a JSON string held in a field on each valid incoming entity to a file. Depending on the output mode, it produces one file per entity, packs all entities into a single ZIP archive, or merges them into a single JSON array file. Produces a file entity downstream, suitable for wiring into a file-backed dataset or any operator that consumes file entities.",
   documentationFile = "JsonToFileTaskDocumentation.md",
   relatedPlugins = Array(
     new PluginReference(
