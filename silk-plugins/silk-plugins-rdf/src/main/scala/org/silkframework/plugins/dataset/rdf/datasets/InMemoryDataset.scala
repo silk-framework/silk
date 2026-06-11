@@ -56,8 +56,9 @@ case class InMemoryDataset(
 
   /**
    * Endpoints for all current workflow executions, keyed by [[ExecutionModelKey]].
-   * Uses a WeakHashMap so entries are automatically cleaned up by GC when the key is no longer referenced.
-   * Entries are also explicitly removed by [[InMemoryDatasetExecutor.close()]] when the execution finishes.
+   * Each entry is owned by its root execution, which anchors the key and disposes the entry via a
+   * shutdown hook (see [[getOrCreateEndpoint]]). The WeakHashMap is only a GC fallback for abandoned
+   * executions whose shutdown hooks never run.
    */
   private val executionEndpoints: java.util.Map[ExecutionModelKey, InMemoryJenaModelEndpoint] =
     Collections.synchronizedMap(new java.util.WeakHashMap[ExecutionModelKey, InMemoryJenaModelEndpoint]())
@@ -66,11 +67,15 @@ case class InMemoryDataset(
    * Returns the endpoint registered under `key`, creating and registering a new one if absent.
    * Access is synchronized.
    */
-  private[datasets] def getOrCreateEndpoint(key: ExecutionModelKey): InMemoryJenaModelEndpoint =
+  private[datasets] def getOrCreateEndpoint(key: ExecutionModelKey, rootExecution: LocalExecution): InMemoryJenaModelEndpoint =
     executionEndpoints.synchronized {
       Option(executionEndpoints.get(key)).getOrElse {
         val newEndpoint = new InMemoryJenaModelEndpoint()
         executionEndpoints.put(key, newEndpoint)
+        // Keep `key` reachable for the root execution's lifetime so the WeakHashMap entry cannot be
+        // collected between a nested execution finishing and a sibling/parent accessing it, and drop
+        // it when the root execution finishes.
+        rootExecution.addShutdownHook(() => removeEndpoint(key))
         newEndpoint
       }
     }

@@ -23,9 +23,6 @@ class InMemoryDatasetExecutor extends LocalDatasetExecutor[InMemoryDataset] {
   @volatile private var endpoint: InMemoryJenaModelEndpoint = _
   @volatile private var modelDataset: JenaModelDataset = _
   @volatile private var initialized: Boolean = false
-  @volatile private var modelKey: Option[ExecutionModelKey] = None
-  @volatile private var plugin: Option[InMemoryDataset] = None
-  @volatile private var ownsEndpoint: Boolean = false
   @volatile private var closed: Boolean = false
 
   override def access(task: Task[DatasetSpec[InMemoryDataset]], execution: LocalExecution): DatasetAccess = {
@@ -34,15 +31,11 @@ class InMemoryDatasetExecutor extends LocalDatasetExecutor[InMemoryDataset] {
     if (datasetPlugin.workflowScoped) {
       if (!initialized) {
         initialized = true
-        // Anchor the endpoint to the root execution so the parent and all nested workflows
-        // share one endpoint regardless of which of them accesses the dataset first.
+        // Anchor the endpoint to the root execution so the parent and all nested workflows share one
+        // endpoint regardless of which accesses first. The root execution owns its lifecycle.
         val key = ExecutionModelKey(execution.rootExecution.executionId, task.id)
-        endpoint = datasetPlugin.getOrCreateEndpoint(key)
+        endpoint = datasetPlugin.getOrCreateEndpoint(key, execution.rootExecution)
         modelDataset = JenaModelDataset.fromEndpoint(endpoint, dropGraphOnClear = false)
-        modelKey = Some(key)
-        plugin  = Some(datasetPlugin)
-        // Only the top-level (root) execution disposes the shared endpoint
-        ownsEndpoint = execution.parentExecution.isEmpty
       }
       datasetPlugin.updateEndpoint(endpoint)
       RdfDatasetSpecAccess(task.data, modelDataset)
@@ -53,18 +46,9 @@ class InMemoryDatasetExecutor extends LocalDatasetExecutor[InMemoryDataset] {
   }
 
   override def close(): Unit = {
-    // Only the root execution removes the shared sharing-map entry
-    if (ownsEndpoint) {
-      for {
-        key <- modelKey
-        p   <- plugin
-      } p.removeEndpoint(key)
-    }
-    // Drop this executor's references to the models
+    // The root execution owns the shared endpoint's lifecycle, so close() only drops this executor's references.
     endpoint = null
     modelDataset = null
-    modelKey = None
-    plugin = None
     closed = true
   }
 }

@@ -168,10 +168,13 @@ class InMemoryDatasetWorkflowScopedTest extends AnyFlatSpec with Matchers {
 
     executor.close()
 
-    // The execution-scoped sharing entry is gone ...
-    nestedDataset.findEndpoint(exec, nestedTask.id) mustBe empty
-    // ... but the data the workflow produced is still readable through the dataset itself.
+    // close() drops the executor's references but the data is still readable through the dataset itself.
     nestedDataset.sparqlEndpoint.select(tripleCountQuery).bindings.size mustBe 1
+    // The execution-scoped sharing entry is owned by the root execution, so it survives close() ...
+    nestedDataset.findEndpoint(exec, nestedTask.id) must not be empty
+    // ... and is disposed when the root execution finishes.
+    exec.executeShutdownHooks()
+    nestedDataset.findEndpoint(exec, nestedTask.id) mustBe empty
   }
 
   it should "let the parent read data that a nested execution wrote first" in {
@@ -197,7 +200,7 @@ class InMemoryDatasetWorkflowScopedTest extends AnyFlatSpec with Matchers {
     parentEndpoint.select(tripleCountQuery).bindings.size mustBe 2
   }
 
-  it should "keep the shared endpoint when a nested execution closes and only drop it when the root closes" in {
+  it should "keep the shared endpoint when a nested execution closes and only drop it when the root execution finishes" in {
     val nestedDataset = InMemoryDataset(workflowScoped = true)
     val nestedTask = PlainTask("cleanupOrder", DatasetSpec(nestedDataset))
 
@@ -215,8 +218,44 @@ class InMemoryDatasetWorkflowScopedTest extends AnyFlatSpec with Matchers {
     childExecutor.close()
     nestedDataset.findEndpoint(parentExecution, nestedTask.id) must not be empty
 
-    // Only the root execution disposes the shared endpoint.
+    // Closing an executor does not dispose the shared endpoint either; the root execution owns it.
     parentExecutor.close()
+    nestedDataset.findEndpoint(parentExecution, nestedTask.id) must not be empty
+
+    // Only the root execution finishing disposes the shared endpoint.
+    parentExecution.executeShutdownHooks()
+    nestedDataset.findEndpoint(parentExecution, nestedTask.id) mustBe empty
+  }
+
+  it should "anchor the shared endpoint to the root execution so a nested execution finishing cannot drop it" in {
+    val nestedDataset = InMemoryDataset(workflowScoped = true)
+    val nestedTask = PlainTask("anchorTest", DatasetSpec(nestedDataset))
+
+    val parentExecution = LocalExecution(false, workflowId = Some(Identifier("parentWf")))
+    val childExecution = LocalExecution(false, workflowId = Some(Identifier("childWf")), parentExecution = Some(parentExecution))
+
+    // The nested (child) executor accesses first, writes, and finishes; afterwards no executor holds the key.
+    var childExecutor = new InMemoryDatasetExecutor()
+    sparqlEndpoint(childExecutor.access(nestedTask, childExecution))
+      .update("INSERT DATA { <http://s> <http://p> <http://o> }")
+    childExecutor.close()
+    childExecutor = null
+
+    // Best-effort reproduction of the original bug: a WeakHashMap keyed only by the executor-held key
+    // could lose the entry here. The root-execution anchor must keep it reachable. (Not relied on for
+    // pass/fail since GC is non-deterministic; the deterministic guarantee is asserted below.)
+    System.gc(); System.gc(); System.runFinalization()
+
+    nestedDataset.findEndpoint(parentExecution, nestedTask.id) must not be empty
+
+    // The parent then reads and must see the data the nested execution wrote.
+    val parentExecutor = new InMemoryDatasetExecutor()
+    sparqlEndpoint(parentExecutor.access(nestedTask, parentExecution))
+      .select(tripleCountQuery).bindings.size mustBe 1
+
+    // The root execution deterministically disposes the entry when it finishes, which proves a
+    // cleanup/anchor hook was registered on the root execution.
+    parentExecution.executeShutdownHooks()
     nestedDataset.findEndpoint(parentExecution, nestedTask.id) mustBe empty
   }
 
