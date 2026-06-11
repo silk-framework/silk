@@ -1,8 +1,8 @@
 package org.silkframework.plugins.dataset.rdf
 
 import org.silkframework.config.{PlainTask, Prefixes}
-import org.silkframework.dataset.rdf.{RdfDataset, Resource, SparqlEndpoint}
-import org.silkframework.dataset.{DatasetAccess, DatasetSpec, DatasetSpecAccess}
+import org.silkframework.dataset.rdf.{RdfDatasetAccess, Resource, SparqlEndpoint}
+import org.silkframework.dataset.{DatasetAccess, DatasetSpec}
 import org.silkframework.entity.ValueType
 import org.silkframework.entity.paths.{TypedPath, UntypedPath}
 import org.silkframework.execution.local.LocalExecution
@@ -75,5 +75,5 @@ class InMemoryDatasetTest extends AnyFlatSpec with Matchers with MockitoSugar {
   }
 
   private def sparqlEndpoint(access: DatasetAccess): SparqlEndpoint =
-    access.asInstanceOf[DatasetSpecAccess].datasetAccess.asInstanceOf[RdfDataset].sparqlEndpoint
+    access.asInstanceOf[RdfDatasetAccess].sparqlEndpoint
 }

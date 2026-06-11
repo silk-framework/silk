@@ -1,7 +1,8 @@
 package org.silkframework.plugins.dataset.rdf.datasets
 
 import org.silkframework.config.Task
-import org.silkframework.dataset.{DatasetAccess, DatasetSpec, DatasetSpecAccess}
+import org.silkframework.dataset.{DatasetAccess, DatasetSpec}
+import org.silkframework.dataset.rdf.RdfDatasetSpecAccess
 import org.silkframework.execution.local.{LocalDatasetExecutor, LocalExecution}
 import org.silkframework.plugins.dataset.rdf.endpoint.InMemoryJenaModelEndpoint
 
@@ -44,10 +45,10 @@ class InMemoryDatasetExecutor extends LocalDatasetExecutor[InMemoryDataset] {
         ownsEndpoint = execution.parentExecution.isEmpty
       }
       datasetPlugin.updateEndpoint(endpoint)
-      DatasetSpecAccess(task.data, modelDataset)
+      RdfDatasetSpecAccess(task.data, modelDataset)
     } else {
       val ds = JenaModelDataset.fromEndpoint(datasetPlugin.endpoint, dropGraphOnClear = datasetPlugin.clearGraphBeforeExecution)
-      DatasetSpecAccess(task.data, ds)
+      RdfDatasetSpecAccess(task.data, ds)
     }
   }
 

@@ -253,9 +253,9 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
                                          sparqlUpdateQueries: TypedEntities[String, TaskSpec],
                                          execution: LocalExecution)
                                         (implicit userContext: UserContext, context: ActivityContext[ExecutionReport], prefixes: Prefixes): Unit = {
-    dataset.plugin match {
-      case rdfDataset: RdfDataset =>
-        val endpoint = rdfDataset.sparqlEndpoint
+    RdfDatasetAccess.forExecutionOption(dataset, execution) match {
+      case Some(rdfAccess) =>
+        val endpoint = rdfAccess.sparqlEndpoint
         val executionReport = SparqlUpdateExecutionReportUpdater(dataset, context)
         val queryBuffer = SparqlQueryBuffer(remainingSparqlUpdateQueryBufferSize, sparqlUpdateQueries.typedEntities)
         for (updateQuery <- queryBuffer) {
@@ -264,7 +264,7 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
           executionReport.remainingQueries = queryBuffer.bufferedQuerySize
         }
         executionReport.executionDone()
-      case _ =>
+      case None =>
         writeGenericLocalEntities(dataset, sparqlUpdateQueries, execution)
     }
   }

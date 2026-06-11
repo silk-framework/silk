@@ -3,8 +3,8 @@ package org.silkframework.plugins.dataset.rdf.datasets
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.must.Matchers
 import org.silkframework.config.{PlainTask, Prefixes}
-import org.silkframework.dataset.{DatasetAccess, DatasetSpec, DatasetSpecAccess}
-import org.silkframework.dataset.rdf.{RdfDataset, SparqlEndpoint}
+import org.silkframework.dataset.{DatasetAccess, DatasetSpec}
+import org.silkframework.dataset.rdf.{RdfDatasetAccess, SparqlEndpoint}
 import org.silkframework.execution.local.LocalExecution
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.util.Identifier
@@ -221,5 +221,5 @@ class InMemoryDatasetWorkflowScopedTest extends AnyFlatSpec with Matchers {
   }
 
   private def sparqlEndpoint(access: DatasetAccess): SparqlEndpoint =
-    access.asInstanceOf[DatasetSpecAccess].datasetAccess.asInstanceOf[RdfDataset].sparqlEndpoint
+    access.asInstanceOf[RdfDatasetAccess].sparqlEndpoint
 }
