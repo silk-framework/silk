@@ -5,7 +5,7 @@ import controllers.sparqlapi.SparqlProtocolApi._
 
 import javax.inject.Inject
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
-import org.silkframework.dataset.rdf.RdfDataset
+import org.silkframework.dataset.rdf.{RdfDataset, RdfDatasetAccess}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.serialization.WriteContext
 import org.silkframework.runtime.validation.{BadUserInputException, RequestException}
@@ -79,8 +79,8 @@ class SparqlProtocolApi @Inject() () extends InjectedController with UserContext
     val chosenMediaType = if(acceptableMediaTypes.isEmpty) accepts.headOption.map(a => a.mediaType + "/" + a.mediaSubType) else acceptableMediaTypes.headOption.map(_._1)
 
     context.task.data.plugin match {
-      case rdf: RdfDataset =>
-        val sparqlEndpoint = rdf.sparqlEndpoint
+      case _: RdfDataset =>
+        val sparqlEndpoint = RdfDatasetAccess.forExecution(context.task).sparqlEndpoint
         val queryResults = SparqlQueryType.determineSparqlQueryType(query) match {
           case SparqlQueryType.ASK => sparqlEndpoint.ask(query)
           case SparqlQueryType.SELECT => sparqlEndpoint.select(query)

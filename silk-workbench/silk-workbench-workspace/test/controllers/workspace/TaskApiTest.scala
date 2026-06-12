@@ -4,7 +4,7 @@ import controllers.workspace.workspaceRequests.CopyTasksRequest.InconsistentPref
 import controllers.workspace.workspaceRequests.{CopyTasksRequest, CopyTasksResponse}
 import helper.IntegrationTestTrait
 import org.scalatestplus.play.PlaySpec
-import org.silkframework.config.{MetaData, Prefixes}
+import org.silkframework.config.{MetaData, PlainTask, Prefixes}
 import org.silkframework.dataset.DatasetSpec
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.dataset.rdf.SparqlEndpointDatasetParameter
@@ -491,7 +491,7 @@ class TaskApiTest extends PlaySpec with IntegrationTestTrait with Matchers {
       tripleSink.init()
       tripleSink.writeTriple("a", "http://prop", "c", StringValueType())
       tripleSink.close()
-      inMemoryDataset.source.retrievePaths("").flatMap(_.propertyUri) mustBe Seq(Uri("http://prop"))
+      ExecutorRegistry.access(PlainTask("oneTripleInMemoryDataset", DatasetSpec(inMemoryDataset))).source.retrievePaths("").flatMap(_.propertyUri) mustBe Seq(Uri("http://prop"))
       val datasetName = "oneTripleInMemoryDataset"
       val newDatasetName = "newInmemoryDataset"
       val p = retrieveOrCreateProject(project)

@@ -14,7 +14,7 @@ import io.swagger.v3.oas.annotations.{Operation, Parameter}
 import org.silkframework.config.{Prefixes, Task, TaskSpec}
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.dataset._
-import org.silkframework.dataset.rdf.RdfDataset
+import org.silkframework.dataset.rdf.{RdfDataset, RdfDatasetAccess}
 import org.silkframework.entity._
 import org.silkframework.entity.paths.{Path, UntypedPath}
 import org.silkframework.plugins.dataset.rdf.executors.{LocalSparqlSelectExecutor, LocalSparqlSelectIterator}
@@ -239,8 +239,9 @@ class PeakTransformApi @Inject() () extends InjectedController with UserContextA
     } else {
       val datasetTask = project.task[GenericDatasetSpec](sparqlDataset)
       datasetTask.data.plugin match {
-        case rdfDataset: RdfDataset with Dataset =>
-          val entities = new LocalSparqlSelectIterator(sparqlSelectTask, rdfDataset.sparqlEndpoint, maxTryEntities, executionReportUpdater = None)
+        case _: RdfDataset =>
+          val sparqlEndpoint = RdfDatasetAccess.forExecution(datasetTask).sparqlEndpoint
+          val entities = new LocalSparqlSelectIterator(sparqlSelectTask, sparqlEndpoint, maxTryEntities, executionReportUpdater = None)
           val entityDatasource = EntityDatasource(datasetTask, entities, sparqlSelectTask.outputSchema)
           try {
             entityDatasource.peak(ruleSchemata.inputSchema, maxTryEntities).use { exampleEntities =>

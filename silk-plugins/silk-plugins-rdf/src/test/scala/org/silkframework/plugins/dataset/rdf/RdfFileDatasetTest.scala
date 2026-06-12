@@ -1,7 +1,9 @@
 package org.silkframework.plugins.dataset.rdf
 
 
-import org.silkframework.config.Prefixes
+import org.silkframework.config.{PlainTask, Prefixes}
+import org.silkframework.dataset.DatasetSpec
+import org.silkframework.execution.ExecutorRegistry
 import org.silkframework.plugins.dataset.rdf.datasets.RdfFileDataset
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.resource.{InMemoryResourceManager, ResourceTooLargeException, WritableResource}
@@ -34,7 +36,7 @@ class RdfFileDatasetTest extends AnyFlatSpec with Matchers {
 
     val rdfDataset = RdfFileDataset(largeResource, "Turtle")
     intercept[ResourceTooLargeException] {
-      rdfDataset.source.retrieveTypes()
+      ExecutorRegistry.access(PlainTask("rdfFile", DatasetSpec(rdfDataset))).source.retrieveTypes()
     }
   }
 
@@ -42,6 +44,6 @@ class RdfFileDatasetTest extends AnyFlatSpec with Matchers {
     val resource = InMemoryResourceManager().get("temp")
     resource.writeString("<urn:subj:a> <urn:p:a> <urn:obj:c> .")
     val rdfDataset = RdfFileDataset(resource, "N-Triples", graph = "urn:graph:some")
-    rdfDataset.source.retrievePaths("") must have size 2
+    ExecutorRegistry.access(PlainTask("rdfFile", DatasetSpec(rdfDataset))).source.retrievePaths("") must have size 2
   }
 }

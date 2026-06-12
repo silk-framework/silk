@@ -4,7 +4,7 @@ import java.net.{URI, URISyntaxException}
 import javax.inject.Inject
 import org.silkframework.config.{Config, DefaultConfig}
 import org.silkframework.dataset._
-import org.silkframework.dataset.rdf.{RdfDataset, SparqlEndpoint}
+import org.silkframework.dataset.rdf.RdfDataset
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
 import org.silkframework.runtime.plugin.{PluginContext, PluginRegistry}
@@ -32,15 +32,6 @@ trait InternalDatasetTrait extends Dataset with TripleSinkDataset with RdfDatase
   def internalDatasetPluginImpl: Dataset
   private[dataset] lazy val _internalDatasetPluginImpl: Dataset = internalDatasetPluginImpl
 
-  override def sparqlEndpoint: SparqlEndpoint = {
-    _internalDatasetPluginImpl match {
-      case rdfDataset: RdfDataset =>
-        rdfDataset.sparqlEndpoint
-      case _ =>
-        throw new RuntimeException("Internal dataset implementation is no RdfDataset, cannot return SparqlEndpoint. ")
-    }
-  }
-
   override def tripleSink(implicit userContext: UserContext): TripleSink = {
     _internalDatasetPluginImpl match {
       case rdfDataset: TripleSinkDataset =>
@@ -49,17 +40,6 @@ trait InternalDatasetTrait extends Dataset with TripleSinkDataset with RdfDatase
         throw new RuntimeException("Internal dataset cannot provide a triple sink!")
     }
   }
-
-  private def innerAccess: DatasetAccess = _internalDatasetPluginImpl match {
-    case da: DatasetAccess => da
-    case _ => throw new RuntimeException("Internal dataset implementation does not provide data access.")
-  }
-
-  override def source(implicit userContext: UserContext): DataSource = innerAccess.source
-
-  override def linkSink(implicit userContext: UserContext): LinkSink = innerAccess.linkSink
-
-  override def entitySink(implicit userContext: UserContext): EntitySink = innerAccess.entitySink
 }
 
 /**

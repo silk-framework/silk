@@ -100,20 +100,20 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
   private def handleQuadEntitySchema(dataset: Task[DatasetSpec[Dataset]], execution: LocalExecution)
                                     (implicit pluginContext: PluginContext, context: ActivityContext[ExecutionReport]): LocalEntities = {
     dataset.data match {
-      case rdfDataset: RdfDataset =>
-        readTriples(dataset, rdfDataset, execution)
-      case DatasetSpec(rdfDataset: RdfDataset, _, _) =>
-        readTriples(dataset, rdfDataset, execution)
+      case _: RdfDataset =>
+        readTriples(dataset, execution)
+      case DatasetSpec(_: RdfDataset, _, _) =>
+        readTriples(dataset, execution)
       case _ =>
         throw TaskException("Dataset is not a RDF dataset and thus cannot output triples!")
     }
   }
 
-  private def readTriples(dataset: Task[GenericDatasetSpec], rdfDataset: RdfDataset, execution: LocalExecution)
+  private def readTriples(dataset: Task[GenericDatasetSpec], execution: LocalExecution)
                          (implicit pluginContext: PluginContext, context: ActivityContext[ExecutionReport]): LocalEntities = {
     implicit val executionReport: ExecutionReportUpdater = ReadTriplesReportUpdater(dataset, context)
     implicit val prefixes: Prefixes = pluginContext.prefixes
-    val endpoint = RdfDatasetAccess.forExecutionOption(dataset, execution).map(_.sparqlEndpoint).getOrElse(rdfDataset.sparqlEndpoint)
+    val endpoint = RdfDatasetAccess.forExecution(dataset, execution).sparqlEndpoint
     val sparqlResult = endpoint.select("SELECT ?s ?p ?o WHERE {?s ?p ?o}")(pluginContext.user)
     val tripleEntities = sparqlResult.bindings map { resultMap =>
       val s = resultMap("s").asInstanceOf[ConcreteNode]

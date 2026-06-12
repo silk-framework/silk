@@ -92,7 +92,7 @@ case class RdfFileDataset(
 
   override def graphOpt: Option[String] = if (graph.trim.isEmpty || ignoreGraph()) None else Some(graph)
 
-  override def sparqlEndpoint: JenaEndpoint = {
+  def sparqlEndpoint: JenaEndpoint = {
     createSparqlEndpoint(retrieveResources())
   }
 
@@ -132,12 +132,6 @@ case class RdfFileDataset(
   override def mergeSchemata: Boolean = true
 
   override def createSource(resource: Resource): DataSource = new FileSource(resource)
-
-  override def source(implicit userContext: UserContext): DataSource = createDataSource
-
-  override def linkSink(implicit userContext: UserContext): FormattedLinkSink = new FormattedLinkSink(bulkWritableResource, formatter)
-
-  override def entitySink(implicit userContext: UserContext): FormattedEntitySink = new FormattedEntitySink(bulkWritableResource, formatter)
 
   // restrict the fetched entities to following URIs
   private def entityRestriction: Seq[Uri] = SparqlParams.splitEntityList(entityList.str).map(Uri(_))

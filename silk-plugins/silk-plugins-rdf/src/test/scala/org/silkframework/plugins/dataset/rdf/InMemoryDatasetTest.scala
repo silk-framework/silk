@@ -31,7 +31,8 @@ class InMemoryDatasetTest extends AnyFlatSpec with Matchers with MockitoSugar {
     val paths = IndexedSeq(
       TypedPath(UntypedPath.parse(s"\\$propertyUri"), ValueType.URI, isAttribute = false)
     )
-    val entitySink = dataset.entitySink
+    val task = PlainTask("inMemoryWrite", DatasetSpec(dataset))
+    val entitySink = new InMemoryDatasetExecutor().access(task, LocalExecution()).entitySink
     entitySink.openTableWithPaths("", paths, false)
     entitySink.writeEntity(
       subject,

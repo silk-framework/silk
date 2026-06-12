@@ -3,7 +3,7 @@ package org.silkframework.plugins.dataset.rdf.datasets
 import org.silkframework.dataset._
 import org.silkframework.dataset.rdf.{RdfDataset, SparqlEndpoint, SparqlParams}
 import org.silkframework.execution.local.LocalExecution
-import org.silkframework.plugins.dataset.rdf.access.{SparqlSink, SparqlSource}
+import org.silkframework.plugins.dataset.rdf.access.SparqlSink
 import org.silkframework.plugins.dataset.rdf.endpoint.InMemoryJenaModelEndpoint
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.annotations.{Param, Plugin, PluginReference}
@@ -94,16 +94,7 @@ case class InMemoryDataset(
   // In workflow-scoped mode the executor owns the endpoint lifecycle, so sinks must not drop the graph.
   private def dropGraph: Boolean = !workflowScoped && clearGraphBeforeExecution
 
-  override def sparqlEndpoint: SparqlEndpoint = endpoint
-
-  override def source(implicit userContext: UserContext): DataSource =
-    new SparqlSource(SparqlParams(), sparqlEndpoint)
-
-  override def entitySink(implicit userContext: UserContext): EntitySink =
-    new SparqlSink(SparqlParams(), sparqlEndpoint, dropGraphOnClear = dropGraph)
-
-  override def linkSink(implicit userContext: UserContext): LinkSink =
-    new SparqlSink(SparqlParams(), sparqlEndpoint, dropGraphOnClear = dropGraph)
+  def sparqlEndpoint: SparqlEndpoint = endpoint
 
   override def tripleSink(implicit userContext: UserContext): TripleSink =
     new SparqlSink(SparqlParams(), sparqlEndpoint, dropGraphOnClear = dropGraph)

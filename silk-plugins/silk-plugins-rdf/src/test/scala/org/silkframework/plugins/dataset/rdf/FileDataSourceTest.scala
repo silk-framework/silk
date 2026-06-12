@@ -16,9 +16,11 @@ package org.silkframework.plugins.dataset.rdf
 
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
-import org.silkframework.config.Prefixes
+import org.silkframework.config.{PlainTask, Prefixes}
+import org.silkframework.dataset.DatasetSpec
 import org.silkframework.entity.paths.UntypedPath
 import org.silkframework.entity.{EntitySchema, ValueType}
+import org.silkframework.execution.ExecutorRegistry
 import org.silkframework.plugins.dataset.rdf.datasets.RdfFileDataset
 import org.silkframework.runtime.activity.TestPluginContextTrait
 import org.silkframework.runtime.resource.FileResourceManager
@@ -42,6 +44,8 @@ class FileDataSourceTest extends AnyFlatSpec with Matchers with TestPluginContex
 
   val dataset = RdfFileDataset(resourceLoader.get(fileName), "N-TRIPLE")
 
+  private def source = ExecutorRegistry.access(PlainTask("fileDataSource", DatasetSpec(dataset))).source
+
   val entityDescCity =
     EntitySchema(
       typeUri = Uri("http://dbpedia.org/ontology/City"),
@@ -49,11 +53,11 @@ class FileDataSourceTest extends AnyFlatSpec with Matchers with TestPluginContex
     )
 
   it should "return all cities" in {
-    dataset.source.retrieve(entityDescCity).entities.size should equal (3)
+    source.retrieve(entityDescCity).entities.size should equal (3)
   }
 
   it should "return entities by uri" in {
-    dataset.source.retrieveByUri(entityDescCity, "http://dbpedia.org/resource/Berlin" :: Nil).entities.size should equal (1)
+    source.retrieveByUri(entityDescCity, "http://dbpedia.org/resource/Berlin" :: Nil).entities.size should equal (1)
   }
 
   private val pathPlaces = UntypedPath.parse("?a/do:place/rdfs:label").asStringTypedPath
@@ -68,7 +72,7 @@ class FileDataSourceTest extends AnyFlatSpec with Matchers with TestPluginContex
       typedPaths = IndexedSeq(pathPlaces, pathPlacesCalledMunich, pathCities)
     )
 
-  private val persons = dataset.source.retrieve(entityDescPerson).entities.toList
+  private val persons = source.retrieve(entityDescPerson).entities.toList
 
   it should "work with filters" in {
     persons.size should equal (1)
@@ -78,7 +82,7 @@ class FileDataSourceTest extends AnyFlatSpec with Matchers with TestPluginContex
   }
 
   it should "return typed paths" in {
-    dataset.source.retrievePaths("http://dbpedia.org/ontology/City").
+    source.retrievePaths("http://dbpedia.org/ontology/City").
         map(tp => tp.toUntypedPath.normalizedSerialization -> tp.valueType) shouldBe IndexedSeq(
           "<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>" -> ValueType.URI,
           "<http://www.w3.org/2000/01/rdf-schema#label>" -> ValueType.STRING,
