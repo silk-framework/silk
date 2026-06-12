@@ -2,7 +2,6 @@ package org.silkframework.rule
 
 
 import org.silkframework.config.{PlainTask, Prefixes}
-import org.silkframework.dataset.DatasetSpec
 import org.silkframework.execution.ExecutorRegistry
 import org.silkframework.entity.EntitySchema
 import org.silkframework.entity.paths.UntypedPath
@@ -25,7 +24,7 @@ class TransformedDataSourceTest extends AnyFlatSpec with Matchers with TestPlugi
 
   it should "retrieve by URI on the transformed entities" in {
     val csvDataset = CsvDataset(inMemoryResource)
-    val csvSource = ExecutorRegistry.access(PlainTask("dataset", DatasetSpec(csvDataset))).source
+    val csvSource = ExecutorRegistry.access(csvDataset).source
     val entitySchema = EntitySchema(Uri(""), typedPaths = IndexedSeq(UntypedPath("ID")).map(_.asStringTypedPath))
     val entities = csvSource.retrieve(entitySchema).entities
     val entityUris = entities.map(_.uri.toString).toSet

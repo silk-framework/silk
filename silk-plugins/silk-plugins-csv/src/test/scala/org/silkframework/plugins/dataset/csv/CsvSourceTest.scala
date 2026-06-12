@@ -1,7 +1,7 @@
 package org.silkframework.plugins.dataset.csv
 
 
-import org.silkframework.config.{PlainTask, Prefixes}
+import org.silkframework.config.Prefixes
 import org.silkframework.dataset.{DataSource, DatasetSpec}
 import org.silkframework.execution.ExecutorRegistry
 import org.silkframework.entity.paths.UntypedPath
@@ -26,9 +26,9 @@ class CsvSourceTest extends AnyFlatSpec with Matchers {
   implicit val pluginContext: PluginContext = TestPluginContext(prefixes, resources)
 
   private def datasetSource(dataset: CsvDataset): DataSource =
-    ExecutorRegistry.access(PlainTask("csv", DatasetSpec(dataset))).source
+    ExecutorRegistry.access(dataset).source
   private def datasetSource(datasetSpec: DatasetSpec[CsvDataset]): DataSource =
-    ExecutorRegistry.access(PlainTask("csv", datasetSpec)).source
+    ExecutorRegistry.access(datasetSpec).source
 
   val settings =
     CsvSettings(

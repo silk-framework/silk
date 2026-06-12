@@ -4,7 +4,6 @@ package org.silkframework.plugins.dataset.json
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.must.Matchers
 import org.silkframework.dataset._
-import org.silkframework.config.PlainTask
 import org.silkframework.execution.ExecutorRegistry
 import org.silkframework.entity._
 import org.silkframework.entity.paths.{TypedPath, UntypedPath}
@@ -326,7 +325,7 @@ abstract class JsonSourceTest extends AnyFlatSpec with Matchers with TestPluginC
 
   it should "work with bulk zip files" in {
     val jsonDataset = createDataset(ReadOnlyResource(resources.get("example.zip")))
-    val source = ExecutorRegistry.access(PlainTask("json", DatasetSpec(jsonDataset))).source
+    val source = ExecutorRegistry.access(jsonDataset).source
     val paths = source.retrievePaths("persons")
     // Check for merged schema
     paths.map(_.normalizedSerialization) mustBe IndexedSeq("id", "name", "phoneNumbers", "additionalProperty")
@@ -355,7 +354,7 @@ abstract class JsonSourceTest extends AnyFlatSpec with Matchers with TestPluginC
 
   it should "retrieve paths when the asterisk operator is used in the type string" in {
     val jsonDataset = createDataset(ReadOnlyResource(resources.get("example.zip")))
-    val source = ExecutorRegistry.access(PlainTask("json", DatasetSpec(jsonDataset))).source
+    val source = ExecutorRegistry.access(jsonDataset).source
     source.retrievePaths("persons/*").map(_.serialize()) mustBe IndexedSeq("type", "number")
     source.retrievePaths("*/phoneNumbers").map(_.serialize()) mustBe IndexedSeq("type", "number")
   }

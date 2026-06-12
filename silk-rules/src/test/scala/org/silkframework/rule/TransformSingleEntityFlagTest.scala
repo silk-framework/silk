@@ -102,7 +102,7 @@ class TransformSingleEntityFlagTest extends AnyFlatSpec with Matchers {
       task = transformTask,
       inputTask = _ => inputTask,
       input = user => ExecutorRegistry.access(inputTask).source(user),
-      output = user => ExecutorRegistry.access(PlainTask("output", DatasetSpec(outputDataset))).entitySink(user),
+      output = user => ExecutorRegistry.access(outputDataset).entitySink(user),
       pluginContext = _ => PluginContext.empty
     )
 

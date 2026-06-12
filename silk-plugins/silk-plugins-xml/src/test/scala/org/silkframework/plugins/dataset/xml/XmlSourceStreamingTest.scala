@@ -1,7 +1,6 @@
 package org.silkframework.plugins.dataset.xml
 
-import org.silkframework.dataset.{DataSource, DatasetSpec}
-import org.silkframework.config.PlainTask
+import org.silkframework.dataset.DataSource
 import org.silkframework.execution.ExecutorRegistry
 import org.silkframework.entity.EntitySchema
 import org.silkframework.runtime.resource.{ClasspathResourceLoader, InMemoryResourceManager, ResourceTooLargeException}
@@ -28,7 +27,7 @@ class XmlSourceStreamingTest extends XmlSourceTestBase {
     val xmlResource = InMemoryResourceManager().get("file.xml")
     xmlResource.writeString(xml)
     val xmlDataset = XmlDataset(xmlResource)
-    val paths = ExecutorRegistry.access(PlainTask("xml", DatasetSpec(xmlDataset))).source.retrievePaths("")
+    val paths = ExecutorRegistry.access(xmlDataset).source.retrievePaths("")
     paths.map(_.toUntypedPath.normalizedSerialization) shouldBe Seq("AdditionalAttribute")
   }
 

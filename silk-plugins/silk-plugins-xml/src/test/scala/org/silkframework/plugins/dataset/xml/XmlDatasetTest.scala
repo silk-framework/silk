@@ -3,8 +3,6 @@ package org.silkframework.plugins.dataset.xml
 
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.must.Matchers
-import org.silkframework.config.PlainTask
-import org.silkframework.dataset.DatasetSpec
 import org.silkframework.execution.ExecutorRegistry
 import org.silkframework.entity.EntitySchema
 import org.silkframework.entity.paths.UntypedPath
@@ -85,7 +83,7 @@ class XmlDatasetTest extends AnyFlatSpec with Matchers with TestPluginContextTra
   }
 
   private def retrieveIDs(dataset: XmlDataset) = {
-    ExecutorRegistry.access(PlainTask("xml", DatasetSpec(dataset))).source.retrieve(EntitySchema("Person", typedPaths = IndexedSeq(UntypedPath("ID").asStringTypedPath))).entities.toArray.toSeq
+    ExecutorRegistry.access(dataset).source.retrieve(EntitySchema("Person", typedPaths = IndexedSeq(UntypedPath("ID").asStringTypedPath))).entities.toArray.toSeq
   }
 
   private def testOutputTemplate(outputTemplate: String) = {

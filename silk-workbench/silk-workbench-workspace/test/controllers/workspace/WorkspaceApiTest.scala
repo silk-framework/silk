@@ -8,7 +8,7 @@ import helper.IntegrationTestTrait
 import org.scalatest.concurrent.Eventually.eventually
 import org.scalatest.BeforeAndAfterAll
 import org.scalatestplus.play.PlaySpec
-import org.silkframework.config.{MetaData, PlainTask}
+import org.silkframework.config.MetaData
 import org.silkframework.dataset.DatasetSpec
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.execution.ExecutorRegistry
@@ -55,7 +55,7 @@ class WorkspaceApiTest extends PlaySpec with IntegrationTestTrait with Matchers 
       tripleSink.init()
       tripleSink.writeTriple("a", "http://prop", "c", StringValueType())
       tripleSink.close()
-      ExecutorRegistry.access(PlainTask("oneTripleInMemoryDataset", DatasetSpec(inMemoryDataset))).source.retrievePaths("").flatMap(_.propertyUri) mustBe Seq(Uri("http://prop"))
+      ExecutorRegistry.access(inMemoryDataset).source.retrievePaths("").flatMap(_.propertyUri) mustBe Seq(Uri("http://prop"))
       val datasetName = "oneTripleInMemoryDataset"
       val newProject = "newProject"
       val p = retrieveOrCreateProject(project)

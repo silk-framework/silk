@@ -16,8 +16,7 @@ package org.silkframework.plugins.dataset.rdf
 
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
-import org.silkframework.config.{PlainTask, Prefixes}
-import org.silkframework.dataset.DatasetSpec
+import org.silkframework.config.Prefixes
 import org.silkframework.entity.paths.UntypedPath
 import org.silkframework.entity.{EntitySchema, ValueType}
 import org.silkframework.execution.ExecutorRegistry
@@ -44,7 +43,7 @@ class FileDataSourceTest extends AnyFlatSpec with Matchers with TestPluginContex
 
   val dataset = RdfFileDataset(resourceLoader.get(fileName), "N-TRIPLE")
 
-  private def source = ExecutorRegistry.access(PlainTask("fileDataSource", DatasetSpec(dataset))).source
+  private def source = ExecutorRegistry.access(dataset).source
 
   val entityDescCity =
     EntitySchema(
