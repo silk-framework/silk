@@ -29,16 +29,23 @@ class InMemoryDatasetExecutor extends LocalDatasetExecutor[InMemoryDataset] {
     require(!closed, "Cannot access an InMemoryDatasetExecutor after it has been closed.")
     val datasetPlugin = task.data.plugin
     if (datasetPlugin.workflowScoped) {
-      if (!initialized) {
-        initialized = true
-        // Anchor the endpoint to the root execution so the parent and all nested workflows share one
-        // endpoint regardless of which accesses first. The root execution owns its lifecycle.
-        val key = ExecutionModelKey(execution.rootExecution.executionId, task.id)
-        endpoint = datasetPlugin.getOrCreateEndpoint(key, execution.rootExecution)
-        modelDataset = JenaModelDataset.fromEndpoint(endpoint, dropGraphOnClear = false)
+      if (execution.rootExecution.workflowId.isEmpty) {
+        // Out-of-workflow access (e.g. reading results after a workflow finished): reuse the dataset's
+        // current endpoint, which still holds the most recent workflow execution's data, instead of
+        // creating a new isolated, empty one. Don't touch this executor's execution-scoped state.
+        RdfDatasetSpecAccess(task.data, JenaModelDataset.fromEndpoint(datasetPlugin.endpoint, dropGraphOnClear = false))
+      } else {
+        if (!initialized) {
+          initialized = true
+          // Anchor the endpoint to the root execution so the parent and all nested workflows share one
+          // endpoint regardless of which accesses first. The root execution owns its lifecycle.
+          val key = ExecutionModelKey(execution.rootExecution.executionId, task.id)
+          endpoint = datasetPlugin.getOrCreateEndpoint(key, execution.rootExecution)
+          modelDataset = JenaModelDataset.fromEndpoint(endpoint, dropGraphOnClear = false)
+        }
+        datasetPlugin.updateEndpoint(endpoint)
+        RdfDatasetSpecAccess(task.data, modelDataset)
       }
-      datasetPlugin.updateEndpoint(endpoint)
-      RdfDatasetSpecAccess(task.data, modelDataset)
     } else {
       val ds = JenaModelDataset.fromEndpoint(datasetPlugin.endpoint, dropGraphOnClear = datasetPlugin.clearGraphBeforeExecution)
       RdfDatasetSpecAccess(task.data, ds)

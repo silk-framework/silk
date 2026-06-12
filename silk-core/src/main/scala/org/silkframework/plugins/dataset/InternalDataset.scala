@@ -30,7 +30,7 @@ case class InternalDataset(
 
 trait InternalDatasetTrait extends Dataset with TripleSinkDataset with RdfDataset {
   def internalDatasetPluginImpl: Dataset
-  private lazy val _internalDatasetPluginImpl = internalDatasetPluginImpl
+  private[dataset] lazy val _internalDatasetPluginImpl: Dataset = internalDatasetPluginImpl
 
   override def sparqlEndpoint: SparqlEndpoint = {
     _internalDatasetPluginImpl match {

@@ -13,7 +13,7 @@ import org.silkframework.execution.local.{LocalDatasetExecutor, LocalExecution}
 class InternalDatasetExecutor extends LocalDatasetExecutor[InternalDatasetTrait] {
 
   override def access(task: Task[DatasetSpec[InternalDatasetTrait]], execution: LocalExecution): DatasetAccess = {
-    val inner = task.data.plugin.internalDatasetPluginImpl
+    val inner = task.data.plugin._internalDatasetPluginImpl
     ExecutorRegistry.access(PlainTask(task.id, DatasetSpec(inner)), execution)
   }
 }
