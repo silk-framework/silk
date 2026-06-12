@@ -65,7 +65,7 @@ class JsonReaderTest extends AnyFlatSpec with Matchers {
     val example = json("exampleArrays.json")
 
     val arrayItems = example.select("data" :: Nil)
-    evaluate(arrayItems, "#id") should equal (Seq("L3C5", "L4C5"))
+    evaluate(arrayItems, "#id") should equal (Seq("65", "66"))
     evaluate(arrayItems, "#text") should equal (Seq("\"A\"", "\"B\""))
     evaluate(arrayItems, "#arrayText") should equal (Seq("[\"A\",\"B\"]"))
 
