@@ -25,6 +25,8 @@ import {
     Toolbar,
     ToolbarSection,
     Tooltip,
+    ApplicationViewability,
+    TitleSubsection,
 } from "@eccenca/gui-elements";
 import { TFunction } from "react-i18next";
 import { ActiveValueSelection } from "./ExampleValuesDialog.state";
@@ -207,7 +209,7 @@ export const ExampleListPane = ({
     <>
         <Toolbar className="ecc-silk-rule-block-example-values-dialog__header" noWrap>
             <ToolbarSection canGrow>
-                <strong>{t("taskViews.ruleBlock.examples.dialog.examples")}</strong>
+                <TitleSubsection>{t("taskViews.ruleBlock.examples.dialog.examples")}</TitleSubsection>
             </ToolbarSection>
             <ToolbarSection>
                 <Button
@@ -461,9 +463,11 @@ export const ExampleDetailPane = ({
         <>
             <Toolbar className="ecc-silk-rule-block-example-values-dialog__header" noWrap>
                 <ToolbarSection canGrow canShrink hideOverflow>
-                    <h3 className="ecc-silk-rule-block-example-values-dialog__title">
-                        {exampleDisplayTitle(example, exampleIndex, t)}
-                    </h3>
+                    <ApplicationViewability hide={"screen"}>
+                        <TitleSubsection className="ecc-silk-rule-block-example-values-dialog__title">
+                            {exampleDisplayTitle(example, exampleIndex, t)}
+                        </TitleSubsection>
+                    </ApplicationViewability>
                 </ToolbarSection>
                 <ToolbarSection className="ecc-silk-rule-block-example-values-dialog__header-actions">
                     <Button onClick={onDuplicateExample} rightIcon={"item-clone"} variant={"outlined"}>
