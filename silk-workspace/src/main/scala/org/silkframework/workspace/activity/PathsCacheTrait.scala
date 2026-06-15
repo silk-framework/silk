@@ -29,10 +29,11 @@ trait PathsCacheTrait {
     val inputTask = project.anyTask(inputTaskId)
     inputTask.data match {
       case _: DatasetSpec[Dataset] =>
+        val datasetTask = inputTask.asInstanceOf[Task[DatasetSpec[Dataset]]]
         context.status.update("Retrieving frequent paths", 0.0)
         dataSelection match {
           case Some(selection) =>
-            retrievePaths(ExecutorRegistry.access(inputTask.asInstanceOf[Task[DatasetSpec[Dataset]]]).source, selection)
+            retrievePaths(ExecutorRegistry.access(datasetTask).source, selection)
           case None => IndexedSeq()
         }
       case task: TaskSpec =>
