@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from "react";
 import PrefixesDialog from "./PrefixesDialog";
-import { useDispatch, useSelector } from "react-redux";
-import { workspaceOp, workspaceSel } from "@ducks/workspace";
-import { IPrefixDefinition } from "@ducks/workspace/typings";
+import { useSelector } from "react-redux";
+import { IPrefixDefinition, IDetailedProjectPrefixes } from "@ducks/workspace/typings";
 import Loading from "../../../shared/Loading";
 
 import {
@@ -21,21 +20,46 @@ import {
 import { useTranslation } from "react-i18next";
 import { commonSel } from "@ducks/common";
 import useHotKey from "../../../../views/shared/HotKeyHandler/HotKeyHandler";
-import { AppDispatch } from "store/configureStore";
+import { requestDetailedProjectPrefixes } from "@ducks/workspace/requests";
 
 const VISIBLE_COUNT = 5;
 
+interface IPrefixLists {
+    effectivePrefixes: IPrefixDefinition[];
+    projectPrefixes: IPrefixDefinition[];
+    workspacePrefixes: IPrefixDefinition[];
+}
+
+const emptyPrefixLists: IPrefixLists = {
+    effectivePrefixes: [],
+    projectPrefixes: [],
+    workspacePrefixes: [],
+};
+
+const formatPrefixMap = (prefixes: Record<string, string>): IPrefixDefinition[] =>
+    Object.keys(prefixes)
+        .sort((left, right) => left.localeCompare(right))
+        .map((prefixName) => ({
+            prefixName,
+            prefixUri: prefixes[prefixName],
+        }));
+
+const formatDetailedPrefixLists = (prefixes: IDetailedProjectPrefixes): IPrefixLists => ({
+    effectivePrefixes: formatPrefixMap({
+        ...prefixes.workspacePrefixes,
+        ...prefixes.projectPrefixes,
+    }),
+    projectPrefixes: formatPrefixMap(prefixes.projectPrefixes),
+    workspacePrefixes: formatPrefixMap(prefixes.workspacePrefixes),
+});
+
 /** The project namespace prefix management widget that allows adding, updating and removing namespace prefixes. */
 export const ProjectNamespacePrefixManagementWidget = () => {
-    const dispatch = useDispatch<AppDispatch>();
-    const prefixList = useSelector(workspaceSel.prefixListSelector);
-
-    const [visiblePrefixes, setVisiblePrefixes] = useState<IPrefixDefinition[]>([]);
+    const [prefixLists, setPrefixLists] = useState<IPrefixLists>(emptyPrefixLists);
+    const [isLoading, setIsLoading] = useState<boolean>(false);
     const [isOpen, setIsOpen] = useState<boolean>(false);
-    const configurationWidget = useSelector(workspaceSel.widgetsSelector).configuration;
     const projectId = useSelector(commonSel.currentProjectIdSelector);
-
-    const { isLoading } = configurationWidget;
+    const visiblePrefixes = prefixLists.effectivePrefixes.slice(0, VISIBLE_COUNT);
 
     useHotKey({
         hotkey: "e p",
@@ -45,18 +69,33 @@ export const ProjectNamespacePrefixManagementWidget = () => {
         },
     });
 
+    const refreshPrefixes = React.useCallback(async (): Promise<IDetailedProjectPrefixes> => {
+        if (!projectId) {
+            setPrefixLists(emptyPrefixLists);
+            return {
+                projectPrefixes: {},
+                workspacePrefixes: {},
+            };
+        }
+        setIsLoading(true);
+        try {
+            const { data } = await requestDetailedProjectPrefixes(projectId);
+            setPrefixLists(formatDetailedPrefixLists(data));
+            return data;
+        } finally {
+            setIsLoading(false);
+        }
+    }, [projectId]);
+
     useEffect(() => {
         if (projectId) {
-            dispatch(workspaceOp.fetchProjectPrefixesAsync(projectId));
+            void refreshPrefixes();
+        } else {
+            setPrefixLists(emptyPrefixLists);
         }
-    }, [workspaceOp, projectId]);
+    }, [projectId, refreshPrefixes]);
 
-    useEffect(() => {
-        const visibleItems = prefixList.slice(0, VISIBLE_COUNT);
-        setVisiblePrefixes(visibleItems);
-    }, [prefixList]);
-
-    const getFullSizeOfList = () => Object.keys(prefixList).length;
+    const getFullSizeOfList = () => prefixLists.effectivePrefixes.length;
     const handleOpen = () => setIsOpen(true);
     const handleClose = () => setIsOpen(false);
 
@@ -114,7 +153,14 @@ export const ProjectNamespacePrefixManagementWidget = () => {
                             </OverviewItem>
                         </OverviewItemList>
                         {projectId && (
-                            <PrefixesDialog projectId={projectId} isOpen={isOpen} onCloseModal={handleClose} />
+                            <PrefixesDialog
+                                projectId={projectId}
+                                isOpen={isOpen}
+                                onCloseModal={handleClose}
+                                projectPrefixes={prefixLists.projectPrefixes}
+                                workspacePrefixes={prefixLists.workspacePrefixes}
+                                refreshPrefixes={refreshPrefixes}
+                            />
                         )}
                     </>
                 )}

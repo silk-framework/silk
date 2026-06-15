@@ -25,15 +25,6 @@ const appliedFacetsSelector = createSelector([filtersSelector], (filters) => fil
 
 const paginationSelector = createSelector([filtersSelector], (filters) => filters.pagination);
 
-const prefixListSelector = createSelector([widgetsSelector], (widgets) => widgets.configuration.prefixes);
-const projectPrefixListSelector = createSelector([widgetsSelector], (widgets) => widgets.configuration.projectPrefixes);
-const workspacePrefixListSelector = createSelector(
-    [widgetsSelector],
-    (widgets) => widgets.configuration.workspacePrefixes,
-);
-
-const widgetErrorSelector = createSelector([widgetsSelector], (widgets) => widgets.configuration.error);
-
 const warningListSelector = createSelector([widgetsSelector], (widgets) => widgets.warnings.results);
 
 const filesListSelector = createSelector([widgetsSelector, commonSelector], (widgets, common) =>
@@ -44,8 +35,6 @@ const filesListSelector = createSelector([widgetsSelector, commonSelector], (wid
         ...item,
     })),
 );
-
-const newPrefixSelector = createSelector([widgetsSelector], (widgets) => widgets.configuration.newPrefix);
 
 const isEmptyPageSelector = createSelector(
     [isLoadingSelector, resultsSelector, commonSelector],
@@ -61,16 +50,11 @@ const workspaceSelectors = {
     facetsSelector,
     errorSelector,
     isLoadingSelector,
-    prefixListSelector,
-    projectPrefixListSelector,
-    workspacePrefixListSelector,
-    newPrefixSelector,
     warningListSelector,
     filesListSelector,
     isEmptyPageSelector,
     widgetsSelector,
     commonSelector,
-    widgetErrorSelector,
 };
 
 export default workspaceSelectors;

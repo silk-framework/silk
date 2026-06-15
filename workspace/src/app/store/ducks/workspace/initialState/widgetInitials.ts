@@ -1,22 +1,4 @@
-import { IPrefixDefinition, IWidgetsState } from "@ducks/workspace/typings";
-
-export function initialNewPrefixState(): IPrefixDefinition {
-    return {
-        prefixName: "",
-        prefixUri: "",
-    };
-}
-
-export function initialConfigurationState() {
-    return {
-        prefixes: [],
-        projectPrefixes: [],
-        workspacePrefixes: [],
-        newPrefix: initialNewPrefixState(),
-        isLoading: false,
-        error: {},
-    };
-}
+import { IWidgetsState } from "@ducks/workspace/typings";
 
 export function initialWarningItemState() {
     return {
@@ -49,7 +31,6 @@ export function initialFilesState() {
 
 export function initialWidgetsState(): IWidgetsState {
     return {
-        configuration: initialConfigurationState(),
         warnings: initialWarningState(),
         files: initialFilesState(),
     };

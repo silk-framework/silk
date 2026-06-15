@@ -16,29 +16,6 @@ export interface IDetailedProjectPrefixes {
     workspacePrefixes: Record<string, string>;
 }
 
-export interface IWorkspaceConfigurationWidget {
-    /**
-     * Effective prefix list with project prefixes taking precedence over equally named workspace prefixes.
-     */
-    prefixes: IPrefixDefinition[];
-    /**
-     * Project-owned prefixes.
-     */
-    projectPrefixes: IPrefixDefinition[];
-    /**
-     * Workspace-owned prefixes.
-     */
-    workspacePrefixes: IPrefixDefinition[];
-    /**
-     * Plain object  for new prefix
-     */
-    newPrefix: IPrefixDefinition;
-
-    isLoading: boolean;
-
-    error: any;
-}
-
 export interface IWarningWidgetItem {
     taskId: string;
     errorSummary: string;
@@ -68,11 +45,6 @@ export interface IFilesWidget {
 }
 
 export interface IWidgetsState {
-    /**
-     * Store Project details page all widgets by widget name
-     */
-    configuration: IWorkspaceConfigurationWidget;
-
     warnings: IWarningWidget;
 
     files: IFilesWidget;

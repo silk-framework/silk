@@ -1,7 +1,6 @@
 import React, { useState } from "react";
-import { batch, useDispatch, useSelector } from "react-redux";
-import { IPrefixDefinition } from "@ducks/workspace/typings";
-import { workspaceSel } from "@ducks/workspace";
+import { useSelector } from "react-redux";
+import { IDetailedProjectPrefixes, IPrefixDefinition } from "@ducks/workspace/typings";
 import { commonSel } from "@ducks/common";
 import {
     Button,
@@ -19,29 +18,29 @@ import DeleteModal from "../../../shared/modals/DeleteModal";
 import PrefixNew from "./PrefixNew";
 import DataList from "../../../shared/Datalist";
 import { useTranslation } from "react-i18next";
-import { updatePrefixLists } from "@ducks/workspace/widgets/configuration.thunk";
-import {
-    requestChangePrefixes,
-    requestDetailedProjectPrefixes,
-    requestRemoveProjectPrefix,
-} from "@ducks/workspace/requests";
-import { widgetsSlice } from "@ducks/workspace/widgetsSlice";
+import { requestChangePrefixes, requestRemoveProjectPrefix } from "@ducks/workspace/requests";
 import { ErrorResponse } from "../../../../services/fetch/responseInterceptor";
 import { useModalError } from "../../../../hooks/useModalError";
-import { AppDispatch } from "store/configureStore";
 import Loading from "../../../shared/Loading";
 
 interface IProps {
     projectId: string;
     onCloseModal: () => any;
     isOpen: boolean;
+    projectPrefixes: IPrefixDefinition[];
+    workspacePrefixes: IPrefixDefinition[];
+    refreshPrefixes: () => Promise<IDetailedProjectPrefixes>;
 }
 
 /** Manages project prefix definitions. */
-const PrefixesDialog = ({ onCloseModal, isOpen, projectId }: IProps) => {
-    const dispatch = useDispatch<AppDispatch>();
-    const projectPrefixes = useSelector(workspaceSel.projectPrefixListSelector);
-    const workspacePrefixes = useSelector(workspaceSel.workspacePrefixListSelector);
+const PrefixesDialog = ({
+    onCloseModal,
+    isOpen,
+    projectId,
+    projectPrefixes,
+    workspacePrefixes,
+    refreshPrefixes,
+}: IProps) => {
     const { dmBaseUrl } = useSelector(commonSel.initialSettingsSelector);
     const [loading, setLoading] = React.useState<boolean>(false);
     const [error, setError] = React.useState<ErrorResponse | undefined>();
@@ -67,18 +66,13 @@ const PrefixesDialog = ({ onCloseModal, isOpen, projectId }: IProps) => {
         setError(undefined);
     }, [isOpen]);
 
-    const refreshPrefixLists = React.useCallback(async () => {
-        const { data } = await requestDetailedProjectPrefixes(projectId);
-        dispatch(updatePrefixLists(data));
-    }, [dispatch, projectId]);
-
     const handleConfirmRemove = React.useCallback(async () => {
         try {
             setLoading(true);
             if (selectedPrefix) {
                 setError(undefined);
                 await requestRemoveProjectPrefix(selectedPrefix.prefixName, projectId);
-                await refreshPrefixLists();
+                await refreshPrefixes();
                 toggleRemoveDialog();
             }
         } catch (err) {
@@ -89,7 +83,7 @@ const PrefixesDialog = ({ onCloseModal, isOpen, projectId }: IProps) => {
         } finally {
             setLoading(false);
         }
-    }, [checkAndDisplayPrefixError, projectId, refreshPrefixLists, selectedPrefix, t]);
+    }, [checkAndDisplayPrefixError, projectId, refreshPrefixes, selectedPrefix, t]);
 
     const handleAddOrUpdatePrefix = React.useCallback(
         async (prefix: IPrefixDefinition) => {
@@ -98,11 +92,7 @@ const PrefixesDialog = ({ onCloseModal, isOpen, projectId }: IProps) => {
                 setError(undefined);
                 const { prefixName, prefixUri } = prefix;
                 await requestChangePrefixes(prefixName, JSON.stringify(prefixUri), projectId);
-                const { data } = await requestDetailedProjectPrefixes(projectId);
-                batch(() => {
-                    dispatch(widgetsSlice.actions.resetNewPrefix());
-                    dispatch(updatePrefixLists(data));
-                });
+                await refreshPrefixes();
             } catch (err) {
                 checkAndDisplayPrefixError(
                     err,
@@ -112,7 +102,7 @@ const PrefixesDialog = ({ onCloseModal, isOpen, projectId }: IProps) => {
                 setLoading(false);
             }
         },
-        [checkAndDisplayPrefixError, dispatch, projectId, t],
+        [checkAndDisplayPrefixError, projectId, refreshPrefixes, t],
     );
 
     const existingProjectPrefixes = React.useMemo(

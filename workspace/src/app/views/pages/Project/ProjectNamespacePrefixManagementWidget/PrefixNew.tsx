@@ -1,4 +1,4 @@
-import React, { KeyboardEventHandler, useEffect, useState } from "react";
+import React, { KeyboardEventHandler, useState } from "react";
 import { AlertDialog, Button, FieldItem, FieldItemRow, FieldSet, Icon, TextField } from "@eccenca/gui-elements";
 import { useTranslation } from "react-i18next";
 import { IPrefixDefinition } from "@ducks/workspace/typings";
@@ -58,8 +58,6 @@ const PrefixNew = ({ onAdd, existingProjectPrefixes, existingWorkspacePrefixes }
     // The prefix value is invalid when the value is false or a number, which specifies the character index of the first invalid char.
     const [isValidPrefixValue, setIsValidPrefixValue] = useState<boolean | number>(false);
     const [overwriteDialogOpen, setOverwriteDialogOpen] = useState<boolean>(false);
-
-    useEffect(() => {}, [prefixDefinition.prefixName + prefixDefinition.prefixUri]);
 
     const isUpdatePrefix = existingProjectPrefixes.has(prefixDefinition.prefixName);
     const isWorkspaceOverride = !isUpdatePrefix && existingWorkspacePrefixes.has(prefixDefinition.prefixName);
