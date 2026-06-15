@@ -11,11 +11,24 @@ export interface IPrefixDefinition {
     prefixUri: string;
 }
 
+export interface IDetailedProjectPrefixes {
+    projectPrefixes: Record<string, string>;
+    workspacePrefixes: Record<string, string>;
+}
+
 export interface IWorkspaceConfigurationWidget {
     /**
-     * Array of prefixes List
+     * Effective prefix list with project prefixes taking precedence over equally named workspace prefixes.
      */
     prefixes: IPrefixDefinition[];
+    /**
+     * Project-owned prefixes.
+     */
+    projectPrefixes: IPrefixDefinition[];
+    /**
+     * Workspace-owned prefixes.
+     */
+    workspacePrefixes: IPrefixDefinition[];
     /**
      * Plain object  for new prefix
      */

@@ -16,6 +16,12 @@ export const widgetsSlice = createSlice({
         setPrefixes(state, action) {
             state.configuration.prefixes = action.payload;
         },
+        setDetailedPrefixes(state, action) {
+            const { prefixes, projectPrefixes, workspacePrefixes } = action.payload;
+            state.configuration.prefixes = prefixes;
+            state.configuration.projectPrefixes = projectPrefixes;
+            state.configuration.workspacePrefixes = workspacePrefixes;
+        },
         updateNewPrefix(state, action) {
             const { field, value } = action.payload;
             state.configuration.newPrefix = {

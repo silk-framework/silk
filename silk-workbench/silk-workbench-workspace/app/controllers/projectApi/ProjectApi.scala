@@ -3,7 +3,7 @@ package controllers.projectApi
 import config.WorkbenchConfig
 import controllers.core.UserContextActions
 import controllers.core.util.ControllerUtilsTrait
-import controllers.projectApi.ProjectApi.{CreateTagsRequest, ProjectTagsResponse, ProjectUriResponse}
+import controllers.projectApi.ProjectApi.{CreateTagsRequest, DetailedProjectPrefixesResponse, ProjectTagsResponse, ProjectUriResponse}
 import controllers.projectApi.doc.ProjectApiDoc
 import controllers.projectApi.requests.OriginalTaskDataResponse.OriginalTaskDataJsonFormat
 import controllers.projectApi.requests.ReloadFailedTaskRequest
@@ -393,6 +393,38 @@ class ProjectApi @Inject()(accessMonitor: WorkbenchAccessMonitor) extends Inject
     val project = getProject(projectId)
     accessMonitor.saveProjectAccess(project.config.id) // Only accessed on the project details page
     Ok(Json.toJson(project.config.prefixes.prefixMap))
+  }
+
+  /** Returns project and workspace prefixes separately. */
+  @Operation(
+    summary = "Detailed project prefixes",
+    description = "Project namespace prefix definitions split into project-owned and workspace-owned prefixes. If the same prefix exists in both maps, the project prefix has precedence.",
+    responses = Array(
+      new ApiResponse(
+        responseCode = "200",
+        description = "Success",
+        content = Array(new Content(
+          mediaType = "application/json",
+          schema = new Schema(implementation = classOf[DetailedProjectPrefixesResponse]),
+          examples = Array(new ExampleObject("{ \"projectPrefixes\": { \"customPrefix\": \"http://customPrefix.cc/\" }, \"workspacePrefixes\": { \"rdf\": \"http://www.w3.org/1999/02/22-rdf-syntax-ns#\", \"foaf\": \"http://xmlns.com/foaf/0.1/\" } }"))
+        ))
+      ),
+      new ApiResponse(
+        responseCode = "404",
+        description = "If the project does not exist."
+      )
+    ))
+  def fetchDetailedProjectPrefixes(@Parameter(
+                                     name = "projectId",
+                                     description = "The project identifier",
+                                     required = true,
+                                     in = ParameterIn.PATH,
+                                     schema = new Schema(implementation = classOf[String])
+                                   )
+                                   projectId: String): Action[AnyContent] = UserContextAction { implicit userContext =>
+    val project = getProject(projectId)
+    accessMonitor.saveProjectAccess(project.config.id) // Only accessed on the project details page
+    Ok(Json.toJson(DetailedProjectPrefixesResponse(project.config.projectPrefixes.prefixMap, project.config.workspacePrefixes.prefixMap)))
   }
 
   /** Add or update project prefix. */
@@ -840,6 +872,13 @@ class ProjectApi @Inject()(accessMonitor: WorkbenchAccessMonitor) extends Inject
 }
 
 object ProjectApi {
+  @Schema(description = "Project namespace prefix definitions split by ownership.")
+  case class DetailedProjectPrefixesResponse(
+    @Schema(description = "Prefixes owned by the project. These take precedence over equally named workspace prefixes.")
+    projectPrefixes: Map[String, String],
+    @Schema(description = "Prefixes provided by the workspace. These are available in the project but not owned by it.")
+    workspacePrefixes: Map[String, String]
+  )
 
   @Schema(description = "Lists all user-defined tags.")
   case class ProjectTagsResponse(@ArraySchema(schema = new Schema(implementation = classOf[FullTag]))
@@ -889,6 +928,7 @@ object ProjectApi {
     }
   }
 
+  implicit val detailedProjectPrefixesResponseFormat: Format[DetailedProjectPrefixesResponse] = Json.format[DetailedProjectPrefixesResponse]
   implicit val projectTagsResponseFormat: Format[ProjectTagsResponse] = Json.format[ProjectTagsResponse]
   implicit val createTagFormat: Format[CreateTag] = Json.format[CreateTag]
   implicit val createTagsRequestFormat: Format[CreateTagsRequest] = Json.format[CreateTagsRequest]

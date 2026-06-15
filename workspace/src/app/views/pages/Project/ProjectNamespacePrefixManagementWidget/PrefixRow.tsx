@@ -2,6 +2,7 @@ import React from "react";
 import { IPrefixDefinition } from "@ducks/workspace/typings";
 import {
     IconButton,
+    Icon,
     OverviewItem,
     OverviewItemActions,
     OverviewItemDescription,
@@ -11,12 +12,13 @@ import { useTranslation } from "react-i18next";
 
 interface IProps {
     prefix: IPrefixDefinition;
-
-    onRemove();
+    ownership: "project" | "workspace";
+    onRemove?: () => void;
 }
 
-const PrefixRow = ({ prefix, onRemove }: IProps) => {
+const PrefixRow = ({ prefix, ownership, onRemove }: IProps) => {
     const [t] = useTranslation();
+    const isWorkspacePrefix = ownership === "workspace";
 
     return (
         <OverviewItem>
@@ -29,11 +31,20 @@ const PrefixRow = ({ prefix, onRemove }: IProps) => {
                 </OverviewItemLine>
             </OverviewItemDescription>
             <OverviewItemActions>
-                <IconButton
-                    name="item-remove"
-                    text={t("common.action.DeleteSmth", { smth: t("widget.ConfigWidget.prefix") })}
-                    onClick={onRemove}
-                />
+                {isWorkspacePrefix ? (
+                    <Icon
+                        name="state-locked"
+                        tooltipText={t("PrefixDialog.workspacePrefixReadOnly", "Workspace prefix, read-only here")}
+                    />
+                ) : (
+                    onRemove && (
+                        <IconButton
+                            name="item-remove"
+                            text={t("common.action.DeleteSmth", { smth: t("widget.ConfigWidget.prefix") })}
+                            onClick={onRemove}
+                        />
+                    )
+                )}
             </OverviewItemActions>
         </OverviewItem>
     );

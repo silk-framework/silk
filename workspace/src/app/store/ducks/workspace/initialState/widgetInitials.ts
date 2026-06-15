@@ -10,6 +10,8 @@ export function initialNewPrefixState(): IPrefixDefinition {
 export function initialConfigurationState() {
     return {
         prefixes: [],
+        projectPrefixes: [],
+        workspacePrefixes: [],
         newPrefix: initialNewPrefixState(),
         isLoading: false,
         error: {},

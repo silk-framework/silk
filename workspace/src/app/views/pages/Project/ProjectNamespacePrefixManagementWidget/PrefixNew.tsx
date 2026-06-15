@@ -6,7 +6,8 @@ import useHotKey from "../../../shared/HotKeyHandler/HotKeyHandler";
 
 interface IProps {
     onAdd: (prefixDefinition: IPrefixDefinition) => any;
-    existingPrefixes: Set<string>;
+    existingProjectPrefixes: Set<string>;
+    existingWorkspacePrefixes: Set<string>;
 }
 
 /** From https://www.w3.org/TR/turtle/#grammar-production-PN_PREFIX */
@@ -50,7 +51,7 @@ export const validatePrefixValue = (prefixValue: string): boolean | number => {
 };
 
 /** Component for entering a new prefix. */
-const PrefixNew = ({ onAdd, existingPrefixes }: IProps) => {
+const PrefixNew = ({ onAdd, existingProjectPrefixes, existingWorkspacePrefixes }: IProps) => {
     const [t] = useTranslation();
     const [prefixDefinition, setPrefixDefinition] = useState<IPrefixDefinition>({ prefixName: "", prefixUri: "" });
     const [isValidPrefixName, setIsValidPrefixName] = useState<boolean>(false);
@@ -60,7 +61,8 @@ const PrefixNew = ({ onAdd, existingPrefixes }: IProps) => {
 
     useEffect(() => {}, [prefixDefinition.prefixName + prefixDefinition.prefixUri]);
 
-    const isUpdatePrefix = existingPrefixes.has(prefixDefinition.prefixName);
+    const isUpdatePrefix = existingProjectPrefixes.has(prefixDefinition.prefixName);
+    const isWorkspaceOverride = !isUpdatePrefix && existingWorkspacePrefixes.has(prefixDefinition.prefixName);
 
     const onPrefixNameChange = (e) => {
         const value = e?.target?.value;
@@ -104,9 +106,9 @@ const PrefixNew = ({ onAdd, existingPrefixes }: IProps) => {
 
     const handleSubmit = React.useCallback(() => {
         if (!submitButtonDisabled) {
-            isUpdatePrefix ? setOverwriteDialogOpen(true) : onAdd(prefixDefinition);
+            isUpdatePrefix || isWorkspaceOverride ? setOverwriteDialogOpen(true) : onAdd(prefixDefinition);
         }
-    }, [prefixDefinition, existingPrefixes, submitButtonDisabled]);
+    }, [prefixDefinition, isUpdatePrefix, isWorkspaceOverride, submitButtonDisabled]);
 
     const enterHandler: KeyboardEventHandler<HTMLInputElement> = React.useCallback(
         (event): void => {
@@ -125,6 +127,17 @@ const PrefixNew = ({ onAdd, existingPrefixes }: IProps) => {
             onAdd(prefixDefinition);
         }, []);
 
+        const confirmLabel = isUpdatePrefix
+            ? t("common.action.update")
+            : t("PrefixDialog.overrideWorkspacePrefixAction", "Override in project");
+        const message = isUpdatePrefix
+            ? t("PrefixDialog.overwritePrefix", { prefixName: prefixDefinition.prefixName })
+            : t("PrefixDialog.overrideWorkspacePrefix", {
+                  defaultValue:
+                      "The workspace prefix '{{prefixName}}' will stay unchanged. This project prefix will override it only inside this project.",
+                  prefixName: prefixDefinition.prefixName,
+              });
+
         useHotKey({ hotkey: "enter", handler: submitHandler });
 
         return (
@@ -136,21 +149,21 @@ const PrefixNew = ({ onAdd, existingPrefixes }: IProps) => {
                 data-test-id={"update-prefix-dialog"}
                 actions={[
                     <Button key="overwrite" data-test-id={"prefix-update-dialog-submit-btn"} onClick={submitHandler}>
-                        {t("common.action.update", "Abort")}
+                        {confirmLabel}
                     </Button>,
                     <Button key="cancel" onClick={closeOverwriteDialog}>
                         {t("common.action.cancel")}
                     </Button>,
                 ]}
             >
-                <p> {t("PrefixDialog.overwritePrefix", { prefixName: prefixDefinition.prefixName })}</p>
+                <p>{message}</p>
             </AlertDialog>
         );
     };
 
     return (
         <>
-            <FieldSet title={t("common.action.AddSmth", { smth: t("widget.ConfigWidget.prefix") })} boxed>
+            <FieldSet title={t("PrefixDialog.addProjectPrefix", "Add project prefix")} boxed>
                 <FieldItemRow>
                     <FieldItem
                         key={"prefix-name"}
@@ -187,12 +200,20 @@ const PrefixNew = ({ onAdd, existingPrefixes }: IProps) => {
                     </FieldItem>
                     <FieldItem key={"prefix-submit"}>
                         <Button
-                            data-test-id={isUpdatePrefix ? "update-prefix-definition-btn" : "add-prefix-definition-btn"}
+                            data-test-id={
+                                isUpdatePrefix || isWorkspaceOverride
+                                    ? "update-prefix-definition-btn"
+                                    : "add-prefix-definition-btn"
+                            }
                             onClick={handleSubmit}
                             elevated
                             disabled={submitButtonDisabled}
                         >
-                            {isUpdatePrefix ? t("common.action.update") : t("common.action.add")}
+                            {isUpdatePrefix
+                                ? t("common.action.update")
+                                : isWorkspaceOverride
+                                  ? t("PrefixDialog.overrideWorkspacePrefixAction", "Override in project")
+                                  : t("common.action.add")}
                         </Button>
                     </FieldItem>
                 </FieldItemRow>

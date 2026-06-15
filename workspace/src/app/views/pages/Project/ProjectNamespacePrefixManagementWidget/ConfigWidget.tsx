@@ -114,12 +114,7 @@ export const ProjectNamespacePrefixManagementWidget = () => {
                             </OverviewItem>
                         </OverviewItemList>
                         {projectId && (
-                            <PrefixesDialog
-                                projectId={projectId}
-                                isOpen={isOpen}
-                                onCloseModal={handleClose}
-                                existingPrefixes={new Set(prefixList.map((p) => p.prefixName))}
-                            />
+                            <PrefixesDialog projectId={projectId} isOpen={isOpen} onCloseModal={handleClose} />
                         )}
                     </>
                 )}

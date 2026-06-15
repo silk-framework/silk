@@ -26,6 +26,11 @@ const appliedFacetsSelector = createSelector([filtersSelector], (filters) => fil
 const paginationSelector = createSelector([filtersSelector], (filters) => filters.pagination);
 
 const prefixListSelector = createSelector([widgetsSelector], (widgets) => widgets.configuration.prefixes);
+const projectPrefixListSelector = createSelector([widgetsSelector], (widgets) => widgets.configuration.projectPrefixes);
+const workspacePrefixListSelector = createSelector(
+    [widgetsSelector],
+    (widgets) => widgets.configuration.workspacePrefixes,
+);
 
 const widgetErrorSelector = createSelector([widgetsSelector], (widgets) => widgets.configuration.error);
 
@@ -37,14 +42,14 @@ const filesListSelector = createSelector([widgetsSelector, commonSelector], (wid
         formattedDate: item.modified ? new Date(item.modified).toLocaleString() : "N/A",
         formattedSize: item.size ? item.size.toLocaleString(common.locale) : "N/A",
         ...item,
-    }))
+    })),
 );
 
 const newPrefixSelector = createSelector([widgetsSelector], (widgets) => widgets.configuration.newPrefix);
 
 const isEmptyPageSelector = createSelector(
     [isLoadingSelector, resultsSelector, commonSelector],
-    (isLoading, results, commonStore) => !isLoading && !results.length && commonStore.initialSettings.emptyWorkspace
+    (isLoading, results, commonStore) => !isLoading && !results.length && commonStore.initialSettings.emptyWorkspace,
 );
 
 const workspaceSelectors = {
@@ -57,6 +62,8 @@ const workspaceSelectors = {
     errorSelector,
     isLoadingSelector,
     prefixListSelector,
+    projectPrefixListSelector,
+    workspacePrefixListSelector,
     newPrefixSelector,
     warningListSelector,
     filesListSelector,
