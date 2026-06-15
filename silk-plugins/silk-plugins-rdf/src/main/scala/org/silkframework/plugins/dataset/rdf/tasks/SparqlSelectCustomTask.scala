@@ -43,7 +43,8 @@ case class SparqlSelectCustomTask(
       "Example: SELECT * WHERE { GRAPH <{{ input.config.graph }}> { ?s ?p ?o } }",
     example = "select * where { ?s ?p ?o }")
   selectQuery: SparqlCodeParameter,
-  @Param(label = "Result limit", value = "If set to a positive integer, the number of results is limited")
+  @Param(label = "Result limit", value = "If set to a positive integer, the number of results is limited. " +
+    "The limit is applied per query: if one query is generated per input entity, it caps the results of each query, not the combined total.")
   limit: String = "",
   @Param(
     label = "Optional SPARQL dataset",

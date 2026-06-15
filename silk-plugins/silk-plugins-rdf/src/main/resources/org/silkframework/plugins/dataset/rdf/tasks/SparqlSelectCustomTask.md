@@ -9,7 +9,7 @@ The _input_ depends on the configuration:
 
 - By default, the query is executed against the connected input, which must be a _SPARQL endpoint_
   (i.e. an RDF dataset).
-- When **Use default RDF dataset** (`useDefaultDataset`) is enabled, the query is executed against the project's
+- When **Use default RDF dataset** (`useDefaultDataset`) is enabled, the query is executed against the configured
   default RDF dataset instead. If the template references input entity properties, the task accepts an entity
   input and generates one query per entity; otherwise it needs no input at all.
 
