@@ -52,7 +52,7 @@ case class SparqlUpdateCustomTask(
 
   val compiledTemplate: SparqlTemplate = SparqlTemplate.create(templatingMode, sparqlUpdateTemplate.str)
   for(variables <- sparqlUpdateTemplate.variables) {
-    compiledTemplate.validate(variables, None)
+    compiledTemplate.validate(variables, Some(batchSize))
   }
 
   def requiresInput: Boolean = compiledTemplate.requiresInput
