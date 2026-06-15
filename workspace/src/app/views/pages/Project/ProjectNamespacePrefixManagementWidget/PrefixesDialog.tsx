@@ -22,6 +22,7 @@ import { requestChangePrefixes, requestRemoveProjectPrefix } from "@ducks/worksp
 import { ErrorResponse } from "../../../../services/fetch/responseInterceptor";
 import { useModalError } from "../../../../hooks/useModalError";
 import Loading from "../../../shared/Loading";
+import styles from "./index.module.scss";
 
 interface IProps {
     projectId: string;
@@ -31,6 +32,8 @@ interface IProps {
     workspacePrefixes: IPrefixDefinition[];
     refreshPrefixes: () => Promise<IDetailedProjectPrefixes>;
 }
+
+const projectPrefixRowId = (prefixName: string): string => `project-prefix-${encodeURIComponent(prefixName)}`;
 
 /** Manages project prefix definitions. */
 const PrefixesDialog = ({
@@ -48,6 +51,7 @@ const PrefixesDialog = ({
 
     const [isOpenRemove, setIsOpenRemove] = useState<boolean>(false);
     const [selectedPrefix, setSelectedPrefix] = useState<IPrefixDefinition | undefined>(undefined);
+    const [highlightedProjectPrefix, setHighlightedProjectPrefix] = useState<string | undefined>(undefined);
 
     const [t] = useTranslation();
 
@@ -65,6 +69,14 @@ const PrefixesDialog = ({
     React.useEffect(() => {
         setError(undefined);
     }, [isOpen]);
+
+    React.useEffect(() => {
+        if (!highlightedProjectPrefix) {
+            return undefined;
+        }
+        const timeoutId = window.setTimeout(() => setHighlightedProjectPrefix(undefined), 1800);
+        return () => window.clearTimeout(timeoutId);
+    }, [highlightedProjectPrefix]);
 
     const handleConfirmRemove = React.useCallback(async () => {
         try {
@@ -113,6 +125,15 @@ const PrefixesDialog = ({
         () => new Set(workspacePrefixes.map((prefix) => prefix.prefixName)),
         [workspacePrefixes],
     );
+    const overriddenWorkspacePrefixes = React.useMemo(
+        () =>
+            new Set(
+                workspacePrefixes
+                    .map((prefix) => prefix.prefixName)
+                    .filter((prefixName) => existingProjectPrefixes.has(prefixName)),
+            ),
+        [existingProjectPrefixes, workspacePrefixes],
+    );
 
     const workspaceVocabUrl = React.useMemo(() => {
         if (!dmBaseUrl) {
@@ -120,6 +141,15 @@ const PrefixesDialog = ({
         }
         return `${dmBaseUrl.replace(/\/+$/, "")}/vocab`;
     }, [dmBaseUrl]);
+
+    const jumpToProjectPrefix = React.useCallback((prefixName: string) => {
+        const targetRow = document.getElementById(projectPrefixRowId(prefixName));
+        setHighlightedProjectPrefix(prefixName);
+        targetRow?.scrollIntoView({
+            behavior: "smooth",
+            block: "center",
+        });
+    }, []);
 
     const workspaceSectionDescription = workspaceVocabUrl ? (
         <p>
@@ -188,8 +218,15 @@ const PrefixesDialog = ({
                             {projectPrefixes.map((prefix, i) => (
                                 <PrefixRow
                                     key={i}
+                                    rowId={projectPrefixRowId(prefix.prefixName)}
+                                    rowClassName={
+                                        highlightedProjectPrefix === prefix.prefixName
+                                            ? styles.highlightedPrefixRow
+                                            : undefined
+                                    }
                                     prefix={prefix}
                                     ownership="project"
+                                    overridesWorkspacePrefix={existingWorkspacePrefixes.has(prefix.prefixName)}
                                     onRemove={() => toggleRemoveDialog(prefix)}
                                 />
                             ))}
@@ -213,7 +250,17 @@ const PrefixesDialog = ({
                                 emptyListMessage={workspaceEmptyMessage}
                             >
                                 {workspacePrefixes.map((prefix, i) => (
-                                    <PrefixRow key={i} prefix={prefix} ownership="workspace" />
+                                    <PrefixRow
+                                        key={i}
+                                        prefix={prefix}
+                                        ownership="workspace"
+                                        overriddenInProject={overriddenWorkspacePrefixes.has(prefix.prefixName)}
+                                        onJumpToProjectPrefix={
+                                            overriddenWorkspacePrefixes.has(prefix.prefixName)
+                                                ? () => jumpToProjectPrefix(prefix.prefixName)
+                                                : undefined
+                                        }
+                                    />
                                 ))}
                             </DataList>
                         </Section>

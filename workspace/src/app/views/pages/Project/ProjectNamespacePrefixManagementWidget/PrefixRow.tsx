@@ -7,24 +7,58 @@ import {
     OverviewItemActions,
     OverviewItemDescription,
     OverviewItemLine,
+    Tag,
 } from "@eccenca/gui-elements";
 import { useTranslation } from "react-i18next";
+import styles from "./index.module.scss";
 
 interface IProps {
     prefix: IPrefixDefinition;
     ownership: "project" | "workspace";
+    rowId?: string;
+    rowClassName?: string;
+    overridesWorkspacePrefix?: boolean;
+    overriddenInProject?: boolean;
+    onJumpToProjectPrefix?: () => void;
     onRemove?: () => void;
 }
 
-const PrefixRow = ({ prefix, ownership, onRemove }: IProps) => {
+const PrefixRow = ({
+    prefix,
+    ownership,
+    rowId,
+    rowClassName,
+    overridesWorkspacePrefix = false,
+    overriddenInProject = false,
+    onJumpToProjectPrefix,
+    onRemove,
+}: IProps) => {
     const [t] = useTranslation();
     const isWorkspacePrefix = ownership === "workspace";
 
     return (
-        <OverviewItem>
+        <OverviewItem id={rowId} className={`${styles.prefixRow}${rowClassName ? ` ${rowClassName}` : ""}`}>
             <OverviewItemDescription>
                 <OverviewItemLine>
-                    <span>{prefix.prefixName}</span>
+                    <span>
+                        {prefix.prefixName}
+                        {overridesWorkspacePrefix && (
+                            <>
+                                {" "}
+                                <Tag small emphasis="weaker">
+                                    {t("PrefixDialog.overridesWorkspacePrefixBadge", "Overrides workspace prefix")}
+                                </Tag>
+                            </>
+                        )}
+                        {overriddenInProject && (
+                            <>
+                                {" "}
+                                <Tag small emphasis="weaker">
+                                    {t("PrefixDialog.overriddenInProjectBadge", "Overridden in project")}
+                                </Tag>
+                            </>
+                        )}
+                    </span>
                 </OverviewItemLine>
                 <OverviewItemLine small>
                     <span>{prefix.prefixUri}</span>
@@ -32,10 +66,19 @@ const PrefixRow = ({ prefix, ownership, onRemove }: IProps) => {
             </OverviewItemDescription>
             <OverviewItemActions>
                 {isWorkspacePrefix ? (
-                    <Icon
-                        name="state-locked"
-                        tooltipText={t("PrefixDialog.workspacePrefixReadOnly", "Workspace prefix, read-only here")}
-                    />
+                    <>
+                        {onJumpToProjectPrefix && (
+                            <IconButton
+                                name="item-viewdetails"
+                                text={t("PrefixDialog.showProjectOverride", "Show project override")}
+                                onClick={onJumpToProjectPrefix}
+                            />
+                        )}
+                        <Icon
+                            name="state-locked"
+                            tooltipText={t("PrefixDialog.workspacePrefixReadOnly", "Workspace prefix, read-only here")}
+                        />
+                    </>
                 ) : (
                     onRemove && (
                         <IconButton
