@@ -14,6 +14,7 @@
   },
   "devDependencies": {},
   "resolutions": {
+    "**/@blueprintjs/core": "6.8.1",
     "**/cookiejar": "2.1.4",
     "**/decode-uri-component": "0.2.2",
     "**/express": "4.18.2",
@@ -27,6 +28,7 @@
     "**/semver-regex": "3.1.4",
     "**/@types/react": "^18.2.0",
     "**/url-parse": "1.5.9",
-    "**/react-redux": "^9.1.2"
+    "**/react-redux": "^9.1.2",
+    "**/react-syntax-highlighter": "^15.0.0"
   }
 }

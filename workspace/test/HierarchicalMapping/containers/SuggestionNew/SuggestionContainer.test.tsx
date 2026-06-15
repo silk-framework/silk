@@ -1,6 +1,6 @@
 import React from "react";
 import SuggestionContainer from "../../../../src/app/views/pages/MappingEditor/HierarchicalMapping/containers/SuggestionNew/SuggestionContainer";
-import {act, fireEvent, RenderResult, waitFor} from "@testing-library/react";
+import { act, fireEvent, RenderResult, waitFor } from "@testing-library/react";
 import { logWrapperHtmlOnError, rangeArray } from "../../utils/TestHelpers";
 import {
     findElement,
@@ -78,9 +78,11 @@ const props = {
 
 const getWrapper = async (args = props): Promise<RenderResult> => {
     let history = createBrowserHistory();
-    return await act(() => renderWrapper(<SuggestionContainer {...args} />, history, {
-        common: { initialSettings: { dmBaseUrl: "http://docker.local" } },
-    }));
+    return await act(() =>
+        renderWrapper(<SuggestionContainer {...args} />, history, {
+            common: { initialSettings: { dmBaseUrl: "http://docker.local" } },
+        }),
+    );
 };
 
 jest.mock("../../../../src/app/views/pages/MappingEditor/HierarchicalMapping/store", () => {

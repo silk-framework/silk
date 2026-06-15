@@ -22,7 +22,7 @@ import {
     renderWrapper,
 } from "../../TestHelper";
 import { CreateArtefactModal } from "../../../../src/app/views/shared/modals/CreateArtefactModal/CreateArtefactModal";
-import {act, fireEvent, RenderResult, waitFor, within} from "@testing-library/react";
+import { act, fireEvent, RenderResult, waitFor, within } from "@testing-library/react";
 import {
     IOverviewArtefactItemList,
     IPluginDetails,

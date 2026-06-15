@@ -2,7 +2,7 @@ import { Highlighter, Spacing, Tag } from "@eccenca/gui-elements";
 import React from "react";
 import { IParameterSpecification, IParameterValidationResult } from "../../RuleEditor.typings";
 import { ruleEditorNodeParameterValue, RuleEditorNodeParameterValue } from "../../model/RuleEditorModel.typings";
-import Color from "color";
+import { ColorLike } from "color";
 
 /** Adds highlighting to the text if query is non-empty. */
 export const addHighlighting = (text: string, query?: string): string | React.JSX.Element => {
@@ -13,7 +13,7 @@ export const addHighlighting = (text: string, query?: string): string | React.JS
 const createOperatorTags = (
     tags: string[],
     query?: string,
-    color?: (tag: string) => Color | string | undefined,
+    color?: (tag: string) => ColorLike | undefined,
 ): React.JSX.Element[] => {
     const returnArray: React.JSX.Element[] = [];
     tags.forEach((tag, idx) => {
