@@ -213,6 +213,7 @@ export const ExampleListPane = ({
                 <Button
                     text={t("taskViews.ruleBlock.examples.dialog.newExample")}
                     intent={"accent"}
+                    variant={"outlined"}
                     rightIcon={"item-add-artefact"}
                     onClick={onCreateExample}
                     data-test-id={"example-values-new-example"}
@@ -366,12 +367,13 @@ export const ExamplePortValuesList = ({
                                     </TagList>
                                 </ToolbarSection>
                                 <ToolbarSection className="ecc-silk-rule-block-example-values-dialog__port-action">
-                                    <Button
+                                    <IconButton
                                         onClick={() => onAddValue(port.id)}
                                         data-test-id={`example-values-add-${port.id}`}
-                                    >
-                                        {t("taskViews.ruleBlock.examples.dialog.addValue")}
-                                    </Button>
+                                        name="item-add-artefact"
+                                        variant={"outlined"}
+                                        text={t("taskViews.ruleBlock.examples.dialog.addValue")}
+                                    />
                                 </ToolbarSection>
                             </Toolbar>
                         </PropertyValue>
@@ -464,10 +466,15 @@ export const ExampleDetailPane = ({
                     </h3>
                 </ToolbarSection>
                 <ToolbarSection className="ecc-silk-rule-block-example-values-dialog__header-actions">
-                    <Button onClick={onDuplicateExample} rightIcon={"item-clone"}>
+                    <Button onClick={onDuplicateExample} rightIcon={"item-clone"} variant={"outlined"}>
                         {t("taskViews.ruleBlock.examples.dialog.duplicateExample")}
                     </Button>
-                    <Button disruptive onClick={() => onDeleteExample(example.id)} rightIcon={"item-remove"}>
+                    <Button
+                        disruptive
+                        onClick={() => onDeleteExample(example.id)}
+                        rightIcon={"item-remove"}
+                        variant={"outlined"}
+                    >
                         {t("taskViews.ruleBlock.examples.dialog.deleteExample")}
                     </Button>
                 </ToolbarSection>
