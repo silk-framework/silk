@@ -86,8 +86,20 @@ class SparqlJinjaTemplate(rawTemplate: String, defaultScope: Seq[String] = Seq.e
     EntitySchema(typeUri = Uri(""), typedPaths = paths.toIndexedSeq)
   }
 
-  override def isStaticTemplate: Boolean = {
-    entityPropertyNames.isEmpty
+  override def requiresInput: Boolean = {
+    referencesInputTask
+  }
+
+  /**
+    * Whether the template references the connected input task, either through its entity values
+    * (`input.entity.*`) or its parameters (`input.config.*`). Such a template needs an input port
+    * so the input task gets connected, hence it is not static.
+    */
+  private def referencesInputTask: Boolean = {
+    referencedVariables.exists { variable =>
+      val effectiveScope = if (variable.scope.isEmpty) defaultScope else variable.scope
+      effectiveScope.headOption.contains(INPUT_SCOPE)
+    }
   }
 
   private def buildValues(entity: Option[Entity],
@@ -130,6 +142,7 @@ object SparqlJinjaTemplate {
 
   private[templating] final val JINJA_ENGINE_ID = "jinja"
 
+  private[templating] final val INPUT_SCOPE: String = "input"
   private[templating] final val INPUT_CONFIG_SCOPE: Seq[String] = Seq("input", "config")
   private[templating] final val INPUT_ENTITY_SCOPE: Seq[String] = Seq("input", "entity")
   private[templating] final val OUTPUT_CONFIG_SCOPE: Seq[String] = Seq("output", "config")

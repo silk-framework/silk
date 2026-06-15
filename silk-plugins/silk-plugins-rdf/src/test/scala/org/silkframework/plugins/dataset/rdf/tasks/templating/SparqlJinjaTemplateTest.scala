@@ -85,13 +85,17 @@ class SparqlJinjaTemplateTest extends AnyFlatSpec with Matchers {
     paths.toSet mustBe Set("subject", "label")
   }
 
-  it should "report a Jinja template with no entity references as static" in {
+  it should "report whether a Jinja template requires an input based on the input task references" in {
     val staticTemplate = SparqlTemplate.create(JinjaTemplateEngine.id,
+      """INSERT DATA { <{{ output.config.graph }}> <urn:p> "v" } ;""")
+    staticTemplate.requiresInput mustBe false
+    // References the input task's parameters, so it needs an input port even though it has no entity paths.
+    val inputConfigTemplate = SparqlTemplate.create(JinjaTemplateEngine.id,
       """INSERT DATA { <{{ input.config.target }}> <urn:p> "v" } ;""")
-    staticTemplate.isStaticTemplate mustBe true
+    inputConfigTemplate.requiresInput mustBe true
     val dynamicTemplate = SparqlTemplate.create(JinjaTemplateEngine.id,
       """INSERT DATA { <{{ input.entity.subject }}> <urn:p> "v" } ;""")
-    dynamicTemplate.isStaticTemplate mustBe false
+    dynamicTemplate.requiresInput mustBe true
   }
 
   it should "render a realistic SPARQL Update template combining all variable scopes, filters and a conditional" in {
@@ -112,7 +116,7 @@ class SparqlJinjaTemplateTest extends AnyFlatSpec with Matchers {
 
     template.inputSchema.typedPaths.flatMap(_.property).map(_.propertyUri.uri).toSet mustBe
       Set("subject", "label", "comment")
-    template.isStaticTemplate mustBe false
+    template.requiresInput mustBe true
 
     val taskProps = TaskProperties(inputTask = Map.empty, outputTask = Map("graph" -> "urn:graph:out"))
     val projectAndGlobal = Seq(

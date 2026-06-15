@@ -55,15 +55,15 @@ case class SparqlUpdateCustomTask(
     compiledTemplate.validate(variables, None)
   }
 
-  def isStaticTemplate: Boolean = compiledTemplate.isStaticTemplate
+  def requiresInput: Boolean = compiledTemplate.requiresInput
 
   def expectedInputSchema: EntitySchema = compiledTemplate.inputSchema
 
   override def inputPorts: InputPorts = {
-    if(isStaticTemplate) {
-      InputPorts.NoInputPorts
-    } else {
+    if(requiresInput) {
       FixedNumberOfInputs(Seq(FixedSchemaPort(expectedInputSchema)))
+    } else {
+      InputPorts.NoInputPorts
     }
   }
 

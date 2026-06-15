@@ -50,7 +50,7 @@ case class LocalSparqlUpdateExecutor() extends LocalExecutor[SparqlUpdateCustomT
         val batchEmitter = BatchSparqlUpdateEmitter(f, updateTask.batchSize, reportUpdater)
         val expectedProperties = getInputProperties(expectedSchema)
         reportUpdater.startNewOutputSamples(SampleEntitiesSchema("", "", IndexedSeq("Sparql Update query")))
-        if (updateTask.isStaticTemplate) {
+        if (!updateTask.requiresInput) {
           // Static template needs to be executed exactly once
           executeTemplate(batchEmitter, updateTask, outputTask = output.task)
         } else {

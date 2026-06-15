@@ -91,10 +91,10 @@ class SparqlLegacyTemplate(template: CompiledTemplate) extends SparqlTemplate {
     EntitySchema(typeUri = Uri(""), typedPaths = typedPaths.toIndexedSeq)
   }
 
-  override def isStaticTemplate: Boolean = {
+  override def requiresInput: Boolean = {
     sparqlVariables match {
-      case Some(vars) => vars.isEmpty
-      case None => false
+      case Some(vars) => vars.nonEmpty
+      case None => true
     }
   }
 

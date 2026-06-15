@@ -90,16 +90,16 @@ case class SparqlSelectCustomTask(
     queryTemplate.validate(variables, None)
   }
 
-  def isStaticTemplate: Boolean = queryTemplate.isStaticTemplate
+  def requiresInput: Boolean = queryTemplate.requiresInput
 
   def expectedInputSchema: EntitySchema = queryTemplate.inputSchema
 
   override def inputPorts: InputPorts = {
     if (useDefaultDataset) {
-      if (isStaticTemplate) {
-        InputPorts.NoInputPorts
-      } else {
+      if (requiresInput) {
         FixedNumberOfInputs(Seq(FixedSchemaPort(expectedInputSchema)))
+      } else {
+        InputPorts.NoInputPorts
       }
     } else {
       FixedNumberOfInputs(Seq(FixedSchemaPort(SparqlEndpointEntitySchema.schema)))

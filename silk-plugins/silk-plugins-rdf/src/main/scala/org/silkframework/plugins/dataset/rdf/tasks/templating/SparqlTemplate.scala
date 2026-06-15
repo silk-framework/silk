@@ -43,8 +43,9 @@ trait SparqlTemplate {
   /** Output schema projected by a SELECT query. Unused for UPDATE templates. */
   def outputSchema: EntitySchema
 
-  /** True if the template does not reference any entity values and thus needs no input port. */
-  def isStaticTemplate: Boolean
+  /** True if the template references the connected input task (its entity values or its parameters)
+    * and thus needs an input port. False for static templates that need no input. */
+  def requiresInput: Boolean
 }
 
 object SparqlTemplate {
