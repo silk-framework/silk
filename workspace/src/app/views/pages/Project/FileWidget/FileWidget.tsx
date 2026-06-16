@@ -28,7 +28,7 @@ import { EmptyFileWidget } from "./EmptyFileWidget";
 import { SearchBar } from "../../../shared/SearchBar/SearchBar";
 import { usePagination } from "@eccenca/gui-elements/src/components/Pagination/Pagination";
 import { commonSel } from "@ducks/common";
-import { useTranslation } from "react-i18next";
+import { useTranslation, TFunction } from "react-i18next";
 import { FileRemoveModal } from "../../../shared/modals/FileRemoveModal";
 import { CONTEXT_PATH } from "../../../../constants/path";
 import { fileValue, IProjectResource } from "@ducks/shared/typings";
@@ -107,16 +107,17 @@ const sortIconName = (
 };
 
 const sortButtonText = (
+    t: TFunction,
     currentSortBy: string | undefined,
     currentSortOrder: SortModifierType | undefined,
     sortBy: FileSortColumn,
 ) => {
     if (currentSortBy !== sortBy) {
-        return "Sort column: ascending";
+        return t("common.action.sortColumn.ascending", "Sort column: ascending");
     } else if (currentSortOrder === "ASC") {
-        return "Sort column: descending";
+        return t("common.action.sortColumn.descending", "Sort column: descending");
     } else {
-        return "Sort column: remove";
+        return t("common.action.sortColumn.remove", "Sort column: remove");
     }
 };
 
@@ -182,7 +183,7 @@ function FileTable({ filesList, headers, projectId, textQuery, onDelete }: IFile
                                                 size={"small"}
                                                 data-test-id={`project-files-sort-${property.key}`}
                                                 name={sortIconName(sortBy, sortOrder, property.key)}
-                                                text={sortButtonText(sortBy, sortOrder, property.key)}
+                                                text={sortButtonText(t, sortBy, sortOrder, property.key)}
                                                 onClick={() =>
                                                     updateGlobalTableSettings(
                                                         nextSortState(sortBy, sortOrder, property.key),
