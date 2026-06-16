@@ -14,6 +14,7 @@ export interface IPrefixDefinition {
 export interface IDetailedProjectPrefixes {
     projectPrefixes: Record<string, string>;
     workspacePrefixes: Record<string, string>;
+    defaultPrefixes: Record<string, string>;
 }
 
 export interface IWarningWidgetItem {

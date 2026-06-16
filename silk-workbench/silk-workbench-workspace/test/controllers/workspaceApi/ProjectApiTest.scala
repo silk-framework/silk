@@ -89,6 +89,7 @@ class ProjectApiTest extends AnyFlatSpec with IntegrationTestTrait with Matchers
     detailedPrefixes.isSuccess mustBe true
     detailedPrefixes.get.projectPrefixes(overlappingPrefix) mustBe overridingProjectUri
     detailedPrefixes.get.workspacePrefixes(overlappingPrefix) mustBe project.config.workspacePrefixes(overlappingPrefix)
+    detailedPrefixes.get.defaultPrefixes mustBe Prefixes.default.prefixMap
   }
 
   it should "Update project prefixes" in {

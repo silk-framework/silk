@@ -28,12 +28,14 @@ interface IPrefixLists {
     effectivePrefixes: IPrefixDefinition[];
     projectPrefixes: IPrefixDefinition[];
     workspacePrefixes: IPrefixDefinition[];
+    defaultPrefixes: IPrefixDefinition[];
 }
 
 const emptyPrefixLists: IPrefixLists = {
     effectivePrefixes: [],
     projectPrefixes: [],
     workspacePrefixes: [],
+    defaultPrefixes: [],
 };
 
 const formatPrefixMap = (prefixes: Record<string, string>): IPrefixDefinition[] =>
@@ -51,6 +53,7 @@ const formatDetailedPrefixLists = (prefixes: IDetailedProjectPrefixes): IPrefixL
     }),
     projectPrefixes: formatPrefixMap(prefixes.projectPrefixes),
     workspacePrefixes: formatPrefixMap(prefixes.workspacePrefixes),
+    defaultPrefixes: formatPrefixMap(prefixes.defaultPrefixes),
 });
 
 /** The project namespace prefix management widget that allows adding, updating and removing namespace prefixes. */
@@ -75,6 +78,7 @@ export const ProjectNamespacePrefixManagementWidget = () => {
             return {
                 projectPrefixes: {},
                 workspacePrefixes: {},
+                defaultPrefixes: {},
             };
         }
         setIsLoading(true);
@@ -159,6 +163,7 @@ export const ProjectNamespacePrefixManagementWidget = () => {
                                 onCloseModal={handleClose}
                                 projectPrefixes={prefixLists.projectPrefixes}
                                 workspacePrefixes={prefixLists.workspacePrefixes}
+                                defaultPrefixes={prefixLists.defaultPrefixes}
                                 refreshPrefixes={refreshPrefixes}
                             />
                         )}

@@ -30,6 +30,7 @@ interface IProps {
     isOpen: boolean;
     projectPrefixes: IPrefixDefinition[];
     workspacePrefixes: IPrefixDefinition[];
+    defaultPrefixes: IPrefixDefinition[];
     refreshPrefixes: () => Promise<IDetailedProjectPrefixes>;
 }
 
@@ -42,6 +43,7 @@ const PrefixesDialog = ({
     projectId,
     projectPrefixes,
     workspacePrefixes,
+    defaultPrefixes,
     refreshPrefixes,
 }: IProps) => {
     const { dmBaseUrl } = useSelector(commonSel.initialSettingsSelector);
@@ -125,7 +127,19 @@ const PrefixesDialog = ({
         () => new Set(workspacePrefixes.map((prefix) => prefix.prefixName)),
         [workspacePrefixes],
     );
-    const overriddenWorkspacePrefixes = React.useMemo(
+    const explorePrefixes = React.useMemo(
+        () =>
+            workspacePrefixes.filter(
+                (prefix) =>
+                    !defaultPrefixes.some(
+                        (defaultPrefix) =>
+                            defaultPrefix.prefixName === prefix.prefixName &&
+                            defaultPrefix.prefixUri === prefix.prefixUri,
+                    ),
+            ),
+        [defaultPrefixes, workspacePrefixes],
+    );
+    const overriddenReadonlyPrefixes = React.useMemo(
         () =>
             new Set(
                 workspacePrefixes
@@ -163,10 +177,18 @@ const PrefixesDialog = ({
             )}
         </p>
     ) : null;
+    const defaultSectionDescription = (
+        <p>
+            {t(
+                "PrefixDialog.defaultPrefixesDescription",
+                "These built-in prefixes are always available in DI and cannot be edited here.",
+            )}
+        </p>
+    );
 
-    const workspaceEmptyMessage = t(
-        "PrefixDialog.workspacePrefixesEmpty",
-        "No workspace prefixes are currently registered. Manage them in Explore's vocabulary module.",
+    const exploreEmptyMessage = t(
+        "PrefixDialog.explorePrefixesEmpty",
+        "No Explore prefixes are currently registered. Manage them in Explore's vocabulary module.",
     );
 
     return (
@@ -237,26 +259,26 @@ const PrefixesDialog = ({
                         <Section>
                             <SectionHeader>
                                 <TitleSubsection>
-                                    {t("PrefixDialog.workspacePrefixesTitle", "Workspace prefixes")}
+                                    {t("PrefixDialog.workspacePrefixesTitle", "Explore prefixes")}
                                 </TitleSubsection>
                                 <HtmlContentBlock small>{workspaceSectionDescription}</HtmlContentBlock>
                             </SectionHeader>
                             <Divider addSpacing="medium" />
                             <DataList
-                                isEmpty={!workspacePrefixes.length}
+                                isEmpty={!explorePrefixes.length}
                                 isLoading={false}
                                 hasSpacing
                                 hasDivider
-                                emptyListMessage={workspaceEmptyMessage}
+                                emptyListMessage={exploreEmptyMessage}
                             >
-                                {workspacePrefixes.map((prefix, i) => (
+                                {explorePrefixes.map((prefix, i) => (
                                     <PrefixRow
                                         key={i}
                                         prefix={prefix}
                                         ownership="workspace"
-                                        overriddenInProject={overriddenWorkspacePrefixes.has(prefix.prefixName)}
+                                        overriddenInProject={overriddenReadonlyPrefixes.has(prefix.prefixName)}
                                         onJumpToProjectPrefix={
-                                            overriddenWorkspacePrefixes.has(prefix.prefixName)
+                                            overriddenReadonlyPrefixes.has(prefix.prefixName)
                                                 ? () => jumpToProjectPrefix(prefix.prefixName)
                                                 : undefined
                                         }
@@ -265,6 +287,40 @@ const PrefixesDialog = ({
                             </DataList>
                         </Section>
                     )}
+                    <Spacing />
+                    <Section>
+                        <SectionHeader>
+                            <TitleSubsection>
+                                {t("PrefixDialog.defaultPrefixesTitle", "Default prefixes")}
+                            </TitleSubsection>
+                            <HtmlContentBlock small>{defaultSectionDescription}</HtmlContentBlock>
+                        </SectionHeader>
+                        <Divider addSpacing="medium" />
+                        <DataList
+                            isEmpty={!defaultPrefixes.length}
+                            isLoading={false}
+                            hasSpacing
+                            hasDivider
+                            emptyListMessage={t(
+                                "PrefixDialog.defaultPrefixesEmpty",
+                                "No default prefixes are currently configured.",
+                            )}
+                        >
+                            {defaultPrefixes.map((prefix, i) => (
+                                <PrefixRow
+                                    key={i}
+                                    prefix={prefix}
+                                    ownership="workspace"
+                                    overriddenInProject={overriddenReadonlyPrefixes.has(prefix.prefixName)}
+                                    onJumpToProjectPrefix={
+                                        overriddenReadonlyPrefixes.has(prefix.prefixName)
+                                            ? () => jumpToProjectPrefix(prefix.prefixName)
+                                            : undefined
+                                    }
+                                />
+                            ))}
+                        </DataList>
+                    </Section>
                 </>
             )}
             <DeleteModal

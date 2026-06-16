@@ -398,7 +398,7 @@ class ProjectApi @Inject()(accessMonitor: WorkbenchAccessMonitor) extends Inject
   /** Returns project and workspace prefixes separately. */
   @Operation(
     summary = "Detailed project prefixes",
-    description = "Project namespace prefix definitions split into project-owned and workspace-owned prefixes. If the same prefix exists in both maps, the project prefix has precedence.",
+    description = "Project namespace prefix definitions split into project-owned, workspace-owned, and built-in default prefixes. If the same prefix exists in both project and workspace maps, the project prefix has precedence.",
     responses = Array(
       new ApiResponse(
         responseCode = "200",
@@ -406,7 +406,7 @@ class ProjectApi @Inject()(accessMonitor: WorkbenchAccessMonitor) extends Inject
         content = Array(new Content(
           mediaType = "application/json",
           schema = new Schema(implementation = classOf[DetailedProjectPrefixesResponse]),
-          examples = Array(new ExampleObject("{ \"projectPrefixes\": { \"customPrefix\": \"http://customPrefix.cc/\" }, \"workspacePrefixes\": { \"rdf\": \"http://www.w3.org/1999/02/22-rdf-syntax-ns#\", \"foaf\": \"http://xmlns.com/foaf/0.1/\" } }"))
+          examples = Array(new ExampleObject("{ \"projectPrefixes\": { \"customPrefix\": \"http://customPrefix.cc/\" }, \"workspacePrefixes\": { \"rdf\": \"http://www.w3.org/1999/02/22-rdf-syntax-ns#\", \"foaf\": \"http://xmlns.com/foaf/0.1/\" }, \"defaultPrefixes\": { \"rdf\": \"http://www.w3.org/1999/02/22-rdf-syntax-ns#\", \"rdfs\": \"http://www.w3.org/2000/01/rdf-schema#\" } }"))
         ))
       ),
       new ApiResponse(
@@ -424,7 +424,11 @@ class ProjectApi @Inject()(accessMonitor: WorkbenchAccessMonitor) extends Inject
                                    projectId: String): Action[AnyContent] = UserContextAction { implicit userContext =>
     val project = getProject(projectId)
     accessMonitor.saveProjectAccess(project.config.id) // Only accessed on the project details page
-    Ok(Json.toJson(DetailedProjectPrefixesResponse(project.config.projectPrefixes.prefixMap, project.config.workspacePrefixes.prefixMap)))
+    Ok(Json.toJson(DetailedProjectPrefixesResponse(
+      projectPrefixes = project.config.projectPrefixes.prefixMap,
+      workspacePrefixes = project.config.workspacePrefixes.prefixMap,
+      defaultPrefixes = Prefixes.default.prefixMap
+    )))
   }
 
   /** Add or update project prefix. */
@@ -877,7 +881,9 @@ object ProjectApi {
     @Schema(description = "Prefixes owned by the project. These take precedence over equally named workspace prefixes.")
     projectPrefixes: Map[String, String],
     @Schema(description = "Prefixes provided by the workspace. These are available in the project but not owned by it.")
-    workspacePrefixes: Map[String, String]
+    workspacePrefixes: Map[String, String],
+    @Schema(description = "Built-in default prefixes that are always available in DI/Silk.")
+    defaultPrefixes: Map[String, String]
   )
 
   @Schema(description = "Lists all user-defined tags.")
