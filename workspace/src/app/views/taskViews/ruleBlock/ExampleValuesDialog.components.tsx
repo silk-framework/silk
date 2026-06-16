@@ -29,6 +29,7 @@ import {
     TitleSubsection,
     FlexibleLayoutContainer,
     FlexibleLayoutItem,
+    Label,
 } from "@eccenca/gui-elements";
 import { TFunction } from "react-i18next";
 import { ActiveValueSelection } from "./ExampleValuesDialog.state";
@@ -342,8 +343,12 @@ export const ExamplePortValuesList = ({
                                     : "ecc-silk-rule-block-example-values-dialog__port-name"
                             }
                         >
-                            <Tooltip content={port.label}>
-                                <OverflowText>{port.label}</OverflowText>
+                            <Tooltip content={port.label} targetProps={{ style: { maxWidth: "100%" } }}>
+                                <Label
+                                    text={<OverflowText inline>{port.label}</OverflowText>}
+                                    isLayoutForElement="span"
+                                    emphasis={"strong"}
+                                />
                             </Tooltip>
                         </PropertyName>
                         <PropertyValue>
@@ -362,13 +367,15 @@ export const ExamplePortValuesList = ({
                                                 <Tooltip
                                                     key={`${port.id}-${valueIndex}`}
                                                     content={
-                                                        <span className="ecc-silk-rule-block-example-values-dialog__tooltip-value">
+                                                        <div
+                                                            className="ecc-silk-rule-block-example-values-dialog__tooltip-value"
+                                                            style={{ whiteSpace: "pre-wrap" }}
+                                                        >
                                                             {value || " "}
-                                                        </span>
+                                                        </div>
                                                     }
                                                 >
                                                     <Tag
-                                                        interactive
                                                         intent={isActive ? "accent" : undefined}
                                                         onClick={() => onSelectValue(port.id, valueIndex)}
                                                         onRemove={(event) => {
@@ -525,7 +532,8 @@ export const ExampleDetailPane = ({
                     />
                 </FieldItem>
             </FlexibleLayoutItem>
-            <FlexibleLayoutItem style={{ overflowX: "auto" }}>
+            <Spacing size="small" hasDivider />
+            <FlexibleLayoutItem style={{ overflow: "auto" }}>
                 <ExamplePortValuesList
                     ports={ports}
                     example={example}
@@ -537,10 +545,10 @@ export const ExampleDetailPane = ({
                     onAddValue={onAddValue}
                 />
             </FlexibleLayoutItem>
+            {isEditorVisible ? <Spacing size="small" hasDivider /> : null}
             {isEditorVisible ? (
                 <FlexibleLayoutItem growFactor={0} shrinkFactor={0}>
                     <div className="ecc-silk-rule-block-example-values-dialog__editor-section">
-                        <Spacing size="small" hasDivider />
                         <FieldSet boxed className="ecc-silk-rule-block-example-values-dialog__editor-pane">
                             <Toolbar className="ecc-silk-rule-block-example-values-dialog__editor-header" noWrap>
                                 <ToolbarSection canGrow canShrink hideOverflow>

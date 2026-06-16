@@ -16,55 +16,15 @@
     &__port {
         &-pair {
             &--highlighted {
-                border-radius: 0.25rem;
-                background-color: rgb(15 98 254 / 0.08);
+                background-color: $eccgui-color-accent-contrast;
             }
         }
 
         &-name {
-            min-width: 5rem;
-            max-width: 5rem;
-
             &--highlighted {
-                color: var(--cc-color-brand-primary, #0f62fe);
-                font-weight: 600;
-            }
-
-            > * {
-                display: block;
-                max-width: 100%;
+                color: $eccgui-color-accent;
             }
         }
-
-        &-value-content {
-            align-items: flex-start;
-            flex-wrap: nowrap;
-            width: 100%;
-        }
-
-        &-tags {
-            min-width: 0;
-
-            > * {
-                display: flex;
-                flex-wrap: wrap;
-                gap: 0.25rem;
-            }
-
-            .bp5-tag,
-            .pt-tag {
-                max-width: 100%;
-            }
-        }
-
-        &-action {
-            flex: 0 0 auto;
-            margin-left: auto;
-        }
-    }
-
-    &__tooltip-value {
-        white-space: pre-wrap;
     }
 
     &__editor-pane {
