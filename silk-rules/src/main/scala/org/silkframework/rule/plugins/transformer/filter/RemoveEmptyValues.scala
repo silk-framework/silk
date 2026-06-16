@@ -15,14 +15,25 @@
 package org.silkframework.rule.plugins.transformer.filter
 
 import org.silkframework.rule.annotations.{TransformExample, TransformExamples}
-import org.silkframework.rule.input.Transformer
-import org.silkframework.runtime.plugin.annotations.Plugin
+import org.silkframework.rule.input.InlineTransformer
+import org.silkframework.rule.plugins.transformer.value.EmptyValueTransformer
+import org.silkframework.runtime.plugin.annotations.{Plugin, PluginReference}
 
 @Plugin(
-  id = "removeEmptyValues",
+  id = RemoveEmptyValues.pluginId,
   categories = Array("Filter"),
   label = "Remove empty values",
-  description = "Removes empty values."
+  description = "Removes empty values.",
+  relatedPlugins = Array(
+    new PluginReference(
+      id = RemoveValues.pluginId,
+      description = "Remove empty values removes only empty strings and has no parameters. Remove values is the configurable alternative, filtering out values that match words from a user-supplied blacklist."
+    ),
+    new PluginReference(
+      id = EmptyValueTransformer.pluginId,
+      description = "Empty value produces what Remove empty values removes: an empty sequence. Remove empty values is selective; Empty value is unconditional."
+    )
+  )
 )
 @TransformExamples(Array(
   new TransformExample(
@@ -34,8 +45,12 @@ import org.silkframework.runtime.plugin.annotations.Plugin
     output = Array()
   )
 ))
-case class RemoveEmptyValues() extends Transformer {
-  override def apply(values: Seq[Seq[String]]) = {
+case class RemoveEmptyValues() extends InlineTransformer {
+  override def apply(values: Seq[Seq[String]]): Seq[String] = {
     values.head.filter(!_.isEmpty)
   }
+}
+
+object RemoveEmptyValues {
+  final val pluginId = "removeEmptyValues"
 }

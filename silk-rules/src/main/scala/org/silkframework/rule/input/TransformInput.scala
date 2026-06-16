@@ -33,15 +33,41 @@ import scala.collection.immutable.ArraySeq
   * @param transformer The transformer used to transform values.
   * @param inputs The children operators from which input values are read.
  */
-case class TransformInput(id: Identifier = Operator.generateId, transformer: Transformer, inputs: IndexedSeq[Input] = IndexedSeq.empty) extends Input {
+case class TransformInput(id: Identifier = Operator.generateId,
+                          transformer: Transformer,
+                          inputs: IndexedSeq[Input] = IndexedSeq.empty) extends Input {
 
-  def apply(entity: Entity): Value = {
-    val inputValues = new Array[Seq[String]](inputs.length)
+  override def children: Seq[Input] = inputs
+
+  override def withId(newId: Identifier): Operator = copy(id = newId)
+
+  override def withChildren(newChildren: Seq[Operator]): TransformInput = {
+    copy(inputs = newChildren.map(_.asInstanceOf[Input]).toIndexedSeq)
+  }
+
+  override def execution(taskContext: TaskContext = TaskContext.empty): InputExecution = {
+    new TransformInputExecution(
+      operator = this,
+      inputExecutions = inputs.map(_.execution(taskContext)),
+      transformerExecution = transformer.execution(taskContext))
+  }
+}
+
+/**
+ * Runtime executor of a [[TransformInput]] with all child input executors and the
+ * transformer execution resolved against a specific [[TaskContext]].
+ */
+final class TransformInputExecution(override val operator: TransformInput,
+                                    val inputExecutions: IndexedSeq[InputExecution],
+                                    val transformerExecution: TransformerExecution) extends InputExecution {
+
+  override def apply(entity: Entity): Value = {
+    val inputValues = new Array[Seq[String]](inputExecutions.length)
     var errors = Seq[OperatorEvaluationError]()
 
     // Evaluate input operators
-    for(i <- inputs.indices) {
-      val result = inputs(i)(entity)
+    for(i <- inputExecutions.indices) {
+      val result = inputExecutions(i)(entity)
       inputValues(i) = result.values
       for(error <- result.errors) {
         errors +:= error
@@ -50,24 +76,14 @@ case class TransformInput(id: Identifier = Operator.generateId, transformer: Tra
 
     // Evaluate transform
     try {
-      Value(transformer(ArraySeq.unsafeWrapArray(inputValues)), errors)
+      Value(transformerExecution(ArraySeq.unsafeWrapArray(inputValues)), errors)
     } catch {
       case ex: ExecutionException if ex.abortExecution =>
         throw ex
       case NonFatal(ex) =>
-        errors +:= OperatorEvaluationError(id, ex)
+        errors +:= OperatorEvaluationError(operator.id, ex)
         Value(Seq.empty, errors)
     }
-  }
-
-  override def children: Seq[Input] = inputs
-
-  override def withChildren(newChildren: Seq[Operator]): TransformInput = {
-    copy(inputs = newChildren.map(_.asInstanceOf[Input]).toIndexedSeq)
-  }
-
-  override def withContext(taskContext: TaskContext): Input = {
-    copy(transformer = transformer.withContext(taskContext), inputs = inputs.map(_.withContext(taskContext)))
   }
 }
 

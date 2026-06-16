@@ -47,7 +47,8 @@ class JenaDatasetEndpoint(dataset: Dataset, val sparqlParams: SparqlParams = Spa
   override def postDataToGraph(graph: String,
                                contentType: String = "application/n-triples",
                                chunkedStreamingMode: Option[Int] = Some(1000),
-                               comment: Option[String] = None)
+                               comment: Option[String] = None,
+                               forceStreaming: Boolean = false)
                               (implicit userContext: UserContext): OutputStream = {
     val lang = Option(RDFLanguages.contentTypeToLang(contentType)).
         getOrElse(throw new IllegalArgumentException("Unknown content type: " + contentType))

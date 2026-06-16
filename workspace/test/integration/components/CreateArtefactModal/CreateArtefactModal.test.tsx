@@ -5,7 +5,6 @@ import { SERVE_PATH } from "../../../../src/app/constants/path";
 import { createMemoryHistory } from "history";
 
 import {
-    addDocumentCreateRangeMethod,
     apiUrl,
     byName,
     byTestId,
@@ -13,7 +12,6 @@ import {
     checkRequestMade,
     cleanUpDOM,
     clickRenderedElement,
-    elementHtmlToContain,
     findAllDOMElements,
     findElement,
     legacyApiUrl,
@@ -24,7 +22,7 @@ import {
     renderWrapper,
 } from "../../TestHelper";
 import { CreateArtefactModal } from "../../../../src/app/views/shared/modals/CreateArtefactModal/CreateArtefactModal";
-import { fireEvent, RenderResult, waitFor, screen, within } from "@testing-library/react";
+import { act, fireEvent, RenderResult, waitFor, within } from "@testing-library/react";
 import {
     IOverviewArtefactItemList,
     IPluginDetails,
@@ -78,7 +76,7 @@ describe("Task creation widget", () => {
 
     // Loads the selection list modal with mocked artefact list
     const createMockedListWrapper = async (existingTask?: RecursivePartial<IProjectTaskUpdatePayload>) => {
-        const wrapper = createArtefactWrapper(`${SERVE_PATH}/projects/${PROJECT_ID}`, existingTask);
+        const wrapper = await act(() => createArtefactWrapper(`${SERVE_PATH}/projects/${PROJECT_ID}`, existingTask));
         const url = apiUrl("core/taskPlugins?addMarkdownDocumentation=true");
         mockAxios.mockResponseFor({ url }, mockedAxiosResponse({ data: mockArtefactListResponse }));
         if (!existingTask) {
@@ -99,7 +97,10 @@ describe("Task creation widget", () => {
         return findAllDOMElements(dialogWrapper, ".eccgui-overviewitem__list .eccgui-overviewitem__item");
     };
 
-    const pluginCreationDialogWrapper = async (
+    const pluginCreationDialogWrapper: (
+        doubleClickToAdd?: boolean,
+        existingTask?: RecursivePartial<IProjectTaskUpdatePayload>,
+    ) => Promise<IWrapper> = async (
         doubleClickToAdd: boolean = true,
         // The current data of a task that is being updated
         existingTask?: RecursivePartial<IProjectTaskUpdatePayload>,
@@ -121,14 +122,19 @@ describe("Task creation widget", () => {
                 mockedAxiosResponse({ data: mockPluginDescription }),
             );
         }
-        await waitFor(() => {
-            const labels = findAllDOMElements(wrapper.element, ".eccgui-label .eccgui-label__text").map(
-                (e) => e.textContent,
-            );
-            Object.entries(mockPluginDescription.properties).forEach(([paramId, attributes]) =>
-                expect(labels).toContain(attributes.title),
-            );
-        });
+        const waitForTaskFormLoaded = async () => {
+            await waitFor(() => {
+                const labels = findAllDOMElements(wrapper.element, ".eccgui-label .eccgui-label__text").map(
+                    (e) => e.textContent,
+                );
+                Object.entries(mockPluginDescription.properties).forEach(([paramId, attributes]) =>
+                    expect(labels).toContain(attributes.title),
+                );
+            });
+        };
+        await waitForTaskFormLoaded();
+        // For some reason the task form inits twice
+        await waitForTaskFormLoaded();
         return wrapper;
     };
 
@@ -230,7 +236,6 @@ describe("Task creation widget", () => {
         await pluginCreationDialogWrapper(false);
     });
 
-    //failing for some reason
     it("should show a form with parameters of different types", async () => {
         const { element } = await pluginCreationDialogWrapper();
         // boolean parameter
@@ -248,7 +253,8 @@ describe("Task creation widget", () => {
     });
 
     // Click the create button in the create dialog
-    const clickCreate = (wrapper) => clickRenderedElement(findElement(wrapper, byTestId("createArtefactButton")));
+    const clickCreate = (wrapper: HTMLElement) =>
+        clickRenderedElement(findElement(wrapper, byTestId("createArtefactButton")));
     // Checks the number of expected validation errors
     const expectValidationErrors = async (wrapper, nrErrors: number) =>
         await waitFor(() => {
@@ -337,12 +343,6 @@ describe("Task creation widget", () => {
         clickRenderedElement(project);
         expect(findAllDOMElements(element, "#label")).toHaveLength(1);
         changeInputValue(findElement(element, "#label") as HTMLInputElement, PROJECT_LABEL);
-        /** FIXME: CodeMirror Editor refed in the codemirror-wrapper div doesn't show and is still null even at this point
-         * This wasn't the case with version 5 where I could do this document.querySelector('#description .CodeMirror').CodeMirror.setValue('')
-         * In v6 I should be able to do cmView.view.dispatch({ changes: {from:0, to: document.querySelector('.cm-content').cmView.view.state.doc.length, insert:''}})
-         * but again the editor returns null, even after waiting
-         * created follow up issue https://jira.eccenca.com/browse/CMEM-6208
-         */
         clickCreate(element);
         await expectValidationErrors(element, 0);
         await waitFor(() => {
@@ -356,13 +356,13 @@ describe("Task creation widget", () => {
     });
 
     it("should allow to reset optional auto-completed values", async () => {
-        // document.createRange is needed from the popover of the auto-complete element
-        addDocumentCreateRangeMethod();
         const { element } = await pluginCreationDialogWrapper();
         const autoCompleteInput = findElement(element, "#optionalAutoCompletionParamCustom");
         expect(window.document.querySelectorAll(".eccgui-spinner").length).toBe(0);
         // input must be focused in order to fire requests
-        autoCompleteInput.focus();
+        act(() => {
+            autoCompleteInput.focus();
+        });
         changeInputValue(autoCompleteInput as HTMLInputElement, "abc");
         const beforePortals = window.document.querySelectorAll(`div.${bluePrintClassPrefix}-portal`).length;
         await waitFor(() => {
@@ -378,6 +378,113 @@ describe("Task creation widget", () => {
         await waitFor(() => {
             expect(window.document.querySelectorAll(".eccgui-spinner").length).toBe(0);
         });
+    });
+
+    const createDependentParameterWrapper = async () => {
+        const dependentParameterPluginDescription: IPluginDetails = {
+            ...mockPluginDescription,
+            required: [],
+            properties: {
+                password: atomicParamDescription({
+                    title: "password",
+                    parameterType: INPUT_TYPES.PASSWORD,
+                }),
+                database: atomicParamDescription(
+                    {
+                        title: "database",
+                        parameterType: INPUT_TYPES.STRING,
+                    },
+                    {
+                        allowOnlyAutoCompletedValues: false,
+                        autoCompletionDependsOnParameters: ["password"],
+                    },
+                ),
+            },
+        };
+        const existingTaskWithDependentValue: RecursivePartial<IProjectTaskUpdatePayload> = {
+            projectId: PROJECT_ID,
+            taskId: TASK_ID,
+            taskPluginDetails: dependentParameterPluginDescription,
+            metaData: {
+                label: "Task label",
+            },
+            currentParameterValues: {
+                password: value("old-secret"),
+                database: value("analytics"),
+            },
+            currentTemplateValues: {},
+        };
+        const { element } = await createMockedListWrapper(existingTaskWithDependentValue);
+        await waitFor(() => {
+            expect(findElement(element, "#password")).toBeInTheDocument();
+            expect(findElement(element, "#database")).toBeInTheDocument();
+        });
+        return { element };
+    };
+
+    const databaseInput = (element: Element | RenderResult) => findElement(element, "#database") as HTMLInputElement;
+    const databaseInputGroupClassName = (element: Element | RenderResult) =>
+        databaseInput(element).closest(`.${bluePrintClassPrefix}-input-group`)?.className ?? "";
+
+    const expectDependentDatabaseWarning = async (
+        element: Element | RenderResult,
+        expectedValue: string = "analytics",
+    ) => {
+        await waitFor(() => {
+            expect(databaseInput(element).value).toBe(expectedValue);
+            expect(findElement(element, byTestId("task-form-dependent-values-warning"))).toBeInTheDocument();
+            expect(databaseInputGroupClassName(element)).toContain(`${bluePrintClassPrefix}-intent-warning`);
+        });
+    };
+
+    const expectDependentDatabaseWarningCleared = async (element: Element | RenderResult, expectedValue: string) => {
+        await waitFor(() => {
+            expect(databaseInput(element).value).toBe(expectedValue);
+            expect(
+                ("container" in element ? element.container : element).querySelector(
+                    byTestId("task-form-dependent-values-warning"),
+                ),
+            ).not.toBeInTheDocument();
+            expect(databaseInputGroupClassName(element)).not.toContain(`${bluePrintClassPrefix}-intent-warning`);
+        });
+    };
+
+    const dismissDependentDatabaseWarning = (element: Element | RenderResult) => {
+        const warning = findElement(element, byTestId("task-form-dependent-values-warning"));
+        clickRenderedElement(within(warning).getByLabelText("Close"));
+    };
+
+    it("should keep dependent values, highlight them, and clear them only via the warning action", async () => {
+        const { element } = await createDependentParameterWrapper();
+        changeInputValue(findElement(element, "#password") as HTMLInputElement, "new-secret");
+        await expectDependentDatabaseWarning(element);
+
+        clickRenderedElement(findElement(element, byTestId("task-form-clear-highlighted-dependent-values")));
+        await expectDependentDatabaseWarningCleared(element, "");
+    });
+
+    it("should remove dependent value highlighting but keep the value when dismissing the warning", async () => {
+        const { element } = await createDependentParameterWrapper();
+        changeInputValue(findElement(element, "#password") as HTMLInputElement, "new-secret");
+        await expectDependentDatabaseWarning(element);
+
+        dismissDependentDatabaseWarning(element);
+
+        await expectDependentDatabaseWarningCleared(element, "analytics");
+    });
+
+    it("should highlight dependent values again after dismissing the warning and changing the dependency again", async () => {
+        const { element } = await createDependentParameterWrapper();
+        const passwordInput = findElement(element, "#password") as HTMLInputElement;
+
+        changeInputValue(passwordInput, "new-secret");
+        await expectDependentDatabaseWarning(element);
+
+        dismissDependentDatabaseWarning(element);
+        await expectDependentDatabaseWarningCleared(element, "analytics");
+
+        changeInputValue(passwordInput, "newer-secret");
+        await expectDependentDatabaseWarning(element);
     });
 
     const value = (value: string, label?: string) => {

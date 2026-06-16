@@ -15,24 +15,29 @@
 package org.silkframework.rule.evaluation
 
 import org.silkframework.entity.Entity
-import org.silkframework.rule.input.{Input, PathInput, TransformInput}
-import org.silkframework.rule.similarity.{Aggregation, Comparison, SimilarityOperator}
-import org.silkframework.rule.{ComplexUriMapping, LinkageRule, TransformRule}
+import org.silkframework.rule.input.{InputExecution, PathInput, TransformInputExecution}
+import org.silkframework.rule.similarity.{AggregationExecution, ComparisonExecution, SimilarityOperatorExecution}
+import org.silkframework.rule.{ComplexUriMapping, LinkageRuleExecution, TransformRuleExecution}
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.{DPair, Uri}
 
+import scala.collection.immutable.ArraySeq
 import scala.util.control.NonFatal
 
+/**
+ * Walks a pre-built rule execution tree to produce a detailed evaluation result
+ */
 object DetailedEvaluator {
 
   /**
-   * Evaluates a linkage rule.
+   * Evaluates a pre-built linkage rule execution against an entity pair.
    */
-  def apply(rule: LinkageRule, entities: DPair[Entity], limit: Double): Option[EvaluatedLink] = {
-    rule.operator match {
-      case Some(op) =>
+  def apply(ruleExec: LinkageRuleExecution, entities: DPair[Entity], limit: Double): Option[EvaluatedLink] = {
+    val rule = ruleExec.operator
+    ruleExec.operatorExecution match {
+      case Some(opExec) =>
         if(!rule.excludeSelfReferences || entities.source.uri != entities.target.uri) {
-          val confidence = evaluateOperator(op, entities, limit)
+          val confidence = evaluateOperator(opExec, entities, limit)
           if (confidence.score.getOrElse(-1.0) >= limit) {
             Some(new EvaluatedLink(entities.source.uri, entities.target.uri, entities, confidence))
           } else {
@@ -52,12 +57,12 @@ object DetailedEvaluator {
   }
 
   /**
-    * Evaluates a linkage rule.
-    */
-  def apply(rule: LinkageRule, entities: DPair[Entity]): EvaluatedLink = {
-    rule.operator match {
-      case Some(op) =>
-        val confidence = evaluateOperator(op, entities, -1.0)
+   * Evaluates a pre-built linkage rule execution against an entity pair.
+   */
+  def apply(ruleExec: LinkageRuleExecution, entities: DPair[Entity]): EvaluatedLink = {
+    ruleExec.operatorExecution match {
+      case Some(opExec) =>
+        val confidence = evaluateOperator(opExec, entities, -1.0)
         new EvaluatedLink(entities.source.uri, entities.target.uri, entities, confidence)
       case None =>
         new EvaluatedLink(entities.source.uri, entities.target.uri, entities, SimpleConfidence(Some(-1.0)))
@@ -65,25 +70,25 @@ object DetailedEvaluator {
   }
 
   /**
-   * Evaluates a set of transform rules.
+   * Evaluates a set of pre-built transform rule executions for a single entity.
    */
-  def apply(rules: Seq[TransformRule], entity: Entity): DetailedEntity = {
-    val subjectRule = rules.find(_.target.isEmpty)
-    val uris = subjectRule match {
-      case Some(rule) => rule(entity).values
+  def apply(ruleExecs: Seq[TransformRuleExecution], entity: Entity): DetailedEntity = {
+    val subjectExec = ruleExecs.find(_.operator.target.isEmpty)
+    val uris = subjectExec match {
+      case Some(exec) => exec(entity).values
       case None => Seq(entity.uri.toString)
     }
-    val values = for(rule <- rules) yield apply(rule, entity)
-    DetailedEntity(uris, values, rules)
+    val values = ruleExecs.map(re => apply(re, entity))
+    DetailedEntity(uris, values, ruleExecs.map(_.operator))
   }
 
   /**
-   * Evaluates a single transform rule.
+   * Evaluates a single pre-built transform rule execution for an entity.
    */
-  def apply(rule: TransformRule, entity: Entity): Value = {
-    val result = evaluateInput(rule.operator, entity)
-    // Validate values
-    for(target <- rule.target) {
+  def apply(ruleExec: TransformRuleExecution, entity: Entity): Value = {
+    val result = evaluateInput(ruleExec.inputExecution, entity)
+    // Validate against the rule's mapping target
+    for(target <- ruleExec.operator.target) {
       try {
         target.validate(result.values)
       } catch {
@@ -92,52 +97,47 @@ object DetailedEvaluator {
       }
     }
     // Complex URI mapping rules need to be validated separately
-    if(rule.isInstanceOf[ComplexUriMapping]) {
-      val invalidUri = result.values.find(uri  => !Uri(uri).isValidUri)
+    if(ruleExec.operator.isInstanceOf[ComplexUriMapping]) {
+      val invalidUri = result.values.find(uri => !Uri(uri).isValidUri)
       if(invalidUri.isDefined) {
         // The URI rule has generated an invalid URI
         return result.withError(new ValidationException(s"URI rule of object mapping has generated an invalid URI: '${invalidUri.get}'!"))
       }
     }
-    // Return validated result
     result
   }
 
-  private def evaluateOperator(operator: SimilarityOperator, entities: DPair[Entity], threshold: Double) = operator match {
-    case aggregation: Aggregation => evaluateAggregation(aggregation, entities, threshold)
-    case comparison: Comparison => evaluateComparison(comparison, entities, threshold)
+  private def evaluateOperator(opExec: SimilarityOperatorExecution, entities: DPair[Entity], threshold: Double): Confidence = opExec match {
+    case agg: AggregationExecution => evaluateAggregation(agg, entities, threshold)
+    case cmp: ComparisonExecution => evaluateComparison(cmp, entities, threshold)
   }
 
-  private def evaluateAggregation(agg: Aggregation, entities: DPair[Entity], threshold: Double): AggregatorConfidence = {
-    val operatorValues = {
-      for (operator <- agg.operators) yield {
-        evaluateOperator(operator, entities, threshold)
-      }
-    }
-
-    val aggregatedValue = agg.aggregator(agg.operators, entities, threshold)
-    AggregatorConfidence(aggregatedValue.score, agg, operatorValues)
+  private def evaluateAggregation(agg: AggregationExecution, entities: DPair[Entity], threshold: Double): AggregatorConfidence = {
+    val operatorValues = agg.operatorExecutions.map(opExec => evaluateOperator(opExec, entities, threshold))
+    val aggregatedValue = agg.operator.aggregator(agg.operatorExecutions, entities, threshold)
+    AggregatorConfidence(aggregatedValue.score, agg.operator, operatorValues)
   }
 
-  private def evaluateComparison(comparison: Comparison, entities: DPair[Entity], threshold: Double): ComparisonConfidence = {
+  private def evaluateComparison(cmp: ComparisonExecution, entities: DPair[Entity], threshold: Double): ComparisonConfidence = {
     ComparisonConfidence(
-      score = comparison.apply(entities, threshold),
-      comparison = comparison,
-      sourceValue = evaluateInput(comparison.inputs.source, entities.source),
-      targetValue = evaluateInput(comparison.inputs.target, entities.target)
+      score = cmp(entities, threshold),
+      comparison = cmp.operator,
+      sourceValue = evaluateInput(cmp.sourceInput, entities.source),
+      targetValue = evaluateInput(cmp.targetInput, entities.target)
     )
   }
 
-  private def evaluateInput(input: Input, entity: Entity): Value = input match {
-    case ti: TransformInput =>
-      val children = ti.inputs.map(i => evaluateInput(i, entity))
+  private def evaluateInput(inputExec: InputExecution, entity: Entity): Value = inputExec match {
+    case ti: TransformInputExecution =>
+      val children = ti.inputExecutions.map(child => evaluateInput(child, entity))
       try {
-        TransformedValue(ti, ti.transformer(children.map(_.values)), children)
+        val transformed = ti.transformerExecution(ArraySeq.unsafeWrapArray(children.map(_.values).toArray[Seq[String]]))
+        TransformedValue(ti.operator, transformed, children)
       } catch {
         case NonFatal(ex) =>
-          TransformedValue(ti, Seq.empty, children, Some(ex))
+          TransformedValue(ti.operator, Seq.empty, children, Some(ex))
       }
 
-    case pi: PathInput => InputValue(pi, input(entity).values)
+    case pi: PathInput => InputValue(pi, pi(entity).values)
   }
 }

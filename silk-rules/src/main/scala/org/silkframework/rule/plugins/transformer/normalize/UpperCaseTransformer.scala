@@ -15,16 +15,30 @@
 package org.silkframework.rule.plugins.transformer.normalize
 
 import org.silkframework.rule.input.SimpleTransformer
-import org.silkframework.runtime.plugin.annotations.Plugin
+import org.silkframework.runtime.plugin.annotations.{Plugin, PluginReference}
 
 @Plugin(
-  id = "upperCase",
+  id = UpperCaseTransformer.pluginId,
   categories = Array("Normalize"),
   label = "Upper case",
-  description = "Converts a string to upper case."
+  description = "Converts a string to upper case.",
+  relatedPlugins = Array(
+    new PluginReference(
+      id = LowerCaseTransformer.pluginId,
+      description = "Upper case and Lower case are exact complements — one raises all characters, the other lowers them. Lower case is the choice when uniform lowercase is the target."
+    ),
+    new PluginReference(
+      id = CapitalizeTransformer.pluginId,
+      description = "Upper case raises every character to upper case. Capitalize raises only the first character of the string, leaving the rest in its original case."
+    )
+  )
 )
 case class UpperCaseTransformer() extends SimpleTransformer {
   override def evaluate(value: String): String = {
     value.toUpperCase
   }
+}
+
+object UpperCaseTransformer {
+  final val pluginId = "upperCase"
 }

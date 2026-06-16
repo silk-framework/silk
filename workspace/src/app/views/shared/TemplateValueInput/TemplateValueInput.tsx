@@ -164,8 +164,11 @@ const TemplateValueInput = React.forwardRef(
                             }}
                             text={
                                 showVariableTemplateInput
-                                    ? t("ArtefactFormParameter.switchToValue").replace("EXAMPLE", "{{global.myVar}}")
-                                    : t("ArtefactFormParameter.switchToTemplate").replace("EXAMPLE", "{{global.myVar}}")
+                                    ? t("ArtefactFormParameter.switchToValue").replace("EXAMPLE", "{{project.myVar}}")
+                                    : t("ArtefactFormParameter.switchToTemplate").replace(
+                                          "EXAMPLE",
+                                          "{{project.myVar}}",
+                                      )
                             }
                             name={"form-template"}
                             onClick={switchShowVariableTemplateInput}

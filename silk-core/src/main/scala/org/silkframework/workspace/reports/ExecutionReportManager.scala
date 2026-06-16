@@ -20,10 +20,10 @@ trait ExecutionReportManager extends AnyPlugin {
   /**
     * Lists all available reports.
     *
-    * @param projectId If provided, only reports for the given project are returned.
+    * @param projectIds If non-empty, only reports for the given projects are returned.
     * @param taskId If provided, only reports for the given task are returned.
     */
-  def listReports(projectId: Option[Identifier] = None, taskId: Option[Identifier] = None): Seq[ReportIdentifier]
+  def listReports(projectIds: Set[Identifier] = Set.empty, taskId: Option[Identifier] = None): Seq[ReportIdentifier]
 
   /**
     * Retrieves a report.
@@ -50,7 +50,7 @@ trait ExecutionReportManager extends AnyPlugin {
     */
   protected def removeOldReports(retentionTime: Duration): Unit = {
     val oldestDateTime = Instant.now.minus(retentionTime)
-    for (reportId <- listReports(None, None) if reportId.time.isBefore(oldestDateTime)) {
+    for (reportId <- listReports(Set.empty, None) if reportId.time.isBefore(oldestDateTime)) {
       try {
         removeReport(reportId)
       } catch {

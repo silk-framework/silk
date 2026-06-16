@@ -1,7 +1,7 @@
 package org.silkframework.rule.plugins.transformer.conditional
 
 import org.silkframework.rule.annotations.{TransformExample, TransformExamples}
-import org.silkframework.rule.input.Transformer
+import org.silkframework.rule.input.InlineTransformer
 import org.silkframework.runtime.plugin.annotations.Plugin
 
 @Plugin(
@@ -24,7 +24,7 @@ import org.silkframework.runtime.plugin.annotations.Plugin
     throwsException = classOf[java.lang.IllegalArgumentException]
   )
 ))
-case class Negate() extends Transformer {
+case class Negate() extends InlineTransformer {
 
   def negate(value: String): String ={
     value.trim.toLowerCase match{

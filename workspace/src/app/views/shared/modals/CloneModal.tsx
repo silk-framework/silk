@@ -10,7 +10,7 @@ import {
     TextField,
 } from "@eccenca/gui-elements";
 import { ErrorResponse, FetchError } from "../../../services/fetch/responseInterceptor";
-import { requestCloneProject, requestCloneTask } from "@ducks/workspace/requests";
+import { AccessControlConfig, requestCloneProject, requestCloneTask } from "@ducks/workspace/requests";
 import { requestProjectMetadata, requestTaskMetadata } from "@ducks/shared/requests";
 import { useTranslation } from "react-i18next";
 import { IModalItem } from "@ducks/shared/typings";
@@ -18,6 +18,7 @@ import useHotKey from "../HotKeyHandler/HotKeyHandler";
 import { requestProjectIdValidation, requestTaskIdValidation } from "@ducks/common/requests";
 import { debounce } from "lodash";
 import { TaskDocumentationModal } from "./CreateArtefactModal/TaskDocumentationModal";
+import { useProjectAclManagementComponent } from "../../../hooks/useProjectAclManagementComponent";
 
 export interface ICloneOptions {
     item: IModalItem;
@@ -40,6 +41,24 @@ export default function CloneModal({ item, onDiscard, onConfirmed }: ICloneOptio
     const [label, setLabel] = useState<string | undefined>(item.label);
     const [t] = useTranslation();
     const [showDocumentation, setShowDocumentation] = React.useState<boolean>(false);
+    const projectAcl = React.useRef<AccessControlConfig | undefined>();
+    const onChangeProjectAcl = React.useCallback((newProjectAcl: AccessControlConfig) => {
+        projectAcl.current = newProjectAcl;
+    }, []);
+    const computeInitialAcl = React.useCallback(
+        (userAcl: AccessControlConfig, projectAcl: AccessControlConfig): Promise<AccessControlConfig> => {
+            return Promise.resolve({
+                groups: userAcl.groups.filter((g) => projectAcl.groups.includes(g)),
+            });
+        },
+        [],
+    );
+
+    const projectAclManagement = useProjectAclManagementComponent({
+        projectId: item.projectId,
+        onChange: onChangeProjectAcl,
+        computeInitialAcl,
+    });
 
     useEffect(() => {
         prepareCloning();
@@ -114,7 +133,11 @@ export default function CloneModal({ item, onDiscard, onConfirmed }: ICloneOptio
 
             const response = id
                 ? await requestCloneTask(id, projectId, payload, customId)
-                : await requestCloneProject(projectId, { ...payload, newTaskId: customId });
+                : await requestCloneProject(projectId, {
+                      ...payload,
+                      newTaskId: customId,
+                      groups: projectAcl.current?.groups,
+                  });
             onConfirmed && onConfirmed(newLabel, response.data.detailsPage);
         } catch (e) {
             if (e.isFetchError) {
@@ -142,7 +165,7 @@ export default function CloneModal({ item, onDiscard, onConfirmed }: ICloneOptio
             data-test-id={"clone-item-to-modal"}
             size="small"
             title={
-                t("common.action.CloneSmth", {
+                t(item.id ? "common.action.CloneSmthShallow" : "common.action.CloneSmth", {
                     smth: t(item.id ? "common.dataTypes.task" : "common.dataTypes.project"),
                 }) +
                     ": " +
@@ -176,6 +199,12 @@ export default function CloneModal({ item, onDiscard, onConfirmed }: ICloneOptio
                 </Button>,
             ]}
         >
+            {item.id && (
+                <>
+                    <Notification message={t("cloneModal.shallowCloneInfo")} />
+                    <Spacing />
+                </>
+            )}
             <FieldItem
                 labelProps={{
                     htmlFor: "label",
@@ -210,6 +239,13 @@ export default function CloneModal({ item, onDiscard, onConfirmed }: ICloneOptio
                     onKeyUp={enterHandler}
                 />
             </FieldItem>
+            {projectAclManagement.loading ? <Spinner /> : null}
+            {projectAclManagement.component ? (
+                <>
+                    <Spacing />
+                    {projectAclManagement.component}
+                </>
+            ) : null}
             {error && (
                 <>
                     <Spacing />
@@ -218,7 +254,11 @@ export default function CloneModal({ item, onDiscard, onConfirmed }: ICloneOptio
             )}
             {showDocumentation && (
                 <TaskDocumentationModal
-                    documentationToShow={{ key: "", namedAnchor: "", description: t("cloneModal.info") }}
+                    documentationToShow={{
+                        key: "",
+                        namedAnchor: "",
+                        description: t(item.id ? "cloneModal.infoTask" : "cloneModal.infoProject"),
+                    }}
                     onClose={() => setShowDocumentation(false)}
                     size="tiny"
                 />

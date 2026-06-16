@@ -42,7 +42,7 @@ class LocalSparqlSelectExecutorTest extends AnyFlatSpec
     }
     Entity.empty("") // Make sure that Entity class is loaded
     val start = System.currentTimeMillis()
-    val entities = LocalSparqlSelectExecutor().executeOnSparqlEndpoint(task, sparqlEndpoint, executionReportUpdater = Some(reportUpdater))
+    val entities = new LocalSparqlSelectIterator(task, sparqlEndpoint, executionReportUpdater = Some(reportUpdater))
     val entity = entities.head
     entity.values.flatten.head mustBe "subject 0"
     (System.currentTimeMillis() - start).toInt must be < quickReactionTime
@@ -58,7 +58,7 @@ class LocalSparqlSelectExecutorTest extends AnyFlatSpec
       correctTimeout = endpoint.sparqlParams.timeout.contains(timeout)
     })
     val limit = 1000 * 1000 * 1000
-    val entities = LocalSparqlSelectExecutor().executeOnSparqlEndpoint(task, sparqlEndpoint, limit, Some(reportUpdater))
+    val entities = new LocalSparqlSelectIterator(task, sparqlEndpoint, limit, Some(reportUpdater))
     entities.headOption // Needed to actually execute the query
     correctTimeout mustBe true
   }

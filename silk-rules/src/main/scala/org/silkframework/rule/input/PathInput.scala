@@ -26,7 +26,7 @@ import scala.xml.Node
 /**
  * A PathInput retrieves values from a data item by a given RDF path and optionally applies a transform to them.
  */
-case class PathInput(id: Identifier = Operator.generateId, path: Path) extends Input {
+case class PathInput(id: Identifier = Operator.generateId, path: Path) extends InlineInput {
 
   @volatile private var cachedPathIndex = -1
 
@@ -34,6 +34,13 @@ case class PathInput(id: Identifier = Operator.generateId, path: Path) extends I
     * Returns an empty sequence as a path input does not have any children.
     */
   override def children: Seq[Operator] = Seq.empty
+
+  /**
+    * Generates the same operator with a new identifier.
+    */
+  override def withId(newId: Identifier): Operator = {
+    copy(id = newId)
+  }
 
   /**
     * As a path input does not have any children, an [IllegalArgumentException] will be thrown if the provided children sequence is nonempty.

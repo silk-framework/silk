@@ -38,7 +38,13 @@ In order to provide multiple values for an input property, the same query parame
 e.g. `inputProp=value+1&inputProp=value+2`.
 The responses are the same as for the POST request."""
 
-  final val variableWorkflowRequestFormsExample = "param1=param1+value&param2=param2+value&param2=param2+second+value"
+  final val variableWorkflowRequestFormsExample =
+    """
+      {
+        "param1": "param1 value",
+        "param2": ["param2 value", "param2 second value"]
+      }
+    """
 
   final val variableWorkflowRequestJsonExample =
     """

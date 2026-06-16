@@ -13,6 +13,11 @@ export interface VariableWidgetProps {
     taskId?: string;
 }
 
+export interface TemplateVariableError {
+    variableName: string;
+    message: string;
+}
+
 export interface VariableDependencies {
     dependentVariables: string[];
     dependentTasks: {

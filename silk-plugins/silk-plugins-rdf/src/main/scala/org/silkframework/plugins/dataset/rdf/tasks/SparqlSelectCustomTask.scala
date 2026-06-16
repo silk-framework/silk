@@ -6,7 +6,8 @@ import org.silkframework.dataset.rdf.SparqlEndpointDatasetParameter
 import org.silkframework.entity._
 import org.silkframework.entity.paths.{TypedPath, UntypedPath}
 import org.silkframework.execution.typed.SparqlEndpointEntitySchema
-import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
+import org.silkframework.plugins.dataset.rdf.datasets.SparqlDataset
+import org.silkframework.runtime.plugin.annotations.{Param, Plugin, PluginReference}
 import org.silkframework.runtime.plugin.types.SparqlCodeParameter
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.Uri
@@ -19,14 +20,24 @@ import scala.util.Try
   * an Entity table.
   */
 @Plugin(
-  id = "sparqlSelectOperator",
+  id = SparqlSelectCustomTask.pluginId,
   label = "SPARQL Select query",
   description =
     "A task that executes a SPARQL Select query on a SPARQL enabled data source and outputs the SPARQL result." +
     " If the SPARQL source is defined on a specific graph, a FROM clause will be added to the query at execution time," +
     " except when there already exists a GRAPH or FROM clause in the query. FROM NAMED clauses are not injected.",
-  documentationFile = "SparqlSelectCustomTask.md", 
-  iconFile = "sparql-select-query.svg"
+  documentationFile = "SparqlSelectCustomTask.md",
+  iconFile = "sparql-select-query.svg",
+  relatedPlugins = Array(
+    new PluginReference(
+      id = SparqlDataset.pluginId,
+      description = "This plugin executes a SELECT query against a SPARQL endpoint; a SPARQL endpoint dataset in the workflow provides that endpoint. The SPARQL Update query plugin uses the same kind of dataset as a write target rather than a read source."
+    ),
+    new PluginReference(
+      id = SparqlUpdateCustomTask.pluginId,
+      description = "The SPARQL Update query plugin turns entity input into update statements that modify a SPARQL store; this plugin reads from the same kind of store by executing a SELECT query and returning the results as an entity table."
+    )
+  )
 )
 case class SparqlSelectCustomTask(
   @Param(label = "Select query", value = "A SPARQL 1.1 select query", example = "select * where { ?s ?p ?o }")
@@ -72,4 +83,8 @@ case class SparqlSelectCustomTask(
       typedPaths = typedPaths.toIndexedSeq
     )
   }
+}
+
+object SparqlSelectCustomTask {
+  final val pluginId = "sparqlSelectOperator"
 }

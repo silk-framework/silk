@@ -13,7 +13,6 @@ import {
     Spacing,
 } from "@eccenca/gui-elements";
 import MarkdownModal from "../../../shared/modals/MarkdownModal";
-import { AppToaster } from "../../../../services/toaster";
 import { commonOp, commonSel } from "@ducks/common";
 import Loading from "../../../shared/Loading";
 import { useTranslation } from "react-i18next";
@@ -23,9 +22,11 @@ import { TemplateValueType } from "@ducks/shared/typings";
 import { requestArtefactProperties } from "@ducks/common/requests";
 import { commonSlice } from "../../../../store/ducks/common/commonSlice";
 import { failedTaskParameters, fixFailedTask } from "./TaskLoadingError.requests";
+import { ItemDeleteModal } from "../../../shared/modals/ItemDeleteModal";
 import { AlternativeTaskUpdateFunction } from "@ducks/common/typings";
 import { FixTaskDataNotFoundModal } from "./FixTaskDataNotFoundModal";
 import { TaskParameterValues } from "./TaskLoadingError.typing";
+import { AppDispatch } from "store/configureStore";
 
 interface Props {
     refreshProjectPage: () => any;
@@ -33,7 +34,7 @@ interface Props {
 /** Displays the task loading errors for a project, i.e. tasks that could not be loaded/initialized. */
 export const ProjectTaskLoadingErrors = ({ refreshProjectPage }: Props) => {
     const { registerErrorI18N } = useErrorHandler();
-    const dispatch = useDispatch();
+    const dispatch = useDispatch<AppDispatch>();
     const projectId = useSelector(commonSel.currentProjectIdSelector);
     const warningList = useSelector(workspaceSel.warningListSelector);
     const { cachedArtefactProperties } = useSelector(commonSel.artefactModalSelector);
@@ -49,6 +50,7 @@ export const ProjectTaskLoadingErrors = ({ refreshProjectPage }: Props) => {
 
     const [currentMarkdown, setCurrentMarkdown] = useState("");
     const [isOpen, setIsOpen] = useState<boolean>(false);
+    const [taskToDelete, setTaskToDelete] = useState<{ taskId: string; taskLabel: string } | null>(null);
     const [t] = useTranslation();
 
     const fetchWarningList = () => {
@@ -174,7 +176,7 @@ export const ProjectTaskLoadingErrors = ({ refreshProjectPage }: Props) => {
                 <CardContent>
                     <ul>
                         {warningList.map((warn, id) => {
-                            const actions: JSX.Element[] = projectId
+                            const actions: React.JSX.Element[] = projectId
                                 ? [
                                       <FixTaskButton
                                           text={t("widget.WarningWidget.fixTask")}
@@ -186,6 +188,15 @@ export const ProjectTaskLoadingErrors = ({ refreshProjectPage }: Props) => {
                                           minimal
                                           text={t("common.action.ShowSmth", { smth: "report" })}
                                           onClick={() => handleOpenMarkDown(warn.taskId, projectId)}
+                                      />,
+                                      <IconButton
+                                          name={"item-remove"}
+                                          data-test-id={"taskLoadingDeleteBtn"}
+                                          minimal
+                                          text={t("common.action.DeleteSmth", { smth: t("common.dataTypes.task") })}
+                                          onClick={() =>
+                                              setTaskToDelete({ taskId: warn.taskId, taskLabel: warn.taskLabel })
+                                          }
                                       />,
                                   ]
                                 : [];
@@ -202,6 +213,17 @@ export const ProjectTaskLoadingErrors = ({ refreshProjectPage }: Props) => {
                     <MarkdownModal isOpen={isOpen} onDiscard={handleClose} markdown={currentMarkdown} />
                 </CardContent>
             </Card>
+            {taskToDelete && projectId && (
+                <ItemDeleteModal
+                    item={{ id: taskToDelete.taskId, label: taskToDelete.taskLabel, projectId, type: "task" }}
+                    onClose={() => setTaskToDelete(null)}
+                    onConfirmed={() => {
+                        setTaskToDelete(null);
+                        fetchWarningList();
+                        refreshProjectPage();
+                    }}
+                />
+            )}
             <Spacing />
         </>
     ) : null;

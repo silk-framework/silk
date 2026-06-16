@@ -11,70 +11,71 @@
 @frame {
 
 } {
-  <div class="mdl-grid mdl-grid--centered">
-    <div class="mdl-cell mdl-cell--6-col mdl-cell--8-col-tablet">
-      <div class="mdl-card mdl-shadow--2dp mdl-card--stretch">
-        <div class="mdl-card__title mdl-card--border">
-          <h3 class="mdl-card__title-text">
-            @{title.getOrElse(exception.title)}
-          </h3>
-        </div>
-        <div class="mdl-card__content">
-          <div class="@{s"mdl-alert mdl-alert--$intent mdl-alert--border mdl-alert--spacing"}">
-            <div class="mdl-alert__content">
-              <p>@{details.getOrElse(exception.description)}</p>
+  <div style="max-width: 60rem; margin: 0 auto; padding: 1rem; ">
+      <div class="eccgui-card bp5-card">
+        <header>
+          <div class="eccgui-card__header">
+            <h3 class="mdl-card__title-text">
+              @{title.getOrElse(exception.title)}
+            </h3>
+          </div>
+        </header>
+        <hr class="eccgui-separation__divider-horizontal">
+        <div class="eccgui-card__content">
+          <div class='@{s"bp5-toast eccgui-notification eccgui-intent--$intent eccgui-notification--static"}'>
+            <div class="bp5-toast-message" role="alert">
+              <div class="eccgui-notification__content">
+                <div class="eccgui-notification__messagebody">
+                  <p>@{details.getOrElse(exception.description)}</p>
+                  @if(showExceptionId) {
+                  <p>
+                    This exception has been logged with id <strong>@exception.id</strong>.
+                  </p>
+                  }
+                </div>
+                <div class="eccgui-notification__actions error-details-buttons-without-style">
+                  <button type="button" class="bp5-button eccgui-button">
+                    <span class="bp5-button-text">Show details</span>
+                  </button>
+                  <button type="button" class="bp5-button eccgui-button" style="display: none;">
+                    <span class="bp5-button-text">Hide details</span>
+                  </button>
+                </div>
+                <script type="text/javascript">
+                  $(function () {
+                    $(".error-details-buttons-without-style button").click(function() {
+                      $(".error-details-without-style").slideToggle(300, function() {
+                        $(".error-details-buttons-without-style button").toggle();
+                      });
+                    });
+                  });
+                </script>
+                <div class="bp5-button-group bp5-minimal"></div>
+              </div>
             </div>
           </div>
-          @if(showExceptionId) {
-            <div>
-              This exception has been logged with id <strong>@exception.id</strong>.
-            </div>
-          }
           @if(showDetails) {
-            <div class="error-details-buttons">
-              <button class="mdl-button mdl-js-button mdl-button--raised">
-                Show Details
-              </button>
-              <button class="mdl-button mdl-js-button mdl-button--raised" style="display: none;">
-                Hide Details
-              </button>
-            </div>
+          <div class="error-details-without-style eccgui-typography__contentblock" style="display: none;">
+            <div class="eccgui-separation__spacing-horizontal eccgui-separation__spacing--medium"></div>
+            <h4>Details:</h4>
+            <pre class="error-details-scrollbox" style="max-height: 50vh; overflow: auto;">
+              @for(cause <- Option(exception.cause)) {
+              @stacktrace(exception.cause)
+              }
+            </pre>
+          </div>
           }
         </div>
-        @if(showDetails) {
-          <div class="error-details" style="display: none;">
-            <h4>Details:</h4>
-
-            <div class="error-details-scrollbox">
-            @for(cause <- Option(exception.cause)) {
-              @stacktrace(exception.cause)
-            }
-            </div>
-          </div>
-        }
       </div>
-    </div>
-
   </div>
-  <script type="text/javascript">
-    $(function () {
-      $(".error-details-buttons button").click(function() {
-        $(".error-details").slideToggle(300, function() {
-          $(".error-details-buttons button").toggle();
-        });
-      });
-    });
-  </script>
-
 }
 
 @stacktrace(ex: Throwable) = {
-  <p class="error-details-stacktrace">
+  <code class="error-details-stacktrace">
   @for(el <- ex.getStackTrace) {
     @el.toString
-    <br/>
   }
-  </p>
+  </code>
   @if(ex.getCause != null) {
     <strong>Cause:</strong>
     @ex.getCause.getMessage

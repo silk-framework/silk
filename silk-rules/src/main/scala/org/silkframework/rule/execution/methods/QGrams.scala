@@ -3,7 +3,7 @@ package org.silkframework.rule.execution.methods
 import org.silkframework.entity.paths.UntypedPath
 import org.silkframework.entity.{Entity, Index}
 import org.silkframework.rule.execution.ExecutionMethod
-import org.silkframework.rule.LinkageRule
+import org.silkframework.rule.LinkageRuleExecution
 
 import scala.math._
 
@@ -22,7 +22,7 @@ case class QGrams(sourceKey: UntypedPath, targetKey: UntypedPath, q: Int = 2, t:
   require(q > 0, "q > 0")
   require(0.0 <= t && t < 1.0, "0 <= t < 1")
 
-  override def indexEntity(entity: Entity, rule: LinkageRule, sourceOrTarget: Boolean): Index = {
+  override def indexEntity(entity: Entity, rule: LinkageRuleExecution, sourceOrTarget: Boolean): Index = {
     val key = if(sourceOrTarget) sourceKey else targetKey
     val values = entity.evaluate(key)
 

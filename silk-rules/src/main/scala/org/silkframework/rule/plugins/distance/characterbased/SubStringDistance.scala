@@ -2,13 +2,23 @@ package org.silkframework.rule.plugins.distance.characterbased
 
 import org.silkframework.entity.Index
 import org.silkframework.rule.similarity.{NormalizedDistanceMeasure, SingleValueDistanceMeasure}
-import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
+import org.silkframework.runtime.plugin.annotations.{Param, Plugin, PluginReference}
 
 @Plugin(
-  id = "substringDistance",
+  id = SubStringDistance.pluginId,
   categories = Array("Characterbased"),
   label = "Substring comparison",
-  description = "Return 0 to 1 for strong similarity to weak similarity. Based on the paper: Stoilos, Giorgos, Giorgos Stamou, and Stefanos Kollias. \"A string metric for ontology alignment.\" The Semantic Web-ISWC 2005. Springer Berlin Heidelberg, 2005. 624-637."
+  description = "Return 0 to 1 for strong similarity to weak similarity. Based on the paper: Stoilos, Giorgos, Giorgos Stamou, and Stefanos Kollias. \"A string metric for ontology alignment.\" The Semantic Web-ISWC 2005. Springer Berlin Heidelberg, 2005. 624-637.",
+  relatedPlugins = Array(
+    new PluginReference(
+      id = StartsWithDistance.pluginId,
+      description = "The Substring comparison plugin produces a continuous similarity score across the full string; Starts with reduces the comparison to a binary check on whether the source opens with the target."
+    ),
+    new PluginReference(
+      id = IsSubstringDistance.pluginId,
+      description = "The score from Substring comparison is continuous, reflecting overall string similarity; Is substring checks only whether the source appears anywhere inside the target, returning a binary result."
+    )
+  )
 )
 case class SubStringDistance(@Param("The minimum length of a possible substring match.")
                              granularity: String = "3") extends SingleValueDistanceMeasure with NormalizedDistanceMeasure {
@@ -32,6 +42,8 @@ case class SubStringDistance(@Param("The minimum length of a possible substring 
 }
 
 object SubStringDistance {
+  final val pluginId = "substringDistance"
+
   def normalizeString(_str: String): String = {
     var str: String = _str
     str = normalizeString(str, '.')

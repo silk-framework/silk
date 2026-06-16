@@ -11,6 +11,7 @@ const TaskPage = lazy(() => import("./views/pages/Task"));
 const TaskPluginView = lazy(() => import("./views/pages/TaskPluginView/TaskPluginView"));
 const NotFoundPage = lazy(() => import("./views/pages/NotFound"));
 const Activities = lazy(() => import("./views/pages/Activities"));
+const DeprecatedPlugins = lazy(() => import("./views/pages/DeprecatedPlugins"));
 
 export interface IRouteProps extends RouteProps {
     /** Path of the route. */
@@ -70,6 +71,11 @@ const appRoutes: IRouteProps[] = [
         component: TaskPluginView,
         exact: true,
         componentOnly: true,
+    },
+    {
+        path: "/deprecatedPlugins",
+        component: DeprecatedPlugins,
+        exact: true,
     },
     {
         path: "*",

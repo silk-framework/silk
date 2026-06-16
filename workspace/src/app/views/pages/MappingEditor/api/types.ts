@@ -14,13 +14,7 @@ export interface IUriPattern {
 }
 
 /** Target property auto-completion */
-export interface TargetPropertyAutoCompletion {
-    /** The URI */
-    value: string;
-    /** label of the property */
-    label?: string;
-    /** description of the property */
-    description?: string;
+export interface TargetPropertyAutoCompletion extends AutoCompletionBase {
     category?: string;
     isCompletion?: boolean;
     extra: {
@@ -33,6 +27,15 @@ export interface TargetPropertyAutoCompletion {
             label?: string;
         };
     };
+}
+
+export interface AutoCompletionBase {
+    /** The value of the auto-completion */
+    value: string;
+    /** The label of the auto-completion. */
+    label?: string;
+    /** Description of the auto-completion value. */
+    description?: string;
 }
 
 export interface GenericInfo {

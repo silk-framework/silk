@@ -13,16 +13,16 @@ class XmlSerializationTest extends AnyFlatSpec with Matchers {
   behavior of "XML serialization"
 
   it should "serialize and read parameters" in {
-    PluginRegistry.registerPlugin(classOf[TestCustomTask])
+    PluginRegistry.registerPlugin(classOf[XmlTestCustomTask])
     implicit val readContext: ReadContext = TestReadContext()
-    val task = TestCustomTask("Some\nString\n  \t!!", 42)
+    val task = XmlTestCustomTask("Some\nString\n  \t!!", 42)
     val node = XmlSerialization.toXml[CustomTask](task)
     val roundTripTask = XmlSerialization.fromXml[CustomTask](node)
     task mustBe roundTripTask
   }
 }
 
-case class TestCustomTask(param1: String, param2: Int) extends CustomTask {
+case class XmlTestCustomTask(param1: String, param2: Int) extends CustomTask {
   override def inputPorts = ???
 
   override def outputPort = ???

@@ -16,13 +16,23 @@ package org.silkframework.rule.plugins.transformer.substring
 
 import org.silkframework.rule.annotations.{TransformExample, TransformExamples}
 import org.silkframework.rule.input.SimpleTransformer
-import org.silkframework.runtime.plugin.annotations.Plugin
+import org.silkframework.runtime.plugin.annotations.{Plugin, PluginReference}
 
 @Plugin(
-  id = "stripPostfix",
+  id = StripPostfixTransformer.pluginId,
   categories = Array("Substring"),
   label = "Strip postfix",
-  description = "Strips a postfix of a string."
+  description = "Strips a postfix of a string.",
+  relatedPlugins = Array(
+    new PluginReference(
+      id = StripPrefixTransformer.pluginId,
+      description = "Strip postfix removes from the end; Strip prefix removes from the start. Both leave the value unchanged when the configured string is not found at the expected position."
+    ),
+    new PluginReference(
+      id = SubstringTransformer.pluginId,
+      description = "Strip postfix checks for a specific string at the end before removing it. Substring does not check content: a negative end index removes a fixed character count from the end unconditionally."
+    )
+  )
 )
 @TransformExamples(Array(
   new TransformExample(
@@ -40,4 +50,8 @@ case class StripPostfixTransformer(postfix: String) extends SimpleTransformer {
   override def evaluate(value: String): String = {
     value.stripSuffix(postfix)
   }
+}
+
+object StripPostfixTransformer {
+  final val pluginId = "stripPostfix"
 }

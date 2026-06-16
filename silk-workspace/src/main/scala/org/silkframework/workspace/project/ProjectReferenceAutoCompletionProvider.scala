@@ -23,7 +23,7 @@ case class ProjectReferenceAutoCompletionProvider() extends PluginParameterAutoC
   }
 
   private def results(workspace: WorkspaceReadTrait)(implicit userContext: UserContext): Seq[AutoCompletionResult] = {
-    workspace.projects.map(_.config) map { projectConfig=>
+    workspace.userProjects.map(_.config) map { projectConfig=>
       val label = projectConfig.metaData.label
       val value = projectConfig.id.toString
       AutoCompletionResult(value, label)

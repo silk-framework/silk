@@ -7,11 +7,11 @@ import scala.collection.mutable.ArrayBuffer
 
 trait SimpleAggregator extends Aggregator {
 
-  def apply(operators: Seq[SimilarityOperator], entities: DPair[Entity], limit: Double): SimilarityScore = {
+  def apply(operators: Seq[SimilarityOperatorExecution], entities: DPair[Entity], limit: Double): SimilarityScore = {
     val weightedValues = new ArrayBuffer[WeightedSimilarityScore](operators.size)
     for(op <- operators) {
       val score = op(entities, limit)
-      weightedValues += WeightedSimilarityScore(score, op.weight)
+      weightedValues += WeightedSimilarityScore(score, op.operator.weight)
     }
 
     evaluate(weightedValues.toSeq)

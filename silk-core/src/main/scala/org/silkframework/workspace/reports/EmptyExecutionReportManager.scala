@@ -13,7 +13,7 @@ import org.silkframework.util.Identifier
 )
 case class EmptyExecutionReportManager() extends ExecutionReportManager {
 
-  override def listReports(projectId: Option[Identifier], taskId: Option[Identifier]): Seq[ReportIdentifier] = Seq.empty
+  override def listReports(projectIds: Set[Identifier], taskId: Option[Identifier]): Seq[ReportIdentifier] = Seq.empty
 
   override def retrieveReport(reportId: ReportIdentifier)
                              (implicit pluginContext: PluginContext): ActivityExecutionResult[ExecutionReport] = throw new NoSuchElementException

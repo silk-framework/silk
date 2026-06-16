@@ -18,14 +18,20 @@ import org.silkframework.entity.Index
 import org.silkframework.rule.annotations.{DistanceMeasureExample, DistanceMeasureExamples}
 import org.silkframework.rule.similarity.{BooleanDistanceMeasure, SingleValueDistanceMeasure}
 import org.silkframework.runtime.plugin.PluginCategories
-import org.silkframework.runtime.plugin.annotations.Plugin
+import org.silkframework.runtime.plugin.annotations.{Plugin, PluginReference}
 
 @Plugin(
-  id = "equality",
+  id = EqualityMetric.pluginId,
   categories = Array("Equality", PluginCategories.recommended),
   label = "String equality",
   description = "Checks for equality of the string representation of the given values. Returns success if string values are equal, failure otherwise. For" +
-      " a numeric comparison of values use the 'Numeric Equality' comparator."
+      " a numeric comparison of values use the 'Numeric Equality' comparator.",
+  relatedPlugins = Array(
+    new PluginReference(
+      id = InequalityMetric.pluginId,
+      description = "The inequality plugin is the logical inverse of string equality: it returns success when the values are different rather than equal."
+    )
+  )
 )
 @DistanceMeasureExamples(Array(
   new DistanceMeasureExample(
@@ -65,4 +71,8 @@ case class EqualityMetric() extends SingleValueDistanceMeasure with BooleanDista
   override def emptyIndex(limit: Double): Index = Index.oneDim(Set.empty)
 
   override def indexValue(str: String, threshold: Double, sourceOrTarget: Boolean): Index = Index.oneDim(Set(str.hashCode))
+}
+
+object EqualityMetric {
+  final val pluginId = "equality"
 }

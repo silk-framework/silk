@@ -31,6 +31,8 @@ export interface IProjectImportDetails {
     projectAlreadyExists: boolean;
     // Error message stating that something went wrong and the project cannot be imported.
     errorMessage?: string;
+    // If set to true then the project with the ID from the import request already exists and the user has no access to this project in order to replace it.
+    noAccess: boolean;
 }
 
 /** The project execution status of a started project import. */
@@ -60,6 +62,7 @@ export interface IRecentlyViewedItem {
     itemLinks: IItemLink[];
     tags?: Keywords;
     searchTags?: string[];
+    hiddenSearchTokens?: string[];
     readOnly?: boolean;
 }
 

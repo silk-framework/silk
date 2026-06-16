@@ -180,7 +180,8 @@ class EvaluateTransformApi @Inject()(implicit accessMonitor: WorkbenchAccessMoni
         source = task.dataSource,
         entitySchema = ruleSchema.inputSchema,
         rules = ruleSchema.transformRule.rules,
-        maxEntities = limit
+        maxEntities = limit,
+        taskContext = task.taskContext
       )
     val entities = evaluateTransform.execute()
     // FIXME: This only filters the limit# entities. Unclear how to do this in a performant way to fetch entities until the limit is met.
@@ -194,7 +195,7 @@ class EvaluateTransformApi @Inject()(implicit accessMonitor: WorkbenchAccessMoni
     ))
   }
 
-  private def evaluatedRulesJson(ruleSchema: TransformSpec.RuleSchemata)
+  private def evaluatedRulesJson(ruleSchema: TransformSpec.RuleSchemataExecution)
                                 (implicit writeContext: WriteContext[JsValue]): Seq[JsValue] = {
     ruleSchema.transformRule.rules.allRules
       .map(r => {
@@ -215,13 +216,13 @@ class EvaluateTransformApi @Inject()(implicit accessMonitor: WorkbenchAccessMoni
   }
 
   private def ruleSchemaById(task: ProjectTask[TransformSpec], ruleId: String)
-                            (implicit pluginContext: PluginContext): TransformSpec.RuleSchemata = {
+                            (implicit pluginContext: PluginContext): TransformSpec.RuleSchemataExecution = {
     val objectMappingId = task.data.objectMappingIdOfRule(ruleId).getOrElse(ruleId)
     task.data.ruleSchemata
       .find(_.transformRule.id.toString == objectMappingId)
       .getOrElse(throw new NotFoundException(s"Mapping rule '$ruleId' is not part of task '${task.fullLabel}' in project '${task.project.fullLabel}'. " +
         s"Available rules: ${task.data.ruleSchemata.map(_.transformRule.id).mkString(", ")}"))
-      .withContext(task.taskContext)
+      .execution(task.taskContext)
   }
 
   private def evaluateRule(task: ProjectTask[TransformSpec], parentRuleId: Identifier, transformRule: TransformRule, limit: Int)
@@ -230,11 +231,11 @@ class EvaluateTransformApi @Inject()(implicit accessMonitor: WorkbenchAccessMoni
 
     val ruleSchema = ruleSchemaById(task, parentRuleId)
     val inputSchema = ruleSchema.inputSchema.copy(typedPaths = transformRule.sourcePaths.toIndexedSeq)
-    val ruleWithContext = transformRule.withContext(task.taskContext)
 
     val entities = task.dataSource.retrieve(inputSchema, Some(limit)).entities.take(limit)
+    val ruleExec = transformRule.execution(task.taskContext)
     for(entity <- entities) yield {
-      DetailedEvaluator(ruleWithContext, entity)
+      DetailedEvaluator(ruleExec, entity)
     }
   }
 

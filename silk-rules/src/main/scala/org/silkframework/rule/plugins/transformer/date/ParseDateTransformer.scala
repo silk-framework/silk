@@ -17,8 +17,8 @@
 package org.silkframework.rule.plugins.transformer.date
 
 import org.silkframework.rule.annotations.{TransformExample, TransformExamples}
-import org.silkframework.rule.input.Transformer
-import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
+import org.silkframework.rule.input.InlineTransformer
+import org.silkframework.runtime.plugin.annotations.{Param, Plugin, PluginReference}
 import org.silkframework.runtime.plugin.types.LocaleOptionParameter
 import org.silkframework.runtime.plugin.types.autoComlpetionProviders.LocaleParameterAutoCompletionProvider
 import org.silkframework.runtime.validation.ValidationException
@@ -30,10 +30,16 @@ import java.util.Locale;
  * Parses a date, returning an xsd:date.
  */
 @Plugin(
-  id = "parseDate",
+  id = ParseDateTransformer.pluginId,
   categories = Array("Date"),
   label = "Parse date pattern",
-  description = "Parses a date based on a specified pattern, returning an xsd:date."
+  description = "Parses a date based on a specified pattern, returning an xsd:date.",
+  relatedPlugins = Array(
+    new PluginReference(
+      id = CurrentDateTransformer.pluginId,
+      description = "Parse date converts an input string to a date using a configured format. Current date ignores the input entirely and always outputs today's date."
+    )
+  )
 )
 @TransformExamples(Array(
   new TransformExample(
@@ -79,7 +85,7 @@ case class ParseDateTransformer(
   lenient: Boolean = false,
   @Param(value = "Optional locale for the date format. If not set the system's locale will be used.",
     autoCompletionProvider = classOf[LocaleParameterAutoCompletionProvider])
-  locale: LocaleOptionParameter = LocaleOptionParameter(None)) extends Transformer with Serializable {
+  locale: LocaleOptionParameter = LocaleOptionParameter(None)) extends InlineTransformer with Serializable {
 
   def apply(values: Seq[Seq[String]]): Seq[String] = {
     values.flatten.flatMap(parse)
@@ -106,4 +112,8 @@ case class ParseDateTransformer(
         throw new ValidationException(s"Misformatted date. Expected format: $format", ex)
     }
   }
+}
+
+object ParseDateTransformer {
+  final val pluginId = "parseDate"
 }

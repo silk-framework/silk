@@ -15,14 +15,24 @@
 package org.silkframework.rule.plugins.transformer.combine
 
 import org.silkframework.rule.annotations.{TransformExample, TransformExamples}
-import org.silkframework.rule.input.Transformer
-import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
+import org.silkframework.rule.input.InlineTransformer
+import org.silkframework.runtime.plugin.annotations.{Param, Plugin, PluginReference}
 
 @Plugin(
-  id = "concatPairwise",
+  id = ConcatPairwiseTransformer.pluginId,
   categories = Array("Combine"),
   label = "Concatenate pairwise",
-  description = "Concatenates the values of multiple inputs pairwise."
+  description = "Concatenates the values of multiple inputs pairwise.",
+  relatedPlugins = Array(
+    new PluginReference(
+      id = ConcatTransformer.pluginId,
+      description = "Concatenate pairwise matches values by position and produces one combined string per position. Concatenate does not align by position — it produces every combination of values across inputs, so two inputs with three values each yield nine strings, not three."
+    ),
+    new PluginReference(
+      id = ZipTransformer.pluginId,
+      description = "When inputs have unequal lengths, Concatenate pairwise drops the extra values from the longer input. Zip solves the same alignment problem for exactly two inputs but keeps them by substituting a configurable placeholder for each missing value."
+    )
+  )
 )
 @TransformExamples(Array(
   new TransformExample(
@@ -57,7 +67,7 @@ import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
 case class ConcatPairwiseTransformer(
   @Param("Separator to be inserted between two concatenated strings. The text can contain escaped characters \\n, \\t and" +
      " \\\\ that are replaced by a newline, tab or backslash respectively.")
-  glue: String = "") extends Transformer {
+  glue: String = "") extends InlineTransformer {
 
   // glue with escaped char sequences (\\, \n, \t) converted to actual character.
   private lazy val parsedGlue: String = ConcatTransformer.parseGlue(glue)
@@ -71,6 +81,8 @@ case class ConcatPairwiseTransformer(
       values.reduce((v1, v2) => v1.zip(v2).map(v => v._1 + parsedGlue + v._2))
     }
   }
+}
 
-
+object ConcatPairwiseTransformer {
+  final val pluginId = "concatPairwise"
 }

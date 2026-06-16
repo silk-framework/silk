@@ -36,10 +36,16 @@ import ActivityInfoWidget from "./ActivityInfoWidget";
 import { previewSlice } from "@ducks/workspace/previewSlice";
 import VariablesWidget from "../../../views/shared/VariablesWidget/VariablesWidget";
 import { useSelectFirstResult } from "../../../hooks/useSelectFirstResult";
+import { AppDispatch } from "store/configureStore";
 import { GlobalTableContext } from "../../../GlobalContextsWrapper";
+import { DeprecatedPluginsWidget } from "./DeprecatedPlugins/DeprecatedPluginsWidget";
+import { pluginRegistry, SUPPORTED_PLUGINS } from "../../plugins/PluginRegistry";
+import { ProjectAccessControlProps } from "../../plugins/plugin.types";
+import useErrorHandler from "../../../hooks/useErrorHandler";
+import { ProjectForbiddenNotification } from "../../shared/ProjectForbiddenNotification";
 
 const Project = () => {
-    const dispatch = useDispatch();
+    const dispatch = useDispatch<AppDispatch>();
 
     const { textQuery } = useSelector(workspaceSel.appliedFiltersSelector);
     const currentSearchQuery = useRef<string>("");
@@ -49,9 +55,14 @@ const Project = () => {
     const data = useSelector(workspaceSel.resultsSelector);
     const projectId = useSelector(commonSel.currentProjectIdSelector);
     const qs = useSelector(routerSel.routerSearchSelector);
-    const pagination = useSelector(workspaceSel.paginationSelector);
     const { clearSearchResults } = previewSlice.actions;
     const [t] = useTranslation();
+    const { clearErrors } = useErrorHandler();
+    const accessForbidden = error?.status === 403;
+
+    const projectAccessControl = pluginRegistry.pluginReactComponent<ProjectAccessControlProps>(
+        SUPPORTED_PLUGINS.DI_PROJECT_ACL,
+    );
 
     // FIXME: Workaround to prevent search with a text query from another page sharing the same Redux state. Needs refactoring.
     const [searchInitialized, setSearchInitialized] = React.useState(false);
@@ -62,6 +73,13 @@ const Project = () => {
     React.useEffect(() => {
         setSearchInitialized(true);
     }, []);
+
+    React.useEffect(() => {
+        // Clear all errors from the queue, since they will only repeat what's being displayed in the notification
+        if (accessForbidden) {
+            clearErrors();
+        }
+    }, [accessForbidden, clearErrors]);
 
     /**
      * Get available Datatypes
@@ -98,11 +116,14 @@ const Project = () => {
         autogeneratePageTitle: true,
     });
 
-    return !projectId ? (
-        <Loading posGlobal description={t("pages.project.loading", "Loading project data")} />
-    ) : error?.status === 404 ? (
-        <NotFound />
-    ) : (
+    if (accessForbidden) {
+        return <ProjectForbiddenNotification detail={error.detail} />;
+    } else if (error?.status === 404) {
+        return <NotFound />;
+    } else if (!projectId) {
+        return <Loading posGlobal description={t("pages.project.loading", "Loading project data")} />;
+    }
+    return (
         <WorkspaceContent className="eccapp-di__project">
             {pageHeader}
             <ArtefactManagementOptions
@@ -177,10 +198,18 @@ const Project = () => {
                     <ConfigurationWidget />
                     <Spacing />
                     <VariablesWidget projectId={projectId} />
+                    {projectAccessControl ? (
+                        <>
+                            <Spacing key={"spacing"} />
+                            <projectAccessControl.Component key={"component"} projectId={projectId} />
+                        </>
+                    ) : null}
                     <Spacing />
                     <ActivityInfoWidget />
                     <Spacing />
                     <FileWidget />
+                    <Spacing />
+                    <DeprecatedPluginsWidget projectId={projectId} />
                 </Section>
             </WorkspaceSide>
         </WorkspaceContent>

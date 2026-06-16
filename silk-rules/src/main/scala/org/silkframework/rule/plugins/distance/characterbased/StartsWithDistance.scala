@@ -2,13 +2,23 @@ package org.silkframework.rule.plugins.distance.characterbased
 
 import org.silkframework.entity.Index
 import org.silkframework.rule.similarity.{BooleanDistanceMeasure, NonSymmetricDistanceMeasure, SingleValueDistanceMeasure}
-import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
+import org.silkframework.runtime.plugin.annotations.{Param, Plugin, PluginReference}
 
 @Plugin(
-  id = "startsWith",
+  id = StartsWithDistance.pluginId,
   categories = Array("Characterbased"),
   label = "Starts with",
-  description = "Returns success if the first string starts with the second string, failure otherwise."
+  description = "Returns success if the first string starts with the second string, failure otherwise.",
+  relatedPlugins = Array(
+    new PluginReference(
+      id = IsSubstringDistance.pluginId,
+      description = "The Is Substring plugin checks whether the source appears anywhere inside the target, rather than whether the source begins with the target."
+    ),
+    new PluginReference(
+      id = SubStringDistance.pluginId,
+      description = "The result from the Starts with plugin is always binary — the source either begins with the target string or it does not — while Substring comparison quantifies the degree of similarity across the full string as a continuous score."
+    )
+  )
 )
 case class StartsWithDistance(@Param("Reverse source and target values")
                               reverse: Boolean = false,
@@ -50,6 +60,7 @@ case class StartsWithDistance(@Param("Reverse source and target values")
 }
 
 object StartsWithDistance {
+  final val pluginId = "startsWith"
   final val DEFAULT_MIN_LENGTH = 2
   final val DEFAULT_MAX_LENGTH = Int.MaxValue
   final val MAX_LENGTH_DESCRIPTION = "The potential maximum length of the strings that must match. If the max length is greater  " +

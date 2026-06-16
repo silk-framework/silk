@@ -152,6 +152,22 @@ class InMemoryWorkspaceProvider() extends WorkspaceProvider {
   }
 
   /**
+    * Reads the access control configuration for a project.
+    */
+  override def readAccessControl(project: Identifier)
+                                (implicit userContext: UserContext): Option[AccessControl] = synchronized {
+    projects(project).accessControl
+  }
+
+  /**
+    * Updates the access control configuration for a project.
+    */
+  override def putAccessControl(project: Identifier, accessControl: AccessControl)
+                               (implicit userContext: UserContext): Unit = synchronized {
+    projects(project).accessControl = Some(accessControl)
+  }
+
+  /**
     * No refresh needed.
     */
   override def refresh(resources: ResourceRepository)(implicit userContext: UserContext): Unit = {}
@@ -161,6 +177,8 @@ class InMemoryWorkspaceProvider() extends WorkspaceProvider {
     var tasks: Map[Identifier, InMemoryTask[_ <: TaskSpec]] = Map.empty
 
     var tags: Map[String, Tag] = Map.empty
+
+    var accessControl: Option[AccessControl] = None
 
     val resources = new InMemoryResourceManager
 

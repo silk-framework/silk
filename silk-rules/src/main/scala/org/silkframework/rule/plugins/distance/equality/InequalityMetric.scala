@@ -16,13 +16,19 @@ package org.silkframework.rule.plugins.distance.equality
 
 import org.silkframework.rule.annotations.{DistanceMeasureExample, DistanceMeasureExamples}
 import org.silkframework.rule.similarity.{BooleanDistanceMeasure, SingleValueDistanceMeasure}
-import org.silkframework.runtime.plugin.annotations.Plugin
+import org.silkframework.runtime.plugin.annotations.{Plugin, PluginReference}
 
 @Plugin(
-  id = "inequality",
+  id = InequalityMetric.pluginId,
   categories = Array("Equality"),
   label = "Inequality",
-  description = "Returns success if values are not equal, failure otherwise."
+  description = "Returns success if values are not equal, failure otherwise.",
+  relatedPlugins = Array(
+    new PluginReference(
+      id = EqualityMetric.pluginId,
+      description = "The string equality plugin covers the complementary case: success when values are equal, where the inequality plugin would return failure."
+    )
+  )
 )
 @DistanceMeasureExamples(Array(
   new DistanceMeasureExample(
@@ -55,4 +61,8 @@ case class InequalityMetric() extends SingleValueDistanceMeasure with BooleanDis
   override def evaluate(str1: String, str2: String, threshold: Double): Double = {
     if (str1 == str2) 1.0 else 0.0
   }
+}
+
+object InequalityMetric {
+  final val pluginId = "inequality"
 }

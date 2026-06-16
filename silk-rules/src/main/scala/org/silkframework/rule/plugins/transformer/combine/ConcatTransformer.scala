@@ -15,14 +15,24 @@
 package org.silkframework.rule.plugins.transformer.combine
 
 import org.silkframework.rule.annotations.{TransformExample, TransformExamples}
-import org.silkframework.rule.input.Transformer
-import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
+import org.silkframework.rule.input.InlineTransformer
+import org.silkframework.runtime.plugin.annotations.{Param, Plugin, PluginReference}
 
 @Plugin(
-  id = "concat",
+  id = ConcatTransformer.pluginId,
   categories = Array("Combine"),
   label = "Concatenate",
-  description = "Concatenates strings from multiple inputs."
+  description = "Concatenates strings from multiple inputs.",
+  relatedPlugins = Array(
+    new PluginReference(
+      id = ConcatPairwiseTransformer.pluginId,
+      description = "Concatenate takes the Cartesian product of all inputs and produces one string per combination. Concatenate pairwise aligns values by position and produces one string per position, truncating to the shortest input."
+    ),
+    new PluginReference(
+      id = ConcatMultipleValuesTransformer.pluginId,
+      description = "Passing multiple values to a single input of Concatenate does not combine them — it multiplies the output. Concatenate multiple values is the plugin that collapses multiple values within an input into one string, producing exactly one result per input."
+    )
+  )
 )
 @TransformExamples(Array(
   new TransformExample(
@@ -87,7 +97,7 @@ case class ConcatTransformer(
   @Param(ConcatTransformer.glueDescription)
   glue: String = "",
   @Param("Handle missing values as empty strings.")
-  missingValuesAsEmptyStrings: Boolean = false) extends Transformer {
+  missingValuesAsEmptyStrings: Boolean = false) extends InlineTransformer {
 
   // glue with escaped char sequences (\\, \n, \t) converted to actual character.
   lazy val parsedGlue: String = ConcatTransformer.parseGlue(glue)
@@ -130,6 +140,8 @@ case class ConcatTransformer(
 }
 
 object ConcatTransformer {
+
+  final val pluginId = "concat"
 
   final val glueDescription  = "Separator to be inserted between two concatenated strings. The text can contain escaped characters \\n, \\t and" +
     " \\\\ that are replaced by a newline, tab or backslash respectively."

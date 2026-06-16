@@ -10,7 +10,7 @@ import org.silkframework.entity.paths.{TypedPath, UntypedPath}
 import org.silkframework.execution.local.{GenericEntityTable, LocalExecution, MultiEntityTable}
 import org.silkframework.execution.{ExecutionReport, ExecutorOutput, ExecutorRegistry}
 import org.silkframework.rule._
-import org.silkframework.rule.input.{PathInput, TransformInput, Transformer}
+import org.silkframework.rule.input.{InlineTransformer, PathInput, TransformInput, Transformer, TransformerExecution}
 import org.silkframework.runtime.activity.{ActivityContext, ActivityMonitor, TestUserContextTrait}
 import org.silkframework.runtime.iterator.CloseableIterator
 import org.silkframework.runtime.plugin.PluginContext
@@ -131,21 +131,42 @@ class LocalTransformSpecExecutorTest extends AnyFlatSpec with Matchers with Exec
     // Check the result of the object rule
     result.subTables.head.headOption.map(_.values.head) mustBe Some(Seq(inputDatasetId))
   }
+
+  it should "throw a TaskException when the Transform has children but only a single input table is provided" in {
+    val executor = new LocalTransformSpecExecutor()
+    val transformTask = PlainTask("transform", TransformSpec(
+      DatasetSelection.empty,
+      RootMappingRule(MappingRules(
+        typeRules = Seq(TypeMapping("type", "TypeRoot")),
+        propertyRules = Seq(
+          DirectMapping(id = "sp1", sourcePath = UntypedPath("pathA"), mappingTarget = MappingTarget("propA")),
+          ObjectMapping("object", rules = MappingRules(
+            typeRules = Seq(TypeMapping("type2", "TypeObject")),
+            propertyRules = Seq(
+              DirectMapping(id = "sp2", sourcePath = UntypedPath("pathB"), mappingTarget = MappingTarget("propB"))
+            )
+          ))
+        )
+      ))
+    ))
+    val es = EntitySchema("es", IndexedSeq(UntypedPath("pathA")).map(_.asStringTypedPath))
+    val singleInput = GenericEntityTable(Seq(Entity("uri1", IndexedSeq(Seq("A")), es)), es, transformTask)
+
+    an[InputCountMismatchException] mustBe thrownBy {
+      executor.execute(transformTask, Seq(singleInput), ExecutorOutput.empty, LocalExecution(useLocalInternalDatasets = true))
+    }
+  }
 }
 
 case class TestTransformer() extends Transformer {
 
-  override def withContext(taskContext: TaskContext): Transformer = {
+  override def execution(taskContext: TaskContext): TransformerExecution = {
     TransformerWithContext(taskContext)
-  }
-
-  override def apply(values: Seq[Seq[String]]): Seq[String] = {
-    Seq.empty
   }
 
 }
 
-case class TransformerWithContext(taskContext: TaskContext) extends Transformer {
+case class TransformerWithContext(taskContext: TaskContext) extends InlineTransformer {
 
   override def apply(values: Seq[Seq[String]]): Seq[String] = {
     Seq(taskContext.inputTasks.head.id.toString)

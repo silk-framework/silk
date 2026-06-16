@@ -17,15 +17,21 @@ package org.silkframework.rule.plugins.distance.characterbased
 import org.silkframework.entity.Index
 import org.silkframework.rule.annotations.{DistanceMeasureExample, DistanceMeasureExamples}
 import org.silkframework.rule.similarity.{NormalizedDistanceMeasure, SingleValueDistanceMeasure}
-import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
+import org.silkframework.runtime.plugin.annotations.{Param, Plugin, PluginReference}
 
 import scala.math.max
 
 @Plugin(
-  id = "levenshtein",
+  id = LevenshteinMetric.pluginId,
   categories = Array("Characterbased"),
   label = "Normalized Levenshtein distance",
-  description = "Normalized Levenshtein distance. Divides the edit distance by the length of the longer string."
+  description = "Normalized Levenshtein distance. Divides the edit distance by the length of the longer string.",
+  relatedPlugins = Array(
+    new PluginReference(
+      id = LevenshteinDistance.pluginId,
+      description = "The Levenshtein distance plugin counts the minimum edits needed to transform one string into the other. The normalized Levenshtein distance plugin divides that count by the length of the longer string, so the distance is comparable regardless of how long the strings are."
+    )
+  )
 )
 @DistanceMeasureExamples(Array(
   new DistanceMeasureExample(
@@ -75,4 +81,8 @@ case class LevenshteinMetric(
   override def indexValue(str: String, limit: Double, sourceOrTarget: Boolean): Index = {
     levenshtein.indexValue(str, limit * str.length, sourceOrTarget)
   }
+}
+
+object LevenshteinMetric {
+  final val pluginId = "levenshtein"
 }

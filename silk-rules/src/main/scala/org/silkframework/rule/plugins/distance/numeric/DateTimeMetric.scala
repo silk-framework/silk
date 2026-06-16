@@ -15,16 +15,22 @@
 package org.silkframework.rule.plugins.distance.numeric
 
 import org.silkframework.rule.similarity.SingleValueDistanceMeasure
-import org.silkframework.runtime.plugin.annotations.{Plugin}
+import org.silkframework.runtime.plugin.annotations.{Plugin, PluginReference}
 
 import javax.xml.datatype.{DatatypeConstants, DatatypeFactory, XMLGregorianCalendar}
 import scala.math._
 
 @Plugin(
-  id = "dateTime",
+  id = DateTimeMetric.pluginId,
   categories = Array("Numeric"),
   label = "DateTime",
-  description = "Distance between two date time values (xsd:dateTime format) in seconds."
+  description = "Distance between two date time values (xsd:dateTime format) in seconds.",
+  relatedPlugins = Array(
+    new PluginReference(
+      id = DateMetric.pluginId,
+      description = "Where the date time metric plugin demands full datetime values and measures in seconds, the date metric plugin works at day granularity and accepts year-only or year-month dates."
+    )
+  )
 )
 case class DateTimeMetric() extends SingleValueDistanceMeasure {
 
@@ -78,5 +84,6 @@ case class DateTimeMetric() extends SingleValueDistanceMeasure {
 }
 
 object DateTimeMetric {
+  final val pluginId = "dateTime"
   private val dataTypeFactory = DatatypeFactory.newInstance
 }

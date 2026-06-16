@@ -1,6 +1,6 @@
 package controllers.workspaceApi.projectTask
 
-import controllers.workspaceApi.search.ItemLink
+import controllers.util.ItemLink
 import org.silkframework.serialization.json.MetaDataSerializers.FullTag
 import play.api.libs.json.{Format, Json}
 

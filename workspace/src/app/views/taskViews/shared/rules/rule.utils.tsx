@@ -121,7 +121,7 @@ const customInputPathRenderer = (
     query: string,
     modifiers: SuggestFieldItemRendererModifierProps,
     handleSelectClick: () => any,
-): JSX.Element | string => {
+): React.JSX.Element | string => {
     return autoCompleteResponse.label ? (
         <OverviewItem
             key={autoCompleteResponse.value}

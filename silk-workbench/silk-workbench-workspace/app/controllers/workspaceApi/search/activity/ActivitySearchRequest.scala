@@ -1,5 +1,6 @@
 package controllers.workspaceApi.search.activity
 
+import controllers.util.ItemType
 import controllers.workspaceApi.search.SearchApiModel.{FacetSetting, FacetedSearchRequest, FacetedSearchResult, SearchRequestTrait, SortOrder, SortableProperty, TypedTasks}
 import controllers.workspaceApi.search._
 import controllers.workspaceApi.search.activity.ActivitySearchRequest.{ActivityResult, ActivitySortBy}

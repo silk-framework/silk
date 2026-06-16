@@ -75,11 +75,12 @@ trait ControllerUtilsTrait {
 
   /** Returns true if the project exists, false otherwise. */
   def projectExists(projectId: String)(implicit userContext: UserContext): Boolean = {
-    workspace.findProject(projectId).isDefined
+    workspace.projectOption(projectId).isDefined
   }
 
+  /** All projects the user has access to. */
   def allProjects(implicit userContext: UserContext): Seq[Project] = {
-    workspace.projects
+    workspace.userProjects
   }
 
   def task[T <: TaskSpec : ClassTag](projectName: String, taskName: String)

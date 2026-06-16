@@ -1,14 +1,24 @@
 package org.silkframework.rule.plugins.transformer.linguistic
 
 import org.silkframework.rule.input.SimpleTransformer
-import org.silkframework.runtime.plugin.annotations.Plugin
+import org.silkframework.runtime.plugin.annotations.{Plugin, PluginReference}
 
 @Plugin(
-  id = "NYSIIS",
+  id = NysiisTransformer.pluginId,
   categories = Array("Linguistic"),
   label = "NYSIIS",
   description = "NYSIIS phonetic encoding.",
-  documentationFile = "NysiisTransformer.md"
+  documentationFile = "NysiisTransformer.md",
+  relatedPlugins = Array(
+    new PluginReference(
+      id = SoundexTransformer.pluginId,
+      description = "The NYSIIS plugin encodes a name into a phonetic key, but it is not the same kind of key as Soundex. The Soundex plugin produces a fixed, coarse code, while NYSIIS keeps more structure so fewer distinct names collapse into the same bucket."
+    ),
+    new PluginReference(
+      id = MetaphoneTransformer.pluginId,
+      description = "The Metaphone plugin follows its own phonetic encoding path and returns a key that lives in a different rule space than NYSIIS. Switching between Metaphone and the NYSIIS plugin changes which spellings end up identical after encoding, not just how the encoded strings look."
+    ),
+  )
 )
 case class NysiisTransformer(refined: Boolean = true) extends SimpleTransformer {
 
@@ -18,6 +28,10 @@ case class NysiisTransformer(refined: Boolean = true) extends SimpleTransformer 
     else
       NysiisAlgorithm.compute(value).getOrElse("")
   }
+}
+
+object NysiisTransformer {
+  final val pluginId = "NYSIIS"
 }
 
 // Based on code of the StringMetric library: http://rockymadden.com/stringmetric/.

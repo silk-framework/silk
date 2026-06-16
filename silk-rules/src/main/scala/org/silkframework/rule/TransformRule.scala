@@ -8,7 +8,7 @@ import org.silkframework.entity.paths.{TypedPath, UntypedPath}
 import org.silkframework.rule.MappingRules.MappingRulesFormat
 import org.silkframework.rule.MappingTarget.MappingTargetFormat
 import org.silkframework.rule.TransformRule.RDF_TYPE
-import org.silkframework.rule.input.{Input, OperatorEvaluationError, PathInput, TransformInput, Value}
+import org.silkframework.rule.input.{Input, InputExecution, OperatorEvaluationError, PathInput, TransformInput, Value}
 import org.silkframework.rule.plugins.transformer.combine.ConcatTransformer
 import org.silkframework.rule.plugins.transformer.normalize.{UriFixTransformer, UrlEncodeTransformer}
 import org.silkframework.rule.plugins.transformer.value.{ConstantTransformer, ConstantUriTransformer, EmptyValueTransformer}
@@ -42,6 +42,13 @@ sealed trait TransformRule extends Operator with HasMetaData {
   /** The same rule with different meta data */
   def withMetaData(metaData: MetaData): TransformRule
 
+  /** Returns a copy of this rule with the given function applied to the metadata of this rule and all nested rules. */
+  def withMetaDataRecursive(f: MetaData => MetaData): TransformRule = {
+    val updated = withMetaData(f(metaData))
+    val newChildren = updated.children.map(_.asInstanceOf[TransformRule].withMetaDataRecursive(f))
+    updated.withChildren(newChildren)
+  }
+
   /** The input operator tree. */
   def operator: Input
 
@@ -54,20 +61,6 @@ sealed trait TransformRule extends Operator with HasMetaData {
   def rules: MappingRules = MappingRules.empty
 
   assert(rules.allRules.forall(!_.isInstanceOf[RootMappingRule]), "No root mapping rule allowed as child of another rule!")
-
-  /**
-    * Generates the transformed values.
-    *
-    * @param entity The source entity.
-    * @return The transformed values.
-    * @throws ValidationException If a value failed to be transformed or a generated value doesn't match the target type.
-    */
-  def apply(entity: Entity): Value = {
-    val values = operator(entity)
-    // Validate values
-    target.foreach(_.validate(values.values))
-    values
-  }
 
   /**
     * Generates a label for this rule.
@@ -133,10 +126,36 @@ sealed trait TransformRule extends Operator with HasMetaData {
     }
   }
 
-  override def withContext(taskContext: TaskContext): TransformRule = this
+  override def execution(taskContext: TaskContext = TaskContext.empty): TransformRuleExecution
 
   def representsDefaultUriRule: Boolean = {
     false
+  }
+}
+
+/**
+ * Runtime executor of a [[TransformRule]].
+ */
+sealed trait TransformRuleExecution extends OperatorExecution {
+
+  /** The originating rule. */
+  override def operator: TransformRule
+
+  /** Resolved executions of the rule's direct child rules. Empty for value-producing rules. */
+  def childExecutions: Seq[TransformRuleExecution]
+
+  /** The contextualized input that produces this rule's values for an entity. */
+  def inputExecution: InputExecution
+
+  /**
+   * Generates the transformed values.
+   *
+   * @throws ValidationException If a value failed to be transformed or a generated value doesn't match the target type.
+   */
+  def apply(entity: Entity): Value = {
+    val values = inputExecution(entity)
+    operator.target.foreach(_.validate(values.values))
+    values
   }
 }
 
@@ -154,9 +173,24 @@ sealed trait ContainerTransformRule extends TransformRule {
     }
   }
 
-  override def withContext(taskContext: TaskContext): TransformRule = {
-    withChildren(rules.map(_.withContext(taskContext)))
+  override def execution(taskContext: TaskContext = TaskContext.empty): ContainerTransformRuleExecution = {
+    new ContainerTransformRuleExecution(this, () => rules.map(_.execution(taskContext)), operator.execution(taskContext))
   }
+}
+
+/**
+ * Runtime executor for container transform rules.
+ *
+ * Child executions are built lazily: when a container appears as a property of its parent,
+ * the parent only needs this execution's [[inputExecution]] (to generate the URIs linking to
+ * the child entities). Its grandchildren are contextualized in their own schema iteration,
+ * so deferring this expansion avoids building those executions twice.
+ */
+class ContainerTransformRuleExecution(override val operator: ContainerTransformRule,
+                                      @transient private val childExecsFunc: () => Seq[TransformRuleExecution],
+                                      override val inputExecution: InputExecution) extends TransformRuleExecution {
+  override lazy val childExecutions: Seq[TransformRuleExecution] =
+    if (childExecsFunc != null) childExecsFunc() else Seq.empty
 }
 
 /**
@@ -179,9 +213,22 @@ sealed trait ValueTransformRule extends TransformRule {
 
   def uiAnnotations: UiAnnotations = UiAnnotations()
 
-  override def withContext(taskContext: TaskContext): ValueTransformRule = {
-    this
+  override def withId(newId: Identifier): ValueTransformRule
+
+  override def execution(taskContext: TaskContext = TaskContext.empty): ValueTransformRuleExecution = {
+    new ValueTransformRuleExecution(this, operator.execution(taskContext))
   }
+}
+
+/**
+ * Runtime executor for value-producing transform rules (non-container). Holds the contextualized
+ * [[InputExecution]] used to evaluate the rule on an entity.
+ */
+class ValueTransformRuleExecution(override val operator: ValueTransformRule,
+                                  override val inputExecution: InputExecution) extends TransformRuleExecution {
+
+  /** Value rules have no child rules. */
+  override def childExecutions: Seq[TransformRuleExecution] = Seq.empty
 }
 
 /**
@@ -213,6 +260,13 @@ case class RootMappingRule(override val rules: MappingRules,
     * The children operators.
     */
   override def children: Seq[Operator] = rules.allRules
+
+  /**
+    * Generates the same operator with new id.
+    */
+  override def withId(newId: Identifier): Operator = {
+    copy(id = newId)
+  }
 
   /**
     * Generates the same operator with new children.
@@ -293,6 +347,13 @@ case class DirectMapping(id: Identifier = "sourcePath",
 
   override val typeString = "Direct"
 
+  /**
+   * Generates the same operator with new id.
+   */
+  override def withId(newId: Identifier): ValueTransformRule = {
+    copy(id = newId)
+  }
+
   override def withMetaData(metaData: MetaData): TransformRule = this.copy(metaData = metaData)
 }
 
@@ -318,6 +379,8 @@ case class PatternUriMapping(id: Identifier = "URI",
 
   override val typeString = "URI"
 
+  override def withId(newId: Identifier): PatternUriMapping = copy(id = newId)
+
   override def withMetaData(metaData: MetaData): TransformRule = this.copy(metaData = metaData)
 }
 
@@ -339,20 +402,30 @@ case class ComplexUriMapping(id: Identifier = "complexURI",
 
   override val typeString = "ComplexURI"
 
+  override def withId(newId: Identifier): ComplexUriMapping = copy(id = newId)
+
   override def withMetaData(metaData: MetaData): TransformRule = this.copy(metaData = metaData)
 
-  override def withContext(taskContext: TaskContext): ComplexUriMapping = {
-    copy(operator = operator.withContext(taskContext))
+  override def execution(taskContext: TaskContext = TaskContext.empty): ValueTransformRuleExecution = {
+    new ComplexUriMappingExecution(this, operator.execution(taskContext))
   }
+}
+
+/**
+ * Runtime executor for [[ComplexUriMapping]] that additionally validates the generated URIs.
+ */
+final class ComplexUriMappingExecution(override val operator: ComplexUriMapping,
+                                       inputExecution: InputExecution)
+    extends ValueTransformRuleExecution(operator, inputExecution) {
 
   override def apply(entity: Entity): Value = {
     val v = super.apply(entity)
     val invalidUri = v.values.find(uri => !Uri(uri).isValidUri)
     if(invalidUri.isDefined && v.errors.isEmpty) {
-      // The URI rule has generated an invalid URI
-      return v.copy(errors = Seq(OperatorEvaluationError(id, new ValidationException(s"URI rule has generated an invalid URI: '${invalidUri.get}'!"))))
+      v.copy(errors = Seq(OperatorEvaluationError(operator.id, new ValidationException(s"URI rule has generated an invalid URI: '${invalidUri.get}'!"))))
+    } else {
+      v
     }
-    v
   }
 }
 
@@ -371,6 +444,8 @@ case class TypeMapping(id: Identifier = "type",
   override val target = Some(MappingTarget(RDF_TYPE, ValueType.URI))
 
   override val typeString = "Type"
+
+  override def withId(newId: Identifier): TypeMapping = copy(id = newId)
 
   override def withMetaData(metaData: MetaData): TransformRule = this.copy(metaData = metaData)
 
@@ -393,11 +468,10 @@ case class ComplexMapping(id: Identifier = "mapping",
 
   override val typeString = "Complex"
 
+  override def withId(newId: Identifier): ComplexMapping = copy(id = newId)
+
   override def withMetaData(metaData: MetaData): TransformRule = this.copy(metaData = metaData)
 
-  override def withContext(taskContext: TaskContext): ComplexMapping = {
-    copy(operator = operator.withContext(taskContext))
-  }
 }
 
 /**
@@ -447,6 +521,8 @@ case class ObjectMapping(id: Identifier = "mapping",
         PathInput(path = UntypedPath.empty)
     }
   }
+
+  override def withId(newId: Identifier): ObjectMapping = copy(id = newId)
 
   /**
     * Generates the same operator with new children.

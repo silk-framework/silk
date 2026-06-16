@@ -43,6 +43,8 @@ class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
   // Should be used to observe the task data
   val dataValueHolder: ValueHolder[TaskType] = new ValueHolder(Some(initialData))
 
+  @volatile private var _cachedPluginUsages: Option[Seq[PluginUsage]] = None
+
   // Should be used to observe the meta data
   val metaDataValueHolder: ValueHolder[MetaData] = new ValueHolder(Some(
     // Make sure that the modified timestamp is set
@@ -130,6 +132,8 @@ class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
     )
     // First persist task
     persistTask(PlainTask.fromTask(ProjectTask.this).copy(data = newData, metaData = metaDataToPersist))
+    // Invalidate plugin usage cache
+    _cachedPluginUsages = None
     // Update (in-memory) data
     dataValueHolder.update(newData)
     metaDataValueHolder.update(metaDataToPersist)
@@ -179,6 +183,25 @@ class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
     taskActivities.find(_.name == activityName)
         .getOrElse(throw new NoSuchElementException(s"Task '$id' in project '${project.id}' does not contain an activity named '$activityName'. " +
             s"Available activities: ${taskActivityMap.values.map(_.name).mkString(", ")}"))
+  }
+
+  /** Cached plugin usages for this task only (no referenced tasks). */
+  def ownPluginUsages: Seq[PluginUsage] = {
+    _cachedPluginUsages.getOrElse {
+      val usages = PluginUsage.pluginUsages(this)
+      _cachedPluginUsages = Some(usages)
+      usages
+    }
+  }
+
+  /**
+   * Plugin usages for this task and all directly referenced tasks.
+   * For workflows this replaces the old recursive Workflow-case in PluginUsage.
+   */
+  def pluginUsages(implicit user: UserContext): Seq[PluginUsage] = {
+    ownPluginUsages ++ data.referencedTasks.flatMap { taskId =>
+      project.anyTaskOption(taskId).toSeq.flatMap(_.ownPluginUsages)
+    }
   }
 
   /**

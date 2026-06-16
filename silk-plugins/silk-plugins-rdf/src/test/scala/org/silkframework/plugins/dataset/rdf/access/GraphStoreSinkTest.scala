@@ -1,14 +1,17 @@
 package org.silkframework.plugins.dataset.rdf.access
 
-import org.apache.jena.query.DatasetFactory
-import org.apache.jena.rdf.model.ModelFactory
+import org.apache.jena.query.{Dataset, DatasetFactory}
+import org.apache.jena.riot.RDFLanguages
 import org.silkframework.config.Prefixes
+import org.silkframework.dataset.rdf.GraphStoreFileUploadTrait
 import org.silkframework.entity.ValueType
 import org.silkframework.plugins.dataset.rdf.endpoint.JenaDatasetEndpoint
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.util.ConfigTestTrait
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.must.Matchers
+
+import java.io.{File, FileInputStream}
 
 class GraphStoreSinkTest extends AnyFlatSpec with Matchers with ConfigTestTrait {
   behavior of "Graph store sink"
@@ -34,6 +37,30 @@ class GraphStoreSinkTest extends AnyFlatSpec with Matchers with ConfigTestTrait 
     dataset.getNamedModel(graph).size() mustBe 11
   }
 
+  it should "use file upload when useStreaming is false and graphStore supports file upload" in {
+    val graph = "urn:graph:fileupload"
+    val dataset = DatasetFactory.createTxnMem()
+    val endpoint = new FileUploadJenaEndpoint(dataset)
+    val sink = GraphStoreSink(endpoint, graph, None, None, dropGraphOnClear = false, useStreaming = false)
+    sink.init()
+    sink.writeStatement("urn:subj:1", "urn:prop:p", "value", ValueType.UNTYPED)
+    sink.close()
+    endpoint.uploadFileToGraphCalled mustBe true
+    dataset.getNamedModel(graph).size() mustBe 1
+  }
+
+  it should "use streaming when useStreaming is true even when graphStore supports file upload" in {
+    val graph = "urn:graph:streaming"
+    val dataset = DatasetFactory.createTxnMem()
+    val endpoint = new FileUploadJenaEndpoint(dataset)
+    val sink = GraphStoreSink(endpoint, graph, None, None, dropGraphOnClear = false, useStreaming = true)
+    sink.init()
+    sink.writeStatement("urn:subj:1", "urn:prop:p", "value", ValueType.UNTYPED)
+    sink.close()
+    endpoint.uploadFileToGraphCalled mustBe false
+    dataset.getNamedModel(graph).size() mustBe 1
+  }
+
   /** The properties that should be changed.
     * If the value is [[None]] then the property value is removed,
     * else it is set to the new value.
@@ -41,4 +68,29 @@ class GraphStoreSinkTest extends AnyFlatSpec with Matchers with ConfigTestTrait 
   override def propertyMap: Map[String, Option[String]] = Map(
     "graphstore.default.max.request.size" -> Some((STATEMENT_SIZE * 10).toString)
   )
+}
+
+/** A JenaDatasetEndpoint that also implements GraphStoreFileUploadTrait, for testing the file upload vs streaming paths. */
+class FileUploadJenaEndpoint(val jenaDataset: Dataset)
+    extends JenaDatasetEndpoint(jenaDataset) with GraphStoreFileUploadTrait {
+
+  var uploadFileToGraphCalled: Boolean = false
+  var uploadCount: Int = 0
+
+  override def uploadFileToGraph(graph: String,
+                                 file: File,
+                                 contentType: String,
+                                 comment: Option[String])
+                                (implicit userContext: UserContext): Unit = {
+    uploadFileToGraphCalled = true
+    uploadCount += 1
+    val model = jenaDataset.getNamedModel(graph)
+    val lang = RDFLanguages.contentTypeToLang(contentType)
+    val inputStream = new FileInputStream(file)
+    try {
+      model.read(inputStream, null, lang.getName)
+    } finally {
+      inputStream.close()
+    }
+  }
 }

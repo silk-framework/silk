@@ -37,6 +37,7 @@ import { UserMenuFooterProps } from "../../plugins/plugin.types";
 import { ExampleProjectImportMenu } from "./ExampleProjectImportMenu";
 import { useKeyboardHeaderShortcuts } from "./useKeyBoardHeaderShortcuts";
 import { getFullRoutePath } from "../../../utils/routerUtils";
+import { AppDispatch } from "store/configureStore";
 
 interface IProps {
     onClickApplicationSidebarExpand: any;
@@ -44,7 +45,7 @@ interface IProps {
 }
 
 export function Header({ onClickApplicationSidebarExpand, isApplicationSidebarExpanded }: IProps) {
-    const dispatch = useDispatch();
+    const dispatch = useDispatch<AppDispatch>();
     const location = useLocation();
     const locationParams = new URLSearchParams(location.search?.substring(1));
     const { hotKeys } = useSelector(commonSel.initialSettingsSelector);
@@ -268,6 +269,12 @@ export function Header({ onClickApplicationSidebarExpand, isApplicationSidebarEx
                                                 text={t("common.action.showApiDoc", "API")}
                                                 href={CONTEXT_PATH + "/doc/api"}
                                                 icon={"application-homepage"}
+                                            />
+
+                                            <MenuItem
+                                                text={t("common.action.listDeprecatedPlugins")}
+                                                href={CONTEXT_PATH + "/workbench/deprecatedPlugins"}
+                                                icon={"state-warning"}
                                             />
                                             <ExampleProjectImportMenu />
                                             {!!dmBaseUrl && diUserMenuItems && <diUserMenuItems.Component />}

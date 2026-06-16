@@ -23,10 +23,11 @@ import {
 import { ICloneOptions } from "../CloneModal";
 import { useTranslation } from "react-i18next";
 import { requestProjectMetadata, requestTaskMetadata } from "@ducks/shared/requests";
-import { requestCopyProject, requestCopyTask, requestSearchList } from "@ducks/workspace/requests";
+import { ISearchListRequest, requestCopyProject, requestCopyTask, requestSearchList } from "@ducks/workspace/requests";
 import ItemDepiction from "../../ItemDepiction";
 import { ErrorResponse } from "../../../../services/fetch/responseInterceptor";
 import { useModalError } from "../../../../hooks/useModalError";
+import { contextualPath } from "../../../../constants/path";
 
 //Component Interface
 interface CopyToModalProps extends ICloneOptions {
@@ -134,7 +135,7 @@ const CopyToModal: React.FC<CopyToModalProps> = ({ item, onDiscard, onConfirmed 
     const handleSearch: (value: string) => Promise<any[]> = async (textQuery: string) => {
         setError(null); //reset modal error here
         try {
-            const payload = {
+            const payload: ISearchListRequest = {
                 limit: 50,
                 offset: 0,
                 itemType: "project",
@@ -257,7 +258,7 @@ const CopyToModal: React.FC<CopyToModalProps> = ({ item, onDiscard, onConfirmed 
                                     <OverviewItemDescription>
                                         <OverviewItemLine>
                                             <Tooltip content={`Open ${t.taskType} "${t.label}" in a new window`}>
-                                                <Link href={t.originalTaskLink} target="_blank">
+                                                <Link href={contextualPath(t.originalTaskLink)} target="_blank">
                                                     {t.label}
                                                 </Link>
                                             </Tooltip>
@@ -266,7 +267,10 @@ const CopyToModal: React.FC<CopyToModalProps> = ({ item, onDiscard, onConfirmed 
                                             <Tooltip
                                                 content={`Open to-be-replaced ${t.taskType} "${t.label}" in a new window`}
                                             >
-                                                <Link href={t.overwrittenTaskLink} target="_blank">
+                                                <Link
+                                                    href={contextualPath(t.overwrittenTaskLink ?? "")}
+                                                    target="_blank"
+                                                >
                                                     To be overwritten: {t.label}
                                                 </Link>
                                             </Tooltip>
@@ -295,7 +299,7 @@ const CopyToModal: React.FC<CopyToModalProps> = ({ item, onDiscard, onConfirmed 
                                     </OverviewItemDepiction>
                                     <OverviewItemDescription>
                                         <OverviewItemLine>
-                                            <Link href={item.originalTaskLink} target="_blank">
+                                            <Link href={contextualPath(item.originalTaskLink)} target="_blank">
                                                 <Tooltip content={t("common.action.openInNewTab")}>
                                                     {item.label}
                                                 </Tooltip>

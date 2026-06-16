@@ -15,14 +15,20 @@
 package org.silkframework.rule.plugins.transformer.combine
 
 import org.silkframework.rule.annotations.{TransformExample, TransformExamples}
-import org.silkframework.rule.input.Transformer
-import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
+import org.silkframework.rule.input.InlineTransformer
+import org.silkframework.runtime.plugin.annotations.{Param, Plugin, PluginReference}
 
 @Plugin(
-  id = "zip",
+  id = ZipTransformer.pluginId,
   categories = Array("Combine"),
   label = "Zip",
-  description = "Concatenates the values of two inputs in pairs."
+  description = "Concatenates the values of two inputs in pairs.",
+  relatedPlugins = Array(
+    new PluginReference(
+      id = ConcatPairwiseTransformer.pluginId,
+      description = "Zip handles unequal input lengths by padding, not truncating, and is constrained to exactly two inputs. Concatenate pairwise removes that constraint — it accepts any number of inputs — but resolves the length mismatch by stopping at the shortest."
+    )
+  )
 )
 @TransformExamples(Array(
   new TransformExample(
@@ -58,7 +64,7 @@ case class ZipTransformer(@Param(value = "Placeholder to be used if the first in
                           @Param(value = "Placeholder to be used if the second input provides fewer values than the first one.")
                           secondPlaceholder: String = "",
                           @Param(value = ConcatTransformer.glueDescription)
-                          glue: String = "") extends Transformer {
+                          glue: String = "") extends InlineTransformer {
 
   // glue with escaped char sequences (\\, \n, \t) converted to actual character.
   lazy val parsedGlue: String = ConcatTransformer.parseGlue(glue)
@@ -69,4 +75,8 @@ case class ZipTransformer(@Param(value = "Placeholder to be used if the first in
     val secondValues = values(1)
     firstValues.zipAll(secondValues, firstPlaceholder, secondPlaceholder) map { case (v1, v2) => v1 + parsedGlue + v2 }
   }
+}
+
+object ZipTransformer {
+  final val pluginId = "zip"
 }

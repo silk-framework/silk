@@ -25,10 +25,16 @@ import javax.xml.datatype.{DatatypeConstants, DatatypeFactory}
 import scala.math._
 
 @Plugin(
-  id = "date",
+  id = DateMetric.pluginId,
   categories = Array("Numeric"),
   label = "Date",
-  description = "The distance in days between two dates ('YYYY-MM-DD' format)."
+  description = "The distance in days between two dates ('YYYY-MM-DD' format).",
+  relatedPlugins = Array(
+    new PluginReference(
+      id = DateTimeMetric.pluginId,
+      description = "The date time metric plugin is the date metric plugin at a finer scale: it resolves differences to the second rather than the day, but does not tolerate partial dates that lack a month or day."
+    )
+  )
 )
 @DistanceMeasureExamples(Array(
   new DistanceMeasureExample(
@@ -141,5 +147,6 @@ case class DateMetric(
 }
 
 object DateMetric {
+  final val pluginId = "date"
   private val dataTypeFactory = DatatypeFactory.newInstance
 }

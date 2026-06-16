@@ -1,14 +1,24 @@
 package org.silkframework.rule.plugins.transformer.linguistic
 
 import org.silkframework.rule.input.SimpleTransformer
-import org.silkframework.runtime.plugin.annotations.Plugin
+import org.silkframework.runtime.plugin.annotations.{Plugin, PluginReference}
 
 @Plugin(
-  id = "soundex",
+  id = SoundexTransformer.pluginId,
   categories = Array("Linguistic"),
   label = "Soundex",
   description = "Soundex algorithm.",
-  documentationFile = "SoundexTransformer.md"
+  documentationFile = "SoundexTransformer.md",
+  relatedPlugins = Array(
+    new PluginReference(
+      id = MetaphoneTransformer.pluginId,
+      description = "The Soundex plugin turns a name into a short, fixed-format code built around the first letter and digit groups. The Metaphone plugin returns a letter-based phonetic key instead, so the output is not even the same kind of artifact."
+    ),
+    new PluginReference(
+      id = NysiisTransformer.pluginId,
+      description = "The Soundex plugin returns a short Soundex code, optionally in refined mode. The NYSIIS plugin returns a different phonetic key, and the refined flag is internal to each encoder rather than a shared setting that makes the two outputs compatible."
+    )
+  )
 )
 case class SoundexTransformer(refined: Boolean = true) extends SimpleTransformer {
 
@@ -142,6 +152,11 @@ private object RefinedSoundexAlgorithm {
       transcode(i.tail, if (a != '\u0000') o :+ a else o)
     }
 }
+
+object SoundexTransformer {
+  final val pluginId = "soundex"
+}
+
 
 object Alpha {
 

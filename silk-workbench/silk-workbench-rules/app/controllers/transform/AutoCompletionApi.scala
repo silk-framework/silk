@@ -843,6 +843,7 @@ object AutoCompletionApi {
 
     val vocabularyProperties = "Vocabulary Properties"
 
+    val rules = "Rules"
   }
 
   def validateAutoCompletionRequest(autoCompletionRequest: AutoSuggestAutoCompletionRequest): Unit = {

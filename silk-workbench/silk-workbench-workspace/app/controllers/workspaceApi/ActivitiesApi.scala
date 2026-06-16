@@ -61,7 +61,7 @@ class ActivitiesApi @Inject() (implicit accessMonitor: WorkbenchAccessMonitor) e
       case Some(id) =>
         Seq(workspace.project(id))
       case None =>
-        workspace.projects
+        workspace.userProjects
     }
     def statusMatches(status: ActivityStatus, statusFilter: Option[String]): Boolean = {
       statusFilter.isEmpty || statusFilter.contains(status.name) || statusFilter.contains(status.concreteStatus)

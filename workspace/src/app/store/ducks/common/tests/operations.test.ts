@@ -1,18 +1,26 @@
 import commonOps from "../operations";
 
 describe("commonOps", () => {
-    test("buildTaskObject should construct nested objects from flat objects", () => {
+    test("buildStringValuedObject should convert all literal values to string values in a nested object", () => {
         const flatObject = {
             id: 1,
-            "source.id": 2,
-            "source.name": "2",
-            "target.id": 3,
-            "target.name": "3",
-            "source.extra.id": 4,
-            "source.extra.name": "extra",
+            root: true,
+            source: {
+                id: 2,
+                name: "2",
+                extra: {
+                    id: 4,
+                    name: "extra",
+                },
+            },
+            target: {
+                id: 3,
+                name: "3",
+            },
         };
         const expectedResult = {
             id: "1",
+            root: "true",
             source: {
                 id: "2",
                 name: "2",
@@ -26,6 +34,6 @@ describe("commonOps", () => {
                 name: "3",
             },
         };
-        expect(commonOps.buildNestedTaskParameterObject(flatObject)).toEqual(expectedResult);
+        expect(commonOps.buildStringValuedObject(flatObject)).toEqual(expectedResult);
     });
 });

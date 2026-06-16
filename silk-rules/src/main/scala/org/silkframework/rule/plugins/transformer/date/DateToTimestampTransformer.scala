@@ -18,17 +18,23 @@ package org.silkframework.rule.plugins.transformer.date
 
 import org.silkframework.rule.annotations.{TransformExample, TransformExamples}
 import org.silkframework.rule.input.SimpleTransformer
-import org.silkframework.runtime.plugin.annotations.Plugin
+import org.silkframework.runtime.plugin.annotations.{Plugin, PluginReference}
 import org.silkframework.runtime.validation.ValidationException
 
 import java.time.{Instant, LocalDate, ZoneOffset, ZonedDateTime}
 import java.time.format.DateTimeParseException
 
 @Plugin(
-  id = "datetoTimestamp",
+  id = DateToTimestampTransformer.pluginId,
   categories = Array("Date"),
   label = "Date to timestamp",
-  description = "Convert an xsd:dateTime to a timestamp. Returns the passed time since the Unix Epoch (1970-01-01)."
+  description = "Convert an xsd:dateTime to a timestamp. Returns the passed time since the Unix Epoch (1970-01-01).",
+  relatedPlugins = Array(
+    new PluginReference(
+      id = TimestampToDateTransformer.pluginId,
+      description = "The two plugins are inverses. Date to timestamp takes a date and outputs a Unix integer; Timestamp to date takes a Unix integer and outputs a date."
+    )
+  )
 )
 @TransformExamples(Array(
   new TransformExample(
@@ -70,4 +76,8 @@ case class DateToTimestampTransformer(unit: DateUnit = DateUnit.milliseconds) ex
 
     Instant.EPOCH.until(dateTime, unit.toChronoUnit).toString
   }
+}
+
+object DateToTimestampTransformer {
+  final val pluginId = "datetoTimestamp"
 }

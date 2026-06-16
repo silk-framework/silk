@@ -32,7 +32,8 @@ export function initialCommonState(): ICommonState {
             hotKeys: {},
             templatingEnabled: false,
             assistantSupported: false,
-            mappingCreatorEnabled: false
+            mappingCreatorEnabled: false,
+            aclEnabled: false,
         },
         exportTypes: [],
         artefactModal: initialArtefactModalState(),

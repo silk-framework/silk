@@ -1,25 +1,3 @@
-# Linkage Rule Editor
-GET           /:project/:task/editor                                                        controllers.linking.LinkingEditor.editor(project: String, task: String)
-GET           /:project/:task/editor/widgets/paths                                          controllers.linking.LinkingEditor.paths(project: String, task: String, groupPaths: Boolean ?= true)
-GET           /:project/:task/editor/widgets/score                                          controllers.linking.LinkingEditor.score(project: String, task: String)
-
-# Evaluate
-GET           /:project/:task/evaluate                                                      controllers.linking.EvaluateLinkingController.generateLinks(project: String, task: String)
-GET           /:project/:task/evaluate/links/:sorting/:filter/:page                         controllers.linking.EvaluateLinkingController.links(project: String, task: String, sorting: String, filter: String, page: Int)
-GET           /:project/:task/evaluate/linksStream                                          controllers.linking.EvaluateLinkingController.linksWebsocket(project: String, task: String)
-
-# Execute
-GET           /:project/:task/execute                                                       controllers.linking.ExecuteLinkingController.execute(project: String, task: String)
-GET           /:project/:task/execute/report                                                controllers.linking.ExecuteLinkingController.executionReport(project: String, task: String)
-
-# Reference Links
-GET           /:project/:task/referenceLinks                                                controllers.linking.ReferenceLinksManager.referenceLinksView(project: String, task: String)
-GET           /:project/:task/referenceLinks/addLinkDialog                                  controllers.linking.ReferenceLinksManager.addLinkDialog(project: String, task: String)
-GET           /:project/:task/referenceLinks/importDialog                                   controllers.linking.ReferenceLinksManager.importDialog(project: String, task: String)
-GET           /:project/:task/referenceLinks/removeLinksDialog                              controllers.linking.ReferenceLinksManager.removeLinksDialog(project: String, task: String)
-GET           /:project/:task/referenceLinks/:linkType/:sorting/:filter/:page               controllers.linking.ReferenceLinksManager.referenceLinks(project: String, task: String, linkType: String, sorting: String, filter: String, page: Int)
-
-
 # API
 GET           /tasks/:project/:task                                                 controllers.linking.LinkingTaskApi.getLinkingTask(project: String, task: String, withLabels: Boolean ?= false, langPref: String ?= "en")
 POST          /tasks/:project/:task                                                 controllers.linking.LinkingTaskApi.pushLinkingTask(project: String, task: String, createOnly: Boolean = true)

@@ -76,6 +76,7 @@ interface IProps {
     // Values that the auto-completion of other parameters depends on
     dependentValues: React.MutableRefObject<Record<string, DependsOnParameterValueAny | undefined>>;
     parameterCallbacks: ExtendedParameterCallbacks;
+    isDependencyReviewHighlighted: (fullParameterId: string) => boolean;
 }
 
 /** Renders the errors message based on the error type. */
@@ -109,6 +110,7 @@ export const ParameterWidget = (props: IProps) => {
         initialValues,
         dependentValues,
         parameterCallbacks,
+        isDependencyReviewHighlighted,
     } = props;
     const parameterExtensions = pluginRegistry.pluginComponent<ParameterExtensions>(
         SUPPORTED_PLUGINS.DI_PARAMETER_EXTENSIONS,
@@ -144,10 +146,14 @@ export const ParameterWidget = (props: IProps) => {
             : undefined;
 
     const detailedDocumentationAvailable = parameterCallbacks.namedAnchors.includes(formParamId);
-    let propertyHelperText: JSX.Element | undefined = undefined;
+    const dependencyReviewHighlighted = isDependencyReviewHighlighted(formParamId);
+    const dependencyReviewMessage = dependencyReviewHighlighted
+        ? (t("form.taskForm.affectedParameterNeedsReview") as string)
+        : undefined;
+    let propertyHelperText: React.JSX.Element | undefined = undefined;
     if ((description && description.length > MAXLENGTH_TOOLTIP) || detailedDocumentationAvailable) {
-        let parameterDescription: JSX.Element = <Markdown>{description}</Markdown>;
-        let detailedLink: JSX.Element | undefined = undefined;
+        let parameterDescription: React.JSX.Element = <Markdown>{description}</Markdown>;
+        let detailedLink: React.JSX.Element | undefined = undefined;
         if (detailedDocumentationAvailable) {
             detailedLink = (
                 <Link
@@ -198,6 +204,7 @@ export const ParameterWidget = (props: IProps) => {
         return (
             <FieldSet
                 boxed
+                data-test-id={`task-form-parameter-${formParamId}`}
                 title={
                     <Label
                         isLayoutForElement="span"
@@ -207,6 +214,8 @@ export const ParameterWidget = (props: IProps) => {
                     />
                 }
                 helperText={propertyHelperText}
+                intent={!!errorText ? "danger" : dependencyReviewHighlighted ? "warning" : undefined}
+                messageText={errorText ? errorText : dependencyReviewMessage}
             >
                 {Object.entries(propertyDetails.properties as Record<string, IArtefactItemProperty>).map(
                     ([nestedParamId, nestedParam]) => {
@@ -224,6 +233,7 @@ export const ParameterWidget = (props: IProps) => {
                                 initialValues={initialValues}
                                 dependentValues={dependentValues}
                                 parameterCallbacks={parameterCallbacks}
+                                isDependencyReviewHighlighted={isDependencyReviewHighlighted}
                             />
                         );
                     },
@@ -234,6 +244,7 @@ export const ParameterWidget = (props: IProps) => {
         return (
             <FieldSet
                 boxed
+                data-test-id={`task-form-parameter-${formParamId}`}
                 title={
                     <Label
                         isLayoutForElement="span"
@@ -243,13 +254,13 @@ export const ParameterWidget = (props: IProps) => {
                     />
                 }
                 helperText={propertyHelperText}
-                intent={!!errorMessage(title, errors) ? "danger" : undefined}
-                messageText={errorText ? errorText : infoHelperText}
+                intent={!!errorMessage(title, errors) ? "danger" : dependencyReviewHighlighted ? "warning" : undefined}
+                messageText={errorText ? errorText : (dependencyReviewMessage ?? infoHelperText)}
             >
                 <InputMapper
                     projectId={projectId}
                     parameter={{ paramId: formParamId, param: propertyDetails }}
-                    intent={errors ? Intent.DANGER : Intent.NONE}
+                    intent={errors ? Intent.DANGER : dependencyReviewHighlighted ? Intent.WARNING : Intent.NONE}
                     onChange={changeHandlers[formParamId]}
                     initialParameterValue={initialValues[formParamId]}
                     required={required}
@@ -274,9 +285,10 @@ export const ParameterWidget = (props: IProps) => {
                 required={required && propertyDetails.parameterType !== "boolean"}
                 tooltip={description && description.length <= MAXLENGTH_TOOLTIP ? description : undefined}
                 helperText={propertyHelperText}
-                infoMessage={errorText ? errorText : infoHelperText}
+                infoMessage={errorText ? errorText : (dependencyReviewMessage ?? infoHelperText)}
                 infoMessageDanger={!!errorText}
                 parameterType={propertyDetails.parameterType}
+                highlightForReview={dependencyReviewHighlighted}
                 supportVariableTemplateElement={{
                     onChange: changeHandlers[formParamId],
                     startWithTemplateView: isTemplateParameter,
@@ -292,6 +304,7 @@ export const ParameterWidget = (props: IProps) => {
                                 projectId={projectId}
                                 pluginId={pluginId}
                                 autoCompletion={autoCompletion}
+                                intent={errors ? "danger" : dependencyReviewHighlighted ? "warning" : undefined}
                                 id={formParamId}
                                 initialValue={initialValue?.value ?? initialValue}
                                 onChange={(value) => (onChange ? onChange(value) : changeHandlers[formParamId](value))}
@@ -318,7 +331,9 @@ export const ParameterWidget = (props: IProps) => {
                                         : defaultValueAsJs(propertyDetails, true))
                                 }
                                 autoCompletion={autoCompletion}
-                                intent={errors ? Intent.DANGER : Intent.NONE}
+                                intent={
+                                    errors ? Intent.DANGER : dependencyReviewHighlighted ? Intent.WARNING : undefined
+                                }
                                 formParamId={formParamId}
                                 dependentValue={dependentValue}
                                 defaultValue={parameterCallbacks.defaultValue}
@@ -335,7 +350,9 @@ export const ParameterWidget = (props: IProps) => {
                             <InputMapper
                                 projectId={projectId}
                                 parameter={{ paramId: formParamId, param: propertyDetails }}
-                                intent={errors ? Intent.DANGER : Intent.NONE}
+                                intent={
+                                    errors ? Intent.DANGER : dependencyReviewHighlighted ? Intent.WARNING : undefined
+                                }
                                 onChange={onChange ?? changeHandlers[formParamId]}
                                 initialParameterValue={initialParameterValue}
                                 required={required}

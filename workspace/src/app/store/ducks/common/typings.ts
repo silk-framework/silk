@@ -1,3 +1,4 @@
+import React from "react";
 import {
     IAutocompleteDefaultResponse,
     IMetadata,
@@ -37,7 +38,7 @@ interface AutoCompletionFrontendExtensions {
         query: string,
         modifiers: SuggestFieldItemRendererModifierProps,
         handleSelectClick: () => any,
-    ) => string | JSX.Element;
+    ) => string | React.JSX.Element;
 }
 
 /** Properties for parameter auto-completion. */
@@ -308,6 +309,9 @@ export interface IInitFrontend {
 
     /** The default project page suffix. */
     defaultProjectPageSuffix?: string;
+
+    /** If access control is enabled. */
+    aclEnabled: boolean;
 }
 
 type HotKeyIds = "quickSearch" | "overview";

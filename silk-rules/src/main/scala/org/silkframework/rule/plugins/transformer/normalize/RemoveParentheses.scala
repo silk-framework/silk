@@ -6,7 +6,7 @@ import org.silkframework.runtime.plugin.annotations.Plugin
 import scala.util.matching.Regex
 
 @Plugin(
-  id = "removeParentheses",
+  id = RemoveParentheses.pluginId,
   categories = Array("Normalize"),
   label = "Remove parentheses",
   description = "Remove all parentheses including their content, e.g., transforms 'Berlin (City)' -> 'Berlin'."
@@ -14,7 +14,11 @@ import scala.util.matching.Regex
 case class RemoveParentheses() extends SimpleTransformer {
   private val compiledRegex = new Regex("""\s*\([^\)]*\)\s*""")
 
-  def evaluate(value: String) = {
+  def evaluate(value: String): String = {
     compiledRegex.replaceAllIn(value, "")
   }
+}
+
+object RemoveParentheses {
+  final val pluginId = "removeParentheses"
 }

@@ -22,7 +22,6 @@ import {
     requestTaskDataTestResponse,
 } from "../../../requests/sharedResponseStubs";
 import { RenderResult, waitFor } from "@testing-library/react";
-import { ReactWrapper } from "enzyme";
 import { IArtefactItemProperty } from "../../../../../src/app/store/ducks/common/typings";
 import { IMetadata } from "@ducks/shared/typings";
 

@@ -17,13 +17,23 @@ package org.silkframework.rule.plugins.transformer.normalize
 import org.silkframework.rule.annotations.{TransformExample, TransformExamples}
 import org.silkframework.rule.input.SimpleTransformer
 import org.silkframework.runtime.plugin.PluginCategories
-import org.silkframework.runtime.plugin.annotations.Plugin
+import org.silkframework.runtime.plugin.annotations.{Plugin, PluginReference}
 
 @Plugin(
-  id = "lowerCase",
+  id = LowerCaseTransformer.pluginId,
   categories = Array("Normalize", PluginCategories.recommended),
   label = "Lower case",
-  description = "Converts a string to lower case."
+  description = "Converts a string to lower case.",
+  relatedPlugins = Array(
+    new PluginReference(
+      id = UpperCaseTransformer.pluginId,
+      description = "Lower case and Upper case apply the same exhaustive rule in opposite directions — every character is converted, none left unchanged. Upper case is the choice when the target is uniform all-caps."
+    ),
+    new PluginReference(
+      id = CapitalizeTransformer.pluginId,
+      description = "Lower case converts every character without exception. Capitalize is more selective: it uppercases only the first character of the string, leaving the rest unchanged."
+    )
+  )
 )
 @TransformExamples(Array(
   new TransformExample(
@@ -37,4 +47,8 @@ case class LowerCaseTransformer() extends SimpleTransformer {
   override def evaluate(value: String): String = {
     value.toLowerCase
   }
+}
+
+object LowerCaseTransformer {
+  final val pluginId = "lowerCase"
 }

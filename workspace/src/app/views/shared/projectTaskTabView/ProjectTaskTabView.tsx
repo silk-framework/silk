@@ -29,6 +29,7 @@ import { IProjectTaskView, IViewActions, pluginRegistry } from "../../plugins/Pl
 import PromptModal from "./PromptModal";
 import ErrorBoundary from "../../../ErrorBoundary";
 import { ProjectTaskTabViewContext } from "./ProjectTaskTabViewContext";
+import { AppDispatch } from "store/configureStore";
 
 const getBookmark = () => window.location.pathname.split("/").slice(-1)[0];
 
@@ -103,7 +104,7 @@ export function ProjectTaskTabView({
     const globalTaskId = useSelector(commonSel.currentTaskIdSelector);
     const projectId = taskViewConfig?.projectId ?? globalProjectId;
     const taskId = taskViewConfig?.taskId ?? globalTaskId;
-    const dispatch = useDispatch();
+    const dispatch = useDispatch<AppDispatch>();
     const history = useHistory();
     const [t] = useTranslation();
     const [isFetchingLinks, setIsFetchingLinks] = useState(true);
@@ -412,18 +413,27 @@ export function ProjectTaskTabView({
                         </CardTitle>
                         <CardOptions>
                             {viewsAndItemLink.length > 1 &&
-                                viewsAndItemLink.map((tabItem, idx) => {
+                                viewsAndItemLink.map((tabItem) => {
                                     const tabRoute = getTabRoute(tabItem.id ?? (tabItem as IItemLink));
+                                    const openInNewTab = tabItem.openInNewTab;
                                     return (
                                         <Button
                                             data-test-id={"taskView-" + (tabItem.id ?? `-iframe-${tabNr++}`)}
                                             key={tabItem.id ?? tabItem.path}
                                             onClick={(e) => {
-                                                e.preventDefault();
-                                                changeTab(tabItem.id ?? (tabItem as IItemLink));
+                                                if (!openInNewTab) {
+                                                    e.preventDefault();
+                                                    changeTab(tabItem.id ?? (tabItem as IItemLink));
+                                                }
                                             }}
-                                            href={calculateBookmark(tabRoute?.id ?? "", taskId, viewsAndItemLink)}
-                                            minimal={true}
+                                            title={openInNewTab ? t("common.action.openInNewTabTooltip") : ""}
+                                            href={
+                                                openInNewTab
+                                                    ? tabItem.path
+                                                    : calculateBookmark(tabRoute?.id ?? "", taskId, viewsAndItemLink)
+                                            }
+                                            target={openInNewTab ? "_blank" : undefined}
+                                            variant={"minimal"}
                                             disabled={
                                                 !!selectedTab &&
                                                 (tabItem.path ?? tabItem.id) ===

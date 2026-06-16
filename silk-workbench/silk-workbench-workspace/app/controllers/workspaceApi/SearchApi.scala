@@ -2,9 +2,10 @@ package controllers.workspaceApi
 
 import controllers.core.UserContextActions
 import controllers.core.util.ControllerUtilsTrait
+import controllers.util.ItemType
 import controllers.workspace.doc.SearchApiDoc
 import controllers.workspaceApi.search.SearchApiModel._
-import controllers.workspaceApi.search.{ItemType, ParameterAutoCompletionRequest}
+import controllers.workspaceApi.search.ParameterAutoCompletionRequest
 import io.swagger.v3.oas.annotations.enums.ParameterIn
 import io.swagger.v3.oas.annotations.media.{Content, ExampleObject, Schema}
 import io.swagger.v3.oas.annotations.parameters.RequestBody
@@ -108,7 +109,7 @@ class SearchApi @Inject() (implicit accessMonitor: WorkbenchAccessMonitor) exten
   def recentlyViewedItems(): Action[AnyContent] = UserContextAction { implicit userContext =>
     val w = workspace
     val accessedItems = accessMonitor.getAccessItems.reverse
-    val projects = accessedItems.map(_.projectId).distinct.flatMap(projectId => w.findProject(projectId))
+    val projects = accessedItems.map(_.projectId).distinct.flatMap(projectId => w.projectOption(projectId))
     val availableProjects = projects.map(p => (p.id.toString, p)).toMap
     val availableItems = accessedItems.filter(item => availableProjects.contains(item.projectId))
     val items = availableItems flatMap { item =>
@@ -128,7 +129,8 @@ class SearchApi @Inject() (implicit accessMonitor: WorkbenchAccessMonitor) exten
                 PLUGIN_ID -> JsString(pd.id),
                 PLUGIN_LABEL -> JsString(pd.label),
                 TAGS -> Json.toJson(task.tags().map(FullTag.fromTag)),
-                SEARCH_TAGS -> Json.toJson(task.searchTags(PluginContext.fromProject(task.project)))
+                SEARCH_TAGS -> Json.toJson(task.searchTags(PluginContext.fromProject(task.project))),
+                HIDDEN_SEARCH_TOKENS -> Json.toJson(task.hiddenSearchTokens(PluginContext.fromProject(task.project))),
               )
             task.data match {
               case ds: GenericDatasetSpec =>

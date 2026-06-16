@@ -173,6 +173,7 @@ export interface IItemLink {
     label: string;
     path: string;
     itemType?: string;
+    openInNewTab?: boolean;
 }
 
 export interface IRelatedItemsResponse {

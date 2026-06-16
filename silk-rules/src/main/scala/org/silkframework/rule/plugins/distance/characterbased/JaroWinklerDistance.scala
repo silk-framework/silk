@@ -15,14 +15,20 @@
 package org.silkframework.rule.plugins.distance.characterbased
 
 import org.silkframework.rule.similarity.{NormalizedDistanceMeasure, SingleValueDistanceMeasure}
-import org.silkframework.runtime.plugin.annotations.Plugin
+import org.silkframework.runtime.plugin.annotations.{Plugin, PluginReference}
 
 @Plugin(
-  id = "jaroWinkler",
+  id = JaroWinklerDistance.pluginId,
   categories = Array("Characterbased"),
   label = "Jaro-Winkler distance",
   description = "Matches strings based on the Jaro-Winkler distance measure.",
-  documentationFile = "JaroWinklerDistance.md"
+  documentationFile = "JaroWinklerDistance.md",
+  relatedPlugins = Array(
+    new PluginReference(
+      id = JaroDistanceMetric.pluginId,
+      description = "The Jaro distance metric plugin provides the baseline Jaro similarity without emphasizing beginnings. The Jaro–Winkler distance plugin shifts the score toward shared prefixes, which can change rankings when many candidates start the same way."
+    )
+  )
 )
 case class JaroWinklerDistance() extends SingleValueDistanceMeasure with NormalizedDistanceMeasure {
   // maximum prefix length to use
@@ -67,4 +73,8 @@ case class JaroWinklerDistance() extends SingleValueDistanceMeasure with Normali
     }
     max
   }
+}
+
+object JaroWinklerDistance {
+  final val pluginId = "jaroWinkler"
 }

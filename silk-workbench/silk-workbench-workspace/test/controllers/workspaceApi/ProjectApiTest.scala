@@ -2,7 +2,7 @@ package controllers.workspaceApi
 
 import controllers.projectApi.ProjectApi.{CreateTag, CreateTagsRequest}
 import controllers.util.ProjectApiClient
-import controllers.workspaceApi.project.ProjectApiRestPayloads.{ItemMetaData, ProjectCreationData}
+import controllers.workspaceApi.project.ProjectApiRestPayloads.{ItemMetaData, CreateProjectRequest}
 import helper.IntegrationTestTrait
 
 import org.silkframework.config.MetaData
@@ -150,7 +150,7 @@ class ProjectApiTest extends AnyFlatSpec with IntegrationTestTrait with Matchers
   }
 
   private def createProjectByLabel(label: String, description: Option[String] = None, id: Option[String] = None): WSResponse = {
-    val responseFuture = client.url(s"$baseUrl$projectsUrl").post(Json.toJson(ProjectCreationData(ItemMetaData(label, description), id)))
+    val responseFuture = client.url(s"$baseUrl$projectsUrl").post(Json.toJson(CreateProjectRequest(ItemMetaData(label, description), id)))
     val response = checkResponse(responseFuture)
     response
   }

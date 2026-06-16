@@ -4,7 +4,7 @@ import org.silkframework.entity.ValueType
 import org.silkframework.rule._
 import org.silkframework.serialization.json.JsonSerializers.{DATA, PARAMETERS}
 import org.silkframework.workspace.ProjectTask
-import play.api.libs.json.{JsArray, JsString, Json}
+import play.api.libs.json.{JsArray, JsNull, JsObject, JsString, JsValue, Json}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
@@ -17,6 +17,21 @@ class TransformTaskApiTest extends TransformTaskApiTestBase {
 
   private val OBJECT_RULE_ID = "objectRule"
   private val ROOT_RULE_ID = "root"
+  private val expectedSearchTreeRuleOrder = Seq(
+    ROOT_RULE_ID,
+    "directRule",
+    OBJECT_RULE_ID,
+    "addressStreetRule",
+    "addressLocationRule",
+    "locationLatitudeRule",
+    "directRule2"
+  )
+  private val expectedSearchValueRuleOrder = Seq(
+    "directRule",
+    "addressStreetRule",
+    "locationLatitudeRule",
+    "directRule2"
+  )
 
   "Setup project" in {
     createProject(project)
@@ -112,155 +127,155 @@ class TransformTaskApiTest extends TransformTaskApiTestBase {
 
   "Append new object mapping rule to root" in {
     val json = jsonPostRequest(s"$baseUrl/transform/tasks/$project/$task/rule/root/rules") {
-      s"""
-        {
-          "type": "object",
-          "id": "$OBJECT_RULE_ID",
-          "sourcePath": "source:address",
-          "mappingTarget": {
-            "uri": "target:address",
-            "valueType": {
-              "nodeType": "UriValueType"
-            }
-          },
-          "rules": {
-            "uriRule": null,
-            "typeRules": [
-            ],
-            "propertyRules": [
-            ]
-          }
-        }
-      """
+      objectRuleJson(OBJECT_RULE_ID, "source:address", "target:address")
     }
     (json \ "metadata" \ "label").isDefined mustBe false
     (json \ "id").as[String] mustBe OBJECT_RULE_ID
   }
 
-  "Retrieve full mapping rule tree" in {
-    jsonGetRequest(s"$baseUrl/transform/tasks/$project/$task/rules") mustMatchJson {
-      s"""
-        {
- |    "type": "root",
- |    "id": "root",
- |    "rules": {
- |        "uriRule": {
- |            "type": "uri",
- |            "id": "uri",
- |            "pattern": "http://example.org/{PersonID}",
- |            "metadata": {
- |            }
- |        },
- |        "typeRules": [
- |            {
- |                "type": "type",
- |                "id": "explicitlyDefinedId",
- |                "typeUri": "target:Person",
- |                "metadata": {
- |                }
- |            }
- |        ],
- |        "propertyRules": [
- |            {
- |                "type": "direct",
- |                "id": "directRule",
- |                "mappingTarget": {
- |                    "isAttribute": false,
- |                    "isBackwardProperty": false,
- |                    "uri": "target:name",
- |                    "valueType": {
- |                        "nodeType": "StringValueType"
- |                    }
- |                },
- |                "sourcePath": "source:name",
- |                "metadata": {
- |                    "description": "updated direct rule description",
- |                    "label": "updated direct rule label"
- |                }
- |            },
- |            {
- |                "type": "object",
- |                "id": "$OBJECT_RULE_ID",
- |                "mappingTarget": {
- |                    "isAttribute": false,
- |                    "isBackwardProperty": false,
- |                    "uri": "target:address",
- |                    "valueType": {
- |                        "nodeType": "UriValueType"
- |                    }
- |                },
- |                "rules": {
- |                    "propertyRules": [],
- |                    "typeRules": [],
- |                    "uriRule": null
- |                },
- |                "sourcePath": "source:address",
- |                "metadata": {
- |                }
- |            }
- |        ]
- |    },
- |    "mappingTarget": {
- |        "uri":"",
- |        "valueType":{"nodeType":"UriValueType"},
- |        "isBackwardProperty":false,
- |        "isAttribute":false
- |    },
- |    "metadata": {
- |    }
- |}
-      """.stripMargin
-
+  "Append direct mapping rule to object mapping" in {
+    jsonPostRequest(s"$baseUrl/transform/tasks/$project/$task/rule/$OBJECT_RULE_ID/rules") {
+      directRuleJson("addressStreetRule", "source:street", "target:street")
     }
   }
 
-  "Retrieve a single mapping rule" in {
-    jsonGetRequest(s"$baseUrl/transform/tasks/$project/$task/rule/objectRule") mustMatchJson {
-      s"""
-        {
-          "type" : "object",
-          "id" : "$OBJECT_RULE_ID",
-          "sourcePath" : "source:address",
-          "mappingTarget" : {
-            "uri" : "target:address",
-            "valueType" : {
-              "nodeType" : "UriValueType"
-            },
-            "isBackwardProperty" : false,
-            "isAttribute": false
-          },
-          "rules" : {
-            "uriRule" : null,
-            "typeRules" : [ ],
-            "propertyRules" : [ ]
-          },
-          "metadata" : {
-          }
-        }
-      """
+  "Append nested object mapping rule to object mapping" in {
+    jsonPostRequest(s"$baseUrl/transform/tasks/$project/$task/rule/$OBJECT_RULE_ID/rules") {
+      objectRuleJson("addressLocationRule", "source:location", "target:location")
     }
+  }
+
+  "Append direct mapping rule to nested object mapping" in {
+    jsonPostRequest(s"$baseUrl/transform/tasks/$project/$task/rule/addressLocationRule/rules") {
+      directRuleJson("locationLatitudeRule", "source:lat", "target:lat")
+    }
+  }
+
+  "Retrieve full mapping rule tree" in {
+    jsonGetRequest(s"$baseUrl/transform/tasks/$project/$task/rules") mustBe
+      expectedRootRuleResponse(
+        uriPattern = "http://example.org/{PersonID}",
+        typeRuleId = "explicitlyDefinedId",
+        typeUri = "target:Person",
+        propertyRules = Seq(
+          expectedDirectRuleResponse(
+            id = "directRule",
+            sourcePath = "source:name",
+            targetUri = "target:name",
+            metadata = Json.obj(
+              "description" -> "updated direct rule description",
+              "label" -> "updated direct rule label"
+            )
+          ),
+          expectedObjectRuleResponse(
+            id = OBJECT_RULE_ID,
+            sourcePath = "source:address",
+            targetUri = "target:address",
+            propertyRules = Seq(
+              expectedDirectRuleResponse("addressStreetRule", "source:street", "target:street"),
+              expectedObjectRuleResponse(
+                id = "addressLocationRule",
+                sourcePath = "source:location",
+                targetUri = "target:location",
+                propertyRules = Seq(
+                  expectedDirectRuleResponse("locationLatitudeRule", "source:lat", "target:lat")
+                )
+              )
+            )
+          )
+        )
+      )
+  }
+
+  "Retrieve a single mapping rule" in {
+    jsonGetRequest(s"$baseUrl/transform/tasks/$project/$task/rule/objectRule") mustBe
+      expectedObjectRuleResponse(
+        id = OBJECT_RULE_ID,
+        sourcePath = "source:address",
+        targetUri = "target:address",
+        propertyRules = Seq(
+          expectedDirectRuleResponse("addressStreetRule", "source:street", "target:street"),
+          expectedObjectRuleResponse(
+            id = "addressLocationRule",
+            sourcePath = "source:location",
+            targetUri = "target:location",
+            propertyRules = Seq(
+              expectedDirectRuleResponse("locationLatitudeRule", "source:lat", "target:lat")
+            )
+          )
+        )
+      )
   }
 
   "Append another direct mapping rule to root" in {
     jsonPostRequest(s"$baseUrl/transform/tasks/$project/$task/rule/root/rules") {
-      """
-        {
-          "type": "direct",
-          "id": "directRule2",
-          "sourcePath": "/source:lastName",
-          "mappingTarget": {
-            "uri": "target:lastName",
-            "valueType": {
-              "nodeType": "StringValueType"
-            }
-          },
-          "metadata" : {
-            "label" : "direct rule label",
-            "description" : "direct rule description"
-          }
-        }
-      """
+      directRuleJson(
+        id = "directRule2",
+        sourcePath = "/source:lastName",
+        targetUri = "target:lastName",
+        metadata = Some(
+          """"metadata" : {
+            |  "label" : "direct rule label",
+            |  "description" : "direct rule description"
+            |}""".stripMargin
+        )
+      )
     }
+  }
+
+  "Search rules without a search term in mapping tree order without formatting by default" in {
+    val response = searchRules { searchRulesRequestJson() }
+
+    filteredCompletionValues(response, expectedSearchTreeRuleOrder) mustBe expectedSearchTreeRuleOrder
+
+    completionLabelByValue(response)(ROOT_RULE_ID) mustBe "target:Person"
+    completionLabelByValue(response)("directRule") mustBe "updated direct rule label"
+    completionLabelByValue(response)(OBJECT_RULE_ID) mustBe "target:address"
+    completionLabelByValue(response)("addressStreetRule") mustBe "target:street"
+    completionLabelByValue(response)("addressLocationRule") mustBe "target:location"
+    completionLabelByValue(response)("locationLatitudeRule") mustBe "target:lat"
+    completionLabelByValue(response)("directRule2") mustBe "direct rule label"
+  }
+
+  "Search rules without a search term with tree formatting if requested" in {
+    val response = searchRules { searchRulesRequestJson(format = true) }
+
+    val labelsByValue = completionLabelByValue(response)
+
+    filteredCompletionValues(response, expectedSearchTreeRuleOrder) mustBe expectedSearchTreeRuleOrder
+
+    labelsByValue(ROOT_RULE_ID) mustBe "target:Person"
+    labelsByValue("directRule") mustBe "├─ updated direct rule label"
+    labelsByValue(OBJECT_RULE_ID) mustBe "├─ target:address"
+    labelsByValue("addressStreetRule") mustBe "│ ├─ target:street"
+    labelsByValue("addressLocationRule") mustBe "│ └─ target:location"
+    labelsByValue("locationLatitudeRule") mustBe "│   └─ target:lat"
+    labelsByValue("directRule2") mustBe "└─ direct rule label"
+  }
+
+  "Search value rules without a search term as a flat list even if formatting is requested" in {
+    val response = searchRules { searchRulesRequestJson(valueRulesOnly = true, format = true) }
+
+    val labelsByValue = completionLabelByValue(response)
+
+    filteredCompletionValues(response, expectedSearchValueRuleOrder) mustBe expectedSearchValueRuleOrder
+
+    labelsByValue("directRule") mustBe "updated direct rule label"
+    labelsByValue("addressStreetRule") mustBe "target:street"
+    labelsByValue("locationLatitudeRule") mustBe "target:lat"
+    labelsByValue("directRule2") mustBe "direct rule label"
+  }
+
+  "Search rules with a search term using the existing flat display and ranking" in {
+    val response = searchRules { searchRulesRequestJson(searchQuery = "target", format = true) }
+
+    val labelsByValue = completionLabelByValue(response)
+
+    completionValues(response) must contain allOf(OBJECT_RULE_ID, "addressStreetRule", "addressLocationRule", "locationLatitudeRule")
+    labelsByValue(OBJECT_RULE_ID) mustBe "target:address"
+    labelsByValue("addressStreetRule") mustBe "target:street"
+    labelsByValue("addressLocationRule") mustBe "target:location"
+    labelsByValue("locationLatitudeRule") mustBe "target:lat"
   }
 
   "Reorder the child rules" in {
@@ -458,7 +473,7 @@ class TransformTaskApiTest extends TransformTaskApiTestBase {
 
   "Copy an existing mapping rule and put it next to the existing one" in {
     postRequest(s"$baseUrl/transform/tasks/$project/$task/rule/root/rules/copyFrom?" +
-        s"sourceProject=$project&sourceTask=$task&sourceRule=$insertedAfterRuleId&afterRuleId=$insertedAfterRuleId")
+      s"sourceProject=$project&sourceTask=$task&sourceRule=$insertedAfterRuleId&afterRuleId=$insertedAfterRuleId")
     retrieveRuleOrder() mustBe Seq("directRule2", OBJECT_RULE_ID, insertedAfterRuleId, insertedAfterRuleId + "1", "directRule")
     val originalTransformRule = rootPropertyRule(insertedAfterRuleId)
     val clonedTransformRule = rootPropertyRule(insertedAfterRuleId + "1")
@@ -469,7 +484,7 @@ class TransformTaskApiTest extends TransformTaskApiTestBase {
 
   "Copy an existing object rule and put it to the end of the list" in {
     postRequest(s"$baseUrl/transform/tasks/$project/$task/rule/root/rules/copyFrom?" +
-        s"sourceProject=$project&sourceTask=$task&sourceRule=$OBJECT_RULE_ID")
+      s"sourceProject=$project&sourceTask=$task&sourceRule=$OBJECT_RULE_ID")
     retrieveRuleOrder() mustBe Seq("directRule2", OBJECT_RULE_ID, insertedAfterRuleId, insertedAfterRuleId + "1",
       "directRule", OBJECT_RULE_ID + "1")
     val originalTransformRule = rootPropertyRule(OBJECT_RULE_ID)
@@ -483,7 +498,7 @@ class TransformTaskApiTest extends TransformTaskApiTestBase {
 
   "Copy root mapping rule as child rule of itself" in {
     postRequest(s"$baseUrl/transform/tasks/$project/$task/rule/$ROOT_RULE_ID/rules/copyFrom?" +
-        s"sourceProject=$project&sourceTask=$task&sourceRule=$ROOT_RULE_ID")
+      s"sourceProject=$project&sourceTask=$task&sourceRule=$ROOT_RULE_ID")
     retrieveRuleOrder() mustBe Seq("directRule2", OBJECT_RULE_ID, insertedAfterRuleId, insertedAfterRuleId + "1",
       "directRule", OBJECT_RULE_ID + "1", ROOT_RULE_ID + "1")
     val originalTransformRule = rootPropertyRule(ROOT_RULE_ID)
@@ -501,34 +516,209 @@ class TransformTaskApiTest extends TransformTaskApiTestBase {
     obj.asInstanceOf[T]
   }
 
+  private def searchRules(json: => String) = {
+    jsonPostRequest(s"$baseUrl/transform/tasks/$project/$task/rules/search")(json)
+  }
+
+  private def directRuleJson(id: String,
+                             sourcePath: String,
+                             targetUri: String,
+                             metadata: Option[String] = None): String = {
+    val metadataJson = metadata.map(",\n" + _).getOrElse("")
+    s"""{
+       |  "type": "direct",
+       |  "id": "$id",
+       |  "sourcePath": "$sourcePath",
+       |  "mappingTarget": {
+       |    "uri": "$targetUri",
+       |    "valueType": {
+       |      "nodeType": "StringValueType"
+       |    }
+       |  }$metadataJson
+       |}""".stripMargin
+  }
+
+  private def directRuleJsonWithoutId(sourcePath: String,
+                                      targetUri: String,
+                                      metadata: Option[String] = None): String = {
+    val metadataJson = metadata.map(",\n" + _).getOrElse("")
+    s"""{
+       |  "type": "direct",
+       |  "sourcePath": "$sourcePath",
+       |  "mappingTarget": {
+       |    "uri": "$targetUri",
+       |    "valueType": {
+       |      "nodeType": "StringValueType"
+       |    }
+       |  }$metadataJson
+       |}""".stripMargin
+  }
+
+  private def objectRuleJson(id: String, sourcePath: String, targetUri: String): String = {
+    s"""{
+       |  "type": "object",
+       |  "id": "$id",
+       |  "sourcePath": "$sourcePath",
+       |  "mappingTarget": {
+       |    "uri": "$targetUri",
+       |    "valueType": {
+       |      "nodeType": "UriValueType"
+       |    }
+       |  },
+       |  "rules": {
+       |    "uriRule": null,
+       |    "typeRules": [],
+       |    "propertyRules": []
+       |  }
+       |}""".stripMargin
+  }
+
+  private def searchRulesRequestJson(searchQuery: String = "",
+                                     limit: Int = 20,
+                                     valueRulesOnly: Boolean = false,
+                                     format: Boolean = false): String = {
+    Json.stringify(
+      Json.obj(
+        "searchQuery" -> searchQuery,
+        "limit" -> limit
+      ) ++ JsObject(
+        Seq(
+          Option.when(valueRulesOnly)("valueRulesOnly" -> Json.toJson(true)),
+          Option.when(format)("format" -> Json.toJson(true))
+        ).flatten
+      )
+    )
+  }
+
+  private def completionValues(json: JsValue): Seq[String] = {
+    json.as[JsArray].value.map(c => (c \ "value").as[String]).toSeq
+  }
+
+  private def filteredCompletionValues(json: JsValue, expectedOrder: Seq[String]): Seq[String] = {
+    completionValues(json).filter(expectedOrder.toSet)
+  }
+
+  private def completionLabelByValue(json: JsValue): Map[String, String] = {
+    json.as[JsArray].value.map { c =>
+      (c \ "value").as[String] -> (c \ "label").as[String]
+    }.toMap
+  }
+
+  private def expectedDirectRuleResponse(id: String,
+                                         sourcePath: String,
+                                         targetUri: String,
+                                         metadata: JsObject = Json.obj()): JsObject = {
+    Json.obj(
+      "type" -> "direct",
+      "id" -> id,
+      "sourcePath" -> sourcePath,
+      "mappingTarget" -> Json.obj(
+        "uri" -> targetUri,
+        "valueType" -> Json.obj(
+          "nodeType" -> "StringValueType"
+        ),
+        "isBackwardProperty" -> false,
+        "isAttribute" -> false
+      ),
+      "metadata" -> metadata
+    )
+  }
+
+  private def expectedTypeRuleResponse(id: String,
+                                       typeUri: String,
+                                       metadata: JsObject = Json.obj()): JsObject = {
+    Json.obj(
+      "type" -> "type",
+      "id" -> id,
+      "typeUri" -> typeUri,
+      "metadata" -> metadata
+    )
+  }
+
+  private def expectedUriRuleResponse(pattern: String,
+                                      id: String = "uri",
+                                      metadata: JsObject = Json.obj()): JsObject = {
+    Json.obj(
+      "type" -> "uri",
+      "id" -> id,
+      "pattern" -> pattern,
+      "metadata" -> metadata
+    )
+  }
+
+  private def expectedObjectRuleResponse(id: String,
+                                         sourcePath: String,
+                                         targetUri: String,
+                                         propertyRules: Seq[JsObject] = Seq.empty,
+                                         metadata: JsObject = Json.obj()): JsObject = {
+    Json.obj(
+      "type" -> "object",
+      "id" -> id,
+      "sourcePath" -> sourcePath,
+      "mappingTarget" -> Json.obj(
+        "uri" -> targetUri,
+        "valueType" -> Json.obj(
+          "nodeType" -> "UriValueType"
+        ),
+        "isBackwardProperty" -> false,
+        "isAttribute" -> false
+      ),
+      "rules" -> Json.obj(
+        "uriRule" -> JsNull,
+        "typeRules" -> Json.arr(),
+        "propertyRules" -> JsArray(propertyRules)
+      ),
+      "metadata" -> metadata
+    )
+  }
+
+  private def expectedRootRuleResponse(uriPattern: String,
+                                       typeRuleId: String,
+                                       typeUri: String,
+                                       propertyRules: Seq[JsObject],
+                                       metadata: JsObject = Json.obj()): JsObject = {
+    Json.obj(
+      "type" -> "root",
+      "id" -> ROOT_RULE_ID,
+      "rules" -> Json.obj(
+        "uriRule" -> expectedUriRuleResponse(uriPattern),
+        "typeRules" -> Json.arr(expectedTypeRuleResponse(typeRuleId, typeUri)),
+        "propertyRules" -> JsArray(propertyRules)
+      ),
+      "mappingTarget" -> Json.obj(
+        "uri" -> "",
+        "valueType" -> Json.obj(
+          "nodeType" -> "UriValueType"
+        ),
+        "isBackwardProperty" -> false,
+        "isAttribute" -> false
+      ),
+      "metadata" -> metadata
+    )
+  }
+
   private def rootPropertyRule(ruleId: String): TransformRule = {
-    if(ruleId == ROOT_RULE_ID) {
+    if (ruleId == ROOT_RULE_ID) {
       transformTask.data.mappingRule
     } else {
       transformTask.data.rules.propertyRules.
-          find(_.id.toString == ruleId).getOrElse(throw new RuntimeException(s"Property rule '$ruleId' not found!"))
+        find(_.id.toString == ruleId).getOrElse(throw new RuntimeException(s"Property rule '$ruleId' not found!"))
     }
   }
 
   "Append multiple new direct mapping rules without ID at the same time" in {
-    val resultsFutures = for(i <- 1 to 10) yield {
+    val resultsFutures = for (i <- 1 to 10) yield {
       Future(jsonPostRequest(s"$baseUrl/transform/tasks/$project/$task/rule/root/rules") {
-        s"""
-        {
-          "type": "direct",
-          "sourcePath": "/source:name",
-          "mappingTarget": {
-            "uri": "target:name$i",
-            "valueType": {
-              "nodeType": "StringValueType"
-            }
-          },
-          "metadata" : {
-            "label" : "direct rule label $i",
-            "description" : "direct rule description"
-          }
-        }
-      """
+        directRuleJsonWithoutId(
+          sourcePath = "/source:name",
+          targetUri = s"target:name$i",
+          metadata = Some(
+            s""""metadata" : {
+               |  "label" : "direct rule label $i",
+               |  "description" : "direct rule description"
+               |}""".stripMargin
+          )
+        )
       })
     }
     val seqFuture = Future.sequence(resultsFutures)
@@ -583,7 +773,7 @@ class TransformTaskApiTest extends TransformTaskApiTestBase {
   }
 
   "Return 400 if trying to store an invalid URI pattern rule" in {
-    for((invalidPattern, errorMustInclude) <- Seq(("urn:{{", "illegal character"), ("http://example.org/not valid", "invalid uri pattern found"))) {
+    for ((invalidPattern, errorMustInclude) <- Seq(("urn:{{", "illegal character"), ("http://example.org/not valid", "invalid uri pattern found"))) {
       val postResponse = client.url(s"$baseUrl/transform/tasks/$project/$task/rule/root/rules").post(Json.parse(
         s"""
         {
@@ -593,7 +783,7 @@ class TransformTaskApiTest extends TransformTaskApiTestBase {
       """
       ))
       val postJsonError = checkResponseExactStatusCode(postResponse, BAD_REQUEST).json
-      postJsonError.toString().toLowerCase must include (errorMustInclude)
+      postJsonError.toString().toLowerCase must include(errorMustInclude)
       val putResponse = client.url(s"$baseUrl/transform/tasks/$project/$task/rule/root").put(Json.parse(
         s"""
         {
@@ -607,7 +797,7 @@ class TransformTaskApiTest extends TransformTaskApiTestBase {
       """
       ))
       val putJsonError = checkResponseExactStatusCode(putResponse, BAD_REQUEST).json
-      putJsonError.toString().toLowerCase must include (errorMustInclude)
+      putJsonError.toString().toLowerCase must include(errorMustInclude)
     }
   }
 }

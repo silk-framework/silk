@@ -27,7 +27,7 @@ class FileHashTransformerTest extends AnyFlatSpec with Matchers {
     val dataset = PlainTask("input", DatasetSpec(CsvDataset(file = resource)))
     val taskContext = TaskContext(Seq(dataset), PluginContext.empty)
 
-    val transformer = FileHashTransformer(None).withContext(taskContext)
+    val transformer = FileHashTransformer(None).execution(taskContext)
     transformer(Seq.empty) shouldBe Seq("b5d4045c3f466fa91fe2cc6abe79232a1a57cdf104f7a26e716e0a1e2789df78")
   }
 

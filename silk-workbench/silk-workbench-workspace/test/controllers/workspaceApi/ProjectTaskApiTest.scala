@@ -1,9 +1,8 @@
 package controllers.workspaceApi
 
 import controllers.projectApi.requests.{TaskContextResponse, TaskMetaData}
-import controllers.util.ProjectTaskApiClient
+import controllers.util.{ItemType, ProjectTaskApiClient}
 import controllers.workspaceApi.projectTask.RelatedItems
-import controllers.workspaceApi.search.ItemType
 import helper.IntegrationTestTrait
 import org.silkframework.dataset.DatasetSpec
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec

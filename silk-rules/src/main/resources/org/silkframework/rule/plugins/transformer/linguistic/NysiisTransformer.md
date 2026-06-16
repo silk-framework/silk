@@ -31,10 +31,3 @@ As a comparison of the two versions of NYSIIS, we give a few examples:
 * `phillipson` leads to `ffalapsan` in NSIIS and `falapsan` in its refined version.
 * `phone` leads to `ffan` in NSIIS and `fan` in its refined version.
 * `eccenca` is converted to `ecanc` in both versions of NSIIS.
-
-## Related plugins
-
-Other phonetic algorithms usually associated with are the different variations or improvements of the Soundex algorithm,
-implemented by this (Metaphone) and the
-[NYSIIS](https://en.wikipedia.org/wiki/New_York_State_Identification_and_Intelligence_System) algorithms.
-The corresponding linguistic transformer plugins are named accordingly.

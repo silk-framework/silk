@@ -8,6 +8,7 @@ import {
     ProjectTaskDownloadInfo,
 } from "@ducks/common/typings";
 import { FetchResponse } from "../../../services/fetch/responseInterceptor";
+import { DeprecatedPluginsModel } from "views/pages/DeprecatedPlugins";
 
 const handleError = (error) => {
     return error.errorResponse;
@@ -69,7 +70,7 @@ export const requestProjectIdValidation = async (projectId: string): Promise<Fet
         url: projectApi(
             `/validateIdentifier?${new URLSearchParams({
                 projectIdentifier: projectId,
-            })}`
+            })}`,
         ),
     });
 
@@ -85,7 +86,7 @@ export const requestTaskIdValidation = (taskId: string, projectId: string): Prom
         url: projectApi(
             `/${projectId}/validateIdentifier?${new URLSearchParams({
                 taskIdentifier: taskId,
-            })}`
+            })}`,
         ),
     });
 
@@ -129,13 +130,13 @@ export const requestExportTypes = async (): Promise<IExportTypes[]> => {
  */
 export const checkIfTaskSupportsDownload = async (
     projectId: string,
-    taskId: string
+    taskId: string,
 ): Promise<FetchResponse<ProjectTaskDownloadInfo>> =>
     fetch({ url: legacyApiEndpoint(`/projects/${projectId}/tasks/${taskId}/downloadInfo`) });
 
 /** Fetches the rule operator plugins used in the linking and transform operators. */
 export const requestRuleOperatorPluginsDetails = (
-    inputOperatorsOnly: boolean
+    inputOperatorsOnly: boolean,
 ): Promise<FetchResponse<{ [key: string]: IPluginDetails }>> => {
     return fetch({
         url: coreApi("/ruleOperatorPlugins"),
@@ -150,7 +151,7 @@ export const requestRuleOperatorPluginsDetails = (
 export const requestRuleOperatorPluginDetails = async (
     pluginId: string,
     addMarkdownDocumentation: boolean,
-    withLabels: boolean
+    withLabels: boolean,
 ): Promise<FetchResponse<IPluginDetails>> => {
     return fetch({
         url: coreApi(`/ruleOperatorPlugins/${pluginId}`),
@@ -158,5 +159,17 @@ export const requestRuleOperatorPluginDetails = async (
             addMarkdownDocumentation: addMarkdownDocumentation,
             withLabels: withLabels,
         },
+    });
+};
+
+/** Fetches the list of deprecated plugins used in the project. */
+export const requestDeprecatedPlugins = async (
+    projectId?: string,
+    taskId?: string,
+): Promise<FetchResponse<DeprecatedPluginsModel[]>> => {
+    return fetch<DeprecatedPluginsModel[]>({
+        url: coreApi("/usages/deprecatedPlugins"),
+        query: { project: projectId, task: taskId },
+        method: "GET",
     });
 };

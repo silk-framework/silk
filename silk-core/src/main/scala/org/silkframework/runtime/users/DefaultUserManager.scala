@@ -9,6 +9,6 @@ object DefaultUserManager {
     new DefaultUser(uri)
   }
 
-  private class DefaultUser(val uri: String) extends User
+  private class DefaultUser(val uri: String, val groups: Set[String] = Set.empty, val actions: UserActions = UserActions.all) extends User
 
 }

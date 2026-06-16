@@ -6,6 +6,7 @@ import org.silkframework.runtime.serialization.{ReadContext, TestReadContext, Xm
 import TransformRule.TransformRuleFormat
 import org.silkframework.config.Prefixes
 import org.silkframework.entity.paths.UntypedPath
+import org.silkframework.rule.input.{Input, PathInput}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
@@ -28,6 +29,15 @@ class TransformRuleXmlSerializationTest extends AnyFlatSpec with Matchers {
         )
       )
     )
+  }
+
+  it should "parse a non-self-closing Input element with whitespace content" in {
+    implicit val readContext: ReadContext = TestReadContext()
+    // Non-self-closing <Input> tags (e.g. from pretty-printed XML) must parse correctly
+    val xml = <Input id="my_field" path="my_field">
+    </Input>
+    val input = Input.InputFormat.read(xml)
+    input shouldBe PathInput(id = "my_field", path = UntypedPath("my_field"))
   }
 
   def testSerialzation(obj: TransformRule): Unit = {

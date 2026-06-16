@@ -54,21 +54,26 @@ trait GraphStoreTrait {
   /**
    * Allows to write triples directly into a graph. The [[OutputStream]] must be closed by the caller.
     *
-    * @param graph
-   * @param contentType
+    * @param graph The graph to write to.
+   * @param contentType The content type of the data.
    * @return A buffered output stream
    */
   def postDataToGraph(graph: String,
                       contentType: String = "application/n-triples",
                       chunkedStreamingMode: Option[Int] = Some(1000),
-                      comment: Option[String] = None)
+                      comment: Option[String] = None,
+                      forceStreaming: Boolean = false)
                      (implicit userContext: UserContext): OutputStream = {
-    this match {
-      case uploadGraphStore: GraphStoreFileUploadTrait =>
-        // If file upload is available, use different approach. GSP file upload is much more stable and usually offers a retry mechanism.
-        postDataToGraphViaFileUpload(uploadGraphStore, graph, contentType, comment)
-      case _ =>
-        postDataToGraphViaPostRequest(graph, contentType, chunkedStreamingMode, comment)
+    if (!forceStreaming) {
+      this match {
+        case uploadGraphStore: GraphStoreFileUploadTrait =>
+          // If file upload is available, use different approach. GSP file upload is much more stable and usually offers a retry mechanism.
+          postDataToGraphViaFileUpload(uploadGraphStore, graph, contentType, comment)
+        case _ =>
+          postDataToGraphViaPostRequest(graph, contentType, chunkedStreamingMode, comment)
+      }
+    } else {
+      postDataToGraphViaPostRequest(graph, contentType, chunkedStreamingMode, comment)
     }
   }
 
@@ -176,6 +181,9 @@ case class ConnectionClosingOutputStream(connection: HttpURLConnection,
                                          errorHandler: ErrorHandler) extends OutputStream {
   private val log: Logger = Logger.getLogger(this.getClass.getName)
 
+  @volatile
+  private var disconnected = false
+
   private lazy val outputStream = {
     connection.connect()
     new BufferedOutputStream(connection.getOutputStream)
@@ -186,9 +194,27 @@ case class ConnectionClosingOutputStream(connection: HttpURLConnection,
   }
 
   override def close(): Unit = {
+    val callingThread = Thread.currentThread()
+    // Watch for thread interrupts and disconnect the connection to unblock getResponseCode
+    val watcher = new Thread(() => {
+      try {
+        while (!callingThread.isInterrupted) {
+          Thread.sleep(50)
+        }
+      } catch {
+        case _: InterruptedException => return
+      }
+      disconnected = true
+      connection.disconnect()
+    })
+    watcher.setDaemon(true)
+    watcher.start()
     try {
       GraphStoreTrait.handleTimeoutErrors(connection.getReadTimeout) {
         outputStream.close()
+        if(Thread.currentThread().isInterrupted) {
+          throw new InterruptedException()
+        }
         val responseCode = connection.getResponseCode
         if(responseCode / 100 == 2) {
           log.fine("Successfully written to graph store output stream.")
@@ -199,7 +225,11 @@ case class ConnectionClosingOutputStream(connection: HttpURLConnection,
           errorHandler.genericErrorHandler(connection, s"Could not write to graph store. Got $responseCode response code.")
         }
       }
+    } catch {
+      case _: IOException if disconnected =>
+        throw new InterruptedException()
     } finally {
+      watcher.interrupt()
       connection.disconnect()
     }
   }

@@ -7,6 +7,7 @@ import { requestProjectMetadata, requestTaskMetadata } from "@ducks/shared/reque
 import { useTranslation } from "react-i18next";
 import { IModalItem, ITaskMetadataResponse } from "@ducks/shared/typings";
 import { Spacing, Tooltip, Link } from "@eccenca/gui-elements";
+import { contextualPath } from "../../../constants/path";
 
 interface IProps {
     item: IModalItem;
@@ -93,7 +94,7 @@ export function ItemDeleteModal({ item, onClose, onConfirmed, notifications, del
                                         <li key={taskRef}>{taskRef}</li>
                                     ) : (
                                         <li key={taskRef.id}>
-                                            <Link href={taskRef.taskLink} target="_blank">
+                                            <Link href={contextualPath(taskRef.taskLink)} target="_blank">
                                                 <Tooltip content={t("common.action.openInNewTab")}>
                                                     {taskRef.label ?? taskRef.id}
                                                 </Tooltip>

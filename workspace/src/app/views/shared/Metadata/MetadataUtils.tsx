@@ -10,6 +10,7 @@ import { ContentBlobToggler } from "@eccenca/gui-elements";
 import { SERVE_PATH } from "../../../constants/path";
 import { Keyword, Keywords } from "@ducks/workspace/typings";
 import { IMetadata } from "@ducks/shared/typings";
+import { ItemMetaData } from "@ducks/workspace/requests";
 
 /**
  * if both the taskId and projectId are available then fetch the EXPANDED metadata for tasks
@@ -20,7 +21,7 @@ import { IMetadata } from "@ducks/shared/typings";
  */
 const getExpandedMetaData = async (
     projectId?: string,
-    taskId?: string
+    taskId?: string,
 ): Promise<FetchResponse<IMetadataExpanded> | undefined> =>
     projectId && taskId
         ? fetch({ url: legacyApiEndpoint(`/projects/${projectId}/tasks/${taskId}/metadataExpanded`) })
@@ -36,7 +37,7 @@ const getExpandedMetaData = async (
  */
 export const createNewTag = async (
     tags: Partial<Keyword>[],
-    projectId?: string
+    projectId?: string,
 ): Promise<FetchResponse<Keywords> | undefined> =>
     fetch({
         url: workspaceApi(`/projects/${projectId}/tags/createTags`),
@@ -49,34 +50,29 @@ export const queryTags = (projectId: string, filter?: string): Promise<FetchResp
         url: workspaceApi(`/projects/${projectId}/tags${filter?.length ? `?filter=${filter}` : ""}`),
     });
 
-export const updateMetaData = (
-    payload: Partial<{ label: string; description: string; tags: string[] }>,
-    projectId?: string,
-    taskId?: string
-): Promise<FetchResponse<IMetadata>> | null => {
-    switch (true) {
-        case !!(projectId && taskId):
-            return fetch({
-                url: legacyApiEndpoint(`/projects/${projectId}/tasks/${taskId}/metadata`),
-                method: "put",
-                body: payload,
-            });
-        case !!projectId:
-            return fetch({
-                url: workspaceApi(`/projects/${projectId}/metaData`),
-                method: "put",
-                body: payload,
-            });
-        default:
-            return null;
-    }
-};
+export const updateTaskMetaData = (
+    payload: ItemMetaData,
+    projectId: string,
+    taskId: string,
+): Promise<FetchResponse<IMetadata>> =>
+    fetch({
+        url: legacyApiEndpoint(`/projects/${projectId}/tasks/${taskId}/metadata`),
+        method: "put",
+        body: payload,
+    });
+
+export const updateProjectMetaData = (payload: ItemMetaData, projectId: string): Promise<FetchResponse<IMetadata>> =>
+    fetch({
+        url: workspaceApi(`/projects/${projectId}/metaData`),
+        method: "put",
+        body: payload,
+    });
 
 const DisplayArtefactTags = (
     tags: Keywords,
     t: (key: string, fallBack: string) => string,
     goToPage: (path: string) => void,
-    minLength = 6
+    minLength = 6,
 ) => {
     const Tags = (size: "full" | "preview") => (
         <TagList>
@@ -108,7 +104,7 @@ const DisplayArtefactTags = (
 
 const sortTags = (tags: Keywords) =>
     tags.sort((a, b) =>
-        a.label.toLowerCase() > b.label.toLowerCase() ? 1 : a.label.toLowerCase() < b.label.toLowerCase() ? -1 : 0
+        a.label.toLowerCase() > b.label.toLowerCase() ? 1 : a.label.toLowerCase() < b.label.toLowerCase() ? -1 : 0,
     );
 
 const generateFacetUrl = (id: string, uri: string): string => {
@@ -123,13 +119,13 @@ const generateFacetUrl = (id: string, uri: string): string => {
 const getSelectedTagsAndCreateNew = async (
     createdTags: Partial<Keyword>[] = [],
     projectId: string | undefined,
-    selectedTags: Keywords = []
+    selectedTags: Keywords = [],
 ) => {
     if (createdTags.length) {
         //create new tags if exists
         const createdTagsResponse = await utils.createNewTag(
             createdTags.map((t) => ({ label: t.label })),
-            projectId
+            projectId,
         );
 
         //defensive correction to ensure uris match.
@@ -148,7 +144,8 @@ const utils = {
     getExpandedMetaData,
     DisplayArtefactTags,
     createNewTag,
-    updateMetaData,
+    updateTaskMetaData,
+    updateProjectMetaData,
     generateFacetUrl,
     queryTags,
     sortTags,

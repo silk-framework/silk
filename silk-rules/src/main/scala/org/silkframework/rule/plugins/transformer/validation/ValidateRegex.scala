@@ -16,17 +16,39 @@ package org.silkframework.rule.plugins.transformer.validation
 
 import org.silkframework.rule.annotations.{TransformExample, TransformExamples}
 import org.silkframework.rule.input.SimpleTransformer
-import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
+import org.silkframework.rule.plugins.transformer.conditional.IfMatchesRegexTransformer
+import org.silkframework.rule.plugins.transformer.extraction.RegexExtractionTransformer
+import org.silkframework.rule.plugins.transformer.replace.RegexReplaceTransformer
+import org.silkframework.rule.plugins.transformer.selection.RegexSelectTransformer
+import org.silkframework.runtime.plugin.annotations.{Param, Plugin, PluginReference}
 import org.silkframework.runtime.validation.ValidationException
 
 import scala.util.matching.Regex
 
 @Plugin(
-  id = "validateRegex",
+  id = ValidateRegex.pluginId,
   categories = Array("Validation"),
   label = "Validate regex",
   description = "Validates if all values match a regular expression.",
-  documentationFile = "ValidateRegex.md"
+  documentationFile = "ValidateRegex.md",
+  relatedPlugins = Array(
+    new PluginReference(
+      id = RegexReplaceTransformer.pluginId,
+      description = "Regex replace rewrites the input string by substituting every match and returns the rewritten value. Validate regex treats the pattern as a full-value check on the resulting string."
+    ),
+    new PluginReference(
+      id = IfMatchesRegexTransformer.pluginId,
+      description = "A regular expression match plays different roles here. The Validate regex plugin checks each value against the pattern and passes it through only when it fully matches. The If matches regex plugin uses the match to choose which provided branch value is returned."
+    ),
+    new PluginReference(
+      id = RegexSelectTransformer.pluginId,
+      description = "Regex selection turns one checked value and a list of patterns into a result sequence aligned with that list, placing the provided output value wherever a pattern matches. Validate regex keeps the original value and treats the pattern as a full-value check."
+    ),
+    new PluginReference(
+      id = RegexExtractionTransformer.pluginId,
+      description = "Regex extract turns the match into output by returning the matched substring or the first capturing group. Validate regex leaves the value unchanged and only lets it through when the full value matches the pattern."
+    )
+  )
 )
 @TransformExamples(Array(
   new TransformExample(
@@ -74,4 +96,8 @@ case class ValidateRegex(
       value
     }
   }
+}
+
+object ValidateRegex {
+  final val pluginId = "validateRegex"
 }

@@ -16,7 +16,10 @@ package org.silkframework.rule.plugins.transformer.replace
 
 import org.silkframework.rule.annotations.{TransformExample, TransformExamples}
 import org.silkframework.rule.input.SimpleTransformer
-import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
+import org.silkframework.rule.plugins.transformer.extraction.RegexExtractionTransformer
+import org.silkframework.rule.plugins.transformer.selection.RegexSelectTransformer
+import org.silkframework.rule.plugins.transformer.validation.ValidateRegex
+import org.silkframework.runtime.plugin.annotations.{Param, Plugin, PluginReference}
 
 import scala.util.matching.Regex
 
@@ -26,7 +29,25 @@ import scala.util.matching.Regex
   label = "Regex replace",
   description = "Replace all occurrences of a regular expression in a string." +
     " If no replacement is given, the occurrences of the regular expression will be deleted.",
-  documentationFile = "RegexReplaceTransformer.md"
+  documentationFile = "RegexReplaceTransformer.md",
+  relatedPlugins = Array(
+    new PluginReference(
+      id = RegexExtractionTransformer.pluginId,
+      description = "The Regex replace plugin returns the full input string after rewriting every match with the replacement. The Regex extract plugin returns only what matched, or the first capturing group, so the output is match-derived content rather than a rewritten string."
+    ),
+    new PluginReference(
+      id = RegexSelectTransformer.pluginId,
+      description = "The Regex replace plugin rewrites a string by substituting every match with the configured replacement, so the output stays a transformed version of the input text. The Regex selection plugin turns matching into positional markers by emitting a provided output value at the regex positions that match the checked value."
+    ),
+    new PluginReference(
+      id = ValidateRegex.pluginId,
+      description = "The Regex replace plugin rewrites a string by substituting every regex match and returns the rewritten value. The Validate regex plugin keeps the value only when the full value matches the regex and otherwise fails validation, so it serves as a format check before or after rewriting."
+    ),
+    new PluginReference(
+      id = ReplaceTransformer.pluginId,
+      description = "The Replace plugin swaps one fixed substring for another everywhere it occurs. The Regex replace plugin does the same global substitution, but what counts as a hit is described by a regular expression."
+    ),
+  )
 )
 @TransformExamples(Array(
   new TransformExample(

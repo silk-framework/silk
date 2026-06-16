@@ -8,11 +8,11 @@ export const rangeArray = (nrItems: number): number[] => {
 /** Partitions an array into matching elements and non-matching elements for a specific predicate. */
 export const partitionArray = <T>(
     inputArray: T[],
-    predicate: (item: T) => boolean
+    predicate: (item: T, idx: number) => boolean,
 ): { matches: T[]; nonMatches: T[] } => {
     const matches: T[] = [];
     const nonMatches: T[] = [];
-    inputArray.forEach((elem: T) => (predicate(elem) ? matches.push(elem) : nonMatches.push(elem)));
+    inputArray.forEach((elem: T, idx) => (predicate(elem, idx) ? matches.push(elem) : nonMatches.push(elem)));
     return { matches, nonMatches };
 };
 
@@ -22,7 +22,7 @@ export const sortLexically = <T>(
     by: (elem: T) => string,
     asc: boolean = true,
     caseInsensitive: boolean = true,
-    inPlace: boolean = true
+    inPlace: boolean = true,
 ) => {
     const transform = (elem: T) => (caseInsensitive ? by(elem).toLowerCase() : by(elem));
     const comparison = asc ? (a, b) => (a < b ? -1 : 1) : (a, b) => (a > b ? 1 : -1);
@@ -34,7 +34,7 @@ export const setConditionalMap = <KeyType, ValueType>(
     map: Map<KeyType, ValueType>,
     key: KeyType,
     newValue: ValueType,
-    valuePicker: (newValue: ValueType, oldValue?: ValueType) => ValueType
+    valuePicker: (newValue: ValueType, oldValue?: ValueType) => ValueType,
 ): ValueType => {
     const valueToSet = valuePicker(newValue, map.get(key));
     map.set(key, valueToSet);
