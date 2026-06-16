@@ -117,25 +117,27 @@ const ExampleListItem = ({
 
     return (
         <OverviewItem
-            className="ecc-silk-rule-block-example-values-dialog__example-item"
-            hasCardWrapper
-            cardProps={{
-                className: isSelected
-                    ? `ecc-silk-rule-block-example-values-dialog__example-item-card ${ClassNames.Intent.ACCENT}`
-                    : "ecc-silk-rule-block-example-values-dialog__example-item-card",
-            }}
+            className={`ecc-silk-rule-block-example-values-dialog__example-item ${isSelected ? ClassNames.Intent.ACCENT : ""}`}
             onClick={() => onSelectExample(example.id)}
+            hasSpacing
         >
-            <div
+            <OverviewItemActions
                 className="ecc-silk-rule-block-example-values-dialog__example-selection"
                 onClick={(event) => event.stopPropagation()}
             >
-                <Checkbox checked={isSelectedForEvaluation} onChange={handleSelectionChange} />
-            </div>
+                <Checkbox
+                    checked={isSelectedForEvaluation}
+                    onChange={handleSelectionChange}
+                    labelElement={
+                        <ApplicationViewability hide={"screen"}>
+                            <span>{exampleDisplayTitle(example, exampleIndex, t)}</span>
+                        </ApplicationViewability>
+                    }
+                    style={{ marginBottom: 0 }}
+                />
+            </OverviewItemActions>
             <OverviewItemDescription>
-                <OverviewItemLine>
-                    <strong>{exampleDisplayTitle(example, exampleIndex, t)}</strong>
-                </OverviewItemLine>
+                <OverviewItemLine>{exampleDisplayTitle(example, exampleIndex, t)}</OverviewItemLine>
                 <OverviewItemLine small>
                     {t("taskViews.ruleBlock.examples.dialog.inputsCount", {
                         defaultValue: "{{count}} inputs",
@@ -263,7 +265,6 @@ export const ExampleListPane = ({
             <div className="ecc-silk-rule-block-example-values-dialog__example-list-scroll">
                 <OverviewItemList
                     className="ecc-silk-rule-block-example-values-dialog__example-list"
-                    hasSpacing
                     hasDivider
                     columns={1}
                 >

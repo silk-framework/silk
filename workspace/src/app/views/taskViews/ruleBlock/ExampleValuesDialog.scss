@@ -3,6 +3,16 @@
         position: relative;
     }
 
+    &__example-item {
+        &.#{$eccgui}-intent--accent {
+            color: $eccgui-color-accent;
+            background-color: $eccgui-color-accent-contrast;
+        }
+        &:hover {
+            background-color: $menu-item-color-hover;
+        }
+    }
+
     &__port {
         &-pair {
             &--highlighted {
