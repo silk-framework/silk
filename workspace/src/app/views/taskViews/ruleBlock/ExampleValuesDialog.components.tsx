@@ -27,6 +27,8 @@ import {
     Tooltip,
     ApplicationViewability,
     TitleSubsection,
+    FlexibleLayoutContainer,
+    FlexibleLayoutItem,
 } from "@eccenca/gui-elements";
 import { TFunction } from "react-i18next";
 import { ActiveValueSelection } from "./ExampleValuesDialog.state";
@@ -206,32 +208,44 @@ export const ExampleListPane = ({
     onDuplicateExample,
     onDeleteExample,
 }: ExampleListPaneProps) => (
-    <>
-        <Toolbar className="ecc-silk-rule-block-example-values-dialog__header" noWrap>
-            <ToolbarSection canGrow>
-                <TitleSubsection>{t("taskViews.ruleBlock.examples.dialog.examples")}</TitleSubsection>
-            </ToolbarSection>
-            <ToolbarSection>
-                <Button
-                    text={t("taskViews.ruleBlock.examples.dialog.newExample")}
-                    intent={"accent"}
-                    variant={"outlined"}
-                    rightIcon={"item-add-artefact"}
-                    onClick={onCreateExample}
-                    data-test-id={"example-values-new-example"}
-                />
-            </ToolbarSection>
-        </Toolbar>
-        <Spacing size="small" />
-        <SearchField
-            value={searchText}
-            onChange={onSearchTextChange}
-            onClearanceHandler={onClearSearch}
-            emptySearchInputMessage={t("taskViews.ruleBlock.examples.dialog.searchExamples")}
-        />
-        <Spacing size="small" />
-        {selectedExampleIdsForEvaluation.length > 0 ? (
-            <>
+    <FlexibleLayoutContainer
+        vertical
+        noEqualItemSpace
+        useAbsoluteSpace
+        gapSize={"small"}
+        style={{
+            padding: "calc(0.5 * var(--eccgui-size-block-whitespace))",
+            paddingLeft: "var(--eccgui-size-block-whitespace)",
+            borderRight: "1px solid var(--eccgui-color-palette-layout-grey-300)",
+        }}
+    >
+        <FlexibleLayoutItem growFactor={0} shrinkFactor={0}>
+            <Toolbar className="ecc-silk-rule-block-example-values-dialog__header" noWrap>
+                <ToolbarSection canGrow>
+                    <TitleSubsection>{t("taskViews.ruleBlock.examples.dialog.examples")}</TitleSubsection>
+                </ToolbarSection>
+                <ToolbarSection>
+                    <Button
+                        text={t("taskViews.ruleBlock.examples.dialog.newExample")}
+                        intent={"accent"}
+                        variant={"outlined"}
+                        rightIcon={"item-add-artefact"}
+                        onClick={onCreateExample}
+                        data-test-id={"example-values-new-example"}
+                    />
+                </ToolbarSection>
+            </Toolbar>
+        </FlexibleLayoutItem>
+        <FlexibleLayoutItem growFactor={0} shrinkFactor={0}>
+            <SearchField
+                value={searchText}
+                onChange={onSearchTextChange}
+                onClearanceHandler={onClearSearch}
+                emptySearchInputMessage={t("taskViews.ruleBlock.examples.dialog.searchExamples")}
+            />
+        </FlexibleLayoutItem>
+        <FlexibleLayoutItem growFactor={0} shrinkFactor={0}>
+            {selectedExampleIdsForEvaluation.length > 0 ? (
                 <TagList>
                     <Tag
                         onRemove={onClearSelectedExamplesForEvaluation}
@@ -243,33 +257,34 @@ export const ExampleListPane = ({
                         })}
                     </Tag>
                 </TagList>
-                <Spacing size="small" />
-            </>
-        ) : null}
-        <div className="ecc-silk-rule-block-example-values-dialog__example-list-scroll">
-            <OverviewItemList
-                className="ecc-silk-rule-block-example-values-dialog__example-list"
-                hasSpacing
-                hasDivider
-                columns={1}
-            >
-                {filteredExamples.map((example) => (
-                    <ExampleListItem
-                        key={example.id}
-                        example={example}
-                        exampleIndex={allExamples.findIndex((draftExample) => draftExample.id === example.id)}
-                        isSelected={example.id === selectedExampleId}
-                        isSelectedForEvaluation={selectedExampleIdsForEvaluation.includes(example.id)}
-                        t={t}
-                        onSelectExample={onSelectExample}
-                        onToggleExampleSelectionForEvaluation={onToggleExampleSelectionForEvaluation}
-                        onDuplicateExample={onDuplicateExample}
-                        onDeleteExample={onDeleteExample}
-                    />
-                ))}
-            </OverviewItemList>
-        </div>
-    </>
+            ) : null}
+        </FlexibleLayoutItem>
+        <FlexibleLayoutItem style={{ overflow: "auto" }}>
+            <div className="ecc-silk-rule-block-example-values-dialog__example-list-scroll">
+                <OverviewItemList
+                    className="ecc-silk-rule-block-example-values-dialog__example-list"
+                    hasSpacing
+                    hasDivider
+                    columns={1}
+                >
+                    {filteredExamples.map((example) => (
+                        <ExampleListItem
+                            key={example.id}
+                            example={example}
+                            exampleIndex={allExamples.findIndex((draftExample) => draftExample.id === example.id)}
+                            isSelected={example.id === selectedExampleId}
+                            isSelectedForEvaluation={selectedExampleIdsForEvaluation.includes(example.id)}
+                            t={t}
+                            onSelectExample={onSelectExample}
+                            onToggleExampleSelectionForEvaluation={onToggleExampleSelectionForEvaluation}
+                            onDuplicateExample={onDuplicateExample}
+                            onDeleteExample={onDeleteExample}
+                        />
+                    ))}
+                </OverviewItemList>
+            </div>
+        </FlexibleLayoutItem>
+    </FlexibleLayoutContainer>
 );
 
 /** Props for the port/value list shown inside the example detail pane. */
@@ -460,31 +475,40 @@ export const ExampleDetailPane = ({
             : t("taskViews.ruleBlock.examples.dialog.selectValueHint");
 
     return (
-        <>
-            <Toolbar className="ecc-silk-rule-block-example-values-dialog__header" noWrap>
-                <ToolbarSection canGrow canShrink hideOverflow>
-                    <ApplicationViewability hide={"screen"}>
-                        <TitleSubsection className="ecc-silk-rule-block-example-values-dialog__title">
-                            {exampleDisplayTitle(example, exampleIndex, t)}
-                        </TitleSubsection>
-                    </ApplicationViewability>
-                </ToolbarSection>
-                <ToolbarSection className="ecc-silk-rule-block-example-values-dialog__header-actions">
-                    <Button onClick={onDuplicateExample} rightIcon={"item-clone"} variant={"outlined"}>
-                        {t("taskViews.ruleBlock.examples.dialog.duplicateExample")}
-                    </Button>
-                    <Button
-                        disruptive
-                        onClick={() => onDeleteExample(example.id)}
-                        rightIcon={"item-remove"}
-                        variant={"outlined"}
-                    >
-                        {t("taskViews.ruleBlock.examples.dialog.deleteExample")}
-                    </Button>
-                </ToolbarSection>
-            </Toolbar>
-            <Spacing size="small" />
-            <div className="ecc-silk-rule-block-example-values-dialog__detail-column">
+        <FlexibleLayoutContainer
+            vertical
+            useAbsoluteSpace
+            noEqualItemSpace
+            gapSize={"small"}
+            className="ecc-silk-rule-block-example-values-dialog__detail-column"
+            style={{ padding: "calc(0.5 * var(--eccgui-size-block-whitespace)) var(--eccgui-size-block-whitespace)" }}
+        >
+            <FlexibleLayoutItem growFactor={0} shrinkFactor={0}>
+                <Toolbar className="ecc-silk-rule-block-example-values-dialog__header" noWrap>
+                    <ToolbarSection canGrow canShrink hideOverflow>
+                        <ApplicationViewability hide={"screen"}>
+                            <TitleSubsection className="ecc-silk-rule-block-example-values-dialog__title">
+                                {exampleDisplayTitle(example, exampleIndex, t)}
+                            </TitleSubsection>
+                        </ApplicationViewability>
+                    </ToolbarSection>
+                    <ToolbarSection className="ecc-silk-rule-block-example-values-dialog__header-actions">
+                        <Button onClick={onDuplicateExample} rightIcon={"item-clone"} variant={"outlined"}>
+                            {t("taskViews.ruleBlock.examples.dialog.duplicateExample")}
+                        </Button>
+                        <Spacing size={"small"} vertical />
+                        <Button
+                            disruptive
+                            onClick={() => onDeleteExample(example.id)}
+                            rightIcon={"item-remove"}
+                            variant={"outlined"}
+                        >
+                            {t("taskViews.ruleBlock.examples.dialog.deleteExample")}
+                        </Button>
+                    </ToolbarSection>
+                </Toolbar>
+            </FlexibleLayoutItem>
+            <FlexibleLayoutItem growFactor={0} shrinkFactor={0}>
                 <FieldItem
                     labelProps={{ text: t("taskViews.ruleBlock.examples.dialog.label", "Label") }}
                     helperText={t(
@@ -499,7 +523,8 @@ export const ExampleDetailPane = ({
                         data-test-id="example-values-label"
                     />
                 </FieldItem>
-                <Spacing size="small" />
+            </FlexibleLayoutItem>
+            <FlexibleLayoutItem style={{ overflowX: "auto" }}>
                 <ExamplePortValuesList
                     ports={ports}
                     example={example}
@@ -510,7 +535,9 @@ export const ExampleDetailPane = ({
                     onDeleteValue={onDeleteValue}
                     onAddValue={onAddValue}
                 />
-                {isEditorVisible ? (
+            </FlexibleLayoutItem>
+            {isEditorVisible ? (
+                <FlexibleLayoutItem growFactor={0} shrinkFactor={0}>
                     <div className="ecc-silk-rule-block-example-values-dialog__editor-section">
                         <Spacing size="small" hasDivider />
                         <FieldSet boxed className="ecc-silk-rule-block-example-values-dialog__editor-pane">
@@ -545,8 +572,8 @@ export const ExampleDetailPane = ({
                             )}
                         </FieldSet>
                     </div>
-                ) : null}
-            </div>
-        </>
+                </FlexibleLayoutItem>
+            ) : null}
+        </FlexibleLayoutContainer>
     );
 };

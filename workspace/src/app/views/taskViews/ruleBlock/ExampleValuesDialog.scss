@@ -1,75 +1,13 @@
 .ecc-silk-rule-block-example-values-dialog {
-    position: relative;
-    width: 100%;
-    min-height: 35rem;
-    height: 72vh;
-    overflow: hidden;
-
-    &__left-column,
-    &__right-column,
-    &__detail-column {
-        display: flex;
-        flex-direction: column;
-        min-height: 0;
-    }
-
-    &__detail-column {
-        flex: 1 1 auto;
-    }
-
-    &__left-column {
-        padding-right: 1rem;
-        overflow: hidden;
-        border-right: 1px solid var(--cc-color-border-default, #d9d9d9);
-    }
-
-    &__header {
-        justify-content: space-between;
-    }
-
-    &__header-actions {
-        gap: 0.5rem;
-    }
-
-    &__example-list-scroll,
-    &__port-list-scroll {
-        flex: 1 1 auto;
-        min-height: 0;
-        overflow: auto;
-    }
-
-    &__example-list {
-        margin: 0;
-        padding: 0;
-        list-style: none;
-    }
-
-    &__port-list {
-        margin: 0;
-    }
-
-    &__example-item-card {
-        width: 100%;
-    }
-
-    &__example-selection {
-        display: flex;
-        align-items: center;
-        align-self: stretch;
-
-        .bp5-control,
-        .pt-control {
-            display: flex;
-            align-items: center;
-            margin-bottom: 0;
-        }
+    .#{$eccgui}-card__content {
+        position: relative;
     }
 
     &__port {
         &-pair {
             &--highlighted {
                 border-radius: 0.25rem;
-                background-color: rgba(15, 98, 254, 0.08);
+                background-color: rgb(15 98 254 / 0.08);
             }
         }
 

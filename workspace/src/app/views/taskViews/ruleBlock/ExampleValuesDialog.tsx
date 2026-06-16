@@ -5,7 +5,6 @@ import { exampleDisplayTitle, ExampleDetailPane, ExampleListPane } from "./Examp
 import { DialogState, default as exampleValuesDialogState } from "./ExampleValuesDialog.state";
 import { IRuleBlockInputExample, RuleBlockPort } from "./ruleBlock.types";
 import ruleBlockUtils from "./ruleBlock.utils";
-import "./ExampleValuesDialog.scss";
 
 /** Props for the example values dialog used to edit reusable rule block examples. */
 interface ExampleValuesDialogProps {
@@ -105,12 +104,9 @@ export const ExampleValuesDialog = ({
         setState((currentState) => exampleValuesDialogState.addValue(currentState, portId));
     }, []);
 
-    const handleDeleteValue = React.useCallback(
-        (portId: string, valueIndex: number) => {
-            setState((currentState) => exampleValuesDialogState.deleteValue(currentState, portId, valueIndex));
-        },
-        [],
-    );
+    const handleDeleteValue = React.useCallback((portId: string, valueIndex: number) => {
+        setState((currentState) => exampleValuesDialogState.deleteValue(currentState, portId, valueIndex));
+    }, []);
 
     const handleUpdateActiveValue = React.useCallback((nextValue: string) => {
         setState((currentState) => exampleValuesDialogState.updateValue(currentState, nextValue));
@@ -191,52 +187,51 @@ export const ExampleValuesDialog = ({
             ]}
             hasBorder
             showFullScreenToggler
+            className="ecc-silk-rule-block-example-values-dialog"
         >
-            <div className="ecc-silk-rule-block-example-values-dialog">
-                <Grid verticalStretchable={true} useAbsoluteSpace={true}>
-                    <GridRow verticalStretched={true}>
-                        <GridColumn medium className="ecc-silk-rule-block-example-values-dialog__left-column">
-                            <ExampleListPane
-                                allExamples={state.draftExamples}
-                                filteredExamples={filteredExamples}
-                                selectedExampleId={currentExample?.id}
-                                searchText={state.searchText}
-                                selectedExampleIdsForEvaluation={state.selectedExampleIdsForEvaluation}
-                                t={t}
-                                onCreateExample={handleCreateNewExample}
-                                onSearchTextChange={handleSearchTextChange}
-                                onClearSearch={handleClearSearch}
-                                onClearSelectedExamplesForEvaluation={handleClearSelectedExamplesForEvaluation}
-                                onSelectExample={handleSelectExample}
-                                onToggleExampleSelectionForEvaluation={handleToggleExampleSelectionForEvaluation}
-                                onDuplicateExample={handleDuplicateExample}
-                                onDeleteExample={handleDeleteExample}
-                            />
-                        </GridColumn>
-                        <GridColumn className="ecc-silk-rule-block-example-values-dialog__right-column">
-                            <ExampleDetailPane
-                                example={currentExample}
-                                exampleIndex={currentExampleIndex}
-                                ports={sortedPorts}
-                                highlightedPortId={highlightedPortId}
-                                selectedValue={state.selectedValue}
-                                activeValue={activeValue}
-                                editorKey={editorKey}
-                                isEditorVisible={isEditorVisible}
-                                t={t}
-                                onDuplicateExample={handleDuplicateSelectedExample}
-                                onDeleteExample={handleDeleteExample}
-                                onLabelChange={handleSelectedExampleLabelChange}
-                                onSelectValue={handleSelectValue}
-                                onDeleteValue={handleDeleteValue}
-                                onAddValue={handleAddValue}
-                                onCloseEditor={handleCloseEditor}
-                                onValueChange={handleUpdateActiveValue}
-                            />
-                        </GridColumn>
-                    </GridRow>
-                </Grid>
-            </div>
+            <Grid verticalStretchable={true} useAbsoluteSpace={true}>
+                <GridRow verticalStretched={true}>
+                    <GridColumn medium className="ecc-silk-rule-block-example-values-dialog__left-column">
+                        <ExampleListPane
+                            allExamples={state.draftExamples}
+                            filteredExamples={filteredExamples}
+                            selectedExampleId={currentExample?.id}
+                            searchText={state.searchText}
+                            selectedExampleIdsForEvaluation={state.selectedExampleIdsForEvaluation}
+                            t={t}
+                            onCreateExample={handleCreateNewExample}
+                            onSearchTextChange={handleSearchTextChange}
+                            onClearSearch={handleClearSearch}
+                            onClearSelectedExamplesForEvaluation={handleClearSelectedExamplesForEvaluation}
+                            onSelectExample={handleSelectExample}
+                            onToggleExampleSelectionForEvaluation={handleToggleExampleSelectionForEvaluation}
+                            onDuplicateExample={handleDuplicateExample}
+                            onDeleteExample={handleDeleteExample}
+                        />
+                    </GridColumn>
+                    <GridColumn className="ecc-silk-rule-block-example-values-dialog__right-column">
+                        <ExampleDetailPane
+                            example={currentExample}
+                            exampleIndex={currentExampleIndex}
+                            ports={sortedPorts}
+                            highlightedPortId={highlightedPortId}
+                            selectedValue={state.selectedValue}
+                            activeValue={activeValue}
+                            editorKey={editorKey}
+                            isEditorVisible={isEditorVisible}
+                            t={t}
+                            onDuplicateExample={handleDuplicateSelectedExample}
+                            onDeleteExample={handleDeleteExample}
+                            onLabelChange={handleSelectedExampleLabelChange}
+                            onSelectValue={handleSelectValue}
+                            onDeleteValue={handleDeleteValue}
+                            onAddValue={handleAddValue}
+                            onCloseEditor={handleCloseEditor}
+                            onValueChange={handleUpdateActiveValue}
+                        />
+                    </GridColumn>
+                </GridRow>
+            </Grid>
         </SimpleDialog>
     );
 };
