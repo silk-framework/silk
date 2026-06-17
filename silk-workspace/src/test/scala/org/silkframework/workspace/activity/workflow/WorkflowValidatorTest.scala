@@ -3,6 +3,7 @@ package org.silkframework.workspace.activity.workflow
 
 import org.silkframework.config.{PlainTask, Task}
 import org.silkframework.runtime.activity.TestUserContextTrait
+import org.silkframework.runtime.plugin.types.IntOptionParameter
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.exceptions.TaskValidationException
 import org.silkframework.workspace.{Project, TestWorkspaceProviderTestTrait}
@@ -38,6 +39,15 @@ class WorkflowValidatorTest extends AnyFlatSpec with Matchers with TestWorkspace
 
     val workflow2Updated = createWorkflow("workflow2", nestedWorkflowIds = Seq("workflow1"))
     an[TaskValidationException] should be thrownBy update(project, workflow2Updated)
+  }
+
+  it should "only allow empty or positive workflow parallel execution limits" in {
+    noException should be thrownBy Workflow(maxParallelExecutions = IntOptionParameter(None))
+    noException should be thrownBy Workflow(maxParallelExecutions = IntOptionParameter(Some(1)))
+    noException should be thrownBy Workflow(maxParallelExecutions = IntOptionParameter(Some(3)))
+
+    an[IllegalArgumentException] should be thrownBy Workflow(maxParallelExecutions = IntOptionParameter(Some(0)))
+    an[IllegalArgumentException] should be thrownBy Workflow(maxParallelExecutions = IntOptionParameter(Some(-1)))
   }
 
   private def update(project: Project, workflow: Task[Workflow]): Unit = {

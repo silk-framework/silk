@@ -5,6 +5,7 @@ import org.silkframework.entity.ValueType
 import org.silkframework.rule.vocab._
 import org.silkframework.rule.{MappingTarget, NodePosition, RuleLayout}
 import org.silkframework.runtime.activity.UserContext
+import org.silkframework.runtime.plugin.types.IntOptionParameter
 import org.silkframework.runtime.plugin.PluginRegistry
 import org.silkframework.runtime.serialization.{ReadContext, Serialization, TestReadContext, TestWriteContext, WriteContext}
 import org.silkframework.serialization.json.JsonSerializers._
@@ -93,7 +94,8 @@ class JsonSerializersTest  extends AnyFlatSpec with Matchers {
   "Workflows" should "serialize to and from JSON" in {
     val workflow = testWorkflow.copy(
       replaceableInputs = Seq(DS_A1),
-      replaceableOutputs = Seq(OUTPUT)
+      replaceableOutputs = Seq(OUTPUT),
+      maxParallelExecutions = IntOptionParameter(Some(2))
     )
     testSerialization(workflow)
   }
