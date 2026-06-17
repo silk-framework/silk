@@ -26,24 +26,4 @@
             }
         }
     }
-
-    &__editor-pane {
-        display: flex;
-        flex-direction: column;
-        overflow: hidden;
-    }
-
-    &__editor-section {
-        flex: 0 0 auto;
-        margin-top: auto;
-    }
-
-    &__editor-header {
-        margin-bottom: 0.5rem;
-    }
-
-    &__empty-editor,
-    &__empty-state {
-        padding: 0.5rem 0;
-    }
 }

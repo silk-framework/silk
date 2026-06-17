@@ -367,7 +367,8 @@
             "revert": "Revert",
             "undo": "Undo",
             "edit": "Edit",
-            "ok": "Ok"
+            "ok": "Ok",
+            "select": "Select"
         },
         "editorHistory": {
             "resetToSavedState": "Reset to saved state.",
@@ -822,11 +823,12 @@
             "examples": {
                 "dialog": {
                     "addValue": "Add value",
+                    "editValue": "Edit value",
                     "applyAndClose": "Apply and close",
                     "clearSelection": "Clear selection",
                     "deleteExample": "Delete example",
                     "duplicateExample": "Duplicate example",
-                    "editingValue": "Editing {{portLabel}}",
+                    "editingValue": "Editing: {{portLabel}}",
                     "exampleTitle": "Example {{index}}",
                     "examples": "Examples",
                     "inputsCount": "{{count}} inputs",

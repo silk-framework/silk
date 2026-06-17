@@ -131,7 +131,9 @@ const ExampleListItem = ({
                     onChange={handleSelectionChange}
                     labelElement={
                         <ApplicationViewability hide={"screen"}>
-                            <span>{exampleDisplayTitle(example, exampleIndex, t)}</span>
+                            <span>
+                                {t("common.action.select")}: {exampleDisplayTitle(example, exampleIndex, t)}
+                            </span>
                         </ApplicationViewability>
                     }
                     style={{ marginBottom: 0 }}
@@ -549,31 +551,38 @@ export const ExampleDetailPane = ({
             {isEditorVisible ? (
                 <FlexibleLayoutItem growFactor={0} shrinkFactor={0}>
                     <div className="ecc-silk-rule-block-example-values-dialog__editor-section">
-                        <FieldSet boxed className="ecc-silk-rule-block-example-values-dialog__editor-pane">
-                            <Toolbar className="ecc-silk-rule-block-example-values-dialog__editor-header" noWrap>
-                                <ToolbarSection canGrow canShrink hideOverflow>
-                                    <strong>{editorTitle}</strong>
-                                </ToolbarSection>
-                                <ToolbarSection>
-                                    <IconButton
-                                        name="navigation-close"
-                                        text={t("common.action.close")}
-                                        onClick={onCloseEditor}
-                                        data-test-id="example-values-editor-close"
-                                    />
-                                </ToolbarSection>
-                            </Toolbar>
+                        <FieldSet
+                            boxed
+                            className="ecc-silk-rule-block-example-values-dialog__editor-pane"
+                            title={
+                                <Toolbar className="ecc-silk-rule-block-example-values-dialog__editor-header" noWrap>
+                                    <ToolbarSection canGrow canShrink hideOverflow>
+                                        <OverflowText inline>{editorTitle}</OverflowText>
+                                    </ToolbarSection>
+                                    <ToolbarSection>
+                                        <IconButton
+                                            name="navigation-close"
+                                            text={t("common.action.close")}
+                                            onClick={onCloseEditor}
+                                            data-test-id="example-values-editor-close"
+                                        />
+                                    </ToolbarSection>
+                                </Toolbar>
+                            }
+                        >
                             {selectedValue && activeValue != null ? (
-                                <CodeEditor
-                                    key={editorKey}
-                                    id="rule-block-example-value-editor"
-                                    name="rule-block-example-value-editor"
-                                    mode="markdown"
-                                    defaultValue={activeValue}
-                                    onChange={onValueChange}
-                                    height={EDITOR_HEIGHT - EDITOR_HEADER_HEIGHT}
-                                    data-test-id="example-values-editor"
-                                />
+                                <FieldItem labelProps={{ text: t("taskViews.ruleBlock.examples.dialog.editValue") }}>
+                                    <CodeEditor
+                                        key={editorKey}
+                                        id="rule-block-example-value-editor"
+                                        name="rule-block-example-value-editor"
+                                        mode="markdown"
+                                        defaultValue={activeValue}
+                                        onChange={onValueChange}
+                                        height={EDITOR_HEIGHT - EDITOR_HEADER_HEIGHT}
+                                        data-test-id="example-values-editor"
+                                    />
+                                </FieldItem>
                             ) : (
                                 <div className="ecc-silk-rule-block-example-values-dialog__empty-editor">
                                     {t("taskViews.ruleBlock.examples.dialog.selectValueHint")}
