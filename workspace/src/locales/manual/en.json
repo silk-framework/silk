@@ -368,7 +368,9 @@
             "undo": "Undo",
             "edit": "Edit",
             "ok": "Ok",
-            "select": "Select"
+            "select": "Select",
+            "refreshStatus": "Refresh status",
+            "noAutoDisplay": "Do not show automatically in future"
         },
         "editorHistory": {
             "resetToSavedState": "Reset to saved state.",

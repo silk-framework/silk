@@ -9,7 +9,13 @@ import {
     Notification,
     Spacing,
     StickyNote,
-    ToolbarSection
+    ToolbarSection,
+    Card,
+    CardContent,
+    Divider,
+    CardActions,
+    CardActionsAux,
+    Checkbox,
 } from "@eccenca/gui-elements";
 import { useTranslation } from "react-i18next";
 import i18next from "i18next";
@@ -77,9 +83,11 @@ type RuleBlockExternalSavedState = {
     ports: RuleBlockPort[];
     inputExamples: IRuleBlockInputExample[];
 };
-type ExampleValuesDialogState = {
-    highlightedPortId?: string;
-} | undefined;
+type ExampleValuesDialogState =
+    | {
+          highlightedPortId?: string;
+      }
+    | undefined;
 type InputPortDialogState =
     | { mode: "create"; dropPosition?: XYPosition }
     | { mode: "edit"; portId: string }
@@ -182,27 +190,30 @@ export const RuleBlockEditor = ({ projectId, ruleBlockTaskId, viewActions, insta
         setSidebarReloadToken((currentToken) => currentToken + 1);
     }, []);
 
-    const applyPorts = React.useCallback((nextPorts: RuleBlockPort[]) => {
-        ruleBlockUtils.assertValidPorts(nextPorts);
-        const normalizedPorts = ruleBlockUtils.sortRuleBlockPorts(nextPorts);
-        setPorts(normalizedPorts);
-        setInputExamples((currentInputExamples) =>
-            ruleBlockUtils.pruneInputExamplesToPorts(currentInputExamples, normalizedPorts),
-        );
-        bumpSidebarReloadToken();
-    }, [bumpSidebarReloadToken]);
+    const applyPorts = React.useCallback(
+        (nextPorts: RuleBlockPort[]) => {
+            ruleBlockUtils.assertValidPorts(nextPorts);
+            const normalizedPorts = ruleBlockUtils.sortRuleBlockPorts(nextPorts);
+            setPorts(normalizedPorts);
+            setInputExamples((currentInputExamples) =>
+                ruleBlockUtils.pruneInputExamplesToPorts(currentInputExamples, normalizedPorts),
+            );
+            bumpSidebarReloadToken();
+        },
+        [bumpSidebarReloadToken],
+    );
 
     const applyPersistedPorts = React.useCallback((nextPorts: RuleBlockPort[]) => {
         ruleBlockUtils.assertValidPorts(nextPorts);
         setPersistedPorts(ruleBlockUtils.sortRuleBlockPorts(nextPorts));
     }, []);
 
-    const applyInputExamples = React.useCallback((
-        nextInputExamples: IRuleBlockInputExample[],
-        nextPorts: RuleBlockPort[] = portsRef.current,
-    ) => {
-        setInputExamples(ruleBlockUtils.pruneInputExamplesToPorts(nextInputExamples, nextPorts));
-    }, []);
+    const applyInputExamples = React.useCallback(
+        (nextInputExamples: IRuleBlockInputExample[], nextPorts: RuleBlockPort[] = portsRef.current) => {
+            setInputExamples(ruleBlockUtils.pruneInputExamplesToPorts(nextInputExamples, nextPorts));
+        },
+        [],
+    );
 
     const refreshRuleBlockUsage = React.useCallback(async () => {
         if (isExternalSnapshotMode) {
@@ -231,14 +242,17 @@ export const RuleBlockEditor = ({ projectId, ruleBlockTaskId, viewActions, insta
         }
     }, [bumpSidebarReloadToken, isExternalSnapshotMode, projectId, ruleBlockTaskId]);
 
-    const applyLoadedRuleBlockTask = React.useCallback((taskData: RuleBlockTaskData) => {
-        const loadedPorts = taskData.data.parameters.ruleBlockModel?.ports ?? [];
-        const loadedInputExamples = taskData.data.parameters.ruleBlockModel?.inputExamples ?? [];
-        applyPersistedPorts(loadedPorts);
-        applyPorts(loadedPorts);
-        applyInputExamples(loadedInputExamples, loadedPorts);
-        setSelectedExampleIdsForEvaluation([]);
-    }, [applyInputExamples, applyPersistedPorts, applyPorts]);
+    const applyLoadedRuleBlockTask = React.useCallback(
+        (taskData: RuleBlockTaskData) => {
+            const loadedPorts = taskData.data.parameters.ruleBlockModel?.ports ?? [];
+            const loadedInputExamples = taskData.data.parameters.ruleBlockModel?.inputExamples ?? [];
+            applyPersistedPorts(loadedPorts);
+            applyPorts(loadedPorts);
+            applyInputExamples(loadedInputExamples, loadedPorts);
+            setSelectedExampleIdsForEvaluation([]);
+        },
+        [applyInputExamples, applyPersistedPorts, applyPorts],
+    );
 
     const fetchRuleBlockTask = React.useCallback(
         async (currentProjectId: string, taskId: string): Promise<RuleBlockTaskData | undefined> => {
@@ -267,13 +281,7 @@ export const RuleBlockEditor = ({ projectId, ruleBlockTaskId, viewActions, insta
                 );
             }
         },
-        [
-            applyLoadedRuleBlockTask,
-            applyPersistedPorts,
-            externalRuleBlockTask,
-            refreshRuleBlockUsage,
-            registerError,
-        ],
+        [applyLoadedRuleBlockTask, applyPersistedPorts, externalRuleBlockTask, refreshRuleBlockUsage, registerError],
     );
 
     const fetchTransformRuleOperatorList = React.useCallback(async (): Promise<IPluginDetails[] | undefined> => {
@@ -352,8 +360,8 @@ export const RuleBlockEditor = ({ projectId, ruleBlockTaskId, viewActions, insta
                 typeof port.id === "string" &&
                 typeof port.label === "string" &&
                 typeof port.description === "string" &&
-                    typeof port.displayOrder === "number" &&
-                    typeof port.deprecated === "boolean",
+                typeof port.displayOrder === "number" &&
+                typeof port.deprecated === "boolean",
         );
 
     const isRuleBlockInputExampleArray = (savedState: unknown): savedState is IRuleBlockInputExample[] =>
@@ -411,10 +419,7 @@ export const RuleBlockEditor = ({ projectId, ruleBlockTaskId, viewActions, insta
     );
     const getSelectedEvaluationExampleIds = React.useCallback(() => selectedExampleIdsForEvaluationRef.current, []);
     const getPersistedPorts = React.useCallback(() => persistedPortsRef.current, []);
-    const isRuleBlockInUse = React.useCallback(
-        () => ruleBlockUsageStateRef.current.isInUse,
-        [],
-    );
+    const isRuleBlockInUse = React.useCallback(() => ruleBlockUsageStateRef.current.isInUse, []);
 
     const inputPortInstanceNodeIds = React.useCallback((portId: string): string[] => {
         const ruleEditorApi = ruleEditorRef.current;
@@ -423,10 +428,7 @@ export const RuleBlockEditor = ({ projectId, ruleBlockTaskId, viewActions, insta
         }
         return ruleEditorApi
             .ruleOperatorNodes()
-            .filter(
-                (node) =>
-                    node.pluginType === "InputPortOperator" && ruleBlockUtils.requirePortId(node) === portId,
-            )
+            .filter((node) => node.pluginType === "InputPortOperator" && ruleBlockUtils.requirePortId(node) === portId)
             .map((node) => node.nodeId);
     }, []);
 
@@ -538,13 +540,13 @@ export const RuleBlockEditor = ({ projectId, ruleBlockTaskId, viewActions, insta
             const previousPorts = portsRef.current;
             if (inputPortDialogState?.mode === "edit" && editedPort) {
                 const updatedPorts = previousPorts.map((port) =>
-                        port.id === editedPort.id
-                            ? {
-                                  ...port,
-                                  ...value,
-                              }
-                            : port,
-                    );
+                    port.id === editedPort.id
+                        ? {
+                              ...port,
+                              ...value,
+                          }
+                        : port,
+                );
                 const updatedPort = updatedPorts.find((port) => port.id === editedPort.id);
                 if (ruleEditorApi) {
                     ruleEditorApi.startChangeTransaction();
@@ -566,10 +568,7 @@ export const RuleBlockEditor = ({ projectId, ruleBlockTaskId, viewActions, insta
                     id: ruleBlockUtils.generateInputPortId(),
                     ...value,
                 };
-                const updatedPorts = [
-                    ...previousPorts,
-                    createdPort,
-                ];
+                const updatedPorts = [...previousPorts, createdPort];
                 if (ruleEditorApi) {
                     ruleEditorApi.startChangeTransaction();
                     ruleEditorApi.executeExternalRuleModelChange({
@@ -603,7 +602,8 @@ export const RuleBlockEditor = ({ projectId, ruleBlockTaskId, viewActions, insta
                 ...(ruleUtils.sidebarTabs.all as IRuleSideBarFilterTabConfig),
                 // The generic InputPortOperator is needed by the editor model, but the rule block UI should show
                 // logical input-port entries from local state instead of this internal operator definition.
-                filterAndSort: (operators) => operators.filter((operator) => operator.pluginType !== "InputPortOperator"),
+                filterAndSort: (operators) =>
+                    operators.filter((operator) => operator.pluginType !== "InputPortOperator"),
                 showOperatorsFromPreConfiguredOperatorTabsAlways: true,
             },
             ruleBlockEditorUtils.createInputPortsTab(
@@ -640,13 +640,13 @@ export const RuleBlockEditor = ({ projectId, ruleBlockTaskId, viewActions, insta
             originalTask: RuleBlockTaskData,
         ): Promise<RuleSaveResult> => {
             try {
-                const currentModel = originalTask.data.parameters.ruleBlockModel ?? ruleBlockUtils.emptyRuleBlockModel();
+                const currentModel =
+                    originalTask.data.parameters.ruleBlockModel ?? ruleBlockUtils.emptyRuleBlockModel();
                 const [operatorNodeMap, rootNodes] = ruleUtils.convertToRuleOperatorNodeMap(ruleOperatorNodes, true);
                 const inputPortNodes = ruleOperatorNodes.filter((node) => node.pluginType === "InputPortOperator");
                 const nextPortDefinitions = ruleBlockUtils.sortRuleBlockPorts(portsRef.current);
-                const missingPortIdErrors = ruleBlockUtils.validateMissingPortIds(
-                    inputPortNodes,
-                    () => i18next.t("taskViews.ruleBlock.errors.missingPortId"),
+                const missingPortIdErrors = ruleBlockUtils.validateMissingPortIds(inputPortNodes, () =>
+                    i18next.t("taskViews.ruleBlock.errors.missingPortId"),
                 );
                 if (missingPortIdErrors.length) {
                     return new RuleValidationError(
@@ -747,7 +747,8 @@ export const RuleBlockEditor = ({ projectId, ruleBlockTaskId, viewActions, insta
             async (
                 _inputString: string,
                 _cursorPosition: number,
-            ): Promise<CodeAutocompleteFieldPartialAutoCompleteResult | undefined> => undefined,
+            ): Promise<CodeAutocompleteFieldPartialAutoCompleteResult | undefined> =>
+                undefined,
         [],
     );
 
@@ -791,10 +792,7 @@ export const RuleBlockEditor = ({ projectId, ruleBlockTaskId, viewActions, insta
     const additionalToolBarComponents = React.useCallback(
         () => (
             <ToolbarSection>
-                <RuleBlockUsageStatusControl
-                    usageState={ruleBlockUsageState}
-                    onRefresh={refreshRuleBlockUsage}
-                />
+                <RuleBlockUsageStatusControl usageState={ruleBlockUsageState} onRefresh={refreshRuleBlockUsage} />
                 <ContextMenu
                     togglerElement={
                         <IconButton
@@ -884,7 +882,10 @@ export const RuleBlockEditor = ({ projectId, ruleBlockTaskId, viewActions, insta
         [applyPorts, projectId, ruleBlockTaskId],
     );
 
-    const externalSidebarContextValue = React.useMemo(() => ({ reloadToken: sidebarReloadToken }), [sidebarReloadToken]);
+    const externalSidebarContextValue = React.useMemo(
+        () => ({ reloadToken: sidebarReloadToken }),
+        [sidebarReloadToken],
+    );
     const ruleEditor = (
         <RuleEditor<RuleBlockTaskData, IPluginDetails>
             ref={ruleEditorRef}
@@ -960,14 +961,14 @@ export const RuleBlockEditor = ({ projectId, ruleBlockTaskId, viewActions, insta
                                 onApply={applyExampleValues}
                             />
                         ) : null}
-                        {deleteInputPortDialogState ?
-                        <ConfirmDeleteInputPortDialog
-                            instanceCount={deleteInputPortDialogState.instanceCount}
-                            portLabel={deletePort?.label}
-                            onConfirm={confirmDeleteInputPort}
-                            onClose={closeDeleteInputPortDialog}
-                        /> :
-                        null}
+                        {deleteInputPortDialogState ? (
+                            <ConfirmDeleteInputPortDialog
+                                instanceCount={deleteInputPortDialogState.instanceCount}
+                                portLabel={deletePort?.label}
+                                onConfirm={confirmDeleteInputPort}
+                                onClose={closeDeleteInputPortDialog}
+                            />
+                        ) : null}
                     </>
                 ) : null}
             </>
@@ -988,8 +989,12 @@ interface RuleBlockUsageStatusControlProps {
 }
 
 const RuleBlockUsageStatusControl = ({ usageState, onRefresh }: RuleBlockUsageStatusControlProps) => {
+    const RULEBLOCK_STATUS_DISPLAY_KEY = "RULEBLOCK_STATUS_DISPLAY_KEY";
     const [t] = useTranslation();
-    const [showOverlay, setShowOverlay] = React.useState(false);
+    const [showOverlay, setShowOverlay] = React.useState(
+        window.localStorage.getItem(RULEBLOCK_STATUS_DISPLAY_KEY) === "display",
+    );
+    const [showInitial, setShowInitial] = React.useState(window.localStorage.getItem(RULEBLOCK_STATUS_DISPLAY_KEY));
     const isVisible = usageState.isInUse || usageState.refreshFailed;
     const iconName = usageState.refreshFailed ? "state-warning" : "state-info";
 
@@ -997,17 +1002,34 @@ const RuleBlockUsageStatusControl = ({ usageState, onRefresh }: RuleBlockUsageSt
         ? t("taskViews.ruleBlock.usageRefreshError")
         : t("taskViews.ruleBlock.usageInUse");
     const tooltip = `${content} ${t("taskViews.ruleBlock.usageRefreshHint")}`;
-    const overlayContent = <Notification intent={usageState.refreshFailed ? "warning" : "info"}>{tooltip}</Notification>;
-
-    React.useEffect(() => {
-        if (!isVisible) {
-            setShowOverlay(false);
-            return;
-        }
-        setShowOverlay(true);
-        const timeoutId = window.setTimeout(() => setShowOverlay(false), 5000);
-        return () => window.clearTimeout(timeoutId);
-    }, [isVisible, tooltip]);
+    const overlayContent = (
+        <Card style={{ maxWidth: "50em" }} elevation={-1} whitespaceAmount={"small"}>
+            <CardContent>
+                <Notification intent={usageState.refreshFailed ? "warning" : "info"}>{tooltip}</Notification>
+            </CardContent>
+            <Divider />
+            <CardActions>
+                <Button onClick={onRefresh} elevated>
+                    {t("common.action.refreshStatus")}
+                </Button>
+                <Button onClick={() => setShowOverlay(false)}>{t("common.action.close")}</Button>
+                <CardActionsAux>
+                    <Checkbox
+                        label={t("common.action.noAutoDisplay")}
+                        style={{ marginBottom: 0 }}
+                        checked={showInitial === "hide"}
+                        onChange={(e) => {
+                            window.localStorage.setItem(
+                                RULEBLOCK_STATUS_DISPLAY_KEY,
+                                e.target.checked ? "hide" : "display",
+                            );
+                            setShowInitial(window.localStorage.getItem(RULEBLOCK_STATUS_DISPLAY_KEY));
+                        }}
+                    />
+                </CardActionsAux>
+            </CardActions>
+        </Card>
+    );
 
     if (!isVisible) {
         return null;
@@ -1015,18 +1037,9 @@ const RuleBlockUsageStatusControl = ({ usageState, onRefresh }: RuleBlockUsageSt
 
     return (
         <>
-            <ContextOverlay
-                isOpen={showOverlay}
-                onClose={() => setShowOverlay(false)}
-                content={overlayContent}
-                placement={"top"}
-            >
+            <ContextOverlay isOpen={showOverlay} onClose={() => setShowOverlay(false)} content={overlayContent}>
                 <IconButton
-                    onClick={onRefresh}
-                    onMouseEnter={() => setShowOverlay(true)}
-                    onMouseLeave={() => setShowOverlay(false)}
-                    onFocus={() => setShowOverlay(true)}
-                    onBlur={() => setShowOverlay(false)}
+                    onClick={() => setShowOverlay(true)}
                     intent={usageState.refreshFailed ? "warning" : "accent"}
                     loading={usageState.refreshRunning}
                     disabled={usageState.refreshRunning}
