@@ -4,10 +4,12 @@ import org.silkframework.dataset._
 import org.silkframework.entity.ValueType
 import org.silkframework.rule.vocab._
 import org.silkframework.rule.{MappingTarget, NodePosition, RuleLayout}
+import org.silkframework.runtime.activity.Status.Waiting
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.types.IntOptionParameter
 import org.silkframework.runtime.plugin.PluginRegistry
 import org.silkframework.runtime.serialization.{ReadContext, Serialization, TestReadContext, TestWriteContext, WriteContext}
+import org.silkframework.serialization.json.ActivitySerializers.StatusJsonFormat
 import org.silkframework.serialization.json.JsonSerializers._
 import org.silkframework.serialization.json.{JsonFormat, JsonSerialization}
 import org.silkframework.serialization.json.ExecutionReportSerializers.WorkflowExecutionReportJsonFormat
@@ -16,7 +18,7 @@ import org.silkframework.serialization.json.WorkflowSerializers._
 import org.silkframework.workspace.activity.workflow.{WorkflowExecutionReport, WorkflowTest}
 import org.silkframework.workspace.activity.workflow.WorkflowTest.{DS_A1, OUTPUT, testWorkflow}
 import org.silkframework.workspace.annotation.{StickyNote, UiAnnotations}
-import play.api.libs.json.{JsObject, Json}
+import play.api.libs.json.{JsObject, JsValue, Json}
 
 import scala.reflect.ClassTag
 import org.scalatest.flatspec.AnyFlatSpec
@@ -115,6 +117,13 @@ class JsonSerializersTest  extends AnyFlatSpec with Matchers {
 
     val roundTrip = JsonSerialization.fromJson[WorkflowExecutionReport](reportJson)
     roundTrip shouldBe report
+  }
+
+  "StatusJsonFormat" should "round-trip custom waiting messages" in {
+    implicit val jsWriteContext: WriteContext[JsValue] = TestWriteContext[JsValue]()
+    val waitingStatus = Waiting("Waiting for workflow execution slot")
+    val statusJson = StatusJsonFormat.write(waitingStatus)
+    StatusJsonFormat.read(statusJson) shouldBe waitingStatus
   }
 
   def testSerialization[T](obj: T)(implicit format: JsonFormat[T]): Unit = {

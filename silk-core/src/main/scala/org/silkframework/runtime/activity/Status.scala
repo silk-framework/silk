@@ -99,8 +99,7 @@ object Status {
   /**
    * Status which indicates that the activity has been started and is waiting to be executed.
    */
-  case class Waiting() extends Status {
-    override def message: String = "Waiting"
+  case class Waiting(override val message: String = "Waiting") extends Status {
     override def isRunning: Boolean = true
   }
 

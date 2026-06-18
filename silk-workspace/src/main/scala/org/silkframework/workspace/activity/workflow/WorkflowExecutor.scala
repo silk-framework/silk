@@ -4,8 +4,8 @@ import org.silkframework.config.{Prefixes, Task, TaskSpec}
 import org.silkframework.dataset.Dataset
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.execution._
-import org.silkframework.runtime.activity.Status.Canceling
 import org.silkframework.runtime.activity._
+import org.silkframework.runtime.activity.Status.Canceling
 import org.silkframework.runtime.plugin.PluginContext
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.Identifier
@@ -31,16 +31,17 @@ trait WorkflowExecutor[ExecType <: ExecutionType] extends Activity[WorkflowExecu
   protected def currentWorkflow = workflowTask.data
 
   protected def project = workflowTask.project
+
   protected def workflowNodes = currentWorkflow.nodes
 
   /**
     * Executes a workflow operator.
     *
     * @param operation The operation, e.g., "reading"
-    * @param nodeId The workflow node identifier
-    * @param task The task to be executed
-    * @param inputs Inputs
-    * @param output Output definition
+    * @param nodeId    The workflow node identifier
+    * @param task      The task to be executed
+    * @param inputs    Inputs
+    * @param output    Output definition
     * @param workflowRunContext
     * @param prefixes
     * @tparam TaskType
@@ -63,7 +64,7 @@ trait WorkflowExecutor[ExecType <: ExecutionType] extends Activity[WorkflowExecu
           workflowRunContext.activityContext.value.updateWith(_.addFailedNode(nodeId, ex))
           throw ex
       }
-    for(error <- taskContext.value.get.flatMap(_.error)) {
+    for (error <- taskContext.value.get.flatMap(_.error)) {
       val ex = WorkflowExecutionException(error)
       workflowRunContext.activityContext.value.updateWith(_.addFailedNode(nodeId, ex))
       throw ex
@@ -82,7 +83,7 @@ trait WorkflowExecutor[ExecType <: ExecutionType] extends Activity[WorkflowExecu
     try {
       process(result)
     } finally {
-      for(r <- result) {
+      for (r <- result) {
         r.close()
       }
     }
@@ -91,8 +92,8 @@ trait WorkflowExecutor[ExecType <: ExecutionType] extends Activity[WorkflowExecu
   /**
     * Update the progress and write a log message.
     *
-    * @param operation Operation, e.g., "reading"
-    * @param task task that is executed
+    * @param operation          Operation, e.g., "reading"
+    * @param task               task that is executed
     * @param workflowRunContext Workflow Context
     */
   protected def updateProgress(operation: String, task: Task[_ >: TaskSpec])(implicit workflowRunContext: WorkflowRunContext): Unit = {
@@ -101,114 +102,11 @@ trait WorkflowExecutor[ExecType <: ExecutionType] extends Activity[WorkflowExecu
     workflowRunContext.activityContext.status.update(s"$operation '$taskLabel'", progress)
   }
 
-  protected trait ExecutionPermitHandle {
-    def release(): Unit
-  }
-
-  private object ExecutionPermitHandle {
-    val NoOp: ExecutionPermitHandle = () => ()
-
-    def apply(permit: WorkflowExecutionLimiter.WorkflowExecutionPermit): ExecutionPermitHandle = () => permit.release()
-  }
-
-  /** Returns a permit handle if this workflow execution may start, or None if it was cancelled while waiting for a slot. */
-  protected final def acquireExecutionPermit(context: ActivityContext[WorkflowExecutionReport]): Option[ExecutionPermitHandle] = {
-    val workflowKey = WorkflowExecutionLimiter.WorkflowExecutionKey(workflowTask.project.id, workflowTask.id)
-    var queuedToken: Option[WorkflowExecutionLimiter.QueueToken] = None
-    var acquiredPermit = false
-    var waitingStatusReported = false
-
-    def waitingCancelled: Boolean = {
-      cancelled || context.status().isInstanceOf[Canceling]
-    }
-
-    def currentLimit: Option[Int] = {
-      workflowTask.data.maxParallelExecutions.value
-    }
-
-    if(currentLimit.isEmpty) {
-      // Workflows without limit skip the queue.
-      Some(ExecutionPermitHandle.NoOp)
-    } else {
-      try {
-        // Workflow limits are evaluated for every start attempt. A run either acquires a slot immediately or receives
-        // a queue token that represents its FIFO position. While queued, it waits via blockUntil instead of blocking
-        // an activity pool thread, then retries acquisition until it either gets a permit or the activity is cancelled.
-        while(!waitingCancelled) {
-          queuedToken match {
-            case None =>
-              requestInitialPermit(workflowKey, currentLimit) match {
-                case Left(permitHandle) =>
-                  acquiredPermit = true
-                  return Some(permitHandle)
-                case Right(token) =>
-                  queuedToken = Some(token)
-              }
-            case Some(token) =>
-              acquireQueuedPermit(workflowKey, token, currentLimit) match {
-                case Some(permitHandle) =>
-                  acquiredPermit = true
-                  return Some(permitHandle)
-                case None =>
-                  waitingStatusReported = waitForExecutionSlot(
-                    context = context,
-                    workflowKey = workflowKey,
-                    queuedToken = token,
-                    currentLimit = currentLimit,
-                    waitingCancelled = waitingCancelled,
-                    waitingStatusReported = waitingStatusReported
-                  )
-              }
-          }
-        }
-        None
-      } finally {
-        if(!acquiredPermit) {
-          queuedToken.foreach(token => WorkflowExecutionLimiter.cancelQueued(workflowKey, token))
-        }
-      }
-    }
-  }
-
-  private def requestInitialPermit(workflowKey: WorkflowExecutionLimiter.WorkflowExecutionKey,
-                                   currentLimit: Option[Int]): Either[ExecutionPermitHandle, WorkflowExecutionLimiter.QueueToken] = {
-    WorkflowExecutionLimiter.requestSlot(workflowKey, currentLimit) match {
-      case WorkflowExecutionLimiter.Acquired(permit) =>
-        Left(ExecutionPermitHandle(permit))
-      case WorkflowExecutionLimiter.Queued(token) =>
-        Right(token)
-    }
-  }
-
-  private def acquireQueuedPermit(workflowKey: WorkflowExecutionLimiter.WorkflowExecutionKey,
-                                  queuedToken: WorkflowExecutionLimiter.QueueToken,
-                                  currentLimit: Option[Int]): Option[ExecutionPermitHandle] = {
-    WorkflowExecutionLimiter.acquireQueued(workflowKey, queuedToken, currentLimit).map(ExecutionPermitHandle(_))
-  }
-
-  private def waitForExecutionSlot(context: ActivityContext[WorkflowExecutionReport],
-                                   workflowKey: WorkflowExecutionLimiter.WorkflowExecutionKey,
-                                   queuedToken: WorkflowExecutionLimiter.QueueToken,
-                                   currentLimit: => Option[Int],
-                                   waitingCancelled: => Boolean,
-                                   waitingStatusReported: Boolean): Boolean = {
-    if(!waitingStatusReported) {
-      context.status.update(s"Waiting for workflow execution slot of '${workflowTask.id}'", 0.0)
-    }
-    val waitMonitor = WorkflowExecutionLimiter.waitMonitor(workflowKey).getOrElse(WorkflowExecutionLimiter)
-    context.blockUntilNotified(
-      waitMonitor,
-      () => waitingCancelled || WorkflowExecutionLimiter.canAcquireQueued(workflowKey, queuedToken, currentLimit),
-      timeoutMs = 500L
-    )
-    true
-  }
-
   /** Make sure that the workflow does not try to write into a read-only dataset. */
   protected def checkReadOnlyDatasets()
                                      (implicit userContext: UserContext): Unit = {
     val readOnlyDatasetsAsOutputs = currentWorkflow.outputDatasets(project).filter(_.readOnly)
-    if(readOnlyDatasetsAsOutputs.nonEmpty) {
+    if (readOnlyDatasetsAsOutputs.nonEmpty) {
       throw WorkflowExecutionException("Workflow execution is not allowed to start because following read-only datasets would be written into: " +
         readOnlyDatasetsAsOutputs.map(_.fullLabel).mkString("'", "', '", "'"))
     }
@@ -221,12 +119,12 @@ trait WorkflowExecutor[ExecType <: ExecutionType] extends Activity[WorkflowExecu
     val notCoveredVariableDatasets = variableDatasets.dataSources.filter(!replaceDataSources.contains(_))
     if (notCoveredVariableDatasets.nonEmpty) {
       throw new scala.IllegalArgumentException("No replacement for following variable datasets as data sources provided: " +
-          notCoveredVariableDatasets.mkString(", "))
+        notCoveredVariableDatasets.mkString(", "))
     }
     val notCoveredVariableSinks = variableDatasets.sinks.filter(!replaceSinks.contains(_))
     if (notCoveredVariableSinks.nonEmpty) {
       throw new scala.IllegalArgumentException("No replacement for following variable datasets as data sinks provided: " +
-          notCoveredVariableSinks.mkString(", "))
+        notCoveredVariableSinks.mkString(", "))
     }
   }
 
@@ -312,9 +210,9 @@ case class WorkflowRunContext(activityContext: ActivityContext[WorkflowExecution
   private val reportListeners: mutable.Buffer[TaskReportListener] = mutable.Buffer.empty
 
   /**
-   * Listeners for updates to the workflow status.
-   * We need to hold them to prevent their garbage collection.
-   */
+    * Listeners for updates to the workflow status.
+    * We need to hold them to prevent their garbage collection.
+    */
   private val statusListeners: mutable.Buffer[WorkflowStatusListener] = mutable.Buffer.empty
 
   /** Creates an activity context for a specific task that will be executed in the workflow.
@@ -357,9 +255,9 @@ case class WorkflowRunContext(activityContext: ActivityContext[WorkflowExecution
 
   private class WorkflowStatusListener(taskStatus: StatusHolder) extends (Status => Unit) {
     override def apply(workflowStatus: Status): Unit = {
-      if(workflowStatus.isInstanceOf[Canceling]) {
+      if (workflowStatus.isInstanceOf[Canceling]) {
         taskStatus.synchronized {
-          if(taskStatus().isRunning) {
+          if (taskStatus().isRunning) {
             taskStatus.update(Canceling(None), logStatus = false)
           }
         }
@@ -372,5 +270,5 @@ case class WorkflowRunContext(activityContext: ActivityContext[WorkflowExecution
   *
   * @param msg          Cancellation message
   * @param failWorkflow If true, the workflow execution will fail. If false, the workflow execution will be considered successfull.
-  **/
+  * */
 case class StopWorkflowExecutionException(msg: String, failWorkflow: Boolean) extends Exception(msg)

@@ -58,7 +58,9 @@ object ActivitySerializers {
         case IDLE_TYPE =>
           Idle()
         case WAITING_TYPE =>
-          Waiting()
+          Waiting(
+            message = (value \ MESSAGE).asOpt[String].getOrElse("Waiting")
+          )
         case RUNNING_TYPE =>
           Running(
             message = (value \ MESSAGE).as[String],

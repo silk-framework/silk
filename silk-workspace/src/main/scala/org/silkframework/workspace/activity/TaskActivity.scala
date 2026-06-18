@@ -2,7 +2,7 @@ package org.silkframework.workspace.activity
 
 import org.silkframework.config.TaskSpec
 import org.silkframework.runtime.activity._
-import org.silkframework.runtime.plugin.{ClassPluginDescription, ParameterValues, PluginContext}
+import org.silkframework.runtime.plugin.{ClassPluginDescription, ParameterValues, PluginContext, PluginRegistry}
 import org.silkframework.workspace.{Project, ProjectTask}
 
 import java.lang.reflect.{ParameterizedType, Type, TypeVariable}
@@ -20,6 +20,11 @@ class TaskActivity[DataType <: TaskSpec : ClassTag, ActivityType <: HasValue : C
                                                                                          defaultFactory: TaskActivityFactory[DataType, ActivityType])
     extends WorkspaceActivity[ActivityType] {
 
+  private lazy val activityLimits: Seq[ActivityLimit] = {
+    implicit val pluginContext: PluginContext = PluginContext(project.config.prefixes, project.resources)
+    PluginRegistry.availablePlugins[ActivityLimit].map(_.apply()).toSeq
+  }
+
   def project: Project = task.project
 
   override def projectOpt: Option[Project] = Some(project)
@@ -36,6 +41,23 @@ class TaskActivity[DataType <: TaskSpec : ClassTag, ActivityType <: HasValue : C
       ClassPluginDescription(defaultFactory.getClass)(config, ignoreNonExistingParameters = false).apply(task),
       projectAndTaskId = Some(ProjectAndTaskIds(project.id, taskOption.map(_.id)))
     )
+  }
+
+  override protected def limitedActivityExecution(control: ActivityControl[ActivityType#ValueType],
+                                                  config: ParameterValues): ActivityControl[ActivityType#ValueType] = {
+    activityLimits.collectFirst {
+      case activityLimit if activityLimit.limitFor(taskOption, factory).isDefined => activityLimit
+    } match {
+      case Some(activityLimit) =>
+        new QueuedActivityControl(
+          delegate = control,
+          task = taskOption,
+          factory = factory,
+          limit = activityLimit
+        )
+      case None =>
+        control
+    }
   }
 
   /**
@@ -81,4 +103,3 @@ class TaskActivity[DataType <: TaskSpec : ClassTag, ActivityType <: HasValue : C
     }
   }
 }
-

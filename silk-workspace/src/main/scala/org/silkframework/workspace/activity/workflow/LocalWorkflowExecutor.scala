@@ -53,17 +53,8 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
     val workflowUserContext = updateUserContext(userContext)
     context.value.updateWith(_.withAuthDiagnostics(workflowUserContext))
     cancelled = false
-    val executionPermit = acquireExecutionPermit(context)
-    if(executionPermit.isEmpty) {
-      stopWorkflowExecutionTimer(stopwatch, "Cancelled")
-      return
-    }
     try {
-      try {
-        runWorkflow(context, workflowUserContext)
-      } finally {
-        executionPermit.foreach(_.release())
-      }
+      runWorkflow(context, workflowUserContext)
     } catch {
       case cancelledWorkflowException: StopWorkflowExecutionException if !cancelledWorkflowException.failWorkflow =>
         // In case of an cancelled workflow from an operator, the workflow should still be successful

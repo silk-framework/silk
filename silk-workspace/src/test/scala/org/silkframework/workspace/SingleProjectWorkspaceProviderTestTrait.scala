@@ -67,6 +67,6 @@ trait SingleProjectWorkspaceProviderTestTrait extends BeforeAndAfterAll with Tes
 
   def executeWorkflow(workflowId: String)
                      (implicit userContext: UserContext): Unit = {
-    project.task[Workflow](workflowId).activity[LocalWorkflowExecutorGeneratingProvenance].control.startBlocking()
+    project.task[Workflow](workflowId).activity[LocalWorkflowExecutorGeneratingProvenance].startBlocking()
   }
 }

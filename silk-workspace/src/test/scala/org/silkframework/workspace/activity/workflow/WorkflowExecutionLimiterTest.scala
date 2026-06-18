@@ -1,321 +1,240 @@
 package org.silkframework.workspace.activity.workflow
 
-import org.scalatest.BeforeAndAfterAll
 import org.scalatest.concurrent.Eventually
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.time.{Seconds, Span}
-import org.silkframework.config.{CustomTask, InputPorts, Port, Task}
-import org.silkframework.dataset.Dataset
-import org.silkframework.execution.{ExecutionReport, ExecutionType, Executor, ExecutorOutput}
-import org.silkframework.execution.local.LocalExecution
+import org.silkframework.config.Task
 import org.silkframework.runtime.activity._
-import org.silkframework.runtime.plugin.PluginContext
-import org.silkframework.runtime.plugin.PluginRegistry
+import org.silkframework.runtime.activity.Status.{Finished, Waiting}
+import org.silkframework.runtime.plugin.annotations.Plugin
 import org.silkframework.runtime.plugin.types.IntOptionParameter
-import org.silkframework.runtime.activity.TestUserContextTrait
 import org.silkframework.runtime.users.{User, UserActions}
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.TestWorkspaceProviderTestTrait
+import org.silkframework.workspace.ProjectTask
+import org.silkframework.workspace.activity.{ActivityExecutionLimiter, ActivityLimiterKey, QueuedActivityControl, TaskActivityFactory}
 
-import java.util.concurrent.atomic.{AtomicInteger, AtomicReference}
+import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.{ConcurrentLinkedQueue, CountDownLatch, LinkedBlockingQueue, TimeUnit}
 import scala.concurrent.duration._
 import scala.concurrent.{Await, Future, blocking}
 import scala.jdk.CollectionConverters._
 
-class WorkflowExecutionLimiterTest extends AnyFlatSpec with Matchers with Eventually with TestWorkspaceProviderTestTrait with BeforeAndAfterAll with TestUserContextTrait {
+class WorkflowExecutionLimiterTest extends AnyFlatSpec with Matchers with Eventually with TestWorkspaceProviderTestTrait with TestUserContextTrait {
   private val TestTimeout: FiniteDuration = 25.seconds
+  private val workflowLimit = WorkflowExecutionActivityLimit()
+  private val guardedFactory = GuardedWorkflowExecutionFactory()
 
   override def workspaceProviderId: String = "inMemoryWorkspaceProvider"
 
   implicit override val patienceConfig: PatienceConfig = PatienceConfig(scaled(Span(TestTimeout.toSeconds, Seconds)))
 
-  override protected def beforeAll(): Unit = {
-    super.beforeAll()
-    PluginRegistry.registerPlugin(classOf[QueueControlledTask])
-    PluginRegistry.registerPlugin(classOf[QueueControlledTaskExecutor])
-    PluginRegistry.registerPlugin(classOf[QuickTask])
-    PluginRegistry.registerPlugin(classOf[QuickTaskExecutor])
-  }
-
   behavior of "WorkflowExecutionLimiter"
 
   it should "grant queued workflow runs in FIFO order" in {
-    val workflowTask = createLimitedWorkflow("fifo")
-    val workflowKey = WorkflowExecutionLimiter.WorkflowExecutionKey(workflowTask.project.id, workflowTask.id)
-    val initialPermit = WorkflowExecutionLimiter.requestSlot(workflowKey, Some(1)) match {
-      case WorkflowExecutionLimiter.Acquired(permit) => permit
+    val limiterKey = ActivityLimiterKey(Some(Identifier("fifoProject")), Some(Identifier("fifoWorkflow")), "workflow-execution")
+    val initialPermit = ActivityExecutionLimiter.requestSlot(limiterKey, Some(1)) match {
+      case ActivityExecutionLimiter.Acquired(permit) => permit
       case other => fail(s"Expected the first workflow run to acquire a permit immediately, but got: $other")
     }
     val queuedTokens = (1 to 3).map { _ =>
-      WorkflowExecutionLimiter.requestSlot(workflowKey, Some(1)) match {
-        case WorkflowExecutionLimiter.Queued(token) => token
+      ActivityExecutionLimiter.requestSlot(limiterKey, Some(1)) match {
+        case ActivityExecutionLimiter.Queued(token) => token
         case other => fail(s"Expected queued workflow run, but got: $other")
       }
     }
 
     try {
-      WorkflowExecutionLimiter.acquireQueued(workflowKey, queuedTokens(1), Some(1)) shouldBe None
-      WorkflowExecutionLimiter.acquireQueued(workflowKey, queuedTokens(2), Some(1)) shouldBe None
+      ActivityExecutionLimiter.acquireQueued(limiterKey, queuedTokens(1), Some(1)) shouldBe None
+      ActivityExecutionLimiter.acquireQueued(limiterKey, queuedTokens(2), Some(1)) shouldBe None
 
       initialPermit.release()
 
-      val secondPermit = WorkflowExecutionLimiter.acquireQueued(workflowKey, queuedTokens.head, Some(1)).getOrElse {
+      val secondPermit = ActivityExecutionLimiter.acquireQueued(limiterKey, queuedTokens.head, Some(1)).getOrElse {
         fail("Expected the first queued workflow run to acquire the freed permit.")
       }
-      WorkflowExecutionLimiter.acquireQueued(workflowKey, queuedTokens(1), Some(1)) shouldBe None
-      WorkflowExecutionLimiter.acquireQueued(workflowKey, queuedTokens(2), Some(1)) shouldBe None
+      ActivityExecutionLimiter.acquireQueued(limiterKey, queuedTokens(1), Some(1)) shouldBe None
+      ActivityExecutionLimiter.acquireQueued(limiterKey, queuedTokens(2), Some(1)) shouldBe None
 
       secondPermit.release()
 
-      val thirdPermit = WorkflowExecutionLimiter.acquireQueued(workflowKey, queuedTokens(1), Some(1)).getOrElse {
+      val thirdPermit = ActivityExecutionLimiter.acquireQueued(limiterKey, queuedTokens(1), Some(1)).getOrElse {
         fail("Expected the second queued workflow run to acquire the next freed permit.")
       }
-      WorkflowExecutionLimiter.acquireQueued(workflowKey, queuedTokens(2), Some(1)) shouldBe None
+      ActivityExecutionLimiter.acquireQueued(limiterKey, queuedTokens(2), Some(1)) shouldBe None
 
       thirdPermit.release()
 
-      val fourthPermit = WorkflowExecutionLimiter.acquireQueued(workflowKey, queuedTokens(2), Some(1)).getOrElse {
+      val fourthPermit = ActivityExecutionLimiter.acquireQueued(limiterKey, queuedTokens(2), Some(1)).getOrElse {
         fail("Expected the third queued workflow run to acquire the final freed permit.")
       }
       fourthPermit.release()
 
-      WorkflowExecutionLimiter.isTracked(workflowKey) shouldBe false
+      ActivityExecutionLimiter.isTracked(limiterKey) shouldBe false
     } finally {
-      WorkflowExecutionLimiter.cancelQueued(workflowKey, queuedTokens.head)
-      WorkflowExecutionLimiter.cancelQueued(workflowKey, queuedTokens(1))
-      WorkflowExecutionLimiter.cancelQueued(workflowKey, queuedTokens(2))
+      queuedTokens.foreach(token => ActivityExecutionLimiter.cancelQueued(limiterKey, token))
     }
   }
 
   it should "remove waiting workflow runs from the queue when they are cancelled" in {
-    QueueControlledTaskState.reset()
+    QueueControlledActivityState.reset()
     val workflowTask = createLimitedWorkflow("cancel")
-
-    val firstControl = Activity(LocalWorkflowExecutor(workflowTask))
-    firstControl.start()(testUserContext("urn:test:running"))
-
-    val queuedControl = Activity(LocalWorkflowExecutor(workflowTask))
-    val queuedUserContext = testUserContext("urn:test:queued")
-    queuedControl.start()(queuedUserContext)
+    val limiterKey = ActivityLimiterKey(Some(workflowTask.project.id), Some(workflowTask.id), "workflow-execution")
+    val firstControl = guardedControl(workflowTask, Activity(QueueControlledActivity()))
+    val secondControl = guardedControl(workflowTask, Activity(QueueControlledActivity()))
+    val secondUserContext = testUserContext("urn:test:queued")
 
     try {
-      QueueControlledTaskState.awaitStartedExecutions(1)
-      queuedControl.cancel()(queuedUserContext)
-      QueueControlledTaskState.releaseNext()
+      firstControl.start()(testUserContext("urn:test:running"))
+      QueueControlledActivityState.awaitStartedExecutions(1)
+      eventually {
+        firstControl.status() shouldBe a[Status.Running]
+      }
+
+      secondControl.start()(secondUserContext)
+      eventually {
+        ActivityExecutionLimiter.queuedCount(limiterKey) shouldBe 1
+      }
+
+      secondControl.cancel()(secondUserContext)
+      QueueControlledActivityState.releaseNext()
 
       awaitFinished(firstControl)
-      awaitFinished(queuedControl)
-
-      QueueControlledTaskState.startedUsers.asScala.toSeq shouldBe Seq("urn:test:running")
-      queuedControl.status() match {
-        case Status.Finished(_, _, cancelled, _) => cancelled shouldBe true
-        case other => fail(s"Expected queued workflow run to finish in cancelled state, but got: $other")
+      eventually {
+        ActivityExecutionLimiter.queuedCount(limiterKey) shouldBe 0
+        secondControl.status() match {
+          case Finished(_, _, cancelled, _) => cancelled shouldBe true
+          case other => fail(s"Expected queued workflow run to finish in cancelled state, but got: $other")
+        }
       }
+
+      QueueControlledActivityState.startedUsers.asScala.toSeq shouldBe Seq("urn:test:running")
     } finally {
-      cancelAll(Seq(firstControl, queuedControl))
-      QueueControlledTaskState.releaseAll()
+      cancelAll(Seq(firstControl, secondControl))
+      QueueControlledActivityState.releaseAll()
     }
   }
 
   it should "re-evaluate the workflow limit while waiting" in {
-    QueueControlledTaskState.reset()
+    QueueControlledActivityState.reset()
     val workflowTask = createLimitedWorkflow("reconfigure")
-
-    val firstControl = Activity(LocalWorkflowExecutor(workflowTask))
-    firstControl.start()(testUserContext("urn:test:first"))
-
-    val secondControl = Activity(LocalWorkflowExecutor(workflowTask))
-    secondControl.start()(testUserContext("urn:test:second"))
+    val firstControl = guardedControl(workflowTask, Activity(QueueControlledActivity()))
+    val secondControl = guardedControl(workflowTask, Activity(QueueControlledActivity()))
 
     try {
-      QueueControlledTaskState.awaitStartedExecutions(1)
-      workflowTask.project.updateTask(workflowTask.id, workflowTask.data.copy(maxParallelExecutions = IntOptionParameter(Some(2))))
-      QueueControlledTaskState.awaitStartedExecutions(2)
+      firstControl.start()(testUserContext("urn:test:first"))
+      secondControl.start()(testUserContext("urn:test:second"))
 
-      QueueControlledTaskState.releaseNext()
-      QueueControlledTaskState.releaseNext()
+      QueueControlledActivityState.awaitStartedExecutions(1)
+      eventually {
+        secondControl.status() shouldBe a[Waiting]
+      }
+
+      workflowTask.project.updateTask(workflowTask.id, workflowTask.data.copy(maxParallelExecutions = IntOptionParameter(Some(2))))
+      QueueControlledActivityState.awaitStartedExecutions(2)
+
+      QueueControlledActivityState.releaseNext()
+      QueueControlledActivityState.releaseNext()
       awaitFinished(firstControl)
       awaitFinished(secondControl)
 
-      QueueControlledTaskState.startedUsers.asScala.toSeq shouldBe Seq("urn:test:first", "urn:test:second")
+      QueueControlledActivityState.startedUsers.asScala.toSeq shouldBe Seq("urn:test:first", "urn:test:second")
     } finally {
       cancelAll(Seq(firstControl, secondControl))
-      QueueControlledTaskState.releaseAll()
+      QueueControlledActivityState.releaseAll()
     }
   }
 
   it should "bypass the limiter completely for unlimited workflows" in {
-    QueueControlledTaskState.reset()
+    QueueControlledActivityState.reset()
     val workflowTask = createUnlimitedWorkflow("unlimited")
-    val workflowKey = WorkflowExecutionLimiter.WorkflowExecutionKey(workflowTask.project.id, workflowTask.id)
-
-    val firstControl = Activity(LocalWorkflowExecutor(workflowTask))
-    firstControl.start()(testUserContext("urn:test:unlimited-first"))
-
-    val secondControl = Activity(LocalWorkflowExecutor(workflowTask))
-    secondControl.start()(testUserContext("urn:test:unlimited-second"))
+    val limiterKey = ActivityLimiterKey(Some(workflowTask.project.id), Some(workflowTask.id), "workflow-execution")
+    val firstControl = guardedControl(workflowTask, Activity(QueueControlledActivity()))
+    val secondControl = guardedControl(workflowTask, Activity(QueueControlledActivity()))
 
     try {
-      QueueControlledTaskState.awaitStartedExecutions(2)
-      WorkflowExecutionLimiter.isTracked(workflowKey) shouldBe false
+      firstControl.start()(testUserContext("urn:test:unlimited-first"))
+      secondControl.start()(testUserContext("urn:test:unlimited-second"))
 
-      QueueControlledTaskState.releaseNext()
-      QueueControlledTaskState.releaseNext()
+      QueueControlledActivityState.awaitStartedExecutions(2)
+      ActivityExecutionLimiter.isTracked(limiterKey) shouldBe false
+
+      QueueControlledActivityState.releaseNext()
+      QueueControlledActivityState.releaseNext()
       awaitFinished(firstControl)
       awaitFinished(secondControl)
-
-      WorkflowExecutionLimiter.isTracked(workflowKey) shouldBe false
     } finally {
       cancelAll(Seq(firstControl, secondControl))
-      QueueControlledTaskState.releaseAll()
-    }
-  }
-
-  it should "clean up queued executions if waiting for a slot is interrupted" in {
-    val workflowTask = createLimitedWorkflow("interruptedQueueCleanup")
-    val workflowKey = WorkflowExecutionLimiter.WorkflowExecutionKey(workflowTask.project.id, workflowTask.id)
-    val permitExecutor = TestWorkflowPermitExecutor(workflowTask)
-    val firstContext = new ActivityMonitor[WorkflowExecutionReport]("firstPermit", initialValue = Some(WorkflowExecutionReport(workflowTask)))
-    val waitingContext = new ActivityMonitor[WorkflowExecutionReport]("waitingPermit", initialValue = Some(WorkflowExecutionReport(workflowTask)))
-    val firstPermit = permitExecutor.acquirePermitForTests(firstContext).getOrElse {
-      throw new AssertionError("Expected the first workflow execution to acquire a permit immediately.")
-    }
-    val waitingFailure = new AtomicReference[Throwable]()
-
-    val waitingThread = new Thread(new Runnable {
-      override def run(): Unit = {
-        try {
-          permitExecutor.acquirePermitForTests(waitingContext)
-        } catch {
-          case ex: Throwable =>
-            waitingFailure.set(ex)
-        }
-      }
-    })
-
-    waitingThread.start()
-
-    eventually {
-      WorkflowExecutionLimiter.queuedCount(workflowKey) shouldBe 1
-    }
-
-    waitingThread.interrupt()
-    waitingThread.join(TestTimeout.toMillis)
-
-    try {
-      waitingThread.isAlive shouldBe false
-      waitingFailure.get() shouldBe a[InterruptedException]
-      WorkflowExecutionLimiter.queuedCount(workflowKey) shouldBe 0
-    } finally {
-      firstPermit()
+      QueueControlledActivityState.releaseAll()
     }
   }
 
   it should "not block the activity thread pool while workflow runs are waiting for a slot" in {
-    QueueControlledTaskState.reset()
-    QuickTaskState.reset()
-    val limitedWorkflowTask = createLimitedWorkflow("pool")
-    val quickWorkflowTask = createQuickWorkflow("poolQuick")
+    QueueControlledActivityState.reset()
+    QuickActivityState.reset()
+    val workflowTask = createLimitedWorkflow("pool")
     val parallelism = ActivityExecution.forkJoinPool.getParallelism
 
     val limitedControls =
-      (1 to parallelism).map { index =>
-        val control = Activity(LocalWorkflowExecutor(limitedWorkflowTask))
-        control.start()(testUserContext(s"urn:test:pool-$index"))
-        control
+      (1 to parallelism).map { _ =>
+        guardedControl(workflowTask, Activity(QueueControlledActivity()))
       }
 
-    QueueControlledTaskState.awaitStartedExecutions(1)
+    limitedControls.zipWithIndex.foreach { case (control, index) =>
+      control.start()(testUserContext(s"urn:test:pool-${index + 1}"))
+    }
 
-    val quickControl = Activity(LocalWorkflowExecutor(quickWorkflowTask))
-    quickControl.start()(testUserContext("urn:test:quick"))
+    QueueControlledActivityState.awaitStartedExecutions(1)
+
+    val quickControl = Activity(QuickActivity())
 
     try {
+      quickControl.start()(testUserContext("urn:test:quick"))
+
       eventually {
-        QuickTaskState.executions.get() shouldBe 1
+        QuickActivityState.executions.get() shouldBe 1
       }
 
       limitedControls.tail.foreach(_.cancel()(testUserContext("urn:test:cancel")))
-      QueueControlledTaskState.releaseNext()
+      QueueControlledActivityState.releaseNext()
 
       limitedControls.foreach(awaitFinished)
       awaitFinished(quickControl)
 
-      QueueControlledTaskState.startedExecutions.get() shouldBe 1
-      QuickTaskState.executions.get() shouldBe 1
+      QueueControlledActivityState.startedExecutions.get() shouldBe 1
+      QuickActivityState.executions.get() shouldBe 1
     } finally {
       cancelAll(limitedControls :+ quickControl)
-      QueueControlledTaskState.releaseAll()
+      QueueControlledActivityState.releaseAll()
     }
   }
 
   private def createLimitedWorkflow(prefix: String): org.silkframework.workspace.ProjectTask[Workflow] = {
-    val project = retrieveOrCreateProject(Identifier(s"${prefix}Project"))
-    val blockingTaskId = Identifier(s"${prefix}BlockingTask")
-    val workflowId = Identifier(s"${prefix}Workflow")
-    project.addTask(blockingTaskId, QueueControlledTask())
-    project.addTask(workflowId, Workflow(
-      operators = WorkflowOperatorsParameter(Seq(
-        WorkflowOperator(
-          inputs = Seq.empty,
-          task = blockingTaskId,
-          outputs = Seq.empty,
-          errorOutputs = Seq.empty,
-          position = (0, 0),
-          nodeId = s"${prefix}Node",
-          outputPriority = None,
-          configInputs = Seq.empty,
-          dependencyInputs = Seq.empty
-        )
-      )),
-      maxParallelExecutions = IntOptionParameter(Some(1))
-    ))
+    createWorkflow(prefix, maxParallelExecutions = Some(1))
   }
 
   private def createUnlimitedWorkflow(prefix: String): org.silkframework.workspace.ProjectTask[Workflow] = {
+    createWorkflow(prefix, maxParallelExecutions = None)
+  }
+
+  private def createWorkflow(prefix: String, maxParallelExecutions: Option[Int]): org.silkframework.workspace.ProjectTask[Workflow] = {
     val project = retrieveOrCreateProject(Identifier(s"${prefix}Project"))
-    val blockingTaskId = Identifier(s"${prefix}BlockingTask")
     val workflowId = Identifier(s"${prefix}Workflow")
-    project.addTask(blockingTaskId, QueueControlledTask())
     project.addTask(workflowId, Workflow(
-      operators = WorkflowOperatorsParameter(Seq(
-        WorkflowOperator(
-          inputs = Seq.empty,
-          task = blockingTaskId,
-          outputs = Seq.empty,
-          errorOutputs = Seq.empty,
-          position = (0, 0),
-          nodeId = s"${prefix}Node",
-          outputPriority = None,
-          configInputs = Seq.empty,
-          dependencyInputs = Seq.empty
-        )
-      ))
+      operators = WorkflowOperatorsParameter(Seq.empty),
+      maxParallelExecutions = IntOptionParameter(maxParallelExecutions)
     ))
   }
 
-  private def createQuickWorkflow(prefix: String): org.silkframework.workspace.ProjectTask[Workflow] = {
-    val project = retrieveOrCreateProject(Identifier(s"${prefix}Project"))
-    val quickTaskId = Identifier(s"${prefix}QuickTask")
-    val workflowId = Identifier(s"${prefix}Workflow")
-    project.addTask(quickTaskId, QuickTask())
-    project.addTask(workflowId, Workflow(
-      operators = WorkflowOperatorsParameter(Seq(
-        WorkflowOperator(
-          inputs = Seq.empty,
-          task = quickTaskId,
-          outputs = Seq.empty,
-          errorOutputs = Seq.empty,
-          position = (0, 0),
-          nodeId = s"${prefix}Node",
-          outputPriority = None,
-          configInputs = Seq.empty,
-          dependencyInputs = Seq.empty
-        )
-      ))
-    ))
+  private def guardedControl(workflowTask: org.silkframework.workspace.ProjectTask[Workflow],
+                             delegate: ActivityControl[Unit]): QueuedActivityControl[Unit] = {
+    new QueuedActivityControl(
+      delegate = delegate,
+      task = Some(workflowTask),
+      factory = guardedFactory,
+      limit = workflowLimit
+    )
   }
 
   private def testUserContext(userUri: String): UserContext = TestWorkflowUserContext(userUri)
@@ -349,15 +268,7 @@ private case class TestWorkflowUserContext(userUri: String,
   }
 }
 
-/**
-  * Shared test coordination state for [[QueueControlledTask]] executions.
-  *
-  * Each started task execution registers itself here, which allows tests to observe how many workflow runs have
-  * actually entered the blocking task and in which user order. For every started execution a latch is enqueued.
-  * Tests then release these latches one by one, or all at once during cleanup, to deterministically unblock the
-  * corresponding workflow runs.
-  */
-private object QueueControlledTaskState {
+private object QueueControlledActivityState {
   val startedExecutions: AtomicInteger = new AtomicInteger(0)
   val startedUsers: ConcurrentLinkedQueue[String] = new ConcurrentLinkedQueue[String]()
   private val latches = new LinkedBlockingQueue[CountDownLatch]()
@@ -381,7 +292,7 @@ private object QueueControlledTaskState {
   def releaseNext(): Unit = {
     val latch = latches.poll(10, TimeUnit.SECONDS)
     if(latch == null) {
-      throw new AssertionError("Expected a running queue-controlled task, but none was available to release.")
+      throw new AssertionError("Expected a running queue-controlled activity, but none was available to release.")
     }
     latch.countDown()
   }
@@ -403,40 +314,17 @@ private object QueueControlledTaskState {
   }
 }
 
-/**
-  * Test task that deliberately blocks workflow progress until the test releases it.
-  *
-  * This is used to keep workflow executions in a controlled running state, so tests can verify queueing,
-  * cancellation, and parallel-start behavior around the workflow execution limiter.
-  */
-private case class QueueControlledTask() extends CustomTask {
-  override def inputPorts: InputPorts = InputPorts.NoInputPorts
-  override def outputPort: Option[Port] = None
-}
-
-/**
-  * Executor for [[QueueControlledTask]].
-  *
-  * Each execution registers itself in [[QueueControlledTaskState]], then waits on a per-execution latch.
-  * The test can observe how many executions have actually started and release them one by one via that shared state.
-  */
-private case class QueueControlledTaskExecutor() extends Executor[QueueControlledTask, ExecutionType] {
-  override def execute(task: Task[QueueControlledTask],
-                       inputs: Seq[ExecutionType#DataType],
-                       output: ExecutorOutput,
-                       execution: ExecutionType,
-                       context: ActivityContext[ExecutionReport])
-                      (implicit pluginContext: PluginContext): Option[ExecutionType#DataType] = {
-    val userUri = pluginContext.user.user.map(_.uri).getOrElse("anonymous")
-    val latch = QueueControlledTaskState.registerExecution(userUri)
+private case class QueueControlledActivity() extends Activity[Unit] {
+  override def run(context: ActivityContext[Unit])(implicit userContext: UserContext): Unit = {
+    val userUri = userContext.user.map(_.uri).getOrElse("anonymous")
+    val latch = QueueControlledActivityState.registerExecution(userUri)
     if(!latch.await(30, TimeUnit.SECONDS)) {
-      throw new AssertionError("QueueControlledTask was not released within the test timeout.")
+      throw new AssertionError("QueueControlledActivity was not released within the test timeout.")
     }
-    None
   }
 }
 
-private object QuickTaskState {
+private object QuickActivityState {
   val executions: AtomicInteger = new AtomicInteger(0)
 
   def reset(): Unit = {
@@ -444,40 +332,23 @@ private object QuickTaskState {
   }
 }
 
-private case class QuickTask() extends CustomTask {
-  override def inputPorts: InputPorts = InputPorts.NoInputPorts
-  override def outputPort: Option[Port] = None
-}
-
-private case class QuickTaskExecutor() extends Executor[QuickTask, ExecutionType] {
-  override def execute(task: Task[QuickTask],
-                       inputs: Seq[ExecutionType#DataType],
-                       output: ExecutorOutput,
-                       execution: ExecutionType,
-                       context: ActivityContext[ExecutionReport])
-                      (implicit pluginContext: PluginContext): Option[ExecutionType#DataType] = {
-    QuickTaskState.executions.incrementAndGet()
-    None
+private case class QuickActivity() extends Activity[Unit] {
+  override def run(context: ActivityContext[Unit])(implicit userContext: UserContext): Unit = {
+    QuickActivityState.executions.incrementAndGet()
   }
 }
 
-private case class TestWorkflowPermitExecutor(workflowTask: org.silkframework.workspace.ProjectTask[Workflow]) extends WorkflowExecutor[LocalExecution] {
-  override protected def replaceDataSources: Map[String, Dataset] = Map.empty
-  override protected def replaceSinks: Map[String, Dataset] = Map.empty
-  override protected def executionContext: LocalExecution = LocalExecution()
+private trait GuardedWorkflowExecution extends HasValue {
+  override type ValueType = Unit
+}
 
-  override def initialValue: Option[WorkflowExecutionReport] = Some(WorkflowExecutionReport(workflowTask))
+@Plugin(
+  id = "ExecuteWorkflowWithPayload",
+  label = "Execute with payload",
+  categories = Array("WorkflowExecution")
+)
+private case class GuardedWorkflowExecutionFactory() extends TaskActivityFactory[Workflow, GuardedWorkflowExecution] {
+  override def isSingleton: Boolean = false
 
-  override def run(context: ActivityContext[WorkflowExecutionReport])(implicit userContext: UserContext): Unit = ()
-
-  def acquirePermitForTests(context: ActivityContext[WorkflowExecutionReport]): Option[() => Unit] = {
-    acquireExecutionPermit(context).map(handle => () => handle.release())
-  }
-
-  override protected def workflowNodeEntities[T](workflowDependencyNode: WorkflowDependencyNode,
-                                                 outputTask: Task[_ <: org.silkframework.config.TaskSpec])
-                                                (process: Option[org.silkframework.execution.EntityHolder] => T)
-                                                (implicit workflowRunContext: WorkflowRunContext): T = {
-    throw new UnsupportedOperationException("workflowNodeEntities is not needed for permit acquisition tests.")
-  }
+  override def apply(task: ProjectTask[Workflow]): Activity[Unit] = QueueControlledActivity()
 }
