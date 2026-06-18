@@ -11,12 +11,9 @@ trait ActivityLimit extends AnyPlugin {
 
   def limitFor(task: Option[ProjectTask[_ <: TaskSpec]], factory: WorkspaceActivityFactory): Option[Int]
 
-  def limiterKey(projectId: Option[Identifier],
-                 taskId: Option[Identifier],
-                 task: Option[ProjectTask[_ <: TaskSpec]],
-                 factory: WorkspaceActivityFactory): ActivityLimiterKey
+  def limiterKey(projectId: Option[Identifier], taskId: Option[Identifier]): ActivityLimiterKey
 
-  def waitingMessage(task: Option[ProjectTask[_ <: TaskSpec]], factory: WorkspaceActivityFactory): String = "Waiting"
+  def waitingMessage(task: Option[ProjectTask[_ <: TaskSpec]]): String = "Waiting"
 }
 
 final case class ActivityLimiterKey(projectId: Option[Identifier],

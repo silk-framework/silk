@@ -47,19 +47,10 @@ object ActivityExecutionLimiter {
       if(state.queue.nonEmpty || limitReached(state, maxParallelExecutions)) {
         val token = nextQueueToken()
         state.queue.enqueue(token)
-        signalStateChanged(state)
         Queued(token)
       } else {
         state.runningExecutions += 1
         Acquired(new ActivityExecutionPermit(key))
-      }
-    }
-  }
-
-  def canAcquireQueued(key: ActivityLimiterKey, token: QueueToken, maxParallelExecutions: Option[Int]): Boolean = {
-    stateOption(key).exists { state =>
-      state.monitor.synchronized {
-        state.queue.headOption.contains(token) && !limitReached(state, maxParallelExecutions)
       }
     }
   }
@@ -89,17 +80,11 @@ object ActivityExecutionLimiter {
     }
   }
 
-  def waitMonitor(key: ActivityLimiterKey): Option[AnyRef] = {
-    stateOption(key).map(_.monitor)
-  }
-
   def awaitPermit(key: ActivityLimiterKey,
                   currentLimit: => Option[Int],
                   isCancelled: () => Boolean,
-                  onWaiting: () => Unit = () => (),
                   timeoutMs: Long = 500L): Option[ActivityExecutionPermit] = {
     var queuedToken: Option[QueueToken] = None
-    var waitingStatusReported = false
     var acquiredPermit = false
 
     try {
@@ -119,14 +104,11 @@ object ActivityExecutionLimiter {
                 acquiredPermit = true
                 return Some(permit)
               case None =>
-                if(!waitingStatusReported) {
-                  onWaiting()
-                  waitingStatusReported = true
-                }
-                val monitor = waitMonitor(key).getOrElse(this)
-                monitor.synchronized {
-                  if(!isCancelled() && !canAcquireQueued(key, token, currentLimit)) {
-                    monitor.wait(timeoutMs)
+                val state = stateOption(key).getOrElse(return None)
+                state.monitor.synchronized {
+                  val tokenIsQueued = state.queue.headOption.contains(token)
+                  if(!isCancelled() && tokenIsQueued && limitReached(state, currentLimit)) {
+                    state.monitor.wait(timeoutMs)
                   }
                 }
             }

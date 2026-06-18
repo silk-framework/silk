@@ -1,5 +1,6 @@
 package org.silkframework.workspace.activity.workflow
 
+import org.scalatest.BeforeAndAfterAll
 import org.scalatest.concurrent.Eventually
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
@@ -8,12 +9,13 @@ import org.silkframework.config.Task
 import org.silkframework.runtime.activity._
 import org.silkframework.runtime.activity.Status.{Finished, Waiting}
 import org.silkframework.runtime.plugin.annotations.Plugin
+import org.silkframework.runtime.plugin.PluginRegistry
 import org.silkframework.runtime.plugin.types.IntOptionParameter
 import org.silkframework.runtime.users.{User, UserActions}
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.TestWorkspaceProviderTestTrait
 import org.silkframework.workspace.ProjectTask
-import org.silkframework.workspace.activity.{ActivityExecutionLimiter, ActivityLimiterKey, QueuedActivityControl, TaskActivityFactory}
+import org.silkframework.workspace.activity.{ActivityExecutionLimiter, ActivityLimit, ActivityLimiterKey, QueuedActivityControl, TaskActivityFactory, WorkspaceActivityFactory}
 
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.{ConcurrentLinkedQueue, CountDownLatch, LinkedBlockingQueue, TimeUnit}
@@ -21,7 +23,7 @@ import scala.concurrent.duration._
 import scala.concurrent.{Await, Future, blocking}
 import scala.jdk.CollectionConverters._
 
-class WorkflowExecutionLimiterTest extends AnyFlatSpec with Matchers with Eventually with TestWorkspaceProviderTestTrait with TestUserContextTrait {
+class WorkflowExecutionLimiterTest extends AnyFlatSpec with Matchers with Eventually with TestWorkspaceProviderTestTrait with TestUserContextTrait with BeforeAndAfterAll {
   private val TestTimeout: FiniteDuration = 25.seconds
   private val workflowLimit = WorkflowExecutionActivityLimit()
   private val guardedFactory = GuardedWorkflowExecutionFactory()
@@ -29,6 +31,15 @@ class WorkflowExecutionLimiterTest extends AnyFlatSpec with Matchers with Eventu
   override def workspaceProviderId: String = "inMemoryWorkspaceProvider"
 
   implicit override val patienceConfig: PatienceConfig = PatienceConfig(scaled(Span(TestTimeout.toSeconds, Seconds)))
+
+  override protected def beforeAll(): Unit = {
+    super.beforeAll()
+    PluginRegistry.registerPlugin(classOf[GuardedWorkflowExecutionFactory])
+    PluginRegistry.registerPlugin(classOf[UnguardedWorkflowExecutionFactory])
+    PluginRegistry.registerPlugin(classOf[SelectionWorkflowExecutionFactory])
+    PluginRegistry.registerPlugin(classOf[NoLimitSelectionWorkflowExecutionActivityLimit])
+    PluginRegistry.registerPlugin(classOf[SelectionWorkflowExecutionActivityLimit])
+  }
 
   behavior of "WorkflowExecutionLimiter"
 
@@ -170,6 +181,302 @@ class WorkflowExecutionLimiterTest extends AnyFlatSpec with Matchers with Eventu
     }
   }
 
+  it should "install the wrapper end-to-end for guarded workflow-starting activities" in {
+    QueueControlledActivityState.reset()
+    val workflowTask = createLimitedWorkflow("guardedIntegration")
+    val activity = guardedActivity(workflowTask)
+    val instanceId = activity.start()(testUserContext("urn:test:guarded-integration"))
+    val control = activity.instance(instanceId)
+
+    try {
+      control shouldBe a[QueuedActivityControl[_]]
+      QueueControlledActivityState.releaseNext()
+      awaitFinished(control)
+    } finally {
+      cancelAll(Seq(control))
+      QueueControlledActivityState.releaseAll()
+    }
+  }
+
+  it should "not install the wrapper for unguarded workflow activities" in {
+    QueueControlledActivityState.reset()
+    val workflowTask = createLimitedWorkflow("unguardedIntegration")
+    val limiterKey = ActivityLimiterKey(Some(workflowTask.project.id), Some(workflowTask.id), "workflow-execution")
+    val activity = unguardedActivity(workflowTask)
+
+    activity.control should not be a[QueuedActivityControl[_]]
+
+    val firstId = activity.start()(testUserContext("urn:test:unguarded-first"))
+    val secondId = activity.start()(testUserContext("urn:test:unguarded-second"))
+    val firstControl = activity.instance(firstId)
+    val secondControl = activity.instance(secondId)
+
+    try {
+      QueueControlledActivityState.awaitStartedExecutions(2)
+      ActivityExecutionLimiter.isTracked(limiterKey) shouldBe false
+
+      QueueControlledActivityState.releaseNext()
+      QueueControlledActivityState.releaseNext()
+      awaitFinished(firstControl)
+      awaitFinished(secondControl)
+
+      QueueControlledActivityState.startedUsers.asScala.toSeq shouldBe Seq("urn:test:unguarded-first", "urn:test:unguarded-second")
+    } finally {
+      cancelAll(Seq(firstControl, secondControl))
+      QueueControlledActivityState.releaseAll()
+    }
+  }
+
+  it should "start prioritized queued runs immediately" in {
+    QueueControlledActivityState.reset()
+    val workflowTask = createLimitedWorkflow("prioritized")
+    val activity = guardedActivity(workflowTask)
+
+    val firstId = activity.start()(testUserContext("urn:test:running"))
+    QueueControlledActivityState.awaitStartedExecutions(1)
+    val secondId = activity.start()(testUserContext("urn:test:queued"))
+    val firstControl = activity.instance(firstId)
+    val secondControl = activity.instance(secondId)
+
+    try {
+      eventually {
+        secondControl.status() shouldBe a[Waiting]
+      }
+
+      secondControl.startPrioritized()(testUserContext("urn:test:prioritized"))
+
+      QueueControlledActivityState.awaitStartedExecutions(2)
+      QueueControlledActivityState.startedUsers.asScala.toSeq shouldBe Seq("urn:test:running", "urn:test:queued")
+
+      QueueControlledActivityState.releaseNext()
+      QueueControlledActivityState.releaseNext()
+      awaitFinished(firstControl)
+      awaitFinished(secondControl)
+    } finally {
+      cancelAll(Seq(firstControl, secondControl))
+      QueueControlledActivityState.releaseAll()
+    }
+  }
+
+  it should "block in startBlocking while queued until the wrapped run actually finishes" in {
+    import scala.concurrent.ExecutionContext.Implicits.global
+
+    QueueControlledActivityState.reset()
+    val workflowTask = createLimitedWorkflow("startBlocking")
+    val firstControl = guardedControl(workflowTask, Activity(QueueControlledActivity()))
+    val secondControl = guardedControl(workflowTask, Activity(QueueControlledActivity()))
+
+    try {
+      firstControl.start()(testUserContext("urn:test:running"))
+      QueueControlledActivityState.awaitStartedExecutions(1)
+
+      val blockingFuture = Future(blocking(secondControl.startBlocking()(testUserContext("urn:test:blocking"))))
+
+      eventually {
+        secondControl.status() shouldBe a[Waiting]
+        blockingFuture.isCompleted shouldBe false
+      }
+
+      QueueControlledActivityState.releaseNext()
+      QueueControlledActivityState.awaitStartedExecutions(2)
+      blockingFuture.isCompleted shouldBe false
+
+      QueueControlledActivityState.releaseNext()
+      Await.result(blockingFuture, TestTimeout)
+      awaitFinished(firstControl)
+      awaitFinished(secondControl)
+    } finally {
+      cancelAll(Seq(firstControl, secondControl))
+      QueueControlledActivityState.releaseAll()
+    }
+  }
+
+  it should "block in startBlockingAndGetValue while queued and preload the delegate value" in {
+    import scala.concurrent.ExecutionContext.Implicits.global
+
+    QueueControlledActivityState.reset()
+    val workflowTask = createLimitedWorkflow("startBlockingValue")
+    val firstControl = guardedControl(workflowTask, Activity(QueueControlledActivity()))
+    val valueActivity = ValueProducingActivity("done")
+    val secondControl = guardedControl(workflowTask, Activity(valueActivity))
+
+    try {
+      firstControl.start()(testUserContext("urn:test:running"))
+      QueueControlledActivityState.awaitStartedExecutions(1)
+
+      val blockingFuture = Future(blocking(secondControl.startBlockingAndGetValue(Some("prefilled"))(testUserContext("urn:test:blocking-value"))))
+
+      eventually {
+        secondControl.status() shouldBe a[Waiting]
+        secondControl.value() shouldBe "prefilled"
+        blockingFuture.isCompleted shouldBe false
+      }
+
+      QueueControlledActivityState.releaseNext()
+      valueActivity.awaitStarted()
+      blockingFuture.isCompleted shouldBe false
+
+      valueActivity.release()
+      Await.result(blockingFuture, TestTimeout) shouldBe "done"
+      awaitFinished(firstControl)
+      awaitFinished(secondControl)
+    } finally {
+      cancelAll(Seq(firstControl, secondControl))
+      QueueControlledActivityState.releaseAll()
+      valueActivity.release()
+    }
+  }
+
+  it should "restart queued runs through the wrapper lifecycle" in {
+    QueueControlledActivityState.reset()
+    val workflowTask = createLimitedWorkflow("restart")
+    val limiterKey = ActivityLimiterKey(Some(workflowTask.project.id), Some(workflowTask.id), "workflow-execution")
+    val activity = guardedActivity(workflowTask)
+
+    val firstId = activity.start()(testUserContext("urn:test:running"))
+    QueueControlledActivityState.awaitStartedExecutions(1)
+    val secondId = activity.start()(testUserContext("urn:test:queued-initial"))
+    val firstControl = activity.instance(firstId)
+    val secondControl = activity.instance(secondId)
+
+    try {
+      eventually {
+        ActivityExecutionLimiter.queuedCount(limiterKey) shouldBe 1
+      }
+
+      secondControl.restart()(testUserContext("urn:test:queued-restarted"))
+
+      eventually {
+        ActivityExecutionLimiter.queuedCount(limiterKey) shouldBe 1
+      }
+
+      QueueControlledActivityState.releaseNext()
+      QueueControlledActivityState.awaitStartedExecutions(2)
+      QueueControlledActivityState.releaseNext()
+      awaitFinished(firstControl)
+      awaitFinished(secondControl)
+
+      QueueControlledActivityState.startedUsers.asScala.toSeq shouldBe Seq("urn:test:running", "urn:test:queued-restarted")
+    } finally {
+      cancelAll(Seq(firstControl, secondControl))
+      QueueControlledActivityState.releaseAll()
+    }
+  }
+
+  it should "forward cancel to the delegate after the wrapped run has started" in {
+    val workflowTask = createUnlimitedWorkflow("cancelRunning")
+    val activity = InterruptibleActivity()
+    val control = guardedControl(workflowTask, Activity(activity))
+
+    try {
+      control.start()(testUserContext("urn:test:running"))
+      activity.awaitStarted()
+
+      control.cancel()(testUserContext("urn:test:cancel"))
+
+      eventually {
+        activity.cancelInvocations.get() shouldBe 1
+        control.status() match {
+          case Finished(_, _, cancelled, _) => cancelled shouldBe true
+          case other => fail(s"Expected cancelled status after delegate cancellation, but got: $other")
+        }
+      }
+    } finally {
+      cancelAll(Seq(control))
+      activity.release()
+    }
+  }
+
+  it should "forward prioritize to the delegate after the wrapped run has started" in {
+    val workflowTask = createUnlimitedWorkflow("prioritizeRunning")
+    val delegate = new PrioritizationProbeControl()
+    val control = guardedControl(workflowTask, delegate)
+
+    try {
+      control.start()(testUserContext("urn:test:running"))
+      delegate.awaitStarted()
+
+      control.startPrioritized()(testUserContext("urn:test:prioritized"))
+
+      eventually {
+        delegate.prioritizedCalls.get() shouldBe 1
+      }
+    } finally {
+      delegate.finish()
+      control.waitUntilFinished()
+    }
+  }
+
+  it should "surface delegate failures after queue waiting" in {
+    QueueControlledActivityState.reset()
+    val workflowTask = createLimitedWorkflow("failure")
+    val limiterKey = ActivityLimiterKey(Some(workflowTask.project.id), Some(workflowTask.id), "workflow-execution")
+    val testFailure = TestFailureException("delegate failed")
+    val firstControl = guardedControl(workflowTask, Activity(QueueControlledActivity()))
+    val failingControl = guardedControl(workflowTask, Activity(FailingActivity(testFailure)))
+
+    try {
+      firstControl.start()(testUserContext("urn:test:running"))
+      QueueControlledActivityState.awaitStartedExecutions(1)
+      failingControl.start()(testUserContext("urn:test:failing"))
+
+      eventually {
+        ActivityExecutionLimiter.queuedCount(limiterKey) shouldBe 1
+      }
+
+      QueueControlledActivityState.releaseNext()
+      awaitFinished(firstControl)
+
+      val ex = the[TestFailureException] thrownBy {
+        failingControl.waitUntilFinished()
+      }
+      ex shouldBe testFailure
+      eventually {
+        ActivityExecutionLimiter.isTracked(limiterKey) shouldBe false
+      }
+      failingControl.status() match {
+        case Finished(success, _, cancelled, Some(exception)) =>
+          success shouldBe false
+          cancelled shouldBe false
+          exception shouldBe testFailure
+        case other =>
+          fail(s"Expected failed status after delegate exception, but got: $other")
+      }
+    } finally {
+      cancelAll(Seq(firstControl, failingControl))
+      QueueControlledActivityState.releaseAll()
+    }
+  }
+
+  it should "use the first limiter plugin that provides a defined limit" in {
+    QueueControlledActivityState.reset()
+    val workflowTask = createLimitedWorkflow("selection")
+    val limiterKey = ActivityLimiterKey(Some(workflowTask.project.id), Some(workflowTask.id), "selection-workflow-execution")
+    val activity = selectionActivity(workflowTask)
+
+    val firstId = activity.start()(testUserContext("urn:test:first"))
+    val secondId = activity.start()(testUserContext("urn:test:second"))
+    val firstControl = activity.instance(firstId)
+    val secondControl = activity.instance(secondId)
+
+    try {
+      QueueControlledActivityState.awaitStartedExecutions(1)
+      eventually {
+        ActivityExecutionLimiter.queuedCount(limiterKey) shouldBe 1
+      }
+
+      QueueControlledActivityState.releaseNext()
+      QueueControlledActivityState.awaitStartedExecutions(2)
+      QueueControlledActivityState.releaseNext()
+      awaitFinished(firstControl)
+      awaitFinished(secondControl)
+      QueueControlledActivityState.startedUsers.asScala.toSeq shouldBe Seq("urn:test:first", "urn:test:second")
+    } finally {
+      cancelAll(Seq(firstControl, secondControl))
+      QueueControlledActivityState.releaseAll()
+    }
+  }
+
   it should "not block the activity thread pool while workflow runs are waiting for a slot" in {
     QueueControlledActivityState.reset()
     QuickActivityState.reset()
@@ -227,8 +534,20 @@ class WorkflowExecutionLimiterTest extends AnyFlatSpec with Matchers with Eventu
     ))
   }
 
-  private def guardedControl(workflowTask: org.silkframework.workspace.ProjectTask[Workflow],
-                             delegate: ActivityControl[Unit]): QueuedActivityControl[Unit] = {
+  private def guardedActivity(workflowTask: org.silkframework.workspace.ProjectTask[Workflow]) = {
+    workflowTask.activity[GuardedWorkflowExecution]
+  }
+
+  private def unguardedActivity(workflowTask: org.silkframework.workspace.ProjectTask[Workflow]) = {
+    workflowTask.activity[UnguardedWorkflowExecution]
+  }
+
+  private def selectionActivity(workflowTask: org.silkframework.workspace.ProjectTask[Workflow]) = {
+    workflowTask.activity[SelectionWorkflowExecution]
+  }
+
+  private def guardedControl[T](workflowTask: org.silkframework.workspace.ProjectTask[Workflow],
+                                delegate: ActivityControl[T]): QueuedActivityControl[T] = {
     new QueuedActivityControl(
       delegate = delegate,
       task = Some(workflowTask),
@@ -338,7 +657,74 @@ private case class QuickActivity() extends Activity[Unit] {
   }
 }
 
+private case class ValueProducingActivity(finalValue: String) extends Activity[String] {
+  private val startedLatch = new CountDownLatch(1)
+  private val releaseLatch = new CountDownLatch(1)
+
+  override def initialValue: Option[String] = Some("delegate-initial")
+
+  override def run(context: ActivityContext[String])(implicit userContext: UserContext): Unit = {
+    startedLatch.countDown()
+    if(!releaseLatch.await(30, TimeUnit.SECONDS)) {
+      throw new AssertionError("ValueProducingActivity was not released within the test timeout.")
+    }
+    context.value.update(finalValue)
+  }
+
+  def awaitStarted(): Unit = {
+    if(!startedLatch.await(10, TimeUnit.SECONDS)) {
+      throw new AssertionError("ValueProducingActivity did not start in time.")
+    }
+  }
+
+  def release(): Unit = {
+    releaseLatch.countDown()
+  }
+}
+
+private case class TestFailureException(message: String) extends RuntimeException(message)
+
+private case class FailingActivity(exception: TestFailureException) extends Activity[Unit] {
+  override def run(context: ActivityContext[Unit])(implicit userContext: UserContext): Unit = {
+    throw exception
+  }
+}
+
+private case class InterruptibleActivity() extends Activity[Unit] {
+  private val startedLatch = new CountDownLatch(1)
+  private val releaseLatch = new CountDownLatch(1)
+  val cancelInvocations: AtomicInteger = new AtomicInteger(0)
+
+  override def run(context: ActivityContext[Unit])(implicit userContext: UserContext): Unit = {
+    startedLatch.countDown()
+    releaseLatch.await()
+  }
+
+  override def cancelExecution()(implicit userContext: UserContext): Unit = {
+    cancelInvocations.incrementAndGet()
+    super.cancelExecution()
+  }
+
+  def awaitStarted(): Unit = {
+    if(!startedLatch.await(10, TimeUnit.SECONDS)) {
+      throw new AssertionError("InterruptibleActivity did not start in time.")
+    }
+  }
+
+  def release(): Unit = {
+    releaseLatch.countDown()
+  }
+}
+
 private trait GuardedWorkflowExecution extends HasValue {
+  override type ValueType = Unit
+}
+
+private trait UnguardedWorkflowExecution extends HasValue {
+  override type ValueType = Unit
+}
+
+private trait SelectionWorkflowExecution extends HasValue {
   override type ValueType = Unit
 }
 
@@ -351,4 +737,123 @@ private case class GuardedWorkflowExecutionFactory() extends TaskActivityFactory
   override def isSingleton: Boolean = false
 
   override def apply(task: ProjectTask[Workflow]): Activity[Unit] = QueueControlledActivity()
+}
+
+@Plugin(
+  id = "ExecuteWorkflowForTestWithoutLimit",
+  label = "Execute without limit",
+  categories = Array("WorkflowExecution")
+)
+private case class UnguardedWorkflowExecutionFactory() extends TaskActivityFactory[Workflow, UnguardedWorkflowExecution] {
+  override def isSingleton: Boolean = false
+
+  override def apply(task: ProjectTask[Workflow]): Activity[Unit] = QueueControlledActivity()
+}
+
+@Plugin(
+  id = "ExecuteWorkflowWithPayloadForSelectionTest",
+  label = "Execute with payload for selection test",
+  categories = Array("WorkflowExecution")
+)
+private case class SelectionWorkflowExecutionFactory() extends TaskActivityFactory[Workflow, SelectionWorkflowExecution] {
+  override def isSingleton: Boolean = false
+
+  override def apply(task: ProjectTask[Workflow]): Activity[Unit] = QueueControlledActivity()
+}
+
+@Plugin(
+  id = "NoLimitSelectionWorkflowExecutionActivityLimit",
+  label = "No limit selection workflow execution activity limit"
+)
+private case class NoLimitSelectionWorkflowExecutionActivityLimit() extends ActivityLimit {
+  override def limitFor(task: Option[org.silkframework.workspace.ProjectTask[_ <: org.silkframework.config.TaskSpec]],
+                        factory: WorkspaceActivityFactory): Option[Int] = {
+    task.collect {
+      case workflowTask if workflowTask.data.isInstanceOf[Workflow] && factory.pluginSpec.id.toString == "ExecuteWorkflowWithPayloadForSelectionTest" =>
+        None
+    }.flatten
+  }
+
+  override def limiterKey(projectId: Option[Identifier], taskId: Option[Identifier]): ActivityLimiterKey = {
+    ActivityLimiterKey(projectId, taskId, "selection-workflow-execution")
+  }
+}
+
+@Plugin(
+  id = "SelectionWorkflowExecutionActivityLimit",
+  label = "Selection workflow execution activity limit"
+)
+private case class SelectionWorkflowExecutionActivityLimit() extends ActivityLimit {
+  override def limitFor(task: Option[org.silkframework.workspace.ProjectTask[_ <: org.silkframework.config.TaskSpec]],
+                        factory: WorkspaceActivityFactory): Option[Int] = {
+    task.collect {
+      case workflowTask if workflowTask.data.isInstanceOf[Workflow] && factory.pluginSpec.id.toString == "ExecuteWorkflowWithPayloadForSelectionTest" =>
+        Some(1)
+    }.flatten
+  }
+
+  override def limiterKey(projectId: Option[Identifier], taskId: Option[Identifier]): ActivityLimiterKey = {
+    ActivityLimiterKey(projectId, taskId, "selection-workflow-execution")
+  }
+}
+
+private class PrioritizationProbeControl extends ActivityControl[Unit] {
+  private val statusHolder = new ValueHolder[Status](Some(Status.Idle()))
+  private val valueHolder = new ValueHolder[Unit](Some(()))
+  private val startedLatch = new CountDownLatch(1)
+  private val finishedLatch = new CountDownLatch(1)
+  val prioritizedCalls: AtomicInteger = new AtomicInteger(0)
+
+  override def name: String = "Prioritization probe control"
+
+  override def value: Observable[Unit] = valueHolder
+
+  override def status: Observable[Status] = statusHolder
+
+  override def startedBy: UserContext = UserContext.Empty
+
+  override def children(): Seq[ActivityControl[_]] = Seq.empty
+
+  override def start()(implicit user: UserContext): Unit = {
+    statusHolder.update(Status.Running("Running", None))
+    startedLatch.countDown()
+  }
+
+  override def restart()(implicit user: UserContext): Future[Unit] = Future.successful(())
+
+  override def startBlocking()(implicit user: UserContext): Unit = {
+    start()
+    waitUntilFinished()
+  }
+
+  override def startBlockingAndGetValue(initialValue: Option[Unit])(implicit user: UserContext): Unit = ()
+
+  override def startPrioritized()(implicit user: UserContext): Unit = {
+    prioritizedCalls.incrementAndGet()
+  }
+
+  override def cancel()(implicit user: UserContext): Unit = {
+    finish(cancelled = true)
+  }
+
+  override def reset()(implicit userContext: UserContext): Unit = ()
+
+  override def underlying: Activity[Unit] = new Activity[Unit] {
+    override def run(context: ActivityContext[Unit])(implicit userContext: UserContext): Unit = ()
+  }
+
+  override def waitUntilFinished(): Unit = {
+    finishedLatch.await(10, TimeUnit.SECONDS)
+  }
+
+  def awaitStarted(): Unit = {
+    if(!startedLatch.await(10, TimeUnit.SECONDS)) {
+      throw new AssertionError("PrioritizationProbeControl did not start in time.")
+    }
+  }
+
+  def finish(cancelled: Boolean = false): Unit = {
+    statusHolder.update(Status.Finished(success = !cancelled, runtime = 0L, cancelled = cancelled))
+    finishedLatch.countDown()
+  }
 }

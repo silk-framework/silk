@@ -43,8 +43,7 @@ class TaskActivity[DataType <: TaskSpec : ClassTag, ActivityType <: HasValue : C
     )
   }
 
-  override protected def limitedActivityExecution(control: ActivityControl[ActivityType#ValueType],
-                                                  config: ParameterValues): ActivityControl[ActivityType#ValueType] = {
+  override protected def limitedActivityExecution(control: ActivityControl[ActivityType#ValueType]): ActivityControl[ActivityType#ValueType] = {
     activityLimits.collectFirst {
       case activityLimit if activityLimit.limitFor(taskOption, factory).isDefined => activityLimit
     } match {

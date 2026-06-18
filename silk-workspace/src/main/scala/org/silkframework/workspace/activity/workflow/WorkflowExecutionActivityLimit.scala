@@ -21,14 +21,11 @@ case class WorkflowExecutionActivityLimit() extends ActivityLimit {
     }.flatten
   }
 
-  override def limiterKey(projectId: Option[Identifier],
-                          taskId: Option[Identifier],
-                          task: Option[ProjectTask[_ <: TaskSpec]],
-                          factory: WorkspaceActivityFactory): ActivityLimiterKey = {
+  override def limiterKey(projectId: Option[Identifier], taskId: Option[Identifier]): ActivityLimiterKey = {
     ActivityLimiterKey(projectId, taskId, limitId = "workflow-execution")
   }
 
-  override def waitingMessage(task: Option[ProjectTask[_ <: TaskSpec]], factory: WorkspaceActivityFactory): String = {
+  override def waitingMessage(task: Option[ProjectTask[_ <: TaskSpec]]): String = {
     task.map(workflowTask => s"Waiting for workflow execution slot of '${workflowTask.id}'").getOrElse("Waiting for workflow execution slot")
   }
 }

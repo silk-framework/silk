@@ -191,14 +191,14 @@ private[activity] class QueuedActivityControl[T](delegate: ActivityControl[T],
       } else {
         limit.limitFor(task, factory)
       }
-      val limiterKey = limit.limiterKey(task.map(_.project.id), task.map(_.id), task, factory)
+      val limiterKey = limit.limiterKey(task.map(_.project.id), task.map(_.id))
       (currentRunId, limitValue, limiterKey, completionFuture)
     }
 
     if(prioritized || currentLimit.isEmpty) {
       startDelegate(runId, prioritized = prioritized, permit = None, completion)
     } else {
-      val waitingText = limit.waitingMessage(task, factory)
+      val waitingText = limit.waitingMessage(task)
       Lock.synchronized {
         wrappedStatus.update(Waiting(waitingText))
       }
@@ -207,8 +207,7 @@ private[activity] class QueuedActivityControl[T](delegate: ActivityControl[T],
           val permit = ActivityExecutionLimiter.awaitPermit(
             key = currentKey,
             currentLimit = limit.limitFor(task, factory),
-            isCancelled = () => queuedCanceled || bypassLimiter || currentRunId != runId,
-            onWaiting = () => updateQueuedStatus(runId, waitingText)
+            isCancelled = () => queuedCanceled || bypassLimiter || currentRunId != runId
           )
           permit match {
             case Some(acquiredPermit) =>
@@ -349,9 +348,4 @@ private[activity] class QueuedActivityControl[T](delegate: ActivityControl[T],
     currentRunId == runId
   }
 
-  private def updateQueuedStatus(runId: Long, waitingText: String): Unit = Lock.synchronized {
-    if(currentRunId == runId && !delegateStarted) {
-      wrappedStatus.update(Waiting(waitingText))
-    }
-  }
 }

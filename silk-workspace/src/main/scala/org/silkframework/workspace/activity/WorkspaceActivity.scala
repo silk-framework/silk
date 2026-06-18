@@ -69,8 +69,7 @@ abstract class WorkspaceActivity[ActivityType <: HasValue : ClassTag]() {
     */
   protected def createInstanceFromParameterValues(config: ParameterValues): ActivityControl[ActivityType#ValueType]
 
-  protected def limitedActivityExecution(control: ActivityControl[ActivityType#ValueType],
-                                         config: ParameterValues): ActivityControl[ActivityType#ValueType] = {
+  protected def limitedActivityExecution(control: ActivityControl[ActivityType#ValueType]): ActivityControl[ActivityType#ValueType] = {
     control
   }
 
@@ -301,7 +300,7 @@ abstract class WorkspaceActivity[ActivityType <: HasValue : ClassTag]() {
   }
 
   private def createControl(config: ParameterValues): ActivityControl[ActivityType#ValueType] = {
-    val newControl = limitedActivityExecution(createInstanceFromParameterValues(config), config)
+    val newControl = limitedActivityExecution(createInstanceFromParameterValues(config))
     // Update the status and value mirrors to point to the new instance
     status.asInstanceOf[ObservableMirror[Status]].updateObservable(newControl.status)
     value.asInstanceOf[ObservableMirror[ActivityType#ValueType]].updateObservable(newControl.value)
