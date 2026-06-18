@@ -49,34 +49,39 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
 
   override def run(context: ActivityContext[WorkflowExecutionReport])
                   (implicit userContext: UserContext): Unit = {
-    val registry = MeterRegistryProvider.meterRegistry
     val stopwatch: Timer.Sample = Timer.start()
     val workflowUserContext = updateUserContext(userContext)
     context.value.updateWith(_.withAuthDiagnostics(workflowUserContext))
     cancelled = false
+    val executionPermit = acquireExecutionPermit(context)
+    if(executionPermit.isEmpty) {
+      stopWorkflowExecutionTimer(stopwatch, "Cancelled")
+      return
+    }
     try {
-      runWorkflow(context, workflowUserContext)
+      try {
+        runWorkflow(context, workflowUserContext)
+      } finally {
+        executionPermit.foreach(_.release())
+      }
     } catch {
       case cancelledWorkflowException: StopWorkflowExecutionException if !cancelledWorkflowException.failWorkflow =>
         // In case of an cancelled workflow from an operator, the workflow should still be successful
         context.status.update(cancelledWorkflowException.getMessage, 1)
       case NonFatal(ex) =>
-        stopwatch.stop(
-          registry.timer(
-            s"$prefix.workflow.execution",
-            "workflow", workflowTask.id.toString,
-            "status", "Failed",
-            "project", workflowTask.project.id.toString
-          )
-        )
+        stopWorkflowExecutionTimer(stopwatch, "Failed")
         throw ex
     }
 
+    stopWorkflowExecutionTimer(stopwatch, "Successful")
+  }
+
+  private def stopWorkflowExecutionTimer(stopwatch: Timer.Sample, status: String): Unit = {
     stopwatch.stop(
-      registry.timer(
+      MeterRegistryProvider.meterRegistry.timer(
         s"$prefix.workflow.execution",
         "workflow", workflowTask.id.toString,
-        "status", "Successful",
+        "status", status,
         "project", workflowTask.project.id.toString
       )
     )

@@ -101,6 +101,39 @@ class ActivityMonitor[T](name: String,
   }
 
   /**
+    * Blocks execution until a given condition is met, waiting for explicit notifications with a timeout fallback.
+    * This should be used for externally signalled waits that do not need helpQuiesce().
+    *
+    * @param monitor The monitor object used for notifications.
+    * @param condition Evaluates the condition to wait for.
+    * @param timeoutMs Maximum time to wait for a notification before re-checking the condition.
+    */
+  override def blockUntilNotified(monitor: AnyRef, condition: () => Boolean, timeoutMs: Long): Unit = {
+    while(!condition() && !status().isInstanceOf[Canceling]) {
+      ForkJoinPool.managedBlock(
+        new ManagedBlocker {
+          @volatile
+          private var releasable = false
+
+          override def block(): Boolean = {
+            monitor.synchronized {
+              if(!condition() && !status().isInstanceOf[Canceling]) {
+                monitor.wait(timeoutMs)
+              }
+            }
+            releasable = true
+            true
+          }
+
+          override def isReleasable: Boolean = {
+            releasable || condition() || status().isInstanceOf[Canceling]
+          }
+        }
+      )
+    }
+  }
+
+  /**
     * Possibly executes other activities that are blocked.
     * Can be called to avoid deadlocks if child activities are run in the background.
     */

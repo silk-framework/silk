@@ -101,6 +101,109 @@ trait WorkflowExecutor[ExecType <: ExecutionType] extends Activity[WorkflowExecu
     workflowRunContext.activityContext.status.update(s"$operation '$taskLabel'", progress)
   }
 
+  protected trait ExecutionPermitHandle {
+    def release(): Unit
+  }
+
+  private object ExecutionPermitHandle {
+    val NoOp: ExecutionPermitHandle = () => ()
+
+    def apply(permit: WorkflowExecutionLimiter.WorkflowExecutionPermit): ExecutionPermitHandle = () => permit.release()
+  }
+
+  /** Returns a permit handle if this workflow execution may start, or None if it was cancelled while waiting for a slot. */
+  protected final def acquireExecutionPermit(context: ActivityContext[WorkflowExecutionReport]): Option[ExecutionPermitHandle] = {
+    val workflowKey = WorkflowExecutionLimiter.WorkflowExecutionKey(workflowTask.project.id, workflowTask.id)
+    var queuedToken: Option[WorkflowExecutionLimiter.QueueToken] = None
+    var acquiredPermit = false
+    var waitingStatusReported = false
+
+    def waitingCancelled: Boolean = {
+      cancelled || context.status().isInstanceOf[Canceling]
+    }
+
+    def currentLimit: Option[Int] = {
+      workflowTask.data.maxParallelExecutions.value
+    }
+
+    if(currentLimit.isEmpty) {
+      // Workflows without limit skip the queue.
+      Some(ExecutionPermitHandle.NoOp)
+    } else {
+      try {
+        // Workflow limits are evaluated for every start attempt. A run either acquires a slot immediately or receives
+        // a queue token that represents its FIFO position. While queued, it waits via blockUntil instead of blocking
+        // an activity pool thread, then retries acquisition until it either gets a permit or the activity is cancelled.
+        while(!waitingCancelled) {
+          queuedToken match {
+            case None =>
+              requestInitialPermit(workflowKey, currentLimit) match {
+                case Left(permitHandle) =>
+                  acquiredPermit = true
+                  return Some(permitHandle)
+                case Right(token) =>
+                  queuedToken = Some(token)
+              }
+            case Some(token) =>
+              acquireQueuedPermit(workflowKey, token, currentLimit) match {
+                case Some(permitHandle) =>
+                  acquiredPermit = true
+                  return Some(permitHandle)
+                case None =>
+                  waitingStatusReported = waitForExecutionSlot(
+                    context = context,
+                    workflowKey = workflowKey,
+                    queuedToken = token,
+                    currentLimit = currentLimit,
+                    waitingCancelled = waitingCancelled,
+                    waitingStatusReported = waitingStatusReported
+                  )
+              }
+          }
+        }
+        None
+      } finally {
+        if(!acquiredPermit) {
+          queuedToken.foreach(token => WorkflowExecutionLimiter.cancelQueued(workflowKey, token))
+        }
+      }
+    }
+  }
+
+  private def requestInitialPermit(workflowKey: WorkflowExecutionLimiter.WorkflowExecutionKey,
+                                   currentLimit: Option[Int]): Either[ExecutionPermitHandle, WorkflowExecutionLimiter.QueueToken] = {
+    WorkflowExecutionLimiter.requestSlot(workflowKey, currentLimit) match {
+      case WorkflowExecutionLimiter.Acquired(permit) =>
+        Left(ExecutionPermitHandle(permit))
+      case WorkflowExecutionLimiter.Queued(token) =>
+        Right(token)
+    }
+  }
+
+  private def acquireQueuedPermit(workflowKey: WorkflowExecutionLimiter.WorkflowExecutionKey,
+                                  queuedToken: WorkflowExecutionLimiter.QueueToken,
+                                  currentLimit: Option[Int]): Option[ExecutionPermitHandle] = {
+    WorkflowExecutionLimiter.acquireQueued(workflowKey, queuedToken, currentLimit).map(ExecutionPermitHandle(_))
+  }
+
+  private def waitForExecutionSlot(context: ActivityContext[WorkflowExecutionReport],
+                                   workflowKey: WorkflowExecutionLimiter.WorkflowExecutionKey,
+                                   queuedToken: WorkflowExecutionLimiter.QueueToken,
+                                   currentLimit: => Option[Int],
+                                   waitingCancelled: => Boolean,
+                                   waitingStatusReported: Boolean): Boolean = {
+    if(!waitingStatusReported) {
+      context.status.update(s"Waiting for workflow execution slot of '${workflowTask.id}'", 0.0)
+    }
+    val waitMonitor = WorkflowExecutionLimiter.waitMonitor(workflowKey).getOrElse(WorkflowExecutionLimiter)
+    context.blockUntilNotified(
+      waitMonitor,
+      () => waitingCancelled || WorkflowExecutionLimiter.canAcquireQueued(workflowKey, queuedToken, currentLimit),
+      timeoutMs = 500L
+    )
+    true
+  }
+
   /** Make sure that the workflow does not try to write into a read-only dataset. */
   protected def checkReadOnlyDatasets()
                                      (implicit userContext: UserContext): Unit = {

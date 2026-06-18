@@ -7,7 +7,7 @@ import org.silkframework.plugins.dataset.csv.CsvDataset
 import org.silkframework.runtime.activity.{TestUserContextTrait, UserContext}
 import org.silkframework.runtime.plugin.types.IntOptionParameter
 import org.silkframework.runtime.resource.EmptyResourceManager
-import org.silkframework.runtime.serialization.{ReadContext, XmlSerialization}
+import org.silkframework.runtime.serialization.{ReadContext, TestReadContext, XmlSerialization}
 import org.silkframework.util.{Identifier, MockitoSugar}
 import org.silkframework.workspace.activity.workflow.WorkflowTest._
 import org.silkframework.workspace.resources.InMemoryResourceRepository
@@ -193,7 +193,7 @@ class WorkflowTest extends AnyFlatSpec with MockitoSugar with Matchers with Test
 
   it should "serialize and deserialize the workflow parallel execution limit in XML" in {
     val workflow = Workflow(maxParallelExecutions = IntOptionParameter(Some(4)))
-    implicit val readContext: ReadContext = ReadContext(EmptyResourceManager())
+    implicit val readContext: ReadContext = TestReadContext(EmptyResourceManager())
 
     val xml = XmlSerialization.toXml(workflow)
     val deserializedWorkflow = XmlSerialization.fromXml[Workflow](xml)
