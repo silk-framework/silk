@@ -204,6 +204,9 @@ export const RuleEditorToolbar = () => {
                         onClick={modelContext.redo}
                     />
                     <Spacing vertical hasDivider />
+                    {ruleEditorContext.additionalToolBarComponents
+                        ? ruleEditorContext.additionalToolBarComponents("portmenu")
+                        : null}
                     <IconButton
                         data-test-id={"rule-editor-auto-layout-btn"}
                         disabled={modelContext.isReadOnly() || modelContext.elements.length === 0}
@@ -249,7 +252,6 @@ export const RuleEditorToolbar = () => {
                         <Spacing vertical size={"small"} />
                     </>
                 ) : null}
-                {ruleEditorContext.additionalToolBarComponents ? ruleEditorContext.additionalToolBarComponents() : null}
                 {ruleEvaluationContext.evaluationResultsShown || ruleEvaluationContext.supportsEvaluation ? (
                     <ToolbarSection>
                         <EvaluationActivityControl
@@ -300,6 +302,9 @@ export const RuleEditorToolbar = () => {
                             t("common.action.save", "Save")
                         )}
                     </Button>
+                    {ruleEditorContext.additionalToolBarComponents
+                        ? ruleEditorContext.additionalToolBarComponents("ruleblockusagestatus")
+                        : null}
                     <RuleEditorNotifications
                         key={"notifications"}
                         queueEditorNotifications={

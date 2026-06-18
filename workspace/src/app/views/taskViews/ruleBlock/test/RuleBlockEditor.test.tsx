@@ -20,6 +20,7 @@ import type { IPreConfiguredRuleOperator } from "../../../shared/RuleEditor/view
 import type { InputPortDialogSubmitValue } from "../InputPortDialog";
 import type { XYPosition } from "react-flow-renderer/dist/types";
 import type { RuleEditorSidebarDropRequest } from "../../../shared/RuleEditor/RuleEditor.typings";
+import { RuleEditorBaseProps } from "../../../shared/RuleEditor/RuleEditor";
 
 type CapturedRuleEditorProps = {
     projectId: string;
@@ -33,7 +34,7 @@ type CapturedRuleEditorProps = {
         originalTask: IProjectTask<IRuleBlockTaskParameters>,
     ) => Promise<RuleSaveResult>;
     tabs?: unknown[];
-    additionalToolBarComponents?: () => React.JSX.Element | React.JSX.Element[];
+    additionalToolBarComponents?: RuleEditorBaseProps["additionalToolBarComponents"];
     captureExternalSavedState?: () => unknown;
     restoreExternalSavedState?: (savedState: unknown) => void;
     extendClipboardCopy?: (task: RuleClipboardTask, nodeIds: string[]) => unknown;
@@ -308,7 +309,9 @@ const renderRuleBlockEditor = async ({
     }
     harness.mockRuleEditorApi.ruleOperatorNodes.mockReturnValue(ruleOperatorNodes);
 
-    const editorElement = <harness.RuleBlockEditor projectId="project1" ruleBlockTaskId="task1" instanceId="instance1" />;
+    const editorElement = (
+        <harness.RuleBlockEditor projectId="project1" ruleBlockTaskId="task1" instanceId="instance1" />
+    );
     const maybeSnapshotWrappedEditor = externalSnapshot ? (
         <harness.RuleBlockEditorOptionalContext.Provider
             value={{
@@ -374,7 +377,12 @@ const openInputPortNodeMenu = async (
 
 const renderToolbarActions = async (harness: RuleBlockEditorHarness) => {
     await waitFor(() => expect(harness.getCapturedRuleEditorProps()?.additionalToolBarComponents).toBeDefined());
-    return render(<>{harness.getCapturedRuleEditorProps()!.additionalToolBarComponents!()}</>);
+    return render(
+        <>
+            {harness.getCapturedRuleEditorProps()!.additionalToolBarComponents!("portmenu")}
+            {harness.getCapturedRuleEditorProps()!.additionalToolBarComponents!("ruleblockusagestatus")}
+        </>,
+    );
 };
 
 describe("RuleBlockEditor", () => {

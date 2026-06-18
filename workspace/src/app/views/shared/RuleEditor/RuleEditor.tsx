@@ -18,7 +18,11 @@ import {
     HandleRuleEditorSidebarDropRequest,
     RuleOperatorNodeParameters,
 } from "./RuleEditor.typings";
-import { ExternalRuleModelChangeCallbacks, PrepareClipboardPaste, RuleClipboardTask } from "./model/RuleEditorModel.typings";
+import {
+    ExternalRuleModelChangeCallbacks,
+    PrepareClipboardPaste,
+    RuleClipboardTask,
+} from "./model/RuleEditorModel.typings";
 import ErrorBoundary from "../../../ErrorBoundary";
 import { ReactFlowProvider } from "react-flow-renderer";
 import utils from "./RuleEditor.utils";
@@ -27,6 +31,7 @@ import { ReactFlowHotkeyContext, StickyNote } from "@eccenca/gui-elements";
 import { CodeAutocompleteFieldPartialAutoCompleteResult } from "@eccenca/gui-elements/src/components/AutoSuggestion/AutoSuggestion";
 import { InitialRuleHighlighting } from "../../taskViews/transform/transform.types";
 import { PluginType } from "@ducks/shared/typings";
+import { additionalToolbarComponents } from "../../taskViews/ruleBlock/RuleBlockEditor";
 
 /** Function to fetch the rule operator spec. */
 export type RuleOperatorFetchFnType = (
@@ -69,7 +74,9 @@ export interface RuleEditorBaseProps {
      * When the notification is closed the highlighting of the nodes is removed again.  */
     initialHighlighting?: InitialRuleHighlighting;
     /** Additional components that will be placed in the toolbar left to the save button. */
-    additionalToolBarComponents?: () => React.JSX.Element | React.JSX.Element[];
+    additionalToolBarComponents?: (
+        component: additionalToolbarComponents,
+    ) => React.JSX.Element | React.JSX.Element[] | null;
     /** Optional additional menu entries for a specific rule node. These are rendered right before the Remove entry. */
     extraRuleNodeMenuItems?: (node: IRuleOperatorNode, closeMenu: () => void) => React.JSX.Element[] | undefined;
     /** Optional hook to attach editor-owned clipboard data, e.g. logical entities referenced by copied nodes. */
@@ -129,7 +136,7 @@ export interface RuleEditorProps<RULE_TYPE, OPERATOR_TYPE> extends RuleEditorBas
     /** Tabs that allow to show different rule operators or only a subset. */
     tabs?: (IRuleSideBarFilterTabConfig | IRuleSidebarPreConfiguredOperatorsTabConfig)[];
     /** Additional components that will be placed in the tool bar left to the save button. */
-    additionalToolBarComponents?: () => React.JSX.Element | React.JSX.Element[];
+    additionalToolBarComponents?: RuleEditorBaseProps["additionalToolBarComponents"];
     /** parent configuration to extract stickyNote from taskData*/
     getStickyNotes?: (taskData: RULE_TYPE | undefined) => StickyNote[];
     /** When enabled only the rule is shown without side- and toolbar and any other means to edit the rule. */
@@ -199,40 +206,40 @@ const RuleEditorExternalApiBridge = React.forwardRef<RuleEditorExternalApi>((_, 
  */
 const RuleEditorInner = <TASK_TYPE extends object, OPERATOR_TYPE extends object>(
     {
-    projectId,
-    taskId,
-    fetchRuleData,
-    fetchRuleOperators,
-    convertRuleOperator,
-    convertToRuleOperatorNodes,
-    saveRule,
-    additionalRuleOperators,
-    addAdditionParameterSpecifications,
-    validateConnection,
-    tabs,
-    viewActions,
-    additionalToolBarComponents,
-    extraRuleNodeMenuItems,
-    editorTitle,
-    getStickyNotes = () => [],
-    showRuleOnly,
-    readOnly,
-    hideMinimap,
-    zoomRange,
-    initialFitToViewZoomLevel,
-    instanceId,
-    overlayContent,
-    fetchDatasetCharacteristics,
-    captureExternalSavedState,
-    restoreExternalSavedState,
-    extendClipboardCopy,
-    prepareClipboardPaste,
-    handleSidebarDropRequest,
-    pathMetaData,
-    partialAutoCompletion,
-    saveInitiallyEnabled,
-    initialHighlighting,
-}: RuleEditorProps<TASK_TYPE, OPERATOR_TYPE>,
+        projectId,
+        taskId,
+        fetchRuleData,
+        fetchRuleOperators,
+        convertRuleOperator,
+        convertToRuleOperatorNodes,
+        saveRule,
+        additionalRuleOperators,
+        addAdditionParameterSpecifications,
+        validateConnection,
+        tabs,
+        viewActions,
+        additionalToolBarComponents,
+        extraRuleNodeMenuItems,
+        editorTitle,
+        getStickyNotes = () => [],
+        showRuleOnly,
+        readOnly,
+        hideMinimap,
+        zoomRange,
+        initialFitToViewZoomLevel,
+        instanceId,
+        overlayContent,
+        fetchDatasetCharacteristics,
+        captureExternalSavedState,
+        restoreExternalSavedState,
+        extendClipboardCopy,
+        prepareClipboardPaste,
+        handleSidebarDropRequest,
+        pathMetaData,
+        partialAutoCompletion,
+        saveInitiallyEnabled,
+        initialHighlighting,
+    }: RuleEditorProps<TASK_TYPE, OPERATOR_TYPE>,
     ref: React.ForwardedRef<RuleEditorExternalApi>,
 ) => {
     // The task that contains the rule, e.g. transform or linking task
@@ -442,10 +449,7 @@ const RuleEditorInner = <TASK_TYPE extends object, OPERATOR_TYPE extends object>
 };
 
 // Keep the imperative bridge opt-in per instance, e.g. `const ref = React.useRef<RuleEditorExternalApi>(null)`.
-const RuleEditor = React.forwardRef(RuleEditorInner) as <
-    TASK_TYPE extends object,
-    OPERATOR_TYPE extends object,
->(
+const RuleEditor = React.forwardRef(RuleEditorInner) as <TASK_TYPE extends object, OPERATOR_TYPE extends object>(
     props: RuleEditorProps<TASK_TYPE, OPERATOR_TYPE> & React.RefAttributes<RuleEditorExternalApi>,
 ) => React.ReactElement;
 
@@ -453,10 +457,7 @@ const Provider: React.FC<{ children: React.JSX.Element }> = ReactFlowProvider;
 const WrappedRuleEditor = React.forwardRef(function WrappedRuleEditorInner<
     RULE_TYPE extends object,
     OPERATOR_TYPE extends object,
->(
-    props: RuleEditorProps<RULE_TYPE, OPERATOR_TYPE>,
-    ref: React.ForwardedRef<RuleEditorExternalApi>,
-) {
+>(props: RuleEditorProps<RULE_TYPE, OPERATOR_TYPE>, ref: React.ForwardedRef<RuleEditorExternalApi>) {
     return (
         <ErrorBoundary>
             <Provider>

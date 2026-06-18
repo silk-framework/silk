@@ -56,6 +56,8 @@ import InputPortDialog, { InputPortDialogSubmitValue } from "./InputPortDialog";
 import RuleBlockEvaluation from "./RuleBlockEvaluation";
 import { RuleBlockEvaluationOptionalContext } from "./RuleBlockEvaluationOptionalContext";
 
+export type additionalToolbarComponents = "ruleblockusagestatus" | "portmenu";
+
 export interface RuleBlockEditorProps {
     projectId: string;
     ruleBlockTaskId: string;
@@ -790,28 +792,40 @@ export const RuleBlockEditor = ({ projectId, ruleBlockTaskId, viewActions, insta
     );
 
     const additionalToolBarComponents = React.useCallback(
-        () => (
-            <ToolbarSection>
-                <RuleBlockUsageStatusControl usageState={ruleBlockUsageState} onRefresh={refreshRuleBlockUsage} />
-                <ContextMenu
-                    togglerElement={
-                        <IconButton
-                            name="data-targetschema"
-                            text={i18next.t("taskViews.ruleBlock.portMenu")}
-                            tooltipAsTitle
+        (component: additionalToolbarComponents) => {
+            switch (component) {
+                case "ruleblockusagestatus":
+                    return (
+                        <RuleBlockUsageStatusControl
+                            usageState={ruleBlockUsageState}
+                            onRefresh={refreshRuleBlockUsage}
                         />
-                    }
-                >
-                    <MenuItem
-                        onClick={normalizeInputPortOrder}
-                        disabled={!canNormalizePortOrder}
-                        text={i18next.t("taskViews.ruleBlock.normalizePortOrder")}
-                        htmlTitle={i18next.t("taskViews.ruleBlock.normalizePortOrderTooltip")}
-                    />
-                </ContextMenu>
-                <Spacing vertical={true} hasDivider={true} />
-            </ToolbarSection>
-        ),
+                    );
+                    break;
+                case "portmenu":
+                    return (
+                        <ContextMenu
+                            togglerElement={
+                                <IconButton
+                                    name="data-targetschema"
+                                    text={i18next.t("taskViews.ruleBlock.portMenu")}
+                                    tooltipAsTitle
+                                />
+                            }
+                        >
+                            <MenuItem
+                                onClick={normalizeInputPortOrder}
+                                disabled={!canNormalizePortOrder}
+                                text={i18next.t("taskViews.ruleBlock.normalizePortOrder")}
+                                htmlTitle={i18next.t("taskViews.ruleBlock.normalizePortOrderTooltip")}
+                            />
+                        </ContextMenu>
+                    );
+                    break;
+                default:
+                    return null;
+            }
+        },
         [canNormalizePortOrder, normalizeInputPortOrder, refreshRuleBlockUsage, ruleBlockUsageState],
     );
 
@@ -1044,7 +1058,7 @@ const RuleBlockUsageStatusControl = ({ usageState, onRefresh }: RuleBlockUsageSt
                     loading={usageState.refreshRunning}
                     disabled={usageState.refreshRunning}
                     name={iconName}
-                    aria-label={t("taskViews.ruleBlock.refreshUsage")}
+                    text={t("taskViews.ruleBlock.refreshUsage")}
                 />
             </ContextOverlay>
             <Spacing vertical={true} size="small" />
