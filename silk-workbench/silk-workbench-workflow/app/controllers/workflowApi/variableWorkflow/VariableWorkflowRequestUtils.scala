@@ -98,7 +98,7 @@ object VariableWorkflowRequestUtils {
     }
   }
 
-  private def acceptedMimeTypeToSinkConfig(mimeType: String) = {
+  private def acceptedMimeTypeToSinkConfig(mimeType: String): (String, Map[String, String], String) = {
     mimeType match {
       case "application/json" => ("json", Map.empty, mimeType)
       case "application/xml" => ("xml", Map.empty, mimeType)
@@ -317,6 +317,71 @@ object VariableWorkflowRequestUtils {
       )),
       variableDataSinkConfig = replaceableDataSinkConfigOpt.map(_.mimeType),
       workflowVariables = workflowVars
+    )
+  }
+
+  /** Like [[requestToWorkflowConfig]] but built from explicit parameters instead of a Play `Request`,
+    * so it can be driven programmatically (e.g. from the MCP server). The input payload is passed inline
+    * (text for csv/xml/plugin types, parsed JSON for application/json); the output type is chosen from
+    * `outputMimeType`. Reuses the same dataset-config builders so behaviour matches the HTTP endpoint.
+    */
+  def workflowConfigFromParameters(workflowTask: Task[Workflow],
+                                   inputMimeType: Option[String],
+                                   inputPayload: Option[String],
+                                   outputMimeType: Option[String],
+                                   fileBasedPluginIds: Seq[String])
+                                  (implicit userContext: UserContext, project: Project): VariableWorkflowRequestConfig = {
+    val replaceableDatasets = workflowTask.data.allReplaceableDatasets(project)
+    if (replaceableDatasets.sinks.size > 1 || replaceableDatasets.dataSources.size > 1) {
+      throw BadUserInputException(s"Workflow task '${workflowTask.label()}' must contain at most one replaceable input " +
+        s"and one replaceable output dataset. Instead it has ${replaceableDatasets.dataSources.size} replaceable inputs and ${replaceableDatasets.sinks.size} replaceable outputs.")
+    }
+    val CustomMimeType = customMimeTypeRegex
+    def sourceDatasetType(mime: Option[String]): String = mime match {
+      case Some(`jsonMimeType`) | Some(`formUrlEncodedType`) | None => "json"
+      case Some(`xmlMimeType`) => "xml"
+      case Some(`csvMimeType`) | Some(`csvMimeTypeShort`) => "csv"
+      case Some(BinaryFileDataset.mimeType) => BinaryFileDataset.id
+      case Some(CustomMimeType(pluginId)) if fileBasedPluginIds.contains(pluginId) => pluginId
+      case Some(unsupported) => throwUnsupportedMediaType(unsupported)
+    }
+
+    val dataSourceConfig: Option[JsValue] = replaceableDatasets.dataSources.headOption.map { dataSourceId =>
+      datasetConfigJson(dataSourceId, sourceDatasetType(inputMimeType), Map.empty, INPUT_FILE_RESOURCE_NAME)
+    }
+    val resourceContent: Option[JsValue] = dataSourceConfig.map { _ =>
+      inputPayload match {
+        case Some(payload) if sourceDatasetType(inputMimeType) == "json" => Json.parse(payload)
+        case Some(payload) => JsString(payload)
+        case None => JsArray(Seq.empty)
+      }
+    }
+    val sinkConfigOpt: Option[VariableDataSinkConfig] = replaceableDatasets.sinks.headOption.map { datasetId =>
+      val outMime = outputMimeType.getOrElse(jsonMimeType)
+      if (!acceptedMimeType.contains(outMime)) {
+        throw NotAcceptableException(s"Unsupported output type '$outMime'. Supported: ${acceptedMimeType.mkString(", ")}.")
+      }
+      val (datasetType, params, mimeType) = acceptedMimeTypeToSinkConfig(outMime)
+      VariableDataSinkConfig(datasetConfigJson(datasetId, datasetType, params, OUTPUT_FILE_RESOURCE_NAME), mimeType)
+    }
+    val resources = resourceContent.map(c => Json.obj(INPUT_FILE_RESOURCE_NAME -> c)).getOrElse(Json.obj())
+    val workflowConfig = Json.obj(
+      "DataSources" -> dataSourceConfig.toSeq,
+      "Sinks" -> sinkConfigOpt.map(_.configJson).toSeq,
+      "Resources" -> resources,
+      "config" -> Json.obj("autoConfig" -> false)
+    )
+    val resourceManager = FileMapResourceManager(
+      Files.createTempDirectory(tempFileBaseDir, "variableWorkflowResourceManager"), Map.empty, removeFilesOnGc = true)
+    implicit val pluginContext: PluginContext = PluginContext.fromProject(project)
+    VariableWorkflowRequestConfig(
+      configParameters = ParameterValues(Map(
+        "configuration" -> ParameterStringValue(workflowConfig.toString()),
+        "configurationType" -> ParameterStringValue(jsonMimeType),
+        "optionalPrimaryResourceManager" -> ParameterObjectValue(OptionalPrimaryResourceManagerParameter(Some(resourceManager))),
+        "workflowVariables" -> ParameterObjectValue(toTemplateVariablesParameter(TemplateVariables.empty))
+      )),
+      variableDataSinkConfig = sinkConfigOpt.map(_.mimeType)
     )
   }
 
