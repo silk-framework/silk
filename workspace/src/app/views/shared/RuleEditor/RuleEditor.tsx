@@ -31,13 +31,15 @@ import { ReactFlowHotkeyContext, StickyNote } from "@eccenca/gui-elements";
 import { CodeAutocompleteFieldPartialAutoCompleteResult } from "@eccenca/gui-elements/src/components/AutoSuggestion/AutoSuggestion";
 import { InitialRuleHighlighting } from "../../taskViews/transform/transform.types";
 import { PluginType } from "@ducks/shared/typings";
-import { additionalToolbarComponents } from "../../taskViews/ruleBlock/RuleBlockEditor";
 
 /** Function to fetch the rule operator spec. */
 export type RuleOperatorFetchFnType = (
     pluginId: string,
     pluginType?: RuleOperatorPluginType | PluginType,
 ) => IRuleOperator | undefined;
+
+/** Place definitions where additional components could be inserted. */
+export type additionalToolbarComponentsPlace = "afterSaveButton" | "beforeTools" | "beforeActionWidget";
 
 /** Properties that are used in multiple relevant interfaces in the rule editor. */
 export interface RuleEditorBaseProps {
@@ -75,7 +77,7 @@ export interface RuleEditorBaseProps {
     initialHighlighting?: InitialRuleHighlighting;
     /** Additional components that will be placed in the toolbar left to the save button. */
     additionalToolBarComponents?: (
-        component: additionalToolbarComponents,
+        component: additionalToolbarComponentsPlace,
     ) => React.JSX.Element | React.JSX.Element[] | null;
     /** Optional additional menu entries for a specific rule node. These are rendered right before the Remove entry. */
     extraRuleNodeMenuItems?: (node: IRuleOperatorNode, closeMenu: () => void) => React.JSX.Element[] | undefined;

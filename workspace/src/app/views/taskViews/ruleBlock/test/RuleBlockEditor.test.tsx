@@ -379,8 +379,8 @@ const renderToolbarActions = async (harness: RuleBlockEditorHarness) => {
     await waitFor(() => expect(harness.getCapturedRuleEditorProps()?.additionalToolBarComponents).toBeDefined());
     return render(
         <>
-            {harness.getCapturedRuleEditorProps()!.additionalToolBarComponents!("portmenu")}
-            {harness.getCapturedRuleEditorProps()!.additionalToolBarComponents!("ruleblockusagestatus")}
+            {harness.getCapturedRuleEditorProps()!.additionalToolBarComponents!("beforeTools")}
+            {harness.getCapturedRuleEditorProps()!.additionalToolBarComponents!("afterSaveButton")}
         </>,
     );
 };

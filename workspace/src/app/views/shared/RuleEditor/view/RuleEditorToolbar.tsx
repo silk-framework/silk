@@ -205,7 +205,7 @@ export const RuleEditorToolbar = () => {
                     />
                     <Spacing vertical hasDivider />
                     {ruleEditorContext.additionalToolBarComponents
-                        ? ruleEditorContext.additionalToolBarComponents("portmenu")
+                        ? ruleEditorContext.additionalToolBarComponents("beforeTools")
                         : null}
                     <IconButton
                         data-test-id={"rule-editor-auto-layout-btn"}
@@ -252,6 +252,9 @@ export const RuleEditorToolbar = () => {
                         <Spacing vertical size={"small"} />
                     </>
                 ) : null}
+                {ruleEditorContext.additionalToolBarComponents
+                    ? ruleEditorContext.additionalToolBarComponents("beforeActionWidget")
+                    : null}
                 {ruleEvaluationContext.evaluationResultsShown || ruleEvaluationContext.supportsEvaluation ? (
                     <ToolbarSection>
                         <EvaluationActivityControl
@@ -303,7 +306,7 @@ export const RuleEditorToolbar = () => {
                         )}
                     </Button>
                     {ruleEditorContext.additionalToolBarComponents
-                        ? ruleEditorContext.additionalToolBarComponents("ruleblockusagestatus")
+                        ? ruleEditorContext.additionalToolBarComponents("afterSaveButton")
                         : null}
                     <RuleEditorNotifications
                         key={"notifications"}

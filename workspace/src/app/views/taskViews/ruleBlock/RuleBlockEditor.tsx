@@ -25,7 +25,11 @@ import { IProjectTask } from "@ducks/shared/typings";
 import { requestRelatedItems, requestTaskData } from "@ducks/shared/requests";
 import { requestUpdateProjectTask } from "@ducks/workspace/requests";
 import { IViewActions } from "../../plugins/PluginRegistry";
-import RuleEditor, { RuleEditorExternalApi, RuleOperatorFetchFnType } from "../../shared/RuleEditor/RuleEditor";
+import RuleEditor, {
+    RuleEditorExternalApi,
+    RuleOperatorFetchFnType,
+    additionalToolbarComponentsPlace,
+} from "../../shared/RuleEditor/RuleEditor";
 import {
     HandleRuleEditorSidebarDropRequest,
     IRuleOperatorNode,
@@ -55,8 +59,6 @@ import ExampleValuesDialog from "./ExampleValuesDialog";
 import InputPortDialog, { InputPortDialogSubmitValue } from "./InputPortDialog";
 import RuleBlockEvaluation from "./RuleBlockEvaluation";
 import { RuleBlockEvaluationOptionalContext } from "./RuleBlockEvaluationOptionalContext";
-
-export type additionalToolbarComponents = "ruleblockusagestatus" | "portmenu";
 
 export interface RuleBlockEditorProps {
     projectId: string;
@@ -792,36 +794,37 @@ export const RuleBlockEditor = ({ projectId, ruleBlockTaskId, viewActions, insta
     );
 
     const additionalToolBarComponents = React.useCallback(
-        (component: additionalToolbarComponents) => {
-            switch (component) {
-                case "ruleblockusagestatus":
+        (place: additionalToolbarComponentsPlace) => {
+            switch (place) {
+                case "afterSaveButton":
                     return (
                         <RuleBlockUsageStatusControl
                             usageState={ruleBlockUsageState}
                             onRefresh={refreshRuleBlockUsage}
                         />
                     );
-                    break;
-                case "portmenu":
+                case "beforeTools":
                     return (
-                        <ContextMenu
-                            togglerElement={
-                                <IconButton
-                                    name="data-targetschema"
-                                    text={i18next.t("taskViews.ruleBlock.portMenu")}
-                                    tooltipAsTitle
+                        <>
+                            <ContextMenu
+                                togglerElement={
+                                    <IconButton
+                                        name="data-targetschema"
+                                        text={i18next.t("taskViews.ruleBlock.portMenu")}
+                                        tooltipAsTitle
+                                    />
+                                }
+                            >
+                                <MenuItem
+                                    onClick={normalizeInputPortOrder}
+                                    disabled={!canNormalizePortOrder}
+                                    text={i18next.t("taskViews.ruleBlock.normalizePortOrder")}
+                                    htmlTitle={i18next.t("taskViews.ruleBlock.normalizePortOrderTooltip")}
                                 />
-                            }
-                        >
-                            <MenuItem
-                                onClick={normalizeInputPortOrder}
-                                disabled={!canNormalizePortOrder}
-                                text={i18next.t("taskViews.ruleBlock.normalizePortOrder")}
-                                htmlTitle={i18next.t("taskViews.ruleBlock.normalizePortOrderTooltip")}
-                            />
-                        </ContextMenu>
+                            </ContextMenu>
+                            <Spacing vertical size={"small"} />
+                        </>
                     );
-                    break;
                 default:
                     return null;
             }

@@ -3,7 +3,7 @@ import useErrorHandler from "../../../hooks/useErrorHandler";
 import { ILinkingRule, ILinkingTaskParameters, optionallyLabelledParameterToValue } from "./linking.types";
 import { useTranslation } from "react-i18next";
 import { IViewActions } from "../../plugins/PluginRegistry";
-import RuleEditor from "../../shared/RuleEditor/RuleEditor";
+import RuleEditor, { additionalToolbarComponentsPlace } from "../../shared/RuleEditor/RuleEditor";
 import { requestRuleOperatorPluginsDetails } from "@ducks/common/requests";
 import { IPluginDetails } from "@ducks/common/typings";
 import utils from "./LinkingRuleEditor.utils";
@@ -188,18 +188,18 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions, insta
     const inputPathAutoCompletion = React.useCallback(
         (inputType: "source" | "target") =>
             async (term: string, limit: number): Promise<IAutocompleteDefaultResponse[]> => {
-            let results: (IAutocompleteDefaultResponse & { valueType?: string })[] =
-                inputType === "source" ? sourcePathMetaData.current : targetPathMetaData.current;
-            const searchWords = highlighterUtils.extractSearchWords(term, true);
-            if (searchWords.length) {
-                results = results.filter((path) => {
-                    const searchText = `${path.value} ${path.valueType} ${path.label ?? ""}`.toLowerCase();
-                    return highlighterUtils.matchesAllWords(searchText, searchWords);
-                });
-            } else if (results[0]?.value !== "") {
-                results.unshift({ value: "", label: `<${t("common.words.emptyPath")}>` });
-            }
-            return results.slice(0, limit);
+                let results: (IAutocompleteDefaultResponse & { valueType?: string })[] =
+                    inputType === "source" ? sourcePathMetaData.current : targetPathMetaData.current;
+                const searchWords = highlighterUtils.extractSearchWords(term, true);
+                if (searchWords.length) {
+                    results = results.filter((path) => {
+                        const searchText = `${path.value} ${path.valueType} ${path.label ?? ""}`.toLowerCase();
+                        return highlighterUtils.matchesAllWords(searchText, searchWords);
+                    });
+                } else if (results[0]?.value !== "") {
+                    results.unshift({ value: "", label: `<${t("common.words.emptyPath")}>` });
+                }
+                return results.slice(0, limit);
             },
         [t],
     );
@@ -224,7 +224,9 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions, insta
     );
 
     /** Fetches the list of operators that can be used in a linking task. */
-    const fetchLinkingRuleOperatorDetails = React.useCallback(async (): Promise<LinkingRuleEditorOperator[] | undefined> => {
+    const fetchLinkingRuleOperatorDetails = React.useCallback(async (): Promise<
+        LinkingRuleEditorOperator[] | undefined
+    > => {
         try {
             const [responseData, ruleBlockOperators] = await Promise.all([
                 requestRuleOperatorPluginsDetails(false).then((response) => response.data),
@@ -308,57 +310,66 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions, insta
 
     const thresholdUserHelpUrl = documentationPageUrl("build-linking-comparison-operator");
 
-    const thresholdParameterSpec = React.useCallback((pluginDetails: IPluginDetails) => {
-        const varyingSpec = () => {
-            switch (pluginDetails.distanceMeasureRange) {
-                case "normalized":
-                    return {
-                        description: t(
-                            "RuleEditor.sidebar.parameter.thresholdDesc.normalized",
-                            "The maximum distance. This distance measure is normalized, i.e., the threshold must be between 0 (exact match) and 1 (no similarity).",
-                        ),
-                        label: t("RuleEditor.sidebar.parameter.thresholdLabel", "Threshold"),
-                        requiredLabel: t("RuleEditor.sidebar.parameter.thresholdRequired.normalized", "required 0..1"),
-                        urlUserHelp: thresholdUserHelpUrl,
-                    };
-                case "unbounded":
-                    return {
-                        description: t(
-                            "RuleEditor.sidebar.parameter.thresholdDesc.unbounded",
-                            "The maximum distance. Distances start at 0 (exact match) and increase the more different the values may be.",
-                        ),
-                        label: t("RuleEditor.sidebar.parameter.thresholdLabel", "Threshold"),
-                        requiredLabel: t("RuleEditor.sidebar.parameter.thresholdRequired.unbounded", "required 0..∞"),
-                        urlUserHelp: thresholdUserHelpUrl,
-                    };
-                default:
-                    return {
-                        label: "",
-                        description: "",
-                    };
-            }
-        };
+    const thresholdParameterSpec = React.useCallback(
+        (pluginDetails: IPluginDetails) => {
+            const varyingSpec = () => {
+                switch (pluginDetails.distanceMeasureRange) {
+                    case "normalized":
+                        return {
+                            description: t(
+                                "RuleEditor.sidebar.parameter.thresholdDesc.normalized",
+                                "The maximum distance. This distance measure is normalized, i.e., the threshold must be between 0 (exact match) and 1 (no similarity).",
+                            ),
+                            label: t("RuleEditor.sidebar.parameter.thresholdLabel", "Threshold"),
+                            requiredLabel: t(
+                                "RuleEditor.sidebar.parameter.thresholdRequired.normalized",
+                                "required 0..1",
+                            ),
+                            urlUserHelp: thresholdUserHelpUrl,
+                        };
+                    case "unbounded":
+                        return {
+                            description: t(
+                                "RuleEditor.sidebar.parameter.thresholdDesc.unbounded",
+                                "The maximum distance. Distances start at 0 (exact match) and increase the more different the values may be.",
+                            ),
+                            label: t("RuleEditor.sidebar.parameter.thresholdLabel", "Threshold"),
+                            requiredLabel: t(
+                                "RuleEditor.sidebar.parameter.thresholdRequired.unbounded",
+                                "required 0..∞",
+                            ),
+                            urlUserHelp: thresholdUserHelpUrl,
+                        };
+                    default:
+                        return {
+                            label: "",
+                            description: "",
+                        };
+                }
+            };
 
-        const customValidation = (distanceMeasureRange) => (parameterValue: RuleEditorNodeParameterValue) => {
-            const value = ruleEditorNodeParameterValue(parameterValue);
-            const float = Number(value);
-            if (Number.isNaN(float)) return invalidValueResult(t("form.validations.float"));
-            if (distanceMeasureRange === "normalized" && (float > 1 || float < 0))
-                return invalidValueResult(t("form.validations.threshold.normalized"));
-            if (distanceMeasureRange === "unbounded" && float < 0)
-                return invalidValueResult(t("form.validations.threshold.unbounded"));
-            return { valid: true };
-        };
+            const customValidation = (distanceMeasureRange) => (parameterValue: RuleEditorNodeParameterValue) => {
+                const value = ruleEditorNodeParameterValue(parameterValue);
+                const float = Number(value);
+                if (Number.isNaN(float)) return invalidValueResult(t("form.validations.float"));
+                if (distanceMeasureRange === "normalized" && (float > 1 || float < 0))
+                    return invalidValueResult(t("form.validations.threshold.normalized"));
+                if (distanceMeasureRange === "unbounded" && float < 0)
+                    return invalidValueResult(t("form.validations.threshold.unbounded"));
+                return { valid: true };
+            };
 
-        return ruleUtils.parameterSpecification({
-            ...varyingSpec(),
-            type: "float",
-            defaultValue: "0.0",
-            customValidation: customValidation(pluginDetails.distanceMeasureRange),
-            distanceMeasureRange: pluginDetails.distanceMeasureRange,
-            orderIdx: -1,
-        });
-    }, [t, thresholdUserHelpUrl]);
+            return ruleUtils.parameterSpecification({
+                ...varyingSpec(),
+                type: "float",
+                defaultValue: "0.0",
+                customValidation: customValidation(pluginDetails.distanceMeasureRange),
+                distanceMeasureRange: pluginDetails.distanceMeasureRange,
+                orderIdx: -1,
+            });
+        },
+        [t, thresholdUserHelpUrl],
+    );
 
     const fetchPartialAutoCompletionResult = React.useCallback(
         (inputType: "source" | "target") =>
@@ -394,7 +405,10 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions, insta
                 "sourcePathInput",
                 t("RuleEditor.sidebar.operator.sourcePathLabel", "Source path"),
                 ["Source path"],
-                t("RuleEditor.sidebar.operator.sourcePathDesc", "The value path of the source input of the linking task."),
+                t(
+                    "RuleEditor.sidebar.operator.sourcePathDesc",
+                    "The value path of the source input of the linking task.",
+                ),
                 inputPathAutoCompletion("source"),
             ),
         [inputPathAutoCompletion, t],
@@ -406,7 +420,10 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions, insta
                 "targetPathInput",
                 t("RuleEditor.sidebar.operator.targetPathLabel", "Target path"),
                 ["Target path"],
-                t("RuleEditor.sidebar.operator.targetPathDesc", "The value path of the target input of the linking task."),
+                t(
+                    "RuleEditor.sidebar.operator.targetPathDesc",
+                    "The value path of the target input of the linking task.",
+                ),
                 inputPathAutoCompletion("target"),
             ),
         [inputPathAutoCompletion, t],
@@ -435,42 +452,45 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions, insta
         ];
     }, [linkingTaskId, projectId, registerFetchLinkingPathsError, sourcePathOperator, targetPathOperator]);
 
-    const fetchDatasetCharacteristics = React.useCallback(async (taskData: TaskPlugin<ILinkingTaskParameters> | undefined) => {
-        const result = new Map<string, DatasetCharacteristics>();
-        if (taskData) {
-            const parameters = taskData.parameters;
-            const sourceTaskId = optionallyLabelledParameterToValue(
-                optionallyLabelledParameterToValue(parameters.source).inputId,
-            );
-            const targetTaskId = optionallyLabelledParameterToValue(
-                optionallyLabelledParameterToValue(parameters.target).inputId,
-            );
-            const sourceDatasetRequest = requestDatasetCharacteristics(projectId, sourceTaskId);
-            const targetDatasetRequest = requestDatasetCharacteristics(projectId, targetTaskId);
-            const handleRequest = async (
-                requestFuture: Promise<FetchResponse<DatasetCharacteristics>>,
-                pathPluginId: "sourcePathInput" | "targetPathInput",
-            ) => {
-                try {
-                    const response = await requestFuture;
-                    result.set(pathPluginId, response.data);
-                } catch (ex) {
-                    // Return 404 if the dataset does not exist or the task is not a dataset
-                    if (ex.httpStatus !== 404) {
-                        registerError(
-                            "LinkingRuleEditor-fetchDatasetCharacteristics",
-                            "Dataset characteristics could not be fetched. UI-support for language filters will not be available.",
-                            ex,
-                            { errorNotificationInstanceId: RULE_EDITOR_NOTIFICATION_INSTANCE },
-                        );
+    const fetchDatasetCharacteristics = React.useCallback(
+        async (taskData: TaskPlugin<ILinkingTaskParameters> | undefined) => {
+            const result = new Map<string, DatasetCharacteristics>();
+            if (taskData) {
+                const parameters = taskData.parameters;
+                const sourceTaskId = optionallyLabelledParameterToValue(
+                    optionallyLabelledParameterToValue(parameters.source).inputId,
+                );
+                const targetTaskId = optionallyLabelledParameterToValue(
+                    optionallyLabelledParameterToValue(parameters.target).inputId,
+                );
+                const sourceDatasetRequest = requestDatasetCharacteristics(projectId, sourceTaskId);
+                const targetDatasetRequest = requestDatasetCharacteristics(projectId, targetTaskId);
+                const handleRequest = async (
+                    requestFuture: Promise<FetchResponse<DatasetCharacteristics>>,
+                    pathPluginId: "sourcePathInput" | "targetPathInput",
+                ) => {
+                    try {
+                        const response = await requestFuture;
+                        result.set(pathPluginId, response.data);
+                    } catch (ex) {
+                        // Return 404 if the dataset does not exist or the task is not a dataset
+                        if (ex.httpStatus !== 404) {
+                            registerError(
+                                "LinkingRuleEditor-fetchDatasetCharacteristics",
+                                "Dataset characteristics could not be fetched. UI-support for language filters will not be available.",
+                                ex,
+                                { errorNotificationInstanceId: RULE_EDITOR_NOTIFICATION_INSTANCE },
+                            );
+                        }
                     }
-                }
-            };
-            await handleRequest(sourceDatasetRequest, "sourcePathInput");
-            await handleRequest(targetDatasetRequest, "targetPathInput");
-        }
-        return result;
-    }, [projectId, registerError]);
+                };
+                await handleRequest(sourceDatasetRequest, "sourcePathInput");
+                await handleRequest(targetDatasetRequest, "targetPathInput");
+            }
+            return result;
+        },
+        [projectId, registerError],
+    );
 
     const convertRuleOperator = React.useCallback(
         (
@@ -513,9 +533,16 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions, insta
     );
 
     const additionalToolBarComponents = React.useCallback(
-        () => [
-            <LinkingRuleCacheInfo key="LinkingRuleCacheInfo" projectId={projectId} taskId={linkingTaskId} />,
-        ],
+        (place: additionalToolbarComponentsPlace) => {
+            switch (place) {
+                case "beforeActionWidget":
+                    return (
+                        <LinkingRuleCacheInfo key="LinkingRuleCacheInfo" projectId={projectId} taskId={linkingTaskId} />
+                    );
+                default:
+                    return null;
+            }
+        },
         [linkingTaskId, projectId],
     );
 
@@ -543,9 +570,7 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions, insta
     }
 
     return (
-        <PathInputOperatorContext.Provider
-            value={pathInputOperatorContextValue}
-        >
+        <PathInputOperatorContext.Provider value={pathInputOperatorContextValue}>
             <LinkingRuleEvaluation
                 projectId={projectId}
                 linkingTaskId={linkingTaskId}
