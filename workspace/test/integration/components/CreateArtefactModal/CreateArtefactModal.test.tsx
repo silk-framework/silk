@@ -27,6 +27,7 @@ import {
     IOverviewArtefactItemList,
     IPluginDetails,
     IProjectTaskUpdatePayload,
+    TaskPreConfiguration,
 } from "../../../../src/app/store/ducks/common/typings";
 import { atomicParamDescription, mockAutoCompleteResponse, objectParamDescription } from "./CreateArtefactModalHelper";
 import { INPUT_TYPES } from "../../../../src/app/constants";
@@ -99,6 +100,14 @@ describe("Task creation widget", () => {
     const createArtefactWrapper = (
         currentUrl: string = `${SERVE_PATH}`,
         existingTask?: RecursivePartial<IProjectTaskUpdatePayload>,
+        newTaskPreConfiguration?: TaskPreConfiguration,
+        availableDataTypes?: RecursivePartial<{
+            type: {
+                label: string;
+                field: string;
+                options: { id: string; label: string }[];
+            };
+        }>,
     ): IWrapper => {
         const history = createMemoryHistory<{}>();
         history.push(currentUrl);
@@ -112,20 +121,40 @@ describe("Task creation widget", () => {
                 artefactModal: {
                     isOpen: true,
                     updateExistingTask: existingTask,
+                    newTaskPreConfiguration,
                 },
+                availableDataTypes,
             },
         });
         return { element: wrapper.baseElement, history };
     };
 
     // Loads the selection list modal with mocked artefact list
-    const createMockedListWrapper = async (existingTask?: RecursivePartial<IProjectTaskUpdatePayload>) => {
-        const wrapper = await act(() => createArtefactWrapper(`${SERVE_PATH}/projects/${PROJECT_ID}`, existingTask));
+    const createMockedListWrapper = async (
+        existingTask?: RecursivePartial<IProjectTaskUpdatePayload>,
+        artefactListResponse: IOverviewArtefactItemList = mockArtefactListResponse,
+        newTaskPreConfiguration?: TaskPreConfiguration,
+        availableDataTypes?: RecursivePartial<{
+            type: {
+                label: string;
+                field: string;
+                options: { id: string; label: string }[];
+            };
+        }>,
+    ) => {
+        const wrapper = await act(() =>
+            createArtefactWrapper(
+                `${SERVE_PATH}/projects/${PROJECT_ID}`,
+                existingTask,
+                newTaskPreConfiguration,
+                availableDataTypes,
+            ),
+        );
         const url = apiUrl("core/taskPlugins?addMarkdownDocumentation=true");
-        mockAxios.mockResponseFor({ url }, mockedAxiosResponse({ data: mockArtefactListResponse }));
+        mockAxios.mockResponseFor({ url }, mockedAxiosResponse({ data: artefactListResponse }));
         if (!existingTask) {
             await waitFor(() => {
-                expect(selectionItems(wrapper.element)).toHaveLength(3);
+                expect(selectionItems(wrapper.element).length).toBeGreaterThan(0);
             });
         }
         return wrapper;
@@ -270,6 +299,40 @@ describe("Task creation widget", () => {
         // Double click list item to trigger create dialog
         clickRenderedElement(items[2], 2);
         checkRequestMade(apiUrl("/core/plugins/pluginB"));
+    });
+
+    it("should hide blacklisted item types from the left selection and artefact list", async () => {
+        const artefactListWithRuleBlock: IOverviewArtefactItemList = {
+            ...mockArtefactListResponse,
+            pluginRuleBlock: {
+                title: "Plugin Rule Block",
+                description: "This is a rule block plugin",
+                taskType: TaskTypes.RULE_BLOCK,
+                categories: [],
+            },
+        };
+        const availableDataTypes = {
+            type: {
+                label: "Item type",
+                field: "type",
+                options: [
+                    { id: "task", label: "Task" },
+                    { id: "dataset", label: "Dataset" },
+                    { id: "ruleBlock", label: "Rule block" },
+                ],
+            },
+        };
+
+        const { element } = await createMockedListWrapper(
+            undefined,
+            artefactListWithRuleBlock,
+            { itemTypeBlackList: ["ruleBlock"] },
+            availableDataTypes,
+        );
+
+        expect(element.querySelector(byTestId("item-type-ruleBlock"))).not.toBeInTheDocument();
+        const itemTexts = selectionItems(element).map((item) => item.textContent ?? "");
+        expect(itemTexts.some((text) => text.includes("Plugin Rule Block"))).toBe(false);
     });
 
     it("should open the plugin configuration dialog when double-clicking an item from the list", async () => {
