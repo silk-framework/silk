@@ -329,7 +329,8 @@ object VariableWorkflowRequestUtils {
                                    inputMimeType: Option[String],
                                    inputPayload: Option[String],
                                    outputMimeType: Option[String],
-                                   fileBasedPluginIds: Seq[String])
+                                   fileBasedPluginIds: Seq[String],
+                                   workflowVariables: TemplateVariables = TemplateVariables.empty)
                                   (implicit userContext: UserContext, project: Project): VariableWorkflowRequestConfig = {
     val replaceableDatasets = workflowTask.data.allReplaceableDatasets(project)
     if (replaceableDatasets.sinks.size > 1 || replaceableDatasets.dataSources.size > 1) {
@@ -379,9 +380,10 @@ object VariableWorkflowRequestUtils {
         "configuration" -> ParameterStringValue(workflowConfig.toString()),
         "configurationType" -> ParameterStringValue(jsonMimeType),
         "optionalPrimaryResourceManager" -> ParameterObjectValue(OptionalPrimaryResourceManagerParameter(Some(resourceManager))),
-        "workflowVariables" -> ParameterObjectValue(toTemplateVariablesParameter(TemplateVariables.empty))
+        "workflowVariables" -> ParameterObjectValue(toTemplateVariablesParameter(workflowVariables))
       )),
-      variableDataSinkConfig = sinkConfigOpt.map(_.mimeType)
+      variableDataSinkConfig = sinkConfigOpt.map(_.mimeType),
+      workflowVariables = workflowVariables
     )
   }
 
