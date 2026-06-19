@@ -101,29 +101,23 @@ object ActivityExecutionLimiter {
       while(!isCancelled()) {
         queuedToken match {
           case None =>
-            requestSlot(key, currentLimit) match {
-              case Acquired(permit) =>
+            requestOrQueue(key, currentLimit, onQueuedTokenChanged) match {
+              case Left(permit) =>
                 acquiredPermit = true
                 return Some(permit)
-              case Queued(token) =>
+              case Right(token) =>
                 queuedToken = Some(token)
-                onQueuedTokenChanged(Some(token))
             }
           case Some(token) =>
-            acquireQueued(key, token, currentLimit) match {
-              case Some(permit) =>
+            tryAcquireQueuedOrWait(key, token, currentLimit, isCancelled, timeoutMs, onQueuedTokenChanged) match {
+              case Some(Left(permit)) =>
                 acquiredPermit = true
                 queuedToken = None
-                onQueuedTokenChanged(None)
                 return Some(permit)
+              case Some(Right(nextToken)) =>
+                queuedToken = Some(nextToken)
               case None =>
-                val state = stateOption(key).getOrElse(return None)
-                state.monitor.synchronized {
-                  val tokenIsQueued = state.queue.headOption.contains(token)
-                  if(!isCancelled() && tokenIsQueued && limitReached(state, currentLimit)) {
-                    state.monitor.wait(timeoutMs)
-                  }
-                }
+                return None
             }
         }
       }
@@ -172,6 +166,48 @@ object ActivityExecutionLimiter {
   private def nextQueueToken(): QueueToken = this.synchronized {
     nextQueueTokenId += 1
     QueueToken(nextQueueTokenId)
+  }
+
+  private def requestOrQueue(key: ActivityLimiterKey,
+                             currentLimit: Option[Int],
+                             onQueuedTokenChanged: Option[QueueToken] => Unit): Either[ActivityExecutionPermit, QueueToken] = {
+    requestSlot(key, currentLimit) match {
+      case Acquired(permit) =>
+        Left(permit)
+      case Queued(token) =>
+        onQueuedTokenChanged(Some(token))
+        Right(token)
+    }
+  }
+
+  private def tryAcquireQueuedOrWait(key: ActivityLimiterKey,
+                                     token: QueueToken,
+                                     currentLimit: Option[Int],
+                                     isCancelled: () => Boolean,
+                                     timeoutMs: Long,
+                                     onQueuedTokenChanged: Option[QueueToken] => Unit): Option[Either[ActivityExecutionPermit, QueueToken]] = {
+    acquireQueued(key, token, currentLimit) match {
+      case Some(permit) =>
+        onQueuedTokenChanged(None)
+        Some(Left(permit))
+      case None =>
+        waitWhileQueued(key, token, currentLimit, isCancelled, timeoutMs).map(_ => Right(token))
+    }
+  }
+
+  private def waitWhileQueued(key: ActivityLimiterKey,
+                              token: QueueToken,
+                              currentLimit: Option[Int],
+                              isCancelled: () => Boolean,
+                              timeoutMs: Long): Option[Unit] = {
+    stateOption(key).map { state =>
+      state.monitor.synchronized {
+        val tokenIsQueued = state.queue.headOption.contains(token)
+        if(!isCancelled() && tokenIsQueued && limitReached(state, currentLimit)) {
+          state.monitor.wait(timeoutMs)
+        }
+      }
+    }
   }
 
   private def limitReached(state: ActivityExecutionState, maxParallelExecutions: Option[Int]): Boolean = {

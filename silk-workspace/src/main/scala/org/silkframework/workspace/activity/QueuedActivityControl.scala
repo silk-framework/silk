@@ -24,6 +24,16 @@ private[activity] class QueuedActivityControl[T](delegate: ActivityControl[T],
                                                  limit: ActivityLimit)
     extends ActivityControl[T] {
 
+  private case class QueuedRunState(runId: Long,
+                                    completion: CompletableFuture[Unit],
+                                    waitFuture: Option[JFuture[_]],
+                                    limiterState: Option[(ActivityLimiterKey, ActivityExecutionLimiter.QueueToken)])
+
+  private case class RunStartContext(runId: Long,
+                                     currentLimit: Option[Int],
+                                     currentKey: ActivityLimiterKey,
+                                     completion: CompletableFuture[Unit])
+
   private implicit val restartExecutionContext: ExecutionContext = ActivityExecution.activityManagementExecutionContext
 
   private object Lock
@@ -138,11 +148,7 @@ private[activity] class QueuedActivityControl[T](delegate: ActivityControl[T],
       Lock.synchronized {
         if(isQueued) {
           bypassLimiter = true
-          val limiterState = currentLimiterKey.flatMap { key =>
-            currentQueuedToken.map(token => (key, token))
-          }
-          currentQueuedToken = None
-          (Some((currentRunId, currentCompletionFuture(), waitFuture, limiterState)), false)
+          (Some(currentQueuedRunState()), false)
         } else if(delegateStarted) {
           (None, true)
         } else {
@@ -151,12 +157,9 @@ private[activity] class QueuedActivityControl[T](delegate: ActivityControl[T],
       }
 
     queuedRun match {
-      case Some((queuedRunId, currentCompletion, queuedWaitFuture, limiterState)) =>
-        limiterState.foreach { case (key, token) =>
-          ActivityExecutionLimiter.cancelQueued(key, token)
-        }
-        queuedWaitFuture.foreach(_.cancel(true))
-        startDelegate(queuedRunId, prioritized = true, permit = None, currentCompletion)
+      case Some(queuedState) =>
+        cancelQueuedWait(queuedState)
+        startDelegate(queuedState.runId, prioritized = true, permit = None, queuedState.completion)
       case None if prioritizeDelegate =>
         delegate.startPrioritized()
       case None =>
@@ -166,26 +169,19 @@ private[activity] class QueuedActivityControl[T](delegate: ActivityControl[T],
 
   // Cancels the queued wrapper-owned run before delegate handoff, otherwise forwards cancellation to the delegate execution.
   override def cancel()(implicit user: UserContext): Unit = {
-    val (futureToCancel, limiterState) =
+    val queuedRunState =
       Lock.synchronized {
         if(isQueued) {
           queuedCanceled = true
           wrappedStatus.update(Canceling(wrappedStatus().progress))
-          val limiterState = currentLimiterKey.flatMap { key =>
-            currentQueuedToken.map(token => (key, token))
-          }
-          currentQueuedToken = None
-          (waitFuture, limiterState)
+          Some(currentQueuedRunState())
         } else {
-          (None, None)
+          None
         }
       }
-    limiterState.foreach { case (key, token) =>
-      ActivityExecutionLimiter.cancelQueued(key, token)
-    }
-    futureToCancel match {
-      case Some(future) =>
-        future.cancel(true)
+    queuedRunState match {
+      case Some(queuedState) =>
+        cancelQueuedWait(queuedState)
       case None =>
         delegate.cancel()
     }
@@ -211,7 +207,17 @@ private[activity] class QueuedActivityControl[T](delegate: ActivityControl[T],
 
   // Starts a new wrapper-managed run, either by entering the limiter queue or by delegating immediately if no waiting is required.
   private def startInternal(prioritized: Boolean)(implicit user: UserContext): Unit = {
-    val (runId, currentLimit, currentKey, completion) = Lock.synchronized {
+    val runStartContext = initializeRun(prioritized)
+
+    if(prioritized || runStartContext.currentLimit.isEmpty) {
+      startDelegate(runStartContext.runId, prioritized = prioritized, permit = None, runStartContext.completion)
+    } else {
+      submitPermitWait(runStartContext)
+    }
+  }
+
+  private def initializeRun(prioritized: Boolean)(implicit user: UserContext): RunStartContext = {
+    Lock.synchronized {
       if(wrappedStatus().isRunning) {
         throw new IllegalStateException(s"Cannot start while activity '$name' is still running!")
       }
@@ -232,54 +238,56 @@ private[activity] class QueuedActivityControl[T](delegate: ActivityControl[T],
       }
       val limiterKey = limit.limiterKey(task.map(_.project.id), task.map(_.id))
       currentLimiterKey = Some(limiterKey)
-      (currentRunId, limitValue, limiterKey, completionFuture)
+      RunStartContext(currentRunId, limitValue, limiterKey, completionFuture)
     }
+  }
 
-    if(prioritized || currentLimit.isEmpty) {
-      startDelegate(runId, prioritized = prioritized, permit = None, completion)
-    } else {
-      val waitingText = limit.waitingMessage(task)
-      Lock.synchronized {
-        wrappedStatus.update(Waiting(waitingText))
-      }
-      val submittedFuture = ActivityExecutionLimiter.runAsync {
-        try {
-          val permit = ActivityExecutionLimiter.awaitPermit(
-            key = currentKey,
-            currentLimit = limit.limitFor(task, factory),
-            isCancelled = () => queuedCanceled || bypassLimiter || currentRunId != runId,
-            onQueuedTokenChanged = token =>
-              Lock.synchronized {
-                if(currentRunId == runId && !delegateStarted) {
-                  currentQueuedToken = token
-                }
-              }
-          )
-          permit match {
-            case Some(acquiredPermit) =>
-              startDelegate(runId, prioritized = false, permit = Some(acquiredPermit), completion)
-            case None =>
-              if(isCurrentQueuedRun(runId)) {
-                finishQueuedCancellation(runId, completion)
+  private def submitPermitWait(runStartContext: RunStartContext): Unit = {
+    updateWaitingStatus()
+    val submittedFuture = ActivityExecutionLimiter.runAsync {
+      try {
+        val permit = ActivityExecutionLimiter.awaitPermit(
+          key = runStartContext.currentKey,
+          currentLimit = limit.limitFor(task, factory),
+          isCancelled = () => queuedCanceled || bypassLimiter || currentRunId != runStartContext.runId,
+          onQueuedTokenChanged = token =>
+            Lock.synchronized {
+              if(currentRunId == runStartContext.runId && !delegateStarted) {
+                currentQueuedToken = token
               }
             }
-        } catch {
-          case _: InterruptedException =>
-            if(isCurrentQueuedRun(runId)) {
-              finishQueuedCancellation(runId, completion)
-            }
-            Thread.currentThread().interrupt()
-          case NonFatal(ex) =>
-            if(isCurrentRun(runId)) {
-              completeFailure(runId, ex, completion)
+        )
+        permit match {
+          case Some(acquiredPermit) =>
+            startDelegate(runStartContext.runId, prioritized = false, permit = Some(acquiredPermit), runStartContext.completion)
+          case None =>
+            if(isCurrentQueuedRun(runStartContext.runId)) {
+              finishQueuedCancellation(runStartContext.runId, runStartContext.completion)
             }
         }
+      } catch {
+        case _: InterruptedException =>
+          if(isCurrentQueuedRun(runStartContext.runId)) {
+            finishQueuedCancellation(runStartContext.runId, runStartContext.completion)
+          }
+          Thread.currentThread().interrupt()
+        case NonFatal(ex) =>
+          if(isCurrentRun(runStartContext.runId)) {
+            completeFailure(runStartContext.runId, ex, runStartContext.completion)
+          }
       }
-      Lock.synchronized {
-        if(currentRunId == runId && !delegateStarted && wrappedStatus().isRunning) {
-          waitFuture = Some(submittedFuture)
-        }
+    }
+    Lock.synchronized {
+      if(currentRunId == runStartContext.runId && !delegateStarted && wrappedStatus().isRunning) {
+        waitFuture = Some(submittedFuture)
       }
+    }
+  }
+
+  private def updateWaitingStatus(): Unit = {
+    val waitingText = limit.waitingMessage(task)
+    Lock.synchronized {
+      wrappedStatus.update(Waiting(waitingText))
     }
   }
 
@@ -404,6 +412,30 @@ private[activity] class QueuedActivityControl[T](delegate: ActivityControl[T],
 
   private def isCurrentRun(runId: Long): Boolean = Lock.synchronized {
     currentRunId == runId
+  }
+
+  private def currentQueuedRunState(): QueuedRunState = {
+    QueuedRunState(
+      runId = currentRunId,
+      completion = currentCompletionFuture(),
+      waitFuture = waitFuture,
+      limiterState = takeQueuedLimiterState()
+    )
+  }
+
+  private def takeQueuedLimiterState(): Option[(ActivityLimiterKey, ActivityExecutionLimiter.QueueToken)] = {
+    val limiterState = currentLimiterKey.flatMap { key =>
+      currentQueuedToken.map(token => (key, token))
+    }
+    currentQueuedToken = None
+    limiterState
+  }
+
+  private def cancelQueuedWait(queuedRunState: QueuedRunState): Unit = {
+    queuedRunState.limiterState.foreach { case (key, token) =>
+      ActivityExecutionLimiter.cancelQueued(key, token)
+    }
+    queuedRunState.waitFuture.foreach(_.cancel(true))
   }
 
   private def waitForCompletion(completion: CompletableFuture[Unit]): Unit = {
