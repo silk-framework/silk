@@ -41,11 +41,10 @@ case class Workflow(@Param(label = "Workflow operators", value = "Workflow opera
                     @Param(label = "Replaceable output datasets", value = "The IDs of output datasets that can be replaced in the workflow with other user defined datasets.", visibleInDialog = false)
                     replaceableOutputs: TaskIdentifierParameter = TaskIdentifierParameter(Seq.empty),
                     @Param(
-                      label = "Parallel workflow executions",
+                      label = "Parallel workflow execution limit",
                       value = "Limits how many executions of this workflow may run in parallel. Leave empty for no workflow-specific limit. " +
                         "Values must be at least 1. Note: deprecated dataset clearing behavior may still clear outputs of nested workflows. " +
-                        "Use a dedicated clear operator instead of relying on that behavior.",
-                      visibleInDialog = false
+                        "Use a dedicated clear operator instead of relying on that behavior. Nested workflow executions are currently NOT guarded by this setting."
                     )
                     maxParallelExecutions: IntOptionParameter = IntOptionParameter(None)) extends TaskSpec with AnyPlugin {
 

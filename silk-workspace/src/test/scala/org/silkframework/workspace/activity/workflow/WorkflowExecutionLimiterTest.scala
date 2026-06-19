@@ -15,7 +15,7 @@ import org.silkframework.runtime.users.{User, UserActions}
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.TestWorkspaceProviderTestTrait
 import org.silkframework.workspace.ProjectTask
-import org.silkframework.workspace.activity.{ActivityExecutionLimiter, ActivityLimit, ActivityLimiterKey, QueuedActivityControl, TaskActivityFactory, WorkspaceActivityFactory}
+import org.silkframework.workspace.activity.{ActivityExecutionLimiter, ActivityLimit, ActivityLimiterKey, QueuedActivityControl, TaskActivityFactory, WorkspaceActivity, WorkspaceActivityFactory}
 
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.{ConcurrentLinkedQueue, CountDownLatch, LinkedBlockingQueue, TimeUnit}
@@ -97,13 +97,13 @@ class WorkflowExecutionLimiterTest extends AnyFlatSpec with Matchers with Eventu
     val secondUserContext = testUserContext("urn:test:queued")
 
     try {
-      firstControl.start()(testUserContext("urn:test:running"))
+      startAndAwaitQueuedOrRunning(firstControl, testUserContext("urn:test:running"))
       QueueControlledActivityState.awaitStartedExecutions(1)
       eventually {
         firstControl.status() shouldBe a[Status.Running]
       }
 
-      secondControl.start()(secondUserContext)
+      startAndAwaitQueuedOrRunning(secondControl, secondUserContext)
       eventually {
         ActivityExecutionLimiter.queuedCount(limiterKey) shouldBe 1
       }
@@ -134,8 +134,8 @@ class WorkflowExecutionLimiterTest extends AnyFlatSpec with Matchers with Eventu
     val secondControl = guardedControl(workflowTask, Activity(QueueControlledActivity()))
 
     try {
-      firstControl.start()(testUserContext("urn:test:first"))
-      secondControl.start()(testUserContext("urn:test:second"))
+      startAndAwaitQueuedOrRunning(firstControl, testUserContext("urn:test:first"))
+      startAndAwaitQueuedOrRunning(secondControl, testUserContext("urn:test:second"))
 
       QueueControlledActivityState.awaitStartedExecutions(1)
       eventually {
@@ -165,8 +165,8 @@ class WorkflowExecutionLimiterTest extends AnyFlatSpec with Matchers with Eventu
     val secondControl = guardedControl(workflowTask, Activity(QueueControlledActivity()))
 
     try {
-      firstControl.start()(testUserContext("urn:test:unlimited-first"))
-      secondControl.start()(testUserContext("urn:test:unlimited-second"))
+      startAndAwaitQueuedOrRunning(firstControl, testUserContext("urn:test:unlimited-first"))
+      startAndAwaitQueuedOrRunning(secondControl, testUserContext("urn:test:unlimited-second"))
 
       QueueControlledActivityState.awaitStartedExecutions(2)
       ActivityExecutionLimiter.isTracked(limiterKey) shouldBe false
@@ -234,7 +234,7 @@ class WorkflowExecutionLimiterTest extends AnyFlatSpec with Matchers with Eventu
 
     val firstId = activity.start()(testUserContext("urn:test:running"))
     QueueControlledActivityState.awaitStartedExecutions(1)
-    val secondId = activity.start()(testUserContext("urn:test:queued"))
+    val secondId = startAndAwaitQueuedOrRunning(activity, testUserContext("urn:test:queued"))
     val firstControl = activity.instance(firstId)
     val secondControl = activity.instance(secondId)
 
@@ -267,7 +267,7 @@ class WorkflowExecutionLimiterTest extends AnyFlatSpec with Matchers with Eventu
     val secondControl = guardedControl(workflowTask, Activity(QueueControlledActivity()))
 
     try {
-      firstControl.start()(testUserContext("urn:test:running"))
+      startAndAwaitQueuedOrRunning(firstControl, testUserContext("urn:test:running"))
       QueueControlledActivityState.awaitStartedExecutions(1)
 
       val blockingFuture = Future(blocking(secondControl.startBlocking()(testUserContext("urn:test:blocking"))))
@@ -301,7 +301,7 @@ class WorkflowExecutionLimiterTest extends AnyFlatSpec with Matchers with Eventu
     val secondControl = guardedControl(workflowTask, Activity(valueActivity))
 
     try {
-      firstControl.start()(testUserContext("urn:test:running"))
+      startAndAwaitQueuedOrRunning(firstControl, testUserContext("urn:test:running"))
       QueueControlledActivityState.awaitStartedExecutions(1)
 
       val blockingFuture = Future(blocking(secondControl.startBlockingAndGetValue(Some("prefilled"))(testUserContext("urn:test:blocking-value"))))
@@ -333,9 +333,9 @@ class WorkflowExecutionLimiterTest extends AnyFlatSpec with Matchers with Eventu
     val limiterKey = ActivityLimiterKey(Some(workflowTask.project.id), Some(workflowTask.id), "workflow-execution")
     val activity = guardedActivity(workflowTask)
 
-    val firstId = activity.start()(testUserContext("urn:test:running"))
+    val firstId = startAndAwaitQueuedOrRunning(activity, testUserContext("urn:test:running"))
     QueueControlledActivityState.awaitStartedExecutions(1)
-    val secondId = activity.start()(testUserContext("urn:test:queued-initial"))
+    val secondId = startAndAwaitQueuedOrRunning(activity, testUserContext("urn:test:queued-initial"))
     val firstControl = activity.instance(firstId)
     val secondControl = activity.instance(secondId)
 
@@ -416,9 +416,9 @@ class WorkflowExecutionLimiterTest extends AnyFlatSpec with Matchers with Eventu
     val failingControl = guardedControl(workflowTask, Activity(FailingActivity(testFailure)))
 
     try {
-      firstControl.start()(testUserContext("urn:test:running"))
+      startAndAwaitQueuedOrRunning(firstControl, testUserContext("urn:test:running"))
       QueueControlledActivityState.awaitStartedExecutions(1)
-      failingControl.start()(testUserContext("urn:test:failing"))
+      startAndAwaitQueuedOrRunning(failingControl, testUserContext("urn:test:failing"))
 
       eventually {
         ActivityExecutionLimiter.queuedCount(limiterKey) shouldBe 1
@@ -454,8 +454,8 @@ class WorkflowExecutionLimiterTest extends AnyFlatSpec with Matchers with Eventu
     val limiterKey = ActivityLimiterKey(Some(workflowTask.project.id), Some(workflowTask.id), "selection-workflow-execution")
     val activity = selectionActivity(workflowTask)
 
-    val firstId = activity.start()(testUserContext("urn:test:first"))
-    val secondId = activity.start()(testUserContext("urn:test:second"))
+    val firstId = startAndAwaitQueuedOrRunning(activity, testUserContext("urn:test:first"))
+    val secondId = startAndAwaitQueuedOrRunning(activity, testUserContext("urn:test:second"))
     val firstControl = activity.instance(firstId)
     val secondControl = activity.instance(secondId)
 
@@ -489,7 +489,7 @@ class WorkflowExecutionLimiterTest extends AnyFlatSpec with Matchers with Eventu
       }
 
     limitedControls.zipWithIndex.foreach { case (control, index) =>
-      control.start()(testUserContext(s"urn:test:pool-${index + 1}"))
+      startAndAwaitQueuedOrRunning(control, testUserContext(s"urn:test:pool-${index + 1}"))
     }
 
     QueueControlledActivityState.awaitStartedExecutions(1)
@@ -557,6 +557,23 @@ class WorkflowExecutionLimiterTest extends AnyFlatSpec with Matchers with Eventu
   }
 
   private def testUserContext(userUri: String): UserContext = TestWorkflowUserContext(userUri)
+
+  private def startAndAwaitQueuedOrRunning(control: ActivityControl[_], userContext: UserContext): Unit = {
+    control.start()(userContext)
+    eventually {
+      control.status() match {
+        case _: Waiting =>
+        case _: Status.Running =>
+        case other => fail(s"Expected activity to reach queued or running state after start, but got: $other")
+      }
+    }
+  }
+
+  private def startAndAwaitQueuedOrRunning(activity: WorkspaceActivity[_], userContext: UserContext): String = {
+    val instanceId = activity.start()(userContext)
+    startAndAwaitQueuedOrRunning(activity.instance(instanceId), userContext)
+    instanceId
+  }
 
   private def awaitFinished(control: ActivityControl[_]): Unit = {
     import scala.concurrent.ExecutionContext.Implicits.global

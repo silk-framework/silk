@@ -7,6 +7,7 @@ import { RelatedItems } from "../../shared/RelatedItems/RelatedItems";
 import { ProjectTaskTabView } from "../../shared/projectTaskTabView/ProjectTaskTabView";
 import { usePageHeader } from "../../shared/PageHeader/PageHeader";
 import { ArtefactManagementOptions } from "../../shared/ActionsMenu/ArtefactManagementOptions";
+import { TaskConfig } from "../../shared/TaskConfig/TaskConfig";
 import NotFound from "../NotFound";
 import { ProjectForbiddenNotification } from "../../shared/ProjectForbiddenNotification";
 import { ProjectTaskParams } from "../../shared/typings";
@@ -67,6 +68,8 @@ export default function WorkflowPage() {
             <WorkspaceSide>
                 <Section>
                     <RelatedItems messageEventReloadTrigger={(messageId) => messageId === "workflowSaved"} />
+                    <Spacing />
+                    <TaskConfig projectId={projectId} taskId={taskId} />
                     <Spacing />
                     <VariablesWidget projectId={projectId} taskId={taskId} />
                     <Spacing />
