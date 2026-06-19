@@ -11,6 +11,13 @@ import scala.concurrent.{ExecutionContext, Future}
 import scala.util.Try
 import scala.util.control.NonFatal
 
+/**
+ * Wraps an existing activity control with FIFO queueing based on an [[ActivityExecutionLimiter]].
+ *
+ * The wrapper owns the waiting lifecycle before the delegate starts: it tracks queued status, cancellation, prioritization,
+ * and restart semantics outside the delegate, then hands execution over to the delegate once a permit has been acquired or
+ * the wait has been bypassed.
+ */
 private[activity] class QueuedActivityControl[T](delegate: ActivityControl[T],
                                                  task: Option[ProjectTask[_ <: TaskSpec]],
                                                  factory: WorkspaceActivityFactory,
@@ -93,7 +100,7 @@ private[activity] class QueuedActivityControl[T](delegate: ActivityControl[T],
     startInternal(prioritized = false)
   }
 
-  // Restarts the wrapper-managed run, so queued executions are cancelled and re-enter through the limiter again.
+  // Cancels the current run intent and requests exactly one fresh replacement run; overlapping restart requests collapse into the latest one.
   override def restart()(implicit user: UserContext): Future[Unit] = {
     val (restartRequestId, completionToWaitFor) = Lock.synchronized {
       nextRestartRequestId += 1
@@ -125,7 +132,7 @@ private[activity] class QueuedActivityControl[T](delegate: ActivityControl[T],
     value()
   }
 
-  // If the run is still queued, this skips the limiter and starts the delegate immediately instead of just reprioritizing inside the delegate.
+  // If the wrapper still owns the run in queued state, remove its queue token and start the delegate immediately instead of reprioritizing later.
   override def startPrioritized()(implicit user: UserContext): Unit = {
     val (queuedRun, prioritizeDelegate) =
       Lock.synchronized {
@@ -157,7 +164,7 @@ private[activity] class QueuedActivityControl[T](delegate: ActivityControl[T],
     }
   }
 
-  // Cancels either the queued wrapper run or the already started delegate execution, depending on the current state.
+  // Cancels the queued wrapper-owned run before delegate handoff, otherwise forwards cancellation to the delegate execution.
   override def cancel()(implicit user: UserContext): Unit = {
     val (futureToCancel, limiterState) =
       Lock.synchronized {
@@ -190,6 +197,7 @@ private[activity] class QueuedActivityControl[T](delegate: ActivityControl[T],
 
   override def underlying: Activity[T] = delegate.underlying
 
+  // Waits for wrapper completion, which may finish before the delegate ever started if the queued run was cancelled or failed during handoff.
   override def waitUntilFinished(): Unit = {
     try {
       currentCompletionFuture().join()
@@ -201,7 +209,7 @@ private[activity] class QueuedActivityControl[T](delegate: ActivityControl[T],
 
   override def lastResult: Option[ActivityExecutionResult[T]] = delegate.lastResult
 
-  // Starts the wrapper-managed run: either by queuing for a permit or by delegating immediately when no limit applies.
+  // Starts a new wrapper-managed run, either by entering the limiter queue or by delegating immediately if no waiting is required.
   private def startInternal(prioritized: Boolean)(implicit user: UserContext): Unit = {
     val (runId, currentLimit, currentKey, completion) = Lock.synchronized {
       if(wrappedStatus().isRunning) {
@@ -275,7 +283,7 @@ private[activity] class QueuedActivityControl[T](delegate: ActivityControl[T],
     }
   }
 
-  // Hands execution over to the underlying control and completes the wrapper future when the delegate finishes.
+  // Transfers control from the wrapper to the delegate exactly once for the current run and arranges final wrapper completion afterwards.
   private def startDelegate(runId: Long,
                             prioritized: Boolean,
                             permit: Option[ActivityExecutionLimiter.ActivityExecutionPermit],
@@ -377,6 +385,7 @@ private[activity] class QueuedActivityControl[T](delegate: ActivityControl[T],
     }
   }
 
+  // Returns the current wrapper completion future, or an already completed one if no wrapper-managed run is active anymore.
   private def currentCompletionFuture(): CompletableFuture[Unit] = {
     completionFuture.getOrElse {
       val completedFuture = new CompletableFuture[Unit]()
@@ -405,7 +414,7 @@ private[activity] class QueuedActivityControl[T](delegate: ActivityControl[T],
     }
   }
 
-  // Starts the replacement run only for the latest still-pending restart request.
+  // Starts the replacement run only for the latest still-pending restart request, so stale restart futures cannot start extra runs later.
   private def startLatestRestartIfPending(restartRequestId: Long)(implicit user: UserContext): Unit = {
     val shouldStart =
       Lock.synchronized {

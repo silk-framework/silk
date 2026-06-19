@@ -4,6 +4,12 @@ import java.util.concurrent.Executors
 import java.util.concurrent.atomic.AtomicBoolean
 import scala.collection.mutable
 
+/**
+ * Coordinates per-key activity execution limits with FIFO queueing.
+ *
+ * Waiting for a slot is offloaded to virtual threads so queued workflow starts do not occupy the main activity pools.
+ * The limiter keeps only in-memory state and cleans up each key as soon as there are no running executions and no queued waiters left.
+ */
 object ActivityExecutionLimiter {
 
   final case class QueueToken private(id: Long)
@@ -41,6 +47,7 @@ object ActivityExecutionLimiter {
     })
   }
 
+  // Either acquires a running slot immediately or appends the caller to the tail of the FIFO queue for this limiter key.
   def requestSlot(key: ActivityLimiterKey, maxParallelExecutions: Option[Int]): SlotRequestResult = {
     val state = stateFor(key)
     state.monitor.synchronized {
@@ -55,6 +62,7 @@ object ActivityExecutionLimiter {
     }
   }
 
+  // Converts a queued token into a permit only for the queue head and only if the current limit allows another running execution.
   def acquireQueued(key: ActivityLimiterKey, token: QueueToken, maxParallelExecutions: Option[Int]): Option[ActivityExecutionPermit] = {
     stateOption(key).flatMap { state =>
       state.monitor.synchronized {
@@ -80,6 +88,7 @@ object ActivityExecutionLimiter {
     }
   }
 
+  // Repeatedly tries to acquire a permit for a single caller, queueing once if needed and re-checking on wakeups, cancellations, and limit changes.
   def awaitPermit(key: ActivityLimiterKey,
                   currentLimit: => Option[Int],
                   isCancelled: () => Boolean,
@@ -141,6 +150,7 @@ object ActivityExecutionLimiter {
     }.getOrElse(0)
   }
 
+  // Releases a previously acquired permit, wakes queued waiters, and drops the whole key state once it becomes idle.
   private def release(key: ActivityLimiterKey): Unit = {
     stateOption(key).foreach { state =>
       state.monitor.synchronized {
@@ -172,6 +182,7 @@ object ActivityExecutionLimiter {
     state.monitor.notifyAll()
   }
 
+  // Removes the in-memory state only if this exact state instance is still current, so stale cleanup from older races cannot remove a recreated queue.
   private def cleanupIfIdle(key: ActivityLimiterKey, state: ActivityExecutionState): Unit = {
     if(state.runningExecutions <= 0 && state.queue.isEmpty) {
       this.synchronized {
