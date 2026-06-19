@@ -1,6 +1,7 @@
 package org.silkframework.workspace.activity.workflow
 
 import org.silkframework.config.Task
+import org.silkframework.rule.RuleBlockSpec
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.workspace.exceptions.TaskValidationException
 import org.silkframework.workspace.{DefaultTaskValidator, Project}
@@ -18,6 +19,7 @@ object WorkflowValidator extends DefaultTaskValidator[Workflow] {
                        (implicit userContext: UserContext): Unit = {
     super.validate(project, task)
     checkWorkflowNesting(project, task)
+    checkNoRuleBlocks(project, task)
   }
 
   /**
@@ -55,6 +57,24 @@ object WorkflowValidator extends DefaultTaskValidator[Workflow] {
       nestedWorkflow <- project.taskOption[Workflow](node.task)
     } yield {
       nestedWorkflow
+    }
+  }
+
+  private def checkNoRuleBlocks(project: Project, workflow: Task[Workflow])
+                               (implicit userContext: UserContext): Unit = {
+    val ruleBlocksInWorkflow =
+      for {
+        node <- workflow.data.nodes
+        ruleBlock <- project.taskOption[RuleBlockSpec](node.task)
+      } yield {
+        ruleBlock.label()
+      }
+
+    if(ruleBlocksInWorkflow.nonEmpty) {
+      throw new TaskValidationException(
+        s"Workflow ${workflow.label()} must not contain rule blocks. " +
+          s"Affected task(s): ${ruleBlocksInWorkflow.distinct.sorted.mkString(", ")}"
+      )
     }
   }
 
