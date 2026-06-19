@@ -12,7 +12,7 @@ import org.silkframework.workspace.activity.{ActivityLimit, ActivityLimiterKey, 
 )
 case class WorkflowExecutionActivityLimit() extends ActivityLimit {
 
-  private val guardedActivityIds = Set("ExecuteLocalWorkflow", "ExecuteSparkWorkflow", "ExecuteWorkflowWithPayload")
+  private val guardedActivityIds = Set("ExecuteDefaultWorkflow", "ExecuteLocalWorkflow", "ExecuteSparkWorkflow", "ExecuteWorkflowWithPayload")
 
   override def limitFor(task: Option[ProjectTask[_ <: TaskSpec]], factory: WorkspaceActivityFactory): Option[Int] = {
     task.collect {

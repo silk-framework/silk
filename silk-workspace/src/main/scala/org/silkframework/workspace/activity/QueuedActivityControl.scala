@@ -46,6 +46,12 @@ private[activity] class QueuedActivityControl[T](delegate: ActivityControl[T],
   @volatile
   private var waitFuture: Option[JFuture[_]] = None
 
+  @volatile
+  private var currentQueuedToken: Option[ActivityExecutionLimiter.QueueToken] = None
+
+  @volatile
+  private var currentLimiterKey: Option[ActivityLimiterKey] = None
+
   // Tracks wrapper completion, including queued cancellation before the delegate ever starts.
   @volatile
   private var completionFuture: Option[CompletableFuture[Unit]] = None
@@ -116,7 +122,11 @@ private[activity] class QueuedActivityControl[T](delegate: ActivityControl[T],
       Lock.synchronized {
         if(isQueued) {
           bypassLimiter = true
-          (Some((currentRunId, currentCompletionFuture(), waitFuture)), false)
+          val limiterState = currentLimiterKey.flatMap { key =>
+            currentQueuedToken.map(token => (key, token))
+          }
+          currentQueuedToken = None
+          (Some((currentRunId, currentCompletionFuture(), waitFuture, limiterState)), false)
         } else if(delegateStarted) {
           (None, true)
         } else {
@@ -125,7 +135,10 @@ private[activity] class QueuedActivityControl[T](delegate: ActivityControl[T],
       }
 
     queuedRun match {
-      case Some((queuedRunId, currentCompletion, queuedWaitFuture)) =>
+      case Some((queuedRunId, currentCompletion, queuedWaitFuture, limiterState)) =>
+        limiterState.foreach { case (key, token) =>
+          ActivityExecutionLimiter.cancelQueued(key, token)
+        }
         queuedWaitFuture.foreach(_.cancel(true))
         startDelegate(queuedRunId, prioritized = true, permit = None, currentCompletion)
       case None if prioritizeDelegate =>
@@ -137,16 +150,23 @@ private[activity] class QueuedActivityControl[T](delegate: ActivityControl[T],
 
   // Cancels either the queued wrapper run or the already started delegate execution, depending on the current state.
   override def cancel()(implicit user: UserContext): Unit = {
-    val futureToCancel =
+    val (futureToCancel, limiterState) =
       Lock.synchronized {
         if(isQueued) {
           queuedCanceled = true
           wrappedStatus.update(Canceling(wrappedStatus().progress))
-          waitFuture
+          val limiterState = currentLimiterKey.flatMap { key =>
+            currentQueuedToken.map(token => (key, token))
+          }
+          currentQueuedToken = None
+          (waitFuture, limiterState)
         } else {
-          None
+          (None, None)
         }
       }
+    limiterState.foreach { case (key, token) =>
+      ActivityExecutionLimiter.cancelQueued(key, token)
+    }
     futureToCancel match {
       case Some(future) =>
         future.cancel(true)
@@ -184,6 +204,7 @@ private[activity] class QueuedActivityControl[T](delegate: ActivityControl[T],
       queuedCanceled = false
       delegateStarted = false
       bypassLimiter = prioritized
+      currentQueuedToken = None
       val completionFuture = new CompletableFuture[Unit]()
       this.completionFuture = Some(completionFuture)
       val limitValue = if(prioritized) {
@@ -192,6 +213,7 @@ private[activity] class QueuedActivityControl[T](delegate: ActivityControl[T],
         limit.limitFor(task, factory)
       }
       val limiterKey = limit.limiterKey(task.map(_.project.id), task.map(_.id))
+      currentLimiterKey = Some(limiterKey)
       (currentRunId, limitValue, limiterKey, completionFuture)
     }
 
@@ -207,7 +229,13 @@ private[activity] class QueuedActivityControl[T](delegate: ActivityControl[T],
           val permit = ActivityExecutionLimiter.awaitPermit(
             key = currentKey,
             currentLimit = limit.limitFor(task, factory),
-            isCancelled = () => queuedCanceled || bypassLimiter || currentRunId != runId
+            isCancelled = () => queuedCanceled || bypassLimiter || currentRunId != runId,
+            onQueuedTokenChanged = token =>
+              Lock.synchronized {
+                if(currentRunId == runId && !delegateStarted) {
+                  currentQueuedToken = token
+                }
+              }
           )
           permit match {
             case Some(acquiredPermit) =>
@@ -242,18 +270,27 @@ private[activity] class QueuedActivityControl[T](delegate: ActivityControl[T],
                             prioritized: Boolean,
                             permit: Option[ActivityExecutionLimiter.ActivityExecutionPermit],
                             completion: CompletableFuture[Unit]): Unit = {
-    val shouldStart =
+    QueuedActivityControlTestHooks.beforeDelegateStart(permit.isDefined)
+
+    val (shouldStart, cancelledBeforeDelegateStart) =
       Lock.synchronized {
         if(currentRunId != runId || delegateStarted) {
-          false
+          (false, false)
+        } else if(queuedCanceled) {
+          (false, true)
         } else {
           delegateStarted = true
           queuedCanceled = false
           bypassLimiter = false
           waitFuture = None
-          true
+          (true, false)
         }
       }
+    if(cancelledBeforeDelegateStart) {
+      permit.foreach(_.release())
+      finishQueuedCancellation(runId, completion)
+      return
+    }
     if(!shouldStart) {
       permit.foreach(_.release())
       return
@@ -324,6 +361,8 @@ private[activity] class QueuedActivityControl[T](delegate: ActivityControl[T],
         waitFuture = None
         delegateStarted = false
         bypassLimiter = false
+        currentQueuedToken = None
+        currentLimiterKey = None
       }
     }
   }
@@ -348,4 +387,21 @@ private[activity] class QueuedActivityControl[T](delegate: ActivityControl[T],
     currentRunId == runId
   }
 
+}
+
+private[activity] object QueuedActivityControlTestHooks {
+  @volatile
+  private var beforeDelegateStartHook: Boolean => Unit = _ => ()
+
+  def beforeDelegateStart(permitAcquired: Boolean): Unit = {
+    beforeDelegateStartHook(permitAcquired)
+  }
+
+  def setBeforeDelegateStartHook(hook: Boolean => Unit): Unit = {
+    beforeDelegateStartHook = hook
+  }
+
+  def reset(): Unit = {
+    beforeDelegateStartHook = _ => ()
+  }
 }

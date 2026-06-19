@@ -83,7 +83,8 @@ object ActivityExecutionLimiter {
   def awaitPermit(key: ActivityLimiterKey,
                   currentLimit: => Option[Int],
                   isCancelled: () => Boolean,
-                  timeoutMs: Long = 500L): Option[ActivityExecutionPermit] = {
+                  timeoutMs: Long = 500L,
+                  onQueuedTokenChanged: Option[QueueToken] => Unit = _ => ()): Option[ActivityExecutionPermit] = {
     var queuedToken: Option[QueueToken] = None
     var acquiredPermit = false
 
@@ -97,11 +98,14 @@ object ActivityExecutionLimiter {
                 return Some(permit)
               case Queued(token) =>
                 queuedToken = Some(token)
+                onQueuedTokenChanged(Some(token))
             }
           case Some(token) =>
             acquireQueued(key, token, currentLimit) match {
               case Some(permit) =>
                 acquiredPermit = true
+                queuedToken = None
+                onQueuedTokenChanged(None)
                 return Some(permit)
               case None =>
                 val state = stateOption(key).getOrElse(return None)
@@ -118,6 +122,9 @@ object ActivityExecutionLimiter {
     } finally {
       if(!acquiredPermit) {
         queuedToken.foreach(token => cancelQueued(key, token))
+        if(queuedToken.nonEmpty) {
+          onQueuedTokenChanged(None)
+        }
       }
     }
   }
