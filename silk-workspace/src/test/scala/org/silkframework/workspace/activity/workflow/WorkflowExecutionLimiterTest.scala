@@ -188,15 +188,20 @@ class WorkflowExecutionLimiterTest extends AnyFlatSpec with Matchers with Eventu
   it should "re-evaluate the workflow limit while waiting" in {
     QueueControlledActivityState.reset()
     val workflowTask = createLimitedWorkflow("reconfigure")
+    val limiterKey = ActivityLimiterKey(Some(workflowTask.project.id), Some(workflowTask.id), "workflow-execution")
     val firstControl = guardedControl(workflowTask, Activity(QueueControlledActivity()))
     val secondControl = guardedControl(workflowTask, Activity(QueueControlledActivity()))
 
     try {
       startAndAwaitQueuedOrRunning(firstControl, testUserContext("urn:test:first"))
-      startAndAwaitQueuedOrRunning(secondControl, testUserContext("urn:test:second"))
-
       QueueControlledActivityState.awaitStartedExecutions(1)
       eventually {
+        firstControl.status() shouldBe a[Status.Running]
+      }
+
+      startAndAwaitQueuedOrRunning(secondControl, testUserContext("urn:test:second"))
+      eventually {
+        ActivityExecutionLimiter.queuedCount(limiterKey) shouldBe 1
         secondControl.status() shouldBe a[Waiting]
       }
 
