@@ -123,7 +123,11 @@ trait WorkflowExecutor[ExecType <: ExecutionType] extends Activity[WorkflowExecu
     }
 
     def currentLimit: Option[Int] = {
-      workflowTask.data.maxParallelExecutions.value
+      implicit val userContext: UserContext = context.startedBy
+      workflowTask.project
+        .taskOption[Workflow](workflowTask.id)
+        .map(_.data.maxParallelExecutions.value)
+        .getOrElse(workflowTask.data.maxParallelExecutions.value)
     }
 
     if(currentLimit.isEmpty) {
@@ -195,12 +199,7 @@ trait WorkflowExecutor[ExecType <: ExecutionType] extends Activity[WorkflowExecu
     if(!waitingStatusReported) {
       context.status.update(s"Waiting for workflow execution slot of '${workflowTask.id}'", 0.0)
     }
-    val waitMonitor = WorkflowExecutionLimiter.waitMonitor(workflowKey).getOrElse(WorkflowExecutionLimiter)
-    context.blockUntilNotified(
-      waitMonitor,
-      () => waitingCancelled || WorkflowExecutionLimiter.canAcquireQueued(workflowKey, queuedToken, currentLimit),
-      timeoutMs = 500L
-    )
+    context.blockUntil(() => waitingCancelled || WorkflowExecutionLimiter.canAcquireQueued(workflowKey, queuedToken, currentLimit))
     true
   }
 

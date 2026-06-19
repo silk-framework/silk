@@ -12,7 +12,8 @@ import scala.collection.mutable
   * running executions and a FIFO queue of waiting executions. A workflow start either acquires a slot immediately
   * or gets a queue token that represents its waiting position. Waiting executions do not block activity pool
   * threads themselves. Instead, the workflow executor uses the queue token together with `ActivityContext.blockUntil`
-  * and retries acquisition once the queued execution reaches the queue head and the configured limit allows it.
+  * and periodically retries acquisition once the queued execution reaches the queue head and the configured limit
+  * allows it.
   *
   * Limits are re-evaluated on every acquisition attempt, so runtime configuration changes affect only new starts
   * and executions that are still waiting for a slot.
@@ -53,7 +54,6 @@ private[workflow] object WorkflowExecutionLimiter {
       if(state.queue.nonEmpty || limitReached(state, maxParallelExecutions)) {
         val token = nextQueueToken()
         state.queue.enqueue(token)
-        signalStateChanged(state)
         Queued(token)
       } else {
         state.runningExecutions += 1
@@ -78,7 +78,6 @@ private[workflow] object WorkflowExecutionLimiter {
         if(state.queue.headOption.contains(token) && !limitReached(state, maxParallelExecutions)) {
           state.queue.dequeue()
           state.runningExecutions += 1
-          signalStateChanged(state)
           Some(new WorkflowExecutionPermit(key))
         } else {
           None
@@ -92,15 +91,9 @@ private[workflow] object WorkflowExecutionLimiter {
     stateOption(key).foreach { state =>
       state.monitor.synchronized {
         state.queue.dequeueFirst(_ == token)
-        signalStateChanged(state)
         cleanupIfIdle(key, state)
       }
     }
-  }
-
-  /** Returns the monitor for a workflow queue wait. Waiters use timeout-backed waits on this monitor. */
-  def waitMonitor(key: WorkflowExecutionKey): Option[AnyRef] = {
-    stateOption(key).map(_.monitor)
   }
 
   /** Visible for tests that need to verify whether a specific workflow is currently tracked by the limiter. */
@@ -121,7 +114,6 @@ private[workflow] object WorkflowExecutionLimiter {
     stateOption(key).foreach { state =>
       state.monitor.synchronized {
         state.runningExecutions -= 1
-        signalStateChanged(state)
         cleanupIfIdle(key, state)
       }
     }
@@ -142,10 +134,6 @@ private[workflow] object WorkflowExecutionLimiter {
 
   private def limitReached(state: WorkflowExecutionState, maxParallelExecutions: Option[Int]): Boolean = {
     maxParallelExecutions.exists(limit => state.runningExecutions >= limit)
-  }
-
-  private def signalStateChanged(state: WorkflowExecutionState): Unit = {
-    state.monitor.notifyAll()
   }
 
   private def cleanupIfIdle(key: WorkflowExecutionKey, state: WorkflowExecutionState): Unit = {
