@@ -52,6 +52,13 @@ private[activity] class QueuedActivityControl[T](delegate: ActivityControl[T],
   @volatile
   private var currentLimiterKey: Option[ActivityLimiterKey] = None
 
+  // Tracks the latest queued/running restart request so overlapping restarts collapse into one replacement run.
+  @volatile
+  private var pendingRestartRequestId: Option[Long] = None
+
+  @volatile
+  private var nextRestartRequestId = 0L
+
   // Tracks wrapper completion, including queued cancellation before the delegate ever starts.
   @volatile
   private var completionFuture: Option[CompletableFuture[Unit]] = None
@@ -88,14 +95,16 @@ private[activity] class QueuedActivityControl[T](delegate: ActivityControl[T],
 
   // Restarts the wrapper-managed run, so queued executions are cancelled and re-enter through the limiter again.
   override def restart()(implicit user: UserContext): Future[Unit] = {
+    val (restartRequestId, completionToWaitFor) = Lock.synchronized {
+      nextRestartRequestId += 1
+      val restartRequestId = nextRestartRequestId
+      pendingRestartRequestId = Some(restartRequestId)
+      (restartRequestId, currentCompletionFuture())
+    }
     cancel()
     Future {
-      Try(waitUntilFinished())
-      try {
-        start()
-      } catch {
-        case _: IllegalStateException =>
-      }
+      Try(waitForCompletion(completionToWaitFor))
+      startLatestRestartIfPending(restartRequestId)
     }
   }
 
@@ -199,6 +208,7 @@ private[activity] class QueuedActivityControl[T](delegate: ActivityControl[T],
         throw new IllegalStateException(s"Cannot start while activity '$name' is still running!")
       }
       currentRunId += 1
+      pendingRestartRequestId = None
       pendingUser = user
       queuedAt = Some(Instant.now())
       queuedCanceled = false
@@ -385,6 +395,34 @@ private[activity] class QueuedActivityControl[T](delegate: ActivityControl[T],
 
   private def isCurrentRun(runId: Long): Boolean = Lock.synchronized {
     currentRunId == runId
+  }
+
+  private def waitForCompletion(completion: CompletableFuture[Unit]): Unit = {
+    try {
+      completion.join()
+    } catch {
+      case _: CompletionException =>
+    }
+  }
+
+  // Starts the replacement run only for the latest still-pending restart request.
+  private def startLatestRestartIfPending(restartRequestId: Long)(implicit user: UserContext): Unit = {
+    val shouldStart =
+      Lock.synchronized {
+        if(pendingRestartRequestId.contains(restartRequestId) && !wrappedStatus().isRunning) {
+          pendingRestartRequestId = None
+          true
+        } else {
+          false
+        }
+      }
+    if(shouldStart) {
+      try {
+        startInternal(prioritized = false)
+      } catch {
+        case _: IllegalStateException =>
+      }
+    }
   }
 
 }

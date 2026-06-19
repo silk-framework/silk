@@ -456,6 +456,58 @@ class WorkflowExecutionLimiterTest extends AnyFlatSpec with Matchers with Eventu
     }
   }
 
+  it should "collapse overlapping queued restarts into a single replacement run" in {
+    QueueControlledActivityState.reset()
+    val workflowTask = createLimitedWorkflow("restartCollapsed")
+    val limiterKey = ActivityLimiterKey(Some(workflowTask.project.id), Some(workflowTask.id), "workflow-execution")
+    val activity = guardedActivity(workflowTask)
+
+    val firstId = startAndAwaitQueuedOrRunning(activity, testUserContext("urn:test:running"))
+    QueueControlledActivityState.awaitStartedExecutions(1)
+    val secondId = startAndAwaitQueuedOrRunning(activity, testUserContext("urn:test:queued-original"))
+    val thirdId = startAndAwaitQueuedOrRunning(activity, testUserContext("urn:test:queued-other"))
+    val firstControl = activity.instance(firstId)
+    val secondControl = activity.instance(secondId)
+    val thirdControl = activity.instance(thirdId)
+
+    try {
+      eventually {
+        ActivityExecutionLimiter.queuedCount(limiterKey) shouldBe 2
+      }
+
+      secondControl.restart()(testUserContext("urn:test:queued-restarted-1"))
+      secondControl.restart()(testUserContext("urn:test:queued-restarted-2"))
+
+      eventually {
+        ActivityExecutionLimiter.queuedCount(limiterKey) shouldBe 2
+        secondControl.status() shouldBe a[Waiting]
+      }
+      assertStartedExecutionsStay(1, 300.millis)
+
+      QueueControlledActivityState.releaseNext()
+      QueueControlledActivityState.awaitStartedExecutions(2)
+      QueueControlledActivityState.startedUsers.asScala.toSeq shouldBe Seq("urn:test:running", "urn:test:queued-other")
+      assertStartedExecutionsStay(2, 300.millis)
+
+      QueueControlledActivityState.releaseNext()
+      QueueControlledActivityState.awaitStartedExecutions(3)
+      QueueControlledActivityState.startedUsers.asScala.toSeq shouldBe Seq(
+        "urn:test:running",
+        "urn:test:queued-other",
+        "urn:test:queued-restarted-2"
+      )
+      assertStartedExecutionsStay(3, 300.millis)
+
+      QueueControlledActivityState.releaseNext()
+      awaitFinished(firstControl)
+      awaitFinished(secondControl)
+      awaitFinished(thirdControl)
+    } finally {
+      cancelAll(Seq(firstControl, secondControl, thirdControl))
+      QueueControlledActivityState.releaseAll()
+    }
+  }
+
   it should "keep other queued runs ordered when a later waiter is prioritized" in {
     QueueControlledActivityState.reset()
     val workflowTask = createLimitedWorkflow("prioritizedMultiple")
