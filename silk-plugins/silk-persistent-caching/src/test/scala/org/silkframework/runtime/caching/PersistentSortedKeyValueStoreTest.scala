@@ -38,6 +38,18 @@ class PersistentSortedKeyValueStoreTest extends AnyFlatSpec with Matchers {
     dir.toFile.deleteRecursive()
   }
 
+  it should "store temporary databases in a dedicated directory, not a shared temp directory" in {
+    TestFileUtils.withTempDirectory { cacheDir =>
+      ConfigTestTrait.withConfig("caches.persistence.directory" -> Some(cacheDir.getCanonicalPath)) {
+        // The temp DB directory is wiped recursively on startup, so it must stay exclusive to the store and
+        // not coincide with a generic 'tmp' dir shared with FileUtils.tempDir (which would delete unrelated files).
+        val tempDbDir = PersistentSortedKeyValueStore.tempCacheDirectory.getCanonicalFile
+        tempDbDir.getParentFile mustBe cacheDir.getCanonicalFile
+        tempDbDir.getName must not be "tmp"
+      }
+    }
+  }
+
   it should "store and retrieve single string values to/from the store" in {
     withStore() { store =>
       for(value <- values) {
