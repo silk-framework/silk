@@ -1,9 +1,9 @@
 package org.silkframework.workspace.activity.workflow
 
-
-import org.silkframework.config.{PlainTask, Task}
+import org.silkframework.config.{MetaData, PlainTask, Task}
 import org.silkframework.runtime.activity.TestUserContextTrait
 import org.silkframework.runtime.plugin.types.IntOptionParameter
+import org.silkframework.runtime.resource.InMemoryResourceManager
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.exceptions.TaskValidationException
 import org.silkframework.workspace.{Project, TestWorkspaceProviderTestTrait}
@@ -48,6 +48,24 @@ class WorkflowValidatorTest extends AnyFlatSpec with Matchers with TestWorkspace
 
     an[IllegalArgumentException] should be thrownBy Workflow(maxParallelExecutions = IntOptionParameter(Some(0)))
     an[IllegalArgumentException] should be thrownBy Workflow(maxParallelExecutions = IntOptionParameter(Some(-1)))
+  }
+
+  it should "invalidate serialized workflows that bypass nested workflow validation during project load" in {
+    val projectId = "WorkflowLoadValidationTest"
+    val projectConfig = org.silkframework.workspace.ProjectConfig(projectId, metaData = MetaData(Some(projectId)))
+    val resources = InMemoryResourceManager()
+
+    workspaceProvider.putProject(projectConfig)
+    workspaceProvider.putTask(projectId, createWorkflow("workflow1", nestedWorkflowIds = Seq.empty), resources)
+    workspaceProvider.putTask(projectId, createWorkflow("workflow2", nestedWorkflowIds = Seq("workflow1")), resources)
+    workspaceProvider.putTask(projectId, createWorkflow("workflow3", nestedWorkflowIds = Seq("workflow2")), resources)
+
+    val project = new Project(projectConfig, workspaceProvider, resources, userContext)
+
+    project.taskOption[Workflow]("workflow1") should not be empty
+    project.taskOption[Workflow]("workflow2") shouldBe empty
+    project.taskOption[Workflow]("workflow3") shouldBe empty
+    project.loadingErrors.map(_.taskId) should contain allOf("workflow2", "workflow3")
   }
 
   private def update(project: Project, workflow: Task[Workflow]): Unit = {

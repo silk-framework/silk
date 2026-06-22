@@ -100,7 +100,8 @@ private class ActivityExecution[T](activity: Activity[T],
   }
 
   override def startPrioritized()(implicit user: UserContext): Unit = {
-    initStatus(allowWaiting = true)
+    val prioritizedUser = user.withExecutionContext(user.executionContext.copy(prioritized = true))
+    initStatus(allowWaiting = true)(prioritizedUser)
     user.user match {
       case Some(u) if u.uri.nonEmpty => log.info(s"Activity '${activity.name}' ${projectAndTaskId.map(_.toString).getOrElse("")} has been " +
         s"started prioritized, skipping the waiting queue. (triggered by user with URI: ${u.uri})")
@@ -112,7 +113,7 @@ private class ActivityExecution[T](activity: Activity[T],
         throw new IllegalStateException(s"Cannot prioritize activity '${this.activity.name}' because the current execution could not be cancelled.")
       }
     }
-    runForkJoin(prioritized = true)
+    runForkJoin(prioritized = true)(prioritizedUser)
   }
 
   private def runForkJoin(prioritized: Boolean = false)(implicit user: UserContext): Unit = {

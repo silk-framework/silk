@@ -111,6 +111,42 @@ trait WorkflowExecutor[ExecType <: ExecutionType] extends Activity[WorkflowExecu
     def apply(permit: WorkflowExecutionLimiter.WorkflowExecutionPermit): ExecutionPermitHandle = () => permit.release()
   }
 
+  /**
+    * Reads the current workflow-specific parallel limit for this start attempt.
+    *
+    * This is separated into its own hook so tests can override limit lookup and trigger deterministic
+    * reconfiguration or failure scenarios while a workflow run is waiting for a slot.
+    */
+  protected def currentWorkflowExecutionLimit(context: ActivityContext[WorkflowExecutionReport]): Option[Int] = {
+    implicit val userContext: UserContext = context.startedBy
+    workflowTask.project
+      .taskOption[Workflow](workflowTask.id)
+      .map(_.data.maxParallelExecutions.value)
+      .getOrElse(workflowTask.data.maxParallelExecutions.value)
+  }
+
+  /**
+    * Hook that is invoked immediately after a queued workflow run receives its queue token.
+    *
+    * This exists only as a test seam at the moment. Tests can override it to make race conditions around queueing
+    * deterministically testable without changing the production behavior. The default implementation does nothing.
+    */
+  protected def afterQueuedTokenAssigned(context: ActivityContext[WorkflowExecutionReport],
+                                         workflowKey: WorkflowExecutionLimiter.WorkflowExecutionKey,
+                                         queuedToken: WorkflowExecutionLimiter.QueueToken): Unit = {
+  }
+
+  /**
+    * Hook that is invoked immediately before a queued workflow run attempts to acquire the next free permit.
+    *
+    * This exists only as a test seam at the moment. Tests can override it to make race conditions at the
+    * queue-to-running handoff deterministically testable without changing the production behavior.
+    */
+  protected def beforeQueuedPermitAcquire(context: ActivityContext[WorkflowExecutionReport],
+                                          workflowKey: WorkflowExecutionLimiter.WorkflowExecutionKey,
+                                          queuedToken: WorkflowExecutionLimiter.QueueToken): Unit = {
+  }
+
   /** Returns a permit handle if this workflow execution may start, or None if it was cancelled while waiting for a slot. */
   protected final def acquireExecutionPermit(context: ActivityContext[WorkflowExecutionReport]): Option[ExecutionPermitHandle] = {
     val workflowKey = WorkflowExecutionLimiter.WorkflowExecutionKey(workflowTask.project.id, workflowTask.id)
@@ -122,13 +158,7 @@ trait WorkflowExecutor[ExecType <: ExecutionType] extends Activity[WorkflowExecu
       cancelled || context.status().isInstanceOf[Canceling]
     }
 
-    def currentLimit: Option[Int] = {
-      implicit val userContext: UserContext = context.startedBy
-      workflowTask.project
-        .taskOption[Workflow](workflowTask.id)
-        .map(_.data.maxParallelExecutions.value)
-        .getOrElse(workflowTask.data.maxParallelExecutions.value)
-    }
+    def currentLimit: Option[Int] = currentWorkflowExecutionLimit(context)
 
     if(currentLimit.isEmpty) {
       // Workflows without limit skip the queue.
@@ -141,27 +171,37 @@ trait WorkflowExecutor[ExecType <: ExecutionType] extends Activity[WorkflowExecu
         while(!waitingCancelled) {
           queuedToken match {
             case None =>
-              requestInitialPermit(workflowKey, currentLimit) match {
+              requestInitialPermit(
+                workflowKey = workflowKey,
+                currentLimit = currentLimit,
+                prioritized = context.startedBy.executionContext.prioritized
+              ) match {
                 case Left(permitHandle) =>
                   acquiredPermit = true
                   return Some(permitHandle)
                 case Right(token) =>
                   queuedToken = Some(token)
+                  afterQueuedTokenAssigned(context, workflowKey, token)
               }
             case Some(token) =>
-              acquireQueuedPermit(workflowKey, token, currentLimit) match {
-                case Some(permitHandle) =>
-                  acquiredPermit = true
-                  return Some(permitHandle)
-                case None =>
-                  waitingStatusReported = waitForExecutionSlot(
-                    context = context,
-                    workflowKey = workflowKey,
-                    queuedToken = token,
-                    currentLimit = currentLimit,
-                    waitingCancelled = waitingCancelled,
-                    waitingStatusReported = waitingStatusReported
-                  )
+              beforeQueuedPermitAcquire(context, workflowKey, token)
+              if(waitingCancelled) {
+                return None
+              } else {
+                acquireQueuedPermit(workflowKey, token, currentLimit) match {
+                  case Some(permitHandle) =>
+                    acquiredPermit = true
+                    return Some(permitHandle)
+                  case None =>
+                    waitingStatusReported = waitForExecutionSlot(
+                      context = context,
+                      workflowKey = workflowKey,
+                      queuedToken = token,
+                      currentLimit = currentLimit,
+                      waitingCancelled = waitingCancelled,
+                      waitingStatusReported = waitingStatusReported
+                    )
+                }
               }
           }
         }
@@ -175,8 +215,9 @@ trait WorkflowExecutor[ExecType <: ExecutionType] extends Activity[WorkflowExecu
   }
 
   private def requestInitialPermit(workflowKey: WorkflowExecutionLimiter.WorkflowExecutionKey,
-                                   currentLimit: Option[Int]): Either[ExecutionPermitHandle, WorkflowExecutionLimiter.QueueToken] = {
-    WorkflowExecutionLimiter.requestSlot(workflowKey, currentLimit) match {
+                                   currentLimit: Option[Int],
+                                   prioritized: Boolean): Either[ExecutionPermitHandle, WorkflowExecutionLimiter.QueueToken] = {
+    WorkflowExecutionLimiter.requestSlot(workflowKey, currentLimit, prioritized = prioritized) match {
       case WorkflowExecutionLimiter.Acquired(permit) =>
         Left(ExecutionPermitHandle(permit))
       case WorkflowExecutionLimiter.Queued(token) =>

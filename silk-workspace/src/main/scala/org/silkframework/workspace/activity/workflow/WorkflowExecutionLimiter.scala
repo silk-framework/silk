@@ -9,11 +9,12 @@ import scala.collection.mutable
   * Coordinates per-workflow execution limits across all workflow starts.
   *
   * The limiter keeps one in-memory state bucket per workflow task. Each bucket tracks the number of currently
-  * running executions and a FIFO queue of waiting executions. A workflow start either acquires a slot immediately
-  * or gets a queue token that represents its waiting position. Waiting executions do not block activity pool
-  * threads themselves. Instead, the workflow executor uses the queue token together with `ActivityContext.blockUntil`
-  * and periodically retries acquisition once the queued execution reaches the queue head and the configured limit
-  * allows it.
+  * running executions and waiting queues for prioritized and normal starts. A workflow start either acquires a slot
+  * immediately or gets a queue token that represents its waiting position. Waiting executions do not block activity
+  * pool threads themselves. Instead, the workflow executor uses the queue token together with
+  * `ActivityContext.blockUntil` and periodically retries acquisition once the queued execution reaches the effective
+  * queue head and the configured limit allows it. Prioritized starts are admitted before normal queued starts while
+  * keeping FIFO order within each priority lane.
   *
   * Limits are re-evaluated on every acquisition attempt, so runtime configuration changes affect only new starts
   * and executions that are still waiting for a slot.
@@ -41,19 +42,51 @@ private[workflow] object WorkflowExecutionLimiter {
   }
 
   private case class WorkflowExecutionState(var runningExecutions: Int = 0,
+                                            prioritizedQueue: mutable.Queue[QueueToken] = mutable.Queue.empty,
                                             queue: mutable.Queue[QueueToken] = mutable.Queue.empty,
-                                            monitor: AnyRef = new Object())
+                                            monitor: AnyRef = new Object()) {
+    def headOption: Option[QueueToken] = prioritizedQueue.headOption.orElse(queue.headOption)
+
+    def dequeueHead(): QueueToken = {
+      if(prioritizedQueue.nonEmpty) {
+        prioritizedQueue.dequeue()
+      } else {
+        queue.dequeue()
+      }
+    }
+
+    def removeQueued(token: QueueToken): Unit = {
+      if(!prioritizedQueue.dequeueFirst(_ == token).isDefined) {
+        queue.dequeueFirst(_ == token)
+      }
+    }
+
+    def queuedCount: Int = prioritizedQueue.size + queue.size
+
+    def hasQueuedExecutions: Boolean = prioritizedQueue.nonEmpty || queue.nonEmpty
+  }
 
   private val workflowStates = mutable.Map.empty[WorkflowExecutionKey, WorkflowExecutionState]
   private var nextQueueTokenId = 0L
 
-  /** Tries to acquire a slot for a new workflow start or enqueues it at the tail of the FIFO wait queue. */
-  def requestSlot(key: WorkflowExecutionKey, maxParallelExecutions: Option[Int]): SlotRequestResult = {
+  /**
+    * Tries to acquire a slot for a new workflow start or enqueues it in the workflow wait queue.
+    *
+    * Prioritized starts still respect the workflow-specific execution limit, but they enter ahead of normal queued
+    * starts. FIFO order is preserved within each queue lane.
+    */
+  def requestSlot(key: WorkflowExecutionKey,
+                  maxParallelExecutions: Option[Int],
+                  prioritized: Boolean = false): SlotRequestResult = {
     val state = stateFor(key)
     state.monitor.synchronized {
-      if(state.queue.nonEmpty || limitReached(state, maxParallelExecutions)) {
+      if(state.hasQueuedExecutions || limitReached(state, maxParallelExecutions)) {
         val token = nextQueueToken()
-        state.queue.enqueue(token)
+        if(prioritized) {
+          state.prioritizedQueue.enqueue(token)
+        } else {
+          state.queue.enqueue(token)
+        }
         Queued(token)
       } else {
         state.runningExecutions += 1
@@ -66,7 +99,7 @@ private[workflow] object WorkflowExecutionLimiter {
   def canAcquireQueued(key: WorkflowExecutionKey, token: QueueToken, maxParallelExecutions: Option[Int]): Boolean = {
     stateOption(key).exists { state =>
       state.monitor.synchronized {
-        state.queue.headOption.contains(token) && !limitReached(state, maxParallelExecutions)
+        state.headOption.contains(token) && !limitReached(state, maxParallelExecutions)
       }
     }
   }
@@ -75,8 +108,8 @@ private[workflow] object WorkflowExecutionLimiter {
   def acquireQueued(key: WorkflowExecutionKey, token: QueueToken, maxParallelExecutions: Option[Int]): Option[WorkflowExecutionPermit] = {
     stateOption(key).flatMap { state =>
       state.monitor.synchronized {
-        if(state.queue.headOption.contains(token) && !limitReached(state, maxParallelExecutions)) {
-          state.queue.dequeue()
+        if(state.headOption.contains(token) && !limitReached(state, maxParallelExecutions)) {
+          state.dequeueHead()
           state.runningExecutions += 1
           Some(new WorkflowExecutionPermit(key))
         } else {
@@ -90,7 +123,7 @@ private[workflow] object WorkflowExecutionLimiter {
   def cancelQueued(key: WorkflowExecutionKey, token: QueueToken): Unit = {
     stateOption(key).foreach { state =>
       state.monitor.synchronized {
-        state.queue.dequeueFirst(_ == token)
+        state.removeQueued(token)
         cleanupIfIdle(key, state)
       }
     }
@@ -105,9 +138,19 @@ private[workflow] object WorkflowExecutionLimiter {
   private[workflow] def queuedCount(key: WorkflowExecutionKey): Int = {
     stateOption(key).map { state =>
       state.monitor.synchronized {
-        state.queue.size
+        state.queuedCount
       }
     }.getOrElse(0)
+  }
+
+  /**
+    * Test-only helper that removes a workflow state bucket explicitly.
+    *
+    * Tests use this to simulate rare race conditions deterministically, e.g. the state disappearing while a queued
+    * execution still holds a queue token. Production code must never call this.
+    */
+  private[workflow] def removeStateForTests(key: WorkflowExecutionKey): Unit = this.synchronized {
+    workflowStates.remove(key)
   }
 
   private def release(key: WorkflowExecutionKey): Unit = {
@@ -137,7 +180,7 @@ private[workflow] object WorkflowExecutionLimiter {
   }
 
   private def cleanupIfIdle(key: WorkflowExecutionKey, state: WorkflowExecutionState): Unit = {
-    if(state.runningExecutions <= 0 && state.queue.isEmpty) {
+    if(state.runningExecutions <= 0 && !state.hasQueuedExecutions) {
       this.synchronized {
         workflowStates.get(key).foreach { currentState =>
           if(currentState eq state) {
