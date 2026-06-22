@@ -251,6 +251,42 @@ class WorkflowExecutionLimiterTest extends AnyFlatSpec with Matchers with Eventu
     }
   }
 
+  // FIXME: This is a known restriction of the workflow limiter currently. When many (multiple per second) short-running (> 500ms) instances
+  //  of the same workflow are started, the waiting overhead becomes significant.
+  it should "handoff queued fast workflows without poll-interval delay when the pool is otherwise idle" ignore {
+    QuickTaskState.reset()
+    val workflowTask = createQuickWorkflow("fastQueue", maxParallelExecutions = Some(1))
+
+    val controls =
+      (1 to 3).map { index =>
+        val control = Activity(LocalWorkflowExecutor(workflowTask))
+        control.start()(testUserContext(s"urn:test:fast-$index"))
+        control
+      }
+
+    try {
+      controls.foreach(awaitFinished)
+
+      QuickTaskState.executions.get() shouldBe 3
+      val startTimes = QuickTaskState.executionStartTimes()
+      startTimes should have size 3
+
+      val maxGapMillis = startTimes
+        .sliding(2)
+        .map {
+          case Seq(previous, next) => (next - previous).nanos.toMillis
+          case other => fail(s"Unexpected start time window: $other")
+        }
+        .max
+
+      withClue(s"Expected quick workflow handoff gaps to stay well below the 500 ms blockUntil poll interval, but saw $maxGapMillis ms.") {
+        maxGapMillis should be < 400L
+      }
+    } finally {
+      cancelAll(controls)
+    }
+  }
+
   private def createLimitedWorkflow(prefix: String): org.silkframework.workspace.ProjectTask[Workflow] = {
     val project = retrieveOrCreateProject(Identifier(s"${prefix}Project"))
     val blockingTaskId = Identifier(s"${prefix}BlockingTask")
@@ -296,7 +332,8 @@ class WorkflowExecutionLimiterTest extends AnyFlatSpec with Matchers with Eventu
     ))
   }
 
-  private def createQuickWorkflow(prefix: String): org.silkframework.workspace.ProjectTask[Workflow] = {
+  private def createQuickWorkflow(prefix: String,
+                                  maxParallelExecutions: Option[Int] = None): org.silkframework.workspace.ProjectTask[Workflow] = {
     val project = retrieveOrCreateProject(Identifier(s"${prefix}Project"))
     val quickTaskId = Identifier(s"${prefix}QuickTask")
     val workflowId = Identifier(s"${prefix}Workflow")
@@ -314,7 +351,8 @@ class WorkflowExecutionLimiterTest extends AnyFlatSpec with Matchers with Eventu
           configInputs = Seq.empty,
           dependencyInputs = Seq.empty
         )
-      ))
+      )),
+      maxParallelExecutions = IntOptionParameter(maxParallelExecutions)
     ))
   }
 
@@ -438,9 +476,20 @@ private case class QueueControlledTaskExecutor() extends Executor[QueueControlle
 
 private object QuickTaskState {
   val executions: AtomicInteger = new AtomicInteger(0)
+  private val startTimes = new ConcurrentLinkedQueue[java.lang.Long]()
 
   def reset(): Unit = {
     executions.set(0)
+    startTimes.clear()
+  }
+
+  def registerExecutionStart(): Unit = {
+    executions.incrementAndGet()
+    startTimes.add(System.nanoTime())
+  }
+
+  def executionStartTimes(): Seq[Long] = {
+    startTimes.asScala.iterator.map(_.longValue()).toSeq
   }
 }
 
@@ -456,7 +505,7 @@ private case class QuickTaskExecutor() extends Executor[QuickTask, ExecutionType
                        execution: ExecutionType,
                        context: ActivityContext[ExecutionReport])
                       (implicit pluginContext: PluginContext): Option[ExecutionType#DataType] = {
-    QuickTaskState.executions.incrementAndGet()
+    QuickTaskState.registerExecutionStart()
     None
   }
 }

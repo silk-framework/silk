@@ -44,8 +44,7 @@ case class Workflow(@Param(label = "Workflow operators", value = "Workflow opera
                       label = "Parallel workflow executions",
                       value = "Limits how many executions of this workflow may run in parallel. Leave empty for no workflow-specific limit. " +
                         "Values must be at least 1. Note: deprecated dataset clearing behavior may still clear outputs of nested workflows. " +
-                        "Use a dedicated clear operator instead of relying on that behavior.",
-                      visibleInDialog = false
+                        "Use a dedicated clear operator instead of relying on that behavior."
                     )
                     maxParallelExecutions: IntOptionParameter = IntOptionParameter(None)) extends TaskSpec with AnyPlugin {
 
