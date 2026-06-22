@@ -79,13 +79,23 @@ type CapturedRuleBlockEvaluationProps = {
 
 const createRuleBlockEditorGuiElementsModule = () => ({
     AlertDialog: jestTestUtils.createAlertDialogMock(),
-    Button: jestTestUtils.createButtonMock(({ affirmative, disruptive, tooltip, tooltipProps, loading, ...props }) => ({
-        ...props,
-        loading,
-        includeLoadingState: true,
-    })),
+    Button: jestTestUtils.createButtonMock(
+        ({ affirmative, disruptive, tooltip, tooltipProps, loading, elevated, ...props }) => ({
+            ...jestTestUtils.omitUnsupportedDomProps(props),
+            loading,
+            includeLoadingState: true,
+        }),
+    ),
+    Card: ({ children, elevation, whitespaceAmount, ...props }) => (
+        <div {...jestTestUtils.omitUnsupportedDomProps(props)}>{children}</div>
+    ),
+    CardActions: jestTestUtils.createDivPassthroughMock(),
+    CardActionsAux: jestTestUtils.createDivPassthroughMock(),
+    CardContent: jestTestUtils.createDivPassthroughMock(),
+    Checkbox: jestTestUtils.createCheckboxMock(),
     ContextOverlay: jestTestUtils.createContextOverlayMock(),
     ContextMenu: jestTestUtils.createContextMenuMock(),
+    Divider: jestTestUtils.createDivPassthroughMock(),
     Icon: jestTestUtils.createIconMock(),
     IconButton: jestTestUtils.createButtonMock(
         ({ tooltipProps, intent, loading, size, tooltipAsTitle, description, minimal, ...props }) => ({
@@ -386,6 +396,10 @@ const renderToolbarActions = async (harness: RuleBlockEditorHarness) => {
 };
 
 describe("RuleBlockEditor", () => {
+    beforeEach(() => {
+        window.localStorage.clear();
+    });
+
     it("should render an injected snapshot in canvas-only mode without fetching the task or evaluation state", async () => {
         const snapshotPort = createPersistedPort({
             id: "snapshotPort",
@@ -460,15 +474,16 @@ describe("RuleBlockEditor", () => {
         });
         await renderToolbarActions(editor);
 
+        const refreshButton = await screen.findByRole("button", { name: "taskViews.ruleBlock.refreshUsage" });
+        expect(editor.mockRequestRelatedItems).toHaveBeenCalledTimes(1);
+
+        fireEvent.click(refreshButton);
+
         await waitFor(() =>
             expect(screen.getByTestId("context-overlay")).toHaveTextContent("taskViews.ruleBlock.usageInUse"),
         );
-        expect(screen.getByRole("button", { name: "taskViews.ruleBlock.refreshUsage" })).toHaveTextContent(
-            "state-info",
-        );
-        expect(editor.mockRequestRelatedItems).toHaveBeenCalledTimes(1);
-
-        fireEvent.click(screen.getByRole("button", { name: "taskViews.ruleBlock.refreshUsage" }));
+        expect(screen.getByTestId("notification")).toHaveAttribute("data-intent", "info");
+        fireEvent.click(screen.getByRole("button", { name: "common.action.refreshStatus" }));
 
         await waitFor(() => expect(editor.mockRequestRelatedItems).toHaveBeenCalledTimes(2));
     });
@@ -480,13 +495,15 @@ describe("RuleBlockEditor", () => {
         });
         await renderToolbarActions(editor);
 
+        const refreshButton = await screen.findByRole("button", { name: "taskViews.ruleBlock.refreshUsage" });
+        expect(editor.mockRequestRelatedItems).toHaveBeenCalledTimes(1);
+
+        fireEvent.click(refreshButton);
+
         await waitFor(() =>
             expect(screen.getByTestId("context-overlay")).toHaveTextContent("taskViews.ruleBlock.usageRefreshError"),
         );
-        expect(screen.getByRole("button", { name: "taskViews.ruleBlock.refreshUsage" })).toHaveTextContent(
-            "state-warning",
-        );
-        expect(editor.mockRequestRelatedItems).toHaveBeenCalledTimes(1);
+        expect(screen.getByTestId("notification")).toHaveAttribute("data-intent", "warning");
     });
 
     it("should not show the usage status control when the rule block is not in use", async () => {
@@ -1017,6 +1034,7 @@ describe("RuleBlockEditor", () => {
         });
         await renderToolbarActions(editor);
 
+        fireEvent.click(screen.getByRole("button", { name: "taskViews.ruleBlock.portMenu" }));
         fireEvent.click(screen.getByRole("button", { name: "taskViews.ruleBlock.normalizePortOrder" }));
 
         expect(editor.mockRuleEditorApi.startChangeTransaction).toHaveBeenCalledTimes(1);
@@ -1044,6 +1062,7 @@ describe("RuleBlockEditor", () => {
 
         await renderToolbarActions(editor);
 
+        fireEvent.click(screen.getByRole("button", { name: "taskViews.ruleBlock.portMenu" }));
         expect(screen.getByRole("button", { name: "taskViews.ruleBlock.normalizePortOrder" })).toBeDisabled();
     });
 

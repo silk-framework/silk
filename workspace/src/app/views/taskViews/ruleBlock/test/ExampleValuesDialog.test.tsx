@@ -36,17 +36,27 @@ const createCheckboxMock = () =>
 
 const createExampleValuesDialogGuiElementsModule = () => {
     const React = require("react");
+    const createFlexibleLayoutMock =
+        () =>
+        ({ children, growFactor, shrinkFactor, vertical, noEqualItemSpace, gapSize, ...props }) =>
+            <div {...jestTestUtils.omitUnsupportedDomProps(props)}>{children}</div>;
+    const OverflowTextMock = ({ children, inline, ...props }) => (
+        <span {...jestTestUtils.omitUnsupportedDomProps(props)}>{children}</span>
+    );
     return {
         Button: jestTestUtils.createButtonMock((props) => ({
             ...jestTestUtils.omitUnsupportedDomProps(props),
             onClick: props.onClick,
             text: props.text,
         })),
+        ApplicationViewability: jestTestUtils.createFragmentMock(),
         Checkbox: createCheckboxMock(),
         ClassNames: jestTestUtils.createClassNamesMock(),
         CodeEditor: jestTestUtils.createCodeEditorMock(React),
         FieldSet: jestTestUtils.createFieldSetMock(),
         FieldItem: jestTestUtils.createFieldItemMock({ helperTextProp: "helperText" }),
+        FlexibleLayoutContainer: createFlexibleLayoutMock(),
+        FlexibleLayoutItem: createFlexibleLayoutMock(),
         Grid: jestTestUtils.createDivPassthroughMock(),
         GridColumn: jestTestUtils.createDivPassthroughMock(),
         GridRow: jestTestUtils.createDivPassthroughMock(),
@@ -55,12 +65,15 @@ const createExampleValuesDialogGuiElementsModule = () => {
             onClick: props.onClick,
             text: props.text ?? props.name,
         })),
+        Label: ({ text, children, isLayoutForElement, emphasis, ...props }) => (
+            <span {...jestTestUtils.omitUnsupportedDomProps(props)}>{children ?? text}</span>
+        ),
         OverviewItem: jestTestUtils.createClickableContainerMock(),
         OverviewItemActions: jestTestUtils.createChildrenOnlyMock(),
         OverviewItemDescription: jestTestUtils.createChildrenOnlyMock(),
         OverviewItemLine: jestTestUtils.createChildrenOnlyMock(),
         OverviewItemList: jestTestUtils.createChildrenOnlyMock(),
-        OverflowText: jestTestUtils.createDivPassthroughMock("span"),
+        OverflowText: OverflowTextMock,
         PropertyName: jestTestUtils.createDivPassthroughMock("dt"),
         PropertyValue: jestTestUtils.createDivPassthroughMock("dd"),
         PropertyValueList: jestTestUtils.createDivPassthroughMock("dl"),
@@ -71,6 +84,7 @@ const createExampleValuesDialogGuiElementsModule = () => {
         Tag: createBubblingTagMock(),
         TagList: jestTestUtils.createChildrenOnlyMock(),
         TextField: jestTestUtils.createTextFieldMock({ includePlaceholder: true, includeTestId: true }),
+        TitleSubsection: jestTestUtils.createChildrenOnlyMock(),
         Toolbar: jestTestUtils.createDivPassthroughMock(),
         ToolbarSection: jestTestUtils.createDivPassthroughMock(),
         Tooltip: jestTestUtils.createFragmentMock(),
