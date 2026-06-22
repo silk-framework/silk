@@ -92,6 +92,7 @@ class WorkflowExecutionLimiterTest extends AnyFlatSpec with Matchers with Eventu
   it should "remove waiting workflow runs from the queue when they are cancelled" in {
     QueueControlledTaskState.reset()
     val workflowTask = createLimitedWorkflow("cancel")
+    val workflowKey = WorkflowExecutionLimiter.WorkflowExecutionKey(workflowTask.project.id, workflowTask.id)
 
     val firstControl = Activity(LocalWorkflowExecutor(workflowTask))
     firstControl.start()(testUserContext("urn:test:running"))
@@ -102,7 +103,13 @@ class WorkflowExecutionLimiterTest extends AnyFlatSpec with Matchers with Eventu
 
     try {
       QueueControlledTaskState.awaitStartedExecutions(1)
+      eventually {
+        WorkflowExecutionLimiter.queuedCount(workflowKey) shouldBe 1
+      }
       queuedControl.cancel()(queuedUserContext)
+      eventually {
+        WorkflowExecutionLimiter.queuedCount(workflowKey) shouldBe 0
+      }
       QueueControlledTaskState.releaseNext()
 
       awaitFinished(firstControl)
@@ -146,29 +153,131 @@ class WorkflowExecutionLimiterTest extends AnyFlatSpec with Matchers with Eventu
     }
   }
 
+  it should "honor a lowered limit while multiple runs are already queued" in {
+    val workflowTask = createBlockingWorkflow("loweredLimit", maxParallelExecutions = Some(2))
+    val workflowKey = WorkflowExecutionLimiter.WorkflowExecutionKey(workflowTask.project.id, workflowTask.id)
+    val firstPermit = WorkflowExecutionLimiter.requestSlot(workflowKey, Some(2)) match {
+      case WorkflowExecutionLimiter.Acquired(permit) => permit
+      case other => fail(s"Expected the first workflow run to acquire a permit immediately, but got: $other")
+    }
+    val secondPermit = WorkflowExecutionLimiter.requestSlot(workflowKey, Some(2)) match {
+      case WorkflowExecutionLimiter.Acquired(permit) => permit
+      case other => fail(s"Expected the second workflow run to acquire a permit immediately, but got: $other")
+    }
+    val queuedTokens = (1 to 2).map { _ =>
+      WorkflowExecutionLimiter.requestSlot(workflowKey, Some(2)) match {
+        case WorkflowExecutionLimiter.Queued(token) => token
+        case other => fail(s"Expected queued workflow run after lowering-limit setup, but got: $other")
+      }
+    }
+
+    try {
+      firstPermit.release()
+      WorkflowExecutionLimiter.acquireQueued(workflowKey, queuedTokens.head, Some(1)) shouldBe None
+      WorkflowExecutionLimiter.acquireQueued(workflowKey, queuedTokens(1), Some(1)) shouldBe None
+
+      secondPermit.release()
+      val thirdPermit = WorkflowExecutionLimiter.acquireQueued(workflowKey, queuedTokens.head, Some(1)).getOrElse {
+        fail("Expected the first queued workflow run to acquire a permit once both running executions completed.")
+      }
+      WorkflowExecutionLimiter.acquireQueued(workflowKey, queuedTokens(1), Some(1)) shouldBe None
+
+      thirdPermit.release()
+      val fourthPermit = WorkflowExecutionLimiter.acquireQueued(workflowKey, queuedTokens(1), Some(1)).getOrElse {
+        fail("Expected the second queued workflow run to acquire the final permit after the lowered-limit handoff.")
+      }
+      fourthPermit.release()
+
+      WorkflowExecutionLimiter.isTracked(workflowKey) shouldBe false
+    } finally {
+      queuedTokens.foreach(token => WorkflowExecutionLimiter.cancelQueued(workflowKey, token))
+    }
+  }
+
+  it should "advance FIFO order when a middle queued run is cancelled" in {
+    val workflowTask = createLimitedWorkflow("middleCancel")
+    val workflowKey = WorkflowExecutionLimiter.WorkflowExecutionKey(workflowTask.project.id, workflowTask.id)
+    val initialPermit = WorkflowExecutionLimiter.requestSlot(workflowKey, Some(1)) match {
+      case WorkflowExecutionLimiter.Acquired(permit) => permit
+      case other => fail(s"Expected the first workflow run to acquire a permit immediately, but got: $other")
+    }
+    val queuedTokens = (1 to 3).map { _ =>
+      WorkflowExecutionLimiter.requestSlot(workflowKey, Some(1)) match {
+        case WorkflowExecutionLimiter.Queued(token) => token
+        case other => fail(s"Expected queued workflow run, but got: $other")
+      }
+    }
+
+    try {
+      WorkflowExecutionLimiter.cancelQueued(workflowKey, queuedTokens(1))
+      WorkflowExecutionLimiter.queuedCount(workflowKey) shouldBe 2
+
+      initialPermit.release()
+      val secondPermit = WorkflowExecutionLimiter.acquireQueued(workflowKey, queuedTokens.head, Some(1)).getOrElse {
+        fail("Expected the first queued workflow run to acquire the freed permit after the middle waiter was cancelled.")
+      }
+      WorkflowExecutionLimiter.acquireQueued(workflowKey, queuedTokens(2), Some(1)) shouldBe None
+
+      secondPermit.release()
+      val thirdPermit = WorkflowExecutionLimiter.acquireQueued(workflowKey, queuedTokens(2), Some(1)).getOrElse {
+        fail("Expected the last queued workflow run to advance after the earlier waiters completed or were cancelled.")
+      }
+      thirdPermit.release()
+
+      WorkflowExecutionLimiter.isTracked(workflowKey) shouldBe false
+    } finally {
+      queuedTokens.foreach(token => WorkflowExecutionLimiter.cancelQueued(workflowKey, token))
+    }
+  }
+
+  it should "allow queued workflow runs to proceed when the limit is removed" in {
+    QueueControlledTaskState.reset()
+    val workflowTask = createLimitedWorkflow("removeLimit")
+    val workflowKey = WorkflowExecutionLimiter.WorkflowExecutionKey(workflowTask.project.id, workflowTask.id)
+    val userUris = Seq("urn:test:remove-1", "urn:test:remove-2")
+    val controls = userUris.map(userUri => startWorkflow(workflowTask, userUri))
+
+    try {
+      QueueControlledTaskState.awaitStartedExecutions(1)
+      eventually {
+        WorkflowExecutionLimiter.queuedCount(workflowKey) shouldBe 1
+      }
+
+      workflowTask.project.updateTask(workflowTask.id, workflowTask.data.copy(maxParallelExecutions = IntOptionParameter(None)))
+      QueueControlledTaskState.awaitStartedExecutions(2)
+      QueueControlledTaskState.startedUsers.asScala.toSeq shouldBe userUris
+
+      QueueControlledTaskState.releaseNext()
+      QueueControlledTaskState.releaseNext()
+      controls.foreach(awaitFinished)
+      eventually {
+        WorkflowExecutionLimiter.isTracked(workflowKey) shouldBe false
+      }
+    } finally {
+      cancelAll(controls)
+      QueueControlledTaskState.releaseAll()
+    }
+  }
+
   it should "bypass the limiter completely for unlimited workflows" in {
     QueueControlledTaskState.reset()
     val workflowTask = createUnlimitedWorkflow("unlimited")
     val workflowKey = WorkflowExecutionLimiter.WorkflowExecutionKey(workflowTask.project.id, workflowTask.id)
 
-    val firstControl = Activity(LocalWorkflowExecutor(workflowTask))
-    firstControl.start()(testUserContext("urn:test:unlimited-first"))
-
-    val secondControl = Activity(LocalWorkflowExecutor(workflowTask))
-    secondControl.start()(testUserContext("urn:test:unlimited-second"))
+    val userUris = (1 to 4).map(index => s"urn:test:unlimited-$index")
+    val controls = userUris.map(userUri => startWorkflow(workflowTask, userUri))
 
     try {
-      QueueControlledTaskState.awaitStartedExecutions(2)
+      QueueControlledTaskState.awaitStartedExecutions(4)
       WorkflowExecutionLimiter.isTracked(workflowKey) shouldBe false
 
-      QueueControlledTaskState.releaseNext()
-      QueueControlledTaskState.releaseNext()
-      awaitFinished(firstControl)
-      awaitFinished(secondControl)
+      (1 to controls.size).foreach(_ => QueueControlledTaskState.releaseNext())
+      controls.foreach(awaitFinished)
+      QueueControlledTaskState.startedUsers.asScala.toSet shouldBe userUris.toSet
 
       WorkflowExecutionLimiter.isTracked(workflowKey) shouldBe false
     } finally {
-      cancelAll(Seq(firstControl, secondControl))
+      cancelAll(controls)
       QueueControlledTaskState.releaseAll()
     }
   }
@@ -213,6 +322,93 @@ class WorkflowExecutionLimiterTest extends AnyFlatSpec with Matchers with Eventu
     }
   }
 
+  it should "clean up tracked state when all queued waiters are cancelled" in {
+    QueueControlledTaskState.reset()
+    val workflowTask = createLimitedWorkflow("cancelAllQueued")
+    val workflowKey = WorkflowExecutionLimiter.WorkflowExecutionKey(workflowTask.project.id, workflowTask.id)
+    val runningUser = "urn:test:cancel-all-running"
+    val queuedUsers = Seq("urn:test:cancel-all-1", "urn:test:cancel-all-2", "urn:test:cancel-all-3")
+
+    val runningControl = startWorkflow(workflowTask, runningUser)
+    val queuedControls = queuedUsers.map(userUri => userUri -> startWorkflow(workflowTask, userUri))
+
+    try {
+      QueueControlledTaskState.awaitStartedExecutions(1)
+      eventually {
+        WorkflowExecutionLimiter.queuedCount(workflowKey) shouldBe queuedControls.size
+      }
+
+      queuedControls.foreach { case (userUri, control) =>
+        control.cancel()(testUserContext(userUri))
+      }
+      eventually {
+        WorkflowExecutionLimiter.queuedCount(workflowKey) shouldBe 0
+        WorkflowExecutionLimiter.isTracked(workflowKey) shouldBe true
+      }
+
+      QueueControlledTaskState.releaseNext()
+      awaitFinished(runningControl)
+      queuedControls.foreach { case (_, control) => awaitFinished(control) }
+
+      QueueControlledTaskState.startedUsers.asScala.toSeq shouldBe Seq(runningUser)
+      eventually {
+        WorkflowExecutionLimiter.isTracked(workflowKey) shouldBe false
+      }
+    } finally {
+      cancelAll(runningControl +: queuedControls.map(_._2))
+      QueueControlledTaskState.releaseAll()
+    }
+  }
+
+  it should "keep already started runs unaffected when the limit is lowered again" in {
+    QueueControlledTaskState.reset()
+    val workflowTask = createLimitedWorkflow("lowerAfterStart")
+    val workflowKey = WorkflowExecutionLimiter.WorkflowExecutionKey(workflowTask.project.id, workflowTask.id)
+    val userUris = Seq("urn:test:lower-after-1", "urn:test:lower-after-2", "urn:test:lower-after-3")
+    val firstControl = startWorkflow(workflowTask, userUris.head)
+    val secondControl = startWorkflow(workflowTask, userUris(1))
+
+    try {
+      QueueControlledTaskState.awaitStartedExecutions(1)
+      eventually {
+        WorkflowExecutionLimiter.queuedCount(workflowKey) shouldBe 1
+      }
+
+      workflowTask.project.updateTask(workflowTask.id, workflowTask.data.copy(maxParallelExecutions = IntOptionParameter(Some(2))))
+      QueueControlledTaskState.awaitStartedExecutions(2)
+      QueueControlledTaskState.startedUsers.asScala.toSeq shouldBe userUris.take(2)
+
+      workflowTask.project.updateTask(workflowTask.id, workflowTask.data.copy(maxParallelExecutions = IntOptionParameter(Some(1))))
+      val thirdControl = startWorkflow(workflowTask, userUris(2))
+      try {
+        eventually {
+          WorkflowExecutionLimiter.queuedCount(workflowKey) shouldBe 1
+        }
+
+        QueueControlledTaskState.releaseNext()
+        awaitFinished(firstControl)
+        assertStartedExecutionsStay(2, 800.millis)
+        WorkflowExecutionLimiter.queuedCount(workflowKey) shouldBe 1
+
+        QueueControlledTaskState.releaseNext()
+        awaitFinished(secondControl)
+        QueueControlledTaskState.awaitStartedExecutions(3)
+        QueueControlledTaskState.startedUsers.asScala.toSeq shouldBe userUris
+
+        QueueControlledTaskState.releaseNext()
+        awaitFinished(thirdControl)
+        eventually {
+          WorkflowExecutionLimiter.isTracked(workflowKey) shouldBe false
+        }
+      } finally {
+        cancelAll(Seq(thirdControl))
+      }
+    } finally {
+      cancelAll(Seq(firstControl, secondControl))
+      QueueControlledTaskState.releaseAll()
+    }
+  }
+
   it should "not block the activity thread pool while workflow runs are waiting for a slot" in {
     QueueControlledTaskState.reset()
     QuickTaskState.reset()
@@ -248,6 +444,58 @@ class WorkflowExecutionLimiterTest extends AnyFlatSpec with Matchers with Eventu
     } finally {
       cancelAll(limitedControls :+ quickControl)
       QueueControlledTaskState.releaseAll()
+    }
+  }
+
+  it should "treat repeated queued cancellations as harmless" in {
+    QueueControlledTaskState.reset()
+    val workflowTask = createLimitedWorkflow("doubleCancel")
+    val workflowKey = WorkflowExecutionLimiter.WorkflowExecutionKey(workflowTask.project.id, workflowTask.id)
+    val runningControl = startWorkflow(workflowTask, "urn:test:double-cancel-running")
+    val queuedUser = "urn:test:double-cancel-queued"
+    val queuedControl = startWorkflow(workflowTask, queuedUser)
+
+    try {
+      QueueControlledTaskState.awaitStartedExecutions(1)
+      eventually {
+        WorkflowExecutionLimiter.queuedCount(workflowKey) shouldBe 1
+      }
+
+      queuedControl.cancel()(testUserContext(queuedUser))
+      queuedControl.cancel()(testUserContext(queuedUser))
+      eventually {
+        WorkflowExecutionLimiter.queuedCount(workflowKey) shouldBe 0
+      }
+
+      QueueControlledTaskState.releaseNext()
+      awaitFinished(runningControl)
+      awaitFinished(queuedControl)
+      eventually {
+        WorkflowExecutionLimiter.isTracked(workflowKey) shouldBe false
+      }
+    } finally {
+      cancelAll(Seq(runningControl, queuedControl))
+      QueueControlledTaskState.releaseAll()
+    }
+  }
+
+  it should "ignore repeated permit releases" in {
+    val workflowTask = createLimitedWorkflow("doubleRelease")
+    val workflowKey = WorkflowExecutionLimiter.WorkflowExecutionKey(workflowTask.project.id, workflowTask.id)
+    val permit = WorkflowExecutionLimiter.requestSlot(workflowKey, Some(1)) match {
+      case WorkflowExecutionLimiter.Acquired(acquiredPermit) => acquiredPermit
+      case other => fail(s"Expected the first workflow run to acquire a permit immediately, but got: $other")
+    }
+
+    permit.release()
+    permit.release()
+
+    WorkflowExecutionLimiter.isTracked(workflowKey) shouldBe false
+    WorkflowExecutionLimiter.requestSlot(workflowKey, Some(1)) match {
+      case WorkflowExecutionLimiter.Acquired(nextPermit) =>
+        nextPermit.release()
+      case other =>
+        fail(s"Expected a fresh permit acquisition after repeated release, but got: $other")
     }
   }
 
@@ -288,6 +536,11 @@ class WorkflowExecutionLimiterTest extends AnyFlatSpec with Matchers with Eventu
   }
 
   private def createLimitedWorkflow(prefix: String): org.silkframework.workspace.ProjectTask[Workflow] = {
+    createBlockingWorkflow(prefix, maxParallelExecutions = Some(1))
+  }
+
+  private def createBlockingWorkflow(prefix: String,
+                                     maxParallelExecutions: Option[Int]): org.silkframework.workspace.ProjectTask[Workflow] = {
     val project = retrieveOrCreateProject(Identifier(s"${prefix}Project"))
     val blockingTaskId = Identifier(s"${prefix}BlockingTask")
     val workflowId = Identifier(s"${prefix}Workflow")
@@ -306,7 +559,7 @@ class WorkflowExecutionLimiterTest extends AnyFlatSpec with Matchers with Eventu
           dependencyInputs = Seq.empty
         )
       )),
-      maxParallelExecutions = IntOptionParameter(Some(1))
+      maxParallelExecutions = IntOptionParameter(maxParallelExecutions)
     ))
   }
 
@@ -358,9 +611,24 @@ class WorkflowExecutionLimiterTest extends AnyFlatSpec with Matchers with Eventu
 
   private def testUserContext(userUri: String): UserContext = TestWorkflowUserContext(userUri)
 
+  private def startWorkflow(workflowTask: org.silkframework.workspace.ProjectTask[Workflow],
+                            userUri: String): ActivityControl[WorkflowExecutionReport] = {
+    val control = Activity(LocalWorkflowExecutor(workflowTask))
+    control.start()(testUserContext(userUri))
+    control
+  }
+
   private def awaitFinished(control: ActivityControl[_]): Unit = {
     import scala.concurrent.ExecutionContext.Implicits.global
     Await.result(Future(blocking(control.waitUntilFinished())), TestTimeout)
+  }
+
+  private def assertStartedExecutionsStay(expected: Int, duration: FiniteDuration): Unit = {
+    val deadline = System.nanoTime() + duration.toNanos
+    while(System.nanoTime() < deadline) {
+      QueueControlledTaskState.startedExecutions.get() shouldBe expected
+      Thread.sleep(10)
+    }
   }
 
   private def cancelAll(controls: Seq[ActivityControl[_]]): Unit = {
