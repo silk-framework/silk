@@ -66,19 +66,35 @@ object ExecutionReportSerializers {
       }
     }
 
-    def serializeBasicValues(value: ExecutionReport)(implicit writeContext: WriteContext[JsValue]): JsObject = {
-      Json.obj(
-        LABEL -> value.task.label(),
-        OPERATION -> value.operation,
-        OPERATION_DESC -> value.operationDesc,
-        TASK -> GenericTaskJsonFormat.write(value.task),
-        SUMMARY -> value.summary.map(serializeValue),
-        WARNINGS -> value.warnings,
-        ERROR -> value.error,
-        IS_DONE -> value.isDone,
-        ENTITY_COUNT -> value.entityCount,
-        OUTPUT_ENTITIES_SAMPLE -> value.sampleOutputEntities
-      )
+    /** When `slim` is set, a compact form is produced: the full task definition, the timing summary and any
+      * empty or absent fields (no operation/warnings/error, no sampled entities) are left out. */
+    def serializeBasicValues(value: ExecutionReport, slim: Boolean = false)(implicit writeContext: WriteContext[JsValue]): JsObject = {
+      if (slim) {
+        val sample = value.sampleOutputEntities.filter(_.entities.nonEmpty)
+        Json.obj(
+          LABEL -> value.task.label(),
+          OPERATION_DESC -> value.operationDesc,
+          IS_DONE -> value.isDone,
+          ENTITY_COUNT -> value.entityCount
+        ) ++
+          value.operation.map(op => Json.obj(OPERATION -> op)).getOrElse(JsObject.empty) ++
+          (if (value.warnings.nonEmpty) Json.obj(WARNINGS -> value.warnings) else JsObject.empty) ++
+          value.error.map(err => Json.obj(ERROR -> err)).getOrElse(JsObject.empty) ++
+          (if (sample.nonEmpty) Json.obj(OUTPUT_ENTITIES_SAMPLE -> sample) else JsObject.empty)
+      } else {
+        Json.obj(
+          LABEL -> value.task.label(),
+          OPERATION -> value.operation,
+          OPERATION_DESC -> value.operationDesc,
+          TASK -> GenericTaskJsonFormat.write(value.task),
+          SUMMARY -> value.summary.map(serializeValue),
+          WARNINGS -> value.warnings,
+          ERROR -> value.error,
+          IS_DONE -> value.isDone,
+          ENTITY_COUNT -> value.entityCount,
+          OUTPUT_ENTITIES_SAMPLE -> value.sampleOutputEntities
+        )
+      }
     }
 
     private def serializeValue(value: (String, String)): JsValue = {
@@ -119,15 +135,42 @@ object ExecutionReportSerializers {
   implicit object TransformReportJsonFormat extends JsonFormat[TransformReport] {
     implicit val contextFormat: Format[TransformReportExecutionContext] = Json.format[TransformReportExecutionContext]
 
-    override def write(value: TransformReport)(implicit writeContext: WriteContext[JsValue]): JsObject = {
-      ExecutionReportJsonFormat.serializeBasicValues(value) ++
-        Json.obj(
+    override def write(value: TransformReport)(implicit writeContext: WriteContext[JsValue]): JsObject =
+      write(value, slim = false)
+
+    /** When `slim` is set, the entity count is not repeated, only an error count > 0 is kept, the rule
+      * results are limited to the rules that errored (without per-rule timing) and the context is dropped. */
+    def write(value: TransformReport, slim: Boolean)(implicit writeContext: WriteContext[JsValue]): JsObject = {
+      val basic = ExecutionReportJsonFormat.serializeBasicValues(value, slim)
+      if (slim) {
+        basic ++
+          (if (value.entityErrorCount > 0) Json.obj(ENTITY_ERROR_COUNTER -> value.entityErrorCount) else JsObject.empty) ++
+          compactRuleResults(value.ruleResults) ++
+          (if (value.globalErrors.nonEmpty) Json.obj(GLOBAL_ERRORS -> value.globalErrors) else JsObject.empty)
+      } else {
+        basic ++ Json.obj(
           ENTITY_COUNTER -> value.entityCount,
           ENTITY_ERROR_COUNTER -> value.entityErrorCount,
           RULE_RESULTS -> writeRuleResults(value.ruleResults),
           GLOBAL_ERRORS -> value.globalErrors,
           EXECUTION_REPORT_CONTEXT -> value.context
         )
+      }
+    }
+
+    /** Only the rules that errored, with their sample errors but without timing. Empty when none failed. */
+    private def compactRuleResults(ruleResults: Map[Identifier, RuleResult]): JsObject = {
+      val failing = ruleResults.filter { case (_, result) => result.errorCount > 0 || result.sampleErrors.nonEmpty }
+      if (failing.isEmpty) {
+        JsObject.empty
+      } else {
+        Json.obj(RULE_RESULTS -> JsObject(failing.toSeq.map { case (ruleId, ruleResult) =>
+          ruleId.toString -> Json.obj(
+            ERROR_COUNT -> ruleResult.errorCount,
+            SAMPLE_ERRORS -> ruleResult.sampleErrors.map(writeRuleError)
+          )
+        }))
+      }
     }
 
     override def read(value: JsValue)(implicit readContext: ReadContext): TransformReport = {
@@ -211,26 +254,31 @@ object ExecutionReportSerializers {
       )
     }
 
-    override def write(value: WorkflowTaskReport)(implicit writeContext: WriteContext[JsValue]): JsValue = {
-      val reportJson = value.report match {
-        case t: TransformReport =>
-          TransformReportJsonFormat.write(t)
-        case report: ExecutionReport =>
-          ExecutionReportJsonFormat.write(report)
-      }
+    override def write(value: WorkflowTaskReport)(implicit writeContext: WriteContext[JsValue]): JsValue =
+      write(value, slim = false)
 
-      reportJson +
-        (NODE -> JsString(value.nodeId.toString)) +
-        (TIMESTAMP -> JsNumber(value.timestamp.toEpochMilli))
+    /** When `slim` is set, the per-node timestamp is dropped and the node report is compacted. */
+    def write(value: WorkflowTaskReport, slim: Boolean)(implicit writeContext: WriteContext[JsValue]): JsValue = {
+      val reportJson = value.report match {
+        case t: TransformReport => TransformReportJsonFormat.write(t, slim)
+        case report if slim => ExecutionReportJsonFormat.serializeBasicValues(report, slim = true)
+        case report => ExecutionReportJsonFormat.write(report)
+      }
+      val withNode = reportJson + (NODE -> JsString(value.nodeId.toString))
+      if (slim) withNode else withNode + (TIMESTAMP -> JsNumber(value.timestamp.toEpochMilli))
     }
   }
 
   implicit object WorkflowExecutionReportJsonFormat extends JsonFormat[WorkflowExecutionReport] {
 
-    override def write(value: WorkflowExecutionReport)(implicit writeContext: WriteContext[JsValue]): JsObject = {
+    override def write(value: WorkflowExecutionReport)(implicit writeContext: WriteContext[JsValue]): JsObject =
+      write(value, slim = false)
+
+    /** When `slim` is set, the compact form of the workflow and its per-node reports is produced. */
+    def write(value: WorkflowExecutionReport, slim: Boolean)(implicit writeContext: WriteContext[JsValue]): JsObject = {
       val authDiagnosticsJson = value.authDiagnostics.map(json => AUTH_DIAGNOSTICS -> Json.parse(json))
-      (ExecutionReportJsonFormat.serializeBasicValues(value) ++ JsObject(authDiagnosticsJson.toSeq)) +
-        (TASK_REPORTS -> JsArray(value.taskReports.map(WorkflowTaskReportJsonFormat.write)))
+      (ExecutionReportJsonFormat.serializeBasicValues(value, slim) ++ JsObject(authDiagnosticsJson.toSeq)) +
+        (TASK_REPORTS -> JsArray(value.taskReports.map(report => WorkflowTaskReportJsonFormat.write(report, slim))))
     }
 
     override def read(value: JsValue)(implicit readContext: ReadContext): WorkflowExecutionReport = {
