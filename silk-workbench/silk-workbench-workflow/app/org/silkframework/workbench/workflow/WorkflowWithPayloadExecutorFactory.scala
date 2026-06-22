@@ -15,7 +15,7 @@ import org.silkframework.workbench.utils.UnsupportedMediaTypeException
 import org.silkframework.workbench.workflow.WorkflowWithPayloadExecutorFactory._
 import org.silkframework.workspace.ProjectTask
 import org.silkframework.workspace.activity.TaskActivityFactory
-import org.silkframework.workspace.activity.workflow.{AllReplaceableDatasets, LocalWorkflowExecutorGeneratingProvenance, Workflow, WorkflowExecutor}
+import org.silkframework.workspace.activity.workflow.{AllReplaceableDatasets, LocalWorkflowExecutorGeneratingProvenance, Workflow, WorkflowExecutionReport, WorkflowExecutor}
 import play.api.libs.json._
 
 import scala.xml.{Node, NodeSeq, XML}
@@ -121,10 +121,13 @@ class WorkflowWithPayloadExecutor(task: ProjectTask[Workflow], config: WorkflowW
         throw UnsupportedMediaTypeException.supportedFormats("application/xml", "application/json")
     }
     checkReplaceableDatasetsCovered(allReplaceableDatasets, dataSources.keySet, sinks.keySet)
+    // Set the value before running so the (partial) output resource is available even if execution fails.
     context.value() = WorkflowOutput(sinks, replaceableSinks, resultResourceManager)
 
     val activity = LocalWorkflowExecutorGeneratingProvenance(task, dataSources, sinks, useLocalInternalDatasets = true, workflowVariables = config.workflowVariables)
-    context.child(activity, 1.0).startBlocking()
+    val childControl = context.child(activity, 1.0)
+    childControl.startBlocking()
+    context.value() = WorkflowOutput(sinks, replaceableSinks, resultResourceManager, Some(childControl.value().report))
   }
 
   // Checks that all replaceable input and output datasets get replaced via the provided payload
@@ -190,7 +193,8 @@ class WorkflowWithPayloadExecutor(task: ProjectTask[Workflow], config: WorkflowW
   }
 }
 
-case class WorkflowOutput(dataSinks: Map[String, Dataset], variableSinks: Seq[String], resourceManager: ResourceManager)
+case class WorkflowOutput(dataSinks: Map[String, Dataset], variableSinks: Seq[String], resourceManager: ResourceManager,
+                          report: Option[WorkflowExecutionReport] = None)
 
 object WorkflowOutput {
 
