@@ -35,7 +35,7 @@ object WorkflowSerializers {
         uiAnnotations = optionalValue(parameterObject, UI_ANNOTATIONS).map(fromJson[UiAnnotations]).getOrElse(UiAnnotations()),
         replaceableInputs = arrayValueOption(parameterObject, REPLACEABLE_INPUTS).getOrElse(JsArray()).value.map(_.as[String]).toIndexedSeq,
         replaceableOutputs = arrayValueOption(parameterObject, REPLACEABLE_OUTPUTS).getOrElse(JsArray()).value.map(_.as[String]).toIndexedSeq,
-        maxParallelExecutions = IntOptionParameter(numberValueOption(parameterObject, MAX_PARALLEL_EXECUTIONS).map(_.toInt))
+        maxParallelExecutions = IntOptionParameter(stringValueOption(parameterObject, MAX_PARALLEL_EXECUTIONS).filter(_.trim.nonEmpty).map(_.toInt))
       )
     }
 
@@ -47,7 +47,7 @@ object WorkflowSerializers {
           OPERATORS -> value.operators.map(WorkflowOperatorJsonFormat.write),
           DATASETS -> value.datasets.map(WorkflowDatasetJsonFormat.write),
           UI_ANNOTATIONS -> toJson(value.uiAnnotations),
-          MAX_PARALLEL_EXECUTIONS -> value.maxParallelExecutions.value,
+          MAX_PARALLEL_EXECUTIONS -> JsString(value.maxParallelExecutions.value.map(_.toString).getOrElse("")),
           REPLACEABLE_INPUTS -> value.replaceableInputs.taskIds,
           REPLACEABLE_OUTPUTS -> value.replaceableOutputs.taskIds
         )
