@@ -23,14 +23,14 @@ class PersistentSortedKeyValueStoreTest extends AnyFlatSpec with Matchers {
     // This check should work
     PersistentSortedKeyValueStore.check()
 
-    // Create a file where LMDB would place its database in order to break it
-    val dir = Files.createTempDirectory("ldmbBootTest")
-    val dbBaseDir = dir.resolve("tmp")
-    dbBaseDir.toFile.mkdirs()
-    Files.createFile(dbBaseDir.resolve("bootTest"))
-
     // The check should fail now
-    ConfigTestTrait.withConfig(("caches.persistence.directory" -> Some(dir.toFile.getCanonicalPath))) {
+    val dir = Files.createTempDirectory("ldmbBootTest")
+    ConfigTestTrait.withConfig("caches.persistence.directory" -> Some(dir.toFile.getCanonicalPath)) {
+      // Plant a file where LMDB would place the "bootTest" database directory, in order to break it.
+      val dbBaseDir = PersistentSortedKeyValueStore.tempCacheDirectory
+      dbBaseDir.mkdirs()
+      Files.createFile(dbBaseDir.toPath.resolve("bootTest"))
+
       an [LmdbException] shouldBe thrownBy { PersistentSortedKeyValueStore.check().get }
     }
 
