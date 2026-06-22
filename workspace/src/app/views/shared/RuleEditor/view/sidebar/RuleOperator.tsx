@@ -119,7 +119,7 @@ export const tagColor = (
         case "Transform":
             return tagColors[`${eccgui}-transformation-node-bright`];
         case "Rule block":
-            return tagColors[`${eccgui}-transformation-node-bright`];
+            return tagColors[`${eccgui}-ruleblock-node-bright`];
         case "Input":
             return tagColors[`${eccgui}-value-edge`];
         case "Comparison":

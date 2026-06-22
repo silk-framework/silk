@@ -54,7 +54,7 @@ export const linkingRuleOperatorTypeColorFunction: () => (id: string) => string 
                 return tabColors[`${eccgui}-transformation-node-bright`];
             case "RuleBlock":
             case "ruleBlock":
-                return tabColors[`${eccgui}-transformation-node-bright`];
+                return tabColors[`${eccgui}-ruleblock-node-bright`];
             case "AggregationOperator":
             case "aggregation":
                 return tabColors[`${eccgui}-aggregator-node-bright`];

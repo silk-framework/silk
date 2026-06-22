@@ -1,6 +1,6 @@
 import React from "react";
-import {ArrowHeadType, Edge, FlowElement, Position} from "react-flow-renderer";
-import {rangeArray} from "../../../../utils/basicUtils";
+import { ArrowHeadType, Edge, FlowElement, Position } from "react-flow-renderer";
+import { rangeArray } from "../../../../utils/basicUtils";
 import {
     INamedInputPortSpecification,
     IParameterSpecification,
@@ -13,15 +13,21 @@ import {
     RuleOperatorNodeParameters,
     RuleOperatorPluginType,
 } from "../RuleEditor.typings";
-import {RuleNodeMenu} from "../view/ruleNode/RuleNodeMenu";
-import {RuleEditorNode, RuleEditorNodeParameterValue} from "./RuleEditorModel.typings";
-import {Connection, Elements, XYPosition} from "react-flow-renderer/dist/types";
+import { RuleNodeMenu } from "../view/ruleNode/RuleNodeMenu";
+import { RuleEditorNode, RuleEditorNodeParameterValue } from "./RuleEditorModel.typings";
+import { Connection, Elements, XYPosition } from "react-flow-renderer/dist/types";
 import dagre from "dagre";
-import {NodeContent, RuleNodeContentProps} from "../view/ruleNode/NodeContent";
-import {HandleDefaultProps, IconButton, Markdown, NodeContentHandleProps, NodeDimensions} from "@eccenca/gui-elements";
-import {RuleEditorEvaluationContextProps} from "../contexts/RuleEditorEvaluationContext";
-import {InputPathFunctions} from "../view/ruleNode/PathInputOperator";
-import {InternalRuleBlockEvaluationButton} from "../view/ruleNode/InternalRuleBlockEvaluationButton";
+import { NodeContent, RuleNodeContentProps } from "../view/ruleNode/NodeContent";
+import {
+    HandleDefaultProps,
+    IconButton,
+    Markdown,
+    NodeContentHandleProps,
+    NodeDimensions,
+} from "@eccenca/gui-elements";
+import { RuleEditorEvaluationContextProps } from "../contexts/RuleEditorEvaluationContext";
+import { InputPathFunctions } from "../view/ruleNode/PathInputOperator";
+import { InternalRuleBlockEvaluationButton } from "../view/ruleNode/InternalRuleBlockEvaluationButton";
 
 /** Constants */
 
@@ -230,8 +236,9 @@ const nodeType = (pluginType: RuleOperatorPluginType | string, pluginId: string)
         case "ComparisonOperator":
             return "comparator";
         case "TransformOperator":
-        case "RuleBlock":
             return "transformation";
+        case "RuleBlock":
+            return "ruleblock";
         case "InputPortOperator":
             // TODO: CMEM-1590: Add node type and use it for styling?
             return "default";
