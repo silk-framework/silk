@@ -1,6 +1,6 @@
 import React from "react";
 import "@testing-library/jest-dom";
-import {createBrowserHistory, History, LocationState} from "history";
+import { createBrowserHistory, History, LocationState } from "history";
 import mockAxios from "../../../__mocks__/axios";
 import {
     checkRequestMade,
@@ -10,10 +10,10 @@ import {
     renderWrapper,
     workspacePath,
 } from "../../TestHelper";
-import {RelatedItems} from "../../../../src/app/views/shared/RelatedItems/RelatedItems";
-import {RelatedItemsTestHelper} from "./RelatedItemsTestHelper";
-import {SERVE_PATH} from "../../../../src/app/constants/path";
-import {act, RenderResult, waitFor} from "@testing-library/react";
+import { RelatedItems } from "../../../../src/app/views/shared/RelatedItems/RelatedItems";
+import { RelatedItemsTestHelper } from "./RelatedItemsTestHelper";
+import { SERVE_PATH } from "../../../../src/app/constants/path";
+import { act, RenderResult, waitFor } from "@testing-library/react";
 
 describe("Related items", () => {
     let hostPath = process.env.HOST;

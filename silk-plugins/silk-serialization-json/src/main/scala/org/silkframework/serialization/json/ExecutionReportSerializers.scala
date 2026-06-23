@@ -228,7 +228,8 @@ object ExecutionReportSerializers {
   implicit object WorkflowExecutionReportJsonFormat extends JsonFormat[WorkflowExecutionReport] {
 
     override def write(value: WorkflowExecutionReport)(implicit writeContext: WriteContext[JsValue]): JsObject = {
-      ExecutionReportJsonFormat.serializeBasicValues(value) +
+      val authDiagnosticsJson = value.authDiagnostics.map(json => AUTH_DIAGNOSTICS -> Json.parse(json))
+      (ExecutionReportJsonFormat.serializeBasicValues(value) ++ JsObject(authDiagnosticsJson.toSeq)) +
         (TASK_REPORTS -> JsArray(value.taskReports.map(WorkflowTaskReportJsonFormat.write)))
     }
 
@@ -255,7 +256,8 @@ object ExecutionReportSerializers {
         task = taskFormat.read(requiredValue(value, TASK)),
         taskReports = taskReports.toIndexedSeq,
         isDone = booleanValueOption(value, IS_DONE).getOrElse(true),
-        error = stringValueOption(value, ERROR)
+        error = stringValueOption(value, ERROR),
+        authDiagnostics = optionalValue(value, AUTH_DIAGNOSTICS).map(Json.stringify)
       )
     }
   }
@@ -284,6 +286,7 @@ object ExecutionReportSerializers {
     final val VALUE = "value"
 
     final val TASK_REPORTS = "taskReports"
+    final val AUTH_DIAGNOSTICS = "authDiagnostics"
 
     final val ENTITY_COUNTER = "entityCounter"
     final val ENTITY_ERROR_COUNTER = "entityErrorCounter"

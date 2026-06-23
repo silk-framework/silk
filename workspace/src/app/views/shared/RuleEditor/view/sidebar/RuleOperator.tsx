@@ -12,7 +12,7 @@ import {
 } from "@eccenca/gui-elements";
 import utils from "../ruleNode/ruleNode.utils";
 import { SidebarRuleOperatorBase } from "./RuleEditorOperatorSidebar.typings";
-import Color from "color";
+import { ColorLike } from "color";
 import getColorConfiguration from "@eccenca/gui-elements/src/common/utils/getColorConfiguration";
 import { useTranslation } from "react-i18next";
 import { RuleEditorUiContext } from "../../contexts/RuleEditorUiContext";
@@ -114,7 +114,7 @@ export const RuleOperator = ({ ruleOperator, textQuery, searchWords }: RuleOpera
 const tagColors = getColorConfiguration("react-flow-linking");
 export const tagColor = (
     tag: "Input" | "Transform" | "Comparison" | "Aggregation" | "Source path" | "Target path",
-): Color | string | undefined => {
+): ColorLike | undefined => {
     switch (tag) {
         case "Transform":
             return tagColors[`${eccgui}-transformation-node-bright`];

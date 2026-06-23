@@ -115,6 +115,7 @@ class RulePlugins extends PluginModule {
         // Dataset
         classOf[FileHashTransformer] ::
         classOf[InputHashTransformer] ::
+        classOf[PerValueHashTransformer] ::
         // Numeric
         classOf[NumReduceTransformer] ::
         classOf[NumOperationTransformer] ::
