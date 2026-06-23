@@ -2,7 +2,7 @@ package org.silkframework.plugins.dataset.rdf.executors
 
 import org.silkframework.config.{Prefixes, Task, TaskSpec}
 import org.silkframework.dataset.DataSource
-import org.silkframework.dataset.rdf.{SparqlEndpoint, SparqlResults}
+import org.silkframework.dataset.rdf.{RdfDatasetAccess, SparqlEndpoint, SparqlResults}
 import org.silkframework.entity.Entity
 import org.silkframework.execution.local.{GenericEntityTable, LocalEntities, LocalExecution, LocalExecutor}
 import org.silkframework.execution.typed.SparqlEndpointEntitySchema
@@ -28,7 +28,8 @@ case class LocalSparqlSelectExecutor() extends LocalExecutor[SparqlSelectCustomT
     inputs match {
       case Seq(SparqlEndpointEntitySchema(sparql)) =>
         implicit val executionReportUpdater: SparqlSelectExecutionReportUpdater = SparqlSelectExecutionReportUpdater(task, context)
-        val entities = new LocalSparqlSelectIterator(taskData, sparql.task.data.plugin.sparqlEndpoint, executionReportUpdater = Some(executionReportUpdater))
+        val endpoint = RdfDatasetAccess.forExecution(sparql.task, execution).sparqlEndpoint
+        val entities = new LocalSparqlSelectIterator(taskData, endpoint, executionReportUpdater = Some(executionReportUpdater))
         Some(GenericEntityTable(entities, entitySchema = taskData.outputSchema, task))
       case _ =>
         throw TaskException("SPARQL select executor did not receive a SPARQL endpoint as requested!")

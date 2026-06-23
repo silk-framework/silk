@@ -137,12 +137,30 @@ object ExecutorRegistry extends ExecutorRegistry {
     context: ActivityContext[ExecutionReport] = new ActivityMonitor(getClass.getSimpleName)
   )(implicit pluginContext: PluginContext): Option[ExecType#DataType] = {
     val exec = executor(task.data, execution)
+    executeWith(exec, task, inputs, output, execution, context)
+  }
+
+  /** Execute with a pre-instantiated executor, skipping executor lookup. */
+  def executeWith[TaskType <: TaskSpec, ExecType <: ExecutionType](
+    exec: Executor[TaskType, ExecType],
+    task: Task[TaskType],
+    inputs: Seq[ExecType#DataType],
+    output: ExecutorOutput,
+    execution: ExecType,
+    context: ActivityContext[ExecutionReport]
+  )(implicit pluginContext: PluginContext): Option[ExecType#DataType] = {
     context.status.update(Status.Running("Running", None), logStatus = false)
     val startTime = System.currentTimeMillis()
     val result = exec.execute(task, inputs, output, execution, context)
     context.status.update(Status.Finished(success = true, System.currentTimeMillis() - startTime, cancelled = false), logStatus = false)
     result
   }
+
+  /** Instantiates the executor for a given task and execution type without executing it. */
+  def instantiateExecutor[TaskType <: TaskSpec, ExecType <: ExecutionType](
+    task: TaskType,
+    execution: ExecType
+  ): Executor[TaskType, ExecType] = executor(task, execution)
 
 
   /** Fetch the execution specific access to a dataset for the configured execution.*/
