@@ -32,7 +32,7 @@
         "@dnd-kit/modifiers": "^9.0.0",
         "@dnd-kit/sortable": "^10.0.0",
         "@dnd-kit/utilities": "^3.2.2",
-        "@eccenca/gui-elements": "^25.2.0",
+        "@eccenca/gui-elements": "^26.0.0",
         "@eccenca/superagent": "^1.4.1",
         "@mavrin/remark-typograf": "^2.2.0",
         "@reduxjs/toolkit": "^2.11.1",

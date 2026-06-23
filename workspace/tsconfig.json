@@ -1,6 +1,7 @@
 {
     "extends": "../libs/gui-elements/tsconfig.json",
     "compilerOptions": {
+        "jsx": "react-jsx",
         "baseUrl": "./src/app",
         "noImplicitAny": false,
         "strict": false,

@@ -55,7 +55,7 @@ import {RuleEditorEvaluationContext, RuleEditorEvaluationContextProps} from "../
 import {
     InteractionGate,
     Markdown,
-    NodeContentHandleProps,
+    HandleDefaultProps,
     NodeContentProps,
     nodeDefaultUtils,
     NodeDimensions,
@@ -1503,7 +1503,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
     const addEdge = (
         sourceNodeId: string,
         targetNodeId: string,
-        targetHandleId: NodeContentHandleProps["id"],
+        targetHandleId: HandleDefaultProps["id"],
         previousTargetHandle?: string,
     ) => {
         if (targetHandleId && !isValidEdge(sourceNodeId, targetNodeId, targetHandleId)) {
@@ -1511,7 +1511,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
         }
         changeElementsInternal((els) => {
             let currentElements = els;
-            let toTargetHandleId: NodeContentHandleProps["id"] = targetHandleId;
+            let toTargetHandleId: HandleDefaultProps["id"] = targetHandleId;
             if (!targetHandleId) {
                 // If the target handle is not defined, connect to the first empty handle
                 const node = utils.nodeById(els, targetNodeId);

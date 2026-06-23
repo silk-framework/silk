@@ -22,7 +22,7 @@ import {
     HandleDefaultProps,
     IconButton,
     Markdown,
-    NodeContentHandleProps,
+    NodeContentProps,
     NodeDimensions,
 } from "@eccenca/gui-elements";
 import { RuleEditorEvaluationContextProps } from "../contexts/RuleEditorEvaluationContext";
@@ -40,7 +40,7 @@ export const SOURCE_HANDLE_TYPE = "source";
 export const TARGET_HANDLE_TYPE = "target";
 
 /** Creates a new input handle. Handle IDs need to be numbers that are unique for the same node. */
-function createInputHandle(handleId: number, operatorContext?: IOperatorCreateContext): NodeContentHandleProps {
+function createInputHandle(handleId: number, operatorContext?: IOperatorCreateContext): HandleDefaultProps {
     return {
         id: `${handleId}`,
         type: TARGET_HANDLE_TYPE,
@@ -135,7 +135,7 @@ function createOperatorNode(
     const usedInputs = node.inputs.length;
     const numberOfInputPorts = maxInputPortCount(node.portSpecification, usedInputs);
 
-    const handles: NodeContentHandleProps[] = [
+    const handles: HandleDefaultProps[] = [
         ...(isNamedPortSpecification(node.portSpecification)
             ? node.portSpecification.inputPorts.map((port, idx) => createNamedInputHandle(port, idx, operatorContext))
             : createInputHandles(numberOfInputPorts, operatorContext)),

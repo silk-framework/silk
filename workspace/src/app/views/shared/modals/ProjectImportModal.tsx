@@ -384,7 +384,7 @@ export function ProjectImportModal({ close, back, maxFileUploadSizeBytes }: IPro
                                     }
                                     toggleExtendText={t("common.words.more", "more")}
                                     toggleReduceText={t("common.words.less", "less")}
-                                    firstNonEmptyLineOnly={true}
+                                    useOnly={"firstNonEmptyLine"}
                                 />
                             </PropertyValue>
                         </PropertyValuePair>
