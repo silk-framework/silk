@@ -100,8 +100,12 @@ class PeakTransformApiTest extends AnyFlatSpec with SingleProjectWorkspaceProvid
     errors mustBe 2
     errorMsg must include ("Invalid date format")
     hasMore mustBe false
-    total mustBe 0
-    peakResult mustBe Seq()
+    // Errored entities produce empty output but are still surfaced in the preview (and counted).
+    total mustBe 2
+    peakResult mustBe Seq(
+      PeakResult(Seq(Seq("2015"), Seq("no date")), Seq()),
+      PeakResult(Seq(Seq("123"), Seq("also no date")), Seq())
+    )
   }
 
   it should "drain the iterator after the page is filled when computeTotal is true" in {
@@ -267,7 +271,8 @@ class PeakTransformApiTest extends AnyFlatSpec with SingleProjectWorkspaceProvid
       )
     )
     peakResult.results mustBe Some(Seq(
-      PeakResult(Seq(Seq("Max Doe"), Seq("May 1900")), Seq("urn:Max+Doe/May+1900"))
+      PeakResult(Seq(Seq("Max Doe"), Seq("May 1900")), Seq("urn:Max+Doe/May+1900")),
+      PeakResult(Seq(Seq("Max Noe"), Seq()), Seq())
     ))
     peakResult.total mustBe None
     peakResult.totalIsExact mustBe None
@@ -278,9 +283,10 @@ class PeakTransformApiTest extends AnyFlatSpec with SingleProjectWorkspaceProvid
     val peakResult = peakChildRuleRequest(PatternUriMapping(pattern = "urn:{Name}/{Events/Birth}"), includeTotal = true)
     peakResult.status.id mustBe "success"
     peakResult.results mustBe Some(Seq(
-      PeakResult(Seq(Seq("Max Doe"), Seq("May 1900")), Seq("urn:Max+Doe/May+1900"))
+      PeakResult(Seq(Seq("Max Doe"), Seq("May 1900")), Seq("urn:Max+Doe/May+1900")),
+      PeakResult(Seq(Seq("Max Noe"), Seq()), Seq())
     ))
-    peakResult.total mustBe Some(1)
+    peakResult.total mustBe Some(2)
     peakResult.totalIsExact mustBe Some(true)
     peakResult.nextOffset mustBe None
   }
