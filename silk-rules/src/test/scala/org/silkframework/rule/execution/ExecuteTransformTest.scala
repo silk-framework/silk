@@ -52,6 +52,31 @@ class ExecuteTransformTest extends AnyFlatSpec with Matchers with MockitoSugar {
     resultStats.ruleResults("prop2Transform").errorCount shouldBe 0
   }
 
+  it should "transform only the first N entities when a limit is set" in {
+    val prop = "http://prop"
+    val outputMock = mock[EntitySink]
+    val entities = Seq(entity("a", prop), entity("b", prop), entity("c", prop))
+    val dataSourceMock = mock[DataSource]
+    when(dataSourceMock.retrieve(any(), any())(any())).thenReturn(GenericEntityTable(CloseableIterator(entities.iterator), entities.head.schema, null))
+    when(dataSourceMock.underlyingTask).thenReturn(PlainTask("inputTaskDummy", DatasetSpec(InternalDataset())))
+    val transform = TransformSpec(datasetSelection(), RootMappingRule(rules = MappingRules(mapping("propTransform", prop))), limit = Some(2))
+    val execute = new ExecuteTransform(
+      PlainTask("transformTask", transform),
+      inputTask = _ => PlainTask("dummy", DatasetSpec(EmptyDataset)),
+      input = _ => dataSourceMock,
+      output = _ => outputMock,
+      pluginContext = _ => PluginContext.empty,
+    )
+    val contextMock = mock[ActivityContext[TransformReport]]
+    val executeTransformResultHolder = new ValueHolder[TransformReport](None)
+    when(contextMock.value).thenReturn(executeTransformResultHolder)
+    when(contextMock.status).thenReturn(mock[StatusHolder])
+    implicit val userContext: UserContext = UserContext.Empty
+    execute.run(contextMock)
+    // The limit is enforced, so only the first two of the three source entities are transformed.
+    executeTransformResultHolder().entityCount shouldBe 2
+  }
+
   private def transformerWithExceptions(): Transformer = {
     new InlineTransformer {
       override def apply(values: Seq[Seq[String]]): Seq[String] = {

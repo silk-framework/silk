@@ -11,7 +11,7 @@ import org.silkframework.rule.vocab.TargetVocabularyParameterEnum
 import org.silkframework.runtime.plugin.StringParameterType.{EnumerationType, StringIterableParameterType}
 import org.silkframework.runtime.plugin._
 import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
-import org.silkframework.runtime.plugin.types.IdentifierOptionParameter
+import org.silkframework.runtime.plugin.types.{IdentifierOptionParameter, IntOptionParameter}
 import org.silkframework.runtime.resource.Resource
 import org.silkframework.runtime.serialization.XmlSerialization._
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat, XmlSerialization}
@@ -62,7 +62,9 @@ case class TransformSpec(@Param(label = "Input", value = "The source from which 
                          targetVocabularies: TargetVocabularyParameter = TargetVocabularyCategory(TargetVocabularyParameterEnum.allInstalled),
                          @Param("If true, a validation error (such as a data type mismatch) will abort the execution. " +
                                 "If false, the execution will continue, adding a validation error to the execution report.")
-                         abortIfErrorsOccur: Boolean = false
+                         abortIfErrorsOccur: Boolean = false,
+                         @Param(label = "Limit", value = "If set, only the first N input entities are transformed.", advanced = true)
+                         limit: IntOptionParameter = None
                         ) extends TaskSpec with AnyPlugin {
 
   /** Retrieves the root rules of this transform spec. */
