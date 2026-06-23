@@ -6,6 +6,7 @@ import org.silkframework.runtime.plugin.types.IntOptionParameter
 import java.util.concurrent.atomic.{AtomicInteger, AtomicReference}
 import java.util.concurrent.{CountDownLatch, TimeUnit}
 import scala.concurrent.{Await, Future}
+import scala.concurrent.duration._
 
 /** Permit-controlled and race-focused tests that isolate limiter handoff, restart, and cancellation behavior. */
 class WorkflowExecutionLimiterPermitTest extends WorkflowExecutionLimiterTestSupport {
