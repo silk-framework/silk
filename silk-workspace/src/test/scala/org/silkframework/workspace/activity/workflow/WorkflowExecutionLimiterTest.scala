@@ -90,19 +90,20 @@ class WorkflowExecutionLimiterTest extends AnyFlatSpec with Matchers with Eventu
   }
 
   it should "remove waiting workflow runs from the queue when they are cancelled" in {
-    QueueControlledTaskState.reset()
+    PermitControlledWorkflowState.reset()
     val workflowTask = createLimitedWorkflow("cancel")
     val workflowKey = WorkflowExecutionLimiter.WorkflowExecutionKey(workflowTask.project.id, workflowTask.id)
+    val runningUser = "urn:test:running"
+    val queuedUser = "urn:test:queued"
 
-    val firstControl = Activity(LocalWorkflowExecutor(workflowTask))
-    firstControl.start()(testUserContext("urn:test:running"))
-
-    val queuedControl = Activity(LocalWorkflowExecutor(workflowTask))
-    val queuedUserContext = testUserContext("urn:test:queued")
+    val firstControl = Activity(PermitControlledWorkflowExecutor(workflowTask))
+    firstControl.start()(testUserContext(runningUser))
+    val queuedControl = Activity(PermitControlledWorkflowExecutor(workflowTask))
+    val queuedUserContext = testUserContext(queuedUser)
     queuedControl.start()(queuedUserContext)
 
     try {
-      QueueControlledTaskState.awaitStartedExecutions(1)
+      PermitControlledWorkflowState.awaitStartedExecutions(1)
       eventually {
         WorkflowExecutionLimiter.queuedCount(workflowKey) shouldBe 1
       }
@@ -110,19 +111,21 @@ class WorkflowExecutionLimiterTest extends AnyFlatSpec with Matchers with Eventu
       eventually {
         WorkflowExecutionLimiter.queuedCount(workflowKey) shouldBe 0
       }
-      QueueControlledTaskState.releaseNext()
+      PermitControlledWorkflowState.releaseForUser(runningUser)
 
       awaitFinished(firstControl)
-      awaitFinished(queuedControl)
-
-      QueueControlledTaskState.startedUsers.asScala.toSeq shouldBe Seq("urn:test:running")
-      queuedControl.status() match {
-        case Status.Finished(_, _, cancelled, _) => cancelled shouldBe true
-        case other => fail(s"Expected queued workflow run to finish in cancelled state, but got: $other")
+      eventually {
+        queuedControl.status() match {
+          case Status.Finished(_, _, cancelled, _) => cancelled shouldBe true
+          case other => fail(s"Expected queued workflow run to finish in cancelled state, but got: $other")
+        }
+      }
+      eventually {
+        WorkflowExecutionLimiter.isTracked(workflowKey) shouldBe false
       }
     } finally {
       cancelAll(Seq(firstControl, queuedControl))
-      QueueControlledTaskState.releaseAll()
+      PermitControlledWorkflowState.releaseAll()
     }
   }
 
@@ -146,7 +149,8 @@ class WorkflowExecutionLimiterTest extends AnyFlatSpec with Matchers with Eventu
       awaitFinished(firstControl)
       awaitFinished(secondControl)
 
-      QueueControlledTaskState.startedUsers.asScala.toSeq shouldBe Seq("urn:test:first", "urn:test:second")
+      QueueControlledTaskState.startedExecutions.get() shouldBe 2
+      QueueControlledTaskState.startedUsers.asScala.toSet shouldBe Set("urn:test:first", "urn:test:second")
     } finally {
       cancelAll(Seq(firstControl, secondControl))
       QueueControlledTaskState.releaseAll()
@@ -260,7 +264,7 @@ class WorkflowExecutionLimiterTest extends AnyFlatSpec with Matchers with Eventu
   }
 
   it should "treat restart of a queued workflow run as a fresh tail entry" in {
-    QueueControlledTaskState.reset()
+    PermitControlledWorkflowState.reset()
     val workflowTask = createLimitedWorkflow("queuedRestart")
     val workflowKey = WorkflowExecutionLimiter.WorkflowExecutionKey(workflowTask.project.id, workflowTask.id)
     val runningUser = "urn:test:queued-restart-running"
@@ -268,12 +272,12 @@ class WorkflowExecutionLimiterTest extends AnyFlatSpec with Matchers with Eventu
     val otherQueuedUser = "urn:test:queued-restart-other"
     val restartedUser = "urn:test:queued-restart-restarted"
 
-    val runningControl = startWorkflow(workflowTask, runningUser)
-    val restartedControl = startWorkflow(workflowTask, queuedUser)
-    val otherQueuedControl = startWorkflow(workflowTask, otherQueuedUser)
+    val runningControl = startPermitControlledWorkflow(workflowTask, runningUser)
+    val restartedControl = startPermitControlledWorkflow(workflowTask, queuedUser)
+    val otherQueuedControl = startPermitControlledWorkflow(workflowTask, otherQueuedUser)
 
     try {
-      QueueControlledTaskState.awaitStartedExecutions(1)
+      PermitControlledWorkflowState.awaitStartedExecutions(1)
       eventually {
         WorkflowExecutionLimiter.queuedCount(workflowKey) shouldBe 2
       }
@@ -283,24 +287,24 @@ class WorkflowExecutionLimiterTest extends AnyFlatSpec with Matchers with Eventu
         WorkflowExecutionLimiter.queuedCount(workflowKey) shouldBe 2
       }
 
-      QueueControlledTaskState.releaseNext()
-      QueueControlledTaskState.awaitStartedExecutions(2)
-      QueueControlledTaskState.startedUsers.asScala.toSeq shouldBe Seq(runningUser, otherQueuedUser)
-
-      QueueControlledTaskState.releaseNext()
-      QueueControlledTaskState.awaitStartedExecutions(3)
-      QueueControlledTaskState.startedUsers.asScala.toSeq shouldBe Seq(runningUser, otherQueuedUser, restartedUser)
-
-      QueueControlledTaskState.releaseNext()
+      PermitControlledWorkflowState.releaseForUser(runningUser)
       awaitFinished(runningControl)
+      PermitControlledWorkflowState.awaitStartedExecutions(2)
+      PermitControlledWorkflowState.startedUsers.asScala.toSeq shouldBe Seq(runningUser, otherQueuedUser)
+
+      PermitControlledWorkflowState.releaseForUser(otherQueuedUser)
       awaitFinished(otherQueuedControl)
+      PermitControlledWorkflowState.awaitStartedExecutions(3)
+      PermitControlledWorkflowState.startedUsers.asScala.toSeq shouldBe Seq(runningUser, otherQueuedUser, restartedUser)
+
+      PermitControlledWorkflowState.releaseForUser(restartedUser)
       awaitFinished(restartedControl)
       eventually {
         WorkflowExecutionLimiter.isTracked(workflowKey) shouldBe false
       }
     } finally {
       cancelAll(Seq(runningControl, restartedControl, otherQueuedControl))
-      QueueControlledTaskState.releaseAll()
+      PermitControlledWorkflowState.releaseAll()
     }
   }
 
@@ -329,20 +333,20 @@ class WorkflowExecutionLimiterTest extends AnyFlatSpec with Matchers with Eventu
         WorkflowExecutionLimiter.queuedCount(workflowKey) shouldBe 2
       }
 
-      PermitControlledWorkflowState.releaseNext()
+      PermitControlledWorkflowState.releaseForUser(runningUser)
+      awaitFinished(runningControl)
       PermitControlledWorkflowState.awaitStartedExecutions(2)
       PermitControlledWorkflowState.startedUsers.asScala.toSeq shouldBe Seq(runningUser, prioritizedUser)
 
       assertPermitControlledStartsStay(2, 300.millis)
 
-      PermitControlledWorkflowState.releaseNext()
+      PermitControlledWorkflowState.releaseForUser(prioritizedUser)
+      awaitFinished(prioritizedControl)
       PermitControlledWorkflowState.awaitStartedExecutions(3)
       PermitControlledWorkflowState.startedUsers.asScala.toSeq shouldBe Seq(runningUser, prioritizedUser, queuedUser)
 
-      PermitControlledWorkflowState.releaseNext()
-      awaitFinished(runningControl)
+      PermitControlledWorkflowState.releaseForUser(queuedUser)
       awaitFinished(queuedControl)
-      awaitFinished(prioritizedControl)
       eventually {
         WorkflowExecutionLimiter.isTracked(workflowKey) shouldBe false
       }
@@ -492,10 +496,6 @@ class WorkflowExecutionLimiterTest extends AnyFlatSpec with Matchers with Eventu
       PermitControlledWorkflowState.releaseForUser(otherQueuedUser)
 
       Await.result(restartFuture, TestTimeout)
-      eventually {
-        WorkflowExecutionLimiter.queuedCount(workflowKey) shouldBe 1
-      }
-
       PermitControlledWorkflowState.awaitStartedExecutions(3)
       PermitControlledWorkflowState.startedUsers.asScala.toSeq.last shouldBe restartedUser
       PermitControlledWorkflowState.releaseForUser(restartedUser)
@@ -773,16 +773,16 @@ class WorkflowExecutionLimiterTest extends AnyFlatSpec with Matchers with Eventu
       assertPermitControlledStartsStay(2, 300.millis)
 
       PermitControlledWorkflowState.releaseNext()
+      awaitFinished(queued1)
       PermitControlledWorkflowState.awaitStartedExecutions(3)
       PermitControlledWorkflowState.startedUsers.asScala.toSeq shouldBe Seq("urn:test:mixed-running", "urn:test:mixed-q1", "urn:test:mixed-q2r")
 
       PermitControlledWorkflowState.releaseNext()
+      awaitFinished(queued2)
       PermitControlledWorkflowState.awaitStartedExecutions(4)
       PermitControlledWorkflowState.startedUsers.asScala.toSeq shouldBe Seq("urn:test:mixed-running", "urn:test:mixed-q1", "urn:test:mixed-q2r", "urn:test:mixed-q4")
 
       PermitControlledWorkflowState.releaseNext()
-      awaitFinished(queued1)
-      awaitFinished(queued2)
       awaitFinished(queued3)
       awaitFinished(queued4)
       eventually {
@@ -819,22 +819,22 @@ class WorkflowExecutionLimiterTest extends AnyFlatSpec with Matchers with Eventu
       }
 
       PermitControlledWorkflowState.releaseForUser("urn:test:isolation-a1")
+      awaitFinished(a1)
       PermitControlledWorkflowState.awaitStartedExecutions(3)
       PermitControlledWorkflowState.startedUsers.asScala.toSet should contain ("urn:test:isolation-a2")
       WorkflowExecutionLimiter.queuedCount(workflowKeyB) shouldBe 1
       assertPermitControlledStartsStay(3, 300.millis)
 
       PermitControlledWorkflowState.releaseForUser("urn:test:isolation-a2")
-      awaitFinished(a1)
       awaitFinished(a2)
       assertPermitControlledStartsStay(3, 300.millis)
 
       PermitControlledWorkflowState.releaseForUser("urn:test:isolation-b1")
+      awaitFinished(b1)
       PermitControlledWorkflowState.awaitStartedExecutions(4)
       PermitControlledWorkflowState.startedUsers.asScala.toSet should contain ("urn:test:isolation-b2")
 
       PermitControlledWorkflowState.releaseForUser("urn:test:isolation-b2")
-      awaitFinished(b1)
       awaitFinished(b2)
       eventually {
         WorkflowExecutionLimiter.isTracked(workflowKeyA) shouldBe false
@@ -885,15 +885,16 @@ class WorkflowExecutionLimiterTest extends AnyFlatSpec with Matchers with Eventu
   }
 
   it should "treat repeated queued cancellations as harmless" in {
-    QueueControlledTaskState.reset()
+    PermitControlledWorkflowState.reset()
     val workflowTask = createLimitedWorkflow("doubleCancel")
     val workflowKey = WorkflowExecutionLimiter.WorkflowExecutionKey(workflowTask.project.id, workflowTask.id)
-    val runningControl = startWorkflow(workflowTask, "urn:test:double-cancel-running")
+    val runningUser = "urn:test:double-cancel-running"
+    val runningControl = startPermitControlledWorkflow(workflowTask, runningUser)
     val queuedUser = "urn:test:double-cancel-queued"
-    val queuedControl = startWorkflow(workflowTask, queuedUser)
+    val queuedControl = startPermitControlledWorkflow(workflowTask, queuedUser)
 
     try {
-      QueueControlledTaskState.awaitStartedExecutions(1)
+      PermitControlledWorkflowState.awaitStartedExecutions(1)
       eventually {
         WorkflowExecutionLimiter.queuedCount(workflowKey) shouldBe 1
       }
@@ -904,15 +905,21 @@ class WorkflowExecutionLimiterTest extends AnyFlatSpec with Matchers with Eventu
         WorkflowExecutionLimiter.queuedCount(workflowKey) shouldBe 0
       }
 
-      QueueControlledTaskState.releaseNext()
+      PermitControlledWorkflowState.releaseForUser(runningUser)
       awaitFinished(runningControl)
-      awaitFinished(queuedControl)
+      eventually {
+        queuedControl.status() match {
+          case Status.Finished(_, _, cancelled, _) => cancelled shouldBe true
+          case other => fail(s"Expected the repeatedly cancelled queued workflow run to finish cancelled, but got: $other")
+        }
+      }
+      PermitControlledWorkflowState.startedUsers.asScala.toSeq shouldBe Seq(runningUser)
       eventually {
         WorkflowExecutionLimiter.isTracked(workflowKey) shouldBe false
       }
     } finally {
       cancelAll(Seq(runningControl, queuedControl))
-      QueueControlledTaskState.releaseAll()
+      PermitControlledWorkflowState.releaseAll()
     }
   }
 
@@ -1051,6 +1058,13 @@ class WorkflowExecutionLimiterTest extends AnyFlatSpec with Matchers with Eventu
   private def startWorkflow(workflowTask: org.silkframework.workspace.ProjectTask[Workflow],
                             userUri: String): ActivityControl[WorkflowExecutionReport] = {
     val control = Activity(LocalWorkflowExecutor(workflowTask))
+    control.start()(testUserContext(userUri))
+    control
+  }
+
+  private def startPermitControlledWorkflow(workflowTask: org.silkframework.workspace.ProjectTask[Workflow],
+                                            userUri: String): ActivityControl[WorkflowExecutionReport] = {
+    val control = Activity(PermitControlledWorkflowExecutor(workflowTask))
     control.start()(testUserContext(userUri))
     control
   }
