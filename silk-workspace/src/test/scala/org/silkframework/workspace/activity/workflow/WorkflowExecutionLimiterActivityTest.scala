@@ -186,7 +186,10 @@ class WorkflowExecutionLimiterActivityTest extends WorkflowExecutionLimiterTestS
       limitedControls.tail.foreach(_.cancel()(testUserContext("urn:test:cancel")))
       QueueControlledTaskState.releaseNext()
 
-      limitedControls.foreach(awaitFinished)
+      awaitFinished(limitedControls.head)
+      limitedControls.tail.zipWithIndex.foreach { case (control, index) =>
+        expectCancelled(control, s"Expected cancelled queued workflow run ${index + 1} to finish cancelled")
+      }
       awaitFinished(quickControl)
 
       QueueControlledTaskState.startedExecutions.get() shouldBe 1

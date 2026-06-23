@@ -412,7 +412,7 @@ class WorkflowExecutionLimiterPermitTest extends WorkflowExecutionLimiterTestSup
       expectStartedUsers(PermitControlledWorkflowState, Seq("urn:test:mixed-running", "urn:test:mixed-q1", "urn:test:mixed-q2r", "urn:test:mixed-q4"))
 
       PermitControlledWorkflowState.releaseForUser("urn:test:mixed-q4")
-      awaitFinished(queued3)
+      expectCancelled(queued3, "Expected the cancelled queued workflow run to finish cancelled")
       awaitFinished(queued4)
       eventually {
         WorkflowExecutionLimiter.queuedCount(workflowKey) shouldBe 0
