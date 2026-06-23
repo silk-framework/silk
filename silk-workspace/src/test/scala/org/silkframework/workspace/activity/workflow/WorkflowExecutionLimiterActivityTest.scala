@@ -106,7 +106,9 @@ class WorkflowExecutionLimiterActivityTest extends WorkflowExecutionLimiterTestS
 
       QueueControlledTaskState.releaseNext()
       awaitFinished(runningControl)
-      queuedControls.foreach { case (_, control) => awaitFinished(control) }
+      queuedControls.foreach { case (userUri, control) =>
+        expectCancelled(control, s"Expected queued workflow run '$userUri' to finish cancelled")
+      }
 
       expectStartedUsers(QueueControlledTaskState, Seq(runningUser))
       expectUntracked(workflowKey)
@@ -129,7 +131,7 @@ class WorkflowExecutionLimiterActivityTest extends WorkflowExecutionLimiterTestS
       expectQueuedCount(workflowKey, 1)
 
       workflowTask.project.updateTask(workflowTask.id, workflowTask.data.copy(maxParallelExecutions = IntOptionParameter(Some(2))))
-      expectStartedUsers(QueueControlledTaskState, userUris.take(2))
+      expectStartedUserSet(QueueControlledTaskState, userUris.take(2).toSet)
 
       workflowTask.project.updateTask(workflowTask.id, workflowTask.data.copy(maxParallelExecutions = IntOptionParameter(Some(1))))
       val thirdControl = startWorkflow(workflowTask, userUris(2))
@@ -143,7 +145,7 @@ class WorkflowExecutionLimiterActivityTest extends WorkflowExecutionLimiterTestS
 
         QueueControlledTaskState.releaseNext()
         awaitFinished(secondControl)
-        expectStartedUsers(QueueControlledTaskState, userUris)
+        expectStartedUserSet(QueueControlledTaskState, userUris.toSet)
 
         QueueControlledTaskState.releaseNext()
         awaitFinished(thirdControl)

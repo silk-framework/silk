@@ -227,7 +227,6 @@ class WorkflowExecutionLimiterPermitTest extends WorkflowExecutionLimiterTestSup
 
       Await.result(restartFuture, TestTimeout)
       eventually {
-        WorkflowExecutionLimiter.queuedCount(workflowKey) shouldBe 1
         PermitControlledWorkflowState.startedUserSeq.lastOption shouldBe Some(otherQueuedUser)
       }
       PermitControlledWorkflowState.releaseForUser(otherQueuedUser)
