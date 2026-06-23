@@ -25,7 +25,6 @@ import scala.jdk.CollectionConverters.CollectionHasAsScala
   */
 @Tag(name = "Workbench")
 case class InitApi @Inject()() extends InjectedController with UserContextActions with ControllerUtilsTrait {
-  private val dmConfigKey = "eccencaDataManager.baseUrl"
   private val dmLinksKey = "eccencaDataManager.moduleLinks"
   private val hotkeyConfigPath = "frontend.hotkeys"
   private val dmLinkPath = "path"
@@ -38,13 +37,7 @@ case class InitApi @Inject()() extends InjectedController with UserContextAction
   private lazy val cfg = DefaultConfig.instance()
   private val log: Logger = Logger.getLogger(getClass.getName)
 
-  lazy val dmBaseUrl: Option[JsString] = {
-    if(cfg.hasPath(dmConfigKey)) {
-      Some(JsString(cfg.getString(dmConfigKey)))
-    } else {
-      None
-    }
-  }
+  lazy val dmBaseUrl: Option[JsString] = WorkbenchConfig.dataManagerBaseUrl.map(JsString(_))
 
   lazy val version: Option[JsString] = {
     if(cfg.hasPath(versionKey)) {
@@ -163,5 +156,4 @@ case class InitApi @Inject()() extends InjectedController with UserContextAction
     implicit val dmLinkFormat: Format[DmLink] = Json.format[DmLink]
   }
 }
-
 

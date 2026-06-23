@@ -48,13 +48,12 @@ case class WorkbenchConfig(title: String = "Silk Workbench",
 object WorkbenchConfig {
   private lazy val cfg = DefaultConfig.instance()
   private val defaultProjectPageSuffixKey = "workbench.project.defaultUrlSuffix"
-  lazy val publicProtocol: String = if(WorkbenchConfig.useHttps(cfg)) "https" else "http"
-  lazy val publicHost: String = WorkbenchConfig.host(cfg).getOrElse("localhost:9000")
-  lazy val publicBaseUrl: String = s"$publicProtocol://$publicHost"
-  private lazy val localPort: Int = if (cfg.hasPath("http.port")) cfg.getInt("http.port") else 9000
-  lazy val localBaseUrl: String = s"http://localhost:$localPort"
+  private val dataManagerBaseUrlKey = "eccencaDataManager.baseUrl"
+  private lazy val localPort: Int = configuredLocalPort(cfg)
+  lazy val localBaseUrl: String = buildBaseUrl("http", s"localhost:$localPort")
   lazy val applicationContext: String = WorkbenchConfig.applicationContext(cfg)
-  def dataIntegrationUrl: String = localBaseUrl + applicationContext
+  def localDataIntegrationUrl: String = localBaseUrl + applicationContext
+  def dataManagerBaseUrl: Option[String] = dataManagerBaseUrl(DefaultConfig.instance())
   lazy val defaultProjectPageSuffix: Option[String] = {
     if(cfg.hasPath(defaultProjectPageSuffixKey)) {
       Some(cfg.getString(defaultProjectPageSuffixKey))
@@ -81,6 +80,49 @@ object WorkbenchConfig {
     }
   }
 
+  /**
+    * The canonical public host of Data Integration without scheme or application context.
+    *
+    * This uses the configured public host if `workbench.host` is set. Otherwise it falls back to
+    * `localhost:<http.port>`, which matches the local server port configuration.
+    */
+  lazy val canonicalPublicHost: String = resolvePublicHost(cfg, request = None)
+
+  /**
+    * The canonical public base URL of Data Integration without the application context.
+    *
+    * This uses the configured public host if `workbench.host` is set. Otherwise it falls back to
+    * `localhost:<http.port>`, which matches the local server port configuration.
+    */
+  lazy val canonicalPublicBaseUrl: String = {
+    publicBaseUrl(config = cfg, request = None, includeApplicationContext = false)
+  }
+
+  /**
+    * Builds the public base URL of Data Integration.
+    *
+    * Host resolution works as follows:
+    * 1. If `workbench.host` is configured, it is always used.
+    * 2. Otherwise, if a request is provided, the request host is used as fallback.
+    * 3. Otherwise, it falls back to `localhost:<http.port>`.
+    *
+    * This makes the configured host authoritative when present, while still allowing request-based
+    * URL construction if no public host is configured.
+    *
+    * @param config The application configuration used for protocol, host and application context.
+    * @param request An optional request that may provide the fallback host if `workbench.host` is not configured.
+    * @param includeApplicationContext If true, append the configured application context, e.g. `/dataintegration`.
+    *                                  If false, return only the scheme and host portion.
+    */
+  def publicBaseUrl(
+      config: TypesafeConfig = cfg,
+      request: Option[RequestHeader] = None,
+      includeApplicationContext: Boolean = true
+  ): String = {
+    val baseUrl = buildBaseUrl(configuredProtocol(config), resolvePublicHost(config, request))
+    if(includeApplicationContext) baseUrl + applicationContext(config) else baseUrl
+  }
+
   /** The application context, i.e. the base path of the absolute application paths. */
   def applicationContext(config: TypesafeConfig): String = {
     if (config.hasPath("play.http.context")) {
@@ -88,6 +130,32 @@ object WorkbenchConfig {
     } else {
       ""
     }
+  }
+
+  /** The URL of the configured eccenca DataManager, if any. */
+  def dataManagerBaseUrl(config: TypesafeConfig): Option[String] = {
+    if(config.hasPath(dataManagerBaseUrlKey)) {
+      Some(config.getString(dataManagerBaseUrlKey).stripSuffix("/"))
+    } else {
+      None
+    }
+  }
+
+  private def configuredProtocol(config: TypesafeConfig): String = {
+    if(useHttps(config)) "https" else "http"
+  }
+
+  private def configuredLocalPort(config: TypesafeConfig): Int = {
+    if (config.hasPath("http.port")) config.getInt("http.port") else 9000
+  }
+
+  private def resolvePublicHost(config: TypesafeConfig, request: Option[RequestHeader]): String = {
+    val fallbackHost = request.map(_.host).getOrElse(s"localhost:${configuredLocalPort(config)}")
+    host(config).getOrElse(fallbackHost)
+  }
+
+  private def buildBaseUrl(protocol: String, host: String): String = {
+    s"$protocol://$host"
   }
 
   @javax.inject.Singleton
@@ -181,7 +249,7 @@ object WorkbenchConfig {
   private def injectConfigProperties(context: String, htmlString: String): String = {
     val htmlParts = htmlString.split("<head>")
     assert(htmlParts.size == 2, "The index.html does not have the required format to be parsed correctly.")
-    val scriptPart = s"""<script>window.DI = {"basePath": "$context", "publicBaseUrl":"${WorkbenchConfig.publicBaseUrl}"}</script>"""
+    val scriptPart = s"""<script>window.DI = {"basePath": "$context", "publicBaseUrl":"${WorkbenchConfig.canonicalPublicBaseUrl}"}</script>"""
     val html = s"${htmlParts(0)}<head>$scriptPart${htmlParts(1)}"
     html
   }
