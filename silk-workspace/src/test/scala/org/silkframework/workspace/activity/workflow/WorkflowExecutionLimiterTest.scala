@@ -491,13 +491,18 @@ class WorkflowExecutionLimiterTest extends AnyFlatSpec with Matchers with Eventu
       val restartFuture = control.restart()(testUserContext(restartedUser))
       allowAcquire.countDown()
 
-      PermitControlledWorkflowState.awaitStartedExecutions(2)
-      PermitControlledWorkflowState.startedUsers.asScala.toSeq.last shouldBe otherQueuedUser
+      Await.result(restartFuture, TestTimeout)
+      eventually {
+        WorkflowExecutionLimiter.queuedCount(workflowKey) shouldBe 1
+        PermitControlledWorkflowState.startedExecutions.get() shouldBe 2
+        PermitControlledWorkflowState.startedUsers.asScala.toSeq.last shouldBe otherQueuedUser
+      }
       PermitControlledWorkflowState.releaseForUser(otherQueuedUser)
 
-      Await.result(restartFuture, TestTimeout)
-      PermitControlledWorkflowState.awaitStartedExecutions(3)
-      PermitControlledWorkflowState.startedUsers.asScala.toSeq.last shouldBe restartedUser
+      eventually {
+        PermitControlledWorkflowState.startedExecutions.get() shouldBe 3
+        PermitControlledWorkflowState.startedUsers.asScala.toSeq.last shouldBe restartedUser
+      }
       PermitControlledWorkflowState.releaseForUser(restartedUser)
 
       awaitFinished(runningControl)
@@ -758,9 +763,15 @@ class WorkflowExecutionLimiterTest extends AnyFlatSpec with Matchers with Eventu
 
       Await.result(queued2.restart()(testUserContext("urn:test:mixed-q2r")), TestTimeout)
       queued3.cancel()(testUserContext("urn:test:mixed-cancel-q3"))
+      eventually {
+        WorkflowExecutionLimiter.queuedCount(workflowKey) shouldBe 2
+      }
       workflowTask.project.updateTask(workflowTask.id, workflowTask.data.copy(maxParallelExecutions = IntOptionParameter(Some(2))))
-      PermitControlledWorkflowState.awaitStartedExecutions(2)
-      PermitControlledWorkflowState.startedUsers.asScala.toSeq shouldBe Seq("urn:test:mixed-running", "urn:test:mixed-q1")
+      eventually {
+        WorkflowExecutionLimiter.queuedCount(workflowKey) shouldBe 1
+        PermitControlledWorkflowState.startedExecutions.get() shouldBe 2
+        PermitControlledWorkflowState.startedUsers.asScala.toSeq shouldBe Seq("urn:test:mixed-running", "urn:test:mixed-q1")
+      }
 
       queued4.start()(testUserContext("urn:test:mixed-q4"))
       workflowTask.project.updateTask(workflowTask.id, workflowTask.data.copy(maxParallelExecutions = IntOptionParameter(Some(1))))
@@ -768,21 +779,25 @@ class WorkflowExecutionLimiterTest extends AnyFlatSpec with Matchers with Eventu
         WorkflowExecutionLimiter.queuedCount(workflowKey) shouldBe 2
       }
 
-      PermitControlledWorkflowState.releaseNext()
+      PermitControlledWorkflowState.releaseForUser("urn:test:mixed-running")
       awaitFinished(runningControl)
       assertPermitControlledStartsStay(2, 300.millis)
 
-      PermitControlledWorkflowState.releaseNext()
+      PermitControlledWorkflowState.releaseForUser("urn:test:mixed-q1")
       awaitFinished(queued1)
-      PermitControlledWorkflowState.awaitStartedExecutions(3)
-      PermitControlledWorkflowState.startedUsers.asScala.toSeq shouldBe Seq("urn:test:mixed-running", "urn:test:mixed-q1", "urn:test:mixed-q2r")
+      eventually {
+        PermitControlledWorkflowState.startedExecutions.get() shouldBe 3
+        PermitControlledWorkflowState.startedUsers.asScala.toSeq shouldBe Seq("urn:test:mixed-running", "urn:test:mixed-q1", "urn:test:mixed-q2r")
+      }
 
-      PermitControlledWorkflowState.releaseNext()
+      PermitControlledWorkflowState.releaseForUser("urn:test:mixed-q2r")
       awaitFinished(queued2)
-      PermitControlledWorkflowState.awaitStartedExecutions(4)
-      PermitControlledWorkflowState.startedUsers.asScala.toSeq shouldBe Seq("urn:test:mixed-running", "urn:test:mixed-q1", "urn:test:mixed-q2r", "urn:test:mixed-q4")
+      eventually {
+        PermitControlledWorkflowState.startedExecutions.get() shouldBe 4
+        PermitControlledWorkflowState.startedUsers.asScala.toSeq shouldBe Seq("urn:test:mixed-running", "urn:test:mixed-q1", "urn:test:mixed-q2r", "urn:test:mixed-q4")
+      }
 
-      PermitControlledWorkflowState.releaseNext()
+      PermitControlledWorkflowState.releaseForUser("urn:test:mixed-q4")
       awaitFinished(queued3)
       awaitFinished(queued4)
       eventually {
@@ -1074,18 +1089,51 @@ class WorkflowExecutionLimiterTest extends AnyFlatSpec with Matchers with Eventu
     Await.result(Future(blocking(control.waitUntilFinished())), TestTimeout)
   }
 
-  private def assertStartedExecutionsStay(expected: Int, duration: FiniteDuration): Unit = {
-    val deadline = System.nanoTime() + duration.toNanos
-    while(System.nanoTime() < deadline) {
-      QueueControlledTaskState.startedExecutions.get() shouldBe expected
-      Thread.sleep(10)
+  private def expectQueuedCount(workflowKey: WorkflowExecutionLimiter.WorkflowExecutionKey, expected: Int): Unit = {
+    eventually {
+      WorkflowExecutionLimiter.queuedCount(workflowKey) shouldBe expected
     }
   }
 
-  private def assertPermitControlledStartsStay(expected: Int, duration: FiniteDuration): Unit = {
+  private def expectUntracked(workflowKey: WorkflowExecutionLimiter.WorkflowExecutionKey): Unit = {
+    eventually {
+      WorkflowExecutionLimiter.isTracked(workflowKey) shouldBe false
+    }
+  }
+
+  private def expectStartedCount(state: StartedExecutionState, expected: Int): Unit = {
+    eventually {
+      state.startedExecutions.get() shouldBe expected
+    }
+  }
+
+  private def expectStartedUsers(state: StartedExecutionState, expected: Seq[String]): Unit = {
+    eventually {
+      state.startedExecutions.get() shouldBe expected.size
+      state.startedUserSeq shouldBe expected
+    }
+  }
+
+  private def expectStartedUserSet(state: StartedExecutionState, expected: Set[String]): Unit = {
+    eventually {
+      state.startedExecutions.get() shouldBe expected.size
+      state.startedUserSet shouldBe expected
+    }
+  }
+
+  private def expectCancelled(control: ActivityControl[_], failureMessage: String): Unit = {
+    eventually {
+      control.status() match {
+        case Status.Finished(_, _, cancelled, _) => cancelled shouldBe true
+        case other => fail(s"$failureMessage, but got: $other")
+      }
+    }
+  }
+
+  private def assertStartedExecutionsStay(state: StartedExecutionState, expected: Int, duration: FiniteDuration): Unit = {
     val deadline = System.nanoTime() + duration.toNanos
     while(System.nanoTime() < deadline) {
-      PermitControlledWorkflowState.startedExecutions.get() shouldBe expected
+      state.startedExecutions.get() shouldBe expected
       Thread.sleep(10)
     }
   }
@@ -1116,72 +1164,20 @@ private case class TestWorkflowUserContext(userUri: String,
 
 private case class TestFailureException(message: String) extends RuntimeException(message)
 
-/**
-  * Shared test coordination state for [[QueueControlledTask]] executions.
-  *
-  * Each started task execution registers itself here, which allows tests to observe how many workflow runs have
-  * actually entered the blocking task and in which user order. For every started execution a latch is enqueued.
-  * Tests then release these latches one by one, or all at once during cleanup, to deterministically unblock the
-  * corresponding workflow runs.
-  */
-private object QueueControlledTaskState {
-  val startedExecutions: AtomicInteger = new AtomicInteger(0)
-  val startedUsers: ConcurrentLinkedQueue[String] = new ConcurrentLinkedQueue[String]()
-  private val latches = new LinkedBlockingQueue[CountDownLatch]()
+private trait StartedExecutionState {
+  val startedExecutions: AtomicInteger
+  val startedUsers: ConcurrentLinkedQueue[String]
 
-  def reset(): Unit = {
-    startedExecutions.set(0)
-    startedUsers.clear()
-    latches.clear()
-  }
+  final def startedUserSeq: Seq[String] = startedUsers.asScala.toSeq
 
-  def awaitStartedExecutions(expected: Int): Unit = {
-    val deadline = System.currentTimeMillis() + 10000
-    while(startedExecutions.get() != expected && System.currentTimeMillis() < deadline) {
-      Thread.sleep(50)
-    }
-    if(startedExecutions.get() != expected) {
-      throw new AssertionError(s"Expected $expected started executions, but found ${startedExecutions.get()}.")
-    }
-  }
-
-  def releaseNext(): Unit = {
-    val latch = latches.poll(10, TimeUnit.SECONDS)
-    if(latch == null) {
-      throw new AssertionError("Expected a running queue-controlled task, but none was available to release.")
-    }
-    latch.countDown()
-  }
-
-  def releaseAll(): Unit = {
-    var latch = latches.poll()
-    while(latch != null) {
-      latch.countDown()
-      latch = latches.poll()
-    }
-  }
-
-  def registerExecution(userUri: String): CountDownLatch = {
-    startedUsers.add(userUri)
-    startedExecutions.incrementAndGet()
-    val latch = new CountDownLatch(1)
-    latches.put(latch)
-    latch
-  }
+  final def startedUserSet: Set[String] = startedUsers.asScala.toSet
 }
 
-/**
-  * Shared coordination state for permit-only workflow executor tests.
-  *
-  * These tests do not execute the workflow body. They only acquire a workflow execution permit, record the started
-  * user, and then block on a per-run latch. This keeps limiter and lifecycle tests deterministic without depending
-  * on actual workflow operator execution.
-  */
-private object PermitControlledWorkflowState {
+private abstract class ControlledExecutionState(stateLabel: String) extends StartedExecutionState {
   private case class RunningExecution(userUri: String, latch: CountDownLatch)
 
-  val startedExecutions: AtomicInteger = new AtomicInteger(0)
-  val startedUsers: ConcurrentLinkedQueue[String] = new ConcurrentLinkedQueue[String]()
+  override val startedExecutions: AtomicInteger = new AtomicInteger(0)
+  override val startedUsers: ConcurrentLinkedQueue[String] = new ConcurrentLinkedQueue[String]()
   private val latches = new LinkedBlockingQueue[RunningExecution]()
   private val latchesByUser = new ConcurrentHashMap[String, RunningExecution]()
 
@@ -1198,14 +1194,14 @@ private object PermitControlledWorkflowState {
       Thread.sleep(50)
     }
     if(startedExecutions.get() != expected) {
-      throw new AssertionError(s"Expected $expected permit-controlled workflow executions, but found ${startedExecutions.get()}.")
+      throw new AssertionError(s"Expected $expected $stateLabel executions, but found ${startedExecutions.get()}.")
     }
   }
 
   def releaseNext(): Unit = {
     val runningExecution = latches.poll(10, TimeUnit.SECONDS)
     if(runningExecution == null) {
-      throw new AssertionError("Expected a running permit-controlled workflow execution, but none was available to release.")
+      throw new AssertionError(s"Expected a running $stateLabel execution, but none was available to release.")
     }
     latchesByUser.remove(runningExecution.userUri)
     runningExecution.latch.countDown()
@@ -1214,7 +1210,7 @@ private object PermitControlledWorkflowState {
   def releaseForUser(userUri: String): Unit = {
     val runningExecution = latchesByUser.remove(userUri)
     if(runningExecution == null || !latches.remove(runningExecution)) {
-      throw new AssertionError(s"Expected a running permit-controlled workflow execution for user '$userUri', but none was available to release.")
+      throw new AssertionError(s"Expected a running $stateLabel execution for user '$userUri', but none was available to release.")
     }
     runningExecution.latch.countDown()
   }
@@ -1238,6 +1234,25 @@ private object PermitControlledWorkflowState {
     latch
   }
 }
+
+/**
+  * Shared test coordination state for [[QueueControlledTask]] executions.
+  *
+  * Each started task execution registers itself here, which allows tests to observe how many workflow runs have
+  * actually entered the blocking task and in which user order. For every started execution a latch is enqueued.
+  * Tests then release these latches one by one, or all at once during cleanup, to deterministically unblock the
+  * corresponding workflow runs.
+  */
+private object QueueControlledTaskState extends ControlledExecutionState("queue-controlled task")
+
+/**
+  * Shared coordination state for permit-only workflow executor tests.
+  *
+  * These tests do not execute the workflow body. They only acquire a workflow execution permit, record the started
+  * user, and then block on a per-run latch. This keeps limiter and lifecycle tests deterministic without depending
+  * on actual workflow operator execution.
+  */
+private object PermitControlledWorkflowState extends ControlledExecutionState("permit-controlled workflow")
 
 /**
   * Test task that deliberately blocks workflow progress until the test releases it.
@@ -1329,7 +1344,8 @@ private case class TestWorkflowPermitExecutor(workflowTask: org.silkframework.wo
   }
 }
 
-private case class PermitControlledWorkflowExecutor(workflowTask: org.silkframework.workspace.ProjectTask[Workflow]) extends WorkflowExecutor[LocalExecution] {
+private abstract class ControlledPermitWorkflowExecutor(workflowTask: org.silkframework.workspace.ProjectTask[Workflow],
+                                                        timeoutMessage: String) extends WorkflowExecutor[LocalExecution] {
   override protected def replaceDataSources: Map[String, Dataset] = Map.empty
   override protected def replaceSinks: Map[String, Dataset] = Map.empty
   override protected def executionContext: LocalExecution = LocalExecution()
@@ -1343,7 +1359,7 @@ private case class PermitControlledWorkflowExecutor(workflowTask: org.silkframew
         val latch = PermitControlledWorkflowState.registerExecution(userUri)
         try {
           if(!latch.await(30, TimeUnit.SECONDS)) {
-            throw new AssertionError("Permit-controlled workflow execution was not released within the test timeout.")
+            throw new AssertionError(timeoutMessage)
           }
         } finally {
           permitHandle.release()
@@ -1356,19 +1372,17 @@ private case class PermitControlledWorkflowExecutor(workflowTask: org.silkframew
                                                  outputTask: Task[_ <: org.silkframework.config.TaskSpec])
                                                 (process: Option[org.silkframework.execution.EntityHolder] => T)
                                                 (implicit workflowRunContext: WorkflowRunContext): T = {
-    throw new UnsupportedOperationException("workflowNodeEntities is not needed for permit-controlled limiter tests.")
+    throw new UnsupportedOperationException("workflowNodeEntities is not needed for controlled permit workflow tests.")
   }
 }
 
+private case class PermitControlledWorkflowExecutor(workflowTask: org.silkframework.workspace.ProjectTask[Workflow])
+  extends ControlledPermitWorkflowExecutor(workflowTask, "Permit-controlled workflow execution was not released within the test timeout.")
+
 private case class RestartQueuedWorkflowExecutor(workflowTask: org.silkframework.workspace.ProjectTask[Workflow],
                                                  hookEntered: CountDownLatch,
-                                                 allowAcquire: CountDownLatch) extends WorkflowExecutor[LocalExecution] {
-  override protected def replaceDataSources: Map[String, Dataset] = Map.empty
-  override protected def replaceSinks: Map[String, Dataset] = Map.empty
-  override protected def executionContext: LocalExecution = LocalExecution()
-
-  override def initialValue: Option[WorkflowExecutionReport] = Some(WorkflowExecutionReport(workflowTask))
-
+                                                 allowAcquire: CountDownLatch)
+  extends ControlledPermitWorkflowExecutor(workflowTask, "Restart-handoff workflow execution was not released within the test timeout.") {
   override protected def beforeQueuedPermitAcquire(context: ActivityContext[WorkflowExecutionReport],
                                                    workflowKey: WorkflowExecutionLimiter.WorkflowExecutionKey,
                                                    queuedToken: WorkflowExecutionLimiter.QueueToken): Unit = {
@@ -1383,29 +1397,6 @@ private case class RestartQueuedWorkflowExecutor(workflowTask: org.silkframework
         }
       }
     }
-  }
-
-  override def run(context: ActivityContext[WorkflowExecutionReport])(implicit userContext: UserContext): Unit = {
-    acquireExecutionPermit(context) match {
-      case Some(permitHandle) =>
-        val userUri = userContext.user.map(_.uri).getOrElse("anonymous")
-        val latch = PermitControlledWorkflowState.registerExecution(userUri)
-        try {
-          if(!latch.await(30, TimeUnit.SECONDS)) {
-            throw new AssertionError("Restart-handoff workflow execution was not released within the test timeout.")
-          }
-        } finally {
-          permitHandle.release()
-        }
-      case None =>
-    }
-  }
-
-  override protected def workflowNodeEntities[T](workflowDependencyNode: WorkflowDependencyNode,
-                                                 outputTask: Task[_ <: org.silkframework.config.TaskSpec])
-                                                (process: Option[org.silkframework.execution.EntityHolder] => T)
-                                                (implicit workflowRunContext: WorkflowRunContext): T = {
-    throw new UnsupportedOperationException("workflowNodeEntities is not needed for queued-restart handoff tests.")
   }
 }
 
