@@ -59,7 +59,7 @@ class LocalTransformSpecExecutor extends Executor[TransformSpec, LocalExecution]
     val ruleLabel = rule.label()
     val requestedOutputType: Option[Uri] = requestedOutputSchema.map(_.typeUri)
     // Optional limit on the number of input entities to transform, configured on the transform task.
-    val limit: Option[Int] = task.data.limit
+    val inputLimit: Option[Int] = task.data.inputLimit
 
     requestedOutputType match {
       case Some(outputType) =>
@@ -69,7 +69,7 @@ class LocalTransformSpecExecutor extends Executor[TransformSpec, LocalExecution]
         val inputTables = flattenInputs(input).toBuffer
         val (requestedRuleLabel, requestedRules, inputTable) = findMappingRulesMatchingRequestedOutputSchema(rules, ruleLabel, outputType, inputTables)
         addInputErrorsToTransformReport(inputTable, report)
-        val inputEntities = limit.map(inputTable.entities.take).getOrElse(inputTable.entities)
+        val inputEntities = inputLimit.map(inputTable.entities.take).getOrElse(inputTable.entities)
         val transformedEntities = new TransformedEntities(task, inputEntities, requestedRuleLabel,
           rule.withChildren(requestedRules).execution(taskContext), activeOutputSchema,
           isRequestedSchema = true, abortIfErrorsOccur = task.data.abortIfErrorsOccur, report).iterator
@@ -77,7 +77,7 @@ class LocalTransformSpecExecutor extends Executor[TransformSpec, LocalExecution]
       case _ =>
         // Else execute the complete mapping
         addInputErrorsToTransformReport(input, report)
-        val inputEntities = limit.map(input.entities.take).getOrElse(input.entities)
+        val inputEntities = inputLimit.map(input.entities.take).getOrElse(input.entities)
         val transformedEntities = new TransformedEntities(task, inputEntities, ruleLabel, rule.execution(taskContext), schemata.outputSchema,
           isRequestedSchema = false, abortIfErrorsOccur = task.data.abortIfErrorsOccur, report).iterator
         GenericEntityTable(transformedEntities, schemata.outputSchema, task)

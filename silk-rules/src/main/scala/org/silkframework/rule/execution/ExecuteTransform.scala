@@ -25,7 +25,7 @@ class ExecuteTransform(task: Task[TransformSpec],
   private def transform = task.data
 
   /** Optional limit on the number of input entities to transform, configured on the transform task. */
-  private def limit: Option[Int] = transform.limit
+  private def inputLimit: Option[Int] = transform.inputLimit
 
   require(transform.rules.count(_.target.isEmpty) <= 1, "Only one rule with empty target property (subject rule) allowed.")
 
@@ -89,14 +89,14 @@ class ExecuteTransform(task: Task[TransformSpec],
     errorEntitySink.foreach(_.openTable(rule.outputSchema.typeUri, rule.outputSchema.typedPaths.map(_.property.get) :+ ErrorOutputWriter.errorProperty, singleEntity))
 
     val entityTable = try {
-      // Push the limit down to the data source (best-effort; not every source honors it).
-      dataSource.retrieve(rule.inputSchema, limit)
+      // Push the input limit down to the data source (best-effort; not every source honors it).
+      dataSource.retrieve(rule.inputSchema, inputLimit)
     } catch {
       case NonFatal(ex) =>
         throw new RuntimeException("Failed to retrieve input entities from data source.", ex)
     }
-    // Enforce the limit client-side as well, since the push-down is best-effort.
-    val inputEntities = limit.map(entityTable.entities.take).getOrElse(entityTable.entities)
+    // Enforce the input limit client-side as well, since the push-down is best-effort.
+    val inputEntities = inputLimit.map(entityTable.entities.take).getOrElse(entityTable.entities)
     val transformedEntities = new TransformedEntities(task, inputEntities, rule.transformRule.label(), rule.transformRuleExecution, rule.outputSchema,
       isRequestedSchema = false, abortIfErrorsOccur = task.data.abortIfErrorsOccur, report = reportBuilder).iterator
     breakable {
