@@ -115,8 +115,8 @@ object WorkbenchConfig {
     *                                  If false, return only the scheme and host portion.
     */
   def publicBaseUrl(
-      config: TypesafeConfig,
-      request: Option[RequestHeader],
+      config: TypesafeConfig = cfg,
+      request: Option[RequestHeader] = None,
       includeApplicationContext: Boolean = true
   ): String = {
     val baseUrl = buildBaseUrl(configuredProtocol(config), resolvePublicHost(config, request))
