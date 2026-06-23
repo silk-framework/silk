@@ -63,7 +63,9 @@ case class TransformSpec(@Param(label = "Input", value = "The source from which 
                          @Param("If true, a validation error (such as a data type mismatch) will abort the execution. " +
                                 "If false, the execution will continue, adding a validation error to the execution report.")
                          abortIfErrorsOccur: Boolean = false,
-                         @Param(label = "Limit", value = "If set, only the first N input entities are transformed.", advanced = true)
+                         @Param(label = "Limit", value = "If set, only the first N input entities are transformed. " +
+                             "Note: for hierarchical mappings, the limit is applied to each level independently. This can lead to inconsistent results between " +
+                             "parent and child tables, because a kept parent entity may reference child entities that were left out (and vice versa).", advanced = true)
                          limit: IntOptionParameter = None
                         ) extends TaskSpec with AnyPlugin {
 
