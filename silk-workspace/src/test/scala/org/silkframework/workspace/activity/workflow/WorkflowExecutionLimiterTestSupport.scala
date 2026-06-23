@@ -38,10 +38,7 @@ abstract class WorkflowExecutionLimiterTestSupport
 
   override protected def beforeAll(): Unit = {
     super.beforeAll()
-    PluginRegistry.registerPlugin(classOf[QueueControlledTask])
-    PluginRegistry.registerPlugin(classOf[QueueControlledTaskExecutor])
-    PluginRegistry.registerPlugin(classOf[QuickTask])
-    PluginRegistry.registerPlugin(classOf[QuickTaskExecutor])
+    WorkflowExecutionLimiterTestSupport.registerTestPlugins()
   }
 
   behavior of "WorkflowExecutionLimiter"
@@ -197,6 +194,20 @@ abstract class WorkflowExecutionLimiterTestSupport
       } catch {
         case _: Throwable =>
       }
+    }
+  }
+}
+
+private object WorkflowExecutionLimiterTestSupport {
+  private var pluginsRegistered = false
+
+  def registerTestPlugins(): Unit = synchronized {
+    if(!pluginsRegistered) {
+      PluginRegistry.registerPlugin(classOf[QueueControlledTask])
+      PluginRegistry.registerPlugin(classOf[QueueControlledTaskExecutor])
+      PluginRegistry.registerPlugin(classOf[QuickTask])
+      PluginRegistry.registerPlugin(classOf[QuickTaskExecutor])
+      pluginsRegistered = true
     }
   }
 }
