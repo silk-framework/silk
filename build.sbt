@@ -180,6 +180,7 @@ lazy val pluginsTemplatingVelocity = (project in file("silk-plugins/silk-plugins
 lazy val pluginsRdf = (project in file("silk-plugins/silk-plugins-rdf"))
   .dependsOn(rules, workspace % "test->test;compile->compile", core % "test->test;compile->compile", pluginsCsv % "test->compile",
              pluginsTemplatingJinja % "test->compile", pluginsTemplatingVelocity % "test->compile")
+  .enablePlugins(JmhPlugin)
   .settings(commonSettings *)
   .settings(
     name := "Silk Plugins RDF",

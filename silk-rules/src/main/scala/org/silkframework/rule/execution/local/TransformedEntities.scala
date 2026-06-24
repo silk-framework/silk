@@ -7,7 +7,7 @@ import org.silkframework.execution.report.EntitySample
 import org.silkframework.execution.{AbortExecutionException, ExecutionException, ExecutionReport}
 import org.silkframework.failures.EntityException
 import org.silkframework.rule.execution.TransformReportBuilder
-import org.silkframework.rule.{RootMappingRule, TransformRule, TransformRuleExecution, TransformSpec}
+import org.silkframework.rule.{ComplexUriMapping, PatternUriMapping, RootMappingRule, TransformRule, TransformRuleExecution, TransformSpec}
 import org.silkframework.runtime.iterator.CloseableIterator
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.{Identifier, Uri}
@@ -128,10 +128,43 @@ class TransformedEntities(task: Task[TransformSpec],
       }
     } else {
       for(uriRuleExec <- subjectRuleExecution) {
-        report.addRuleError(uriRuleExec.operator, entity, new ValidationException("The URI pattern did not generate any URI for this entity."))
+        if(errors.isEmpty) {
+          report.addRuleError(uriRuleExec.operator, entity, new ValidationException(missingUriMessage(uriRuleExec.operator, entity)))
+        }
       }
       errorFlag = true
       Iterator.empty
+    }
+  }
+
+  private def missingUriMessage(rule: TransformRule, entity: Entity): String = {
+    rule match {
+      case patternRule: PatternUriMapping =>
+        val missingPaths = patternRule.sourcePaths.distinct.flatMap { path =>
+          val untypedPath = path.asUntypedPath
+          Option.when(entity.evaluate(untypedPath).isEmpty)(s"'${untypedPath.normalizedSerialization}'")
+        }
+        missingPaths match {
+          case Seq() =>
+            "The URI pattern did not generate any URI for this entity."
+          case Seq(path) =>
+            s"The URI pattern did not generate any URI because input path $path was empty."
+          case paths =>
+            s"The URI pattern did not generate any URI because input paths ${paths.mkString(", ")} were empty."
+        }
+      case complexRule: ComplexUriMapping =>
+        val inputValues = complexRule.sourcePaths.distinct.map { path =>
+          val untypedPath = path.asUntypedPath
+          val values = entity.evaluate(untypedPath)
+          s"${untypedPath.normalizedSerialization} = [${values.mkString(", ")}]"
+        }
+        if(inputValues.nonEmpty) {
+          s"The complex URI rule did not generate any URI. Input values: ${inputValues.mkString(", ")}."
+        } else {
+          "The complex URI rule did not generate any URI and does not reference any input paths."
+        }
+      case _ =>
+        "The URI pattern did not generate any URI for this entity."
     }
   }
 
