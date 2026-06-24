@@ -14,7 +14,7 @@ import { RuleEditorNode, RuleEditorNodeParameterValue } from "./RuleEditorModel.
 import { Connection, Elements, XYPosition } from "react-flow-renderer/dist/types";
 import dagre from "dagre";
 import { NodeContent, RuleNodeContentProps } from "../view/ruleNode/NodeContent";
-import { IconButton, NodeContentHandleProps, NodeContentProps, NodeDimensions } from "@eccenca/gui-elements";
+import { IconButton, HandleDefaultProps, NodeContentProps, NodeDimensions } from "@eccenca/gui-elements";
 import { RuleEditorEvaluationContextProps } from "../contexts/RuleEditorEvaluationContext";
 import { InputPathFunctions, LanguageFilterProps } from "../view/ruleNode/PathInputOperator";
 
@@ -29,7 +29,7 @@ export const SOURCE_HANDLE_TYPE = "source";
 export const TARGET_HANDLE_TYPE = "target";
 
 /** Creates a new input handle. Handle IDs need to be numbers that are unique for the same node. */
-function createInputHandle(handleId: number, operatorContext?: IOperatorCreateContext): NodeContentHandleProps {
+function createInputHandle(handleId: number, operatorContext?: IOperatorCreateContext): HandleDefaultProps {
     return {
         id: `${handleId}`,
         type: TARGET_HANDLE_TYPE,
@@ -93,7 +93,7 @@ function createOperatorNode(
             ? Math.max(node.portSpecification.maxInputPorts, node.portSpecification.minInputPorts, usedInputs)
             : Math.max(node.portSpecification.minInputPorts, usedInputs + 1);
 
-    const handles: NodeContentHandleProps[] = [
+    const handles: HandleDefaultProps[] = [
         ...createInputHandles(numberOfInputPorts, operatorContext),
         { type: SOURCE_HANDLE_TYPE, position: Position.Right, isValidConnection: operatorContext.isValidConnection },
     ];

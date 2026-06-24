@@ -17,7 +17,7 @@ package org.silkframework.util
 import org.silkframework.config.DefaultConfig
 
 import java.io.{File, IOException}
-import java.nio.file.Files
+import java.nio.file.{Files, Paths}
 import scala.language.implicitConversions
 import scala.util.Try
 
@@ -35,11 +35,16 @@ object FileUtils {
       val tmpDir = Files.createTempDirectory("silk-tmp-file-dir")
       tmpDir.toString
     }
-    if(cfg.hasPath(tmpDirKey)) {
+    val dir = if(cfg.hasPath(tmpDirKey)) {
       Try(cfg.getString(tmpDirKey)).getOrElse(default)
     } else {
       default
     }
+    // Ensure the directory exists (needed when accessed outside ApplicationValidationModule, e.g. standalone Silk)
+    Files.createDirectories(Paths.get(dir))
+    // Redirect all standard Java temp file creation to the configured directory
+    System.setProperty("java.io.tmpdir", dir)
+    dir
   }
 }
 
