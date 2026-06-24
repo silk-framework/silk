@@ -16,12 +16,12 @@ import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.dataset._
 import org.silkframework.dataset.rdf.RdfDataset
 import org.silkframework.entity._
-import org.silkframework.entity.paths.{Path, UntypedPath}
+import org.silkframework.entity.paths.{Path, TypedPath, UntypedPath}
 import org.silkframework.plugins.dataset.rdf.executors.{LocalSparqlSelectExecutor, LocalSparqlSelectIterator}
 import org.silkframework.plugins.dataset.rdf.tasks.SparqlSelectCustomTask
 import org.silkframework.rule.TransformSpec.RuleSchemata
 import org.silkframework.rule.input.Value
-import org.silkframework.rule.{ComplexUriMapping, TaskContext, TransformRule, TransformRuleExecution, TransformSpec, ValueTransformRuleExecution}
+import org.silkframework.rule.{ComplexUriMapping, ObjectMapping, TaskContext, TransformRule, TransformRuleExecution, TransformSpec, ValueTransformRuleExecution}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.PluginContext
 import org.silkframework.runtime.serialization.ReadContext
@@ -43,7 +43,7 @@ class PeakTransformApi @Inject() () extends InjectedController with UserContextA
     */
   @Operation(
     summary = "Mapping Rule Transformation Examples",
-    description = "Get transformation examples for the selected transformation rule. Note: this endpoint only handles value rules. The input task of the transformation task has to be a Dataset task. Also the Dataset task must support this feature.",
+    description = "Get transformation examples for the selected transformation rule. Value rules return their transformed values; object/resource rules return the IRI minted by their URI rule. The input task of the transformation task has to be a Dataset task. Also the Dataset task must support this feature.",
     responses = Array(
       new ApiResponse(
         responseCode = "200",
@@ -247,6 +247,26 @@ class PeakTransformApi @Inject() () extends InjectedController with UserContextA
     implicit val prefixes: Prefixes = project.config.prefixes
     implicit val user: UserContext = context.user
 
+    // An ObjectMapping is a container rule and can't be previewed directly. Preview the IRI it
+    // mints instead, by peeking its URI rule (a ComplexUriMapping/PatternUriMapping value rule).
+    // The uriRule is just another child of the object, so this mirrors the child-value-rule schema
+    // construction in TransformSpec.RuleSchemata.hasMapping.
+    val effectiveSchemata = ruleSchemata.transformRule match {
+      case objectMapping: ObjectMapping =>
+        objectMapping.fillEmptyUriRule.rules.uriRule match {
+          case Some(uriRule) =>
+            val inputPaths = uriRule.sourcePaths
+              .map(p => TypedPath(p.operators, ValueType.STRING, isAttribute = false))
+              .toIndexedSeq
+            ruleSchemata.copy(
+              transformRule = uriRule,
+              inputSchema = ruleSchemata.inputSchema.copy(typedPaths = inputPaths)
+            )
+          case None => ruleSchemata
+        }
+      case _ => ruleSchemata
+    }
+
     val inputTask = project.anyTask(inputTaskId)
     val inputTaskLabel = inputTask.label()
     // Treat blank search input as no filter so callers can safely send `?search=` from a UI textbox.
@@ -261,8 +281,8 @@ class PeakTransformApi @Inject() () extends InjectedController with UserContextA
         DataSource.pluginSource(dataset) match {
           case peakDataSource: PeakDataSource =>
             try {
-              peakDataSource.peak(ruleSchemata.inputSchema, sourceFetchSize).use { exampleEntities =>
-                generateMappingPreviewResponse(ruleSchemata.transformRule.execution(TaskContext.forInput(inputTask)), exampleEntities, limit, offset, sourceFetchSize, effectiveSearch, computeTotal)
+              peakDataSource.peak(effectiveSchemata.inputSchema, sourceFetchSize).use { exampleEntities =>
+                generateMappingPreviewResponse(effectiveSchemata.transformRule.execution(TaskContext.forInput(inputTask)), exampleEntities, limit, offset, sourceFetchSize, effectiveSearch, computeTotal)
               }
             } catch {
               case pe: PeakException =>
@@ -274,7 +294,7 @@ class PeakTransformApi @Inject() () extends InjectedController with UserContextA
               s" of type '$pluginLabel' does not support transformation preview!"))))
         }
       case sparqlSelectTask: SparqlSelectCustomTask =>
-        peakIntoSparqlSelectTask(project, inputTaskLabel, ruleSchemata, limit, sourceFetchSize, offset, effectiveSearch, computeTotal, sparqlSelectTask)
+        peakIntoSparqlSelectTask(project, inputTaskLabel, effectiveSchemata, limit, sourceFetchSize, offset, effectiveSearch, computeTotal, sparqlSelectTask)
       case _: TransformSpec =>
         Ok(Json.toJson(PeakResults(None, None, PeakStatus(NOT_SUPPORTED_STATUS_MSG, s"Input task '$inputTaskLabel'" +
           " is not a Dataset. Currently mapping preview is only supported for dataset inputs."))))

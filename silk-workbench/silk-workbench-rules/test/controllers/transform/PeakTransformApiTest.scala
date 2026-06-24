@@ -305,6 +305,29 @@ class PeakTransformApiTest extends AnyFlatSpec with SingleProjectWorkspaceProvid
     peakResult.totalIsExact mustBe None
   }
 
+  it should "preview an object mapping via its URI rule" in {
+    // The 'object' rule is an ObjectMapping (a container rule). Peaking it must not fail with the
+    // "non-value rule" error; instead it previews the IRI minted by the object's URI rule.
+    val peakResult = peakNamedRuleRequest("object")
+    peakResult.status.id mustBe "success"
+    // The object has no authored URI rule, so its synthesized default pattern ('{}/object') has no
+    // source paths - it mints an IRI purely from the object entity's own URI.
+    peakResult.sourcePaths mustBe Some(Seq())
+    val results = peakResult.results.getOrElse(Seq.empty)
+    results must not be empty
+    // Every previewed value is the IRI minted by the object's URI rule.
+    val transformedValues = results.flatMap(_.transformedValues)
+    transformedValues must not be empty
+    all (transformedValues) must (fullyMatch regex """urn:instance:Property#.+/object""")
+  }
+
+  private def peakNamedRuleRequest(ruleId: String): PeakResults = {
+    val peakUrl = controllers.transform.routes.PeakTransformApi.peak(projectId, transformXmlTask, ruleId).url
+    val request = client.url(s"$baseUrl$peakUrl")
+    val jsonResponse = checkResponse(request.post("")).json
+    JsonHelpers.fromJsonValidated[PeakResults](jsonResponse)
+  }
+
   private def peakChildRuleRequest(transformRule: TransformRule, objectPath: Option[String] = None, includeTotal: Boolean = false): PeakResults = {
     val uriPatternUrl = controllers.transform.routes.PeakTransformApi.peakChildRule(projectId, transformXmlTask, rootRuleId).url
     var request = client.url(s"$baseUrl$uriPatternUrl")
