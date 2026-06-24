@@ -261,6 +261,11 @@ object ExecutionReportSerializers {
     def write(value: WorkflowTaskReport, slim: Boolean)(implicit writeContext: WriteContext[JsValue]): JsValue = {
       val reportJson = value.report match {
         case t: TransformReport => TransformReportJsonFormat.write(t, slim)
+        // A nested workflow node carries a WorkflowExecutionReport: recurse through the slim-aware
+        // workflow serializer so its per-node taskReports survive the compact form too (they would
+        // otherwise be dropped by the `slim` fallback below, which only emits basic values).
+        case w: WorkflowExecutionReport => WorkflowExecutionReportJsonFormat.write(w, slim)
+        case w: WorkflowExecutionReportWithProvenance => WorkflowExecutionReportJsonFormat.write(w.report, slim)
         case report if slim => ExecutionReportJsonFormat.serializeBasicValues(report, slim = true)
         case report => ExecutionReportJsonFormat.write(report)
       }

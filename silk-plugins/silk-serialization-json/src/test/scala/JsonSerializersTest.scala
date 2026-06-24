@@ -12,7 +12,8 @@ import org.silkframework.serialization.json.{JsonFormat, JsonSerialization}
 import org.silkframework.serialization.json.ExecutionReportSerializers.WorkflowExecutionReportJsonFormat
 import org.silkframework.workspace.activity.transform.VocabularyCacheValue
 import org.silkframework.serialization.json.WorkflowSerializers._
-import org.silkframework.workspace.activity.workflow.{WorkflowExecutionReport, WorkflowTest}
+import org.silkframework.execution.SimpleExecutionReport
+import org.silkframework.workspace.activity.workflow.{WorkflowExecutionReport, WorkflowTaskReport, WorkflowTest}
 import org.silkframework.workspace.activity.workflow.WorkflowTest.{DS_A1, OUTPUT, testWorkflow}
 import org.silkframework.workspace.annotation.{StickyNote, UiAnnotations}
 import play.api.libs.json.{JsObject, Json}
@@ -113,6 +114,35 @@ class JsonSerializersTest  extends AnyFlatSpec with Matchers {
 
     val roundTrip = JsonSerialization.fromJson[WorkflowExecutionReport](reportJson)
     roundTrip shouldBe report
+  }
+
+  "WorkflowExecutionReport (slim)" should "recurse into nested-workflow sub-reports without embedding task definitions" in {
+    implicit val jsonWriteContext: WriteContext[play.api.libs.json.JsValue] =
+      TestWriteContext[play.api.libs.json.JsValue]()
+
+    // Parent workflow -> nested child workflow -> one leaf node.
+    val leafReport = SimpleExecutionReport(
+      task = PlainTask("leaf", WorkflowTest.testWorkflow), entityCount = 5, isDone = true,
+      operationDesc = "entities written")
+    val nestedWorkflowReport = WorkflowExecutionReport(
+      task = PlainTask("childWf", WorkflowTest.testWorkflow),
+      taskReports = IndexedSeq(WorkflowTaskReport(nodeId = "leaf", report = leafReport)),
+      isDone = true)
+    val parentReport = WorkflowExecutionReport(
+      task = PlainTask("parentWf", WorkflowTest.testWorkflow),
+      taskReports = IndexedSeq(WorkflowTaskReport(nodeId = "childWf", report = nestedWorkflowReport)),
+      isDone = true)
+
+    val slimJson = WorkflowExecutionReportJsonFormat.write(parentReport, slim = true)
+
+    val childNode = (slimJson \ "taskReports")(0)
+    (childNode \ "nodeId").as[String] shouldBe "childWf"
+    // The nested workflow's own per-node reports must survive the compact form.
+    val leafNode = (childNode \ "taskReports")(0)
+    (leafNode \ "nodeId").as[String] shouldBe "leaf"
+    (leafNode \ "entityCount").as[Int] shouldBe 5
+    // Compact form must not embed the full task definition at any level.
+    Json.stringify(slimJson) should not include "\"parameters\""
   }
 
   def testSerialization[T](obj: T)(implicit format: JsonFormat[T]): Unit = {
