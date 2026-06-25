@@ -135,60 +135,72 @@ class WorkflowTest extends AnyFlatSpec with MockitoSugar with Matchers with Test
 
   it should "resolve replaceable datasets correctly" in {
     val workspace = new Workspace(new InMemoryWorkspaceProvider(), InMemoryResourceRepository())
-    val project = workspace.createProject(ProjectConfig("projectA"))
-    val resource = project.resources.get("doesntMatter")
-    for(op <- testWorkflow.operators) {
-      project.addTask[GenericDatasetSpec](op.task, DatasetSpec(CsvDataset(resource)))
-    }
-    testWorkflow.copy(
-      replaceableInputs = Seq(),
-      replaceableOutputs = Seq()
-    ).markedReplaceableDatasets(project) mustBe AllReplaceableDatasets(Seq(), Seq())
-    intercept[IllegalArgumentException] {
+    try {
+      val project = workspace.createProject(ProjectConfig("projectA"))
+      val resource = project.resources.get("doesntMatter")
+      for(op <- testWorkflow.operators) {
+        project.addTask[GenericDatasetSpec](op.task, DatasetSpec(CsvDataset(resource)))
+      }
       testWorkflow.copy(
         replaceableInputs = Seq(),
-        replaceableOutputs = Seq(DS_B)
-      ).markedReplaceableDatasets(project)
-    }
-    intercept[IllegalArgumentException] {
-      testWorkflow.copy(
-        replaceableInputs = Seq(DS_B),
         replaceableOutputs = Seq()
-      ).markedReplaceableDatasets(project)
+      ).markedReplaceableDatasets(project) mustBe AllReplaceableDatasets(Seq(), Seq())
+      intercept[IllegalArgumentException] {
+        testWorkflow.copy(
+          replaceableInputs = Seq(),
+          replaceableOutputs = Seq(DS_B)
+        ).markedReplaceableDatasets(project)
+      }
+      intercept[IllegalArgumentException] {
+        testWorkflow.copy(
+          replaceableInputs = Seq(DS_B),
+          replaceableOutputs = Seq()
+        ).markedReplaceableDatasets(project)
+      }
+      testWorkflow.copy(
+        replaceableInputs = Seq(DS_A1),
+        replaceableOutputs = Seq(OUTPUT)
+      ).markedReplaceableDatasets(project) mustBe AllReplaceableDatasets(Seq(DS_A1), Seq(OUTPUT))
+      workflowWithConfigOnlyInput.copy(
+        replaceableInputs = Seq(DS_A),
+        replaceableOutputs = Seq()
+      ).markedReplaceableDatasets(project) mustBe AllReplaceableDatasets(Seq(DS_A), Seq())
+    } finally {
+      WorkspaceTestCleanup.stop(workspace)
     }
-    testWorkflow.copy(
-      replaceableInputs = Seq(DS_A1),
-      replaceableOutputs = Seq(OUTPUT)
-    ).markedReplaceableDatasets(project) mustBe AllReplaceableDatasets(Seq(DS_A1), Seq(OUTPUT))
-    workflowWithConfigOnlyInput.copy(
-      replaceableInputs = Seq(DS_A),
-      replaceableOutputs = Seq()
-    ).markedReplaceableDatasets(project) mustBe AllReplaceableDatasets(Seq(DS_A), Seq())
   }
 
   it should "not return a re-configured input dataset as output dataset" in {
     val workspace = new Workspace(new InMemoryWorkspaceProvider(), InMemoryResourceRepository())
-    val project = workspace.createProject(ProjectConfig("projectA"))
-    for(datasetId <- Seq(DS_A, DS_B)) {
-      val dataset = CsvDataset(project.resources.get("file.csv"))
-      project.addTask[GenericDatasetSpec](datasetId, DatasetSpec(dataset))
+    try {
+      val project = workspace.createProject(ProjectConfig("projectA"))
+      for(datasetId <- Seq(DS_A, DS_B)) {
+        val dataset = CsvDataset(project.resources.get("file.csv"))
+        project.addTask[GenericDatasetSpec](datasetId, DatasetSpec(dataset))
+      }
+      for(transformId <- Seq(TRANSFORM_1, TRANSFORM_2)) {
+        project.addTask[TransformSpec](transformId, TransformSpec(DatasetSelection(DS_A)))
+      }
+      reConfiguredDatasetWorkflow.outputDatasets(project).map(_.id.toString) mustBe Seq(DS_B)
+    } finally {
+      WorkspaceTestCleanup.stop(workspace)
     }
-    for(transformId <- Seq(TRANSFORM_1, TRANSFORM_2)) {
-      project.addTask[TransformSpec](transformId, TransformSpec(DatasetSelection(DS_A)))
-    }
-    reConfiguredDatasetWorkflow.outputDatasets(project).map(_.id.toString) mustBe Seq(DS_B)
   }
 
   it should "not return datasets as output datasets that only have tasks as inputs that generate no data" in {
     val workspace = new Workspace(new InMemoryWorkspaceProvider(), InMemoryResourceRepository())
-    val project = workspace.createProject(ProjectConfig("projectA"))
-    for (datasetId <- Seq(DS_A, DS_B, DS_B2)) {
-      val dataset = CsvDataset(project.resources.get("file.csv"))
-      project.addTask[GenericDatasetSpec](datasetId, DatasetSpec(dataset))
+    try {
+      val project = workspace.createProject(ProjectConfig("projectA"))
+      for (datasetId <- Seq(DS_A, DS_B, DS_B2)) {
+        val dataset = CsvDataset(project.resources.get("file.csv"))
+        project.addTask[GenericDatasetSpec](datasetId, DatasetSpec(dataset))
+      }
+      project.addTask[Workflow](WORKFLOW, Workflow())
+      project.addTask[TransformSpec](TRANSFORM_2, TransformSpec(DatasetSelection(DS_A)))
+      noSchemaInputDatasetWorkflow.outputDatasets(project).map(_.id.toString) mustBe Seq(DS_B, DS_A)
+    } finally {
+      WorkspaceTestCleanup.stop(workspace)
     }
-    project.addTask[Workflow](WORKFLOW, Workflow())
-    project.addTask[TransformSpec](TRANSFORM_2, TransformSpec(DatasetSelection(DS_A)))
-    noSchemaInputDatasetWorkflow.outputDatasets(project).map(_.id.toString) mustBe Seq(DS_B, DS_A)
   }
 
   it should "serialize and deserialize the workflow parallel execution limit in XML" in {

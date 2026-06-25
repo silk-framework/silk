@@ -15,6 +15,7 @@ import java.io.{File, FileNotFoundException}
   */
 trait TestWorkspaceProviderTestTrait extends BeforeAndAfterAll { this: TestSuite =>
   var oldWorkspaceFactory: WorkspaceFactory = _
+  private var replacementWorkspace: Option[Workspace] = None
   private val tmpDir = File.createTempFile("di-resource-repository", "-tmp")
   tmpDir.delete()
   tmpDir.mkdirs()
@@ -51,12 +52,13 @@ trait TestWorkspaceProviderTestTrait extends BeforeAndAfterAll { this: TestSuite
   // Workaround for config problem, this should make sure that the workspace is a fresh in-memory RDF workspace
   override protected def beforeAll(): Unit = {
     super.beforeAll()
-    val replacementWorkspace = new Workspace(workspaceProvider, createResourceRepository(tmpDir))
+    val suiteWorkspace = new Workspace(workspaceProvider, createResourceRepository(tmpDir))
+    replacementWorkspace = Some(suiteWorkspace)
     val rdfWorkspaceFactory = new WorkspaceFactory {
       /**
         * The current workspace of this user.
         */
-      override def workspace(implicit userContext: UserContext): Workspace = replacementWorkspace
+      override def workspace(implicit userContext: UserContext): Workspace = suiteWorkspace
 
     }
     oldWorkspaceFactory = WorkspaceFactory.factory
@@ -73,9 +75,15 @@ trait TestWorkspaceProviderTestTrait extends BeforeAndAfterAll { this: TestSuite
   }
 
   override protected def afterAll(): Unit = {
-    WorkspaceFactory.factory = oldWorkspaceFactory
-    deleteRecursively(tmpDir)
-    super.afterAll()
+    implicit val testUserContext: UserContext.Empty.type = UserContext.Empty
+    try {
+      replacementWorkspace.foreach(stopWorkspaceActivities)
+    } finally {
+      replacementWorkspace = None
+      WorkspaceFactory.factory = oldWorkspaceFactory
+      deleteRecursively(tmpDir)
+      super.afterAll()
+    }
   }
 
   def retrieveOrCreateProject(projectId: Identifier, prefixes: Prefixes = Prefixes.default)(implicit userContext: UserContext): Project = {
@@ -83,5 +91,9 @@ trait TestWorkspaceProviderTestTrait extends BeforeAndAfterAll { this: TestSuite
       case Some(p) => p
       case None => WorkspaceFactory().workspace(userContext).createProject(new ProjectConfig(projectId, metaData = MetaData(Some(projectId)), projectPrefixes = prefixes))
     }
+  }
+
+  private def stopWorkspaceActivities(workspace: Workspace)(implicit userContext: UserContext): Unit = {
+    WorkspaceTestCleanup.stop(workspace)
   }
 }

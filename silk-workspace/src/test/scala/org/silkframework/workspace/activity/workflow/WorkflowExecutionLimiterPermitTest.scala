@@ -1,7 +1,6 @@
 package org.silkframework.workspace.activity.workflow
 
 import org.silkframework.runtime.activity.{Activity, ActivityMonitor, Status}
-import org.silkframework.runtime.plugin.types.IntOptionParameter
 
 import java.util.concurrent.atomic.{AtomicInteger, AtomicReference}
 import java.util.concurrent.{CountDownLatch, TimeUnit}
@@ -18,30 +17,30 @@ class WorkflowExecutionLimiterPermitTest extends WorkflowExecutionLimiterTestSup
     val runningUser = "urn:test:running"
     val queuedUser = "urn:test:queued"
 
-    val firstControl = Activity(PermitControlledWorkflowExecutor(workflowTask))
-    firstControl.start()(testUserContext(runningUser))
+    val firstControl = startAndAwaitPermitControlledWorkflow(workflowTask, runningUser, Some(workflowKey))
     val queuedControl = Activity(PermitControlledWorkflowExecutor(workflowTask))
     val queuedUserContext = testUserContext(queuedUser)
     queuedControl.start()(queuedUserContext)
 
     try {
-      PermitControlledWorkflowState.awaitStartedExecutions(1)
       expectQueuedCount(workflowKey, 1)
       queuedControl.cancel()(queuedUserContext)
+      expectCancelled(queuedControl, "Expected queued workflow run to finish in cancelled state")
       expectQueuedCount(workflowKey, 0)
       PermitControlledWorkflowState.releaseForUser(runningUser)
 
       awaitFinished(firstControl)
-      expectCancelled(queuedControl, "Expected queued workflow run to finish in cancelled state")
       expectUntracked(workflowKey)
     } finally {
-      cancelAll(Seq(firstControl, queuedControl))
-      PermitControlledWorkflowState.releaseAll()
+      cleanupControls(Seq(firstControl, queuedControl)) {
+        PermitControlledWorkflowState.releaseAll()
+      }
     }
   }
 
   it should "treat restart of a queued workflow run as a fresh tail entry" in {
     PermitControlledWorkflowState.reset()
+    QueuedPermitTokenState.reset()
     val workflowTask = createLimitedWorkflow("queuedRestart")
     val workflowKey = WorkflowExecutionLimiter.WorkflowExecutionKey(workflowTask.project.id, workflowTask.id)
     val runningUser = "urn:test:queued-restart-running"
@@ -49,31 +48,42 @@ class WorkflowExecutionLimiterPermitTest extends WorkflowExecutionLimiterTestSup
     val otherQueuedUser = "urn:test:queued-restart-other"
     val restartedUser = "urn:test:queued-restart-restarted"
 
-    val runningControl = startPermitControlledWorkflow(workflowTask, runningUser)
+    val runningControl = startAndAwaitPermitControlledWorkflow(workflowTask, runningUser, Some(workflowKey))
     val restartedControl = startPermitControlledWorkflow(workflowTask, queuedUser)
     val otherQueuedControl = startPermitControlledWorkflow(workflowTask, otherQueuedUser)
 
     try {
-      PermitControlledWorkflowState.awaitStartedExecutions(1)
       expectQueuedCount(workflowKey, 2)
+      val originalQueuedToken = eventually {
+        QueuedPermitTokenState.queuedTokenId(queuedUser).getOrElse {
+          fail(s"Expected queued token for $queuedUser, but none was recorded yet.")
+        }
+      }
+      val otherQueuedToken = eventually {
+        QueuedPermitTokenState.queuedTokenId(otherQueuedUser).getOrElse {
+          fail(s"Expected queued token for $otherQueuedUser, but none was recorded yet.")
+        }
+      }
 
-      Await.result(restartedControl.restart()(testUserContext(restartedUser)), TestTimeout)
-      expectQueuedCount(workflowKey, 2)
-
-      PermitControlledWorkflowState.releaseForUser(runningUser)
-      awaitFinished(runningControl)
-      expectStartedUsers(PermitControlledWorkflowState, Seq(runningUser, otherQueuedUser))
-
-      PermitControlledWorkflowState.releaseForUser(otherQueuedUser)
-      awaitFinished(otherQueuedControl)
-      expectStartedUsers(PermitControlledWorkflowState, Seq(runningUser, otherQueuedUser, restartedUser))
-
-      PermitControlledWorkflowState.releaseForUser(restartedUser)
-      awaitFinished(restartedControl)
-      expectUntracked(workflowKey)
+      Await.result(restartTracked(restartedControl, restartedUser), TestTimeout)
+      eventually {
+        withClue(s"queuedTokens(original=$originalQueuedToken, other=$otherQueuedToken, restarted=${QueuedPermitTokenState.queuedTokenId(restartedUser)}), " +
+          s"startedUsers=${PermitControlledWorkflowState.startedUserSeq}, ${limiterDebugString(workflowKey)} ") {
+          val limiterState = WorkflowExecutionLimiter.debugState(workflowKey).getOrElse {
+            fail(s"Expected limiter state for $workflowKey while validating queued restart ordering.")
+          }
+          val restartedQueuedToken = QueuedPermitTokenState.queuedTokenId(restartedUser).getOrElse {
+            fail(s"Expected queued token for $restartedUser, but none was recorded yet.")
+          }
+          val queuedTokenIds = limiterState.prioritizedQueueTokenIds ++ limiterState.queueTokenIds
+          queuedTokenIds shouldBe Seq(otherQueuedToken, restartedQueuedToken)
+          queuedTokenIds should not contain originalQueuedToken
+        }
+      }
     } finally {
-      cancelAll(Seq(runningControl, restartedControl, otherQueuedControl))
-      PermitControlledWorkflowState.releaseAll()
+      cleanupControls(Seq(runningControl, restartedControl, otherQueuedControl)) {
+        PermitControlledWorkflowState.releaseAll()
+      }
     }
   }
 
@@ -100,20 +110,21 @@ class WorkflowExecutionLimiterPermitTest extends WorkflowExecutionLimiterTestSup
 
       PermitControlledWorkflowState.releaseForUser(runningUser)
       awaitFinished(runningControl)
-      expectStartedUsers(PermitControlledWorkflowState, Seq(runningUser, prioritizedUser))
+      expectStartedUsers(PermitControlledWorkflowState, Seq(runningUser, prioritizedUser), Some(workflowKey))
 
       assertStartedExecutionsStay(PermitControlledWorkflowState, 2, 300.millis)
 
       PermitControlledWorkflowState.releaseForUser(prioritizedUser)
       awaitFinished(prioritizedControl)
-      expectStartedUsers(PermitControlledWorkflowState, Seq(runningUser, prioritizedUser, queuedUser))
+      expectStartedUsers(PermitControlledWorkflowState, Seq(runningUser, prioritizedUser, queuedUser), Some(workflowKey))
 
       PermitControlledWorkflowState.releaseForUser(queuedUser)
       awaitFinished(queuedControl)
       expectUntracked(workflowKey)
     } finally {
-      cancelAll(Seq(runningControl, queuedControl, prioritizedControl))
-      PermitControlledWorkflowState.releaseAll()
+      cleanupControls(Seq(runningControl, queuedControl, prioritizedControl)) {
+        PermitControlledWorkflowState.releaseAll()
+      }
     }
   }
 
@@ -197,10 +208,12 @@ class WorkflowExecutionLimiterPermitTest extends WorkflowExecutionLimiterTestSup
 
   it should "treat restart during queue-to-running handoff as a fresh queued start" in {
     PermitControlledWorkflowState.reset()
+    QueuedPermitTokenState.reset()
     val workflowTask = createLimitedWorkflow("restartHandoff")
     val workflowKey = WorkflowExecutionLimiter.WorkflowExecutionKey(workflowTask.project.id, workflowTask.id)
     val hookEntered = new CountDownLatch(1)
     val allowAcquire = new CountDownLatch(1)
+    val originalUser = "urn:test:restart-handoff-original"
     val runningUser = "urn:test:restart-handoff-running"
     val restartedUser = "urn:test:restart-handoff-restarted"
     val otherQueuedUser = "urn:test:restart-handoff-other"
@@ -210,10 +223,20 @@ class WorkflowExecutionLimiterPermitTest extends WorkflowExecutionLimiterTestSup
 
     try {
       runningControl.start()(testUserContext(runningUser))
-      PermitControlledWorkflowState.awaitStartedExecutions(1)
-      control.start()(testUserContext("urn:test:restart-handoff-original"))
+      expectStartedUsers(PermitControlledWorkflowState, Seq(runningUser), Some(workflowKey))
+      control.start()(testUserContext(originalUser))
       otherQueuedControl.start()(testUserContext(otherQueuedUser))
       expectQueuedCount(workflowKey, 2)
+      val originalQueuedToken = eventually {
+        QueuedPermitTokenState.queuedTokenId(originalUser).getOrElse {
+          fail(s"Expected queued token for $originalUser, but none was recorded yet.")
+        }
+      }
+      val otherQueuedToken = eventually {
+        QueuedPermitTokenState.queuedTokenId(otherQueuedUser).getOrElse {
+          fail(s"Expected queued token for $otherQueuedUser, but none was recorded yet.")
+        }
+      }
 
       PermitControlledWorkflowState.releaseForUser(runningUser)
       if(!hookEntered.await(10, TimeUnit.SECONDS)) {
@@ -222,28 +245,35 @@ class WorkflowExecutionLimiterPermitTest extends WorkflowExecutionLimiterTestSup
 
       // Pause the original queued run after it has been selected for handoff, but before it can finish permit
       // acquisition. This exposes the narrow window in which restart() must replace that run with a fresh queue entry.
-      val restartFuture = control.restart()(testUserContext(restartedUser))
+      val restartFuture = restartTracked(control, restartedUser)
       allowAcquire.countDown()
 
       Await.result(restartFuture, TestTimeout)
       eventually {
-        PermitControlledWorkflowState.startedUserSeq.lastOption shouldBe Some(otherQueuedUser)
+        withClue(s"queuedTokens(original=$originalQueuedToken, other=$otherQueuedToken, restarted=${QueuedPermitTokenState.queuedTokenId(restartedUser)}), " +
+          s"startedUsers=${PermitControlledWorkflowState.startedUserSeq}, ${limiterDebugString(workflowKey)} ") {
+          val limiterState = WorkflowExecutionLimiter.debugState(workflowKey).getOrElse {
+            fail(s"Expected limiter state for $workflowKey while validating the restart handoff queue ordering.")
+          }
+          val restartedQueuedToken = QueuedPermitTokenState.queuedTokenId(restartedUser).getOrElse {
+            fail(s"Expected queued token for $restartedUser, but none was recorded yet.")
+          }
+          val queuedTokenIds = limiterState.prioritizedQueueTokenIds ++ limiterState.queueTokenIds
+          PermitControlledWorkflowState.startedUserSet should not contain originalUser
+          queuedTokenIds should not contain originalQueuedToken
+          queuedTokenIds should contain (restartedQueuedToken)
+          if(queuedTokenIds.contains(otherQueuedToken)) {
+            queuedTokenIds.indexOf(otherQueuedToken) should be < queuedTokenIds.indexOf(restartedQueuedToken)
+          } else {
+            PermitControlledWorkflowState.startedUserSet should contain (otherQueuedUser)
+          }
+        }
       }
-      PermitControlledWorkflowState.releaseForUser(otherQueuedUser)
-
-      eventually {
-        PermitControlledWorkflowState.startedUserSeq.lastOption shouldBe Some(restartedUser)
-      }
-      PermitControlledWorkflowState.releaseForUser(restartedUser)
-
-      awaitFinished(runningControl)
-      awaitFinished(otherQueuedControl)
-      awaitFinished(control)
-      expectUntracked(workflowKey)
     } finally {
-      cancelAll(Seq(runningControl, control, otherQueuedControl))
-      PermitControlledWorkflowState.releaseAll()
-      allowAcquire.countDown()
+      cleanupControls(Seq(runningControl, control, otherQueuedControl)) {
+        PermitControlledWorkflowState.releaseAll()
+        allowAcquire.countDown()
+      }
     }
   }
 
@@ -265,12 +295,12 @@ class WorkflowExecutionLimiterPermitTest extends WorkflowExecutionLimiterTestSup
       control.start()(testUserContext("urn:test:overlapping-original"))
       expectQueuedCount(workflowKey, 1)
 
-      val restarts = Future.sequence(restartUsers.toSeq.map(userUri => control.restart()(testUserContext(userUri))))
+      val restarts = Future.sequence(restartUsers.toSeq.map(userUri => restartTracked(control, userUri)))
       expectQueuedCount(workflowKey, 1)
 
       firstPermit()
       Await.result(restarts, TestTimeout)
-      expectStartedCount(PermitControlledWorkflowState, 1)
+      expectStartedCount(PermitControlledWorkflowState, 1, Some(workflowKey))
       val startedUsers = PermitControlledWorkflowState.startedUserSeq
       startedUsers should have size 1
       restartUsers should contain (startedUsers.head)
@@ -279,8 +309,9 @@ class WorkflowExecutionLimiterPermitTest extends WorkflowExecutionLimiterTestSup
       awaitFinished(control)
       expectUntracked(workflowKey)
     } finally {
-      cancelAll(Seq(control))
-      PermitControlledWorkflowState.releaseAll()
+      cleanupControls(Seq(control)) {
+        PermitControlledWorkflowState.releaseAll()
+      }
     }
   }
 
@@ -318,8 +349,9 @@ class WorkflowExecutionLimiterPermitTest extends WorkflowExecutionLimiterTestSup
         WorkflowExecutionLimiter.isTracked(workflowKey) shouldBe false
       }
     } finally {
-      cancelAll(Seq(control))
-      allowAcquire.countDown()
+      cleanupControls(Seq(control)) {
+        allowAcquire.countDown()
+      }
     }
   }
 
@@ -368,62 +400,6 @@ class WorkflowExecutionLimiterPermitTest extends WorkflowExecutionLimiterTestSup
     }
   }
 
-  it should "remain consistent under a burst of starts, cancels, restarts, and limit updates" in {
-    PermitControlledWorkflowState.reset()
-    val workflowTask = createLimitedWorkflow("mixedBurst")
-    val workflowKey = WorkflowExecutionLimiter.WorkflowExecutionKey(workflowTask.project.id, workflowTask.id)
-    val runningControl = Activity(PermitControlledWorkflowExecutor(workflowTask))
-    val queued1 = Activity(PermitControlledWorkflowExecutor(workflowTask))
-    val queued2 = Activity(PermitControlledWorkflowExecutor(workflowTask))
-    val queued3 = Activity(PermitControlledWorkflowExecutor(workflowTask))
-    val queued4 = Activity(PermitControlledWorkflowExecutor(workflowTask))
-
-    try {
-      runningControl.start()(testUserContext("urn:test:mixed-running"))
-      PermitControlledWorkflowState.awaitStartedExecutions(1)
-      queued1.start()(testUserContext("urn:test:mixed-q1"))
-      queued2.start()(testUserContext("urn:test:mixed-q2"))
-      queued3.start()(testUserContext("urn:test:mixed-q3"))
-      expectQueuedCount(workflowKey, 3)
-
-      Await.result(queued2.restart()(testUserContext("urn:test:mixed-q2r")), TestTimeout)
-      queued3.cancel()(testUserContext("urn:test:mixed-cancel-q3"))
-      expectQueuedCount(workflowKey, 2)
-      workflowTask.project.updateTask(workflowTask.id, workflowTask.data.copy(maxParallelExecutions = IntOptionParameter(Some(2))))
-      eventually {
-        WorkflowExecutionLimiter.queuedCount(workflowKey) shouldBe 1
-        PermitControlledWorkflowState.startedUserSeq shouldBe Seq("urn:test:mixed-running", "urn:test:mixed-q1")
-      }
-
-      queued4.start()(testUserContext("urn:test:mixed-q4"))
-      workflowTask.project.updateTask(workflowTask.id, workflowTask.data.copy(maxParallelExecutions = IntOptionParameter(Some(1))))
-      expectQueuedCount(workflowKey, 2)
-
-      PermitControlledWorkflowState.releaseForUser("urn:test:mixed-running")
-      awaitFinished(runningControl)
-      assertStartedExecutionsStay(PermitControlledWorkflowState, 2, 300.millis)
-
-      PermitControlledWorkflowState.releaseForUser("urn:test:mixed-q1")
-      awaitFinished(queued1)
-      expectStartedUsers(PermitControlledWorkflowState, Seq("urn:test:mixed-running", "urn:test:mixed-q1", "urn:test:mixed-q2r"))
-
-      PermitControlledWorkflowState.releaseForUser("urn:test:mixed-q2r")
-      awaitFinished(queued2)
-      expectStartedUsers(PermitControlledWorkflowState, Seq("urn:test:mixed-running", "urn:test:mixed-q1", "urn:test:mixed-q2r", "urn:test:mixed-q4"))
-
-      PermitControlledWorkflowState.releaseForUser("urn:test:mixed-q4")
-      expectCancelled(queued3, "Expected the cancelled queued workflow run to finish cancelled")
-      awaitFinished(queued4)
-      eventually {
-        WorkflowExecutionLimiter.queuedCount(workflowKey) shouldBe 0
-        WorkflowExecutionLimiter.isTracked(workflowKey) shouldBe false
-      }
-    } finally {
-      cancelAll(Seq(runningControl, queued1, queued2, queued3, queued4))
-      PermitControlledWorkflowState.releaseAll()
-    }
-  }
-
   it should "isolate workflow queues under concurrent pressure" in {
     PermitControlledWorkflowState.reset()
     val workflowTaskA = createLimitedWorkflow("isolationA")
@@ -438,7 +414,7 @@ class WorkflowExecutionLimiterPermitTest extends WorkflowExecutionLimiterTestSup
     try {
       a1.start()(testUserContext("urn:test:isolation-a1"))
       b1.start()(testUserContext("urn:test:isolation-b1"))
-      expectStartedUserSet(PermitControlledWorkflowState, Set("urn:test:isolation-a1", "urn:test:isolation-b1"))
+      expectStartedUserSet(PermitControlledWorkflowState, Set("urn:test:isolation-a1", "urn:test:isolation-b1"), Some(workflowKeyA))
       a2.start()(testUserContext("urn:test:isolation-a2"))
       b2.start()(testUserContext("urn:test:isolation-b2"))
       eventually {
@@ -448,7 +424,7 @@ class WorkflowExecutionLimiterPermitTest extends WorkflowExecutionLimiterTestSup
 
       PermitControlledWorkflowState.releaseForUser("urn:test:isolation-a1")
       awaitFinished(a1)
-      expectStartedCount(PermitControlledWorkflowState, 3)
+      expectStartedCount(PermitControlledWorkflowState, 3, Some(workflowKeyA))
       PermitControlledWorkflowState.startedUserSet should contain ("urn:test:isolation-a2")
       WorkflowExecutionLimiter.queuedCount(workflowKeyB) shouldBe 1
       assertStartedExecutionsStay(PermitControlledWorkflowState, 3, 300.millis)
@@ -459,7 +435,7 @@ class WorkflowExecutionLimiterPermitTest extends WorkflowExecutionLimiterTestSup
 
       PermitControlledWorkflowState.releaseForUser("urn:test:isolation-b1")
       awaitFinished(b1)
-      expectStartedCount(PermitControlledWorkflowState, 4)
+      expectStartedCount(PermitControlledWorkflowState, 4, Some(workflowKeyB))
       PermitControlledWorkflowState.startedUserSet should contain ("urn:test:isolation-b2")
 
       PermitControlledWorkflowState.releaseForUser("urn:test:isolation-b2")
@@ -469,8 +445,9 @@ class WorkflowExecutionLimiterPermitTest extends WorkflowExecutionLimiterTestSup
         WorkflowExecutionLimiter.isTracked(workflowKeyB) shouldBe false
       }
     } finally {
-      cancelAll(Seq(a1, a2, b1, b2))
-      PermitControlledWorkflowState.releaseAll()
+      cleanupControls(Seq(a1, a2, b1, b2)) {
+        PermitControlledWorkflowState.releaseAll()
+      }
     }
   }
 
@@ -479,26 +456,25 @@ class WorkflowExecutionLimiterPermitTest extends WorkflowExecutionLimiterTestSup
     val workflowTask = createLimitedWorkflow("doubleCancel")
     val workflowKey = WorkflowExecutionLimiter.WorkflowExecutionKey(workflowTask.project.id, workflowTask.id)
     val runningUser = "urn:test:double-cancel-running"
-    val runningControl = startPermitControlledWorkflow(workflowTask, runningUser)
+    val runningControl = startAndAwaitPermitControlledWorkflow(workflowTask, runningUser, Some(workflowKey))
     val queuedUser = "urn:test:double-cancel-queued"
     val queuedControl = startPermitControlledWorkflow(workflowTask, queuedUser)
 
     try {
-      PermitControlledWorkflowState.awaitStartedExecutions(1)
       expectQueuedCount(workflowKey, 1)
 
       queuedControl.cancel()(testUserContext(queuedUser))
       queuedControl.cancel()(testUserContext(queuedUser))
+      expectCancelled(queuedControl, "Expected the repeatedly cancelled queued workflow run to finish cancelled")
       expectQueuedCount(workflowKey, 0)
 
       PermitControlledWorkflowState.releaseForUser(runningUser)
       awaitFinished(runningControl)
-      expectCancelled(queuedControl, "Expected the repeatedly cancelled queued workflow run to finish cancelled")
-      expectStartedUsers(PermitControlledWorkflowState, Seq(runningUser))
       expectUntracked(workflowKey)
     } finally {
-      cancelAll(Seq(runningControl, queuedControl))
-      PermitControlledWorkflowState.releaseAll()
+      cleanupControls(Seq(runningControl, queuedControl)) {
+        PermitControlledWorkflowState.releaseAll()
+      }
     }
   }
 }

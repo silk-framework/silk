@@ -9,7 +9,7 @@ import org.silkframework.runtime.plugin.PluginContext
 import org.silkframework.runtime.resource.InMemoryResourceManager
 import org.silkframework.util.ConfigTestTrait
 import org.silkframework.workspace.resources.ConstantResourceRepository
-import org.silkframework.workspace.{InMemoryWorkspaceProvider, ProjectConfig, Workspace}
+import org.silkframework.workspace.{InMemoryWorkspaceProvider, ProjectConfig, Workspace, WorkspaceTestCleanup}
 import org.silkframework.execution.TaskException
 import org.silkframework.plugins.dataset.json.{JsonDataset, JsonParserTask}
 import play.api.libs.json.{JsString, Json}
@@ -62,56 +62,60 @@ class LocalJsonParserWorkflowTest extends AnyFlatSpec with Matchers with ConfigT
       provider = new InMemoryWorkspaceProvider(),
       repository = ConstantResourceRepository(resources)
     )
-    val project = workspace.createProject(ProjectConfig(metaData = MetaData(Some("testProject"))))
+    try {
+      val project = workspace.createProject(ProjectConfig(metaData = MetaData(Some("testProject"))))
 
-    project.addTask(SourceDatasetId, DatasetSpec(JsonDataset(sourceResource)))
-    project.addTask(ParseJsonId, JsonParserTask(inputPath = "jsonContent", basePath = "persons"))
-    project.addTask(OutputDatasetId, DatasetSpec(JsonDataset(outputResource)))
+      project.addTask(SourceDatasetId, DatasetSpec(JsonDataset(sourceResource)))
+      project.addTask(ParseJsonId, JsonParserTask(inputPath = "jsonContent", basePath = "persons"))
+      project.addTask(OutputDatasetId, DatasetSpec(JsonDataset(outputResource)))
 
-    val sourceNode = WorkflowDataset(
-      inputs = Seq.empty,
-      task = SourceDatasetId,
-      outputs = Seq(ParseJsonId),
-      position = (0, 0),
-      nodeId = SourceDatasetId,
-      outputPriority = None,
-      configInputs = Seq.empty,
-      dependencyInputs = Seq.empty
-    )
-    val parseNode = WorkflowOperator(
-      inputs = Seq(Some(SourceDatasetId)),
-      task = ParseJsonId,
-      outputs = Seq(OutputDatasetId),
-      errorOutputs = Seq.empty,
-      position = (100, 0),
-      nodeId = ParseJsonId,
-      outputPriority = None,
-      configInputs = Seq.empty,
-      dependencyInputs = Seq.empty
-    )
-    val outputNode = WorkflowDataset(
-      inputs = Seq(Some(ParseJsonId)),
-      task = OutputDatasetId,
-      outputs = Seq.empty,
-      position = (200, 0),
-      nodeId = OutputDatasetId,
-      outputPriority = None,
-      configInputs = Seq.empty,
-      dependencyInputs = Seq.empty
-    )
+      val sourceNode = WorkflowDataset(
+        inputs = Seq.empty,
+        task = SourceDatasetId,
+        outputs = Seq(ParseJsonId),
+        position = (0, 0),
+        nodeId = SourceDatasetId,
+        outputPriority = None,
+        configInputs = Seq.empty,
+        dependencyInputs = Seq.empty
+      )
+      val parseNode = WorkflowOperator(
+        inputs = Seq(Some(SourceDatasetId)),
+        task = ParseJsonId,
+        outputs = Seq(OutputDatasetId),
+        errorOutputs = Seq.empty,
+        position = (100, 0),
+        nodeId = ParseJsonId,
+        outputPriority = None,
+        configInputs = Seq.empty,
+        dependencyInputs = Seq.empty
+      )
+      val outputNode = WorkflowDataset(
+        inputs = Seq(Some(ParseJsonId)),
+        task = OutputDatasetId,
+        outputs = Seq.empty,
+        position = (200, 0),
+        nodeId = OutputDatasetId,
+        outputPriority = None,
+        configInputs = Seq.empty,
+        dependencyInputs = Seq.empty
+      )
 
-    project.addTask(WorkflowId, Workflow(
-      operators = Seq(parseNode),
-      datasets = Seq(sourceNode, outputNode)
-    ))
+      project.addTask(WorkflowId, Workflow(
+        operators = Seq(parseNode),
+        datasets = Seq(sourceNode, outputNode)
+      ))
 
-    val workflowTask = project.task[Workflow](WorkflowId)
-    val ex = intercept[WorkflowExecutionException] {
-      workflowTask.activity[LocalWorkflowExecutorGeneratingProvenance].startBlocking()
+      val workflowTask = project.task[Workflow](WorkflowId)
+      val ex = intercept[WorkflowExecutionException] {
+        workflowTask.activity[LocalWorkflowExecutorGeneratingProvenance].startBlocking()
+      }
+      ex.getCause shouldBe a [TaskException]
+      ex.getCause.getMessage should include ("Parse JSON")
+      outputResource.size.getOrElse(0L) shouldBe 0L
+    } finally {
+      WorkspaceTestCleanup.stop(workspace)
     }
-    ex.getCause shouldBe a [TaskException]
-    ex.getCause.getMessage should include ("Parse JSON")
-    outputResource.size.getOrElse(0L) shouldBe 0L
   }
 }
 

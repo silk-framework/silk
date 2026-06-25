@@ -147,4 +147,74 @@ class WorkflowExecutionLimiterCoreTest extends WorkflowExecutionLimiterTestSuppo
         fail(s"Expected a fresh permit acquisition after repeated release, but got: $other")
     }
   }
+
+  it should "remain consistent under a burst of restarts, cancellations, and limit changes" in {
+    val workflowTask = createLimitedWorkflow("mixedBurstCore")
+    val workflowKey = WorkflowExecutionLimiter.WorkflowExecutionKey(workflowTask.project.id, workflowTask.id)
+    var restartedQueued2Opt: Option[WorkflowExecutionLimiter.QueueToken] = None
+    var queued4Opt: Option[WorkflowExecutionLimiter.QueueToken] = None
+    val runningPermit = WorkflowExecutionLimiter.requestSlot(workflowKey, Some(1)) match {
+      case WorkflowExecutionLimiter.Acquired(permit) => permit
+      case other => fail(s"Expected the first workflow run to acquire a permit immediately, but got: $other")
+    }
+    val queued1 = WorkflowExecutionLimiter.requestSlot(workflowKey, Some(1)) match {
+      case WorkflowExecutionLimiter.Queued(token) => token
+      case other => fail(s"Expected the second workflow run to queue, but got: $other")
+    }
+    val queued2 = WorkflowExecutionLimiter.requestSlot(workflowKey, Some(1)) match {
+      case WorkflowExecutionLimiter.Queued(token) => token
+      case other => fail(s"Expected the third workflow run to queue, but got: $other")
+    }
+    val queued3 = WorkflowExecutionLimiter.requestSlot(workflowKey, Some(1)) match {
+      case WorkflowExecutionLimiter.Queued(token) => token
+      case other => fail(s"Expected the fourth workflow run to queue, but got: $other")
+    }
+
+    try {
+      WorkflowExecutionLimiter.cancelQueued(workflowKey, queued2)
+      val restartedQueued2 = WorkflowExecutionLimiter.requestSlot(workflowKey, Some(1)) match {
+        case WorkflowExecutionLimiter.Queued(token) => token
+        case other => fail(s"Expected the restarted workflow run to queue at the tail, but got: $other")
+      }
+      restartedQueued2Opt = Some(restartedQueued2)
+      WorkflowExecutionLimiter.cancelQueued(workflowKey, queued3)
+
+      WorkflowExecutionLimiter.debugState(workflowKey).map(_.queueTokenIds) shouldBe Some(Seq(queued1.id, restartedQueued2.id))
+
+      val queued1Permit = WorkflowExecutionLimiter.acquireQueued(workflowKey, queued1, Some(2)).getOrElse {
+        fail("Expected the first queued workflow run to start after the limit was raised.")
+      }
+      WorkflowExecutionLimiter.acquireQueued(workflowKey, restartedQueued2, Some(2)) shouldBe None
+
+      val queued4 = WorkflowExecutionLimiter.requestSlot(workflowKey, Some(2)) match {
+        case WorkflowExecutionLimiter.Queued(token) => token
+        case other => fail(s"Expected the later workflow run to queue while two executions were running, but got: $other")
+      }
+      queued4Opt = Some(queued4)
+
+      runningPermit.release()
+      WorkflowExecutionLimiter.acquireQueued(workflowKey, restartedQueued2, Some(1)) shouldBe None
+      WorkflowExecutionLimiter.acquireQueued(workflowKey, queued4, Some(1)) shouldBe None
+
+      queued1Permit.release()
+      val restartedQueued2Permit = WorkflowExecutionLimiter.acquireQueued(workflowKey, restartedQueued2, Some(1)).getOrElse {
+        fail("Expected the restarted workflow run to start after the earlier queued execution completed.")
+      }
+      WorkflowExecutionLimiter.acquireQueued(workflowKey, queued4, Some(1)) shouldBe None
+
+      restartedQueued2Permit.release()
+      val queued4Permit = WorkflowExecutionLimiter.acquireQueued(workflowKey, queued4, Some(1)).getOrElse {
+        fail("Expected the final queued workflow run to start after the restarted run completed.")
+      }
+      queued4Permit.release()
+
+      WorkflowExecutionLimiter.isTracked(workflowKey) shouldBe false
+    } finally {
+      WorkflowExecutionLimiter.cancelQueued(workflowKey, queued1)
+      WorkflowExecutionLimiter.cancelQueued(workflowKey, queued2)
+      WorkflowExecutionLimiter.cancelQueued(workflowKey, queued3)
+      restartedQueued2Opt.foreach(token => WorkflowExecutionLimiter.cancelQueued(workflowKey, token))
+      queued4Opt.foreach(token => WorkflowExecutionLimiter.cancelQueued(workflowKey, token))
+    }
+  }
 }

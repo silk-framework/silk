@@ -30,8 +30,9 @@ class WorkflowExecutionLimiterActivityTest extends WorkflowExecutionLimiterTestS
 
       expectStartedUserSet(QueueControlledTaskState, Set("urn:test:first", "urn:test:second"))
     } finally {
-      cancelAll(Seq(firstControl, secondControl))
-      QueueControlledTaskState.releaseAll()
+      cleanupControls(Seq(firstControl, secondControl)) {
+        QueueControlledTaskState.releaseAll()
+      }
     }
   }
 
@@ -54,8 +55,9 @@ class WorkflowExecutionLimiterActivityTest extends WorkflowExecutionLimiterTestS
       controls.foreach(awaitFinished)
       expectUntracked(workflowKey)
     } finally {
-      cancelAll(controls)
-      QueueControlledTaskState.releaseAll()
+      cleanupControls(controls) {
+        QueueControlledTaskState.releaseAll()
+      }
     }
   }
 
@@ -77,8 +79,9 @@ class WorkflowExecutionLimiterActivityTest extends WorkflowExecutionLimiterTestS
 
       WorkflowExecutionLimiter.isTracked(workflowKey) shouldBe false
     } finally {
-      cancelAll(controls)
-      QueueControlledTaskState.releaseAll()
+      cleanupControls(controls) {
+        QueueControlledTaskState.releaseAll()
+      }
     }
   }
 
@@ -99,6 +102,9 @@ class WorkflowExecutionLimiterActivityTest extends WorkflowExecutionLimiterTestS
       queuedControls.foreach { case (userUri, control) =>
         control.cancel()(testUserContext(userUri))
       }
+      queuedControls.foreach { case (userUri, control) =>
+        expectCancelled(control, s"Expected queued workflow run '$userUri' to finish cancelled")
+      }
       eventually {
         WorkflowExecutionLimiter.queuedCount(workflowKey) shouldBe 0
         WorkflowExecutionLimiter.isTracked(workflowKey) shouldBe true
@@ -106,15 +112,12 @@ class WorkflowExecutionLimiterActivityTest extends WorkflowExecutionLimiterTestS
 
       QueueControlledTaskState.releaseNext()
       awaitFinished(runningControl)
-      queuedControls.foreach { case (userUri, control) =>
-        expectCancelled(control, s"Expected queued workflow run '$userUri' to finish cancelled")
-      }
-
       expectStartedUsers(QueueControlledTaskState, Seq(runningUser))
       expectUntracked(workflowKey)
     } finally {
-      cancelAll(runningControl +: queuedControls.map(_._2))
-      QueueControlledTaskState.releaseAll()
+      cleanupControls(runningControl +: queuedControls.map(_._2)) {
+        QueueControlledTaskState.releaseAll()
+      }
     }
   }
 
@@ -131,7 +134,7 @@ class WorkflowExecutionLimiterActivityTest extends WorkflowExecutionLimiterTestS
       expectQueuedCount(workflowKey, 1)
 
       workflowTask.project.updateTask(workflowTask.id, workflowTask.data.copy(maxParallelExecutions = IntOptionParameter(Some(2))))
-      expectStartedUserSet(QueueControlledTaskState, userUris.take(2).toSet)
+      expectStartedUserSet(QueueControlledTaskState, userUris.take(2).toSet, Some(workflowKey))
 
       workflowTask.project.updateTask(workflowTask.id, workflowTask.data.copy(maxParallelExecutions = IntOptionParameter(Some(1))))
       val thirdControl = startWorkflow(workflowTask, userUris(2))
@@ -141,26 +144,28 @@ class WorkflowExecutionLimiterActivityTest extends WorkflowExecutionLimiterTestS
         QueueControlledTaskState.releaseNext()
         awaitFinished(firstControl)
         assertStartedExecutionsStay(QueueControlledTaskState, 2, 800.millis)
-        WorkflowExecutionLimiter.queuedCount(workflowKey) shouldBe 1
+        withClue(s"${limiterDebugString(workflowKey)} ") {
+          WorkflowExecutionLimiter.queuedCount(workflowKey) shouldBe 1
+        }
 
         QueueControlledTaskState.releaseNext()
         awaitFinished(secondControl)
-        expectStartedUserSet(QueueControlledTaskState, userUris.toSet)
+        expectStartedUserSet(QueueControlledTaskState, userUris.toSet, Some(workflowKey))
 
         QueueControlledTaskState.releaseNext()
         awaitFinished(thirdControl)
         expectUntracked(workflowKey)
       } finally {
-        cancelAll(Seq(thirdControl))
+        cleanupControls(Seq(thirdControl))()
       }
     } finally {
-      cancelAll(Seq(firstControl, secondControl))
-      QueueControlledTaskState.releaseAll()
+      cleanupControls(Seq(firstControl, secondControl)) {
+        QueueControlledTaskState.releaseAll()
+      }
     }
   }
 
-  // FIXME: This might be interacting strongly with other workflow limiter tests because of shared fork/join pool etc.
-  it should "not block the activity thread pool while workflow runs are waiting for a slot" ignore {
+  it should "not block the activity thread pool while workflow runs are waiting for a slot" in {
     QueueControlledTaskState.reset()
     QuickTaskState.reset()
     val limitedWorkflowTask = createLimitedWorkflow("pool")
@@ -196,8 +201,9 @@ class WorkflowExecutionLimiterActivityTest extends WorkflowExecutionLimiterTestS
       QueueControlledTaskState.startedExecutions.get() shouldBe 1
       QuickTaskState.executions.get() shouldBe 1
     } finally {
-      cancelAll(limitedControls :+ quickControl)
-      QueueControlledTaskState.releaseAll()
+      cleanupControls(limitedControls :+ quickControl) {
+        QueueControlledTaskState.releaseAll()
+      }
     }
   }
 
@@ -233,7 +239,7 @@ class WorkflowExecutionLimiterActivityTest extends WorkflowExecutionLimiterTestS
         maxGapMillis should be < 400L
       }
     } finally {
-      cancelAll(controls)
+      cleanupControls(controls)()
     }
   }
 }

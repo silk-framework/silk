@@ -25,6 +25,14 @@ private[workflow] object WorkflowExecutionLimiter {
 
   final case class QueueToken private(id: Long)
 
+  /** Test-only snapshot of a workflow limiter bucket. */
+  private[workflow] final case class WorkflowExecutionDebugState(runningExecutions: Int,
+                                                                 prioritizedQueueTokenIds: Seq[Long],
+                                                                 queueTokenIds: Seq[Long],
+                                                                 headTokenId: Option[Long]) {
+    def queuedCount: Int = prioritizedQueueTokenIds.size + queueTokenIds.size
+  }
+
   sealed trait SlotRequestResult
 
   final case class Acquired(permit: WorkflowExecutionPermit) extends SlotRequestResult
@@ -141,6 +149,20 @@ private[workflow] object WorkflowExecutionLimiter {
         state.queuedCount
       }
     }.getOrElse(0)
+  }
+
+  /** Visible for tests that need to inspect exact queue state and token order. */
+  private[workflow] def debugState(key: WorkflowExecutionKey): Option[WorkflowExecutionDebugState] = {
+    stateOption(key).map { state =>
+      state.monitor.synchronized {
+        WorkflowExecutionDebugState(
+          runningExecutions = state.runningExecutions,
+          prioritizedQueueTokenIds = state.prioritizedQueue.iterator.map(_.id).toSeq,
+          queueTokenIds = state.queue.iterator.map(_.id).toSeq,
+          headTokenId = state.headOption.map(_.id)
+        )
+      }
+    }
   }
 
   /**

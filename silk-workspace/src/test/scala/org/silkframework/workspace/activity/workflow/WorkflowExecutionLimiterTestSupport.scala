@@ -1,6 +1,6 @@
 package org.silkframework.workspace.activity.workflow
 
-import org.scalatest.BeforeAndAfterAll
+import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach}
 import org.scalatest.concurrent.Eventually
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
@@ -21,6 +21,7 @@ import java.util.concurrent.{ConcurrentHashMap, ConcurrentLinkedQueue, CountDown
 import scala.concurrent.duration._
 import scala.concurrent.{Await, Future, blocking}
 import scala.jdk.CollectionConverters._
+import java.util.UUID
 
 abstract class WorkflowExecutionLimiterTestSupport
   extends AnyFlatSpec
@@ -28,9 +29,11 @@ abstract class WorkflowExecutionLimiterTestSupport
     with Eventually
     with TestWorkspaceProviderTestTrait
     with BeforeAndAfterAll
+    with BeforeAndAfterEach
     with TestUserContextTrait {
 
   protected val TestTimeout: FiniteDuration = 25.seconds
+  private val trackedRestartFutures = new ConcurrentLinkedQueue[Future[Unit]]()
 
   override def workspaceProviderId: String = "inMemoryWorkspaceProvider"
 
@@ -39,6 +42,25 @@ abstract class WorkflowExecutionLimiterTestSupport
   override protected def beforeAll(): Unit = {
     super.beforeAll()
     WorkflowExecutionLimiterTestSupport.registerTestPlugins()
+  }
+
+  override protected def beforeEach(): Unit = {
+    super.beforeEach()
+    WorkflowExecutionLimiterTestRun.activateNewRun()
+    awaitActivityPoolsQuiescent()
+    QueueControlledTaskState.reset()
+    PermitControlledWorkflowState.reset()
+    QueuedPermitTokenState.reset()
+    QuickTaskState.reset()
+    trackedRestartFutures.clear()
+  }
+
+  override protected def afterEach(): Unit = {
+    try {
+      awaitActivityPoolsQuiescent()
+    } finally {
+      super.afterEach()
+    }
   }
 
   behavior of "WorkflowExecutionLimiter"
@@ -117,7 +139,8 @@ abstract class WorkflowExecutionLimiterTestSupport
     ))
   }
 
-  protected final def testUserContext(userUri: String): UserContext = TestWorkflowUserContext(userUri)
+  protected final def testUserContext(userUri: String): UserContext =
+    TestWorkflowUserContext(WorkflowExecutionLimiterTestRun.encodedUserUri(userUri))
 
   protected final def startWorkflow(workflowTask: org.silkframework.workspace.ProjectTask[Workflow],
                                     userUri: String): ActivityControl[WorkflowExecutionReport] = {
@@ -133,40 +156,83 @@ abstract class WorkflowExecutionLimiterTestSupport
     control
   }
 
+  protected final def startAndAwaitPermitControlledWorkflow(workflowTask: org.silkframework.workspace.ProjectTask[Workflow],
+                                                            userUri: String,
+                                                            workflowKey: Option[WorkflowExecutionLimiter.WorkflowExecutionKey] = None): ActivityControl[WorkflowExecutionReport] = {
+    val control = startPermitControlledWorkflow(workflowTask, userUri)
+    expectStartedUsers(PermitControlledWorkflowState, Seq(userUri), workflowKey)
+    control
+  }
+
+  protected final def trackRestart(future: Future[Unit]): Future[Unit] = {
+    trackedRestartFutures.add(future)
+    future
+  }
+
+  protected final def restartTracked(control: ActivityControl[_], userUri: String): Future[Unit] = {
+    trackRestart(control.restart()(testUserContext(userUri)))
+  }
+
   protected final def awaitFinished(control: ActivityControl[_]): Unit = {
     import scala.concurrent.ExecutionContext.Implicits.global
     Await.result(Future(blocking(control.waitUntilFinished())), TestTimeout)
   }
 
+  protected final def awaitSettledForCleanup(control: ActivityControl[_]): Unit = {
+    eventually {
+      control.status() match {
+        case Status.Finished(_, _, _, _) | Status.Idle() =>
+        case other =>
+          fail(s"Expected activity '${control.name}' to settle for cleanup, but got: $other")
+      }
+    }
+  }
+
   protected final def expectQueuedCount(workflowKey: WorkflowExecutionLimiter.WorkflowExecutionKey, expected: Int): Unit = {
     eventually {
-      WorkflowExecutionLimiter.queuedCount(workflowKey) shouldBe expected
+      withClue(s"${limiterDebugString(workflowKey)} ") {
+        WorkflowExecutionLimiter.queuedCount(workflowKey) shouldBe expected
+      }
     }
   }
 
   protected final def expectUntracked(workflowKey: WorkflowExecutionLimiter.WorkflowExecutionKey): Unit = {
     eventually {
-      WorkflowExecutionLimiter.isTracked(workflowKey) shouldBe false
+      withClue(s"${limiterDebugString(workflowKey)} ") {
+        WorkflowExecutionLimiter.isTracked(workflowKey) shouldBe false
+      }
     }
   }
 
-  protected final def expectStartedCount(state: StartedExecutionState, expected: Int): Unit = {
+  protected final def expectStartedCount(state: StartedExecutionState,
+                                         expected: Int,
+                                         debugLimiterKey: Option[WorkflowExecutionLimiter.WorkflowExecutionKey] = None): Unit = {
     eventually {
-      state.startedExecutions.get() shouldBe expected
+      withDebugLimiterClue(state, debugLimiterKey) {
+        state.startedExecutions.get() shouldBe expected
+      }
     }
   }
 
-  protected final def expectStartedUsers(state: StartedExecutionState, expected: Seq[String]): Unit = {
+  protected final def expectStartedUsers(state: StartedExecutionState,
+                                         expected: Seq[String],
+                                         debugLimiterKey: Option[WorkflowExecutionLimiter.WorkflowExecutionKey] = None): Unit = {
     eventually {
-      state.startedExecutions.get() shouldBe expected.size
-      state.startedUserSeq shouldBe expected
+      withDebugLimiterClue(state, debugLimiterKey) {
+        state.startedExecutions.get() shouldBe expected.size
+        state.startedUserSeq shouldBe expected
+      }
     }
   }
 
-  protected final def expectStartedUserSet(state: StartedExecutionState, expected: Set[String]): Unit = {
+  protected final def expectStartedUserSet(state: StartedExecutionState,
+                                           expected: Set[String],
+                                           debugLimiterKey: Option[WorkflowExecutionLimiter.WorkflowExecutionKey] = None): Unit = {
     eventually {
-      state.startedExecutions.get() shouldBe expected.size
-      state.startedUserSet shouldBe expected
+      withDebugLimiterClue(state, debugLimiterKey) {
+        state.startedExecutions.get() shouldBe expected.size
+        state.startedUserSet shouldBe expected
+      }
     }
   }
 
@@ -196,6 +262,50 @@ abstract class WorkflowExecutionLimiterTestSupport
       }
     }
   }
+
+  protected final def cleanupControls(controls: Seq[ActivityControl[_]])
+                                     (releaseWaiters: => Unit = ()): Unit = {
+    cancelAll(controls)
+    releaseWaiters
+    trackedRestartFutures.asScala.foreach { future =>
+      try {
+        Await.result(future, TestTimeout)
+      } catch {
+        case _: Throwable =>
+      }
+    }
+    controls.foreach(awaitSettledForCleanup)
+    trackedRestartFutures.clear()
+  }
+
+  protected final def limiterDebugString(workflowKey: WorkflowExecutionLimiter.WorkflowExecutionKey): String = {
+    WorkflowExecutionLimiter.debugState(workflowKey) match {
+      case Some(debugState) =>
+        s"limiterState(key=$workflowKey, running=${debugState.runningExecutions}, prioritizedQueue=${debugState.prioritizedQueueTokenIds}, " +
+          s"queue=${debugState.queueTokenIds}, head=${debugState.headTokenId}, queuedCount=${debugState.queuedCount})"
+      case None =>
+        s"limiterState(key=$workflowKey, untracked)"
+    }
+  }
+
+  /** Attaches limiter state only for diagnostics; it does not change the asserted behavior. */
+  private def withDebugLimiterClue[T](state: StartedExecutionState,
+                                      debugLimiterKey: Option[WorkflowExecutionLimiter.WorkflowExecutionKey])
+                                     (body: => T): T = {
+    debugLimiterKey match {
+      case Some(limiterKey) =>
+        withClue(s"startedUsers=${state.startedUserSeq}, ${limiterDebugString(limiterKey)} ") {
+          body
+        }
+      case None =>
+        body
+    }
+  }
+
+  private def awaitActivityPoolsQuiescent(): Unit = {
+    ActivityExecution.forkJoinPool.awaitQuiescence(5, TimeUnit.SECONDS)
+    ActivityExecution.priorityThreadPool.awaitQuiescence(5, TimeUnit.SECONDS)
+  }
 }
 
 private object WorkflowExecutionLimiterTestSupport {
@@ -222,6 +332,48 @@ case class TestWorkflowUserContext(userUri: String,
 
   override def withExecutionContext(userExecutionContext: UserExecutionContext): UserContext = {
     copy(executionContext = userExecutionContext)
+  }
+}
+
+private object WorkflowExecutionLimiterTestRun {
+  private val encodedUserUriSeparator = "::"
+  private val activeRunId = new AtomicReference[String]("")
+
+  def activateNewRun(): Unit = {
+    activeRunId.set(UUID.randomUUID().toString)
+  }
+
+  def encodedUserUri(userUri: String): String = {
+    val runId = activeRunId.get()
+    if(runId.nonEmpty) {
+      s"$runId$encodedUserUriSeparator$userUri"
+    } else {
+      userUri
+    }
+  }
+
+  def activeLogicalUserUri(userUri: String): Option[String] = {
+    splitEncodedUserUri(userUri) match {
+      case Some((runId, logicalUserUri)) if runId == activeRunId.get() =>
+        Some(logicalUserUri)
+      case Some(_) =>
+        None
+      case None =>
+        Some(userUri)
+    }
+  }
+
+  def logicalUserUri(userUri: String): String = {
+    splitEncodedUserUri(userUri).map(_._2).getOrElse(userUri)
+  }
+
+  private def splitEncodedUserUri(userUri: String): Option[(String, String)] = {
+    val separatorIdx = userUri.indexOf(encodedUserUriSeparator)
+    if(separatorIdx >= 0) {
+      Some((userUri.substring(0, separatorIdx), userUri.substring(separatorIdx + encodedUserUriSeparator.length)))
+    } else {
+      None
+    }
   }
 }
 
@@ -293,12 +445,18 @@ abstract class ControlledExecutionState(stateLabel: String) extends StartedExecu
   }
 
   def registerExecution(userUri: String): CountDownLatch = {
-    startedUsers.add(userUri)
-    startedExecutions.incrementAndGet()
+    val logicalUserUri = WorkflowExecutionLimiterTestRun.activeLogicalUserUri(userUri)
+    if(logicalUserUri.isEmpty) {
+      val staleLatch = new CountDownLatch(0)
+      return staleLatch
+    }
     val latch = new CountDownLatch(1)
-    val runningExecution = RunningExecution(userUri, latch)
-    latches.put(runningExecution)
-    latchesByUser.put(userUri, runningExecution)
+    val runningExecution = RunningExecution(logicalUserUri.get, latch)
+    // The queue is unbounded, so offer() avoids interruptible blocking and keeps test bookkeeping atomic.
+    latches.offer(runningExecution)
+    latchesByUser.put(logicalUserUri.get, runningExecution)
+    startedUsers.add(logicalUserUri.get)
+    startedExecutions.incrementAndGet()
     latch
   }
 }
@@ -321,6 +479,24 @@ object QueueControlledTaskState extends ControlledExecutionState("queue-controll
   * on actual workflow operator execution.
   */
 object PermitControlledWorkflowState extends ControlledExecutionState("permit-controlled workflow")
+
+object QueuedPermitTokenState {
+  private val queuedTokensByUser = new ConcurrentHashMap[String, java.lang.Long]()
+
+  def reset(): Unit = {
+    queuedTokensByUser.clear()
+  }
+
+  def recordQueuedToken(userUri: String, queuedTokenId: Long): Unit = {
+    WorkflowExecutionLimiterTestRun.activeLogicalUserUri(userUri).foreach { logicalUserUri =>
+      queuedTokensByUser.put(logicalUserUri, queuedTokenId)
+    }
+  }
+
+  def queuedTokenId(userUri: String): Option[Long] = {
+    Option(queuedTokensByUser.get(userUri)).map(_.longValue())
+  }
+}
 
 /**
   * Test task that deliberately blocks workflow progress until the test releases it.
@@ -421,6 +597,13 @@ abstract class ControlledPermitWorkflowExecutor(workflowTask: org.silkframework.
 
   override def initialValue: Option[WorkflowExecutionReport] = Some(WorkflowExecutionReport(workflowTask))
 
+  override protected def afterQueuedTokenAssigned(context: ActivityContext[WorkflowExecutionReport],
+                                                  workflowKey: WorkflowExecutionLimiter.WorkflowExecutionKey,
+                                                  queuedToken: WorkflowExecutionLimiter.QueueToken): Unit = {
+    val userUri = WorkflowExecutionLimiterTestRun.logicalUserUri(context.startedBy.user.map(_.uri).getOrElse("anonymous"))
+    QueuedPermitTokenState.recordQueuedToken(userUri, queuedToken.id)
+  }
+
   override def run(context: ActivityContext[WorkflowExecutionReport])(implicit userContext: UserContext): Unit = {
     acquireExecutionPermit(context) match {
       case Some(permitHandle) =>
@@ -455,7 +638,7 @@ case class RestartQueuedWorkflowExecutor(workflowTask: org.silkframework.workspa
   override protected def beforeQueuedPermitAcquire(context: ActivityContext[WorkflowExecutionReport],
                                                    workflowKey: WorkflowExecutionLimiter.WorkflowExecutionKey,
                                                    queuedToken: WorkflowExecutionLimiter.QueueToken): Unit = {
-    val userUri = context.startedBy.user.map(_.uri).getOrElse("")
+    val userUri = WorkflowExecutionLimiterTestRun.logicalUserUri(context.startedBy.user.map(_.uri).getOrElse(""))
     if(userUri == "urn:test:restart-handoff-original") {
       hookEntered.countDown()
       while(allowAcquire.getCount > 0) {
