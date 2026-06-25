@@ -72,12 +72,10 @@ case class LocalSparqlSelectExecutor() extends LocalExecutor[SparqlSelectCustomT
   }
 
   /**
-   * Executes one query per input entity and returns the resulting rows together with the effective output schema.
-   *
-   * When the task's output schema can be inferred from the template it is used as-is (the input port advertises a
-   * fixed schema). Otherwise the schema is derived at runtime from the actual SELECT result variables: the first
-   * input entity's query is executed eagerly to read its result header (which is available before the bindings are
-   * consumed), and the remaining entities are processed lazily.
+   * Executes the task against the default RDF dataset when an input port is connected, returning the resulting rows
+   * and their schema. One query is rendered per input entity if the template references entity values; otherwise
+   * (only `input.config.*` is used) the query is rendered and run once, since the input port yields no entities.
+   * The output schema is the statically inferred one when known, else derived from the first query's result variables.
    */
   def executeOnDefaultDatasetPerEntity(sparqlSelectTask: SparqlSelectCustomTask,
                                        rdfDataset: RdfDataset,
@@ -93,39 +91,40 @@ case class LocalSparqlSelectExecutor() extends LocalExecutor[SparqlSelectCustomT
     val templateVariables = pluginContext.templateVariables.all.variables
     val expectedSchema = sparqlSelectTask.expectedInputSchema
 
-    def runEntity(entity: Entity): SparqlResults = {
-      val values = expectedSchema.typedPaths.map(tp => entity.valueOfPath(tp.toUntypedPath))
-      val projected = Entity(entity.uri, values, expectedSchema)
-      val query = sparqlSelectTask.queryTemplate.generate(Some(projected), taskProperties, templateVariables).head
+    // Queries to execute: rendered per input entity when the template references entity values, otherwise rendered
+    // once (the input port requests the empty schema, so the input has no entities to iterate over).
+    val queries: CloseableIterator[String] =
+      if (expectedSchema.typedPaths.nonEmpty) {
+        input.entities.flatMap { entity =>
+          val values = expectedSchema.typedPaths.map(tp => entity.valueOfPath(tp.toUntypedPath))
+          val projected = Entity(entity.uri, values, expectedSchema)
+          sparqlSelectTask.queryTemplate.generate(Some(projected), taskProperties, templateVariables)
+        }
+      } else {
+        CloseableIterator(sparqlSelectTask.queryTemplate.generate(None, taskProperties, templateVariables).iterator)
+      }
+
+    def runQuery(query: String): SparqlResults = {
       executionReportUpdater.increaseQueryCounter()
       LocalSparqlSelectIterator.executeSelect(sparqlEndpoint, query, selectLimit, Some(sparqlSelectTask.sparqlTimeout))
     }
 
     if (sparqlSelectTask.outputSchema.typedPaths.nonEmpty) {
-      // Static schema known: preserve the existing fully-lazy behavior (including multi-query-per-entity templates).
+      // Static schema known: preserve the existing fully-lazy behavior (including multi-query templates).
       val schema = sparqlSelectTask.outputSchema
       val vars = LocalSparqlSelectIterator.getSparqlVars(schema)
-      val bindings = input.entities.flatMap { entity =>
-        val values = expectedSchema.typedPaths.map(tp => entity.valueOfPath(tp.toUntypedPath))
-        val projected = Entity(entity.uri, values, expectedSchema)
-        val queries = sparqlSelectTask.queryTemplate.generate(Some(projected), taskProperties, templateVariables)
-        queries.iterator.flatMap { query =>
-          executionReportUpdater.increaseQueryCounter()
-          LocalSparqlSelectIterator.executeSelect(sparqlEndpoint, query, selectLimit, Some(sparqlSelectTask.sparqlTimeout)).bindings
-        }
-      }
+      val bindings = queries.flatMap(query => runQuery(query).bindings)
       (LocalSparqlSelectIterator.createEntities(schema, bindings, vars), schema)
     } else {
       // Fallback: derive the schema from the first executed query's result variables.
-      val inputIterator = input.entities
-      if (!inputIterator.hasNext) {
-        // No input entities -> no queries -> no runtime variables available.
+      if (!queries.hasNext) {
+        // No query to execute -> no runtime variables available.
         (CloseableIterator.empty, LocalSparqlSelectIterator.schemaFromVariables(Seq.empty))
       } else {
-        val firstResults = runEntity(inputIterator.next())
+        val firstResults = runQuery(queries.next())
         val schema = LocalSparqlSelectIterator.schemaFromVariables(firstResults.variables)
         val vars = LocalSparqlSelectIterator.getSparqlVars(schema)
-        val restBindings = inputIterator.flatMap(entity => runEntity(entity).bindings)
+        val restBindings = queries.flatMap(query => runQuery(query).bindings)
         val allBindings = CloseableIterator(firstResults.bindings ++ restBindings, new Closeable {
           override def close(): Unit = {
             try firstResults.close() finally restBindings.close()

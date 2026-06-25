@@ -9,7 +9,7 @@ import org.silkframework.dataset.{DataSource, DatasetAccess, DatasetSpec, Entity
 import org.silkframework.entity.paths.TypedPath
 import org.silkframework.entity.{Entity, EntitySchema, ValueType}
 import org.silkframework.execution.{ExecutorOutput, ReportingIterator}
-import org.silkframework.execution.local.{GenericEntityTable, LocalExecution}
+import org.silkframework.execution.local.{EmptyEntityTable, GenericEntityTable, LocalExecution}
 import org.silkframework.execution.typed.SparqlEndpointEntitySchema
 import org.silkframework.plugins.dataset.rdf.datasets.{InMemoryDataset, InMemoryDatasetExecutor}
 import org.silkframework.plugins.dataset.rdf.tasks.SparqlSelectCustomTask
@@ -264,6 +264,64 @@ class LocalSparqlSelectExecutorTest extends AnyFlatSpec
     schema.typedPaths mustBe empty
     entities.toList mustBe empty
     capturedQueries mustBe empty
+  }
+
+  it should "execute the query once when useDefaultDataset is set and the template references only input config (no entity values)" in {
+    // Edge case: requiresInput is true (input.config.* is referenced) but the expected input schema is empty, so the
+    // input port requests the empty schema and yields no entities. The query must still be executed exactly once,
+    // resolving input.config.* from the input task parameters, instead of not running at all.
+    val graphUri = "http://example.org/testGraph"
+    val query = """SELECT * WHERE { GRAPH <{{ input.config.graph }}> { ?s ?p ?o } }"""
+    val rowsPerQuery = 2
+    val task = SparqlSelectCustomTask(query, limit = rowsPerQuery.toString, useDefaultDataset = true)
+    task.requiresInput mustBe true
+    task.expectedInputSchema.typedPaths mustBe empty
+    task.outputSchema.typedPaths.map(_.toUntypedPath.normalizedSerialization) mustBe IndexedSeq("s", "p", "o")
+
+    val capturedQueries = collection.mutable.ArrayBuffer.empty[String]
+    val sparqlEndpoint = sparqlEndpointStub(queryCapture = q => capturedQueries += q)
+    val stubDataset = new StubRdfDataset(sparqlEndpoint)
+    // The input task carries the graph parameter that input.config.graph resolves to; it yields no entities.
+    val inputTask = PlainTask("inputTask", DatasetSpec(new StubRdfDataset(sparqlEndpoint, Some(graphUri))))
+    val inputTable = GenericEntityTable(Seq.empty[Entity], EmptyEntityTable.schema, inputTask)
+    val reportUpdater = SparqlSelectExecutionReportUpdater(PlainTask("task", task), TestMocks.activityContextMock())
+
+    val (entities, schema) = LocalSparqlSelectExecutor()
+      .executeOnDefaultDatasetPerEntity(task, stubDataset, inputTable, outputTask = None, executionReportUpdater = reportUpdater)
+    val rows = entities.toList
+
+    capturedQueries.toSeq must have size 1
+    capturedQueries.head must include (s"<$graphUri>")
+    capturedQueries.head must not include "input.config.graph"
+    schema.typedPaths.map(_.toUntypedPath.normalizedSerialization) mustBe IndexedSeq("s", "p", "o")
+    rows.size mustBe rowsPerQuery
+  }
+
+  it should "execute the query once and derive the schema at runtime when the template references only input config and the output schema is unknown" in {
+    // Same edge case as above, but the projection is produced by a placeholder, so the output schema cannot be
+    // inferred statically and is derived from the executed query's result variables.
+    val graphUri = "http://example.org/g"
+    val query = """SELECT {{ input.config.graph }} WHERE { ?s ?p ?o }"""
+    val rowsPerQuery = 2
+    val task = SparqlSelectCustomTask(query, limit = rowsPerQuery.toString, useDefaultDataset = true)
+    task.requiresInput mustBe true
+    task.expectedInputSchema.typedPaths mustBe empty
+    task.outputSchema.typedPaths mustBe empty
+
+    val capturedQueries = collection.mutable.ArrayBuffer.empty[String]
+    val sparqlEndpoint = sparqlEndpointStub(queryCapture = q => capturedQueries += q)
+    val stubDataset = new StubRdfDataset(sparqlEndpoint)
+    val inputTask = PlainTask("inputTask", DatasetSpec(new StubRdfDataset(sparqlEndpoint, Some(graphUri))))
+    val inputTable = GenericEntityTable(Seq.empty[Entity], EmptyEntityTable.schema, inputTask)
+    val reportUpdater = SparqlSelectExecutionReportUpdater(PlainTask("task", task), TestMocks.activityContextMock())
+
+    val (entities, schema) = LocalSparqlSelectExecutor()
+      .executeOnDefaultDatasetPerEntity(task, stubDataset, inputTable, outputTask = None, executionReportUpdater = reportUpdater)
+    val rows = entities.toList
+
+    capturedQueries.toSeq must have size 1
+    schema.typedPaths.map(_.toUntypedPath.normalizedSerialization) mustBe IndexedSeq("s", "p", "o")
+    rows.size mustBe rowsPerQuery
   }
 
   private def taskWithEndpoint(sparqlEndpoint: SparqlEndpoint, graphUri: Option[String] = None): Task[DatasetSpec[RdfDataset]] = {
