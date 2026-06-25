@@ -2,7 +2,7 @@ package org.silkframework.plugins.dataset.rdf.executors
 
 import org.silkframework.config.{Prefixes, Task, TaskSpec}
 import org.silkframework.dataset.{DataSource, DatasetSpec}
-import org.silkframework.dataset.rdf.{RdfDataset, RdfNode, SparqlEndpoint, SparqlResults}
+import org.silkframework.dataset.rdf.{RdfDataset, RdfDatasetAccess, RdfNode, SparqlEndpoint, SparqlResults}
 import org.silkframework.entity.paths.{TypedPath, UntypedPath}
 import org.silkframework.entity.{Entity, EntitySchema, ValueType}
 import org.silkframework.execution.local.{GenericEntityTable, LocalEntities, LocalExecution, LocalExecutor}
@@ -35,7 +35,10 @@ case class LocalSparqlSelectExecutor() extends LocalExecutor[SparqlSelectCustomT
 
     inputs match {
       case Seq(SparqlEndpointEntitySchema(sparql)) =>
-        val entities = executeOnSparqlEndpoint(taskData, sparql.task, output.task, executionReportUpdater = Some(executionReportUpdater))
+        // Read the SPARQL endpoint of this execution (not the shared dataset endpoint, which a concurrent
+        // execution sharing the same workflow-scoped dataset task may have overwritten).
+        val endpoint = RdfDatasetAccess.forExecution(sparql.task, execution).sparqlEndpoint
+        val entities = new LocalSparqlSelectIterator(taskData, endpoint, Some(sparql.task), output.task, executionReportUpdater = Some(executionReportUpdater))
         Some(ReportingIterator.addReporter(GenericEntityTable(entities, entitySchema = entities.effectiveSchema, task)))
       case Seq() if taskData.useDefaultDataset =>
         val rdfDataset = DefaultRdfDataset.resolve()
