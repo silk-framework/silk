@@ -19,6 +19,7 @@ import org.apache.jena.riot.RDFLanguages
 import org.silkframework.config.{MetaData, PlainTask, Prefixes, Task}
 import org.silkframework.dataset._
 import org.silkframework.entity._
+import org.silkframework.execution.TaskException
 import org.silkframework.rule.TransformSpec.{TargetVocabularyListParameter, TargetVocabularyParameterType}
 import org.silkframework.rule._
 import org.silkframework.rule.execution.ExecuteTransform
@@ -1149,13 +1150,23 @@ class TransformTaskApi @Inject() () extends InjectedController with UserContextA
       .getOrElse(throw new BadUserInputException("The selected rules do not produce any output."))
     val prunedTask = PlainTask(task.id, task.data.copy(mappingRule = prunedRoot), task.metaData)
 
+    // Resolve the data source up front so that an unsupported input task (e.g. a non-dataset 'Other'
+    // task) surfaces as a 400 instead of escaping the activity as a 500.
+    val dataSource =
+      try {
+        task.dataSource
+      } catch {
+        case ex: TaskException =>
+          throw new BadUserInputException(ex.getMessage)
+      }
+
     val (model, baseSink) = inMemoryModelSink()
     // Records the subjects minted for the root (top-level) entities so we can page by input record.
     val recordingSink = new RootSubjectRecordingSink(baseSink)
     val transform = new ExecuteTransform(
       task = prunedTask,
       inputTask = (uc: UserContext) => project.anyTask(task.data.selection.inputId)(uc),
-      input = (uc: UserContext) => task.dataSource(uc),
+      input = _ => dataSource,
       output = _ => recordingSink,
       pluginContext = (uc: UserContext) => PluginContext.fromProject(project)(uc)
     )

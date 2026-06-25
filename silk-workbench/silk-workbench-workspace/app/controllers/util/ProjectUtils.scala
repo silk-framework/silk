@@ -1,6 +1,6 @@
 package controllers.util
 
-import org.apache.jena.rdf.model.{Model, ModelFactory, Property, RDFNode}
+import org.apache.jena.rdf.model.{Model, ModelFactory, Property, RDFNode, Resource}
 import org.apache.jena.riot.{Lang, RDFLanguages}
 import org.silkframework.config.{Prefixes, Task, TaskSpec}
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
@@ -56,11 +56,14 @@ object ProjectUtils {
 
   /**
     * Returns the connected subgraph of the given model reachable from a set of seed subject URIs.
-    * Starting from the seeds, all statements whose subject is in the reachable set are collected;
-    * URI objects of those statements are followed transitively. Prefixes are copied from the source model.
+    * Starting from the seeds, statements are followed in both directions: outgoing statements (where a
+    * reached URI is the subject) and incoming statements (where it is the object). The URI nodes on the
+    * other end are followed transitively. Prefixes are copied from the source model.
     *
-    * This effectively assembles complete records (a root subject together with all of its nested,
-    * linked entities) while leaving out everything not connected to the seeds.
+    * Traversing incoming statements as well is required so that entities linked through backward/inverse
+    * property mappings - which the sink writes as `linkedEntity -> property -> root` - are still included
+    * in the record. This effectively assembles complete records (a root subject together with all of its
+    * nested, linked entities) while leaving out everything not connected to the seeds.
     */
   def connectedSubgraph(model: Model, seeds: Iterable[String]): Model = {
     val result = ModelFactory.createDefaultModel()
@@ -71,13 +74,25 @@ object ProjectUtils {
     while (queue.nonEmpty) {
       val uri = queue.dequeue()
       if (visited.add(uri)) {
-        val statements = model.listStatements(model.getResource(uri), null.asInstanceOf[Property], null.asInstanceOf[RDFNode])
-        while (statements.hasNext) {
-          val statement = statements.next()
+        val resource = model.getResource(uri)
+        // Outgoing statements: follow URI objects forward.
+        val outgoing = model.listStatements(resource, null.asInstanceOf[Property], null.asInstanceOf[RDFNode])
+        while (outgoing.hasNext) {
+          val statement = outgoing.next()
           result.add(statement)
           val obj = statement.getObject
           if (obj.isURIResource) {
             queue.enqueue(obj.asResource().getURI)
+          }
+        }
+        // Incoming statements: follow backward/inverse links to the linking subject.
+        val incoming = model.listStatements(null.asInstanceOf[Resource], null.asInstanceOf[Property], resource)
+        while (incoming.hasNext) {
+          val statement = incoming.next()
+          result.add(statement)
+          val subject = statement.getSubject
+          if (subject.isURIResource) {
+            queue.enqueue(subject.getURI)
           }
         }
       }
