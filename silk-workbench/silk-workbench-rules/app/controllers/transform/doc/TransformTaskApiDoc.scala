@@ -191,6 +191,20 @@ object TransformTaskApiDoc {
       </Transform>
     """
 
+  final val outputTurtleRequestExample =
+    """
+      {
+        "ruleIds": [ "personObject", "nameRule" ]
+      }
+    """
+
+  final val outputTurtleResponseExample =
+    """
+      @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+
+      <https://example.com/resource/1> rdfs:label "John Doe" .
+    """
+
   final val searchMappingRulesRequestExample =
     """
        {

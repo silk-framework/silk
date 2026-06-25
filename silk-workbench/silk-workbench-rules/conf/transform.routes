@@ -38,6 +38,7 @@ GET           /tasks/:project/:task/targetVocabulary/relationsOfClass           
 POST          /tasks/:project/:task/sourceVocabulary/propertiesByClass             controllers.transform.TargetVocabularyApi.sourcePropertiesByType(project: String, task: String)
 
 POST          /tasks/:project/:task/transformInput                                 controllers.transform.TransformTaskApi.postTransformInput(project: String, task: String)
+POST          /tasks/:project/:task/turtle                                         controllers.transform.TransformTaskApi.outputTurtle(project: String, task: String, offset: Int ?= 0, limit: Int ?= 1)
 GET           /tasks/:project/:task/rule/:rule/valueSourcePaths                    controllers.transform.SourcePathsApi.valueSourcePaths(project: String, task: String, rule: String, maxDepth: Int ?= Int.MaxValue, unusedOnly: Boolean ?= false, usedOnly: Boolean ?= false)
 GET           /tasks/:project/:task/rule/:rule/valueSourcePathsInfo                controllers.transform.SourcePathsApi.valueSourcePathsFullInfo(project: String, task: String, rule: String, maxDepth: Int ?= Int.MaxValue, objectInfo: Boolean ?= false)
 

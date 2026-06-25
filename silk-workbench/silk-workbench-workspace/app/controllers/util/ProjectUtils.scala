@@ -1,6 +1,6 @@
 package controllers.util
 
-import org.apache.jena.rdf.model.{Model, ModelFactory}
+import org.apache.jena.rdf.model.{Model, ModelFactory, Property, RDFNode}
 import org.apache.jena.riot.{Lang, RDFLanguages}
 import org.silkframework.config.{Prefixes, Task, TaskSpec}
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
@@ -41,6 +41,48 @@ object ProjectUtils {
   def getProject(projectName: String)
                 (implicit userContext: UserContext): Project = {
     WorkspaceFactory().workspace.project(projectName)
+  }
+
+  /**
+    * Creates an in-memory entity sink that collects written entities as triples in a Jena model.
+    *
+    * @return The model the triples are written to and the entity sink writing into it.
+    */
+  def inMemoryModelSink(): (Model, EntitySink) = {
+    val model = ModelFactory.createDefaultModel()
+    val inMemorySink = new SparqlSink(SparqlParams(strategy = EntityRetrieverStrategy.simple), new JenaModelEndpoint(model))
+    (model, inMemorySink)
+  }
+
+  /**
+    * Returns the connected subgraph of the given model reachable from a set of seed subject URIs.
+    * Starting from the seeds, all statements whose subject is in the reachable set are collected;
+    * URI objects of those statements are followed transitively. Prefixes are copied from the source model.
+    *
+    * This effectively assembles complete records (a root subject together with all of its nested,
+    * linked entities) while leaving out everything not connected to the seeds.
+    */
+  def connectedSubgraph(model: Model, seeds: Iterable[String]): Model = {
+    val result = ModelFactory.createDefaultModel()
+    result.setNsPrefixes(model)
+    val visited = scala.collection.mutable.Set.empty[String]
+    val queue = scala.collection.mutable.Queue.empty[String]
+    queue ++= seeds
+    while (queue.nonEmpty) {
+      val uri = queue.dequeue()
+      if (visited.add(uri)) {
+        val statements = model.listStatements(model.getResource(uri), null.asInstanceOf[Property], null.asInstanceOf[RDFNode])
+        while (statements.hasNext) {
+          val statement = statements.next()
+          result.add(statement)
+          val obj = statement.getObject
+          if (obj.isURIResource) {
+            queue.enqueue(obj.asResource().getURI)
+          }
+        }
+      }
+    }
+    result
   }
 
   def jenaModelResult(model: Model, contentType: String): Result = {
@@ -186,9 +228,7 @@ object ProjectUtils {
                        userContext: UserContext): (Model, EntitySink) = {
     val dataSink = xmlRoot \ "dataSink"
     if (dataSink.isEmpty) {
-      val model = ModelFactory.createDefaultModel()
-      val inmemoryModelSink = new SparqlSink(SparqlParams(strategy = EntityRetrieverStrategy.simple), new JenaModelEndpoint(model))
-      (model, inmemoryModelSink)
+      inMemoryModelSink()
     } else {
       // Don't allow to read any resources like files, SPARQL endpoint is allowed, which does not need resources
       val dataset = createDataset(dataSink, None)
