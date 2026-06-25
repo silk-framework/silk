@@ -321,6 +321,64 @@ class PeakTransformApiTest extends AnyFlatSpec with SingleProjectWorkspaceProvid
     all (transformedValues) must (fullyMatch regex """urn:instance:Property#.+/object""")
   }
 
+  it should "preview a bare source path with its values grouped per source entity" in {
+    // A single record holds multiple values for the path (Person 1: V1/V2/V3); they must stay grouped
+    // in one result, while a record without the path (Person 2) yields an empty group - not separate rows.
+    val peakResult = peakSourcePathRequest("Properties/Property/Value")
+    peakResult.status.id mustBe "success"
+    peakResult.sourcePaths mustBe Some(Seq(Seq("/Properties", "/Property", "/Value")))
+    peakResult.results mustBe Some(Seq(
+      PeakResult(Seq(Seq("V1", "V2", "V3")), Seq("V1", "V2", "V3")),
+      PeakResult(Seq(Seq()), Seq())
+    ))
+  }
+
+  it should "preview a source path within an object path context" in {
+    val peakResult = peakSourcePathRequest("Birth", objectPath = Some("Events"))
+    peakResult.status.id mustBe "success"
+    peakResult.sourcePaths mustBe Some(Seq(Seq("/Birth")))
+    peakResult.results mustBe Some(Seq(
+      PeakResult(Seq(Seq("May 1900")), Seq("May 1900"))
+    ))
+  }
+
+  it should "report pagination metadata for a source path preview when includeTotal is requested" in {
+    val peakResult = peakSourcePathRequest("Name", includeTotal = true)
+    peakResult.results mustBe Some(Seq(
+      PeakResult(Seq(Seq("Max Doe")), Seq("Max Doe")),
+      PeakResult(Seq(Seq("Max Noe")), Seq("Max Noe"))
+    ))
+    peakResult.total mustBe Some(2)
+    peakResult.totalIsExact mustBe Some(true)
+    peakResult.nextOffset mustBe None
+  }
+
+  it should "scope grouping at an array-boundary objectPath, matching a bound child rule's rows" in {
+    // Properties/Property is an array (Person 1 has 3 entries, Person 2 has none). Scoping the preview at
+    // that boundary must yield one row per Property element - the same row count a bound value rule nested
+    // under an object mapping over Properties/Property produces - not one lumped root row.
+    val sourcePreview = peakSourcePathRequest("Key", objectPath = Some("Properties/Property"))
+    sourcePreview.results mustBe Some(Seq(
+      PeakResult(Seq(Seq("1")), Seq("1")),
+      PeakResult(Seq(Seq("2")), Seq("2")),
+      PeakResult(Seq(Seq("3")), Seq("3"))
+    ))
+    // The bound peek over the same boundary (a child value rule on Key) groups the source side identically:
+    // the unmapped preview agrees with what the eventual mapped rule would show.
+    val boundPeek = peakChildRuleRequest(
+      ComplexMapping(id = "key", operator = PathInput("p", UntypedPath("Key"))),
+      objectPath = Some("Properties/Property"))
+    boundPeek.results.map(_.map(_.sourceValues)) mustBe sourcePreview.results.map(_.map(_.sourceValues))
+  }
+
+  private def peakSourcePathRequest(path: String, objectPath: Option[String] = None, includeTotal: Boolean = false): PeakResults = {
+    val peakUrl = controllers.transform.routes.PeakTransformApi.peakSourcePath(
+      projectId, transformXmlTask, rootRuleId, path, objectPath, includeTotal = includeTotal).url
+    val request = client.url(s"$baseUrl$peakUrl")
+    val jsonResponse = checkResponse(request.post("")).json
+    JsonHelpers.fromJsonValidated[PeakResults](jsonResponse)
+  }
+
   private def peakNamedRuleRequest(ruleId: String): PeakResults = {
     val peakUrl = controllers.transform.routes.PeakTransformApi.peak(projectId, transformXmlTask, ruleId).url
     val request = client.url(s"$baseUrl$peakUrl")

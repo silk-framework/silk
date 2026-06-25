@@ -20,8 +20,8 @@ import org.silkframework.entity.paths.{Path, TypedPath, UntypedPath}
 import org.silkframework.plugins.dataset.rdf.executors.{LocalSparqlSelectExecutor, LocalSparqlSelectIterator}
 import org.silkframework.plugins.dataset.rdf.tasks.SparqlSelectCustomTask
 import org.silkframework.rule.TransformSpec.RuleSchemata
-import org.silkframework.rule.input.Value
-import org.silkframework.rule.{ComplexUriMapping, ObjectMapping, TaskContext, TransformRule, TransformRuleExecution, TransformSpec, ValueTransformRuleExecution}
+import org.silkframework.rule.input.{PathInput, Value}
+import org.silkframework.rule.{ComplexMapping, ComplexUriMapping, ObjectMapping, TaskContext, TransformRule, TransformRuleExecution, TransformSpec, ValueTransformRuleExecution}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.PluginContext
 import org.silkframework.runtime.serialization.ReadContext
@@ -223,16 +223,91 @@ class PeakTransformApi @Inject() () extends InjectedController with UserContextA
     implicit val readContext: ReadContext = ReadContext.fromProject(project)
 
     deserializeCompileTime[TransformRule]() { rule =>
-      val updatedParentRule = parentRule.transformRule.withChildren(Seq(rule)).asInstanceOf[TransformRule]
-      val initialRuleSchemata = RuleSchemata.create(updatedParentRule, transformSpec.selection, parentRule.inputSchema.subPath, parentRule.outputSchema.subPath)
-        .copy(transformRule = rule)
-      val ruleSchemata = if(objectPath.isDefined && objectPath.get.nonEmpty) {
-        val inputSchema = initialRuleSchemata.inputSchema.copy(subPath = UntypedPath(initialRuleSchemata.inputSchema.subPath.operators ++ UntypedPath.parse(objectPath.get).operators))
-        RuleSchemata(initialRuleSchemata.transformRule, inputSchema, initialRuleSchemata.outputSchema)
-      } else {
-        initialRuleSchemata
-      }
+      val ruleSchemata = childRuleSchemata(parentRule, transformSpec, rule, objectPath)
       peakRule(project, inputTaskId, ruleSchemata, limit, maxTryEntities, offset, search, includeTotal)
+    }
+  }
+
+  /**
+    * Get sample values of a source path grouped per source entity, without a saved rule or target.
+    */
+  @Operation(
+    summary = "Source Path Preview Values",
+    description = "Get example values for a bare source path that has no saved rule yet. A trivial identity value rule is " +
+      "synthesized on the path and previewed through the same machinery as a mapping rule, so each result groups one source " +
+      "entity's values for the path (matching the grouping shown once the path is bound to a target). The input task of the " +
+      "transformation task has to be a Dataset task that supports this feature.",
+    responses = Array(
+      new ApiResponse(
+        responseCode = "200",
+        description = PeakApiDoc.peakResultDoc,
+        content = Array(
+          new Content(
+            mediaType = "application/json",
+            examples = Array(new ExampleObject(PeakApiDoc.peakExample))
+          )
+        )
+      )
+  ))
+  def peakSourcePath(@Parameter(name = "project", description = "The project identifier",
+                       required = true, in = ParameterIn.PATH, schema = new Schema(implementation = classOf[String]))
+                     projectName: String,
+                     @Parameter(name = "task", description = "The task identifier",
+                       required = true, in = ParameterIn.PATH, schema = new Schema(implementation = classOf[String]))
+                     taskName: String,
+                     @Parameter(name = "rule", description = "The identifier of the rule whose entity scope the path is relative to (e.g. the containing object mapping or the root rule).",
+                       required = true, in = ParameterIn.PATH, schema = new Schema(implementation = classOf[String]))
+                     ruleName: String,
+                     @Parameter(name = "path", description = "The source path to preview, relative to the rule's (and any objectPath's) entity scope.",
+                       required = true, in = ParameterIn.QUERY, schema = new Schema(implementation = classOf[String]))
+                     path: String,
+                     @Parameter(name = "objectPath", description = "An additional object path this preview should be the context of.",
+                       required = false, in = ParameterIn.QUERY, schema = new Schema(implementation = classOf[String]))
+                     objectPath: Option[String],
+                     @Parameter(name = "limit", description = "The maximum number of example entities.",
+                       required = false, in = ParameterIn.QUERY, schema = new Schema(implementation = classOf[Int], defaultValue = TRANSFORMATION_PREVIEW_LIMIT_STR))
+                     limit: Int = TRANSFORMATION_PREVIEW_LIMIT,
+                     @Parameter(name = "maxTryEntities", description = "Per-page budget of example entities to try before giving up. The actual number of source entities fetched is `offset + maxTryEntities`.",
+                       required = false, in = ParameterIn.QUERY, schema = new Schema(implementation = classOf[Int], defaultValue = MAX_TRY_ENTITIES_DEFAULT_STR))
+                     maxTryEntities: Int = MAX_TRY_ENTITIES_DEFAULT,
+                     @Parameter(name = "offset", description = "Number of example results to skip before collecting the page. Setting this implies `includeTotal=true`.",
+                       required = false, in = ParameterIn.QUERY, schema = new Schema(implementation = classOf[Int], defaultValue = "0"))
+                     offset: Int = 0,
+                     @Parameter(name = "search", description = "Optional case-insensitive substring filter on the source values. Setting this implies `includeTotal=true`.",
+                       required = false, in = ParameterIn.QUERY, schema = new Schema(implementation = classOf[String]))
+                     search: Option[String] = None,
+                     @Parameter(name = "includeTotal", description = "If true, scan the full `offset + maxTryEntities` budget so the response can report `total`/`totalIsExact`/`nextOffset`.",
+                       required = false, in = ParameterIn.QUERY, schema = new Schema(implementation = classOf[Boolean], defaultValue = "false"))
+                     includeTotal: Boolean = false): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
+    val (project, task) = projectAndTask(projectName, taskName)
+    val transformSpec = task.data
+    val parentRule = transformSpec.oneRuleEntitySchemaById(ruleName).get
+    val inputTaskId = transformSpec.selection.inputId
+    implicit val context: PluginContext = PluginContext.fromProject(project)
+
+    // Synthesize a target-less identity value rule on the path so a bare source node (no saved rule,
+    // no target) is previewed through the very same peek machinery. The source side of each result is
+    // the entity's grouped values for the path; transformedValues just echo them and are ignored by
+    // a source-only preview.
+    val childRule = ComplexMapping(id = "sourcePathPreview", operator = PathInput(path = UntypedPath.parse(path)), target = None)
+    val ruleSchemata = childRuleSchemata(parentRule, transformSpec, childRule, objectPath)
+    peakRule(project, inputTaskId, ruleSchemata, limit, maxTryEntities, offset, search, includeTotal)
+  }
+
+  /**
+    * Attaches a child rule to a parent rule's schema context and applies an optional object path,
+    * mirroring how a real child value rule is scoped. Shared by [[peakChildRule]] (rule supplied in the
+    * request body) and [[peakSourcePath]] (a synthesized identity rule on a bare source path).
+    */
+  private def childRuleSchemata(parentRule: RuleSchemata, transformSpec: TransformSpec, childRule: TransformRule, objectPath: Option[String]): RuleSchemata = {
+    val updatedParentRule = parentRule.transformRule.withChildren(Seq(childRule)).asInstanceOf[TransformRule]
+    val initialRuleSchemata = RuleSchemata.create(updatedParentRule, transformSpec.selection, parentRule.inputSchema.subPath, parentRule.outputSchema.subPath)
+      .copy(transformRule = childRule)
+    if (objectPath.exists(_.nonEmpty)) {
+      val inputSchema = initialRuleSchemata.inputSchema.copy(subPath = UntypedPath(initialRuleSchemata.inputSchema.subPath.operators ++ UntypedPath.parse(objectPath.get).operators))
+      RuleSchemata(initialRuleSchemata.transformRule, inputSchema, initialRuleSchemata.outputSchema)
+    } else {
+      initialRuleSchemata
     }
   }
 
