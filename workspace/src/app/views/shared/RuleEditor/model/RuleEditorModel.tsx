@@ -1593,7 +1593,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
             event.clipboardData.setData("text/plain", data);
             event.preventDefault();
         } else {
-            copyToClipboard(data);
+            void copyToClipboard(data);
         }
         setCopiedNodesCount(nodes.length);
     };
