@@ -13,10 +13,11 @@ import io.swagger.v3.oas.annotations.tags.Tag
 import io.swagger.v3.oas.annotations.{Operation, Parameter}
 import org.silkframework.config.Prefixes
 import org.silkframework.rule.vocab.{GenericInfo, VocabularyProperty}
+import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.validation.NotFoundException
 import org.silkframework.util.{StringUtils, Uri}
 import org.silkframework.workspace.activity.transform.VocabularyCacheValue
-import org.silkframework.workspace.activity.vocabulary.GlobalVocabularyCache
+import org.silkframework.workspace.activity.vocabulary.{GlobalVocabularyCache, VocabularyLookupLabelPlugin}
 import play.api.libs.json.{JsValue, Json}
 import play.api.mvc.{Action, AnyContent, InjectedController}
 
@@ -25,6 +26,7 @@ import scala.util.Try
 
 @Tag(name = "Workspace vocabularies")
 class WorkspaceVocabularyApi extends InjectedController with UserContextActions with ControllerUtilsTrait {
+  private lazy val vocabularyLookupLabelPlugins: Seq[VocabularyLookupLabelPlugin] = VocabularyLookupLabelPlugin.plugins
 
   @Operation(
     summary = "Get all globally registered vocabularies",
@@ -85,7 +87,10 @@ class WorkspaceVocabularyApi extends InjectedController with UserContextActions 
         .map(getProject(_).config.prefixes)
         .getOrElse(Prefixes.default)
       val vocabularies = VocabularyCacheValue.globalVocabularies
-      val results = lookupRequest.uris.map(uri => lookupValue(uri, vocabularies))
+      val results = enrichLabels(
+        lookupRequest.uris.map(uri => lookupValue(uri, vocabularies)),
+        lookupRequest.preferredLanguage
+      )
       Ok(Json.toJson(VocabularyLookupResponse(results)))
     }
   }
@@ -230,13 +235,40 @@ class WorkspaceVocabularyApi extends InjectedController with UserContextActions 
     Option.when(shortened != absoluteUri)(shortened)
   }
 
+  private def enrichLabels(results: Seq[VocabularyLookupResult],
+                           preferredLanguage: Option[String])
+                          (implicit userContext: UserContext): Seq[VocabularyLookupResult] = {
+    val languageOpt = preferredLanguage
+      .map(_.trim)
+      .filter(language => language.nonEmpty && !language.equalsIgnoreCase("en"))
+    val resolvedUris = results.collect {
+      case result if result.resolved => result.uri
+    }.distinct
+    if(languageOpt.isEmpty || vocabularyLookupLabelPlugins.isEmpty || resolvedUris.isEmpty) {
+      results
+    } else {
+      val language = languageOpt.get
+      val labelsByUri = vocabularyLookupLabelPlugins.foldLeft(Map.empty[String, String]) { (existingLabels, plugin) =>
+        val missingUris = resolvedUris.filterNot(existingLabels.contains)
+        if(missingUris.isEmpty) {
+          existingLabels
+        } else {
+          existingLabels ++ plugin.labels(missingUris, language)
+        }
+      }
+      results.map { result =>
+        labelsByUri.get(result.uri)
+          .map(localizedLabel => result.copy(label = Some(localizedLabel)))
+          .getOrElse(result)
+      }
+    }
+  }
+
   private def parseAbsoluteOrPrefixedUri(input: String)
                                         (implicit prefixes: Prefixes): Option[String] = {
     val trimmed = input.trim
     if(trimmed.isEmpty) {
       None
-    } else if(Uri(trimmed).isValidUri) {
-      Some(trimmed)
     } else {
       Try(Uri.parse(trimmed, prefixes).uri)
         .toOption

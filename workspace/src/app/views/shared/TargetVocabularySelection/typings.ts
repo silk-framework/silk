@@ -18,6 +18,7 @@ export interface IVocabularyInfoRequestResult {
 export interface IVocabularyLookupRequest {
     projectId?: string;
     uris: string[];
+    preferredLanguage?: string;
 }
 
 /** Result for a single vocabulary lookup value. */

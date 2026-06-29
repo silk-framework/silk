@@ -5,6 +5,7 @@ import helper.IntegrationTestTrait
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.must.Matchers
 import org.silkframework.plugins.dataset.rdf.vocab.InMemoryVocabularyManager
+import org.silkframework.rule.vocab.{DatatypePropertyType, GenericInfo, Vocabulary, VocabularyClass, VocabularyProperty}
 import org.silkframework.serialization.json.JsonHelpers
 import org.silkframework.util.ConfigTestTrait
 import org.silkframework.workspace.WorkspaceFactory
@@ -12,8 +13,6 @@ import org.silkframework.workspace.activity.vocabulary.GlobalVocabularyCache
 import play.api.libs.json.Json
 import play.api.routing.Router
 import play.api.test.Helpers.BAD_REQUEST
-
-import java.io.File
 
 class WorkspaceVocabularyApiTest extends AnyFlatSpec with ConfigTestTrait with IntegrationTestTrait with Matchers {
   behavior of "Workspace vocabulary API"
@@ -32,7 +31,7 @@ class WorkspaceVocabularyApiTest extends AnyFlatSpec with ConfigTestTrait with I
     super.beforeAll()
     createProject(projectId)
     addProjectPrefixes(projectId, Map("foaf" -> "http://xmlns.com/foaf/0.1/"))
-    InMemoryVocabularyManager.addVocabulary(foafVocabularyFile)
+    InMemoryVocabularyManager.addVocabulary(foafVocabulary)
     WorkspaceFactory().workspace.activity[GlobalVocabularyCache].control.startBlocking()
   }
 
@@ -120,13 +119,41 @@ class WorkspaceVocabularyApiTest extends AnyFlatSpec with ConfigTestTrait with I
     checkResponseExactStatusCode(response, BAD_REQUEST)
   }
 
-  private def lookup(uris: Seq[String]): VocabularyLookupResponse = {
+  private def lookup(uris: Seq[String], preferredLanguage: Option[String] = None): VocabularyLookupResponse = {
     val response = client.url(s"$baseUrl${controllers.workspaceApi.routes.WorkspaceVocabularyApi.lookup().url}")
-      .post(Json.toJson(VocabularyLookupRequest(Some(projectId), uris)))
+      .post(Json.toJson(VocabularyLookupRequest(Some(projectId), uris, preferredLanguage)))
     JsonHelpers.fromJsonValidated[VocabularyLookupResponse](checkResponse(response).json)
   }
 
-  private def foafVocabularyFile: File = {
-    new File(getClass.getClassLoader.getResource("controllers/transform/foaf.rdf").toURI)
+  private val foafVocabularyUri = "http://xmlns.com/foaf/0.1/"
+  private val personUri = s"${foafVocabularyUri}Person"
+  private val nameUri = s"${foafVocabularyUri}name"
+
+  private def foafVocabulary: Vocabulary = {
+    val personClass = VocabularyClass(
+      GenericInfo(
+        uri = personUri,
+        label = Some("Person"),
+        description = Some("A person."),
+        vocabularyUri = Some(foafVocabularyUri)
+      ),
+      parentClasses = Seq.empty
+    )
+    val nameProperty = VocabularyProperty(
+      info = GenericInfo(
+        uri = nameUri,
+        label = Some("name"),
+        description = Some("A name for some thing."),
+        vocabularyUri = Some(foafVocabularyUri)
+      ),
+      propertyType = DatatypePropertyType,
+      domain = Some(personClass),
+      range = None
+    )
+    Vocabulary(
+      info = GenericInfo(uri = foafVocabularyUri, label = Some("FOAF"), vocabularyUri = Some(foafVocabularyUri)),
+      classes = Seq(personClass),
+      properties = Seq(nameProperty)
+    )
   }
 }

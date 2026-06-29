@@ -4,10 +4,13 @@ import play.api.libs.json.{Format, Json}
 
 /** Batch lookup request for global vocabulary entries.
   *
-  * @param projectId Optional project ID used to resolve prefixed names and shorten resolved URIs.
-  * @param uris      A list of absolute URIs, prefixed names, or other strings to check against the global vocabulary cache.
+  * @param projectId          Optional project ID used to resolve prefixed names and shorten resolved URIs.
+  * @param uris               A list of absolute URIs, prefixed names, or other strings to check against the global vocabulary cache.
+  * @param preferredLanguage  Optional preferred language for localized label enrichment.
   */
-case class VocabularyLookupRequest(projectId: Option[String], uris: Seq[String])
+case class VocabularyLookupRequest(projectId: Option[String],
+                                   uris: Seq[String],
+                                   preferredLanguage: Option[String] = None)
 
 object VocabularyLookupRequest {
   implicit val vocabularyLookupRequestJsonFormat: Format[VocabularyLookupRequest] = Json.format[VocabularyLookupRequest]
