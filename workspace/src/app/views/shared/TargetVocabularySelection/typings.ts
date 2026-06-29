@@ -13,3 +13,26 @@ export interface IVocabularyInfo {
 export interface IVocabularyInfoRequestResult {
     vocabularies: IVocabularyInfo[];
 }
+
+/** Batch lookup request for global vocabulary entries. */
+export interface IVocabularyLookupRequest {
+    projectId?: string;
+    uris: string[];
+}
+
+/** Result for a single vocabulary lookup value. */
+export interface IVocabularyLookupResult {
+    input: string;
+    resolved: boolean;
+    invalid: boolean;
+    uri: string;
+    kind?: "class" | "property";
+    label?: string;
+    description?: string;
+    prefixedUri?: string;
+    graphUri?: string;
+}
+
+export interface IVocabularyLookupResponse {
+    results: IVocabularyLookupResult[];
+}
