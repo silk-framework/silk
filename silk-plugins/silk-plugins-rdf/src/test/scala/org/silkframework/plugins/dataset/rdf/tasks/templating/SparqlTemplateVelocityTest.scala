@@ -1,10 +1,13 @@
 package org.silkframework.plugins.dataset.rdf.tasks.templating
 
 import org.apache.jena.vocabulary.XSD
+import org.silkframework.entity.paths.UntypedPath
+import org.silkframework.entity.{Entity, EntitySchema}
 import org.silkframework.plugins.templating.velocity.VelocityTemplateEngine
 import org.silkframework.runtime.validation.ValidationException
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.must.Matchers
+import org.silkframework.runtime.templating.{InMemoryTemplateVariablesReader, TemplateVariables}
 import org.silkframework.runtime.templating.exceptions.TemplateEvaluationException
 
 class SparqlTemplateVelocityTest extends AnyFlatSpec with Matchers {
@@ -79,9 +82,9 @@ class SparqlTemplateVelocityTest extends AnyFlatSpec with Matchers {
       """SELECT * WHERE {
         |  $row.uri("uriProp") rdfs:label $row.plainLiteral("stringProp")
         |}""".stripMargin
-    val template = new SparqlTemplate(VelocityTemplateEngine().compile(stringTemplate))
+    val template = new SparqlLegacyTemplate(VelocityTemplateEngine().compile(stringTemplate))
     for(i <- 1 to 10) {
-      val rendered = template.generate(Map("uriProp" -> s"http://entity$i", "stringProp" -> s"some label $i"), TaskProperties(Map.empty, Map.empty))
+      val rendered = template.generate(Some(entityFromMap(Map("uriProp" -> s"http://entity$i", "stringProp" -> s"some label $i"))), TaskProperties(Map.empty, Map.empty)).head
       rendered mustBe
         s"""SELECT * WHERE {
            |  <http://entity$i> rdfs:label "some label $i"
@@ -113,10 +116,17 @@ class SparqlTemplateVelocityTest extends AnyFlatSpec with Matchers {
   }
 
   private def generate(templateString: String, bindings: Map[String, String]): String = {
-    new SparqlTemplate(VelocityTemplateEngine().compile(templateString)).generate(bindings, TaskProperties(Map.empty, Map.empty))
+    val entity = if (bindings.isEmpty) None else Some(entityFromMap(bindings))
+    new SparqlLegacyTemplate(VelocityTemplateEngine().compile(templateString)).generate(entity, TaskProperties(Map.empty, Map.empty)).head
+  }
+
+  private def entityFromMap(values: Map[String, String]): Entity = {
+    val entries = values.toIndexedSeq
+    val schema = EntitySchema("", entries.map { case (k, _) => UntypedPath(k).asUntypedValueType })
+    Entity("urn:test", entries.map { case (_, v) => Seq(v) }, schema)
   }
 
   def validate(template: String, batchSize: Int = 2): Unit = {
-    new SparqlTemplate(VelocityTemplateEngine().compile(template)).validateUpdateQuery(batchSize)
+    new SparqlLegacyTemplate(VelocityTemplateEngine().compile(template)).validate(InMemoryTemplateVariablesReader(TemplateVariables.empty, Set.empty), Some(batchSize))
   }
 }

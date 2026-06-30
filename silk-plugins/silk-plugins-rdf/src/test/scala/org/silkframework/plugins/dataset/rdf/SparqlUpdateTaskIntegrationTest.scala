@@ -53,7 +53,7 @@ class SparqlUpdateTaskIntegrationTest extends AnyFlatSpec with Matchers with Sin
       )
       val sparqlSelectTaskReport = taskReports(4).report
       sparqlSelectTaskReport.entityCount mustBe 8
-      sparqlSelectTaskReport.summary.filter(r => r._1 == "No. of rows processed").map(_._2) mustBe Seq("8")
+      sparqlSelectTaskReport.summary.filter(r => r._1.startsWith("No. of rows processed")).map(_._2) mustBe Seq("8")
 
       val sparqlUpdateTaskReport = taskReports(5).report
       // Batch size is set to 2, so half the number of the SPARQL Select task

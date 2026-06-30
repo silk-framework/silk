@@ -239,7 +239,7 @@ object VariableWorkflowRequestUtils {
     */
   case class VariableWorkflowRequestConfig(configParameters: ParameterValues,
                                            variableDataSinkConfig: Option[String],
-                                           workflowVariables: TemplateVariables = TemplateVariables.empty)
+                                           executionVariables: TemplateVariables = TemplateVariables.empty)
 
   private def variableWorkflowFileResourceManager(implicit request: Request[AnyContent]): FileMapResourceManager = {
     val baseDir = Files.createTempDirectory(tempFileBaseDir, "variableWorkflowResourceManager")
@@ -307,16 +307,16 @@ object VariableWorkflowRequestUtils {
       )
     )
     implicit val pluginContext: PluginContext = PluginContext.fromProject(project)
-    val workflowVars = parseWorkflowVariables
+    val executionVars = parseExecutionVariables
     VariableWorkflowRequestConfig(
       configParameters = ParameterValues(Map(
         "configuration" -> ParameterStringValue(workflowConfig.toString()),
         "configurationType" -> ParameterStringValue(jsonMimeType),
         "optionalPrimaryResourceManager" -> ParameterObjectValue(OptionalPrimaryResourceManagerParameter(Some(variableWorkflowFileResourceManager))),
-        "workflowVariables" -> ParameterObjectValue(toTemplateVariablesParameter(workflowVars))
+        "executionVariables" -> ParameterObjectValue(toTemplateVariablesParameter(executionVars))
       )),
       variableDataSinkConfig = replaceableDataSinkConfigOpt.map(_.mimeType),
-      workflowVariables = workflowVars
+      executionVariables = executionVars
     )
   }
 
@@ -446,11 +446,11 @@ object VariableWorkflowRequestUtils {
 
   /**
     * Parses execution variables from a request.
-    * Workflow variables can be provided in the JSON body under the "workflowVariables" key as a simple name-value map.
+    * Execution variables can be provided in the JSON body under the "executionVariables" key as a simple name-value map.
     */
-  def parseWorkflowVariables(implicit request: Request[AnyContent]): TemplateVariables = {
+  def parseExecutionVariables(implicit request: Request[AnyContent]): TemplateVariables = {
     val fromBody = request.body.asJson.flatMap { json =>
-      (json \ "workflowVariables").asOpt[Map[String, String]]
+      (json \ "executionVariables").asOpt[Map[String, String]]
     }.getOrElse(Map.empty)
 
     if(fromBody.nonEmpty) {

@@ -31,11 +31,8 @@ class LocalSparqlUpdateExecutorTest extends AnyFlatSpec with Matchers with TestW
   private val batchSize = 5
   private val sparqlUpdateTemplate = s"""INSERT DATA { $${<s>} <urn:prop> $${"v"} } ;"""
   private val schema = EntitySchema("", typedPaths = IndexedSeq(TypedPath("s", ValueType.URI), TypedPath("v", ValueType.STRING)))
-  private val notIncluded = "NOT_INCLUDED"
   private val inputEntities: Seq[Entity] = Seq(
     Entity("http://example.org/entity/1", IndexedSeq(Seq("http://s1"), Seq("s1a", "s1b")), schema),
-    Entity("http://example.org/entity/2", IndexedSeq(Seq(s"http://$notIncluded"), Seq()), schema),
-    Entity("http://example.org/entity/3", IndexedSeq(Seq(), Seq(notIncluded)), schema),
     Entity("http://example.org/entity/4", IndexedSeq(Seq("http://s2a", "http://s2b"), Seq("s2a", "s2b", "s2c")), schema)
   )
   private def mockInputTable(properties: Seq[(String, String)] = Seq.empty,
@@ -77,6 +74,17 @@ class LocalSparqlUpdateExecutorTest extends AnyFlatSpec with Matchers with TestW
     samplesEntities.schema.properties must not be empty
     samplesEntities.entities must have size 1
     samplesEntities.entities.head.values.head.head must startWith ("""INSERT DATA { <http://s1> <urn:prop> "s1a" } ;""")
+  }
+
+  it should "fail when an input entity is missing a value referenced by the template" in {
+    val incompleteEntities = Seq(
+      Entity("http://example.org/entity/incomplete", IndexedSeq(Seq("http://s1"), Seq()), schema)
+    )
+    val inputTaskMock = PlainTask("mockTask", new DummyTaskSpec(Map.empty))
+    val input = Seq(GenericEntityTable(incompleteEntities, schema, inputTaskMock))
+    intercept[ValidationException] {
+      executeTask(sparqlUpdateTemplate, input).entities.toList
+    }
   }
 
   it should "throw validation exception if an invalid input schema is found" in {
