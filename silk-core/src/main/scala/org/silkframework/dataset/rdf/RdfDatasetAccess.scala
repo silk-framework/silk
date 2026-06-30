@@ -2,7 +2,7 @@ package org.silkframework.dataset.rdf
 
 import org.silkframework.config.Task
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
-import org.silkframework.dataset.{DataSource, Dataset, DatasetAccess, DatasetSpec, DatasetSpecAccess, EntitySink, LinkSink, SafeModeDataSource, SafeModeSink}
+import org.silkframework.dataset.{DataSource, Dataset, DatasetAccess, DatasetSpec, DatasetSpecAccess, EntitySink, LinkSink}
 import org.silkframework.execution.{ExecutionType, ExecutorRegistry}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.validation.ValidationException
@@ -74,18 +74,15 @@ object RdfDatasetAccess {
   */
 case class RdfDatasetSpecAccess(datasetSpec: GenericDatasetSpec, datasetAccess: RdfDatasetAccess) extends RdfDatasetAccess {
 
+  // The DatasetSpec behaviour (URI attribute, read-only, safe-mode) is identical to a non-RDF dataset,
+  // so delegate source/entitySink/linkSink to a DatasetSpecAccess and only add the SPARQL endpoint.
+  private val specAccess = DatasetSpecAccess(datasetSpec, datasetAccess)
+
   override def sparqlEndpoint: SparqlEndpoint = datasetAccess.sparqlEndpoint
 
-  override def source(implicit userContext: UserContext): DataSource = {
-    DatasetSpecAccess.safeAccess(DatasetSpec.DataSourceWrapper(datasetAccess.source, datasetSpec), SafeModeDataSource, datasetSpec)
-  }
+  override def source(implicit userContext: UserContext): DataSource = specAccess.source
 
-  override def entitySink(implicit userContext: UserContext): EntitySink = {
-    DatasetSpecAccess.safeAccess(DatasetSpec.EntitySinkWrapper(datasetAccess.entitySink, datasetSpec), SafeModeSink, datasetSpec)
-  }
+  override def entitySink(implicit userContext: UserContext): EntitySink = specAccess.entitySink
 
-  override def linkSink(implicit userContext: UserContext): LinkSink = {
-    DatasetSpec.checkDatasetAllowsWriteAccess(None, datasetSpec.readOnly)
-    DatasetSpecAccess.safeAccess(DatasetSpec.LinkSinkWrapper(datasetAccess.linkSink, datasetSpec), SafeModeSink, datasetSpec)
-  }
+  override def linkSink(implicit userContext: UserContext): LinkSink = specAccess.linkSink
 }
