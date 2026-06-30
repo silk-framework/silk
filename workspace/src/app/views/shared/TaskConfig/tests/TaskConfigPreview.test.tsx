@@ -4,6 +4,7 @@ import { TaskConfigPreview } from "../TaskConfigPreview";
 import { INPUT_TYPES } from "../../../../constants";
 import { IPluginDetails } from "@ducks/common/typings";
 import { IProjectTask } from "@ducks/shared/typings";
+import { renderWrapper } from "../../../../../../test/integration/TestHelper";
 
 describe("TaskConfigPreview", () => {
     beforeEach(() => {
@@ -59,7 +60,9 @@ describe("TaskConfigPreview", () => {
             type: "object",
         } as IPluginDetails;
 
-        const { container } = render(<TaskConfigPreview taskData={taskData} taskDescription={taskDescription} />);
+        const { container } = renderWrapper(
+            <TaskConfigPreview taskData={taskData} taskDescription={taskDescription} />,
+        );
 
         const copyButtons = container.querySelectorAll('[data-test-id^="task-config-preview-copy-button-"]');
         expect(copyButtons).toHaveLength(1);
