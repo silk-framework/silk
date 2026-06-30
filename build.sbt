@@ -33,11 +33,9 @@ val buildReactExternally = {
 }
 
 // Additional compiler (javac, scalac) parameters
-val compilerParams: (Seq[String], Seq[String]) = if(System.getProperty("java.version").split("\\.").head.toInt >= 21) {
+// Note: keep the bytecode target at 21, because Spark 3.5.x does not support Java 25
+val compilerParams: (Seq[String], Seq[String]) =
   (Seq("--release", "21", "-Xlint"), Seq("-release", "21"))
-} else {
-  (Seq("--release", "17", "-Xlint"), Seq("-release", "17"))
-}
 
 (Global / concurrentRestrictions) += Tags.limit(Tags.Test, 1)
 
@@ -92,6 +90,18 @@ lazy val commonSettings = Seq(
   dependencyOverrides += "tools.jackson.core" % "jackson-core" % "3.1.1",
   dependencyOverrides += "tools.jackson.core" % "jackson-databind" % "3.1.1",
 
+  // Fix netty vulnerabilities: CVE-2026-42583 (netty-codec), CVE-2026-42579 (netty-codec-dns),
+  // CVE-2026-45674 and CVE-2026-47691 (netty-resolver-dns)
+  dependencyOverrides += "io.netty" % "netty-codec" % "4.2.15.Final",
+  dependencyOverrides += "io.netty" % "netty-codec-dns" % "4.2.15.Final",
+  dependencyOverrides += "io.netty" % "netty-resolver-dns" % "4.2.15.Final",
+
+  // Fix CVE-2026-43869 in Apache Thrift (transitive from Spark/Hive thriftserver)
+  dependencyOverrides += "org.apache.thrift" % "libthrift" % "0.23.0",
+
+  // Fix CVE-2026-5598 in Bouncy Castle (private key leakage via non-constant time comparisons)
+  dependencyOverrides += "org.bouncycastle" % "bcprov-jdk18on" % "1.84",
+
   scalacOptions ++= compilerParams._2,
   javacOptions ++= compilerParams._1,
 
@@ -133,7 +143,7 @@ lazy val rules = (project in file("silk-rules"))
   .settings(commonSettings *)
   .settings(
     name := "Silk Rules",
-    libraryDependencies += "org.postgresql" % "postgresql" % "42.7.10",
+    libraryDependencies += "org.postgresql" % "postgresql" % "42.7.11",
     libraryDependencies += "org.apache.jena" % "jena-core" % "5.6.0" exclude("org.slf4j", "slf4j-log4j12"),
     libraryDependencies += "org.apache.jena" % "jena-arq" % "5.6.0" exclude("org.slf4j", "slf4j-log4j12")
   )
@@ -151,14 +161,30 @@ lazy val workspace = (project in file("silk-workspace"))
 // Plugins
 //////////////////////////////////////////////////////////////////////////////
 
+lazy val pluginsTemplatingJinja = (project in file("silk-plugins/silk-plugins-templating-jinja"))
+  .dependsOn(rules % "compile->compile;test->test")
+  .settings(commonSettings *)
+  .settings(
+    name := "Silk Plugins Templating Jinja",
+    libraryDependencies += "com.hubspot.jinjava" % "jinjava" % "2.8.3"
+  )
+
+lazy val pluginsTemplatingVelocity = (project in file("silk-plugins/silk-plugins-templating-velocity"))
+  .dependsOn(rules % "compile->compile;test->test")
+  .settings(commonSettings *)
+  .settings(
+    name := "Silk Plugins Templating Velocity",
+    libraryDependencies += "org.apache.velocity" % "velocity-engine-core" % "2.4.1"
+  )
+
 lazy val pluginsRdf = (project in file("silk-plugins/silk-plugins-rdf"))
-  .dependsOn(rules, workspace % "test->test;compile->compile", core % "test->test;compile->compile", pluginsCsv % "test->compile")
+  .dependsOn(rules, workspace % "test->test;compile->compile", core % "test->test;compile->compile", pluginsCsv % "test->compile",
+             pluginsTemplatingJinja % "test->compile", pluginsTemplatingVelocity % "test->compile")
   .enablePlugins(JmhPlugin)
   .settings(commonSettings *)
   .settings(
     name := "Silk Plugins RDF",
-    libraryDependencies += "org.apache.jena" % "jena-fuseki-main" % "5.6.0" % "test",
-    libraryDependencies += "org.apache.velocity" % "velocity-engine-core" % "2.4.1"
+    libraryDependencies += "org.apache.jena" % "jena-fuseki-main" % "5.6.0" % "test"
 )
 
 lazy val pluginsCsv = (project in file("silk-plugins/silk-plugins-csv"))
@@ -227,8 +253,8 @@ lazy val persistentCaching = (project in file("silk-plugins/silk-persistent-cach
 
 // Aggregate all plugins
 lazy val plugins = (project in file("silk-plugins"))
-  .dependsOn(pluginsRdf, pluginsCsv, pluginsXml, pluginsJson, pluginsAsian, serializationJson, persistentCaching)
-  .aggregate(pluginsRdf, pluginsCsv, pluginsXml, pluginsJson, pluginsAsian, serializationJson, persistentCaching)
+  .dependsOn(pluginsRdf, pluginsCsv, pluginsXml, pluginsJson, pluginsAsian, serializationJson, persistentCaching, pluginsTemplatingJinja, pluginsTemplatingVelocity)
+  .aggregate(pluginsRdf, pluginsCsv, pluginsXml, pluginsJson, pluginsAsian, serializationJson, persistentCaching, pluginsTemplatingJinja, pluginsTemplatingVelocity)
   .settings(commonSettings *)
   .settings(
     name := "Silk Plugins"
@@ -370,7 +396,7 @@ lazy val workbenchCore = (project in file("silk-workbench/silk-workbench-core"))
 
 lazy val workbenchWorkspace = (project in file("silk-workbench/silk-workbench-workspace"))
   .enablePlugins(PlayScala)
-  .dependsOn(workbenchCore % "compile->compile;test->test", pluginsRdf, pluginsCsv % "test->compile", pluginsXml % "test->compile")
+  .dependsOn(workbenchCore % "compile->compile;test->test", pluginsRdf, pluginsCsv % "test->compile", pluginsXml % "test->compile", pluginsTemplatingJinja % "test->compile")
   .aggregate(workbenchCore)
   .settings(commonSettings *)
   .settings(

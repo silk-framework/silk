@@ -317,6 +317,16 @@ abstract class JsonSourceTest extends AnyFlatSpec with Matchers with TestPluginC
     entities2.head.values.head mustBe entities3.map(_.uri.uri)
   }
 
+  it should "generate position-based default URIs" in {
+    val source = createSource(resources.get("exampleArrays.json"), "", "")
+    val entities = source.retrieve(EntitySchema("data", typedPaths = IndexedSeq.empty)).entities.toList
+
+    entities.map(_.uri.toString) mustBe Seq(
+      "urn:instance:exampleArraysjson#L3C5",
+      "urn:instance:exampleArraysjson#L4C5"
+    )
+  }
+
   it should "not generate any entities for this object path" in {
     val source = createSource(resources.get("objectPathTest.json"), "", "")
     val entities = source.retrieve(EntitySchema("pathA/pathA", typedPaths = IndexedSeq(UntypedPath("#text").asStringTypedPath))).entities.toList
