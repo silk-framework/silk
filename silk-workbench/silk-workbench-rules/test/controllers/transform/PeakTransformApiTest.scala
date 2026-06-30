@@ -8,7 +8,7 @@ import org.silkframework.rule.plugins.transformer.combine.ConcatTransformer
 import org.silkframework.rule.plugins.transformer.date.DateToTimestampTransformer
 import org.silkframework.rule.plugins.transformer.normalize.LowerCaseTransformer
 import org.silkframework.rule.plugins.transformer.tokenization.CamelCaseTokenizer
-import org.silkframework.rule.{ComplexMapping, PatternUriMapping, TaskContext, TransformRule, TransformRuleExecution}
+import org.silkframework.rule.{ComplexMapping, MappingTarget, PatternUriMapping, TaskContext, TransformRule, TransformRuleExecution}
 import org.silkframework.serialization.json.JsonSerializers.TransformRuleJsonFormat
 import org.silkframework.serialization.json.{JsonHelpers, JsonSerialization}
 import org.silkframework.util.Uri
@@ -102,10 +102,47 @@ class PeakTransformApiTest extends AnyFlatSpec with SingleProjectWorkspaceProvid
     hasMore mustBe false
     // Errored entities produce empty output but are still surfaced in the preview (and counted).
     total mustBe 2
-    peakResult mustBe Seq(
-      PeakResult(Seq(Seq("2015"), Seq("no date")), Seq()),
-      PeakResult(Seq(Seq("123"), Seq("also no date")), Seq())
+    peakResult.map(_.sourceValues) mustBe Seq(
+      Seq(Seq("2015"), Seq("no date")),
+      Seq(Seq("123"), Seq("also no date"))
     )
+    // Each errored row keeps its (empty) output and is individually flagged with its transform error.
+    peakResult.foreach { r =>
+      r.transformedValues mustBe empty
+      r.error mustBe defined
+      r.error.get must include ("Invalid date format")
+    }
+  }
+
+  it should "keep and flag a row whose values violate a single-cardinality target" in {
+    val rule = singleCardinalityRule
+    val entities = Iterator(
+      entity(Seq("v1", "v2", "v3"), Seq()),  // multi-valued -> violates the isAttribute target
+      entity(Seq("only"), Seq()),            // single value -> valid
+      entity(Seq(), Seq())                   // no value -> valid
+    )
+    val (tries, errors, errorMsg, peakResult, _, total) =
+      PeakTransformApi.collectTransformationExamples(rule, entities, limit = 10, computeTotal = true)
+    tries mustBe 3
+    errors mustBe 1
+    errorMsg must include ("MultipleValuesException")
+    total mustBe 3
+    // The violating record stays in the result set, grouped, with its computed values kept and flagged.
+    val flagged = peakResult.head
+    flagged.sourceValues mustBe Seq(Seq("v1", "v2", "v3"), Seq())
+    flagged.transformedValues mustBe Seq("v1", "v2", "v3")
+    flagged.error mustBe defined
+    flagged.error.get must include ("MultipleValuesException")
+    // The valid records are present and carry no error.
+    peakResult(1) mustBe PeakResult(Seq(Seq("only"), Seq()), Seq("only"))
+    peakResult(2) mustBe PeakResult(Seq(Seq(), Seq()), Seq())
+  }
+
+  private def singleCardinalityRule: TransformRuleExecution = {
+    ComplexMapping(
+      operator = PathInput("p", UntypedPath("a")),
+      target = Some(MappingTarget(Uri("https://schema.org/text"), isAttribute = true))
+    ).execution(TaskContext.empty)
   }
 
   it should "drain the iterator after the page is filled when computeTotal is true" in {
@@ -289,6 +326,41 @@ class PeakTransformApiTest extends AnyFlatSpec with SingleProjectWorkspaceProvid
     peakResult.total mustBe Some(2)
     peakResult.totalIsExact mustBe Some(true)
     peakResult.nextOffset mustBe None
+  }
+
+  it should "keep and flag preview rows whose values violate a single-cardinality target" in {
+    // Person 1 holds three values for Properties/Property/Value; mapping them onto a single-value target
+    // must not drop the record - it stays, grouped, flagged with the validation error, and the overall
+    // status reports "with exceptions".
+    val peakResult = peakChildRuleRequest(
+      ComplexMapping(
+        id = "text",
+        operator = PathInput("p", UntypedPath.parse("Properties/Property/Value")),
+        target = Some(MappingTarget(Uri("https://schema.org/text"), isAttribute = true))),
+      includeTotal = true)
+    peakResult.status.id mustBe "with exceptions"
+    val results = peakResult.results.getOrElse(Seq.empty)
+    val violating = results.find(_.sourceValues == Seq(Seq("V1", "V2", "V3")))
+    violating mustBe defined
+    violating.get.error mustBe defined
+    violating.get.error.get must include ("MultipleValuesException")
+    // The record without a multi-value is still present and carries no error.
+    val nonViolating = results.find(_.sourceValues == Seq(Seq()))
+    nonViolating mustBe defined
+    nonViolating.get.error mustBe None
+  }
+
+  it should "report no per-row error for a clean single-cardinality mapping" in {
+    // Every record has at most one Name, so the single-value target is never violated.
+    val peakResult = peakChildRuleRequest(
+      ComplexMapping(
+        id = "name",
+        operator = PathInput("p", UntypedPath.parse("Name")),
+        target = Some(MappingTarget(Uri("https://schema.org/name"), isAttribute = true))))
+    peakResult.status.id mustBe "success"
+    val results = peakResult.results.getOrElse(Seq.empty)
+    results must not be empty
+    results.map(_.error).foreach(_ mustBe None)
   }
 
   it should "return results from the API with an object path context" in {

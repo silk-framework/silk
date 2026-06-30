@@ -492,8 +492,11 @@ object PeakTransformApi {
                                     offset: Int = 0,
                                     search: Option[String] = None,
                                     computeTotal: Boolean = false): (Int, Int, String, Seq[PeakResult], Boolean, Int) = {
+    // Use the non-throwing apply so a record whose transformed values fail target validation (e.g. a
+    // multi-valued source mapped onto a single-cardinality target) still surfaces as a row, with the
+    // validation error attached, instead of being silently dropped into the catch (NonFatal) branch.
     val ruleApply: Entity => Value = ruleExecution match {
-      case ve: ValueTransformRuleExecution => ve.apply
+      case ve: ValueTransformRuleExecution => ve.applyKeepingValidationErrors
       case other =>
         throw new IllegalArgumentException(s"Cannot generate a mapping preview for non-value rule '${other.operator.id}'.")
     }
@@ -523,14 +526,17 @@ object PeakTransformApi {
         for(error <- transformResult.errors) {
           errorCounter += 1
           if (errorMessage.isEmpty) {
-            errorMessage = error.error.getClass.getSimpleName + ": " + Option(error.error.getMessage).getOrElse("")
+            errorMessage = formatError(error.error)
           }
         }
+        // Flag the individual row with its first error (if any) so a client can distinguish an empty
+        // target caused by validation failure from one caused by the record simply having no value.
+        val rowError = transformResult.errors.headOption.map(e => formatError(e.error))
         if (matchesSearch(entity.values, transformResult.values, needle)) {
           if (skippedCounter < offset) {
             skippedCounter += 1
           } else if (exampleCounter < limit) {
-            resultBuffer.append(PeakResult(entity.values, transformResult.values))
+            resultBuffer.append(PeakResult(entity.values, transformResult.values, rowError))
             exampleCounter += 1
           } else {
             tailCounter += 1
@@ -540,7 +546,7 @@ object PeakTransformApi {
         case NonFatal(ex) =>
           errorCounter += 1
           if (errorMessage.isEmpty) {
-            errorMessage = ex.getClass.getSimpleName + ": " + Option(ex.getMessage).getOrElse("")
+            errorMessage = formatError(ex)
           }
       }
     }
@@ -550,6 +556,12 @@ object PeakTransformApi {
     val hasMore = if (computeTotal) tailCounter > 0 else exampleEntities.hasNext
     val totalWithinBudget = skippedCounter + exampleCounter + tailCounter
     (tryCounter, errorCounter, errorMessage, resultBuffer.toSeq, hasMore, totalWithinBudget)
+  }
+
+  // Format a throwable as "SimpleClassName: message" - the shape used both for the global first-error
+  // message and for the per-row error flag.
+  private def formatError(error: Throwable): String = {
+    error.getClass.getSimpleName + ": " + Option(error.getMessage).getOrElse("")
   }
 
   // Case-insensitive substring match against any source value or transformed value.
@@ -573,7 +585,10 @@ case class PeakResults(sourcePaths: Option[Seq[Seq[String]]],
 
 case class PeakStatus(id: String, msg: String)
 
-case class PeakResult(sourceValues: Seq[Seq[String]], transformedValues: Seq[String])
+// `error`, when set, flags a row whose transformed values failed target validation (or otherwise
+// errored). It is an optional field: a JSON Option serializes as omitted/null, so existing clients
+// that don't know about it are unaffected.
+case class PeakResult(sourceValues: Seq[Seq[String]], transformedValues: Seq[String], error: Option[String] = None)
 
 object PeakResults {
   implicit val peakStatusWrites: Format[PeakStatus] = Json.format[PeakStatus]
