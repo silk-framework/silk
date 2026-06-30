@@ -5,7 +5,8 @@ import org.silkframework.entity._
 import org.silkframework.execution.typed.SparqlUpdateEntitySchema
 import org.silkframework.plugins.dataset.rdf.tasks.templating._
 import org.silkframework.plugins.dataset.rdf.datasets.SparqlDataset
-import org.silkframework.runtime.plugin.annotations.{Param, Plugin, PluginReference}
+import org.silkframework.runtime.plugin.PluginContext
+import org.silkframework.runtime.plugin.annotations.{Action, Param, Plugin, PluginReference}
 
 import org.silkframework.runtime.plugin.types.SparqlCodeParameter
 import org.silkframework.runtime.templating.{TemplateEngineAutocompletionProvider, TemplateEngines}
@@ -35,7 +36,7 @@ case class SparqlUpdateCustomTask(
     value = "The SPARQL UPDATE template for constructing SPARQL UPDATE queries for every entity from the input." +
       " The possible values for the template engine are `Jinja` (default), `Simple` and `Velocity Engine`." +
       " See the general documentation of this plugin for further details on the features of each template engine.",
-    example = "INSERT DATA { {{ row.uri(\"PROP_FROM_ENTITY_SCHEMA1\") }} rdf:label {{ row.plainLiteral(\"PROP_FROM_ENTITY_SCHEMA2\") }} } ;"
+    example = "INSERT DATA { <{{ input.entity.subject }}> rdfs:label \"{{ input.entity.label }}\" } ;"
   )
   sparqlUpdateTemplate: SparqlCodeParameter,
   @Param(label = "Batch size", value = "How many entities should be handled in a single update request.")
@@ -50,24 +51,39 @@ case class SparqlUpdateCustomTask(
   assert(batchSize >= 1, "Batch size must be greater zero!")
 
   val compiledTemplate: SparqlTemplate = SparqlTemplate.create(templatingMode, sparqlUpdateTemplate.str)
-  compiledTemplate.validateUpdateQuery(batchSize)
+  for(variables <- sparqlUpdateTemplate.variables) {
+    compiledTemplate.validate(variables, Some(batchSize))
+  }
 
-  def isStaticTemplate: Boolean = compiledTemplate.isStaticTemplate
+  def requiresInput: Boolean = compiledTemplate.requiresInput
 
   def expectedInputSchema: EntitySchema = compiledTemplate.inputSchema
 
   override def inputPorts: InputPorts = {
-    if(isStaticTemplate) {
-      InputPorts.NoInputPorts
-    } else {
+    if(requiresInput) {
       FixedNumberOfInputs(Seq(FixedSchemaPort(expectedInputSchema)))
+    } else {
+      InputPorts.NoInputPorts
     }
   }
 
   override def outputPort: Option[Port] = Some(FixedSchemaPort(SparqlUpdateEntitySchema.schema))
+
+  @Action(
+    label = "Show prefixes",
+    description = "Shows the available namespace prefixes as a SPARQL header that can be copied into the query."
+  )
+  def showPrefixes(implicit pluginContext: PluginContext): String = {
+    val prefixes = pluginContext.prefixes
+    if (prefixes.prefixMap.isEmpty) {
+      "No prefixes are defined."
+    } else {
+      "```sparql\n" + prefixes.toSparql + "\n```"
+    }
+  }
 }
 
 object SparqlUpdateCustomTask {
-  private final val defaultBatchSize = 1
+  final val defaultBatchSize = 1
   final val pluginId = "sparqlUpdateOperator"
 }

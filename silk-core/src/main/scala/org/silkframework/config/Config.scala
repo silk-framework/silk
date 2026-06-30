@@ -42,7 +42,7 @@ class DefaultConfig private() extends Config {
         case Some(configDir) => s"$configDir/dataintegration.conf"
         case None => sys.env.get("CMEM_HOME") match {
           case Some(cmemHome) => s"$cmemHome/dataintegration/config/dataintegration.conf"
-          case None => sys.props.get("user.home").map(home => s"$home/.cmem/dataintegration/config/dataintegration.conf").getOrElse("")
+          case None => sys.props.get("user.home").map(home => s"$home/.di/config/dataintegration.conf").getOrElse("")
         }
       }
 

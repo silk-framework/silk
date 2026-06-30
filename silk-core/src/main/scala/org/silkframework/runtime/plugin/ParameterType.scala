@@ -752,7 +752,7 @@ object StringParameterType {
   private object SparqlCodeParameterType extends CodeParameterType[SparqlCodeParameter] {
     override def codeMode: String = "sparql"
 
-    override def fromString(str: String)(implicit context: PluginContext): SparqlCodeParameter = SparqlCodeParameter(str)
+    override def fromString(str: String)(implicit context: PluginContext): SparqlCodeParameter = SparqlCodeParameter(str, Some(context.templateVariables))
   }
 
   private object SqlCodeParameterType extends CodeParameterType[SqlCodeParameter] {

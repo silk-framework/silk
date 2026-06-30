@@ -11,7 +11,7 @@ _execute_ these queries, we need to connect this task from an input into an outp
 
 ## Templating
 
-The SPARQL Update query plugin uses a template in order to construct and output SPARQL update queries.
+The `sparqlUpdateOperator` plugin uses a **template** in order to construct and output SPARQL update queries.
 Three template engines are supported: `Jinja` (the default), `Simple`, and
 [`Velocity Engine`](https://velocity.apache.org/engine/2.4.1/user-guide.html).
 The `Simple` and `Velocity Engine` modes are deprecated.
@@ -22,23 +22,49 @@ The `Simple` and `Velocity Engine` modes are deprecated.
 `{% %}` for control flow statements such as conditionals.
 
 ```
-DELETE DATA { {{ row.uri("PROP_FROM_ENTITY_SCHEMA1") }} rdf:label {{ row.plainLiteral("PROP_FROM_ENTITY_SCHEMA2") }} } ;
-{% if row.exists("PROP_FROM_ENTITY_SCHEMA1") %}
-  INSERT DATA { {{ row.uri("PROP_FROM_ENTITY_SCHEMA1") }} rdf:label {{ row.plainLiteral("PROP_FROM_ENTITY_SCHEMA3") }} } ;
+DELETE DATA { <{{ input.entity.subject | validate_uri }}> rdfs:label "{{ input.entity.oldLabel | escape_literal }}" } ;
+{% if input.entity.subject %}
+  INSERT DATA { <{{ input.entity.subject | validate_uri }}> rdfs:label "{{ input.entity.newLabel | escape_literal }}" } ;
 {% endif %}
 ```
 
-Input values are accessible via methods on the `row` variable:
+The following variables are available:
 
-- `row.uri(inputPath)`: Renders an input value as **URI**. Throws an exception if the value isn't a valid URI.
-- `row.plainLiteral(inputPath)`: Renders an input value as **plain literal**, i.e. it escapes problematic characters.
-- `row.rawUnsafe(inputPath)`: Renders an input value as is, i.e. **no escaping** is done. This should **only** be used if the input values can be trusted.
-- `row.exists(inputPath)`: Returns `true` if a value for the input path **exists**, else `false`.
+- `input.entity.<property>`: the value of the given property on the current input entity.
+- `input.config.<param>`: a parameter of the connected input task.
+- `output.config.<param>`: a parameter of the connected output task.
+- `project.<key>`: a project-scoped template variable.
+- `global.<key>`: a global template variable.
 
-The methods `uri`, `plainLiteral` and `rawUnsafe` throw an exception if no input value is available for the given input path.
+Entity property names must be valid Jinja identifiers (`[a-zA-Z_][a-zA-Z0-9_]*`); bracket-subscript access such as
+`input.entity["urn:prop:label"]` is not supported.
 
-In addition to input values, properties of the input and output tasks can be accessed via the `inputProperties` and
-`outputProperties` objects in the same way as the `row` object. For example with `{{ inputProperties.uri("graph") }}`.
+Values are inserted verbatim by default, so URI brackets (`<...>`) and quotation marks around literals must be
+written in the template. The following filters are provided to render values safely:
+
+- `validate_uri`: validates that the value is a valid absolute IRI and returns it unchanged. Throws a validation
+  error otherwise. Wrap the output in `<...>` in the template.
+- `escape_literal`: escapes backslashes, quotes, newlines, carriage returns and tabs so the value can be used
+  inside a short-form SPARQL string literal (`"..."` or `'...'`). No enclosing quotes are added.
+- `escape_multiline_literal`: escapes backslashes and breaks any run of three or more consecutive single or double
+  quotes. Use for values that are wrapped in triple-quoted SPARQL literals (`"""..."""` or `'''...'''`).
+
+All transformer plugins are also available as Jinja filters under their plugin id (for example `lowerCase`,
+`trim`, `urlEncode`).
+
+### Validation
+
+At task creation, the template is checked against the available template variables. What is checked depends
+on the selected templating mode:
+
+- `Jinja`:
+    - Every `project.<...>` or `global.<...>` reference must resolve to a known variable, matched on the full
+      scoped name (so e.g. `project.metaData.label` is looked up at that exact scope).
+    - Every `input.<...>` or `output.<...>` reference must use `config` or `entity` as its second segment.
+    - The template is not rendered and the resulting SPARQL is not parsed.
+- `Simple` / `Velocity Engine`:
+    - The template is rendered once with placeholder values and the result must parse as a SPARQL Update query.
+    - Templates that use `rawUnsafe` skip this parse check.
 
 ### Example of the `Simple` mode (deprecated)
 

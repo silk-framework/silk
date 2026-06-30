@@ -49,6 +49,7 @@ object TransformFilters {
           s"Transformer '${transformerPlugin.id}' requires a task context and cannot be used in a template filter.")
       }
 
+
       // Return result
       IterableTemplateValues.fromValues(transformedValues)
     }
