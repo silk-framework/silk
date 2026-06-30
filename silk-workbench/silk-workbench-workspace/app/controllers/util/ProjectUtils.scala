@@ -64,10 +64,20 @@ object ProjectUtils {
     * property mappings - which the sink writes as `linkedEntity -> property -> root` - are still included
     * in the record. This effectively assembles complete records (a root subject together with all of its
     * nested, linked entities) while leaving out everything not connected to the seeds.
+    *
+    * @param roots The set of all root subjects (one per input record). Any root that is not itself a seed
+    *              acts as a hard boundary: the walk neither crosses into it nor emits the statement linking
+    *              to it. This keeps records that merely share a referenced entity (e.g. two books with the
+    *              same author or publisher) from bleeding into each other. Defaults to empty, in which case
+    *              no boundary is applied and the full connected component is returned.
     */
-  def connectedSubgraph(model: Model, seeds: Iterable[String]): Model = {
+  def connectedSubgraph(model: Model, seeds: Iterable[String], roots: Set[String] = Set.empty): Model = {
     val result = ModelFactory.createDefaultModel()
     result.setNsPrefixes(model)
+    val seedSet = seeds.toSet
+    // A foreign root is a root subject of some other record. Stopping at it (without emitting the linking
+    // statement) prevents shared referenced entities from dragging neighbouring records into the result.
+    def isForeignRoot(uri: String): Boolean = roots.contains(uri) && !seedSet.contains(uri)
     val visited = scala.collection.mutable.Set.empty[String]
     val queue = scala.collection.mutable.Queue.empty[String]
     queue ++= seeds
@@ -79,20 +89,30 @@ object ProjectUtils {
         val outgoing = model.listStatements(resource, null.asInstanceOf[Property], null.asInstanceOf[RDFNode])
         while (outgoing.hasNext) {
           val statement = outgoing.next()
-          result.add(statement)
           val obj = statement.getObject
           if (obj.isURIResource) {
-            queue.enqueue(obj.asResource().getURI)
+            val objUri = obj.asResource().getURI
+            if (!isForeignRoot(objUri)) {
+              result.add(statement)
+              queue.enqueue(objUri)
+            }
+          } else {
+            result.add(statement)
           }
         }
         // Incoming statements: follow backward/inverse links to the linking subject.
         val incoming = model.listStatements(null.asInstanceOf[Resource], null.asInstanceOf[Property], resource)
         while (incoming.hasNext) {
           val statement = incoming.next()
-          result.add(statement)
           val subject = statement.getSubject
           if (subject.isURIResource) {
-            queue.enqueue(subject.getURI)
+            val subjUri = subject.getURI
+            if (!isForeignRoot(subjUri)) {
+              result.add(statement)
+              queue.enqueue(subjUri)
+            }
+          } else {
+            result.add(statement)
           }
         }
       }

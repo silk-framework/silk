@@ -60,4 +60,44 @@ class ConnectedSubgraphTest extends AnyFlatSpec with Matchers {
     result.size mustBe 1
     result.contains(result.getResource(otherPerson), result.getProperty(label), "Bob") mustBe false
   }
+
+  it should "not bleed into another record that shares a referenced entity when roots are given as boundaries" in {
+    val book1 = "http://example.org/book/1"
+    val book2 = "http://example.org/book/2"
+    val author = "http://example.org/person/shared"
+    val name = "http://example.org/name"
+    val authoredBy = "http://example.org/author"
+
+    val model = ModelFactory.createDefaultModel()
+    literal(model, book1, name, "1984")
+    stmt(model, book1, authoredBy, author)      // book1 -> author -> shared
+    literal(model, book2, name, "Animal Farm")
+    stmt(model, book2, authoredBy, author)      // book2 -> author -> shared (same author)
+    literal(model, author, label, "Orwell")
+
+    val result = ProjectUtils.connectedSubgraph(model, Seq(book1), roots = Set(book1, book2))
+
+    // book1's own triples plus the shared author are kept ...
+    result.contains(result.getResource(book1), result.getProperty(name), "1984") mustBe true
+    result.contains(result.getResource(book1), result.getProperty(authoredBy), result.getResource(author)) mustBe true
+    result.contains(result.getResource(author), result.getProperty(label), "Orwell") mustBe true
+    // ... but nothing from book2 bleeds in, not even the dangling link to the shared author.
+    result.contains(result.getResource(book2), result.getProperty(authoredBy), result.getResource(author)) mustBe false
+    result.contains(result.getResource(book2), result.getProperty(name), "Animal Farm") mustBe false
+  }
+
+  it should "still return the full connected component when no root boundaries are given" in {
+    val book1 = "http://example.org/book/1"
+    val book2 = "http://example.org/book/2"
+    val author = "http://example.org/person/shared"
+    val authoredBy = "http://example.org/author"
+
+    val model = ModelFactory.createDefaultModel()
+    stmt(model, book1, authoredBy, author)
+    stmt(model, book2, authoredBy, author)
+
+    // Without roots the legacy behaviour is preserved: the shared author still links the two books.
+    val result = ProjectUtils.connectedSubgraph(model, Seq(book1))
+    result.contains(result.getResource(book2), result.getProperty(authoredBy), result.getResource(author)) mustBe true
+  }
 }

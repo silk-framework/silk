@@ -1173,9 +1173,11 @@ class TransformTaskApi @Inject() () extends InjectedController with UserContextA
     Activity(transform).startBlocking()
 
     // A page = the complete output of the root records [offset, offset + limit): each root subject
-    // plus all entities reachable from it (its nested, linked children).
+    // plus all entities reachable from it (its nested, linked children). Passing all root subjects as
+    // boundaries keeps records that merely share a referenced entity (same author, publisher, ...) from
+    // bleeding into the page through the backward/inverse link traversal.
     val pageRootSubjects = recordingSink.rootSubjects.drop(offset).take(limit)
-    val pageModel = connectedSubgraph(model, pageRootSubjects)
+    val pageModel = connectedSubgraph(model, pageRootSubjects, recordingSink.rootSubjects.toSet)
     // Add the project prefixes so the Turtle output uses readable @prefix declarations.
     pageModel.setNsPrefixes(project.config.prefixes.prefixMap.asJava)
     // Resolve the Accept header to a supported RDF content type, ignoring q-params and wildcards.
