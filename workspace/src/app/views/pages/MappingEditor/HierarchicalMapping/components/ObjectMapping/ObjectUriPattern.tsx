@@ -2,7 +2,8 @@ import React from "react";
 import { PropertyValuePair, PropertyValue, PropertyName, Label, Spacing } from "@eccenca/gui-elements";
 import { MAPPING_RULE_TYPE_COMPLEX_URI, MAPPING_RULE_TYPE_URI } from "../../utils/constants";
 import getPathsRecursive from "../../utils/getUriPaths";
-import getUriOperatorsRecursive from "../../utils/getUriOperators";
+import buildRuleFormulaStats from "../../utils/buildRuleFormulaStats";
+import RuleFormulaStatistics from "../RuleFormulaStatistics";
 import ComplexDeleteButton from "../../elements/buttons/ComplexeDeleteButton";
 import { IconButton, NotAvailable } from "@eccenca/gui-elements";
 import { useGetRuleOperatorPlugins } from "../../../../../../hooks/useGetOperatorPlugins";
@@ -30,18 +31,21 @@ const ObjectUriPattern = ({ uriRule, onRemoveUriRule, openMappingEditor, showLab
         tooltipText = "Convert URI pattern to URI formula";
     } else if (type === MAPPING_RULE_TYPE_COMPLEX_URI) {
         const paths = getPathsRecursive(uriRule.operator);
-        const operators = getUriOperatorsRecursive(uriRule.operator);
+        const stats = buildRuleFormulaStats({
+            paths,
+            operator: uriRule.operator,
+            getPluginDetailLabel,
+        });
 
         tooltipText = "Edit URI formula";
         uriPatternLabel = "URI formula";
 
         uriPattern = (
-            <span>
-                URI uses {paths.length} value {paths.length > 1 ? "paths" : "path"}: <code>{paths.join(", ")}</code>
-                <br />
-                and {operators.length}&nbsp; operator {operators.length > 1 ? "functions" : "function"}:{" "}
-                <code>{operators.map(getPluginDetailLabel).join(", ")}</code>.
-            </span>
+            <RuleFormulaStatistics
+                introLabel="URI uses"
+                renderPaths={() => <code>{paths.join(", ")}</code>}
+                {...stats}
+            />
         );
     } else {
         removeButton = <></>;
