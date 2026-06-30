@@ -30,14 +30,14 @@ case class WorkflowWithPayloadExecutorFactory(configuration: MultilineStringPara
                                               configurationType: String = "application/json",
                                               @Param(label = "", value = "", visibleInDialog = false)
                                               optionalPrimaryResourceManager: OptionalPrimaryResourceManagerParameter = OptionalPrimaryResourceManagerParameter(None),
-                                              @Param(label = "Workflow variables", value = "Variables for this workflow execution.", visibleInDialog = false)
-                                              workflowVariables: TemplateVariablesParameter = TemplateVariablesParameter.empty)
+                                              @Param(label = "Execution variables", value = "Variables for this workflow execution.", visibleInDialog = false)
+                                              executionVariables: TemplateVariablesParameter = TemplateVariablesParameter.empty)
   extends TaskActivityFactory[Workflow, WorkflowWithPayloadExecutor] {
 
   override def isSingleton: Boolean = false
 
   def apply(task: ProjectTask[Workflow]): Activity[WorkflowOutput] = {
-    val allVars = WorkflowExecutor.buildExecutionVariables(task.variables, workflowVariables.variables)
+    val allVars = WorkflowExecutor.buildExecutionVariables(task.variables, executionVariables.variables)
     new WorkflowWithPayloadExecutor(task, WorkflowWithPayloadConfiguration(configuration.str, configurationType, optionalPrimaryResourceManager.manager, allVars))
   }
 }

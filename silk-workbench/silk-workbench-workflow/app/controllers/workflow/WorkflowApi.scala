@@ -83,14 +83,14 @@ class WorkflowApi @Inject() () extends InjectedController with UserContextAction
   def executeWorkflow(projectName: String, taskName: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     val project = fetchProject(projectName)
     val workflow = project.task[Workflow](taskName)
-    val workflowVars = parseWorkflowVariablesFromRequest
+    val executionVars = parseExecutionVariablesFromRequest
     val activity = workflow.activity[LocalWorkflowExecutorGeneratingProvenance]
     if (activity.control.status().isRunning) {
       PreconditionFailed
     } else {
-      if(workflowVars.variables.nonEmpty) {
+      if(executionVars.variables.nonEmpty) {
         activity.start(ParameterValues(Map(
-          "workflowVariables" -> ParameterObjectValue(Left(TemplateVariablesParameter(workflowVars)))
+          "executionVariables" -> ParameterObjectValue(Left(TemplateVariablesParameter(executionVars)))
         )))
       } else {
         activity.control.start()
@@ -311,9 +311,9 @@ class WorkflowApi @Inject() () extends InjectedController with UserContextAction
 
   private def workflowParameterValues(implicit request: Request[AnyContent]): ParameterValues = {
     val configParams = ParameterValues.fromStringMap(workflowConfiguration)
-    val workflowVars = parseWorkflowVariablesFromRequest
-    if(workflowVars.variables.nonEmpty) {
-      ParameterValues(configParams.values + ("workflowVariables" -> ParameterObjectValue(Left(TemplateVariablesParameter(workflowVars)))))
+    val executionVars = parseExecutionVariablesFromRequest
+    if(executionVars.variables.nonEmpty) {
+      ParameterValues(configParams.values + ("executionVariables" -> ParameterObjectValue(Left(TemplateVariablesParameter(executionVars)))))
     } else {
       configParams
     }
@@ -332,12 +332,12 @@ class WorkflowApi @Inject() () extends InjectedController with UserContextAction
 
   /**
     * Parses execution variables from the request.
-    * Workflow variables can be provided as a JSON body with a "workflowVariables" key
+    * Execution variables can be provided as a JSON body with an "executionVariables" key
     * containing a simple name-value map.
     */
-  private def parseWorkflowVariablesFromRequest(implicit request: Request[AnyContent]): TemplateVariables = {
+  private def parseExecutionVariablesFromRequest(implicit request: Request[AnyContent]): TemplateVariables = {
     val fromBody = request.body.asJson.flatMap { json =>
-      (json \ "workflowVariables").asOpt[Map[String, String]]
+      (json \ "executionVariables").asOpt[Map[String, String]]
     }.getOrElse(Map.empty)
 
     if(fromBody.nonEmpty) {

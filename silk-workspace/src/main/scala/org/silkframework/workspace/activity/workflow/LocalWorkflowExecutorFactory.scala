@@ -15,12 +15,12 @@ import org.silkframework.workspace.activity.TaskActivityFactory
   categories = Array("Workflow"),
   description = "Executes the workflow locally."
 )
-case class LocalWorkflowExecutorFactory(@Param(label = "Workflow variables", value = "Variables for this workflow execution.", visibleInDialog = false)
-                                        workflowVariables: TemplateVariablesParameter = TemplateVariablesParameter.empty)
+case class LocalWorkflowExecutorFactory(@Param(label = "Execution variables", value = "Variables for this workflow execution.", visibleInDialog = false)
+                                        executionVariables: TemplateVariablesParameter = TemplateVariablesParameter.empty)
   extends TaskActivityFactory[Workflow, LocalWorkflowExecutorGeneratingProvenance] {
 
   override def apply(task: ProjectTask[Workflow]): Activity[WorkflowExecutionReportWithProvenance] = {
-    val allVars = WorkflowExecutor.buildExecutionVariables(task.variables, workflowVariables.variables)
+    val allVars = WorkflowExecutor.buildExecutionVariables(task.variables, executionVariables.variables)
     LocalWorkflowExecutorGeneratingProvenance(task, workflowVariables = allVars)
   }
 }
