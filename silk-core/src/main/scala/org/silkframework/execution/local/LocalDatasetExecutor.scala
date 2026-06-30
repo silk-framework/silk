@@ -541,5 +541,9 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
   }
 }
 
-// To be used in cases when no specific LocalDatasetExecutor has been implemented yet for a particular dataset type.
-class GenericLocalDatasetExecutor extends LocalDatasetExecutor[Dataset]
+// Catch-all for dataset types that have no specific executor. It cannot provide data access: every dataset
+// that is actually read or written needs its own executor overriding `access`.
+class GenericLocalDatasetExecutor extends LocalDatasetExecutor[Dataset] {
+  override def access(task: Task[DatasetSpec[Dataset]], execution: LocalExecution): DatasetAccess =
+    throw new ValidationException(s"Dataset '${task.id}' of type ${task.data.plugin.pluginSpec.label} has no executor providing data access.")
+}
