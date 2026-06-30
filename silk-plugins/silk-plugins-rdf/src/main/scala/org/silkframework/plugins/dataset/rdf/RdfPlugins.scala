@@ -11,30 +11,32 @@ class RdfPlugins extends PluginModule {
 
   override def pluginClasses: Seq[Class[_ <: AnyPlugin]] =
     Seq(
+      // Datasets with their executors
       classOf[RdfFileDataset],
+      classOf[RdfFileDatasetExecutor],
       classOf[SparqlDataset],
+      classOf[SparqlDatasetExecutor],
       classOf[AlignmentDataset],
+      classOf[AlignmentDatasetExecutor],
       classOf[InMemoryDataset],
+      classOf[InMemoryDatasetExecutor],
+      // Executors whose dataset plugin is not registered (programmatic / serialization-only)
+      classOf[RdfInMemoryDatasetExecutor],
+      classOf[JenaModelDatasetExecutor],
+      // SPARQL custom tasks with their executors
+      classOf[SparqlSelectCustomTask],
+      classOf[LocalSparqlSelectExecutor],
+      classOf[SparqlCopyCustomTask],
+      classOf[LocalSparqlCopyExecutor],
+      classOf[SparqlUpdateCustomTask],
+      classOf[LocalSparqlUpdateExecutor],
+      // Vocabulary managers
       classOf[RdfVocabularyManager],
       classOf[RdfFilesVocabularyManager],
       classOf[RdfProjectFilesVocabularyManager],
       classOf[InMemoryVocabularyManager],
-      classOf[SparqlSelectCustomTask],
-      classOf[SparqlCopyCustomTask],
-      classOf[SparqlUpdateCustomTask],
+      // Templating
       classOf[SparqlSimpleTemplateEngine]
-    ) ++ executors
-
-  val executors = Seq(
-    classOf[LocalSparqlSelectExecutor],
-    classOf[LocalSparqlUpdateExecutor],
-    classOf[LocalSparqlCopyExecutor],
-    classOf[InMemoryDatasetExecutor],
-    classOf[SparqlDatasetExecutor],
-    classOf[RdfInMemoryDatasetExecutor],
-    classOf[RdfFileDatasetExecutor],
-    classOf[JenaModelDatasetExecutor],
-    classOf[AlignmentDatasetExecutor]
-  )
+    )
 
 }

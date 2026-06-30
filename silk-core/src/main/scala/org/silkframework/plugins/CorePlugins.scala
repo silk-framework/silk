@@ -37,35 +37,38 @@ class CorePlugins extends PluginModule {
   override def pluginClasses: Seq[Class[_ <: AnyPlugin]] = datasets ++ datasetOperations ++ serializers ++ valueTypes :+ classOf[LocalExecutionManager]
 
   private def datasets: Seq[Class[_ <: AnyPlugin]] =
-    classOf[InternalDataset] ::
-    classOf[InternalDatasetExecutor] ::
-    classOf[LocalInternalDataset] ::
-    classOf[VariableDataset] ::
-    classOf[VariableDatasetExecutor] ::
-    classOf[EmptyDatasetExecutor] ::
-    classOf[BinaryFileDataset] ::
-    classOf[BinaryFileDatasetExecutor] ::
-    Nil
+    Seq(
+      classOf[InternalDataset],
+      classOf[InternalDatasetExecutor],
+      classOf[LocalInternalDataset],
+      classOf[VariableDataset],
+      classOf[VariableDatasetExecutor],
+      classOf[EmptyDatasetExecutor],
+      classOf[BinaryFileDataset],
+      classOf[BinaryFileDatasetExecutor]
+    )
 
-  private def datasetOperations: Seq[Class[_ <: AnyPlugin]] = {
-    classOf[AddProjectFilesOperator] ::
-    classOf[LocalAddProjectFilesOperatorExecutor] ::
-    classOf[DeleteFilesOperator] ::
-    classOf[LocalDeleteFilesOperatorExecutor] ::
-    classOf[GetProjectFilesOperator] ::
-    classOf[LocalGetProjectFilesOperatorExecutor] ::
-    classOf[ClearDatasetOperator] ::
-    classOf[ClearDatasetOperatorLocalExecutor] ::
-    Nil
-  }
+  private def datasetOperations: Seq[Class[_ <: AnyPlugin]] =
+    Seq(
+      classOf[AddProjectFilesOperator],
+      classOf[LocalAddProjectFilesOperatorExecutor],
+      classOf[DeleteFilesOperator],
+      classOf[LocalDeleteFilesOperatorExecutor],
+      classOf[GetProjectFilesOperator],
+      classOf[LocalGetProjectFilesOperatorExecutor],
+      classOf[ClearDatasetOperator],
+      classOf[ClearDatasetOperatorLocalExecutor]
+    )
 
   private def serializers: Seq[Class[_ <: AnyPlugin]] =
-    TaskSpecXmlFormat.getClass ::
-    GenericTaskFormat.getClass ::
-    DatasetSpecFormat.getClass ::
-    DatasetTaskXmlFormat.getClass ::
-    CustomTaskFormat.getClass ::
-    EntitySchemaFormat.getClass :: Nil
+    Seq(
+      TaskSpecXmlFormat.getClass,
+      GenericTaskFormat.getClass,
+      DatasetSpecFormat.getClass,
+      DatasetTaskXmlFormat.getClass,
+      CustomTaskFormat.getClass,
+      EntitySchemaFormat.getClass
+    )
 
   private def valueTypes: Seq[Class[_ <: AnyPlugin]] = {
     ValueType.valueTypeIdMapByClass.keys.toSeq
