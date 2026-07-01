@@ -26,13 +26,14 @@ class LocalInternalDatasetTest extends AnyFlatSpec with Matchers with InMemoryWo
         tempDs mustBe a[InternalDatasetTrait]
         tempDs.asInstanceOf[InternalDatasetTrait]
       }
-      val sink = ds.tripleSink
+      val taskId: String = id.getOrElse("internal")
+      val task = PlainTask(taskId, DatasetSpec(ds))
+      val access = RdfDatasetAccess.forExecution(task, exec)
+      val sink = access.tripleSink
       sink.init()
       sink.writeTriple("s" + id.getOrElse("None"), "b", "o", ValueType.STRING)
       sink.close()
-      val taskId: String = id.getOrElse("internal")
-      val task = PlainTask(taskId, DatasetSpec(ds))
-      RdfDatasetAccess.forExecution(task, exec).sparqlEndpoint.select("SELECT ?s WHERE {?s ?p ?o}").bindings.size mustBe 1
+      access.sparqlEndpoint.select("SELECT ?s WHERE {?s ?p ?o}").bindings.size mustBe 1
     }
   }
 }

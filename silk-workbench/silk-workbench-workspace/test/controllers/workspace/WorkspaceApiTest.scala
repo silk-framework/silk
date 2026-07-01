@@ -11,6 +11,7 @@ import org.scalatestplus.play.PlaySpec
 import org.silkframework.config.MetaData
 import org.silkframework.dataset.DatasetSpec
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
+import org.silkframework.dataset.rdf.RdfDatasetAccess
 import org.silkframework.execution.ExecutorRegistry
 import org.silkframework.entity.StringValueType
 import org.silkframework.plugins.dataset.csv.CsvDataset
@@ -51,7 +52,7 @@ class WorkspaceApiTest extends PlaySpec with IntegrationTestTrait with Matchers 
   "Project clone endpoint" should {
     "re-create tasks when cloning them" in {
       val inMemoryDataset = InMemoryDataset(clearGraphBeforeExecution = false)
-      val tripleSink = inMemoryDataset.tripleSink
+      val tripleSink = RdfDatasetAccess.forExecution(inMemoryDataset).tripleSink
       tripleSink.init()
       tripleSink.writeTriple("a", "http://prop", "c", StringValueType())
       tripleSink.close()

@@ -4,10 +4,8 @@ import java.io.StringReader
 
 import org.apache.jena.rdf.model.ModelFactory
 import org.silkframework.dataset._
-import org.silkframework.dataset.rdf.{RdfDataset, SparqlEndpoint, SparqlParams}
+import org.silkframework.dataset.rdf.{RdfDataset, SparqlEndpoint}
 import org.silkframework.plugins.dataset.rdf.endpoint.JenaModelEndpoint
-import org.silkframework.plugins.dataset.rdf.access.SparqlSink
-import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
 
 /**
@@ -23,12 +21,10 @@ case class RdfInMemoryDataset(data: String,
                               @Param(label = "Clear graph before workflow execution (deprecated)",
                                 value = "This is deprecated, use the 'Clear dataset' operator instead to clear a dataset in a workflow. If set to true this will clear the specified graph before executing a workflow that writes to it.",
                                 advanced = true)
-                              clearBeforeExecution: Boolean = false) extends RdfDataset with TripleSinkDataset {
+                              clearBeforeExecution: Boolean = false) extends RdfDataset {
 
   private lazy val model = ModelFactory.createDefaultModel
   model.read(new StringReader(data), null, format)
 
   val sparqlEndpoint: SparqlEndpoint = new JenaModelEndpoint(model)
-
-  override def tripleSink(implicit userContext: UserContext): TripleSink = new SparqlSink(SparqlParams(), sparqlEndpoint, dropGraphOnClear = clearBeforeExecution)
 }

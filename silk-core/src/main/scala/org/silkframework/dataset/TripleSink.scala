@@ -12,7 +12,3 @@ trait TripleSink extends CloseableDataset {
   def writeTriple(subject: String, predicate: String, obj: String, valueType: ValueType)
                  (implicit userContext: UserContext): Unit
 }
-
-trait TripleSinkDataset extends Dataset {
-  def tripleSink(implicit userContext: UserContext): TripleSink
-}

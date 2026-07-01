@@ -7,7 +7,7 @@ import org.scalatestplus.play.PlaySpec
 import org.silkframework.config.{MetaData, Prefixes}
 import org.silkframework.dataset.DatasetSpec
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
-import org.silkframework.dataset.rdf.SparqlEndpointDatasetParameter
+import org.silkframework.dataset.rdf.{RdfDatasetAccess, SparqlEndpointDatasetParameter}
 import org.silkframework.execution.ExecutorRegistry
 import org.silkframework.entity.StringValueType
 import org.silkframework.plugins.dataset.rdf.datasets.{InMemoryDataset, SparqlDataset}
@@ -487,7 +487,7 @@ class TaskApiTest extends PlaySpec with IntegrationTestTrait with Matchers {
   "task clone endpoint" should {
     "clone a dataset by creating a new instance" in {
       val inMemoryDataset = InMemoryDataset()
-      val tripleSink = inMemoryDataset.tripleSink
+      val tripleSink = RdfDatasetAccess.forExecution(inMemoryDataset).tripleSink
       tripleSink.init()
       tripleSink.writeTriple("a", "http://prop", "c", StringValueType())
       tripleSink.close()

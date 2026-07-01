@@ -5,7 +5,6 @@ import javax.inject.Inject
 import org.silkframework.config.{Config, DefaultConfig}
 import org.silkframework.dataset._
 import org.silkframework.dataset.rdf.RdfDataset
-import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
 import org.silkframework.runtime.plugin.{PluginContext, PluginRegistry}
 
@@ -28,18 +27,9 @@ case class InternalDataset(
   lazy val internalDatasetPluginImpl: Dataset = InternalDataset.byGraph(graphOpt)
 }
 
-trait InternalDatasetTrait extends Dataset with TripleSinkDataset with RdfDataset {
+trait InternalDatasetTrait extends Dataset with RdfDataset {
   def internalDatasetPluginImpl: Dataset
   private[dataset] lazy val _internalDatasetPluginImpl: Dataset = internalDatasetPluginImpl
-
-  override def tripleSink(implicit userContext: UserContext): TripleSink = {
-    _internalDatasetPluginImpl match {
-      case rdfDataset: TripleSinkDataset =>
-        rdfDataset.tripleSink
-      case _ =>
-        throw new RuntimeException("Internal dataset cannot provide a triple sink!")
-    }
-  }
 }
 
 /**

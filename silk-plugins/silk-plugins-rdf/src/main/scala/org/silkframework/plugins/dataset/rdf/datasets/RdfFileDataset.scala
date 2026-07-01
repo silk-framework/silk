@@ -57,7 +57,7 @@ case class RdfFileDataset(
   @Param(value = "A list of entities to be retrieved. If not given, all entities will be retrieved. Multiple entities are separated by whitespace.", advanced = true)
   entityList: MultilineStringParameter = MultilineStringParameter(""),
   @Param(label = "ZIP file regex", value = "If the input resource is a ZIP file, files inside the file are filtered via this regex.", advanced = true)
-  override val zipFileRegex: String = ".*") extends RdfDataset with TripleSinkDataset with TextBulkResourceBasedDataset {
+  override val zipFileRegex: String = ".*") extends RdfDataset with TextBulkResourceBasedDataset {
 
   implicit val userContext: UserContext = UserContext.INTERNAL_USER
 
@@ -219,8 +219,6 @@ case class RdfFileDataset(
 
     private def sparqlSource = new SparqlSource(SparqlParams(graph = graphOpt), endpoint)
   }
-
-  override def tripleSink(implicit userContext: UserContext): TripleSink = new FormattedEntitySink(file, formatter)
 }
 
 object RdfFileDataset {

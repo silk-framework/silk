@@ -2,7 +2,7 @@ package org.silkframework.dataset.rdf
 
 import org.silkframework.config.Task
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
-import org.silkframework.dataset.{DataSource, Dataset, DatasetAccess, DatasetSpec, DatasetSpecAccess, EntitySink, LinkSink}
+import org.silkframework.dataset.{DataSource, Dataset, DatasetAccess, DatasetSpec, DatasetSpecAccess, EntitySink, LinkSink, TripleSink}
 import org.silkframework.execution.{ExecutionType, ExecutorRegistry}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.validation.ValidationException
@@ -18,6 +18,9 @@ import org.silkframework.runtime.validation.ValidationException
 trait RdfDatasetAccess extends DatasetAccess {
 
   def sparqlEndpoint: SparqlEndpoint
+
+  /** An execution-scoped sink for writing triples/quads directly to this RDF dataset. */
+  def tripleSink(implicit userContext: UserContext): TripleSink
 
 }
 
@@ -35,6 +38,14 @@ object RdfDatasetAccess {
     */
   def forExecution[DatasetType <: Dataset](task: Task[DatasetSpec[DatasetType]]): RdfDatasetAccess = {
     forExecutionOption(task).getOrElse(noRdfAccess(task))
+  }
+
+  /**
+    * Resolves the RDF access of a transient (task-less) dataset for the configured (default) execution.
+    * Prefer the task-based overloads when a task is available.
+    */
+  def forExecution(dataset: Dataset): RdfDatasetAccess = {
+    rdfAccessOf(ExecutorRegistry.access(dataset)).getOrElse(noRdfAccess(dataset))
   }
 
   /**
@@ -66,6 +77,10 @@ object RdfDatasetAccess {
     throw new ValidationException(s"Dataset task '${task.id}' of type ${task.data.plugin.pluginSpec.label} " +
       s"does not provide RDF data access.")
   }
+
+  private def noRdfAccess(dataset: Dataset): Nothing = {
+    throw new ValidationException(s"Dataset of type ${dataset.pluginSpec.label} does not provide RDF data access.")
+  }
 }
 
 /**
@@ -79,6 +94,9 @@ case class RdfDatasetSpecAccess(datasetSpec: GenericDatasetSpec, datasetAccess: 
   private val specAccess = DatasetSpecAccess(datasetSpec, datasetAccess)
 
   override def sparqlEndpoint: SparqlEndpoint = datasetAccess.sparqlEndpoint
+
+  // Forwarded raw (no safe-mode/read-only wrapping), matching the previous plugin-level triple sink.
+  override def tripleSink(implicit userContext: UserContext): TripleSink = datasetAccess.tripleSink
 
   override def source(implicit userContext: UserContext): DataSource = specAccess.source
 

@@ -2,7 +2,7 @@ package org.silkframework.plugins.dataset.rdf.datasets
 
 import org.silkframework.config.Task
 import org.silkframework.dataset.rdf.{RdfDatasetAccess, SparqlEndpoint}
-import org.silkframework.dataset.{DataSource, DatasetSpec, EntitySink, LinkSink}
+import org.silkframework.dataset.{DataSource, DatasetSpec, EntitySink, LinkSink, TripleSink}
 import org.silkframework.execution.local.{LocalExecution, LocalRdfDatasetExecutor}
 import org.silkframework.plugins.dataset.rdf.formatters.{FormattedEntitySink, FormattedLinkSink}
 import org.silkframework.runtime.activity.UserContext
@@ -31,5 +31,8 @@ object RdfFileDatasetExecutor {
 
     override def linkSink(implicit userContext: UserContext): LinkSink =
       new FormattedLinkSink(plugin.bulkWritableResource, plugin.formatter)
+
+    override def tripleSink(implicit userContext: UserContext): TripleSink =
+      new FormattedEntitySink(plugin.bulkWritableResource, plugin.formatter)
   }
 }

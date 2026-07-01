@@ -1,7 +1,7 @@
 package org.silkframework.plugins.dataset.rdf.access
 
 import org.silkframework.dataset.rdf.{RdfDatasetAccess, SparqlEndpoint, SparqlParams}
-import org.silkframework.dataset.{DataSource, EntitySink, LinkSink}
+import org.silkframework.dataset.{DataSource, EntitySink, LinkSink, TripleSink}
 import org.silkframework.runtime.activity.UserContext
 
 /**
@@ -22,5 +22,8 @@ case class SparqlDatasetAccess(params: SparqlParams,
     new SparqlSink(params, sparqlEndpoint, dropGraphOnClear = dropGraphOnClear)
 
   override def linkSink(implicit userContext: UserContext): LinkSink =
+    new SparqlSink(params, sparqlEndpoint, dropGraphOnClear = dropGraphOnClear)
+
+  override def tripleSink(implicit userContext: UserContext): TripleSink =
     new SparqlSink(params, sparqlEndpoint, dropGraphOnClear = dropGraphOnClear)
 }
