@@ -29,7 +29,6 @@ import play.api.mvc._
 
 import javax.inject.Inject
 import scala.language.existentials
-import scala.util.Try
 
 @Tag(name = "Projects")
 class WorkspaceApi  @Inject() (accessMonitor: WorkbenchAccessMonitor) extends InjectedController with UserContextActions with ControllerUtilsTrait {
@@ -384,10 +383,8 @@ class WorkspaceApi  @Inject() (accessMonitor: WorkbenchAccessMonitor) extends In
     implicit userContext =>
       validateJson[UpdateGlobalVocabularyRequest] { updateRequest =>
         updateRequest.iri.foreach(GlobalVocabularyCache.putVocabularyInQueue)
-        val activityControl = workspace.activity[GlobalVocabularyCache].control
-        if(!activityControl.status.get.exists(_.isRunning)) {
-          Try(activityControl.start())
-        }
+        // Start the cache activity, or ensure one more run after the current one
+        workspace.activity[GlobalVocabularyCache].control.startOrReRun()
         NoContent
       }
   }

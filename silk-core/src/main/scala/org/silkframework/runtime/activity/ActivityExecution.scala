@@ -51,6 +51,10 @@ private class ActivityExecution[T](activity: Activity[T],
   // Locks the access to the status variable when needed
   private object StatusLock
 
+  // Set to request one additional run. Only ever accessed under StatusLock.
+  @volatile
+  private var reRunRequested: Boolean = false
+
   @volatile
   private var runningThread: Option[Thread] = None
 
@@ -157,6 +161,24 @@ private class ActivityExecution[T](activity: Activity[T],
     activity.resetCancelFlag()
   }
 
+  override def startOrReRun()(implicit user: UserContext): Unit = {
+    val doStart = StatusLock.synchronized {
+      if (status().isRunning) {
+        // The activity is running: request one more run, which the run loop picks up when the current run finishes.
+        reRunRequested = true
+        false
+      } else {
+        reRunRequested = false
+        setStartMetaData(user)
+        true
+      }
+    }
+    if (doStart) {
+      activity.resetCancelFlag()
+      runForkJoin()
+    }
+  }
+
   /** Restarts the activity. */
   override def restart()(implicit userContext: UserContext): Future[Unit] = {
     import ActivityExecution.activityManagementExecutionContext
@@ -195,40 +217,78 @@ private class ActivityExecution[T](activity: Activity[T],
   override def underlying: Activity[T] = activity
 
   private def runActivity()(implicit user: UserContext): Unit = synchronized {
+    markRunning()
+    if (!activity.wasCancelled() && !parent.exists(_.status().isInstanceOf[Canceling])) {
+      try {
+        runWithReRuns()
+      } catch {
+        case ex: Throwable =>
+          finishWithFailure(ex)
+      } finally {
+        cleanupAfterRun()
+      }
+    }
+  }
+
+  private def markRunning(): Unit = {
     status.update(Status.Running("Running", None))
     ThreadLock.synchronized {
       runningThread = Some(Thread.currentThread())
     }
-    if (!activity.wasCancelled() && !parent.exists(_.status().isInstanceOf[Canceling])) {
-      val startTimeInstant = Instant.now
-      startTimestamp = Option(startTimeInstant)
-      try {
-        activity.run(this)
-        StatusLock.synchronized {
-          status.update(Status.Finished(success = true, System.currentTimeMillis - startTimeInstant.toEpochMilli, cancelled = activity.wasCancelled()))
-        }
-      } catch {
-        case ex: Throwable =>
-          StatusLock.synchronized {
-            status.update(Status.Finished(success = false, System.currentTimeMillis - startTimeInstant.toEpochMilli, cancelled = activity.wasCancelled(), Some(ex)))
-            if(!activity.wasCancelled()) {
-              throw ex
-            }
-          }
-      } finally {
-        if(children().nonEmpty) {
-          log.warning(s"Child activities are still being held after completion of parent activity: ${children().map(_.underlying.name).mkString(", " )}")
-          clearChildren()
-        }
-        lastResult = activityExecutionResult
-        forkJoinRunner = None
-        ThreadLock.synchronized {
-          runningThread = None
-        }
-        // Clear interrupt flag
-        Thread.interrupted()
+  }
+
+  /* Runs the activity, and runs it again as long as startOrReRun() requested another run during the previous run.
+     Re-running on the same thread keeps a single fork join runner, so waitUntilFinished() covers all runs. */
+  private def runWithReRuns()(implicit user: UserContext): Unit = {
+    var runAgain = true
+    while (runAgain) {
+      startTimestamp = Some(Instant.now)
+      activity.run(this)
+      runAgain = finishOrRequestReRun()
+      if (runAgain) {
+        activity.resetCancelFlag()
+        status.update(Status.Running("Running", None))
       }
     }
+  }
+
+  /* Decides, atomically with the finish transition, whether the activity should run again because startOrReRun() was
+     called while it was running. Returns true if another run is required; otherwise marks the activity as finished.
+     Doing this under StatusLock ensures a concurrent startOrReRun() either sets the flag before this point (we re-run)
+     or observes the finished status afterwards (it starts a fresh run). */
+  private def finishOrRequestReRun(): Boolean = StatusLock.synchronized {
+    if (reRunRequested && !activity.wasCancelled()) {
+      reRunRequested = false
+      true
+    } else {
+      status.update(Status.Finished(success = true, elapsedSinceStart, cancelled = activity.wasCancelled()))
+      false
+    }
+  }
+
+  private def finishWithFailure(ex: Throwable): Unit = StatusLock.synchronized {
+    status.update(Status.Finished(success = false, elapsedSinceStart, cancelled = activity.wasCancelled(), Some(ex)))
+    if (!activity.wasCancelled()) {
+      throw ex
+    }
+  }
+
+  private def elapsedSinceStart: Long = {
+    System.currentTimeMillis - startTimestamp.map(_.toEpochMilli).getOrElse(System.currentTimeMillis)
+  }
+
+  private def cleanupAfterRun(): Unit = {
+    if (children().nonEmpty) {
+      log.warning(s"Child activities are still being held after completion of parent activity: ${children().map(_.underlying.name).mkString(", " )}")
+      clearChildren()
+    }
+    lastResult = activityExecutionResult
+    forkJoinRunner = None
+    ThreadLock.synchronized {
+      runningThread = None
+    }
+    // Clear interrupt flag
+    Thread.interrupted()
   }
 
 

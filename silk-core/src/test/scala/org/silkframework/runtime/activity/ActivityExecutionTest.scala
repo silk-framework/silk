@@ -5,6 +5,7 @@ import org.scalatest.time.{Seconds, Span}
 import org.silkframework.runtime.activity.Status.{Finished, Running, Waiting}
 import org.silkframework.runtime.users.{User, UserActions}
 
+import java.util.concurrent.atomic.AtomicInteger
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import org.scalatest.flatspec.AnyFlatSpec
@@ -188,6 +189,48 @@ class ActivityExecutionTest extends AnyFlatSpec with Matchers with Eventually  {
     stopActivities(sleepingActivitiesSync)
   }
 
+  it should "start an activity that is not running when startOrReRun is called" in {
+    val counter = new AtomicInteger(0)
+    val gated = new GatedActivity(counter)
+    gated.released = true // do not block, so the run finishes immediately
+    val activity = Activity(gated)
+    activity.startOrReRun()
+    activity.waitUntilFinished()
+    counter.get() mustBe 1
+    activity.status() mustBe a[Finished]
+  }
+
+  it should "re-run an activity when startOrReRun is called while it is still running" in {
+    val counter = new AtomicInteger(0)
+    val gated = new GatedActivity(counter)
+    val activity = Activity(gated)
+    activity.start()
+    eventually { activity.status().isRunning mustBe true }
+    eventually { counter.get() mustBe 1 } // first run is in progress (blocked)
+    // Request another run while the first run is still blocked.
+    activity.startOrReRun()
+    // Release the gate: the first run finishes, then the requested re-run must happen.
+    gated.released = true
+    eventually { counter.get() mustBe 2 }
+    eventually { activity.status() mustBe a[Finished] }
+  }
+
+  it should "coalesce multiple startOrReRun requests during a single run into exactly one additional run" in {
+    val counter = new AtomicInteger(0)
+    val gated = new GatedActivity(counter)
+    val activity = Activity(gated)
+    activity.start()
+    eventually { activity.status().isRunning mustBe true }
+    eventually { counter.get() mustBe 1 }
+    // Several requests during the same run should result in only one extra run.
+    activity.startOrReRun()
+    activity.startOrReRun()
+    activity.startOrReRun()
+    gated.released = true
+    eventually { activity.status() mustBe a[Finished] }
+    counter.get() mustBe 2
+  }
+
   private def stopActivities(activities: Iterable[ActivityControl[_]]): Unit = {
     for (activity <- activities) {
       activity.cancel()
@@ -224,5 +267,23 @@ class BlockingActivity() extends Activity[Boolean] {
   override def run(context: ActivityContext[Boolean])(implicit userContext: UserContext): Unit = {
     context.value() = true
     context.blockUntil(() => false)
+  }
+}
+
+/**
+  * Activity that counts its runs and blocks each run until `released` is set to true.
+  * Used to test [[ActivityControl.startOrReRun]].
+  */
+class GatedActivity(counter: AtomicInteger) extends Activity[Boolean] {
+
+  @volatile
+  var released: Boolean = false
+
+  override def initialValue: Option[Boolean] = Some(false)
+
+  override def run(context: ActivityContext[Boolean])(implicit userContext: UserContext): Unit = {
+    counter.incrementAndGet()
+    context.value() = true
+    context.blockUntil(() => released)
   }
 }

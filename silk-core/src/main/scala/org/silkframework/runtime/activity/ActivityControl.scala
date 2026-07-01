@@ -59,6 +59,12 @@ trait ActivityControl[T] {
   def restart()(implicit user: UserContext): Future[Unit]
 
   /**
+   * Starts the activity if it is not currently running. If it is already running, guarantees exactly one additional
+   * full run after the current execution finishes (multiple calls during one run coalesce into a single re-run).
+   */
+  def startOrReRun()(implicit user: UserContext): Unit
+
+  /**
    * Starts this activity in the current thread and returns after the activity has been finished.
    */
   def startBlocking()(implicit user: UserContext): Unit
