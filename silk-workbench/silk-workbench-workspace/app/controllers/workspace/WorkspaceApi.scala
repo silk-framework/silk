@@ -374,7 +374,8 @@ class WorkspaceApi  @Inject() (accessMonitor: WorkbenchAccessMonitor) extends In
         schema = new Schema(implementation = classOf[UpdateGlobalVocabularyRequest]),
         examples = Array(
           new ExampleObject(name = "General update", value = "{ }"),
-          new ExampleObject(name = "Force reload of a specific vocabulary", value = """{ "iri": "http://xmlns.com/foaf/0.1/" }""")
+          new ExampleObject(name = "Force reload of a specific vocabulary", value = """{ "iri": "http://xmlns.com/foaf/0.1/" }"""),
+          new ExampleObject(name = "Force reload of multiple vocabularies", value = """{ "iri": ["http://xmlns.com/foaf/0.1/", "http://www.w3.org/2004/02/skos/core#"] }""")
         )
       )
     )
