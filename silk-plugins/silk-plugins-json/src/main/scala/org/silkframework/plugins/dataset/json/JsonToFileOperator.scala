@@ -22,12 +22,6 @@ import org.silkframework.util.Uri
 case class JsonToFileOperator(@Param("The Silk path expression of the input entity that contains the JSON string. " +
                                   "If not set, the value of the first property in the entity schema will be taken.")
                               inputPath: String = "",
-                              @Param("Filename for the produced file. If left empty, an auto-generated temporary name is used. " +
-                                  "In file output mode, when the input contains more than one entity, an index suffix is appended " +
-                                  "before the extension (e.g. `out-0.json`, `out-1.json`) to keep filenames unique. " +
-                                  "In ZIP output mode, this name is used for the ZIP container file and as the base for entry names inside the archive. " +
-                                  "In jsonArray output mode there is always a single output file, so the name is used as-is with no index suffix.")
-                              outputFileName: String = "",
                               @Param("MIME type of the produced file.")
                               mimeType: String = "application/json",
                               @Param("Output mode: \"One file per entity\" writes one file per entity, \"ZIP archive\" packs all entities into a single ZIP archive, " +

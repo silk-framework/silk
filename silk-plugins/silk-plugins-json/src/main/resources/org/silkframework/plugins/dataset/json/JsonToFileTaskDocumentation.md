@@ -51,15 +51,6 @@ file in *jsonArray* mode.
 such as */jsonContent*, the operator reads the value at that path. When left empty, the operator reads the value of
 the first available field.
 
-**Output file name** controls how the produced files are named. When left empty, each file is allocated with an
-auto-generated temporary name. When set, the parameter is used as the literal filename for single-entity input; when
-the input contains more than one entity, an index suffix is appended before the extension to keep filenames unique.
-For example, *out.json* applied to three input entities produces *out-0.json*, *out-1.json*, *out-2.json*. When the
-filename has no extension, the index is appended to the end: *out* produces *out-0*, *out-1*, *out-2*. This
-index-suffix behaviour applies in *file* mode. In *zip* mode the name is used for the ZIP container and as the base
-for entry names; in *jsonArray* mode there is always exactly one output file, so the name is used as-is with no index
-suffix.
-
 **MIME type** sets the content type of every produced file. Defaults to *application/json*. In *zip* mode, when this
 parameter is left at its default value, the executor overrides it to *application/zip* automatically; an explicit
 value is used as-is even in *zip* mode. In *file* and *jsonArray* mode the default *application/json* is correct and
@@ -72,10 +63,8 @@ element of the array is the wrapped form.
 
 **Output mode** selects what the operator produces. *file* (the default) writes one file per input entity. *zip* packs
 all input entities into a single ZIP file — one ZIP entry per entity, producing a single file entity whose backing
-file is a ZIP archive. The entry naming inside the ZIP follows the same convention as the output file name in *file*
-mode: a single entity with no output file name set uses the literal entry name *entry.json*; multiple entities with no
-output file name set use *entry-0.json*, *entry-1.json*, and so on; when an output file name is configured, it is used
-as the ZIP container name and as the base for entry names. *jsonArray* merges all input entities into a single file
+file is a ZIP archive. A single entity produces the literal entry name *entry.json*; multiple entities produce
+*entry-0.json*, *entry-1.json*, and so on. *jsonArray* merges all input entities into a single file
 holding one JSON array whose elements are the JSON values from each entity, in input order; there is always exactly
 one output file.
 

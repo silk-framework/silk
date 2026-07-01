@@ -44,18 +44,6 @@ class LocalJsonToFileOperatorExecutorTest extends AnyFlatSpec with Matchers with
     runJsonToFile(task, json1, json2, json3).map(_.file.loadAsString()) mustBe Seq(json1, json2, json3)
   }
 
-  it should "use the literal output file name for a single input entity" in {
-    val namedTask = PlainTask("JsonToFile", JsonToFileOperator(inputPath = "jsonContent", outputFileName = "out.json"))
-    val files = runJsonToFile(namedTask, """{"x":1}""")
-    files.map(_.file.name) mustBe Seq("out.json")
-    files.head.mimeType mustBe Some("application/json")
-  }
-
-  it should "append an index suffix when the output file name is set and the input has multiple entities" in {
-    val namedTask = PlainTask("JsonToFile", JsonToFileOperator(inputPath = "jsonContent", outputFileName = "out.json"))
-    runJsonToFile(namedTask, """{"a":1}""", """{"a":2}""", """{"a":3}""").map(_.file.name) mustBe Seq("out-0.json", "out-1.json", "out-2.json")
-  }
-
   it should "tag the produced file entities with the application/json MIME type" in {
     runJsonToFile(task, """{"hello":"world"}""").map(_.mimeType) mustBe Seq(Some("application/json"))
   }
@@ -98,22 +86,6 @@ class LocalJsonToFileOperatorExecutorTest extends AnyFlatSpec with Matchers with
     val files = runJsonToFile(zipTask, json0, json1, json2)
     files.size mustBe 1
     readZipEntries(files.head) mustBe Seq(("entry-0.json", json0), ("entry-1.json", json1), ("entry-2.json", json2))
-  }
-
-  it should "use the configured output file name as the ZIP container name and suffix entry names" in {
-    val json0 = """{"a":1}"""
-    val json1 = """{"a":2}"""
-    val zipTask = PlainTask("JsonToFile", JsonToFileOperator(inputPath = "jsonContent", outputFileName = "out.json", outputMode = JsonToFileOutputModeEnum.zip))
-    val files = runJsonToFile(zipTask, json0, json1)
-    files.size mustBe 1
-    files.head.file.name mustBe "out.json"
-    readZipEntries(files.head) mustBe Seq(("out-0.json", json0), ("out-1.json", json1))
-  }
-
-  it should "use the literal output file name as the ZIP entry name for a single entity" in {
-    val json = """{"x":42}"""
-    val zipTask = PlainTask("JsonToFile", JsonToFileOperator(inputPath = "jsonContent", outputFileName = "out.json", outputMode = JsonToFileOutputModeEnum.zip))
-    readZipEntries(runJsonToFile(zipTask, json).head).map(_._1) mustBe Seq("out.json")
   }
 
   it should "preserve an explicitly configured MIME type in ZIP mode" in {
@@ -211,11 +183,6 @@ class LocalJsonToFileOperatorExecutorTest extends AnyFlatSpec with Matchers with
 
   it should "return an empty FileEntitySchema when there are no input entities in merged JSON mode" in {
     runJsonToFile(mergedTask) mustBe empty
-  }
-
-  it should "use the literal output file name with no index suffix in merged JSON mode" in {
-    val namedMergedTask = PlainTask("JsonToFile", JsonToFileOperator(inputPath = "jsonContent", outputFileName = "out.json", outputMode = JsonToFileOutputModeEnum.jsonArray))
-    runJsonToFile(namedMergedTask, """{"id":1}""", """{"id":2}""").map(_.file.name) mustBe Seq("out.json")
   }
 
   it should "wrap each element with outputProperty before merging in merged JSON mode" in {

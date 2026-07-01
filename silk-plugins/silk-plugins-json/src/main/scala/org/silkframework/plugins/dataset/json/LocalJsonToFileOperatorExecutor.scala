@@ -36,13 +36,12 @@ case class LocalJsonToFileOperatorExecutor() extends LocalExecutor[JsonToFileOpe
       case Some(path) => entityTable.entitySchema.indexOfPath(path)
       case None => 0 // Take the value of the first path
     }
-    val trimmedFileName = task.data.outputFileName.trim
     val entities = entityTable.entities.toIndexedSeq
 
     task.data.outputMode match {
-      case JsonToFileOutputModeEnum.file      => executeFile(task, entities, pathIndex, trimmedFileName, context)
-      case JsonToFileOutputModeEnum.zip       => executeZip(task, entities, pathIndex, trimmedFileName, context)
-      case JsonToFileOutputModeEnum.jsonArray => executeMergedJson(task, entities, pathIndex, trimmedFileName, context)
+      case JsonToFileOutputModeEnum.file      => executeFile(task, entities, pathIndex, context)
+      case JsonToFileOutputModeEnum.zip       => executeZip(task, entities, pathIndex, context)
+      case JsonToFileOutputModeEnum.jsonArray => executeMergedJson(task, entities, pathIndex, context)
       case _                        => throw TaskException(s"Unsupported output mode for 'JSON to File': ${task.data.outputMode}")
     }
   }
@@ -52,7 +51,6 @@ case class LocalJsonToFileOperatorExecutor() extends LocalExecutor[JsonToFileOpe
   private def executeFile(task: Task[JsonToFileOperator],
                           entities: IndexedSeq[Entity],
                           pathIndex: Int,
-                          trimmedFileName: String,
                           context: ActivityContext[ExecutionReport])
                          (implicit pluginContext: PluginContext): Option[LocalEntities] = {
     if (entities.isEmpty) {
@@ -61,22 +59,9 @@ case class LocalJsonToFileOperatorExecutor() extends LocalExecutor[JsonToFileOpe
     val outputMimeType = Some(task.data.mimeType)
     val outputProperty = task.data.outputProperty
     val (contents, warnings) = partitionValid(entities)(rawContent(_, pathIndex, outputProperty))
-    val multiple = contents.size > 1
     val fileEntities = IndexedSeq.newBuilder[FileEntity]
-    for ((content, index) <- contents.zipWithIndex) {
-      val fileEntity = if (trimmedFileName.isEmpty) {
-        FileEntity.createTemp(TempFilePrefix, ".json", mimeType = outputMimeType)
-      } else {
-        allocateNamedFileEntity(trimmedFileName, index, multiple, outputMimeType)
-      }
-      try {
-        fileEntity.file.writeString(content)
-      } catch {
-        case NonFatal(e) =>
-          Try(fileEntity.file.delete())
-          throw e
-      }
-      fileEntities += fileEntity
+    for (content <- contents) {
+      fileEntities += writeTempFile(".json", outputMimeType, content)
     }
     report(task, context, warnings, contents.size)
     Some(FileEntitySchema.create(fileEntities.result(), task))
@@ -90,7 +75,6 @@ case class LocalJsonToFileOperatorExecutor() extends LocalExecutor[JsonToFileOpe
   private def executeMergedJson(task: Task[JsonToFileOperator],
                                entities: IndexedSeq[Entity],
                                pathIndex: Int,
-                               trimmedFileName: String,
                                context: ActivityContext[ExecutionReport])
                               (implicit pluginContext: PluginContext): Option[LocalEntities] = {
     if (entities.isEmpty) {
@@ -100,18 +84,7 @@ case class LocalJsonToFileOperatorExecutor() extends LocalExecutor[JsonToFileOpe
     val outputProperty = task.data.outputProperty
     val (contents, warnings) = partitionValid(entities)(rawContent(_, pathIndex, outputProperty))
     val serialized = contents.mkString("[", ",", "]")
-    val fileEntity = if (trimmedFileName.isEmpty) {
-      FileEntity.createTemp(TempFilePrefix, ".json", mimeType = outputMimeType)
-    } else {
-      allocateNamedFileEntity(trimmedFileName, 0, multiple = false, outputMimeType)
-    }
-    try {
-      fileEntity.file.writeString(serialized)
-    } catch {
-      case NonFatal(e) =>
-        Try(fileEntity.file.delete())
-        throw e
-    }
+    val fileEntity = writeTempFile(".json", outputMimeType, serialized)
     report(task, context, warnings, contents.size)
     Some(FileEntitySchema.create(Seq(fileEntity), task))
   }
@@ -121,7 +94,6 @@ case class LocalJsonToFileOperatorExecutor() extends LocalExecutor[JsonToFileOpe
   private def executeZip(task: Task[JsonToFileOperator],
                          entities: IndexedSeq[Entity],
                          pathIndex: Int,
-                         trimmedFileName: String,
                          context: ActivityContext[ExecutionReport])
                         (implicit pluginContext: PluginContext): Option[LocalEntities] = {
     if (entities.isEmpty) {
@@ -131,20 +103,12 @@ case class LocalJsonToFileOperatorExecutor() extends LocalExecutor[JsonToFileOpe
     val outputProperty = task.data.outputProperty
     val (contents, warnings) = partitionValid(entities)(rawContent(_, pathIndex, outputProperty))
     val multiple = contents.size > 1
-    val zipFileEntity = if (trimmedFileName.isEmpty) {
-      FileEntity.createTemp(TempFilePrefix, ".zip", mimeType = Some(effectiveMimeType))
-    } else {
-      allocateNamedFileEntity(trimmedFileName, 0, multiple = false, Some(effectiveMimeType))
-    }
+    val zipFileEntity = FileEntity.createTemp(TempFilePrefix, ".zip").copy(mimeType = Some(effectiveMimeType))
     try {
       zipFileEntity.file.write() { outputStream =>
         val zip = new ZipOutputStream(outputStream)
         for ((content, index) <- contents.zipWithIndex) {
-          val entryName = if (trimmedFileName.nonEmpty) {
-            if (multiple) suffixedName(trimmedFileName, index) else trimmedFileName
-          } else {
-            if (multiple) suffixedName("entry.json", index) else "entry.json"
-          }
+          val entryName = if (multiple) s"entry-$index.json" else "entry.json"
           val entryResource = ZipOutputStreamResource(entryName, entryName, zip)
           entryResource.writeString(content)
         }
@@ -212,21 +176,19 @@ case class LocalJsonToFileOperatorExecutor() extends LocalExecutor[JsonToFileOpe
     context.value.update(SimpleExecutionReport(task, warnings = warnings, entityCount = validCount, isDone = true))
   }
 
-  /** Allocates a file entity with a caller-supplied name in the system temp directory. */
-  private def allocateNamedFileEntity(name: String, index: Int, multiple: Boolean, mimeType: Option[String]): FileEntity = {
-    val fileName = if (multiple) suffixedName(name, index) else name
-    FileEntity.createTemp("", name = Some(fileName), mimeType = mimeType)
-  }
-
-  /** Inserts an index suffix before the file extension; appends it if there is no extension. */
-  private def suffixedName(name: String, index: Int): String = {
-    val dotIdx = name.lastIndexOf('.')
-    if (dotIdx > 0) {
-      name.substring(0, dotIdx) + "-" + index + name.substring(dotIdx)
-    } else {
-      name + "-" + index
+  /** Writes content to a new temp file and returns its FileEntity; deletes the temp file and rethrows on write failure. */
+  private def writeTempFile(suffix: String, mimeType: Option[String], content: String): FileEntity = {
+    val fileEntity = FileEntity.createTemp(TempFilePrefix, suffix).copy(mimeType = mimeType)
+    try {
+      fileEntity.file.writeString(content)
+      fileEntity
+    } catch {
+      case NonFatal(e) =>
+        Try(fileEntity.file.delete())
+        throw e
     }
   }
+
 }
 
 object LocalJsonToFileOperatorExecutor {
