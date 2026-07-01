@@ -53,9 +53,6 @@ case class LocalJsonToFileOperatorExecutor() extends LocalExecutor[JsonToFileOpe
                           pathIndex: Int,
                           context: ActivityContext[ExecutionReport])
                          (implicit pluginContext: PluginContext): Option[LocalEntities] = {
-    if (entities.isEmpty) {
-      return Some(FileEntitySchema.create(Seq.empty, task))
-    }
     val outputMimeType = Some(task.data.mimeType)
     val outputProperty = task.data.outputProperty
     val (contents, warnings) = partitionValid(entities)(rawContent(_, pathIndex, outputProperty))
@@ -77,9 +74,6 @@ case class LocalJsonToFileOperatorExecutor() extends LocalExecutor[JsonToFileOpe
                                pathIndex: Int,
                                context: ActivityContext[ExecutionReport])
                               (implicit pluginContext: PluginContext): Option[LocalEntities] = {
-    if (entities.isEmpty) {
-      return Some(FileEntitySchema.create(Seq.empty, task))
-    }
     val outputMimeType = Some(task.data.mimeType)
     val outputProperty = task.data.outputProperty
     val (contents, warnings) = partitionValid(entities)(rawContent(_, pathIndex, outputProperty))
@@ -96,9 +90,6 @@ case class LocalJsonToFileOperatorExecutor() extends LocalExecutor[JsonToFileOpe
                          pathIndex: Int,
                          context: ActivityContext[ExecutionReport])
                         (implicit pluginContext: PluginContext): Option[LocalEntities] = {
-    if (entities.isEmpty) {
-      return Some(FileEntitySchema.create(Seq.empty, task))
-    }
     val effectiveMimeType = if (task.data.mimeType == "application/json") "application/zip" else task.data.mimeType
     val outputProperty = task.data.outputProperty
     val (contents, warnings) = partitionValid(entities)(rawContent(_, pathIndex, outputProperty))

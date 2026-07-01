@@ -61,6 +61,13 @@ class LocalJsonToFileOperatorExecutorTest extends AnyFlatSpec with Matchers with
     warnings.head.toLowerCase must include ("not valid json")
   }
 
+  it should "produce no files and set the execution report when there are no input entities in file mode" in {
+    val (files, report) = runCapturingReport(task)
+    files mustBe empty
+    report.map(_.entityCount) mustBe Some(0)
+    report.map(_.isDone) mustBe Some(true)
+  }
+
   it should "write files for the valid entities and skip an invalid one in file mode" in {
     val (files, warnings) = runWithReport(task, """{"id":1}""", """{"unterminated":""", """{"id":2}""")
     files.map(_.file.loadAsString()) mustBe Seq("""{"id":1}""", """{"id":2}""")
@@ -93,9 +100,13 @@ class LocalJsonToFileOperatorExecutorTest extends AnyFlatSpec with Matchers with
     runJsonToFile(zipTask, """{"x":1}""").head.mimeType mustBe Some("application/octet-stream")
   }
 
-  it should "return an empty FileEntitySchema when there are no input entities in ZIP mode" in {
+  it should "produce a single empty ZIP and set the execution report when there are no input entities in ZIP mode" in {
     val zipTask = PlainTask("JsonToFile", JsonToFileOperator(inputPath = "jsonContent", outputMode = JsonToFileOutputModeEnum.zip))
-    runJsonToFile(zipTask) mustBe empty
+    val (files, report) = runCapturingReport(zipTask)
+    files.size mustBe 1
+    readZipEntries(files.head) mustBe empty
+    report.map(_.entityCount) mustBe Some(0)
+    report.map(_.isDone) mustBe Some(true)
   }
 
   it should "produce one ZIP entry per entity for a large number of input entities" in {
@@ -181,8 +192,11 @@ class LocalJsonToFileOperatorExecutorTest extends AnyFlatSpec with Matchers with
     runJsonToFile(mergedTask, """{"id":1}""", """{"id":2}""", """{"id":3}""").map(_.file.loadAsString()) mustBe Seq("""[{"id":1},{"id":2},{"id":3}]""")
   }
 
-  it should "return an empty FileEntitySchema when there are no input entities in merged JSON mode" in {
-    runJsonToFile(mergedTask) mustBe empty
+  it should "produce a file containing an empty array and set the execution report when there are no input entities in merged JSON mode" in {
+    val (files, report) = runCapturingReport(mergedTask)
+    files.map(_.file.loadAsString()) mustBe Seq("[]")
+    report.map(_.entityCount) mustBe Some(0)
+    report.map(_.isDone) mustBe Some(true)
   }
 
   it should "wrap each element with outputProperty before merging in merged JSON mode" in {
@@ -324,8 +338,8 @@ object LocalJsonToFileOperatorExecutorTest {
     fileEntities.typedEntities.toIndexedSeq
   }
 
-  /** Runs the executor with an explicit report context, returning the produced file entities and the execution report
-    * (present for any non-empty input; an empty input returns early without setting one). */
+  /** Runs the executor with an explicit report context, returning the produced file entities and the execution
+    * report, which is set on every run, including one with no input entities. */
   def runCapturingReport(t: Task[JsonToFileOperator], jsonStrings: String*)
                         (implicit executor: LocalJsonToFileOperatorExecutor,
                          entitySchema: EntitySchema,
