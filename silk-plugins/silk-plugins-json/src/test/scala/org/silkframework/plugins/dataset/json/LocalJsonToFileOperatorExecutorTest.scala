@@ -76,13 +76,13 @@ class LocalJsonToFileOperatorExecutorTest extends AnyFlatSpec with Matchers with
 
   // ZIP mode tests
 
-  it should "pack a single entity into a ZIP with entry name entry.json" in {
+  it should "pack a single entity into a ZIP with entry name entry-0.json" in {
     val json = """{"hello":"world"}"""
     val zipTask = PlainTask("JsonToFile", JsonToFileOperator(inputPath = "jsonContent", outputMode = JsonToFileOutputModeEnum.zip))
     val files = runJsonToFile(zipTask, json)
     files.size mustBe 1
     files.head.mimeType mustBe Some("application/zip")
-    readZipEntries(files.head) mustBe Seq(("entry.json", json))
+    readZipEntries(files.head) mustBe Seq(("entry-0.json", json))
   }
 
   it should "pack multiple entities into a single ZIP with suffixed entry names" in {
@@ -162,7 +162,7 @@ class LocalJsonToFileOperatorExecutorTest extends AnyFlatSpec with Matchers with
 
   it should "preserve trailing decimal zeros in ZIP mode with outputProperty set" in {
     val wrappedZipTask = PlainTask("JsonToFile", JsonToFileOperator(inputPath = "jsonContent", outputMode = JsonToFileOutputModeEnum.zip, outputProperty = "payload"))
-    readZipEntries(runJsonToFile(wrappedZipTask, """{"price":1.50}""").head) mustBe Seq(("entry.json", """{"payload":{"price":1.50}}"""))
+    readZipEntries(runJsonToFile(wrappedZipTask, """{"price":1.50}""").head) mustBe Seq(("entry-0.json", """{"payload":{"price":1.50}}"""))
   }
 
   it should "preserve whitespace around the value in file mode with outputProperty set" in {
@@ -172,7 +172,7 @@ class LocalJsonToFileOperatorExecutorTest extends AnyFlatSpec with Matchers with
 
   it should "preserve whitespace around the value in ZIP mode with outputProperty set" in {
     val wrappedZipTask = PlainTask("JsonToFile", JsonToFileOperator(inputPath = "jsonContent", outputMode = JsonToFileOutputModeEnum.zip, outputProperty = "payload"))
-    readZipEntries(runJsonToFile(wrappedZipTask, """  {"a":1}  """).head) mustBe Seq(("entry.json", """{"payload":  {"a":1}  }"""))
+    readZipEntries(runJsonToFile(wrappedZipTask, """  {"a":1}  """).head) mustBe Seq(("entry-0.json", """{"payload":  {"a":1}  }"""))
   }
 
   it should "skip an invalid JSON entity and warn when outputProperty is set" in {

@@ -63,8 +63,8 @@ element of the array is the wrapped form.
 
 **Output mode** selects what the operator produces. *file* (the default) writes one file per input entity. *zip* packs
 all input entities into a single ZIP file — one ZIP entry per entity, producing a single file entity whose backing
-file is a ZIP archive. A single entity produces the literal entry name *entry.json*; multiple entities produce
-*entry-0.json*, *entry-1.json*, and so on. *jsonArray* merges all input entities into a single file
+file is a ZIP archive. Entries are always named *entry-0.json*, *entry-1.json*, and so on, by position among valid
+entities. *jsonArray* merges all input entities into a single file
 holding one JSON array whose elements are the JSON values from each entity, in input order; there is always exactly
 one output file.
 

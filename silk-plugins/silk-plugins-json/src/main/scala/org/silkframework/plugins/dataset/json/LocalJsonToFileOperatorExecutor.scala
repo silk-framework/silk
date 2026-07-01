@@ -7,10 +7,13 @@ import org.silkframework.execution._
 import org.silkframework.execution.local.{LocalEntities, LocalExecution, LocalExecutor}
 import org.silkframework.execution.typed.{FileEntity, FileEntitySchema}
 import org.silkframework.runtime.activity.{ActivityContext, ActivityMonitor}
+import org.silkframework.runtime.iterator.CloseableIterator
 import org.silkframework.runtime.plugin.PluginContext
 import org.silkframework.runtime.resource.zip.ZipOutputStreamResource
 
+import java.nio.charset.StandardCharsets
 import java.util.zip.ZipOutputStream
+import scala.collection.mutable.ArrayBuffer
 import scala.util.Try
 import scala.util.control.NonFatal
 
@@ -36,76 +39,84 @@ case class LocalJsonToFileOperatorExecutor() extends LocalExecutor[JsonToFileOpe
       case Some(path) => entityTable.entitySchema.indexOfPath(path)
       case None => 0 // Take the value of the first path
     }
-    val entities = entityTable.entities.toIndexedSeq
-
     task.data.outputMode match {
-      case JsonToFileOutputModeEnum.file      => executeFile(task, entities, pathIndex, context)
-      case JsonToFileOutputModeEnum.zip       => executeZip(task, entities, pathIndex, context)
-      case JsonToFileOutputModeEnum.jsonArray => executeMergedJson(task, entities, pathIndex, context)
+      case JsonToFileOutputModeEnum.file      => executeFile(task, entityTable.entities, pathIndex, context)
+      case JsonToFileOutputModeEnum.zip       => executeZip(task, entityTable.entities, pathIndex, context)
+      case JsonToFileOutputModeEnum.jsonArray => executeMergedJson(task, entityTable.entities, pathIndex, context)
       case _                        => throw TaskException(s"Unsupported output mode for 'JSON to File': ${task.data.outputMode}")
     }
   }
 
-  /** Executes file mode: writes one file per valid entity and returns one FileEntity per valid entity. Entities whose
-    * value is not valid JSON are skipped and recorded as warnings on the execution report. */
   private def executeFile(task: Task[JsonToFileOperator],
-                          entities: IndexedSeq[Entity],
+                          entities: CloseableIterator[Entity],
                           pathIndex: Int,
                           context: ActivityContext[ExecutionReport])
                          (implicit pluginContext: PluginContext): Option[LocalEntities] = {
     val outputMimeType = Some(task.data.mimeType)
     val outputProperty = task.data.outputProperty
-    val (contents, warnings) = partitionValid(entities)(rawContent(_, pathIndex, outputProperty))
     val fileEntities = IndexedSeq.newBuilder[FileEntity]
-    for (content <- contents) {
+    val (validCount, warnings) = processSkippingInvalid(entities, pathIndex, outputProperty) { content =>
       fileEntities += writeTempFile(".json", outputMimeType, content)
     }
-    report(task, context, warnings, contents.size)
+    report(task, context, warnings, validCount)
     Some(FileEntitySchema.create(fileEntities.result(), task))
   }
 
-  /** Executes merged JSON mode: merges all valid entities into a single JSON array file and returns one FileEntity.
-    * Each element's original JSON text is written through unchanged. Parsing only validates the input; the parsed
-    * node is discarded, so numbers, key order, duplicate keys, and per-element formatting are preserved exactly,
-    * matching the byte preservation of file and zip modes. Entities whose value is not valid JSON are skipped and
-    * recorded as warnings on the execution report. */
+  /** The `[`, `,`, and `]` bytes are written by hand as content arrives; nothing re-parses the assembled file
+    * afterward, so the array's well-formedness depends entirely on this loop's bracket and comma placement. */
   private def executeMergedJson(task: Task[JsonToFileOperator],
-                               entities: IndexedSeq[Entity],
+                               entities: CloseableIterator[Entity],
                                pathIndex: Int,
                                context: ActivityContext[ExecutionReport])
                               (implicit pluginContext: PluginContext): Option[LocalEntities] = {
     val outputMimeType = Some(task.data.mimeType)
     val outputProperty = task.data.outputProperty
-    val (contents, warnings) = partitionValid(entities)(rawContent(_, pathIndex, outputProperty))
-    val serialized = contents.mkString("[", ",", "]")
-    val fileEntity = writeTempFile(".json", outputMimeType, serialized)
-    report(task, context, warnings, contents.size)
-    Some(FileEntitySchema.create(Seq(fileEntity), task))
+    val fileEntity = FileEntity.createTemp(TempFilePrefix, ".json").copy(mimeType = outputMimeType)
+    try {
+      val (validCount, warnings) = fileEntity.file.write() { outputStream =>
+        outputStream.write("[".getBytes(StandardCharsets.UTF_8))
+        var isFirst = true
+        val result = processSkippingInvalid(entities, pathIndex, outputProperty) { content =>
+          if (!isFirst) outputStream.write(",".getBytes(StandardCharsets.UTF_8))
+          outputStream.write(content.getBytes(StandardCharsets.UTF_8))
+          isFirst = false
+        }
+        outputStream.write("]".getBytes(StandardCharsets.UTF_8))
+        result
+      }
+      report(task, context, warnings, validCount)
+      Some(FileEntitySchema.create(Seq(fileEntity), task))
+    } catch {
+      case NonFatal(e) =>
+        Try(fileEntity.file.delete())
+        throw e
+    }
   }
 
-  /** Executes ZIP mode: writes all valid entities as entries into a single ZIP file and returns one FileEntity.
-    * Entities whose value is not valid JSON are skipped and recorded as warnings on the execution report. */
+  /** Entries are always `entry-N.json`; a single valid entity is never named `entry.json`, since streaming
+    * never knows the total valid count before writing the first entry. */
   private def executeZip(task: Task[JsonToFileOperator],
-                         entities: IndexedSeq[Entity],
+                         entities: CloseableIterator[Entity],
                          pathIndex: Int,
                          context: ActivityContext[ExecutionReport])
                         (implicit pluginContext: PluginContext): Option[LocalEntities] = {
     val effectiveMimeType = if (task.data.mimeType == "application/json") "application/zip" else task.data.mimeType
     val outputProperty = task.data.outputProperty
-    val (contents, warnings) = partitionValid(entities)(rawContent(_, pathIndex, outputProperty))
-    val multiple = contents.size > 1
     val zipFileEntity = FileEntity.createTemp(TempFilePrefix, ".zip").copy(mimeType = Some(effectiveMimeType))
     try {
-      zipFileEntity.file.write() { outputStream =>
+      val (validCount, warnings) = zipFileEntity.file.write() { outputStream =>
         val zip = new ZipOutputStream(outputStream)
-        for ((content, index) <- contents.zipWithIndex) {
-          val entryName = if (multiple) s"entry-$index.json" else "entry.json"
+        var index = 0
+        val result = processSkippingInvalid(entities, pathIndex, outputProperty) { content =>
+          val entryName = s"entry-$index.json"
           val entryResource = ZipOutputStreamResource(entryName, entryName, zip)
           entryResource.writeString(content)
+          index += 1
         }
         zip.finish()
+        result
       }
-      report(task, context, warnings, contents.size)
+      report(task, context, warnings, validCount)
       Some(FileEntitySchema.create(Seq(zipFileEntity), task))
     } catch {
       case NonFatal(e) =>
@@ -114,7 +125,6 @@ case class LocalJsonToFileOperatorExecutor() extends LocalExecutor[JsonToFileOpe
     }
   }
 
-  /** Reads the JSON string from the configured field on an input entity. */
   private def readJsonValue(entity: Entity, pathIndex: Int): String = {
     val values = entity.values
     if (values.size <= pathIndex) {
@@ -148,18 +158,23 @@ case class LocalJsonToFileOperatorExecutor() extends LocalExecutor[JsonToFileOpe
     }
   }
 
-  /** Turns each entity into its output string via `content`, skipping entities whose value fails validation
-    * (`TaskException`) and collecting one warning per skip. Non-validation errors propagate. */
-  private def partitionValid(entities: IndexedSeq[Entity])
-                            (content: Entity => String): (IndexedSeq[String], Seq[String]) = {
-    val (warnings, valid) = entities.partitionMap { entity =>
-      try Right(content(entity))
-      catch { case ex: TaskException => Left(s"Skipped entity ${entity.uri}: ${ex.getMessage}") }
+  /** Hands each valid entity's content to `onValid` and moves on without holding onto it — no content from more
+    * than one entity is ever live at once, regardless of how many entities the source yields. */
+  private def processSkippingInvalid(entities: CloseableIterator[Entity], pathIndex: Int, outputProperty: String)
+                                     (onValid: String => Unit): (Int, Seq[String]) = {
+    val warnings = ArrayBuffer[String]()
+    var validCount = 0
+    for (entity <- entities) {
+      try {
+        onValid(rawContent(entity, pathIndex, outputProperty))
+        validCount += 1
+      } catch {
+        case ex: TaskException => warnings += s"Skipped entity ${entity.uri}: ${ex.getMessage}"
+      }
     }
-    (valid, warnings)
+    (validCount, warnings.toSeq)
   }
 
-  /** Sets the execution report: the valid entity count, completion, and one warning per skipped entity. */
   private def report(task: Task[JsonToFileOperator],
                      context: ActivityContext[ExecutionReport],
                      warnings: Seq[String],
