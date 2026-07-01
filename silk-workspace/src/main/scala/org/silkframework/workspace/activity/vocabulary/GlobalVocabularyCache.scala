@@ -45,45 +45,48 @@ case class GlobalVocabularyCache() extends Activity[VocabularyCacheValue] {
 
   override def run(context: ActivityContext[VocabularyCacheValue])(implicit userContext: UserContext): Unit = {
     val vocabManager = VocabularyManager()
-    var vocabsToUpdate = GlobalVocabularyCache.clearAndGetVocabularies
-    while(vocabsToUpdate.nonEmpty && !cancelled) {
-      log.info(s"Going to update ${vocabsToUpdate.size} vocabularies...")
-      // Update vocabs that were changed by a user
-      for(vocabURI <- vocabsToUpdate) {
-        installVocabulary(vocabManager, vocabURI)
-        vocabsToUpdate -= vocabURI
-      }
+    // Always reconcile the cache at least once. Keep going while new force-update requests arrive during a run.
+    var forcedUpdates = GlobalVocabularyCache.clearAndGetVocabularies
+    do {
+      reconcileCache(vocabManager, forcedUpdates)
       context.value.update(new VocabularyCacheValue(cache.values.toSeq, lastUpdated))
-      // Check if something has changed
-      vocabsToUpdate ++= GlobalVocabularyCache.clearAndGetVocabularies
-    }
-    // Also update all vocabularies in case a former request has failed
-    loadAllInstalledVocabularies(vocabManager)
-    context.value.update(new VocabularyCacheValue(cache.values.toSeq, lastUpdated))
+      forcedUpdates = GlobalVocabularyCache.clearAndGetVocabularies
+    } while (forcedUpdates.nonEmpty && !cancelled)
   }
 
-  /* Loads all installed vocabularies and removes uninstalled ones.
-     Vocabularies existing in the cache are never reloaded, i.e. new modifications to vocabularies are not detected.
+  /* Reconciles the cache with the list of currently installed vocabularies:
+       - installs vocabularies that are installed but not cached yet,
+       - re-fetches installed vocabularies that were explicitly requested to be force-reloaded (`forcedUpdates`),
+       - removes vocabularies that are no longer installed.
+     Force-update requests are always checked against the installed vocabulary list first, so requests for vocabularies
+     that are not (or no longer) installed are ignored instead of creating empty cache entries.
+     If the vocabulary manager cannot provide the list of installed vocabularies, the requested vocabularies are
+     force-loaded without this check (the list cannot be reconciled in that case).
    */
-  private def loadAllInstalledVocabularies(vocabManager: VocabularyManager)
-                                          (implicit userContext: UserContext): Unit = {
+  private def reconcileCache(vocabManager: VocabularyManager,
+                             forcedUpdates: Set[String])
+                            (implicit userContext: UserContext): Unit = {
     vocabManager.retrieveGlobalVocabularies() match {
       case Some(vocabs) =>
         val installedVocabularies = vocabs.toSet
-        // Install all vocabularies that are not loaded in the cache, yet
-        for (vocabURI <- installedVocabularies if !cache.contains(vocabURI) && !cancelled) {
+        if(forcedUpdates.nonEmpty) {
+          log.info(s"Going to update ${forcedUpdates.count(installedVocabularies.contains)} of ${forcedUpdates.size} requested vocabularies...")
+        }
+        // Install vocabularies that are not cached yet or that were explicitly requested to be force-reloaded.
+        for (vocabURI <- installedVocabularies if !cancelled && (!cache.contains(vocabURI) || forcedUpdates.contains(vocabURI))) {
           installVocabulary(vocabManager, vocabURI)
         }
-        // Remove uninstalled vocabs
-        for (vocabURI <- cache.keys) {
-          if (!installedVocabularies.contains(vocabURI)) {
-            cache.remove(vocabURI)
-            setLastUpdated()
-            log.info(s"Vocabulary '$vocabURI' has been removed from the cache.")
-          }
+        // Remove uninstalled vocabularies.
+        for (vocabURI <- cache.keys.toSeq if !installedVocabularies.contains(vocabURI)) {
+          cache.remove(vocabURI)
+          setLastUpdated()
+          log.info(s"Vocabulary '$vocabURI' has been removed from the cache.")
         }
       case None =>
-        // Not possible to load or remove global vocabularies without this information
+        // The list of installed vocabularies is not available, so force-update the requested vocabularies without it.
+        for (vocabURI <- forcedUpdates if !cancelled) {
+          installVocabulary(vocabManager, vocabURI)
+        }
     }
   }
 
@@ -109,8 +112,9 @@ object GlobalVocabularyCache {
   private val needsUpdate = mutable.HashSet[String]()
 
   /** Queues a single vocabulary to be force-reloaded on the next cache run. This is the only way to refresh the content of a
-    * vocabulary that is already in the cache, since the general reconciliation in `loadAllInstalledVocabularies` only adds
-    * newly installed vocabularies and removes uninstalled ones without re-fetching cached entries. */
+    * vocabulary that is already in the cache, since the general reconciliation otherwise only adds newly installed
+    * vocabularies and removes uninstalled ones without re-fetching cached entries. The queued vocabulary is only
+    * re-fetched if it is part of the installed vocabulary list when the cache runs. */
   def putVocabularyInQueue(vocabUri: String): Unit = synchronized {
     needsUpdate.add(vocabUri)
   }
