@@ -77,12 +77,10 @@ object RdfDatasetAccess {
 case class RdfDatasetSpecAccess(datasetSpec: GenericDatasetSpec, datasetAccess: RdfDatasetAccess) extends RdfDatasetAccess {
 
   // The DatasetSpec behaviour (URI attribute, read-only, safe-mode) is identical to a non-RDF dataset,
-  // so delegate source/entitySink/linkSink to a DatasetSpecAccess and only add the SPARQL endpoint.
   private val specAccess = DatasetSpecAccess(datasetSpec, datasetAccess)
 
   override def sparqlEndpoint: SparqlEndpoint = datasetAccess.sparqlEndpoint
 
-  // Forwarded raw (no safe-mode/read-only wrapping), matching the previous plugin-level triple sink.
   override def tripleSink(implicit userContext: UserContext): TripleSink = datasetAccess.tripleSink
 
   override def source(implicit userContext: UserContext): DataSource = specAccess.source
