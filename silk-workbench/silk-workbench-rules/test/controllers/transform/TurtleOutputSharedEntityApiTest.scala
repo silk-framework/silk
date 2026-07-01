@@ -12,7 +12,7 @@ import scala.concurrent.duration._
 
 /**
   * Reproduces the shape of the demo "books" mapping to prove that the turtle-output endpoint isolates a
-  * single input record even when records share a minted object IRI.
+  * single input record even when records share minted object IRIs at several levels.
   *
   * Fixture transform "BookTransform" (input dataset "BookJSON", two book records):
   *   root (schema:Book, uri https://ex.org/book/{isbn})
@@ -20,12 +20,16 @@ import scala.concurrent.duration._
   *     └─ publisher (schema:Organization, uri https://ex.org/publisher/{name})
   *          └─ address (schema:PostalAddress, uri https://ex.org/address/{city})
   *
-  * Both books point at the SAME author IRI (id "shared"), so a naive bidirectional walk would drag the
-  * second book (and its publisher/address) into the first book's page. The endpoint must not do that.
+  * Both books share:
+  *  - the SAME author IRI (id "shared"),
+  *  - the SAME grandchild address IRI (city "SharedCity") via two different publishers,
+  *  - the rdf:type class IRIs (schema:Person/Organization/PostalAddress) inherent to every entity.
+  * A naive bidirectional walk hops through any of these shared IRIs into the other record. The endpoint
+  * must not: a single record's page contains that record's own subtree only.
   */
 class TurtleOutputSharedEntityApiTest extends AnyFlatSpec with SingleProjectWorkspaceProviderTestTrait with Matchers with IntegrationTestTrait {
 
-  behavior of "Turtle output endpoint (records sharing an object)"
+  behavior of "Turtle output endpoint (records sharing objects at multiple levels)"
 
   override def workspaceProviderId: String = "inMemoryWorkspaceProvider"
 
@@ -38,10 +42,9 @@ class TurtleOutputSharedEntityApiTest extends AnyFlatSpec with SingleProjectWork
   private val book1 = "<https://ex.org/book/B1>"
   private val book2 = "<https://ex.org/book/B2>"
   private val sharedAuthor = "<https://ex.org/author/shared>"
+  private val sharedAddress = "<https://ex.org/address/SharedCity>"
   private val publisher1 = "<https://ex.org/publisher/P1>"
   private val publisher2 = "<https://ex.org/publisher/P2>"
-  private val address1 = "<https://ex.org/address/C1>"
-  private val address2 = "<https://ex.org/address/C2>"
 
   private def turtleUrl = s"$baseUrl/transform/tasks/$projectId/$transformTask/turtle"
 
@@ -55,36 +58,34 @@ class TurtleOutputSharedEntityApiTest extends AnyFlatSpec with SingleProjectWork
     val response = page(0, 100)
     response.status mustBe 200
     val body = response.body
-    // sanity: both records and the shared author are present when not paginated down
     body must include (book1)
     body must include (book2)
     body must include (sharedAuthor)
+    body must include (sharedAddress)
     body must include (publisher1)
     body must include (publisher2)
   }
 
-  it should "isolate the first record at limit=1, not bleeding into the record that shares the author" in {
+  it should "isolate the first record at limit=1, not bleeding through the shared author, shared address or type hubs" in {
     val body = page(0, 1).body
-    // The first book, its publisher and grandchild address are present ...
+    // The first book and its own publisher are present ...
     body must include (book1)
     body must include (publisher1)
-    body must include (address1)
-    // ... the shared author is part of the first record too ...
+    // ... the shared author and shared address are part of the first record too ...
     body must include (sharedAuthor)
-    // ... but NOTHING from the second book leaks in, even though it shares the author IRI.
+    body must include (sharedAddress)
+    // ... but the second book and its (distinct) publisher must NOT leak in, despite sharing author/address/types.
     body must not include book2
     body must not include publisher2
-    body must not include address2
   }
 
   it should "isolate the second record at offset=1" in {
     val body = page(1, 1).body
     body must include (book2)
     body must include (publisher2)
-    body must include (address2)
     body must include (sharedAuthor)
+    body must include (sharedAddress)
     body must not include book1
     body must not include publisher1
-    body must not include address1
   }
 }
