@@ -143,9 +143,8 @@ object DatasetSpec {
             // The requested schema already contains the URI column, so only rewrite the entity URIs from it.
             source.retrieve(entitySchema, limit).mapEntities(entity => Entity(uriFromColumn(entity, uriPath), entity.values, entity.schema))
           } else {
-            // Append the URI column so the source retrieves it, use its value as the entity URI, then drop
-            // it again so the returned entities conform to the originally requested schema (and not leak the
-            // URI as an additional value).
+            // Append the URI column so the source retrieves it, use its value as the entity URI, then drop it
+            // again so the returned entities match the requested schema (and don't leak the URI as a value).
             val adaptedSchema = entitySchema.copy(typedPaths = entitySchema.typedPaths :+ uriPath)
             val uriIndex = entitySchema.typedPaths.size
             source.retrieve(adaptedSchema, limit).flatMapEntities(entitySchema) { entity =>

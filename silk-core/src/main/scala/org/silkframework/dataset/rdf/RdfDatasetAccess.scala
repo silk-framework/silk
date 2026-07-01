@@ -26,41 +26,28 @@ trait RdfDatasetAccess extends DatasetAccess {
 
 object RdfDatasetAccess {
 
-  /**
-    * Resolves the RDF access of a dataset task for a specific execution.
-    */
+  /** Resolves the RDF access of a dataset task for a specific execution. */
   def forExecution[DatasetType <: Dataset](task: Task[DatasetSpec[DatasetType]], execution: ExecutionType): RdfDatasetAccess = {
     forExecutionOption(task, execution).getOrElse(noRdfAccess(task))
   }
 
-  /**
-    * Resolves the RDF access of a dataset task for the configured (default) execution.
-    */
+  /** Resolves the RDF access of a dataset task for the configured (default) execution. */
   def forExecution[DatasetType <: Dataset](task: Task[DatasetSpec[DatasetType]]): RdfDatasetAccess = {
     forExecutionOption(task).getOrElse(noRdfAccess(task))
   }
 
-  /**
-    * Resolves the RDF access of a transient (task-less) dataset for the configured (default) execution.
-    * Prefer the task-based overloads when a task is available.
-    */
+  /** Resolves the RDF access of a transient (task-less) dataset. Prefer the task-based overloads when a task is available. */
   def forExecution(dataset: Dataset): RdfDatasetAccess = {
     rdfAccessOf(ExecutorRegistry.access(dataset)).getOrElse(noRdfAccess(dataset))
   }
 
-  /**
-    * Resolves the RDF access of an arbitrary dataset task for a specific execution, returning `None`
-    * if the dataset's executor does not provide RDF access.
-    */
+  /** Resolves the RDF access of a dataset task for a specific execution, or `None` if its executor provides no RDF access. */
   def forExecutionOption[DatasetType <: Dataset](task: Task[DatasetSpec[DatasetType]],
                                                  execution: ExecutionType): Option[RdfDatasetAccess] = {
     rdfAccessOf(ExecutorRegistry.access(task, execution))
   }
 
-  /**
-    * Resolves the RDF access of an arbitrary dataset task for the configured (default) execution,
-    * returning `None` if the dataset's executor does not provide RDF access.
-    */
+  /** Resolves the RDF access of a dataset task for the configured (default) execution, or `None` if its executor provides no RDF access. */
   def forExecutionOption[DatasetType <: Dataset](task: Task[DatasetSpec[DatasetType]]): Option[RdfDatasetAccess] = {
     rdfAccessOf(ExecutorRegistry.access(task))
   }
