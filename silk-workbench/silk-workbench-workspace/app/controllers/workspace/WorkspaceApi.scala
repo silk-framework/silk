@@ -356,7 +356,11 @@ class WorkspaceApi  @Inject() (accessMonitor: WorkbenchAccessMonitor) extends In
 
   @Operation(
     summary = "Update global vocabulary cache",
-    description = "Update a specific vocabulary of the global vocabulary cache. This request is non-blocking. It can take a while for the cache to be up to date.",
+    description = "Triggers a general update of the global vocabulary cache: newly installed vocabularies are added and " +
+        "uninstalled ones are removed. Vocabularies already present in the cache are not re-fetched by this general update. " +
+        "The optional `iri` in the request body forces the vocabulary with that IRI to be re-fetched, which is the only way " +
+        "to refresh the content of an already-cached vocabulary. If the body is empty (or `iri` is omitted), only the general " +
+        "update is performed. This request is non-blocking. It can take a while for the cache to be up to date.",
     responses = Array(
       new ApiResponse(
         responseCode = "204",
@@ -368,14 +372,17 @@ class WorkspaceApi  @Inject() (accessMonitor: WorkbenchAccessMonitor) extends In
     content = Array(
       new Content(
         schema = new Schema(implementation = classOf[UpdateGlobalVocabularyRequest]),
-        examples = Array(new ExampleObject("""{ "iri": "http://xmlns.com/foaf/0.1/" }"""))
+        examples = Array(
+          new ExampleObject(name = "General update", value = "{ }"),
+          new ExampleObject(name = "Force reload of a specific vocabulary", value = """{ "iri": "http://xmlns.com/foaf/0.1/" }""")
+        )
       )
     )
   )
   def updateGlobalVocabularyCache(): Action[JsValue] = RequestUserContextAction(parse.json) { implicit request =>
     implicit userContext =>
       validateJson[UpdateGlobalVocabularyRequest] { updateRequest =>
-        GlobalVocabularyCache.putVocabularyInQueue(updateRequest.iri)
+        updateRequest.iri.foreach(GlobalVocabularyCache.putVocabularyInQueue)
         val activityControl = workspace.activity[GlobalVocabularyCache].control
         if(!activityControl.status.get.exists(_.isRunning)) {
           Try(activityControl.start())

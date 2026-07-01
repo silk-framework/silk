@@ -108,6 +108,9 @@ case class GlobalVocabularyCache() extends Activity[VocabularyCacheValue] {
 object GlobalVocabularyCache {
   private val needsUpdate = mutable.HashSet[String]()
 
+  /** Queues a single vocabulary to be force-reloaded on the next cache run. This is the only way to refresh the content of a
+    * vocabulary that is already in the cache, since the general reconciliation in `loadAllInstalledVocabularies` only adds
+    * newly installed vocabularies and removes uninstalled ones without re-fetching cached entries. */
   def putVocabularyInQueue(vocabUri: String): Unit = synchronized {
     needsUpdate.add(vocabUri)
   }
