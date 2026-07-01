@@ -15,12 +15,12 @@ import org.silkframework.util.Uri
   relatedPlugins = Array(
     new PluginReference(
       id = JsonParserTask.pluginId,
-      description = "JSON to File writes the JSON string on each input entity to a file; Parse JSON parses the same kind of input into structured entities driven by a downstream schema."
+      description = "JSON to File writes the JSON string from each input entity to a file; Parse JSON parses the same kind of input into structured entities driven by a downstream schema."
     )
   )
 )
 case class JsonToFileOperator(@Param("The Silk path expression of the input entity that contains the JSON string. " +
-                                  "If not set, the value of the first defined property will be taken.")
+                                  "If not set, the value of the first property in the entity schema will be taken.")
                               inputPath: String = "",
                               @Param("Filename for the produced file. If left empty, an auto-generated temporary name is used. " +
                                   "In file output mode, when the input contains more than one entity, an index suffix is appended " +
@@ -30,8 +30,8 @@ case class JsonToFileOperator(@Param("The Silk path expression of the input enti
                               outputFileName: String = "",
                               @Param("MIME type of the produced file.")
                               mimeType: String = "application/json",
-                              @Param("Output mode: file writes one file per entity, zip packs all entities into a single ZIP archive, " +
-                                  "jsonArray merges all entities into a single JSON array file.")
+                              @Param("Output mode: \"One file per entity\" writes one file per entity, \"ZIP archive\" packs all entities into a single ZIP archive, " +
+                                  "\"Merged JSON array\" merges all entities into a single JSON array file.")
                               outputMode: JsonToFileOutputModeEnum = JsonToFileOutputModeEnum.file,
                               @Param("If set, the JSON value is wrapped in a JSON object under this property key before writing. " +
                                   "For example, with outputProperty set to 'payload', the input {\"name\":\"Alice\"} is written as " +
