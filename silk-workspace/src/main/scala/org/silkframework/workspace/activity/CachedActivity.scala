@@ -132,15 +132,8 @@ trait CachedActivity[T] extends Activity[T] {
 
     dirty = true
 
-    if(taskActivity.status().isRunning) {
-      // Do nothing, the dirty flag should be picked up by the activity execution
-    } else {
-      try {
-        taskActivity.start()
-      } catch {
-        case _: IllegalStateException =>
-        // Ignore exception because of race condition that another thread already started the activity
-      }
-    }
+    // Start the activity, or ensure one more run after the current one finishes. This guarantees the dirty flag is
+    // picked up even if it is set in the short window while a run is finishing
+    taskActivity.startOrReRun()
   }
 }
