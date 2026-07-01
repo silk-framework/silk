@@ -62,37 +62,6 @@ case class LocalJsonToFileOperatorExecutor() extends LocalExecutor[JsonToFileOpe
     Some(FileEntitySchema.create(fileEntities.result(), task))
   }
 
-  /** The `[`, `,`, and `]` bytes are written by hand as content arrives; nothing re-parses the assembled file
-    * afterward, so the array's well-formedness depends entirely on this loop's bracket and comma placement. */
-  private def executeMergedJson(task: Task[JsonToFileOperator],
-                               entities: CloseableIterator[Entity],
-                               pathIndex: Int,
-                               context: ActivityContext[ExecutionReport])
-                              (implicit pluginContext: PluginContext): Option[LocalEntities] = {
-    val outputMimeType = Some(task.data.mimeType)
-    val outputProperty = task.data.outputProperty
-    val fileEntity = FileEntity.createTemp(TempFilePrefix, ".json").copy(mimeType = outputMimeType)
-    try {
-      val (validCount, warnings) = fileEntity.file.write() { outputStream =>
-        outputStream.write("[".getBytes(StandardCharsets.UTF_8))
-        var isFirst = true
-        val result = processSkippingInvalid(entities, pathIndex, outputProperty) { content =>
-          if (!isFirst) outputStream.write(",".getBytes(StandardCharsets.UTF_8))
-          outputStream.write(content.getBytes(StandardCharsets.UTF_8))
-          isFirst = false
-        }
-        outputStream.write("]".getBytes(StandardCharsets.UTF_8))
-        result
-      }
-      report(task, context, warnings, validCount)
-      Some(FileEntitySchema.create(Seq(fileEntity), task))
-    } catch {
-      case NonFatal(e) =>
-        Try(fileEntity.file.delete())
-        throw e
-    }
-  }
-
   /** Entries are always `entry-N.json`; a single valid entity is never named `entry.json`, since streaming
     * never knows the total valid count before writing the first entry. */
   private def executeZip(task: Task[JsonToFileOperator],
@@ -125,36 +94,34 @@ case class LocalJsonToFileOperatorExecutor() extends LocalExecutor[JsonToFileOpe
     }
   }
 
-  private def readJsonValue(entity: Entity, pathIndex: Int): String = {
-    val values = entity.values
-    if (values.size <= pathIndex) {
-      throw TaskException(s"No input value at path index $pathIndex found for 'JSON to File' operator on entity ${entity.uri}.")
-    }
-    values(pathIndex).headOption.filter(_.nonEmpty).getOrElse {
-      throw TaskException(s"No JSON value at the configured input path for 'JSON to File' operator on entity ${entity.uri}.")
-    }
-  }
-
-  /** Parses the input string into a JsonNode; throws TaskException if the string is not valid JSON. */
-  private def parseJson(jsonString: String): JsonNode = {
+  /** The `[`, `,`, and `]` bytes are written by hand as content arrives; nothing re-parses the assembled file
+    * afterward, so the array's well-formedness depends entirely on this loop's bracket and comma placement. */
+  private def executeMergedJson(task: Task[JsonToFileOperator],
+                               entities: CloseableIterator[Entity],
+                               pathIndex: Int,
+                               context: ActivityContext[ExecutionReport])
+                              (implicit pluginContext: PluginContext): Option[LocalEntities] = {
+    val outputMimeType = Some(task.data.mimeType)
+    val outputProperty = task.data.outputProperty
+    val fileEntity = FileEntity.createTemp(TempFilePrefix, ".json").copy(mimeType = outputMimeType)
     try {
-      JsonNodeSerializer.parse(jsonString)
+      val (validCount, warnings) = fileEntity.file.write() { outputStream =>
+        outputStream.write("[".getBytes(StandardCharsets.UTF_8))
+        var isFirst = true
+        val result = processSkippingInvalid(entities, pathIndex, outputProperty) { content =>
+          if (!isFirst) outputStream.write(",".getBytes(StandardCharsets.UTF_8))
+          outputStream.write(content.getBytes(StandardCharsets.UTF_8))
+          isFirst = false
+        }
+        outputStream.write("]".getBytes(StandardCharsets.UTF_8))
+        result
+      }
+      report(task, context, warnings, validCount)
+      Some(FileEntitySchema.create(Seq(fileEntity), task))
     } catch {
-      case ex: JsonParseException =>
-        throw TaskException(s"Input value for 'JSON to File' operator is not valid JSON: ${ex.getMessage}")
-    }
-  }
-
-  /** Per-entity content for all modes: read the value, validate it parses as a single JSON document (the parsed node
-    * is discarded so the raw bytes survive), and wrap it under outputProperty when set, splicing the value verbatim. */
-  private def rawContent(entity: Entity, pathIndex: Int, outputProperty: String): String = {
-    val raw = readJsonValue(entity, pathIndex)
-    parseJson(raw) // validate only; the node is discarded so the original bytes are preserved
-    if (outputProperty.isEmpty) {
-      raw
-    } else {
-      val key = JsonNodeSerializer.toString(JsonString(outputProperty, JsonPosition(1, 1)))
-      s"{$key:$raw}"
+      case NonFatal(e) =>
+        Try(fileEntity.file.delete())
+        throw e
     }
   }
 
@@ -192,6 +159,39 @@ case class LocalJsonToFileOperatorExecutor() extends LocalExecutor[JsonToFileOpe
       case NonFatal(e) =>
         Try(fileEntity.file.delete())
         throw e
+    }
+  }
+
+  /** Per-entity content for all modes: read the value, validate it parses as a single JSON document (the parsed node
+    * is discarded so the raw bytes survive), and wrap it under outputProperty when set, splicing the value verbatim. */
+  private def rawContent(entity: Entity, pathIndex: Int, outputProperty: String): String = {
+    val raw = readJsonValue(entity, pathIndex)
+    parseJson(raw) // validate only; the node is discarded so the original bytes are preserved
+    if (outputProperty.isEmpty) {
+      raw
+    } else {
+      val key = JsonNodeSerializer.toString(JsonString(outputProperty, JsonPosition(1, 1)))
+      s"{$key:$raw}"
+    }
+  }
+
+  /** Parses the input string into a JsonNode; throws TaskException if the string is not valid JSON. */
+  private def parseJson(jsonString: String): JsonNode = {
+    try {
+      JsonNodeSerializer.parse(jsonString)
+    } catch {
+      case ex: JsonParseException =>
+        throw TaskException(s"Input value for 'JSON to File' operator is not valid JSON: ${ex.getMessage}")
+    }
+  }
+
+  private def readJsonValue(entity: Entity, pathIndex: Int): String = {
+    val values = entity.values
+    if (values.size <= pathIndex) {
+      throw TaskException(s"No input value at path index $pathIndex found for 'JSON to File' operator on entity ${entity.uri}.")
+    }
+    values(pathIndex).headOption.filter(_.nonEmpty).getOrElse {
+      throw TaskException(s"No JSON value at the configured input path for 'JSON to File' operator on entity ${entity.uri}.")
     }
   }
 
