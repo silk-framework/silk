@@ -70,14 +70,24 @@ object ProjectUtils {
     *              to it. This keeps records that merely share a referenced entity (e.g. two books with the
     *              same author or publisher) from bleeding into each other. Defaults to empty, in which case
     *              no boundary is applied and the full connected component is returned.
+    * @param backwardPredicates Restricts which incoming (backward) statements are followed. `None` follows
+    *              all incoming statements (legacy behaviour). `Some(set)` follows an incoming statement only
+    *              if its predicate is in the set - this must be the set of the transform's backward/inverse
+    *              property mappings. Without it the walk hops through shared object IRIs (e.g. the rdf:type
+    *              class shared by every entity of a type, or a shared author) into unrelated records.
     */
-  def connectedSubgraph(model: Model, seeds: Iterable[String], roots: Set[String] = Set.empty): Model = {
+  def connectedSubgraph(model: Model,
+                        seeds: Iterable[String],
+                        roots: Set[String] = Set.empty,
+                        backwardPredicates: Option[Set[String]] = None): Model = {
     val result = ModelFactory.createDefaultModel()
     result.setNsPrefixes(model)
     val seedSet = seeds.toSet
     // A foreign root is a root subject of some other record. Stopping at it (without emitting the linking
     // statement) prevents shared referenced entities from dragging neighbouring records into the result.
     def isForeignRoot(uri: String): Boolean = roots.contains(uri) && !seedSet.contains(uri)
+    // None => follow every incoming statement; Some(set) => only those whose predicate is an inverse mapping.
+    def followBackward(predicate: String): Boolean = backwardPredicates.forall(_.contains(predicate))
     val visited = scala.collection.mutable.Set.empty[String]
     val queue = scala.collection.mutable.Queue.empty[String]
     queue ++= seeds
@@ -100,19 +110,22 @@ object ProjectUtils {
             result.add(statement)
           }
         }
-        // Incoming statements: follow backward/inverse links to the linking subject.
+        // Incoming statements: follow backward/inverse links to the linking subject, but only for
+        // predicates that are actually inverse property mappings (when that set is known).
         val incoming = model.listStatements(null.asInstanceOf[Resource], null.asInstanceOf[Property], resource)
         while (incoming.hasNext) {
           val statement = incoming.next()
-          val subject = statement.getSubject
-          if (subject.isURIResource) {
-            val subjUri = subject.getURI
-            if (!isForeignRoot(subjUri)) {
+          if (followBackward(statement.getPredicate.getURI)) {
+            val subject = statement.getSubject
+            if (subject.isURIResource) {
+              val subjUri = subject.getURI
+              if (!isForeignRoot(subjUri)) {
+                result.add(statement)
+                queue.enqueue(subjUri)
+              }
+            } else {
               result.add(statement)
-              queue.enqueue(subjUri)
             }
-          } else {
-            result.add(statement)
           }
         }
       }

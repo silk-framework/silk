@@ -1177,7 +1177,14 @@ class TransformTaskApi @Inject() () extends InjectedController with UserContextA
     // boundaries keeps records that merely share a referenced entity (same author, publisher, ...) from
     // bleeding into the page through the backward/inverse link traversal.
     val pageRootSubjects = recordingSink.rootSubjects.drop(offset).take(limit)
-    val pageModel = connectedSubgraph(model, pageRootSubjects, recordingSink.rootSubjects.toSet)
+    // Follow inverse links backward only for predicates that are actually backward/inverse property
+    // mappings in this transform. Otherwise the walk would hop through shared object IRIs (e.g. the
+    // rdf:type class shared by every entity of a type, or a shared author) into other records.
+    val backwardPredicates: Set[String] =
+      prunedRoot.rules.allRulesRecursive.flatMap(_.target).collect {
+        case target if target.isBackwardProperty => target.propertyUri.uri
+      }.toSet
+    val pageModel = connectedSubgraph(model, pageRootSubjects, recordingSink.rootSubjects.toSet, Some(backwardPredicates))
     // Add the project prefixes so the Turtle output uses readable @prefix declarations.
     pageModel.setNsPrefixes(project.config.prefixes.prefixMap.asJava)
     // Resolve the Accept header to a supported RDF content type, ignoring q-params and wildcards.

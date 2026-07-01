@@ -86,6 +86,39 @@ class ConnectedSubgraphTest extends AnyFlatSpec with Matchers {
     result.contains(result.getResource(book2), result.getProperty(name), "Animal Farm") mustBe false
   }
 
+  it should "not follow a shared object hub (e.g. a shared rdf:type class) backward when backward predicates are restricted" in {
+    val pub1 = "http://example.org/publisher/1"
+    val pub2 = "http://example.org/publisher/2"
+    val orgType = "http://example.org/Organization"
+    val typeProp = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type"
+
+    val model = ModelFactory.createDefaultModel()
+    stmt(model, pub1, typeProp, orgType)   // pub1 a Organization
+    stmt(model, pub2, typeProp, orgType)   // pub2 a Organization - shares the class IRI
+
+    // Restricting backward following to an empty set of inverse predicates: the shared class IRI must
+    // not act as a hub that drags pub2 into pub1's subgraph.
+    val restricted = ProjectUtils.connectedSubgraph(model, Seq(pub1), backwardPredicates = Some(Set.empty))
+    restricted.contains(restricted.getResource(pub1), restricted.getProperty(typeProp), restricted.getResource(orgType)) mustBe true
+    restricted.contains(restricted.getResource(pub2), restricted.getProperty(typeProp), restricted.getResource(orgType)) mustBe false
+
+    // Legacy behaviour (no restriction) would bleed pub2 in via the shared class IRI.
+    val unrestricted = ProjectUtils.connectedSubgraph(model, Seq(pub1))
+    unrestricted.contains(unrestricted.getResource(pub2), unrestricted.getProperty(typeProp), unrestricted.getResource(orgType)) mustBe true
+  }
+
+  it should "still follow an incoming edge whose predicate is a declared backward mapping" in {
+    val model = ModelFactory.createDefaultModel()
+    literal(model, person, label, "Alice")
+    stmt(model, address, addressOf, person)    // backward: address -> addressOf -> person
+    literal(model, address, city, "Berlin")
+
+    // addressOf is declared as an inverse-mapping predicate, so the linked child is still collected.
+    val result = ProjectUtils.connectedSubgraph(model, Seq(person), backwardPredicates = Some(Set(addressOf)))
+    result.contains(result.getResource(address), result.getProperty(addressOf), result.getResource(person)) mustBe true
+    result.contains(result.getResource(address), result.getProperty(city), "Berlin") mustBe true
+  }
+
   it should "still return the full connected component when no root boundaries are given" in {
     val book1 = "http://example.org/book/1"
     val book2 = "http://example.org/book/2"
