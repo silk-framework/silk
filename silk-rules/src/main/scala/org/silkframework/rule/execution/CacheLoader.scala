@@ -33,7 +33,8 @@ import scala.util.control.Breaks._
  */
 class CacheLoader(source: DataSource,
                   entityCache: EntityCache,
-                  sampleSizeOpt: Option[Int] = None)
+                  sampleSizeOpt: Option[Int] = None,
+                  pluginContextOpt: Option[PluginContext] = None)
                  (implicit prefixes: Prefixes) extends Activity[Unit] {
 
   override def name = "Loading"
@@ -63,7 +64,10 @@ class CacheLoader(source: DataSource,
   }
 
   private def retrieveEntities(implicit userContext: UserContext): CloseableIterator[Entity] = {
-    implicit val pluginContext: PluginContext = PluginContext(prefixes = prefixes, resources = EmptyResourceManager(), user = userContext, taskResolver = TaskResolver.empty)
+    implicit val pluginContext: PluginContext =
+      pluginContextOpt
+        .map(ctx => PluginContext(ctx.prefixes, ctx.resources, userContext, ctx.projectId, ctx.templateVariables, ctx.taskResolver))
+        .getOrElse(PluginContext(prefixes = prefixes, resources = EmptyResourceManager(), user = userContext, taskResolver = TaskResolver.empty))
     sampleSizeOpt match {
       case Some(sampleSize) =>
         implicit val random: Random = Random
