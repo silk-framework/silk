@@ -1,6 +1,6 @@
 package controllers.workspace.workspaceRequests
 
-import io.swagger.v3.oas.annotations.media.Schema
+import io.swagger.v3.oas.annotations.media.{ArraySchema, Schema}
 import io.swagger.v3.oas.annotations.media.Schema.RequiredMode
 import play.api.libs.json._
 
@@ -12,16 +12,18 @@ import play.api.libs.json._
       "newly installed vocabularies are added and uninstalled ones are removed. Vocabularies already present in the cache are " +
       "not re-fetched by this general update. The optional `iri` forces one or more already-cached vocabularies to be re-fetched."
 )
-case class UpdateGlobalVocabularyRequest(@Schema(
-                                           description = "IRIs of the vocabularies that should be force-reloaded. For each given " +
-                                               "IRI the content of that specific vocabulary is re-fetched (the only way to refresh " +
-                                               "an already-cached vocabulary), in addition to the general cache update. Accepts " +
-                                               "either a single IRI string or an array of IRI strings. If omitted, only the general " +
-                                               "update is performed, i.e. newly installed vocabularies are added and uninstalled ones " +
-                                               "are removed.",
-                                           requiredMode = RequiredMode.NOT_REQUIRED,
-                                           nullable = true,
-                                           oneOf = Array(classOf[String], classOf[Array[String]])
+case class UpdateGlobalVocabularyRequest(@ArraySchema(
+                                           arraySchema = new Schema(
+                                             description = "IRIs of the vocabularies that should be force-reloaded. For each given " +
+                                                 "IRI the content of that specific vocabulary is re-fetched (the only way to refresh " +
+                                                 "an already-cached vocabulary), in addition to the general cache update. Accepts " +
+                                                 "either a single IRI string or an array of IRI strings. If omitted, only the general " +
+                                                 "update is performed, i.e. newly installed vocabularies are added and uninstalled ones " +
+                                                 "are removed.",
+                                             requiredMode = RequiredMode.NOT_REQUIRED,
+                                             nullable = true
+                                           ),
+                                           schema = new Schema(implementation = classOf[String])
                                          )
                                          iri: Seq[String] = Seq.empty)
 

@@ -240,7 +240,7 @@ lazy val serializationJson = (project in file("silk-plugins/silk-serialization-j
   .settings(
     name := "Silk Serialization JSON",
     libraryDependencies += "com.typesafe.play" %% "play-json" % "2.10.8",
-    libraryDependencies += "io.swagger.core.v3" % "swagger-annotations" % "2.2.45"
+    libraryDependencies += "io.swagger.core.v3" % "swagger-annotations" % "2.2.52"
   )
 
 lazy val persistentCaching = (project in file("silk-plugins/silk-persistent-caching"))
