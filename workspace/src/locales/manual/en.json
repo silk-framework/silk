@@ -863,7 +863,7 @@
             },
             "normalizePortOrder": "Normalize port order",
             "normalizePortOrderTooltip": "Renumber input ports to 1..n while preserving their current order. This action is undoable.",
-            "refreshUsage": "Refresh usage",
+            "refreshUsage": "Usage status",
             "usageInUse": "This rule block is already in use. Existing input ports cannot be removed, and their relative order cannot change.",
             "usageRefreshHint": "Click \"Refresh status\" to update this usage information.",
             "usageRefreshError": "Could not refresh rule block usage information."
