@@ -53,7 +53,7 @@ class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
 
   lazy private val taskActivities: Seq[TaskActivity[TaskType, _ <: HasValue]] = {
     // Get all task activity factories for this task type
-    implicit val pluginContext: PluginContext = PluginContext(module.project.config.prefixes, module.project.resources, taskResolver = TaskResolver.fromProject(project))
+    implicit val pluginContext: PluginContext = PluginContext(module.project.config.prefixes, module.project.resources, taskResolver = TaskResolver.empty)
     val taskType = data.getClass
     val factories = PluginRegistry.availablePlugins[TaskActivityFactory[TaskType, _ <: HasValue]]
                                   .map(_.apply())
