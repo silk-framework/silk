@@ -1,18 +1,23 @@
 package org.silkframework.plugins.dataset.rdf.datasets
 
-import org.apache.jena.rdf.model.ModelFactory
 import org.silkframework.dataset._
 import org.silkframework.dataset.rdf.{RdfDataset, SparqlEndpoint, SparqlParams}
-import org.silkframework.plugins.dataset.rdf.endpoint.JenaModelEndpoint
+import org.silkframework.execution.local.LocalExecution
 import org.silkframework.plugins.dataset.rdf.access.{SparqlSink, SparqlSource}
+import org.silkframework.plugins.dataset.rdf.endpoint.InMemoryJenaModelEndpoint
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.annotations.{Param, Plugin, PluginReference}
+import org.silkframework.util.Identifier
+
+import java.util.Collections
 
 @Plugin(
   id = InMemoryDataset.pluginId,
-  label = "In-memory dataset",
+  label = "In-memory Knowledge Graph",
   categories = Array(DatasetCategories.embedded),
-  description = "A Dataset that holds all data in-memory.",
+  description = "A dataset that holds all data in-memory. " +
+    "In the default (workflow-scoped) mode, data is isolated per workflow execution and shared with nested workflows that reference the same dataset task. " +
+    "In application-scoped mode, data persists for the lifetime of the running process.",
   documentationFile = "InMemoryDataset.md",
   relatedPlugins = Array(
     new PluginReference(
@@ -25,33 +30,90 @@ import org.silkframework.runtime.plugin.annotations.{Param, Plugin, PluginRefere
     )
   )
 )
-case class InMemoryDataset(@Param(label = "Clear graph before workflow execution (deprecated)",
-                                  value = "This is deprecated, use the 'Clear dataset' operator instead to clear a dataset in a workflow. If set to true this will clear this dataset before it is used in a workflow execution.",
-                                  advanced = true)
-                           clearGraphBeforeExecution: Boolean = false) extends RdfDataset with TripleSinkDataset {
-
-  private val model = ModelFactory.createDefaultModel()
-
-  override val sparqlEndpoint: SparqlEndpoint = new JenaModelEndpoint(model)
-
-  /**
-    * Returns a data source for reading entities from the data set.
-    */
-  override def source(implicit userContext: UserContext): DataSource = new SparqlSource(SparqlParams(), sparqlEndpoint)
+case class InMemoryDataset(
+  @Param(label = "Workflow-scoped",
+         value = "If true (default), data is isolated per workflow execution and cleared after the execution ends, " +
+                 "sharing data with nested workflows that reference the same dataset task. " +
+                 "If false, data persists for the lifetime of the application process.")
+  workflowScoped: Boolean = true,
+  @Param(label = "Clear graph before workflow execution (deprecated)",
+         value = "This is deprecated, use the 'Clear dataset' operator instead to clear a dataset in a workflow. If set to true this will clear this dataset before it is used in a workflow execution.",
+         advanced = true)
+  clearGraphBeforeExecution: Boolean = false
+) extends RdfDataset with TripleSinkDataset {
 
   /**
-    * Returns a entity sink for writing entities to the data set.
-    */
-  override def entitySink(implicit userContext: UserContext): EntitySink = new SparqlSink(SparqlParams(), sparqlEndpoint, dropGraphOnClear = clearGraphBeforeExecution)
+   * The active endpoint backing this dataset. Owns its Jena model internally so the in-memory
+   * size limit is tracked by a single counter regardless of how many times this dataset is accessed.
+   *
+   * Application-scoped mode: initialised once and never reassigned; holds data for the
+   * lifetime of the process.
+   *
+   * Workflow-scoped mode: replaced by [[updateEndpoint]] each time [[InMemoryDatasetExecutor]]
+   * activates a new execution.
+   */
+  @volatile private[datasets] var endpoint: InMemoryJenaModelEndpoint = new InMemoryJenaModelEndpoint()
 
   /**
-    * Returns a link sink for writing entity links to the data set.
-    */
-  override def linkSink(implicit userContext: UserContext): LinkSink = new SparqlSink(SparqlParams(), sparqlEndpoint, dropGraphOnClear = clearGraphBeforeExecution)
+   * Endpoints for all current workflow executions, keyed by [[ExecutionModelKey]].
+   * Each entry is owned by its root execution, which anchors the key and disposes the entry via a
+   * shutdown hook (see [[getOrCreateEndpoint]]). The WeakHashMap is only a GC fallback for abandoned
+   * executions whose shutdown hooks never run.
+   */
+  private val executionEndpoints: java.util.Map[ExecutionModelKey, InMemoryJenaModelEndpoint] =
+    Collections.synchronizedMap(new java.util.WeakHashMap[ExecutionModelKey, InMemoryJenaModelEndpoint]())
 
-  override def tripleSink(implicit userContext: UserContext): TripleSink = new SparqlSink(SparqlParams(), sparqlEndpoint, dropGraphOnClear = clearGraphBeforeExecution)
+  /**
+   * Returns the endpoint registered under `key`, creating and registering a new one if absent.
+   * Access is synchronized.
+   */
+  private[datasets] def getOrCreateEndpoint(key: ExecutionModelKey, rootExecution: LocalExecution): InMemoryJenaModelEndpoint =
+    executionEndpoints.synchronized {
+      Option(executionEndpoints.get(key)).getOrElse {
+        val newEndpoint = new InMemoryJenaModelEndpoint()
+        executionEndpoints.put(key, newEndpoint)
+        // Keep `key` reachable for the root execution's lifetime so the WeakHashMap entry cannot be
+        // collected between a nested execution finishing and a sibling/parent accessing it, and drop
+        // it when the root execution finishes.
+        rootExecution.addShutdownHook(() => removeEndpoint(key))
+        newEndpoint
+      }
+    }
+
+  /** Looks up the endpoint anchored to the given execution's root for `taskId`, without creating one. */
+  private[datasets] def findEndpoint(execution: LocalExecution, taskId: Identifier): Option[InMemoryJenaModelEndpoint] =
+    Option(executionEndpoints.get(ExecutionModelKey(execution.rootExecution.executionId, taskId)))
+
+  private[datasets] def removeEndpoint(key: ExecutionModelKey): Unit =
+    executionEndpoints.remove(key)
+
+  /** Switches [[endpoint]] to the given execution's endpoint so out-of-workflow reads see current data. */
+  private[datasets] def updateEndpoint(newEndpoint: InMemoryJenaModelEndpoint): Unit =
+    endpoint = newEndpoint
+
+  // In workflow-scoped mode the executor owns the endpoint lifecycle, so sinks must not drop the graph.
+  private def dropGraph: Boolean = !workflowScoped && clearGraphBeforeExecution
+
+  override def sparqlEndpoint: SparqlEndpoint = endpoint
+
+  override def source(implicit userContext: UserContext): DataSource =
+    new SparqlSource(SparqlParams(), sparqlEndpoint)
+
+  override def entitySink(implicit userContext: UserContext): EntitySink =
+    new SparqlSink(SparqlParams(), sparqlEndpoint, dropGraphOnClear = dropGraph)
+
+  override def linkSink(implicit userContext: UserContext): LinkSink =
+    new SparqlSink(SparqlParams(), sparqlEndpoint, dropGraphOnClear = dropGraph)
+
+  override def tripleSink(implicit userContext: UserContext): TripleSink =
+    new SparqlSink(SparqlParams(), sparqlEndpoint, dropGraphOnClear = dropGraph)
 }
 
 object InMemoryDataset {
   final val pluginId = "inMemory"
 }
+
+/**
+ * Key for the [[InMemoryDataset.executionEndpoints]] WeakHashMap (workflow-scoped mode).
+ */
+private[datasets] case class ExecutionModelKey(executionId: Identifier, taskId: Identifier)

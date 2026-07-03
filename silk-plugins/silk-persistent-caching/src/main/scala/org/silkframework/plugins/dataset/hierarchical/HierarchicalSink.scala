@@ -18,8 +18,13 @@ abstract class HierarchicalSink extends EntitySink {
   // Holds root entities
   private val rootEntities: SequentialEntityCache = SequentialEntityCache()
 
-  // Holds nested entities
-  private lazy val cache: HierarchicalEntityCache = HierarchicalEntityCache()
+  // Holds nested entities. Lazily created; `cacheUsed` tracks whether it was initialized so close() does
+  // not spin up the persistent store for flat outputs.
+  private var cacheUsed: Boolean = false
+  private lazy val cache: HierarchicalEntityCache = {
+    cacheUsed = true
+    HierarchicalEntityCache()
+  }
 
   // All properties for each table.
   private val tables: mutable.Buffer[TableSpec] = mutable.Buffer.empty
@@ -84,7 +89,9 @@ abstract class HierarchicalSink extends EntitySink {
         outputEntities(writeEntities)
       }
     } finally {
-      cache.close()
+      if(cacheUsed) {
+        cache.close()
+      }
       rootEntities.close()
     }
   }
