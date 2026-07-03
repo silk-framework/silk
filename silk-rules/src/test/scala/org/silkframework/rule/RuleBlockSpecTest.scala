@@ -71,8 +71,8 @@ class RuleBlockSpecTest extends AnyFlatSpec with XmlSerializationHelperTrait {
       RuleBlockSpec(
         RuleBlockModel(
           ports = IndexedSeq(
-            RuleBlockPort(id = "duplicate", label = "Duplicate input A"),
-            RuleBlockPort(id = "duplicate", label = "Duplicate input B")
+            RuleBlockPort(id = "duplicate", label = "Duplicate input A", displayOrder = 1),
+            RuleBlockPort(id = "duplicate", label = "Duplicate input B", displayOrder = 2)
           )
         )
       )
@@ -165,7 +165,7 @@ class RuleBlockSpecTest extends AnyFlatSpec with XmlSerializationHelperTrait {
       RuleBlockSpec(
         RuleBlockModel(
           ports = IndexedSeq(
-            RuleBlockPort(id = "knownPort", label = "Known input")
+            RuleBlockPort(id = "knownPort", label = "Known input", displayOrder = 1)
           ),
           inputExamples = IndexedSeq(
             RuleBlockInputExample(

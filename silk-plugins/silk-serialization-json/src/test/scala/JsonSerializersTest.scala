@@ -178,6 +178,27 @@ class JsonSerializersTest  extends AnyFlatSpec with Matchers {
     ex.getMessage should include("missingOrderPort")
   }
 
+  it should "reject rule block ports without label in JSON" in {
+    val json =
+      Json.obj(
+        TASKTYPE -> TASK_TYPE_RULE_BLOCK,
+        PARAMETERS -> Json.obj(
+          "ports" -> Json.arr(
+            Json.obj(
+              ID -> "missingLabelPort",
+              "displayOrder" -> 1
+            )
+          )
+        )
+      )
+
+    val ex = the[ValidationException] thrownBy {
+      JsonSerialization.fromJson[TaskSpec](json)
+    }
+    ex.getMessage should include("missing required field 'label'")
+    ex.getMessage should include("missingLabelPort")
+  }
+
   def testSerialization[T](obj: T)(implicit format: JsonFormat[T]): Unit = {
     val objJson = JsonSerialization.toJson(obj)
     val objRoundTrip = JsonSerialization.fromJson[T](objJson)

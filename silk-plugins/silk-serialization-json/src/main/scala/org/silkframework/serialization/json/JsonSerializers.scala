@@ -1116,7 +1116,9 @@ object JsonSerializers {
       val portId = stringValueOption(value, ID).map(Identifier.apply).getOrElse(Operator.generateId)
       RuleBlockPort(
         id = portId,
-        label = stringValueOption(value, LABEL).getOrElse(""),
+        label = stringValueOption(value, LABEL)
+          .filter(_.nonEmpty)
+          .getOrElse(throw new TaskValidationException(s"Rule block port '$portId' is missing required field '$LABEL' in JSON.")),
         description = stringValueOption(value, DESCRIPTION).getOrElse(""),
         displayOrder = numberValueOption(value, DISPLAY_ORDER)
           .map(_.intValue)

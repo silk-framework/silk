@@ -39,7 +39,7 @@ class RuleBlockTaskApiTest extends AnyFlatSpec
     implicit val pluginContext = PluginContext.empty
     val ruleBlockModel = RuleBlockModel(
       ports = IndexedSeq(
-        RuleBlockPort(Identifier("nameInput"), label = "Name")
+        RuleBlockPort(Identifier("nameInput"), label = "Name", displayOrder = 1)
       ),
       inputExamples = IndexedSeq(
         RuleBlockInputExample(

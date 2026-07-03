@@ -181,9 +181,9 @@ object RuleBlockModel {
 }
 
 case class RuleBlockPort(id: Identifier = Operator.generateId,
-                         label: String = "",
+                         label: String,
                          description: String = "",
-                         displayOrder: Int = 1,
+                         displayOrder: Int,
                          deprecated: Boolean = false) {
   if(label.isEmpty) {
     throw new TaskValidationException("Label of rule block port must not be empty!")
@@ -225,8 +225,12 @@ object RuleBlockPort {
   implicit object RuleBlockPortXmlFormat extends XmlFormat[RuleBlockPort] {
     override def read(xml: Node)(implicit readContext: ReadContext): RuleBlockPort = {
       val id = (xml \ "@id").headOption.map(attr => Identifier(attr.text)).getOrElse(Operator.generateId)
-      val label = (xml \ "@label").text
-      val displayOrder = (xml \ "@displayOrder").headOption.map(_.text.toInt).getOrElse(1)
+      val label = (xml \ "@label").headOption.map(_.text).filter(_.nonEmpty).getOrElse {
+        throw new TaskValidationException("Rule block port requires a non-empty 'label' attribute.")
+      }
+      val displayOrder = (xml \ "@displayOrder").headOption.map(_.text.toInt).getOrElse {
+        throw new TaskValidationException(s"Rule block port '$id' requires a 'displayOrder' attribute.")
+      }
       val deprecated = (xml \ "@deprecated").headOption.map(_.text.toBoolean).getOrElse(false)
       val description = (xml \ "Description").text
       RuleBlockPort(id, label, description, displayOrder, deprecated)
