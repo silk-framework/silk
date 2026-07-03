@@ -75,7 +75,7 @@ object GlobalTemplateVariables extends TemplateVariablesReader with Serializable
   /**
     * The available variable scopes.
     */
-  override def scopes: Set[String] = Set(TemplateVariableScopes.global)
+  override def scopes: Set[Seq[String]] = Set(TemplateVariableScopes.global)
 
   /**
     * Retrieves all template variables.

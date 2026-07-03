@@ -21,4 +21,9 @@ abstract class RequestException(msg: String, cause: Option[Throwable]) extends R
     */
   def httpErrorCode: Option[Int]
 
+  /**
+    * Additional key-value pairs that should be included in the error response.
+    */
+  def additionalData: Map[String, Seq[String]] = Map.empty
+
 }

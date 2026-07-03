@@ -23,19 +23,31 @@ class PersistentSortedKeyValueStoreTest extends AnyFlatSpec with Matchers {
     // This check should work
     PersistentSortedKeyValueStore.check()
 
-    // Create a file where LMDB would place its database in order to break it
-    val dir = Files.createTempDirectory("ldmbBootTest")
-    val dbBaseDir = dir.resolve("tmp")
-    dbBaseDir.toFile.mkdirs()
-    Files.createFile(dbBaseDir.resolve("bootTest"))
-
     // The check should fail now
-    ConfigTestTrait.withConfig(("caches.persistence.directory" -> Some(dir.toFile.getCanonicalPath))) {
+    val dir = Files.createTempDirectory("ldmbBootTest")
+    ConfigTestTrait.withConfig("caches.persistence.directory" -> Some(dir.toFile.getCanonicalPath)) {
+      // Plant a file where LMDB would place the "bootTest" database directory, in order to break it.
+      val dbBaseDir = PersistentSortedKeyValueStore.tempCacheDirectory
+      dbBaseDir.mkdirs()
+      Files.createFile(dbBaseDir.toPath.resolve("bootTest"))
+
       an [LmdbException] shouldBe thrownBy { PersistentSortedKeyValueStore.check().get }
     }
 
     // Cleanup
     dir.toFile.deleteRecursive()
+  }
+
+  it should "store temporary databases in a dedicated directory, not a shared temp directory" in {
+    TestFileUtils.withTempDirectory { cacheDir =>
+      ConfigTestTrait.withConfig("caches.persistence.directory" -> Some(cacheDir.getCanonicalPath)) {
+        // The temp DB directory is wiped recursively on startup, so it must stay exclusive to the store and
+        // not coincide with a generic 'tmp' dir shared with FileUtils.tempDir (which would delete unrelated files).
+        val tempDbDir = PersistentSortedKeyValueStore.tempCacheDirectory.getCanonicalFile
+        tempDbDir.getParentFile mustBe cacheDir.getCanonicalFile
+        tempDbDir.getName must not be "tmp"
+      }
+    }
   }
 
   it should "store and retrieve single string values to/from the store" in {

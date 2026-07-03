@@ -15,7 +15,7 @@ import io.swagger.v3.oas.annotations.tags.Tag
 import io.swagger.v3.oas.annotations.{Operation, Parameter}
 import org.silkframework.runtime.templating.exceptions._
 import org.silkframework.runtime.templating.operations.{DeleteVariableModification, UpdateVariableModification, UpdateVariablesModification}
-import org.silkframework.runtime.templating.{GlobalTemplateVariables, TemplateVariable, TemplateVariables}
+import org.silkframework.runtime.templating.{GlobalTemplateVariables, TemplateVariable, TemplateVariableScopes, TemplateVariables}
 import org.silkframework.runtime.validation.BadUserInputException
 import org.silkframework.serialization.json.JsonHelpers
 import org.silkframework.workspace.WorkspaceFactory
@@ -334,7 +334,7 @@ class VariableTemplateApi @Inject()() extends InjectedController with UserContex
           val dependencyErrors =
             ex.issues.collect {
               case TemplateVariableEvaluationException(dependentVar, unboundEx: UnboundVariablesException) =>
-                (dependentVar.name, unboundEx.missingVars.filter(_.scope == "project").map(_.name))
+                (dependentVar.name, unboundEx.missingVars.filter(_.scope == TemplateVariableScopes.project).map(_.name))
             }.filter(_._2.nonEmpty).toMap
           if(dependencyErrors.nonEmpty) {
             throw new CannotReorderVariablesException(dependencyErrors)
@@ -446,8 +446,7 @@ object VariableTemplateApi {
                                   )
                                   isSensitive: Boolean,
                                   @Schema(
-                                    description = "The scope of the variable.",
-                                    example = "project",
+                                    description = "The scope of the variable, e.g. \"project\".",
                                     requiredMode = RequiredMode.REQUIRED
                                   )
                                   scope: String) {
@@ -455,13 +454,13 @@ object VariableTemplateApi {
       if (value.isEmpty && template.isEmpty) {
         throw new BadUserInputException("Either the variable value or its template has to be defined.")
       }
-      TemplateVariable(name, value.getOrElse(""), template, description, isSensitive, scope)
+      TemplateVariable(name, value.getOrElse(""), template, description, isSensitive, scope.split('.').toIndexedSeq)
     }
   }
 
   object TemplateVariableJson {
     def apply(variable: TemplateVariable): TemplateVariableJson = {
-      TemplateVariableJson(variable.name, Some(variable.value), variable.template, variable.description, variable.isSensitive, variable.scope)
+      TemplateVariableJson(variable.name, Some(variable.value), variable.template, variable.description, variable.isSensitive, variable.scope.mkString("."))
     }
   }
 

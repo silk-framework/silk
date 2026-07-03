@@ -362,7 +362,7 @@ class TaskApiTest extends PlaySpec with IntegrationTestTrait with Matchers {
     p.addAnyTask(sparqlSelect, SparqlSelectCustomTask("SELECT * WHERE {?s ?p ?o}", optionalInputDataset = SparqlEndpointDatasetParameter(inMemoryDataset)))
     p.addAnyTask(sparqlDataset, DatasetSpec(SparqlDataset("http://endpoint")))
     // Check tasks
-    taskValuesWithLabel(sparqlSelect).filter(_._2.isDefined) mustBe Seq(JsString(inMemoryDataset) -> Some(inMemoryDatasetLabel))
+    taskValuesWithLabel(sparqlSelect).filter(_._2.isDefined) must contain theSameElementsAs Seq(JsString("jinja") -> Some("Jinja"), JsString(inMemoryDataset) -> Some(inMemoryDatasetLabel))
     taskValuesWithLabel(sparqlDataset).filter(_._2.isDefined) mustBe Seq(JsString("parallel") -> Some("parallel"))
     taskValuesWithLabel(workflowId) // Just check that it returns anything
     taskValuesWithLabel(linkTaskId)
