@@ -16,7 +16,7 @@ import org.silkframework.rule.vocab.{GenericInfo, Vocabulary, VocabularyClass, V
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin._
 import org.silkframework.runtime.serialization.{ReadContext, Serialization, WriteContext}
-import org.silkframework.runtime.validation.{BadUserInputException, ValidationException}
+import org.silkframework.runtime.validation.{BadUserInputException, TaskValidationException, ValidationException}
 import org.silkframework.serialization.json.EntitySerializers.EntitySchemaJsonFormat
 import org.silkframework.serialization.json.InputJsonSerializer._
 import org.silkframework.serialization.json.JsonHelpers._
@@ -1114,11 +1114,14 @@ object JsonSerializers {
     final val DEPRECATED = "deprecated"
 
     override def read(value: JsValue)(implicit readContext: ReadContext): RuleBlockPort = {
+      val portId = stringValueOption(value, ID).map(Identifier.apply).getOrElse(Operator.generateId)
       RuleBlockPort(
-        id = stringValueOption(value, ID).map(Identifier.apply).getOrElse(Operator.generateId),
+        id = portId,
         label = stringValueOption(value, LABEL).getOrElse(""),
         description = stringValueOption(value, DESCRIPTION).getOrElse(""),
-        displayOrder = numberValueOption(value, DISPLAY_ORDER).map(_.intValue).getOrElse(1),
+        displayOrder = numberValueOption(value, DISPLAY_ORDER)
+          .map(_.intValue)
+          .getOrElse(throw new TaskValidationException(s"Rule block port '$portId' is missing required field '$DISPLAY_ORDER' in JSON.")),
         deprecated = booleanValueOption(value, DEPRECATED).getOrElse(false)
       )
     }

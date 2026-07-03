@@ -10,6 +10,7 @@ import org.silkframework.rule.{MappingTarget, NodePosition, RuleBlockInputExampl
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.PluginRegistry
 import org.silkframework.runtime.serialization.{ReadContext, Serialization, TestReadContext, TestWriteContext, WriteContext}
+import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.serialization.json.JsonSerializers._
 import org.silkframework.serialization.json.{JsonFormat, JsonSerialization}
 import org.silkframework.serialization.json.ExecutionReportSerializers.WorkflowExecutionReportJsonFormat
@@ -154,6 +155,27 @@ class JsonSerializersTest  extends AnyFlatSpec with Matchers {
     )
 
     testSerialization(ruleBlockSpec)
+  }
+
+  it should "reject rule block ports without displayOrder in JSON" in {
+    val json =
+      Json.obj(
+        TASKTYPE -> TASK_TYPE_RULE_BLOCK,
+        PARAMETERS -> Json.obj(
+          "ports" -> Json.arr(
+            Json.obj(
+              ID -> "missingOrderPort",
+              "label" -> "Missing order"
+            )
+          )
+        )
+      )
+
+    val ex = the[ValidationException] thrownBy {
+      JsonSerialization.fromJson[TaskSpec](json)
+    }
+    ex.getMessage should include("missing required field 'displayOrder'")
+    ex.getMessage should include("missingOrderPort")
   }
 
   def testSerialization[T](obj: T)(implicit format: JsonFormat[T]): Unit = {
