@@ -81,10 +81,10 @@ lazy val commonSettings = Seq(
   (Test / testOptions) += Tests.Argument(TestFrameworks.ScalaTest, "-u", "target/test-reports", scalaTestOptions),
 
   // We need to overwrite the versions of the Jackson modules.
-  // Pinned to 2.19.4 — see root build.sbt for the full explanation (S3Mock/Spring Boot BOM constraint).
-  dependencyOverrides += "com.fasterxml.jackson.module" %% "jackson-module-scala" % "2.19.4",
-  dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-databind" % "2.19.4",
-  dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-core" % "2.19.4",
+  // Fixes GHSA-72hv-8253-57qq and CVE-2025-52999 (require 2.21.1+).
+  dependencyOverrides += "com.fasterxml.jackson.module" %% "jackson-module-scala" % "2.22.0",
+  dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-databind" % "2.22.0",
+  dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-core" % "2.22.0",
 
   // Fix CVE-2026-29062 and GHSA-72hv-8253-57qq in tools.jackson.core (Jackson 3.x, from Jena 5.x)
   dependencyOverrides += "tools.jackson.core" % "jackson-core" % "3.2.0",
