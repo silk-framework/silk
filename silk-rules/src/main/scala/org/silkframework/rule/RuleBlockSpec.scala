@@ -10,7 +10,7 @@ import org.silkframework.runtime.serialization.XmlSerialization
 import org.silkframework.runtime.serialization.XmlSerialization.{fromXml, toXml}
 import org.silkframework.runtime.serialization.{ReadContext, ValidatingXMLReader, WriteContext, XmlFormat}
 import org.silkframework.runtime.templating.TemplateVariableName
-import org.silkframework.runtime.validation.ValidationException
+import org.silkframework.runtime.validation.{TaskValidationException, ValidationException}
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.{OriginalTaskData, TaskLoadingException}
 import org.silkframework.workspace.annotation.UiAnnotations
@@ -185,7 +185,9 @@ case class RuleBlockPort(id: Identifier = Operator.generateId,
                          description: String = "",
                          displayOrder: Int = 1,
                          deprecated: Boolean = false) {
-  assert(label.nonEmpty, "Label of rule block port must not be empty!")
+  if(label.nonEmpty) {
+    throw new TaskValidationException("Label of rule block port must not be empty!")
+  }
 }
 
 case class RuleBlockInputExample(id: Identifier = Operator.generateId,

@@ -3,7 +3,7 @@ package org.silkframework.workspace.activity.workflow
 import org.silkframework.config.Task
 import org.silkframework.rule.RuleBlockSpec
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.workspace.exceptions.TaskValidationException
+import org.silkframework.runtime.validation.TaskValidationException
 import org.silkframework.workspace.{DefaultTaskValidator, Project}
 
 object WorkflowValidator extends DefaultTaskValidator[Workflow] {

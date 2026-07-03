@@ -4,10 +4,10 @@ import org.silkframework.config.{PlainTask, Task}
 import org.silkframework.rule.RuleBlockSpec
 import org.silkframework.runtime.activity.TestUserContextTrait
 import org.silkframework.util.Identifier
-import org.silkframework.workspace.exceptions.TaskValidationException
 import org.silkframework.workspace.{Project, TestWorkspaceProviderTestTrait}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
+import org.silkframework.runtime.validation.TaskValidationException
 
 class WorkflowValidatorTest extends AnyFlatSpec with Matchers with TestWorkspaceProviderTestTrait with TestUserContextTrait  {
 

@@ -359,7 +359,7 @@ class Project(initialConfig: ProjectConfig, provider: WorkspaceProvider, val res
         } else {
           // Make sure that no other task depends on this task
           for(task <- allTasks) {
-            if(task.data.inputTasks.contains(taskName)) {
+            if(task.data.referencedTasks.contains(taskName)) {
               throw new ValidationException(s"Cannot delete task $taskName as it is referenced by task ${task.id}")
             }
           }
