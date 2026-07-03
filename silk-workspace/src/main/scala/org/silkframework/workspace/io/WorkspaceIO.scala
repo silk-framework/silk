@@ -2,7 +2,7 @@ package org.silkframework.workspace.io
 
 import org.silkframework.config.{CustomTask, Prefixes, TaskSpec}
 import org.silkframework.dataset.{Dataset, DatasetSpec}
-import org.silkframework.rule.{LinkSpec, TransformSpec}
+import org.silkframework.rule.{LinkSpec, RuleBlockSpec, TransformSpec}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.{PluginContext, TaskResolver}
 import org.silkframework.runtime.resource.ResourceManager
@@ -62,6 +62,7 @@ object WorkspaceIO {
     copyTasks[LinkSpec](inputWorkspace, outputWorkspace, inputResources, outputResources, updatedProjectConfig.id, project.prefixes, variables)
     copyTasks[Workflow](inputWorkspace, outputWorkspace, inputResources, outputResources, updatedProjectConfig.id, project.prefixes, variables)
     copyTasks[CustomTask](inputWorkspace, outputWorkspace, inputResources, outputResources, updatedProjectConfig.id, project.prefixes, variables)
+    copyTasks[RuleBlockSpec](inputWorkspace, outputWorkspace, inputResources, outputResources, updatedProjectConfig.id, project.prefixes, variables)
     outputWorkspace.refreshProject(updatedProjectConfig.id, outputResources)
   }
 

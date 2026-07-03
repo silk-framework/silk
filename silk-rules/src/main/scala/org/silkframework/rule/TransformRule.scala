@@ -129,7 +129,7 @@ sealed trait TransformRule extends Operator with HasMetaData {
     }
   }
 
-  override def execution(taskContext: TaskContext = TaskContext.empty): TransformRuleExecution
+  override def execution(taskContext: TaskContext): TransformRuleExecution
 
   def representsDefaultUriRule: Boolean = {
     false
@@ -176,7 +176,7 @@ sealed trait ContainerTransformRule extends TransformRule {
     }
   }
 
-  override def execution(taskContext: TaskContext = TaskContext.empty): ContainerTransformRuleExecution = {
+  override def execution(taskContext: TaskContext): ContainerTransformRuleExecution = {
     new ContainerTransformRuleExecution(this, () => rules.map(_.execution(taskContext)), operator.execution(taskContext))
   }
 }
@@ -218,7 +218,7 @@ sealed trait ValueTransformRule extends TransformRule {
 
   override def withId(newId: Identifier): ValueTransformRule
 
-  override def execution(taskContext: TaskContext = TaskContext.empty): ValueTransformRuleExecution = {
+  override def execution(taskContext: TaskContext): ValueTransformRuleExecution = {
     new ValueTransformRuleExecution(this, operator.execution(taskContext))
   }
 }
@@ -409,7 +409,7 @@ case class ComplexUriMapping(id: Identifier = "complexURI",
 
   override def withMetaData(metaData: MetaData): TransformRule = this.copy(metaData = metaData)
 
-  override def execution(taskContext: TaskContext = TaskContext.empty): ValueTransformRuleExecution = {
+  override def execution(taskContext: TaskContext): ValueTransformRuleExecution = {
     new ComplexUriMappingExecution(this, operator.execution(taskContext))
   }
 }

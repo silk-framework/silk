@@ -91,7 +91,7 @@ case class RuleBlockInput(id: Identifier = Operator.generateId,
     copy(bindings = updatedBindings)
   }
 
-  override def execution(taskContext: TaskContext = TaskContext.empty): InputExecution = {
+  override def execution(taskContext: TaskContext): InputExecution = {
     val ruleBlockTask = taskContext.pluginContext.taskResolver.resolveTyped[RuleBlockSpec](ruleBlockId)
     val ruleBlockPortIds = ruleBlockTask.data.ports.map(_.id).toSet
     val unknownBindingPortIds = bindings.map(_.portId).filterNot(ruleBlockPortIds).distinct

@@ -19,7 +19,7 @@ import org.silkframework.dataset.CombinedEntitySink
 import org.silkframework.rule.execution.{ExecuteTransform, GenerateLinks}
 import org.silkframework.rule.{LinkSpec, LinkingConfig, TaskContext, TransformSpec}
 import org.silkframework.runtime.activity.{Activity, UserContext}
-import org.silkframework.runtime.plugin.PluginContext
+import org.silkframework.runtime.plugin.{PluginContext, TaskResolver}
 import org.silkframework.runtime.resource.{EmptyResourceManager, FileResourceManager}
 import org.silkframework.runtime.serialization.{ReadContext, XmlSerialization}
 import org.silkframework.util.StringUtils._
@@ -114,7 +114,7 @@ object Silk {
    */
   def executeFile(configFile: File, linkSpecID: String = null, numThreads: Int = DefaultThreads, reload: Boolean = true)
                  (implicit userContext: UserContext): Unit = {
-    implicit val readContext: ReadContext = ReadContext(FileResourceManager(configFile.getAbsoluteFile.getParentFile), Prefixes.default)
+    implicit val readContext: ReadContext = ReadContext(FileResourceManager(configFile.getAbsoluteFile.getParentFile), Prefixes.default, taskResolver = TaskResolver.empty)
     val config = XmlSerialization.fromXml[LinkingConfig](XML.loadFile(configFile))
     executeConfig(config, linkSpecID, numThreads, reload)
   }
@@ -165,7 +165,7 @@ object Silk {
   private def executeLinkSpec(config: LinkingConfig, linkSpec: Task[LinkSpec], numThreads: Int = DefaultThreads, reload: Boolean = true)
                              (implicit userContext: UserContext): Unit = {
     implicit val prefixes: Prefixes = config.prefixes
-    implicit val pluginContext: PluginContext = PluginContext(prefixes = prefixes, resources = EmptyResourceManager(), user = userContext)
+    implicit val pluginContext: PluginContext = PluginContext(prefixes = prefixes, resources = EmptyResourceManager(), user = userContext, taskResolver = TaskResolver.empty)
     val inputs = linkSpec.findSources(config.sources)
     val generateLinks =
       new GenerateLinks(

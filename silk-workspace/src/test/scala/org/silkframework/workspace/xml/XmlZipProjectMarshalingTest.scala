@@ -6,7 +6,7 @@ import org.scalatest.matchers.should.Matchers
 import org.silkframework.config.{MetaData, PlainTask, Prefixes, Tag}
 import org.silkframework.dataset.{DatasetSpec, MockDataset}
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
-import org.silkframework.rule.{DatasetSelection, DirectMapping, LinkSpec, MappingRules, RootMappingRule, TransformSpec}
+import org.silkframework.rule.{DatasetSelection, DirectMapping, LinkSpec, MappingRules, RootMappingRule, RuleBlockSpec, TransformSpec}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.annotations.Plugin
 import org.silkframework.runtime.plugin.{PluginContext, PluginRegistry, TestPluginContext}
@@ -14,7 +14,7 @@ import org.silkframework.runtime.resource._
 import org.silkframework.runtime.templating.{CompiledTemplate, EvaluationConfig, InMemoryTemplateVariablesReader, TemplateEngine, TemplateVariableValue}
 import org.silkframework.util.{ConfigTestTrait, Uri}
 import org.silkframework.workspace.resources.InMemoryResourceRepository
-import org.silkframework.workspace.{InMemoryWorkspaceProvider, LoadedTask, ProjectConfig, Workspace}
+import org.silkframework.workspace.{InMemoryWorkspaceProvider, LoadedTask, ProjectConfig, RuleBlockTestData, Workspace}
 
 import java.io.{File, FileOutputStream, Writer}
 import java.nio.file.Files
@@ -156,6 +156,35 @@ class XmlZipProjectMarshalingTest extends AnyFlatSpec with Matchers with ConfigT
     rootRule.metaData.lastModifiedByUser shouldBe Some(userUri)
     rootRule.rules.propertyRules.head.metaData.createdByUser shouldBe Some(userUri)
     rootRule.rules.propertyRules.head.metaData.lastModifiedByUser shouldBe Some(userUri)
+  }
+
+  it should "marshal and unmarshal rule block tasks correctly" in {
+    val projectId = "ruleBlockProject"
+    val initialRuleBlockTask = RuleBlockTestData.sampleRuleBlockTask()
+    val workspaceProvider = new InMemoryWorkspaceProvider()
+    val repository = InMemoryResourceRepository()
+    workspaceProvider.putProject(ProjectConfig(projectId))
+    workspaceProvider.putTask(projectId, initialRuleBlockTask, repository.get(projectId))
+    val workspace = new Workspace(workspaceProvider, repository)
+    val ruleBlockTask = workspace.project(projectId).task[RuleBlockSpec](initialRuleBlockTask.id).taskTrait
+
+    val marshalledFile = Files.createTempFile("ruleBlockProject", ".zip")
+    val outputStream = new FileOutputStream(marshalledFile.toFile)
+    try {
+      XmlZipWithoutResourcesProjectMarshaling().marshalProject(workspace.project(projectId), outputStream, repository.get(projectId))
+    } finally {
+      outputStream.close()
+    }
+
+    val importedWorkspaceProvider = new InMemoryWorkspaceProvider()
+    XmlZipWithoutResourcesProjectMarshaling().unmarshalProject(projectId, importedWorkspaceProvider, InMemoryResourceManager(), marshalledFile.toFile)
+    Files.delete(marshalledFile)
+
+    implicit val pluginContext: PluginContext = TestPluginContext()
+    val importedTasks = importedWorkspaceProvider.readTasks[RuleBlockSpec](projectId).map(_.task)
+    importedTasks should have size 1
+    importedTasks.head.id shouldBe ruleBlockTask.id
+    importedTasks.head shouldBe ruleBlockTask
   }
 
   private case class ExportResult(projectConfig: ProjectConfig, tasks: Seq[LoadedTask[GenericDatasetSpec]], transformTasks: Seq[LoadedTask[TransformSpec]])

@@ -27,7 +27,7 @@ case class InputPortInput(id: Identifier = Operator.generateId,
     }
   }
 
-  override def execution(taskContext: TaskContext = TaskContext.empty): InputExecution = {
+  override def execution(taskContext: TaskContext): InputExecution = {
     new InputPortExecution(this, None)
   }
 }
