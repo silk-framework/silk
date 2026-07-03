@@ -14,8 +14,6 @@ class TaskResolverTest extends AnyFlatSpec with Matchers {
   it should "resolve typed tasks" in {
     val expected = PlainTask[RuleBlockSpec](Identifier("ruleBlock"), RuleBlockSpec.empty)
     val resolver = new TaskResolver {
-      override def resolve(id: Identifier) = expected
-
       override def resolveTyped[T <: org.silkframework.config.TaskSpec : scala.reflect.ClassTag](id: Identifier) =
         expected.asInstanceOf[PlainTask[T]]
     }

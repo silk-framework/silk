@@ -10,17 +10,11 @@ import scala.reflect.ClassTag
 
 /** Resolves referenced tasks at execution time. */
 trait TaskResolver {
-  def resolve(id: Identifier): Task[_ <: TaskSpec]
-
   def resolveTyped[T <: TaskSpec : ClassTag](id: Identifier): Task[T]
 }
 
 object TaskResolver {
   val empty: TaskResolver = new TaskResolver {
-    override def resolve(id: Identifier): Task[_ <: TaskSpec] = {
-      throw new ValidationException(s"No task resolver available to resolve task '$id'.")
-    }
-
     override def resolveTyped[T <: TaskSpec : ClassTag](id: Identifier): Task[T] = {
       throw new ValidationException(s"No task resolver available to resolve task '$id'.")
     }
@@ -39,9 +33,6 @@ object TaskResolver {
   }
 
   private case class ProjectTraitTaskResolver(project: ProjectTrait, implicit private val userContext: UserContext) extends TaskResolver {
-
-    override def resolve(id: Identifier): Task[_ <: TaskSpec] = project.task(id)
-
     override def resolveTyped[T <: TaskSpec : ClassTag](id: Identifier): Task[T] = project.task[T](id)
   }
 }
