@@ -102,6 +102,10 @@ lazy val commonSettings = Seq(
   // Fix CVE-2026-5598 in Bouncy Castle (private key leakage via non-constant time comparisons)
   dependencyOverrides += "org.bouncycastle" % "bcprov-jdk18on" % "1.84",
 
+  // silk-core uses scala-parser-combinators 2.x (required by Spark 4 in the root build), Play 2.9 still ships 1.1.2
+  dependencyOverrides += "org.scala-lang.modules" %% "scala-parser-combinators" % "2.4.0",
+  libraryDependencySchemes += "org.scala-lang.modules" %% "scala-parser-combinators" % VersionScheme.Always,
+
   scalacOptions ++= compilerParams._2,
   javacOptions ++= compilerParams._1,
 
@@ -128,7 +132,7 @@ lazy val core = (project in file("silk-core"))
     libraryDependencies += "org.scala-lang.modules" %% "scala-xml" % "2.4.0",
     libraryDependencies += "org.scala-lang" % "scala-reflect" % scalaVersion.value,
     libraryDependencies += "org.scala-lang.modules" %% "scala-parallel-collections" % "1.2.0",
-    libraryDependencies += "org.scala-lang.modules" %% "scala-parser-combinators" % "1.1.2",
+    libraryDependencies += "org.scala-lang.modules" %% "scala-parser-combinators" % "2.4.0",
     libraryDependencies += "commons-io" % "commons-io" % "2.22.0",
     libraryDependencies += "org.lz4" % "lz4-java" % "1.8.1",
     libraryDependencies += "javax.xml.bind" % "jaxb-api" % "2.3.1",
