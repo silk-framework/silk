@@ -430,7 +430,7 @@ lazy val workbenchOpenApi = (project in file("silk-workbench/silk-workbench-open
     name := "Silk Workbench OpenAPI",
     libraryDependencies += "io.kinoplan" %% "swagger-play" % "0.0.7" exclude("org.scala-lang.modules", "scala-java8-compat_2.13") ,
     libraryDependencies += "io.swagger.parser.v3" % "swagger-parser-v3" % "2.1.45",
-    libraryDependencies += "com.networknt" % "json-schema-validator" % "1.5.9",
+    libraryDependencies += "com.networknt" % "json-schema-validator" % "3.0.5",
     libraryDependencies += "org.webjars" % "swagger-ui" % "5.32.8"
   )
 
