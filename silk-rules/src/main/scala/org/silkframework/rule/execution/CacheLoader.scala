@@ -20,8 +20,7 @@ import org.silkframework.dataset.DataSource
 import org.silkframework.entity.Entity
 import org.silkframework.runtime.activity.{Activity, ActivityContext, Status, UserContext}
 import org.silkframework.runtime.iterator.CloseableIterator
-import org.silkframework.runtime.plugin.{PluginContext, TaskResolver}
-import org.silkframework.runtime.resource.EmptyResourceManager
+import org.silkframework.runtime.plugin.PluginContext
 
 import scala.util.Random
 import scala.util.control.Breaks._
@@ -34,7 +33,7 @@ import scala.util.control.Breaks._
 class CacheLoader(source: DataSource,
                   entityCache: EntityCache,
                   sampleSizeOpt: Option[Int] = None,
-                  pluginContextOpt: Option[PluginContext] = None)
+                  pluginContext: PluginContext)
                  (implicit prefixes: Prefixes) extends Activity[Unit] {
 
   override def name = "Loading"
@@ -64,10 +63,15 @@ class CacheLoader(source: DataSource,
   }
 
   private def retrieveEntities(implicit userContext: UserContext): CloseableIterator[Entity] = {
-    implicit val pluginContext: PluginContext =
-      pluginContextOpt
-        .map(ctx => PluginContext(ctx.prefixes, ctx.resources, userContext, ctx.projectId, ctx.templateVariables, ctx.taskResolver))
-        .getOrElse(PluginContext(prefixes = prefixes, resources = EmptyResourceManager(), user = userContext, taskResolver = TaskResolver.empty))
+    implicit val contextualPluginContext: PluginContext =
+      PluginContext(
+        pluginContext.prefixes,
+        pluginContext.resources,
+        userContext,
+        pluginContext.projectId,
+        pluginContext.templateVariables,
+        pluginContext.taskResolver
+      )
     sampleSizeOpt match {
       case Some(sampleSize) =>
         implicit val random: Random = Random

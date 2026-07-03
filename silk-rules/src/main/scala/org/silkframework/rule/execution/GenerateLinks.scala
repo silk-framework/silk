@@ -91,7 +91,7 @@ class GenerateLinks(task: Task[LinkSpec],
     val caches = createCaches()
     // Load entities
     val loaders = for((input, cache) <- inputs zip caches) yield {
-      context.child(new CacheLoader(input, cache, runtimeConfig.sampleSizeOpt, Some(taskContext.pluginContext)))
+      context.child(new CacheLoader(input, cache, runtimeConfig.sampleSizeOpt, taskContext.pluginContext))
     }
     children :::= loaders.toList
     if (runtimeConfig.reloadCache) {

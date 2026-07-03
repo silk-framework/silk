@@ -192,7 +192,7 @@ class LinkingTaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends I
     val task = project.task[LinkSpec](taskName)
     implicit val prefixes: Prefixes = project.config.prefixes
     implicit val resources: ResourceManager = project.resources
-    implicit val readContext: ReadContext = ReadContext(resources, prefixes, taskResolver = TaskResolver.empty)
+    implicit val readContext: ReadContext = ReadContext(resources, prefixes, taskResolver = TaskResolver.fromProject(project))
 
     request.body.asXml match {
       case Some(xml) => {
@@ -1022,7 +1022,7 @@ class LinkingTaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends I
     implicit val (project, task) = getProjectAndTask[LinkSpec](projectName, linkingTaskName)
     val sources = task.dataSources
     implicit val readContext: ReadContext = ReadContext(prefixes = project.config.prefixes, resources = project.resources,
-      taskResolver = TaskResolver.empty)
+      taskResolver = TaskResolver.fromProject(project))
     implicit val prefixes: Prefixes = project.config.prefixes
 
     SerializationUtils.deserializeCompileTime[LinkageRule](defaultMimeType = SerializationUtils.APPLICATION_JSON) { linkageRule =>
