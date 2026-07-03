@@ -9,7 +9,7 @@ import org.silkframework.entity._
 import org.silkframework.rule.TransformSpec.TargetVocabularyListParameter
 import org.silkframework.rule._
 import org.silkframework.rule.evaluation.ReferenceLinks
-import org.silkframework.rule.input.{Input, InputPortInput, PathInput, RuleBlockBinding, RuleBlockInput, TransformInput, Transformer}
+import org.silkframework.rule.input._
 import org.silkframework.rule.similarity._
 import org.silkframework.rule.util.UriPatternParser
 import org.silkframework.rule.vocab.{GenericInfo, Vocabulary, VocabularyClass, VocabularyProperty}
@@ -21,7 +21,7 @@ import org.silkframework.serialization.json.EntitySerializers.EntitySchemaJsonFo
 import org.silkframework.serialization.json.InputJsonSerializer._
 import org.silkframework.serialization.json.JsonHelpers._
 import org.silkframework.serialization.json.JsonSerializers.ObjectMappingJsonFormat.MAPPING_TARGET
-import org.silkframework.serialization.json.JsonSerializers.{ID, _}
+import org.silkframework.serialization.json.JsonSerializers._
 import org.silkframework.serialization.json.LinkingSerializers._
 import org.silkframework.serialization.json.MetaDataSerializers._
 import org.silkframework.serialization.json.PluginSerializers.{ParameterValuesJsonFormat, PluginJsonFormat}
@@ -31,7 +31,6 @@ import org.silkframework.workspace.annotation.{StickyNote, UiAnnotations}
 import org.silkframework.workspace.{LoadedTask, TaskLoadingError}
 import play.api.libs.json._
 
-import scala.collection.immutable.IndexedSeq
 import scala.reflect.ClassTag
 import scala.util.control.NonFatal
 

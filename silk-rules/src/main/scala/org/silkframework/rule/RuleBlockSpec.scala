@@ -185,7 +185,7 @@ case class RuleBlockPort(id: Identifier = Operator.generateId,
                          description: String = "",
                          displayOrder: Int = 1,
                          deprecated: Boolean = false) {
-  if(label.nonEmpty) {
+  if(label.isEmpty) {
     throw new TaskValidationException("Label of rule block port must not be empty!")
   }
 }
