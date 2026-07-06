@@ -390,7 +390,7 @@ export const LinkingEvaluationRow = React.memo(
                             ?.value.slice(0, cutAfter)
                             .map((val, i) => (
                                 <Tag
-                                    className="diapp-linking-evaluation__selectable-tag"
+                                    className="diapp-evaluation__selectable-tag"
                                     key={val + i}
                                     round
                                     emphasis="stronger"
@@ -413,7 +413,7 @@ export const LinkingEvaluationRow = React.memo(
                                         handleParentNodeHighlights(tree, id, index, true);
                                     }}
                                 >
-                                    <span className="diapp-linking-evaluation__selectable-value-text">
+                                    <span className="diapp-evaluation__selectable-value-text">
                                         {searchQuery ? <Highlighter label={val} searchValue={searchQuery} /> : val}
                                     </span>
                                 </Tag>
@@ -497,8 +497,8 @@ export const LinkingEvaluationRow = React.memo(
                             ) : null}
                         </TableCell>
                         <TableCell key={"sourceEntity"} alignVertical="middle">
-                            <span className="diapp-linking-evaluation__uri-value">
-                                <span className="diapp-linking-evaluation__selectable-value-text">
+                            <span className="diapp-evaluation__uri-value">
+                                <span className="diapp-evaluation__selectable-value-text">
                                     <Highlighter label={linkingEvaluationResult.source} searchValue={searchQuery} />
                                 </span>
                                 <CompactCopyUriButton
@@ -509,8 +509,8 @@ export const LinkingEvaluationRow = React.memo(
                             {emptyEntityWarning(inputValues?.source)}
                         </TableCell>
                         <TableCell key={"targetEntity"} alignVertical="middle">
-                            <span className="diapp-linking-evaluation__uri-value">
-                                <span className="diapp-linking-evaluation__selectable-value-text">
+                            <span className="diapp-evaluation__uri-value">
+                                <span className="diapp-evaluation__selectable-value-text">
                                     <Highlighter label={linkingEvaluationResult.target} searchValue={searchQuery} />
                                 </span>
                                 <CompactCopyUriButton

@@ -1,3 +1,5 @@
+@import "../../../shared/evaluations/selectableEvaluationValues";
+
 .diapp-transform-evaluation {
     /*
         FIXME:
@@ -19,24 +21,5 @@
         margin: 0px;
     }
 
-    .diapp-transform-evaluation__uri-value {
-        align-items: center;
-        column-gap: $eccgui-size-inline-whitespace * 0.5;
-        display: inline-flex;
-        max-width: 100%;
-    }
-
-    .diapp-transform-evaluation__selectable-tag,
-    .diapp-transform-evaluation__selectable-tag *,
-    .diapp-transform-evaluation__selectable-value-text,
-    .diapp-transform-evaluation__selectable-value-text * {
-        -webkit-user-select: text;
-        user-select: text;
-    }
-
-    .diapp-transform-evaluation__selectable-value-text {
-        cursor: text;
-        min-width: 0;
-        word-break: break-word;
-    }
+    @include selectable-evaluation-values;
 }

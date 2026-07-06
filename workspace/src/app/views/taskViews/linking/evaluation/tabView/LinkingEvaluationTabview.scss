@@ -1,3 +1,5 @@
+@import "../../../shared/evaluations/selectableEvaluationValues";
+
 /**
   CSS OVERWRITES
   contains different style overwrites that couldn't have been done directly by component usage
@@ -17,26 +19,7 @@
         min-width: 0;
     }
 
-    .diapp-linking-evaluation__uri-value {
-        align-items: center;
-        column-gap: $eccgui-size-inline-whitespace * 0.5;
-        display: inline-flex;
-        max-width: 100%;
-    }
-
-    .diapp-linking-evaluation__selectable-tag,
-    .diapp-linking-evaluation__selectable-tag *,
-    .diapp-linking-evaluation__selectable-value-text,
-    .diapp-linking-evaluation__selectable-value-text * {
-        -webkit-user-select: text;
-        user-select: text;
-    }
-
-    .diapp-linking-evaluation__selectable-value-text {
-        cursor: text;
-        min-width: 0;
-        word-break: break-word;
-    }
+    @include selectable-evaluation-values;
 
     // adjust display of widget containig the example values
 

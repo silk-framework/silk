@@ -140,8 +140,8 @@ const TransformEvaluationTabRow: React.FC<TransformEvaluationTabRowProps> = Reac
                     }
                 >
                     <TableCell style={{ verticalAlign: "middle" }}>
-                        <span className="diapp-transform-evaluation__uri-value">
-                            <span className="diapp-transform-evaluation__selectable-value-text">{rowItem.uri}</span>
+                        <span className="diapp-evaluation__uri-value">
+                            <span className="diapp-evaluation__selectable-value-text">{rowItem.uri}</span>
                             <CompactCopyUriButton
                                 dataTestId={`transform-evaluation-uri-copy-${rowItem.id}`}
                                 uri={rowItem.uri}

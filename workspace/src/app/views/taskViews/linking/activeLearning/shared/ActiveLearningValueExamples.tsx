@@ -53,7 +53,7 @@ export const ActiveLearningValueExamples = ({
                 const highlightValue: boolean = !!valuesToHighlight?.has(example);
                 return (
                     <Tag
-                        className="diapp-linking-evaluation__selectable-tag"
+                        className="diapp-evaluation__selectable-tag"
                         key={example + idx}
                         round={true}
                         htmlTitle={example}
@@ -62,7 +62,7 @@ export const ActiveLearningValueExamples = ({
                         {...interactiveHoverProps}
                         {...otherTagProps}
                     >
-                        <span className="diapp-linking-evaluation__selectable-value-text">
+                        <span className="diapp-evaluation__selectable-value-text">
                             {searchQuery ? <Highlighter label={example} searchValue={searchQuery} /> : example}
                         </span>
                     </Tag>

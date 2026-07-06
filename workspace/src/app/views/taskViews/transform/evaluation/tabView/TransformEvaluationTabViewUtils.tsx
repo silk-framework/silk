@@ -59,13 +59,13 @@ export const NodeTagValues: React.FC<NodeTagValuesProps> = React.memo(
                 {error && <Icon intent="warning" name="state-warning" tooltipText={error} />}
                 {values.slice(0, cutAfter).map((v, i) => (
                     <Tag
-                        className="diapp-transform-evaluation__selectable-tag"
+                        className="diapp-evaluation__selectable-tag"
                         key={i}
                         round
                         emphasis="stronger"
                         {...otherTagProps}
                     >
-                        <span className="diapp-transform-evaluation__selectable-value-text">{v}</span>
+                        <span className="diapp-evaluation__selectable-value-text">{v}</span>
                     </Tag>
                 ))}
                 {remainingNodes}
