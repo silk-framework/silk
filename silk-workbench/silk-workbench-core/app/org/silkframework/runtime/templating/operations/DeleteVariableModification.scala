@@ -18,7 +18,8 @@ case class DeleteVariableModification(project: Project, variableName: String, ta
     */
   def dependentVariables(): Seq[String] = {
     try {
-      updateVariables(project.templateVariables.all, project.templateVariables.parentVariables)
+      // Resolve against the same (sensitive-filtered) parent scope as the actual delete in Modification.execute.
+      updateVariables(project.templateVariables.all, project.templateVariables.parentVariables.withoutSensitiveVariables())
       Seq.empty
     } catch {
       case ex: CannotDeleteUsedVariableException =>
@@ -77,7 +78,10 @@ case class DeleteVariableModification(project: Project, variableName: String, ta
         if (dependentVariables.nonEmpty) {
           throw CannotDeleteUsedVariableException(variableName, dependentVariables)
         } else {
-          throw ex
+          // The remaining failures are unrelated to the deleted variable (e.g. templates referencing
+          // a sensitive parent variable, which is not available for template resolution).
+          // Those variables keep their stored values, so that unrelated variables can still be deleted.
+          updatedVariables.resolvedKeepingUnresolved(parentVariables)
         }
     }
   }

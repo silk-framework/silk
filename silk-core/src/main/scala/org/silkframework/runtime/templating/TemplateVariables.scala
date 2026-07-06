@@ -57,6 +57,31 @@ case class TemplateVariables(variables: Seq[TemplateVariable]) {
   }
 
   /**
+    * Resolves all templates like [[resolved]], but keeps the stored value of each variable whose template
+    * cannot be resolved (e.g. a template referencing a sensitive parent variable, which is not available
+    * for template resolution). Kept variables still participate in the resolution of subsequent variables
+    * with their stored value.
+    */
+  def resolvedKeepingUnresolved(additionalVariables: TemplateVariables = TemplateVariables.empty): TemplateVariables = {
+    val resolvedVariables = mutable.Buffer[TemplateVariable]()
+    for (variable <- variables) {
+      variable.template match {
+        case Some(template) =>
+          try {
+            val value = TemplateVariables(additionalVariables.variables ++ resolvedVariables).resolveTemplateValue(template)
+            resolvedVariables.append(variable.copy(value = value))
+          } catch {
+            case _: TemplateEvaluationException =>
+              resolvedVariables.append(variable) // Keep the stored value
+          }
+        case None =>
+          resolvedVariables.append(variable)
+      }
+    }
+    TemplateVariables(resolvedVariables.toSeq)
+  }
+
+  /**
     * Resolves a template string.
     *
     * @throws TemplateEvaluationException If the template evaluation failed.
