@@ -235,7 +235,7 @@ lazy val pluginsAsian = (project in file("silk-plugins/silk-plugins-asian"))
   )
 
 lazy val serializationJson = (project in file("silk-plugins/silk-serialization-json"))
-  .dependsOn(core, rules, workspace % "compile -> compile;test -> test")
+  .dependsOn(core, rules, workspace % "compile -> compile;test -> test", pluginsTemplatingJinja % "test->compile")
   .settings(commonSettings *)
   .settings(
     name := "Silk Serialization JSON",
