@@ -29,6 +29,17 @@ class JinjaEngineTest extends AnyFlatSpec with Matchers {
     ).missingVars.map(_.name) shouldBe Seq("name")
   }
 
+  it should "let flat values take precedence over variable scopes of the same name" in {
+    val writer = new StringWriter()
+    val compiledTemplate = JinjaTemplateEngine().compile("{{project}}/{{execution.myVar}}")
+    compiledTemplate.evaluate(Seq(
+      new TemplateVariableValue("project", Seq.empty, Seq("flatValue")),
+      new TemplateVariableValue("title", Seq("project"), Seq("scopedValue")),
+      new TemplateVariableValue("myVar", Seq("execution"), Seq("execValue"))
+    ), writer)
+    writer.toString shouldBe "flatValue/execValue"
+  }
+
   it should "support transformer plugins to be used as filters" in {
     evaluate(
       template = "{{name | lowerCase}}",
