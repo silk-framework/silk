@@ -11,6 +11,7 @@ import { ArtefactManagementOptions } from "../../shared/ActionsMenu/ArtefactMana
 import NotFound from "../NotFound";
 import { TaskActivityOverview } from "../../shared/TaskActivityOverview/TaskActivityOverview";
 import { ProjectTaskParams } from "../../shared/typings";
+import VariablesWidget from "../../shared/VariablesWidget/VariablesWidget";
 import { LinkageRuleConfig } from "./config/LinkageRuleConfig";
 import { DeprecatedPluginsWidget } from "../Project/DeprecatedPlugins/DeprecatedPluginsWidget";
 import { ProjectForbiddenNotification } from "../../shared/ProjectForbiddenNotification";
@@ -62,6 +63,8 @@ export default function LinkingPage() {
                     <LinkageRuleConfig projectId={projectId} linkingTaskId={taskId} />
                     <Spacing />
                     <TaskActivityOverview projectId={projectId} taskId={taskId} />
+                    <Spacing />
+                    <VariablesWidget projectId={projectId} taskId={taskId} />
                     <Spacing />
                     <DeprecatedPluginsWidget projectId={projectId} taskId={taskId} />
                 </Section>
