@@ -1,11 +1,13 @@
 
-import org.silkframework.config.PlainTask
+import org.silkframework.config.{PlainTask, Task, TaskSpec}
 import org.silkframework.dataset._
 import org.silkframework.entity.ValueType
 import org.silkframework.rule.vocab._
-import org.silkframework.rule.{MappingTarget, NodePosition, RuleLayout}
+import org.silkframework.rule.{MappingTarget, NodePosition, RuleLayout, TransformSpec, TransformTask}
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.runtime.plugin.PluginRegistry
+import org.silkframework.runtime.plugin.{ClassPluginDescription, PluginRegistry}
+import org.silkframework.runtime.templating.{SimpleSubstitutionTemplateEngine, TemplateVariable, TemplateVariableScopes, TemplateVariables}
+import org.silkframework.util.ConfigTestTrait
 import org.silkframework.runtime.serialization.{ReadContext, Serialization, TestReadContext, TestWriteContext, WriteContext}
 import org.silkframework.serialization.json.JsonSerializers._
 import org.silkframework.serialization.json.{JsonFormat, JsonSerialization}
@@ -22,7 +24,12 @@ import scala.reflect.ClassTag
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
-class JsonSerializersTest  extends AnyFlatSpec with Matchers {
+class JsonSerializersTest  extends AnyFlatSpec with Matchers with ConfigTestTrait {
+
+  // Use the dependency-free substitution engine, so that parameter templates can be evaluated in this module's tests.
+  override def propertyMap: Map[String, Option[String]] = Map(
+    "config.variables.engine" -> Some(SimpleSubstitutionTemplateEngine.id)
+  )
 
   "JsonDatasetSpecFormat" should "serialize JsonTaskFormats" in {
     PluginRegistry.registerPlugin(classOf[SomeDatasetPlugin])
@@ -143,6 +150,41 @@ class JsonSerializersTest  extends AnyFlatSpec with Matchers {
     (leafNode \ "entityCount").as[Int] shouldBe 5
     // Compact form must not embed the full task definition at any level.
     Json.stringify(slimJson) should not include "\"parameters\""
+  }
+
+  "TaskJsonFormat" should "resolve parameter templates against the task's own execution variables" in {
+    PluginRegistry.unregisterPlugin(classOf[SomeDatasetPlugin])
+    PluginRegistry.registerPlugin(classOf[SomeDatasetPlugin])
+    val pluginId = ClassPluginDescription(classOf[SomeDatasetPlugin]).id.toString
+    val executionVariables = TemplateVariables(Seq(
+      TemplateVariable("param1Value", "valueFromVariable", None, None, isSensitive = false, TemplateVariableScopes.execution)))
+    val taskJson = Json.obj(
+      "id" -> "taskWithExecutionVariables",
+      "executionVariables" -> JsonSerialization.toJson(executionVariables),
+      "data" -> Json.obj(
+        "taskType" -> "Dataset",
+        "type" -> pluginId,
+        "parameters" -> Json.obj("param2" -> "6.0"),
+        "templates" -> Json.obj("param1" -> "{{execution.param1Value}}")
+      )
+    )
+    // The read context does not provide any execution variables — they must be seeded from the task payload itself.
+    val task = JsonSerialization.fromJson[Task[TaskSpec]](taskJson)
+    task.data.asInstanceOf[DatasetSpec[Dataset]].plugin.asInstanceOf[SomeDatasetPlugin].param1 shouldBe "valueFromVariable"
+    task.executionVariables.variables.map(_.name) shouldBe Seq("param1Value")
+  }
+
+  "DatasetTaskJsonFormat and TransformTaskJsonFormat" should "preserve execution variables" in {
+    PluginRegistry.unregisterPlugin(classOf[SomeDatasetPlugin])
+    PluginRegistry.registerPlugin(classOf[SomeDatasetPlugin])
+    val executionVariables = TemplateVariables(Seq(
+      TemplateVariable("myVar", "some value", None, None, isSensitive = false, TemplateVariableScopes.execution)))
+
+    val datasetTask = DatasetTask("datasetTask", new DatasetSpec(SomeDatasetPlugin("stringValue", 6.0)), executionVariables = executionVariables)
+    JsonSerialization.fromJson[DatasetTask](JsonSerialization.toJson(datasetTask)).executionVariables shouldBe executionVariables
+
+    val transformTask = TransformTask("transformTask", TransformSpec.empty, executionVariables = executionVariables)
+    JsonSerialization.fromJson[TransformTask](JsonSerialization.toJson(transformTask)).executionVariables shouldBe executionVariables
   }
 
   def testSerialization[T](obj: T)(implicit format: JsonFormat[T]): Unit = {

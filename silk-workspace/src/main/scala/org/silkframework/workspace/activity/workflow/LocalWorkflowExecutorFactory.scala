@@ -20,7 +20,7 @@ case class LocalWorkflowExecutorFactory(@Param(label = "Execution variables", va
   extends TaskActivityFactory[Workflow, LocalWorkflowExecutorGeneratingProvenance] {
 
   override def apply(task: ProjectTask[Workflow]): Activity[WorkflowExecutionReportWithProvenance] = {
-    val allVars = WorkflowExecutor.buildExecutionVariables(task.variables, executionVariables.variables)
-    LocalWorkflowExecutorGeneratingProvenance(task, workflowVariables = allVars)
+    // Only the overrides are passed here. They are merged with the workflow's execution variables at run start.
+    LocalWorkflowExecutorGeneratingProvenance(task, workflowVariables = executionVariables.variables)
   }
 }

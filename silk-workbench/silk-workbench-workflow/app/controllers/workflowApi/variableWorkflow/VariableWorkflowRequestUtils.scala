@@ -31,6 +31,9 @@ object VariableWorkflowRequestUtils {
 
   final val QUERY_PARAM_OUTPUT_TYPE = "output:type"
 
+  // Reserved top-level key in JSON payloads that holds the execution-variable overrides. It is never part of the input entity.
+  final val EXECUTION_VARIABLES_KEY = "executionVariables"
+
   final val xmlMimeType = "application/xml"
   final val jsonMimeType = "application/json"
   final val ntriplesMimeType = "application/n-triples"
@@ -390,8 +393,8 @@ object VariableWorkflowRequestUtils {
   /* Builds the (JSON) input entity from the request parameters (form URL encoded or query string).
    * Or returns None if the request is a multipart/form-data request and the input file has been uploaded.
    */
-  private def requestToInputResource(mediaType: Option[String])
-                                    (implicit request: Request[_]): Option[JsValue] = {
+  private[variableWorkflow] def requestToInputResource(mediaType: Option[String])
+                                                      (implicit request: Request[_]): Option[JsValue] = {
     if(request.body.isInstanceOf[AnyContentAsMultipartFormData]) {
       // Input resource is part of multipart/form-data request and will be loaded directly into the resource manager.
       return None
@@ -399,6 +402,9 @@ object VariableWorkflowRequestUtils {
     val inputResource = request.body match {
       case AnyContentAsFormUrlEncoded(v) =>
         parametersToJsonResource(v)
+      case AnyContentAsJson(jsObject: JsObject) =>
+        // The reserved execution-variables key holds overrides (see parseExecutionVariables) and must not become part of the input entity.
+        jsObject - EXECUTION_VARIABLES_KEY
       case AnyContentAsJson(jsValue) =>
         jsValue
       case AnyContentAsXml(xml) =>
@@ -446,12 +452,21 @@ object VariableWorkflowRequestUtils {
 
   /**
     * Parses execution variables from a request.
-    * Execution variables can be provided in the JSON body under the "executionVariables" key as a simple name-value map.
+    * Execution variables can be provided in the JSON body under the reserved "executionVariables" key as a simple name-value map.
+    *
+    * @throws BadUserInputException If the key is present, but does not hold a flat name/value map with string values.
     */
   def parseExecutionVariables(implicit request: Request[AnyContent]): TemplateVariables = {
-    val fromBody = request.body.asJson.flatMap { json =>
-      (json \ "executionVariables").asOpt[Map[String, String]]
-    }.getOrElse(Map.empty)
+    val fromBody: Map[String, String] = request.body.asJson.flatMap { json =>
+      (json \ EXECUTION_VARIABLES_KEY).toOption
+    } match {
+      case Some(value) =>
+        value.asOpt[Map[String, String]].getOrElse(
+          throw BadUserInputException(s"The '$EXECUTION_VARIABLES_KEY' key is reserved for execution variables and must hold " +
+            s"""a flat name/value map with string values, e.g. {"myVar": "some value"}."""))
+      case None =>
+        Map.empty
+    }
 
     if(fromBody.nonEmpty) {
       TemplateVariables(fromBody.map { case (name, value) =>

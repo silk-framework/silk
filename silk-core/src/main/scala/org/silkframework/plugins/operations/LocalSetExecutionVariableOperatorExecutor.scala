@@ -23,6 +23,8 @@ import org.silkframework.runtime.plugin.PluginContext
 import org.silkframework.runtime.templating.{TemplateVariable, TemplateVariableScopes}
 import org.silkframework.runtime.validation.ValidationException
 
+import scala.util.control.NonFatal
+
 /**
   * Executes [[SetExecutionVariableOperator]]: reads the first value of the (single) input, sets it as an
   * execution-scope template variable on the shared per-run holder (so downstream nodes can read it via
@@ -45,19 +47,28 @@ case class LocalSetExecutionVariableOperatorExecutor() extends LocalExecutor[Set
     val source = input.entities
 
     // Pull the first entity eagerly so the variable is set before downstream nodes execute.
-    val firstOpt = source.headOption
-    firstOpt.foreach { first =>
-      val value =
-        if (spec.sourcePath.trim.nonEmpty) first.singleValue(spec.sourcePath.trim)
-        else first.values.flatten.headOption
-      value.foreach { v =>
-        pluginContext.templateVariables.setExecutionVariable(
-          TemplateVariable(name = spec.variableName, value = v, scope = TemplateVariableScopes.execution))
+    // Peek with next() instead of headOption, since headOption would close the source, which is still needed for the pass-through.
+    val passThrough =
+      if (source.hasNext) {
+        try {
+          val first = source.next()
+          val value =
+            if (spec.sourcePath.trim.nonEmpty) first.singleValue(spec.sourcePath.trim)
+            else first.values.flatten.headOption
+          value.foreach { v =>
+            pluginContext.templateVariables.setExecutionVariable(
+              TemplateVariable(name = spec.variableName, value = v, scope = TemplateVariableScopes.execution))
+          }
+          // Pass the input through unchanged, re-attaching the peeked first entity.
+          CloseableIterator(Iterator(first) ++ source, source)
+        } catch {
+          case NonFatal(ex) =>
+            source.close()
+            throw ex
+        }
+      } else {
+        source
       }
-    }
-
-    // Pass the input through unchanged (re-attaching the peeked first entity); close the original source.
-    val passThrough = CloseableIterator(firstOpt.iterator ++ source, source)
     Some(GenericEntityTable(passThrough, input.entitySchema, task))
   }
 }

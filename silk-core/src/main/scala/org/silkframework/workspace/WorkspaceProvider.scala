@@ -323,7 +323,7 @@ object LoadedTask {
           id = (node \ "@id").text,
           data = fromXml[T](node),
           metaData = (node \ "MetaData").headOption.map(fromXml[MetaData]).getOrElse(MetaData.empty),
-          variables = (node \ "Variables").headOption.map(fromXml[TemplateVariables]).getOrElse(TemplateVariables.empty)
+          executionVariables = Task.readExecutionVariablesXml(node)
         ))
       )
     }
@@ -335,8 +335,8 @@ object LoadedTask {
       var node = toXml(task.data).head.asInstanceOf[Elem]
       node = node % Attribute("id", Text(task.id), Null)
       node = node.copy(child = toXml[MetaData](task.metaData) +: node.child)
-      if(task.variables.variables.nonEmpty) {
-        node = node.copy(child = node.child :+ toXml[TemplateVariables](task.variables))
+      if(task.executionVariables.variables.nonEmpty) {
+        node = node.copy(child = node.child :+ Task.writeExecutionVariablesXml(task.executionVariables))
       }
       node
     }

@@ -1109,7 +1109,7 @@ object JsonSerializers {
                                                  dependentTaskFormatter: Option[String => JsValue] = None)(implicit dataFormat: JsonFormat[T]) extends JsonFormat[LoadedTask[T]] {
 
     final val PROJECT = "project"
-    final val TASK_VARIABLES = "variables"
+    final val EXECUTION_VARIABLES = "executionVariables"
     final val PROPERTIES = "properties"
     final val RELATIONS = "relations"
     final val SCHEMATA = "schemata"
@@ -1136,11 +1136,14 @@ object JsonSerializers {
         taskId = id.toString
         // In older serializations the task data has been directly attached to this JSON object
         val dataJson = optionalValue(value, DATA).getOrElse(value)
+        // Read the execution variables first, so that parameter templates referencing them resolve against the task's own defaults.
+        val executionVariables = optionalValue(value, EXECUTION_VARIABLES).map(fromJson[TemplateVariables]).getOrElse(TemplateVariables.empty)
+        val dataContext = readContext.copy(templateVariables = readContext.templateVariables.withExecutionDefaults(executionVariables))
         val task = PlainTask(
           id = id,
-          data = fromJson[T](dataJson),
+          data = fromJson[T](dataJson)(dataFormat, dataContext),
           metaData = metaData(value),
-          variables = optionalValue(value, TASK_VARIABLES).map(fromJson[TemplateVariables]).getOrElse(TemplateVariables.empty)
+          executionVariables = executionVariables
         )
 
         LoadedTask.success(task)
@@ -1166,8 +1169,8 @@ object JsonSerializers {
         json += METADATA -> toJson(task.metaData)
       }
 
-      if(task.variables.variables.nonEmpty) {
-        json += TASK_VARIABLES -> toJson(task.variables)
+      if(task.executionVariables.variables.nonEmpty) {
+        json += EXECUTION_VARIABLES -> toJson(task.executionVariables)
       }
 
       // Serialize task data
@@ -1302,7 +1305,7 @@ object JsonSerializers {
   implicit object DatasetTaskJsonFormat extends JsonFormat[DatasetTask] {
     override def read(value: JsValue)(implicit readContext: ReadContext): DatasetTask = {
       val task = new TaskJsonFormat[GenericDatasetSpec].read(value)
-      DatasetTask(task.id, task.data, task.metaData)
+      DatasetTask.fromTask(task)
     }
     override def write(value: DatasetTask)(implicit writeContext: WriteContext[JsValue]): JsValue = {
       new TaskJsonFormat[GenericDatasetSpec].write(value)
@@ -1315,7 +1318,7 @@ object JsonSerializers {
   implicit object TransformTaskJsonFormat extends JsonFormat[TransformTask] {
     override def read(value: JsValue)(implicit readContext: ReadContext): TransformTask = {
       val task = new TaskJsonFormat[TransformSpec].read(value)
-      TransformTask(task.id, task.data, task.metaData)
+      TransformTask.fromTask(task)
     }
     override def write(value: TransformTask)(implicit writeContext: WriteContext[JsValue]): JsValue = {
       new TaskJsonFormat[TransformSpec].write(value)

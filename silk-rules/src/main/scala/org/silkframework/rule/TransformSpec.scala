@@ -353,9 +353,19 @@ case class TransformSpec(@Param(label = "Input", value = "The source from which 
   override def mainActivities: Seq[String] = Seq("ExecuteTransform")
 }
 
-case class TransformTask(id: Identifier, data: TransformSpec, metaData: MetaData = MetaData.empty, variables: TemplateVariables = TemplateVariables.empty) extends Task[TransformSpec] {
+case class TransformTask(id: Identifier, data: TransformSpec, metaData: MetaData = MetaData.empty, executionVariables: TemplateVariables = TemplateVariables.empty) extends Task[TransformSpec] {
 
   override def taskType: Class[_] = classOf[TransformSpec]
+}
+
+object TransformTask {
+
+  /**
+    * Creates a TransformTask from a generic task, keeping all task properties.
+    */
+  def fromTask(task: Task[TransformSpec]): TransformTask = {
+    TransformTask(task.id, task.data, task.metaData, task.executionVariables)
+  }
 }
 
 /**
@@ -363,7 +373,7 @@ case class TransformTask(id: Identifier, data: TransformSpec, metaData: MetaData
   */
 object TransformSpec {
 
-  implicit def toTransformTask(task: Task[TransformSpec]): TransformTask = TransformTask(task.id, task.data, task.metaData)
+  implicit def toTransformTask(task: Task[TransformSpec]): TransformTask = TransformTask.fromTask(task)
 
   def empty: TransformSpec = TransformSpec(DatasetSelection.empty, RootMappingRule.empty)
 

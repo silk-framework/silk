@@ -28,14 +28,14 @@ trait VariableTemplateRequest {
         val proj = WorkspaceFactory().workspace.project(projectName)
         task match {
           case Some(taskId) =>
-            // Task scope: global + all project variables + task variables (up to current variable)
+            // Task context: global + all project variables + the task's execution variables (up to current variable)
             val globalVars = GlobalTemplateVariables.all.variables
             val projectVars = proj.templateVariables.all.variables
-            var taskVars = proj.anyTask(taskId).variablesValueHolder.all.variables
+            var executionVars = proj.anyTask(taskId).executionVariablesValueHolder.all.variables
             for (name <- variableName if !ignoreVariableName) {
-              taskVars = taskVars.takeWhile(_.name != name)
+              executionVars = executionVars.takeWhile(_.name != name)
             }
-            TemplateVariables(globalVars ++ projectVars ++ taskVars)
+            TemplateVariables(globalVars ++ projectVars ++ executionVars)
           case None =>
             // Project scope: global + project variables (up to current variable)
             var variables = proj.templateVariables.all.variables
@@ -56,19 +56,6 @@ trait VariableTemplateRequest {
     }
   }
 
-  /**
-    * Collects variables and, for operator parameter contexts (no `variableName`), augments them with
-    * execution-scope fallbacks so that `{{execution.X}}` resolves to / is suggested for the task,
-    * project or global variable `X`. This matches how parameters are resolved at runtime. When editing
-    * a variable definition (`variableName` set), no fallback is applied: variable values are resolved at
-    * edit time without an execution scope, consistent with the variable update path.
-    */
-  def collectVariablesWithExecutionFallback(ignoreVariableName: Boolean = false, includeSensitiveVariables: Boolean = false)
-                                           (implicit user: UserContext): TemplateVariables = {
-    val collected = collectVariables(ignoreVariableName = ignoreVariableName, includeSensitiveVariables = includeSensitiveVariables)
-    if (variableName.isEmpty) collected.withExecutionScopeFallback else collected
-  }
-
 }
 
 case class ValidateVariableTemplateRequest(templateString: String,
@@ -81,11 +68,11 @@ case class ValidateVariableTemplateRequest(templateString: String,
 
   def execute()(implicit user: UserContext): VariableTemplateValidationResponse = {
     val resultOrError: Either[String, String] = try {
-      Left(collectVariablesWithExecutionFallback(includeSensitiveVariables = includeSensitiveVariables.getOrElse(false)).resolveTemplateValue(templateString, evaluationConfig))
+      Left(collectVariables(includeSensitiveVariables = includeSensitiveVariables.getOrElse(false)).resolveTemplateValue(templateString, evaluationConfig))
     } catch {
       case ex: UnboundVariablesException if variableName.isDefined && ex.missingVars.size == 1 =>
         // Check if the variable is unbound because it is defined after the current one
-        Try(collectVariablesWithExecutionFallback(ignoreVariableName = true).resolveTemplateValue(templateString, evaluationConfig)) match {
+        Try(collectVariables(ignoreVariableName = true).resolveTemplateValue(templateString, evaluationConfig)) match {
           case _: Success[_] =>
             Right(s"'${ex.missingVars.head}' cannot be used because it's defined after '${variableName.get}'.")
           case _: Failure[_] =>
@@ -139,7 +126,7 @@ case class AutoCompleteVariableTemplateRequest(inputString: String,
                                                task: Option[String] = None,
                                                includeSensitiveVariables: Option[Boolean] = None) extends AutoSuggestAutoCompletionRequest with VariableTemplateRequest {
   def execute()(implicit user: UserContext): AutoSuggestAutoCompletionResponse = {
-    AutoCompleteVariableTemplateRequest.suggestions(this, collectVariablesWithExecutionFallback(includeSensitiveVariables = includeSensitiveVariables.getOrElse(false)).variableNames)
+    AutoCompleteVariableTemplateRequest.suggestions(this, collectVariables(includeSensitiveVariables = includeSensitiveVariables.getOrElse(false)).variableNames)
   }
 }
 

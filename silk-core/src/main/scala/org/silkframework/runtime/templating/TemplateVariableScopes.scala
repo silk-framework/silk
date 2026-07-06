@@ -17,11 +17,6 @@ object TemplateVariableScopes {
   final val project: Seq[String] = Seq("project")
 
   /**
-   * Scope for task variables, addressed as "task.variableName".
-   */
-  final val task: Seq[String] = Seq("task")
-
-  /**
    * Scope for execution variables, addressed as "execution.variableName".
    */
   final val execution: Seq[String] = Seq("execution")

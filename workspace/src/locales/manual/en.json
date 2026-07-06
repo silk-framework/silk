@@ -1061,7 +1061,7 @@
         "VariableWidget": {
             "title": {
                 "project": "Project variables",
-                "task": "Task variables"
+                "execution": "Execution variables"
             },
             "noVariables": "No variables set.",
             "form": {

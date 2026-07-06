@@ -4,9 +4,9 @@ import org.silkframework.config.{Task, TaskSpec}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.{ParameterTemplateValue, ParameterValues, PluginContext}
 import org.silkframework.runtime.templating.exceptions._
-import org.silkframework.runtime.templating.{GlobalTemplateVariables, InMemoryTemplateVariablesReader, TemplateVariables}
+import org.silkframework.runtime.templating.{GlobalTemplateVariables, InMemoryTemplateVariablesReader, TemplateVariables, TemplateVariablesManager}
 import org.silkframework.util.Identifier
-import org.silkframework.workspace.Project
+import org.silkframework.workspace.{Project, ProjectTask}
 
 import java.util.logging.Logger
 import scala.collection.mutable
@@ -14,8 +14,8 @@ import scala.util.control.Breaks.{break, breakable}
 import scala.util.control.NonFatal
 
 /**
-  * Modifies variables at either the project or task scope.
-  * For project scope, also updates all tasks that use variables that have been modified.
+  * Modifies either project variables or the execution variables of a task.
+  * For project variables, also updates all tasks that use variables that have been modified.
   */
 abstract class Modification {
 
@@ -27,7 +27,7 @@ abstract class Modification {
   def project: Project
 
   /**
-    * Optional task identifier. If set, the modification operates on task variables instead of project variables.
+    * Optional task identifier. If set, the modification operates on the execution variables of that task instead of project variables.
     */
   def taskId: Option[String]
 
@@ -50,18 +50,28 @@ abstract class Modification {
   protected def generateException(task: Task[_ <: TaskSpec], cause: Throwable): CannotModifyVariablesUsedByTaskException
 
   /**
+    * The manager of the variables that are modified by this operation.
+    */
+  protected def variablesManager()(implicit user: UserContext): TemplateVariablesManager = {
+    taskId match {
+      case Some(id) => project.anyTask(id).executionVariablesValueHolder
+      case None => project.templateVariables
+    }
+  }
+
+  /**
     * Updates variables and persists the changes.
-    * For project scope, also updates all tasks that use modified variables.
-    * For task scope, updates and persists the task variables.
+    * For project variables, also updates all tasks that use modified variables.
+    * For the execution variables of a task, updates and persists them on the task.
     */
   def execute()(implicit user: UserContext): Unit = {
     taskId match {
       case Some(id) =>
         val projectTask = project.anyTask(id)
-        val manager = projectTask.variablesValueHolder
+        val manager = projectTask.executionVariablesValueHolder
         val currentVariables = manager.all
         val newVariables = updateVariables(currentVariables, manager.parentVariables.withoutSensitiveVariables())
-        projectTask.updateVariables(newVariables)
+        updateExecutionVariablesAndTask(projectTask, currentVariables, newVariables)
         log.info(s"$operation.")
       case None =>
         val manager = project.templateVariables
@@ -77,12 +87,42 @@ abstract class Modification {
     }
   }
 
+  /**
+    * Updates the execution variables of a task.
+    * If any of the task's parameter templates resolves to a different value under the new variables,
+    * the task itself is re-instantiated and persisted together with the variables.
+    */
+  private def updateExecutionVariablesAndTask(projectTask: ProjectTask[_ <: TaskSpec],
+                                              currentVariables: TemplateVariables,
+                                              newVariables: TemplateVariables)(implicit user: UserContext): Unit = {
+    val baseVariables = project.combinedTemplateVariables.all
+    val currentContext = PluginContext.fromTask(projectTask, project)
+    val updatedData =
+      try {
+        if (hasUpdatedTemplateValues(projectTask.parameters(currentContext), baseVariables merge currentVariables, baseVariables merge newVariables)) {
+          val newContext = currentContext.copy(templateVariables = currentContext.templateVariables.withExecutionDefaults(newVariables))
+          Some(projectTask.withParameters(projectTask.parameters(currentContext), dropExistingValues = true)(newContext))
+        } else {
+          None
+        }
+      } catch {
+        case NonFatal(ex) =>
+          throw generateException(projectTask, ex)
+      }
+    updatedData match {
+      case Some(newData) =>
+        project.updateAnyTask(projectTask.id, newData, executionVariables = Some(newVariables))
+      case None =>
+        projectTask.updateExecutionVariables(newVariables)
+    }
+  }
+
   private def updateTasks(newVariables: TemplateVariables)(implicit user: UserContext): Iterable[Identifier] = {
     val allCurrentVariables = project.combinedTemplateVariables.all
     val allNewVariables = GlobalTemplateVariables.all merge newVariables
 
     val currentContext: PluginContext = PluginContext.fromProject(project)
-    val newContext: PluginContext =
+    val newContext =
       PluginContext(prefixes = project.config.prefixes,
         resources = project.resources,
         user = user,
@@ -92,8 +132,9 @@ abstract class Modification {
     val updatedTasks = mutable.Buffer[(Identifier, TaskSpec)]()
     for (task <- project.allTasks) {
       try {
-        if (hasUpdatedTemplateValues(task.parameters(currentContext), allCurrentVariables, allNewVariables)) {
-          updatedTasks.append((task.id, task.withParameters(task.parameters(currentContext), dropExistingValues = true)(newContext)))
+        if (hasUpdatedTemplateValues(task, currentContext, allCurrentVariables, allNewVariables)) {
+          val taskNewContext = newContext.copy(templateVariables = newContext.templateVariables.withExecutionDefaults(task.executionVariables))
+          updatedTasks.append((task.id, task.withParameters(task.parameters(currentContext), dropExistingValues = true)(taskNewContext)))
         }
       } catch {
         case NonFatal(ex) =>
@@ -106,6 +147,18 @@ abstract class Modification {
     }
 
     updatedTasks.map(_._1)
+  }
+
+  /**
+    * Checks whether any of a task's parameter templates evaluates to a different value under the new variables.
+    * The task's own execution-variable defaults are included in both variable sets, so that parameter templates
+    * referencing 'execution.X' can be evaluated.
+    */
+  protected def hasUpdatedTemplateValues(task: Task[_ <: TaskSpec], context: PluginContext,
+                                         currentVariables: TemplateVariables, newVariables: TemplateVariables): Boolean = {
+    hasUpdatedTemplateValues(task.parameters(context),
+      currentVariables merge task.executionVariables,
+      newVariables merge task.executionVariables)
   }
 
   protected def hasUpdatedTemplateValues(parameters: ParameterValues, currentVariables: TemplateVariables, newVariables: TemplateVariables): Boolean = {

@@ -242,12 +242,12 @@ class Project(initialConfig: ProjectConfig, provider: WorkspaceProvider, val res
     * @tparam T The task type.
     */
   def addTask[T <: TaskSpec : ClassTag](name: Identifier, taskData: T, metaData: MetaData = MetaData.empty,
-                                        variables: TemplateVariables = TemplateVariables.empty)
+                                        executionVariables: TemplateVariables = TemplateVariables.empty)
                                        (implicit userContext: UserContext): ProjectTask[T] = synchronized {
     if(allTasks.exists(_.id == name)) {
       throw IdentifierAlreadyExistsException(s"Task name '$name' is not unique as there is already a task in project '${this.id}' with this name.")
     }
-    val task = module[T].add(name, taskData, metaData.asNewMetaData, variables)(readWriteUser)
+    val task = module[T].add(name, taskData, metaData.asNewMetaData, executionVariables)(readWriteUser)
     provider.removeExternalTaskLoadingError(config.id, name)
     task
   }
@@ -259,13 +259,13 @@ class Project(initialConfig: ProjectConfig, provider: WorkspaceProvider, val res
     * @param taskData The task data.
     */
   def addAnyTask(name: Identifier, taskData: TaskSpec, metaData: MetaData = MetaData.empty,
-                 variables: TemplateVariables = TemplateVariables.empty)
+                 executionVariables: TemplateVariables = TemplateVariables.empty)
                 (implicit userContext: UserContext): ProjectTask[TaskSpec] = synchronized {
     if(allTasks.exists(_.id == name)) {
       throw IdentifierAlreadyExistsException(s"Task name '$name' is not unique as there is already a task in project '${this.id}' with this name.")
     }
     modules.find(_.taskType.isAssignableFrom(taskData.getClass)) match {
-      case Some(module) => module.asInstanceOf[Module[TaskSpec]].add(name, taskData, metaData.asNewMetaData, variables)(readWriteUser)
+      case Some(module) => module.asInstanceOf[Module[TaskSpec]].add(name, taskData, metaData.asNewMetaData, executionVariables)(readWriteUser)
       case None => throw new NoSuchElementException(s"No module for task type ${taskData.getClass} has been registered. Registered task types: ${modules.map(_.taskType).mkString(";")}")
     }
   }
@@ -280,15 +280,15 @@ class Project(initialConfig: ProjectConfig, provider: WorkspaceProvider, val res
     * @tparam T The task type.
     */
   def updateTask[T <: TaskSpec : ClassTag](name: Identifier, taskData: T, metaData: Option[MetaData] = None,
-                                           variables: Option[TemplateVariables] = None)
+                                           executionVariables: Option[TemplateVariables] = None)
                                           (implicit userContext: UserContext): ProjectTask[T] = synchronized {
     module[T].taskOption(name) match {
       case Some(task) =>
         val mergedMetaData = mergeMetaData(task.metaData, metaData)
-        task.update(taskData, Some(mergedMetaData.asUpdatedMetaData), variables)(readWriteUser)
+        task.update(taskData, Some(mergedMetaData.asUpdatedMetaData), executionVariables)(readWriteUser)
         task
       case None =>
-        addTask[T](name, taskData, metaData.getOrElse(MetaData.empty).asNewMetaData, variables.getOrElse(TemplateVariables.empty))
+        addTask[T](name, taskData, metaData.getOrElse(MetaData.empty).asNewMetaData, executionVariables.getOrElse(TemplateVariables.empty))
     }
   }
 
@@ -305,19 +305,19 @@ class Project(initialConfig: ProjectConfig, provider: WorkspaceProvider, val res
     * @param name The name of the task. Must be unique for all tasks in this project.
     * @param taskData The task data.
     * @param metaData The task meta data. If not provided, no changes to the meta data are made.
-    * @param variables The task variables. If not provided, no changes to the variables are made.
+    * @param executionVariables The execution variables of the task. If not provided, no changes to the variables are made.
     */
   def updateAnyTask(name: Identifier, taskData: TaskSpec, metaData: Option[MetaData] = None,
-                    variables: Option[TemplateVariables] = None)
+                    executionVariables: Option[TemplateVariables] = None)
                    (implicit userContext: UserContext): Unit = synchronized {
     modules.find(_.taskType.isAssignableFrom(taskData.getClass)) match {
       case Some(module) =>
         module.taskOption(name) match {
           case Some(task) =>
             val mergedMetaData = mergeMetaData(task.metaData, metaData)
-            task.asInstanceOf[ProjectTask[TaskSpec]].update(taskData, Some(mergedMetaData.asUpdatedMetaData), variables)(readWriteUser)
+            task.asInstanceOf[ProjectTask[TaskSpec]].update(taskData, Some(mergedMetaData.asUpdatedMetaData), executionVariables)(readWriteUser)
           case None =>
-            addAnyTask(name, taskData, metaData.getOrElse(MetaData.empty).asNewMetaData, variables.getOrElse(TemplateVariables.empty))
+            addAnyTask(name, taskData, metaData.getOrElse(MetaData.empty).asNewMetaData, executionVariables.getOrElse(TemplateVariables.empty))
         }
       case None =>
         throw new NoSuchElementException(s"No module for task type ${taskData.getClass} has been registered. Registered task types: ${modules.map(_.taskType).mkString(";")}")

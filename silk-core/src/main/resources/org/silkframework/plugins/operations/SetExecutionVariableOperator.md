@@ -2,8 +2,10 @@ Sets a single **execution-scope** template variable from this operator's input a
 unchanged, so it can be inserted anywhere in a workflow chain.
 
 The variable is written to the `execution` scope and can be read by any downstream node as
-`{{execution.<name>}}` (with the usual fallback to a task/project/global variable of the same name). This only
-takes effect while running inside a workflow execution, where all nodes share one execution-variable holder.
+`{{execution.<name>}}`. A value set by this operator replaces an execution variable of the same name that was
+defined as a default on the workflow or provided when the run was started. There is no fallback to other
+scopes: referencing an execution variable that has not been set fails. This operator only takes effect while
+running inside a workflow execution, where all nodes share one execution-variable holder.
 
 It is the workflow-operator counterpart of the **Set execution variable** transformer (`setExecutionVariable`):
 use this operator to pass a value between workflow nodes without embedding a transform.

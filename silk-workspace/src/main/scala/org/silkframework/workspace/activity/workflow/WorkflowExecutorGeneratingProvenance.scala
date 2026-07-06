@@ -3,7 +3,7 @@ package org.silkframework.workspace.activity.workflow
 import org.silkframework.config.PlainTask
 import org.silkframework.runtime.activity._
 import org.silkframework.runtime.plugin.{PluginContext, PluginRegistry}
-import org.silkframework.runtime.templating.{CombinedTemplateVariablesReader, GlobalTemplateVariables, InMemoryTemplateVariablesReader, TemplateVariableScopes, TemplateVariables}
+import org.silkframework.runtime.templating.{ExecutionTemplateVariables, ExecutionVariablesHolder, GlobalTemplateVariables, TemplateVariables}
 import org.silkframework.workspace.ProjectTask
 import org.silkframework.workspace.reports.{ExecutionReportManager, ReportIdentifier}
 
@@ -16,7 +16,7 @@ trait WorkflowExecutorGeneratingProvenance extends Activity[WorkflowExecutionRep
 
   def workflowTask: ProjectTask[Workflow]
 
-  /** Returns the execution variables for this workflow execution. */
+  /** Returns the execution variable overrides provided for this workflow execution. */
   def workflowVariables: TemplateVariables = TemplateVariables.empty
 
   private val log = Logger.getLogger(getClass.getName)
@@ -35,14 +35,12 @@ trait WorkflowExecutorGeneratingProvenance extends Activity[WorkflowExecutionRep
   override def run(context: ActivityContext[WorkflowExecutionReportWithProvenance])
                   (implicit userContext: UserContext): Unit = {
     implicit val pluginContext: PluginContext = {
-      if(workflowVariables.variables.nonEmpty) {
-        val project = workflowTask.project
-        val execVarsReader = InMemoryTemplateVariablesReader(workflowVariables, Set(TemplateVariableScopes.task, TemplateVariableScopes.execution))
-        val combined = CombinedTemplateVariablesReader(Seq(GlobalTemplateVariables, project.templateVariables, execVarsReader))
-        PluginContext(project.config.prefixes, project.resources, userContext, Some(project.id), combined)
-      } else {
-        PluginContext.fromProject(workflowTask.project)
-      }
+      val project = workflowTask.project
+      // The workflow's execution variables are read at run start, so that variable changes are picked up.
+      val executionVars = WorkflowExecutor.buildExecutionVariables(workflowTask.executionVariables, workflowVariables)
+      val templateVars =
+        ExecutionTemplateVariables(Seq(GlobalTemplateVariables, project.templateVariables), new ExecutionVariablesHolder(executionVars))
+      PluginContext(project.config.prefixes, project.resources, userContext, Some(project.id), templateVars)
     }
     val workflowExecutor: Activity[WorkflowExecutionReport] = workflowExecutionActivity()
     val control = context.child(workflowExecutor, 1.0)

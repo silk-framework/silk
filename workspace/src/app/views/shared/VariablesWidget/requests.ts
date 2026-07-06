@@ -6,7 +6,7 @@ import { TemplateVariableError, Variable, VariableDependencies } from "./typing"
 /**
  * Get variables per project or task
  * @param project
- * @param task  If provided, retrieves task-scope variables instead of project-scope.
+ * @param task  If provided, retrieves the execution variables of that task instead of project variables.
  * @returns
  */
 export const getVariables = (
@@ -49,7 +49,7 @@ export const createNewVariable = (
  * @param project
  * @param name
  * @param payload
- * @param task  If provided, updates a task-scope variable instead of project-scope.
+ * @param task  If provided, updates an execution variable of that task instead of a project variable.
  * @returns
  */
 export const updateVariable = (
@@ -72,7 +72,7 @@ export const updateVariable = (
  * Delete a single variable by name
  * @param project
  * @param name
- * @param task  If provided, deletes from task-scope instead of project-scope.
+ * @param task  If provided, deletes an execution variable of that task instead of a project variable.
  * @returns
  */
 export const deleteVariableRequest = (project: string, name: string, task?: string) =>

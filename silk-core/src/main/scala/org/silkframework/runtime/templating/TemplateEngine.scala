@@ -44,6 +44,14 @@ trait CompiledTemplate {
   def evaluate(values: Map[String, AnyRef], writer: Writer): Unit
 
   /**
+    * Evaluates this template with explicitly provided values in addition to template variables.
+    * The explicit values take precedence over a variable with the same top-level name.
+    */
+  def evaluate(values: Map[String, AnyRef], variables: Seq[TemplateVariableValue], writer: Writer): Unit = {
+    evaluate(convertValues(variables) ++ values, writer)
+  }
+
+  /**
     * Evaluates this template using provided values.
     *
     * @throws TemplateEvaluationException If the evaluation failed.
@@ -55,6 +63,9 @@ trait CompiledTemplate {
    * Variables with an empty scope are placed at the top level.
    * Variables with a scope are placed in nested maps corresponding to each scope element,
    * e.g., scope Seq("project", "meta") produces Map("project" -> Map("meta" -> Map(name -> value))).
+   * On a top-level name collision, flat (empty-scope) values take precedence over a scope map of the
+   * same name, so that explicitly provided values (e.g. input entity attributes) are never silently
+   * shadowed by variable scopes.
    */
   protected def convertValues(value: Seq[TemplateVariableValue]): Map[String, AnyRef] = {
     val (flatVars, scopedVars) = value.partition(_.scope.isEmpty)
@@ -63,7 +74,7 @@ trait CompiledTemplate {
       val shallowVars = vars.map(v => new TemplateVariableValue(v.name, v.scope.tail, v.values))
       topScope -> convertValues(shallowVars).asJava.asInstanceOf[AnyRef]
     }
-    (flatEntries ++ scopedEntries).toMap
+    (scopedEntries ++ flatEntries).toMap
   }
 }
 

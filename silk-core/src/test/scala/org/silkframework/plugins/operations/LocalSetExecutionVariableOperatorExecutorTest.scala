@@ -22,6 +22,7 @@ import org.silkframework.entity.{Entity, EntitySchema, ValueType}
 import org.silkframework.execution.ExecutorOutput
 import org.silkframework.execution.local.{GenericEntityTable, LocalEntities, LocalExecution}
 import org.silkframework.runtime.activity.UserContext
+import org.silkframework.runtime.iterator.CloseableIterator
 import org.silkframework.runtime.plugin.PluginContext
 import org.silkframework.runtime.resource.InMemoryResourceManager
 import org.silkframework.runtime.templating.{ExecutionTemplateVariables, TemplateVariableScopes}
@@ -57,6 +58,30 @@ class LocalSetExecutionVariableOperatorExecutorTest extends AnyFlatSpec with Mat
 
     variables.all.variables shouldBe empty
     result shouldBe empty
+  }
+
+  it should "pass through all entities of a streaming input" in {
+    // Simulates a streaming source (e.g. a CSV or SQL backed table): using the iterator after close() fails.
+    var closed = false
+    val inner = entities.iterator
+    val streamingSource = new CloseableIterator[Entity] {
+      override def hasNext: Boolean = { failIfClosed(); inner.hasNext }
+      override def next(): Entity = { failIfClosed(); inner.next() }
+      override def close(): Unit = { closed = true }
+      private def failIfClosed(): Unit = {
+        if (closed) throw new IllegalStateException("The iterator must not be used after it has been closed.")
+      }
+    }
+    val variables = ExecutionTemplateVariables(Seq.empty)
+    val opTask = task(SetExecutionVariableOperator("greeting", sourcePath = "name"))
+    val inputTable: LocalEntities = GenericEntityTable(streamingSource, schema, opTask.asInstanceOf[Task[TaskSpec]])
+    val output = executor.execute(opTask, Seq(inputTable), ExecutorOutput.empty,
+      LocalExecution(useLocalInternalDatasets = false))(pluginContext(variables))
+    val result = output.map(_.entities.use(_.toList)).getOrElse(Seq.empty)
+
+    variables.get("greeting").value shouldBe "Alice"
+    result.map(_.uri.uri) shouldBe Seq("urn:e1", "urn:e2")
+    closed shouldBe true // consuming the pass-through closes the original source
   }
 
   it should "throw a ValidationException when not exactly one input is connected" in {

@@ -25,8 +25,9 @@ trait Task[+TaskType <: TaskSpec] extends HasMetaData {
   /** Meta data about this task. */
   def metaData: MetaData
 
-  /** Variables that are defined on this task. */
-  def variables: TemplateVariables
+  /** Execution variables that are defined on this task.
+    * They provide the default values for the execution scope when the execution of this task is started. */
+  def executionVariables: TemplateVariables
 
   /**
     * Type of task data.
@@ -56,7 +57,7 @@ trait Task[+TaskType <: TaskSpec] extends HasMetaData {
       id == task.id &&
       data == task.data &&
       metaData == task.metaData &&
-      variables == task.variables
+      executionVariables == task.executionVariables
     case _ =>
       false
   }
@@ -65,7 +66,7 @@ trait Task[+TaskType <: TaskSpec] extends HasMetaData {
 case class PlainTask[+TaskType <: TaskSpec : ClassTag](id: Identifier,
                                                        data: TaskType,
                                                        metaData: MetaData = MetaData.empty,
-                                                       variables: TemplateVariables = TemplateVariables.empty) extends Task[TaskType] {
+                                                       executionVariables: TemplateVariables = TemplateVariables.empty) extends Task[TaskType] {
 
   override def taskType: Class[_] = implicitly[ClassTag[TaskType]].runtimeClass
 
@@ -73,7 +74,7 @@ case class PlainTask[+TaskType <: TaskSpec : ClassTag](id: Identifier,
 
 object PlainTask {
   def fromTask[T <: TaskSpec : ClassTag](task: Task[T]): PlainTask[T] = {
-    PlainTask(task.id, task.data, task.metaData, task.variables)
+    PlainTask(task.id, task.data, task.metaData, task.executionVariables)
   }
 }
 
@@ -109,11 +110,14 @@ object Task {
       * Deserialize a value from XML.
       */
     def read(node: Node)(implicit readContext: ReadContext): Task[T] = {
+      // Read the execution variables first, so that parameter templates referencing them resolve against the task's own defaults.
+      val executionVariables = Task.readExecutionVariablesXml(node)
+      val dataContext = readContext.copy(templateVariables = readContext.templateVariables.withExecutionDefaults(executionVariables))
       PlainTask(
         id = (node \ "@id").text,
-        data = fromXml[T](node),
+        data = fromXml[T](node)(xmlFormat, dataContext),
         metaData = (node \ "MetaData").headOption.map(fromXml[MetaData]).getOrElse(MetaData.empty),
-        variables = (node \ "Variables").headOption.map(fromXml[TemplateVariables]).getOrElse(TemplateVariables.empty)
+        executionVariables = executionVariables
       )
     }
 
@@ -124,12 +128,26 @@ object Task {
       var node = toXml(task.data).head.asInstanceOf[Elem]
       node = node % Attribute("id", Text(task.id), Null)
       node = node.copy(child = toXml[MetaData](task.metaData) +: node.child)
-      if(task.variables.variables.nonEmpty) {
-        node = node.copy(child = node.child :+ toXml[TemplateVariables](task.variables))
+      if(task.executionVariables.variables.nonEmpty) {
+        node = node.copy(child = node.child :+ Task.writeExecutionVariablesXml(task.executionVariables))
       }
       node
     }
   }
 
   implicit object GenericTaskFormat extends TaskFormat[TaskSpec]
+
+  /**
+    * Reads the execution variables of a task from its XML serialization.
+    */
+  def readExecutionVariablesXml(node: Node)(implicit readContext: ReadContext): TemplateVariables = {
+    (node \ "ExecutionVariables").headOption.map(XmlSerialization.fromXml[TemplateVariables]).getOrElse(TemplateVariables.empty)
+  }
+
+  /**
+    * Serializes the execution variables of a task as an `ExecutionVariables` XML element.
+    */
+  def writeExecutionVariablesXml(executionVariables: TemplateVariables)(implicit writeContext: WriteContext[Node]): Node = {
+    XmlSerialization.toXml[TemplateVariables](executionVariables).asInstanceOf[Elem].copy(label = "ExecutionVariables")
+  }
 }

@@ -50,7 +50,7 @@ class ExecuteLinking(task: ProjectTask[LinkSpec]) extends Activity[ExecutionRepo
   override def run(context: ActivityContext[ExecutionReport])
                   (implicit userContext: UserContext): Unit = {
     implicit val execution: ExecutionType = ExecutorRegistry.execution()
-    implicit val pluginContext: PluginContext = PluginContext.fromProject(task.project)
+    implicit val pluginContext: PluginContext = PluginContext.fromTask(task, task.project)
 
     // Execute inputs
     context.status.updateMessage("Loading inputs")

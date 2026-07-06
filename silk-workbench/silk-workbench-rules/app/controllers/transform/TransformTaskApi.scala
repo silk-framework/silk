@@ -147,7 +147,7 @@ class TransformTaskApi @Inject() () extends InjectedController with UserContextA
       case _ =>
         catchExceptions {
           deserializeCompileTime[TransformTask]() { task =>
-            project.updateTask(task.id, task.data, Some(task.metaData))
+            project.updateTask(task.id, task.data, Some(task.metaData), executionVariablesIfProvided(task))
             Ok
           }
         }

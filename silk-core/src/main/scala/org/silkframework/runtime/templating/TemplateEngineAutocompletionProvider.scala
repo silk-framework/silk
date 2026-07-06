@@ -14,6 +14,7 @@ class TemplateEngineAutocompletionProvider extends PluginParameterAutoCompletion
     TemplateEngines.availableEngines
       .filter(_.id.toString != DisabledTemplateEngine.id) // Disabled template engine should not be suggested to the user
       .filter(_.id.toString != UnresolvedTemplateEngine.id) // Unresolved template engine should not be suggested to the user
+      .filter(_.id.toString != SimpleSubstitutionTemplateEngine.id) // Internal minimal engine (used by tests), not offered to users
       .filter(engine => matchesSearchTerm(multiSearchWords, engine.id.toLowerCase))
       .map(engine => AutoCompletionResult(engine.id, Some(engine.label)))
   }

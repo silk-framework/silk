@@ -38,7 +38,7 @@ case class TemplateVariableJson(@Schema(
                                 )
                                 isSensitive: Boolean,
                                 @Schema(
-                                  description = "The scope of the variable, e.g., \"project\" or \"task\".",
+                                  description = "The scope of the variable, e.g., \"project\" or \"execution\".",
                                   example = "project",
                                   requiredMode = RequiredMode.REQUIRED
                                 )

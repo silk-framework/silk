@@ -57,6 +57,31 @@ case class TemplateVariables(variables: Seq[TemplateVariable]) {
   }
 
   /**
+    * Resolves all templates like [[resolved]], but keeps the stored value of each variable whose template
+    * cannot be resolved (e.g. a template referencing a sensitive parent variable, which is not available
+    * for template resolution). Kept variables still participate in the resolution of subsequent variables
+    * with their stored value.
+    */
+  def resolvedKeepingUnresolved(additionalVariables: TemplateVariables = TemplateVariables.empty): TemplateVariables = {
+    val resolvedVariables = mutable.Buffer[TemplateVariable]()
+    for (variable <- variables) {
+      variable.template match {
+        case Some(template) =>
+          try {
+            val value = TemplateVariables(additionalVariables.variables ++ resolvedVariables).resolveTemplateValue(template)
+            resolvedVariables.append(variable.copy(value = value))
+          } catch {
+            case _: TemplateEvaluationException =>
+              resolvedVariables.append(variable) // Keep the stored value
+          }
+        case None =>
+          resolvedVariables.append(variable)
+      }
+    }
+    TemplateVariables(resolvedVariables.toSeq)
+  }
+
+  /**
     * Resolves a template string.
     *
     * @throws TemplateEvaluationException If the template evaluation failed.
@@ -72,41 +97,6 @@ case class TemplateVariables(variables: Seq[TemplateVariable]) {
     */
   def merge(other: TemplateVariables): TemplateVariables = {
     TemplateVariables(variables ++ other.variables)
-  }
-
-  /**
-    * The execution-scope fallback variables for this set: for every variable in the `task`, `project`
-    * or `global` scope whose name is not already present in the `execution` scope, an `execution`-scoped
-    * copy is produced, using the highest-precedence source (task > project > global). This lets
-    * `{{execution.X}}` resolve to the task, project or global variable `X` when `X` has not been set
-    * directly in the execution scope. Sensitivity and templates of the source variable are preserved.
-    */
-  def executionScopeFallback: Seq[TemplateVariable] = {
-    val executionNames = variables.iterator.filter(_.scope == TemplateVariableScopes.execution).map(_.name).toSet
-
-    // Precedence by exact scope: task > project > global (smaller wins). Other scopes do not fall back.
-    def precedence(scope: Seq[String]): Option[Int] = scope match {
-      case TemplateVariableScopes.task    => Some(0)
-      case TemplateVariableScopes.project => Some(1)
-      case TemplateVariableScopes.global  => Some(2)
-      case _                              => None
-    }
-
-    variables
-      .flatMap(v => precedence(v.scope).map(p => (v, p)))
-      .filterNot { case (v, _) => executionNames.contains(v.name) }
-      .groupBy { case (v, _) => v.name }
-      .map { case (_, candidates) => candidates.minBy { case (_, p) => p }._1.copy(scope = TemplateVariableScopes.execution) }
-      .toSeq
-  }
-
-  /**
-    * Returns a copy of these variables augmented with [[executionScopeFallback]] entries, so that
-    * `{{execution.X}}` resolves to the task, project or global variable `X` when `X` has not been set
-    * directly in the execution scope.
-    */
-  def withExecutionScopeFallback: TemplateVariables = {
-    TemplateVariables(variables ++ executionScopeFallback)
   }
 
   /**
