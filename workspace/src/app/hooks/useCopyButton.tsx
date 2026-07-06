@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 import { copyToClipboard } from "../utils/copyToClipboard";
 import useErrorHandler from "./useErrorHandler";
 
-export interface ICopyData {
+export interface CopyDataProps {
     /** text content to copy to clipboard**/
     text: string;
     /** default text shown before copy action occurs **/
@@ -27,7 +27,7 @@ export interface CopyButtonRenderProps {
 
 const COPY_RESET_TIMEOUT = 1000;
 
-const useCopyButton = (data: Array<ICopyData>, resetTimeout = COPY_RESET_TIMEOUT): React.JSX.Element[] => {
+const useCopyButton = (data: Array<CopyDataProps>, resetTimeout = COPY_RESET_TIMEOUT): React.JSX.Element[] => {
     const [activeButton, setActiveButton] = React.useState<string | undefined>();
     const { registerError } = useErrorHandler();
     const [t] = useTranslation();

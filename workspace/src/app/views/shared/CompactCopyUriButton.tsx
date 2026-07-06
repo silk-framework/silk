@@ -1,4 +1,4 @@
-import { IconButton } from "@eccenca/gui-elements";
+import { IconButton, IconButtonProps } from "@eccenca/gui-elements";
 import React from "react";
 import { useTranslation } from "react-i18next";
 import useCopyButton from "../../hooks/useCopyButton";
@@ -8,13 +8,16 @@ interface CompactCopyUriButtonProps {
     dataTestId?: string;
     stopPropagation?: boolean;
     uri: string;
+    iconButtonProps?: IconButtonProps;
 }
 
+/** Button that is used where URI values are displayed to offer convenient copy-to-clipboard functionality. */
 export const CompactCopyUriButton: React.FC<CompactCopyUriButtonProps> = ({
     className,
     dataTestId,
-    stopPropagation = false,
+    stopPropagation = true,
     uri,
+    iconButtonProps,
 }) => {
     const [t] = useTranslation();
     const [copyButton] = useCopyButton([
@@ -38,6 +41,7 @@ export const CompactCopyUriButton: React.FC<CompactCopyUriButtonProps> = ({
                     size="small"
                     text={isCopied ? copiedLabel : copyLabel}
                     tooltipAsTitle
+                    {...iconButtonProps}
                 />
             ),
         },
