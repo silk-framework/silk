@@ -6,7 +6,8 @@ import org.silkframework.rule.vocab._
 import org.silkframework.rule.{MappingTarget, NodePosition, RuleLayout}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.{ClassPluginDescription, PluginRegistry}
-import org.silkframework.runtime.templating.{TemplateVariable, TemplateVariableScopes, TemplateVariables}
+import org.silkframework.runtime.templating.{SimpleSubstitutionTemplateEngine, TemplateVariable, TemplateVariableScopes, TemplateVariables}
+import org.silkframework.util.ConfigTestTrait
 import org.silkframework.runtime.serialization.{ReadContext, Serialization, TestReadContext, TestWriteContext, WriteContext}
 import org.silkframework.serialization.json.JsonSerializers._
 import org.silkframework.serialization.json.{JsonFormat, JsonSerialization}
@@ -22,7 +23,12 @@ import scala.reflect.ClassTag
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
-class JsonSerializersTest  extends AnyFlatSpec with Matchers {
+class JsonSerializersTest  extends AnyFlatSpec with Matchers with ConfigTestTrait {
+
+  // Use the dependency-free substitution engine, so that parameter templates can be evaluated in this module's tests.
+  override def propertyMap: Map[String, Option[String]] = Map(
+    "config.variables.engine" -> Some(SimpleSubstitutionTemplateEngine.id)
+  )
 
   "JsonDatasetSpecFormat" should "serialize JsonTaskFormats" in {
     PluginRegistry.registerPlugin(classOf[SomeDatasetPlugin])
@@ -117,6 +123,7 @@ class JsonSerializersTest  extends AnyFlatSpec with Matchers {
   }
 
   "TaskJsonFormat" should "resolve parameter templates against the task's own execution variables" in {
+    PluginRegistry.unregisterPlugin(classOf[SomeDatasetPlugin])
     PluginRegistry.registerPlugin(classOf[SomeDatasetPlugin])
     val pluginId = ClassPluginDescription(classOf[SomeDatasetPlugin]).id.toString
     val executionVariables = TemplateVariables(Seq(
