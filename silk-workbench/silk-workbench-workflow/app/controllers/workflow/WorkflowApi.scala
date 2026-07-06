@@ -88,13 +88,10 @@ class WorkflowApi @Inject() () extends InjectedController with UserContextAction
     if (activity.control.status().isRunning) {
       PreconditionFailed
     } else {
-      if(executionVars.variables.nonEmpty) {
-        activity.start(ParameterValues(Map(
-          "executionVariables" -> ParameterObjectValue(Left(TemplateVariablesParameter(executionVars)))
-        )))
-      } else {
-        activity.control.start()
-      }
+      // Always pass the execution variables (possibly empty) so that overrides from a previous start are reset.
+      activity.start(ParameterValues(Map(
+        "executionVariables" -> ParameterObjectValue(Left(TemplateVariablesParameter(executionVars)))
+      )))
       Ok
     }
   }
