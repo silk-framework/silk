@@ -30,8 +30,8 @@
     .diapp-transform-evaluation__selectable-tag *,
     .diapp-transform-evaluation__selectable-value-text,
     .diapp-transform-evaluation__selectable-value-text * {
-        -webkit-user-select: text !important;
-        user-select: text !important;
+        -webkit-user-select: text;
+        user-select: text;
     }
 
     .diapp-transform-evaluation__selectable-value-text {

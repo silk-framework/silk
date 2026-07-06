@@ -28,8 +28,8 @@
     .diapp-linking-evaluation__selectable-tag *,
     .diapp-linking-evaluation__selectable-value-text,
     .diapp-linking-evaluation__selectable-value-text * {
-        -webkit-user-select: text !important;
-        user-select: text !important;
+        -webkit-user-select: text;
+        user-select: text;
     }
 
     .diapp-linking-evaluation__selectable-value-text {
