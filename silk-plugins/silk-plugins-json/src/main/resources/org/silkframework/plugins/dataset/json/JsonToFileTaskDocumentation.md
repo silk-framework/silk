@@ -17,7 +17,7 @@ single file holding all the JSON values merged into one JSON array. The output i
 entities for the downstream operator.
 
 Which field holds the JSON string is controlled by the *Input path* parameter. When set, the operator reads the value
-at the given path expression. When left empty, it reads the value of the first available field.
+at the given path expression. When left empty, it reads the value of the first property in the entity schema.
 
 ## Invalid input
 
@@ -49,7 +49,7 @@ file in *jsonArray* mode.
 
 **Input path** controls which field of the input entity holds the JSON string. When set to a Silk path expression
 such as */jsonContent*, the operator reads the value at that path. When left empty, the operator reads the value of
-the first available field.
+the first property in the entity schema.
 
 **MIME type** sets the content type of every produced file. Defaults to *application/json*. In *zip* mode, when this
 parameter is left at its default value, the executor overrides it to *application/zip* automatically; an explicit

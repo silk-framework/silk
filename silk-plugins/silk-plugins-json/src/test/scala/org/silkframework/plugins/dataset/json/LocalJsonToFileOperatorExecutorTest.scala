@@ -7,7 +7,7 @@ import org.silkframework.entity.paths.UntypedPath
 import org.silkframework.entity.{Entity, EntitySchema}
 import org.silkframework.execution.local.{GenericEntityTable, LocalExecution}
 import org.silkframework.execution.typed.{FileEntity, FileEntitySchema}
-import org.silkframework.execution.{ExecutionReport, ExecutorOutput}
+import org.silkframework.execution.{ExecutionReport, ExecutorOutput, TaskException}
 import org.silkframework.runtime.activity.{ActivityMonitor, TestUserContextTrait}
 import org.silkframework.runtime.iterator.CloseableIterator
 import org.silkframework.runtime.plugin.PluginContext
@@ -25,6 +25,17 @@ class LocalJsonToFileOperatorExecutorTest extends AnyFlatSpec with Matchers with
   private implicit val pluginContext: PluginContext = PluginContext.empty
   private val task = PlainTask("JsonToFile", JsonToFileOperator(inputPath = "jsonContent"))
   private val mergedTask = PlainTask("JsonToFile", JsonToFileOperator(inputPath = "jsonContent", outputMode = JsonToFileOutputModeEnum.jsonArray))
+
+  it should "fail with a clear error when the number of inputs is not exactly one" in {
+    val json = """{"hello":"world"}"""
+    the [TaskException] thrownBy {
+      executor.execute(task, Seq.empty, ExecutorOutput.empty, LocalExecution(useLocalInternalDatasets = false))
+    } must have message "'JSON to File' takes exactly one input!"
+
+    the [TaskException] thrownBy {
+      executor.execute(task, Seq(inputTable(entitySchema, task, json), inputTable(entitySchema, task, json)), ExecutorOutput.empty, LocalExecution(useLocalInternalDatasets = false))
+    } must have message "'JSON to File' takes exactly one input!"
+  }
 
   it should "write the JSON of a single input entity to a file" in {
     val json = """{"hello":"world"}"""
