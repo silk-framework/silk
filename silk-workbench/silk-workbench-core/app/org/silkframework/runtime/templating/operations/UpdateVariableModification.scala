@@ -1,6 +1,7 @@
 package org.silkframework.runtime.templating.operations
 
 import org.silkframework.config.{Task, TaskSpec}
+import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.templating.exceptions.{CannotModifyVariablesUsedByTaskException, CannotUpdateVariableUsedByTaskException}
 import org.silkframework.runtime.templating.{TemplateVariable, TemplateVariables}
 import org.silkframework.workspace.Project
@@ -9,7 +10,8 @@ case class UpdateVariableModification(project: Project, variable: TemplateVariab
 
   override def operation: String = s"Updated variable $variable"
 
-  override protected def updateVariables(currentVariables: TemplateVariables, parentVariables: TemplateVariables): TemplateVariables = {
+  override protected def updateVariables(currentVariables: TemplateVariables, parentVariables: TemplateVariables)
+                                        (implicit user: UserContext): TemplateVariables = {
     UpdateVariableModification.updateVariable(currentVariables, variable).resolved(parentVariables)
   }
 

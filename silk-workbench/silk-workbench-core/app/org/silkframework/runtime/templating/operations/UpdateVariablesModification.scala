@@ -1,6 +1,7 @@
 package org.silkframework.runtime.templating.operations
 
 import org.silkframework.config.{Task, TaskSpec}
+import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.templating.TemplateVariables
 import org.silkframework.runtime.templating.exceptions.{CannotModifyVariablesUsedByTaskException, CannotUpdateVariablesUsedByTaskException}
 import org.silkframework.workspace.Project
@@ -9,8 +10,13 @@ case class UpdateVariablesModification(project: Project, updatedVariables: Templ
 
   override def operation: String = s"Updated the following variables ${updatedVariables.variables.map(_.name).mkString("'", "', '", "'")}"
 
-  override protected def updateVariables(currentVariables: TemplateVariables, parentVariables: TemplateVariables): TemplateVariables = {
-    updatedVariables.resolved(parentVariables)
+  override protected def updateVariables(currentVariables: TemplateVariables, parentVariables: TemplateVariables)
+                                        (implicit user: UserContext): TemplateVariables = {
+    val resolvedVariables = updatedVariables.resolved(parentVariables)
+    // Replacing the variable set may remove variables that execution-variable templates on tasks reference.
+    val removedVariableNames = currentVariables.variables.map(_.name).toSet -- updatedVariables.variables.map(_.name).toSet
+    checkExecutionVariableDependencies(resolvedVariables, removedVariableNames)
+    resolvedVariables
   }
 
   override protected def generateException(task: Task[_ <: TaskSpec], cause: Throwable): CannotModifyVariablesUsedByTaskException = {

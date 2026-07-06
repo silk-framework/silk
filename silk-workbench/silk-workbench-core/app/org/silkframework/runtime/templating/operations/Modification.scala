@@ -4,7 +4,7 @@ import org.silkframework.config.{Task, TaskSpec}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.{ParameterTemplateValue, ParameterValues, PluginContext}
 import org.silkframework.runtime.templating.exceptions._
-import org.silkframework.runtime.templating.{GlobalTemplateVariables, InMemoryTemplateVariablesReader, TemplateVariables, TemplateVariablesManager}
+import org.silkframework.runtime.templating.{GlobalTemplateVariables, InMemoryTemplateVariablesReader, TemplateVariableScopes, TemplateVariables, TemplateVariablesManager}
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.{Project, ProjectTask}
 
@@ -42,7 +42,8 @@ abstract class Modification {
     * @param currentVariables The current variables at the target scope.
     * @param parentVariables The resolved parent scope variables (without sensitive values) available for template resolution.
     */
-  protected def updateVariables(currentVariables: TemplateVariables, parentVariables: TemplateVariables): TemplateVariables
+  protected def updateVariables(currentVariables: TemplateVariables, parentVariables: TemplateVariables)
+                               (implicit user: UserContext): TemplateVariables
 
   /**
     * Generates an exception if a variable could not be updated, because a task would become invalid.
@@ -147,6 +148,56 @@ abstract class Modification {
     }
 
     updatedTasks.map(_._1)
+  }
+
+  /**
+    * For project-scope modifications that remove variables: throws the modification's exception (via
+    * [[generateException]]) if an execution-variable template of any task references a removed variable.
+    * Execution-variable templates are resolved against the parent scopes when the variable is saved, so
+    * removing a referenced project variable would leave them unresolvable on their next modification.
+    */
+  protected def checkExecutionVariableDependencies(newProjectVariables: TemplateVariables,
+                                                   removedVariableNames: Set[String])
+                                                  (implicit user: UserContext): Unit = {
+    if (taskId.isEmpty && removedVariableNames.nonEmpty) {
+      for ((task, cause) <- tasksWithDependentExecutionVariables(newProjectVariables, removedVariableNames).headOption) {
+        throw generateException(task, cause)
+      }
+    }
+  }
+
+  /**
+    * Tasks whose execution-variable templates reference one of the removed project variables.
+    */
+  protected def tasksWithDependentExecutionVariables(newProjectVariables: TemplateVariables,
+                                                     removedVariableNames: Set[String])
+                                                    (implicit user: UserContext): Seq[(ProjectTask[_ <: TaskSpec], TemplateVariablesEvaluationException)] = {
+    // Match the resolution at save time (parent scopes without sensitive variables).
+    val parentVariables = (GlobalTemplateVariables.all merge newProjectVariables).withoutSensitiveVariables()
+    for (task <- project.allTasks.toSeq;
+         issues = dependentExecutionVariableIssues(task, parentVariables, removedVariableNames) if issues.nonEmpty) yield {
+      (task, TemplateVariablesEvaluationException(issues))
+    }
+  }
+
+  /** The evaluation issues of a task's execution variables that are caused by the removed variables. */
+  private def dependentExecutionVariableIssues(task: ProjectTask[_ <: TaskSpec],
+                                               parentVariables: TemplateVariables,
+                                               removedVariableNames: Set[String]): Seq[TemplateVariableEvaluationException] = {
+    try {
+      task.executionVariables.resolved(parentVariables)
+      Seq.empty
+    } catch {
+      case ex: TemplateVariablesEvaluationException =>
+        // Failures unrelated to the removed variables do not block the modification.
+        ex.issues.filter {
+          case TemplateVariableEvaluationException(_, unboundEx: UnboundVariablesException) =>
+            unboundEx.missingVars.exists(missing =>
+              removedVariableNames.contains(missing.name) && missing.scope == TemplateVariableScopes.project)
+          case _ =>
+            false
+        }
+    }
   }
 
   /**
