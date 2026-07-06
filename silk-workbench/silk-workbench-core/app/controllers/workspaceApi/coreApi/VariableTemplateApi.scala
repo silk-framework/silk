@@ -317,16 +317,10 @@ class VariableTemplateApi @Inject()() extends InjectedController with UserContex
                            )
                            task: Option[String]): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     val project = WorkspaceFactory().workspace.project(projectName)
-    task match {
-      case Some(_) =>
-        // Execution variables are only scoped to the task itself and have no cross-task dependencies
-        Ok(Json.toJson(VariableDependencies(Seq.empty, Seq.empty)))
-      case None =>
-        val modification = DeleteVariableModification(project, variableName)
-        val dependentVariables = modification.dependentVariables()
-        val dependentTaskLinks = modification.invalidTasks().map(task => TaskLink.fromTask(task))
-        Ok(Json.toJson(VariableDependencies(dependentVariables, dependentTaskLinks)))
-    }
+    val modification = DeleteVariableModification(project, variableName, task)
+    val dependentVariables = modification.dependentVariables()
+    val dependentTaskLinks = modification.invalidTasks().map(task => TaskLink.fromTask(task))
+    Ok(Json.toJson(VariableDependencies(dependentVariables, dependentTaskLinks)))
   }
 
   @Operation(

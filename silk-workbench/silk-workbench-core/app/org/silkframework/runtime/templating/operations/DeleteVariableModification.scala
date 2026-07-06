@@ -16,10 +16,11 @@ case class DeleteVariableModification(project: Project, variableName: String, ta
   /**
     * Retrieves the variables that use this variable.
     */
-  def dependentVariables(): Seq[String] = {
+  def dependentVariables()(implicit user: UserContext): Seq[String] = {
+    val manager = variablesManager()
     try {
       // Resolve against the same (sensitive-filtered) parent scope as the actual delete in Modification.execute.
-      updateVariables(project.templateVariables.all, project.templateVariables.parentVariables.withoutSensitiveVariables())
+      updateVariables(manager.all, manager.parentVariables.withoutSensitiveVariables())
       Seq.empty
     } catch {
       case ex: CannotDeleteUsedVariableException =>
@@ -35,28 +36,46 @@ case class DeleteVariableModification(project: Project, variableName: String, ta
     * Retrieves the tasks that would become invalid by this modification.
     */
   def invalidTasks()(implicit user: UserContext): Seq[ProjectTask[_ <: TaskSpec]] = {
-    // Compute current and new project variables
-    val currentVariables = project.templateVariables.all
-    val newVariables = TemplateVariables(currentVariables.variables.filter(_.name != variableName))
+    taskId match {
+      case Some(id) =>
+        // Execution variables can only be referenced by parameter templates of the task itself.
+        val task = project.anyTask(id)
+        val currentVariables = task.executionVariables
+        val newVariables = TemplateVariables(currentVariables.variables.filter(_.name != variableName))
+        val baseVariables = project.combinedTemplateVariables.all
+        val context = PluginContext.fromTask(task, project)
+        try {
+          hasUpdatedTemplateValues(task.parameters(context), baseVariables merge currentVariables, baseVariables merge newVariables)
+          Seq.empty
+        } catch {
+          case _: TemplateEvaluationException =>
+            // Task update would fail with the modified variables.
+            Seq(task)
+        }
+      case None =>
+        // Compute current and new project variables
+        val currentVariables = project.templateVariables.all
+        val newVariables = TemplateVariables(currentVariables.variables.filter(_.name != variableName))
 
-    // Compute all variables including the global variables
-    val allCurrentVariables = GlobalTemplateVariables.all merge currentVariables
-    val allNewVariables = GlobalTemplateVariables.all merge newVariables
+        // Compute all variables including the global variables
+        val allCurrentVariables = GlobalTemplateVariables.all merge currentVariables
+        val allNewVariables = GlobalTemplateVariables.all merge newVariables
 
-    // Check if the update variables break a task
-    val currentContext: PluginContext = PluginContext.fromProject(project)
-    val updatedTasks = mutable.Buffer[ProjectTask[_ <: TaskSpec]]()
-    for (task <- project.allTasks) yield {
-      try {
-        hasUpdatedTemplateValues(task, currentContext, allCurrentVariables, allNewVariables)
-      } catch {
-        case _: TemplateEvaluationException =>
-          // Task update would fail with the modified variables.
-          updatedTasks.append(task)
-      }
-      task
+        // Check if the update variables break a task
+        val currentContext: PluginContext = PluginContext.fromProject(project)
+        val updatedTasks = mutable.Buffer[ProjectTask[_ <: TaskSpec]]()
+        for (task <- project.allTasks) yield {
+          try {
+            hasUpdatedTemplateValues(task, currentContext, allCurrentVariables, allNewVariables)
+          } catch {
+            case _: TemplateEvaluationException =>
+              // Task update would fail with the modified variables.
+              updatedTasks.append(task)
+          }
+          task
+        }
+        updatedTasks.toSeq
     }
-    updatedTasks.toSeq
   }
 
   override protected def updateVariables(currentVariables: TemplateVariables, parentVariables: TemplateVariables): TemplateVariables = {
