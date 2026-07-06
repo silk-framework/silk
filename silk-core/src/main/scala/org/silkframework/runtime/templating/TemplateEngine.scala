@@ -44,6 +44,14 @@ trait CompiledTemplate {
   def evaluate(values: Map[String, AnyRef], writer: Writer): Unit
 
   /**
+    * Evaluates this template with explicitly provided values in addition to template variables.
+    * The explicit values take precedence over a variable with the same top-level name.
+    */
+  def evaluate(values: Map[String, AnyRef], variables: Seq[TemplateVariableValue], writer: Writer): Unit = {
+    evaluate(convertValues(variables) ++ values, writer)
+  }
+
+  /**
     * Evaluates this template using provided values.
     *
     * @throws TemplateEvaluationException If the evaluation failed.
