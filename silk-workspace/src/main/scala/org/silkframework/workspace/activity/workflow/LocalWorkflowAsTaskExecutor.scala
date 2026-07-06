@@ -30,7 +30,8 @@ class LocalWorkflowAsTaskExecutor extends Executor[Workflow, LocalExecution] {
       projectTask,
       clearDatasets = false,
       replaceDataSources = execution.replaceDataSources,
-      replaceSinks = execution.replaceSinks
+      replaceSinks = execution.replaceSinks,
+      parentExecution = Some(execution)
     ).run(workflowContext)
 
     None

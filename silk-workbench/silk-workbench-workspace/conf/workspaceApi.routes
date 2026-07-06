@@ -5,6 +5,7 @@ POST          /searchItems                                                      
 POST          /pluginParameterAutoCompletion                                    controllers.workspaceApi.SearchApi.parameterAutoCompletion()
 GET           /recentlyViewedItems                                              controllers.workspaceApi.SearchApi.recentlyViewedItems()
 GET           /initFrontend                                                     controllers.workspaceApi.InitApi.init()
+GET           /status                                                           controllers.workspaceApi.WorkspaceStatusApi.status()
 
 GET           /taskActivitiesStatus                                             controllers.workspaceApi.ActivitiesApi.taskActivitiesStatus(projectId: Option[String] ?= None, statusFilter: Option[String] ?= None)
 POST          /searchActivities                                                 controllers.workspaceApi.ActivitiesApi.activitySearch()

@@ -1,29 +1,24 @@
 package org.silkframework.runtime.templating.exceptions
 
 import org.silkframework.runtime.templating.TemplateVariableName
-import org.silkframework.runtime.templating.exceptions.UnboundVariablesException.generateMessage
-import org.silkframework.workbench.utils.JsonRequestException
-import play.api.libs.json.{JsObject, Json}
 
 /**
   * Thrown if a value for an unbound variable is missing.
   */
 class UnboundVariablesException(val missingVars: Seq[TemplateVariableName], cause: Option[Exception] = None)
-  extends TemplateEvaluationException(generateMessage(missingVars), cause) with JsonRequestException {
+  extends TemplateEvaluationException(UnboundVariablesException.generateMessage(missingVars), cause) {
 
   /**
     * A short description of the error type.
     */
   override def errorTitle: String = "Unbound variables"
 
+
   /**
-    * Json that will be included in addition to the HTTP Problem details JSON.
-    * Note that using reserved HTTP Problem details fields (type, title, detail) would overwrite the generated ones.
-    */
-  override def additionalJson: JsObject = {
-    Json.obj(
-      "unboundVariables" -> missingVars.map(_.scopedName)
-    )
+   * Include the unbound variables in the HTTP Problem details JSON.
+   */
+  override def additionalData: Map[String, Seq[String]] = {
+    Map("unboundVariables" -> missingVars.map(_.scopedName))
   }
 }
 

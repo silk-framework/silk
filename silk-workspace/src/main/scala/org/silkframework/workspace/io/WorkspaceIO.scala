@@ -6,7 +6,7 @@ import org.silkframework.rule.{LinkSpec, TransformSpec}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.PluginContext
 import org.silkframework.runtime.resource.ResourceManager
-import org.silkframework.runtime.templating.{CombinedTemplateVariablesReader, GlobalTemplateVariables, InMemoryTemplateVariablesReader, TemplateVariables}
+import org.silkframework.runtime.templating.{CombinedTemplateVariablesReader, GlobalTemplateVariables, InMemoryTemplateVariablesReader, TemplateVariableScopes, TemplateVariables}
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.activity.workflow.Workflow
 import org.silkframework.workspace.resources.ResourceRepository
@@ -88,7 +88,7 @@ object WorkspaceIO {
                                                   prefixes: Prefixes,
                                                   variables: TemplateVariables)
                                                  (implicit userContext: UserContext): Unit = {
-    val variablesReader = CombinedTemplateVariablesReader(Seq(GlobalTemplateVariables, InMemoryTemplateVariablesReader(variables, Set("project"))))
+    val variablesReader = CombinedTemplateVariablesReader(Seq(GlobalTemplateVariables, InMemoryTemplateVariablesReader(variables, Set(TemplateVariableScopes.project))))
     implicit val inputContext: PluginContext = PluginContext(resources = inputResources, prefixes = prefixes, user = userContext, templateVariables = variablesReader)
     for(taskTry <- inputWorkspace.readTasks[T](projectName)) {
       taskTry.taskOrError match {

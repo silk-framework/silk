@@ -31,7 +31,7 @@ object OpenApiGenerator {
   }
 
   def generate(swaggerPlugin: SwaggerPlugin): OpenAPI = {
-    val openApi = swaggerPlugin.apiListingCache.listing(WorkbenchConfig.publicHost)
+    val openApi = swaggerPlugin.apiListingCache.listing(WorkbenchConfig.canonicalPublicHost)
     updateMetadata(openApi)
     updateDescription(openApi)
     sortTags(openApi)
@@ -46,7 +46,7 @@ object OpenApiGenerator {
     openApi.getInfo.setVersion(WorkbenchConfig.version)
     val servers = new util.ArrayList[Server]()
     val server = new Server()
-    server.setUrl(WorkbenchConfig.publicBaseUrl + WorkbenchConfig.applicationContext + "/")
+    server.setUrl(WorkbenchConfig.canonicalPublicBaseUrl + WorkbenchConfig.applicationContext + "/")
     servers.add(server)
     openApi.setServers(servers)
   }
