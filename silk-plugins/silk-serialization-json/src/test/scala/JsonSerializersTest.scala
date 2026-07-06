@@ -1,11 +1,12 @@
 
-import org.silkframework.config.PlainTask
+import org.silkframework.config.{PlainTask, Task, TaskSpec}
 import org.silkframework.dataset._
 import org.silkframework.entity.ValueType
 import org.silkframework.rule.vocab._
 import org.silkframework.rule.{MappingTarget, NodePosition, RuleLayout}
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.runtime.plugin.PluginRegistry
+import org.silkframework.runtime.plugin.{ClassPluginDescription, PluginRegistry}
+import org.silkframework.runtime.templating.{TemplateVariable, TemplateVariableScopes, TemplateVariables}
 import org.silkframework.runtime.serialization.{ReadContext, Serialization, TestReadContext, TestWriteContext, WriteContext}
 import org.silkframework.serialization.json.JsonSerializers._
 import org.silkframework.serialization.json.{JsonFormat, JsonSerialization}
@@ -113,6 +114,27 @@ class JsonSerializersTest  extends AnyFlatSpec with Matchers {
 
     val roundTrip = JsonSerialization.fromJson[WorkflowExecutionReport](reportJson)
     roundTrip shouldBe report
+  }
+
+  "TaskJsonFormat" should "resolve parameter templates against the task's own execution variables" in {
+    PluginRegistry.registerPlugin(classOf[SomeDatasetPlugin])
+    val pluginId = ClassPluginDescription(classOf[SomeDatasetPlugin]).id.toString
+    val executionVariables = TemplateVariables(Seq(
+      TemplateVariable("param1Value", "valueFromVariable", None, None, isSensitive = false, TemplateVariableScopes.execution)))
+    val taskJson = Json.obj(
+      "id" -> "taskWithExecutionVariables",
+      "executionVariables" -> JsonSerialization.toJson(executionVariables),
+      "data" -> Json.obj(
+        "taskType" -> "Dataset",
+        "type" -> pluginId,
+        "parameters" -> Json.obj("param2" -> "6.0"),
+        "templates" -> Json.obj("param1" -> "{{execution.param1Value}}")
+      )
+    )
+    // The read context does not provide any execution variables — they must be seeded from the task payload itself.
+    val task = JsonSerialization.fromJson[Task[TaskSpec]](taskJson)
+    task.data.asInstanceOf[DatasetSpec[Dataset]].plugin.asInstanceOf[SomeDatasetPlugin].param1 shouldBe "valueFromVariable"
+    task.executionVariables.variables.map(_.name) shouldBe Seq("param1Value")
   }
 
   def testSerialization[T](obj: T)(implicit format: JsonFormat[T]): Unit = {

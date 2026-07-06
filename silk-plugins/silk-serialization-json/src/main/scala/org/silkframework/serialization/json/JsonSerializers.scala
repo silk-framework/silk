@@ -1136,11 +1136,14 @@ object JsonSerializers {
         taskId = id.toString
         // In older serializations the task data has been directly attached to this JSON object
         val dataJson = optionalValue(value, DATA).getOrElse(value)
+        // Read the execution variables first, so that parameter templates referencing them resolve against the task's own defaults.
+        val executionVariables = optionalValue(value, EXECUTION_VARIABLES).map(fromJson[TemplateVariables]).getOrElse(TemplateVariables.empty)
+        val dataContext = readContext.copy(templateVariables = readContext.templateVariables.withExecutionDefaults(executionVariables))
         val task = PlainTask(
           id = id,
-          data = fromJson[T](dataJson),
+          data = fromJson[T](dataJson)(dataFormat, dataContext),
           metaData = metaData(value),
-          executionVariables = optionalValue(value, EXECUTION_VARIABLES).map(fromJson[TemplateVariables]).getOrElse(TemplateVariables.empty)
+          executionVariables = executionVariables
         )
 
         LoadedTask.success(task)

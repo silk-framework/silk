@@ -38,6 +38,16 @@ final case class ExecutionTemplateVariables(immutableScopes: Seq[TemplateVariabl
     * @throws org.silkframework.runtime.templating.exceptions.InvalidScopeException if `variable.scope` is not the execution scope.
     */
   def setExecutionVariable(variable: TemplateVariable): Unit = holder.set(variable)
+
+  /**
+    * Returns a copy whose execution scope holds the given task defaults (in a fresh holder).
+    * Used when a task is instantiated outside a workflow run (deserialization, standalone execution),
+    * so that parameter templates referencing `execution.X` resolve against the task's own defaults.
+    */
+  def withExecutionDefaults(defaults: TemplateVariables): ExecutionTemplateVariables = {
+    val executionScoped = TemplateVariables(defaults.variables.map(_.copy(scope = TemplateVariableScopes.execution)))
+    copy(holder = new ExecutionVariablesHolder(executionScoped))
+  }
 }
 
 object ExecutionTemplateVariables {

@@ -64,9 +64,8 @@ object PluginContext {
     * variables defined on the task, in addition to the global and project scopes.
     */
   def fromTask(task: Task[_ <: TaskSpec], project: ProjectTrait)(implicit user: UserContext): PlainPluginContext = {
-    val executionDefaults = TemplateVariables(task.executionVariables.variables.map(_.copy(scope = TemplateVariableScopes.execution)))
     PlainPluginContext(project.config.prefixes, project.resources, user, Some(project.id),
-      ExecutionTemplateVariables(Seq(project.combinedTemplateVariables), new ExecutionVariablesHolder(executionDefaults)))
+      ExecutionTemplateVariables(Seq(project.combinedTemplateVariables)).withExecutionDefaults(task.executionVariables))
   }
 
   def fromProjectConfig(config: ProjectConfig,

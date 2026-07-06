@@ -110,11 +110,14 @@ object Task {
       * Deserialize a value from XML.
       */
     def read(node: Node)(implicit readContext: ReadContext): Task[T] = {
+      // Read the execution variables first, so that parameter templates referencing them resolve against the task's own defaults.
+      val executionVariables = Task.readExecutionVariablesXml(node)
+      val dataContext = readContext.copy(templateVariables = readContext.templateVariables.withExecutionDefaults(executionVariables))
       PlainTask(
         id = (node \ "@id").text,
-        data = fromXml[T](node),
+        data = fromXml[T](node)(xmlFormat, dataContext),
         metaData = (node \ "MetaData").headOption.map(fromXml[MetaData]).getOrElse(MetaData.empty),
-        executionVariables = Task.readExecutionVariablesXml(node)
+        executionVariables = executionVariables
       )
     }
 
