@@ -59,7 +59,7 @@ class VariableTemplateApi @Inject()() extends InjectedController with UserContex
                    projectName: String,
                    @Parameter(
                      name = "task",
-                     description = "The task identifier. If provided, retrieves task variables instead of project variables.",
+                     description = "The task identifier. If provided, retrieves the execution variables of that task instead of project variables.",
                      required = false,
                      in = ParameterIn.QUERY,
                      schema = new Schema(implementation = classOf[String])
@@ -112,7 +112,7 @@ class VariableTemplateApi @Inject()() extends InjectedController with UserContex
                    projectName: String,
                    @Parameter(
                      name = "task",
-                     description = "The task identifier. If provided, updates task variables instead of project variables.",
+                     description = "The task identifier. If provided, updates the execution variables of that task instead of project variables.",
                      required = false,
                      in = ParameterIn.QUERY,
                      schema = new Schema(implementation = classOf[String])
@@ -162,7 +162,7 @@ class VariableTemplateApi @Inject()() extends InjectedController with UserContex
                   variableName: String,
                   @Parameter(
                     name = "task",
-                    description = "The task identifier. If provided, retrieves a task variable instead of a project variable.",
+                    description = "The task identifier. If provided, retrieves an execution variable of that task instead of a project variable.",
                     required = false,
                     in = ParameterIn.QUERY,
                     schema = new Schema(implementation = classOf[String])
@@ -212,7 +212,7 @@ class VariableTemplateApi @Inject()() extends InjectedController with UserContex
                   variableName: String,
                   @Parameter(
                     name = "task",
-                    description = "The task identifier. If provided, adds or updates a task variable instead of a project variable.",
+                    description = "The task identifier. If provided, adds or updates an execution variable of that task instead of a project variable.",
                     required = false,
                     in = ParameterIn.QUERY,
                     schema = new Schema(implementation = classOf[String])
@@ -267,7 +267,7 @@ class VariableTemplateApi @Inject()() extends InjectedController with UserContex
                      variableName: String,
                      @Parameter(
                        name = "task",
-                       description = "The task identifier. If provided, deletes a task variable instead of a project variable.",
+                       description = "The task identifier. If provided, deletes an execution variable of that task instead of a project variable.",
                        required = false,
                        in = ParameterIn.QUERY,
                        schema = new Schema(implementation = classOf[String])
@@ -310,7 +310,7 @@ class VariableTemplateApi @Inject()() extends InjectedController with UserContex
                            variableName: String,
                            @Parameter(
                              name = "task",
-                             description = "The task identifier. If provided, checks dependencies for a task variable instead of a project variable.",
+                             description = "The task identifier. If provided, checks dependencies for an execution variable of that task instead of a project variable.",
                              required = false,
                              in = ParameterIn.QUERY,
                              schema = new Schema(implementation = classOf[String])
@@ -319,7 +319,7 @@ class VariableTemplateApi @Inject()() extends InjectedController with UserContex
     val project = WorkspaceFactory().workspace.project(projectName)
     task match {
       case Some(_) =>
-        // Task variables are only scoped to the task itself and have no cross-task dependencies
+        // Execution variables are only scoped to the task itself and have no cross-task dependencies
         Ok(Json.toJson(VariableDependencies(Seq.empty, Seq.empty)))
       case None =>
         val modification = DeleteVariableModification(project, variableName)
@@ -371,7 +371,7 @@ class VariableTemplateApi @Inject()() extends InjectedController with UserContex
                       projectName: String,
                       @Parameter(
                         name = "task",
-                        description = "The task identifier. If provided, reorders task variables instead of project variables.",
+                        description = "The task identifier. If provided, reorders the execution variables of that task instead of project variables.",
                         required = false,
                         in = ParameterIn.QUERY,
                         schema = new Schema(implementation = classOf[String])
@@ -391,11 +391,11 @@ class VariableTemplateApi @Inject()() extends InjectedController with UserContex
            currentVariables.map(variableName)
         }
 
-      val scope = task.map(_ => TemplateVariableScopes.task).getOrElse(TemplateVariableScopes.project)
+      val scope = task.map(_ => TemplateVariableScopes.execution).getOrElse(TemplateVariableScopes.project)
       val resolved = resolveWithDependencyCheck(TemplateVariables(newVariables), manager.parentVariables, scope)
       task match {
         case Some(taskId) =>
-          project.anyTask(taskId).updateVariables(resolved)
+          project.anyTask(taskId).updateExecutionVariables(resolved)
         case None =>
           project.templateVariables.put(resolved)
       }
@@ -470,12 +470,12 @@ class VariableTemplateApi @Inject()() extends InjectedController with UserContex
   }
 
   /**
-   * Returns the TemplateVariablesManager for either the project or a specific task within the project.
+   * Returns the TemplateVariablesManager for either the project variables or the execution variables of a specific task within the project.
    */
   private def templateVariablesManager(project: Project, task: Option[String])
                                       (implicit userContext: UserContext): TemplateVariablesManager = {
     task match {
-      case Some(taskId) => project.anyTask(taskId).variablesValueHolder
+      case Some(taskId) => project.anyTask(taskId).executionVariablesValueHolder
       case None => project.templateVariables
     }
   }

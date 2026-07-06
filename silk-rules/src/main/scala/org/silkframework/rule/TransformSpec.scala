@@ -353,7 +353,7 @@ case class TransformSpec(@Param(label = "Input", value = "The source from which 
   override def mainActivities: Seq[String] = Seq("ExecuteTransform")
 }
 
-case class TransformTask(id: Identifier, data: TransformSpec, metaData: MetaData = MetaData.empty, variables: TemplateVariables = TemplateVariables.empty) extends Task[TransformSpec] {
+case class TransformTask(id: Identifier, data: TransformSpec, metaData: MetaData = MetaData.empty, executionVariables: TemplateVariables = TemplateVariables.empty) extends Task[TransformSpec] {
 
   override def taskType: Class[_] = classOf[TransformSpec]
 }

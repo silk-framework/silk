@@ -9,7 +9,7 @@ import org.silkframework.plugins.dataset.InternalDataset
 import org.silkframework.runtime.activity.Status.Canceling
 import org.silkframework.runtime.activity._
 import org.silkframework.runtime.plugin.PluginContext
-import org.silkframework.runtime.templating.{ExecutionTemplateVariables, ExecutionVariablesHolder, GlobalTemplateVariables, InMemoryTemplateVariablesReader, TemplateVariableScopes, TemplateVariables, TemplateVariablesReader}
+import org.silkframework.runtime.templating.{ExecutionTemplateVariables, ExecutionVariablesHolder, GlobalTemplateVariables, TemplateVariableScopes, TemplateVariables}
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.ProjectTask
@@ -31,7 +31,9 @@ trait WorkflowExecutor[ExecType <: ExecutionType] extends Activity[WorkflowExecu
   /** Returns a map of datasets that can replace variable datasets used as data sinks in a workflow */
   protected def replaceSinks: Map[String, Dataset]
 
-  /** Returns the execution variables for this workflow execution. */
+  /** Returns the execution variable overrides provided for this workflow execution.
+    * They are merged with the workflow's execution variables (the defaults) when the run starts,
+    * so that variable changes on the workflow are picked up without recreating this activity. */
   protected def workflowVariables: TemplateVariables
 
   protected def currentWorkflow = workflowTask.data
@@ -40,17 +42,14 @@ trait WorkflowExecutor[ExecType <: ExecutionType] extends Activity[WorkflowExecu
   protected def workflowNodes = currentWorkflow.nodes
 
   /**
-    * Creates a plugin context that includes execution variables from the workflow run context.
-    * Execution-scope variables are backed by a shared, mutable holder, so a mutation by one task
-    * is visible to subsequent tasks in the same workflow run.
+    * Creates a plugin context for executing workflow nodes.
+    * Execution-scope variables are backed by a shared, mutable holder, so a mutation by one task is
+    * visible to subsequent tasks in the same workflow run. The holder is seeded with the workflow's
+    * execution variables as defaults, overridden by the variables provided for this run.
     */
   protected def pluginContextWithExecutionVars(implicit workflowRunContext: WorkflowRunContext): PluginContext = {
-    val immutableScopes: Seq[TemplateVariablesReader] = Seq(
-      GlobalTemplateVariables,
-      project.templateVariables,
-      workflowRunContext.taskScopedVariablesReader
-    )
-    val templateVars = ExecutionTemplateVariables(immutableScopes, workflowRunContext.executionVariablesHolder)
+    val templateVars =
+      ExecutionTemplateVariables(Seq(GlobalTemplateVariables, project.templateVariables), workflowRunContext.executionVariablesHolder)
     PluginContext(project.config.prefixes, project.resources, workflowRunContext.userContext, Some(project.id), templateVars)
   }
 
@@ -119,7 +118,8 @@ trait WorkflowExecutor[ExecType <: ExecutionType] extends Activity[WorkflowExecu
       activityContext = context,
       workflow = currentWorkflow,
       userContext = userContext,
-      workflowVariables = workflowVariables
+      // The workflow's execution variables are read at run start, so that variable changes are picked up.
+      workflowVariables = WorkflowExecutor.buildExecutionVariables(workflowTask.executionVariables, workflowVariables)
     )
 
     for (node <- workflowNodes) {
@@ -287,7 +287,7 @@ trait WorkflowExecutor[ExecType <: ExecutionType] extends Activity[WorkflowExecu
  * @param userContext The user that is executing the workflow.
  * @param alreadyExecuted The workflow nodes that have already been executed.
  * @param reconfiguredTasks The already tasks that have been reconfigured.
- * @param workflowVariables The execution variables provided at workflow start.
+ * @param workflowVariables The execution variables for this run (defaults of the workflow, overridden by the variables provided at start).
  * @param taskExecutors The executors for each task by task id.
  */
 case class WorkflowRunContext(activityContext: ActivityContext[WorkflowExecutionReport],
@@ -298,19 +298,12 @@ case class WorkflowRunContext(activityContext: ActivityContext[WorkflowExecution
                               workflowVariables: TemplateVariables = TemplateVariables.empty,
                               taskExecutors: mutable.Map[Identifier, Executor[_, _]] = mutable.Map()) {
 
-  /** Initial task-scoped variables provided at workflow start. Immutable for the duration of the run. */
-  private val (taskScopedVars, executionScopedVars) = {
-    val (taskVars, otherVars) = workflowVariables.variables.partition(_.scope == TemplateVariableScopes.task)
-    val execVars = otherVars.filter(_.scope == TemplateVariableScopes.execution)
-    (TemplateVariables(taskVars), TemplateVariables(execVars))
-  }
-
-  /** Read-only reader for task-scoped variables seeded at workflow start. */
-  val taskScopedVariablesReader: TemplateVariablesReader =
-    InMemoryTemplateVariablesReader(taskScopedVars, Set(TemplateVariableScopes.task))
-
-  /** Shared, thread-safe holder for execution-scope variables. Mutated by plugin code during execution. */
-  val executionVariablesHolder: ExecutionVariablesHolder = new ExecutionVariablesHolder(executionScopedVars)
+  /**
+    * Shared, thread-safe holder for execution-scope variables. Mutated by plugin code during execution.
+    * Seeded with the execution variables for this run: the workflow's execution variables as defaults,
+    * overridden by the variables provided when the run was started.
+    */
+  val executionVariablesHolder: ExecutionVariablesHolder = new ExecutionVariablesHolder(workflowVariables)
 
   /**
     * Listeners for updates to task reports.
@@ -378,30 +371,24 @@ case class WorkflowRunContext(activityContext: ActivityContext[WorkflowExecution
 object WorkflowExecutor {
 
   /**
-    * Creates the combined task and execution variables for a workflow execution.
-    * The returned variables contain both scopes:
-    * - Task scope: the original task variables (addressed as task.varName).
-    * - Execution scope: task variables as defaults, overridden by execution overrides (addressed as execution.varName).
+    * Builds the execution variables for a run: the execution variables defined on the executed task
+    * provide the defaults, which are overridden by name by the variables provided for the run.
+    * All returned variables are re-scoped to the execution scope.
     *
-    * @param taskVariables      The variables defined on the task.
-    * @param executionOverrides Variables provided at execution time that override task defaults.
+    * @param defaults  The execution variables defined on the executed task.
+    * @param overrides Variables provided when the execution was started. Overrides an existing default
+    *                  with the same name; names without a default are added.
     */
-  def buildExecutionVariables(taskVariables: TemplateVariables, executionOverrides: TemplateVariables): TemplateVariables = {
-    val taskScopedVars = taskVariables.variables.map(_.copy(scope = TemplateVariableScopes.task))
-    val overrideMap = executionOverrides.variables.map(v => v.name -> v).toMap
-    val executionVars = taskVariables.variables.map { taskVar =>
-      overrideMap.get(taskVar.name) match {
-        case Some(overrideVar) =>
-          overrideVar.copy(scope = TemplateVariableScopes.execution)
-        case None =>
-          taskVar.copy(scope = TemplateVariableScopes.execution)
-      }
+  def buildExecutionVariables(defaults: TemplateVariables, overrides: TemplateVariables): TemplateVariables = {
+    val overrideMap = overrides.variables.map(v => v.name -> v).toMap
+    val defaultsWithOverrides = defaults.variables.map { default =>
+      overrideMap.getOrElse(default.name, default).copy(scope = TemplateVariableScopes.execution)
     }
-    val taskVarNames = taskVariables.variables.map(_.name).toSet
-    val additionalOverrides = executionOverrides.variables
-      .filterNot(v => taskVarNames.contains(v.name))
+    val defaultNames = defaults.variables.map(_.name).toSet
+    val additionalOverrides = overrides.variables
+      .filterNot(v => defaultNames.contains(v.name))
       .map(_.copy(scope = TemplateVariableScopes.execution))
-    TemplateVariables(taskScopedVars ++ executionVars ++ additionalOverrides)
+    TemplateVariables(defaultsWithOverrides ++ additionalOverrides)
   }
 }
 

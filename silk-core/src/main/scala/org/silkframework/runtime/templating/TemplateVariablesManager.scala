@@ -10,7 +10,7 @@ trait TemplateVariablesManager extends TemplateVariablesReader {
   /**
     * Returns the parent scope variables that can be referenced in templates.
     * For project variables, this returns the global variables.
-    * For task variables, this returns the global and project variables.
+    * For the execution variables of a task, this returns the global and project variables.
     */
   def parentVariables: TemplateVariables
 

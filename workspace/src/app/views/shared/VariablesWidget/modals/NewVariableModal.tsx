@@ -149,7 +149,7 @@ const NewVariableModal: React.FC<VariableModalProps> = ({
                 description,
                 template: valueState.current.currentTemplateValue || null,
                 isSensitive: false,
-                scope: taskId ? "task" : "project",
+                scope: taskId ? "execution" : "project",
             };
 
             isEditMode

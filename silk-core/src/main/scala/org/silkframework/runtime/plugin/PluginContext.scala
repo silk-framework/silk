@@ -1,10 +1,10 @@
 package org.silkframework.runtime.plugin
 
-import org.silkframework.config.Prefixes
+import org.silkframework.config.{Prefixes, Task, TaskSpec}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.resource.{EmptyResourceManager, ResourceManager}
 import org.silkframework.runtime.serialization.ReadContext
-import org.silkframework.runtime.templating.{ExecutionTemplateVariables, GlobalTemplateVariables, TemplateVariablesReader}
+import org.silkframework.runtime.templating.{ExecutionTemplateVariables, ExecutionVariablesHolder, GlobalTemplateVariables, TemplateVariableScopes, TemplateVariables, TemplateVariablesReader}
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.{ProjectConfig, ProjectTrait}
 
@@ -57,6 +57,16 @@ object PluginContext {
 
   def fromProject(project: ProjectTrait)(implicit user: UserContext): PlainPluginContext = {
     PlainPluginContext(project.config.prefixes, project.resources, user, Some(project.id), ExecutionTemplateVariables(project.combinedTemplateVariables))
+  }
+
+  /**
+    * Context for executing a particular task: the execution scope is seeded with the execution
+    * variables defined on the task, in addition to the global and project scopes.
+    */
+  def fromTask(task: Task[_ <: TaskSpec], project: ProjectTrait)(implicit user: UserContext): PlainPluginContext = {
+    val executionDefaults = TemplateVariables(task.executionVariables.variables.map(_.copy(scope = TemplateVariableScopes.execution)))
+    PlainPluginContext(project.config.prefixes, project.resources, user, Some(project.id),
+      ExecutionTemplateVariables(Seq(project.combinedTemplateVariables), new ExecutionVariablesHolder(executionDefaults)))
   }
 
   def fromProjectConfig(config: ProjectConfig,

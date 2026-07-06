@@ -3,22 +3,17 @@ package org.silkframework.runtime.templating
 /**
   * Template variables available to a plugin during creation, update, or execution.
   *
-  * Combines a set of immutable parent readers (global, project, task scopes) with a shared, mutable
-  * [[ExecutionVariablesHolder]] for the execution scope. The global, project, and task scopes are
-  * immutable for the lifetime of a single plugin invocation; only the execution scope is mutable, via
+  * Combines a set of immutable parent readers (global and project scopes) with a shared, mutable
+  * [[ExecutionVariablesHolder]] for the execution scope. The global and project scopes are immutable
+  * for the lifetime of a single plugin invocation; only the execution scope is mutable, via
   * [[setExecutionVariable]].
   *
-  * The immutable parent scopes never change for the lifetime of this instance, so their merged snapshot
-  * and the derived execution-scope fallback candidates are computed once (lazily). Only the holder
-  * snapshot is re-read on each `all` call so that execution-scope mutations stay visible. During a
-  * workflow run all contexts share the same holder, so a mutation by one task is visible to subsequent
-  * tasks. Outside a workflow run the context carries its own (initially empty) holder, so setting an
+  * The execution scope is independent of the other scopes: a reference to `execution.X` resolves only
+  * if `X` has been set in the execution scope (seeded from the executed task's execution variables,
+  * overridden when the execution is started, or written during the execution). During a workflow run
+  * all contexts share the same holder, so a mutation by one task is visible to subsequent tasks.
+  * Outside a workflow run the context carries its own (initially empty) holder, so setting an
   * execution variable is local to that context.
-  *
-  * The execution scope falls back to the parent scopes: when a variable is addressed as `execution.X`
-  * but `X` has not been set directly in the execution scope, it resolves to the `task`, then `project`,
-  * then `global` variable of the same name (task has the highest precedence). A value set directly in
-  * the execution scope always wins and suppresses the fallback. See [[fallbackCandidates]].
   */
 final case class ExecutionTemplateVariables(immutableScopes: Seq[TemplateVariablesReader],
                                             holder: ExecutionVariablesHolder = new ExecutionVariablesHolder())
@@ -27,25 +22,12 @@ final case class ExecutionTemplateVariables(immutableScopes: Seq[TemplateVariabl
   override def scopes: Set[Seq[String]] =
     immutableScopes.flatMap(_.scopes).toSet + TemplateVariableScopes.execution
 
-  /** Merged snapshot of the immutable parent scopes (global, project, task). Computed once. */
+  /** Merged snapshot of the immutable parent scopes (global, project). Computed once. */
   private lazy val immutableVariables: TemplateVariables =
     immutableScopes.map(_.all).reduceOption(_ merge _).getOrElse(TemplateVariables.empty)
 
-  /**
-    * Execution-scope fallback candidates derived from the immutable parent scopes (task, project,
-    * global). For each name, holds a single copy re-scoped to `execution` using the highest-precedence
-    * source (task > project > global). This only depends on the immutable parent scopes, so it is
-    * computed once. The (mutable) execution holder is applied per call in [[all]], which removes any
-    * candidate that has been set directly in the execution scope, so that direct values always shadow
-    * the fallback.
-    */
-  private lazy val fallbackCandidates: Seq[TemplateVariable] = immutableVariables.executionScopeFallback
-
   override def all: TemplateVariables = {
-    val executionVars = holder.snapshot
-    val executionNames = executionVars.variables.map(_.name).toSet
-    val fallbacks = fallbackCandidates.filterNot(v => executionNames.contains(v.name))
-    immutableVariables merge executionVars merge TemplateVariables(fallbacks)
+    immutableVariables merge holder.snapshot
   }
 
   /**

@@ -1109,7 +1109,7 @@ object JsonSerializers {
                                                  dependentTaskFormatter: Option[String => JsValue] = None)(implicit dataFormat: JsonFormat[T]) extends JsonFormat[LoadedTask[T]] {
 
     final val PROJECT = "project"
-    final val TASK_VARIABLES = "variables"
+    final val EXECUTION_VARIABLES = "executionVariables"
     final val PROPERTIES = "properties"
     final val RELATIONS = "relations"
     final val SCHEMATA = "schemata"
@@ -1140,7 +1140,7 @@ object JsonSerializers {
           id = id,
           data = fromJson[T](dataJson),
           metaData = metaData(value),
-          variables = optionalValue(value, TASK_VARIABLES).map(fromJson[TemplateVariables]).getOrElse(TemplateVariables.empty)
+          executionVariables = optionalValue(value, EXECUTION_VARIABLES).map(fromJson[TemplateVariables]).getOrElse(TemplateVariables.empty)
         )
 
         LoadedTask.success(task)
@@ -1166,8 +1166,8 @@ object JsonSerializers {
         json += METADATA -> toJson(task.metaData)
       }
 
-      if(task.variables.variables.nonEmpty) {
-        json += TASK_VARIABLES -> toJson(task.variables)
+      if(task.executionVariables.variables.nonEmpty) {
+        json += EXECUTION_VARIABLES -> toJson(task.executionVariables)
       }
 
       // Serialize task data

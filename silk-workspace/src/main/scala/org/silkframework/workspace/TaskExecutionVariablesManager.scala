@@ -5,22 +5,23 @@ import org.silkframework.runtime.templating.exceptions.InvalidScopeException
 import org.silkframework.runtime.templating.{TemplateVariableScopes, TemplateVariables, TemplateVariablesManager, TemplateVariablesReader}
 
 /**
- * Manages task template variables.
+ * Manages the execution variables of a task.
+ * These provide the default values for the execution scope when the execution of the task is started.
  *
- * @param initialVariables The initial template variables.
+ * @param initialVariables The initial execution variables.
  * @param parentReaders Readers for the parent scope variables (global and project variables).
  */
-class TaskTemplateVariablesManager(initialVariables: TemplateVariables,
-                                   parentReaders: Seq[TemplateVariablesReader] = Seq.empty) extends TemplateVariablesManager {
+class TaskExecutionVariablesManager(initialVariables: TemplateVariables,
+                                    parentReaders: Seq[TemplateVariablesReader] = Seq.empty) extends TemplateVariablesManager {
 
-  private def taskScope = TemplateVariableScopes.task
+  private def executionScope = TemplateVariableScopes.execution
 
   private var variables: TemplateVariables = initialVariables
 
   /**
    * The available variable scopes.
    */
-  override def scopes: Set[Seq[String]] = Set(taskScope)
+  override def scopes: Set[Seq[String]] = Set(executionScope)
 
   /**
     * Returns the global and project variables as the parent scope.
@@ -30,18 +31,18 @@ class TaskTemplateVariablesManager(initialVariables: TemplateVariables,
   }
 
   /**
-   * Retrieves all template variables.
+   * Retrieves all execution variables.
    */
   override def all: TemplateVariables = variables
 
   /**
-   * Updates all template variables.
+   * Updates all execution variables.
    */
   override def put(variables: TemplateVariables)(implicit user: UserContext): Unit = {
     for (variable <- variables.variables) {
-      if (variable.scope != taskScope) {
+      if (variable.scope != executionScope) {
         throw new InvalidScopeException(s"Variable '${variable.name}' has an invalid scope '${variable.scope}'. " +
-          s"Currently, only variables in the '$taskScope' scope can be modified.")
+          s"Currently, only variables in the '$executionScope' scope can be modified.")
       }
     }
     this.variables = variables

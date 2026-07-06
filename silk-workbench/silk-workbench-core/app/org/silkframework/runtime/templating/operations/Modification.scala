@@ -14,8 +14,8 @@ import scala.util.control.Breaks.{break, breakable}
 import scala.util.control.NonFatal
 
 /**
-  * Modifies variables at either the project or task scope.
-  * For project scope, also updates all tasks that use variables that have been modified.
+  * Modifies either project variables or the execution variables of a task.
+  * For project variables, also updates all tasks that use variables that have been modified.
   */
 abstract class Modification {
 
@@ -27,7 +27,7 @@ abstract class Modification {
   def project: Project
 
   /**
-    * Optional task identifier. If set, the modification operates on task variables instead of project variables.
+    * Optional task identifier. If set, the modification operates on the execution variables of that task instead of project variables.
     */
   def taskId: Option[String]
 
@@ -51,17 +51,17 @@ abstract class Modification {
 
   /**
     * Updates variables and persists the changes.
-    * For project scope, also updates all tasks that use modified variables.
-    * For task scope, updates and persists the task variables.
+    * For project variables, also updates all tasks that use modified variables.
+    * For the execution variables of a task, updates and persists them on the task.
     */
   def execute()(implicit user: UserContext): Unit = {
     taskId match {
       case Some(id) =>
         val projectTask = project.anyTask(id)
-        val manager = projectTask.variablesValueHolder
+        val manager = projectTask.executionVariablesValueHolder
         val currentVariables = manager.all
         val newVariables = updateVariables(currentVariables, manager.parentVariables.withoutSensitiveVariables())
-        projectTask.updateVariables(newVariables)
+        projectTask.updateExecutionVariables(newVariables)
         log.info(s"$operation.")
       case None =>
         val manager = project.templateVariables

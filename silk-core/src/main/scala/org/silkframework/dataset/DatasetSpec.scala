@@ -118,7 +118,7 @@ case class DatasetSpec[+DatasetType <: Dataset](plugin: DatasetType,
   }
 }
 
-case class DatasetTask(id: Identifier, data: DatasetSpec[Dataset], metaData: MetaData = MetaData.empty, variables: TemplateVariables = TemplateVariables.empty) extends Task[DatasetSpec[Dataset]] {
+case class DatasetTask(id: Identifier, data: DatasetSpec[Dataset], metaData: MetaData = MetaData.empty, executionVariables: TemplateVariables = TemplateVariables.empty) extends Task[DatasetSpec[Dataset]] {
 
   override def taskType: Class[_] = classOf[DatasetSpec[Dataset]]
 }

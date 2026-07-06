@@ -37,7 +37,7 @@ import scala.util.control.NonFatal
 class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
                                                    private val initialData: TaskType,
                                                    private val initialMetaData: MetaData,
-                                                   private val initialVariables: TemplateVariables = TemplateVariables.empty,
+                                                   private val initialExecutionVariables: TemplateVariables = TemplateVariables.empty,
                                                    private val module: Module[TaskType]) extends Task[TaskType] {
 
   private val log = Logger.getLogger(getClass.getName)
@@ -53,8 +53,8 @@ class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
     initialMetaData.copy(modified = Some(initialMetaData.modified.getOrElse(Instant.now)))
   ))
 
-  // Should be used to access and update the task variables
-  val variablesValueHolder: TaskTemplateVariablesManager = new TaskTemplateVariablesManager(initialVariables, Seq(GlobalTemplateVariables, module.project.templateVariables))
+  // Should be used to access and update the execution variables of this task
+  val executionVariablesValueHolder: TaskExecutionVariablesManager = new TaskExecutionVariablesManager(initialExecutionVariables, Seq(GlobalTemplateVariables, module.project.templateVariables))
 
   lazy private val taskActivities: Seq[TaskActivity[TaskType, _ <: HasValue]] = {
     // Get all task activity factories for this task type
@@ -93,9 +93,9 @@ class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
   override def metaData: MetaData = metaDataValueHolder()
 
   /**
-    * Retrieves the current variables of this task.
+    * Retrieves the current execution variables of this task.
     */
-  override def variables: TemplateVariables = variablesValueHolder.all
+  override def executionVariables: TemplateVariables = executionVariablesValueHolder.all
 
   override def taskType: Class[_] = implicitly[ClassTag[TaskType]].runtimeClass
 
@@ -127,7 +127,7 @@ class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
   /**
     * Updates the data of this task.
     */
-  def update(newData: TaskType, newMetaData: Option[MetaData] = None, newVariables: Option[TemplateVariables] = None)
+  def update(newData: TaskType, newMetaData: Option[MetaData] = None, newExecutionVariables: Option[TemplateVariables] = None)
             (implicit userContext: UserContext): Unit = synchronized {
     // Validate
     module.validator.validate(project, PlainTask(id, newData, newMetaData.getOrElse(metaData)))
@@ -140,15 +140,15 @@ class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
       modified = Some(newMetaData.flatMap(_.modified).getOrElse(Instant.now)),
       lastModifiedByUser = newMetaData.flatMap(_.lastModifiedByUser).orElse(userContext.user.map(_.uri))
     )
-    val variablesToPersist = newVariables.getOrElse(variablesValueHolder.all)
+    val executionVariablesToPersist = newExecutionVariables.getOrElse(executionVariablesValueHolder.all)
     // First persist task
-    persistTask(PlainTask.fromTask(ProjectTask.this).copy(data = newData, metaData = metaDataToPersist, variables = variablesToPersist))
+    persistTask(PlainTask.fromTask(ProjectTask.this).copy(data = newData, metaData = metaDataToPersist, executionVariables = executionVariablesToPersist))
     // Invalidate plugin usage cache
     _cachedPluginUsages = None
     // Update (in-memory) data
     dataValueHolder.update(newData)
     metaDataValueHolder.update(metaDataToPersist)
-    variablesValueHolder.put(variablesToPersist)
+    executionVariablesValueHolder.put(executionVariablesToPersist)
     // Restart each activity, don't wait for completion.
     for (activity <- taskActivities if shouldAutoRun(activity)) {
       activity.control.restart()
@@ -166,11 +166,11 @@ class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
   }
 
   /**
-    * Updates the variables of this task.
+    * Updates the execution variables of this task.
     */
-  def updateVariables(newVariables: TemplateVariables)
-                     (implicit userContext: UserContext): Unit = {
-    update(dataValueHolder(), newVariables = Some(newVariables))
+  def updateExecutionVariables(newExecutionVariables: TemplateVariables)
+                              (implicit userContext: UserContext): Unit = {
+    update(dataValueHolder(), newExecutionVariables = Some(newExecutionVariables))
   }
 
   /**

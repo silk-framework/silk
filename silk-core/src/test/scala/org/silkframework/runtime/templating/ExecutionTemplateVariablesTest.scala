@@ -4,9 +4,8 @@ import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
 /**
-  * Tests the execution-scope fallback of [[ExecutionTemplateVariables]]: when a variable is addressed
-  * as `execution.X` but has not been set directly in the execution scope, it falls back to the task,
-  * project, then global variable of the same name (task highest precedence).
+  * Tests [[ExecutionTemplateVariables]]: the execution scope is independent of the other scopes and
+  * holds exactly the variables that have been seeded or set for the current execution.
   */
 class ExecutionTemplateVariablesTest extends AnyFlatSpec with Matchers {
 
@@ -29,65 +28,54 @@ class ExecutionTemplateVariablesTest extends AnyFlatSpec with Matchers {
   private def executionVar(etv: ExecutionTemplateVariables, name: String): Option[TemplateVariable] =
     etv.all.variables.find(v => v.scope == TemplateVariableScopes.execution && v.name == name)
 
-  it should "let a directly set execution variable win over the fallback" in {
+  it should "expose seeded execution variables together with the immutable scopes" in {
     val etv = executionVariables(
-      immutable = Seq(variable("foo", "taskVal", TemplateVariableScopes.task)),
-      execution = Seq(variable("foo", "execVal", TemplateVariableScopes.execution))
+      immutable = Seq(variable("foo", "projectVal", TemplateVariableScopes.project)),
+      execution = Seq(variable("bar", "execVal", TemplateVariableScopes.execution))
     )
+    executionVar(etv, "bar").map(_.value) shouldBe Some("execVal")
+    etv.all.variables.find(v => v.scope == TemplateVariableScopes.project && v.name == "foo").map(_.value) shouldBe Some("projectVal")
+  }
+
+  it should "not resolve execution variables from other scopes" in {
+    val etv = executionVariables(immutable = Seq(
+      variable("foo", "projectVal", TemplateVariableScopes.project),
+      variable("foo", "globalVal", TemplateVariableScopes.global)
+    ))
+    executionVar(etv, "foo") shouldBe None
+  }
+
+  it should "make execution variables set during the execution visible" in {
+    val etv = executionVariables(immutable = Seq.empty)
+    etv.setExecutionVariable(variable("foo", "execVal", TemplateVariableScopes.execution))
+    executionVar(etv, "foo").map(_.value) shouldBe Some("execVal")
+  }
+
+  it should "replace a seeded execution variable when it is set during the execution" in {
+    val etv = executionVariables(
+      immutable = Seq.empty,
+      execution = Seq(variable("foo", "defaultVal", TemplateVariableScopes.execution))
+    )
+    etv.setExecutionVariable(variable("foo", "updatedVal", TemplateVariableScopes.execution))
     val executionFoo = etv.all.variables.filter(v => v.scope == TemplateVariableScopes.execution && v.name == "foo")
-    executionFoo.map(_.value) shouldBe Seq("execVal")
+    executionFoo.map(_.value) shouldBe Seq("updatedVal")
     executionFoo should have size 1
   }
 
-  it should "fall back to the task variable, preferring it over project and global" in {
-    val etv = executionVariables(immutable = Seq(
-      variable("foo", "taskVal", TemplateVariableScopes.task),
-      variable("foo", "projectVal", TemplateVariableScopes.project),
-      variable("foo", "globalVal", TemplateVariableScopes.global)
-    ))
-    executionVar(etv, "foo").map(_.value) shouldBe Some("taskVal")
+  it should "share the execution holder between contexts of the same run" in {
+    val holder = new ExecutionVariablesHolder()
+    val context1 = ExecutionTemplateVariables(Seq(reader()), holder)
+    val context2 = ExecutionTemplateVariables(Seq(reader()), holder)
+    context1.setExecutionVariable(variable("foo", "execVal", TemplateVariableScopes.execution))
+    executionVar(context2, "foo").map(_.value) shouldBe Some("execVal")
   }
 
-  it should "fall back to the project variable, preferring it over global" in {
-    val etv = executionVariables(immutable = Seq(
-      variable("foo", "projectVal", TemplateVariableScopes.project),
-      variable("foo", "globalVal", TemplateVariableScopes.global)
-    ))
-    executionVar(etv, "foo").map(_.value) shouldBe Some("projectVal")
-  }
-
-  it should "fall back to the global variable when it is the only definition" in {
-    val etv = executionVariables(immutable = Seq(variable("foo", "globalVal", TemplateVariableScopes.global)))
-    executionVar(etv, "foo").map(_.value) shouldBe Some("globalVal")
-  }
-
-  it should "not create an execution variable when the name is defined in no scope" in {
-    val etv = executionVariables(immutable = Seq(variable("bar", "taskVal", TemplateVariableScopes.task)))
-    executionVar(etv, "foo") shouldBe None
-  }
-
-  it should "preserve sensitivity of fallback variables so they are still filtered out" in {
-    val etv = executionVariables(immutable = Seq(variable("secret", "shh", TemplateVariableScopes.task, isSensitive = true)))
+  it should "filter sensitive execution variables" in {
+    val etv = executionVariables(
+      immutable = Seq.empty,
+      execution = Seq(variable("secret", "shh", TemplateVariableScopes.execution, isSensitive = true))
+    )
     executionVar(etv, "secret").map(_.isSensitive) shouldBe Some(true)
-
-    val nonSensitiveNames = etv.all.withoutSensitiveVariables().variables.map(_.scopedName).toSet
-    nonSensitiveNames should not contain "task.secret"
-    nonSensitiveNames should not contain "execution.secret"
-  }
-
-  it should "not fall back for variables whose scope is not exactly task, project or global" in {
-    val etv = executionVariables(immutable = Seq(variable("foo", "nestedVal", Seq("project", "metaData"))))
-    executionVar(etv, "foo") shouldBe None
-  }
-
-  it should "produce exactly one execution entry per name without duplicate scoped names" in {
-    val etv = executionVariables(immutable = Seq(
-      variable("foo", "projectVal", TemplateVariableScopes.project),
-      variable("foo", "globalVal", TemplateVariableScopes.global),
-      variable("bar", "taskVal", TemplateVariableScopes.task)
-    ))
-    // Constructing all must not throw a duplicate-name validation error.
-    val executionVars = etv.all.variables.filter(_.scope == TemplateVariableScopes.execution)
-    executionVars.map(_.name).sorted shouldBe Seq("bar", "foo")
+    etv.all.withoutSensitiveVariables().variables.map(_.scopedName) should not contain "execution.secret"
   }
 }

@@ -87,10 +87,10 @@ class Module[TaskData <: TaskSpec: ClassTag](private[workspace] val provider: Wo
     cachedTasks.get(name)
   }
 
-  def add(name: Identifier, taskData: TaskData, metaData: MetaData, variables: TemplateVariables = TemplateVariables.empty)
+  def add(name: Identifier, taskData: TaskData, metaData: MetaData, executionVariables: TemplateVariables = TemplateVariables.empty)
          (implicit userContext: UserContext) : ProjectTask[TaskData] = {
     assertLoaded()
-    val task = new ProjectTask(name, taskData, metaData, variables, this)
+    val task = new ProjectTask(name, taskData, metaData, executionVariables, this)
     validator.validate(project, task)
     provider.putTask(project.id, task, project.resources)
     task.startActivities()
@@ -133,7 +133,7 @@ class Module[TaskData <: TaskSpec: ClassTag](private[workspace] val provider: Wo
           (for (taskTry <- tasks) yield {
             taskTry.taskOrError match {
               case Right(task) =>
-                Some((task.id, new ProjectTask(task.id, task.data, task.metaData, task.variables, this)))
+                Some((task.id, new ProjectTask(task.id, task.data, task.metaData, task.executionVariables, this)))
               case Left(taskLoadingError) =>
                 errors ::= taskLoadingError
                 None

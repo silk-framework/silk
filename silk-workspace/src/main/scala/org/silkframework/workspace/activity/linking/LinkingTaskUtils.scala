@@ -50,7 +50,7 @@ object LinkingTaskUtils {
      * Generates the task context assuming that this task is executed standalone (i.e., not in a workflow)
      */
     def taskContext(implicit userContext: UserContext): TaskContext = {
-      implicit val pluginContext: PluginContext = PluginContext.fromProject(task.project)
+      implicit val pluginContext: PluginContext = PluginContext.fromTask(task, task.project)
       val inputTasks = task.dataSelections.map(selection => task.project.anyTask(selection.inputId)(pluginContext.user))
       TaskContext(inputTasks, pluginContext)
     }
