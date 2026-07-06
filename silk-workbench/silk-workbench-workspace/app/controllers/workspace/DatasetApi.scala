@@ -212,16 +212,17 @@ class LegacyDatasetApi @Inject() (implicit workspaceReact: WorkspaceReact) exten
 
     try {
       deserializeCompileTime() { dataset: DatasetTask =>
+        val executionVariables = executionVariablesIfProvided(dataset)
         if (autoConfigure) {
           dataset.plugin match {
             case autoConfigurable: DatasetPluginAutoConfigurable[_] =>
-              project.updateTask(dataset.id, dataset.data.copy(plugin = autoConfigurable.autoConfigured))
+              project.updateTask(dataset.id, dataset.data.copy(plugin = autoConfigurable.autoConfigured), executionVariables = executionVariables)
               NoContent
             case _ =>
               ErrorResult(BadUserInputException("This dataset type does not support auto-configuration."))
           }
         } else {
-          project.updateTask(dataset.id, dataset.data, Some(dataset.metaData))
+          project.updateTask(dataset.id, dataset.data, Some(dataset.metaData), executionVariables)
           NoContent
         }
       }

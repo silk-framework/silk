@@ -377,6 +377,46 @@ class TaskApiTest extends PlaySpec with IntegrationTestTrait with Matchers {
     }
   }
 
+  "update execution variables only when the payload provides them" in {
+    val taskId = "execVarsDataset"
+    def taskJson(extraFields: (String, Json.JsValueWrapper)*): JsObject = Json.obj(
+      (Seq[(String, Json.JsValueWrapper)](
+        ID -> taskId,
+        DATA -> Json.obj(
+          TASKTYPE -> "Dataset",
+          TYPE -> "internal",
+          PARAMETERS -> Json.obj("graphUri" -> "urn:execVarsDataset")
+        )
+      ) ++ extraFields): _*
+    )
+    def executionVariable(value: String): JsObject =
+      Json.obj("name" -> "myVar", "value" -> value, "isSensitive" -> false, "scope" -> "execution")
+    def storedVariables: Seq[(String, String)] =
+      workspaceProject(project).anyTask(taskId).executionVariables.variables.map(v => (v.name, v.value))
+    def putTask(json: JsObject): Unit = {
+      checkResponse(client.url(s"$baseUrl/workspace/projects/$project/tasks/$taskId").put(json))
+    }
+
+    // Create the task with an execution variable
+    checkResponse(client.url(s"$baseUrl/workspace/projects/$project/tasks")
+      .post(taskJson("executionVariables" -> Json.arr(executionVariable("v1")))))
+    storedVariables mustBe Seq(("myVar", "v1"))
+
+    // A PUT without the executionVariables key must leave the stored variables unchanged
+    putTask(taskJson())
+    storedVariables mustBe Seq(("myVar", "v1"))
+
+    // A PUT with the key must replace them
+    putTask(taskJson("executionVariables" -> Json.arr(executionVariable("v2"))))
+    storedVariables mustBe Seq(("myVar", "v2"))
+
+    // A PUT with an explicit empty array must clear them
+    putTask(taskJson("executionVariables" -> Json.arr()))
+    storedVariables mustBe Seq.empty
+
+    workspaceProject(project).removeAnyTask(taskId, removeDependentTasks = false)
+  }
+
   "copy endpoint" should {
 
     val targetProject = "targetProject"

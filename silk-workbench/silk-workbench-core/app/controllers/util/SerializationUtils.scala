@@ -1,8 +1,9 @@
 package controllers.util
 
 
-import org.silkframework.config.Prefixes
+import org.silkframework.config.{Prefixes, Task, TaskSpec}
 import org.silkframework.runtime.serialization.{ReadContext, Serialization, SerializationFormat, WriteContext}
+import org.silkframework.runtime.templating.TemplateVariables
 import org.silkframework.runtime.validation.{BadUserInputException, ValidationException}
 import org.silkframework.workbench.utils.{ErrorResult, NotAcceptableException}
 import org.silkframework.workspace.Project
@@ -233,6 +234,22 @@ object SerializationUtils {
       case v: ValidationException =>
         throw BadUserInputException(v.getMessage)
     }
+  }
+
+  /**
+    * The execution variables of a deserialized task, if the request payload explicitly contains them.
+    * Returns None when the payload has no execution-variables entry (e.g. requests from clients that were
+    * built before execution variables existed), in which case the stored variables of the task must be
+    * left unchanged.
+    */
+  def executionVariablesIfProvided(task: Task[_ <: TaskSpec])
+                                  (implicit request: Request[AnyContent]): Option[TemplateVariables] = {
+    val provided = request.body match {
+      case AnyContentAsJson(json) => (json \ "executionVariables").isDefined // key of TaskJsonFormat.EXECUTION_VARIABLES
+      case AnyContentAsXml(xml) => (xml.head \ "ExecutionVariables").nonEmpty // element written by Task.writeExecutionVariablesXml
+      case _ => false
+    }
+    if (provided) Some(task.executionVariables) else None
   }
 
   private def mimeType[T: ClassTag](mediaTypes: Seq[MediaType],

@@ -141,7 +141,7 @@ class TaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends Injected
       if(task.id.toString != taskName) {
         throw new BadUserInputException(s"Inconsistent task identifiers: Got $taskName in URL, but ${task.id} in payload.")
       }
-      project.updateAnyTask(task.id, task.data, Some(task.metaData), Some(task.executionVariables))
+      project.updateAnyTask(task.id, task.data, Some(task.metaData), SerializationUtils.executionVariablesIfProvided(task))
       accessMonitor.saveProjectTaskAccess(projectName, taskName)
       Ok
     }
