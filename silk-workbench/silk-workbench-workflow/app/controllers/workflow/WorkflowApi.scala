@@ -4,6 +4,7 @@ import controllers.core.UserContextActions
 import controllers.util.ProjectUtils._
 import controllers.util.SerializationUtils
 import controllers.workflow.doc.WorkflowApiDoc
+import controllers.workflowApi.variableWorkflow.VariableWorkflowRequestUtils
 import controllers.workspace.activityApi.StartActivityResponse
 import io.swagger.v3.oas.annotations.{Operation, Parameter}
 import io.swagger.v3.oas.annotations.enums.ParameterIn
@@ -19,7 +20,7 @@ import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.{ParameterObjectValue, ParameterValues, PluginContext}
 import org.silkframework.runtime.templating.TemplateVariablesParameter
 import org.silkframework.runtime.serialization.{ReadContext, XmlSerialization}
-import org.silkframework.runtime.templating.{TemplateVariable, TemplateVariableScopes, TemplateVariables}
+import org.silkframework.runtime.templating.TemplateVariables
 import org.silkframework.util.Identifier
 import org.silkframework.workbench.utils.UnsupportedMediaTypeException
 import org.silkframework.workbench.workflow.WorkflowWithPayloadExecutor
@@ -333,17 +334,7 @@ class WorkflowApi @Inject() () extends InjectedController with UserContextAction
     * containing a simple name-value map.
     */
   private def parseExecutionVariablesFromRequest(implicit request: Request[AnyContent]): TemplateVariables = {
-    val fromBody = request.body.asJson.flatMap { json =>
-      (json \ "executionVariables").asOpt[Map[String, String]]
-    }.getOrElse(Map.empty)
-
-    if(fromBody.nonEmpty) {
-      TemplateVariables(fromBody.map { case (name, value) =>
-        TemplateVariable(name, value, scope = TemplateVariableScopes.execution)
-      }.toSeq)
-    } else {
-      TemplateVariables.empty
-    }
+    VariableWorkflowRequestUtils.parseExecutionVariables
   }
 
 }
