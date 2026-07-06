@@ -70,7 +70,7 @@ class VariableTemplateApi @Inject()() extends InjectedController with UserContex
     val allVariables = manager.all
     val variablesJson = {
       try {
-        TemplateVariablesJson(allVariables.resolved(manager.parentVariables))
+        TemplateVariablesJson(allVariables.resolved(manager.parentVariables.withoutSensitiveVariables()))
       } catch {
         case ex: TemplateVariablesEvaluationException =>
           TemplateVariablesJson(allVariables, ex)
@@ -392,7 +392,7 @@ class VariableTemplateApi @Inject()() extends InjectedController with UserContex
         }
 
       val scope = task.map(_ => TemplateVariableScopes.execution).getOrElse(TemplateVariableScopes.project)
-      val resolved = resolveWithDependencyCheck(TemplateVariables(newVariables), manager.parentVariables, scope)
+      val resolved = resolveWithDependencyCheck(TemplateVariables(newVariables), manager.parentVariables.withoutSensitiveVariables(), scope)
       task match {
         case Some(taskId) =>
           project.anyTask(taskId).updateExecutionVariables(resolved)
