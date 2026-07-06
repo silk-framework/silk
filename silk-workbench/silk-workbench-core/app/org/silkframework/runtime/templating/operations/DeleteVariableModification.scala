@@ -27,6 +27,9 @@ case class DeleteVariableModification(project: Project, variableName: String, ta
         ex.dependentVariables
       case _: TemplateVariablesEvaluationException =>
         Seq.empty
+      case _: CannotModifyVariablesUsedByTaskException =>
+        // Dependent tasks (e.g. execution variables referencing this variable) are reported via invalidTasks().
+        Seq.empty
       case ex: Throwable =>
         throw ex
     }
@@ -74,35 +77,43 @@ case class DeleteVariableModification(project: Project, variableName: String, ta
           }
           task
         }
-        updatedTasks.toSeq
+        // Also report tasks whose execution-variable templates reference the deleted variable.
+        val tasksWithDependentVariables = tasksWithDependentExecutionVariables(newVariables, Set(variableName)).map(_._1)
+        (updatedTasks ++ tasksWithDependentVariables.filterNot(t => updatedTasks.exists(_.id == t.id))).toSeq
     }
   }
 
-  override protected def updateVariables(currentVariables: TemplateVariables, parentVariables: TemplateVariables): TemplateVariables = {
+  override protected def updateVariables(currentVariables: TemplateVariables, parentVariables: TemplateVariables)
+                                        (implicit user: UserContext): TemplateVariables = {
     // Make sure that variable exists
     val variable = currentVariables.map.getOrElse(variableName,
       throw new org.silkframework.runtime.validation.NotFoundException(s"No variable '$variableName' has been found."))
 
     val updatedVariables = TemplateVariables(currentVariables.variables.filter(_.name != variableName))
-    try {
-      updatedVariables.resolved(parentVariables)
-    } catch {
-      case ex: TemplateVariablesEvaluationException =>
-        // Check if the evaluation failed because this variable is used in other variables.
-        val dependentVariables =
-          ex.issues.collect {
-            case TemplateVariableEvaluationException(dependentVar, unboundEx: UnboundVariablesException) if unboundEx.missingVars.contains(variable) =>
-              dependentVar.name
+    val resolvedVariables =
+      try {
+        updatedVariables.resolved(parentVariables)
+      } catch {
+        case ex: TemplateVariablesEvaluationException =>
+          // Check if the evaluation failed because this variable is used in other variables.
+          val dependentVariables =
+            ex.issues.collect {
+              case TemplateVariableEvaluationException(dependentVar, unboundEx: UnboundVariablesException) if unboundEx.missingVars.contains(variable) =>
+                dependentVar.name
+            }
+          if (dependentVariables.nonEmpty) {
+            throw CannotDeleteUsedVariableException(variableName, dependentVariables)
+          } else {
+            // The remaining failures are unrelated to the deleted variable (e.g. templates referencing
+            // a sensitive parent variable, which is not available for template resolution).
+            // Those variables keep their stored values, so that unrelated variables can still be deleted.
+            updatedVariables.resolvedKeepingUnresolved(parentVariables)
           }
-        if (dependentVariables.nonEmpty) {
-          throw CannotDeleteUsedVariableException(variableName, dependentVariables)
-        } else {
-          // The remaining failures are unrelated to the deleted variable (e.g. templates referencing
-          // a sensitive parent variable, which is not available for template resolution).
-          // Those variables keep their stored values, so that unrelated variables can still be deleted.
-          updatedVariables.resolvedKeepingUnresolved(parentVariables)
-        }
-    }
+      }
+    // Project variable: block the deletion if an execution-variable template on a task references it.
+    // Otherwise the task would keep an unresolvable template that fails on its next modification.
+    checkExecutionVariableDependencies(resolvedVariables, Set(variableName))
+    resolvedVariables
   }
 
   override protected def generateException(task: Task[_ <: TaskSpec], cause: Throwable): CannotModifyVariablesUsedByTaskException = {
