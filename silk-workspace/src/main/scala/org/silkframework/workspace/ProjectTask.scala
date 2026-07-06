@@ -141,6 +141,9 @@ class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
       lastModifiedByUser = newMetaData.flatMap(_.lastModifiedByUser).orElse(userContext.user.map(_.uri))
     )
     val executionVariablesToPersist = newExecutionVariables.getOrElse(executionVariablesValueHolder.all)
+    // Validate the execution variables before persisting, so that a validation failure
+    // does not leave persisted and in-memory state inconsistent.
+    executionVariablesValueHolder.validateScope(executionVariablesToPersist)
     // First persist task
     persistTask(PlainTask.fromTask(ProjectTask.this).copy(data = newData, metaData = metaDataToPersist, executionVariables = executionVariablesToPersist))
     // Invalidate plugin usage cache

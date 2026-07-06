@@ -91,6 +91,7 @@ class Module[TaskData <: TaskSpec: ClassTag](private[workspace] val provider: Wo
          (implicit userContext: UserContext) : ProjectTask[TaskData] = {
     assertLoaded()
     val task = new ProjectTask(name, taskData, metaData, executionVariables, this)
+    task.executionVariablesValueHolder.validateScope(executionVariables)
     validator.validate(project, task)
     provider.putTask(project.id, task, project.resources)
     task.startActivities()

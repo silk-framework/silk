@@ -1,7 +1,6 @@
 package org.silkframework.workspace
 
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.runtime.templating.exceptions.InvalidScopeException
 import org.silkframework.runtime.templating.{TemplateVariableScopes, TemplateVariables, TemplateVariablesManager, TemplateVariablesReader}
 
 /**
@@ -31,6 +30,11 @@ class TaskExecutionVariablesManager(initialVariables: TemplateVariables,
   }
 
   /**
+    * All managed variables must be in the execution scope.
+    */
+  override def variableScope: Seq[String] = executionScope
+
+  /**
    * Retrieves all execution variables.
    */
   override def all: TemplateVariables = variables
@@ -39,12 +43,7 @@ class TaskExecutionVariablesManager(initialVariables: TemplateVariables,
    * Updates all execution variables.
    */
   override def put(variables: TemplateVariables)(implicit user: UserContext): Unit = {
-    for (variable <- variables.variables) {
-      if (variable.scope != executionScope) {
-        throw new InvalidScopeException(s"Variable '${variable.name}' has an invalid scope '${variable.scope}'. " +
-          s"Currently, only variables in the '$executionScope' scope can be modified.")
-      }
-    }
+    validateScope(variables)
     this.variables = variables
   }
 }
