@@ -1305,7 +1305,7 @@ object JsonSerializers {
   implicit object DatasetTaskJsonFormat extends JsonFormat[DatasetTask] {
     override def read(value: JsValue)(implicit readContext: ReadContext): DatasetTask = {
       val task = new TaskJsonFormat[GenericDatasetSpec].read(value)
-      DatasetTask(task.id, task.data, task.metaData)
+      DatasetTask.fromTask(task)
     }
     override def write(value: DatasetTask)(implicit writeContext: WriteContext[JsValue]): JsValue = {
       new TaskJsonFormat[GenericDatasetSpec].write(value)
@@ -1318,7 +1318,7 @@ object JsonSerializers {
   implicit object TransformTaskJsonFormat extends JsonFormat[TransformTask] {
     override def read(value: JsValue)(implicit readContext: ReadContext): TransformTask = {
       val task = new TaskJsonFormat[TransformSpec].read(value)
-      TransformTask(task.id, task.data, task.metaData)
+      TransformTask.fromTask(task)
     }
     override def write(value: TransformTask)(implicit writeContext: WriteContext[JsValue]): JsValue = {
       new TaskJsonFormat[TransformSpec].write(value)

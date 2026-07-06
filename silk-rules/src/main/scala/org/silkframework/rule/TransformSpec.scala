@@ -358,12 +358,22 @@ case class TransformTask(id: Identifier, data: TransformSpec, metaData: MetaData
   override def taskType: Class[_] = classOf[TransformSpec]
 }
 
+object TransformTask {
+
+  /**
+    * Creates a TransformTask from a generic task, keeping all task properties.
+    */
+  def fromTask(task: Task[TransformSpec]): TransformTask = {
+    TransformTask(task.id, task.data, task.metaData, task.executionVariables)
+  }
+}
+
 /**
   * Static functions for the TransformSpecification class.
   */
 object TransformSpec {
 
-  implicit def toTransformTask(task: Task[TransformSpec]): TransformTask = TransformTask(task.id, task.data, task.metaData)
+  implicit def toTransformTask(task: Task[TransformSpec]): TransformTask = TransformTask.fromTask(task)
 
   def empty: TransformSpec = TransformSpec(DatasetSelection.empty, RootMappingRule.empty)
 

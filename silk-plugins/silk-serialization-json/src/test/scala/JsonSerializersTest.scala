@@ -3,7 +3,7 @@ import org.silkframework.config.{PlainTask, Task, TaskSpec}
 import org.silkframework.dataset._
 import org.silkframework.entity.ValueType
 import org.silkframework.rule.vocab._
-import org.silkframework.rule.{MappingTarget, NodePosition, RuleLayout}
+import org.silkframework.rule.{MappingTarget, NodePosition, RuleLayout, TransformSpec, TransformTask}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.{ClassPluginDescription, PluginRegistry}
 import org.silkframework.runtime.templating.{SimpleSubstitutionTemplateEngine, TemplateVariable, TemplateVariableScopes, TemplateVariables}
@@ -142,6 +142,19 @@ class JsonSerializersTest  extends AnyFlatSpec with Matchers with ConfigTestTrai
     val task = JsonSerialization.fromJson[Task[TaskSpec]](taskJson)
     task.data.asInstanceOf[DatasetSpec[Dataset]].plugin.asInstanceOf[SomeDatasetPlugin].param1 shouldBe "valueFromVariable"
     task.executionVariables.variables.map(_.name) shouldBe Seq("param1Value")
+  }
+
+  "DatasetTaskJsonFormat and TransformTaskJsonFormat" should "preserve execution variables" in {
+    PluginRegistry.unregisterPlugin(classOf[SomeDatasetPlugin])
+    PluginRegistry.registerPlugin(classOf[SomeDatasetPlugin])
+    val executionVariables = TemplateVariables(Seq(
+      TemplateVariable("myVar", "some value", None, None, isSensitive = false, TemplateVariableScopes.execution)))
+
+    val datasetTask = DatasetTask("datasetTask", new DatasetSpec(SomeDatasetPlugin("stringValue", 6.0)), executionVariables = executionVariables)
+    JsonSerialization.fromJson[DatasetTask](JsonSerialization.toJson(datasetTask)).executionVariables shouldBe executionVariables
+
+    val transformTask = TransformTask("transformTask", TransformSpec.empty, executionVariables = executionVariables)
+    JsonSerialization.fromJson[TransformTask](JsonSerialization.toJson(transformTask)).executionVariables shouldBe executionVariables
   }
 
   def testSerialization[T](obj: T)(implicit format: JsonFormat[T]): Unit = {

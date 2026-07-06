@@ -47,7 +47,7 @@ case class DeleteVariableModification(project: Project, variableName: String, ta
     val updatedTasks = mutable.Buffer[ProjectTask[_ <: TaskSpec]]()
     for (task <- project.allTasks) yield {
       try {
-        hasUpdatedTemplateValues(task.parameters(currentContext), allCurrentVariables, allNewVariables)
+        hasUpdatedTemplateValues(task, currentContext, allCurrentVariables, allNewVariables)
       } catch {
         case _: TemplateEvaluationException =>
           // Task update would fail with the modified variables.

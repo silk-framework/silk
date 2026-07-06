@@ -82,7 +82,7 @@ abstract class Modification {
     val allNewVariables = GlobalTemplateVariables.all merge newVariables
 
     val currentContext: PluginContext = PluginContext.fromProject(project)
-    val newContext: PluginContext =
+    val newContext =
       PluginContext(prefixes = project.config.prefixes,
         resources = project.resources,
         user = user,
@@ -92,8 +92,9 @@ abstract class Modification {
     val updatedTasks = mutable.Buffer[(Identifier, TaskSpec)]()
     for (task <- project.allTasks) {
       try {
-        if (hasUpdatedTemplateValues(task.parameters(currentContext), allCurrentVariables, allNewVariables)) {
-          updatedTasks.append((task.id, task.withParameters(task.parameters(currentContext), dropExistingValues = true)(newContext)))
+        if (hasUpdatedTemplateValues(task, currentContext, allCurrentVariables, allNewVariables)) {
+          val taskNewContext = newContext.copy(templateVariables = newContext.templateVariables.withExecutionDefaults(task.executionVariables))
+          updatedTasks.append((task.id, task.withParameters(task.parameters(currentContext), dropExistingValues = true)(taskNewContext)))
         }
       } catch {
         case NonFatal(ex) =>
@@ -106,6 +107,18 @@ abstract class Modification {
     }
 
     updatedTasks.map(_._1)
+  }
+
+  /**
+    * Checks whether any of a task's parameter templates evaluates to a different value under the new variables.
+    * The task's own execution-variable defaults are included in both variable sets, so that parameter templates
+    * referencing 'execution.X' can be evaluated.
+    */
+  protected def hasUpdatedTemplateValues(task: Task[_ <: TaskSpec], context: PluginContext,
+                                         currentVariables: TemplateVariables, newVariables: TemplateVariables): Boolean = {
+    hasUpdatedTemplateValues(task.parameters(context),
+      currentVariables merge task.executionVariables,
+      newVariables merge task.executionVariables)
   }
 
   protected def hasUpdatedTemplateValues(parameters: ParameterValues, currentVariables: TemplateVariables, newVariables: TemplateVariables): Boolean = {
