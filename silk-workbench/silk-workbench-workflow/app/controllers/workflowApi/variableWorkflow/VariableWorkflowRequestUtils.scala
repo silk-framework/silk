@@ -326,8 +326,8 @@ object VariableWorkflowRequestUtils {
   /* Builds the (JSON) input entity from the request parameters (form URL encoded or query string).
    * Or returns None if the request is a multipart/form-data request and the input file has been uploaded.
    */
-  private def requestToInputResource(mediaType: Option[String])
-                                    (implicit request: Request[_]): Option[JsValue] = {
+  private[variableWorkflow] def requestToInputResource(mediaType: Option[String])
+                                                      (implicit request: Request[_]): Option[JsValue] = {
     if(request.body.isInstanceOf[AnyContentAsMultipartFormData]) {
       // Input resource is part of multipart/form-data request and will be loaded directly into the resource manager.
       return None
