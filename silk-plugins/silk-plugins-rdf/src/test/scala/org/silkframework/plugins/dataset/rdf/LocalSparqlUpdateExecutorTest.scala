@@ -1,22 +1,23 @@
 package org.silkframework.plugins.dataset.rdf
 
 
-import org.silkframework.config.{CustomTask, FixedNumberOfInputs, InputPorts, PlainTask, Port, Prefixes, Task}
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.must.Matchers
+import org.silkframework.config._
 import org.silkframework.entity._
 import org.silkframework.entity.paths.{TypedPath, UntypedPath}
-import org.silkframework.execution.{ExecutionReport, ExecutorOutput}
 import org.silkframework.execution.local.{GenericEntityTable, LocalEntities, LocalExecution}
+import org.silkframework.execution.typed.SparqlUpdateEntitySchema
+import org.silkframework.execution.{ExecutionReport, ExecutorOutput}
 import org.silkframework.plugins.dataset.rdf.executors.LocalSparqlUpdateExecutor
 import org.silkframework.plugins.dataset.rdf.tasks.SparqlUpdateCustomTask
-import org.silkframework.plugins.dataset.rdf.tasks.templating.SparqlUpdateTemplatingMode
+import org.silkframework.plugins.dataset.rdf.tasks.templating.SparqlSimpleTemplateEngine
+import org.silkframework.plugins.templating.velocity.VelocityTemplateEngine
 import org.silkframework.runtime.activity.{ActivityContext, UserContext}
 import org.silkframework.runtime.plugin.{ParameterValues, PluginContext, TestPluginContext}
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.{Identifier, TestMocks}
 import org.silkframework.workspace.TestWorkspaceProviderTestTrait
-import org.scalatest.flatspec.AnyFlatSpec
-import org.scalatest.matchers.must.Matchers
-import org.silkframework.execution.typed.SparqlUpdateEntitySchema
 
 class LocalSparqlUpdateExecutorTest extends AnyFlatSpec with Matchers with TestWorkspaceProviderTestTrait {
   behavior of "Local SPARQL Update Executor"
@@ -30,11 +31,8 @@ class LocalSparqlUpdateExecutorTest extends AnyFlatSpec with Matchers with TestW
   private val batchSize = 5
   private val sparqlUpdateTemplate = s"""INSERT DATA { $${<s>} <urn:prop> $${"v"} } ;"""
   private val schema = EntitySchema("", typedPaths = IndexedSeq(TypedPath("s", ValueType.URI), TypedPath("v", ValueType.STRING)))
-  private val notIncluded = "NOT_INCLUDED"
   private val inputEntities: Seq[Entity] = Seq(
     Entity("http://example.org/entity/1", IndexedSeq(Seq("http://s1"), Seq("s1a", "s1b")), schema),
-    Entity("http://example.org/entity/2", IndexedSeq(Seq(s"http://$notIncluded"), Seq()), schema),
-    Entity("http://example.org/entity/3", IndexedSeq(Seq(), Seq(notIncluded)), schema),
     Entity("http://example.org/entity/4", IndexedSeq(Seq("http://s2a", "http://s2b"), Seq("s2a", "s2b", "s2c")), schema)
   )
   private def mockInputTable(properties: Seq[(String, String)] = Seq.empty,
@@ -78,6 +76,17 @@ class LocalSparqlUpdateExecutorTest extends AnyFlatSpec with Matchers with TestW
     samplesEntities.entities.head.values.head.head must startWith ("""INSERT DATA { <http://s1> <urn:prop> "s1a" } ;""")
   }
 
+  it should "fail when an input entity is missing a value referenced by the template" in {
+    val incompleteEntities = Seq(
+      Entity("http://example.org/entity/incomplete", IndexedSeq(Seq("http://s1"), Seq()), schema)
+    )
+    val inputTaskMock = PlainTask("mockTask", new DummyTaskSpec(Map.empty))
+    val input = Seq(GenericEntityTable(incompleteEntities, schema, inputTaskMock))
+    intercept[ValidationException] {
+      executeTask(sparqlUpdateTemplate, input).entities.toList
+    }
+  }
+
   it should "throw validation exception if an invalid input schema is found" in {
     val invalidSchema = EntitySchema("", typedPaths = IndexedSeq("s", "wrong").map(UntypedPath(_).asUntypedValueType))
     val input = Seq(mockInputTable(schema = invalidSchema))
@@ -96,7 +105,7 @@ class LocalSparqlUpdateExecutorTest extends AnyFlatSpec with Matchers with TestW
   it should "output one UPDATE query per input task when the template contains input property placeholders" in {
     val templateWithInputPropertyPlaceholders = """INSERT DATA { $inputProperties.uri("graph") <urn:prop:label> $inputProperties.plainLiteral("graph") };"""
     val result = executeTask(templateWithInputPropertyPlaceholders, Seq(mockInputTable(Seq("graph" -> "g1")),
-      mockInputTable(Seq("graph" -> "g2"))), SparqlUpdateTemplatingMode.velocity)
+      mockInputTable(Seq("graph" -> "g2"))), VelocityTemplateEngine.id)
     result.entities.map(_.values.flatten.head).toList mustBe List("INSERT DATA { <g1> <urn:prop:label> \"g1\" };\n" +
                                                                   "INSERT DATA { <g2> <urn:prop:label> \"g2\" };")
   }
@@ -104,20 +113,20 @@ class LocalSparqlUpdateExecutorTest extends AnyFlatSpec with Matchers with TestW
   it should "output one UPDATE query overall even for multiple inputs when no placeholder is used at all" in {
     val staticTemplate = """INSERT DATA { <urn:subject:1> <urn:prop:label> "1" };"""
     val result = executeTask(staticTemplate, Seq(mockInputTable(Seq("graph" -> "g1")),
-      mockInputTable(Seq("graph" -> "g2"))), SparqlUpdateTemplatingMode.velocity)
+      mockInputTable(Seq("graph" -> "g2"))), VelocityTemplateEngine.id)
     result.entities.map(_.values.flatten.head).toList mustBe List(staticTemplate)
   }
 
   private def sparqlUpdateTask(template: String,
-                               mode: SparqlUpdateTemplatingMode): Task[SparqlUpdateCustomTask] = {
-    project.updateTask("task", SparqlUpdateCustomTask(template, batchSize = batchSize, templatingMode = mode))
+                               language: String): Task[SparqlUpdateCustomTask] = {
+    project.updateTask("task", SparqlUpdateCustomTask(template, batchSize = batchSize, templatingMode = language))
   }
 
   private def executeTask(template: String,
                           input: Seq[GenericEntityTable],
-                          mode: SparqlUpdateTemplatingMode = SparqlUpdateTemplatingMode.simple,
+                          language: String = SparqlSimpleTemplateEngine.id,
                           activityContext: ActivityContext[ExecutionReport] = context): LocalEntities = {
-    val result = executor.execute(sparqlUpdateTask(template, mode), input, ExecutorOutput.empty, LocalExecution(true), activityContext)
+    val result = executor.execute(sparqlUpdateTask(template, language), input, ExecutorOutput.empty, LocalExecution(true), activityContext)
     result mustBe defined
     result.get
   }

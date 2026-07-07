@@ -354,6 +354,11 @@
             "submit": "Submit",
             "update": "Update",
             "showApiDoc": "API",
+            "sortColumn": {
+                "ascending": "Sort column: ascending",
+                "descending": "Sort column: descending",
+                "remove": "Sort column: remove"
+            },
             "listDeprecatedPlugins": "Deprecated plugins usage",
             "copyClipboard": "Copy to clipboard",
             "copyUriClipboard": "Click to copy URI into clipboard",

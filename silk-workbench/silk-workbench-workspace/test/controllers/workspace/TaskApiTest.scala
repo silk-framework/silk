@@ -7,7 +7,8 @@ import org.scalatestplus.play.PlaySpec
 import org.silkframework.config.{MetaData, Prefixes}
 import org.silkframework.dataset.DatasetSpec
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
-import org.silkframework.dataset.rdf.SparqlEndpointDatasetParameter
+import org.silkframework.dataset.rdf.{RdfDatasetAccess, SparqlEndpointDatasetParameter}
+import org.silkframework.execution.ExecutorRegistry
 import org.silkframework.entity.StringValueType
 import org.silkframework.plugins.dataset.rdf.datasets.{InMemoryDataset, SparqlDataset}
 import org.silkframework.plugins.dataset.rdf.tasks.SparqlSelectCustomTask
@@ -362,7 +363,7 @@ class TaskApiTest extends PlaySpec with IntegrationTestTrait with Matchers {
     p.addAnyTask(sparqlSelect, SparqlSelectCustomTask("SELECT * WHERE {?s ?p ?o}", optionalInputDataset = SparqlEndpointDatasetParameter(inMemoryDataset)))
     p.addAnyTask(sparqlDataset, DatasetSpec(SparqlDataset("http://endpoint")))
     // Check tasks
-    taskValuesWithLabel(sparqlSelect).filter(_._2.isDefined) mustBe Seq(JsString(inMemoryDataset) -> Some(inMemoryDatasetLabel))
+    taskValuesWithLabel(sparqlSelect).filter(_._2.isDefined) must contain theSameElementsAs Seq(JsString("jinja") -> Some("Jinja"), JsString(inMemoryDataset) -> Some(inMemoryDatasetLabel))
     taskValuesWithLabel(sparqlDataset).filter(_._2.isDefined) mustBe Seq(JsString("parallel") -> Some("parallel"))
     taskValuesWithLabel(workflowId) // Just check that it returns anything
     taskValuesWithLabel(linkTaskId)
@@ -486,17 +487,17 @@ class TaskApiTest extends PlaySpec with IntegrationTestTrait with Matchers {
   "task clone endpoint" should {
     "clone a dataset by creating a new instance" in {
       val inMemoryDataset = InMemoryDataset()
-      val tripleSink = inMemoryDataset.tripleSink
+      val tripleSink = RdfDatasetAccess.forExecution(inMemoryDataset).tripleSink
       tripleSink.init()
       tripleSink.writeTriple("a", "http://prop", "c", StringValueType())
       tripleSink.close()
-      inMemoryDataset.source.retrievePaths("").flatMap(_.propertyUri) mustBe Seq(Uri("http://prop"))
+      ExecutorRegistry.access(inMemoryDataset).source.retrievePaths("").flatMap(_.propertyUri) mustBe Seq(Uri("http://prop"))
       val datasetName = "oneTripleInMemoryDataset"
       val newDatasetName = "newInmemoryDataset"
       val p = retrieveOrCreateProject(project)
       p.addAnyTask(datasetName, new DatasetSpec(inMemoryDataset))
       checkResponse(client.url(s"$baseUrl/workspace/projects/$project/tasks/$datasetName/clone?newTask=$newDatasetName").post(""))
-      p.task[GenericDatasetSpec](newDatasetName).data.source.retrievePaths("") mustBe Seq()
+      ExecutorRegistry.access(p.task[GenericDatasetSpec](newDatasetName)).source.retrievePaths("") mustBe Seq()
     }
   }
 

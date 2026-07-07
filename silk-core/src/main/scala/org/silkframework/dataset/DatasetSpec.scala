@@ -43,37 +43,9 @@ import scala.xml.Node
 case class DatasetSpec[+DatasetType <: Dataset](plugin: DatasetType,
                                                 uriAttribute: Option[Uri] = None,
                                                 readOnly: Boolean = false)
-    extends TaskSpec with DatasetAccess {
-
-  def source(implicit userContext: UserContext): DataSource = {
-    safeAccess(DatasetSpec.DataSourceWrapper(plugin.source, this), SafeModeDataSource)
-  }
-
-  def entitySink(implicit userContext: UserContext): EntitySink = {
-    safeAccess(DatasetSpec.EntitySinkWrapper(plugin.entitySink, this), SafeModeSink)
-  }
-
-  def linkSink(implicit userContext: UserContext): LinkSink = {
-    checkDatasetAllowsWriteAccess(None, readOnly)
-    safeAccess(DatasetSpec.LinkSinkWrapper(plugin.linkSink, this), SafeModeSink)
-  }
+    extends TaskSpec {
 
   def characteristics: DatasetCharacteristics = plugin.characteristics
-
-  // True if access should be prevented regarding the dataset and safe-mode config
-  private def preventAccessInSafeMode(implicit userContext: UserContext): Boolean = {
-    ProductionConfig.inSafeMode && !plugin.isFileResourceBased && !userContext.executionContext.insideWorkflow
-  }
-
-  // Create data access object or return fallback
-  private def safeAccess[T](create: T, fallback: T)
-                           (implicit userContext: UserContext): T = {
-    if (preventAccessInSafeMode) {
-      fallback
-    } else {
-      create
-    }
-  }
 
   /** Datasets don't define input schemata, because any data can be written to them. */
   override def inputPorts: InputPorts = {
@@ -164,9 +136,25 @@ object DatasetSpec {
       */
     override def retrieve(entitySchema: EntitySchema, limit: Option[Int])
                          (implicit context: PluginContext): EntityHolder = {
-      val adaptedSchema = adaptSchema(entitySchema)
-      val entities = source.retrieve(adaptedSchema, limit)
-      adaptUris(entities)
+      datasetSpec.uriAttribute match {
+        case Some(property) =>
+          val uriPath = TypedPath(UntypedPath.parse(property.uri), ValueType.URI, isAttribute = false)
+          if (entitySchema.typedPaths.contains(uriPath)) {
+            // The requested schema already contains the URI column, so only rewrite the entity URIs from it.
+            source.retrieve(entitySchema, limit).mapEntities(entity => Entity(uriFromColumn(entity, uriPath), entity.values, entity.schema))
+          } else {
+            // Append the URI column so the source retrieves it, use its value as the entity URI, then drop it
+            // again so the returned entities match the requested schema (and don't leak the URI as a value).
+            val adaptedSchema = entitySchema.copy(typedPaths = entitySchema.typedPaths :+ uriPath)
+            val uriIndex = entitySchema.typedPaths.size
+            source.retrieve(adaptedSchema, limit).flatMapEntities(entitySchema) { entity =>
+              val uri = entity.values.lift(uriIndex).flatMap(_.headOption).filter(_.nonEmpty).getOrElse(entity.uri.toString)
+              Iterator(Entity(new Uri(uri), entity.values.take(uriIndex), entitySchema))
+            }
+          }
+        case None =>
+          source.retrieve(entitySchema, limit)
+      }
     }
 
     /**
@@ -190,34 +178,9 @@ object DatasetSpec {
       }
     }
 
-    /**
-      * Adds the URI property to the schema.
-      */
-    private def adaptSchema(entitySchema: EntitySchema): EntitySchema = {
-      datasetSpec.uriAttribute match {
-        case Some(property) =>
-          entitySchema.copy(typedPaths = entitySchema.typedPaths :+ TypedPath(UntypedPath.parse(property.uri), ValueType.URI, isAttribute = false))
-        case None =>
-          entitySchema
-      }
-    }
-
-    /**
-      * Rewrites the entity URIs if an URI property has been specified.
-      */
-    private def adaptUris(entities: EntityHolder): EntityHolder = {
-      datasetSpec.uriAttribute match {
-        case Some(property) =>
-          entities.mapEntities( entity =>
-            Entity(
-              uri = new Uri(entity.singleValue(TypedPath(UntypedPath.parse(property.uri), ValueType.URI, isAttribute = false)).getOrElse(entity.uri.toString)),
-              values = entity.values,
-              schema = entity.schema
-            )
-          )
-        case None =>
-          entities
-      }
+    /** Returns the URI for an entity, taken from the URI column if it carries a non-empty value. */
+    private def uriFromColumn(entity: Entity, uriPath: TypedPath): Uri = {
+      new Uri(entity.singleValue(uriPath).filter(_.nonEmpty).getOrElse(entity.uri.toString))
     }
 
     /**

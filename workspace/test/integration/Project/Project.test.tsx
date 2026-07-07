@@ -6,6 +6,7 @@ import {
     byTestId,
     changeInputValue,
     checkRequestMade,
+    clickRenderedElement,
     findElement,
     pressKeyDown,
     legacyApiUrl,
@@ -17,6 +18,12 @@ import {
 import { createBrowserHistory, History, LocationState } from "history";
 import Project from "../../../src/app/views/pages/Project";
 import qs from "qs";
+import { GlobalTableContext } from "../../../src/app/GlobalContextsWrapper";
+import {
+    defaultGlobalTableSettings,
+    GlobalTableBaseConfig,
+    GlobalTableTypes,
+} from "../../../src/app/hooks/useStoreGlobalTableSettings";
 
 //jest.setTimeout(50000);
 
@@ -56,11 +63,46 @@ describe("Project page", () => {
     };
     let projectPageWrapper: RenderResult = null;
     let history: History<LocationState> = null;
+
+    const TestGlobalTableProvider = ({ children }: { children: React.ReactNode }) => {
+        const [globalTableSettings, setGlobalTableSettings] = React.useState(defaultGlobalTableSettings);
+
+        const updateGlobalTableSettings = React.useCallback(
+            (settings: GlobalTableBaseConfig, explicitKey?: GlobalTableTypes) => {
+                const tableKey = explicitKey ?? "workbench";
+                setGlobalTableSettings((currentSettings) => ({
+                    ...currentSettings,
+                    [tableKey]: {
+                        ...currentSettings[tableKey],
+                        ...settings,
+                    },
+                }));
+            },
+            [],
+        );
+
+        return (
+            <GlobalTableContext.Provider value={{ globalTableSettings, updateGlobalTableSettings }}>
+                {children}
+            </GlobalTableContext.Provider>
+        );
+    };
+
+    const renderProjectPage = (initialState = reducerState, renderHistory = createBrowserHistory()) => {
+        return renderWrapper(
+            <TestGlobalTableProvider>
+                <Project />
+            </TestGlobalTableProvider>,
+            renderHistory,
+            initialState,
+        );
+    };
+
     beforeEach(() => {
         history = createBrowserHistory();
         history.location.pathname = workspacePath("/projects/" + testProjectId);
 
-        projectPageWrapper = renderWrapper(<Project />, history, reducerState);
+        projectPageWrapper = renderProjectPage(reducerState, history);
         return projectPageWrapper;
     });
 
@@ -110,7 +152,12 @@ describe("Project page", () => {
         history.location.pathname = workspacePath("/projects/" + testProjectId);
         history.location.search = filteredQueryParams;
 
-        renderWrapper(<Project />, history);
+        renderWrapper(
+            <TestGlobalTableProvider>
+                <Project />
+            </TestGlobalTableProvider>,
+            history,
+        );
 
         const expectedSearchResponse = {
             textQuery: "some text",
@@ -173,5 +220,38 @@ describe("Project page", () => {
         const downloadIcon = findElement(projectPageWrapper, byTestId("resource-download-btn"));
         expect(downloadIcon.tagName).toBe("A");
         expect(downloadIcon.getAttribute("href")).toContain(expectedFile);
+    });
+
+    it("should sort files by size ascending, descending and then reset", async () => {
+        const files = [
+            { name: "alpha.csv", size: 30, modified: "2020-10-08T00:00:00Z" },
+            { name: "beta.csv", size: 10, modified: "2020-10-09T00:00:00Z" },
+            { name: "gamma.csv", size: 20, modified: "2020-10-10T00:00:00Z" },
+        ];
+        setFilesForWidget(files);
+
+        const fileNamesInTable = () =>
+            Array.from(projectPageWrapper.container.querySelectorAll('[data-test-id="project-files-widget"] tbody tr'))
+                .map((row) => row.querySelector("td")?.textContent?.trim())
+                .filter((value): value is string => !!value);
+
+        await waitFor(() => {
+            expect(fileNamesInTable()).toEqual(["alpha.csv", "beta.csv", "gamma.csv"]);
+        });
+
+        clickRenderedElement(findElement(projectPageWrapper, byTestId("project-files-sort-size")));
+        await waitFor(() => {
+            expect(fileNamesInTable()).toEqual(["beta.csv", "gamma.csv", "alpha.csv"]);
+        });
+
+        clickRenderedElement(findElement(projectPageWrapper, byTestId("project-files-sort-size")));
+        await waitFor(() => {
+            expect(fileNamesInTable()).toEqual(["alpha.csv", "gamma.csv", "beta.csv"]);
+        });
+
+        clickRenderedElement(findElement(projectPageWrapper, byTestId("project-files-sort-size")));
+        await waitFor(() => {
+            expect(fileNamesInTable()).toEqual(["alpha.csv", "beta.csv", "gamma.csv"]);
+        });
     });
 });
