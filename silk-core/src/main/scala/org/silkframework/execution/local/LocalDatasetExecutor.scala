@@ -8,7 +8,7 @@ import org.silkframework.dataset.operations.ClearDatasetOperator.ClearDatasetTab
 import org.silkframework.dataset.operations.ClearDatasetOperatorExecutionReportUpdater
 import org.silkframework.dataset.bulk.{BulkResourceBasedDataset, ZipWritableResource}
 import org.silkframework.dataset.rdf._
-import org.silkframework.dataset.sql.SqlDataset
+import org.silkframework.dataset.sql.SqlDatasetAccess
 import org.silkframework.entity._
 import org.silkframework.execution._
 import org.silkframework.execution.typed._
@@ -179,16 +179,16 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
                                   sqlUpdateQueries: TypedEntities[String, TaskSpec],
                                   execution: LocalExecution)
                                  (implicit userContext: UserContext, context: ActivityContext[ExecutionReport], prefixes: Prefixes): Unit = {
-    dataset.plugin match {
-      case sqlDataset: SqlDataset =>
+    SqlDatasetAccess.forExecutionOption(dataset, execution) match {
+      case Some(sqlAccess) =>
         val executionReport = UpdateSqlUpdater(dataset, context)
-        val endpoint = sqlDataset.sqlEndpoint
+        val endpoint = sqlAccess.sqlEndpoint
         for (entity <- sqlUpdateQueries.typedEntities) {
           endpoint.updateStatement(entity)
           executionReport.increaseEntityCounter()
         }
         executionReport.executionDone()
-      case _ =>
+      case None =>
         writeGenericLocalEntities(dataset, sqlUpdateQueries, execution)
     }
   }
