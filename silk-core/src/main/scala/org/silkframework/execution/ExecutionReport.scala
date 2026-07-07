@@ -58,6 +58,16 @@ trait ExecutionReport {
   def asDone(): ExecutionReport
 
   /**
+    * Returns a failed (done) version of this report carrying the given error message.
+    *
+    * The default downgrades to a [[SimpleExecutionReport]] (keeping only the scalar fields). Subtypes
+    * that carry structured detail worth keeping on failure (e.g. a nested workflow's task reports or a
+    * transform's rule results) should override this to set the error in place and preserve their data.
+    */
+  def asFailed(error: String): ExecutionReport =
+    SimpleExecutionReport(task, summary, warnings, Some(error), isDone = true, entityCount, operation, operationDesc)
+
+  /**
     * The number of entities that have been processed.
     */
   def entityCount: Int
