@@ -6,6 +6,7 @@ import { AppLayout } from "./views/layout/AppLayout/AppLayout";
 import { useTranslation } from "react-i18next";
 import { IRouteProps } from "./appRoutes";
 import { ApplicationContainer, ApplicationContent } from "@eccenca/gui-elements";
+import { fetchStoredThemeMode } from "../theme/theme";
 
 interface RouterOutletProps {
     routes: IRouteProps[];
@@ -21,7 +22,10 @@ export default function RouterOutlet({ routes }: RouterOutletProps) {
                     return (
                         <Route key={route.path} path={getFullRoutePath(route.path)} exact={route.exact}>
                             {route.componentOnly && Component ? (
-                                <ApplicationContainer monitorDropzonesFor={["application/reactflow", "Files"]}>
+                                <ApplicationContainer
+                                    monitorDropzonesFor={["application/reactflow", "Files"]}
+                                    themeMode={fetchStoredThemeMode()}
+                                >
                                     <ApplicationContent>
                                         <Component />
                                     </ApplicationContent>

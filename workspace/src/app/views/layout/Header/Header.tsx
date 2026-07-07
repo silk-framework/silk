@@ -12,16 +12,18 @@ import {
     ApplicationToolbarPanel,
     ApplicationToolbarSection,
     Divider,
+    FieldSet,
+    FieldItem,
     HtmlContentBlock,
     Icon,
     Menu,
-    MenuDivider,
     MenuItem,
     Tag,
     TitleSubsection,
     Toolbar,
     ToolbarSection,
     WorkspaceHeader,
+    Button,
 } from "@eccenca/gui-elements";
 import { commonOp, commonSel } from "@ducks/common";
 import { routerOp } from "@ducks/router";
@@ -38,13 +40,23 @@ import { ExampleProjectImportMenu } from "./ExampleProjectImportMenu";
 import { useKeyboardHeaderShortcuts } from "./useKeyBoardHeaderShortcuts";
 import { getFullRoutePath } from "../../../utils/routerUtils";
 import { AppDispatch } from "store/configureStore";
+import { ThemeMode } from "../../../../theme/theme";
 
 interface IProps {
     onClickApplicationSidebarExpand: any;
     isApplicationSidebarExpanded: boolean;
+    /** The currently active theme mode. */
+    themeMode: ThemeMode;
+    /** Callback to change the active theme mode. */
+    onChangeThemeMode: (mode: ThemeMode) => void;
 }
 
-export function Header({ onClickApplicationSidebarExpand, isApplicationSidebarExpanded }: IProps) {
+export function Header({
+    onClickApplicationSidebarExpand,
+    isApplicationSidebarExpanded,
+    themeMode,
+    onChangeThemeMode,
+}: IProps) {
     const dispatch = useDispatch<AppDispatch>();
     const location = useLocation();
     const locationParams = new URLSearchParams(location.search?.substring(1));
@@ -76,6 +88,17 @@ export function Header({ onClickApplicationSidebarExpand, isApplicationSidebarEx
             : "";
 
     const activitiesPageLink = SERVE_PATH + "/activities";
+
+    const markActiveTheme = (currentTheme: ThemeMode, theme: ThemeMode) => {
+        if (currentTheme === theme) {
+            return {
+                disabled: true,
+                active: true,
+                elevated: true,
+            };
+        }
+        return {};
+    };
 
     return (
         <>
@@ -219,10 +242,40 @@ export function Header({ onClickApplicationSidebarExpand, isApplicationSidebarEx
                                 }}
                             >
                                 <Toolbar verticalStack={true} style={{ height: "100%" }}>
+                                    <ToolbarSection style={{ width: "100%" }}>
+                                        <FieldSet>
+                                            {languageSwitcher && <languageSwitcher.Component />}
+                                            <FieldItem labelProps={{ text: t("common.words.theme") }}>
+                                                <Button
+                                                    size={"small"}
+                                                    {...markActiveTheme(themeMode, "light")}
+                                                    onClick={() => onChangeThemeMode("light")}
+                                                >
+                                                    {t("common.words.light")}
+                                                </Button>
+                                                <Button
+                                                    size={"small"}
+                                                    {...markActiveTheme(themeMode, "auto")}
+                                                    tooltip={t("common.words.auto")}
+                                                    onClick={() => onChangeThemeMode("auto")}
+                                                >
+                                                    Auto
+                                                </Button>
+                                                <Button
+                                                    size={"small"}
+                                                    {...markActiveTheme(themeMode, "dark")}
+                                                    onClick={() => onChangeThemeMode("dark")}
+                                                >
+                                                    {t("common.words.dark")}
+                                                </Button>
+                                            </FieldItem>
+                                        </FieldSet>
+                                    </ToolbarSection>
+                                    <ToolbarSection style={{ width: "100%" }}>
+                                        <Divider addSpacing="medium" />
+                                    </ToolbarSection>
                                     <ToolbarSection canGrow={true} style={{ width: "100%" }}>
                                         <Menu>
-                                            {languageSwitcher && <languageSwitcher.Component />}
-                                            <MenuDivider />
                                             {hotKeys.quickSearch && (
                                                 <MenuItem
                                                     text={t("RecentlyViewedModal.title")}
@@ -284,7 +337,7 @@ export function Header({ onClickApplicationSidebarExpand, isApplicationSidebarEx
                                         <diUserMenuFooter.Component version={version} />
                                     ) : (
                                         version && (
-                                            <ToolbarSection style={{ width: "10%" }}>
+                                            <ToolbarSection style={{ width: "100%" }}>
                                                 <HtmlContentBlock small>{version}</HtmlContentBlock>
                                             </ToolbarSection>
                                         )

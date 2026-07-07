@@ -465,7 +465,12 @@
             "unknown": "Unknown",
             "active": "active",
             "next": "Next",
-            "previous": "Previous"
+            "previous": "Previous",
+            "language": "Language",
+            "theme": "Theme",
+            "dark": "Dark",
+            "light": "Light",
+            "auto": "Automatic"
         },
         "tooltips": {
             "dataset": {
