@@ -10,7 +10,6 @@ import {
     byTestId,
     changeInputValue,
     checkRequestMade,
-    cleanUpDOM,
     clickRenderedElement,
     findAllDOMElements,
     findElement,
@@ -41,7 +40,10 @@ describe("Task creation widget", () => {
 
     afterEach(() => {
         mockAxios.reset();
-        cleanUpDOM();
+        // NOTE: testing-library's automatic afterEach cleanup already unmounts the React tree
+        // (and its Radix portals). A manual `document.body.innerHTML = ""` here would run *before*
+        // that cleanup and wipe portal nodes React still owns, making the subsequent unmount throw
+        // "NotFoundError: The node to be removed is not a child of this node".
     });
 
     const PROJECT_ID = "projectId";
@@ -424,7 +426,7 @@ describe("Task creation widget", () => {
 
     const databaseInput = (element: Element | RenderResult) => findElement(element, "#database") as HTMLInputElement;
     const databaseInputGroupClassName = (element: Element | RenderResult) =>
-        databaseInput(element).closest(`.${bluePrintClassPrefix}-input-group`)?.className ?? "";
+        databaseInput(element).closest(".eccgui-textfield")?.className ?? "";
 
     const expectDependentDatabaseWarning = async (
         element: Element | RenderResult,
@@ -433,7 +435,7 @@ describe("Task creation widget", () => {
         await waitFor(() => {
             expect(databaseInput(element).value).toBe(expectedValue);
             expect(findElement(element, byTestId("task-form-dependent-values-warning"))).toBeInTheDocument();
-            expect(databaseInputGroupClassName(element)).toContain(`${bluePrintClassPrefix}-intent-warning`);
+            expect(databaseInputGroupClassName(element)).toContain("eccgui-intent--warning");
         });
     };
 
@@ -445,7 +447,7 @@ describe("Task creation widget", () => {
                     byTestId("task-form-dependent-values-warning"),
                 ),
             ).not.toBeInTheDocument();
-            expect(databaseInputGroupClassName(element)).not.toContain(`${bluePrintClassPrefix}-intent-warning`);
+            expect(databaseInputGroupClassName(element)).not.toContain("eccgui-intent--warning");
         });
     };
 

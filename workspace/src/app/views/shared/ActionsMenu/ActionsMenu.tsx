@@ -83,7 +83,7 @@ export function ActionsMenu({
                     disabled={actionPrimary.disabled ? true : false}
                     outlined={true}
                     onClick={actionPrimary.actionHandler}
-                    data-test-id={!!actionPrimary["data-test-id"] ? actionPrimary["data-test-id"] : false}
+                    data-test-id={!!actionPrimary["data-test-id"] ? actionPrimary["data-test-id"] : undefined}
                 />
             )}
             {actionsSecondary &&

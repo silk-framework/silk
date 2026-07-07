@@ -10,7 +10,15 @@
         "noImplicitReturns": false,
         "target": "es5",
         "paths": {
-            "@ducks/*": ["./store/ducks/*"]
+            "@ducks/*": ["./store/ducks/*"],
+            // Pin React type resolution to a single physical copy. With nested yarn workspace
+            // roots (silk/ and the repo root) two copies of @types/react (+csstype) can exist;
+            // app/gui-elements files resolve the silk copy while workspacePlugins resolves the
+            // repo-root copy, producing nominally incompatible React.CSSProperties etc.
+            // Order matters: silk copy first (matches natural resolution of app + gui-elements
+            // source), repo-root copy as fallback (the only one existing in CI).
+            "react": ["../../../node_modules/@types/react", "../../../../node_modules/@types/react"],
+            "react-dom": ["../../../node_modules/@types/react-dom", "../../../../node_modules/@types/react-dom"]
         }
     },
     "include": ["./src"]

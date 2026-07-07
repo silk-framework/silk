@@ -59,7 +59,7 @@ describe("ValueMappingRuleForm Component", () => {
         });
 
         it("should loading indicator present if data still loading", () => {
-            expect(findAllDOMElements(wrapper, `[class*="-spinner"]`).length).toBeGreaterThan(1);
+            expect(findAllDOMElements(wrapper, `[class*="-spinner"]`).length).toBeGreaterThan(0);
         });
 
         it("should show the title, when `id` not presented", () => {

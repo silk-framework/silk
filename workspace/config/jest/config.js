@@ -29,6 +29,7 @@ module.exports = {
         "^.+\\.module\\.(css|sass|scss)$",
     ],
     moduleNameMapper: {
+        "tailwind\\.generated\\.css$": "identity-obj-proxy",
         "^react-native$": "react-native-web",
         "^react-markdown$": "<rootDir>/../node_modules/react-markdown",
         "^@eccenca/gui-elements$": "<rootDir>/../node_modules/@eccenca/gui-elements",

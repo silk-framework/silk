@@ -13,8 +13,21 @@ import { createPlugin } from "./app/services/pluginApi";
 import configureStore from "./app/store/configureStore";
 
 import "./theme/index.scss";
+import "./theme/tailwind.generated.css";
 import mappingEditor from "./app/views/pages/MappingEditor/index";
 import "./language";
+
+// Restyling experiment: dark-mode dev flag. The shadcn token set ships full dark values
+// (`.dark` class variant), but legacy SCSS still hardcodes light colors, so this stays a
+// dev-only switch until the SCSS sunset. Usage: `window.__toggleDarkMode()` in the console.
+if (window.localStorage?.getItem("diapp-experimental-dark") === "true") {
+    document.documentElement.classList.add("dark");
+}
+(window as any).__toggleDarkMode = (): boolean => {
+    const dark = document.documentElement.classList.toggle("dark");
+    window.localStorage?.setItem("diapp-experimental-dark", String(dark));
+    return dark;
+};
 
 if (typeof mappingEditor.hierarchicalMapping !== "function") {
     console.error("Mapping editor factory methods no registered.");

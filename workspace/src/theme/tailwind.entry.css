@@ -1,0 +1,23 @@
+/**
+ * Tailwind v4 CLI entry file — NOT processed by webpack/sass.
+ *
+ * Build via `yarn tailwind:build` (or `yarn tailwind:watch`), which produces the
+ * git-ignored artifact `src/theme/tailwind.generated.css`; that artifact is imported
+ * in `src/index.tsx` AFTER the legacy SCSS bundle (`./theme/index.scss`).
+ *
+ * The utilities import is deliberately UNLAYERED so generated utility classes win
+ * against the legacy (also unlayered) SCSS by order/specificity where they collide.
+ */
+
+/*
+ * NOTE: the theme preset is imported via relative path instead of
+ * "@eccenca/gui-elements/src/tailwind/theme.css" because Tailwind's resolver enforces the
+ * package `exports` field (which only exposes "." and "./config/sassOptions"); webpack is
+ * not affected (webpack 4 ignores `exports`), but the CLI would fail on the package path.
+ */
+@import "../../../libs/gui-elements/src/tailwind/theme.css";
+@import "tailwindcss/utilities.css";
+
+@source "../";
+@source "../../../libs/gui-elements/src";
+@source "../../../../workspacePlugins/src";

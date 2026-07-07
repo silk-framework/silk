@@ -93,7 +93,7 @@ describe("MappingRule Component", () => {
         });
 
         it("should render reorder context menu, when rule is not expanded", () => {
-            expect(findAllDOMElements(wrapper, ".eccgui-contextmenu")).toHaveLength(1);
+            expect(findAllDOMElements(wrapper, ".ecc-silk-mapping__ruleitem-reorderhandler")).toHaveLength(1);
         });
 
         afterEach(() => {

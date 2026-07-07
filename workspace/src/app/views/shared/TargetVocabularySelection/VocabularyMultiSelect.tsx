@@ -9,7 +9,7 @@ import {
     Spacing,
 } from "@eccenca/gui-elements";
 import React, { useEffect, useState } from "react";
-import type { TagProps } from "@blueprintjs/core/src/components/tag/tag";
+import type { TagProps } from "@eccenca/gui-elements";
 import { useTranslation } from "react-i18next";
 import { IVocabularyInfo } from "./typings";
 import useErrorHandler from "../../../hooks/useErrorHandler";
@@ -106,7 +106,7 @@ export default function VocabularyMultiSelect({
             const isAvailable = vocab && availableVocabUris.has(vocab.uri);
             return {
                 intent: isAvailable ? undefined : "warning",
-                icon: isAvailable ? undefined : "warning-sign",
+                icon: isAvailable ? undefined : "state-warning",
                 htmlTitle: isAvailable ? undefined : t("widget.TargetVocabularySelection.notInstalledVocabulary"),
                 minimal: true,
             };

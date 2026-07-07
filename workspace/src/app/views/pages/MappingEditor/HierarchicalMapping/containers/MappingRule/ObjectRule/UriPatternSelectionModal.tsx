@@ -28,7 +28,6 @@ export const UriPatternSelectionModal = ({ uriPatterns, onSelect, onClose }: IPr
                 key={uriPattern.value}
                 onClick={() => handleSelect(uriPattern)}
                 active={modifiers.active}
-                popoverProps={{ fill: true }}
                 text={
                     <OverflowText inline={true} title={uriPattern.value} style={{ minWidth: "35vw" }}>
                         <Highlighter label={uriPattern.label} searchValue={query} />

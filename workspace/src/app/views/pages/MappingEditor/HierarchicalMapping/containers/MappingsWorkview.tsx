@@ -5,7 +5,7 @@
 import React from "react";
 import _ from "lodash";
 import { copyRuleAsync, errorChannel, getApiDetails, getRuleAsync } from "../store";
-import { ClassNames, GridColumn, Notification, Spacing, Spinner, WhiteSpaceContainer } from "@eccenca/gui-elements";
+import { GridColumn, Notification, Spacing, Spinner, WhiteSpaceContainer } from "@eccenca/gui-elements";
 import RootMappingRule from "./RootMappingRule";
 import ObjectMappingRuleForm from "./MappingRule/ObjectRule/ObjectRuleForm";
 import ValueMappingRuleForm from "./MappingRule/ValueRule/ValueRuleForm";
@@ -372,7 +372,7 @@ const MappingsWorkview = ({
                     startFullScreen={startFullScreen}
                     viewActions={viewActions}
                 />
-                {listSuggestions || <div className={ClassNames.Blueprint.elevationClass(1)}>{listMappings}</div>}
+                {listSuggestions || <div className="shadow-sm">{listMappings}</div>}
                 {createRuleForm}
                 {error ? (
                     <>

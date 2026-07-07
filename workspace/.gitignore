@@ -1,3 +1,4 @@
 node_modules
 src/locales/generated
+src/theme/tailwind.generated.css
 target
