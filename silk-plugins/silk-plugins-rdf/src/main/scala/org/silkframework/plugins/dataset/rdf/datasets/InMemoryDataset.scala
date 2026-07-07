@@ -1,7 +1,7 @@
 package org.silkframework.plugins.dataset.rdf.datasets
 
 import org.silkframework.dataset._
-import org.silkframework.dataset.rdf.{RdfDataset, SparqlEndpoint}
+import org.silkframework.dataset.rdf.RdfDataset
 import org.silkframework.execution.local.LocalExecution
 import org.silkframework.plugins.dataset.rdf.endpoint.InMemoryJenaModelEndpoint
 import org.silkframework.runtime.plugin.annotations.{Param, Plugin, PluginReference}
@@ -88,8 +88,6 @@ case class InMemoryDataset(
   /** Switches [[endpoint]] to the given execution's endpoint so out-of-workflow reads see current data. */
   private[datasets] def updateEndpoint(newEndpoint: InMemoryJenaModelEndpoint): Unit =
     endpoint = newEndpoint
-
-  def sparqlEndpoint: SparqlEndpoint = endpoint
 }
 
 object InMemoryDataset {

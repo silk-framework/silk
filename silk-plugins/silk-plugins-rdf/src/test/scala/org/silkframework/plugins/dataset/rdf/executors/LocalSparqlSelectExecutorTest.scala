@@ -340,7 +340,7 @@ class LocalSparqlSelectExecutorTest extends AnyFlatSpec
   it should "read from the execution-scoped dataset access, not the shared dataset endpoint" in {
     // Regression: two instances of the same workflow run in parallel against the same workflow-scoped
     // InMemoryDataset task. The select executor must read the model of its own execution, not the
-    // shared (and concurrently overwritten) dataset.sparqlEndpoint reference.
+    // shared (and concurrently overwritten) dataset endpoint reference.
     val dataset = InMemoryDataset(workflowScoped = true)
     val task = PlainTask("inMemorySource", DatasetSpec(dataset))
 
@@ -360,8 +360,10 @@ class LocalSparqlSelectExecutorTest extends AnyFlatSpec
       .update("INSERT DATA { <http://s2> <http://p> <http://o2> . <http://s3> <http://p> <http://o3> }")
 
     // execution2 accessed last, so the shared dataset endpoint now points at execution2's model.
-    // This is the value the executor would (wrongly) return if it read the dataset endpoint directly.
-    dataset.sparqlEndpoint.select(tripleCountQuery).bindings.size mustBe 2
+    // An out-of-workflow access sees exactly that endpoint — the value the select executor would
+    // (wrongly) return if it read the shared dataset endpoint instead of its own execution's model.
+    sparqlEndpoint(new InMemoryDatasetExecutor().access(task, LocalExecution(false)))
+      .select(tripleCountQuery).bindings.size mustBe 2
 
     val selectTask = PlainTask("select", SparqlSelectCustomTask(tripleCountQuery))
     val input = Seq(SparqlEndpointEntitySchema.create(task))
