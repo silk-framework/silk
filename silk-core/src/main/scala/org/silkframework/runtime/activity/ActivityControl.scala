@@ -59,8 +59,9 @@ trait ActivityControl[T] {
   def restart()(implicit user: UserContext): Future[Unit]
 
   /**
-   * Starts the activity if it is not currently running. If it is already running, guarantees exactly one additional
-   * full run after the current execution finishes (multiple calls during one run coalesce into a single re-run).
+   * Starts the activity if it is not currently running. Otherwise, guarantees exactly one additional full run after
+   * the current run finishes (concurrent requests coalesce), even if the current run fails or has been cancelled.
+   * cancel() discards previously requested re-runs.
    */
   def startOrReRun()(implicit user: UserContext): Unit
 
@@ -87,7 +88,8 @@ trait ActivityControl[T] {
    * Requests to stop the execution of this activity.
    * There is no guarantee that the activity will stop immediately.
    * Activities need to override cancelExecution() to allow cancellation.
-   * Calls cancelExecution() on child activities recursively
+   * Calls cancelExecution() on child activities recursively.
+   * Also discards re-runs that have been requested via startOrReRun() before the cancellation.
    */
   def cancel()(implicit user: UserContext): Unit
 

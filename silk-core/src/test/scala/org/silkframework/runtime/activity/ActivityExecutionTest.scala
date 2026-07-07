@@ -231,6 +231,57 @@ class ActivityExecutionTest extends AnyFlatSpec with Matchers with Eventually  {
     counter.get() mustBe 2
   }
 
+  it should "discard a pending re-run request when the activity is cancelled" in {
+    val counter = new AtomicInteger(0)
+    val gated = new StubbornGatedActivity(counter)
+    val activity = Activity(gated)
+    activity.start()
+    eventually { counter.get() mustBe 1 }
+    // Request a re-run first, then cancel: the cancellation discards the earlier request.
+    activity.startOrReRun()
+    activity.cancel()
+    gated.released = true
+    eventually { activity.status() mustBe a[Finished] }
+    counter.get() mustBe 1
+  }
+
+  it should "execute a re-run that is requested after the running activity has been cancelled" in {
+    val counter = new AtomicInteger(0)
+    val gated = new StubbornGatedActivity(counter)
+    val activity = Activity(gated)
+    activity.start()
+    eventually { counter.get() mustBe 1 }
+    // Cancel first, then request a run: the request postdates the cancellation and must be honored,
+    // even though the current run finishes cancelled.
+    activity.cancel()
+    activity.status().isRunning mustBe true // the stubborn activity ignores the cancellation until released
+    activity.startOrReRun()
+    gated.released = true
+    eventually { counter.get() mustBe 2 }
+    eventually { activity.status() mustBe a[Finished] }
+  }
+
+  it should "execute a requested re-run even if the current run fails" in {
+    val counter = new AtomicInteger(0)
+    val gated = new GatedActivity(counter, failFirstRun = true)
+    val activity = Activity(gated)
+    activity.start()
+    eventually { counter.get() mustBe 1 }
+    activity.startOrReRun()
+    // Release the gate: the first run fails, but the requested re-run must still be executed.
+    gated.released = true
+    eventually { counter.get() mustBe 2 }
+    eventually {
+      // The final status must reflect the successful re-run, not the failed first run
+      val status = activity.status()
+      status mustBe a[Finished]
+      val finished = status.asInstanceOf[Finished]
+      finished.success mustBe true
+      finished.cancelled mustBe false
+      finished.exception mustBe None
+    }
+  }
+
   private def stopActivities(activities: Iterable[ActivityControl[_]]): Unit = {
     for (activity <- activities) {
       activity.cancel()
@@ -272,9 +323,32 @@ class BlockingActivity() extends Activity[Boolean] {
 
 /**
   * Activity that counts its runs and blocks each run until `released` is set to true.
+  * Optionally fails its first run after being released.
   * Used to test [[ActivityControl.startOrReRun]].
   */
-class GatedActivity(counter: AtomicInteger) extends Activity[Boolean] {
+class GatedActivity(counter: AtomicInteger, failFirstRun: Boolean = false) extends Activity[Boolean] {
+
+  @volatile
+  var released: Boolean = false
+
+  override def initialValue: Option[Boolean] = Some(false)
+
+  override def run(context: ActivityContext[Boolean])(implicit userContext: UserContext): Unit = {
+    val runNumber = counter.incrementAndGet()
+    context.value() = true
+    context.blockUntil(() => released)
+    if(failFirstRun && runNumber == 1) {
+      throw new RuntimeException("Intentional test failure of the first run")
+    }
+  }
+}
+
+/**
+  * Like [[GatedActivity]], but ignores cancellation and thread interrupts: each run blocks until `released` is set to
+  * true. Used to test the interaction of [[ActivityControl.cancel]] and [[ActivityControl.startOrReRun]] while a run
+  * is guaranteed to be still in progress.
+  */
+class StubbornGatedActivity(counter: AtomicInteger) extends Activity[Boolean] {
 
   @volatile
   var released: Boolean = false
@@ -284,6 +358,12 @@ class GatedActivity(counter: AtomicInteger) extends Activity[Boolean] {
   override def run(context: ActivityContext[Boolean])(implicit userContext: UserContext): Unit = {
     counter.incrementAndGet()
     context.value() = true
-    context.blockUntil(() => released)
+    while(!released) {
+      try {
+        Thread.sleep(10)
+      } catch {
+        case _: InterruptedException => // Keep blocking until released, even when cancelled
+      }
+    }
   }
 }
