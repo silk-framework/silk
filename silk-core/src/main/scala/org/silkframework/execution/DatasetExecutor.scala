@@ -18,11 +18,7 @@ trait DatasetExecutor[DatasetType <: Dataset, ExecType <: ExecutionType] extends
   /**
     * Fetch the execution specific access to a dataset.
     */
-  def access(task: Task[DatasetSpec[DatasetType]], execution: ExecType): DatasetAccess = {
-    // Because the Dataset still inherits the DatasetAccess trait, we can just return it.
-    // In the future, each dataset executor should overwrite this method.
-    task.data
-  }
+  def access(task: Task[DatasetSpec[DatasetType]], execution: ExecType): DatasetAccess
 
   protected def read(task: Task[DatasetSpec[DatasetType]], schema: EntitySchema, execution: ExecType)
                     (implicit pluginContext: PluginContext, context: ActivityContext[ExecutionReport]): ExecType#DataType

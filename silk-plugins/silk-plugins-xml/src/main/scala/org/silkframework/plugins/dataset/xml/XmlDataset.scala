@@ -37,7 +37,7 @@ case class XmlDataset( @Param("The XML file. This may also be a zip archive of m
                        override val zipFileRegex: String = XmlDataset.defaultZipFileRegex) extends Dataset with TextBulkResourceBasedDataset {
 
   // Parse and validate the output template
-  private val parsedOutputTemplate = XmlOutputTemplate.parse(outputTemplate.str)
+  val parsedOutputTemplate = XmlOutputTemplate.parse(outputTemplate.str)
 
   override def mergeSchemata: Boolean = true
 
@@ -68,10 +68,6 @@ case class XmlDataset( @Param("The XML file. This may also be a zip archive of m
       new XmlSourceInMemory(resource, basePath, uriPattern)
     }
   }
-
-  override def linkSink(implicit userContext: UserContext): LinkSink = new TableLinkSink(new XmlSink(bulkWritableResource, parsedOutputTemplate, maxDepth))
-
-  override def entitySink(implicit userContext: UserContext): EntitySink = new XmlSink(bulkWritableResource, parsedOutputTemplate, maxDepth)
 
   override def characteristics: DatasetCharacteristics = XmlDataset.characteristics
 }

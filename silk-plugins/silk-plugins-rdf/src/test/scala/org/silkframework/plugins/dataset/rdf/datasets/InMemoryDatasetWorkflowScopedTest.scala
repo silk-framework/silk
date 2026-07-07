@@ -29,7 +29,7 @@ class InMemoryDatasetWorkflowScopedTest extends AnyFlatSpec with Matchers {
     executorEndpoint.update("INSERT DATA { <http://s1> <http://p> <http://o1> }")
 
     executorEndpoint.select(tripleCountQuery).bindings.size mustBe 1
-    dataset.sparqlEndpoint.select(tripleCountQuery).bindings.size mustBe 1
+    dataset.endpoint.select(tripleCountQuery).bindings.size mustBe 1
   }
 
   it should "retain data after close() is called" in {
@@ -44,7 +44,7 @@ class InMemoryDatasetWorkflowScopedTest extends AnyFlatSpec with Matchers {
     executorEndpoint.select(tripleCountQuery).bindings.size mustBe 1
   }
 
-  it should "update the dataset sparqlEndpoint to the latest executor's model" in {
+  it should "update the dataset endpoint to the latest executor's model" in {
     val dataset2 = InMemoryDataset(workflowScoped = true)
     val task2 = PlainTask("test2", DatasetSpec(dataset2))
     val execution1 = LocalExecution(false, workflowId = Some(Identifier("wf1")))
@@ -54,10 +54,10 @@ class InMemoryDatasetWorkflowScopedTest extends AnyFlatSpec with Matchers {
 
     val endpoint1 = sparqlEndpoint(executor1.access(task2, execution1))
     endpoint1.update("INSERT DATA { <http://s1> <http://p> <http://o1> }")
-    dataset2.sparqlEndpoint.select(tripleCountQuery).bindings.size mustBe 1
+    dataset2.endpoint.select(tripleCountQuery).bindings.size mustBe 1
 
     executor2.access(task2, execution2)
-    dataset2.sparqlEndpoint.select(tripleCountQuery).bindings.size mustBe 0
+    dataset2.endpoint.select(tripleCountQuery).bindings.size mustBe 0
   }
 
   it should "isolate data between concurrent executions" in {
@@ -168,8 +168,8 @@ class InMemoryDatasetWorkflowScopedTest extends AnyFlatSpec with Matchers {
 
     executor.close()
 
-    // close() drops the executor's references but the data is still readable through the dataset itself.
-    nestedDataset.sparqlEndpoint.select(tripleCountQuery).bindings.size mustBe 1
+    // close() drops the executor's references but the data is still readable through the dataset's endpoint.
+    nestedDataset.endpoint.select(tripleCountQuery).bindings.size mustBe 1
     // The execution-scoped sharing entry is owned by the root execution, so it survives close() ...
     nestedDataset.findEndpoint(exec, nestedTask.id) must not be empty
     // ... and is disposed when the root execution finishes.

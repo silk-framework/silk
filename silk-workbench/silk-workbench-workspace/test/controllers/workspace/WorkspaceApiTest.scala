@@ -11,6 +11,8 @@ import org.scalatestplus.play.PlaySpec
 import org.silkframework.config.MetaData
 import org.silkframework.dataset.DatasetSpec
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
+import org.silkframework.dataset.rdf.RdfDatasetAccess
+import org.silkframework.execution.ExecutorRegistry
 import org.silkframework.entity.StringValueType
 import org.silkframework.plugins.dataset.csv.CsvDataset
 import org.silkframework.plugins.dataset.json.{JsonDataset, JsonSink}
@@ -50,11 +52,11 @@ class WorkspaceApiTest extends PlaySpec with IntegrationTestTrait with Matchers 
   "Project clone endpoint" should {
     "re-create tasks when cloning them" in {
       val inMemoryDataset = InMemoryDataset(clearGraphBeforeExecution = false)
-      val tripleSink = inMemoryDataset.tripleSink
+      val tripleSink = RdfDatasetAccess.forExecution(inMemoryDataset).tripleSink
       tripleSink.init()
       tripleSink.writeTriple("a", "http://prop", "c", StringValueType())
       tripleSink.close()
-      inMemoryDataset.source.retrievePaths("").flatMap(_.propertyUri) mustBe Seq(Uri("http://prop"))
+      ExecutorRegistry.access(inMemoryDataset).source.retrievePaths("").flatMap(_.propertyUri) mustBe Seq(Uri("http://prop"))
       val datasetName = "oneTripleInMemoryDataset"
       val newProject = "newProject"
       val p = retrieveOrCreateProject(project)
@@ -63,7 +65,7 @@ class WorkspaceApiTest extends PlaySpec with IntegrationTestTrait with Matchers 
       val clonedInmemoryDataset = retrieveOrCreateProject(newProject).task[GenericDatasetSpec](datasetName)
       clonedInmemoryDataset.data.plugin.asInstanceOf[InMemoryDataset].clearGraphBeforeExecution mustBe false
       // Check that this is a new instance and does not contain the old state
-      clonedInmemoryDataset.source.retrievePaths("") mustBe Seq.empty
+      ExecutorRegistry.access(clonedInmemoryDataset).source.retrievePaths("") mustBe Seq.empty
     }
   }
 
