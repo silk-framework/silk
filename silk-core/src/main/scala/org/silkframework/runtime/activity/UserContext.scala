@@ -21,8 +21,10 @@ trait UserContext {
 /** Holds information about the (current) execution context. This might get adapted via the withExecutionContext if from there on
   * specific execution parameters are known and can be set.
   * @param insideWorkflow After entering a workflow execution this flag is set to true.
+  * @param prioritized If true, the current activity start was explicitly prioritized and may skip normal waiting queues.
   */
-case class UserExecutionContext(insideWorkflow: Boolean = false)
+case class UserExecutionContext(insideWorkflow: Boolean = false,
+                                prioritized: Boolean = false)
 
 object UserContext {
   val Empty: UserContext = empty(UserExecutionContext())

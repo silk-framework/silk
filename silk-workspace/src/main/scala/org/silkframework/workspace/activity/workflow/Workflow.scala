@@ -5,6 +5,7 @@ import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.dataset.{Dataset, DatasetSpec, VariableDataset}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
+import org.silkframework.runtime.plugin.types.IntOptionParameter
 import org.silkframework.runtime.plugin.{AnyPlugin, PluginContext, PluginObjectParameterNoSchema}
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat}
 import org.silkframework.runtime.validation.ValidationException
@@ -38,7 +39,14 @@ case class Workflow(@Param(label = "Workflow operators", value = "Workflow opera
                     @Param(label = "Replaceable input datasets", value = "The IDs of input datasets that can be replaced in the workflow with other user defined datasets.", visibleInDialog = false)
                     replaceableInputs: TaskIdentifierParameter = TaskIdentifierParameter(Seq.empty),
                     @Param(label = "Replaceable output datasets", value = "The IDs of output datasets that can be replaced in the workflow with other user defined datasets.", visibleInDialog = false)
-                    replaceableOutputs: TaskIdentifierParameter = TaskIdentifierParameter(Seq.empty)) extends TaskSpec with AnyPlugin {
+                    replaceableOutputs: TaskIdentifierParameter = TaskIdentifierParameter(Seq.empty),
+                    @Param(
+                      label = "Parallel workflow executions",
+                      value = "Limits how many executions of this workflow may run in parallel. Leave empty for no workflow-specific limit. " +
+                        "Values must be at least 1. Note: deprecated dataset clearing behavior may still clear outputs of nested workflows. " +
+                        "Use a dedicated clear operator instead of relying on that behavior."
+                    )
+                    maxParallelExecutions: IntOptionParameter = IntOptionParameter(None)) extends TaskSpec with AnyPlugin {
 
   lazy val nodes: Seq[WorkflowNode] = operators ++ datasets
 
@@ -48,10 +56,17 @@ case class Workflow(@Param(label = "Workflow operators", value = "Workflow opera
   }
 
   def validate(): AllReplaceableDatasets = {
+    validateMaxParallelExecutions()
     // We do not have the project here, so we can only validate the replaceable datasets of this workflow and not of nested workflows
     validateAndGetReplaceableDatasetsOfCurrentWorkflow()
   }
   validate()
+
+  private def validateMaxParallelExecutions(): Unit = {
+    if(maxParallelExecutions.value.exists(_ < 1)) {
+      throw new IllegalArgumentException("The workflow parallel execution limit must be empty or at least 1.")
+    }
+  }
 
   /**
     * A topologically sorted sequence of [[WorkflowOperator]] used in this workflow with the layer index, i.e.
@@ -458,6 +473,7 @@ case class WorkflowDependencyGraph(startNodes: Seq[WorkflowDependencyNode],
 
 
 object Workflow {
+  private val MaxParallelExecutionsAttribute = "maxParallelExecutions"
 
   /** Extract task IDs from a comma concatenated string. */
   def taskIds(concatenatedIdsString: String): Seq[String] = {
@@ -487,9 +503,13 @@ object Workflow {
         }
 
       val stickyNotes = (xml \ "UiAnnotations" \ "StickyNotes" \ "StickyNote").map(StickyNote.StickyNodeXmlFormat.read)
+      val maxParallelExecutions = (xml \ s"@$MaxParallelExecutionsAttribute").text.trim match {
+        case "" => IntOptionParameter(None)
+        case value => IntOptionParameter(Some(value.toInt))
+      }
       val replaceableInputs = taskIds((xml \ "@replaceableInputs").text.trim)
       val replaceableOutputs = taskIds((xml \ "@replaceableOutputs").text.trim)
-      new Workflow(operators, datasets, UiAnnotations(stickyNotes), replaceableInputs, replaceableOutputs)
+      new Workflow(operators, datasets, UiAnnotations(stickyNotes), replaceableInputs, replaceableOutputs, maxParallelExecutions)
     }
 
     /**
@@ -497,7 +517,10 @@ object Workflow {
       */
     override def write(workflow: Workflow)(implicit writeContext: WriteContext[Node]): Node = {
       import workflow._
-      <Workflow replaceableInputs={workflow.replaceableInputs.mkString(",")} replaceableOutputs={workflow.replaceableOutputs.mkString(",")}>
+      <Workflow
+        replaceableInputs={workflow.replaceableInputs.mkString(",")}
+        replaceableOutputs={workflow.replaceableOutputs.mkString(",")}
+        maxParallelExecutions={workflow.maxParallelExecutions.value.map(_.toString).getOrElse("")}>
         {for (op <- operators) yield {
           WorkflowOperator.workflowOperatorXmlFormat.write(op)
       }}{for (ds <- datasets) yield {

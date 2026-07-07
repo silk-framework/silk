@@ -3,6 +3,7 @@ package org.silkframework.serialization.json
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext}
 import org.silkframework.serialization.json.JsonHelpers._
 import org.silkframework.serialization.json.JsonSerializers.{PARAMETERS, TYPE, UiAnnotationsJsonFormat, fromJson, toJson}
+import org.silkframework.runtime.plugin.types.IntOptionParameter
 import org.silkframework.workspace.activity.workflow.WorkflowNode.{convertOptionToString, convertStringToOption}
 import org.silkframework.workspace.activity.workflow._
 import org.silkframework.workspace.annotation.UiAnnotations
@@ -15,6 +16,7 @@ object WorkflowSerializers {
     private final val OPERATORS = "operators"
     private final val DATASETS = "datasets"
     final val UI_ANNOTATIONS = "uiAnnotations"
+    final val MAX_PARALLEL_EXECUTIONS = "maxParallelExecutions"
     final val REPLACEABLE_INPUTS = "replaceableInputs"
     final val REPLACEABLE_OUTPUTS = "replaceableOutputs"
 
@@ -32,7 +34,8 @@ object WorkflowSerializers {
           arrayValueOption(parameterObject, DATASETS).map(_.value.map(WorkflowDatasetJsonFormat.read).toSeq).getOrElse(Seq.empty)),
         uiAnnotations = optionalValue(parameterObject, UI_ANNOTATIONS).map(fromJson[UiAnnotations]).getOrElse(UiAnnotations()),
         replaceableInputs = arrayValueOption(parameterObject, REPLACEABLE_INPUTS).getOrElse(JsArray()).value.map(_.as[String]).toIndexedSeq,
-        replaceableOutputs = arrayValueOption(parameterObject, REPLACEABLE_OUTPUTS).getOrElse(JsArray()).value.map(_.as[String]).toIndexedSeq
+        replaceableOutputs = arrayValueOption(parameterObject, REPLACEABLE_OUTPUTS).getOrElse(JsArray()).value.map(_.as[String]).toIndexedSeq,
+        maxParallelExecutions = IntOptionParameter(stringValueOption(parameterObject, MAX_PARALLEL_EXECUTIONS).filter(_.trim.nonEmpty).map(_.toInt))
       )
     }
 
@@ -44,6 +47,7 @@ object WorkflowSerializers {
           OPERATORS -> value.operators.map(WorkflowOperatorJsonFormat.write),
           DATASETS -> value.datasets.map(WorkflowDatasetJsonFormat.write),
           UI_ANNOTATIONS -> toJson(value.uiAnnotations),
+          MAX_PARALLEL_EXECUTIONS -> JsString(value.maxParallelExecutions.value.map(_.toString).getOrElse("")),
           REPLACEABLE_INPUTS -> value.replaceableInputs.taskIds,
           REPLACEABLE_OUTPUTS -> value.replaceableOutputs.taskIds
         )

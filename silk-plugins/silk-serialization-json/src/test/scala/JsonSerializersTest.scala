@@ -5,6 +5,7 @@ import org.silkframework.entity.ValueType
 import org.silkframework.rule.vocab._
 import org.silkframework.rule.{MappingTarget, NodePosition, RuleLayout}
 import org.silkframework.runtime.activity.UserContext
+import org.silkframework.runtime.plugin.types.IntOptionParameter
 import org.silkframework.runtime.plugin.PluginRegistry
 import org.silkframework.runtime.serialization.{ReadContext, Serialization, TestReadContext, TestWriteContext, WriteContext}
 import org.silkframework.serialization.json.JsonSerializers._
@@ -15,7 +16,7 @@ import org.silkframework.serialization.json.WorkflowSerializers._
 import org.silkframework.workspace.activity.workflow.{WorkflowExecutionReport, WorkflowTest}
 import org.silkframework.workspace.activity.workflow.WorkflowTest.{DS_A1, OUTPUT, testWorkflow}
 import org.silkframework.workspace.annotation.{StickyNote, UiAnnotations}
-import play.api.libs.json.{JsObject, Json}
+import play.api.libs.json.{JsObject, JsString, Json}
 
 import scala.reflect.ClassTag
 import org.scalatest.flatspec.AnyFlatSpec
@@ -93,9 +94,26 @@ class JsonSerializersTest  extends AnyFlatSpec with Matchers {
   "Workflows" should "serialize to and from JSON" in {
     val workflow = testWorkflow.copy(
       replaceableInputs = Seq(DS_A1),
-      replaceableOutputs = Seq(OUTPUT)
+      replaceableOutputs = Seq(OUTPUT),
+      maxParallelExecutions = IntOptionParameter(Some(2))
     )
     testSerialization(workflow)
+  }
+
+  it should "serialize maxParallelExecutions as a string parameter value" in {
+    val workflow = testWorkflow.copy(maxParallelExecutions = IntOptionParameter(Some(2)))
+    val workflowJson = JsonSerialization.toJson(workflow)
+
+    (workflowJson \ PARAMETERS \ "maxParallelExecutions").as[JsString].value shouldBe "2"
+    JsonSerialization.fromJson[org.silkframework.workspace.activity.workflow.Workflow](workflowJson) shouldBe workflow
+  }
+
+  it should "serialize unlimited maxParallelExecutions as an empty string parameter value" in {
+    val workflow = testWorkflow.copy(maxParallelExecutions = IntOptionParameter(None))
+    val workflowJson = JsonSerialization.toJson(workflow)
+
+    (workflowJson \ PARAMETERS \ "maxParallelExecutions").as[JsString].value shouldBe ""
+    JsonSerialization.fromJson[org.silkframework.workspace.activity.workflow.Workflow](workflowJson) shouldBe workflow
   }
 
   "WorkflowExecutionReport" should "serialize auth diagnostics as a JSON object" in {

@@ -49,6 +49,30 @@ class Module[TaskData <: TaskSpec: ClassTag](private[workspace] val provider: Wo
     errors = errors.filterNot(_.taskId == taskId)
   }
 
+  /**
+    * Marks an already loaded task as invalid after post-load validation and exposes the failure as a loading error.
+    *
+    * This is used for serialized states that can bypass normal update-time validation, e.g. imported recursive
+    * workflow nesting. The task is removed from the loaded task cache so it can no longer be resolved afterwards.
+    */
+  private[workspace] def invalidateLoadedTask(taskId: Identifier, throwable: Throwable): Unit = synchronized {
+    assertLoaded()
+    cachedTasks.get(taskId).foreach { task =>
+      cachedTasks -= taskId
+      if(!errors.exists(_.taskId == taskId)) {
+        errors ::= TaskLoadingError(
+          projectId = Some(project.id),
+          taskId = taskId,
+          throwable = throwable,
+          label = task.metaData.label,
+          description = task.metaData.description,
+          factoryFunction = None,
+          originalParameterValues = None
+        )
+      }
+    }
+  }
+
   def hasTaskType[T : ClassTag]: Boolean = {
     implicitly[ClassTag[TaskData]].runtimeClass.isAssignableFrom(implicitly[ClassTag[T]].runtimeClass)
   }

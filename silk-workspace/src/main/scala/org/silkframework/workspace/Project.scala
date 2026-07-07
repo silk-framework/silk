@@ -77,6 +77,32 @@ class Project(initialConfig: ProjectConfig, provider: WorkspaceProvider, val res
       val moduleTasks = tasks.filter(task => module.taskType.isAssignableFrom(task.taskType)).asInstanceOf[Seq[LoadedTask[TaskSpec]]]
       module.asInstanceOf[Module[TaskSpec]].load(moduleTasks)
     }
+    validateLoadedTasks()
+  }
+
+  /**
+    * Validates the fully loaded project state once after deserialization/import.
+    *
+    * Normal task creation and updates already go through module validators. This extra pass catches invalid
+    * serialized states that bypass those write paths, e.g. recursive workflow nesting introduced by direct
+    * serialization manipulation or external imports.
+    */
+  private def validateLoadedTasks()(implicit userContext: UserContext): Unit = {
+    val loadedTasks = modules.flatMap { module =>
+      module.tasks.map(task => (module.asInstanceOf[Module[TaskSpec]], task.asInstanceOf[ProjectTask[TaskSpec]]))
+    }
+    val invalidTasks = loadedTasks.flatMap { case (module, task) =>
+      try {
+        module.validator.asInstanceOf[TaskValidator[TaskSpec]].validate(this, PlainTask.fromTask(task))
+        None
+      } catch {
+        case NonFatal(ex) =>
+          Some((module, task.id, ex))
+      }
+    }
+    invalidTasks.foreach { case (module, taskId, ex) =>
+      module.invalidateLoadedTask(taskId, ex)
+    }
   }
 
   /** This must be executed once when the project was loaded into the workspace */
