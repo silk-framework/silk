@@ -252,6 +252,18 @@ object SerializationUtils {
     if (provided) Some(task.executionVariables) else None
   }
 
+  /**
+    * Read context for updating a project task. The execution scope is seeded with the stored task's
+    * variables, so parameter templates referencing them resolve when the payload omits the variables.
+    */
+  def taskUpdateReadContext(project: Project, taskName: String)
+                           (implicit userContext: UserContext): ReadContext = {
+    val base = ReadContext.fromProject(project)
+    project.anyTaskOption(taskName).fold(base) { task =>
+      base.copy(templateVariables = base.templateVariables.withExecutionDefaults(task.executionVariables))
+    }
+  }
+
   private def mimeType[T: ClassTag](mediaTypes: Seq[MediaType],
                                     defaultMimeTypes: Seq[String]): Option[String] = {
     val mimeTypes = mediaTypes.map(t => t.mediaType + "/" + t.mediaSubType)

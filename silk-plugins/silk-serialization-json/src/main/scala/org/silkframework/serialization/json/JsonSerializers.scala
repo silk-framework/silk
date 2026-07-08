@@ -1137,13 +1137,18 @@ object JsonSerializers {
         // In older serializations the task data has been directly attached to this JSON object
         val dataJson = optionalValue(value, DATA).getOrElse(value)
         // Read the execution variables first, so that parameter templates referencing them resolve against the task's own defaults.
-        val executionVariables = optionalValue(value, EXECUTION_VARIABLES).map(fromJson[TemplateVariables]).getOrElse(TemplateVariables.empty)
-        val dataContext = readContext.copy(templateVariables = readContext.templateVariables.withExecutionDefaults(executionVariables))
+        // Variable templates are resolved like at save time. If the variables are absent, the context's
+        // execution scope is kept (seeded with the stored variables on task updates).
+        val providedVariables = optionalValue(value, EXECUTION_VARIABLES).map(fromJson[TemplateVariables])
+        val dataContext = providedVariables.fold(readContext) { v =>
+          val resolved = v.resolvedKeepingUnresolved(readContext.templateVariables.all.withoutSensitiveVariables())
+          readContext.copy(templateVariables = readContext.templateVariables.withExecutionDefaults(resolved))
+        }
         val task = PlainTask(
           id = id,
           data = fromJson[T](dataJson)(dataFormat, dataContext),
           metaData = metaData(value),
-          executionVariables = executionVariables
+          executionVariables = providedVariables.getOrElse(TemplateVariables.empty)
         )
 
         LoadedTask.success(task)
@@ -1173,8 +1178,9 @@ object JsonSerializers {
         json += EXECUTION_VARIABLES -> toJson(task.executionVariables)
       }
 
-      // Serialize task data
-      val taskDataJson = toJson(task.data).as[JsObject]
+      // Serialize the task data with the execution scope seeded, so that parameter templates referencing execution variables evaluate.
+      val dataContext = writeContext.copy(templateVariables = writeContext.templateVariables.withExecutionDefaults(task.executionVariables))
+      val taskDataJson = toJson(task.data)(dataFormat, dataContext).as[JsObject]
       // We always want to add the type at the top level regardless if the task data is serialized
       for(taskType <- taskDataJson.value.get(TASKTYPE)) {
         json += TASKTYPE -> taskType

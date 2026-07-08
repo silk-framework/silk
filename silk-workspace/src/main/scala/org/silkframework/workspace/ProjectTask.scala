@@ -140,10 +140,15 @@ class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
       modified = Some(newMetaData.flatMap(_.modified).getOrElse(Instant.now)),
       lastModifiedByUser = newMetaData.flatMap(_.lastModifiedByUser).orElse(userContext.user.map(_.uri))
     )
-    val executionVariablesToPersist = newExecutionVariables.getOrElse(executionVariablesValueHolder.all)
-    // Validate the execution variables before persisting, so that a validation failure
-    // does not leave persisted and in-memory state inconsistent.
-    executionVariablesValueHolder.validateScope(executionVariablesToPersist)
+    // Validate and resolve before persisting, so that a failure does not leave persisted and in-memory state inconsistent.
+    // Variable templates are resolved at save time; unresolvable templates keep the provided value.
+    val executionVariablesToPersist = newExecutionVariables match {
+      case Some(newVariables) =>
+        executionVariablesValueHolder.validateScope(newVariables)
+        newVariables.resolvedKeepingUnresolved(executionVariablesValueHolder.parentVariables.withoutSensitiveVariables())
+      case None =>
+        executionVariablesValueHolder.all
+    }
     // First persist task
     persistTask(PlainTask.fromTask(ProjectTask.this).copy(data = newData, metaData = metaDataToPersist, executionVariables = executionVariablesToPersist))
     // Invalidate plugin usage cache

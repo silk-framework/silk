@@ -80,8 +80,11 @@ abstract class Modification {
         val newVariables = updateVariables(currentVariables, manager.parentVariables.withoutSensitiveVariables())
         val updatedTaskIds = updateTasks(newVariables)
         manager.put(newVariables)
-        if(updatedTaskIds.nonEmpty) {
-          log.info(s"$operation. The following tasks have been updated: " + updatedTaskIds)
+        // Execution-variable templates are resolved at save time, so re-resolve them against the updated variables.
+        val refreshedTaskIds = refreshTaskExecutionVariables()
+        val allUpdatedIds = (updatedTaskIds ++ refreshedTaskIds).toSeq.distinct
+        if(allUpdatedIds.nonEmpty) {
+          log.info(s"$operation. The following tasks have been updated: " + allUpdatedIds)
         } else {
           log.info(s"$operation. No tasks have been updated.")
         }
@@ -115,6 +118,20 @@ abstract class Modification {
         project.updateAnyTask(projectTask.id, newData, executionVariables = Some(newVariables))
       case None =>
         projectTask.updateExecutionVariables(newVariables)
+    }
+  }
+
+  /** Re-resolves the execution-variable templates of all tasks and persists changed values. */
+  private def refreshTaskExecutionVariables()(implicit user: UserContext): Seq[Identifier] = {
+    for {
+      task <- project.allTasks.toSeq
+      if task.executionVariables.variables.exists(_.template.isDefined)
+      resolved = task.executionVariables.resolvedKeepingUnresolved(
+        task.executionVariablesValueHolder.parentVariables.withoutSensitiveVariables())
+      if resolved != task.executionVariables
+    } yield {
+      updateExecutionVariablesAndTask(task, task.executionVariables, resolved)
+      task.id
     }
   }
 
