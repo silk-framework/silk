@@ -382,9 +382,10 @@ class WorkspaceApi  @Inject() (accessMonitor: WorkbenchAccessMonitor) extends In
       )
     )
   )
-  def updateGlobalVocabularyCache(): Action[JsValue] = RequestUserContextAction(parse.json) { implicit request =>
+  def updateGlobalVocabularyCache(): Action[String] = RequestUserContextAction(parse.tolerantText) { implicit request =>
     implicit userContext =>
-      validateJson[UpdateGlobalVocabularyRequest] { updateRequest =>
+      // tolerantText accepts an empty body (parse.json would 400 it), meaning "general update only".
+      validateOptionalJson(UpdateGlobalVocabularyRequest()) { updateRequest =>
         updateRequest.iri.foreach(GlobalVocabularyCache.putVocabularyInQueue)
         // Start the cache activity, or ensure one more run after the current one
         workspace.activity[GlobalVocabularyCache].control.startOrReRun()
