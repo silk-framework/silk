@@ -6,6 +6,7 @@ class XmlPlugins extends PluginModule {
 
   override def pluginClasses: Seq[Class[_ <: AnyPlugin]] = Seq(
     classOf[XmlDataset],
+    classOf[XmlDatasetExecutor],
     classOf[XmlParserTask],
     classOf[LocalXmlParserTaskExecutor],
     classOf[XSLTOperator],

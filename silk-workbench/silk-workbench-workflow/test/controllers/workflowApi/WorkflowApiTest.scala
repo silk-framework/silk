@@ -7,7 +7,8 @@ import org.scalatest.concurrent.Eventually.eventually
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.must.Matchers
 import org.silkframework.config._
-import org.silkframework.entity.EntitySchema
+import org.silkframework.entity.paths.{TypedPath, UntypedPath}
+import org.silkframework.entity.{CustomValueType, EntitySchema, ValueType}
 import org.silkframework.execution.{ExecutionReport, ExecutionType, Executor, ExecutorOutput}
 import org.silkframework.runtime.activity.ActivityContext
 import org.silkframework.runtime.plugin._
@@ -35,18 +36,21 @@ class WorkflowApiTest extends AnyFlatSpec with SingleProjectWorkspaceProviderTes
   private val workflowId = "f506c6d7-1c83-424e-8033-8d5137b704b9_Workflow"
   private val customTaskWithoutSchemaFromInitialProject = "23586f0a-037d-4acd-91ad-669afe05a074_JSONparser"
   private val customTaskWithSchemaFromInitialProject = "a5b07467-ace6-4af3-a09c-de4e61f12e30_CopyofJSONparser"
+  private val typedSchemaTaskId = "typedSchema"
 
   override def beforeAll(): Unit = {
     super.beforeAll()
     PluginRegistry.registerPlugin(classOf[BlockingTask])
     PluginRegistry.registerPlugin(classOf[BlockingTaskExecutor])
     PluginRegistry.registerPlugin(classOf[TestCustomTask])
+    PluginRegistry.registerPlugin(classOf[TypedSchemaTask])
   }
 
   it should "return a correct workflow nodes port config" in {
     project.addTask("noSchema", TestCustomTask(None))
     project.addTask("onePort", TestCustomTask(Some(1)))
     project.addTask("fourPort", TestCustomTask(Some(4)))
+    project.addTask(typedSchemaTaskId, TypedSchemaTask())
     val responseJson = checkResponse(createRequest(controllers.workflowApi.routes.WorkflowApi.workflowNodesConfig(projectId, workflowId)).get()).json
     val portConfig = JsonHelpers.fromJsonValidated[WorkflowNodesPortConfig](responseJson)
     val noSchemaConfig = Some(workflowNodePortConfig(0, None))
@@ -54,7 +58,7 @@ class WorkflowApiTest extends AnyFlatSpec with SingleProjectWorkspaceProviderTes
     portConfig.byTaskId.get(customTaskWithoutSchemaFromInitialProject) mustBe singleFlexiblePortConfig
     portConfig.byTaskId.get(customTaskWithSchemaFromInitialProject) mustBe
       Some(WorkflowNodePortConfig(1, Some(1),
-        FixedSizePortsDefinition(Seq(FixedSchemaPortDefinition(PortSchema(Some(""),List(PortSchemaProperty("some/path")))))),
+        FixedSizePortsDefinition(Seq(FixedSchemaPortDefinition(PortSchema(Some(""),List(PortSchemaProperty("some/path", None)))))),
         SinglePortPortsDefinition(FlexiblePortDefinition())
       ))
     val fixedPortDef = FixedSchemaPortDefinition(PortSchema(Some("uri"),List()))
@@ -63,6 +67,14 @@ class WorkflowApiTest extends AnyFlatSpec with SingleProjectWorkspaceProviderTes
       inputPortsDefinition = FixedSizePortsDefinition(List(fixedPortDef))))
     portConfig.byTaskId.get("fourPort") mustBe Some(workflowNodePortConfig(4, Some(4),
       inputPortsDefinition = FixedSizePortsDefinition(List(fixedPortDef, fixedPortDef, fixedPortDef, fixedPortDef))))
+    val typedPortDefinition = FixedSchemaPortDefinition(PortSchema(Some("typedUri"), List(
+      PortSchemaProperty("stringPath", None),
+      PortSchemaProperty("untypedPath", None),
+      PortSchemaProperty("integerPath", Some("Integer")),
+      PortSchemaProperty("customPath", Some("custom: urn:test:custom"))
+    )))
+    portConfig.byTaskId.get(typedSchemaTaskId) mustBe Some(workflowNodePortConfig(1, Some(1),
+      inputPortsDefinition = FixedSizePortsDefinition(List(typedPortDefinition))))
   }
 
   it should "return a 503 when too many concurrent variable workflows are started" in {
@@ -133,6 +145,22 @@ case class TestCustomTask(nrPorts: IntOptionParameter) extends CustomTask {
     case None =>
       FlexibleNumberOfInputs()
   }
+
+  override def outputPort: Option[Port] = Some(UnknownSchemaPort)
+}
+
+case class TypedSchemaTask() extends CustomTask {
+  override def inputPorts: InputPorts = FixedNumberOfInputs(Seq(
+    FixedSchemaPort(EntitySchema(
+      Uri("typedUri"),
+      typedPaths = IndexedSeq(
+        UntypedPath("stringPath").asStringTypedPath,
+        UntypedPath("untypedPath").asUntypedValueType,
+        TypedPath(UntypedPath("integerPath"), ValueType.INTEGER, isAttribute = false),
+        TypedPath(UntypedPath("customPath"), CustomValueType("urn:test:custom"), isAttribute = false)
+      )
+    ))
+  ))
 
   override def outputPort: Option[Port] = Some(UnknownSchemaPort)
 }
