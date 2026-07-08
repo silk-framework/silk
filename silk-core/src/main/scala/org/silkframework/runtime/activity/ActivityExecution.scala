@@ -52,8 +52,8 @@ private class ActivityExecution[T](activity: Activity[T],
   // Locks the access to the status variable when needed
   private object StatusLock
 
-  // Cancellations still delivering their side effects outside StatusLock. A run start waits for this to reach zero
-  // before clearing the cancel state, so a cancellation cannot leak into a later run.
+  // Cancellations still delivering their side effects outside StatusLock. Each run waits on this object's monitor
+  // for the counter to reach zero before its body starts, so a cancellation cannot leak into a later run.
   private val pendingCancellations = new AtomicInteger(0)
 
   // Set to request one additional run. Only ever accessed under StatusLock.
@@ -81,7 +81,6 @@ private class ActivityExecution[T](activity: Activity[T],
       }
       reRunRequested = false // Discard stale re-run requests of previous executions
       setStartMetaData(user)
-      beginRun()
     }
   }
 
@@ -146,10 +145,14 @@ private class ActivityExecution[T](activity: Activity[T],
         this.cancelledByUser = user
         this.cancelTimestamp = Some(Instant.now)
         status.update(Status.Canceling(status().progress))
-        pendingCancellations.incrementAndGet() // Held until the side effects below are delivered; see beginRun().
+        pendingCancellations.incrementAndGet() // Held until the side effects below are delivered; see drainCancellationsAndResetCancelState().
       }
     }
     if(cancelling) {
+      // Wake up a draining run: being cancelled itself, it does not need to keep waiting
+      pendingCancellations.synchronized {
+        pendingCancellations.notifyAll()
+      }
       try {
         // cancel children outside of lock to not run into dead locks
         children().foreach(_.cancel())
@@ -162,7 +165,10 @@ private class ActivityExecution[T](activity: Activity[T],
           }
         }
       } finally {
-        pendingCancellations.decrementAndGet()
+        pendingCancellations.synchronized {
+          pendingCancellations.decrementAndGet()
+          pendingCancellations.notifyAll() // Wake up a run waiting for this delivery
+        }
       }
     }
   }
@@ -185,7 +191,6 @@ private class ActivityExecution[T](activity: Activity[T],
       } else {
         reRunRequested = false
         setStartMetaData(user)
-        beginRun()
         true
       }
     }
@@ -257,8 +262,9 @@ private class ActivityExecution[T](activity: Activity[T],
   private def runWithReRuns()(implicit user: UserContext): Unit = {
     var runAgain = true
     while (runAgain) {
-      startTimestamp = Some(Instant.now)
       try {
+        drainCancellationsAndResetCancelState()
+        startTimestamp = Some(Instant.now)
         // Skip the body if cancelled before this run started, but still finish via finishOrRequestReRun().
         if (!activity.wasCancelled() && !parent.exists(_.status().isInstanceOf[Canceling])) {
           activity.run(this)
@@ -288,10 +294,17 @@ private class ActivityExecution[T](activity: Activity[T],
 
   /* Same as finishOrRequestReRun(), but for a failed run, e.g., a cancelled run that exited via thread interruption.
      Fatal errors always finish the activity. InterruptedException is the normal exit of a cancelled run, so it must
-     not count as fatal here even though NonFatal rejects it. */
+     not count as fatal here even though NonFatal rejects it. A genuine (non-cancellation) failure is published as a
+     transient Finished status, so the re-run's final status does not silently mask it. */
   private def reRunAfterFailure(ex: Throwable)(implicit user: UserContext): Boolean = StatusLock.synchronized {
     if (reRunRequested && (NonFatal(ex) || ex.isInstanceOf[InterruptedException])) {
-      log.log(Level.WARNING, s"Activity '${activity.name}' failed. Executing the requested re-run regardless.", ex)
+      if (cancelTimestamp.isEmpty && !activity.wasCancelled()) {
+        // A genuine failure, not a cancellation exit: publish it before the re-run (this also logs it)
+        status.update(Status.Finished(success = false, elapsedSinceStart, cancelled = false, Some(ex)))
+        lastResult = activityExecutionResult
+      } else {
+        log.log(Level.WARNING, s"Activity '${activity.name}' failed. Executing the requested re-run regardless.", ex)
+      }
       prepareReRun()
       true
     } else {
@@ -301,22 +314,30 @@ private class ActivityExecution[T](activity: Activity[T],
   }
 
   /* Prepares the next run while still holding the StatusLock: once the status is back to Running, a concurrent
-     cancel() applies to the new run. A cancellation of the previous run must not carry over. */
+     cancel() applies to the new run. Leftover cancel state of the previous run is cleared by
+     drainCancellationsAndResetCancelState() before the re-run's body executes. */
   private def prepareReRun()(implicit user: UserContext): Unit = {
     reRunRequested = false
-    beginRun()
     resetMetaData() // The re-run is not cancelled: drop the previous run's cancellation metadata
-    status.update(Status.Running("Running", None))
+    status.update(Status.Running("Running", None), force = true) // Must win over the Canceling state of a cancelled previous run
   }
 
-  /* Starts a new run (call while holding StatusLock). Waits out any in-flight cancellation so its flag/interrupt can't
-     leak into this run, then clears the leftover cancel state of the previous run. */
-  private def beginRun()(implicit user: UserContext): Unit = {
-    while (pendingCancellations.get() != 0) {
-      try Thread.sleep(1) catch { case _: InterruptedException => } // Absorb the interrupt of the cancellation we wait for
+  /* Runs on the worker thread before each run's body, outside StatusLock, so control operations stay responsive while
+     a slow cancellation is delivering. Waits out any in-flight cancellation delivery, then clears the leftover cancel
+     state of the previous run — unless a cancel() has targeted this scheduled run (cancelTimestamp set), in which case
+     there is nothing to clear and the body is skipped or cancelled anyway. */
+  private def drainCancellationsAndResetCancelState()(implicit user: UserContext): Unit = {
+    pendingCancellations.synchronized {
+      while (pendingCancellations.get() != 0 && cancelTimestamp.isEmpty) {
+        try pendingCancellations.wait() catch { case _: InterruptedException => } // Absorb the interrupt of the cancellation we wait for
+      }
     }
-    Thread.interrupted() // Discard a pending interrupt from a cancelled previous run
-    activity.resetCancelFlag()
+    StatusLock.synchronized {
+      if (cancelTimestamp.isEmpty) { // No cancel() targeted this scheduled run
+        Thread.interrupted() // Discard a pending interrupt from a cancelled previous run
+        activity.resetCancelFlag()
+      }
+    }
   }
 
   private def finishWithFailure(ex: Throwable): Unit = StatusLock.synchronized {

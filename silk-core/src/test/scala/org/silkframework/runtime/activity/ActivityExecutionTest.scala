@@ -2,12 +2,14 @@ package org.silkframework.runtime.activity
 
 import org.scalatest.concurrent.Eventually
 import org.scalatest.time.{Seconds, Span}
-import org.silkframework.runtime.activity.Status.{Finished, Running, Waiting}
+import org.silkframework.runtime.activity.Status.{Canceling, Finished, Running, Waiting}
 import org.silkframework.runtime.users.{User, UserActions}
 
+import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.atomic.AtomicInteger
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
+import scala.jdk.CollectionConverters._
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.must.Matchers
 
@@ -386,6 +388,176 @@ class ActivityExecutionTest extends AnyFlatSpec with Matchers with Eventually  {
     }
   }
 
+  it should "keep control operations responsive while a cancellation delivery is still in flight" in {
+    val counter = new AtomicInteger(0)
+    val gated = new CancelDeliveryTestActivity(counter)
+    val activity = Activity(gated)
+    activity.start()
+    eventually { counter.get() mustBe 1 }
+    // Block the cancellation mid-delivery, then let the first run finish.
+    Future { activity.cancel() }
+    eventually { gated.cancelExecutionEntered mustBe true }
+    gated.releaseRun1 = true
+    eventually { activity.status() mustBe a[Finished] }
+    // A fresh start and further control operations must not block on the in-flight delivery.
+    val startMillis = System.currentTimeMillis()
+    activity.start()
+    activity.startOrReRun()
+    (System.currentTimeMillis() - startMillis) must be < 5000L
+    // The new run's body must wait for the delivery to drain.
+    Thread.sleep(200)
+    gated.run2Started mustBe false
+    // Release the delivery: the new run must execute without inheriting the old cancellation.
+    gated.releaseCancel = true
+    gated.releaseRun2 = true
+    eventually { gated.run2Completed mustBe true }
+    eventually { activity.status() mustBe a[Finished] }
+  }
+
+  it should "honor a cancellation of a new run while a previous run's cancellation is still in flight" in {
+    val counter = new AtomicInteger(0)
+    val gated = new CancelDeliveryTestActivity(counter)
+    val activity = Activity(gated)
+    activity.start()
+    eventually { counter.get() mustBe 1 }
+    Future { activity.cancel() }
+    eventually { gated.cancelExecutionEntered mustBe true }
+    gated.releaseRun1 = true
+    eventually { activity.status() mustBe a[Finished] }
+    // Start a new run (it waits for the old delivery) and cancel it; the cancellation must not be wiped.
+    activity.start()
+    Future { activity.cancel() } // blocks in cancelExecution until released
+    eventually { activity.status() mustBe a[Canceling] }
+    gated.releaseCancel = true
+    eventually { gated.wasCancelled() mustBe true }
+    gated.releaseRun2 = true
+    eventually {
+      activity.status() match {
+        case Finished(_, _, cancelled, _) => cancelled mustBe true
+        case status: Status => fail("Unexpected status: " + status)
+      }
+    }
+    gated.run2Completed mustBe false
+  }
+
+  it should "publish the failure of a run before executing its requested re-run" in {
+    val counter = new AtomicInteger(0)
+    val gated = new GatedActivity(counter, failFirstRun = true)
+    val activity = Activity(gated)
+    val observedStatuses = new ConcurrentLinkedQueue[Status]()
+    val observer: Status => Unit = observedStatuses.add(_) // strong reference, subscribers are weakly referenced
+    activity.status.subscribe(observer)
+    activity.start()
+    eventually { counter.get() mustBe 1 }
+    activity.startOrReRun()
+    gated.released = true
+    eventually {
+      counter.get() mustBe 2
+      activity.status() match {
+        case Finished(success, _, _, exception) =>
+          success mustBe true
+          exception mustBe None
+        case status: Status => fail("Unexpected status: " + status)
+      }
+    }
+    // The first run's failure must have been published before the re-run's success.
+    val statuses = observedStatuses.asScala.toSeq
+    val failureIndex = statuses.indexWhere {
+      case Finished(false, _, _, Some(_)) => true
+      case _ => false
+    }
+    failureIndex must be >= 0
+    statuses.last match {
+      case Finished(success, _, _, _) => success mustBe true
+      case status: Status => fail("Unexpected status: " + status)
+    }
+  }
+
+  it should "not publish a failure for a cancelled run that coalesces into a re-run" in {
+    val counter = new AtomicInteger(0)
+    val gated = new InterruptibleActivity(counter)
+    val activity = Activity(gated)
+    val observedStatuses = new ConcurrentLinkedQueue[Status]()
+    val observer: Status => Unit = observedStatuses.add(_) // strong reference, subscribers are weakly referenced
+    activity.status.subscribe(observer)
+    activity.start()
+    eventually { counter.get() mustBe 1 }
+    activity.cancel()
+    eventually { gated.interruptCaught mustBe true }
+    activity.startOrReRun()
+    gated.released = true
+    eventually { counter.get() mustBe 2 }
+    eventually { activity.status() mustBe a[Finished] }
+    // A cancellation exit is not a failure and must not be published as one.
+    for (finished <- observedStatuses.asScala.collect { case f: Finished => f }) {
+      finished.success mustBe true
+    }
+  }
+
+  it should "report Running and stay cancellable during a coalesced re-run after a cancelled run" in {
+    val counter = new AtomicInteger(0)
+    val gated = new TwoGateBlockUntilActivity(counter)
+    val activity = Activity(gated)
+    activity.start()
+    eventually { counter.get() mustBe 1 }
+    activity.cancel()
+    activity.startOrReRun() // postdates the cancellation, must be honored
+    gated.release1 = true
+    // The re-run must not stay stuck in the previous run's Canceling state.
+    eventually {
+      counter.get() mustBe 2
+      activity.status() mustBe a[Running]
+    }
+    // The re-run must be cancellable.
+    activity.cancel()
+    eventually {
+      activity.status() match {
+        case Finished(_, _, cancelled, _) => cancelled mustBe true
+        case status: Status => fail("Unexpected status: " + status)
+      }
+    }
+  }
+
+  it should "not exit blockUntil prematurely during a coalesced re-run after a cancelled run" in {
+    val counter = new AtomicInteger(0)
+    val gated = new TwoGateBlockUntilActivity(counter)
+    val activity = Activity(gated)
+    activity.start()
+    eventually { counter.get() mustBe 1 }
+    activity.cancel()
+    activity.startOrReRun()
+    gated.release1 = true
+    eventually { counter.get() mustBe 2 }
+    // Give blockUntil time to poll at least once (500ms interval); it must keep blocking.
+    Thread.sleep(700)
+    gated.run2ExitedEarly mustBe false
+    gated.release2 = true
+    eventually {
+      activity.status() match {
+        case Finished(success, _, cancelled, _) =>
+          success mustBe true
+          cancelled mustBe false
+        case status: Status => fail("Unexpected status: " + status)
+      }
+    }
+    gated.run2ExitedEarly mustBe false
+  }
+
+  it should "execute child activities during a coalesced re-run after a cancelled run" in {
+    val counter = new AtomicInteger(0)
+    val gated = new TwoGateBlockUntilActivity(counter, runChild = true)
+    val activity = Activity(gated)
+    activity.start()
+    eventually { counter.get() mustBe 1 }
+    activity.cancel()
+    activity.startOrReRun()
+    gated.release1 = true
+    eventually { counter.get() mustBe 2 }
+    gated.release2 = true
+    eventually { activity.status() mustBe a[Finished] }
+    gated.childRan mustBe true
+  }
+
   // Fills every pool slot so a subsequently started activity stays queued (Waiting). Free again with stopActivities().
   private def occupyAllPoolSlots(): Seq[ActivityControl[Boolean]] = {
     for (_ <- 0 until parallelism) yield {
@@ -511,6 +683,42 @@ class InterruptibleActivity(counter: AtomicInteger) extends Activity[Boolean] {
             try Thread.sleep(10) catch { case _: InterruptedException => }
           }
           throw e
+      }
+    }
+  }
+}
+
+/**
+  * Two-gate activity for testing coalesced re-runs after a cancellation. Run 1 ignores interrupts and blocks until
+  * `release1`. Run 2 optionally runs a child activity, then waits via context.blockUntil until `release2`.
+  */
+class TwoGateBlockUntilActivity(counter: AtomicInteger, runChild: Boolean = false) extends Activity[Boolean] {
+
+  @volatile var release1: Boolean = false
+  @volatile var release2: Boolean = false
+  @volatile var run2ExitedEarly: Boolean = false // set if run 2 passes blockUntil while release2 is still false
+  @volatile var childRan: Boolean = false
+
+  override def initialValue: Option[Boolean] = Some(false)
+
+  override def run(context: ActivityContext[Boolean])(implicit userContext: UserContext): Unit = {
+    val runNumber = counter.incrementAndGet()
+    context.value() = true
+    if (runNumber == 1) {
+      while (!release1) {
+        try Thread.sleep(10) catch { case _: InterruptedException => } // Keep blocking until released, even when cancelled
+      }
+    } else {
+      if (runChild) {
+        context.child(new Activity[Unit] {
+          override def run(childContext: ActivityContext[Unit])(implicit userContext: UserContext): Unit = {
+            childRan = true
+          }
+        }).startBlocking()
+      }
+      context.blockUntil(() => release2)
+      if (!release2) {
+        run2ExitedEarly = true
       }
     }
   }
