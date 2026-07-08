@@ -6,7 +6,6 @@ import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.annotations.PluginType
 import org.silkframework.runtime.plugin.{AnyPlugin, ParameterValues, PluginContext}
 import org.silkframework.runtime.resource.ResourceManager
-import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat, XmlSerialization}
 import org.silkframework.runtime.templating.TemplateVariables
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.TaskLoadingException.generateMessage
@@ -16,7 +15,6 @@ import scala.collection.mutable
 import scala.language.implicitConversions
 import scala.reflect.ClassTag
 import scala.util.control.NonFatal
-import scala.xml.{Attribute, Elem, Node, Null, Text}
 
 @PluginType()
 trait WorkspaceProvider extends AnyPlugin {
@@ -300,47 +298,6 @@ object LoadedTask {
     }
   }
 
-  /**
-    * Returns the xml serialization format for a LoadedTask.
-    *
-    * @param xmlFormat The xml serialization format for type T.
-    */
-  implicit def loadedTaskFormat[T <: TaskSpec : ClassTag](implicit xmlFormat: XmlFormat[T]): XmlFormat[LoadedTask[T]] = new LoadedTaskFormat[T]
-
-  /**
-    * XML serialization format.
-    */
-  class LoadedTaskFormat[T <: TaskSpec : ClassTag](implicit xmlFormat: XmlFormat[T]) extends XmlFormat[LoadedTask[T]] {
-
-    import XmlSerialization._
-
-    /**
-      * Deserialize a value from XML.
-      */
-    def read(node: Node)(implicit readContext: ReadContext): LoadedTask[T] = {
-      LoadedTask(
-        Right(PlainTask(
-          id = (node \ "@id").text,
-          data = fromXml[T](node),
-          metaData = (node \ "MetaData").headOption.map(fromXml[MetaData]).getOrElse(MetaData.empty),
-          executionVariables = Task.readExecutionVariablesXml(node)
-        ))
-      )
-    }
-
-    /**
-      * Serialize a value to XML.
-      */
-    def write(task: LoadedTask[T])(implicit writeContext: WriteContext[Node]): Node = {
-      var node = toXml(task.data).head.asInstanceOf[Elem]
-      node = node % Attribute("id", Text(task.id), Null)
-      node = node.copy(child = toXml[MetaData](task.metaData) +: node.child)
-      if(task.executionVariables.variables.nonEmpty) {
-        node = node.copy(child = node.child :+ Task.writeExecutionVariablesXml(task.executionVariables))
-      }
-      node
-    }
-  }
 }
 
 /** Task loading error.

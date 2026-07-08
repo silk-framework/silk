@@ -15,6 +15,8 @@ class TaskExecutionVariablesManager(initialVariables: TemplateVariables,
 
   private def executionScope = TemplateVariableScopes.execution
 
+  // Written under the task's update lock, but read from arbitrary threads (e.g. at workflow run start).
+  @volatile
   private var variables: TemplateVariables = initialVariables
 
   /**
