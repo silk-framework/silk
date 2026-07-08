@@ -2,6 +2,7 @@ package org.silkframework.workspace.activity
 
 import org.silkframework.config.Prefixes
 
+import java.util.concurrent.atomic.AtomicBoolean
 import java.util.logging.Level
 import org.silkframework.runtime.activity.{Activity, ActivityContext, ActivityControl, UserContext}
 import org.silkframework.runtime.resource.{EmptyResourceManager, ResourceNotFoundException, WritableResource}
@@ -34,9 +35,8 @@ trait CachedActivity[T] extends Activity[T] {
   @volatile
   private var initialized = false
 
-  // Externally set to mark this cache as dirty, e.g. by observing the source tasks for changes
-  @volatile
-  private var dirty: Boolean = false
+  // Set by startDirty to mark this cache as dirty; consumed atomically by run() so the full-reload signal is never lost.
+  private val dirty = new AtomicBoolean(false)
 
   /**
     * If true, the cache value will be written to a resource and read back on initialization.
@@ -54,28 +54,22 @@ trait CachedActivity[T] extends Activity[T] {
 
   override def run(context: ActivityContext[T])
                   (implicit userContext: UserContext): Unit = {
-    val forceReload = dirty
-    var currentDirty = true
-    while(currentDirty) {
-      val dirtyFlagSet = dirty
-      dirty = false
-      if(!initialized) {
-        initialized = true
-        if(resource.exists && persistent) {
-          readValue(context) match {
-            case Some(value) => context.value() = value
-            case None => update(context, forceReload)
-          }
-        } else {
-          context.log.log(Level.INFO, s"No existing cache found at $resource. Loading cache...")
-          update(context, forceReload)
+    // Consume the full-reload request here (never at the end of a run), so a concurrent startDirty can't wipe it.
+    val fullReload = dirty.getAndSet(false)
+    if(!initialized) {
+      initialized = true
+      if(resource.exists && persistent) {
+        readValue(context) match {
+          case Some(value) => context.value() = value
+          case None => update(context, fullReload)
         }
       } else {
-        update(context, forceReload || dirtyFlagSet)
+        context.log.log(Level.INFO, s"No existing cache found at $resource. Loading cache...")
+        update(context, fullReload)
       }
-      currentDirty = dirty // dirty flag may have changed in the meantime
+    } else {
+      update(context, fullReload)
     }
-    dirty = false
   }
 
   private def update(context: ActivityContext[T], fullReload: Boolean)
@@ -130,7 +124,7 @@ trait CachedActivity[T] extends Activity[T] {
       initialized = false
     }
 
-    dirty = true
+    dirty.set(true)
 
     // Start the activity, or ensure one more run after the current one finishes. This guarantees the dirty flag is
     // picked up even if it is set in the short window while a run is finishing
