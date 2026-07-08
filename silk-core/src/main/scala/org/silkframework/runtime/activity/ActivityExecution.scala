@@ -165,8 +165,12 @@ private class ActivityExecution[T](activity: Activity[T],
 
   override def startOrReRun()(implicit user: UserContext): Unit = {
     val doStart = StatusLock.synchronized {
-      if (status().isRunning) {
-        reRunRequested = true // Picked up by the run loop when the current run finishes
+      val currentStatus = status()
+      if (currentStatus.isRunning) {
+        // A still-queued run (Waiting) already covers this call; only an in-progress run needs a re-run.
+        if (!currentStatus.isInstanceOf[Waiting]) {
+          reRunRequested = true
+        }
         false
       } else {
         reRunRequested = false

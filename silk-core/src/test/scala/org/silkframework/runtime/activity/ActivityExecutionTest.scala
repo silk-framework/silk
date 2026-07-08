@@ -30,7 +30,7 @@ class ActivityExecutionTest extends AnyFlatSpec with Matchers with Eventually  {
   private val parallelism = ActivityExecution.forkJoinPool.getParallelism
 
   it should "interrupt activities when they are cancelled by the user" in {
-    val activityExecution = new ActivityExecution(new SleepingActivity(), projectAndTaskId = None)
+    val activityExecution = Activity(new SleepingActivity())
     val start = System.currentTimeMillis()
     Future {
       while(!activityExecution.value()) {
@@ -149,7 +149,7 @@ class ActivityExecutionTest extends AnyFlatSpec with Matchers with Eventually  {
     stopActivities(sleepingActivities :+ priorityActivity1 :+ priorityActivity2)
   }
 
-  it should "start and startBlocking should both be run in the same pool" in {
+  it should "run startBlocking in the same pool as start" in {
     // Start some activities and only leave one free slot in the activity pool
     val sleepingActivitiesAsync =
       for (_ <- 0 until (parallelism - 1)) yield {
@@ -262,33 +262,42 @@ class ActivityExecutionTest extends AnyFlatSpec with Matchers with Eventually  {
   }
 
   it should "reach a terminal state when it is cancelled before the worker thread picks it up" in {
-    // Occupy every pool slot so the activity under test cannot start and stays queued (Waiting).
-    val blockers =
-      for (_ <- 0 until parallelism) yield {
-        val activity = Activity(new SleepingActivity())
-        activity.start()
-        activity
-      }
+    val blockers = occupyAllPoolSlots()
     try {
       val counter = new AtomicInteger(0)
       val gated = new GatedActivity(counter)
       gated.released = true // would run to completion immediately if it were ever executed
       val activity = Activity(gated)
       activity.start()
-      // The activity is queued, waiting for a free pool slot.
       eventually { activity.status() mustBe a[Waiting] }
-      // Cancel while still queued: this sets the activity's cancel flag before any worker thread calls markRunning().
+      // Cancel while still queued: sets the cancel flag before any worker calls markRunning().
       activity.cancel()
-      // Free the pool so a worker thread picks up the still-queued, already-cancelled activity.
-      stopActivities(blockers)
-      // The worker runs runActivity, but since the activity was already cancelled it skips the body and the
-      // finish/cleanup transition. waitUntilFinished() returns once that worker task has completed.
+      stopActivities(blockers) // free the pool so a worker picks up the cancelled, still-queued activity
       activity.waitUntilFinished()
-      // The cancellation must have prevented the body from running ...
+      // The body must have been skipped, and the activity must reach a terminal Finished state rather than
+      // stay stuck in a non-terminal state (which would leave it permanently un-restartable via startOrReRun).
       counter.get() mustBe 0
-      // ... and the activity must end in a terminal Finished state, not remain stuck in a non-terminal
-      // (Running/Canceling) state forever, which would make it permanently un-restartable via startOrReRun.
       eventually { activity.status() mustBe a[Finished] }
+    } finally {
+      stopActivities(blockers)
+    }
+  }
+
+  it should "not schedule a redundant re-run when startOrReRun is called while the activity is only queued" in {
+    val blockers = occupyAllPoolSlots()
+    try {
+      val counter = new AtomicInteger(0)
+      val gated = new GatedActivity(counter)
+      gated.released = true // each run finishes immediately once it starts
+      val activity = Activity(gated)
+      activity.start()
+      eventually { activity.status() mustBe a[Waiting] }
+      // Called while still queued: the pending run already covers it, so no extra run should be scheduled.
+      activity.startOrReRun()
+      stopActivities(blockers) // free the pool so the queued run executes
+      activity.waitUntilFinished()
+      counter.get() mustBe 1
+      activity.status() mustBe a[Finished]
     } finally {
       stopActivities(blockers)
     }
@@ -312,6 +321,15 @@ class ActivityExecutionTest extends AnyFlatSpec with Matchers with Eventually  {
       finished.success mustBe true
       finished.cancelled mustBe false
       finished.exception mustBe None
+    }
+  }
+
+  // Fills every pool slot so a subsequently started activity stays queued (Waiting). Free again with stopActivities().
+  private def occupyAllPoolSlots(): Seq[ActivityControl[Boolean]] = {
+    for (_ <- 0 until parallelism) yield {
+      val activity = Activity(new SleepingActivity())
+      activity.start()
+      activity
     }
   }
 

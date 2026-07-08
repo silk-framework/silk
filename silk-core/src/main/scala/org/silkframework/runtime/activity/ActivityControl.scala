@@ -59,9 +59,10 @@ trait ActivityControl[T] {
   def restart()(implicit user: UserContext): Future[Unit]
 
   /**
-   * Starts the activity if it is not currently running. Otherwise, guarantees exactly one additional full run after
-   * the current run finishes (concurrent requests coalesce), even if the current run fails or has been cancelled.
-   * cancel() discards previously requested re-runs.
+   * Starts the activity if it is not currently running. If a run is in progress, guarantees exactly one additional
+   * full run after the current run finishes (concurrent requests coalesce), even if the current run fails or has been
+   * cancelled. If the activity is only queued and has not started yet, the pending run already covers this call and no
+   * additional run is scheduled. cancel() discards previously requested re-runs.
    */
   def startOrReRun()(implicit user: UserContext): Unit
 
