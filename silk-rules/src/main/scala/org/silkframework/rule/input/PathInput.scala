@@ -82,6 +82,7 @@ object PathInput {
    * XML serialization format.
    */
   implicit object PathInputFormat extends XmlFormat[PathInput] {
+    override def tagNames: Set[String] = Set("Input")
 
     def read(node: Node)(implicit readContext: ReadContext): PathInput = {
       val id = Operator.readId(node)

@@ -47,10 +47,18 @@ trait ProjectTrait extends HasMetaData {
   def taskOption[T <: TaskSpec : ClassTag](taskName: Identifier)
                                           (implicit userContext: UserContext): Option[Task[T]]
 
+  /** Retrieves a task of the requested type. */
+  def task[T <: TaskSpec : ClassTag](taskName: Identifier)
+                                    (implicit userContext: UserContext): Task[T]
+
   /** The resource manager for that project. */
   def resources: ResourceManager
 
   /** Any task with that identifier. */
   def anyTaskOption(taskName: Identifier)
                    (implicit userContext: UserContext): Option[Task[_ <: TaskSpec]]
+
+  /** Retrieves a task of any type. */
+  def anyTask(taskName: Identifier)
+             (implicit userContext: UserContext): Task[_ <: TaskSpec]
 }

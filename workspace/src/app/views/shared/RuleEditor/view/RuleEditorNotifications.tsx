@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { ContextOverlay, Icon, IconButton, Spacing, Notification, NotificationProps } from "@eccenca/gui-elements";
 import { useNotificationsQueue } from "../../ApplicationNotifications/NotificationsMenu";
 import { RULE_EDITOR_NOTIFICATION_INSTANCE, RuleSaveNodeError } from "../RuleEditor.typings";
@@ -7,6 +7,7 @@ import { RuleEditorEvaluationNotification } from "../contexts/RuleEditorEvaluati
 
 interface RuleEditorNotificationsProps {
     queueEditorNotifications?: string[];
+    saveWarningMessages?: string[];
     queueNodeNotifications?: RuleSaveNodeError[];
     nodeJumpToHandler: any; // TODO
     /** Notifications from the rule evaluation. */
@@ -17,15 +18,19 @@ interface RuleEditorNotificationsProps {
 
 export const RuleEditorNotifications = ({
     queueEditorNotifications = [] as string[],
+    saveWarningMessages = [] as string[],
     queueNodeNotifications = [] as RuleSaveNodeError[],
     nodeJumpToHandler,
     evaluationNotifications,
     generalNotificationMinDateTime,
 }: RuleEditorNotificationsProps) => {
     const [isOpen, setIsOpen] = useState<boolean>(false);
+    const warningAutoCloseTimeoutRef = useRef<number | undefined>(undefined);
     const { messages, notifications } = useNotificationsQueue(RULE_EDITOR_NOTIFICATION_INSTANCE);
     const [t] = useTranslation();
     const ruleEditorErrorMessages = messages.filter((diError) => diError.timestamp > generalNotificationMinDateTime);
+    const hasBlockingErrors =
+        ruleEditorErrorMessages.length > 0 || queueEditorNotifications.length > 0 || queueNodeNotifications.length > 0;
 
     useEffect(() => {
         if (ruleEditorErrorMessages.length && !ruleEditorErrorMessages[0]?.notAutoOpen) {
@@ -45,6 +50,27 @@ export const RuleEditorNotifications = ({
         }
     }, [queueNodeNotifications.length > 0 ? queueNodeNotifications[0] : undefined]);
 
+    useEffect(() => {
+        if (saveWarningMessages.length) {
+            setIsOpen(true);
+        }
+    }, [saveWarningMessages.join("\n")]);
+
+    useEffect(() => {
+        window.clearTimeout(warningAutoCloseTimeoutRef.current);
+        warningAutoCloseTimeoutRef.current = undefined;
+        if (!saveWarningMessages.length || hasBlockingErrors) {
+            return;
+        }
+        warningAutoCloseTimeoutRef.current = window.setTimeout(() => {
+            setIsOpen(false);
+        }, 5000);
+        return () => {
+            window.clearTimeout(warningAutoCloseTimeoutRef.current);
+            warningAutoCloseTimeoutRef.current = undefined;
+        };
+    }, [hasBlockingErrors, saveWarningMessages]);
+
     const toggleNotifications = (forceClose: boolean = false) => {
         if (forceClose) {
             setIsOpen(false);
@@ -54,6 +80,7 @@ export const RuleEditorNotifications = ({
     };
 
     return queueEditorNotifications.length > 0 ||
+        saveWarningMessages.length > 0 ||
         queueNodeNotifications.length > 0 ||
         ruleEditorErrorMessages.length > 0 ||
         (evaluationNotifications && evaluationNotifications.length) ? (
@@ -72,6 +99,15 @@ export const RuleEditorNotifications = ({
                         {queueEditorNotifications.map((editorNotification) => (
                             <Notification intent="danger" key={"errorMessage"} icon={<Icon name="state-warning" />}>
                                 {editorNotification}
+                            </Notification>
+                        ))}
+                        {saveWarningMessages.map((warningMessage, index) => (
+                            <Notification
+                                intent="warning"
+                                key={`saveWarning-${index}`}
+                                icon={<Icon name="state-warning" />}
+                            >
+                                {warningMessage}
                             </Notification>
                         ))}
                         {evaluationNotifications && evaluationNotifications.length > 0

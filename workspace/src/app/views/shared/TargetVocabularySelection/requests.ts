@@ -10,7 +10,7 @@ export const requestGlobalVocabularies = async (): Promise<FetchResponse<IVocabu
 };
 
 export const requestVocabularyLookup = async (
-    payload: IVocabularyLookupRequest
+    payload: IVocabularyLookupRequest,
 ): Promise<FetchResponse<IVocabularyLookupResponse>> => {
     return fetch({
         url: workspaceApi("/vocabularies/lookup"),

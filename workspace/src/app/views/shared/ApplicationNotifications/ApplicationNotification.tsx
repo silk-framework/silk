@@ -21,7 +21,10 @@ export const ApplicationNotification = ({ errorItem, removeError, interactionCal
 
     React.useEffect(() => {
         if (updateTimeDelay && updateTimeDelay > 0) {
-            setTimeout(() => setNow(new Date()), updateTimeDelay);
+            const timeoutId = window.setTimeout(() => setNow(new Date()), updateTimeDelay);
+            return () => {
+                window.clearTimeout(timeoutId);
+            };
         }
     }, [updateTimeDelay, now]);
 

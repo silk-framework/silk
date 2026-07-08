@@ -1,6 +1,6 @@
 package controllers.workspaceApi
 
-import controllers.projectApi.requests.{TaskContextResponse, TaskMetaData}
+import controllers.projectApi.requests.{RuleBlockTaskSummary, TaskContextResponse, TaskMetaData}
 import controllers.util.{ItemType, ProjectTaskApiClient}
 import controllers.workspaceApi.projectTask.RelatedItems
 import helper.IntegrationTestTrait
@@ -18,7 +18,9 @@ import org.scalatest.matchers.must.Matchers
 import org.silkframework.config.MetaData
 import org.silkframework.plugins.dataset.rdf.datasets.InMemoryDataset
 import org.silkframework.plugins.dataset.rdf.tasks.SparqlUpdateCustomTask
-import org.silkframework.rule.{DatasetSelection, TransformSpec}
+import org.silkframework.entity.paths.UntypedPath
+import org.silkframework.rule.input.{PathInput, RuleBlockBinding, RuleBlockInput}
+import org.silkframework.rule.{ComplexUriMapping, DatasetSelection, MappingRules, RootMappingRule, RuleBlockInputExample, RuleBlockModel, RuleBlockPort, RuleBlockSpec, TransformSpec}
 import org.silkframework.runtime.plugin.types.IdentifierOptionParameter
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.activity.workflow.{WorkflowTaskContext, WorkflowTaskContextInputTask, WorkflowTaskContextOutputTask}
@@ -35,9 +37,14 @@ class ProjectTaskApiTest extends AnyFlatSpec with SingleProjectWorkspaceProvider
 
   override def routes: Option[Class[Routes]] = Some(classOf[testWorkspace.Routes])
 
-  private def relatedItems(taskId: String, textQuery: Option[String] = None): RelatedItems = {
-    val path = controllers.projectApi.routes.ProjectTaskApi.relatedItems(projectId, taskId, textQuery).url
+  private def relatedItems(taskId: String, textQuery: Option[String] = None, limit: Option[Int] = None): RelatedItems = {
+    val path = controllers.projectApi.routes.ProjectTaskApi.relatedItems(projectId, taskId, textQuery, limit).url
     Json.fromJson[RelatedItems](checkResponse(client.url(s"$baseUrl$path").get()).json).get
+  }
+
+  private def ruleBlocks(): Seq[RuleBlockTaskSummary] = {
+    val path = controllers.projectApi.routes.ProjectTaskApi.ruleBlocks(projectId).url
+    Json.fromJson[Seq[RuleBlockTaskSummary]](checkResponse(client.url(s"$baseUrl$path").get()).json).get
   }
 
   private val workflowTask = "workflow"
@@ -64,6 +71,13 @@ class ProjectTaskApiTest extends AnyFlatSpec with SingleProjectWorkspaceProvider
     relatedItems(workflowTask, textQuery = Some("spar elect")).total mustBe 4
     // Multi word search in label and type
     relatedItems(workflowTask, textQuery = Some("spar elect " + ItemType.task.label)).items.map(_.id) mustBe Seq(customTask)
+  }
+
+  it should "respect the limit parameter when returning related items" in {
+    val workflowRelatedItems = relatedItems(workflowTask, limit = Some(1))
+
+    workflowRelatedItems.total mustBe 4
+    workflowRelatedItems.items must have size 1
   }
 
   it should "return an auto-configured dataset config" in {
@@ -123,5 +137,87 @@ class ProjectTaskApiTest extends AnyFlatSpec with SingleProjectWorkspaceProvider
     )
     originalInputs mustBe Some(false)
     originalOutputs mustBe Some(false)
+  }
+
+  it should "return lightweight summaries of reusable rule blocks without the internal operator tree" in {
+    project.addTask(
+      "normalizeName",
+      RuleBlockSpec(
+        RuleBlockModel(
+          ports = IndexedSeq(
+            RuleBlockPort(Identifier("b"), label = "Second", description = "Desc B", displayOrder = 2),
+            RuleBlockPort(Identifier("a"), label = "First", description = "Desc A", displayOrder = 1, deprecated = true),
+          ),
+          inputExamples = IndexedSeq(
+            RuleBlockInputExample(
+              id = Identifier("example-1"),
+              inputs = Map(
+                Identifier("a") -> Seq("first example"),
+                Identifier("b") -> Seq("second example")
+              )
+            )
+          )
+        )
+      ),
+      MetaData(Some("Normalize name"), Some("Reusable normalization"))
+    )
+
+    ruleBlocks() must contain(
+      RuleBlockTaskSummary(
+        id = "normalizeName",
+        label = "Normalize name",
+        description = Some("Reusable normalization"),
+        ports = Seq(
+          controllers.projectApi.requests.RuleBlockPortSummary("a", "First", "Desc A", 1, deprecated = true),
+          controllers.projectApi.requests.RuleBlockPortSummary("b", "Second", "Desc B", 2, deprecated = false),
+        )
+      )
+    )
+  }
+
+  it should "return tasks that directly use a reusable rule block as related items of that rule block" in {
+    val ruleBlockId = "normalizeAddress"
+    val transformUsingRuleBlockId = "transformUsingRuleBlock"
+    project.addTask(
+      ruleBlockId,
+      RuleBlockSpec(
+        RuleBlockModel(
+          ports = IndexedSeq(
+            RuleBlockPort(Identifier("addressInput"), label = "Address", displayOrder = 0)
+          )
+        )
+      ),
+      MetaData(Some("Normalize address"))
+    )
+    project.addTask(
+      transformUsingRuleBlockId,
+      TransformSpec(
+        selection = DatasetSelection(inputDataset),
+        mappingRule = RootMappingRule(
+          MappingRules(
+            uriRule = Some(
+              ComplexUriMapping(
+                operator = RuleBlockInput(
+                  id = "ruleBlockUsage",
+                  ruleBlockId = ruleBlockId,
+                  bindings = IndexedSeq(
+                    RuleBlockBinding(
+                      portId = "addressInput",
+                      input = PathInput(id = "addressPath", path = UntypedPath("address"))
+                    )
+                  )
+                )
+              )
+            )
+          )
+        )
+      ),
+      MetaData(Some("Transform using rule block"))
+    )
+
+    val ruleBlockRelatedItems = relatedItems(ruleBlockId, limit = Some(1))
+
+    ruleBlockRelatedItems.total mustBe 1
+    ruleBlockRelatedItems.items.map(_.id) mustBe Seq(transformUsingRuleBlockId)
   }
 }

@@ -3,7 +3,7 @@ package controllers.util
 import config.WorkbenchConfig
 import org.silkframework.config.{CustomTask, Task, TaskSpec}
 import org.silkframework.dataset.DatasetSpec
-import org.silkframework.rule.{LinkSpec, TransformSpec}
+import org.silkframework.rule.{LinkSpec, RuleBlockSpec, TransformSpec}
 import org.silkframework.runtime.validation.BadUserInputException
 import org.silkframework.workspace.activity.workflow.Workflow
 import play.api.libs.json._
@@ -17,10 +17,11 @@ object ItemType {
   case object dataset extends ItemType("dataset", "Dataset")
   case object transform extends ItemType("transform", "Transform")
   case object linking extends ItemType("linking", "Linking")
+  case object ruleBlock extends ItemType("ruleBlock", "Rule block")
   case object workflow extends ItemType("workflow", "Workflow")
   case object task extends ItemType("task", "Task")
 
-  val taskTypes: Seq[ItemType] = Seq(workflow, dataset, transform, linking, task)
+  val taskTypes: Seq[ItemType] = Seq(workflow, dataset, transform, linking, ruleBlock, task)
   val all: Seq[ItemType] = Seq(global, project) ++ taskTypes
 
   val idToItemType: Map[String, ItemType] = all.map(it => (it.id, it)).toMap
@@ -39,6 +40,8 @@ object ItemType {
         ItemLink("details", "Transform details page", s"$detailsPageBase/${ItemType.transform.id}/$itemId")
       case ItemType.linking =>
         ItemLink("details", "Linking details page", s"$detailsPageBase/${ItemType.linking.id}/$itemId")
+      case ItemType.`ruleBlock` =>
+        ItemLink("details", "Rule block details page", s"$detailsPageBase/${ItemType.ruleBlock.id}/$itemId")
       case ItemType.workflow =>
         ItemLink("details", "Workflow details page", s"$detailsPageBase/${ItemType.workflow.id}/$itemId")
       case ItemType.task =>
@@ -78,6 +81,7 @@ object ItemType {
     task match {
       case _: TransformSpec => transform
       case _: LinkSpec => linking
+      case _: RuleBlockSpec => ruleBlock
       case _: Workflow => workflow
       case _: DatasetSpec[_] => dataset
       case _: CustomTask => ItemType.task
