@@ -558,6 +558,118 @@ class ActivityExecutionTest extends AnyFlatSpec with Matchers with Eventually  {
     gated.childRan mustBe true
   }
 
+  it should "skip the body of a run that is cancelled before pickup even while the cancellation is still delivering" in {
+    val blockers = occupyAllPoolSlots()
+    val counter = new AtomicInteger(0)
+    val gated = new CancelDeliveryTestActivity(counter)
+    try {
+      val activity = Activity(gated)
+      activity.start()
+      eventually { activity.status() mustBe a[Waiting] }
+      Future { activity.cancel() } // blocks mid-delivery inside cancelExecution, so the cancel flag is not set yet
+      eventually { gated.cancelExecutionEntered mustBe true }
+      stopActivities(blockers) // free the pool so a worker picks up the cancelled, still-queued activity
+      // The body must be skipped although the cancel flag has not been delivered yet.
+      eventually { activity.status() mustBe a[Finished] }
+      counter.get() mustBe 0
+      activity.status().asInstanceOf[Finished].cancelled mustBe true
+    } finally {
+      gated.releaseCancel = true // let the blocked cancellation finish delivering
+      stopActivities(blockers)
+    }
+  }
+
+  it should "record the execution result even if a status observer fails during the finish transition" in {
+    val counter = new AtomicInteger(0)
+    val gated = new GatedActivity(counter)
+    gated.released = true
+    val activity = Activity(gated)
+    val observer: Status => Unit = {
+      case _: Finished => throw new RuntimeException("Intentional observer failure")
+      case _ =>
+    }
+    activity.status.subscribe(observer)
+    activity.start()
+    eventually { activity.status() mustBe a[Finished] }
+    // The terminal result must be recorded although the observer failed during every finish publish.
+    eventually { activity.lastResult mustBe defined }
+    activity.lastResult.get.metaData.finishStatus.get mustBe a[Finished]
+  }
+
+  it should "publish a genuine failure that races with a cancellation before executing the requested re-run" in {
+    val counter = new AtomicInteger(0)
+    val gated = new FailingStubbornActivity(counter)
+    val activity = Activity(gated)
+    val observedStatuses = new ConcurrentLinkedQueue[Status]()
+    val observer: Status => Unit = observedStatuses.add(_) // strong reference, subscribers are weakly referenced
+    activity.status.subscribe(observer)
+    activity.start()
+    eventually { counter.get() mustBe 1 }
+    activity.cancel()
+    activity.startOrReRun() // postdates the cancellation, must be honored
+    gated.released = true // the first run now exits with a RuntimeException instead of a normal cancellation exit
+    eventually { counter.get() mustBe 2 }
+    eventually {
+      val status = activity.status()
+      status mustBe a[Finished]
+      status.asInstanceOf[Finished].success mustBe true
+    }
+    // The genuine failure must have been published even though it raced with the cancellation.
+    val failure = observedStatuses.asScala.collectFirst { case f @ Finished(false, _, _, Some(_)) => f }
+    failure mustBe defined
+    failure.get.cancelled mustBe true
+  }
+
+  it should "execute a coalesced re-run on behalf of the user who requested it" in {
+    val counter = new AtomicInteger(0)
+    val gated = new UserRecordingActivity(counter)
+    val activity = Activity(gated)
+    activity.start() // started by user1 (class-level implicit)
+    eventually { counter.get() mustBe 1 }
+    activity.startOrReRun()(userContextFor("urn:user:user2"))
+    gated.released = true
+    eventually { counter.get() mustBe 2 }
+    eventually { activity.status() mustBe a[Finished] }
+    // The re-run must execute under the requesting user's context and be attributed to that user.
+    gated.usersSeen.asScala.toSeq.map(_.user.map(_.uri)) mustBe Seq(Some("urn:user:user1"), Some("urn:user:user2"))
+    activity.startedBy.user.map(_.uri) mustBe Some("urn:user:user2")
+    activity.lastResult.get.metaData.startedByUser.map(_.uri) mustBe Some("urn:user:user2")
+  }
+
+  it should "propagate the failure of the initial run to a blocking caller even if a requested re-run succeeds" in {
+    val counter = new AtomicInteger(0)
+    val gated = new GatedActivity(counter, failFirstRun = true)
+    val activity = Activity(gated)
+    Future {
+      eventually { counter.get() mustBe 1 }
+      activity.startOrReRun()
+      gated.released = true
+    }
+    // The blocking start must report the failure of the run it initiated, not the success of the coalesced re-run.
+    val ex = intercept[RuntimeException] {
+      activity.startBlocking()
+    }
+    ex.getMessage must include("Intentional test failure")
+    eventually { counter.get() mustBe 2 }
+    // The activity itself finished with the successful re-run.
+    eventually {
+      val status = activity.status()
+      status mustBe a[Finished]
+      status.asInstanceOf[Finished].success mustBe true
+    }
+  }
+
+  private def userContextFor(userUri: String): UserContext = new UserContext {
+    private val contextUser = new User {
+      override def uri: String = userUri
+      override def groups: Set[String] = Set.empty
+      override def actions: UserActions = UserActions.all
+    }
+    def user: Option[User] = Some(contextUser)
+    override def executionContext: UserExecutionContext = UserExecutionContext()
+    override def withExecutionContext(userExecutionContext: UserExecutionContext): UserContext = this
+  }
+
   // Fills every pool slot so a subsequently started activity stays queued (Waiting). Free again with stopActivities().
   private def occupyAllPoolSlots(): Seq[ActivityControl[Boolean]] = {
     for (_ <- 0 until parallelism) yield {
@@ -721,6 +833,49 @@ class TwoGateBlockUntilActivity(counter: AtomicInteger, runChild: Boolean = fals
         run2ExitedEarly = true
       }
     }
+  }
+}
+
+/**
+  * Like [[StubbornGatedActivity]], but its first run throws a RuntimeException once released, simulating a genuine
+  * failure that races with a cancellation. Later runs finish immediately.
+  */
+class FailingStubbornActivity(counter: AtomicInteger) extends Activity[Boolean] {
+
+  @volatile
+  var released: Boolean = false
+
+  override def initialValue: Option[Boolean] = Some(false)
+
+  override def run(context: ActivityContext[Boolean])(implicit userContext: UserContext): Unit = {
+    val runNumber = counter.incrementAndGet()
+    context.value() = true
+    if (runNumber == 1) {
+      while (!released) {
+        try Thread.sleep(10) catch { case _: InterruptedException => } // Keep blocking until released, even when cancelled
+      }
+      throw new RuntimeException("Intentional test failure racing with the cancellation")
+    }
+  }
+}
+
+/**
+  * Like [[GatedActivity]], but additionally records the user context each run executes under.
+  */
+class UserRecordingActivity(counter: AtomicInteger) extends Activity[Boolean] {
+
+  @volatile
+  var released: Boolean = false
+
+  val usersSeen = new ConcurrentLinkedQueue[UserContext]()
+
+  override def initialValue: Option[Boolean] = Some(false)
+
+  override def run(context: ActivityContext[Boolean])(implicit userContext: UserContext): Unit = {
+    counter.incrementAndGet()
+    usersSeen.add(userContext)
+    context.value() = true
+    context.blockUntil(() => released)
   }
 }
 
