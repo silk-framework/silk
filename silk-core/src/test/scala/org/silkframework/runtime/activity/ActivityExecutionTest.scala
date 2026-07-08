@@ -427,7 +427,15 @@ class ActivityExecutionTest extends AnyFlatSpec with Matchers with Eventually  {
     // Start a new run (it waits for the old delivery) and cancel it; the cancellation must not be wiped.
     activity.start()
     Future { activity.cancel() } // blocks in cancelExecution until released
-    eventually { activity.status() mustBe a[Canceling] }
+    // Depending on how far the new run got, the registered cancellation is observable either as a lasting Canceling
+    // status or as an already-finished run whose body was skipped because the cancel landed before it started.
+    eventually {
+      activity.status() match {
+        case _: Canceling => // the cancellation has been registered, the run is still pending
+        case Finished(_, _, cancelled, _) => cancelled mustBe true
+        case status: Status => fail("Unexpected status: " + status)
+      }
+    }
     gated.releaseCancel = true
     eventually { gated.wasCancelled() mustBe true }
     gated.releaseRun2 = true
