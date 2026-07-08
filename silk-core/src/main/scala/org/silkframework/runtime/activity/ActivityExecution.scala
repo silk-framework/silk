@@ -9,6 +9,7 @@ import org.silkframework.runtime.metrics.MeterRegistryProvider
 
 import java.time.Instant
 import java.util.concurrent._
+import java.util.concurrent.atomic.AtomicInteger
 import java.util.logging.Level
 import scala.concurrent.{ExecutionContext, ExecutionContextExecutor, Future}
 import scala.jdk.CollectionConverters._
@@ -51,6 +52,10 @@ private class ActivityExecution[T](activity: Activity[T],
   // Locks the access to the status variable when needed
   private object StatusLock
 
+  // Cancellations still delivering their side effects outside StatusLock. A run start waits for this to reach zero
+  // before clearing the cancel state, so a cancellation cannot leak into a later run.
+  private val pendingCancellations = new AtomicInteger(0)
+
   // Set to request one additional run. Only ever accessed under StatusLock.
   private var reRunRequested: Boolean = false
 
@@ -76,8 +81,8 @@ private class ActivityExecution[T](activity: Activity[T],
       }
       reRunRequested = false // Discard stale re-run requests of previous executions
       setStartMetaData(user)
+      beginRun()
     }
-    activity.resetCancelFlag()
   }
 
   override def startBlocking()(implicit user: UserContext): Unit = {
@@ -141,18 +146,23 @@ private class ActivityExecution[T](activity: Activity[T],
         this.cancelledByUser = user
         this.cancelTimestamp = Some(Instant.now)
         status.update(Status.Canceling(status().progress))
+        pendingCancellations.incrementAndGet() // Held until the side effects below are delivered; see beginRun().
       }
     }
     if(cancelling) {
-      // cancel children outside of lock to not run into dead locks
-      children().foreach(_.cancel())
-      activity.cancelExecution()
-      interruptEnabled.synchronized {
-        if (interruptEnabled.get()) {
-          runningThread foreach { thread =>
-            thread.interrupt() // To interrupt an activity that might be blocking on something else, e.g. slow network connection
+      try {
+        // cancel children outside of lock to not run into dead locks
+        children().foreach(_.cancel())
+        activity.cancelExecution()
+        interruptEnabled.synchronized {
+          if (interruptEnabled.get()) {
+            runningThread foreach { thread =>
+              thread.interrupt() // To interrupt an activity that might be blocking on something else, e.g. slow network connection
+            }
           }
         }
+      } finally {
+        pendingCancellations.decrementAndGet()
       }
     }
   }
@@ -175,11 +185,11 @@ private class ActivityExecution[T](activity: Activity[T],
       } else {
         reRunRequested = false
         setStartMetaData(user)
+        beginRun()
         true
       }
     }
     if (doStart) {
-      activity.resetCancelFlag()
       runForkJoin()
     }
   }
@@ -293,9 +303,18 @@ private class ActivityExecution[T](activity: Activity[T],
      cancel() applies to the new run. A cancellation of the previous run must not carry over. */
   private def prepareReRun()(implicit user: UserContext): Unit = {
     reRunRequested = false
+    beginRun()
+    status.update(Status.Running("Running", None))
+  }
+
+  /* Starts a new run (call while holding StatusLock). Waits out any in-flight cancellation so its flag/interrupt can't
+     leak into this run, then clears the leftover cancel state of the previous run. */
+  private def beginRun()(implicit user: UserContext): Unit = {
+    while (pendingCancellations.get() != 0) {
+      try Thread.sleep(1) catch { case _: InterruptedException => } // Absorb the interrupt of the cancellation we wait for
+    }
     Thread.interrupted() // Discard a pending interrupt from a cancelled previous run
     activity.resetCancelFlag()
-    status.update(Status.Running("Running", None))
   }
 
   private def finishWithFailure(ex: Throwable): Unit = StatusLock.synchronized {

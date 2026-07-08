@@ -277,6 +277,27 @@ class ActivityExecutionTest extends AnyFlatSpec with Matchers with Eventually  {
     eventually { activity.status() mustBe a[Finished] }
   }
 
+  it should "not let a delayed cancellation abort a re-run requested after it" in {
+    val counter = new AtomicInteger(0)
+    val gated = new CancelDeliveryTestActivity(counter)
+    val activity = Activity(gated)
+    activity.start()
+    eventually { counter.get() mustBe 1 } // first run in progress
+    // Cancel, but block the cancellation mid-delivery (inside cancelExecution) to simulate it being preempted.
+    Future { activity.cancel() }
+    eventually { gated.cancelExecutionEntered mustBe true }
+    // Request a re-run that postdates the cancellation; per contract it must survive.
+    activity.startOrReRun()
+    // Let the first run finish (the re-run must wait for the in-flight cancellation to drain), then let the delayed
+    // cancellation finish delivering. It must not touch the re-run.
+    gated.releaseRun1 = true
+    gated.releaseCancel = true
+    eventually { gated.run2Started mustBe true }
+    gated.releaseRun2 = true
+    eventually { gated.run2Completed mustBe true }
+    eventually { activity.status() mustBe a[Finished] }
+  }
+
   it should "reach a terminal state when it is cancelled before the worker thread picks it up" in {
     val blockers = occupyAllPoolSlots()
     try {
@@ -467,5 +488,48 @@ class InterruptibleActivity(counter: AtomicInteger) extends Activity[Boolean] {
           throw e
       }
     }
+  }
+}
+
+/**
+  * Activity for exercising the cancel-delivery drain. Its first run ignores interrupts and blocks until `releaseRun1`;
+  * a later run blocks until `releaseRun2` and records completion in `run2Completed` unless it was cancelled.
+  * cancelExecution() signals `cancelExecutionEntered` and then blocks until `releaseCancel`, letting a test hold a
+  * cancellation mid-delivery while a re-run is requested and started.
+  */
+class CancelDeliveryTestActivity(counter: AtomicInteger) extends Activity[Boolean] {
+
+  @volatile var releaseRun1: Boolean = false
+  @volatile var releaseRun2: Boolean = false
+  @volatile var releaseCancel: Boolean = false
+  @volatile var cancelExecutionEntered: Boolean = false
+  @volatile var run2Started: Boolean = false
+  @volatile var run2Completed: Boolean = false
+
+  override def initialValue: Option[Boolean] = Some(false)
+
+  override def run(context: ActivityContext[Boolean])(implicit userContext: UserContext): Unit = {
+    val runNumber = counter.incrementAndGet()
+    context.value() = true
+    if (runNumber == 1) {
+      while (!releaseRun1) sleepIgnoringInterrupt()
+    } else {
+      run2Started = true
+      while (!releaseRun2) sleepIgnoringInterrupt()
+      // A cancellation leaking into this re-run would set the cancel flag and prevent completion.
+      if (!wasCancelled()) {
+        run2Completed = true
+      }
+    }
+  }
+
+  override def cancelExecution()(implicit userContext: UserContext): Unit = {
+    cancelExecutionEntered = true
+    while (!releaseCancel) sleepIgnoringInterrupt()
+    super.cancelExecution()
+  }
+
+  private def sleepIgnoringInterrupt(): Unit = {
+    try Thread.sleep(10) catch { case _: InterruptedException => }
   }
 }
