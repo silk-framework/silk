@@ -358,8 +358,11 @@ class WorkspaceApi  @Inject() (accessMonitor: WorkbenchAccessMonitor) extends In
     description = "Triggers a general update of the global vocabulary cache: newly installed vocabularies are added and " +
         "uninstalled ones are removed. Vocabularies already present in the cache are not re-fetched by this general update. " +
         "The optional `iri` in the request body forces the vocabulary with that IRI to be re-fetched, which is the only way " +
-        "to refresh the content of an already-cached vocabulary. If the body is empty (or `iri` is omitted), only the general " +
-        "update is performed. This request is non-blocking. It can take a while for the cache to be up to date.",
+        "to refresh the content of an already-cached vocabulary. Force-reload only applies to currently-installed " +
+        "vocabularies: an `iri` that is not (or no longer) installed is ignored (unless the list of installed vocabularies " +
+        "is temporarily unavailable, in which case the requested IRIs are loaded without this check). If the body is empty " +
+        "(or `iri` is omitted), only the general update is performed. This request is non-blocking. It can take a while for " +
+        "the cache to be up to date.",
     responses = Array(
       new ApiResponse(
         responseCode = "204",
