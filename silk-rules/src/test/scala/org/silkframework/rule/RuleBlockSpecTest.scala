@@ -117,7 +117,7 @@ class RuleBlockSpecTest extends AnyFlatSpec with XmlSerializationHelperTrait {
       <RuleBlock>
         <RuleBlockModel>
           <Ports>
-            <Port id="firstInput" label="First input" deprecated="false">
+            <Port id="firstInput" label="First input" deprecated="false" displayOrder="1">
               <Description>Used for the primary lookup.</Description>
             </Port>
           </Ports>
@@ -134,7 +134,7 @@ class RuleBlockSpecTest extends AnyFlatSpec with XmlSerializationHelperTrait {
       <RuleBlock>
         <RuleBlockModel>
           <Ports>
-            <Port id="firstInput" label="First input" deprecated="false">
+            <Port id="firstInput" label="First input" deprecated="false" displayOrder="1">
               <Description>Used for the primary lookup.</Description>
             </Port>
           </Ports>
