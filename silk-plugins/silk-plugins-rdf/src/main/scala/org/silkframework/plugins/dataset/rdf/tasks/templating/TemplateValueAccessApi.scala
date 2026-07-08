@@ -47,7 +47,7 @@ trait TemplateValueAccessApi {
   /** Returns the value for a specific input path as SPARQL plain literal, i.e. "..." */
   def plainLiteral(inputPath: String): String = {
     val value = objectValue(inputPath)
-    val uriNode = NodeFactory.createLiteral(value)
+    val uriNode = NodeFactory.createLiteralString(value)
     JenaSerializationUtil.serializeSingleNode(uriNode)
   }
 
