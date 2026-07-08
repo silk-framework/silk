@@ -25,7 +25,7 @@ import org.silkframework.plugins.operations.{LocalSetExecutionVariableOperatorEx
 import org.silkframework.entity.EntitySchema.EntitySchemaFormat
 import org.silkframework.entity.ValueType
 import org.silkframework.execution.local.{LocalExecutionManager, LocalInternalDataset}
-import org.silkframework.plugins.dataset.{BinaryFileDataset, InternalDataset}
+import org.silkframework.plugins.dataset.{BinaryFileDataset, BinaryFileDatasetExecutor, EmptyDatasetExecutor, InternalDataset, InternalDatasetExecutor, VariableDatasetExecutor}
 import org.silkframework.runtime.plugin.{AnyPlugin, PluginModule}
 
 import scala.language.existentials
@@ -38,33 +38,40 @@ class CorePlugins extends PluginModule {
   override def pluginClasses: Seq[Class[_ <: AnyPlugin]] = datasets ++ datasetOperations ++ serializers ++ valueTypes :+ classOf[LocalExecutionManager]
 
   private def datasets: Seq[Class[_ <: AnyPlugin]] =
-    classOf[InternalDataset] ::
-    classOf[LocalInternalDataset] ::
-    classOf[VariableDataset] ::
-    classOf[BinaryFileDataset] ::
-    Nil
+    Seq(
+      classOf[InternalDataset],
+      classOf[InternalDatasetExecutor],
+      classOf[LocalInternalDataset],
+      classOf[VariableDataset],
+      classOf[VariableDatasetExecutor],
+      classOf[EmptyDatasetExecutor],
+      classOf[BinaryFileDataset],
+      classOf[BinaryFileDatasetExecutor]
+    )
 
-  private def datasetOperations: Seq[Class[_ <: AnyPlugin]] = {
-    classOf[AddProjectFilesOperator] ::
-    classOf[LocalAddProjectFilesOperatorExecutor] ::
-    classOf[DeleteFilesOperator] ::
-    classOf[LocalDeleteFilesOperatorExecutor] ::
-    classOf[GetProjectFilesOperator] ::
-    classOf[LocalGetProjectFilesOperatorExecutor] ::
-    classOf[ClearDatasetOperator] ::
-    classOf[ClearDatasetOperatorLocalExecutor] ::
-    classOf[SetExecutionVariableOperator] ::
-    classOf[LocalSetExecutionVariableOperatorExecutor] ::
-    Nil
-  }
+  private def datasetOperations: Seq[Class[_ <: AnyPlugin]] =
+    Seq(
+      classOf[AddProjectFilesOperator],
+      classOf[LocalAddProjectFilesOperatorExecutor],
+      classOf[DeleteFilesOperator],
+      classOf[LocalDeleteFilesOperatorExecutor],
+      classOf[GetProjectFilesOperator],
+      classOf[LocalGetProjectFilesOperatorExecutor],
+      classOf[ClearDatasetOperator],
+      classOf[ClearDatasetOperatorLocalExecutor],
+      classOf[SetExecutionVariableOperator],
+      classOf[LocalSetExecutionVariableOperatorExecutor]
+    )
 
   private def serializers: Seq[Class[_ <: AnyPlugin]] =
-    TaskSpecXmlFormat.getClass ::
-    GenericTaskFormat.getClass ::
-    DatasetSpecFormat.getClass ::
-    DatasetTaskXmlFormat.getClass ::
-    CustomTaskFormat.getClass ::
-    EntitySchemaFormat.getClass :: Nil
+    Seq(
+      TaskSpecXmlFormat.getClass,
+      GenericTaskFormat.getClass,
+      DatasetSpecFormat.getClass,
+      DatasetTaskXmlFormat.getClass,
+      CustomTaskFormat.getClass,
+      EntitySchemaFormat.getClass
+    )
 
   private def valueTypes: Seq[Class[_ <: AnyPlugin]] = {
     ValueType.valueTypeIdMapByClass.keys.toSeq

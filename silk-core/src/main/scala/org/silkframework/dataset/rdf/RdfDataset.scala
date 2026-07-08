@@ -4,7 +4,7 @@ import org.silkframework.dataset.DatasetCharacteristics.{SpecialPathInfo, Sugges
 import org.silkframework.dataset.{Dataset, DatasetCharacteristics}
 import org.silkframework.entity.rdf.SparqlEntitySchema.specialPaths
 
-trait RdfDataset extends Dataset with RdfDatasetAccess {
+trait RdfDataset extends Dataset {
 
   /**
     * URI of the graph this RDF dataset is referring to, if any.
