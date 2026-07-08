@@ -29,7 +29,6 @@ import play.api.mvc._
 
 import javax.inject.Inject
 import scala.language.existentials
-import scala.util.Try
 
 @Tag(name = "Projects")
 class WorkspaceApi  @Inject() (accessMonitor: WorkbenchAccessMonitor) extends InjectedController with UserContextActions with ControllerUtilsTrait {
@@ -356,7 +355,14 @@ class WorkspaceApi  @Inject() (accessMonitor: WorkbenchAccessMonitor) extends In
 
   @Operation(
     summary = "Update global vocabulary cache",
-    description = "Update a specific vocabulary of the global vocabulary cache. This request is non-blocking. It can take a while for the cache to be up to date.",
+    description = "Triggers a general update of the global vocabulary cache: newly installed vocabularies are added and " +
+        "uninstalled ones are removed. Vocabularies already present in the cache are not re-fetched by this general update. " +
+        "The optional `iri` in the request body forces the vocabulary with that IRI to be re-fetched, which is the only way " +
+        "to refresh the content of an already-cached vocabulary. Force-reload only applies to currently-installed " +
+        "vocabularies: an `iri` that is not (or no longer) installed is ignored (unless the list of installed vocabularies " +
+        "is temporarily unavailable, in which case the requested IRIs are loaded without this check). If the body is empty " +
+        "(or `iri` is omitted), only the general update is performed. This request is non-blocking. It can take a while for " +
+        "the cache to be up to date.",
     responses = Array(
       new ApiResponse(
         responseCode = "204",
@@ -368,18 +374,21 @@ class WorkspaceApi  @Inject() (accessMonitor: WorkbenchAccessMonitor) extends In
     content = Array(
       new Content(
         schema = new Schema(implementation = classOf[UpdateGlobalVocabularyRequest]),
-        examples = Array(new ExampleObject("""{ "iri": "http://xmlns.com/foaf/0.1/" }"""))
+        examples = Array(
+          new ExampleObject(name = "General update", value = "{ }"),
+          new ExampleObject(name = "Force reload of a specific vocabulary", value = """{ "iri": "http://xmlns.com/foaf/0.1/" }"""),
+          new ExampleObject(name = "Force reload of multiple vocabularies", value = """{ "iri": ["http://xmlns.com/foaf/0.1/", "http://www.w3.org/2004/02/skos/core#"] }""")
+        )
       )
     )
   )
-  def updateGlobalVocabularyCache(): Action[JsValue] = RequestUserContextAction(parse.json) { implicit request =>
+  def updateGlobalVocabularyCache(): Action[String] = RequestUserContextAction(parse.tolerantText) { implicit request =>
     implicit userContext =>
-      validateJson[UpdateGlobalVocabularyRequest] { updateRequest =>
-        GlobalVocabularyCache.putVocabularyInQueue(updateRequest.iri)
-        val activityControl = workspace.activity[GlobalVocabularyCache].control
-        if(!activityControl.status.get.exists(_.isRunning)) {
-          Try(activityControl.start())
-        }
+      // tolerantText accepts an empty body (parse.json would 400 it), meaning "general update only".
+      validateOptionalJson(UpdateGlobalVocabularyRequest()) { updateRequest =>
+        updateRequest.iri.foreach(GlobalVocabularyCache.putVocabularyInQueue)
+        // Start the cache activity, or ensure one more run after the current one
+        workspace.activity[GlobalVocabularyCache].control.startOrReRun()
         NoContent
       }
   }

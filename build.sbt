@@ -240,7 +240,7 @@ lazy val serializationJson = (project in file("silk-plugins/silk-serialization-j
   .settings(
     name := "Silk Serialization JSON",
     libraryDependencies += "com.typesafe.play" %% "play-json" % "2.10.8",
-    libraryDependencies += "io.swagger.core.v3" % "swagger-annotations" % "2.2.45"
+    libraryDependencies += "io.swagger.core.v3" % "swagger-annotations" % "2.2.52"
   )
 
 lazy val persistentCaching = (project in file("silk-plugins/silk-persistent-caching"))
@@ -429,7 +429,7 @@ lazy val workbenchOpenApi = (project in file("silk-workbench/silk-workbench-open
   .settings(
     name := "Silk Workbench OpenAPI",
     libraryDependencies += "io.kinoplan" %% "swagger-play" % "0.0.7" exclude("org.scala-lang.modules", "scala-java8-compat_2.13") ,
-    libraryDependencies += "io.swagger.parser.v3" % "swagger-parser-v3" % "2.1.39",
+    libraryDependencies += "io.swagger.parser.v3" % "swagger-parser-v3" % "2.1.45",
     libraryDependencies += "com.networknt" % "json-schema-validator" % "1.5.9",
     libraryDependencies += "org.webjars" % "swagger-ui" % "5.32.1"
   )

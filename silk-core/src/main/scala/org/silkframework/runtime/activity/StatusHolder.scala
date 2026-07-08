@@ -46,8 +46,11 @@ class StatusHolder(log: Logger = Logger.getLogger(classOf[StatusHolder].getName)
 
   /**
    * Updates the current status.
+   *
+   * @param force Also accept a running status while in Canceling state. Used for control-plane transitions to a new
+   *              run, which must win over the Canceling state of the previous run.
    */
-  def update(newStatus: Status, logStatus: Boolean = true): Unit = {
+  def update(newStatus: Status, logStatus: Boolean = true, force: Boolean = false): Unit = {
     // Log new status change if requested
     if(logStatus) {
       val message = newStatus.toString + " " + projectAndTaskId.getOrElse("")
@@ -66,7 +69,7 @@ class StatusHolder(log: Logger = Logger.getLogger(classOf[StatusHolder].getName)
 
     // Publish status change
     // If this task is in Canceling state, it doesn't accept new status changes except the finished status.
-    if(!status.isInstanceOf[Status.Canceling] || !newStatus.isRunning) {
+    if(force || !status.isInstanceOf[Status.Canceling] || !newStatus.isRunning) {
       status = newStatus
       publish(status)
     }
