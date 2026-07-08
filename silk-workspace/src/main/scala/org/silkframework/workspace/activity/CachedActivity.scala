@@ -56,19 +56,33 @@ trait CachedActivity[T] extends Activity[T] {
                   (implicit userContext: UserContext): Unit = {
     // Consume the full-reload request here (never at the end of a run), so a concurrent startDirty can't wipe it.
     val fullReload = dirty.getAndSet(false)
-    if(!initialized) {
-      initialized = true
-      if(resource.exists && persistent) {
-        readValue(context) match {
-          case Some(value) => context.value() = value
-          case None => update(context, fullReload)
+    try {
+      if(!initialized) {
+        initialized = true
+        if(resource.exists && persistent) {
+          readValue(context) match {
+            case Some(value) =>
+              context.value() = value
+              // A reload requested before this first run must still happen: the persisted value may be stale
+              if (fullReload) {
+                update(context, fullReload)
+              }
+            case None => update(context, fullReload)
+          }
+        } else {
+          context.log.log(Level.INFO, s"No existing cache found at $resource. Loading cache...")
+          update(context, fullReload)
         }
       } else {
-        context.log.log(Level.INFO, s"No existing cache found at $resource. Loading cache...")
         update(context, fullReload)
       }
-    } else {
-      update(context, fullReload)
+    } catch {
+      case ex: Throwable =>
+        // The reload did not complete: restore the request so the next run does not downgrade to an incremental update
+        if (fullReload) {
+          dirty.set(true)
+        }
+        throw ex
     }
   }
 
