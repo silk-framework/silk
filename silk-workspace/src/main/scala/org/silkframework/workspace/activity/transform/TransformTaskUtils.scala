@@ -31,7 +31,7 @@ object TransformTaskUtils {
             case Some(transformTask) =>
               transformTask.asDataSource(transformTask.data.selection.typeUri)
             case None =>
-              task.project.task[GenericDatasetSpec](sourceId).data.source
+              ExecutorRegistry.access(task.project.task[GenericDatasetSpec](sourceId)).source
           }
       }
     }
@@ -42,7 +42,7 @@ object TransformTaskUtils {
     def asDataSource(typeUri: Uri)
                     (implicit userContext: UserContext): DataSource = {
       val transformSpec = task.data
-      val source = task.project.task[GenericDatasetSpec](transformSpec.selection.inputId).data.source
+      val source = ExecutorRegistry.access(task.project.task[GenericDatasetSpec](transformSpec.selection.inputId)).source
 
       // Find the rule that generates the selected type
       if(typeUri.uri.isEmpty) {

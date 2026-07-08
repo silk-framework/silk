@@ -18,6 +18,7 @@ import org.silkframework.config._
 import org.silkframework.dataset._
 import org.silkframework.entity.paths.{TypedPath, UntypedPath}
 import org.silkframework.entity.{EntitySchema, Restriction, ValueType}
+import org.silkframework.execution.ExecutorRegistry
 import org.silkframework.execution.typed.{LinkGenerator, LinksEntitySchema}
 import org.silkframework.rule.evaluation.ReferenceLinks
 import org.silkframework.rule.input.{Input, PathInput, RuleBlockInput, TransformInput, Transformer}
@@ -74,7 +75,7 @@ case class LinkSpec(@Param(label = "Source input", value = "The source input to 
 
   def findSources(datasets: Iterable[Task[DatasetSpec[Dataset]]])
                  (implicit userContext: UserContext): DPair[DataSource] = {
-    DPair.fromSeq(dataSelections.map(_.inputId).map(id => datasets.find(_.id == id).map(_.source).getOrElse(EmptySource)))
+    DPair.fromSeq(dataSelections.map(_.inputId).map(id => datasets.find(_.id == id).map(ExecutorRegistry.access(_).source).getOrElse(EmptySource)))
   }
 
   def entityDescriptions: DPair[EntitySchema] = {

@@ -3,6 +3,7 @@ package controllers.util
 import org.apache.jena.rdf.model.{Model, ModelFactory}
 import org.apache.jena.riot.{Lang, RDFLanguages}
 import org.silkframework.config.{Prefixes, Task, TaskSpec}
+import org.silkframework.execution.ExecutorRegistry
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.dataset._
 import org.silkframework.dataset.rdf.{EntityRetrieverStrategy, SparqlParams}
@@ -60,7 +61,7 @@ object ProjectUtils {
                       (implicit resourceLoader: ResourceManager,
                        userContext: UserContext): DataSource = {
     val dataset = createDataset(xmlRoot, datasetId)
-    dataset.source
+    ExecutorRegistry.access(dataset).source
   }
 
   def createDatasets(xmlRoot: NodeSeq,
@@ -196,7 +197,7 @@ object ProjectUtils {
     } else {
       // Don't allow to read any resources like files, SPARQL endpoint is allowed, which does not need resources
       val dataset = createDataset(dataSink, None)
-      (null, dataset.entitySink)
+      (null, ExecutorRegistry.access(dataset).entitySink)
     }
   }
 
@@ -211,7 +212,7 @@ object ProjectUtils {
     } else {
       // Don't allow to read any resources like files, SPARQL endpoint is allowed, which does not need resources
       val dataset = createDataset(xmlRoot, None)
-      (null, dataset.linkSink)
+      (null, ExecutorRegistry.access(dataset).linkSink)
     }
   }
 

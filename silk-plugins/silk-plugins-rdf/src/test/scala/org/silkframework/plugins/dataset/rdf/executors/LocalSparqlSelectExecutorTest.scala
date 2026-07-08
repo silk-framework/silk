@@ -5,7 +5,7 @@ import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.must.Matchers
 import org.silkframework.config.{PlainTask, Prefixes, Task}
 import org.silkframework.dataset.rdf._
-import org.silkframework.dataset.{DataSource, DatasetAccess, DatasetSpec, EntitySink, LinkSink}
+import org.silkframework.dataset.{DatasetAccess, DatasetSpec}
 import org.silkframework.entity.paths.TypedPath
 import org.silkframework.entity.{Entity, EntitySchema, ValueType}
 import org.silkframework.execution.{ExecutorOutput, ReportingIterator}
@@ -52,7 +52,7 @@ class LocalSparqlSelectExecutorTest extends AnyFlatSpec
     }
     Entity.empty("") // Make sure that Entity class is loaded
     val start = System.currentTimeMillis()
-    val entities = LocalSparqlSelectExecutor().executeOnSparqlEndpoint(task, taskWithEndpoint(sparqlEndpoint), None, executionReportUpdater = Some(reportUpdater))
+    val entities = LocalSparqlSelectExecutor().executeOnSparqlEndpoint(task, sparqlEndpoint, None, None, executionReportUpdater = Some(reportUpdater))
     val entity = entities.head
     entity.values.flatten.head mustBe "subject 0"
     (System.currentTimeMillis() - start).toInt must be < quickReactionTime
@@ -68,7 +68,7 @@ class LocalSparqlSelectExecutorTest extends AnyFlatSpec
       correctTimeout = endpoint.sparqlParams.timeout.contains(timeout)
     })
     val limit = 1000 * 1000 * 1000
-    val entities = LocalSparqlSelectExecutor().executeOnSparqlEndpoint(task, taskWithEndpoint(sparqlEndpoint), None, limit, Some(reportUpdater))
+    val entities = LocalSparqlSelectExecutor().executeOnSparqlEndpoint(task, sparqlEndpoint, None, None, limit, Some(reportUpdater))
     entities.headOption // Needed to actually execute the query
     correctTimeout mustBe true
   }
@@ -80,7 +80,7 @@ class LocalSparqlSelectExecutorTest extends AnyFlatSpec
 
     val capturedQueries = collection.mutable.ArrayBuffer.empty[String]
     val sparqlEndpoint = sparqlEndpointStub(queryCapture = q => capturedQueries += q)
-    val stubDataset = new StubRdfDataset(sparqlEndpoint)
+    val stubDataset = new StubRdfDataset()
 
     val inputSchema = EntitySchema("", typedPaths = IndexedSeq(TypedPath("s", ValueType.URI)))
     val inputEntities = Seq(
@@ -93,7 +93,7 @@ class LocalSparqlSelectExecutorTest extends AnyFlatSpec
     val reportUpdater = SparqlSelectExecutionReportUpdater(PlainTask("task", task), activityContextMock)
 
     val results = LocalSparqlSelectExecutor()
-      .executeOnDefaultDatasetPerEntity(task, stubDataset, inputTable, outputTask = None, executionReportUpdater = reportUpdater)
+      .executeOnDefaultDatasetPerEntity(task, sparqlEndpoint, inputTable, outputTask = None, executionReportUpdater = reportUpdater)
       ._1
       .toList
 
@@ -109,7 +109,7 @@ class LocalSparqlSelectExecutorTest extends AnyFlatSpec
     val task = SparqlSelectCustomTask(query, useDefaultDataset = true)
 
     val sparqlEndpoint = sparqlEndpointStub()
-    val stubDataset = new StubRdfDataset(sparqlEndpoint)
+    val stubDataset = new StubRdfDataset()
 
     val inputSchema = EntitySchema("", typedPaths = IndexedSeq(TypedPath("s", ValueType.URI)))
     val inputEntities = Seq(
@@ -122,7 +122,7 @@ class LocalSparqlSelectExecutorTest extends AnyFlatSpec
 
     an[UnboundVariablesException] must be thrownBy {
       LocalSparqlSelectExecutor()
-        .executeOnDefaultDatasetPerEntity(task, stubDataset, inputTable, outputTask = None, executionReportUpdater = reportUpdater)
+        .executeOnDefaultDatasetPerEntity(task, sparqlEndpoint, inputTable, outputTask = None, executionReportUpdater = reportUpdater)
         ._1
         .toList
     }
@@ -136,7 +136,7 @@ class LocalSparqlSelectExecutorTest extends AnyFlatSpec
     val activityContextMock = TestMocks.activityContextMock()
     val reportUpdater = SparqlSelectExecutionReportUpdater(PlainTask("task", task), activityContextMock)
     val sparqlEndpoint = sparqlEndpointStub(queryCapture = q => capturedQuery = q)
-    LocalSparqlSelectExecutor().executeOnSparqlEndpoint(task, taskWithEndpoint(sparqlEndpoint, graphUri = Some(graphUri)), None, executionReportUpdater = Some(reportUpdater)).headOption
+    LocalSparqlSelectExecutor().executeOnSparqlEndpoint(task, sparqlEndpoint, Some(inputTaskWithGraph(graphUri)), None, executionReportUpdater = Some(reportUpdater)).headOption
 
     task.outputSchema.typedPaths.map(_.toUntypedPath.normalizedSerialization) mustBe IndexedSeq("s", "p", "o")
     capturedQuery must include(s"<$graphUri>")
@@ -151,7 +151,7 @@ class LocalSparqlSelectExecutorTest extends AnyFlatSpec
     val reportUpdater = SparqlSelectExecutionReportUpdater(PlainTask("task", task), TestMocks.activityContextMock())
     val sparqlEndpoint = sparqlEndpointStub()
     val entities = LocalSparqlSelectExecutor()
-      .executeOnSparqlEndpoint(task, taskWithEndpoint(sparqlEndpoint, graphUri = Some("http://example.org/g")), None,
+      .executeOnSparqlEndpoint(task, sparqlEndpoint, Some(inputTaskWithGraph("http://example.org/g")), None,
         limit = 2, executionReportUpdater = Some(reportUpdater))
 
     entities.effectiveSchema.typedPaths.map(_.toUntypedPath.normalizedSerialization) mustBe IndexedSeq("s", "p", "o")
@@ -180,7 +180,7 @@ class LocalSparqlSelectExecutorTest extends AnyFlatSpec
     Entity.empty("") // Make sure that Entity class is loaded
     val start = System.currentTimeMillis()
     val entities = LocalSparqlSelectExecutor()
-      .executeOnSparqlEndpoint(task, taskWithEndpoint(sparqlEndpoint, graphUri = Some("http://example.org/g")), None, executionReportUpdater = Some(reportUpdater))
+      .executeOnSparqlEndpoint(task, sparqlEndpoint, Some(inputTaskWithGraph("http://example.org/g")), None, executionReportUpdater = Some(reportUpdater))
     entities.effectiveSchema.typedPaths.map(_.toUntypedPath.normalizedSerialization) mustBe IndexedSeq("s", "p", "o")
     val entity = entities.head
     entity.values.flatten.head mustBe "subject 0"
@@ -199,7 +199,7 @@ class LocalSparqlSelectExecutorTest extends AnyFlatSpec
       override def ask(query: String)(implicit userContext: UserContext): SparqlAskResult = ???
     }
     val entities = LocalSparqlSelectExecutor()
-      .executeOnSparqlEndpoint(task, taskWithEndpoint(sparqlEndpoint, graphUri = Some("http://example.org/g")), None, executionReportUpdater = Some(reportUpdater))
+      .executeOnSparqlEndpoint(task, sparqlEndpoint, Some(inputTaskWithGraph("http://example.org/g")), None, executionReportUpdater = Some(reportUpdater))
     entities.effectiveSchema.typedPaths.map(_.toUntypedPath.normalizedSerialization) mustBe IndexedSeq("s", "p", "o")
     entities.toList mustBe empty
   }
@@ -216,7 +216,7 @@ class LocalSparqlSelectExecutorTest extends AnyFlatSpec
       override def ask(query: String)(implicit userContext: UserContext): SparqlAskResult = ???
     }
     val entities = LocalSparqlSelectExecutor()
-      .executeOnSparqlEndpoint(task, taskWithEndpoint(sparqlEndpoint), None, executionReportUpdater = Some(reportUpdater))
+      .executeOnSparqlEndpoint(task, sparqlEndpoint, None, None, executionReportUpdater = Some(reportUpdater))
     // Fast path: effectiveSchema returns the static schema without invoking select (which would throw).
     entities.effectiveSchema.typedPaths.map(_.toUntypedPath.normalizedSerialization) mustBe IndexedSeq("a", "b")
   }
@@ -228,7 +228,7 @@ class LocalSparqlSelectExecutorTest extends AnyFlatSpec
     task.outputSchema.typedPaths mustBe empty
 
     val sparqlEndpoint = sparqlEndpointStub()
-    val stubDataset = new StubRdfDataset(sparqlEndpoint)
+    val stubDataset = new StubRdfDataset()
     val inputSchema = EntitySchema("", typedPaths = IndexedSeq(TypedPath("s", ValueType.URI)))
     val inputEntities = Seq(
       Entity("urn:in:1", IndexedSeq(Seq("http://example.org/a")), inputSchema),
@@ -238,7 +238,7 @@ class LocalSparqlSelectExecutorTest extends AnyFlatSpec
     val reportUpdater = SparqlSelectExecutionReportUpdater(PlainTask("task", task), TestMocks.activityContextMock())
 
     val (entities, schema) = LocalSparqlSelectExecutor()
-      .executeOnDefaultDatasetPerEntity(task, stubDataset, inputTable, outputTask = None, executionReportUpdater = reportUpdater)
+      .executeOnDefaultDatasetPerEntity(task, sparqlEndpoint, inputTable, outputTask = None, executionReportUpdater = reportUpdater)
 
     schema.typedPaths.map(_.toUntypedPath.normalizedSerialization) mustBe IndexedSeq("s", "p", "o")
     val rows = entities.toList
@@ -253,13 +253,13 @@ class LocalSparqlSelectExecutorTest extends AnyFlatSpec
 
     val capturedQueries = collection.mutable.ArrayBuffer.empty[String]
     val sparqlEndpoint = sparqlEndpointStub(queryCapture = q => capturedQueries += q)
-    val stubDataset = new StubRdfDataset(sparqlEndpoint)
+    val stubDataset = new StubRdfDataset()
     val inputSchema = EntitySchema("", typedPaths = IndexedSeq(TypedPath("s", ValueType.URI)))
     val inputTable = GenericEntityTable(Seq.empty[Entity], inputSchema, PlainTask("inputTask", DatasetSpec(stubDataset)))
     val reportUpdater = SparqlSelectExecutionReportUpdater(PlainTask("task", task), TestMocks.activityContextMock())
 
     val (entities, schema) = LocalSparqlSelectExecutor()
-      .executeOnDefaultDatasetPerEntity(task, stubDataset, inputTable, outputTask = None, executionReportUpdater = reportUpdater)
+      .executeOnDefaultDatasetPerEntity(task, sparqlEndpoint, inputTable, outputTask = None, executionReportUpdater = reportUpdater)
 
     schema.typedPaths mustBe empty
     entities.toList mustBe empty
@@ -280,14 +280,13 @@ class LocalSparqlSelectExecutorTest extends AnyFlatSpec
 
     val capturedQueries = collection.mutable.ArrayBuffer.empty[String]
     val sparqlEndpoint = sparqlEndpointStub(queryCapture = q => capturedQueries += q)
-    val stubDataset = new StubRdfDataset(sparqlEndpoint)
     // The input task carries the graph parameter that input.config.graph resolves to; it yields no entities.
-    val inputTask = PlainTask("inputTask", DatasetSpec(new StubRdfDataset(sparqlEndpoint, Some(graphUri))))
+    val inputTask = PlainTask("inputTask", DatasetSpec(new StubRdfDataset(Some(graphUri))))
     val inputTable = GenericEntityTable(Seq.empty[Entity], EmptyEntityTable.schema, inputTask)
     val reportUpdater = SparqlSelectExecutionReportUpdater(PlainTask("task", task), TestMocks.activityContextMock())
 
     val (entities, schema) = LocalSparqlSelectExecutor()
-      .executeOnDefaultDatasetPerEntity(task, stubDataset, inputTable, outputTask = None, executionReportUpdater = reportUpdater)
+      .executeOnDefaultDatasetPerEntity(task, sparqlEndpoint, inputTable, outputTask = None, executionReportUpdater = reportUpdater)
     val rows = entities.toList
 
     capturedQueries.toSeq must have size 1
@@ -310,13 +309,12 @@ class LocalSparqlSelectExecutorTest extends AnyFlatSpec
 
     val capturedQueries = collection.mutable.ArrayBuffer.empty[String]
     val sparqlEndpoint = sparqlEndpointStub(queryCapture = q => capturedQueries += q)
-    val stubDataset = new StubRdfDataset(sparqlEndpoint)
-    val inputTask = PlainTask("inputTask", DatasetSpec(new StubRdfDataset(sparqlEndpoint, Some(graphUri))))
+    val inputTask = PlainTask("inputTask", DatasetSpec(new StubRdfDataset(Some(graphUri))))
     val inputTable = GenericEntityTable(Seq.empty[Entity], EmptyEntityTable.schema, inputTask)
     val reportUpdater = SparqlSelectExecutionReportUpdater(PlainTask("task", task), TestMocks.activityContextMock())
 
     val (entities, schema) = LocalSparqlSelectExecutor()
-      .executeOnDefaultDatasetPerEntity(task, stubDataset, inputTable, outputTask = None, executionReportUpdater = reportUpdater)
+      .executeOnDefaultDatasetPerEntity(task, sparqlEndpoint, inputTable, outputTask = None, executionReportUpdater = reportUpdater)
     val rows = entities.toList
 
     capturedQueries.toSeq must have size 1
@@ -324,27 +322,25 @@ class LocalSparqlSelectExecutorTest extends AnyFlatSpec
     rows.size mustBe rowsPerQuery
   }
 
-  private def taskWithEndpoint(sparqlEndpoint: SparqlEndpoint, graphUri: Option[String] = None): Task[DatasetSpec[RdfDataset]] = {
-    PlainTask("testDataset", DatasetSpec(new StubRdfDataset(sparqlEndpoint, graphUri)))
+  /** Input task carrying a `graph` parameter that templates resolve via `input.config.graph`. */
+  private def inputTaskWithGraph(graphUri: String): Task[DatasetSpec[RdfDataset]] = {
+    PlainTask("testDataset", DatasetSpec(new StubRdfDataset(Some(graphUri))))
   }
 
-  private class StubRdfDataset(endpoint: SparqlEndpoint, graphUri: Option[String] = None) extends RdfDataset {
-    override def sparqlEndpoint: SparqlEndpoint = endpoint
+  /** Minimal RDF dataset that only carries parameters; endpoint access is decoupled and provided separately. */
+  private class StubRdfDataset(graphUri: Option[String] = None) extends RdfDataset {
     override def parameters(implicit pluginContext: PluginContext): ParameterValues = {
       graphUri match {
         case Some(g) => ParameterValues.fromStringMap(Map("graph" -> g))
         case None => ParameterValues.empty
       }
     }
-    override def source(implicit userContext: UserContext): DataSource = ???
-    override def linkSink(implicit userContext: UserContext): LinkSink = ???
-    override def entitySink(implicit userContext: UserContext): EntitySink = ???
   }
 
   it should "read from the execution-scoped dataset access, not the shared dataset endpoint" in {
     // Regression: two instances of the same workflow run in parallel against the same workflow-scoped
     // InMemoryDataset task. The select executor must read the model of its own execution, not the
-    // shared (and concurrently overwritten) dataset.sparqlEndpoint reference.
+    // shared (and concurrently overwritten) dataset endpoint reference.
     val dataset = InMemoryDataset(workflowScoped = true)
     val task = PlainTask("inMemorySource", DatasetSpec(dataset))
 
@@ -364,8 +360,10 @@ class LocalSparqlSelectExecutorTest extends AnyFlatSpec
       .update("INSERT DATA { <http://s2> <http://p> <http://o2> . <http://s3> <http://p> <http://o3> }")
 
     // execution2 accessed last, so the shared dataset endpoint now points at execution2's model.
-    // This is the value the executor would (wrongly) return if it read the dataset endpoint directly.
-    dataset.sparqlEndpoint.select(tripleCountQuery).bindings.size mustBe 2
+    // An out-of-workflow access sees exactly that endpoint — the value the select executor would
+    // (wrongly) return if it read the shared dataset endpoint instead of its own execution's model.
+    sparqlEndpoint(new InMemoryDatasetExecutor().access(task, LocalExecution(false)))
+      .select(tripleCountQuery).bindings.size mustBe 2
 
     val selectTask = PlainTask("select", SparqlSelectCustomTask(tripleCountQuery))
     val input = Seq(SparqlEndpointEntitySchema.create(task))

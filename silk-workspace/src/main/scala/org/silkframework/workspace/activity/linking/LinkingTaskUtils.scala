@@ -2,6 +2,7 @@ package org.silkframework.workspace.activity.linking
 
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.dataset.{DataSource, Dataset, DatasetSpec, EmptySource, LinkSink}
+import org.silkframework.execution.ExecutorRegistry
 import org.silkframework.rule.{DatasetSelection, LinkSpec, LinkageRuleExecution, TaskContext, TransformSpec}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.PluginContext
@@ -33,7 +34,7 @@ object LinkingTaskUtils {
           transformTask.asDataSource(selection.typeUri)
         case None =>
           task.project.taskOption[GenericDatasetSpec](selection.inputId)
-            .map(_.data.source)
+            .map(ExecutorRegistry.access(_).source)
             // Only datasets and transform inputs supported, everything else will be empty.
             .getOrElse(EmptySource)
       }
@@ -43,7 +44,7 @@ object LinkingTaskUtils {
       * Retrieves all link sinks for this linking task.
       */
     def linkSink(implicit userContext: UserContext): Option[LinkSink] = {
-      task.data.output.flatMap(o => task.project.taskOption[DatasetSpec[Dataset]](o)).map(_.data.linkSink)
+      task.data.output.flatMap(o => task.project.taskOption[DatasetSpec[Dataset]](o)).map(ExecutorRegistry.access(_).linkSink)
     }
 
     /**

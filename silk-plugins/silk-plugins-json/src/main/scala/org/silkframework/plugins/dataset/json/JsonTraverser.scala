@@ -257,7 +257,7 @@ case class JsonTraverser(taskId: Identifier, parentOpt: Option[ParentTraverser],
   private def nodeToString(json: JsonNode): String = {
     json match {
       case JsonBoolean(v, _) => v.toString
-      case JsonNumber(v, _) => v.toString
+      case JsonNumber(v, _) => NumberFormatter.format(v.bigDecimal)
       case JsonString(v, _) => v
       case _ => json.toString
     }

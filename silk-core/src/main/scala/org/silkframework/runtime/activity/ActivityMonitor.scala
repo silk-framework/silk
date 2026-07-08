@@ -3,7 +3,7 @@ import org.silkframework.runtime.activity.Status.Canceling
 
 import java.util.concurrent.ForkJoinPool.ManagedBlocker
 import java.util.concurrent.atomic.AtomicBoolean
-import java.util.concurrent.{ForkJoinPool, ForkJoinTask, ForkJoinWorkerThread}
+import java.util.concurrent.{ForkJoinPool, ForkJoinWorkerThread, TimeUnit}
 import java.util.logging.Logger
 import scala.reflect.ClassTag
 import scala.reflect.ClassTag._
@@ -77,26 +77,28 @@ class ActivityMonitor[T](name: String,
     * @param condition Evaluates the condition to wait for. Will be called frequently.
     */
   def blockUntil(condition: () => Boolean): Unit = {
-    val sleepTime = 500
+    val sleepTime = ActivityMonitor.blockPollIntervalMs
     while(!condition() && !status().isInstanceOf[Canceling]) {
-      helpQuiesce()
+      if(runningInOwnPool()) {
+        helpQuiesce()
+      } else {
+        ForkJoinPool.managedBlock(
+          new ManagedBlocker {
+            @volatile
+            private var releasable = false
 
-      ForkJoinPool.managedBlock(
-        new ManagedBlocker {
-          @volatile
-          private var releasable = false
+            override def block(): Boolean = {
+              Thread.sleep(sleepTime)
+              releasable = true
+              true
+            }
 
-          override def block(): Boolean = {
-            Thread.sleep(sleepTime)
-            releasable = true
-            true
+            override def isReleasable: Boolean = {
+              releasable
+            }
           }
-
-          override def isReleasable: Boolean = {
-            releasable
-          }
-        }
-      )
+        )
+      }
     }
   }
 
@@ -112,7 +114,8 @@ class ActivityMonitor[T](name: String,
     try {
       // Only execute helpQuiesce() in our own thread pool
       if(runningInOwnPool()) {
-        ForkJoinTask.helpQuiesce()
+        Thread.currentThread().asInstanceOf[ForkJoinWorkerThread]
+          .getPool.awaitQuiescence(ActivityMonitor.blockPollIntervalMs, TimeUnit.MILLISECONDS)
       }
     } finally {
       interruptEnabled.synchronized {
@@ -182,4 +185,13 @@ class ActivityMonitor[T](name: String,
     * Refers to the empty user until the activity has been started the first time.
     */
   override def startedBy: UserContext = UserContext.Empty
+}
+
+object ActivityMonitor {
+
+  /**
+    * Interval (in milliseconds) at which blocking waits re-check their condition. Also used as the upper bound for a
+    * single helpQuiesce() assist, so that the waiting condition is re-evaluated even while the pool stays busy.
+    */
+  private val blockPollIntervalMs = 500
 }

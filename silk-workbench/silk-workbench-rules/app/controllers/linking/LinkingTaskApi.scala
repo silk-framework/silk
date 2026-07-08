@@ -16,6 +16,7 @@ import io.swagger.v3.oas.annotations.{Operation, Parameter}
 import org.silkframework.config.{FixedNumberOfInputs, FixedSchemaPort, MetaData, PlainTask, Prefixes}
 import org.silkframework.dataset.Dataset
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
+import org.silkframework.execution.ExecutorRegistry
 import org.silkframework.entity._
 import org.silkframework.entity.paths.{TypedPath, UntypedPath}
 import org.silkframework.plugins.path.{PathMetaDataPlugin, StandardMetaDataPlugin}
@@ -595,12 +596,12 @@ class LinkingTaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends I
     implicit val prefixes: Prefixes = project.config.prefixes
 
     for(posOutputName <- params.get("positiveOutput")) {
-      val posOutput = project.task[GenericDatasetSpec](posOutputName.head).data.linkSink
+      val posOutput = ExecutorRegistry.access(project.task[GenericDatasetSpec](posOutputName.head)).linkSink
       posOutput.writeLinks(task.data.referenceLinks.positive, params("positiveProperty").head)
     }
 
     for(negOutputName <- params.get("negativeOutput")) {
-      val negOutput = project.task[GenericDatasetSpec](negOutputName.head).data.linkSink
+      val negOutput = ExecutorRegistry.access(project.task[GenericDatasetSpec](negOutputName.head)).linkSink
       negOutput.writeLinks(task.data.referenceLinks.negative, params("negativeProperty").head)
     }
 
