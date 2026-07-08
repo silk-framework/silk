@@ -261,6 +261,22 @@ class ActivityExecutionTest extends AnyFlatSpec with Matchers with Eventually  {
     eventually { activity.status() mustBe a[Finished] }
   }
 
+  it should "execute a re-run requested after a cancelled run that exits via thread interruption" in {
+    val counter = new AtomicInteger(0)
+    val gated = new InterruptibleActivity(counter)
+    val activity = Activity(gated)
+    activity.start()
+    eventually { counter.get() mustBe 1 }
+    // Cancel the first run, then let it exit via InterruptedException only after the re-run has been requested,
+    // so the request postdates the cancellation and must be honored even though the run failed by interruption.
+    activity.cancel()
+    eventually { gated.interruptCaught mustBe true }
+    activity.startOrReRun()
+    gated.released = true
+    eventually { counter.get() mustBe 2 }
+    eventually { activity.status() mustBe a[Finished] }
+  }
+
   it should "reach a terminal state when it is cancelled before the worker thread picks it up" in {
     val blockers = occupyAllPoolSlots()
     try {
@@ -414,6 +430,41 @@ class StubbornGatedActivity(counter: AtomicInteger) extends Activity[Boolean] {
         Thread.sleep(10)
       } catch {
         case _: InterruptedException => // Keep blocking until released, even when cancelled
+      }
+    }
+  }
+}
+
+/**
+  * Activity whose first run exits via InterruptedException once cancelled, but only after `released` is set, so a test
+  * can request a re-run before the interruption propagates. Later runs finish immediately. Used to test that a re-run
+  * requested after a cancelled, interrupt-terminated run is still honored.
+  */
+class InterruptibleActivity(counter: AtomicInteger) extends Activity[Boolean] {
+
+  @volatile
+  var released: Boolean = false
+
+  @volatile
+  var interruptCaught: Boolean = false
+
+  override def initialValue: Option[Boolean] = Some(false)
+
+  override def run(context: ActivityContext[Boolean])(implicit userContext: UserContext): Unit = {
+    val runNumber = counter.incrementAndGet()
+    context.value() = true
+    if (runNumber == 1) {
+      try {
+        while (true) {
+          Thread.sleep(10)
+        }
+      } catch {
+        case e: InterruptedException =>
+          interruptCaught = true
+          while (!released) {
+            try Thread.sleep(10) catch { case _: InterruptedException => }
+          }
+          throw e
       }
     }
   }

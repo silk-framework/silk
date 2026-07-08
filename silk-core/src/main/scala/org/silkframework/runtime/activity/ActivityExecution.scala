@@ -276,9 +276,10 @@ private class ActivityExecution[T](activity: Activity[T],
   }
 
   /* Same as finishOrRequestReRun(), but for a failed run, e.g., a cancelled run that exited via thread interruption.
-     Fatal errors always finish the activity. */
+     Fatal errors always finish the activity. InterruptedException is the normal exit of a cancelled run, so it must
+     not count as fatal here even though NonFatal rejects it. */
   private def reRunAfterFailure(ex: Throwable)(implicit user: UserContext): Boolean = StatusLock.synchronized {
-    if (reRunRequested && NonFatal(ex)) {
+    if (reRunRequested && (NonFatal(ex) || ex.isInstanceOf[InterruptedException])) {
       log.log(Level.WARNING, s"Activity '${activity.name}' failed. Executing the requested re-run regardless.", ex)
       prepareReRun()
       true
