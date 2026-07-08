@@ -12,7 +12,7 @@ import org.silkframework.runtime.plugin.PluginContext
 import org.silkframework.runtime.templating.{ExecutionTemplateVariables, ExecutionVariablesHolder, GlobalTemplateVariables, TemplateVariableScopes, TemplateVariables}
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.Identifier
-import org.silkframework.workspace.ProjectTask
+import org.silkframework.workspace.{Project, ProjectTask}
 import org.silkframework.workspace.activity.workflow.ReconfigureTasks.ReconfigurableTask
 
 import scala.collection.mutable
@@ -52,9 +52,7 @@ trait WorkflowExecutor[ExecType <: ExecutionType] extends Activity[WorkflowExecu
     * execution variables as defaults, overridden by the variables provided for this run.
     */
   protected def pluginContextWithExecutionVars(implicit workflowRunContext: WorkflowRunContext): PluginContext = {
-    val templateVars =
-      ExecutionTemplateVariables(Seq(GlobalTemplateVariables, project.templateVariables), workflowRunContext.executionVariablesHolder)
-    PluginContext(project.config.prefixes, project.resources, workflowRunContext.userContext, Some(project.id), templateVars)
+    WorkflowExecutor.pluginContext(project, workflowRunContext.executionVariablesHolder)(workflowRunContext.userContext)
   }
 
   /**
@@ -378,6 +376,13 @@ case class WorkflowRunContext(activityContext: ActivityContext[WorkflowExecution
 }
 
 object WorkflowExecutor {
+
+  /** Plugin context for executing tasks of a workflow run: the execution scope is backed by the given shared holder. */
+  def pluginContext(project: Project, executionVariablesHolder: ExecutionVariablesHolder)
+                   (implicit userContext: UserContext): PluginContext = {
+    val templateVars = ExecutionTemplateVariables(Seq(GlobalTemplateVariables, project.templateVariables), executionVariablesHolder)
+    PluginContext(project.config.prefixes, project.resources, userContext, Some(project.id), templateVars)
+  }
 
   /**
     * Builds the execution variables for a run: the execution variables defined on the executed task

@@ -7,19 +7,9 @@ import org.silkframework.runtime.templating.TemplateVariables.TemplateVariablesF
 import scala.xml.Node
 
 /**
-  * A parameter type that holds workflow variables.
-  * Workflow variables are set at the beginning of each workflow execution and are available in templates.
+  * A parameter type that holds template variables, e.g., the execution-variable overrides of a workflow run.
   */
-case class TemplateVariablesParameter(variables: TemplateVariables = TemplateVariables.empty) extends PluginObjectParameterNoSchema {
-
-  /**
-    * Merges these variables with overrides.
-    * Override values replace defaults with the same name.
-    */
-  def merge(overrides: TemplateVariablesParameter): TemplateVariablesParameter = {
-    TemplateVariablesParameter(variables merge overrides.variables)
-  }
-}
+case class TemplateVariablesParameter(variables: TemplateVariables = TemplateVariables.empty) extends PluginObjectParameterNoSchema
 
 object TemplateVariablesParameter {
 

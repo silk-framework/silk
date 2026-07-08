@@ -19,7 +19,6 @@ import org.silkframework.rule.execution.TransformReport.RuleResult
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.{ParameterValues, PluginContext}
 import org.silkframework.runtime.serialization.{ReadContext, XmlSerialization}
-import org.silkframework.runtime.templating.TemplateVariables
 import org.silkframework.util.Identifier
 import org.silkframework.workbench.utils.UnsupportedMediaTypeException
 import org.silkframework.workbench.workflow.WorkflowWithPayloadExecutor
@@ -83,7 +82,7 @@ class WorkflowApi @Inject() () extends InjectedController with UserContextAction
   def executeWorkflow(projectName: String, taskName: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     val project = fetchProject(projectName)
     val workflow = project.task[Workflow](taskName)
-    val executionVars = parseExecutionVariablesFromRequest
+    val executionVars = VariableWorkflowRequestUtils.parseExecutionVariables
     val activity = workflow.activity[LocalWorkflowExecutorGeneratingProvenance]
     if (activity.control.status().isRunning) {
       PreconditionFailed
@@ -306,7 +305,7 @@ class WorkflowApi @Inject() () extends InjectedController with UserContextAction
 
   private def workflowParameterValues(implicit request: Request[AnyContent]): ParameterValues = {
     val configParams = ParameterValues.fromStringMap(workflowConfiguration)
-    val executionVars = parseExecutionVariablesFromRequest
+    val executionVars = VariableWorkflowRequestUtils.parseExecutionVariables
     if(executionVars.variables.nonEmpty) {
       ParameterValues(configParams.values ++ WorkflowExecutorFactory.executionVariablesConfig(executionVars).values)
     } else {
@@ -323,15 +322,6 @@ class WorkflowApi @Inject() () extends InjectedController with UserContextAction
       case _ =>
         throw UnsupportedMediaTypeException.supportedFormats("application/xml", "application/json")
     }
-  }
-
-  /**
-    * Parses execution variables from the request.
-    * Execution variables can be provided as a JSON body with an "executionVariables" key
-    * containing a simple name-value map.
-    */
-  private def parseExecutionVariablesFromRequest(implicit request: Request[AnyContent]): TemplateVariables = {
-    VariableWorkflowRequestUtils.parseExecutionVariables
   }
 
 }

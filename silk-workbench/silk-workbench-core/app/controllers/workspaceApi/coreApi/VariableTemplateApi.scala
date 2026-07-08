@@ -15,10 +15,10 @@ import io.swagger.v3.oas.annotations.{Operation, Parameter}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.templating.exceptions._
 import org.silkframework.runtime.templating.operations.{DeleteVariableModification, UpdateVariableModification, UpdateVariablesModification}
-import org.silkframework.runtime.templating.{TemplateVariable, TemplateVariableScopes, TemplateVariables, TemplateVariablesManager}
+import org.silkframework.runtime.templating.{TemplateVariable, TemplateVariableScopes, TemplateVariables}
 import org.silkframework.runtime.validation.BadUserInputException
 import org.silkframework.serialization.json.{JsonHelpers, TemplateVariableJson, TemplateVariablesJson}
-import org.silkframework.workspace.{Project, WorkspaceFactory}
+import org.silkframework.workspace.WorkspaceFactory
 import play.api.libs.json.{JsValue, Json, OFormat}
 import play.api.mvc.{Action, AnyContent, InjectedController}
 
@@ -67,7 +67,7 @@ class VariableTemplateApi @Inject()() extends InjectedController with UserContex
                    )
                    task: Option[String]): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     val project = WorkspaceFactory().workspace.project(projectName)
-    val manager = templateVariablesManager(project, task)
+    val manager = project.variablesManager(task)
     val allVariables = manager.all
     val variablesJson = {
       try {
@@ -170,7 +170,7 @@ class VariableTemplateApi @Inject()() extends InjectedController with UserContex
                   )
                   task: Option[String]): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
       val project = WorkspaceFactory().workspace.project(projectName)
-      Ok(Json.toJson(TemplateVariableJson(templateVariablesManager(project, task).get(variableName))))
+      Ok(Json.toJson(TemplateVariableJson(project.variablesManager(task).get(variableName))))
   }
 
   @Operation(
@@ -374,7 +374,7 @@ class VariableTemplateApi @Inject()() extends InjectedController with UserContex
                       task: Option[String]): Action[JsValue] = RequestUserContextAction(parse.json) { implicit request => implicit userContext =>
       val project = WorkspaceFactory().workspace.project(projectName)
       val variableNames = ArraySeq.unsafeWrapArray(Json.fromJson[Array[String]](request.body).get)
-      val manager = templateVariablesManager(project, task)
+      val manager = project.variablesManager(task)
       val currentVariables = manager.all
 
       if(currentVariables.map.keySet != variableNames.toSet) {
@@ -461,17 +461,6 @@ class VariableTemplateApi @Inject()() extends InjectedController with UserContex
     validateJson[AutoCompleteVariableTemplateRequest] { autoCompleteRequest =>
       val response = autoCompleteRequest.execute()
       Ok(Json.toJson(response))
-    }
-  }
-
-  /**
-   * Returns the TemplateVariablesManager for either the project variables or the execution variables of a specific task within the project.
-   */
-  private def templateVariablesManager(project: Project, task: Option[String])
-                                      (implicit userContext: UserContext): TemplateVariablesManager = {
-    task match {
-      case Some(taskId) => project.anyTask(taskId).executionVariablesValueHolder
-      case None => project.templateVariables
     }
   }
 

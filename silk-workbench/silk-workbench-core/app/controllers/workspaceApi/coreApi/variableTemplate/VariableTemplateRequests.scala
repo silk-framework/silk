@@ -25,26 +25,13 @@ trait VariableTemplateRequest {
   def collectVariables(ignoreVariableName: Boolean = false, includeSensitiveVariables: Boolean = false)(implicit user: UserContext): TemplateVariables = {
     val collectedVariables = project match {
       case Some(projectName) =>
-        val proj = WorkspaceFactory().workspace.project(projectName)
-        task match {
-          case Some(taskId) =>
-            // Task context: global + all project variables + the task's execution variables (up to current variable)
-            val globalVars = GlobalTemplateVariables.all.variables
-            val projectVars = proj.templateVariables.all.variables
-            var executionVars = proj.anyTask(taskId).executionVariablesValueHolder.all.variables
-            for (name <- variableName if !ignoreVariableName) {
-              executionVars = executionVars.takeWhile(_.name != name)
-            }
-            TemplateVariables(globalVars ++ projectVars ++ executionVars)
-          case None =>
-            // Project scope: global + project variables (up to current variable)
-            var variables = proj.templateVariables.all.variables
-            for (name <- variableName if !ignoreVariableName) {
-              variables = variables.takeWhile(_.name != name)
-            }
-            variables = GlobalTemplateVariables.all.variables ++ variables
-            TemplateVariables(variables)
+        val manager = WorkspaceFactory().workspace.project(projectName).variablesManager(task)
+        // Parent scopes + the target scope's variables up to the current variable (later ones cannot be referenced)
+        var scopeVariables = manager.all.variables
+        for (name <- variableName if !ignoreVariableName) {
+          scopeVariables = scopeVariables.takeWhile(_.name != name)
         }
+        TemplateVariables(manager.parentVariables.variables ++ scopeVariables)
       case None =>
         GlobalTemplateVariables.all
     }

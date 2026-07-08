@@ -54,10 +54,7 @@ abstract class Modification {
     * The manager of the variables that are modified by this operation.
     */
   protected def variablesManager()(implicit user: UserContext): TemplateVariablesManager = {
-    taskId match {
-      case Some(id) => project.anyTask(id).executionVariablesValueHolder
-      case None => project.templateVariables
-    }
+    project.variablesManager(taskId)
   }
 
   /**
@@ -66,18 +63,14 @@ abstract class Modification {
     * For the execution variables of a task, updates and persists them on the task.
     */
   def execute()(implicit user: UserContext): Unit = {
+    val manager = variablesManager()
+    val currentVariables = manager.all
+    val newVariables = updateVariables(currentVariables, manager.parentVariables.withoutSensitiveVariables())
     taskId match {
       case Some(id) =>
-        val projectTask = project.anyTask(id)
-        val manager = projectTask.executionVariablesValueHolder
-        val currentVariables = manager.all
-        val newVariables = updateVariables(currentVariables, manager.parentVariables.withoutSensitiveVariables())
-        updateExecutionVariablesAndTask(projectTask, currentVariables, newVariables)
+        updateExecutionVariablesAndTask(project.anyTask(id), currentVariables, newVariables)
         log.info(s"$operation.")
       case None =>
-        val manager = project.templateVariables
-        val currentVariables = manager.all
-        val newVariables = updateVariables(currentVariables, manager.parentVariables.withoutSensitiveVariables())
         val updatedTaskIds = updateTasks(newVariables)
         manager.put(newVariables)
         // Execution-variable templates are resolved at save time, so re-resolve them against the updated variables.
@@ -103,9 +96,10 @@ abstract class Modification {
     val currentContext = PluginContext.fromTask(projectTask, project)
     val updatedData =
       try {
-        if (hasUpdatedTemplateValues(projectTask.parameters(currentContext), baseVariables merge currentVariables, baseVariables merge newVariables)) {
+        val parameters = projectTask.parameters(currentContext)
+        if (hasUpdatedTemplateValues(parameters, baseVariables merge currentVariables, baseVariables merge newVariables)) {
           val newContext = currentContext.copy(templateVariables = currentContext.templateVariables.withExecutionDefaults(newVariables))
-          Some(projectTask.withParameters(projectTask.parameters(currentContext), dropExistingValues = true)(newContext))
+          Some(projectTask.withParameters(parameters, dropExistingValues = true)(newContext))
         } else {
           None
         }
@@ -198,7 +192,7 @@ abstract class Modification {
   }
 
   /** The evaluation issues of a task's execution variables that are caused by the removed variables. */
-  private def dependentExecutionVariableIssues(task: ProjectTask[_ <: TaskSpec],
+  protected def dependentExecutionVariableIssues(task: ProjectTask[_ <: TaskSpec],
                                                parentVariables: TemplateVariables,
                                                removedVariableNames: Set[String]): Seq[TemplateVariableEvaluationException] = {
     try {

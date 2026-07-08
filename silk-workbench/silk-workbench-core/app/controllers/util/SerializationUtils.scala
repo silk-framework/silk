@@ -15,6 +15,7 @@ import play.api.mvc._
 import Serialization.defaultMimeTypes
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.resource.EmptyResourceManager
+import org.silkframework.serialization.json.JsonSerializers.TaskJsonFormat
 
 import scala.reflect.ClassTag
 import scala.xml.{Elem, Node}
@@ -245,8 +246,8 @@ object SerializationUtils {
   def executionVariablesIfProvided(task: Task[_ <: TaskSpec])
                                   (implicit request: Request[AnyContent]): Option[TemplateVariables] = {
     val provided = request.body match {
-      case AnyContentAsJson(json) => (json \ "executionVariables").isDefined // key of TaskJsonFormat.EXECUTION_VARIABLES
-      case AnyContentAsXml(xml) => (xml.head \ "ExecutionVariables").nonEmpty // element written by Task.writeExecutionVariablesXml
+      case AnyContentAsJson(json) => (json \ TaskJsonFormat.EXECUTION_VARIABLES).isDefined
+      case AnyContentAsXml(xml) => (xml.head \ Task.EXECUTION_VARIABLES_ELEMENT).nonEmpty
       case _ => false
     }
     if (provided) Some(task.executionVariables) else None

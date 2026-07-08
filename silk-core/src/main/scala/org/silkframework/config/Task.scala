@@ -144,6 +144,9 @@ object Task {
 
   implicit object GenericTaskFormat extends TaskFormat[TaskSpec]
 
+  /** Name of the XML element that holds the execution variables of a task. */
+  final val EXECUTION_VARIABLES_ELEMENT = "ExecutionVariables"
+
   /**
     * Reads the execution variables of a task from its XML serialization.
     */
@@ -155,13 +158,13 @@ object Task {
     * Reads the execution variables of a task, or None if the serialization contains no `ExecutionVariables` element.
     */
   def readExecutionVariablesXmlOpt(node: Node)(implicit readContext: ReadContext): Option[TemplateVariables] = {
-    (node \ "ExecutionVariables").headOption.map(XmlSerialization.fromXml[TemplateVariables])
+    (node \ EXECUTION_VARIABLES_ELEMENT).headOption.map(XmlSerialization.fromXml[TemplateVariables])
   }
 
   /**
     * Serializes the execution variables of a task as an `ExecutionVariables` XML element.
     */
   def writeExecutionVariablesXml(executionVariables: TemplateVariables)(implicit writeContext: WriteContext[Node]): Node = {
-    XmlSerialization.toXml[TemplateVariables](executionVariables).asInstanceOf[Elem].copy(label = "ExecutionVariables")
+    XmlSerialization.toXml[TemplateVariables](executionVariables).asInstanceOf[Elem].copy(label = EXECUTION_VARIABLES_ELEMENT)
   }
 }

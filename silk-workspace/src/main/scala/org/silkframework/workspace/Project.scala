@@ -51,6 +51,14 @@ class Project(initialConfig: ProjectConfig, provider: WorkspaceProvider, val res
 
   val templateVariables: TemplateVariablesManager = new ProjectTemplateVariablesManager(provider.projectVariables(initialConfig.id)(loadingUser), loadingUser)
 
+  /** The variables manager for either the project variables or, if a task is given, the execution variables of that task. */
+  def variablesManager(taskId: Option[String])(implicit userContext: UserContext): TemplateVariablesManager = {
+    taskId match {
+      case Some(id) => anyTask(id).executionVariablesValueHolder
+      case None => templateVariables
+    }
+  }
+
   val cacheResources: ResourceManager = provider.projectCache(initialConfig.id)
 
   @volatile

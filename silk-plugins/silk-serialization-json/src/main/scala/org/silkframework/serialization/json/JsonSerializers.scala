@@ -1109,7 +1109,7 @@ object JsonSerializers {
                                                  dependentTaskFormatter: Option[String => JsValue] = None)(implicit dataFormat: JsonFormat[T]) extends JsonFormat[LoadedTask[T]] {
 
     final val PROJECT = "project"
-    final val EXECUTION_VARIABLES = "executionVariables"
+    final val EXECUTION_VARIABLES = TaskJsonFormat.EXECUTION_VARIABLES
     final val PROPERTIES = "properties"
     final val RELATIONS = "relations"
     final val SCHEMATA = "schemata"
@@ -1261,6 +1261,12 @@ object JsonSerializers {
         "paths" -> JsArray(paths)
       )
     }
+  }
+
+  object TaskJsonFormat {
+
+    /** Name of the JSON attribute that holds the execution variables of a task. */
+    final val EXECUTION_VARIABLES = "executionVariables"
   }
 
   /**

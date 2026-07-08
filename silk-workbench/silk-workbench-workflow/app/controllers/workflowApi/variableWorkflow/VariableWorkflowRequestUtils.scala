@@ -316,7 +316,7 @@ object VariableWorkflowRequestUtils {
         "configuration" -> ParameterStringValue(workflowConfig.toString()),
         "configurationType" -> ParameterStringValue(jsonMimeType),
         "optionalPrimaryResourceManager" -> ParameterObjectValue(OptionalPrimaryResourceManagerParameter(Some(variableWorkflowFileResourceManager))),
-        WorkflowExecutorFactory.EXECUTION_VARIABLES_PARAMETER -> ParameterObjectValue(toTemplateVariablesParameter(executionVars))
+        WorkflowExecutorFactory.EXECUTION_VARIABLES_PARAMETER -> ParameterObjectValue(TemplateVariablesParameter(executionVars))
       )),
       variableDataSinkConfig = replaceableDataSinkConfigOpt.map(_.mimeType),
       executionVariables = executionVars
@@ -401,19 +401,8 @@ object VariableWorkflowRequestUtils {
         Map.empty
     }
 
-    if(fromBody.nonEmpty) {
-      TemplateVariables(fromBody.map { case (name, value) =>
-        TemplateVariable(name, value, scope = TemplateVariableScopes.execution)
-      }.toSeq)
-    } else {
-      TemplateVariables.empty
-    }
-  }
-
-  /**
-    * Converts template variables to a TemplateVariablesParameter.
-    */
-  private def toTemplateVariablesParameter(vars: TemplateVariables): TemplateVariablesParameter = {
-    TemplateVariablesParameter(vars)
+    TemplateVariables(fromBody.map { case (name, value) =>
+      TemplateVariable(name, value, scope = TemplateVariableScopes.execution)
+    }.toSeq)
   }
 }
