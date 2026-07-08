@@ -24,6 +24,7 @@ import org.silkframework.rule.input.{InlineTransformer, TransformInput}
 import org.silkframework.rule.plugins.distance.equality.EqualityMetric
 import org.silkframework.rule.similarity.Comparison
 import org.silkframework.runtime.resource.Resource
+import org.silkframework.runtime.templating.{TemplateVariable, TemplateVariableScopes, TemplateVariables}
 import org.silkframework.serialization.json.JsonSerializers._
 import org.silkframework.util.{DPair, Uri}
 import org.silkframework.workspace.activity.dataset.TypesCache
@@ -60,10 +61,11 @@ class WorkspaceApiTest extends PlaySpec with IntegrationTestTrait with Matchers 
       val datasetName = "oneTripleInMemoryDataset"
       val newProject = "newProject"
       val p = retrieveOrCreateProject(project)
-      p.addAnyTask(datasetName, new DatasetSpec(inMemoryDataset))
+      p.addAnyTask(datasetName, new DatasetSpec(inMemoryDataset), executionVariables = executionVariables("execVar", "fromSource"))
       checkResponse(client.url(s"$baseUrl/workspace/projects/$project/clone?newProject=$newProject").post(""))
       val clonedInmemoryDataset = retrieveOrCreateProject(newProject).task[GenericDatasetSpec](datasetName)
       clonedInmemoryDataset.data.plugin.asInstanceOf[InMemoryDataset].clearGraphBeforeExecution mustBe false
+      clonedInmemoryDataset.executionVariables mustBe executionVariables("execVar", "fromSource")
       // Check that this is a new instance and does not contain the old state
       ExecutorRegistry.access(clonedInmemoryDataset).source.retrievePaths("") mustBe Seq.empty
     }
@@ -84,7 +86,7 @@ class WorkspaceApiTest extends PlaySpec with IntegrationTestTrait with Matchers 
         RootMappingRule(MappingRules(Some(ComplexUriMapping(operator = transformInput(resource)))))
       )
       sourceProj.addAnyTask(datasetName, DatasetSpec(InMemoryDataset()))
-      sourceProj.addAnyTask(transformName, transformTask)
+      sourceProj.addAnyTask(transformName, transformTask, executionVariables = executionVariables("execVar", "fromSource"))
 
       // Copy tasks to the target project
       val response = client.url(s"$baseUrl/workspace/projects/${sourceProj.id}/copy")
@@ -103,8 +105,12 @@ class WorkspaceApiTest extends PlaySpec with IntegrationTestTrait with Matchers 
 
       // Make sure that tasks have been actually copied
       targetProj.allTasks.map(_.id.toString) must contain theSameElementsAs Seq(datasetName, transformName)
+      targetProj.anyTask(transformName).executionVariables mustBe executionVariables("execVar", "fromSource")
     }
   }
+
+  private def executionVariables(name: String, value: String): TemplateVariables =
+    TemplateVariables(Seq(TemplateVariable(name, value, None, None, isSensitive = false, TemplateVariableScopes.execution)))
 
   PluginRegistry.registerPlugin(classOf[TestTransformer])
 

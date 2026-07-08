@@ -9,7 +9,7 @@ import org.silkframework.execution.{DatasetExecutor, EntityHolder, ExecutorOutpu
 import org.silkframework.plugins.dataset.InternalDataset
 import org.silkframework.rule.TransformSpec
 import org.silkframework.runtime.activity.{ActivityContext, UserContext}
-import org.silkframework.runtime.templating.TemplateVariables
+import org.silkframework.runtime.templating.{ExecutionVariablesHolder, TemplateVariables}
 import org.silkframework.runtime.metrics.MeterRegistryProvider
 import org.silkframework.runtime.metrics.MetricsConfig.prefix
 import org.silkframework.workspace.ProjectTask
@@ -41,7 +41,8 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
                                  useLocalInternalDatasets: Boolean = false,
                                  clearDatasets: Boolean = true,
                                  workflowVariables: TemplateVariables = TemplateVariables.empty,
-                                 parentExecution: Option[LocalExecution] = None)
+                                 parentExecution: Option[LocalExecution] = None,
+                                 override val parentExecutionVariablesHolder: Option[ExecutionVariablesHolder] = None)
     extends WorkflowExecutor[LocalExecution] {
 
   private val log = Logger.getLogger(getClass.getName)

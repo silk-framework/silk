@@ -36,6 +36,10 @@ trait WorkflowExecutor[ExecType <: ExecutionType] extends Activity[WorkflowExecu
     * so that variable changes on the workflow are picked up without recreating this activity. */
   protected def workflowVariables: TemplateVariables
 
+  /** The enclosing run's execution-variable holder, if this workflow runs as an operator inside another
+    * workflow. When set, the nested run shares it and this workflow's own execution variables are ignored. */
+  protected def parentExecutionVariablesHolder: Option[ExecutionVariablesHolder] = None
+
   protected def currentWorkflow = workflowTask.data
 
   protected def project = workflowTask.project
@@ -119,7 +123,8 @@ trait WorkflowExecutor[ExecType <: ExecutionType] extends Activity[WorkflowExecu
       workflow = currentWorkflow,
       userContext = userContext,
       // The workflow's execution variables are read at run start, so that variable changes are picked up.
-      workflowVariables = WorkflowExecutor.buildExecutionVariables(workflowTask.executionVariables, workflowVariables)
+      workflowVariables = WorkflowExecutor.buildExecutionVariables(workflowTask.executionVariables, workflowVariables),
+      parentExecutionVariablesHolder = parentExecutionVariablesHolder
     )
 
     for (node <- workflowNodes) {
@@ -289,6 +294,7 @@ trait WorkflowExecutor[ExecType <: ExecutionType] extends Activity[WorkflowExecu
  * @param reconfiguredTasks The already tasks that have been reconfigured.
  * @param workflowVariables The execution variables for this run (defaults of the workflow, overridden by the variables provided at start).
  * @param taskExecutors The executors for each task by task id.
+ * @param parentExecutionVariablesHolder The enclosing run's execution-variable holder, if this workflow runs as an operator inside another workflow.
  */
 case class WorkflowRunContext(activityContext: ActivityContext[WorkflowExecutionReport],
                               workflow: Workflow,
@@ -296,14 +302,17 @@ case class WorkflowRunContext(activityContext: ActivityContext[WorkflowExecution
                               alreadyExecuted: mutable.Set[WorkflowNode] = mutable.Set(),
                               reconfiguredTasks: mutable.Map[WorkflowNode, Task[_ <: TaskSpec]] = mutable.Map(),
                               workflowVariables: TemplateVariables = TemplateVariables.empty,
-                              taskExecutors: mutable.Map[Identifier, Executor[_, _]] = mutable.Map()) {
+                              taskExecutors: mutable.Map[Identifier, Executor[_, _]] = mutable.Map(),
+                              parentExecutionVariablesHolder: Option[ExecutionVariablesHolder] = None) {
 
   /**
     * Shared, thread-safe holder for execution-scope variables. Mutated by plugin code during execution.
     * Seeded with the execution variables for this run: the workflow's execution variables as defaults,
     * overridden by the variables provided when the run was started.
+    * Nested workflow runs share the enclosing run's holder.
     */
-  val executionVariablesHolder: ExecutionVariablesHolder = new ExecutionVariablesHolder(workflowVariables)
+  val executionVariablesHolder: ExecutionVariablesHolder =
+    parentExecutionVariablesHolder.getOrElse(new ExecutionVariablesHolder(workflowVariables))
 
   /**
     * Listeners for updates to task reports.

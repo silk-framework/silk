@@ -167,7 +167,7 @@ object CopyTasksRequest {
       val clonedTaskSpec = copyMissingVariables(task.data, copiedVariables) {
         task.data.withParameters(taskParameters, dropExistingValues = true)(PluginContext.fromProject(targetProject))
       }
-      targetProject.updateAnyTask(taskRenameMap.getOrElse(task.id, task.id), clonedTaskSpec, Some(task.metaData))
+      targetProject.updateAnyTask(taskRenameMap.getOrElse(task.id, task.id), clonedTaskSpec, Some(task.metaData), Some(task.executionVariables))
       // Copy resources
       if (copyResources) {
         for (resource <- task.referencedResources if resource.exists) {

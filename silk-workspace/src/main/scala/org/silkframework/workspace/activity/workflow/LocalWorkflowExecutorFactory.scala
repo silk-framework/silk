@@ -17,7 +17,7 @@ import org.silkframework.workspace.activity.TaskActivityFactory
 )
 case class LocalWorkflowExecutorFactory(@Param(label = "Execution variables", value = "Variables for this workflow execution.", visibleInDialog = false)
                                         executionVariables: TemplateVariablesParameter = TemplateVariablesParameter.empty)
-  extends TaskActivityFactory[Workflow, LocalWorkflowExecutorGeneratingProvenance] {
+  extends TaskActivityFactory[Workflow, LocalWorkflowExecutorGeneratingProvenance] with WorkflowExecutorFactory {
 
   override def apply(task: ProjectTask[Workflow]): Activity[WorkflowExecutionReportWithProvenance] = {
     // Only the overrides are passed here. They are merged with the workflow's execution variables at run start.

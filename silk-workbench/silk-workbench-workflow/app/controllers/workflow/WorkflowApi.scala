@@ -17,15 +17,14 @@ import org.silkframework.config.Task
 import org.silkframework.rule.execution.TransformReport
 import org.silkframework.rule.execution.TransformReport.RuleResult
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.runtime.plugin.{ParameterObjectValue, ParameterValues, PluginContext}
-import org.silkframework.runtime.templating.TemplateVariablesParameter
+import org.silkframework.runtime.plugin.{ParameterValues, PluginContext}
 import org.silkframework.runtime.serialization.{ReadContext, XmlSerialization}
 import org.silkframework.runtime.templating.TemplateVariables
 import org.silkframework.util.Identifier
 import org.silkframework.workbench.utils.UnsupportedMediaTypeException
 import org.silkframework.workbench.workflow.WorkflowWithPayloadExecutor
 import org.silkframework.workspace.WorkspaceFactory
-import org.silkframework.workspace.activity.workflow.{LocalWorkflowExecutorGeneratingProvenance, Workflow, WorkflowTaskReport}
+import org.silkframework.workspace.activity.workflow.{LocalWorkflowExecutorGeneratingProvenance, Workflow, WorkflowExecutorFactory, WorkflowTaskReport}
 
 import play.api.libs.json.{JsArray, JsString, _}
 import play.api.mvc.{Action, AnyContent, AnyContentAsXml, _}
@@ -90,9 +89,7 @@ class WorkflowApi @Inject() () extends InjectedController with UserContextAction
       PreconditionFailed
     } else {
       // Always pass the execution variables (possibly empty) so that overrides from a previous start are reset.
-      activity.start(ParameterValues(Map(
-        "executionVariables" -> ParameterObjectValue(Left(TemplateVariablesParameter(executionVars)))
-      )))
+      activity.start(WorkflowExecutorFactory.executionVariablesConfig(executionVars))
       Ok
     }
   }
@@ -311,7 +308,7 @@ class WorkflowApi @Inject() () extends InjectedController with UserContextAction
     val configParams = ParameterValues.fromStringMap(workflowConfiguration)
     val executionVars = parseExecutionVariablesFromRequest
     if(executionVars.variables.nonEmpty) {
-      ParameterValues(configParams.values + ("executionVariables" -> ParameterObjectValue(Left(TemplateVariablesParameter(executionVars)))))
+      ParameterValues(configParams.values ++ WorkflowExecutorFactory.executionVariablesConfig(executionVars).values)
     } else {
       configParams
     }

@@ -295,7 +295,7 @@ class ProjectTaskApi @Inject()() extends InjectedController with UserContextActi
       implicit val context: PluginContext = PluginContext.fromProject(project)
       val clonedTaskSpec = Try(fromTask.data.withParameters(ParameterValues.empty)).getOrElse(fromTask.data)
       val requestMetaData = request.metaData.asMetaData
-      project.addAnyTask(newTaskId, clonedTaskSpec, requestMetaData.copy(tags = requestMetaData.tags ++ fromTask.metaData.tags))
+      project.addAnyTask(newTaskId, clonedTaskSpec, requestMetaData.copy(tags = requestMetaData.tags ++ fromTask.metaData.tags), fromTask.executionVariables)
       val itemType = ItemType.itemType(fromTask)
       val taskLink = ItemType.itemDetailsPage(itemType, projectId, newTaskId).path
       Created(Json.toJson(ItemCloneResponse(newTaskId, taskLink)))

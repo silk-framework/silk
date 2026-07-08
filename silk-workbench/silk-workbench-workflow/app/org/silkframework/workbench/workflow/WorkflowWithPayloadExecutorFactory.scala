@@ -15,7 +15,7 @@ import org.silkframework.workbench.utils.UnsupportedMediaTypeException
 import org.silkframework.workbench.workflow.WorkflowWithPayloadExecutorFactory._
 import org.silkframework.workspace.ProjectTask
 import org.silkframework.workspace.activity.TaskActivityFactory
-import org.silkframework.workspace.activity.workflow.{AllReplaceableDatasets, LocalWorkflowExecutorGeneratingProvenance, Workflow}
+import org.silkframework.workspace.activity.workflow.{AllReplaceableDatasets, LocalWorkflowExecutorGeneratingProvenance, Workflow, WorkflowExecutorFactory}
 import play.api.libs.json._
 
 import scala.xml.{Node, NodeSeq, XML}
@@ -32,7 +32,7 @@ case class WorkflowWithPayloadExecutorFactory(configuration: MultilineStringPara
                                               optionalPrimaryResourceManager: OptionalPrimaryResourceManagerParameter = OptionalPrimaryResourceManagerParameter(None),
                                               @Param(label = "Execution variables", value = "Variables for this workflow execution.", visibleInDialog = false)
                                               executionVariables: TemplateVariablesParameter = TemplateVariablesParameter.empty)
-  extends TaskActivityFactory[Workflow, WorkflowWithPayloadExecutor] {
+  extends TaskActivityFactory[Workflow, WorkflowWithPayloadExecutor] with WorkflowExecutorFactory {
 
   override def isSingleton: Boolean = false
 
