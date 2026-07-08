@@ -128,20 +128,21 @@ trait CachedActivity[T] extends Activity[T] {
   }
 
   /**
-    * Sets the dirty flag of the cached activity and starts it if it is not already running.
+    * Requests a reload of the cached activity and starts it if it is not already running.
     *
-    * @param reloadCacheFile Re-read the cache from the file.
+    * @param reloadCacheFile If true, the next run re-reads the value from the persisted cache file, which is taken as
+    *                        the new truth, instead of performing a full reload from the data source.
     * */
   def startDirty(taskActivity: ActivityControl[_], reloadCacheFile: Boolean = false)
                 (implicit userContext: UserContext): Unit = {
     if (reloadCacheFile) {
       initialized = false
+    } else {
+      dirty.set(true)
     }
 
-    dirty.set(true)
-
-    // Start the activity, or ensure one more run after the current one finishes. This guarantees the dirty flag is
-    // picked up even if it is set in the short window while a run is finishing
+    // Start the activity, or ensure one more run after the current one finishes. This guarantees the reload request
+    // is picked up even if it is made in the short window while a run is finishing
     taskActivity.startOrReRun()
   }
 }
