@@ -261,6 +261,39 @@ class ActivityExecutionTest extends AnyFlatSpec with Matchers with Eventually  {
     eventually { activity.status() mustBe a[Finished] }
   }
 
+  it should "reach a terminal state when it is cancelled before the worker thread picks it up" in {
+    // Occupy every pool slot so the activity under test cannot start and stays queued (Waiting).
+    val blockers =
+      for (_ <- 0 until parallelism) yield {
+        val activity = Activity(new SleepingActivity())
+        activity.start()
+        activity
+      }
+    try {
+      val counter = new AtomicInteger(0)
+      val gated = new GatedActivity(counter)
+      gated.released = true // would run to completion immediately if it were ever executed
+      val activity = Activity(gated)
+      activity.start()
+      // The activity is queued, waiting for a free pool slot.
+      eventually { activity.status() mustBe a[Waiting] }
+      // Cancel while still queued: this sets the activity's cancel flag before any worker thread calls markRunning().
+      activity.cancel()
+      // Free the pool so a worker thread picks up the still-queued, already-cancelled activity.
+      stopActivities(blockers)
+      // The worker runs runActivity, but since the activity was already cancelled it skips the body and the
+      // finish/cleanup transition. waitUntilFinished() returns once that worker task has completed.
+      activity.waitUntilFinished()
+      // The cancellation must have prevented the body from running ...
+      counter.get() mustBe 0
+      // ... and the activity must end in a terminal Finished state, not remain stuck in a non-terminal
+      // (Running/Canceling) state forever, which would make it permanently un-restartable via startOrReRun.
+      eventually { activity.status() mustBe a[Finished] }
+    } finally {
+      stopActivities(blockers)
+    }
+  }
+
   it should "execute a requested re-run even if the current run fails" in {
     val counter = new AtomicInteger(0)
     val gated = new GatedActivity(counter, failFirstRun = true)

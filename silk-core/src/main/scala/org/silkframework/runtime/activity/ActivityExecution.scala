@@ -219,17 +219,15 @@ private class ActivityExecution[T](activity: Activity[T],
 
   private def runActivity(runner: ForkJoinRunner)(implicit user: UserContext): Unit = synchronized {
     markRunning()
-    if (!activity.wasCancelled() && !parent.exists(_.status().isInstanceOf[Canceling])) {
-      try {
-        runWithReRuns()
-      } catch {
-        // Backstop for unexpected errors outside the per-run handling, e.g., from status observers.
-        // Failures of the activity itself have already updated the status and are rethrown unchanged.
-        case ex: Throwable if !status().isInstanceOf[Finished] =>
-          finishWithFailure(ex)
-      } finally {
-        cleanupAfterRun(runner)
-      }
+    try {
+      runWithReRuns()
+    } catch {
+      // Backstop for unexpected errors outside the per-run handling, e.g., from status observers.
+      // Failures of the activity itself have already updated the status and are rethrown unchanged.
+      case ex: Throwable if !status().isInstanceOf[Finished] =>
+        finishWithFailure(ex)
+    } finally {
+      cleanupAfterRun(runner)
     }
   }
 
@@ -247,7 +245,10 @@ private class ActivityExecution[T](activity: Activity[T],
     while (runAgain) {
       startTimestamp = Some(Instant.now)
       try {
-        activity.run(this)
+        // Skip the body if cancelled before this run started, but still finish via finishOrRequestReRun().
+        if (!activity.wasCancelled() && !parent.exists(_.status().isInstanceOf[Canceling])) {
+          activity.run(this)
+        }
         runAgain = finishOrRequestReRun()
       } catch {
         case ex: Throwable =>
