@@ -337,10 +337,7 @@ describe("Rule editor model", () => {
         currentTaskId,
         existingPorts = [],
         instanceId,
-        operatorList = [
-            operator("inputPort", 0, "InputPortOperator"),
-            operator("concat", 1, "TransformOperator"),
-        ],
+        operatorList = [operator("inputPort", 0, "InputPortOperator"), operator("concat", 1, "TransformOperator")],
     }: {
         clipboardStore: ReturnType<typeof createClipboardStore>;
         currentTaskId: string;
@@ -475,7 +472,9 @@ describe("Rule editor model", () => {
 
     it("should keep node menus in rule-only layout when the editor is not read-only", async () => {
         await ruleEditorModel({
-            initialRuleNodes: [node({ nodeId: "node A", pluginId: "pluginA", portSpecification: { type: "count", minInputPorts: 0 } })],
+            initialRuleNodes: [
+                node({ nodeId: "node A", pluginId: "pluginA", portSpecification: { type: "count", minInputPorts: 0 } }),
+            ],
             operatorList: [operator("pluginA", 0)],
             contextOverrides: {
                 showRuleOnly: true,
@@ -489,7 +488,9 @@ describe("Rule editor model", () => {
 
     it("should hide node menus in read-only mode", async () => {
         await ruleEditorModel({
-            initialRuleNodes: [node({ nodeId: "node A", pluginId: "pluginA", portSpecification: { type: "count", minInputPorts: 0 } })],
+            initialRuleNodes: [
+                node({ nodeId: "node A", pluginId: "pluginA", portSpecification: { type: "count", minInputPorts: 0 } }),
+            ],
             operatorList: [operator("pluginA", 0)],
             contextOverrides: {
                 readOnlyMode: true,
@@ -952,6 +953,114 @@ describe("Rule editor model", () => {
         expect(currentContext().savedStatePosition).toBe("current");
     });
 
+    it("should keep save warning messages after a successful save triggers a model reinitialization", async () => {
+        cleanup();
+        modelContext = undefined;
+        const saveWarningMessage = "Unused input port warning";
+        const Provider: React.FC<{ children: React.JSX.Element }> = ReactFlowProvider;
+
+        const StatefulRuleEditorModel = () => {
+            const [editedItem, setEditedItem] = React.useState({ version: 0 });
+            const [initialRuleOperatorNodes, setInitialRuleOperatorNodes] = React.useState<IRuleOperatorNode[]>([
+                node({ nodeId: "nodeA", position: { x: 1, y: 2 } }),
+            ]);
+
+            return (
+                <RuleEditorContext.Provider
+                    value={{
+                        projectId: "testProject",
+                        editedItem,
+                        operatorList: [operator("pluginA")],
+                        editedItemLoading: false,
+                        operatorListLoading: false,
+                        initialRuleOperatorNodes,
+                        stickyNotes: [],
+                        saveRule: async (ruleOperatorNodes): Promise<RuleSaveResult> => {
+                            setEditedItem({ version: 1 });
+                            setInitialRuleOperatorNodes([...ruleOperatorNodes]);
+                            return {
+                                success: true,
+                                warningMessages: [saveWarningMessage],
+                            };
+                        },
+                        convertRuleOperatorToRuleNode: utils.defaults.convertRuleOperatorToRuleNode,
+                        operatorSpec: new Map(),
+                        validateConnection: () => true,
+                        instanceId: "id",
+                        datasetCharacteristics: new Map(),
+                        partialAutoCompletion: () => async () => undefined,
+                        saveInitiallyEnabled: false,
+                    }}
+                >
+                    <Provider>
+                        <RuleEditorModel>
+                            <RuleEditorModelTestComponent />
+                        </RuleEditorModel>
+                    </Provider>
+                </RuleEditorContext.Provider>
+            );
+        };
+
+        await act(() => {
+            return renderWrapper(<StatefulRuleEditorModel />);
+        });
+        await waitFor(() => {
+            expect(modelContext).toBeTruthy();
+        });
+        await act(async () => {
+            modelContext!!.setReactFlowInstance({
+                fitView(fitViewOptions: FitViewParams | undefined, duration: number | undefined): void {},
+                getElements(): Elements {
+                    return [];
+                },
+                project(position: XYPosition): XYPosition {
+                    return position;
+                },
+                setTransform(transform: FlowTransform): void {},
+                toObject(): FlowExportObject<any> {
+                    return undefined as any;
+                },
+                zoomIn(): void {},
+                zoomOut(): void {},
+                zoomTo(zoomLevel: number): void {},
+            });
+            await Promise.resolve();
+        });
+        await act(async () => {
+            await new Promise((resolve) => setTimeout(resolve, 1));
+        });
+
+        await act(async () => {
+            await currentContext().saveRule();
+            await Promise.resolve();
+            await new Promise((resolve) => setTimeout(resolve, 1));
+        });
+
+        expect(currentContext().saveWarningMessages).toStrictEqual([saveWarningMessage]);
+    });
+
+    it("should keep save warning messages when a save returns warnings and errors together", async () => {
+        const saveWarningMessage = "Unused input port warning";
+        await ruleEditorModel({
+            initialRuleNodes: [node({ nodeId: "nodeA", position: { x: 1, y: 2 } })],
+            operatorList: [operator("pluginA")],
+            contextOverrides: {
+                saveRule: (): RuleSaveResult => ({
+                    success: false,
+                    errorMessage: "Save failed",
+                    warningMessages: [saveWarningMessage],
+                    nodeErrors: [],
+                }),
+            },
+        });
+
+        await act(async () => {
+            await currentContext().saveRule();
+        });
+
+        expect(currentContext().saveWarningMessages).toStrictEqual([saveWarningMessage]);
+    });
+
     it("should reset to saved state without clearing undo and redo history when the saved marker is still available", async () => {
         await ruleEditorModel({
             initialRuleNodes: [node({ nodeId: "nodeA", position: { x: 1, y: 2 } })],
@@ -1096,7 +1205,9 @@ describe("Rule editor model", () => {
     it("should ignore rule-editor copy and paste shortcuts in read-only mode", async () => {
         const clipboardStore = createClipboardStore();
         await ruleEditorModel({
-            initialRuleNodes: [node({ nodeId: "nodeA", pluginId: "pluginA", portSpecification: { type: "count", minInputPorts: 0 } })],
+            initialRuleNodes: [
+                node({ nodeId: "nodeA", pluginId: "pluginA", portSpecification: { type: "count", minInputPorts: 0 } }),
+            ],
             operatorList: [operator("pluginA", 0)],
             contextOverrides: {
                 readOnlyMode: true,
@@ -1277,7 +1388,9 @@ describe("Rule editor model", () => {
             currentContext().undo();
         });
         expect(currentContext().ruleOperatorNodes()).toHaveLength(0);
-        expect(externalDestination.currentExternalPorts()).toStrictEqual([ruleBlockPort("existingPort", "Existing", 1)]);
+        expect(externalDestination.currentExternalPorts()).toStrictEqual([
+            ruleBlockPort("existingPort", "Existing", 1),
+        ]);
         act(() => {
             currentContext().redo();
         });
@@ -1314,7 +1427,9 @@ describe("Rule editor model", () => {
         const checkAfterSameRulePaste = () => {
             expect(currentContext().ruleOperatorNodes()).toHaveLength(1);
             expect(currentContext().ruleOperatorNodes()[0].parameters.portId).toBe("sharedPort");
-            expect(sameRuleDestination.currentExternalPorts()).toStrictEqual([ruleBlockPort("sharedPort", "Shared input", 1)]);
+            expect(sameRuleDestination.currentExternalPorts()).toStrictEqual([
+                ruleBlockPort("sharedPort", "Shared input", 1),
+            ]);
         };
 
         await waitFor(checkAfterSameRulePaste);
@@ -1322,7 +1437,9 @@ describe("Rule editor model", () => {
             currentContext().undo();
         });
         expect(currentContext().ruleOperatorNodes()).toHaveLength(0);
-        expect(sameRuleDestination.currentExternalPorts()).toStrictEqual([ruleBlockPort("sharedPort", "Shared input", 1)]);
+        expect(sameRuleDestination.currentExternalPorts()).toStrictEqual([
+            ruleBlockPort("sharedPort", "Shared input", 1),
+        ]);
         act(() => {
             currentContext().redo();
         });
@@ -1352,7 +1469,9 @@ describe("Rule editor model", () => {
         });
 
         expect(
-            currentContext().elements.filter((elem) => modelUtils.isEdge(elem)).map((edge) => modelUtils.asEdge(edge)?.type),
+            currentContext()
+                .elements.filter((elem) => modelUtils.isEdge(elem))
+                .map((edge) => modelUtils.asEdge(edge)?.type),
         ).toStrictEqual(["value"]);
     });
 
@@ -1578,7 +1697,7 @@ describe("Rule editor model", () => {
                 });
                 if (isDebugLoggingEnabled()) {
                     console.log(
-                        `Redone change: ${stateHistoryLabel[changeIdx]} (${changeIdx}/${stateHistory.length - 1})`
+                        `Redone change: ${stateHistoryLabel[changeIdx]} (${changeIdx}/${stateHistory.length - 1})`,
                     );
                 }
                 expect(allNodes()).toStrictEqual(stateHistory[changeIdx]);

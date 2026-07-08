@@ -63,6 +63,8 @@ export interface RuleEditorContextProps extends RuleEditorBaseProps {
     restoreExternalSavedState?: (savedState: unknown) => void;
     /** Optional hook for special sidebar items that trigger a parent-owned creation flow on drop. */
     handleSidebarDropRequest?: HandleRuleEditorSidebarDropRequest;
+    /** Optional hook that is called whenever the current rule-node projection changes due to canvas edits. */
+    onRuleOperatorNodesChange?: RuleEditorBaseProps["onRuleOperatorNodesChange"];
 }
 
 export const ruleEditorContextDefaultValue: RuleEditorContextProps = {

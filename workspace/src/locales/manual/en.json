@@ -858,6 +858,7 @@
             "inputPortsTab": "Input ports",
             "newInputPort": "New input port",
             "portMenu": "Port menu",
+            "unusedTooltip": "This input port is currently unused, but it will still be displayed in rule block usages.",
             "deleteDisabledInUse": "Input port '{{portLabel}}' cannot be removed because this rule block is already in use.",
             "evaluation": {
                 "noInputExamples": "No input examples exist yet. Example values can be added via the evaluation menu or input port node menu.",
@@ -870,8 +871,12 @@
             "normalizePortOrderTooltip": "Renumber input ports to 1..n while preserving their current order. This action is undoable.",
             "refreshUsage": "Usage status",
             "usageInUse": "This rule block is already in use. Existing input ports cannot be removed, and their relative order cannot change.",
-            "usageRefreshHint": "Click \"Refresh status\" to update this usage information.",
-            "usageRefreshError": "Could not refresh rule block usage information."
+            "usageRefreshHint": "Click the refresh button to update this usage information.",
+            "usageRefreshError": "Could not refresh rule block usage information.",
+            "warnings": {
+                "unusedPorts": "This rule block contains {{count}} unused input port: {{ports}}.",
+                "unusedPorts_plural": "This rule block contains {{count}} unused input ports: {{ports}}."
+            }
         },
         "linkRulesEditor": {
             "errors": {

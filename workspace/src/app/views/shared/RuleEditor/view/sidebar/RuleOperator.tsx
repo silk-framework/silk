@@ -46,6 +46,21 @@ export const RuleOperator = ({ ruleOperator, textQuery, searchWords }: RuleOpera
                     <OverflowText ellipsis={"reverse"}>
                         <Highlighter label={itemLabel} searchValue={textQuery} />
                     </OverflowText>
+                    {ruleOperator.statusIndicator && (
+                        <>
+                            <Spacing vertical={true} size={"tiny"} />
+                            <Icon
+                                name={ruleOperator.statusIndicator.icon}
+                                intent={ruleOperator.statusIndicator.intent}
+                                small
+                                tooltipText={ruleOperator.statusIndicator.tooltipText}
+                                tooltipProps={{
+                                    placement: "right",
+                                    rootBoundary: "viewport",
+                                }}
+                            />
+                        </>
+                    )}
                     {ruleOperator.description && !ruleOperator.markdownDocumentation && (
                         <>
                             <Spacing vertical={true} size={"tiny"} />

@@ -313,6 +313,7 @@ export const RuleEditorToolbar = () => {
                         queueEditorNotifications={
                             ruleValidationError ? [ruleValidationError.errorMessage] : ([] as string[])
                         }
+                        saveWarningMessages={modelContext.saveWarningMessages}
                         queueNodeNotifications={(ruleValidationError?.nodeErrors ?? []).filter(
                             (nodeError) => nodeError.message,
                         )}

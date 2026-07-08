@@ -1,4 +1,5 @@
 import type React from "react";
+import { ValidIconName } from "@eccenca/gui-elements/src/components/Icon/canonicalIconNames";
 import {
     IRuleOperator,
     RuleEditorPatchableNodeProjection,
@@ -6,8 +7,21 @@ import {
 } from "../../RuleEditor.typings";
 import { RuleEditorNodeParameterValue } from "../../model/RuleEditorModel.typings";
 
+/** Optional small status icon rendered next to a sidebar operator label. */
+export interface SidebarRuleOperatorStatusIndicator {
+    /** Icon shown next to the operator label. */
+    icon: ValidIconName;
+    /** Intent color used for the icon. */
+    intent?: "warning" | "danger" | "success" | "info" | "accent";
+    /** Tooltip shown on hover. */
+    tooltipText: string;
+}
+
 /** The operator data that is used for rendering a rule operator in the sidebar. */
-export interface SidebarRuleOperatorBase extends Omit<IRuleOperator, "portSpecification" | "parameterSpecification"> {}
+export interface SidebarRuleOperatorBase extends Omit<IRuleOperator, "portSpecification" | "parameterSpecification"> {
+    /** Optional state indicator shown next to the label, e.g. for warnings. */
+    statusIndicator?: SidebarRuleOperatorStatusIndicator;
+}
 
 /** A rule operator plugin version that has initial parameter values that are different from the plugin specification. */
 export interface IPreConfiguredRuleOperator extends SidebarRuleOperatorBase {

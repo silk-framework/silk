@@ -65,10 +65,7 @@ export const isNamedPortSpecification = (
 export const minInputPortCount = (portSpecification: IPortSpecification): number =>
     isNamedPortSpecification(portSpecification) ? portSpecification.inputPorts.length : portSpecification.minInputPorts;
 
-export const maxInputPortCount = (
-    portSpecification: IPortSpecification,
-    usedInputs: number = 0,
-): number => {
+export const maxInputPortCount = (portSpecification: IPortSpecification, usedInputs: number = 0): number => {
     if (isNamedPortSpecification(portSpecification)) {
         return Math.max(portSpecification.inputPorts.length, usedInputs);
     } else if (portSpecification.maxInputPorts != null) {
@@ -144,10 +141,7 @@ export type RuleEditorValidationOperatorNode = Pick<
 >;
 
 /** Mutable display/projection fields that may be patched from outside the rule editor model. */
-export type RuleEditorPatchableNodeProjection = Pick<
-    IRuleOperatorNode,
-    "label" | "description" | "tags"
->;
+export type RuleEditorPatchableNodeProjection = Pick<IRuleOperatorNode, "label" | "description" | "tags">;
 
 export interface IParameterSpecification {
     /** Parameter label */
@@ -284,6 +278,8 @@ export interface RuleSaveResult {
     errorMessage?: string;
     /** Node specific errors. */
     nodeErrors?: RuleSaveNodeError[];
+    /** Non-blocking save warnings that should stay visible in the notification menu. */
+    warningMessages?: string[];
 }
 
 /** Just to signal that only errors are returned from a function. */
@@ -292,13 +288,15 @@ export class RuleValidationError implements RuleSaveResult, Error {
     public success: boolean = false;
     public errorMessage: string;
     public nodeErrors: RuleSaveNodeError[];
+    public warningMessages?: string[];
 
-    constructor(errorMessage: string, nodeErrors?: RuleSaveNodeError[]) {
+    constructor(errorMessage: string, nodeErrors?: RuleSaveNodeError[], warningMessages?: string[]) {
         this.errorMessage = errorMessage;
         this.nodeErrors = (nodeErrors ?? []).map((nodeError) => {
             const { nodeId, message } = nodeError;
             return { nodeId, message };
         });
+        this.warningMessages = warningMessages;
     }
 
     get message(): string {

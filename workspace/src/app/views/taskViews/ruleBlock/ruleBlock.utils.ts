@@ -36,9 +36,7 @@ const pruneInputExamplesToPorts = (
     const knownPortIds = new Set([...ports].map((port) => port.id));
     return cloneInputExamples(inputExamples).map((example) => ({
         ...example,
-        inputs: Object.fromEntries(
-            Object.entries(example.inputs).filter(([portId]) => knownPortIds.has(portId)),
-        ),
+        inputs: Object.fromEntries(Object.entries(example.inputs).filter(([portId]) => knownPortIds.has(portId))),
     }));
 };
 
@@ -56,6 +54,17 @@ const requirePortId = (node: IRuleOperatorNode): string => {
     }
     return portId;
 };
+
+/** Collects the logical input-port IDs that are currently referenced on the rule block canvas. */
+const usedInputPortIds = (ruleOperatorNodes: IRuleOperatorNode[]): Set<string> =>
+    new Set(
+        ruleOperatorNodes
+            .filter((node) => node.pluginType === "InputPortOperator")
+            .flatMap((node) => {
+                const portId = resolvePortId(node);
+                return portId ? [portId] : [];
+            }),
+    );
 
 /** Enforces the logical port invariants expected by the rule block editor runtime. */
 const assertValidPorts = (ports: RuleBlockPort[]): void => {
@@ -107,10 +116,14 @@ const sortPortDefinitions = (ports: Iterable<RuleBlockPort>): RuleBlockPort[] =>
 const orderedPortIds = (ports: Iterable<RuleBlockPort>): string[] => sortPortDefinitions(ports).map((port) => port.id);
 
 const duplicateDisplayOrders = (ports: Iterable<RuleBlockPort>): number[] =>
-    [...[...ports].reduce((displayOrderCount, port) => {
-        displayOrderCount.set(port.displayOrder, (displayOrderCount.get(port.displayOrder) ?? 0) + 1);
-        return displayOrderCount;
-    }, new Map<number, number>()).entries()]
+    [
+        ...[...ports]
+            .reduce((displayOrderCount, port) => {
+                displayOrderCount.set(port.displayOrder, (displayOrderCount.get(port.displayOrder) ?? 0) + 1);
+                return displayOrderCount;
+            }, new Map<number, number>())
+            .entries(),
+    ]
         .filter(([, count]) => count > 1)
         .map(([displayOrder]) => displayOrder)
         .sort((left, right) => left - right);
@@ -241,6 +254,9 @@ const validateDuplicateDisplayOrders = (
     return nodeErrors;
 };
 
+/** Returns true if the logical rule block ports currently contain duplicate display orders. */
+const hasDuplicateDisplayOrders = (ports: Iterable<RuleBlockPort>): boolean => duplicateDisplayOrders(ports).length > 0;
+
 /** Validates that structurally frozen ports keep their ID and display order once the rule block is already in use. */
 const validateUsedPortCompatibility = (
     persistedPorts: RuleBlockPort[],
@@ -270,9 +286,7 @@ const validateUsedPortCompatibility = (
         }
     });
 
-    const persistedSharedPortIds = orderedPortIds(
-        persistedPorts.filter((port) => updatedPortsById.has(port.id)),
-    );
+    const persistedSharedPortIds = orderedPortIds(persistedPorts.filter((port) => updatedPortsById.has(port.id)));
     const updatedSharedPortIds = orderedPortIds(
         updatedPorts.filter((port) => persistedSharedPortIds.includes(port.id)),
     );
@@ -326,6 +340,14 @@ const sortRuleBlockPorts = (ports: Iterable<RuleBlockPort>): RuleBlockPort[] => 
 const isNormalizedPortDisplayOrder = (ports: RuleBlockPort[]): boolean =>
     sortPortDefinitions(ports).every((port, index) => port.displayOrder === index + 1);
 
+/** Returns logical ports that currently exist in the rule block but are not referenced by any canvas node. */
+const unusedRuleBlockPorts = (
+    ports: Iterable<RuleBlockPort>,
+    usedPortIds: Set<string>,
+    includeDeprecated: boolean = true,
+): RuleBlockPort[] =>
+    sortPortDefinitions(ports).filter((port) => !usedPortIds.has(port.id) && (includeDeprecated || !port.deprecated));
+
 /** Renumbers display orders to dense ranks 1..n while preserving the current relative order. */
 const normalizePortDisplayOrder = (ports: RuleBlockPort[]): RuleBlockPort[] =>
     sortPortDefinitions(ports).map((port, index) => ({
@@ -334,10 +356,7 @@ const normalizePortDisplayOrder = (ports: RuleBlockPort[]): RuleBlockPort[] =>
     }));
 
 /** Returns the ports whose visible display order changed between two states. */
-const portsWithChangedDisplayOrder = (
-    previousPorts: RuleBlockPort[],
-    nextPorts: RuleBlockPort[],
-): RuleBlockPort[] => {
+const portsWithChangedDisplayOrder = (previousPorts: RuleBlockPort[], nextPorts: RuleBlockPort[]): RuleBlockPort[] => {
     const previousPortsById = new Map(previousPorts.map((port) => [port.id, port] as const));
     return nextPorts.filter((port) => {
         const previousPort = previousPortsById.get(port.id);
@@ -383,6 +402,9 @@ const ruleBlockUtils = {
     resolvePortId,
     nextInputPortDefaults,
     sortRuleBlockPorts,
+    unusedRuleBlockPorts,
+    usedInputPortIds,
+    hasDuplicateDisplayOrders,
     validateMissingPortIds,
     validateDuplicateDisplayOrders,
     validateUsedPortCompatibility,

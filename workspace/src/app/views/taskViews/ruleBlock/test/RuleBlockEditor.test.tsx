@@ -41,6 +41,7 @@ type CapturedRuleEditorProps = {
     prepareClipboardPaste?: (task: RuleClipboardTask) => Promise<unknown> | unknown;
     extraRuleNodeMenuItems?: (node: IRuleOperatorNode, closeMenu: () => void) => React.JSX.Element[] | undefined;
     handleSidebarDropRequest?: (request: RuleEditorSidebarDropRequest, position: XYPosition) => boolean;
+    onRuleOperatorNodesChange?: (ruleOperatorNodes: IRuleOperatorNode[]) => void;
 };
 
 type CapturedInputPortDialogProps = {
@@ -444,20 +445,23 @@ describe("RuleBlockEditor", () => {
             ports: [createPersistedPort()],
         });
 
-        const saveResult = await editor.getRuleEditorProps().saveRule(
-            [
-                createInputPortNode({
-                    parameters: {
-                        portId: "   ",
-                    },
-                }),
-            ],
-            [],
-            createRuleBlockTask([createPersistedPort()]),
-        );
+        let saveResult: RuleSaveResult;
+        await act(async () => {
+            saveResult = await editor.getRuleEditorProps().saveRule(
+                [
+                    createInputPortNode({
+                        parameters: {
+                            portId: "   ",
+                        },
+                    }),
+                ],
+                [],
+                createRuleBlockTask([createPersistedPort()]),
+            );
+        });
 
-        expect((saveResult as RuleValidationError).isRuleValidationError).toBe(true);
-        expect((saveResult as RuleValidationError).nodeErrors).toStrictEqual([
+        expect((saveResult! as RuleValidationError).isRuleValidationError).toBe(true);
+        expect((saveResult! as RuleValidationError).nodeErrors).toStrictEqual([
             {
                 nodeId: "nodeA",
                 message: jestTestUtils.testTranslate("taskViews.ruleBlock.errors.missingPortId"),
@@ -465,6 +469,154 @@ describe("RuleBlockEditor", () => {
         ]);
         expect(editor.mockRequestRelatedItems).toHaveBeenCalledTimes(1);
         expect(editor.mockRequestUpdateProjectTask).not.toHaveBeenCalled();
+    });
+
+    it("should keep unused-port warnings when saving returns a validation error", async () => {
+        const ports = [
+            createPersistedPort({ id: "usedPort", label: "Used input", displayOrder: 1 }),
+            createPersistedPort({ id: "unusedPort", label: "Unused input", displayOrder: 2 }),
+        ];
+        const editor = await renderRuleBlockEditor({
+            ports,
+        });
+
+        let saveResult: RuleSaveResult;
+        await act(async () => {
+            saveResult = await editor.getRuleEditorProps().saveRule(
+                [
+                    createInputPortNode({
+                        parameters: {
+                            portId: "   ",
+                        },
+                    }),
+                ],
+                [],
+                createRuleBlockTask(ports),
+            );
+        });
+
+        expect(saveResult!).toMatchObject({
+            success: false,
+            warningMessages: ["taskViews.ruleBlock.warnings.unusedPorts"],
+        });
+        expect((saveResult! as RuleValidationError).isRuleValidationError).toBe(true);
+        expect(editor.mockRequestRelatedItems).toHaveBeenCalledTimes(1);
+        expect(editor.mockRequestUpdateProjectTask).not.toHaveBeenCalled();
+    });
+
+    it("should reject duplicate port display orders even when no input-port node remains on the canvas", async () => {
+        const ports = [
+            createPersistedPort({ id: "usedPort", label: "Used input", displayOrder: 1 }),
+            createPersistedPort({ id: "unusedPort", label: "Unused input", displayOrder: 1 }),
+        ];
+        const editor = await renderRuleBlockEditor({
+            ports,
+        });
+
+        let saveResult: RuleSaveResult;
+        await act(async () => {
+            saveResult = await editor.getRuleEditorProps().saveRule([], [], createRuleBlockTask(ports));
+        });
+
+        expect(saveResult!).toMatchObject({
+            success: false,
+            errorMessage: "taskViews.ruleBlock.errors.invalidPorts",
+            warningMessages: ["taskViews.ruleBlock.warnings.unusedPorts"],
+        });
+        expect((saveResult! as RuleValidationError).nodeErrors).toStrictEqual([]);
+        expect(editor.mockRequestUpdateProjectTask).not.toHaveBeenCalled();
+    });
+
+    it("should add unused-port warnings when saving throws a rule validation error without warnings", async () => {
+        const ports = [
+            createPersistedPort({ id: "usedPort", label: "Used input", displayOrder: 1 }),
+            createPersistedPort({ id: "unusedPort", label: "Unused input", displayOrder: 2 }),
+        ];
+        const editor = await renderRuleBlockEditor({
+            ports,
+        });
+        editor.mockRequestUpdateProjectTask.mockRejectedValueOnce(
+            new RuleValidationError("taskViews.ruleBlock.errors.invalidPorts", [
+                {
+                    nodeId: "nodeA",
+                    message: "duplicate display order",
+                },
+            ]),
+        );
+
+        let saveResult: RuleSaveResult;
+        await act(async () => {
+            saveResult = await editor
+                .getRuleEditorProps()
+                .saveRule(
+                    [createInputPortNode({ parameters: { portId: "usedPort" } })],
+                    [],
+                    createRuleBlockTask(ports),
+                );
+        });
+
+        expect(saveResult!).toMatchObject({
+            success: false,
+            errorMessage: "taskViews.ruleBlock.errors.invalidPorts",
+            warningMessages: ["taskViews.ruleBlock.warnings.unusedPorts"],
+        });
+        expect((saveResult! as RuleValidationError).nodeErrors).toStrictEqual([
+            {
+                nodeId: "nodeA",
+                message: "duplicate display order",
+            },
+        ]);
+        expect(editor.mockRequestUpdateProjectTask).toHaveBeenCalledTimes(1);
+    });
+
+    it("should return a warning when saving unused non-deprecated input ports", async () => {
+        const ports = [
+            createPersistedPort({ id: "usedPort", label: "Used input", displayOrder: 1 }),
+            createPersistedPort({ id: "unusedPort", label: "Unused input", displayOrder: 2 }),
+        ];
+        const editor = await renderRuleBlockEditor({
+            ports,
+        });
+
+        let saveResult: RuleSaveResult;
+        await act(async () => {
+            saveResult = await editor
+                .getRuleEditorProps()
+                .saveRule(
+                    [createInputPortNode({ parameters: { portId: "usedPort" } })],
+                    [],
+                    createRuleBlockTask(ports),
+                );
+        });
+
+        expect(saveResult!).toMatchObject({
+            success: true,
+            warningMessages: ["taskViews.ruleBlock.warnings.unusedPorts"],
+        });
+        expect(editor.mockRequestUpdateProjectTask).toHaveBeenCalledTimes(1);
+    });
+
+    it("should not return an unused-port warning for deprecated input ports", async () => {
+        const deprecatedPort = createPersistedPort({
+            id: "deprecatedPort",
+            label: "Deprecated input",
+            displayOrder: 1,
+            deprecated: true,
+        });
+        const editor = await renderRuleBlockEditor({
+            ports: [deprecatedPort],
+        });
+
+        let saveResult: RuleSaveResult;
+        await act(async () => {
+            saveResult = await editor.getRuleEditorProps().saveRule([], [], createRuleBlockTask([deprecatedPort]));
+        });
+
+        expect(saveResult!).toMatchObject({
+            success: true,
+            warningMessages: undefined,
+        });
+        expect(editor.mockRequestUpdateProjectTask).toHaveBeenCalledTimes(1);
     });
 
     it("should show the usage status control only when the rule block is in use and allow refreshing it", async () => {
@@ -867,6 +1019,55 @@ describe("RuleBlockEditor", () => {
         );
 
         unmount();
+    });
+
+    it("should mark sidebar input ports as unused only when they are not referenced on the canvas", async () => {
+        const unusedEditor = await renderRuleBlockEditor({
+            ports: [createPersistedPort({ id: "inputPortA", displayOrder: 1 })],
+            ruleOperatorNodes: [],
+        });
+        const usedEditor = await renderRuleBlockEditor({
+            ports: [createPersistedPort({ id: "inputPortA", displayOrder: 1 })],
+            ruleOperatorNodes: [createInputPortNode({ parameters: { portId: "inputPortA" } })],
+        });
+        const deprecatedUnusedEditor = await renderRuleBlockEditor({
+            ports: [createPersistedPort({ id: "inputPortA", displayOrder: 1, deprecated: true })],
+            ruleOperatorNodes: [],
+        });
+
+        const unusedOperator = (await renderInputPortSidebarActions(unusedEditor, 1)).operator;
+        const usedOperator = (await renderInputPortSidebarActions(usedEditor, 1)).operator;
+        const deprecatedUnusedOperator = (await renderInputPortSidebarActions(deprecatedUnusedEditor, 1)).operator;
+
+        expect(unusedOperator.statusIndicator).toMatchObject({
+            icon: "state-warning",
+            intent: "warning",
+            tooltipText: "taskViews.ruleBlock.unusedTooltip",
+        });
+        expect(usedOperator.statusIndicator).toBeUndefined();
+        expect(deprecatedUnusedOperator.statusIndicator).toBeUndefined();
+    });
+
+    it("should refresh the sidebar indicator immediately when an input-port node is removed from the canvas", async () => {
+        const editor = await renderRuleBlockEditor({
+            ports: [createPersistedPort({ id: "inputPortA", displayOrder: 1 })],
+            ruleOperatorNodes: [createInputPortNode({ parameters: { portId: "inputPortA" } })],
+        });
+
+        const initiallyUsedOperator = (await renderInputPortSidebarActions(editor, 1)).operator;
+        expect(initiallyUsedOperator.statusIndicator).toBeUndefined();
+
+        editor.mockRuleEditorApi.ruleOperatorNodes.mockReturnValue([]);
+        await act(async () => {
+            editor.getRuleEditorProps().onRuleOperatorNodesChange?.([]);
+        });
+
+        const unusedOperator = (await renderInputPortSidebarActions(editor, 1)).operator;
+        expect(unusedOperator.statusIndicator).toMatchObject({
+            icon: "state-warning",
+            intent: "warning",
+            tooltipText: "taskViews.ruleBlock.unusedTooltip",
+        });
     });
 
     it("should update an input port via the sidebar entry and sync node metadata", async () => {

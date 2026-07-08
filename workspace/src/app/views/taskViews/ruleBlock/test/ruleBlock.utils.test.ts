@@ -58,7 +58,10 @@ describe("ruleBlockUtils", () => {
             ]),
         ).toThrow("Rule block input ports must have a non-empty ID.");
         expect(() =>
-            ruleBlockUtils.assertValidPorts([port("sharedPort", 1, "First port"), port("sharedPort", 2, "Second port")]),
+            ruleBlockUtils.assertValidPorts([
+                port("sharedPort", 1, "First port"),
+                port("sharedPort", 2, "Second port"),
+            ]),
         ).toThrow("Rule block input port IDs must be unique. Duplicate ID 'sharedPort' found.");
     });
 
@@ -90,7 +93,9 @@ describe("ruleBlockUtils", () => {
             },
         ];
 
-        expect(ruleBlockUtils.pruneInputExamplesToPorts(inputExamples, [port("firstPort", 1, "First port")])).toStrictEqual([
+        expect(
+            ruleBlockUtils.pruneInputExamplesToPorts(inputExamples, [port("firstPort", 1, "First port")]),
+        ).toStrictEqual([
             {
                 id: "example-1",
                 label: "Example 1",
@@ -129,6 +134,46 @@ describe("ruleBlockUtils", () => {
         expect(ruleBlockUtils.isPersistedPort([port("firstPort", 1, "First port")], "secondPort")).toBe(false);
     });
 
+    it("should collect the logical input ports that are currently referenced on the canvas", () => {
+        expect(
+            ruleBlockUtils.usedInputPortIds([
+                inputPortNode("portNode1", "firstPort", 1),
+                inputPortNode("portNode2", "firstPort", 2),
+                inputPortNode("portNode3", "secondPort", 3),
+                {
+                    ...inputPortNode("portNode4", "ignoredPort", 4),
+                    parameters: {
+                        ...inputPortNode("portNode4", "ignoredPort", 4).parameters,
+                        portId: "   ",
+                    },
+                },
+            ]),
+        ).toStrictEqual(new Set(["firstPort", "secondPort"]));
+    });
+
+    it("should list unused logical ports and optionally exclude deprecated ones", () => {
+        const ports = [
+            port("firstPort", 1, "First port"),
+            {
+                ...port("deprecatedPort", 2, "Deprecated port"),
+                deprecated: true,
+            },
+            port("unusedPort", 3, "Unused port"),
+        ];
+        const usedPortIds = new Set(["firstPort"]);
+
+        expect(ruleBlockUtils.unusedRuleBlockPorts(ports, usedPortIds)).toStrictEqual([
+            {
+                ...port("deprecatedPort", 2, "Deprecated port"),
+                deprecated: true,
+            },
+            port("unusedPort", 3, "Unused port"),
+        ]);
+        expect(ruleBlockUtils.unusedRuleBlockPorts(ports, usedPortIds, false)).toStrictEqual([
+            port("unusedPort", 3, "Unused port"),
+        ]);
+    });
+
     it("should return the ports whose visible display order changed", () => {
         expect(
             ruleBlockUtils.portsWithChangedDisplayOrder(
@@ -139,19 +184,13 @@ describe("ruleBlockUtils", () => {
                     port("thirdPort", 4, "Third port"),
                 ],
             ),
-        ).toStrictEqual([
-            port("secondPort", 3, "Second port"),
-            port("thirdPort", 4, "Third port"),
-        ]);
+        ).toStrictEqual([port("secondPort", 3, "Second port"), port("thirdPort", 4, "Third port")]);
     });
 
     it("should reject duplicate display orders across different rule block ports", () => {
         const collectionResult = ruleBlockUtils.collectPortDefinitions(
             [],
-            [
-                inputPortNode("portNode1", "firstPort", 1),
-                inputPortNode("portNode2", "secondPort", 1),
-            ],
+            [inputPortNode("portNode1", "firstPort", 1), inputPortNode("portNode2", "secondPort", 1)],
             "invalid display order",
             (portId) => `conflicting definition for ${portId}`,
         );
@@ -164,10 +203,7 @@ describe("ruleBlockUtils", () => {
         expect(
             ruleBlockUtils.validateDuplicateDisplayOrders(
                 collectionResult.portDefinitions ?? [],
-                [
-                    inputPortNode("portNode1", "firstPort", 1),
-                    inputPortNode("portNode2", "secondPort", 1),
-                ],
+                [inputPortNode("portNode1", "firstPort", 1), inputPortNode("portNode2", "secondPort", 1)],
                 (displayOrder) => `duplicate display order ${displayOrder}`,
             ),
         ).toStrictEqual([
@@ -180,6 +216,22 @@ describe("ruleBlockUtils", () => {
                 message: "duplicate display order 1",
             },
         ]);
+    });
+
+    it("should detect duplicate display orders even when no input-port node remains on the canvas", () => {
+        expect(
+            ruleBlockUtils.hasDuplicateDisplayOrders([
+                port("firstPort", 1, "First port"),
+                port("secondPort", 1, "Second port"),
+            ]),
+        ).toBe(true);
+        expect(
+            ruleBlockUtils.validateDuplicateDisplayOrders(
+                [port("firstPort", 1, "First port"), port("secondPort", 1, "Second port")],
+                [],
+                (displayOrder) => `duplicate display order ${displayOrder}`,
+            ),
+        ).toStrictEqual([]);
     });
 
     it("should report malformed input-port nodes that are missing their logical port ID", () => {
@@ -208,10 +260,7 @@ describe("ruleBlockUtils", () => {
     it("should allow reusing the same logical port in multiple places without creating duplicate port definitions", () => {
         const result = ruleBlockUtils.collectPortDefinitions(
             [],
-            [
-                inputPortNode("portNode1", "sharedPort", 1),
-                inputPortNode("portNode2", "sharedPort", 1),
-            ],
+            [inputPortNode("portNode1", "sharedPort", 1), inputPortNode("portNode2", "sharedPort", 1)],
             "invalid display order",
             (portId) => `conflicting definition for ${portId}`,
         );
@@ -401,7 +450,7 @@ const inputPortNode = (nodeId: string, portId: string, displayOrder: number): IR
 const port = (id: string, displayOrder: number, label: string = id): RuleBlockPort => ({
     id,
     label,
-        description: "",
-        displayOrder,
-        deprecated: false,
+    description: "",
+    displayOrder,
+    deprecated: false,
 });

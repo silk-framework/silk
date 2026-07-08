@@ -87,6 +87,8 @@ export interface RuleEditorBaseProps {
     prepareClipboardPaste?: PrepareClipboardPaste;
     /** Optional hook for special sidebar entries that open a creation flow on drop instead of materializing a normal node directly. */
     handleSidebarDropRequest?: HandleRuleEditorSidebarDropRequest;
+    /** Optional hook that is called whenever the current rule-node projection changes due to canvas edits. */
+    onRuleOperatorNodesChange?: (ruleOperatorNodes: IRuleOperatorNode[]) => void;
     /** When enabled only the rule is shown without side- and toolbar and any other means to edit the rule. */
     showRuleOnly?: boolean;
     /** If set to true the editor is permanently read-only. */
@@ -237,6 +239,7 @@ const RuleEditorInner = <TASK_TYPE extends object, OPERATOR_TYPE extends object>
         extendClipboardCopy,
         prepareClipboardPaste,
         handleSidebarDropRequest,
+        onRuleOperatorNodesChange,
         pathMetaData,
         partialAutoCompletion,
         saveInitiallyEnabled,
@@ -419,6 +422,7 @@ const RuleEditorInner = <TASK_TYPE extends object, OPERATOR_TYPE extends object>
                 extendClipboardCopy,
                 prepareClipboardPaste,
                 handleSidebarDropRequest,
+                onRuleOperatorNodesChange,
                 pathMetaData,
                 partialAutoCompletion,
                 saveInitiallyEnabled,

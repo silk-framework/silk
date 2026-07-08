@@ -57,7 +57,7 @@ const createNewInputPortSidebarItem = (onCreate: () => void): IPreConfiguredRule
             name: "item-add-artefact",
             onClick: () => onCreate(),
             size: "small",
-            intent: "accent"
+            intent: "accent",
         }),
     };
 };
@@ -65,6 +65,7 @@ const createNewInputPortSidebarItem = (onCreate: () => void): IPreConfiguredRule
 /** Converts one logical input port into a draggable pre-configured sidebar operator. */
 const convertInputPortToSidebarOperator = (
     port: RuleBlockPort,
+    isUsed: boolean,
     onEdit: (portId: string) => void,
     onDelete: (portId: string) => void,
     isDeleteDisabled: boolean,
@@ -85,6 +86,14 @@ const convertInputPortToSidebarOperator = (
         ],
         inputsCanBeSwitched: inputPortOperator.inputsCanBeSwitched,
         markdownDocumentation: inputPortOperator.markdownDocumentation,
+        statusIndicator:
+            !isUsed && !port.deprecated
+                ? {
+                      icon: "state-warning",
+                      intent: "warning",
+                      tooltipText: i18next.t("taskViews.ruleBlock.unusedTooltip"),
+                  }
+                : undefined,
         actions: [
             React.createElement(IconButton, {
                 key: `edit-input-port-${port.id}`,
@@ -118,6 +127,7 @@ const convertInputPortToSidebarOperator = (
 const createInputPortsTab = (
     getPorts: () => RuleBlockPort[],
     getPersistedPorts: () => RuleBlockPort[],
+    getUsedPortIds: () => Set<string>,
     isRuleBlockInUse: () => boolean,
     onCreate: () => void,
     onEdit: (portId: string) => void,
@@ -133,9 +143,11 @@ const createInputPortsTab = (
         if ("type" in listItem) {
             return createNewInputPortSidebarItem(onCreate);
         }
+        const usedPortIds = getUsedPortIds();
         const deleteDisabled = isRuleBlockInUse() && ruleBlockUtils.isPersistedPort(getPersistedPorts(), listItem.id);
         return convertInputPortToSidebarOperator(
             listItem,
+            usedPortIds.has(listItem.id),
             onEdit,
             onDelete,
             deleteDisabled,
@@ -151,8 +163,7 @@ const createInputPortsTab = (
         "type" in listItem
             ? i18next.t("taskViews.ruleBlock.newInputPort").toLowerCase()
             : `${listItem.label} ${listItem.description ?? ""} ${listItem.displayOrder}`.toLowerCase(),
-    itemLabel: (listItem) =>
-        "type" in listItem ? i18next.t("taskViews.ruleBlock.newInputPort") : listItem.label,
+    itemLabel: (listItem) => ("type" in listItem ? i18next.t("taskViews.ruleBlock.newInputPort") : listItem.label),
     itemId: (listItem) => ("type" in listItem ? "newInputPort" : listItem.id),
 });
 
@@ -168,10 +179,7 @@ const inputPortNodeMetaData = (portDefinition: RuleBlockPort | undefined): RuleE
 });
 
 /** Enriches an input port node with persisted port metadata from the current rule block model. */
-const updateInputPortNode = (
-    node: IRuleOperatorNode,
-    portDefinitions: Map<string, RuleBlockPort>,
-): void => {
+const updateInputPortNode = (node: IRuleOperatorNode, portDefinitions: Map<string, RuleBlockPort>): void => {
     const portId = ruleBlockUtils.requirePortId(node);
     const portDefinition = portDefinitions.get(portId);
     const metaData = inputPortNodeMetaData(portDefinition);

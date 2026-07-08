@@ -179,6 +179,7 @@ export const RuleBlockEditor = ({ projectId, ruleBlockTaskId, viewActions, insta
         refreshRunning: false,
     });
     const ruleEditorRef = React.useRef<RuleEditorExternalApi>(null);
+    const usedPortIdsKeyRef = React.useRef("");
     const portsRef = React.useRef(ports);
     const persistedPortsRef = React.useRef(persistedPorts);
     const inputExamplesRef = React.useRef(inputExamples);
@@ -193,6 +194,17 @@ export const RuleBlockEditor = ({ projectId, ruleBlockTaskId, viewActions, insta
     const bumpSidebarReloadToken = React.useCallback(() => {
         setSidebarReloadToken((currentToken) => currentToken + 1);
     }, []);
+
+    const handleRuleOperatorNodesChange = React.useCallback(
+        (ruleOperatorNodes: IRuleOperatorNode[]) => {
+            const nextUsedPortIdsKey = [...ruleBlockUtils.usedInputPortIds(ruleOperatorNodes)].sort().join("\u0000");
+            if (usedPortIdsKeyRef.current !== nextUsedPortIdsKey) {
+                usedPortIdsKeyRef.current = nextUsedPortIdsKey;
+                bumpSidebarReloadToken();
+            }
+        },
+        [bumpSidebarReloadToken],
+    );
 
     const applyPorts = React.useCallback(
         (nextPorts: RuleBlockPort[]) => {
@@ -613,6 +625,7 @@ export const RuleBlockEditor = ({ projectId, ruleBlockTaskId, viewActions, insta
             ruleBlockEditorUtils.createInputPortsTab(
                 getPorts,
                 getPersistedPorts,
+                () => ruleBlockUtils.usedInputPortIds(ruleEditorRef.current?.ruleOperatorNodes() ?? []),
                 isRuleBlockInUse,
                 openCreateInputPortDialog,
                 openEditInputPortDialog,
@@ -646,9 +659,21 @@ export const RuleBlockEditor = ({ projectId, ruleBlockTaskId, viewActions, insta
             try {
                 const currentModel =
                     originalTask.data.parameters.ruleBlockModel ?? ruleBlockUtils.emptyRuleBlockModel();
-                const [operatorNodeMap, rootNodes] = ruleUtils.convertToRuleOperatorNodeMap(ruleOperatorNodes, true);
                 const inputPortNodes = ruleOperatorNodes.filter((node) => node.pluginType === "InputPortOperator");
                 const nextPortDefinitions = ruleBlockUtils.sortRuleBlockPorts(portsRef.current);
+                const unusedPorts = ruleBlockUtils.unusedRuleBlockPorts(
+                    nextPortDefinitions,
+                    ruleBlockUtils.usedInputPortIds(inputPortNodes),
+                    false,
+                );
+                const warningMessages = unusedPorts.length
+                    ? [
+                          i18next.t("taskViews.ruleBlock.warnings.unusedPorts", {
+                              count: unusedPorts.length,
+                              ports: unusedPorts.map((port) => port.label.trim() || port.id).join(", "),
+                          }),
+                      ]
+                    : undefined;
                 const missingPortIdErrors = ruleBlockUtils.validateMissingPortIds(inputPortNodes, () =>
                     i18next.t("taskViews.ruleBlock.errors.missingPortId"),
                 );
@@ -656,8 +681,10 @@ export const RuleBlockEditor = ({ projectId, ruleBlockTaskId, viewActions, insta
                     return new RuleValidationError(
                         i18next.t("taskViews.ruleBlock.errors.invalidPorts"),
                         missingPortIdErrors,
+                        warningMessages,
                     );
                 }
+                const [operatorNodeMap, rootNodes] = ruleUtils.convertToRuleOperatorNodeMap(ruleOperatorNodes, true);
                 const relatedItemsResponse = await requestRelatedItems(projectId, ruleBlockTaskId, "", 1);
                 setRuleBlockUsageState({
                     isInUse: relatedItemsResponse.data.total > 0,
@@ -677,6 +704,7 @@ export const RuleBlockEditor = ({ projectId, ruleBlockTaskId, viewActions, insta
                         return new RuleValidationError(
                             compatibilityValidation.errorMessage,
                             compatibilityValidation.nodeErrors,
+                            warningMessages,
                         );
                     }
                 }
@@ -686,10 +714,14 @@ export const RuleBlockEditor = ({ projectId, ruleBlockTaskId, viewActions, insta
                     inputPortNodes,
                     (displayOrder) => i18next.t("taskViews.ruleBlock.errors.duplicateDisplayOrder", { displayOrder }),
                 );
-                if (duplicateDisplayOrderErrors.length) {
+                if (
+                    duplicateDisplayOrderErrors.length ||
+                    ruleBlockUtils.hasDuplicateDisplayOrders(nextPortDefinitions)
+                ) {
                     return new RuleValidationError(
                         i18next.t("taskViews.ruleBlock.errors.invalidPorts"),
                         duplicateDisplayOrderErrors,
+                        warningMessages,
                     );
                 }
 
@@ -717,10 +749,34 @@ export const RuleBlockEditor = ({ projectId, ruleBlockTaskId, viewActions, insta
                 applyPersistedPorts(nextPortDefinitions);
                 return {
                     success: true,
+                    warningMessages,
                 };
             } catch (err) {
+                const inputPortNodes = ruleOperatorNodes.filter((node) => node.pluginType === "InputPortOperator");
+                const nextPortDefinitions = ruleBlockUtils.sortRuleBlockPorts(portsRef.current);
+                const unusedPorts = ruleBlockUtils.unusedRuleBlockPorts(
+                    nextPortDefinitions,
+                    ruleBlockUtils.usedInputPortIds(inputPortNodes),
+                    false,
+                );
+                const warningMessages = unusedPorts.length
+                    ? [
+                          i18next.t("taskViews.ruleBlock.warnings.unusedPorts", {
+                              count: unusedPorts.length,
+                              ports: unusedPorts.map((port) => port.label.trim() || port.id).join(", "),
+                          }),
+                      ]
+                    : undefined;
                 if ((err as RuleValidationError).isRuleValidationError) {
-                    return err;
+                    const validationError = err as RuleValidationError;
+                    if (validationError.warningMessages?.length || !warningMessages?.length) {
+                        return validationError;
+                    }
+                    return new RuleValidationError(
+                        validationError.errorMessage,
+                        validationError.nodeErrors,
+                        warningMessages,
+                    );
                 }
                 if (err?.isHttpError && err.httpStatus === 400 && Array.isArray((err as FetchError).body?.issues)) {
                     return new RuleValidationError(
@@ -729,17 +785,20 @@ export const RuleBlockEditor = ({ projectId, ruleBlockTaskId, viewActions, insta
                             nodeId: issue.id,
                             message: issue.message,
                         })),
+                        warningMessages,
                     );
                 }
                 if (err?.isHttpError) {
                     return {
                         success: false,
                         errorMessage: `${i18next.t("taskViews.ruleBlock.errors.save")}${err.message ? ": " + err.message : ""}`,
+                        warningMessages,
                     };
                 }
                 return {
                     success: false,
                     errorMessage: `${i18next.t("taskViews.ruleBlock.errors.save")}${err.message ? ": " + err.message : ""}`,
+                    warningMessages,
                 };
             }
         },
@@ -928,6 +987,7 @@ export const RuleBlockEditor = ({ projectId, ruleBlockTaskId, viewActions, insta
             extendClipboardCopy={extendClipboardCopy}
             prepareClipboardPaste={prepareClipboardPaste}
             handleSidebarDropRequest={handleSidebarDropRequest}
+            onRuleOperatorNodesChange={handleRuleOperatorNodesChange}
             showRuleOnly={showRuleOnly}
             readOnly={readOnly}
             instanceId={instanceId}

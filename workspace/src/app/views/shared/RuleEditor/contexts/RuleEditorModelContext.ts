@@ -30,6 +30,8 @@ export interface RuleEditorModelContextProps {
     setReactFlowInstance: React.Dispatch<React.SetStateAction<OnLoadParams<any> | undefined>>;
     /** Save the current rule. */
     saveRule: () => Promise<boolean> | boolean;
+    /** Non-blocking warnings returned by the last successful save. */
+    saveWarningMessages: string[];
     /** If there are unsaved changes. */
     unsavedChanges: boolean;
     /** Number of selected nodes copied */
@@ -173,6 +175,7 @@ export const ruleEditorModelContextDefaultValue: RuleEditorModelContextProps = {
     saveRule: () => {
         return false;
     },
+    saveWarningMessages: [],
     unsavedChanges: false,
     copiedNodesCount: 0,
     updateSelectedElements: () => {},
