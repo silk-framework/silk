@@ -46,12 +46,18 @@ case class GlobalVocabularyCache() extends Activity[VocabularyCacheValue] {
   override def run(context: ActivityContext[VocabularyCacheValue])(implicit userContext: UserContext): Unit = {
     val vocabManager = VocabularyManager()
     // Always reconcile the cache at least once. Keep going while new force-update requests arrive during a run.
-    var forcedUpdates = GlobalVocabularyCache.clearAndGetVocabularies
-    do {
-      reconcileCache(vocabManager, forcedUpdates)
-      context.value.update(new VocabularyCacheValue(cache.values.toSeq, lastUpdated))
-      forcedUpdates = GlobalVocabularyCache.clearAndGetVocabularies
-    } while (forcedUpdates.nonEmpty && !cancelled)
+    val pendingUpdates = mutable.Set[String]()
+    pendingUpdates ++= GlobalVocabularyCache.clearAndGetVocabularies
+    try {
+      do {
+        reconcileCache(vocabManager, pendingUpdates)
+        context.value.update(new VocabularyCacheValue(cache.values.toSeq, lastUpdated))
+        pendingUpdates ++= GlobalVocabularyCache.clearAndGetVocabularies
+      } while (pendingUpdates.nonEmpty && !cancelled)
+    } finally {
+      // Requests this run could not process (cancellation or failure) are re-queued instead of being lost
+      pendingUpdates.foreach(GlobalVocabularyCache.putVocabularyInQueue)
+    }
   }
 
   /* Reconciles the cache with the list of currently installed vocabularies:
@@ -62,9 +68,11 @@ case class GlobalVocabularyCache() extends Activity[VocabularyCacheValue] {
      that are not (or no longer) installed are ignored instead of creating empty cache entries.
      If the vocabulary manager cannot provide the list of installed vocabularies, the requested vocabularies are
      force-loaded without this check (the list cannot be reconciled in that case).
+     Processed (or ignored) requests are removed from `forcedUpdates`; requests still in the set afterwards were not
+     handled, e.g., because the run was cancelled or an installation failed, and are re-queued by run().
    */
   private def reconcileCache(vocabManager: VocabularyManager,
-                             forcedUpdates: Set[String])
+                             forcedUpdates: mutable.Set[String])
                             (implicit userContext: UserContext): Unit = {
     vocabManager.retrieveGlobalVocabularies() match {
       case Some(vocabs) =>
@@ -72,9 +80,12 @@ case class GlobalVocabularyCache() extends Activity[VocabularyCacheValue] {
         if(forcedUpdates.nonEmpty) {
           log.info(s"Going to update ${forcedUpdates.count(installedVocabularies.contains)} of ${forcedUpdates.size} requested vocabularies...")
         }
+        // Requests for vocabularies that are not installed are ignored (dropped, not re-queued)
+        forcedUpdates.filterInPlace(installedVocabularies.contains)
         // Install vocabularies that are not cached yet or that were explicitly requested to be force-reloaded.
         for (vocabURI <- installedVocabularies if !cancelled && (!cache.contains(vocabURI) || forcedUpdates.contains(vocabURI))) {
           installVocabulary(vocabManager, vocabURI)
+          forcedUpdates.remove(vocabURI)
         }
         // Remove uninstalled vocabularies.
         for (vocabURI <- cache.keys.toSeq if !installedVocabularies.contains(vocabURI)) {
@@ -84,8 +95,9 @@ case class GlobalVocabularyCache() extends Activity[VocabularyCacheValue] {
         }
       case None =>
         // The list of installed vocabularies is not available, so force-update the requested vocabularies without it.
-        for (vocabURI <- forcedUpdates if !cancelled) {
+        for (vocabURI <- forcedUpdates.toSeq if !cancelled) {
           installVocabulary(vocabManager, vocabURI)
+          forcedUpdates.remove(vocabURI)
         }
     }
   }

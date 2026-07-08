@@ -29,11 +29,15 @@ case class UpdateGlobalVocabularyRequest(@ArraySchema(
 
 object UpdateGlobalVocabularyRequest {
 
-  /** Reads the `iri` field either as a single string or as an array of strings. A missing or null `iri` results in an
-    * empty sequence (general update only). */
+  /** Reads the `iri` field either as a single string or as an array of strings. An empty object or a null `iri`
+    * results in an empty sequence (general update only). An object with other fields but no `iri` is rejected, so a
+    * misspelled request does not silently degrade to a general update. */
   implicit val updateGlobalVocabularyRequestReads: Reads[UpdateGlobalVocabularyRequest] = Reads {
     case obj: JsObject =>
       (obj \ "iri").toOption match {
+        case None if obj.fields.nonEmpty =>
+          JsError(JsPath \ "iri", s"Unexpected field(s): ${obj.keys.mkString(", ")}. Use 'iri' to force-reload " +
+            "vocabularies or send an empty object for a general update.")
         case None | Some(JsNull) =>
           JsSuccess(UpdateGlobalVocabularyRequest(Seq.empty))
         case Some(JsString(iri)) =>
