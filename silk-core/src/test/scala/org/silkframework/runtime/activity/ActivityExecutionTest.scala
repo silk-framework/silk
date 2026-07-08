@@ -198,6 +198,8 @@ class ActivityExecutionTest extends AnyFlatSpec with Matchers with Eventually  {
     activity.waitUntilFinished()
     counter.get() mustBe 1
     activity.status() mustBe a[Finished]
+    // The recorded result must carry the terminal finish status, never a status left by a concurrent restart.
+    activity.lastResult.get.metaData.finishStatus.get mustBe a[Finished]
   }
 
   it should "re-run an activity when startOrReRun is called while it is still running" in {
@@ -259,6 +261,29 @@ class ActivityExecutionTest extends AnyFlatSpec with Matchers with Eventually  {
     gated.released = true
     eventually { counter.get() mustBe 2 }
     eventually { activity.status() mustBe a[Finished] }
+  }
+
+  it should "not record the previous run's cancellation on a coalesced re-run" in {
+    val counter = new AtomicInteger(0)
+    val gated = new StubbornGatedActivity(counter)
+    val activity = Activity(gated)
+    activity.start()
+    eventually { counter.get() mustBe 1 }
+    // Cancel the running activity, then request a re-run that postdates the cancellation and must be honored.
+    activity.cancel()
+    activity.startOrReRun()
+    gated.released = true
+    eventually { counter.get() mustBe 2 }
+    eventually { activity.status() mustBe a[Finished] }
+    // The successful re-run must not inherit the earlier run's cancellation metadata, and its recorded finish
+    // status must be the terminal one.
+    val metaData = activity.lastResult.get.metaData
+    metaData.cancelledBy mustBe None
+    metaData.cancelledAt mustBe None
+    metaData.finishStatus.get mustBe a[Finished]
+    val finished = metaData.finishStatus.get.asInstanceOf[Finished]
+    finished.success mustBe true
+    finished.cancelled mustBe false
   }
 
   it should "execute a re-run requested after a cancelled run that exits via thread interruption" in {

@@ -281,6 +281,7 @@ private class ActivityExecution[T](activity: Activity[T],
       true
     } else {
       status.update(Status.Finished(success = true, elapsedSinceStart, cancelled = activity.wasCancelled()))
+      lastResult = activityExecutionResult // Snapshot under the lock so a concurrent restart cannot corrupt it
       false
     }
   }
@@ -304,6 +305,7 @@ private class ActivityExecution[T](activity: Activity[T],
   private def prepareReRun()(implicit user: UserContext): Unit = {
     reRunRequested = false
     beginRun()
+    resetMetaData() // The re-run is not cancelled: drop the previous run's cancellation metadata
     status.update(Status.Running("Running", None))
   }
 
@@ -320,6 +322,7 @@ private class ActivityExecution[T](activity: Activity[T],
   private def finishWithFailure(ex: Throwable): Unit = StatusLock.synchronized {
     reRunRequested = false // Discard a pending re-run request, only relevant for fatal errors
     status.update(Status.Finished(success = false, elapsedSinceStart, cancelled = activity.wasCancelled(), Some(ex)))
+    lastResult = activityExecutionResult // Snapshot under the lock so a concurrent restart cannot corrupt it
     if (!activity.wasCancelled()) {
       throw ex
     }
@@ -334,7 +337,6 @@ private class ActivityExecution[T](activity: Activity[T],
       log.warning(s"Child activities are still being held after completion of parent activity: ${children().map(_.underlying.name).mkString(", " )}")
       clearChildren()
     }
-    lastResult = activityExecutionResult
     StatusLock.synchronized {
       // Do not clear a runner that a concurrent start has registered in the meantime
       if (forkJoinRunner.contains(runner)) {
