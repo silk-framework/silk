@@ -32,6 +32,7 @@ import {
 } from "@eccenca/gui-elements";
 import { OperatorLabel } from "../../../../../views/taskViews/shared/evaluations/OperatorLabel";
 import { LinkType } from "../../referenceLinks/LinkingRuleReferenceLinks.typing";
+import CompactCopyUriButton from "../../../../shared/CompactCopyUriButton";
 import type { IRuleBlockInput, IValueInput } from "../../../shared/rules/rule.typings";
 
 interface ExpandedEvaluationRowProps {
@@ -420,10 +421,10 @@ export const LinkingEvaluationRow = React.memo(
                             ?.value.slice(0, cutAfter)
                             .map((val, i) => (
                                 <Tag
+                                    className="diapp-evaluation__selectable-tag"
                                     key={val + i}
                                     round
                                     emphasis="stronger"
-                                    interactive
                                     backgroundColor={
                                         isHighlightMatch(val)
                                             ? "#746a85" // TODO: get color from CSS config
@@ -443,7 +444,9 @@ export const LinkingEvaluationRow = React.memo(
                                         handleParentNodeHighlights(tree, id, index, true);
                                     }}
                                 >
-                                    {searchQuery ? <Highlighter label={val} searchValue={searchQuery} /> : val}
+                                    <span className="diapp-evaluation__selectable-value-text">
+                                        {searchQuery ? <Highlighter label={val} searchValue={searchQuery} /> : val}
+                                    </span>
                                 </Tag>
                             )) ?? [];
                     return [exampleValues, [otherCount]];
@@ -525,11 +528,27 @@ export const LinkingEvaluationRow = React.memo(
                             ) : null}
                         </TableCell>
                         <TableCell key={"sourceEntity"} alignVertical="middle">
-                            <Highlighter label={linkingEvaluationResult.source} searchValue={searchQuery} />
+                            <span className="diapp-evaluation__uri-value">
+                                <span className="diapp-evaluation__selectable-value-text">
+                                    <Highlighter label={linkingEvaluationResult.source} searchValue={searchQuery} />
+                                </span>
+                                <CompactCopyUriButton
+                                    dataTestId={`linking-evaluation-source-copy-${rowIdx}`}
+                                    uri={linkingEvaluationResult.source}
+                                />
+                            </span>
                             {emptyEntityWarning(inputValues?.source)}
                         </TableCell>
                         <TableCell key={"targetEntity"} alignVertical="middle">
-                            <Highlighter label={linkingEvaluationResult.target} searchValue={searchQuery} />
+                            <span className="diapp-evaluation__uri-value">
+                                <span className="diapp-evaluation__selectable-value-text">
+                                    <Highlighter label={linkingEvaluationResult.target} searchValue={searchQuery} />
+                                </span>
+                                <CompactCopyUriButton
+                                    dataTestId={`linking-evaluation-target-copy-${rowIdx}`}
+                                    uri={linkingEvaluationResult.target}
+                                />
+                            </span>
                             {emptyEntityWarning(inputValues?.target)}
                         </TableCell>
                         <TableCell key="confidence" alignVertical="middle">

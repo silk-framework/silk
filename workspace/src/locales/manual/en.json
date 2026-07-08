@@ -363,6 +363,7 @@
             },
             "listDeprecatedPlugins": "Deprecated plugins usage",
             "copyClipboard": "Copy to clipboard",
+            "copyUriClipboard": "Click to copy URI into clipboard",
             "configure": "Configure",
             "clearInput": "Clear input",
             "filterOn": "Use as filter",
