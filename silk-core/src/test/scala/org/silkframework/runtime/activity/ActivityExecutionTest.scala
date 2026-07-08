@@ -204,33 +204,20 @@ class ActivityExecutionTest extends AnyFlatSpec with Matchers with Eventually  {
     activity.lastResult.get.metaData.finishStatus.get mustBe a[Finished]
   }
 
-  it should "re-run an activity when startOrReRun is called while it is still running" in {
+  it should "coalesce startOrReRun requests during a single run into exactly one additional run" in {
     val counter = new AtomicInteger(0)
     val gated = new GatedActivity(counter)
     val activity = Activity(gated)
     activity.start()
     eventually { activity.status().isRunning mustBe true }
     eventually { counter.get() mustBe 1 } // first run is in progress (blocked)
-    // Request another run while the first run is still blocked.
+    // Several requests during the same run must trigger a re-run, but only a single one.
+    activity.startOrReRun()
+    activity.startOrReRun()
     activity.startOrReRun()
     // Release the gate: the first run finishes, then the requested re-run must happen.
     gated.released = true
     eventually { counter.get() mustBe 2 }
-    eventually { activity.status() mustBe a[Finished] }
-  }
-
-  it should "coalesce multiple startOrReRun requests during a single run into exactly one additional run" in {
-    val counter = new AtomicInteger(0)
-    val gated = new GatedActivity(counter)
-    val activity = Activity(gated)
-    activity.start()
-    eventually { activity.status().isRunning mustBe true }
-    eventually { counter.get() mustBe 1 }
-    // Several requests during the same run should result in only one extra run.
-    activity.startOrReRun()
-    activity.startOrReRun()
-    activity.startOrReRun()
-    gated.released = true
     eventually { activity.status() mustBe a[Finished] }
     counter.get() mustBe 2
   }
@@ -249,7 +236,7 @@ class ActivityExecutionTest extends AnyFlatSpec with Matchers with Eventually  {
     counter.get() mustBe 1
   }
 
-  it should "execute a re-run that is requested after the running activity has been cancelled" in {
+  it should "execute a re-run requested after the running activity has been cancelled and not record the cancellation on it" in {
     val counter = new AtomicInteger(0)
     val gated = new StubbornGatedActivity(counter)
     val activity = Activity(gated)
@@ -263,20 +250,6 @@ class ActivityExecutionTest extends AnyFlatSpec with Matchers with Eventually  {
     gated.released = true
     eventually { counter.get() mustBe 2 }
     eventually { activity.status() mustBe a[Finished] }
-  }
-
-  it should "not record the previous run's cancellation on a coalesced re-run" in {
-    val counter = new AtomicInteger(0)
-    val gated = new StubbornGatedActivity(counter)
-    val activity = Activity(gated)
-    activity.start()
-    eventually { counter.get() mustBe 1 }
-    // Cancel the running activity, then request a re-run that postdates the cancellation and must be honored.
-    activity.cancel()
-    activity.startOrReRun()
-    gated.released = true
-    eventually { counter.get() mustBe 2 }
-    eventually { activity.status() mustBe a[Finished] }
     // The successful re-run must not inherit the earlier run's cancellation metadata, and its recorded finish
     // status must be the terminal one.
     val metaData = activity.lastResult.get.metaData
@@ -286,22 +259,6 @@ class ActivityExecutionTest extends AnyFlatSpec with Matchers with Eventually  {
     val finished = metaData.finishStatus.get.asInstanceOf[Finished]
     finished.success mustBe true
     finished.cancelled mustBe false
-  }
-
-  it should "execute a re-run requested after a cancelled run that exits via thread interruption" in {
-    val counter = new AtomicInteger(0)
-    val gated = new InterruptibleActivity(counter)
-    val activity = Activity(gated)
-    activity.start()
-    eventually { counter.get() mustBe 1 }
-    // Cancel the first run, then let it exit via InterruptedException only after the re-run has been requested,
-    // so the request postdates the cancellation and must be honored even though the run failed by interruption.
-    activity.cancel()
-    eventually { gated.interruptCaught mustBe true }
-    activity.startOrReRun()
-    gated.released = true
-    eventually { counter.get() mustBe 2 }
-    eventually { activity.status() mustBe a[Finished] }
   }
 
   it should "not let a delayed cancellation abort a re-run requested after it" in {
@@ -367,27 +324,6 @@ class ActivityExecutionTest extends AnyFlatSpec with Matchers with Eventually  {
     }
   }
 
-  it should "execute a requested re-run even if the current run fails" in {
-    val counter = new AtomicInteger(0)
-    val gated = new GatedActivity(counter, failFirstRun = true)
-    val activity = Activity(gated)
-    activity.start()
-    eventually { counter.get() mustBe 1 }
-    activity.startOrReRun()
-    // Release the gate: the first run fails, but the requested re-run must still be executed.
-    gated.released = true
-    eventually { counter.get() mustBe 2 }
-    eventually {
-      // The final status must reflect the successful re-run, not the failed first run
-      val status = activity.status()
-      status mustBe a[Finished]
-      val finished = status.asInstanceOf[Finished]
-      finished.success mustBe true
-      finished.cancelled mustBe false
-      finished.exception mustBe None
-    }
-  }
-
   it should "keep control operations responsive while a cancellation delivery is still in flight" in {
     val counter = new AtomicInteger(0)
     val gated = new CancelDeliveryTestActivity(counter)
@@ -448,7 +384,7 @@ class ActivityExecutionTest extends AnyFlatSpec with Matchers with Eventually  {
     gated.run2Completed mustBe false
   }
 
-  it should "publish the failure of a run before executing its requested re-run" in {
+  it should "execute a requested re-run even if the current run fails, publishing the failure before the re-run" in {
     val counter = new AtomicInteger(0)
     val gated = new GatedActivity(counter, failFirstRun = true)
     val activity = Activity(gated)
@@ -458,12 +394,15 @@ class ActivityExecutionTest extends AnyFlatSpec with Matchers with Eventually  {
     activity.start()
     eventually { counter.get() mustBe 1 }
     activity.startOrReRun()
+    // Release the gate: the first run fails, but the requested re-run must still be executed.
     gated.released = true
     eventually {
       counter.get() mustBe 2
+      // The final status must reflect the successful re-run, not the failed first run
       activity.status() match {
-        case Finished(success, _, _, exception) =>
+        case Finished(success, _, cancelled, exception) =>
           success mustBe true
+          cancelled mustBe false
           exception mustBe None
         case status: Status => fail("Unexpected status: " + status)
       }
@@ -481,7 +420,7 @@ class ActivityExecutionTest extends AnyFlatSpec with Matchers with Eventually  {
     }
   }
 
-  it should "not publish a failure for a cancelled run that coalesces into a re-run" in {
+  it should "execute a re-run requested after a cancelled run that exits via thread interruption, without publishing a failure" in {
     val counter = new AtomicInteger(0)
     val gated = new InterruptibleActivity(counter)
     val activity = Activity(gated)
@@ -490,6 +429,8 @@ class ActivityExecutionTest extends AnyFlatSpec with Matchers with Eventually  {
     activity.status.subscribe(observer)
     activity.start()
     eventually { counter.get() mustBe 1 }
+    // Cancel the first run, then let it exit via InterruptedException only after the re-run has been requested,
+    // so the request postdates the cancellation and must be honored even though the run failed by interruption.
     activity.cancel()
     eventually { gated.interruptCaught mustBe true }
     activity.startOrReRun()
