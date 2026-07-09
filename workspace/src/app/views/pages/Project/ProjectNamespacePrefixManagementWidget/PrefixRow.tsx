@@ -69,7 +69,7 @@ const PrefixRow = ({
                     <>
                         {onJumpToProjectPrefix && (
                             <IconButton
-                                name="item-viewdetails"
+                                name="navigation-up"
                                 text={t("PrefixDialog.showProjectOverride", "Show project override")}
                                 onClick={onJumpToProjectPrefix}
                             />
