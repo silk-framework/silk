@@ -205,7 +205,7 @@ class InMemoryWorkspaceProvider() extends WorkspaceProvider {
         val mergedParameters = parameters.merge(parameterValues)
         // Seed the execution scope with the task's variables, so parameter templates referencing them resolve.
         val taskContext = PluginContext(pluginContext.prefixes, pluginContext.resources, pluginContext.user,
-          pluginContext.projectId, pluginContext.templateVariables.withExecutionDefaults(executionVariables))
+          pluginContext.projectId, pluginContext.templateVariables.withExecutionDefaults(executionVariables), pluginContext.taskResolver)
         TaskLoadingException.withTaskLoadingException(OriginalTaskData(pluginDesc.id, mergedParameters)) { params =>
           LoadedTask.success[T](PlainTask(id, pluginDesc(params)(taskContext).asInstanceOf[T], metaData, executionVariables)).task
         }
@@ -226,7 +226,7 @@ class InMemoryWorkspaceProvider() extends WorkspaceProvider {
       def loadInternal(parameterValues: ParameterValues, pluginContext: PluginContext): Task[T] = {
         // Seed the execution scope with the task's variables, so parameter templates referencing them resolve.
         val taskContext = PluginContext(pluginContext.prefixes, pluginContext.resources, pluginContext.user,
-          pluginContext.projectId, pluginContext.templateVariables.withExecutionDefaults(executionVariables))
+          pluginContext.projectId, pluginContext.templateVariables.withExecutionDefaults(executionVariables), pluginContext.taskResolver)
         LoadedTask.success[T](PlainTask[TaskSpec](id, DatasetSpec[Dataset](pluginDesc(parameterValues)(taskContext).asInstanceOf[Dataset],
           uriAttribute, readOnly), metaData, executionVariables).asInstanceOf[Task[T]])
       }

@@ -9,7 +9,7 @@ import org.silkframework.runtime.resource.Resource
 import org.silkframework.runtime.serialization.XmlSerialization
 import org.silkframework.runtime.serialization.XmlSerialization.{fromXml, toXml}
 import org.silkframework.runtime.serialization.{ReadContext, ValidatingXMLReader, WriteContext, XmlFormat}
-import org.silkframework.runtime.templating.TemplateVariableName
+import org.silkframework.runtime.templating.{TemplateVariableName, TemplateVariables}
 import org.silkframework.runtime.validation.{TaskValidationException, ValidationException}
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.{OriginalTaskData, TaskLoadingException}
@@ -135,7 +135,8 @@ case class RuleBlockSpec(@Param(label = "Rule block model",
 
 case class RuleBlockTask(id: Identifier,
                          data: RuleBlockSpec,
-                         metaData: MetaData = MetaData.empty) extends Task[RuleBlockSpec] {
+                         metaData: MetaData = MetaData.empty,
+                         executionVariables: TemplateVariables = TemplateVariables.empty) extends Task[RuleBlockSpec] {
   override def taskType: Class[_] = classOf[RuleBlockSpec]
 }
 
@@ -249,7 +250,7 @@ object RuleBlockPort {
 
 object RuleBlockSpec {
   implicit def toRuleBlockTask(task: Task[RuleBlockSpec]): RuleBlockTask = {
-    RuleBlockTask(task.id, task.data, task.metaData)
+    RuleBlockTask(task.id, task.data, task.metaData, task.executionVariables)
   }
 
   def empty: RuleBlockSpec = RuleBlockSpec()
@@ -278,7 +279,7 @@ object RuleBlockSpec {
   implicit object RuleBlockTaskXmlFormat extends XmlFormat[RuleBlockTask] {
     override def read(value: Node)(implicit readContext: ReadContext): RuleBlockTask = {
       val task = new TaskFormat[RuleBlockSpec].read(value)
-      RuleBlockTask(task.id, task.data, task.metaData)
+      RuleBlockTask(task.id, task.data, task.metaData, task.executionVariables)
     }
 
     override def write(value: RuleBlockTask)(implicit writeContext: WriteContext[Node]): Node = {

@@ -1555,7 +1555,7 @@ object JsonSerializers {
   implicit object RuleBlockTaskJsonFormat extends JsonFormat[RuleBlockTask] {
     override def read(value: JsValue)(implicit readContext: ReadContext): RuleBlockTask = {
       val task = new TaskJsonFormat[RuleBlockSpec].read(value)
-      RuleBlockTask(task.id, task.data, task.metaData)
+      RuleBlockTask(task.id, task.data, task.metaData, task.executionVariables)
     }
     override def write(value: RuleBlockTask)(implicit writeContext: WriteContext[JsValue]): JsValue = {
       new TaskJsonFormat[RuleBlockSpec].write(value)

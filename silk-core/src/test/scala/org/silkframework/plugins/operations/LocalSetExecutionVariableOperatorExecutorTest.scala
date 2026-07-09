@@ -23,7 +23,7 @@ import org.silkframework.execution.ExecutorOutput
 import org.silkframework.execution.local.{GenericEntityTable, LocalEntities, LocalExecution}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.iterator.CloseableIterator
-import org.silkframework.runtime.plugin.PluginContext
+import org.silkframework.runtime.plugin.{PluginContext, TaskResolver}
 import org.silkframework.runtime.resource.InMemoryResourceManager
 import org.silkframework.runtime.templating.{ExecutionTemplateVariables, TemplateVariableScopes}
 import org.silkframework.runtime.validation.ValidationException
@@ -100,7 +100,7 @@ class LocalSetExecutionVariableOperatorExecutorTest extends AnyFlatSpec with Mat
 
   private def pluginContext(variables: ExecutionTemplateVariables): PluginContext =
     PluginContext(prefixes = Prefixes.empty, resources = InMemoryResourceManager(), user = UserContext.Empty,
-      templateVariables = variables)
+      templateVariables = variables, taskResolver = TaskResolver.empty)
 
   /** Runs the executor on the given input entities and returns the (pass-through) output entities. */
   private def run(op: SetExecutionVariableOperator, inputEntities: Seq[Entity], variables: ExecutionTemplateVariables): Seq[Entity] = {

@@ -8,7 +8,7 @@ import org.silkframework.execution.local.LocalExecution
 import org.silkframework.plugins.dataset.InternalDataset
 import org.silkframework.runtime.activity.Status.Canceling
 import org.silkframework.runtime.activity._
-import org.silkframework.runtime.plugin.PluginContext
+import org.silkframework.runtime.plugin.{PluginContext, TaskResolver}
 import org.silkframework.runtime.templating.{ExecutionTemplateVariables, ExecutionVariablesHolder, GlobalTemplateVariables, TemplateVariableScopes, TemplateVariables}
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.Identifier
@@ -381,7 +381,7 @@ object WorkflowExecutor {
   def pluginContext(project: Project, executionVariablesHolder: ExecutionVariablesHolder)
                    (implicit userContext: UserContext): PluginContext = {
     val templateVars = ExecutionTemplateVariables(Seq(GlobalTemplateVariables, project.templateVariables), executionVariablesHolder)
-    PluginContext(project.config.prefixes, project.resources, userContext, Some(project.id), templateVars)
+    PluginContext(project.config.prefixes, project.resources, userContext, Some(project.id), templateVars, TaskResolver.fromProject(project))
   }
 
   /**

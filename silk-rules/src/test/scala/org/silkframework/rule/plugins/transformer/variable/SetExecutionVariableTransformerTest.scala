@@ -19,7 +19,7 @@ import org.scalatest.matchers.should.Matchers
 import org.silkframework.config.Prefixes
 import org.silkframework.rule.TaskContext
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.runtime.plugin.PluginContext
+import org.silkframework.runtime.plugin.{PluginContext, TaskResolver}
 import org.silkframework.runtime.resource.InMemoryResourceManager
 import org.silkframework.runtime.templating.{ExecutionTemplateVariables, TemplateVariableScopes}
 import org.silkframework.runtime.validation.ValidationException
@@ -73,7 +73,8 @@ class SetExecutionVariableTransformerTest extends AnyFlatSpec with Matchers {
       prefixes = Prefixes.empty,
       resources = InMemoryResourceManager(),
       user = UserContext.Empty,
-      templateVariables = variables
+      templateVariables = variables,
+      taskResolver = TaskResolver.empty
     )
     TaskContext(Seq.empty, pluginContext)
   }
