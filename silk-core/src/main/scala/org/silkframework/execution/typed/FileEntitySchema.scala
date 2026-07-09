@@ -99,6 +99,9 @@ object FileEntity {
   /**
    * Creates a local temporary file entity.
    * File will be deleted on garbage collection of the returned entity and latest on exit.
+   *
+   * @param prefix Prefix for the generated filename.
+   * @param suffix Suffix (extension) for the generated filename.
    */
   def createTemp(prefix: String, suffix: String = ".tmp"): FileEntity = {
     val tempFile = File.createTempFile(prefix, suffix)

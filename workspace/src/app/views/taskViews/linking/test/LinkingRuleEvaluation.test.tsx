@@ -2,72 +2,203 @@ import React from "react";
 import "@testing-library/jest-dom";
 import { act, render, waitFor } from "@testing-library/react";
 import type { TaskPlugin } from "@ducks/shared/typings";
-import ruleBlockInternalEvaluationTestHelper from "../../shared/rules/tests/ruleBlockInternalEvaluationTestHelper";
+import jestTestUtils from "../../../../test/jestTestUtils";
 import ruleTestHelper from "../../shared/rules/tests/ruleTestHelper";
 import type { RuleEditorEvaluationContextProps } from "../../../shared/RuleEditor/contexts/RuleEditorEvaluationContext";
 import type { IRuleOperatorNode } from "../../../shared/RuleEditor/RuleEditor.typings";
 import type {
     ComparisonConfidence,
     IEvaluatedReferenceLinksWithInspection,
-    ILinkingRule,
     ILinkingTaskParameters,
 } from "../linking.types";
 import type { RuleBlockSnapshot } from "../../ruleBlock/ruleBlock.types";
 
-const createLinkingInspectionHarness = () => {
-    const baseHarness = ruleBlockInternalEvaluationTestHelper.createBaseInternalEvaluationHarness();
-    const mockEvaluateLinkingRuleAgainstReferenceEntitiesWithInspection = jest.fn();
-    const mockEvaluateLinkingRuleWithInspection = jest.fn();
-    jest.doMock("../../../../utils/basicUtils", () => ({
-        queryParameterValue: jest.fn(() => []),
-    }));
-    jest.doMock("../LinkingRuleEditor.requests", () => ({
-        evaluateLinkingRuleAgainstReferenceEntitiesWithInspection: (...args) =>
-            mockEvaluateLinkingRuleAgainstReferenceEntitiesWithInspection(...args),
-        evaluateLinkingRuleWithInspection: (...args) => mockEvaluateLinkingRuleWithInspection(...args),
-    }));
-    jest.doMock("../LinkingRuleEditor.utils", () => ({
-        __esModule: true,
-        default: {
-            constructLinkageRuleTree: jest.fn(() =>
-                ruleTestHelper.createComparisonOperator({
-                    id: "compareLabels",
-                    sourceInput: ruleTestHelper.createRuleBlockInput({
-                        id: "sourceRuleBlockUsage",
-                        ruleBlockId: "normalizeName",
-                        bindings: [
-                            {
-                                portId: "labelInput",
-                                input: ruleTestHelper.createPathInput({
-                                    id: "sourceLabel",
-                                    path: "label",
-                                }),
+const mockRegisterError = jest.fn();
+const mockRegisterErrorI18N = jest.fn();
+const mockEvaluateLinkingRuleAgainstReferenceEntitiesWithInspection = jest.fn();
+const mockEvaluateLinkingRuleWithInspection = jest.fn();
+let lastInternalEvaluationModalProps: Record<string, unknown> | undefined;
+let RuleEditorEvaluationContext: typeof import("../../../shared/RuleEditor/contexts/RuleEditorEvaluationContext").RuleEditorEvaluationContext;
+let LinkingRuleEvaluation: typeof import("../evaluation/LinkingRuleEvaluation").LinkingRuleEvaluation;
+
+describe("LinkingRuleEvaluation", () => {
+    beforeAll(() => {
+        setupLinkingRuleEvaluationTest();
+    });
+
+    beforeEach(() => {
+        lastInternalEvaluationModalProps = undefined;
+        mockRegisterError.mockReset();
+        mockRegisterErrorI18N.mockReset();
+        mockEvaluateLinkingRuleAgainstReferenceEntitiesWithInspection.mockReset();
+        mockEvaluateLinkingRuleWithInspection.mockReset();
+    });
+
+    it("should derive input examples from black-box linking evaluation results", async () => {
+        let latestEvaluationContext: RuleEditorEvaluationContextProps | undefined;
+        const LinkingRuleEvaluationComponent = LinkingRuleEvaluation;
+        const EvaluationChild = createEvaluationChild((evaluationContext) => {
+            latestEvaluationContext = evaluationContext;
+        });
+
+        mockEvaluateLinkingRuleAgainstReferenceEntitiesWithInspection.mockResolvedValue({
+            data: evaluationResponse(),
+        });
+
+        render(
+            <LinkingRuleEvaluationComponent projectId="project1" linkingTaskId="linkingTask" numberOfLinkToShow={5}>
+                {(<EvaluationChild />) as unknown as React.ReactElement}
+            </LinkingRuleEvaluationComponent>,
+        );
+
+        await waitFor(() => expect(latestEvaluationContext).toBeDefined());
+        const evaluationContext = latestEvaluationContext!;
+
+        await act(async () => {
+            await evaluationContext.startEvaluation([createComparisonNode()], createOriginalTask(), false);
+        });
+
+        await waitFor(() =>
+            expect(latestEvaluationContext?.canEvaluateRuleBlock?.("sourceRuleBlockUsage", "normalizeName")).toBe(true),
+        );
+        const updatedEvaluationContext = latestEvaluationContext!;
+
+        await act(async () => {
+            updatedEvaluationContext.openInternalRuleBlockEvaluation?.(
+                "sourceRuleBlockUsage",
+                "normalizeName",
+                "Normalize Name",
+            );
+        });
+
+        await waitFor(() =>
+            expect(lastInternalEvaluationModalProps).toMatchObject({
+                projectId: "project1",
+                ruleBlockId: "normalizeName",
+                ruleBlockLabel: "Normalize Name",
+                inputExamples: [
+                    {
+                        id: "inspection-example-1",
+                        inputs: {
+                            labelInput: ["Kiel"],
+                        },
+                    },
+                ],
+            }),
+        );
+        expect(mockEvaluateLinkingRuleWithInspection).not.toHaveBeenCalled();
+        expect(mockRegisterError).not.toHaveBeenCalled();
+    });
+
+    it("should inspect rule block evaluations from the slower fallback response when no reference-link results are available", async () => {
+        let latestEvaluationContext: RuleEditorEvaluationContextProps | undefined;
+        const LinkingRuleEvaluationComponent = LinkingRuleEvaluation;
+        const EvaluationChild = createEvaluationChild((evaluationContext) => {
+            latestEvaluationContext = evaluationContext;
+        });
+
+        mockEvaluateLinkingRuleAgainstReferenceEntitiesWithInspection.mockResolvedValue({
+            data: {
+                positive: [],
+                negative: [],
+                evaluationScore: {
+                    fMeasure: "0.0",
+                    precision: "0.0",
+                    recall: "0.0",
+                    falseNegatives: 0,
+                    falsePositives: 0,
+                    trueNegatives: 0,
+                    truePositives: 0,
+                },
+                ruleBlockInspection: {
+                    snapshots: {},
+                },
+            },
+        });
+        mockEvaluateLinkingRuleWithInspection.mockResolvedValue({
+            data: {
+                links: [
+                    {
+                        source: "source-1",
+                        target: "target-1",
+                        decision: "unlabeled",
+                        // This covers the slower fallback path where the fast reference-link response has no links, but the
+                        // fallback evaluation still exposes the same black-box rule block usage shape for inspection.
+                        ruleValues: {
+                            operatorId: "compareLabels",
+                            score: 1,
+                            sourceValue: {
+                                operatorId: "sourceRuleBlockUsage",
+                                values: ["Kiel"],
+                                children: [
+                                    {
+                                        operatorId: "sourceLabel",
+                                        values: ["Kiel"],
+                                        children: [],
+                                    },
+                                ],
                             },
-                        ],
-                    }),
-                    targetInput: ruleTestHelper.createPathInput({
-                        id: "targetLabel",
-                        path: "label",
-                    }),
-                }),
-            ),
-            optionallyLabelledParameterToValue: jest.fn((value) => value),
-        },
-    }));
-    jest.doMock("../../shared/evaluations/PathNotInCacheModal", () => ({
-        PathNotInCacheModal: () => null,
-    }));
+                            targetValue: {
+                                operatorId: "targetLabel",
+                                values: ["Kiel"],
+                                children: [],
+                            },
+                        } as ComparisonConfidence,
+                    },
+                ],
+                ruleBlockInspection: {
+                    snapshots: {
+                        normalizeName: createRuleBlockSnapshot(),
+                    },
+                },
+            },
+        });
 
-    const { LinkingRuleEvaluation } =
-        require("../evaluation/LinkingRuleEvaluation") as typeof import("../evaluation/LinkingRuleEvaluation");
+        render(
+            <LinkingRuleEvaluationComponent projectId="project1" linkingTaskId="linkingTask" numberOfLinkToShow={5}>
+                {(<EvaluationChild />) as unknown as React.ReactElement}
+            </LinkingRuleEvaluationComponent>,
+        );
 
-    return {
-        ...baseHarness,
-        LinkingRuleEvaluation,
-        mockEvaluateLinkingRuleAgainstReferenceEntitiesWithInspection,
-        mockEvaluateLinkingRuleWithInspection,
-    };
-};
+        await waitFor(() => expect(latestEvaluationContext).toBeDefined());
+        const evaluationContext = latestEvaluationContext!;
+
+        await act(async () => {
+            await evaluationContext.startEvaluation([createComparisonNode()], createOriginalTask(), false);
+        });
+
+        expect(mockEvaluateLinkingRuleAgainstReferenceEntitiesWithInspection).toHaveBeenCalledTimes(1);
+        expect(mockEvaluateLinkingRuleWithInspection).toHaveBeenCalledTimes(1);
+        await waitFor(() =>
+            expect(latestEvaluationContext?.canEvaluateRuleBlock?.("sourceRuleBlockUsage", "normalizeName")).toBe(true),
+        );
+
+        await act(async () => {
+            latestEvaluationContext!.openInternalRuleBlockEvaluation?.(
+                "sourceRuleBlockUsage",
+                "normalizeName",
+                "Normalize Name",
+            );
+        });
+
+        await waitFor(() =>
+            expect(lastInternalEvaluationModalProps).toMatchObject({
+                projectId: "project1",
+                ruleBlockId: "normalizeName",
+                ruleBlockLabel: "Normalize Name",
+                inputExamples: [
+                    {
+                        id: "inspection-example-1",
+                        inputs: {
+                            labelInput: ["Kiel"],
+                        },
+                    },
+                ],
+            }),
+        );
+        expect(mockRegisterError).not.toHaveBeenCalled();
+    });
+});
 
 const createRuleBlockSnapshot = (): RuleBlockSnapshot =>
     ruleTestHelper.createRuleBlockInspectionSnapshot({
@@ -89,8 +220,6 @@ const createRuleBlockSnapshot = (): RuleBlockSnapshot =>
     });
 
 const createComparisonNode = (): IRuleOperatorNode => ruleTestHelper.createComparisonNode();
-
-const createOriginalLinkingRule = (): ILinkingRule => ruleTestHelper.createLinkingRule();
 
 const createOriginalTask = (): TaskPlugin<ILinkingTaskParameters> => ruleTestHelper.createLinkingTask();
 
@@ -141,179 +270,76 @@ const evaluationResponse = (): IEvaluatedReferenceLinksWithInspection => ({
     },
 });
 
-describe("LinkingRuleEvaluation", () => {
-    it("should derive input examples from black-box linking evaluation results", async () => {
-        const harness = createLinkingInspectionHarness();
-        let latestEvaluationContext: RuleEditorEvaluationContextProps | undefined;
+const createEvaluationChild = (onContextChange: (evaluationContext: RuleEditorEvaluationContextProps) => void) => {
+    return function EvaluationChild({ overlayContent }: { overlayContent?: React.ReactNode }) {
+        const evaluationContext = React.useContext(RuleEditorEvaluationContext);
+        React.useEffect(() => {
+            onContextChange(evaluationContext);
+        }, [evaluationContext]);
+        return <>{overlayContent}</>;
+    };
+};
 
-        const EvaluationChild = ({ overlayContent }: { overlayContent?: React.ReactNode }) => {
-            const evaluationContext = React.useContext(harness.RuleEditorEvaluationContext);
-            React.useEffect(() => {
-                latestEvaluationContext = evaluationContext;
-            }, [evaluationContext]);
-            return <>{overlayContent}</>;
-        };
-
-        harness.mockEvaluateLinkingRuleAgainstReferenceEntitiesWithInspection.mockResolvedValue({
-            data: evaluationResponse(),
-        });
-
-        render(
-            <harness.LinkingRuleEvaluation projectId="project1" linkingTaskId="linkingTask" numberOfLinkToShow={5}>
-                {(<EvaluationChild />) as unknown as React.ReactElement}
-            </harness.LinkingRuleEvaluation>,
-        );
-
-        await waitFor(() => expect(latestEvaluationContext).toBeDefined());
-        const evaluationContext = latestEvaluationContext!;
-
-        await act(async () => {
-            await evaluationContext.startEvaluation([createComparisonNode()], createOriginalTask(), false);
-        });
-
-        await waitFor(() =>
-            expect(latestEvaluationContext?.canEvaluateRuleBlock?.("sourceRuleBlockUsage", "normalizeName")).toBe(true),
-        );
-        const updatedEvaluationContext = latestEvaluationContext!;
-
-        await act(async () => {
-            updatedEvaluationContext.openInternalRuleBlockEvaluation?.(
-                "sourceRuleBlockUsage",
-                "normalizeName",
-                "Normalize Name",
-            );
-        });
-
-        await waitFor(() =>
-            expect(harness.getLastInternalEvaluationModalProps()).toMatchObject({
-                projectId: "project1",
-                ruleBlockId: "normalizeName",
-                ruleBlockLabel: "Normalize Name",
-                inputExamples: [
-                    {
-                        id: "inspection-example-1",
-                        inputs: {
-                            labelInput: ["Kiel"],
-                        },
-                    },
-                ],
-            }),
-        );
-        expect(harness.mockEvaluateLinkingRuleWithInspection).not.toHaveBeenCalled();
-        expect(harness.mockRegisterError).not.toHaveBeenCalled();
-    });
-
-    it("should inspect rule block evaluations from the slower fallback response when no reference-link results are available", async () => {
-        const harness = createLinkingInspectionHarness();
-        let latestEvaluationContext: RuleEditorEvaluationContextProps | undefined;
-
-        const EvaluationChild = ({ overlayContent }: { overlayContent?: React.ReactNode }) => {
-            const evaluationContext = React.useContext(harness.RuleEditorEvaluationContext);
-            React.useEffect(() => {
-                latestEvaluationContext = evaluationContext;
-            }, [evaluationContext]);
-            return <>{overlayContent}</>;
-        };
-
-        harness.mockEvaluateLinkingRuleAgainstReferenceEntitiesWithInspection.mockResolvedValue({
-            data: {
-                positive: [],
-                negative: [],
-                evaluationScore: {
-                    fMeasure: "0.0",
-                    precision: "0.0",
-                    recall: "0.0",
-                    falseNegatives: 0,
-                    falsePositives: 0,
-                    trueNegatives: 0,
-                    truePositives: 0,
-                },
-                ruleBlockInspection: {
-                    snapshots: {},
-                },
-            },
-        });
-        harness.mockEvaluateLinkingRuleWithInspection.mockResolvedValue({
-            data: {
-                links: [
-                    {
-                        source: "source-1",
-                        target: "target-1",
-                        decision: "unlabeled",
-                        // This covers the slower fallback path where the fast reference-link response has no links, but the
-                        // fallback evaluation still exposes the same black-box rule block usage shape for inspection.
-                        ruleValues: {
-                            operatorId: "compareLabels",
-                            score: 1,
-                            sourceValue: {
-                                operatorId: "sourceRuleBlockUsage",
-                                values: ["Kiel"],
-                                children: [
-                                    {
-                                        operatorId: "sourceLabel",
-                                        values: ["Kiel"],
-                                        children: [],
-                                    },
-                                ],
+const setupLinkingRuleEvaluationTest = () => {
+    jest.resetModules();
+    jest.doMock("react", () => React);
+    jestTestUtils.mockReactI18next(jestTestUtils.testTranslate);
+    jest.doMock("../../../../utils/basicUtils", () => ({
+        queryParameterValue: jest.fn(() => []),
+    }));
+    jest.doMock("../../../../hooks/useErrorHandler", () => ({
+        __esModule: true,
+        default: () => ({
+            registerError: mockRegisterError,
+            registerErrorI18N: mockRegisterErrorI18N,
+        }),
+    }));
+    jest.doMock("../LinkingRuleEditor.requests", () => ({
+        evaluateLinkingRuleAgainstReferenceEntitiesWithInspection: (...args) =>
+            mockEvaluateLinkingRuleAgainstReferenceEntitiesWithInspection(...args),
+        evaluateLinkingRuleWithInspection: (...args) => mockEvaluateLinkingRuleWithInspection(...args),
+    }));
+    jest.doMock("../LinkingRuleEditor.utils", () => ({
+        __esModule: true,
+        default: {
+            constructLinkageRuleTree: jest.fn(() =>
+                ruleTestHelper.createComparisonOperator({
+                    id: "compareLabels",
+                    sourceInput: ruleTestHelper.createRuleBlockInput({
+                        id: "sourceRuleBlockUsage",
+                        ruleBlockId: "normalizeName",
+                        bindings: [
+                            {
+                                portId: "labelInput",
+                                input: ruleTestHelper.createPathInput({
+                                    id: "sourceLabel",
+                                    path: "label",
+                                }),
                             },
-                            targetValue: {
-                                operatorId: "targetLabel",
-                                values: ["Kiel"],
-                                children: [],
-                            },
-                        } as ComparisonConfidence,
-                    },
-                ],
-                ruleBlockInspection: {
-                    snapshots: {
-                        normalizeName: createRuleBlockSnapshot(),
-                    },
-                },
-            },
-        });
+                        ],
+                    }),
+                    targetInput: ruleTestHelper.createPathInput({
+                        id: "targetLabel",
+                        path: "label",
+                    }),
+                }),
+            ),
+            optionallyLabelledParameterToValue: jest.fn((value) => value),
+        },
+    }));
+    jest.doMock("../../shared/evaluations/PathNotInCacheModal", () => ({
+        PathNotInCacheModal: () => null,
+    }));
+    jest.doMock("../evaluation/LinkRuleNodeEvaluation", () => ({
+        LinkRuleNodeEvaluation: () => null,
+    }));
+    jest.doMock("../../ruleBlock/RuleBlockInternalEvaluationModal", () => ({
+        RuleBlockInternalEvaluationModal: (props) => {
+            lastInternalEvaluationModalProps = props;
+            return <div data-testid="rule-block-internal-evaluation-modal" />;
+        },
+    }));
 
-        render(
-            <harness.LinkingRuleEvaluation projectId="project1" linkingTaskId="linkingTask" numberOfLinkToShow={5}>
-                {(<EvaluationChild />) as unknown as React.ReactElement}
-            </harness.LinkingRuleEvaluation>,
-        );
-
-        await waitFor(() => expect(latestEvaluationContext).toBeDefined());
-        const evaluationContext = latestEvaluationContext!;
-
-        await act(async () => {
-            await evaluationContext.startEvaluation([createComparisonNode()], createOriginalTask(), false);
-        });
-
-        expect(harness.mockEvaluateLinkingRuleAgainstReferenceEntitiesWithInspection).toHaveBeenCalledTimes(1);
-        expect(harness.mockEvaluateLinkingRuleWithInspection).toHaveBeenCalledTimes(1);
-        await waitFor(() =>
-            expect(latestEvaluationContext?.canEvaluateRuleBlock?.("sourceRuleBlockUsage", "normalizeName")).toBe(true),
-        );
-
-        await act(async () => {
-            latestEvaluationContext!.openInternalRuleBlockEvaluation?.(
-                "sourceRuleBlockUsage",
-                "normalizeName",
-                "Normalize Name",
-            );
-        });
-
-        await waitFor(() =>
-            expect(harness.getLastInternalEvaluationModalProps()).toMatchObject({
-                projectId: "project1",
-                ruleBlockId: "normalizeName",
-                ruleBlockLabel: "Normalize Name",
-                inputExamples: [
-                    {
-                        id: "inspection-example-1",
-                        inputs: {
-                            labelInput: ["Kiel"],
-                        },
-                    },
-                ],
-            }),
-        );
-        expect(harness.mockRegisterError).not.toHaveBeenCalled();
-    });
-});
+    ({ RuleEditorEvaluationContext } = require("../../../shared/RuleEditor/contexts/RuleEditorEvaluationContext"));
+    ({ LinkingRuleEvaluation } = require("../evaluation/LinkingRuleEvaluation"));
+};
