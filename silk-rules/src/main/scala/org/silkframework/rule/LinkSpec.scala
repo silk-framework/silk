@@ -21,7 +21,7 @@ import org.silkframework.entity.{EntitySchema, Restriction, ValueType}
 import org.silkframework.execution.ExecutorRegistry
 import org.silkframework.execution.typed.{LinkGenerator, LinksEntitySchema}
 import org.silkframework.rule.evaluation.ReferenceLinks
-import org.silkframework.rule.input.{Input, PathInput, TransformInput, Transformer}
+import org.silkframework.rule.input.{Input, PathInput, RuleBlockInput, TransformInput, Transformer}
 import org.silkframework.rule.similarity.{Aggregation, Comparison, SimilarityOperator}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.AnyPlugin
@@ -115,6 +115,7 @@ case class LinkSpec(@Param(label = "Source input", value = "The source input to 
       val typedPath = TypedPath(p.path, ValueType.STRING, isAttribute = false)
       Set(typedPath)
     case p: TransformInput => p.inputs.flatMap(collectPathsFromInput).toSet
+    case rb: RuleBlockInput => rb.bindings.flatMap(binding => collectPathsFromInput(binding.input)).toSet
     case _ => Set()
   }
 
@@ -136,6 +137,8 @@ case class LinkSpec(@Param(label = "Source input", value = "The source input to 
 
   override def outputTasks: Set[Identifier] = output.value.toSet
 
+  override def referencedTasks: Set[Identifier] = inputTasks ++ outputTasks ++ referencedRuleBlocks
+
   override lazy val referencedResources: Seq[Resource] = {
     val resources = new mutable.HashSet[Resource]()
     rule.operator foreach (operator => iterateAllTransformersFromSimilarityOperator(operator, _.referencedResources.foreach(resources.add)))
@@ -148,6 +151,9 @@ case class LinkSpec(@Param(label = "Source input", value = "The source input to 
     variables.toSeq
   }
 
+  private lazy val referencedRuleBlocks: Set[Identifier] =
+    rule.operator.map(referencedRuleBlocksFromSimilarityOperator).getOrElse(Set.empty)
+
   private def iterateAllTransformersFromSimilarityOperator(rule: SimilarityOperator,
                                                            f: Transformer => Unit): Unit = {
     rule match {
@@ -159,12 +165,36 @@ case class LinkSpec(@Param(label = "Source input", value = "The source input to 
     }
   }
 
+  private def referencedRuleBlocksFromSimilarityOperator(rule: SimilarityOperator): Set[Identifier] = {
+    rule match {
+      case agg: Aggregation =>
+        agg.operators.flatMap(referencedRuleBlocksFromSimilarityOperator).toSet
+      case comp: Comparison =>
+        comp.inputs.flatMap(referencedRuleBlocksFromOperator).toSet
+      case _ =>
+        Set.empty
+    }
+  }
+
+  private def referencedRuleBlocksFromOperator(operator: Operator): Set[Identifier] = {
+    operator match {
+      case TransformInput(_, _, inputs) =>
+        inputs.flatMap(referencedRuleBlocksFromOperator).toSet
+      case RuleBlockInput(_, ruleBlockId, bindings) =>
+        bindings.flatMap(binding => referencedRuleBlocksFromOperator(binding.input)).toSet + ruleBlockId
+      case _ =>
+        Set.empty
+    }
+  }
+
   private def iterateAllTransformersFromOperator(operator: Operator,
                                                  f: Transformer => Unit): Unit = {
     operator match {
       case TransformInput(_, transformer, inputs) =>
         inputs.foreach(input => iterateAllTransformersFromOperator(input, f))
         f(transformer)
+      case RuleBlockInput(_, _, bindings) =>
+        bindings.foreach(binding => iterateAllTransformersFromOperator(binding.input, f))
       case _ =>
     }
   }

@@ -2,6 +2,10 @@ package controllers.util
 
 
 import org.silkframework.config.{Prefixes, Task, TaskSpec}
+import org.silkframework.runtime.activity.UserContext
+import org.silkframework.runtime.plugin.TaskResolver
+import org.silkframework.runtime.resource.EmptyResourceManager
+import org.silkframework.runtime.serialization.Serialization.defaultMimeTypes
 import org.silkframework.runtime.serialization.{ReadContext, Serialization, SerializationFormat, WriteContext}
 import org.silkframework.runtime.templating.TemplateVariables
 import org.silkframework.runtime.validation.{BadUserInputException, ValidationException}
@@ -9,16 +13,13 @@ import org.silkframework.workbench.utils.{ErrorResult, NotAcceptableException}
 import org.silkframework.workspace.Project
 import play.api.http.MediaType
 import play.api.http.Status._
-import play.api.libs.json.{JsArray, JsValue}
+import play.api.libs.json.JsValue
 import play.api.mvc.Results.Ok
 import play.api.mvc._
-import Serialization.defaultMimeTypes
-import org.silkframework.runtime.activity.UserContext
-import org.silkframework.runtime.resource.EmptyResourceManager
 import org.silkframework.serialization.json.JsonSerializers.TaskJsonFormat
 
 import scala.reflect.ClassTag
-import scala.xml.{Elem, Node}
+import scala.xml.Node
 
 object SerializationUtils {
   final val APPLICATION_JSON = "application/json"
@@ -52,7 +53,8 @@ object SerializationUtils {
       case Some(proj) =>
         WriteContext.fromProject[Any](proj)(UserContext.Empty)
       case None =>
-        WriteContext[Any](prefixes = Prefixes.default, projectId = None, resources = EmptyResourceManager(), user = UserContext.Empty)
+        WriteContext[Any](prefixes = Prefixes.default, projectId = None, resources = EmptyResourceManager(), user = UserContext.Empty,
+          taskResolver = TaskResolver.empty)
     }
   }
 
@@ -124,72 +126,6 @@ object SerializationUtils {
     applySerializationFormat[T](request.acceptedTypes, defaultMimeTypes, valueType) { (serializationFormat, mimeType) =>
       val serializedValue = serializationFormat.toString(value, mimeType, containerName)
       Ok(serializedValue).as(mimeType)
-    }
-  }
-
-  /**
-    * Deserializes the body content based on the content type and calls the caller given function on the deserialized result.
-    *
-    * @param expectedXmlRootElementLabel An optional string that specifies which label the enclosing XML root element should have.
-    *                                    If the label is different the method will throw an exception. This only makes sense
-    *                                    for data models where list elements are named, e.g. XML.
-    * @param func                        User defined function that should be called on the deserialized result.
-    */
-  def deserializeIterable[T: ClassTag](expectedXmlRootElementLabel: Option[String])
-                                      (func: Iterable[T] => Result)
-                                      (implicit request: Request[AnyContent],
-                                       project: Project): Result = {
-    implicit val readContext = ReadContext(project.resources, project.config.prefixes)
-
-    request.body match {
-      case AnyContentAsXml(xml) =>
-        xml.headOption match {
-          case Some(rootElem: Elem) =>
-            func(deserializeXmlIterable(expectedXmlRootElementLabel, rootElem))
-          case _ =>
-            throw new RuntimeException("XML document has no root element!")
-        }
-      case AnyContentAsJson(json) =>
-        json match {
-          case jsArray: JsArray =>
-            func(deserializeJsonIterable(jsArray))
-          case _ =>
-            throw new RuntimeException("Received JSON data is not a JSON array!")
-        }
-      case _ =>
-        ErrorResult(UNSUPPORTED_MEDIA_TYPE, title = "Unsupported media type", detail = "Unsupported content type. Try JSON or XML.")
-    }
-  }
-
-  def deserializeJsonIterable[T: ClassTag](jsArray: JsArray)
-                                          (implicit readContext: ReadContext): Seq[T] = {
-    try {
-      val deserialized = for (jsObj <- jsArray.value.toSeq) yield {
-        Serialization.formatForType[T, JsValue].read(jsObj)
-      }
-      deserialized
-    } catch {
-      case v: ValidationException =>
-        throw BadUserInputException(v.getMessage)
-    }
-  }
-
-  private def deserializeXmlIterable[T: ClassTag](expectedRootElementLabel: Option[String],
-                                                  rootElem: Elem)
-                                                 (implicit readContext: ReadContext): Seq[T] = {
-    expectedRootElementLabel.foreach { expected =>
-      if (rootElem.label != expected) {
-        throw new RuntimeException(s"The root element of the XML document is not the expected! Expected: $expected, got: ${rootElem.label}")
-      }
-    }
-    try {
-      val deserialized = for (child <- rootElem.child) yield {
-        Serialization.formatForType[T, Node].read(child)
-      }
-      deserialized
-    } catch {
-      case v: ValidationException =>
-        throw BadUserInputException(v.getMessage)
     }
   }
 

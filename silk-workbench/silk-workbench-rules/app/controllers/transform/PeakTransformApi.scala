@@ -21,12 +21,12 @@ import org.silkframework.plugins.dataset.rdf.executors.LocalSparqlSelectIterator
 import org.silkframework.plugins.dataset.rdf.tasks.SparqlSelectCustomTask
 import org.silkframework.rule.TransformSpec.RuleSchemata
 import org.silkframework.rule.input.Value
-import org.silkframework.rule.{ComplexUriMapping, TaskContext, TransformRule, TransformRuleExecution, TransformSpec, ValueTransformRuleExecution}
+import org.silkframework.rule._
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.PluginContext
 import org.silkframework.runtime.serialization.ReadContext
 import org.silkframework.runtime.validation.ValidationException
-import org.silkframework.util.{Identifier, Uri}
+import org.silkframework.util.Identifier
 import org.silkframework.workspace.{Project, ProjectTask}
 import play.api.libs.json.{Format, Json}
 import play.api.mvc._
@@ -202,7 +202,11 @@ class PeakTransformApi @Inject() () extends InjectedController with UserContextA
           case peakDataSource: PeakDataSource =>
             try {
               peakDataSource.peak(ruleSchemata.inputSchema, maxTryEntities).use { exampleEntities =>
-                generateMappingPreviewResponse(ruleSchemata.transformRule.execution(TaskContext.forInput(inputTask)), exampleEntities, limit)
+                generateMappingPreviewResponse(
+                  ruleSchemata.transformRule.execution(TaskContext.forInput(inputTask)),
+                  exampleEntities,
+                  limit
+                )
               }
             } catch {
               case pe: PeakException =>
@@ -245,7 +249,11 @@ class PeakTransformApi @Inject() () extends InjectedController with UserContextA
           val entityDatasource = EntityDatasource(datasetTask, entities, sparqlSelectTask.outputSchema)
           try {
             entityDatasource.peak(ruleSchemata.inputSchema, maxTryEntities).use { exampleEntities =>
-              generateMappingPreviewResponse(ruleSchemata.transformRule.execution(TaskContext.noInput), exampleEntities, limit)
+              generateMappingPreviewResponse(
+                ruleSchemata.transformRule.execution(TaskContext.noInput()),
+                exampleEntities,
+                limit
+              )
             }
           } catch {
             case pe: PeakException =>

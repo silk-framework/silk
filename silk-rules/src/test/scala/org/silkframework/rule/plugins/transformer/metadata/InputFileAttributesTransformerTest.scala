@@ -7,7 +7,7 @@ import org.silkframework.dataset.DatasetSpec
 import org.silkframework.plugins.dataset.csv.CsvDataset
 import org.silkframework.rule.TaskContext
 import org.silkframework.runtime.activity.{TestUserContextTrait, UserContext}
-import org.silkframework.runtime.plugin.PluginContext
+import org.silkframework.runtime.plugin.{PluginContext, TaskResolver}
 import org.silkframework.runtime.resource.{InMemoryResourceManager, WritableResource}
 import play.api.libs.json.{JsDefined, JsString, Json}
 
@@ -27,7 +27,7 @@ class InputFileAttributesTransformerTest extends AnyFlatSpec with Matchers with 
     private val dataset = PlainTask("inputTask", DatasetSpec(CsvDataset(file = resource)))
 
     def retrieve(attribute: FileAttributeEnum): String = {
-      val taskContext = TaskContext(Seq(dataset), PluginContext(Prefixes.empty, resources, UserContext.Empty))
+      val taskContext = TaskContext(Seq(dataset), PluginContext(Prefixes.empty, resources, UserContext.Empty, taskResolver = TaskResolver.empty))
       val transformer = InputFileAttributesTransformer(attribute).execution(taskContext)
       transformer(Seq.empty).head
     }

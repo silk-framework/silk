@@ -23,7 +23,7 @@ import org.silkframework.rule._
 import org.silkframework.rule.execution.ExecuteTransform
 import org.silkframework.rule.util.UriPatternParser.UriPatternParserException
 import org.silkframework.runtime.activity.{Activity, UserContext}
-import org.silkframework.runtime.plugin.PluginContext
+import org.silkframework.runtime.plugin.{PluginContext, TaskResolver}
 import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext}
 import org.silkframework.runtime.validation.{BadUserInputException, NotFoundException, ValidationError, ValidationException}
@@ -365,7 +365,7 @@ class TransformTaskApi @Inject() () extends InjectedController with UserContextA
     implicit val (project, task) = getProjectAndTask[TransformSpec](projectName, taskName)
     implicit val prefixes: Prefixes = project.config.prefixes
     implicit val resources: ResourceManager = project.resources
-    implicit val readContext: ReadContext = ReadContext(resources, prefixes, validationEnabled = true)
+    implicit val readContext: ReadContext = ReadContext(resources, prefixes, validationEnabled = true, taskResolver = TaskResolver.empty)
 
     catchExceptions {
       task.synchronized {
@@ -648,7 +648,8 @@ class TransformTaskApi @Inject() () extends InjectedController with UserContextA
                  afterRuleId: Option[String] = None): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     implicit val (project, task) = getProjectAndTask[TransformSpec](projectName, taskName)
     task.synchronized {
-      implicit val readContext: ReadContext = ReadContext(project.resources, project.config.prefixes, identifierGenerator(task), validationEnabled = true)
+      implicit val readContext: ReadContext = ReadContext(project.resources, project.config.prefixes, identifierGenerator(task),
+        validationEnabled = true, taskResolver = TaskResolver.empty)
       processRule(task, ruleName) { parentRule =>
         handleValidationExceptions {
           deserializeCompileTime[TransformRule]() { newChildRule =>
@@ -827,9 +828,7 @@ class TransformTaskApi @Inject() () extends InjectedController with UserContextA
                afterRuleId: Option[String] = None): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     implicit val (project, task) = getProjectAndTask[TransformSpec](projectName, taskName)
     val (_, fromTask) = getProjectAndTask[TransformSpec](sourceProject, sourceTask)
-    implicit val prefixes: Prefixes = project.config.prefixes
     task.synchronized {
-      implicit val readContext: ReadContext = ReadContext(project.resources, project.config.prefixes, identifierGenerator(task))
       processRule(fromTask, sourceRule) { ruleToCopy =>
         processRule(task, ruleName) { parentRule =>
           val newChildRule = convertRootMappingRule(assignNewIdsAndLabelToRule(task, ruleToCopy))

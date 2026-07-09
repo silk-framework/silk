@@ -2,7 +2,7 @@ package org.silkframework.runtime.templating.operations
 
 import org.silkframework.config.{Task, TaskSpec}
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.runtime.plugin.{ParameterTemplateValue, ParameterValues, PluginContext}
+import org.silkframework.runtime.plugin.{ParameterTemplateValue, ParameterValues, PluginContext, TaskResolver}
 import org.silkframework.runtime.templating.exceptions._
 import org.silkframework.runtime.templating.{GlobalTemplateVariables, InMemoryTemplateVariablesReader, TemplateVariableScopes, TemplateVariables, TemplateVariablesManager}
 import org.silkframework.util.Identifier
@@ -139,7 +139,9 @@ abstract class Modification {
         resources = project.resources,
         user = user,
         projectId = Some(project.config.id),
-        templateVariables = InMemoryTemplateVariablesReader(allNewVariables, currentContext.templateVariables.scopes))
+        templateVariables = InMemoryTemplateVariablesReader(allNewVariables, currentContext.templateVariables.scopes),
+        taskResolver = TaskResolver.fromProject(project)
+      )
 
     val updatedTasks = mutable.Buffer[(Identifier, TaskSpec)]()
     for (task <- project.allTasks) {

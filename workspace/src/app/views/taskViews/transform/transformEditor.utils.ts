@@ -9,6 +9,10 @@ import { autoCompleteTransformSourcePath } from "./transform.requests";
 import { EvaluatedTransformEntity } from "./transform.types";
 import { SampleError } from "../../shared/SampleError/SampleError";
 import { TaskContext } from "../../shared/projectTaskTabView/projectTaskTabView.typing";
+import ruleBlockOperatorUtils, { IRuleBlockOperatorDetails } from "../ruleBlock/ruleBlockOperator.utils";
+import { IPluginDetails } from "@ducks/common/typings";
+
+export type TransformRuleEditorOperator = IPluginDetails | IRuleBlockOperatorDetails;
 
 export const inputPathTab = (
     projectId: string,
@@ -89,3 +93,11 @@ export const transformToValueMap = (transform: EvaluatedTransformEntity): Map<st
     traverseTransformTree(transform);
     return valueMap;
 };
+
+const transformEditorUtils = {
+    ...ruleBlockOperatorUtils,
+    inputPathTab,
+    transformToValueMap,
+};
+
+export default transformEditorUtils;

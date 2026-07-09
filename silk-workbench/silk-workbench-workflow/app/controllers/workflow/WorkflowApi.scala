@@ -17,7 +17,7 @@ import org.silkframework.config.Task
 import org.silkframework.rule.execution.TransformReport
 import org.silkframework.rule.execution.TransformReport.RuleResult
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.runtime.plugin.{ParameterValues, PluginContext}
+import org.silkframework.runtime.plugin.{ParameterValues, PluginContext, TaskResolver}
 import org.silkframework.runtime.serialization.{ReadContext, XmlSerialization}
 import org.silkframework.util.Identifier
 import org.silkframework.workbench.utils.UnsupportedMediaTypeException
@@ -49,7 +49,7 @@ class WorkflowApi @Inject() () extends InjectedController with UserContextAction
   @deprecated
   def postWorkflow(projectName: String): Action[AnyContent] = RequestUserContextAction { request => implicit userContext =>
     val project = fetchProject(projectName)
-    implicit val readContext: ReadContext = ReadContext(project.resources, project.config.prefixes)
+    implicit val readContext: ReadContext = ReadContext(project.resources, project.config.prefixes, taskResolver = TaskResolver.empty)
     val workflow = XmlSerialization.fromXml[Task[Workflow]](request.body.asXml.get.head)
     project.addTask[Workflow](workflow.id, workflow)
 
@@ -59,7 +59,7 @@ class WorkflowApi @Inject() () extends InjectedController with UserContextAction
   @deprecated
   def putWorkflow(projectName: String, taskName: String): Action[AnyContent] = RequestUserContextAction { request => implicit userContext =>
     val project = fetchProject(projectName)
-    implicit val readContext: ReadContext = ReadContext(project.resources, project.config.prefixes)
+    implicit val readContext: ReadContext = ReadContext(project.resources, project.config.prefixes, taskResolver = TaskResolver.empty)
     val workflow = XmlSerialization.fromXml[Task[Workflow]](request.body.asXml.get.head)
     project.updateTask[Workflow](taskName, workflow)
 

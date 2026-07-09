@@ -1,9 +1,12 @@
 import utils from "../rule.utils";
 import {
+    INamedPortSpecification,
     IRuleOperatorNode,
     RuleEditorValidationNode,
     RuleOperatorPluginType,
 } from "../../../../shared/RuleEditor/RuleEditor.typings";
+import { PluginType } from "@ducks/shared/typings";
+import { IRuleBlockInput } from "../rule.typings";
 
 describe("Rule utils", () => {
     const ruleNode = (nodeId: string, node: Partial<IRuleOperatorNode> = {}): IRuleOperatorNode => {
@@ -15,6 +18,7 @@ describe("Rule utils", () => {
             pluginId: "TestPlugin",
             pluginType: "unknown",
             portSpecification: {
+                type: "count",
                 minInputPorts: 0,
             },
             inputsCanBeSwitched: false,
@@ -111,6 +115,21 @@ describe("Rule utils", () => {
         validateTrue("t1", "c1");
         // Into aggregations
         validateFalse("t1", "a1");
+    });
+
+    it("should validate connections from rule block operators like transform operators", () => {
+        const [validateTrue, validateFalse] = validateRuleTreeFactory(
+            ruleTree([edge("sp1", "rb1"), edge("tp1", "rb2")], [operator("rb1", "RuleBlock"), operator("rb2", "RuleBlock")])
+        );
+        validateTrue("sp2", "rb1");
+        validateTrue("tp2", "rb1");
+        validateFalse("tp2", "rb1", 1);
+        validateTrue("rb1", "c1", 0);
+        validateFalse("rb1", "c1", 1);
+        validateTrue("rb1", "t1");
+        validateFalse("rb1", "a1");
+        validateTrue("tp2", "rb2");
+        validateFalse("sp2", "rb2", 1);
     });
 
     it("should validate connections from comparison operators to other operators", () => {
@@ -248,12 +267,76 @@ describe("Rule utils", () => {
         validateFalse("t4", "reverseT3", 1);
         validateTrue("t4", "reverseT3");
     });
+
+    it("should convert rule block nodes to reusable rule block inputs using stable port IDs", () => {
+        const sourceNode = ruleNode("source", {
+            pluginType: "PathInputOperator",
+            pluginId: "sourcePathInput",
+            parameters: { path: "foaf:name" },
+            portSpecification: { type: "count", minInputPorts: 0, maxInputPorts: 0 },
+        });
+        const transformNode = ruleNode("transform", {
+            pluginType: "TransformOperator",
+            pluginId: "trim",
+            inputs: ["source"],
+            parameters: {},
+            portSpecification: { type: "count", minInputPorts: 1 },
+        });
+        const ruleBlockNode = ruleNode("ruleBlockUsage", {
+            pluginType: "RuleBlock",
+            pluginId: "normalizeName",
+            inputs: ["source", undefined, "transform"],
+            portSpecification: {
+                type: "named",
+                inputPorts: [{ id: "first" }, { id: "unused" }, { id: "second" }],
+            } satisfies INamedPortSpecification,
+        });
+        const nodeMap = new Map([
+            [sourceNode.nodeId, sourceNode],
+            [transformNode.nodeId, transformNode],
+            [ruleBlockNode.nodeId, ruleBlockNode],
+        ]);
+
+        const result = utils.convertRuleOperatorNodeToValueInput(ruleBlockNode, nodeMap) as IRuleBlockInput;
+
+        expect(result).toStrictEqual({
+            id: "ruleBlockUsage",
+            ruleBlockId: "normalizeName",
+            type: "ruleBlockInput",
+            bindings: [
+                {
+                    portId: "first",
+                    input: {
+                        id: "source",
+                        path: "foaf:name",
+                        type: "pathInput",
+                    },
+                },
+                {
+                    portId: "second",
+                    input: {
+                        id: "transform",
+                        function: "trim",
+                        inputs: [
+                            {
+                                id: "source",
+                                path: "foaf:name",
+                                type: "pathInput",
+                            },
+                        ],
+                        parameters: {},
+                        type: "transformInput",
+                    },
+                },
+            ],
+        });
+    });
 });
 
 type TestPluginType = "doesntMatter" | "sourcePathInput" | "targetPathInput";
 interface TestOperator {
     nodeId: string;
-    pluginType: RuleOperatorPluginType;
+    pluginType: RuleOperatorPluginType | PluginType;
     pluginId: TestPluginType;
     inputsCanBeSwitched?: boolean;
 }
@@ -266,7 +349,7 @@ interface TestEdge {
 
 const operator = (
     nodeId: string,
-    pluginType: RuleOperatorPluginType,
+    pluginType: RuleOperatorPluginType | PluginType,
     pluginId: TestPluginType = "doesntMatter",
     inputsCanBeSwitched: boolean = false
 ): TestOperator => {

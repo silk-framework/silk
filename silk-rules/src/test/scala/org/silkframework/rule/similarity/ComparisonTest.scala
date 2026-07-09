@@ -15,17 +15,14 @@
 package org.silkframework.rule.plugins.similarity
 
 
-import org.silkframework.config.Prefixes
-import org.silkframework.entity.Entity
-import org.silkframework.rule.{Operator, TaskContext}
-import org.silkframework.rule.input.{InlineInput, Input, Value}
-import org.silkframework.rule.similarity.{Comparison, DistanceMeasure}
-import org.silkframework.testutil.approximatelyEqualTo
-import org.silkframework.util.{DPair, Identifier}
-
-import scala.xml.Node
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
+import org.silkframework.rule.TaskContext
+import org.silkframework.rule.input.TransformInput
+import org.silkframework.rule.plugins.transformer.value.ConstantTransformer
+import org.silkframework.rule.similarity.{Comparison, DistanceMeasure}
+import org.silkframework.testutil.approximatelyEqualTo
+import org.silkframework.util.DPair
 
 
 class ComparisonTest extends AnyFlatSpec with Matchers {
@@ -43,16 +40,7 @@ class ComparisonTest extends AnyFlatSpec with Matchers {
     Comparison(
       threshold = threshold,
       metric = new DistanceMeasure { def apply(values1: Seq[String], values2: Seq[String], limit: Double) = distance },
-      inputs = DPair.fill(DummyInput)
+      inputs = DPair.fill(TransformInput(transformer = ConstantTransformer("dummy")))
     ).execution(TaskContext.empty).apply(DPair.fill(null), -1.0).get
-  }
-
-  private object DummyInput extends InlineInput {
-    val id = Identifier.random
-    override def apply(entity: Entity): Value = Value(Seq("dummy"))
-    def toXML(implicit prefixes: Prefixes): Node = null
-    def children: Seq[Operator] = Seq.empty
-    def withId(newId: Identifier): Operator = ???
-    def withChildren(newChildren: Seq[Operator]): Operator = ???
   }
 }

@@ -31,6 +31,7 @@ class XmlWorkspaceProvider(val resources: ResourceManager) extends WorkspaceProv
   // Register all module types
   registerModule(new DatasetXmlSerializer())
   registerModule(new LinkingXmlSerializer())
+  registerModule(new RuleBlockXmlSerializer())
   registerModule(new TransformXmlSerializer())
   registerModule(new WorkflowXmlSerializer())
   registerModule(new CustomTaskXmlSerializer())
@@ -61,7 +62,7 @@ class XmlWorkspaceProvider(val resources: ResourceManager) extends WorkspaceProv
 
   private def metaData(configXML: Elem,
                        projectName: String): MetaData = {
-    implicit val readContext: ReadContext = ReadContext(EmptyResourceManager(), Prefixes.empty)
+    implicit val readContext: ReadContext = ReadContext.empty
     (configXML \ "MetaData").headOption.
         map(n => XmlSerialization.fromXml[MetaData](n)).
         getOrElse(MetaData(Some(projectName))) // Set label to ID
@@ -134,7 +135,7 @@ class XmlWorkspaceProvider(val resources: ResourceManager) extends WorkspaceProv
     */
   override def readTags(project: Identifier)
                        (implicit userContext: UserContext): Iterable[Tag] = {
-    implicit val readContext: ReadContext = ReadContext(EmptyResourceManager(), Prefixes.empty)
+    implicit val readContext: ReadContext = ReadContext.empty
     val tagXmlFile = resources.child(project).get("tags.xml")
     if(tagXmlFile.nonEmpty) {
       val tagXml = tagXmlFile.read(XML.load)
@@ -186,7 +187,7 @@ class XmlWorkspaceProvider(val resources: ResourceManager) extends WorkspaceProv
     val accessControlFile = resources.child(project).get("accessControl.xml")
     if(accessControlFile.nonEmpty) {
       val accessControlXml = accessControlFile.read(XML.load)
-      implicit val readContext: ReadContext = ReadContext(EmptyResourceManager(), Prefixes.empty)
+      implicit val readContext: ReadContext = ReadContext.empty
       Some(XmlSerialization.fromXml[AccessControl](accessControlXml))
     } else {
       None

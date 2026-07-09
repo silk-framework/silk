@@ -4,7 +4,10 @@ package org.silkframework.workspace
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import org.silkframework.config.{CustomTask, InputPorts, MetaData, Port}
-import org.silkframework.rule.{DatasetSelection, TransformSpec}
+import org.silkframework.entity.paths.UntypedPath
+import org.silkframework.rule.input.{InputPortInput, PathInput, RuleBlockBinding, RuleBlockInput, TransformInput}
+import org.silkframework.rule.plugins.transformer.value.ConstantTransformer
+import org.silkframework.rule.{ComplexMapping, DatasetSelection, MappingRules, RootMappingRule, RuleBlockModel, RuleBlockPort, RuleBlockSpec, TransformSpec}
 import org.silkframework.runtime.activity.{SimpleUserContext, TestUserContextTrait}
 import org.silkframework.runtime.plugin.PluginContext
 import org.silkframework.runtime.resource.InMemoryResourceManager
@@ -103,6 +106,58 @@ class ProjectTest extends AnyFlatSpec with Matchers with TestWorkspaceProviderTe
 
     // After removal the loading error must be gone
     project.loadingErrors.map(_.taskId) should not contain failedTaskId
+  }
+
+  it should "collect plugin usages from rule blocks and from tasks referencing them" in {
+    val project = retrieveOrCreateProject("RuleBlockPluginUsageTest")
+
+    project.addTask(
+      "normalizeName",
+      RuleBlockSpec(
+        RuleBlockModel(
+          ports = IndexedSeq(
+            RuleBlockPort(id = Identifier("namePort"), label = "Name", displayOrder = 1)
+          ),
+          operator = Some(
+            TransformInput(
+              id = Identifier("normalizeInput"),
+              transformer = ConstantTransformer("normalized"),
+              inputs = IndexedSeq(InputPortInput(id = Identifier("nameInput"), portId = Identifier("namePort")))
+            )
+          )
+        )
+      )
+    )
+    project.addTask(
+      "transformUsingRuleBlock",
+      TransformSpec(
+        selection = DatasetSelection("sourceDataset"),
+        mappingRule = RootMappingRule(
+          MappingRules(
+            ComplexMapping(
+              id = Identifier("ruleBlockMapping"),
+              operator = RuleBlockInput(
+                id = Identifier("ruleBlockUsage"),
+                ruleBlockId = Identifier("normalizeName"),
+                bindings = IndexedSeq(
+                  RuleBlockBinding(
+                    portId = Identifier("namePort"),
+                    input = PathInput(id = Identifier("namePath"), path = UntypedPath("name"))
+                  )
+                )
+              )
+            )
+          )
+        )
+      )
+    )
+
+    val ruleBlockTask = project.task[RuleBlockSpec]("normalizeName")
+    val transformTask = project.task[TransformSpec]("transformUsingRuleBlock")
+
+    ruleBlockTask.ownPluginUsages.map(_.pluginId) should contain only "constant"
+    transformTask.ownPluginUsages shouldBe empty
+    transformTask.pluginUsages.map(_.pluginId) should contain("constant")
   }
 
   override def workspaceProviderId: String = "inMemoryWorkspaceProvider"
