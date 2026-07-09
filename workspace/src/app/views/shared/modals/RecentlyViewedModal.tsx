@@ -136,7 +136,9 @@ export function RecentlyViewedModal() {
             <OverviewItem
                 className={
                     "diapp-recentlyviewedmodal__searchitem" +
-                    (modifiers.active ? ` ${eccguiprefix}-overviewitem__item--active` : "")
+                    (modifiers.active
+                        ? ` ${eccguiprefix}-overviewitem__item--active bg-accent text-accent-foreground`
+                        : "")
                 }
                 key={item.projectId + item.taskId}
                 hasSpacing

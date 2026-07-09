@@ -12,7 +12,7 @@ interface Props extends Pick<TagProps, "interactive"> {
     maxLength?: number;
 }
 
-export const highlightedTagColor = "#745a85";
+export const highlightedTagColor = "var(--eccgui-color-palette-layout-purple-700)";
 
 /** Shows example values for a property. */
 export const ActiveLearningValueExamples = ({

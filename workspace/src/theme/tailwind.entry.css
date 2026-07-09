@@ -3,19 +3,26 @@
  *
  * Build via `yarn tailwind:build` (or `yarn tailwind:watch`), which produces the
  * git-ignored artifact `src/theme/tailwind.generated.css`; that artifact is imported
- * in `src/index.tsx` AFTER the legacy SCSS bundle (`./theme/index.scss`).
+ * in `src/index.tsx` AFTER the remaining SCSS bundle (`./theme/index.scss`).
  *
- * The utilities import is deliberately UNLAYERED so generated utility classes win
- * against the legacy (also unlayered) SCSS by order/specificity where they collide.
+ * Layering strategy: preflight + the library's base.css live in `layer(base)`, so any
+ * remaining unlayered SCSS (extension/vendor styling, app views) and all unlayered
+ * utilities win against them. The utilities import is deliberately UNLAYERED so
+ * generated utility classes win against the remaining (also unlayered) SCSS by
+ * order/specificity where they collide.
  */
 
+@layer theme, base;
+
 /*
- * NOTE: the theme preset is imported via relative path instead of
- * "@eccenca/gui-elements/src/tailwind/theme.css" because Tailwind's resolver enforces the
+ * NOTE: the lib files are imported via relative path instead of
+ * "@eccenca/gui-elements/src/tailwind/…" because Tailwind's resolver enforces the
  * package `exports` field (which only exposes "." and "./config/sassOptions"); webpack is
  * not affected (webpack 4 ignores `exports`), but the CLI would fail on the package path.
  */
+@import "tailwindcss/preflight.css" layer(base);
 @import "../../../libs/gui-elements/src/tailwind/theme.css";
+@import "../../../libs/gui-elements/src/tailwind/base.css" layer(base);
 @import "tailwindcss/utilities.css";
 
 @source "../";

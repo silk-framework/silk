@@ -170,7 +170,7 @@ function FileTable({ filesList, headers, projectId, textQuery, onDelete }: IFile
     return (
         <>
             <TableContainer>
-                <Table columnWidths={["40%", "25%", "25%", "60px"]}>
+                <Table size="small" columnWidths={["40%", "25%", "25%", "60px"]}>
                     <TableHead>
                         <TableRow>
                             {headers.map((property) => (

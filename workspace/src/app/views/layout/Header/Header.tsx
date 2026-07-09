@@ -209,7 +209,7 @@ export function Header({ onClickApplicationSidebarExpand, isApplicationSidebarEx
                                     dispatch(commonOp.toggleUserMenuDisplay(false));
                                 }}
                             >
-                                <Icon name="navigation-close" title="Close icon" large />
+                                <Icon name="navigation-close" title="Close icon" />
                             </ApplicationToolbarAction>
                             <ApplicationToolbarPanel
                                 aria-label="User menu"
@@ -218,8 +218,8 @@ export function Header({ onClickApplicationSidebarExpand, isApplicationSidebarEx
                                     dispatch(commonOp.toggleUserMenuDisplay(false));
                                 }}
                             >
-                                <Toolbar verticalStack={true} style={{ height: "100%" }}>
-                                    <ToolbarSection canGrow={true} style={{ width: "100%" }}>
+                                <Toolbar verticalStack={true} className="h-full">
+                                    <ToolbarSection canGrow={true} className="w-full">
                                         <Menu>
                                             {languageSwitcher && <languageSwitcher.Component />}
                                             <MenuDivider />
@@ -284,7 +284,7 @@ export function Header({ onClickApplicationSidebarExpand, isApplicationSidebarEx
                                         <diUserMenuFooter.Component version={version} />
                                     ) : (
                                         version && (
-                                            <ToolbarSection style={{ width: "10%" }}>
+                                            <ToolbarSection>
                                                 <HtmlContentBlock small>{version}</HtmlContentBlock>
                                             </ToolbarSection>
                                         )
@@ -302,7 +302,7 @@ export function Header({ onClickApplicationSidebarExpand, isApplicationSidebarEx
                                 dispatch(commonOp.toggleUserMenuDisplay(true));
                             }}
                         >
-                            <Icon name="application-useraccount" title="User menu icon" large />
+                            <Icon name="application-useraccount" title="User menu icon" />
                         </ApplicationToolbarAction>
                     )}
                 </ApplicationToolbar>

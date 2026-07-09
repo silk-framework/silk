@@ -1,7 +1,10 @@
 .diapp-applicationnotifications--filledqueue {
     // adjust position of tabview
     .diapp-iframewindow--fullscreen {
-        top: calc(#{mini-units(8)} + #{$eccgui-size-block-whitespace});
-        left: calc(#{mini-units(8)} + #{$eccgui-size-block-whitespace});
+        // was `mini-units(8)` (4rem), which happened to equal the header height only at the old
+        // 14px rem root (56px); the header is now pinned to a fixed 56px (`$shell-header-height`)
+        // independent of the root font size, so reference that directly to stay in sync
+        top: calc(#{$shell-header-height} + #{$eccgui-size-block-whitespace});
+        left: calc(#{$shell-header-height} + #{$eccgui-size-block-whitespace});
     }
 }

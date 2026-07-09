@@ -21,24 +21,8 @@
         }
     }
 
-    .ecc-silk-mapping__treenav--maintree.#{$ns}-tree {
-        overflow: auto !important;
-    }
-
     .ecc-silk-mapping__treenav--maintree {
         box-sizing: border-box;
-
-        .#{$ns}-tree-node-content:hover {
-            // Remove background highlight when tree node is hovered
-            background-color: transparent;
-        }
-        .#{$ns}-tree-node-content {
-            margin-bottom: $eccgui-size-block-whitespace;
-        }
-
-        .#{$ns}-tree-node-caret-none {
-            min-width: 0;
-        }
     }
 }
 
@@ -101,8 +85,12 @@
     top: $eccgui-size-block-whitespace * 0.5;
     left: $eccgui-size-block-whitespace * 0.5;
     bottom: $eccgui-size-block-whitespace * 0.5;
-    box-shadow: $button-box-shadow;
-    background-color: eccgui-color-var("identity", "background", "100");
+    border: 1px solid var(--border);
+    background-color: var(--secondary);
+
+    &:hover {
+        background-color: var(--accent);
+    }
 
     & + .#{eccgui}-overviewitem__item.#{eccgui}-overviewitem__item--hasspacing {
         padding-left: 2 * $eccgui-size-block-whitespace;

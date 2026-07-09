@@ -45,7 +45,7 @@ export function Filterbar({ extraItemTypeModifiers = [], projectId }: IFilterBar
                     </TitleSubsection>
                     <Spacing size="tiny" />
                     <ul data-test-id={"search-item-type-selection"}>
-                        <li key={"alltypes"}>
+                        <li key={"alltypes"} className="flex items-center gap-2 py-1">
                             <RadioButton
                                 data-test-id={"item-type-radio-button-all"}
                                 checked={!appliedFilters[typeModifier.field]}
@@ -58,7 +58,7 @@ export function Filterbar({ extraItemTypeModifiers = [], projectId }: IFilterBar
                         {[...extraItemTypeModifiers, ...typeModifier.options]
                             .filter((mod) => !(!!projectId && (mod.label === "Project" || mod.label === "Global")))
                             .map((opt) => (
-                                <li key={opt.id}>
+                                <li key={opt.id} className="flex items-center gap-2 py-1">
                                     <RadioButton
                                         data-test-id={"item-type-radio-button-" + opt.id}
                                         checked={appliedFilters[typeModifier.field] === opt.id}

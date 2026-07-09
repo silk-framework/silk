@@ -1,0 +1,67 @@
+/**
+ * Spot highlight
+ *
+ * Re-homed from the library's `components/Typography/typography.scss` (removed there with
+ * the SCSS sunset — component styling now lives as Tailwind classes + design tokens, see
+ * `@eccenca/gui-elements/src/tailwind/base.css`). This app still relies on the behavior: it
+ * sets `$eccgui-selector-text-spot-highlight: "[id^=parameter_doc_]"` above (this file's
+ * variable still has a canonical default in the lib's `configuration/_variables.scss`) and
+ * navigates to parameter documentation anchors that need to flash-highlight on arrival.
+ *
+ * Triggers either natively via `:target` (URL hash matches the anchor `id`) or by toggling
+ * the `.#{$eccgui}-typography--spothighlight` class (used to re-run the animation when a
+ * link to the same anchor is clicked again and the hash doesn't change).
+ *
+ * Colors modernized to the shadcn-style design tokens (`--primary` / `--ring`, both the
+ * eccenca brand accent blue): the flash "wash" is a `color-mix` of the two; the dotted
+ * underline reuses `--ring`. Geometry/timing kept identical to the original.
+ */
+
+:is(#{$eccgui-selector-text-spot-highlight}) {
+    position: relative;
+    text-decoration: none;
+    transition: text-decoration 2s allow-discrete;
+
+    &::before {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 0;
+        height: 0;
+        overflow: hidden;
+        content: " ";
+        background-color: color-mix(in oklch, var(--primary) 50%, var(--ring) 50%);
+        opacity: 1;
+        transition: all 1s ease-in;
+    }
+
+    &:empty {
+        &::before {
+            border-radius: 100%;
+        }
+    }
+
+    &:target,
+    &.#{$eccgui}-typography--spothighlight {
+        text-decoration: underline;
+        text-decoration-style: dotted;
+        text-decoration-color: var(--ring);
+
+        &::before {
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            opacity: 0;
+        }
+
+        &:empty {
+            &::before {
+                top: -2.5 * $eccgui-size-block-whitespace;
+                left: -2.5 * $eccgui-size-block-whitespace;
+                width: 5 * $eccgui-size-block-whitespace;
+                height: 5 * $eccgui-size-block-whitespace;
+            }
+        }
+    }
+}

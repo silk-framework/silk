@@ -146,9 +146,8 @@ export const LinkingEvaluationRow = React.memo(
                             value={val.includes("Score") ? Number(val.replace("Score: ", "")) : Number(val)}
                             spaceUsage="minimal"
                             tagProps={{
-                                // TODO: get color from CSS config
                                 backgroundColor: nodeParentHighlightedIds.get(rowIdx)?.includes(id)
-                                    ? "#0097a7"
+                                    ? "var(--eccgui-color-palette-layout-petrol-700)"
                                     : undefined,
                             }}
                         />
@@ -395,9 +394,9 @@ export const LinkingEvaluationRow = React.memo(
                                     interactive
                                     backgroundColor={
                                         isHighlightMatch(val)
-                                            ? "#746a85" // TODO: get color from CSS config
+                                            ? "var(--eccgui-color-palette-layout-purple-700)"
                                             : nodeParentHighlightedIds.get(index)?.includes(id)
-                                              ? "#0097a7" // TODO: get color from CSS config
+                                              ? "var(--eccgui-color-palette-layout-petrol-700)"
                                               : undefined
                                     }
                                     onMouseEnter={() => {

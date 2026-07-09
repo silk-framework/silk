@@ -34,3 +34,10 @@ $eccgui-selector-text-spot-highlight: "[id^=parameter_doc_]";
 @import "./../app/views/taskViews/transform/evaluation/tabView/TransformEvaluationTabView.scss";
 @import "./../app/views/shared/FileUploader/cases/UploadNewFile/UploadNewFile.scss";
 @import "./../app/views/pages/MappingEditor/style/style.scss";
+
+/**
+ * Spot highlight (recovered app-side, see file header for why)
+ * Imported last so it can rely on everything above (prefix/selector vars, tokens).
+ */
+
+@import "./spot-highlight";

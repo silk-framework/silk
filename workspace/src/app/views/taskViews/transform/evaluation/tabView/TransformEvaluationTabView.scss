@@ -6,11 +6,13 @@
         Most of the values are specialized on the current state of the table layout parameters.
     */
     .#{$eccgui}-simpletable__cell {
-        height: calc(1rem + 30px);
+        // pinned in px (was `1rem`, authored for the old 14px rem root) so the table layout tweaks
+        // below stay stable now that the root font size is 16px
+        height: calc(14px + 30px);
 
         .#{$eccgui}-separation__divider-horizontal {
             position: relative;
-            top: -0.25rem;
+            top: -4px;
         }
     }
 

@@ -85,7 +85,7 @@ export default function FacetsList({ projectId }: { projectId?: string }) {
                             visibleFacetsKeywords[facet.id].map((val) => {
                                 const key = `${val.id}-${facet.id}`;
                                 return (
-                                    <li key={key}>
+                                    <li key={key} className="flex items-center gap-2 py-1">
                                         <FacetItem
                                             data-test-id={"facet-items"}
                                             isChecked={isChecked(facet.id, val.id)}
@@ -99,7 +99,10 @@ export default function FacetsList({ projectId }: { projectId?: string }) {
                                                             val.label,
                                                         )}
                                                     </span>
-                                                    <span> ({val.count})</span>
+                                                    <span className="text-xs text-muted-foreground">
+                                                        {" "}
+                                                        ({val.count})
+                                                    </span>
                                                 </>
                                             }
                                         />

@@ -6,12 +6,12 @@ interface ArrowProps {
 }
 
 /** Arrow giond to the left. */
-export const ArrowLeft = ({ color = "#000" }: ArrowProps) => {
+export const ArrowLeft = ({ color = "var(--foreground)" }: ArrowProps) => {
     return <div className={"diapp-linking-connectionenabled__arrow-left"} style={{ color }} />;
 };
 
 /** Arrow going to the right. */
-export const ArrowRight = ({ color = "#000" }: ArrowProps) => {
+export const ArrowRight = ({ color = "var(--foreground)" }: ArrowProps) => {
     return <div className={"diapp-linking-connectionenabled__arrow-right"} style={{ color }} />;
 };
 

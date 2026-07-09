@@ -19,7 +19,7 @@ $diapp-entitybox-cell-border: $eccgui-color-tablerow-hover !default;
     border-style: solid solid none solid;
     padding: $eccgui-size-block-whitespace * 0.75 $eccgui-size-block-whitespace * 0.5;
     font-weight: 500;
-    color: #000;
+    color: var(--foreground);
     vertical-align: middle;
     font-size: $eccgui-size-typo-caption;
 }
@@ -99,10 +99,10 @@ $diapp-entitybox-cell-border: $eccgui-color-tablerow-hover !default;
         flex-direction: row-reverse;
     }
 
-    .#{$eccgui}-overviewitem__actions:not(:first-child) {
-        margin-left: 0;
-        margin-right: $eccgui-size-block-whitespace * 0.5;
-    }
+    // Removed: a margin-right hack that used to space `__actions` (e.g. PropertyBox's filter
+    // IconButton) away from its sibling. OverviewItem's own flex container now applies `gap-2`
+    // between all children regardless of flex-direction, so this stacked an extra ~7px on top of
+    // that gap - only on the (reversed) source column, making it visibly wider than the target one.
 
     .#{$eccgui}-overviewitem__line {
         flex-direction: row-reverse;
@@ -158,5 +158,5 @@ div.diapp-linking-connectionenabled__arrow-left {
 div.diapp-linking-connectionavailable__dashedline {
     height: 0px;
     width: auto;
-    border-top: 1px dashed lightgray;
+    border-top: 1px dashed var(--border);
 }

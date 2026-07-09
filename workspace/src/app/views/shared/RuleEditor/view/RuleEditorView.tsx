@@ -52,16 +52,16 @@ export const RuleEditorView = ({ showRuleOnly, hideMinimap, zoomRange, readOnlyM
                 selectionState,
             }}
         >
-            <Grid verticalStretchable={true} useAbsoluteSpace={true} style={{ backgroundColor: "white" }}>
+            <Grid verticalStretchable={true} useAbsoluteSpace={true} style={{ backgroundColor: "var(--background)" }}>
                 {!showRuleOnly ? (
-                    <GridRow style={{ backgroundColor: "white" }}>
+                    <GridRow style={{ backgroundColor: "var(--background)" }}>
                         <GridColumn>
                             <RuleEditorToolbar />
                             <Divider addSpacing="medium" />
                         </GridColumn>
                     </GridRow>
                 ) : null}
-                <GridRow verticalStretched={true} style={{ backgroundColor: "white" }}>
+                <GridRow verticalStretched={true} style={{ backgroundColor: "var(--background)" }}>
                     {!showRuleOnly && !readOnlyMode ? (
                         <GridColumn small>
                             <RuleEditorOperatorSidebar />

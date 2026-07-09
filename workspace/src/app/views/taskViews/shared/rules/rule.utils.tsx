@@ -127,7 +127,11 @@ const customInputPathRenderer = (
             key={autoCompleteResponse.value}
             onClick={handleSelectClick}
             hasSpacing={true}
-            className={modifiers.active ? `${eccguiprefix}-overviewitem__item--active` : ""}
+            className={
+                modifiers.active
+                    ? `${eccguiprefix}-overviewitem__item--active` + " bg-accent text-accent-foreground"
+                    : ""
+            }
         >
             <OverviewItemDescription style={{ maxWidth: "50vw" }}>
                 <OverviewItemLine>
