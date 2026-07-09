@@ -2,7 +2,7 @@ package org.silkframework.workspace.activity.workflow
 
 import org.silkframework.config.{Task, TaskSpec}
 import org.silkframework.execution.report.{EntitySample, SampleEntities}
-import org.silkframework.execution.{ExecutionReport, SimpleExecutionReport}
+import org.silkframework.execution.ExecutionReport
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.users.AuthDiagnosticsProvider
 import org.silkframework.util.Identifier
@@ -69,9 +69,9 @@ case class WorkflowExecutionReport(task: Task[TaskSpec],
     taskReports.zipWithIndex.findLast(_._1.nodeId == nodeId) match {
       case Some((workflowReport, index)) =>
         val timestamp = Instant.now()
-        val report = workflowReport.report
-        val errorMsg = ex.getMessage
-        val errorReport = SimpleExecutionReport(report.task, report.summary, report.warnings, Some(errorMsg), isDone = true, report.entityCount, report.operation, report.operationDesc)
+        // Set the error on the node's report in place, preserving its concrete type and detail (e.g. a
+        // nested workflow's taskReports), instead of downgrading to a flat SimpleExecutionReport.
+        val errorReport = workflowReport.report.asFailed(ex.getMessage)
         copy(taskReports = taskReports.updated(index, WorkflowTaskReport(nodeId, errorReport, version + 1, timestamp)), version = version + 1)
       case None =>
         throw new NoSuchElementException(s"Invalid task node identifier: $nodeId")
@@ -95,6 +95,9 @@ case class WorkflowExecutionReport(task: Task[TaskSpec],
     }
     copy(taskReports = taskReports.map(updateReport), isDone = true, version = version + 1)
   }
+
+  /** Marks this workflow report as failed while keeping its nested task reports. */
+  override def asFailed(error: String): WorkflowExecutionReport = copy(error = Some(error), isDone = true)
 
   def withAuthDiagnostics(userContext: UserContext): WorkflowExecutionReport = {
     copy(authDiagnostics = WorkflowExecutionReport.authDiagnostics(userContext).orElse(authDiagnostics))

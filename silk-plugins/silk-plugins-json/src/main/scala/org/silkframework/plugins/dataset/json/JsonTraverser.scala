@@ -231,11 +231,15 @@ case class JsonTraverser(taskId: Identifier, parentOpt: Option[ParentTraverser],
   }
 
   def generateUri(value: JsonNode): String = {
-    DataSource.generateEntityUri(taskId, nodeId(value))
+    DataSource.generateEntityUri(taskId, nodeLocationId(value))
   }
 
   def nodeId(value: JsonNode): String = {
     nodeToString(value).hashCode.toString
+  }
+
+  def nodeLocationId(value: JsonNode): String = {
+    s"L${value.position.line}C${value.position.column}"
   }
 
   /**
@@ -253,7 +257,7 @@ case class JsonTraverser(taskId: Identifier, parentOpt: Option[ParentTraverser],
   private def nodeToString(json: JsonNode): String = {
     json match {
       case JsonBoolean(v, _) => v.toString
-      case JsonNumber(v, _) => v.toString
+      case JsonNumber(v, _) => NumberFormatter.format(v.bigDecimal)
       case JsonString(v, _) => v
       case _ => json.toString
     }

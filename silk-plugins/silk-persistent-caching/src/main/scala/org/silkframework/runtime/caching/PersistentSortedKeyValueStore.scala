@@ -425,9 +425,11 @@ object PersistentSortedKeyValueStore {
     file
   }
 
-  /** Directory where temporary databases are stored that will be removed on every start of the application. */
+  /** Directory for temporary databases, wiped recursively on first use ([[removeTempDirectories]]).
+    * Must stay exclusive to this store and not overlap a shared temp dir like `config.tempFilesDirectory`,
+    * otherwise the startup wipe would delete unrelated temp files. */
   def tempCacheDirectory: File = {
-    new File(cacheDirectory, "tmp")
+    new File(cacheDirectory, "kvstore-tmp")
   }
 
   private def removeTempDirectories(): Unit = {

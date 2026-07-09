@@ -5,8 +5,9 @@ import org.scalatestplus.play.PlaySpec
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.resource._
 import org.silkframework.runtime.validation.RequestException
+import org.silkframework.rule.RuleBlockSpec
 import org.silkframework.util.{Identifier, Uri}
-import org.silkframework.workspace.WorkspaceFactory
+import org.silkframework.workspace.{ProjectConfig, RuleBlockTestData, WorkspaceFactory}
 import org.silkframework.workspace.resources.ResourceRepository
 import play.api.libs.ws.WSResponse
 import play.api.libs.ws.ahc.AhcWSResponse
@@ -79,6 +80,25 @@ class ProjectMarshalingApiTest extends PlaySpec with IntegrationTestTrait {
     importProject(projectId, projectZipBytes, expectedResponseCodePrefix = '4')
 
     WorkspaceFactory().workspace.userProjects.map(_.config.id).toSet must not contain projectId
+  }
+
+  "export and import projects with rule block tasks" in {
+    implicit val userContext: UserContext = UserContext.Empty
+    val projectId = "ruleBlockProject"
+    val ruleBlockTaskId = "normalizeName"
+    val workspace = WorkspaceFactory().workspace
+    val project = workspace.createProject(ProjectConfig(projectId))
+    val ruleBlockSpec = RuleBlockTestData.sampleRuleBlockSpec()
+    project.addTask[RuleBlockSpec](ruleBlockTaskId, ruleBlockSpec)
+
+    val exportedProject = exportProject(projectId)
+    getZipEntry(exportedProject, s"$projectId/ruleBlock/$ruleBlockTaskId.xml") must include("<RuleBlock")
+
+    clearWorkspace()
+    importProject(projectId, exportedProject)
+
+    val importedTask = WorkspaceFactory().workspace.project(projectId).task[RuleBlockSpec](ruleBlockTaskId)
+    importedTask.data mustBe ruleBlockSpec
   }
 
   "export project without user data when exportUserData is false" in {

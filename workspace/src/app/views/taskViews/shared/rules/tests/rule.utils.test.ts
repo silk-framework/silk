@@ -1,9 +1,12 @@
 import utils from "../rule.utils";
 import {
+    INamedPortSpecification,
     IRuleOperatorNode,
     RuleEditorValidationNode,
     RuleOperatorPluginType,
 } from "../../../../shared/RuleEditor/RuleEditor.typings";
+import { PluginType } from "@ducks/shared/typings";
+import { IRuleBlockInput } from "../rule.typings";
 
 describe("Rule utils", () => {
     const ruleNode = (nodeId: string, node: Partial<IRuleOperatorNode> = {}): IRuleOperatorNode => {
@@ -15,6 +18,7 @@ describe("Rule utils", () => {
             pluginId: "TestPlugin",
             pluginType: "unknown",
             portSpecification: {
+                type: "count",
                 minInputPorts: 0,
             },
             inputsCanBeSwitched: false,
@@ -32,7 +36,7 @@ describe("Rule utils", () => {
                 ruleNode("B", { inputs: ["A"] }),
                 ruleNode("C", { inputs: ["B"] }),
                 ruleNode("D"),
-            ])
+            ]),
         ).toStrictEqual(["C", "D"]);
         const ruleNodes = [ruleNode("A"), ruleNode("B"), ruleNode("C", { inputs: ["A", "B"] })];
         expect(rootNodeIds(ruleNodes)).toStrictEqual(["C"]);
@@ -46,14 +50,14 @@ describe("Rule utils", () => {
         const validateTrue = (sourceNode: string, targetNode: string, targetPort: number = 0) => {
             if (!utils.validateConnection(ruleTree.get(sourceNode)!!, ruleTree.get(targetNode)!!, targetPort)) {
                 throw Error(
-                    `Connection from '${sourceNode}' to '${targetNode}' in input ${targetPort} is not a valid connection, but must be!`
+                    `Connection from '${sourceNode}' to '${targetNode}' in input ${targetPort} is not a valid connection, but must be!`,
                 );
             }
         };
         const validateFalse = (sourceNode: string, targetNode: string, targetPort: number = 0) => {
             if (utils.validateConnection(ruleTree.get(sourceNode)!!, ruleTree.get(targetNode)!!, targetPort)) {
                 throw Error(
-                    `Connection from '${sourceNode}' to '${targetNode}' in input ${targetPort} is a valid connection, but must not be!`
+                    `Connection from '${sourceNode}' to '${targetNode}' in input ${targetPort} is a valid connection, but must not be!`,
                 );
             }
         };
@@ -80,7 +84,7 @@ describe("Rule utils", () => {
                 operator("a2", "AggregationOperator"),
                 ...additionalNodes,
             ],
-            edges
+            edges,
         );
 
     it("should validate connections from input paths to other operators", () => {
@@ -113,6 +117,24 @@ describe("Rule utils", () => {
         validateFalse("t1", "a1");
     });
 
+    it("should validate connections from rule block operators like transform operators", () => {
+        const [validateTrue, validateFalse] = validateRuleTreeFactory(
+            ruleTree(
+                [edge("sp1", "rb1"), edge("tp1", "rb2")],
+                [operator("rb1", "RuleBlock"), operator("rb2", "RuleBlock")],
+            ),
+        );
+        validateTrue("sp2", "rb1");
+        validateTrue("tp2", "rb1");
+        validateFalse("tp2", "rb1", 1);
+        validateTrue("rb1", "c1", 0);
+        validateFalse("rb1", "c1", 1);
+        validateTrue("rb1", "t1");
+        validateFalse("rb1", "a1");
+        validateTrue("tp2", "rb2");
+        validateFalse("sp2", "rb2", 1);
+    });
+
     it("should validate connections from comparison operators to other operators", () => {
         const [validateTrue, validateFalse] = validateRuleTreeFactory(ruleTree());
         //Into paths
@@ -141,7 +163,7 @@ describe("Rule utils", () => {
 
     it("should validate simple value chains", () => {
         const [validateTrue, validateFalse] = validateRuleTreeFactory(
-            ruleTree([edge("sp1", "t1"), edge("tp1", "t2"), edge("t3", "c1"), edge("t4", "c2", 1)])
+            ruleTree([edge("sp1", "t1"), edge("tp1", "t2"), edge("t3", "c1"), edge("t4", "c2", 1)]),
         );
         /** Path to transform */
         validateTrue("sp2", "t3");
@@ -179,7 +201,7 @@ describe("Rule utils", () => {
 
     it("should validate complex value chain combinations", () => {
         const [validateTrue, validateFalse] = validateRuleTreeFactory(
-            ruleTree([edge("sp1", "t1"), edge("t1", "c1"), edge("tp1", "t2")])
+            ruleTree([edge("sp1", "t1"), edge("t1", "c1"), edge("tp1", "t2")]),
         );
         validateFalse("tp1", "t1");
         validateFalse("tp1", "t1", 1);
@@ -216,8 +238,8 @@ describe("Rule utils", () => {
                     operator("reverseT1", "ComparisonOperator", undefined, true),
                     operator("reverseT2", "ComparisonOperator", undefined, true),
                     operator("reverseT3", "ComparisonOperator", undefined, true),
-                ]
-            )
+                ],
+            ),
         );
         // reversible comparator without inputs takes any connection
         validateTrue("tp3", "reverseNoInput");
@@ -248,12 +270,76 @@ describe("Rule utils", () => {
         validateFalse("t4", "reverseT3", 1);
         validateTrue("t4", "reverseT3");
     });
+
+    it("should convert rule block nodes to reusable rule block inputs using stable port IDs", () => {
+        const sourceNode = ruleNode("source", {
+            pluginType: "PathInputOperator",
+            pluginId: "sourcePathInput",
+            parameters: { path: "foaf:name" },
+            portSpecification: { type: "count", minInputPorts: 0, maxInputPorts: 0 },
+        });
+        const transformNode = ruleNode("transform", {
+            pluginType: "TransformOperator",
+            pluginId: "trim",
+            inputs: ["source"],
+            parameters: {},
+            portSpecification: { type: "count", minInputPorts: 1 },
+        });
+        const ruleBlockNode = ruleNode("ruleBlockUsage", {
+            pluginType: "RuleBlock",
+            pluginId: "normalizeName",
+            inputs: ["source", undefined, "transform"],
+            portSpecification: {
+                type: "named",
+                inputPorts: [{ id: "first" }, { id: "unused" }, { id: "second" }],
+            } satisfies INamedPortSpecification,
+        });
+        const nodeMap = new Map([
+            [sourceNode.nodeId, sourceNode],
+            [transformNode.nodeId, transformNode],
+            [ruleBlockNode.nodeId, ruleBlockNode],
+        ]);
+
+        const result = utils.convertRuleOperatorNodeToValueInput(ruleBlockNode, nodeMap) as IRuleBlockInput;
+
+        expect(result).toStrictEqual({
+            id: "ruleBlockUsage",
+            ruleBlockId: "normalizeName",
+            type: "ruleBlockInput",
+            bindings: [
+                {
+                    portId: "first",
+                    input: {
+                        id: "source",
+                        path: "foaf:name",
+                        type: "pathInput",
+                    },
+                },
+                {
+                    portId: "second",
+                    input: {
+                        id: "transform",
+                        function: "trim",
+                        inputs: [
+                            {
+                                id: "source",
+                                path: "foaf:name",
+                                type: "pathInput",
+                            },
+                        ],
+                        parameters: {},
+                        type: "transformInput",
+                    },
+                },
+            ],
+        });
+    });
 });
 
 type TestPluginType = "doesntMatter" | "sourcePathInput" | "targetPathInput";
 interface TestOperator {
     nodeId: string;
-    pluginType: RuleOperatorPluginType;
+    pluginType: RuleOperatorPluginType | PluginType;
     pluginId: TestPluginType;
     inputsCanBeSwitched?: boolean;
 }
@@ -266,9 +352,9 @@ interface TestEdge {
 
 const operator = (
     nodeId: string,
-    pluginType: RuleOperatorPluginType,
+    pluginType: RuleOperatorPluginType | PluginType,
     pluginId: TestPluginType = "doesntMatter",
-    inputsCanBeSwitched: boolean = false
+    inputsCanBeSwitched: boolean = false,
 ): TestOperator => {
     return { nodeId, pluginType, pluginId, inputsCanBeSwitched };
 };

@@ -77,7 +77,7 @@ class JsonSourceStreaming(taskId: Identifier, resource: Resource, basePath: Stri
         // Generate URI
         val uri =
           if (uriPattern.isEmpty) {
-            DataSource.generateEntityUri(taskId, node.nodeId(node.value))
+            DataSource.generateEntityUri(taskId, node.nodeLocationId(node.value))
 
           } else {
             uriRegex.replaceAllIn(uriPattern, m => {

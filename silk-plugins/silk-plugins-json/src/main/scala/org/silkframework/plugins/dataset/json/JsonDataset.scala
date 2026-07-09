@@ -45,7 +45,7 @@ case class JsonDataset(@Param("JSON file. This may also be a zip archive of mult
                        @Param(label = "ZIP file regex", value = "If the input resource is a ZIP file, files inside the file are filtered via this regex.", advanced = true)
                        override val zipFileRegex: String = JsonDataset.defaultZipFileRegex) extends Dataset with TextBulkResourceBasedDataset {
 
-  private val jsonTemplate = JsonTemplate.parse(template)
+  val jsonTemplate = JsonTemplate.parse(template)
 
   override def codec: Codec = StandardCharsets.UTF_8
 
@@ -62,10 +62,6 @@ case class JsonDataset(@Param("JSON file. This may also be a zip archive of mult
       JsonSourceInMemory.fromResource(resource, basePath, uriPattern, navigateIntoArrays)
     }
   }
-
-  override def linkSink(implicit userContext: UserContext): LinkSink = new TableLinkSink(new JsonSink(bulkWritableResource, maxDepth = maxDepth))
-
-  override def entitySink(implicit userContext: UserContext): EntitySink = new JsonSink(bulkWritableResource, jsonTemplate, maxDepth)
 
   override def characteristics: DatasetCharacteristics = JsonDataset.characteristics
 }

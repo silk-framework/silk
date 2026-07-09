@@ -9,19 +9,19 @@ import org.silkframework.entity._
 import org.silkframework.rule.TransformSpec.TargetVocabularyListParameter
 import org.silkframework.rule._
 import org.silkframework.rule.evaluation.ReferenceLinks
-import org.silkframework.rule.input.{Input, PathInput, TransformInput, Transformer}
+import org.silkframework.rule.input._
 import org.silkframework.rule.similarity._
 import org.silkframework.rule.util.UriPatternParser
 import org.silkframework.rule.vocab.{GenericInfo, Vocabulary, VocabularyClass, VocabularyProperty}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin._
 import org.silkframework.runtime.serialization.{ReadContext, Serialization, WriteContext}
-import org.silkframework.runtime.validation.{BadUserInputException, ValidationException}
+import org.silkframework.runtime.validation.{BadUserInputException, TaskValidationException, ValidationException}
 import org.silkframework.serialization.json.EntitySerializers.EntitySchemaJsonFormat
 import org.silkframework.serialization.json.InputJsonSerializer._
 import org.silkframework.serialization.json.JsonHelpers._
 import org.silkframework.serialization.json.JsonSerializers.ObjectMappingJsonFormat.MAPPING_TARGET
-import org.silkframework.serialization.json.JsonSerializers.{ID, _}
+import org.silkframework.serialization.json.JsonSerializers._
 import org.silkframework.serialization.json.LinkingSerializers._
 import org.silkframework.serialization.json.MetaDataSerializers._
 import org.silkframework.serialization.json.PluginSerializers.{ParameterValuesJsonFormat, PluginJsonFormat}
@@ -31,7 +31,6 @@ import org.silkframework.workspace.annotation.{StickyNote, UiAnnotations}
 import org.silkframework.workspace.{LoadedTask, TaskLoadingError}
 import play.api.libs.json._
 
-import scala.collection.IndexedSeq
 import scala.reflect.ClassTag
 import scala.util.control.NonFatal
 
@@ -55,6 +54,7 @@ object JsonSerializers {
   final val TASK_TYPE_CUSTOM_TASK = "CustomTask"
   final val TASK_TYPE_TRANSFORM = "Transform"
   final val TASK_TYPE_LINKING = "Linking"
+  final val TASK_TYPE_RULE_BLOCK = "RuleBlock"
   final val TASK_TYPE_WORKFLOW = "Workflow"
   // Plugin types
   final val PLUGIN_TYPE = "pluginType"
@@ -220,6 +220,30 @@ object JsonSerializers {
   }
 
   /**
+    * Input Port Input
+    */
+  implicit object InputPortInputJsonFormat extends JsonFormat[InputPortInput] {
+    final val PORT_ID = "portId"
+
+    override def read(value: JsValue)(implicit readContext: ReadContext): InputPortInput = {
+      InputPortInput(
+        id = Identifier(stringValue(value, ID)),
+        portId = Identifier(stringValue(value, PORT_ID))
+      )
+    }
+
+    override def write(value: InputPortInput)(implicit writeContext: WriteContext[JsValue]): JsValue = {
+      JsObject(
+        Seq(
+          TYPE -> JsString(INPUT_PORT_INPUT),
+          ID -> JsString(value.id.toString),
+          PORT_ID -> JsString(value.portId.toString)
+        )
+      )
+    }
+  }
+
+  /**
     * Transform Input
     */
   implicit object TransformInputJsonFormat extends JsonFormat[TransformInput] {
@@ -249,6 +273,55 @@ object JsonSerializers {
           INPUTS -> JsArray(value.inputs.map(toJson[Input])),
         )
       ) ++ ParameterValuesJsonFormat.write(value.transformer.parameters)
+    }
+  }
+
+  /**
+    * Rule block binding
+    */
+  implicit object RuleBlockBindingJsonFormat extends JsonFormat[RuleBlockBinding] {
+    final val PORT_ID = "portId"
+    final val INPUT = "input"
+
+    override def read(value: JsValue)(implicit readContext: ReadContext): RuleBlockBinding = {
+      RuleBlockBinding(
+        portId = Identifier(stringValue(value, PORT_ID)),
+        input = fromJson[Input](mustBeDefined(value, INPUT))
+      )
+    }
+
+    override def write(value: RuleBlockBinding)(implicit writeContext: WriteContext[JsValue]): JsValue = {
+      Json.obj(
+        PORT_ID -> value.portId.toString,
+        INPUT -> toJson(value.input)
+      )
+    }
+  }
+
+  /**
+    * Rule block Input
+    */
+  implicit object RuleBlockInputJsonFormat extends JsonFormat[RuleBlockInput] {
+    final val RULE_BLOCK_ID = "ruleBlockId"
+    final val BINDINGS = "bindings"
+
+    override def read(value: JsValue)(implicit readContext: ReadContext): RuleBlockInput = {
+      RuleBlockInput(
+        id = Identifier(stringValue(value, ID)),
+        ruleBlockId = Identifier(stringValue(value, RULE_BLOCK_ID)),
+        bindings = arrayValueOption(value, BINDINGS)
+          .map(_.value.map(fromJson[RuleBlockBinding]).toIndexedSeq)
+          .getOrElse(IndexedSeq.empty[RuleBlockBinding])
+      )
+    }
+
+    override def write(value: RuleBlockInput)(implicit writeContext: WriteContext[JsValue]): JsValue = {
+      Json.obj(
+        TYPE -> JsString(RULE_BLOCK_INPUT),
+        ID -> value.id.toString,
+        RULE_BLOCK_ID -> value.ruleBlockId.toString,
+        BINDINGS -> JsArray(value.bindings.map(toJson[RuleBlockBinding]))
+      )
     }
   }
 
@@ -1033,6 +1106,145 @@ object JsonSerializers {
     }
   }
 
+  implicit object RuleBlockPortJsonFormat extends JsonFormat[RuleBlockPort] {
+    final val LABEL = "label"
+    final val DESCRIPTION = "description"
+    final val DISPLAY_ORDER = "displayOrder"
+    final val DEPRECATED = "deprecated"
+
+    override def read(value: JsValue)(implicit readContext: ReadContext): RuleBlockPort = {
+      val portId = stringValueOption(value, ID).map(Identifier.apply).getOrElse(Operator.generateId)
+      RuleBlockPort(
+        id = portId,
+        label = stringValueOption(value, LABEL)
+          .filter(_.nonEmpty)
+          .getOrElse(throw new TaskValidationException(s"Rule block port '$portId' is missing required field '$LABEL' in JSON.")),
+        description = stringValueOption(value, DESCRIPTION).getOrElse(""),
+        displayOrder = numberValueOption(value, DISPLAY_ORDER)
+          .map(_.intValue)
+          .getOrElse(throw new TaskValidationException(s"Rule block port '$portId' is missing required field '$DISPLAY_ORDER' in JSON.")),
+        deprecated = booleanValueOption(value, DEPRECATED).getOrElse(false)
+      )
+    }
+
+    override def write(value: RuleBlockPort)(implicit writeContext: WriteContext[JsValue]): JsValue = {
+      Json.obj(
+        ID -> value.id.toString,
+        LABEL -> value.label,
+        DESCRIPTION -> value.description,
+        DISPLAY_ORDER -> value.displayOrder,
+        DEPRECATED -> value.deprecated
+      )
+    }
+  }
+
+  implicit object RuleBlockInputExampleJsonFormat extends JsonFormat[RuleBlockInputExample] {
+    final val LABEL = "label"
+    final val INPUTS = "inputs"
+
+    override def read(value: JsValue)(implicit readContext: ReadContext): RuleBlockInputExample = {
+      val inputs = optionalValue(value, INPUTS)
+        .map(objectValue => mustBeJsObject(objectValue) { jsObject =>
+          jsObject.fields.map { case (portId, jsValues) =>
+            Identifier(portId) -> mustBeJsArray(jsValues)(_.value.map(_.as[String]).toSeq)
+          }.toMap
+        })
+        .getOrElse(Map.empty[Identifier, Seq[String]])
+      RuleBlockInputExample(
+        id = stringValueOption(value, ID).map(Identifier.apply).getOrElse(Operator.generateId),
+        label = stringValueOption(value, LABEL).filter(_.nonEmpty),
+        inputs = inputs
+      )
+    }
+
+    override def write(value: RuleBlockInputExample)(implicit writeContext: WriteContext[JsValue]): JsValue = {
+      Json.obj(
+        ID -> value.id.toString,
+        INPUTS -> JsObject(value.inputs.toSeq.sortBy(_._1.toString).map { case (portId, values) =>
+          portId.toString -> JsArray(values.map(JsString))
+        })
+      ) ++ value.label.filter(_.nonEmpty).map(label => Json.obj(LABEL -> label)).getOrElse(Json.obj())
+    }
+  }
+
+  implicit object RuleBlockContentJsonFormat extends JsonFormat[RuleBlockModel] {
+    final val PORTS = "ports"
+    final val INPUT_EXAMPLES = "inputExamples"
+    final val OPERATOR_TREE = "operatorTree"
+
+    override def read(value: JsValue)(implicit readContext: ReadContext): RuleBlockModel = {
+      RuleBlockModel(
+        ports = arrayValueOption(value, PORTS)
+          .map(_.value.map(fromJson[RuleBlockPort]).toIndexedSeq)
+          .getOrElse(IndexedSeq.empty[RuleBlockPort]),
+        inputExamples = arrayValueOption(value, INPUT_EXAMPLES)
+          .map(_.value.map(fromJson[RuleBlockInputExample]).toIndexedSeq)
+          .getOrElse(IndexedSeq.empty[RuleBlockInputExample]),
+        operator = optionalValue(value, OPERATOR_TREE).map(fromJson[Input]),
+        layout = optionalValue(value, LAYOUT).map(fromJson[RuleLayout]).getOrElse(RuleLayout()),
+        uiAnnotations = optionalValue(value, UI_ANNOTATIONS).map(fromJson[UiAnnotations]).getOrElse(UiAnnotations())
+      )
+    }
+
+    override def write(value: RuleBlockModel)(implicit writeContext: WriteContext[JsValue]): JsValue = {
+      Json.obj(
+        PORTS -> JsArray(value.ports.map(toJson[RuleBlockPort])),
+        INPUT_EXAMPLES -> JsArray(value.inputExamples.map(toJson[RuleBlockInputExample])),
+        OPERATOR_TREE -> toJsonOpt(value.operator),
+        LAYOUT -> toJson(value.layout),
+        UI_ANNOTATIONS -> toJson(value.uiAnnotations)
+      )
+    }
+  }
+
+  implicit object RuleBlockInspectionSnapshotJsonFormat extends WriteOnlyJsonFormat[RuleBlockInspectionSnapshot] {
+    final val PORTS = "ports"
+    final val OPERATOR_TREE = "operatorTree"
+
+    override def write(value: RuleBlockInspectionSnapshot)(implicit writeContext: WriteContext[JsValue]): JsValue = {
+      Json.obj(
+        PORTS -> JsArray(value.ports.map(toJson[RuleBlockPort])),
+        OPERATOR_TREE -> toJsonOpt(value.operatorTree),
+        LAYOUT -> toJson(value.layout),
+        UI_ANNOTATIONS -> toJson(value.uiAnnotations)
+      )
+    }
+  }
+
+  implicit object RuleBlockInspectionJsonFormat extends WriteOnlyJsonFormat[RuleBlockInspection] {
+    final val SNAPSHOTS = "snapshots"
+
+    override def write(value: RuleBlockInspection)(implicit writeContext: WriteContext[JsValue]): JsValue = {
+      Json.obj(
+        SNAPSHOTS -> JsObject(value.snapshots.toSeq.sortBy(_._1.toString).map { case (ruleBlockId, snapshot) =>
+          ruleBlockId.toString -> RuleBlockInspectionSnapshotJsonFormat.write(snapshot)
+        })
+      )
+    }
+  }
+
+  implicit object RuleBlockSpecJsonFormat extends JsonFormat[RuleBlockSpec] {
+    private final val MODEL = "ruleBlockModel"
+
+    private val pluginFormat = new PluginJsonFormat[RuleBlockSpec](Some(ClassPluginDescription.create(classOf[RuleBlockSpec])))
+
+    override def typeNames: Set[String] = Set(TASK_TYPE_RULE_BLOCK)
+
+    override def read(value: JsValue)(implicit readContext: ReadContext): RuleBlockSpec = {
+      val jsonParameters = objectValue(value, PARAMETERS)
+      val objParameters = ParameterValues(Map(
+        MODEL -> ParameterObjectValue(optionalValue(jsonParameters, MODEL).map(fromJson[RuleBlockModel]).getOrElse(RuleBlockModel.empty))
+      ))
+      pluginFormat.read(value, objParameters)
+    }
+
+    override def write(value: RuleBlockSpec)(implicit writeContext: WriteContext[JsValue]): JsValue = {
+      Json.obj(
+        TASKTYPE -> TASK_TYPE_RULE_BLOCK
+      ) ++ pluginFormat.write(value)
+    }
+  }
+
   /**
     * Task
     */
@@ -1291,6 +1503,19 @@ object JsonSerializers {
   }
 
   /**
+    * Rule block Task
+    */
+  implicit object RuleBlockTaskJsonFormat extends JsonFormat[RuleBlockTask] {
+    override def read(value: JsValue)(implicit readContext: ReadContext): RuleBlockTask = {
+      val task = new TaskJsonFormat[RuleBlockSpec].read(value)
+      RuleBlockTask(task.id, task.data, task.metaData)
+    }
+    override def write(value: RuleBlockTask)(implicit writeContext: WriteContext[JsValue]): JsValue = {
+      new TaskJsonFormat[RuleBlockSpec].write(value)
+    }
+  }
+
+  /**
     * Generic Task
     */
   implicit object GenericTaskJsonFormat extends JsonFormat[Task[TaskSpec]] {
@@ -1448,6 +1673,8 @@ object JsonSerializers {
 object InputJsonSerializer {
   final val PATH_INPUT: String ="pathInput"
   final val TRANSFORM_INPUT: String = "transformInput"
+  final val INPUT_PORT_INPUT: String = "inputPortInput"
+  final val RULE_BLOCK_INPUT: String = "ruleBlockInput"
 
   implicit object InputJsonFormat extends JsonFormat[Input] {
 
@@ -1460,6 +1687,10 @@ object InputJsonSerializer {
                 fromJson[PathInput](jsObject)
               case TRANSFORM_INPUT =>
                 fromJson[TransformInput](jsObject)
+              case INPUT_PORT_INPUT =>
+                fromJson[InputPortInput](jsObject)
+              case RULE_BLOCK_INPUT =>
+                fromJson[RuleBlockInput](jsObject)
             }
           case _ =>
             throw JsonParseException("Input JSON object has no 'type' attribute! Instead found: " + jsObject.value.keys.mkString(", "))
@@ -1471,6 +1702,8 @@ object InputJsonSerializer {
       value match {
         case path: PathInput => toJson(path)
         case transform: TransformInput => toJson(transform)
+        case inputPort: InputPortInput => toJson(inputPort)
+        case ruleBlock: RuleBlockInput => toJson(ruleBlock)
       }
     }
   }

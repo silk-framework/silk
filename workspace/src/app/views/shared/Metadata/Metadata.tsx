@@ -365,7 +365,7 @@ export function Metadata(props: IProps) {
                                     }
                                     toggleExtendText={t("common.words.more", "more")}
                                     toggleReduceText={t("common.words.less", "less")}
-                                    firstNonEmptyLineOnly={true}
+                                    useOnly={"firstNonEmptyLine"}
                                     renderPreviewAsMarkdown={true}
                                     allowedHtmlElementsInPreview={["a"]}
                                 />

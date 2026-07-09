@@ -31,7 +31,7 @@ const filesListSelector = createSelector([widgetsSelector, commonSelector], (wid
     widgets.files.results.map((item) => ({
         id: fileValue(item),
         formattedDate: item.modified ? new Date(item.modified).toLocaleString() : "N/A",
-        formattedSize: item.size ? item.size.toLocaleString(common.locale) : "N/A",
+        formattedSize: item.size == null ? "N/A" : item.size.toLocaleString(common.locale),
         ...item,
     })),
 );

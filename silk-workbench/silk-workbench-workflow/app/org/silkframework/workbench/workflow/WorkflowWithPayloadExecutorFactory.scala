@@ -6,7 +6,7 @@ import org.silkframework.dataset.{Dataset, DatasetPluginAutoConfigurable}
 import org.silkframework.runtime.activity.{Activity, ActivityContext, UserContext}
 import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
 import org.silkframework.runtime.plugin.types.MultilineStringParameter
-import org.silkframework.runtime.plugin.{PluginContext, PluginObjectParameterNoSchemaAndSerialization}
+import org.silkframework.runtime.plugin.{PluginContext, PluginObjectParameterNoSchemaAndSerialization, TaskResolver}
 import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat}
 import org.silkframework.serialization.json.WriteOnlyJsonFormat
@@ -155,7 +155,7 @@ class WorkflowWithPayloadExecutor(task: ProjectTask[Workflow], config: WorkflowW
     val autoConfig = (workflowJson \ "config" \ "autoConfig").asOpt[Boolean].getOrElse(false)
     if(autoConfig) {
       val project = getProject(projectName)
-      implicit val pluginContext: PluginContext = PluginContext(project.config.prefixes, sourceResourceManager, userContext, Some(project.id))
+      implicit val pluginContext: PluginContext = PluginContext(project.config.prefixes, sourceResourceManager, userContext, Some(project.id), taskResolver = TaskResolver.empty)
       dataSources = dataSources.view.mapValues {
         case autoConfigDataset: DatasetPluginAutoConfigurable[_] => autoConfigDataset.autoConfigured
         case other: Dataset => other
