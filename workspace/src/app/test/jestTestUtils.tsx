@@ -74,12 +74,15 @@ const testTranslate = (key: string, options?: TranslateOptions) =>
 
 const omitUnsupportedDomProps = (props: GenericProps) => {
     const {
+        addSpacing,
         "data-test-id": dataTestId,
         affirmative,
         boxed,
         canGrow,
         canShrink,
+        description,
         disruptive,
+        elevated,
         hasDivider,
         hasSpacing,
         hideOverflow,
@@ -92,7 +95,10 @@ const omitUnsupportedDomProps = (props: GenericProps) => {
         rightIcon,
         singleColumn,
         size,
+        small,
         title,
+        tooltip,
+        tooltipProps,
         useAbsoluteSpace,
         verticalStretchable,
         verticalStretched,
@@ -109,7 +115,7 @@ const createButtonMock =
             <button
                 onClick={onClick}
                 data-loading={includeLoadingState ? (loading ? "true" : "false") : undefined}
-                {...buttonProps}
+                {...omitUnsupportedDomProps(buttonProps)}
             >
                 {children ?? text}
             </button>
@@ -270,7 +276,7 @@ const createIconMock =
 const createMenuItemMock =
     ({ supportChildren = false } = {}) =>
     ({ text, children, onClick, disabled, htmlTitle, ...props }) => (
-        <button onClick={onClick} disabled={disabled} {...props}>
+        <button onClick={onClick} disabled={disabled} {...omitUnsupportedDomProps(props)}>
             {supportChildren ? (text ?? children) : text}
         </button>
     );
