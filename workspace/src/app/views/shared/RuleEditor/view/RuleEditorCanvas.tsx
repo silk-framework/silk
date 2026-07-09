@@ -17,6 +17,7 @@ import {
     IRuleEditorViewSelectionDragState,
 } from "./RuleEditorView.typings";
 import { RuleEditorModelContext } from "../contexts/RuleEditorModelContext";
+import { RuleEditorContext } from "../contexts/RuleEditorContext";
 import { EdgeMenu } from "./ruleEdge/EdgeMenu";
 import { ruleEditorModelUtilsFactory, SOURCE_HANDLE_TYPE, TARGET_HANDLE_TYPE } from "../model/RuleEditorModel.utils";
 import { RuleEditorNode } from "../model/RuleEditorModel.typings";
@@ -24,6 +25,7 @@ import useHotKey from "../../HotKeyHandler/HotKeyHandler";
 import { RuleEditorUiContext } from "../contexts/RuleEditorUiContext";
 import { useSelector } from "react-redux";
 import { commonSel } from "@ducks/common";
+import { RuleEditorSidebarDragPayload, RuleEditorSidebarOperatorDragPayload } from "../RuleEditor.typings";
 
 //snap grid
 const snapGrid: [number, number] = [15, 15];
@@ -39,6 +41,7 @@ export const RuleEditorCanvas = () => {
         selectionStartPositions: new Map(),
     });
     const modelContext = React.useContext(RuleEditorModelContext);
+    const ruleEditorContext = React.useContext(RuleEditorContext);
     const ruleEditorUiContext = React.useContext(RuleEditorUiContext);
     // Stores the state when any edge connection operation is active, i.e. creating a new or updating an existing edge
     const [edgeConnectState] = React.useState<EditorEdgeConnectionState>({
@@ -64,6 +67,7 @@ export const RuleEditorCanvas = () => {
     // Needed to disable hot keys
     const { isOpen } = useSelector(commonSel.artefactModalSelector);
     const { hotKeysDisabled } = React.useContext(ReactFlowHotkeyContext);
+    const hotKeysDisabledRef = React.useRef(false);
 
     /** Clones the given nodes with a small offset. */
     const cloneNodes = (nodeIds: string[]) => {
@@ -79,7 +83,7 @@ export const RuleEditorCanvas = () => {
                 cloneNodes(nodeIds);
             }
         },
-        enabled: !ruleEditorUiContext.modalShown && !hotKeysDisabled,
+        enabled: !ruleEditorUiContext.readOnly && !ruleEditorUiContext.modalShown && !hotKeysDisabled,
     });
 
     /** Selection helper methods. */
@@ -374,6 +378,11 @@ export const RuleEditorCanvas = () => {
 
     // Handles deletion of multiple elements, both nodes and edges
     const onElementsRemove = React.useCallback((elementsToRemove: Elements) => {
+        // FIXME: Work around react-flow v9 not supporting hotkey disabling reliably for delete/backspace.
+        // Remove this guard once the rule editors run on react-flow v12.
+        if (hotKeysDisabledRef.current) {
+            return;
+        }
         if (elementsToRemove.length > 0) {
             modelContext.executeModelEditOperation.startChangeTransaction();
             const edgeIds = modelUtils.elementEdges(elementsToRemove).map((e) => e.id);
@@ -474,26 +483,45 @@ export const RuleEditorCanvas = () => {
         const pluginData = e.dataTransfer.getData("application/reactflow");
         if (pluginData) {
             try {
-                const { pluginType, pluginId, parameterValues } = JSON.parse(pluginData);
-                if (pluginType && pluginId) {
-                    // Position on react-flow canvas
-                    const reactFlowPosition = {
-                        x: e.clientX - reactFlowBounds.left - 20,
-                        y: e.clientY - reactFlowBounds.top - 20,
-                    };
-                    modelContext.executeModelEditOperation.startChangeTransaction();
-                    modelContext.executeModelEditOperation.addNodeByPlugin(
-                        pluginType,
-                        pluginId,
-                        reactFlowPosition,
-                        parameterValues,
-                        true,
-                    );
+                const dragPayload = JSON.parse(pluginData) as
+                    | RuleEditorSidebarDragPayload
+                    | {
+                          pluginType?: string;
+                          pluginId?: string;
+                          parameterValues?: RuleEditorSidebarOperatorDragPayload["parameterValues"];
+                          nodeMetaDataOverwrites?: RuleEditorSidebarOperatorDragPayload["nodeMetaDataOverwrites"];
+                      };
+                // Position on react-flow canvas
+                const reactFlowPosition = {
+                    x: e.clientX - reactFlowBounds.left - 20,
+                    y: e.clientY - reactFlowBounds.top - 20,
+                };
+                if ("type" in dragPayload && dragPayload.type !== "operator") {
+                    if (ruleEditorContext.handleSidebarDropRequest?.(dragPayload, reactFlowPosition)) {
+                        return;
+                    }
+                    console.warn("The drag event contained an unsupported sidebar drop request: " + pluginData);
                 } else {
-                    console.warn(
-                        "The drag event did not contain the necessary parameters, pluginType and pluginId. Received: " +
-                            pluginData,
-                    );
+                    const { pluginType, pluginId, parameterValues, nodeMetaDataOverwrites } =
+                        "type" in dragPayload && dragPayload.type === "operator"
+                            ? dragPayload
+                            : dragPayload;
+                    if (pluginType && pluginId) {
+                        modelContext.executeModelEditOperation.startChangeTransaction();
+                        modelContext.executeModelEditOperation.addNodeByPlugin(
+                            pluginType,
+                            pluginId,
+                            reactFlowPosition,
+                            parameterValues,
+                            nodeMetaDataOverwrites,
+                            true,
+                        );
+                    } else {
+                        console.warn(
+                            "The drag event did not contain the necessary parameters, pluginType and pluginId. Received: " +
+                                pluginData,
+                        );
+                    }
                 }
             } catch (e) {
                 console.warn("Could not parse drag event data. Received: " + pluginData);
@@ -507,7 +535,9 @@ export const RuleEditorCanvas = () => {
         event.preventDefault();
     };
 
-    const permanentReadOnly = !!ruleEditorUiContext.showRuleOnly;
+    const permanentReadOnly = !!ruleEditorUiContext.readOnly;
+    const disableHotkeys = hotKeysDisabled || isOpen || permanentReadOnly;
+    hotKeysDisabledRef.current = disableHotkeys;
     return (
         <>
             <GridColumn>
@@ -519,34 +549,36 @@ export const RuleEditorCanvas = () => {
                     ref={ruleEditorUiContext?.reactFlowWrapper}
                     elements={modelContext.elements}
                     onElementClick={onElementClick}
-                    onSelectionDragStart={handleSelectionDragStart}
-                    onSelectionDragStop={handleSelectionDragStop}
+                    onSelectionDragStart={permanentReadOnly ? undefined : handleSelectionDragStart}
+                    onSelectionDragStop={permanentReadOnly ? undefined : handleSelectionDragStop}
                     onEdgeContextMenu={permanentReadOnly ? undefined : onEdgeContextMenu}
-                    onElementsRemove={onElementsRemove}
-                    onConnectStart={onConnectStart}
-                    onConnect={onConnect}
-                    onConnectEnd={onConnectEnd}
-                    onNodeDragStart={handleNodeDragStart}
-                    onNodeDragStop={handleNodeDragStop}
-                    onNodeMouseEnter={onNodeMouseEnter}
-                    onNodeMouseLeave={onNodeMouseLeave}
+                    onElementsRemove={permanentReadOnly ? undefined : onElementsRemove}
+                    onConnectStart={permanentReadOnly ? undefined : onConnectStart}
+                    onConnect={permanentReadOnly ? undefined : onConnect}
+                    onConnectEnd={permanentReadOnly ? undefined : onConnectEnd}
+                    onNodeDragStart={permanentReadOnly ? undefined : handleNodeDragStart}
+                    onNodeDragStop={permanentReadOnly ? undefined : handleNodeDragStop}
+                    onNodeMouseEnter={permanentReadOnly ? undefined : onNodeMouseEnter}
+                    onNodeMouseLeave={permanentReadOnly ? undefined : onNodeMouseLeave}
                     onNodeContextMenu={permanentReadOnly ? undefined : onNodeContextMenu}
                     onSelectionContextMenu={permanentReadOnly ? undefined : onSelectionContextMenu}
                     onSelectionChange={onSelectionChange}
                     onLoad={onLoad}
                     onDrop={permanentReadOnly ? undefined : onDrop}
                     onDragOver={onDragOver}
-                    onEdgeUpdateStart={onEdgeUpdateStart}
-                    onEdgeUpdateEnd={onEdgeUpdateEnd}
-                    onEdgeUpdate={onEdgeUpdate}
+                    onEdgeUpdateStart={permanentReadOnly ? undefined : onEdgeUpdateStart}
+                    onEdgeUpdateEnd={permanentReadOnly ? undefined : onEdgeUpdateEnd}
+                    onEdgeUpdate={permanentReadOnly ? undefined : onEdgeUpdate}
                     connectionLineType={ConnectionLineType.Step}
                     snapGrid={snapGrid}
                     snapToGrid={true}
                     zoomOnDoubleClick={false}
                     minZoom={!!ruleEditorUiContext.zoomRange ? ruleEditorUiContext.zoomRange[0] : undefined}
                     maxZoom={!!ruleEditorUiContext.zoomRange ? ruleEditorUiContext.zoomRange[1] : 1.25}
-                    multiSelectionKeyCode={isOpen ? null : (18 as any)} // ALT
-                    deleteKeyCode={isOpen ? null : (undefined as any)}
+                    nodesDraggable={!permanentReadOnly}
+                    nodesConnectable={!permanentReadOnly}
+                    multiSelectionKeyCode={disableHotkeys ? undefined : (18 as any)} // ALT
+                    deleteKeyCode={disableHotkeys ? undefined : (undefined as any)}
                     scrollOnDrag={{
                         scrollStepSize: 0.1,
                         scrollInterval: 50,

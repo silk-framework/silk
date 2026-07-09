@@ -1,11 +1,9 @@
 package org.silkframework.plugins.dataset.rdf.datasets
 
 import org.silkframework.dataset._
-import org.silkframework.dataset.rdf.{RdfDataset, SparqlEndpoint, SparqlParams}
+import org.silkframework.dataset.rdf.RdfDataset
 import org.silkframework.execution.local.LocalExecution
-import org.silkframework.plugins.dataset.rdf.access.{SparqlSink, SparqlSource}
 import org.silkframework.plugins.dataset.rdf.endpoint.InMemoryJenaModelEndpoint
-import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.annotations.{Param, Plugin, PluginReference}
 import org.silkframework.util.Identifier
 
@@ -40,7 +38,7 @@ case class InMemoryDataset(
          value = "This is deprecated, use the 'Clear dataset' operator instead to clear a dataset in a workflow. If set to true this will clear this dataset before it is used in a workflow execution.",
          advanced = true)
   clearGraphBeforeExecution: Boolean = false
-) extends RdfDataset with TripleSinkDataset {
+) extends RdfDataset {
 
   /**
    * The active endpoint backing this dataset. Owns its Jena model internally so the in-memory
@@ -90,23 +88,6 @@ case class InMemoryDataset(
   /** Switches [[endpoint]] to the given execution's endpoint so out-of-workflow reads see current data. */
   private[datasets] def updateEndpoint(newEndpoint: InMemoryJenaModelEndpoint): Unit =
     endpoint = newEndpoint
-
-  // In workflow-scoped mode the executor owns the endpoint lifecycle, so sinks must not drop the graph.
-  private def dropGraph: Boolean = !workflowScoped && clearGraphBeforeExecution
-
-  override def sparqlEndpoint: SparqlEndpoint = endpoint
-
-  override def source(implicit userContext: UserContext): DataSource =
-    new SparqlSource(SparqlParams(), sparqlEndpoint)
-
-  override def entitySink(implicit userContext: UserContext): EntitySink =
-    new SparqlSink(SparqlParams(), sparqlEndpoint, dropGraphOnClear = dropGraph)
-
-  override def linkSink(implicit userContext: UserContext): LinkSink =
-    new SparqlSink(SparqlParams(), sparqlEndpoint, dropGraphOnClear = dropGraph)
-
-  override def tripleSink(implicit userContext: UserContext): TripleSink =
-    new SparqlSink(SparqlParams(), sparqlEndpoint, dropGraphOnClear = dropGraph)
 }
 
 object InMemoryDataset {

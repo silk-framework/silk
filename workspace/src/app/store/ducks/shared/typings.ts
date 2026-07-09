@@ -47,12 +47,13 @@ interface ITaskTypes {
 export const TaskTypes: ITaskTypes = {
     DATASET: "Dataset",
     LINKING: "Linking",
+    RULE_BLOCK: "RuleBlock",
     TRANSFORM: "Transform",
     WORKFLOW: "Workflow",
     CUSTOM_TASK: "CustomTask",
 };
 
-export type TaskType = "Dataset" | "Linking" | "Transform" | "Workflow" | "CustomTask";
+export type TaskType = "Dataset" | "Linking" | "RuleBlock" | "Transform" | "Workflow" | "CustomTask";
 
 /** Converts the task type from the backend to the item type of the UI. */
 export const convertTaskTypeToItemType = (
@@ -64,6 +65,8 @@ export const convertTaskTypeToItemType = (
             return "dataset";
         case "Linking":
             return "linking";
+        case "RuleBlock":
+            return "ruleBlock";
         case "Transform":
             return "transform";
         case "Workflow":

@@ -1,0 +1,21 @@
+@mixin selectable-evaluation-values {
+    .diapp-evaluation__uri-value {
+        align-items: center;
+        column-gap: $eccgui-size-inline-whitespace * 0.5;
+        display: inline-flex;
+        max-width: 100%;
+    }
+
+    .diapp-evaluation__selectable-tag,
+    .diapp-evaluation__selectable-tag *,
+    .diapp-evaluation__selectable-value-text,
+    .diapp-evaluation__selectable-value-text * {
+        -webkit-user-select: text;
+        user-select: text;
+    }
+
+    .diapp-evaluation__selectable-value-text {
+        cursor: text;
+        min-width: 0;
+    }
+}

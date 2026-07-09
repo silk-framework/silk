@@ -1,25 +1,28 @@
 
-import org.silkframework.config.PlainTask
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
+import org.silkframework.config.{PlainTask, TaskSpec}
 import org.silkframework.dataset._
 import org.silkframework.entity.ValueType
+import org.silkframework.rule.input.TransformInput
+import org.silkframework.rule.plugins.transformer.value.ConstantTransformer
 import org.silkframework.rule.vocab._
-import org.silkframework.rule.{MappingTarget, NodePosition, RuleLayout}
-import org.silkframework.runtime.activity.UserContext
+import org.silkframework.rule._
 import org.silkframework.runtime.plugin.PluginRegistry
-import org.silkframework.runtime.serialization.{ReadContext, Serialization, TestReadContext, TestWriteContext, WriteContext}
-import org.silkframework.serialization.json.JsonSerializers._
-import org.silkframework.serialization.json.{JsonFormat, JsonSerialization}
+import org.silkframework.runtime.serialization._
+import org.silkframework.runtime.validation.TaskValidationException
 import org.silkframework.serialization.json.ExecutionReportSerializers.WorkflowExecutionReportJsonFormat
-import org.silkframework.workspace.activity.transform.VocabularyCacheValue
+import org.silkframework.serialization.json.JsonSerializers._
 import org.silkframework.serialization.json.WorkflowSerializers._
-import org.silkframework.workspace.activity.workflow.{WorkflowExecutionReport, WorkflowTest}
+import org.silkframework.serialization.json.{JsonFormat, JsonSerialization}
+import org.silkframework.util.Identifier
+import org.silkframework.workspace.activity.transform.VocabularyCacheValue
 import org.silkframework.workspace.activity.workflow.WorkflowTest.{DS_A1, OUTPUT, testWorkflow}
+import org.silkframework.workspace.activity.workflow.{WorkflowExecutionReport, WorkflowTest}
 import org.silkframework.workspace.annotation.{StickyNote, UiAnnotations}
 import play.api.libs.json.{JsObject, Json}
 
 import scala.reflect.ClassTag
-import org.scalatest.flatspec.AnyFlatSpec
-import org.scalatest.matchers.should.Matchers
 
 class JsonSerializersTest  extends AnyFlatSpec with Matchers {
 
@@ -115,6 +118,89 @@ class JsonSerializersTest  extends AnyFlatSpec with Matchers {
     roundTrip shouldBe report
   }
 
+  "RuleBlockSpec" should "be serializable to and from JSON via TaskSpec dispatch" in {
+    val ruleBlockSpec: TaskSpec = RuleBlockSpec(
+      RuleBlockModel(
+        ports = IndexedSeq(
+          RuleBlockPort(
+            id = "firstInput",
+            label = "First input",
+            description = "Used in the main branch.",
+            displayOrder = 0
+          ),
+          RuleBlockPort(
+            id = "secondInput",
+            label = "Second input",
+            description = "Deprecated fallback.",
+            displayOrder = 1,
+            deprecated = true
+          )
+        ),
+        inputExamples = IndexedSeq(
+          RuleBlockInputExample(
+            id = "example-1",
+            label = Some("Primary example"),
+            inputs = Map(
+              Identifier("firstInput") -> Seq("value 1", "value 2"),
+              Identifier("secondInput") -> Seq("fallback")
+            )
+          )
+        ),
+        operator = Some(TransformInput(id = "rootTransform", transformer = ConstantTransformer("constant result"))),
+        layout = RuleLayout(Map("rootTransform" -> NodePosition(10, 20, Some(120), Some(60)))),
+        uiAnnotations = UiAnnotations(Seq(stickyNote))
+      )
+    )
+
+    testSerialization(ruleBlockSpec)
+  }
+
+  it should "reject rule block ports without displayOrder in JSON" in {
+    val json =
+      Json.obj(
+        TASKTYPE -> TASK_TYPE_RULE_BLOCK,
+        PARAMETERS -> Json.obj(
+          "ruleBlockModel" -> Json.obj(
+            "ports" -> Json.arr(
+              Json.obj(
+                ID -> "missingOrderPort",
+                "label" -> "Missing order"
+              )
+            )
+          )
+        )
+      )
+
+    val ex = the[TaskValidationException] thrownBy {
+      JsonSerialization.fromJson[RuleBlockSpec](json)
+    }
+    ex.getMessage should include("missing required field 'displayOrder'")
+    ex.getMessage should include("missingOrderPort")
+  }
+
+  it should "reject rule block ports without label in JSON" in {
+    val json =
+      Json.obj(
+        TASKTYPE -> TASK_TYPE_RULE_BLOCK,
+        PARAMETERS -> Json.obj(
+          "ruleBlockModel" -> Json.obj(
+            "ports" -> Json.arr(
+              Json.obj(
+                ID -> "missingLabelPort",
+                "displayOrder" -> 1
+              )
+            )
+          )
+        )
+      )
+
+    val ex = the[TaskValidationException] thrownBy {
+      JsonSerialization.fromJson[RuleBlockSpec](json)
+    }
+    ex.getMessage should include("missing required field 'label'")
+    ex.getMessage should include("missingLabelPort")
+  }
+
   def testSerialization[T](obj: T)(implicit format: JsonFormat[T]): Unit = {
     val objJson = JsonSerialization.toJson(obj)
     val objRoundTrip = JsonSerialization.fromJson[T](objJson)
@@ -123,8 +209,5 @@ class JsonSerializersTest  extends AnyFlatSpec with Matchers {
 }
 
 case class SomeDatasetPlugin(param1: String, param2: Double) extends Dataset {
-  override def source(implicit userContext: UserContext): DataSource = ???
-  override def linkSink(implicit userContext: UserContext): LinkSink = ???
-  override def entitySink(implicit userContext: UserContext): EntitySink = ???
   override def characteristics: DatasetCharacteristics = DatasetCharacteristics.attributesOnly()
 }

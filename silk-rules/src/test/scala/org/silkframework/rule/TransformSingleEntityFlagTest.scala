@@ -5,6 +5,7 @@ import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import org.silkframework.config.PlainTask
 import org.silkframework.dataset.DatasetSpec
+import org.silkframework.execution.ExecutorRegistry
 import org.silkframework.entity.ValueType
 import org.silkframework.entity.paths.UntypedPath
 import org.silkframework.plugins.dataset.json.JsonDataset
@@ -100,8 +101,8 @@ class TransformSingleEntityFlagTest extends AnyFlatSpec with Matchers {
     val execute = new ExecuteTransform(
       task = transformTask,
       inputTask = _ => inputTask,
-      input = user => inputDataset.source(user),
-      output = user => outputDataset.entitySink(user),
+      input = user => ExecutorRegistry.access(inputTask).source(user),
+      output = user => ExecutorRegistry.access(outputDataset).entitySink(user),
       pluginContext = _ => PluginContext.empty
     )
 

@@ -476,8 +476,11 @@ class XmlSourceStreaming(file: Resource, basePath: String, uriPattern: String) e
   private def buildAttributeNode(reader: XMLStreamReader, attributeName: String): InMemoryXmlNode = {
     val value = attributeValue(reader, attributeName.stripPrefix("@"))
     assert(value.isDefined, s"Cannot build attribute node for missing attribute '$attributeName'.")
+    // Capture the position of the owning element (the reader is still positioned on it) so that node ids stay
+    // stable across evaluation passes. The position of the event after reader.next() depends on the access pattern.
+    val position = getPosition(reader)
     reader.next()
-    InMemoryXmlAttribute(attributeName, value.get, getPosition(reader))
+    InMemoryXmlAttribute(attributeName, value.get, position)
   }
 
   /**

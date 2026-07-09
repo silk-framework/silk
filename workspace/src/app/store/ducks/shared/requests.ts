@@ -1,6 +1,5 @@
 import { legacyApiEndpoint, projectApi, rootPath, workspaceApi } from "../../../utils/getApiEndpoint";
 import fetch from "../../../services/fetch";
-import qs from "qs";
 import {
     IArbitraryPluginParameters,
     IAutocompleteDefaultResponse,
@@ -119,17 +118,19 @@ export const requestUpdateTaskMetadata = async (
  * @param projectId The project of the task
  * @param taskId The ID of the project task.
  * @param textQuery A multi-word text query to filter the related items by.
+ * @param limit Optional maximum number of related items returned by the backend.
  */
 export const requestRelatedItems = async (
     projectId: string,
     taskId: string,
-    textQuery: string = ""
+    textQuery: string = "",
+    limit?: number
 ): Promise<FetchResponse<IRelatedItemsResponse>> => {
-    const query = qs.stringify(textQuery);
     return fetch({
-        url: workspaceApi(`/projects/${projectId}/tasks/${taskId}/relatedItems${query}`),
-        body: {
-            textQuery: textQuery,
+        url: workspaceApi(`/projects/${projectId}/tasks/${taskId}/relatedItems`),
+        query: {
+            textQuery: textQuery || undefined,
+            limit,
         },
     });
 };

@@ -98,6 +98,7 @@ const extractSimilarityOperatorNode = (
                 ...additionalParameters,
             },
             portSpecification: {
+                type: "count",
                 minInputPorts: isComparison ? 2 : 1,
                 maxInputPorts: isComparison ? 2 : undefined,
             },

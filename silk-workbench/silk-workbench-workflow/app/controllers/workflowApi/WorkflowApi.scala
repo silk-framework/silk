@@ -564,7 +564,7 @@ class WorkflowApi @Inject()() extends InjectedController with ControllerUtilsTra
     }
     val taskPlugins = PluginApi.taskplugins().map(pluginDescription => {
       val pluginId = pluginDescription.id
-      val parameters = pluginDescription.configProperties.map(PortSchemaProperty)
+      val parameters = pluginDescription.configProperties.map(PortSchemaProperty(_, None))
       pluginId.toString -> PluginPortConfig(ConfigPortConfig(PortSchema(None, parameters)))
     }).toMap
     val workflowTypePortConfig = WorkflowNodePortConfig(0, Some(0),

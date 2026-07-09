@@ -38,49 +38,60 @@ trait PluginContext {
    */
   def templateVariables: TemplateVariablesReader
 
+  /**
+    * Creates a [[TaskResolver]] based on the project ID if available. Throws an exception if no project ID exists.
+    */
+  def taskResolver: TaskResolver
+
 }
 
 object PluginContext {
 
-  def empty: PluginContext = PlainPluginContext(Prefixes.empty, EmptyResourceManager(), UserContext.Empty, None, GlobalTemplateVariables)
+  def empty: PluginContext = PlainPluginContext(Prefixes.empty, EmptyResourceManager(), UserContext.Empty, None, GlobalTemplateVariables, TaskResolver.empty)
 
   def apply(prefixes: Prefixes,
             resources: ResourceManager,
             user: UserContext = UserContext.Empty,
             projectId: Option[Identifier] = None,
-            templateVariables: TemplateVariablesReader = GlobalTemplateVariables): PlainPluginContext = {
-    PlainPluginContext(prefixes, resources, user, projectId, templateVariables)
+            templateVariables: TemplateVariablesReader = GlobalTemplateVariables,
+            taskResolver: TaskResolver
+           ): PlainPluginContext = {
+    PlainPluginContext(prefixes, resources, user, projectId, templateVariables, taskResolver)
   }
 
   def fromProject(project: ProjectTrait)(implicit user: UserContext): PlainPluginContext = {
-    PlainPluginContext(project.config.prefixes, project.resources, user, Some(project.id), project.combinedTemplateVariables)
+    PlainPluginContext(project.config.prefixes, project.resources, user, Some(project.id), project.combinedTemplateVariables, TaskResolver.fromProject(project))
   }
 
   def fromProjectConfig(config: ProjectConfig,
                         projectResource: ResourceManager,
-                        templateVariables: TemplateVariablesReader = GlobalTemplateVariables)(implicit user: UserContext): PlainPluginContext = {
-    PlainPluginContext(config.prefixes, projectResource, user, Some(config.id), templateVariables)
+                        templateVariables: TemplateVariablesReader = GlobalTemplateVariables,
+                        taskResolver: TaskResolver)(implicit user: UserContext): PlainPluginContext = {
+    PlainPluginContext(config.prefixes, projectResource, user, Some(config.id), templateVariables, taskResolver)
   }
 
   def fromReadContext(readContext: ReadContext): PlainPluginContext = {
-    PlainPluginContext(readContext.prefixes, readContext.resources, readContext.user, readContext.projectId, readContext.templateVariables)
+    PlainPluginContext(readContext.prefixes, readContext.resources, readContext.user, readContext.projectId, readContext.templateVariables, readContext.taskResolver)
   }
 
   /**
-   * Creates an updated plugin context where some parameters are overwritten.
-   */
+    * Creates an updated plugin context where some parameters are overwritten.
+    */
   def updatedPluginContext(context: PluginContext,
                            prefixes: Option[Prefixes] = None): PluginContext = {
-    PlainPluginContext(prefixes.getOrElse(context.prefixes), context.resources, context.user, context.projectId, context.templateVariables)
+    PlainPluginContext(prefixes.getOrElse(context.prefixes), context.resources, context.user, context.projectId, context.templateVariables, context.taskResolver)
   }
 
   case class PlainPluginContext(prefixes: Prefixes,
                                 resources: ResourceManager,
                                 user: UserContext,
                                 projectId: Option[Identifier],
-                                templateVariables: TemplateVariablesReader) extends PluginContext
-
+                                templateVariables: TemplateVariablesReader,
+                                taskResolver: TaskResolver
+                               ) extends PluginContext
 }
+
+
 
 
 

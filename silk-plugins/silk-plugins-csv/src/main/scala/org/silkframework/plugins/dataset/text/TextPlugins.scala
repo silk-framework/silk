@@ -4,6 +4,9 @@ import org.silkframework.runtime.plugin.PluginModule
 
 class TextPlugins extends PluginModule {
 
-  override def pluginClasses = Seq(classOf[TextFileDataset])
+  override def pluginClasses = Seq(
+    classOf[TextFileDataset],
+    classOf[TextFileDatasetExecutor]
+  )
 
 }
