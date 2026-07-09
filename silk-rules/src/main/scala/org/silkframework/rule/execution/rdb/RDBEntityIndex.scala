@@ -10,7 +10,7 @@ import org.silkframework.rule._
 import org.silkframework.rule.execution.rdb.RDBEntityIndex.executeUpdate
 import org.silkframework.runtime.activity.{Activity, ActivityContext, UserContext}
 import org.silkframework.runtime.iterator.CloseableIterator
-import org.silkframework.runtime.plugin.PluginContext
+import org.silkframework.runtime.plugin.{PluginContext, TaskResolver}
 import org.silkframework.runtime.resource.EmptyResourceManager
 import org.silkframework.util.{DPair, Identifier}
 
@@ -223,7 +223,7 @@ class RDBEntityIndexLoader(linkSpec: LinkSpec,
 
   private def retrieveEntities()
                               (implicit userContext: UserContext): CloseableIterator[Entity] = {
-    implicit val pluginContext: PluginContext = PluginContext(prefixes, EmptyResourceManager(), userContext)
+    implicit val pluginContext: PluginContext = PluginContext(prefixes, EmptyResourceManager(), userContext, taskResolver = TaskResolver.empty)
     runtimeLinkingConfig.sampleSizeOpt match {
       case Some(sampleSize) =>
         implicit val random: Random = Random

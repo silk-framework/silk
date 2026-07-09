@@ -9,7 +9,11 @@ import {
 } from "@eccenca/gui-elements";
 import React from "react";
 import { useTranslation } from "react-i18next";
-import { IRuleOperator, RuleOperatorNodeParameters } from "../../RuleEditor.typings";
+import {
+    IRuleOperator,
+    RuleEditorSidebarOperatorDragPayload,
+    RuleOperatorNodeParameters,
+} from "../../RuleEditor.typings";
 import { RuleOperator } from "./RuleOperator";
 import { IPreConfiguredRuleOperator } from "./RuleEditorOperatorSidebar.typings";
 
@@ -62,11 +66,11 @@ export function RuleOperatorList<T>({
         // FIXME: Node cycle logic
     };
 
-    /** Add operator plugin data to drag event. For pre-configured operators also serialize the parameter values. */
-    const onDragStartByPluginId =
-        (pluginType: string, pluginId: string, parameterValues?: RuleOperatorNodeParameters) =>
+    /** Add drag payload to the event. For ordinary operators this contains plugin identity plus optional initial overwrites. */
+    const onDragStart =
+        (dragPayload: IPreConfiguredRuleOperator["dragData"] | RuleEditorSidebarOperatorDragPayload) =>
         (e: React.DragEvent<HTMLDivElement>) => {
-            const pluginData = JSON.stringify({ pluginType, pluginId, parameterValues });
+            const pluginData = JSON.stringify(dragPayload);
             e.dataTransfer.setData("application/reactflow", pluginData);
             e.dataTransfer.setData("application/x-reactflow-app", "ruleEditor");
             const draggedElement = e.currentTarget;
@@ -79,23 +83,36 @@ export function RuleOperatorList<T>({
 
     const itemRenderer = (ruleOperator: IRuleOperator | IPreConfiguredRuleOperator) => {
         /** currently active taskItem */
+        const showCycleButton: boolean = !!totalMatches && totalMatches > 0;
         const isActiveTaskItem = currentlyCycledTaskId === ruleOperator.pluginId;
+        const preConfiguredRuleOperator = ruleOperator as IPreConfiguredRuleOperator;
+        const preConfiguredActions = preConfiguredRuleOperator.actions
+            ? Array.isArray(preConfiguredRuleOperator.actions)
+                ? preConfiguredRuleOperator.actions
+                : [preConfiguredRuleOperator.actions]
+            : [];
+        const draggable = preConfiguredRuleOperator.draggable ?? true;
+        const dragPayload: IPreConfiguredRuleOperator["dragData"] | RuleEditorSidebarOperatorDragPayload =
+            preConfiguredRuleOperator.dragData ?? {
+                type: "operator",
+                pluginType: ruleOperator.pluginType,
+                pluginId: ruleOperator.pluginId,
+                parameterValues: preConfiguredRuleOperator.parameterOverwrites,
+                nodeMetaDataOverwrites: preConfiguredRuleOperator.nodeMetaDataOverwrites,
+            };
         return (
             <div
                 data-test-id={"ruleEditor-sidebar-draggable-operator"}
-                draggable={true}
-                onDragStart={onDragStartByPluginId(
-                    ruleOperator.pluginType,
-                    ruleOperator.pluginId,
-                    (ruleOperator as IPreConfiguredRuleOperator).parameterOverwrites,
-                )}
-                style={{ cursor: "grab" }}
+                draggable={draggable}
+                onDragStart={draggable ? onDragStart(dragPayload) : undefined}
+                style={{ cursor: draggable ? "grab" : "default" }}
             >
                 <Card data-test-id={"ruleEditor-sidebar-draggable-operator-" + ruleOperator.pluginId} isOnlyLayout>
                     <OverviewItem hasSpacing={true}>
                         <RuleOperator ruleOperator={ruleOperator} searchWords={searchWords} textQuery={textQuery} />
-                        {totalMatches && totalMatches > 0 ? (
+                        {preConfiguredActions.length > 0 || showCycleButton ? (
                             <OverviewItemActions>
+                                {preConfiguredActions}
                                 {isActiveTaskItem ? (
                                     <Button
                                         minimal
@@ -106,7 +123,7 @@ export function RuleOperatorList<T>({
                                         onClick={resetCycleTask}
                                     />
                                 ) : null}
-                                <Button
+                                {showCycleButton ? <Button
                                     minimal
                                     data-test-id={"cycle-through-nodes"}
                                     rightIcon={"navigation-jump"}
@@ -114,7 +131,7 @@ export function RuleOperatorList<T>({
                                     tooltip={t("RuleEditor.sidebar.cycleTooltip", { totalMatches })}
                                     tooltipProps={{ placement: "bottom", usePortal: false }}
                                     onClick={() => cycleThroughTaskNodes(ruleOperator.pluginId)}
-                                />
+                                /> : null}
                             </OverviewItemActions>
                         ) : null}
                     </OverviewItem>

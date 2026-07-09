@@ -15,11 +15,13 @@
 package org.silkframework
 
 import org.silkframework.config._
-import org.silkframework.dataset.CombinedEntitySink
+import org.silkframework.dataset.{CombinedEntitySink, Dataset, DatasetAccess, DatasetSpec}
+import org.silkframework.execution.ExecutorRegistry
+import org.silkframework.execution.local.LocalExecution
 import org.silkframework.rule.execution.{ExecuteTransform, GenerateLinks}
 import org.silkframework.rule.{LinkSpec, LinkingConfig, TaskContext, TransformSpec}
 import org.silkframework.runtime.activity.{Activity, UserContext}
-import org.silkframework.runtime.plugin.PluginContext
+import org.silkframework.runtime.plugin.{PluginContext, TaskResolver}
 import org.silkframework.runtime.resource.{EmptyResourceManager, FileResourceManager}
 import org.silkframework.runtime.serialization.{ReadContext, XmlSerialization}
 import org.silkframework.util.StringUtils._
@@ -52,11 +54,11 @@ object Silk {
   private val logger = Logger.getLogger(Silk.getClass.getName)
 
   // Initialize Log4j
-//  val ca = new ConsoleAppender()
-//  ca.setWriter(new OutputStreamWriter(System.out))
-//  ca.setLayout(new PatternLayout("%-5p [%t]: %m%n"))
-//  ca.setThreshold(org.apache.log4j.Level.WARN)
-//  org.apache.log4j.Logger.getRootLogger.addAppender(ca)
+  //  val ca = new ConsoleAppender()
+  //  ca.setWriter(new OutputStreamWriter(System.out))
+  //  ca.setLayout(new PatternLayout("%-5p [%t]: %m%n"))
+  //  ca.setThreshold(org.apache.log4j.Level.WARN)
+  //  org.apache.log4j.Logger.getRootLogger.addAppender(ca)
 
   /**
    * Executes Silk.
@@ -114,7 +116,7 @@ object Silk {
    */
   def executeFile(configFile: File, linkSpecID: String = null, numThreads: Int = DefaultThreads, reload: Boolean = true)
                  (implicit userContext: UserContext): Unit = {
-    implicit val readContext: ReadContext = ReadContext(FileResourceManager(configFile.getAbsoluteFile.getParentFile), Prefixes.default)
+    implicit val readContext: ReadContext = ReadContext(FileResourceManager(configFile.getAbsoluteFile.getParentFile), Prefixes.default, taskResolver = TaskResolver.empty)
     val config = XmlSerialization.fromXml[LinkingConfig](XML.loadFile(configFile))
     executeConfig(config, linkSpecID, numThreads, reload)
   }
@@ -154,6 +156,10 @@ object Silk {
     }
   }
 
+  private def access(datasetTask: Task[DatasetSpec[Dataset]]): DatasetAccess = {
+    ExecutorRegistry.access(datasetTask, LocalExecution())
+  }
+
   /**
    * Executes a single link specification.
    *
@@ -165,13 +171,13 @@ object Silk {
   private def executeLinkSpec(config: LinkingConfig, linkSpec: Task[LinkSpec], numThreads: Int = DefaultThreads, reload: Boolean = true)
                              (implicit userContext: UserContext): Unit = {
     implicit val prefixes: Prefixes = config.prefixes
-    implicit val pluginContext: PluginContext = PluginContext(prefixes = prefixes, resources = EmptyResourceManager(), user = userContext)
+    implicit val pluginContext: PluginContext = PluginContext(prefixes = prefixes, resources = EmptyResourceManager(), user = userContext, taskResolver = TaskResolver.empty)
     val inputs = linkSpec.findSources(config.sources)
     val generateLinks =
       new GenerateLinks(
         linkSpec,
         inputs = inputs,
-        output = config.output.map(_.linkSink),
+        output = config.output.map(access(_).linkSink),
         taskContext = TaskContext.fromSources(inputs),
         runtimeConfig = config.runtime.copy(numThreads = numThreads, reloadCache = reload)
       )
@@ -186,17 +192,17 @@ object Silk {
    */
   private def executeTransform(config: LinkingConfig, transform: Task[TransformSpec]): Unit = {
     val inputTask =  config.source(transform.selection.inputId)
-    val inputSource = inputTask.source
+    val inputSource = access(inputTask).source
     Activity(new ExecuteTransform(transform, (_) => inputTask, (_) => inputSource, (_) =>
-      new CombinedEntitySink(config.output.map(_.entitySink).toSeq), _ => None, _ => PluginContext.empty)).startBlocking()
+      new CombinedEntitySink(config.output.map(access(_).entitySink).toSeq), _ => None, _ => PluginContext.empty)).startBlocking()
   }
 
   /**
-    * Executes a Silk project.
-    *
-    * @param projectFile The project file
-    * @param taskName The name of task in the project that should be executed. Currently only workflows are supported.
-    */
+   * Executes a Silk project.
+   *
+   * @param projectFile The project file
+   * @param taskName The name of task in the project that should be executed. Currently only workflows are supported.
+   */
   def executeProject(projectFile: File, taskName: Identifier): Project = {
     // Create workspace provider
     val projectId = Identifier("project")

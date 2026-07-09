@@ -7,7 +7,7 @@ import org.silkframework.rule.TransformSpec.RuleSchemataExecution
 import org.silkframework.rule._
 import org.silkframework.rule.execution.local.TransformedEntities
 import org.silkframework.runtime.activity.{Activity, ActivityContext, UserContext}
-import org.silkframework.runtime.plugin.PluginContext
+import org.silkframework.runtime.plugin.{PluginContext, TaskResolver}
 
 import scala.util.control.Breaks._
 import scala.util.control.NonFatal

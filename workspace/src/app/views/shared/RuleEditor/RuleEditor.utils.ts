@@ -14,6 +14,7 @@ const convertRuleOperatorToRuleNode = (ruleOperator: IRuleOperator): Omit<IRuleO
         ),
         pluginId: ruleOperator.pluginId,
         pluginType: ruleOperator.pluginType,
+        icon: ruleOperator.icon,
         portSpecification: ruleOperator.portSpecification,
         tags: ruleOperator.tags,
         description: ruleOperator.description,
@@ -51,6 +52,9 @@ export const linkingRuleOperatorTypeColorFunction: () => (id: string) => string 
             case "TransformOperator":
             case "transform":
                 return tabColors[`${eccgui}-transformation-node-bright`];
+            case "RuleBlock":
+            case "ruleBlock":
+                return tabColors[`${eccgui}-ruleblock-node-bright`];
             case "AggregationOperator":
             case "aggregation":
                 return tabColors[`${eccgui}-aggregator-node-bright`];

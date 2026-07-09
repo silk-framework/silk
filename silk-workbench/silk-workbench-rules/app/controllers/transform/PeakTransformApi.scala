@@ -14,19 +14,19 @@ import io.swagger.v3.oas.annotations.{Operation, Parameter}
 import org.silkframework.config.{Prefixes, Task, TaskSpec}
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.dataset._
-import org.silkframework.dataset.rdf.RdfDataset
+import org.silkframework.dataset.rdf.{RdfDataset, RdfDatasetAccess}
 import org.silkframework.entity._
 import org.silkframework.entity.paths.{Path, UntypedPath}
-import org.silkframework.plugins.dataset.rdf.executors.LocalSparqlSelectExecutor
+import org.silkframework.plugins.dataset.rdf.executors.LocalSparqlSelectIterator
 import org.silkframework.plugins.dataset.rdf.tasks.SparqlSelectCustomTask
 import org.silkframework.rule.TransformSpec.RuleSchemata
 import org.silkframework.rule.input.Value
-import org.silkframework.rule.{ComplexUriMapping, TaskContext, TransformRule, TransformRuleExecution, TransformSpec, ValueTransformRuleExecution}
+import org.silkframework.rule._
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.PluginContext
 import org.silkframework.runtime.serialization.ReadContext
 import org.silkframework.runtime.validation.ValidationException
-import org.silkframework.util.{Identifier, Uri}
+import org.silkframework.util.Identifier
 import org.silkframework.workspace.{Project, ProjectTask}
 import play.api.libs.json.{Format, Json}
 import play.api.mvc._
@@ -198,11 +198,15 @@ class PeakTransformApi @Inject() () extends InjectedController with UserContextA
     inputTask.data match {
       case dataset: GenericDatasetSpec =>
         val pluginLabel = dataset.plugin.pluginSpec.label
-        DataSource.pluginSource(dataset) match {
+        DataSource.pluginSource(inputTask.asInstanceOf[Task[GenericDatasetSpec]]) match {
           case peakDataSource: PeakDataSource =>
             try {
               peakDataSource.peak(ruleSchemata.inputSchema, maxTryEntities).use { exampleEntities =>
-                generateMappingPreviewResponse(ruleSchemata.transformRule.execution(TaskContext.forInput(inputTask)), exampleEntities, limit)
+                generateMappingPreviewResponse(
+                  ruleSchemata.transformRule.execution(TaskContext.forInput(inputTask)),
+                  exampleEntities,
+                  limit
+                )
               }
             } catch {
               case pe: PeakException =>
@@ -239,13 +243,17 @@ class PeakTransformApi @Inject() () extends InjectedController with UserContextA
     } else {
       val datasetTask = project.task[GenericDatasetSpec](sparqlDataset)
       datasetTask.data.plugin match {
-        case _: RdfDataset with Dataset =>
-          val executor = LocalSparqlSelectExecutor()
-          val entities = executor.executeOnSparqlEndpoint(sparqlSelectTask, datasetTask.asInstanceOf[Task[_ <: DatasetSpec[RdfDataset]]], None, maxTryEntities, executionReportUpdater = None)
+        case _: RdfDataset =>
+          val sparqlEndpoint = RdfDatasetAccess.forExecution(datasetTask).sparqlEndpoint
+          val entities = new LocalSparqlSelectIterator(sparqlSelectTask, sparqlEndpoint, Some(datasetTask), None, maxTryEntities, executionReportUpdater = None)
           val entityDatasource = EntityDatasource(datasetTask, entities, sparqlSelectTask.outputSchema)
           try {
             entityDatasource.peak(ruleSchemata.inputSchema, maxTryEntities).use { exampleEntities =>
-              generateMappingPreviewResponse(ruleSchemata.transformRule.execution(TaskContext.noInput), exampleEntities, limit)
+              generateMappingPreviewResponse(
+                ruleSchemata.transformRule.execution(TaskContext.noInput()),
+                exampleEntities,
+                limit
+              )
             }
           } catch {
             case pe: PeakException =>
