@@ -2,9 +2,13 @@ import React from "react";
 import { ArrowHeadType, Edge, FlowElement, Position } from "react-flow-renderer";
 import { rangeArray } from "../../../../utils/basicUtils";
 import {
+    INamedInputPortSpecification,
     IParameterSpecification,
     IRuleNodeData,
     IRuleOperatorNode,
+    isDynamicPortSpecification,
+    isNamedPortSpecification,
+    maxInputPortCount,
     NodeContentPropsWithBusinessData,
     RuleOperatorNodeParameters,
     RuleOperatorPluginType,
@@ -14,9 +18,10 @@ import { RuleEditorNode, RuleEditorNodeParameterValue } from "./RuleEditorModel.
 import { Connection, Elements, XYPosition } from "react-flow-renderer/dist/types";
 import dagre from "dagre";
 import { NodeContent, RuleNodeContentProps } from "../view/ruleNode/NodeContent";
-import { IconButton, HandleDefaultProps, NodeContentProps, NodeDimensions } from "@eccenca/gui-elements";
+import { HandleDefaultProps, IconButton, Markdown, NodeContentProps, NodeDimensions } from "@eccenca/gui-elements";
 import { RuleEditorEvaluationContextProps } from "../contexts/RuleEditorEvaluationContext";
-import { InputPathFunctions, LanguageFilterProps } from "../view/ruleNode/PathInputOperator";
+import { InputPathFunctions } from "../view/ruleNode/PathInputOperator";
+import { InternalRuleBlockEvaluationButton } from "../view/ruleNode/InternalRuleBlockEvaluationButton";
 
 /** Constants */
 
@@ -35,6 +40,38 @@ function createInputHandle(handleId: number, operatorContext?: IOperatorCreateCo
         type: TARGET_HANDLE_TYPE,
         position: Position.Left,
         isValidConnection: operatorContext?.isValidConnection,
+    };
+}
+
+const namedInputPortTooltip = (port: INamedInputPortSpecification): React.JSX.Element | string => {
+    const label = port.label?.trim() || port.id;
+    const description = port.description?.trim();
+    if (!description) {
+        return label;
+    }
+    return (
+        <>
+            <div>{label}</div>
+            <div style={{ marginTop: 8 }}>
+                <Markdown>{description}</Markdown>
+            </div>
+        </>
+    );
+};
+
+function createNamedInputHandle(
+    port: INamedInputPortSpecification,
+    handleId: number,
+    operatorContext?: IOperatorCreateContext,
+): HandleDefaultProps {
+    return {
+        id: `${handleId}`,
+        type: TARGET_HANDLE_TYPE,
+        position: Position.Left,
+        isValidConnection: operatorContext?.isValidConnection,
+        data: {
+            extendedTooltip: namedInputPortTooltip(port),
+        },
     };
 }
 
@@ -70,6 +107,8 @@ export interface IOperatorCreateContext {
     updateNodeParameters: (nodeId: string, parameterValues: Map<string, RuleEditorNodeParameterValue>) => any;
     // If the operator is in permanent read-only mode
     readOnlyMode: boolean;
+    // If true, the node action menu must not be rendered at all.
+    showNodeMenu: boolean;
     /** Fetch the input path functions for the given node. This will be an empty object for non-pah operators. */
     inputPathFunctions: (nodeId: string) => InputPathFunctions;
     /** change node size */
@@ -88,15 +127,17 @@ function createOperatorNode(
         y: node.position?.y ?? 0,
     };
     const usedInputs = node.inputs.length;
-    const numberOfInputPorts =
-        node.portSpecification.maxInputPorts != null
-            ? Math.max(node.portSpecification.maxInputPorts, node.portSpecification.minInputPorts, usedInputs)
-            : Math.max(node.portSpecification.minInputPorts, usedInputs + 1);
+    const numberOfInputPorts = maxInputPortCount(node.portSpecification, usedInputs);
 
     const handles: HandleDefaultProps[] = [
-        ...createInputHandles(numberOfInputPorts, operatorContext),
+        ...(isNamedPortSpecification(node.portSpecification)
+            ? node.portSpecification.inputPorts.map((port, idx) => createNamedInputHandle(port, idx, operatorContext))
+            : createInputHandles(numberOfInputPorts, operatorContext)),
         { type: SOURCE_HANDLE_TYPE, position: Position.Right, isValidConnection: operatorContext.isValidConnection },
     ];
+    const editableParameterCount = Object.keys(node.parameters).filter((parameterId) =>
+        operatorContext.operatorParameterSpecification.has(parameterId),
+    ).length;
 
     const editBtn = (setAdjustedContentProps: React.Dispatch<React.SetStateAction<Partial<RuleNodeContentProps>>>) => (
         <IconButton
@@ -127,9 +168,9 @@ function createOperatorNode(
         iconName: node.icon,
         businessData: {
             originalRuleOperatorNode: node,
-            dynamicPorts: node.portSpecification.maxInputPorts == null,
+            dynamicPorts: isDynamicPortSpecification(node.portSpecification),
         },
-        menuButtons: (
+        menuButtons: operatorContext.showNodeMenu ? (
             <RuleNodeMenu
                 nodeId={node.nodeId}
                 t={operatorContext.t}
@@ -140,11 +181,17 @@ function createOperatorNode(
                 ruleOperatorDocumentation={node.markdownDocumentation}
                 handleCloneNode={nodeOperations.handleCloneNode}
             />
-        ),
+        ) : undefined,
         executionButtons:
-            Object.keys(node.parameters).length > 0
+            editableParameterCount > 0 || node.pluginType === "RuleBlock"
                 ? (adjustedContentProps, setAdjustedContentProps) => {
-                      return editBtn(setAdjustedContentProps);
+                      const editButton = editableParameterCount > 0 ? editBtn(setAdjustedContentProps) : null;
+                      return (
+                          <>
+                              {editButton}
+                              <InternalRuleBlockEvaluationButton nodeId={node.nodeId} t={operatorContext.t} />
+                          </>
+                      );
                   }
                 : undefined,
         content: (adjustedProps: Partial<RuleNodeContentProps>) => (
@@ -184,6 +231,11 @@ const nodeType = (pluginType: RuleOperatorPluginType | string, pluginId: string)
             return "comparator";
         case "TransformOperator":
             return "transformation";
+        case "RuleBlock":
+            return "ruleblock";
+        case "InputPortOperator":
+            // TODO: CMEM-1590: Add node type and use it for styling?
+            return "default";
         case "PathInputOperator":
             return pluginId === "targetPathInput" ? "targetpath" : "sourcepath";
         default:

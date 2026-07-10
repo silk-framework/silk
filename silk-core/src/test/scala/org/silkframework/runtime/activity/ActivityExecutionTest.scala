@@ -7,6 +7,7 @@ import org.silkframework.runtime.users.{User, UserActions}
 
 import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.atomic.AtomicInteger
+import java.util.concurrent.atomic.AtomicLong
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scala.jdk.CollectionConverters._
@@ -120,6 +121,50 @@ class ActivityExecutionTest extends AnyFlatSpec with Matchers with Eventually  {
         }
       }
     }
+  }
+
+  it should "finish a cancelled blocking activity even if other activities keep the pool busy" in {
+    // Regression test for CMEM-7839: cancelled blocking activities used to be stuck in Canceling
+    // while helpQuiesce() waited for all other activities to finish.
+    val sleepingActivity = Activity(new SleepingActivity())
+    sleepingActivity.start()
+    eventually {
+      sleepingActivity.value() mustBe true
+    }
+
+    val blockingActivity = Activity(new BlockingActivity())
+    blockingActivity.start()
+    eventually {
+      blockingActivity.value() mustBe true
+    }
+    // Give the blocking activity time to enter helpQuiesce() before cancelling it
+    Thread.sleep(1000)
+
+    blockingActivity.cancel()
+    try {
+      eventually {
+        blockingActivity.status() mustBe a[Finished]
+      }
+    } finally {
+      stopActivities(Seq(sleepingActivity, blockingActivity))
+    }
+  }
+
+  it should "not busy-spin in blockUntil while the pool is quiescent" in {
+    val conditionEvaluations = new AtomicLong()
+    val activity = Activity(new Activity[Unit] {
+      override def run(context: ActivityContext[Unit])(implicit userContext: UserContext): Unit = {
+        val deadline = System.currentTimeMillis() + 2000
+        context.blockUntil { () =>
+          conditionEvaluations.incrementAndGet()
+          System.currentTimeMillis() > deadline
+        }
+      }
+    })
+    activity.start()
+    activity.waitUntilFinished()
+    // With a 500ms poll interval, only a few evaluations are expected within 2 seconds
+    conditionEvaluations.get() must be < 100L
   }
 
   it should "allow activities to skip the waiting queue" in {

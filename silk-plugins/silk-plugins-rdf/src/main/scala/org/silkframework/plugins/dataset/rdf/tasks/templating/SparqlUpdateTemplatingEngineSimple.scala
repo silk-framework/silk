@@ -60,7 +60,7 @@ class SparqlSimpleCompiledTemplate(val sparqlUpdateTemplate: String) extends Com
     (sparqlUpdateTemplateParts map {
       case SparqlUpdateTemplatePlainLiteralPlaceholder(prop) =>
         val value = assignmentValue(prop)
-        JenaSerializationUtil.serializeSingleNode(NodeFactory.createLiteral(value))
+        JenaSerializationUtil.serializeSingleNode(NodeFactory.createLiteralString(value))
       case SparqlUpdateTemplateURIPlaceholder(prop) =>
         val value = assignmentValue(prop)
         validateUri(value)

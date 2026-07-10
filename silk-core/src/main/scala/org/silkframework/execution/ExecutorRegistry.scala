@@ -1,11 +1,12 @@
 package org.silkframework.execution
 
-import org.silkframework.config.{Task, TaskSpec}
+import org.silkframework.config.{PlainTask, Task, TaskSpec}
 import org.silkframework.dataset.{Dataset, DatasetAccess, DatasetSpec}
 import org.silkframework.runtime.activity.Status.Running
 import org.silkframework.runtime.activity.{ActivityContext, ActivityMonitor, Status}
 import org.silkframework.runtime.plugin.{PluginContext, PluginDescription, PluginRegistry}
 import org.silkframework.runtime.validation.ValidationException
+import org.silkframework.util.Identifier
 
 import java.lang.reflect.{Modifier, ParameterizedType, TypeVariable}
 import java.util.logging.{Level, Logger}
@@ -178,4 +179,20 @@ object ExecutorRegistry extends ExecutorRegistry {
         throw new Exception(s"Tried to access task $task, which does not provide a dataset executor.")
     }
   }
+
+  /**
+    * Fetch the execution specific access for a dataset specification that is not part of a task, by
+    * wrapping it in a transient task. Prefer the task-based [[access]] overloads when a task is available.
+    */
+  def access(datasetSpec: DatasetSpec[Dataset]): DatasetAccess = access(transientTask(datasetSpec))
+
+  /** Fetch the execution specific access for a dataset plugin that is not part of a task. */
+  def access(dataset: Dataset): DatasetAccess = access(transientTask(DatasetSpec(dataset)))
+
+  /** Fetch the execution specific access for a dataset plugin that is not part of a task. */
+  def access[ExecType <: ExecutionType](dataset: Dataset, execution: ExecType): DatasetAccess =
+    access(transientTask(DatasetSpec(dataset)), execution)
+
+  private def transientTask(datasetSpec: DatasetSpec[Dataset]): Task[DatasetSpec[Dataset]] =
+    PlainTask(Identifier.fromAllowed("dataset"), datasetSpec)
 }

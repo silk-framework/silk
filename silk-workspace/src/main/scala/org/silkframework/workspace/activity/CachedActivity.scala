@@ -103,7 +103,7 @@ trait CachedActivity[T] extends Activity[T] {
   protected def readValue(context: ActivityContext[T]): Option[T] = {
     try {
       val xml = resource.read(XML.load)
-      implicit val readContext: ReadContext = ReadContext(prefixes = Prefixes.empty, resources = EmptyResourceManager())
+      implicit val readContext: ReadContext = ReadContext.empty
       val value = fromXml[T](xml)
       context.log.info(s"Cache read from $resource")
       Some(value)

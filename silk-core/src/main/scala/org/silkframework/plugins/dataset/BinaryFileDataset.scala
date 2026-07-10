@@ -44,18 +44,6 @@ case class BinaryFileDataset(
     new FileSource(ReadOnlyResource(resource))
   }
 
-  /**
-   * Returns a link sink for writing entity links to the data set.
-   */
-  override def linkSink(implicit userContext: UserContext): LinkSink = {
-    throw new RuntimeException("Only file entities can be written to this dataset. Links are not supported")
-  }
-
-  /**
-   * Returns an entity sink for writing entities to the data set.
-   */
-  override def entitySink(implicit userContext: UserContext): EntitySink = new FileSink(file)
-
   override def characteristics: DatasetCharacteristics = DatasetCharacteristics.attributesOnly(explicitSchema = true)
 }
 

@@ -75,15 +75,13 @@ class SparqlUpdateTemplatingEngineSimpleTest extends AnyFlatSpec with Matchers {
     val bindings = Map(
       "PROP_FROM_ENTITY_SCHEMA1" -> "urn:some:uri",
       "PROP_FROM_ENTITY_SCHEMA2" -> "the old label",
-      "PROP_FROM_ENTITY_SCHEMA3" ->
-        """The new
-          |label with some "'weird characters""".stripMargin
+      "PROP_FROM_ENTITY_SCHEMA3" -> "The new\nlabel with some \"'weird characters"
     )
     SparqlUpdateCustomTask(sparqlUpdateTemplate, templatingMode = SparqlSimpleTemplateEngine.id)
       .compiledTemplate.generate(Some(entityFromMap(bindings)), TaskProperties(Map.empty, Map.empty)).head mustBe
       """PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
         |DELETE DATA { <urn:some:uri> rdf:label "the old label" } ;
-        |  INSERT DATA { <urn:some:uri> rdf:label "The new\nlabel with some \"'weird characters" } ;""".stripMargin
+        |  INSERT DATA { <urn:some:uri> rdf:label "The new\nlabel with some \"'weird characters" } ;""".stripMargin.replace("\r\n", "\n")
   }
 
   private def entityFromMap(values: Map[String, String]): Entity = {

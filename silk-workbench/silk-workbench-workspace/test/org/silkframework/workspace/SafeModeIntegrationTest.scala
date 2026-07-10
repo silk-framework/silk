@@ -4,6 +4,7 @@ import helper.IntegrationTestTrait
 import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach}
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.dataset.SafeModeException
+import org.silkframework.execution.ExecutorRegistry
 import org.silkframework.rule.TransformSpec
 import org.silkframework.rule.execution.ExecuteTransform
 import org.silkframework.runtime.activity.Status.Idle
@@ -72,22 +73,22 @@ class SafeModeIntegrationTest extends AnyFlatSpec
       task.update(oldTask.withParameters(ParameterValues.fromStringMap(newProperties.toMap)))
       sparqlDatasetInitialized = true
     }
-    outputDataset.entitySink.clear()
+    ExecutorRegistry.access(outputDatasetTask).entitySink.clear()
     checkOutputEmpty()
   }
 
-  private def outputDataset: GenericDatasetSpec = project.task[GenericDatasetSpec](output).data
+  private def outputDatasetTask: ProjectTask[GenericDatasetSpec] = project.task[GenericDatasetSpec](output)
 
   private def checkOutputEmpty(): Unit = {
     if(project.resources.get("output.csv").exists) {
-      outputDataset.source.retrievePaths("").size mustBe 0
+      ExecutorRegistry.access(outputDatasetTask).source.retrievePaths("").size mustBe 0
     }
   }
 
   private def transformation(id: String): ProjectTask[TransformSpec] = project.task[TransformSpec](id)
 
   private def checkOutputPresent(): Unit = {
-    outputDataset.source.retrievePaths("").size must be > 0
+    ExecutorRegistry.access(outputDatasetTask).source.retrievePaths("").size must be > 0
   }
 
   it should "not execute any caches automatically" in {

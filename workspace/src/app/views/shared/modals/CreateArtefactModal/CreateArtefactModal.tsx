@@ -690,17 +690,26 @@ export function CreateArtefactModal() {
         .toLowerCase()
         .split(/\s+/)
         .every((searchWord) => "project".includes(searchWord));
+    const hiddenItemTypes = new Set<string>(newTaskPreConfiguration?.itemTypeBlackList ?? []);
 
     // Filter artefact list and add project item
     let artefactListWithProject: IPluginOverview[] = artefactsList
         .filter(
             (artefact) =>
-                selectedDType === "all" ||
-                (artefact.taskType && routerOp.itemTypeToPath(artefact.taskType) === selectedDType),
+                !(artefact.taskType && hiddenItemTypes.has(routerOp.itemTypeToPath(artefact.taskType))) &&
+                (selectedDType === "all" ||
+                    (artefact.taskType && routerOp.itemTypeToPath(artefact.taskType) === selectedDType)),
         )
         .sort((a, b) => a.title!.localeCompare(b.title!));
     const removeProjectCategoryAndItem = newTaskPreConfiguration && !newTaskPreConfiguration.showProjectItem;
-    if (showProjectItem && (selectedDType === "all" || selectedDType === "project") && !removeProjectCategoryAndItem) {
+    if (removeProjectCategoryAndItem) {
+        hiddenItemTypes.add("project");
+    }
+    if (
+        showProjectItem &&
+        (selectedDType === "all" || selectedDType === "project") &&
+        !hiddenItemTypes.has("project")
+    ) {
         artefactListWithProject = [
             {
                 key: DATA_TYPES.PROJECT,
@@ -1165,10 +1174,7 @@ export function CreateArtefactModal() {
                         <Grid>
                             <GridRow>
                                 <GridColumn small>
-                                    <ArtefactTypesList
-                                        onSelect={handleSelectDType}
-                                        typesToRemove={removeProjectCategoryAndItem ? new Set(["project"]) : new Set()}
-                                    />
+                                    <ArtefactTypesList onSelect={handleSelectDType} typesToRemove={hiddenItemTypes} />
                                 </GridColumn>
                                 <GridColumn>
                                     <SearchBar

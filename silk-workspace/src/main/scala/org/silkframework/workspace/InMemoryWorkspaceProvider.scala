@@ -6,7 +6,7 @@ import org.silkframework.dataset.rdf.{GraphStoreTrait, SparqlEndpoint}
 import org.silkframework.dataset.{Dataset, DatasetSpec}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.annotations.Plugin
-import org.silkframework.runtime.plugin.{AnyPlugin, ParameterValues, PluginContext, PluginDescription}
+import org.silkframework.runtime.plugin.{AnyPlugin, ParameterValues, PluginContext, PluginDescription, TaskResolver}
 import org.silkframework.runtime.resource.{InMemoryResourceManager, ResourceManager}
 import org.silkframework.runtime.templating.TemplateVariables
 import org.silkframework.util.{Identifier, Uri}
@@ -82,7 +82,7 @@ class InMemoryWorkspaceProvider() extends WorkspaceProvider {
     */
   override def putTask[T <: TaskSpec : ClassTag](project: Identifier, task: Task[T], resources: ResourceManager)
                                                 (implicit userContext: UserContext): Unit = synchronized {
-    implicit val pluginContext: PluginContext = PluginContext(prefixes = Prefixes.empty, resources = resources, user = userContext)
+    implicit val pluginContext: PluginContext = PluginContext(prefixes = Prefixes.empty, resources = resources, user = userContext, taskResolver = TaskResolver.empty)
     val taskType = implicitly[ClassTag[T]].runtimeClass
     val inMemoryTask =
       task.data match {

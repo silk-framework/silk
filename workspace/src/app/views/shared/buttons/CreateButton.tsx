@@ -9,7 +9,7 @@ const CreateButton = memo<ButtonProps>((props) => {
         <Button
             data-test-id="create-item-btn"
             elevated
-            text={t("common.action.create", "Create")}
+            text={t("common.action.createNew", "Create new")}
             rightIcon="item-add-artefact"
             {...props}
         />

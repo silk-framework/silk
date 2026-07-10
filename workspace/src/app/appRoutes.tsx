@@ -7,6 +7,7 @@ const DatasetPage = lazy(() => import("./views/pages/Dataset"));
 const WorkflowPage = lazy(() => import("./views/pages/Workflow"));
 const TransformPage = lazy(() => import("./views/pages/Transform"));
 const LinkingPage = lazy(() => import("./views/pages/Linking"));
+const RuleBlockPage = lazy(() => import("./views/pages/RuleBlock"));
 const TaskPage = lazy(() => import("./views/pages/Task"));
 const TaskPluginView = lazy(() => import("./views/pages/TaskPluginView/TaskPluginView"));
 const NotFoundPage = lazy(() => import("./views/pages/NotFound"));
@@ -49,6 +50,11 @@ const appRoutes: IRouteProps[] = [
     {
         path: "/projects/:projectId/linking/:taskId/:tab?",
         component: LinkingPage,
+        exact: true,
+    },
+    {
+        path: "/projects/:projectId/ruleBlock/:taskId/:tab?",
+        component: RuleBlockPage,
         exact: true,
     },
     {

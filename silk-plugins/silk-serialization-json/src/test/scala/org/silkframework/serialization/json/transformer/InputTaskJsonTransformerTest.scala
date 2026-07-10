@@ -7,7 +7,7 @@ import org.silkframework.dataset.DatasetSpec
 import org.silkframework.plugins.dataset.csv.CsvDataset
 import org.silkframework.rule.TaskContext
 import org.silkframework.runtime.activity.TestUserContextTrait
-import org.silkframework.runtime.plugin.PluginContext
+import org.silkframework.runtime.plugin.{PluginContext, TaskResolver}
 import org.silkframework.runtime.resource.WritableResource
 import org.silkframework.runtime.serialization.WriteContext
 import org.silkframework.serialization.json.JsonSerialization
