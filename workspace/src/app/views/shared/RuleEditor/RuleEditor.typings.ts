@@ -5,10 +5,81 @@ import { IPreConfiguredRuleOperator } from "./view/sidebar/RuleEditorOperatorSid
 import { RuleEditorNodeParameterValue } from "./model/RuleEditorModel.typings";
 import { DistanceMeasureRange, IPropertyAutocomplete } from "@ducks/common/typings";
 import { RuleNodeContentProps } from "./view/ruleNode/NodeContent";
+import { XYPosition } from "react-flow-renderer/dist/types";
 
 export type PathInputOperator = "PathInputOperator";
+export type InputPortOperator = "InputPortOperator";
 
-export type RuleOperatorPluginType = PathInputOperator | RuleOperatorType;
+export type RuleOperatorPluginType = PathInputOperator | InputPortOperator | RuleOperatorType;
+
+export interface RuleEditorSidebarOperatorDragPayload {
+    type: "operator";
+    pluginType: string;
+    pluginId: string;
+    parameterValues?: RuleOperatorNodeParameters;
+    nodeMetaDataOverwrites?: RuleEditorPatchableNodeProjection;
+}
+
+export interface RuleEditorSidebarCreateInputPortRequest {
+    type: "createInputPort";
+}
+
+export type RuleEditorSidebarDropRequest = RuleEditorSidebarCreateInputPortRequest;
+export type RuleEditorSidebarDragPayload = RuleEditorSidebarOperatorDragPayload | RuleEditorSidebarDropRequest;
+export type HandleRuleEditorSidebarDropRequest = (
+    request: RuleEditorSidebarDropRequest,
+    position: XYPosition,
+) => boolean;
+
+export interface INamedInputPortSpecification {
+    /** Stable ID of the input port. */
+    id: string;
+    /** Optional human-readable input port label used for display and tooltips. */
+    label?: string;
+    /** Optional markdown description of the input port. */
+    description?: string;
+}
+
+export interface ICountPortSpecification {
+    /** Numeric input-port specification used by regular operators. */
+    type: "count";
+    /** Minimal number of input ports. */
+    minInputPorts: number;
+    /** Max. number of input ports. If this is missing, then there is a unlimited number allowed. */
+    maxInputPorts?: number;
+}
+
+export interface INamedPortSpecification {
+    /** Stable named input-port specification used by reusable rule blocks. */
+    type: "named";
+    /** Input ports in their UI order. */
+    inputPorts: INamedInputPortSpecification[];
+}
+
+export type IPortSpecification = ICountPortSpecification | INamedPortSpecification;
+
+export const isNamedPortSpecification = (
+    portSpecification: IPortSpecification,
+): portSpecification is INamedPortSpecification => portSpecification.type === "named";
+
+export const minInputPortCount = (portSpecification: IPortSpecification): number =>
+    isNamedPortSpecification(portSpecification) ? portSpecification.inputPorts.length : portSpecification.minInputPorts;
+
+export const maxInputPortCount = (portSpecification: IPortSpecification, usedInputs: number = 0): number => {
+    if (isNamedPortSpecification(portSpecification)) {
+        return Math.max(portSpecification.inputPorts.length, usedInputs);
+    } else if (portSpecification.maxInputPorts != null) {
+        return Math.max(portSpecification.maxInputPorts, portSpecification.minInputPorts, usedInputs);
+    } else {
+        return Math.max(portSpecification.minInputPorts, usedInputs + 1);
+    }
+};
+
+export const isDynamicPortSpecification = (portSpecification: IPortSpecification): boolean =>
+    !isNamedPortSpecification(portSpecification) && portSpecification.maxInputPorts == null;
+
+export const inputPortId = (portSpecification: IPortSpecification, idx: number): string | undefined =>
+    isNamedPortSpecification(portSpecification) ? portSpecification.inputPorts[idx]?.id : undefined;
 
 interface IRuleOperatorBase {
     /** Plugin type. */
@@ -21,14 +92,6 @@ interface IRuleOperatorBase {
     icon?: ValidIconName;
     /** Specification of input ports of the operator node. */
     portSpecification: IPortSpecification;
-}
-
-/** The specification of the number of ports. */
-export interface IPortSpecification {
-    /** Minimal number of input ports. */
-    minInputPorts: number;
-    /** Max. number of input ports. If this is missing, then there is a unlimited number allowed. */
-    maxInputPorts?: number;
 }
 
 /** Rule operator that can be added to a rule. Will be displayed in the sidebar. */
@@ -71,6 +134,15 @@ export interface IRuleOperatorNode extends IRuleOperatorBase {
     markdownDocumentation?: string;
 }
 
+/** Minimal node shape needed for validation and rule-tree traversal helpers. */
+export type RuleEditorValidationOperatorNode = Pick<
+    IRuleOperatorNode,
+    "nodeId" | "pluginId" | "pluginType" | "inputsCanBeSwitched" | "label"
+>;
+
+/** Mutable display/projection fields that may be patched from outside the rule editor model. */
+export type RuleEditorPatchableNodeProjection = Pick<IRuleOperatorNode, "label" | "description" | "tags">;
+
 export interface IParameterSpecification {
     /** Parameter label */
     label: string;
@@ -101,7 +173,7 @@ export interface IParameterSpecification {
 export interface IParameterValidationResult {
     valid: boolean;
     message?: string;
-    intent?: "primary" | "success" | "warning" | "danger";
+    intent?: "success" | "warning" | "danger";
 }
 
 export const supportedCodeRuleParameterTypes = [
@@ -171,12 +243,16 @@ export interface IRuleSideBarFilterTabConfig extends IRuleSideBarTabBaseConfig {
     filterAndSort: (ruleOperators: IRuleOperator[]) => IRuleOperator[];
     /** Allows to also show operators from the pre-configured operator tabs, when a search query is entered. */
     showOperatorsFromPreConfiguredOperatorTabsForQuery: boolean;
+    /** Allows to always show operators from the pre-configured operator tabs, even without a search query. */
+    showOperatorsFromPreConfiguredOperatorTabsAlways?: boolean;
 }
 
 /** Allow to fetch and list pre-configured operators in a tab. This is used to have e.g. pre-configured path operators. */
 export interface IRuleSidebarPreConfiguredOperatorsTabConfig<ListItem = any> extends IRuleSideBarTabBaseConfig {
     /** Operators that are added by default and do not need to be fetched first. */
     defaultOperators: ListItem[];
+    /** Where the operators of this tab should be inserted when merged with another list. */
+    position?: "bottom" | "top";
     /** Fetches an array of items that can be transformed into rule operators. */
     fetchOperators: (langPref: string) => ListItem[] | undefined | Promise<ListItem[] | undefined>;
     /** Converts an operator into a rule operator. Only list items are converted that will currently be shown. */
@@ -202,6 +278,8 @@ export interface RuleSaveResult {
     errorMessage?: string;
     /** Node specific errors. */
     nodeErrors?: RuleSaveNodeError[];
+    /** Non-blocking save warnings that should stay visible in the notification menu. */
+    warningMessages?: string[];
 }
 
 /** Just to signal that only errors are returned from a function. */
@@ -210,13 +288,15 @@ export class RuleValidationError implements RuleSaveResult, Error {
     public success: boolean = false;
     public errorMessage: string;
     public nodeErrors: RuleSaveNodeError[];
+    public warningMessages?: string[];
 
-    constructor(errorMessage: string, nodeErrors?: RuleSaveNodeError[]) {
+    constructor(errorMessage: string, nodeErrors?: RuleSaveNodeError[], warningMessages?: string[]) {
         this.errorMessage = errorMessage;
         this.nodeErrors = (nodeErrors ?? []).map((nodeError) => {
             const { nodeId, message } = nodeError;
             return { nodeId, message };
         });
+        this.warningMessages = warningMessages;
     }
 
     get message(): string {
@@ -237,7 +317,7 @@ export interface RuleSaveNodeError {
 
 /** Data-structure use for validation. */
 export interface RuleEditorValidationNode {
-    node: IRuleOperatorNode;
+    node: RuleEditorValidationOperatorNode;
     inputs: () => (RuleEditorValidationNode | undefined)[];
     output: () => RuleEditorValidationNode | undefined;
 }

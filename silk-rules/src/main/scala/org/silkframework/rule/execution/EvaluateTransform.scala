@@ -17,7 +17,7 @@ class EvaluateTransform(source: DataSource,
                         entitySchema: EntitySchema,
                         rules: Seq[TransformRule],
                         maxEntities: Int = 100,
-                        taskContext: TaskContext = TaskContext.empty) {
+                        taskContext: TaskContext) {
 
   private val log = Logger.getLogger(getClass.getName)
 
@@ -43,5 +43,5 @@ class EvaluateTransform(source: DataSource,
 }
 
 object EvaluateTransform {
-  def empty = new EvaluateTransform(null, null, null)
+  def empty = new EvaluateTransform(null, null, null, 100, TaskContext.empty)
 }

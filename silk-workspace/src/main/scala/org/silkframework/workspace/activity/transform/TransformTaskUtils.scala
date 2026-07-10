@@ -9,7 +9,7 @@ import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.PluginContext
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.Uri
-import org.silkframework.workspace.ProjectTask
+import org.silkframework.workspace.{ProjectTask}
 
 /**
   * Adds additional methods to transform tasks.

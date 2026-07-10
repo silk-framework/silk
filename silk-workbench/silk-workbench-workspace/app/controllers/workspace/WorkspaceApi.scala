@@ -373,6 +373,7 @@ class WorkspaceApi  @Inject() (accessMonitor: WorkbenchAccessMonitor) extends In
   @RequestBody(
     content = Array(
       new Content(
+        mediaType = "application/json",
         schema = new Schema(implementation = classOf[UpdateGlobalVocabularyRequest]),
         examples = Array(
           new ExampleObject(name = "General update", value = "{ }"),

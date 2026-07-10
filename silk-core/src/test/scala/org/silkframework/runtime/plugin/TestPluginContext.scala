@@ -13,6 +13,6 @@ object TestPluginContext {
             user: UserContext = UserContext.Empty,
             projectId: Option[Identifier] = None,
             templateVariables: TemplateVariablesReader = GlobalTemplateVariables): PluginContext = {
-    PluginContext(prefixes, resources, user, projectId, templateVariables)
+    PluginContext(prefixes, resources, user, projectId, templateVariables, taskResolver = TaskResolver.empty)
   }
 }

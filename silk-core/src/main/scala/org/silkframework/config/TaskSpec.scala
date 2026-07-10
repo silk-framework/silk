@@ -38,8 +38,8 @@ trait TaskSpec {
   def outputTasks: Set[Identifier] = Set.empty
 
   /**
-    * The tasks that are directly referenced by this task.
-    * This includes input tasks and output tasks.
+    * All tasks that are directly referenced by this task. This will be used to decide e.g. if deleting a task is considered
+    * to be safe.
     */
   def referencedTasks: Set[Identifier] = inputTasks ++ outputTasks
 

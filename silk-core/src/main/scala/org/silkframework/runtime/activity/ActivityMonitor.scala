@@ -77,18 +77,16 @@ class ActivityMonitor[T](name: String,
     * @param condition Evaluates the condition to wait for. Will be called frequently.
     */
   def blockUntil(condition: () => Boolean): Unit = {
-    val sleepTime = ActivityMonitor.blockPollIntervalMs
     while(!condition() && !status().isInstanceOf[Canceling]) {
-      if(runningInOwnPool()) {
-        helpQuiesce()
-      } else {
+      if(helpQuiesce()) {
+        // The pool is quiescent, i.e., there are no other activities to help with, so we sleep before re-checking the condition.
         ForkJoinPool.managedBlock(
           new ManagedBlocker {
             @volatile
             private var releasable = false
 
             override def block(): Boolean = {
-              Thread.sleep(sleepTime)
+              Thread.sleep(ActivityMonitor.blockPollIntervalMs)
               releasable = true
               true
             }
@@ -103,19 +101,24 @@ class ActivityMonitor[T](name: String,
   }
 
   /**
-    * Possibly executes other activities that are blocked.
+    * Possibly executes other activities that are blocked, for at most [[ActivityMonitor.blockPollIntervalMs]] milliseconds.
     * Can be called to avoid deadlocks if child activities are run in the background.
+    *
+    * @return True, if the pool is quiescent, i.e., there are no other activities left to help with.
+    *         Always true if the current thread is not running in our own pool.
     */
-  def helpQuiesce(): Unit = {
-    // helpQuiesce() might execute another activity in this thread
+  def helpQuiesce(): Boolean = {
+    // Helping might execute another activity in this thread
     interruptEnabled.synchronized {
       interruptEnabled.set(false)
     }
     try {
-      // Only execute helpQuiesce() in our own thread pool
+      // Only help executing other activities in our own thread pool
       if(runningInOwnPool()) {
         Thread.currentThread().asInstanceOf[ForkJoinWorkerThread]
           .getPool.awaitQuiescence(ActivityMonitor.blockPollIntervalMs, TimeUnit.MILLISECONDS)
+      } else {
+        true
       }
     } finally {
       interruptEnabled.synchronized {

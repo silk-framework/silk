@@ -51,11 +51,39 @@ interface ErrorHandlerDict {
 
 export type RegisterErrorType = Pick<DIErrorFormat, "id" | "message" | "cause">;
 
+const isTemporarilyUnavailableError = (error?: DIErrorTypes | null): boolean => {
+    return (
+        !!error &&
+        (((error as FetchError).isFetchError && (error as FetchError).httpStatus === 503) ||
+            (error as ErrorResponse).status === 503)
+    );
+};
+
+const canBeIgnored = (error?: DIErrorTypes | null): boolean => {
+    return !!error && (error as FetchError).isFetchError && (error as FetchError).errorResponse.canBeIgnored;
+};
+
+const isNotFoundError = (error?: DIErrorTypes | null): boolean => {
+    return (
+        !!error &&
+        (((error as FetchError).isFetchError && (error as FetchError).httpStatus === 404) ||
+            (error as ErrorResponse).status === 404)
+    );
+};
+
 /** Hook for registering errors in the centralized error handling component. */
 const useErrorHandler = (): ErrorHandlerDict => {
     const error = useSelector(errorSelector);
     const dispatch = useDispatch();
     const [t] = useTranslation();
+    const currentErrors = error?.errors ?? [];
+    const dispatchRef = React.useRef(dispatch);
+    const errorRef = React.useRef(currentErrors);
+    const translateRef = React.useRef(t);
+
+    dispatchRef.current = dispatch;
+    errorRef.current = currentErrors;
+    translateRef.current = t;
 
     /** register a new error to the error stack
      *
@@ -64,127 +92,108 @@ const useErrorHandler = (): ErrorHandlerDict => {
      * @param cause Optional Error object explaining the exception.
      * @param options Additional options.
      */
-    const registerError: ErrorHandlerRegisterFuncType = (
-        errorId: string,
-        errorMessage: string,
-        cause: DIErrorTypes | null,
-        options?: ErrorHandlerOptions,
-    ) => {
-        const { errorNotificationInstanceId, onDismiss, intent, notAutoOpen } = options ?? {};
-        const error: RegisterErrorType = {
-            id: errorId,
-            message: errorMessage,
-            cause,
-        };
-        if (canBeIgnored(cause)) {
-            // Just ignore this error
-            return null;
-        } else if (isTemporarilyUnavailableError(cause)) {
-            // Handle 503 errors differently
-            const tempUnavailableMessage = t("common.messages.temporarilyUnavailableMessage", {
-                detailMessage: diErrorMessage(cause),
-            });
-            dispatch(
-                registerNewError({
-                    newError: {
-                        id: "temporarily-unavailable",
-                        message: tempUnavailableMessage,
-                        cause: null,
-                        alternativeIntent: "warning",
-                    },
-                    errorNotificationInstanceId,
-                    notAutoOpen,
-                }),
-            );
-            return <Notification message={tempUnavailableMessage} />;
-        } else if (isNotFoundError(cause)) {
-            // Do not log 404 errors at all. These are usually due to page 404. Only log to console.
-            console.warn("Received 404 error.", cause);
-            return null;
-        } else {
-            dispatch(
-                registerNewError({
-                    newError: {
-                        ...error,
-                        alternativeIntent: intent === "warning" ? intent : undefined,
-                    },
-                    errorNotificationInstanceId,
-                    notAutoOpen,
-                }),
-            );
-            const detailMessage = diErrorMessage(cause);
-            return (
-                <Notification intent="warning" onDismiss={onDismiss}>
-                    {errorMessage}
-                    <Spacing size="small" />
-                    {detailMessage ? (
-                        <Accordion>
-                            <AccordionItem
-                                label={<TitleSubsection>{t("common.action.showMoreDetails")}</TitleSubsection>}
-                                open={false}
-                                whitespaceSize={"none"}
-                                noBorder={true}
-                            >
-                                {detailMessage}
-                            </AccordionItem>
-                        </Accordion>
-                    ) : null}
-                </Notification>
-            );
-        }
-    };
+    const registerError = React.useCallback<ErrorHandlerRegisterFuncType>(
+        (errorId: string, errorMessage: string, cause: DIErrorTypes | null, options?: ErrorHandlerOptions) => {
+            const { errorNotificationInstanceId, onDismiss, intent, notAutoOpen } = options ?? {};
+            const error: RegisterErrorType = {
+                id: errorId,
+                message: errorMessage,
+                cause,
+            };
+            if (canBeIgnored(cause)) {
+                // Just ignore this error
+                return null;
+            } else if (isTemporarilyUnavailableError(cause)) {
+                // Handle 503 errors differently
+                const tempUnavailableMessage = translateRef.current("common.messages.temporarilyUnavailableMessage", {
+                    detailMessage: diErrorMessage(cause),
+                });
+                dispatchRef.current(
+                    registerNewError({
+                        newError: {
+                            id: "temporarily-unavailable",
+                            message: tempUnavailableMessage,
+                            cause: null,
+                            alternativeIntent: "warning",
+                        },
+                        errorNotificationInstanceId,
+                        notAutoOpen,
+                    }),
+                );
+                return <Notification message={tempUnavailableMessage} />;
+            } else if (isNotFoundError(cause)) {
+                // Do not log 404 errors at all. These are usually due to page 404. Only log to console.
+                console.warn("Received 404 error.", cause);
+                return null;
+            } else {
+                dispatchRef.current(
+                    registerNewError({
+                        newError: {
+                            ...error,
+                            alternativeIntent: intent === "warning" ? intent : undefined,
+                        },
+                        errorNotificationInstanceId,
+                        notAutoOpen,
+                    }),
+                );
+                const detailMessage = diErrorMessage(cause);
+                return (
+                    <Notification intent="warning" onDismiss={onDismiss}>
+                        {errorMessage}
+                        <Spacing size="small" />
+                        {detailMessage ? (
+                            <Accordion>
+                                <AccordionItem
+                                    label={
+                                        <TitleSubsection>
+                                            {translateRef.current("common.action.showMoreDetails")}
+                                        </TitleSubsection>
+                                    }
+                                    open={false}
+                                    whitespaceSize={"none"}
+                                    noBorder={true}
+                                >
+                                    {detailMessage}
+                                </AccordionItem>
+                            </Accordion>
+                        ) : null}
+                    </Notification>
+                );
+            }
+        },
+        [],
+    );
 
     /** Shorter version that uses the language file key as error ID. */
-    const registerErrorI18N: ErrorHandlerRegisterShortFuncType = (
-        langKey: string,
-        cause: DIErrorTypes | null,
-        options?: ErrorHandlerOptions,
-    ) => {
-        return registerError(langKey, t(langKey), cause, options);
-    };
-
-    const isTemporarilyUnavailableError = (error?: DIErrorTypes | null): boolean => {
-        return (
-            !!error &&
-            (((error as FetchError).isFetchError && (error as FetchError).httpStatus === 503) ||
-                (error as ErrorResponse).status === 503)
-        );
-    };
-
-    const canBeIgnored = (error?: DIErrorTypes | null): boolean => {
-        return !!error && (error as FetchError).isFetchError && (error as FetchError).errorResponse.canBeIgnored;
-    };
-
-    const isNotFoundError = (error?: DIErrorTypes | null): boolean => {
-        return (
-            !!error &&
-            (((error as FetchError).isFetchError && (error as FetchError).httpStatus === 404) ||
-                (error as ErrorResponse).status === 404)
-        );
-    };
+    const registerErrorI18N = React.useCallback<ErrorHandlerRegisterShortFuncType>(
+        (langKey: string, cause: DIErrorTypes | null, options?: ErrorHandlerOptions) => {
+            return registerError(langKey, translateRef.current(langKey), cause, options);
+        },
+        [registerError],
+    );
 
     // get a list of all errors
-    const getAllErrors = () => {
-        return error.errors;
-    };
+    const getAllErrors = React.useCallback(() => {
+        return errorRef.current;
+    }, []);
 
     /***
      * deletes all errors corresponding to the ids passed in the parameter,
      * if no parameter is passed it clears all errors.
      *  ***/
-    const clearErrors = React.useCallback(
-        (errorIds?: Array<string> | undefined) => {
-            dispatch(clearOneOrMoreErrors({ errorIds }));
-        },
-        [dispatch],
-    );
+    const clearErrors = React.useCallback((errorIds?: Array<string> | undefined) => {
+        dispatchRef.current(clearOneOrMoreErrors({ errorIds }));
+    }, []);
 
-    return {
-        registerError,
-        getAllErrors,
-        clearErrors,
-        registerErrorI18N,
-    };
+    return React.useMemo(
+        () => ({
+            registerError,
+            getAllErrors,
+            clearErrors,
+            registerErrorI18N,
+        }),
+        [clearErrors, getAllErrors, registerError, registerErrorI18N],
+    );
 };
 
 export default useErrorHandler;

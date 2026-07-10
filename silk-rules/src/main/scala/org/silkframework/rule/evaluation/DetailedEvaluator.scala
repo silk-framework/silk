@@ -15,7 +15,7 @@
 package org.silkframework.rule.evaluation
 
 import org.silkframework.entity.Entity
-import org.silkframework.rule.input.{InputExecution, PathInput, TransformInputExecution}
+import org.silkframework.rule.input.{InputExecution, InputPortExecution, PathInput, RuleBlockInputExecution, TransformInputExecution}
 import org.silkframework.rule.similarity.{AggregationExecution, ComparisonExecution, SimilarityOperatorExecution}
 import org.silkframework.rule.{ComplexUriMapping, LinkageRuleExecution, TransformRuleExecution}
 import org.silkframework.runtime.validation.ValidationException
@@ -107,6 +107,14 @@ object DetailedEvaluator {
     result
   }
 
+  /**
+   * Evaluates a single pre-built input execution for an entity.
+   * This is useful for rule-block-specific evaluation flows that directly execute an input tree.
+   */
+  def apply(inputExecution: InputExecution, entity: Entity): Value = {
+    evaluateInput(inputExecution, entity)
+  }
+
   private def evaluateOperator(opExec: SimilarityOperatorExecution, entities: DPair[Entity], threshold: Double): Confidence = opExec match {
     case agg: AggregationExecution => evaluateAggregation(agg, entities, threshold)
     case cmp: ComparisonExecution => evaluateComparison(cmp, entities, threshold)
@@ -137,6 +145,22 @@ object DetailedEvaluator {
         case NonFatal(ex) =>
           TransformedValue(ti.operator, Seq.empty, children, Some(ex))
       }
+
+    case rb: RuleBlockInputExecution =>
+      val internalValue = rb.ruleBlockExecution.rootExecution.map(rootExecution => evaluateInput(rootExecution, entity))
+      val bindingValues = rb.ruleBlockExecution.bindingExecutions.map(bindingExecution =>
+        evaluateInput(bindingExecution.inputExecution, entity)
+      )
+      RuleBlockValue(
+        rb.operator,
+        internalValue.map(_.values).getOrElse(Seq.empty),
+        bindingValues,
+        internalValue.flatMap(_.error)
+      )
+
+    case ip: InputPortExecution =>
+      val bindingValue = ip.bindingExecution.map(bindingExecution => evaluateInput(bindingExecution, entity))
+      InputPortValue(ip.operator, bindingValue.map(_.values).getOrElse(Seq.empty), bindingValue, bindingValue.flatMap(_.error))
 
     case pi: PathInput => InputValue(pi, pi(entity).values)
   }
