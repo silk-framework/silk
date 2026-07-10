@@ -21,6 +21,7 @@ import play.api.mvc._
 import java.nio.file.{Files, Path, Paths}
 import scala.collection.mutable
 import scala.io.{Codec, Source}
+import scala.util.control.NonFatal
 
 /**
   * Helps to handle replaceable workflow requests.
@@ -360,7 +361,9 @@ object VariableWorkflowRequestUtils {
     }
     val resourceContent: Option[JsValue] = dataSourceConfig.map { _ =>
       inputPayload match {
-        case Some(payload) if sourceDatasetType(inputMimeType) == "json" => Json.parse(payload)
+        case Some(payload) if sourceDatasetType(inputMimeType) == "json" =>
+          // Fail as bad input instead of leaking Jackson's JsonParseException as an internal error.
+          try Json.parse(payload) catch { case NonFatal(ex) => throw BadUserInputException(s"Input data is not valid JSON: ${ex.getMessage}") }
         case Some(payload) => JsString(payload)
         case None => JsArray(Seq.empty)
       }

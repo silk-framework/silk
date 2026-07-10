@@ -275,6 +275,48 @@ class SimpleVariableWorkflowApiTest extends AnyFlatSpec with BeforeAndAfterAll
     body must include (inputValue)
   }
 
+  // Covers the MCP tool's only execution path: plain workflows must run through the payload executor too.
+  it should "execute a workflow without replaceable datasets via the payload executor" in {
+    implicit val proj: Project = project
+    val transformTask = "b944ba5e-87b1-4511-8d67-02cb00da6baf_Transform"
+    val inputDataset = "plainInputDataset"
+    val outputDataset = "plainOutputDataset"
+    proj.addTask[GenericDatasetSpec](inputDataset, DatasetSpec(InMemoryDataset()))
+    proj.addTask[GenericDatasetSpec](outputDataset, DatasetSpec(InMemoryDataset()))
+    val workflow = Workflow(
+      operators = Seq(
+        WorkflowOperator(inputs = Seq(Some(inputDataset)), task = transformTask, outputs = Seq(outputDataset), Seq(), (0, 0), transformTask, None, Seq.empty, Seq.empty)
+      ),
+      datasets = Seq(
+        WorkflowDataset(Seq(), inputDataset, Seq(transformTask), (0, 0), inputDataset, None, Seq.empty, Seq.empty),
+        WorkflowDataset(Seq(Some(transformTask)), outputDataset, Seq(), (0, 0), outputDataset, None, Seq.empty, Seq.empty)
+      ),
+      uiAnnotations = UiAnnotations()
+    )
+    val workflowId = "plainWorkflow"
+    proj.addTask[Workflow](workflowId, workflow)
+    val workflowTask = proj.task[Workflow](workflowId)
+    val config = VariableWorkflowRequestUtils.workflowConfigFromParameters(
+      workflowTask, inputMimeType = None, inputPayload = None, outputMimeType = None, fileBasedPluginIds = Seq.empty)
+    val output = workflowTask.activity[WorkflowWithPayloadExecutor].startBlockingAndGetValue(config.configParameters)
+    output.report mustBe defined
+    output.report.get.error mustBe empty
+  }
+
+  it should "reject malformed JSON input data as bad user input" in {
+    implicit val proj: Project = project
+    val workflowTask = proj.task[Workflow](inputOutputWorkflow)
+    an[BadUserInputException] must be thrownBy {
+      VariableWorkflowRequestUtils.workflowConfigFromParameters(
+        workflowTask,
+        inputMimeType = Some(APPLICATION_JSON),
+        inputPayload = Some("""{"broken": """),
+        outputMimeType = Some(APPLICATION_JSON),
+        fileBasedPluginIds = Seq.empty
+      )
+    }
+  }
+
   it should "reject inline input data if the workflow has no replaceable input dataset" in {
     implicit val proj: Project = project
     val workflowTask = proj.task[Workflow](outputOnlyWorkflow)
