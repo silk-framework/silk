@@ -30,7 +30,11 @@ object JinjaTemplateEngine {
   private val interpreters = new ThreadLocal[JinjavaInterpreter] {
     override protected def initialValue(): JinjavaInterpreter = {
       withPluginClassLoader {
-        val config = JinjavaConfig.newBuilder.withFailOnUnknownTokens(true).build()
+        val config = JinjavaConfig.newBuilder
+          .withFailOnUnknownTokens(true)
+          // Variable values must stay literal: never re-interpret {{...}}/{%...%} contained in them (also an injection vector for values coming from data).
+          .withNestedInterpretationEnabled(false)
+          .build()
         val jinja = new Jinjava(config)
         TransformFilters.register(jinja.getGlobalContext)
         val interpreter = jinja.newInterpreter()

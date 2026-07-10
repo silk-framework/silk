@@ -175,6 +175,17 @@ class JinjaEngineTest extends AnyFlatSpec with Matchers {
     lines(evaluateRaw(template, values)) shouldBe expectedLines
   }
 
+  it should "keep variable values literal instead of re-interpreting template syntax contained in them" in {
+    val values = Seq(
+      new TemplateVariableValue("test", Seq("execution"), Seq("test workflow")),
+      new TemplateVariableValue("c", Seq("execution"), Seq("Some complex {{execution.test}}")),
+      new TemplateVariableValue("stmt", Seq("execution"), Seq("{% set x = 'injected' %}{{x}}"))
+    )
+    val writer = new StringWriter()
+    JinjaTemplateEngine().compile("{{execution.c}}|{{execution.stmt}}").evaluate(values, writer)
+    writer.toString shouldBe "Some complex {{execution.test}}|{% set x = 'injected' %}{{x}}"
+  }
+
   private def evaluate(template: String, values: Map[String, Seq[String]]): String = {
     val writer = new StringWriter()
     val compileTemplate = JinjaTemplateEngine().compile(template)
