@@ -93,8 +93,10 @@ class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
     * Starts all autorun activities.
     */
   def startActivities()(implicit userContext: UserContext): Unit = {
+    // The Idle check avoids re-running activities that already ran. Since the activity could still be started
+    // concurrently after the check, startOrReRun() is used, which never fails on a running activity.
     for (activity <- taskActivities if shouldAutoRun(activity) && activity.status() == Status.Idle())
-      activity.control.start()
+      activity.control.startOrReRun()
   }
 
   /**
