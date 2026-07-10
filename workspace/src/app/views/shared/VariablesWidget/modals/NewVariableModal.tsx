@@ -236,6 +236,7 @@ const NewVariableModal: React.FC<VariableModalProps> = ({
                     hasStateDanger={!!validationError?.valueOrTemplate}
                     ref={valueState}
                     projectId={projectId}
+                    taskId={taskId}
                     existingVariableName={targetVariable?.name}
                     setModalError={setValidationError}
                     handleCheckTemplateErrors={(err) =>

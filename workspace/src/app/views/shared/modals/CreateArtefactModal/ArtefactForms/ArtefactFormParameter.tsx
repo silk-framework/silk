@@ -268,6 +268,8 @@ export const ArtefactFormParameter = ({
 interface TemplateInputComponentProps {
     /** If a project ID is defined, also project variables will be auto-completed. */
     projectId?: string;
+    /** If a task ID is defined, validation and auto-completion run in the context of that task. */
+    taskId?: string;
     /** ID for the input field. */
     parameterId: string;
     initialValue: string;
@@ -299,6 +301,7 @@ export const TemplateInputComponent = memo(
         setValidationError,
         evaluatedValueMessage,
         projectId,
+        taskId,
         variableName,
         handleTemplateErrors,
         multiline,
@@ -348,6 +351,7 @@ export const TemplateInputComponent = memo(
                         projectId,
                         variableName,
                         allowSensitiveVariables,
+                        taskId,
                     )
                 ).data;
             } catch (error) {
@@ -371,6 +375,7 @@ export const TemplateInputComponent = memo(
                             variableName,
                             allowSensitiveVariables,
                             currentUB.current,
+                            taskId,
                         )
                     ).data;
                     const evaluatedValueKey =

@@ -11,6 +11,8 @@ interface TemplateValueInputProps {
     messageText?: string;
     hasStateDanger?: boolean;
     projectId: string;
+    /** If given, validation and auto-completion run in the context of that task. */
+    taskId?: string;
     /** ID of the input component. */
     parameterId?: string;
     existingVariableName?: string;
@@ -26,6 +28,7 @@ const TemplateValueInput = React.forwardRef(
             disabled,
             helperText,
             projectId,
+            taskId,
             hasStateDanger,
             messageText,
             parameterId = "template-value-input",
@@ -134,6 +137,7 @@ const TemplateValueInput = React.forwardRef(
                                 setValidationError={setValidationError}
                                 evaluatedValueMessage={setTemplateInfoMessage}
                                 projectId={projectId}
+                                taskId={taskId}
                                 parameterId={parameterId}
                                 variableName={existingVariableName}
                                 handleTemplateErrors={handleCheckTemplateErrors}
