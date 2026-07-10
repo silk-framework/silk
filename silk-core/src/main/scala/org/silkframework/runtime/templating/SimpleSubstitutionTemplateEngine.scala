@@ -82,7 +82,7 @@ class SimpleSubstitutionTemplate(templateString: String) extends CompiledTemplat
   /** Resolves a variable reference within (possibly nested) value maps. */
   private def resolveValue(name: TemplateVariableName, values: Map[String, AnyRef]): String = {
     def unbound() = throw new UnboundVariablesException(Seq(name))
-    val path = name.scope :+ name.name
+    val path = name.scope.path :+ name.name
     var current: AnyRef = values.getOrElse(path.head, unbound())
     for (segment <- path.tail) {
       current = current match {

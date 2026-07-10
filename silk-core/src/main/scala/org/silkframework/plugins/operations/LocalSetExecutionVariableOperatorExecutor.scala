@@ -20,7 +20,7 @@ import org.silkframework.execution.{ExecutionReport, ExecutorOutput}
 import org.silkframework.runtime.activity.{ActivityContext, ActivityMonitor}
 import org.silkframework.runtime.iterator.CloseableIterator
 import org.silkframework.runtime.plugin.PluginContext
-import org.silkframework.runtime.templating.{TemplateVariable, TemplateVariableScopes}
+import org.silkframework.runtime.templating.{TemplateVariable, VariableScope}
 import org.silkframework.runtime.validation.ValidationException
 
 import scala.util.control.NonFatal
@@ -57,7 +57,7 @@ case class LocalSetExecutionVariableOperatorExecutor() extends LocalExecutor[Set
             else first.values.flatten.headOption
           value.foreach { v =>
             pluginContext.templateVariables.setExecutionVariable(
-              TemplateVariable(name = spec.variableName, value = v, scope = TemplateVariableScopes.execution))
+              TemplateVariable(name = spec.variableName, value = v, scope = VariableScope.execution))
           }
           // Pass the input through unchanged, re-attaching the peeked first entity.
           CloseableIterator(Iterator(first) ++ source, source)

@@ -11,7 +11,7 @@ import org.silkframework.rule._
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.{ClassPluginDescription, PluginRegistry}
 import org.silkframework.runtime.serialization._
-import org.silkframework.runtime.templating.{SimpleSubstitutionTemplateEngine, TemplateVariable, TemplateVariableScopes, TemplateVariables}
+import org.silkframework.runtime.templating.{SimpleSubstitutionTemplateEngine, TemplateVariable, VariableScope, TemplateVariables}
 import org.silkframework.runtime.validation.TaskValidationException
 import org.silkframework.util.ConfigTestTrait
 import org.silkframework.serialization.json.ExecutionReportSerializers.WorkflowExecutionReportJsonFormat
@@ -131,7 +131,7 @@ class JsonSerializersTest  extends AnyFlatSpec with Matchers with ConfigTestTrai
     PluginRegistry.registerPlugin(classOf[SomeDatasetPlugin])
     val pluginId = ClassPluginDescription(classOf[SomeDatasetPlugin]).id.toString
     val executionVariables = TemplateVariables(Seq(
-      TemplateVariable("param1Value", "valueFromVariable", None, None, isSensitive = false, TemplateVariableScopes.execution)))
+      TemplateVariable("param1Value", "valueFromVariable", None, None, isSensitive = false, VariableScope.execution)))
     val taskJson = Json.obj(
       "id" -> "taskWithExecutionVariables",
       "executionVariables" -> JsonSerialization.toJson(executionVariables),
@@ -152,7 +152,7 @@ class JsonSerializersTest  extends AnyFlatSpec with Matchers with ConfigTestTrai
     PluginRegistry.unregisterPlugin(classOf[SomeDatasetPlugin])
     PluginRegistry.registerPlugin(classOf[SomeDatasetPlugin])
     val executionVariables = TemplateVariables(Seq(
-      TemplateVariable("myVar", "some value", None, None, isSensitive = false, TemplateVariableScopes.execution)))
+      TemplateVariable("myVar", "some value", None, None, isSensitive = false, VariableScope.execution)))
 
     val datasetTask = DatasetTask("datasetTask", new DatasetSpec(SomeDatasetPlugin("stringValue", 6.0)), executionVariables = executionVariables)
     JsonSerialization.fromJson[DatasetTask](JsonSerialization.toJson(datasetTask)).executionVariables shouldBe executionVariables

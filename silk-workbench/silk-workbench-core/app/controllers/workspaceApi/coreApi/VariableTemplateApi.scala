@@ -15,7 +15,7 @@ import io.swagger.v3.oas.annotations.{Operation, Parameter}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.templating.exceptions._
 import org.silkframework.runtime.templating.operations.{DeleteVariableModification, UpdateVariableModification, UpdateVariablesModification}
-import org.silkframework.runtime.templating.{TemplateVariable, TemplateVariableScopes, TemplateVariables}
+import org.silkframework.runtime.templating.{TemplateVariable, VariableScope, TemplateVariables}
 import org.silkframework.runtime.validation.BadUserInputException
 import org.silkframework.serialization.json.{JsonHelpers, TemplateVariableJson, TemplateVariablesJson}
 import org.silkframework.workspace.WorkspaceFactory
@@ -386,7 +386,7 @@ class VariableTemplateApi @Inject()() extends InjectedController with UserContex
            currentVariables.map(variableName)
         }
 
-      val scope = task.map(_ => TemplateVariableScopes.execution).getOrElse(TemplateVariableScopes.project)
+      val scope = task.map(_ => VariableScope.execution).getOrElse(VariableScope.project)
       val resolved = resolveWithDependencyCheck(TemplateVariables(newVariables), manager.parentVariables.withoutSensitiveVariables(), scope)
       task match {
         case Some(taskId) =>
@@ -471,7 +471,7 @@ class VariableTemplateApi @Inject()() extends InjectedController with UserContex
    * (e.g. templates referencing sensitive parent variables, which are not available
    * for resolution) keep the variable's stored value instead.
    */
-  private def resolveWithDependencyCheck(variables: TemplateVariables, parentVars: TemplateVariables, scope: Seq[String]): TemplateVariables = {
+  private def resolveWithDependencyCheck(variables: TemplateVariables, parentVars: TemplateVariables, scope: VariableScope): TemplateVariables = {
     val resolvedVariables = mutable.Buffer[TemplateVariable]()
     val dependencyErrors = mutable.LinkedHashMap[String, Seq[String]]()
     for (variable <- variables.variables) {

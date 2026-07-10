@@ -19,8 +19,8 @@ final case class ExecutionTemplateVariables(immutableScopes: Seq[TemplateVariabl
                                             holder: ExecutionVariablesHolder = new ExecutionVariablesHolder())
     extends TemplateVariablesReader {
 
-  override def scopes: Set[Seq[String]] =
-    immutableScopes.flatMap(_.scopes).toSet + TemplateVariableScopes.execution
+  override def scopes: Set[VariableScope] =
+    immutableScopes.flatMap(_.scopes).toSet + VariableScope.execution
 
   /** Merged snapshot of the immutable parent scopes (global, project). Computed once. */
   private lazy val immutableVariables: TemplateVariables =
@@ -34,7 +34,7 @@ final case class ExecutionTemplateVariables(immutableScopes: Seq[TemplateVariabl
     * Sets (creates or replaces) a single variable in the execution scope.
     * Replace-on-collision by name; other scopes are not affected.
     *
-    * @param variable Must have `scope == TemplateVariableScopes.execution`.
+    * @param variable Must have `scope == VariableScope.execution`.
     * @throws org.silkframework.runtime.templating.exceptions.InvalidScopeException if `variable.scope` is not the execution scope.
     */
   def setExecutionVariable(variable: TemplateVariable): Unit = holder.set(variable)
@@ -45,7 +45,7 @@ final case class ExecutionTemplateVariables(immutableScopes: Seq[TemplateVariabl
     * so that parameter templates referencing `execution.X` resolve against the task's own defaults.
     */
   def withExecutionDefaults(defaults: TemplateVariables): ExecutionTemplateVariables = {
-    val executionScoped = TemplateVariables(defaults.variables.map(_.copy(scope = TemplateVariableScopes.execution)))
+    val executionScoped = TemplateVariables(defaults.variables.map(_.copy(scope = VariableScope.execution)))
     copy(holder = new ExecutionVariablesHolder(executionScoped))
   }
 }

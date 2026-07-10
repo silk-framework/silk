@@ -2,7 +2,7 @@ package org.silkframework.plugins.templating.jinja
 
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
-import org.silkframework.runtime.templating.TemplateVariableValue
+import org.silkframework.runtime.templating.{TemplateVariableValue, VariableScope}
 import org.silkframework.runtime.templating.exceptions.UnboundVariablesException
 
 import java.io.{StringWriter, Writer}
@@ -33,9 +33,9 @@ class JinjaEngineTest extends AnyFlatSpec with Matchers {
     val writer = new StringWriter()
     val compiledTemplate = JinjaTemplateEngine().compile("{{project}}/{{execution.myVar}}")
     compiledTemplate.evaluate(Seq(
-      new TemplateVariableValue("project", Seq.empty, Seq("flatValue")),
-      new TemplateVariableValue("title", Seq("project"), Seq("scopedValue")),
-      new TemplateVariableValue("myVar", Seq("execution"), Seq("execValue"))
+      new TemplateVariableValue("project", VariableScope.empty, Seq("flatValue")),
+      new TemplateVariableValue("title", VariableScope("project"), Seq("scopedValue")),
+      new TemplateVariableValue("myVar", VariableScope("execution"), Seq("execValue"))
     ), writer)
     writer.toString shouldBe "flatValue/execValue"
   }
@@ -177,9 +177,9 @@ class JinjaEngineTest extends AnyFlatSpec with Matchers {
 
   it should "keep variable values literal instead of re-interpreting template syntax contained in them" in {
     val values = Seq(
-      new TemplateVariableValue("test", Seq("execution"), Seq("test workflow")),
-      new TemplateVariableValue("c", Seq("execution"), Seq("Some complex {{execution.test}}")),
-      new TemplateVariableValue("stmt", Seq("execution"), Seq("{% set x = 'injected' %}{{x}}"))
+      new TemplateVariableValue("test", VariableScope("execution"), Seq("test workflow")),
+      new TemplateVariableValue("c", VariableScope("execution"), Seq("Some complex {{execution.test}}")),
+      new TemplateVariableValue("stmt", VariableScope("execution"), Seq("{% set x = 'injected' %}{{x}}"))
     )
     val writer = new StringWriter()
     JinjaTemplateEngine().compile("{{execution.c}}|{{execution.stmt}}").evaluate(values, writer)
@@ -191,7 +191,7 @@ class JinjaEngineTest extends AnyFlatSpec with Matchers {
     val compileTemplate = JinjaTemplateEngine().compile(template)
     val templateValues =
       for((name, value) <- values.toSeq) yield {
-        new TemplateVariableValue(name, Seq.empty, value)
+        new TemplateVariableValue(name, VariableScope.empty, value)
       }
     compileTemplate.evaluate(templateValues, writer)
     writer.toString

@@ -4,7 +4,7 @@ import org.silkframework.config.{Task, TaskSpec}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.{ParameterTemplateValue, ParameterValues, PluginContext, TaskResolver}
 import org.silkframework.runtime.templating.exceptions._
-import org.silkframework.runtime.templating.{GlobalTemplateVariables, InMemoryTemplateVariablesReader, TemplateVariableScopes, TemplateVariables, TemplateVariablesManager}
+import org.silkframework.runtime.templating.{GlobalTemplateVariables, InMemoryTemplateVariablesReader, VariableScope, TemplateVariables, TemplateVariablesManager}
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.{Project, ProjectTask}
 
@@ -206,7 +206,7 @@ abstract class Modification {
         ex.issues.filter {
           case TemplateVariableEvaluationException(_, unboundEx: UnboundVariablesException) =>
             unboundEx.missingVars.exists(missing =>
-              removedVariableNames.contains(missing.name) && missing.scope == TemplateVariableScopes.project)
+              removedVariableNames.contains(missing.name) && missing.scope == VariableScope.project)
           case _ =>
             false
         }

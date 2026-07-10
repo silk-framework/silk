@@ -18,7 +18,7 @@ trait TemplateVariablesManager extends TemplateVariablesReader {
   /**
     * The scope that all variables managed by this manager must be in.
     */
-  def variableScope: Seq[String]
+  def variableScope: VariableScope
 
   /**
     * Validates that all given variables are in this manager's scope.
@@ -28,8 +28,8 @@ trait TemplateVariablesManager extends TemplateVariablesReader {
   def validateScope(variables: TemplateVariables): Unit = {
     for (variable <- variables.variables) {
       if (variable.scope != variableScope) {
-        throw new InvalidScopeException(s"Variable '${variable.name}' has an invalid scope '${variable.scope.mkString(".")}'. " +
-          s"Currently, only variables in the '${variableScope.mkString(".")}' scope can be modified.")
+        throw new InvalidScopeException(s"Variable '${variable.name}' has an invalid scope '${variable.scope}'. " +
+          s"Currently, only variables in the '$variableScope' scope can be modified.")
       }
     }
   }

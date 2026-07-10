@@ -7,7 +7,7 @@ import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin._
 import org.silkframework.runtime.resource.FileMapResourceManager
 import org.silkframework.runtime.templating.TemplateVariablesParameter
-import org.silkframework.runtime.templating.{TemplateVariable, TemplateVariableScopes, TemplateVariables}
+import org.silkframework.runtime.templating.{TemplateVariable, VariableScope, TemplateVariables}
 import org.silkframework.runtime.validation.BadUserInputException
 import org.silkframework.util.FileUtils
 import org.silkframework.workbench.utils.{NotAcceptableException, UnsupportedMediaTypeException}
@@ -402,7 +402,7 @@ object VariableWorkflowRequestUtils {
     }
 
     TemplateVariables(fromBody.map { case (name, value) =>
-      TemplateVariable(name, value, scope = TemplateVariableScopes.execution)
+      TemplateVariable(name, value, scope = VariableScope.execution)
     }.toSeq)
   }
 }

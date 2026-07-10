@@ -25,7 +25,7 @@ import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.iterator.CloseableIterator
 import org.silkframework.runtime.plugin.{PluginContext, TaskResolver}
 import org.silkframework.runtime.resource.InMemoryResourceManager
-import org.silkframework.runtime.templating.{ExecutionTemplateVariables, TemplateVariableScopes}
+import org.silkframework.runtime.templating.{ExecutionTemplateVariables, VariableScope}
 import org.silkframework.runtime.validation.ValidationException
 
 class LocalSetExecutionVariableOperatorExecutorTest extends AnyFlatSpec with Matchers {
@@ -41,7 +41,7 @@ class LocalSetExecutionVariableOperatorExecutorTest extends AnyFlatSpec with Mat
     val result = run(SetExecutionVariableOperator("greeting", sourcePath = "name"), entities, variables)
 
     variables.get("greeting").value shouldBe "Alice"
-    variables.get("greeting").scope shouldBe TemplateVariableScopes.execution
+    variables.get("greeting").scope shouldBe VariableScope.execution
     result.map(_.uri.uri) shouldBe Seq("urn:e1", "urn:e2")
   }
 

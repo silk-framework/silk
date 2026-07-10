@@ -1,7 +1,7 @@
 package org.silkframework.workspace
 
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.runtime.templating.{GlobalTemplateVariables, TemplateVariableScopes, TemplateVariables, TemplateVariablesManager}
+import org.silkframework.runtime.templating.{GlobalTemplateVariables, VariableScope, TemplateVariables, TemplateVariablesManager}
 
 /**
  * Manages project template variables.
@@ -11,14 +11,14 @@ import org.silkframework.runtime.templating.{GlobalTemplateVariables, TemplateVa
  */
 class ProjectTemplateVariablesManager(serializer: TemplateVariablesSerializer, loadingUser: UserContext) extends TemplateVariablesManager {
 
-  private def projectScope = TemplateVariableScopes.project
+  private def projectScope = VariableScope.project
 
   private var variables: TemplateVariables = serializer.readVariables()(loadingUser)
 
   /**
     * The available variable scopes.
     */
-  def scopes: Set[Seq[String]] = GlobalTemplateVariables.scopes + projectScope
+  def scopes: Set[VariableScope] = GlobalTemplateVariables.scopes + projectScope
 
   /**
     * Returns the global variables as the parent scope.
@@ -28,7 +28,7 @@ class ProjectTemplateVariablesManager(serializer: TemplateVariablesSerializer, l
   /**
     * All managed variables must be in the project scope.
     */
-  override def variableScope: Seq[String] = projectScope
+  override def variableScope: VariableScope = projectScope
 
   /**
     * Retrieves all template variables.

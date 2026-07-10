@@ -1,7 +1,7 @@
 package org.silkframework.workspace
 
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.runtime.templating.{TemplateVariableScopes, TemplateVariables, TemplateVariablesManager, TemplateVariablesReader}
+import org.silkframework.runtime.templating.{VariableScope, TemplateVariables, TemplateVariablesManager, TemplateVariablesReader}
 
 /**
  * Manages the execution variables of a task.
@@ -13,7 +13,7 @@ import org.silkframework.runtime.templating.{TemplateVariableScopes, TemplateVar
 class TaskExecutionVariablesManager(initialVariables: TemplateVariables,
                                     parentReaders: Seq[TemplateVariablesReader] = Seq.empty) extends TemplateVariablesManager {
 
-  private def executionScope = TemplateVariableScopes.execution
+  private def executionScope = VariableScope.execution
 
   // Written under the task's update lock, but read from arbitrary threads (e.g. at workflow run start).
   @volatile
@@ -22,7 +22,7 @@ class TaskExecutionVariablesManager(initialVariables: TemplateVariables,
   /**
    * The available variable scopes.
    */
-  override def scopes: Set[Seq[String]] = Set(executionScope)
+  override def scopes: Set[VariableScope] = Set(executionScope)
 
   /**
     * Returns the global and project variables as the parent scope.
@@ -34,7 +34,7 @@ class TaskExecutionVariablesManager(initialVariables: TemplateVariables,
   /**
     * All managed variables must be in the execution scope.
     */
-  override def variableScope: Seq[String] = executionScope
+  override def variableScope: VariableScope = executionScope
 
   /**
    * Retrieves all execution variables.
