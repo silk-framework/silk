@@ -15,10 +15,11 @@ import io.swagger.v3.oas.annotations.{Operation, Parameter}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.templating.exceptions._
 import org.silkframework.runtime.templating.operations.{DeleteVariableModification, UpdateVariableModification, UpdateVariablesModification}
-import org.silkframework.runtime.templating.{TemplateVariable, VariableScope, TemplateVariables}
+import org.silkframework.runtime.templating.{TemplateVariable, TemplateVariables, TemplateVariablesManager, VariableScope}
 import org.silkframework.runtime.validation.BadUserInputException
-import org.silkframework.serialization.json.{JsonHelpers, TemplateVariableJson, TemplateVariablesJson}
+import org.silkframework.serialization.json.{JsonHelpers, TemplateVariableErrorJson, TemplateVariableJson, TemplateVariablesJson}
 import org.silkframework.workspace.WorkspaceFactory
+import org.silkframework.workspace.activity.workflow.Workflow
 import play.api.libs.json.{JsValue, Json, OFormat}
 import play.api.mvc.{Action, AnyContent, InjectedController}
 
@@ -65,19 +66,53 @@ class VariableTemplateApi @Inject()() extends InjectedController with UserContex
                      in = ParameterIn.QUERY,
                      schema = new Schema(implementation = classOf[String])
                    )
-                   task: Option[String]): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
+                   task: Option[String],
+                   @Parameter(
+                     name = "transitive",
+                     description = "If true and the task is a workflow, additionally returns the execution variables defined on its sub-workflows (recursively). If the same variable is defined on multiple levels, the variable of the enclosing workflow is returned, matching the value that applies when the workflow is executed. Requires the 'task' parameter.",
+                     required = false,
+                     in = ParameterIn.QUERY,
+                     schema = new Schema(implementation = classOf[Boolean])
+                   )
+                   transitive: Boolean): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     val project = WorkspaceFactory().workspace.project(projectName)
-    val manager = project.variablesManager(task)
-    val allVariables = manager.all
-    val variablesJson = {
-      try {
-        TemplateVariablesJson(allVariables.resolved(manager.parentVariables.withoutSensitiveVariables()))
-      } catch {
-        case ex: TemplateVariablesEvaluationException =>
-          TemplateVariablesJson(allVariables, ex)
+    if (transitive && task.isEmpty) {
+      throw new BadUserInputException("The 'transitive' parameter can only be used together with the 'task' parameter.")
+    }
+    var (variables, errors) = resolvedVariablesJson(project.variablesManager(task))
+    if (transitive) {
+      val subWorkflows = project.anyTask(task.get).data match {
+        case workflow: Workflow => workflow.subWorkflowsRecursive(project)
+        case _ => Seq.empty
+      }
+      // A variable of the enclosing workflow shadows sub-workflow variables of the same name.
+      val seenNames = mutable.Set.from(variables.map(_.name))
+      for (subWorkflow <- subWorkflows) {
+        val (subVariables, subErrors) = resolvedVariablesJson(subWorkflow.executionVariablesValueHolder)
+        val newVariables = subVariables.filterNot(variable => seenNames.contains(variable.name))
+        seenNames ++= newVariables.map(_.name)
+        variables ++= newVariables
+        errors ++= subErrors.filter(error => newVariables.exists(_.name == error.variableName))
       }
     }
+    val variablesJson = TemplateVariablesJson(variables, Some(errors).filter(_.nonEmpty))
     Ok(Json.toJson(variablesJson))
+  }
+
+  /**
+   * Resolves the variables of one manager and converts them to JSON.
+   * If the evaluation fails, the stored values are kept and the issues are returned as errors.
+   */
+  private def resolvedVariablesJson(manager: TemplateVariablesManager)
+                                   (implicit userContext: UserContext): (Seq[TemplateVariableJson], Seq[TemplateVariableErrorJson]) = {
+    val allVariables = manager.all
+    try {
+      (allVariables.resolved(manager.parentVariables.withoutSensitiveVariables()).variables.map(TemplateVariableJson(_)), Seq.empty)
+    } catch {
+      case ex: TemplateVariablesEvaluationException =>
+        (allVariables.variables.map(TemplateVariableJson(_)),
+          ex.issues.map(issue => TemplateVariableErrorJson(issue.variable.name, issue.ex.getMessage)))
+    }
   }
 
   @Operation(

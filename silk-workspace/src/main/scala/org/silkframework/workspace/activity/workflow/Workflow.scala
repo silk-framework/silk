@@ -279,6 +279,22 @@ case class Workflow(@Param(label = "Workflow operators", value = "Workflow opera
     }
   }
 
+  /**
+    * Returns all sub workflows, recursively, in breadth-first order.
+    * Every workflow task is returned at most once, even if referenced multiple times or on a cycle.
+    */
+  def subWorkflowsRecursive(project: Project)
+                           (implicit userContext: UserContext): Seq[ProjectTask[Workflow]] = {
+    val visited = mutable.LinkedHashMap[Identifier, ProjectTask[Workflow]]()
+    var current = subWorkflows(project)
+    while (current.nonEmpty) {
+      val newWorkflows = current.filterNot(wf => visited.contains(wf.id))
+      newWorkflows.foreach(wf => visited.put(wf.id, wf))
+      current = newWorkflows.flatMap(wf => wf.data.subWorkflows(project))
+    }
+    visited.values.toSeq
+  }
+
   /** Returns node ids of workflow nodes that have inputs (data or dependency) from other nodes */
   def inputWorkflowNodeIds(): Seq[String] = {
     val outputs = nodes.flatMap(_.outputs).distinct
