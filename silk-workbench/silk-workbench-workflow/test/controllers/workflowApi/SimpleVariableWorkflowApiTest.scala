@@ -17,6 +17,7 @@ import org.silkframework.plugins.dataset.rdf.datasets.InMemoryDataset
 import org.silkframework.runtime.resource.FileResource
 import org.silkframework.runtime.templating.{TemplateVariable, TemplateVariableScopes, TemplateVariables}
 import org.silkframework.runtime.validation.BadUserInputException
+import org.silkframework.workbench.utils.NotAcceptableException
 import org.silkframework.serialization.json.JsonHelpers
 import org.silkframework.util.FileUtils
 import org.silkframework.workbench.workflow.WorkflowWithPayloadExecutor
@@ -301,6 +302,20 @@ class SimpleVariableWorkflowApiTest extends AnyFlatSpec with BeforeAndAfterAll
     val output = workflowTask.activity[WorkflowWithPayloadExecutor].startBlockingAndGetValue(config.configParameters)
     output.report mustBe defined
     output.report.get.error mustBe empty
+  }
+
+  it should "support custom file-based plugin output types in the explicit-parameters config" in {
+    implicit val proj: Project = project
+    val workflowTask = proj.task[Workflow](inputOutputWorkflow)
+    def config(outputMime: String, pluginIds: Seq[String]) = VariableWorkflowRequestUtils.workflowConfigFromParameters(
+      workflowTask,
+      inputMimeType = Some(APPLICATION_JSON),
+      inputPayload = Some(s"""{"$sourceProperty1": "value"}"""),
+      outputMimeType = Some(outputMime),
+      fileBasedPluginIds = pluginIds
+    )
+    config("application/x-plugin-csv", Seq("csv")).variableDataSinkConfig mustBe Some("application/x-plugin-csv")
+    an[NotAcceptableException] must be thrownBy config("application/x-plugin-unknownPlugin", Seq("csv"))
   }
 
   it should "reject malformed JSON input data as bad user input" in {

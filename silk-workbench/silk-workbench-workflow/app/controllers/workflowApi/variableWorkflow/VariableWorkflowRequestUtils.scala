@@ -370,10 +370,14 @@ object VariableWorkflowRequestUtils {
     }
     val sinkConfigOpt: Option[VariableDataSinkConfig] = replaceableDatasets.sinks.headOption.map { datasetId =>
       val outMime = outputMimeType.getOrElse(jsonMimeType)
-      if (!acceptedMimeType.contains(outMime)) {
-        throw NotAcceptableException(s"Unsupported output type '$outMime'. Supported: ${acceptedMimeType.mkString(", ")}.")
+      val (datasetType, params, mimeType) = outMime match {
+        // Custom file-based plugin output types, mirroring the HTTP endpoint (pluginIdFromAcceptedTypes).
+        case CustomMimeType(pluginId) if fileBasedPluginIds.contains(pluginId) => (pluginId, Map.empty[String, String], outMime)
+        case accepted if acceptedMimeType.contains(accepted) => acceptedMimeTypeToSinkConfig(accepted)
+        case unsupported =>
+          throw NotAcceptableException(s"Unsupported output type '$unsupported'. Supported: ${acceptedMimeType.mkString(", ")} " +
+            "and application/x-plugin-<PLUGIN_ID> for file-based plugins.")
       }
-      val (datasetType, params, mimeType) = acceptedMimeTypeToSinkConfig(outMime)
       VariableDataSinkConfig(datasetConfigJson(datasetId, datasetType, params, OUTPUT_FILE_RESOURCE_NAME), mimeType)
     }
     val resources = resourceContent.map(c => Json.obj(INPUT_FILE_RESOURCE_NAME -> c)).getOrElse(Json.obj())
