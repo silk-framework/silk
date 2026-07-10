@@ -32,7 +32,7 @@ const customPluginIcon: { artefactList?: IPluginOverview[]; iconMap: Map<string,
     iconMap: new Map(),
 };
 
-const taskTypeSet: Set<TaskType> = new Set(["Dataset", "Linking", "Transform", "Workflow", "CustomTask"]);
+const taskTypeSet: Set<TaskType> = new Set(["Dataset", "Linking", "RuleBlock", "Transform", "Workflow", "CustomTask"]);
 const pluginKey = (itemType: string, pluginId: string): string => `${itemType} ${pluginId}`;
 
 /** Gets the custom item type from the icon store. */

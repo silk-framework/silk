@@ -15,15 +15,16 @@ import io.swagger.v3.oas.annotations.{Operation, Parameter}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.templating.exceptions._
 import org.silkframework.runtime.templating.operations.{DeleteVariableModification, UpdateVariableModification, UpdateVariablesModification}
-import org.silkframework.runtime.templating.{TemplateVariableScopes, TemplateVariables, TemplateVariablesManager}
+import org.silkframework.runtime.templating.{TemplateVariable, TemplateVariableScopes, TemplateVariables}
 import org.silkframework.runtime.validation.BadUserInputException
 import org.silkframework.serialization.json.{JsonHelpers, TemplateVariableJson, TemplateVariablesJson}
-import org.silkframework.workspace.{Project, WorkspaceFactory}
+import org.silkframework.workspace.WorkspaceFactory
 import play.api.libs.json.{JsValue, Json, OFormat}
 import play.api.mvc.{Action, AnyContent, InjectedController}
 
 import javax.inject.Inject
 import scala.collection.immutable.ArraySeq
+import scala.collection.mutable
 
 /** Everything related to variable templates. */
 @Tag(name = "Variable Templates", description = "Provides endpoints for variable template handling.")
@@ -66,7 +67,7 @@ class VariableTemplateApi @Inject()() extends InjectedController with UserContex
                    )
                    task: Option[String]): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     val project = WorkspaceFactory().workspace.project(projectName)
-    val manager = templateVariablesManager(project, task)
+    val manager = project.variablesManager(task)
     val allVariables = manager.all
     val variablesJson = {
       try {
@@ -169,7 +170,7 @@ class VariableTemplateApi @Inject()() extends InjectedController with UserContex
                   )
                   task: Option[String]): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
       val project = WorkspaceFactory().workspace.project(projectName)
-      Ok(Json.toJson(TemplateVariableJson(templateVariablesManager(project, task).get(variableName))))
+      Ok(Json.toJson(TemplateVariableJson(project.variablesManager(task).get(variableName))))
   }
 
   @Operation(
@@ -373,7 +374,7 @@ class VariableTemplateApi @Inject()() extends InjectedController with UserContex
                       task: Option[String]): Action[JsValue] = RequestUserContextAction(parse.json) { implicit request => implicit userContext =>
       val project = WorkspaceFactory().workspace.project(projectName)
       val variableNames = ArraySeq.unsafeWrapArray(Json.fromJson[Array[String]](request.body).get)
-      val manager = templateVariablesManager(project, task)
+      val manager = project.variablesManager(task)
       val currentVariables = manager.all
 
       if(currentVariables.map.keySet != variableNames.toSet) {
@@ -464,37 +465,38 @@ class VariableTemplateApi @Inject()() extends InjectedController with UserContex
   }
 
   /**
-   * Returns the TemplateVariablesManager for either the project variables or the execution variables of a specific task within the project.
-   */
-  private def templateVariablesManager(project: Project, task: Option[String])
-                                      (implicit userContext: UserContext): TemplateVariablesManager = {
-    task match {
-      case Some(taskId) => project.anyTask(taskId).executionVariablesValueHolder
-      case None => project.templateVariables
-    }
-  }
-
-  /**
    * Resolves variables with dependency order checking.
-   * If the resolution fails because a variable references another variable that is defined after it,
-   * a CannotReorderVariablesException is thrown.
+   * If a variable references a variable of the same scope that is defined after it,
+   * a CannotReorderVariablesException is thrown. Failures unrelated to the ordering
+   * (e.g. templates referencing sensitive parent variables, which are not available
+   * for resolution) keep the variable's stored value instead.
    */
   private def resolveWithDependencyCheck(variables: TemplateVariables, parentVars: TemplateVariables, scope: Seq[String]): TemplateVariables = {
-    try {
-      variables.resolved(parentVars)
-    } catch {
-      case ex: TemplateVariablesEvaluationException =>
-        val dependencyErrors =
-          ex.issues.collect {
-            case TemplateVariableEvaluationException(dependentVar, unboundEx: UnboundVariablesException) =>
-              (dependentVar.name, unboundEx.missingVars.filter(_.scope == scope).map(_.name))
-          }.filter(_._2.nonEmpty).toMap
-        if(dependencyErrors.nonEmpty) {
-          throw new CannotReorderVariablesException(dependencyErrors)
-        } else {
-          throw ex
-        }
+    val resolvedVariables = mutable.Buffer[TemplateVariable]()
+    val dependencyErrors = mutable.LinkedHashMap[String, Seq[String]]()
+    for (variable <- variables.variables) {
+      variable.template match {
+        case Some(template) =>
+          try {
+            val value = TemplateVariables(parentVars.variables ++ resolvedVariables).resolveTemplateValue(template)
+            resolvedVariables.append(variable.copy(value = value))
+          } catch {
+            case ex: TemplateEvaluationException =>
+              ex match {
+                case unbound: UnboundVariablesException if unbound.missingVars.exists(_.scope == scope) =>
+                  dependencyErrors.put(variable.name, unbound.missingVars.filter(_.scope == scope).map(_.name))
+                case _ =>
+              }
+              resolvedVariables.append(variable) // Keep the stored value
+          }
+        case None =>
+          resolvedVariables.append(variable)
+      }
     }
+    if (dependencyErrors.nonEmpty) {
+      throw new CannotReorderVariablesException(dependencyErrors.toMap)
+    }
+    TemplateVariables(resolvedVariables.toSeq)
   }
 }
 

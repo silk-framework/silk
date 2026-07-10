@@ -225,7 +225,7 @@ class WorkspaceApi  @Inject() (accessMonitor: WorkbenchAccessMonitor) extends In
     for (task <- project.allTasks) {
       val taskParameters = task.data.parameters(PluginContext.fromProject(project))
       val clonedTaskSpec = task.data.withParameters(taskParameters, dropExistingValues = true)(PluginContext.fromProject(clonedProject))
-      clonedProject.addAnyTask(task.id, clonedTaskSpec, task.metaData.asNewMetaData)
+      clonedProject.addAnyTask(task.id, clonedTaskSpec, task.metaData.asNewMetaData, task.executionVariables)
     }
 
     Ok
@@ -367,6 +367,7 @@ class WorkspaceApi  @Inject() (accessMonitor: WorkbenchAccessMonitor) extends In
   @RequestBody(
     content = Array(
       new Content(
+        mediaType = "application/json",
         schema = new Schema(implementation = classOf[UpdateGlobalVocabularyRequest]),
         examples = Array(new ExampleObject("""{ "iri": "http://xmlns.com/foaf/0.1/" }"""))
       )

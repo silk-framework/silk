@@ -16,9 +16,9 @@ package org.silkframework.workspace
 
 import org.silkframework.config._
 import org.silkframework.dataset.{Dataset, DatasetSpec}
-import org.silkframework.rule.{LinkSpec, TransformSpec}
+import org.silkframework.rule.{LinkSpec, RuleBlockSpec, TransformSpec}
 import org.silkframework.runtime.activity.{HasValue, UserContext}
-import org.silkframework.runtime.plugin.{PluginContext, PluginRegistry}
+import org.silkframework.runtime.plugin.{PluginContext, PluginRegistry, TaskResolver}
 import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.runtime.templating.{TemplateVariables, TemplateVariablesManager}
 import org.silkframework.runtime.validation.{NotFoundException, ValidationException}
@@ -51,6 +51,14 @@ class Project(initialConfig: ProjectConfig, provider: WorkspaceProvider, val res
 
   val templateVariables: TemplateVariablesManager = new ProjectTemplateVariablesManager(provider.projectVariables(initialConfig.id)(loadingUser), loadingUser)
 
+  /** The variables manager for either the project variables or, if a task is given, the execution variables of that task. */
+  def variablesManager(taskId: Option[String])(implicit userContext: UserContext): TemplateVariablesManager = {
+    taskId match {
+      case Some(id) => anyTask(id).executionVariablesValueHolder
+      case None => templateVariables
+    }
+  }
+
   val cacheResources: ResourceManager = provider.projectCache(initialConfig.id)
 
   @volatile
@@ -66,6 +74,7 @@ class Project(initialConfig: ProjectConfig, provider: WorkspaceProvider, val res
     // Register all default modules
     registerModule[DatasetSpec[Dataset]]()
     registerModule[TransformSpec]()
+    registerModule[RuleBlockSpec]()
     registerModule[LinkSpec]()
     registerModule[Workflow](WorkflowValidator)
     registerModule[CustomTask]()
@@ -111,7 +120,7 @@ class Project(initialConfig: ProjectConfig, provider: WorkspaceProvider, val res
   }
 
   private val projectActivities = {
-    implicit val pluginContext: PluginContext = PluginContext(prefixes = config.prefixes, resources = resources, user = loadingUser)
+    implicit val pluginContext: PluginContext = PluginContext(prefixes = config.prefixes, resources = resources, user = loadingUser, taskResolver = TaskResolver.empty)
     val factories = PluginRegistry.availablePlugins[ProjectActivityFactory[_ <: HasValue]].toList
     var activities = List[ProjectActivity[_ <: HasValue]]()
     for(factory <- factories) {

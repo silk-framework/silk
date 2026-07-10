@@ -1,6 +1,4 @@
-package org.silkframework.workspace.exceptions
-
-import org.silkframework.runtime.validation.RequestException
+package org.silkframework.runtime.validation
 
 import java.net.HttpURLConnection
 

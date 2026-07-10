@@ -6,7 +6,7 @@ import org.silkframework.dataset.{Dataset, DatasetPluginAutoConfigurable}
 import org.silkframework.runtime.activity.{Activity, ActivityContext, UserContext}
 import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
 import org.silkframework.runtime.plugin.types.MultilineStringParameter
-import org.silkframework.runtime.plugin.{PluginContext, PluginObjectParameterNoSchemaAndSerialization}
+import org.silkframework.runtime.plugin.{PluginContext, PluginObjectParameterNoSchemaAndSerialization, TaskResolver}
 import org.silkframework.runtime.templating.{TemplateVariablesParameter, TemplateVariables}
 import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat}
@@ -16,6 +16,7 @@ import org.silkframework.workbench.workflow.WorkflowWithPayloadExecutorFactory._
 import org.silkframework.workspace.ProjectTask
 import org.silkframework.workspace.activity.TaskActivityFactory
 import org.silkframework.workspace.activity.workflow.{AllReplaceableDatasets, LocalWorkflowExecutorGeneratingProvenance, Workflow, WorkflowExecutionReport}
+import org.silkframework.workspace.activity.workflow.{AllReplaceableDatasets, LocalWorkflowExecutorGeneratingProvenance, Workflow, WorkflowExecutorFactory}
 import play.api.libs.json._
 
 import scala.xml.{Node, NodeSeq, XML}
@@ -32,7 +33,7 @@ case class WorkflowWithPayloadExecutorFactory(configuration: MultilineStringPara
                                               optionalPrimaryResourceManager: OptionalPrimaryResourceManagerParameter = OptionalPrimaryResourceManagerParameter(None),
                                               @Param(label = "Execution variables", value = "Variables for this workflow execution.", visibleInDialog = false)
                                               executionVariables: TemplateVariablesParameter = TemplateVariablesParameter.empty)
-  extends TaskActivityFactory[Workflow, WorkflowWithPayloadExecutor] {
+  extends TaskActivityFactory[Workflow, WorkflowWithPayloadExecutor] with WorkflowExecutorFactory {
 
   override def isSingleton: Boolean = false
 
@@ -163,7 +164,7 @@ class WorkflowWithPayloadExecutor(task: ProjectTask[Workflow], config: WorkflowW
     val autoConfig = (workflowJson \ "config" \ "autoConfig").asOpt[Boolean].getOrElse(false)
     if(autoConfig) {
       val project = getProject(projectName)
-      implicit val pluginContext: PluginContext = PluginContext(project.config.prefixes, sourceResourceManager, userContext, Some(project.id))
+      implicit val pluginContext: PluginContext = PluginContext(project.config.prefixes, sourceResourceManager, userContext, Some(project.id), taskResolver = TaskResolver.empty)
       dataSources = dataSources.view.mapValues {
         case autoConfigDataset: DatasetPluginAutoConfigurable[_] => autoConfigDataset.autoConfigured
         case other: Dataset => other

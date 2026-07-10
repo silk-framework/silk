@@ -54,6 +54,9 @@ case class TransformReport(task: Task[TransformSpec],
     */
   def asDone(): ExecutionReport = copy(isDone = true)
 
+  /** Marks this transform report as failed while keeping its rule results and counts. */
+  override def asFailed(error: String): ExecutionReport = copy(error = Some(error), isDone = true)
+
   /** Add more sample entities to the report. */
   override def withSampleOutputEntities(sampleEntities: SampleEntities): ExecutionReport = this.copy(
     sampleOutputEntities = TransformReport.updateOutputSampleEntities(sampleEntities, this.sampleOutputEntities)

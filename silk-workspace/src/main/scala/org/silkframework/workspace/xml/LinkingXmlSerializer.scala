@@ -17,7 +17,7 @@ package org.silkframework.workspace.xml
 import org.silkframework.config._
 import org.silkframework.rule.LinkSpec
 import org.silkframework.rule.evaluation.ReferenceLinksReader
-import org.silkframework.runtime.plugin.PluginContext
+import org.silkframework.runtime.plugin.{PluginContext, TaskResolver}
 import org.silkframework.runtime.resource.{ResourceLoader, ResourceManager}
 import org.silkframework.runtime.serialization.WriteContext
 import org.silkframework.runtime.serialization.XmlSerialization._
@@ -67,7 +67,8 @@ private class LinkingXmlSerializer extends XmlSerializer[LinkSpec] {
    */
   def writeTask(data: Task[LinkSpec], resources: ResourceManager, projectResourceManager: ResourceManager): Unit = {
     // Only serialize file paths correctly, paths should not be prefixed
-    implicit val writeContext: WriteContext[Node] = WriteContext[Node](resources = projectResourceManager, prefixes = Prefixes.empty)
+    implicit val writeContext: WriteContext[Node] = WriteContext[Node](resources = projectResourceManager, prefixes = Prefixes.empty,
+      taskResolver = TaskResolver.empty)
 
     // Write resources
     val linkSpecXml = toXml(data)

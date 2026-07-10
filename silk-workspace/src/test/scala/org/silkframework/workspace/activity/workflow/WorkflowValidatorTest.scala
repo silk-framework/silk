@@ -1,13 +1,13 @@
 package org.silkframework.workspace.activity.workflow
 
-
 import org.silkframework.config.{PlainTask, Task}
+import org.silkframework.rule.RuleBlockSpec
 import org.silkframework.runtime.activity.TestUserContextTrait
 import org.silkframework.util.Identifier
-import org.silkframework.workspace.exceptions.TaskValidationException
 import org.silkframework.workspace.{Project, TestWorkspaceProviderTestTrait}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
+import org.silkframework.runtime.validation.TaskValidationException
 
 class WorkflowValidatorTest extends AnyFlatSpec with Matchers with TestWorkspaceProviderTestTrait with TestUserContextTrait  {
 
@@ -40,16 +40,29 @@ class WorkflowValidatorTest extends AnyFlatSpec with Matchers with TestWorkspace
     an[TaskValidationException] should be thrownBy update(project, workflow2Updated)
   }
 
+  it should "not allow creating workflows that contain rule blocks" in {
+    val project = retrieveOrCreateProject("WorkflowRuleBlockValidationTest")
+
+    project.addTask[RuleBlockSpec]("ruleBlock1", RuleBlockSpec())
+    val workflow = createWorkflow("workflowWithRuleBlock", nestedWorkflowIds = Seq.empty, operatorTaskIds = Seq("ruleBlock1"))
+
+    an[TaskValidationException] should be thrownBy update(project, workflow)
+  }
+
   private def update(project: Project, workflow: Task[Workflow]): Unit = {
     project.updateTask(workflow.id, workflow.data)
   }
 
-  private def createWorkflow(id: Identifier, nestedWorkflowIds: Seq[Identifier]): Task[Workflow] = {
-    val nestedWorkflows =
-      for(nestedWorkflow <- nestedWorkflowIds) yield {
+  private def createWorkflow(
+    id: Identifier,
+    nestedWorkflowIds: Seq[Identifier],
+    operatorTaskIds: Seq[Identifier] = Seq.empty,
+  ): Task[Workflow] = {
+    val operators =
+      for(operatorTaskId <- nestedWorkflowIds ++ operatorTaskIds) yield {
         WorkflowOperator(
           inputs = Seq.empty,
-          task = nestedWorkflow,
+          task = operatorTaskId,
           outputs = Seq.empty,
           errorOutputs = Seq.empty,
           position = (0, 0),
@@ -60,7 +73,7 @@ class WorkflowValidatorTest extends AnyFlatSpec with Matchers with TestWorkspace
         )
       }
 
-    PlainTask(id, Workflow(operators = WorkflowOperatorsParameter(nestedWorkflows)))
+    PlainTask(id, Workflow(operators = WorkflowOperatorsParameter(operators)))
   }
 
   override def workspaceProviderId: String = "inMemoryWorkspaceProvider"

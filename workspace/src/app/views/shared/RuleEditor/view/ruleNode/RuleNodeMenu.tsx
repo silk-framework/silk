@@ -6,6 +6,8 @@ import { RuleEditorEvaluationContext } from "../../contexts/RuleEditorEvaluation
 import { RuleEditorModelContext } from "../../contexts/RuleEditorModelContext";
 import { RuleEditorContext } from "../../contexts/RuleEditorContext";
 import { ruleEditorModelUtilsFactory } from "../../model/RuleEditorModel.utils";
+import { internalRuleBlockEvaluationActionState } from "./internalRuleBlockEvaluationAction.utils";
+import { taskUrl } from "../../../../../store/ducks/router/operations";
 
 interface NodeMenuProps {
     nodeId: string;
@@ -41,6 +43,19 @@ export const RuleNodeMenu = ({
     };
     const menuFunctionsCallback = useMemo(() => (menuFunctions) => setMenuFns(menuFunctions), []);
     const operatorDoc = ruleOperatorDocumentation || ruleOperatorDescription || "";
+    const currentRuleNode = modelContext.ruleOperatorNodes().find((node) => node.nodeId === nodeId);
+    const extraMenuItems = currentRuleNode
+        ? ruleEditorContext.extraRuleNodeMenuItems?.(currentRuleNode, closeMenu)
+        : undefined;
+    const internalRuleBlockEvaluationAction = internalRuleBlockEvaluationActionState(
+        currentRuleNode,
+        ruleEvaluationContext.evaluationResultsShown,
+        ruleEvaluationContext.canEvaluateRuleBlock,
+    );
+    const openRuleBlockUrl =
+        currentRuleNode?.pluginType === "RuleBlock" && ruleEditorContext.projectId
+            ? taskUrl(ruleEditorContext.projectId, "RuleBlock", currentRuleNode.pluginId)
+            : undefined;
 
     const nodeDimensions = utils.nodeById(modelContext.elements, nodeId)?.data.nodeDimensions;
     const resizeResetIsDisabled = !nodeDimensions?.width && !nodeDimensions?.height;
@@ -100,6 +115,51 @@ export const RuleNodeMenu = ({
                         )}
                     />
                 ) : null}
+                {openRuleBlockUrl ? (
+                    <MenuItem
+                        data-test-id="rule-node-open-rule-block-btn"
+                        key="open-rule-block"
+                        icon="navigation-extern"
+                        onClick={(e) => {
+                            e.preventDefault();
+                            closeMenu();
+                            window.open(openRuleBlockUrl, "_blank", "noopener");
+                        }}
+                        text={t("RuleEditor.node.menu.openRuleBlock.label", "Open rule block")}
+                        htmlTitle={t(
+                            "RuleEditor.node.menu.openRuleBlock.description",
+                            "Open the referenced rule block in a new tab.",
+                        )}
+                    />
+                ) : null}
+                {internalRuleBlockEvaluationAction.visible && currentRuleNode ? (
+                    <MenuItem
+                        data-test-id="rule-node-open-internal-rule-block-evaluation-btn"
+                        key="open-internal-rule-block-evaluation"
+                        icon="item-viewdetails"
+                        disabled={!internalRuleBlockEvaluationAction.enabled}
+                        onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            closeMenu();
+                            window.setTimeout(() => {
+                                ruleEvaluationContext.openInternalRuleBlockEvaluation?.(
+                                    nodeId,
+                                    currentRuleNode.pluginId,
+                                    currentRuleNode.label,
+                                );
+                            }, 0);
+                        }}
+                        text={t(
+                            "RuleEditor.node.menu.openInternalRuleBlockEvaluation.label",
+                            "Show internal evaluation",
+                        )}
+                        htmlTitle={t(
+                            "RuleEditor.node.menu.openInternalRuleBlockEvaluation.description",
+                            "Show the latest available internal evaluation for this reusable rule block usage.",
+                        )}
+                    />
+                ) : null}
                 <MenuItem
                     data-test-id="rule-node-reset-size-btn"
                     icon="item-reset"
@@ -108,6 +168,12 @@ export const RuleNodeMenu = ({
                     text="Reset node size"
                 ></MenuItem>
                 <MenuDivider />
+                {extraMenuItems?.length ? (
+                    <>
+                        {extraMenuItems}
+                        <MenuDivider />
+                    </>
+                ) : null}
                 <MenuItem
                     data-test-id="rule-node-delete-btn"
                     key="delete"

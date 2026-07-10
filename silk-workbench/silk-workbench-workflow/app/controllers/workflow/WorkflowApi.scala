@@ -17,15 +17,13 @@ import org.silkframework.config.Task
 import org.silkframework.rule.execution.TransformReport
 import org.silkframework.rule.execution.TransformReport.RuleResult
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.runtime.plugin.{ParameterObjectValue, ParameterValues, PluginContext}
-import org.silkframework.runtime.templating.TemplateVariablesParameter
+import org.silkframework.runtime.plugin.{ParameterValues, PluginContext, TaskResolver}
 import org.silkframework.runtime.serialization.{ReadContext, XmlSerialization}
-import org.silkframework.runtime.templating.TemplateVariables
 import org.silkframework.util.Identifier
 import org.silkframework.workbench.utils.UnsupportedMediaTypeException
 import org.silkframework.workbench.workflow.WorkflowWithPayloadExecutor
 import org.silkframework.workspace.WorkspaceFactory
-import org.silkframework.workspace.activity.workflow.{LocalWorkflowExecutorGeneratingProvenance, Workflow, WorkflowTaskReport}
+import org.silkframework.workspace.activity.workflow.{LocalWorkflowExecutorGeneratingProvenance, Workflow, WorkflowExecutorFactory, WorkflowTaskReport}
 
 import play.api.libs.json.{JsArray, JsString, _}
 import play.api.mvc.{Action, AnyContent, AnyContentAsXml, _}
@@ -51,7 +49,7 @@ class WorkflowApi @Inject() () extends InjectedController with UserContextAction
   @deprecated
   def postWorkflow(projectName: String): Action[AnyContent] = RequestUserContextAction { request => implicit userContext =>
     val project = fetchProject(projectName)
-    implicit val readContext: ReadContext = ReadContext(project.resources, project.config.prefixes)
+    implicit val readContext: ReadContext = ReadContext(project.resources, project.config.prefixes, taskResolver = TaskResolver.empty)
     val workflow = XmlSerialization.fromXml[Task[Workflow]](request.body.asXml.get.head)
     project.addTask[Workflow](workflow.id, workflow)
 
@@ -61,7 +59,7 @@ class WorkflowApi @Inject() () extends InjectedController with UserContextAction
   @deprecated
   def putWorkflow(projectName: String, taskName: String): Action[AnyContent] = RequestUserContextAction { request => implicit userContext =>
     val project = fetchProject(projectName)
-    implicit val readContext: ReadContext = ReadContext(project.resources, project.config.prefixes)
+    implicit val readContext: ReadContext = ReadContext(project.resources, project.config.prefixes, taskResolver = TaskResolver.empty)
     val workflow = XmlSerialization.fromXml[Task[Workflow]](request.body.asXml.get.head)
     project.updateTask[Workflow](taskName, workflow)
 
@@ -84,15 +82,13 @@ class WorkflowApi @Inject() () extends InjectedController with UserContextAction
   def executeWorkflow(projectName: String, taskName: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     val project = fetchProject(projectName)
     val workflow = project.task[Workflow](taskName)
-    val executionVars = parseExecutionVariablesFromRequest
+    val executionVars = VariableWorkflowRequestUtils.parseExecutionVariables
     val activity = workflow.activity[LocalWorkflowExecutorGeneratingProvenance]
     if (activity.control.status().isRunning) {
       PreconditionFailed
     } else {
       // Always pass the execution variables (possibly empty) so that overrides from a previous start are reset.
-      activity.start(ParameterValues(Map(
-        "executionVariables" -> ParameterObjectValue(Left(TemplateVariablesParameter(executionVars)))
-      )))
+      activity.start(WorkflowExecutorFactory.executionVariablesConfig(executionVars))
       Ok
     }
   }
@@ -309,9 +305,9 @@ class WorkflowApi @Inject() () extends InjectedController with UserContextAction
 
   private def workflowParameterValues(implicit request: Request[AnyContent]): ParameterValues = {
     val configParams = ParameterValues.fromStringMap(workflowConfiguration)
-    val executionVars = parseExecutionVariablesFromRequest
+    val executionVars = VariableWorkflowRequestUtils.parseExecutionVariables
     if(executionVars.variables.nonEmpty) {
-      ParameterValues(configParams.values + ("executionVariables" -> ParameterObjectValue(Left(TemplateVariablesParameter(executionVars)))))
+      ParameterValues(configParams.values ++ WorkflowExecutorFactory.executionVariablesConfig(executionVars).values)
     } else {
       configParams
     }
@@ -326,15 +322,6 @@ class WorkflowApi @Inject() () extends InjectedController with UserContextAction
       case _ =>
         throw UnsupportedMediaTypeException.supportedFormats("application/xml", "application/json")
     }
-  }
-
-  /**
-    * Parses execution variables from the request.
-    * Execution variables can be provided as a JSON body with an "executionVariables" key
-    * containing a simple name-value map.
-    */
-  private def parseExecutionVariablesFromRequest(implicit request: Request[AnyContent]): TemplateVariables = {
-    VariableWorkflowRequestUtils.parseExecutionVariables
   }
 
 }

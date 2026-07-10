@@ -208,7 +208,7 @@ class LegacyDatasetApi @Inject() (implicit workspaceReact: WorkspaceReact) exten
                  autoConfigure: Boolean): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     val project = WorkspaceFactory().workspace.project(projectName)
     implicit val prefixes: Prefixes = project.config.prefixes
-    implicit val readContext: ReadContext = ReadContext(project.resources, project.config.prefixes)
+    implicit val readContext: ReadContext = taskUpdateReadContext(project, datasetName)
 
     try {
       deserializeCompileTime() { dataset: DatasetTask =>

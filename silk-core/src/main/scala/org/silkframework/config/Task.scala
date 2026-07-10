@@ -111,13 +111,18 @@ object Task {
       */
     def read(node: Node)(implicit readContext: ReadContext): Task[T] = {
       // Read the execution variables first, so that parameter templates referencing them resolve against the task's own defaults.
-      val executionVariables = Task.readExecutionVariablesXml(node)
-      val dataContext = readContext.copy(templateVariables = readContext.templateVariables.withExecutionDefaults(executionVariables))
+      // Variable templates are resolved like at save time. If the variables are absent, the context's
+      // execution scope is kept (seeded with the stored variables on task updates).
+      val providedVariables = Task.readExecutionVariablesXmlOpt(node)
+      val dataContext = providedVariables.fold(readContext) { v =>
+        val resolved = v.resolvedKeepingUnresolved(readContext.templateVariables.all.withoutSensitiveVariables())
+        readContext.copy(templateVariables = readContext.templateVariables.withExecutionDefaults(resolved))
+      }
       PlainTask(
         id = (node \ "@id").text,
         data = fromXml[T](node)(xmlFormat, dataContext),
         metaData = (node \ "MetaData").headOption.map(fromXml[MetaData]).getOrElse(MetaData.empty),
-        executionVariables = executionVariables
+        executionVariables = providedVariables.getOrElse(TemplateVariables.empty)
       )
     }
 
@@ -125,7 +130,9 @@ object Task {
       * Serialize a value to XML.
       */
     def write(task: Task[T])(implicit writeContext: WriteContext[Node]): Node = {
-      var node = toXml(task.data).head.asInstanceOf[Elem]
+      // Serialize the task data with the execution scope seeded, so that parameter templates referencing execution variables evaluate.
+      val dataContext = writeContext.copy(templateVariables = writeContext.templateVariables.withExecutionDefaults(task.executionVariables))
+      var node = toXml(task.data)(xmlFormat, dataContext).head.asInstanceOf[Elem]
       node = node % Attribute("id", Text(task.id), Null)
       node = node.copy(child = toXml[MetaData](task.metaData) +: node.child)
       if(task.executionVariables.variables.nonEmpty) {
@@ -137,17 +144,27 @@ object Task {
 
   implicit object GenericTaskFormat extends TaskFormat[TaskSpec]
 
+  /** Name of the XML element that holds the execution variables of a task. */
+  final val EXECUTION_VARIABLES_ELEMENT = "ExecutionVariables"
+
   /**
     * Reads the execution variables of a task from its XML serialization.
     */
   def readExecutionVariablesXml(node: Node)(implicit readContext: ReadContext): TemplateVariables = {
-    (node \ "ExecutionVariables").headOption.map(XmlSerialization.fromXml[TemplateVariables]).getOrElse(TemplateVariables.empty)
+    readExecutionVariablesXmlOpt(node).getOrElse(TemplateVariables.empty)
+  }
+
+  /**
+    * Reads the execution variables of a task, or None if the serialization contains no `ExecutionVariables` element.
+    */
+  def readExecutionVariablesXmlOpt(node: Node)(implicit readContext: ReadContext): Option[TemplateVariables] = {
+    (node \ EXECUTION_VARIABLES_ELEMENT).headOption.map(XmlSerialization.fromXml[TemplateVariables])
   }
 
   /**
     * Serializes the execution variables of a task as an `ExecutionVariables` XML element.
     */
   def writeExecutionVariablesXml(executionVariables: TemplateVariables)(implicit writeContext: WriteContext[Node]): Node = {
-    XmlSerialization.toXml[TemplateVariables](executionVariables).asInstanceOf[Elem].copy(label = "ExecutionVariables")
+    XmlSerialization.toXml[TemplateVariables](executionVariables).asInstanceOf[Elem].copy(label = EXECUTION_VARIABLES_ELEMENT)
   }
 }

@@ -7,6 +7,7 @@ import {
     TaskType,
     TemplateValueType,
 } from "@ducks/shared/typings";
+import { ItemType } from "@ducks/router/operations";
 import { SuggestFieldItemRendererModifierProps } from "@eccenca/gui-elements";
 import { OptionallyLabelledParameter } from "../../../views/taskViews/linking/linking.types";
 
@@ -183,6 +184,8 @@ export interface TaskPreConfiguration {
     showProjectItem?: boolean;
     /** If set to false, then the widget to change the project for the task will not be shown. Default: false */
     showProjectChangeWidget?: boolean;
+    /** Blacklist item types that should not be shown in the create dialog, e.g. in the left-side type selection. */
+    itemTypeBlackList?: ItemType[];
     /** Blacklist some plugins that should not be possible to create. */
     pluginBlackList?: string[];
     /** If this is set, then instead of redirecting to the newly created task, this function is called. */

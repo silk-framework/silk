@@ -16,7 +16,7 @@ package org.silkframework.workspace
 
 import org.silkframework.config._
 import org.silkframework.runtime.activity.{HasValue, Status, UserContext, ValueHolder}
-import org.silkframework.runtime.plugin.{PluginContext, PluginRegistry}
+import org.silkframework.runtime.plugin.{PluginContext, PluginRegistry, TaskResolver}
 import org.silkframework.runtime.templating.{GlobalTemplateVariables, TemplateVariables}
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.activity.workflow.Workflow
@@ -58,7 +58,7 @@ class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
 
   lazy private val taskActivities: Seq[TaskActivity[TaskType, _ <: HasValue]] = {
     // Get all task activity factories for this task type
-    implicit val pluginContext: PluginContext = PluginContext(module.project.config.prefixes, module.project.resources)
+    implicit val pluginContext: PluginContext = PluginContext(module.project.config.prefixes, module.project.resources, taskResolver = TaskResolver.empty)
     val taskType = data.getClass
     val factories = PluginRegistry.availablePlugins[TaskActivityFactory[TaskType, _ <: HasValue]]
                                   .map(_.apply())
@@ -140,10 +140,15 @@ class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
       modified = Some(newMetaData.flatMap(_.modified).getOrElse(Instant.now)),
       lastModifiedByUser = newMetaData.flatMap(_.lastModifiedByUser).orElse(userContext.user.map(_.uri))
     )
-    val executionVariablesToPersist = newExecutionVariables.getOrElse(executionVariablesValueHolder.all)
-    // Validate the execution variables before persisting, so that a validation failure
-    // does not leave persisted and in-memory state inconsistent.
-    executionVariablesValueHolder.validateScope(executionVariablesToPersist)
+    // Validate and resolve before persisting, so that a failure does not leave persisted and in-memory state inconsistent.
+    // Variable templates are resolved at save time; unresolvable templates keep the provided value.
+    val executionVariablesToPersist = newExecutionVariables match {
+      case Some(newVariables) =>
+        executionVariablesValueHolder.validateScope(newVariables)
+        newVariables.resolvedKeepingUnresolved(executionVariablesValueHolder.parentVariables.withoutSensitiveVariables())
+      case None =>
+        executionVariablesValueHolder.all
+    }
     // First persist task
     persistTask(PlainTask.fromTask(ProjectTask.this).copy(data = newData, metaData = metaDataToPersist, executionVariables = executionVariablesToPersist))
     // Invalidate plugin usage cache

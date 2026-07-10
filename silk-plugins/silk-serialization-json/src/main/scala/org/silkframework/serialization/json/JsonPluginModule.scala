@@ -22,6 +22,10 @@ class JsonPluginModule extends PluginModule {
       CustomTaskJsonFormat.getClass ::
       TransformSpecJsonFormat.getClass ::
       LinkSpecJsonFormat.getClass ::
+      RuleBlockSpecJsonFormat.getClass ::
+      RuleBlockContentJsonFormat.getClass ::
+      RuleBlockPortJsonFormat.getClass ::
+      RuleBlockTaskJsonFormat.getClass ::
       TransformRuleJsonFormat.getClass ::
       MappingRulesJsonFormat.getClass ::
       DatasetTaskJsonFormat.getClass ::
@@ -31,7 +35,10 @@ class JsonPluginModule extends PluginModule {
       GenericInfoJsonFormat.getClass ::
       MappingTargetJsonFormat.getClass ::
       PathInputJsonFormat.getClass ::
+      InputPortInputJsonFormat.getClass ::
       TransformInputJsonFormat.getClass ::
+      RuleBlockBindingJsonFormat.getClass ::
+      RuleBlockInputJsonFormat.getClass ::
       ValueTypeJsonFormat.getClass ::
       VocabularyCacheValueJsonFormat.getClass ::
       VocabularyClassJsonFormat.getClass ::

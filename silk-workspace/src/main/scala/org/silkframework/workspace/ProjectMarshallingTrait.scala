@@ -2,7 +2,7 @@ package org.silkframework.workspace
 
 import org.silkframework.config.{CustomTask, PlainTask, Task, TaskSpec}
 import org.silkframework.dataset.{Dataset, DatasetSpec}
-import org.silkframework.rule.{LinkSpec, RootMappingRule, TransformSpec}
+import org.silkframework.rule.{LinkSpec, RootMappingRule, RuleBlockSpec, TransformSpec}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.AnyPlugin
 import org.silkframework.runtime.plugin.annotations.PluginType
@@ -170,6 +170,7 @@ trait ProjectMarshallingTrait extends AnyPlugin {
     exportTasks[LinkSpec](project, outputWorkspaceProvider, resources, exportUserData)
     exportTasks[Workflow](project, outputWorkspaceProvider, resources, exportUserData)
     exportTasks[CustomTask](project, outputWorkspaceProvider, resources, exportUserData)
+    exportTasks[RuleBlockSpec](project, outputWorkspaceProvider, resources, exportUserData)
   }
 
   private def exportTasks[T <: TaskSpec: ClassTag](project: Project,

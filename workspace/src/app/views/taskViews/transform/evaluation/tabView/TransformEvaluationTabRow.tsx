@@ -11,6 +11,8 @@ import {
     EvaluatedURIRule,
 } from "./typing";
 import TableTree from "../../../../../views/taskViews/shared/evaluations/TableTreeView";
+import CompactCopyUriButton from "../../../../shared/CompactCopyUriButton";
+import type { IRuleBlockInput, IValueInput } from "../../../shared/rules/rule.typings";
 
 interface TransformEvaluationTabRowProps {
     rowExpandedByParent: boolean;
@@ -19,12 +21,30 @@ interface TransformEvaluationTabRowProps {
     colSpan: number;
     operatorPlugins: Array<IPluginDetails>;
     rules: Array<EvaluatedURIRule | EvaluatedComplexRule>;
+    ruleBlockLabels: Record<string, string>;
     zebra?: boolean;
     expandRowTrees: boolean;
 }
 
+const childInputs = (rule: EvaluatedRuleOperator): IValueInput[] => {
+    if (rule.type === "ruleBlockInput") {
+        return (rule as IRuleBlockInput).bindings.map((binding) => binding.input);
+    }
+    return (rule as Extract<EvaluatedRuleOperator, { type: "transformInput" }>).inputs ?? [];
+};
+
 const TransformEvaluationTabRow: React.FC<TransformEvaluationTabRowProps> = React.memo(
-    ({ rowItem, colSpan, rowExpandedByParent, entity, rules, operatorPlugins, zebra = false, expandRowTrees }) => {
+    ({
+        rowItem,
+        colSpan,
+        rowExpandedByParent,
+        entity,
+        rules,
+        operatorPlugins,
+        ruleBlockLabels,
+        zebra = false,
+        expandRowTrees,
+    }) => {
         const [rowIsExpanded, setRowIsExpanded] = React.useState<boolean>(rowExpandedByParent);
         const [treeExpansionMap, setTreeExpansionMap] = React.useState<Map<number, boolean>>(new Map());
         const [multipleTrees, setMultipleTrees] = React.useState<TreeNodeInfo[]>([]);
@@ -46,7 +66,7 @@ const TransformEvaluationTabRow: React.FC<TransformEvaluationTabRowProps> = Reac
         const handleTreeExpansion = React.useCallback(
             (rowId: number) =>
                 setTreeExpansionMap((prevExpansion) => new Map([...prevExpansion, [rowId, !prevExpansion.get(rowId)]])),
-            []
+            [],
         );
 
         const buildTree = React.useCallback(() => {
@@ -78,7 +98,7 @@ const TransformEvaluationTabRow: React.FC<TransformEvaluationTabRowProps> = Reac
                     const generateTree = (
                         rule: EvaluatedRuleOperator,
                         entityValue: EvaluatedEntityOperator,
-                        tree: TreeNodeInfo<Partial<{ root: boolean; label: string }>>
+                        tree: TreeNodeInfo<Partial<{ root: boolean; label: string }>>,
                     ) => {
                         if (tree?.nodeData?.root && tree.nodeData.label) {
                             tree.label = (
@@ -93,13 +113,15 @@ const TransformEvaluationTabRow: React.FC<TransformEvaluationTabRowProps> = Reac
                                 </>
                             );
                         }
-                        if (!rule.inputs?.length) {
+                        const nextInputs = childInputs(rule);
+                        if (!nextInputs.length) {
                             tree.childNodes = [
                                 ...(tree?.childNodes ?? []),
                                 newNode({
                                     rule,
                                     values: entityValue.values,
                                     operatorPlugins,
+                                    ruleBlockLabels,
                                     error: entityValue.error,
                                 }),
                             ];
@@ -109,22 +131,23 @@ const TransformEvaluationTabRow: React.FC<TransformEvaluationTabRowProps> = Reac
                             rule,
                             values: entityValue.values,
                             operatorPlugins,
+                            ruleBlockLabels,
                             error: entityValue.error,
                         });
                         tree.childNodes = [...(tree?.childNodes ?? []), currentNode];
 
-                        for (let i = 0; i < rule.inputs.length; i++) {
-                            generateTree(rule.inputs[i], entityValue.children[i], currentNode);
+                        for (let i = 0; i < nextInputs.length; i++) {
+                            generateTree(nextInputs[i], entityValue.children[i], currentNode);
                         }
                     };
 
                     generateTree(matchingRuleType.operator!, evaluatedValue, treeNodeInfo);
                     return treeNodeInfo;
-                })
+                }),
             );
         }, [treeExpansionMap, expandRowTrees]);
 
-        const existingError = entity.values.find(v => !!v.error)?.error
+        const existingError = entity.values.find((v) => !!v.error)?.error;
 
         return (
             <>
@@ -138,8 +161,24 @@ const TransformEvaluationTabRow: React.FC<TransformEvaluationTabRowProps> = Reac
                             : t("linkingEvaluationTabView.table.expandRow")
                     }
                 >
-                    <TableCell style={{ verticalAlign: "middle" }}>{rowItem.uri} {existingError ?
-                        <Icon name={"state-warning"} intent={"warning"} tooltipText={t("evaluationTabRow.validationErrorOverall", {error: existingError})} /> : ""}</TableCell>
+                    <TableCell style={{ verticalAlign: "middle" }}>
+                        <span className="diapp-evaluation__uri-value">
+                            <span className="diapp-evaluation__selectable-value-text">{rowItem.uri}</span>
+                            <CompactCopyUriButton
+                                dataTestId={`transform-evaluation-uri-copy-${rowItem.id}`}
+                                uri={rowItem.uri}
+                            />
+                            {existingError ? (
+                                <Icon
+                                    name={"state-warning"}
+                                    intent={"warning"}
+                                    tooltipText={t("evaluationTabRow.validationErrorOverall", { error: existingError })}
+                                />
+                            ) : (
+                                ""
+                            )}
+                        </span>
+                    </TableCell>
                 </TableExpandRow>
                 {(rowIsExpanded && (
                     <TableExpandedRow colSpan={colSpan} className="linking-table__expanded-row-container">
@@ -157,7 +196,7 @@ const TransformEvaluationTabRow: React.FC<TransformEvaluationTabRowProps> = Reac
                     null}
             </>
         );
-    }
+    },
 );
 
 export default TransformEvaluationTabRow;

@@ -23,6 +23,7 @@ import org.silkframework.hadoop.impl.HadoopEntityCache
 import org.silkframework.rule.execution.CacheLoader
 import org.silkframework.rule.{LinkSpec, LinkingConfig}
 import org.silkframework.runtime.activity.{Activity, CombinedActivity, UserContext}
+import org.silkframework.runtime.plugin.PluginContext
 import org.silkframework.runtime.resource.FileResourceManager
 import org.silkframework.runtime.serialization.ReadContext
 import org.silkframework.util.DPair
@@ -103,7 +104,11 @@ class Load(silkConfigPath : String, entityCachePath : String, linkSpec : Option[
       new HadoopEntityCache(entityDesc.source, linkSpec.rule.index(_, true), cacheFS, entityCachePath.suffix("/source/" + linkSpec.id + "/"), config.runtime),
       new HadoopEntityCache(entityDesc.target, linkSpec.rule.index(_, false), cacheFS, entityCachePath.suffix("/target/" + linkSpec.id + "/"), config.runtime)
     )
-    val combined = CombinedActivity("cacheLoader", new CacheLoader(sources.source, caches.source), new CacheLoader(sources.target, caches.target))
+    val combined = CombinedActivity(
+      "cacheLoader",
+      new CacheLoader(sources.source, caches.source, pluginContext = PluginContext.empty),
+      new CacheLoader(sources.target, caches.target, pluginContext = PluginContext.empty)
+    )
     val controller = Activity.apply(combined)
     controller.start()
     controller.waitUntilFinished()

@@ -249,7 +249,7 @@ class ProjectImportApi @Inject() (api: ProjectMarshalingApi) extends InjectedCon
       }
       val projectId = (xml \ "@resourceUri").text.split("[/#:]").last
       // Empty read context only used for MetaData
-      implicit val readContext: ReadContext = ReadContext(EmptyResourceManager(), Prefixes.empty)
+      implicit val readContext: ReadContext = ReadContext.empty
       val metaData = (xml \ "MetaData").headOption.map(MetaData.MetaDataXmlFormat.read).getOrElse(MetaData.empty)
       ProjectImportDetails(projectId, metaData.label.getOrElse(projectId), metaData.description, XmlZipWithResourcesProjectMarshaling.marshallerId,
         projectAlreadyExists = false, None)
