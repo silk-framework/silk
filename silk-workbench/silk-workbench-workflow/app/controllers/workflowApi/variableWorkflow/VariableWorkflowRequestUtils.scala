@@ -340,6 +340,11 @@ object VariableWorkflowRequestUtils {
       throw BadUserInputException(s"Workflow task '${workflowTask.label()}' must contain at most one replaceable input " +
         s"and one replaceable output dataset. Instead it has ${replaceableDatasets.dataSources.size} replaceable inputs and ${replaceableDatasets.sinks.size} replaceable outputs.")
     }
+    // Fail fast instead of silently running the workflow against its configured inputs without the payload.
+    if (inputPayload.isDefined && replaceableDatasets.dataSources.isEmpty) {
+      throw BadUserInputException(s"Input data was provided, but workflow task '${workflowTask.label()}' has no " +
+        "replaceable input dataset to feed it into. Mark an input dataset as replaceable or omit the input data.")
+    }
     val CustomMimeType = customMimeTypeRegex
     def sourceDatasetType(mime: Option[String]): String = mime match {
       case Some(`jsonMimeType`) | Some(`formUrlEncodedType`) | None => "json"

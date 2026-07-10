@@ -16,6 +16,7 @@ import org.silkframework.plugins.dataset.BinaryFileDataset
 import org.silkframework.plugins.dataset.rdf.datasets.InMemoryDataset
 import org.silkframework.runtime.resource.FileResource
 import org.silkframework.runtime.templating.{TemplateVariable, TemplateVariableScopes, TemplateVariables}
+import org.silkframework.runtime.validation.BadUserInputException
 import org.silkframework.serialization.json.JsonHelpers
 import org.silkframework.util.FileUtils
 import org.silkframework.workbench.workflow.WorkflowWithPayloadExecutor
@@ -272,6 +273,20 @@ class SimpleVariableWorkflowApiTest extends AnyFlatSpec with BeforeAndAfterAll
     val output = workflowTask.activity[WorkflowWithPayloadExecutor].startBlockingAndGetValue(config.configParameters)
     val body = output.resourceManager.get(VariableWorkflowRequestUtils.OUTPUT_FILE_RESOURCE_NAME).loadAsString()
     body must include (inputValue)
+  }
+
+  it should "reject inline input data if the workflow has no replaceable input dataset" in {
+    implicit val proj: Project = project
+    val workflowTask = proj.task[Workflow](outputOnlyWorkflow)
+    an[BadUserInputException] must be thrownBy {
+      VariableWorkflowRequestUtils.workflowConfigFromParameters(
+        workflowTask,
+        inputMimeType = Some(APPLICATION_JSON),
+        inputPayload = Some(s"""{"$sourceProperty1": "value"}"""),
+        outputMimeType = Some(APPLICATION_JSON),
+        fileBasedPluginIds = Seq.empty
+      )
+    }
   }
 
   it should "allow re-configuring the data source and sink parameters" in {
