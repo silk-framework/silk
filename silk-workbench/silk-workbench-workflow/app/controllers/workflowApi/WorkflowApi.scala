@@ -78,7 +78,7 @@ class WorkflowApi @Inject()() extends InjectedController with ControllerUtilsTra
       ),
       new ApiResponse(
         responseCode = "400",
-        description = " Invalid request, e.g. no request parameters provided."
+        description = " Invalid request, e.g. no request parameters provided or the same execution variable is defined both under the reserved 'executionVariables' key of a JSON body and as a 'variable-' query parameter."
       ),
       new ApiResponse(
         responseCode = "404",
@@ -150,7 +150,7 @@ class WorkflowApi @Inject()() extends InjectedController with ControllerUtilsTra
       ),
       new ApiResponse(
         responseCode = "400",
-        description = " Invalid request, e.g. no request parameters provided."
+        description = " Invalid request, e.g. no request parameters provided or the same execution variable is defined both under the reserved 'executionVariables' key of a JSON body and as a 'variable-' query parameter."
       ),
       new ApiResponse(
         responseCode = "404",
@@ -170,7 +170,7 @@ class WorkflowApi @Inject()() extends InjectedController with ControllerUtilsTra
       )
   ))
   @RequestBody(
-    description = "The contents of the variable data source. For JSON payloads, the top-level key 'executionVariables' is reserved: when present, it must be a flat name/value string map and is used as execution-variable overrides for the run — any other value shape is rejected. It never becomes part of the input entity.",
+    description = "The contents of the variable data source. For JSON payloads, the top-level key 'executionVariables' is reserved: when present, it must be a flat name/value string map and is used as execution-variable overrides for the run — any other value shape is rejected. It never becomes part of the input entity. Independent of the payload content type, execution variables can also be provided as query parameters with the reserved prefix 'variable-', e.g. 'variable-myVar=some value'; these are never part of the input entity either.",
     required = false,
     content = Array(
       new Content(
@@ -293,7 +293,7 @@ class WorkflowApi @Inject()() extends InjectedController with ControllerUtilsTra
       ),
       new ApiResponse(
         responseCode = "400",
-        description = " Invalid request, e.g. no request parameters provided."
+        description = " Invalid request, e.g. no request parameters provided or the same execution variable is defined both under the reserved 'executionVariables' key of a JSON body and as a 'variable-' query parameter."
       ),
       new ApiResponse(
         responseCode = "404",
@@ -313,7 +313,7 @@ class WorkflowApi @Inject()() extends InjectedController with ControllerUtilsTra
       )
     ))
   @RequestBody(
-    description = "The contents of the variable data source. For JSON payloads, the top-level key 'executionVariables' is reserved: when present, it must be a flat name/value string map and is used as execution-variable overrides for the run — any other value shape is rejected. It never becomes part of the input entity.",
+    description = "The contents of the variable data source. For JSON payloads, the top-level key 'executionVariables' is reserved: when present, it must be a flat name/value string map and is used as execution-variable overrides for the run — any other value shape is rejected. It never becomes part of the input entity. Independent of the payload content type, execution variables can also be provided as query parameters with the reserved prefix 'variable-', e.g. 'variable-myVar=some value'; these are never part of the input entity either.",
     required = false,
     content = Array(
       new Content(
