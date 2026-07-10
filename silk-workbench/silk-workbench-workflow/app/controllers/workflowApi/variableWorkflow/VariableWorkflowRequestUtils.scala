@@ -383,7 +383,7 @@ object VariableWorkflowRequestUtils {
         "configuration" -> ParameterStringValue(workflowConfig.toString()),
         "configurationType" -> ParameterStringValue(jsonMimeType),
         "optionalPrimaryResourceManager" -> ParameterObjectValue(OptionalPrimaryResourceManagerParameter(Some(resourceManager))),
-        "executionVariables" -> ParameterObjectValue(toTemplateVariablesParameter(executionVariables))
+        WorkflowExecutorFactory.EXECUTION_VARIABLES_PARAMETER -> ParameterObjectValue(TemplateVariablesParameter(executionVariables))
       )),
       variableDataSinkConfig = sinkConfigOpt.map(_.mimeType),
       executionVariables = executionVariables

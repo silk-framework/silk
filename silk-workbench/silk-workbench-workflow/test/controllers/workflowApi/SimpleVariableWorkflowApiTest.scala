@@ -15,10 +15,12 @@ import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.plugins.dataset.BinaryFileDataset
 import org.silkframework.plugins.dataset.rdf.datasets.InMemoryDataset
 import org.silkframework.runtime.resource.FileResource
+import org.silkframework.runtime.templating.{TemplateVariable, TemplateVariableScopes, TemplateVariables}
 import org.silkframework.serialization.json.JsonHelpers
 import org.silkframework.util.FileUtils
-import org.silkframework.workspace.SingleProjectWorkspaceProviderTestTrait
-import org.silkframework.workspace.activity.workflow.{Workflow, WorkflowDataset, WorkflowOperator}
+import org.silkframework.workbench.workflow.WorkflowWithPayloadExecutor
+import org.silkframework.workspace.{Project, SingleProjectWorkspaceProviderTestTrait}
+import org.silkframework.workspace.activity.workflow.{Workflow, WorkflowDataset, WorkflowExecutorFactory, WorkflowOperator}
 import org.silkframework.workspace.annotation.UiAnnotations
 import play.api.libs.json.JsArray
 import play.api.libs.ws.WSResponse
@@ -249,6 +251,27 @@ class SimpleVariableWorkflowApiTest extends AnyFlatSpec with BeforeAndAfterAll
     val response = checkResponseExactStatusCode(
       executeVariableWorkflow(workflowId, contentOpt = Some((s"""{"$sourceProperty1":"$inputValue"}""", APPLICATION_JSON))))
     checkForValues(1, Seq(inputValue), response.body)
+  }
+
+  // Covers the programmatic config builder used by the MCP server (workflowConfigFromParameters).
+  it should "execute a workflow from a config built from explicit parameters" in {
+    implicit val proj: Project = project
+    val workflowTask = proj.task[Workflow](inputOutputWorkflow)
+    val inputValue = "value from explicit parameters"
+    val executionVariables = TemplateVariables(Seq(TemplateVariable("myVar", "my value", scope = TemplateVariableScopes.execution)))
+    val config = VariableWorkflowRequestUtils.workflowConfigFromParameters(
+      workflowTask,
+      inputMimeType = Some(APPLICATION_JSON),
+      inputPayload = Some(s"""{"$sourceProperty1": "$inputValue"}"""),
+      outputMimeType = Some(APPLICATION_JSON),
+      fileBasedPluginIds = Seq.empty,
+      executionVariables = executionVariables
+    )
+    // The variables must be passed under the parameter name the executor factory declares.
+    config.configParameters.values.keySet must contain (WorkflowExecutorFactory.EXECUTION_VARIABLES_PARAMETER)
+    val output = workflowTask.activity[WorkflowWithPayloadExecutor].startBlockingAndGetValue(config.configParameters)
+    val body = output.resourceManager.get(VariableWorkflowRequestUtils.OUTPUT_FILE_RESOURCE_NAME).loadAsString()
+    body must include (inputValue)
   }
 
   it should "allow re-configuring the data source and sink parameters" in {
