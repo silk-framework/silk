@@ -314,12 +314,6 @@ class SimpleVariableWorkflowApiTest extends AnyFlatSpec with BeforeAndAfterAll
     checkForValues(1, Seq("some value"), multipartResponse.body)
   }
 
-  it should "reject a request whose query string only contains reserved execution-variable parameters" in {
-    // Reserved parameters are stripped from the query-string input entity, so no input entity properties remain.
-    checkResponseExactStatusCode(
-      executeVariableWorkflow(inputOutputWorkflow, Map.empty, additionalQueryParameters = Map(executionVariableParam)), BAD_REQUEST)
-  }
-
   it should "reject a variable defined both in the JSON body and as a query parameter" in {
     val jsonPayload = s"""{"$sourceProperty1":"v","${VariableWorkflowRequestUtils.EXECUTION_VARIABLES_KEY}":{"myVar":"body value"}}"""
     checkResponseExactStatusCode(

@@ -14,50 +14,25 @@
 
 package org.silkframework.plugins.operations
 
-import org.scalatest.flatspec.AnyFlatSpec
-import org.scalatest.matchers.should.Matchers
-import org.silkframework.config.{PlainTask, Prefixes, Task, TaskSpec}
-import org.silkframework.entity.paths.TypedPath
-import org.silkframework.entity.{Entity, EntitySchema, ValueType}
+import org.silkframework.config.{Task, TaskSpec}
+import org.silkframework.entity.Entity
 import org.silkframework.execution.ExecutorOutput
 import org.silkframework.execution.local.{GenericEntityTable, LocalEntities, LocalExecution}
-import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.iterator.CloseableIterator
-import org.silkframework.runtime.plugin.{PluginContext, TaskResolver}
-import org.silkframework.runtime.resource.InMemoryResourceManager
-import org.silkframework.runtime.templating.{ExecutionTemplateVariables, VariableScope}
-import org.silkframework.runtime.validation.ValidationException
+import org.silkframework.runtime.templating.ExecutionTemplateVariables
 
-class LocalSetExecutionVariableOperatorExecutorTest extends AnyFlatSpec with Matchers {
-
-  behavior of "LocalSetExecutionVariableOperatorExecutor"
-
-  private val schema = EntitySchema("urn:Person", IndexedSeq(TypedPath("name", ValueType.STRING), TypedPath("city", ValueType.STRING)))
+class LocalSetExecutionVariableOperatorExecutorTest extends SetExecutionVariableOperatorExecutorTest {
 
   private val executor = LocalSetExecutionVariableOperatorExecutor()
 
-  it should "set the variable from the given source path and pass the input through unchanged" in {
-    val variables = ExecutionTemplateVariables(Seq.empty)
-    val result = run(SetExecutionVariableOperator("greeting", sourcePath = "name"), entities, variables)
-
-    variables.get("greeting").value shouldBe "Alice"
-    variables.get("greeting").scope shouldBe VariableScope.execution
-    result.map(_.uri.uri) shouldBe Seq("urn:e1", "urn:e2")
-  }
-
-  it should "use the first value of the input when no source path is given" in {
-    val variables = ExecutionTemplateVariables(Seq.empty)
-    run(SetExecutionVariableOperator("greeting"), entities, variables)
-
-    variables.get("greeting").value shouldBe "Alice"
-  }
-
-  it should "leave the variable unset but still pass through when the input is empty" in {
-    val variables = ExecutionTemplateVariables(Seq.empty)
-    val result = run(SetExecutionVariableOperator("greeting"), Seq.empty, variables)
-
-    variables.all.variables shouldBe empty
-    result shouldBe empty
+  override protected def run(op: SetExecutionVariableOperator,
+                             inputTables: Seq[Seq[Entity]],
+                             variables: ExecutionTemplateVariables): Seq[Entity] = {
+    val opTask = task(op)
+    val inputs: Seq[LocalEntities] = inputTables.map(GenericEntityTable(_, schema, opTask.asInstanceOf[Task[TaskSpec]]))
+    val output = executor.execute(opTask, inputs, ExecutorOutput.empty,
+      LocalExecution(useLocalInternalDatasets = false))(pluginContext(variables))
+    output.map(_.entities.use(_.toList)).getOrElse(Seq.empty)
   }
 
   it should "pass through all entities of a streaming input" in {
@@ -82,32 +57,5 @@ class LocalSetExecutionVariableOperatorExecutorTest extends AnyFlatSpec with Mat
     variables.get("greeting").value shouldBe "Alice"
     result.map(_.uri.uri) shouldBe Seq("urn:e1", "urn:e2")
     closed shouldBe true // consuming the pass-through closes the original source
-  }
-
-  it should "throw a ValidationException when not exactly one input is connected" in {
-    val variables = ExecutionTemplateVariables(Seq.empty)
-    an[ValidationException] should be thrownBy
-      executor.execute(task(SetExecutionVariableOperator("greeting")), Seq.empty, ExecutorOutput.empty,
-        LocalExecution(useLocalInternalDatasets = false))(pluginContext(variables))
-  }
-
-  private val entities: Seq[Entity] = Seq(
-    Entity("urn:e1", IndexedSeq(Seq("Alice"), Seq("Berlin")), schema),
-    Entity("urn:e2", IndexedSeq(Seq("Bob"), Seq("Hamburg")), schema)
-  )
-
-  private def task(op: SetExecutionVariableOperator): Task[SetExecutionVariableOperator] = PlainTask("setVar", op)
-
-  private def pluginContext(variables: ExecutionTemplateVariables): PluginContext =
-    PluginContext(prefixes = Prefixes.empty, resources = InMemoryResourceManager(), user = UserContext.Empty,
-      templateVariables = variables, taskResolver = TaskResolver.empty)
-
-  /** Runs the executor on the given input entities and returns the (pass-through) output entities. */
-  private def run(op: SetExecutionVariableOperator, inputEntities: Seq[Entity], variables: ExecutionTemplateVariables): Seq[Entity] = {
-    val opTask = task(op)
-    val inputTable: LocalEntities = GenericEntityTable(inputEntities, schema, opTask.asInstanceOf[Task[TaskSpec]])
-    val output = executor.execute(opTask, Seq(inputTable), ExecutorOutput.empty,
-      LocalExecution(useLocalInternalDatasets = false))(pluginContext(variables))
-    output.map(_.entities.use(_.toList)).getOrElse(Seq.empty)
   }
 }
