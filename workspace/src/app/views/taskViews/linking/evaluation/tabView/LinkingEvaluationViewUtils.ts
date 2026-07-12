@@ -10,7 +10,12 @@ import {
 } from "./typings";
 import { IAggregationOperator, IComparisonOperator, ISimilarityOperator } from "../../linking.types";
 import { IPluginDetails } from "@ducks/common/typings";
-import { IPathInput, IRuleBlockInput, ITransformOperator, IValueInput } from "views/taskViews/shared/rules/rule.typings";
+import {
+    IPathInput,
+    IRuleBlockInput,
+    ITransformOperator,
+    IValueInput,
+} from "views/taskViews/shared/rules/rule.typings";
 import { TreeNodeInfo } from "@eccenca/gui-elements";
 
 /**
@@ -126,7 +131,9 @@ export const getOperatorLabel = (
             return operatorPlugins.find((plugin) => plugin.pluginId === (operator as ITransformOperator).function)
                 ?.title;
         case "ruleBlockInput":
-            return ruleBlockLabels[(operator as IRuleBlockInput).ruleBlockId] ?? (operator as IRuleBlockInput).ruleBlockId;
+            return (
+                ruleBlockLabels[(operator as IRuleBlockInput).ruleBlockId] ?? (operator as IRuleBlockInput).ruleBlockId
+            );
         case "pathInput":
             return (operator as IPathInput).path || emptyPathLabel;
         default:

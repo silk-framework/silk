@@ -20,7 +20,13 @@ interface RuleEditorViewProps {
 }
 
 /** The main view of the rule editor, integrating toolbar, sidebar and main rule canvas. */
-export const RuleEditorView = ({ showRuleOnly, hideMinimap, zoomRange, readOnlyMode, overlayContent }: RuleEditorViewProps) => {
+export const RuleEditorView = ({
+    showRuleOnly,
+    hideMinimap,
+    zoomRange,
+    readOnlyMode,
+    overlayContent,
+}: RuleEditorViewProps) => {
     const [modalShown, setModalShown] = React.useState(false);
     const [advancedParameterModeEnabled, setAdvancedParameterMode] = React.useState(false);
     const [currentRuleNodeInfo, setCurrentRuleNodeInfo] = React.useState<

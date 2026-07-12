@@ -1,7 +1,4 @@
-import {
-    IRuleOperator,
-    IRuleSideBarFilterTabConfig,
-} from "../../../views/shared/RuleEditor/RuleEditor.typings";
+import { IRuleOperator, IRuleSideBarFilterTabConfig } from "../../../views/shared/RuleEditor/RuleEditor.typings";
 import { RuleBlockPort, IRuleBlockSummary } from "./ruleBlock.types";
 import i18next from "i18next";
 
@@ -22,14 +19,11 @@ const sortRuleBlockPorts = (ports: RuleBlockPort[]): RuleBlockPort[] =>
     [...ports].sort((left, right) => left.displayOrder - right.displayOrder || left.id.localeCompare(right.id));
 
 /** Checks whether a rule editor operator represents a reusable rule block. */
-const isRuleBlockOperator = (
-    operator: { pluginType?: string },
-): operator is IRuleBlockOperatorDetails => operator.pluginType === "RuleBlock";
+const isRuleBlockOperator = (operator: { pluginType?: string }): operator is IRuleBlockOperatorDetails =>
+    operator.pluginType === "RuleBlock";
 
 /** Converts a lightweight rule block summary into the sidebar/operator representation. */
-const ruleBlockSummaryToOperator = (
-    ruleBlockSummary: IRuleBlockSummary,
-): IRuleBlockOperatorDetails => ({
+const ruleBlockSummaryToOperator = (ruleBlockSummary: IRuleBlockSummary): IRuleBlockOperatorDetails => ({
     pluginType: "RuleBlock",
     pluginId: ruleBlockSummary.id,
     label: ruleBlockSummary.label,

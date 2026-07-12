@@ -696,10 +696,7 @@ export function CreateArtefactModal() {
     let artefactListWithProject: IPluginOverview[] = artefactsList
         .filter(
             (artefact) =>
-                !(
-                    artefact.taskType &&
-                    hiddenItemTypes.has(routerOp.itemTypeToPath(artefact.taskType))
-                ) &&
+                !(artefact.taskType && hiddenItemTypes.has(routerOp.itemTypeToPath(artefact.taskType))) &&
                 (selectedDType === "all" ||
                     (artefact.taskType && routerOp.itemTypeToPath(artefact.taskType) === selectedDType)),
         )
@@ -708,7 +705,11 @@ export function CreateArtefactModal() {
     if (removeProjectCategoryAndItem) {
         hiddenItemTypes.add("project");
     }
-    if (showProjectItem && (selectedDType === "all" || selectedDType === "project") && !hiddenItemTypes.has("project")) {
+    if (
+        showProjectItem &&
+        (selectedDType === "all" || selectedDType === "project") &&
+        !hiddenItemTypes.has("project")
+    ) {
         artefactListWithProject = [
             {
                 key: DATA_TYPES.PROJECT,
@@ -1173,10 +1174,7 @@ export function CreateArtefactModal() {
                         <Grid>
                             <GridRow>
                                 <GridColumn small>
-                                    <ArtefactTypesList
-                                        onSelect={handleSelectDType}
-                                        typesToRemove={hiddenItemTypes}
-                                    />
+                                    <ArtefactTypesList onSelect={handleSelectDType} typesToRemove={hiddenItemTypes} />
                                 </GridColumn>
                                 <GridColumn>
                                     <SearchBar

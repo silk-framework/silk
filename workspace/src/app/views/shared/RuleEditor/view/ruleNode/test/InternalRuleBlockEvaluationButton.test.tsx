@@ -79,7 +79,9 @@ describe("InternalRuleBlockEvaluationButton", () => {
         });
 
         expect(
-            renderResult.container.querySelector('[data-test-id="rule-node-open-internal-rule-block-evaluation-icon-btn"]'),
+            renderResult.container.querySelector(
+                '[data-test-id="rule-node-open-internal-rule-block-evaluation-icon-btn"]',
+            ),
         ).toBeDisabled();
     });
 

@@ -29,10 +29,7 @@ export const InternalRuleBlockEvaluationButton = ({ nodeId, t }: InternalRuleBlo
             data-test-id="rule-node-open-internal-rule-block-evaluation-icon-btn"
             name="item-viewdetails"
             disabled={!actionState.enabled}
-            text={t(
-                "RuleEditor.node.action.openInternalRuleBlockEvaluation.tooltip",
-                "Show internal evaluation",
-            )}
+            text={t("RuleEditor.node.action.openInternalRuleBlockEvaluation.tooltip", "Show internal evaluation")}
             onClick={() =>
                 ruleEvaluationContext.openInternalRuleBlockEvaluation?.(
                     nodeId,

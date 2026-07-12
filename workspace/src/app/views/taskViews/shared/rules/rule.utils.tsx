@@ -142,10 +142,13 @@ const extractOperatorNodeFromRuleBlockInput = (
     ruleOperator: RuleOperatorFetchFnType,
 ): string => {
     const op = ruleOperator(ruleBlockInput.ruleBlockId, "RuleBlock");
-    const portIds = op?.portSpecification && isNamedPortSpecification(op.portSpecification)
-        ? op.portSpecification.inputPorts.map((port) => port.id)
-        : ruleBlockInput.bindings.map((binding) => binding.portId);
-    const bindingsByPortId = new Map(ruleBlockInput.bindings.map((binding) => [binding.portId, binding.input] as const));
+    const portIds =
+        op?.portSpecification && isNamedPortSpecification(op.portSpecification)
+            ? op.portSpecification.inputPorts.map((port) => port.id)
+            : ruleBlockInput.bindings.map((binding) => binding.portId);
+    const bindingsByPortId = new Map(
+        ruleBlockInput.bindings.map((binding) => [binding.portId, binding.input] as const),
+    );
     const inputs = portIds.map((portId) => {
         const input = bindingsByPortId.get(portId);
         return input ? extractOperatorNodeFromValueInput(input, result, isTarget, ruleOperator) : undefined;
@@ -664,11 +667,9 @@ const validateConnection = (
         case "TransformOperator":
         case "RuleBlock":
             return (
-                (
-                    targetPluginType === "ComparisonOperator" ||
+                (targetPluginType === "ComparisonOperator" ||
                     targetPluginType === "TransformOperator" ||
-                    targetPluginType === "RuleBlock"
-                ) &&
+                    targetPluginType === "RuleBlock") &&
                 inputPathValidation(fromRuleOperatorNode, toRuleOperatorNode, targetPortIdx)
             );
         default:

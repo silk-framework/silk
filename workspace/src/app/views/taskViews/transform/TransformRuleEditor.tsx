@@ -108,7 +108,9 @@ export const TransformRuleEditor = ({
         return response.data.map(transformEditorUtils.ruleBlockSummaryToOperator);
     }, [projectId]);
     /** Fetches the list of operators that can be used in a transform task. */
-    const fetchTransformRuleOperatorList = React.useCallback(async (): Promise<TransformRuleEditorOperator[] | undefined> => {
+    const fetchTransformRuleOperatorList = React.useCallback(async (): Promise<
+        TransformRuleEditorOperator[] | undefined
+    > => {
         try {
             const [response, ruleBlockOperators] = await Promise.all([
                 requestRuleOperatorPluginsDetails(true),
@@ -161,7 +163,8 @@ export const TransformRuleEditor = ({
                 } else if ((ruleDefinition as ActualRule).rule?.id) {
                     await putTransformRule(projectId, transformTaskId, (ruleDefinition as ActualRule).rule.id!, rule);
                 } else {
-                    const errorMessage = "No ID found to save rule to backend and no alternative save function defined!";
+                    const errorMessage =
+                        "No ID found to save rule to backend and no alternative save function defined!";
                     console.warn(errorMessage);
                     return {
                         success: false,
@@ -200,44 +203,47 @@ export const TransformRuleEditor = ({
     );
 
     /** Converts the linking task rule to the internal representation. */
-    const convertToRuleOperatorNodes = React.useCallback((
-        mappingRule: IComplexMappingRule,
-        ruleOperator: RuleOperatorFetchFnType,
-    ): IRuleOperatorNode[] => {
-        const operatorNodes: IRuleOperatorNode[] = [];
-        ruleUtils.extractOperatorNodeFromValueInput(mappingRule.operator, operatorNodes, false, ruleOperator);
-        const nodePositions = mappingRule.layout.nodePositions;
-        operatorNodes.forEach((node) => {
-            const pos = nodePositions[node.nodeId];
-            if (pos) {
-                node.position = {
-                    x: pos.x,
-                    y: pos.y,
-                };
-                node.dimension = {
-                    ...node.dimension,
-                    width: pos.width ?? undefined,
-                    height: pos.height ?? undefined,
-                };
-            }
-        });
-        return operatorNodes;
-    }, []);
+    const convertToRuleOperatorNodes = React.useCallback(
+        (mappingRule: IComplexMappingRule, ruleOperator: RuleOperatorFetchFnType): IRuleOperatorNode[] => {
+            const operatorNodes: IRuleOperatorNode[] = [];
+            ruleUtils.extractOperatorNodeFromValueInput(mappingRule.operator, operatorNodes, false, ruleOperator);
+            const nodePositions = mappingRule.layout.nodePositions;
+            operatorNodes.forEach((node) => {
+                const pos = nodePositions[node.nodeId];
+                if (pos) {
+                    node.position = {
+                        x: pos.x,
+                        y: pos.y,
+                    };
+                    node.dimension = {
+                        ...node.dimension,
+                        width: pos.width ?? undefined,
+                        height: pos.height ?? undefined,
+                    };
+                }
+            });
+            return operatorNodes;
+        },
+        [],
+    );
 
-    const convertRuleOperator = React.useCallback((
-        operator: TransformRuleEditorOperator,
-        addAdditionParameterSpecifications: (
-            pluginDetails: TransformRuleEditorOperator,
-        ) => [id: string, spec: IParameterSpecification][],
-    ) => {
-        if (transformEditorUtils.isRuleBlockOperator(operator)) {
-            return transformEditorUtils.convertRuleBlockOperator(operator);
-        } else {
-            return ruleUtils.convertRuleOperator(operator, (pluginDetails: IPluginDetails) =>
-                addAdditionParameterSpecifications(pluginDetails),
-            );
-        }
-    }, []);
+    const convertRuleOperator = React.useCallback(
+        (
+            operator: TransformRuleEditorOperator,
+            addAdditionParameterSpecifications: (
+                pluginDetails: TransformRuleEditorOperator,
+            ) => [id: string, spec: IParameterSpecification][],
+        ) => {
+            if (transformEditorUtils.isRuleBlockOperator(operator)) {
+                return transformEditorUtils.convertRuleBlockOperator(operator);
+            } else {
+                return ruleUtils.convertRuleOperator(operator, (pluginDetails: IPluginDetails) =>
+                    addAdditionParameterSpecifications(pluginDetails),
+                );
+            }
+        },
+        [],
+    );
 
     const getStickyNotes = React.useCallback(
         (mapping: IComplexMappingRule): StickyNote[] =>
@@ -273,7 +279,16 @@ export const TransformRuleEditor = ({
                 return [];
             }
         },
-        [containerRuleId, isReferencedRule, mappingEditorContext.taskContext, projectId, registerError, ruleDefinition, t, transformTaskId],
+        [
+            containerRuleId,
+            isReferencedRule,
+            mappingEditorContext.taskContext,
+            projectId,
+            registerError,
+            ruleDefinition,
+            t,
+            transformTaskId,
+        ],
     );
 
     const fetchPartialAutoCompletionResult = React.useCallback(

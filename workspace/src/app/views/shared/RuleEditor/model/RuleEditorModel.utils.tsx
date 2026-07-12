@@ -18,13 +18,7 @@ import { RuleEditorNode, RuleEditorNodeParameterValue } from "./RuleEditorModel.
 import { Connection, Elements, XYPosition } from "react-flow-renderer/dist/types";
 import dagre from "dagre";
 import { NodeContent, RuleNodeContentProps } from "../view/ruleNode/NodeContent";
-import {
-    HandleDefaultProps,
-    IconButton,
-    Markdown,
-    NodeContentProps,
-    NodeDimensions,
-} from "@eccenca/gui-elements";
+import { HandleDefaultProps, IconButton, Markdown, NodeContentProps, NodeDimensions } from "@eccenca/gui-elements";
 import { RuleEditorEvaluationContextProps } from "../contexts/RuleEditorEvaluationContext";
 import { InputPathFunctions } from "../view/ruleNode/PathInputOperator";
 import { InternalRuleBlockEvaluationButton } from "../view/ruleNode/InternalRuleBlockEvaluationButton";

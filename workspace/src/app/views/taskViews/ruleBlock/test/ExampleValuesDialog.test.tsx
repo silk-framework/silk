@@ -5,7 +5,8 @@ import jestTestUtils from "../../../../test/jestTestUtils";
 import ruleTestHelper from "../../shared/rules/tests/ruleTestHelper";
 import type { IRuleBlockInputExample, RuleBlockPort } from "../ruleBlock.types";
 
-const createBubblingTagMock = () =>
+const createBubblingTagMock =
+    () =>
     ({ children, onClick, onRemove, intent, ...props }) => (
         <span>
             <button onClick={onClick} data-intent={intent} {...jestTestUtils.omitUnsupportedDomProps(props)}>
@@ -24,22 +25,19 @@ const createBubblingTagMock = () =>
         </span>
     );
 
-const createCheckboxMock = () =>
+const createCheckboxMock =
+    () =>
     ({ checked, onChange, id }) => (
-        <input
-            id={id}
-            type="checkbox"
-            checked={checked}
-            onChange={(event) => onChange(event)}
-        />
+        <input id={id} type="checkbox" checked={checked} onChange={(event) => onChange(event)} />
     );
 
 const createExampleValuesDialogGuiElementsModule = () => {
     const React = require("react");
     const createFlexibleLayoutMock =
         () =>
-        ({ children, growFactor, shrinkFactor, vertical, noEqualItemSpace, gapSize, ...props }) =>
-            <div {...jestTestUtils.omitUnsupportedDomProps(props)}>{children}</div>;
+        ({ children, growFactor, shrinkFactor, vertical, noEqualItemSpace, gapSize, ...props }) => (
+            <div {...jestTestUtils.omitUnsupportedDomProps(props)}>{children}</div>
+        );
     const OverflowTextMock = ({ children, inline, ...props }) => (
         <span {...jestTestUtils.omitUnsupportedDomProps(props)}>{children}</span>
     );
@@ -383,10 +381,7 @@ describe("ExampleValuesDialog", () => {
         render(
             <harness.ExampleValuesDialog
                 ports={[createPort()]}
-                inputExamples={[
-                    createExample(),
-                    createExample({ id: "example-2", label: "Second example" }),
-                ]}
+                inputExamples={[createExample(), createExample({ id: "example-2", label: "Second example" })]}
                 highlightedPortId={undefined}
                 selectedExampleIdsForEvaluation={["example-1"]}
                 onClose={jest.fn()}

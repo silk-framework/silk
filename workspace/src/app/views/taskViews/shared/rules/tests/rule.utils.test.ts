@@ -36,7 +36,7 @@ describe("Rule utils", () => {
                 ruleNode("B", { inputs: ["A"] }),
                 ruleNode("C", { inputs: ["B"] }),
                 ruleNode("D"),
-            ])
+            ]),
         ).toStrictEqual(["C", "D"]);
         const ruleNodes = [ruleNode("A"), ruleNode("B"), ruleNode("C", { inputs: ["A", "B"] })];
         expect(rootNodeIds(ruleNodes)).toStrictEqual(["C"]);
@@ -50,14 +50,14 @@ describe("Rule utils", () => {
         const validateTrue = (sourceNode: string, targetNode: string, targetPort: number = 0) => {
             if (!utils.validateConnection(ruleTree.get(sourceNode)!!, ruleTree.get(targetNode)!!, targetPort)) {
                 throw Error(
-                    `Connection from '${sourceNode}' to '${targetNode}' in input ${targetPort} is not a valid connection, but must be!`
+                    `Connection from '${sourceNode}' to '${targetNode}' in input ${targetPort} is not a valid connection, but must be!`,
                 );
             }
         };
         const validateFalse = (sourceNode: string, targetNode: string, targetPort: number = 0) => {
             if (utils.validateConnection(ruleTree.get(sourceNode)!!, ruleTree.get(targetNode)!!, targetPort)) {
                 throw Error(
-                    `Connection from '${sourceNode}' to '${targetNode}' in input ${targetPort} is a valid connection, but must not be!`
+                    `Connection from '${sourceNode}' to '${targetNode}' in input ${targetPort} is a valid connection, but must not be!`,
                 );
             }
         };
@@ -84,7 +84,7 @@ describe("Rule utils", () => {
                 operator("a2", "AggregationOperator"),
                 ...additionalNodes,
             ],
-            edges
+            edges,
         );
 
     it("should validate connections from input paths to other operators", () => {
@@ -119,7 +119,10 @@ describe("Rule utils", () => {
 
     it("should validate connections from rule block operators like transform operators", () => {
         const [validateTrue, validateFalse] = validateRuleTreeFactory(
-            ruleTree([edge("sp1", "rb1"), edge("tp1", "rb2")], [operator("rb1", "RuleBlock"), operator("rb2", "RuleBlock")])
+            ruleTree(
+                [edge("sp1", "rb1"), edge("tp1", "rb2")],
+                [operator("rb1", "RuleBlock"), operator("rb2", "RuleBlock")],
+            ),
         );
         validateTrue("sp2", "rb1");
         validateTrue("tp2", "rb1");
@@ -160,7 +163,7 @@ describe("Rule utils", () => {
 
     it("should validate simple value chains", () => {
         const [validateTrue, validateFalse] = validateRuleTreeFactory(
-            ruleTree([edge("sp1", "t1"), edge("tp1", "t2"), edge("t3", "c1"), edge("t4", "c2", 1)])
+            ruleTree([edge("sp1", "t1"), edge("tp1", "t2"), edge("t3", "c1"), edge("t4", "c2", 1)]),
         );
         /** Path to transform */
         validateTrue("sp2", "t3");
@@ -198,7 +201,7 @@ describe("Rule utils", () => {
 
     it("should validate complex value chain combinations", () => {
         const [validateTrue, validateFalse] = validateRuleTreeFactory(
-            ruleTree([edge("sp1", "t1"), edge("t1", "c1"), edge("tp1", "t2")])
+            ruleTree([edge("sp1", "t1"), edge("t1", "c1"), edge("tp1", "t2")]),
         );
         validateFalse("tp1", "t1");
         validateFalse("tp1", "t1", 1);
@@ -235,8 +238,8 @@ describe("Rule utils", () => {
                     operator("reverseT1", "ComparisonOperator", undefined, true),
                     operator("reverseT2", "ComparisonOperator", undefined, true),
                     operator("reverseT3", "ComparisonOperator", undefined, true),
-                ]
-            )
+                ],
+            ),
         );
         // reversible comparator without inputs takes any connection
         validateTrue("tp3", "reverseNoInput");
@@ -351,7 +354,7 @@ const operator = (
     nodeId: string,
     pluginType: RuleOperatorPluginType | PluginType,
     pluginId: TestPluginType = "doesntMatter",
-    inputsCanBeSwitched: boolean = false
+    inputsCanBeSwitched: boolean = false,
 ): TestOperator => {
     return { nodeId, pluginType, pluginId, inputsCanBeSwitched };
 };

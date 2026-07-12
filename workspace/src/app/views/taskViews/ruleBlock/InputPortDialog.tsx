@@ -62,9 +62,7 @@ export const InputPortDialog = ({
         ? t("taskViews.ruleBlock.errors.displayOrderRequired")
         : !Number.isInteger(parsedDisplayOrder)
           ? t("taskViews.ruleBlock.errors.invalidDisplayOrder")
-          : existingPorts.some(
-                (port) => port.id !== editedPortId && port.displayOrder === parsedDisplayOrder,
-            )
+          : existingPorts.some((port) => port.id !== editedPortId && port.displayOrder === parsedDisplayOrder)
             ? t("taskViews.ruleBlock.errors.duplicateDisplayOrder", { displayOrder: parsedDisplayOrder })
             : undefined;
     const usedPortCompatibilityError =
@@ -150,9 +148,7 @@ export const InputPortDialog = ({
                     onChange={(event: React.ChangeEvent<HTMLInputElement>) => setDisplayOrder(event.target.value)}
                 />
             </FieldItem>
-            <FieldItem
-                labelProps={{ text: t("common.words.description"), htmlFor: "input-port-description" }}
-            >
+            <FieldItem labelProps={{ text: t("common.words.description"), htmlFor: "input-port-description" }}>
                 <TextArea
                     id="input-port-description"
                     value={description}

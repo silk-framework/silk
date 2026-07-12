@@ -92,9 +92,7 @@ const validateSupportedRuleBlockPaste = (nodes: RuleNodeCopySerialization[]) => 
     switch (disallowedPlugin.pluginType) {
         case "ComparisonOperator":
         case "AggregationOperator":
-            throw new Error(
-                i18next.t("taskViews.ruleBlock.errors.pasteUnsupportedOperators"),
-            );
+            throw new Error(i18next.t("taskViews.ruleBlock.errors.pasteUnsupportedOperators"));
         case "RuleBlock":
             throw new Error(i18next.t("taskViews.ruleBlock.errors.pasteNestedRuleBlocks"));
         default:
@@ -159,10 +157,7 @@ const createGeneratedPort = (
 };
 
 /** Reuses or recreates the logical input port referenced by a pasted InputPortOperator node. */
-const resolveInputPortNodePort = (
-    node: RuleNodeCopySerialization,
-    state: RuleBlockPasteState,
-): RuleBlockPort => {
+const resolveInputPortNodePort = (node: RuleNodeCopySerialization, state: RuleBlockPasteState): RuleBlockPort => {
     const copiedPortId = ruleEditorNodeParameterValue(node.parameters?.portId)?.trim();
     if (!copiedPortId) {
         throw new Error("Pasted input-port node is missing its logical port ID.");
@@ -192,10 +187,7 @@ const resolveInputPortNodePort = (
 };
 
 /** Reuses or creates the generated logical input port that represents a pasted dataset-path leaf. */
-const resolvePathDerivedPort = (
-    node: RuleNodeCopySerialization,
-    state: RuleBlockPasteState,
-): RuleBlockPort => {
+const resolvePathDerivedPort = (node: RuleNodeCopySerialization, state: RuleBlockPasteState): RuleBlockPort => {
     const identity = pathPortIdentity(node);
     const reusedCreatedPort = state.createdPortsByPathIdentity.get(identity);
     if (reusedCreatedPort) {
@@ -211,10 +203,7 @@ const resolvePathDerivedPort = (
 };
 
 /** Rewrites a pasted InputPortOperator node so it points at the correct logical input port in the destination block. */
-const rewriteInputPortNode = (
-    node: InputPortPasteNode,
-    state: RuleBlockPasteState,
-): RuleNodeCopySerialization => {
+const rewriteInputPortNode = (node: InputPortPasteNode, state: RuleBlockPasteState): RuleNodeCopySerialization => {
     const resolvedPort = resolveInputPortNodePort(node, state);
     return {
         ...node,
@@ -226,10 +215,7 @@ const rewriteInputPortNode = (
 };
 
 /** Rewrites a pasted dataset-path leaf into a logical InputPortOperator node. */
-const rewritePathNode = (
-    node: PathPasteNode,
-    state: RuleBlockPasteState,
-): RuleNodeCopySerialization => {
+const rewritePathNode = (node: PathPasteNode, state: RuleBlockPasteState): RuleNodeCopySerialization => {
     const createdPort = resolvePathDerivedPort(node, state);
     return {
         ...node,

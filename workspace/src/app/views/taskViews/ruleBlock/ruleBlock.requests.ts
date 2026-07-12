@@ -5,9 +5,7 @@ import { IRuleBlockModel, IRuleBlockSummary } from "./ruleBlock.types";
 import { EvaluatedTransformEntity } from "../transform/transform.types";
 
 /** Fetches lightweight summaries of all reusable rule blocks in a project. */
-export const requestRuleBlockSummaries = async (
-    projectId: string,
-): Promise<FetchResponse<IRuleBlockSummary[]>> => {
+export const requestRuleBlockSummaries = async (projectId: string): Promise<FetchResponse<IRuleBlockSummary[]>> => {
     return fetch({
         url: projectApi(`/${projectId}/ruleBlocks`),
     });

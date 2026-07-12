@@ -18,7 +18,7 @@ describe("websocketUtils", () => {
         expect(convertToWebsocketUrl("http://websocketserver.com")).toBe("ws://websocketserver.com");
         expect(convertToWebsocketUrl("http://websocketserver.com/path/")).toBe("ws://websocketserver.com/path/");
         expect(convertToWebsocketUrl("https://websocketserver.com/some/path?param1=val1&param2=val2")).toBe(
-            "wss://websocketserver.com/some/path?param1=val1&param2=val2"
+            "wss://websocketserver.com/some/path?param1=val1&param2=val2",
         );
     });
 
@@ -35,7 +35,7 @@ describe("websocketUtils", () => {
             () => {
                 errorIsRegistered = true;
             },
-            100
+            100,
         );
         const testMsg = `{"event": "testing"}`;
         await server.connected;

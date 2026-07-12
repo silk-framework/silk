@@ -123,15 +123,17 @@ export function RuleOperatorList<T>({
                                         onClick={resetCycleTask}
                                     />
                                 ) : null}
-                                {showCycleButton ? <Button
-                                    minimal
-                                    data-test-id={"cycle-through-nodes"}
-                                    rightIcon={"navigation-jump"}
-                                    text={isActiveTaskItem ? `${(taskCycleIndex || 0) + 1}/${totalMatches}` : ""}
-                                    tooltip={t("RuleEditor.sidebar.cycleTooltip", { totalMatches })}
-                                    tooltipProps={{ placement: "bottom", usePortal: false }}
-                                    onClick={() => cycleThroughTaskNodes(ruleOperator.pluginId)}
-                                /> : null}
+                                {showCycleButton ? (
+                                    <Button
+                                        minimal
+                                        data-test-id={"cycle-through-nodes"}
+                                        rightIcon={"navigation-jump"}
+                                        text={isActiveTaskItem ? `${(taskCycleIndex || 0) + 1}/${totalMatches}` : ""}
+                                        tooltip={t("RuleEditor.sidebar.cycleTooltip", { totalMatches })}
+                                        tooltipProps={{ placement: "bottom", usePortal: false }}
+                                        onClick={() => cycleThroughTaskNodes(ruleOperator.pluginId)}
+                                    />
+                                ) : null}
                             </OverviewItemActions>
                         ) : null}
                     </OverviewItem>

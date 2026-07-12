@@ -72,7 +72,16 @@ export const RuleBlockInternalEvaluationModal = ({
         return () => {
             active = false;
         };
-    }, [inputExamples, projectId, ruleBlockId, snapshot.layout, snapshot.operatorTree, snapshot.ports, snapshot.uiAnnotations, t]);
+    }, [
+        inputExamples,
+        projectId,
+        ruleBlockId,
+        snapshot.layout,
+        snapshot.operatorTree,
+        snapshot.ports,
+        snapshot.uiAnnotations,
+        t,
+    ]);
 
     return (
         <RuleEditorBaseModal
@@ -89,7 +98,9 @@ export const RuleBlockInternalEvaluationModal = ({
                     onClick={() => setFullScreen((current) => !current)}
                     data-test-id="toggle-fullscreen-btn"
                     text={
-                        fullScreen ? t("common.action.minimize", { defaultValue: "Minimize" }) : t("common.action.maximize", { defaultValue: "Maximize" })
+                        fullScreen
+                            ? t("common.action.minimize", { defaultValue: "Minimize" })
+                            : t("common.action.maximize", { defaultValue: "Maximize" })
                     }
                     name={fullScreen ? "toggler-minimize" : "toggler-maximize"}
                 />,
@@ -111,9 +122,7 @@ export const RuleBlockInternalEvaluationModal = ({
                     ruleBlockLabel,
                 }}
             >
-                <RuleBlockEvaluationOptionalContext.Provider
-                    value={{ externalEvaluationResults: evaluationResults }}
-                >
+                <RuleBlockEvaluationOptionalContext.Provider value={{ externalEvaluationResults: evaluationResults }}>
                     {evaluationError ? (
                         <Notification intent="danger">{evaluationError}</Notification>
                     ) : evaluationResults !== undefined ? (
