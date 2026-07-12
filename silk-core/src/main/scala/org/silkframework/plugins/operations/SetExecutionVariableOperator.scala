@@ -15,7 +15,7 @@
 package org.silkframework.plugins.operations
 
 import org.silkframework.config.{CustomTask, FixedNumberOfInputs, FixedSchemaPort, FlexibleSchemaPort, InputPorts, Port, UnknownSchemaPort}
-import org.silkframework.entity.EntitySchema
+import org.silkframework.entity.{Entity, EntitySchema}
 import org.silkframework.entity.paths.UntypedPath
 import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
 import org.silkframework.util.Uri
@@ -64,4 +64,12 @@ case class SetExecutionVariableOperator(@Param("Name of the execution variable t
 
   /** Passes the input through unchanged; the schema depends on the connected input. */
   override def outputPort: Option[Port] = Some(UnknownSchemaPort)
+
+  /** Extracts the variable value from an entity: the value at the source path, or the first value if no path is set. */
+  def extractValue(entity: Entity): Option[String] = {
+    parsedSourcePath match {
+      case Some(path) => entity.valueOfPath(path).headOption
+      case None => entity.values.flatten.headOption
+    }
+  }
 }

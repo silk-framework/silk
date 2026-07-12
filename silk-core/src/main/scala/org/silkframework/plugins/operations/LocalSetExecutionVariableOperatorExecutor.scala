@@ -14,7 +14,7 @@
 
 package org.silkframework.plugins.operations
 
-import org.silkframework.config.{Prefixes, Task}
+import org.silkframework.config.Task
 import org.silkframework.execution.local.{GenericEntityTable, LocalEntities, LocalExecution, LocalExecutor}
 import org.silkframework.execution.{ExecutionReport, ExecutorOutput}
 import org.silkframework.runtime.activity.{ActivityContext, ActivityMonitor}
@@ -41,7 +41,6 @@ case class LocalSetExecutionVariableOperatorExecutor() extends LocalExecutor[Set
     if (inputs.size != 1) {
       throw new ValidationException(s"Set execution variable operator expects exactly one input, but got ${inputs.size}.")
     }
-    implicit val prefixes: Prefixes = pluginContext.prefixes
     val spec = task.data
     val input = inputs.head
     val source = input.entities
@@ -52,10 +51,7 @@ case class LocalSetExecutionVariableOperatorExecutor() extends LocalExecutor[Set
       if (source.hasNext) {
         try {
           val first = source.next()
-          val value =
-            if (spec.sourcePath.trim.nonEmpty) first.singleValue(spec.sourcePath.trim)
-            else first.values.flatten.headOption
-          value.foreach { v =>
+          spec.extractValue(first).foreach { v =>
             pluginContext.templateVariables.setExecutionVariable(
               TemplateVariable(name = spec.variableName, value = v, scope = VariableScope.execution))
           }
