@@ -15,7 +15,7 @@ import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.plugins.dataset.BinaryFileDataset
 import org.silkframework.plugins.dataset.rdf.datasets.InMemoryDataset
 import org.silkframework.runtime.resource.FileResource
-import org.silkframework.runtime.templating.{TemplateVariable, TemplateVariableScopes, TemplateVariables}
+import org.silkframework.runtime.templating.{TemplateVariable, TemplateVariables, VariableScope}
 import org.silkframework.runtime.validation.BadUserInputException
 import org.silkframework.workbench.utils.NotAcceptableException
 import org.silkframework.serialization.json.JsonHelpers
@@ -260,7 +260,7 @@ class SimpleVariableWorkflowApiTest extends AnyFlatSpec with BeforeAndAfterAll
     implicit val proj: Project = project
     val workflowTask = proj.task[Workflow](inputOutputWorkflow)
     val inputValue = "value from explicit parameters"
-    val executionVariables = TemplateVariables(Seq(TemplateVariable("myVar", "my value", scope = TemplateVariableScopes.execution)))
+    val executionVariables = TemplateVariables(Seq(TemplateVariable("myVar", "my value", scope = VariableScope.execution)))
     val config = VariableWorkflowRequestUtils.workflowConfigFromParameters(
       workflowTask,
       inputMimeType = Some(APPLICATION_JSON),
