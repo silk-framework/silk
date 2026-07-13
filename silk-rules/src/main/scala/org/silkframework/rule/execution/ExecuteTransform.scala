@@ -20,10 +20,12 @@ class ExecuteTransform(task: Task[TransformSpec],
                        input: UserContext => DataSource,
                        output: UserContext => EntitySink,
                        errorOutput: UserContext => Option[EntitySink] = _ => None,
-                       pluginContext: UserContext => PluginContext,
-                       limit: Option[Int] = None) extends Activity[TransformReport] {
+                       pluginContext: UserContext => PluginContext) extends Activity[TransformReport] {
 
   private def transform = task.data
+
+  /** Optional limit on the number of input entities to transform, configured on the transform task. */
+  private def inputLimit: Option[Int] = transform.inputLimit
 
   require(transform.rules.count(_.target.isEmpty) <= 1, "Only one rule with empty target property (subject rule) allowed.")
 
@@ -87,22 +89,23 @@ class ExecuteTransform(task: Task[TransformSpec],
     errorEntitySink.foreach(_.openTable(rule.outputSchema.typeUri, rule.outputSchema.typedPaths.map(_.property.get) :+ ErrorOutputWriter.errorProperty, singleEntity))
 
     val entityTable = try {
-      dataSource.retrieve(rule.inputSchema)
+      // Push the input limit down to the data source (best-effort; not every source honors it).
+      dataSource.retrieve(rule.inputSchema, inputLimit)
     } catch {
       case NonFatal(ex) =>
         throw new RuntimeException("Failed to retrieve input entities from data source.", ex)
     }
-    val transformedEntities = new TransformedEntities(task, entityTable.entities, rule.transformRule.label(), rule.transformRuleExecution, rule.outputSchema,
+    // Enforce the input limit client-side as well, since the push-down is best-effort.
+    val inputEntities = inputLimit.map(entityTable.entities.take).getOrElse(entityTable.entities)
+    val transformedEntities = new TransformedEntities(task, inputEntities, rule.transformRule.label(), rule.transformRuleExecution, rule.outputSchema,
       isRequestedSchema = false, abortIfErrorsOccur = task.data.abortIfErrorsOccur, report = reportBuilder).iterator
-    var count = 0
     breakable {
       for (entity <- transformedEntities) {
         entitySink.writeEntity(entity.uri, entity.values)
         if(entity.hasFailed) {
           errorEntitySink.foreach(_.writeEntity(entity.uri, entity.values :+ Seq(entity.failure.get.message.getOrElse("Unknown error"))))
         }
-        count += 1
-        if (cancelled || limit.exists(_ <= count)) {
+        if (cancelled) {
           break()
         }
       }
