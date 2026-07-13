@@ -11,7 +11,6 @@ import {
     GridColumn,
     TitleMainsection,
     Divider,
-    WorkspaceSide,
     Notification,
     Button,
     IconButton,
@@ -200,7 +199,6 @@ const Activities = () => {
                     </Grid>
                 </Section>
             </WorkspaceMain>
-            <WorkspaceSide></WorkspaceSide>
         </WorkspaceContent>
     );
 };

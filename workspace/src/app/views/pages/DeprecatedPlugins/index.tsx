@@ -7,7 +7,6 @@ import {
     Spacing,
     WorkspaceContent,
     WorkspaceMain,
-    WorkspaceSide,
 } from "@eccenca/gui-elements";
 import useErrorHandler from "../../../hooks/useErrorHandler";
 import { useTranslation } from "react-i18next";
@@ -170,7 +169,6 @@ export default function DeprecatedPlugins() {
                     </GridRow>
                 </Grid>
             </WorkspaceMain>
-            <WorkspaceSide></WorkspaceSide>
         </WorkspaceContent>
     );
 }

@@ -1,7 +1,9 @@
-import React, { useState } from "react";
+import React from "react";
+import { ApplicationContainer, shadcn } from "@eccenca/gui-elements";
 import { Header } from "../Header/Header";
+import { AppSidebar } from "../AppSidebar/AppSidebar";
 import { RecentlyViewedModal } from "../../shared/modals/RecentlyViewedModal";
-import { ApplicationContainer, ApplicationContent } from "@eccenca/gui-elements";
+import { CreateArtefactModal } from "../../shared/modals/CreateArtefactModal/CreateArtefactModal";
 import { KeyboardShortcutsModal } from "../Header/KeyboardShortcutsModal";
 
 interface IProps {
@@ -13,24 +15,18 @@ interface IProps {
  * @param children
  */
 export function AppLayout({ children }: IProps) {
-    const [sideNavExpanded, setSideNavExpanded] = useState(false);
-
     return (
         <>
             <ApplicationContainer monitorDropzonesFor={["application/reactflow", "Files"]}>
-                <Header
-                    isApplicationSidebarExpanded={sideNavExpanded}
-                    onClickApplicationSidebarExpand={() => {
-                        setSideNavExpanded(!sideNavExpanded);
-                    }}
-                />
-                <ApplicationContent
-                    isApplicationSidebarExpanded={sideNavExpanded}
-                    isApplicationSidebarRail={!sideNavExpanded}
-                >
-                    {children}
-                </ApplicationContent>
+                <shadcn.SidebarProvider>
+                    <AppSidebar />
+                    <shadcn.SidebarInset>
+                        <Header />
+                        <div className="diapp__insetcontent min-w-0 flex-1 p-3.5">{children}</div>
+                    </shadcn.SidebarInset>
+                </shadcn.SidebarProvider>
             </ApplicationContainer>
+            <CreateArtefactModal />
             <RecentlyViewedModal />
             <KeyboardShortcutsModal />
         </>

@@ -31,7 +31,6 @@ import { atomicParamDescription, mockAutoCompleteResponse, objectParamDescriptio
 import { INPUT_TYPES } from "../../../../src/app/constants";
 import { TaskTypes } from "../../../../src/app/store/ducks/shared/typings";
 import { MemoryHistory } from "history/createMemoryHistory";
-import { bluePrintClassPrefix } from "../../../HierarchicalMapping/utils/TestHelpers";
 
 describe("Task creation widget", () => {
     beforeAll(() => {
@@ -366,7 +365,6 @@ describe("Task creation widget", () => {
             autoCompleteInput.focus();
         });
         changeInputValue(autoCompleteInput as HTMLInputElement, "abc");
-        const beforePortals = window.document.querySelectorAll(`div.${bluePrintClassPrefix}-portal`).length;
         await waitFor(() => {
             expect(window.document.querySelectorAll(".eccgui-spinner").length).toBe(1);
         });

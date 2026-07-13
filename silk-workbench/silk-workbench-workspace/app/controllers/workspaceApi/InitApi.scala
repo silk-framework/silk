@@ -33,6 +33,7 @@ case class InitApi @Inject()() extends InjectedController with UserContextAction
   private val playMaxFileUploadSizeKey = "play.http.parser.maxDiskBuffer"
   private val assistantConfigKey = "com.eccenca.di.assistant.ApiConfig"
   private val mappingCreatorEnabledKey = "com.eccenca.di.mappingCreatorEnabled"
+  private val llmConfigKey = "com.eccenca.di.llm"
   private val versionKey = "workbench.version"
   private lazy val cfg = DefaultConfig.instance()
   private val log: Logger = Logger.getLogger(getClass.getName)
@@ -60,6 +61,15 @@ case class InitApi @Inject()() extends InjectedController with UserContextAction
     cfg.hasPath(mappingCreatorEnabledKey) && cfg.getBoolean(mappingCreatorEnabledKey)
   }
 
+  /** True, if the server-side LLM gateway is enabled and configured with an API key. */
+  lazy val llmEnabled: Boolean = {
+    cfg.hasPath(llmConfigKey) && {
+      val llmCfg = cfg.getConfig(llmConfigKey)
+      llmCfg.hasPath("enabled") && llmCfg.getBoolean("enabled") &&
+        llmCfg.hasPath("apiKey") && llmCfg.getString("apiKey").trim.nonEmpty
+    }
+  }
+
   @Operation(
     summary = "Init frontend",
     description = "Returns information that is necessary for the frontend initialization or otherwise needed from the beginning on.",
@@ -84,6 +94,7 @@ case class InitApi @Inject()() extends InjectedController with UserContextAction
       "templatingEnabled" -> GlobalTemplateVariablesConfig.isEnabled,
       "assistantSupported" -> assistantSupported,
       "mappingCreatorEnabled" -> mappingCreatorEnabled,
+      "llmEnabled" -> llmEnabled,
       "aclEnabled" -> AccessControlConfig().enabled
     )
     val withDmUrl = dmBaseUrl.map { url =>

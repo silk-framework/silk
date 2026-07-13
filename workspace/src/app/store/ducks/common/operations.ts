@@ -51,7 +51,6 @@ const {
     setExportTypes,
     changeLanguage,
     toggleNotificationMenuDisplay,
-    toggleUserMenuDisplay,
 } = commonSlice.actions;
 
 let artefactModalLoadingRequests = 0;
@@ -498,7 +497,6 @@ const commonOps = {
     extractDataAttributes,
     splitParameterAndVariableTemplateParameters,
     toggleNotificationMenuDisplay,
-    toggleUserMenuDisplay,
 };
 
 export default commonOps;

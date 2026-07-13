@@ -2,11 +2,9 @@ import React, { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { useParams } from "react-router";
 import { useTranslation } from "react-i18next";
-import { Section, Spacing, WorkspaceContent, WorkspaceMain, WorkspaceSide } from "@eccenca/gui-elements";
+import { Section, Spacing, WorkspaceContent, WorkspaceMain } from "@eccenca/gui-elements";
 import { commonSel } from "@ducks/common";
 import { DATA_TYPES } from "../../../constants";
-import { RelatedItems } from "../../shared/RelatedItems/RelatedItems";
-import { TaskConfig } from "../../shared/TaskConfig/TaskConfig";
 import { Loading } from "../../shared/Loading/Loading";
 import { ProjectTaskTabView } from "../../shared/projectTaskTabView/ProjectTaskTabView";
 import { usePageHeader } from "../../shared/PageHeader/PageHeader";
@@ -15,11 +13,12 @@ import Metadata from "../../shared/Metadata";
 import NotFound from "../NotFound";
 import { ProjectForbiddenNotification } from "../../shared/ProjectForbiddenNotification";
 import { ProjectTaskParams } from "../../shared/typings";
-import { TaskActivityOverview } from "../../shared/TaskActivityOverview/TaskActivityOverview";
 import { pluginRegistry, SUPPORTED_PLUGINS } from "../../plugins/PluginRegistry";
 import { DataPreviewProps } from "../../plugins/plugin.types";
-import { IPluginDetails } from "@ducks/common/typings";
 import DeprecatedPluginsBanner from "../Project/DeprecatedPlugins/DeprecatedPluginsBanner";
+import { RelatedItemsMenu } from "../../shared/PageHeaderMenus/RelatedItemsMenu";
+import { TaskActivitiesMenu } from "../../shared/PageHeaderMenus/TaskActivitiesMenu";
+import { useTaskPluginDetails } from "../../shared/TaskConfig/useTaskPluginDetails";
 
 // The dataset plugins that should show the data preview automatically without user interaction.
 const automaticallyPreviewedDatasets = ["json", "xml", "csv"];
@@ -29,7 +28,7 @@ const noDataPreviewDatasets = ["variableDataset"];
 export function Dataset() {
     const { taskId, projectId } = useParams<ProjectTaskParams>();
     const [t] = useTranslation();
-    const [pluginDetails, setPluginDetails] = React.useState<IPluginDetails | undefined>();
+    const pluginDetails = useTaskPluginDetails(projectId, taskId);
     const [notFound, setNotFound] = useState(false);
     const [forbidden, setForbidden] = useState(false);
     const { dmBaseUrl } = useSelector(commonSel.initialSettingsSelector);
@@ -72,9 +71,16 @@ export function Dataset() {
         alternateDepiction: "artefact-dataset",
     });
 
-    const pluginDataCallback = React.useCallback((details: IPluginDetails) => {
-        setPluginDetails(details);
-    }, []);
+    // Must be referentially stable, since a change re-triggers the page header actions update.
+    const headerMenus = React.useMemo(
+        () => (
+            <>
+                <RelatedItemsMenu />
+                <TaskActivitiesMenu projectId={projectId} taskId={taskId} />
+            </>
+        ),
+        [projectId, taskId],
+    );
 
     return forbidden ? (
         <ProjectForbiddenNotification />
@@ -90,6 +96,7 @@ export function Dataset() {
                 updateActionsMenu={updateActionsMenu}
                 notFoundCallback={setNotFound}
                 forbiddenCallback={setForbidden}
+                headerMenus={headerMenus}
             />
             <WorkspaceMain>
                 <Section>
@@ -104,15 +111,6 @@ export function Dataset() {
                     )}
                 </Section>
             </WorkspaceMain>
-            <WorkspaceSide>
-                <Section>
-                    <RelatedItems />
-                    <Spacing />
-                    <TaskConfig projectId={projectId} taskId={taskId} pluginDataCallback={pluginDataCallback} />
-                    <Spacing />
-                    <TaskActivityOverview projectId={projectId} taskId={taskId} />
-                </Section>
-            </WorkspaceSide>
         </WorkspaceContent>
     );
 }

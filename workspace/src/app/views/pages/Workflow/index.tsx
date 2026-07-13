@@ -1,17 +1,16 @@
 import React, { useState } from "react";
 import { useParams } from "react-router";
-import { Section, Spacing, WorkspaceContent, WorkspaceMain, WorkspaceSide } from "@eccenca/gui-elements";
+import { Section, Spacing, WorkspaceContent, WorkspaceMain } from "@eccenca/gui-elements";
 import { DATA_TYPES } from "../../../constants";
 import Metadata from "../../shared/Metadata";
-import { RelatedItems } from "../../shared/RelatedItems/RelatedItems";
 import { ProjectTaskTabView } from "../../shared/projectTaskTabView/ProjectTaskTabView";
 import { usePageHeader } from "../../shared/PageHeader/PageHeader";
 import { ArtefactManagementOptions } from "../../shared/ActionsMenu/ArtefactManagementOptions";
 import NotFound from "../NotFound";
 import { ProjectForbiddenNotification } from "../../shared/ProjectForbiddenNotification";
 import { ProjectTaskParams } from "../../shared/typings";
-import VariablesWidget from "../../../views/shared/VariablesWidget/VariablesWidget";
-import { DeprecatedPluginsWidget } from "../Project/DeprecatedPlugins/DeprecatedPluginsWidget";
+import DeprecatedPluginsBanner from "../Project/DeprecatedPlugins/DeprecatedPluginsBanner";
+import { RelatedItemsMenu } from "../../shared/PageHeaderMenus/RelatedItemsMenu";
 
 export default function WorkflowPage() {
     const { taskId, projectId } = useParams<ProjectTaskParams>();
@@ -35,6 +34,12 @@ export default function WorkflowPage() {
         );
     };
 
+    // Must be referentially stable, since a change re-triggers the page header actions update.
+    const headerMenus = React.useMemo(
+        () => <RelatedItemsMenu messageEventReloadTrigger={(messageId) => messageId === "workflowSaved"} />,
+        [],
+    );
+
     if (forbidden) {
         return <ProjectForbiddenNotification />;
     } else if (notFound) {
@@ -50,9 +55,11 @@ export default function WorkflowPage() {
                 updateActionsMenu={updateActionsMenu}
                 notFoundCallback={setNotFound}
                 forbiddenCallback={setForbidden}
+                headerMenus={headerMenus}
             />
             <WorkspaceMain>
                 <Section>
+                    <DeprecatedPluginsBanner projectId={projectId} taskId={taskId} />
                     <Metadata />
                     <Spacing />
                     <ProjectTaskTabView
@@ -64,15 +71,6 @@ export default function WorkflowPage() {
                     />
                 </Section>
             </WorkspaceMain>
-            <WorkspaceSide>
-                <Section>
-                    <RelatedItems messageEventReloadTrigger={(messageId) => messageId === "workflowSaved"} />
-                    <Spacing />
-                    <VariablesWidget projectId={projectId} taskId={taskId} />
-                    <Spacing />
-                    <DeprecatedPluginsWidget taskId={taskId} projectId={projectId} />
-                </Section>
-            </WorkspaceSide>
         </WorkspaceContent>
     );
 }

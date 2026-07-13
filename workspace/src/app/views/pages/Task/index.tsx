@@ -1,9 +1,8 @@
 import React, { useState } from "react";
 import { useParams } from "react-router";
-import { Section, Spacing, WorkspaceContent, WorkspaceMain, WorkspaceSide } from "@eccenca/gui-elements";
+import { Section, Spacing, WorkspaceContent, WorkspaceMain } from "@eccenca/gui-elements";
 import { DATA_TYPES } from "../../../constants";
 import Metadata from "../../shared/Metadata";
-import { RelatedItems } from "../../shared/RelatedItems/RelatedItems";
 import { TaskConfig } from "../../shared/TaskConfig/TaskConfig";
 import { usePageHeader } from "../../shared/PageHeader/PageHeader";
 import { ArtefactManagementOptions } from "../../shared/ActionsMenu/ArtefactManagementOptions";
@@ -11,24 +10,21 @@ import NotFound from "../NotFound";
 import { ProjectForbiddenNotification } from "../../shared/ProjectForbiddenNotification";
 import { TaskActivityOverview } from "../../shared/TaskActivityOverview/TaskActivityOverview";
 import { ProjectTaskParams } from "../../shared/typings";
-import { IPluginDetails } from "@ducks/common/typings";
 import DeprecatedPluginsBanner from "../Project/DeprecatedPlugins/DeprecatedPluginsBanner";
+import { RelatedItemsMenu } from "../../shared/PageHeaderMenus/RelatedItemsMenu";
+import { useTaskPluginDetails } from "../../shared/TaskConfig/useTaskPluginDetails";
 
 export default function TaskPage() {
     const { taskId, projectId } = useParams<ProjectTaskParams>();
     const [notFound, setNotFound] = useState(false);
     const [forbidden, setForbidden] = useState(false);
-    const [pluginDetails, setPluginDetails] = React.useState<IPluginDetails | undefined>();
+    const pluginDetails = useTaskPluginDetails(projectId, taskId);
 
     const { pageHeader, updateActionsMenu, updateType } = usePageHeader({
         type: DATA_TYPES.TASK,
         autogenerateBreadcrumbs: true,
         autogeneratePageTitle: true,
     });
-
-    const pluginDataCallback = React.useCallback((details: IPluginDetails) => {
-        setPluginDetails(details);
-    }, []);
 
     React.useEffect(() => {
         if (pluginDetails) {
@@ -37,6 +33,12 @@ export default function TaskPage() {
             updateType(DATA_TYPES.TASK);
         }
     }, [pluginDetails]);
+
+    // Must be referentially stable, since a change re-triggers the page header actions update.
+    const headerMenus = React.useMemo(
+        () => <RelatedItemsMenu projectId={projectId} taskId={taskId} />,
+        [projectId, taskId],
+    );
 
     if (forbidden) {
         return <ProjectForbiddenNotification />;
@@ -53,22 +55,18 @@ export default function TaskPage() {
                 updateActionsMenu={updateActionsMenu}
                 notFoundCallback={setNotFound}
                 forbiddenCallback={setForbidden}
+                headerMenus={headerMenus}
             />
             <WorkspaceMain>
                 <Section>
                     <DeprecatedPluginsBanner projectId={projectId} taskId={taskId} />
                     <Metadata />
-                </Section>
-            </WorkspaceMain>
-            <WorkspaceSide>
-                <Section>
-                    <RelatedItems projectId={projectId} taskId={taskId} />
                     <Spacing />
-                    <TaskConfig projectId={projectId} taskId={taskId} pluginDataCallback={pluginDataCallback} />
+                    <TaskConfig projectId={projectId} taskId={taskId} />
                     <Spacing />
                     <TaskActivityOverview projectId={projectId} taskId={taskId} />
                 </Section>
-            </WorkspaceSide>
+            </WorkspaceMain>
         </WorkspaceContent>
     );
 }

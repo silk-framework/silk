@@ -1,6 +1,6 @@
 import React, { useEffect, useState, Fragment } from "react";
-import { useDispatch, useSelector } from "react-redux";
-import { useHistory } from "react-router";
+import { useSelector } from "react-redux";
+import { useHistory, useLocation } from "react-router";
 import { useTranslation } from "react-i18next";
 import locationParser from "query-string";
 import { CLASSPREFIX as eccgui } from "@eccenca/gui-elements/src/configuration/constants";
@@ -29,7 +29,6 @@ import { IProjectTaskView, IViewActions, pluginRegistry } from "../../plugins/Pl
 import PromptModal from "./PromptModal";
 import ErrorBoundary from "../../../ErrorBoundary";
 import { ProjectTaskTabViewContext } from "./ProjectTaskTabViewContext";
-import { AppDispatch } from "store/configureStore";
 
 const getBookmark = () => window.location.pathname.split("/").slice(-1)[0];
 
@@ -104,9 +103,9 @@ export function ProjectTaskTabView({
     const globalTaskId = useSelector(commonSel.currentTaskIdSelector);
     const projectId = taskViewConfig?.projectId ?? globalProjectId;
     const taskId = taskViewConfig?.taskId ?? globalTaskId;
-    const dispatch = useDispatch<AppDispatch>();
     const history = useHistory();
-    const [t] = useTranslation();
+    const location = useLocation();
+    const [t, i18n] = useTranslation();
     const [isFetchingLinks, setIsFetchingLinks] = useState(true);
     const iframeRef = React.useRef<HTMLIFrameElement>(null);
     // Keeps track of the loaded path of the i-frame. Only the case when selected tab is an item link.
@@ -204,6 +203,32 @@ export function ProjectTaskTabView({
         setDisplayFullscreen(!displayFullscreen);
     };
 
+    // Keep the selected tab in sync with the URL while mounted: tab clicks rewrite the URL to the
+    // tab's bookmark (history.replace above), but the reverse direction — a `history.push` to a
+    // bookmark URL from elsewhere on the page (e.g. the mapping creator banner) or browser
+    // back/forward — only changed the address bar before. Modal/fullscreen embeddings don't own
+    // the URL, so they are excluded.
+    React.useEffect(() => {
+        if (startFullscreen || handlerRemoveModal || !taskViews) {
+            return;
+        }
+        const bookmark = getBookmark();
+        const selectedTabId = (selectedTab as IItemLink)?.id ?? selectedTab;
+        const bookmarkedTab = viewsAndItemLink.find((tabItem) => tabItem.id === bookmark);
+        if (bookmarkedTab) {
+            if (bookmarkedTab.id !== selectedTabId) {
+                applyTab(bookmarkedTab.id ?? (bookmarkedTab as IItemLink));
+            }
+        } else if (bookmark === taskId && selectedTabId != null) {
+            // Un-bookmarked base URL (e.g. browser back from a bookmarked tab): return to the
+            // default tab. Initial loads are unaffected — selection is still empty then.
+            const defaultTab = viewsAndItemLink[0];
+            if (defaultTab && defaultTab.id !== selectedTabId) {
+                applyTab(defaultTab.id ?? (defaultTab as IItemLink));
+            }
+        }
+    }, [location.pathname]);
+
     function getTabRoute(tabItem: IItemLink | string): Partial<IProjectTaskView & IItemLink> | undefined {
         return viewsAndItemLink.find((itemView) => {
             if (typeof tabItem === "string") {
@@ -243,6 +268,17 @@ export function ProjectTaskTabView({
         }
     };
 
+    // Apply a tab selection WITHOUT touching the URL or the unsaved-changes modal. Used by the
+    // URL→tab sync effect: when it runs, the URL already points at the target tab and any
+    // unsaved-changes confirmation has already happened via the history.block native prompt —
+    // re-running changeTab there opened a second prompt and re-wrote an already-correct URL.
+    const applyTab = (tabItem: IItemLink | string) => {
+        const tabRoute = getTabRoute(tabItem);
+        setUnsavedChanges(false);
+        setOpenTabSwitchPrompt(false);
+        setTabRouteChangeRequest(tabRoute?.id);
+    };
+
     // handler for link change. Triggers a tab change request. Actual change is done in useEffect.
     const changeTab = (tabItem: IItemLink | string, overwrite = false) => {
         if (unsavedChanges && !overwrite) {
@@ -251,22 +287,31 @@ export function ProjectTaskTabView({
             setBlockedTab(tabItem);
             setBlockedClosingModal(false);
         } else {
+            applyTab(tabItem);
             const tabRoute = getTabRoute(tabItem);
-            setUnsavedChanges(false);
-            setOpenTabSwitchPrompt(false);
-            setTabRouteChangeRequest(tabRoute?.id);
             const toTaskView = getTaskView(tabRoute?.id);
             const queryToKeep = toTaskView ? extractSearchQuery(toTaskView) : "";
+            // Plain history.replace — connected-react-router picks it up via its history
+            // listener. Wrapping it in dispatch() dispatched its undefined return value,
+            // which throws in the middleware chain (harmlessly swallowed in click handlers,
+            // fatal when changeTab runs from an effect).
             !startFullscreen &&
-                dispatch(history.replace(calculateBookmark(tabRoute?.id ?? "", taskId, viewsAndItemLink, queryToKeep)));
+                history.replace(calculateBookmark(tabRoute?.id ?? "", taskId, viewsAndItemLink, queryToKeep));
         }
     };
 
     /** show browser prompt when making route changes except changes with search params */
     React.useEffect(() => {
         window.onbeforeunload = () => (unsavedChanges ? true : null);
-        const unBlock = history.block((location) =>
-            !location.search.length && unsavedChanges && !openTabSwitchPrompt
+        const unBlock = history.block((nextLocation) =>
+            // Only real navigation (pathname change) counts as leaving the view. Same-pathname
+            // transitions are in-view query-param updates — including CLEARING the params (e.g.
+            // the mapping creator deselecting a node with an autosave still pending), which used
+            // to trip this prompt because the resulting search string is empty.
+            nextLocation.pathname !== history.location.pathname &&
+            !nextLocation.search.length &&
+            unsavedChanges &&
+            !openTabSwitchPrompt
                 ? (t("Metadata.unsavedMetaDataWarning") as string)
                 : undefined,
         );
@@ -344,8 +389,15 @@ export function ProjectTaskTabView({
         }
     }, [projectId, taskId, taskViews]);
 
+    // Tab labels come from the backend (item links can even be unlabeled), so their
+    // translation keys are dynamic and often have no locale entry — that fallback is
+    // by design; checking `exists()` keeps i18next's dev missing-key logging quiet.
     const tLabel = (label: string) => {
-        return t("common.iframeWindow." + label, label);
+        if (!label) {
+            return label;
+        }
+        const key = "common.iframeWindow." + label;
+        return i18n.exists(key) ? t(key) : label;
     };
 
     const createIframeUrl = (url: string) => {

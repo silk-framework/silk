@@ -34,10 +34,19 @@ export interface ParameterConfigValue {
  * @param taskDescription The schema and description of the task type.
  */
 export function TaskConfigPreview({ taskData, taskDescription }: IProps) {
-    const [t] = useTranslation();
+    const [t, i18n] = useTranslation();
     if (!taskData) {
         return <Notification>{t("widget.TaskConfigWidget.noPreview", "No preview available")}</Notification>;
     }
+
+    /**
+     * Parameter labels/values arrive from the backend, so their translation keys are
+     * dynamic and usually have no locale entry — that is expected, the raw label is
+     * the display value then. Checking `exists()` first keeps i18next's dev-mode
+     * missing-key logging quiet for this by-design fallback.
+     */
+    const optionalTranslation = (key: string, fallback: string): string =>
+        i18n.exists(key) ? t(key) : fallback;
 
     // Generates a flat object of (nested) parameter labels and their display values, i.e. their label if it exists
     const taskValues = (parameters: any): Record<string, ParameterConfigValue> => {
@@ -66,7 +75,7 @@ export function TaskConfigPreview({ taskData, taskDescription }: IProps) {
                     .sort((left, right) => (paramOrder.get(left[0]) ?? 0) - (paramOrder.get(right[0]) ?? 0))
                     .forEach(([paramName, paramValue]) => {
                         const value = paramDisplayValue(paramValue);
-                        const propertyTitle = t(
+                        const propertyTitle = optionalTranslation(
                             "widget.ConfigWidget.properties." + paramDescriptions[paramName].title,
                             paramDescriptions[paramName].title
                         );
@@ -95,11 +104,11 @@ export function TaskConfigPreview({ taskData, taskDescription }: IProps) {
     /** Returns the string value if this is an atomic value, else it returns the parameter value object. */
     const paramDisplayValue = (parameterValue: any): string | any => {
         if (typeof parameterValue === "string") {
-            return t("widget.ConfigWidget.values." + parameterValue, parameterValue);
+            return optionalTranslation("widget.ConfigWidget.values." + parameterValue, parameterValue);
         } else if (typeof parameterValue.label === "string") {
-            return t("widget.ConfigWidget.values." + parameterValue.label, parameterValue.label);
+            return optionalTranslation("widget.ConfigWidget.values." + parameterValue.label, parameterValue.label);
         } else if (typeof parameterValue.value === "string") {
-            return t("widget.ConfigWidget.values." + parameterValue.value, parameterValue.value);
+            return optionalTranslation("widget.ConfigWidget.values." + parameterValue.value, parameterValue.value);
         } else if (parameterValue.value) {
             // withLabels "object" value
             return parameterValue.value;

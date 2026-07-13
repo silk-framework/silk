@@ -4,21 +4,17 @@ import ReactDOM from "react-dom";
 import { Helmet } from "react-helmet";
 import {
     BreadcrumbList,
-    Icon,
-    OverflowText,
     OverviewItem,
     OverviewItemActions,
     OverviewItemDepiction,
     OverviewItemDescription,
     OverviewItemLine,
-    TitlePage,
     BreadcrumbItemProps,
 } from "@eccenca/gui-elements";
+import { ItemDepiction } from "../ItemDepiction/ItemDepiction";
 import { routerOp } from "@ducks/router";
 import { APPLICATION_CORPORATION_NAME, APPLICATION_SUITE_NAME } from "../../../constants/base";
 import { fetchBreadcrumbs } from "./breadcrumbsHelper";
-import ItemDepiction from "../ItemDepiction";
-import { convertTaskTypeToItemType, TaskType } from "@ducks/shared/typings";
 import { AppDispatch } from "store/configureStore";
 
 interface IPageHeaderContentBasicProps extends React.HTMLAttributes<HTMLDivElement> {
@@ -81,7 +77,6 @@ function PageHeaderPortal({ children }: any) {
 function PageHeaderContent({
     type,
     pluginId,
-    alternateDepiction,
     breadcrumbs,
     breadcrumbsExtensions,
     pageTitle,
@@ -120,49 +115,33 @@ function PageHeaderContent({
         return `${pageTitle || generatedPageTitle} ${typeinfo} ${position}${brandingSuffix}`;
     };
 
-    const getDepictionIcons = () => {
-        const iconNames: string[] = [];
-        if (!!type) {
-            // The type is either a TaskType or an ItemType. If already an ItemType, keep ItemType.
-            iconNames.push("artefact-" + convertTaskTypeToItemType(type as TaskType, true).toLowerCase());
-        }
-        if (!!alternateDepiction) {
-            iconNames.push(alternateDepiction);
-        }
-        return iconNames;
-    };
-
-    let iconNames = getDepictionIcons();
+    const displayedTitle = pageTitle || generatedPageTitle;
+    // single-row header line: the page title is the trail's current (last) item, never a link.
+    // `BreadcrumbList` renders the last item in the "current page" treatment automatically.
+    const allBreadcrumbs = (breadcrumbs ?? []).concat(breadcrumbsExtensions ?? []);
+    const trailWithCurrentPage =
+        displayedTitle &&
+        (allBreadcrumbs.length === 0 ||
+            (allBreadcrumbs[allBreadcrumbs.length - 1].text ?? "").toString() !== displayedTitle)
+            ? allBreadcrumbs.concat([{ text: displayedTitle }])
+            : allBreadcrumbs;
 
     return (
         <>
             <Helmet title={renderWindowTitle()} />
             <OverviewItem>
-                {iconNames.length > 0 && (
-                    <OverviewItemDepiction>
-                        {type && pluginId ? (
-                            <ItemDepiction itemType={type} pluginId={pluginId} />
-                        ) : (
-                            <Icon name={iconNames} large />
-                        )}
+                {!!type && (
+                    <OverviewItemDepiction data-test-id="page-header-depiction">
+                        <ItemDepiction itemType={type} pluginId={pluginId} size={{ small: true }} />
                     </OverviewItemDepiction>
                 )}
                 <OverviewItemDescription>
-                    {(!!breadcrumbs || !!breadcrumbsExtensions) && (
-                        <OverviewItemLine small>
-                            <BreadcrumbList
-                                items={(breadcrumbs ?? []).concat(breadcrumbsExtensions ?? [])}
-                                onItemClick={handleBreadcrumbItemClick}
-                            />
-                        </OverviewItemLine>
-                    )}
-                    {(!!pageTitle || !!generatedPageTitle) && (
-                        <OverviewItemLine large>
-                            <TitlePage>
-                                <h1>
-                                    <OverflowText>{pageTitle || generatedPageTitle}</OverflowText>
-                                </h1>
-                            </TitlePage>
+                    {trailWithCurrentPage.length > 0 && (
+                        <OverviewItemLine>
+                            {/* keep an h1 for the document outline; visually the current
+                                breadcrumb item represents the page title */}
+                            <h1 className="sr-only">{displayedTitle}</h1>
+                            <BreadcrumbList items={trailWithCurrentPage} onItemClick={handleBreadcrumbItemClick} />
                         </OverviewItemLine>
                     )}
                 </OverviewItemDescription>

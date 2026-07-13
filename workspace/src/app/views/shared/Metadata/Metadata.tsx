@@ -4,15 +4,9 @@ import { Prompt, useLocation } from "react-router";
 import { Trans, useTranslation } from "react-i18next";
 import {
     Button,
-    Card,
-    CardActions,
-    CardContent,
-    CardHeader,
-    CardOptions,
-    CardTitle,
     CodeEditor,
-    Divider,
     ElapsedDateTimeDisplay,
+    ElapsedDateTimeDisplayUnits,
     FieldItem,
     HtmlContentBlock,
     IconButton,
@@ -23,8 +17,8 @@ import {
     PropertyValue,
     PropertyValueList,
     PropertyValuePair,
+    SimpleDialog,
     TextField,
-    ElapsedDateTimeDisplayUnits,
     MultiSuggestFieldSelectionProps,
     StringPreviewContentBlobToggler,
 } from "@eccenca/gui-elements";
@@ -112,7 +106,7 @@ export function Metadata(props: IProps) {
         return removeDirtyState;
     }, []);
 
-    const { label, description, lastModifiedByUser, createdByUser, created, modified } = data;
+    const { description, lastModifiedByUser, createdByUser, created, modified } = data;
 
     useEffect(() => {
         if (projectId) {
@@ -183,27 +177,6 @@ export function Metadata(props: IProps) {
         }
     };
 
-    const widgetHeader = (
-        <>
-            <CardHeader>
-                <CardTitle>
-                    <h2>{t("common.words.summary", "Summary")}</h2>
-                </CardTitle>
-                {!loading && !isEditing && !props.readOnly ? (
-                    <CardOptions>
-                        <IconButton
-                            data-test-id="meta-data-edit-btn"
-                            name="item-edit"
-                            text="Edit"
-                            onClick={toggleEdit}
-                        />
-                    </CardOptions>
-                ) : null}
-            </CardHeader>
-            <Divider />
-        </>
-    );
-
     // Show 'unsaved changes' prompt when navigating away via React routing
     const routingPrompt: (newLocation: H.Location, action: H.Action) => string | boolean = (newLocation, action) => {
         // Only complain when navigating away from current page.
@@ -263,10 +236,69 @@ export function Metadata(props: IProps) {
         return (now - then) / 1000 / 60 / 60 / 24;
     };
 
-    const widgetContent = (
-        <CardContent data-test-id={"metaDataWidget"}>
+    const auditTimestamp = (dateTime: number | string | undefined) =>
+        dateTime ? (
+            getDeltaInDays(dateTime) < 7 ? (
+                <ElapsedDateTimeDisplay
+                    data-test-id={"metadata-creation-age"}
+                    suffix={t("Metadata.suffixAgo")}
+                    prefix={t("Metadata.prefixAgo")}
+                    dateTime={dateTime}
+                    translateUnits={translateUnits}
+                />
+            ) : (
+                <span title={new Date(dateTime).toString()} />
+            )
+        ) : (
+            <></>
+        );
+
+    const auditInfo = (
+        <HtmlContentBlock small className="mt-1 text-muted-foreground" data-test-id="metadata-audit-info">
+            <Trans
+                i18nKey={"Metadata.createdBy"}
+                t={t}
+                values={{
+                    timestamp: created
+                        ? t("Metadata.dateFormat", "{{year}}/{{month}}/{{day}}", getDateData(created))
+                        : "",
+                    author: createdByUser?.label ?? t("Metadata.unknownuser", "unknown user"),
+                }}
+                components={{
+                    author: <Link href={utils.generateFacetUrl("createdBy", createdByUser?.uri ?? "")}></Link>,
+                    timestamp: auditTimestamp(created),
+                }}
+            />
+            {modified !== created && (
+                <>
+                    {" "}
+                    <Trans
+                        i18nKey={"Metadata.lastModifiedBy"}
+                        t={t}
+                        values={{
+                            timestamp: modified
+                                ? t("Metadata.dateFormat", "{{year}}/{{month}}/{{day}}", getDateData(modified))
+                                : "",
+                            author: lastModifiedByUser?.label ?? t("Metadata.unknownuser", "unknown user"),
+                        }}
+                        components={{
+                            author: (
+                                <Link
+                                    href={utils.generateFacetUrl("lastModifiedBy", lastModifiedByUser?.uri ?? "")}
+                                ></Link>
+                            ),
+                            timestamp: auditTimestamp(modified),
+                        }}
+                    />
+                </>
+            )}
+        </HtmlContentBlock>
+    );
+
+    const editForm = (
+        <>
             {loading && <Loading description={t("Metadata.loading", "Loading summary data.")} />}
-            {!loading && isEditing && (
+            {!loading && (
                 <PropertyValueList>
                     <PropertyValuePair key="label">
                         <PropertyName>
@@ -343,158 +375,77 @@ export function Metadata(props: IProps) {
                     </PropertyValuePair>
                 </PropertyValueList>
             )}
-            {!loading && !isEditing && (
-                <PropertyValueList>
-                    {!!label && (
-                        <PropertyValuePair hasDivider>
-                            <PropertyName>{t("form.field.label", "Label")}</PropertyName>
-                            <PropertyValue>{label}</PropertyValue>
-                        </PropertyValuePair>
-                    )}
-                    {!!description && (
-                        <PropertyValuePair hasSpacing hasDivider>
-                            <PropertyName>{t("form.field.description", "Description")}</PropertyName>
-                            <PropertyValue>
-                                <StringPreviewContentBlobToggler
-                                    className="di__dataset__metadata-description"
-                                    content={description}
-                                    fullviewContent={
-                                        <Markdown htmlContentBlockProps={{ linebreakForced: true }}>
-                                            {description}
-                                        </Markdown>
-                                    }
-                                    toggleExtendText={t("common.words.more", "more")}
-                                    toggleReduceText={t("common.words.less", "less")}
-                                    useOnly={"firstNonEmptyLine"}
-                                    renderPreviewAsMarkdown={true}
-                                    allowedHtmlElementsInPreview={["a"]}
-                                />
-                            </PropertyValue>
-                        </PropertyValuePair>
-                    )}
-                    {!!data.tags?.length && (
-                        <PropertyValuePair hasSpacing hasDivider>
-                            <PropertyName>{t("form.field.tags", "Tags")}</PropertyName>
-                            <PropertyValue>{utils.DisplayArtefactTags(data.tags, t, goToPage)}</PropertyValue>
-                        </PropertyValuePair>
-                    )}
-                    <PropertyValuePair>
-                        <PropertyValue>
-                            <HtmlContentBlock small>
-                                <Trans
-                                    i18nKey={"Metadata.createdBy"}
-                                    t={t}
-                                    values={{
-                                        timestamp: created
-                                            ? t(
-                                                  "Metadata.dateFormat",
-                                                  "{{year}}/{{month}}/{{day}}",
-                                                  getDateData(created),
-                                              )
-                                            : "",
-                                        author: createdByUser?.label ?? t("Metadata.unknownuser", "unknown user"),
-                                    }}
-                                    components={{
-                                        author: (
-                                            <Link
-                                                href={utils.generateFacetUrl("createdBy", createdByUser?.uri ?? "")}
-                                            ></Link>
-                                        ),
-                                        timestamp: created ? (
-                                            getDeltaInDays(created) < 7 ? (
-                                                <ElapsedDateTimeDisplay
-                                                    data-test-id={"metadata-creation-age"}
-                                                    suffix={t("Metadata.suffixAgo")}
-                                                    prefix={t("Metadata.prefixAgo")}
-                                                    dateTime={created}
-                                                    translateUnits={translateUnits}
-                                                />
-                                            ) : (
-                                                <span title={new Date(created).toString()} />
-                                            )
-                                        ) : (
-                                            <></>
-                                        ),
-                                    }}
-                                />
-                                {modified !== created && (
-                                    <>
-                                        {" "}
-                                        <Trans
-                                            i18nKey={"Metadata.lastModifiedBy"}
-                                            t={t}
-                                            values={{
-                                                timestamp: modified
-                                                    ? t(
-                                                          "Metadata.dateFormat",
-                                                          "{{year}}/{{month}}/{{day}}",
-                                                          getDateData(modified),
-                                                      )
-                                                    : "",
-                                                author:
-                                                    lastModifiedByUser?.label ??
-                                                    t("Metadata.unknownuser", "unknown user"),
-                                            }}
-                                            components={{
-                                                author: (
-                                                    <Link
-                                                        href={utils.generateFacetUrl(
-                                                            "lastModifiedBy",
-                                                            lastModifiedByUser?.uri ?? "",
-                                                        )}
-                                                    ></Link>
-                                                ),
-                                                timestamp: modified ? (
-                                                    getDeltaInDays(modified) < 7 ? (
-                                                        <ElapsedDateTimeDisplay
-                                                            data-test-id={"metadata-creation-age"}
-                                                            suffix={t("Metadata.suffixAgo")}
-                                                            prefix={t("Metadata.prefixAgo")}
-                                                            dateTime={modified}
-                                                            translateUnits={translateUnits}
-                                                        />
-                                                    ) : (
-                                                        <span title={new Date(modified).toString()} />
-                                                    )
-                                                ) : (
-                                                    <></>
-                                                ),
-                                            }}
-                                        />
-                                    </>
-                                )}
-                            </HtmlContentBlock>
-                        </PropertyValue>
-                    </PropertyValuePair>
-                </PropertyValueList>
-            )}
-        </CardContent>
+        </>
     );
 
-    const widgetFooter =
-        !loading && isEditing ? (
-            <>
-                <Prompt when={unsavedChanges} message={routingPrompt} />
-                <Divider />
-                <CardActions>
-                    <Button
-                        data-test-id={"submitBtn"}
-                        disabled={!unsavedChanges || !formEditData?.label}
-                        onClick={onSubmit}
-                        affirmative
-                        text={t("common.action.save", "Save")}
-                        type={"submit"}
-                    />
-                    <Button text={t("common.action.cancel")} onClick={toggleEdit} />
-                </CardActions>
-            </>
-        ) : null;
+    const viewContent = (
+        <>
+            {loading && <Loading description={t("Metadata.loading", "Loading summary data.")} />}
+            {!loading && (
+                <div className="flex items-start gap-2">
+                    <div className="min-w-0 flex-1">
+                        {!!description && (
+                            <StringPreviewContentBlobToggler
+                                className="di__dataset__metadata-description"
+                                content={description}
+                                fullviewContent={
+                                    <Markdown htmlContentBlockProps={{ linebreakForced: true }}>{description}</Markdown>
+                                }
+                                toggleExtendText={t("common.words.more", "more")}
+                                toggleReduceText={t("common.words.less", "less")}
+                                useOnly={"firstNonEmptyLine"}
+                                renderPreviewAsMarkdown={true}
+                                allowedHtmlElementsInPreview={["a"]}
+                            />
+                        )}
+                        {!!data.tags?.length && (
+                            <div className="mt-1">{utils.DisplayArtefactTags(data.tags, t, goToPage)}</div>
+                        )}
+                        {auditInfo}
+                    </div>
+                    {!isEditing && !props.readOnly && (
+                        <IconButton
+                            data-test-id="meta-data-edit-btn"
+                            name="item-edit"
+                            text={t("common.action.edit", "Edit")}
+                            onClick={toggleEdit}
+                        />
+                    )}
+                </div>
+            )}
+        </>
+    );
+
+    const editDialog = (
+        <SimpleDialog
+            data-test-id={"meta-data-edit-dialog"}
+            size="large"
+            title={t("common.words.summary", "Summary")}
+            isOpen={isEditing}
+            preventSimpleClosing={true}
+            onClose={toggleEdit}
+            actions={[
+                <Button
+                    key="save"
+                    data-test-id={"submitBtn"}
+                    disabled={!unsavedChanges || !formEditData?.label}
+                    onClick={onSubmit}
+                    affirmative
+                    text={t("common.action.save", "Save")}
+                    type={"submit"}
+                />,
+                <Button key="cancel" text={t("common.action.cancel")} onClick={toggleEdit} />,
+            ]}
+        >
+            {editForm}
+        </SimpleDialog>
+    );
 
     return (
-        <Card data-test-id={"meta-data-card"}>
-            {widgetHeader}
-            {widgetContent}
-            {widgetFooter}
-        </Card>
+        <div data-test-id={"metaDataWidget"} className="di__metadata-slim">
+            <Prompt when={unsavedChanges} message={routingPrompt} />
+            {viewContent}
+            {isEditing && editDialog}
+        </div>
     );
 }

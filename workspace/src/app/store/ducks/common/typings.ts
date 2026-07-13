@@ -261,8 +261,6 @@ export interface ICommonState {
     availableDataTypes: IAvailableDataTypes;
     exportTypes: IExportTypes[];
     artefactModal: IArtefactModal;
-    //controls whether the user menu panel is displayed or not
-    userMenuDisplay: boolean;
     //controls whether the notification menu panel is displayed or not
     notificationMenuDisplay: boolean;
 }
@@ -306,6 +304,9 @@ export interface IInitFrontend {
 
     /** If the mapping creator is enabled. */
     mappingCreatorEnabled: boolean;
+
+    /** If the server-side LLM gateway is enabled and configured with an API key. */
+    llmEnabled: boolean;
 
     /** The default project page suffix. */
     defaultProjectPageSuffix?: string;

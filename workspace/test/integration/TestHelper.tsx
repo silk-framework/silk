@@ -18,7 +18,6 @@ import {
     responseInterceptorOnSuccess,
 } from "../../src/app/services/fetch/responseInterceptor";
 import { AxiosError } from "axios";
-
 interface IMockValues {
     history: History;
     useParams: Record<string, string>;

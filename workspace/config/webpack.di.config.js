@@ -254,6 +254,39 @@ module.exports = function (webpackEnv, isWatch) {
                 "#minproc": "vfile/lib/minproc.browser.js",
                 "#minurl": "vfile/lib/minurl.browser.js",
                 "es-toolkit/compat": "es-toolkit/dist/compat/index.mjs",
+                // webpack4 resolves imports issued from `.mjs` files (e.g. the ai-sdk dist bundles)
+                // with mainFields ["browser", "main"], which lands on zod's CJS `.cjs` builds.
+                // No loader rule matches `.cjs`, so those files fall through to the file-loader
+                // and every named import from them becomes a hard "not exported" error under
+                // strictExportPresence. Pin the zod entry points to their ESM builds instead —
+                // a no-op for all other issuers, which already resolve to these files via "module".
+                "zod$": "zod/index.js",
+                "zod/v3$": "zod/v3/index.js",
+                "zod/v4$": "zod/v4/index.js",
+                // `@vercel/oidc` (pulled in by ai -> @ai-sdk/gateway) is an `exports`-only
+                // package; point webpack4 at its browser build directly.
+                "@vercel/oidc$": "@vercel/oidc/dist/index-browser.js",
+                // Two yarn roots hoist their own copies of the singleton/context-bearing
+                // libraries (silk/node_modules and the repo-root node_modules). Files under
+                // workspacePlugins/src walk up to the ROOT copies, i.e. a second React
+                // instance ("Invalid hook call"), a second react-redux/react-router context
+                // (Provider/Router lookups fail) and an uninitialized second i18next
+                // (raw translation keys). Pin them all to the silk copies the app shell uses
+                // (resolved from this config file: silk/workspace/config -> silk/node_modules).
+                "i18next$": path.resolve(__dirname, "../../node_modules/i18next"),
+                "react-i18next$": path.resolve(__dirname, "../../node_modules/react-i18next"),
+                "react$": path.resolve(__dirname, "../../node_modules/react"),
+                "react/jsx-runtime$": path.resolve(__dirname, "../../node_modules/react/jsx-runtime.js"),
+                "react/jsx-dev-runtime$": path.resolve(__dirname, "../../node_modules/react/jsx-dev-runtime.js"),
+                "react-dom$": path.resolve(__dirname, "../../node_modules/react-dom"),
+                "react-redux$": path.resolve(__dirname, "../../node_modules/react-redux"),
+                "react-router$": path.resolve(__dirname, "../../node_modules/react-router"),
+                "react-router-dom$": path.resolve(__dirname, "../../node_modules/react-router-dom"),
+                // sonner is a stateful pub-sub singleton too: toast() publishes to a module-level
+                // ToastState that only the <Toaster> from the SAME module instance subscribes to.
+                // Without the pin, plugin toast() calls landed in the root copy while the mounted
+                // Toaster (via gui-elements) used the silk copy — every toast was invisible.
+                "sonner$": path.resolve(__dirname, "../../node_modules/sonner"),
             },
             plugins: [
                 // Adds support for installing with Plug'n'Play, leading to faster installs and adding
@@ -303,7 +336,12 @@ module.exports = function (webpackEnv, isWatch) {
                             loader: require.resolve("babel-loader"),
                             options: {
                                 customize: require.resolve("babel-preset-react-app/webpack-overrides"),
-                                presets: [["react-app", { flow: false, typescript: true }]],
+                                // runtime "automatic": matches tsconfig's `jsx: react-jsx` and the
+                                // jest babel config. The preset DEFAULTS to the classic runtime
+                                // (CRA normally passes this option explicitly), under which any
+                                // module without `import React` throws at runtime as soon as its
+                                // JSX evaluates — module-scope JSX even kills the whole entry.
+                                presets: [["react-app", { flow: false, typescript: true, runtime: "automatic" }]],
                                 plugins: [
                                     [
                                         require.resolve("babel-plugin-named-asset-import"),
@@ -536,6 +574,15 @@ module.exports = function (webpackEnv, isWatch) {
             // https://github.com/jmblog/how-to-optimize-momentjs-with-webpack
             // You can remove this if you don't use Moment.js:
             new webpack.IgnorePlugin(/^\.\/locale$/, /moment$/),
+            // zod's v3-compat helper assigns `errorUtil.toString = …`, which throws under
+            // the app's `Object.freeze(Object.prototype)` pollution defense (src/index.tsx)
+            // and thereby kills the whole workspacePlugins entry at startup. Swap in a
+            // defineProperty-based shim with identical semantics.
+            new webpack.NormalModuleReplacementPlugin(/errorUtil(\.js)?$/, (resource) => {
+                if (/zod[\\/]v3/.test(resource.context || "")) {
+                    resource.request = path.resolve(paths.appSrc, "polyfills/zod-v3-error-util.js");
+                }
+            }),
             // Generate a service worker script that will precache, and keep up to date,
             // the HTML & assets that are part of the Webpack build.
             isEnvProduction &&

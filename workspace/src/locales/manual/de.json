@@ -797,7 +797,6 @@
             "previous": "Previous",
             "removed": "Removed",
             "required": "required",
-            "settings": "Settings",
             "sortOptions": "Sort options",
             "summary": "Summary",
             "unknown": "Unknown",
@@ -1018,9 +1017,13 @@
             "dmBrowser": "Explore",
             "open": "Open navigation"
         },
+        "sideWidgets": {
+            "collapse": "Hide page details",
+            "expand": "Show page details",
+            "title": "Page details"
+        },
         "user": {
             "close": "Close user menu",
-            "menu": "User menu",
             "open": "Open user menu"
         }
     },
@@ -1062,9 +1065,9 @@
         },
         "transform": {
             "mappingCreatorBanner": {
-                "dismiss": "Dismiss",
-                "message": "There is a new way to transform datasets into Knowledge Graphs — try the new mapping creator.",
-                "tryIt": "Open the new mapping creator"
+                "dismiss": "Schließen",
+                "message": "Es gibt eine neue Möglichkeit, Datensätze in Wissensgraphen zu transformieren — probieren Sie den neuen Mapping-Creator aus.",
+                "tryIt": "Neuen Mapping-Creator öffnen"
             }
         },
         "workspace": {
@@ -1358,7 +1361,6 @@
         "TaskConfigWidget": {
             "loading": "Loading update dialog...",
             "noPreview": "No preview available",
-            "openError": "Cannot open edit dialog.",
             "templateValueInfo": "The parameter value is derived from the following variable template: ",
             "title": "Configuration"
         },

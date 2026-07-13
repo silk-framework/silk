@@ -45,6 +45,8 @@ export function NotificationsMenu({ autoDisplayNotifications = true, errorNotifi
         <ApplicationToolbarAction
             aria-label="Open notifications menu"
             isActive={false}
+            // fill the h-12 inset header (the component default `size-14` targets the old 56px shell)
+            className="size-12"
             onClick={() => {
                 toggleNotifications();
             }}
@@ -93,6 +95,7 @@ export function NotificationsMenu({ autoDisplayNotifications = true, errorNotifi
                 <ApplicationToolbarAction
                     aria-label="Close notifications menu"
                     isActive={true}
+                    className="size-12"
                     onClick={() => {
                         toggleNotifications();
                     }}
@@ -101,7 +104,12 @@ export function NotificationsMenu({ autoDisplayNotifications = true, errorNotifi
                 </ApplicationToolbarAction>
             )}
             {displayNotifications && (
-                <ApplicationToolbarPanel aria-label="Notification menu" expanded={true} style={{ width: "40rem" }}>
+                <ApplicationToolbarPanel
+                    aria-label="Notification menu"
+                    expanded={true}
+                    style={{ width: "40rem" }}
+                    className="top-12"
+                >
                     {notificationQueue.clearAllButton}
                     {notificationQueue.notifications}
                 </ApplicationToolbarPanel>

@@ -20,6 +20,7 @@ import { AlertDialog, Button, HtmlContentBlock, Notification } from "@eccenca/gu
 import { FetchError } from "../../../services/fetch/responseInterceptor";
 import { clearDataset } from "@ducks/workspace/requests";
 import { AppDispatch } from "store/configureStore";
+import { useTaskConfigModal } from "../TaskConfig/useTaskConfigModal";
 
 interface IProps {
     projectId: string;
@@ -31,6 +32,9 @@ interface IProps {
     notFoundCallback?: (boolean) => any;
     // Called with true when the item links endpoint returns a 403
     forbiddenCallback?: (boolean) => any;
+    /** Additional page-specific elements (e.g. popover menus) rendered in the header
+     * actions area, left of the actions menu. */
+    headerMenus?: React.ReactNode;
 }
 
 export function ArtefactManagementOptions({
@@ -40,6 +44,7 @@ export function ArtefactManagementOptions({
     updateActionsMenu,
     notFoundCallback = () => {},
     forbiddenCallback = () => {},
+    headerMenus,
 }: IProps) {
     const dispatch = useDispatch<AppDispatch>();
     const location = useLocation<any>();
@@ -57,6 +62,7 @@ export function ArtefactManagementOptions({
     const [isReadOnlyDataset, setIsReadOnlyDataset] = useState<boolean | undefined>(undefined);
 
     const exportTypes = useSelector(commonSel.exportTypesSelector);
+    const { openConfigModal } = useTaskConfigModal(projectId, taskId);
 
     const itemData = {
         id: taskId,
@@ -190,6 +196,16 @@ export function ArtefactManagementOptions({
 
     const getFullMenu = () => {
         const fullMenu: TActionsMenuItem[] = [
+            ...(taskId
+                ? [
+                      {
+                          icon: "item-settings",
+                          text: t("common.action.configure", "Configure"),
+                          actionHandler: () => openConfigModal(),
+                          "data-test-id": "header-configure-button",
+                      } as TActionsMenuItem,
+                  ]
+                : []),
             {
                 icon: "item-copy",
                 text: t("common.action.copy", "Copy to"),
@@ -279,8 +295,13 @@ export function ArtefactManagementOptions({
     }, [projectId, taskId, itemType, exportTypes, itemLinks, t, isReadOnlyDataset]);
 
     useEffect(() => {
-        updateActionsMenu(<ActionsMenu {...menuItems} />);
-    }, [menuItems]);
+        updateActionsMenu(
+            <>
+                {headerMenus}
+                <ActionsMenu {...menuItems} />
+            </>,
+        );
+    }, [menuItems, headerMenus]);
 
     return (
         <>

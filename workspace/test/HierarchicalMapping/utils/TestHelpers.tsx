@@ -1,6 +1,5 @@
 import React from "react";
 import { render, RenderResult } from "@testing-library/react";
-import { ClassNames } from "@eccenca/gui-elements";
 
 /** Similar to Partial, but applies recursively. */
 export type RecursivePartial<T> = {
@@ -51,4 +50,7 @@ export const logWrapperHtmlOnError = (wrapper: RenderResult) => {
     };
 };
 
-export const bluePrintClassPrefix = ClassNames.Blueprint.getClassNamespace();
+// Blueprint (and its `ClassNames.Blueprint` compat stub) has been removed from gui-elements.
+// The former runtime lookup returned "" since the restyle, so the portal selectors built from
+// this prefix match nothing — kept only so existing before/after portal counts stay valid.
+export const bluePrintClassPrefix = "bp-removed";

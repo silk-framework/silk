@@ -13,7 +13,6 @@ import {
     TitleMainsection,
     WorkspaceContent,
     WorkspaceMain,
-    WorkspaceSide,
 } from "@eccenca/gui-elements";
 import { workspaceOp, workspaceSel } from "@ducks/workspace";
 import SearchList from "../../shared/SearchList";
@@ -105,9 +104,6 @@ const WorkspaceSearch = () => {
                     </Grid>
                 </Section>
             </WorkspaceMain>
-            <WorkspaceSide>
-                <Section></Section>
-            </WorkspaceSide>
         </WorkspaceContent>
     );
 };

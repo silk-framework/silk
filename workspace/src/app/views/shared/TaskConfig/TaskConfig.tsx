@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardOptions, CardTitle, Divider, IconButton } from "@eccenca/gui-elements";
 import { useDispatch, useSelector } from "react-redux";
-import { commonOp, commonSel } from "@ducks/common";
+import { commonSel } from "@ducks/common";
 import { requestTaskData } from "@ducks/shared/requests";
 import { requestArtefactProperties } from "@ducks/common/requests";
 import { Loading } from "../Loading/Loading";
 import { TaskConfigPreview } from "./TaskConfigPreview";
-import { IProjectTask, TemplateValueType } from "@ducks/shared/typings";
+import { IProjectTask } from "@ducks/shared/typings";
+import { useTaskConfigModal } from "./useTaskConfigModal";
 import { IPluginDetails } from "@ducks/common/typings";
 import { commonSlice } from "@ducks/common/commonSlice";
 import { useTranslation } from "react-i18next";
@@ -37,6 +38,7 @@ export function TaskConfig(props: IProps) {
     const taskId = useSelector(commonSel.currentTaskIdSelector);
     const { cachedArtefactProperties } = useSelector(commonSel.artefactModalSelector);
     const [t] = useTranslation();
+    const { openConfigModal, loading: configModalLoading } = useTaskConfigModal(props.projectId, props.taskId);
 
     useHotKey({
         hotkey: "e c",
@@ -54,41 +56,6 @@ export function TaskConfig(props: IProps) {
             const taskPluginDetails = await requestArtefactProperties(artefactId);
             dispatch(commonSlice.actions.setCachedArtefactProperty(taskPluginDetails));
             return taskPluginDetails;
-        }
-    };
-
-    // Open the update modal for the task
-    const openConfigModal = async () => {
-        setLoading(true);
-        try {
-            // Config dialog is always opened with fresh data
-            const taskData = (await requestTaskData(props.projectId, props.taskId, true)).data;
-            const taskPluginDetails = await artefactProperties(taskData.data.type);
-            const dataParameters: Record<string, string> | undefined =
-                taskPluginDetails.taskType === "Dataset"
-                    ? {
-                          readOnly: `${taskData.data.readOnly === true}`,
-                      }
-                    : undefined;
-            if (dataParameters && taskData.data.uriProperty) {
-                dataParameters.uriProperty = taskData.data.uriProperty;
-            }
-            const templates: TemplateValueType = taskData.data.templates ?? {};
-            dispatch(
-                commonOp.updateProjectTask({
-                    projectId: taskData.project,
-                    taskId: taskData.id,
-                    metaData: taskData.metadata,
-                    taskPluginDetails: taskPluginDetails,
-                    currentParameterValues: taskData.data.parameters,
-                    dataParameters: dataParameters,
-                    currentTemplateValues: templates,
-                })
-            );
-        } catch (e) {
-            registerError("TaskConfig-openConfigModal", "Cannot open edit dialog.", e);
-        } finally {
-            setLoading(false);
         }
     };
 
@@ -119,7 +86,7 @@ export function TaskConfig(props: IProps) {
     if (labelledTaskData) {
         titlePostfix = `: ${t(
             "common.dataTypes." + labelledTaskData.taskDescription.title.toLowerCase(),
-            labelledTaskData.taskDescription.title
+            labelledTaskData.taskDescription.title,
         )}`;
     }
 
@@ -144,7 +111,7 @@ export function TaskConfig(props: IProps) {
             </CardHeader>
             <Divider />
             <CardContent style={{ maxHeight: "25vh" }}>
-                {loading || !labelledTaskData ? (
+                {loading || configModalLoading || !labelledTaskData ? (
                     <Loading description={t("widget.TaskConfigWidget.loading", "Loading update dialog...")} />
                 ) : (
                     <TaskConfigPreview {...labelledTaskData} />

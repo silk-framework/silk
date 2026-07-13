@@ -22,7 +22,6 @@ const taskPluginOverviewsSelector = createSelector([commonSelector], (common) =>
 const exportTypesSelector = createSelector([commonSelector], (common) => common.exportTypes);
 
 const notificationMenuSelector = createSelector([commonSelector], (common) => common.notificationMenuDisplay);
-const userMenuDisplaySelector = createSelector([commonSelector], (common) => common.userMenuDisplay);
 
 const commonSelectors = {
     commonSelector,
@@ -36,7 +35,6 @@ const commonSelectors = {
     exportTypesSelector,
     localeSelector,
     notificationMenuSelector,
-    userMenuDisplaySelector,
 };
 
 export default commonSelectors;

@@ -12,6 +12,7 @@ import {
     withMount,
     workspacePath,
 } from "../../../TestHelper";
+import { shadcn } from "@eccenca/gui-elements";
 import { Header } from "../../../../../src/app/views/layout/Header/Header";
 import Task from "../../../../../src/app/views/pages/Task";
 import { APP_VIEWHEADER_ID, PageHeader } from "../../../../../src/app/views/shared/PageHeader/PageHeader";
@@ -40,7 +41,10 @@ describe("Header", () => {
         setUseParams("SomeProjectId", "SomeTaskId");
 
         wrapper = renderWrapper(
-            <Header onClickApplicationSidebarExpand={() => {}} isApplicationSidebarExpanded={false} />,
+            // the header depends on the sidebar context (trigger button)
+            <shadcn.SidebarProvider>
+                <Header />
+            </shadcn.SidebarProvider>,
             history,
             {
                 common: { initialSettings: { dmBaseUrl: "http://docker.local" } },

@@ -156,6 +156,7 @@ export const SUPPORTED_PLUGINS = {
     DI_BRANDING: "di:branding",
     DI_PARAMETER_EXTENSIONS: "di:parameterExtensions",
     DI_MATCHING: "di:matchingNG",
+    DI_MAPPING_CREATOR_V2: "di:mappingCreatorV2",
     DI_PROJECT_ACL: "di:projectAcl",
     DI_PROJECT_ACL_MANAGEMENT: "di:projectAclManagement",
 };

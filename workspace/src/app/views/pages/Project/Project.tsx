@@ -11,10 +11,11 @@ import {
     Section,
     SectionHeader,
     Spacing,
+    TabProps,
+    Tabs,
     TitleMainsection,
     WorkspaceContent,
     WorkspaceMain,
-    WorkspaceSide,
 } from "@eccenca/gui-elements";
 import { workspaceOp, workspaceSel } from "@ducks/workspace";
 import { routerSel } from "@ducks/router";
@@ -32,7 +33,6 @@ import { ProjectTaskLoadingErrors } from "./WarningWidget/WarningWidget";
 import FileWidget from "./FileWidget";
 import NotFound from "../NotFound";
 import { diErrorMessage } from "@ducks/error/typings";
-import ActivityInfoWidget from "./ActivityInfoWidget";
 import { previewSlice } from "@ducks/workspace/previewSlice";
 import VariablesWidget from "../../../views/shared/VariablesWidget/VariablesWidget";
 import { useSelectFirstResult } from "../../../hooks/useSelectFirstResult";
@@ -116,6 +116,8 @@ const Project = () => {
         autogeneratePageTitle: true,
     });
 
+    const [selectedTab, setSelectedTab] = React.useState<string>("contents");
+
     if (accessForbidden) {
         return <ProjectForbiddenNotification detail={error.detail} />;
     } else if (error?.status === 404) {
@@ -123,6 +125,103 @@ const Project = () => {
     } else if (!projectId) {
         return <Loading posGlobal description={t("pages.project.loading", "Loading project data")} />;
     }
+    const contentsPanel = (
+        <Section>
+            <SectionHeader>
+                <Grid>
+                    <GridRow>
+                        <GridColumn small verticalAlign="center">
+                            <TitleMainsection>{t("pages.project.content", "Contents")}</TitleMainsection>
+                        </GridColumn>
+                        <GridColumn>
+                            <SearchBar
+                                textQuery={effectiveSearchQuery}
+                                sorters={sorters}
+                                onSearch={handleSearch}
+                                onEnter={onEnter}
+                                disableEnterDuringPendingSearch={true}
+                                globalTableKey={"workbench"}
+                            />
+                        </GridColumn>
+                    </GridRow>
+                </Grid>
+            </SectionHeader>
+            <Divider addSpacing="medium" />
+            <Grid>
+                <GridRow>
+                    <GridColumn small>
+                        <Filterbar />
+                    </GridColumn>
+                    <GridColumn>
+                        {!data.length && error.detail ? (
+                            <Notification
+                                intent={error?.status === 503 ? "warning" : "danger"}
+                                actions={
+                                    <Button
+                                        text={t("common.action.retry", "Retry")}
+                                        onClick={() => {
+                                            window.location.reload();
+                                        }}
+                                    />
+                                }
+                            >
+                                <h3>
+                                    {error?.status !== 503
+                                        ? t("http.error.fetchNotResult", "Error, cannot fetch results.")
+                                        : t("common.messages.temporarilyUnavailableMessage", {
+                                              detailMessage: diErrorMessage(error),
+                                          })}
+                                </h3>
+                                {error?.status !== 503 && <p>{error.detail}</p>}
+                            </Notification>
+                        ) : (
+                            <SearchList />
+                        )}
+                    </GridColumn>
+                </GridRow>
+            </Grid>
+        </Section>
+    );
+
+    const settingsPanel = (
+        <>
+            <ConfigurationWidget />
+            {projectAccessControl && (
+                <>
+                    <Spacing />
+                    <projectAccessControl.Component projectId={projectId} />
+                </>
+            )}
+        </>
+    );
+
+    const projectTabs: TabProps[] = [
+        {
+            id: "contents",
+            title: t("pages.project.content", "Contents"),
+            "data-test-id": "project-tab-contents",
+            panel: contentsPanel,
+        },
+        {
+            id: "files",
+            title: t("widget.FileWidget.files", "Files"),
+            "data-test-id": "project-tab-files",
+            panel: <FileWidget />,
+        },
+        {
+            id: "variables",
+            title: t("widget.VariableWidget.title", "Project variables"),
+            "data-test-id": "project-tab-variables",
+            panel: <VariablesWidget projectId={projectId} />,
+        },
+        {
+            id: "settings",
+            title: t("common.words.settings", "Settings"),
+            "data-test-id": "project-tab-settings",
+            panel: settingsPanel,
+        },
+    ];
+
     return (
         <WorkspaceContent className="eccapp-di__project">
             {pageHeader}
@@ -137,81 +236,19 @@ const Project = () => {
                     <Spacing />
                 </Section>
                 <Section>
-                    <SectionHeader>
-                        <Grid>
-                            <GridRow>
-                                <GridColumn small verticalAlign="center">
-                                    <TitleMainsection>{t("pages.project.content", "Contents")}</TitleMainsection>
-                                </GridColumn>
-                                <GridColumn>
-                                    <SearchBar
-                                        textQuery={effectiveSearchQuery}
-                                        sorters={sorters}
-                                        onSearch={handleSearch}
-                                        onEnter={onEnter}
-                                        disableEnterDuringPendingSearch={true}
-                                        globalTableKey={"workbench"}
-                                    />
-                                </GridColumn>
-                            </GridRow>
-                        </Grid>
-                    </SectionHeader>
-                    <Divider addSpacing="medium" />
-                    <Grid>
-                        <GridRow>
-                            <GridColumn small>
-                                <Filterbar />
-                            </GridColumn>
-                            <GridColumn>
-                                {!data.length && error.detail ? (
-                                    <Notification
-                                        intent={error?.status === 503 ? "warning" : "danger"}
-                                        actions={
-                                            <Button
-                                                text={t("common.action.retry", "Retry")}
-                                                onClick={() => {
-                                                    window.location.reload();
-                                                }}
-                                            />
-                                        }
-                                    >
-                                        <h3>
-                                            {error?.status !== 503
-                                                ? t("http.error.fetchNotResult", "Error, cannot fetch results.")
-                                                : t("common.messages.temporarilyUnavailableMessage", {
-                                                      detailMessage: diErrorMessage(error),
-                                                  })}
-                                        </h3>
-                                        {error?.status !== 503 && <p>{error.detail}</p>}
-                                    </Notification>
-                                ) : (
-                                    <SearchList />
-                                )}
-                            </GridColumn>
-                        </GridRow>
-                    </Grid>
-                </Section>
-            </WorkspaceMain>
-            <WorkspaceSide>
-                <Section>
                     <ProjectTaskLoadingErrors refreshProjectPage={() => handleSearch(currentSearchQuery.current)} />
-                    <ConfigurationWidget />
-                    <Spacing />
-                    <VariablesWidget projectId={projectId} />
-                    {projectAccessControl ? (
-                        <>
-                            <Spacing key={"spacing"} />
-                            <projectAccessControl.Component key={"component"} projectId={projectId} />
-                        </>
-                    ) : null}
-                    <Spacing />
-                    <ActivityInfoWidget />
-                    <Spacing />
-                    <FileWidget />
-                    <Spacing />
                     <DeprecatedPluginsWidget projectId={projectId} />
                 </Section>
-            </WorkspaceSide>
+                <Section>
+                    <Tabs
+                        id="project-main-tabs"
+                        tabs={projectTabs}
+                        selectedTabId={selectedTab}
+                        onChange={(newTabId) => setSelectedTab(String(newTabId))}
+                        renderActiveTabPanelOnly
+                    />
+                </Section>
+            </WorkspaceMain>
         </WorkspaceContent>
     );
 };

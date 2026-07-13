@@ -41,3 +41,12 @@ $eccgui-selector-text-spot-highlight: "[id^=parameter_doc_]";
  */
 
 @import "./spot-highlight";
+
+/**
+ * shadcn sidebar shell: fullheight grid rows clear the sticky 48px inset header on top of
+ * the base `min-h-[calc(100vh-1.75rem)]` utility (1.75rem = the p-3.5 content padding).
+ * Plain CSS because the BEM classname cannot be expressed as a Tailwind arbitrary variant.
+ */
+.diapp__insetcontent .eccgui-grid__row--fullheight {
+    min-height: calc(100svh - 3rem - 1.75rem);
+}

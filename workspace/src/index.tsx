@@ -33,7 +33,13 @@ if (typeof mappingEditor.hierarchicalMapping !== "function") {
     console.error("Mapping editor factory methods no registered.");
 }
 
-Object.freeze(Object.prototype);
+// Prototype-pollution defense: `seal` blocks ADDING properties to Object.prototype
+// (the pollution vector) while keeping the existing ones writable. A full `freeze`
+// makes every inherited property non-writable, and strict mode then throws on any
+// plain-object shadowing assignment like `obj.constructor = …` / `obj.toString = …`
+// — a common, legitimate idiom in dependencies (d3-color, zod's v3 compat layer, …)
+// that silently killed the workspacePlugins entry at startup.
+Object.seal(Object.prototype);
 
 const bootstrapPlugins = (plugins) => plugins.map((plugin) => createPlugin(plugin));
 
