@@ -6,7 +6,7 @@ import { IPluginOverview } from "@ducks/common/typings";
 import { convertTaskTypeToItemType, TaskType } from "@ducks/shared/typings";
 
 const sizes = ["large", "small"] as const;
-type Sizes = typeof sizes[number];
+type Sizes = (typeof sizes)[number];
 
 interface IProps {
     itemType?: string;
@@ -62,7 +62,7 @@ export const fillCustomPluginStore = async (artefactList: IPluginOverview[]) => 
             if (plugin.pluginIcon && (await validateDataUrl(plugin))) {
                 customPluginIcon.iconMap.set(
                     pluginKey(convertTaskTypeToItemType(plugin.taskType), plugin.key),
-                    plugin.pluginIcon
+                    plugin.pluginIcon,
                 );
             }
         }
@@ -73,7 +73,7 @@ export const fillCustomPluginStore = async (artefactList: IPluginOverview[]) => 
 const getCustomPluginIcon = async (
     itemType: string,
     pluginId: string,
-    artefactList: IPluginOverview[] | undefined
+    artefactList: IPluginOverview[] | undefined,
 ): Promise<string | undefined> => {
     if (artefactList) {
         await fillCustomPluginStore(artefactList);

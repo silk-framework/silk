@@ -21,7 +21,7 @@ import org.silkframework.rule.TaskContext
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.{PluginContext, TaskResolver}
 import org.silkframework.runtime.resource.InMemoryResourceManager
-import org.silkframework.runtime.templating.{ExecutionTemplateVariables, TemplateVariableScopes}
+import org.silkframework.runtime.templating.{ExecutionTemplateVariables, VariableScope}
 import org.silkframework.runtime.validation.ValidationException
 
 class SetExecutionVariableTransformerTest extends AnyFlatSpec with Matchers {
@@ -36,7 +36,7 @@ class SetExecutionVariableTransformerTest extends AnyFlatSpec with Matchers {
 
     result shouldBe Seq("first", "second")
     variables.get("myVar").value shouldBe "first"
-    variables.get("myVar").scope shouldBe TemplateVariableScopes.execution
+    variables.get("myVar").scope shouldBe VariableScope.execution
   }
 
   it should "overwrite the variable on each invocation, so the last processed value wins" in {

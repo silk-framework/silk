@@ -49,9 +49,8 @@ const createInternalEvaluationModalHarness = () => {
             RuleBlockEditorOptionalContext,
             RuleBlockEditor: () => {
                 const optionalContext = React.useContext(RuleBlockEditorOptionalContext);
-                const {
-                    RuleBlockEvaluationOptionalContext,
-                } = require("../RuleBlockEvaluationOptionalContext") as typeof import("../RuleBlockEvaluationOptionalContext");
+                const { RuleBlockEvaluationOptionalContext } =
+                    require("../RuleBlockEvaluationOptionalContext") as typeof import("../RuleBlockEvaluationOptionalContext");
                 const evaluationContext = React.useContext(RuleBlockEvaluationOptionalContext);
                 return (
                     <div

@@ -30,7 +30,11 @@ object JinjaTemplateEngine {
   private val interpreters = new ThreadLocal[JinjavaInterpreter] {
     override protected def initialValue(): JinjavaInterpreter = {
       withPluginClassLoader {
-        val config = JinjavaConfig.newBuilder.withFailOnUnknownTokens(true).build()
+        val config = JinjavaConfig.newBuilder
+          .withFailOnUnknownTokens(true)
+          // Variable values must stay literal: never re-interpret {{...}}/{%...%} contained in them (also an injection vector for values coming from data).
+          .withNestedInterpretationEnabled(false)
+          .build()
         val jinja = new Jinjava(config)
         TransformFilters.register(jinja.getGlobalContext)
         val interpreter = jinja.newInterpreter()
@@ -104,7 +108,7 @@ class JinjaTemplate(val node: Node) extends CompiledTemplate {
       val names = values.map(_.asName)
       // Variables of the form 'scope.name' can also be addressed by any scope prefix (e.g., 'input' or 'input.parameters')
       val scopes = values.filter(_.scope.nonEmpty).flatMap { v =>
-        (1 to v.scope.length).map(n => new TemplateVariableName(v.scope.take(n).mkString("."), Seq.empty))
+        (1 to v.scope.path.length).map(n => new TemplateVariableName(v.scope.path.take(n).mkString(".")))
       }
       // Find missing vars
       val existingVars = (names ++ scopes).toSet

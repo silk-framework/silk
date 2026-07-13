@@ -8,11 +8,7 @@ import {
     RULE_EDITOR_NOTIFICATION_INSTANCE,
     RuleValidationError,
 } from "../../../shared/RuleEditor/RuleEditor.typings";
-import {
-    EvaluatedTransformEntity,
-    IComplexMappingRule,
-    ITransformRuleEvaluationResponse,
-} from "../transform.types";
+import { EvaluatedTransformEntity, IComplexMappingRule, ITransformRuleEvaluationResponse } from "../transform.types";
 import { IValueInput } from "../../shared/rules/rule.typings";
 import { evaluateTransformRuleWithInspection } from "../transform.requests";
 import { FetchError } from "../../../../services/fetch/responseInterceptor";
@@ -80,13 +76,12 @@ export const TransformRuleEvaluation: React.FC<TransformRuleEvaluationProps> = (
     // The root node of the sub-tree that will be evaluated
     const evaluatedSubTreeNode = React.useRef<string>(undefined);
     const [evaluationError, setEvaluationError] = React.useState<string | undefined>();
-    const [ruleBlockInspection, setRuleBlockInspection] = React.useState<IRuleBlockSnapshots>(
-        EMPTY_RULE_BLOCK_INSPECTION,
-    );
+    const [ruleBlockInspection, setRuleBlockInspection] =
+        React.useState<IRuleBlockSnapshots>(EMPTY_RULE_BLOCK_INSPECTION);
     const [evaluatedRuleOperator, setEvaluatedRuleOperator] = React.useState<IValueInput | undefined>(undefined);
-    const [activeInternalRuleBlockEvaluation, setActiveInternalRuleBlockEvaluation] = React.useState<ActiveInternalRuleBlockEvaluation | undefined>(
-        undefined,
-    );
+    const [activeInternalRuleBlockEvaluation, setActiveInternalRuleBlockEvaluation] = React.useState<
+        ActiveInternalRuleBlockEvaluation | undefined
+    >(undefined);
 
     const addValidationNotification = React.useCallback((n: RuleEditorEvaluationNotification) => {
         setValidationNotifications((old) => [n, ...old]);

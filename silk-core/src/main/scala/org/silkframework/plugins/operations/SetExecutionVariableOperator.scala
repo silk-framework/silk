@@ -14,8 +14,11 @@
 
 package org.silkframework.plugins.operations
 
-import org.silkframework.config.{CustomTask, FixedNumberOfInputs, InputPorts, Port, UnknownSchemaPort}
+import org.silkframework.config.{CustomTask, FixedNumberOfInputs, FixedSchemaPort, FlexibleSchemaPort, InputPorts, Port, UnknownSchemaPort}
+import org.silkframework.entity.{Entity, EntitySchema}
+import org.silkframework.entity.paths.UntypedPath
 import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
+import org.silkframework.util.Uri
 
 /**
   * Workflow operator that sets a single execution-scope template variable from its input and passes the input
@@ -39,9 +42,34 @@ case class SetExecutionVariableOperator(@Param("Name of the execution variable t
                                             "If left empty, the first value of the input is used.")
                                         sourcePath: String = "") extends CustomTask {
 
-  /** A single input of any schema, so the operator can be placed after any node. */
-  override def inputPorts: InputPorts = FixedNumberOfInputs(Seq(UnknownSchemaPort))
+  /** Parsed at construction time, so an invalid path fails when the task is configured. */
+  private val parsedSourcePath: Option[UntypedPath] = {
+    val trimmed = sourcePath.trim
+    if (trimmed.nonEmpty) Some(UntypedPath.parse(trimmed)) else None
+  }
+
+  /**
+    * With a source path, a fixed schema requesting exactly that path, so datasets can be connected as input.
+    * Otherwise a flexible port that adapts to the connected output.
+    */
+  override lazy val inputPorts: InputPorts = {
+    val port = parsedSourcePath match {
+      case Some(path) =>
+        FixedSchemaPort(EntitySchema(typeUri = Uri(""), typedPaths = IndexedSeq(path.asStringTypedPath)))
+      case None =>
+        FlexibleSchemaPort()
+    }
+    FixedNumberOfInputs(Seq(port))
+  }
 
   /** Passes the input through unchanged; the schema depends on the connected input. */
   override def outputPort: Option[Port] = Some(UnknownSchemaPort)
+
+  /** Extracts the variable value from an entity: the value at the source path, or the first value if no path is set. */
+  def extractValue(entity: Entity): Option[String] = {
+    parsedSourcePath match {
+      case Some(path) => entity.valueOfPath(path).headOption
+      case None => entity.values.flatten.headOption
+    }
+  }
 }

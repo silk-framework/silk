@@ -4,7 +4,7 @@ import org.apache.jena.update.UpdateFactory
 import org.silkframework.config.{Prefixes, Task, TaskSpec}
 import org.silkframework.entity.{Entity, EntitySchema}
 import org.silkframework.runtime.plugin.PluginContext
-import org.silkframework.runtime.templating.{TemplateEngines, TemplateVariableValue, TemplateVariablesReader}
+import org.silkframework.runtime.templating.{TemplateEngines, TemplateVariableValue, TemplateVariablesReader, VariableScope}
 import org.silkframework.runtime.validation.ValidationException
 
 import scala.util.Try
@@ -55,9 +55,9 @@ object SparqlTemplate {
    *
    * @param defaultScope Scope whose variables are additionally exposed at the top level of the Jinja context,
    *                     so templates may reference them without the scope prefix. Only honored by the Jinja
-   *                     implementation. Pass `Seq.empty` to disable aliasing.
+   *                     implementation. Pass the empty scope to disable aliasing.
    */
-  def create(templateEngineId: String, template: String, defaultScope: Seq[String] = Seq.empty): SparqlTemplate = {
+  def create(templateEngineId: String, template: String, defaultScope: VariableScope = VariableScope.empty): SparqlTemplate = {
     if (templateEngineId == SparqlJinjaTemplate.JINJA_ENGINE_ID) {
       new SparqlJinjaTemplate(template, defaultScope)
     } else {

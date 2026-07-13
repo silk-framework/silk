@@ -80,7 +80,7 @@ export function optionallyLabelledParameterToValue<T>(optionallyLabelledValue: O
 }
 
 export function optionallyLabelledParameterToLabel(
-    optionallyLabelledValue: OptionallyLabelledParameter<any>
+    optionallyLabelledValue: OptionallyLabelledParameter<any>,
 ): string | undefined {
     if (optionallyLabelledValue != null) {
         return (optionallyLabelledValue as LabelledParameterValue<any>).label

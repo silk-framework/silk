@@ -3,7 +3,7 @@ package org.silkframework.serialization.json
 import io.swagger.v3.oas.annotations.media.Schema.RequiredMode
 import io.swagger.v3.oas.annotations.media.{ArraySchema, Schema}
 import org.silkframework.runtime.templating.exceptions.TemplateVariablesEvaluationException
-import org.silkframework.runtime.templating.{TemplateVariable, TemplateVariables}
+import org.silkframework.runtime.templating.{TemplateVariable, TemplateVariables, VariableScope}
 import org.silkframework.runtime.validation.BadUserInputException
 import play.api.libs.json.{Json, OFormat}
 
@@ -47,13 +47,13 @@ case class TemplateVariableJson(@Schema(
     if (value.isEmpty && template.isEmpty) {
       throw new BadUserInputException("Either the variable value or its template has to be defined.")
     }
-    TemplateVariable(name, value.getOrElse(""), template, description, isSensitive, scope.split('.').toIndexedSeq)
+    TemplateVariable(name, value.getOrElse(""), template, description, isSensitive, VariableScope.parse(scope))
   }
 }
 
 object TemplateVariableJson {
   def apply(variable: TemplateVariable): TemplateVariableJson = {
-    TemplateVariableJson(variable.name, Some(variable.value), variable.template, variable.description, variable.isSensitive, variable.scope.mkString("."))
+    TemplateVariableJson(variable.name, Some(variable.value), variable.template, variable.description, variable.isSensitive, variable.scope.toString)
   }
 
   implicit val templateVariableFormat: OFormat[TemplateVariableJson] = Json.format[TemplateVariableJson]

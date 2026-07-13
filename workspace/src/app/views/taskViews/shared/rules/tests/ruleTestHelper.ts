@@ -13,13 +13,7 @@ import type {
     IRuleBlockTaskParameters,
 } from "../../../ruleBlock/ruleBlock.types";
 import type { IComplexMappingRule } from "../../../transform/transform.types";
-import type {
-    IInputPortInput,
-    IPathInput,
-    IRuleBlockInput,
-    ITransformOperator,
-    RuleLayout,
-} from "../rule.typings";
+import type { IInputPortInput, IPathInput, IRuleBlockInput, ITransformOperator, RuleLayout } from "../rule.typings";
 import type { IRuleOperatorNode } from "../../../../shared/RuleEditor/RuleEditor.typings";
 
 const defaultLayout = (): RuleLayout => ({
@@ -39,9 +33,7 @@ const createRuleBlockPort = (overrides: Partial<RuleBlockPort> = {}): RuleBlockP
     ...overrides,
 });
 
-const createRuleBlockInputExample = (
-    overrides: Partial<IRuleBlockInputExample> = {},
-): IRuleBlockInputExample => ({
+const createRuleBlockInputExample = (overrides: Partial<IRuleBlockInputExample> = {}): IRuleBlockInputExample => ({
     id: "example-1",
     inputs: {
         inputPortA: ["Original value"],
@@ -111,9 +103,7 @@ const createRuleBlockTask = (
         },
     }) as IProjectTask<IRuleBlockTaskParameters>;
 
-const createRuleBlockInspectionSnapshot = (
-    overrides: Partial<RuleBlockSnapshot> = {},
-): RuleBlockSnapshot => ({
+const createRuleBlockInspectionSnapshot = (overrides: Partial<RuleBlockSnapshot> = {}): RuleBlockSnapshot => ({
     ports: overrides.ports ?? [],
     operatorTree: overrides.operatorTree,
     layout: overrides.layout ?? defaultLayout(),
@@ -138,7 +128,9 @@ const createInputPortNode = (overrides: Partial<IRuleOperatorNode> = {}): IRuleO
     ...overrides,
 });
 
-const createRuleOperatorNode = (overrides: Partial<IRuleOperatorNode> & { nodeId?: string } = {}): IRuleOperatorNode => {
+const createRuleOperatorNode = (
+    overrides: Partial<IRuleOperatorNode> & { nodeId?: string } = {},
+): IRuleOperatorNode => {
     const nodeId = overrides.nodeId ?? "nodeId";
     const tags = Object.prototype.hasOwnProperty.call(overrides, "tags") ? overrides.tags : [];
     return {
@@ -245,15 +237,16 @@ const createComparisonOperator = (overrides: Partial<IComparisonOperator> = {}):
 
 const createAggregationOperator = (
     overrides: Partial<ISimilarityOperator> & { inputs?: ISimilarityOperator[] } = {},
-): ISimilarityOperator => ({
-    id: "aggregation-node",
-    type: "Aggregation",
-    weight: 1,
-    aggregator: "max",
-    parameters: {},
-    inputs: overrides.inputs ?? [createComparisonOperator()],
-    ...overrides,
-}) as ISimilarityOperator;
+): ISimilarityOperator =>
+    ({
+        id: "aggregation-node",
+        type: "Aggregation",
+        weight: 1,
+        aggregator: "max",
+        parameters: {},
+        inputs: overrides.inputs ?? [createComparisonOperator()],
+        ...overrides,
+    }) as ISimilarityOperator;
 
 const createLinkingRule = (overrides: Partial<ILinkingRule> = {}): ILinkingRule => ({
     filter: {},
@@ -284,7 +277,7 @@ const createLinkingTask = (
             matchingExecutionTimeout: undefined,
         },
         ...overrides,
-    } as unknown as TaskPlugin<ILinkingTaskParameters>);
+    }) as unknown as TaskPlugin<ILinkingTaskParameters>;
 
 const ruleTestHelper = {
     createAggregationOperator,

@@ -391,7 +391,7 @@ const SortableVariableItem: React.FC<SortableVariableItemProps> = ({
                                 data-test-id="template-variable-delimiter"
                                 tooltipText={
                                     t("widget.TaskConfigWidget.templateValueInfo") +
-                                    `\n\n\`\`\`${variable.template}\`\`\``
+                                    `\n\n\`\`\`\n${variable.template}\n\`\`\``
                                 }
                                 tooltipProps={{
                                     placement: "top",

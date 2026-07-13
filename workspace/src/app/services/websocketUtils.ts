@@ -16,7 +16,7 @@ export const connectWebSocket = <T>(
     pollingUrl: string,
     updateFunc: (updateItem: T, cleanUp: CleanUpFunction) => any,
     registerError?: (errorId: string, err: any, cause?: any) => void,
-    retryTimeout: number = 5000
+    retryTimeout: number = 5000,
 ): CleanUpFunction => {
     let disposed = false;
     let pollingIntervalId: ReturnType<typeof setInterval> | undefined;
@@ -72,7 +72,7 @@ export const connectWebSocket = <T>(
             }
             if (!websocketState.hasEstablishedConnection && pollingIntervalId === undefined) {
                 console.log(
-                    "Connecting to WebSocket at '" + fixedWebSocketUrl + "' failed. Falling back to polling..."
+                    "Connecting to WebSocket at '" + fixedWebSocketUrl + "' failed. Falling back to polling...",
                 );
                 let lastUpdate = 0;
                 pollingIntervalId = setInterval(async function () {

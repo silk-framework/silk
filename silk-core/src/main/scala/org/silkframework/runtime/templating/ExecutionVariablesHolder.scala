@@ -20,13 +20,13 @@ final class ExecutionVariablesHolder(initial: TemplateVariables = TemplateVariab
   /**
     * Sets or replaces an execution-scope variable. Replace-on-collision by name.
     *
-    * @throws InvalidScopeException if the variable's scope is not [[TemplateVariableScopes.execution]].
+    * @throws InvalidScopeException if the variable's scope is not [[VariableScope.execution]].
     */
   def set(variable: TemplateVariable): Unit = {
-    if (variable.scope != TemplateVariableScopes.execution) {
+    if (variable.scope != VariableScope.execution) {
       throw new InvalidScopeException(
-        s"Variable '${variable.name}' has scope '${variable.scope.mkString(".")}'. " +
-        s"Only variables in the '${TemplateVariableScopes.execution.mkString(".")}' scope can be modified through PluginContext.")
+        s"Variable '${variable.name}' has scope '${variable.scope}'. " +
+        s"Only variables in the '${VariableScope.execution}' scope can be modified through PluginContext.")
     }
     ref.updateAndGet { current =>
       TemplateVariables(variable +: current.variables.filterNot(_.name == variable.name))

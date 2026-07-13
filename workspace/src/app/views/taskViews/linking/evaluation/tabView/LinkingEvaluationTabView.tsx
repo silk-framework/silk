@@ -183,23 +183,21 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                 // New view is rendered, reset manual link change
                 manualLinkChange.current = false;
                 const [resultsResponse, summariesResponse] = await Promise.all([
-                    (
-                        getEvaluatedLinks(
-                            projectId,
-                            linkingTaskId,
-                            pagination,
-                            searchQuery,
-                            filters,
-                            linkSortBy,
-                            showReferenceLinks,
-                            !showReferenceLinks,
-                        )
+                    getEvaluatedLinks(
+                        projectId,
+                        linkingTaskId,
+                        pagination,
+                        searchQuery,
+                        filters,
+                        linkSortBy,
+                        showReferenceLinks,
+                        !showReferenceLinks,
                     ),
                     // Fetch fresh rule block labels alongside each evaluation reload instead of rewriting this tab-view API.
-                    (requestRuleBlockSummaries(projectId)),
+                    requestRuleBlockSummaries(projectId),
                 ]);
-                const results = resultsResponse?.data
-                const summaries = summariesResponse.data
+                const results = resultsResponse?.data;
+                const summaries = summariesResponse.data;
                 ruleBlockLabels.current = Object.fromEntries(
                     summaries.map((summary) => [summary.id, summary.label] as const),
                 );

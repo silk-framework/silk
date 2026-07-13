@@ -47,23 +47,27 @@ export interface ValueStateRef {
     currentTemplateValue: string;
     // The last template value before the switch happened from template -> input
     templateValueBeforeSwitch?: string;
+    // If the currently shown value is the template value
+    isTemplate: boolean
 }
 
 const NewVariableModal: React.FC<VariableModalProps> = ({
-    variables,
-    projectId,
-    taskId,
-    closeModal,
-    targetVariable,
-    refresh,
-}) => {
+                                                            variables,
+                                                            projectId,
+                                                            taskId,
+                                                            closeModal,
+                                                            targetVariable,
+                                                            refresh,
+                                                        }) => {
     const [loading, setLoading] = React.useState<boolean>(false);
     const [name, setName] = React.useState<string>("");
     const [description, setDescription] = React.useState<string>("");
     const [showModalHelperText, setShowModalHelperText] = React.useState<boolean>(false);
     const [validationError, setValidationError] = React.useState<Partial<{ name: string; valueOrTemplate: string }>>();
-    const [error, setError] = React.useState<ErrorResponse | undefined>();
-    const checkAndDisplayError = useModalError({ setError });
+    const [templateError, setTemplateError] = React.useState<ErrorResponse | undefined>();
+    const [submitRequestError, setSubmitRequestError] = React.useState<ErrorResponse | undefined>();
+    const checkAndDisplayTemplateError = useModalError({ setError: setTemplateError });
+    const checkAndDisplaySubmitRequestError = useModalError({setError: setSubmitRequestError})
     const [t] = useTranslation();
     const isEditMode = targetVariable;
 
@@ -71,7 +75,13 @@ const NewVariableModal: React.FC<VariableModalProps> = ({
         // Input value needs to be undefined, so it gets set to the default value
         currentInputValue: targetVariable?.value ?? "",
         currentTemplateValue: targetVariable?.template ?? "",
+        isTemplate: targetVariable?.template != null
     });
+
+    const clearErrors = React.useCallback(() => {
+        setSubmitRequestError(undefined)
+        setTemplateError(undefined);
+    }, [])
 
     React.useEffect(() => {
         setName(targetVariable?.name ?? "");
@@ -81,8 +91,9 @@ const NewVariableModal: React.FC<VariableModalProps> = ({
             templateValueBeforeSwitch: targetVariable?.template ?? "",
             currentTemplateValue: targetVariable?.template ?? "",
             currentInputValue: targetVariable?.value ?? "",
+            isTemplate: targetVariable?.template != null
         };
-        setError(undefined);
+        clearErrors()
     }, [targetVariable]);
 
     /**
@@ -105,7 +116,7 @@ const NewVariableModal: React.FC<VariableModalProps> = ({
      */
     const handleVariableNameChange = React.useCallback(
         (e) => {
-            setError(undefined);
+            setTemplateError(undefined);
             const newName = e.target.value;
             setName(newName);
             if (variables.find((v) => v.name === newName)) {
@@ -123,13 +134,14 @@ const NewVariableModal: React.FC<VariableModalProps> = ({
     const resetModalState = React.useCallback(() => {
         setName("");
         setDescription("");
-        setError(undefined);
+        clearErrors()
         setValidationError(undefined);
         valueState.current = {
             inputValueBeforeSwitch: "",
             templateValueBeforeSwitch: "",
             currentTemplateValue: "",
             currentInputValue: "",
+            isTemplate: false
         };
     }, []);
 
@@ -141,13 +153,15 @@ const NewVariableModal: React.FC<VariableModalProps> = ({
         if (error?.name || error?.valueOrTemplate) return;
         try {
             setLoading(true);
-            setError(undefined);
+            clearErrors()
+
+            const {currentInputValue, currentTemplateValue, isTemplate} = valueState.current
 
             const formPayload = {
                 name,
-                value: valueState.current.currentInputValue || null,
+                value: (isTemplate ? null : currentInputValue) || null,
                 description,
-                template: valueState.current.currentTemplateValue || null,
+                template: (isTemplate ? valueState.current.currentTemplateValue : null) || null,
                 isSensitive: false,
                 scope: taskId ? "execution" : "project",
             };
@@ -155,18 +169,18 @@ const NewVariableModal: React.FC<VariableModalProps> = ({
             isEditMode
                 ? await updateVariable(formPayload, projectId, name, taskId)
                 : await createNewVariable(
-                      {
-                          variables: [...variables, formPayload],
-                      },
-                      projectId,
-                      taskId,
-                  );
+                    {
+                        variables: [...variables, formPayload],
+                    },
+                    projectId,
+                    taskId,
+                );
 
             resetModalState();
             refresh();
             closeModal();
         } catch (err) {
-            checkAndDisplayError(
+            checkAndDisplaySubmitRequestError(
                 err,
                 t("widget.VariableWidget.errorMessages.variableUpsertFailure", "Variable add/update failed"),
             );
@@ -177,9 +191,15 @@ const NewVariableModal: React.FC<VariableModalProps> = ({
 
     const handleModalClose = React.useCallback(() => {
         closeModal();
-        setError(undefined);
+        clearErrors()
         setValidationError(undefined);
     }, []);
+
+    const handleCheckTemplateErrors = React.useCallback((err) =>
+        checkAndDisplayTemplateError(
+            err,
+            t("widget.VariableWidget.errorMessages.templateUpdateFailure", "variable template error"),
+        ), [checkAndDisplayTemplateError])
 
     return (
         <>
@@ -196,14 +216,19 @@ const NewVariableModal: React.FC<VariableModalProps> = ({
                         onClick={() => setShowModalHelperText(true)}
                     />
                 }
-                notifications={error ? <Notification intent="danger">{error.detail}</Notification> : null}
+                notifications={templateError ?
+                    <Notification intent="danger">{templateError.detail}</Notification> :
+                    submitRequestError ?
+                        <Notification intent="danger">{submitRequestError.detail}</Notification> :
+                        null
+                }
                 actions={[
                     <Button
                         key="add"
                         data-test-id="variable-modal-submit-btn"
                         affirmative
                         onClick={upsertVariable}
-                        disabled={loading || !!validationError?.name || !!validationError?.valueOrTemplate || !!error}
+                        disabled={loading || !!validationError?.name || !!validationError?.valueOrTemplate || !!templateError}
                         loading={loading}
                     >
                         {!isEditMode ? t("common.action.add") : t("common.action.update")}
@@ -236,14 +261,10 @@ const NewVariableModal: React.FC<VariableModalProps> = ({
                     hasStateDanger={!!validationError?.valueOrTemplate}
                     ref={valueState}
                     projectId={projectId}
+                    taskId={taskId}
                     existingVariableName={targetVariable?.name}
                     setModalError={setValidationError}
-                    handleCheckTemplateErrors={(err) =>
-                        checkAndDisplayError(
-                            err,
-                            t("widget.VariableWidget.errorMessages.templateUpdateFailure", "variable template error"),
-                        )
-                    }
+                    handleCheckTemplateErrors={handleCheckTemplateErrors}
                 />
                 <FieldItem
                     labelProps={{

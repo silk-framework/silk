@@ -38,11 +38,7 @@ import { DIErrorTypes } from "@ducks/error/typings";
 import { IEvaluatedReferenceLinksWithInspection } from "../linking.types";
 import ruleBlockInternalEvaluationUtils from "../../ruleBlock/ruleBlockInternalEvaluation.utils";
 import { RuleBlockInternalEvaluationModal } from "../../ruleBlock/RuleBlockInternalEvaluationModal";
-import {
-    IRuleBlockInputExample,
-    IRuleBlockSnapshots,
-    RuleBlockSnapshot,
-} from "../../ruleBlock/ruleBlock.types";
+import { IRuleBlockInputExample, IRuleBlockSnapshots, RuleBlockSnapshot } from "../../ruleBlock/ruleBlock.types";
 
 type EvaluationChildType = ReactElement<RuleEditorProps<TaskPlugin<ILinkingTaskParameters>, IPluginDetails>>;
 
@@ -107,13 +103,14 @@ export const LinkingRuleEvaluation = ({
     const triggerEvaluation = React.useRef<(() => any) | undefined>(undefined);
     const { registerError: _registerError } = useErrorHandler();
     const [t] = useTranslation();
-    const [ruleBlockInspection, setRuleBlockInspection] = React.useState<IRuleBlockSnapshots>(
-        EMPTY_RULE_BLOCK_INSPECTION,
-    );
-    const [evaluatedRuleOperator, setEvaluatedRuleOperator] = React.useState<ISimilarityOperator | undefined>(undefined);
-    const [activeInternalRuleBlockEvaluation, setActiveInternalRuleBlockEvaluation] = React.useState<ActiveInternalRuleBlockEvaluation | undefined>(
+    const [ruleBlockInspection, setRuleBlockInspection] =
+        React.useState<IRuleBlockSnapshots>(EMPTY_RULE_BLOCK_INSPECTION);
+    const [evaluatedRuleOperator, setEvaluatedRuleOperator] = React.useState<ISimilarityOperator | undefined>(
         undefined,
     );
+    const [activeInternalRuleBlockEvaluation, setActiveInternalRuleBlockEvaluation] = React.useState<
+        ActiveInternalRuleBlockEvaluation | undefined
+    >(undefined);
 
     const registerError = (errorKey: string, error: DIErrorTypes) => {
         _registerError(errorKey, t(errorKey), error, {
@@ -273,7 +270,12 @@ export const LinkingRuleEvaluation = ({
                 // Fallback to slower linking evaluation
                 setEvaluatesQuickly((previous) => !result);
                 const linkingResult = (
-                    await evaluateLinkingRuleWithInspection(projectId, linkingTaskId, newLinkageRule, numberOfLinkToShow)
+                    await evaluateLinkingRuleWithInspection(
+                        projectId,
+                        linkingTaskId,
+                        newLinkageRule,
+                        numberOfLinkToShow,
+                    )
                 ).data;
                 setEvaluationResult(
                     linkingResult.links.slice(0, numberOfLinkToShow).map((l) => ({ ...l, type: "unlabelled" })),

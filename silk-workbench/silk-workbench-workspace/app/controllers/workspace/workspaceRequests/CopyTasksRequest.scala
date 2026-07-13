@@ -7,7 +7,7 @@ import org.silkframework.config.{Prefixes, TaskSpec}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.{InvalidPluginParameterValueException, PluginContext}
 import org.silkframework.runtime.templating.exceptions.{TemplateVariableEvaluationException, TemplateVariablesEvaluationException, UnboundVariablesException}
-import org.silkframework.runtime.templating.{GlobalTemplateVariables, TemplateVariableName, TemplateVariableScopes, TemplateVariables}
+import org.silkframework.runtime.templating.{GlobalTemplateVariables, TemplateVariableName, VariableScope, TemplateVariables}
 import org.silkframework.runtime.validation.BadUserInputException
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.{Project, ProjectTask, WorkspaceFactory}
@@ -181,7 +181,7 @@ object CopyTasksRequest {
      */
     private def copyMissingVariables[T](task: TaskSpec, copiedVariables: mutable.Set[TemplateVariableName])(f: => T): T = {
       // Copy all variables that are known to be referenced by a task
-      for(variableName <- task.referencedVariables if variableName.scope == TemplateVariableScopes.project && !copiedVariables.contains(variableName)) {
+      for(variableName <- task.referencedVariables if variableName.scope == VariableScope.project && !copiedVariables.contains(variableName)) {
         val sourceVariable = sourceProject.templateVariables.get(variableName.name)
         // Only copy the variable if it is not already defined in the target project with the same value
         targetProject.templateVariables.all.map.get(sourceVariable.name) match {
@@ -197,7 +197,7 @@ object CopyTasksRequest {
         f
       } catch {
         case InvalidPluginParameterValueException(_, unboundEx: UnboundVariablesException) =>
-          for(missingVar <- unboundEx.missingVars if missingVar.scope == TemplateVariableScopes.project) {
+          for(missingVar <- unboundEx.missingVars if missingVar.scope == VariableScope.project) {
             val sourceVariable = sourceProject.templateVariables.get(missingVar.name)
             val newVariables = resolveAndAddMissingVariables(targetProject.templateVariables.all.withLast(sourceVariable))
             targetProject.templateVariables.put(newVariables)
@@ -226,7 +226,7 @@ object CopyTasksRequest {
             // Add all missing variables before trying again
             ex.issues.collect {
               case TemplateVariableEvaluationException(_, unboundEx: UnboundVariablesException) =>
-                for(missingVarName <- unboundEx.missingVars if missingVarName.scope == TemplateVariableScopes.project && !currentVariables.map.contains(missingVarName.name)) {
+                for(missingVarName <- unboundEx.missingVars if missingVarName.scope == VariableScope.project && !currentVariables.map.contains(missingVarName.name)) {
                   val missingVar = sourceProject.templateVariables.get(missingVarName.name)
                   currentVariables = currentVariables.withFirst(missingVar)
                 }

@@ -265,7 +265,7 @@ export const RuleEditorToolbar = () => {
                             hasEvaluationResult={ruleEvaluationContext.hasEvaluationResult}
                             evaluationConfigMenu={ruleEvaluationContext.evaluationConfigMenu}
                             evaluationResultsShownToggleButton={{
-                                "data-test-id": "rule-editor-start-evaluation-btn",
+                                "data-test-id": "rule-editor-hide-evaluation-btn",
                                 disabled: ruleEvaluationContext.evaluationRunning,
                                 icon: evaluationShown ? "item-hidedetails" : "item-viewdetails",
                                 tooltip: evaluationShown

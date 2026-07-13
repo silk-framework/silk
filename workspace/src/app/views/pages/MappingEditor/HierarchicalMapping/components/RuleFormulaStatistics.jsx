@@ -1,6 +1,13 @@
 import React from "react";
 
-const RuleFormulaStatistics = ({ introLabel, pathCount, renderPaths, operatorCount, operatorLabels, ruleBlockCount }) => (
+const RuleFormulaStatistics = ({
+    introLabel,
+    pathCount,
+    renderPaths,
+    operatorCount,
+    operatorLabels,
+    ruleBlockCount,
+}) => (
     <span>
         {introLabel} {pathCount} value path{pathCount > 1 ? "s" : ""}: {renderPaths()}
         <br />

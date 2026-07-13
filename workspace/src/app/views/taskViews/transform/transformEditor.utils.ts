@@ -20,7 +20,7 @@ export const inputPathTab = (
     ruleId: string,
     baseOperator: IRuleOperator,
     errorHandler: (err) => any,
-    taskContext?: TaskContext
+    taskContext?: TaskContext,
 ): IRuleSidebarPreConfiguredOperatorsTabConfig => {
     const category = "Source path";
     const inputPathTabConfig: IRuleSidebarPreConfiguredOperatorsTabConfig<PathWithMetaData> = {

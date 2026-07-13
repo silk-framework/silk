@@ -5,21 +5,39 @@ import jestTestUtils from "../../../../test/jestTestUtils";
 import ruleTestHelper from "../../shared/rules/tests/ruleTestHelper";
 import type { RuleBlockPort } from "../ruleBlock.types";
 
+const mockRegisterError = jest.fn();
+const mockRequestTaskData = jest.fn();
+const mockRequestRelatedItems = jest.fn();
+const mockRequestUpdateProjectTask = jest.fn();
+const mockRequestRuleOperatorPluginsDetails = jest.fn();
+let RuleBlockEditor: typeof import("../RuleBlockEditor").RuleBlockEditor;
+let RuleBlockEditorOptionalContext: typeof import("../RuleBlockEditor").RuleBlockEditorOptionalContext;
+
 describe("RuleBlockEditor integration", () => {
+    beforeAll(() => {
+        setupRuleBlockEditorIntegrationTest();
+    });
+
     beforeEach(() => {
         window.localStorage.clear();
+        mockRegisterError.mockReset();
+        mockRequestTaskData.mockReset();
+        mockRequestRelatedItems.mockReset();
+        mockRequestUpdateProjectTask.mockReset();
+        mockRequestRuleOperatorPluginsDetails.mockReset();
     });
 
     it("should show the unused warning for a normal port after deleting a deprecated port first via the real editor model", async () => {
-        const harness = createRuleBlockEditorHarness();
-        harness.mockRequestRuleOperatorPluginsDetails.mockResolvedValue({
+        const RuleBlockEditorComponent = RuleBlockEditor;
+        const RuleBlockEditorOptionalContextValue = RuleBlockEditorOptionalContext;
+        mockRequestRuleOperatorPluginsDetails.mockResolvedValue({
             data: transformPluginDetails,
         });
 
         render(
-            <harness.RuleBlockEditorOptionalContext.Provider value={{ ruleBlockSnapshot: createExternalSnapshot() }}>
-                <harness.RuleBlockEditor projectId="project1" ruleBlockTaskId="task1" instanceId="instance1" />
-            </harness.RuleBlockEditorOptionalContext.Provider>,
+            <RuleBlockEditorOptionalContextValue.Provider value={{ ruleBlockSnapshot: createExternalSnapshot() }}>
+                <RuleBlockEditorComponent projectId="project1" ruleBlockTaskId="task1" instanceId="instance1" />
+            </RuleBlockEditorOptionalContextValue.Provider>,
         );
 
         await waitFor(() =>
@@ -44,20 +62,21 @@ describe("RuleBlockEditor integration", () => {
     });
 
     it("should show both the validation error and the unused-port warning when saving an invalid changed rule", async () => {
-        const harness = createRuleBlockEditorHarness();
-        harness.mockRequestRuleOperatorPluginsDetails.mockResolvedValue({
+        const RuleBlockEditorComponent = RuleBlockEditor;
+        const RuleBlockEditorOptionalContextValue = RuleBlockEditorOptionalContext;
+        mockRequestRuleOperatorPluginsDetails.mockResolvedValue({
             data: transformPluginDetails,
         });
-        harness.mockRequestRelatedItems.mockResolvedValue({
+        mockRequestRelatedItems.mockResolvedValue({
             data: {
                 total: 0,
             },
         });
 
         render(
-            <harness.RuleBlockEditorOptionalContext.Provider value={{ ruleBlockSnapshot: createInvalidSaveSnapshot() }}>
-                <harness.RuleBlockEditor projectId="project1" ruleBlockTaskId="task1" instanceId="instance1" />
-            </harness.RuleBlockEditorOptionalContext.Provider>,
+            <RuleBlockEditorOptionalContextValue.Provider value={{ ruleBlockSnapshot: createInvalidSaveSnapshot() }}>
+                <RuleBlockEditorComponent projectId="project1" ruleBlockTaskId="task1" instanceId="instance1" />
+            </RuleBlockEditorOptionalContextValue.Provider>,
         );
 
         await waitFor(() => expect(screen.getByRole("button", { name: "Save" })).toBeDisabled());
@@ -79,91 +98,9 @@ describe("RuleBlockEditor integration", () => {
             expect(notifications[1]).toHaveAttribute("data-intent", "warning");
             expect(notifications[1]).toHaveTextContent("taskViews.ruleBlock.warnings.unusedPorts");
         });
-        expect(harness.mockRequestUpdateProjectTask).not.toHaveBeenCalled();
+        expect(mockRequestUpdateProjectTask).not.toHaveBeenCalled();
     });
 });
-
-const createGuiElementsModule = () => {
-    const React = require("react");
-    return {
-        Button: jestTestUtils.createButtonMock(
-            ({ affirmative, disruptive, tooltip, tooltipProps, loading, elevated, ...props }) => ({
-                ...jestTestUtils.omitUnsupportedDomProps(props),
-                loading,
-                includeLoadingState: true,
-            }),
-        ),
-        Card: jestTestUtils.createDivPassthroughMock(),
-        CardActions: jestTestUtils.createDivPassthroughMock(),
-        CardActionsAux: jestTestUtils.createDivPassthroughMock(),
-        CardContent: jestTestUtils.createDivPassthroughMock(),
-        Checkbox: jestTestUtils.createCheckboxMock(),
-        ContextMenu: jestTestUtils.createContextMenuMock(),
-        ContextOverlay: jestTestUtils.createContextOverlayMock(),
-        Divider: jestTestUtils.createDivPassthroughMock(),
-        Grid: jestTestUtils.createDivPassthroughMock(),
-        GridColumn: jestTestUtils.createDivPassthroughMock(),
-        GridRow: jestTestUtils.createDivPassthroughMock(),
-        Icon: jestTestUtils.createIconMock(),
-        IconButton: jestTestUtils.createButtonMock(
-            ({ tooltipProps, intent, loading, size, tooltipAsTitle, description, minimal, ...props }) => ({
-                ...props,
-                text: props.text ?? props.name,
-                loading,
-                includeLoadingState: false,
-            }),
-        ),
-        InteractionGate: ({ children }) => <>{children}</>,
-        Markdown: ({ children }) => <>{children}</>,
-        MenuItem: jestTestUtils.createMenuItemMock(),
-        Notification: jestTestUtils.createNotificationMock(),
-        Spacing: jestTestUtils.createChildrenOnlyMock(),
-        StickyNote: () => null,
-        TabTitle: ({ text, titlePrefix }) => (
-            <span>
-                {titlePrefix}
-                {text}
-            </span>
-        ),
-        Tabs: ({ tabs, selectedTabId, onChange }) => (
-            <div>
-                {tabs.map((tab) => (
-                    <button
-                        key={tab.id}
-                        type="button"
-                        data-testid={`sidebar-tab-${tab.id}`}
-                        data-selected={String(tab.id === selectedTabId)}
-                        onClick={() => onChange(tab.id)}
-                    >
-                        {tab.title}
-                    </button>
-                ))}
-            </div>
-        ),
-        TitleMainsection: jestTestUtils.createChildrenOnlyMock(),
-        Toolbar: jestTestUtils.createDivPassthroughMock(),
-        ToolbarSection: jestTestUtils.createDivPassthroughMock(),
-        StickyNoteModal: jestTestUtils.createDivPassthroughMock(),
-        Switch: ({ label, checked, onClick, ...props }) => (
-            <button
-                type="button"
-                onClick={onClick}
-                aria-pressed={checked}
-                {...jestTestUtils.omitUnsupportedDomProps(props)}
-            >
-                {label}
-            </button>
-        ),
-        ReactFlowHotkeyContext: React.createContext({ hotKeysDisabled: false }),
-        highlighterUtils: {
-            extractSearchWords: (text: string) =>
-                text
-                    .split(/\s+/)
-                    .map((word) => word.trim().toLowerCase())
-                    .filter(Boolean),
-        },
-    };
-};
 
 type RenderedSidebarItem = {
     id: string;
@@ -183,7 +120,118 @@ const flattenPreConfiguredSidebarItems = (preConfiguredOperators: any[] | undefi
         }),
     );
 
-const createRuleBlockEditorHarness = () => {
+const createPersistedPort = (overrides: Partial<RuleBlockPort> = {}): RuleBlockPort =>
+    ruleTestHelper.createRuleBlockPort({
+        description: "Input description",
+        ...overrides,
+    });
+
+const createExternalSnapshot = () =>
+    ruleTestHelper.createRuleBlockInspectionSnapshot({
+        ports: [
+            createPersistedPort({
+                id: "deprecatedPort",
+                label: "Deprecated input",
+                displayOrder: 1,
+                deprecated: true,
+            }),
+            createPersistedPort({
+                id: "normalPort",
+                label: "Normal input",
+                displayOrder: 2,
+                deprecated: false,
+            }),
+        ],
+        operatorTree: {
+            type: "transformInput",
+            id: "concatNode",
+            function: "concat",
+            parameters: {
+                glue: " ",
+            },
+            inputs: [
+                {
+                    type: "inputPortInput",
+                    id: "deprecatedNode",
+                    portId: "deprecatedPort",
+                },
+                {
+                    type: "inputPortInput",
+                    id: "normalNode",
+                    portId: "normalPort",
+                },
+            ],
+        },
+        layout: {
+            nodePositions: {
+                concatNode: { x: 200, y: 40, width: null, height: null },
+                deprecatedNode: { x: 20, y: 120, width: null, height: null },
+                normalNode: { x: 220, y: 120, width: null, height: null },
+            },
+        },
+    });
+
+const createInvalidSaveSnapshot = () =>
+    ruleTestHelper.createRuleBlockInspectionSnapshot({
+        ports: [
+            createPersistedPort({
+                id: "normalPort",
+                label: "Normal input",
+                displayOrder: 1,
+                deprecated: false,
+            }),
+            createPersistedPort({
+                id: "unusedPort",
+                label: "Unused input",
+                displayOrder: 1,
+                deprecated: false,
+            }),
+        ],
+        operatorTree: {
+            type: "transformInput",
+            id: "concatNode",
+            function: "concat",
+            parameters: {
+                glue: " ",
+            },
+            inputs: [
+                {
+                    type: "inputPortInput",
+                    id: "normalNode",
+                    portId: "normalPort",
+                },
+            ],
+        },
+        layout: {
+            nodePositions: {
+                concatNode: { x: 200, y: 40, width: null, height: null },
+                normalNode: { x: 220, y: 120, width: null, height: null },
+            },
+        },
+    });
+
+const transformPluginDetails = {
+    concat: {
+        title: "Concat",
+        description: "Concatenates values",
+        taskType: "Transform",
+        type: "object" as const,
+        categories: ["Transform"],
+        properties: {
+            glue: {
+                title: "Glue",
+                description: "Glue string",
+                parameterType: "string",
+                value: " ",
+            },
+        },
+        required: [],
+        pluginId: "concat",
+        pluginType: "TransformOperator" as const,
+    },
+};
+
+const setupRuleBlockEditorIntegrationTest = () => {
     jest.resetModules();
     jest.doMock("react", () => React);
     jest.doMock("react-i18next", () => {
@@ -216,14 +264,87 @@ const createRuleBlockEditorHarness = () => {
             default: i18n,
         };
     });
-
-    const mockRegisterError = jest.fn();
-    const mockRequestTaskData = jest.fn();
-    const mockRequestRelatedItems = jest.fn();
-    const mockRequestUpdateProjectTask = jest.fn();
-    const mockRequestRuleOperatorPluginsDetails = jest.fn();
-
-    jest.doMock("../../../../../../../libs/gui-elements", createGuiElementsModule);
+    jest.doMock("../../../../../../../libs/gui-elements", () => {
+        const React = require("react");
+        return {
+            Button: jestTestUtils.createButtonMock(
+                ({ affirmative, disruptive, tooltip, tooltipProps, loading, elevated, ...props }) => ({
+                    ...jestTestUtils.omitUnsupportedDomProps(props),
+                    loading,
+                    includeLoadingState: true,
+                }),
+            ),
+            Card: jestTestUtils.createDivPassthroughMock(),
+            CardActions: jestTestUtils.createDivPassthroughMock(),
+            CardActionsAux: jestTestUtils.createDivPassthroughMock(),
+            CardContent: jestTestUtils.createDivPassthroughMock(),
+            Checkbox: jestTestUtils.createCheckboxMock(),
+            ContextMenu: jestTestUtils.createContextMenuMock(),
+            ContextOverlay: jestTestUtils.createContextOverlayMock(),
+            Divider: jestTestUtils.createDivPassthroughMock(),
+            Grid: jestTestUtils.createDivPassthroughMock(),
+            GridColumn: jestTestUtils.createDivPassthroughMock(),
+            GridRow: jestTestUtils.createDivPassthroughMock(),
+            Icon: jestTestUtils.createIconMock(),
+            IconButton: jestTestUtils.createButtonMock(
+                ({ tooltipProps, intent, loading, size, tooltipAsTitle, description, minimal, ...props }) => ({
+                    ...props,
+                    text: props.text ?? props.name,
+                    loading,
+                    includeLoadingState: false,
+                }),
+            ),
+            InteractionGate: ({ children }) => <>{children}</>,
+            Markdown: ({ children }) => <>{children}</>,
+            MenuItem: jestTestUtils.createMenuItemMock(),
+            Notification: jestTestUtils.createNotificationMock(),
+            Spacing: jestTestUtils.createChildrenOnlyMock(),
+            StickyNote: () => null,
+            TabTitle: ({ text, titlePrefix }) => (
+                <span>
+                    {titlePrefix}
+                    {text}
+                </span>
+            ),
+            Tabs: ({ tabs, selectedTabId, onChange }) => (
+                <div>
+                    {tabs.map((tab) => (
+                        <button
+                            key={tab.id}
+                            type="button"
+                            data-testid={`sidebar-tab-${tab.id}`}
+                            data-selected={String(tab.id === selectedTabId)}
+                            onClick={() => onChange(tab.id)}
+                        >
+                            {tab.title}
+                        </button>
+                    ))}
+                </div>
+            ),
+            TitleMainsection: jestTestUtils.createChildrenOnlyMock(),
+            Toolbar: jestTestUtils.createDivPassthroughMock(),
+            ToolbarSection: jestTestUtils.createDivPassthroughMock(),
+            StickyNoteModal: jestTestUtils.createDivPassthroughMock(),
+            Switch: ({ label, checked, onClick, ...props }) => (
+                <button
+                    type="button"
+                    onClick={onClick}
+                    aria-pressed={checked}
+                    {...jestTestUtils.omitUnsupportedDomProps(props)}
+                >
+                    {label}
+                </button>
+            ),
+            ReactFlowHotkeyContext: React.createContext({ hotKeysDisabled: false }),
+            highlighterUtils: {
+                extractSearchWords: (text: string) =>
+                    text
+                        .split(/\s+/)
+                        .map((word) => word.trim().toLowerCase())
+                        .filter(Boolean),
+            },
+        };
+    });
     jest.doMock("react-redux", () => {
         const actual = jest.requireActual("react-redux");
         return {
@@ -351,127 +472,5 @@ const createRuleBlockEditorHarness = () => {
         default: () => null,
     }));
 
-    const { RuleBlockEditor, RuleBlockEditorOptionalContext } =
-        require("../RuleBlockEditor") as typeof import("../RuleBlockEditor");
-
-    return {
-        RuleBlockEditor,
-        RuleBlockEditorOptionalContext,
-        mockRegisterError,
-        mockRequestTaskData,
-        mockRequestRelatedItems,
-        mockRequestUpdateProjectTask,
-        mockRequestRuleOperatorPluginsDetails,
-    };
-};
-
-const createPersistedPort = (overrides: Partial<RuleBlockPort> = {}): RuleBlockPort =>
-    ruleTestHelper.createRuleBlockPort({
-        description: "Input description",
-        ...overrides,
-    });
-
-const createExternalSnapshot = () =>
-    ruleTestHelper.createRuleBlockInspectionSnapshot({
-        ports: [
-            createPersistedPort({
-                id: "deprecatedPort",
-                label: "Deprecated input",
-                displayOrder: 1,
-                deprecated: true,
-            }),
-            createPersistedPort({
-                id: "normalPort",
-                label: "Normal input",
-                displayOrder: 2,
-                deprecated: false,
-            }),
-        ],
-        operatorTree: {
-            type: "transformInput",
-            id: "concatNode",
-            function: "concat",
-            parameters: {
-                glue: " ",
-            },
-            inputs: [
-                {
-                    type: "inputPortInput",
-                    id: "deprecatedNode",
-                    portId: "deprecatedPort",
-                },
-                {
-                    type: "inputPortInput",
-                    id: "normalNode",
-                    portId: "normalPort",
-                },
-            ],
-        },
-        layout: {
-            nodePositions: {
-                concatNode: { x: 200, y: 40, width: null, height: null },
-                deprecatedNode: { x: 20, y: 120, width: null, height: null },
-                normalNode: { x: 220, y: 120, width: null, height: null },
-            },
-        },
-    });
-
-const createInvalidSaveSnapshot = () =>
-    ruleTestHelper.createRuleBlockInspectionSnapshot({
-        ports: [
-            createPersistedPort({
-                id: "normalPort",
-                label: "Normal input",
-                displayOrder: 1,
-                deprecated: false,
-            }),
-            createPersistedPort({
-                id: "unusedPort",
-                label: "Unused input",
-                displayOrder: 1,
-                deprecated: false,
-            }),
-        ],
-        operatorTree: {
-            type: "transformInput",
-            id: "concatNode",
-            function: "concat",
-            parameters: {
-                glue: " ",
-            },
-            inputs: [
-                {
-                    type: "inputPortInput",
-                    id: "normalNode",
-                    portId: "normalPort",
-                },
-            ],
-        },
-        layout: {
-            nodePositions: {
-                concatNode: { x: 200, y: 40, width: null, height: null },
-                normalNode: { x: 220, y: 120, width: null, height: null },
-            },
-        },
-    });
-
-const transformPluginDetails = {
-    concat: {
-        title: "Concat",
-        description: "Concatenates values",
-        taskType: "Transform",
-        type: "object" as const,
-        categories: ["Transform"],
-        properties: {
-            glue: {
-                title: "Glue",
-                description: "Glue string",
-                parameterType: "string",
-                value: " ",
-            },
-        },
-        required: [],
-        pluginId: "concat",
-        pluginType: "TransformOperator" as const,
-    },
+    ({ RuleBlockEditor, RuleBlockEditorOptionalContext } = require("../RuleBlockEditor"));
 };

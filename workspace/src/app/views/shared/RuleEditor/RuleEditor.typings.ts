@@ -173,7 +173,7 @@ export interface IParameterSpecification {
 export interface IParameterValidationResult {
     valid: boolean;
     message?: string;
-    intent?: "primary" | "success" | "warning" | "danger";
+    intent?: "success" | "warning" | "danger";
 }
 
 export const supportedCodeRuleParameterTypes = [

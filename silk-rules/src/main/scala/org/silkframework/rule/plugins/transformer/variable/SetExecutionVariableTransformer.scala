@@ -17,7 +17,7 @@ package org.silkframework.rule.plugins.transformer.variable
 import org.silkframework.rule.TaskContext
 import org.silkframework.rule.input.{Transformer, TransformerExecution}
 import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
-import org.silkframework.runtime.templating.{ExecutionTemplateVariables, TemplateVariable, TemplateVariableScopes}
+import org.silkframework.runtime.templating.{ExecutionTemplateVariables, TemplateVariable, VariableScope}
 import org.silkframework.runtime.validation.ValidationException
 
 @Plugin(
@@ -52,7 +52,7 @@ private class SetExecutionVariableExecution(variableName: String,
     val inputValues = values.head
     inputValues.headOption.foreach { firstValue =>
       templateVariables.setExecutionVariable(
-        TemplateVariable(name = variableName, value = firstValue, scope = TemplateVariableScopes.execution))
+        TemplateVariable(name = variableName, value = firstValue, scope = VariableScope.execution))
     }
     // Output the input values unchanged
     inputValues

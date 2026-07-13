@@ -7,7 +7,7 @@ import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin._
 import org.silkframework.runtime.resource.FileMapResourceManager
 import org.silkframework.runtime.templating.TemplateVariablesParameter
-import org.silkframework.runtime.templating.{TemplateVariable, TemplateVariableScopes, TemplateVariables}
+import org.silkframework.runtime.templating.{TemplateVariable, VariableScope, TemplateVariables}
 import org.silkframework.runtime.validation.BadUserInputException
 import org.silkframework.util.FileUtils
 import org.silkframework.workbench.utils.{NotAcceptableException, UnsupportedMediaTypeException}
@@ -54,6 +54,8 @@ object VariableWorkflowRequestUtils {
   final val QUERY_DATA_SINK_CONFIG_PREFIX = s"${QUERY_CONFIG_PREFIX}dataSinkConfig$QUERY_PARAM_SEPARATOR"
   // Auto-configure config parameter, either true or false.
   final val QUERY_CONFIG_PARAM_AUTO_CONFIG = s"${QUERY_GENERAL_CONFIG_PREFIX}autoConfig"
+  // Reserved query-parameter prefix for execution-variable overrides, e.g. variable-myVar=value. Works for all content types.
+  final val EXECUTION_VARIABLES_QUERY_PREFIX = s"variable$QUERY_PARAM_SEPARATOR"
 
   /** The mime types that the variable workflow supports as response. */
   val acceptedMimeType: Seq[String] = Seq(
@@ -426,7 +428,8 @@ object VariableWorkflowRequestUtils {
             s"If you need to input an 'empty entity', use an empty JSON object or XML element instead as request payload.")
       case AnyContentAsEmpty =>
         // Config parameters will also be included in the input parameters. However in this case, setting config parameters does not (yet) make sense.
-        val inputParameters = request.queryString
+        // Reserved execution-variable parameters hold overrides (see parseExecutionVariables) and must not become part of the input entity.
+        val inputParameters = request.queryString.filter { case (key, _) => !key.startsWith(EXECUTION_VARIABLES_QUERY_PREFIX) }
         if(inputParameters.nonEmpty) {
           parametersToJsonResource(inputParameters)
         } else {
@@ -464,9 +467,11 @@ object VariableWorkflowRequestUtils {
 
   /**
     * Parses execution variables from a request.
-    * Execution variables can be provided in the JSON body under the reserved "executionVariables" key as a simple name-value map.
+    * Execution variables can be provided as query parameters with the reserved prefix "variable-" (all content types)
+    * and in the JSON body under the reserved "executionVariables" key as a simple name-value map.
     *
-    * @throws BadUserInputException If the key is present, but does not hold a flat name/value map with string values.
+    * @throws BadUserInputException If the JSON key is present, but does not hold a flat name/value map with string
+    *                               values, or if a variable is defined more than once.
     */
   def parseExecutionVariables(implicit request: Request[AnyContent]): TemplateVariables = {
     val fromBody: Map[String, String] = request.body.asJson.flatMap { json =>
@@ -479,9 +484,24 @@ object VariableWorkflowRequestUtils {
       case None =>
         Map.empty
     }
+    val fromQuery: Map[String, String] = request.queryString.collect {
+      case (key, values) if key.startsWith(EXECUTION_VARIABLES_QUERY_PREFIX) =>
+        val name = key.stripPrefix(EXECUTION_VARIABLES_QUERY_PREFIX)
+        val distinctValues = values.distinct
+        if (distinctValues.size > 1) {
+          throw BadUserInputException(s"The execution variable '$name' is given multiple times with different values " +
+            s"as '$EXECUTION_VARIABLES_QUERY_PREFIX' query parameters.")
+        }
+        (name, distinctValues.headOption.getOrElse(""))
+    }
+    val duplicateNames = fromBody.keySet intersect fromQuery.keySet
+    if (duplicateNames.nonEmpty) {
+      throw BadUserInputException(s"The following execution variables are defined both under the '$EXECUTION_VARIABLES_KEY' " +
+        s"body key and as '$EXECUTION_VARIABLES_QUERY_PREFIX' query parameters: ${duplicateNames.toSeq.sorted.mkString(", ")}")
+    }
 
-    TemplateVariables(fromBody.map { case (name, value) =>
-      TemplateVariable(name, value, scope = TemplateVariableScopes.execution)
+    TemplateVariables((fromBody ++ fromQuery).map { case (name, value) =>
+      TemplateVariable(name, value, scope = VariableScope.execution)
     }.toSeq)
   }
 }

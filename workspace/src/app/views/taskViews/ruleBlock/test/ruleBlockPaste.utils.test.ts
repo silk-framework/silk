@@ -97,11 +97,7 @@ const clipboardTask = (
     editorData,
 });
 
-const preparePaste = (
-    task: RuleClipboardTask,
-    existingPorts: RuleBlockPort[] = [],
-    createdIds: string[] = [],
-) =>
+const preparePaste = (task: RuleClipboardTask, existingPorts: RuleBlockPort[] = [], createdIds: string[] = []) =>
     ruleBlockPasteUtils.prepareRuleBlockClipboardPaste(task, {
         currentProjectId: "project1",
         currentTaskId: "task1",
@@ -117,10 +113,12 @@ const preparePaste = (
 describe("ruleBlockPasteUtils", () => {
     it("should reject pasted comparison or aggregation content", () => {
         expect(() =>
-            preparePaste(clipboardTask({
-                nodes: [comparisonNode()],
-                edges: [],
-            })),
+            preparePaste(
+                clipboardTask({
+                    nodes: [comparisonNode()],
+                    edges: [],
+                }),
+            ),
         ).toThrow(
             "Only path, transform, and input port operators can be pasted into a rule block. Comparison and aggregation operators are not allowed.",
         );
@@ -153,9 +151,10 @@ describe("ruleBlockPasteUtils", () => {
                 deprecated: false,
             },
         ]);
-        expect(
-            preparedPaste.taskData.nodes.map((node) => node.parameters?.portId),
-        ).toStrictEqual(["generatedPort1", "generatedPort2"]);
+        expect(preparedPaste.taskData.nodes.map((node) => node.parameters?.portId)).toStrictEqual([
+            "generatedPort1",
+            "generatedPort2",
+        ]);
     });
 
     it("should reuse existing logical input ports when pasting from the same rule block", () => {
@@ -273,9 +272,7 @@ describe("ruleBlockPasteUtils", () => {
                 .filter((node) => node.pluginType === "InputPortOperator")
                 .map((node) => node.parameters?.portId),
         ).toStrictEqual(["generatedPort1", "generatedPort1"]);
-        expect(
-            preparedPaste.taskData.nodes.find((node) => node.nodeId === "transform"),
-        ).toMatchObject({
+        expect(preparedPaste.taskData.nodes.find((node) => node.nodeId === "transform")).toMatchObject({
             pluginType: "TransformOperator",
             pluginId: "concat",
         });

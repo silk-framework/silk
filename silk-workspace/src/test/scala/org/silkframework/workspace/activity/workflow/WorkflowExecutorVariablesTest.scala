@@ -2,7 +2,7 @@ package org.silkframework.workspace.activity.workflow
 
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
-import org.silkframework.runtime.templating.{TemplateVariable, TemplateVariableScopes, TemplateVariables}
+import org.silkframework.runtime.templating.{TemplateVariable, VariableScope, TemplateVariables}
 
 /**
   * Tests [[WorkflowExecutor.buildExecutionVariables]]: the execution variables of the executed task
@@ -12,7 +12,7 @@ class WorkflowExecutorVariablesTest extends AnyFlatSpec with Matchers {
 
   behavior of "WorkflowExecutor.buildExecutionVariables"
 
-  private def variable(name: String, value: String, scope: Seq[String] = TemplateVariableScopes.execution): TemplateVariable =
+  private def variable(name: String, value: String, scope: VariableScope = VariableScope.execution): TemplateVariable =
     TemplateVariable(name = name, value = value, scope = scope)
 
   private def valuesByName(variables: TemplateVariables): Map[String, String] =
@@ -36,9 +36,9 @@ class WorkflowExecutorVariablesTest extends AnyFlatSpec with Matchers {
 
   it should "re-scope all variables to the execution scope" in {
     val result = WorkflowExecutor.buildExecutionVariables(
-      defaults = TemplateVariables(Seq(variable("foo", "defaultVal", Seq.empty))),
-      overrides = TemplateVariables(Seq(variable("bar", "barVal", Seq("other"))))
+      defaults = TemplateVariables(Seq(variable("foo", "defaultVal", VariableScope.empty))),
+      overrides = TemplateVariables(Seq(variable("bar", "barVal", VariableScope("other"))))
     )
-    all(result.variables.map(_.scope)) shouldBe TemplateVariableScopes.execution
+    all(result.variables.map(_.scope)) shouldBe VariableScope.execution
   }
 }

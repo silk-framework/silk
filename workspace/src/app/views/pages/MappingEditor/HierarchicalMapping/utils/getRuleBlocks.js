@@ -5,10 +5,7 @@ const countRuleBlocksRecursive = (operator) => {
     if (operator.type === "ruleBlockInput") {
         return (
             1 +
-            (operator.bindings ?? []).reduce(
-                (count, binding) => count + countRuleBlocksRecursive(binding?.input),
-                0,
-            )
+            (operator.bindings ?? []).reduce((count, binding) => count + countRuleBlocksRecursive(binding?.input), 0)
         );
     }
     if (Array.isArray(operator.inputs)) {

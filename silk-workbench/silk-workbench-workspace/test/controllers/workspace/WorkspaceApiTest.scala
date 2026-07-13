@@ -24,7 +24,7 @@ import org.silkframework.rule.input.{InlineTransformer, TransformInput}
 import org.silkframework.rule.plugins.distance.equality.EqualityMetric
 import org.silkframework.rule.similarity.Comparison
 import org.silkframework.runtime.resource.Resource
-import org.silkframework.runtime.templating.{TemplateVariable, TemplateVariableScopes, TemplateVariables}
+import org.silkframework.runtime.templating.{TemplateVariable, VariableScope, TemplateVariables}
 import org.silkframework.serialization.json.JsonSerializers._
 import org.silkframework.util.{DPair, Uri}
 import org.silkframework.workspace.activity.dataset.TypesCache
@@ -110,7 +110,7 @@ class WorkspaceApiTest extends PlaySpec with IntegrationTestTrait with Matchers 
   }
 
   private def executionVariables(name: String, value: String): TemplateVariables =
-    TemplateVariables(Seq(TemplateVariable(name, value, None, None, isSensitive = false, TemplateVariableScopes.execution)))
+    TemplateVariables(Seq(TemplateVariable(name, value, None, None, isSensitive = false, VariableScope.execution)))
 
   PluginRegistry.registerPlugin(classOf[TestTransformer])
 

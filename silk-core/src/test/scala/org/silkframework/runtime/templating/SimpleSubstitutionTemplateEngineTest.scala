@@ -14,9 +14,9 @@ class SimpleSubstitutionTemplateEngineTest extends AnyFlatSpec with Matchers {
 
   it should "substitute scoped and unscoped variable references" in {
     evaluate("{{name}} ({{project.year}}-{{ project.month }})",
-      new TemplateVariableValue("name", Seq.empty, Seq("Terminator")),
-      new TemplateVariableValue("year", Seq("project"), Seq("2002")),
-      new TemplateVariableValue("month", Seq("project"), Seq("June"))
+      new TemplateVariableValue("name", VariableScope.empty, Seq("Terminator")),
+      new TemplateVariableValue("year", VariableScope("project"), Seq("2002")),
+      new TemplateVariableValue("month", VariableScope("project"), Seq("June"))
     ) shouldBe "Terminator (2002-June)"
   }
 

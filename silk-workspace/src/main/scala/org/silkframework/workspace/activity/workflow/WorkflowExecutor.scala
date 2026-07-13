@@ -9,7 +9,7 @@ import org.silkframework.plugins.dataset.InternalDataset
 import org.silkframework.runtime.activity.Status.Canceling
 import org.silkframework.runtime.activity._
 import org.silkframework.runtime.plugin.{PluginContext, TaskResolver}
-import org.silkframework.runtime.templating.{ExecutionTemplateVariables, ExecutionVariablesHolder, GlobalTemplateVariables, TemplateVariableScopes, TemplateVariables}
+import org.silkframework.runtime.templating.{ExecutionTemplateVariables, ExecutionVariablesHolder, GlobalTemplateVariables, VariableScope, TemplateVariables}
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.{Project, ProjectTask}
@@ -396,12 +396,12 @@ object WorkflowExecutor {
   def buildExecutionVariables(defaults: TemplateVariables, overrides: TemplateVariables): TemplateVariables = {
     val overrideMap = overrides.variables.map(v => v.name -> v).toMap
     val defaultsWithOverrides = defaults.variables.map { default =>
-      overrideMap.getOrElse(default.name, default).copy(scope = TemplateVariableScopes.execution)
+      overrideMap.getOrElse(default.name, default).copy(scope = VariableScope.execution)
     }
     val defaultNames = defaults.variables.map(_.name).toSet
     val additionalOverrides = overrides.variables
       .filterNot(v => defaultNames.contains(v.name))
-      .map(_.copy(scope = TemplateVariableScopes.execution))
+      .map(_.copy(scope = VariableScope.execution))
     TemplateVariables(defaultsWithOverrides ++ additionalOverrides)
   }
 }

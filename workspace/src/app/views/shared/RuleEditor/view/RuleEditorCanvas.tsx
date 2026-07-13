@@ -503,9 +503,7 @@ export const RuleEditorCanvas = () => {
                     console.warn("The drag event contained an unsupported sidebar drop request: " + pluginData);
                 } else {
                     const { pluginType, pluginId, parameterValues, nodeMetaDataOverwrites } =
-                        "type" in dragPayload && dragPayload.type === "operator"
-                            ? dragPayload
-                            : dragPayload;
+                        "type" in dragPayload && dragPayload.type === "operator" ? dragPayload : dragPayload;
                     if (pluginType && pluginId) {
                         modelContext.executeModelEditOperation.startChangeTransaction();
                         modelContext.executeModelEditOperation.addNodeByPlugin(
