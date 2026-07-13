@@ -21,6 +21,7 @@ import org.silkframework.dataset.DatasetSpec.{DatasetSpecFormat, DatasetTaskXmlF
 import org.silkframework.dataset.VariableDataset
 import org.silkframework.dataset.operations.{ClearDatasetOperator, ClearDatasetOperatorLocalExecutor}
 import org.silkframework.dataset.operations.{AddProjectFilesOperator, DeleteFilesOperator, GetProjectFilesOperator, LocalAddProjectFilesOperatorExecutor, LocalDeleteFilesOperatorExecutor, LocalGetProjectFilesOperatorExecutor}
+import org.silkframework.plugins.operations.{LocalSetExecutionVariableOperatorExecutor, SetExecutionVariableOperator}
 import org.silkframework.entity.EntitySchema.EntitySchemaFormat
 import org.silkframework.entity.ValueType
 import org.silkframework.execution.local.{LocalExecutionManager, LocalInternalDataset}
@@ -57,7 +58,9 @@ class CorePlugins extends PluginModule {
       classOf[GetProjectFilesOperator],
       classOf[LocalGetProjectFilesOperatorExecutor],
       classOf[ClearDatasetOperator],
-      classOf[ClearDatasetOperatorLocalExecutor]
+      classOf[ClearDatasetOperatorLocalExecutor],
+      classOf[SetExecutionVariableOperator],
+      classOf[LocalSetExecutionVariableOperatorExecutor]
     )
 
   private def serializers: Seq[Class[_ <: AnyPlugin]] =

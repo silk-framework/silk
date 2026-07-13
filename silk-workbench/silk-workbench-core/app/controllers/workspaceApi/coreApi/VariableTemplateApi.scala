@@ -3,27 +3,29 @@ package controllers.workspaceApi.coreApi
 import controllers.core.UserContextActions
 import controllers.core.util.ControllerUtilsTrait
 import controllers.util.TaskLink
-import controllers.workspaceApi.coreApi.VariableTemplateApi.{TemplateVariableJson, TemplateVariablesJson, VariableDependencies}
+import controllers.workspaceApi.coreApi.VariableTemplateApi.VariableDependencies
 import controllers.workspaceApi.coreApi.doc.VariableTemplateApiDoc
 import controllers.workspaceApi.coreApi.variableTemplate.{AutoCompleteVariableTemplateRequest, ValidateVariableTemplateRequest}
 import io.swagger.v3.oas.annotations.enums.ParameterIn
 import io.swagger.v3.oas.annotations.media.{ArraySchema, Content, ExampleObject, Schema}
-import io.swagger.v3.oas.annotations.media.Schema.RequiredMode
 import io.swagger.v3.oas.annotations.parameters.RequestBody
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.tags.Tag
 import io.swagger.v3.oas.annotations.{Operation, Parameter}
+import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.templating.exceptions._
 import org.silkframework.runtime.templating.operations.{DeleteVariableModification, UpdateVariableModification, UpdateVariablesModification}
-import org.silkframework.runtime.templating.{GlobalTemplateVariables, TemplateVariable, TemplateVariableScopes, TemplateVariables}
+import org.silkframework.runtime.templating.{TemplateVariable, TemplateVariables, TemplateVariablesManager, VariableScope}
 import org.silkframework.runtime.validation.BadUserInputException
-import org.silkframework.serialization.json.JsonHelpers
+import org.silkframework.serialization.json.{JsonHelpers, TemplateVariableErrorJson, TemplateVariableJson, TemplateVariablesJson}
 import org.silkframework.workspace.WorkspaceFactory
+import org.silkframework.workspace.activity.workflow.Workflow
 import play.api.libs.json.{JsValue, Json, OFormat}
 import play.api.mvc.{Action, AnyContent, InjectedController}
 
 import javax.inject.Inject
 import scala.collection.immutable.ArraySeq
+import scala.collection.mutable
 
 /** Everything related to variable templates. */
 @Tag(name = "Variable Templates", description = "Provides endpoints for variable template handling.")
@@ -56,18 +58,61 @@ class VariableTemplateApi @Inject()() extends InjectedController with UserContex
                      in = ParameterIn.QUERY,
                      schema = new Schema(implementation = classOf[String])
                    )
-                   projectName: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
+                   projectName: String,
+                   @Parameter(
+                     name = "task",
+                     description = "The task identifier. If provided, retrieves the execution variables of that task instead of project variables.",
+                     required = false,
+                     in = ParameterIn.QUERY,
+                     schema = new Schema(implementation = classOf[String])
+                   )
+                   task: Option[String],
+                   @Parameter(
+                     name = "transitive",
+                     description = "If true and the task is a workflow, returns all variables that have to be set when running the workflow: in addition to the workflow's own execution variables, the execution variables defined on every task that may take part in the execution (its operators and datasets, the tasks those tasks reference, and sub-workflows, recursively). Since only the executed workflow's variables seed a run, variables defined on sub-tasks have to be defined on the workflow or provided as overrides when starting the run. If the same variable is defined on multiple levels, the variable of the enclosing workflow is returned, matching the value that applies when the workflow is executed. Requires the 'task' parameter.",
+                     required = false,
+                     in = ParameterIn.QUERY,
+                     schema = new Schema(implementation = classOf[Boolean])
+                   )
+                   transitive: Boolean): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     val project = WorkspaceFactory().workspace.project(projectName)
-    val allVariables = project.templateVariables.all
-    val variablesJson = {
-      try {
-        TemplateVariablesJson(allVariables.resolved())
-      } catch {
-        case ex: TemplateVariablesEvaluationException =>
-          TemplateVariablesJson(allVariables, ex)
+    if (transitive && task.isEmpty) {
+      throw new BadUserInputException("The 'transitive' parameter can only be used together with the 'task' parameter.")
+    }
+    var (variables, errors) = resolvedVariablesJson(project.variablesManager(task))
+    if (transitive) {
+      val subTasks = project.anyTask(task.get).data match {
+        case workflow: Workflow => workflow.subTasksRecursive(project)
+        case _ => Seq.empty
+      }
+      // A variable of the enclosing workflow shadows sub-task variables of the same name.
+      val seenNames = mutable.Set.from(variables.map(_.name))
+      for (subTask <- subTasks) {
+        val (subVariables, subErrors) = resolvedVariablesJson(subTask.executionVariablesValueHolder)
+        val newVariables = subVariables.filterNot(variable => seenNames.contains(variable.name))
+        seenNames ++= newVariables.map(_.name)
+        variables ++= newVariables
+        errors ++= subErrors.filter(error => newVariables.exists(_.name == error.variableName))
       }
     }
+    val variablesJson = TemplateVariablesJson(variables, Some(errors).filter(_.nonEmpty))
     Ok(Json.toJson(variablesJson))
+  }
+
+  /**
+   * Resolves the variables of one manager and converts them to JSON.
+   * If the evaluation fails, the stored values are kept and the issues are returned as errors.
+   */
+  private def resolvedVariablesJson(manager: TemplateVariablesManager)
+                                   (implicit userContext: UserContext): (Seq[TemplateVariableJson], Seq[TemplateVariableErrorJson]) = {
+    val allVariables = manager.all
+    try {
+      (allVariables.resolved(manager.parentVariables.withoutSensitiveVariables()).variables.map(TemplateVariableJson(_)), Seq.empty)
+    } catch {
+      case ex: TemplateVariablesEvaluationException =>
+        (allVariables.variables.map(TemplateVariableJson(_)),
+          ex.issues.map(issue => TemplateVariableErrorJson(issue.variable.name, issue.ex.getMessage)))
+    }
   }
 
   @Operation(
@@ -100,10 +145,18 @@ class VariableTemplateApi @Inject()() extends InjectedController with UserContex
                      in = ParameterIn.QUERY,
                      schema = new Schema(implementation = classOf[String])
                    )
-                   projectName: String): Action[JsValue] = RequestUserContextAction(parse.json) { implicit request => implicit userContext =>
+                   projectName: String,
+                   @Parameter(
+                     name = "task",
+                     description = "The task identifier. If provided, updates the execution variables of that task instead of project variables.",
+                     required = false,
+                     in = ParameterIn.QUERY,
+                     schema = new Schema(implementation = classOf[String])
+                   )
+                   task: Option[String]): Action[JsValue] = RequestUserContextAction(parse.json) { implicit request => implicit userContext =>
     val project = WorkspaceFactory().workspace.project(projectName)
     val variables = JsonHelpers.fromJsonValidated[TemplateVariablesJson](request.body).convert
-    UpdateVariablesModification(project, variables).execute()
+    UpdateVariablesModification(project, variables, task).execute()
     Ok
   }
 
@@ -142,9 +195,17 @@ class VariableTemplateApi @Inject()() extends InjectedController with UserContex
                     in = ParameterIn.PATH,
                     schema = new Schema(implementation = classOf[String])
                   )
-                  variableName: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
+                  variableName: String,
+                  @Parameter(
+                    name = "task",
+                    description = "The task identifier. If provided, retrieves an execution variable of that task instead of a project variable.",
+                    required = false,
+                    in = ParameterIn.QUERY,
+                    schema = new Schema(implementation = classOf[String])
+                  )
+                  task: Option[String]): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
       val project = WorkspaceFactory().workspace.project(projectName)
-      Ok(Json.toJson(TemplateVariableJson(project.templateVariables.get(variableName))))
+      Ok(Json.toJson(TemplateVariableJson(project.variablesManager(task).get(variableName))))
   }
 
   @Operation(
@@ -184,13 +245,21 @@ class VariableTemplateApi @Inject()() extends InjectedController with UserContex
                     in = ParameterIn.PATH,
                     schema = new Schema(implementation = classOf[String])
                   )
-                  variableName: String): Action[JsValue] = RequestUserContextAction(parse.json) { implicit request => implicit userContext =>
+                  variableName: String,
+                  @Parameter(
+                    name = "task",
+                    description = "The task identifier. If provided, adds or updates an execution variable of that task instead of a project variable.",
+                    required = false,
+                    in = ParameterIn.QUERY,
+                    schema = new Schema(implementation = classOf[String])
+                  )
+                  task: Option[String]): Action[JsValue] = RequestUserContextAction(parse.json) { implicit request => implicit userContext =>
     val project = WorkspaceFactory().workspace.project(projectName)
     val variable = Json.fromJson[TemplateVariableJson](request.body).get.convert
     if(variable.name != variableName) {
       throw new BadUserInputException(s"Variable name provided in the URL ($variableName) does not match variable name in the request body (${variable.name})")
     }
-    UpdateVariableModification(project, variable).execute()
+    UpdateVariableModification(project, variable, task).execute()
     Ok
   }
 
@@ -231,9 +300,17 @@ class VariableTemplateApi @Inject()() extends InjectedController with UserContex
                        in = ParameterIn.PATH,
                        schema = new Schema(implementation = classOf[String])
                      )
-                     variableName: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
+                     variableName: String,
+                     @Parameter(
+                       name = "task",
+                       description = "The task identifier. If provided, deletes an execution variable of that task instead of a project variable.",
+                       required = false,
+                       in = ParameterIn.QUERY,
+                       schema = new Schema(implementation = classOf[String])
+                     )
+                     task: Option[String]): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     val project = WorkspaceFactory().workspace.project(projectName)
-    DeleteVariableModification(project, variableName).execute()
+    DeleteVariableModification(project, variableName, task).execute()
     Ok
   }
 
@@ -266,9 +343,17 @@ class VariableTemplateApi @Inject()() extends InjectedController with UserContex
                              in = ParameterIn.PATH,
                              schema = new Schema(implementation = classOf[String])
                            )
-                           variableName: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
+                           variableName: String,
+                           @Parameter(
+                             name = "task",
+                             description = "The task identifier. If provided, checks dependencies for an execution variable of that task instead of a project variable.",
+                             required = false,
+                             in = ParameterIn.QUERY,
+                             schema = new Schema(implementation = classOf[String])
+                           )
+                           task: Option[String]): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     val project = WorkspaceFactory().workspace.project(projectName)
-    val modification = DeleteVariableModification(project, variableName)
+    val modification = DeleteVariableModification(project, variableName, task)
     val dependentVariables = modification.dependentVariables()
     val dependentTaskLinks = modification.invalidTasks().map(task => TaskLink.fromTask(task))
     Ok(Json.toJson(VariableDependencies(dependentVariables, dependentTaskLinks)))
@@ -313,12 +398,21 @@ class VariableTemplateApi @Inject()() extends InjectedController with UserContex
                         in = ParameterIn.QUERY,
                         schema = new Schema(implementation = classOf[String])
                       )
-                      projectName: String): Action[JsValue] = RequestUserContextAction(parse.json) { implicit request => implicit userContext =>
+                      projectName: String,
+                      @Parameter(
+                        name = "task",
+                        description = "The task identifier. If provided, reorders the execution variables of that task instead of project variables.",
+                        required = false,
+                        in = ParameterIn.QUERY,
+                        schema = new Schema(implementation = classOf[String])
+                      )
+                      task: Option[String]): Action[JsValue] = RequestUserContextAction(parse.json) { implicit request => implicit userContext =>
       val project = WorkspaceFactory().workspace.project(projectName)
       val variableNames = ArraySeq.unsafeWrapArray(Json.fromJson[Array[String]](request.body).get)
+      val manager = project.variablesManager(task)
+      val currentVariables = manager.all
 
-      val currentVariables = project.templateVariables.all
-      if(project.templateVariables.all.map.keySet != variableNames.toSet) {
+      if(currentVariables.map.keySet != variableNames.toSet) {
         throw new BadUserInputException("Provided variable names don't match the existing variables.")
       }
 
@@ -327,20 +421,13 @@ class VariableTemplateApi @Inject()() extends InjectedController with UserContex
            currentVariables.map(variableName)
         }
 
-      try {
-        project.templateVariables.put(TemplateVariables(newVariables).resolved(GlobalTemplateVariables.all))
-      } catch {
-        case ex: TemplateVariablesEvaluationException =>
-          val dependencyErrors =
-            ex.issues.collect {
-              case TemplateVariableEvaluationException(dependentVar, unboundEx: UnboundVariablesException) =>
-                (dependentVar.name, unboundEx.missingVars.filter(_.scope == TemplateVariableScopes.project).map(_.name))
-            }.filter(_._2.nonEmpty).toMap
-          if(dependencyErrors.nonEmpty) {
-            throw new CannotReorderVariablesException(dependencyErrors)
-          } else {
-            throw ex
-          }
+      val scope = task.map(_ => VariableScope.execution).getOrElse(VariableScope.project)
+      val resolved = resolveWithDependencyCheck(TemplateVariables(newVariables), manager.parentVariables.withoutSensitiveVariables(), scope)
+      task match {
+        case Some(taskId) =>
+          project.anyTask(taskId).updateExecutionVariables(resolved)
+        case None =>
+          project.templateVariables.put(resolved)
       }
       Ok
   }
@@ -411,92 +498,44 @@ class VariableTemplateApi @Inject()() extends InjectedController with UserContex
       Ok(Json.toJson(response))
     }
   }
+
+  /**
+   * Resolves variables with dependency order checking.
+   * If a variable references a variable of the same scope that is defined after it,
+   * a CannotReorderVariablesException is thrown. Failures unrelated to the ordering
+   * (e.g. templates referencing sensitive parent variables, which are not available
+   * for resolution) keep the variable's stored value instead.
+   */
+  private def resolveWithDependencyCheck(variables: TemplateVariables, parentVars: TemplateVariables, scope: VariableScope): TemplateVariables = {
+    val resolvedVariables = mutable.Buffer[TemplateVariable]()
+    val dependencyErrors = mutable.LinkedHashMap[String, Seq[String]]()
+    for (variable <- variables.variables) {
+      variable.template match {
+        case Some(template) =>
+          try {
+            val value = TemplateVariables(parentVars.variables ++ resolvedVariables).resolveTemplateValue(template)
+            resolvedVariables.append(variable.copy(value = value))
+          } catch {
+            case ex: TemplateEvaluationException =>
+              ex match {
+                case unbound: UnboundVariablesException if unbound.missingVars.exists(_.scope == scope) =>
+                  dependencyErrors.put(variable.name, unbound.missingVars.filter(_.scope == scope).map(_.name))
+                case _ =>
+              }
+              resolvedVariables.append(variable) // Keep the stored value
+          }
+        case None =>
+          resolvedVariables.append(variable)
+      }
+    }
+    if (dependencyErrors.nonEmpty) {
+      throw new CannotReorderVariablesException(dependencyErrors.toMap)
+    }
+    TemplateVariables(resolvedVariables.toSeq)
+  }
 }
 
 object VariableTemplateApi {
-
-  @Schema(description = "A single template variable")
-  case class TemplateVariableJson(@Schema(
-                                      description = "The name of the variable.",
-                                      example = "myVar",
-                                      requiredMode = RequiredMode.REQUIRED
-                                  )
-                                  name: String,
-                                  @Schema(
-                                    description = "The value of the variable.",
-                                    example = "example value",
-                                    requiredMode = RequiredMode.NOT_REQUIRED
-                                  )
-                                  value: Option[String],
-                                  @Schema(
-                                    description = "Template to generate the variable value.",
-                                    requiredMode = RequiredMode.NOT_REQUIRED
-                                  )
-                                  template: Option[String],
-                                  @Schema(
-                                    description = "Optional description for documentation.",
-                                    example = "Example description",
-                                    requiredMode = RequiredMode.NOT_REQUIRED
-                                  )
-                                  description: Option[String],
-                                  @Schema(
-                                    description = "True, if this is a sensitive variable that should not be exposed to the user.",
-                                    example = "false",
-                                    requiredMode = RequiredMode.REQUIRED
-                                  )
-                                  isSensitive: Boolean,
-                                  @Schema(
-                                    description = "The scope of the variable, e.g. \"project\".",
-                                    requiredMode = RequiredMode.REQUIRED
-                                  )
-                                  scope: String) {
-    def convert: TemplateVariable = {
-      if (value.isEmpty && template.isEmpty) {
-        throw new BadUserInputException("Either the variable value or its template has to be defined.")
-      }
-      TemplateVariable(name, value.getOrElse(""), template, description, isSensitive, scope.split('.').toIndexedSeq)
-    }
-  }
-
-  object TemplateVariableJson {
-    def apply(variable: TemplateVariable): TemplateVariableJson = {
-      TemplateVariableJson(variable.name, Some(variable.value), variable.template, variable.description, variable.isSensitive, variable.scope.mkString("."))
-    }
-  }
-
-  @Schema(description = "A list of template variables.")
-  case class TemplateVariablesJson(@ArraySchema(
-                                       schema = new Schema(
-                                        description = "List of variables.",
-                                        requiredMode = RequiredMode.REQUIRED,
-                                        implementation = classOf[TemplateVariableJson]
-                                     ))
-                                     variables: Seq[TemplateVariableJson],
-                                   @ArraySchema(
-                                       schema = new Schema(
-                                         description = "List of evaluation errors.",
-                                         requiredMode = RequiredMode.NOT_REQUIRED,
-                                         implementation = classOf[TemplateVariableErrorJson]
-                                     ))
-                                     errors: Option[Seq[TemplateVariableErrorJson]] = None) {
-    def convert: TemplateVariables = {
-      TemplateVariables(variables.map(_.convert))
-    }
-  }
-
-  @Schema(description = "An error message related to a variable.")
-  case class TemplateVariableErrorJson(variableName: String, message: String)
-
-
-  object TemplateVariablesJson {
-    def apply(variables: TemplateVariables): TemplateVariablesJson = {
-      TemplateVariablesJson(variables.variables.map(TemplateVariableJson(_)))
-    }
-
-    def apply(variables: TemplateVariables, ex: TemplateVariablesEvaluationException): TemplateVariablesJson = {
-      TemplateVariablesJson(variables.variables.map(TemplateVariableJson(_)), Some(ex.issues.map(e => TemplateVariableErrorJson(e.variable.name, e.ex.getMessage))))
-    }
-  }
 
   case class VariableDependencies(@ArraySchema(
                                     schema = new Schema(
@@ -511,8 +550,5 @@ object VariableTemplateApi {
                                     ))
                                   dependentTasks: Seq[TaskLink])
 
-  implicit val templateVariableErrorFormat: OFormat[TemplateVariableErrorJson] = Json.format[TemplateVariableErrorJson]
-  implicit val templateVariableFormat: OFormat[TemplateVariableJson] = Json.format[TemplateVariableJson]
-  implicit val templateVariablesFormat: OFormat[TemplateVariablesJson] = Json.format[TemplateVariablesJson]
   implicit val variableDependenciesFormat: OFormat[VariableDependencies] = Json.format[VariableDependencies]
 }

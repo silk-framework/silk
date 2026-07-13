@@ -13,6 +13,9 @@ case class InMemoryResourceManager() extends InMemoryResourceManagerBase()
   */
 class InMemoryResourceManagerBase(val basePath: String = "", parentMgr: Option[InMemoryResourceManagerBase] = None) extends ResourceManager {
 
+  // Both maps may be updated concurrently, e.g., task XML and cache files share the same folder.
+  // All mutations must be synchronized on this instance; reads are lock-free via @volatile.
+
   /** Holds all resources at this path. */
   @volatile private var resources = Map[String, Array[Byte]]()
 
@@ -46,7 +49,7 @@ class InMemoryResourceManagerBase(val basePath: String = "", parentMgr: Option[I
 
   override def listChildren: List[String] = children.keys.toList
 
-  override def child(name: String): ResourceManager = {
+  override def child(name: String): ResourceManager = synchronized {
     children.get(name) match {
       case Some(childMgr) => childMgr
       case None =>
@@ -66,8 +69,10 @@ class InMemoryResourceManagerBase(val basePath: String = "", parentMgr: Option[I
     for(childResources <- childToDelete.list) {
       childToDelete.get(childResources).delete()
     }
-    resources -= name
-    children -= name
+    synchronized {
+      resources -= name
+      children -= name
+    }
   }
 
   /**
@@ -106,7 +111,7 @@ class InMemoryResourceManagerBase(val basePath: String = "", parentMgr: Option[I
       * Writes raw bytes.
       * Overridden for performance.
       */
-    override def writeBytes(bytes: Array[Byte], append: Boolean = false): Unit = {
+    override def writeBytes(bytes: Array[Byte], append: Boolean = false): Unit = InMemoryResourceManagerBase.this.synchronized {
       val allBytes =
         resources.get(name) match {
           case Some(data) if append =>
@@ -118,7 +123,7 @@ class InMemoryResourceManagerBase(val basePath: String = "", parentMgr: Option[I
       resources += ((name, allBytes))
     }
 
-    override def delete(): Unit = {
+    override def delete(): Unit = InMemoryResourceManagerBase.this.synchronized {
       resources -= name
       children -= name
     }
@@ -130,7 +135,7 @@ class InMemoryResourceManagerBase(val basePath: String = "", parentMgr: Option[I
       override def write(b: Array[Byte]): Unit = outputStream.write(b)
       override def write(b: Array[Byte], off: Int, len: Int): Unit = outputStream.write(b, off, len)
       override def flush(): Unit = outputStream.flush()
-      override def close(): Unit = {
+      override def close(): Unit = InMemoryResourceManagerBase.this.synchronized {
         val bytes =
           resources.get(name) match {
             case Some(data) if append =>

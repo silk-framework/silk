@@ -1,10 +1,10 @@
 package org.silkframework.runtime.plugin
 
-import org.silkframework.config.Prefixes
+import org.silkframework.config.{Prefixes, Task, TaskSpec}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.resource.{EmptyResourceManager, ResourceManager}
 import org.silkframework.runtime.serialization.ReadContext
-import org.silkframework.runtime.templating.{GlobalTemplateVariables, TemplateVariablesReader}
+import org.silkframework.runtime.templating.{ExecutionTemplateVariables, ExecutionVariablesHolder, GlobalTemplateVariables, TemplateVariables, TemplateVariablesReader}
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.{ProjectConfig, ProjectTrait}
 
@@ -35,8 +35,11 @@ trait PluginContext {
 
   /**
    * The template variables that are available in the current scope.
+   *
+   * The returned value is read-only for the global, project and task scopes, but supports mutation
+   * of execution-scope variables via [[ExecutionTemplateVariables.setExecutionVariable]].
    */
-  def templateVariables: TemplateVariablesReader
+  def templateVariables: ExecutionTemplateVariables
 
   /**
     * Creates a [[TaskResolver]] based on the project ID if available. Throws an exception if no project ID exists.
@@ -47,7 +50,7 @@ trait PluginContext {
 
 object PluginContext {
 
-  def empty: PluginContext = PlainPluginContext(Prefixes.empty, EmptyResourceManager(), UserContext.Empty, None, GlobalTemplateVariables, TaskResolver.empty)
+  def empty: PluginContext = PlainPluginContext(Prefixes.empty, EmptyResourceManager(), UserContext.Empty, None, ExecutionTemplateVariables(GlobalTemplateVariables), TaskResolver.empty)
 
   def apply(prefixes: Prefixes,
             resources: ResourceManager,
@@ -56,18 +59,27 @@ object PluginContext {
             templateVariables: TemplateVariablesReader = GlobalTemplateVariables,
             taskResolver: TaskResolver
            ): PlainPluginContext = {
-    PlainPluginContext(prefixes, resources, user, projectId, templateVariables, taskResolver)
+    PlainPluginContext(prefixes, resources, user, projectId, ExecutionTemplateVariables(templateVariables), taskResolver)
   }
 
   def fromProject(project: ProjectTrait)(implicit user: UserContext): PlainPluginContext = {
-    PlainPluginContext(project.config.prefixes, project.resources, user, Some(project.id), project.combinedTemplateVariables, TaskResolver.fromProject(project))
+    PlainPluginContext(project.config.prefixes, project.resources, user, Some(project.id), ExecutionTemplateVariables(project.combinedTemplateVariables), TaskResolver.fromProject(project))
+  }
+
+  /**
+    * Context for executing a particular task: the execution scope is seeded with the execution
+    * variables defined on the task, in addition to the global and project scopes.
+    */
+  def fromTask(task: Task[_ <: TaskSpec], project: ProjectTrait)(implicit user: UserContext): PlainPluginContext = {
+    PlainPluginContext(project.config.prefixes, project.resources, user, Some(project.id),
+      ExecutionTemplateVariables(Seq(project.combinedTemplateVariables)).withExecutionDefaults(task.executionVariables), TaskResolver.fromProject(project))
   }
 
   def fromProjectConfig(config: ProjectConfig,
                         projectResource: ResourceManager,
                         templateVariables: TemplateVariablesReader = GlobalTemplateVariables,
                         taskResolver: TaskResolver)(implicit user: UserContext): PlainPluginContext = {
-    PlainPluginContext(config.prefixes, projectResource, user, Some(config.id), templateVariables, taskResolver)
+    PlainPluginContext(config.prefixes, projectResource, user, Some(config.id), ExecutionTemplateVariables(templateVariables), taskResolver)
   }
 
   def fromReadContext(readContext: ReadContext): PlainPluginContext = {
@@ -86,13 +98,7 @@ object PluginContext {
                                 resources: ResourceManager,
                                 user: UserContext,
                                 projectId: Option[Identifier],
-                                templateVariables: TemplateVariablesReader,
+                                templateVariables: ExecutionTemplateVariables,
                                 taskResolver: TaskResolver
                                ) extends PluginContext
 }
-
-
-
-
-
-

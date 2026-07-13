@@ -294,6 +294,33 @@ class SimpleVariableWorkflowApiTest extends AnyFlatSpec with BeforeAndAfterAll
     checkForValues(1, Seq("some value"), response.body)
   }
 
+  private val executionVariableParam =
+    s"${VariableWorkflowRequestUtils.EXECUTION_VARIABLES_QUERY_PREFIX}myVar" -> "var value"
+
+  it should "accept execution variables as reserved query parameters independent of the request content type" in {
+    // GET request, where the (remaining) query string doubles as the input entity
+    val getResponse = checkResponseExactStatusCode(
+      executeVariableWorkflow(inputOutputWorkflow, Map(sourceProperty1 -> Seq("query value")),
+        additionalQueryParameters = Map(executionVariableParam)))
+    checkForValues(1, Seq("query value"), getResponse.body)
+    // CSV body
+    val csvResponse = checkResponseExactStatusCode(
+      executeVariableWorkflow(inputOutputWorkflow, contentOpt = Some((s"$sourceProperty1\ncsv value", "text/csv")),
+        additionalQueryParameters = Map(executionVariableParam)))
+    checkForValues(1, Seq("csv value"), csvResponse.body)
+    // multipart/form-data file upload
+    val multipartResponse = checkResponseExactStatusCode(
+      getVariableWorkflowResultMultiPart(inputOutputWorkflow, exampleFile, additionalQueryParameters = Map(executionVariableParam)))
+    checkForValues(1, Seq("some value"), multipartResponse.body)
+  }
+
+  it should "reject a variable defined both in the JSON body and as a query parameter" in {
+    val jsonPayload = s"""{"$sourceProperty1":"v","${VariableWorkflowRequestUtils.EXECUTION_VARIABLES_KEY}":{"myVar":"body value"}}"""
+    checkResponseExactStatusCode(
+      executeVariableWorkflow(inputOutputWorkflow, contentOpt = Some((jsonPayload, APPLICATION_JSON)),
+        additionalQueryParameters = Map(executionVariableParam)), BAD_REQUEST)
+  }
+
   it should "remove temp files on GC" in {
     removeTempFiles()
     val workflowId = inputOutputWorkflow
@@ -414,10 +441,14 @@ class SimpleVariableWorkflowApiTest extends AnyFlatSpec with BeforeAndAfterAll
   private def getVariableWorkflowResultMultiPart(workflowId: String,
                                                  file: File,
                                                  contentType: String = "application/xml",
-                                                 acceptMimeType: String = "application/xml"): Future[WSResponse] = {
+                                                 acceptMimeType: String = "application/xml",
+                                                 additionalQueryParameters: Map[String, String] = Map.empty): Future[WSResponse] = {
     val path = controllers.workflowApi.routes.WorkflowApi.variableWorkflowResultPost(projectId, workflowId).url
-    val request = client.url(s"$baseUrl$path")
+    var request = client.url(s"$baseUrl$path")
       .addHttpHeaders(ACCEPT -> acceptMimeType)
+    additionalQueryParameters.foreach { queryParam =>
+      request = request.addQueryStringParameters(queryParam)
+    }
     request.post(Source(
       FilePart("hello", "shouldNotMatter.txt", Option(contentType), FileIO.fromPath(file.toPath)) :: Nil
     ))

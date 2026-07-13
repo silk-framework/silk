@@ -44,6 +44,7 @@ import org.silkframework.rule.plugins.transformer.substring._
 import org.silkframework.rule.plugins.transformer.tokenization.{CamelCaseTokenizer, Tokenizer}
 import org.silkframework.rule.plugins.transformer.validation._
 import org.silkframework.rule.plugins.transformer.value._
+import org.silkframework.rule.plugins.transformer.variable.SetExecutionVariableTransformer
 import org.silkframework.rule.{DatasetSelection, LinkSpec, RuleBlockSpec, TransformSpec}
 import org.silkframework.runtime.plugin.{AnyPlugin, PluginModule}
 import org.silkframework.workspace.annotation.UiAnnotations.UiAnnotationsXmlFormat
@@ -118,6 +119,8 @@ class RulePlugins extends PluginModule {
         classOf[FileHashTransformer] ::
         classOf[InputHashTransformer] ::
         classOf[PerValueHashTransformer] ::
+        // Variables
+        classOf[SetExecutionVariableTransformer] ::
         // Numeric
         classOf[NumReduceTransformer] ::
         classOf[NumOperationTransformer] ::

@@ -15,7 +15,7 @@ import org.silkframework.runtime.plugin.types.IdentifierOptionParameter
 import org.silkframework.runtime.resource.Resource
 import org.silkframework.runtime.serialization.XmlSerialization._
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat, XmlSerialization}
-import org.silkframework.runtime.templating.TemplateVariableName
+import org.silkframework.runtime.templating.{TemplateVariableName, TemplateVariables}
 import org.silkframework.runtime.validation.NotFoundException
 import org.silkframework.util.{Identifier, IdentifierGenerator}
 import org.silkframework.workspace.{OriginalTaskData, TaskLoadingException, WorkspaceReadTrait}
@@ -374,9 +374,19 @@ case class TransformSpec(@Param(label = "Input", value = "The source from which 
   override def mainActivities: Seq[String] = Seq("ExecuteTransform")
 }
 
-case class TransformTask(id: Identifier, data: TransformSpec, metaData: MetaData = MetaData.empty) extends Task[TransformSpec] {
+case class TransformTask(id: Identifier, data: TransformSpec, metaData: MetaData = MetaData.empty, executionVariables: TemplateVariables = TemplateVariables.empty) extends Task[TransformSpec] {
 
   override def taskType: Class[_] = classOf[TransformSpec]
+}
+
+object TransformTask {
+
+  /**
+    * Creates a TransformTask from a generic task, keeping all task properties.
+    */
+  def fromTask(task: Task[TransformSpec]): TransformTask = {
+    TransformTask(task.id, task.data, task.metaData, task.executionVariables)
+  }
 }
 
 /**
@@ -384,7 +394,7 @@ case class TransformTask(id: Identifier, data: TransformSpec, metaData: MetaData
   */
 object TransformSpec {
 
-  implicit def toTransformTask(task: Task[TransformSpec]): TransformTask = TransformTask(task.id, task.data, task.metaData)
+  implicit def toTransformTask(task: Task[TransformSpec]): TransformTask = TransformTask.fromTask(task)
 
   def empty: TransformSpec = TransformSpec(DatasetSelection.empty, RootMappingRule.empty)
 

@@ -44,6 +44,14 @@ trait CompiledTemplate {
   def evaluate(values: Map[String, AnyRef], writer: Writer): Unit
 
   /**
+    * Evaluates this template with explicitly provided values in addition to template variables.
+    * The explicit values take precedence over a variable with the same top-level name.
+    */
+  def evaluate(values: Map[String, AnyRef], variables: Seq[TemplateVariableValue], writer: Writer): Unit = {
+    evaluate(convertValues(variables) ++ values, writer)
+  }
+
+  /**
     * Evaluates this template using provided values.
     *
     * @throws TemplateEvaluationException If the evaluation failed.
@@ -54,16 +62,19 @@ trait CompiledTemplate {
    * Converts template variable values to a nested Java-compatible map.
    * Variables with an empty scope are placed at the top level.
    * Variables with a scope are placed in nested maps corresponding to each scope element,
-   * e.g., scope Seq("project", "meta") produces Map("project" -> Map("meta" -> Map(name -> value))).
+   * e.g., scope "project.meta" produces Map("project" -> Map("meta" -> Map(name -> value))).
+   * On a top-level name collision, flat (empty-scope) values take precedence over a scope map of the
+   * same name, so that explicitly provided values (e.g. input entity attributes) are never silently
+   * shadowed by variable scopes.
    */
   protected def convertValues(value: Seq[TemplateVariableValue]): Map[String, AnyRef] = {
     val (flatVars, scopedVars) = value.partition(_.scope.isEmpty)
     val flatEntries = flatVars.map(v => v.name -> IterableTemplateValues.fromValues(v.values).asInstanceOf[AnyRef])
-    val scopedEntries = scopedVars.groupBy(_.scope.head).map { case (topScope, vars) =>
-      val shallowVars = vars.map(v => new TemplateVariableValue(v.name, v.scope.tail, v.values))
+    val scopedEntries = scopedVars.groupBy(_.scope.path.head).map { case (topScope, vars) =>
+      val shallowVars = vars.map(v => new TemplateVariableValue(v.name, VariableScope(v.scope.path.tail), v.values))
       topScope -> convertValues(shallowVars).asJava.asInstanceOf[AnyRef]
     }
-    (flatEntries ++ scopedEntries).toMap
+    (scopedEntries ++ flatEntries).toMap
   }
 }
 

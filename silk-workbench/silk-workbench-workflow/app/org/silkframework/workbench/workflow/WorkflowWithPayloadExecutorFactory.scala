@@ -7,6 +7,7 @@ import org.silkframework.runtime.activity.{Activity, ActivityContext, UserContex
 import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
 import org.silkframework.runtime.plugin.types.MultilineStringParameter
 import org.silkframework.runtime.plugin.{PluginContext, PluginObjectParameterNoSchemaAndSerialization, TaskResolver}
+import org.silkframework.runtime.templating.{TemplateVariablesParameter, TemplateVariables}
 import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat}
 import org.silkframework.serialization.json.WriteOnlyJsonFormat
@@ -14,7 +15,7 @@ import org.silkframework.workbench.utils.UnsupportedMediaTypeException
 import org.silkframework.workbench.workflow.WorkflowWithPayloadExecutorFactory._
 import org.silkframework.workspace.ProjectTask
 import org.silkframework.workspace.activity.TaskActivityFactory
-import org.silkframework.workspace.activity.workflow.{AllReplaceableDatasets, LocalWorkflowExecutorGeneratingProvenance, Workflow}
+import org.silkframework.workspace.activity.workflow.{AllReplaceableDatasets, LocalWorkflowExecutorGeneratingProvenance, Workflow, WorkflowExecutorFactory}
 import play.api.libs.json._
 
 import scala.xml.{Node, NodeSeq, XML}
@@ -28,13 +29,16 @@ import scala.xml.{Node, NodeSeq, XML}
 case class WorkflowWithPayloadExecutorFactory(configuration: MultilineStringParameter = MultilineStringParameter(DEFAULT_CONFIGURATION),
                                               configurationType: String = "application/json",
                                               @Param(label = "", value = "", visibleInDialog = false)
-                                              optionalPrimaryResourceManager: OptionalPrimaryResourceManagerParameter = OptionalPrimaryResourceManagerParameter(None))
-  extends TaskActivityFactory[Workflow, WorkflowWithPayloadExecutor] {
+                                              optionalPrimaryResourceManager: OptionalPrimaryResourceManagerParameter = OptionalPrimaryResourceManagerParameter(None),
+                                              @Param(label = "Execution variables", value = "Variables for this workflow execution.", visibleInDialog = false)
+                                              executionVariables: TemplateVariablesParameter = TemplateVariablesParameter.empty)
+  extends TaskActivityFactory[Workflow, WorkflowWithPayloadExecutor] with WorkflowExecutorFactory {
 
   override def isSingleton: Boolean = false
 
   def apply(task: ProjectTask[Workflow]): Activity[WorkflowOutput] = {
-    new WorkflowWithPayloadExecutor(task, WorkflowWithPayloadConfiguration(configuration.str, configurationType, optionalPrimaryResourceManager.manager))
+    // Only the overrides are passed here. They are merged with the workflow's execution variables at run start.
+    new WorkflowWithPayloadExecutor(task, WorkflowWithPayloadConfiguration(configuration.str, configurationType, optionalPrimaryResourceManager.manager, executionVariables.variables))
   }
 }
 
@@ -89,7 +93,8 @@ object WorkflowWithPayloadExecutorFactory {
   */
 case class WorkflowWithPayloadConfiguration(configurationString: String,
                                             format: String,
-                                            optionalPrimaryResourceManager: Option[ResourceManager])
+                                            optionalPrimaryResourceManager: Option[ResourceManager],
+                                            workflowVariables: TemplateVariables = TemplateVariables.empty)
 
 class WorkflowWithPayloadExecutor(task: ProjectTask[Workflow], config: WorkflowWithPayloadConfiguration) extends Activity[WorkflowOutput] {
 
@@ -118,7 +123,7 @@ class WorkflowWithPayloadExecutor(task: ProjectTask[Workflow], config: WorkflowW
     checkReplaceableDatasetsCovered(allReplaceableDatasets, dataSources.keySet, sinks.keySet)
     context.value() = WorkflowOutput(sinks, replaceableSinks, resultResourceManager)
 
-    val activity = LocalWorkflowExecutorGeneratingProvenance(task, dataSources, sinks, useLocalInternalDatasets = true)
+    val activity = LocalWorkflowExecutorGeneratingProvenance(task, dataSources, sinks, useLocalInternalDatasets = true, workflowVariables = config.workflowVariables)
     context.child(activity, 1.0).startBlocking()
   }
 

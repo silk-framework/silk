@@ -9,10 +9,9 @@ import org.silkframework.runtime.validation.NotFoundException
 trait TemplateVariablesReader {
 
   /**
-    * The available variable scopes. Each scope is represented as a sequence of strings forming a prefix path,
-    * e.g., Seq("project") or Seq("project", "metaData").
+    * The available variable scopes.
     */
-  def scopes: Set[Seq[String]]
+  def scopes: Set[VariableScope]
 
   /**
     * Retrieves all template variables.

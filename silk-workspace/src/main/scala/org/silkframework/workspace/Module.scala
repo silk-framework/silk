@@ -2,6 +2,7 @@ package org.silkframework.workspace
 
 import org.silkframework.config.{MetaData, TaskSpec}
 import org.silkframework.runtime.activity.UserContext
+import org.silkframework.runtime.templating.{GlobalTemplateVariables, TemplateVariables}
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.TaskCleanupPlugin.CleanUpAfterTaskDeletionFunction
 import org.silkframework.workspace.exceptions.TaskNotFoundException
@@ -86,10 +87,14 @@ class Module[TaskData <: TaskSpec: ClassTag](private[workspace] val provider: Wo
     cachedTasks.get(name)
   }
 
-  def add(name: Identifier, taskData: TaskData, metaData: MetaData)
+  def add(name: Identifier, taskData: TaskData, metaData: MetaData, executionVariables: TemplateVariables = TemplateVariables.empty)
          (implicit userContext: UserContext) : ProjectTask[TaskData] = {
     assertLoaded()
-    val task = new ProjectTask(name, taskData, metaData, this)
+    // Variable templates are resolved at save time; unresolvable templates keep the provided value.
+    val parentVariables = (GlobalTemplateVariables.all merge project.templateVariables.all).withoutSensitiveVariables()
+    val resolvedVariables = executionVariables.resolvedKeepingUnresolved(parentVariables)
+    val task = new ProjectTask(name, taskData, metaData, resolvedVariables, this)
+    task.executionVariablesValueHolder.validateScope(resolvedVariables)
     validator.validate(project, task)
     provider.putTask(project.id, task, project.resources)
     task.startActivities()
@@ -132,7 +137,7 @@ class Module[TaskData <: TaskSpec: ClassTag](private[workspace] val provider: Wo
           (for (taskTry <- tasks) yield {
             taskTry.taskOrError match {
               case Right(task) =>
-                Some((task.id, new ProjectTask(task.id, task.data, task.metaData, this)))
+                Some((task.id, new ProjectTask(task.id, task.data, task.metaData, task.executionVariables, this)))
               case Left(taskLoadingError) =>
                 errors ::= taskLoadingError
                 None

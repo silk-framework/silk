@@ -11,7 +11,7 @@ export const useModalError = ({ setError }: useModalParams) => {
         setError(undefined);
     }, []);
 
-    return (e: any, modalContextName: string) => {
+    return React.useCallback((e: any, modalContextName: string) => {
         const errorWithContextName = (error: any) => () => {
             const errorCopy: Record<string, any> = { ...error };
             errorCopy.detail = `${modalContextName}: \n ${error.asString()}`;
@@ -26,5 +26,5 @@ export const useModalError = ({ setError }: useModalParams) => {
         } else {
             console.warn(e);
         }
-    };
+    }, [setError])
 };

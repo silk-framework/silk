@@ -4,18 +4,18 @@ package org.silkframework.runtime.templating
   * Holds the full name of a template variable including it's scope.
   *
   * @param name  The local name of the variable.
-  * @param scope The scope as a sequence of strings forming a prefix path. May be empty.
-  *              For example, a variable with name "label" and scope Seq("project", "metaData")
+  * @param scope The scope of the variable. May be empty.
+  *              For example, a variable with name "label" and scope "project.metaData"
   *              is addressed as "project.metaData.label".
   */
-class TemplateVariableName(val name: String, val scope: Seq[String] = Seq.empty) {
+class TemplateVariableName(val name: String, val scope: VariableScope = VariableScope.empty) {
 
   /**
     * The variable name including its scope as a dot-separated string, e.g., `project.var` or `project.metaData.var`.
     * If the scope is empty, this is just the local name.
     */
   def scopedName: String = {
-    (scope :+ name).mkString(".")
+    (scope.path :+ name).mkString(".")
   }
 
   override def toString: String = {
@@ -38,14 +38,14 @@ object TemplateVariableName {
   /**
    * Parses a dot-separated full variable name into a [[TemplateVariableName]].
    * All segments except the last form the scope; the last segment is the local name.
-   * For example, "project.metaData.label" parses to name="label", scope=Seq("project","metaData").
+   * For example, "project.metaData.label" parses to name="label", scope="project.metaData".
    */
   def parse(fullName: String): TemplateVariableName = {
     val parts = fullName.split('.')
     if (parts.length > 1) {
-      new TemplateVariableName(parts.last, parts.dropRight(1).toSeq)
+      new TemplateVariableName(parts.last, VariableScope(parts.dropRight(1).toSeq))
     } else {
-      new TemplateVariableName(fullName, Seq.empty)
+      new TemplateVariableName(fullName, VariableScope.empty)
     }
   }
 

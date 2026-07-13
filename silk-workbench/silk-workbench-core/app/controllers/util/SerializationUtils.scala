@@ -1,12 +1,13 @@
 package controllers.util
 
 
-import org.silkframework.config.Prefixes
+import org.silkframework.config.{Prefixes, Task, TaskSpec}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.TaskResolver
 import org.silkframework.runtime.resource.EmptyResourceManager
 import org.silkframework.runtime.serialization.Serialization.defaultMimeTypes
 import org.silkframework.runtime.serialization.{ReadContext, Serialization, SerializationFormat, WriteContext}
+import org.silkframework.runtime.templating.TemplateVariables
 import org.silkframework.runtime.validation.{BadUserInputException, ValidationException}
 import org.silkframework.workbench.utils.{ErrorResult, NotAcceptableException}
 import org.silkframework.workspace.Project
@@ -15,6 +16,7 @@ import play.api.http.Status._
 import play.api.libs.json.JsValue
 import play.api.mvc.Results.Ok
 import play.api.mvc._
+import org.silkframework.serialization.json.JsonSerializers.TaskJsonFormat
 
 import scala.reflect.ClassTag
 import scala.xml.Node
@@ -168,6 +170,34 @@ object SerializationUtils {
     } catch {
       case v: ValidationException =>
         throw BadUserInputException(v.getMessage)
+    }
+  }
+
+  /**
+    * The execution variables of a deserialized task, if the request payload explicitly contains them.
+    * Returns None when the payload has no execution-variables entry (e.g. requests from clients that were
+    * built before execution variables existed), in which case the stored variables of the task must be
+    * left unchanged.
+    */
+  def executionVariablesIfProvided(task: Task[_ <: TaskSpec])
+                                  (implicit request: Request[AnyContent]): Option[TemplateVariables] = {
+    val provided = request.body match {
+      case AnyContentAsJson(json) => (json \ TaskJsonFormat.EXECUTION_VARIABLES).isDefined
+      case AnyContentAsXml(xml) => (xml.head \ Task.EXECUTION_VARIABLES_ELEMENT).nonEmpty
+      case _ => false
+    }
+    if (provided) Some(task.executionVariables) else None
+  }
+
+  /**
+    * Read context for updating a project task. The execution scope is seeded with the stored task's
+    * variables, so parameter templates referencing them resolve when the payload omits the variables.
+    */
+  def taskUpdateReadContext(project: Project, taskName: String)
+                           (implicit userContext: UserContext): ReadContext = {
+    val base = ReadContext.fromProject(project)
+    project.anyTaskOption(taskName).fold(base) { task =>
+      base.copy(templateVariables = base.templateVariables.withExecutionDefaults(task.executionVariables))
     }
   }
 

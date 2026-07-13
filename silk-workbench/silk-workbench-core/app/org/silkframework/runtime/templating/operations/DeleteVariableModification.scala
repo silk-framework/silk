@@ -7,26 +7,25 @@ import org.silkframework.runtime.templating.exceptions._
 import org.silkframework.runtime.templating.{GlobalTemplateVariables, TemplateVariables}
 import org.silkframework.workspace.{Project, ProjectTask}
 
-import scala.collection.mutable
-
-case class DeleteVariableModification(project: Project, variableName: String) extends Modification {
+case class DeleteVariableModification(project: Project, variableName: String, taskId: Option[String] = None) extends Modification {
 
   override def operation: String = s"Deleted variable '$variableName'"
 
   /**
     * Retrieves the variables that use this variable.
     */
-  def dependentVariables(): Seq[String] = {
+  def dependentVariables()(implicit user: UserContext): Seq[String] = {
+    val manager = variablesManager()
     try {
-      updateVariables(project.templateVariables.all)
+      // Resolve against the same (sensitive-filtered) parent scope as the actual delete in Modification.execute.
+      // Dependent tasks are reported via invalidTasks(), so the task-dependency check is skipped here.
+      resolveWithoutVariable(manager.all, manager.parentVariables.withoutSensitiveVariables())
       Seq.empty
     } catch {
       case ex: CannotDeleteUsedVariableException =>
         ex.dependentVariables
       case _: TemplateVariablesEvaluationException =>
         Seq.empty
-      case ex: Throwable =>
-        throw ex
     }
   }
 
@@ -34,37 +33,71 @@ case class DeleteVariableModification(project: Project, variableName: String) ex
     * Retrieves the tasks that would become invalid by this modification.
     */
   def invalidTasks()(implicit user: UserContext): Seq[ProjectTask[_ <: TaskSpec]] = {
-    // Compute current and new project variables
-    val currentVariables = project.templateVariables.all
-    val newVariables = TemplateVariables(currentVariables.variables.filter(_.name != variableName))
+    taskId match {
+      case Some(id) =>
+        // Execution variables can only be referenced by parameter templates of the task itself.
+        val task = project.anyTask(id)
+        val currentVariables = task.executionVariables
+        val newVariables = TemplateVariables(currentVariables.variables.filter(_.name != variableName))
+        val baseVariables = project.combinedTemplateVariables.all
+        val context = PluginContext.fromTask(task, project)
+        try {
+          hasUpdatedTemplateValues(task.parameters(context), baseVariables merge currentVariables, baseVariables merge newVariables)
+          Seq.empty
+        } catch {
+          case _: TemplateEvaluationException =>
+            // Task update would fail with the modified variables.
+            Seq(task)
+        }
+      case None =>
+        // Compute current and new project variables
+        val currentVariables = project.templateVariables.all
+        val newVariables = TemplateVariables(currentVariables.variables.filter(_.name != variableName))
 
-    // Compute all variables including the global variables
-    val allCurrentVariables = GlobalTemplateVariables.all merge currentVariables
-    val allNewVariables = GlobalTemplateVariables.all merge newVariables
+        // Compute all variables including the global variables
+        val allCurrentVariables = GlobalTemplateVariables.all merge currentVariables
+        val allNewVariables = GlobalTemplateVariables.all merge newVariables
+        // Match the resolution of execution-variable templates at save time (parent scopes without sensitive variables).
+        val saveTimeParents = allNewVariables.withoutSensitiveVariables()
 
-    // Check if the update variables break a task
-    val currentContext: PluginContext = PluginContext.fromProject(project)
-    val updatedTasks = mutable.Buffer[ProjectTask[_ <: TaskSpec]]()
-    for (task <- project.allTasks) yield {
-      try {
-        hasUpdatedTemplateValues(task.parameters(currentContext), allCurrentVariables, allNewVariables)
-      } catch {
-        case _: TemplateEvaluationException =>
-          // Task update would fail with the modified variables.
-          updatedTasks.append(task)
-      }
-      task
+        // Report tasks whose parameter templates break or whose execution-variable templates reference the deleted variable.
+        val currentContext: PluginContext = PluginContext.fromProject(project)
+        project.allTasks.toSeq.filter { task =>
+          val breaksParameterTemplates =
+            try {
+              hasUpdatedTemplateValues(task, currentContext, allCurrentVariables, allNewVariables)
+              false
+            } catch {
+              case _: TemplateEvaluationException =>
+                // Task update would fail with the modified variables.
+                true
+            }
+          breaksParameterTemplates || dependentExecutionVariableIssues(task, saveTimeParents, Set(variableName)).nonEmpty
+        }
     }
-    updatedTasks.toSeq
   }
 
-  override protected def updateVariables(currentVariables: TemplateVariables): TemplateVariables = {
+  override protected def updateVariables(currentVariables: TemplateVariables, parentVariables: TemplateVariables)
+                                        (implicit user: UserContext): TemplateVariables = {
+    val resolvedVariables = resolveWithoutVariable(currentVariables, parentVariables)
+    // Project variable: block the deletion if an execution-variable template on a task references it.
+    // Otherwise the task would keep an unresolvable template that fails on its next modification.
+    checkExecutionVariableDependencies(resolvedVariables, Set(variableName))
+    resolvedVariables
+  }
+
+  /**
+    * Removes the variable and resolves the remaining variables.
+    * Throws a CannotDeleteUsedVariableException if any of them references the removed variable.
+    */
+  private def resolveWithoutVariable(currentVariables: TemplateVariables, parentVariables: TemplateVariables): TemplateVariables = {
     // Make sure that variable exists
-    val variable = project.templateVariables.get(variableName)
+    val variable = currentVariables.map.getOrElse(variableName,
+      throw new org.silkframework.runtime.validation.NotFoundException(s"No variable '$variableName' has been found."))
 
     val updatedVariables = TemplateVariables(currentVariables.variables.filter(_.name != variableName))
     try {
-      updatedVariables.resolved(GlobalTemplateVariables.all)
+      updatedVariables.resolved(parentVariables)
     } catch {
       case ex: TemplateVariablesEvaluationException =>
         // Check if the evaluation failed because this variable is used in other variables.
@@ -76,7 +109,10 @@ case class DeleteVariableModification(project: Project, variableName: String) ex
         if (dependentVariables.nonEmpty) {
           throw CannotDeleteUsedVariableException(variableName, dependentVariables)
         } else {
-          throw ex
+          // The remaining failures are unrelated to the deleted variable (e.g. templates referencing
+          // a sensitive parent variable, which is not available for template resolution).
+          // Those variables keep their stored values, so that unrelated variables can still be deleted.
+          updatedVariables.resolvedKeepingUnresolved(parentVariables)
         }
     }
   }
