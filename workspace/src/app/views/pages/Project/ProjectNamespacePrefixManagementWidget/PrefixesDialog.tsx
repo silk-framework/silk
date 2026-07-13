@@ -80,14 +80,30 @@ const PrefixesDialog = ({
         return () => window.clearTimeout(timeoutId);
     }, [highlightedProjectPrefix]);
 
+    const refreshPrefixesAfterChanges = React.useCallback(
+        async (failureMessage: string) => {
+            try {
+                await refreshPrefixes();
+            } catch (err) {
+                checkAndDisplayPrefixError(err, failureMessage);
+            }
+        },
+        [checkAndDisplayPrefixError, refreshPrefixes],
+    );
+
     const handleConfirmRemove = React.useCallback(async () => {
         try {
             setLoading(true);
             if (selectedPrefix) {
                 setError(undefined);
                 await requestRemoveProjectPrefix(selectedPrefix.prefixName, projectId);
-                await refreshPrefixes();
                 toggleRemoveDialog();
+                await refreshPrefixesAfterChanges(
+                    t(
+                        "widget.ConfigWidget.modal.errors.prefixRefreshAfterDeletionFailure",
+                        "Prefix deleted, but refreshing the prefix list failed",
+                    ),
+                );
             }
         } catch (err) {
             checkAndDisplayPrefixError(
@@ -97,7 +113,7 @@ const PrefixesDialog = ({
         } finally {
             setLoading(false);
         }
-    }, [checkAndDisplayPrefixError, projectId, refreshPrefixes, selectedPrefix, t]);
+    }, [checkAndDisplayPrefixError, projectId, refreshPrefixesAfterChanges, selectedPrefix, t]);
 
     const handleAddOrUpdatePrefix = React.useCallback(
         async (prefix: IPrefixDefinition) => {
@@ -106,7 +122,12 @@ const PrefixesDialog = ({
                 setError(undefined);
                 const { prefixName, prefixUri } = prefix;
                 await requestChangePrefixes(prefixName, JSON.stringify(prefixUri), projectId);
-                await refreshPrefixes();
+                await refreshPrefixesAfterChanges(
+                    t(
+                        "widget.ConfigWidget.modal.errors.prefixRefreshAfterChangeFailure",
+                        "Prefix updated, but refreshing the prefix list failed",
+                    ),
+                );
             } catch (err) {
                 checkAndDisplayPrefixError(
                     err,
@@ -116,7 +137,7 @@ const PrefixesDialog = ({
                 setLoading(false);
             }
         },
-        [checkAndDisplayPrefixError, projectId, refreshPrefixes, t],
+        [checkAndDisplayPrefixError, projectId, refreshPrefixesAfterChanges, t],
     );
 
     const existingProjectPrefixes = React.useMemo(

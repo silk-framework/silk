@@ -986,10 +986,15 @@
             "prefixTitle": "Manage prefixes",
             "prefix_plural": "Prefixes",
             "title": "Configuration",
+            "errors": {
+                "prefixLoadFailure": "Loading prefixes failed"
+            },
             "modal": {
                 "errors": {
                     "prefixDeletionFailure": "Prefix deletion failed",
-                    "prefixChangeFailure": "Prefix change failed"
+                    "prefixChangeFailure": "Prefix change failed",
+                    "prefixRefreshAfterDeletionFailure": "Prefix deleted, but refreshing the prefix list failed",
+                    "prefixRefreshAfterChangeFailure": "Prefix updated, but refreshing the prefix list failed"
                 }
             }
         },
