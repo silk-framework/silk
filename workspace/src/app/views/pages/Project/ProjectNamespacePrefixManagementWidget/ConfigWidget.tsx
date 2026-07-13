@@ -133,9 +133,9 @@ export const ProjectNamespacePrefixManagementWidget = () => {
                                     </OverviewItemLine>
                                     <OverviewItemLine small>
                                         <span>
-                                            {visiblePrefixes.map((o, index) => (
-                                                <span key={index}>
-                                                    {o.prefixName}
+                                            {visiblePrefixes.map((prefix, index) => (
+                                                <span key={prefix.prefixName}>
+                                                    {prefix.prefixName}
                                                     {index < visiblePrefixes.length - 1
                                                         ? ", "
                                                         : moreCount > 0 && (

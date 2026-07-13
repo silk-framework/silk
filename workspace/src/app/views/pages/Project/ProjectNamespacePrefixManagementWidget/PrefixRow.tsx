@@ -8,6 +8,7 @@ import {
     OverviewItemDescription,
     OverviewItemLine,
     Tag,
+    Spacing,
 } from "@eccenca/gui-elements";
 import { useTranslation } from "react-i18next";
 import styles from "./index.module.scss";
@@ -44,7 +45,7 @@ const PrefixRow = ({
                         {prefix.prefixName}
                         {overridesWorkspacePrefix && (
                             <>
-                                {" "}
+                                <Spacing vertical={true} size={"small"} />
                                 <Tag small emphasis="weaker">
                                     {t("PrefixDialog.overridesWorkspacePrefixBadge", "Overrides workspace prefix")}
                                 </Tag>
@@ -52,7 +53,7 @@ const PrefixRow = ({
                         )}
                         {overriddenInProject && (
                             <>
-                                {" "}
+                                <Spacing vertical={true} size={"small"} />
                                 <Tag small emphasis="weaker">
                                     {t("PrefixDialog.overriddenInProjectBadge", "Overridden in project")}
                                 </Tag>

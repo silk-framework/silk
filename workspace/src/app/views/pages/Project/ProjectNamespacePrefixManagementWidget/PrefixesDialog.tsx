@@ -17,7 +17,7 @@ import PrefixRow from "./PrefixRow";
 import DeleteModal from "../../../shared/modals/DeleteModal";
 import PrefixNew from "./PrefixNew";
 import DataList from "../../../shared/Datalist";
-import { useTranslation } from "react-i18next";
+import { Trans, useTranslation } from "react-i18next";
 import { requestChangePrefixes, requestRemoveProjectPrefix } from "@ducks/workspace/requests";
 import { ErrorResponse } from "../../../../services/fetch/responseInterceptor";
 import { useModalError } from "../../../../hooks/useModalError";
@@ -188,14 +188,12 @@ const PrefixesDialog = ({
 
     const workspaceSectionDescription = workspaceVocabUrl ? (
         <p>
-            {t("PrefixDialog.workspacePrefixesDescription", "Workspace prefixes are managed in ")}
-            <a href={workspaceVocabUrl} rel="noreferrer" target="_blank">
-                {t("navigation.side.dmBrowser", "Explore")}
-            </a>
-            {t(
-                "PrefixDialog.workspacePrefixesDescriptionSuffix",
-                " and are automatically registered from vocabularies in Explore's vocabulary module.",
-            )}
+            <Trans
+                i18nKey="PrefixDialog.workspacePrefixesDescription"
+                components={{
+                    exploreLink: <a href={workspaceVocabUrl} rel="noreferrer" target="_blank" />,
+                }}
+            />
         </p>
     ) : null;
     const defaultSectionDescription = (
@@ -258,9 +256,9 @@ const PrefixesDialog = ({
                                 "No project prefixes have been defined yet.",
                             )}
                         >
-                            {projectPrefixes.map((prefix, i) => (
+                            {projectPrefixes.map((prefix) => (
                                 <PrefixRow
-                                    key={i}
+                                    key={prefix.prefixName}
                                     rowId={projectPrefixRowId(prefix.prefixName)}
                                     rowClassName={
                                         highlightedProjectPrefix === prefix.prefixName
@@ -292,9 +290,9 @@ const PrefixesDialog = ({
                                 hasDivider
                                 emptyListMessage={exploreEmptyMessage}
                             >
-                                {explorePrefixes.map((prefix, i) => (
+                                {explorePrefixes.map((prefix) => (
                                     <PrefixRow
-                                        key={i}
+                                        key={prefix.prefixName}
                                         prefix={prefix}
                                         ownership="workspace"
                                         overriddenInProject={overriddenReadonlyPrefixes.has(prefix.prefixName)}
@@ -327,9 +325,9 @@ const PrefixesDialog = ({
                                 "No default prefixes are currently configured.",
                             )}
                         >
-                            {defaultPrefixes.map((prefix, i) => (
+                            {defaultPrefixes.map((prefix) => (
                                 <PrefixRow
-                                    key={i}
+                                    key={prefix.prefixName}
                                     prefix={prefix}
                                     ownership="workspace"
                                     overriddenInProject={overriddenReadonlyPrefixes.has(prefix.prefixName)}
