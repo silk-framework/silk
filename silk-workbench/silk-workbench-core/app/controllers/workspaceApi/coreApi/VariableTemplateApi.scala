@@ -69,7 +69,7 @@ class VariableTemplateApi @Inject()() extends InjectedController with UserContex
                    task: Option[String],
                    @Parameter(
                      name = "transitive",
-                     description = "If true and the task is a workflow, additionally returns the execution variables defined on its sub-workflows (recursively). If the same variable is defined on multiple levels, the variable of the enclosing workflow is returned, matching the value that applies when the workflow is executed. Requires the 'task' parameter.",
+                     description = "If true and the task is a workflow, returns all variables that have to be set when running the workflow: in addition to the workflow's own execution variables, the execution variables defined on every task that may take part in the execution (its operators and datasets, the tasks those tasks reference, and sub-workflows, recursively). Since only the executed workflow's variables seed a run, variables defined on sub-tasks have to be defined on the workflow or provided as overrides when starting the run. If the same variable is defined on multiple levels, the variable of the enclosing workflow is returned, matching the value that applies when the workflow is executed. Requires the 'task' parameter.",
                      required = false,
                      in = ParameterIn.QUERY,
                      schema = new Schema(implementation = classOf[Boolean])
@@ -81,14 +81,14 @@ class VariableTemplateApi @Inject()() extends InjectedController with UserContex
     }
     var (variables, errors) = resolvedVariablesJson(project.variablesManager(task))
     if (transitive) {
-      val subWorkflows = project.anyTask(task.get).data match {
-        case workflow: Workflow => workflow.subWorkflowsRecursive(project)
+      val subTasks = project.anyTask(task.get).data match {
+        case workflow: Workflow => workflow.subTasksRecursive(project)
         case _ => Seq.empty
       }
-      // A variable of the enclosing workflow shadows sub-workflow variables of the same name.
+      // A variable of the enclosing workflow shadows sub-task variables of the same name.
       val seenNames = mutable.Set.from(variables.map(_.name))
-      for (subWorkflow <- subWorkflows) {
-        val (subVariables, subErrors) = resolvedVariablesJson(subWorkflow.executionVariablesValueHolder)
+      for (subTask <- subTasks) {
+        val (subVariables, subErrors) = resolvedVariablesJson(subTask.executionVariablesValueHolder)
         val newVariables = subVariables.filterNot(variable => seenNames.contains(variable.name))
         seenNames ++= newVariables.map(_.name)
         variables ++= newVariables

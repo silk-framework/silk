@@ -16,7 +16,7 @@ import org.scalatest.matchers.should.Matchers
 import org.silkframework.config.{CustomTask, InputPorts, Port}
 import org.silkframework.runtime.plugin.{ClassPluginDescription, ParameterTemplateValue, ParameterValues, PluginContext, PluginRegistry}
 import org.silkframework.runtime.templating.exceptions.{CannotDeleteUsedVariableException, InvalidScopeException}
-import org.silkframework.util.ConfigTestTrait
+import org.silkframework.util.{ConfigTestTrait, Identifier}
 
 import scala.concurrent.Await
 import scala.concurrent.duration.DurationInt
@@ -613,25 +613,37 @@ class VariableTemplateApiTest extends AnyFlatSpec with IntegrationTestTrait with
     checkResponse(createRequest(controllers.workspace.routes.TaskApi.getTask(projectName, taskName)).get())
   }
 
-  it should "return sub-workflow execution variables when retrieving variables transitively" in {
+  it should "return the execution variables of all referenced tasks when retrieving variables transitively" in {
     val projectName = "variables-test-transitive"
     val project = WorkspaceFactory().workspace.createProject(ProjectConfig(projectName))
-    project.addTask[Workflow]("sub1", Workflow(),
+    // A non-workflow task referenced by the nested sub-workflow
+    project.addTask("nestedTask", VariablesTestTask("T", 2002),
+      executionVariables = TemplateVariables(Seq(executionVariable("d", "4"), executionVariable("shared", "nestedTaskValue"))))
+    project.addTask[Workflow]("sub1", workflowReferencing("nestedTask"),
       executionVariables = TemplateVariables(Seq(executionVariable("b", "2"), executionVariable("shared", "subValue"))))
     project.addTask[Workflow]("sub2", Workflow(),
       executionVariables = TemplateVariables(Seq(executionVariable("c", "3"))))
+    // A task that is not part of any workflow, but referenced from the data of a workflow task
+    // (like a transform task references rule blocks).
+    project.addTask("indirectTask", VariablesTestTask("T", 2002),
+      executionVariables = TemplateVariables(Seq(executionVariable("f", "6"))))
+    // A non-workflow task referenced by the parent workflow directly
+    project.addTask("plainTask", VariablesTestTask("T", 2002, referenced = "indirectTask"),
+      executionVariables = TemplateVariables(Seq(executionVariable("e", "5"))))
     // The parent workflow references sub1 twice; its variables must still be returned only once.
-    project.addTask[Workflow]("parentWf", workflowReferencing("sub1", "sub2", "sub1"),
+    project.addTask[Workflow]("parentWf", workflowReferencing("sub1", "sub2", "sub1", "plainTask"),
       executionVariables = TemplateVariables(Seq(executionVariable("a", "1"), executionVariable("shared", "parentValue"))))
 
     // Without the flag, only the workflow's own variables are returned.
     getVariables(projectName, Some("parentWf")).variables.map(_.name) shouldBe Seq("a", "shared")
 
-    // With the flag, sub-workflow variables follow the own ones. The parent workflow's variable wins
-    // over sub-workflow variables of the same name, matching the values that apply when it is executed.
+    // With the flag, the variables of all tasks that may take part in the execution follow the own ones
+    // in breadth-first order: workflow nodes, tasks referenced by their data and sub-workflows alike.
+    // The enclosing workflow's variable wins over sub-task variables of the same name, matching the
+    // values that apply when it is executed.
     val transitive = getVariables(projectName, Some("parentWf"), transitive = true)
     transitive.variables.map(v => (v.name, v.value)) shouldBe Seq(
-      ("a", "1"), ("shared", "parentValue"), ("b", "2"), ("c", "3"))
+      ("a", "1"), ("shared", "parentValue"), ("b", "2"), ("c", "3"), ("e", "5"), ("d", "4"), ("f", "6"))
   }
 
   it should "reject transitive variable retrieval without a task and tolerate non-workflow tasks" in {
@@ -761,9 +773,11 @@ class VariableTemplateApiTest extends AnyFlatSpec with IntegrationTestTrait with
   }
 }
 
-case class VariablesTestTask(title: String, year: Int) extends CustomTask {
+case class VariablesTestTask(title: String, year: Int, referenced: String = "") extends CustomTask {
   require(year >= 0, "year cannot be negative")
 
   override def inputPorts: InputPorts = InputPorts.NoInputPorts
   override def outputPort: Option[Port] = None
+  // Simulates a task that references another task from its data, like a transform task references rule blocks.
+  override def referencedTasks: Set[Identifier] = if (referenced.isEmpty) Set.empty else Set(Identifier(referenced))
 }
