@@ -46,8 +46,9 @@ private class ActivityExecution[T](activity: Activity[T],
   @volatile
   private var cancelTimestamp: Option[Instant] = None
 
-  // Locks the access to the status variable when needed
-  private object StatusLock
+  // Locks the access to the status variable when needed.
+  // Eager field, not an inner object: lazy object init locks the instance and deadlocks against runActivity().
+  private val StatusLock = new Object
 
   // Requests one additional run on behalf of the given user. Only ever accessed under StatusLock.
   private var pendingReRun: Option[UserContext] = None
@@ -414,8 +415,12 @@ private class ActivityExecution[T](activity: Activity[T],
   /* Cancellations still delivering their side effects (cancelExecution(), interrupts) outside StatusLock. Each run
      waits for the count to reach zero before its body starts, so a cancellation cannot leak into a later run — unless
      the cancellation targets that run itself. Control operations never wait on this, so they stay responsive while a
-     slow cancellation is delivering. */
-  private object CancelDeliveries {
+     slow cancellation is delivering.
+     Eager field, not an inner object: lazy object init inside cancel() (under StatusLock) locks the instance and
+     deadlocks against a worker picking up the queued run (runActivity() holds the instance, then takes StatusLock). */
+  private val CancelDeliveries = new CancelDeliveryTracker
+
+  private final class CancelDeliveryTracker {
     private val inFlight = new AtomicInteger(0)
 
     // Registers a delivery. Called under StatusLock, atomically with the Canceling status transition.
