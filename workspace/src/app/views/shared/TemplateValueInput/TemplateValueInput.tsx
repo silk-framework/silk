@@ -46,7 +46,7 @@ const TemplateValueInput = React.forwardRef(
         const [t] = useTranslation();
 
         React.useEffect(() => {
-            setShowVariableTemplateInput(!!valueStateRef.current.templateValueBeforeSwitch);
+            setShowVariableTemplateInput(valueStateRef.current.isTemplate);
         }, [valueStateRef.current]);
 
         const switchShowVariableTemplateInput = React.useCallback(() => {
@@ -60,9 +60,10 @@ const TemplateValueInput = React.forwardRef(
                     valueStateRef.current.templateValueBeforeSwitch =
                         valueStateRef.current.currentTemplateValue || valueStateRef.current.currentTemplateValue;
                 }
+                valueStateRef.current.isTemplate = becomesTemplate
                 setValidationError(undefined);
                 setTemplateInfoMessage(undefined);
-                return !old;
+                return becomesTemplate;
             });
         }, []);
 

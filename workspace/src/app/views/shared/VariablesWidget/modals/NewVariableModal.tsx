@@ -47,6 +47,8 @@ export interface ValueStateRef {
     currentTemplateValue: string;
     // The last template value before the switch happened from template -> input
     templateValueBeforeSwitch?: string;
+    // If the currently shown value is the template value
+    isTemplate: boolean
 }
 
 const NewVariableModal: React.FC<VariableModalProps> = ({
@@ -73,6 +75,7 @@ const NewVariableModal: React.FC<VariableModalProps> = ({
         // Input value needs to be undefined, so it gets set to the default value
         currentInputValue: targetVariable?.value ?? "",
         currentTemplateValue: targetVariable?.template ?? "",
+        isTemplate: targetVariable?.template != null
     });
 
     const clearErrors = React.useCallback(() => {
@@ -88,6 +91,7 @@ const NewVariableModal: React.FC<VariableModalProps> = ({
             templateValueBeforeSwitch: targetVariable?.template ?? "",
             currentTemplateValue: targetVariable?.template ?? "",
             currentInputValue: targetVariable?.value ?? "",
+            isTemplate: targetVariable?.template != null
         };
         clearErrors()
     }, [targetVariable]);
@@ -137,6 +141,7 @@ const NewVariableModal: React.FC<VariableModalProps> = ({
             templateValueBeforeSwitch: "",
             currentTemplateValue: "",
             currentInputValue: "",
+            isTemplate: false
         };
     }, []);
 
@@ -150,11 +155,13 @@ const NewVariableModal: React.FC<VariableModalProps> = ({
             setLoading(true);
             clearErrors()
 
+            const {currentInputValue, currentTemplateValue, isTemplate} = valueState.current
+
             const formPayload = {
                 name,
-                value: valueState.current.currentInputValue || null,
+                value: (isTemplate ? null : currentInputValue) || null,
                 description,
-                template: valueState.current.currentTemplateValue || null,
+                template: (isTemplate ? valueState.current.currentTemplateValue : null) || null,
                 isSensitive: false,
                 scope: taskId ? "execution" : "project",
             };
