@@ -9,9 +9,14 @@ The _input_ depends on the configuration:
 
 - By default, the query is executed against the connected input, which must be a _SPARQL endpoint_
   (i.e. an RDF dataset).
-- When **Use default RDF dataset** (`useDefaultDataset`) is enabled, the query is executed against the configured
-  default RDF dataset instead. If the template references input entity properties, the task accepts an entity
-  input and generates one query per entity; otherwise it needs no input at all.
+- When **Use fallback RDF dataset** (`useDefaultDataset`) is enabled, the query is executed against the
+  fallback RDF dataset (as configured in `dataset.defaultRdf`) instead. The input port then depends on what
+  the template references:
+    - If the template references input entity properties (`input.entity.*`), the task accepts an entity input
+      and generates one query per input entity.
+    - If it references only parameters of the input task (`input.config.*`), an input connection is still
+      required — it supplies the parameter values — but the query is rendered and executed only once.
+    - If it references neither, the task has no input port.
 
 The _output_ is an entity table built from the query's
 [SPARQL results](https://www.w3.org/TR/sparql11-results-json/#json-result-object): each projected variable becomes
@@ -37,12 +42,19 @@ Jinja uses `{{ ... }}` for value expressions and `{% ... %}` for control flow su
 
 The following variables are available:
 
-- `input.config.<param>`: a parameter of the connected input task.
-- `output.config.<param>`: a parameter of the connected output task.
-- `input.entity.<property>`: the value of the given property on the current input entity. Only populated when
-  the task is configured to receive input entities (see **Use default RDF dataset** above).
+- `input.config.<param>`: a parameter of the task connected to the input port. `<param>` is a parameter id
+  of that task's plugin, e.g. `graph` on a SPARQL dataset.
+- `output.config.<param>`: a parameter of the task the output is connected to.
+- `input.entity.<property>`: the value(s) of the given property of the current input entity. Only available
+  with **Use fallback RDF dataset** enabled, since only then the task receives input entities
+  (see _Input and output_ above).
 - `project.<key>`: a project-scoped template variable.
 - `global.<key>`: a global template variable.
+
+A single-valued entity property is inserted as a plain string. A multi-valued property can be iterated with
+`{% for value in input.entity.<property> %}`; inserting it directly concatenates all values without a
+separator. Referencing a variable that is not available at execution time — an unknown parameter name or an
+entity property without a value — fails the query generation with an error.
 
 Parameter, property and variable names must be valid Jinja identifiers (`[a-zA-Z_][a-zA-Z0-9_]*`);
 bracket-subscript access such as `input.entity["urn:prop:label"]` is not supported.
