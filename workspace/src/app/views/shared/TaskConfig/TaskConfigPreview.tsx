@@ -183,7 +183,7 @@ export function TaskConfigPreview({ taskData, taskDescription }: IProps) {
                                         intent={"info"}
                                         tooltipText={
                                             t("widget.TaskConfigWidget.templateValueInfo") +
-                                            `\n\n\`\`\`${templateValue}\`\`\``
+                                            `\n\n\`\`\`\n${templateValue}\n\`\`\``
                                         }
                                         tooltipProps={{ placement: "top", markdownEnabler: "```" }}
                                     />

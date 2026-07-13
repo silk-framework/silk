@@ -800,4 +800,28 @@ class TransformTaskApiTest extends TransformTaskApiTestBase {
       putJsonError.toString().toLowerCase must include(errorMustInclude)
     }
   }
+
+  "Update execution variables of the transform task only when the payload provides them" in {
+    // The full task JSON as a client would send it on a PUT (GET -> PUT roundtrip).
+    val taskJson = jsonGetRequest(s"$baseUrl/transform/tasks/$project/$task").as[JsObject]
+    def putTask(json: JsObject): Unit = {
+      checkResponse(client.url(s"$baseUrl/transform/tasks/$project/$task").put(json))
+    }
+    def storedVariables: Seq[(String, String)] =
+      workspaceProject(project).anyTask(task).executionVariables.variables.map(v => (v.name, v.value))
+    def executionVariable(value: String): JsObject =
+      Json.obj("name" -> "myVar", "value" -> value, "isSensitive" -> false, "scope" -> "execution")
+
+    // A PUT with the executionVariables key must set the variables
+    putTask(taskJson + ("executionVariables" -> Json.arr(executionVariable("v1"))))
+    storedVariables mustBe Seq(("myVar", "v1"))
+
+    // A PUT without the key must leave the stored variables unchanged
+    putTask(taskJson)
+    storedVariables mustBe Seq(("myVar", "v1"))
+
+    // A PUT with an explicit empty array must clear them
+    putTask(taskJson + ("executionVariables" -> Json.arr()))
+    storedVariables mustBe Seq.empty
+  }
 }

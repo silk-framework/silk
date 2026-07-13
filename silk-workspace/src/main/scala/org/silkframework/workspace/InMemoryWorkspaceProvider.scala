@@ -87,9 +87,9 @@ class InMemoryWorkspaceProvider() extends WorkspaceProvider {
     val inMemoryTask =
       task.data match {
         case plugin: AnyPlugin =>
-          InMemoryPluginTask(task.id, taskType, plugin.pluginSpec, plugin.parameters, task.metaData)
+          InMemoryPluginTask(task.id, taskType, plugin.pluginSpec, plugin.parameters, task.metaData, task.executionVariables)
         case dataset: GenericDatasetSpec =>
-          InMemoryDataset(task.id, taskType, dataset.plugin.pluginSpec, dataset.plugin.parameters, task.metaData, dataset.uriAttribute, dataset.readOnly)
+          InMemoryDataset(task.id, taskType, dataset.plugin.pluginSpec, dataset.plugin.parameters, task.metaData, task.executionVariables, dataset.uriAttribute, dataset.readOnly)
         case _ =>
           throw new IllegalArgumentException("Non-plugin tasks are not supported: " + task)
     }
@@ -197,13 +197,17 @@ class InMemoryWorkspaceProvider() extends WorkspaceProvider {
                                                                     taskType: Class[_],
                                                                     pluginDesc: PluginDescription[_],
                                                                     parameters: ParameterValues,
-                                                                    metaData: MetaData) extends InMemoryTask[T] {
+                                                                    metaData: MetaData,
+                                                                    executionVariables: TemplateVariables = TemplateVariables.empty) extends InMemoryTask[T] {
 
     def load(projectId: Identifier)(implicit pluginContext: PluginContext): LoadedTask[T] = {
       def loadInternal(parameterValues: ParameterValues, pluginContext: PluginContext): Task[T] = {
         val mergedParameters = parameters.merge(parameterValues)
+        // Seed the execution scope with the task's variables, so parameter templates referencing them resolve.
+        val taskContext = PluginContext(pluginContext.prefixes, pluginContext.resources, pluginContext.user,
+          pluginContext.projectId, pluginContext.templateVariables.withExecutionDefaults(executionVariables), pluginContext.taskResolver)
         TaskLoadingException.withTaskLoadingException(OriginalTaskData(pluginDesc.id, mergedParameters)) { params =>
-          LoadedTask.success[T](PlainTask(id, pluginDesc(params)(pluginContext).asInstanceOf[T], metaData)).task
+          LoadedTask.success[T](PlainTask(id, pluginDesc(params)(taskContext).asInstanceOf[T], metaData, executionVariables)).task
         }
       }
       LoadedTask.factory[T](loadInternal, parameters, pluginContext, Some(projectId), id, metaData.label, metaData.description)
@@ -215,12 +219,16 @@ class InMemoryWorkspaceProvider() extends WorkspaceProvider {
                                                                  pluginDesc: PluginDescription[_],
                                                                  parameters: ParameterValues,
                                                                  metaData: MetaData,
+                                                                 executionVariables: TemplateVariables = TemplateVariables.empty,
                                                                  uriAttribute: Option[Uri],
                                                                  readOnly: Boolean) extends InMemoryTask[T] {
     def load(projectId: Identifier)(implicit pluginContext: PluginContext): LoadedTask[T] = {
       def loadInternal(parameterValues: ParameterValues, pluginContext: PluginContext): Task[T] = {
-        LoadedTask.success[T](PlainTask[TaskSpec](id, DatasetSpec[Dataset](pluginDesc(parameterValues)(pluginContext).asInstanceOf[Dataset],
-          uriAttribute, readOnly), metaData).asInstanceOf[Task[T]])
+        // Seed the execution scope with the task's variables, so parameter templates referencing them resolve.
+        val taskContext = PluginContext(pluginContext.prefixes, pluginContext.resources, pluginContext.user,
+          pluginContext.projectId, pluginContext.templateVariables.withExecutionDefaults(executionVariables), pluginContext.taskResolver)
+        LoadedTask.success[T](PlainTask[TaskSpec](id, DatasetSpec[Dataset](pluginDesc(parameterValues)(taskContext).asInstanceOf[Dataset],
+          uriAttribute, readOnly), metaData, executionVariables).asInstanceOf[Task[T]])
       }
 
       LoadedTask.factory[T](loadInternal, parameters, pluginContext, Some(projectId), id, metaData.label, metaData.description)

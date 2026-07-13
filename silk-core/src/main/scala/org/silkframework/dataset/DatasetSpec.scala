@@ -26,6 +26,7 @@ import org.silkframework.runtime.iterator.CloseableIterator
 import org.silkframework.runtime.plugin.{ParameterValues, PluginContext}
 import org.silkframework.runtime.resource.Resource
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat, XmlSerialization}
+import org.silkframework.runtime.templating.TemplateVariables
 import org.silkframework.util.{Identifier, Uri}
 import org.silkframework.workspace.{OriginalTaskData, TaskLoadingException}
 
@@ -89,9 +90,19 @@ case class DatasetSpec[+DatasetType <: Dataset](plugin: DatasetType,
   }
 }
 
-case class DatasetTask(id: Identifier, data: DatasetSpec[Dataset], metaData: MetaData = MetaData.empty) extends Task[DatasetSpec[Dataset]] {
+case class DatasetTask(id: Identifier, data: DatasetSpec[Dataset], metaData: MetaData = MetaData.empty, executionVariables: TemplateVariables = TemplateVariables.empty) extends Task[DatasetSpec[Dataset]] {
 
   override def taskType: Class[_] = classOf[DatasetSpec[Dataset]]
+}
+
+object DatasetTask {
+
+  /**
+    * Creates a DatasetTask from a generic task, keeping all task properties.
+    */
+  def fromTask(task: Task[DatasetSpec[Dataset]]): DatasetTask = {
+    DatasetTask(task.id, task.data, task.metaData, task.executionVariables)
+  }
 }
 
 object DatasetSpec {
@@ -105,7 +116,7 @@ object DatasetSpec {
     override def getMessage: String = s"Cannot write to read-only dataset${datasetLabel.map(label => s": '$label'").getOrElse("")}. Disable read-only mode in the dataset config if this was not a mistake."
   }
 
-  implicit def toTransformTask(task: Task[DatasetSpec[Dataset]]): DatasetTask = DatasetTask(task.id, task.data, task.metaData)
+  implicit def toTransformTask(task: Task[DatasetSpec[Dataset]]): DatasetTask = DatasetTask.fromTask(task)
 
   def empty: DatasetSpec[EmptyDataset.type] = new DatasetSpec(EmptyDataset)
 

@@ -47,9 +47,9 @@ object GlobalTemplateVariablesConfig {
           .getOrElse(throw new InvalidConfigException(configNamespace + ".global." + key, objValue.origin(), "Parameter 'value' is missing."))
         val description = if(objValue.containsKey("description")) Some(objValue.toConfig.getString("description")) else None
         val isSensitive = if(objValue.containsKey("isSensitive")) objValue.toConfig.getBoolean("isSensitive") else false
-        TemplateVariable(key, value.unwrapped().toString, None, description, isSensitive = isSensitive, TemplateVariableScopes.global)
+        TemplateVariable(key, value.unwrapped().toString, None, description, isSensitive = isSensitive, VariableScope.global)
       case _ =>
-        TemplateVariable(key, value.unwrapped().toString, None, None, isSensitive = false, TemplateVariableScopes.global)
+        TemplateVariable(key, value.unwrapped().toString, None, None, isSensitive = false, VariableScope.global)
     }
   }
 
@@ -75,7 +75,7 @@ object GlobalTemplateVariables extends TemplateVariablesReader with Serializable
   /**
     * The available variable scopes.
     */
-  override def scopes: Set[Seq[String]] = Set(TemplateVariableScopes.global)
+  override def scopes: Set[VariableScope] = Set(VariableScope.global)
 
   /**
     * Retrieves all template variables.

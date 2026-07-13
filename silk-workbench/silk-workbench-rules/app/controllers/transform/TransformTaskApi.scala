@@ -118,7 +118,7 @@ class TransformTaskApi @Inject() () extends InjectedController with UserContextA
                       createOnly: Boolean): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     val project = getProject(projectName)
     implicit val prefixes: Prefixes = project.config.prefixes
-    implicit val readContext: ReadContext = ReadContext.fromProject(project)
+    implicit val readContext: ReadContext = taskUpdateReadContext(project, taskName)
 
     request.body match {
       case AnyContentAsFormUrlEncoded(v) =>
@@ -147,7 +147,7 @@ class TransformTaskApi @Inject() () extends InjectedController with UserContextA
       case _ =>
         catchExceptions {
           deserializeCompileTime[TransformTask]() { task =>
-            project.updateTask(task.id, task.data, Some(task.metaData))
+            project.updateTask(task.id, task.data, Some(task.metaData), executionVariablesIfProvided(task))
             Ok
           }
         }
