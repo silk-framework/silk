@@ -26,16 +26,18 @@ module.exports = {
     },
     transformIgnorePatterns: [
         "[/\\\\]node_modules[/\\\\](?!react-markdown|vfile|unist-util-stringify-position|@reduxjs/toolkit|).+\\.(js|jsx|ts|tsx|mjs|cjs)$",
-        "^.+\\.module\\.(css|sass|scss)$",
+        "^.+\\.module\\.css$",
     ],
     moduleNameMapper: {
         "tailwind\\.generated\\.css$": "identity-obj-proxy",
         "^react-native$": "react-native-web",
+        // shadcn convention inside gui-elements: `@/` resolves to gui-elements/src
+        "^@/(.*)$": "<rootDir>/../libs/gui-elements/src/$1",
         "^react-markdown$": "<rootDir>/../node_modules/react-markdown",
         "^@eccenca/gui-elements$": "<rootDir>/../node_modules/@eccenca/gui-elements",
         "^@eccenca/gui-elements/(.*)$": "<rootDir>/../node_modules/@eccenca/gui-elements/$1",
         "^@reduxjs/toolkit$": "<rootDir>/../node_modules/@reduxjs/toolkit/dist/cjs/redux-toolkit.development.cjs",
-        "^.+\\.module\\.(css|sass|scss)$": "identity-obj-proxy",
+        "^.+\\.module\\.css$": "identity-obj-proxy",
         "@ducks(.*)$": "<rootDir>/src/app/store/ducks/$1",
     },
     moduleFileExtensions: ["web.js", "js", "web.ts", "ts", "web.tsx", "tsx", "json", "web.jsx", "jsx", "node"],

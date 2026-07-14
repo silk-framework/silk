@@ -4,8 +4,6 @@ const fs = require("fs");
 const path = require("path");
 const webpack = require("webpack");
 const resolve = require("resolve");
-const sass = require("sass");
-const sassRenderSyncOptions = require("@eccenca/gui-elements/config/sassOptions");
 const PnpWebpackPlugin = require("pnp-webpack-plugin");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 const CaseSensitivePathsPlugin = require("case-sensitive-paths-webpack-plugin");
@@ -35,8 +33,6 @@ const useTypeScript = fs.existsSync(paths.appTsConfig);
 // style files regexes
 const cssRegex = /\.css$/;
 const cssModuleRegex = /\.module\.css$/;
-const sassRegex = /\.(scss|sass)$/;
-const sassModuleRegex = /\.module\.(scss|sass)$/;
 const appPackageJson = require(paths.appPackageJson);
 
 // This is the production and development configuration.
@@ -66,8 +62,8 @@ module.exports = function (webpackEnv, isWatch) {
     const buildPath = isWatch ? paths.watchDIBuild : paths.appDIBuild;
 
     // common function to get style loaders
-    const getStyleLoaders = (cssOptions, preProcessor) => {
-        const loaders = [
+    const getStyleLoaders = (cssOptions) => {
+        return [
             {
                 loader: MiniCssExtractPlugin.loader,
                 options: Object.assign({}, shouldUseRelativeAssetPaths ? { publicPath: "../../" } : undefined),
@@ -76,26 +72,7 @@ module.exports = function (webpackEnv, isWatch) {
                 loader: require.resolve("css-loader"),
                 options: cssOptions,
             },
-        ].filter(Boolean);
-        if (preProcessor) {
-            loaders.push(
-                {
-                    loader: require.resolve("resolve-url-loader"),
-                    options: {
-                        sourceMap: false,
-                    },
-                },
-                {
-                    loader: require.resolve(preProcessor),
-                    options: {
-                        implementation: sass,
-                        sassOptions: { ...sassRenderSyncOptions, silenceDeprecations: ["import", "legacy-js-api"] },
-                        sourceMap: false,
-                    },
-                },
-            );
-        }
-        return loaders;
+        ];
     };
 
     const config = {
@@ -199,8 +176,18 @@ module.exports = function (webpackEnv, isWatch) {
                         parser: safePostCssParser,
                         map: false,
                     },
-                    cssProcessorPluginOptions: {
-                        preset: ["default", { minifyFontValues: { removeQuotes: false } }],
+                    // Explicit processor: the plugin's cssnano-5 adapter ignores
+                    // `cssProcessorPluginOptions`, but the preset must be customized -
+                    // postcss-calc predates CSS Values 4 / relative color syntax and
+                    // hard-fails on expressions Tailwind v4 and modern CSS emit
+                    // (e.g. `calc(alpha * 0.2)` inside oklch(from ...)), so it is disabled.
+                    cssProcessor: {
+                        process: (css, processOptions) =>
+                            require("postcss")([
+                                require("cssnano")({
+                                    preset: ["default", { minifyFontValues: { removeQuotes: false }, calc: false }],
+                                }),
+                            ]).process(css, processOptions),
                     },
                 }),
             ],
@@ -241,6 +228,10 @@ module.exports = function (webpackEnv, isWatch) {
                 // https://www.smashingmagazine.com/2016/08/a-glimpse-into-the-future-with-react-native-for-web/
                 "react-native": "react-native-web",
                 "@ducks": paths.ducksFolder,
+                // shadcn convention inside gui-elements: `@/` is reserved for gui-elements/src
+                // (its source files are compiled by this build via deep imports).
+                // App code must not adopt `@/` for itself.
+                "@": path.resolve(__dirname, "../../libs/gui-elements/src"),
                 // FIXME: webpack4 does not use the `exports` field from `package.json`
                 // this was added in webpack5, see https://github.com/webpack/webpack/issues/9509
                 // a few packages use only `exports` (and not `modue` or `main`)
@@ -253,7 +244,9 @@ module.exports = function (webpackEnv, isWatch) {
                 "#minpath": "vfile/lib/minpath.browser.js",
                 "#minproc": "vfile/lib/minproc.browser.js",
                 "#minurl": "vfile/lib/minurl.browser.js",
-                "es-toolkit/compat": "es-toolkit/dist/compat/index.mjs",
+                // exact-match only: deep subpaths like `es-toolkit/compat/get` (recharts)
+                // resolve via the package's physical `compat/<fn>.js` wrapper files.
+                "es-toolkit/compat$": "es-toolkit/dist/compat/index.mjs",
                 // webpack4 resolves imports issued from `.mjs` files (e.g. the ai-sdk dist bundles)
                 // with mainFields ["browser", "main"], which lands on zod's CJS `.cjs` builds.
                 // No loader rule matches `.cjs`, so those files fall through to the file-loader
@@ -263,9 +256,23 @@ module.exports = function (webpackEnv, isWatch) {
                 "zod$": "zod/index.js",
                 "zod/v3$": "zod/v3/index.js",
                 "zod/v4$": "zod/v4/index.js",
+                // Same webpack4 issue for the Base UI family (pulled in by the shadcn
+                // Combobox via `@base-ui/react`). Its `.mjs` files import named exports
+                // from `reselect` (CJS `.cjs` main -> file-loader -> "not a function") and
+                // from `@floating-ui/*` (UMD main). Pin each to the build webpack4 can parse:
+                // reselect ships `reselect.legacy-esm.js` specifically for webpack4 (its
+                // `.mjs` is the modern build webpack4 still chokes on); floating-ui exposes
+                // rollup ESM `.esm.js`. A no-op for other issuers that resolve via "module".
+                "reselect$": "reselect/dist/reselect.legacy-esm.js",
+                "@floating-ui/react-dom$": "@floating-ui/react-dom/dist/floating-ui.react-dom.esm.js",
+                "@floating-ui/utils$": "@floating-ui/utils/dist/floating-ui.utils.esm.js",
+                "@floating-ui/utils/dom$": "@floating-ui/utils/dist/floating-ui.utils.dom.esm.js",
                 // `@vercel/oidc` (pulled in by ai -> @ai-sdk/gateway) is an `exports`-only
                 // package; point webpack4 at its browser build directly.
                 "@vercel/oidc$": "@vercel/oidc/dist/index-browser.js",
+                // `@shadcn/react` (vendored message-scroller) is `exports`-only too;
+                // map the package root at its dist folder so subpath requests resolve.
+                "@shadcn/react": path.resolve(__dirname, "../../node_modules/@shadcn/react/dist"),
                 // Two yarn roots hoist their own copies of the singleton/context-bearing
                 // libraries (silk/node_modules and the repo-root node_modules). Files under
                 // workspacePlugins/src walk up to the ROOT copies, i.e. a second React
@@ -415,40 +422,6 @@ module.exports = function (webpackEnv, isWatch) {
                                     getLocalIdent: getCSSModuleLocalIdent,
                                 },
                             }),
-                        },
-                        // Opt-in support for SASS (using .scss or .sass extensions).
-                        // By default we support SASS Modules with the
-                        // extensions .module.scss or .module.sass
-                        {
-                            test: sassRegex,
-                            exclude: sassModuleRegex,
-                            use: getStyleLoaders(
-                                {
-                                    importLoaders: 3,
-                                    sourceMap: false,
-                                },
-                                "sass-loader",
-                            ),
-                            // Don't consider CSS imports dead code even if the
-                            // containing package claims to have no side effects.
-                            // Remove this when webpack adds a warning or an error for this.
-                            // See https://github.com/webpack/webpack/issues/6571
-                            sideEffects: true,
-                        },
-                        // Adds support for CSS Modules, but using SASS
-                        // using the extension .module.scss or .module.sass
-                        {
-                            test: sassModuleRegex,
-                            use: getStyleLoaders(
-                                {
-                                    importLoaders: 3,
-                                    sourceMap: false,
-                                    modules: {
-                                        getLocalIdent: getCSSModuleLocalIdent,
-                                    },
-                                },
-                                "sass-loader",
-                            ),
                         },
                         {
                             test: /\.(woff(2)?|ttf|eot)(\?v=\d+\.\d+\.\d+)?$/,
