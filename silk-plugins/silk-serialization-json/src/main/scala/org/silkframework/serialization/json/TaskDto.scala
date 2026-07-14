@@ -6,8 +6,9 @@ import org.silkframework.config.{FixedNumberOfInputs, Task, TaskSpec}
 import org.silkframework.entity.EntitySchema
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.serialization.WriteContext
-import org.silkframework.runtime.validation.ValidationException
+import org.silkframework.runtime.validation.{BadUserInputException, ValidationException}
 import org.silkframework.serialization.json.MetaDataSerializers.{MetaDataPlain, metaDataFormat}
+import play.api.libs.functional.syntax._
 import play.api.libs.json._
 
 /**
@@ -80,15 +81,68 @@ case class TaskDto(@Schema(
 
 object TaskDto {
   implicit val taskDtoWrites: OWrites[TaskDto] = Json.writes[TaskDto]
+
+  /**
+    * Strict reads of the canonical task JSON envelope. Response-only fields ('project',
+    * top-level 'taskType', 'properties', 'relations', 'schemata') and unknown fields are
+    * ignored. An absent or empty id is represented as an empty string; the caller generates
+    * the id from the label in that case.
+    */
+  implicit val taskDtoReads: Reads[TaskDto] = (
+    (__ \ JsonSerializers.ID).readNullable[String] and
+    (__ \ JsonSerializers.METADATA).readNullable[MetaDataPlain] and
+    (__ \ JsonSerializers.TaskJsonFormat.EXECUTION_VARIABLES).readNullable[Seq[TemplateVariableJson]] and
+    (__ \ JsonSerializers.DATA).read[TaskDataDto]
+  ) { (id, metadata, executionVariables, data) =>
+    TaskDto(
+      id = id.map(_.trim).filter(_.nonEmpty).getOrElse(""),
+      project = None,
+      metadata = metadata,
+      executionVariables = executionVariables,
+      taskType = data.taskType,
+      data = Some(data),
+      properties = None,
+      relations = None,
+      schemata = None
+    )
+  }
+
+  /**
+    * Parses the canonical task JSON, mapping parse errors to [[BadUserInputException]]s with
+    * readable messages that include the JSON path.
+    */
+  def parseTaskJson(value: JsValue): TaskDto = {
+    value.validate[TaskDto] match {
+      case JsSuccess(dto, _) =>
+        dto
+      case JsError(errors) =>
+        val errorStrings = errors.map { case (path, validationErrors) =>
+          s"At '${path.toJsonString}': ${validationErrors.map(readableMessage).mkString(", ")}"
+        }
+        throw BadUserInputException("The task JSON is invalid. " + errorStrings.mkString("; "))
+    }
+  }
+
+  private def readableMessage(error: JsonValidationError): String = {
+    error.message match {
+      case "error.path.missing" => "attribute is missing"
+      case "error.expected.jsobject" => "attribute must be a JSON object"
+      case "error.expected.jsstring" => "attribute must be a string"
+      case "error.expected.jsarray" => "attribute must be an array"
+      case "error.expected.jsboolean" => "attribute must be a boolean"
+      case other => other
+    }
+  }
 }
 
 @Schema(description = "A task specification, i.e., the task type and its parameters.")
 case class TaskDataDto(@Schema(
-                         description = "The task type.",
+                         description = "The task type. Always present in responses. On requests to endpoints with a known task type, it may be omitted.",
                          requiredMode = RequiredMode.REQUIRED,
+                         implementation = classOf[String],
                          allowableValues = Array("Dataset", "Transform", "Linking", "Workflow", "CustomTask", "RuleBlock")
                        )
-                       taskType: String,
+                       taskType: Option[String],
                        @Schema(
                          description = "Whether this dataset is read-only. Only used by dataset tasks.",
                          requiredMode = RequiredMode.NOT_REQUIRED,
@@ -102,10 +156,12 @@ case class TaskDataDto(@Schema(
                        )
                        uriProperty: Option[String],
                        @Schema(
-                         description = "The plugin identifier, e.g., 'csv' for a CSV dataset.",
-                         requiredMode = RequiredMode.REQUIRED
+                         description = "The plugin identifier, e.g., 'csv' for a CSV dataset. Always present in responses. On requests to endpoints with a " +
+                           "known plugin type, it may be omitted.",
+                         requiredMode = RequiredMode.REQUIRED,
+                         implementation = classOf[String]
                        )
-                       `type`: String,
+                       `type`: Option[String],
                        @Schema(
                          description = "The plugin parameters. The available keys are defined by the plugin (see the plugin description endpoints). " +
                            "Each value is either a string (scalar parameter), a nested parameters object (nested plugin) or " +
@@ -142,30 +198,49 @@ object TaskDataDto {
         s"TaskDataDto needs to be extended to cover all fields emitted by the task type serializers.")
     }
     TaskDataDto(
-      taskType = (dataJson \ JsonSerializers.TASKTYPE).as[String],
+      taskType = Some((dataJson \ JsonSerializers.TASKTYPE).as[String]),
       readOnly = (dataJson \ READ_ONLY).asOpt[Boolean],
       uriProperty = (dataJson \ URI_PROPERTY).asOpt[String],
-      `type` = (dataJson \ JsonSerializers.TYPE).as[String],
+      `type` = Some((dataJson \ JsonSerializers.TYPE).as[String]),
       parameters = (dataJson \ JsonSerializers.PARAMETERS).as[JsObject],
       templates = (dataJson \ JsonSerializers.TEMPLATES).asOpt[JsObject]
     )
   }
 
   implicit val taskDataDtoWrites: OWrites[TaskDataDto] = OWrites { data =>
-    var json = Json.obj(JsonSerializers.TASKTYPE -> data.taskType)
+    var json = Json.obj()
+    for(taskType <- data.taskType) {
+      json += JsonSerializers.TASKTYPE -> JsString(taskType)
+    }
     for(readOnly <- data.readOnly) {
       json += READ_ONLY -> JsBoolean(readOnly)
     }
     for(uriProperty <- data.uriProperty) {
       json += URI_PROPERTY -> JsString(uriProperty)
     }
-    json += JsonSerializers.TYPE -> JsString(data.`type`)
+    for(pluginType <- data.`type`) {
+      json += JsonSerializers.TYPE -> JsString(pluginType)
+    }
     json += JsonSerializers.PARAMETERS -> data.parameters
     for(templates <- data.templates) {
       json += JsonSerializers.TEMPLATES -> templates
     }
     json
   }
+
+  /**
+    * Strict reads of the canonical task data. 'taskType' and 'type' stay optional here because
+    * endpoints with a known task/plugin type accept payloads without them; the generic task
+    * dispatch enforces 'taskType' itself.
+    */
+  implicit val taskDataDtoReads: Reads[TaskDataDto] = (
+    (__ \ JsonSerializers.TASKTYPE).readNullable[String] and
+    (__ \ READ_ONLY).readNullable[Boolean] and
+    (__ \ URI_PROPERTY).readNullable[String] and
+    (__ \ JsonSerializers.TYPE).readNullable[String] and
+    (__ \ JsonSerializers.PARAMETERS).read[JsObject] and
+    (__ \ JsonSerializers.TEMPLATES).readNullable[JsObject]
+  )(TaskDataDto.apply _)
 }
 
 @Schema(description = "A task parameter as a displayable key-value pair.")

@@ -21,10 +21,7 @@ object WorkflowSerializers {
     override def typeNames: Set[String] = Set(JsonSerializers.TASK_TYPE_WORKFLOW)
 
     override def read(value: JsValue)(implicit readContext: ReadContext): Workflow = {
-      val parameterObject = optionalValue(value, PARAMETERS) match {
-        case None => value
-        case _ => objectValue(value, PARAMETERS)
-      }
+      val parameterObject = objectValue(value, PARAMETERS)
       Workflow(
         operators =  WorkflowOperatorsParameter(
           arrayValueOption(parameterObject, OPERATORS).map(_.value.map(WorkflowOperatorJsonFormat.read).toSeq).getOrElse(Seq.empty)),

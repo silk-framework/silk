@@ -15,6 +15,7 @@ import org.silkframework.runtime.plugin.annotations.Plugin
 import org.silkframework.runtime.plugin.{ClassPluginDescription, PluginRegistry}
 import org.silkframework.runtime.serialization.{ReadContext, TestReadContext, TestWriteContext, WriteContext}
 import org.silkframework.runtime.templating.{SimpleSubstitutionTemplateEngine, TemplateVariable, TemplateVariables, VariableScope}
+import org.silkframework.runtime.validation.BadUserInputException
 import org.silkframework.serialization.json.JsonSerializers._
 import org.silkframework.util.{ConfigTestTrait, DPair, Identifier, Uri}
 import org.silkframework.workspace.activity.workflow.WorkflowTest
@@ -213,6 +214,61 @@ class TaskJsonFormatRegressionTest extends AnyFlatSpec with Matchers with Config
       )
     )
     checkFixture("rule-block", PlainTask[TaskSpec]("ruleBlockTask", spec, metaData))
+  }
+
+  it should "reject task JSON without a data object" in {
+    val json = Json.obj(ID -> "someTask", TASKTYPE -> TASK_TYPE_DATASET)
+    val ex = the[BadUserInputException] thrownBy {
+      JsonSerialization.fromJson[Task[TaskSpec]](json)
+    }
+    ex.getMessage should include("data")
+  }
+
+  it should "reject the legacy layout with the task data attached at the top level" in {
+    val pluginId = ClassPluginDescription(classOf[TaskJsonRegressionDataset]).id.toString
+    val json = Json.obj(
+      ID -> "legacyDataset",
+      TASKTYPE -> TASK_TYPE_DATASET,
+      TYPE -> pluginId,
+      PARAMETERS -> Json.obj("param1" -> "stringValue", "param2" -> "6.0")
+    )
+    val ex = the[BadUserInputException] thrownBy {
+      JsonSerialization.fromJson[Task[TaskSpec]](json)
+    }
+    ex.getMessage should include("data")
+  }
+
+  it should "reject the legacy transform layout without a parameters object" in {
+    val json = Json.obj(
+      ID -> "legacyTransform",
+      DATA -> Json.obj(
+        TASKTYPE -> TASK_TYPE_TRANSFORM,
+        "selection" -> Json.obj("inputId" -> "inputDataset", "typeUri" -> "", "restriction" -> ""),
+        "root" -> Json.obj(),
+        "outputs" -> Json.arr(),
+        "targetVocabularies" -> Json.arr()
+      )
+    )
+    val ex = the[BadUserInputException] thrownBy {
+      JsonSerialization.fromJson[Task[TaskSpec]](json)
+    }
+    ex.getMessage should include("parameters")
+  }
+
+  it should "reject the legacy workflow layout without a parameters object" in {
+    val json = Json.obj(
+      ID -> "legacyWorkflow",
+      DATA -> Json.obj(
+        TASKTYPE -> TASK_TYPE_WORKFLOW,
+        TYPE -> "workflow",
+        "operators" -> Json.arr(),
+        "datasets" -> Json.arr()
+      )
+    )
+    val ex = the[BadUserInputException] thrownBy {
+      JsonSerialization.fromJson[Task[TaskSpec]](json)
+    }
+    ex.getMessage should include("parameters")
   }
 
   /**
