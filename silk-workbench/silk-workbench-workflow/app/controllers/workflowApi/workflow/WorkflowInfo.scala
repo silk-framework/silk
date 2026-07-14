@@ -3,7 +3,7 @@ package controllers.workflowApi.workflow
 import org.silkframework.config.Task
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.workspace.Project
-import org.silkframework.workspace.activity.workflow.{AllReplaceableDatasets, Workflow}
+import org.silkframework.workspace.activity.workflow.{AllReplaceableDatasets, ClearDatasetOrderingCheck, Workflow}
 import play.api.libs.json.{Format, Json}
 
 import scala.util.control.NonFatal
@@ -44,6 +44,12 @@ object WorkflowInfo {
         }
         AllReplaceableDatasets(Seq.empty, Seq.empty)
     }
+    // Clear-dataset nodes whose order relative to writers of the same dataset is undefined.
+    val clearOrderWarnings = try {
+      ClearDatasetOrderingCheck.unorderedPairs(workflow.data, project).map(_.message)
+    } catch {
+      case NonFatal(_) => Seq.empty // An invalid workflow structure is reported elsewhere.
+    }
     WorkflowInfo(
       workflow.id,
       workflow.fullLabel,
@@ -51,7 +57,7 @@ object WorkflowInfo {
       project.config.metaData.formattedLabel(project.id, Int.MaxValue),
       variableDatasets.dataSources,
       variableDatasets.sinks,
-      warning.toSeq
+      warning.toSeq ++ clearOrderWarnings
     )
   }
 }

@@ -125,6 +125,8 @@ trait WorkflowExecutor[ExecType <: ExecutionType] extends Activity[WorkflowExecu
       parentExecutionVariablesHolder = parentExecutionVariablesHolder
     )
 
+    warnOnUnorderedClearDatasets(context)
+
     for (node <- workflowNodes) {
       val taskOpt: Option[Task[_ <: TaskSpec]] = node match {
         case datasetNode: WorkflowDataset =>
@@ -140,6 +142,20 @@ trait WorkflowExecutor[ExecType <: ExecutionType] extends Activity[WorkflowExecu
     }
 
     workflowRunContext
+  }
+
+  /** Puts a warning on this run's report when a 'Clear dataset' node has no defined execution order
+    * relative to other nodes writing to the same dataset (the clear may run before or after the writes). */
+  private def warnOnUnorderedClearDatasets(context: ActivityContext[WorkflowExecutionReport])
+                                          (implicit userContext: UserContext): Unit = {
+    try {
+      val unordered = ClearDatasetOrderingCheck.unorderedPairs(currentWorkflow, project)
+      if (unordered.nonEmpty) {
+        context.value.updateWith(_.copy(workflowWarnings = unordered.map(_.message)))
+      }
+    } catch {
+      case NonFatal(_) => // An invalid workflow structure fails later in the executor with a proper error.
+    }
   }
 
   /**
