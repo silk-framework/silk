@@ -30,13 +30,19 @@ object ClearDatasetOrderingCheck {
     * other nodes writing to the same dataset (the clear may run before or after the writes). */
   def warnInReport(workflow: Workflow, project: Project, context: ActivityContext[WorkflowExecutionReport])
                   (implicit userContext: UserContext): Unit = {
+    val unordered = unorderedPairsIfValid(workflow, project)
+    if (unordered.nonEmpty) {
+      context.value.updateWith(_.copy(workflowWarnings = unordered.map(_.message)))
+    }
+  }
+
+  /** [[unorderedPairs]], or empty for an invalid workflow structure (reported with a proper error elsewhere). */
+  def unorderedPairsIfValid(workflow: Workflow, project: Project)
+                           (implicit userContext: UserContext): Seq[UnorderedClearWrite] = {
     try {
-      val unordered = unorderedPairs(workflow, project)
-      if (unordered.nonEmpty) {
-        context.value.updateWith(_.copy(workflowWarnings = unordered.map(_.message)))
-      }
+      unorderedPairs(workflow, project)
     } catch {
-      case NonFatal(_) => // An invalid workflow structure fails later in the executor with a proper error.
+      case NonFatal(_) => Seq.empty
     }
   }
 
@@ -63,13 +69,10 @@ object ClearDatasetOrderingCheck {
                             (implicit userContext: UserContext): Seq[UnorderedClearWrite] = {
     // Forces the dependency graph, which validates the workflow structure (dangling references, cycles).
     val dag = workflow.workflowDependencyGraph
-    val dependencyNodeById: Map[String, WorkflowDependencyNode] =
-      (dag.endNodes ++ dag.endNodes.flatMap(_.precedingNodesRecursively)).map(n => n.nodeId -> n).toMap
+    val dependencyNodeById = workflow.dependencyNodesById
     val nodeById: Map[String, WorkflowNode] = workflow.nodes.map(n => n.nodeId -> n).toMap
-    val datasetNodes = workflow.nodes.collect { case ds: WorkflowDataset => ds }
-    // Tasks whose output produces real data (mirrors the filter of Workflow.outputDatasets).
-    val tasksWithDataOutput: Set[Identifier] = workflow.nodes.map(_.task).distinct
-      .filter(taskId => project.anyTaskOption(taskId).exists(_.outputPort.isDefined)).toSet
+    val datasetNodes = workflow.nodes.collect { case ds: WorkflowDataset => ds }.sortBy(_.nodeId)
+    val tasksWithDataOutput = workflow.tasksWithDataOutput(project)
 
     def isWriter(node: WorkflowDataset): Boolean = {
       node.inputs.flatten.exists { inputId =>
@@ -92,9 +95,9 @@ object ClearDatasetOrderingCheck {
     }
 
     for {
-      clearNode <- datasetNodes.sortBy(_.nodeId)
+      clearNode <- datasetNodes
       if clearNode.inputs.flatten.exists(clearOperatorNodeIds.contains)
-      writer <- datasetNodes.sortBy(_.nodeId)
+      writer <- datasetNodes
       if writer.task == clearNode.task && writer.nodeId != clearNode.nodeId && isWriter(writer)
       if !priorityDefinesOrder(clearNode, writer)
       clearDepNode = dependencyNodeById(clearNode.nodeId)

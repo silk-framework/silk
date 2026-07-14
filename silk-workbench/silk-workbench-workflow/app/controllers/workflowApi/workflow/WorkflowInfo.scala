@@ -45,11 +45,7 @@ object WorkflowInfo {
         AllReplaceableDatasets(Seq.empty, Seq.empty)
     }
     // Clear-dataset nodes whose order relative to writers of the same dataset is undefined.
-    val clearOrderWarnings = try {
-      ClearDatasetOrderingCheck.unorderedPairs(workflow.data, project).map(_.message)
-    } catch {
-      case NonFatal(_) => Seq.empty // An invalid workflow structure is reported elsewhere.
-    }
+    val clearOrderWarnings = ClearDatasetOrderingCheck.unorderedPairsIfValid(workflow.data, project).map(_.message)
     WorkflowInfo(
       workflow.id,
       workflow.fullLabel,
