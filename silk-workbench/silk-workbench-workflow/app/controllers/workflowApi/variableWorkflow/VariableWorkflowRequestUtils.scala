@@ -21,6 +21,7 @@ import play.api.mvc._
 import java.nio.file.{Files, Path, Paths}
 import scala.collection.mutable
 import scala.io.{Codec, Source}
+import scala.util.control.NonFatal
 
 /**
   * Helps to handle replaceable workflow requests.
@@ -67,6 +68,21 @@ object VariableWorkflowRequestUtils {
     BinaryFileDataset.mimeType // Binary file dataset
   )
 
+  /** Plugin ids of file-based dataset plugins whose serialization is binary and therefore cannot be
+    * carried in an inline text payload. There is no plugin-level binary/text metadata
+    * (ResourceBasedDataset.mimeType is instance-level and DatasetCharacteristics has no such flag),
+    * so this set is maintained by hand. Extend it when a new binary file-based dataset plugin is added. */
+  final val binaryDatasetPluginIds: Set[String] = Set("excel", BinaryFileDataset.id)
+
+  /** True if content of this media type is binary, i.e. cannot be transported as an inline string.
+    * Covers the plain binary mime types as well as the custom application/x-plugin-<id> form
+    * of binary file-based plugins (e.g. application/x-plugin-excel). */
+  def isBinaryMimeType(mimeType: String): Boolean = {
+    mimeType == xlsxMimeType ||
+      mimeType == BinaryFileDataset.mimeType ||
+      customMimeTypeRegex.findFirstMatchIn(mimeType).map(_.group(1)).exists(binaryDatasetPluginIds.contains)
+  }
+
   /** Returns the output dataset config for the variable workflow based on the ACCEPT header.
     * The second return value is the MIME type that should be returned in the response.
     *
@@ -103,7 +119,7 @@ object VariableWorkflowRequestUtils {
     }
   }
 
-  private def acceptedMimeTypeToSinkConfig(mimeType: String) = {
+  private def acceptedMimeTypeToSinkConfig(mimeType: String): (String, Map[String, String], String) = {
     mimeType match {
       case "application/json" => ("json", Map.empty, mimeType)
       case "application/xml" => ("xml", Map.empty, mimeType)
@@ -189,13 +205,25 @@ object VariableWorkflowRequestUtils {
                                           fileBasedPluginIds: Seq[String])
                                          (implicit request: Request[AnyContent], userContext: UserContext, project: Project): JsValue = {
     val multiPartFileContentType = request.body.asMultipartFormData.toSeq.flatMap(_.files.flatMap(_.contentType)).headOption
+    val datasetType = sourceDatasetTypeForMediaType(multiPartFileContentType.orElse(mediaType), fileBasedPluginIds)
+    datasetConfigJson(datasetId, datasetType, datasetParametersFromQuery(), INPUT_FILE_RESOURCE_NAME)
+  }
+
+  /** Maps the payload media type of a replaceable data source to the dataset plugin id that will read it.
+    * `None` and form-url-encoded map to "json" (the HTTP endpoint converts form parameters into a JSON object).
+    * Shared by the HTTP request variant and the parameter-driven variant so the mappings cannot drift.
+    *
+    * @throws UnsupportedMediaTypeException for unsupported media types.
+    */
+  private def sourceDatasetTypeForMediaType(mediaType: Option[String],
+                                            fileBasedPluginIds: Seq[String]): String = {
     val CustomMimeType = customMimeTypeRegex
-    val datasetType = multiPartFileContentType.orElse(mediaType) match {
-      case Some("application/json") | Some("application/x-www-form-urlencoded") | None =>
+    mediaType match {
+      case Some(`jsonMimeType`) | Some(`formUrlEncodedType`) | None =>
         "json"
-      case Some("application/xml") =>
+      case Some(`xmlMimeType`) =>
         "xml"
-      case Some("text/comma-separated-values") | Some("text/csv") =>
+      case Some(`csvMimeType`) | Some(`csvMimeTypeShort`) =>
         "csv"
       case Some(BinaryFileDataset.mimeType) =>
         BinaryFileDataset.id
@@ -207,7 +235,6 @@ object VariableWorkflowRequestUtils {
       case Some(unsupportedMediaType) =>
         throwUnsupportedMediaType(unsupportedMediaType)
     }
-    datasetConfigJson(datasetId, datasetType, datasetParametersFromQuery(), INPUT_FILE_RESOURCE_NAME)
   }
 
   private def datasetParametersFromQuery(parameterPrefix: String = QUERY_DATA_SOURCE_CONFIG_PREFIX)
@@ -322,6 +349,110 @@ object VariableWorkflowRequestUtils {
       )),
       variableDataSinkConfig = replaceableDataSinkConfigOpt.map(_.mimeType),
       executionVariables = executionVars
+    )
+  }
+
+  /** Like [[requestToWorkflowConfig]] but built from explicit parameters instead of a Play `Request`,
+    * so it can be driven programmatically (e.g. from the MCP server). The output type is chosen from
+    * `outputMimeType`. Reuses the same dataset-config builders so behaviour matches the HTTP endpoint.
+    *
+    * The input payload is passed inline: text for csv/xml/plugin types, parsed JSON for application/json.
+    * Because the payload travels as a string, binary input formats (e.g. xlsx, binary file) are rejected;
+    * form-url-encoded input is rejected as well, being a transport-level concept — callers send JSON instead.
+    * A missing payload is only valid for JSON input, where it reads as an empty entity list; for any other
+    * requested input format it is rejected.
+    *
+    * @param sourceDatasetParameters Parameter overrides for the replaceable input dataset,
+    *                                mirroring the HTTP endpoint's `config-dataSourceConfig-*` query parameters.
+    * @param sinkDatasetParameters   Parameter overrides for the replaceable output dataset,
+    *                                mirroring the HTTP endpoint's `config-dataSinkConfig-*` query parameters.
+    * @param autoConfig              Auto-configure the replaceable input dataset based on the input data
+    *                                (e.g. detect the CSV separator), mirroring `config-general-autoConfig`.
+    */
+  def workflowConfigFromParameters(workflowTask: Task[Workflow],
+                                   inputMimeType: Option[String],
+                                   inputPayload: Option[String],
+                                   outputMimeType: Option[String],
+                                   fileBasedPluginIds: Seq[String],
+                                   executionVariables: TemplateVariables = TemplateVariables.empty,
+                                   sourceDatasetParameters: Map[String, String] = Map.empty,
+                                   sinkDatasetParameters: Map[String, String] = Map.empty,
+                                   autoConfig: Boolean = false)
+                                  (implicit userContext: UserContext, project: Project): VariableWorkflowRequestConfig = {
+    val replaceableDatasets = workflowTask.data.allReplaceableDatasets(project)
+    if (replaceableDatasets.sinks.size > 1 || replaceableDatasets.dataSources.size > 1) {
+      throw BadUserInputException(s"Workflow task '${workflowTask.label()}' must contain at most one replaceable input " +
+        s"and one replaceable output dataset. Instead it has ${replaceableDatasets.dataSources.size} replaceable inputs and ${replaceableDatasets.sinks.size} replaceable outputs.")
+    }
+    // Fail fast instead of silently running the workflow against its configured inputs without the payload.
+    if (inputPayload.isDefined && replaceableDatasets.dataSources.isEmpty) {
+      throw BadUserInputException(s"Input data was provided, but workflow task '${workflowTask.label()}' has no " +
+        "replaceable input dataset to feed it into. Mark an input dataset as replaceable or omit the input data.")
+    }
+    // Form encoding is transport-level and has no meaning for the inline payload — callers send JSON instead.
+    if (inputMimeType.contains(formUrlEncodedType)) {
+      throwUnsupportedMediaType(formUrlEncodedType)
+    }
+    // The payload is passed as inline text, which cannot carry binary content without corrupting it.
+    for (mimeType <- inputMimeType if isBinaryMimeType(mimeType)) {
+      throw BadUserInputException(s"Binary input format '$mimeType' is not supported: the input payload is passed " +
+        "as inline text, which would corrupt binary content. Use a text format (e.g. application/json, " +
+        "application/xml, text/csv) or upload the file via the HTTP variable-workflow endpoint (multipart/form-data).")
+    }
+    // Both mime types are validated eagerly, so that unsupported formats are rejected even if the workflow
+    // has no replaceable dataset that would consume them.
+    val resolvedSourceType: String = sourceDatasetTypeForMediaType(inputMimeType, fileBasedPluginIds)
+    val CustomMimeType = customMimeTypeRegex
+    val outMime = outputMimeType.getOrElse(jsonMimeType)
+    val (sinkDatasetType, fixedSinkParameters, sinkMimeType) = outMime match {
+      // Custom file-based plugin output types, mirroring the HTTP endpoint (pluginIdFromAcceptedTypes).
+      case CustomMimeType(pluginId) if fileBasedPluginIds.contains(pluginId) => (pluginId, Map.empty[String, String], outMime)
+      case accepted if acceptedMimeType.contains(accepted) => acceptedMimeTypeToSinkConfig(accepted)
+      case unsupported =>
+        throw NotAcceptableException(s"Unsupported output type '$unsupported'. Supported: ${acceptedMimeType.mkString(", ")} " +
+          "and application/x-plugin-<PLUGIN_ID> for file-based plugins.")
+    }
+
+    val dataSourceConfig: Option[JsValue] = replaceableDatasets.dataSources.headOption.map { dataSourceId =>
+      datasetConfigJson(dataSourceId, resolvedSourceType, sourceDatasetParameters, INPUT_FILE_RESOURCE_NAME)
+    }
+    val resourceContent: Option[JsValue] = dataSourceConfig.map { _ =>
+      inputPayload match {
+        case Some(payload) if resolvedSourceType == "json" =>
+          // Fail as bad input instead of leaking Jackson's JsonParseException as an internal error.
+          try Json.parse(payload) catch { case NonFatal(ex) => throw BadUserInputException(s"Input data is not valid JSON: ${ex.getMessage}") }
+        case Some(payload) => JsString(payload)
+        case None if resolvedSourceType == "json" =>
+          // A replaceable JSON input without payload reads an empty entity list.
+          JsArray(Seq.empty)
+        case None =>
+          // The empty-input default is only well-defined for JSON; '[]' is not valid xml/csv/... content.
+          throw BadUserInputException(s"Input format '${inputMimeType.getOrElse("")}' was given, but no input data was provided. " +
+            "Provide the input payload, or omit the input format to feed an empty JSON input into the replaceable input dataset.")
+      }
+    }
+    val sinkConfigOpt: Option[VariableDataSinkConfig] = replaceableDatasets.sinks.headOption.map { datasetId =>
+      VariableDataSinkConfig(datasetConfigJson(datasetId, sinkDatasetType, fixedSinkParameters ++ sinkDatasetParameters, OUTPUT_FILE_RESOURCE_NAME), sinkMimeType)
+    }
+    val resources = resourceContent.map(c => Json.obj(INPUT_FILE_RESOURCE_NAME -> c)).getOrElse(Json.obj())
+    val workflowConfig = Json.obj(
+      "DataSources" -> dataSourceConfig.toSeq,
+      "Sinks" -> sinkConfigOpt.map(_.configJson).toSeq,
+      "Resources" -> resources,
+      "config" -> Json.obj("autoConfig" -> autoConfig)
+    )
+    val resourceManager = FileMapResourceManager(
+      Files.createTempDirectory(tempFileBaseDir, "variableWorkflowResourceManager"), Map.empty, removeFilesOnGc = true)
+    implicit val pluginContext: PluginContext = PluginContext.fromProject(project)
+    VariableWorkflowRequestConfig(
+      configParameters = ParameterValues(Map(
+        "configuration" -> ParameterStringValue(workflowConfig.toString()),
+        "configurationType" -> ParameterStringValue(jsonMimeType),
+        "optionalPrimaryResourceManager" -> ParameterObjectValue(OptionalPrimaryResourceManagerParameter(Some(resourceManager))),
+        WorkflowExecutorFactory.EXECUTION_VARIABLES_PARAMETER -> ParameterObjectValue(TemplateVariablesParameter(executionVariables))
+      )),
+      variableDataSinkConfig = sinkConfigOpt.map(_.mimeType),
+      executionVariables = executionVariables
     )
   }
 
