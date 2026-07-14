@@ -11,6 +11,20 @@
         "target": "es5",
         "paths": {
             "@ducks/*": ["./store/ducks/*"],
+            // shadcn convention inside gui-elements: `@/` is reserved for gui-elements/src
+            // (deep-imported source files carry `@/...` specifiers). Do not use in app code.
+            "@/*": ["../../../libs/gui-elements/src/*"],
+            // Resolve the package root to gui-elements src for typechecking: mixing the
+            // dist/types root import with deep src imports yields two nominally different
+            // copies of third-party types (e.g. @xyflow/react HandleProps).
+            "@eccenca/gui-elements": ["../../../libs/gui-elements/src/index.ts"],
+            "@eccenca/gui-elements/src/*": ["../../../libs/gui-elements/src/*"],
+            // exports-map-only package used by gui-elements' vendored message-scroller;
+            // classic "node" resolution cannot see subpath exports.
+            "@shadcn/react/*": [
+                "../../../node_modules/@shadcn/react/dist/*",
+                "../../../../node_modules/@shadcn/react/dist/*"
+            ],
             // Pin React type resolution to a single physical copy. With nested yarn workspace
             // roots (silk/ and the repo root) two copies of @types/react (+csstype) can exist;
             // app/gui-elements files resolve the silk copy while workspacePlugins resolves the

@@ -3,7 +3,9 @@ import "react-app-polyfill/stable";
 
 import React from "react";
 import { createRoot } from "react-dom/client";
+import { ThemeProvider } from "next-themes";
 import { Provider } from "react-redux";
+import { shadcn } from "@eccenca/gui-elements";
 import ErrorBoundary from "./app/ErrorBoundary";
 import registerGlobalListeners from "./global";
 import App from "./app/App";
@@ -12,7 +14,9 @@ import appRoutes, { IRouteProps } from "./app/appRoutes";
 import { createPlugin } from "./app/services/pluginApi";
 import configureStore from "./app/store/configureStore";
 
-import "./theme/index.scss";
+// compiled legacy styles: gui-elements bundle first, then the app sheets (former theme/index.scss)
+import "@eccenca/gui-elements/src/css/index.css";
+import "./theme/index.css";
 import "./theme/tailwind.generated.css";
 import mappingEditor from "./app/views/pages/MappingEditor/index";
 import "./language";
@@ -20,12 +24,13 @@ import "./language";
 // Restyling experiment: dark-mode dev flag. The shadcn token set ships full dark values
 // (`.dark` class variant), but legacy SCSS still hardcodes light colors, so this stays a
 // dev-only switch until the SCSS sunset. Usage: `window.__toggleDarkMode()` in the console.
-if (window.localStorage?.getItem("diapp-experimental-dark") === "true") {
-    document.documentElement.classList.add("dark");
-}
+// The `dark` class on <html> is owned by next-themes (`ThemeProvider attribute="class"`,
+// storage key `diapp-theme`) — the pristine shadcn `sonner.tsx` reads the theme through
+// next-themes' `useTheme`. The toggle flips the class in place and persists the choice.
+const legacyDarkFlag = window.localStorage?.getItem("diapp-experimental-dark") === "true";
 (window as any).__toggleDarkMode = (): boolean => {
     const dark = document.documentElement.classList.toggle("dark");
-    window.localStorage?.setItem("diapp-experimental-dark", String(dark));
+    window.localStorage?.setItem("diapp-theme", dark ? "dark" : "light");
     return dark;
 };
 
@@ -50,9 +55,20 @@ const bootstrapApp = (routes: IRouteProps[], externalRoutes) => {
     const root = createRoot(rootDIv);
     root.render(
         <ErrorBoundary>
-            <Provider store={store}>
-                <App routes={routes} externalRoutes={externalRoutes} />
-            </Provider>
+            <ThemeProvider
+                attribute="class"
+                storageKey="diapp-theme"
+                defaultTheme={legacyDarkFlag ? "dark" : "light"}
+                enableSystem={false}
+            >
+                {/* The pristine shadcn sidebar/tooltip primitives expect an app-level
+                    TooltipProvider (the radix-nova sidebar no longer mounts its own). */}
+                <shadcn.TooltipProvider>
+                    <Provider store={store}>
+                        <App routes={routes} externalRoutes={externalRoutes} />
+                    </Provider>
+                </shadcn.TooltipProvider>
+            </ThemeProvider>
         </ErrorBoundary>,
     );
 };
