@@ -10,6 +10,7 @@ import org.silkframework.rule.input.{PathInput, TransformInput}
 import org.silkframework.rule.plugins.distance.equality.EqualityMetric
 import org.silkframework.rule.plugins.transformer.value.ConstantTransformer
 import org.silkframework.rule.similarity.Comparison
+import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.annotations.Plugin
 import org.silkframework.runtime.plugin.{ClassPluginDescription, PluginRegistry}
 import org.silkframework.runtime.serialization.{ReadContext, TestReadContext, TestWriteContext, WriteContext}
@@ -106,22 +107,41 @@ class TaskJsonFormatRegressionTest extends AnyFlatSpec with Matchers with Config
     checkFixture("dataset-templates-execution-variables", JsonSerialization.fromJson[Task[TaskSpec]](seedJson))
   }
 
-  it should "stay stable for transform tasks" in {
-    val spec = TransformSpec(
-      selection = DatasetSelection("inputDataset", Uri("urn:type:Person")),
-      mappingRule = RootMappingRule(
-        rules = MappingRules(propertyRules = Seq(
-          DirectMapping(
-            id = "labelMapping",
-            sourcePath = UntypedPath("label"),
-            mappingTarget = MappingTarget("http://www.w3.org/2000/01/rdf-schema#label"),
-            metaData = MetaData(Some("Label mapping"))
-          )
-        )),
-        metaData = MetaData(Some("Root mapping"))
-      )
+  private def transformTask = PlainTask[TaskSpec]("transformTask", TransformSpec(
+    selection = DatasetSelection("inputDataset", Uri("urn:type:Person")),
+    mappingRule = RootMappingRule(
+      rules = MappingRules(propertyRules = Seq(
+        DirectMapping(
+          id = "labelMapping",
+          sourcePath = UntypedPath("label"),
+          mappingTarget = MappingTarget("http://www.w3.org/2000/01/rdf-schema#label"),
+          metaData = MetaData(Some("Label mapping"))
+        )
+      )),
+      metaData = MetaData(Some("Root mapping"))
     )
-    checkFixture("transform", PlainTask[TaskSpec]("transformTask", spec, metaData))
+  ), metaData)
+
+  it should "stay stable for transform tasks" in {
+    checkFixture("transform", transformTask)
+  }
+
+  it should "stay stable for tasks serialized with all format options enabled" in {
+    val format = new TaskJsonFormat[TaskSpec](
+      TaskFormatOptions(
+        includeMetaData = Some(true),
+        includeTaskData = Some(true),
+        includeTaskProperties = Some(true),
+        includeRelations = Some(true),
+        includeSchemata = Some(true)
+      ),
+      userContext = Some(UserContext.Empty)
+    )
+    implicit val context: WriteContext[JsValue] = TestWriteContext[JsValue]()
+    val actual = format.write(transformTask)
+    compareWithFixture("transform-all-options", actual)
+    // Canonical JSON must survive a read -> write round trip unchanged.
+    format.write(format.read(actual)) shouldBe actual
   }
 
   it should "stay stable for linking tasks" in {

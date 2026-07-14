@@ -176,8 +176,8 @@ object JsonSerializers {
 
   implicit object DatasetSpecJsonFormat extends JsonFormat[GenericDatasetSpec] {
 
-    private val URI_PROPERTY = "uriProperty"
-    private val READ_ONLY = "readOnly"
+    private val URI_PROPERTY = TaskDataDto.URI_PROPERTY
+    private val READ_ONLY = TaskDataDto.READ_ONLY
 
     private val pluginFormat = new PluginJsonFormat[Dataset]
 
@@ -1320,13 +1320,7 @@ object JsonSerializers {
                                                  userContext: Option[UserContext] = None,
                                                  dependentTaskFormatter: Option[String => JsValue] = None)(implicit dataFormat: JsonFormat[T]) extends JsonFormat[LoadedTask[T]] {
 
-    final val PROJECT = "project"
     final val EXECUTION_VARIABLES = TaskJsonFormat.EXECUTION_VARIABLES
-    final val PROPERTIES = "properties"
-    final val RELATIONS = "relations"
-    final val SCHEMATA = "schemata"
-    final val KEY = "key"
-    final val VALUE = "value"
 
 
     /**
@@ -1372,106 +1366,26 @@ object JsonSerializers {
     }
 
     /**
-      * Serializes a value.
+      * Serializes a value by building the [[TaskDto]] wire model.
       */
     override def write(task:  LoadedTask[T])(implicit writeContext: WriteContext[JsValue]): JsValue = {
-      // If any of the defaults is changed, the annotations on TaskFormatOptions need to be updated
-      var json = Json.obj(ID -> JsString(task.id.toString))
-
-      for(project <- writeContext.projectId) {
-        json += PROJECT -> JsString(project)
-      }
-
-      if(options.includeMetaData.getOrElse(true)) {
-        json += METADATA -> toJson(task.metaData)
-      }
-
-      if(task.executionVariables.variables.nonEmpty) {
-        json += EXECUTION_VARIABLES -> toJson(task.executionVariables)
-      }
-
+      // If any of the option defaults is changed, the annotations on TaskFormatOptions need to be updated
       // Serialize the task data with the execution scope seeded, so that parameter templates referencing execution variables evaluate.
       val dataContext = writeContext.copy(templateVariables = writeContext.templateVariables.withExecutionDefaults(task.executionVariables))
       val taskDataJson = toJson(task.data)(dataFormat, dataContext).as[JsObject]
-      // We always want to add the type at the top level regardless if the task data is serialized
-      for(taskType <- taskDataJson.value.get(TASKTYPE)) {
-        json += TASKTYPE -> taskType
-      }
-      if(options.includeTaskData.getOrElse(true)) {
-        json += DATA -> taskDataJson
-      }
-
-      if(options.includeTaskProperties.getOrElse(false)) {
-        json += PROPERTIES -> writeTaskProperties(task)
-      }
-      if(options.includeRelations.getOrElse(false) && userContext.isDefined) {
-        implicit val uc = userContext.get // User context is needed to fetch dependent tasks
-        json += RELATIONS -> writeTaskRelations(task, dependentTaskFormatter)
-      }
-      if(options.includeSchemata.getOrElse(false)) {
-        json += SCHEMATA -> writeTaskSchemata(task)
-      }
-
-      json
-    }
-
-    private def writeTaskProperties(task: Task[T])(implicit writeContext: WriteContext[JsValue]): JsValue = {
-      JsArray(
-        for((key, value) <- task.data.parameters.toStringMap.toSeq) yield {
-          Json.obj(KEY -> key, VALUE -> value)
-        }
+      val dto = TaskDto(
+        id = task.id.toString,
+        project = writeContext.projectId.map(_.toString),
+        metadata = if(options.includeMetaData.getOrElse(true)) Some(MetaDataPlain.fromMetaData(task.metaData)) else None,
+        executionVariables = if(task.executionVariables.variables.nonEmpty) Some(task.executionVariables.variables.map(TemplateVariableJson(_))) else None,
+        // The task type is always added at the top level, regardless of whether the task data is included
+        taskType = (taskDataJson \ TASKTYPE).asOpt[String],
+        data = if(options.includeTaskData.getOrElse(true)) Some(TaskDataDto.fromDataJson(taskDataJson)) else None,
+        properties = if(options.includeTaskProperties.getOrElse(false)) Some(TaskPropertyDto.fromTask(task)) else None,
+        relations = if(options.includeRelations.getOrElse(false) && userContext.isDefined) Some(TaskRelationsDto.fromTask(task, dependentTaskFormatter)(userContext.get)) else None,
+        schemata = if(options.includeSchemata.getOrElse(false)) Some(TaskSchemataDto.fromTask(task)) else None
       )
-    }
-
-
-
-    private def writeTaskRelations(task: Task[T],
-                                   dependentTaskFormatter: Option[String => JsValue])
-                                  (implicit writeContext: WriteContext[JsValue],
-                                   userContext: UserContext): JsValue = {
-      Json.obj(
-        "inputTasks" -> JsArray(task.data.inputTasks.toSeq.map(JsString(_))),
-        "outputTasks" -> JsArray(task.data.outputTasks.toSeq.map(JsString(_))),
-        "referencedTasks" -> JsArray(task.data.referencedTasks.toSeq.map(JsString(_))),
-        "dependentTasksDirect" -> {
-          val directTasks = task.findDependentTasks(recursive = false)
-          dependentTaskFormatter match {
-            case Some(jsonFormatter) =>
-              directTasks.map(t => jsonFormatter(t))
-            case None =>
-              directTasks.map(JsString(_)).toSeq
-          }
-        },
-        "dependentTasksAll" -> {
-          val allTasks = task.findDependentTasks(recursive = true)
-          dependentTaskFormatter match {
-            case Some(jsonFormatter) =>
-              allTasks.map(t => jsonFormatter(t))
-            case None =>
-              allTasks.map(JsString(_)).toSeq
-          }
-        }
-      )
-    }
-
-    private def writeTaskSchemata(task: Task[T])(implicit writeContext: WriteContext[JsValue]): JsValue = {
-      val inputSchemata = task.data.inputPorts match {
-        case FixedNumberOfInputs(ports) => JsArray(ports.flatMap(_.schemaOpt).map(entitySchema))
-        case _ => JsNull
-      }
-      val outputSchema = task.data.outputPort.flatMap(_.schemaOpt).map(entitySchema).getOrElse(JsNull)
-      Json.obj(
-        "input" -> inputSchemata,
-        "output" -> outputSchema
-      )
-    }
-
-    private def entitySchema(schema: EntitySchema) = {
-      // TODO: Why is only the Path written instead of the TypedPath, where is serialization read?
-      val paths = for(typedPath <- schema.typedPaths) yield JsString(typedPath.toUntypedPath.normalizedSerialization)
-      Json.obj(
-        "paths" -> JsArray(paths)
-      )
+      Json.toJson(dto)
     }
   }
 
