@@ -337,7 +337,7 @@ class MappingsTree extends React.Component {
 
         return (
             <GridColumn
-                carbonSizeConfig={{ md: 3, lg: 4 }}
+                sizeConfig={{ md: 3, lg: 4 }}
                 className="ecc-silk-mapping__treenav"
                 style={{ maxHeight: "100%", overflowY: "auto" }}
             >

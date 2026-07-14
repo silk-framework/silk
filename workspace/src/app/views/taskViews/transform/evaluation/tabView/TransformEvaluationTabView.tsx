@@ -112,7 +112,7 @@ const TransformEvaluationTabView: React.FC<TransformEvaluationTabViewProps> = ({
         <section className="diapp-transform-evaluation">
             <Grid>
                 <GridRow>
-                    <GridColumn carbonSizeConfig={{ md: 3, lg: 4 }}>
+                    <GridColumn sizeConfig={{ md: 3, lg: 4 }}>
                         <MappingsTree
                             currentRuleId={currentRuleId}
                             handleRuleNavigation={handleRuleNavigation}

@@ -2,7 +2,7 @@ import { IRuleNodeParameter } from "./RuleNodeParameter.typings";
 import React, { MouseEvent } from "react";
 import { CodeAutocompleteField, CodeEditorProps, Switch, TextField } from "@eccenca/gui-elements";
 import { requestResourcesList } from "@ducks/shared/requests";
-import { DefinitionsBlueprint as Intent } from "@eccenca/gui-elements/src/common/Intent";
+import { BasicDefinitions as Intent } from "@eccenca/gui-elements/src/common/Intent";
 import { useTranslation } from "react-i18next";
 import { RuleEditorContext } from "../../contexts/RuleEditorContext";
 import { RuleEditorNodeParameterValue, ruleEditorNodeParameterValue } from "../../model/RuleEditorModel.typings";
@@ -21,7 +21,7 @@ import { TextAreaWithCharacterWarnings } from "../../../extendedGuiElements/Text
 import { IPropertyAutocomplete } from "@ducks/common/typings";
 import { InputPathFunctions, PathInputOperator } from "./PathInputOperator";
 import { RULE_EDITOR_NOTIFICATION_INSTANCE, supportedCodeRuleParameterTypes } from "../../RuleEditor.typings";
-import { CodeAutocompleteFieldPartialAutoCompleteResult } from "@eccenca/gui-elements/src/components/AutoSuggestion/AutoSuggestion";
+import { CodeAutocompleteFieldPartialAutoCompleteResult } from "@eccenca/gui-elements/src/components/organisms/AutoSuggestion/AutoSuggestion";
 import { requestAutoCompleteTemplateString } from "../../../../../views/shared/modals/CreateArtefactModal/CreateArtefactModal.requests";
 
 interface RuleParameterInputProps {

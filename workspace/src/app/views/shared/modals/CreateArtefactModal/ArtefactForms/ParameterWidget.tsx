@@ -10,7 +10,7 @@ import {
     WhiteSpaceContainer,
 } from "@eccenca/gui-elements";
 import { IArtefactItemProperty, ITaskParameter } from "@ducks/common/typings";
-import { Intent } from "@eccenca/gui-elements/blueprint/constants";
+import { BasicDefinitions as Intent } from "@eccenca/gui-elements/src/common/Intent";
 import { InputMapper, RegisterForExternalChangesFn } from "./InputMapper";
 import { defaultValueAsJs } from "../../../../../utils/transformers";
 import { INPUT_TYPES } from "../../../../../constants";

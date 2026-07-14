@@ -16,12 +16,12 @@ import { IPropertyAutocomplete } from "@ducks/common/typings";
 import { sharedOp } from "@ducks/shared";
 import { useTranslation } from "react-i18next";
 import useErrorHandler from "../../../../../hooks/useErrorHandler";
-import { IntentBlueprint as Intent } from "@eccenca/gui-elements/src/common/Intent";
+import { BasicIntentTypes as Intent } from "@eccenca/gui-elements/src/common/Intent";
 import { parseErrorCauseMsg } from "../../../ApplicationNotifications/NotificationsMenu";
 import { CLASSPREFIX as eccguiprefix } from "@eccenca/gui-elements/src/configuration/constants";
 import { RegisterForExternalChangesFn } from "./InputMapper";
 import { CreateArtefactModalContext } from "../CreateArtefactModalContext";
-import { CodeAutocompleteFieldPartialAutoCompleteResult } from "@eccenca/gui-elements/src/components/AutoSuggestion/AutoSuggestion";
+import { CodeAutocompleteFieldPartialAutoCompleteResult } from "@eccenca/gui-elements/src/components/organisms/AutoSuggestion/AutoSuggestion";
 
 export interface ParameterAutoCompletionProps {
     /** ID of the parameter. */
