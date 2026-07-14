@@ -197,11 +197,27 @@
         "parameterDocLinkText": "See documentation"
     },
     "PrefixDialog": {
+        "addProjectPrefix": "Add project prefix",
+        "defaultPrefixesDescription": "These built-in prefixes are always available in DI and cannot be edited here.",
+        "defaultPrefixesEmpty": "No default prefixes are currently configured.",
+        "defaultPrefixesTitle": "Default prefixes",
         "deletePrefix": "Prefix '{{prefixName}}' will be deleted.",
+        "explorePrefixesEmpty": "No Explore prefixes are currently registered. Manage them in Explore's vocabulary module.",
+        "overriddenInProjectBadge": "Overridden in project",
+        "overrideWorkspacePrefix": "The workspace prefix '{{prefixName}}' will stay unchanged. This project prefix will override it only inside this project.",
+        "overrideWorkspacePrefixAction": "Override in project",
+        "overridesWorkspacePrefixBadge": "Overrides workspace prefix",
         "overwritePrefix": "Update existing prefix '{{prefixName}}'?",
         "prefixNameInvalid": "The prefix name you have entered is invalid",
         "prefixUriInvalid": "The entered URI prefix must be a valid URI / IRI.",
-        "prefixUriInvalidChar": "The entered URI prefix contains invalid characters. First invalid character at position {{idx}} is '{{char}}'."
+        "prefixUriInvalidChar": "The entered URI prefix contains invalid characters. First invalid character at position {{idx}} is '{{char}}'.",
+        "projectPrefixesDescription": "Project prefixes can be added, updated, and removed here. They are exported with the project.",
+        "projectPrefixesEmpty": "No project prefixes have been defined yet.",
+        "projectPrefixesTitle": "Project prefixes",
+        "showProjectOverride": "Show project override",
+        "workspacePrefixReadOnly": "Workspace prefix, read-only here",
+        "workspacePrefixesDescription": "These prefixes are provided by Explore. Manage them in the <exploreLink>vocabulary module</exploreLink>; they are read-only here.",
+        "workspacePrefixesTitle": "Explore prefixes"
     },
     "ProjectImportModal": {
         "importBtn": "Import project",
