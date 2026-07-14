@@ -1,9 +1,11 @@
 package org.silkframework.workspace.activity.workflow
 
 import org.silkframework.dataset.operations.ClearDatasetOperator
-import org.silkframework.runtime.activity.UserContext
+import org.silkframework.runtime.activity.{ActivityContext, UserContext}
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.Project
+
+import scala.util.control.NonFatal
 
 /**
   * Detects 'Clear dataset' nodes whose execution order relative to other nodes writing to the same
@@ -22,6 +24,20 @@ object ClearDatasetOrderingCheck {
       s"Dataset '$datasetLabel' is cleared by 'Clear dataset' node '$clearNodeId', but node '$writerNodeId' " +
         "writes to it without a defined execution order. The clear may run before or after the write. " +
         "Connect the two nodes with a dependency edge to make the order explicit."
+  }
+
+  /** Puts a warning on the run's report when a clear node has no defined execution order relative to
+    * other nodes writing to the same dataset (the clear may run before or after the writes). */
+  def warnInReport(workflow: Workflow, project: Project, context: ActivityContext[WorkflowExecutionReport])
+                  (implicit userContext: UserContext): Unit = {
+    try {
+      val unordered = unorderedPairs(workflow, project)
+      if (unordered.nonEmpty) {
+        context.value.updateWith(_.copy(workflowWarnings = unordered.map(_.message)))
+      }
+    } catch {
+      case NonFatal(_) => // An invalid workflow structure fails later in the executor with a proper error.
+    }
   }
 
   /**
