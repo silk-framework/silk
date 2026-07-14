@@ -10,8 +10,8 @@ import scala.util.control.NonFatal
 /**
   * Detects 'Clear dataset' nodes whose execution order relative to other nodes writing to the same
   * dataset is undefined. The physical clear happens when the dataset node fed by the clear operator
-  * executes; without an explicit order (a data/dependency path between the nodes, or an output
-  * priority on the clear node) the clear may run before or after the writes.
+  * executes; without an explicit order (a data/dependency path between the nodes, or output
+  * priorities that order the two end nodes) the clear may run before or after the writes.
   */
 object ClearDatasetOrderingCheck {
 
@@ -42,9 +42,9 @@ object ClearDatasetOrderingCheck {
 
   /**
     * Returns the clear/writer node pairs of the same dataset task with no user-defined execution order.
-    * A pair is not reported if a (transitive) path connects the two nodes in either direction, if the
-    * clear node carries an explicit output priority, or if clear and write happen on the same node
-    * (port order decides there). May throw if the workflow graph is invalid (e.g. cyclic).
+    * A pair is not reported if a (transitive) path connects the two nodes in either direction, if output
+    * priorities order the two end nodes, or if clear and write happen on the same node (port order
+    * decides there). May throw if the workflow graph is invalid (e.g. cyclic).
     */
   def unorderedPairs(workflow: Workflow, project: Project)
                     (implicit userContext: UserContext): Seq[UnorderedClearWrite] = {
@@ -79,12 +79,24 @@ object ClearDatasetOrderingCheck {
     def datasetLabel(taskId: Identifier): String =
       project.anyTaskOption(taskId).map(_.fullLabel).getOrElse(taskId.toString)
 
+    // Priorities only order DAG end nodes, and only if they distinguish the pair
+    // (exactly one set, or both set with different values).
+    val endNodeIds: Set[String] = dag.endNodes.map(_.nodeId).toSet
+    def priorityDefinesOrder(clearNode: WorkflowDataset, writer: WorkflowDataset): Boolean = {
+      endNodeIds.contains(clearNode.nodeId) && endNodeIds.contains(writer.nodeId) &&
+        ((clearNode.outputPriority, writer.outputPriority) match {
+          case (Some(clearPrio), Some(writerPrio)) => clearPrio != writerPrio
+          case (None, None) => false
+          case _ => true
+        })
+    }
+
     for {
       clearNode <- datasetNodes.sortBy(_.nodeId)
-      // An output priority on the clear node is a user-defined order and suppresses the warning.
-      if clearNode.inputs.flatten.exists(clearOperatorNodeIds.contains) && clearNode.outputPriority.isEmpty
+      if clearNode.inputs.flatten.exists(clearOperatorNodeIds.contains)
       writer <- datasetNodes.sortBy(_.nodeId)
       if writer.task == clearNode.task && writer.nodeId != clearNode.nodeId && isWriter(writer)
+      if !priorityDefinesOrder(clearNode, writer)
       clearDepNode = dependencyNodeById(clearNode.nodeId)
       writerDepNode = dependencyNodeById(writer.nodeId)
       // A path between the two nodes (either direction) is an explicit order.
