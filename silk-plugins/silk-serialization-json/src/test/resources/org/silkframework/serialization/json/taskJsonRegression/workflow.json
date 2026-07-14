@@ -1,0 +1,127 @@
+{
+  "id" : "workflowTask",
+  "metadata" : {
+    "label" : "Task label",
+    "description" : "Task description",
+    "modified" : "2026-07-14T10:30:00Z",
+    "created" : "2026-07-01T08:00:00Z"
+  },
+  "taskType" : "Workflow",
+  "data" : {
+    "taskType" : "Workflow",
+    "type" : "workflow",
+    "parameters" : {
+      "operators" : [ {
+        "posX" : 0,
+        "posY" : 0,
+        "task" : "transform1",
+        "inputs" : [ "dsA1" ],
+        "outputs" : [ "dsB1" ],
+        "errorOutputs" : [ ],
+        "id" : "transform1",
+        "outputPriority" : null,
+        "configInputs" : [ ],
+        "dependencyInputs" : [ ]
+      }, {
+        "posX" : 0,
+        "posY" : 0,
+        "task" : "transform2",
+        "inputs" : [ "dsA2" ],
+        "outputs" : [ "dsB1" ],
+        "errorOutputs" : [ ],
+        "id" : "transform2",
+        "outputPriority" : null,
+        "configInputs" : [ ],
+        "dependencyInputs" : [ ]
+      }, {
+        "posX" : 0,
+        "posY" : 0,
+        "task" : "linking",
+        "inputs" : [ "dsB1", "dsB1" ],
+        "outputs" : [ "links" ],
+        "errorOutputs" : [ ],
+        "id" : "linking",
+        "outputPriority" : null,
+        "configInputs" : [ ],
+        "dependencyInputs" : [ ]
+      }, {
+        "posX" : 0,
+        "posY" : 0,
+        "task" : "generateOutput",
+        "inputs" : [ "links" ],
+        "outputs" : [ "output" ],
+        "errorOutputs" : [ ],
+        "id" : "generateOutput",
+        "outputPriority" : null,
+        "configInputs" : [ ],
+        "dependencyInputs" : [ ]
+      } ],
+      "datasets" : [ {
+        "posX" : 0,
+        "posY" : 0,
+        "task" : "dsA1",
+        "inputs" : [ ],
+        "outputs" : [ "transform1" ],
+        "id" : "dsA1",
+        "outputPriority" : null,
+        "configInputs" : [ ],
+        "dependencyInputs" : [ ]
+      }, {
+        "posX" : 0,
+        "posY" : 0,
+        "task" : "dsA2",
+        "inputs" : [ ],
+        "outputs" : [ "transform2" ],
+        "id" : "dsA2",
+        "outputPriority" : null,
+        "configInputs" : [ ],
+        "dependencyInputs" : [ ]
+      }, {
+        "posX" : 0,
+        "posY" : 0,
+        "task" : "dsB",
+        "inputs" : [ "transform1" ],
+        "outputs" : [ "linking", "linking" ],
+        "id" : "dsB1",
+        "outputPriority" : null,
+        "configInputs" : [ ],
+        "dependencyInputs" : [ ]
+      }, {
+        "posX" : 0,
+        "posY" : 0,
+        "task" : "dsB",
+        "inputs" : [ "transform2" ],
+        "outputs" : [ ],
+        "id" : "dsB2",
+        "outputPriority" : null,
+        "configInputs" : [ ],
+        "dependencyInputs" : [ ]
+      }, {
+        "posX" : 0,
+        "posY" : 0,
+        "task" : "links",
+        "inputs" : [ "linking" ],
+        "outputs" : [ "generateOutput" ],
+        "id" : "links",
+        "outputPriority" : null,
+        "configInputs" : [ ],
+        "dependencyInputs" : [ ]
+      }, {
+        "posX" : 0,
+        "posY" : 0,
+        "task" : "output",
+        "inputs" : [ "generateOutput" ],
+        "outputs" : [ ],
+        "id" : "output",
+        "outputPriority" : null,
+        "configInputs" : [ ],
+        "dependencyInputs" : [ ]
+      } ],
+      "uiAnnotations" : {
+        "stickyNotes" : [ ]
+      },
+      "replaceableInputs" : [ "dsA1" ],
+      "replaceableOutputs" : [ "output" ]
+    }
+  }
+}

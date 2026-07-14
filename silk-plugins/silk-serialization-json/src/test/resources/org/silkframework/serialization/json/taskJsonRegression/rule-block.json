@@ -1,0 +1,71 @@
+{
+  "id" : "ruleBlockTask",
+  "metadata" : {
+    "label" : "Task label",
+    "description" : "Task description",
+    "modified" : "2026-07-14T10:30:00Z",
+    "created" : "2026-07-01T08:00:00Z"
+  },
+  "taskType" : "RuleBlock",
+  "data" : {
+    "taskType" : "RuleBlock",
+    "type" : "ruleBlock",
+    "parameters" : {
+      "ruleBlockModel" : {
+        "ports" : [ {
+          "id" : "firstInput",
+          "label" : "First input",
+          "description" : "Used in the main branch.",
+          "displayOrder" : 0,
+          "deprecated" : false
+        }, {
+          "id" : "secondInput",
+          "label" : "Second input",
+          "description" : "Deprecated fallback.",
+          "displayOrder" : 1,
+          "deprecated" : true
+        } ],
+        "inputExamples" : [ {
+          "id" : "example-1",
+          "inputs" : {
+            "firstInput" : [ "value 1", "value 2" ],
+            "secondInput" : [ "fallback" ]
+          },
+          "label" : "Primary example"
+        } ],
+        "operatorTree" : {
+          "type" : "transformInput",
+          "id" : "rootTransform",
+          "function" : "constant",
+          "inputs" : [ ],
+          "parameters" : {
+            "value" : "constant result"
+          }
+        },
+        "layout" : {
+          "nodePositions" : {
+            "rootTransform" : {
+              "x" : 10,
+              "y" : 20,
+              "width" : 120,
+              "height" : 60
+            }
+          }
+        },
+        "uiAnnotations" : {
+          "stickyNotes" : [ {
+            "id" : "sticky ID",
+            "content" : "content with\nnew\n\nlines",
+            "color" : "#fff",
+            "position" : {
+              "x" : 3,
+              "y" : 6,
+              "width" : 20,
+              "height" : 24
+            }
+          } ]
+        }
+      }
+    }
+  }
+}

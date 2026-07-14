@@ -1,0 +1,14 @@
+{
+  "id" : "minimalDatasetTask",
+  "metadata" : { },
+  "taskType" : "Dataset",
+  "data" : {
+    "taskType" : "Dataset",
+    "readOnly" : false,
+    "type" : "taskJsonRegressionDataset",
+    "parameters" : {
+      "param1" : "stringValue",
+      "param2" : "6.0"
+    }
+  }
+}
