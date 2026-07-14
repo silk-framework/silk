@@ -593,7 +593,16 @@ case class WorkflowDependencyNode(workflowNode: WorkflowNode) {
     * Returns all nodes that directly or indirectly precede this node.
     */
   def precedingNodesRecursively: Set[WorkflowDependencyNode] = {
-    precedingNodes ++ precedingNodes.flatMap(_.precedingNodesRecursively)
+    // Iterative with a visited set: naive recursion is exponential on fan-in/fan-out graphs.
+    val visited = mutable.Set[WorkflowDependencyNode]()
+    val toVisit = mutable.Queue.from(precedingNodes)
+    while (toVisit.nonEmpty) {
+      val node = toVisit.dequeue()
+      if (visited.add(node)) {
+        toVisit ++= node.precedingNodes
+      }
+    }
+    visited.toSet
   }
 
   /** The direct input nodes as [[WorkflowDependencyNode]] */
