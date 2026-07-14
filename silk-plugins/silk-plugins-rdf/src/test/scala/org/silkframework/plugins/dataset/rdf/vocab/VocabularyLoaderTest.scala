@@ -48,15 +48,15 @@ class VocabularyLoaderTest extends AnyFlatSpec with Matchers {
   }
 
   it should "load properties" in {
-    properties.size shouldBe 3
-    properties.head shouldBe
+    properties.size shouldBe 4
+    properties(1) shouldBe
       VocabularyProperty(
         info = GenericInfo(uri("hasDate"), Some("release date"), None, Seq.empty, Some("urn:example")),
         domain = Some(classMap(uri(MOVIE))),
         range = None,
         propertyType = DatatypePropertyType
       )
-    properties(1) shouldBe
+    properties(2) shouldBe
       VocabularyProperty(
         info = GenericInfo(uri("hasDirector"), Some("director5"), Some("Director of a movie"), Seq.empty, Some("urn:example")),
         domain = Some(classMap(uri(MOVIE))),
@@ -65,8 +65,18 @@ class VocabularyLoaderTest extends AnyFlatSpec with Matchers {
       )
   }
 
+  it should "load domain and range from schema.org domainIncludes/rangeIncludes" in {
+    properties.head shouldBe
+      VocabularyProperty(
+        info = GenericInfo(uri("hasActor"), Some("actor"), None, Seq.empty, Some("urn:example")),
+        domain = Some(classMap(uri(MOVIE))),
+        range = Some(classMap(uri(PERSON))),
+        propertyType = BasePropertyType
+      )
+  }
+
   it should "load all kinds of alternative labels and comments" in {
-    properties(2) shouldBe
+    properties(3) shouldBe
         VocabularyProperty(
           info = GenericInfo(uri("label"), Some("label"), Some("dc description"), Seq("dc identifier", "dc title", "dct identifier", "foaf name", "pref label", "skos notation"), Some("urn:example")),
           domain = Some(classMap(uri(MOVIE))),

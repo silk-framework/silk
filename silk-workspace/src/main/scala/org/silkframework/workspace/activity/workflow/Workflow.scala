@@ -279,6 +279,42 @@ case class Workflow(@Param(label = "Workflow operators", value = "Workflow opera
     }
   }
 
+  /**
+    * Returns all tasks that are directly referenced by the nodes of this workflow.
+    */
+  def subTasks(project: Project)
+              (implicit userContext: UserContext): Seq[ProjectTask[_ <: TaskSpec]] = {
+    for (node <- nodes;
+         task <- project.anyTaskOption(node.task)) yield {
+      task
+    }
+  }
+
+  /**
+    * Returns all tasks that may take part in an execution of this workflow, in breadth-first order:
+    * the tasks referenced by its nodes and, transitively, the tasks referenced by those tasks
+    * (e.g. the rule blocks and datasets used by a transform task), traversing into sub-workflows.
+    * Every task is returned at most once, even if referenced multiple times or on a cycle.
+    */
+  def subTasksRecursive(project: Project)
+                       (implicit userContext: UserContext): Seq[ProjectTask[_ <: TaskSpec]] = {
+    val visited = mutable.LinkedHashMap[Identifier, ProjectTask[_ <: TaskSpec]]()
+    var current = subTasks(project)
+    while (current.nonEmpty) {
+      val newTasks = current.filterNot(task => visited.contains(task.id))
+      newTasks.foreach(task => visited.put(task.id, task))
+      current = newTasks.flatMap { task =>
+        val directSubTasks = task.data match {
+          case workflow: Workflow => workflow.subTasks(project)
+          case _ => Seq.empty
+        }
+        val referencedTasks = task.data.referencedTasks.toSeq.flatMap(id => project.anyTaskOption(id))
+        directSubTasks ++ referencedTasks
+      }
+    }
+    visited.values.toSeq
+  }
+
   /** Returns node ids of workflow nodes that have inputs (data or dependency) from other nodes */
   def inputWorkflowNodeIds(): Seq[String] = {
     val outputs = nodes.flatMap(_.outputs).distinct

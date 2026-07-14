@@ -5,7 +5,7 @@ import org.silkframework.entity.paths.{TypedPath, UntypedPath}
 import org.silkframework.entity.{Entity, EntitySchema, ValueType}
 import org.silkframework.execution.local.EmptyEntityTable
 import org.silkframework.plugins.dataset.rdf.tasks.templating.SparqlLegacyTemplate._
-import org.silkframework.runtime.templating.{CompiledTemplate, TemplateMethodUsage, TemplateVariableName, TemplateVariableValue, TemplateVariablesReader}
+import org.silkframework.runtime.templating.{CompiledTemplate, TemplateMethodUsage, TemplateVariableName, TemplateVariableValue, TemplateVariablesReader, VariableScope}
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.Uri
 
@@ -53,8 +53,8 @@ class SparqlLegacyTemplate(template: CompiledTemplate) extends SparqlTemplate {
     val genericUri = "urn:generic:1"
     val entityVariables = entityVariableNames
     val assignments = entityVariables.map(_ -> genericUri).toMap
-    val inputPropVars = taskPropertyVariableNames(Seq(INPUT_PROPERTIES_VAR_NAME)).map(_ -> genericUri).toMap
-    val outputPropVars = taskPropertyVariableNames(Seq(OUTPUT_PROPERTIES_VAR_NAME)).map(_ -> genericUri).toMap
+    val inputPropVars = taskPropertyVariableNames(VariableScope(INPUT_PROPERTIES_VAR_NAME)).map(_ -> genericUri).toMap
+    val outputPropVars = taskPropertyVariableNames(VariableScope(OUTPUT_PROPERTIES_VAR_NAME)).map(_ -> genericUri).toMap
     val taskProps = TaskProperties(inputPropVars, outputPropVars)
     Try(renderOnce(assignments, taskProps)) match {
       case Failure(exception) =>
@@ -108,9 +108,9 @@ class SparqlLegacyTemplate(template: CompiledTemplate) extends SparqlTemplate {
       val rowVars = sparqlMethodUsages(ROW_VAR_NAME)
         .map(u => new TemplateVariableName(u.parameterValue))
       val inputPropVars = sparqlMethodUsages(INPUT_PROPERTIES_VAR_NAME)
-        .map(u => new TemplateVariableName(u.parameterValue, Seq(INPUT_PROPERTIES_VAR_NAME)))
+        .map(u => new TemplateVariableName(u.parameterValue, VariableScope(INPUT_PROPERTIES_VAR_NAME)))
       val outputPropVars = sparqlMethodUsages(OUTPUT_PROPERTIES_VAR_NAME)
-        .map(u => new TemplateVariableName(u.parameterValue, Seq(OUTPUT_PROPERTIES_VAR_NAME)))
+        .map(u => new TemplateVariableName(u.parameterValue, VariableScope(OUTPUT_PROPERTIES_VAR_NAME)))
       Some((rowVars ++ inputPropVars ++ outputPropVars).distinct)
     } else {
       template.variables
@@ -139,7 +139,7 @@ class SparqlLegacyTemplate(template: CompiledTemplate) extends SparqlTemplate {
   }
 
   /** Returns variable names for a specific scope (e.g. "inputProperties", "outputProperties"). */
-  private def taskPropertyVariableNames(scope: Seq[String]): Seq[String] = {
+  private def taskPropertyVariableNames(scope: VariableScope): Seq[String] = {
     sparqlVariables match {
       case Some(vars) =>
         vars.filter(_.scope == scope).map(_.name).distinct

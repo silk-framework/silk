@@ -9,7 +9,7 @@ import org.silkframework.plugins.dataset.rdf.tasks.templating.SparqlTemplate
 import org.silkframework.runtime.plugin.PluginContext
 import org.silkframework.runtime.plugin.annotations.{Action, Param, Plugin, PluginReference}
 import org.silkframework.runtime.plugin.types.SparqlCodeParameter
-import org.silkframework.runtime.templating.TemplateEngineAutocompletionProvider
+import org.silkframework.runtime.templating.{TemplateEngineAutocompletionProvider, VariableScope}
 
 import scala.util.Try
 
@@ -84,7 +84,7 @@ case class SparqlSelectCustomTask(
     Try(limit.toInt).filter(_ > 0).toOption
   }
 
-  private val defaultScopePath: Seq[String] = defaultScope.split('.').map(_.trim).filter(_.nonEmpty).toSeq
+  private val defaultScopePath: VariableScope = VariableScope(defaultScope.split('.').map(_.trim).filter(_.nonEmpty).toSeq)
 
   val queryTemplate: SparqlTemplate = SparqlTemplate.create(templatingMode, selectQuery.str, defaultScopePath)
   for(variables <- selectQuery.variables) {

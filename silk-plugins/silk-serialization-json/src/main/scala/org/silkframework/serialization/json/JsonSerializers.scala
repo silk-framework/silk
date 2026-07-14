@@ -14,6 +14,7 @@ import org.silkframework.rule.similarity._
 import org.silkframework.rule.util.UriPatternParser
 import org.silkframework.rule.vocab.{GenericInfo, Vocabulary, VocabularyClass, VocabularyProperty}
 import org.silkframework.runtime.activity.UserContext
+import org.silkframework.runtime.templating.{TemplateVariables, TemplateVariablesParameter}
 import org.silkframework.runtime.plugin._
 import org.silkframework.runtime.serialization.{ReadContext, Serialization, WriteContext}
 import org.silkframework.runtime.validation.{BadUserInputException, TaskValidationException, ValidationException}
@@ -111,6 +112,31 @@ object JsonSerializers {
       Json.obj(
         STICKY_NOTES -> JsArray(value.stickyNotes.map(toJson[StickyNote]))
       )
+    }
+  }
+
+  /**
+    * JSON format for [[TemplateVariablesParameter]].
+    */
+  implicit object TemplateVariablesParameterJsonFormat extends JsonFormat[TemplateVariablesParameter] {
+
+    override def read(value: JsValue)(implicit readContext: ReadContext): TemplateVariablesParameter = {
+      TemplateVariablesParameter(Json.fromJson[TemplateVariablesJson](value).get.convert)
+    }
+
+    override def write(value: TemplateVariablesParameter)(implicit writeContext: WriteContext[JsValue]): JsValue = {
+      Json.toJson(TemplateVariablesJson(value.variables))
+    }
+  }
+
+  implicit object TemplateVariablesJsonFormat extends JsonFormat[TemplateVariables] {
+
+    override def read(value: JsValue)(implicit readContext: ReadContext): TemplateVariables = {
+      TemplateVariables(value.as[JsArray].value.toSeq.map(Json.fromJson[TemplateVariableJson](_).get.convert))
+    }
+
+    override def write(value: TemplateVariables)(implicit writeContext: WriteContext[JsValue]): JsValue = {
+      JsArray(value.variables.map(v => Json.toJson(TemplateVariableJson(v))))
     }
   }
 
@@ -1295,6 +1321,7 @@ object JsonSerializers {
                                                  dependentTaskFormatter: Option[String => JsValue] = None)(implicit dataFormat: JsonFormat[T]) extends JsonFormat[LoadedTask[T]] {
 
     final val PROJECT = "project"
+    final val EXECUTION_VARIABLES = TaskJsonFormat.EXECUTION_VARIABLES
     final val PROPERTIES = "properties"
     final val RELATIONS = "relations"
     final val SCHEMATA = "schemata"
@@ -1321,10 +1348,19 @@ object JsonSerializers {
         taskId = id.toString
         // In older serializations the task data has been directly attached to this JSON object
         val dataJson = optionalValue(value, DATA).getOrElse(value)
+        // Read the execution variables first, so that parameter templates referencing them resolve against the task's own defaults.
+        // Variable templates are resolved like at save time. If the variables are absent, the context's
+        // execution scope is kept (seeded with the stored variables on task updates).
+        val providedVariables = optionalValue(value, EXECUTION_VARIABLES).map(fromJson[TemplateVariables])
+        val dataContext = providedVariables.fold(readContext) { v =>
+          val resolved = v.resolvedKeepingUnresolved(readContext.templateVariables.all.withoutSensitiveVariables())
+          readContext.copy(templateVariables = readContext.templateVariables.withExecutionDefaults(resolved))
+        }
         val task = PlainTask(
           id = id,
-          data = fromJson[T](dataJson),
-          metaData = metaData(value)
+          data = fromJson[T](dataJson)(dataFormat, dataContext),
+          metaData = metaData(value),
+          executionVariables = providedVariables.getOrElse(TemplateVariables.empty)
         )
 
         LoadedTask.success(task)
@@ -1350,8 +1386,13 @@ object JsonSerializers {
         json += METADATA -> toJson(task.metaData)
       }
 
-      // Serialize task data
-      val taskDataJson = toJson(task.data).as[JsObject]
+      if(task.executionVariables.variables.nonEmpty) {
+        json += EXECUTION_VARIABLES -> toJson(task.executionVariables)
+      }
+
+      // Serialize the task data with the execution scope seeded, so that parameter templates referencing execution variables evaluate.
+      val dataContext = writeContext.copy(templateVariables = writeContext.templateVariables.withExecutionDefaults(task.executionVariables))
+      val taskDataJson = toJson(task.data)(dataFormat, dataContext).as[JsObject]
       // We always want to add the type at the top level regardless if the task data is serialized
       for(taskType <- taskDataJson.value.get(TASKTYPE)) {
         json += TASKTYPE -> taskType
@@ -1434,6 +1475,12 @@ object JsonSerializers {
     }
   }
 
+  object TaskJsonFormat {
+
+    /** Name of the JSON attribute that holds the execution variables of a task. */
+    final val EXECUTION_VARIABLES = "executionVariables"
+  }
+
   /**
     * Task serialization options.
     * Should use a format that can be serialized with the Play Json library.
@@ -1482,7 +1529,7 @@ object JsonSerializers {
   implicit object DatasetTaskJsonFormat extends JsonFormat[DatasetTask] {
     override def read(value: JsValue)(implicit readContext: ReadContext): DatasetTask = {
       val task = new TaskJsonFormat[GenericDatasetSpec].read(value)
-      DatasetTask(task.id, task.data, task.metaData)
+      DatasetTask.fromTask(task)
     }
     override def write(value: DatasetTask)(implicit writeContext: WriteContext[JsValue]): JsValue = {
       new TaskJsonFormat[GenericDatasetSpec].write(value)
@@ -1495,7 +1542,7 @@ object JsonSerializers {
   implicit object TransformTaskJsonFormat extends JsonFormat[TransformTask] {
     override def read(value: JsValue)(implicit readContext: ReadContext): TransformTask = {
       val task = new TaskJsonFormat[TransformSpec].read(value)
-      TransformTask(task.id, task.data, task.metaData)
+      TransformTask.fromTask(task)
     }
     override def write(value: TransformTask)(implicit writeContext: WriteContext[JsValue]): JsValue = {
       new TaskJsonFormat[TransformSpec].write(value)
@@ -1508,7 +1555,7 @@ object JsonSerializers {
   implicit object RuleBlockTaskJsonFormat extends JsonFormat[RuleBlockTask] {
     override def read(value: JsValue)(implicit readContext: ReadContext): RuleBlockTask = {
       val task = new TaskJsonFormat[RuleBlockSpec].read(value)
-      RuleBlockTask(task.id, task.data, task.metaData)
+      RuleBlockTask(task.id, task.data, task.metaData, task.executionVariables)
     }
     override def write(value: RuleBlockTask)(implicit writeContext: WriteContext[JsValue]): JsValue = {
       new TaskJsonFormat[RuleBlockSpec].write(value)

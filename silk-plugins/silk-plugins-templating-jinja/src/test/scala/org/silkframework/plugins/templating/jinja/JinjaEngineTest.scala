@@ -2,7 +2,7 @@ package org.silkframework.plugins.templating.jinja
 
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
-import org.silkframework.runtime.templating.TemplateVariableValue
+import org.silkframework.runtime.templating.{TemplateVariableValue, VariableScope}
 import org.silkframework.runtime.templating.exceptions.UnboundVariablesException
 
 import java.io.{StringWriter, Writer}
@@ -27,6 +27,17 @@ class JinjaEngineTest extends AnyFlatSpec with Matchers {
         values = Map("firstName"-> Seq("John"))
       )
     ).missingVars.map(_.name) shouldBe Seq("name")
+  }
+
+  it should "let flat values take precedence over variable scopes of the same name" in {
+    val writer = new StringWriter()
+    val compiledTemplate = JinjaTemplateEngine().compile("{{project}}/{{execution.myVar}}")
+    compiledTemplate.evaluate(Seq(
+      new TemplateVariableValue("project", VariableScope.empty, Seq("flatValue")),
+      new TemplateVariableValue("title", VariableScope("project"), Seq("scopedValue")),
+      new TemplateVariableValue("myVar", VariableScope("execution"), Seq("execValue"))
+    ), writer)
+    writer.toString shouldBe "flatValue/execValue"
   }
 
   it should "support transformer plugins to be used as filters" in {
@@ -164,12 +175,23 @@ class JinjaEngineTest extends AnyFlatSpec with Matchers {
     lines(evaluateRaw(template, values)) shouldBe expectedLines
   }
 
+  it should "keep variable values literal instead of re-interpreting template syntax contained in them" in {
+    val values = Seq(
+      new TemplateVariableValue("test", VariableScope("execution"), Seq("test workflow")),
+      new TemplateVariableValue("c", VariableScope("execution"), Seq("Some complex {{execution.test}}")),
+      new TemplateVariableValue("stmt", VariableScope("execution"), Seq("{% set x = 'injected' %}{{x}}"))
+    )
+    val writer = new StringWriter()
+    JinjaTemplateEngine().compile("{{execution.c}}|{{execution.stmt}}").evaluate(values, writer)
+    writer.toString shouldBe "Some complex {{execution.test}}|{% set x = 'injected' %}{{x}}"
+  }
+
   private def evaluate(template: String, values: Map[String, Seq[String]]): String = {
     val writer = new StringWriter()
     val compileTemplate = JinjaTemplateEngine().compile(template)
     val templateValues =
       for((name, value) <- values.toSeq) yield {
-        new TemplateVariableValue(name, Seq.empty, value)
+        new TemplateVariableValue(name, VariableScope.empty, value)
       }
     compileTemplate.evaluate(templateValues, writer)
     writer.toString

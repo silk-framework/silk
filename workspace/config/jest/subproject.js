@@ -13,7 +13,7 @@ const nodeModulesDirCandidates = [
 
 const nodeModulesDir =
     nodeModulesDirCandidates.find((candidate) =>
-        fs.existsSync(path.join(candidate, "@eccenca", "gui-elements", "package.json"))
+        fs.existsSync(path.join(candidate, "@eccenca", "gui-elements", "package.json")),
     ) || path.resolve(rootDir, "../node_modules");
 
 const mapFromNodeModules = (packagePath) => path.join(nodeModulesDir, packagePath);

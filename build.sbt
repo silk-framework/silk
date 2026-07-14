@@ -86,17 +86,11 @@ lazy val commonSettings = Seq(
   dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-databind" % "2.22.0",
   dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-core" % "2.22.0",
 
-  // Fix CVE-2026-29062 and GHSA-72hv-8253-57qq in tools.jackson.core (Jackson 3.x, from Jena 5.x)
+  // Fix CVE-2026-29062 and GHSA-72hv-8253-57qq in tools.jackson.core (Jackson 3.x, from Jena)
   dependencyOverrides += "tools.jackson.core" % "jackson-core" % "3.2.0",
   dependencyOverrides += "tools.jackson.core" % "jackson-databind" % "3.2.0",
 
-  // Fix netty vulnerabilities: CVE-2026-42583 (netty-codec), CVE-2026-42579 (netty-codec-dns),
-  // CVE-2026-45674 and CVE-2026-47691 (netty-resolver-dns)
-  dependencyOverrides += "io.netty" % "netty-codec" % "4.2.15.Final",
-  dependencyOverrides += "io.netty" % "netty-codec-dns" % "4.2.15.Final",
-  dependencyOverrides += "io.netty" % "netty-resolver-dns" % "4.2.15.Final",
-
-  // Fix CVE-2026-43869 in Apache Thrift (transitive from Spark/Hive thriftserver)
+  // Fix CVE-2026-43869 in Apache Thrift (transitive from jena-arq)
   dependencyOverrides += "org.apache.thrift" % "libthrift" % "0.23.0",
 
   // Fix CVE-2026-5598 in Bouncy Castle (private key leakage via non-constant time comparisons)

@@ -5,7 +5,7 @@ import org.scalatest.matchers.must.Matchers
 import org.silkframework.entity.paths.UntypedPath
 import org.silkframework.entity.{Entity, EntitySchema}
 import org.silkframework.plugins.templating.jinja.JinjaTemplateEngine
-import org.silkframework.runtime.templating.TemplateVariableValue
+import org.silkframework.runtime.templating.{TemplateVariableValue, VariableScope}
 import org.silkframework.runtime.templating.exceptions.{TemplateEvaluationException, UnboundVariablesException}
 import org.silkframework.runtime.validation.ValidationException
 
@@ -38,8 +38,8 @@ class SparqlJinjaTemplateTest extends AnyFlatSpec with Matchers {
   }
 
   it should "render project and global template variables" in {
-    val project = new TemplateVariableValue("myVar", Seq("project"), Seq("projectValue"))
-    val global = new TemplateVariableValue("myVar", Seq("global"), Seq("globalValue"))
+    val project = new TemplateVariableValue("myVar", VariableScope("project"), Seq("projectValue"))
+    val global = new TemplateVariableValue("myVar", VariableScope("global"), Seq("globalValue"))
     val result = generate(
       """{{ project.myVar }} / {{ global.myVar }}""",
       templateVariables = Seq(project, global)
@@ -120,8 +120,8 @@ class SparqlJinjaTemplateTest extends AnyFlatSpec with Matchers {
 
     val taskProps = TaskProperties(inputTask = Map.empty, outputTask = Map("graph" -> "urn:graph:out"))
     val projectAndGlobal = Seq(
-      new TemplateVariableValue("labelProp", Seq("project"), Seq("urn:prop:label")),
-      new TemplateVariableValue("author", Seq("global"), Seq("Jane"))
+      new TemplateVariableValue("labelProp", VariableScope("project"), Seq("urn:prop:label")),
+      new TemplateVariableValue("author", VariableScope("global"), Seq("Jane"))
     )
 
     val rendered = template.generate(
@@ -162,7 +162,7 @@ class SparqlJinjaTemplateTest extends AnyFlatSpec with Matchers {
   it should "alias input.entity variables to bare references when defaultScope = input.entity" in {
     val template = SparqlTemplate.create(JinjaTemplateEngine.id,
       """<{{ subject }}> <urn:prop:1> "{{ input.entity.label }}"""",
-      defaultScope = Seq("input", "entity"))
+      defaultScope = VariableScope(Seq("input", "entity")))
     template.inputSchema.typedPaths.flatMap(_.property).map(_.propertyUri.uri).toSet mustBe Set("subject", "label")
     val rendered = template.generate(
       entity = Some(entityFromMap(Map("subject" -> "urn:entity:1", "label" -> "hello"))),
@@ -174,7 +174,7 @@ class SparqlJinjaTemplateTest extends AnyFlatSpec with Matchers {
   it should "alias variables from an arbitrary scope without polluting the input entity schema" in {
     val template = SparqlTemplate.create(JinjaTemplateEngine.id,
       """SELECT * WHERE { GRAPH <{{ graph }}> { ?s ?p ?o } }""",
-      defaultScope = Seq("input", "config"))
+      defaultScope = VariableScope(Seq("input", "config")))
     val rendered = template.generate(
       entity = None,
       taskProperties = TaskProperties(Map("graph" -> "urn:graph:1"), Map.empty)

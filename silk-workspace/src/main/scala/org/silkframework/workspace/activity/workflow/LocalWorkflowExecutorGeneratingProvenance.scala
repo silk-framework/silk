@@ -1,6 +1,7 @@
 package org.silkframework.workspace.activity.workflow
 
 import org.silkframework.dataset.Dataset
+import org.silkframework.runtime.templating.TemplateVariables
 import org.silkframework.workspace.ProjectTask
 
 /**
@@ -10,6 +11,7 @@ import org.silkframework.workspace.ProjectTask
 case class LocalWorkflowExecutorGeneratingProvenance(workflowTask: ProjectTask[Workflow],
                                                      replaceDataSources: Map[String, Dataset] = Map.empty,
                                                      replaceSinks: Map[String, Dataset] = Map.empty,
-                                                     useLocalInternalDatasets: Boolean = false) extends WorkflowExecutorGeneratingProvenance {
-  override def workflowExecutionActivity(): LocalWorkflowExecutor = LocalWorkflowExecutor(workflowTask, replaceDataSources, replaceSinks, useLocalInternalDatasets)
+                                                     useLocalInternalDatasets: Boolean = false,
+                                                     override val workflowVariables: TemplateVariables = TemplateVariables.empty) extends WorkflowExecutorGeneratingProvenance {
+  override def workflowExecutionActivity(): LocalWorkflowExecutor = LocalWorkflowExecutor(workflowTask, replaceDataSources, replaceSinks, useLocalInternalDatasets, workflowVariables = workflowVariables)
 }

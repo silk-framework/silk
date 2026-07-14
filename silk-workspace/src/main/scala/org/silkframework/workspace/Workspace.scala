@@ -109,7 +109,9 @@ class Workspace(val provider: WorkspaceProvider,
   /** Starts all auto-run workspace activities. */
   private def startWorkspaceActivities()(implicit userContext: UserContext): Unit = {
     for(activity <- activities if activity.autoRun) {
-      activity.control.start()
+      // On workspace reloads, the activity may still be running from a previous start.
+      // In that case, request one more run instead of failing, so it picks up the reloaded projects.
+      activity.control.startOrReRun()
     }
   }
 

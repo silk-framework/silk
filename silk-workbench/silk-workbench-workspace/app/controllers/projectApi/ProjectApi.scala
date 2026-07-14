@@ -180,7 +180,7 @@ class ProjectApi @Inject()(accessMonitor: WorkbenchAccessMonitor) extends Inject
       for (task <- project.allTasks) {
         val taskParameters = task.data.parameters(PluginContext.fromProject(project))
         val clonedTaskSpec = task.data.withParameters(taskParameters, dropExistingValues = true)(PluginContext.fromProject(clonedProject))
-        clonedProject.addAnyTask(task.id, clonedTaskSpec, task.metaData.asNewMetaData)
+        clonedProject.addAnyTask(task.id, clonedTaskSpec, task.metaData.asNewMetaData, task.executionVariables)
       }
       val projectLink = ItemType.itemDetailsPage(ItemType.project, projectId, projectId).path
       Created(Json.toJson(ItemCloneResponse(projectId, projectLink)))

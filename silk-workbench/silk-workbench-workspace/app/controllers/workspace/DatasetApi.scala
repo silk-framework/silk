@@ -24,7 +24,7 @@ import org.silkframework.entity.EntitySchema
 import org.silkframework.entity.paths.UntypedPath
 import org.silkframework.rule.TransformSpec
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.runtime.plugin.{ParameterValues, PluginContext, TaskResolver}
+import org.silkframework.runtime.plugin.{ParameterValues, PluginContext}
 import org.silkframework.runtime.serialization.ReadContext
 import org.silkframework.runtime.validation.{BadUserInputException, ConflictRequestException, RequestException}
 import org.silkframework.util.Uri
@@ -208,20 +208,21 @@ class LegacyDatasetApi @Inject() (implicit workspaceReact: WorkspaceReact) exten
                  autoConfigure: Boolean): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     val project = WorkspaceFactory().workspace.project(projectName)
     implicit val prefixes: Prefixes = project.config.prefixes
-    implicit val readContext: ReadContext = ReadContext(project.resources, project.config.prefixes, taskResolver = TaskResolver.empty)
+    implicit val readContext: ReadContext = taskUpdateReadContext(project, datasetName)
 
     try {
       deserializeCompileTime() { dataset: DatasetTask =>
+        val executionVariables = executionVariablesIfProvided(dataset)
         if (autoConfigure) {
           dataset.plugin match {
             case autoConfigurable: DatasetPluginAutoConfigurable[_] =>
-              project.updateTask(dataset.id, dataset.data.copy(plugin = autoConfigurable.autoConfigured))
+              project.updateTask(dataset.id, dataset.data.copy(plugin = autoConfigurable.autoConfigured), executionVariables = executionVariables)
               NoContent
             case _ =>
               ErrorResult(BadUserInputException("This dataset type does not support auto-configuration."))
           }
         } else {
-          project.updateTask(dataset.id, dataset.data, Some(dataset.metaData))
+          project.updateTask(dataset.id, dataset.data, Some(dataset.metaData), executionVariables)
           NoContent
         }
       }
