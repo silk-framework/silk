@@ -21,6 +21,7 @@ import { useTranslation } from "react-i18next";
 import { commonSel } from "@ducks/common";
 import useHotKey from "../../../../views/shared/HotKeyHandler/HotKeyHandler";
 import { requestDetailedProjectPrefixes } from "@ducks/workspace/requests";
+import useErrorHandler from "../../../../hooks/useErrorHandler";
 
 const VISIBLE_COUNT = 5;
 
@@ -62,6 +63,7 @@ export const ProjectNamespacePrefixManagementWidget = () => {
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [isOpen, setIsOpen] = useState<boolean>(false);
     const projectId = useSelector(commonSel.currentProjectIdSelector);
+    const { registerErrorI18N } = useErrorHandler();
     const visiblePrefixes = prefixLists.effectivePrefixes.slice(0, VISIBLE_COUNT);
 
     useHotKey({
@@ -93,11 +95,13 @@ export const ProjectNamespacePrefixManagementWidget = () => {
 
     useEffect(() => {
         if (projectId) {
-            void refreshPrefixes();
+            void refreshPrefixes().catch((error) => {
+                registerErrorI18N("widget.ConfigWidget.errors.prefixLoadFailure", error);
+            });
         } else {
             setPrefixLists(emptyPrefixLists);
         }
-    }, [projectId, refreshPrefixes]);
+    }, [projectId, refreshPrefixes, registerErrorI18N]);
 
     const getFullSizeOfList = () => prefixLists.effectivePrefixes.length;
     const handleOpen = () => setIsOpen(true);
@@ -129,9 +133,9 @@ export const ProjectNamespacePrefixManagementWidget = () => {
                                     </OverviewItemLine>
                                     <OverviewItemLine small>
                                         <span>
-                                            {visiblePrefixes.map((o, index) => (
-                                                <span key={index}>
-                                                    {o.prefixName}
+                                            {visiblePrefixes.map((prefix, index) => (
+                                                <span key={prefix.prefixName}>
+                                                    {prefix.prefixName}
                                                     {index < visiblePrefixes.length - 1
                                                         ? ", "
                                                         : moreCount > 0 && (
