@@ -17,6 +17,7 @@ PUT           /:projectId/accessControl                                controlle
 
 # Prefixes
 GET           /:projectId/prefixes                                     controllers.projectApi.ProjectApi.fetchProjectPrefixes(projectId: String)
+GET           /:projectId/prefixes/detailed                            controllers.projectApi.ProjectApi.fetchDetailedProjectPrefixes(projectId: String)
 PUT           /:projectId/prefixes/:prefixName                         controllers.projectApi.ProjectApi.addProjectPrefix(projectId: String, prefixName: String)
 DELETE        /:projectId/prefixes/:prefixName                         controllers.projectApi.ProjectApi.deleteProjectPrefix(projectId: String, prefixName: String)
 
