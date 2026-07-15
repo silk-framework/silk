@@ -125,6 +125,8 @@ trait WorkflowExecutor[ExecType <: ExecutionType] extends Activity[WorkflowExecu
       parentExecutionVariablesHolder = parentExecutionVariablesHolder
     )
 
+    ClearDatasetOrderingCheck.warnInReport(currentWorkflow, project, context)
+
     for (node <- workflowNodes) {
       val taskOpt: Option[Task[_ <: TaskSpec]] = node match {
         case datasetNode: WorkflowDataset =>

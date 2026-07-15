@@ -15,9 +15,13 @@ import org.silkframework.runtime.plugin._
 import org.silkframework.runtime.plugin.types.IntOptionParameter
 import org.silkframework.serialization.json.JsonHelpers
 import org.silkframework.util.{ConfigTestTrait, FileUtils, Uri}
+import org.silkframework.dataset.DatasetSpec
+import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
+import org.silkframework.dataset.operations.ClearDatasetOperator
+import org.silkframework.plugins.dataset.rdf.datasets.InMemoryDataset
 import org.silkframework.workspace.SingleProjectWorkspaceProviderTestTrait
 import org.silkframework.workspace.activity.WorkspaceActivity
-import org.silkframework.workspace.activity.workflow.{Workflow, WorkflowOperator, WorkflowOperatorsParameter}
+import org.silkframework.workspace.activity.workflow.{Workflow, WorkflowDataset, WorkflowDatasetsParameter, WorkflowOperator, WorkflowOperatorsParameter}
 import play.api.routing.Router
 
 import java.io.File
@@ -110,6 +114,28 @@ class WorkflowApiTest extends AnyFlatSpec with SingleProjectWorkspaceProviderTes
       BlockingTask.finishCounter must not be 0
     }
     executeWorkflowAsync(CREATED)
+  }
+
+  it should "warn in the workflow info when a clear node has no defined order against a writer of the same dataset" in {
+    project.addTask[GenericDatasetSpec]("clearInfoSource", DatasetSpec(InMemoryDataset()))
+    project.addTask[GenericDatasetSpec]("clearInfoTarget", DatasetSpec(InMemoryDataset()))
+    project.addTask("clearInfoOp", ClearDatasetOperator())
+    // Writer node and clear node of the same dataset; 'ordered' adds the dependency edge writer -> clear node.
+    def clearWriteWorkflow(ordered: Boolean) = Workflow(
+      operators = WorkflowOperatorsParameter(Seq(
+        WorkflowOperator(Seq.empty, "clearInfoOp", Seq("zClear"), Seq.empty, (0, 0), "clearInfoOp", None, Seq.empty, Seq.empty)
+      )),
+      datasets = WorkflowDatasetsParameter(Seq(
+        WorkflowDataset(Seq.empty, "clearInfoSource", Seq("aWriter"), (0, 0), "clearInfoSource", None, Seq.empty, Seq.empty),
+        WorkflowDataset(Seq(Some("clearInfoSource")), "clearInfoTarget", Seq.empty, (0, 0), "aWriter", None, Seq.empty,
+          if(ordered) Seq("zClear") else Seq.empty),
+        WorkflowDataset(Seq(Some("clearInfoOp")), "clearInfoTarget", Seq.empty, (0, 0), "zClear", None, Seq.empty, Seq.empty)
+      )))
+    project.addTask[Workflow]("clearInfoWf", clearWriteWorkflow(ordered = false))
+    val info = WorkflowInfo.fromWorkflow(project.task[Workflow]("clearInfoWf"), project)
+    info.warnings.exists(w => w.contains("zClear") && w.contains("aWriter") && w.contains("defined execution order")) mustBe true
+    project.updateTask[Workflow]("clearInfoWf", clearWriteWorkflow(ordered = true))
+    WorkflowInfo.fromWorkflow(project.task[Workflow]("clearInfoWf"), project).warnings mustBe empty
   }
 
   private def workflowNodePortConfig(min: Int,

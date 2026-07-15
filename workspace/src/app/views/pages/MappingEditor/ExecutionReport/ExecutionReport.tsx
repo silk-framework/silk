@@ -164,7 +164,7 @@ export const ExecutionReport = ({ executionReport, executionMetaData, trackRuleI
                 notificationState = "danger";
             } else if (executionReport.warnings.length > 0) {
                 messages = executionReport.warnings;
-                notificationState = "neutral";
+                notificationState = "warning";
             } else if (executionReport.isDone !== true) {
                 messages = [t("ExecutionReport.statusMessages.running", { label })];
                 notificationState = "neutral";

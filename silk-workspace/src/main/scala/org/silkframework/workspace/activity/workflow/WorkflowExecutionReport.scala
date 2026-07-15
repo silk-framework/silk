@@ -20,7 +20,8 @@ case class WorkflowExecutionReport(task: Task[TaskSpec],
                                    isDone: Boolean = false,
                                    override val error : Option[String] = None,
                                    authDiagnostics: Option[String] = None,
-                                   version: Int = 0) extends ExecutionReport {
+                                   version: Int = 0,
+                                   workflowWarnings: Seq[String] = Seq.empty) extends ExecutionReport {
 
   /**
     * Retrieves all current task reports.
@@ -111,11 +112,12 @@ case class WorkflowExecutionReport(task: Task[TaskSpec],
   }
 
   override def warnings: Seq[String] = {
-    if(taskReports.exists(_.report.warnings.nonEmpty)) {
+    val taskWarnings = if(taskReports.exists(_.report.warnings.nonEmpty)) {
       Seq("Some tasks generated warnings.")
     } else {
       Seq.empty
     }
+    workflowWarnings ++ taskWarnings
   }
 
   /** Also covers node reports that carry an error but no warnings. */
