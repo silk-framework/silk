@@ -16,15 +16,16 @@ import org.silkframework.plugins.dataset.BinaryFileDataset
 import org.silkframework.plugins.dataset.rdf.datasets.InMemoryDataset
 import org.silkframework.runtime.resource.FileResource
 import org.silkframework.runtime.templating.{TemplateVariable, TemplateVariables, VariableScope}
+import org.silkframework.runtime.plugin.ParameterStringValue
 import org.silkframework.runtime.validation.BadUserInputException
-import org.silkframework.workbench.utils.NotAcceptableException
+import org.silkframework.workbench.utils.{NotAcceptableException, UnsupportedMediaTypeException}
 import org.silkframework.serialization.json.JsonHelpers
 import org.silkframework.util.FileUtils
 import org.silkframework.workbench.workflow.WorkflowWithPayloadExecutor
 import org.silkframework.workspace.{Project, SingleProjectWorkspaceProviderTestTrait}
 import org.silkframework.workspace.activity.workflow.{Workflow, WorkflowDataset, WorkflowExecutorFactory, WorkflowOperator}
 import org.silkframework.workspace.annotation.UiAnnotations
-import play.api.libs.json.JsArray
+import play.api.libs.json.{JsArray, JsValue, Json}
 import play.api.libs.ws.WSResponse
 import play.api.mvc.MultipartFormData.FilePart
 import play.api.routing.Router
@@ -346,6 +347,145 @@ class SimpleVariableWorkflowApiTest extends AnyFlatSpec with BeforeAndAfterAll
     }
   }
 
+  it should "reject form-urlencoded input in the explicit-parameters config" in {
+    implicit val proj: Project = project
+    val workflowTask = proj.task[Workflow](inputOutputWorkflow)
+    an[UnsupportedMediaTypeException] must be thrownBy {
+      VariableWorkflowRequestUtils.workflowConfigFromParameters(
+        workflowTask,
+        inputMimeType = Some("application/x-www-form-urlencoded"),
+        inputPayload = Some("a=1&b=2"),
+        outputMimeType = Some(APPLICATION_JSON),
+        fileBasedPluginIds = Seq.empty
+      )
+    }
+  }
+
+  it should "reject a missing payload for non-JSON input formats in the explicit-parameters config" in {
+    implicit val proj: Project = project
+    val workflowTask = proj.task[Workflow](inputOutputWorkflow)
+    for (inputMimeType <- Seq(APPLICATION_XML, "text/csv", "text/comma-separated-values")) {
+      an[BadUserInputException] must be thrownBy {
+        VariableWorkflowRequestUtils.workflowConfigFromParameters(
+          workflowTask,
+          inputMimeType = Some(inputMimeType),
+          inputPayload = None,
+          outputMimeType = Some(APPLICATION_JSON),
+          fileBasedPluginIds = Seq.empty
+        )
+      }
+    }
+  }
+
+  it should "default to an empty JSON input when no payload is given in the explicit-parameters config" in {
+    implicit val proj: Project = project
+    val workflowTask = proj.task[Workflow](inputOutputWorkflow)
+    for (inputMimeType <- Seq(None, Some(APPLICATION_JSON))) {
+      val config = VariableWorkflowRequestUtils.workflowConfigFromParameters(
+        workflowTask,
+        inputMimeType = inputMimeType,
+        inputPayload = None,
+        outputMimeType = Some(APPLICATION_JSON),
+        fileBasedPluginIds = Seq.empty
+      )
+      (configurationJson(config) \ "Resources" \ VariableWorkflowRequestUtils.INPUT_FILE_RESOURCE_NAME).get mustBe JsArray(Seq.empty)
+      val output = workflowTask.activity[WorkflowWithPayloadExecutor].startBlockingAndGetValue(config.configParameters)
+      output.report mustBe defined
+      output.report.get.error mustBe empty
+    }
+  }
+
+  it should "apply source and sink dataset parameters in the explicit-parameters config" in {
+    implicit val proj: Project = project
+    val workflowTask = proj.task[Workflow](inputOutputWorkflow)
+    val csvPayload =
+      s"""$sourceProperty1;$sourceProperty2
+         |sourceVal1;sourceVal2
+         |""".stripMargin
+    val config = VariableWorkflowRequestUtils.workflowConfigFromParameters(
+      workflowTask,
+      inputMimeType = Some("text/csv"),
+      inputPayload = Some(csvPayload),
+      outputMimeType = Some("text/csv"),
+      fileBasedPluginIds = Seq.empty,
+      sourceDatasetParameters = Map("separator" -> ";"),
+      sinkDatasetParameters = Map("separator" -> "|")
+    )
+    val configJson = configurationJson(config)
+    ((configJson \ "DataSources")(0) \ "data" \ "parameters" \ "separator").as[String] mustBe ";"
+    ((configJson \ "Sinks")(0) \ "data" \ "parameters" \ "separator").as[String] mustBe "|"
+    val output = workflowTask.activity[WorkflowWithPayloadExecutor].startBlockingAndGetValue(config.configParameters)
+    val body = output.resourceManager.get(VariableWorkflowRequestUtils.OUTPUT_FILE_RESOURCE_NAME).loadAsString()
+    body must startWith (s"${targetProp(1)}|${targetProp(2)}")
+    body must include ("sourceVal1|sourceVal2")
+  }
+
+  it should "apply auto-config in the explicit-parameters config" in {
+    implicit val proj: Project = project
+    val workflowTask = proj.task[Workflow](inputOutputWorkflow)
+    // Without auto-config this ';'-separated payload would not be split into the two source properties.
+    val csvPayload =
+      s"""$sourceProperty1;$sourceProperty2
+         |sourceVal1;sourceVal2
+         |""".stripMargin
+    val config = VariableWorkflowRequestUtils.workflowConfigFromParameters(
+      workflowTask,
+      inputMimeType = Some("text/csv"),
+      inputPayload = Some(csvPayload),
+      outputMimeType = Some(APPLICATION_JSON),
+      fileBasedPluginIds = Seq.empty,
+      autoConfig = true
+    )
+    (configurationJson(config) \ "config" \ "autoConfig").as[Boolean] mustBe true
+    val output = workflowTask.activity[WorkflowWithPayloadExecutor].startBlockingAndGetValue(config.configParameters)
+    val body = output.resourceManager.get(VariableWorkflowRequestUtils.OUTPUT_FILE_RESOURCE_NAME).loadAsString()
+    body must include ("sourceVal1")
+    body must include ("sourceVal2")
+  }
+
+  it should "eagerly reject unsupported formats even without matching replaceable datasets" in {
+    implicit val proj: Project = project
+    // Unsupported input format on a workflow without a replaceable input dataset
+    an[UnsupportedMediaTypeException] must be thrownBy {
+      VariableWorkflowRequestUtils.workflowConfigFromParameters(
+        proj.task[Workflow](outputOnlyWorkflow),
+        inputMimeType = Some("application/msword"),
+        inputPayload = None,
+        outputMimeType = Some(APPLICATION_JSON),
+        fileBasedPluginIds = Seq.empty
+      )
+    }
+    // Unsupported output format on a workflow without a replaceable output dataset
+    an[NotAcceptableException] must be thrownBy {
+      VariableWorkflowRequestUtils.workflowConfigFromParameters(
+        proj.task[Workflow](inputOnlyWorkflow),
+        inputMimeType = Some(APPLICATION_JSON),
+        inputPayload = Some("""{"key": "value"}"""),
+        outputMimeType = Some("application/msword"),
+        fileBasedPluginIds = Seq.empty
+      )
+    }
+  }
+
+  it should "reject binary input formats in the explicit-parameters config" in {
+    implicit val proj: Project = project
+    val workflowTask = proj.task[Workflow](inputOutputWorkflow)
+    for ((inputMimeType, pluginIds) <- Seq(
+      BinaryFileDataset.mimeType -> Seq.empty[String],
+      "application/x-plugin-excel" -> Seq("excel")
+    )) {
+      an[BadUserInputException] must be thrownBy {
+        VariableWorkflowRequestUtils.workflowConfigFromParameters(
+          workflowTask,
+          inputMimeType = Some(inputMimeType),
+          inputPayload = Some("some payload"),
+          outputMimeType = Some(APPLICATION_JSON),
+          fileBasedPluginIds = pluginIds
+        )
+      }
+    }
+  }
+
   it should "allow re-configuring the data source and sink parameters" in {
     val csvPayLoad =
       s"""$sourceProperty1;$sourceProperty2
@@ -429,6 +569,11 @@ class SimpleVariableWorkflowApiTest extends AnyFlatSpec with BeforeAndAfterAll
     eventually {
       new File(FileUtils.tempDir).listFiles() mustBe empty
     }
+  }
+
+  // Parses the workflow configuration JSON out of a built config for assertions on its content.
+  private def configurationJson(config: VariableWorkflowRequestUtils.VariableWorkflowRequestConfig): JsValue = {
+    Json.parse(config.configParameters.values("configuration").asInstanceOf[ParameterStringValue].value)
   }
 
   // Checks if all input values exist in the workflow output

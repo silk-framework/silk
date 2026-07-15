@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from "react";
 import PrefixesDialog from "./PrefixesDialog";
-import { useDispatch, useSelector } from "react-redux";
-import { workspaceOp, workspaceSel } from "@ducks/workspace";
-import { IPrefixDefinition } from "@ducks/workspace/typings";
+import { useSelector } from "react-redux";
+import { IPrefixDefinition, IDetailedProjectPrefixes } from "@ducks/workspace/typings";
 import Loading from "../../../shared/Loading";
 
 import {
@@ -21,21 +20,51 @@ import {
 import { useTranslation } from "react-i18next";
 import { commonSel } from "@ducks/common";
 import useHotKey from "../../../../views/shared/HotKeyHandler/HotKeyHandler";
-import { AppDispatch } from "store/configureStore";
+import { requestDetailedProjectPrefixes } from "@ducks/workspace/requests";
+import useErrorHandler from "../../../../hooks/useErrorHandler";
 
 const VISIBLE_COUNT = 5;
 
+interface IPrefixLists {
+    effectivePrefixes: IPrefixDefinition[];
+    projectPrefixes: IPrefixDefinition[];
+    workspacePrefixes: IPrefixDefinition[];
+    defaultPrefixes: IPrefixDefinition[];
+}
+
+const emptyPrefixLists: IPrefixLists = {
+    effectivePrefixes: [],
+    projectPrefixes: [],
+    workspacePrefixes: [],
+    defaultPrefixes: [],
+};
+
+const formatPrefixMap = (prefixes: Record<string, string>): IPrefixDefinition[] =>
+    Object.keys(prefixes)
+        .sort((left, right) => left.localeCompare(right))
+        .map((prefixName) => ({
+            prefixName,
+            prefixUri: prefixes[prefixName],
+        }));
+
+const formatDetailedPrefixLists = (prefixes: IDetailedProjectPrefixes): IPrefixLists => ({
+    effectivePrefixes: formatPrefixMap({
+        ...prefixes.workspacePrefixes,
+        ...prefixes.projectPrefixes,
+    }),
+    projectPrefixes: formatPrefixMap(prefixes.projectPrefixes),
+    workspacePrefixes: formatPrefixMap(prefixes.workspacePrefixes),
+    defaultPrefixes: formatPrefixMap(prefixes.defaultPrefixes),
+});
+
 /** The project namespace prefix management widget that allows adding, updating and removing namespace prefixes. */
 export const ProjectNamespacePrefixManagementWidget = () => {
-    const dispatch = useDispatch<AppDispatch>();
-    const prefixList = useSelector(workspaceSel.prefixListSelector);
-
-    const [visiblePrefixes, setVisiblePrefixes] = useState<IPrefixDefinition[]>([]);
+    const [prefixLists, setPrefixLists] = useState<IPrefixLists>(emptyPrefixLists);
+    const [isLoading, setIsLoading] = useState<boolean>(false);
     const [isOpen, setIsOpen] = useState<boolean>(false);
-    const configurationWidget = useSelector(workspaceSel.widgetsSelector).configuration;
     const projectId = useSelector(commonSel.currentProjectIdSelector);
-
-    const { isLoading } = configurationWidget;
+    const { registerErrorI18N } = useErrorHandler();
+    const visiblePrefixes = prefixLists.effectivePrefixes.slice(0, VISIBLE_COUNT);
 
     useHotKey({
         hotkey: "e p",
@@ -45,18 +74,36 @@ export const ProjectNamespacePrefixManagementWidget = () => {
         },
     });
 
+    const refreshPrefixes = React.useCallback(async (): Promise<IDetailedProjectPrefixes> => {
+        if (!projectId) {
+            setPrefixLists(emptyPrefixLists);
+            return {
+                projectPrefixes: {},
+                workspacePrefixes: {},
+                defaultPrefixes: {},
+            };
+        }
+        setIsLoading(true);
+        try {
+            const { data } = await requestDetailedProjectPrefixes(projectId);
+            setPrefixLists(formatDetailedPrefixLists(data));
+            return data;
+        } finally {
+            setIsLoading(false);
+        }
+    }, [projectId]);
+
     useEffect(() => {
         if (projectId) {
-            dispatch(workspaceOp.fetchProjectPrefixesAsync(projectId));
+            void refreshPrefixes().catch((error) => {
+                registerErrorI18N("widget.ConfigWidget.errors.prefixLoadFailure", error);
+            });
+        } else {
+            setPrefixLists(emptyPrefixLists);
         }
-    }, [workspaceOp, projectId]);
+    }, [projectId, refreshPrefixes, registerErrorI18N]);
 
-    useEffect(() => {
-        const visibleItems = prefixList.slice(0, VISIBLE_COUNT);
-        setVisiblePrefixes(visibleItems);
-    }, [prefixList]);
-
-    const getFullSizeOfList = () => Object.keys(prefixList).length;
+    const getFullSizeOfList = () => prefixLists.effectivePrefixes.length;
     const handleOpen = () => setIsOpen(true);
     const handleClose = () => setIsOpen(false);
 
@@ -86,9 +133,9 @@ export const ProjectNamespacePrefixManagementWidget = () => {
                                     </OverviewItemLine>
                                     <OverviewItemLine small>
                                         <span>
-                                            {visiblePrefixes.map((o, index) => (
-                                                <span key={index}>
-                                                    {o.prefixName}
+                                            {visiblePrefixes.map((prefix, index) => (
+                                                <span key={prefix.prefixName}>
+                                                    {prefix.prefixName}
                                                     {index < visiblePrefixes.length - 1
                                                         ? ", "
                                                         : moreCount > 0 && (
@@ -118,7 +165,10 @@ export const ProjectNamespacePrefixManagementWidget = () => {
                                 projectId={projectId}
                                 isOpen={isOpen}
                                 onCloseModal={handleClose}
-                                existingPrefixes={new Set(prefixList.map((p) => p.prefixName))}
+                                projectPrefixes={prefixLists.projectPrefixes}
+                                workspacePrefixes={prefixLists.workspacePrefixes}
+                                defaultPrefixes={prefixLists.defaultPrefixes}
+                                refreshPrefixes={refreshPrefixes}
                             />
                         )}
                     </>

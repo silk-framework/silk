@@ -7,8 +7,6 @@ import { routerOp } from "@ducks/router";
 import { IFacetState } from "@ducks/workspace/typings";
 import { workspaceSel } from "@ducks/workspace";
 import qs, { ParsedQs } from "qs";
-import { fetchProjectPrefixesAsync } from "@ducks/workspace/widgets/configuration.thunk";
-import { widgetsSlice } from "@ducks/workspace/widgetsSlice";
 import { fetchWarningListAsync, fetchWarningMarkdownAsync } from "@ducks/workspace/widgets/warning.thunk";
 import { fetchResourcesListAsync } from "@ducks/workspace/widgets/file.thunk";
 import { commonSel } from "@ducks/common";
@@ -30,8 +28,6 @@ const {
 } = filtersSlice.actions;
 
 const { setLoading, setError, fetchList, fetchListSuccess } = previewSlice.actions;
-
-const { updateNewPrefix } = widgetsSlice.actions;
 
 const ARRAY_DELIMITER = "|";
 const VALUE_DELIMITER = ",";
@@ -289,12 +285,10 @@ const workspaceOps = {
     changeLimitOp,
     toggleFacetOp,
     setupFiltersFromQs,
-    fetchProjectPrefixesAsync,
     fetchWarningListAsync,
     fetchWarningMarkdownAsync,
     fetchResourcesListAsync,
     resetFilters,
-    updateNewPrefix,
     applyFilters,
     changeProjectsLimit,
 };
