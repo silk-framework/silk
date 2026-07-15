@@ -20,6 +20,8 @@ trait ExecutionReportUpdater {
   def context: ActivityContext[ExecutionReport]
   /** Short label for the operation, e.g., "read" or "write" */
   def operationLabel: Option[String] = None
+  /** The semantic type of the operation, see [[ExecutionReport.operationType]]. */
+  def operationType: OperationType = OperationType.Process
   /** What does the task emit, e.g. "entity", "query" etc. */
   def entityLabelSingle: String = "Entity"
   /** The plural of the entity label, e.g. "entities", "queries" */
@@ -154,7 +156,7 @@ trait ExecutionReportUpdater {
           Seq("Number of executions" -> numberOfExecutions.toString).filter(_ => numberOfExecutions > 0) ++
           additionalFields()
       val statusMessage = s"${if(entitiesEmitted == 1) entityLabelSingle.toLowerCase else entityLabelPlural.toLowerCase} $entityProcessVerb"
-      context.value.update(SimpleExecutionReport(task, stats, warnings, error, addEndTime, entitiesEmitted, operationLabel, statusMessage, allSampleOutputEntities()))
+      context.value.update(SimpleExecutionReport(task, stats, warnings, error, addEndTime, entitiesEmitted, operationLabel, statusMessage, allSampleOutputEntities(), operationType))
       lastUpdate = System.currentTimeMillis()
     }
   }

@@ -14,14 +14,17 @@ import org.silkframework.runtime.serialization._
 import org.silkframework.runtime.templating.{SimpleSubstitutionTemplateEngine, TemplateVariable, VariableScope, TemplateVariables}
 import org.silkframework.runtime.validation.TaskValidationException
 import org.silkframework.util.ConfigTestTrait
-import org.silkframework.serialization.json.ExecutionReportSerializers.WorkflowExecutionReportJsonFormat
+import org.silkframework.execution.report.{EntitySample, SampleEntities, SampleEntitiesSchema}
+import org.silkframework.rule.execution.TransformReport
+import org.silkframework.rule.execution.TransformReport.{RuleError, RuleResult}
+import org.silkframework.serialization.json.ExecutionReportSerializers.{ExecutionReportJsonFormat, TransformReportJsonFormat, WorkflowExecutionReportJsonFormat}
 import org.silkframework.serialization.json.JsonSerializers._
 import org.silkframework.serialization.json.WorkflowSerializers._
 import org.silkframework.serialization.json.{JsonFormat, JsonSerialization}
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.activity.transform.VocabularyCacheValue
 import org.silkframework.serialization.json.WorkflowSerializers._
-import org.silkframework.execution.SimpleExecutionReport
+import org.silkframework.execution.{OperationType, SimpleExecutionReport}
 import org.silkframework.workspace.activity.workflow.{WorkflowExecutionReport, WorkflowTaskReport, WorkflowTest}
 import org.silkframework.workspace.activity.workflow.WorkflowTest.{DS_A1, OUTPUT, testWorkflow}
 import org.silkframework.workspace.activity.workflow.WorkflowTest.{DS_A1, OUTPUT, testWorkflow}
@@ -157,6 +160,75 @@ class JsonSerializersTest  extends AnyFlatSpec with Matchers with ConfigTestTrai
     (leafNode \ "entityCount").as[Int] shouldBe 5
     // Compact form must not embed the full task definition at any level.
     Json.stringify(slimJson) should not include "\"parameters\""
+  }
+
+  it should "omit auth diagnostics in the slim form unless the run failed" in {
+    implicit val jsonWriteContext: WriteContext[play.api.libs.json.JsValue] =
+      TestWriteContext[play.api.libs.json.JsValue]()
+    val report = WorkflowExecutionReport(
+      task = PlainTask("workflowReport", WorkflowTest.testWorkflow),
+      authDiagnostics = Some("""{"scope":"read"}"""))
+
+    (WorkflowExecutionReportJsonFormat.write(report, slim = true) \ "authDiagnostics").toOption shouldBe empty
+    (WorkflowExecutionReportJsonFormat.write(report.copy(error = Some("auth failed")), slim = true) \ "authDiagnostics").isDefined shouldBe true
+    (WorkflowExecutionReportJsonFormat.write(report, slim = false) \ "authDiagnostics").isDefined shouldBe true
+  }
+
+  "TransformReport (slim)" should "keep rule error messages but drop their stacktraces" in {
+    implicit val jsonWriteContext: WriteContext[play.api.libs.json.JsValue] =
+      TestWriteContext[play.api.libs.json.JsValue]()
+    val report = TransformReport(
+      task = PlainTask("transform", TransformSpec.empty),
+      entityCount = 5,
+      entityErrorCount = 1,
+      ruleResults = Map(Identifier("rule1") -> RuleResult(
+        errorCount = 1,
+        sampleErrors = IndexedSeq(RuleError("urn:entity:1", Seq(Seq("some value")), "not a valid Integer", None, Some(new RuntimeException("boom")))))),
+      isDone = true)
+
+    val slimJson = Json.stringify(TransformReportJsonFormat.write(report, slim = true))
+    slimJson should include ("not a valid Integer")
+    slimJson should not include "stacktrace"
+    Json.stringify(TransformReportJsonFormat.write(report, slim = false)) should include ("stacktrace")
+  }
+
+  "ExecutionReport (slim)" should "drop output samples of dataset read reports and truncate long sample values" in {
+    implicit val jsonWriteContext: WriteContext[play.api.libs.json.JsValue] =
+      TestWriteContext[play.api.libs.json.JsValue]()
+    val longValue = "x" * 500
+    val samples = Seq(SampleEntities(Seq(EntitySample("urn:entity:1", IndexedSeq(Seq(longValue)))), SampleEntitiesSchema.empty))
+    def report(operationType: OperationType) = SimpleExecutionReport(
+      task = PlainTask("someTask", WorkflowTest.testWorkflow),
+      isDone = true, entityCount = 5, operation = Some(operationType.id),
+      sampleOutputEntities = samples, operationType = operationType)
+
+    // Samples of read reports echo the read source entities -> dropped in the slim form.
+    val readJson = ExecutionReportJsonFormat.serializeBasicValues(report(OperationType.Read), slim = true)
+    (readJson \ "outputEntitiesSample").toOption shouldBe empty
+    // Other reports keep their samples, but values are truncated to 200 chars + ellipsis.
+    val writeJson = ExecutionReportJsonFormat.serializeBasicValues(report(OperationType.Write), slim = true)
+    val slimValue = (((writeJson \ "outputEntitiesSample")(0) \ "entities")(0) \ "values")(0)(0).as[String]
+    slimValue shouldBe ("x" * 200 + "…")
+    // The verbose report keeps the full value.
+    val fullJson = ExecutionReportJsonFormat.serializeBasicValues(report(OperationType.Write))
+    ((((fullJson \ "outputEntitiesSample")(0) \ "entities")(0) \ "values")(0)(0)).as[String] shouldBe longValue
+  }
+
+  it should "round-trip the operation type through the verbose format" in {
+    implicit val jsonWriteContext: WriteContext[play.api.libs.json.JsValue] =
+      TestWriteContext[play.api.libs.json.JsValue]()
+    def report(operationType: OperationType) = SimpleExecutionReport(
+      task = PlainTask("someTask", WorkflowTest.testWorkflow),
+      isDone = true, entityCount = 5, operation = Some(operationType.id), operationType = operationType)
+
+    for(operationType <- OperationType.values) {
+      val fullJson = ExecutionReportJsonFormat.write(report(operationType))
+      (fullJson \ "operationType").as[String] shouldBe operationType.id
+      ExecutionReportJsonFormat.read(fullJson).operationType shouldBe operationType
+    }
+    // Reports without the field (e.g. persisted before its introduction) default to Process.
+    val legacyJson = ExecutionReportJsonFormat.write(report(OperationType.Read)) - "operationType"
+    ExecutionReportJsonFormat.read(legacyJson).operationType shouldBe OperationType.Process
   }
 
   "TaskJsonFormat" should "resolve parameter templates against the task's own execution variables" in {
