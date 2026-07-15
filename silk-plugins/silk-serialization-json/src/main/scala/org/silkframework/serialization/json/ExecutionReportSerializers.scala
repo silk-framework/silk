@@ -75,7 +75,7 @@ object ExecutionReportSerializers {
       if (slim) {
         val sample =
           if (value.operationType == OperationType.Read) Seq.empty
-          else value.sampleOutputEntities.filter(_.entities.nonEmpty).map(truncateSampleValues)
+          else value.sampleOutputEntities.filter(_.entities.nonEmpty).map(_.truncateValues(SLIM_SAMPLE_VALUE_CHAR_LIMIT))
         Json.obj(
           LABEL -> value.task.label(),
           OPERATION_DESC -> value.operationDesc,
@@ -105,13 +105,6 @@ object ExecutionReportSerializers {
 
     /** Max sample value chars in the slim report; the verbose report keeps up to [[EntitySample.maxValueCharSize]]. */
     private final val SLIM_SAMPLE_VALUE_CHAR_LIMIT = 200
-
-    private def truncateSampleValues(sample: SampleEntities): SampleEntities = {
-      sample.copy(entities = sample.entities.map(entity =>
-        EntitySample(entity.uri, entity.values.map(_.map(value =>
-          if (value.length <= SLIM_SAMPLE_VALUE_CHAR_LIMIT) value
-          else value.substring(0, SLIM_SAMPLE_VALUE_CHAR_LIMIT) + "…")))))
-    }
 
     private def serializeValue(value: (String, String)): JsValue = {
       Json.obj(
