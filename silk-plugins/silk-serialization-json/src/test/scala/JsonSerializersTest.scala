@@ -18,6 +18,7 @@ import org.silkframework.execution.report.{EntitySample, SampleEntities, SampleE
 import org.silkframework.rule.execution.TransformReport
 import org.silkframework.rule.execution.TransformReport.{RuleError, RuleResult}
 import org.silkframework.serialization.json.ExecutionReportSerializers.{ExecutionReportJsonFormat, TransformReportJsonFormat, WorkflowExecutionReportJsonFormat}
+import org.silkframework.serialization.json.ReportDetail
 import org.silkframework.serialization.json.JsonSerializers._
 import org.silkframework.serialization.json.WorkflowSerializers._
 import org.silkframework.serialization.json.{JsonFormat, JsonSerialization}
@@ -150,7 +151,7 @@ class JsonSerializersTest  extends AnyFlatSpec with Matchers with ConfigTestTrai
       taskReports = IndexedSeq(WorkflowTaskReport(nodeId = "childWf", report = nestedWorkflowReport)),
       isDone = true)
 
-    val slimJson = WorkflowExecutionReportJsonFormat.write(parentReport, slim = true)
+    val slimJson = WorkflowExecutionReportJsonFormat.write(parentReport, ReportDetail.Compact)
 
     val childNode = (slimJson \ "taskReports")(0)
     (childNode \ "nodeId").as[String] shouldBe "childWf"
@@ -169,9 +170,34 @@ class JsonSerializersTest  extends AnyFlatSpec with Matchers with ConfigTestTrai
       task = PlainTask("workflowReport", WorkflowTest.testWorkflow),
       authDiagnostics = Some("""{"scope":"read"}"""))
 
-    (WorkflowExecutionReportJsonFormat.write(report, slim = true) \ "authDiagnostics").toOption shouldBe empty
-    (WorkflowExecutionReportJsonFormat.write(report.copy(error = Some("auth failed")), slim = true) \ "authDiagnostics").isDefined shouldBe true
-    (WorkflowExecutionReportJsonFormat.write(report, slim = false) \ "authDiagnostics").isDefined shouldBe true
+    (WorkflowExecutionReportJsonFormat.write(report, ReportDetail.Compact) \ "authDiagnostics").toOption shouldBe empty
+    (WorkflowExecutionReportJsonFormat.write(report.copy(error = Some("auth failed")), ReportDetail.Compact) \ "authDiagnostics").isDefined shouldBe true
+    (WorkflowExecutionReportJsonFormat.write(report, ReportDetail.Full) \ "authDiagnostics").isDefined shouldBe true
+  }
+
+  it should "keep only node reports with errors or warnings at the IssueNodesOnly detail level" in {
+    implicit val jsonWriteContext: WriteContext[play.api.libs.json.JsValue] =
+      TestWriteContext[play.api.libs.json.JsValue]()
+    val task = PlainTask("wf", WorkflowTest.testWorkflow)
+    def node(nodeId: String, report: org.silkframework.execution.ExecutionReport) = WorkflowTaskReport(nodeId, report)
+    // A nested workflow whose only child failed with an error (no warnings) must survive the filter.
+    val nestedWithFailingChild = WorkflowExecutionReport(task,
+      taskReports = IndexedSeq(node("innerFailing", SimpleExecutionReport(task, error = Some("inner boom"), isDone = true))), isDone = true)
+    val nestedAllClean = WorkflowExecutionReport(task,
+      taskReports = IndexedSeq(node("innerClean", SimpleExecutionReport(task, isDone = true))), isDone = true)
+    val report = WorkflowExecutionReport(task, taskReports = IndexedSeq(
+      node("clean", SimpleExecutionReport(task, isDone = true)),
+      node("failing", SimpleExecutionReport(task, error = Some("boom"), isDone = true)),
+      node("warning", SimpleExecutionReport(task, warnings = Seq("something happened"), isDone = true)),
+      node("nestedWithFailingChild", nestedWithFailingChild),
+      node("nestedAllClean", nestedAllClean)), isDone = true)
+
+    val json = WorkflowExecutionReportJsonFormat.write(report, ReportDetail.IssueNodesOnly)
+    val keptNodes = (json \ "taskReports").as[play.api.libs.json.JsArray].value.map(n => (n \ "nodeId").as[String])
+    keptNodes shouldBe Seq("failing", "warning", "nestedWithFailingChild")
+    // The surviving nested node recursively keeps only its failing child, and no samples anywhere.
+    (((json \ "taskReports")(2) \ "taskReports")(0) \ "nodeId").as[String] shouldBe "innerFailing"
+    Json.stringify(json) should not include "outputEntitiesSample"
   }
 
   "TransformReport (slim)" should "keep rule error messages but drop their stacktraces" in {
@@ -186,10 +212,10 @@ class JsonSerializersTest  extends AnyFlatSpec with Matchers with ConfigTestTrai
         sampleErrors = IndexedSeq(RuleError("urn:entity:1", Seq(Seq("some value")), "not a valid Integer", None, Some(new RuntimeException("boom")))))),
       isDone = true)
 
-    val slimJson = Json.stringify(TransformReportJsonFormat.write(report, slim = true))
+    val slimJson = Json.stringify(TransformReportJsonFormat.write(report, ReportDetail.Compact))
     slimJson should include ("not a valid Integer")
     slimJson should not include "stacktrace"
-    Json.stringify(TransformReportJsonFormat.write(report, slim = false)) should include ("stacktrace")
+    Json.stringify(TransformReportJsonFormat.write(report, ReportDetail.Full)) should include ("stacktrace")
   }
 
   "ExecutionReport (slim)" should "drop output samples of dataset read reports and truncate long sample values" in {
@@ -203,12 +229,15 @@ class JsonSerializersTest  extends AnyFlatSpec with Matchers with ConfigTestTrai
       sampleOutputEntities = samples, operationType = operationType)
 
     // Samples of read reports echo the read source entities -> dropped in the slim form.
-    val readJson = ExecutionReportJsonFormat.serializeBasicValues(report(OperationType.Read), slim = true)
+    val readJson = ExecutionReportJsonFormat.serializeBasicValues(report(OperationType.Read), ReportDetail.Compact)
     (readJson \ "outputEntitiesSample").toOption shouldBe empty
     // Other reports keep their samples, but values are truncated to 200 chars + ellipsis.
-    val writeJson = ExecutionReportJsonFormat.serializeBasicValues(report(OperationType.Write), slim = true)
+    val writeJson = ExecutionReportJsonFormat.serializeBasicValues(report(OperationType.Write), ReportDetail.Compact)
     val slimValue = (((writeJson \ "outputEntitiesSample")(0) \ "entities")(0) \ "values")(0)(0).as[String]
     slimValue shouldBe ("x" * 200 + "…")
+    // The sample-free level drops them entirely.
+    val noSamplesJson = ExecutionReportJsonFormat.serializeBasicValues(report(OperationType.Write), ReportDetail.CompactWithoutSamples)
+    (noSamplesJson \ "outputEntitiesSample").toOption shouldBe empty
     // The verbose report keeps the full value.
     val fullJson = ExecutionReportJsonFormat.serializeBasicValues(report(OperationType.Write))
     ((((fullJson \ "outputEntitiesSample")(0) \ "entities")(0) \ "values")(0)(0)).as[String] shouldBe longValue

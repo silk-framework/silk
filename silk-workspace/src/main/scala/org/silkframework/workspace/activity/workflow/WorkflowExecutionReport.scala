@@ -118,6 +118,9 @@ case class WorkflowExecutionReport(task: Task[TaskSpec],
     }
   }
 
+  /** Also covers node reports that carry an error but no warnings. */
+  override def hasIssues: Boolean = super.hasIssues || taskReports.exists(_.report.hasIssues)
+
   override def entityCount: Int = taskReports.map(_.nodeId).distinct.size
 
   override def operationDesc: String = "nodes executed"

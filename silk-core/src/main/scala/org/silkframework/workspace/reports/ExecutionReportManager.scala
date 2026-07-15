@@ -18,6 +18,12 @@ trait ExecutionReportManager extends AnyPlugin {
   protected val log: Logger = Logger.getLogger(getClass.getName)
 
   /**
+    * True if this manager actually persists reports; false for the no-op manager that is used
+    * when no report manager is configured.
+    */
+  def persistsReports: Boolean = true
+
+  /**
     * Lists all available reports.
     *
     * @param projectIds If non-empty, only reports for the given projects are returned.

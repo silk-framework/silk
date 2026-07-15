@@ -16,6 +16,7 @@ import org.silkframework.workbench.workflow.WorkflowWithPayloadExecutorFactory._
 import org.silkframework.workspace.ProjectTask
 import org.silkframework.workspace.activity.TaskActivityFactory
 import org.silkframework.workspace.activity.workflow.{AllReplaceableDatasets, LocalWorkflowExecutorGeneratingProvenance, Workflow, WorkflowExecutionReport}
+import org.silkframework.workspace.reports.ReportIdentifier
 import org.silkframework.workspace.activity.workflow.{AllReplaceableDatasets, LocalWorkflowExecutorGeneratingProvenance, Workflow, WorkflowExecutorFactory}
 import play.api.libs.json._
 
@@ -128,7 +129,8 @@ class WorkflowWithPayloadExecutor(task: ProjectTask[Workflow], config: WorkflowW
     val activity = LocalWorkflowExecutorGeneratingProvenance(task, dataSources, sinks, useLocalInternalDatasets = true, workflowVariables = config.workflowVariables)
     val childControl = context.child(activity, 1.0)
     childControl.startBlocking()
-    context.value() = WorkflowOutput(sinks, replaceableSinks, resultResourceManager, Some(childControl.value().report))
+    val childValue = childControl.value()
+    context.value() = WorkflowOutput(sinks, replaceableSinks, resultResourceManager, Some(childValue.report), childValue.reportId)
   }
 
   // Checks that all replaceable input and output datasets get replaced via the provided payload
@@ -195,7 +197,8 @@ class WorkflowWithPayloadExecutor(task: ProjectTask[Workflow], config: WorkflowW
 }
 
 case class WorkflowOutput(dataSinks: Map[String, Dataset], variableSinks: Seq[String], resourceManager: ResourceManager,
-                          report: Option[WorkflowExecutionReport] = None)
+                          report: Option[WorkflowExecutionReport] = None,
+                          reportId: Option[ReportIdentifier] = None)
 
 object WorkflowOutput {
 

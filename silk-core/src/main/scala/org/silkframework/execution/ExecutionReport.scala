@@ -49,6 +49,11 @@ trait ExecutionReport {
   def warnings: Seq[String]
 
   /**
+    * True if this report carries an error or warnings (nested node reports included).
+    */
+  def hasIssues: Boolean = error.isDefined || warnings.nonEmpty
+
+  /**
     * Error message in case a fatal error occurred.
     */
   def error: Option[String] = None
