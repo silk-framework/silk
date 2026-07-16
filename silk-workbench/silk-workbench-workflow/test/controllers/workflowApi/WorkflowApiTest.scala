@@ -117,9 +117,9 @@ class WorkflowApiTest extends AnyFlatSpec with SingleProjectWorkspaceProviderTes
   }
 
   it should "warn in the workflow info when a clear node has no defined order against a writer of the same dataset" in {
-    project.addTask[GenericDatasetSpec]("clearInfoSource", DatasetSpec(InMemoryDataset()))
-    project.addTask[GenericDatasetSpec]("clearInfoTarget", DatasetSpec(InMemoryDataset()))
-    project.addTask("clearInfoOp", ClearDatasetOperator())
+    project.addTask[GenericDatasetSpec]("clearInfoSource", DatasetSpec(InMemoryDataset()), MetaData(label = Some("Source dataset")))
+    project.addTask[GenericDatasetSpec]("clearInfoTarget", DatasetSpec(InMemoryDataset()), MetaData(label = Some("Target dataset")))
+    project.addTask("clearInfoOp", ClearDatasetOperator(), MetaData(label = Some("Clear output")))
     // Writer node and clear node of the same dataset; 'ordered' adds the dependency edge writer -> clear node.
     def clearWriteWorkflow(ordered: Boolean) = Workflow(
       operators = WorkflowOperatorsParameter(Seq(
@@ -133,19 +133,18 @@ class WorkflowApiTest extends AnyFlatSpec with SingleProjectWorkspaceProviderTes
       )))
     project.addTask[Workflow]("clearInfoWf", clearWriteWorkflow(ordered = false))
     val info = WorkflowInfo.fromWorkflow(project.task[Workflow]("clearInfoWf"), project)
-    info.warnings.exists(w =>
-      w.message.contains("highlighted nodes") &&
-        w.message.contains("clearInfoTarget") &&
-        w.message.contains("clearInfoOp") &&
-        w.message.contains("dependency connections") &&
-        w.nodeIds.isEmpty
-    ) mustBe true
-    info.warnings.exists(w =>
-      w.message.contains("Case:") &&
-        w.message.contains("clearInfoTarget") &&
-        w.message.contains("clearInfoOp") &&
-        w.nodeIds.exists(_.toSet == Set("clearInfoOp", "zClear", "aWriter"))
-    ) mustBe true
+    val summaryWarnings = info.warnings.filter(_.nodeIds.isEmpty)
+    summaryWarnings must have size 1
+    summaryWarnings.head mustBe info.warnings.head
+    summaryWarnings.head.message must include ("highlighted nodes")
+    summaryWarnings.head.message must include ("dependency connections")
+
+    val caseWarnings = info.warnings.filter(_.nodeIds.nonEmpty)
+    caseWarnings must have size 1
+    caseWarnings.head.message must include ("Case 1:")
+    caseWarnings.head.message must include ("Target dataset")
+    caseWarnings.head.message must include ("Clear output")
+    caseWarnings.head.nodeIds.map(_.sorted) mustBe Some(Seq("clearInfoOp", "zClear", "aWriter").sorted)
     project.updateTask[Workflow]("clearInfoWf", clearWriteWorkflow(ordered = true))
     WorkflowInfo.fromWorkflow(project.task[Workflow]("clearInfoWf"), project).warnings mustBe empty
   }
