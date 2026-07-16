@@ -25,7 +25,8 @@ object WorkflowSerializers {
         case None => value
         case _ => objectValue(value, PARAMETERS)
       }
-      Workflow(
+      // Use createNormalized to drop stale replaceable dataset IDs, e.g. sent by clients that did not clean them up on dataset removal
+      Workflow.createNormalized(
         operators =  WorkflowOperatorsParameter(
           arrayValueOption(parameterObject, OPERATORS).map(_.value.map(WorkflowOperatorJsonFormat.read).toSeq).getOrElse(Seq.empty)),
         datasets = WorkflowDatasetsParameter(

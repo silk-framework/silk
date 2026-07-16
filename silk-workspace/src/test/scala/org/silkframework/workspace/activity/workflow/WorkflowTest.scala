@@ -12,7 +12,10 @@ import org.silkframework.workspace._
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.must.Matchers
 import org.silkframework.rule.{DatasetSelection, TransformSpec}
+import org.silkframework.runtime.serialization.{ReadContext, TestReadContext, TestWriteContext, WriteContext, XmlSerialization}
 import org.silkframework.workspace.activity.workflow.WorkflowNode.convertStringToOption
+
+import scala.xml.{Attribute, Elem, Node, Null, Text}
 
 class WorkflowTest extends AnyFlatSpec with MockitoSugar with Matchers with TestUserContextTrait {
   behavior of "Workflow"
@@ -174,6 +177,40 @@ class WorkflowTest extends AnyFlatSpec with MockitoSugar with Matchers with Test
       project.addTask[TransformSpec](transformId, TransformSpec(DatasetSelection(DS_A)))
     }
     reConfiguredDatasetWorkflow.outputDatasets(project).map(_.id.toString) mustBe Seq(DS_B)
+  }
+
+  it should "reject replaceable dataset IDs of datasets that are not part of the workflow" in {
+    intercept[IllegalArgumentException] {
+      testWorkflow.copy(replaceableInputs = Seq(DS_A1, "removedDataset"))
+    }
+    intercept[IllegalArgumentException] {
+      testWorkflow.copy(replaceableOutputs = Seq("removedDataset"))
+    }
+  }
+
+  it should "drop replaceable dataset IDs of datasets that are not part of the workflow on creation" in {
+    // Stale IDs remain if a replaceable dataset is removed from the workflow or deleted, e.g. in the workflow editor
+    val workflow = Workflow.createNormalized(
+      operators = testWorkflow.operators,
+      datasets = testWorkflow.datasets,
+      replaceableInputs = Seq(DS_A1, "removedDataset"),
+      replaceableOutputs = Seq(OUTPUT, "removedDataset")
+    )
+    workflow.replaceableInputs.taskIds mustBe Seq(DS_A1)
+    workflow.replaceableOutputs.taskIds mustBe Seq(OUTPUT)
+  }
+
+  it should "drop stale replaceable dataset IDs when reading XML" in {
+    implicit val readContext: ReadContext = TestReadContext()
+    implicit val writeContext: WriteContext[Node] = TestWriteContext[Node]()
+    // XML from old exports may still contain IDs of datasets that were removed from the workflow
+    val staleXml = XmlSerialization.toXml(testWorkflow).asInstanceOf[Elem] %
+      Attribute("replaceableInputs", Text(s"$DS_A1,removedDataset"), Null) %
+      Attribute("replaceableOutputs", Text("removedDataset"), Null)
+    val workflow = XmlSerialization.fromXml[Workflow](staleXml)
+    workflow.replaceableInputs.taskIds mustBe Seq(DS_A1)
+    workflow.replaceableOutputs.taskIds mustBe Seq.empty
+    (XmlSerialization.toXml(workflow) \ "@replaceableInputs").text mustBe DS_A1
   }
 
   it should "not return datasets as output datasets that only have tasks as inputs that generate no data" in {
