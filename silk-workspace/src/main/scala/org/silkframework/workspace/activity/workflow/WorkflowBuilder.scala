@@ -87,7 +87,7 @@ class WorkflowBuilder {
 
   def build(): Workflow = {
     addCurrentNode()
-    Workflow.create(
+    Workflow.createNormalized(
       operators = WorkflowOperatorsParameter(operators.toSeq),
       datasets = WorkflowDatasetsParameter(datasets.toSeq),
       replaceableInputs = replaceableInputs,

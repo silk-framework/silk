@@ -148,7 +148,7 @@ case class Workflow(@Param(label = "Workflow operators", value = "Workflow opera
     if (unknownReplaceableDatasets.nonEmpty) {
       throw new IllegalArgumentException("Datasets marked as replaceable input/output must be part of the workflow! " +
         "Unknown datasets: " + unknownReplaceableDatasets.mkString(", ") +
-        ". If a replaceable dataset was removed from the workflow, unmark it as replaceable as well (Workflow.create does this automatically).")
+        ". If a replaceable dataset was removed from the workflow, unmark it as replaceable as well (Workflow.createNormalized does this automatically).")
     }
     // Dataset tasks that workflow nodes write to / read from
     val workflowDatasetOutputs = operators.flatMap(_.outputs.flatMap(datasetNodeMap.get)).distinct.toSet
@@ -519,7 +519,7 @@ object Workflow {
   /** Creates a workflow, dropping replaceable dataset IDs of datasets that do not occur in the workflow
     * (e.g. of removed datasets). The constructor itself rejects such IDs, so use this whenever the
     * replaceable IDs are not known to be clean. */
-  def create(operators: WorkflowOperatorsParameter = WorkflowOperatorsParameter(Seq.empty),
+  def createNormalized(operators: WorkflowOperatorsParameter = WorkflowOperatorsParameter(Seq.empty),
              datasets: WorkflowDatasetsParameter = WorkflowDatasetsParameter(Seq.empty),
              uiAnnotations: UiAnnotations = UiAnnotations(),
              replaceableInputs: TaskIdentifierParameter = TaskIdentifierParameter(Seq.empty),
@@ -551,7 +551,7 @@ object Workflow {
       val stickyNotes = (xml \ "UiAnnotations" \ "StickyNotes" \ "StickyNote").map(StickyNote.StickyNodeXmlFormat.read)
       val replaceableInputs = taskIds((xml \ "@replaceableInputs").text.trim)
       val replaceableOutputs = taskIds((xml \ "@replaceableOutputs").text.trim)
-      create(operators, datasets, UiAnnotations(stickyNotes), replaceableInputs, replaceableOutputs)
+      createNormalized(operators, datasets, UiAnnotations(stickyNotes), replaceableInputs, replaceableOutputs)
     }
 
     /**

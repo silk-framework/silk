@@ -190,7 +190,7 @@ class WorkflowTest extends AnyFlatSpec with MockitoSugar with Matchers with Test
 
   it should "drop replaceable dataset IDs of datasets that are not part of the workflow on creation" in {
     // Stale IDs remain if a replaceable dataset is removed from the workflow or deleted, e.g. in the workflow editor
-    val workflow = Workflow.create(
+    val workflow = Workflow.createNormalized(
       operators = testWorkflow.operators,
       datasets = testWorkflow.datasets,
       replaceableInputs = Seq(DS_A1, "removedDataset"),
