@@ -67,7 +67,7 @@ object WorkflowInfo {
         val pairClearOperatorLabels = formatLabelList(pairClearOperators.map(operatorNode => taskLabel(operatorNode.task, project)))
         val pairNodeIds = (pair.nodeIds ++ pairClearOperators.map(_.nodeId)).distinct
         WorkflowWarningInfo(
-          s"Case ${idx+1}: dataset '${pair.datasetLabel}' and 'Clear dataset' operator '$pairClearOperatorLabels' are not explicitly ordered.",
+          s"Case ${idx+1}: Writing to dataset '${pair.datasetLabel}' and clearing it with operator '$pairClearOperatorLabels' is not explicitly ordered.",
           Some(pairNodeIds)
         )
       }
