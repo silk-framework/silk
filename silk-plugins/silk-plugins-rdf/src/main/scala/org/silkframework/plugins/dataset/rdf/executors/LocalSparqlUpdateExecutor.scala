@@ -63,8 +63,8 @@ case class LocalSparqlUpdateExecutor() extends LocalExecutor[SparqlUpdateCustomT
             }
           }
         }
-        reportUpdater.executionDone()
         batchEmitter.close()
+        reportUpdater.executionDone()
       }
     }
     Some(SparqlUpdateEntitySchema.create(traversable, task))

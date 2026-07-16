@@ -461,6 +461,7 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
         // Write the statements as generic entities
         implicit val executionReportUpdater: ExecutionReportUpdater = reportUpdater
         writeEntities(sink, quads)
+        reportUpdater.executionDone()
     }
   }
 

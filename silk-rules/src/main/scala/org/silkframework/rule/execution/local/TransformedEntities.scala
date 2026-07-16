@@ -85,7 +85,7 @@ class TransformedEntities(task: Task[TransformSpec],
         }
         mappedEntity
       }
-    new TransformReportIterator(mappedEntities.thenClose(() => report.build()), report, rules.map(_.id.toString).toSet)
+    new TransformReportIterator(mappedEntities, report, rules.map(_.id.toString).toSet)
   }
 
   private def mapEntity(entity: Entity, report: TransformReportBuilder): Iterator[Entity] = {
