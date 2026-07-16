@@ -489,6 +489,9 @@ export function TaskActivityOverview({ projectId, taskId }: IProps) {
                         data-test-id={displayCacheList ? "cache-group-show-less-btn" : "cache-group-show-more-btn"}
                         name={displayCacheList ? "toggler-showless" : "toggler-showmore"}
                         text={displayCacheList ? "Hide single caches" : "Show all single caches"}
+                        tooltipProps={{
+                            placement: "top",
+                        }}
                     />
                 </OverviewItemActions>
             </OverviewItem>
