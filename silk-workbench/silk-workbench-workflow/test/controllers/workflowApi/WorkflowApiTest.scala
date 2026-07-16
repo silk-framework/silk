@@ -133,7 +133,19 @@ class WorkflowApiTest extends AnyFlatSpec with SingleProjectWorkspaceProviderTes
       )))
     project.addTask[Workflow]("clearInfoWf", clearWriteWorkflow(ordered = false))
     val info = WorkflowInfo.fromWorkflow(project.task[Workflow]("clearInfoWf"), project)
-    info.warnings.exists(w => w.contains("zClear") && w.contains("aWriter") && w.contains("defined execution order")) mustBe true
+    info.warnings.exists(w =>
+      w.message.contains("highlighted nodes") &&
+        w.message.contains("clearInfoTarget") &&
+        w.message.contains("clearInfoOp") &&
+        w.message.contains("dependency connections") &&
+        w.nodeIds.isEmpty
+    ) mustBe true
+    info.warnings.exists(w =>
+      w.message.contains("Case:") &&
+        w.message.contains("clearInfoTarget") &&
+        w.message.contains("clearInfoOp") &&
+        w.nodeIds.exists(_.toSet == Set("clearInfoOp", "zClear", "aWriter"))
+    ) mustBe true
     project.updateTask[Workflow]("clearInfoWf", clearWriteWorkflow(ordered = true))
     WorkflowInfo.fromWorkflow(project.task[Workflow]("clearInfoWf"), project).warnings mustBe empty
   }

@@ -2,7 +2,7 @@ package controllers.workflowApi
 
 import akka.stream.scaladsl.{FileIO, Source}
 import controllers.workflowApi.variableWorkflow.VariableWorkflowRequestUtils
-import controllers.workflowApi.workflow.WorkflowInfo
+import controllers.workflowApi.workflow.{WorkflowInfo, WorkflowWarningInfo}
 import controllers.workspace.ActivityClient
 import controllers.workspace.activityApi.StartActivityResponse
 import helper.IntegrationTestTrait
@@ -212,7 +212,7 @@ class SimpleVariableWorkflowApiTest extends AnyFlatSpec with BeforeAndAfterAll
       "Simple variable workflow project",
       List(variableInputDataset),
       List(variableOutputDataset),
-      Seq.empty
+      Seq.empty[WorkflowWarningInfo]
     )
   }
 

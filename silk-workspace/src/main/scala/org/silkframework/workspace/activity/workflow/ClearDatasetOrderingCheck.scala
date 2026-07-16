@@ -24,6 +24,8 @@ object ClearDatasetOrderingCheck {
       s"Dataset '$datasetLabel' is cleared by 'Clear dataset' node '$clearNodeId', but node '$writerNodeId' " +
         "writes to it without a defined execution order. The clear may run before or after the write. " +
         "Connect the two nodes with a dependency edge to make the order explicit."
+
+    def nodeIds: Seq[String] = Seq(clearNodeId, writerNodeId)
   }
 
   /** Puts a warning on the run's report when a clear node has no defined execution order relative to
