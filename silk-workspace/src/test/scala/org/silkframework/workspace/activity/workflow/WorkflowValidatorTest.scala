@@ -67,7 +67,6 @@ class WorkflowValidatorTest extends AnyFlatSpec with Matchers with TestWorkspace
           errorOutputs = Seq.empty,
           position = (0, 0),
           nodeId = Identifier.random,
-          outputPriority = None,
           configInputs = Seq.empty,
           dependencyInputs = Seq.empty
         )

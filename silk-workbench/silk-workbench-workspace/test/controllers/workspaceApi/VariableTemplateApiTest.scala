@@ -672,7 +672,7 @@ class VariableTemplateApiTest extends AnyFlatSpec with IntegrationTestTrait with
   private def workflowReferencing(taskIds: String*): Workflow = {
     val operators = taskIds.zipWithIndex.map { case (taskId, index) =>
       WorkflowOperator(inputs = Seq.empty, task = taskId, outputs = Seq.empty, errorOutputs = Seq.empty,
-        position = (0, 0), nodeId = s"${taskId}_$index", outputPriority = None, configInputs = Seq.empty, dependencyInputs = Seq.empty)
+        position = (0, 0), nodeId = s"${taskId}_$index", configInputs = Seq.empty, dependencyInputs = Seq.empty)
     }
     Workflow(operators = WorkflowOperatorsParameter(operators))
   }

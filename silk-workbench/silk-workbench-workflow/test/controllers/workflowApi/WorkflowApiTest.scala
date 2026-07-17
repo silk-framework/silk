@@ -93,7 +93,6 @@ class WorkflowApiTest extends AnyFlatSpec with SingleProjectWorkspaceProviderTes
         errorOutputs = Seq(),
         position = (100, 100),
         blockingTaskId,
-        None,
         Seq.empty,
         Seq.empty
       )))
@@ -123,13 +122,13 @@ class WorkflowApiTest extends AnyFlatSpec with SingleProjectWorkspaceProviderTes
     // Writer node and clear node of the same dataset; 'ordered' adds the dependency edge writer -> clear node.
     def clearWriteWorkflow(ordered: Boolean) = Workflow(
       operators = WorkflowOperatorsParameter(Seq(
-        WorkflowOperator(Seq.empty, "clearInfoOp", Seq("zClear"), Seq.empty, (0, 0), "clearInfoOp", None, Seq.empty, Seq.empty)
+        WorkflowOperator(Seq.empty, "clearInfoOp", Seq("zClear"), Seq.empty, (0, 0), "clearInfoOp", Seq.empty, Seq.empty)
       )),
       datasets = WorkflowDatasetsParameter(Seq(
-        WorkflowDataset(Seq.empty, "clearInfoSource", Seq("aWriter"), (0, 0), "clearInfoSource", None, Seq.empty, Seq.empty),
-        WorkflowDataset(Seq(Some("clearInfoSource")), "clearInfoTarget", Seq.empty, (0, 0), "aWriter", None, Seq.empty,
+        WorkflowDataset(Seq.empty, "clearInfoSource", Seq("aWriter"), (0, 0), "clearInfoSource", Seq.empty, Seq.empty),
+        WorkflowDataset(Seq(Some("clearInfoSource")), "clearInfoTarget", Seq.empty, (0, 0), "aWriter", Seq.empty,
           if(ordered) Seq("zClear") else Seq.empty),
-        WorkflowDataset(Seq(Some("clearInfoOp")), "clearInfoTarget", Seq.empty, (0, 0), "zClear", None, Seq.empty, Seq.empty)
+        WorkflowDataset(Seq(Some("clearInfoOp")), "clearInfoTarget", Seq.empty, (0, 0), "zClear", Seq.empty, Seq.empty)
       )))
     project.addTask[Workflow]("clearInfoWf", clearWriteWorkflow(ordered = false))
     val info = WorkflowInfo.fromWorkflow(project.task[Workflow]("clearInfoWf"), project)
