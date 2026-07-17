@@ -128,9 +128,15 @@ class WorkflowWithPayloadExecutor(task: ProjectTask[Workflow], config: WorkflowW
 
     val activity = LocalWorkflowExecutorGeneratingProvenance(task, dataSources, sinks, useLocalInternalDatasets = true, workflowVariables = config.workflowVariables)
     val childControl = context.child(activity, 1.0)
-    childControl.startBlocking()
-    val childValue = childControl.value()
-    context.value() = WorkflowOutput(sinks, replaceableSinks, resultResourceManager, Some(childValue.report), childValue.reportId)
+    try {
+      childControl.startBlocking()
+    } finally {
+      // Also published when the execution failed: the failed run's report has been persisted by then,
+      // so callers can still access the failure details and the report identifier.
+      for (childValue <- childControl.value.get) {
+        context.value() = WorkflowOutput(sinks, replaceableSinks, resultResourceManager, Some(childValue.report), childValue.reportId)
+      }
+    }
   }
 
   // Checks that all replaceable input and output datasets get replaced via the provided payload
