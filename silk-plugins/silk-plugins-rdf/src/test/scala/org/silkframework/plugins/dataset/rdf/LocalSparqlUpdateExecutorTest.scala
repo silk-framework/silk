@@ -70,10 +70,12 @@ class LocalSparqlUpdateExecutorTest extends AnyFlatSpec with Matchers with TestW
     report mustBe defined
     report.get.sampleOutputEntities must not be empty
     val samplesEntities = report.get.sampleOutputEntities.head
-    // One sample entities is emitted
+    // Both batches are emitted as sample entities, including the final partial batch
     samplesEntities.schema.properties must not be empty
-    samplesEntities.entities must have size 1
+    samplesEntities.entities must have size 2
     samplesEntities.entities.head.values.head.head must startWith ("""INSERT DATA { <http://s1> <urn:prop> "s1a" } ;""")
+    samplesEntities.entities.last.values.head.head must startWith ("""INSERT DATA { <http://s2b> <urn:prop> "s2a" } ;""")
+    report.get.entityCount mustBe 2
   }
 
   it should "fail when an input entity is missing a value referenced by the template" in {
