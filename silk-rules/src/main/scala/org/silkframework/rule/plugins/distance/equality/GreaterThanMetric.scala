@@ -2,6 +2,7 @@ package org.silkframework.rule.plugins.distance.equality
 
 import org.silkframework.rule.similarity.{BooleanDistanceMeasure, NonSymmetricDistanceMeasure, SingleValueDistanceMeasure}
 import org.silkframework.runtime.plugin.annotations.{Param, Plugin, PluginReference}
+import org.silkframework.runtime.plugin.types.CompareOrder
 
 @Plugin(
   id = GreaterThanMetric.pluginId,
@@ -19,12 +20,12 @@ import org.silkframework.runtime.plugin.annotations.{Param, Plugin, PluginRefere
 case class GreaterThanMetric(@Param("Accept equal values")
                              orEqual: Boolean = false,
                              @Param("Per default, if both strings are numbers, numerical order is used for comparison. Otherwise, alphanumerical order is used. Choose a more specific order for improved performance.")
-                             order: OrderEnum = OrderEnum.autodetect,
+                             order: CompareOrder = CompareOrder.autodetect,
                              @Param(value = "Reverse source and target inputs", advanced = true)
                              reverse: Boolean = false) extends SingleValueDistanceMeasure with NonSymmetricDistanceMeasure with BooleanDistanceMeasure {
 
   override def evaluate(str1: String, str2: String, threshold: Double): Double = {
-    1.0 - LowerThanMetric.evaluate(str1, str2, !orEqual, order)
+    if(order.isLower(str1, str2, !orEqual)) 1.0 else 0.0
   }
 }
 
