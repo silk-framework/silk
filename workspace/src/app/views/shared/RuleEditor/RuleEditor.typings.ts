@@ -223,8 +223,8 @@ export interface IRuleNodeData {
     dynamicPorts?: boolean;
     // The original rule operator node this node was created with.
     originalRuleOperatorNode: IRuleOperatorNode;
-    // Update switch to force content updates
-    updateSwitch?: boolean;
+    // Monotonic update version to force content updates
+    updateSwitch?: number;
 }
 
 /** Sidebar tabs */
