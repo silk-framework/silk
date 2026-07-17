@@ -80,9 +80,9 @@ export function TaskActivityOverview({ projectId, taskId }: IProps) {
     const nonExecutedCacheActivities = React.useRef<IActivityListEntry[]>([]);
 
     // Used for explicit re-render trigger
-    const setUpdateSwitch = useState<boolean>(false)[1];
+    const setUpdateSwitch = useState<number>(0)[1];
     const triggerUpdate = () => {
-        setUpdateSwitch((old) => !old);
+        setUpdateSwitch((old) => old + 1);
     };
 
     // Used for keys in activity->value maps
