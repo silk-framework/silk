@@ -24,6 +24,7 @@ import TransformEvaluationTabRow from "./TransformEvaluationTabRow";
 import MappingsTree from "../../../../pages/MappingEditor/HierarchicalMapping/containers/MappingsTree";
 import { IViewActions } from "../../../../../views/plugins/PluginRegistry";
 import { MAPPING_ROOT_RULE_ID } from "../../../../pages/MappingEditor/HierarchicalMapping/HierarchicalMapping";
+import { requestRuleBlockSummaries } from "../../../ruleBlock/ruleBlock.requests";
 
 interface TransformEvaluationTabViewProps {
     projectId: string;
@@ -38,7 +39,7 @@ const TransformEvaluationTabView: React.FC<TransformEvaluationTabViewProps> = ({
     startFullScreen,
     viewActions,
 }) => {
-    const evaluatedEntityResults = React.useRef<EvaluatedRuleEntityResult | undefined>();
+    const evaluatedEntityResults = React.useRef<EvaluatedRuleEntityResult | undefined>(undefined);
     const [allRowsExpanded, setAllRowsExpanded] = React.useState<boolean>(false);
     const [loading, setLoading] = React.useState<boolean>(false);
     const [currentRuleId, setCurrentRuleId] = React.useState<string>(() => {
@@ -46,6 +47,7 @@ const TransformEvaluationTabView: React.FC<TransformEvaluationTabViewProps> = ({
         return ruleId ?? MAPPING_ROOT_RULE_ID;
     });
     const operatorPlugins = React.useRef<Array<IPluginDetails>>([]);
+    const ruleBlockLabels = React.useRef<Record<string, string>>({});
     const [error, setError] = React.useState<string>("");
     const [expandRowTrees, setExpandRowTrees] = React.useState<boolean>(false);
     const [t] = useTranslation();
@@ -54,11 +56,16 @@ const TransformEvaluationTabView: React.FC<TransformEvaluationTabViewProps> = ({
         (async () => {
             try {
                 setLoading(true);
-                const [results, plugins] = await Promise.all([
+                const [results, plugins, summaries] = await Promise.all([
                     (await getEvaluatedEntities(projectId, transformTaskId, currentRuleId, 10, true)).data,
                     Object.values((await requestRuleOperatorPluginsDetails(false)).data),
+                    // Fetch fresh rule block labels alongside each evaluation reload instead of rewriting this tab-view API.
+                    (await requestRuleBlockSummaries(projectId)).data,
                 ]);
                 operatorPlugins.current = plugins;
+                ruleBlockLabels.current = Object.fromEntries(
+                    summaries.map((summary) => [summary.id, summary.label] as const),
+                );
                 evaluatedEntityResults.current = results;
             } catch (err) {
                 evaluatedEntityResults.current = undefined;
@@ -112,7 +119,7 @@ const TransformEvaluationTabView: React.FC<TransformEvaluationTabViewProps> = ({
         <section className="diapp-transform-evaluation">
             <Grid>
                 <GridRow>
-                    <GridColumn medium>
+                    <GridColumn carbonSizeConfig={{ md: 3, lg: 4 }}>
                         <MappingsTree
                             currentRuleId={currentRuleId}
                             handleRuleNavigation={handleRuleNavigation}
@@ -159,6 +166,7 @@ const TransformEvaluationTabView: React.FC<TransformEvaluationTabViewProps> = ({
                                                             rowItem={rowItem}
                                                             colSpan={headers.length * 2}
                                                             operatorPlugins={operatorPlugins.current}
+                                                            ruleBlockLabels={ruleBlockLabels.current}
                                                             entity={
                                                                 evaluatedEntityResults.current!.evaluatedEntities[
                                                                     rowIdx

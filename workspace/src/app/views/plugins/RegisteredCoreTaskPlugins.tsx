@@ -1,11 +1,13 @@
 import { LinkingRuleEditor, LinkingRuleEditorOptionalContext } from "../taskViews/linking/LinkingRuleEditor";
 import React from "react";
+import i18next from "i18next";
 import { IViewActions, pluginRegistry } from "./PluginRegistry";
 import HierarchicalMapping from "../pages/MappingEditor/HierarchicalMapping/HierarchicalMapping.jsx";
 import LinkingEvaluationTabView from "../../views/taskViews/linking/evaluation/tabView/LinkingEvaluationTabView";
 import LinkingExecutionTab from "../../views/taskViews/linking/editorTabsComponents/LinkingExecutionTab";
 import TransformExecutionTab from "../../views/taskViews/transform/editorTabsComponents/TransformExecutionTab";
 import TransformEvaluationTabView from "../taskViews/transform/evaluation/tabView/TransformEvaluationTabView";
+import { RuleBlockEditor } from "../taskViews/ruleBlock/RuleBlockEditor";
 import { setApiDetails } from "../../views/pages/MappingEditor/HierarchicalMapping/store";
 
 let registered = false;
@@ -17,7 +19,7 @@ export const registerCorePlugins = () => {
         pluginRegistry.registerTaskView("linking", {
             id: "linkingEditor",
             label: "Linking editor",
-            render(projectId: string, taskId: string, viewActions: IViewActions | undefined): JSX.Element {
+            render(projectId: string, taskId: string, viewActions: IViewActions | undefined): React.JSX.Element {
                 return (
                     <LinkingRuleEditorOptionalContext.Provider
                         value={{
@@ -38,7 +40,7 @@ export const registerCorePlugins = () => {
         pluginRegistry.registerTaskView("linking", {
             id: "linkingEvaluation",
             label: "Linking evaluation",
-            render(projectId: string, taskId: string, _: IViewActions, startFullScreen: boolean): JSX.Element {
+            render(projectId: string, taskId: string, _: IViewActions, startFullScreen: boolean): React.JSX.Element {
                 return <LinkingEvaluationTabView projectId={projectId} linkingTaskId={taskId} />;
             },
         });
@@ -46,7 +48,7 @@ export const registerCorePlugins = () => {
         pluginRegistry.registerTaskView("linking", {
             id: "LinkingExecution",
             label: "Linking execution",
-            render(projectId: string, taskId: string, viewActions: IViewActions | undefined): JSX.Element {
+            render(projectId: string, taskId: string, viewActions: IViewActions | undefined): React.JSX.Element {
                 return <LinkingExecutionTab taskId={taskId} projectId={projectId} />;
             },
         });
@@ -61,8 +63,8 @@ export const registerCorePlugins = () => {
                 projectId: string,
                 taskId: string,
                 viewActions: IViewActions,
-                startFullScreen: boolean
-            ): JSX.Element {
+                startFullScreen: boolean,
+            ): React.JSX.Element {
                 return (
                     <HierarchicalMapping
                         project={projectId}
@@ -78,7 +80,7 @@ export const registerCorePlugins = () => {
             id: "TransformExecution",
             label: "Transform execution",
             queryParametersToKeep: ["ruleId"],
-            render(projectId: string, taskId: string, viewActions: IViewActions | undefined): JSX.Element {
+            render(projectId: string, taskId: string, viewActions: IViewActions | undefined): React.JSX.Element {
                 return <TransformExecutionTab taskId={taskId} projectId={projectId} viewActions={viewActions} />;
             },
         });
@@ -91,8 +93,8 @@ export const registerCorePlugins = () => {
                 projectId: string,
                 taskId: string,
                 viewActions: IViewActions | undefined,
-                startFullScreen: boolean
-            ): JSX.Element {
+                startFullScreen: boolean,
+            ): React.JSX.Element {
                 setApiDetails({ project: projectId, transformTask: taskId });
                 return (
                     <TransformEvaluationTabView
@@ -100,6 +102,21 @@ export const registerCorePlugins = () => {
                         projectId={projectId}
                         startFullScreen={startFullScreen}
                         viewActions={viewActions}
+                    />
+                );
+            },
+        });
+
+        pluginRegistry.registerTaskView("ruleBlock", {
+            id: "ruleBlockEditor",
+            label: i18next.t("common.iframeWindow.ruleBlockEditor"),
+            render(projectId: string, taskId: string, viewActions: IViewActions | undefined): React.JSX.Element {
+                return (
+                    <RuleBlockEditor
+                        projectId={projectId}
+                        ruleBlockTaskId={taskId}
+                        viewActions={viewActions}
+                        instanceId={"tab-instance"}
                     />
                 );
             },

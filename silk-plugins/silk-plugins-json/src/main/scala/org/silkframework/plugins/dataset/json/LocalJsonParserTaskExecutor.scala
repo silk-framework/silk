@@ -12,8 +12,9 @@ import org.silkframework.runtime.resource.InMemoryResourceManager
 
 
 /**
-  * Only considers the first input and checks for the property path defined in the [[JsonParserTask]] specification.
-  * It will only read a property value of the first entity, following entities are ignored.
+  * Executor for [[JsonParserTask]]. Takes a single input table and iterates over every entity in it, reading the
+  * JSON string at the configured input path on each and parsing it according to the schema requested by the
+  * downstream consumer.
   */
 case class LocalJsonParserTaskExecutor() extends LocalExecutor[JsonParserTask] {
 
@@ -23,41 +24,58 @@ case class LocalJsonParserTaskExecutor() extends LocalExecutor[JsonParserTask] {
                        execution: LocalExecution,
                        context: ActivityContext[ExecutionReport] = new ActivityMonitor(getClass.getSimpleName))
                       (implicit pluginContext: PluginContext): Option[LocalEntities] = {
-    if (inputs.size != 1) {
-      throw TaskException("JsonParserTask takes exactly one input!")
+    if (inputs.size != 1) throw TaskException("'Parse JSON' takes exactly one input!")
+    val entityTable = inputs.head
+    val entities = RewindableEntityIterator.load(entityTable.entities, entityTable.entitySchema)
+
+    val pathIndex = task.data.parsedInputPath match {
+      case Some(path) => entityTable.entitySchema.indexOfPath(path)
+      case None => 0 // Take the value of the first path
     }
-    output.requestedSchema.map { requestedSchema =>
-      val entityTable = inputs.head
-      val entities = RewindableEntityIterator.load(entityTable.entities, entityTable.entitySchema)
 
-      val pathIndex =  task.data.parsedInputPath match {
-        case Some(path) => entityTable.entitySchema.indexOfPath(path)
-        case None => 0 // Take the value of the first path
-      }
+    val schema = output.requestedSchema.getOrElse(
+      throw TaskException("The Parse JSON operator cannot be connected directly to a dataset. It must feed an operator (typically a transformation) that declares a target schema, since Parse JSON's output schema depends on what the consumer requests.")
+    )
+    Some(executeWithSchema(task, schema, entities, output, execution, context, pathIndex))
+  }
 
-      if(!entities.hasNext) {
-        throw TaskException("No input entity for 'JSON Parser Operator' found! There must be at least one entity in the input.")
-      }
-
-      def parseEntities(schema: EntitySchema, createNewIterator: Boolean = false): CloseableIterator[Entity] = {
-        val entityParser = new EntityParser(task, ExecutorOutput(output.task, Some(FixedSchemaPort(schema))), execution, pathIndex)
-        val entityIterator = if(createNewIterator) entities.newIterator() else entities
-        implicit val reportUpdater: ExecutionReportUpdater = JsonParserReportUpdater(task, context)
-        implicit val prefixes: Prefixes = Prefixes.empty
-        ReportingIterator(new RepeatedIterator(() => entityIterator.nextOption().map(entityParser)).thenClose(entityIterator))
-      }
-
-      requestedSchema match {
-        case mt: MultiEntitySchema =>
-          val rootEntities = parseEntities(requestedSchema)
-          val subEntities = mt.subSchemata.map { subSchema =>
-            GenericEntityTable(parseEntities(subSchema, createNewIterator = true), subSchema, task)
-          }
-          MultiEntityTable(rootEntities, requestedSchema, task, subEntities)
-        case _ =>
-          GenericEntityTable(parseEntities(requestedSchema), requestedSchema, task)
-      }
+  /** Runs the parse once a schema is known, dispatching on single vs. multi-entity schema. */
+  private def executeWithSchema(task: Task[JsonParserTask],
+                                requestedSchema: EntitySchema,
+                                entities: RewindableEntityIterator,
+                                output: ExecutorOutput,
+                                execution: LocalExecution,
+                                context: ActivityContext[ExecutionReport],
+                                pathIndex: Int)
+                               (implicit pluginContext: PluginContext): LocalEntities = {
+    if (!entities.hasNext) throw TaskException("No input entity for 'JSON Parser Operator' found! There must be at least one entity in the input.")
+    requestedSchema match {
+      case mt: MultiEntitySchema =>
+        val rootEntities = entityIterator(requestedSchema, entities, task, output, execution, context, pathIndex)
+        val subEntities = mt.subSchemata.map { subSchema =>
+          GenericEntityTable(entityIterator(subSchema, entities, task, output, execution, context, pathIndex, createNewIterator = true), subSchema, task)
+        }
+        MultiEntityTable(rootEntities, requestedSchema, task, subEntities)
+      case _ =>
+        GenericEntityTable(entityIterator(requestedSchema, entities, task, output, execution, context, pathIndex), requestedSchema, task)
     }
+  }
+
+  /** Parses entities for one schema and wraps the result in a reporting iterator. */
+  private def entityIterator(schema: EntitySchema,
+                            entities: RewindableEntityIterator,
+                            task: Task[JsonParserTask],
+                            output: ExecutorOutput,
+                            execution: LocalExecution,
+                            context: ActivityContext[ExecutionReport],
+                            pathIndex: Int,
+                            createNewIterator: Boolean = false)
+                           (implicit pluginContext: PluginContext): CloseableIterator[Entity] = {
+    val entityParser = new EntityParser(task, ExecutorOutput(output.task, Some(FixedSchemaPort(schema))), execution, pathIndex)
+    val entityIterator = if (createNewIterator) entities.newIterator() else entities
+    implicit val reportUpdater: ExecutionReportUpdater = JsonParserReportUpdater(task, context)
+    implicit val prefixes: Prefixes = Prefixes.empty
+    ReportingIterator(new RepeatedIterator(() => entityIterator.nextOption().map(entityParser)).thenClose(entityIterator))
   }
 
   /**

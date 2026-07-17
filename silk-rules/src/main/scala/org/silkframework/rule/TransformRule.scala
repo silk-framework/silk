@@ -8,7 +8,7 @@ import org.silkframework.entity.paths.{TypedPath, UntypedPath}
 import org.silkframework.rule.MappingRules.MappingRulesFormat
 import org.silkframework.rule.MappingTarget.MappingTargetFormat
 import org.silkframework.rule.TransformRule.RDF_TYPE
-import org.silkframework.rule.input.{Input, OperatorEvaluationError, PathInput, TransformInput, Value}
+import org.silkframework.rule.input.{Input, InputExecution, InputPortInput, InputValidation, OperatorEvaluationError, PathInput, RuleBlockInput, TransformInput, Value}
 import org.silkframework.rule.plugins.transformer.combine.ConcatTransformer
 import org.silkframework.rule.plugins.transformer.normalize.{UriFixTransformer, UrlEncodeTransformer}
 import org.silkframework.rule.plugins.transformer.value.{ConstantTransformer, ConstantUriTransformer, EmptyValueTransformer}
@@ -63,20 +63,6 @@ sealed trait TransformRule extends Operator with HasMetaData {
   assert(rules.allRules.forall(!_.isInstanceOf[RootMappingRule]), "No root mapping rule allowed as child of another rule!")
 
   /**
-    * Generates the transformed values.
-    *
-    * @param entity The source entity.
-    * @return The transformed values.
-    * @throws ValidationException If a value failed to be transformed or a generated value doesn't match the target type.
-    */
-  def apply(entity: Entity): Value = {
-    val values = operator(entity)
-    // Validate values
-    target.foreach(_.validate(values.values))
-    values
-  }
-
-  /**
     * Generates a label for this rule.
     * Will return the user-defined label, if any is defined.
     * In case no label is defined, it falls back to the target property.
@@ -96,6 +82,8 @@ sealed trait TransformRule extends Operator with HasMetaData {
       case PathInput(_, path: TypedPath) => Seq(path)
       case PathInput(_, path: UntypedPath) => Seq(TypedPath(path, ValueType.UNTYPED, isAttribute = false))
       case p: TransformInput => p.inputs.flatMap(collectPaths)
+      case rb: RuleBlockInput => rb.bindings.flatMap(binding => collectPaths(binding.input))
+      case _: InputPortInput => Seq.empty
     }
 
     collectPaths(operator).distinct
@@ -104,6 +92,7 @@ sealed trait TransformRule extends Operator with HasMetaData {
   /** Throws ValidationException if this transform rule is not valid. */
   protected def validate(): Unit = {
     validateTargetUri()
+    InputValidation.validateNoInputPortsOutsideRuleBlocks(operator, new ValidationException("Input ports may only be used inside rule block definitions."))
     // Validate that the operator tree uses unique identifiers
     operator.validateIds()
     // Validate all child transform rules
@@ -140,10 +129,36 @@ sealed trait TransformRule extends Operator with HasMetaData {
     }
   }
 
-  override def withContext(taskContext: TaskContext): TransformRule = this
+  override def execution(taskContext: TaskContext): TransformRuleExecution
 
   def representsDefaultUriRule: Boolean = {
     false
+  }
+}
+
+/**
+ * Runtime executor of a [[TransformRule]].
+ */
+sealed trait TransformRuleExecution extends OperatorExecution {
+
+  /** The originating rule. */
+  override def operator: TransformRule
+
+  /** Resolved executions of the rule's direct child rules. Empty for value-producing rules. */
+  def childExecutions: Seq[TransformRuleExecution]
+
+  /** The contextualized input that produces this rule's values for an entity. */
+  def inputExecution: InputExecution
+
+  /**
+   * Generates the transformed values.
+   *
+   * @throws ValidationException If a value failed to be transformed or a generated value doesn't match the target type.
+   */
+  def apply(entity: Entity): Value = {
+    val values = inputExecution(entity)
+    operator.target.foreach(_.validate(values.values))
+    values
   }
 }
 
@@ -161,9 +176,24 @@ sealed trait ContainerTransformRule extends TransformRule {
     }
   }
 
-  override def withContext(taskContext: TaskContext): TransformRule = {
-    withChildren(rules.map(_.withContext(taskContext)))
+  override def execution(taskContext: TaskContext): ContainerTransformRuleExecution = {
+    new ContainerTransformRuleExecution(this, () => rules.map(_.execution(taskContext)), operator.execution(taskContext))
   }
+}
+
+/**
+ * Runtime executor for container transform rules.
+ *
+ * Child executions are built lazily: when a container appears as a property of its parent,
+ * the parent only needs this execution's [[inputExecution]] (to generate the URIs linking to
+ * the child entities). Its grandchildren are contextualized in their own schema iteration,
+ * so deferring this expansion avoids building those executions twice.
+ */
+class ContainerTransformRuleExecution(override val operator: ContainerTransformRule,
+                                      @transient private val childExecsFunc: () => Seq[TransformRuleExecution],
+                                      override val inputExecution: InputExecution) extends TransformRuleExecution {
+  override lazy val childExecutions: Seq[TransformRuleExecution] =
+    if (childExecsFunc != null) childExecsFunc() else Seq.empty
 }
 
 /**
@@ -188,9 +218,20 @@ sealed trait ValueTransformRule extends TransformRule {
 
   override def withId(newId: Identifier): ValueTransformRule
 
-  override def withContext(taskContext: TaskContext): ValueTransformRule = {
-    this
+  override def execution(taskContext: TaskContext): ValueTransformRuleExecution = {
+    new ValueTransformRuleExecution(this, operator.execution(taskContext))
   }
+}
+
+/**
+ * Runtime executor for value-producing transform rules (non-container). Holds the contextualized
+ * [[InputExecution]] used to evaluate the rule on an entity.
+ */
+class ValueTransformRuleExecution(override val operator: ValueTransformRule,
+                                  override val inputExecution: InputExecution) extends TransformRuleExecution {
+
+  /** Value rules have no child rules. */
+  override def childExecutions: Seq[TransformRuleExecution] = Seq.empty
 }
 
 /**
@@ -368,18 +409,26 @@ case class ComplexUriMapping(id: Identifier = "complexURI",
 
   override def withMetaData(metaData: MetaData): TransformRule = this.copy(metaData = metaData)
 
-  override def withContext(taskContext: TaskContext): ComplexUriMapping = {
-    copy(operator = operator.withContext(taskContext))
+  override def execution(taskContext: TaskContext): ValueTransformRuleExecution = {
+    new ComplexUriMappingExecution(this, operator.execution(taskContext))
   }
+}
+
+/**
+ * Runtime executor for [[ComplexUriMapping]] that additionally validates the generated URIs.
+ */
+final class ComplexUriMappingExecution(override val operator: ComplexUriMapping,
+                                       inputExecution: InputExecution)
+    extends ValueTransformRuleExecution(operator, inputExecution) {
 
   override def apply(entity: Entity): Value = {
     val v = super.apply(entity)
     val invalidUri = v.values.find(uri => !Uri(uri).isValidUri)
     if(invalidUri.isDefined && v.errors.isEmpty) {
-      // The URI rule has generated an invalid URI
-      return v.copy(errors = Seq(OperatorEvaluationError(id, new ValidationException(s"URI rule has generated an invalid URI: '${invalidUri.get}'!"))))
+      v.copy(errors = Seq(OperatorEvaluationError(operator.id, new ValidationException(s"URI rule has generated an invalid URI: '${invalidUri.get}'!"))))
+    } else {
+      v
     }
-    v
   }
 }
 
@@ -426,9 +475,6 @@ case class ComplexMapping(id: Identifier = "mapping",
 
   override def withMetaData(metaData: MetaData): TransformRule = this.copy(metaData = metaData)
 
-  override def withContext(taskContext: TaskContext): ComplexMapping = {
-    copy(operator = operator.withContext(taskContext))
-  }
 }
 
 /**
@@ -548,7 +594,7 @@ object TransformRule {
       val complex =
         ComplexMapping(
           id = (node \ "@name").text,
-          operator = fromXml[Input]((node \ "Input" ++ node \ "TransformInput").head),
+          operator = fromXml[Input]((node \ "_").find(child => Input.InputFormat.tagNames.contains(child.label)).get),
           target = target,
           metaData = metaData,
           layout = (node \ "RuleLayout").headOption.map(rl => XmlSerialization.fromXml[RuleLayout](rl)).getOrElse(RuleLayout()),
@@ -691,6 +737,8 @@ private object UriPattern {
       case TransformInput(id, UriFixTransformer(_), Seq(PathInput(_, path))) => "{" + path.serialize() + "}"
       case TransformInput(id, UrlEncodeTransformer(_), Seq(PathInput(_, path))) => "{" + path.serialize() + "}"
       case TransformInput(id, ConstantTransformer(constant), IndexedSeq()) => constant
+      case other =>
+        throw new IllegalArgumentException(s"Cannot build URI pattern from input of type ${other.getClass.getSimpleName}.")
     }.mkString("")
   }
 }

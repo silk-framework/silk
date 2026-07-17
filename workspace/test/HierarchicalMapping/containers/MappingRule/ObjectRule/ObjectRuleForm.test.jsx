@@ -19,7 +19,6 @@ const props = {
         type: "object",
     },
     scrollIntoView: jest.fn(),
-    scrollElementIntoView: jest.fn(),
     viewActions: {
         savedChanges: jest.fn(),
     },

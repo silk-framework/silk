@@ -8,8 +8,9 @@ import {
     RULE_EDITOR_NOTIFICATION_INSTANCE,
     RuleValidationError,
 } from "../../../shared/RuleEditor/RuleEditor.typings";
-import { EvaluatedTransformEntity, IComplexMappingRule } from "../transform.types";
-import { evaluateTransformRule } from "../transform.requests";
+import { EvaluatedTransformEntity, IComplexMappingRule, ITransformRuleEvaluationResponse } from "../transform.types";
+import { IValueInput } from "../../shared/rules/rule.typings";
+import { evaluateTransformRuleWithInspection } from "../transform.requests";
 import { FetchError } from "../../../../services/fetch/responseInterceptor";
 import {
     RuleEditorEvaluationContext,
@@ -22,6 +23,9 @@ import { EvaluationResultType } from "../../linking/evaluation/LinkingRuleEvalua
 import evaluationUtils from "../../shared/evaluations/evaluationOperations";
 import { GlobalMappingEditorContext } from "../../../pages/MappingEditor/contexts/GlobalMappingEditorContext";
 import { requestTaskContextInfo } from "@ducks/workspace/requests";
+import { IRuleBlockInputExample, IRuleBlockSnapshots, RuleBlockSnapshot } from "../../ruleBlock/ruleBlock.types";
+import ruleBlockInspectionUtils from "../../../../../../../../silk/workspace/src/app/views/taskViews/ruleBlock/ruleBlockInternalEvaluation.utils";
+import { RuleBlockInternalEvaluationModal } from "../../ruleBlock/RuleBlockInternalEvaluationModal";
 
 type EvaluationChildType = ReactElement<RuleEditorProps<IComplexMappingRule, IPluginDetails>>;
 
@@ -36,6 +40,17 @@ interface TransformRuleEvaluationProps {
     children: EvaluationChildType;
 }
 
+interface ActiveInternalRuleBlockEvaluation {
+    ruleBlockId: string;
+    snapshot: RuleBlockSnapshot;
+    inputExamples: IRuleBlockInputExample[];
+    ruleBlockLabel?: string;
+}
+
+const EMPTY_RULE_BLOCK_INSPECTION: IRuleBlockSnapshots = {
+    snapshots: {},
+};
+
 export const TransformRuleEvaluation: React.FC<TransformRuleEvaluationProps> = ({
     projectId,
     transformTaskId,
@@ -48,19 +63,25 @@ export const TransformRuleEvaluation: React.FC<TransformRuleEvaluationProps> = (
     const [evaluationResultMap] = React.useState<Map<string, EvaluationResultType>>(new Map());
     const [evaluationResultsShown, setEvaluationResultsShown] = React.useState<boolean>(false);
     const [nodeUpdateCallbacks] = React.useState(
-        new Map<string, (evaluationValues: EvaluationResultType | undefined) => any>()
+        new Map<string, (evaluationValues: EvaluationResultType | undefined) => any>(),
     );
     const [ruleValidationError, setRuleValidationError] = React.useState<RuleValidationError | undefined>(undefined);
     const [validationNotifications, setValidationNotifications] = React.useState<RuleEditorEvaluationNotification[]>(
-        []
+        [],
     );
     const { registerError, registerErrorI18N } = useErrorHandler();
     const [t] = useTranslation();
     const taskContextWarningShown = React.useRef(false);
     const mappingEditorContext = React.useContext(GlobalMappingEditorContext);
     // The root node of the sub-tree that will be evaluated
-    const evaluatedSubTreeNode = React.useRef<string>();
+    const evaluatedSubTreeNode = React.useRef<string>(undefined);
     const [evaluationError, setEvaluationError] = React.useState<string | undefined>();
+    const [ruleBlockInspection, setRuleBlockInspection] =
+        React.useState<IRuleBlockSnapshots>(EMPTY_RULE_BLOCK_INSPECTION);
+    const [evaluatedRuleOperator, setEvaluatedRuleOperator] = React.useState<IValueInput | undefined>(undefined);
+    const [activeInternalRuleBlockEvaluation, setActiveInternalRuleBlockEvaluation] = React.useState<
+        ActiveInternalRuleBlockEvaluation | undefined
+    >(undefined);
 
     const addValidationNotification = React.useCallback((n: RuleEditorEvaluationNotification) => {
         setValidationNotifications((old) => [n, ...old]);
@@ -74,6 +95,9 @@ export const TransformRuleEvaluation: React.FC<TransformRuleEvaluationProps> = (
         setEvaluationResult([]);
         evaluationResultMap.clear();
         nodeUpdateCallbacks.clear();
+        setRuleBlockInspection(EMPTY_RULE_BLOCK_INSPECTION);
+        setEvaluatedRuleOperator(undefined);
+        setActiveInternalRuleBlockEvaluation(undefined);
     }, [projectId, transformTaskId]);
 
     React.useEffect(() => {
@@ -105,15 +129,15 @@ export const TransformRuleEvaluation: React.FC<TransformRuleEvaluationProps> = (
     };
 
     const fetchTransformRuleEvaluation: (
-        rule: IComplexMappingRule
-    ) => Promise<EvaluatedTransformEntity[] | undefined> = async (rule: IComplexMappingRule) => {
+        rule: IComplexMappingRule,
+    ) => Promise<ITransformRuleEvaluationResponse | undefined> = async (rule: IComplexMappingRule) => {
         try {
-            const result = await evaluateTransformRule(
+            const result = await evaluateTransformRuleWithInspection(
                 projectId,
                 transformTaskId,
                 containerRuleId,
                 rule,
-                numberOfLinkToShow
+                numberOfLinkToShow,
             );
             return result.data;
         } catch (ex) {
@@ -139,14 +163,52 @@ export const TransformRuleEvaluation: React.FC<TransformRuleEvaluationProps> = (
         return true;
     }, []);
 
+    const canEvaluateRuleBlock = React.useCallback(
+        (nodeId: string, ruleBlockId: string) =>
+            !!evaluatedRuleOperator &&
+            !!ruleBlockInspection.snapshots[ruleBlockId] &&
+            ruleBlockInspectionUtils.createInputExamplesFromTransformEvaluations(
+                evaluationResult,
+                nodeId,
+                evaluatedRuleOperator,
+            ).length > 0,
+        [evaluatedRuleOperator, evaluationResult, ruleBlockInspection.snapshots],
+    );
+
+    const openInternalRuleBlockEvaluation = React.useCallback(
+        (nodeId: string, ruleBlockId: string, ruleBlockLabel?: string) => {
+            const snapshot = ruleBlockInspection.snapshots[ruleBlockId];
+            if (!snapshot) {
+                return;
+            }
+            const inputExamples = ruleBlockInspectionUtils.createInputExamplesFromTransformEvaluations(
+                evaluationResult,
+                nodeId,
+                evaluatedRuleOperator,
+            );
+            if (inputExamples.length === 0) {
+                return;
+            }
+            setActiveInternalRuleBlockEvaluation({
+                ruleBlockId,
+                snapshot,
+                inputExamples,
+                ruleBlockLabel,
+            });
+        },
+        [evaluatedRuleOperator, evaluationResult, ruleBlockInspection.snapshots],
+    );
+
     /** Start an evaluation of the linkage rule. */
     const startEvaluation = async (
         _ruleOperatorNodes: IRuleOperatorNode[],
         originalRule: any,
-        quickEvaluationOnly: boolean = false
+        quickEvaluationOnly: boolean = false,
     ) => {
         setEvaluationRunning(true);
         setRuleValidationError(undefined);
+        setActiveInternalRuleBlockEvaluation(undefined);
+        setEvaluatedRuleOperator(undefined);
         let ruleOperatorNodes = _ruleOperatorNodes;
         if (evaluatedSubTreeNode.current) {
             ruleOperatorNodes = evaluationUtils.getSubTreeNodes(ruleOperatorNodes, evaluatedSubTreeNode.current);
@@ -171,14 +233,16 @@ export const TransformRuleEvaluation: React.FC<TransformRuleEvaluationProps> = (
                 layout: ruleUtils.ruleLayout(ruleOperatorNodes),
             };
             const result = await fetchTransformRuleEvaluation(rule);
-            setEvaluationResult(result ?? []);
+            setEvaluationResult(result?.evaluatedValues ?? []);
+            setRuleBlockInspection(result?.ruleBlockInspection ?? EMPTY_RULE_BLOCK_INSPECTION);
+            setEvaluatedRuleOperator(result ? rule.operator : undefined);
         } catch (ex) {
             if (ex.isFetchError) {
                 registerError(
                     "TransformRuleEvaluation.startEvaluation",
                     t("taskViews.linkRulesEditor.errors.startEvaluation.msg"),
                     ex,
-                    { errorNotificationInstanceId: RULE_EDITOR_NOTIFICATION_INSTANCE }
+                    { errorNotificationInstanceId: RULE_EDITOR_NOTIFICATION_INSTANCE },
                 );
             } else if (ex.isRuleValidationError) {
                 setRuleValidationError(ex);
@@ -187,7 +251,7 @@ export const TransformRuleEvaluation: React.FC<TransformRuleEvaluationProps> = (
                     "LinkingRuleEvaluation.beforeStartEvaluation",
                     t("taskViews.linkRulesEditor.errors.beforeStartEvaluation.msg"),
                     ex,
-                    { errorNotificationInstanceId: RULE_EDITOR_NOTIFICATION_INSTANCE }
+                    { errorNotificationInstanceId: RULE_EDITOR_NOTIFICATION_INSTANCE },
                 );
             }
         } finally {
@@ -216,14 +280,14 @@ export const TransformRuleEvaluation: React.FC<TransformRuleEvaluationProps> = (
     /** Called by a rule operator node to register for evaluation updates. */
     const registerForEvaluationResults = (
         ruleOperatorId: string,
-        evaluationUpdate: (evaluationValues: EvaluationResultType | undefined) => void
+        evaluationUpdate: (evaluationValues: EvaluationResultType | undefined) => void,
     ) => {
         nodeUpdateCallbacks.set(ruleOperatorId, evaluationUpdate);
         evaluationUpdate(evaluationResultMap.get(ruleOperatorId));
     };
 
     /** Factory method used by the rule editor to create an evaluation element. */
-    const createRuleEditorEvaluationComponent = (ruleOperatorId: string): JSX.Element => {
+    const createRuleEditorEvaluationComponent = (ruleOperatorId: string): React.JSX.Element => {
         return (
             <LinkRuleNodeEvaluation
                 ruleOperatorId={ruleOperatorId}
@@ -251,6 +315,7 @@ export const TransformRuleEvaluation: React.FC<TransformRuleEvaluationProps> = (
                 evaluationScore: undefined,
                 // There is no evaluation result for mapping rules
                 evaluationResultsShown: evaluationResultsShown,
+                hasEvaluationResult: evaluationResult.length > 0,
                 ruleValidationError,
                 clearRuleValidationError,
                 // Not needed yet
@@ -258,11 +323,24 @@ export const TransformRuleEvaluation: React.FC<TransformRuleEvaluationProps> = (
                 setEvaluationRootNode,
                 evaluationRootNode,
                 canBeEvaluated,
+                canEvaluateRuleBlock,
+                openInternalRuleBlockEvaluation,
                 notifications: validationNotifications,
                 ruleType: "transform",
             }}
         >
-            {children}
+            {React.cloneElement(children, {
+                overlayContent: activeInternalRuleBlockEvaluation ? (
+                    <RuleBlockInternalEvaluationModal
+                        projectId={projectId}
+                        ruleBlockId={activeInternalRuleBlockEvaluation.ruleBlockId}
+                        snapshot={activeInternalRuleBlockEvaluation.snapshot}
+                        inputExamples={activeInternalRuleBlockEvaluation.inputExamples}
+                        ruleBlockLabel={activeInternalRuleBlockEvaluation.ruleBlockLabel}
+                        onClose={() => setActiveInternalRuleBlockEvaluation(undefined)}
+                    />
+                ) : null,
+            })}
         </RuleEditorEvaluationContext.Provider>
     );
 };

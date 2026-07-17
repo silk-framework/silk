@@ -6,9 +6,9 @@ import io.swagger.v3.oas.annotations.media.Schema.RequiredMode
 import org.silkframework.config.{CustomTask, TaskSpec}
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.dataset.{Dataset, DatasetSpec}
-import org.silkframework.rule.{LinkSpec, TransformSpec}
+import org.silkframework.rule.{LinkSpec, RuleBlockSpec, TransformSpec}
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.runtime.plugin.{PluginContext, PluginDescription}
+import org.silkframework.runtime.plugin.{PluginContext, PluginDescription, TaskResolver}
 import org.silkframework.runtime.serialization.WriteContext
 import org.silkframework.runtime.validation.BadUserInputException
 import org.silkframework.serialization.json.JsonSerializers.{TaskFormatOptions, TaskJsonFormat, TaskSpecJsonFormat}
@@ -38,6 +38,7 @@ object SearchApiModel {
   final val PLUGIN_LABEL = "pluginLabel"
   final val TAGS = "tags"
   final val SEARCH_TAGS = "searchTags"
+  final val HIDDEN_SEARCH_TOKENS = "hiddenSearchTokens"
   final val PARAMETERS = "parameters"
   final val READ_ONLY = "readOnly"
   final val URI_PROPERTY = "uriProperty"
@@ -171,8 +172,9 @@ object SearchApiModel {
       val searchInItemType = if(task.data.isInstanceOf[DatasetSpec[_]]) "dataset" else ""
       val tagLabels = task.tags().map(_.label)
       val searchTags = task.searchTags(pluginContext)
+      val hiddenSearchTokens = task.hiddenSearchTokens(pluginContext)
       val searchInTerms = Seq(taskLabel, description, searchInProperties, searchInProject, pluginLabel, searchInItemType) ++ tagLabels ++ searchTags
-      matchesSearchTerm(lowerCaseSearchTerms, searchInTerms: _*)
+      TextSearchUtils.matchesSearchTerm(lowerCaseSearchTerms, searchInTerms, hiddenSearchTokens)
     }
 
     /** Match search terms against project. */
@@ -280,6 +282,7 @@ object SearchApiModel {
         case ItemType.dataset => project.tasks[DatasetSpec[Dataset]]
         case ItemType.linking => project.tasks[LinkSpec]
         case ItemType.transform => project.tasks[TransformSpec]
+        case ItemType.ruleBlock => project.tasks[RuleBlockSpec]
         case ItemType.workflow => project.tasks[Workflow]
         case ItemType.task => project.tasks[CustomTask]
         case ItemType.project => Seq.empty
@@ -628,7 +631,7 @@ object SearchApiModel {
     private def writeTask(task: ProjectTask[_ <: TaskSpec])
                          (implicit userContext: UserContext): JsValue = {
       taskFormat(userContext).write(task)(WriteContext[JsValue](prefixes = task.project.config.prefixes, projectId = Some(task.project.id),
-        resources = task.project.resources))
+        resources = task.project.resources, taskResolver = TaskResolver.empty))
     }
   }
 }

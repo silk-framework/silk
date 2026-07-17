@@ -7,7 +7,7 @@ import org.silkframework.dataset.operations.DeleteFilesOperatorTest.createResour
 import org.silkframework.execution.local.LocalExecution
 import org.silkframework.execution.{ExecutionReport, ExecutorOutput}
 import org.silkframework.runtime.activity.TestUserContextTrait
-import org.silkframework.runtime.plugin.PluginContext
+import org.silkframework.runtime.plugin.{PluginContext, TaskResolver}
 import org.silkframework.util.{ActivityContextMock, MockitoSugar}
 
 class LocalDeleteFilesOperatorExecutorTest extends AnyFlatSpec with Matchers with TestUserContextTrait with MockitoSugar {
@@ -25,30 +25,30 @@ class LocalDeleteFilesOperatorExecutorTest extends AnyFlatSpec with Matchers wit
     ) shouldBe List("file.csv")
     execute(
       regex = "file.*\\.csv",
-      existingFiles = Seq("file.csv", "file1.csv", "File1.csv", "files.csv", "subdir/file.csv"),
+      existingFiles = Seq("file.csv", "file1.csv", "other.csv", "files.csv", "subdir/file.csv"),
       entityOutput = true
-    ) shouldBe List("File1.csv", "subdir/file.csv")
+    ) shouldBe List("other.csv", "subdir/file.csv")
   }
 
   it should "remove files based on a regex in sub-directories" in {
     execute(
       regex = "subdir.*",
-      existingFiles = Seq("another", "subdir/file.csv", "subdir/file1.csv", "subdir/File1.csv", "subdir/files.csv", "subdirFile.csv", "this"),
+      existingFiles = Seq("another", "subdir/file.csv", "subdir/file1.csv", "subdir/other.csv", "subdir/files.csv", "subdirFile.csv", "this"),
       entityOutput = true
     ) shouldBe List("another", "this")
     // The regex needs to match the full path
     execute(
       regex = "subdir",
-      existingFiles = Seq("another", "subdir/file.csv", "subdir/file1.csv", "subdir/File1.csv", "subdir/files.csv", "subdirFile.csv", "this"),
+      existingFiles = Seq("another", "subdir/file.csv", "subdir/file1.csv", "subdir/other.csv", "subdir/files.csv", "subdirFile.csv", "this"),
       entityOutput = true
-    ) shouldBe List("another", "subdir/File1.csv", "subdir/file.csv", "subdir/file1.csv", "subdir/files.csv", "subdirFile.csv", "this")
+    ) shouldBe List("another", "subdir/file.csv", "subdir/file1.csv", "subdir/files.csv", "subdir/other.csv", "subdirFile.csv", "this")
   }
 
   /** Returns the still existing files after the operator gets executed sorted. */
   private def execute(regex: String, existingFiles: Seq[String], entityOutput: Boolean): Seq[String] = {
     val task = PlainTask("task", DeleteFilesOperator(regex, outputEntities = entityOutput))
     val resourceManager = createResourceManager(existingFiles)
-    implicit val pluginContext: PluginContext = PluginContext(Prefixes.empty, resourceManager)
+    implicit val pluginContext: PluginContext = PluginContext(Prefixes.empty, resourceManager, taskResolver = TaskResolver.empty)
     val activityContext = ActivityContextMock[ExecutionReport]()
     val outputEntities = executor.execute(task, Seq.empty, output = ExecutorOutput.empty, execution = LocalExecution(), context = activityContext)
     if(entityOutput) {

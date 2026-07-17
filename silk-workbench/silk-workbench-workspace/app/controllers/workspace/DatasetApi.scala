@@ -208,20 +208,21 @@ class LegacyDatasetApi @Inject() (implicit workspaceReact: WorkspaceReact) exten
                  autoConfigure: Boolean): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     val project = WorkspaceFactory().workspace.project(projectName)
     implicit val prefixes: Prefixes = project.config.prefixes
-    implicit val readContext: ReadContext = ReadContext(project.resources, project.config.prefixes)
+    implicit val readContext: ReadContext = taskUpdateReadContext(project, datasetName)
 
     try {
       deserializeCompileTime() { dataset: DatasetTask =>
+        val executionVariables = executionVariablesIfProvided(dataset)
         if (autoConfigure) {
           dataset.plugin match {
             case autoConfigurable: DatasetPluginAutoConfigurable[_] =>
-              project.updateTask(dataset.id, dataset.data.copy(plugin = autoConfigurable.autoConfigured))
+              project.updateTask(dataset.id, dataset.data.copy(plugin = autoConfigurable.autoConfigured), executionVariables = executionVariables)
               NoContent
             case _ =>
               ErrorResult(BadUserInputException("This dataset type does not support auto-configuration."))
           }
         } else {
-          project.updateTask(dataset.id, dataset.data, Some(dataset.metaData))
+          project.updateTask(dataset.id, dataset.data, Some(dataset.metaData), executionVariables)
           NoContent
         }
       }
@@ -263,86 +264,6 @@ class LegacyDatasetApi @Inject() (implicit workspaceReact: WorkspaceReact) exten
                     source: String): Action[AnyContent] = UserContextAction { implicit userContext =>
     WorkspaceFactory().workspace.project(project).removeTask[GenericDatasetSpec](source)
     NoContent
-  }
-
-  def datasetDialog(projectName: String,
-                    datasetName: String,
-                    title: String = "Edit Dataset",
-                    createDialog: Boolean): Action[AnyContent] = UserContextAction { implicit userContext =>
-    val project = WorkspaceFactory().workspace.project(projectName)
-    val datasetPlugin = if (datasetName.isEmpty) None else project.taskOption[GenericDatasetSpec](datasetName).map(_.data)
-    Ok(views.html.workspace.dataset.datasetDialog(project, datasetName, datasetPlugin, title, createDialog))
-  }
-
-  def datasetDialogAutoConfigured(projectName: String, datasetName: String, pluginId: String): Action[AnyContent] = RequestUserContextAction { request => implicit userContext =>
-    val project = WorkspaceFactory().workspace.project(projectName)
-    val createDialog = project.taskOption[DatasetSpec[Dataset]](datasetName).isEmpty
-    val dialogTitle = if(createDialog) "Create Dataset" else "Edit Dataset"
-    implicit val context: PluginContext = PluginContext.fromProject(project)
-    val datasetParams = request.queryString.view.mapValues(_.head).toMap
-    val datasetPlugin = Dataset.apply(pluginId, ParameterValues.fromStringMap(datasetParams))
-    datasetPlugin match {
-      case ds: DatasetPluginAutoConfigurable[_] =>
-        Ok(views.html.workspace.dataset.datasetDialog(project, datasetName, Some(DatasetSpec(ds.autoConfigured)), title = dialogTitle, createDialog = createDialog))
-      case _ =>
-        ErrorResult(BadUserInputException("This dataset type does not support auto-configuration."))
-    }
-  }
-
-  def dataset(project: String, task: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
-    val context = Context.get[GenericDatasetSpec](project, task, request.path)
-    context.task.data match {
-      case dataset: GenericDatasetSpec =>
-        if (dataset.plugin.isInstanceOf[RdfDataset]) {
-          Redirect(routes.DatasetController.sparql(project, task))
-        } else {
-          Redirect(routes.DatasetController.table(project, task))
-        }
-    }
-  }
-
-  def table(project: String, task: String, maxEntities: Int): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
-    val context = Context.get[GenericDatasetSpec](project, task, request.path)
-    val source = context.task.data.source
-    implicit val pluginContext: PluginContext = PluginContext.fromProject(context.project)
-    implicit val prefixes: Prefixes = pluginContext.prefixes
-
-    val firstTypes = source.retrieveTypes().head._1
-    val paths = source.retrievePaths(firstTypes).toIndexedSeq
-    val entityDesc = EntitySchema(firstTypes, paths)
-    val entities = source.retrieve(entityDesc).entities.use(_.take(maxEntities).toList)
-
-    Ok(views.html.workspace.dataset.table(context, paths.map(_.toUntypedPath), entities))
-  }
-
-  def sparql(project: String, task: String, query: String = ""): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
-    val context = Context.get[GenericDatasetSpec](project, task, request.path)
-
-    context.task.data.plugin match {
-      case rdf: RdfDataset =>
-        val sparqlEndpoint = rdf.sparqlEndpoint
-        var queryResults: Option[SparqlResults] = None
-        if (!query.isEmpty) {
-          queryResults = Some(sparqlEndpoint.select(query))
-        }
-        Ok(views.html.workspace.dataset.sparql(context, sparqlEndpoint, query, queryResults))
-      case _ =>
-        ErrorResult(BadUserInputException("This is not an RDF-Dataset."))
-    }
-  }
-
-  /** Get types of a dataset including the search string */
-  @deprecated(message = "getDatasetTypes should be used instead.")
-  def types(project: String, task: String, search: String = "", limit: Option[Int] = None): Action[AnyContent] = RequestUserContextAction { request => implicit userContext =>
-    val context = Context.get[GenericDatasetSpec](project, task, request.path)
-    implicit val prefixes: Prefixes = context.project.config.prefixes
-
-    val typesFull = context.task.activity[TypesCache].value().types
-    val typesResolved = typesFull.map(t => new Uri(t).serialize)
-    val filteredTypes = typesResolved.filter(_.contains(search))
-    val limitedTypes = limit.map(l => filteredTypes.take(l)).getOrElse(filteredTypes)
-
-    Ok(JsArray(limitedTypes.map(JsString)))
   }
 
   /** Get all types of the dataset */

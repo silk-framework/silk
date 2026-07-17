@@ -1,7 +1,6 @@
 package controllers.transform
 
 import helper.IntegrationTestTrait
-
 import org.silkframework.entity.paths.UntypedPath
 import org.silkframework.entity.{Entity, EntitySchema}
 import org.silkframework.rule.input.{PathInput, TransformInput, Transformer}
@@ -9,7 +8,7 @@ import org.silkframework.rule.plugins.transformer.combine.ConcatTransformer
 import org.silkframework.rule.plugins.transformer.date.DateToTimestampTransformer
 import org.silkframework.rule.plugins.transformer.normalize.LowerCaseTransformer
 import org.silkframework.rule.plugins.transformer.tokenization.CamelCaseTokenizer
-import org.silkframework.rule.{ComplexMapping, PatternUriMapping, TransformRule}
+import org.silkframework.rule.{ComplexMapping, PatternUriMapping, TaskContext, TransformRule, TransformRuleExecution}
 import org.silkframework.serialization.json.JsonSerializers.TransformRuleJsonFormat
 import org.silkframework.serialization.json.{JsonHelpers, JsonSerialization}
 import org.silkframework.util.Uri
@@ -51,10 +50,10 @@ class PeakTransformApiTest extends AnyFlatSpec with SingleProjectWorkspaceProvid
     )
   }
 
-  private def transformRule(transformer: Transformer): ComplexMapping = {
+  private def transformRule(transformer: Transformer): TransformRuleExecution = {
     val transformation = TransformInput(transformer = transformer,
       inputs = IndexedSeq(PathInput("p", UntypedPath("a")), PathInput("p", UntypedPath("b"))))
-    ComplexMapping(operator = transformation)
+    ComplexMapping(operator = transformation).execution(TaskContext.empty)
   }
 
   it should "collect transformation examples skipping empty transformation results" in {

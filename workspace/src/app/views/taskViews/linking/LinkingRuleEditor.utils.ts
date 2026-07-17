@@ -47,16 +47,16 @@ const REVERSE_PARAMETER_ID = "reverse";
 const extractSimilarityOperatorNode = (
     operator: ISimilarityOperator | undefined,
     result: IRuleOperatorNode[],
-    ruleOperator: RuleOperatorFetchFnType
+    ruleOperator: RuleOperatorFetchFnType,
 ): string | undefined => {
     if (operator) {
         const isComparison = operator.type === "Comparison";
         const inputs = isComparison
             ? comparatorInputs(operator as IComparisonOperator).map((input, idx) =>
-                  ruleUtils.extractOperatorNodeFromValueInput(input, result, idx > 0, ruleOperator)
+                  ruleUtils.extractOperatorNodeFromValueInput(input, result, idx > 0, ruleOperator),
               )
             : aggregatorInputs(operator as IAggregationOperator).map((input) =>
-                  extractSimilarityOperatorNode(input, result, ruleOperator)
+                  extractSimilarityOperatorNode(input, result, ruleOperator),
               );
         const pluginId = isComparison
             ? (operator as IComparisonOperator).metric
@@ -98,6 +98,7 @@ const extractSimilarityOperatorNode = (
                 ...additionalParameters,
             },
             portSpecification: {
+                type: "count",
                 minInputPorts: isComparison ? 2 : 1,
                 maxInputPorts: isComparison ? 2 : undefined,
             },
@@ -117,7 +118,7 @@ const getStickyNotes = (linkSpec: TaskPlugin<ILinkingTaskParameters>): StickyNot
 /** Converts the linking task rule to the internal representation. */
 const convertLinkingTaskToRuleOperatorNodes = (
     linkSpec: TaskPlugin<ILinkingTaskParameters>,
-    ruleOperator: RuleOperatorFetchFnType
+    ruleOperator: RuleOperatorFetchFnType,
 ): IRuleOperatorNode[] => {
     const rule = optionallyLabelledParameterToValue(linkSpec.parameters.rule);
     return convertLinkingRuleToRuleOperatorNodes(rule, ruleOperator);
@@ -126,7 +127,7 @@ const convertLinkingTaskToRuleOperatorNodes = (
 /** Convert a linking rule to rule operator nodes. */
 const convertLinkingRuleToRuleOperatorNodes = (
     linkRule: ILinkingRule,
-    ruleOperator: RuleOperatorFetchFnType
+    ruleOperator: RuleOperatorFetchFnType,
 ): IRuleOperatorNode[] => {
     const operatorNodes: IRuleOperatorNode[] = [];
     extractSimilarityOperatorNode(linkRule.operator, operatorNodes, ruleOperator);
@@ -144,7 +145,7 @@ const convertLinkingRuleToRuleOperatorNodes = (
 // Converts a rule operator node to a rule validation node
 const fromType = (
     ruleOperatorNode: IRuleOperatorNode,
-    ruleOperatorNodes: Map<string, IRuleOperatorNode>
+    ruleOperatorNodes: Map<string, IRuleOperatorNode>,
 ): "source" | "target" | undefined => {
     const convertNode = (ruleOperatorNode: IRuleOperatorNode): RuleEditorValidationNode => {
         return {
@@ -165,25 +166,25 @@ const fromType = (
 
 const convertRuleOperatorNodeToSimilarityOperator = (
     ruleOperatorNode: IRuleOperatorNode | undefined,
-    ruleOperatorNodes: Map<string, IRuleOperatorNode>
+    ruleOperatorNodes: Map<string, IRuleOperatorNode>,
 ): ISimilarityOperator | undefined => {
     if (ruleOperatorNode) {
         if (ruleOperatorNode.pluginType === "ComparisonOperator") {
             if (ruleOperatorNode.inputs.length !== 2 || !ruleOperatorNode.inputs.every((input) => input != null)) {
                 throw new RuleValidationError(
                     `Comparison operator '${ruleOperatorNode.label}' must have 2 inputs, but is missing at least 1 input!`,
-                    [ruleOperatorNode]
+                    [ruleOperatorNode],
                 );
             }
             const comparison: IComparisonOperator = {
                 metric: ruleOperatorNode.pluginId,
                 sourceInput: ruleUtils.convertRuleOperatorNodeToValueInput(
                     ruleUtils.fetchRuleOperatorNode(ruleOperatorNode.inputs[0]!!, ruleOperatorNodes, ruleOperatorNode),
-                    ruleOperatorNodes
+                    ruleOperatorNodes,
                 ),
                 targetInput: ruleUtils.convertRuleOperatorNodeToValueInput(
                     ruleUtils.fetchRuleOperatorNode(ruleOperatorNode.inputs[1]!!, ruleOperatorNodes, ruleOperatorNode),
-                    ruleOperatorNodes
+                    ruleOperatorNodes,
                 ),
                 id: ruleOperatorNode.nodeId,
                 indexing: true, // FIXME: Should this be part of the config in the UI?
@@ -191,7 +192,7 @@ const convertRuleOperatorNodeToSimilarityOperator = (
                     Object.entries(ruleOperatorNode.parameters).map(([parameterKey, parameterValue]) => [
                         parameterKey,
                         parameterValue ?? "",
-                    ])
+                    ]),
                 ),
                 type: "Comparison",
                 threshold: parseFloat(ruleEditorNodeParameterValue(ruleOperatorNode.parameters["threshold"])!!),
@@ -225,14 +226,14 @@ const convertRuleOperatorNodeToSimilarityOperator = (
                         (i) =>
                             convertRuleOperatorNodeToSimilarityOperator(
                                 ruleUtils.fetchRuleOperatorNode(i!!, ruleOperatorNodes, ruleOperatorNode),
-                                ruleOperatorNodes
-                            )!!
+                                ruleOperatorNodes,
+                            )!!,
                     ),
                 parameters: Object.fromEntries(
                     Object.entries(ruleOperatorNode.parameters).map(([parameterKey, parameterValue]) => [
                         parameterKey,
                         parameterValue ?? "",
-                    ])
+                    ]),
                 ),
                 type: "Aggregation",
                 weight: parseInt(ruleEditorNodeParameterValue(ruleOperatorNode.parameters["weight"])!!),
@@ -248,7 +249,7 @@ const inputPathTab = (
     linkingTaskId: string,
     baseOperator: IRuleOperator,
     sourceOrTarget: "source" | "target",
-    errorHandler: (err) => any
+    errorHandler: (err) => any,
 ): IRuleSidebarPreConfiguredOperatorsTabConfig => {
     const category = sourceOrTarget === "source" ? "Source path" : "Target path";
     const inputPathTabConfig: IRuleSidebarPreConfiguredOperatorsTabConfig<PathWithMetaData> = {
@@ -273,7 +274,7 @@ const inputPathTab = (
                                 linkingTaskId,
                                 sourceOrTarget,
                                 true,
-                                langPref
+                                langPref,
                             )
                         ).data as PathWithMetaData[]
                     )
@@ -326,7 +327,7 @@ export const constructLinkageRuleTree = (ruleOperatorNodes: IRuleOperatorNode[])
             rootNodes.map((node) => ({
                 nodeId: node.nodeId,
                 message: `Root node '${node.label}' is a '${node.pluginType}', but must be either a comparison or aggregation.`,
-            }))
+            })),
         );
     }
 

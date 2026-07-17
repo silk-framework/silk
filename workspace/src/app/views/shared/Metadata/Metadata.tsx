@@ -40,6 +40,7 @@ import { IMetadataExpanded } from "./Metadatatypings";
 import { Keyword, Keywords } from "@ducks/workspace/typings";
 import { MultiTagSelect } from "../MultiTagSelect";
 import useHotKey from "../HotKeyHandler/HotKeyHandler";
+import { AppDispatch } from "store/configureStore";
 
 export const getDateData = (dateTime: number | string) => {
     const then = new Date(dateTime);
@@ -58,7 +59,7 @@ interface IProps {
 
 export function Metadata(props: IProps) {
     const location = useLocation();
-    const dispatch = useDispatch();
+    const dispatch = useDispatch<AppDispatch>();
     const { registerError } = useErrorHandler();
 
     const _projectId = useSelector(commonSel.currentProjectIdSelector);
@@ -70,7 +71,7 @@ export function Metadata(props: IProps) {
     const [loading, setLoading] = useState(false);
     const [data, setData] = useState<IMetadataExpanded>({ label: "", description: "", tags: [] });
     const [formEditData, setFormEditData] = useState<IMetadataUpdatePayload | undefined>(undefined);
-    const formRef = React.useRef<IMetadataUpdatePayload | undefined>();
+    const formRef = React.useRef<IMetadataUpdatePayload | undefined>(undefined);
     const [isEditing, setIsEditing] = useState(false);
     const [unsavedChanges, setUnsavedChanges] = useState(false);
     const [createdTags, setCreatedTags] = React.useState<Partial<Keyword>[]>([]);
@@ -364,7 +365,7 @@ export function Metadata(props: IProps) {
                                     }
                                     toggleExtendText={t("common.words.more", "more")}
                                     toggleReduceText={t("common.words.less", "less")}
-                                    firstNonEmptyLineOnly={true}
+                                    useOnly={"firstNonEmptyLine"}
                                     renderPreviewAsMarkdown={true}
                                     allowedHtmlElementsInPreview={["a"]}
                                 />

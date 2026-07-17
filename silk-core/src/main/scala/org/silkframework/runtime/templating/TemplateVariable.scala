@@ -7,13 +7,22 @@ import scala.xml.{Node, PCData}
 
 /**
   * A single template variable.
+  *
+  * @param name        The local name of the variable.
+  * @param value       The value of the variable.
+  * @param template    Optional template expression to compute the value dynamically.
+  * @param description Optional description for documentation.
+  * @param isSensitive True if the variable value should not be exposed to users.
+  * @param scope       The scope of the variable. May be empty.
+  *                    For example, a variable with name "label" and scope "project.metaData"
+  *                    is addressed as "project.metaData.label".
   */
 case class TemplateVariable(override val name: String,
                             value: String,
                             template: Option[String] = None,
                             description: Option[String] = None,
                             isSensitive: Boolean = false,
-                            override val scope: String) extends TemplateVariableValue(name, scope, values = Seq(value)) {
+                            override val scope: VariableScope = VariableScope.empty) extends TemplateVariableValue(name, scope, values = Seq(value)) {
 
   validate()
 
@@ -49,14 +58,14 @@ object TemplateVariable {
         template = Option((value \ "Template").text).filter(_.trim.nonEmpty),
         description = Option((value \ "Description").text).filter(_.trim.nonEmpty),
         isSensitive = (value \ "@isSensitive").text.toBoolean,
-        scope = (value \ "@scope").text,
+        scope = VariableScope.parse((value \ "@scope").text),
       )
     }
 
     override def write(value: TemplateVariable)(implicit writeContext: WriteContext[Node]): Node = {
       <Variable name={value.name}
                 isSensitive={value.isSensitive.toString}
-                scope={value.scope}>
+                scope={value.scope.toString}>
         <Value xml:space="preserve">{PCData(value.value)}</Value>
         { value.template.toSeq.map(template => <Template xml:space="preserve">{PCData(template)}</Template>) }
         <Description xml:space="preserve">{value.description.getOrElse("")}</Description>

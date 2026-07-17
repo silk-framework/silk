@@ -12,9 +12,9 @@ import org.silkframework.config.{CustomTask, Prefixes, TaskSpec}
 import org.silkframework.dataset.{Dataset, DatasetPluginAutoConfigurable, DatasetSpec}
 import org.silkframework.rule.input.Transformer
 import org.silkframework.rule.similarity.{Aggregator, DistanceMeasure}
-import org.silkframework.rule.{LinkSpec, TransformSpec}
+import org.silkframework.rule.{LinkSpec, RuleBlockSpec, TransformSpec}
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.runtime.plugin.{PluginDescription, PluginList, PluginRegistry, PluginTypeDescription}
+import org.silkframework.runtime.plugin.{PluginDescription, PluginList, PluginRegistry, PluginTypeDescription, TaskResolver}
 import org.silkframework.runtime.resource.EmptyResourceManager
 import org.silkframework.runtime.serialization.WriteContext
 import org.silkframework.serialization.json.JsonSerializers
@@ -126,7 +126,8 @@ class PluginApi @Inject()() extends InjectedController with UserContextActions {
              withLabels: Boolean): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     PluginRegistry.pluginDescriptionsById(pluginId).headOption match {
       case Some(pluginDesc) =>
-        implicit val writeContext: WriteContext[JsValue] = WriteContext(prefixes = Prefixes.default, user = userContext, resources = EmptyResourceManager())
+        implicit val writeContext: WriteContext[JsValue] = WriteContext(prefixes = Prefixes.default, user = userContext,
+          resources = EmptyResourceManager(), taskResolver = TaskResolver.empty)
         var resultJson = PluginListJsonFormat.serializePlugin(pluginDesc, addMarkdownDocumentation, overviewOnly = false,
           taskType = PluginApiCache.taskTypeByClass(pluginDesc.pluginClass), withLabels = withLabels)
         val autoConfigurable = classOf[DatasetPluginAutoConfigurable[_]].isAssignableFrom(pluginDesc.pluginClass)
@@ -203,7 +204,8 @@ class PluginApi @Inject()() extends InjectedController with UserContextActions {
     implicit userContext =>
       PluginRegistry.pluginDescriptionsById(pluginId, Some(Seq(classOf[Transformer], classOf[DistanceMeasure], classOf[Aggregator]))).headOption match {
         case Some(pluginDesc) =>
-          implicit val writeContext: WriteContext[JsValue] = WriteContext(prefixes = Prefixes.default, user = userContext, resources = EmptyResourceManager())
+          implicit val writeContext: WriteContext[JsValue] = WriteContext(prefixes = Prefixes.default, user = userContext,
+            resources = EmptyResourceManager(), taskResolver = TaskResolver.empty)
           val resultJson = PluginListJsonFormat.serializePlugin(pluginDesc, addMarkdownDocumentation, overviewOnly = false,
             taskType = PluginApiCache.taskTypeByClass(pluginDesc.pluginClass), withLabels = withLabels)
           result(pretty, resultJson)
@@ -415,7 +417,8 @@ class PluginApi @Inject()() extends InjectedController with UserContextActions {
       val filteredPDs = pds.filter(pd => filter(pd))
       (key, filteredPDs)
     }
-    implicit val writeContext: WriteContext[JsValue] = WriteContext(prefixes = Prefixes.default, user = user, resources = EmptyResourceManager())
+    implicit val writeContext: WriteContext[JsValue] = WriteContext(prefixes = Prefixes.default, user = user,
+      resources = EmptyResourceManager(), taskResolver = TaskResolver.empty)
     val pluginListJson = JsonSerializers.toJson(pluginList.copy(pluginsByType = filteredPlugins))
     val pluginJsonWithTaskAndPluginType = pluginListJson.as[JsObject].fields.map { case (pluginId, pluginJson) =>
       val withTaskType = PluginApiCache.taskType(pluginId) match {
@@ -460,7 +463,8 @@ object PluginApiCache {
     JsonSerializers.TASK_TYPE_CUSTOM_TASK -> classOf[CustomTask],
     JsonSerializers.TASK_TYPE_WORKFLOW -> classOf[Workflow],
     JsonSerializers.TASK_TYPE_TRANSFORM -> classOf[TransformSpec],
-    JsonSerializers.TASK_TYPE_LINKING -> classOf[LinkSpec]
+    JsonSerializers.TASK_TYPE_LINKING -> classOf[LinkSpec],
+    JsonSerializers.TASK_TYPE_RULE_BLOCK -> classOf[RuleBlockSpec]
   )
 
   private val ruleOperatorTypes = Seq(
@@ -513,7 +517,8 @@ object PluginApi {
   lazy val specialTaskPlugins: Seq[PluginDescription[_]] = Seq(
     "workflow",
     "transform",
-    "linking"
+    "linking",
+    "ruleBlock"
   ) flatMap (pluginId => PluginRegistry.pluginDescriptionsById(pluginId, Some(Seq(classOf[TaskSpec]))))
 
   def taskplugins(): Seq[PluginDescription[_]] = {
@@ -566,4 +571,3 @@ object PluginTypesJson {
     PluginTypesJson(PluginRegistry.pluginTypes.map(PluginTypeJson(_)).toSeq)
   }
 }
-

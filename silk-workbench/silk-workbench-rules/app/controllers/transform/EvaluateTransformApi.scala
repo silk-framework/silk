@@ -13,13 +13,13 @@ import io.swagger.v3.oas.annotations.{Operation, Parameter}
 import org.silkframework.config.Prefixes
 import org.silkframework.rule.evaluation.{DetailedEvaluator, Value}
 import org.silkframework.rule.execution.{EvaluateTransform => EvaluateTransformTask}
-import org.silkframework.rule.{ComplexUriMapping, ObjectMapping, TransformRule, TransformSpec, ValueTransformRule}
+import org.silkframework.rule.{ComplexUriMapping, ObjectMapping, RuleBlockInspectionCollector, TransformRule, TransformSpec, ValueTransformRule}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.iterator.CloseableIterator
 import org.silkframework.runtime.plugin.PluginContext
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext}
 import org.silkframework.runtime.validation.NotFoundException
-import org.silkframework.serialization.json.JsonSerializers.TransformRuleJsonFormat
+import org.silkframework.serialization.json.JsonSerializers.{RuleBlockInspectionJsonFormat, TransformRuleJsonFormat}
 import org.silkframework.serialization.json.LinkingSerializers.{DetailedEntityJsonFormat, ValueJsonFormat}
 import org.silkframework.util.Identifier
 import org.silkframework.workbench.workspace.WorkbenchAccessMonitor
@@ -36,7 +36,11 @@ class EvaluateTransformApi @Inject()(implicit accessMonitor: WorkbenchAccessMoni
 
   @Operation(
     summary = "Evaluate transform rule",
-    description = "Evaluates a transform rule that is send with the requests.",
+    description =
+      "Evaluates a transform rule that is send with the requests. " +
+      "By default this returns the legacy JSON array response. " +
+      "If includeRuleBlockInspection=true is set, the response changes to a JSON object containing " +
+      "the legacy array under 'evaluatedValues' plus reusable rule block inspection snapshots under 'ruleBlockInspection'.",
     responses = Array(
       new ApiResponse(
         responseCode = "200",
@@ -94,7 +98,17 @@ class EvaluateTransformApi @Inject()(implicit accessMonitor: WorkbenchAccessMoni
                      in = ParameterIn.QUERY,
                      schema = new Schema(implementation = classOf[Int], defaultValue = "3")
                    )
-                   limit: Int): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
+                   limit: Int,
+                   @Parameter(
+                     name = "includeRuleBlockInspection",
+                     description =
+                       "If false, returns the legacy JSON array response. " +
+                       "If true, changes the response to a JSON object with 'evaluatedValues' and 'ruleBlockInspection'.",
+                     required = false,
+                     in = ParameterIn.QUERY,
+                     schema = new Schema(implementation = classOf[Boolean], defaultValue = "false")
+                   )
+                   includeRuleBlockInspection: Boolean): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     val project = WorkspaceFactory().workspace.project(projectName)
     val task = project.task[TransformSpec](taskName)
 
@@ -102,8 +116,18 @@ class EvaluateTransformApi @Inject()(implicit accessMonitor: WorkbenchAccessMoni
     implicit val writeContext: WriteContext[JsValue] = WriteContext.fromProject[JsValue](project)
 
     SerializationUtils.deserializeCompileTime[TransformRule](defaultMimeType = SerializationUtils.APPLICATION_JSON) { transformRule =>
-      val transformedValues = evaluateRule(task, parentRuleId, transformRule, limit)(PluginContext.fromProject(project))
-      Ok(JsArray(transformedValues.map(ValueJsonFormat.write).toSeq))
+      val pluginContext = PluginContext.fromProject(project)
+      val transformedValues = evaluateRule(task, parentRuleId, transformRule, limit)(pluginContext)
+      val serializedValues = JsArray(transformedValues.map(ValueJsonFormat.write).toSeq)
+      if(includeRuleBlockInspection) {
+        val ruleBlockInspection = RuleBlockInspectionCollector.fromTransformRule(transformRule, task.taskContext(pluginContext))
+        Ok(Json.obj(
+          "evaluatedValues" -> serializedValues,
+          "ruleBlockInspection" -> RuleBlockInspectionJsonFormat.write(ruleBlockInspection)
+        ))
+      } else {
+        Ok(serializedValues)
+      }
     }
   }
 
@@ -180,7 +204,8 @@ class EvaluateTransformApi @Inject()(implicit accessMonitor: WorkbenchAccessMoni
         source = task.dataSource,
         entitySchema = ruleSchema.inputSchema,
         rules = ruleSchema.transformRule.rules,
-        maxEntities = limit
+        maxEntities = limit,
+        taskContext = task.taskContext
       )
     val entities = evaluateTransform.execute()
     // FIXME: This only filters the limit# entities. Unclear how to do this in a performant way to fetch entities until the limit is met.
@@ -194,7 +219,7 @@ class EvaluateTransformApi @Inject()(implicit accessMonitor: WorkbenchAccessMoni
     ))
   }
 
-  private def evaluatedRulesJson(ruleSchema: TransformSpec.RuleSchemata)
+  private def evaluatedRulesJson(ruleSchema: TransformSpec.RuleSchemataExecution)
                                 (implicit writeContext: WriteContext[JsValue]): Seq[JsValue] = {
     ruleSchema.transformRule.rules.allRules
       .map(r => {
@@ -215,13 +240,13 @@ class EvaluateTransformApi @Inject()(implicit accessMonitor: WorkbenchAccessMoni
   }
 
   private def ruleSchemaById(task: ProjectTask[TransformSpec], ruleId: String)
-                            (implicit pluginContext: PluginContext): TransformSpec.RuleSchemata = {
+                            (implicit pluginContext: PluginContext): TransformSpec.RuleSchemataExecution = {
     val objectMappingId = task.data.objectMappingIdOfRule(ruleId).getOrElse(ruleId)
     task.data.ruleSchemata
       .find(_.transformRule.id.toString == objectMappingId)
       .getOrElse(throw new NotFoundException(s"Mapping rule '$ruleId' is not part of task '${task.fullLabel}' in project '${task.project.fullLabel}'. " +
         s"Available rules: ${task.data.ruleSchemata.map(_.transformRule.id).mkString(", ")}"))
-      .withContext(task.taskContext)
+      .execution(task.taskContext)
   }
 
   private def evaluateRule(task: ProjectTask[TransformSpec], parentRuleId: Identifier, transformRule: TransformRule, limit: Int)
@@ -230,11 +255,11 @@ class EvaluateTransformApi @Inject()(implicit accessMonitor: WorkbenchAccessMoni
 
     val ruleSchema = ruleSchemaById(task, parentRuleId)
     val inputSchema = ruleSchema.inputSchema.copy(typedPaths = transformRule.sourcePaths.toIndexedSeq)
-    val ruleWithContext = transformRule.withContext(task.taskContext)
 
     val entities = task.dataSource.retrieve(inputSchema, Some(limit)).entities.take(limit)
+    val ruleExec = transformRule.execution(task.taskContext)
     for(entity <- entities) yield {
-      DetailedEvaluator(ruleWithContext, entity)
+      DetailedEvaluator(ruleExec, entity)
     }
   }
 

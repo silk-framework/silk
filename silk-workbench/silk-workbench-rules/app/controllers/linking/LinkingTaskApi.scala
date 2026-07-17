@@ -16,18 +16,21 @@ import io.swagger.v3.oas.annotations.{Operation, Parameter}
 import org.silkframework.config.{FixedNumberOfInputs, FixedSchemaPort, MetaData, PlainTask, Prefixes}
 import org.silkframework.dataset.Dataset
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
+import org.silkframework.execution.ExecutorRegistry
 import org.silkframework.entity._
 import org.silkframework.entity.paths.{TypedPath, UntypedPath}
 import org.silkframework.plugins.path.{PathMetaDataPlugin, StandardMetaDataPlugin}
 import org.silkframework.rule.evaluation._
 import org.silkframework.rule.execution.{Linking, GenerateLinks => GenerateLinksActivity}
-import org.silkframework.rule.{DatasetSelection, LinkSpec, LinkageRule, RuntimeLinkingConfig}
+import org.silkframework.rule.{DatasetSelection, LinkSpec, LinkageRule, LinkageRuleExecution, RuleBlockInspectionCollector, RuntimeLinkingConfig}
 import org.silkframework.runtime.activity.{Activity, UserContext}
+import org.silkframework.runtime.plugin.TaskResolver
+import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlSerialization}
 import org.silkframework.runtime.validation._
 import org.silkframework.serialization.json.JsonSerialization
-import org.silkframework.serialization.json.JsonSerializers.LinkageRuleJsonFormat
-import org.silkframework.serialization.json.LinkingSerializers.LinkJsonFormat
+import org.silkframework.serialization.json.JsonSerializers.{LinkageRuleJsonFormat, RuleBlockInspectionJsonFormat}
+import org.silkframework.serialization.json.LinkingSerializers.{LinkJsonFormat, LinkWithEvaluationJsonFormat}
 import org.silkframework.util.Identifier._
 import org.silkframework.util.{DPair, Identifier, StringUtils, Uri}
 import org.silkframework.workbench.utils.{ErrorResult, UnsupportedMediaTypeException}
@@ -128,7 +131,6 @@ class LinkingTaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends I
   def getRule(projectName: String, taskName: String): Action[AnyContent] = UserContextAction { implicit userContext =>
     val project = WorkspaceFactory().workspace.project(projectName)
     val task = project.task[LinkSpec](taskName)
-    implicit val prefixes = project.config.prefixes
     val ruleXml = XmlSerialization.toXml(task.data.rule)
 
     Ok(ruleXml)
@@ -189,9 +191,9 @@ class LinkingTaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends I
   def putLinkSpec(projectName: String, taskName: String): Action[AnyContent] = RequestUserContextAction { request => implicit userContext =>
     val project = WorkspaceFactory().workspace.project(projectName)
     val task = project.task[LinkSpec](taskName)
-    implicit val prefixes = project.config.prefixes
-    implicit val resources = project.resources
-    implicit val readContext = ReadContext(resources, prefixes)
+    implicit val prefixes: Prefixes = project.config.prefixes
+    implicit val resources: ResourceManager = project.resources
+    implicit val readContext: ReadContext = ReadContext(resources, prefixes, taskResolver = TaskResolver.fromProject(project))
 
     request.body.asXml match {
       case Some(xml) => {
@@ -594,12 +596,12 @@ class LinkingTaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends I
     implicit val prefixes: Prefixes = project.config.prefixes
 
     for(posOutputName <- params.get("positiveOutput")) {
-      val posOutput = project.task[GenericDatasetSpec](posOutputName.head).data.linkSink
+      val posOutput = ExecutorRegistry.access(project.task[GenericDatasetSpec](posOutputName.head)).linkSink
       posOutput.writeLinks(task.data.referenceLinks.positive, params("positiveProperty").head)
     }
 
     for(negOutputName <- params.get("negativeOutput")) {
-      val negOutput = project.task[GenericDatasetSpec](negOutputName.head).data.linkSink
+      val negOutput = ExecutorRegistry.access(project.task[GenericDatasetSpec](negOutputName.head)).linkSink
       negOutput.writeLinks(task.data.referenceLinks.negative, params("negativeProperty").head)
     }
 
@@ -679,20 +681,26 @@ class LinkingTaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends I
   }
 
   private def serializeLinks(entities: Iterable[DPair[Entity]],
-                             linkageRule: LinkageRule,
+                             linkageRule: LinkageRuleExecution,
                              withEntitiesAndSchema: Boolean = false)
                             (implicit writeContext: WriteContext[JsValue]): JsValue = {
+    val format = new LinkWithEvaluationJsonFormat(
+      writeEntities = withEntitiesAndSchema,
+      writeEntitySchema = withEntitiesAndSchema)
     JsArray(
       for(entities <- entities.toSeq) yield {
-        val link = new FullLink(entities.source.uri, entities.target.uri, linkageRule(entities), entities)
-        new LinkJsonFormat(Some(linkageRule), writeEntities = withEntitiesAndSchema, writeEntitySchema = withEntitiesAndSchema).write(link)
+        format.write(DetailedEvaluator(linkageRule, entities))
       }
     )
   }
 
   @Operation(
     summary = "Evaluate on reference links",
-    description = "Evaluates the current linking rule on all reference links.",
+    description =
+      "Evaluates the current linking rule on all reference links. " +
+      "By default this returns the legacy JSON object response. " +
+      "If includeRuleBlockInspection=true is set, the response stays a JSON object and is extended with " +
+      "reusable rule block inspection snapshots under 'ruleBlockInspection'.",
     responses = Array(
       new ApiResponse(
         responseCode = "200",
@@ -733,28 +741,49 @@ class LinkingTaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends I
                                 in = ParameterIn.QUERY,
                                 schema = new Schema(implementation = classOf[Boolean], defaultValue = "false"),
                               )
-                              withEntitiesAndSchema: Boolean): Action[AnyContent] = RequestUserContextAction { request => implicit userContext =>
+                              withEntitiesAndSchema: Boolean,
+                              @Parameter(
+                                name = "includeRuleBlockInspection",
+                                description =
+                                  "If false, returns the legacy JSON object response. " +
+                                  "If true, extends that object response with 'ruleBlockInspection'.",
+                                required = false,
+                                in = ParameterIn.QUERY,
+                                schema = new Schema(implementation = classOf[Boolean], defaultValue = "false")
+                              )
+                              includeRuleBlockInspection: Boolean): Action[AnyContent] = RequestUserContextAction { request => implicit userContext =>
     val project = WorkspaceFactory().workspace.project(projectName)
     val task = project.task[LinkSpec](taskName)
-    val rule = task.ruleWithContext
+    val rule = task.ruleExecution
 
     val referenceEntityCacheValue = updateAndGetReferenceEntityCacheValue(task, refreshCache = true)
-    val evaluationResult: LinkageRuleEvaluationResult = LinkingTaskApiUtils.referenceLinkEvaluationScore(task.data.rule, referenceEntityCacheValue)
-
+    val evaluationResult: LinkageRuleEvaluationResult = LinkingTaskApiUtils.referenceLinkEvaluationScore(rule, referenceEntityCacheValue)
     implicit val writeContext: WriteContext[JsValue] = WriteContext.fromProject[JsValue](project)
-    val result =
+    val baseResult =
       Json.obj(
         "positive" -> serializeLinks(referenceEntityCacheValue.positiveEntities, rule, withEntitiesAndSchema),
         "negative" -> serializeLinks(referenceEntityCacheValue.negativeEntities, rule, withEntitiesAndSchema),
         "evaluationScore" -> Json.toJson(evaluationResult)
       )
 
+    val result =
+      if(includeRuleBlockInspection) {
+        val ruleBlockInspection = RuleBlockInspectionCollector.fromLinkageRule(task.data.rule, task.taskContext)
+        baseResult ++ Json.obj("ruleBlockInspection" -> RuleBlockInspectionJsonFormat.write(ruleBlockInspection))
+      } else {
+        baseResult
+      }
+
     Ok(result)
   }
 
   @Operation(
     summary = "Evaluate linkage rule against reference links",
-    description = "Evaluates a linkage rule send with the requests on all reference links of the linking task.",
+    description =
+      "Evaluates a linkage rule send with the requests on all reference links of the linking task. " +
+      "By default this returns the legacy JSON object response. " +
+      "If includeRuleBlockInspection=true is set, the response stays a JSON object and is extended with " +
+      "reusable rule block inspection snapshots under 'ruleBlockInspection'.",
     responses = Array(
       new ApiResponse(
         responseCode = "200",
@@ -783,27 +812,44 @@ class LinkingTaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends I
                                         @Parameter(name = "linkLimit", in = ParameterIn.QUERY, description = "The max. number of unique links that should be returned for each link categorty, i.e. psitive, negative.", required = false,
                                           schema = new Schema(implementation = classOf[Int], defaultValue = "1000")
                                         )
-                                        linkLimit: Int): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
+                                        linkLimit: Int,
+                                        @Parameter(
+                                          name = "includeRuleBlockInspection",
+                                          description =
+                                            "If false, returns the legacy JSON object response. " +
+                                            "If true, extends that object response with 'ruleBlockInspection'.",
+                                          required = false,
+                                          in = ParameterIn.QUERY,
+                                          schema = new Schema(implementation = classOf[Boolean], defaultValue = "false")
+                                        )
+                                        includeRuleBlockInspection: Boolean): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     implicit val (project, task) = getProjectAndTask[LinkSpec](projectName, linkingTaskId)
     implicit val readContext: ReadContext = ReadContext.fromProject(project)
     implicit val prefixes: Prefixes = project.config.prefixes
 
     SerializationUtils.deserializeCompileTime[LinkageRule](defaultMimeType = SerializationUtils.APPLICATION_JSON) { linkageRule =>
-      val ruleWithContext = linkageRule.withContext(task.taskContext)
+      val ruleWithContext = linkageRule.execution(task.taskContext)
       val referenceEntityCacheValue = updateAndGetReferenceEntityCacheValue(task, refreshCache = false)
       implicit val writeContext: WriteContext[JsValue] = WriteContext.fromProject[JsValue](project)
       def serialize(links: Iterable[DPair[Entity]]): JsValue = {
         serializeLinks(links.take(linkLimit), ruleWithContext)
       }
       val evaluationResult: LinkageRuleEvaluationResult = LinkingTaskApiUtils.referenceLinkEvaluationScore(ruleWithContext, referenceEntityCacheValue)
-
       try {
-        val result =
+        val baseResult =
           Json.obj(
             "positive" -> serialize(referenceEntityCacheValue.positiveEntities),
             "negative" -> serialize(referenceEntityCacheValue.negativeEntities),
             "evaluationScore" -> Json.toJson(evaluationResult)
           )
+
+        val result =
+          if(includeRuleBlockInspection) {
+            val ruleBlockInspection = RuleBlockInspectionCollector.fromLinkageRule(linkageRule, task.taskContext)
+            baseResult ++ Json.obj("ruleBlockInspection" -> RuleBlockInspectionJsonFormat.write(ruleBlockInspection))
+          } else {
+            baseResult
+          }
 
         Ok(result)
       } catch {
@@ -817,7 +863,11 @@ class LinkingTaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends I
 
   @Operation(
     summary = "Linking task execution with payload",
-    description = "Execute a specific linking rule against input data from the POST body.",
+    description =
+      "Execute a specific linking rule against input data from the POST body. " +
+      "By default this returns the legacy JSON array response. " +
+      "If includeRuleBlockInspection=true is set, the response changes to a JSON object containing " +
+      "the legacy array under 'links' plus reusable rule block inspection snapshots under 'ruleBlockInspection'.",
     responses = Array(
       new ApiResponse(
         responseCode = "200",
@@ -871,7 +921,8 @@ class LinkingTaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends I
           val linkSource = createDataSource(xmlRoot, Some("sourceDataset"))
           val linkTarget = createDataSource(xmlRoot, Some("targetDataset"))
           val (model, linkSink) = createLinkSink(xmlRoot)
-          val link = new GenerateLinksActivity(task, DPair(linkSource, linkTarget), Some(linkSink))
+          val link = new GenerateLinksActivity(task, DPair(linkSource, linkTarget), Some(linkSink),
+            taskContext = task.taskContext)
           Activity(link).startBlocking()
           val acceptedContentType = request.acceptedTypes.headOption.map(_.mediaType).getOrElse("application/n-triples")
           result(model, acceptedContentType, "Successfully generated links")
@@ -958,27 +1009,50 @@ class LinkingTaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends I
                             in = ParameterIn.QUERY,
                             schema = new Schema(implementation = classOf[Boolean], defaultValue = "false")
                           )
-                          includeReferenceLinks: Boolean): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
+                          includeReferenceLinks: Boolean,
+                          @Parameter(
+                            name = "includeRuleBlockInspection",
+                            description =
+                              "If false, returns the legacy JSON array response. " +
+                              "If true, changes the response to a JSON object with 'links' and 'ruleBlockInspection'.",
+                            required = false,
+                            in = ParameterIn.QUERY,
+                            schema = new Schema(implementation = classOf[Boolean], defaultValue = "false")
+                          )
+                          includeRuleBlockInspection: Boolean): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     implicit val (project, task) = getProjectAndTask[LinkSpec](projectName, linkingTaskName)
     val sources = task.dataSources
-    implicit val readContext: ReadContext = ReadContext(prefixes = project.config.prefixes, resources = project.resources)
+    implicit val readContext: ReadContext = ReadContext(prefixes = project.config.prefixes, resources = project.resources,
+      taskResolver = TaskResolver.fromProject(project))
     implicit val prefixes: Prefixes = project.config.prefixes
 
     SerializationUtils.deserializeCompileTime[LinkageRule](defaultMimeType = SerializationUtils.APPLICATION_JSON) { linkageRule =>
       val runtimeConfig = RuntimeLinkingConfig(executionTimeout = Some(timeoutInMs), linkLimit = Some(linkLimit),
         generateLinksWithEntities = true, includeReferenceLinks = includeReferenceLinks)
-      val linksActivity = new GenerateLinksActivity(task, sources, None, runtimeConfig, Some(linkageRule.withContext(task.taskContext)))
+      val ruleExecution = linkageRule.execution(task.taskContext)
+      val linksActivity = new GenerateLinksActivity(task, sources, None, task.taskContext, runtimeConfig, Some(ruleExecution))
       val control = Activity(linksActivity)
       control.startBlocking()
       control.value.get match {
         case Some(linking) =>
-          val linkJsonFormat = new LinkJsonFormat(Some(linking.rule))
+          val linkJsonFormat = new LinkWithEvaluationJsonFormat()
           implicit val writeContext: WriteContext[JsValue] = WriteContext.fromProject[JsValue](project)
-          Ok(JsArray(
+          val serializedLinks = JsArray(
             for(link <- linking.links) yield {
-              linkJsonFormat.write(link)
+              val entities = link.entities.getOrElse(
+                throw new IllegalStateException("GenerateLinksActivity produced a link without entities"))
+              linkJsonFormat.write(DetailedEvaluator(ruleExecution, entities))
             }
-          ))
+          )
+          if(includeRuleBlockInspection) {
+            val ruleBlockInspection = RuleBlockInspectionCollector.fromLinkageRule(linkageRule, task.taskContext)
+            Ok(Json.obj(
+              "links" -> serializedLinks,
+              "ruleBlockInspection" -> RuleBlockInspectionJsonFormat.write(ruleBlockInspection)
+            ))
+          } else {
+            Ok(serializedLinks)
+          }
         case None =>
           ErrorResult(INTERNAL_SERVER_ERROR, "No value generated", "The linking tasks did not generate any value.")
       }
@@ -1105,7 +1179,8 @@ class LinkingTaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends I
     val includeReferenceLinks = request.includeReferenceLinks.getOrElse(false)
     val includeEvaluationLinks = request.includeEvaluationLinks.getOrElse(true)
     val project = linkTask.project
-    implicit val writeContext: WriteContext[JsValue] = WriteContext[JsValue](prefixes = project.config.prefixes, resources = project.resources)
+    implicit val writeContext: WriteContext[JsValue] = WriteContext[JsValue](prefixes = project.config.prefixes,
+      resources = project.resources, taskResolver = TaskResolver.empty)
     val evaluationActivity = linkTask.activity[EvaluateLinkingActivity]
     val referenceEntityCache = linkTask.activity[ReferenceEntitiesCache].value()
     var links: Seq[EvaluatedLinkWithDecision] = Seq.empty
@@ -1159,6 +1234,7 @@ class LinkingTaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends I
     if (evaluationActivity.control.status.get.isEmpty) {
       evaluationActivity.control.startBlocking()
     }
+    val ruleExec = linkTask.ruleExecution
     for(link <- evaluationActivity.value().links) yield {
       val evaluatedLink =
         link match {
@@ -1167,7 +1243,7 @@ class LinkingTaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends I
           case link: Link =>
             link.entities match {
               case Some(entities) =>
-                DetailedEvaluator(linkTask.data.rule, entities)
+                DetailedEvaluator(ruleExec, entities)
               case None =>
                 throw new IllegalArgumentException("Evaluation links are missing entities.")
             }
@@ -1176,11 +1252,13 @@ class LinkingTaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends I
     }
   }
 
-  private def retrieveReferenceLinksSafe(linkTask: ProjectTask[LinkSpec]): Seq[EvaluatedLinkWithDecision] = {
+  private def retrieveReferenceLinksSafe(linkTask: ProjectTask[LinkSpec])
+                                        (implicit user: UserContext): Seq[EvaluatedLinkWithDecision] = {
     val referenceEntityCache = linkTask.activity[ReferenceEntitiesCache].value()
     val DPair(sourceEntitySchema, targetEntitySchema) = linkTask.data.entityDescriptions
+    val ruleExec = linkTask.ruleExecution
     for(link <- referenceEntityCache.toReferenceLinksSafe(sourceEntitySchema, targetEntitySchema)) yield {
-      val evaluatedLink = DetailedEvaluator(linkTask.data.rule, link.linkEntities)
+      val evaluatedLink = DetailedEvaluator(ruleExec, link.linkEntities)
       evaluatedLink.withDecision(link.decision)
     }
   }
@@ -1210,11 +1288,12 @@ class LinkingTaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends I
 
   private def linkEvaluationJsonResult(evaluationActivityStats: Option[LinkRuleEvaluationStats],
                                        linkingRule: LinkageRule,
-                                       links: Seq[Link],
+                                       links: Seq[LinkWithEvaluation],
                                        resultStats: ResultStats,
                                        inputTaskLabels: (String, String))
                                       (implicit writeContext: WriteContext[JsValue]) = {
-    val linksJson = links.map(LinkJsonFormat.write)
+    val linkFormat = new LinkWithEvaluationJsonFormat()
+    val linksJson = links.map(linkFormat.write)
     Ok(Json.obj(
       "links" -> linksJson,
       "linkRule" -> JsonSerialization.toJson(linkingRule),

@@ -1,5 +1,6 @@
 import React from "react";
 import {
+    HandleRuleEditorSidebarDropRequest,
     IParameterSpecification,
     IRuleOperator,
     IRuleOperatorNode,
@@ -46,16 +47,27 @@ export interface RuleEditorContextProps extends RuleEditorBaseProps {
     convertRuleOperatorToRuleNode: (ruleOperator: IRuleOperator) => Omit<IRuleOperatorNode, "nodeId">;
     /** If set to true the editor will be in read-only mode and cannot be set into edit mode. */
     readOnlyMode?: boolean;
+    /** Additional components that will be placed in the tool bar left to the save button. */
+    additionalToolBarComponents?: RuleEditorBaseProps["additionalToolBarComponents"];
+    /** Optional additional menu entries for a specific rule node. These are rendered right before the Remove entry. */
+    extraRuleNodeMenuItems?: (node: IRuleOperatorNode, closeMenu: () => void) => React.JSX.Element[] | undefined;
     /** The last save result. */
     lastSaveResult?: RuleSaveResult;
     /** UI annotation sticky notes */
     stickyNotes: StickyNote[];
     /** Dataset characteristics, e.g. used for the 'PathInputOperator' type. The key is the corresponding plugin ID. */
     datasetCharacteristics: Map<string, DatasetCharacteristics>;
+    /** Optional hook to capture additional parent-owned saved state that must follow reset-to-saved-state semantics. */
+    captureExternalSavedState?: () => unknown;
+    /** Optional hook to restore additional parent-owned saved state from the latest saved snapshot. */
+    restoreExternalSavedState?: (savedState: unknown) => void;
+    /** Optional hook for special sidebar items that trigger a parent-owned creation flow on drop. */
+    handleSidebarDropRequest?: HandleRuleEditorSidebarDropRequest;
+    /** Optional hook that is called whenever the current rule-node projection changes due to canvas edits. */
+    onRuleOperatorNodesChange?: RuleEditorBaseProps["onRuleOperatorNodesChange"];
 }
 
-/** Creates a rule editor model context that contains the actual rule model and low-level update functions. */
-export const RuleEditorContext = React.createContext<RuleEditorContextProps>({
+export const ruleEditorContextDefaultValue: RuleEditorContextProps = {
     projectId: "",
     editedItemLoading: false,
     operatorListLoading: false,
@@ -68,6 +80,7 @@ export const RuleEditorContext = React.createContext<RuleEditorContextProps>({
     validateConnection: () => true,
     stickyNotes: [],
     showRuleOnly: false,
+    readOnly: false,
     hideMinimap: false,
     zoomRange: [0.25, 1.5],
     initialFitToViewZoomLevel: 0.75,
@@ -79,4 +92,7 @@ export const RuleEditorContext = React.createContext<RuleEditorContextProps>({
     },
     partialAutoCompletion: () => async () => undefined,
     saveInitiallyEnabled: false,
-});
+};
+
+/** Creates a rule editor model context that contains the actual rule model and low-level update functions. */
+export const RuleEditorContext = React.createContext<RuleEditorContextProps>(ruleEditorContextDefaultValue);

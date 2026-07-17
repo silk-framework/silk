@@ -27,7 +27,7 @@ class GlobalTemplateVariablesTest extends AnyFlatSpec with Matchers {
         template = None,
         description = None,
         isSensitive = false,
-        scope = TemplateVariableScopes.global
+        scope = VariableScope.global
       ))
 
     variables.map.get("complexVar") shouldBe
@@ -37,7 +37,7 @@ class GlobalTemplateVariablesTest extends AnyFlatSpec with Matchers {
         template = None,
         description = Some("my description"),
         isSensitive = false,
-        scope = TemplateVariableScopes.global
+        scope = VariableScope.global
       ))
 
     variables.map.get("sensitiveVar") shouldBe
@@ -47,7 +47,7 @@ class GlobalTemplateVariablesTest extends AnyFlatSpec with Matchers {
         template = None,
         description = None,
         isSensitive = true,
-        scope = TemplateVariableScopes.global
+        scope = VariableScope.global
       ))
   }
 

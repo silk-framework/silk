@@ -19,13 +19,14 @@ import { absoluteProjectPath } from "../../../utils/routerUtils";
 import { AlertDialog, Button, HtmlContentBlock, Notification } from "@eccenca/gui-elements";
 import { FetchError } from "../../../services/fetch/responseInterceptor";
 import { clearDataset } from "@ducks/workspace/requests";
+import { AppDispatch } from "store/configureStore";
 
 interface IProps {
     projectId: string;
     // If the task ID is set then this is a task else a project
     taskId?: string;
     itemType: string;
-    updateActionsMenu: (actionMenu: JSX.Element) => any;
+    updateActionsMenu: (actionMenu: React.JSX.Element) => any;
     // Called with true when the item links endpoint returns a 404
     notFoundCallback?: (boolean) => any;
     // Called with true when the item links endpoint returns a 403
@@ -40,7 +41,7 @@ export function ArtefactManagementOptions({
     notFoundCallback = () => {},
     forbiddenCallback = () => {},
 }: IProps) {
-    const dispatch = useDispatch();
+    const dispatch = useDispatch<AppDispatch>();
     const location = useLocation<any>();
     const history = useHistory();
     const [t] = useTranslation();

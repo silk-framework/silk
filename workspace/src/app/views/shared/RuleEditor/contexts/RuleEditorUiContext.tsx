@@ -22,6 +22,8 @@ export interface RuleEditorUiContextProps {
     setCurrentRuleNodeInfo: (info: { description?: string; label?: string } | undefined) => void;
     /** When enabled only the rule is shown without side- and toolbar and any other means to edit the rule. */
     showRuleOnly?: boolean;
+    /** If set to true the editor canvas is permanently read-only. */
+    readOnly?: boolean;
     /** When enabled the mini map is not displayed. */
     hideMinimap?: boolean;
     /** Defines minimun and maximum of the available zoom levels */
@@ -30,7 +32,7 @@ export interface RuleEditorUiContextProps {
     selectionState: { elements: Elements | null };
 }
 
-export const RuleEditorUiContext = React.createContext<RuleEditorUiContextProps>({
+export const ruleEditorUiContextDefaultValue: RuleEditorUiContextProps = {
     modalShown: false,
     setModalShown(): any {},
     advancedParameterModeEnabled: false,
@@ -41,8 +43,11 @@ export const RuleEditorUiContext = React.createContext<RuleEditorUiContextProps>
     currentRuleNodeInfo: {},
     setCurrentRuleNodeInfo: () => {},
     showRuleOnly: false,
+    readOnly: false,
     hideMinimap: false,
     zoomRange: [0.25, 1.5],
     onSelection: () => {},
     selectionState: { elements: null },
-});
+};
+
+export const RuleEditorUiContext = React.createContext<RuleEditorUiContextProps>(ruleEditorUiContextDefaultValue);

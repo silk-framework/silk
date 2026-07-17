@@ -7,10 +7,9 @@ import org.silkframework.execution.{ExecutionReport, Executor, ExecutorOutput, T
 import org.silkframework.rule.TransformSpec.RuleSchemata
 import org.silkframework.rule._
 import org.silkframework.rule.execution.{TransformReport, TransformReportBuilder, TransformReportExecutionContext}
-import org.silkframework.rule.TaskContext
 import org.silkframework.runtime.activity.ActivityContext
 import org.silkframework.runtime.iterator.RewindableEntityIterator
-import org.silkframework.runtime.plugin.PluginContext
+import org.silkframework.runtime.plugin.{PluginContext, TaskResolver}
 import org.silkframework.util.Uri
 
 import scala.collection.mutable
@@ -68,13 +67,13 @@ class LocalTransformSpecExecutor extends Executor[TransformSpec, LocalExecution]
         val (requestedRuleLabel, requestedRules, inputTable) = findMappingRulesMatchingRequestedOutputSchema(rules, ruleLabel, outputType, inputTables)
         addInputErrorsToTransformReport(inputTable, report)
         val transformedEntities = new TransformedEntities(task, inputTable.entities, requestedRuleLabel,
-          rule.withChildren(requestedRules).withContext(taskContext), activeOutputSchema,
+          rule.withChildren(requestedRules).execution(taskContext), activeOutputSchema,
           isRequestedSchema = true, abortIfErrorsOccur = task.data.abortIfErrorsOccur, report).iterator
         GenericEntityTable(transformedEntities, activeOutputSchema, task)
       case _ =>
         // Else execute the complete mapping
         addInputErrorsToTransformReport(input, report)
-        val transformedEntities = new TransformedEntities(task, input.entities, ruleLabel, rule.withContext(taskContext), schemata.outputSchema,
+        val transformedEntities = new TransformedEntities(task, input.entities, ruleLabel, rule.execution(taskContext), schemata.outputSchema,
           isRequestedSchema = false, abortIfErrorsOccur = task.data.abortIfErrorsOccur, report).iterator
         GenericEntityTable(transformedEntities, schemata.outputSchema, task)
     }

@@ -6,8 +6,6 @@ import org.silkframework.entity.rdf.SparqlEntitySchema.specialPaths
 
 trait RdfDataset extends Dataset {
 
-  def sparqlEndpoint: SparqlEndpoint
-
   /**
     * URI of the graph this RDF dataset is referring to, if any.
     */

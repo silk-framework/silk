@@ -80,9 +80,9 @@ export function TaskActivityOverview({ projectId, taskId }: IProps) {
     const nonExecutedCacheActivities = React.useRef<IActivityListEntry[]>([]);
 
     // Used for explicit re-render trigger
-    const setUpdateSwitch = useState<boolean>(false)[1];
+    const setUpdateSwitch = useState<number>(0)[1];
     const triggerUpdate = () => {
-        setUpdateSwitch((old) => !old);
+        setUpdateSwitch((old) => old + 1);
     };
 
     // Used for keys in activity->value maps
@@ -357,7 +357,7 @@ export function TaskActivityOverview({ projectId, taskId }: IProps) {
     const activityControl = (
         activity: IActivityListEntry,
         layoutConfig: SilkActivityControlLayoutProps,
-    ): JSX.Element => {
+    ): React.JSX.Element => {
         const activityFunctions = activityFunctionsCreator(activity);
         const activityLabel = t(`widget.TaskActivityOverview.activities.${activity.name}.title`, activity.label);
         const elapsedTime = activity.activityCharacteristics.isCacheActivity
@@ -489,6 +489,9 @@ export function TaskActivityOverview({ projectId, taskId }: IProps) {
                         data-test-id={displayCacheList ? "cache-group-show-less-btn" : "cache-group-show-more-btn"}
                         name={displayCacheList ? "toggler-showless" : "toggler-showmore"}
                         text={displayCacheList ? "Hide single caches" : "Show all single caches"}
+                        tooltipProps={{
+                            placement: "top",
+                        }}
                     />
                 </OverviewItemActions>
             </OverviewItem>
@@ -499,7 +502,7 @@ export function TaskActivityOverview({ projectId, taskId }: IProps) {
     function activityWidgets(
         activities: IActivityListEntry[],
         layoutConfig: SilkActivityControlLayoutProps,
-    ): JSX.Element[] {
+    ): React.JSX.Element[] {
         const activitiesWithLabels = activities
             .map((activity) => {
                 const activityLabel = t(
@@ -509,7 +512,7 @@ export function TaskActivityOverview({ projectId, taskId }: IProps) {
                 return [activityLabel, activityControl(activity, layoutConfig)];
             })
             .sort(([aLabel], [bLabel]) => (aLabel < bLabel ? -1 : 1));
-        return activitiesWithLabels.map(([label, activityControl]) => activityControl) as JSX.Element[];
+        return activitiesWithLabels.map(([label, activityControl]) => activityControl) as React.JSX.Element[];
     }
 
     return nrActivitiesToShow > 0 ? (

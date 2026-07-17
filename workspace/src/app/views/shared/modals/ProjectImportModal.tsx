@@ -33,6 +33,7 @@ import { routerOp } from "@ducks/router";
 import { absoluteProjectPath } from "../../../utils/routerUtils";
 import { UploadNewFile } from "../FileUploader/cases/UploadNewFile/UploadNewFile";
 import { useProjectAclManagementComponent } from "../../../hooks/useProjectAclManagementComponent";
+import { AppDispatch } from "store/configureStore";
 
 interface IProps {
     // Called when closing the modal
@@ -45,8 +46,8 @@ interface IProps {
 
 export function ProjectImportModal({ close, back, maxFileUploadSizeBytes }: IProps) {
     const [t] = useTranslation();
-    const [uppy] = useState(Uppy());
-    const dispatch = useDispatch();
+    const [uppy] = useState(() => Uppy());
+    const dispatch = useDispatch<AppDispatch>();
     const [loading, setLoading] = useState(false);
     const [projectImportId, setProjectImportId] = useState<string | null>(null);
     const [projectImportDetails, setProjectImportDetails] = useState<IProjectImportDetails | null>(null);
@@ -63,10 +64,31 @@ export function ProjectImportModal({ close, back, maxFileUploadSizeBytes }: IPro
     const onChangeProjectAcl = React.useCallback((newProjectAcl: AccessControlConfig) => {
         projectAcl.current = newProjectAcl;
     }, []);
+    const isUnmounted = React.useRef(false);
+    const importCancelled = React.useRef(false);
+    const pendingSleepTimeoutId = React.useRef<number | null>(null);
     const aclManagement = useProjectAclManagementComponent({
         onChange: onChangeProjectAcl,
         externalInitialAclGroups: { groups: [] },
     });
+
+    const clearPendingImportTimeout = React.useCallback(() => {
+        if (pendingSleepTimeoutId.current != null) {
+            clearTimeout(pendingSleepTimeoutId.current);
+            pendingSleepTimeoutId.current = null;
+        }
+    }, []);
+
+    const stopPendingImport = React.useCallback(() => {
+        importCancelled.current = true;
+        clearPendingImportTimeout();
+    }, [clearPendingImportTimeout]);
+
+    const setLoadingIfMounted = React.useCallback((nextLoading: boolean) => {
+        if (!isUnmounted.current) {
+            setLoading(nextLoading);
+        }
+    }, []);
 
     useEffect(() => {
         uppy.use(XHR, {
@@ -78,6 +100,16 @@ export function ProjectImportModal({ close, back, maxFileUploadSizeBytes }: IPro
             endpoint: workspaceApi(`/projectImport`),
         });
 
+        return () => {
+            isUnmounted.current = true;
+            stopPendingImport();
+            uppy.cancelAll();
+            uppy.reset();
+            uppy.close();
+        };
+    }, [stopPendingImport, uppy]);
+
+    useEffect(() => {
         if (maxFileUploadSizeBytes) {
             uppy.setOptions({
                 restrictions: {
@@ -85,7 +117,7 @@ export function ProjectImportModal({ close, back, maxFileUploadSizeBytes }: IPro
                 },
             });
         }
-    }, []);
+    }, [maxFileUploadSizeBytes, uppy]);
 
     useEffect(() => {
         if (projectImportId) {
@@ -94,24 +126,33 @@ export function ProjectImportModal({ close, back, maxFileUploadSizeBytes }: IPro
     }, [projectImportId]);
 
     const loadProjectImportDetails = async (projectImportId: string) => {
+        if (isUnmounted.current) {
+            return;
+        }
         setProjectDetailsError(null);
         try {
-            setLoading(true);
+            setLoadingIfMounted(true);
             const response = await requestProjectImportDetails(projectImportId);
-            setProjectImportDetails(response.data);
+            if (!isUnmounted.current) {
+                setProjectImportDetails(response.data);
+            }
         } catch (ex) {
-            setProjectDetailsError(" " + errorDetails(ex));
+            if (!isUnmounted.current) {
+                setProjectDetailsError(" " + errorDetails(ex));
+            }
         } finally {
-            setLoading(false);
+            setLoadingIfMounted(false);
         }
     };
 
     const closeDialog = async () => {
+        stopPendingImport();
         await cleanUp();
         close();
     };
 
     const goBack = async () => {
+        stopPendingImport();
         await cleanUp();
         back?.();
     };
@@ -120,12 +161,12 @@ export function ProjectImportModal({ close, back, maxFileUploadSizeBytes }: IPro
     const cleanUp = async () => {
         if (projectImportId) {
             try {
-                setLoading(true);
+                setLoadingIfMounted(true);
                 await requestDeleteProjectImport(projectImportId);
             } catch (ex) {
                 // If this fails for whatever reason the backend will remove the file automatically after a specific period
             } finally {
-                setLoading(false);
+                setLoadingIfMounted(false);
             }
         }
     };
@@ -138,8 +179,9 @@ export function ProjectImportModal({ close, back, maxFileUploadSizeBytes }: IPro
     const startProjectImport = async (generateNewProjectId: boolean, overWriteExistingProject: boolean) => {
         setStartProjectImportExecutionError(null);
         if (projectImportId) {
+            importCancelled.current = false;
             try {
-                setLoading(true);
+                setLoadingIfMounted(true);
                 await requestStartProjectImport(
                     projectImportId,
                     generateNewProjectId,
@@ -147,9 +189,15 @@ export function ProjectImportModal({ close, back, maxFileUploadSizeBytes }: IPro
                     overWriteExistingProject ? undefined : projectAcl.current?.groups,
                 );
                 let status: Partial<IProjectExecutionStatus> = {};
-                const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+                const sleep = (ms: number) =>
+                    new Promise<void>((resolve) => {
+                        pendingSleepTimeoutId.current = window.setTimeout(() => {
+                            pendingSleepTimeoutId.current = null;
+                            resolve();
+                        }, ms);
+                    });
                 let errorCounter = 0;
-                while (!status.importEnded) {
+                while (!status.importEnded && !importCancelled.current) {
                     try {
                         status = (await requestProjectImportExecutionStatus(projectImportId)).data;
                         errorCounter = 0;
@@ -159,8 +207,14 @@ export function ProjectImportModal({ close, back, maxFileUploadSizeBytes }: IPro
                         }
                         // Retry until error persists for overall 120 seconds, exponential backoff
                         await sleep(Math.pow(2, errorCounter) * 1000);
+                        if (importCancelled.current) {
+                            return;
+                        }
                         errorCounter = errorCounter + 1;
                     }
+                }
+                if (importCancelled.current || isUnmounted.current) {
+                    return;
                 }
                 if (status.success) {
                     close();
@@ -173,13 +227,16 @@ export function ProjectImportModal({ close, back, maxFileUploadSizeBytes }: IPro
                     ]);
                 }
             } catch (ex) {
-                setStartProjectImportExecutionError([
-                    " " + errorDetails(ex),
-                    generateNewProjectId,
-                    overWriteExistingProject,
-                ]);
+                if (!importCancelled.current && !isUnmounted.current) {
+                    setStartProjectImportExecutionError([
+                        " " + errorDetails(ex),
+                        generateNewProjectId,
+                        overWriteExistingProject,
+                    ]);
+                }
             } finally {
-                setLoading(false);
+                clearPendingImportTimeout();
+                setLoadingIfMounted(false);
             }
         }
     };
@@ -233,7 +290,7 @@ export function ProjectImportModal({ close, back, maxFileUploadSizeBytes }: IPro
             attachFileNameToEndpoint={false}
         />
     );
-    const actions: JSX.Element[] = [];
+    const actions: React.JSX.Element[] = [];
     if (projectImportDetails) {
         if (!projectImportDetails.errorMessage && !projectImportDetails.projectAlreadyExists) {
             actions.push(
@@ -327,7 +384,7 @@ export function ProjectImportModal({ close, back, maxFileUploadSizeBytes }: IPro
                                     }
                                     toggleExtendText={t("common.words.more", "more")}
                                     toggleReduceText={t("common.words.less", "less")}
-                                    firstNonEmptyLineOnly={true}
+                                    useOnly={"firstNonEmptyLine"}
                                 />
                             </PropertyValue>
                         </PropertyValuePair>

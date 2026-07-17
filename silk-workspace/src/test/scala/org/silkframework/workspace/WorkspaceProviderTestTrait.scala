@@ -11,7 +11,7 @@ import org.silkframework.entity.Restriction
 import org.silkframework.entity.paths.UntypedPath
 import org.silkframework.plugins.dataset.csv.CsvDataset
 import org.silkframework.rule._
-import org.silkframework.rule.input.{PathInput, TransformInput}
+import org.silkframework.rule.input.{InputPortInput, PathInput, TransformInput}
 import org.silkframework.rule.plugins.distance.characterbased.QGramsMetric
 import org.silkframework.rule.plugins.transformer.combine.ConcatTransformer
 import org.silkframework.rule.plugins.transformer.normalize.LowerCaseTransformer
@@ -20,7 +20,7 @@ import org.silkframework.runtime.activity.{SimpleUserContext, UserContext}
 import org.silkframework.runtime.plugin.annotations.Plugin
 import org.silkframework.runtime.plugin._
 import org.silkframework.runtime.resource.ResourceNotFoundException
-import org.silkframework.runtime.templating.{TemplateVariable, TemplateVariables}
+import org.silkframework.runtime.templating.{TemplateVariable, VariableScope, TemplateVariables}
 import org.silkframework.runtime.users.DefaultUserManager
 import org.silkframework.util.{Identifier, MockitoSugar, Uri}
 import org.silkframework.workspace.WorkspaceProviderTestPlugins.{FailingCustomTask, FailingTaskException}
@@ -39,6 +39,7 @@ trait WorkspaceProviderTestTrait extends AnyFlatSpec with Matchers with MockitoS
   val DATASET_ID = "dataset1"
   val OUTPUTS_DATASET_ID = "outputDataset1"
   val LINKING_TASK_ID = "linking1"
+  val RULE_BLOCK_TASK_ID = "ruleBlock1"
   val CUSTOM_TASK_ID = "custom1"
   val NEW_PREFIX = "newPrefix"
   val DUMMY_DATASET = "dummy"
@@ -195,6 +196,148 @@ trait WorkspaceProviderTestTrait extends AnyFlatSpec with Matchers with MockitoS
       metaData = metaDataUpdated
     )
 
+  val ruleBlockTask =
+    PlainTask(
+      id = RULE_BLOCK_TASK_ID,
+      data = RuleBlockSpec(
+        ruleBlockModel = RuleBlockModel(
+          ports = IndexedSeq(
+            RuleBlockPort(
+              id = Identifier("namePort"),
+              label = "Name",
+              description = "Input name values",
+              displayOrder = 1
+            ),
+            RuleBlockPort(
+              id = Identifier("suffixPort"),
+              label = "Suffix",
+              description = "Optional suffix values",
+              displayOrder = 2
+            ),
+            RuleBlockPort(
+              id = Identifier("legacyPort"),
+              label = "Legacy",
+              description = "Deprecated legacy input",
+              displayOrder = 3,
+              deprecated = true
+            )
+          ),
+          inputExamples = IndexedSeq(
+            RuleBlockInputExample(
+              id = Identifier("example-1"),
+              label = Some("Primary example"),
+              inputs = Map(
+                Identifier("namePort") -> Seq("Alice", "Bob"),
+                Identifier("suffixPort") -> Seq("Jr."),
+                Identifier("legacyPort") -> Seq("legacy")
+              )
+            )
+          ),
+          operator = Some(
+            TransformInput(
+              id = "concatRuleBlock",
+              transformer = ConcatTransformer(),
+              inputs = IndexedSeq(
+                TransformInput(
+                  id = "lowerCaseRuleBlock",
+                  transformer = LowerCaseTransformer(),
+                  inputs = IndexedSeq(
+                    InputPortInput(id = "nameInputPortNode", portId = Identifier("namePort"))
+                  )
+                ),
+                InputPortInput(id = "suffixInputPortNode", portId = Identifier("suffixPort"))
+              )
+            )
+          ),
+          layout = RuleLayout(
+            nodePositions = Map(
+              "concatRuleBlock" -> NodePosition(1, 2),
+              "lowerCaseRuleBlock" -> NodePosition(3, 4, Some(150)),
+              "nameInputPortNode" -> NodePosition(5, 6),
+              "suffixInputPortNode" -> NodePosition(7, 8, 175, 90)
+            )
+          ),
+          uiAnnotations = UiAnnotations(
+            stickyNotes = Seq(
+              StickyNote("ruleBlockSticky", "Rule block note", "#abc", NodePosition(9, 10, 120, 80))
+            )
+          )
+        )
+      ),
+      metaData = metaData
+    )
+
+  val ruleBlockTaskUpdated =
+    PlainTask(
+      id = RULE_BLOCK_TASK_ID,
+      data = RuleBlockSpec(
+        ruleBlockModel = RuleBlockModel(
+          ports = IndexedSeq(
+            RuleBlockPort(
+              id = Identifier("namePort"),
+              label = "Given Name",
+              description = "Normalized input name values",
+              displayOrder = 1
+            ),
+            RuleBlockPort(
+              id = Identifier("suffixPort"),
+              label = "Separator",
+              description = "Optional separator values",
+              displayOrder = 2
+            ),
+            RuleBlockPort(
+              id = Identifier("legacyPort"),
+              label = "Legacy",
+              description = "Deprecated legacy input",
+              displayOrder = 3,
+              deprecated = true
+            )
+          ),
+          inputExamples = IndexedSeq(
+            RuleBlockInputExample(
+              id = Identifier("example-1"),
+              label = Some("Updated example"),
+              inputs = Map(
+                Identifier("namePort") -> Seq("Alice", "CHARLIE"),
+                Identifier("suffixPort") -> Seq("::"),
+                Identifier("legacyPort") -> Seq("legacy")
+              )
+            )
+          ),
+          operator = Some(
+            TransformInput(
+              id = "concatRuleBlockUpdated",
+              transformer = ConcatTransformer(),
+              inputs = IndexedSeq(
+                InputPortInput(id = "suffixInputPortNodeUpdated", portId = Identifier("suffixPort")),
+                TransformInput(
+                  id = "lowerCaseRuleBlockUpdated",
+                  transformer = LowerCaseTransformer(),
+                  inputs = IndexedSeq(
+                    InputPortInput(id = "nameInputPortNodeUpdated", portId = Identifier("namePort"))
+                  )
+                )
+              )
+            )
+          ),
+          layout = RuleLayout(
+            nodePositions = Map(
+              "concatRuleBlockUpdated" -> NodePosition(11, 12, Some(180)),
+              "suffixInputPortNodeUpdated" -> NodePosition(13, 14),
+              "lowerCaseRuleBlockUpdated" -> NodePosition(15, 16),
+              "nameInputPortNodeUpdated" -> NodePosition(17, 18, 160, 95)
+            )
+          ),
+          uiAnnotations = UiAnnotations(
+            stickyNotes = Seq(
+              StickyNote("ruleBlockStickyUpdated", "Updated rule block note", "#def", NodePosition(19, 20, 130, 90))
+            )
+          )
+        )
+      ),
+      metaData = metaDataUpdated
+    )
+
   val transformTaskHierarchical =
     PlainTask(
       id = TRANSFORM_ID,
@@ -235,11 +378,11 @@ trait WorkspaceProviderTestTrait extends AnyFlatSpec with Matchers with MockitoS
         Workflow(
           operators = Seq(
             WorkflowOperator(inputs = Seq(Some(DATASET_ID)), task = TRANSFORM_ID, outputs = Seq(OUTPUTS_DATASET_ID), Seq(), (0, 0),
-              TRANSFORM_ID, None, configInputs = Seq.empty, dependencyInputs = Seq.empty)
+              TRANSFORM_ID, configInputs = Seq.empty, dependencyInputs = Seq.empty)
           ),
           datasets = Seq(
-            WorkflowDataset(Seq(), DATASET_ID, Seq(TRANSFORM_ID), (1,2), DATASET_ID, Some(1.0), Seq.empty , dependencyInputs = Seq.empty),
-            WorkflowDataset(Seq(None, Some(TRANSFORM_ID)), OUTPUTS_DATASET_ID, Seq(), (4,5), OUTPUTS_DATASET_ID, Some(0.5), Seq.empty , dependencyInputs = Seq.empty)
+            WorkflowDataset(Seq(), DATASET_ID, Seq(TRANSFORM_ID), (1,2), DATASET_ID, Seq.empty , dependencyInputs = Seq.empty),
+            WorkflowDataset(Seq(None, Some(TRANSFORM_ID)), OUTPUTS_DATASET_ID, Seq(), (4,5), OUTPUTS_DATASET_ID, Seq.empty , dependencyInputs = Seq.empty)
           ),
           uiAnnotations = UiAnnotations(
             stickyNotes = Seq(StickyNote("sticky1", "content", "#fff", NodePosition(0, 0, 1, 1)))
@@ -256,7 +399,7 @@ trait WorkspaceProviderTestTrait extends AnyFlatSpec with Matchers with MockitoS
       data = miniWorkflow.data.copy(
         operators = miniWorkflow.operators.map(op => op.copy(position = (100, 100), outputs = op.outputs ++ Seq(CUSTOM_TASK_ID))) ++ Seq(
           WorkflowOperator(inputs = Seq(), task = CUSTOM_TASK_ID, outputs = Seq(), Seq(), (0, 0),
-            CUSTOM_TASK_ID, None, configInputs = Seq(TRANSFORM_ID), dependencyInputs = Seq(DATASET_ID))
+            CUSTOM_TASK_ID, configInputs = Seq(TRANSFORM_ID), dependencyInputs = Seq(DATASET_ID))
         ),
         datasets = miniWorkflow.datasets.map(_.copy(position = (100, 100), dependencyInputs = Seq(CUSTOM_TASK_ID)))
       ),
@@ -431,11 +574,67 @@ trait WorkspaceProviderTestTrait extends AnyFlatSpec with Matchers with MockitoS
     }
   }
 
+  it should "read and write rule block tasks" in {
+    implicit val us: UserContext = specificUserContext
+    project.addTask[RuleBlockSpec](RULE_BLOCK_TASK_ID, ruleBlockTask.data, metaData)
+    refreshTest {
+      val savedRuleBlockTask = workspaceProvider.readTasks[RuleBlockSpec](PROJECT_NAME).find(_.task.id.toString == RULE_BLOCK_TASK_ID)
+      savedRuleBlockTask shouldBe defined
+      savedRuleBlockTask.get.task.data shouldBe ruleBlockTask.data
+      checkCreationMetaData(savedRuleBlockTask.get.task.metaData, ruleBlockTask.metaData, specificUserContext)
+    }
+  }
+
+  it should "persist rule block input examples exactly across refresh" in {
+    implicit val us: UserContext = emptyUserContext
+    val persistedRuleBlockTaskId = "ruleBlockWithPersistedExamples"
+    val persistedRuleBlockTask =
+      PlainTask(
+        id = persistedRuleBlockTaskId,
+        data = ruleBlockTask.data.copy(
+          ruleBlockModel = ruleBlockTask.data.ruleBlockModel.copy(
+            inputExamples = IndexedSeq(
+              RuleBlockInputExample(
+                id = Identifier("example-whitespace"),
+                label = Some("  Example with spaces  "),
+                inputs = Map(
+                  Identifier("namePort") -> Seq("  Alice  ", "Bob & Carol", "Line 1\nLine 2"),
+                  Identifier("suffixPort") -> Seq("", " <suffix> "),
+                  Identifier("legacyPort") -> Seq("\tlegacy\t")
+                )
+              )
+            )
+          )
+        ),
+        metaData = metaData
+      )
+    project.addTask[RuleBlockSpec](persistedRuleBlockTaskId, persistedRuleBlockTask.data, persistedRuleBlockTask.metaData)
+
+    withWorkspaceRefresh(PROJECT_NAME) {
+      val savedRuleBlockTask = workspaceProvider.readTasks[RuleBlockSpec](PROJECT_NAME).find(_.task.id.toString == persistedRuleBlockTaskId)
+      savedRuleBlockTask shouldBe defined
+      savedRuleBlockTask.get.task.data.inputExamples shouldBe persistedRuleBlockTask.data.inputExamples
+    }
+  }
+
   it should "update transformation tasks" in {
     implicit val us: UserContext = emptyUserContext
     workspaceProvider.putTask(PROJECT_NAME, transformTaskUpdated, projectResources)
     refreshTest {
       workspaceProvider.readTasks[TransformSpec](PROJECT_NAME).headOption.map(_.task) shouldBe Some(transformTaskUpdated)
+    }
+  }
+
+  it should "update rule block tasks" in {
+    Thread.sleep(2)
+    implicit val us: UserContext = specificUserContext2
+    val originalTask = project.anyTask(RULE_BLOCK_TASK_ID)
+    project.updateAnyTask(RULE_BLOCK_TASK_ID, ruleBlockTaskUpdated.data, Some(ruleBlockTaskUpdated.metaData))
+    refreshTest {
+      val savedRuleBlockTask = workspaceProvider.readTasks[RuleBlockSpec](PROJECT_NAME).find(_.task.id.toString == RULE_BLOCK_TASK_ID)
+      savedRuleBlockTask shouldBe defined
+      savedRuleBlockTask.get.task.data shouldBe ruleBlockTaskUpdated.data
+      checkUpdateMetaData(savedRuleBlockTask.get.task.metaData, originalTask.metaData, specificUserContext, specificUserContext2)
     }
   }
 
@@ -537,6 +736,16 @@ trait WorkspaceProviderTestTrait extends AnyFlatSpec with Matchers with MockitoS
     workspaceProvider.deleteTask[TransformSpec](PROJECT_NAME, TRANSFORM_ID)
     refreshTest {
       workspaceProvider.readTasks[TransformSpec](PROJECT_NAME).headOption shouldBe empty
+    }
+  }
+
+  it should "delete rule block tasks" in {
+    implicit val us: UserContext = emptyUserContext
+    refreshProject(PROJECT_NAME)
+    workspaceProvider.readTasks[RuleBlockSpec](PROJECT_NAME).find(_.task.id.toString == RULE_BLOCK_TASK_ID) shouldBe defined
+    workspaceProvider.deleteTask[RuleBlockSpec](PROJECT_NAME, RULE_BLOCK_TASK_ID)
+    refreshTest {
+      workspaceProvider.readTasks[RuleBlockSpec](PROJECT_NAME).find(_.task.id.toString == RULE_BLOCK_TASK_ID) shouldBe empty
     }
   }
 
@@ -690,9 +899,9 @@ trait WorkspaceProviderTestTrait extends AnyFlatSpec with Matchers with MockitoS
 
     // Add variables and read again
     val templateVariables1 = TemplateVariables(Seq(
-      TemplateVariable("myVar1", "myValue1", None, None, isSensitive = false, "project"),
-      TemplateVariable("myVar2", "myValue2", None, Some("test description"), isSensitive = true, "project"),
-      TemplateVariable("myVar3", "myValue2b", Some("{{project.myVar2}}b"), None, isSensitive = true, "project")
+      TemplateVariable("myVar1", "myValue1", None, None, isSensitive = false, VariableScope.project),
+      TemplateVariable("myVar2", "myValue2", None, Some("test description"), isSensitive = true, VariableScope.project),
+      TemplateVariable("myVar3", "myValue2b", Some("{{project.myVar2}}b"), None, isSensitive = true, VariableScope.project)
     ))
     variables.putVariables(templateVariables1)
     refreshTest {
@@ -701,9 +910,9 @@ trait WorkspaceProviderTestTrait extends AnyFlatSpec with Matchers with MockitoS
 
     // Modify variables and read again
     val templateVariables2 = TemplateVariables(Seq(
-      TemplateVariable("myVar2", "myValue2", None, Some("test description 2"), isSensitive = true, "project"),
-      TemplateVariable("myVar4", "myValue2b", Some("{{project.myVar2}}b"), None, isSensitive = true, "project"),
-      TemplateVariable("myVar1", "myValue1", None, None, isSensitive = false, "project")
+      TemplateVariable("myVar2", "myValue2", None, Some("test description 2"), isSensitive = true, VariableScope.project),
+      TemplateVariable("myVar4", "myValue2b", Some("{{project.myVar2}}b"), None, isSensitive = true, VariableScope.project),
+      TemplateVariable("myVar1", "myValue1", None, None, isSensitive = false, VariableScope.project)
     ))
     variables.putVariables(templateVariables2)
     refreshTest {

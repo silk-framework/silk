@@ -2,9 +2,9 @@ package org.silkframework.runtime.serialization
 
 import org.silkframework.config.Prefixes
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.runtime.plugin.PluginContext
+import org.silkframework.runtime.plugin.{PluginContext, TaskResolver}
 import org.silkframework.runtime.resource.{EmptyResourceManager, ResourceManager}
-import org.silkframework.runtime.templating.{GlobalTemplateVariables, TemplateVariablesReader}
+import org.silkframework.runtime.templating.{ExecutionTemplateVariables, GlobalTemplateVariables}
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.ProjectTrait
 
@@ -17,11 +17,12 @@ case class WriteContext[U](parent: Option[U] = None,
                            projectUri: Option[String] = None,
                            resources: ResourceManager = EmptyResourceManager(),
                            user: UserContext = UserContext.Empty,
-                           templateVariables: TemplateVariablesReader = GlobalTemplateVariables) extends PluginContext
+                           templateVariables: ExecutionTemplateVariables = ExecutionTemplateVariables(GlobalTemplateVariables),
+                           taskResolver: TaskResolver) extends PluginContext
 
 object WriteContext {
 
-  def empty[U]: WriteContext[U] = WriteContext(resources = EmptyResourceManager(), user = UserContext.Empty, prefixes = Prefixes.empty)
+  def empty[U]: WriteContext[U] = WriteContext(resources = EmptyResourceManager(), user = UserContext.Empty, prefixes = Prefixes.empty, taskResolver = TaskResolver.empty)
 
   def fromProject[U](project: ProjectTrait, parent: Option[U] = None)(implicit user: UserContext): WriteContext[U] = {
     WriteContext[U](
@@ -31,7 +32,8 @@ object WriteContext {
       projectUri = project.config.projectResourceUriOpt,
       resources = project.resources,
       user = user,
-      templateVariables = project.combinedTemplateVariables
+      templateVariables = ExecutionTemplateVariables(project.combinedTemplateVariables),
+      taskResolver = TaskResolver.fromProject(project)
     )
   }
 
@@ -44,7 +46,8 @@ object WriteContext {
       projectUri = projectUri,
       resources = pluginContext.resources,
       user = pluginContext.user,
-      templateVariables = pluginContext.templateVariables
+      templateVariables = pluginContext.templateVariables,
+      taskResolver = pluginContext.taskResolver
     )
   }
 }

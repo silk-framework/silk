@@ -2,7 +2,7 @@ import React from "react";
 import "@testing-library/jest-dom";
 
 import MappingsList from "../../../../src/app/views/pages/MappingEditor/HierarchicalMapping/containers/MappingsList/MappingsList";
-import { findAllDOMElements, findElement, renderWrapper } from "../../../integration/TestHelper";
+import { findAllDOMElements, renderWrapper } from "../../../integration/TestHelper";
 import { RenderResult } from "@testing-library/react";
 
 const props = {
@@ -110,7 +110,7 @@ const getWrapper = (args: any = props): RenderResult => {
     return renderWrapper(<MappingsList {...args} />);
 };
 
-const droppableSelector = `[data-rbd-droppable-id="droppable"]`;
+const ruleItemSelector = ".ecc-silk-mapping__ruleitem";
 
 describe("MappingsList Component", () => {
     describe("on component mounted, ", () => {
@@ -124,19 +124,15 @@ describe("MappingsList Component", () => {
                 ...props,
                 rules: [],
             });
-            expect(wrapper.container.querySelector(droppableSelector)).not.toBeInTheDocument();
+            expect(wrapper.container.querySelector(ruleItemSelector)).not.toBeInTheDocument();
         });
 
-        it("should render DragDropContext component, when rules is NOT empty", () => {
-            expect(findElement(wrapper, droppableSelector)).toBeInTheDocument();
-        });
-
-        it("should render DraggableItem component, the right count", () => {
-            expect(findAllDOMElements(wrapper, `${droppableSelector}  li`)).toHaveLength(2);
+        it("should render the right number of mapping rule items", () => {
+            expect(findAllDOMElements(wrapper, ruleItemSelector)).toHaveLength(2);
         });
 
         it("should render ListActions component", () => {
-            expect(wrapper.getByText("Add value mapping")).toBeInTheDocument();
+            expect(wrapper.getByText("Add mapping")).toBeInTheDocument();
         });
 
         afterEach(() => {

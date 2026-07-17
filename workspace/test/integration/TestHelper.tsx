@@ -1,7 +1,7 @@
 import React from "react";
 import { createBrowserHistory, createMemoryHistory, History, LocationState } from "history";
 import { Provider } from "react-redux";
-import { configureStore, getDefaultMiddleware } from "@reduxjs/toolkit";
+import { configureStore } from "@reduxjs/toolkit";
 import rootReducer from "../../src/app/store/reducers";
 import { ConnectedRouter, routerMiddleware } from "connected-react-router";
 import { AxiosMockQueueItem, AxiosMockRequestCriteria, AxiosMockType, HttpResponse } from "jest-mock-axios";
@@ -9,8 +9,9 @@ import mockAxios from "../__mocks__/axios";
 import { CONTEXT_PATH, SERVE_PATH } from "../../src/app/constants/path";
 import { mergeDeepRight } from "ramda";
 import { IStore } from "../../src/app/store/typings/IStore";
-import { render, RenderResult, waitFor, fireEvent } from "@testing-library/react";
+import { fireEvent, render, RenderResult, waitFor } from "@testing-library/react";
 import "@testing-library/jest-dom";
+import { CLASSPREFIX as eccgui } from "@eccenca/gui-elements";
 
 import {
     responseInterceptorOnError,
@@ -31,6 +32,7 @@ const mockValues: IMockValues = {
     },
 };
 const host = process.env.HOST;
+const isDebugLoggingEnabled = () => process.env.DEBUG === "true";
 
 jest.mock("@codemirror/view", () => ({
     ...jest.requireActual("@codemirror/view"),
@@ -65,18 +67,13 @@ jest.mock("react-router", () => ({
  */
 export const createStore = (history: History<LocationState>, initialState: RecursivePartial<IStore>) => {
     const root = rootReducer(history);
-    const middleware = [
-        ...getDefaultMiddleware({
-            serializableCheck: false,
-        }),
-        routerMiddleware(history),
-    ];
+    const middleware = [routerMiddleware(history)];
 
     // Get the initial state (defaults) of the store
     // FIXME: Is there a better way to get the initial state of the store?
     const tempStore = configureStore({
         reducer: root,
-        middleware,
+        middleware: (getDefaultMiddleWare) => getDefaultMiddleWare({ serializableCheck: false }).concat(middleware),
     });
 
     const rootState = tempStore.getState();
@@ -85,7 +82,7 @@ export const createStore = (history: History<LocationState>, initialState: Recur
     // Create store with merged state
     return configureStore({
         reducer: root,
-        middleware,
+        middleware: (getDefaultMiddleWare) => getDefaultMiddleWare({ serializableCheck: false }).concat(middleware),
         preloadedState: state,
     });
 };
@@ -102,7 +99,7 @@ export type RecursivePartial<T> = {
 export const withRender = (component) => render(component);
 
 export const renderWrapper = (
-    ui: JSX.Element,
+    ui: React.JSX.Element,
     history: History<LocationState> = createBrowserHistory<LocationState>(),
     initialState: RecursivePartial<IStore> = {},
     options = {},
@@ -145,11 +142,27 @@ export const setUseParams = (projectId: string, taskId: string): void => {
 };
 
 /** Logs all requests to the console. */
+export const debugLog = (...args: unknown[]) => {
+    if (isDebugLoggingEnabled()) {
+        console.info(...args);
+    }
+};
+
+/** Logs all requests to the console when DEBUG=true. */
 export const logRequests = (axiosMock?: AxiosMockType) => {
     const mock = axiosMock ? axiosMock : mockAxios;
     mock.queue().forEach((request) => {
-        console.log(request);
+        debugLog(request);
     });
+};
+
+/** Checks if the NotAvailable element is found. */
+export const checkForNotAvailableElement = (wrapper: RenderResult, noTag: boolean = true): void => {
+    if (noTag) {
+        expect(wrapper.queryAllByText("n/a", { exact: false }).length).toBeGreaterThan(0);
+    } else {
+        expect(findAllDOMElements(wrapper, `${eccgui}-notavailable`).length).toBeGreaterThan(0);
+    }
 };
 
 /**Clicks an element specified by a selector. */
@@ -210,24 +223,14 @@ export const elementHtmlToContain = async (wrapper: RenderResult | Element, sele
     });
 };
 
-/** Adds the document.createRange method */
-export const addDocumentCreateRangeMethod = () => {
-    (global as any).document.createRange = () => ({
-        setStart: () => {},
-        setEnd: () => {},
-        commonAncestorContainer: {
-            nodeName: "BODY",
-            ownerDocument: document,
-        },
-    });
-};
-
 /** Returns a data test id selector. */
 export const byTestId = (testId: string) => `[data-test-id="${testId}"]`;
 
 /** Prints the complete page HTML string to console. */
 export const logPageHtml = (): void => {
-    process.stdout.write(window.document.documentElement.outerHTML);
+    if (isDebugLoggingEnabled()) {
+        process.stdout.write(window.document.documentElement.outerHTML);
+    }
 };
 
 /** Get the page HTML */
@@ -235,14 +238,14 @@ export const pageHtml = (): string => window.document.documentElement.outerHTML;
 
 /** Returns a function that logs the page HTML and returns the error. */
 export const logPageOnError = (err: Error) => {
-    console.log(logPageHtml());
+    debugLog(pageHtml());
     return err;
 };
 
-/** Log the wrapper HTML to the console */
+/** Log the wrapper HTML to the console when DEBUG=true. */
 export const logWrapperHtml = (root: RenderResult | Element) => {
     const container = "container" in root ? root.container : root;
-    console.log(container.innerHTML);
+    debugLog(container.innerHTML);
 };
 
 /** Returns a name selector. */
@@ -470,7 +473,7 @@ export class RenderResultApi {
 
     printHtml = (selector?: string) => {
         const elementToPrint = selector ? this.findExisting(selector) : this.renderResult.container;
-        console.log(elementToPrint.outerHTML);
+        debugLog(elementToPrint.outerHTML);
     };
 
     static testId = (testId: string): string => {

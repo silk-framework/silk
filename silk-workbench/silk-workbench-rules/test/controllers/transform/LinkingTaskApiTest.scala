@@ -10,14 +10,16 @@ import org.scalatestplus.play.PlaySpec
 import org.silkframework.config.MetaData
 import org.silkframework.entity.Link
 import org.silkframework.entity.paths.UntypedPath
-import org.silkframework.rule.{LinkSpec, LinkageRule}
-import org.silkframework.rule.input.PathInput
+import org.silkframework.rule.{LinkSpec, LinkageRule, RuleBlockModel, RuleBlockPort, RuleBlockSpec}
+import org.silkframework.rule.input.{InputPortInput, PathInput, RuleBlockBinding, RuleBlockInput, TransformInput}
 import org.silkframework.rule.plugins.distance.equality.EqualityMetric
+import org.silkframework.rule.plugins.transformer.normalize.LowerCaseTransformer
 import org.silkframework.rule.similarity.Comparison
+import org.silkframework.runtime.serialization.XmlSerialization
 import org.silkframework.runtime.serialization.{ReadContext, TestReadContext, TestWriteContext, WriteContext}
 import org.silkframework.serialization.json.JsonSerializers.LinkageRuleJsonFormat
 import org.silkframework.serialization.json.LinkingSerializers.LinkJsonFormat
-import org.silkframework.util.DPair
+import org.silkframework.util.{DPair, Identifier}
 import org.silkframework.workspace.activity.linking.EvaluateLinkingActivity
 import play.api.libs.json.{JsArray, JsValue, Json}
 
@@ -34,8 +36,10 @@ class LinkingTaskApiTest extends PlaySpec with IntegrationTestTrait {
   private val csvSource1 = "csvSource1"
   private val csvSource2 = "csvSource2"
   private val csvLinkingTask = "csvLinking"
+  private val csvRuleBlockLinkingTask = "csvRuleBlockLinking"
   private val outputCsvResource = "output.csv"
   private val outputCsv = "outputCsv"
+  private val ruleBlockTaskId = "normalizeLabel"
 
   private val metaData =
     MetaData(
@@ -68,6 +72,26 @@ class LinkingTaskApiTest extends PlaySpec with IntegrationTestTrait {
   "Add a linking task" in {
     createLinkingTask(project, task, sourceDataset, targetDataset, outputDataset)
     createLinkingTask(project, csvLinkingTask, csvSource1, csvSource2, outputCsv)
+    workspaceProject(project).addTask(
+      ruleBlockTaskId,
+      RuleBlockSpec(
+        RuleBlockModel(
+          ports = IndexedSeq(
+            RuleBlockPort(id = Identifier("labelInput"), label = "Label", displayOrder = 1)
+          ),
+          operator = Some(
+            TransformInput(
+              id = Identifier("normalizeInput"),
+              transformer = LowerCaseTransformer(),
+              inputs = IndexedSeq(
+                InputPortInput(id = Identifier("labelPort"), portId = Identifier("labelInput"))
+              )
+            )
+          )
+        )
+      )
+    )
+    createLinkingTask(project, csvRuleBlockLinkingTask, csvSource1, csvSource2, outputCsv)
   }
 
   "Update meta data" in {
@@ -97,6 +121,7 @@ class LinkingTaskApiTest extends PlaySpec with IntegrationTestTrait {
         </Compare>
       </LinkageRule>
     )
+    setLinkingRule(project, csvRuleBlockLinkingTask, XmlSerialization.toXml(ruleBlockLinkageRule).asInstanceOf[scala.xml.Elem])
   }
 
   "Check meta data" in {
@@ -111,9 +136,12 @@ class LinkingTaskApiTest extends PlaySpec with IntegrationTestTrait {
 
   "Return evaluated links for the current linking rule" in {
     val jsonBody: JsValue = linkEvaluationResult()
-    (jsonBody \ "links").as[JsArray].value must have size 2
+    val links = (jsonBody \ "links").as[JsArray].value
+    links must have size 2
     (jsonBody \\ "decision").map(_.as[String]) mustBe Seq("unlabeled", "unlabeled")
     (jsonBody \ "evaluationActivityStats").as[LinkRuleEvaluationStats] mustBe LinkRuleEvaluationStats(2, 2, 2)
+    // Every link must carry rule evaluation details
+    links.foreach(link => (link \ LinkJsonFormat.RULE_VALUES).toOption mustBe defined)
   }
 
   "Return evaluated links for the current linking rule matching the search query" in {
@@ -152,6 +180,61 @@ class LinkingTaskApiTest extends PlaySpec with IntegrationTestTrait {
     links.filter(link => link.source.endsWith("1") && link.target.endsWith("2")) must not be empty
   }
 
+  "referenceLinksEvaluated endpoint returns rule values for positive and negative links" in {
+    val response = client.url(s"$baseUrl/linking/tasks/$project/$csvLinkingTask/referenceLinksEvaluated").get()
+    val json = checkResponse(response).json
+    val positive = (json \ "positive").as[JsArray].value
+    val negative = (json \ "negative").as[JsArray].value
+    positive must not be empty
+    negative must not be empty
+    (positive ++ negative).foreach { link =>
+      (link \ LinkJsonFormat.RULE_VALUES).toOption mustBe defined
+    }
+  }
+
+  "referenceLinksEvaluated endpoint returns reusable rule block snapshots keyed by task ID" in {
+    val response = client
+      .url(s"$baseUrl/linking/tasks/$project/$csvRuleBlockLinkingTask/referenceLinksEvaluated?includeRuleBlockInspection=true")
+      .get()
+    val json = checkResponse(response).json
+
+    val snapshots = (json \ "ruleBlockInspection" \ "snapshots").as[Map[String, JsValue]]
+    snapshots.keySet mustBe Set(ruleBlockTaskId)
+    (snapshots(ruleBlockTaskId) \ "operatorTree" \ "id").as[String] mustBe "normalizeInput"
+  }
+
+  "evaluateLinkageRule reuses a single reusable rule block snapshot for repeated usages" in {
+    val json = evaluateLinkageRuleResponse(
+      ruleBlockLinkageRule,
+      csvRuleBlockLinkingTask,
+      includeRuleBlockInspection = true
+    )
+    val jsLinks = (json \ "links").as[JsArray].value
+    jsLinks.size mustBe 2
+
+    val snapshots = (json \ "ruleBlockInspection" \ "snapshots").as[Map[String, JsValue]]
+    snapshots.keySet mustBe Set(ruleBlockTaskId)
+
+    val ruleValues = (jsLinks.head \ LinkJsonFormat.RULE_VALUES).toOption
+    ruleValues mustBe defined
+    // The outer evaluation keeps the rule block as a black-box node and only exposes the evaluated bound source input.
+    val sourceBindingValues = (ruleValues.get \ "sourceValue" \ "children").as[JsArray].value
+    sourceBindingValues must have size 1
+    (sourceBindingValues.head \ "operatorId").as[String] mustBe "sourceLabel"
+    val sourceValues = (sourceBindingValues.head \ "values").as[Seq[String]]
+    sourceValues must have size 1
+    sourceValues.head must fullyMatch regex "entry [12]"
+    (sourceBindingValues.head \ "children").as[JsArray].value mustBe empty
+    // The same applies on the target side: only the evaluated bound input is serialized, not the internal rule block tree.
+    val targetBindingValues = (ruleValues.get \ "targetValue" \ "children").as[JsArray].value
+    targetBindingValues must have size 1
+    (targetBindingValues.head \ "operatorId").as[String] mustBe "targetLabel"
+    val targetValues = (targetBindingValues.head \ "values").as[Seq[String]]
+    targetValues must have size 1
+    targetValues.head mustBe sourceValues.head
+    (targetBindingValues.head \ "children").as[JsArray].value mustBe empty
+  }
+
   private def linkCountMustBe(resultJson: JsValue, expectedCount: Int): Seq[Link] = {
     implicit val readContext: ReadContext = TestReadContext()
     val links = (resultJson \ "links").as[JsArray].value.toSeq
@@ -186,6 +269,50 @@ class LinkingTaskApiTest extends PlaySpec with IntegrationTestTrait {
 
   // Alternative linkage rule returns 4 links, the original rule only returns 2
   private val csvLinkingNrOfLinks = 4
+  private def ruleBlockLinkageRule: LinkageRule = {
+    def ruleBlockInput(usageId: String, pathId: String): RuleBlockInput = {
+      RuleBlockInput(
+        id = Identifier(usageId),
+        ruleBlockId = Identifier(ruleBlockTaskId),
+        bindings = IndexedSeq(
+          RuleBlockBinding(
+            portId = Identifier("labelInput"),
+            input = PathInput(id = Identifier(pathId), path = UntypedPath("label"))
+          )
+        )
+      )
+    }
+
+    LinkageRule(Some(
+      Comparison(
+        id = Identifier("compareNormalizedLabels"),
+        metric = EqualityMetric(),
+        inputs = DPair(
+          ruleBlockInput("sourceRuleBlockUsage", "sourceLabel"),
+          ruleBlockInput("targetRuleBlockUsage", "targetLabel")
+        )
+      )
+    ))
+  }
+
+  private def evaluateLinkageRuleResponse(linkageRule: LinkageRule,
+                                          taskId: String = csvLinkingTask,
+                                          linkLimit: Option[Int] = None,
+                                          includeRuleBlockInspection: Boolean = false): JsValue = {
+    implicit val writeContext: WriteContext[JsValue] = TestWriteContext[JsValue]()
+    val linkageRuleJson = LinkageRuleJsonFormat.write(linkageRule)
+    val queryParameters = Seq(
+      linkLimit.map(ll => s"linkLimit=$ll"),
+      Some(s"includeRuleBlockInspection=$includeRuleBlockInspection")
+    ).flatten
+    val querySuffix = if(queryParameters.nonEmpty) queryParameters.mkString("?", "&", "") else ""
+    val request = client.url(s"$baseUrl/linking/tasks/$project/$taskId/evaluateLinkageRule" + querySuffix)
+    val response = request.
+      addHttpHeaders("Content-Type"-> SerializationUtils.APPLICATION_JSON).
+      post(linkageRuleJson)
+    checkResponse(response).json
+  }
+
   // Executes the evaluateLinkageRule with alternative linkage rule and checks results
   private def evaluateLinkageRule(linkLimit: Option[Int] = None,
                                   expectedLinks: Int = csvLinkingNrOfLinks): Unit = {
@@ -195,19 +322,12 @@ class LinkingTaskApiTest extends PlaySpec with IntegrationTestTrait {
       Comparison(metric = EqualityMetric(), inputs = DPair(inputPath(), inputPath()))
     ))
     // Make request
-    implicit val writeContext: WriteContext[JsValue] = TestWriteContext[JsValue]()
-    val linkageRuleJson = LinkageRuleJsonFormat.write(alternativeLinkingRule)
-    val linkLimitQuery = linkLimit.map(ll => s"?linkLimit=$ll").getOrElse("")
-    val request = client.url(s"$baseUrl/linking/tasks/$project/$csvLinkingTask/evaluateLinkageRule" + linkLimitQuery)
-    val response = request.
-      addHttpHeaders("Content-Type"-> SerializationUtils.APPLICATION_JSON).
-      post(linkageRuleJson)
-    // Check results
-    val json = checkResponse(response).json
+    val json = evaluateLinkageRuleResponse(alternativeLinkingRule, csvLinkingTask, linkLimit)
     val jsLinks = json.as[JsArray].value
     jsLinks.size mustBe expectedLinks
     val ruleValues = (jsLinks.head \ LinkJsonFormat.RULE_VALUES).toOption
     ruleValues mustBe defined
     (ruleValues.get \ "sourceValue" \ "values").as[JsArray].value.map(_.as[String]) mustBe Seq("group 1")
   }
+
 }

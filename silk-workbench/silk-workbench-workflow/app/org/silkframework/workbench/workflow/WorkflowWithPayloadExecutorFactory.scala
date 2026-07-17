@@ -6,7 +6,8 @@ import org.silkframework.dataset.{Dataset, DatasetPluginAutoConfigurable}
 import org.silkframework.runtime.activity.{Activity, ActivityContext, UserContext}
 import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
 import org.silkframework.runtime.plugin.types.MultilineStringParameter
-import org.silkframework.runtime.plugin.{PluginContext, PluginObjectParameterNoSchemaAndSerialization}
+import org.silkframework.runtime.plugin.{PluginContext, PluginObjectParameterNoSchemaAndSerialization, TaskResolver}
+import org.silkframework.runtime.templating.{TemplateVariablesParameter, TemplateVariables}
 import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat}
 import org.silkframework.serialization.json.WriteOnlyJsonFormat
@@ -14,7 +15,8 @@ import org.silkframework.workbench.utils.UnsupportedMediaTypeException
 import org.silkframework.workbench.workflow.WorkflowWithPayloadExecutorFactory._
 import org.silkframework.workspace.ProjectTask
 import org.silkframework.workspace.activity.TaskActivityFactory
-import org.silkframework.workspace.activity.workflow.{AllReplaceableDatasets, LocalWorkflowExecutorGeneratingProvenance, Workflow}
+import org.silkframework.workspace.activity.workflow.{AllReplaceableDatasets, LocalWorkflowExecutorGeneratingProvenance, Workflow, WorkflowExecutionReport}
+import org.silkframework.workspace.activity.workflow.{AllReplaceableDatasets, LocalWorkflowExecutorGeneratingProvenance, Workflow, WorkflowExecutorFactory}
 import play.api.libs.json._
 
 import scala.xml.{Node, NodeSeq, XML}
@@ -28,13 +30,16 @@ import scala.xml.{Node, NodeSeq, XML}
 case class WorkflowWithPayloadExecutorFactory(configuration: MultilineStringParameter = MultilineStringParameter(DEFAULT_CONFIGURATION),
                                               configurationType: String = "application/json",
                                               @Param(label = "", value = "", visibleInDialog = false)
-                                              optionalPrimaryResourceManager: OptionalPrimaryResourceManagerParameter = OptionalPrimaryResourceManagerParameter(None))
-  extends TaskActivityFactory[Workflow, WorkflowWithPayloadExecutor] {
+                                              optionalPrimaryResourceManager: OptionalPrimaryResourceManagerParameter = OptionalPrimaryResourceManagerParameter(None),
+                                              @Param(label = "Execution variables", value = "Variables for this workflow execution.", visibleInDialog = false)
+                                              executionVariables: TemplateVariablesParameter = TemplateVariablesParameter.empty)
+  extends TaskActivityFactory[Workflow, WorkflowWithPayloadExecutor] with WorkflowExecutorFactory {
 
   override def isSingleton: Boolean = false
 
   def apply(task: ProjectTask[Workflow]): Activity[WorkflowOutput] = {
-    new WorkflowWithPayloadExecutor(task, WorkflowWithPayloadConfiguration(configuration.str, configurationType, optionalPrimaryResourceManager.manager))
+    // Only the overrides are passed here. They are merged with the workflow's execution variables at run start.
+    new WorkflowWithPayloadExecutor(task, WorkflowWithPayloadConfiguration(configuration.str, configurationType, optionalPrimaryResourceManager.manager, executionVariables.variables))
   }
 }
 
@@ -89,7 +94,8 @@ object WorkflowWithPayloadExecutorFactory {
   */
 case class WorkflowWithPayloadConfiguration(configurationString: String,
                                             format: String,
-                                            optionalPrimaryResourceManager: Option[ResourceManager])
+                                            optionalPrimaryResourceManager: Option[ResourceManager],
+                                            workflowVariables: TemplateVariables = TemplateVariables.empty)
 
 class WorkflowWithPayloadExecutor(task: ProjectTask[Workflow], config: WorkflowWithPayloadConfiguration) extends Activity[WorkflowOutput] {
 
@@ -116,10 +122,13 @@ class WorkflowWithPayloadExecutor(task: ProjectTask[Workflow], config: WorkflowW
         throw UnsupportedMediaTypeException.supportedFormats("application/xml", "application/json")
     }
     checkReplaceableDatasetsCovered(allReplaceableDatasets, dataSources.keySet, sinks.keySet)
+    // Set the value before running so the (partial) output resource is available even if execution fails.
     context.value() = WorkflowOutput(sinks, replaceableSinks, resultResourceManager)
 
-    val activity = LocalWorkflowExecutorGeneratingProvenance(task, dataSources, sinks, useLocalInternalDatasets = true)
-    context.child(activity, 1.0).startBlocking()
+    val activity = LocalWorkflowExecutorGeneratingProvenance(task, dataSources, sinks, useLocalInternalDatasets = true, workflowVariables = config.workflowVariables)
+    val childControl = context.child(activity, 1.0)
+    childControl.startBlocking()
+    context.value() = WorkflowOutput(sinks, replaceableSinks, resultResourceManager, Some(childControl.value().report))
   }
 
   // Checks that all replaceable input and output datasets get replaced via the provided payload
@@ -155,7 +164,7 @@ class WorkflowWithPayloadExecutor(task: ProjectTask[Workflow], config: WorkflowW
     val autoConfig = (workflowJson \ "config" \ "autoConfig").asOpt[Boolean].getOrElse(false)
     if(autoConfig) {
       val project = getProject(projectName)
-      implicit val pluginContext: PluginContext = PluginContext(project.config.prefixes, sourceResourceManager, userContext, Some(project.id))
+      implicit val pluginContext: PluginContext = PluginContext(project.config.prefixes, sourceResourceManager, userContext, Some(project.id), taskResolver = TaskResolver.empty)
       dataSources = dataSources.view.mapValues {
         case autoConfigDataset: DatasetPluginAutoConfigurable[_] => autoConfigDataset.autoConfigured
         case other: Dataset => other
@@ -185,7 +194,8 @@ class WorkflowWithPayloadExecutor(task: ProjectTask[Workflow], config: WorkflowW
   }
 }
 
-case class WorkflowOutput(dataSinks: Map[String, Dataset], variableSinks: Seq[String], resourceManager: ResourceManager)
+case class WorkflowOutput(dataSinks: Map[String, Dataset], variableSinks: Seq[String], resourceManager: ResourceManager,
+                          report: Option[WorkflowExecutionReport] = None)
 
 object WorkflowOutput {
 

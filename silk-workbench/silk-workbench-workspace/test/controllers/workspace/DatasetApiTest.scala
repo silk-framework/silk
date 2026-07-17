@@ -129,4 +129,42 @@ class DatasetApiTest extends PlaySpec with IntegrationTestTrait {
     downloadedFile mustBe testData
   }
 
+  "update execution variables only when the payload provides them" in {
+    val dataset = "execVarsDataset"
+    def datasetJson(extraFields: (String, Json.JsValueWrapper)*): JsObject = Json.obj(
+      (Seq[(String, Json.JsValueWrapper)](
+        TASKTYPE -> TASK_TYPE_DATASET,
+        ID -> dataset,
+        DATA -> Json.obj(
+          TYPE -> "internal",
+          PARAMETERS -> Json.obj("graphUri" -> "urn:execVarsDataset")
+        )
+      ) ++ extraFields): _*
+    )
+    def executionVariable(value: String): JsObject =
+      Json.obj("name" -> "myVar", "value" -> value, "isSensitive" -> false, "scope" -> "execution")
+    def storedVariables: Seq[(String, String)] =
+      workspaceProject(project).anyTask(dataset).executionVariables.variables.map(v => (v.name, v.value))
+    def putDataset(json: JsObject): Unit = {
+      checkResponse(client.url(s"$baseUrl/workspace/projects/$project/datasets/$dataset")
+        .addHttpHeaders("Accept" -> "application/json").put(json))
+    }
+
+    // Create the dataset with an execution variable
+    putDataset(datasetJson("executionVariables" -> Json.arr(executionVariable("v1"))))
+    storedVariables mustBe Seq(("myVar", "v1"))
+
+    // A PUT without the executionVariables key must leave the stored variables unchanged
+    putDataset(datasetJson())
+    storedVariables mustBe Seq(("myVar", "v1"))
+
+    // A PUT with the key must replace them
+    putDataset(datasetJson("executionVariables" -> Json.arr(executionVariable("v2"))))
+    storedVariables mustBe Seq(("myVar", "v2"))
+
+    // A PUT with an explicit empty array must clear them
+    putDataset(datasetJson("executionVariables" -> Json.arr()))
+    storedVariables mustBe Seq.empty
+  }
+
 }

@@ -11,21 +11,22 @@ import io.swagger.v3.oas.annotations.parameters.RequestBody
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.tags.Tag
 import io.swagger.v3.oas.annotations.{Operation, Parameter}
-import org.silkframework.config.{Prefixes, TaskSpec}
+import org.silkframework.config.{Prefixes, Task, TaskSpec}
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.dataset._
-import org.silkframework.dataset.rdf.RdfDataset
+import org.silkframework.dataset.rdf.{RdfDataset, RdfDatasetAccess}
 import org.silkframework.entity._
 import org.silkframework.entity.paths.{Path, UntypedPath}
-import org.silkframework.plugins.dataset.rdf.executors.{LocalSparqlSelectExecutor, LocalSparqlSelectIterator}
+import org.silkframework.plugins.dataset.rdf.executors.LocalSparqlSelectIterator
 import org.silkframework.plugins.dataset.rdf.tasks.SparqlSelectCustomTask
 import org.silkframework.rule.TransformSpec.RuleSchemata
-import org.silkframework.rule.{ComplexUriMapping, TaskContext, TransformRule, TransformSpec}
+import org.silkframework.rule.input.Value
+import org.silkframework.rule._
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.PluginContext
 import org.silkframework.runtime.serialization.ReadContext
 import org.silkframework.runtime.validation.ValidationException
-import org.silkframework.util.{Identifier, Uri}
+import org.silkframework.util.Identifier
 import org.silkframework.workspace.{Project, ProjectTask}
 import play.api.libs.json.{Format, Json}
 import play.api.mvc._
@@ -42,7 +43,7 @@ class PeakTransformApi @Inject() () extends InjectedController with UserContextA
     */
   @Operation(
     summary = "Mapping Rule Transformation Examples",
-    description = "Get transformation examples for the selected transformation rule. The input task of the transformation task has to be a Dataset task. Also the Dataset task must support this feature.",
+    description = "Get transformation examples for the selected transformation rule. Note: this endpoint only handles value rules. The input task of the transformation task has to be a Dataset task. Also the Dataset task must support this feature.",
     responses = Array(
       new ApiResponse(
         responseCode = "200",
@@ -73,7 +74,7 @@ class PeakTransformApi @Inject() () extends InjectedController with UserContextA
             taskName: String,
             @Parameter(
               name = "rule",
-              description = "The rule identifier",
+              description = "The value rule identifier",
               required = true,
               in = ParameterIn.PATH,
               schema = new Schema(implementation = classOf[String])
@@ -197,11 +198,15 @@ class PeakTransformApi @Inject() () extends InjectedController with UserContextA
     inputTask.data match {
       case dataset: GenericDatasetSpec =>
         val pluginLabel = dataset.plugin.pluginSpec.label
-        DataSource.pluginSource(dataset) match {
+        DataSource.pluginSource(inputTask.asInstanceOf[Task[GenericDatasetSpec]]) match {
           case peakDataSource: PeakDataSource =>
             try {
               peakDataSource.peak(ruleSchemata.inputSchema, maxTryEntities).use { exampleEntities =>
-                generateMappingPreviewResponse(ruleSchemata.transformRule.withContext(TaskContext(Seq(inputTask), PluginContext.fromProject(project))), exampleEntities, limit)
+                generateMappingPreviewResponse(
+                  ruleSchemata.transformRule.execution(TaskContext.forInput(inputTask)),
+                  exampleEntities,
+                  limit
+                )
               }
             } catch {
               case pe: PeakException =>
@@ -238,12 +243,17 @@ class PeakTransformApi @Inject() () extends InjectedController with UserContextA
     } else {
       val datasetTask = project.task[GenericDatasetSpec](sparqlDataset)
       datasetTask.data.plugin match {
-        case rdfDataset: RdfDataset with Dataset =>
-          val entities = new LocalSparqlSelectIterator(sparqlSelectTask, rdfDataset.sparqlEndpoint, maxTryEntities, executionReportUpdater = None)
+        case _: RdfDataset =>
+          val sparqlEndpoint = RdfDatasetAccess.forExecution(datasetTask).sparqlEndpoint
+          val entities = new LocalSparqlSelectIterator(sparqlSelectTask, sparqlEndpoint, Some(datasetTask), None, maxTryEntities, executionReportUpdater = None)
           val entityDatasource = EntityDatasource(datasetTask, entities, sparqlSelectTask.outputSchema)
           try {
             entityDatasource.peak(ruleSchemata.inputSchema, maxTryEntities).use { exampleEntities =>
-              generateMappingPreviewResponse(ruleSchemata.transformRule, exampleEntities, limit)
+              generateMappingPreviewResponse(
+                ruleSchemata.transformRule.execution(TaskContext.noInput()),
+                exampleEntities,
+                limit
+              )
             }
           } catch {
             case pe: PeakException =>
@@ -258,11 +268,12 @@ class PeakTransformApi @Inject() () extends InjectedController with UserContextA
   }
 
   // Generate the HTTP response for the mapping transformation preview
-  private def generateMappingPreviewResponse(rule: TransformRule,
+  private def generateMappingPreviewResponse(ruleExecution: TransformRuleExecution,
                                              exampleEntities: Iterator[Entity],
                                              limit: Int)
                                             (implicit prefixes: Prefixes) = {
-    val (tryCounter, errorCounter, errorMessage, sourceAndTargetResults) = collectTransformationExamples(rule, exampleEntities, limit)
+    val rule = ruleExecution.operator
+    val (tryCounter, errorCounter, errorMessage, sourceAndTargetResults) = collectTransformationExamples(ruleExecution, exampleEntities, limit)
     if (sourceAndTargetResults.nonEmpty && errorMessage.nonEmpty) {
       Ok(Json.toJson(PeakResults(Some(rule.sourcePaths.map(serializePath)), Some(sourceAndTargetResults),
         status = PeakStatus("with exceptions", errorMessage))))
@@ -310,13 +321,16 @@ object PeakTransformApi {
   final val NOT_SUPPORTED_STATUS_MSG = "not supported"
 
   /**
-    *
-    * @param rule            The transformation rule to execute on the example entities.
-    * @param exampleEntities Entities to try executing the tranform rule on
-    * @param limit           Limit of examples to return
-    * @return
-    */
-  def collectTransformationExamples(rule: TransformRule, exampleEntities: Iterator[Entity], limit: Int): (Int, Int, String, Seq[PeakResult]) = {
+   * @param ruleExecution   The contextualized transformation rule to execute on the example entities.
+   * @param exampleEntities Entities to try executing the transform rule on
+   * @param limit           Limit of examples to return
+   */
+  def collectTransformationExamples(ruleExecution: TransformRuleExecution, exampleEntities: Iterator[Entity], limit: Int): (Int, Int, String, Seq[PeakResult]) = {
+    val ruleApply: Entity => Value = ruleExecution match {
+      case ve: ValueTransformRuleExecution => ve.apply
+      case other =>
+        throw new IllegalArgumentException(s"Cannot generate a mapping preview for non-value rule '${other.operator.id}'.")
+    }
     // Number of examples collected
     var exampleCounter = 0
     // Number of exceptions occurred
@@ -330,7 +344,7 @@ object PeakTransformApi {
       tryCounter += 1
       val entity = exampleEntities.next()
       try {
-        val transformResult = rule(entity)
+        val transformResult = ruleApply(entity)
         for(error <- transformResult.errors) {
           errorCounter += 1
           if (errorMessage.isEmpty) {

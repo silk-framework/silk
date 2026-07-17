@@ -1,24 +1,42 @@
 
-import org.silkframework.dataset._
-import org.silkframework.entity.ValueType
-import org.silkframework.rule.vocab._
-import org.silkframework.rule.{MappingTarget, NodePosition, RuleLayout}
-import org.silkframework.runtime.activity.UserContext
-import org.silkframework.runtime.plugin.PluginRegistry
-import org.silkframework.runtime.serialization.{ReadContext, Serialization, TestReadContext, TestWriteContext, WriteContext}
-import org.silkframework.serialization.json.JsonSerializers._
-import org.silkframework.serialization.json.{JsonFormat, JsonSerialization}
-import org.silkframework.workspace.activity.transform.VocabularyCacheValue
-import org.silkframework.serialization.json.WorkflowSerializers._
-import org.silkframework.workspace.activity.workflow.WorkflowTest.{DS_A1, OUTPUT, testWorkflow}
-import org.silkframework.workspace.annotation.{StickyNote, UiAnnotations}
-import play.api.libs.json.Json
-
-import scala.reflect.ClassTag
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
+import org.silkframework.config.{PlainTask, Task, TaskSpec}
+import org.silkframework.dataset._
+import org.silkframework.entity.ValueType
+import org.silkframework.rule.input.TransformInput
+import org.silkframework.rule.plugins.transformer.value.ConstantTransformer
+import org.silkframework.rule.vocab._
+import org.silkframework.rule._
+import org.silkframework.runtime.activity.UserContext
+import org.silkframework.runtime.plugin.{ClassPluginDescription, PluginRegistry}
+import org.silkframework.runtime.serialization._
+import org.silkframework.runtime.templating.{SimpleSubstitutionTemplateEngine, TemplateVariable, VariableScope, TemplateVariables}
+import org.silkframework.runtime.validation.TaskValidationException
+import org.silkframework.util.ConfigTestTrait
+import org.silkframework.serialization.json.ExecutionReportSerializers.WorkflowExecutionReportJsonFormat
+import org.silkframework.serialization.json.JsonSerializers._
+import org.silkframework.serialization.json.WorkflowSerializers._
+import org.silkframework.serialization.json.{JsonFormat, JsonSerialization}
+import org.silkframework.util.Identifier
+import org.silkframework.workspace.activity.transform.VocabularyCacheValue
+import org.silkframework.serialization.json.WorkflowSerializers._
+import org.silkframework.execution.SimpleExecutionReport
+import org.silkframework.workspace.activity.workflow.{Workflow, WorkflowExecutionReport, WorkflowTaskReport, WorkflowTest}
+import org.silkframework.workspace.activity.workflow.WorkflowTest.{DS_A1, OUTPUT, testWorkflow}
+import org.silkframework.workspace.activity.workflow.WorkflowTest.{DS_A1, OUTPUT, testWorkflow}
+import org.silkframework.workspace.activity.workflow.{WorkflowExecutionReport, WorkflowTest}
+import org.silkframework.workspace.annotation.{StickyNote, UiAnnotations}
+import play.api.libs.json.{JsObject, Json}
 
-class JsonSerializersTest  extends AnyFlatSpec with Matchers {
+import scala.reflect.ClassTag
+
+class JsonSerializersTest  extends AnyFlatSpec with Matchers with ConfigTestTrait {
+
+  // Use the dependency-free substitution engine, so that parameter templates can be evaluated in this module's tests.
+  override def propertyMap: Map[String, Option[String]] = Map(
+    "config.variables.engine" -> Some(SimpleSubstitutionTemplateEngine.id)
+  )
 
   "JsonDatasetSpecFormat" should "serialize JsonTaskFormats" in {
     PluginRegistry.registerPlugin(classOf[SomeDatasetPlugin])
@@ -95,6 +113,192 @@ class JsonSerializersTest  extends AnyFlatSpec with Matchers {
     testSerialization(workflow)
   }
 
+  it should "drop stale replaceable dataset IDs of removed datasets when deserializing" in {
+    // Clients like the workflow editor may still send IDs of datasets that were removed from the workflow
+    val staleJson = JsonSerialization.toJson(testWorkflow).as[JsObject].deepMerge(
+      Json.obj("parameters" -> Json.obj(
+        "replaceableInputs" -> Seq(DS_A1, "removedDataset"),
+        "replaceableOutputs" -> Seq(OUTPUT, "removedDataset"))))
+    val workflow = JsonSerialization.fromJson[Workflow](staleJson)
+    workflow.replaceableInputs.taskIds shouldBe Seq(DS_A1)
+    workflow.replaceableOutputs.taskIds shouldBe Seq(OUTPUT)
+  }
+
+  "WorkflowExecutionReport" should "serialize auth diagnostics as a JSON object" in {
+    val authDiagnostics = Json.obj(
+      "scope" -> "read",
+      "refreshTokenPresent" -> true
+    )
+    val report = WorkflowExecutionReport(
+      task = PlainTask("workflowReport", WorkflowTest.testWorkflow),
+      authDiagnostics = Some(Json.stringify(authDiagnostics))
+    )
+
+    val reportJson = JsonSerialization.toJson(report)
+    (reportJson \ "authDiagnostics").as[JsObject] shouldBe authDiagnostics
+
+    val roundTrip = JsonSerialization.fromJson[WorkflowExecutionReport](reportJson)
+    roundTrip shouldBe report
+  }
+
+  it should "round-trip workflow-level warnings" in {
+    val report = WorkflowExecutionReport(
+      task = PlainTask("workflowReport", WorkflowTest.testWorkflow),
+      workflowWarnings = Seq("Dataset 'output' is cleared without a defined execution order.")
+    )
+
+    val reportJson = JsonSerialization.toJson(report)
+    val roundTrip = JsonSerialization.fromJson[WorkflowExecutionReport](reportJson)
+    roundTrip shouldBe report
+  }
+
+  "WorkflowExecutionReport (slim)" should "recurse into nested-workflow sub-reports without embedding task definitions" in {
+    implicit val jsonWriteContext: WriteContext[play.api.libs.json.JsValue] =
+      TestWriteContext[play.api.libs.json.JsValue]()
+
+    // Parent workflow -> nested child workflow -> one leaf node.
+    val leafReport = SimpleExecutionReport(
+      task = PlainTask("leaf", WorkflowTest.testWorkflow), entityCount = 5, isDone = true,
+      operationDesc = "entities written")
+    val nestedWorkflowReport = WorkflowExecutionReport(
+      task = PlainTask("childWf", WorkflowTest.testWorkflow),
+      taskReports = IndexedSeq(WorkflowTaskReport(nodeId = "leaf", report = leafReport)),
+      isDone = true)
+    val parentReport = WorkflowExecutionReport(
+      task = PlainTask("parentWf", WorkflowTest.testWorkflow),
+      taskReports = IndexedSeq(WorkflowTaskReport(nodeId = "childWf", report = nestedWorkflowReport)),
+      isDone = true)
+
+    val slimJson = WorkflowExecutionReportJsonFormat.write(parentReport, slim = true)
+
+    val childNode = (slimJson \ "taskReports")(0)
+    (childNode \ "nodeId").as[String] shouldBe "childWf"
+    // The nested workflow's own per-node reports must survive the compact form.
+    val leafNode = (childNode \ "taskReports")(0)
+    (leafNode \ "nodeId").as[String] shouldBe "leaf"
+    (leafNode \ "entityCount").as[Int] shouldBe 5
+    // Compact form must not embed the full task definition at any level.
+    Json.stringify(slimJson) should not include "\"parameters\""
+  }
+
+  "TaskJsonFormat" should "resolve parameter templates against the task's own execution variables" in {
+    PluginRegistry.unregisterPlugin(classOf[SomeDatasetPlugin])
+    PluginRegistry.registerPlugin(classOf[SomeDatasetPlugin])
+    val pluginId = ClassPluginDescription(classOf[SomeDatasetPlugin]).id.toString
+    val executionVariables = TemplateVariables(Seq(
+      TemplateVariable("param1Value", "valueFromVariable", None, None, isSensitive = false, VariableScope.execution)))
+    val taskJson = Json.obj(
+      "id" -> "taskWithExecutionVariables",
+      "executionVariables" -> JsonSerialization.toJson(executionVariables),
+      "data" -> Json.obj(
+        "taskType" -> "Dataset",
+        "type" -> pluginId,
+        "parameters" -> Json.obj("param2" -> "6.0"),
+        "templates" -> Json.obj("param1" -> "{{execution.param1Value}}")
+      )
+    )
+    // The read context does not provide any execution variables — they must be seeded from the task payload itself.
+    val task = JsonSerialization.fromJson[Task[TaskSpec]](taskJson)
+    task.data.asInstanceOf[DatasetSpec[Dataset]].plugin.asInstanceOf[SomeDatasetPlugin].param1 shouldBe "valueFromVariable"
+    task.executionVariables.variables.map(_.name) shouldBe Seq("param1Value")
+  }
+
+  "DatasetTaskJsonFormat and TransformTaskJsonFormat" should "preserve execution variables" in {
+    PluginRegistry.unregisterPlugin(classOf[SomeDatasetPlugin])
+    PluginRegistry.registerPlugin(classOf[SomeDatasetPlugin])
+    val executionVariables = TemplateVariables(Seq(
+      TemplateVariable("myVar", "some value", None, None, isSensitive = false, VariableScope.execution)))
+
+    val datasetTask = DatasetTask("datasetTask", new DatasetSpec(SomeDatasetPlugin("stringValue", 6.0)), executionVariables = executionVariables)
+    JsonSerialization.fromJson[DatasetTask](JsonSerialization.toJson(datasetTask)).executionVariables shouldBe executionVariables
+
+    val transformTask = TransformTask("transformTask", TransformSpec.empty, executionVariables = executionVariables)
+    JsonSerialization.fromJson[TransformTask](JsonSerialization.toJson(transformTask)).executionVariables shouldBe executionVariables
+  }
+
+  "RuleBlockSpec" should "be serializable to and from JSON via TaskSpec dispatch" in {
+    val ruleBlockSpec: TaskSpec = RuleBlockSpec(
+      RuleBlockModel(
+        ports = IndexedSeq(
+          RuleBlockPort(
+            id = "firstInput",
+            label = "First input",
+            description = "Used in the main branch.",
+            displayOrder = 0
+          ),
+          RuleBlockPort(
+            id = "secondInput",
+            label = "Second input",
+            description = "Deprecated fallback.",
+            displayOrder = 1,
+            deprecated = true
+          )
+        ),
+        inputExamples = IndexedSeq(
+          RuleBlockInputExample(
+            id = "example-1",
+            label = Some("Primary example"),
+            inputs = Map(
+              Identifier("firstInput") -> Seq("value 1", "value 2"),
+              Identifier("secondInput") -> Seq("fallback")
+            )
+          )
+        ),
+        operator = Some(TransformInput(id = "rootTransform", transformer = ConstantTransformer("constant result"))),
+        layout = RuleLayout(Map("rootTransform" -> NodePosition(10, 20, Some(120), Some(60)))),
+        uiAnnotations = UiAnnotations(Seq(stickyNote))
+      )
+    )
+
+    testSerialization(ruleBlockSpec)
+  }
+
+  it should "reject rule block ports without displayOrder in JSON" in {
+    val json =
+      Json.obj(
+        TASKTYPE -> TASK_TYPE_RULE_BLOCK,
+        PARAMETERS -> Json.obj(
+          "ruleBlockModel" -> Json.obj(
+            "ports" -> Json.arr(
+              Json.obj(
+                ID -> "missingOrderPort",
+                "label" -> "Missing order"
+              )
+            )
+          )
+        )
+      )
+
+    val ex = the[TaskValidationException] thrownBy {
+      JsonSerialization.fromJson[RuleBlockSpec](json)
+    }
+    ex.getMessage should include("missing required field 'displayOrder'")
+    ex.getMessage should include("missingOrderPort")
+  }
+
+  it should "reject rule block ports without label in JSON" in {
+    val json =
+      Json.obj(
+        TASKTYPE -> TASK_TYPE_RULE_BLOCK,
+        PARAMETERS -> Json.obj(
+          "ruleBlockModel" -> Json.obj(
+            "ports" -> Json.arr(
+              Json.obj(
+                ID -> "missingLabelPort",
+                "displayOrder" -> 1
+              )
+            )
+          )
+        )
+      )
+
+    val ex = the[TaskValidationException] thrownBy {
+      JsonSerialization.fromJson[RuleBlockSpec](json)
+    }
+    ex.getMessage should include("missing required field 'label'")
+    ex.getMessage should include("missingLabelPort")
+  }
+
   def testSerialization[T](obj: T)(implicit format: JsonFormat[T]): Unit = {
     val objJson = JsonSerialization.toJson(obj)
     val objRoundTrip = JsonSerialization.fromJson[T](objJson)
@@ -103,8 +307,5 @@ class JsonSerializersTest  extends AnyFlatSpec with Matchers {
 }
 
 case class SomeDatasetPlugin(param1: String, param2: Double) extends Dataset {
-  override def source(implicit userContext: UserContext): DataSource = ???
-  override def linkSink(implicit userContext: UserContext): LinkSink = ???
-  override def entitySink(implicit userContext: UserContext): EntitySink = ???
   override def characteristics: DatasetCharacteristics = DatasetCharacteristics.attributesOnly()
 }

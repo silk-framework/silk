@@ -24,13 +24,16 @@ class LocalWorkflowAsTaskExecutor extends Executor[Workflow, LocalExecution] {
       case _ => throw new IllegalArgumentException("Workflow has to be executed in a project context.")
     }
     val workflowContext = context.asInstanceOf[ActivityContext[WorkflowExecutionReport]]
-    workflowContext.value() = WorkflowExecutionReport(task)
+    workflowContext.value() = WorkflowExecutionReport(task).withAuthDiagnostics(user)
 
     LocalWorkflowExecutor(
       projectTask,
       clearDatasets = false,
       replaceDataSources = execution.replaceDataSources,
-      replaceSinks = execution.replaceSinks
+      replaceSinks = execution.replaceSinks,
+      parentExecution = Some(execution),
+      // Share the enclosing run's execution scope; the nested workflow's own defaults are ignored.
+      parentExecutionVariablesHolder = Some(pluginContext.templateVariables.holder)
     ).run(workflowContext)
 
     None

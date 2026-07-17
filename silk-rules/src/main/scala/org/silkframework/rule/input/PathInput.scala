@@ -26,7 +26,7 @@ import scala.xml.Node
 /**
  * A PathInput retrieves values from a data item by a given RDF path and optionally applies a transform to them.
  */
-case class PathInput(id: Identifier = Operator.generateId, path: Path) extends Input {
+case class PathInput(id: Identifier = Operator.generateId, path: Path) extends InlineInput {
 
   @volatile private var cachedPathIndex = -1
 
@@ -82,6 +82,7 @@ object PathInput {
    * XML serialization format.
    */
   implicit object PathInputFormat extends XmlFormat[PathInput] {
+    override def tagNames: Set[String] = Set("Input")
 
     def read(node: Node)(implicit readContext: ReadContext): PathInput = {
       val id = Operator.readId(node)

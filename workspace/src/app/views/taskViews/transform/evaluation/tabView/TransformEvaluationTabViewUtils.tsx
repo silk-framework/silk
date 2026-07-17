@@ -13,7 +13,7 @@ export const getEvaluatedEntities = async (
     taskId: string,
     ruleId: string,
     limit: number,
-    showOnlyEntitiesWithUris: boolean
+    showOnlyEntitiesWithUris: boolean,
 ): Promise<FetchResponse<EvaluatedRuleEntityResult>> =>
     fetch({
         method: "GET",
@@ -26,6 +26,7 @@ export const getEvaluatedEntities = async (
 const operatorMapping = {
     pathInput: "Source path",
     transformInput: "Transform",
+    ruleBlockInput: "Rule block",
 } as const;
 
 interface NodeTagValuesProps {
@@ -58,25 +59,33 @@ export const NodeTagValues: React.FC<NodeTagValuesProps> = React.memo(
                 )}
                 {error && <Icon intent="warning" name="state-warning" tooltipText={error} />}
                 {values.slice(0, cutAfter).map((v, i) => (
-                    <Tag key={i} round emphasis="stronger" interactive {...otherTagProps}>
-                        {v}
+                    <Tag
+                        className="diapp-evaluation__selectable-tag"
+                        key={i}
+                        round
+                        emphasis="stronger"
+                        {...otherTagProps}
+                    >
+                        <span className="diapp-evaluation__selectable-value-text">{v}</span>
                     </Tag>
                 ))}
                 {remainingNodes}
             </TagList>
         );
-    }
+    },
 );
 
 export const newNode = ({
     rule,
     values,
     operatorPlugins,
+    ruleBlockLabels,
     error,
 }: {
     rule: EvaluatedRuleOperator;
     values: EvaluatedEntityOperator["values"];
     operatorPlugins: Array<IPluginDetails>;
+    ruleBlockLabels?: Record<string, string>;
     error?: string;
 }): TreeNodeInfo<Partial<{ root: boolean; label: string }>> => {
     return {
@@ -84,7 +93,12 @@ export const newNode = ({
         hasCaret: false,
         isExpanded: true,
         label: (
-            <OperatorLabel tagPluginType={operatorMapping[rule.type]} operator={rule} operatorPlugins={operatorPlugins}>
+            <OperatorLabel
+                tagPluginType={operatorMapping[rule.type]}
+                operator={rule}
+                operatorPlugins={operatorPlugins}
+                ruleBlockLabels={ruleBlockLabels}
+            >
                 <NodeTagValues values={values} error={error} />
             </OperatorLabel>
         ),

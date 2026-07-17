@@ -12,7 +12,7 @@ import org.silkframework.runtime.resource.Resource
   label = "Dataset",
   description = "A dataset is a collection of data that can be read or written.",
 )
-trait Dataset extends AnyPlugin with DatasetAccess {
+trait Dataset extends AnyPlugin {
 
   /** The resources that are referenced by this dataset. */
   def referencedResources: Seq[Resource] = Seq.empty
@@ -31,6 +31,12 @@ trait Dataset extends AnyPlugin with DatasetAccess {
 
   /** Additional tags that will be displayed in the UI for this task. These tags are covered by the workspace search. */
   def searchTags(pluginContext: PluginContext): Seq[String] = Seq.empty
+
+  /** Additional search strings that will be covered by the workspace search, but NOT shown in the UI.
+    * Because they are hidden, they only count as a search match when a search term is exactly equal to one of them
+    * (case-insensitive); substring matches are not considered. This should be used rarely, since it could lead to confusing UX.
+    * It should still be clear from the shown properties why a result matches the search string. */
+  def hiddenSearchTokens(pluginContext: PluginContext): Seq[String] = Seq.empty
 }
 
 trait DatasetPluginAutoConfigurable[T <: Dataset] {

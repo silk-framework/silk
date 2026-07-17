@@ -130,9 +130,9 @@ export const useInvisibleCharacterCleanUpModal = ({
 
 interface HookResult {
     /** Standard IconButton element that can be clicked to open the modal. */
-    iconButton?: JSX.Element;
+    iconButton?: React.JSX.Element;
     /** The modal that should be displayed. */
-    modalElement: JSX.Element | null;
+    modalElement: React.JSX.Element | null;
     /** The object that should be forwarded to the input element. */
     invisibleCharacterWarning?: InvisibleCharacterWarningProps;
     /** Allows to reset this component, i.e. resetting the detected characters. */

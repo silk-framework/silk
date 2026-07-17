@@ -10,9 +10,10 @@ import { MultiTagSelect } from "../../../MultiTagSelect";
 import useHotKey from "../../../HotKeyHandler/HotKeyHandler";
 import { AccessControlConfig } from "@ducks/workspace/requests";
 import { useProjectAclManagementComponent } from "../../../../../hooks/useProjectAclManagementComponent";
+import type { UseFormReturn } from "react-hook-form/dist/types";
 
 interface IProps {
-    form: any;
+    form: UseFormReturn;
 
     /** Called when no changes were done in the form and the ESC key is pressed. */
     goBackOnEscape?: () => any;
@@ -26,7 +27,12 @@ const TAGS = "tags";
 
 /** The project create form */
 export function ProjectForm({ form, goBackOnEscape = () => {}, updateProjectAcl }: IProps) {
-    const { register, errors, triggerValidation, setValue } = form;
+    const {
+        register,
+        formState: { errors },
+        trigger,
+        setValue,
+    } = form;
     const [t] = useTranslation();
     const { registerError } = useErrorHandler();
     const escapeKeyDisabled = React.useRef(false);
@@ -44,10 +50,10 @@ export function ProjectForm({ form, goBackOnEscape = () => {}, updateProjectAcl 
     useHotKey({ hotkey: "escape", handler: handleEscapeKey });
 
     React.useEffect(() => {
-        register({ name: LABEL }, { required: true });
-        register({ name: DESCRIPTION });
-        register({ name: IDENTIFIER });
-        register({ name: TAGS });
+        register(LABEL, { required: true });
+        register(DESCRIPTION);
+        register(IDENTIFIER);
+        register(TAGS);
     }, []);
 
     React.useEffect(() => {
@@ -60,7 +66,7 @@ export function ProjectForm({ form, goBackOnEscape = () => {}, updateProjectAcl 
         return async (e) => {
             const value = e.target ? e.target.value : e;
             setValue(key, value);
-            await triggerValidation(key);
+            await trigger(key);
             //verify project identifier
             if (key === IDENTIFIER) handleCustomIdValidation(t, form, registerError, value);
             if (!escapeKeyDisabled.current) {

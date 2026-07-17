@@ -33,32 +33,9 @@ import scala.collection.immutable.ArraySeq
   * @param transformer The transformer used to transform values.
   * @param inputs The children operators from which input values are read.
  */
-case class TransformInput(id: Identifier = Operator.generateId, transformer: Transformer, inputs: IndexedSeq[Input] = IndexedSeq.empty) extends Input {
-
-  def apply(entity: Entity): Value = {
-    val inputValues = new Array[Seq[String]](inputs.length)
-    var errors = Seq[OperatorEvaluationError]()
-
-    // Evaluate input operators
-    for(i <- inputs.indices) {
-      val result = inputs(i)(entity)
-      inputValues(i) = result.values
-      for(error <- result.errors) {
-        errors +:= error
-      }
-    }
-
-    // Evaluate transform
-    try {
-      Value(transformer(ArraySeq.unsafeWrapArray(inputValues)), errors)
-    } catch {
-      case ex: ExecutionException if ex.abortExecution =>
-        throw ex
-      case NonFatal(ex) =>
-        errors +:= OperatorEvaluationError(id, ex)
-        Value(Seq.empty, errors)
-    }
-  }
+case class TransformInput(id: Identifier = Operator.generateId,
+                          transformer: Transformer,
+                          inputs: IndexedSeq[Input] = IndexedSeq.empty) extends Input {
 
   override def children: Seq[Input] = inputs
 
@@ -68,8 +45,45 @@ case class TransformInput(id: Identifier = Operator.generateId, transformer: Tra
     copy(inputs = newChildren.map(_.asInstanceOf[Input]).toIndexedSeq)
   }
 
-  override def withContext(taskContext: TaskContext): Input = {
-    copy(transformer = transformer.withContext(taskContext), inputs = inputs.map(_.withContext(taskContext)))
+  override def execution(taskContext: TaskContext): InputExecution = {
+    new TransformInputExecution(
+      operator = this,
+      inputExecutions = inputs.map(_.execution(taskContext)),
+      transformerExecution = transformer.execution(taskContext))
+  }
+}
+
+/**
+ * Runtime executor of a [[TransformInput]] with all child input executors and the
+ * transformer execution resolved against a specific [[TaskContext]].
+ */
+final class TransformInputExecution(override val operator: TransformInput,
+                                    val inputExecutions: IndexedSeq[InputExecution],
+                                    val transformerExecution: TransformerExecution) extends InputExecution {
+
+  override def apply(entity: Entity): Value = {
+    val inputValues = new Array[Seq[String]](inputExecutions.length)
+    var errors = Seq[OperatorEvaluationError]()
+
+    // Evaluate input operators
+    for(i <- inputExecutions.indices) {
+      val result = inputExecutions(i)(entity)
+      inputValues(i) = result.values
+      for(error <- result.errors) {
+        errors +:= error
+      }
+    }
+
+    // Evaluate transform
+    try {
+      Value(transformerExecution(ArraySeq.unsafeWrapArray(inputValues)), errors)
+    } catch {
+      case ex: ExecutionException if ex.abortExecution =>
+        throw ex
+      case NonFatal(ex) =>
+        errors +:= OperatorEvaluationError(operator.id, ex)
+        Value(Seq.empty, errors)
+    }
   }
 }
 
@@ -79,12 +93,13 @@ object TransformInput {
    * XML serialization format.
    */
   implicit object TransformInputFormat extends XmlFormat[TransformInput] {
+    override def tagNames: Set[String] = Set("TransformInput")
 
     import XmlSerialization._
 
     def read(node: Node)(implicit readContext: ReadContext): TransformInput = {
       val id = Operator.readId(node)
-      val inputs = node.child.filter(n => n.label == "Input" || n.label == "TransformInput").map(fromXml[Input])
+      val inputs = node.child.filter(n => Input.InputFormat.tagNames.contains(n.label)).map(fromXml[Input])
 
       try {
         val transformerPluginId = (node \ "@function").text

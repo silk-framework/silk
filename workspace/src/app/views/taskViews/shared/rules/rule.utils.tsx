@@ -1,5 +1,15 @@
-import { IPathInput, ITransformOperator, IValueInput, RuleLayout } from "./rule.typings";
 import {
+    IInputPortInput,
+    IPathInput,
+    IRuleBlockBinding,
+    IRuleBlockInput,
+    ITransformOperator,
+    IValueInput,
+    RuleLayout,
+} from "./rule.typings";
+import {
+    inputPortId,
+    isNamedPortSpecification,
     IParameterSpecification,
     IParameterValidationResult,
     IPortSpecification,
@@ -31,6 +41,7 @@ import {
     CLASSPREFIX as eccguiprefix,
 } from "@eccenca/gui-elements";
 import { optionallyLabelledParameterToValue } from "../../linking/linking.types";
+import i18next from "i18next";
 
 /** Extracts the operator node from a path input. */
 const extractOperatorNodeFromPathInput = (
@@ -48,6 +59,7 @@ const extractOperatorNodeFromPathInput = (
             path: pathInput.path,
         },
         portSpecification: {
+            type: "count",
             minInputPorts: 0,
             maxInputPorts: 0,
         },
@@ -85,6 +97,7 @@ const extractOperatorNodeFromTransformInput = (
         label: op?.label ?? transformInput.function,
         parameters: transformInput.parameters,
         portSpecification: {
+            type: "count",
             minInputPorts: 1,
         },
         tags: ["Transform"],
@@ -93,6 +106,74 @@ const extractOperatorNodeFromTransformInput = (
         markdownDocumentation: op?.markdownDocumentation,
     });
     return transformInput.id;
+};
+
+/** Extract the operator node from an input port input. */
+const extractOperatorNodeFromInputPortInput = (
+    inputPortInput: IInputPortInput,
+    result: IRuleOperatorNode[],
+): string => {
+    result.push({
+        nodeId: inputPortInput.id,
+        label: i18next.t("taskViews.ruleBlock.inputPortOperator"),
+        pluginType: "InputPortOperator",
+        pluginId: "inputPort",
+        inputs: [],
+        parameters: {
+            portId: inputPortInput.portId,
+        },
+        portSpecification: {
+            type: "count",
+            minInputPorts: 0,
+            maxInputPorts: 0,
+        },
+        description: i18next.t("taskViews.ruleBlock.inputPortOperatorDescription"),
+        inputsCanBeSwitched: false,
+        tags: [i18next.t("taskViews.ruleBlock.inputPortOperator")],
+    });
+    return inputPortInput.id;
+};
+
+/** Extract the operator node from a reusable rule block input. */
+const extractOperatorNodeFromRuleBlockInput = (
+    ruleBlockInput: IRuleBlockInput,
+    result: IRuleOperatorNode[],
+    isTarget: boolean | undefined,
+    ruleOperator: RuleOperatorFetchFnType,
+): string => {
+    const op = ruleOperator(ruleBlockInput.ruleBlockId, "RuleBlock");
+    const portIds =
+        op?.portSpecification && isNamedPortSpecification(op.portSpecification)
+            ? op.portSpecification.inputPorts.map((port) => port.id)
+            : ruleBlockInput.bindings.map((binding) => binding.portId);
+    const bindingsByPortId = new Map(
+        ruleBlockInput.bindings.map((binding) => [binding.portId, binding.input] as const),
+    );
+    const inputs = portIds.map((portId) => {
+        const input = bindingsByPortId.get(portId);
+        return input ? extractOperatorNodeFromValueInput(input, result, isTarget, ruleOperator) : undefined;
+    });
+    result.push({
+        nodeId: ruleBlockInput.id,
+        inputs,
+        pluginType: "RuleBlock",
+        pluginId: ruleBlockInput.ruleBlockId,
+        label: op?.label ?? ruleBlockInput.ruleBlockId,
+        parameters: {},
+        portSpecification:
+            op?.portSpecification && isNamedPortSpecification(op.portSpecification)
+                ? op.portSpecification
+                : {
+                      type: "named",
+                      inputPorts: portIds.map((id) => ({ id })),
+                  },
+        tags: op?.tags ?? ["Rule block"],
+        icon: op?.icon,
+        description: op?.description,
+        inputsCanBeSwitched: false,
+        markdownDocumentation: op?.markdownDocumentation,
+    });
+    return ruleBlockInput.id;
 };
 
 /** Extract operator nodes from an value input node, i.e. path input or transform operator.
@@ -108,11 +189,26 @@ const extractOperatorNodeFromValueInput = (
     ruleOperator: (pluginId: string, pluginType?: string) => IRuleOperator | undefined,
 ): string | undefined => {
     if (operator) {
-        const nodeId =
-            operator.type === "pathInput"
-                ? extractOperatorNodeFromPathInput(operator as IPathInput, result, isTarget)
-                : extractOperatorNodeFromTransformInput(operator as ITransformOperator, result, isTarget, ruleOperator);
-        return nodeId;
+        switch (operator.type) {
+            case "pathInput":
+                return extractOperatorNodeFromPathInput(operator as IPathInput, result, isTarget);
+            case "inputPortInput":
+                return extractOperatorNodeFromInputPortInput(operator as IInputPortInput, result);
+            case "transformInput":
+                return extractOperatorNodeFromTransformInput(
+                    operator as ITransformOperator,
+                    result,
+                    isTarget,
+                    ruleOperator,
+                );
+            case "ruleBlockInput":
+                return extractOperatorNodeFromRuleBlockInput(
+                    operator as IRuleBlockInput,
+                    result,
+                    isTarget,
+                    ruleOperator,
+                );
+        }
     }
 };
 
@@ -121,7 +217,7 @@ const customInputPathRenderer = (
     query: string,
     modifiers: SuggestFieldItemRendererModifierProps,
     handleSelectClick: () => any,
-): JSX.Element | string => {
+): React.JSX.Element | string => {
     return autoCompleteResponse.label ? (
         <OverviewItem
             key={autoCompleteResponse.value}
@@ -163,6 +259,7 @@ const inputPathOperator = (
         pluginType: "PathInputOperator",
         pluginId: pluginId,
         portSpecification: {
+            type: "count",
             minInputPorts: 0,
             maxInputPorts: 0,
         },
@@ -338,9 +435,9 @@ const pluginTags = (pluginDetails: IPluginDetails): string[] => {
 const portSpecification = (op: IPluginDetails): IPortSpecification => {
     switch (op.pluginType) {
         case "ComparisonOperator":
-            return { minInputPorts: 2, maxInputPorts: 2 };
+            return { type: "count", minInputPorts: 2, maxInputPorts: 2 };
         default:
-            return { minInputPorts: 1 };
+            return { type: "count", minInputPorts: 1 };
     }
 };
 
@@ -370,6 +467,46 @@ const convertRuleOperatorNodeToValueInput = (
             type: "transformInput",
         };
         return transformOperator;
+    } else if (ruleOperatorNode.pluginType === "RuleBlock") {
+        if (!isNamedPortSpecification(ruleOperatorNode.portSpecification)) {
+            throw Error(
+                `Tried to convert rule block node '${ruleOperatorNode.label}' without named input ports to incompatible value input!`,
+            );
+        }
+        const bindings: IRuleBlockBinding[] = ruleOperatorNode.inputs
+            .map((inputNodeId, idx) => {
+                if (!inputNodeId) {
+                    return undefined;
+                }
+                const portId = inputPortId(ruleOperatorNode.portSpecification, idx);
+                if (!portId) {
+                    throw Error(
+                        `Rule block node '${ruleOperatorNode.label}' is missing a stable port ID for input ${idx}.`,
+                    );
+                }
+                return {
+                    portId,
+                    input: convertRuleOperatorNodeToValueInput(
+                        fetchRuleOperatorNode(inputNodeId, ruleOperatorNodes, ruleOperatorNode),
+                        ruleOperatorNodes,
+                    ),
+                };
+            })
+            .filter((binding): binding is IRuleBlockBinding => binding != null);
+        const ruleBlockInput: IRuleBlockInput = {
+            id: ruleOperatorNode.nodeId,
+            ruleBlockId: ruleOperatorNode.pluginId,
+            bindings,
+            type: "ruleBlockInput",
+        };
+        return ruleBlockInput;
+    } else if (ruleOperatorNode.pluginType === "InputPortOperator") {
+        const inputPortInput: IInputPortInput = {
+            id: ruleOperatorNode.nodeId,
+            portId: ruleEditorNodeParameterValue(ruleOperatorNode.parameters["portId"]) ?? ruleOperatorNode.nodeId,
+            type: "inputPortInput",
+        };
+        return inputPortInput;
     } else if (ruleOperatorNode.pluginType === "PathInputOperator") {
         const pathInput: IPathInput = {
             id: ruleOperatorNode.nodeId,
@@ -519,7 +656,7 @@ const validateConnection = (
                 }
             } else {
                 return (
-                    targetPluginType === "TransformOperator" &&
+                    (targetPluginType === "TransformOperator" || targetPluginType === "RuleBlock") &&
                     inputPathValidation(fromRuleOperatorNode, toRuleOperatorNode, targetPortIdx)
                 );
             }
@@ -528,8 +665,11 @@ const validateConnection = (
         case "AggregationOperator":
             return targetPluginType === "AggregationOperator";
         case "TransformOperator":
+        case "RuleBlock":
             return (
-                (targetPluginType === "ComparisonOperator" || targetPluginType === "TransformOperator") &&
+                (targetPluginType === "ComparisonOperator" ||
+                    targetPluginType === "TransformOperator" ||
+                    targetPluginType === "RuleBlock") &&
                 inputPathValidation(fromRuleOperatorNode, toRuleOperatorNode, targetPortIdx)
             );
         default:
@@ -546,6 +686,7 @@ const fromType = (node: RuleEditorValidationNode, filterInputIdx?: number): Path
         case "PathInputOperator":
             return node.node.pluginId === "sourcePathInput" ? "source" : "target";
         case "TransformOperator":
+        case "RuleBlock":
             let isSource = false;
             let isTarget = false;
             node.inputs()
@@ -602,6 +743,7 @@ const toType = (node: RuleEditorValidationNode, targetPortIdx: number): PathVali
             }
             return undefined;
         case "TransformOperator":
+        case "RuleBlock":
             const targetNode = node.output();
             const targetNodePort = targetNode
                 ? targetNode.inputs().findIndex((n) => n && node.node.nodeId === n.node.nodeId)

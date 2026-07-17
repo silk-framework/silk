@@ -1,6 +1,12 @@
 import { Elements, OnLoadParams } from "react-flow-renderer";
 import React from "react";
-import { IRuleOperator, IRuleOperatorNode, RuleOperatorNodeParameters } from "../RuleEditor.typings";
+import {
+    IRuleOperator,
+    IRuleOperatorNode,
+    RuleEditorPatchableNodeProjection,
+    RuleOperatorNodeParameters,
+} from "../RuleEditor.typings";
+import { ExternalRuleModelChangeCallbacks } from "../model/RuleEditorModel.typings";
 import { XYPosition } from "react-flow-renderer/dist/types";
 import { NodeContentProps, NodeDimensions } from "@eccenca/gui-elements";
 
@@ -24,6 +30,8 @@ export interface RuleEditorModelContextProps {
     setReactFlowInstance: React.Dispatch<React.SetStateAction<OnLoadParams<any> | undefined>>;
     /** Save the current rule. */
     saveRule: () => Promise<boolean> | boolean;
+    /** Non-blocking warnings returned by the last successful save. */
+    saveWarningMessages: string[];
     /** If there are unsaved changes. */
     unsavedChanges: boolean;
     /** Number of selected nodes copied */
@@ -38,6 +46,12 @@ export interface RuleEditorModelContextProps {
     redo: () => boolean;
     /** If there are changes that can be redone. */
     canRedo: boolean;
+    /** Reset the editor to the currently saved state. */
+    resetToSavedState: () => boolean;
+    /** True if resetting to the saved state must clear undo/redo history. */
+    resetToSavedStateClearsHistory: boolean;
+    /** Where the current editor state is relative to the latest saved state. */
+    savedStatePosition?: "before" | "current" | "after";
     /** Returns true if this is a valid edge, false otherwise. */
     isValidEdge: (sourceNodeId: string, targetNodeId: string, targetHandleId: string) => boolean;
     /** Center the node having the given ID.
@@ -45,6 +59,13 @@ export interface RuleEditorModelContextProps {
     centerNode: (nodeId: string) => boolean;
     /** Get the current rule as IRuleOperatorNode objects. */
     ruleOperatorNodes: () => IRuleOperatorNode[];
+    /** Executes an external non-canvas change and registers it in the current undo/redo transaction. */
+    executeExternalRuleModelChange: (change: ExternalRuleModelChangeCallbacks) => void;
+    /** Update specific current rule nodes' rendered metadata projection and record the change in model history. */
+    updateRuleOperatorNodeMetaData: (
+        nodeIds: string[],
+        patch: (node: IRuleOperatorNode) => RuleEditorPatchableNodeProjection,
+    ) => void;
     /** The ID of the rule editor canvas element. */
     canvasId: string;
     updateSelectedElements: (elements: Elements | null) => void;
@@ -65,6 +86,7 @@ export interface IModelActions {
         pluginId: string,
         position: XYPosition,
         overwriteParameterValues?: RuleOperatorNodeParameters,
+        overwriteNodeMetaData?: RuleEditorPatchableNodeProjection,
         isCanvasPosition?: boolean,
     ) => void;
     /** Delete a rule node. */
@@ -122,8 +144,28 @@ export interface IModelActions {
 
 const NOP = () => {};
 
-/** Creates a rule editor model context that contains the actual rule model and low-level update functions. */
-export const RuleEditorModelContext = React.createContext<RuleEditorModelContextProps>({
+export const ruleEditorModelActionsDefaultValue: IModelActions = {
+    startChangeTransaction: NOP,
+    addStickyNode: NOP,
+    deleteNode: NOP,
+    deleteNodes: NOP,
+    addNode: NOP,
+    copyAndPasteNodes: NOP,
+    moveNode: NOP,
+    moveNodes: NOP,
+    changeNodeParameter: NOP,
+    addEdge: NOP,
+    deleteEdge: NOP,
+    autoLayout: NOP,
+    addNodeByPlugin: NOP,
+    deleteEdges: NOP,
+    changeSize: NOP,
+    fixNodeInputs: NOP,
+    copyNodes: NOP,
+    changeStickyNodeProperties: NOP,
+};
+
+export const ruleEditorModelContextDefaultValue: RuleEditorModelContextProps = {
     /** The nodes and edges of the rules graph. */
     elements: [],
     /** Set to true if the model is in read-only mode. */
@@ -133,35 +175,26 @@ export const RuleEditorModelContext = React.createContext<RuleEditorModelContext
     saveRule: () => {
         return false;
     },
+    saveWarningMessages: [],
     unsavedChanges: false,
     copiedNodesCount: 0,
     updateSelectedElements: () => {},
-    executeModelEditOperation: {
-        startChangeTransaction: NOP,
-        addStickyNode: NOP,
-        deleteNode: NOP,
-        deleteNodes: NOP,
-        addNode: NOP,
-        copyAndPasteNodes: NOP,
-        moveNode: NOP,
-        moveNodes: NOP,
-        changeNodeParameter: NOP,
-        addEdge: NOP,
-        deleteEdge: NOP,
-        autoLayout: NOP,
-        addNodeByPlugin: NOP,
-        deleteEdges: NOP,
-        changeSize: NOP,
-        fixNodeInputs: NOP,
-        copyNodes: NOP,
-        changeStickyNodeProperties: NOP,
-    },
+    executeModelEditOperation: ruleEditorModelActionsDefaultValue,
     undo: () => false,
     canUndo: false,
     redo: () => false,
     canRedo: false,
+    resetToSavedState: () => false,
+    resetToSavedStateClearsHistory: false,
     isValidEdge: () => true,
     centerNode: () => true,
     ruleOperatorNodes: () => [],
+    executeExternalRuleModelChange: NOP,
+    updateRuleOperatorNodeMetaData: () => {},
     canvasId: "canvasId",
-});
+};
+
+/** Creates a rule editor model context that contains the actual rule model and low-level update functions. */
+export const RuleEditorModelContext = React.createContext<RuleEditorModelContextProps>(
+    ruleEditorModelContextDefaultValue,
+);

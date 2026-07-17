@@ -18,13 +18,18 @@ import {
     IParameterSpecification,
     IRuleOperator,
     IRuleOperatorNode,
+    isDynamicPortSpecification,
+    minInputPortCount,
     RULE_EDITOR_NOTIFICATION_INSTANCE,
+    RuleEditorPatchableNodeProjection,
     RuleEditorValidationNode,
+    RuleEditorValidationOperatorNode,
     RuleOperatorNodeParameters,
 } from "../RuleEditor.typings";
 import {
     AddEdge,
     AddNode,
+    ChangeNodeMetaData,
     ChangeNodeParameter,
     ChangeNodePosition,
     ChangeNodeSize,
@@ -32,6 +37,9 @@ import {
     ChangeStickyNodeProperties,
     DeleteEdge,
     DeleteNode,
+    ExecuteExternalRuleModelChange,
+    ExternalRuleModelChangeCallbacks,
+    PreparedClipboardPaste,
     RuleEditorNode,
     RuleEditorNodeParameterValue,
     RuleModelChanges,
@@ -47,16 +55,18 @@ import { RuleEditorEvaluationContext, RuleEditorEvaluationContextProps } from ".
 import {
     InteractionGate,
     Markdown,
-    nodeDefaultUtils,
+    HandleDefaultProps,
     NodeContentProps,
-    NodeContentHandleProps,
-    StickyNote,
+    nodeDefaultUtils,
     NodeDimensions,
     Notification,
+    ReactFlowHotkeyContext,
+    StickyNote,
 } from "@eccenca/gui-elements";
 import { LINKING_NODE_TYPES } from "@eccenca/gui-elements/src/cmem/react-flow/configuration/typing";
 import StickyMenuButton from "../view/components/StickyMenuButton";
-import { InputPathFunctions, LanguageFilterProps } from "../view/ruleNode/PathInputOperator";
+import { InputPathFunctions } from "../view/ruleNode/PathInputOperator";
+import { RuleNodeMenu } from "../view/ruleNode/RuleNodeMenu";
 import { requestRuleOperatorPluginDetails } from "@ducks/common/requests";
 import useErrorHandler from "../../../../hooks/useErrorHandler";
 import { PUBLIC_URL } from "../../../../constants/path";
@@ -64,18 +74,24 @@ import { copyToClipboard } from "../../../../utils/copyToClipboard";
 
 export interface RuleEditorModelProps {
     /** The children that work on this rule model. */
-    children: JSX.Element | JSX.Element[];
+    children: React.JSX.Element | React.JSX.Element[];
 }
 
 // Object to denote transaction boundaries between change operations
 const TRANSACTION_BOUNDARY = "Transaction boundary";
-type ChangeStackType = RuleModelChanges | "Transaction boundary";
+const SAVED_STATE_MARKER = "Saved state marker";
+type SavedStatePosition = "before" | "current" | "after";
+interface SavedStateMarker {
+    type: typeof SAVED_STATE_MARKER;
+    version: number;
+}
+type ChangeStackType = RuleModelChanges | typeof TRANSACTION_BOUNDARY | SavedStateMarker;
 
 /** Used for internal use. Allows to traverse the rule tree efficiently. */
 interface RuleTreeNode {
     inputs: (string | undefined)[];
     output: string | undefined;
-    node: IRuleOperatorNode;
+    node: RuleEditorValidationOperatorNode;
 }
 /** The actual rule model, i.e. the model that is displayed in the editor.
  *  All rule model changes must happen here.
@@ -137,7 +153,27 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
     const [copiedNodesCount, setCopiedNodesCount] = React.useState<number>(0);
     // Flag if the rule has already been changed once
     const [savedOnce, setSavedOnce] = React.useState(false);
+    const [saveWarningMessages, setSaveWarningMessages] = React.useState<string[]>([]);
     const [notification, setNotification] = React.useState<React.JSX.Element | undefined>();
+    const savedStateVersion = React.useRef(0);
+    const [savedStatePosition, setSavedStatePosition] = React.useState<SavedStatePosition | undefined>(undefined);
+    const savedRuleState = React.useRef<{
+        ruleOperatorNodes: IRuleOperatorNode[];
+        stickyNotes: StickyNote[];
+        externalSavedState?: unknown;
+    }>();
+    const unsavedChanges = savedStatePosition !== "current" || (!savedOnce && ruleEditorContext.saveInitiallyEnabled);
+    const hotkeyContext = React.useContext(ReactFlowHotkeyContext);
+    const onRuleOperatorNodesChangeRef = React.useRef(ruleEditorContext.onRuleOperatorNodesChange);
+    onRuleOperatorNodesChangeRef.current = ruleEditorContext.onRuleOperatorNodesChange;
+
+    const ruleTreeNodeData = (node: IRuleOperatorNode): RuleEditorValidationOperatorNode => ({
+        nodeId: node.nodeId,
+        pluginId: node.pluginId,
+        pluginType: node.pluginType,
+        inputsCanBeSwitched: node.inputsCanBeSwitched,
+        label: node.label,
+    });
 
     const clearTextSelection = React.useCallback(() => {
         if (document.getSelection) {
@@ -168,6 +204,9 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
     }, [copiedNodesCount]);
 
     React.useEffect(() => {
+        if (ruleEditorContext.readOnlyMode || hotkeyContext.hotKeysDisabled) {
+            return;
+        }
         const handlePaste = async (e) => {
             const tagName = e.target?.tagName;
             if (
@@ -209,13 +248,22 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
             window.removeEventListener("paste", handlePaste);
             window.removeEventListener("copy", handleCopy);
         };
-    }, [nodeParameters, ruleEditorContext.operatorList, selectedElements]);
+    }, [
+        nodeParameters,
+        ruleEditorContext.operatorList,
+        reactFlowInstance,
+        ruleEditorContext.readOnlyMode,
+        selectedElements,
+        hotkeyContext.hotKeysDisabled,
+    ]);
 
-    const edgeType = (ruleOperatorNode?: IRuleOperatorNode) => {
+    const edgeType = (ruleOperatorNode?: RuleEditorValidationOperatorNode) => {
         if (ruleOperatorNode) {
             switch (ruleOperatorNode.pluginType) {
                 case "PathInputOperator":
+                case "InputPortOperator":
                 case "TransformOperator":
+                case "RuleBlock":
                     return "value";
                 case "ComparisonOperator":
                 case "AggregationOperator":
@@ -234,13 +282,18 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
 
     React.useEffect(() => {
         const unSavedChangesFunc = ruleEditorContext.viewActions?.unsavedChanges;
-        unSavedChangesFunc && unSavedChangesFunc(canUndo);
-    }, [canUndo]);
+        unSavedChangesFunc && unSavedChangesFunc(unsavedChanges);
+    }, [unsavedChanges]);
 
     React.useEffect(() => {
         // Reset model on ID changes
+        setSaveWarningMessages([]);
         setElements([]);
     }, [ruleEditorContext.projectId, ruleEditorContext.editedItemId]);
+
+    React.useEffect(() => {
+        onRuleOperatorNodesChangeRef.current?.(ruleOperatorNodes());
+    }, [elements]);
 
     /** Convert initial operator nodes to react-flow model. */
     React.useEffect(() => {
@@ -420,6 +473,70 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
      * UNDO/REDO handling.
      **/
 
+    const isSavedStateMarker = (change: ChangeStackType | undefined): change is SavedStateMarker => {
+        return typeof change === "object" && "type" in change && change.type === SAVED_STATE_MARKER;
+    };
+
+    const isRuleModelChanges = (change: ChangeStackType | undefined): change is RuleModelChanges => {
+        return typeof change === "object" && "operations" in change;
+    };
+
+    const hasRuleModelChanges = (changeStack: ChangeStackType[]) => {
+        return changeStack.some(isRuleModelChanges);
+    };
+
+    const updateCanUndo = () => setCanUndo(hasRuleModelChanges(ruleUndoStack));
+    const updateCanRedo = () => setCanRedo(hasRuleModelChanges(ruleRedoStack));
+
+    const moveTopSavedStateMarkers = (fromStack: ChangeStackType[], toStack: ChangeStackType[]) => {
+        while (isSavedStateMarker(fromStack[fromStack.length - 1])) {
+            toStack.push(fromStack.pop()!);
+        }
+    };
+
+    const isCurrentSavedStateMarker = (change: ChangeStackType | undefined): change is SavedStateMarker => {
+        return isSavedStateMarker(change) && change.version === savedStateVersion.current;
+    };
+
+    const currentSavedStateMarkerIndex = (changeStack: ChangeStackType[]) => {
+        return changeStack.findIndex(isCurrentSavedStateMarker);
+    };
+
+    const syncSavedStatePosition = () => {
+        const currentVersion = savedStateVersion.current;
+        if (!currentVersion) {
+            setSavedStatePosition(undefined);
+            return;
+        }
+        let undoStackMarkerIndex = -1;
+        for (let idx = ruleUndoStack.length - 1; idx >= 0; idx--) {
+            const change = ruleUndoStack[idx];
+            if (isSavedStateMarker(change) && change.version === currentVersion) {
+                undoStackMarkerIndex = idx;
+                break;
+            }
+        }
+        if (undoStackMarkerIndex >= 0) {
+            setSavedStatePosition(undoStackMarkerIndex === ruleUndoStack.length - 1 ? "current" : "after");
+            return;
+        }
+        const redoStackHasMarker = ruleRedoStack.some(
+            (change) => isSavedStateMarker(change) && change.version === currentVersion,
+        );
+        setSavedStatePosition(redoStackHasMarker || savedStatePosition === "before" ? "before" : "after");
+    };
+
+    const markSavedState = (ruleOperatorNodesToMark: IRuleOperatorNode[], stickyNotesToMark: StickyNote[]) => {
+        savedStateVersion.current += 1;
+        savedRuleState.current = {
+            ruleOperatorNodes: JSON.parse(JSON.stringify(ruleOperatorNodesToMark)),
+            stickyNotes: JSON.parse(JSON.stringify(stickyNotesToMark)),
+            externalSavedState: ruleEditorContext.captureExternalSavedState?.(),
+        };
+        ruleUndoStack.push({ type: SAVED_STATE_MARKER, version: savedStateVersion.current });
+        setSavedStatePosition("current");
+    };
+
     /** Starts a new change transaction than can be undone/redone in one step. */
     const startChangeTransaction = () => {
         ruleUndoStack.push(TRANSACTION_BOUNDARY);
@@ -442,11 +559,24 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                 return { type: "Delete node", node: undoOp.node };
             case "Delete node":
                 return { type: "Add node", node: undoOp.node };
+            case "Execute external rule model change":
+                return {
+                    type: "Execute external rule model change",
+                    do: undoOp.undo,
+                    undo: undoOp.do,
+                };
             case "Change node parameter":
                 return {
                     type: "Change node parameter",
                     nodeId: undoOp.nodeId,
                     parameterId: undoOp.parameterId,
+                    from: undoOp.to,
+                    to: undoOp.from,
+                };
+            case "Change node metadata":
+                return {
+                    type: "Change node metadata",
+                    nodeId: undoOp.nodeId,
                     from: undoOp.to,
                     to: undoOp.from,
                 };
@@ -482,7 +612,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
 
     /** Undo the last change-transaction. */
     const undo = (): boolean => {
-        const changesToUndo = changeTransactionOperations(ruleUndoStack);
+        const changesToUndo = changeTransactionOperations(ruleUndoStack, ruleRedoStack);
         if (changesToUndo.length > 0) {
             // Undo changes and create redo transaction
             startRedoChangeTransaction();
@@ -499,16 +629,15 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
             });
             resetSelectedElements();
         }
-        if (ruleUndoStack.length === 0 || !ruleUndoStack.find((change) => change !== "Transaction boundary")) {
-            // If stack is empty or only transaction markers exist
-            setCanUndo(false);
-        }
+        updateCanUndo();
+        updateCanRedo();
+        syncSavedStatePosition();
         return changesToUndo.length > 0;
     };
 
     /** Redo the last change-transaction. */
     const redo = () => {
-        const changesToRedo = changeTransactionOperations(ruleRedoStack);
+        const changesToRedo = changeTransactionOperations(ruleRedoStack, ruleUndoStack);
         if (changesToRedo.length > 0) {
             // Redo changes and create Undo transaction
             startChangeTransaction();
@@ -524,26 +653,92 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                 return currentElements;
             });
         }
-        if (ruleRedoStack.length === 0) {
-            setCanRedo(false);
-        }
+        moveTopSavedStateMarkers(ruleRedoStack, ruleUndoStack);
+        updateCanUndo();
+        updateCanRedo();
+        syncSavedStatePosition();
         return changesToRedo.length > 0;
     };
 
     /** Returns the last change transaction of the given change stack. */
-    const changeTransactionOperations = (changeStack: ChangeStackType[]) => {
+    const changeTransactionOperations = (
+        changeStack: ChangeStackType[],
+        skippedMarkerTargetStack: ChangeStackType[],
+    ) => {
         // Find first real operation
         let op = changeStack.pop();
+        while (isSavedStateMarker(op)) {
+            skippedMarkerTargetStack.push(op);
+            op = changeStack.pop();
+        }
         while (changeStack.length > 0 && op === TRANSACTION_BOUNDARY) {
             op = changeStack.pop();
+            while (isSavedStateMarker(op)) {
+                skippedMarkerTargetStack.push(op);
+                op = changeStack.pop();
+            }
         }
         // Add all operations until transaction boundary is hit
         const changesToUndo: RuleModelChanges[] = [];
         while (op != null && op !== TRANSACTION_BOUNDARY) {
-            changesToUndo.push(op);
+            if (isSavedStateMarker(op)) {
+                skippedMarkerTargetStack.push(op);
+            } else {
+                changesToUndo.push(op);
+            }
             op = changeStack.pop();
         }
         return changesToUndo.reverse();
+    };
+
+    const moveUndoQueueToSavedState = (): boolean => {
+        const savedStateIndex = currentSavedStateMarkerIndex(ruleUndoStack);
+        if (savedStateIndex < 0) {
+            return false;
+        }
+        while (!isCurrentSavedStateMarker(ruleUndoStack[ruleUndoStack.length - 1])) {
+            const changesToUndo = changeTransactionOperations(ruleUndoStack, ruleRedoStack);
+            if (changesToUndo.length === 0) {
+                return false;
+            }
+            startRedoChangeTransaction();
+            [...changesToUndo]
+                .reverse()
+                .map((change) => invertModelChanges(change))
+                .forEach((change) => addRedoRuleModelChange(change));
+        }
+        return true;
+    };
+
+    const moveRedoQueueToSavedState = (): boolean => {
+        if (currentSavedStateMarkerIndex(ruleRedoStack) < 0) {
+            return false;
+        }
+        while (!isCurrentSavedStateMarker(ruleUndoStack[ruleUndoStack.length - 1])) {
+            const changesToRedo = changeTransactionOperations(ruleRedoStack, ruleUndoStack);
+            if (changesToRedo.length === 0) {
+                moveTopSavedStateMarkers(ruleRedoStack, ruleUndoStack);
+                break;
+            }
+            startChangeTransaction();
+            [...changesToRedo]
+                .reverse()
+                .map((change) => invertModelChanges(change))
+                .forEach((change) => addRuleModelChange(change, false));
+            moveTopSavedStateMarkers(ruleRedoStack, ruleUndoStack);
+        }
+        return isCurrentSavedStateMarker(ruleUndoStack[ruleUndoStack.length - 1]);
+    };
+
+    const moveHistoryQueuesToSavedState = (): boolean => {
+        if (isCurrentSavedStateMarker(ruleUndoStack[ruleUndoStack.length - 1])) {
+            return true;
+        }
+        return moveUndoQueueToSavedState() || moveRedoQueueToSavedState();
+    };
+
+    const savedStateCanBeRestoredFromHistory = (): boolean => {
+        return currentSavedStateMarkerIndex(ruleUndoStack) >= 0 || currentSavedStateMarkerIndex(ruleRedoStack) >= 0;
     };
 
     /** Adds a change action to the REDO stack. */
@@ -561,9 +756,12 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
         addOrMergeRuleModelChange(ruleModelChange);
         if (resetRedoStack) {
             ruleRedoStack.splice(0);
-            setCanRedo(false);
+            updateCanRedo();
         }
-        setCanUndo(true);
+        updateCanUndo();
+        setSavedStatePosition((position) =>
+            position === "before" ? "before" : savedStateVersion.current ? "after" : undefined,
+        );
     };
 
     /** Adds a rule model change and in some cases merges them. */
@@ -658,6 +856,11 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                     );
                     triggerQuickEvaluation();
                     break;
+                case "Execute external rule model change":
+                    groupedChange.forEach((change) => {
+                        (change as ExecuteExternalRuleModelChange).do();
+                    });
+                    break;
                 case "Change node position":
                     changedElements = changeNodePositionsInternal(
                         new Map(
@@ -742,7 +945,10 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                                     ...currentRuleNode,
                                     data: {
                                         ...currentRuleNode.data,
-                                        businessData: { ...businessData, updateSwitch: !businessData.updateSwitch },
+                                        businessData: {
+                                            ...businessData,
+                                            updateSwitch: (businessData.updateSwitch ?? 0) + 1,
+                                        },
                                         content: (adjustedProps: Partial<RuleNodeContentProps>) => (
                                             <NodeContent
                                                 nodeOperations={operatorNodeOperationsInternal}
@@ -757,7 +963,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                                                     ...op.parameters,
                                                     ...Object.fromEntries(nodeParameters.get(elem.id)!!.entries()),
                                                 }}
-                                                updateSwitch={!businessData.updateSwitch}
+                                                updateSwitch={(businessData.updateSwitch ?? 0) + 1}
                                                 showEditModal={false}
                                                 {...adjustedProps}
                                             />
@@ -771,6 +977,17 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                     }
                     triggerQuickEvaluation();
                     break;
+                case "Change node metadata":
+                    changedElements = changeNodeMetaDataInternal(
+                        new Map(
+                            groupedChange.map((change) => {
+                                const nodeChange = change as ChangeNodeMetaData;
+                                return [nodeChange.nodeId, nodeChange.to];
+                            }),
+                        ),
+                        changedElements,
+                    );
+                    break;
             }
         });
         return changedElements;
@@ -783,6 +1000,12 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
     ): Elements => {
         addRuleModelChange(ruleModelChange, true);
         return executeRuleModelChangeInternal(ruleModelChange, currentElements);
+    };
+
+    const executeExternalRuleModelChange = (change: ExternalRuleModelChangeCallbacks): void => {
+        changeElementsInternal((els) =>
+            addAndExecuteRuleModelChangeInternal(RuleModelChangesFactory.executeExternalRuleModelChange(change), els),
+        );
     };
 
     const addEdgesToNodeMapInternal = (elementsToAdd: Elements) => {
@@ -876,6 +1099,73 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
         });
     };
 
+    const updatedRuleEditorNodeMetaData = (
+        currentNode: RuleEditorNode,
+        patch: RuleEditorPatchableNodeProjection,
+    ): RuleEditorNode => {
+        const businessData = currentNode.data.businessData;
+        const originalRuleOperatorNode = businessData.originalRuleOperatorNode;
+        const updatedOriginalRuleOperatorNode = {
+            ...originalRuleOperatorNode,
+            ...patch,
+        };
+        const updateSwitch = (businessData.updateSwitch ?? 0) + 1;
+
+        return {
+            ...currentNode,
+            data: {
+                ...currentNode.data,
+                label: updatedOriginalRuleOperatorNode.label,
+                businessData: {
+                    ...businessData,
+                    originalRuleOperatorNode: updatedOriginalRuleOperatorNode,
+                    updateSwitch,
+                },
+                menuButtons: ruleEditorContext.readOnlyMode ? undefined : (
+                    <RuleNodeMenu
+                        nodeId={currentNode.id}
+                        t={t}
+                        nodeType={currentNode.type}
+                        handleDeleteNode={operatorNodeOperationsInternal.handleDeleteNode}
+                        ruleOperatorLabel={updatedOriginalRuleOperatorNode.label}
+                        ruleOperatorDescription={updatedOriginalRuleOperatorNode.description}
+                        ruleOperatorDocumentation={updatedOriginalRuleOperatorNode.markdownDocumentation}
+                        handleCloneNode={operatorNodeOperationsInternal.handleCloneNode}
+                    />
+                ),
+                content: (adjustedProps: Partial<RuleNodeContentProps>) => (
+                    <NodeContent
+                        nodeOperations={operatorNodeOperationsInternal}
+                        nodeId={currentNode.id}
+                        nodeLabel={updatedOriginalRuleOperatorNode.label}
+                        tags={updatedOriginalRuleOperatorNode.tags}
+                        operatorContext={operatorNodeCreateContextInternal(
+                            updatedOriginalRuleOperatorNode.pluginId,
+                            ruleEditorContext.operatorSpec!!,
+                        )}
+                        nodeParameters={updatedOriginalRuleOperatorNode.parameters}
+                        updateSwitch={updateSwitch}
+                        showEditModal={false}
+                        {...adjustedProps}
+                    />
+                ),
+            },
+        };
+    };
+
+    const changeNodeMetaDataInternal = (
+        nodeMetaDataChanges: Map<string, RuleEditorPatchableNodeProjection>,
+        els: Elements,
+    ): Elements => {
+        return els.map((elem) => {
+            if (utils.isNode(elem) && elem.type !== "stickynote" && nodeMetaDataChanges.has(elem.id)) {
+                return updatedRuleEditorNodeMetaData(utils.asNode(elem)!!, nodeMetaDataChanges.get(elem.id)!!);
+            } else {
+                return elem;
+            }
+        });
+    };
+
     const changeStickyNodePropertiesInternal = (
         stickyNodesWithChanges: Map<string, StickyNodePropType>,
         els: Elements,
@@ -895,7 +1185,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                         ...node.data,
                         style,
                         content: <Markdown>{content!}</Markdown>,
-                        menuButtons: (
+                        menuButtons: ruleEditorContext.readOnlyMode ? undefined : (
                             <StickyMenuButton
                                 stickyNodeId={node.id}
                                 color={style?.borderColor!}
@@ -935,18 +1225,20 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
         ruleOperator: IRuleOperator,
         position: XYPosition,
         overwriteParameterValues?: RuleOperatorNodeParameters,
+        overwriteNodeMetaData?: RuleEditorPatchableNodeProjection,
     ): RuleEditorNode | undefined => {
         if (reactFlowInstance && ruleEditorContext.operatorSpec) {
             const ruleNode = ruleEditorContext.convertRuleOperatorToRuleNode(ruleOperator);
             ruleNode.position = position;
             ruleNode.parameters = { ...ruleNode.parameters, ...overwriteParameterValues };
+            Object.assign(ruleNode, overwriteNodeMetaData);
             const newNode = utils.createNewOperatorNode(
                 ruleNode,
                 operatorNodeOperationsInternal,
                 operatorNodeCreateContextInternal(ruleOperator.pluginId, ruleEditorContext.operatorSpec!!),
             );
             nodeMap.set(newNode.id, {
-                node: { ...ruleNode, nodeId: newNode.id },
+                node: ruleTreeNodeData({ ...ruleNode, nodeId: newNode.id }),
                 inputs: [],
                 output: undefined,
             });
@@ -1026,7 +1318,9 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                     bottom: true,
                     right: true,
                 },
-                menuButtons: <StickyMenuButton stickyNodeId={stickyId} color={color} stickyNote={stickyNote} />,
+                menuButtons: ruleEditorContext.readOnlyMode ? undefined : (
+                    <StickyMenuButton stickyNodeId={stickyId} color={color} stickyNote={stickyNote} />
+                ),
                 content: <Markdown>{stickyNote}</Markdown>,
                 style,
                 businessData: {
@@ -1079,6 +1373,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
         ruleOperator: IRuleOperator,
         position: XYPosition,
         overwriteParameterValues?: RuleOperatorNodeParameters,
+        overwriteNodeMetaData?: RuleEditorPatchableNodeProjection,
     ) => {
         const parametersNeedingALabel = Object.entries(ruleOperator.parameterSpecification).filter(
             ([paramId, paramSpec]) => {
@@ -1112,13 +1407,24 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                 );
             }
         }
-        const newNode = createNodeInternal(ruleOperator, position, updatedOverwriteParameterValues);
+        const newNode = createNodeInternal(
+            ruleOperator,
+            position,
+            updatedOverwriteParameterValues,
+            overwriteNodeMetaData,
+        );
         if (newNode) {
             changeElementsInternal((els) => {
                 return addAndExecuteRuleModelChangeInternal(RuleModelChangesFactory.addNode(newNode), els);
             });
         } else {
-            console.warn("No new node has been created.", ruleOperator, position, overwriteParameterValues);
+            console.warn(
+                "No new node has been created.",
+                ruleOperator,
+                position,
+                overwriteParameterValues,
+                overwriteNodeMetaData,
+            );
         }
     };
 
@@ -1146,13 +1452,14 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
         pluginId: string,
         position: XYPosition,
         overwriteParameterValues?: RuleOperatorNodeParameters,
+        overwriteNodeMetaData?: RuleEditorPatchableNodeProjection,
         isCanvasPosition: boolean = false,
     ) => {
         // FIXME: Move position calculation into view code
         const realPosition = isCanvasPosition && reactFlowInstance ? reactFlowInstance.project(position) : position;
         const op = fetchRuleOperatorByPluginId(pluginId, pluginType);
         if (op) {
-            addNode(op, realPosition, overwriteParameterValues);
+            addNode(op, realPosition, overwriteParameterValues, overwriteNodeMetaData);
         }
     };
 
@@ -1211,7 +1518,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
     const addEdge = (
         sourceNodeId: string,
         targetNodeId: string,
-        targetHandleId: NodeContentHandleProps["id"],
+        targetHandleId: HandleDefaultProps["id"],
         previousTargetHandle?: string,
     ) => {
         if (targetHandleId && !isValidEdge(sourceNodeId, targetNodeId, targetHandleId)) {
@@ -1219,7 +1526,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
         }
         changeElementsInternal((els) => {
             let currentElements = els;
-            let toTargetHandleId: NodeContentHandleProps["id"] = targetHandleId;
+            let toTargetHandleId: HandleDefaultProps["id"] = targetHandleId;
             if (!targetHandleId) {
                 // If the target handle is not defined, connect to the first empty handle
                 const node = utils.nodeById(els, targetNodeId);
@@ -1314,18 +1621,22 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
 
     const pasteNodes = async (e: any) => {
         try {
-            const clipboardData = e.clipboardData?.getData("Text");
+            const clipboardData = e.clipboardData?.getData("text/plain") || e.clipboardData?.getData("Text");
             const pasteInfo = JSON.parse(clipboardData); // Parse JSON
             if (pasteInfo.task) {
+                const preparedPaste = ((await ruleEditorContext.prepareClipboardPaste?.(pasteInfo.task)) ?? {
+                    taskData: pasteInfo.task.data,
+                }) as PreparedClipboardPaste;
+                const { taskData: preparedTaskData, externalChange } = preparedPaste;
                 changeElementsInternal((els) => {
-                    const nodes: RuleNodeCopySerialization[] = pasteInfo.task.data.nodes ?? [];
+                    const nodes: RuleNodeCopySerialization[] = preparedTaskData.nodes ?? [];
                     const nodeIdMap = new Map<string, string>();
                     const newNodes: RuleEditorNode[] = [];
                     nodes.forEach((node) => {
                         const position = { x: node.position.x + 100, y: node.position.y + 100 };
                         const op = fetchRuleOperatorByPluginId(node.pluginId, node.pluginType);
                         if (!op) throw new Error(`Missing plugins for operator plugin ${node.pluginId}`);
-                        const newNode = createNodeInternal(op, position, node.parameters);
+                        const newNode = createNodeInternal(op, position, node.parameters, node.nodeMetaData);
                         if (newNode) {
                             const existingInputHandleIds = new Set(utils.inputHandles(newNode).map((h) => h.id));
                             const missingInputHandleIds = node.inputHandleIds.filter(
@@ -1352,21 +1663,33 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                         }
                     });
                     const newEdges: Edge[] = [];
-                    pasteInfo.task.data.edges.forEach((edge) => {
-                        if (nodeIdMap.has(edge.source) && nodeIdMap.has(edge.target)) {
+                    preparedTaskData.edges.forEach((edge) => {
+                        if (
+                            typeof edge.source === "string" &&
+                            typeof edge.target === "string" &&
+                            typeof edge.targetHandle === "string" &&
+                            nodeIdMap.has(edge.source) &&
+                            nodeIdMap.has(edge.target)
+                        ) {
                             const newEdge = utils.createEdge(
                                 nodeIdMap.get(edge.source)!!,
                                 nodeIdMap.get(edge.target)!!,
-                                edge.targetHandle!!,
+                                edge.targetHandle,
                                 edge.type ?? "step",
                             );
                             newEdges.push(newEdge);
                         }
                     });
                     startChangeTransaction();
+                    const withExternalChange = externalChange
+                        ? addAndExecuteRuleModelChangeInternal(
+                              RuleModelChangesFactory.executeExternalRuleModelChange(externalChange),
+                              els,
+                          )
+                        : els;
                     const withNodes = addAndExecuteRuleModelChangeInternal(
                         RuleModelChangesFactory.addNodes(newNodes),
-                        els,
+                        withExternalChange,
                     );
                     resetSelectedElements();
                     setTimeout(() => {
@@ -1435,24 +1758,29 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
 
         //paste to clipboard.
         const { projectId, editedItemId } = ruleEditorContext;
+        const task = {
+            data: {
+                nodes,
+                edges,
+            },
+            metaData: {
+                domain: PUBLIC_URL,
+                project: projectId,
+                task: editedItemId,
+            },
+        };
+        const editorData = ruleEditorContext.extendClipboardCopy?.(task, nodeIds);
         const data = JSON.stringify({
             task: {
-                data: {
-                    nodes,
-                    edges,
-                },
-                metaData: {
-                    domain: PUBLIC_URL,
-                    project: projectId,
-                    task: editedItemId,
-                },
+                ...task,
+                ...(editorData !== undefined ? { editorData } : {}),
             },
         });
         if (event) {
             event.clipboardData.setData("text/plain", data);
             event.preventDefault();
         } else {
-            copyToClipboard(data);
+            void copyToClipboard(data);
         }
         setCopiedNodesCount(nodes.length);
     };
@@ -1507,7 +1835,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
 
     /** Converts this rule change to a single 'change node parameter' action if possible, else returns undefined. */
     const asChangeNodeParameter = (ruleModelChanges: ChangeStackType | undefined): ChangeNodeParameter | undefined => {
-        return typeof ruleModelChanges === "object" &&
+        return isRuleModelChanges(ruleModelChanges) &&
             ruleModelChanges.operations.length === 1 &&
             ruleModelChanges.operations[0].type === "Change node parameter"
             ? (ruleModelChanges.operations[0] as ChangeNodeParameter)
@@ -1802,6 +2130,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
         ruleEvaluationContext,
         updateNodeParameters: changeNodeParametersSingleTransaction,
         readOnlyMode: ruleEditorContext.readOnlyMode ?? false,
+        showNodeMenu: !ruleEditorContext.readOnlyMode,
         inputPathFunctions,
         changeNodeSize: changeSize,
     });
@@ -1857,8 +2186,11 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
             const inputs = inputHandleIds.map((handleId) => inputEdgeMap.get(handleId));
             const portSpec = node.data.businessData.originalRuleOperatorNode.portSpecification;
             // Remove undefined input ports above last defined input if spec allows it
-            if (!portSpec.maxInputPorts) {
-                while (inputs.length > Math.max(portSpec.minInputPorts - 1, 0) && inputs[inputs.length - 1] == null) {
+            if (isDynamicPortSpecification(portSpec)) {
+                while (
+                    inputs.length > Math.max(minInputPortCount(portSpec) - 1, 0) &&
+                    inputs[inputs.length - 1] == null
+                ) {
                     inputs.pop();
                 }
             }
@@ -1885,13 +2217,59 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                 position: node.position,
                 dimension: node.data.nodeDimensions,
                 description: originalNode.description,
+                tags: originalNode.tags,
                 inputsCanBeSwitched: originalNode.inputsCanBeSwitched,
             };
         });
     };
 
+    /** Update current rule nodes' rendered metadata projection on the canvas and record the change in model history. */
+    const updateRuleOperatorNodeMetaData = (
+        nodeIds: string[],
+        patch: (node: IRuleOperatorNode) => RuleEditorPatchableNodeProjection,
+    ): void => {
+        if (nodeIds.length === 0 || !ruleEditorContext.operatorSpec) {
+            return;
+        }
+        const nodeIdsToPatch = new Set(nodeIds);
+        changeElementsInternal((els) => {
+            const currentCanvasNodesById = new Map(
+                utils.nodesById(els, [...nodeIdsToPatch]).map((node) => [node.id, node] as const),
+            );
+            const changes = [...nodeIdsToPatch].reduce<ChangeNodeMetaData[]>((acc, nodeId) => {
+                const currentCanvasNode = currentCanvasNodesById.get(nodeId);
+                if (!currentCanvasNode || currentCanvasNode.type === "stickynote") {
+                    return acc;
+                }
+                const currentRuleNode = currentCanvasNode.data.businessData.originalRuleOperatorNode;
+                acc.push({
+                    type: "Change node metadata" as const,
+                    nodeId,
+                    from: {
+                        label: currentRuleNode.label,
+                        description: currentRuleNode.description,
+                        tags: currentRuleNode.tags,
+                    },
+                    to: patch(currentRuleNode),
+                });
+                return acc;
+            }, []);
+            if (changes.length === 0) {
+                return els;
+            }
+            return addAndExecuteRuleModelChangeInternal({ operations: changes }, els);
+        });
+    };
+
+    const centerAndFitView = () => {
+        reactFlowInstance?.fitView({ maxZoom: 1 });
+        ruleEditorContext.initialFitToViewZoomLevel &&
+            reactFlowInstance?.zoomTo(ruleEditorContext.initialFitToViewZoomLevel);
+    };
+
     /** Save the current rule. */
     const saveRule = async () => {
+        setSaveWarningMessages([]);
         const stickyNodes = current.elements.reduce((stickyNodes, elem) => {
             if (utils.isNode(elem) && elem.type === LINKING_NODE_TYPES.stickynote) {
                 const node = utils.asNode(elem)!;
@@ -1901,10 +2279,10 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
         }, [] as StickyNote[]);
 
         const saveResult = await ruleEditorContext.saveRule(ruleOperatorNodes(), stickyNodes);
+        setSaveWarningMessages(saveResult.warningMessages ?? []);
         if (saveResult.success) {
-            // Reset UNDO state
-            ruleUndoStack.splice(0);
-            setCanUndo(false);
+            markSavedState(ruleOperatorNodes(), stickyNodes);
+            updateCanUndo();
             setSavedOnce(true);
         }
         if ((saveResult.nodeErrors ?? []).length > 0) {
@@ -1925,7 +2303,12 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
         return saveResult.success;
     };
 
-    const initModel = async () => {
+    const initModelFrom = async (
+        operatorsNodes: IRuleOperatorNode[],
+        stickyNotes: StickyNote[],
+        markAsSaved: boolean,
+        resetHistory: boolean = true,
+    ) => {
         setInitializing(true);
         const handleDeleteNode = (nodeId: string) => {
             startChangeTransaction();
@@ -1933,10 +2316,9 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
         };
         nodeMap.clear();
         nodeParameters.clear();
-        const operatorsNodes = ruleEditorContext.initialRuleOperatorNodes;
         // Create nodes
         let needsLayout = false;
-        const nodes = operatorsNodes!!.map((operatorNode) => {
+        const nodes = operatorsNodes.map((operatorNode) => {
             needsLayout = needsLayout || !operatorNode.position;
             return utils.createOperatorNode(
                 operatorNode,
@@ -1945,14 +2327,14 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
             );
         });
         // Init node map for edgeType, set inputs and output further below
-        operatorsNodes!!.forEach((opNode) =>
-            nodeMap.set(opNode.nodeId, { node: opNode, inputs: [], output: undefined }),
+        operatorsNodes.forEach((opNode) =>
+            nodeMap.set(opNode.nodeId, { node: ruleTreeNodeData(opNode), inputs: [], output: undefined }),
         );
         // Create edges
         const edges: Edge[] = [];
         // Mapping from source to target node. Each source node can only have on connection to a target node.
         const targetNode = new Map<string, string>();
-        operatorsNodes!!.forEach((node) => {
+        operatorsNodes.forEach((node) => {
             node.inputs.forEach((inputNodeId, idx) => {
                 if (inputNodeId) {
                     // Edge IDs do not currently matter
@@ -1965,27 +2347,36 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
         });
 
         // Set helper data-structures for fast access to operator data
-        operatorsNodes!!.forEach((opNode) =>
+        operatorsNodes.forEach((opNode) =>
             nodeMap.set(opNode.nodeId, {
-                node: opNode,
+                node: ruleTreeNodeData(opNode),
                 inputs: opNode.inputs,
                 output: targetNode.get(opNode.nodeId),
             }),
         );
 
-        const stickyNodes = ruleEditorContext.stickyNotes.map(({ color, content, position, id }) => {
+        const stickyNodeElements = stickyNotes.map(({ color, content, position, id }) => {
             const { x, y, width, height } = position;
             return createStickyNodeInternal(color, content, { x, y }, { width, height }, id);
         });
 
-        let elems: Elements = [...nodes, ...edges, ...stickyNodes];
+        let elems: Elements = [...nodes, ...edges, ...stickyNodeElements];
         if (needsLayout) {
             elems = await autoLayoutInternal(elems, false, false);
         }
         setElements(elems);
-        utils.initNodeBaseIds([...nodes, ...stickyNodes]);
-        ruleUndoStack.splice(0);
-        ruleRedoStack.splice(0);
+        utils.initNodeBaseIds([...nodes, ...stickyNodeElements]);
+        if (resetHistory) {
+            ruleUndoStack.splice(0);
+            ruleRedoStack.splice(0);
+            updateCanUndo();
+            updateCanRedo();
+            if (markAsSaved) {
+                markSavedState(operatorsNodes, stickyNotes);
+            } else {
+                setSavedStatePosition(undefined);
+            }
+        }
         if (ruleEditorContext.initialHighlighting) {
             const h = ruleEditorContext.initialHighlighting;
             let closeFn = () => {};
@@ -2006,17 +2397,50 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                 </Notification>,
             );
         }
+
         // Center and then zoom not too far out
         setTimeout(async () => {
             if (needsLayout) {
                 await autoLayoutInternal(elems, false, false);
             }
-            reactFlowInstance?.fitView({ maxZoom: 1 });
-            ruleEditorContext.initialFitToViewZoomLevel &&
-                reactFlowInstance?.zoomTo(ruleEditorContext.initialFitToViewZoomLevel);
             setInitializing(false);
         }, 1);
     };
+
+    const initModel = async () => {
+        await initModelFrom(
+            ruleEditorContext.initialRuleOperatorNodes!!,
+            ruleEditorContext.stickyNotes,
+            !ruleEditorContext.saveInitiallyEnabled,
+        );
+    };
+
+    const resetToSavedState = (): boolean => {
+        if (!savedRuleState.current) {
+            return false;
+        }
+        const keepHistory = moveHistoryQueuesToSavedState();
+        ruleEditorContext.restoreExternalSavedState?.(savedRuleState.current.externalSavedState);
+        initModelFrom(
+            savedRuleState.current.ruleOperatorNodes,
+            savedRuleState.current.stickyNotes,
+            !keepHistory,
+            !keepHistory,
+        );
+        setSavedOnce(true);
+        if (keepHistory) {
+            updateCanUndo();
+            updateCanRedo();
+            syncSavedStatePosition();
+        }
+        return true;
+    };
+
+    React.useEffect(() => {
+        if (!initializing) {
+            centerAndFitView();
+        }
+    }, [initializing]);
 
     return (
         <RuleEditorModelContext.Provider
@@ -2027,10 +2451,14 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                 setIsReadOnly: ruleEditorContext.readOnlyMode ? undefined : setIsReadOnly,
                 setReactFlowInstance,
                 saveRule,
+                saveWarningMessages,
                 undo,
                 canUndo,
                 redo,
                 canRedo,
+                resetToSavedState,
+                resetToSavedStateClearsHistory: !!savedRuleState.current && !savedStateCanBeRestoredFromHistory(),
+                savedStatePosition,
                 canvasId,
                 updateSelectedElements,
                 copiedNodesCount,
@@ -2054,10 +2482,12 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                     fixNodeInputs,
                     copyNodes,
                 },
-                unsavedChanges: canUndo || (!savedOnce && ruleEditorContext.saveInitiallyEnabled),
+                unsavedChanges,
                 isValidEdge,
                 centerNode,
                 ruleOperatorNodes,
+                executeExternalRuleModelChange,
+                updateRuleOperatorNodeMetaData,
                 notification,
             }}
         >

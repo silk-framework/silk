@@ -21,9 +21,9 @@ import { RuleEditorEvaluationContext, RuleEditorEvaluationContextProps } from ".
 import { EvaluationActivityControl } from "./evaluation/EvaluationActivityControl";
 import { Prompt } from "react-router";
 import { RuleValidationError } from "../RuleEditor.typings";
-import utils, { DEFAULT_NODE_HEIGHT, DEFAULT_NODE_WIDTH } from "../model/RuleEditorModel.utils";
+import { DEFAULT_NODE_HEIGHT, DEFAULT_NODE_WIDTH } from "../model/RuleEditorModel.utils";
 import { RuleEditorBaseModal } from "./components/RuleEditorBaseModal";
-import { ReactFlowHotkeyContext } from "@eccenca/gui-elements/src/cmem/react-flow/extensions/ReactFlowHotkeyContext";
+import { ReactFlowHotkeyContext } from "@eccenca/gui-elements";
 
 /** Toolbar of the rule editor. Contains global editor actions like save, redo/undo etc. */
 export const RuleEditorToolbar = () => {
@@ -139,6 +139,11 @@ export const RuleEditorToolbar = () => {
     };
 
     const numberOfCopiedNodes = modelContext.copiedNodesCount;
+    const canResetToSavedState =
+        modelContext.savedStatePosition === "before" || modelContext.savedStatePosition === "after";
+    const resetToSavedStateText = modelContext.resetToSavedStateClearsHistory
+        ? t("common.editorHistory.resetToSavedStateWithHistoryReset")
+        : t("common.editorHistory.resetToSavedState");
 
     return (
         <>
@@ -180,17 +185,28 @@ export const RuleEditorToolbar = () => {
                         data-test-id={"rule-editor-undo-btn"}
                         disabled={modelContext.isReadOnly() || !modelContext.canUndo}
                         name="operation-undo"
-                        text="Undo"
+                        text={t("common.action.undo")}
                         onClick={modelContext.undo}
+                    />
+                    <IconButton
+                        data-test-id={"rule-editor-reset-to-saved-btn"}
+                        disabled={modelContext.isReadOnly() || !canResetToSavedState}
+                        disruptive={modelContext.resetToSavedStateClearsHistory}
+                        name="item-reload"
+                        text={resetToSavedStateText}
+                        onClick={modelContext.resetToSavedState}
                     />
                     <IconButton
                         data-test-id={"rule-editor-redo-btn"}
                         disabled={modelContext.isReadOnly() || !modelContext.canRedo}
                         name="operation-redo"
-                        text="Redo"
+                        text={t("common.action.redo")}
                         onClick={modelContext.redo}
                     />
                     <Spacing vertical hasDivider />
+                    {ruleEditorContext.additionalToolBarComponents
+                        ? ruleEditorContext.additionalToolBarComponents("beforeTools")
+                        : null}
                     <IconButton
                         data-test-id={"rule-editor-auto-layout-btn"}
                         disabled={modelContext.isReadOnly() || modelContext.elements.length === 0}
@@ -236,7 +252,9 @@ export const RuleEditorToolbar = () => {
                         <Spacing vertical size={"small"} />
                     </>
                 ) : null}
-                {ruleEditorContext.additionalToolBarComponents ? ruleEditorContext.additionalToolBarComponents() : null}
+                {ruleEditorContext.additionalToolBarComponents
+                    ? ruleEditorContext.additionalToolBarComponents("beforeActionWidget")
+                    : null}
                 {ruleEvaluationContext.evaluationResultsShown || ruleEvaluationContext.supportsEvaluation ? (
                     <ToolbarSection>
                         <EvaluationActivityControl
@@ -244,8 +262,10 @@ export const RuleEditorToolbar = () => {
                             loading={ruleEvaluationContext.evaluationRunning}
                             referenceLinksUrl={ruleEvaluationContext.referenceLinksUrl}
                             evaluationResultsShown={ruleEvaluationContext.evaluationResultsShown}
+                            hasEvaluationResult={ruleEvaluationContext.hasEvaluationResult}
+                            evaluationConfigMenu={ruleEvaluationContext.evaluationConfigMenu}
                             evaluationResultsShownToggleButton={{
-                                "data-test-id": "rule-editor-start-evaluation-btn",
+                                "data-test-id": "rule-editor-hide-evaluation-btn",
                                 disabled: ruleEvaluationContext.evaluationRunning,
                                 icon: evaluationShown ? "item-hidedetails" : "item-viewdetails",
                                 tooltip: evaluationShown
@@ -285,11 +305,15 @@ export const RuleEditorToolbar = () => {
                             t("common.action.save", "Save")
                         )}
                     </Button>
+                    {ruleEditorContext.additionalToolBarComponents
+                        ? ruleEditorContext.additionalToolBarComponents("afterSaveButton")
+                        : null}
                     <RuleEditorNotifications
                         key={"notifications"}
                         queueEditorNotifications={
                             ruleValidationError ? [ruleValidationError.errorMessage] : ([] as string[])
                         }
+                        saveWarningMessages={modelContext.saveWarningMessages}
                         queueNodeNotifications={(ruleValidationError?.nodeErrors ?? []).filter(
                             (nodeError) => nodeError.message,
                         )}

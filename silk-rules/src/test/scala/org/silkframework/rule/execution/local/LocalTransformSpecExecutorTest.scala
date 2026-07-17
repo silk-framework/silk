@@ -10,7 +10,7 @@ import org.silkframework.entity.paths.{TypedPath, UntypedPath}
 import org.silkframework.execution.local.{GenericEntityTable, LocalExecution, MultiEntityTable}
 import org.silkframework.execution.{ExecutionReport, ExecutorOutput, ExecutorRegistry}
 import org.silkframework.rule._
-import org.silkframework.rule.input.{PathInput, TransformInput, Transformer}
+import org.silkframework.rule.input.{InlineTransformer, PathInput, TransformInput, Transformer, TransformerExecution}
 import org.silkframework.runtime.activity.{ActivityContext, ActivityMonitor, TestUserContextTrait}
 import org.silkframework.runtime.iterator.CloseableIterator
 import org.silkframework.runtime.plugin.PluginContext
@@ -160,17 +160,13 @@ class LocalTransformSpecExecutorTest extends AnyFlatSpec with Matchers with Exec
 
 case class TestTransformer() extends Transformer {
 
-  override def withContext(taskContext: TaskContext): Transformer = {
+  override def execution(taskContext: TaskContext): TransformerExecution = {
     TransformerWithContext(taskContext)
-  }
-
-  override def apply(values: Seq[Seq[String]]): Seq[String] = {
-    Seq.empty
   }
 
 }
 
-case class TransformerWithContext(taskContext: TaskContext) extends Transformer {
+case class TransformerWithContext(taskContext: TaskContext) extends InlineTransformer {
 
   override def apply(values: Seq[Seq[String]]): Seq[String] = {
     Seq(taskContext.inputTasks.head.id.toString)

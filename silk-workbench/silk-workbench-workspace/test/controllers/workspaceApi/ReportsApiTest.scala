@@ -126,7 +126,6 @@ class ReportsApiTest extends AnyFlatSpec with IntegrationTestTrait with ReportsA
         errorOutputs = Seq.empty,
         position = (0, 0),
         nodeId = taskId1,
-        outputPriority = None,
         configInputs = Seq.empty,
         dependencyInputs = Seq.empty
       )
@@ -139,7 +138,6 @@ class ReportsApiTest extends AnyFlatSpec with IntegrationTestTrait with ReportsA
         errorOutputs = Seq.empty,
         position = (0, 0),
         nodeId = taskId2,
-        outputPriority = None,
         configInputs = Seq.empty,
         dependencyInputs = Seq.empty
       )

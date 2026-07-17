@@ -11,7 +11,7 @@ import org.silkframework.rule.LinkSpec.{MAX_LINK_LIMIT, MAX_LINK_LIMIT_CONFIG_KE
 import org.silkframework.rule.execution._
 import org.silkframework.rule.{LinkSpec, RuntimeLinkingConfig, TaskContext}
 import org.silkframework.runtime.activity.{ActivityContext, UserContext}
-import org.silkframework.runtime.plugin.PluginContext
+import org.silkframework.runtime.plugin.{PluginContext, TaskResolver}
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.{DPair, Uri}
 
@@ -42,7 +42,7 @@ class LocalLinkSpecExecutor extends Executor[LinkSpec, LocalExecution] {
       executionTimeout = Some(task.matchingExecutionTimeout * 1000L).filter(_ > 0)
     )
     val taskContext = TaskContext(inputs.map(_.task), pluginContext)
-    val activity = new GenerateLinks(task, sources, None, linkConfig, Some(task.data.rule.withContext(taskContext)))
+    val activity = new GenerateLinks(task, sources, None, taskContext, linkConfig, Some(linkSpec.rule.execution(taskContext)))
     var linking = context.child(activity, progressContribution = 1.0).startBlockingAndGetValue()
     if(adaptedLinkLimit < task.linkLimit) {
       linking = linking.copy(matcherWarnings = linking.matcherWarnings ++ Seq(

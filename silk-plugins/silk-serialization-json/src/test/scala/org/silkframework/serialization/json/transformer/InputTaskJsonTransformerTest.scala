@@ -7,7 +7,7 @@ import org.silkframework.dataset.DatasetSpec
 import org.silkframework.plugins.dataset.csv.CsvDataset
 import org.silkframework.rule.TaskContext
 import org.silkframework.runtime.activity.TestUserContextTrait
-import org.silkframework.runtime.plugin.PluginContext
+import org.silkframework.runtime.plugin.{PluginContext, TaskResolver}
 import org.silkframework.runtime.resource.WritableResource
 import org.silkframework.runtime.serialization.WriteContext
 import org.silkframework.serialization.json.JsonSerialization
@@ -42,7 +42,7 @@ class InputTaskJsonTransformerTest extends AnyFlatSpec with Matchers with TestWo
 
     def retrieve(path: String): String = {
       val taskContext = TaskContext(Seq(dataset), PluginContext.fromProject(project))
-      val transformer = InputTaskAttributesTransformer(path).withContext(taskContext)
+      val transformer = InputTaskAttributesTransformer(path).execution(taskContext)
       transformer(Seq.empty).head
     }
 

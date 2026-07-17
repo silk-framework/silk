@@ -87,11 +87,9 @@ case class Prefixes(prefixMap: immutable.HashMap[String, String]) extends Serial
   }
 
   def toSparql: String = {
-    var sparql = ""
-    for ((key, value) <- prefixMap) {
-      sparql += "PREFIX " + key + ": <" + value + "> "
-    }
-    sparql
+    prefixMap.toSeq.sortBy(_._1).map { case (key, value) =>
+      s"PREFIX $key: <$value>"
+    }.mkString("\n")
   }
 
 }

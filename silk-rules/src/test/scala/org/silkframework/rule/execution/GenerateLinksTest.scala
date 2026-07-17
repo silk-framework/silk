@@ -18,12 +18,13 @@ import java.util.Locale
 import java.util.logging.{Level, Logger}
 import org.silkframework.config.{PlainTask, Prefixes, Task}
 import org.silkframework.dataset.DatasetSpec
+import org.silkframework.execution.ExecutorRegistry
 import org.silkframework.entity.Link
 import org.silkframework.entity.paths.UntypedPath
 import org.silkframework.rule.evaluation.ReferenceLinksReader
 import org.silkframework.rule.execution.methods._
 import org.silkframework.rule.plugins.transformer.linguistic.{MetaphoneTransformer, NysiisTransformer, SoundexTransformer}
-import org.silkframework.rule.{LinkSpec, LinkingConfig, RuntimeLinkingConfig}
+import org.silkframework.rule.{LinkSpec, LinkingConfig, RuntimeLinkingConfig, TaskContext}
 import org.silkframework.runtime.activity.{Activity, UserContext}
 import org.silkframework.runtime.resource.ClasspathResourceLoader
 import org.silkframework.runtime.serialization.{ReadContext, TestReadContext, XmlSerialization}
@@ -158,8 +159,8 @@ object GenerateLinksTest {
                             linkSpec: LinkSpec,
                             runtimeConfig: RuntimeLinkingConfig = RuntimeLinkingConfig()): GenerateLinks = {
       val sourcePair = linkSpec.findSources(datasets)
-      val outputs = linkSpec.output.flatMap(o => datasets.find(_.id == o)).map(_.linkSink)
-      new GenerateLinks(PlainTask(id, linkSpec), sourcePair, outputs, runtimeConfig)
+      val outputs = linkSpec.output.flatMap(o => datasets.find(_.id == o)).map(ExecutorRegistry.access(_).linkSink)
+      new GenerateLinks(PlainTask(id, linkSpec), sourcePair, outputs, TaskContext.empty, runtimeConfig)
     }
 
     private def run(runtimeConfig: RuntimeLinkingConfig): Set[Link] = {

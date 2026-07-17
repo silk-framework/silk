@@ -17,11 +17,21 @@ import CopyToModal from "../modals/CopyToModal/CopyToModal";
 import { IModalItem } from "@ducks/shared/typings";
 import ShowIdentifierModal from "../modals/ShowIdentifierModal";
 import { IArtefactModal } from "@ducks/common/typings";
+import { AppDispatch } from "store/configureStore";
 import { GlobalTableContext } from "../../../GlobalContextsWrapper";
+import { ItemType } from "@ducks/router/operations";
+
+const directCreateTaskPluginIds: Partial<Record<ItemType, string>> = {
+    dataset: "dataset",
+    workflow: "workflow",
+    transform: "transform",
+    linking: "linking",
+    ruleBlock: "ruleBlock",
+};
 
 /** Search list for the workspace/project page search. */
 export function SearchList() {
-    const dispatch = useDispatch();
+    const dispatch = useDispatch<AppDispatch>();
 
     const pageSizes = [10, 25, 50, 100];
 
@@ -115,6 +125,13 @@ export function SearchList() {
                     label: t("pages.workspace.firstWorkflow"),
                 },
             };
+        } else if (projectId) {
+            const taskPluginId = directCreateTaskPluginIds[itemToCreate.selectedDType as ItemType];
+            if (taskPluginId) {
+                itemToCreate.newTaskPreConfiguration = {
+                    taskPluginId,
+                };
+            }
         }
         dispatch(commonOp.createNewTask(itemToCreate));
     };

@@ -6,7 +6,7 @@ import org.silkframework.dataset.bulk.TextBulkResourceBasedDataset
 import org.silkframework.plugins.dataset.hierarchical.HierarchicalSink.DEFAULT_MAX_SIZE
 import org.silkframework.plugins.dataset.json.JsonDataset.specialPaths.ALL_CHILDREN_RECURSIVE
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
+import org.silkframework.runtime.plugin.annotations.{Param, Plugin, PluginReference}
 import org.silkframework.runtime.plugin.types.JsonCodeParameter
 import org.silkframework.runtime.resource.{Resource, WritableResource}
 import org.silkframework.util.Identifier
@@ -15,11 +15,17 @@ import java.nio.charset.StandardCharsets
 import scala.io.Codec
 
 @Plugin(
-  id = "json",
+  id = JsonDataset.pluginId,
   label = "JSON",
   categories = Array(DatasetCategories.file),
   description = """Read from or write to a JSON or JSON Lines file.""",
-  documentationFile = "JsonDatasetDocumentation.md"
+  documentationFile = "JsonDatasetDocumentation.md",
+  relatedPlugins = Array(
+    new PluginReference(
+      id = JsonParserTask.pluginId,
+      description = "The JSON dataset is a pipeline source: it opens a file and needs no upstream input. Parse JSON is an operator: it reads a JSON string from a field value supplied by an upstream entity."
+    )
+  )
 )
 case class JsonDataset(@Param("JSON file. This may also be a zip archive of multiple JSON files that share the same schema.")
                        file: WritableResource,
@@ -39,7 +45,7 @@ case class JsonDataset(@Param("JSON file. This may also be a zip archive of mult
                        @Param(label = "ZIP file regex", value = "If the input resource is a ZIP file, files inside the file are filtered via this regex.", advanced = true)
                        override val zipFileRegex: String = JsonDataset.defaultZipFileRegex) extends Dataset with TextBulkResourceBasedDataset {
 
-  private val jsonTemplate = JsonTemplate.parse(template)
+  val jsonTemplate = JsonTemplate.parse(template)
 
   override def codec: Codec = StandardCharsets.UTF_8
 
@@ -57,14 +63,12 @@ case class JsonDataset(@Param("JSON file. This may also be a zip archive of mult
     }
   }
 
-  override def linkSink(implicit userContext: UserContext): LinkSink = new TableLinkSink(new JsonSink(bulkWritableResource, maxDepth = maxDepth))
-
-  override def entitySink(implicit userContext: UserContext): EntitySink = new JsonSink(bulkWritableResource, jsonTemplate, maxDepth)
-
   override def characteristics: DatasetCharacteristics = JsonDataset.characteristics
 }
 
 object JsonDataset {
+
+  final val pluginId = "json"
 
   final val defaultZipFileRegex = """^(?!.*[\/\\]\..*$|^\..*$).*\.jsonl?$"""
 

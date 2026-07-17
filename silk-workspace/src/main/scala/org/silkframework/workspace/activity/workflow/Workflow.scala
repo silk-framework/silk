@@ -85,8 +85,6 @@ case class Workflow(@Param(label = "Workflow operators", value = "Workflow opera
   /**
     * Returns a dependency graph that can be traversed from the start or end nodes and consists of
     * double linked nodes.
-    *
-    * The end nodes are sorted (ASC) by output priority.
     */
   lazy val workflowDependencyGraph: WorkflowDependencyGraph = {
     // Test if this graph can be topologically sorted
@@ -96,26 +94,13 @@ case class Workflow(@Param(label = "Workflow operators", value = "Workflow opera
     val startNodes = outputs.toSet -- inputs
     val isolatedNodes = singleWorkflowNodes()
     val endNodes = (inputs.toSet -- outputs) ++ isolatedNodes
-    val workflowNodeMap: Map[String, WorkflowDependencyNode] = constructNodeMap
-    val startDependencyNodes = startNodes.toSeq.map(workflowNodeMap).sortBy(_.nodeId)
-    val endDependencyNodes = sortWorkflowNodesByOutputPriority(endNodes.map(workflowNodeMap).toSeq)
+    val startDependencyNodes = startNodes.toSeq.map(dependencyNodesById).sortBy(_.nodeId)
+    val endDependencyNodes = endNodes.toSeq.map(dependencyNodesById).sortBy(_.nodeId)
     WorkflowDependencyGraph(startDependencyNodes, endDependencyNodes)
   }
 
-  def sortWorkflowNodesByOutputPriority(nodes: Seq[WorkflowDependencyNode]): Seq[WorkflowDependencyNode] = {
-    nodes.sortWith { case (left, right) =>
-      (left.workflowNode.outputPriority, right.workflowNode.outputPriority) match {
-        case (None, None) =>
-          left.nodeId < right.nodeId
-        case (Some(_), None) =>
-          true
-        case (None, Some(_)) =>
-          false
-        case (Some(leftPrio), Some(rightPrio)) =>
-          leftPrio <= rightPrio
-      }
-    }
-  }
+  /** The double-linked dependency nodes of [[workflowDependencyGraph]] by node id. */
+  lazy val dependencyNodesById: Map[String, WorkflowDependencyNode] = constructNodeMap
 
   private def constructNodeMap: Map[String, WorkflowDependencyNode] = {
     val workflowNodeMap = nodes.map(n => (n.nodeId, WorkflowDependencyNode(n))).toMap
@@ -139,28 +124,40 @@ case class Workflow(@Param(label = "Workflow operators", value = "Workflow opera
     workflowNodeMap
   }
 
-  // Returns and validates the replaceable datasets of this workflow that are actually in use, others are ignored.
+  // Validates the replaceable datasets, failing on IDs of datasets that are not part of the workflow, and returns those that are actually connected.
   private def validateAndGetReplaceableDatasetsOfCurrentWorkflow(): AllReplaceableDatasets = {
     val datasetNodeMap = datasets.map(d => d.nodeId -> d.task.toString).toMap
+    // Validate that all replaceable IDs refer to datasets of this workflow
+    val workflowDatasets = datasets.map(_.task.toString).toSet
+    val unknownReplaceableDatasets = (replaceableInputs ++ replaceableOutputs).filterNot(workflowDatasets.contains).distinct
+    if (unknownReplaceableDatasets.nonEmpty) {
+      throw new IllegalArgumentException("Datasets marked as replaceable input/output must be part of the workflow! " +
+        "Unknown datasets: " + unknownReplaceableDatasets.mkString(", ") +
+        ". If a replaceable dataset was removed from the workflow, unmark it as replaceable as well (Workflow.createNormalized does this automatically).")
+    }
+    // Dataset tasks that workflow nodes write to / read from
     val workflowDatasetOutputs = operators.flatMap(_.outputs.flatMap(datasetNodeMap.get)).distinct.toSet
     val workflowDatasetInputs = nodes.flatMap(_.allInputs.flatMap(datasetNodeMap.get)).distinct.toSet
+    // Validate that no replaceable input dataset is written to
     val replaceableInputUsedAsOutput = workflowDatasetOutputs.intersect(replaceableInputs.taskIds.toSet)
     if (replaceableInputUsedAsOutput.nonEmpty) {
       throw new IllegalArgumentException("Datasets marked as replaceable input must not be used as output dataset! Affected dataset: " + replaceableInputUsedAsOutput.mkString(", "))
     }
+    // Validate that no replaceable output dataset is read from
     val replaceableOutputUsedAsInput = workflowDatasetInputs.intersect(replaceableOutputs.taskIds.toSet)
     if (replaceableOutputUsedAsInput.nonEmpty) {
-      throw new IllegalArgumentException("Datasets marked as replaceable input must not be used as output dataset! Affected dataset: " + replaceableOutputUsedAsInput.mkString(", "))
+      throw new IllegalArgumentException("Datasets marked as replaceable output must not be used as input dataset! Affected dataset: " + replaceableOutputUsedAsInput.mkString(", "))
     }
+    // Validate that no dataset is marked as replaceable input and output at the same time
     val bothInputAndOutput = (replaceableInputs ++ replaceableOutputs).filter(id =>
       workflowDatasetInputs.contains(id) && workflowDatasetOutputs.contains(id)
     )
     if (bothInputAndOutput.nonEmpty) {
       throw new IllegalArgumentException("Datasets must not be marked as replaceable input and output simultaneously! Affected dataset: " + bothInputAndOutput.mkString(", "))
     }
-    val workflowDatasets = datasets.map(_.task.toString).toSet
-    val actualVariableInputs = replaceableInputs.filter(id => workflowDatasets.contains(id) && workflowDatasetInputs.contains(id))
-    val actualVariableOutputs = replaceableOutputs.filter(id => workflowDatasets.contains(id) && workflowDatasetOutputs.contains(id))
+    // Return only the replaceable datasets that are actually connected
+    val actualVariableInputs = replaceableInputs.filter(workflowDatasetInputs.contains)
+    val actualVariableOutputs = replaceableOutputs.filter(workflowDatasetOutputs.contains)
     AllReplaceableDatasets(actualVariableInputs, actualVariableOutputs)
   }
 
@@ -241,6 +238,14 @@ case class Workflow(@Param(label = "Workflow operators", value = "Workflow opera
     all
   }
 
+  /** The tasks used in this workflow whose output port produces data. */
+  def tasksWithDataOutput(project: Project)
+                         (implicit userContext: UserContext): Set[Identifier] = {
+    nodes.map(_.task).distinct
+      .filter(taskId => project.anyTaskOption(taskId).exists(_.outputPort.isDefined))
+      .toSet
+  }
+
   /** Returns all Dataset tasks that are used as outputs in the workflow */
   def outputDatasets(project: Project)
                     (implicit userContext: UserContext): Seq[ProjectTask[DatasetSpec[Dataset]]] = {
@@ -248,10 +253,7 @@ case class Workflow(@Param(label = "Workflow operators", value = "Workflow opera
     for (reConfiguredDataset <- datasets.filter(_.configInputs.nonEmpty)) {
       configInputs.put(reConfiguredDataset.nodeId, reConfiguredDataset.configInputs.head)
     }
-    val operatorsWithDataOutput: Set[Identifier] = nodes
-      .map(op => op.task).distinct
-      .filter(taskId => project.anyTaskOption(taskId).exists(_.outputPort.isDefined))
-      .toSet
+    val operatorsWithDataOutput = tasksWithDataOutput(project)
     // Filter out datasets that have no real data input
     val datasetNodesWithRealInputs = nodes.flatMap(op => {
       if(!operatorsWithDataOutput.contains(op.task)) {
@@ -277,6 +279,42 @@ case class Workflow(@Param(label = "Workflow operators", value = "Workflow opera
          workflow <- project.taskOption[Workflow](operator.task)) yield {
       workflow
     }
+  }
+
+  /**
+    * Returns all tasks that are directly referenced by the nodes of this workflow.
+    */
+  def subTasks(project: Project)
+              (implicit userContext: UserContext): Seq[ProjectTask[_ <: TaskSpec]] = {
+    for (node <- nodes;
+         task <- project.anyTaskOption(node.task)) yield {
+      task
+    }
+  }
+
+  /**
+    * Returns all tasks that may take part in an execution of this workflow, in breadth-first order:
+    * the tasks referenced by its nodes and, transitively, the tasks referenced by those tasks
+    * (e.g. the rule blocks and datasets used by a transform task), traversing into sub-workflows.
+    * Every task is returned at most once, even if referenced multiple times or on a cycle.
+    */
+  def subTasksRecursive(project: Project)
+                       (implicit userContext: UserContext): Seq[ProjectTask[_ <: TaskSpec]] = {
+    val visited = mutable.LinkedHashMap[Identifier, ProjectTask[_ <: TaskSpec]]()
+    var current = subTasks(project)
+    while (current.nonEmpty) {
+      val newTasks = current.filterNot(task => visited.contains(task.id))
+      newTasks.foreach(task => visited.put(task.id, task))
+      current = newTasks.flatMap { task =>
+        val directSubTasks = task.data match {
+          case workflow: Workflow => workflow.subTasks(project)
+          case _ => Seq.empty
+        }
+        val referencedTasks = task.data.referencedTasks.toSeq.flatMap(id => project.anyTaskOption(id))
+        directSubTasks ++ referencedTasks
+      }
+    }
+    visited.values.toSeq
   }
 
   /** Returns node ids of workflow nodes that have inputs (data or dependency) from other nodes */
@@ -468,6 +506,20 @@ object Workflow {
     }
   }
 
+  /** Creates a workflow, dropping replaceable dataset IDs of datasets that do not occur in the workflow
+    * (e.g. of removed datasets). The constructor itself rejects such IDs, so use this whenever the
+    * replaceable IDs are not known to be clean. */
+  def createNormalized(operators: WorkflowOperatorsParameter = WorkflowOperatorsParameter(Seq.empty),
+             datasets: WorkflowDatasetsParameter = WorkflowDatasetsParameter(Seq.empty),
+             uiAnnotations: UiAnnotations = UiAnnotations(),
+             replaceableInputs: TaskIdentifierParameter = TaskIdentifierParameter(Seq.empty),
+             replaceableOutputs: TaskIdentifierParameter = TaskIdentifierParameter(Seq.empty)): Workflow = {
+    val workflowDatasets = datasets.value.map(_.task.toString).toSet
+    Workflow(operators, datasets, uiAnnotations,
+      replaceableInputs.taskIds.filter(workflowDatasets.contains),
+      replaceableOutputs.taskIds.filter(workflowDatasets.contains))
+  }
+
   implicit object WorkflowXmlFormat extends XmlFormat[Workflow] {
 
     override def tagNames: Set[String] = Set("Workflow")
@@ -489,7 +541,7 @@ object Workflow {
       val stickyNotes = (xml \ "UiAnnotations" \ "StickyNotes" \ "StickyNote").map(StickyNote.StickyNodeXmlFormat.read)
       val replaceableInputs = taskIds((xml \ "@replaceableInputs").text.trim)
       val replaceableOutputs = taskIds((xml \ "@replaceableOutputs").text.trim)
-      new Workflow(operators, datasets, UiAnnotations(stickyNotes), replaceableInputs, replaceableOutputs)
+      createNormalized(operators, datasets, UiAnnotations(stickyNotes), replaceableInputs, replaceableOutputs)
     }
 
     /**
@@ -557,7 +609,16 @@ case class WorkflowDependencyNode(workflowNode: WorkflowNode) {
     * Returns all nodes that directly or indirectly precede this node.
     */
   def precedingNodesRecursively: Set[WorkflowDependencyNode] = {
-    precedingNodes ++ precedingNodes.flatMap(_.precedingNodesRecursively)
+    // Iterative with a visited set: naive recursion is exponential on fan-in/fan-out graphs.
+    val visited = mutable.Set[WorkflowDependencyNode]()
+    val toVisit = mutable.Queue.from(precedingNodes)
+    while (toVisit.nonEmpty) {
+      val node = toVisit.dequeue()
+      if (visited.add(node)) {
+        toVisit ++= node.precedingNodes
+      }
+    }
+    visited.toSet
   }
 
   /** The direct input nodes as [[WorkflowDependencyNode]] */
