@@ -945,7 +945,10 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                                     ...currentRuleNode,
                                     data: {
                                         ...currentRuleNode.data,
-                                        businessData: { ...businessData, updateSwitch: !businessData.updateSwitch },
+                                        businessData: {
+                                            ...businessData,
+                                            updateSwitch: (businessData.updateSwitch ?? 0) + 1,
+                                        },
                                         content: (adjustedProps: Partial<RuleNodeContentProps>) => (
                                             <NodeContent
                                                 nodeOperations={operatorNodeOperationsInternal}
@@ -960,7 +963,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                                                     ...op.parameters,
                                                     ...Object.fromEntries(nodeParameters.get(elem.id)!!.entries()),
                                                 }}
-                                                updateSwitch={!businessData.updateSwitch}
+                                                updateSwitch={(businessData.updateSwitch ?? 0) + 1}
                                                 showEditModal={false}
                                                 {...adjustedProps}
                                             />
@@ -1106,7 +1109,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
             ...originalRuleOperatorNode,
             ...patch,
         };
-        const updateSwitch = !businessData.updateSwitch;
+        const updateSwitch = (businessData.updateSwitch ?? 0) + 1;
 
         return {
             ...currentNode,
