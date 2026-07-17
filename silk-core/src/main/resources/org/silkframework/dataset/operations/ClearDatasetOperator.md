@@ -4,20 +4,29 @@ The operator itself only emits a clear instruction. The **dataset node connected
 
 ## Execution order
 
-A dataset node fed by this operator (a "clear node") clears the dataset when the node executes. Its execution order relative to **other** nodes writing to the same dataset is undefined unless made explicit. Without an explicit order the clear may run before or after those writes — a clear that runs after them silently removes the just-written data. The workflow reports a warning when it detects this situation.
+A dataset node fed by this operator (a "clear node") clears the dataset when the node executes. Its execution order relative to other nodes writing to the same dataset is undefined unless made explicit. Without an explicit order the clear may run before or after those writes. A clear that runs after them silently removes the just-written data. The workflow reports a warning when it detects this situation.
 
 The order is explicit if one of the following holds:
 
-- A (transitive) data-flow or dependency connection links the clear node and the writing node (in either direction).
-- The clear node has an explicit *output priority*.
-- Clear and write happen on the **same** dataset node: the input port order decides (a clear input on an earlier port runs before data inputs on later ports).
+- A (transitive) data-flow or dependency path connects the clear node and the writing node; the direction of the path determines which of the two runs first.
+- Clear and write happen on the same dataset node; the input port order decides: a clear input on an earlier port runs before data inputs on later ports.
 
 ## Recipes
 
-- **Clear before write (full load):** place the target dataset twice on the canvas — one node fed by this operator (clear role), one node fed by the data-producing tasks (write role). Connect **every** writing node to the clear node with a *dependency* connection, so all writes run after the clear. Use ONE clear node per dataset; multiple clear nodes would remove each other's writes.
-- **Write before clear:** connect the write path to this operator (or the clear node) with a dependency connection, so the clear runs last.
+### Clear, then write single dataset
 
-## Notes
+Example: a `Customers` dataset that is rebuilt from scratch on every run.
 
-- Unlike the deprecated per-dataset "clear before execution" parameters (which clear once, at workflow start), this operator clears at a defined point *within* the data flow.
-- A clear inside a nested workflow is not ordered against nodes of the parent workflow.
+Connect the output of this operator to the first input port of the `Customers` node and the output of the data-producing task to a later input port of the same node. The port order guarantees that the dataset is emptied before the new data is written. No dependency connections are needed.
+
+### Clear before write on separate nodes
+
+If the clear cannot share a node with the writes (for example because different branches of the workflow write to their own `Customers` nodes), place `Customers` on the canvas one more time and connect the output of this operator to it (the clear node). Then draw a *dependency* connection from the clear node to every node that `Customers` is written to, so all writes run after the clear.
+
+A dataset can also be cleared several times in one workflow (e.g. to reuse it freshly in a later phase), but then each clear node must be ordered against all writes this way. A clear that is left unordered may run after the writes and silently remove them.
+
+### Write before clear
+
+Example: a temporary `Staging` dataset that is filled and consumed during the workflow and should be left empty at the end.
+
+Draw a dependency connection from the node that writes to `Staging` to this operator (or to its clear node), so the clear runs after the write as the final step.

@@ -26,7 +26,7 @@ import org.silkframework.util.Identifier
 import org.silkframework.workspace.activity.transform.VocabularyCacheValue
 import org.silkframework.serialization.json.WorkflowSerializers._
 import org.silkframework.execution.{OperationType, SimpleExecutionReport}
-import org.silkframework.workspace.activity.workflow.{WorkflowExecutionReport, WorkflowTaskReport, WorkflowTest}
+import org.silkframework.workspace.activity.workflow.{Workflow, WorkflowExecutionReport, WorkflowTaskReport, WorkflowTest}
 import org.silkframework.workspace.activity.workflow.WorkflowTest.{DS_A1, OUTPUT, testWorkflow}
 import org.silkframework.workspace.activity.workflow.WorkflowTest.{DS_A1, OUTPUT, testWorkflow}
 import org.silkframework.workspace.activity.workflow.{WorkflowExecutionReport, WorkflowTest}
@@ -115,6 +115,17 @@ class JsonSerializersTest  extends AnyFlatSpec with Matchers with ConfigTestTrai
       replaceableOutputs = Seq(OUTPUT)
     )
     testSerialization(workflow)
+  }
+
+  it should "drop stale replaceable dataset IDs of removed datasets when deserializing" in {
+    // Clients like the workflow editor may still send IDs of datasets that were removed from the workflow
+    val staleJson = JsonSerialization.toJson(testWorkflow).as[JsObject].deepMerge(
+      Json.obj("parameters" -> Json.obj(
+        "replaceableInputs" -> Seq(DS_A1, "removedDataset"),
+        "replaceableOutputs" -> Seq(OUTPUT, "removedDataset"))))
+    val workflow = JsonSerialization.fromJson[Workflow](staleJson)
+    workflow.replaceableInputs.taskIds shouldBe Seq(DS_A1)
+    workflow.replaceableOutputs.taskIds shouldBe Seq(OUTPUT)
   }
 
   "WorkflowExecutionReport" should "serialize auth diagnostics as a JSON object" in {

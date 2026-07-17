@@ -82,44 +82,6 @@ class ClearDatasetOrderingCheckTest extends AnyFlatSpec with Matchers with TestU
     ClearDatasetOrderingCheck.unorderedPairs(singleNode, project) mustBe empty
   }
 
-  it should "not report a pair when the clear node has an explicit output priority" in {
-    ClearDatasetOrderingCheck.unorderedPairs(workflow(
-      dataset(targetDs, writeNode, inputs = Seq(transform)),
-      dataset(targetDs, clearNode, inputs = Seq(clearOp), outputPriority = Some(1.0))), project) mustBe empty
-  }
-
-  it should "not report a pair when the writer node has an explicit output priority" in {
-    // A defined priority runs before an undefined one, so the order is user-defined.
-    ClearDatasetOrderingCheck.unorderedPairs(workflow(
-      dataset(targetDs, writeNode, inputs = Seq(transform), outputPriority = Some(1.0)),
-      dataset(targetDs, clearNode, inputs = Seq(clearOp))), project) mustBe empty
-  }
-
-  it should "not report a pair when clear and writer node have distinct output priorities" in {
-    ClearDatasetOrderingCheck.unorderedPairs(workflow(
-      dataset(targetDs, writeNode, inputs = Seq(transform), outputPriority = Some(2.0)),
-      dataset(targetDs, clearNode, inputs = Seq(clearOp), outputPriority = Some(1.0))), project) mustBe empty
-  }
-
-  it should "report a pair when clear and writer node have equal output priorities" in {
-    // Equal priorities leave the relative order unspecified.
-    ClearDatasetOrderingCheck.unorderedPairs(workflow(
-      dataset(targetDs, writeNode, inputs = Seq(transform), outputPriority = Some(1.0)),
-      dataset(targetDs, clearNode, inputs = Seq(clearOp), outputPriority = Some(1.0))), project)
-      .map(_.writerNodeId) mustBe Seq(writeNode)
-  }
-
-  it should "report a pair when the clear node has a priority but is not an end node" in {
-    // The engine ignores priorities of non-end nodes, so the order remains undefined.
-    val downstream = "downstream"
-    val base = workflow(
-      dataset(targetDs, writeNode, inputs = Seq(transform)),
-      dataset(targetDs, clearNode, inputs = Seq(clearOp), outputs = Seq(downstream), outputPriority = Some(1.0)))
-    val clearWithFollower = base.copy(
-      operators = base.operators :+ operator(task = transform, inputs = Seq(clearNode), outputs = Seq(), downstream))
-    ClearDatasetOrderingCheck.unorderedPairs(clearWithFollower, project).map(_.writerNodeId) mustBe Seq(writeNode)
-  }
-
   it should "not treat a node with only config inputs as a writer" in {
     val configOnly = Workflow(
       operators = Seq(
