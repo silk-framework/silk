@@ -85,8 +85,6 @@ case class Workflow(@Param(label = "Workflow operators", value = "Workflow opera
   /**
     * Returns a dependency graph that can be traversed from the start or end nodes and consists of
     * double linked nodes.
-    *
-    * The end nodes are sorted (ASC) by output priority.
     */
   lazy val workflowDependencyGraph: WorkflowDependencyGraph = {
     // Test if this graph can be topologically sorted
@@ -96,26 +94,13 @@ case class Workflow(@Param(label = "Workflow operators", value = "Workflow opera
     val startNodes = outputs.toSet -- inputs
     val isolatedNodes = singleWorkflowNodes()
     val endNodes = (inputs.toSet -- outputs) ++ isolatedNodes
-    val workflowNodeMap: Map[String, WorkflowDependencyNode] = constructNodeMap
-    val startDependencyNodes = startNodes.toSeq.map(workflowNodeMap).sortBy(_.nodeId)
-    val endDependencyNodes = sortWorkflowNodesByOutputPriority(endNodes.map(workflowNodeMap).toSeq)
+    val startDependencyNodes = startNodes.toSeq.map(dependencyNodesById).sortBy(_.nodeId)
+    val endDependencyNodes = endNodes.toSeq.map(dependencyNodesById).sortBy(_.nodeId)
     WorkflowDependencyGraph(startDependencyNodes, endDependencyNodes)
   }
 
-  def sortWorkflowNodesByOutputPriority(nodes: Seq[WorkflowDependencyNode]): Seq[WorkflowDependencyNode] = {
-    nodes.sortWith { case (left, right) =>
-      (left.workflowNode.outputPriority, right.workflowNode.outputPriority) match {
-        case (None, None) =>
-          left.nodeId < right.nodeId
-        case (Some(_), None) =>
-          true
-        case (None, Some(_)) =>
-          false
-        case (Some(leftPrio), Some(rightPrio)) =>
-          leftPrio <= rightPrio
-      }
-    }
-  }
+  /** The double-linked dependency nodes of [[workflowDependencyGraph]] by node id. */
+  lazy val dependencyNodesById: Map[String, WorkflowDependencyNode] = constructNodeMap
 
   private def constructNodeMap: Map[String, WorkflowDependencyNode] = {
     val workflowNodeMap = nodes.map(n => (n.nodeId, WorkflowDependencyNode(n))).toMap
@@ -253,6 +238,14 @@ case class Workflow(@Param(label = "Workflow operators", value = "Workflow opera
     all
   }
 
+  /** The tasks used in this workflow whose output port produces data. */
+  def tasksWithDataOutput(project: Project)
+                         (implicit userContext: UserContext): Set[Identifier] = {
+    nodes.map(_.task).distinct
+      .filter(taskId => project.anyTaskOption(taskId).exists(_.outputPort.isDefined))
+      .toSet
+  }
+
   /** Returns all Dataset tasks that are used as outputs in the workflow */
   def outputDatasets(project: Project)
                     (implicit userContext: UserContext): Seq[ProjectTask[DatasetSpec[Dataset]]] = {
@@ -260,10 +253,7 @@ case class Workflow(@Param(label = "Workflow operators", value = "Workflow opera
     for (reConfiguredDataset <- datasets.filter(_.configInputs.nonEmpty)) {
       configInputs.put(reConfiguredDataset.nodeId, reConfiguredDataset.configInputs.head)
     }
-    val operatorsWithDataOutput: Set[Identifier] = nodes
-      .map(op => op.task).distinct
-      .filter(taskId => project.anyTaskOption(taskId).exists(_.outputPort.isDefined))
-      .toSet
+    val operatorsWithDataOutput = tasksWithDataOutput(project)
     // Filter out datasets that have no real data input
     val datasetNodesWithRealInputs = nodes.flatMap(op => {
       if(!operatorsWithDataOutput.contains(op.task)) {
@@ -619,7 +609,16 @@ case class WorkflowDependencyNode(workflowNode: WorkflowNode) {
     * Returns all nodes that directly or indirectly precede this node.
     */
   def precedingNodesRecursively: Set[WorkflowDependencyNode] = {
-    precedingNodes ++ precedingNodes.flatMap(_.precedingNodesRecursively)
+    // Iterative with a visited set: naive recursion is exponential on fan-in/fan-out graphs.
+    val visited = mutable.Set[WorkflowDependencyNode]()
+    val toVisit = mutable.Queue.from(precedingNodes)
+    while (toVisit.nonEmpty) {
+      val node = toVisit.dequeue()
+      if (visited.add(node)) {
+        toVisit ++= node.precedingNodes
+      }
+    }
+    visited.toSet
   }
 
   /** The direct input nodes as [[WorkflowDependencyNode]] */

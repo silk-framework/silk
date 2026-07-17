@@ -53,11 +53,11 @@ class WorkflowTest extends AnyFlatSpec with MockitoSugar with Matchers with Test
     val dag = testWorkflow.workflowDependencyGraph
     dag mustBe WorkflowDependencyGraph(
       startNodes = Seq(
-        WorkflowDependencyNode(WorkflowDataset(List(), DS_A1, List(TRANSFORM_1), (0, 0), DS_A1, None, Seq.empty, Seq.empty)),
-        WorkflowDependencyNode(WorkflowDataset(List(), DS_A2, List(TRANSFORM_2), (0, 0), DS_A2, None, Seq.empty, Seq.empty))),
+        WorkflowDependencyNode(WorkflowDataset(List(), DS_A1, List(TRANSFORM_1), (0, 0), DS_A1, Seq.empty, Seq.empty)),
+        WorkflowDependencyNode(WorkflowDataset(List(), DS_A2, List(TRANSFORM_2), (0, 0), DS_A2, Seq.empty, Seq.empty))),
       endNodes = Seq(
-        WorkflowDependencyNode(WorkflowDataset(List(Some(TRANSFORM_2)), DS_B, List(), (0, 0), DS_B2, None, Seq.empty, Seq.empty)),
-        WorkflowDependencyNode(WorkflowDataset(List(Some(GENERATE_OUTPUT)), OUTPUT, List(), (0, 0), OUTPUT, None, Seq.empty, Seq.empty))
+        WorkflowDependencyNode(WorkflowDataset(List(Some(TRANSFORM_2)), DS_B, List(), (0, 0), DS_B2, Seq.empty, Seq.empty)),
+        WorkflowDependencyNode(WorkflowDataset(List(Some(GENERATE_OUTPUT)), OUTPUT, List(), (0, 0), OUTPUT, Seq.empty, Seq.empty))
       ))
     val dsA1 = dag.startNodes.filter(_.workflowNode.nodeId == DS_A1).head
     intercept[IllegalStateException] {
@@ -88,20 +88,6 @@ class WorkflowTest extends AnyFlatSpec with MockitoSugar with Matchers with Test
     dag.endNodes.map(_.nodeId) mustBe Seq(DS_B2)
   }
 
-  it should "sort by output priority" in {
-    val nodes = Seq(
-      dataset(DS_A, DS_A, outputPriority = None, outputs = Seq(TRANSFORM, LINKING)),
-      dataset(DS_B, DS_B, outputPriority = Some(5.0), outputs = Seq(LINKING), inputs = Seq(TRANSFORM)),
-      dataset(LINKS, LINKS, outputPriority = Some(3), inputs = Seq(LINKING), outputs = Seq(GENERATE_OUTPUT)),
-      dataset(OUTPUT, OUTPUT, outputPriority = None),
-      operator(task = TRANSFORM, inputs = Seq(DS_A), outputs = Seq(DS_B), TRANSFORM, outputPriority = Some(1.5)),
-      operator(task = LINKING, inputs = Seq(DS_A, DS_B), outputs = Seq(LINKS), LINKING, outputPriority = None),
-      operator(task = GENERATE_OUTPUT, inputs = Seq(LINKS), outputs = Seq(OUTPUT), GENERATE_OUTPUT, outputPriority = Some(0.5))
-    ).map(n => WorkflowDependencyNode(n))
-    testWorkflow.sortWorkflowNodesByOutputPriority(nodes).map(_.nodeId) mustBe Seq(
-      GENERATE_OUTPUT, TRANSFORM, LINKS, DS_B, DS_A, LINKING, OUTPUT)
-  }
-
   it should "build the DAG correctly for a workflow ending in an operator" in {
     val dag = testWorkflowEndingInOperator.workflowDependencyGraph
     dag.startNodes.map(_.nodeId) mustBe Seq(DS_A, DS_B)
@@ -116,7 +102,7 @@ class WorkflowTest extends AnyFlatSpec with MockitoSugar with Matchers with Test
   it should "build the DAG correctly for a workflow with disjunct data flows and multiple output nodes" in {
     val dag = testWorkflowWithMultipleEndNodesAndDisjunctDataFlows.workflowDependencyGraph
     dag.startNodes.map(_.nodeId) mustBe Seq(DS_A, DS_B, DS_C)
-    dag.endNodes.map(_.nodeId) mustBe Seq(TRANSFORM, OP_1, OP_2)
+    dag.endNodes.map(_.nodeId) mustBe Seq(OP_1, OP_2, TRANSFORM)
   }
 
   it should "put workflow nodes that have neither input nor output into the end nodes" in {
@@ -287,7 +273,7 @@ object WorkflowTest {
   val testWorkflowWithMultipleEndNodesAndDisjunctDataFlows: Workflow = {
     Workflow(
       operators = Seq(
-        operator(task = TRANSFORM, inputs = Seq(DS_A, DS_B), outputs = Seq(), TRANSFORM, outputPriority = Some(1.5)),
+        operator(task = TRANSFORM, inputs = Seq(DS_A, DS_B), outputs = Seq(), TRANSFORM),
         operator(task = OP_1, inputs = Seq(DS_C), outputs = Seq(), OP_1),
         operator(task = OP_2, inputs = Seq(DS_C), outputs = Seq(), OP_2)
       ),
@@ -380,18 +366,17 @@ object WorkflowTest {
     )
   }
 
-  def operator(task: String, inputs: Seq[String], outputs: Seq[String], nodeId: String, outputPriority: Option[Double] = None,
+  def operator(task: String, inputs: Seq[String], outputs: Seq[String], nodeId: String,
                dependencyInputs: Seq[String] = Seq.empty): WorkflowOperator = {
-    WorkflowOperator(inputs = inputs.map(convertStringToOption), task = task, outputs = outputs, Seq(), (0, 0), nodeId, outputPriority, Seq.empty, dependencyInputs)
+    WorkflowOperator(inputs = inputs.map(convertStringToOption), task = task, outputs = outputs, Seq(), (0, 0), nodeId, Seq.empty, dependencyInputs)
   }
 
   def dataset(task: String,
               nodeId: String,
-              outputPriority: Option[Double] = None,
               inputs: Seq[String] = Seq.empty,
               outputs: Seq[String] = Seq.empty,
               configInputs: Seq[String] = Seq.empty,
               dependencyInputs: Seq[String] = Seq.empty): WorkflowDataset = {
-    WorkflowDataset(inputs.map(convertStringToOption), task, outputs, (0, 0), nodeId, outputPriority, configInputs, dependencyInputs)
+    WorkflowDataset(inputs.map(convertStringToOption), task, outputs, (0, 0), nodeId, configInputs, dependencyInputs)
   }
 }

@@ -282,7 +282,9 @@ object ExecutionReportSerializers {
     /** When `slim` is set, the compact form of the workflow and its per-node reports is produced. */
     def write(value: WorkflowExecutionReport, slim: Boolean)(implicit writeContext: WriteContext[JsValue]): JsObject = {
       val authDiagnosticsJson = value.authDiagnostics.map(json => AUTH_DIAGNOSTICS -> Json.parse(json))
-      (ExecutionReportJsonFormat.serializeBasicValues(value, slim) ++ JsObject(authDiagnosticsJson.toSeq)) +
+      // Written separately from the combined 'warnings' field so they survive a round trip (e.g. persisted reports).
+      val workflowWarningsJson = if(value.workflowWarnings.nonEmpty) Some(WORKFLOW_WARNINGS -> Json.toJson(value.workflowWarnings)) else None
+      (ExecutionReportJsonFormat.serializeBasicValues(value, slim) ++ JsObject(authDiagnosticsJson.toSeq ++ workflowWarningsJson)) +
         (TASK_REPORTS -> JsArray(value.taskReports.map(report => WorkflowTaskReportJsonFormat.write(report, slim))))
     }
 
@@ -310,7 +312,8 @@ object ExecutionReportSerializers {
         taskReports = taskReports.toIndexedSeq,
         isDone = booleanValueOption(value, IS_DONE).getOrElse(true),
         error = stringValueOption(value, ERROR),
-        authDiagnostics = optionalValue(value, AUTH_DIAGNOSTICS).map(Json.stringify)
+        authDiagnostics = optionalValue(value, AUTH_DIAGNOSTICS).map(Json.stringify),
+        workflowWarnings = arrayValueOption(value, WORKFLOW_WARNINGS).map(_.value.map(_.as[String]).toSeq).getOrElse(Seq.empty)
       )
     }
   }
@@ -340,6 +343,7 @@ object ExecutionReportSerializers {
 
     final val TASK_REPORTS = "taskReports"
     final val AUTH_DIAGNOSTICS = "authDiagnostics"
+    final val WORKFLOW_WARNINGS = "workflowWarnings"
 
     final val ENTITY_COUNTER = "entityCounter"
     final val ENTITY_ERROR_COUNTER = "entityErrorCounter"

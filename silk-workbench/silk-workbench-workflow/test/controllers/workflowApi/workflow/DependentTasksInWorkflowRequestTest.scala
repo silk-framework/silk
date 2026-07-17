@@ -53,7 +53,7 @@ class DependentTasksInWorkflowRequestTest extends AnyFlatSpec with Matchers with
   }
 
   private def operator(task: String): WorkflowOperator = {
-    WorkflowOperator(inputs = Seq.empty, task = task, outputs = Seq.empty, Seq(), (0, 0), task, None, Seq.empty, Seq.empty)
+    WorkflowOperator(inputs = Seq.empty, task = task, outputs = Seq.empty, Seq(), (0, 0), task, Seq.empty, Seq.empty)
   }
 
   private def dependentTasks(taskId: String, workflowId: String): Set[String] = {

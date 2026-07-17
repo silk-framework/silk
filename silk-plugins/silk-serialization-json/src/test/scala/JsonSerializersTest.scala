@@ -141,6 +141,17 @@ class JsonSerializersTest  extends AnyFlatSpec with Matchers with ConfigTestTrai
     roundTrip shouldBe report
   }
 
+  it should "round-trip workflow-level warnings" in {
+    val report = WorkflowExecutionReport(
+      task = PlainTask("workflowReport", WorkflowTest.testWorkflow),
+      workflowWarnings = Seq("Dataset 'output' is cleared without a defined execution order.")
+    )
+
+    val reportJson = JsonSerialization.toJson(report)
+    val roundTrip = JsonSerialization.fromJson[WorkflowExecutionReport](reportJson)
+    roundTrip shouldBe report
+  }
+
   "WorkflowExecutionReport (slim)" should "recurse into nested-workflow sub-reports without embedding task definitions" in {
     implicit val jsonWriteContext: WriteContext[play.api.libs.json.JsValue] =
       TestWriteContext[play.api.libs.json.JsValue]()
