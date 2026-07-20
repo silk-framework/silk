@@ -176,6 +176,7 @@ export function CreateArtefactModal() {
     const [taskFormGeneralWarning, setTaskFormGeneralWarning] = React.useState<TaskFormReviewWarning | undefined>();
     const generalWarningTimeout = React.useRef<number | undefined>(undefined);
     const projectAcl = React.useRef<AccessControlConfig | undefined>(undefined);
+    const preservedFieldValuesRef = React.useRef<Record<string, unknown> | undefined>(undefined);
 
     const updateProjectAcl = React.useCallback((newProjectAcl: AccessControlConfig) => {
         projectAcl.current = newProjectAcl;
@@ -529,6 +530,7 @@ export function CreateArtefactModal() {
         }
         setTaskFormGeneralWarning(undefined);
         externalParameterUpdateMap.current = new Map();
+        preservedFieldValuesRef.current = undefined;
         form.reset(Object.create(null));
         setFormValueChanges({});
         form.clearErrors();
@@ -582,6 +584,8 @@ export function CreateArtefactModal() {
                 resetValue[field] = currentValues[field];
             }
         });
+        // Also kept in a ref, because the form values do not survive the switch to the next task form
+        preservedFieldValuesRef.current = { ...resetValue };
         form.reset(resetValue);
         setFormValueChanges({});
     };
@@ -756,6 +760,7 @@ export function CreateArtefactModal() {
                             newTaskPreConfiguration={updatedNewTaskPreConfiguration}
                             propagateExternallyChangedParameterValue={propagateExternallyChangedParameterValue}
                             showWarningMessage={taskFormWarning}
+                            preservedFieldValues={preservedFieldValuesRef}
                         />,
                     );
                 }

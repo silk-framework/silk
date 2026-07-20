@@ -66,6 +66,9 @@ export interface IProps {
 
     /** Shows or clears a warning notification in the dialog popup. */
     showWarningMessage: (warning?: TaskFormReviewWarning) => void;
+
+    /** Field values preserved over a plugin/project switch, re-applied once after mount. */
+    preservedFieldValues?: React.MutableRefObject<Record<string, unknown> | undefined>;
 }
 
 export interface TaskFormReviewWarning {
@@ -149,6 +152,7 @@ export function TaskForm({
     newTaskPreConfiguration,
     propagateExternallyChangedParameterValue,
     showWarningMessage,
+    preservedFieldValues,
 }: IProps) {
     const { properties, required: requiredRootParameters } = artefact;
     const {
@@ -370,6 +374,13 @@ export function TaskForm({
             register(DESCRIPTION);
             register(IDENTIFIER);
             register(TAGS);
+            // Re-apply metadata preserved over a plugin/project switch, since unregistering on unmount
+            // has dropped the form values and the tag widget's initial selection event overwrites them.
+            if (preservedFieldValues?.current) {
+                const preservedValues = preservedFieldValues.current;
+                preservedFieldValues.current = undefined;
+                Object.entries(preservedValues).forEach(([field, value]) => setValue(field, value));
+            }
         }
         if (newTaskPreConfiguration) {
             newTaskPreConfiguration.metaData?.label && setValue(LABEL, newTaskPreConfiguration.metaData?.label);
