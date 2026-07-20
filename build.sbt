@@ -74,7 +74,7 @@ lazy val commonSettings = Seq(
   // Testing
   libraryDependencies += "org.scalatest" %% "scalatest" % "3.2.20" % "test",
   libraryDependencies += "net.codingwell" %% "scala-guice" % "6.0.0" % "test",
-  libraryDependencies += "ch.qos.logback" % "logback-classic" % "1.5.37",
+  libraryDependencies += "ch.qos.logback" % "logback-classic" % "1.5.38",
   libraryDependencies += "org.mockito" % "mockito-core" % "5.23.0" % Test,
   libraryDependencies += "com.google.inject" % "guice" % "6.0.0" % "test",
   libraryDependencies += "javax.inject" % "javax.inject" % "1",
@@ -82,19 +82,19 @@ lazy val commonSettings = Seq(
 
   // We need to overwrite the versions of the Jackson modules.
   // Fixes GHSA-72hv-8253-57qq and CVE-2025-52999 (require 2.21.1+).
-  dependencyOverrides += "com.fasterxml.jackson.module" %% "jackson-module-scala" % "2.22.0",
-  dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-databind" % "2.22.0",
-  dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-core" % "2.22.0",
+  dependencyOverrides += "com.fasterxml.jackson.module" %% "jackson-module-scala" % "2.22.1",
+  dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-databind" % "2.22.1",
+  dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-core" % "2.22.1",
 
   // Fix CVE-2026-29062 and GHSA-72hv-8253-57qq in tools.jackson.core (Jackson 3.x, from Jena)
-  dependencyOverrides += "tools.jackson.core" % "jackson-core" % "3.2.0",
-  dependencyOverrides += "tools.jackson.core" % "jackson-databind" % "3.2.0",
+  dependencyOverrides += "tools.jackson.core" % "jackson-core" % "3.2.1",
+  dependencyOverrides += "tools.jackson.core" % "jackson-databind" % "3.2.1",
 
   // Fix CVE-2026-43869 in Apache Thrift (transitive from jena-arq)
-  dependencyOverrides += "org.apache.thrift" % "libthrift" % "0.23.0",
+  dependencyOverrides += "org.apache.thrift" % "libthrift" % "0.24.0",
 
   // Fix CVE-2026-5598 in Bouncy Castle (private key leakage via non-constant time comparisons)
-  dependencyOverrides += "org.bouncycastle" % "bcprov-jdk18on" % "1.84",
+  dependencyOverrides += "org.bouncycastle" % "bcprov-jdk18on" % "1.85",
 
   // silk-core uses scala-parser-combinators 2.x (required by Spark 4 in the root build), Play 2.9 still ships 1.1.2
   dependencyOverrides += "org.scala-lang.modules" %% "scala-parser-combinators" % "2.4.0",
@@ -141,7 +141,7 @@ lazy val rules = (project in file("silk-rules"))
   .settings(commonSettings *)
   .settings(
     name := "Silk Rules",
-    libraryDependencies += "org.postgresql" % "postgresql" % "42.7.12",
+    libraryDependencies += "org.postgresql" % "postgresql" % "42.7.13",
     libraryDependencies += "org.apache.jena" % "jena-core" % "6.1.0" exclude("org.slf4j", "slf4j-log4j12"),
     libraryDependencies += "org.apache.jena" % "jena-arq" % "6.1.0" exclude("org.slf4j", "slf4j-log4j12")
   )
@@ -428,7 +428,7 @@ lazy val workbenchOpenApi = (project in file("silk-workbench/silk-workbench-open
     name := "Silk Workbench OpenAPI",
     libraryDependencies += "io.kinoplan" %% "swagger-play" % "0.0.7" exclude("org.scala-lang.modules", "scala-java8-compat_2.13") ,
     libraryDependencies += "io.swagger.parser.v3" % "swagger-parser-v3" % "2.1.45",
-    libraryDependencies += "com.networknt" % "json-schema-validator" % "3.0.5",
+    libraryDependencies += "com.networknt" % "json-schema-validator" % "3.0.6",
     libraryDependencies += "org.webjars" % "swagger-ui" % "5.32.8"
   )
 
