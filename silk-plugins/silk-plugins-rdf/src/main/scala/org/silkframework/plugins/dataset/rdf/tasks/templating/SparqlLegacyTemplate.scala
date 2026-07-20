@@ -93,7 +93,9 @@ class SparqlLegacyTemplate(template: CompiledTemplate) extends SparqlTemplate {
 
   override def requiresInput: Boolean = {
     sparqlVariables match {
-      case Some(vars) => vars.nonEmpty
+      case Some(vars) =>
+        // outputProperties values come from the connected output task, so they do not need an input port
+        vars.exists(_.scope != VariableScope(OUTPUT_PROPERTIES_VAR_NAME))
       case None => true
     }
   }
