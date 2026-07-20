@@ -405,6 +405,7 @@ export const TemplateInputComponent = memo(
         return (
             <CodeAutocompleteField
                 id={parameterId}
+                mode="jinja2"
                 initialValue={initialValue}
                 onChange={onTemplateValueChange}
                 fetchSuggestions={autoComplete}
