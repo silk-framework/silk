@@ -60,7 +60,7 @@ case class DeleteVariableModification(project: Project, variableName: String, ta
         // Match the resolution of execution-variable templates at save time (parent scopes without sensitive variables).
         val saveTimeParents = allNewVariables.withoutSensitiveVariables()
 
-        // Report tasks whose parameter templates break or whose execution-variable templates reference the deleted variable.
+        // Report tasks whose parameter templates break or that still reference the deleted variable.
         val currentContext: PluginContext = PluginContext.fromProject(project)
         project.allTasks.toSeq.filter { task =>
           val breaksParameterTemplates =
@@ -72,7 +72,9 @@ case class DeleteVariableModification(project: Project, variableName: String, ta
                 // Task update would fail with the modified variables.
                 true
             }
-          breaksParameterTemplates || dependentExecutionVariableIssues(task, saveTimeParents, Set(variableName)).nonEmpty
+          breaksParameterTemplates ||
+            dependentExecutionVariableIssues(task, saveTimeParents, Set(variableName)).nonEmpty ||
+            referencedRemovedVariables(task, Set(variableName)).nonEmpty
         }
     }
   }
@@ -80,9 +82,8 @@ case class DeleteVariableModification(project: Project, variableName: String, ta
   override protected def updateVariables(currentVariables: TemplateVariables, parentVariables: TemplateVariables)
                                         (implicit user: UserContext): TemplateVariables = {
     val resolvedVariables = resolveWithoutVariable(currentVariables, parentVariables)
-    // Project variable: block the deletion if an execution-variable template on a task references it.
-    // Otherwise the task would keep an unresolvable template that fails on its next modification.
-    checkExecutionVariableDependencies(resolvedVariables, Set(variableName))
+    // Block the deletion if a task still references the project variable.
+    checkRemovedVariableDependencies(resolvedVariables, Set(variableName))
     resolvedVariables
   }
 

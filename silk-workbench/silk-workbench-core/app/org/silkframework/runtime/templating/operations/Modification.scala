@@ -4,7 +4,8 @@ import org.silkframework.config.{Task, TaskSpec}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.{ParameterTemplateValue, ParameterValues, PluginContext, TaskResolver}
 import org.silkframework.runtime.templating.exceptions._
-import org.silkframework.runtime.templating.{GlobalTemplateVariables, InMemoryTemplateVariablesReader, VariableScope, TemplateVariables, TemplateVariablesManager}
+import org.silkframework.runtime.templating.{GlobalTemplateVariables, InMemoryTemplateVariablesReader, TemplateVariableName, VariableScope, TemplateVariables, TemplateVariablesManager}
+import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.{Project, ProjectTask}
 
@@ -164,19 +165,30 @@ abstract class Modification {
   }
 
   /**
-    * For project-scope modifications that remove variables: throws the modification's exception (via
-    * [[generateException]]) if an execution-variable template of any task references a removed variable.
-    * Execution-variable templates are resolved against the parent scopes when the variable is saved, so
-    * removing a referenced project variable would leave them unresolvable on their next modification.
+    * Throws via [[generateException]] if a removed project variable is still referenced by a task,
+    * either from an execution-variable template or from a template within the task data.
     */
-  protected def checkExecutionVariableDependencies(newProjectVariables: TemplateVariables,
-                                                   removedVariableNames: Set[String])
-                                                  (implicit user: UserContext): Unit = {
+  protected def checkRemovedVariableDependencies(newProjectVariables: TemplateVariables,
+                                                 removedVariableNames: Set[String])
+                                                (implicit user: UserContext): Unit = {
     if (taskId.isEmpty && removedVariableNames.nonEmpty) {
       for ((task, cause) <- tasksWithDependentExecutionVariables(newProjectVariables, removedVariableNames).headOption) {
         throw generateException(task, cause)
       }
+      for (task <- project.allTasks) {
+        val referenced = referencedRemovedVariables(task, removedVariableNames)
+        if (referenced.nonEmpty) {
+          throw generateException(task, new ValidationException(
+            s"The task references the variable(s) ${referenced.map(_.scopedName).mkString("'", "', '", "'")} from a template, e.g., in an 'Evaluate template' operator."))
+        }
+      }
     }
+  }
+
+  /** The removed project variables that the task data reports as referenced, e.g., from an 'Evaluate template' operator. */
+  protected def referencedRemovedVariables(task: ProjectTask[_ <: TaskSpec],
+                                           removedVariableNames: Set[String]): Seq[TemplateVariableName] = {
+    task.data.referencedVariables.filter(v => v.scope == VariableScope.project && removedVariableNames.contains(v.name)).distinct
   }
 
   /**
