@@ -3,7 +3,6 @@ import { IAppliedSorterState, ISorterListItemState, SortModifierType } from "@du
 
 import { ContextMenu, MenuItem } from "@eccenca/gui-elements";
 import { useTranslation } from "react-i18next";
-import { useStoreGlobalTableSettings } from "../../../hooks/useStoreGlobalTableSettings";
 import { GlobalTableContext } from "../../../GlobalContextsWrapper";
 
 interface IProps {
@@ -11,44 +10,39 @@ interface IProps {
     activeSort: IAppliedSorterState;
 }
 
+const directions: { order: Exclude<SortModifierType, "">; icon: string; labelKey: string; fallback: string }[] = [
+    { order: "ASC", icon: "list-sortasc", labelKey: "common.words.ascending", fallback: "ascending" },
+    { order: "DESC", icon: "list-sortdesc", labelKey: "common.words.descending", fallback: "descending" },
+];
+
 export default function SortButton({ sortersList, activeSort }: IProps) {
     const [t] = useTranslation();
     const { updateGlobalTableSettings } = React.useContext(GlobalTableContext);
 
-    const handleMenuClick = React.useCallback(
-        (itemId: string) => {
-            const { sortBy, sortOrder } = activeSort;
-            let newSortOrder: SortModifierType = activeSort.sortOrder || "ASC";
-            if (itemId === sortBy) {
-                newSortOrder = activeSort.sortOrder === "ASC" ? "DESC" : "ASC";
-            }
-            updateGlobalTableSettings({
-                sortBy: itemId,
-                sortOrder: newSortOrder,
-            });
+    const applySort = React.useCallback(
+        (sortBy: string, sortOrder: SortModifierType) => {
+            updateGlobalTableSettings({ sortBy, sortOrder });
         },
-        [updateGlobalTableSettings, activeSort],
+        [updateGlobalTableSettings],
     );
 
     return (
         <div className={"sortButton"} data-test-id={"sortButton"}>
             <ContextMenu togglerElement="list-sort" togglerText={t("common.words.sortOptions", "Sort options")}>
-                {sortersList.map((item) => (
-                    <MenuItem
-                        data-test-id={`sort-option-${item.id || "default"}-${activeSort.sortOrder}`}
-                        active={activeSort.sortBy === item.id ? true : false}
-                        key={item.id}
-                        text={item.label}
-                        icon={
-                            activeSort.sortBy && activeSort.sortBy === item.id
-                                ? activeSort.sortOrder === "ASC"
-                                    ? "list-sortasc"
-                                    : "list-sortdesc"
-                                : undefined
-                        }
-                        onClick={() => handleMenuClick(item.id)}
-                    />
-                ))}
+                {/* Each sorter is offered as two explicit, icon-labelled entries (ascending / descending)
+                    so the effect of a click is unambiguous instead of toggling a hidden direction. */}
+                {sortersList.flatMap((item) =>
+                    directions.map((dir) => (
+                        <MenuItem
+                            key={`${item.id}-${dir.order}`}
+                            data-test-id={`sort-option-${item.id || "default"}-${dir.order}`}
+                            active={activeSort.sortBy === item.id && activeSort.sortOrder === dir.order}
+                            text={`${item.label} (${t(dir.labelKey, dir.fallback)})`}
+                            icon={[dir.icon]}
+                            onClick={() => applySort(item.id, dir.order)}
+                        />
+                    )),
+                )}
             </ContextMenu>
         </div>
     );

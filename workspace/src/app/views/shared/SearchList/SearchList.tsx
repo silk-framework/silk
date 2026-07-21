@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { workspaceOp, workspaceSel } from "@ducks/workspace";
-import { Button, Icon, Spacing, Notification } from "@eccenca/gui-elements";
+import { Button, cn, Icon, Spacing, Notification } from "@eccenca/gui-elements";
 import Pagination from "../Pagination";
 import DataList from "../Datalist";
 import CloneModal from "../modals/CloneModal";
@@ -19,9 +19,32 @@ import ShowIdentifierModal from "../modals/ShowIdentifierModal";
 import { IArtefactModal } from "@ducks/common/typings";
 import { AppDispatch } from "store/configureStore";
 import { GlobalTableContext } from "../../../GlobalContextsWrapper";
+import { WorkbenchViewMode } from "../../../hooks/useStoreGlobalTableSettings";
+import { Loading } from "../Loading/Loading";
+import SearchTable from "./SearchTable";
+import SearchGrid from "./SearchGrid";
+
+interface SearchListProps {
+    /**
+     * 2A framed presentation: render the results as a single bordered white panel of divider-
+     * separated rows (instead of spaced cards). Opt-in so the shared Project-page list is
+     * unaffected; only the /workbench page passes it. Ignored when `viewMode` is set.
+     */
+    framed?: boolean;
+    /**
+     * Result list presentation. `"table"` and `"grid"` render the workbench table / card grid; when
+     * omitted (Project page) the classic row cards are used.
+     */
+    viewMode?: WorkbenchViewMode;
+    /**
+     * Render the table view flush (without its bordered panel) — used when the list is embedded
+     * inside a card, e.g. the Project "Contents" tile, to avoid a card-inside-a-card.
+     */
+    flush?: boolean;
+}
 
 /** Search list for the workspace/project page search. */
-export function SearchList() {
+export function SearchList({ framed = false, viewMode, flush = false }: SearchListProps = {}) {
     const dispatch = useDispatch<AppDispatch>();
 
     const pageSizes = [10, 25, 50, 100];
@@ -173,31 +196,72 @@ export function SearchList() {
     ) : (
         <Notification>{t("common.messages.noItems", { items: "items" })}</Notification>
     );
+    const itemActionCallbacks = {
+        onOpenDeleteModal,
+        onOpenDuplicateModal,
+        onOpenCopyToModal,
+        toggleShowIdentifierModal,
+    };
+
+    const alternateView = viewMode === "table" || viewMode === "grid";
+
     return (
         <>
             <AppliedFacets />
-            <DataList
-                // FIXME: Just a workaround for stale item bug that happens when switching between activities and search view
-                key={`search-list-${data[0]?.id}-${data.length}`}
-                data-test-id="search-result-list"
-                isEmpty={isEmpty}
-                isLoading={isLoading}
-                hasSpacing
-                emptyContainer={EmptyContainer}
-            >
-                {data.map((item) => (
-                    <SearchItem
-                        key={`${item.id}_${item.projectId}`}
-                        item={item}
-                        onOpenDeleteModal={onOpenDeleteModal}
-                        onOpenDuplicateModal={onOpenDuplicateModal}
-                        onOpenCopyToModal={onOpenCopyToModal}
-                        toggleShowIdentifierModal={toggleShowIdentifierModal}
+            {alternateView ? (
+                isLoading ? (
+                    <Loading delay={0} description={t("DataList.loading", "Loading data.")} />
+                ) : isEmpty ? (
+                    EmptyContainer
+                ) : viewMode === "table" ? (
+                    <SearchTable
+                        data={data}
                         searchValue={appliedFilters.textQuery}
                         parentProjectId={projectId}
+                        flush={flush}
+                        {...itemActionCallbacks}
                     />
-                ))}
-            </DataList>
+                ) : (
+                    <SearchGrid
+                        data={data}
+                        searchValue={appliedFilters.textQuery}
+                        parentProjectId={projectId}
+                        {...itemActionCallbacks}
+                    />
+                )
+            ) : (
+                <DataList
+                    // FIXME: Just a workaround for stale item bug that happens when switching between activities and search view
+                    key={`search-list-${data[0]?.id}-${data.length}`}
+                    data-test-id="search-result-list"
+                    isEmpty={isEmpty}
+                    isLoading={isLoading}
+                    // 2A: framed = one bordered panel of divided rows (flattened item cards); default = spaced cards
+                    {...(framed ? { hasDivider: true } : { hasSpacing: true })}
+                    className={
+                        framed
+                            ? cn(
+                                  "overflow-hidden rounded-lg border border-border bg-card",
+                                  "[&_.eccgui-card]:rounded-none [&_.eccgui-card]:border-0 [&_.eccgui-card]:bg-transparent [&_.eccgui-card]:shadow-none",
+                              )
+                            : undefined
+                    }
+                    emptyContainer={EmptyContainer}
+                >
+                    {data.map((item) => (
+                        <SearchItem
+                            key={`${item.id}_${item.projectId}`}
+                            item={item}
+                            onOpenDeleteModal={onOpenDeleteModal}
+                            onOpenDuplicateModal={onOpenDuplicateModal}
+                            onOpenCopyToModal={onOpenCopyToModal}
+                            toggleShowIdentifierModal={toggleShowIdentifierModal}
+                            searchValue={appliedFilters.textQuery}
+                            parentProjectId={projectId}
+                        />
+                    ))}
+                </DataList>
+            )}
             <Spacing size="small" />
             <Pagination
                 pagination={adaptedPagination}

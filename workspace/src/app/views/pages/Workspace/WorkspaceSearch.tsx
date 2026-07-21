@@ -4,31 +4,31 @@ import { useTranslation } from "react-i18next";
 import {
     Button,
     Divider,
-    Grid,
-    GridColumn,
-    GridRow,
     Notification,
     Section,
     SectionHeader,
+    Spacing,
     TitleMainsection,
     WorkspaceContent,
     WorkspaceMain,
 } from "@eccenca/gui-elements";
 import { workspaceOp, workspaceSel } from "@ducks/workspace";
 import SearchList from "../../shared/SearchList";
-import SearchBar from "../../shared/SearchBar";
 import { usePageHeader } from "../../shared/PageHeader/PageHeader";
-import Filterbar from "./Filterbar";
+import WorkspaceToolbar from "./Toolbar/WorkspaceToolbar";
 import { useSelectFirstResult } from "../../../hooks/useSelectFirstResult";
 import { AppDispatch } from "store/configureStore";
+import { GlobalTableContext } from "../../../GlobalContextsWrapper";
+import { WorkbenchViewMode } from "../../../hooks/useStoreGlobalTableSettings";
 
 const WorkspaceSearch = () => {
     const dispatch = useDispatch<AppDispatch>();
     const [t] = useTranslation();
 
     const { textQuery } = useSelector(workspaceSel.appliedFiltersSelector);
-    const sorters = useSelector(workspaceSel.sortersSelector);
     const error = useSelector(workspaceSel.errorSelector);
+    const { globalTableSettings, updateGlobalTableSettings } = React.useContext(GlobalTableContext);
+    const viewMode: WorkbenchViewMode = globalTableSettings["workbench"].viewMode ?? "table";
 
     // FIXME: Workaround to prevent search with a text query from another page sharing the same Redux state. Needs refactoring.
     const [searchInitialized, setSearchInitialized] = React.useState(false);
@@ -43,6 +43,10 @@ const WorkspaceSearch = () => {
         dispatch(workspaceOp.applyFiltersOp({ textQuery }));
     };
 
+    const handleViewModeChange = (mode: WorkbenchViewMode) => {
+        updateGlobalTableSettings({ viewMode: mode }, "workbench");
+    };
+
     const { pageHeader } = usePageHeader({
         alternateDepiction: "application-homepage",
         autogenerateBreadcrumbs: true,
@@ -55,53 +59,37 @@ const WorkspaceSearch = () => {
             <WorkspaceMain>
                 <Section>
                     <SectionHeader>
-                        <Grid>
-                            <GridRow>
-                                <GridColumn small verticalAlign="center">
-                                    <TitleMainsection>{t("pages.workspace.contents", "Contents")}</TitleMainsection>
-                                </GridColumn>
-                                <GridColumn>
-                                    <SearchBar
-                                        focusOnCreation={true}
-                                        textQuery={effectiveSearchQuery}
-                                        sorters={sorters}
-                                        onSearch={handleSearch}
-                                        onEnter={onEnter}
-                                        disableEnterDuringPendingSearch={true}
-                                        globalTableKey={"workbench"}
-                                    />
-                                </GridColumn>
-                            </GridRow>
-                        </Grid>
+                        <TitleMainsection>{t("pages.workspace.contents", "Contents")}</TitleMainsection>
                     </SectionHeader>
+                    <Spacing size="small" />
+                    <WorkspaceToolbar
+                        textQuery={effectiveSearchQuery}
+                        onSearch={handleSearch}
+                        onEnter={onEnter}
+                        viewMode={viewMode}
+                        onViewModeChange={handleViewModeChange}
+                    />
                     <Divider addSpacing="medium" />
-                    <Grid>
-                        <GridRow>
-                            <GridColumn small>
-                                <Filterbar />
-                            </GridColumn>
-                            <GridColumn>
-                                {error.detail ? (
-                                    <Notification
-                                        intent="danger"
-                                        actions={
-                                            <Button
-                                                text={t("common.action.retry", "Retry")}
-                                                onClick={() => {
-                                                    window.location.reload();
-                                                }}
-                                            />
-                                        }
-                                    >
-                                        <h3>{t("http.error.fetchNotResult", "Error, cannot fetch results.")}</h3>
-                                        <p>{error.detail}</p>
-                                    </Notification>
-                                ) : (
-                                    <SearchList />
-                                )}
-                            </GridColumn>
-                        </GridRow>
-                    </Grid>
+                    {error.detail ? (
+                        <Notification
+                            intent="danger"
+                            actions={
+                                <Button
+                                    text={t("common.action.retry", "Retry")}
+                                    onClick={() => {
+                                        window.location.reload();
+                                    }}
+                                />
+                            }
+                        >
+                            <h3 className="font-medium">
+                                {t("http.error.fetchNotResult", "Error, cannot fetch results.")}
+                            </h3>
+                            <p>{error.detail}</p>
+                        </Notification>
+                    ) : (
+                        <SearchList viewMode={viewMode} />
+                    )}
                 </Section>
             </WorkspaceMain>
         </WorkspaceContent>

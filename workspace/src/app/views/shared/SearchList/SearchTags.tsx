@@ -12,15 +12,14 @@ export const searchTagsRenderer = (props: SearchTagsProps): React.JSX.Element[] 
     return searchTags.map((searchTag) => {
         const tagContent = <Highlighter label={searchTag} searchValue={searchText} />;
         const tagProps = {
-            key: searchTag,
             className: "diapp-searchtags__tag",
         };
         return searchTag.includes("Replaceable") ? (
-            <ArtefactTag artefactType="replaceable-input" {...tagProps}>
+            <ArtefactTag key={searchTag} artefactType="replaceable-input" {...tagProps}>
                 {tagContent}
             </ArtefactTag>
         ) : (
-            <Tag emphasis="weaker" {...tagProps}>
+            <Tag key={searchTag} emphasis="weaker" {...tagProps}>
                 {tagContent}
             </Tag>
         );

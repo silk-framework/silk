@@ -13,10 +13,15 @@ export const defaultGlobalTableSettings: GlobalTableSettings = {
     files: { ...defaultConfig, pageSize: 5 },
 } as const;
 
+/** Presentation of the workbench result list. */
+export type WorkbenchViewMode = "table" | "grid";
+
 export type GlobalTableBaseConfig = {
     pageSize?: number;
     sortBy?: string;
     sortOrder?: SortModifierType;
+    /** Result list presentation. Only consumed by the workbench (`/workbench`) list. Defaults to `table`. */
+    viewMode?: WorkbenchViewMode;
 };
 
 export interface GlobalTableSettings {
@@ -50,7 +55,7 @@ export const useStoreGlobalTableSettings: () => GlobalTableSettingFunctions = ()
 
     // Extracts the table key from the location path
     const extractTableKey = (): GlobalTableTypes => {
-        return location.pathname.split("/").slice(-1)[0] === "activities" ? "activities" : "workbench";
+        return window.location.pathname.split("/").slice(-1)[0] === "activities" ? "activities" : "workbench";
     };
     const updateGlobalTableSettings = React.useCallback(
         (settings: GlobalTableBaseConfig, customKey?: GlobalTableTypes) => {

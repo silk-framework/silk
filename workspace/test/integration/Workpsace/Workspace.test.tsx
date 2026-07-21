@@ -5,7 +5,8 @@ import { createMemoryHistory } from "history";
 import mockAxios from "../../__mocks__/axios";
 import { byTestId, findAllDOMElements, mockedAxiosResponse, renderWrapper, workspacePath } from "../TestHelper";
 import { Workspace } from "../../../src/app/views/pages/Workspace/Workspace";
-import { fireEvent, screen, waitFor } from "@testing-library/react";
+import { screen, waitFor } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 
 describe("Search Items", () => {
     let hostPath = process.env.HOST;
@@ -139,9 +140,32 @@ describe("Search Items", () => {
 
         mockSearchItemsRequest();
 
+        // Facets are surfaced as filter dropdown "option menus" in the toolbar (one per available facet).
         await waitFor(() => {
-            const elements = findAllDOMElements(wrapper, byTestId(`facet-items`));
-            expect(elements).toHaveLength(2);
+            const facetMenu = findAllDOMElements(wrapper, byTestId(`filter-menu-facetId`));
+            expect(facetMenu).toHaveLength(1);
+            expect(facetMenu[0].textContent).toContain("FACET_LABEL");
         });
+
+        // Opening the menu shows one entry per facet value. The dropdown renders in a portal
+        // outside the wrapper container, hence the `screen` queries.
+        const user = userEvent.setup();
+        await user.click(findAllDOMElements(wrapper, byTestId("filter-menu-facetId"))[0]);
+        expect(await screen.findByRole("menuitem", { name: "test1" })).toBeVisible();
+        expect(screen.getByRole("menuitem", { name: "test2" })).toBeVisible();
+
+        // Toggling a value fires a new search request with the facet applied ...
+        await user.click(screen.getByRole("menuitem", { name: "test1" }));
+        await waitFor(() => {
+            const reqInfo = mockAxios.getReqMatching({
+                url: hostPath + "/api/workspace/searchItems",
+            });
+            expect(reqInfo).toBeTruthy();
+            expect(reqInfo.data.facets).toEqual([{ facetId: "facetId", type: "keyword", keywordIds: ["test1"] }]);
+        });
+
+        // ... and keeps the (multi-select) facet menu open, so several values can be toggled in one go.
+        expect(screen.getByRole("menuitem", { name: "test1" })).toBeVisible();
+        expect(screen.getByRole("menuitem", { name: "test2" })).toBeVisible();
     });
 });
