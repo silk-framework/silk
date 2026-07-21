@@ -88,8 +88,13 @@ describe("Related items", () => {
             const itemActions = findElement(elem, ".eccgui-overviewitem__actions").children;
             expect(itemActions).toHaveLength(2);
 
-            // // Check detail page link
-            const detailPageLink = itemActions[0] as HTMLAnchorElement;
+            // // Check detail page link. The action is an icon button whose tooltip wraps the anchor
+            // in a trigger element, so resolve the anchor within the first action rather than assuming
+            // it is the action element itself.
+            const firstAction = itemActions[0] as HTMLElement;
+            const detailPageLink = (
+                firstAction.tagName === "A" ? firstAction : firstAction.querySelector("a")
+            ) as HTMLAnchorElement;
             expect(detailPageLink.pathname).toBe(workspacePath("/projects/cmem/task/item" + idx));
         });
     };

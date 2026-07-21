@@ -2,11 +2,12 @@ import React, { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { Card, CardContent, CardHeader, CardTitle, Divider } from "@eccenca/gui-elements";
 import DataList from "../Datalist";
-import Spacing from "@eccenca/gui-elements/src/components/Separation/Spacing";
+import { GridTileTitleIcon } from "../GridBoard";
+import Spacing from "@eccenca/gui-elements/src/components/atoms/Separation/Spacing";
 import { IRelatedItem, IRelatedItemsResponse } from "@ducks/shared/typings";
 import { commonSel } from "@ducks/common";
 import { SearchBar } from "../SearchBar/SearchBar";
-import { usePagination } from "@eccenca/gui-elements/src/components/Pagination/Pagination";
+import { usePagination } from "@eccenca/gui-elements/src/components/molecules/Pagination/Pagination";
 import { useTranslation } from "react-i18next";
 import { RelatedItem } from "./RelatedItem";
 import useErrorHandler from "../../../hooks/useErrorHandler";
@@ -106,6 +107,7 @@ export function RelatedItems(props: IProps) {
         <Card data-test-id={"related-items-widget"}>
             <CardHeader>
                 <CardTitle>
+                    <GridTileTitleIcon />
                     <h2>
                         {t("RelatedItems.title", "Related items")}
                         {relatedItemsSizeInfo(data.items.length, data.total)}

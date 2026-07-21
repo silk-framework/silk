@@ -106,7 +106,7 @@ export function Metadata(props: IProps) {
         return removeDirtyState;
     }, []);
 
-    const { description, lastModifiedByUser, createdByUser, created, modified } = data;
+    const { label, description, lastModifiedByUser, createdByUser, created, modified } = data;
 
     useEffect(() => {
         if (projectId) {
@@ -384,23 +384,39 @@ export function Metadata(props: IProps) {
             {!loading && (
                 <div className="flex items-start gap-2">
                     <div className="min-w-0 flex-1">
-                        {!!description && (
-                            <StringPreviewContentBlobToggler
-                                className="di__dataset__metadata-description"
-                                content={description}
-                                fullviewContent={
-                                    <Markdown htmlContentBlockProps={{ linebreakForced: true }}>{description}</Markdown>
-                                }
-                                toggleExtendText={t("common.words.more", "more")}
-                                toggleReduceText={t("common.words.less", "less")}
-                                useOnly={"firstNonEmptyLine"}
-                                renderPreviewAsMarkdown={true}
-                                allowedHtmlElementsInPreview={["a"]}
-                            />
-                        )}
-                        {!!data.tags?.length && (
-                            <div className="mt-1">{utils.DisplayArtefactTags(data.tags, t, goToPage)}</div>
-                        )}
+                        <PropertyValueList>
+                            <PropertyValuePair hasDivider key="label">
+                                <PropertyName>{t("form.field.label", "Label")}</PropertyName>
+                                <PropertyValue>{label}</PropertyValue>
+                            </PropertyValuePair>
+                            {!!description && (
+                                <PropertyValuePair hasSpacing hasDivider key="description">
+                                    <PropertyName>{t("form.field.description", "Description")}</PropertyName>
+                                    <PropertyValue>
+                                        <StringPreviewContentBlobToggler
+                                            className="di__dataset__metadata-description"
+                                            content={description}
+                                            fullviewContent={
+                                                <Markdown htmlContentBlockProps={{ linebreakForced: true }}>
+                                                    {description}
+                                                </Markdown>
+                                            }
+                                            toggleExtendText={t("common.words.more", "more")}
+                                            toggleReduceText={t("common.words.less", "less")}
+                                            useOnly={"firstNonEmptyLine"}
+                                            renderPreviewAsMarkdown={true}
+                                            allowedHtmlElementsInPreview={["a"]}
+                                        />
+                                    </PropertyValue>
+                                </PropertyValuePair>
+                            )}
+                            {!!data.tags?.length && (
+                                <PropertyValuePair hasSpacing hasDivider key="tags">
+                                    <PropertyName>{t("form.field.tags", "Tags")}</PropertyName>
+                                    <PropertyValue>{utils.DisplayArtefactTags(data.tags, t, goToPage)}</PropertyValue>
+                                </PropertyValuePair>
+                            )}
+                        </PropertyValueList>
                         {auditInfo}
                     </div>
                     {!isEditing && !props.readOnly && (

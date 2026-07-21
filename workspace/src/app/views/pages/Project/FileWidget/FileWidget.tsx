@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { workspaceOp, workspaceSel } from "@ducks/workspace";
+import { GridTileTitleIcon } from "../../../shared/GridBoard";
 import {
     Card,
     CardContent,
@@ -8,7 +9,6 @@ import {
     CardOptions,
     CardTitle,
     Divider,
-    ClassNames,
     Highlighter,
     IconButton,
     Spacing,
@@ -26,7 +26,7 @@ import Loading from "../../../shared/Loading";
 import FileUploadModal from "../../../shared/modals/FileUploadModal";
 import { EmptyFileWidget } from "./EmptyFileWidget";
 import { SearchBar } from "../../../shared/SearchBar/SearchBar";
-import { usePagination } from "@eccenca/gui-elements/src/components/Pagination/Pagination";
+import { usePagination } from "@eccenca/gui-elements/src/components/molecules/Pagination/Pagination";
 import { commonSel } from "@ducks/common";
 import { useTranslation, TFunction } from "react-i18next";
 import { FileRemoveModal } from "../../../shared/modals/FileRemoveModal";
@@ -170,7 +170,7 @@ function FileTable({ filesList, headers, projectId, textQuery, onDelete }: IFile
     return (
         <>
             <TableContainer>
-                <Table size="small" columnWidths={["40%", "25%", "25%", "60px"]}>
+                <Table size="small" columnWidths={["40%", "30%", "18%", "12%"]}>
                     <TableHead>
                         <TableRow>
                             {headers.map((property) => (
@@ -211,28 +211,26 @@ function FileTable({ filesList, headers, projectId, textQuery, onDelete }: IFile
                                                   ? file.formattedDate
                                                   : file.formattedSize;
                                         return (
-                                            <TableCell
-                                                alignVertical="middle"
-                                                key={property.key}
-                                                className={
-                                                    property.key === "name" ? ClassNames.Typography.FORCELINEBREAK : ""
-                                                }
-                                            >
-                                                {property.highlighted ? (
-                                                    <Highlighter label={value} searchValue={textQuery} />
-                                                ) : (
-                                                    value
-                                                )}
+                                            <TableCell alignVertical="middle" key={property.key}>
+                                                {/* Truncate long values (e.g. filenames) so the fixed-width
+                                                    columns stay responsive and never overflow the tile/preview;
+                                                    full text stays available via the title tooltip. */}
+                                                <div className="truncate" title={value}>
+                                                    {property.highlighted ? (
+                                                        <Highlighter label={value} searchValue={textQuery} />
+                                                    ) : (
+                                                        value
+                                                    )}
+                                                </div>
                                             </TableCell>
                                         );
                                     })}
                                     <TableCell alignVertical="middle" key={"fileActions"}>
-                                        <div style={{ display: "flex" }}>
+                                        <div style={{ display: "flex", justifyContent: "flex-end" }}>
                                             <IconButton
                                                 data-test-id={"resource-download-btn"}
                                                 name="item-download"
                                                 text={t("common.action.download")}
-                                                small
                                                 href={`${CONTEXT_PATH}/workspace/projects/${projectId}/files?path=${encodeURIComponent(
                                                     fileValue(file),
                                                 )}`}
@@ -243,7 +241,6 @@ function FileTable({ filesList, headers, projectId, textQuery, onDelete }: IFile
                                                 text={t("common.action.DeleteSmth", {
                                                     smth: t("widget.FileWidget.file"),
                                                 })}
-                                                small
                                                 disruptive
                                                 onClick={() => onDelete(file)}
                                             />
@@ -320,10 +317,12 @@ export const FileWidget = () => {
             <Card data-test-id="project-files-widget">
                 <CardHeader>
                     <CardTitle>
-                        <h2>{t("widget.FileWidget.files", "Files")}</h2>
+                        <GridTileTitleIcon />
+                        <h2>{t("widget.FileWidget.title", "Project files")}</h2>
                     </CardTitle>
                     <CardOptions>
                         <IconButton
+                            small
                             name="item-upload"
                             data-test-id="project-files-widget-add-file-btn"
                             text={t("FileUploader.modalTitle", "Upload file")}
@@ -332,7 +331,7 @@ export const FileWidget = () => {
                     </CardOptions>
                 </CardHeader>
                 <Divider />
-                <CardContent style={{ maxHeight: "25vh" }}>
+                <CardContent>
                     {isLoading ? (
                         <Loading description={t("widget.FileWidget.loading", "Loading file list.")} />
                     ) : (

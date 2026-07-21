@@ -36,6 +36,7 @@ import { useTranslation } from "react-i18next";
 import { deleteVariableRequest, getVariableDependencies, getVariables, reorderVariablesRequest } from "./requests";
 import useErrorHandler from "../../../hooks/useErrorHandler";
 import Loading from "../Loading";
+import { GridTileTitleIcon } from "../GridBoard";
 import NewVariableModal from "./modals/NewVariableModal";
 import DeleteModal from "../modals/DeleteModal";
 import { ErrorResponse, FetchError } from "../../../services/fetch/responseInterceptor";
@@ -245,10 +246,12 @@ const VariablesWidget: React.FC<VariableWidgetProps> = ({ projectId, taskId }) =
             <Card>
                 <CardHeader>
                     <CardTitle>
+                        <GridTileTitleIcon />
                         <h2>{t("widget.VariableWidget.title", "Project Variables")}</h2>
                     </CardTitle>
                     <CardOptions>
                         <IconButton
+                            small
                             data-test-id="variable-add"
                             name={"item-add-artefact"}
                             text={t("widget.VariableWidget.actions.add", "Add")}
@@ -259,7 +262,7 @@ const VariablesWidget: React.FC<VariableWidgetProps> = ({ projectId, taskId }) =
                 </CardHeader>
                 {errorNotification}
                 <Divider />
-                <CardContent style={{ maxHeight: "25vh" }}>
+                <CardContent>
                     {evaluationErrors.length > 0 && (
                         <Notification
                             intent="warning"
@@ -397,14 +400,12 @@ const SortableVariableItem: React.FC<SortableVariableItemProps> = ({
                         name="item-edit"
                         data-test-id="variable-edit-btn"
                         onClick={() => onEdit(variable)}
-                        size={"small"}
                     />
                     <IconButton
                         name="item-remove"
                         data-test-id="variable-delete-btn"
                         onClick={() => onDelete(variable)}
                         disruptive
-                        size={"small"}
                     />
                 </ToolbarSection>
             </Toolbar>

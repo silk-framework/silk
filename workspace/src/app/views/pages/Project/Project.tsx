@@ -1,41 +1,22 @@
 import React, { useEffect, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useTranslation } from "react-i18next";
-import {
-    Button,
-    Divider,
-    Grid,
-    GridColumn,
-    GridRow,
-    Notification,
-    Section,
-    SectionHeader,
-    Spacing,
-    TabProps,
-    Tabs,
-    TitleMainsection,
-    WorkspaceContent,
-    WorkspaceMain,
-} from "@eccenca/gui-elements";
+import { WorkspaceContent, WorkspaceMain } from "@eccenca/gui-elements";
 import { workspaceOp, workspaceSel } from "@ducks/workspace";
 import { routerSel } from "@ducks/router";
 import { commonOp, commonSel } from "@ducks/common";
 import Metadata from "../../shared/Metadata";
-import SearchList from "../../shared/SearchList";
 import Loading from "../../shared/Loading";
-import { SearchBar } from "../../shared/SearchBar/SearchBar";
 import { DATA_TYPES } from "../../../constants";
 import { usePageHeader } from "../../shared/PageHeader/PageHeader";
 import { ArtefactManagementOptions } from "../../shared/ActionsMenu/ArtefactManagementOptions";
-import Filterbar from "../Workspace/Filterbar";
 import ConfigurationWidget from "./ProjectNamespacePrefixManagementWidget";
-import { ProjectTaskLoadingErrors } from "./WarningWidget/WarningWidget";
+import { ProjectTaskLoadingErrors } from "./WarningWidget/ProjectTaskLoadingErrors";
 import FileWidget from "./FileWidget";
+import ProjectContents from "./ProjectContents";
 import NotFound from "../NotFound";
-import { diErrorMessage } from "@ducks/error/typings";
 import { previewSlice } from "@ducks/workspace/previewSlice";
 import VariablesWidget from "../../../views/shared/VariablesWidget/VariablesWidget";
-import { useSelectFirstResult } from "../../../hooks/useSelectFirstResult";
 import { AppDispatch } from "store/configureStore";
 import { GlobalTableContext } from "../../../GlobalContextsWrapper";
 import { DeprecatedPluginsWidget } from "./DeprecatedPlugins/DeprecatedPluginsWidget";
@@ -43,6 +24,7 @@ import { pluginRegistry, SUPPORTED_PLUGINS } from "../../plugins/PluginRegistry"
 import { ProjectAccessControlProps } from "../../plugins/plugin.types";
 import useErrorHandler from "../../../hooks/useErrorHandler";
 import { ProjectForbiddenNotification } from "../../shared/ProjectForbiddenNotification";
+import { GridBoard, GridBoardItem, GridTileCard } from "../../shared/GridBoard";
 
 const Project = () => {
     const dispatch = useDispatch<AppDispatch>();
@@ -50,9 +32,7 @@ const Project = () => {
     const { textQuery } = useSelector(workspaceSel.appliedFiltersSelector);
     const currentSearchQuery = useRef<string>("");
     currentSearchQuery.current = textQuery;
-    const sorters = useSelector(workspaceSel.sortersSelector);
     const error = useSelector(workspaceSel.errorSelector);
-    const data = useSelector(workspaceSel.resultsSelector);
     const projectId = useSelector(commonSel.currentProjectIdSelector);
     const qs = useSelector(routerSel.routerSearchSelector);
     const { clearSearchResults } = previewSlice.actions;
@@ -64,15 +44,7 @@ const Project = () => {
         SUPPORTED_PLUGINS.DI_PROJECT_ACL,
     );
 
-    // FIXME: Workaround to prevent search with a text query from another page sharing the same Redux state. Needs refactoring.
-    const [searchInitialized, setSearchInitialized] = React.useState(false);
-    const effectiveSearchQuery = searchInitialized ? textQuery : "";
-    const { onEnter } = useSelectFirstResult();
     const { globalTableSettings } = React.useContext(GlobalTableContext);
-
-    React.useEffect(() => {
-        setSearchInitialized(true);
-    }, []);
 
     React.useEffect(() => {
         // Clear all errors from the queue, since they will only repeat what's being displayed in the notification
@@ -91,7 +63,7 @@ const Project = () => {
     useEffect(() => {
         // Reset the filters, due to redirecting
         dispatch(workspaceOp.resetFilters());
-    }, [location.pathname]);
+    }, [window.location.pathname]);
 
     const tableSettings = globalTableSettings["workbench"];
 
@@ -110,13 +82,11 @@ const Project = () => {
         dispatch(workspaceOp.applyFiltersOp({ textQuery }));
     };
 
-    const { pageHeader, updateActionsMenu } = usePageHeader({
+    const { pageHeader } = usePageHeader({
         type: DATA_TYPES.PROJECT,
         autogenerateBreadcrumbs: true,
         autogeneratePageTitle: true,
     });
-
-    const [selectedTab, setSelectedTab] = React.useState<string>("contents");
 
     if (accessForbidden) {
         return <ProjectForbiddenNotification detail={error.detail} />;
@@ -125,129 +95,89 @@ const Project = () => {
     } else if (!projectId) {
         return <Loading posGlobal description={t("pages.project.loading", "Loading project data")} />;
     }
-    const contentsPanel = (
-        <Section>
-            <SectionHeader>
-                <Grid>
-                    <GridRow>
-                        <GridColumn small verticalAlign="center">
-                            <TitleMainsection>{t("pages.project.content", "Contents")}</TitleMainsection>
-                        </GridColumn>
-                        <GridColumn>
-                            <SearchBar
-                                textQuery={effectiveSearchQuery}
-                                sorters={sorters}
-                                onSearch={handleSearch}
-                                onEnter={onEnter}
-                                disableEnterDuringPendingSearch={true}
-                                globalTableKey={"workbench"}
-                            />
-                        </GridColumn>
-                    </GridRow>
-                </Grid>
-            </SectionHeader>
-            <Divider addSpacing="medium" />
-            <Grid>
-                <GridRow>
-                    <GridColumn small>
-                        <Filterbar />
-                    </GridColumn>
-                    <GridColumn>
-                        {!data.length && error.detail ? (
-                            <Notification
-                                intent={error?.status === 503 ? "warning" : "danger"}
-                                actions={
-                                    <Button
-                                        text={t("common.action.retry", "Retry")}
-                                        onClick={() => {
-                                            window.location.reload();
-                                        }}
-                                    />
-                                }
-                            >
-                                <h3>
-                                    {error?.status !== 503
-                                        ? t("http.error.fetchNotResult", "Error, cannot fetch results.")
-                                        : t("common.messages.temporarilyUnavailableMessage", {
-                                              detailMessage: diErrorMessage(error),
-                                          })}
-                                </h3>
-                                {error?.status !== 503 && <p>{error.detail}</p>}
-                            </Notification>
-                        ) : (
-                            <SearchList />
-                        )}
-                    </GridColumn>
-                </GridRow>
-            </Grid>
-        </Section>
-    );
 
-    const settingsPanel = (
-        <>
-            <ConfigurationWidget />
-            {projectAccessControl && (
-                <>
-                    <Spacing />
-                    <projectAccessControl.Component projectId={projectId} />
-                </>
-            )}
-        </>
-    );
-
-    const projectTabs: TabProps[] = [
+    const items: GridBoardItem[] = [
+        {
+            id: "summary",
+            title: t("common.words.summary", "Summary"),
+            icon: "item-info",
+            defaultLayout: { x: 0, y: 0, w: 8, h: 3 },
+            element: (
+                <GridTileCard title={t("common.words.summary", "Summary")}>
+                    <Metadata />
+                </GridTileCard>
+            ),
+        },
+        {
+            id: "actions",
+            title: t("common.words.actions", "Actions"),
+            icon: "item-moremenu",
+            defaultLayout: { x: 8, y: 0, w: 4, h: 5 },
+            element: <ArtefactManagementOptions projectId={projectId} itemType={DATA_TYPES.PROJECT} />,
+        },
         {
             id: "contents",
             title: t("pages.project.content", "Contents"),
-            "data-test-id": "project-tab-contents",
-            panel: contentsPanel,
+            icon: "item-viewdetails",
+            defaultLayout: { x: 0, y: 3, w: 8, h: 14 },
+            element: <ProjectContents projectId={projectId} />,
         },
         {
-            id: "files",
-            title: t("widget.FileWidget.files", "Files"),
-            "data-test-id": "project-tab-files",
-            panel: <FileWidget />,
+            // Error log — collapses out of the grid automatically when there are no warnings.
+            id: "warnings",
+            title: t("widget.WarningWidget.title", "Error log"),
+            icon: "artefact-errorlog",
+            defaultLayout: { x: 8, y: 0, w: 4, h: 5 },
+            element: (
+                <ProjectTaskLoadingErrors refreshProjectPage={() => handleSearch(currentSearchQuery.current)} />
+            ),
+        },
+        {
+            id: "configuration",
+            title: t("widget.ConfigWidget.title", "Configuration"),
+            icon: "item-settings",
+            defaultLayout: { x: 8, y: 5, w: 4, h: 5 },
+            element: <ConfigurationWidget />,
         },
         {
             id: "variables",
-            title: t("widget.VariableWidget.title", "Project variables"),
-            "data-test-id": "project-tab-variables",
-            panel: <VariablesWidget projectId={projectId} />,
+            title: t("widget.VariableWidget.title", "Project Variables"),
+            icon: "data-string",
+            defaultLayout: { x: 8, y: 10, w: 4, h: 5 },
+            element: <VariablesWidget projectId={projectId} />,
         },
         {
-            id: "settings",
-            title: t("common.words.settings", "Settings"),
-            "data-test-id": "project-tab-settings",
-            panel: settingsPanel,
+            id: "files",
+            title: t("widget.FileWidget.title", "Project files"),
+            icon: "artefact-file",
+            defaultLayout: { x: 8, y: 20, w: 4, h: 5 },
+            element: <FileWidget />,
+        },
+        {
+            // Collapses out of the grid automatically when there are no deprecated plugins.
+            id: "deprecated",
+            title: t("widget.DeprecatedPluginsWidget.title", "Deprecated plugins"),
+            icon: "artefact-deprecated",
+            defaultLayout: { x: 8, y: 25, w: 4, h: 5 },
+            element: <DeprecatedPluginsWidget projectId={projectId} />,
         },
     ];
+
+    if (projectAccessControl) {
+        items.push({
+            id: "accessControl",
+            title: t("widget.AccessControlWidget.title", "Access control"),
+            icon: "module-accesscontrol",
+            defaultLayout: { x: 8, y: 15, w: 4, h: 5 },
+            element: <projectAccessControl.Component projectId={projectId} />,
+        });
+    }
 
     return (
         <WorkspaceContent className="eccapp-di__project">
             {pageHeader}
-            <ArtefactManagementOptions
-                projectId={projectId}
-                itemType={DATA_TYPES.PROJECT}
-                updateActionsMenu={updateActionsMenu}
-            />
             <WorkspaceMain>
-                <Section>
-                    <Metadata />
-                    <Spacing />
-                </Section>
-                <Section>
-                    <ProjectTaskLoadingErrors refreshProjectPage={() => handleSearch(currentSearchQuery.current)} />
-                    <DeprecatedPluginsWidget projectId={projectId} />
-                </Section>
-                <Section>
-                    <Tabs
-                        id="project-main-tabs"
-                        tabs={projectTabs}
-                        selectedTabId={selectedTab}
-                        onChange={(newTabId) => setSelectedTab(String(newTabId))}
-                        renderActiveTabPanelOnly
-                    />
-                </Section>
+                <GridBoard items={items} storageKey="project" />
             </WorkspaceMain>
         </WorkspaceContent>
     );

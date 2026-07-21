@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardOptions, CardTitle, Divider, IconButton } from "@eccenca/gui-elements";
 import { useDispatch, useSelector } from "react-redux";
+import { GridTileTitleIcon } from "../GridBoard";
 import { commonSel } from "@ducks/common";
 import { requestTaskData } from "@ducks/shared/requests";
 import { requestArtefactProperties } from "@ducks/common/requests";
@@ -17,7 +18,10 @@ import useHotKey from "../HotKeyHandler/HotKeyHandler";
 interface IProps {
     projectId: string;
     taskId: string;
-    /** Is called with the task data as soon as it is available. */
+    /** Is called with the task's plugin details as soon as they are available. Since this widget
+     * is always mounted (as a grid board tile) on the task detail pages, pages use this callback
+     * for their main-content decisions (e.g. preview type, header icon) instead of fetching the
+     * task data a second time themselves. */
     pluginDataCallback?: (task: IPluginDetails) => any;
 }
 
@@ -95,6 +99,7 @@ export function TaskConfig(props: IProps) {
         <Card data-test-id={"taskConfigWidget"}>
             <CardHeader>
                 <CardTitle>
+                    <GridTileTitleIcon />
                     <h2>
                         {t("widget.TaskConfigWidget.title", "Configuration")}
                         {titlePostfix}
@@ -102,6 +107,7 @@ export function TaskConfig(props: IProps) {
                 </CardTitle>
                 <CardOptions>
                     <IconButton
+                        small
                         data-test-id="task-config-edit-btn"
                         name={"item-edit"}
                         text={t("common.action.configure", "Configure")}
@@ -110,7 +116,7 @@ export function TaskConfig(props: IProps) {
                 </CardOptions>
             </CardHeader>
             <Divider />
-            <CardContent style={{ maxHeight: "25vh" }}>
+            <CardContent>
                 {loading || configModalLoading || !labelledTaskData ? (
                     <Loading description={t("widget.TaskConfigWidget.loading", "Loading update dialog...")} />
                 ) : (

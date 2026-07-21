@@ -8,9 +8,6 @@ import {
     OverviewItemActions,
     OverviewItemDescription,
     OverviewItemLine,
-    Spacing,
-    TagList,
-    Tooltip,
     Tag,
 } from "@eccenca/gui-elements";
 import { getItemLinkIcons } from "../../../utils/getItemLinkIcons";
@@ -87,7 +84,7 @@ export function RelatedItem({ relatedItem, textQuery }: IProps) {
     if (relatedItem.readOnly) {
         itemTags.push(
             <Tag key={"readOnlyTag"}>
-                <Icon name="state-locked" tooltipText={t("common.tooltips.dataset.readOnly")} />
+                <Icon name="state-locked" small tooltipText={t("common.tooltips.dataset.readOnly")} />
             </Tag>,
         );
     }
@@ -96,10 +93,16 @@ export function RelatedItem({ relatedItem, textQuery }: IProps) {
             <Highlighter label={relatedItem.pluginLabel} searchValue={textQuery} />
         </ArtefactTag>,
     );
+    const allTags = [
+        ...itemTags,
+        ...projectTagsRenderer({ tags: relatedItem.tags, query: textQuery }),
+        ...searchTagsRenderer({ searchTags: relatedItem.searchTags, searchText: textQuery }),
+    ];
     return (
-        <OverviewItem key={relatedItem.id}>
+        <OverviewItem key={relatedItem.id} className="items-center">
             <OverviewItemDescription>
-                <OverviewItemLine small>
+                {/* Title line */}
+                <OverviewItemLine className="font-medium">
                     <ResourceLink
                         url={!!relatedItem.itemLinks.length ? relatedItem.itemLinks[0].path : false}
                         handlerResourcePageLoader={
@@ -109,24 +112,17 @@ export function RelatedItem({ relatedItem, textQuery }: IProps) {
                         <Highlighter label={relatedItem.label} searchValue={textQuery} />
                     </ResourceLink>
                 </OverviewItemLine>
-                <OverviewItemLine small>
-                    <TagList>
-                        {itemTags}
-                        {projectTagsRenderer({
-                            tags: relatedItem.tags,
-                            query: textQuery,
-                        })}
-                        {searchTagsRenderer({
-                            searchTags: relatedItem.searchTags,
-                            searchText: textQuery,
-                        })}
-                    </TagList>
-                </OverviewItemLine>
+                {/* Badge row: explicit flex/gap so spacing is guaranteed regardless of TagList internals.
+                    `mt-2` separates the badges from the title, `gap-2` spaces the badges from each other. */}
+                {allTags.length > 0 && <div className="mt-2 flex flex-wrap items-center gap-2">{allTags}</div>}
             </OverviewItemDescription>
             <OverviewItemActions>
                 {!!relatedItem.itemLinks.length && (
+                    // `item-launch` (open/launch glyph) fits "open the details page" better than the
+                    // ambiguous eye; `text` is surfaced as the hover tooltip. `href` keeps it a real
+                    // anchor so ctrl/cmd-click opens the page in a new tab.
                     <IconButton
-                        name="item-viewdetails"
+                        name="item-launch"
                         text={t("common.action.showDetails", "Show details")}
                         onClick={(e) => goToDetailsPage(relatedItem, e)}
                         href={relatedItem.itemLinks[0].path}

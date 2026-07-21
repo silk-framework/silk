@@ -1,4 +1,5 @@
 import { Loading } from "../../../shared/Loading/Loading";
+import { GridTileTitleIcon } from "../../../shared/GridBoard";
 import React, { useEffect } from "react";
 import {
     Card,
@@ -189,10 +190,12 @@ export const LinkageRuleConfig = ({ linkingTaskId, projectId }: IProps) => {
         <Card data-test-id={"linkageRuleConfigWidget"}>
             <CardHeader>
                 <CardTitle>
-                    <h3>{t("widget.LinkingRuleConfigWidget.title")}</h3>
+                    <GridTileTitleIcon />
+                    <h2>{t("widget.LinkingRuleConfigWidget.title")}</h2>
                 </CardTitle>
                 <CardOptions>
                     <IconButton
+                        small
                         data-test-id="linkage-rule-config-edit-btn"
                         name={"item-edit"}
                         text={t("common.action.configure", "Configure")}
@@ -201,7 +204,7 @@ export const LinkageRuleConfig = ({ linkingTaskId, projectId }: IProps) => {
                 </CardOptions>
             </CardHeader>
             <Divider />
-            <CardContent style={{ maxHeight: "25vh" }}>
+            <CardContent>
                 {loading || !parameters ? (
                     <Loading />
                 ) : (

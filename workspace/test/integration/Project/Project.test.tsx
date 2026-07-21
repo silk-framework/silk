@@ -1,5 +1,5 @@
 import React from "react";
-import { act, fireEvent, RenderResult, waitFor } from "@testing-library/react";
+import { act, RenderResult, waitFor } from "@testing-library/react";
 import mockAxios from "../../__mocks__/axios";
 import {
     apiUrl,
@@ -98,16 +98,6 @@ describe("Project page", () => {
         );
     };
 
-    /** Activates a tab of the project page. Radix tabs select on mouse down. */
-    const openTab = (tabTestId: string) => {
-        const tabTrigger = findElement(projectPageWrapper, byTestId(tabTestId));
-        fireEvent.mouseDown(tabTrigger);
-        fireEvent.click(tabTrigger);
-    };
-
-    /** Activates the "Files" tab, so the (lazily rendered) file widget gets mounted. */
-    const openFilesTab = () => openTab("project-tab-files");
-
     beforeEach(() => {
         history = createBrowserHistory();
         history.location.pathname = workspacePath("/projects/" + testProjectId);
@@ -129,8 +119,6 @@ describe("Project page", () => {
     });
 
     it("should get prefixes for configuration widget", () => {
-        // The configuration widget is only mounted (and thus fetches) when the "Settings" tab gets activated.
-        openTab("project-tab-settings");
         checkRequestMade(apiUrl("/workspace/projects/" + testProjectId + "/prefixes"));
     });
 
@@ -188,18 +176,14 @@ describe("Project page", () => {
     });
 
     it("file widget is displayed", () => {
-        openFilesTab();
         expect(findAllDOMElements(projectPageWrapper, byTestId(`project-files-widget`))).toHaveLength(1);
     });
 
-    // The file widget fetches the file resources when it is mounted, i.e. only after the "Files" tab
-    // has been activated. Thus this must be called after openFilesTab().
     const setFilesForWidget = (files) => {
         mockAxiosResponse(legacyApiUrl("/workspace/projects/" + testProjectId + "/resources"), { data: files });
     };
 
     it("file search bar is shown when there are files", async () => {
-        openFilesTab();
         setFilesForWidget(reducerState.workspace.widgets.files.results);
         await waitFor(() => {
             expect(findAllDOMElements(projectPageWrapper, byTestId(`file-search-bar`))).toHaveLength(1);
@@ -207,7 +191,6 @@ describe("Project page", () => {
     });
 
     it("file search bar is not shown but upload widget when there are no files", async () => {
-        openFilesTab();
         setFilesForWidget([]);
         await waitFor(() => {
             expect(findAllDOMElements(projectPageWrapper, byTestId(`file-search-bar`))).toHaveLength(0);
@@ -216,7 +199,6 @@ describe("Project page", () => {
     });
 
     it("file search bar never disappears when no results are shown", async () => {
-        openFilesTab();
         setFilesForWidget(reducerState.workspace.widgets.files.results);
         await waitFor(() => {
             const fileSearchInput = findElement(projectPageWrapper, byTestId(`file-search-bar`)) as HTMLInputElement;
@@ -231,7 +213,6 @@ describe("Project page", () => {
     });
 
     it("should have a download link for a file resource", async () => {
-        openFilesTab();
         setFilesForWidget(reducerState.workspace.widgets.files.results);
         await waitFor(() => {
             expect(projectPageWrapper.container.innerHTML).toContain(expectedFile);
@@ -247,7 +228,6 @@ describe("Project page", () => {
             { name: "beta.csv", size: 10, modified: "2020-10-09T00:00:00Z" },
             { name: "gamma.csv", size: 20, modified: "2020-10-10T00:00:00Z" },
         ];
-        openFilesTab();
         setFilesForWidget(files);
 
         const fileNamesInTable = () =>

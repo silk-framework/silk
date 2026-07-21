@@ -4,6 +4,7 @@ import ReactDOM from "react-dom";
 import { Helmet } from "react-helmet";
 import {
     BreadcrumbList,
+    Icon,
     OverviewItem,
     OverviewItemActions,
     OverviewItemDepiction,
@@ -77,6 +78,7 @@ function PageHeaderPortal({ children }: any) {
 function PageHeaderContent({
     type,
     pluginId,
+    alternateDepiction,
     breadcrumbs,
     breadcrumbsExtensions,
     pageTitle,
@@ -130,9 +132,13 @@ function PageHeaderContent({
         <>
             <Helmet title={renderWindowTitle()} />
             <OverviewItem>
-                {!!type && (
+                {(!!type || !!alternateDepiction) && (
                     <OverviewItemDepiction data-test-id="page-header-depiction">
-                        <ItemDepiction itemType={type} pluginId={pluginId} size={{ small: true }} />
+                        {!!type ? (
+                            <ItemDepiction itemType={type} pluginId={pluginId} size={{ small: true }} />
+                        ) : (
+                            <Icon name={[alternateDepiction!]} small />
+                        )}
                     </OverviewItemDepiction>
                 )}
                 <OverviewItemDescription>

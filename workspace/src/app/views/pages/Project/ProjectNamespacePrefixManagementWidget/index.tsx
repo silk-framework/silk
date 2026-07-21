@@ -1,3 +1,3 @@
-import { ProjectNamespacePrefixManagementWidget } from "./ConfigWidget";
+import { ProjectNamespacePrefixManagementWidget } from "./ProjectNamespacePrefixManagementWidget";
 
 export default ProjectNamespacePrefixManagementWidget;

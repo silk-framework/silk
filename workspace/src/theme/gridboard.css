@@ -1,0 +1,41 @@
+/*
+ * GridBoard tile fill.
+ *
+ * A self-carding widget renders its own `.eccgui-card`, which we need to stretch to fill the
+ * resizable tile it sits in. This can't be done with Tailwind utilities: the card is a child we
+ * reach only via a selector, several tile cards come from plugins whose markup we cannot edit, and
+ * the equivalent `[&>.eccgui-card]` arbitrary variant did not apply in this pipeline. Hence a flat
+ * rule here, keyed on the `eccapp-gridboard-tile` class GridBoard puts on each tile's content
+ * wrapper (itself a flex column that grows to fill the tile).
+ *
+ * The card is already `display:flex; flex-direction:column`, so growing its `__content` fills the
+ * card and scrolls internally while the header/divider stay pinned. Sections a card marks
+ * `noFlexHeight` (e.g. a tab bar or a load-more toolbar) opt out of growing on purpose, so we must
+ * NOT stretch them — otherwise such a section grabs an equal share of the card height and opens a
+ * large empty gap (this is what pushed the DataPreview table far below its Table/Raw tab bar).
+ *
+ * The gui-elements `<Card>` wraps its `.eccgui-card` in a `<section>` (unless `isOnlyLayout`), so the
+ * card is usually a grandchild — `> section > .eccgui-card` — not a direct child. That `<section>`
+ * is otherwise unstyled and collapses to its content height, which is why Configuration / Project
+ * Variables / Files tiles did not fill. We make the section a growing flex column so the card inside
+ * it can stretch, and keep the direct-child selectors too for cards rendered with `isOnlyLayout`.
+ */
+.eccapp-gridboard-tile > section {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 0%;
+    min-height: 0;
+}
+
+.eccapp-gridboard-tile > section > .eccgui-card,
+.eccapp-gridboard-tile > .eccgui-card {
+    flex: 1 1 0%;
+    min-height: 0;
+}
+
+.eccapp-gridboard-tile > section > .eccgui-card > .eccgui-card__content:not(.eccgui-card__content--noflexheight),
+.eccapp-gridboard-tile > .eccgui-card > .eccgui-card__content:not(.eccgui-card__content--noflexheight) {
+    flex: 1 1 0%;
+    min-height: 0;
+    overflow: auto;
+}

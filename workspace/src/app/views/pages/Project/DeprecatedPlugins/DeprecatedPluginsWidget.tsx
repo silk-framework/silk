@@ -1,5 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle, Divider } from "@eccenca/gui-elements";
 import useErrorHandler from "../../../../hooks/useErrorHandler";
+import { GridTileTitleIcon } from "../../../shared/GridBoard";
 import React, { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { DeprecatedPluginsModel } from "../../DeprecatedPlugins";
@@ -60,8 +61,9 @@ export function DeprecatedPluginsWidget({ projectId, taskId }: { projectId?: str
         <Card>
             <CardHeader>
                 <CardTitle>
+                    <GridTileTitleIcon />
                     <h2>
-                        {t("pages.deprecatedPlugins.title")} ({deprecatedPlugins.length})
+                        {t("widget.DeprecatedPluginsWidget.title", "Deprecated plugins")} ({deprecatedPlugins.length})
                     </h2>
                 </CardTitle>
             </CardHeader>

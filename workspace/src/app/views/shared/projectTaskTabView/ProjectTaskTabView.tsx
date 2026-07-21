@@ -5,12 +5,12 @@ import { useTranslation } from "react-i18next";
 import locationParser from "query-string";
 import { CLASSPREFIX as eccgui } from "@eccenca/gui-elements/src/configuration/constants";
 import {
-    Button,
     Card,
     CardContent,
     CardHeader,
     CardOptions,
     CardTitle,
+    cn,
     Divider,
     Grid,
     GridRow,
@@ -26,6 +26,7 @@ import { commonSel } from "@ducks/common";
 import Loading from "../Loading";
 import { SERVE_PATH } from "../../../constants/path";
 import { IProjectTaskView, IViewActions, pluginRegistry } from "../../plugins/PluginRegistry";
+import { GridTileTitleIcon } from "../GridBoard";
 import PromptModal from "./PromptModal";
 import ErrorBoundary from "../../../ErrorBoundary";
 import { ProjectTaskTabViewContext } from "./ProjectTaskTabViewContext";
@@ -123,6 +124,10 @@ export function ProjectTaskTabView({
     const [unsavedChanges, setUnsavedChanges] = React.useState<boolean>(false);
     const [blockedTab, setBlockedTab] = React.useState<IItemLink | string | undefined>(undefined);
     const [blockedClosingModal, setBlockedClosingModal] = React.useState<boolean>(false);
+    // True only for the synchronous moment the URL→tab sync effect restores the URL after the
+    // user declined a dirty tab switch. That restore is not a real navigation, so it must pass
+    // history.block without triggering a second unsaved-changes prompt.
+    const restoringDeclinedUrlRef = React.useRef(false);
     const viewsAndItemLink: Partial<IProjectTaskView & IItemLink>[] = [...(taskViews ?? []), ...itemLinks];
     const isTaskView = (viewOrItemLink: Partial<IProjectTaskView & IItemLink>) => !viewOrItemLink.path;
     const itemLinkActive = selectedTab != null && typeof selectedTab !== "string";
@@ -196,12 +201,9 @@ export function ProjectTaskTabView({
         }
     }, [projectId, taskId, selectedTask]);
 
-    // flag if the widget is shown as fullscreen modal
-    const [displayFullscreen, setDisplayFullscreen] = useState(!!handlerRemoveModal || startFullscreen);
-    // handler for toggling fullscreen mode
-    const toggleFullscreen = () => {
-        setDisplayFullscreen(!displayFullscreen);
-    };
+    // flag if the widget is shown as fullscreen modal (driven by the modal/startFullscreen
+    // embedding; the inline maximize toggle was removed)
+    const [displayFullscreen] = useState(!!handlerRemoveModal || startFullscreen);
 
     // Keep the selected tab in sync with the URL while mounted: tab clicks rewrite the URL to the
     // tab's bookmark (history.replace above), but the reverse direction — a `history.push` to a
@@ -214,17 +216,42 @@ export function ProjectTaskTabView({
         }
         const bookmark = getBookmark();
         const selectedTabId = (selectedTab as IItemLink)?.id ?? selectedTab;
+        // history.block only prompts for navigations WITHOUT a search string, so e.g. browser
+        // back/forward to a sibling tab's deep link (…/transformEvaluation?ruleId=x) arrives
+        // here unprompted while the embedded view may still hold unsaved changes — applyTab
+        // would silently discard them. Complement the block condition (non-empty search ⇒
+        // block stayed silent) and ask with the same prompt. On decline, restore the URL to
+        // the selected tab and keep the unsaved-changes flag untouched.
+        const applyTabFromUrl = (tabItem: IItemLink | string) => {
+            if (
+                unsavedChanges &&
+                typeof selectedTabId === "string" &&
+                location.search.length > 0 &&
+                !window.confirm(t("Metadata.unsavedMetaDataWarning") as string)
+            ) {
+                restoringDeclinedUrlRef.current = true;
+                try {
+                    // Re-runs this effect, which then no-ops: the bookmark matches the (kept)
+                    // selected tab again.
+                    history.replace(calculateBookmark(selectedTabId, taskId, viewsAndItemLink));
+                } finally {
+                    restoringDeclinedUrlRef.current = false;
+                }
+                return;
+            }
+            applyTab(tabItem);
+        };
         const bookmarkedTab = viewsAndItemLink.find((tabItem) => tabItem.id === bookmark);
         if (bookmarkedTab) {
             if (bookmarkedTab.id !== selectedTabId) {
-                applyTab(bookmarkedTab.id ?? (bookmarkedTab as IItemLink));
+                applyTabFromUrl(bookmarkedTab.id ?? (bookmarkedTab as IItemLink));
             }
         } else if (bookmark === taskId && selectedTabId != null) {
             // Un-bookmarked base URL (e.g. browser back from a bookmarked tab): return to the
             // default tab. Initial loads are unaffected — selection is still empty then.
             const defaultTab = viewsAndItemLink[0];
             if (defaultTab && defaultTab.id !== selectedTabId) {
-                applyTab(defaultTab.id ?? (defaultTab as IItemLink));
+                applyTabFromUrl(defaultTab.id ?? (defaultTab as IItemLink));
             }
         }
     }, [location.pathname]);
@@ -270,8 +297,9 @@ export function ProjectTaskTabView({
 
     // Apply a tab selection WITHOUT touching the URL or the unsaved-changes modal. Used by the
     // URL→tab sync effect: when it runs, the URL already points at the target tab and any
-    // unsaved-changes confirmation has already happened via the history.block native prompt —
-    // re-running changeTab there opened a second prompt and re-wrote an already-correct URL.
+    // unsaved-changes confirmation has already happened — via the history.block native prompt
+    // for search-less navigations, or via applyTabFromUrl's own prompt otherwise. Re-running
+    // changeTab there opened a second prompt and re-wrote an already-correct URL.
     const applyTab = (tabItem: IItemLink | string) => {
         const tabRoute = getTabRoute(tabItem);
         setUnsavedChanges(false);
@@ -307,7 +335,9 @@ export function ProjectTaskTabView({
             // Only real navigation (pathname change) counts as leaving the view. Same-pathname
             // transitions are in-view query-param updates — including CLEARING the params (e.g.
             // the mapping creator deselecting a node with an autosave still pending), which used
-            // to trip this prompt because the resulting search string is empty.
+            // to trip this prompt because the resulting search string is empty. The URL-restore
+            // after a declined tab switch (URL→tab sync effect) is not a navigation either.
+            !restoringDeclinedUrlRef.current &&
             nextLocation.pathname !== history.location.pathname &&
             !nextLocation.search.length &&
             unsavedChanges &&
@@ -459,53 +489,86 @@ export function ProjectTaskTabView({
                 >
                     <CardHeader>
                         <CardTitle>
+                            <GridTileTitleIcon />
                             <h2>
                                 {tLabel(activeTab?.label ?? "")} {suffix}
                             </h2>
                         </CardTitle>
                         <CardOptions>
-                            {viewsAndItemLink.length > 1 &&
-                                viewsAndItemLink.map((tabItem) => {
-                                    const tabRoute = getTabRoute(tabItem.id ?? (tabItem as IItemLink));
-                                    const openInNewTab = tabItem.openInNewTab;
-                                    return (
-                                        <Button
-                                            data-test-id={"taskView-" + (tabItem.id ?? `-iframe-${tabNr++}`)}
-                                            key={tabItem.id ?? tabItem.path}
-                                            onClick={(e) => {
-                                                if (!openInNewTab) {
-                                                    e.preventDefault();
-                                                    changeTab(tabItem.id ?? (tabItem as IItemLink));
+                            {viewsAndItemLink.length > 1 && (
+                                // Shadcn-styled segmented tab bar. Presentational only — the anchors keep
+                                // the existing bookmark-href navigation, unsaved-changes prompt via
+                                // changeTab, open-in-new-tab item links and data-test-ids. The active tab
+                                // is expressed with `data-active` styling instead of the old disabled grey.
+                                <div
+                                    role="tablist"
+                                    aria-label={tLabel(title ?? activeTab?.label ?? "")}
+                                    className={cn(
+                                        "inline-flex h-8 w-fit items-center justify-center rounded-lg",
+                                        "bg-muted p-[3px] text-muted-foreground",
+                                    )}
+                                >
+                                    {viewsAndItemLink.map((tabItem) => {
+                                        const tabRoute = getTabRoute(tabItem.id ?? (tabItem as IItemLink));
+                                        const openInNewTab = tabItem.openInNewTab;
+                                        const isActive =
+                                            !!selectedTab &&
+                                            (tabItem.path ?? tabItem.id) ===
+                                                ((selectedTab as any)?.path ?? selectedTab);
+                                        return (
+                                            <a
+                                                role="tab"
+                                                aria-selected={isActive}
+                                                data-test-id={"taskView-" + (tabItem.id ?? `-iframe-${tabNr++}`)}
+                                                key={tabItem.id ?? tabItem.path}
+                                                onClick={(e) => {
+                                                    if (isActive) {
+                                                        e.preventDefault();
+                                                        return;
+                                                    }
+                                                    if (!openInNewTab) {
+                                                        e.preventDefault();
+                                                        changeTab(tabItem.id ?? (tabItem as IItemLink));
+                                                    }
+                                                }}
+                                                title={openInNewTab ? t("common.action.openInNewTabTooltip") : ""}
+                                                href={
+                                                    openInNewTab
+                                                        ? tabItem.path
+                                                        : calculateBookmark(
+                                                              tabRoute?.id ?? "",
+                                                              taskId,
+                                                              viewsAndItemLink,
+                                                          )
                                                 }
-                                            }}
-                                            title={openInNewTab ? t("common.action.openInNewTabTooltip") : ""}
-                                            href={
-                                                openInNewTab
-                                                    ? tabItem.path
-                                                    : calculateBookmark(tabRoute?.id ?? "", taskId, viewsAndItemLink)
-                                            }
-                                            target={openInNewTab ? "_blank" : undefined}
-                                            variant={"minimal"}
-                                            disabled={
-                                                !!selectedTab &&
-                                                (tabItem.path ?? tabItem.id) ===
-                                                    ((selectedTab as any)?.path ?? selectedTab)
-                                            }
-                                        >
-                                            {tLabel(tabItem.label as string)}
-                                        </Button>
-                                    );
-                                })}
-                            {!!handlerRemoveModal ? (
+                                                target={openInNewTab ? "_blank" : undefined}
+                                                rel="noopener noreferrer"
+                                                className={cn(
+                                                    "relative inline-flex h-[calc(100%-1px)] items-center justify-center gap-1.5",
+                                                    "cursor-pointer rounded-md border border-transparent px-1.5 py-0.5",
+                                                    "text-sm font-medium whitespace-nowrap no-underline transition-all",
+                                                    "hover:no-underline focus-visible:outline-1 focus-visible:outline-ring",
+                                                    "[&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
+                                                    // `--background` equals `--muted` in this theme, so an active
+                                                    // `bg-background` was invisible against the muted tab bar. Use the
+                                                    // card surface (white in light, a lighter slate in dark) + shadow so
+                                                    // the selected tab reads as a distinct raised pill.
+                                                    isActive
+                                                        ? "bg-card text-foreground shadow-sm dark:border-input dark:bg-input"
+                                                        : "text-muted-foreground hover:text-foreground",
+                                                )}
+                                            >
+                                                {tLabel(tabItem.label as string)}
+                                            </a>
+                                        );
+                                    })}
+                                </div>
+                            )}
+                            {!!handlerRemoveModal && (
                                 <IconButton
                                     data-test-id={"close-project-tab-view"}
                                     name="navigation-close"
                                     onClick={() => handlerRemoveModalWrapper()}
-                                />
-                            ) : (
-                                <IconButton
-                                    name={displayFullscreen ? "toggler-minimize" : "toggler-maximize"}
-                                    onClick={toggleFullscreen}
                                 />
                             )}
                         </CardOptions>

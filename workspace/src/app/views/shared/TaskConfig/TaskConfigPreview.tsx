@@ -168,7 +168,6 @@ export function TaskConfigPreview({ taskData, taskDescription }: IProps) {
                                         data-test-id={"resource-download-btn"}
                                         name="item-download"
                                         text={t("common.action.download")}
-                                        small
                                         href={`${CONTEXT_PATH}/workspace/projects/${
                                             taskData.project
                                         }/files?path=${encodeURIComponent(value)}`}

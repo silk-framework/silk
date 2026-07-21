@@ -56,14 +56,15 @@ describe("Task page", () => {
 
     it("should request meta data and task config", async () => {
         checkRequestMade(taskMetaDataExpandedURL);
-        // Related items moved to a header popover (RelatedItemsMenu) that renders via a portal
-        // not present in tests; the request is covered by RelatedItems.test.tsx.
+        checkRequestMade(apiUrl(`/workspace/projects/${projectId}/tasks/${taskId}/relatedItems`));
         checkRequestMade(taskDataUrl, "GET", { withLabels: true });
         mockAxios.mockResponseFor(
             taskDataUrl,
             mockedAxiosResponse({ data: requestTaskDataTestResponse({ pluginId: pluginId }) }),
         );
         await waitFor(() => checkRequestMade(pluginUrl));
+        // The task data must only be requested once (by the TaskConfig widget).
+        expect(mockAxios.getReqByUrl(taskDataUrl)).toBeUndefined();
     });
 
     it("should display the task config with labels", async () => {
@@ -88,28 +89,31 @@ describe("Task page", () => {
             .parameter();
         taskParams.push({ id: "notShown1", value: "not shown" });
         taskParams.push({ id: "notShown2", value: "not shown" });
-        // Get task data. The task data is requested twice: by the page's plugin details hook
-        // and by the TaskConfig widget that now renders directly in the page main.
-        const taskDataResponse = () =>
-            mockedAxiosResponse({ data: requestTaskDataTestResponse({ pluginId: pluginId, parameters: taskParams }) });
-        mockAxios.mockResponseFor(taskDataUrl, taskDataResponse());
-        mockAxios.mockResponseFor(taskDataUrl, taskDataResponse(), true);
+        // Get task data. It is requested exactly once, by the TaskConfig widget, which shares
+        // the plugin details with the page via its pluginDataCallback.
+        mockAxios.mockResponseFor(
+            taskDataUrl,
+            mockedAxiosResponse({ data: requestTaskDataTestResponse({ pluginId: pluginId, parameters: taskParams }) }),
+        );
+        // Get plugin description. It is requested exactly once.
         await waitFor(() => checkRequestMade(pluginUrl));
-        // Get plugin description. Both task data consumers may request the plugin description
-        // before the shared redux cache is filled, so answer (silently) until the widget title shows up.
-        const pluginResponse = () =>
+        mockAxios.mockResponseFor(
+            pluginUrl,
             mockedAxiosResponse({
                 data: requestArtefactPropertiesTestResponse({
                     pluginLabel: pluginLabel,
                     properties: testParameterDescriptions,
                 }),
-            });
+            }),
+        );
         // Check widget title
         await waitFor(() => {
-            mockAxios.mockResponseFor(pluginUrl, pluginResponse(), true);
             const taskConfig = findElement(taskPageWrapper, byTestId("taskConfigWidget"));
             expect(findElement(taskConfig, "header h2").textContent).toContain(pluginLabel);
         });
+        // No further requests must have been made to either endpoint.
+        expect(mockAxios.getReqByUrl(taskDataUrl)).toBeUndefined();
+        expect(mockAxios.getReqByUrl(pluginUrl)).toBeUndefined();
 
         const taskConfig = findElement(taskPageWrapper, byTestId("taskConfigWidget"));
         const propertyLabels = findAllDOMElements(taskConfig, ".eccgui-card__content .eccgui-label").map(
@@ -135,11 +139,14 @@ describe("Task page", () => {
         mockAxios.mockResponseFor(taskMetaDataExpandedURL, mockedAxiosResponse({ data: taskMetaData }));
         await waitFor(() => {
             const metaData = findElement(taskPageWrapper, byTestId("metaDataWidget"));
-            // The slim metadata block shows description and audit info; the label is only shown in the page header.
-            expect(metaData.textContent).toContain(taskDescription);
-            expect(metaData.textContent).not.toContain(taskLabel);
-            expect(metaData.textContent).toContain("Created < 1 minute ago by unknown user.");
-            expect(metaData.textContent).toContain("Last modified < 1 minute ago by unknown user.");
+            // The summary shows the label and description as property rows plus a separate audit info line.
+            const propertyValues = findAllDOMElements(metaData, ".eccgui-propertyvalue__value").map(
+                (elem) => elem.textContent,
+            );
+            expect(propertyValues).toStrictEqual([taskLabel, taskDescription]);
+            const auditInfo = findElement(metaData, byTestId("metadata-audit-info"));
+            expect(auditInfo.textContent).toContain("Created < 1 minute ago by unknown user.");
+            expect(auditInfo.textContent).toContain("Last modified < 1 minute ago by unknown user.");
         });
     });
 });

@@ -18,6 +18,7 @@ import {
     WhiteSpaceContainer,
 } from "@eccenca/gui-elements";
 import { Definitions as IntentTypes } from "@eccenca/gui-elements/src/common/Intent";
+import { GridTileTitleIcon } from "../GridBoard";
 import {
     SilkActivityControlAction,
     SilkActivityControlLayoutProps,
@@ -406,15 +407,16 @@ export function TaskActivityOverview({ projectId, taskId }: IProps) {
         );
     };
 
+    // Default 20px so the group status badge reads at the same visual size as the action icon
+    // buttons in the tile (and matches the finished-state badges of the individual cache rows).
     let cacheState = cachesOverallStatus.failedActivities ? (
         <Icon
             name={"state-warning"}
-            large
             intent={IntentTypes.WARNING}
             tooltipText={`${cachesOverallStatus.failedActivities} failed activities`}
         />
     ) : (
-        <Icon name={"state-success"} large intent={IntentTypes.SUCCESS} />
+        <Icon name={"state-success"} intent={IntentTypes.SUCCESS} />
     );
 
     // Widget that wraps and summarizes the cache activities
@@ -516,7 +518,8 @@ export function TaskActivityOverview({ projectId, taskId }: IProps) {
         <Card data-test-id={"taskActivityOverview"}>
             <CardHeader>
                 <CardTitle>
-                    <h3>{t("widget.TaskActivityOverview.title")}</h3>
+                    <GridTileTitleIcon />
+                    <h2>{t("widget.TaskActivityOverview.title")}</h2>
                 </CardTitle>
             </CardHeader>
             <Divider />

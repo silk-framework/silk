@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { workspaceOp, workspaceSel } from "@ducks/workspace";
+import { GridTileTitleIcon } from "../../../shared/GridBoard";
 import { BasicDefinitions as Intent } from "@eccenca/gui-elements/src/common/Intent";
 import {
     Card,
@@ -156,6 +157,10 @@ export const ProjectTaskLoadingErrors = ({ refreshProjectPage }: Props) => {
         }
     };
 
+    // While the fetch is in flight and no warnings are known yet, render nothing: on a slow fetch a
+    // spinner would materialize this grid tile, repack the board and then vanish again in the (usual)
+    // no-warnings case. The spinner only shows when already-displayed warnings are being refreshed.
+    if (isLoading && warningList.length === 0) return null;
     if (isLoading) return <Loading description={t("widget.WarningWidget.loading", "Loading log messages.")} />;
 
     return warningList.length > 0 ? (
@@ -169,6 +174,7 @@ export const ProjectTaskLoadingErrors = ({ refreshProjectPage }: Props) => {
                 ) : null}
                 <CardHeader>
                     <CardTitle>
+                        <GridTileTitleIcon />
                         <h2>{t("widget.WarningWidget.title", "Error log")}</h2>
                     </CardTitle>
                 </CardHeader>
@@ -179,10 +185,12 @@ export const ProjectTaskLoadingErrors = ({ refreshProjectPage }: Props) => {
                             const actions: React.JSX.Element[] = projectId
                                 ? [
                                       <FixTaskButton
+                                          key={"fix_" + id}
                                           text={t("widget.WarningWidget.fixTask")}
                                           handleClick={() => handleInitFixTask(warn.taskId, projectId, warn.taskLabel)}
                                       />,
                                       <IconButton
+                                          key={"report_" + id}
                                           name={"artefact-report"}
                                           data-test-id={"taskLoadingReportBtn"}
                                           minimal
@@ -190,6 +198,7 @@ export const ProjectTaskLoadingErrors = ({ refreshProjectPage }: Props) => {
                                           onClick={() => handleOpenMarkDown(warn.taskId, projectId)}
                                       />,
                                       <IconButton
+                                          key={"remove_" + id}
                                           name={"item-remove"}
                                           data-test-id={"taskLoadingDeleteBtn"}
                                           minimal
@@ -224,7 +233,6 @@ export const ProjectTaskLoadingErrors = ({ refreshProjectPage }: Props) => {
                     }}
                 />
             )}
-            <Spacing />
         </>
     ) : null;
 };

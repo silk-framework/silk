@@ -4,6 +4,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { workspaceOp, workspaceSel } from "@ducks/workspace";
 import { IPrefixDefinition } from "@ducks/workspace/typings";
 import Loading from "../../../shared/Loading";
+import { GridTileTitleIcon } from "../../../shared/GridBoard";
 
 import {
     Card,
@@ -67,6 +68,7 @@ export const ProjectNamespacePrefixManagementWidget = () => {
         <Card>
             <CardHeader>
                 <CardTitle>
+                    <GridTileTitleIcon />
                     <h2>{t("widget.ConfigWidget.title", "Configuration")} </h2>
                 </CardTitle>
             </CardHeader>

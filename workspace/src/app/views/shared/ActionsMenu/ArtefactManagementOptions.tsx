@@ -11,12 +11,14 @@ import { downloadProject } from "../../../utils/downloadProject";
 import { DATA_TYPES } from "../../../constants";
 import { ItemDeleteModal } from "../modals/ItemDeleteModal";
 import CloneModal from "../modals/CloneModal";
-import { ActionsMenu, IActionsMenuProps, TActionsMenuItem } from "./ActionsMenu";
+import { IActionsMenuProps, TActionsMenuItem } from "./ActionsMenu";
 import CopyToModal from "../modals/CopyToModal/CopyToModal";
 import ShowIdentifierModal from "../modals/ShowIdentifierModal";
 import { SERVE_PATH } from "../../../constants/path";
 import { absoluteProjectPath } from "../../../utils/routerUtils";
-import { AlertDialog, Button, HtmlContentBlock, Notification } from "@eccenca/gui-elements";
+import { AlertDialog, Button, HtmlContentBlock, Menu, MenuDivider, MenuItem, Notification } from "@eccenca/gui-elements";
+import { ValidIconName } from "@eccenca/gui-elements/src/components/atoms/Icon/canonicalIconNames";
+import { GridTileCard } from "../GridBoard";
 import { FetchError } from "../../../services/fetch/responseInterceptor";
 import { clearDataset } from "@ducks/workspace/requests";
 import { AppDispatch } from "store/configureStore";
@@ -27,24 +29,31 @@ interface IProps {
     // If the task ID is set then this is a task else a project
     taskId?: string;
     itemType: string;
-    updateActionsMenu: (actionMenu: React.JSX.Element) => any;
     // Called with true when the item links endpoint returns a 404
     notFoundCallback?: (boolean) => any;
     // Called with true when the item links endpoint returns a 403
     forbiddenCallback?: (boolean) => any;
-    /** Additional page-specific elements (e.g. popover menus) rendered in the header
-     * actions area, left of the actions menu. */
-    headerMenus?: React.ReactNode;
+}
+
+/** Loosened shape covering both the menu items (`TActionsMenuItem`) and the button items
+ * (`IActionButtonItemProps`) so a single renderer can lay them out as widget rows. */
+interface RenderableAction {
+    icon?: ValidIconName | string[];
+    text: string;
+    actionHandler?: (event: React.MouseEvent<HTMLElement>) => void;
+    disabled?: boolean;
+    disruptive?: boolean;
+    tooltipText?: string;
+    "data-test-id"?: string;
+    subitems?: Array<{ text: string; actionHandler: () => any }>;
 }
 
 export function ArtefactManagementOptions({
     projectId,
     taskId,
     itemType,
-    updateActionsMenu,
     notFoundCallback = () => {},
     forbiddenCallback = () => {},
-    headerMenus,
 }: IProps) {
     const dispatch = useDispatch<AppDispatch>();
     const location = useLocation<any>();
@@ -294,17 +303,42 @@ export function ArtefactManagementOptions({
         });
     }, [projectId, taskId, itemType, exportTypes, itemLinks, t, isReadOnlyDataset]);
 
-    useEffect(() => {
-        updateActionsMenu(
-            <>
-                {headerMenus}
-                <ActionsMenu {...menuItems} />
-            </>,
-        );
-    }, [menuItems, headerMenus]);
+    // Render one action as a full-width menu row. Parent entries (e.g. "Export to") carry `subitems`,
+    // which `MenuItem` renders as an inline nested list in this static (non-dropdown) context.
+    const renderActionRow = (action: RenderableAction, key: React.Key) => (
+        <MenuItem
+            key={key}
+            icon={action.icon}
+            text={action.text}
+            onClick={action.actionHandler}
+            disabled={action.disabled}
+            intent={action.disruptive ? "danger" : undefined}
+            tooltip={action.tooltipText}
+            data-test-id={action["data-test-id"]}
+        >
+            {action.subitems && action.subitems.length > 0
+                ? action.subitems.map((sub, i) => (
+                      <MenuItem key={`${key}-sub-${i}`} text={sub.text} onClick={sub.actionHandler} />
+                  ))
+                : undefined}
+        </MenuItem>
+    );
+
+    const fullMenu = (menuItems.actionsFullMenu ?? []) as RenderableAction[];
+    const secondaryActions = (menuItems.actionsSecondary ?? []) as RenderableAction[];
+    const disruptiveActions = (menuItems.disruptiveActions ?? []) as RenderableAction[];
+    // The destructive actions (delete / clear dataset) sit under a divider at the bottom, red.
+    const destructiveActions = [...disruptiveActions, ...secondaryActions];
 
     return (
         <>
+            <GridTileCard title={t("common.words.actions", "Actions")} data-test-id="item-actions-widget">
+                <Menu className="-mx-2">
+                    {fullMenu.map((action, i) => renderActionRow(action, `full-${i}`))}
+                    {destructiveActions.length > 0 && fullMenu.length > 0 && <MenuDivider />}
+                    {destructiveActions.map((action, i) => renderActionRow(action, `destructive-${i}`))}
+                </Menu>
+            </GridTileCard>
             {deleteModalOpen && (
                 <ItemDeleteModal item={itemData} onClose={toggleDeleteModal} onConfirmed={handleDeleteConfirm} />
             )}
