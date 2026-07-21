@@ -9,6 +9,14 @@ import workspaceReducer from "../../../../store/ducks/workspace";
 import ActivityList, { nonStartableActivitiesBlacklist } from "../ActivityList";
 import testData from "./test-data";
 
+// The websocket endpoint URL is not constructible in the jest environment (process.env.HOST
+// is undefined), and jsdom has no usable WebSocket anyway. React 18 silently swallowed the
+// resulting effect error; React 19 rethrows it through act(), so the util is mocked out.
+jest.mock("../../../../services/websocketUtils", () => ({
+    ...jest.requireActual("../../../../services/websocketUtils"),
+    connectWebSocket: jest.fn(() => () => {}),
+}));
+
 const history = createMemoryHistory();
 
 const activityProperties: Record<

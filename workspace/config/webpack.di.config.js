@@ -108,15 +108,24 @@ module.exports = function (webpackEnv, isWatch) {
             pathinfo: isEnvDevelopment,
             // There will be one main bundle, and one file per asynchronous chunk.
             // In development, it does not produce real files.
+            // Content-hash the filenames in development as well (matching production).
+            // Dev output uses fixed names served by Play under stable URLs, so the
+            // browser caches them; an incremental rebuild that changes one chunk then
+            // gets loaded alongside a stale, cached sibling from an earlier build,
+            // leaving a module missing from the runtime's table -> bootstrap throws
+            // "Cannot read properties of undefined (reading 'call')". Hashed names make
+            // every build's URLs immutable and unique, so builds can never be mixed.
+            // The PruneStaleDevAssets plugin below removes superseded hashed chunks so
+            // the watch output dir does not grow without bound.
             filename: isEnvProduction
                 ? "assets/js/[name].[contenthash:8].js"
-                : isEnvDevelopment && "assets/js/bundle.js",
+                : isEnvDevelopment && "assets/js/[name].[contenthash:8].js",
             // TODO: remove this when upgrading to webpack 5
             futureEmitAssets: true,
             // There are also additional JS chunk files if you use code splitting.
             chunkFilename: isEnvProduction
                 ? "assets/js/[name].[contenthash:8].chunk.js"
-                : isEnvDevelopment && "assets/js/[name].chunk.js",
+                : isEnvDevelopment && "assets/js/[name].[contenthash:8].chunk.js",
             // We inferred the "public path" (such as / or /my-project) from homepage.
             // We use "/" in development.
             publicPath: publicUrl,
@@ -294,6 +303,15 @@ module.exports = function (webpackEnv, isWatch) {
                 // Without the pin, plugin toast() calls landed in the root copy while the mounted
                 // Toaster (via gui-elements) used the silk copy — every toast was invisible.
                 "sonner$": path.resolve(__dirname, "../../node_modules/sonner"),
+                // framer-motion (GridBoard minimize/restore morph) ships its ESM as `.mjs`
+                // (picked via the "module" field), which webpack4 chokes on the same way it does
+                // for the Base UI / floating-ui family above. Each of framer-motion, motion-dom and
+                // motion-utils exposes a self-contained CJS build under `dist/cjs`; pinning all three
+                // to it gives webpack4 an all-CommonJS graph it parses natively (their CJS entries
+                // `require` only each other + react, which are aliased/resolvable already).
+                "framer-motion$": "framer-motion/dist/cjs/index.js",
+                "motion-dom$": "motion-dom/dist/cjs/index.js",
+                "motion-utils$": "motion-utils/dist/cjs/index.js",
             },
             plugins: [
                 // Adds support for installing with Plug'n'Play, leading to faster installs and adding
@@ -490,6 +508,39 @@ module.exports = function (webpackEnv, isWatch) {
             isEnvProduction &&
                 shouldInlineRuntimeChunk &&
                 new InlineChunkHtmlPlugin(HtmlWebpackPlugin, [/runtime~.+[.]js/]),
+            // Dev-only: content-hashed filenames (see output.filename above) accumulate
+            // one file per build in the watch output dir. After every (re)build, delete
+            // the hashed JS chunks that are no longer part of the current compilation so
+            // the dir does not grow without bound. Only touches superseded files; the
+            // current build's assets and index.html (referenced by Play) are untouched.
+            isEnvDevelopment && {
+                apply(compiler) {
+                    const fsp = require("fs");
+                    const pathMod = require("path");
+                    compiler.hooks.afterEmit.tap("PruneStaleDevAssets", (compilation) => {
+                        const jsDir = pathMod.join(buildPath, "assets/js");
+                        let current;
+                        let files;
+                        try {
+                            current = new Set(
+                                Object.keys(compilation.assets).map((asset) => pathMod.basename(asset)),
+                            );
+                            files = fsp.readdirSync(jsDir);
+                        } catch (e) {
+                            return; // dir not created yet, or assets unreadable — nothing to prune
+                        }
+                        for (const file of files) {
+                            if (!/\.js(\.map)?$/.test(file)) continue;
+                            if (current.has(file)) continue;
+                            try {
+                                fsp.unlinkSync(pathMod.join(jsDir, file));
+                            } catch (e) {
+                                /* best-effort cleanup; ignore races */
+                            }
+                        }
+                    });
+                },
+            },
             // Makes some environment variables available in index.html.
             // The public URL is available as %PUBLIC_URL% in index.html, e.g.:
             // <link rel="shortcut icon" href="%PUBLIC_URL%/favicon.ico">
