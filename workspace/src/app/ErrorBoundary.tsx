@@ -7,7 +7,6 @@ import {
     GridColumn,
     GridRow,
     HtmlContentBlock,
-    Icon,
     Notification,
     TitleMainsection,
 } from "@eccenca/gui-elements";
@@ -48,7 +47,7 @@ class ErrorBoundary extends Component<any, any> {
                                             <Button
                                                 minimal
                                                 outlined
-                                                icon={<Icon name="application-homepage" />}
+                                                icon="application-homepage"
                                                 text="Go to homepage"
                                                 href={PUBLIC_URL + SERVE_PATH}
                                             />

@@ -9,9 +9,6 @@ interface ProjectSelectionProps {
     /** handle project selection **/
     setCurrentProject: (selectedProject: ISearchResultsServer) => void;
 
-    /** revert back to info Notification **/
-    onClose: () => void;
-
     /** Decide whether to show modal or not by factoring both the form changes and whether or not a project has been selected **/
     modifiedValuesExist: () => boolean;
 
@@ -27,7 +24,6 @@ interface ProjectSelectionProps {
 
 const ProjectSelection: React.FC<ProjectSelectionProps> = ({
     setCurrentProject,
-    onClose,
     modifiedValuesExist,
     resetForm,
     selectedProject,
@@ -37,6 +33,8 @@ const ProjectSelection: React.FC<ProjectSelectionProps> = ({
     const [t] = useTranslation();
     const [showWarningModal, setShowWarningModal] = React.useState<boolean>(false);
     const [newProject, setNewProject] = React.useState<ISearchResultsServer | null>();
+    // Bumped when a pending project change is cancelled, to remount the suggest field with the still-current project.
+    const [discardedSelections, setDiscardedSelections] = React.useState<number>(0);
 
     /**
      * Warning prompt that shows when there are task form changes other label/description
@@ -45,6 +43,13 @@ const ProjectSelection: React.FC<ProjectSelectionProps> = ({
         const onSubmit = () => {
             resetForm();
             setCurrentProject(newProject!);
+            setShowWarningModal(false);
+            setNewProject(null);
+        };
+        const onCancel = () => {
+            setShowWarningModal(false);
+            setNewProject(null);
+            setDiscardedSelections((count) => count + 1);
         };
         useHotKey({ hotkey: "enter", handler: onSubmit });
         return (
@@ -53,17 +58,17 @@ const ProjectSelection: React.FC<ProjectSelectionProps> = ({
                 size="tiny"
                 isOpen={true}
                 canEscapeKeyClose={true}
-                onClose={onClose}
+                onClose={onCancel}
                 title={t("CreateModal.projectContext.resetModalTitle", "Project change warning")}
                 actions={[
                     <Button text={t("CreateModal.projectContext.changeProjectButton", "Ok")} onClick={onSubmit} />,
-                    <Button text={t("common.action.cancel", "Cancel")} onClick={onClose} />,
+                    <Button text={t("common.action.cancel", "Cancel")} onClick={onCancel} />,
                 ]}
             >
                 <p>
                     {t(
                         "CreateModal.projectContext.configResetInfo",
-                        "All settings except title/description are going to be reset."
+                        "All settings except title/description are going to be reset.",
                     )}
                 </p>
             </AlertDialog>
@@ -81,7 +86,12 @@ const ProjectSelection: React.FC<ProjectSelectionProps> = ({
                 }}
             >
                 <SuggestField<ISearchResultsServer, ISearchResultsServer | null>
-                    autoFocus={!!selectedProject}
+                    key={`${projectId ?? ""}-${discardedSelections}`}
+                    initialValue={
+                        selectedProject
+                            ? { id: selectedProject.id, label: selectedProject.label, type: "project" }
+                            : undefined
+                    }
                     onSearch={getWorkspaceProjects}
                     onChange={(item) => {
                         if (item) {
@@ -93,11 +103,6 @@ const ProjectSelection: React.FC<ProjectSelectionProps> = ({
                                 setCurrentProject(item);
                             }
                         }
-                    }}
-                    contextOverlayProps={{
-                        onClosed: () => {
-                            projectId && !showWarningModal && onClose();
-                        },
                     }}
                     itemValueRenderer={(item) => item.label}
                     itemValueSelector={(item: ISearchResultsServer) => item}
@@ -115,7 +120,7 @@ const ProjectSelection: React.FC<ProjectSelectionProps> = ({
                 <Notification
                     message={t(
                         "CreateModal.projectContext.selectProjectInfo",
-                        "Please select project first, before configuration."
+                        "Please select project first, before configuration.",
                     )}
                 />
             )) ||

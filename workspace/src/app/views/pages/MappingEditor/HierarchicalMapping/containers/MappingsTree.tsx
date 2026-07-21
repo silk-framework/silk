@@ -42,7 +42,7 @@ export type RuleValidationIconMapType = Record<string, "ok" | "warning" | React.
 //React.useState<Map<string, boolean>>(new Map());
 
 /** Tree structure of nested object mapping rules of a transform task. */
-const MappingsTreeNew: React.FC<MappingTreeProps> = ({
+const MappingsTree: React.FC<MappingTreeProps> = ({
     ruleTree,
     currentRuleId,
     trackRuleInUrl,
@@ -298,7 +298,7 @@ const MappingsTreeNew: React.FC<MappingTreeProps> = ({
     );
 };
 
-export default MappingsTreeNew;
+export default MappingsTree;
 
 interface TreeNodeMetaData {
     // True if this tre node contains the currently selected rule somewhere in its hierarchy

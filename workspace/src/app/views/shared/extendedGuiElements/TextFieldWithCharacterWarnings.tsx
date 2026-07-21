@@ -1,4 +1,4 @@
-import { TextFieldProps } from "@eccenca/gui-elements/src/components/TextField/TextField";
+import { TextFieldProps } from "@eccenca/gui-elements/src/components/atoms/TextField/TextField";
 import { TextField, Toolbar, ToolbarSection } from "@eccenca/gui-elements";
 import React from "react";
 import { useInvisibleCharacterCleanUpModal } from "../modals/InvisibleCharacterCleanUpModal";

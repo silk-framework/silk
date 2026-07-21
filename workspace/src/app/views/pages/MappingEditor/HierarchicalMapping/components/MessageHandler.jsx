@@ -89,7 +89,13 @@ class MessageHandler extends React.Component {
             );
         });
 
-        return messages.length > 0 ? <div className="ecc-component-messagehandler">{messages}</div> : false;
+        return messages.length > 0 ? (
+            <div className="ecc-component-messagehandler fixed bottom-0 right-4 z-[1] box-border max-h-full w-[40rem] max-w-[calc(100%-2rem)] overflow-y-auto px-4 py-2">
+                {messages}
+            </div>
+        ) : (
+            false
+        );
     }
 }
 

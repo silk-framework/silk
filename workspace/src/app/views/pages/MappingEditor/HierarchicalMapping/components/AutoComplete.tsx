@@ -18,7 +18,7 @@ import {
     OverviewItemActions,
 } from "@eccenca/gui-elements";
 import { TaskContext } from "../../../../shared/projectTaskTabView/projectTaskTabView.typing";
-import { ValidIconName } from "@eccenca/gui-elements/src/components/Icon/canonicalIconNames";
+import { ValidIconName } from "@eccenca/gui-elements/src/components/atoms/Icon/canonicalIconNames";
 
 // Creates a search function for the auto-complete field
 const onSearchFactory = (

@@ -20,7 +20,7 @@ import utils from "./RuleEditor.utils";
 import { DatasetCharacteristics } from "../typings";
 import { ReactFlowHotkeyContext } from "@eccenca/gui-elements/src/cmem/react-flow/extensions/ReactFlowHotkeyContext";
 import { StickyNote } from "@eccenca/gui-elements";
-import { CodeAutocompleteFieldPartialAutoCompleteResult } from "@eccenca/gui-elements/src/components/AutoSuggestion/AutoSuggestion";
+import { CodeAutocompleteFieldPartialAutoCompleteResult } from "@eccenca/gui-elements/src/components/organisms/AutoSuggestion/AutoSuggestion";
 import { InitialRuleHighlighting } from "../../taskViews/transform/transform.types";
 
 /** Function to fetch the rule operator spec. */

@@ -1,5 +1,5 @@
 import { Icon, SearchField, AutoSuggestionList } from "@eccenca/gui-elements";
-import { CodeAutocompleteFieldSuggestionWithReplacementInfo } from "@eccenca/gui-elements/src/components/AutoSuggestion/AutoSuggestion";
+import { CodeAutocompleteFieldSuggestionWithReplacementInfo } from "@eccenca/gui-elements/src/components/organisms/AutoSuggestion/AutoSuggestion";
 import React from "react";
 import { useTranslation } from "react-i18next";
 

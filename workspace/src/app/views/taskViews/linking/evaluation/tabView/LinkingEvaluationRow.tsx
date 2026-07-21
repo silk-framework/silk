@@ -7,10 +7,10 @@ import { IAggregationOperator, ISimilarityOperator } from "../../linking.types";
 import { ComparisonDataCell, ComparisonDataContainer } from "../../activeLearning/components/ComparisionData";
 import { PropertyBox } from "../../activeLearning/components/PropertyBox";
 import { ActiveLearningValueExamples } from "../../activeLearning/shared/ActiveLearningValueExamples";
-import TableTree from "../../../shared/evaluations/TableTreeView";
+import TableTree from "../../../shared/evaluations/TableTree";
 import { IPluginDetails } from "@ducks/common/typings";
 import { EvaluationResultType } from "../LinkingRuleEvaluation";
-import { ValidIconName } from "@eccenca/gui-elements/src/components/Icon/canonicalIconNames";
+import { ValidIconName } from "@eccenca/gui-elements/src/components/atoms/Icon/canonicalIconNames";
 
 import {
     ConfidenceValue,

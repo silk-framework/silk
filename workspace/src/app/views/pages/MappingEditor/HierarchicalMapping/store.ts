@@ -19,7 +19,7 @@ import { ITransformedSuggestion, SuggestionIssues } from "./containers/Suggestio
 import {
     CodeAutocompleteFieldPartialAutoCompleteResult,
     CodeAutocompleteFieldValidationResult,
-} from "@eccenca/gui-elements/src/components/AutoSuggestion/AutoSuggestion";
+} from "@eccenca/gui-elements/src/components/organisms/AutoSuggestion/AutoSuggestion";
 import { CONTEXT_PATH } from "../../../../constants/path";
 import { TaskContext } from "../../../shared/projectTaskTabView/projectTaskTabView.typing";
 

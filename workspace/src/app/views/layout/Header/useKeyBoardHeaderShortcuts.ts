@@ -10,7 +10,7 @@ import { uppercaseFirstChar } from "../../../utils/transformers";
 import { useTranslation } from "react-i18next";
 import { absoluteProjectPath } from "../../../utils/routerUtils";
 import { AppDispatch } from "store/configureStore";
-import { ModalContext } from "@eccenca/gui-elements/src/components/Dialog/ModalContext";
+import { ModalContext } from "@eccenca/gui-elements/src/components/molecules/Dialog/ModalContext";
 
 export const useKeyboardHeaderShortcuts = () => {
     const dispatch = useDispatch<AppDispatch>();

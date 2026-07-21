@@ -146,8 +146,8 @@ const Activities = () => {
                                     <TitleMainsection>{t("pages.activities.title", "Activities")}</TitleMainsection>
                                 </GridColumn>
                                 <GridColumn>
-                                    <div style={{ display: "flex", alignItems: "center" }}>
-                                        <div style={{ width: "100%" }}>
+                                    <div className="flex items-center gap-2">
+                                        <div className="min-w-0 flex-1">
                                             <SearchBar
                                                 focusOnCreation
                                                 textQuery={effectiveSearchQuery}
@@ -188,7 +188,9 @@ const Activities = () => {
                                             />
                                         }
                                     >
-                                        <h3>{t("http.error.fetchNotResult", "Error, cannot fetch results.")}</h3>
+                                        <h3 className="font-medium">
+                                            {t("http.error.fetchNotResult", "Error, cannot fetch results.")}
+                                        </h3>
                                         <p>{error.detail}</p>
                                     </Notification>
                                 ) : (

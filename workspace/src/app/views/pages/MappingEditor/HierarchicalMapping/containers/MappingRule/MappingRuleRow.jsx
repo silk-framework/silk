@@ -17,7 +17,7 @@ class MappingRuleRow extends React.Component {
         return (
             <>
                 <OverviewItemDescription data-test-id={"mapping-rule-title"} style={{ width: "40%" }}>
-                    <OverviewItemLine className="ecc-silk-mapping__ruleitem-headline">
+                    <OverviewItemLine className="ecc-silk-mapping__ruleitem-headline font-medium">
                         <OverflowText>
                             <ThingIcon type={type} status={statusType} message={statusMsg} />
                             <span data-test-id={"mapping-rule-title-label"} className={"nodrag"}>

@@ -4,8 +4,8 @@ import "@uppy/core/dist/style.css";
 import "@uppy/drag-drop/dist/style.css";
 import "@uppy/progress-bar/dist/style.css";
 
-import { Button, Divider, FieldItem, Icon, TextField } from "@eccenca/gui-elements";
-import { SuggestFieldProps } from "@eccenca/gui-elements/src/components/AutocompleteField/AutoCompleteField";
+import { Button, Divider, FieldItem, TextField } from "@eccenca/gui-elements";
+import { SuggestFieldProps } from "@eccenca/gui-elements/src/components/organisms/AutocompleteField/AutoCompleteField";
 import { UploadNewFile } from "./cases/UploadNewFile/UploadNewFile";
 import { FileSelectionOptions, FileMenuItems } from "./FileSelectionOptions";
 import { SelectFileFromExisting } from "./cases/SelectFileFromExisting";
@@ -268,7 +268,7 @@ class FileSelectionMenu extends React.Component<IUploaderOptions, IState> {
                                     data-test-id="file-selection-change-file-btn"
                                     minimal
                                     text={i18next.t("FileUploader.changeFile", "Change file")}
-                                    icon={<Icon name="item-edit" />}
+                                    icon="item-edit"
                                     onClick={this.toggleFileResourceChange}
                                 />
                             }
@@ -281,7 +281,7 @@ class FileSelectionMenu extends React.Component<IUploaderOptions, IState> {
                             outlined
                             small
                             text={i18next.t("FileUploader.abort", "Abort and keep file")}
-                            icon={<Icon name="operation-undo" />}
+                            icon="operation-undo"
                             onClick={this.handleDiscardChanges}
                         />
                         <Divider addSpacing="large" />

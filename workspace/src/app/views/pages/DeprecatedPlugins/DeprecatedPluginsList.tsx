@@ -66,7 +66,7 @@ export function DeprecatedPluginsList({
                 <OverviewItemDescription>
                     {/* Line 1: task name */}
                     <OverviewItemLine small={!hasCardWrapper}>
-                        <h4>
+                        <h4 className="font-medium">
                             <ResourceLink
                                 url={(!isCurrentPage && plugin.link) || false}
                                 handlerResourcePageLoader={

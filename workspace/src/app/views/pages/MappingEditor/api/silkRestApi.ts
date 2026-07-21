@@ -3,7 +3,7 @@ import Promise from "bluebird";
 import { IUriPatternsResult, PropertyByDomainAutoCompletion, TargetPropertyAutoCompletion } from "./types";
 import { CONTEXT_PATH } from "../../../../constants/path";
 import { TaskContext } from "../../../shared/projectTaskTabView/projectTaskTabView.typing";
-import { CodeAutocompleteFieldPartialAutoCompleteResult } from "@eccenca/gui-elements/src/components/AutoSuggestion/AutoSuggestion";
+import { CodeAutocompleteFieldPartialAutoCompleteResult } from "@eccenca/gui-elements/src/components/organisms/AutoSuggestion/AutoSuggestion";
 
 const CONTENT_TYPE_JSON = "application/json";
 

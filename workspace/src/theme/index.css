@@ -3,8 +3,13 @@
  * gui-elements v27 SCSS sunset; now hand-maintained. The gui-elements part of the old bundle
  * comes from @eccenca/gui-elements/src/css/index.css, imported separately in src/index.tsx.
  */
+:root {
+  /* Application header height — must match `h-15` (60px) in Header.tsx (and NotificationsMenu's top-15). */
+  --header-height: 3.75rem;
+}
+
 .diapp-applicationnotifications--filledqueue .diapp-iframewindow--fullscreen {
-  top: calc(56px + 14px);
+  top: calc(var(--header-height) + 14px);
   left: calc(56px + 14px);
 }
 
@@ -34,6 +39,21 @@
   right: 14px;
   bottom: 14px;
   left: 14px;
+}
+/* The mapping creator fills its tab card edge-to-edge: its column dividers should meet the
+   card border rather than sit inside the default 14px content inset above. Scoped to the
+   mapping-creator wrapper (see MappingCreatorV2.tsx) so other JS task views keep the inset.
+   Clip the bottom corners to the card radius (nested one border-width inside the card's
+   `rounded-lg`) so the flush white content follows the card's rounded bottom edge instead of
+   squaring it off; the top edge meets the header divider as a straight line. */
+.diapp-iframewindow--jscontent > .mapping-creator-v2-flush {
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  overflow: hidden;
+  border-bottom-left-radius: calc(var(--radius) - 1px);
+  border-bottom-right-radius: calc(var(--radius) - 1px);
 }
 
 .diapp-iframewindow--fullscreen {
@@ -111,10 +131,6 @@
   max-width: 20%;
 }
 
-.diapp-linking-learningdata__propertybox .eccgui-overviewitem__line {
-  max-width: 100%;
-}
-
 .diapp-linking-learningdata__examples {
   display: inline-flex;
   max-width: 100%;
@@ -174,12 +190,6 @@ div.diapp-linking-connectionenabled__arrow-left:before {
   clip-path: polygon(0 50%, 7px 100%, 7px calc(100% - 7px), 100% calc(100% - 7px), 100% 7px, 7px 7px, 7px 0%);
 }
 
-div.diapp-linking-connectionavailable__dashedline {
-  height: 0px;
-  width: auto;
-  border-top: 1px dashed var(--border);
-}
-
 /**
   CSS OVERWRITES
   contains different style overwrites that couldn't have been done directly by component usage
@@ -214,29 +224,6 @@ div.diapp-linking-connectionavailable__dashedline {
   visibility: hidden;
 }
 
-.diapp-project__uploadwidget {
-  position: relative;
-}
-.diapp-project__uploadwidget > .diapp-project__uploadwidget__dnd-icon {
-  position: absolute;
-  top: 14px;
-  left: 50%;
-  transform: translate(-50%);
-}
-
-.ecc-temp__appmessages .ecc-component-messagehandler {
-  position: fixed;
-  right: 1rem;
-  bottom: 0;
-  width: 40rem;
-  max-width: calc(100% - 2rem);
-  max-height: 100%;
-  overflow-y: auto;
-  box-sizing: border-box;
-  padding: 0.5rem 1rem;
-  z-index: 1;
-}
-
 .ecc-silk-mapping__treenav ul.ecc-silk-mapping__treenav--subtree {
   padding-left: 30px;
 }
@@ -244,27 +231,14 @@ div.diapp-linking-connectionavailable__dashedline {
   box-sizing: border-box;
 }
 
-.ecc-silk-mapping__rulesobject {
-  position: relative;
-  margin-bottom: 14px;
-}
-
 .ecc-silk-mapping__ruleitem {
   max-width: 100%;
   position: relative;
 }
 
-.ecc-silk-mapping__ruleitem--dnd {
-  outline: none;
-}
-
 .ecc-silk-mapping__ruleitem--defect {
   color: var(--eccgui-color-palette-semantic-warning-900);
   background-color: var(--eccgui-color-palette-semantic-warning-100);
-}
-
-.ecc-silk-mapping__ruleitem-headline {
-  font-weight: 500;
 }
 
 .eccgui-overviewitem__list li:nth-child(odd) .ecc-silk-mapping__ruleitem-summary:not(:hover) {
@@ -369,10 +343,6 @@ div.diapp-linking-connectionavailable__dashedline {
   display: inline-flex;
 }
 
-.ecc-silk-mapping__ruleseditor__actionrow-complex-edit {
-  margin: 0 7px;
-}
-
 .ecc-silk-mapping__ruleitem--new {
   animation-name: anim-new-element;
   animation-duration: 1s;
@@ -443,5 +413,5 @@ div.diapp-linking-connectionavailable__dashedline {
 }
 
 .diapp__insetcontent .eccgui-grid__row--fullheight {
-  min-height: calc(100svh - 3rem - 1.75rem);
+  min-height: calc(100svh - var(--header-height) - 1.75rem);
 }

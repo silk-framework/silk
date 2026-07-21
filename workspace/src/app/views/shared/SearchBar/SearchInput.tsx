@@ -1,7 +1,7 @@
 import React, { memo } from "react";
 import { useTranslation } from "react-i18next";
 import { SearchField } from "@eccenca/gui-elements";
-import { InvisibleCharacterWarningProps } from "@eccenca/gui-elements/src/components/TextField/useTextValidation";
+import { InvisibleCharacterWarningProps } from "@eccenca/gui-elements/src/components/atoms/TextField/useTextValidation";
 
 export interface ISearchInputProps {
     onFilterChange(e);

@@ -6,7 +6,7 @@ import { clickRenderedElement, findAllDOMElements } from "../../TestHelper";
  * @param wrapper The element the paging component is contained in.
  */
 export const clickNextPageButton = (wrapper: RenderResult) => {
-    const navButtons = findAllDOMElements(wrapper, ".cds--pagination__right button");
+    const navButtons = findAllDOMElements(wrapper, ".eccgui-pagination__control-buttons button");
     expect(navButtons).toHaveLength(2);
     clickRenderedElement(navButtons[1]);
 };

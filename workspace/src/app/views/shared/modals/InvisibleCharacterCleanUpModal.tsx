@@ -2,7 +2,7 @@ import { useTranslation } from "react-i18next";
 import React, { useState } from "react";
 import { Button, IconButton, SimpleDialog, Spacing } from "@eccenca/gui-elements";
 import chars from "@eccenca/gui-elements/src/common/utils/characters";
-import { InvisibleCharacterWarningProps } from "@eccenca/gui-elements/src/components/TextField/useTextValidation";
+import { InvisibleCharacterWarningProps } from "@eccenca/gui-elements/src/components/atoms/TextField/useTextValidation";
 
 interface Props {
     /** The code points of the invisible characters that were detected. */
@@ -60,7 +60,7 @@ export const InvisibleCharacterCleanUpModal = ({
                 </Button>,
             ]}
         >
-            <h3>{t("InvisibleCharacterHandling.modal.description")}</h3>
+            <p>{t("InvisibleCharacterHandling.modal.description")}</p>
             <Spacing />
             <ul>
                 {detectedChars.map((char) => {

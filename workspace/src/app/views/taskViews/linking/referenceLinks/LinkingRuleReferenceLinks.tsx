@@ -22,7 +22,7 @@ import {
     Toolbar,
     ToolbarSection, Tooltip, ConfidenceValue,
 } from "@eccenca/gui-elements";
-import { usePagination } from "@eccenca/gui-elements/src/components/Pagination/Pagination";
+import { usePagination } from "@eccenca/gui-elements/src/components/molecules/Pagination/Pagination";
 import React from "react";
 import { useTranslation } from "react-i18next";
 import { LabelProperties } from "./LinkingRuleReferenceLinks.typing";

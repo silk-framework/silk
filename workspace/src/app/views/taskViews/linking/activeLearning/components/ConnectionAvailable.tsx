@@ -2,7 +2,7 @@ import React from "react";
 import { Toolbar, ToolbarSection } from "@eccenca/gui-elements";
 
 /** A dashed line. */
-export const DashedLine = () => <div className="diapp-linking-connectionavailable__dashedline" />;
+export const DashedLine = () => <div className="h-0 w-auto border-t border-dashed border-border" />;
 
 export interface ConnectionAvailableProps {
     /**

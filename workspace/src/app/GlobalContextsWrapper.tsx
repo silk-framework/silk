@@ -6,7 +6,7 @@ import {
     GlobalTableTypes,
     useStoreGlobalTableSettings,
 } from "./hooks/useStoreGlobalTableSettings";
-import { ModalContext, useModalContext } from "@eccenca/gui-elements/src/components/Dialog/ModalContext";
+import { ModalContext, useModalContext } from "@eccenca/gui-elements/src/components/molecules/Dialog/ModalContext";
 
 /** Wraps globally used contexts around the application component. */
 export const GlobalContextsWrapper = ({ children }) => {

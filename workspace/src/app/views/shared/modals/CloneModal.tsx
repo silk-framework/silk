@@ -41,7 +41,7 @@ export default function CloneModal({ item, onDiscard, onConfirmed }: ICloneOptio
     const [label, setLabel] = useState<string | undefined>(item.label);
     const [t] = useTranslation();
     const [showDocumentation, setShowDocumentation] = React.useState<boolean>(false);
-    const projectAcl = React.useRef<AccessControlConfig | undefined>();
+    const projectAcl = React.useRef<AccessControlConfig | undefined>(undefined);
     const onChangeProjectAcl = React.useCallback((newProjectAcl: AccessControlConfig) => {
         projectAcl.current = newProjectAcl;
     }, []);

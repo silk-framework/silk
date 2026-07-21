@@ -11,12 +11,12 @@ import {
 } from "../../RuleEditor.typings";
 import { SidebarSearchField } from "./SidebarSearchField";
 import { partitionArray, sortLexically } from "../../../../../utils/basicUtils";
-import { TabProps } from "@eccenca/gui-elements/src/components/Tabs/Tab";
+import { TabProps } from "@eccenca/gui-elements/src/components/molecules/Tabs/Tab";
 import useErrorHandler from "../../../../../hooks/useErrorHandler";
 import { useTranslation } from "react-i18next";
 import { useSelector } from "react-redux";
 import { commonSel } from "@ducks/common";
-import { CodeAutocompleteFieldSuggestionWithReplacementInfo } from "@eccenca/gui-elements/src/components/AutoSuggestion/AutoSuggestion";
+import { CodeAutocompleteFieldSuggestionWithReplacementInfo } from "@eccenca/gui-elements/src/components/organisms/AutoSuggestion/AutoSuggestion";
 import ruleEditorUtils from "../../RuleEditor.utils";
 
 type PreConfiguredOperatorConfig = IPreConfiguredOperators<any> & {

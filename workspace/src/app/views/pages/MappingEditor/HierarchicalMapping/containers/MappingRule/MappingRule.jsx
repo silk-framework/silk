@@ -244,7 +244,7 @@ export class MappingRule extends React.Component {
                 })}
             >
                 <div
-                    className="ecc-silk-mapping__ruleitem--dnd"
+                    className="ecc-silk-mapping__ruleitem--dnd outline-none"
                     ref={this.props.provided.innerRef}
                     style={getItemStyle(this.props.provided.draggableStyle, this.props.snapshot.isDragging)}
                     {...this.props.provided.draggableProps}

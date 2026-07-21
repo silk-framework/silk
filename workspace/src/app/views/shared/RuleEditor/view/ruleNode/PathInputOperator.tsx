@@ -4,7 +4,7 @@ import { IAutocompleteDefaultResponse } from "@ducks/shared/typings";
 import { Button, CodeAutocompleteField, IconButton, MenuItem, Select, Spacing, Tag } from "@eccenca/gui-elements";
 import { useTranslation } from "react-i18next";
 import { checkValuePathValidity } from "../../../../../views/pages/MappingEditor/HierarchicalMapping/store";
-import { CodeAutocompleteFieldPartialAutoCompleteResult } from "@eccenca/gui-elements/src/components/AutoSuggestion/AutoSuggestion";
+import { CodeAutocompleteFieldPartialAutoCompleteResult } from "@eccenca/gui-elements/src/components/organisms/AutoSuggestion/AutoSuggestion";
 import { RuleEditorEvaluationCallbackContext } from "../../contexts/RuleEditorEvaluationContext";
 import { preventMouseEventsFromBubblingToReactFlow } from "./RuleParameterInput";
 

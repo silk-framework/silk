@@ -140,7 +140,11 @@ class RootMappingRule extends React.Component {
         }
 
         return (
-            <div data-test-id="root-mapping-rule" className="ecc-silk-mapping__rulesobject" ref={this.expandedRuleRef}>
+            <div
+                data-test-id="root-mapping-rule"
+                className="ecc-silk-mapping__rulesobject relative mb-3.5"
+                ref={this.expandedRuleRef}
+            >
                 <Card elevated={!this.state.expanded} interactive={!this.state.expanded}>
                     <CardHeader onClick={this.handleToggleExpand}>
                         <CardTitle>
@@ -156,7 +160,7 @@ class RootMappingRule extends React.Component {
                                             data-test-id={"mapping-rule-title"}
                                             style={{ width: "40%" }}
                                         >
-                                            <OverviewItemLine className="ecc-silk-mapping__ruleitem-headline">
+                                            <OverviewItemLine className="ecc-silk-mapping__ruleitem-headline font-medium">
                                                 <ThingIcon type="object" />
                                                 <RuleTitle
                                                     rule={this.props.rule}

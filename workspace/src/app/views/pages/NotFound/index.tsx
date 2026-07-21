@@ -7,7 +7,6 @@ import {
     TitleMainsection,
     HtmlContentBlock,
     Button,
-    Icon,
 } from "@eccenca/gui-elements";
 import { PUBLIC_URL, SERVE_PATH } from "../../../constants/path";
 import { useTranslation } from "react-i18next";
@@ -25,7 +24,7 @@ export default function NotFound() {
                                 <Button
                                     minimal
                                     outlined
-                                    icon={<Icon name="application-homepage" />}
+                                    icon="application-homepage"
                                     text={t("pages.notFound.backLink", "Go to homepage")}
                                     href={PUBLIC_URL + SERVE_PATH}
                                 />

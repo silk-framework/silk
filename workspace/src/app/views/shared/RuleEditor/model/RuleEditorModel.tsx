@@ -146,7 +146,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
     const [notification, setNotification] = React.useState<React.JSX.Element | undefined>();
     const savedStateVersion = React.useRef(0);
     const [savedStatePosition, setSavedStatePosition] = React.useState<SavedStatePosition | undefined>(undefined);
-    const savedRuleState = React.useRef<{ ruleOperatorNodes: IRuleOperatorNode[]; stickyNotes: StickyNote[] }>();
+    const savedRuleState = React.useRef<{ ruleOperatorNodes: IRuleOperatorNode[]; stickyNotes: StickyNote[] } | undefined>(undefined);
     const unsavedChanges = savedStatePosition !== "current" || (!savedOnce && ruleEditorContext.saveInitiallyEnabled);
 
     const clearTextSelection = React.useCallback(() => {

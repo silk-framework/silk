@@ -1,6 +1,6 @@
 import React from "react";
 import { ContextOverlay, IconButton } from "@eccenca/gui-elements";
-import { ValidIconName } from "@eccenca/gui-elements/src/components/Icon/canonicalIconNames";
+import { ValidIconName } from "@eccenca/gui-elements/src/components/atoms/Icon/canonicalIconNames";
 
 interface IProps {
     /** Icon of the toggler button in the page header. */

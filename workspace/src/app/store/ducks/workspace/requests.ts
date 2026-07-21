@@ -15,7 +15,7 @@ import { coreApi, legacyApiEndpoint, projectApi, workspaceApi } from "../../../u
 import { FetchResponse } from "../../../services/fetch/responseInterceptor";
 import { IAutocompleteDefaultResponse, IProjectTask } from "@ducks/shared/typings";
 import { TaskContext } from "../../../views/shared/projectTaskTabView/projectTaskTabView.typing";
-import { CodeAutocompleteFieldValidationResult } from "@eccenca/gui-elements/src/components/AutoSuggestion/AutoSuggestion";
+import { CodeAutocompleteFieldValidationResult } from "@eccenca/gui-elements/src/components/organisms/AutoSuggestion/AutoSuggestion";
 import { ItemType } from "@ducks/router/operations";
 import qs from "qs";
 

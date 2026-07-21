@@ -131,7 +131,15 @@ const MappingsList = ({
         <div className="ecc-silk-mapping__ruleslist">
             {reorderingRequestPending && <Spinner position={"global"} />}
             <Card elevation={0}>
-                <StickyTarget local background={"card"} offset={`${-1}px` as StickyTargetProps["offset"]}>
+                {/* Round the header's top corners so its always-on `bg-card` respects the Card's
+                    `rounded-lg`; the Card can't clip with `overflow-hidden` without breaking the
+                    sticky header (its scroll container is the surrounding rule list). */}
+                <StickyTarget
+                    className="rounded-t-lg"
+                    local
+                    background={"card"}
+                    offset={`${-1}px` as StickyTargetProps["offset"]}
+                >
                     <CardHeader>
                         <CardTitle>Mapping rules {`(${rules.length})`}</CardTitle>
                         <CardOptions>

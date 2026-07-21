@@ -1,4 +1,4 @@
-import { SimpleDialogProps } from "@eccenca/gui-elements/src/components/Dialog/SimpleDialog";
+import { SimpleDialogProps } from "@eccenca/gui-elements/src/components/molecules/Dialog/SimpleDialog";
 import { SimpleDialog } from "@eccenca/gui-elements";
 import React, { useEffect } from "react";
 import { RuleEditorUiContext } from "../../contexts/RuleEditorUiContext";

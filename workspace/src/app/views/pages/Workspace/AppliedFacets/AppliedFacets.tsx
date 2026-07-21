@@ -2,7 +2,7 @@ import React from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { workspaceOp, workspaceSel } from "@ducks/workspace";
 import { IFacetState } from "@ducks/workspace/typings";
-import { Spacing, Tag, TagList } from "@eccenca/gui-elements";
+import { cn, Spacing, Tag, TagList } from "@eccenca/gui-elements";
 import { AppDispatch } from "store/configureStore";
 
 /** The currently active search filter facets represented as tags. Clicking a tag removes the facet. */
@@ -33,7 +33,12 @@ export function AppliedFacets() {
             {facetsList.map((facet) => (
                 <TagList key={facet.id} label={facet.label}>
                     {facet.values.map((keyword) => (
-                        <Tag key={keyword.id} onRemove={() => handleFacetRemove(facet, keyword.id)}>
+                        <Tag
+                            key={keyword.id}
+                            onRemove={() => handleFacetRemove(facet, keyword.id)}
+                            // 2A brand-tinted applied-filter chip
+                            className={cn("border-transparent bg-brand/12 text-foreground")}
+                        >
                             {keyword.label}
                         </Tag>
                     ))}

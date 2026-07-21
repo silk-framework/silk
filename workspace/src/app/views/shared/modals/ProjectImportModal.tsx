@@ -60,7 +60,7 @@ export function ProjectImportModal({ close, back, maxFileUploadSizeBytes }: IPro
     const [startProjectImportExecutionError, setStartProjectImportExecutionError] = useState<
         [string, boolean, boolean] | null
     >(null);
-    const projectAcl = React.useRef<AccessControlConfig | undefined>();
+    const projectAcl = React.useRef<AccessControlConfig | undefined>(undefined);
     const onChangeProjectAcl = React.useCallback((newProjectAcl: AccessControlConfig) => {
         projectAcl.current = newProjectAcl;
     }, []);

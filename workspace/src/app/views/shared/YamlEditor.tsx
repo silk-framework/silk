@@ -6,7 +6,7 @@ import {
     CodeAutocompleteFieldProps,
     CodeAutocompleteFieldReplacementResult,
     CodeAutocompleteFieldValidationResult,
-} from "@eccenca/gui-elements/src/components/AutoSuggestion/AutoSuggestion";
+} from "@eccenca/gui-elements/src/components/organisms/AutoSuggestion/AutoSuggestion";
 import { sharedOp } from "@ducks/shared";
 import { IPropertyAutocomplete } from "@ducks/common/typings";
 import {

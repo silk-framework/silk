@@ -390,7 +390,7 @@ export function UploadNewFile({
     };
 
     return (
-        <div className="diapp-project__uploadwidget">
+        <div className="relative">
             {projectId && showDeleteDialog && (
                 <FileRemoveModal projectId={projectId} onConfirm={handleConfirmDelete} file={showDeleteDialog} />
             )}
@@ -400,7 +400,7 @@ export function UploadNewFile({
                     locale={{ strings: { dropHereOr: t("FileUploader.dropzone", "Drop files here or browse") } }}
                 />
             )}
-            <Icon name="item-upload" className="diapp-project__uploadwidget__dnd-icon" />
+            <Icon name="item-upload" className="absolute left-1/2 top-3.5 -translate-x-1/2" />
             <Spacing />
             {!error ? (
                 <>

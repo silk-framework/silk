@@ -372,7 +372,7 @@ const MappingsWorkview = ({
                     startFullScreen={startFullScreen}
                     viewActions={viewActions}
                 />
-                {listSuggestions || <div className="shadow-sm">{listMappings}</div>}
+                {listSuggestions || listMappings}
                 {createRuleForm}
                 {error ? (
                     <>

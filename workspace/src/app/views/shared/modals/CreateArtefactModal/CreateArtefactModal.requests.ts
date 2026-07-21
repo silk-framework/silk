@@ -5,7 +5,7 @@ import { coreApi, projectApi } from "../../../../utils/getApiEndpoint";
 import {
     CodeAutocompleteFieldPartialAutoCompleteResult,
     CodeAutocompleteFieldValidationResult,
-} from "@eccenca/gui-elements/src/components/AutoSuggestion/AutoSuggestion";
+} from "@eccenca/gui-elements/src/components/organisms/AutoSuggestion/AutoSuggestion";
 
 /** Send dataset configuration and get an auto-configured version back. */
 export const requestAutoConfiguredDataset = async (

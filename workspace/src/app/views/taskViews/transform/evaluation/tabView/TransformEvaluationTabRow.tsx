@@ -10,7 +10,7 @@ import {
     EvaluatedRuleOperator,
     EvaluatedURIRule,
 } from "./typing";
-import TableTree from "../../../../../views/taskViews/shared/evaluations/TableTreeView";
+import TableTree from "../../../../../views/taskViews/shared/evaluations/TableTree";
 
 interface TransformEvaluationTabRowProps {
     rowExpandedByParent: boolean;

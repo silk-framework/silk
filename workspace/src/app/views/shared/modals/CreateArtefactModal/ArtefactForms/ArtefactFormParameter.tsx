@@ -22,7 +22,7 @@ import {
 import {
     CodeAutocompleteFieldProps,
     CodeAutocompleteFieldValidationResult,
-} from "@eccenca/gui-elements/src/components/AutoSuggestion/AutoSuggestion";
+} from "@eccenca/gui-elements/src/components/organisms/AutoSuggestion/AutoSuggestion";
 import { useSelector } from "react-redux";
 import { commonSel } from "@ducks/common";
 import { CreateArtefactModalContext } from "../CreateArtefactModalContext";

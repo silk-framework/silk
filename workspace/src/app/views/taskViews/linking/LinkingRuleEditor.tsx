@@ -37,7 +37,7 @@ import {
 import { invalidValueResult } from "../../../views/shared/RuleEditor/view/ruleNode/ruleNode.utils";
 import { diErrorMessage } from "@ducks/error/typings";
 import { Notification, highlighterUtils, StickyNote } from "@eccenca/gui-elements";
-import { CodeAutocompleteFieldPartialAutoCompleteResult } from "@eccenca/gui-elements/src/components/AutoSuggestion/AutoSuggestion";
+import { CodeAutocompleteFieldPartialAutoCompleteResult } from "@eccenca/gui-elements/src/components/organisms/AutoSuggestion/AutoSuggestion";
 import { languageFilterRegex, PathInputOperatorContext } from "../../shared/RuleEditor/view/ruleNode/PathInputOperator";
 import { documentationPageUrl } from "workspace/src/app/utils/getApiEndpoint";
 

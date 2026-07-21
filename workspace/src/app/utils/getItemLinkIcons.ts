@@ -1,4 +1,4 @@
-import { ValidIconName } from "@eccenca/gui-elements/src/components/Icon/canonicalIconNames";
+import { ValidIconName } from "@eccenca/gui-elements/src/components/atoms/Icon/canonicalIconNames";
 
 export function getItemLinkIcons(label: string): ValidIconName | undefined {
     switch (label) {

@@ -28,14 +28,18 @@ export const PropertyBox = ({
 }: PropertyBoxProps) => {
     const [t] = useTranslation();
     return (
-        <div className="diapp-linking-learningdata__propertybox">
+        <div>
             <OverviewItem>
                 <OverviewItemDescription>
-                    <OverviewItemLine title={!!propertyTooltip ? propertyTooltip : undefined} small>
+                    <OverviewItemLine
+                        className="max-w-full"
+                        title={!!propertyTooltip ? propertyTooltip : undefined}
+                        small
+                    >
                         {propertyName}
                     </OverviewItemLine>
                     {!!exampleValues && (
-                        <OverviewItemLine title={!!exampleTooltip ? exampleTooltip : undefined}>
+                        <OverviewItemLine className="max-w-full" title={!!exampleTooltip ? exampleTooltip : undefined}>
                             {exampleValues}
                         </OverviewItemLine>
                     )}
