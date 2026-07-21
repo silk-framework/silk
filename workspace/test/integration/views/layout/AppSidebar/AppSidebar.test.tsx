@@ -10,14 +10,18 @@ describe("AppSidebar", () => {
     let wrapper: RenderResult;
     const history = createBrowserHistory();
 
-    const renderSidebar = (initialSettings: object = {}) =>
+    const renderSidebar = (common: object = {}) =>
         renderWrapper(
-            <shadcn.SidebarProvider>
-                <AppSidebar />
-            </shadcn.SidebarProvider>,
+            // TooltipProvider mirrors the app shell: the pristine radix-nova sidebar no
+            // longer mounts its own provider for the collapsed-rail tooltips.
+            <shadcn.TooltipProvider>
+                <shadcn.SidebarProvider>
+                    <AppSidebar />
+                </shadcn.SidebarProvider>
+            </shadcn.TooltipProvider>,
             history,
             {
-                common: { initialSettings },
+                common: { initialSettings: {}, ...common },
             },
         );
 
@@ -26,21 +30,35 @@ describe("AppSidebar", () => {
         mockAxios.reset();
     });
 
-    it("renders the DI navigation items", () => {
+    it("shows the switcher tile plus Tasks/Activities (global fallback) with no project in context", () => {
         history.push(workspacePath(""));
         wrapper = renderSidebar();
-        ["Projects", "Datasets", "Workflows", "Activities"].forEach((label) => {
-            expect(wrapper.getByText(label)).toBeInTheDocument();
-        });
+        expect(wrapper.getByText("Select a project")).toBeInTheDocument();
+        // Tasks/Activities stay visible and point at the global workbench / activities routes.
+        const tasksLink = wrapper.getByText("Tasks").closest("a") as HTMLElement;
+        expect(tasksLink.getAttribute("href")).toBe(workspacePath(""));
+        const activitiesLink = wrapper.getByText("Activities").closest("a") as HTMLElement;
+        expect(activitiesLink.getAttribute("href")).toBe(workspacePath("/activities"));
     });
 
-    it("marks the current item type as active", () => {
-        history.push(workspacePath("") + "?itemType=dataset");
-        wrapper = renderSidebar();
-        const datasetLink = wrapper.getByText("Datasets").closest("a") as HTMLElement;
-        expect(datasetLink.getAttribute("data-active")).toBe("true");
-        const projectLink = wrapper.getByText("Projects").closest("a") as HTMLElement;
-        expect(projectLink.getAttribute("data-active")).toBe("false");
+    it("scopes Tasks and Activities to the project when one is open", () => {
+        history.push(workspacePath("/projects/myproject"));
+        wrapper = renderSidebar({ currentProjectId: "myproject" });
+        // Falls back to the project id as label until the project list resolves.
+        expect(wrapper.getByText("myproject")).toBeInTheDocument();
+        const tasksLink = wrapper.getByText("Tasks").closest("a") as HTMLElement;
+        expect(tasksLink.getAttribute("href")).toBe(workspacePath("/projects/myproject"));
+        expect(tasksLink.getAttribute("data-active")).toBe("true");
+        expect(wrapper.getByText("Activities")).toBeInTheDocument();
+    });
+
+    it("marks project Activities active on the activities route", () => {
+        history.push(workspacePath("/projects/myproject/activities"));
+        wrapper = renderSidebar({ currentProjectId: "myproject" });
+        const activitiesLink = wrapper.getByText("Activities").closest("a") as HTMLElement;
+        expect(activitiesLink.getAttribute("data-active")).toBe("true");
+        const tasksLink = wrapper.getByText("Tasks").closest("a") as HTMLElement;
+        expect(tasksLink.getAttribute("data-active")).toBe("false");
     });
 
     it("only shows the DM section when a DM base URL is configured", () => {
@@ -48,7 +66,7 @@ describe("AppSidebar", () => {
         wrapper = renderSidebar();
         expect(wrapper.queryByText("Knowledge graphs")).not.toBeInTheDocument();
         wrapper.unmount();
-        wrapper = renderSidebar({ dmBaseUrl: "http://docker.local" });
+        wrapper = renderSidebar({ initialSettings: { dmBaseUrl: "http://docker.local" } });
         expect(wrapper.getByText("Knowledge graphs")).toBeInTheDocument();
     });
 });

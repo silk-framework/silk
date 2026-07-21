@@ -1,35 +1,22 @@
 import React from "react";
 import { useSelector } from "react-redux";
 import { useTranslation } from "react-i18next";
-import { HtmlContentBlock, Icon, Menu, MenuDivider, MenuItem, MenuModeProvider, shadcn, Tag } from "@eccenca/gui-elements";
+import { Menu, shadcn } from "@eccenca/gui-elements";
 import { commonSel } from "@ducks/common";
-import { triggerHotkeyHandler } from "../../shared/HotKeyHandler/HotKeyHandler";
-import { CONTEXT_PATH } from "../../../constants/path";
 import { pluginRegistry, SUPPORTED_PLUGINS } from "../../plugins/PluginRegistry";
 import { UserMenuFooterProps } from "../../plugins/plugin.types";
-import { ExampleProjectImportMenu } from "../Header/ExampleProjectImportMenu";
 
-const {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuSeparator,
-    DropdownMenuTrigger,
-    SidebarMenu,
-    SidebarMenuButton,
-    SidebarMenuItem,
-    useSidebar,
-} = shadcn;
+const { SidebarMenu, SidebarMenuItem } = shadcn;
 
 /**
- * User menu at the sidebar footer (shadcn sidebar-07 "nav-user" pattern). Opens a dropdown
- * to the right containing everything the former header toolbar panel offered: language
- * switcher, quick search, keyboard shortcuts, API docs, deprecated plugins, example project
- * import, plugin-provided items (e.g. logout) and the version footer.
+ * Sidebar footer — a flat, always-visible block instead of a dropdown "user menu". There is no
+ * real user identity to justify a menu, so the useful bits live inline: the language switcher,
+ * the DM account actions (logout) and a small version line. Hidden in the collapsed icon rail
+ * (no room); expand the sidebar to reach it.
  */
 export function NavUser() {
     const [t] = useTranslation();
-    const { isMobile } = useSidebar();
-    const { hotKeys, dmBaseUrl, version } = useSelector(commonSel.initialSettingsSelector);
+    const { dmBaseUrl, version } = useSelector(commonSel.initialSettingsSelector);
 
     const diUserMenuItems = pluginRegistry.pluginReactComponent<{}>(SUPPORTED_PLUGINS.DI_USER_MENU_ITEMS);
     const diUserMenuFooter = pluginRegistry.pluginReactComponent<UserMenuFooterProps>(
@@ -39,99 +26,44 @@ export function NavUser() {
 
     return (
         <SidebarMenu>
-            <SidebarMenuItem>
-                <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                        <SidebarMenuButton
-                            id="headerUserMenu"
-                            size="lg"
-                            aria-label={t("navigation.user.open", "Open user menu")}
-                            className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
-                        >
-                            <div className="flex aspect-square size-8 shrink-0 items-center justify-center rounded-lg bg-sidebar-accent text-sidebar-accent-foreground">
-                                <Icon name="application-useraccount" title={t("navigation.user.menu", "User menu")} />
+            {/* `id` kept for the logout integration test, which used to open a dropdown here. */}
+            <SidebarMenuItem
+                id="headerUserMenu"
+                className="rounded-lg border border-sidebar-border bg-card group-data-[collapsible=icon]:hidden"
+            >
+                <div className="flex flex-col gap-2 p-2">
+                    {languageSwitcher && (
+                        <div>
+                            <div className="px-1 pb-1 text-xs font-medium text-muted-foreground">
+                                {t("navigation.user.language", "Language")}
                             </div>
-                            <div className="grid flex-1 text-left text-sm leading-tight">
-                                <span className="truncate font-medium">{t("navigation.user.menu", "User menu")}</span>
-                                {version && (
-                                    <span className="truncate text-xs text-muted-foreground">{version}</span>
-                                )}
-                            </div>
-                            <Icon name="toggler-caret" small className="ml-auto" />
-                        </SidebarMenuButton>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent
-                        className="w-(--radix-dropdown-menu-trigger-width) min-w-56 rounded-lg"
-                        side={isMobile ? "bottom" : "right"}
-                        align="end"
-                        sideOffset={4}
-                    >
-                        <MenuModeProvider mode="dropdown">
-                            <Menu>
-                                {languageSwitcher && <languageSwitcher.Component />}
-                                <MenuDivider />
-                                {hotKeys.quickSearch && (
-                                    <MenuItem
-                                        text={t("RecentlyViewedModal.title")}
-                                        href={"#"}
-                                        onClick={(e) => {
-                                            if (e) {
-                                                e.preventDefault();
-                                            }
-                                            triggerHotkeyHandler(hotKeys.quickSearch as string);
-                                        }}
-                                        icon={"operation-search"}
-                                        labelElement={
-                                            <Tag htmlTitle={`Hotkey: ${hotKeys.quickSearch}`} emphasis="weaker">
-                                                {hotKeys.quickSearch}
-                                            </Tag>
-                                        }
-                                    />
-                                )}
-                                {hotKeys.overview && (
-                                    <MenuItem
-                                        text={t("header.keyboardShortcutsModal.title")}
-                                        href={"#"}
-                                        onClick={(e) => {
-                                            if (e) {
-                                                e.preventDefault();
-                                            }
-                                            triggerHotkeyHandler(hotKeys.overview as string);
-                                        }}
-                                        icon="application-hotkeys"
-                                        labelElement={
-                                            <Tag htmlTitle={`Hotkey: ${hotKeys.overview}`} emphasis="weaker">
-                                                {hotKeys.overview}
-                                            </Tag>
-                                        }
-                                    />
-                                )}
-                                <MenuItem
-                                    text={t("common.action.showApiDoc", "API")}
-                                    href={CONTEXT_PATH + "/doc/api"}
-                                    icon={"application-homepage"}
-                                />
-                                <MenuItem
-                                    text={t("common.action.listDeprecatedPlugins")}
-                                    href={CONTEXT_PATH + "/workbench/deprecatedPlugins"}
-                                    icon={"state-warning"}
-                                />
-                                <ExampleProjectImportMenu />
-                                {!!dmBaseUrl && diUserMenuItems && <diUserMenuItems.Component />}
-                            </Menu>
-                        </MenuModeProvider>
-                        {(diUserMenuFooter || version) && <DropdownMenuSeparator />}
-                        {diUserMenuFooter ? (
+                            <languageSwitcher.Component />
+                        </div>
+                    )}
+                    {/* DM account actions (logout). Static `<li>` rows via `<Menu>` — gui-elements
+                        `MenuItem` in dropdown mode clashes with the shadcn Radix instance, but flat
+                        static rows render fine. The plugin emits its own leading divider. */}
+                    {!!dmBaseUrl && diUserMenuItems && (
+                        <Menu>
+                            <diUserMenuItems.Component />
+                        </Menu>
+                    )}
+                    {/* Footer plugin (user identity on DM-authenticated deployments + version with
+                        vendor link). Renders plain ToolbarSection/HtmlContentBlock rows — no
+                        MenuItems — so no <Menu> wrapper is needed. Hardcoded version line only as
+                        the fallback when the plugin is absent. */}
+                    {diUserMenuFooter ? (
+                        <div className="border-t border-sidebar-border px-1 pt-2 text-xs text-muted-foreground">
                             <diUserMenuFooter.Component version={version} />
-                        ) : (
-                            version && (
-                                <div className="px-2 py-1.5">
-                                    <HtmlContentBlock small>{version}</HtmlContentBlock>
-                                </div>
-                            )
-                        )}
-                    </DropdownMenuContent>
-                </DropdownMenu>
+                        </div>
+                    ) : (
+                        version && (
+                            <p className="truncate border-t border-sidebar-border px-1 pt-2 text-xs text-muted-foreground">
+                                {version} by eccenca GmbH
+                            </p>
+                        )
+                    )}
+                </div>
             </SidebarMenuItem>
         </SidebarMenu>
     );

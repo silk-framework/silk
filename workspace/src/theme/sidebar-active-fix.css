@@ -1,0 +1,28 @@
+/*
+ * Workaround for an @eccenca/gui-elements v26 SidebarMenuButton defect.
+ *
+ * Its cva base uses the Tailwind `data-active:` variant, which compiles to the
+ * attribute-PRESENCE selector `[data-active] { … }` — instead of `data-[active=true]:`
+ * (a value match, `[data-active="true"]`). The component renders `data-active={isActive}`
+ * with `isActive` defaulting to `false`, so every button carries `data-active="false"`,
+ * which the presence selector still matches. Result: EVERY sidebar row gets the active
+ * gray fill (+ bold text) at rest, which reads as "gray backgrounds on all the items".
+ *
+ * Until the upstream cva string is corrected (`data-active:` → `data-[active=true]:`),
+ * neutralise the false-active state here. Genuinely-active rows (`data-active="true"`) are
+ * untouched.
+ */
+
+/* Drop the false-active fill only when not hovered, so the hover highlight still shows. */
+[data-sidebar="menu-button"][data-active="false"]:not(:hover),
+[data-sidebar="menu-sub-button"][data-active="false"]:not(:hover) {
+    background-color: transparent;
+}
+
+/* Drop the false-active bold in EVERY state — otherwise hovering re-applies `font-medium`
+   and the tile subheading visibly thickens/shifts on hover. The tiles' own labels keep their
+   explicit `font-medium` class; only the inherited button weight is normalised here. */
+[data-sidebar="menu-button"][data-active="false"],
+[data-sidebar="menu-sub-button"][data-active="false"] {
+    font-weight: 400;
+}

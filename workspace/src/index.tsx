@@ -18,6 +18,10 @@ import configureStore from "./app/store/configureStore";
 import "@eccenca/gui-elements/src/css/index.css";
 import "./theme/index.css";
 import "./theme/tailwind.generated.css";
+// Loaded AFTER the Tailwind output so it can override the buggy false-active sidebar fill.
+import "./theme/sidebar-active-fix.css";
+// GridBoard tile-fill rule (self-carding widget cards stretch to fill their resizable tile).
+import "./theme/gridboard.css";
 import mappingEditor from "./app/views/pages/MappingEditor/index";
 import "./language";
 
@@ -28,6 +32,15 @@ import "./language";
 // storage key `diapp-theme`) — the pristine shadcn `sonner.tsx` reads the theme through
 // next-themes' `useTheme`. The toggle flips the class in place and persists the choice.
 const legacyDarkFlag = window.localStorage?.getItem("diapp-experimental-dark") === "true";
+// The dark-mode experiment persists `diapp-theme` in localStorage. A value left over from an
+// earlier session strands the shadcn sidebar in dark (it honours `.dark`) while the legacy
+// light-SCSS shell stays light — a jarring dark-gray sidebar on an otherwise light app. Unless
+// the legacy dark flag is explicitly set, reset to light on boot so a stale preference can't
+// keep us in dark. `__toggleDarkMode()` still works within a session.
+if (!legacyDarkFlag) {
+    window.localStorage?.removeItem("diapp-theme");
+    document.documentElement.classList.remove("dark");
+}
 (window as any).__toggleDarkMode = (): boolean => {
     const dark = document.documentElement.classList.toggle("dark");
     window.localStorage?.setItem("diapp-theme", dark ? "dark" : "light");

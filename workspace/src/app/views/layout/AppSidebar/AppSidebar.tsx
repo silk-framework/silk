@@ -10,6 +10,7 @@ import { CONTEXT_PATH, SERVE_PATH } from "../../../constants/path";
 import { getFullRoutePath } from "../../../utils/routerUtils";
 import { AppDispatch } from "store/configureStore";
 import { NavUser } from "./NavUser";
+import { NavProject } from "./NavProject";
 
 const {
     Sidebar,
@@ -32,16 +33,20 @@ const {
 export function AppSidebar() {
     const dispatch = useDispatch<AppDispatch>();
     const location = useLocation();
-    const locationParams = new URLSearchParams(location.search?.substring(1));
     const { dmBaseUrl, dmModuleLinks } = useSelector(commonSel.initialSettingsSelector);
+    const currentProjectId = useSelector(commonSel.currentProjectIdSelector);
     const [t] = useTranslation();
 
     const handleNavigate = (path: string) => {
         dispatch(routerOp.goToPage(path));
     };
 
-    const searchURL = (page: string) => `?itemType=${page}`;
-    const activitiesPageLink = SERVE_PATH + "/activities";
+    // Tasks/Activities are project-scoped when a project is open, and fall back to the global
+    // workbench item list / global activities otherwise, so the nav is never empty.
+    const tasksPath = currentProjectId ? SERVE_PATH + "/projects/" + currentProjectId : SERVE_PATH;
+    const activitiesPath = currentProjectId
+        ? SERVE_PATH + "/projects/" + currentProjectId + "/activities"
+        : SERVE_PATH + "/activities";
     const brandingSuffix =
         APPLICATION_CORPORATION_NAME() || APPLICATION_SUITE_NAME()
             ? ` @ ${APPLICATION_CORPORATION_NAME()} ${APPLICATION_SUITE_NAME()}`
@@ -70,7 +75,7 @@ export function AppSidebar() {
             <SidebarHeader>
                 <SidebarMenu>
                     <SidebarMenuItem>
-                        <SidebarMenuButton size="lg" asChild tooltip={APPLICATION_NAME()}>
+                        <SidebarMenuButton size="lg" asChild>
                             <a href={getFullRoutePath("?itemType=project")}>
                                 <div className="flex aspect-square size-8 shrink-0 items-center justify-center overflow-hidden rounded-lg">
                                     <img
@@ -133,37 +138,21 @@ export function AppSidebar() {
                     </SidebarGroup>
                 )}
                 <SidebarGroup>
-                    <SidebarGroupLabel title={t("navigation.side.diBrowseTooltip", "")}>
-                        {t("navigation.side.diBrowse", "")}
-                    </SidebarGroupLabel>
-                    <SidebarMenu>
+                    <NavProject />
+                    <SidebarMenu className="mt-1">
                         {diNavItem(
-                            SERVE_PATH + searchURL("project"),
-                            "artefact-project",
-                            t("navigation.side.di.projects", "Projects"),
-                            t("navigation.side.di.projectsTooltip"),
-                            location.pathname === SERVE_PATH && locationParams.get("itemType") === "project",
+                            tasksPath,
+                            "artefact-task",
+                            t("navigation.side.di.tasks", "Tasks"),
+                            t("navigation.side.di.tasksTooltip", "Browse and manage the tasks in this project"),
+                            location.pathname === tasksPath,
                         )}
                         {diNavItem(
-                            SERVE_PATH + searchURL("dataset"),
-                            "artefact-dataset",
-                            t("navigation.side.di.datasets", "Datasets"),
-                            t("navigation.side.di.datasetsTooltip"),
-                            location.pathname === SERVE_PATH && locationParams.get("itemType") === "dataset",
-                        )}
-                        {diNavItem(
-                            SERVE_PATH + searchURL("workflow"),
-                            "artefact-workflow",
-                            t("navigation.side.di.workflows", "Workflows"),
-                            t("navigation.side.di.workflowsTooltip"),
-                            location.pathname === SERVE_PATH && locationParams.get("itemType") === "workflow",
-                        )}
-                        {diNavItem(
-                            activitiesPageLink,
+                            activitiesPath,
                             "application-activities",
                             t("navigation.side.di.activities", "Activities"),
                             t("navigation.side.di.activitiesTooltip"),
-                            location.pathname.includes(activitiesPageLink),
+                            location.pathname === activitiesPath,
                         )}
                     </SidebarMenu>
                 </SidebarGroup>
