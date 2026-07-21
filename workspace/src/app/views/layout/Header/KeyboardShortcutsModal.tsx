@@ -1,23 +1,16 @@
 import React from "react";
-import {
-    Button,
-    OverviewItemList,
-    PropertyName,
-    PropertyValue,
-    PropertyValuePair,
-    SimpleDialog,
-    Tag,
-    TagList,
-    TitleSubsection,
-    Spacing,
-} from "@eccenca/gui-elements";
+import { Button, SimpleDialog, shadcn } from "@eccenca/gui-elements";
 import { useTranslation } from "react-i18next";
 import useHotKey from "../../../views/shared/HotKeyHandler/HotKeyHandler";
 import { useSelector } from "react-redux";
 import { commonSel } from "@ducks/common";
 
+const { Kbd, KbdGroup } = shadcn;
+
 const sectionKeys = ["general", "workflow-editor", "rule-editors", "projects", "tasks"] as const;
-const shortcuts: Record<(typeof sectionKeys)[number], Array<{ key: string; commands: string[] }>> = {
+type SectionKey = (typeof sectionKeys)[number];
+
+const shortcuts: Record<SectionKey, Array<{ key: string; commands: string[] }>> = {
     general: [
         { key: "quick-search", commands: ["/"] },
         { key: "help", commands: ["?"] },
@@ -47,14 +40,8 @@ const shortcuts: Record<(typeof sectionKeys)[number], Array<{ key: string; comma
     ],
     "rule-editors": [
         { key: "duplicate-nodes", commands: ["ctrl+d", "cmd+d"] },
-        {
-            key: "undo",
-            commands: ["ctrl+z", "cmd+z"],
-        },
-        {
-            key: "redo",
-            commands: ["ctrl+shift+z", "cmd+shift+z"],
-        },
+        { key: "undo", commands: ["ctrl+z", "cmd+z"] },
+        { key: "redo", commands: ["ctrl+shift+z", "cmd+shift+z"] },
         { key: "delete", commands: ["backspace"] },
         { key: "multiselect", commands: ["shift+mouse select"] },
         { key: "copySelectedNodes", commands: ["ctrl+c", "cmd+c"] },
@@ -69,6 +56,47 @@ const shortcuts: Record<(typeof sectionKeys)[number], Array<{ key: string; comma
         { key: "create-task", commands: ["c", "*then", "o"] },
         { key: "create-new-item", commands: ["c", "*then", "n"] },
     ],
+};
+
+/** Renders a single key combination (e.g. `ctrl+d`) as a group of individual keycaps. */
+const KeyCombo = ({ combo }: { combo: string }) => {
+    const [t] = useTranslation();
+    return (
+        <KbdGroup>
+            {combo.split("+").map((key, i) => (
+                <React.Fragment key={key + i}>
+                    {i > 0 && <span className="text-xs text-muted-foreground">+</span>}
+                    <Kbd>{t(`header.keyboardShortcutsModal.keys.${key}`, key)}</Kbd>
+                </React.Fragment>
+            ))}
+        </KbdGroup>
+    );
+};
+
+const ShortcutRow = ({ sectionKey, shortcut }: { sectionKey: SectionKey; shortcut: { key: string; commands: string[] } }) => {
+    const [t] = useTranslation();
+    const description = t(
+        `header.keyboardShortcutsModal.categories.${sectionKey}.shortcuts.${shortcut.key}Desc`,
+        "",
+    );
+    return (
+        <div className="flex items-baseline justify-between gap-6 py-1.5" title={description || undefined}>
+            <span className="text-sm text-foreground">
+                {t(`header.keyboardShortcutsModal.categories.${sectionKey}.shortcuts.${shortcut.key}`)}
+            </span>
+            <div className="flex shrink-0 flex-wrap items-center justify-end gap-1.5">
+                {shortcut.commands.map((command, i) =>
+                    command.startsWith("*") ? (
+                        <span key={command + i} className="text-xs italic text-muted-foreground">
+                            {t(`header.keyboardShortcutsModal.key-directives.${command.replace("*", "")}`)}
+                        </span>
+                    ) : (
+                        <KeyCombo key={command + i} combo={command} />
+                    ),
+                )}
+            </div>
+        </div>
+    );
 };
 
 export const KeyboardShortcutsModal = () => {
@@ -102,68 +130,20 @@ export const KeyboardShortcutsModal = () => {
             ]}
             forceTopPosition
         >
-            <OverviewItemList hasDivider columns={1}>
+            <div className="gap-x-10 md:columns-2">
                 {sectionKeys.map((sectionKey) => (
-                    <section key={sectionKey} style={{ margin: "0.5em 0" }}>
-                        <TitleSubsection>
+                    <section key={sectionKey} className="mb-6 break-inside-avoid">
+                        <h3 className="mb-1 text-xs font-medium text-muted-foreground">
                             {t(`header.keyboardShortcutsModal.categories.${sectionKey}.label`)}
-                        </TitleSubsection>
-                        <OverviewItemList columns={2}>
-                            {shortcuts[sectionKey].map((shortcut, i) => (
-                                <PropertyValuePair style={{ width: "100%" }} hasSpacing key={sectionKey + shortcut.key}>
-                                    <PropertyName
-                                        size="large"
-                                        labelProps={{
-                                            tooltip: t(
-                                                `header.keyboardShortcutsModal.categories.${sectionKey}.shortcuts.${shortcut.key}Desc`,
-                                                "",
-                                            ),
-                                        }}
-                                    >
-                                        {t(
-                                            `header.keyboardShortcutsModal.categories.${sectionKey}.shortcuts.${shortcut.key}`,
-                                        )}
-                                    </PropertyName>
-                                    <PropertyValue
-                                        style={{
-                                            marginLeft: "calc(31.25% + 14px)",
-                                        }}
-                                    >
-                                        <TagList>
-                                            {shortcut.commands.map((command, i) => {
-                                                const keyDirective = command.replace("*", "");
-                                                return command.startsWith("*") ? (
-                                                    <React.Fragment key={command + i}>
-                                                        {" "}
-                                                        <p>
-                                                            {t(
-                                                                `header.keyboardShortcutsModal.key-directives.${keyDirective}`,
-                                                            )}
-                                                        </p>
-                                                    </React.Fragment>
-                                                ) : (
-                                                    <Tag key={command + i}>
-                                                        {command
-                                                            .split("+")
-                                                            .map((key) => {
-                                                                return t(
-                                                                    `header.keyboardShortcutsModal.keys.${key}`,
-                                                                    key,
-                                                                );
-                                                            })
-                                                            .join(" + ")}
-                                                    </Tag>
-                                                );
-                                            })}
-                                        </TagList>
-                                    </PropertyValue>
-                                </PropertyValuePair>
+                        </h3>
+                        <div className="divide-y divide-border/60">
+                            {shortcuts[sectionKey].map((shortcut) => (
+                                <ShortcutRow key={shortcut.key} sectionKey={sectionKey} shortcut={shortcut} />
                             ))}
-                        </OverviewItemList>
-                        <Spacing style={{ clear: "both" }} />
+                        </div>
                     </section>
                 ))}
-            </OverviewItemList>
+            </div>
         </SimpleDialog>
     ) : null;
 };

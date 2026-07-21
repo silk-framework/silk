@@ -1,17 +1,17 @@
 import React, { useEffect, useState } from "react";
 import {
-    ApplicationToolbarAction,
     ApplicationToolbarPanel,
     Badge,
     Button,
+    cn,
     ContextOverlay,
-    Depiction,
     Divider,
     Icon,
     Spacing,
     useApplicationHeaderOverModals,
 } from "@eccenca/gui-elements";
 import useErrorHandler from "../../../hooks/useErrorHandler";
+import { useTranslation } from "react-i18next";
 import { useDispatch, useSelector } from "react-redux";
 import errorSelector from "@ducks/error/selectors";
 import { ApplicationError, DIErrorFormat, DIErrorTypes } from "@ducks/error/typings";
@@ -29,6 +29,7 @@ interface Props {
 export function NotificationsMenu({ autoDisplayNotifications = true, errorNotificationInstanceId }: Props) {
     const displayNotifications = useSelector(commonSel.notificationMenuSelector);
     const dispatch = useDispatch();
+    const [t] = useTranslation();
 
     const notificationQueue = useNotificationsQueue(errorNotificationInstanceId, autoDisplayNotifications);
 
@@ -41,32 +42,38 @@ export function NotificationsMenu({ autoDisplayNotifications = true, errorNotifi
         dispatch(commonOp.toggleNotificationMenuDisplay(!displayNotifications));
     };
 
+    // The bell is a permanent part of the header chrome, so it renders regardless of whether there
+    // are queued notifications. The count badge only appears when something is waiting; opening an
+    // empty queue shows an explicit empty state.
+    const notificationCount = notificationQueue.messages.length;
+
+    // Ghost icon-button matching the header's other chrome actions (Help): 36px box, 20px icon,
+    // stroke 2 — kept in sync with `headerActionButtonClass` in `Header.tsx`. The count badge sits
+    // in the top-right corner of the relative button; opening the panel swaps in a close icon.
     const notificationIndicatorButton = (
-        <ApplicationToolbarAction
-            aria-label="Open notifications menu"
-            isActive={false}
-            // fill the h-12 inset header (the component default `size-14` targets the old 56px shell)
-            className="size-12"
+        <button
+            type="button"
+            aria-label={displayNotifications ? "Close notifications menu" : "Open notifications menu"}
             onClick={() => {
                 toggleNotifications();
             }}
+            className={cn(
+                "relative flex size-9 items-center justify-center rounded-lg text-muted-foreground transition-colors",
+                "hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40",
+                displayNotifications && "bg-muted text-foreground",
+            )}
         >
-            <Depiction
-                padding="medium"
-                size="small"
-                ratio="1:1"
-                resizing="contain"
-                image={<Icon name="application-notification" title="Notification menu icon" />}
-                badge={
-                    <Badge
-                        position={"top-right"}
-                        intent="warning"
-                        maxLength={2}
-                        children={notificationQueue.notifications.length}
-                    />
-                }
-            />
-        </ApplicationToolbarAction>
+            {displayNotifications ? (
+                <Icon name="navigation-close" title="Close icon" />
+            ) : (
+                <>
+                    <Icon name="application-notification" title="Notification menu icon" />
+                    {notificationCount > 0 && (
+                        <Badge position={"top-right"} intent="danger" maxLength={2} children={notificationCount} />
+                    )}
+                </>
+            )}
+        </button>
     );
 
     const notificationIndicator =
@@ -86,37 +93,29 @@ export function NotificationsMenu({ autoDisplayNotifications = true, errorNotifi
             notificationIndicatorButton
         );
 
-    const filteredMessages = notificationQueue.messages.filter((m) => showMessage(m));
-
-    return filteredMessages.length > 0 ? (
+    return (
         <>
-            {!displayNotifications && notificationIndicator}
-            {displayNotifications && (
-                <ApplicationToolbarAction
-                    aria-label="Close notifications menu"
-                    isActive={true}
-                    className="size-12"
-                    onClick={() => {
-                        toggleNotifications();
-                    }}
-                >
-                    <Icon name="navigation-close" title="Close icon" />
-                </ApplicationToolbarAction>
-            )}
+            {notificationIndicator}
             {displayNotifications && (
                 <ApplicationToolbarPanel
                     aria-label="Notification menu"
                     expanded={true}
                     style={{ width: "40rem" }}
-                    className="top-12"
+                    className="top-15"
                 >
-                    {notificationQueue.clearAllButton}
-                    {notificationQueue.notifications}
+                    {notificationCount > 0 ? (
+                        <>
+                            {notificationQueue.clearAllButton}
+                            {notificationQueue.notifications}
+                        </>
+                    ) : (
+                        <div className="text-sm text-muted-foreground">
+                            {t("Notifications.empty", "You have no notifications.")}
+                        </div>
+                    )}
                 </ApplicationToolbarPanel>
             )}
         </>
-    ) : (
-        <></>
     );
 }
 

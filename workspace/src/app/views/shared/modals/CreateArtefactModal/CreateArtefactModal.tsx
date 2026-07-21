@@ -134,11 +134,10 @@ export function CreateArtefactModal() {
         ? { ...updateExistingTask.taskPluginDetails, key: updateExistingTask.taskPluginDetails.pluginId }
         : undefined;
     const selectedArtefact: IPluginOverview | undefined = updateTaskPluginDetails ?? selectedArtefactFromStore;
-    const selectedArtefactKey = React.useRef<string | undefined>();
+    const selectedArtefactKey = React.useRef<string | undefined>(undefined);
     selectedArtefactKey.current = selectedArtefactFromStore?.key;
     const selectedArtefactTitle: string | undefined = selectedArtefact?.title;
     const [currentProject, setCurrentProject] = useState<ProjectIdAndLabel | undefined>(undefined);
-    const [showProjectSelection, setShowProjectSelection] = useState<boolean>(false);
     const [formValueChanges, setFormValueChanges] = React.useState<{
         [key: string]: {
             initialValue: any;
@@ -532,12 +531,14 @@ export function CreateArtefactModal() {
      * @param item Project
      */
     const updateCurrentSelectedProject = (item: ProjectIdAndLabel) => {
-        setShowProjectSelection(false);
         setCurrentProject(item);
     };
 
     /**
-     * Adds Notification Icon and ProjectSelection component to task form.
+     * Prefixes the task form with the target-project selector. When a project context already exists
+     * (opened from a project page, or defaulted) the selector is shown inline pre-filled with that
+     * project — instead of a read-only "Selected project" notification that hides the picker behind an
+     * edit button — so the target project can be changed directly without an extra click.
      * @param artefactForm
      * @returns
      */
@@ -549,33 +550,13 @@ export function CreateArtefactModal() {
         )
             return (
                 <>
-                    {showProjectSelection ? (
-                        <ProjectSelection
-                            resetForm={resetFormOnConfirmation}
-                            setCurrentProject={updateCurrentSelectedProject}
-                            modifiedValuesExist={modifiedParameterValuesExist}
-                            selectedProject={currentProject}
-                            onClose={() => setShowProjectSelection(false)}
-                            getWorkspaceProjects={getWorkspaceProjects}
-                        />
-                    ) : (
-                        <Notification
-                            message={`${t("CreateModal.projectContext.selectedProject", "Selected project")}: ${
-                                currentProject.label
-                            }`}
-                            actions={
-                                <IconButton
-                                    data-test-id="project-selection-btn"
-                                    name="item-edit"
-                                    text={t(
-                                        "CreateModal.projectContext.changeProjectButton",
-                                        "Select a different project",
-                                    )}
-                                    onClick={() => setShowProjectSelection(true)}
-                                />
-                            }
-                        />
-                    )}
+                    <ProjectSelection
+                        resetForm={resetFormOnConfirmation}
+                        setCurrentProject={updateCurrentSelectedProject}
+                        modifiedValuesExist={modifiedParameterValuesExist}
+                        selectedProject={currentProject}
+                        getWorkspaceProjects={getWorkspaceProjects}
+                    />
                     <Spacing size="tiny" vertical />
                     {artefactForm}
                 </>
@@ -595,7 +576,6 @@ export function CreateArtefactModal() {
                 modifiedValuesExist={modifiedParameterValuesExist}
                 setCurrentProject={updateCurrentSelectedProject}
                 selectedProject={currentProject}
-                onClose={() => setShowProjectSelection(false)}
                 getWorkspaceProjects={getWorkspaceProjects}
             />
         );
@@ -737,6 +717,48 @@ export function CreateArtefactModal() {
             setToBeAdded(undefined);
         }
     }, [artefactListWithProject.map((item) => item.key).join("|"), selectedDType]);
+
+    // Skip the selection list when a category resolves to a single artefact type. Opening the dialog
+    // pre-filtered to e.g. Transform / Linking / Workflow / Project used to still show a one-item
+    // list; instead we open that type's creation form directly. Multi-plugin categories (Dataset,
+    // Task) and the "all" view keep the list. Guarded to fire once per open so the in-form "back"
+    // button still returns to the (single-item) list instead of immediately re-selecting.
+    const autoAdvancedForOpen = React.useRef(false);
+    React.useEffect(() => {
+        if (!isOpen) {
+            autoAdvancedForOpen.current = false;
+        }
+    }, [isOpen]);
+    React.useEffect(() => {
+        if (
+            isOpen &&
+            !loading &&
+            !autoAdvancedForOpen.current &&
+            selectedDType !== "all" &&
+            !searchValue &&
+            !selectedArtefactFromStore?.key &&
+            !updateExistingTask &&
+            !newTaskPreConfiguration &&
+            artefactListWithProject.length === 1
+        ) {
+            autoAdvancedForOpen.current = true;
+            const only = artefactListWithProject[0];
+            if (only.key === DATA_TYPES.PROJECT) {
+                dispatch(commonOp.selectArtefact(only));
+            } else {
+                dispatch(commonOp.getArtefactPropertiesAsync(only));
+            }
+        }
+    }, [
+        isOpen,
+        loading,
+        selectedDType,
+        searchValue,
+        selectedArtefactFromStore?.key,
+        updateExistingTask,
+        newTaskPreConfiguration,
+        artefactListWithProject.length,
+    ]);
 
     const handleAutoConfigure = async (projectId: string, artefactId: string) => {
         const isValidFields = await form.trigger();
