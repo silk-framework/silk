@@ -44,7 +44,7 @@ object LinkResolver {
 
   def forLinkingTask(linkTask: ProjectTask[LinkSpec])(implicit userContext: UserContext): DPair[LinkResolver] = {
     for(selection <- linkTask.dataSelections) yield {
-      forTask(linkTask.project.anyTask(selection.inputId))
+      selection.inputTaskId.map(id => forTask(linkTask.project.anyTask(id))).getOrElse(NoLinkResolver(""))
     }
   }
 

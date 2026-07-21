@@ -335,8 +335,10 @@ export const TransformRuleEditor = ({
         try {
             const taskData = (await requestTaskData<ITransformTaskParameters>(projectId, transformTaskId)).data;
             const parameters: ITransformTaskParameters = taskData.data.parameters;
-            const characteristics = await requestDatasetCharacteristics(projectId, parameters.selection.inputId);
-            result.set("sourcePathInput", characteristics.data);
+            if (parameters.selection.inputId) {
+                const characteristics = await requestDatasetCharacteristics(projectId, parameters.selection.inputId);
+                result.set("sourcePathInput", characteristics.data);
+            }
         } catch (ex) {
             // Return 404 if the dataset does not exist or the task is not a dataset
             if (ex.httpStatus !== 404) {

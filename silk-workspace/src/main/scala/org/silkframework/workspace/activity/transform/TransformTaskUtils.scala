@@ -22,7 +22,7 @@ object TransformTaskUtils {
       * Retrieves the data source for this transform task.
       */
     def dataSource(implicit userContext: UserContext): DataSource = {
-      val sourceId = task.data.selection.inputId
+      val sourceId = task.data.selection.requiredInputId()
       task.project.taskOption[CustomTask](sourceId) match {
         case Some(customTask) =>
           throw TaskException(s"Task ${customTask.id} of type 'Other' is not supported as data source. Evaluate and Execute actions are thus not working.")
@@ -42,7 +42,7 @@ object TransformTaskUtils {
     def asDataSource(typeUri: Uri)
                     (implicit userContext: UserContext): DataSource = {
       val transformSpec = task.data
-      val source = ExecutorRegistry.access(task.project.task[GenericDatasetSpec](transformSpec.selection.inputId)).source
+      val source = ExecutorRegistry.access(task.project.task[GenericDatasetSpec](transformSpec.selection.requiredInputId())).source
 
       // Find the rule that generates the selected type
       if(typeUri.uri.isEmpty) {
@@ -75,8 +75,8 @@ object TransformTaskUtils {
      * Generates the task context assuming that this task is executed standalone (i.e., not in a workflow)
      */
     def taskContext(implicit pluginContext: PluginContext): TaskContext = {
-      val inputTask = task.project.anyTask(task.selection.inputId)(pluginContext.user)
-      TaskContext(Seq(inputTask), pluginContext)
+      val inputTasks = task.selection.inputTaskId.toSeq.map(id => task.project.anyTask(id)(pluginContext.user))
+      TaskContext(inputTasks, pluginContext)
     }
   }
 

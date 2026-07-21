@@ -28,7 +28,7 @@ object TransformUtils {
   def isRdfDataset(project: Project,
                    datasetSelection: DatasetSelection)
                   (implicit userContext: UserContext): Boolean = {
-    isRdfDatasetById(project, datasetSelection.inputId)
+    datasetSelection.inputTaskId.exists(id => isRdfDatasetById(project, id))
   }
 
   private def isRdfDatasetById(project: Project,

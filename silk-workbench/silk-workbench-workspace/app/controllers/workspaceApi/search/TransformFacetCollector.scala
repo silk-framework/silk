@@ -21,7 +21,7 @@ case class TransformInputResourceFacetCollector() extends NoLabelKeywordFacetCol
 
   override def extractKeywordIds(projectTask: ProjectTask[TransformSpec])
                                 (implicit user: UserContext): Set[String] = {
-    val inputTaskId = projectTask.data.selection.inputId
+    val inputTaskId = projectTask.data.selection.inputTaskId
     projectTask.project.taskOption[GenericDatasetSpec](inputTaskId).toSet flatMap { projectDatasetSpec: ProjectTask[GenericDatasetSpec] =>
       fileFacetCollector.extractKeywordIds(projectDatasetSpec)
     }

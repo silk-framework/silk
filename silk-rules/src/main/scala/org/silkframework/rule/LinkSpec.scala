@@ -50,10 +50,10 @@ import scala.xml.Node
   description =
       """Generates links between instances from different sources according to a link specification."""
 )
-case class LinkSpec(@Param(label = "Source input", value = "The source input to select.")
-                    source: DatasetSelection = DatasetSelection("SourceDatasetSelection", Uri(""), Restriction.empty),
-                    @Param(label = "Target input", value = "The target input to select.")
-                    target: DatasetSelection = DatasetSelection("TargetDatasetSelection", Uri(""), Restriction.empty),
+case class LinkSpec(@Param(label = "Source input", value = "The source input to select. If left empty, the input must be provided by connecting it in a workflow.")
+                    source: DatasetSelection = DatasetSelection.empty,
+                    @Param(label = "Target input", value = "The target input to select. If left empty, the input must be provided by connecting it in a workflow.")
+                    target: DatasetSelection = DatasetSelection.empty,
                     @Param(label = "Linkage rule", value = "The linkage rule that specifies when entities match and are linked.", visibleInDialog = false)
                     rule: LinkageRule = LinkageRule(),
                     @Param(label = "Output", value = "The output dataset to write the links to.", autoCompletionProvider = classOf[DatasetTaskReferenceAutoCompletionProvider],
@@ -75,7 +75,7 @@ case class LinkSpec(@Param(label = "Source input", value = "The source input to 
 
   def findSources(datasets: Iterable[Task[DatasetSpec[Dataset]]])
                  (implicit userContext: UserContext): DPair[DataSource] = {
-    DPair.fromSeq(dataSelections.map(_.inputId).map(id => datasets.find(_.id == id).map(ExecutorRegistry.access(_).source).getOrElse(EmptySource)))
+    DPair.fromSeq(dataSelections.map(_.inputTaskId).map(idOpt => idOpt.flatMap(id => datasets.find(_.id == id)).map(ExecutorRegistry.access(_).source).getOrElse(EmptySource)))
   }
 
   def entityDescriptions: DPair[EntitySchema] = {
@@ -133,7 +133,7 @@ case class LinkSpec(@Param(label = "Source input", value = "The source input to 
     Some(FixedSchemaPort(LinksEntitySchema.schema))
   }
 
-  override def inputTasks: Set[Identifier] = dataSelections.map(_.inputId).toSet
+  override def inputTasks: Set[Identifier] = dataSelections.toSeq.flatMap(_.inputTaskId).toSet
 
   override def outputTasks: Set[Identifier] = output.value.toSet
 
@@ -262,8 +262,8 @@ object LinkSpec {
       // Create link spec
       val linkSpec =
         LinkSpec(
-          source = DatasetSelection.fromXML((node \ "SourceDataset").head),
-          target = DatasetSelection.fromXML((node \ "TargetDataset").head),
+          source = (node \ "SourceDataset").headOption.map(DatasetSelection.fromXML).getOrElse(DatasetSelection.empty),
+          target = (node \ "TargetDataset").headOption.map(DatasetSelection.fromXML).getOrElse(DatasetSelection.empty),
           rule = fromXml[LinkageRule](linkageRuleNode),
           output =
             (node \ "Outputs" \ "Output").headOption map { outputNode =>

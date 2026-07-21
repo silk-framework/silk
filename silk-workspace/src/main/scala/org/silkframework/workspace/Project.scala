@@ -221,6 +221,11 @@ class Project(initialConfig: ProjectConfig, provider: WorkspaceProvider, val res
     module[T].taskOption(taskName)
   }
 
+  override def taskOption[T <: TaskSpec : ClassTag](taskName: Option[Identifier])
+                                                   (implicit userContext: UserContext): Option[ProjectTask[T]] = {
+    taskName.flatMap(name => taskOption[T](name))
+  }
+
   /**
    * Retrieves a task of any type by name.
    *

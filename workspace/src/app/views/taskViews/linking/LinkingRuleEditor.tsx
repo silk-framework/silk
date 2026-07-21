@@ -463,14 +463,15 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions, insta
                 const targetTaskId = optionallyLabelledParameterToValue(
                     optionallyLabelledParameterToValue(parameters.target).inputId,
                 );
-                const sourceDatasetRequest = requestDatasetCharacteristics(projectId, sourceTaskId);
-                const targetDatasetRequest = requestDatasetCharacteristics(projectId, targetTaskId);
                 const handleRequest = async (
-                    requestFuture: Promise<FetchResponse<DatasetCharacteristics>>,
+                    taskId: string | undefined,
                     pathPluginId: "sourcePathInput" | "targetPathInput",
                 ) => {
+                    if (!taskId) {
+                        return;
+                    }
                     try {
-                        const response = await requestFuture;
+                        const response = await requestDatasetCharacteristics(projectId, taskId);
                         result.set(pathPluginId, response.data);
                     } catch (ex) {
                         // Return 404 if the dataset does not exist or the task is not a dataset
@@ -484,8 +485,8 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions, insta
                         }
                     }
                 };
-                await handleRequest(sourceDatasetRequest, "sourcePathInput");
-                await handleRequest(targetDatasetRequest, "targetPathInput");
+                await handleRequest(sourceTaskId, "sourcePathInput");
+                await handleRequest(targetTaskId, "targetPathInput");
             }
             return result;
         },
