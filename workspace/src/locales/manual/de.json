@@ -332,6 +332,13 @@
         "uploadError": "An upload error has occurred for file '{{fileName}}'. Details: {{errorDetails}}",
         "waitFor": "File '{{fileName}}' is being uploaded."
     },
+    "GridBoard": {
+        "minimize": "Karte minimieren",
+        "move": "Karte verschieben",
+        "resetLayout": "Layout zurücksetzen",
+        "resize": "Karte skalieren",
+        "restore": "Karte wiederherstellen"
+    },
     "HierarchicalMapping": {
         "ExampleView": {
             "errors": {
@@ -385,6 +392,9 @@
         "unknownuser": "unknown user",
         "unsavedMetaDataWarning": "There are unsaved changes that will be lost. Do you still want to proceed?",
         "updateFailed": "Updating meta data has failed"
+    },
+    "Notifications": {
+        "empty": "Sie haben keine Benachrichtigungen."
     },
     "OverwriteModal": {
         "overwriteFile": "File '{{fileName}}' already exists. Do you want to overwrite it?"
@@ -664,6 +674,7 @@
             "exportTo": "Export to",
             "filterOff": "Remove filter",
             "filterOn": "Use as filter",
+            "help": "Hilfe",
             "import": "Import",
             "listDeprecatedPlugins": "Deprecated plugins usage",
             "loadExampleProject": "Add \"movies\" example project",
@@ -750,6 +761,7 @@
             "deprecatedPluginBannerDeprecationMessage": "Deprecation Message",
             "deprecatedPluginBannerPluginLabel": "Deprecated Plugin",
             "errorDataTypes": "Fetch error for dataset types",
+            "noDescription": "Keine Beschreibung",
             "noItems": "No {{items}} found.",
             "noResults": "No results.",
             "noTypes": "No types found",
@@ -783,9 +795,11 @@
             "advancedOptions": "Advanced options",
             "all": "All",
             "and": "and",
+            "ascending": "aufsteigend",
             "back": "Back",
             "config": "Config",
             "copied": "Copied",
+            "descending": "absteigend",
             "description": "Description",
             "emptyPath": "Empty path",
             "itemType": "Item type",
@@ -797,6 +811,7 @@
             "previous": "Previous",
             "removed": "Removed",
             "required": "required",
+            "settings": "Settings",
             "sortOptions": "Sort options",
             "summary": "Summary",
             "unknown": "Unknown",
@@ -990,6 +1005,9 @@
         }
     },
     "navigation": {
+        "search": {
+            "placeholder": "Suchen oder zu etwas springen…"
+        },
         "side": {
             "close": "Close navigation",
             "di": {
@@ -999,12 +1017,15 @@
                 "datasetsTooltip": "Shows the list of all datasets across all build projects.",
                 "projects": "Projects",
                 "projectsTooltip": "Shows the list of all data-integration build projects.",
+                "tasks": "Aufgaben",
+                "tasksTooltip": "Aufgaben in diesem Projekt durchsuchen und verwalten",
                 "workflows": "Workflows",
                 "workflowsTooltip": "Shows the list of all workflows across all build projects."
             },
             "diBrowse": "Silk",
             "diBrowseTooltip": "Used to manage data-integration projects to build a knowledge graph from existing datasources",
             "dm": {
+                "documentation": "Dokumentation",
                 "explore": "Knowledge graphs",
                 "exploreTooltip": "A generic RDF graph data browser and editor.",
                 "query": "Queries",
@@ -1015,15 +1036,24 @@
                 "vocabTooltip": "Shows the list of all managed vocabularies. It let's you (un-)install vocabularies from RDF files or the integrated catalog."
             },
             "dmBrowser": "Explore",
-            "open": "Open navigation"
-        },
-        "sideWidgets": {
-            "collapse": "Hide page details",
-            "expand": "Show page details",
-            "title": "Page details"
+            "open": "Open navigation",
+            "project": {
+                "all": "Alle Projekte…",
+                "empty": "Keine Projekte gefunden",
+                "label": "Projekt",
+                "new": "Neues Projekt",
+                "overview": "Projektübersicht öffnen",
+                "projects": "Projekte",
+                "searchPlaceholder": "Projekte suchen…",
+                "select": "Projekt auswählen",
+                "switch": "Projekt wählen"
+            },
+            "toggle": "Navigation umschalten"
         },
         "user": {
             "close": "Close user menu",
+            "language": "Sprache",
+            "menu": "User menu",
             "open": "Open user menu"
         }
     },
@@ -1051,6 +1081,9 @@
             "title": "Deprecated plugins usage",
             "unknownTask": "N/A"
         },
+        "linking": {
+            "title": "Linking-Editor"
+        },
         "notFound": {
             "backLink": "Go to homepage",
             "text": "The page you requested does not exist.",
@@ -1068,7 +1101,8 @@
                 "dismiss": "Schließen",
                 "message": "Es gibt eine neue Möglichkeit, Datensätze in Wissensgraphen zu transformieren — probieren Sie den neuen Mapping-Creator aus.",
                 "tryIt": "Neuen Mapping-Creator öffnen"
-            }
+            },
+            "title": "Mapping-Editor"
         },
         "workspace": {
             "contents": "Contents",
@@ -1076,6 +1110,9 @@
             "empty": "Your workspace is empty. In order to start, create a new project or import an existing project from an exported project file.",
             "firstWorkflow": "Workflow 1"
         }
+    },
+    "quickSearch": {
+        "recentlyViewed": "Zuletzt angesehen"
     },
     "taskViews": {
         "linkRulesEditor": {
@@ -1164,9 +1201,15 @@
         }
     },
     "widget": {
+        "AccessControlWidget": {
+            "title": "Zugriffskontrolle"
+        },
         "ActivityInfoWidget": {
             "title": "Activities",
             "view": "View project activities"
+        },
+        "DeprecatedPluginsWidget": {
+            "title": "Deprecated plugins"
         },
         "ConfigWidget": {
             "loading": "Loading configuration list.",
@@ -1243,7 +1286,8 @@
                 "modified": "Last modified",
                 "name": "Name",
                 "size": "Size (bytes)"
-            }
+            },
+            "title": "Projektdateien"
         },
         "Filterbar": {
             "subsections": {
@@ -1287,6 +1331,17 @@
             },
             "saveError": "An error has occurred while saving the linkage rule config.",
             "title": "Configuration: Linkage rule"
+        },
+        "SearchTable": {
+            "columns": {
+                "actions": "Aktionen",
+                "description": "Beschreibung",
+                "name": "Name",
+                "plugin": "Plugin",
+                "project": "Projekt",
+                "tags": "Tags",
+                "type": "Typ"
+            }
         },
         "TargetVocabularySelection": {
             "customVocabularyWarning": "The vocabulary '{{uri}}' is not among the installed vocabularies.",
@@ -1361,6 +1416,7 @@
         "TaskConfigWidget": {
             "loading": "Loading update dialog...",
             "noPreview": "No preview available",
+            "openError": "Cannot open edit dialog.",
             "templateValueInfo": "The parameter value is derived from the following variable template: ",
             "title": "Configuration"
         },
@@ -1404,6 +1460,10 @@
             "noVariables": "No variables set.",
             "title": "Project variables"
         },
+        "ViewModeToggle": {
+            "grid": "Rasteransicht",
+            "table": "Tabellenansicht"
+        },
         "WarningWidget": {
             "FixTaskDataNotFoundModal": {
                 "reloadButton": "Reload task",
@@ -1415,6 +1475,9 @@
             "fixTaskModalTitle": "Fix task '{{taskLabel}}'",
             "loading": "Loading log messages.",
             "title": "Error log"
+        },
+        "WorkflowEditor": {
+            "title": "Workflow-Editor"
         },
         "deprecatedPluginWidget": {
             "message": "The listed plugins are deprecated and will be removed in future versions. Please check the documentation for alternatives.",
