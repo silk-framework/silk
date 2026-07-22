@@ -172,8 +172,10 @@ trait Resource {
       throw new IllegalArgumentException("Need non-empty resource manager in order to serialize resource paths relative to base path.")
     }
     val basePath = resourceManager.basePath
-    if (path.startsWith(basePath)) {
-      path.stripPrefix(basePath).stripPrefix("/").stripPrefix(File.separator).replace(File.separatorChar, '/')
+    val relative = path.stripPrefix(basePath)
+    // The remainder must start at a separator, so that e.g. base path '/proj' does not match '/proj2/file'
+    if (path.startsWith(basePath) && (relative.isEmpty || relative.startsWith("/") || relative.startsWith(File.separator))) {
+      relative.stripPrefix("/").stripPrefix(File.separator).replace(File.separatorChar, '/')
     } else {
       throw new IllegalArgumentException("The context uses a different base path than the provided resource.")
     }

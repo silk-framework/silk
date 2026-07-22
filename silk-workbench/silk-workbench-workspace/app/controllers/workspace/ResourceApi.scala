@@ -197,7 +197,7 @@ class ResourceApi  @Inject() extends InjectedController with UserContextActions 
   private def getFile(projectName: String, resourceName: String, download: Boolean)
                      (implicit user: UserContext): Result = {
     val project = WorkspaceFactory().workspace.project(projectName)
-    val resource = project.resources.get(resourceName, mustExist = true)
+    val resource = project.resources.getInPath(resourceName, mustExist = true)
     val contentType = Option(URLConnection.guessContentTypeFromName(resourceName))
     val result = Ok.chunked(StreamConverters.fromInputStream(() => resource.inputStream), contentType)
     result.withHeaders(Results.contentDispositionHeader(inline = !download, name = Some(resource.name)).toSeq: _*)
