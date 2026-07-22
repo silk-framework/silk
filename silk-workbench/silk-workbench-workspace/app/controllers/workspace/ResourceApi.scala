@@ -19,7 +19,6 @@ import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.serialization.json.ResourceSerializers
 import org.silkframework.workspace.WorkspaceFactory
 import org.silkframework.workspace.resources.CacheUpdaterHelper
-import controllers.util.ContentDisposition
 import play.api.libs.json.Json
 import play.api.mvc._
 import resources.ResourceHelper
@@ -201,8 +200,7 @@ class ResourceApi  @Inject() extends InjectedController with UserContextActions 
     val resource = project.resources.get(resourceName, mustExist = true)
     val contentType = Option(URLConnection.guessContentTypeFromName(resourceName))
     val result = Ok.chunked(StreamConverters.fromInputStream(() => resource.inputStream), contentType)
-    val dispositionType = if(download) "attachment" else "inline"
-    result.withHeaders("Content-Disposition" -> ContentDisposition(dispositionType, resource.name))
+    result.withHeaders(Results.contentDispositionHeader(inline = !download, name = Some(resource.name)).toSeq: _*)
   }
 
   @deprecated("Use files-endpoints instead.")
