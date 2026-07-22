@@ -4,6 +4,7 @@ import akka.stream.scaladsl.StreamConverters
 import config.WorkbenchConfig.WorkspaceReact
 import controllers.core.UserContextActions
 import controllers.core.util.ControllerUtilsTrait
+import controllers.util.ContentDisposition
 import controllers.util.SerializationUtils._
 import controllers.util.TextSearchUtils
 import controllers.workspace.DatasetApi.TypeCacheFailedException
@@ -379,7 +380,8 @@ class LegacyDatasetApi @Inject() (implicit workspaceReact: WorkspaceReact) exten
     dataset.data.plugin match {
       case resourceDataset: ResourceBasedDataset =>
         val resource = resourceDataset.file
-        Ok.chunked(StreamConverters.fromInputStream(() => resource.inputStream)).withHeaders("Content-Disposition" -> s"""attachment; filename="${resource.name}"""")
+        Ok.chunked(StreamConverters.fromInputStream(() => resource.inputStream))
+          .withHeaders("Content-Disposition" -> ContentDisposition("attachment", resource.name))
       case _ =>
         throw BadUserInputException(s"Dataset ${dataset.labelAndId} is not based on a file.")
     }

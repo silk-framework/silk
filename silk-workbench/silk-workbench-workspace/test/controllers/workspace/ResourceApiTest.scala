@@ -82,4 +82,21 @@ class ResourceApiTest extends AnyFlatSpec with IntegrationTestTrait with Matcher
     fileMimeType("test.json", "{}", "application/json")
     fileMimeType("test.xml", "<test></test>", "application/xml")
   }
+
+  it should "return an ASCII-safe Content-Disposition header for file names with non-ASCII characters" in {
+    // Decomposed unicode form (NFD, base letter + combining diaeresis), as produced by uploads from macOS
+    val fileName = "test_with_umlauts_äöü.pdf"
+    workspaceProject(projectId).resources.get(fileName).writeString("pdf content")
+
+    val url = resourceApi.getFileForDownload(projectId, fileName).url
+    val response = checkResponse(client.url(s"$baseUrl$url").get())
+    response.body mustBe "pdf content"
+
+    val disposition = response.header("Content-Disposition").get
+    disposition must startWith("attachment; ")
+    withClue(s"Header value must be ASCII-only: $disposition") {
+      disposition.forall(c => c >= ' ' && c <= '~') mustBe true
+    }
+    disposition.toLowerCase must include("filename*=utf-8''test_with_umlauts_a%cc%88o%cc%88u%cc%88.pdf")
+  }
 }
