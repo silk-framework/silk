@@ -40,6 +40,18 @@ class ResourceTest extends AnyFlatSpec with Matchers {
     }
   }
 
+  it should "normalize Windows path separators to '/'" in {
+    def windowsResource(resourcePath: String) = new TestResource("test".getBytes, size = Some(4)) {
+      override def name: String = "file.csv"
+      override def path: String = resourcePath
+    }
+    val mgr = new InMemoryResourceManagerBase("C:\\data\\proj")
+    windowsResource("C:\\data\\proj\\dir\\file.csv").relativePath(mgr, separatorChar = '\\') mustBe "dir/file.csv"
+    intercept[IllegalArgumentException] {
+      windowsResource("C:\\data\\proj2\\file.csv").relativePath(mgr, separatorChar = '\\')
+    }
+  }
+
   private class TestResource(contents: Array[Byte], val size: Option[Long]) extends Resource {
     override def name: String = "largefile"
     override def path: String = "path"
