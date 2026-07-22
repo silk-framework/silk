@@ -162,6 +162,7 @@ trait Resource {
 
   /**
    * The relative path within a resource manager.
+   * Always uses '/' as separator, independent of the OS, so it can be resolved via [[ResourceManager.getInPath]].
    *
    * @throws IllegalArgumentException If the given resource manager is either empty or
    *                                  does have a different base path than this resource.
@@ -172,7 +173,7 @@ trait Resource {
     }
     val basePath = resourceManager.basePath
     if (path.startsWith(basePath)) {
-      path.stripPrefix(basePath).stripPrefix("/").stripPrefix(File.separator)
+      path.stripPrefix(basePath).stripPrefix("/").stripPrefix(File.separator).replace(File.separatorChar, '/')
     } else {
       throw new IllegalArgumentException("The context uses a different base path than the provided resource.")
     }

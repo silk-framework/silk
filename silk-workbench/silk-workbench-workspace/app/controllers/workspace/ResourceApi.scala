@@ -24,7 +24,6 @@ import play.api.libs.json.Json
 import play.api.mvc._
 import resources.ResourceHelper
 
-import java.io.File
 import java.net.URLConnection
 import java.util.logging.Logger
 import javax.inject.Inject
@@ -125,11 +124,6 @@ class ResourceApi  @Inject() extends InjectedController with UserContextActions 
                           resourcePath: String): Action[AnyContent] = UserContextAction { implicit userContext =>
     val project = WorkspaceFactory().workspace.project(projectName)
     val resource = project.resources.getInPath(resourcePath, mustExist = true)
-
-    val pathPrefix = resourcePath.lastIndexOf(File.separatorChar) match {
-      case -1 => ""
-      case index => resourcePath.substring(0, index + 1)
-    }
 
     Ok(ResourceSerializers.resourceProperties(resource, project.resources))
   }
