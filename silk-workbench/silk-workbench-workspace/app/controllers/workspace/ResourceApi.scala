@@ -23,7 +23,6 @@ import play.api.libs.json.Json
 import play.api.mvc._
 import resources.ResourceHelper
 
-import java.net.URLConnection
 import java.util.logging.Logger
 import javax.inject.Inject
 
@@ -198,9 +197,8 @@ class ResourceApi  @Inject() extends InjectedController with UserContextActions 
                      (implicit user: UserContext): Result = {
     val project = WorkspaceFactory().workspace.project(projectName)
     val resource = project.resources.getInPath(resourceName, mustExist = true)
-    val contentType = Option(URLConnection.guessContentTypeFromName(resourceName))
-    val result = Ok.chunked(StreamConverters.fromInputStream(() => resource.inputStream), contentType)
-    result.withHeaders(Results.contentDispositionHeader(inline = !download, name = Some(resource.name)).toSeq: _*)
+    // Sets the Content-Disposition header and derives the Content-Type from the file name
+    Ok.chunked(StreamConverters.fromInputStream(() => resource.inputStream), inline = !download, fileName = Some(resource.name))
   }
 
   @deprecated("Use files-endpoints instead.")

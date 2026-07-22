@@ -379,8 +379,8 @@ class LegacyDatasetApi @Inject() (implicit workspaceReact: WorkspaceReact) exten
     dataset.data.plugin match {
       case resourceDataset: ResourceBasedDataset =>
         val resource = resourceDataset.file
-        Ok.chunked(StreamConverters.fromInputStream(() => resource.inputStream))
-          .withHeaders(Results.contentDispositionHeader(inline = false, name = Some(resource.name)).toSeq: _*)
+        // Sets the Content-Disposition header and derives the Content-Type from the file name
+        Ok.chunked(StreamConverters.fromInputStream(() => resource.inputStream), inline = false, fileName = Some(resource.name))
       case _ =>
         throw BadUserInputException(s"Dataset ${dataset.labelAndId} is not based on a file.")
     }
