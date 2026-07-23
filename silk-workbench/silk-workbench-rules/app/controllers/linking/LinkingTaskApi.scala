@@ -261,7 +261,7 @@ class LinkingTaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends I
     val task = project.task[LinkSpec](taskName)
     val referenceLinksXml = task.data.referenceLinks.toXML
 
-    Ok(referenceLinksXml).withHeaders("Content-Disposition" -> s"attachment; filename=referenceLinks.xml")
+    Ok(referenceLinksXml).withHeaders(Results.contentDispositionHeader(inline = false, name = Some("referenceLinks.xml")).toSeq: _*)
   }
 
   @Operation(

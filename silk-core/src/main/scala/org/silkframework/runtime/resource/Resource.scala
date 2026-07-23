@@ -162,17 +162,26 @@ trait Resource {
 
   /**
    * The relative path within a resource manager.
+   * Always uses '/' as separator, independent of the OS, so it can be resolved via [[ResourceManager.getInPath]].
    *
    * @throws IllegalArgumentException If the given resource manager is either empty or
    *                                  does have a different base path than this resource.
    */
   def relativePath(resourceManager: ResourceManager): String = {
+    relativePath(resourceManager, File.separatorChar)
+  }
+
+  // The OS separator is a parameter so the Windows normalization can be tested on any OS
+  private[resource] def relativePath(resourceManager: ResourceManager, separatorChar: Char): String = {
     if (resourceManager == EmptyResourceManager()) {
       throw new IllegalArgumentException("Need non-empty resource manager in order to serialize resource paths relative to base path.")
     }
+    val separator = separatorChar.toString
     val basePath = resourceManager.basePath
-    if (path.startsWith(basePath)) {
-      path.stripPrefix(basePath).stripPrefix("/").stripPrefix(File.separator)
+    val relative = path.stripPrefix(basePath)
+    // The remainder must start at a separator, so that e.g. base path '/proj' does not match '/proj2/file'
+    if (path.startsWith(basePath) && (relative.isEmpty || relative.startsWith("/") || relative.startsWith(separator))) {
+      relative.stripPrefix("/").stripPrefix(separator).replace(separatorChar, '/')
     } else {
       throw new IllegalArgumentException("The context uses a different base path than the provided resource.")
     }
