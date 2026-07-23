@@ -7,6 +7,8 @@ import org.silkframework.runtime.plugin.annotations.Plugin
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.WorkspaceFactory
 
+import java.util.logging.Logger
+
 @Plugin(
   id = "rdf",
   label = "RDF",
@@ -14,19 +16,24 @@ import org.silkframework.workspace.WorkspaceFactory
 )
 case class RdfVocabularyManager() extends VocabularyManager {
 
-  private def loader(implicit userContext: UserContext) = new VocabularyLoader(workspaceSparqlEndpoint)
+  private val log: Logger = Logger.getLogger(getClass.getName)
 
   override def get(uri: String, project: Option[Identifier])(implicit userContext: UserContext): Option[Vocabulary] = {
-    loader.retrieveVocabulary(uri)
+    workspaceSparqlEndpoint match {
+      case Some(endpoint) =>
+        new VocabularyLoader(endpoint).retrieveVocabulary(uri)
+      case None =>
+        // A missing SPARQL backend (e.g. the default file-based dev workspace) must degrade to
+        // "vocabulary not available" instead of failing every vocabulary-dependent request
+        // (alignment sync, transform saves, completions) with a runtime error.
+        log.warning(s"Cannot load vocabulary '$uri': the workspace has no SPARQL enabled storage backend. " +
+          "Configure a SPARQL-enabled workspace provider or a different 'vocabulary.manager.plugin'.")
+        None
+    }
   }
 
-  private def workspaceSparqlEndpoint(implicit userContext: UserContext): SparqlEndpoint with GraphStoreTrait = {
-    WorkspaceFactory().workspace.provider.sparqlEndpoint match {
-      case Some(endpoint) =>
-        endpoint
-      case _ =>
-        throw new RuntimeException("Workspace has no SPARQL enabled storage backend.")
-    }
+  private def workspaceSparqlEndpoint(implicit userContext: UserContext): Option[SparqlEndpoint with GraphStoreTrait] = {
+    WorkspaceFactory().workspace.provider.sparqlEndpoint
   }
 
   override def retrieveGlobalVocabularies()(implicit userContext: UserContext): Option[Iterable[String]] = {
