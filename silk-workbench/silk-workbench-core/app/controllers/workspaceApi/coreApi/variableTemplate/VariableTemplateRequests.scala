@@ -2,7 +2,7 @@ package controllers.workspaceApi.coreApi.variableTemplate
 
 import controllers.autoCompletion._
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.runtime.templating.exceptions.UnboundVariablesException
+import org.silkframework.runtime.templating.exceptions.{TemplateEvaluationException, TemplateSyntaxException, UnboundVariablesException}
 import org.silkframework.runtime.templating.{EvaluationConfig, GlobalTemplateVariables, TemplateVariables}
 import org.silkframework.util.StringUtils
 import org.silkframework.workspace.WorkspaceFactory
@@ -54,28 +54,39 @@ case class ValidateVariableTemplateRequest(templateString: String,
   private val evaluationConfig: EvaluationConfig = EvaluationConfig(ignoreUnboundVariables = ignoreUnboundVariables.getOrElse(false))
 
   def execute()(implicit user: UserContext): VariableTemplateValidationResponse = {
-    val resultOrError: Either[String, String] = try {
-      Left(collectVariables(includeSensitiveVariables = includeSensitiveVariables.getOrElse(false)).resolveTemplateValue(templateString, evaluationConfig))
+    try {
+      val evaluatedTemplate = collectVariables(includeSensitiveVariables = includeSensitiveVariables.getOrElse(false)).resolveTemplateValue(templateString, evaluationConfig)
+      valid(Some(evaluatedTemplate))
     } catch {
       case ex: UnboundVariablesException if variableName.isDefined && ex.missingVars.size == 1 =>
         // Check if the variable is unbound because it is defined after the current one
         Try(collectVariables(ignoreVariableName = true).resolveTemplateValue(templateString, evaluationConfig)) match {
           case _: Success[_] =>
-            Right(s"'${ex.missingVars.head}' cannot be used because it's defined after '${variableName.get}'.")
+            invalid(s"'${ex.missingVars.head}' cannot be used because it's defined after '${variableName.get}'.")
           case _: Failure[_] =>
-            Right(ex.getMessage)
+            invalid(ex.getMessage)
         }
+      case ex: TemplateSyntaxException =>
+        // Syntax errors do not depend on the variable values, so they are also reported in lenient mode
+        invalid(ex.getMessage)
+      case _: TemplateEvaluationException if evaluationConfig.ignoreUnboundVariables =>
+        // Lenient mode evaluates on placeholder values, so evaluation errors are expected (e.g. iterating over a placeholder).
+        // The template counts as valid, but no preview is provided.
+        valid(None)
       case NonFatal(ex) =>
-        Right(ex.getMessage)
+        invalid(ex.getMessage)
     }
+  }
+
+  private def valid(evaluatedTemplate: Option[String]): VariableTemplateValidationResponse = {
+    VariableTemplateValidationResponse(valid = true, parseError = None, evaluatedTemplate = evaluatedTemplate)
+  }
+
+  private def invalid(errorMessage: String): VariableTemplateValidationResponse = {
     VariableTemplateValidationResponse(
-      valid = resultOrError.isLeft,
-      parseError = resultOrError.toOption.map(errorMessage => VariableTemplateValidationError(
-        message = errorMessage,
-        start = 0,
-        end = templateString.length
-      )),
-      evaluatedTemplate = resultOrError.left.toOption
+      valid = false,
+      parseError = Some(VariableTemplateValidationError(message = errorMessage, start = 0, end = templateString.length)),
+      evaluatedTemplate = None
     )
   }
 

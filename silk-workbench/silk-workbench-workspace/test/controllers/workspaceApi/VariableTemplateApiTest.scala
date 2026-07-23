@@ -69,6 +69,19 @@ class VariableTemplateApiTest extends AnyFlatSpec with IntegrationTestTrait with
     validationResponse.evaluatedTemplate shouldBe Some("Beauty and the Beast (2002)")
   }
 
+  it should "not report unbound variables if they are ignored" in {
+    val projectName = "variables-test-lenient"
+    WorkspaceFactory().workspace.createProject(ProjectConfig(projectName))
+
+    val strictResponse = validateTemplate(ValidateVariableTemplateRequest("{{project.unknown}}", Some(projectName)))
+    strictResponse.valid shouldBe false
+
+    // Unbound variables evaluate to their names
+    val lenientResponse = validateTemplate(ValidateVariableTemplateRequest("{{project.unknown}}", Some(projectName), ignoreUnboundVariables = Some(true)))
+    lenientResponse.valid shouldBe true
+    lenientResponse.evaluatedTemplate shouldBe Some("project.unknown")
+  }
+
   it should "validate execution scope references against the task's execution variables only" in {
     val projectName = "variables-test-execution-validation"
     val taskName = "validationTask"

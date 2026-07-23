@@ -2,8 +2,8 @@ package org.silkframework.plugins.templating.jinja
 
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
-import org.silkframework.runtime.templating.{TemplateVariableValue, VariableScope}
-import org.silkframework.runtime.templating.exceptions.UnboundVariablesException
+import org.silkframework.runtime.templating.{EvaluationConfig, TemplateVariableValue, VariableScope}
+import org.silkframework.runtime.templating.exceptions.{TemplateEvaluationException, TemplateSyntaxException, UnboundVariablesException}
 
 import java.io.{StringWriter, Writer}
 import scala.collection.immutable.ArraySeq
@@ -175,6 +175,25 @@ class JinjaEngineTest extends AnyFlatSpec with Matchers {
     lines(evaluateRaw(template, values)) shouldBe expectedLines
   }
 
+  it should "substitute unbound variables by their names in lenient mode" in {
+    evaluateLenient("{{name}} and {{project.other}}") shouldBe "name and project.other"
+  }
+
+  it should "distinguish syntax errors from value-dependent errors in lenient mode" in {
+    // Property access on a placeholder value: only fails because of the placeholder
+    intercept[TemplateEvaluationException] {
+      evaluateLenient("{% for entity in entities %}{{ entity.name }}{% endfor %}")
+    } should not be a[TemplateSyntaxException]
+    // Arithmetic on a placeholder value: only fails because of the placeholder
+    intercept[TemplateEvaluationException] {
+      evaluateLenient("{{ price * 2 }}")
+    } should not be a[TemplateSyntaxException]
+    // Syntax errors do not depend on the provided values
+    intercept[TemplateEvaluationException] {
+      evaluateLenient("{{ name | }}")
+    } shouldBe a[TemplateSyntaxException]
+  }
+
   it should "keep variable values literal instead of re-interpreting template syntax contained in them" in {
     val values = Seq(
       new TemplateVariableValue("test", VariableScope("execution"), Seq("test workflow")),
@@ -194,6 +213,12 @@ class JinjaEngineTest extends AnyFlatSpec with Matchers {
         new TemplateVariableValue(name, VariableScope.empty, value)
       }
     compileTemplate.evaluate(templateValues, writer)
+    writer.toString
+  }
+
+  private def evaluateLenient(template: String): String = {
+    val writer = new StringWriter()
+    JinjaTemplateEngine().compile(template).evaluate(Seq.empty, writer, EvaluationConfig(ignoreUnboundVariables = true))
     writer.toString
   }
 
