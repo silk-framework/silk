@@ -1,6 +1,6 @@
 package controllers.util
 
-import org.apache.jena.rdf.model.{Model, ModelFactory}
+import org.apache.jena.rdf.model.{Model, ModelFactory, Property, RDFNode, Resource}
 import org.apache.jena.riot.{Lang, RDFLanguages}
 import org.silkframework.config.{Prefixes, Task, TaskSpec}
 import org.silkframework.execution.ExecutorRegistry
@@ -42,6 +42,96 @@ object ProjectUtils {
   def getProject(projectName: String)
                 (implicit userContext: UserContext): Project = {
     WorkspaceFactory().workspace.project(projectName)
+  }
+
+  /**
+    * Creates an in-memory entity sink that collects written entities as triples in a Jena model.
+    *
+    * @return The model the triples are written to and the entity sink writing into it.
+    */
+  def inMemoryModelSink(): (Model, EntitySink) = {
+    val model = ModelFactory.createDefaultModel()
+    val inMemorySink = new SparqlSink(SparqlParams(strategy = EntityRetrieverStrategy.simple), new JenaModelEndpoint(model))
+    (model, inMemorySink)
+  }
+
+  /**
+    * Returns the connected subgraph of the given model reachable from a set of seed subject URIs.
+    * Starting from the seeds, statements are followed in both directions: outgoing statements (where a
+    * reached URI is the subject) and incoming statements (where it is the object). The URI nodes on the
+    * other end are followed transitively. Prefixes are copied from the source model.
+    *
+    * Traversing incoming statements as well is required so that entities linked through backward/inverse
+    * property mappings - which the sink writes as `linkedEntity -> property -> root` - are still included
+    * in the record. This effectively assembles complete records (a root subject together with all of its
+    * nested, linked entities) while leaving out everything not connected to the seeds.
+    *
+    * @param roots The set of all root subjects (one per input record). Any root that is not itself a seed
+    *              acts as a hard boundary: the walk neither crosses into it nor emits the statement linking
+    *              to it. This keeps records that merely share a referenced entity (e.g. two books with the
+    *              same author or publisher) from bleeding into each other. Defaults to empty, in which case
+    *              no boundary is applied and the full connected component is returned.
+    * @param backwardPredicates Restricts which incoming (backward) statements are followed. `None` follows
+    *              all incoming statements (legacy behaviour). `Some(set)` follows an incoming statement only
+    *              if its predicate is in the set - this must be the set of the transform's backward/inverse
+    *              property mappings. Without it the walk hops through shared object IRIs (e.g. the rdf:type
+    *              class shared by every entity of a type, or a shared author) into unrelated records.
+    */
+  def connectedSubgraph(model: Model,
+                        seeds: Iterable[String],
+                        roots: Set[String] = Set.empty,
+                        backwardPredicates: Option[Set[String]] = None): Model = {
+    val result = ModelFactory.createDefaultModel()
+    result.setNsPrefixes(model)
+    val seedSet = seeds.toSet
+    // A foreign root is a root subject of some other record. Stopping at it (without emitting the linking
+    // statement) prevents shared referenced entities from dragging neighbouring records into the result.
+    def isForeignRoot(uri: String): Boolean = roots.contains(uri) && !seedSet.contains(uri)
+    // None => follow every incoming statement; Some(set) => only those whose predicate is an inverse mapping.
+    def followBackward(predicate: String): Boolean = backwardPredicates.forall(_.contains(predicate))
+    val visited = scala.collection.mutable.Set.empty[String]
+    val queue = scala.collection.mutable.Queue.empty[String]
+    queue ++= seeds
+    while (queue.nonEmpty) {
+      val uri = queue.dequeue()
+      if (visited.add(uri)) {
+        val resource = model.getResource(uri)
+        // Outgoing statements: follow URI objects forward.
+        val outgoing = model.listStatements(resource, null.asInstanceOf[Property], null.asInstanceOf[RDFNode])
+        while (outgoing.hasNext) {
+          val statement = outgoing.next()
+          val obj = statement.getObject
+          if (obj.isURIResource) {
+            val objUri = obj.asResource().getURI
+            if (!isForeignRoot(objUri)) {
+              result.add(statement)
+              queue.enqueue(objUri)
+            }
+          } else {
+            result.add(statement)
+          }
+        }
+        // Incoming statements: follow backward/inverse links to the linking subject, but only for
+        // predicates that are actually inverse property mappings (when that set is known).
+        val incoming = model.listStatements(null.asInstanceOf[Resource], null.asInstanceOf[Property], resource)
+        while (incoming.hasNext) {
+          val statement = incoming.next()
+          if (followBackward(statement.getPredicate.getURI)) {
+            val subject = statement.getSubject
+            if (subject.isURIResource) {
+              val subjUri = subject.getURI
+              if (!isForeignRoot(subjUri)) {
+                result.add(statement)
+                queue.enqueue(subjUri)
+              }
+            } else {
+              result.add(statement)
+            }
+          }
+        }
+      }
+    }
+    result
   }
 
   def jenaModelResult(model: Model, contentType: String): Result = {
@@ -191,9 +281,7 @@ object ProjectUtils {
                        userContext: UserContext): (Model, EntitySink) = {
     val dataSink = xmlRoot \ "dataSink"
     if (dataSink.isEmpty) {
-      val model = ModelFactory.createDefaultModel()
-      val inmemoryModelSink = new SparqlSink(SparqlParams(strategy = EntityRetrieverStrategy.simple), new JenaModelEndpoint(model))
-      (model, inmemoryModelSink)
+      inMemoryModelSink()
     } else {
       // Don't allow to read any resources like files, SPARQL endpoint is allowed, which does not need resources
       val dataset = createDataset(dataSink, None)

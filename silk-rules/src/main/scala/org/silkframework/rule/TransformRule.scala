@@ -24,6 +24,7 @@ import org.silkframework.workspace.annotation.UiAnnotations
 import java.net.URI
 import scala.language.implicitConversions
 import scala.util.Try
+import scala.util.control.NonFatal
 import scala.xml.{Node, Null}
 
 /**
@@ -159,6 +160,28 @@ sealed trait TransformRuleExecution extends OperatorExecution {
     val values = inputExecution(entity)
     operator.target.foreach(_.validate(values.values))
     values
+  }
+
+  /**
+   * Generates the transformed values like [[apply]], but instead of throwing when the values violate
+   * the target's constraints, the validation error is attached to the returned value (its computed
+   * values are kept). Mirrors [[org.silkframework.rule.evaluation.DetailedEvaluator]]'s non-throwing
+   * behavior so a record that fails validation still surfaces (flagged) instead of being dropped.
+   */
+  def applyKeepingValidationErrors(entity: Entity): Value = {
+    val result = inputExecution(entity)
+    operator.target match {
+      case Some(target) =>
+        try {
+          target.validate(result.values)
+          result
+        } catch {
+          case NonFatal(ex) =>
+            result.copy(errors = result.errors ++ Seq(OperatorEvaluationError(operator.id, ex)))
+        }
+      case None =>
+        result
+    }
   }
 }
 

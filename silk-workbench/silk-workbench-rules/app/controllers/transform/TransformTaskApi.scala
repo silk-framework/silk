@@ -15,9 +15,11 @@ import io.swagger.v3.oas.annotations.parameters.RequestBody
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.tags.Tag
 import io.swagger.v3.oas.annotations.{Operation, Parameter}
-import org.silkframework.config.{MetaData, Prefixes, Task}
+import org.apache.jena.riot.RDFLanguages
+import org.silkframework.config.{MetaData, PlainTask, Prefixes, Task}
 import org.silkframework.dataset._
 import org.silkframework.entity._
+import org.silkframework.execution.TaskException
 import org.silkframework.rule.TransformSpec.{TargetVocabularyListParameter, TargetVocabularyParameterType}
 import org.silkframework.rule._
 import org.silkframework.rule.execution.ExecuteTransform
@@ -32,12 +34,15 @@ import org.silkframework.serialization.json.JsonSerializers._
 import org.silkframework.util.{Identifier, IdentifierGenerator, Uri}
 import org.silkframework.workbench.utils.{ErrorResult, UnsupportedMediaTypeException}
 import org.silkframework.workspace.activity.transform.TransformPathsCache
+import org.silkframework.workspace.activity.transform.TransformTaskUtils.{TransformTask => TransformTaskOps}
 import org.silkframework.workspace.{Project, ProjectTask, WorkspaceFactory}
 import play.api.libs.json._
 import play.api.mvc._
 
 import java.util.logging.{Level, Logger}
 import javax.inject.Inject
+import scala.collection.mutable
+import scala.jdk.CollectionConverters._
 
 @Tag(
   name = "Transform",
@@ -1046,6 +1051,183 @@ class TransformTaskApi @Inject() () extends InjectedController with UserContextA
       case _ =>
         throw UnsupportedMediaTypeException.supportedFormats("application/xml")
     }
+  }
+
+  @Operation(
+    summary = "Turtle output for selected mapping nodes",
+    description = "Executes the transformation but only for the selected mapping rules (nodes), identified by their rule ids, and returns the resulting RDF in Turtle (or N-Triples). " +
+      "Selecting an object mapping yields its whole subtree (its type, URI and all child triples). Selecting individual value rules yields just those triples, hung off the subject IRI that the ancestor URI rules still mint. " +
+      "The result is paginated by top-level input record: a page contains the complete output (the root subject together with all of its nested, linked entities) of the records `[offset, offset + limit)`. " +
+      "The input task of the transformation has to be a Dataset task that supports reading entities.",
+    responses = Array(
+      new ApiResponse(
+        responseCode = "200",
+        description = "The Turtle serialization of the triples produced by the selected nodes for the requested page of records.",
+        content = Array(
+          new Content(
+            mediaType = "text/turtle",
+            examples = Array(new ExampleObject(TransformTaskApiDoc.outputTurtleResponseExample))
+          ))
+      ),
+      new ApiResponse(
+        responseCode = "400",
+        description = "If no (valid) rule ids were provided, the selection does not produce any output, or offset/limit are out of range."
+      )
+    ))
+  @RequestBody(
+    description = "The ids of the selected mapping rules (nodes).",
+    required = true,
+    content = Array(new Content(
+      mediaType = "application/json",
+      examples = Array(new ExampleObject(TransformTaskApiDoc.outputTurtleRequestExample))
+    ))
+  )
+  def outputTurtle(@Parameter(
+                     name = "project",
+                     description = "The project identifier",
+                     required = true,
+                     in = ParameterIn.PATH,
+                     schema = new Schema(implementation = classOf[String])
+                   )
+                   projectName: String,
+                   @Parameter(
+                     name = "task",
+                     description = "The task identifier",
+                     required = true,
+                     in = ParameterIn.PATH,
+                     schema = new Schema(implementation = classOf[String])
+                   )
+                   taskName: String,
+                   @Parameter(
+                     name = "offset",
+                     description = "The number of top-level input records to skip before the returned page.",
+                     required = false,
+                     in = ParameterIn.QUERY,
+                     schema = new Schema(implementation = classOf[Int], defaultValue = "0")
+                   )
+                   offset: Int,
+                   @Parameter(
+                     name = "limit",
+                     description = "The number of top-level input records (rows) to include in the page.",
+                     required = false,
+                     in = ParameterIn.QUERY,
+                     schema = new Schema(implementation = classOf[Int], defaultValue = "1")
+                   )
+                   limit: Int): Action[AnyContent] = RequestUserContextAction { request => implicit userContext =>
+    if (offset < 0) {
+      throw new BadUserInputException(s"Query parameter 'offset' must be >= 0, but was $offset.")
+    }
+    if (limit <= 0) {
+      throw new BadUserInputException(s"Query parameter 'limit' must be > 0, but was $limit.")
+    }
+    val (project, task) = projectAndTask(projectName, taskName)
+    val selectedRuleIds: Set[Identifier] = request.body.asJson match {
+      case Some(json) =>
+        (json \ "ruleIds").asOpt[Seq[String]]
+          .getOrElse(throw new BadUserInputException("Missing required field 'ruleIds' (a JSON array of rule ids)."))
+          .map { id =>
+            try {
+              Identifier(id)
+            } catch {
+              case ex: IllegalArgumentException =>
+                throw new BadUserInputException(s"Invalid rule id '$id': ${ex.getMessage}")
+            }
+          }.toSet
+      case None =>
+        throw UnsupportedMediaTypeException.supportedFormats("application/json")
+    }
+    if (selectedRuleIds.isEmpty) {
+      throw new BadUserInputException("No rule ids provided in 'ruleIds'.")
+    }
+    val knownRuleIds = task.data.allRulesRecursive.map(_.id).toSet
+    val unknownRuleIds = selectedRuleIds.diff(knownRuleIds)
+    if (unknownRuleIds.nonEmpty) {
+      throw new BadUserInputException(s"The following rule ids do not exist in transform task '$taskName': " +
+        unknownRuleIds.map(_.toString).mkString(", ") + ".")
+    }
+    val prunedRoot = MappingRuleTreePruning.pruneRoot(task.data.mappingRule, selectedRuleIds)
+      .getOrElse(throw new BadUserInputException("The selected rules do not produce any output."))
+    val prunedTask = PlainTask(task.id, task.data.copy(mappingRule = prunedRoot), task.metaData)
+
+    // Resolve the data source up front so that an unsupported input task (e.g. a non-dataset 'Other'
+    // task) surfaces as a 400 instead of escaping the activity as a 500.
+    val dataSource =
+      try {
+        task.dataSource
+      } catch {
+        case ex: TaskException =>
+          throw new BadUserInputException(ex.getMessage)
+      }
+
+    val (model, baseSink) = inMemoryModelSink()
+    // Records the subjects minted for the root (top-level) entities so we can page by input record.
+    val recordingSink = new RootSubjectRecordingSink(baseSink)
+    val transform = new ExecuteTransform(
+      task = prunedTask,
+      inputTask = (uc: UserContext) => project.anyTask(task.data.selection.inputId)(uc),
+      input = _ => dataSource,
+      output = _ => recordingSink,
+      pluginContext = (uc: UserContext) => PluginContext.fromProject(project)(uc)
+    )
+    Activity(transform).startBlocking()
+
+    // A page = the complete output of the root records [offset, offset + limit): each root subject
+    // plus all entities reachable from it (its nested, linked children). Passing all root subjects as
+    // boundaries keeps records that merely share a referenced entity (same author, publisher, ...) from
+    // bleeding into the page through the backward/inverse link traversal.
+    val pageRootSubjects = recordingSink.rootSubjects.drop(offset).take(limit)
+    // Follow inverse links backward only for predicates that are actually backward/inverse property
+    // mappings in this transform. Otherwise the walk would hop through shared object IRIs (e.g. the
+    // rdf:type class shared by every entity of a type, or a shared author) into other records.
+    val backwardPredicates: Set[String] =
+      prunedRoot.rules.allRulesRecursive.flatMap(_.target).collect {
+        case target if target.isBackwardProperty => target.propertyUri.uri
+      }.toSet
+    val pageModel = connectedSubgraph(model, pageRootSubjects, recordingSink.rootSubjects.toSet, Some(backwardPredicates))
+    // Add the project prefixes so the Turtle output uses readable @prefix declarations.
+    pageModel.setNsPrefixes(project.config.prefixes.prefixMap.asJava)
+    // Resolve the Accept header to a supported RDF content type, ignoring q-params and wildcards.
+    // Falls back to Turtle when no accepted media range names a known RDF serialization.
+    val acceptedContentType = request.acceptedTypes.iterator
+      .map(mediaRange => s"${mediaRange.mediaType}/${mediaRange.mediaSubType}")
+      .find(contentType => RDFLanguages.contentTypeToLang(contentType) != null)
+      .getOrElse("text/turtle")
+    jenaModelResult(pageModel, acceptedContentType)
+  }
+
+  /**
+    * Entity sink that records the subjects written for the first (root) table, so the turtle endpoint
+    * can page by top-level input record. ExecuteTransform writes one table per object level, the root
+    * level first; subjects written before the first [[closeTable]] are therefore the root subjects.
+    */
+  private class RootSubjectRecordingSink(inner: EntitySink) extends EntitySink {
+    private val recordedSubjects = mutable.ListBuffer[String]()
+    private val seen = mutable.Set[String]()
+    private var firstTableClosed = false
+
+    /** The root subjects in the order they were written, de-duplicated. */
+    def rootSubjects: Seq[String] = recordedSubjects.toSeq
+
+    override def openTable(typeUri: Uri, properties: Seq[TypedProperty], singleEntity: Boolean)
+                          (implicit userContext: UserContext, prefixes: Prefixes): Unit =
+      inner.openTable(typeUri, properties, singleEntity)
+
+    override def closeTable()(implicit userContext: UserContext): Unit = {
+      firstTableClosed = true
+      inner.closeTable()
+    }
+
+    override def writeEntity(subject: String, values: IndexedSeq[Seq[String]])
+                            (implicit userContext: UserContext): Unit = {
+      if (!firstTableClosed && seen.add(subject)) {
+        recordedSubjects += subject
+      }
+      inner.writeEntity(subject, values)
+    }
+
+    override def clear(force: Boolean)(implicit userContext: UserContext): Unit = inner.clear(force)
+
+    override def close()(implicit userContext: UserContext): Unit = inner.close()
   }
 
   private def executeTransform(task: ProjectTask[TransformSpec],
