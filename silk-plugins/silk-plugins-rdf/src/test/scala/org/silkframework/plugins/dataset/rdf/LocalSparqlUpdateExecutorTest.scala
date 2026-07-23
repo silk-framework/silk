@@ -64,7 +64,7 @@ class LocalSparqlUpdateExecutorTest extends AnyFlatSpec with Matchers with TestW
       """INSERT DATA { <http://s2b> <urn:prop> "s2a" } ;
         |INSERT DATA { <http://s2b> <urn:prop> "s2b" } ;
         |INSERT DATA { <http://s2b> <urn:prop> "s2c" } ;""".stripMargin)
-    list mustBe comp.map(_.replace("\r\n", "\n"))
+    list mustBe comp
     // Check report for sample queries
     val report = activityContext.value.get
     report mustBe defined

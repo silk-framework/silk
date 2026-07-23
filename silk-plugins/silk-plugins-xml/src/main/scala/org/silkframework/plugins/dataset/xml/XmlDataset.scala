@@ -29,7 +29,7 @@ case class XmlDataset( @Param("The XML file. This may also be a zip archive of m
                        uriPattern: String = "",
                        @Param(value = "The output template used for writing XML. Must be valid XML. The generated entity is identified through a processing instruction of the form <?MyEntity?>.", advanced = true)
                        outputTemplate: XmlCodeParameter = XmlCodeParameter("<Root><?Entity?></Root>"),
-                       @Param(value = "Streaming allows for reading large XML files.", advanced = true)
+                       @Param(value = "Streaming allows for reading large XML files. If streaming is enabled, backward paths are not supported.", advanced = true)
                        streaming: Boolean = true,
                        @Param(value = "Maximum depth of written XML. This acts as a safe guard if a recursive structure is written.", advanced = true)
                        maxDepth: Int = DEFAULT_MAX_SIZE,
