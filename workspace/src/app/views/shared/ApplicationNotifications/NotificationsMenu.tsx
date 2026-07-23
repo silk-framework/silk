@@ -58,16 +58,16 @@ export function NotificationsMenu({ autoDisplayNotifications = true, errorNotifi
                 toggleNotifications();
             }}
             className={cn(
-                "relative flex size-9 items-center justify-center rounded-lg text-muted-foreground transition-colors",
-                "hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40",
+                "relative flex size-9 items-center justify-center rounded-lg text-foreground transition-colors",
+                "hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40",
                 displayNotifications && "bg-muted text-foreground",
             )}
         >
             {displayNotifications ? (
-                <Icon name="navigation-close" title="Close icon" />
+                <Icon name="navigation-close" title="Close icon" small />
             ) : (
                 <>
-                    <Icon name="application-notification" title="Notification menu icon" />
+                    <Icon name="application-notification" title="Notification menu icon" small />
                     {notificationCount > 0 && (
                         <Badge position={"top-right"} intent="danger" maxLength={2} children={notificationCount} />
                     )}

@@ -9,8 +9,20 @@ interface IProps {
 }
 
 const options: { mode: WorkbenchViewMode; icon: string; labelKey: string; fallback: string; testId: string }[] = [
-    { mode: "table", icon: "toggler-table", labelKey: "widget.ViewModeToggle.table", fallback: "Table view", testId: "view-mode-table" },
-    { mode: "grid", icon: "module-dashboard", labelKey: "widget.ViewModeToggle.grid", fallback: "Grid view", testId: "view-mode-grid" },
+    {
+        mode: "table",
+        icon: "toggler-table",
+        labelKey: "widget.ViewModeToggle.table",
+        fallback: "Table view",
+        testId: "view-mode-table",
+    },
+    {
+        mode: "grid",
+        icon: "module-dashboard",
+        labelKey: "widget.ViewModeToggle.grid",
+        fallback: "Grid view",
+        testId: "view-mode-grid",
+    },
 ];
 
 /** Segmented control that toggles the workbench result list between the table and grid presentations. */
@@ -27,7 +39,6 @@ export default function ViewModeToggle({ mode, onChange }: IProps) {
                 return (
                     <IconButton
                         key={opt.mode}
-                        small
                         data-test-id={opt.testId}
                         name={[opt.icon]}
                         text={t(opt.labelKey, opt.fallback)}

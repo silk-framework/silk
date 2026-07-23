@@ -62,12 +62,12 @@ const createTypes: Array<{ dtype: string; label: string; defaultLabel: string; i
 /**
  * Ghost icon-button style shared by the header chrome actions (Help, Notifications) so they read as
  * one 36px control group aligned with the Create button. Kept in sync with the identical string in
- * `NotificationsMenu.tsx`; icons inside render at the `Icon` default (20px, stroke 2).
+ * `NotificationsMenu.tsx`; icons inside are rendered `small` (16px) to match the dense header chrome.
  */
 export const headerActionButtonClass = cn(
-    "relative flex size-9 items-center justify-center rounded-lg text-muted-foreground transition-colors",
-    "hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40",
-    "data-[state=open]:bg-muted data-[state=open]:text-foreground",
+    "relative flex size-9 items-center justify-center rounded-lg text-foreground transition-colors",
+    "hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40",
+    "data-[state=open]:bg-muted",
 );
 
 /**
@@ -147,7 +147,7 @@ export function Header() {
             <div className="flex w-full min-w-0 items-center gap-2 px-4">
                 {/* Collapse / expand the navigation sidebar (also Cmd/Ctrl+B). */}
                 <SidebarTrigger
-                    className="-ml-1 size-9 shrink-0 rounded-lg text-muted-foreground [&_svg:not([class*='size-'])]:size-5"
+                    className="-ml-1 size-9 shrink-0 rounded-lg text-foreground [&_svg:not([class*='size-'])]:size-4"
                     aria-label={t("navigation.side.toggle", "Toggle navigation")}
                     title={t("navigation.side.toggle", "Toggle navigation")}
                 />
@@ -186,7 +186,7 @@ export function Header() {
                             title={t("RecentlyViewedModal.title", "Quick search")}
                             className={cn(headerActionButtonClass, "shrink-0 lg:hidden")}
                         >
-                            <Icon name="operation-search" />
+                            <Icon name="operation-search" small />
                         </button>
                     </>
                 )}
@@ -267,7 +267,7 @@ export function Header() {
                                 aria-label={t("common.action.help", "Help")}
                                 className={headerActionButtonClass}
                             >
-                                <Icon name="item-question" />
+                                <Icon name="item-question" small />
                             </button>
                         </DropdownMenuTrigger>
                         {/* `w-max` overrides the shadcn base `w-(--radix-dropdown-menu-trigger-width)`

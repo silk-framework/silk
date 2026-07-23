@@ -57,7 +57,8 @@ export default function SearchItem({
         <Card isOnlyLayout className="diapp-searchitem">
             <OverviewItem hasSpacing onClick={onRowClick ? onRowClick : undefined} data-test-id={"search-item"}>
                 <OverviewItemDepiction>
-                    <ItemDepiction itemType={item.type} pluginId={item.pluginId} />
+                    {/* 16px item icon, matching the table/grid views (was the 32px `large` default). */}
+                    <ItemDepiction itemType={item.type} pluginId={item.pluginId} size={{ small: true }} />
                 </OverviewItemDepiction>
                 <OverviewItemDescription>
                     <OverviewItemLine>
