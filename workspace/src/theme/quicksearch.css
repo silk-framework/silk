@@ -1,0 +1,40 @@
+/*
+ * Quick search (header command palette) z-index override.
+ *
+ * The application header is pinned very high (`z-[8000]`, raised to 8002 by
+ * `useApplicationHeaderOverModals` so notifications stay reachable over normal modals). The shadcn
+ * dialog overlay/content ship at `z-50`, so the quick search backdrop would otherwise paint behind
+ * the header and leave it sharp and un-dimmed.
+ *
+ * `QuickSearchDialog` toggles `body.di-quicksearch-open` while it is open; here we lift its overlay
+ * (and content above it) over the header. The descendant selector outweighs the utility `.z-50`, so
+ * no `!important` is needed. Scoped to the open state so no other dialog is affected.
+ */
+body.di-quicksearch-open [data-slot="dialog-overlay"] {
+    z-index: 8500;
+}
+body.di-quicksearch-open [data-slot="dialog-content"] {
+    z-index: 8501;
+}
+
+/*
+ * Row hover / selection fill.
+ *
+ * cmdk renders `data-selected="false"` on every unselected row, and the shadcn CommandItem base
+ * styles selection with the Tailwind `data-selected:` variant — which compiles to the attribute-
+ * PRESENCE selector `[data-selected]` and therefore also matches `data-selected="false"`. The
+ * result is that *every* row gets the selected fill at rest, so hovering shows no change (the same
+ * class of bug documented in sidebar-active-fix.css).
+ *
+ * Reset the fill on every quick-search row, then paint only the row cmdk has actually selected
+ * (`data-selected="true"`) or the one under the pointer. Scoped to the quick-search command via its
+ * test id so no other cmdk surface (e.g. the mapping editor pickers) is affected. Loaded after the
+ * Tailwind output, so the equal-specificity reset wins the cascade without `!important`.
+ */
+[data-test-id="quick-search-modal"] [data-slot="command-item"] {
+    background-color: transparent;
+}
+[data-test-id="quick-search-modal"] [data-slot="command-item"][data-selected="true"],
+[data-test-id="quick-search-modal"] [data-slot="command-item"]:hover {
+    background-color: var(--accent);
+}

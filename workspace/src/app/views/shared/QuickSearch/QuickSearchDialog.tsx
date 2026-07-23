@@ -1,7 +1,7 @@
 import React from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useTranslation } from "react-i18next";
-import { Highlighter, Icon, Notification, Tag, TagList, shadcn } from "@eccenca/gui-elements";
+import { Icon, Notification, shadcn } from "@eccenca/gui-elements";
 
 import { commonSel } from "@ducks/common";
 import { routerOp } from "@ducks/router";
@@ -9,13 +9,10 @@ import { IPageLabels, absolutePageUrl } from "@ducks/router/operations";
 import { AppDispatch } from "store/configureStore";
 import { DATA_TYPES } from "../../../constants";
 import useHotKey from "../HotKeyHandler/HotKeyHandler";
-import { ItemDepiction } from "../ItemDepiction/ItemDepiction";
 import { Loading } from "../Loading/Loading";
-import { ArtefactTag } from "../ArtefactTag";
-import { projectTagsRenderer } from "../ProjectTags/ProjectTags";
-import { searchTagsRenderer } from "../SearchList/SearchTags";
 import { uppercaseFirstChar } from "../../../utils/transformers";
 import { QuickSearchItem, groupQuickSearchItems } from "./quickSearchItem";
+import { QuickSearchResultItem } from "./QuickSearchResultItem";
 import { useQuickSearchItems } from "./useQuickSearchItems";
 
 const { Command, CommandDialog, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList, CommandSeparator } =
@@ -46,6 +43,16 @@ export function QuickSearchDialog() {
             return false; // prevent default
         },
     });
+
+    // The application header sits at a very high z-index (`z-[8000]`, elevated to 8002 so
+    // notifications stay reachable over modals). The dialog overlay ships at `z-50`, so on its own
+    // the backdrop would render *behind* the header and leave it un-dimmed. While the quick search
+    // is open, this body class lifts the overlay + content above the header (see quicksearch.css).
+    React.useEffect(() => {
+        const openClass = "di-quicksearch-open";
+        document.body.classList.toggle(openClass, isOpen);
+        return () => document.body.classList.remove(openClass);
+    }, [isOpen]);
 
     const close = React.useCallback(() => {
         setIsOpen(false);
@@ -92,44 +99,6 @@ export function QuickSearchDialog() {
         [items, trimmedQuery],
     );
 
-    const quickSearchItem = (item: QuickSearchItem) => (
-        <CommandItem
-            key={item.key}
-            // cmdk uses the value for its own bookkeeping; the key is already unique per item.
-            value={item.key}
-            onSelect={() => goToItem(item)}
-            className="gap-2.5 py-2"
-            data-test-id="quick-search-item"
-        >
-            <ItemDepiction itemType={item.itemType} pluginId={item.pluginId} />
-            <span className="flex min-w-0 flex-col gap-0.5">
-                <span className="truncate font-medium">
-                    <Highlighter label={item.label} searchValue={trimmedQuery} />
-                </span>
-                <TagList>
-                    {item.readOnly && item.itemType === "dataset" && (
-                        <Tag>
-                            <Icon name="state-locked" small tooltipText={t("common.tooltips.dataset.readOnly")} />
-                        </Tag>
-                    )}
-                    {item.pluginLabel && (
-                        <ArtefactTag artefactType={`${item.pluginLabel.toLowerCase()}-node`}>
-                            <Highlighter label={item.pluginLabel} searchValue={trimmedQuery} />
-                        </ArtefactTag>
-                    )}
-                    {/* A project is its own context, so only tasks show the project they live in. */}
-                    {item.itemType !== DATA_TYPES.PROJECT && (item.projectLabel || item.projectId) && (
-                        <Tag emphasis="weak">
-                            <Highlighter label={item.projectLabel || item.projectId!} searchValue={trimmedQuery} />
-                        </Tag>
-                    )}
-                    {projectTagsRenderer({ tags: item.tags, query: trimmedQuery })}
-                    {searchTagsRenderer({ searchTags: item.searchTags, searchText: trimmedQuery })}
-                </TagList>
-            </span>
-        </CommandItem>
-    );
-
     return (
         <CommandDialog
             open={isOpen}
@@ -170,7 +139,15 @@ export function QuickSearchDialog() {
                                             : itemTypeLabel(group.itemType)
                                     }
                                 >
-                                    {group.items.map(quickSearchItem)}
+                                    {group.items.map((item) => (
+                                        <QuickSearchResultItem
+                                            key={item.key}
+                                            item={item}
+                                            query={trimmedQuery}
+                                            showType={group.itemType === RECENTLY_VIEWED_GROUP}
+                                            onSelect={goToItem}
+                                        />
+                                    ))}
                                 </CommandGroup>
                             ))}
                             {!!trimmedQuery && (
@@ -180,11 +157,15 @@ export function QuickSearchDialog() {
                                         <CommandItem
                                             value="quick-search-workspace-search"
                                             onSelect={goToWorkspaceSearch}
-                                            className="gap-2.5 py-2"
+                                            className="cursor-pointer! gap-3 rounded-lg px-2 py-2"
                                             data-test-id="quick-search-workspace-search"
                                         >
-                                            <Icon name="operation-search" small />
-                                            <span className="truncate">
+                                            <Icon
+                                                name="operation-search"
+                                                small
+                                                className="shrink-0 text-muted-foreground group-data-[selected]/command-item:text-foreground"
+                                            />
+                                            <span className="truncate text-sm">
                                                 {t("RecentlyViewedModal.globalSearch", { query: trimmedQuery })}
                                             </span>
                                         </CommandItem>

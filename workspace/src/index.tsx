@@ -22,6 +22,8 @@ import "./theme/tailwind.generated.css";
 import "./theme/sidebar-active-fix.css";
 // GridBoard tile-fill rule (self-carding widget cards stretch to fill their resizable tile).
 import "./theme/gridboard.css";
+// Lifts the quick search dialog above the high z-index application header while it is open.
+import "./theme/quicksearch.css";
 import mappingEditor from "./app/views/pages/MappingEditor/index";
 import "./language";
 
