@@ -108,6 +108,7 @@ class JinjaVariableCollectorTest extends AnyFlatSpec with Matchers {
         |   Is defined
         | {% endif %}
         |""".stripMargin) shouldBe Seq("title")
+    collect("{{ x is divisibleby 3 }}") shouldBe Seq("x")
   }
 
   it should "collect scoped variables in simple expressions" in {
@@ -163,6 +164,63 @@ class JinjaVariableCollectorTest extends AnyFlatSpec with Matchers {
         |   {{street}} {{number}}, {{country}}
         | {% endmacro %}
         | {{ foo('Hainstraße', '8') }}""".stripMargin) shouldBe Seq("country")
+  }
+
+  it should "collect references in range brackets and tolerate omitted bounds" in {
+    collect("{{ items[:3] }}") shouldBe Seq("items")
+    collect("{{ items[1:] }}") shouldBe Seq("items")
+    collect("{{ items[1:maxIndex] }}") shouldBe Seq("items", "maxIndex")
+    collect("{{ items[1:project.maxIndex] }}") shouldBe Seq("items", "project.maxIndex")
+  }
+
+  it should "not keep macro parameters bound after the definition" in {
+    collect("{% macro greet(name) %}Hi {{name}}{% endmacro %}{{name}}") shouldBe Seq("name")
+  }
+
+  it should "not collect named argument names at call sites" in {
+    collect("{{ items | join(attribute='x') }}") shouldBe Seq("items")
+  }
+
+  it should "collect free variables of macro default values" in {
+    collect("{% macro f(x=defaultCity) %}{{x}}{% endmacro %}") shouldBe Seq("defaultCity")
+  }
+
+  it should "collect variables that are referenced before their binding" in {
+    collect("{{x}} {% set x = 1 %}") shouldBe Seq("x")
+    collect("{% set x = x | default('d') %}") shouldBe Seq("x")
+  }
+
+  it should "bind the target of a block set and collect its body" in {
+    collect("{% set g %}Hello {{user}}{% endset %}{{g}}") shouldBe Seq("user")
+  }
+
+  it should "keep variables that are set inside an if block bound after it" in {
+    collect("{% if c %}{% set g = 'a' %}{% else %}{% set g = 'b' %}{% endif %}{{g}}") shouldBe Seq("c")
+  }
+
+  it should "collect call tag arguments" in {
+    collect("{% call renderIt(myTitle) %}text{% endcall %}") shouldBe Seq("myTitle")
+  }
+
+  it should "split the for expression at the first 'in' only" in {
+    collect("{% for x in data.get(' in ') %}{{x}}{% endfor %}") shouldBe Seq("data")
+  }
+
+  it should "filter loop references at any depth but keep scoped variables named loop" in {
+    collect("{% for x in items %}{{loop.previtem.name}}{% endfor %}") shouldBe Seq("items")
+    collect("{% for x in items %}{{project.loop}}{% endfor %}") shouldBe Seq("items", "project.loop")
+  }
+
+  it should "treat identifier dict keys as literal names" in {
+    collect("{% set d = {key: value} %}") shouldBe Seq("value")
+  }
+
+  it should "not collect expressions inside raw blocks" in {
+    collect("{% raw %}{{foo}}{% endraw %}") shouldBe Seq()
+  }
+
+  it should "collect variables in tuples" in {
+    collect("{% set t = (a, b) %}") shouldBe Seq("a", "b")
   }
 
   private def collect(template: String): Seq[String] = {
