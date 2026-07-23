@@ -62,6 +62,28 @@ class JinjaVariableCollectorTest extends AnyFlatSpec with Matchers {
         |""".stripMargin) shouldBe Seq("users", "inputs")
   }
 
+  it should "not collect outer loop variables referenced in nested for-loops" in {
+    collect(
+      """
+        | {% for book in entities %}
+        |   {% for chapter in book.chapter %}
+        |     {{chapter.name}}
+        |   {% endfor %}
+        | {% endfor %}
+        |""".stripMargin) shouldBe Seq("entities")
+  }
+
+  it should "keep variables bound after a for-loop" in {
+    collect(
+      """
+        | {% set x = city %}
+        | {% for user in users %}
+        |   {{user}}
+        | {% endfor %}
+        | {{x}}
+        |""".stripMargin) shouldBe Seq("city", "users")
+  }
+
   it should "collect variables in set expressions" in {
     collect(
       """

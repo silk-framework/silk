@@ -33,6 +33,9 @@ object VariableScope {
   /** Scope for execution variables, addressed as "execution.variableName". */
   final val execution: VariableScope = VariableScope("execution")
 
+  /** All predefined scopes that variables can be defined in. */
+  final val all: Seq[VariableScope] = Seq(global, project, execution)
+
   /** Convenience for the common single-segment scope. */
   def apply(segment: String): VariableScope = VariableScope(Seq(segment))
 

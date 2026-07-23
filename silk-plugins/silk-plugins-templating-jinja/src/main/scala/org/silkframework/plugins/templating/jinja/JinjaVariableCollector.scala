@@ -49,10 +49,12 @@ class JinjaVariableCollector  {
         val parts = tagNode.getHelpers.split("\\s+in\\s+")
         if (parts.length == 2) {
           val loopVars = new HelperStringTokenizer(parts(0)).splitComma(true).allTokens
-          val loopedVars = collectFromExpression(parts(1))
-          val childVars = collectFromChildren(tagNode, scope.withBoundNames(loopVars.asScala.toSeq))
+          // The looped expression is evaluated in the enclosing scope, e.g. it may reference an outer loop variable
+          val loopedVars = scope ++ collectFromExpression(parts(1))
+          val childVars = collectFromChildren(tagNode, loopedVars.withBoundNames(loopVars.asScala.toSeq))
           val filtedChildVars = childVars.unboundVars.filterNot(v => v.scope == VariableScope("loop") || v.name == "loop" )
-          loopedVars.withUnbound(filtedChildVars)
+          // The loop variables are not bound outside of the loop
+          Scope(filtedChildVars, scope.boundVars)
         } else {
           collectFromChildren(tagNode, scope)
         }
