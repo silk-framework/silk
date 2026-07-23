@@ -4,7 +4,7 @@ import controllers.autoCompletion.AutoSuggestAutoCompletionResponse
 import controllers.workspaceApi.coreApi.VariableTemplateApi.VariableDependencies
 import org.silkframework.serialization.json.{TemplateVariableJson, TemplateVariablesJson}
 import helper.{ApiClient, IntegrationTestTrait, RequestFailedException}
-import org.silkframework.runtime.templating.{SimpleSubstitutionTemplateEngine, TemplateVariable, TemplateVariables, VariableScope}
+import org.silkframework.runtime.templating.{SimpleSubstitutionTemplateEngine, TemplateVariable, TemplateVariableName, TemplateVariables, VariableScope}
 import org.silkframework.workspace.activity.workflow.{Workflow, WorkflowOperator, WorkflowOperatorsParameter}
 import org.silkframework.workspace.{Project, ProjectConfig, WorkspaceFactory}
 import play.api.libs.json.{JsObject, JsValue, Json}
@@ -537,6 +537,54 @@ class VariableTemplateApiTest extends AnyFlatSpec with IntegrationTestTrait with
     getVariables(projectName).map.keySet shouldBe Set("base")
   }
 
+  it should "refuse deleting a project variable that a task references from a data template" in {
+    val projectName = "variables-test-data-template-delete"
+    val taskName = "dataTemplateTask"
+    val project = createProjectWithVariablesTask(projectName, taskName,
+      projectVariables = Seq(projectVariable("base", "2002"), projectVariable("other", "x")),
+      taskParameters = Map("title" -> "T", "year" -> "2002", "variableReference" -> "project.base"))
+
+    // The dependency endpoint must list the referencing task
+    val dependencies = variablesDependencies(projectName, "base")
+    dependencies.dependentVariables shouldBe empty
+    dependencies.dependentTasks.map(_.id) shouldBe Seq(taskName)
+
+    // The delete must be refused without removing the variable
+    val ex = the[RequestFailedException] thrownBy {
+      removeVariable(projectName, "base")
+    }
+    (ex.response.json \ "title").as[String] shouldBe "Cannot delete variable"
+    (ex.response.json \ "taskId").as[String] shouldBe taskName
+    getVariables(projectName).map.keySet should contain("base")
+
+    // A non-project-scope reference must not block deleting a same-named project variable
+    project.addTask("executionReferenceTask", VariablesTestTask("T", 2002, variableReference = "execution.other"))
+    variablesDependencies(projectName, "other") shouldBe VariableDependencies(Seq.empty, Seq.empty)
+    removeVariableError(projectName, "other") shouldBe None
+  }
+
+  it should "refuse replacing the project variables when a removed variable is referenced from a data template" in {
+    val projectName = "variables-test-data-template-put"
+    val taskName = "dataTemplatePutTask"
+    val baseVar = projectVariable("base", "2002")
+    val otherVar = projectVariable("other", "x")
+    createProjectWithVariablesTask(projectName, taskName,
+      projectVariables = Seq(baseVar, otherVar),
+      taskParameters = Map("title" -> "T", "year" -> "2002", "variableReference" -> "project.base"))
+
+    // Removing the referenced variable must be refused without changing anything
+    val ex = the[RequestFailedException] thrownBy {
+      putVariables(projectName, TemplateVariables(Seq(otherVar)))
+    }
+    (ex.response.json \ "title").as[String] shouldBe "Cannot update variables"
+    (ex.response.json \ "taskId").as[String] shouldBe taskName
+    getVariables(projectName).map.keySet shouldBe Set("base", "other")
+
+    // Keeping the referenced variable succeeds
+    putVariables(projectName, TemplateVariables(Seq(baseVar)))
+    getVariables(projectName).map.keySet shouldBe Set("base")
+  }
+
   it should "update the task when a changed execution variable is referenced by a parameter template" in {
     val projectName = "variables-test-task-variable-update"
     val taskName = "executionVariableUpdateTask"
@@ -773,11 +821,14 @@ class VariableTemplateApiTest extends AnyFlatSpec with IntegrationTestTrait with
   }
 }
 
-case class VariablesTestTask(title: String, year: Int, referenced: String = "") extends CustomTask {
+case class VariablesTestTask(title: String, year: Int, referenced: String = "", variableReference: String = "") extends CustomTask {
   require(year >= 0, "year cannot be negative")
 
   override def inputPorts: InputPorts = InputPorts.NoInputPorts
   override def outputPort: Option[Port] = None
   // Simulates a task that references another task from its data, like a transform task references rule blocks.
   override def referencedTasks: Set[Identifier] = if (referenced.isEmpty) Set.empty else Set(Identifier(referenced))
+  // Simulates a task whose data references a variable, like an 'Evaluate template' operator in a transform rule.
+  override def referencedVariables: Seq[TemplateVariableName] =
+    if (variableReference.isEmpty) Seq.empty else Seq(TemplateVariableName.parse(variableReference))
 }
