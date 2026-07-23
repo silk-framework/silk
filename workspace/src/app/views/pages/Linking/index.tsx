@@ -12,6 +12,7 @@ import { usePageHeader } from "../../shared/PageHeader/PageHeader";
 import { ArtefactManagementOptions } from "../../shared/ActionsMenu/ArtefactManagementOptions";
 import NotFound from "../NotFound";
 import { ProjectTaskParams } from "../../shared/typings";
+import VariablesWidget from "../../shared/VariablesWidget/VariablesWidget";
 import { LinkageRuleConfig } from "./config/LinkageRuleConfig";
 import DeprecatedPluginsBanner from "../Project/DeprecatedPlugins/DeprecatedPluginsBanner";
 import { ProjectForbiddenNotification } from "../../shared/ProjectForbiddenNotification";
@@ -98,6 +99,13 @@ export default function LinkingPage() {
             title: t("widget.TaskActivityOverview.title", "Activities"),
             defaultLayout: { x: 8, y: 15, w: 4, h: 4 },
             element: <TaskActivityOverview projectId={projectId} taskId={taskId} />,
+        },
+        {
+            id: "variables",
+            icon: "data-string",
+            title: t("widget.VariableWidget.title.execution", "Execution variables"),
+            defaultLayout: { x: 8, y: 19, w: 4, h: 5 },
+            element: <VariablesWidget projectId={projectId} taskId={taskId} />,
         },
     ];
 

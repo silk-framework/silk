@@ -1,13 +1,16 @@
 package org.silkframework.plugins.dataset.rdf
 
 import org.openjdk.jmh.annotations._
-import org.silkframework.dataset.rdf.SparqlEndpoint
-import org.silkframework.plugins.dataset.rdf.datasets.InMemoryDataset
+import org.silkframework.config.PlainTask
+import org.silkframework.dataset.DatasetSpec
+import org.silkframework.dataset.rdf.{RdfDatasetAccess, SparqlEndpoint}
+import org.silkframework.execution.local.LocalExecution
+import org.silkframework.plugins.dataset.rdf.datasets.{InMemoryDataset, InMemoryDatasetExecutor}
 import org.silkframework.runtime.activity.UserContext
 
 import java.util.concurrent.TimeUnit
 
-/** Diagnoses how repeated public sparqlEndpoint creation affects update cost on the same dataset model. */
+/** Diagnoses how repeatedly obtained executor-access endpoints affect update cost on the same dataset model. */
 @BenchmarkMode(Array(Mode.AverageTime))
 @OutputTimeUnit(TimeUnit.MICROSECONDS)
 @Fork(1)
@@ -41,8 +44,11 @@ class EndpointAccumulationState {
   @Setup(Level.Iteration)
   def setup(): Unit = {
     dataset = InMemoryDataset(workflowScoped = false)
-    publicEndpoints = Array.fill(publicEndpointCount)(dataset.sparqlEndpoint)
-    writerEndpoint = dataset.sparqlEndpoint
+    val task = PlainTask("endpointBenchmark", DatasetSpec(dataset))
+    def accessEndpoint(): SparqlEndpoint =
+      new InMemoryDatasetExecutor().access(task, LocalExecution(false)).asInstanceOf[RdfDatasetAccess].sparqlEndpoint
+    publicEndpoints = Array.fill(publicEndpointCount)(accessEndpoint())
+    writerEndpoint = accessEndpoint()
   }
 
   @TearDown(Level.Iteration)

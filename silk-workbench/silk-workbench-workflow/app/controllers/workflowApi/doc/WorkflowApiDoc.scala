@@ -6,16 +6,22 @@ object WorkflowApiDoc {
     """Executes a workflow with parameters from the request query string or form URL encoded body.
 Compatible with all workflows that contain a single variable dataset that is used as input dataset and a single
 variable dataset as output – each dataset can be used several times in the same workflow.
-The output data type is specified via the ACCEPT header. The result is returned as the requested mime type,
-the content is the file content of the corresponding dataset, e.g. XML, CSV etc.
-A single entity is build from the provided request parameters and injected into the variable source dataset.
+
+**Input entity:** A single entity is built from the provided request parameters and injected into the variable source dataset.
 There must be at least one form or query parameter specified in the request. If empty entities as input
 must be supported, a POST request with empty JSON or XML object/element should be used, see below.
 For some data types (JSON, XML and CSV), the POST body can contain arbitrary content that the data source
 is expected to have. This goes beyond the simple query or form parameter input, where only exactly one input entity would be generated.
 The corresponding content type must be specified in these cases.
-It is possible to enable auto-configuration for the source dataset, e.g. if the source data does not adhere to the default dataset config (non-comma separator in CSV etc.).
-The query parameter 'config-general-autoConfig' must be set to true to enable auto-config."""
+
+**Output:** The output data type is specified via the ACCEPT header. The result is returned as the requested mime type,
+the content is the file content of the corresponding dataset, e.g. XML, CSV etc.
+
+**Auto-configuration:** It is possible to enable auto-configuration for the source dataset, e.g. if the source data does not adhere to the default dataset config (non-comma separator in CSV etc.).
+The query parameter 'config-general-autoConfig' must be set to true to enable auto-config.
+
+**Execution variables:** Execution variables can be provided as query parameters with the reserved prefix 'variable-', e.g. 'variable-myVar=some value'.
+This works independent of the request content type. These parameters are never part of the input entity."""
 
   final val variableWorkflowResultPostDescriptionAsync =
     """Executes a workflow with parameters from the request query string or form URL encoded body.
@@ -24,13 +30,18 @@ It will return the activity identifiers, which can be used to check the executio
 Once the workflow execution completed, the result can be retrieved using the 'Parameterized workflow execution result (asynchronous)' endpoint.
 Compatible with all workflows that contain a single variable dataset that is used as input dataset and a single
 variable dataset as output – each dataset can be used several times in the same workflow.
-The output data type is specified via 'output:type' query parameter.
-A single entity is build from the provided request parameters and injected into the variable source dataset.
+
+**Input entity:** A single entity is built from the provided request parameters and injected into the variable source dataset.
 There must be at least one form or query parameter specified in the request. If empty entities as input
 must be supported, a POST request with empty JSON or XML object/element should be used, see below.
 For some data types (JSON, XML and CSV), the POST body can contain arbitrary content that the data source
 is expected to have. This goes beyond the simple query or form parameter input, where only exactly one input entity would be generated.
-The corresponding content type must be specified in these cases."""
+The corresponding content type must be specified in these cases.
+
+**Output:** The output data type is specified via the 'output:type' query parameter.
+
+**Execution variables:** Execution variables can be provided as query parameters with the reserved prefix 'variable-', e.g. 'variable-myVar=some value'.
+This works independent of the request content type. These parameters are never part of the input entity."""
 
   final val variableWorkflowResultGetDescription =
     """For a GET request the parameter and values are provided via the query string of the URL.

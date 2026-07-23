@@ -26,11 +26,56 @@ import {
     IOverviewArtefactItemList,
     IPluginDetails,
     IProjectTaskUpdatePayload,
+    TaskPreConfiguration,
 } from "../../../../src/app/store/ducks/common/typings";
 import { atomicParamDescription, mockAutoCompleteResponse, objectParamDescription } from "./CreateArtefactModalHelper";
 import { INPUT_TYPES } from "../../../../src/app/constants";
 import { TaskTypes } from "../../../../src/app/store/ducks/shared/typings";
 import { MemoryHistory } from "history/createMemoryHistory";
+
+jest.mock("@eccenca/gui-elements", () => {
+    const React = jest.requireActual("react");
+    const actual = jest.requireActual("@eccenca/gui-elements");
+    const jestTestUtils = jest.requireActual("../../../../src/app/test/jestTestUtils").default;
+    const BaseCodeEditor = jestTestUtils.createCodeEditorMock(React);
+    function CodeEditor(props) {
+        return React.createElement(
+            "div",
+            { "data-test-id": props["data-test-id"] },
+            React.createElement(BaseCodeEditor, props),
+        );
+    }
+    CodeEditor.supportedModes = [];
+    return {
+        ...actual,
+        CodeEditor,
+    };
+});
+
+jest.mock("../../../../src/app/views/shared/FileUploader/FileSelectionMenu", () => {
+    const React = jest.requireActual("react");
+
+    function MockFileSelectionMenu(props) {
+        const { id, onChange, defaultValue } = props;
+        const triggerChange = () => {
+            if (onChange) {
+                onChange(defaultValue ?? "");
+            }
+        };
+        return React.createElement(
+            "div",
+            { id, "data-test-id": "file-selection-menu-mock" },
+            React.createElement("input", { type: "radio", name: `${id}-upload`, onChange: triggerChange }),
+            React.createElement("input", { type: "radio", name: `${id}-select`, onChange: triggerChange }),
+            React.createElement("input", { type: "radio", name: `${id}-create`, onChange: triggerChange }),
+        );
+    }
+
+    return {
+        __esModule: true,
+        default: MockFileSelectionMenu,
+    };
+});
 
 describe("Task creation widget", () => {
     beforeAll(() => {
@@ -56,6 +101,14 @@ describe("Task creation widget", () => {
     const createArtefactWrapper = (
         currentUrl: string = `${SERVE_PATH}`,
         existingTask?: RecursivePartial<IProjectTaskUpdatePayload>,
+        newTaskPreConfiguration?: TaskPreConfiguration,
+        availableDataTypes?: RecursivePartial<{
+            type: {
+                label: string;
+                field: string;
+                options: { id: string; label: string }[];
+            };
+        }>,
     ): IWrapper => {
         const history = createMemoryHistory<{}>();
         history.push(currentUrl);
@@ -69,20 +122,42 @@ describe("Task creation widget", () => {
                 artefactModal: {
                     isOpen: true,
                     updateExistingTask: existingTask,
+                    newTaskPreConfiguration,
                 },
+                // Only merge the key when set: an explicit `undefined` would overwrite the store
+                // default via mergeDeepRight and crash availableDTypesSelector consumers.
+                ...(availableDataTypes ? { availableDataTypes } : {}),
             },
         });
         return { element: wrapper.baseElement, history };
     };
 
     // Loads the selection list modal with mocked artefact list
-    const createMockedListWrapper = async (existingTask?: RecursivePartial<IProjectTaskUpdatePayload>) => {
-        const wrapper = await act(() => createArtefactWrapper(`${SERVE_PATH}/projects/${PROJECT_ID}`, existingTask));
+    const createMockedListWrapper = async (
+        existingTask?: RecursivePartial<IProjectTaskUpdatePayload>,
+        artefactListResponse: IOverviewArtefactItemList = mockArtefactListResponse,
+        newTaskPreConfiguration?: TaskPreConfiguration,
+        availableDataTypes?: RecursivePartial<{
+            type: {
+                label: string;
+                field: string;
+                options: { id: string; label: string }[];
+            };
+        }>,
+    ) => {
+        const wrapper = await act(() =>
+            createArtefactWrapper(
+                `${SERVE_PATH}/projects/${PROJECT_ID}`,
+                existingTask,
+                newTaskPreConfiguration,
+                availableDataTypes,
+            ),
+        );
         const url = apiUrl("core/taskPlugins?addMarkdownDocumentation=true");
-        mockAxios.mockResponseFor({ url }, mockedAxiosResponse({ data: mockArtefactListResponse }));
+        mockAxios.mockResponseFor({ url }, mockedAxiosResponse({ data: artefactListResponse }));
         if (!existingTask) {
             await waitFor(() => {
-                expect(selectionItems(wrapper.element)).toHaveLength(3);
+                expect(selectionItems(wrapper.element).length).toBeGreaterThan(0);
             });
         }
         return wrapper;
@@ -229,6 +304,40 @@ describe("Task creation widget", () => {
         checkRequestMade(apiUrl("/core/plugins/pluginB"));
     });
 
+    it("should hide blacklisted item types from the left selection and artefact list", async () => {
+        const artefactListWithRuleBlock: IOverviewArtefactItemList = {
+            ...mockArtefactListResponse,
+            pluginRuleBlock: {
+                title: "Plugin Rule Block",
+                description: "This is a rule block plugin",
+                taskType: TaskTypes.RULE_BLOCK,
+                categories: [],
+            },
+        };
+        const availableDataTypes = {
+            type: {
+                label: "Item type",
+                field: "type",
+                options: [
+                    { id: "task", label: "Task" },
+                    { id: "dataset", label: "Dataset" },
+                    { id: "ruleBlock", label: "Rule block" },
+                ],
+            },
+        };
+
+        const { element } = await createMockedListWrapper(
+            undefined,
+            artefactListWithRuleBlock,
+            { itemTypeBlackList: ["ruleBlock"] },
+            availableDataTypes,
+        );
+
+        expect(element.querySelector(byTestId("item-type-ruleBlock"))).not.toBeInTheDocument();
+        const itemTexts = selectionItems(element).map((item) => item.textContent ?? "");
+        expect(itemTexts.some((text) => text.includes("Plugin Rule Block"))).toBe(false);
+    });
+
     it("should open the plugin configuration dialog when double-clicking an item from the list", async () => {
         await pluginCreationDialogWrapper();
     });
@@ -357,27 +466,37 @@ describe("Task creation widget", () => {
     });
 
     it("should allow to reset optional auto-completed values", async () => {
-        const { element } = await pluginCreationDialogWrapper();
-        const autoCompleteInput = findElement(element, "#optionalAutoCompletionParamCustom");
-        expect(window.document.querySelectorAll(".eccgui-spinner").length).toBe(0);
-        // input must be focused in order to fire requests
-        act(() => {
-            autoCompleteInput.focus();
-        });
-        changeInputValue(autoCompleteInput as HTMLInputElement, "abc");
-        await waitFor(() => {
-            expect(window.document.querySelectorAll(".eccgui-spinner").length).toBe(1);
-        });
-        await waitFor(() => {
-            // Request is delayed by 200ms
-            mockAutoCompleteResponse(
-                { textQuery: "abc" },
-                mockedAxiosResponse({ data: [{ value: "abc1" }, { value: "abc2" }] }),
-            );
-        });
-        await waitFor(() => {
+        jest.useFakeTimers();
+        try {
+            const { element } = await pluginCreationDialogWrapper();
+            const autoCompleteInput = findElement(element, "#optionalAutoCompletionParamCustom");
             expect(window.document.querySelectorAll(".eccgui-spinner").length).toBe(0);
-        });
+            // input must be focused in order to fire requests
+            act(() => {
+                autoCompleteInput.focus();
+            });
+            changeInputValue(autoCompleteInput as HTMLInputElement, "abc");
+            await waitFor(() => {
+                expect(window.document.querySelectorAll(".eccgui-spinner").length).toBe(1);
+            });
+            await act(async () => {
+                jest.advanceTimersByTime(200);
+            });
+            await waitFor(() => {
+                mockAutoCompleteResponse(
+                    { textQuery: "abc" },
+                    mockedAxiosResponse({ data: [{ value: "abc1" }, { value: "abc2" }] }),
+                );
+            });
+            await waitFor(() => {
+                expect(window.document.querySelectorAll(".eccgui-spinner").length).toBe(0);
+            });
+        } finally {
+            await act(async () => {
+                jest.runOnlyPendingTimers();
+            });
+            jest.useRealTimers();
+        }
     });
 
     const createDependentParameterWrapper = async () => {

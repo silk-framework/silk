@@ -25,6 +25,15 @@ import { RenderResult, waitFor } from "@testing-library/react";
 import { IArtefactItemProperty } from "../../../../../src/app/store/ducks/common/typings";
 import { IMetadata } from "@ducks/shared/typings";
 
+jest.mock("../../../../../src/app/views/shared/TaskActivityOverview/TaskActivityOverview", () => ({
+    TaskActivityOverview: () => null,
+}));
+
+jest.mock("../../../../../src/app/views/pages/Project/DeprecatedPlugins/DeprecatedPluginsBanner", () => ({
+    __esModule: true,
+    default: () => null,
+}));
+
 describe("Task page", () => {
     afterEach(() => {
         mockAxios.reset();
@@ -46,15 +55,23 @@ describe("Task page", () => {
         setUseParams(projectId, taskId);
     });
 
-    let taskPageWrapper: RenderResult;
-    beforeEach(() => {
+    let taskPageWrapper: RenderResult | null = null;
+
+    const renderTaskPage = () => {
         const history = createBrowserHistory();
         history.location.pathname = workspacePath(`/projects/${projectId}/task/${taskId}`);
 
         taskPageWrapper = renderWrapper(<Task />, history);
+        return taskPageWrapper;
+    };
+
+    afterEach(() => {
+        taskPageWrapper?.unmount();
+        taskPageWrapper = null;
     });
 
     it("should request meta data and task config", async () => {
+        renderTaskPage();
         checkRequestMade(taskMetaDataExpandedURL);
         checkRequestMade(apiUrl(`/workspace/projects/${projectId}/tasks/${taskId}/relatedItems`));
         checkRequestMade(taskDataUrl, "GET", { withLabels: true });
@@ -68,6 +85,7 @@ describe("Task page", () => {
     });
 
     it("should display the task config with labels", async () => {
+        renderTaskPage();
         const parameterGenerator = new ParameterDescriptionGenerator();
         const testParameterDescriptions: Record<string, IArtefactItemProperty> = {};
         const params = [
@@ -130,6 +148,7 @@ describe("Task page", () => {
     });
 
     it("should display meta data of the task", async () => {
+        renderTaskPage();
         const taskMetaData: IMetadata = {
             label: taskLabel,
             description: taskDescription,

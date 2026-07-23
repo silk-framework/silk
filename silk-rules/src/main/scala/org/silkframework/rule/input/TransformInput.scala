@@ -45,7 +45,7 @@ case class TransformInput(id: Identifier = Operator.generateId,
     copy(inputs = newChildren.map(_.asInstanceOf[Input]).toIndexedSeq)
   }
 
-  override def execution(taskContext: TaskContext = TaskContext.empty): InputExecution = {
+  override def execution(taskContext: TaskContext): InputExecution = {
     new TransformInputExecution(
       operator = this,
       inputExecutions = inputs.map(_.execution(taskContext)),
@@ -93,12 +93,13 @@ object TransformInput {
    * XML serialization format.
    */
   implicit object TransformInputFormat extends XmlFormat[TransformInput] {
+    override def tagNames: Set[String] = Set("TransformInput")
 
     import XmlSerialization._
 
     def read(node: Node)(implicit readContext: ReadContext): TransformInput = {
       val id = Operator.readId(node)
-      val inputs = node.child.filter(n => n.label == "Input" || n.label == "TransformInput").map(fromXml[Input])
+      val inputs = node.child.filter(n => Input.InputFormat.tagNames.contains(n.label)).map(fromXml[Input])
 
       try {
         val transformerPluginId = (node \ "@function").text

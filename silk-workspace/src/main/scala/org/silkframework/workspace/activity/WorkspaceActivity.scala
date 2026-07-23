@@ -12,6 +12,7 @@ import java.util.logging.Logger
 import scala.collection.immutable.ListMap
 import scala.reflect.ClassTag
 import scala.util.Try
+import scala.util.control.NonFatal
 
 /**
   * An activity that is either attached to a project (ProjectActivity) or a task (TaskActivity) or is a GlobalWorkspaceActivity.
@@ -213,6 +214,31 @@ abstract class WorkspaceActivity[ActivityType <: HasValue : ClassTag]() {
   @deprecated("Use the variant with ParameterValues instead.")
   final def startBlockingAndGetValue(config: Map[String, String])(implicit user: UserContext): ActivityType#ValueType = {
     startBlockingAndGetValue(ParameterValues.fromStringMap(config))
+  }
+
+  /**
+    * Starts an activity in blocking mode and returns the result of the activity execution even if the
+    * execution failed: the activity's last published value (e.g. a workflow's failed execution report)
+    * together with the failure, if any. The activity instance is removed automatically in both cases.
+    *
+    * @param config The activity parameters
+    * @param user The user context
+    * @return The final value, if one was published, and the exception if the execution failed.
+    */
+  final def startBlockingAndGetResult(config: ParameterValues = ParameterValues.empty)
+                                     (implicit user: UserContext): (Option[ActivityType#ValueType], Option[Throwable]) = {
+    val (id, control) = addInstance(config)
+    try {
+      try {
+        control.startBlocking()
+        (control.value.get, None)
+      } catch {
+        case NonFatal(ex) =>
+          (control.value.get, Some(ex))
+      }
+    } finally {
+      removeActivityInstance(id)
+    }
   }
 
   /**

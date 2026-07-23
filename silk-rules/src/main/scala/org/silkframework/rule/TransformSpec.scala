@@ -6,7 +6,7 @@ import org.silkframework.entity._
 import org.silkframework.entity.paths._
 import org.silkframework.rule.RootMappingRule.RootMappingRuleFormat
 import org.silkframework.rule.TransformSpec.{RuleSchemata, TargetVocabularyCategory, TargetVocabularyParameter}
-import org.silkframework.rule.input.{TransformInput, Transformer}
+import org.silkframework.rule.input.{RuleBlockInput, TransformInput, Transformer}
 import org.silkframework.rule.vocab.TargetVocabularyParameterEnum
 import org.silkframework.runtime.plugin.StringParameterType.{EnumerationType, StringIterableParameterType}
 import org.silkframework.runtime.plugin._
@@ -15,7 +15,7 @@ import org.silkframework.runtime.plugin.types.IdentifierOptionParameter
 import org.silkframework.runtime.resource.Resource
 import org.silkframework.runtime.serialization.XmlSerialization._
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat, XmlSerialization}
-import org.silkframework.runtime.templating.TemplateVariableName
+import org.silkframework.runtime.templating.{TemplateVariableName, TemplateVariables}
 import org.silkframework.runtime.validation.NotFoundException
 import org.silkframework.util.{Identifier, IdentifierGenerator}
 import org.silkframework.workspace.{OriginalTaskData, TaskLoadingException, WorkspaceReadTrait}
@@ -103,7 +103,7 @@ case class TransformSpec(@Param(label = "Input", value = "The source from which 
     * The tasks that are directly referenced by this task.
     * This includes input tasks and output tasks.
     */
-  override def referencedTasks: Set[Identifier] = inputTasks ++ outputTasks
+  override def referencedTasks: Set[Identifier] = inputTasks ++ outputTasks ++ referencedRuleBlocks
 
   override lazy val referencedResources: Seq[Resource] = {
     val resources = new mutable.HashSet[Resource]()
@@ -121,9 +121,26 @@ case class TransformSpec(@Param(label = "Input", value = "The source from which 
     variables.toSeq
   }
 
+  private lazy val referencedRuleBlocks: Set[Identifier] = referencedRuleBlocksFromRule(mappingRule)
+
   private def iterateAllTransformersFromRule(rule: TransformRule, f: Transformer => Unit): Unit = {
     iterateAllTransformersFromOperator(rule.operator, f)
     rule.rules.foreach(rule => iterateAllTransformersFromRule(rule, f))
+  }
+
+  private def referencedRuleBlocksFromRule(rule: TransformRule): Set[Identifier] = {
+    referencedRuleBlocksFromOperator(rule.operator) ++ rule.rules.flatMap(referencedRuleBlocksFromRule)
+  }
+
+  private def referencedRuleBlocksFromOperator(operator: Operator): Set[Identifier] = {
+    operator match {
+      case TransformInput(_, _, inputs) =>
+        inputs.flatMap(referencedRuleBlocksFromOperator).toSet
+      case RuleBlockInput(_, ruleBlockId, bindings) =>
+        bindings.flatMap(binding => referencedRuleBlocksFromOperator(binding.input)).toSet + ruleBlockId
+      case _ =>
+        Set.empty
+    }
   }
 
   private def iterateAllTransformersFromOperator(operator: Operator,
@@ -132,6 +149,8 @@ case class TransformSpec(@Param(label = "Input", value = "The source from which 
       case TransformInput(_, transformer, inputs) =>
         inputs.foreach(input => iterateAllTransformersFromOperator(input, f))
         f(transformer)
+      case RuleBlockInput(_, _, bindings) =>
+        bindings.foreach(binding => iterateAllTransformersFromOperator(binding.input, f))
       case _ =>
     }
   }
@@ -148,6 +167,8 @@ case class TransformSpec(@Param(label = "Input", value = "The source from which 
         if(transformer.referencedResources.exists(_.path == resource.path)) {
           transformer.resourceUpdated(resource)
         }
+      case RuleBlockInput(_, _, bindings) =>
+        bindings.foreach(binding => updateResourceOfOperator(binding.input, resource))
       case _ =>
     }
   }
@@ -353,9 +374,19 @@ case class TransformSpec(@Param(label = "Input", value = "The source from which 
   override def mainActivities: Seq[String] = Seq("ExecuteTransform")
 }
 
-case class TransformTask(id: Identifier, data: TransformSpec, metaData: MetaData = MetaData.empty) extends Task[TransformSpec] {
+case class TransformTask(id: Identifier, data: TransformSpec, metaData: MetaData = MetaData.empty, executionVariables: TemplateVariables = TemplateVariables.empty) extends Task[TransformSpec] {
 
   override def taskType: Class[_] = classOf[TransformSpec]
+}
+
+object TransformTask {
+
+  /**
+    * Creates a TransformTask from a generic task, keeping all task properties.
+    */
+  def fromTask(task: Task[TransformSpec]): TransformTask = {
+    TransformTask(task.id, task.data, task.metaData, task.executionVariables)
+  }
 }
 
 /**
@@ -363,7 +394,7 @@ case class TransformTask(id: Identifier, data: TransformSpec, metaData: MetaData
   */
 object TransformSpec {
 
-  implicit def toTransformTask(task: Task[TransformSpec]): TransformTask = TransformTask(task.id, task.data, task.metaData)
+  implicit def toTransformTask(task: Task[TransformSpec]): TransformTask = TransformTask.fromTask(task)
 
   def empty: TransformSpec = TransformSpec(DatasetSelection.empty, RootMappingRule.empty)
 

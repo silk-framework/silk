@@ -1,7 +1,14 @@
 import { FetchResponse } from "../../../services/fetch/responseInterceptor";
 import fetch from "../../../services/fetch";
 import { legacyTransformEndpoint } from "../../../utils/getApiEndpoint";
-import { IComplexMappingRule, ITransformRule, NewTransformRule, PartialBy } from "./transform.types";
+import {
+    EvaluatedTransformEntity,
+    IComplexMappingRule,
+    ITransformRule,
+    ITransformRuleEvaluationResponse,
+    NewTransformRule,
+    PartialBy,
+} from "./transform.types";
 import { IAutocompleteDefaultResponse } from "@ducks/shared/typings";
 import { TaskContext } from "../../shared/projectTaskTabView/projectTaskTabView.typing";
 import { CodeAutocompleteFieldPartialAutoCompleteResult } from "@eccenca/gui-elements/src/components/organisms/AutoSuggestion/AutoSuggestion";
@@ -95,13 +102,32 @@ export const evaluateTransformRule = async (
     containerRuleId: string,
     rule,
     limit: number = 100,
-): Promise<FetchResponse<any>> => {
+): Promise<FetchResponse<EvaluatedTransformEntity[]>> => {
     return fetch({
         url: legacyTransformEndpoint(`/tasks/${projectId}/${transformTaskId}/rule/${containerRuleId}/evaluateRule`),
         method: "POST",
         body: rule,
         query: {
             limit,
+        },
+    });
+};
+
+/** Get evaluation values plus reusable rule block inspection snapshots for a given ruleId. */
+export const evaluateTransformRuleWithInspection = async (
+    projectId: string,
+    transformTaskId: string,
+    containerRuleId: string,
+    rule,
+    limit: number = 100,
+): Promise<FetchResponse<ITransformRuleEvaluationResponse>> => {
+    return fetch({
+        url: legacyTransformEndpoint(`/tasks/${projectId}/${transformTaskId}/rule/${containerRuleId}/evaluateRule`),
+        method: "POST",
+        body: rule,
+        query: {
+            limit,
+            includeRuleBlockInspection: true,
         },
     });
 };

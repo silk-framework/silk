@@ -64,6 +64,7 @@ import { legacyLinkingEndpoint } from "../../../../../utils/getApiEndpoint";
 import { referenceLinksEvaluated } from "../../LinkingRuleEditor.requests";
 import { activityControlScoreProps } from "../../../../shared/RuleEditor/view/evaluation/EvaluationActivityControl";
 import { EvaluationScoreTooltip } from "../../../../shared/RuleEditor/view/evaluation/EvaluationScoreTooltip";
+import { requestRuleBlockSummaries } from "../../../ruleBlock/ruleBlock.requests";
 
 interface LinkingEvaluationTabViewProps {
     projectId: string;
@@ -105,6 +106,7 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
         SilkActivityStatusProps["concreteStatus"] | undefined
     >();
     const [operatorPlugins, setOperatorPlugins] = React.useState<Array<IPluginDetails>>([]);
+    const ruleBlockLabels = React.useRef<Record<string, string>>({});
     const searchState = React.useRef<{ currentSearchId?: number }>({});
     const [searchQuery, setSearchQuery] = React.useState<string>("");
     const [linkStateFilter, setLinkStateFilter] = React.useState<keyof typeof LinkEvaluationFilters>();
@@ -180,8 +182,8 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                 setLoading(true);
                 // New view is rendered, reset manual link change
                 manualLinkChange.current = false;
-                const results = (
-                    await getEvaluatedLinks(
+                const [resultsResponse, summariesResponse] = await Promise.all([
+                    getEvaluatedLinks(
                         projectId,
                         linkingTaskId,
                         pagination,
@@ -190,8 +192,15 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                         linkSortBy,
                         showReferenceLinks,
                         !showReferenceLinks,
-                    )
-                )?.data;
+                    ),
+                    // Fetch fresh rule block labels alongside each evaluation reload instead of rewriting this tab-view API.
+                    requestRuleBlockSummaries(projectId),
+                ]);
+                const results = resultsResponse?.data;
+                const summaries = summariesResponse.data;
+                ruleBlockLabels.current = Object.fromEntries(
+                    summaries.map((summary) => [summary.id, summary.label] as const),
+                );
                 evaluationResults.current = results;
                 linksToValueMap.current = results?.links.map((link) => utils.linkToValueMap(link as any)) ?? [];
             } catch (err) {
@@ -807,6 +816,7 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                                             operatorTreeExpandedByDefault={showOperators}
                                             evaluationMap={linksToValueMap.current[rowIdx]}
                                             operatorPlugins={operatorPlugins}
+                                            ruleBlockLabels={ruleBlockLabels.current}
                                             expandedBySearch={expandedBecauseOfStringMatch}
                                         />
                                     );

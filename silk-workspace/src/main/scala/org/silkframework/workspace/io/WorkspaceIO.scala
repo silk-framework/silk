@@ -2,11 +2,11 @@ package org.silkframework.workspace.io
 
 import org.silkframework.config.{CustomTask, Prefixes, TaskSpec}
 import org.silkframework.dataset.{Dataset, DatasetSpec}
-import org.silkframework.rule.{LinkSpec, TransformSpec}
+import org.silkframework.rule.{LinkSpec, RuleBlockSpec, TransformSpec}
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.runtime.plugin.PluginContext
+import org.silkframework.runtime.plugin.{PluginContext, TaskResolver}
 import org.silkframework.runtime.resource.ResourceManager
-import org.silkframework.runtime.templating.{CombinedTemplateVariablesReader, GlobalTemplateVariables, InMemoryTemplateVariablesReader, TemplateVariableScopes, TemplateVariables}
+import org.silkframework.runtime.templating.{CombinedTemplateVariablesReader, GlobalTemplateVariables, InMemoryTemplateVariablesReader, VariableScope, TemplateVariables}
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.activity.workflow.Workflow
 import org.silkframework.workspace.resources.ResourceRepository
@@ -62,6 +62,7 @@ object WorkspaceIO {
     copyTasks[LinkSpec](inputWorkspace, outputWorkspace, inputResources, outputResources, updatedProjectConfig.id, project.prefixes, variables)
     copyTasks[Workflow](inputWorkspace, outputWorkspace, inputResources, outputResources, updatedProjectConfig.id, project.prefixes, variables)
     copyTasks[CustomTask](inputWorkspace, outputWorkspace, inputResources, outputResources, updatedProjectConfig.id, project.prefixes, variables)
+    copyTasks[RuleBlockSpec](inputWorkspace, outputWorkspace, inputResources, outputResources, updatedProjectConfig.id, project.prefixes, variables)
     outputWorkspace.refreshProject(updatedProjectConfig.id, outputResources)
   }
 
@@ -88,8 +89,8 @@ object WorkspaceIO {
                                                   prefixes: Prefixes,
                                                   variables: TemplateVariables)
                                                  (implicit userContext: UserContext): Unit = {
-    val variablesReader = CombinedTemplateVariablesReader(Seq(GlobalTemplateVariables, InMemoryTemplateVariablesReader(variables, Set(TemplateVariableScopes.project))))
-    implicit val inputContext: PluginContext = PluginContext(resources = inputResources, prefixes = prefixes, user = userContext, templateVariables = variablesReader)
+    val variablesReader = CombinedTemplateVariablesReader(Seq(GlobalTemplateVariables, InMemoryTemplateVariablesReader(variables, Set(VariableScope.project))))
+    implicit val inputContext: PluginContext = PluginContext(resources = inputResources, prefixes = prefixes, user = userContext, templateVariables = variablesReader, taskResolver = TaskResolver.empty)
     for(taskTry <- inputWorkspace.readTasks[T](projectName)) {
       taskTry.taskOrError match {
         case Right(task) =>

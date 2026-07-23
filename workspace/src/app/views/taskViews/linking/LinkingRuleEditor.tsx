@@ -3,12 +3,13 @@ import useErrorHandler from "../../../hooks/useErrorHandler";
 import { ILinkingRule, ILinkingTaskParameters, optionallyLabelledParameterToValue } from "./linking.types";
 import { useTranslation } from "react-i18next";
 import { IViewActions } from "../../plugins/PluginRegistry";
-import RuleEditor from "../../shared/RuleEditor/RuleEditor";
+import RuleEditor, { additionalToolbarComponentsPlace } from "../../shared/RuleEditor/RuleEditor";
 import { requestRuleOperatorPluginsDetails } from "@ducks/common/requests";
 import { IPluginDetails } from "@ducks/common/typings";
 import utils from "./LinkingRuleEditor.utils";
 import ruleUtils from "../shared/rules/rule.utils";
 import {
+    IParameterSpecification,
     IRuleOperatorNode,
     RULE_EDITOR_NOTIFICATION_INSTANCE,
     RuleSaveNodeError,
@@ -40,6 +41,8 @@ import { Notification, highlighterUtils, StickyNote } from "@eccenca/gui-element
 import { CodeAutocompleteFieldPartialAutoCompleteResult } from "@eccenca/gui-elements/src/components/organisms/AutoSuggestion/AutoSuggestion";
 import { languageFilterRegex, PathInputOperatorContext } from "../../shared/RuleEditor/view/ruleNode/PathInputOperator";
 import { documentationPageUrl } from "workspace/src/app/utils/getApiEndpoint";
+import ruleBlockOperatorUtils, { IRuleBlockOperatorDetails } from "../ruleBlock/ruleBlockOperator.utils";
+import { requestRuleBlockSummaries } from "../ruleBlock/ruleBlock.requests";
 
 export interface LinkingRuleEditorProps {
     /** Project ID the task is in. */
@@ -55,6 +58,8 @@ export interface LinkingRuleEditorProps {
 interface LinkingRuleEditorOptionalContextProps {
     /** When enabled only the rule is shown without side- and toolbar and any other means to edit the rule. */
     showRuleOnly?: boolean;
+    /** If set the editor is permanently read-only. */
+    readOnly?: boolean;
     /** When enabled the mini map is not displayed. */
     hideMinimap?: boolean;
     /** Defines minimum and maximum of the available zoom levels */
@@ -69,6 +74,8 @@ export const LinkingRuleEditorOptionalContext = React.createContext<LinkingRuleE
 const HIDE_GREY_LISTED_OPERATORS_QUERY_PARAMETER = "hideGreyListedParameters";
 
 const NUMBER_OF_LINKS_TO_SHOW = 5;
+
+type LinkingRuleEditorOperator = IPluginDetails | IRuleBlockOperatorDetails;
 
 /** Editor for creating and changing linking rule operator trees. */
 export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions, instanceId }: LinkingRuleEditorProps) => {
@@ -94,98 +101,108 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions, insta
         ).toLowerCase() === "true";
     const optionalContext = React.useContext(LinkingRuleEditorOptionalContext);
 
-    React.useEffect(() => {
-        fetchAllPaths();
-    }, [projectId, linkingTaskId, prefLang]);
-
-    const reducePendingRequestCount = () => {
+    const reducePendingRequestCount = React.useCallback(() => {
         pendingRequests.current = pendingRequests.current - 1;
         if (pendingRequests.current <= 0) {
             setLoading(false);
         }
-    };
-
-    const handleInitError = React.useCallback((error: any) => {
-        setInitError(error);
     }, []);
 
     /** Fetches the labels of either the source or target data source and sets them in the corresponding label map. */
-    const fetchPaths = async (sourceOrTarget: "source" | "target") => {
-        try {
-            const paths = await linkingRuleRequests.fetchLinkingCachedPaths(
-                projectId,
-                linkingTaskId,
-                sourceOrTarget,
-                true,
-                prefLang,
-            );
-            const createLabelMap = (paths: PathWithMetaData[]): Map<string, string> => {
-                const valueToPaths: [string, string][] = paths
-                    .filter((p) => p.label)
-                    .map((p) => {
-                        let value = p.value;
-                        // We want to have the actual property without language filter
-                        if (languageFilterRegex.test(value)) {
-                            value = value.replace(languageFilterRegex, "");
-                        }
-                        return [value, p.label!];
-                    });
-                return new Map(valueToPaths);
-            };
-            if (sourceOrTarget === "source") {
-                sourcePathMetaData.current = paths.data as PathWithMetaData[];
-                sourcePathLabels.current = createLabelMap(sourcePathMetaData.current);
-            } else {
-                targetPathMetaData.current = paths.data as PathWithMetaData[];
-                targetPathLabels.current = createLabelMap(targetPathMetaData.current);
+    const fetchPaths = React.useCallback(
+        async (sourceOrTarget: "source" | "target") => {
+            try {
+                const paths = await linkingRuleRequests.fetchLinkingCachedPaths(
+                    projectId,
+                    linkingTaskId,
+                    sourceOrTarget,
+                    true,
+                    prefLang,
+                );
+                const createLabelMap = (paths: PathWithMetaData[]): Map<string, string> => {
+                    const valueToPaths: [string, string][] = paths
+                        .filter((p) => p.label)
+                        .map((p) => {
+                            let value = p.value;
+                            // We want to have the actual property without language filter
+                            if (languageFilterRegex.test(value)) {
+                                value = value.replace(languageFilterRegex, "");
+                            }
+                            return [value, p.label!];
+                        });
+                    return new Map(valueToPaths);
+                };
+                if (sourceOrTarget === "source") {
+                    sourcePathMetaData.current = paths.data as PathWithMetaData[];
+                    sourcePathLabels.current = createLabelMap(sourcePathMetaData.current);
+                } else {
+                    targetPathMetaData.current = paths.data as PathWithMetaData[];
+                    targetPathLabels.current = createLabelMap(targetPathMetaData.current);
+                }
+            } finally {
+                reducePendingRequestCount();
             }
-        } finally {
-            reducePendingRequestCount();
-        }
-    };
+        },
+        [linkingTaskId, prefLang, projectId, reducePendingRequestCount],
+    );
 
-    const fetchAllPaths = async () => {
+    const fetchAllPaths = React.useCallback(async () => {
         await fetchPaths("source");
         await fetchPaths("target");
         setPathLabelsAvailableForLang(prefLang);
-    };
+    }, [fetchPaths, prefLang]);
+
+    React.useEffect(() => {
+        fetchAllPaths();
+    }, [projectId, linkingTaskId, prefLang]);
 
     /** Fetches the parameters of the linking task */
-    const fetchTaskData = async (projectId: string, taskId: string) => {
-        if (optionalContext.linkingRule) {
-            return optionalContext.linkingRule;
-        } else {
-            try {
-                const taskData = (await fetchLinkSpec(projectId, taskId, true, prefLang)).data;
-                return taskData;
-            } catch (err) {
-                registerError(
-                    "LinkingRuleEditor_fetchLinkingTask",
-                    t("taskViews.linkRulesEditor.errors.fetchTaskData.msg"),
-                    err,
-                    { errorNotificationInstanceId: RULE_EDITOR_NOTIFICATION_INSTANCE },
-                );
-                setInitError(err);
+    const fetchTaskData = React.useCallback(
+        async (projectId: string, taskId: string) => {
+            if (optionalContext.linkingRule) {
+                return optionalContext.linkingRule;
+            } else {
+                try {
+                    const taskData = (await fetchLinkSpec(projectId, taskId, true, prefLang)).data;
+                    return taskData;
+                } catch (err) {
+                    registerError(
+                        "LinkingRuleEditor_fetchLinkingTask",
+                        t("taskViews.linkRulesEditor.errors.fetchTaskData.msg"),
+                        err,
+                        { errorNotificationInstanceId: RULE_EDITOR_NOTIFICATION_INSTANCE },
+                    );
+                    setInitError(err);
+                }
             }
-        }
-    };
+        },
+        [optionalContext.linkingRule, prefLang, registerError, t],
+    );
 
-    const inputPathAutoCompletion =
+    /** Fetches reusable rule blocks that can be referenced from linking rules. */
+    const fetchRuleBlockOperators = React.useCallback(async (): Promise<LinkingRuleEditorOperator[]> => {
+        const response = await requestRuleBlockSummaries(projectId);
+        return response.data.map(ruleBlockOperatorUtils.ruleBlockSummaryToOperator);
+    }, [projectId]);
+
+    const inputPathAutoCompletion = React.useCallback(
         (inputType: "source" | "target") =>
-        async (term: string, limit: number): Promise<IAutocompleteDefaultResponse[]> => {
-            let results: (IAutocompleteDefaultResponse & { valueType?: string })[] =
-                inputType === "source" ? sourcePathMetaData.current : targetPathMetaData.current;
-            const searchWords = highlighterUtils.extractSearchWords(term, true);
-            if (searchWords.length) {
-                results = results.filter((path) => {
-                    const searchText = `${path.value} ${path.valueType} ${path.label ?? ""}`.toLowerCase();
-                    return highlighterUtils.matchesAllWords(searchText, searchWords);
-                });
-            } else if (results[0]?.value !== "") {
-                results.unshift({ value: "", label: `<${t("common.words.emptyPath")}>` });
-            }
-            return results.slice(0, limit);
-        };
+            async (term: string, limit: number): Promise<IAutocompleteDefaultResponse[]> => {
+                let results: (IAutocompleteDefaultResponse & { valueType?: string })[] =
+                    inputType === "source" ? sourcePathMetaData.current : targetPathMetaData.current;
+                const searchWords = highlighterUtils.extractSearchWords(term, true);
+                if (searchWords.length) {
+                    results = results.filter((path) => {
+                        const searchText = `${path.value} ${path.valueType} ${path.label ?? ""}`.toLowerCase();
+                        return highlighterUtils.matchesAllWords(searchText, searchWords);
+                    });
+                } else if (results[0]?.value !== "") {
+                    results.unshift({ value: "", label: `<${t("common.words.emptyPath")}>` });
+                }
+                return results.slice(0, limit);
+            },
+        [t],
+    );
 
     // Return for either a source or target path what type of path it is.
     const inputPathPluginPathType = React.useCallback(
@@ -207,14 +224,19 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions, insta
     );
 
     /** Fetches the list of operators that can be used in a linking task. */
-    const fetchLinkingRuleOperatorDetails = async () => {
+    const fetchLinkingRuleOperatorDetails = React.useCallback(async (): Promise<
+        LinkingRuleEditorOperator[] | undefined
+    > => {
         try {
-            const responseData = (await requestRuleOperatorPluginsDetails(false)).data;
+            const [responseData, ruleBlockOperators] = await Promise.all([
+                requestRuleOperatorPluginsDetails(false).then((response) => response.data),
+                fetchRuleBlockOperators(),
+            ]);
             let operatorPlugins = Object.values(responseData);
             if (hideGreyListedParameters) {
                 operatorPlugins = operatorPlugins.filter((pd) => !pd.categories.includes("Excel"));
             }
-            return operatorPlugins;
+            return [...operatorPlugins, ...ruleBlockOperators];
         } catch (err) {
             registerError(
                 "LinkingRuleEditor_fetchLinkingRuleOperatorDetails",
@@ -224,117 +246,130 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions, insta
             );
             setInitError(err);
         }
-    };
+    }, [fetchRuleBlockOperators, hideGreyListedParameters, registerError, t]);
 
     /** Save the rule. */
-    const saveLinkageRule = async (
-        ruleOperatorNodes: IRuleOperatorNode[],
-        stickyNotes: StickyNote[] = [],
-    ): Promise<RuleSaveResult> => {
-        try {
-            const ruleTree = utils.constructLinkageRuleTree(ruleOperatorNodes);
-            const originalRule = (await fetchLinkSpec(projectId, linkingTaskId, false)).data.parameters
-                .rule as ILinkingRule;
-            await updateLinkageRule(projectId, linkingTaskId, {
-                ...originalRule,
-                operator: ruleTree,
-                layout: ruleUtils.ruleLayout(ruleOperatorNodes),
-                uiAnnotations: {
-                    stickyNotes,
-                },
-            });
-            return {
-                success: true,
-            };
-        } catch (err) {
-            if ((err as RuleValidationError).isRuleValidationError) {
-                return err;
-            } else {
-                if (err.isHttpError && err.httpStatus === 400 && Array.isArray((err as FetchError).body?.issues)) {
-                    const fetchError = err as FetchError;
-                    const nodeErrors: RuleSaveNodeError[] = fetchError.body.issues.map((issue) => ({
-                        nodeId: issue.id,
-                        message: issue.message,
-                    }));
-                    return new RuleValidationError(
-                        t("taskViews.linkRulesEditor.errors.saveLinkageRule.msg"),
-                        nodeErrors,
-                    );
+    const saveLinkageRule = React.useCallback(
+        async (ruleOperatorNodes: IRuleOperatorNode[], stickyNotes: StickyNote[] = []): Promise<RuleSaveResult> => {
+            try {
+                const ruleTree = utils.constructLinkageRuleTree(ruleOperatorNodes);
+                const originalRule = (await fetchLinkSpec(projectId, linkingTaskId, false)).data.parameters
+                    .rule as ILinkingRule;
+                await updateLinkageRule(projectId, linkingTaskId, {
+                    ...originalRule,
+                    operator: ruleTree,
+                    layout: ruleUtils.ruleLayout(ruleOperatorNodes),
+                    uiAnnotations: {
+                        stickyNotes,
+                    },
+                });
+                return {
+                    success: true,
+                };
+            } catch (err) {
+                if ((err as RuleValidationError).isRuleValidationError) {
+                    return err;
                 } else {
-                    return {
-                        success: false,
-                        errorMessage: `${t("taskViews.linkRulesEditor.errors.saveLinkageRule.msg")}${
-                            err.message ? ": " + err.message : ""
-                        }`,
-                    };
+                    if (err.isHttpError && err.httpStatus === 400 && Array.isArray((err as FetchError).body?.issues)) {
+                        const fetchError = err as FetchError;
+                        const nodeErrors: RuleSaveNodeError[] = fetchError.body.issues.map((issue) => ({
+                            nodeId: issue.id,
+                            message: issue.message,
+                        }));
+                        return new RuleValidationError(
+                            t("taskViews.linkRulesEditor.errors.saveLinkageRule.msg"),
+                            nodeErrors,
+                        );
+                    } else {
+                        return {
+                            success: false,
+                            errorMessage: `${t("taskViews.linkRulesEditor.errors.saveLinkageRule.msg")}${
+                                err.message ? ": " + err.message : ""
+                            }`,
+                        };
+                    }
                 }
             }
-        }
-    };
+        },
+        [linkingTaskId, projectId, t],
+    );
 
     // FIXME: Add i18n to parameter specs
-    const weightParameterSpec = ruleUtils.parameterSpecification({
-        label: t("RuleEditor.sidebar.parameter.weightLabel", "Weight"),
-        description: t("RuleEditor.sidebar.parameter.weightDesc"),
-        type: "int",
-        advanced: true,
-        defaultValue: "1",
-        orderIdx: -0.5,
-    });
+    const weightParameterSpec = React.useMemo(
+        () =>
+            ruleUtils.parameterSpecification({
+                label: t("RuleEditor.sidebar.parameter.weightLabel", "Weight"),
+                description: t("RuleEditor.sidebar.parameter.weightDesc"),
+                type: "int",
+                advanced: true,
+                defaultValue: "1",
+                orderIdx: -0.5,
+            }),
+        [t],
+    );
 
     const thresholdUserHelpUrl = documentationPageUrl("build-linking-comparison-operator");
 
-    const thresholdParameterSpec = (pluginDetails: IPluginDetails) => {
-        const varyingSpec = () => {
-            switch (pluginDetails.distanceMeasureRange) {
-                case "normalized":
-                    return {
-                        description: t(
-                            "RuleEditor.sidebar.parameter.thresholdDesc.normalized",
-                            "The maximum distance. This distance measure is normalized, i.e., the threshold must be between 0 (exact match) and 1 (no similarity).",
-                        ),
-                        label: t("RuleEditor.sidebar.parameter.thresholdLabel", "Threshold"),
-                        requiredLabel: t("RuleEditor.sidebar.parameter.thresholdRequired.normalized", "required 0..1"),
-                        urlUserHelp: thresholdUserHelpUrl,
-                    };
-                case "unbounded":
-                    return {
-                        description: t(
-                            "RuleEditor.sidebar.parameter.thresholdDesc.unbounded",
-                            "The maximum distance. Distances start at 0 (exact match) and increase the more different the values may be.",
-                        ),
-                        label: t("RuleEditor.sidebar.parameter.thresholdLabel", "Threshold"),
-                        requiredLabel: t("RuleEditor.sidebar.parameter.thresholdRequired.unbounded", "required 0..∞"),
-                        urlUserHelp: thresholdUserHelpUrl,
-                    };
-                default:
-                    return {
-                        label: "",
-                        description: "",
-                    };
-            }
-        };
+    const thresholdParameterSpec = React.useCallback(
+        (pluginDetails: IPluginDetails) => {
+            const varyingSpec = () => {
+                switch (pluginDetails.distanceMeasureRange) {
+                    case "normalized":
+                        return {
+                            description: t(
+                                "RuleEditor.sidebar.parameter.thresholdDesc.normalized",
+                                "The maximum distance. This distance measure is normalized, i.e., the threshold must be between 0 (exact match) and 1 (no similarity).",
+                            ),
+                            label: t("RuleEditor.sidebar.parameter.thresholdLabel", "Threshold"),
+                            requiredLabel: t(
+                                "RuleEditor.sidebar.parameter.thresholdRequired.normalized",
+                                "required 0..1",
+                            ),
+                            urlUserHelp: thresholdUserHelpUrl,
+                        };
+                    case "unbounded":
+                        return {
+                            description: t(
+                                "RuleEditor.sidebar.parameter.thresholdDesc.unbounded",
+                                "The maximum distance. Distances start at 0 (exact match) and increase the more different the values may be.",
+                            ),
+                            label: t("RuleEditor.sidebar.parameter.thresholdLabel", "Threshold"),
+                            requiredLabel: t(
+                                "RuleEditor.sidebar.parameter.thresholdRequired.unbounded",
+                                "required 0..∞",
+                            ),
+                            urlUserHelp: thresholdUserHelpUrl,
+                        };
+                    default:
+                        return {
+                            label: "",
+                            description: "",
+                        };
+                }
+            };
 
-        const customValidation = (distanceMeasureRange) => (parameterValue: RuleEditorNodeParameterValue) => {
-            const value = ruleEditorNodeParameterValue(parameterValue);
-            const float = Number(value);
-            if (Number.isNaN(float)) return invalidValueResult(t("form.validations.float"));
-            if (distanceMeasureRange === "normalized" && (float > 1 || float < 0))
-                return invalidValueResult(t("form.validations.threshold.normalized"));
-            if (distanceMeasureRange === "unbounded" && float < 0)
-                return invalidValueResult(t("form.validations.threshold.unbounded"));
-            return { valid: true };
-        };
+            const customValidation = (distanceMeasureRange) => (parameterValue: RuleEditorNodeParameterValue) => {
+                const value = ruleEditorNodeParameterValue(parameterValue);
+                const float = Number(value);
+                if (Number.isNaN(float)) return invalidValueResult(t("form.validations.float"));
+                if (distanceMeasureRange === "normalized" && (float > 1 || float < 0))
+                    return invalidValueResult(t("form.validations.threshold.normalized"));
+                if (distanceMeasureRange === "unbounded" && float < 0)
+                    return invalidValueResult(t("form.validations.threshold.unbounded"));
+                return { valid: true };
+            };
 
-        return ruleUtils.parameterSpecification({
-            ...varyingSpec(),
-            type: "float",
-            defaultValue: "0.0",
-            customValidation: customValidation(pluginDetails.distanceMeasureRange),
-            distanceMeasureRange: pluginDetails.distanceMeasureRange,
-            orderIdx: -1,
-        });
-    };
+            return ruleUtils.parameterSpecification({
+                ...varyingSpec(),
+                type: "float",
+                defaultValue: "0.0",
+                customValidation: customValidation(pluginDetails.distanceMeasureRange),
+                distanceMeasureRange: pluginDetails.distanceMeasureRange,
+                orderIdx: -1,
+            });
+        },
+        [t, thresholdUserHelpUrl],
+    );
 
     const fetchPartialAutoCompletionResult = React.useCallback(
         (inputType: "source" | "target") =>
@@ -361,88 +396,170 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions, insta
                     );
                 }
             },
-        [],
+        [linkingTaskId, projectId, registerError, t],
     );
 
-    const sourcePathInput = () =>
-        ruleUtils.inputPathOperator(
-            "sourcePathInput",
-            t("RuleEditor.sidebar.operator.sourcePathLabel", "Source path"),
-            ["Source path"],
-            t("RuleEditor.sidebar.operator.sourcePathDesc", "The value path of the source input of the linking task."),
-            inputPathAutoCompletion("source"),
-        );
+    const sourcePathOperator = React.useMemo(
+        () =>
+            ruleUtils.inputPathOperator(
+                "sourcePathInput",
+                t("RuleEditor.sidebar.operator.sourcePathLabel", "Source path"),
+                ["Source path"],
+                t(
+                    "RuleEditor.sidebar.operator.sourcePathDesc",
+                    "The value path of the source input of the linking task.",
+                ),
+                inputPathAutoCompletion("source"),
+            ),
+        [inputPathAutoCompletion, t],
+    );
 
-    const targetPathInput = () =>
-        ruleUtils.inputPathOperator(
-            "targetPathInput",
-            t("RuleEditor.sidebar.operator.targetPathLabel", "Target path"),
-            ["Target path"],
-            t("RuleEditor.sidebar.operator.targetPathDesc", "The value path of the target input of the linking task."),
-            inputPathAutoCompletion("target"),
-        );
+    const targetPathOperator = React.useMemo(
+        () =>
+            ruleUtils.inputPathOperator(
+                "targetPathInput",
+                t("RuleEditor.sidebar.operator.targetPathLabel", "Target path"),
+                ["Target path"],
+                t(
+                    "RuleEditor.sidebar.operator.targetPathDesc",
+                    "The value path of the target input of the linking task.",
+                ),
+                inputPathAutoCompletion("target"),
+            ),
+        [inputPathAutoCompletion, t],
+    );
+
+    const registerFetchLinkingPathsError = React.useCallback(
+        (ex: any) =>
+            registerError(
+                "linking-rule-editor-fetch-source-paths",
+                t("taskViews.linkRulesEditor.errors.fetchLinkingPaths.msg"),
+                ex,
+                { errorNotificationInstanceId: RULE_EDITOR_NOTIFICATION_INSTANCE },
+            ),
+        [registerError, t],
+    );
 
     const tabs = React.useMemo(() => {
         return [
             ruleUtils.sidebarTabs.all,
-            utils.inputPathTab(projectId, linkingTaskId, sourcePathInput(), "source", (ex) =>
-                registerError(
-                    "linking-rule-editor-fetch-source-paths",
-                    t("taskViews.linkRulesEditor.errors.fetchLinkingPaths.msg"),
-                    ex,
-                    { errorNotificationInstanceId: RULE_EDITOR_NOTIFICATION_INSTANCE },
-                ),
-            ),
-            utils.inputPathTab(projectId, linkingTaskId, targetPathInput(), "target", (ex) =>
-                registerError(
-                    "linking-rule-editor-fetch-source-paths",
-                    t("taskViews.linkRulesEditor.errors.fetchLinkingPaths.msg"),
-                    ex,
-                    { errorNotificationInstanceId: RULE_EDITOR_NOTIFICATION_INSTANCE },
-                ),
-            ),
+            utils.inputPathTab(projectId, linkingTaskId, sourcePathOperator, "source", registerFetchLinkingPathsError),
+            utils.inputPathTab(projectId, linkingTaskId, targetPathOperator, "target", registerFetchLinkingPathsError),
+            ruleBlockOperatorUtils.ruleBlockTab(),
             ruleUtils.sidebarTabs.transform,
             ruleUtils.sidebarTabs.comparison,
             ruleUtils.sidebarTabs.aggregation,
         ];
-    }, []);
+    }, [linkingTaskId, projectId, registerFetchLinkingPathsError, sourcePathOperator, targetPathOperator]);
 
-    const fetchDatasetCharacteristics = async (taskData: TaskPlugin<ILinkingTaskParameters> | undefined) => {
-        const result = new Map<string, DatasetCharacteristics>();
-        if (taskData) {
-            const parameters = taskData.parameters;
-            const sourceTaskId = optionallyLabelledParameterToValue(
-                optionallyLabelledParameterToValue(parameters.source).inputId,
-            );
-            const targetTaskId = optionallyLabelledParameterToValue(
-                optionallyLabelledParameterToValue(parameters.target).inputId,
-            );
-            const sourceDatasetRequest = requestDatasetCharacteristics(projectId, sourceTaskId);
-            const targetDatasetRequest = requestDatasetCharacteristics(projectId, targetTaskId);
-            const handleRequest = async (
-                requestFuture: Promise<FetchResponse<DatasetCharacteristics>>,
-                pathPluginId: "sourcePathInput" | "targetPathInput",
-            ) => {
-                try {
-                    const response = await requestFuture;
-                    result.set(pathPluginId, response.data);
-                } catch (ex) {
-                    // Return 404 if the dataset does not exist or the task is not a dataset
-                    if (ex.httpStatus !== 404) {
-                        registerError(
-                            "LinkingRuleEditor-fetchDatasetCharacteristics",
-                            "Dataset characteristics could not be fetched. UI-support for language filters will not be available.",
-                            ex,
-                            { errorNotificationInstanceId: RULE_EDITOR_NOTIFICATION_INSTANCE },
-                        );
+    const fetchDatasetCharacteristics = React.useCallback(
+        async (taskData: TaskPlugin<ILinkingTaskParameters> | undefined) => {
+            const result = new Map<string, DatasetCharacteristics>();
+            if (taskData) {
+                const parameters = taskData.parameters;
+                const sourceTaskId = optionallyLabelledParameterToValue(
+                    optionallyLabelledParameterToValue(parameters.source).inputId,
+                );
+                const targetTaskId = optionallyLabelledParameterToValue(
+                    optionallyLabelledParameterToValue(parameters.target).inputId,
+                );
+                const sourceDatasetRequest = requestDatasetCharacteristics(projectId, sourceTaskId);
+                const targetDatasetRequest = requestDatasetCharacteristics(projectId, targetTaskId);
+                const handleRequest = async (
+                    requestFuture: Promise<FetchResponse<DatasetCharacteristics>>,
+                    pathPluginId: "sourcePathInput" | "targetPathInput",
+                ) => {
+                    try {
+                        const response = await requestFuture;
+                        result.set(pathPluginId, response.data);
+                    } catch (ex) {
+                        // Return 404 if the dataset does not exist or the task is not a dataset
+                        if (ex.httpStatus !== 404) {
+                            registerError(
+                                "LinkingRuleEditor-fetchDatasetCharacteristics",
+                                "Dataset characteristics could not be fetched. UI-support for language filters will not be available.",
+                                ex,
+                                { errorNotificationInstanceId: RULE_EDITOR_NOTIFICATION_INSTANCE },
+                            );
+                        }
                     }
-                }
-            };
-            await handleRequest(sourceDatasetRequest, "sourcePathInput");
-            await handleRequest(targetDatasetRequest, "targetPathInput");
-        }
-        return result;
-    };
+                };
+                await handleRequest(sourceDatasetRequest, "sourcePathInput");
+                await handleRequest(targetDatasetRequest, "targetPathInput");
+            }
+            return result;
+        },
+        [projectId, registerError],
+    );
+
+    const convertRuleOperator = React.useCallback(
+        (
+            operator: LinkingRuleEditorOperator,
+            addAdditionParameterSpecifications: (
+                pluginDetails: LinkingRuleEditorOperator,
+            ) => [id: string, spec: IParameterSpecification][],
+        ) =>
+            ruleBlockOperatorUtils.isRuleBlockOperator(operator)
+                ? ruleBlockOperatorUtils.convertRuleBlockOperator(operator)
+                : ruleUtils.convertRuleOperator(operator, addAdditionParameterSpecifications),
+        [],
+    );
+
+    const addAdditionParameterSpecifications = React.useCallback(
+        (pluginDetails: LinkingRuleEditorOperator): [id: string, spec: IParameterSpecification][] => {
+            if (ruleBlockOperatorUtils.isRuleBlockOperator(pluginDetails)) {
+                return [];
+            }
+            switch (pluginDetails.pluginType) {
+                case "ComparisonOperator":
+                    return pluginDetails.distanceMeasureRange === "boolean"
+                        ? [["weight", weightParameterSpec]]
+                        : [
+                              ["threshold", thresholdParameterSpec(pluginDetails)],
+                              ["weight", weightParameterSpec],
+                          ];
+                case "AggregationOperator":
+                    return [["weight", weightParameterSpec]];
+                default:
+                    return [];
+            }
+        },
+        [thresholdParameterSpec, weightParameterSpec],
+    );
+
+    const additionalRuleOperators = React.useMemo(
+        () => [sourcePathOperator, targetPathOperator],
+        [sourcePathOperator, targetPathOperator],
+    );
+
+    const additionalToolBarComponents = React.useCallback(
+        (place: additionalToolbarComponentsPlace) => {
+            switch (place) {
+                case "beforeActionWidget":
+                    return (
+                        <LinkingRuleCacheInfo key="LinkingRuleCacheInfo" projectId={projectId} taskId={linkingTaskId} />
+                    );
+                default:
+                    return null;
+            }
+        },
+        [linkingTaskId, projectId],
+    );
+
+    const pathMetaData = React.useMemo(
+        () => ({
+            inputPathPluginPathType,
+            inputPathLabel,
+        }),
+        [inputPathLabel, inputPathPluginPathType],
+    );
+
+    const pathInputOperatorContextValue = React.useMemo(
+        () => ({
+            pathLabelsAvailableForLang,
+        }),
+        [pathLabelsAvailableForLang],
+    );
 
     if (initError) {
         return <Notification intent="danger">{diErrorMessage(initError)}</Notification>;
@@ -453,17 +570,13 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions, insta
     }
 
     return (
-        <PathInputOperatorContext.Provider
-            value={{
-                pathLabelsAvailableForLang,
-            }}
-        >
+        <PathInputOperatorContext.Provider value={pathInputOperatorContextValue}>
             <LinkingRuleEvaluation
                 projectId={projectId}
                 linkingTaskId={linkingTaskId}
                 numberOfLinkToShow={NUMBER_OF_LINKS_TO_SHOW}
             >
-                <RuleEditor<TaskPlugin<ILinkingTaskParameters>, IPluginDetails>
+                <RuleEditor<TaskPlugin<ILinkingTaskParameters>, LinkingRuleEditorOperator>
                     projectId={projectId}
                     taskId={linkingTaskId}
                     fetchRuleData={fetchTaskData}
@@ -471,44 +584,22 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions, insta
                     partialAutoCompletion={fetchPartialAutoCompletionResult}
                     saveRule={saveLinkageRule}
                     getStickyNotes={utils.getStickyNotes}
-                    convertRuleOperator={ruleUtils.convertRuleOperator}
+                    convertRuleOperator={convertRuleOperator}
                     viewActions={viewActions}
                     convertToRuleOperatorNodes={utils.convertLinkingTaskToRuleOperatorNodes}
-                    additionalRuleOperators={[sourcePathInput(), targetPathInput()]}
-                    addAdditionParameterSpecifications={(pluginDetails) => {
-                        switch (pluginDetails.pluginType) {
-                            case "ComparisonOperator":
-                                return pluginDetails.distanceMeasureRange === "boolean"
-                                    ? [["weight", weightParameterSpec]]
-                                    : [
-                                          ["threshold", thresholdParameterSpec(pluginDetails)],
-                                          ["weight", weightParameterSpec],
-                                      ];
-                            case "AggregationOperator":
-                                return [["weight", weightParameterSpec]];
-                            default:
-                                return [];
-                        }
-                    }}
+                    additionalRuleOperators={additionalRuleOperators}
+                    addAdditionParameterSpecifications={addAdditionParameterSpecifications}
                     validateConnection={ruleUtils.validateConnection}
                     tabs={tabs}
-                    additionalToolBarComponents={() => [
-                        <LinkingRuleCacheInfo
-                            key="LinkingRuleCacheInfo"
-                            projectId={projectId}
-                            taskId={linkingTaskId}
-                        />,
-                    ]}
+                    additionalToolBarComponents={additionalToolBarComponents}
                     showRuleOnly={!!optionalContext.showRuleOnly}
+                    readOnly={!!optionalContext.readOnly}
                     hideMinimap={!!optionalContext.hideMinimap}
                     zoomRange={optionalContext.zoomRange ?? [0.25, 1.5]}
                     initialFitToViewZoomLevel={optionalContext.initialFitToViewZoomLevel}
                     instanceId={instanceId}
                     fetchDatasetCharacteristics={fetchDatasetCharacteristics}
-                    pathMetaData={{
-                        inputPathPluginPathType,
-                        inputPathLabel,
-                    }}
+                    pathMetaData={pathMetaData}
                     saveInitiallyEnabled={false}
                 />
             </LinkingRuleEvaluation>

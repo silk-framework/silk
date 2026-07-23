@@ -24,13 +24,15 @@ export interface ValidateTemplateResponse extends CodeAutocompleteFieldValidatio
     evaluatedTemplate?: string;
 }
 
-/** Validates a variable template. If the validation was successful, the evaluated string is returned. */
+/** Validates a variable template. If the validation was successful, the evaluated string is returned.
+ * If a task is given, the template is validated in the context of that task. */
 export const requestValidateTemplateString = async (
     templateString: string,
     project?: string,
     variableName?: string,
     includeSensitiveVariables?: boolean,
     ignoreUnboundVariables?: boolean,
+    task?: string,
 ): Promise<FetchResponse<ValidateTemplateResponse>> => {
     return fetch({
         url: coreApi("/variableTemplate/validation"),
@@ -38,6 +40,7 @@ export const requestValidateTemplateString = async (
         body: {
             templateString,
             project,
+            task,
             variableName,
             includeSensitiveVariables,
             ignoreUnboundVariables,
@@ -52,6 +55,7 @@ export const requestValidateTemplateString = async (
  * @param project
  * @param variableName optional parameter to make correct suggestions for when an existing variable is edited
  * @param includeSensitiveVariables include sensitive variables in the autocompletion.
+ * @param task optional task ID; if given, suggestions are made in the context of that task
  * @returns
  */
 export const requestAutoCompleteTemplateString = async (
@@ -60,6 +64,7 @@ export const requestAutoCompleteTemplateString = async (
     project?: string,
     variableName?: string,
     includeSensitiveVariables?: boolean,
+    task?: string,
 ): Promise<FetchResponse<CodeAutocompleteFieldPartialAutoCompleteResult>> => {
     return fetch({
         url: coreApi("/variableTemplate/completion"),
@@ -68,6 +73,7 @@ export const requestAutoCompleteTemplateString = async (
             inputString,
             cursorPosition,
             project,
+            task,
             variableName,
             includeSensitiveVariables,
         },

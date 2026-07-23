@@ -121,23 +121,28 @@ object LinkingSerializers {
     final val ERROR = "error"
     final val STACKTRACE = "stacktrace"
 
-    override def write(value: Value)(implicit writeContext: WriteContext[JsValue]): JsValue = {
-      value match {
-        case TransformedValue(input, values, children, error) =>
-          Json.obj(
-            OPERATOR_ID -> input.id.toString,
-            VALUES -> values,
-            ERROR -> error.map(_.getMessage),
-            STACKTRACE -> error.map(ex => Json.toJson(Stacktrace.fromException(ex))),
-            CHILDREN -> children.map(write)
-          )
-        case InputValue(input, values, error) =>
-          Json.obj(
-            OPERATOR_ID -> input.id.toString,
-            VALUES -> values,
-            ERROR -> error.map(_.getMessage),
-            STACKTRACE -> error.map(ex => Json.toJson(Stacktrace.fromException(ex)))
-          )
+    override def write(value: Value)(implicit writeContext: WriteContext[JsValue]): JsValue =
+      write(value, withStacktrace = true)
+
+    /** With `withStacktrace = false` the compact form for size-conscious consumers is produced:
+      * failed operators keep only their error message (a stacktrace weighs >10k chars per failed
+      * operator) and absent errors are omitted instead of serialized as null. */
+    def write(value: Value, withStacktrace: Boolean)(implicit writeContext: WriteContext[JsValue]): JsValue = {
+      if (withStacktrace) {
+        Json.obj(
+          OPERATOR_ID -> value.input.id.toString,
+          VALUES -> value.values,
+          ERROR -> value.error.map(_.getMessage),
+          STACKTRACE -> value.error.map(ex => Json.toJson(Stacktrace.fromException(ex))),
+          CHILDREN -> value.children.map(write(_, withStacktrace))
+        )
+      } else {
+        Json.obj(
+          OPERATOR_ID -> value.input.id.toString,
+          VALUES -> value.values
+        ) ++
+          JsObject(value.error.map(ex => ERROR -> JsString(Option(ex.getMessage).getOrElse(ex.toString))).toSeq) +
+          (CHILDREN -> JsArray(value.children.map(write(_, withStacktrace))))
       }
     }
   }

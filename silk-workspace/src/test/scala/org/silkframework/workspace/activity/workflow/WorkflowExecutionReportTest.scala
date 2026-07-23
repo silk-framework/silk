@@ -10,6 +10,38 @@ class WorkflowExecutionReportTest extends AnyFlatSpec with Matchers {
 
   private val parentTask = PlainTask("parentWf", WorkflowTest.testWorkflow)
 
+  "currentReports" should "return the most recently updated report per node even if timestamps collide" in {
+    val timestamp = java.time.Instant.now()
+    val clear = SimpleExecutionReport(
+      PlainTask("ds", WorkflowTest.testWorkflow), entityCount = 1, isDone = true, operationDesc = "dataset cleared")
+    val write = SimpleExecutionReport(
+      PlainTask("ds", WorkflowTest.testWorkflow), entityCount = 10, isDone = true, operationDesc = "entities written")
+    val report = WorkflowExecutionReport(
+      task = parentTask,
+      taskReports = IndexedSeq(
+        WorkflowTaskReport(Identifier("ds"), clear, version = 1, timestamp = timestamp),
+        WorkflowTaskReport(Identifier("ds"), write, version = 2, timestamp = timestamp)))
+
+    report.currentReports().map(_.report.operationDesc) shouldBe Iterable("entities written")
+  }
+
+  it should "assign strictly increasing versions across added and updated reports" in {
+    val nodeId = Identifier("ds")
+    def nodeReport(desc: String) = SimpleExecutionReport(
+      PlainTask("ds", WorkflowTest.testWorkflow), entityCount = 1, isDone = true, operationDesc = desc)
+
+    val report = WorkflowExecutionReport(task = parentTask)
+      .addReport(nodeId, nodeReport("initial"))
+      .updateReport(0, nodeId, nodeReport("dataset cleared"))
+      .addReport(nodeId, nodeReport("entities written")) // e.g. a second write into the same dataset
+
+    val versions = report.taskReports.map(_.version)
+    versions shouldBe versions.sorted
+    versions.distinct shouldBe versions
+    // The most recent change must win, which relies on unique versions
+    report.currentReports().map(_.report.operationDesc) shouldBe Iterable("entities written")
+  }
+
   "addFailedNode" should "keep a nested workflow's task reports when the node fails" in {
     val leafReport = SimpleExecutionReport(
       PlainTask("leaf", WorkflowTest.testWorkflow), entityCount = 3, isDone = true, operationDesc = "entities written")

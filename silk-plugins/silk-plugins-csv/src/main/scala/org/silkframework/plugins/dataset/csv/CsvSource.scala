@@ -357,7 +357,7 @@ class CsvSource(file: Resource,
 
   private def detectWorkingCodec: Codec = {
     try {
-      val detectedCharset = UniversalDetector.detectCharset(file.inputStream)
+      val detectedCharset = file.read(is => UniversalDetector.detectCharset(is))
       if(Option(detectedCharset).nonEmpty) {
         Codec.string2codec(detectedCharset)
       } else {

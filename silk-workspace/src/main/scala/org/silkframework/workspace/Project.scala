@@ -16,11 +16,11 @@ package org.silkframework.workspace
 
 import org.silkframework.config._
 import org.silkframework.dataset.{Dataset, DatasetSpec}
-import org.silkframework.rule.{LinkSpec, TransformSpec}
+import org.silkframework.rule.{LinkSpec, RuleBlockSpec, TransformSpec}
 import org.silkframework.runtime.activity.{HasValue, UserContext}
-import org.silkframework.runtime.plugin.{PluginContext, PluginRegistry}
+import org.silkframework.runtime.plugin.{PluginContext, PluginRegistry, TaskResolver}
 import org.silkframework.runtime.resource.ResourceManager
-import org.silkframework.runtime.templating.TemplateVariablesManager
+import org.silkframework.runtime.templating.{TemplateVariables, TemplateVariablesManager}
 import org.silkframework.runtime.validation.{NotFoundException, ValidationException}
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.access.{AccessControlConfig, ProjectAccessControlManager, ProjectAccessDeniedException}
@@ -51,6 +51,14 @@ class Project(initialConfig: ProjectConfig, provider: WorkspaceProvider, val res
 
   val templateVariables: TemplateVariablesManager = new ProjectTemplateVariablesManager(provider.projectVariables(initialConfig.id)(loadingUser), loadingUser)
 
+  /** The variables manager for either the project variables or, if a task is given, the execution variables of that task. */
+  def variablesManager(taskId: Option[String])(implicit userContext: UserContext): TemplateVariablesManager = {
+    taskId match {
+      case Some(id) => anyTask(id).executionVariablesValueHolder
+      case None => templateVariables
+    }
+  }
+
   val cacheResources: ResourceManager = provider.projectCache(initialConfig.id)
 
   @volatile
@@ -66,6 +74,7 @@ class Project(initialConfig: ProjectConfig, provider: WorkspaceProvider, val res
     // Register all default modules
     registerModule[DatasetSpec[Dataset]]()
     registerModule[TransformSpec]()
+    registerModule[RuleBlockSpec]()
     registerModule[LinkSpec]()
     registerModule[Workflow](WorkflowValidator)
     registerModule[CustomTask]()
@@ -111,7 +120,7 @@ class Project(initialConfig: ProjectConfig, provider: WorkspaceProvider, val res
   }
 
   private val projectActivities = {
-    implicit val pluginContext: PluginContext = PluginContext(prefixes = config.prefixes, resources = resources, user = loadingUser)
+    implicit val pluginContext: PluginContext = PluginContext(prefixes = config.prefixes, resources = resources, user = loadingUser, taskResolver = TaskResolver.empty)
     val factories = PluginRegistry.availablePlugins[ProjectActivityFactory[_ <: HasValue]].toList
     var activities = List[ProjectActivity[_ <: HasValue]]()
     for(factory <- factories) {
@@ -241,12 +250,13 @@ class Project(initialConfig: ProjectConfig, provider: WorkspaceProvider, val res
     * @param taskData The task data.
     * @tparam T The task type.
     */
-  def addTask[T <: TaskSpec : ClassTag](name: Identifier, taskData: T, metaData: MetaData = MetaData.empty)
+  def addTask[T <: TaskSpec : ClassTag](name: Identifier, taskData: T, metaData: MetaData = MetaData.empty,
+                                        executionVariables: TemplateVariables = TemplateVariables.empty)
                                        (implicit userContext: UserContext): ProjectTask[T] = synchronized {
     if(allTasks.exists(_.id == name)) {
       throw IdentifierAlreadyExistsException(s"Task name '$name' is not unique as there is already a task in project '${this.id}' with this name.")
     }
-    val task = module[T].add(name, taskData, metaData.asNewMetaData)(readWriteUser)
+    val task = module[T].add(name, taskData, metaData.asNewMetaData, executionVariables)(readWriteUser)
     provider.removeExternalTaskLoadingError(config.id, name)
     task
   }
@@ -257,13 +267,14 @@ class Project(initialConfig: ProjectConfig, provider: WorkspaceProvider, val res
     * @param name The name of the task. Must be unique for all tasks in this project.
     * @param taskData The task data.
     */
-  def addAnyTask(name: Identifier, taskData: TaskSpec, metaData: MetaData = MetaData.empty)
+  def addAnyTask(name: Identifier, taskData: TaskSpec, metaData: MetaData = MetaData.empty,
+                 executionVariables: TemplateVariables = TemplateVariables.empty)
                 (implicit userContext: UserContext): ProjectTask[TaskSpec] = synchronized {
     if(allTasks.exists(_.id == name)) {
       throw IdentifierAlreadyExistsException(s"Task name '$name' is not unique as there is already a task in project '${this.id}' with this name.")
     }
     modules.find(_.taskType.isAssignableFrom(taskData.getClass)) match {
-      case Some(module) => module.asInstanceOf[Module[TaskSpec]].add(name, taskData, metaData.asNewMetaData)(readWriteUser)
+      case Some(module) => module.asInstanceOf[Module[TaskSpec]].add(name, taskData, metaData.asNewMetaData, executionVariables)(readWriteUser)
       case None => throw new NoSuchElementException(s"No module for task type ${taskData.getClass} has been registered. Registered task types: ${modules.map(_.taskType).mkString(";")}")
     }
   }
@@ -277,15 +288,16 @@ class Project(initialConfig: ProjectConfig, provider: WorkspaceProvider, val res
     * @param metaData The task metadata. If not provided, no changes to the metadata are made.
     * @tparam T The task type.
     */
-  def updateTask[T <: TaskSpec : ClassTag](name: Identifier, taskData: T, metaData: Option[MetaData] = None)
+  def updateTask[T <: TaskSpec : ClassTag](name: Identifier, taskData: T, metaData: Option[MetaData] = None,
+                                           executionVariables: Option[TemplateVariables] = None)
                                           (implicit userContext: UserContext): ProjectTask[T] = synchronized {
     module[T].taskOption(name) match {
       case Some(task) =>
         val mergedMetaData = mergeMetaData(task.metaData, metaData)
-        task.update(taskData, Some(mergedMetaData.asUpdatedMetaData))(readWriteUser)
+        task.update(taskData, Some(mergedMetaData.asUpdatedMetaData), executionVariables)(readWriteUser)
         task
       case None =>
-        addTask[T](name, taskData, metaData.getOrElse(MetaData.empty).asNewMetaData)
+        addTask[T](name, taskData, metaData.getOrElse(MetaData.empty).asNewMetaData, executionVariables.getOrElse(TemplateVariables.empty))
     }
   }
 
@@ -302,17 +314,19 @@ class Project(initialConfig: ProjectConfig, provider: WorkspaceProvider, val res
     * @param name The name of the task. Must be unique for all tasks in this project.
     * @param taskData The task data.
     * @param metaData The task meta data. If not provided, no changes to the meta data are made.
+    * @param executionVariables The execution variables of the task. If not provided, no changes to the variables are made.
     */
-  def updateAnyTask(name: Identifier, taskData: TaskSpec, metaData: Option[MetaData] = None)
+  def updateAnyTask(name: Identifier, taskData: TaskSpec, metaData: Option[MetaData] = None,
+                    executionVariables: Option[TemplateVariables] = None)
                    (implicit userContext: UserContext): Unit = synchronized {
     modules.find(_.taskType.isAssignableFrom(taskData.getClass)) match {
       case Some(module) =>
         module.taskOption(name) match {
           case Some(task) =>
             val mergedMetaData = mergeMetaData(task.metaData, metaData)
-            task.asInstanceOf[ProjectTask[TaskSpec]].update(taskData, Some(mergedMetaData.asUpdatedMetaData))(readWriteUser)
+            task.asInstanceOf[ProjectTask[TaskSpec]].update(taskData, Some(mergedMetaData.asUpdatedMetaData), executionVariables)(readWriteUser)
           case None =>
-            addAnyTask(name, taskData, metaData.getOrElse(MetaData.empty).asNewMetaData)
+            addAnyTask(name, taskData, metaData.getOrElse(MetaData.empty).asNewMetaData, executionVariables.getOrElse(TemplateVariables.empty))
         }
       case None =>
         throw new NoSuchElementException(s"No module for task type ${taskData.getClass} has been registered. Registered task types: ${modules.map(_.taskType).mkString(";")}")

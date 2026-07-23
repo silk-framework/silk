@@ -1,5 +1,6 @@
 import React from "react";
 import { RuleEditorContext } from "../../contexts/RuleEditorContext";
+import { ExternalSidebarContext } from "../../contexts/ExternalSidebarContext";
 import { Grid, GridColumn, GridRow, Icon, Spacing, Tabs, TabTitle, highlighterUtils } from "@eccenca/gui-elements";
 import Loading from "../../../Loading";
 import { IPreConfiguredOperators, RuleOperatorList } from "./RuleOperatorList";
@@ -27,6 +28,7 @@ type PreConfiguredOperatorConfig = IPreConfiguredOperators<any> & {
 /** Contains the list of operators that can be dragged and dropped onto the editor canvas and supports filtering. */
 export const RuleEditorOperatorSidebar = () => {
     const editorContext = React.useContext(RuleEditorContext);
+    const externalSidebarContext = React.useContext(ExternalSidebarContext);
     const [t] = useTranslation();
     const prefLang = useSelector(commonSel.localeSelector);
     const { registerError } = useErrorHandler();
@@ -38,9 +40,6 @@ export const RuleEditorOperatorSidebar = () => {
     /** Tab handling. */
     // The currently active tab
     const [activeTabId, setActiveTabId] = React.useState<string | undefined>(undefined);
-    const activeTab: IRuleSidebarPreConfiguredOperatorsTabConfig | IRuleSideBarFilterTabConfig | undefined = (
-        editorContext.tabs ?? []
-    ).find((tab) => tab.id === activeTabId);
     /** Pre-configured operators */
     const [preConfiguredOperatorListLoading, setPreConfiguredOperatorListLoading] = React.useState(false);
     const [preConfiguredOperators, setPreconfiguredOperators] = React.useState<
@@ -51,11 +50,16 @@ export const RuleEditorOperatorSidebar = () => {
     >(undefined);
     /** Show pre-configured operators together with the operator list, but only when a search query is entered. */
     const [showPreConfiguredOperatorsOnlyWithQuery, setShowPreConfiguredOperatorsOnlyWithQuery] = React.useState(false);
+    const tabsRef = React.useRef(editorContext.tabs);
+    const preConfiguredOperatorTabsRef = React.useRef<IRuleSidebarPreConfiguredOperatorsTabConfig[]>([]);
 
-    // All pre-configured tab configs
+    tabsRef.current = editorContext.tabs;
+
     const preConfiguredOperatorTabs = (editorContext.tabs ?? []).filter(
         (tabConfig) => !(tabConfig as IRuleSideBarFilterTabConfig).filterAndSort,
     ) as IRuleSidebarPreConfiguredOperatorsTabConfig[];
+    preConfiguredOperatorTabsRef.current = preConfiguredOperatorTabs;
+    const activeTabReloadKey = `${activeTabId ?? ""}:${externalSidebarContext.reloadToken ?? 0}`;
 
     // Filter operator list when active query or filters change
     React.useEffect(() => {
@@ -104,6 +108,13 @@ export const RuleEditorOperatorSidebar = () => {
         } else if (operatorList && !preConfiguredOperators) {
             filterOperatorList(operatorList);
             setFilteredPreConfiguredOperators(undefined);
+        } else if (operatorList && preConfiguredOperators && !showPreConfiguredOperatorsOnlyWithQuery) {
+            if (searchWords.length > 0) {
+                filterPreConfiguredOperatorsBasedOnTextQuery(preConfiguredOperators);
+            } else {
+                setFilteredPreConfiguredOperators(preConfiguredOperators);
+            }
+            filterOperatorList(operatorList);
         } else if (operatorList && preConfiguredOperators && showPreConfiguredOperatorsOnlyWithQuery) {
             if (searchWords.length > 0) {
                 // Only show operators when a search query exists
@@ -136,8 +147,8 @@ export const RuleEditorOperatorSidebar = () => {
     // Handle tab changes
     React.useEffect(() => {
         if (editorContext.operatorList) {
-            if (editorContext.tabs && activeTabId) {
-                const tabConfig = activeTab;
+            if (tabsRef.current && activeTabId) {
+                const tabConfig = (tabsRef.current ?? []).find((tab) => tab.id === activeTabId);
                 if (tabConfig) {
                     if ((tabConfig as IRuleSideBarFilterTabConfig).filterAndSort) {
                         const filterTabConfig = tabConfig as IRuleSideBarFilterTabConfig;
@@ -145,11 +156,15 @@ export const RuleEditorOperatorSidebar = () => {
                         setOperatorList(filteredOperators);
                         extractOperatorCategories(filteredOperators);
                         setPreconfiguredOperators(undefined);
-                        if (filterTabConfig.showOperatorsFromPreConfiguredOperatorTabsForQuery) {
-                            loadExternalOperators(preConfiguredOperatorTabs, true);
+                        if (
+                            filterTabConfig.showOperatorsFromPreConfiguredOperatorTabsForQuery ||
+                            filterTabConfig.showOperatorsFromPreConfiguredOperatorTabsAlways
+                        ) {
+                            loadExternalOperators(preConfiguredOperatorTabsRef.current, true);
                         }
                         setShowPreConfiguredOperatorsOnlyWithQuery(
-                            filterTabConfig.showOperatorsFromPreConfiguredOperatorTabsForQuery,
+                            filterTabConfig.showOperatorsFromPreConfiguredOperatorTabsForQuery &&
+                                !filterTabConfig.showOperatorsFromPreConfiguredOperatorTabsAlways,
                         );
                     } else {
                         const customTabConfig = tabConfig as IRuleSidebarPreConfiguredOperatorsTabConfig;
@@ -162,7 +177,7 @@ export const RuleEditorOperatorSidebar = () => {
                 extractOperatorCategories(editorContext.operatorList);
             }
         }
-    }, [editorContext.operatorList, activeTabId, prefLang]);
+    }, [editorContext.operatorList, activeTabId, activeTabReloadKey, prefLang]);
 
     // Load external operators
     const loadExternalOperators = async (
@@ -176,7 +191,7 @@ export const RuleEditorOperatorSidebar = () => {
             );
             const preConfiguredOperatorConfigs = originalOperatorsPerConfig.map((_originalOperators, idx) => {
                 const config = configs[idx];
-                const originalOperators = _originalOperators ?? [];
+                const originalOperators = [...(_originalOperators ?? [])];
                 if (config.defaultOperators.length) {
                     originalOperators.unshift(...config.defaultOperators);
                 }
@@ -184,8 +199,7 @@ export const RuleEditorOperatorSidebar = () => {
                     originalOperators,
                     isOriginalOperator: config.isOriginalOperator,
                     toPreConfiguredRuleOperator: config.convertToOperator,
-                    // At the moment we don't mix pre-configured and "empty" operators, so the position does not matter.
-                    position: "bottom",
+                    position: config.position ?? "bottom",
                     itemSearchText: (item: any) => config.itemSearchText(item, mergeWithOperatorList),
                     itemLabel: config.itemLabel,
                     itemId: config.itemId,

@@ -31,6 +31,7 @@ const mockValues: IMockValues = {
     },
 };
 const host = process.env.HOST;
+const isDebugLoggingEnabled = () => process.env.DEBUG === "true";
 
 jest.mock("@codemirror/view", () => ({
     ...jest.requireActual("@codemirror/view"),
@@ -140,10 +141,17 @@ export const setUseParams = (projectId: string, taskId: string): void => {
 };
 
 /** Logs all requests to the console. */
+export const debugLog = (...args: unknown[]) => {
+    if (isDebugLoggingEnabled()) {
+        console.info(...args);
+    }
+};
+
+/** Logs all requests to the console when DEBUG=true. */
 export const logRequests = (axiosMock?: AxiosMockType) => {
     const mock = axiosMock ? axiosMock : mockAxios;
     mock.queue().forEach((request) => {
-        console.log(request);
+        debugLog(request);
     });
 };
 
@@ -219,7 +227,9 @@ export const byTestId = (testId: string) => `[data-test-id="${testId}"]`;
 
 /** Prints the complete page HTML string to console. */
 export const logPageHtml = (): void => {
-    process.stdout.write(window.document.documentElement.outerHTML);
+    if (isDebugLoggingEnabled()) {
+        process.stdout.write(window.document.documentElement.outerHTML);
+    }
 };
 
 /** Get the page HTML */
@@ -227,14 +237,14 @@ export const pageHtml = (): string => window.document.documentElement.outerHTML;
 
 /** Returns a function that logs the page HTML and returns the error. */
 export const logPageOnError = (err: Error) => {
-    console.log(logPageHtml());
+    debugLog(pageHtml());
     return err;
 };
 
-/** Log the wrapper HTML to the console */
+/** Log the wrapper HTML to the console when DEBUG=true. */
 export const logWrapperHtml = (root: RenderResult | Element) => {
     const container = "container" in root ? root.container : root;
-    console.log(container.innerHTML);
+    debugLog(container.innerHTML);
 };
 
 /** Returns a name selector. */
@@ -462,7 +472,7 @@ export class RenderResultApi {
 
     printHtml = (selector?: string) => {
         const elementToPrint = selector ? this.findExisting(selector) : this.renderResult.container;
-        console.log(elementToPrint.outerHTML);
+        debugLog(elementToPrint.outerHTML);
     };
 
     static testId = (testId: string): string => {

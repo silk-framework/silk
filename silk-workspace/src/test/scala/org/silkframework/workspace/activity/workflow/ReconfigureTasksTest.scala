@@ -17,7 +17,7 @@ class ReconfigureTasksTest extends AnyFlatSpec with Matchers with ConfigTestTrai
 
   behavior of "ReconfigureTasks"
 
-  private implicit val pluginContext: PluginContext = PluginContext(Prefixes.default, InMemoryResourceManager())
+  private implicit val pluginContext: PluginContext = PluginContext(Prefixes.default, InMemoryResourceManager(), taskResolver = TaskResolver.empty)
 
   it should "reconfigure transform tasks" in {
     val transform = PlainTask("transform-task", TransformSpec(DatasetSelection("original-source"), output = IdentifierOptionParameter(Some("original-output"))))

@@ -17,19 +17,21 @@ trait VariableTemplateRequest {
 
   def variableName: Option[String]
 
+  def task: Option[String]
+
   /**
-    * Collects all variables given the optional project and variable name.
+    * Collects all variables given the optional project, task, and variable name.
     */
   def collectVariables(ignoreVariableName: Boolean = false, includeSensitiveVariables: Boolean = false)(implicit user: UserContext): TemplateVariables = {
     val collectedVariables = project match {
       case Some(projectName) =>
-        val project = WorkspaceFactory().workspace.project(projectName)
-        var variables = project.templateVariables.all.variables
+        val manager = WorkspaceFactory().workspace.project(projectName).variablesManager(task)
+        // Parent scopes + the target scope's variables up to the current variable (later ones cannot be referenced)
+        var scopeVariables = manager.all.variables
         for (name <- variableName if !ignoreVariableName) {
-          variables = variables.takeWhile(_.name != name)
+          scopeVariables = scopeVariables.takeWhile(_.name != name)
         }
-        variables = GlobalTemplateVariables.all.variables ++ variables
-        TemplateVariables(variables)
+        TemplateVariables(manager.parentVariables.variables ++ scopeVariables)
       case None =>
         GlobalTemplateVariables.all
     }
@@ -46,6 +48,7 @@ trait VariableTemplateRequest {
 case class ValidateVariableTemplateRequest(templateString: String,
                                            project: Option[String] = None,
                                            variableName: Option[String] = None,
+                                           task: Option[String] = None,
                                            includeSensitiveVariables: Option[Boolean] = None,
                                            ignoreUnboundVariables: Option[Boolean] = None) extends VariableTemplateRequest {
   private val evaluationConfig: EvaluationConfig = EvaluationConfig(ignoreUnboundVariables = ignoreUnboundVariables.getOrElse(false))
@@ -107,6 +110,7 @@ case class AutoCompleteVariableTemplateRequest(inputString: String,
                                                maxSuggestions: Option[Int],
                                                project: Option[String] = None,
                                                variableName: Option[String] = None,
+                                               task: Option[String] = None,
                                                includeSensitiveVariables: Option[Boolean] = None) extends AutoSuggestAutoCompletionRequest with VariableTemplateRequest {
   def execute()(implicit user: UserContext): AutoSuggestAutoCompletionResponse = {
     AutoCompleteVariableTemplateRequest.suggestions(this, collectVariables(includeSensitiveVariables = includeSensitiveVariables.getOrElse(false)).variableNames)

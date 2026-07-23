@@ -50,7 +50,7 @@ class ExecuteLinking(task: ProjectTask[LinkSpec]) extends Activity[ExecutionRepo
   override def run(context: ActivityContext[ExecutionReport])
                   (implicit userContext: UserContext): Unit = {
     implicit val execution: ExecutionType = ExecutorRegistry.execution()
-    implicit val pluginContext: PluginContext = PluginContext.fromProject(task.project)
+    implicit val pluginContext: PluginContext = PluginContext.fromTask(task, task.project)
 
     // Execute inputs
     context.status.updateMessage("Loading inputs")
@@ -67,7 +67,7 @@ class ExecuteLinking(task: ProjectTask[LinkSpec]) extends Activity[ExecutionRepo
     context.status.updateMessage("Writing links to output")
     for(output <- task.data.output) {
       val outputTask = task.project.task[GenericDatasetSpec](output)
-      outputTask.data.linkSink.clear() // Clear link sink before writing in single execution mode
+      ExecutorRegistry.access(outputTask, execution).linkSink.clear() // Clear link sink before writing in single execution mode
       ExecutorRegistry.execute(outputTask, Seq(links), ExecutorOutput.empty, execution)
     }
   }

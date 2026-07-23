@@ -1,37 +1,59 @@
 import React, { useState } from "react";
-import { batch, useDispatch, useSelector } from "react-redux";
-import { IPrefixDefinition } from "@ducks/workspace/typings";
-import { workspaceOp, workspaceSel } from "@ducks/workspace";
-import { Button, Notification, SimpleDialog } from "@eccenca/gui-elements";
+import { useSelector } from "react-redux";
+import { IDetailedProjectPrefixes, IPrefixDefinition } from "@ducks/workspace/typings";
+import { commonSel } from "@ducks/common";
+import {
+    Button,
+    Divider,
+    HtmlContentBlock,
+    Notification,
+    Section,
+    SectionHeader,
+    SimpleDialog,
+    Spacing,
+    TitleSubsection,
+} from "@eccenca/gui-elements";
 import PrefixRow from "./PrefixRow";
 import DeleteModal from "../../../shared/modals/DeleteModal";
 import PrefixNew from "./PrefixNew";
 import DataList from "../../../shared/Datalist";
-import { useTranslation } from "react-i18next";
-import { updatePrefixList } from "@ducks/workspace/widgets/configuration.thunk";
+import { Trans, useTranslation } from "react-i18next";
 import { requestChangePrefixes, requestRemoveProjectPrefix } from "@ducks/workspace/requests";
-import { widgetsSlice } from "@ducks/workspace/widgetsSlice";
 import { ErrorResponse } from "../../../../services/fetch/responseInterceptor";
 import { useModalError } from "../../../../hooks/useModalError";
-import { AppDispatch } from "store/configureStore";
+import Loading from "../../../shared/Loading";
+import styles from "./index.module.css";
 
 interface IProps {
     projectId: string;
     onCloseModal: () => any;
     isOpen: boolean;
-    existingPrefixes: Set<string>;
+    projectPrefixes: IPrefixDefinition[];
+    workspacePrefixes: IPrefixDefinition[];
+    defaultPrefixes: IPrefixDefinition[];
+    refreshPrefixes: () => Promise<IDetailedProjectPrefixes>;
 }
 
+const projectPrefixRowId = (prefixName: string): string => `project-prefix-${encodeURIComponent(prefixName)}`;
+
 /** Manages project prefix definitions. */
-const PrefixesDialog = ({ onCloseModal, isOpen, existingPrefixes, projectId }: IProps) => {
-    const dispatch = useDispatch<AppDispatch>();
-    const prefixList = useSelector(workspaceSel.prefixListSelector);
+const PrefixesDialog = ({
+    onCloseModal,
+    isOpen,
+    projectId,
+    projectPrefixes,
+    workspacePrefixes,
+    defaultPrefixes,
+    refreshPrefixes,
+}: IProps) => {
+    const { dmBaseUrl } = useSelector(commonSel.initialSettingsSelector);
     const [loading, setLoading] = React.useState<boolean>(false);
     const [error, setError] = React.useState<ErrorResponse | undefined>();
     const checkAndDisplayPrefixError = useModalError({ setError });
 
     const [isOpenRemove, setIsOpenRemove] = useState<boolean>(false);
     const [selectedPrefix, setSelectedPrefix] = useState<IPrefixDefinition | undefined>(undefined);
+    const [highlightedProjectPrefix, setHighlightedProjectPrefix] = useState<string | undefined>(undefined);
 
     const [t] = useTranslation();
 
@@ -50,17 +72,38 @@ const PrefixesDialog = ({ onCloseModal, isOpen, existingPrefixes, projectId }: I
         setError(undefined);
     }, [isOpen]);
 
+    React.useEffect(() => {
+        if (!highlightedProjectPrefix) {
+            return undefined;
+        }
+        const timeoutId = window.setTimeout(() => setHighlightedProjectPrefix(undefined), 1800);
+        return () => window.clearTimeout(timeoutId);
+    }, [highlightedProjectPrefix]);
+
+    const refreshPrefixesAfterChanges = React.useCallback(
+        async (failureMessage: string) => {
+            try {
+                await refreshPrefixes();
+            } catch (err) {
+                checkAndDisplayPrefixError(err, failureMessage);
+            }
+        },
+        [checkAndDisplayPrefixError, refreshPrefixes],
+    );
+
     const handleConfirmRemove = React.useCallback(async () => {
         try {
             setLoading(true);
             if (selectedPrefix) {
                 setError(undefined);
-                const data = await requestRemoveProjectPrefix(selectedPrefix.prefixName, projectId);
-                dispatch(updatePrefixList(data));
-
-                if (data) {
-                    toggleRemoveDialog();
-                }
+                await requestRemoveProjectPrefix(selectedPrefix.prefixName, projectId);
+                toggleRemoveDialog();
+                await refreshPrefixesAfterChanges(
+                    t(
+                        "widget.ConfigWidget.modal.errors.prefixRefreshAfterDeletionFailure",
+                        "Prefix deleted, but refreshing the prefix list failed",
+                    ),
+                );
             }
         } catch (err) {
             checkAndDisplayPrefixError(
@@ -70,29 +113,102 @@ const PrefixesDialog = ({ onCloseModal, isOpen, existingPrefixes, projectId }: I
         } finally {
             setLoading(false);
         }
-    }, [projectId, selectedPrefix, error]);
+    }, [checkAndDisplayPrefixError, projectId, refreshPrefixesAfterChanges, selectedPrefix, t]);
 
-    const handleAddOrUpdatePrefix = React.useCallback(async (prefix: IPrefixDefinition) => {
-        try {
-            setLoading(true);
-            setError(undefined);
-            const { prefixName, prefixUri } = prefix;
-            const data = await requestChangePrefixes(prefixName, JSON.stringify(prefixUri), projectId);
-            if (data) {
-                batch(() => {
-                    dispatch(widgetsSlice.actions.resetNewPrefix());
-                    dispatch(updatePrefixList(data));
-                });
+    const handleAddOrUpdatePrefix = React.useCallback(
+        async (prefix: IPrefixDefinition) => {
+            try {
+                setLoading(true);
+                setError(undefined);
+                const { prefixName, prefixUri } = prefix;
+                await requestChangePrefixes(prefixName, JSON.stringify(prefixUri), projectId);
+                await refreshPrefixesAfterChanges(
+                    t(
+                        "widget.ConfigWidget.modal.errors.prefixRefreshAfterChangeFailure",
+                        "Prefix updated, but refreshing the prefix list failed",
+                    ),
+                );
+            } catch (err) {
+                checkAndDisplayPrefixError(
+                    err,
+                    t("widget.ConfigWidget.modal.errors.prefixChangeFailure", "Prefix change failed"),
+                );
+            } finally {
+                setLoading(false);
             }
-        } catch (err) {
-            checkAndDisplayPrefixError(
-                err,
-                t("widget.ConfigWidget.modal.errors.prefixChangeFailure", "Prefix change failed"),
-            );
-        } finally {
-            setLoading(false);
+        },
+        [checkAndDisplayPrefixError, projectId, refreshPrefixesAfterChanges, t],
+    );
+
+    const existingProjectPrefixes = React.useMemo(
+        () => new Set(projectPrefixes.map((prefix) => prefix.prefixName)),
+        [projectPrefixes],
+    );
+    const existingWorkspacePrefixes = React.useMemo(
+        () => new Set(workspacePrefixes.map((prefix) => prefix.prefixName)),
+        [workspacePrefixes],
+    );
+    const explorePrefixes = React.useMemo(
+        () =>
+            workspacePrefixes.filter(
+                (prefix) =>
+                    !defaultPrefixes.some(
+                        (defaultPrefix) =>
+                            defaultPrefix.prefixName === prefix.prefixName &&
+                            defaultPrefix.prefixUri === prefix.prefixUri,
+                    ),
+            ),
+        [defaultPrefixes, workspacePrefixes],
+    );
+    const overriddenReadonlyPrefixes = React.useMemo(
+        () =>
+            new Set(
+                workspacePrefixes
+                    .map((prefix) => prefix.prefixName)
+                    .filter((prefixName) => existingProjectPrefixes.has(prefixName)),
+            ),
+        [existingProjectPrefixes, workspacePrefixes],
+    );
+
+    const workspaceVocabUrl = React.useMemo(() => {
+        if (!dmBaseUrl) {
+            return undefined;
         }
+        return `${dmBaseUrl.replace(/\/+$/, "")}/vocab`;
+    }, [dmBaseUrl]);
+
+    const jumpToProjectPrefix = React.useCallback((prefixName: string) => {
+        const targetRow = document.getElementById(projectPrefixRowId(prefixName));
+        setHighlightedProjectPrefix(prefixName);
+        targetRow?.scrollIntoView({
+            behavior: "smooth",
+            block: "center",
+        });
     }, []);
+
+    const workspaceSectionDescription = workspaceVocabUrl ? (
+        <p>
+            <Trans
+                i18nKey="PrefixDialog.workspacePrefixesDescription"
+                components={{
+                    exploreLink: <a href={workspaceVocabUrl} rel="noreferrer" target="_blank" />,
+                }}
+            />
+        </p>
+    ) : null;
+    const defaultSectionDescription = (
+        <p>
+            {t(
+                "PrefixDialog.defaultPrefixesDescription",
+                "These built-in prefixes are always available in DI and cannot be edited here.",
+            )}
+        </p>
+    );
+
+    const exploreEmptyMessage = t(
+        "PrefixDialog.explorePrefixesEmpty",
+        "No Explore prefixes are currently registered. Manage them in Explore's vocabulary module.",
+    );
 
     return (
         <SimpleDialog
@@ -109,13 +225,123 @@ const PrefixesDialog = ({ onCloseModal, isOpen, existingPrefixes, projectId }: I
         >
             <PrefixNew
                 onAdd={(newPrefix: IPrefixDefinition) => handleAddOrUpdatePrefix(newPrefix)}
-                existingPrefixes={existingPrefixes}
+                existingProjectPrefixes={existingProjectPrefixes}
+                existingWorkspacePrefixes={existingWorkspacePrefixes}
             />
-            <DataList isEmpty={!prefixList.length} isLoading={loading} hasSpacing hasDivider>
-                {prefixList.map((prefix, i) => (
-                    <PrefixRow key={i} prefix={prefix} onRemove={() => toggleRemoveDialog(prefix)} />
-                ))}
-            </DataList>
+            {loading && <Loading description={t("widget.ConfigWidget.loading", "Loading configuration list.")} />}
+            {!loading && (
+                <>
+                    <Section>
+                        <SectionHeader>
+                            <TitleSubsection>
+                                {t("PrefixDialog.projectPrefixesTitle", "Project prefixes")}
+                            </TitleSubsection>
+                            <HtmlContentBlock small>
+                                <p>
+                                    {t(
+                                        "PrefixDialog.projectPrefixesDescription",
+                                        "Project prefixes can be added, updated, and removed here. They are exported with the project.",
+                                    )}
+                                </p>
+                            </HtmlContentBlock>
+                        </SectionHeader>
+                        <Divider addSpacing="medium" />
+                        <DataList
+                            isEmpty={!projectPrefixes.length}
+                            isLoading={false}
+                            hasSpacing
+                            hasDivider
+                            emptyListMessage={t(
+                                "PrefixDialog.projectPrefixesEmpty",
+                                "No project prefixes have been defined yet.",
+                            )}
+                        >
+                            {projectPrefixes.map((prefix) => (
+                                <PrefixRow
+                                    key={prefix.prefixName}
+                                    rowId={projectPrefixRowId(prefix.prefixName)}
+                                    rowClassName={
+                                        highlightedProjectPrefix === prefix.prefixName
+                                            ? styles.highlightedPrefixRow
+                                            : undefined
+                                    }
+                                    prefix={prefix}
+                                    ownership="project"
+                                    overridesWorkspacePrefix={existingWorkspacePrefixes.has(prefix.prefixName)}
+                                    onRemove={() => toggleRemoveDialog(prefix)}
+                                />
+                            ))}
+                        </DataList>
+                    </Section>
+                    <Spacing />
+                    {workspaceVocabUrl && (
+                        <Section>
+                            <SectionHeader>
+                                <TitleSubsection>
+                                    {t("PrefixDialog.workspacePrefixesTitle", "Explore prefixes")}
+                                </TitleSubsection>
+                                <HtmlContentBlock small>{workspaceSectionDescription}</HtmlContentBlock>
+                            </SectionHeader>
+                            <Divider addSpacing="medium" />
+                            <DataList
+                                isEmpty={!explorePrefixes.length}
+                                isLoading={false}
+                                hasSpacing
+                                hasDivider
+                                emptyListMessage={exploreEmptyMessage}
+                            >
+                                {explorePrefixes.map((prefix) => (
+                                    <PrefixRow
+                                        key={prefix.prefixName}
+                                        prefix={prefix}
+                                        ownership="workspace"
+                                        overriddenInProject={overriddenReadonlyPrefixes.has(prefix.prefixName)}
+                                        onJumpToProjectPrefix={
+                                            overriddenReadonlyPrefixes.has(prefix.prefixName)
+                                                ? () => jumpToProjectPrefix(prefix.prefixName)
+                                                : undefined
+                                        }
+                                    />
+                                ))}
+                            </DataList>
+                        </Section>
+                    )}
+                    <Spacing />
+                    <Section>
+                        <SectionHeader>
+                            <TitleSubsection>
+                                {t("PrefixDialog.defaultPrefixesTitle", "Default prefixes")}
+                            </TitleSubsection>
+                            <HtmlContentBlock small>{defaultSectionDescription}</HtmlContentBlock>
+                        </SectionHeader>
+                        <Divider addSpacing="medium" />
+                        <DataList
+                            isEmpty={!defaultPrefixes.length}
+                            isLoading={false}
+                            hasSpacing
+                            hasDivider
+                            emptyListMessage={t(
+                                "PrefixDialog.defaultPrefixesEmpty",
+                                "No default prefixes are currently configured.",
+                            )}
+                        >
+                            {defaultPrefixes.map((prefix) => (
+                                <PrefixRow
+                                    key={prefix.prefixName}
+                                    prefix={prefix}
+                                    ownership="workspace"
+                                    overriddenInProject={overriddenReadonlyPrefixes.has(prefix.prefixName)}
+                                    onJumpToProjectPrefix={
+                                        overriddenReadonlyPrefixes.has(prefix.prefixName)
+                                            ? () => jumpToProjectPrefix(prefix.prefixName)
+                                            : undefined
+                                    }
+                                />
+                            ))}
+                        </DataList>
+                    </Section>
+                </>
+            )}
             <DeleteModal
                 isOpen={isOpenRemove}
                 data-test-id={"update-prefix-dialog"}

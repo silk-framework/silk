@@ -3,7 +3,7 @@ package org.silkframework.plugins.dataset.rdf.tasks.templating
 import org.silkframework.entity.paths.{TypedPath, UntypedPath}
 import org.silkframework.entity.{Entity, EntitySchema, ValueType}
 import org.silkframework.execution.local.EmptyEntityTable
-import org.silkframework.runtime.templating.{CompiledTemplate, TemplateEngines, TemplateVariableConversions, TemplateVariableName, TemplateVariableValue, TemplateVariablesReader}
+import org.silkframework.runtime.templating.{CompiledTemplate, TemplateEngines, TemplateVariableConversions, TemplateVariableName, TemplateVariableValue, TemplateVariablesReader, VariableScope}
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.Uri
 
@@ -26,10 +26,10 @@ import java.io.StringWriter
   *                     to derive the output schema heuristically without rendering.
   * @param defaultScope If non-empty, every variable at this scope is also exposed at the top level of the
   *                     Jinja context, so the template may reference it without the scope prefix. For example,
-  *                     with `defaultScope = Seq("input", "entity")`, a template may use `{{ property }}` in
+  *                     with `defaultScope = "input.entity"`, a template may use `{{ property }}` in
   *                     place of `{{ input.entity.property }}`.
   */
-class SparqlJinjaTemplate(rawTemplate: String, defaultScope: Seq[String] = Seq.empty) extends SparqlTemplate {
+class SparqlJinjaTemplate(rawTemplate: String, defaultScope: VariableScope = VariableScope.empty) extends SparqlTemplate {
 
   import SparqlJinjaTemplate._
 
@@ -53,15 +53,15 @@ class SparqlJinjaTemplate(rawTemplate: String, defaultScope: Seq[String] = Seq.e
   }
 
   private def validateReference(variable: TemplateVariableName,
-                                effectiveScope: Seq[String],
-                                available: Set[(String, Seq[String])]): Unit = {
-    effectiveScope.headOption match {
+                                effectiveScope: VariableScope,
+                                available: Set[(String, VariableScope)]): Unit = {
+    effectiveScope.path.headOption match {
       case Some(top) if VARIABLE_SCOPES.contains(top) =>
         if (!available.contains((variable.name, effectiveScope))) {
           throw new ValidationException(s"Unknown template variable '${variable.scopedName}'.")
         }
       case Some(top) if TASK_SCOPES.contains(top) =>
-        val subSection = effectiveScope.lift(1).getOrElse("")
+        val subSection = effectiveScope.path.lift(1).getOrElse("")
         if (!TASK_SUB_SECTIONS.contains(subSection)) {
           throw new ValidationException(
             s"Invalid template variable '${variable.scopedName}'. " +
@@ -98,7 +98,7 @@ class SparqlJinjaTemplate(rawTemplate: String, defaultScope: Seq[String] = Seq.e
   private def referencesInputTask: Boolean = {
     referencedVariables.exists { variable =>
       val effectiveScope = if (variable.scope.isEmpty) defaultScope else variable.scope
-      effectiveScope.headOption.contains(INPUT_SCOPE)
+      effectiveScope.path.headOption.contains(INPUT_SCOPE)
     }
   }
 
@@ -115,7 +115,7 @@ class SparqlJinjaTemplate(rawTemplate: String, defaultScope: Seq[String] = Seq.e
     val scoped = (inputConfig ++ inputEntity ++ outputConfig).toSeq ++ templateVariables
     val aliased =
       if (defaultScope.nonEmpty) {
-        scoped.filter(_.scope == defaultScope).map(v => new TemplateVariableValue(v.name, Seq.empty, v.values))
+        scoped.filter(_.scope == defaultScope).map(v => new TemplateVariableValue(v.name, VariableScope.empty, v.values))
       } else {
         Seq.empty
       }
@@ -143,9 +143,9 @@ object SparqlJinjaTemplate {
   private[templating] final val JINJA_ENGINE_ID = "jinja"
 
   private[templating] final val INPUT_SCOPE: String = "input"
-  private[templating] final val INPUT_CONFIG_SCOPE: Seq[String] = Seq("input", "config")
-  private[templating] final val INPUT_ENTITY_SCOPE: Seq[String] = Seq("input", "entity")
-  private[templating] final val OUTPUT_CONFIG_SCOPE: Seq[String] = Seq("output", "config")
+  private[templating] final val INPUT_CONFIG_SCOPE: VariableScope = VariableScope("input") / "config"
+  private[templating] final val INPUT_ENTITY_SCOPE: VariableScope = VariableScope("input") / "entity"
+  private[templating] final val OUTPUT_CONFIG_SCOPE: VariableScope = VariableScope("output") / "config"
 
   private final val VARIABLE_SCOPES: Set[String] = Set("project", "global")
   private final val TASK_SCOPES: Set[String] = Set("input", "output")

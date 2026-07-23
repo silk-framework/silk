@@ -23,6 +23,15 @@ import { WorkbenchViewMode } from "../../../hooks/useStoreGlobalTableSettings";
 import { Loading } from "../Loading/Loading";
 import SearchTable from "./SearchTable";
 import SearchGrid from "./SearchGrid";
+import { ItemType } from "@ducks/router/operations";
+
+const directCreateTaskPluginIds: Partial<Record<ItemType, string>> = {
+    dataset: "dataset",
+    workflow: "workflow",
+    transform: "transform",
+    linking: "linking",
+    ruleBlock: "ruleBlock",
+};
 
 interface SearchListProps {
     /**
@@ -139,6 +148,13 @@ export function SearchList({ framed = false, viewMode, flush = false }: SearchLi
                     label: t("pages.workspace.firstWorkflow"),
                 },
             };
+        } else if (projectId) {
+            const taskPluginId = directCreateTaskPluginIds[itemToCreate.selectedDType as ItemType];
+            if (taskPluginId) {
+                itemToCreate.newTaskPreConfiguration = {
+                    taskPluginId,
+                };
+            }
         }
         dispatch(commonOp.createNewTask(itemToCreate));
     };

@@ -2,6 +2,7 @@ package org.silkframework.workspace.activity
 
 import org.silkframework.config.Prefixes
 
+import java.util.concurrent.atomic.AtomicBoolean
 import java.util.logging.Level
 import org.silkframework.runtime.activity.{Activity, ActivityContext, ActivityControl, UserContext}
 import org.silkframework.runtime.resource.{EmptyResourceManager, ResourceNotFoundException, WritableResource}
@@ -34,9 +35,8 @@ trait CachedActivity[T] extends Activity[T] {
   @volatile
   private var initialized = false
 
-  // Externally set to mark this cache as dirty, e.g. by observing the source tasks for changes
-  @volatile
-  private var dirty: Boolean = false
+  // Set by startDirty to mark this cache as dirty; consumed atomically by run() so the full-reload signal is never lost.
+  private val dirty = new AtomicBoolean(false)
 
   /**
     * If true, the cache value will be written to a resource and read back on initialization.
@@ -54,28 +54,36 @@ trait CachedActivity[T] extends Activity[T] {
 
   override def run(context: ActivityContext[T])
                   (implicit userContext: UserContext): Unit = {
-    val forceReload = dirty
-    var currentDirty = true
-    while(currentDirty) {
-      val dirtyFlagSet = dirty
-      dirty = false
+    // Consume the full-reload request here (never at the end of a run), so a concurrent startDirty can't wipe it.
+    val fullReload = dirty.getAndSet(false)
+    try {
       if(!initialized) {
         initialized = true
         if(resource.exists && persistent) {
           readValue(context) match {
-            case Some(value) => context.value() = value
-            case None => update(context, forceReload)
+            case Some(value) =>
+              context.value() = value
+              // A reload requested before this first run must still happen: the persisted value may be stale
+              if (fullReload) {
+                update(context, fullReload)
+              }
+            case None => update(context, fullReload)
           }
         } else {
           context.log.log(Level.INFO, s"No existing cache found at $resource. Loading cache...")
-          update(context, forceReload)
+          update(context, fullReload)
         }
       } else {
-        update(context, forceReload || dirtyFlagSet)
+        update(context, fullReload)
       }
-      currentDirty = dirty // dirty flag may have changed in the meantime
+    } catch {
+      case ex: Throwable =>
+        // The reload did not complete: restore the request so the next run does not downgrade to an incremental update
+        if (fullReload) {
+          dirty.set(true)
+        }
+        throw ex
     }
-    dirty = false
   }
 
   private def update(context: ActivityContext[T], fullReload: Boolean)
@@ -95,7 +103,7 @@ trait CachedActivity[T] extends Activity[T] {
   protected def readValue(context: ActivityContext[T]): Option[T] = {
     try {
       val xml = resource.read(XML.load)
-      implicit val readContext: ReadContext = ReadContext(prefixes = Prefixes.empty, resources = EmptyResourceManager())
+      implicit val readContext: ReadContext = ReadContext.empty
       val value = fromXml[T](xml)
       context.log.info(s"Cache read from $resource")
       Some(value)
@@ -120,27 +128,21 @@ trait CachedActivity[T] extends Activity[T] {
   }
 
   /**
-    * Sets the dirty flag of the cached activity and starts it if it is not already running.
+    * Requests a reload of the cached activity and starts it if it is not already running.
     *
-    * @param reloadCacheFile Re-read the cache from the file.
+    * @param reloadCacheFile If true, the next run re-reads the value from the persisted cache file, which is taken as
+    *                        the new truth, instead of performing a full reload from the data source.
     * */
   def startDirty(taskActivity: ActivityControl[_], reloadCacheFile: Boolean = false)
                 (implicit userContext: UserContext): Unit = {
     if (reloadCacheFile) {
       initialized = false
-    }
-
-    dirty = true
-
-    if(taskActivity.status().isRunning) {
-      // Do nothing, the dirty flag should be picked up by the activity execution
     } else {
-      try {
-        taskActivity.start()
-      } catch {
-        case _: IllegalStateException =>
-        // Ignore exception because of race condition that another thread already started the activity
-      }
+      dirty.set(true)
     }
+
+    // Start the activity, or ensure one more run after the current one finishes. This guarantees the reload request
+    // is picked up even if it is made in the short window while a run is finishing
+    taskActivity.startOrReRun()
   }
 }

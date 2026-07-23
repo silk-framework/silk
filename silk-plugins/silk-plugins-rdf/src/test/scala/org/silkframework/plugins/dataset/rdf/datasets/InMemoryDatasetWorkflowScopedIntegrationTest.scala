@@ -74,22 +74,22 @@ class InMemoryDatasetWorkflowScopedIntegrationTest extends AnyFlatSpec with Matc
 
     val workflow = Workflow(
       operators = Seq(
-        WorkflowOperator(Seq(Some("source1")),    "copyToInMemory1",    Seq("inMemory1"), Seq.empty, (0,   0), "copyToInMemory1",    None, Seq.empty, Seq.empty),
-        WorkflowOperator(Seq(Some("source2")),    "copyToInMemory2",    Seq("inMemory2"), Seq.empty, (0, 300), "copyToInMemory2",    None, Seq.empty, Seq.empty),
-        WorkflowOperator(Seq(Some("inMemory1")),  "readFromInMemory1A", Seq("output1A"),  Seq.empty, (200,  0), "readFromInMemory1A", None, Seq.empty, Seq.empty),
-        WorkflowOperator(Seq(Some("inMemory1")),  "readFromInMemory1B", Seq("output1B"),  Seq.empty, (200,100), "readFromInMemory1B", None, Seq.empty, Seq.empty),
-        WorkflowOperator(Seq(Some("inMemory2")),  "readFromInMemory2A", Seq("output2A"),  Seq.empty, (200,300), "readFromInMemory2A", None, Seq.empty, Seq.empty),
-        WorkflowOperator(Seq(Some("inMemory2")),  "readFromInMemory2B", Seq("output2B"),  Seq.empty, (200,400), "readFromInMemory2B", None, Seq.empty, Seq.empty)
+        WorkflowOperator(Seq(Some("source1")),    "copyToInMemory1",    Seq("inMemory1"), Seq.empty, (0,   0), "copyToInMemory1", Seq.empty, Seq.empty),
+        WorkflowOperator(Seq(Some("source2")),    "copyToInMemory2",    Seq("inMemory2"), Seq.empty, (0, 300), "copyToInMemory2", Seq.empty, Seq.empty),
+        WorkflowOperator(Seq(Some("inMemory1")),  "readFromInMemory1A", Seq("output1A"),  Seq.empty, (200,  0), "readFromInMemory1A", Seq.empty, Seq.empty),
+        WorkflowOperator(Seq(Some("inMemory1")),  "readFromInMemory1B", Seq("output1B"),  Seq.empty, (200,100), "readFromInMemory1B", Seq.empty, Seq.empty),
+        WorkflowOperator(Seq(Some("inMemory2")),  "readFromInMemory2A", Seq("output2A"),  Seq.empty, (200,300), "readFromInMemory2A", Seq.empty, Seq.empty),
+        WorkflowOperator(Seq(Some("inMemory2")),  "readFromInMemory2B", Seq("output2B"),  Seq.empty, (200,400), "readFromInMemory2B", Seq.empty, Seq.empty)
       ),
       datasets = Seq(
-        WorkflowDataset(Seq.empty,                         "source1",   Seq("copyToInMemory1"),                            (0,   0), "source1",   None, Seq.empty, Seq.empty),
-        WorkflowDataset(Seq.empty,                         "source2",   Seq("copyToInMemory2"),                            (0, 300), "source2",   None, Seq.empty, Seq.empty),
-        WorkflowDataset(Seq(Some("copyToInMemory1")),      "inMemory1", Seq("readFromInMemory1A", "readFromInMemory1B"),   (100,  0), "inMemory1", None, Seq.empty, Seq.empty),
-        WorkflowDataset(Seq(Some("copyToInMemory2")),      "inMemory2", Seq("readFromInMemory2A", "readFromInMemory2B"),   (100,300), "inMemory2", None, Seq.empty, Seq.empty),
-        WorkflowDataset(Seq(Some("readFromInMemory1A")),   "output1A",  Seq.empty,                                         (300,  0), "output1A",  None, Seq.empty, Seq.empty),
-        WorkflowDataset(Seq(Some("readFromInMemory1B")),   "output1B",  Seq.empty,                                         (300,100), "output1B",  None, Seq.empty, Seq.empty),
-        WorkflowDataset(Seq(Some("readFromInMemory2A")),   "output2A",  Seq.empty,                                         (300,300), "output2A",  None, Seq.empty, Seq.empty),
-        WorkflowDataset(Seq(Some("readFromInMemory2B")),   "output2B",  Seq.empty,                                         (300,400), "output2B",  None, Seq.empty, Seq.empty)
+        WorkflowDataset(Seq.empty,                         "source1",   Seq("copyToInMemory1"),                            (0,   0), "source1", Seq.empty, Seq.empty),
+        WorkflowDataset(Seq.empty,                         "source2",   Seq("copyToInMemory2"),                            (0, 300), "source2", Seq.empty, Seq.empty),
+        WorkflowDataset(Seq(Some("copyToInMemory1")),      "inMemory1", Seq("readFromInMemory1A", "readFromInMemory1B"),   (100,  0), "inMemory1", Seq.empty, Seq.empty),
+        WorkflowDataset(Seq(Some("copyToInMemory2")),      "inMemory2", Seq("readFromInMemory2A", "readFromInMemory2B"),   (100,300), "inMemory2", Seq.empty, Seq.empty),
+        WorkflowDataset(Seq(Some("readFromInMemory1A")),   "output1A",  Seq.empty,                                         (300,  0), "output1A", Seq.empty, Seq.empty),
+        WorkflowDataset(Seq(Some("readFromInMemory1B")),   "output1B",  Seq.empty,                                         (300,100), "output1B", Seq.empty, Seq.empty),
+        WorkflowDataset(Seq(Some("readFromInMemory2A")),   "output2A",  Seq.empty,                                         (300,300), "output2A", Seq.empty, Seq.empty),
+        WorkflowDataset(Seq(Some("readFromInMemory2B")),   "output2B",  Seq.empty,                                         (300,400), "output2B", Seq.empty, Seq.empty)
       )
     )
     project.addTask("workflow", workflow)
@@ -144,23 +144,23 @@ class InMemoryDatasetWorkflowScopedIntegrationTest extends AnyFlatSpec with Matc
 
     val nestedWorkflow = Workflow(
       operators = Seq(
-        WorkflowOperator(Seq(Some("inMemoryDs")), "readFromInMemory", Seq("output"), Seq.empty, (100, 0), "readFromInMemory", None, Seq.empty, Seq.empty)
+        WorkflowOperator(Seq(Some("inMemoryDs")), "readFromInMemory", Seq("output"), Seq.empty, (100, 0), "readFromInMemory", Seq.empty, Seq.empty)
       ),
       datasets = Seq(
-        WorkflowDataset(Seq.empty,                      "inMemoryDs", Seq("readFromInMemory"), (0, 0),   "inMemoryDs", None, Seq.empty, Seq.empty),
-        WorkflowDataset(Seq(Some("readFromInMemory")),  "output",     Seq.empty,               (200, 0), "output",     None, Seq.empty, Seq.empty)
+        WorkflowDataset(Seq.empty,                      "inMemoryDs", Seq("readFromInMemory"), (0, 0),   "inMemoryDs", Seq.empty, Seq.empty),
+        WorkflowDataset(Seq(Some("readFromInMemory")),  "output",     Seq.empty,               (200, 0), "output", Seq.empty, Seq.empty)
       )
     )
     project.addTask("nestedWorkflow", nestedWorkflow)
 
     val parentWorkflow = Workflow(
       operators = Seq(
-        WorkflowOperator(Seq(Some("source")),       "copyToInMemory", Seq("inMemoryDs"), Seq.empty, (100, 0), "copyToInMemory", None, Seq.empty, Seq.empty),
-        WorkflowOperator(Seq(Some("inMemoryDs")),   "nestedWorkflow", Seq.empty,         Seq.empty, (300, 0), "nestedWorkflow", None, Seq.empty, Seq.empty)
+        WorkflowOperator(Seq(Some("source")),       "copyToInMemory", Seq("inMemoryDs"), Seq.empty, (100, 0), "copyToInMemory", Seq.empty, Seq.empty),
+        WorkflowOperator(Seq(Some("inMemoryDs")),   "nestedWorkflow", Seq.empty,         Seq.empty, (300, 0), "nestedWorkflow", Seq.empty, Seq.empty)
       ),
       datasets = Seq(
-        WorkflowDataset(Seq.empty,                    "source",     Seq("copyToInMemory"),  (0,   0), "source",     None, Seq.empty, Seq.empty),
-        WorkflowDataset(Seq(Some("copyToInMemory")),  "inMemoryDs", Seq("nestedWorkflow"),  (200, 0), "inMemoryDs", None, Seq.empty, Seq.empty)
+        WorkflowDataset(Seq.empty,                    "source",     Seq("copyToInMemory"),  (0,   0), "source", Seq.empty, Seq.empty),
+        WorkflowDataset(Seq(Some("copyToInMemory")),  "inMemoryDs", Seq("nestedWorkflow"),  (200, 0), "inMemoryDs", Seq.empty, Seq.empty)
       )
     )
     project.addTask("parentWorkflow", parentWorkflow)

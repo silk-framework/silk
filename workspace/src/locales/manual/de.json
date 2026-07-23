@@ -1097,6 +1097,9 @@
             },
             "loading": "Loading project data"
         },
+        "ruleBlock": {
+            "title": "Rule block editor"
+        },
         "transform": {
             "mappingCreatorBanner": {
                 "dismiss": "Schließen",
@@ -1459,7 +1462,10 @@
                 "deletePromptWithDependencies": "The variable '{{varname}}' cannot be deleted because it is used at the following places:"
             },
             "noVariables": "No variables set.",
-            "title": "Project variables"
+            "title": {
+                "project": "Project variables",
+                "execution": "Execution variables"
+            }
         },
         "ViewModeToggle": {
             "grid": "Rasteransicht",

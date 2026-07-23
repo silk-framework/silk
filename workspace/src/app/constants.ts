@@ -4,6 +4,7 @@ export const DATA_TYPES = {
     WORKFLOW: "workflow",
     TRANSFORM: "transform",
     LINKING: "Linking",
+    RULE_BLOCK: "ruleBlock",
     TASK: "Task",
 };
 

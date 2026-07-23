@@ -107,7 +107,8 @@
         }
     },
     "ArtefactFormParameter": {
-        "evaluatedValue": "Evaluated template value: {{value}}",
+        "evaluatedValue": "Evaluated template: {{value}}",
+        "evaluatedValueExecutionNote": "Evaluated template (execution variables not resolved): {{value}}",
         "invalidTemplate": "Invalid template value",
         "passwordCleared": "Password was removed because it would be visible in clear text",
         "switchToTemplate": "Switch to template input that allows to use project and global variables like this 'EXAMPLE'. Templates follows the Jinja syntax.",
@@ -421,11 +422,27 @@
         "noFilter": "No language filter"
     },
     "PrefixDialog": {
+        "addProjectPrefix": "Add project prefix",
+        "defaultPrefixesDescription": "These built-in prefixes are always available in DI and cannot be edited here.",
+        "defaultPrefixesEmpty": "No default prefixes are currently configured.",
+        "defaultPrefixesTitle": "Default prefixes",
         "deletePrefix": "Prefix '{{prefixName}}' will be deleted.",
+        "explorePrefixesEmpty": "No Explore prefixes are currently registered. Manage them in Explore's vocabulary module.",
+        "overriddenInProjectBadge": "Overridden in project",
+        "overrideWorkspacePrefix": "The workspace prefix '{{prefixName}}' will stay unchanged. This project prefix will override it only inside this project.",
+        "overrideWorkspacePrefixAction": "Override in project",
+        "overridesWorkspacePrefixBadge": "Overrides workspace prefix",
         "overwritePrefix": "Update existing prefix '{{prefixName}}'?",
         "prefixNameInvalid": "The prefix name you have entered is invalid",
         "prefixUriInvalid": "The entered URI prefix must be a valid URI / IRI.",
-        "prefixUriInvalidChar": "The entered URI prefix contains invalid characters. First invalid character at position {{idx}} is '{{char}}'."
+        "prefixUriInvalidChar": "The entered URI prefix contains invalid characters. First invalid character at position {{idx}} is '{{char}}'.",
+        "projectPrefixesDescription": "Project prefixes can be added, updated, and removed here. They are exported with the project.",
+        "projectPrefixesEmpty": "No project prefixes have been defined yet.",
+        "projectPrefixesTitle": "Project prefixes",
+        "showProjectOverride": "Show project override",
+        "workspacePrefixReadOnly": "Workspace prefix, read-only here",
+        "workspacePrefixesDescription": "These prefixes are provided by Explore. Manage them in the <exploreLink>vocabulary module</exploreLink>; they are read-only here.",
+        "workspacePrefixesTitle": "Explore prefixes"
     },
     "ProjectImportModal": {
         "importBtn": "Import project",
@@ -552,6 +569,19 @@
                 "subtree": {
                     "description": "Evaluate linking tree partially until this operator node.",
                     "label": "Evaluate subtree"
+                },
+                "openRuleBlock": {
+                    "label": "Open rule block",
+                    "description": "Open the referenced rule block in a new tab."
+                },
+                "openInternalRuleBlockEvaluation": {
+                    "label": "Show internal evaluation",
+                    "description": "Show the latest available internal evaluation for this reusable rule block usage."
+                }
+            },
+            "action": {
+                "openInternalRuleBlockEvaluation": {
+                    "tooltip": "Show internal evaluation"
                 }
             }
         },
@@ -666,7 +696,9 @@
             "confirm": "Confirm",
             "copy": "Copy",
             "copyClipboard": "Copy to clipboard",
+            "copyUriClipboard": "Click to copy URI into clipboard",
             "create": "Create",
+            "createNew": "Create new",
             "delete": "Delete",
             "download": "Download",
             "edit": "Edit",
@@ -679,8 +711,13 @@
             "listDeprecatedPlugins": "Deprecated plugins usage",
             "loadExampleProject": "Add \"movies\" example project",
             "logout": "Logout",
+            "maximize": "Maximize",
+            "minimize": "Minimize",
             "moreOptions": "Show more options",
             "ok": "Ok",
+            "select": "Select",
+            "refreshStatus": "Refresh status",
+            "noAutoDisplay": "Do not show automatically in future",
             "openInNewTab": "Open link in new tab",
             "openInNewTabTooltip": "The link will be opened in a new tab",
             "proceed": "Proceed",
@@ -719,6 +756,8 @@
             "linking": "linking",
             "project": "project",
             "projectDesc": "Projects let you group related items. All items that depend on each other need to be in the same project.",
+            "ruleBlock": "rule block",
+            "ruleblock": "rule block",
             "task": "task",
             "transform": "transform",
             "workflow": "workflow"
@@ -740,6 +779,7 @@
             "Mapping editor": "Mapping editor",
             "Query": "Query editor",
             "Reference links": "Reference links",
+            "ruleBlockEditor": "Rule block editor",
             "Transform evaluation": "Transform evaluation",
             "Transform execution": "Transform execution",
             "Workflow editor": "Workflow editor",
@@ -1097,6 +1137,9 @@
             },
             "loading": "Loading project data"
         },
+        "ruleBlock": {
+            "title": "Rule block editor"
+        },
         "transform": {
             "mappingCreatorBanner": {
                 "dismiss": "Dismiss",
@@ -1116,6 +1159,89 @@
         "recentlyViewed": "Recently viewed"
     },
     "taskViews": {
+        "ruleBlock": {
+            "createInputPortTitle": "Create input port",
+            "deleteInputPort": {
+                "confirmMessage": "Delete input port '{{portLabel}}'? This will also remove {{count}} node from the rule tree.",
+                "confirmMessage_plural": "Delete input port '{{portLabel}}'? This will also remove {{count}} nodes from the rule tree.",
+                "title": "Delete input port"
+            },
+            "deprecated": "Deprecated",
+            "displayOrder": "Display order",
+            "editExampleValues": "Edit example values",
+            "editInputPort": "Edit input port",
+            "editInputPortTitle": "Edit input port",
+            "errors": {
+                "conflictingPortDefinitions": "Input port '{{portId}}' is used with conflicting definitions.",
+                "duplicateDisplayOrder": "Display order {{displayOrder}} must be unique within the rule block.",
+                "duplicateInputPortLabel": "Input port label '{{label}}' must be unique within the rule block.",
+                "evaluate": "Could not evaluate the rule block.",
+                "fetchTaskData": "Could not load the rule block.",
+                "fetchTransformOperators": "Could not load the transform operators.",
+                "inputPortLabelRequired": "Input port label is required.",
+                "invalidDisplayOrder": "Display order must be an integer.",
+                "missingPortId": "This input port instance is invalid because it has no logical port ID.",
+                "invalidPorts": "The rule block contains invalid input port definitions.",
+                "pasteNestedRuleBlocks": "Nested rule blocks are not allowed.",
+                "pasteUnsupportedOperators": "Only path, transform, and input port operators can be pasted into a rule block. Comparison and aggregation operators are not allowed.",
+                "pasteUnsupportedOperatorType": "Operator type '{{pluginType}}' cannot be pasted into a rule block.",
+                "save": "Could not save the rule block.",
+                "displayOrderRequired": "Display order is required.",
+                "usedPortRemoved": "Input port '{{portLabel}}' cannot be removed because this rule block is already in use.",
+                "usedPortReordered": "Display order of input port '{{portLabel}}' cannot be changed because this rule block is already in use."
+            },
+            "exampleValues": "Example values",
+            "examples": {
+                "dialog": {
+                    "addValue": "Add value",
+                    "editValue": "Edit value",
+                    "applyAndClose": "Apply and close",
+                    "clearSelection": "Clear selection",
+                    "deleteExample": "Delete example",
+                    "duplicateExample": "Duplicate example",
+                    "editingValue": "Editing: {{portLabel}}",
+                    "exampleTitle": "Example {{index}}",
+                    "examples": "Examples",
+                    "inputsCount": "{{count}} inputs",
+                    "inputsCount_plural": "{{count}} inputs",
+                    "label": "Label",
+                    "labelHint": "Optional. If empty, the generated example title is shown.",
+                    "newExample": "New example",
+                    "noExamples": "No examples available yet.",
+                    "searchExamples": "Search examples",
+                    "selectionActiveTooltip": "Show more options. Evaluation is restricted to {{count}} selected examples.",
+                    "selectionActiveTooltip_plural": "Show more options. Evaluation is restricted to {{count}} selected examples.",
+                    "selectionInfo": "{{count}} selected for evaluation",
+                    "selectionInfo_plural": "{{count}} selected for evaluation",
+                    "selectValueHint": "Select a value chip or create a new value to edit it here.",
+                    "title": "Example editor"
+                }
+            },
+            "inputPortOperator": "Input port",
+            "inputPortOperatorDescription": "Provides values from a reusable rule block input port.",
+            "inputPortsTab": "Input ports",
+            "newInputPort": "New input port",
+            "portMenu": "Port menu",
+            "unusedTooltip": "This input port is currently unused, but it will still be displayed in rule block usages.",
+            "deleteDisabledInUse": "Input port '{{portLabel}}' cannot be removed because this rule block is already in use.",
+            "evaluation": {
+                "noInputExamples": "No input examples exist yet. Example values can be added via the evaluation menu or input port node menu.",
+                "noResults": "No evaluation results available."
+            },
+            "internalEvaluation": {
+                "title": "Evaluation of {{label}}"
+            },
+            "normalizePortOrder": "Normalize port order",
+            "normalizePortOrderTooltip": "Renumber input ports to 1..n while preserving their current order. This action is undoable.",
+            "refreshUsage": "Usage status",
+            "usageInUse": "This rule block is already in use. Existing input ports cannot be removed, and their relative order cannot change.",
+            "usageRefreshHint": "Click the refresh button to update this usage information.",
+            "usageRefreshError": "Could not refresh rule block usage information.",
+            "warnings": {
+                "unusedPorts": "This rule block contains {{count}} unused input port: {{ports}}.",
+                "unusedPorts_plural": "This rule block contains {{count}} unused input ports: {{ports}}."
+            }
+        },
         "linkRulesEditor": {
             "cacheWidgets": {
                 "evaluationCache": "Evaluation cache",
@@ -1218,13 +1344,18 @@
             "modal": {
                 "errors": {
                     "prefixChangeFailure": "Prefix change failed",
+                    "prefixRefreshAfterDeletionFailure": "Prefix deleted, but refreshing the prefix list failed",
+                    "prefixRefreshAfterChangeFailure": "Prefix updated, but refreshing the prefix list failed",
                     "prefixDeletionFailure": "Prefix deletion failed"
                 }
             },
             "prefix": "Prefix",
             "prefixTitle": "Manage prefixes",
             "prefix_plural": "Prefixes",
-            "title": "Configuration"
+            "title": "Configuration",
+            "errors": {
+                "prefixLoadFailure": "Loading prefixes failed"
+            }
         },
         "FacetsList": {
             "facet": {
@@ -1459,7 +1590,10 @@
                 "deletePromptWithDependencies": "The variable '{{varname}}' cannot be deleted because it is used at the following places:"
             },
             "noVariables": "No variables set.",
-            "title": "Project variables"
+            "title": {
+                "project": "Project variables",
+                "execution": "Execution variables"
+            }
         },
         "ViewModeToggle": {
             "grid": "Grid view",

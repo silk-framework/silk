@@ -2,9 +2,9 @@ package org.silkframework.runtime.serialization
 
 import org.silkframework.config.Prefixes
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.runtime.plugin.PluginContext
+import org.silkframework.runtime.plugin.{PluginContext, TaskResolver}
 import org.silkframework.runtime.resource.{EmptyResourceManager, ResourceManager}
-import org.silkframework.runtime.templating.{GlobalTemplateVariables, TemplateVariablesReader}
+import org.silkframework.runtime.templating.{ExecutionTemplateVariables, GlobalTemplateVariables}
 import org.silkframework.util.{Identifier, IdentifierGenerator}
 import org.silkframework.workspace.ProjectTrait
 
@@ -23,14 +23,16 @@ case class ReadContext(resources: ResourceManager,
                        validationEnabled: Boolean = false,
                        user: UserContext = UserContext.Empty,
                        projectId: Option[Identifier] = None,
-                       templateVariables: TemplateVariablesReader = GlobalTemplateVariables) extends PluginContext
+                       templateVariables: ExecutionTemplateVariables = ExecutionTemplateVariables(GlobalTemplateVariables),
+                       taskResolver: TaskResolver) extends PluginContext
 
 object ReadContext {
 
   def empty: ReadContext = {
     ReadContext(
       resources = EmptyResourceManager(),
-      prefixes = Prefixes.empty
+      prefixes = Prefixes.empty,
+      taskResolver = TaskResolver.empty
     )
   }
 
@@ -40,7 +42,8 @@ object ReadContext {
       prefixes = project.config.prefixes,
       user = user,
       projectId = Some(project.id),
-      templateVariables = project.combinedTemplateVariables
+      templateVariables = ExecutionTemplateVariables(project.combinedTemplateVariables),
+      taskResolver = TaskResolver.fromProject(project)
     )
   }
 
@@ -54,8 +57,8 @@ object ReadContext {
       validationEnabled = validationEnabled,
       user = pluginContext.user,
       projectId = pluginContext.projectId,
-      templateVariables = pluginContext.templateVariables
+      templateVariables = pluginContext.templateVariables,
+      taskResolver = pluginContext.taskResolver
     )
   }
-
 }

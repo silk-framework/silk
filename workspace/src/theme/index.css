@@ -4,41 +4,41 @@
  * comes from @eccenca/gui-elements/src/css/index.css, imported separately in src/index.tsx.
  */
 :root {
-  /* Application header height — must match `h-15` (60px) in Header.tsx (and NotificationsMenu's top-15). */
-  --header-height: 3.75rem;
+    /* Application header height — must match `h-15` (60px) in Header.tsx (and NotificationsMenu's top-15). */
+    --header-height: 3.75rem;
 }
 
 .diapp-applicationnotifications--filledqueue .diapp-iframewindow--fullscreen {
-  top: calc(var(--header-height) + 14px);
-  left: calc(56px + 14px);
+    top: calc(var(--header-height) + 14px);
+    left: calc(56px + 14px);
 }
 
 .diapp-iframewindow {
-  position: relative;
+    position: relative;
 }
 .diapp-iframewindow .diapp-iframewindow__content {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  max-height: 100vh;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    max-height: 100vh;
 }
 
 .diapp-iframewindow--iframecontent {
-  position: relative;
-  padding: 0 !important;
+    position: relative;
+    padding: 0 !important;
 }
 
 .diapp-iframewindow--jscontent {
-  position: relative;
+    position: relative;
 }
 .diapp-iframewindow--jscontent > div {
-  position: absolute;
-  top: 14px;
-  right: 14px;
-  bottom: 14px;
-  left: 14px;
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    bottom: 14px;
+    left: 14px;
 }
 /* The mapping creator fills its tab card edge-to-edge: its column dividers should meet the
    card border rather than sit inside the default 14px content inset above. Scoped to the
@@ -47,147 +47,155 @@
    `rounded-lg`) so the flush white content follows the card's rounded bottom edge instead of
    squaring it off; the top edge meets the header divider as a straight line. */
 .diapp-iframewindow--jscontent > .mapping-creator-v2-flush {
-  top: 0;
-  right: 0;
-  bottom: 0;
-  left: 0;
-  overflow: hidden;
-  border-bottom-left-radius: calc(var(--radius) - 1px);
-  border-bottom-right-radius: calc(var(--radius) - 1px);
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    overflow: hidden;
+    border-bottom-left-radius: calc(var(--radius) - 1px);
+    border-bottom-right-radius: calc(var(--radius) - 1px);
 }
 
 .diapp-iframewindow--fullscreen {
-  position: fixed;
-  width: auto;
-  height: auto;
-  top: 14px;
-  left: 14px;
-  right: 14px;
-  bottom: 14px;
-  z-index: 8000;
+    position: fixed;
+    width: auto;
+    height: auto;
+    top: 14px;
+    left: 14px;
+    right: 14px;
+    bottom: 14px;
+    z-index: 8000;
 }
 .diapp-iframewindow--fullscreen:before {
-  content: " ";
-  display: block;
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: color-mix(in srgb, var(--eccgui-color-palette-identity-background-900) 61%, transparent);
+    content: " ";
+    display: block;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: color-mix(in srgb, var(--eccgui-color-palette-identity-background-900) 61%, transparent);
 }
 
 .diapp-linking-learningdata__header.fullwidth,
 .diapp-linking-learningdata__cell.fullwidth {
-  max-width: 100%;
+    max-width: 100%;
 }
 
 .diapp-linking-learningdata__header {
-  max-width: 40%;
-  background-color: var(--muted);
-  border-color: color-mix(in srgb, var(--muted) 50%, transparent);
-  border-width: 2px;
-  border-style: solid solid none solid;
-  padding: 10.5px 7px;
-  font-weight: 500;
-  color: var(--foreground);
-  vertical-align: middle;
-  font-size: 12px;
+    max-width: 40%;
+    background-color: var(--muted);
+    border-color: color-mix(in srgb, var(--muted) 50%, transparent);
+    border-width: 2px;
+    border-style: solid solid none solid;
+    padding: 10.5px 7px;
+    font-weight: 500;
+    color: var(--foreground);
+    vertical-align: middle;
+    font-size: 12px;
 }
 
 .diapp-linking-learningdata__cell.shrink {
-  visibility: hidden;
-  opacity: 0;
-  height: 0px;
+    visibility: hidden;
+    opacity: 0;
+    height: 0px;
 }
 
 .diapp-linking-learningdata__cell {
-  max-width: 40%;
-  border-color: color-mix(in srgb, var(--muted) 50%, transparent);
-  background-color: color-mix(in srgb, var(--muted) 40%, transparent);
-  border-width: 2px;
-  border-style: none solid;
-  padding: 7px;
-  padding-bottom: 3.5px;
-  transition: 300ms;
-  visibility: visible;
-  opacity: 1;
-  height: auto;
+    max-width: 40%;
+    border-color: color-mix(in srgb, var(--muted) 50%, transparent);
+    background-color: color-mix(in srgb, var(--muted) 40%, transparent);
+    border-width: 2px;
+    border-style: none solid;
+    padding: 7px;
+    padding-bottom: 3.5px;
+    transition: 300ms;
+    visibility: visible;
+    opacity: 1;
+    height: auto;
 }
 .diapp-linking-learningdata__row-body:nth-child(odd) .diapp-linking-learningdata__cell {
-  background-color: transparent;
+    background-color: transparent;
 }
 .diapp-linking-learningdata__row-body:hover .diapp-linking-learningdata__cell {
-  background-color: color-mix(in srgb, var(--muted) 50%, transparent);
+    background-color: color-mix(in srgb, var(--muted) 50%, transparent);
 }
 .diapp-linking-learningdata__row-body:first-of-type .diapp-linking-learningdata__cell {
-  border-top-style: solid;
+    border-top-style: solid;
 }
 .diapp-linking-learningdata__row-body:last-of-type .diapp-linking-learningdata__cell {
-  border-bottom-style: solid;
+    border-bottom-style: solid;
 }
 
 .diapp-linking-learningdata__connection {
-  max-width: 20%;
+    max-width: 20%;
 }
 
 .diapp-linking-learningdata__examples {
-  display: inline-flex;
-  max-width: 100%;
+    display: inline-flex;
+    max-width: 100%;
 }
 .diapp-linking-learningdata__examples .eccgui-tag__list-item {
-  flex-shrink: 1.6;
-  min-width: 2rem;
+    flex-shrink: 1.6;
+    min-width: 2rem;
 }
-.diapp-linking-learningdata__examples .eccgui-tag__list-item:nth-child(n+1) {
-  flex-shrink: 1;
+.diapp-linking-learningdata__examples .eccgui-tag__list-item:nth-child(n + 1) {
+    flex-shrink: 1;
 }
-.diapp-linking-learningdata__examples .eccgui-tag__list-item:nth-child(n+2) {
-  flex-shrink: 1.2;
+.diapp-linking-learningdata__examples .eccgui-tag__list-item:nth-child(n + 2) {
+    flex-shrink: 1.2;
 }
-.diapp-linking-learningdata__examples .eccgui-tag__list-item:nth-child(n+3) {
-  flex-shrink: 1.4;
+.diapp-linking-learningdata__examples .eccgui-tag__list-item:nth-child(n + 3) {
+    flex-shrink: 1.4;
 }
 .diapp-linking-learningdata__examples .eccgui-tag__list-item:has(.diapp-linking-learningdata__examples__cutinfo) {
-  flex-shrink: 0;
-  min-width: 0;
+    flex-shrink: 0;
+    min-width: 0;
 }
 
 .diapp-linking-learningdata__source .eccgui-overviewitem__item {
-  flex-direction: row-reverse;
+    flex-direction: row-reverse;
 }
 .diapp-linking-learningdata__source .eccgui-overviewitem__line {
-  flex-direction: row-reverse;
-  text-align: right;
+    flex-direction: row-reverse;
+    text-align: right;
 }
 
 .diapp-linking-learningdata__pathselection {
-  background-color: transparent;
-  border: none;
+    background-color: transparent;
+    border: none;
 }
 
 div.diapp-linking-connectionenabled__arrow-right {
-  width: 100%;
-  height: 16px;
-  display: flex;
+    width: 100%;
+    height: 16px;
+    display: flex;
 }
 div.diapp-linking-connectionenabled__arrow-right:before {
-  content: "";
-  background: currentColor;
-  width: 100%;
-  clip-path: polygon(0 7px, calc(100% - 7px) 7px, calc(100% - 7px) 0, 100% 50%, calc(100% - 7px) 100%, calc(100% - 7px) calc(100% - 7px), 0 8.54px);
+    content: "";
+    background: currentColor;
+    width: 100%;
+    clip-path: polygon(
+        0 7px,
+        calc(100% - 7px) 7px,
+        calc(100% - 7px) 0,
+        100% 50%,
+        calc(100% - 7px) 100%,
+        calc(100% - 7px) calc(100% - 7px),
+        0 8.54px
+    );
 }
 
 div.diapp-linking-connectionenabled__arrow-left {
-  width: 100%;
-  height: 16px;
-  display: flex;
+    width: 100%;
+    height: 16px;
+    display: flex;
 }
 div.diapp-linking-connectionenabled__arrow-left:before {
-  content: "";
-  background: currentColor;
-  width: 100%;
-  clip-path: polygon(0 50%, 7px 100%, 7px calc(100% - 7px), 100% calc(100% - 7px), 100% 7px, 7px 7px, 7px 0%);
+    content: "";
+    background: currentColor;
+    width: 100%;
+    clip-path: polygon(0 50%, 7px 100%, 7px calc(100% - 7px), 100% calc(100% - 7px), 100% 7px, 7px 7px, 7px 0%);
 }
 
 /**
@@ -195,14 +203,14 @@ div.diapp-linking-connectionenabled__arrow-left:before {
   contains different style overwrites that couldn't have been done directly by component usage
 **/
 .diapp-linking-evaluation .diapp-linking-learningdata__cell {
-  border: none;
-  background-color: transparent;
-  padding-left: 0;
-  padding-top: 0;
+    border: none;
+    background-color: transparent;
+    padding-left: 0;
+    padding-top: 0;
 }
 
 .diapp-transform-evaluation {
-  /*
+    /*
       FIXME:
       Some of this data tabel tweaks may need to be moved to the GUI Elements directly.
       Then it need more time to do this correct.
@@ -210,150 +218,158 @@ div.diapp-linking-connectionenabled__arrow-left:before {
   */
 }
 .diapp-transform-evaluation .eccgui-simpletable__cell {
-  height: 44px;
+    height: 44px;
 }
 .diapp-transform-evaluation .eccgui-simpletable__cell .eccgui-separation__divider-horizontal {
-  position: relative;
-  top: -4px;
+    position: relative;
+    top: -4px;
 }
 .diapp-transform-evaluation .ecc-silk-mapping__treenav {
-  margin: 0px;
+    margin: 0px;
 }
 
 .uppy-c-icon.uppy-DragDrop-arrow {
-  visibility: hidden;
+    visibility: hidden;
 }
 
 .ecc-silk-mapping__treenav ul.ecc-silk-mapping__treenav--subtree {
-  padding-left: 30px;
+    padding-left: 30px;
 }
 .ecc-silk-mapping__treenav .ecc-silk-mapping__treenav--maintree {
-  box-sizing: border-box;
+    box-sizing: border-box;
 }
 
 .ecc-silk-mapping__ruleitem {
-  max-width: 100%;
-  position: relative;
+    max-width: 100%;
+    position: relative;
 }
 
 .ecc-silk-mapping__ruleitem--defect {
-  color: var(--eccgui-color-palette-semantic-warning-900);
-  background-color: var(--eccgui-color-palette-semantic-warning-100);
+    color: var(--eccgui-color-palette-semantic-warning-900);
+    background-color: var(--eccgui-color-palette-semantic-warning-100);
 }
 
 .eccgui-overviewitem__list li:nth-child(odd) .ecc-silk-mapping__ruleitem-summary:not(:hover) {
-  background-color: color-mix(in srgb, var(--muted) 40%, transparent);
+    background-color: color-mix(in srgb, var(--muted) 40%, transparent);
 }
 .ecc-silk-mapping__ruleitem-summary:hover {
-  background-color: color-mix(in srgb, var(--eccgui-color-palette-layout-grey-100) 80%, var(--eccgui-color-palette-layout-grey-300));
+    background-color: color-mix(
+        in srgb,
+        var(--eccgui-color-palette-layout-grey-100) 80%,
+        var(--eccgui-color-palette-layout-grey-300)
+    );
 }
 .ecc-silk-mapping__ruleitem-summary .eccgui-overviewitem__item.eccgui-overviewitem__item--hasspacing {
-  padding-left: 14px;
+    padding-left: 14px;
 }
 .ecc-silk-mapping__ruleitem-summary .Select.is-disabled .Select-value {
-  opacity: 0.61;
+    opacity: 0.61;
 }
 .ecc-silk-mapping__ruleitem-summary .ecc-silk-mapping__ruleheader {
-  background-color: transparent;
+    background-color: transparent;
 }
 .ecc-silk-mapping__ruleitem-summary .ecc-silk-mapping__ruleheader:hover {
-  background-color: transparent;
+    background-color: transparent;
 }
 .ecc-silk-mapping__ruleitem-summary .hide-in-table {
-  display: none;
+    display: none;
 }
 
 .ecc-silk-mapping__ruleitem-reorderhandler {
-  width: 14px;
-  position: absolute;
-  top: 7px;
-  left: 7px;
-  bottom: 7px;
-  border: 1px solid var(--border);
-  background-color: var(--secondary);
+    width: 14px;
+    position: absolute;
+    top: 7px;
+    left: 7px;
+    bottom: 7px;
+    border: 1px solid var(--border);
+    background-color: var(--secondary);
 }
 .ecc-silk-mapping__ruleitem-reorderhandler:hover {
-  background-color: var(--accent);
+    background-color: var(--accent);
 }
 .ecc-silk-mapping__ruleitem-reorderhandler + .eccgui-overviewitem__item.eccgui-overviewitem__item--hasspacing {
-  padding-left: 28px;
+    padding-left: 28px;
 }
 .ecc-silk-mapping__ruleitem-reorderhandler .ege-contextmenu__wrapper {
-  position: absolute;
-  left: 1px;
-  top: 1px;
-  right: 1px;
-  bottom: 1px;
+    position: absolute;
+    left: 1px;
+    top: 1px;
+    right: 1px;
+    bottom: 1px;
 }
 .ecc-silk-mapping__ruleitem-reorderhandler .eccgui-button,
 .ecc-silk-mapping__ruleitem-reorderhandler .eccgui-icon,
 .ecc-silk-mapping__ruleitem-reorderhandler .eccgui-contextmenu,
 .ecc-silk-mapping__ruleitem-reorderhandler .eccgui-contextoverlay {
-  overflow: hidden;
-  position: absolute;
-  left: 0;
-  top: 0;
-  height: 100%;
-  width: 100%;
-  border-radius: 0;
-  min-width: 0;
-  line-height: 100%;
-  padding: 0;
-  margin: 0 !important;
+    overflow: hidden;
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 100%;
+    width: 100%;
+    border-radius: 0;
+    min-width: 0;
+    line-height: 100%;
+    padding: 0;
+    margin: 0 !important;
 }
 .ecc-silk-mapping__ruleitem-reorderhandler .eccgui-button {
-  opacity: 0.61;
+    opacity: 0.61;
 }
-.ecc-silk-mapping__ruleitem-reorderhandler .eccgui-button:hover, .ecc-silk-mapping__ruleitem-reorderhandler .eccgui-button:focus, .ecc-silk-mapping__ruleitem-reorderhandler .eccgui-button:active {
-  opacity: 1;
+.ecc-silk-mapping__ruleitem-reorderhandler .eccgui-button:hover,
+.ecc-silk-mapping__ruleitem-reorderhandler .eccgui-button:focus,
+.ecc-silk-mapping__ruleitem-reorderhandler .eccgui-button:active {
+    opacity: 1;
 }
 
 .ecc-silk-mapping__rulesviewer__sourcePath code {
-  word-wrap: break-word;
+    word-wrap: break-word;
 }
 
 .ecc-silk-mapping__rulesviewer__examples-table {
-  background-color: transparent !important;
+    background-color: transparent !important;
 }
 .ecc-silk-mapping__rulesviewer__examples-table th,
 .ecc-silk-mapping__rulesviewer__examples-table td {
-  white-space: normal;
-  height: auto;
+    white-space: normal;
+    height: auto;
 }
 .ecc-silk-mapping__rulesviewer__examples-table th.ecc-silk-mapping__rulesviewer__examples-table__path .eccgui-tag__item,
-.ecc-silk-mapping__rulesviewer__examples-table td.ecc-silk-mapping__rulesviewer__examples-table__path .eccgui-tag__item {
-  direction: rtl;
+.ecc-silk-mapping__rulesviewer__examples-table
+    td.ecc-silk-mapping__rulesviewer__examples-table__path
+    .eccgui-tag__item {
+    direction: rtl;
 }
 .ecc-silk-mapping__rulesviewer__examples-table tbody tr:hover {
-  background-color: transparent;
+    background-color: transparent;
 }
 .is-narrowed .ecc-silk-mapping__rulesviewer__examples-table tbody {
-  display: none;
+    display: none;
 }
 .is-narrowed .ecc-silk-mapping__rulesviewer__examples-table tbody:first-of-type {
-  display: table-row-group;
+    display: table-row-group;
 }
 .is-narrowed .ecc-silk-mapping__rulesviewer__examples-table tbody tr {
-  opacity: 0.39;
+    opacity: 0.39;
 }
 .is-narrowed .ecc-silk-mapping__rulesviewer__examples-table tbody .eccgui-tag__item {
-  display: none;
+    display: none;
 }
-.is-narrowed .ecc-silk-mapping__rulesviewer__examples-table tbody .eccgui-tag__item:nth-child(-n+7) {
-  display: inline-flex;
+.is-narrowed .ecc-silk-mapping__rulesviewer__examples-table tbody .eccgui-tag__item:nth-child(-n + 7) {
+    display: inline-flex;
 }
 
 .ecc-silk-mapping__ruleitem--new {
-  animation-name: anim-new-element;
-  animation-duration: 1s;
-  animation-timing-function: cubic-bezier(0, 0, 0.2, 1);
+    animation-name: anim-new-element;
+    animation-duration: 1s;
+    animation-timing-function: cubic-bezier(0, 0, 0.2, 1);
 }
 
 @keyframes anim-new-element {
-  25% {
-    background-color: var(--eccgui-color-palette-semantic-info-100);
-    color: var(--eccgui-color-palette-semantic-info-900);
-  }
+    25% {
+        background-color: var(--eccgui-color-palette-semantic-info-100);
+        color: var(--eccgui-color-palette-semantic-info-900);
+    }
 }
 /**
  * Spot highlight
@@ -373,45 +389,97 @@ div.diapp-linking-connectionenabled__arrow-left:before {
  * eccenca brand accent blue): the flash "wash" is a `color-mix` of the two; the dotted
  * underline reuses `--ring`. Geometry/timing kept identical to the original.
  */
-:is([id^=parameter_doc_]) {
-  position: relative;
-  text-decoration: none;
-  transition: text-decoration 2s allow-discrete;
+:is([id^="parameter_doc_"]) {
+    position: relative;
+    text-decoration: none;
+    transition: text-decoration 2s allow-discrete;
 }
-:is([id^=parameter_doc_])::before {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 0;
-  height: 0;
-  overflow: hidden;
-  content: " ";
-  background-color: color-mix(in oklch, var(--primary) 50%, var(--ring) 50%);
-  opacity: 1;
-  transition: all 1s ease-in;
+:is([id^="parameter_doc_"])::before {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    overflow: hidden;
+    content: " ";
+    background-color: color-mix(in oklch, var(--primary) 50%, var(--ring) 50%);
+    opacity: 1;
+    transition: all 1s ease-in;
 }
-:is([id^=parameter_doc_]):empty::before {
-  border-radius: 100%;
+:is([id^="parameter_doc_"]):empty::before {
+    border-radius: 100%;
 }
-:is([id^=parameter_doc_]):target, :is([id^=parameter_doc_]).eccgui-typography--spothighlight {
-  text-decoration: underline;
-  text-decoration-style: dotted;
-  text-decoration-color: var(--ring);
+:is([id^="parameter_doc_"]):target,
+:is([id^="parameter_doc_"]).eccgui-typography--spothighlight {
+    text-decoration: underline;
+    text-decoration-style: dotted;
+    text-decoration-color: var(--ring);
 }
-:is([id^=parameter_doc_]):target::before, :is([id^=parameter_doc_]).eccgui-typography--spothighlight::before {
-  top: -50%;
-  left: -50%;
-  width: 200%;
-  height: 200%;
-  opacity: 0;
+:is([id^="parameter_doc_"]):target::before,
+:is([id^="parameter_doc_"]).eccgui-typography--spothighlight::before {
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    opacity: 0;
 }
-:is([id^=parameter_doc_]):target:empty::before, :is([id^=parameter_doc_]).eccgui-typography--spothighlight:empty::before {
-  top: -35px;
-  left: -35px;
-  width: 70px;
-  height: 70px;
+:is([id^="parameter_doc_"]):target:empty::before,
+:is([id^="parameter_doc_"]).eccgui-typography--spothighlight:empty::before {
+    top: -35px;
+    left: -35px;
+    width: 70px;
+    height: 70px;
 }
 
 .diapp__insetcontent .eccgui-grid__row--fullheight {
-  min-height: calc(100svh - var(--header-height) - 1.75rem);
+    min-height: calc(100svh - var(--header-height) - 1.75rem);
+}
+/* ---------------------------------------------------------------------------------------
+ * Ported from release/26.2.0 SCSS during the merge into the (SCSS-free) restyling branch.
+ * --------------------------------------------------------------------------------------- */
+
+/* Former shared/evaluations/_selectableEvaluationValues.scss, included by both the linking and
+   the transform evaluation tab views: text in evaluation value tags/trees is selectable. */
+.diapp-linking-evaluation .diapp-evaluation__uri-value,
+.diapp-transform-evaluation .diapp-evaluation__uri-value {
+    align-items: center;
+    column-gap: 7px; /* $eccgui-size-inline-whitespace * 0.5 */
+    display: inline-flex;
+    max-width: 100%;
+}
+.diapp-linking-evaluation .diapp-evaluation__selectable-tag,
+.diapp-linking-evaluation .diapp-evaluation__selectable-tag *,
+.diapp-linking-evaluation .diapp-evaluation__selectable-value-text,
+.diapp-linking-evaluation .diapp-evaluation__selectable-value-text *,
+.diapp-transform-evaluation .diapp-evaluation__selectable-tag,
+.diapp-transform-evaluation .diapp-evaluation__selectable-tag *,
+.diapp-transform-evaluation .diapp-evaluation__selectable-value-text,
+.diapp-transform-evaluation .diapp-evaluation__selectable-value-text * {
+    -webkit-user-select: text;
+    user-select: text;
+}
+.diapp-linking-evaluation .diapp-evaluation__selectable-value-text,
+.diapp-transform-evaluation .diapp-evaluation__selectable-value-text {
+    cursor: text;
+    min-width: 0;
+}
+
+/* Former taskViews/ruleBlock/ExampleValuesDialog.scss. The Blueprint-era
+   $menu-item-color-hover is gone in gui-elements v27; var(--accent) is the shadcn hover fill
+   used by menus/commands there. */
+.ecc-silk-rule-block-example-values-dialog .eccgui-card__content {
+    position: relative;
+}
+.ecc-silk-rule-block-example-values-dialog__example-item.eccgui-intent--accent {
+    color: var(--eccgui-color-accent);
+    background-color: var(--eccgui-color-accent-contrast);
+}
+.ecc-silk-rule-block-example-values-dialog__example-item:hover {
+    background-color: var(--accent);
+}
+.ecc-silk-rule-block-example-values-dialog__port-pair--highlighted {
+    background-color: var(--eccgui-color-accent-contrast);
+}
+.ecc-silk-rule-block-example-values-dialog__port-name--highlighted {
+    color: var(--eccgui-color-accent);
 }

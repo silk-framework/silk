@@ -1,5 +1,6 @@
 import {
     IAppliedFacetState,
+    IDetailedProjectPrefixes,
     IFacetState,
     IProjectExecutionStatus,
     IProjectImportDetails,
@@ -224,22 +225,19 @@ export const requestCreateProject = async (payload: ICreateProjectPayload): Prom
     }
 };
 
-//missing-type
-export const requestProjectPrefixesLegacy = async (projectId: string): Promise<any | never> => {
-    try {
-        const { data } = await fetch({
-            url: workspaceApi(`/projects/${projectId}/prefixes`),
-        });
-        return data;
-    } catch (e) {
-        throw handleError(e);
-    }
-};
-
-/** Fetch project prefixes. */
+/** Fetch effective project prefixes. */
 export const requestProjectPrefixes = async (projectId: string): Promise<FetchResponse<Record<string, string>>> => {
     return fetch({
         url: workspaceApi(`/projects/${projectId}/prefixes`),
+    });
+};
+
+/** Fetch project and workspace prefixes separately. */
+export const requestDetailedProjectPrefixes = async (
+    projectId: string,
+): Promise<FetchResponse<IDetailedProjectPrefixes>> => {
+    return fetch({
+        url: workspaceApi(`/projects/${projectId}/prefixes/detailed`),
     });
 };
 

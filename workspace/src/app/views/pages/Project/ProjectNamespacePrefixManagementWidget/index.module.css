@@ -1,0 +1,17 @@
+.prefixRow {
+    word-break: break-word;
+}
+
+.highlightedPrefixRow {
+    animation: highlighted-prefix-row 1.8s ease-out;
+}
+
+@keyframes highlighted-prefix-row {
+    0% {
+        background-color: rgba(255, 224, 102, 0.8);
+    }
+
+    100% {
+        background-color: transparent;
+    }
+}

@@ -2,11 +2,12 @@ package org.silkframework.workspace.activity.linking
 
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.dataset.{DataSource, Dataset, DatasetSpec, EmptySource, LinkSink}
+import org.silkframework.execution.ExecutorRegistry
 import org.silkframework.rule.{DatasetSelection, LinkSpec, LinkageRuleExecution, TaskContext, TransformSpec}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.PluginContext
 import org.silkframework.util.DPair
-import org.silkframework.workspace.ProjectTask
+import org.silkframework.workspace.{ProjectTask}
 import org.silkframework.workspace.activity.transform.TransformTaskUtils._
 
 /**
@@ -33,7 +34,7 @@ object LinkingTaskUtils {
           transformTask.asDataSource(selection.typeUri)
         case None =>
           task.project.taskOption[GenericDatasetSpec](selection.inputId)
-            .map(_.data.source)
+            .map(ExecutorRegistry.access(_).source)
             // Only datasets and transform inputs supported, everything else will be empty.
             .getOrElse(EmptySource)
       }
@@ -43,14 +44,14 @@ object LinkingTaskUtils {
       * Retrieves all link sinks for this linking task.
       */
     def linkSink(implicit userContext: UserContext): Option[LinkSink] = {
-      task.data.output.flatMap(o => task.project.taskOption[DatasetSpec[Dataset]](o)).map(_.data.linkSink)
+      task.data.output.flatMap(o => task.project.taskOption[DatasetSpec[Dataset]](o)).map(ExecutorRegistry.access(_).linkSink)
     }
 
     /**
      * Generates the task context assuming that this task is executed standalone (i.e., not in a workflow)
      */
     def taskContext(implicit userContext: UserContext): TaskContext = {
-      implicit val pluginContext: PluginContext = PluginContext.fromProject(task.project)
+      implicit val pluginContext: PluginContext = PluginContext.fromTask(task, task.project)
       val inputTasks = task.dataSelections.map(selection => task.project.anyTask(selection.inputId)(pluginContext.user))
       TaskContext(inputTasks, pluginContext)
     }

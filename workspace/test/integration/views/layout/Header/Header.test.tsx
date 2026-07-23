@@ -21,6 +21,18 @@ import { Helmet } from "react-helmet";
 import { pluginRegistry, SUPPORTED_PLUGINS } from "../../../../../src/app/views/plugins/PluginRegistry";
 import { BrandingProps } from "../../../../../src/app/views/plugins/plugin.types";
 
+jest.mock("../../../../../src/app/views/shared/modals/CreateArtefactModal/CreateArtefactModal", () => ({
+    CreateArtefactModal: () => null,
+}));
+
+jest.mock("../../../../../src/app/views/shared/ApplicationNotifications/NotificationsMenu", () => ({
+    NotificationsMenu: () => null,
+}));
+
+jest.mock("../../../../../src/app/views/shared/TaskActivityOverview/TaskActivityOverview", () => ({
+    TaskActivityOverview: () => null,
+}));
+
 describe("Header", () => {
     let hostPath = process.env.HOST;
     let wrapper: RenderResult;

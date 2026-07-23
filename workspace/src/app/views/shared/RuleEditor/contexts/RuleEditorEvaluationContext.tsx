@@ -1,6 +1,7 @@
 import React from "react";
 import { IRuleOperatorNode, RuleValidationError } from "../RuleEditor.typings";
 import { IEvaluatedReferenceLinksScore } from "../../../taskViews/linking/linking.types";
+import type { ActivityControlWidgetAction } from "@eccenca/gui-elements";
 import { NodeContentExtension } from "@eccenca/gui-elements/src/extensions/react-flow";
 import { BasicIntentTypes as Intent } from "@eccenca/gui-elements/src/common/Intent";
 
@@ -31,6 +32,9 @@ export interface RuleEditorEvaluationContextProps {
     /** If the evaluation results are currently shown. */
     evaluationResultsShown: boolean;
 
+    /** If an evaluation result exists and can be shown or hidden. */
+    hasEvaluationResult: boolean;
+
     /** The evaluation score. */
     evaluationScore?: IEvaluatedReferenceLinksScore;
 
@@ -46,6 +50,9 @@ export interface RuleEditorEvaluationContextProps {
     /** A notification from the evaluation that will be shown in the notification menu of the rule editor. */
     notifications?: RuleEditorEvaluationNotification[];
 
+    /** Optional configuration menu shown on the evaluation activity widget. */
+    evaluationConfigMenu?: RuleEditorEvaluationConfigMenu;
+
     /** Called by the rule editor to give the function to trigger an evaluation to the evaluation component. */
     fetchTriggerEvaluationFunction: (triggerFunction: () => any) => any;
 
@@ -58,6 +65,12 @@ export interface RuleEditorEvaluationContextProps {
     /** Checks if the sub-tree at the given node type can be evaluated. */
     canBeEvaluated: (nodeType: string | undefined) => boolean;
 
+    /** Checks if all necessary data is available in order to evaluate the internals of the given reusable rule block operator. */
+    canEvaluateRuleBlock?: (nodeId: string, ruleBlockId: string) => boolean;
+
+    /** Opens the internal evaluation view for the given reusable rule block usage node. */
+    openInternalRuleBlockEvaluation?: (nodeId: string, ruleBlockId: string, ruleBlockLabel?: string) => void;
+
     ruleType?: "transform" | "linking";
 }
 
@@ -67,10 +80,17 @@ export interface RuleEditorEvaluationNotification {
     onDiscard?: () => any;
 }
 
+export interface RuleEditorEvaluationConfigMenu {
+    tooltip?: string;
+    badge?: string | number;
+    menuItems: ActivityControlWidgetAction[];
+    "data-test-id"?: string;
+}
+
 const NOP = () => {};
 
 /** Context of rule editor evaluation component. */
-export const RuleEditorEvaluationContext = React.createContext<RuleEditorEvaluationContextProps>({
+export const ruleEditorEvaluationContextDefaultValue: RuleEditorEvaluationContextProps = {
     supportsEvaluation: false,
     supportsQuickEvaluation: false,
     startEvaluation: NOP,
@@ -78,21 +98,34 @@ export const RuleEditorEvaluationContext = React.createContext<RuleEditorEvaluat
         <NodeContentExtension isExpanded={true}>{`${nodeId}`}</NodeContentExtension>
     ),
     evaluationResultsShown: false,
+    hasEvaluationResult: false,
     evaluationRunning: false,
     toggleEvaluationResults: NOP,
     ruleValidationError: undefined,
     clearRuleValidationError: NOP,
     fetchTriggerEvaluationFunction: NOP,
+    evaluationConfigMenu: undefined,
     setEvaluationRootNode: NOP,
     evaluationRootNode: () => undefined,
     canBeEvaluated: () => false,
-});
+    canEvaluateRuleBlock: () => false,
+    openInternalRuleBlockEvaluation: NOP,
+};
+
+/** Context of rule editor evaluation component. */
+export const RuleEditorEvaluationContext = React.createContext<RuleEditorEvaluationContextProps>(
+    ruleEditorEvaluationContextDefaultValue,
+);
 
 export interface RuleEditorEvaluationCallbackContextProps {
     /** Allows a sub-component, e.g. an input component of a rule operator, to disable the evaluation error modal. */
     enableErrorModal: (enabled: boolean) => void;
 }
 
-export const RuleEditorEvaluationCallbackContext = React.createContext<RuleEditorEvaluationCallbackContextProps>({
+export const ruleEditorEvaluationCallbackContextDefaultValue: RuleEditorEvaluationCallbackContextProps = {
     enableErrorModal: NOP,
-});
+};
+
+export const RuleEditorEvaluationCallbackContext = React.createContext<RuleEditorEvaluationCallbackContextProps>(
+    ruleEditorEvaluationCallbackContextDefaultValue,
+);

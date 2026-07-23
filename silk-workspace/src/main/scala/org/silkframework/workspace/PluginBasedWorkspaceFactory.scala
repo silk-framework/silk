@@ -16,7 +16,7 @@ package org.silkframework.workspace
 
 import org.silkframework.config.{Config, DefaultConfig, Prefixes}
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.runtime.plugin.{PluginContext, PluginRegistry}
+import org.silkframework.runtime.plugin.{PluginContext, PluginRegistry, TaskResolver}
 import org.silkframework.runtime.resource.EmptyResourceManager
 import org.silkframework.workspace.resources.ResourceRepository
 
@@ -64,7 +64,7 @@ object PluginBasedWorkspaceFactory {
   }
 
   private def initWorkspace(implicit userContext: UserContext): Workspace = {
-    implicit val pluginContext: PluginContext = PluginContext(Prefixes.empty, EmptyResourceManager(), user = userContext)
+    implicit val pluginContext: PluginContext = PluginContext(Prefixes.empty, EmptyResourceManager(), user = userContext, taskResolver = TaskResolver.empty)
 
     // Load the workspace provider from configuration or use the default file-based one
     val provider: WorkspaceProvider =

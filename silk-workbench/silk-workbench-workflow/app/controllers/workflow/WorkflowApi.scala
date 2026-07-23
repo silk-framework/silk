@@ -4,6 +4,7 @@ import controllers.core.UserContextActions
 import controllers.util.ProjectUtils._
 import controllers.util.SerializationUtils
 import controllers.workflow.doc.WorkflowApiDoc
+import controllers.workflowApi.variableWorkflow.VariableWorkflowRequestUtils
 import controllers.workspace.activityApi.StartActivityResponse
 import io.swagger.v3.oas.annotations.{Operation, Parameter}
 import io.swagger.v3.oas.annotations.enums.ParameterIn
@@ -16,13 +17,14 @@ import org.silkframework.config.Task
 import org.silkframework.rule.execution.TransformReport
 import org.silkframework.rule.execution.TransformReport.RuleResult
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.runtime.plugin.{ParameterValues, PluginContext}
+import org.silkframework.runtime.plugin.{ParameterValues, PluginContext, TaskResolver}
 import org.silkframework.runtime.serialization.{ReadContext, XmlSerialization}
 import org.silkframework.util.Identifier
 import org.silkframework.workbench.utils.UnsupportedMediaTypeException
 import org.silkframework.workbench.workflow.WorkflowWithPayloadExecutor
 import org.silkframework.workspace.WorkspaceFactory
-import org.silkframework.workspace.activity.workflow.{LocalWorkflowExecutorGeneratingProvenance, Workflow, WorkflowTaskReport}
+import org.silkframework.workspace.activity.workflow.{LocalWorkflowExecutorGeneratingProvenance, Workflow, WorkflowExecutorFactory, WorkflowTaskReport}
+
 import play.api.libs.json.{JsArray, JsString, _}
 import play.api.mvc.{Action, AnyContent, AnyContentAsXml, _}
 
@@ -47,7 +49,7 @@ class WorkflowApi @Inject() () extends InjectedController with UserContextAction
   @deprecated
   def postWorkflow(projectName: String): Action[AnyContent] = RequestUserContextAction { request => implicit userContext =>
     val project = fetchProject(projectName)
-    implicit val readContext: ReadContext = ReadContext(project.resources, project.config.prefixes)
+    implicit val readContext: ReadContext = ReadContext(project.resources, project.config.prefixes, taskResolver = TaskResolver.empty)
     val workflow = XmlSerialization.fromXml[Task[Workflow]](request.body.asXml.get.head)
     project.addTask[Workflow](workflow.id, workflow)
 
@@ -57,7 +59,7 @@ class WorkflowApi @Inject() () extends InjectedController with UserContextAction
   @deprecated
   def putWorkflow(projectName: String, taskName: String): Action[AnyContent] = RequestUserContextAction { request => implicit userContext =>
     val project = fetchProject(projectName)
-    implicit val readContext: ReadContext = ReadContext(project.resources, project.config.prefixes)
+    implicit val readContext: ReadContext = ReadContext(project.resources, project.config.prefixes, taskResolver = TaskResolver.empty)
     val workflow = XmlSerialization.fromXml[Task[Workflow]](request.body.asXml.get.head)
     project.updateTask[Workflow](taskName, workflow)
 
@@ -77,14 +79,16 @@ class WorkflowApi @Inject() () extends InjectedController with UserContextAction
     Ok
   }
 
-  def executeWorkflow(projectName: String, taskName: String): Action[AnyContent] = UserContextAction { implicit userContext =>
+  def executeWorkflow(projectName: String, taskName: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     val project = fetchProject(projectName)
     val workflow = project.task[Workflow](taskName)
-    val activity = workflow.activity[LocalWorkflowExecutorGeneratingProvenance].control
-    if (activity.status().isRunning) {
+    val executionVars = VariableWorkflowRequestUtils.parseExecutionVariables
+    val activity = workflow.activity[LocalWorkflowExecutorGeneratingProvenance]
+    if (activity.control.status().isRunning) {
       PreconditionFailed
     } else {
-      activity.start()
+      // Always pass the execution variables (possibly empty) so that overrides from a previous start are reset.
+      activity.start(WorkflowExecutorFactory.executionVariablesConfig(executionVars))
       Ok
     }
   }
@@ -174,7 +178,7 @@ class WorkflowApi @Inject() () extends InjectedController with UserContextAction
     implicit val (project, workflowTask) = getProjectAndTask[Workflow](projectName, workflowTaskName)
 
     val activity = workflowTask.activity[WorkflowWithPayloadExecutor]
-    val resultValue = activity.startBlockingAndGetValue(ParameterValues.fromStringMap(workflowConfiguration))
+    val resultValue = activity.startBlockingAndGetValue(workflowParameterValues)
 
     SerializationUtils.serializeCompileTime(resultValue, Some(project))
   }
@@ -248,7 +252,7 @@ class WorkflowApi @Inject() () extends InjectedController with UserContextAction
     implicit val pluginContext: PluginContext = PluginContext.fromProject(project)
 
     val activity = workflowTask.activity[WorkflowWithPayloadExecutor]
-    val id = activity.start(ParameterValues.fromStringMap(workflowConfiguration))
+    val id = activity.start(workflowParameterValues)
     val result = StartActivityResponse(activity.name, id)
 
     Created(Json.toJson(result))
@@ -299,6 +303,16 @@ class WorkflowApi @Inject() () extends InjectedController with UserContextAction
     NoContent
   }
 
+  private def workflowParameterValues(implicit request: Request[AnyContent]): ParameterValues = {
+    val configParams = ParameterValues.fromStringMap(workflowConfiguration)
+    val executionVars = VariableWorkflowRequestUtils.parseExecutionVariables
+    if(executionVars.variables.nonEmpty) {
+      ParameterValues(configParams.values ++ WorkflowExecutorFactory.executionVariablesConfig(executionVars).values)
+    } else {
+      configParams
+    }
+  }
+
   private def workflowConfiguration(implicit request: Request[AnyContent]): Map[String, String] = {
     request.body match {
       case AnyContentAsXml(xmlRoot) =>
@@ -309,4 +323,5 @@ class WorkflowApi @Inject() () extends InjectedController with UserContextAction
         throw UnsupportedMediaTypeException.supportedFormats("application/xml", "application/json")
     }
   }
+
 }

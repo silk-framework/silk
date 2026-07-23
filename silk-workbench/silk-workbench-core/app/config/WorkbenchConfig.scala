@@ -49,6 +49,7 @@ object WorkbenchConfig {
   private lazy val cfg = DefaultConfig.instance()
   private val defaultProjectPageSuffixKey = "workbench.project.defaultUrlSuffix"
   private val dataManagerBaseUrlKey = "eccencaDataManager.baseUrl"
+  private val protocolKey = "workbench.protocol"
   private lazy val localPort: Int = configuredLocalPort(cfg)
   lazy val localBaseUrl: String = buildBaseUrl("http", s"localhost:$localPort")
   lazy val applicationContext: String = WorkbenchConfig.applicationContext(cfg)
@@ -73,8 +74,8 @@ object WorkbenchConfig {
 
   /** SSL enabled for public address. */
   def useHttps(config: TypesafeConfig): Boolean = {
-    if (config.hasPath("workbench.protocol")) {
-      config.getString("workbench.protocol") == "https"
+    if (config.hasPath(protocolKey)) {
+      config.getString(protocolKey) == "https"
     } else {
       false
     }
@@ -106,20 +107,21 @@ object WorkbenchConfig {
     * 2. Otherwise, if a request is provided, the request host is used as fallback.
     * 3. Otherwise, it falls back to `localhost:<http.port>`.
     *
-    * This makes the configured host authoritative when present, while still allowing request-based
-    * URL construction if no public host is configured.
+    * Scheme resolution works as follows:
+    * 1. If `workbench.protocol` is configured, it is always used.
+    * 2. Otherwise, if the request is secure, https is used (so client-facing URLs aren't downgraded on
+    *    a TLS-terminated deployment).
+    * 3. Otherwise, it falls back to http.
     *
-    * @param config The application configuration used for protocol, host and application context.
-    * @param request An optional request that may provide the fallback host if `workbench.host` is not configured.
-    * @param includeApplicationContext If true, append the configured application context, e.g. `/dataintegration`.
-    *                                  If false, return only the scheme and host portion.
+    * @param request Provides the fallback host and scheme when the config is not set.
+    * @param includeApplicationContext If true, append the application context (e.g. `/dataintegration`).
     */
   def publicBaseUrl(
       config: TypesafeConfig = cfg,
       request: Option[RequestHeader] = None,
       includeApplicationContext: Boolean = true
   ): String = {
-    val baseUrl = buildBaseUrl(configuredProtocol(config), resolvePublicHost(config, request))
+    val baseUrl = buildBaseUrl(resolveProtocol(config, request), resolvePublicHost(config, request))
     if(includeApplicationContext) baseUrl + applicationContext(config) else baseUrl
   }
 
@@ -143,6 +145,18 @@ object WorkbenchConfig {
 
   private def configuredProtocol(config: TypesafeConfig): String = {
     if(useHttps(config)) "https" else "http"
+  }
+
+  /**
+    * The scheme for [[publicBaseUrl]]: `workbench.protocol` when set, otherwise the request scheme
+    * (https for a secure request), otherwise the http default. Symmetric with [[resolvePublicHost]].
+    */
+  private def resolveProtocol(config: TypesafeConfig, request: Option[RequestHeader]): String = {
+    if(!config.hasPath(protocolKey) && request.exists(_.secure)) {
+      "https"
+    } else {
+      configuredProtocol(config)
+    }
   }
 
   private def configuredLocalPort(config: TypesafeConfig): Int = {

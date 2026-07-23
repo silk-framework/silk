@@ -15,10 +15,18 @@ interface RuleEditorViewProps {
     zoomRange?: [number, number];
     /** In the permanent read-only mode the sidebar will be removed.*/
     readOnlyMode: boolean;
+    /** Optional overlay content rendered inside the rule editor UI context tree, e.g. modals. */
+    overlayContent?: React.ReactNode;
 }
 
 /** The main view of the rule editor, integrating toolbar, sidebar and main rule canvas. */
-export const RuleEditorView = ({ showRuleOnly, hideMinimap, zoomRange, readOnlyMode }: RuleEditorViewProps) => {
+export const RuleEditorView = ({
+    showRuleOnly,
+    hideMinimap,
+    zoomRange,
+    readOnlyMode,
+    overlayContent,
+}: RuleEditorViewProps) => {
     const [modalShown, setModalShown] = React.useState(false);
     const [advancedParameterModeEnabled, setAdvancedParameterMode] = React.useState(false);
     const [currentRuleNodeInfo, setCurrentRuleNodeInfo] = React.useState<
@@ -46,30 +54,38 @@ export const RuleEditorView = ({ showRuleOnly, hideMinimap, zoomRange, readOnlyM
                 currentRuleNodeInfo,
                 setCurrentRuleNodeInfo,
                 showRuleOnly,
+                readOnly: readOnlyMode,
                 hideMinimap,
                 zoomRange,
                 onSelection,
                 selectionState,
             }}
         >
-            <Grid verticalStretchable={true} useAbsoluteSpace={true} style={{ backgroundColor: "var(--background)" }}>
-                {!showRuleOnly ? (
-                    <GridRow style={{ backgroundColor: "var(--background)" }}>
-                        <GridColumn>
-                            <RuleEditorToolbar />
-                            <Divider addSpacing="medium" />
-                        </GridColumn>
-                    </GridRow>
-                ) : null}
-                <GridRow verticalStretched={true} style={{ backgroundColor: "var(--background)" }}>
-                    {!showRuleOnly && !readOnlyMode ? (
-                        <GridColumn small>
-                            <RuleEditorOperatorSidebar />
-                        </GridColumn>
+            <>
+                <Grid
+                    verticalStretchable={true}
+                    useAbsoluteSpace={true}
+                    style={{ backgroundColor: "var(--background)" }}
+                >
+                    {!showRuleOnly ? (
+                        <GridRow style={{ backgroundColor: "var(--background)" }}>
+                            <GridColumn>
+                                <RuleEditorToolbar />
+                                <Divider addSpacing="medium" />
+                            </GridColumn>
+                        </GridRow>
                     ) : null}
-                    <RuleEditorCanvas />
-                </GridRow>
-            </Grid>
+                    <GridRow verticalStretched={true} style={{ backgroundColor: "var(--background)" }}>
+                        {!showRuleOnly && !readOnlyMode ? (
+                            <GridColumn small>
+                                <RuleEditorOperatorSidebar />
+                            </GridColumn>
+                        ) : null}
+                        <RuleEditorCanvas />
+                    </GridRow>
+                </Grid>
+                {overlayContent}
+            </>
         </RuleEditorUiContext.Provider>
     );
 };

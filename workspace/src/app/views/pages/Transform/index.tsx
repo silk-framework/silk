@@ -13,6 +13,7 @@ import { ArtefactManagementOptions } from "../../shared/ActionsMenu/ArtefactMana
 import NotFound from "../NotFound";
 import { ProjectTaskParams } from "../../shared/typings";
 import DeprecatedPluginsBanner from "../Project/DeprecatedPlugins/DeprecatedPluginsBanner";
+import VariablesWidget from "../../shared/VariablesWidget/VariablesWidget";
 import { ProjectForbiddenNotification } from "../../shared/ProjectForbiddenNotification";
 import MappingCreatorBanner from "./MappingCreatorBanner";
 import { GridBoard, GridBoardItem, GridTileCard } from "../../shared/GridBoard";
@@ -93,6 +94,13 @@ export default function TransformPage() {
             title: t("widget.TaskActivityOverview.title", "Activities"),
             defaultLayout: { x: 8, y: 10, w: 4, h: 4 },
             element: <TaskActivityOverview projectId={projectId} taskId={taskId} />,
+        },
+        {
+            id: "variables",
+            icon: "data-string",
+            title: t("widget.VariableWidget.title.execution", "Execution variables"),
+            defaultLayout: { x: 8, y: 14, w: 4, h: 5 },
+            element: <VariablesWidget projectId={projectId} taskId={taskId} />,
         },
     ];
 

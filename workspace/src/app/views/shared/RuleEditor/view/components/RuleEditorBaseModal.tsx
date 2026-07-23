@@ -2,7 +2,7 @@ import { SimpleDialogProps } from "@eccenca/gui-elements/src/components/molecule
 import { SimpleDialog } from "@eccenca/gui-elements";
 import React, { useEffect } from "react";
 import { RuleEditorUiContext } from "../../contexts/RuleEditorUiContext";
-import { ReactFlowHotkeyContext } from "@eccenca/gui-elements/src/cmem/react-flow/extensions/ReactFlowHotkeyContext";
+import { ReactFlowHotkeyContext } from "@eccenca/gui-elements";
 
 interface IProps extends SimpleDialogProps {}
 

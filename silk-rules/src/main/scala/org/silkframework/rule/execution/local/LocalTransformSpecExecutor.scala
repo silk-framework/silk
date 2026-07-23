@@ -7,10 +7,9 @@ import org.silkframework.execution.{ExecutionReport, Executor, ExecutorOutput, T
 import org.silkframework.rule.TransformSpec.RuleSchemata
 import org.silkframework.rule._
 import org.silkframework.rule.execution.{TransformReport, TransformReportBuilder, TransformReportExecutionContext}
-import org.silkframework.rule.TaskContext
 import org.silkframework.runtime.activity.ActivityContext
 import org.silkframework.runtime.iterator.RewindableEntityIterator
-import org.silkframework.runtime.plugin.PluginContext
+import org.silkframework.runtime.plugin.{PluginContext, TaskResolver}
 import org.silkframework.util.Uri
 
 import scala.collection.mutable

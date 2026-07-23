@@ -91,7 +91,7 @@ export default function WorkflowPage() {
         {
             id: "variables",
             icon: "data-string",
-            title: t("widget.VariableWidget.title", "Project Variables"),
+            title: t("widget.VariableWidget.title.execution", "Execution variables"),
             defaultLayout: { x: 8, y: 5, w: 4, h: 5 },
             element: <VariablesWidget projectId={projectId} taskId={taskId} />,
         },

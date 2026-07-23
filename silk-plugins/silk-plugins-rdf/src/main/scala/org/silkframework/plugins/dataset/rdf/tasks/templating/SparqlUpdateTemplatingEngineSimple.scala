@@ -40,7 +40,7 @@ object SparqlSimpleTemplateEngine {
 class SparqlSimpleCompiledTemplate(val sparqlUpdateTemplate: String) extends CompiledTemplate {
 
   override lazy val variables: Option[Seq[TemplateVariableName]] = Some(
-    properties.map(p => new TemplateVariableName(p, Seq.empty))
+    properties.map(p => new TemplateVariableName(p))
   )
 
   override def evaluate(values: Map[String, AnyRef], writer: Writer): Unit = {
@@ -60,7 +60,7 @@ class SparqlSimpleCompiledTemplate(val sparqlUpdateTemplate: String) extends Com
     (sparqlUpdateTemplateParts map {
       case SparqlUpdateTemplatePlainLiteralPlaceholder(prop) =>
         val value = assignmentValue(prop)
-        JenaSerializationUtil.serializeSingleNode(NodeFactory.createLiteral(value))
+        JenaSerializationUtil.serializeSingleNode(NodeFactory.createLiteralString(value))
       case SparqlUpdateTemplateURIPlaceholder(prop) =>
         val value = assignmentValue(prop)
         validateUri(value)

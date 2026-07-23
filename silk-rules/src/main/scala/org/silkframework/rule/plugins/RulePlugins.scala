@@ -18,6 +18,7 @@ import org.silkframework.rule.LinkSpec.LinkSpecificationFormat
 import org.silkframework.rule.LinkageRule.LinkageRuleFormat
 import org.silkframework.rule.MappingRules.MappingRulesFormat
 import org.silkframework.rule.RootMappingRule.RootMappingRuleFormat
+import org.silkframework.rule.RuleBlockSpec.{RuleBlockSpecXmlFormat, RuleBlockTaskXmlFormat}
 import org.silkframework.rule.TransformRule.TransformRuleFormat
 import org.silkframework.rule.TransformSpec.{TargetVocabularyParameterType, TransformSpecFormat, TransformTaskXmlFormat}
 import org.silkframework.rule.plugins.aggegrator._
@@ -43,7 +44,8 @@ import org.silkframework.rule.plugins.transformer.substring._
 import org.silkframework.rule.plugins.transformer.tokenization.{CamelCaseTokenizer, Tokenizer}
 import org.silkframework.rule.plugins.transformer.validation._
 import org.silkframework.rule.plugins.transformer.value._
-import org.silkframework.rule.{DatasetSelection, LinkSpec, TransformSpec}
+import org.silkframework.rule.plugins.transformer.variable.SetExecutionVariableTransformer
+import org.silkframework.rule.{DatasetSelection, LinkSpec, RuleBlockSpec, TransformSpec}
 import org.silkframework.runtime.plugin.{AnyPlugin, PluginModule}
 import org.silkframework.workspace.annotation.UiAnnotations.UiAnnotationsXmlFormat
 
@@ -54,7 +56,7 @@ import scala.language.existentials
   */
 class RulePlugins extends PluginModule {
 
-  override def pluginClasses: Seq[Class[_ <: AnyPlugin]] = classOf[LinkSpec] :: classOf[TransformSpec] ::
+  override def pluginClasses: Seq[Class[_ <: AnyPlugin]] = classOf[LinkSpec] :: classOf[TransformSpec] :: classOf[RuleBlockSpec] ::
       transformers ++ measures ++ aggregators ++ serializers ++ pluginParameterTypes
 
   private def transformers: List[Class[_ <: AnyPlugin]] =
@@ -117,6 +119,8 @@ class RulePlugins extends PluginModule {
         classOf[FileHashTransformer] ::
         classOf[InputHashTransformer] ::
         classOf[PerValueHashTransformer] ::
+        // Variables
+        classOf[SetExecutionVariableTransformer] ::
         // Numeric
         classOf[NumReduceTransformer] ::
         classOf[NumOperationTransformer] ::
@@ -204,6 +208,8 @@ class RulePlugins extends PluginModule {
     LinkageRuleFormat.getClass ::
     LinkSpecificationFormat.getClass ::
     UiAnnotationsXmlFormat.getClass ::
+    RuleBlockSpecXmlFormat.getClass ::
+    RuleBlockTaskXmlFormat.getClass ::
     Nil
 
   private def pluginParameterTypes: List[Class[_ <: AnyPlugin]] =

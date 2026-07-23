@@ -8,7 +8,7 @@ import org.silkframework.dataset.operations.ClearDatasetOperator.ClearDatasetTab
 import org.silkframework.dataset.operations.ClearDatasetOperatorExecutionReportUpdater
 import org.silkframework.dataset.bulk.{BulkResourceBasedDataset, ZipWritableResource}
 import org.silkframework.dataset.rdf._
-import org.silkframework.dataset.sql.SqlDataset
+import org.silkframework.dataset.sql.SqlDatasetAccess
 import org.silkframework.entity._
 import org.silkframework.execution._
 import org.silkframework.execution.typed._
@@ -100,20 +100,20 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
   private def handleQuadEntitySchema(dataset: Task[DatasetSpec[Dataset]], execution: LocalExecution)
                                     (implicit pluginContext: PluginContext, context: ActivityContext[ExecutionReport]): LocalEntities = {
     dataset.data match {
-      case rdfDataset: RdfDataset =>
-        readTriples(dataset, rdfDataset, execution)
-      case DatasetSpec(rdfDataset: RdfDataset, _, _) =>
-        readTriples(dataset, rdfDataset, execution)
+      case _: RdfDataset =>
+        readTriples(dataset, execution)
+      case DatasetSpec(_: RdfDataset, _, _) =>
+        readTriples(dataset, execution)
       case _ =>
         throw TaskException("Dataset is not a RDF dataset and thus cannot output triples!")
     }
   }
 
-  private def readTriples(dataset: Task[GenericDatasetSpec], rdfDataset: RdfDataset, execution: LocalExecution)
+  private def readTriples(dataset: Task[GenericDatasetSpec], execution: LocalExecution)
                          (implicit pluginContext: PluginContext, context: ActivityContext[ExecutionReport]): LocalEntities = {
     implicit val executionReport: ExecutionReportUpdater = ReadTriplesReportUpdater(dataset, context)
     implicit val prefixes: Prefixes = pluginContext.prefixes
-    val endpoint = RdfDatasetAccess.forExecutionOption(dataset, execution).map(_.sparqlEndpoint).getOrElse(rdfDataset.sparqlEndpoint)
+    val endpoint = RdfDatasetAccess.forExecution(dataset, execution).sparqlEndpoint
     val sparqlResult = endpoint.select("SELECT ?s ?p ?o WHERE {?s ?p ?o}")(pluginContext.user)
     val tripleEntities = sparqlResult.bindings map { resultMap =>
       val s = resultMap("s").asInstanceOf[ConcreteNode]
@@ -167,7 +167,7 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
       case SparqlUpdateEntitySchema(queries) =>
         executeSparqlUpdateQueries(dataset, queries, execution)
       case _: ClearDatasetTable =>
-        executeClearDataset(dataset)
+        executeClearDataset(dataset, execution)
       case SqlUpdateEntitySchema(queries) =>
         executeSqlStatement(dataset, queries, execution)
       case et: LocalEntities =>
@@ -179,16 +179,16 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
                                   sqlUpdateQueries: TypedEntities[String, TaskSpec],
                                   execution: LocalExecution)
                                  (implicit userContext: UserContext, context: ActivityContext[ExecutionReport], prefixes: Prefixes): Unit = {
-    dataset.plugin match {
-      case sqlDataset: SqlDataset =>
+    SqlDatasetAccess.forExecutionOption(dataset, execution) match {
+      case Some(sqlAccess) =>
         val executionReport = UpdateSqlUpdater(dataset, context)
-        val endpoint = sqlDataset.sqlEndpoint
+        val endpoint = sqlAccess.sqlEndpoint
         for (entity <- sqlUpdateQueries.typedEntities) {
           endpoint.updateStatement(entity)
           executionReport.increaseEntityCounter()
         }
         executionReport.executionDone()
-      case _ =>
+      case None =>
         writeGenericLocalEntities(dataset, sqlUpdateQueries, execution)
     }
   }
@@ -270,13 +270,13 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
     }
   }
 
-  private def executeClearDataset(dataset: Task[DatasetSpec[DatasetType]])
+  private def executeClearDataset(dataset: Task[DatasetSpec[DatasetType]], execution: LocalExecution)
                                  (implicit userContext: UserContext, context: ActivityContext[ExecutionReport]): Unit = {
     if(dataset.readOnly) {
       throw new RuntimeException(s"Cannot clear dataset '${dataset.fullLabel}', because it is configured as read-only.")
     }
     val executionReport = ClearDatasetOperatorExecutionReportUpdater(dataset, context)
-    dataset.entitySink.clear(force = true)
+    access(dataset, execution).entitySink.clear(force = true)
     executionReport.increaseEntityCounter()
     executionReport.executionDone()
   }
@@ -461,6 +461,7 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
         // Write the statements as generic entities
         implicit val executionReportUpdater: ExecutionReportUpdater = reportUpdater
         writeEntities(sink, quads)
+        reportUpdater.executionDone()
     }
   }
 
@@ -483,11 +484,13 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
 
   private case class WriteEntitiesReportUpdater(task: Task[TaskSpec], context: ActivityContext[ExecutionReport]) extends ExecutionReportUpdater {
     override def operationLabel: Option[String] = Some("write")
+    override def operationType: OperationType = OperationType.Write
     override def entityProcessVerb: String = "written"
   }
 
   private case class ReadEntitiesReportUpdater(task: Task[TaskSpec], context: ActivityContext[ExecutionReport]) extends ExecutionReportUpdater {
     override def operationLabel: Option[String] = Some("read")
+    override def operationType: OperationType = OperationType.Read
     override def entityProcessVerb: String = "read"
   }
 
@@ -495,6 +498,7 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
     override def entityLabelSingle: String = "File"
     override def entityLabelPlural: String = "Files"
     override def operationLabel: Option[String] = Some("read")
+    override def operationType: OperationType = OperationType.Read
     override def entityProcessVerb: String = "read"
   }
 
@@ -502,6 +506,7 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
     override def entityLabelSingle: String = "Triple"
     override def entityLabelPlural: String = "Triples"
     override def operationLabel: Option[String] = Some("read")
+    override def operationType: OperationType = OperationType.Read
     override def entityProcessVerb: String = "read"
   }
 
@@ -509,6 +514,7 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
     override def entityLabelSingle: String = "Link"
     override def entityLabelPlural: String = "Links"
     override def operationLabel: Option[String] = Some("write")
+    override def operationType: OperationType = OperationType.Write
     override def entityProcessVerb: String = "written"
   }
 
@@ -516,6 +522,7 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
     override def entityLabelSingle: String = "File"
     override def entityLabelPlural: String = "Files"
     override def operationLabel: Option[String] = Some("write")
+    override def operationType: OperationType = OperationType.Write
     override def entityProcessVerb: String = "written"
   }
 
@@ -530,6 +537,7 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
     override def entityLabelSingle: String = "File"
     override def entityLabelPlural: String = "Files"
     override def operationLabel: Option[String] = Some("upload")
+    override def operationType: OperationType = OperationType.Write
     override def entityProcessVerb: String = "uploaded"
   }
 
@@ -537,9 +545,14 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
     override def entityLabelSingle: String = "Triple"
     override def entityLabelPlural: String = "Triples"
     override def operationLabel: Option[String] = Some("write")
+    override def operationType: OperationType = OperationType.Write
     override def entityProcessVerb: String = "written"
   }
 }
 
-// To be used in cases when no specific LocalDatasetExecutor has been implemented yet for a particular dataset type.
-class GenericLocalDatasetExecutor extends LocalDatasetExecutor[Dataset]
+// Catch-all for dataset types that have no specific executor. It cannot provide data access: every dataset
+// that is actually read or written needs its own executor overriding `access`.
+class GenericLocalDatasetExecutor extends LocalDatasetExecutor[Dataset] {
+  override def access(task: Task[DatasetSpec[Dataset]], execution: LocalExecution): DatasetAccess =
+    throw new ValidationException(s"Dataset '${task.id}' of type ${task.data.plugin.pluginSpec.label} has no executor providing data access.")
+}

@@ -7,7 +7,7 @@ import com.hubspot.jinjava.tree.{ExpressionNode, Node, TagNode}
 import com.hubspot.jinjava.util.HelperStringTokenizer
 import jinjava.de.odysseus.el.tree.TreeBuilderException
 import jinjava.de.odysseus.el.tree.impl.ast.{AstDot, AstEval}
-import org.silkframework.runtime.templating.TemplateVariableName
+import org.silkframework.runtime.templating.{TemplateVariableName, VariableScope}
 
 import scala.collection.immutable.ArraySeq
 import scala.jdk.CollectionConverters.{IterableHasAsScala, ListHasAsScala}
@@ -51,7 +51,7 @@ class JinjaVariableCollector  {
           val loopVars = new HelperStringTokenizer(parts(0)).splitComma(true).allTokens
           val loopedVars = collectFromExpression(parts(1))
           val childVars = collectFromChildren(tagNode, scope.withBoundNames(loopVars.asScala.toSeq))
-          val filtedChildVars = childVars.unboundVars.filterNot(v => v.scope == Seq("loop") || v.name == "loop" )
+          val filtedChildVars = childVars.unboundVars.filterNot(v => v.scope == VariableScope("loop") || v.name == "loop" )
           loopedVars.withUnbound(filtedChildVars)
         } else {
           collectFromChildren(tagNode, scope)
@@ -96,29 +96,29 @@ class JinjaVariableCollector  {
       // Manually treat simple expressions of the form `project.variable` or `variable.method(...)`
       expression match {
         case JinjaVariableCollector.scopedName(scopePart, name) =>
-          val scope = scopePart.dropRight(1).split('.').toSeq
+          val scope = VariableScope.parse(scopePart.dropRight(1))
           Scope(
             unboundVars = Seq(new TemplateVariableName(name, scope))
           )
         case JinjaVariableCollector.methodCallOnVar(varName) =>
           Scope(
-            unboundVars = Seq(new TemplateVariableName(varName, Seq.empty))
+            unboundVars = Seq(new TemplateVariableName(varName))
           )
         case _ =>
           // Try to find scoped variable references (e.g. `scope.name`) within complex expressions
           val scopedVars = JinjaVariableCollector.scopedName.findAllMatchIn(expression).map { m =>
             val scopePart = m.group(1).dropRight(1)
             val name = m.group(2)
-            new TemplateVariableName(name, scopePart.split('.').toSeq)
+            new TemplateVariableName(name, VariableScope.parse(scopePart))
           }.toSeq
           // Collect plain (unscoped) identifiers, excluding roots of scoped vars (e.g. `loop` from `loop.index`)
-          val scopedRoots = scopedVars.flatMap(_.scope.headOption).toSet
+          val scopedRoots = scopedVars.flatMap(_.scope.path.headOption).toSet
           val plainVars = tree.getIdentifierNodes.asScala
             .map(_.getName)
             .filterNot(ignoreIdentifierNode)
             .filterNot(scopedRoots)
             .toSeq
-            .map(new TemplateVariableName(_, Seq.empty))
+            .map(new TemplateVariableName(_))
           Scope(unboundVars = (scopedVars ++ plainVars).distinct)
       }
     } catch {
@@ -126,7 +126,7 @@ class JinjaVariableCollector  {
         // Fallback: try to extract the leading variable from method call expressions like `var.method(...)`
         expression match {
           case JinjaVariableCollector.methodCallOnVar(varName) =>
-            Scope(unboundVars = Seq(new TemplateVariableName(varName, Seq.empty)))
+            Scope(unboundVars = Seq(new TemplateVariableName(varName)))
           case _ =>
             Scope.empty
         }
@@ -145,7 +145,7 @@ class JinjaVariableCollector  {
   case class Scope(unboundVars: Seq[TemplateVariableName], boundVars: Seq[TemplateVariableName] = Seq.empty) {
 
     def withBoundNames(varNames: Seq[String]): Scope = {
-      withBound(varNames.map(new TemplateVariableName(_, Seq.empty)))
+      withBound(varNames.map(new TemplateVariableName(_)))
     }
 
     def withBound(varNames: Seq[TemplateVariableName]): Scope = {
@@ -163,7 +163,7 @@ class JinjaVariableCollector  {
       val boundVarsSet = boundVars.toSet
       val boundSimpleNames = boundVars.filter(_.scope.isEmpty).map(_.name).toSet
       def isBound(v: TemplateVariableName): Boolean = {
-        boundVarsSet.contains(v) || v.scope.headOption.exists(boundSimpleNames.contains)
+        boundVarsSet.contains(v) || v.scope.path.headOption.exists(boundSimpleNames.contains)
       }
       Scope(
         unboundVars = (unboundVars ++ scope.unboundVars).distinct.filterNot(isBound),

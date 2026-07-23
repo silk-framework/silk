@@ -128,9 +128,7 @@ const Project = () => {
             title: t("widget.WarningWidget.title", "Error log"),
             icon: "artefact-errorlog",
             defaultLayout: { x: 8, y: 0, w: 4, h: 5 },
-            element: (
-                <ProjectTaskLoadingErrors refreshProjectPage={() => handleSearch(currentSearchQuery.current)} />
-            ),
+            element: <ProjectTaskLoadingErrors refreshProjectPage={() => handleSearch(currentSearchQuery.current)} />,
         },
         {
             id: "configuration",
@@ -141,7 +139,7 @@ const Project = () => {
         },
         {
             id: "variables",
-            title: t("widget.VariableWidget.title", "Project Variables"),
+            title: t("widget.VariableWidget.title.project", "Project variables"),
             icon: "data-string",
             defaultLayout: { x: 8, y: 10, w: 4, h: 5 },
             element: <VariablesWidget projectId={projectId} />,

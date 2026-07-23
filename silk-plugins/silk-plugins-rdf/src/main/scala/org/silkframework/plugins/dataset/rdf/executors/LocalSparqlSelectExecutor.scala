@@ -1,13 +1,13 @@
 package org.silkframework.plugins.dataset.rdf.executors
 
 import org.silkframework.config.{Prefixes, Task, TaskSpec}
-import org.silkframework.dataset.{DataSource, DatasetSpec}
+import org.silkframework.dataset.DataSource
 import org.silkframework.dataset.rdf.{RdfDataset, RdfDatasetAccess, RdfNode, SparqlEndpoint, SparqlResults}
 import org.silkframework.entity.paths.{TypedPath, UntypedPath}
 import org.silkframework.entity.{Entity, EntitySchema, ValueType}
 import org.silkframework.execution.local.{GenericEntityTable, LocalEntities, LocalExecution, LocalExecutor}
 import org.silkframework.execution.typed.SparqlEndpointEntitySchema
-import org.silkframework.execution.{ExecutionReport, ExecutionReportUpdater, ExecutorOutput, ReportingIterator, TaskException}
+import org.silkframework.execution.{ExecutionReport, ExecutionReportUpdater, ExecutorOutput, ExecutorRegistry, ReportingIterator, TaskException}
 import org.silkframework.plugins.dataset.rdf.DefaultRdfDataset
 import org.silkframework.plugins.dataset.rdf.tasks.SparqlSelectCustomTask
 import org.silkframework.plugins.dataset.rdf.tasks.templating.TaskProperties
@@ -41,12 +41,12 @@ case class LocalSparqlSelectExecutor() extends LocalExecutor[SparqlSelectCustomT
         val entities = new LocalSparqlSelectIterator(taskData, endpoint, Some(sparql.task), output.task, executionReportUpdater = Some(executionReportUpdater))
         Some(ReportingIterator.addReporter(GenericEntityTable(entities, entitySchema = entities.effectiveSchema, task)))
       case Seq() if taskData.useDefaultDataset =>
-        val rdfDataset = DefaultRdfDataset.resolve()
-        val entities = executeOnDefaultDataset(taskData, rdfDataset, output.task, executionReportUpdater = Some(executionReportUpdater))
+        val endpoint = rdfDatasetEndpoint(DefaultRdfDataset.resolve())
+        val entities = executeOnDefaultDataset(taskData, endpoint, output.task, executionReportUpdater = Some(executionReportUpdater))
         Some(ReportingIterator.addReporter(GenericEntityTable(entities, entitySchema = entities.effectiveSchema, task)))
       case Seq(input) if taskData.useDefaultDataset =>
-        val rdfDataset = DefaultRdfDataset.resolve()
-        val (entities, schema) = executeOnDefaultDatasetPerEntity(taskData, rdfDataset, input, output.task, executionReportUpdater)
+        val endpoint = rdfDatasetEndpoint(DefaultRdfDataset.resolve())
+        val (entities, schema) = executeOnDefaultDatasetPerEntity(taskData, endpoint, input, output.task, executionReportUpdater)
         Some(ReportingIterator.addReporter(GenericEntityTable(entities, entitySchema = schema, task)))
       case _ =>
         throw TaskException("SPARQL select executor did not receive a SPARQL endpoint as requested!")
@@ -54,21 +54,30 @@ case class LocalSparqlSelectExecutor() extends LocalExecutor[SparqlSelectCustomT
   }
 
   def executeOnSparqlEndpoint(sparqlSelectTask: SparqlSelectCustomTask,
-                              inputTask: Task[DatasetSpec[RdfDataset]],
+                              sparqlEndpoint: SparqlEndpoint,
+                              inputTask: Option[Task[_ <: TaskSpec]],
                               outputTask: Option[Task[_ <: TaskSpec]],
                               limit: Int = Integer.MAX_VALUE,
                               executionReportUpdater: Option[SparqlSelectExecutionReportUpdater])
                              (implicit pluginContext: PluginContext): LocalSparqlSelectIterator = {
-    new LocalSparqlSelectIterator(sparqlSelectTask, inputTask.data.plugin.sparqlEndpoint, Some(inputTask), outputTask, limit, executionReportUpdater)
+    new LocalSparqlSelectIterator(sparqlSelectTask, sparqlEndpoint, inputTask, outputTask, limit, executionReportUpdater)
   }
 
   private def executeOnDefaultDataset(sparqlSelectTask: SparqlSelectCustomTask,
-                                      rdfDataset: RdfDataset,
+                                      sparqlEndpoint: SparqlEndpoint,
                                       outputTask: Option[Task[_ <: TaskSpec]],
                                       limit: Int = Integer.MAX_VALUE,
                                       executionReportUpdater: Option[SparqlSelectExecutionReportUpdater])
                                      (implicit pluginContext: PluginContext): LocalSparqlSelectIterator = {
-    new LocalSparqlSelectIterator(sparqlSelectTask, rdfDataset.sparqlEndpoint, None, outputTask, limit, executionReportUpdater)
+    new LocalSparqlSelectIterator(sparqlSelectTask, sparqlEndpoint, None, outputTask, limit, executionReportUpdater)
+  }
+
+  /** Resolves the SPARQL endpoint of a (non-task) RDF dataset plugin via its registered executor's access. */
+  private def rdfDatasetEndpoint(rdfDataset: RdfDataset): SparqlEndpoint = {
+    ExecutorRegistry.access(rdfDataset) match {
+      case rdf: RdfDatasetAccess => rdf.sparqlEndpoint
+      case _ => throw TaskException(s"Configured RDF dataset '${rdfDataset.getClass.getSimpleName}' does not provide a SPARQL endpoint.")
+    }
   }
 
   /**
@@ -78,14 +87,13 @@ case class LocalSparqlSelectExecutor() extends LocalExecutor[SparqlSelectCustomT
    * The output schema is the statically inferred one when known, else derived from the first query's result variables.
    */
   def executeOnDefaultDatasetPerEntity(sparqlSelectTask: SparqlSelectCustomTask,
-                                       rdfDataset: RdfDataset,
+                                       sparqlEndpoint: SparqlEndpoint,
                                        input: LocalEntities,
                                        outputTask: Option[Task[_ <: TaskSpec]],
                                        executionReportUpdater: SparqlSelectExecutionReportUpdater,
                                        limit: Int = Integer.MAX_VALUE)
                                       (implicit pluginContext: PluginContext): (CloseableIterator[Entity], EntitySchema) = {
     implicit val user: UserContext = pluginContext.user
-    val sparqlEndpoint = rdfDataset.sparqlEndpoint
     val selectLimit = math.min(sparqlSelectTask.intLimit.getOrElse(Integer.MAX_VALUE), limit)
     val taskProperties = TaskProperties.create(Some(input.task), outputTask, pluginContext)
     val templateVariables = pluginContext.templateVariables.all.variables

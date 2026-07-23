@@ -122,5 +122,5 @@ object LocalExecution {
   deprecation = "This dataset is deprecated and will be removed in a future version. Instead use either the \"In-workflow dataset\" or the \"In-memory dataset\"."
 )
 case class LocalInternalDataset() extends InternalDatasetTrait {
-  override protected def internalDatasetPluginImpl: Dataset = InternalDataset.createInternalDataset()
+  override def internalDatasetPluginImpl: Dataset = InternalDataset.createInternalDataset()
 }
