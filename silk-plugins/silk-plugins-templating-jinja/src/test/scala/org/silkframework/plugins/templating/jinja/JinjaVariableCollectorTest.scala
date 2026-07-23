@@ -130,6 +130,21 @@ class JinjaVariableCollectorTest extends AnyFlatSpec with Matchers {
         |""".stripMargin) shouldBe Seq("row")
   }
 
+  it should "collect the accessed variable for method calls inside complex expressions" in {
+    collect("{{ name.trim() ~ 'x' }}") shouldBe Seq("name")
+    collect("{{ project.myVar.trim() ~ 'x' }}") shouldBe Seq("project.myVar")
+    collect("{{ name.trim().upper() }}") shouldBe Seq("name")
+  }
+
+  it should "collect scoped variables inside list and dict literals" in {
+    collect("{% set x = [project.myVar] %}") shouldBe Seq("project.myVar")
+    collect("{% set d = {\"key\": project.myVar} %}") shouldBe Seq("project.myVar")
+  }
+
+  it should "not collect variable-like content of string literals" in {
+    collect("{{ 'literal.with(' ~ name }}") shouldBe Seq("name")
+  }
+
   it should "don't fail on empty expressions" in {
     collect("{{ }}".stripMargin) shouldBe Seq.empty
   }

@@ -1,16 +1,20 @@
 package org.silkframework.plugins.templating.jinja
 
 import com.hubspot.jinjava.el.ExtendedSyntaxBuilder
+import com.hubspot.jinjava.el.ext.{AstDict, AstList, AstNamedParameter}
 import com.hubspot.jinjava.lib.tag._
 import com.hubspot.jinjava.tree.parse.ExpressionToken
 import com.hubspot.jinjava.tree.{ExpressionNode, Node, TagNode}
 import com.hubspot.jinjava.util.HelperStringTokenizer
-import jinjava.de.odysseus.el.tree.TreeBuilderException
-import jinjava.de.odysseus.el.tree.impl.ast.{AstDot, AstEval}
+import jinjava.de.odysseus.el.tree.impl.Builder
+import jinjava.de.odysseus.el.tree.impl.ast.{AstDot, AstIdentifier, AstMethod, AstNode, AstParameters}
+import jinjava.de.odysseus.el.tree.{IdentifierNode, TreeBuilderException, Node => ElNode}
 import org.silkframework.runtime.templating.{TemplateVariableName, VariableScope}
 
+import java.lang.reflect.Field
 import scala.collection.immutable.ArraySeq
-import scala.jdk.CollectionConverters.{IterableHasAsScala, ListHasAsScala}
+import scala.collection.mutable
+import scala.jdk.CollectionConverters.{IterableHasAsScala, ListHasAsScala, MapHasAsScala, SetHasAsScala}
 
 /**
   * Collects all referenced variables in a Jinja template.
@@ -20,7 +24,8 @@ class JinjaVariableCollector  {
   private val EXPRESSION_START_TOKEN = "#{"
   private val EXPRESSION_END_TOKEN = "}"
 
-  private val builder = new ExtendedSyntaxBuilder
+  // Uses the same features as the Jinjava runtime parser, so every expression that renders can also be analyzed
+  private val builder = new ExtendedSyntaxBuilder(Builder.Feature.METHOD_INVOCATIONS, Builder.Feature.VARARGS)
 
   /**
     * Collects all variable names from a Jinja template node.
@@ -89,56 +94,110 @@ class JinjaVariableCollector  {
   }
 
   /**
-    * Parses an expression from a Jinja template and collects all variable names.
+    * Parses an expression from a Jinja template and collects all variable references from its AST.
     * Expressions are used in tags, such as in if and for expressions.
     */
   private def collectFromExpression(expression: String): Scope = {
     try {
       val tree = builder.build(EXPRESSION_START_TOKEN + expression + EXPRESSION_END_TOKEN)
-      // Manually treat simple expressions of the form `project.variable` or `variable.method(...)`
-      expression match {
-        case JinjaVariableCollector.scopedName(scopePart, name) =>
-          val scope = VariableScope.parse(scopePart.dropRight(1))
-          Scope(
-            unboundVars = Seq(new TemplateVariableName(name, scope))
-          )
-        case JinjaVariableCollector.methodCallOnVar(varName) =>
-          Scope(
-            unboundVars = Seq(new TemplateVariableName(varName))
-          )
-        case _ =>
-          // Try to find scoped variable references (e.g. `scope.name`) within complex expressions
-          val scopedVars = JinjaVariableCollector.scopedName.findAllMatchIn(expression).map { m =>
-            val scopePart = m.group(1).dropRight(1)
-            val name = m.group(2)
-            new TemplateVariableName(name, VariableScope.parse(scopePart))
-          }.toSeq
-          // Collect plain (unscoped) identifiers, excluding roots of scoped vars (e.g. `loop` from `loop.index`)
-          val scopedRoots = scopedVars.flatMap(_.scope.path.headOption).toSet
-          val plainVars = tree.getIdentifierNodes.asScala
-            .map(_.getName)
-            .filterNot(ignoreIdentifierNode)
-            .filterNot(scopedRoots)
-            .toSeq
-            .map(new TemplateVariableName(_))
-          Scope(unboundVars = (scopedVars ++ plainVars).distinct)
-      }
+      val walker = new ExpressionWalker()
+      walker.walk(tree.getRoot)
+      // Some nodes do not expose all of their children (e.g. range brackets):
+      // identifiers that the walk did not reach are collected as plain variables.
+      val hiddenVariables =
+        for(identifier <- tree.getIdentifierNodes.asScala.toSeq if
+            !walker.visitedIdentifiers.contains(identifier) && !ignoreIdentifier(identifier.getName)) yield {
+          new TemplateVariableName(identifier.getName)
+        }
+      Scope(unboundVars = (walker.variables ++ hiddenVariables).distinct.toSeq)
     } catch {
       case _: TreeBuilderException =>
-        // Fallback: try to extract the leading variable from method call expressions like `var.method(...)`
-        expression match {
-          case JinjaVariableCollector.methodCallOnVar(varName) =>
-            Scope(unboundVars = Seq(new TemplateVariableName(varName)))
-          case _ =>
-            Scope.empty
-        }
+        // Not a valid expression, so it cannot reference any variables
+        Scope.empty
     }
   }
 
-  private def ignoreIdentifierNode(name: String): Boolean = {
+  private def ignoreIdentifier(name: String): Boolean = {
     name.startsWith("___") || // internal identifier
     name.startsWith("filter:") || // Jinja filter
     name.startsWith("exptest:") // Jinja test
+  }
+
+  /**
+    * Collects variable references by walking an expression AST.
+    * Dotted chains rooted at an identifier (e.g. 'project.myVar') are a single scoped variable reference.
+    * For method calls (e.g. 'name.trim()'), the method segment is not part of the reference.
+    */
+  private class ExpressionWalker {
+
+    /** All collected variable references in document order. */
+    val variables = mutable.ArrayBuffer[TemplateVariableName]()
+
+    /** All identifier nodes reached by the walk (by identity), including deliberately ignored ones. */
+    val visitedIdentifiers: mutable.Set[IdentifierNode] =
+      java.util.Collections.newSetFromMap(new java.util.IdentityHashMap[IdentifierNode, java.lang.Boolean]()).asScala
+
+    def walk(node: ElNode): Unit = {
+      node match {
+        case method: AstMethod =>
+          walkTarget(method.getChild(0), isMethodTarget = true)
+          walk(method.getChild(1)) // parameters
+        case dot: AstDot =>
+          walkTarget(dot, isMethodTarget = false)
+        case identifier: AstIdentifier =>
+          visitedIdentifiers += identifier
+          addVariable(List(identifier.getName))
+        case dict: AstDict =>
+          for((key, value) <- JinjaVariableCollector.dictEntries(dict)) {
+            walk(key)
+            walk(value)
+          }
+        case list: AstList =>
+          walk(JinjaVariableCollector.listElements(list))
+        case namedParameter: AstNamedParameter =>
+          // The name is collected as well: in macro definitions it is a parameter that gets bound
+          walk(JinjaVariableCollector.namedParameterName(namedParameter))
+          walk(JinjaVariableCollector.namedParameterValue(namedParameter))
+        case other =>
+          for(i <- 0 until other.getCardinality) {
+            walk(other.getChild(i))
+          }
+      }
+    }
+
+    /** Walks a dotted property chain. If it is rooted at an identifier, the whole chain is a single variable reference. */
+    private def walkTarget(node: ElNode, isMethodTarget: Boolean): Unit = {
+      dottedPath(node) match {
+        case Some(path) =>
+          addVariable(if(isMethodTarget) path.init else path)
+        case None =>
+          node match {
+            case dot: AstDot =>
+              walk(dot.getChild(0)) // property access on a computed value is not a variable reference
+            case other =>
+              walk(other)
+          }
+      }
+    }
+
+    /** The segments of a dotted chain, or None if it is not rooted at a plain identifier. */
+    private def dottedPath(node: ElNode): Option[List[String]] = {
+      node match {
+        case dot: AstDot =>
+          dottedPath(dot.getChild(0)).map(_ :+ JinjaVariableCollector.propertyName(dot))
+        case identifier: AstIdentifier =>
+          visitedIdentifiers += identifier
+          Some(List(identifier.getName))
+        case _ =>
+          None
+      }
+    }
+
+    private def addVariable(path: List[String]): Unit = {
+      if(path.nonEmpty && !ignoreIdentifier(path.head)) {
+        variables += new TemplateVariableName(path.last, VariableScope(path.init))
+      }
+    }
   }
 
   /**
@@ -183,13 +242,36 @@ class JinjaVariableCollector  {
 
 object JinjaVariableCollector {
 
-  // Regex for valid variable names
-  private val variableRegex = "[a-zA-Z_][a-zA-Z0-9_]*".r
+  // The Jinjava extension nodes do not expose their children via the Node interface: read the underlying fields directly.
+  private val dictField = accessibleField(classOf[AstDict], "dict")
+  private val listElementsField = accessibleField(classOf[AstList], "elements")
+  private val namedParameterNameField = accessibleField(classOf[AstNamedParameter], "name")
+  private val namedParameterValueField = accessibleField(classOf[AstNamedParameter], "value")
 
-  // Regex for scoped names of the form scope1[.scope2]*.var
-  private val scopedName = s"((?:$variableRegex\\.)+)($variableRegex)".r
+  private def accessibleField(cls: Class[_], name: String): Field = {
+    val field = cls.getDeclaredField(name)
+    field.setAccessible(true)
+    field
+  }
 
-  // Regex for method calls on a variable of the form var.method(...)
-  private val methodCallOnVar = s"($variableRegex)\\.$variableRegex\\(.*\\)".r
+  private def dictEntries(dict: AstDict): Seq[(AstNode, AstNode)] = {
+    dictField.get(dict).asInstanceOf[java.util.Map[AstNode, AstNode]].asScala.toSeq
+  }
 
+  private def listElements(list: AstList): AstParameters = {
+    listElementsField.get(list).asInstanceOf[AstParameters]
+  }
+
+  private def namedParameterName(namedParameter: AstNamedParameter): AstIdentifier = {
+    namedParameterNameField.get(namedParameter).asInstanceOf[AstIdentifier]
+  }
+
+  private def namedParameterValue(namedParameter: AstNamedParameter): AstNode = {
+    namedParameterValueField.get(namedParameter).asInstanceOf[AstNode]
+  }
+
+  /** The property name of a dot node. It is only exposed through the `. name` string representation. */
+  private def propertyName(dot: AstDot): String = {
+    dot.toString.stripPrefix(". ")
+  }
 }
