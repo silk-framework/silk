@@ -50,6 +50,15 @@ class VariableTemplateJinjaValidationTest extends AnyFlatSpec with Matchers with
     validate("{{ execution.unknownVar }}", lenient = true).valid shouldBe true
   }
 
+  it should "underline only the missing variable, not the whole template" in {
+    val template = "{{ global.unknownVar }}\n\ntext\n\n{{ global.myVar }}"
+    val response = validate(template, lenient = true)
+    response.valid shouldBe false
+    val error = response.parseError.get
+    error.start shouldBe template.indexOf("global.unknownVar")
+    error.end shouldBe template.indexOf("global.unknownVar") + "global.unknownVar".length
+  }
+
   it should "distinguish method calls from property access on existing variables" in {
     // A method call references the variable itself and resolves at execution time
     validate("{{ global.myVar.trim() ~ 'x' }}", lenient = true).valid shouldBe true

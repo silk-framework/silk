@@ -56,7 +56,7 @@ case class ValidateVariableTemplateRequest(templateString: String,
   def execute()(implicit user: UserContext): VariableTemplateValidationResponse = {
     val variables = collectVariables(includeSensitiveVariables = includeSensitiveVariables.getOrElse(false))
     for(missingVariable <- missingKnownScopedVariable(variables)) {
-      return invalid(s"'$missingVariable' is not defined.")
+      return invalidVariable(missingVariable)
     }
     try {
       val evaluatedTemplate = variables.resolveTemplateValue(templateString, evaluationConfig)
@@ -70,6 +70,8 @@ case class ValidateVariableTemplateRequest(templateString: String,
           case _: Failure[_] =>
             invalid(ex.getMessage)
         }
+      case ex: UnboundVariablesException if !evaluationConfig.ignoreUnboundVariables && ex.missingVars.size == 1 =>
+        invalidVariable(ex.missingVars.head.scopedName)
       case ex: TemplateSyntaxException =>
         // Syntax errors do not depend on the variable values, so they are also reported in lenient mode
         invalid(ex.getMessage)
@@ -111,6 +113,15 @@ case class ValidateVariableTemplateRequest(templateString: String,
 
   private def valid(evaluatedTemplate: Option[String]): VariableTemplateValidationResponse = {
     VariableTemplateValidationResponse(valid = true, parseError = None, evaluatedTemplate = evaluatedTemplate)
+  }
+
+  /** Validation error for a missing variable that underlines its first occurrence instead of the whole template. */
+  private def invalidVariable(scopedName: String): VariableTemplateValidationResponse = {
+    val start = templateString.indexOf(scopedName)
+    val error =
+      if(start != -1) VariableTemplateValidationError(s"'$scopedName' is not defined.", start, start + scopedName.length)
+      else VariableTemplateValidationError(s"'$scopedName' is not defined.", 0, templateString.length)
+    VariableTemplateValidationResponse(valid = false, parseError = Some(error), evaluatedTemplate = None)
   }
 
   private def invalid(errorMessage: String): VariableTemplateValidationResponse = {
