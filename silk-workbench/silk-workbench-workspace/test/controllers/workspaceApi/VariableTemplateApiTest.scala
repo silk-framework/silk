@@ -73,13 +73,45 @@ class VariableTemplateApiTest extends AnyFlatSpec with IntegrationTestTrait with
     val projectName = "variables-test-lenient"
     WorkspaceFactory().workspace.createProject(ProjectConfig(projectName))
 
-    val strictResponse = validateTemplate(ValidateVariableTemplateRequest("{{project.unknown}}", Some(projectName)))
+    val strictResponse = validateTemplate(ValidateVariableTemplateRequest("{{custom.unknown}}", Some(projectName)))
     strictResponse.valid shouldBe false
 
-    // Unbound variables evaluate to their names
-    val lenientResponse = validateTemplate(ValidateVariableTemplateRequest("{{project.unknown}}", Some(projectName), ignoreUnboundVariables = Some(true)))
+    // Variables from unknown scopes cannot be validated: they evaluate to their names
+    val lenientResponse = validateTemplate(ValidateVariableTemplateRequest("{{custom.unknown}}", Some(projectName), ignoreUnboundVariables = Some(true)))
     lenientResponse.valid shouldBe true
-    lenientResponse.evaluatedTemplate shouldBe Some("project.unknown")
+    lenientResponse.evaluatedTemplate shouldBe Some("custom.unknown")
+  }
+
+  it should "report missing variables of known scopes even if unbound variables are ignored" in {
+    val projectName = "variables-test-lenient-known-scopes"
+    WorkspaceFactory().workspace.createProject(ProjectConfig(projectName))
+    putVariables(projectName, TemplateVariables(Seq(projectVariable("year", "2002"))))
+
+    // An existing project variable resolves
+    val validResponse = validateTemplate(ValidateVariableTemplateRequest("{{project.year}}", Some(projectName), ignoreUnboundVariables = Some(true)))
+    validResponse.valid shouldBe true
+    validResponse.evaluatedTemplate shouldBe Some("2002")
+
+    // A missing project variable is reported
+    val invalidResponse = validateTemplate(ValidateVariableTemplateRequest("{{project.typo}}", Some(projectName), ignoreUnboundVariables = Some(true)))
+    invalidResponse.valid shouldBe false
+    invalidResponse.parseError.map(_.message).getOrElse("") should include ("project.typo")
+
+    // Property access on an existing variable stays valid
+    validateTemplate(ValidateVariableTemplateRequest("{{project.year.length}}", Some(projectName), ignoreUnboundVariables = Some(true))).valid shouldBe true
+
+    // Execution references are only checked in a task context
+    validateTemplate(ValidateVariableTemplateRequest("{{execution.unknown}}", Some(projectName), ignoreUnboundVariables = Some(true))).valid shouldBe true
+  }
+
+  it should "report missing execution variables in a task context even if unbound variables are ignored" in {
+    val projectName = "variables-test-lenient-execution"
+    val taskName = "lenientExecutionTask"
+    createProjectWithVariablesTask(projectName, taskName,
+      taskExecutionVariables = TemplateVariables(Seq(executionVariable("greeting", "Hello"))))
+
+    validateTemplate(ValidateVariableTemplateRequest("{{execution.greeting}}", Some(projectName), task = Some(taskName), ignoreUnboundVariables = Some(true))).valid shouldBe true
+    validateTemplate(ValidateVariableTemplateRequest("{{execution.typo}}", Some(projectName), task = Some(taskName), ignoreUnboundVariables = Some(true))).valid shouldBe false
   }
 
   it should "validate execution scope references against the task's execution variables only" in {

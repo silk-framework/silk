@@ -3,7 +3,7 @@ package controllers.workspaceApi.coreApi.variableTemplate
 import controllers.autoCompletion._
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.templating.exceptions.{TemplateEvaluationException, TemplateSyntaxException, UnboundVariablesException}
-import org.silkframework.runtime.templating.{EvaluationConfig, GlobalTemplateVariables, TemplateVariables}
+import org.silkframework.runtime.templating.{EvaluationConfig, GlobalTemplateVariables, GlobalTemplateVariablesConfig, TemplateVariables, VariableScope}
 import org.silkframework.util.StringUtils
 import org.silkframework.workspace.WorkspaceFactory
 import play.api.libs.json.{Format, Json}
@@ -54,8 +54,12 @@ case class ValidateVariableTemplateRequest(templateString: String,
   private val evaluationConfig: EvaluationConfig = EvaluationConfig(ignoreUnboundVariables = ignoreUnboundVariables.getOrElse(false))
 
   def execute()(implicit user: UserContext): VariableTemplateValidationResponse = {
+    val variables = collectVariables(includeSensitiveVariables = includeSensitiveVariables.getOrElse(false))
+    for(missingVariable <- missingKnownScopedVariable(variables)) {
+      return invalid(s"'$missingVariable' is not defined.")
+    }
     try {
-      val evaluatedTemplate = collectVariables(includeSensitiveVariables = includeSensitiveVariables.getOrElse(false)).resolveTemplateValue(templateString, evaluationConfig)
+      val evaluatedTemplate = variables.resolveTemplateValue(templateString, evaluationConfig)
       valid(Some(evaluatedTemplate))
     } catch {
       case ex: UnboundVariablesException if variableName.isDefined && ex.missingVars.size == 1 =>
@@ -75,6 +79,32 @@ case class ValidateVariableTemplateRequest(templateString: String,
         valid(None)
       case NonFatal(ex) =>
         invalid(ex.getMessage)
+    }
+  }
+
+  /**
+    * In lenient mode, references to scopes whose variables are fully known in this request context
+    * (global always, project and execution if given) are still checked for existence.
+    * Prefix matching keeps property access on existing variables valid, e.g. 'project.myVar.length'.
+    * Returns the first missing variable, if any.
+    */
+  private def missingKnownScopedVariable(providedVariables: TemplateVariables): Option[String] = {
+    if(!evaluationConfig.ignoreUnboundVariables) {
+      None
+    } else {
+      val checkedRoots = (Seq(VariableScope.global) ++ project.map(_ => VariableScope.project) ++ task.map(_ => VariableScope.execution)).map(_.toString)
+      val templateVariables =
+        try {
+          GlobalTemplateVariablesConfig.templateEngine().compile(templateString).variables.getOrElse(Seq.empty)
+        } catch {
+          case NonFatal(_) =>
+            Seq.empty // Errors are reported by the evaluation
+        }
+      val providedNames = providedVariables.variables.map(_.scopedName)
+      templateVariables.find { variable =>
+        variable.scope.path.headOption.exists(checkedRoots.contains) &&
+          !providedNames.exists(provided => variable.scopedName == provided || variable.scopedName.startsWith(provided + "."))
+      }.map(_.scopedName)
     }
   }
 

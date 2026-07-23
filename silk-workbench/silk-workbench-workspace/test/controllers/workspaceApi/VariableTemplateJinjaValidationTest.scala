@@ -41,6 +41,14 @@ class VariableTemplateJinjaValidationTest extends AnyFlatSpec with Matchers with
     validate("{{ unknownVar }}", lenient = false).valid shouldBe false
   }
 
+  it should "report missing global variables even if unbound variables are ignored" in {
+    // The global scope is always fully known, so its references are checked in lenient mode too
+    validate("{{ global.unknownVar }}", lenient = true).valid shouldBe false
+    // Without a project or task context, other scopes stay tolerated
+    validate("{{ project.unknownVar }}", lenient = true).valid shouldBe true
+    validate("{{ execution.unknownVar }}", lenient = true).valid shouldBe true
+  }
+
   private def validate(template: String, lenient: Boolean): VariableTemplateValidationResponse = {
     ValidateVariableTemplateRequest(template, ignoreUnboundVariables = Some(lenient)).execute()
   }
