@@ -62,17 +62,23 @@ export function PageHeader({ autogenerateBreadcrumbs = false, ...headerProps }: 
 }
 
 function PageHeaderPortal({ children }: any) {
-    const [portalEnabled, setPortalEnabled] = useState(false);
-    const portalTarget = document.getElementById(APP_VIEWHEADER_ID);
+    // The portal target is the header slot rendered by <Header/> (persistent in AppLayout, so it
+    // already exists by the time any page mounts). Resolve it in an effect rather than during render
+    // and let React own the portalled children.
+    //
+    // The previous implementation imperatively cleared the slot (`innerHTML = ""`) before enabling a
+    // one-shot portal. That wipe removed nodes React still believed it managed: when navigating
+    // between detail pages the incoming page's portal could clear the outgoing page's not-yet-
+    // unmounted header, desyncing React's tree and leaving the slot empty (observed as missing
+    // breadcrumbs on the heavier workflow page). Letting React mount/unmount the portal children
+    // removes that race — React cleans up the old page's header on unmount on its own.
+    const [portalTarget, setPortalTarget] = useState<HTMLElement | null>(null);
 
     useEffect(() => {
-        if (portalTarget && !portalEnabled) {
-            portalTarget.innerHTML = "";
-            setPortalEnabled(true);
-        }
-    });
+        setPortalTarget(document.getElementById(APP_VIEWHEADER_ID));
+    }, []);
 
-    return portalEnabled && portalTarget ? ReactDOM.createPortal(<>{children}</>, portalTarget) : <></>;
+    return portalTarget ? ReactDOM.createPortal(<>{children}</>, portalTarget) : null;
 }
 
 function PageHeaderContent({
