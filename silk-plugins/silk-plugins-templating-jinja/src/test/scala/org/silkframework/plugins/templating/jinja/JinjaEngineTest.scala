@@ -175,6 +175,19 @@ class JinjaEngineTest extends AnyFlatSpec with Matchers {
     lines(evaluateRaw(template, values)) shouldBe expectedLines
   }
 
+  it should "support indexing multi-valued variables" in {
+    evaluate(
+      template = "{{names[0]}}, {{names[1]}} and last {{names[-1]}}",
+      values = Map("names" -> Seq("John", "Max", "Lisa"))
+    ) shouldBe "John, Max and last Lisa"
+
+    val writer = new StringWriter()
+    JinjaTemplateEngine().compile("{{execution.names[1]}}").evaluate(Seq(
+      new TemplateVariableValue("names", VariableScope("execution"), Seq("a", "b"))
+    ), writer)
+    writer.toString shouldBe "b"
+  }
+
   it should "substitute unbound variables by their names in lenient mode" in {
     evaluateLenient("{{name}} and {{project.other}}") shouldBe "name and project.other"
   }
