@@ -10,17 +10,32 @@ import { GridBoardResetProvider } from "../../shared/GridBoard";
 interface IProps {
     children: React.ReactNode;
 }
+
+/**
+ * The gui-elements `SidebarProvider` writes the `sidebar_state` cookie on toggle but never reads
+ * it back on load (that restore happens server-side in the Next.js shadcn template, which we
+ * don't have). So read it here and feed it as `defaultOpen`. Fallback = closed: the sidebar
+ * stays collapsed unless the user has explicitly opened it before.
+ */
+const readStoredSidebarOpen = (): boolean => {
+    if (typeof document === "undefined") return false;
+    const match = document.cookie.match(/(?:^|;\s*)sidebar_state=(true|false)/);
+    return match ? match[1] === "true" : false;
+};
+
 /**
  * AppLayout includes all pages-components and provide
  * the data which based on projectId and taskId
  * @param children
  */
 export function AppLayout({ children }: IProps) {
+    // Read once on mount; the provider owns the state and rewrites the cookie on every toggle.
+    const [defaultSidebarOpen] = React.useState(readStoredSidebarOpen);
     return (
         <>
             <ApplicationContainer monitorDropzonesFor={["application/reactflow", "Files"]}>
                 <GridBoardResetProvider>
-                    <shadcn.SidebarProvider>
+                    <shadcn.SidebarProvider defaultOpen={defaultSidebarOpen}>
                         <AppSidebar />
                         <shadcn.SidebarInset>
                             <Header />

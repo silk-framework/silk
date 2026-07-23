@@ -1051,6 +1051,7 @@
             "toggle": "Navigation umschalten"
         },
         "user": {
+            "account": "Konto",
             "close": "Close user menu",
             "language": "Sprache",
             "menu": "User menu",

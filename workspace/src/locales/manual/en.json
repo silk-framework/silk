@@ -1051,6 +1051,7 @@
             "toggle": "Toggle navigation"
         },
         "user": {
+            "account": "Account",
             "close": "Close user menu",
             "language": "Language",
             "menu": "User menu",
