@@ -97,8 +97,8 @@ class VariableTemplateApiTest extends AnyFlatSpec with IntegrationTestTrait with
     invalidResponse.valid shouldBe false
     invalidResponse.parseError.map(_.message).getOrElse("") should include ("project.typo")
 
-    // Property access on an existing variable stays valid
-    validateTemplate(ValidateVariableTemplateRequest("{{project.year.length}}", Some(projectName), ignoreUnboundVariables = Some(true))).valid shouldBe true
+    // Property access on an existing variable is reported: it does not resolve at execution time either
+    validateTemplate(ValidateVariableTemplateRequest("{{project.year.length}}", Some(projectName), ignoreUnboundVariables = Some(true))).valid shouldBe false
 
     // Execution references are only checked in a task context
     validateTemplate(ValidateVariableTemplateRequest("{{execution.unknown}}", Some(projectName), ignoreUnboundVariables = Some(true))).valid shouldBe true

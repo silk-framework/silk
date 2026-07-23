@@ -16,7 +16,8 @@ class VariableTemplateJinjaValidationTest extends AnyFlatSpec with Matchers with
   behavior of "variable template validation with the Jinja engine"
 
   override def propertyMap: Map[String, Option[String]] = Map(
-    "config.variables.engine" -> Some(JinjaTemplateEngine.id)
+    "config.variables.engine" -> Some(JinjaTemplateEngine.id),
+    "config.variables.global.myVar" -> Some("globalValue")
   )
 
   private implicit val user: UserContext = UserContext.Empty
@@ -47,6 +48,13 @@ class VariableTemplateJinjaValidationTest extends AnyFlatSpec with Matchers with
     // Without a project or task context, other scopes stay tolerated
     validate("{{ project.unknownVar }}", lenient = true).valid shouldBe true
     validate("{{ execution.unknownVar }}", lenient = true).valid shouldBe true
+  }
+
+  it should "distinguish method calls from property access on existing variables" in {
+    // A method call references the variable itself and resolves at execution time
+    validate("{{ global.myVar.trim() ~ 'x' }}", lenient = true).valid shouldBe true
+    // Property access does not resolve on variable values, so it is reported
+    validate("{{ global.myVar.length }}", lenient = true).valid shouldBe false
   }
 
   private def validate(template: String, lenient: Boolean): VariableTemplateValidationResponse = {

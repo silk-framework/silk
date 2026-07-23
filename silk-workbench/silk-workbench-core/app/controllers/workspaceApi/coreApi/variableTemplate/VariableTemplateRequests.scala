@@ -85,7 +85,9 @@ case class ValidateVariableTemplateRequest(templateString: String,
   /**
     * In lenient mode, references to scopes whose variables are fully known in this request context
     * (global always, project and execution if given) are still checked for existence.
-    * Prefix matching keeps property access on existing variables valid, e.g. 'project.myVar.length'.
+    * Method calls on variables (e.g. 'project.myVar.trim()') are unaffected, since the collected
+    * reference is the variable itself. Property access (e.g. 'project.myVar.length') is reported:
+    * it never resolves on variable values at execution time either.
     * Returns the first missing variable, if any.
     */
   private def missingKnownScopedVariable(providedVariables: TemplateVariables): Option[String] = {
@@ -100,10 +102,9 @@ case class ValidateVariableTemplateRequest(templateString: String,
           case NonFatal(_) =>
             Seq.empty // Errors are reported by the evaluation
         }
-      val providedNames = providedVariables.variables.map(_.scopedName)
+      val providedNames = providedVariables.variables.map(_.scopedName).toSet
       templateVariables.find { variable =>
-        variable.scope.path.headOption.exists(checkedRoots.contains) &&
-          !providedNames.exists(provided => variable.scopedName == provided || variable.scopedName.startsWith(provided + "."))
+        variable.scope.path.headOption.exists(checkedRoots.contains) && !providedNames.contains(variable.scopedName)
       }.map(_.scopedName)
     }
   }
