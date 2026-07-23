@@ -1101,11 +1101,6 @@
             "title": "Rule block editor"
         },
         "transform": {
-            "mappingCreatorBanner": {
-                "dismiss": "Schließen",
-                "message": "Es gibt eine neue Möglichkeit, Datensätze in Wissensgraphen zu transformieren — probieren Sie den neuen Mapping-Creator aus.",
-                "tryIt": "Neuen Mapping-Creator öffnen"
-            },
             "title": "Mapping-Editor"
         },
         "workspace": {

@@ -15,7 +15,6 @@ import { ProjectTaskParams } from "../../shared/typings";
 import DeprecatedPluginsBanner from "../Project/DeprecatedPlugins/DeprecatedPluginsBanner";
 import VariablesWidget from "../../shared/VariablesWidget/VariablesWidget";
 import { ProjectForbiddenNotification } from "../../shared/ProjectForbiddenNotification";
-import MappingCreatorBanner from "./MappingCreatorBanner";
 import { GridBoard, GridBoardItem, GridTileCard } from "../../shared/GridBoard";
 
 export default function TransformPage() {
@@ -112,7 +111,6 @@ export default function TransformPage() {
     return (
         <WorkspaceContent className="eccapp-di__transformation">
             {pageHeader}
-            <MappingCreatorBanner projectId={projectId} taskId={taskId} />
             <WorkspaceMain>
                 <DeprecatedPluginsBanner projectId={projectId} taskId={taskId} />
                 <GridBoard items={items} storageKey="transform" />

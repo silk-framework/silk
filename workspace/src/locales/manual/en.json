@@ -1141,11 +1141,6 @@
             "title": "Rule block editor"
         },
         "transform": {
-            "mappingCreatorBanner": {
-                "dismiss": "Dismiss",
-                "message": "There is a new way to transform datasets into Knowledge Graphs — try the new mapping creator.",
-                "tryIt": "Open the new mapping creator"
-            },
             "title": "Mapping editor"
         },
         "workspace": {
