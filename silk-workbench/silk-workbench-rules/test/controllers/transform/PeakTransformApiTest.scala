@@ -40,7 +40,7 @@ class PeakTransformApiTest extends AnyFlatSpec with SingleProjectWorkspaceProvid
       entity(Seq(), Seq())
     )
     val (tries, errors, errorMsg, peakResult, hasMore, total) =
-      PeakTransformApi.collectTransformationExamples(rule, entities.iterator, limit = 10, computeTotal = true)
+      PeakTransformApi.collectTransformationExamples(rule, entities.iterator, limit = 10, computeTotal = true, perRecord = true)
     tries mustBe 5
     errors mustBe 0
     errorMsg mustBe ""
@@ -72,7 +72,7 @@ class PeakTransformApiTest extends AnyFlatSpec with SingleProjectWorkspaceProvid
       entity(Seq(), Seq())
     )
     val (tries, errors, errorMsg, peakResult, hasMore, total) =
-      PeakTransformApi.collectTransformationExamples(rule, entities, limit = 10, computeTotal = true)
+      PeakTransformApi.collectTransformationExamples(rule, entities, limit = 10, computeTotal = true, perRecord = true)
     tries mustBe 6
     errors mustBe 0
     errorMsg mustBe ""
@@ -95,7 +95,7 @@ class PeakTransformApiTest extends AnyFlatSpec with SingleProjectWorkspaceProvid
       entity(Seq("123"), Seq("also no date"))
     )
     val (tries, errors, errorMsg, peakResult, hasMore, total) =
-      PeakTransformApi.collectTransformationExamples(rule, entities, limit = 3, computeTotal = true)
+      PeakTransformApi.collectTransformationExamples(rule, entities, limit = 3, computeTotal = true, perRecord = true)
     tries mustBe 2
     errors mustBe 2
     errorMsg must include ("Invalid date format")
@@ -122,7 +122,7 @@ class PeakTransformApiTest extends AnyFlatSpec with SingleProjectWorkspaceProvid
       entity(Seq(), Seq())                   // no value -> valid
     )
     val (tries, errors, errorMsg, peakResult, _, total) =
-      PeakTransformApi.collectTransformationExamples(rule, entities, limit = 10, computeTotal = true)
+      PeakTransformApi.collectTransformationExamples(rule, entities, limit = 10, computeTotal = true, perRecord = true)
     tries mustBe 3
     errors mustBe 1
     errorMsg must include ("MultipleValuesException")
@@ -228,7 +228,7 @@ class PeakTransformApiTest extends AnyFlatSpec with SingleProjectWorkspaceProvid
       entity(Seq("a5"), Seq("b5"))        // tail
     )
     val (_, _, _, peakResult, hasMore, total) =
-      PeakTransformApi.collectTransformationExamples(rule, entities, limit = 3, offset = 2, computeTotal = true)
+      PeakTransformApi.collectTransformationExamples(rule, entities, limit = 3, offset = 2, computeTotal = true, perRecord = true)
     hasMore mustBe true
     total mustBe 6
     peakResult mustBe Seq(
@@ -236,6 +236,47 @@ class PeakTransformApiTest extends AnyFlatSpec with SingleProjectWorkspaceProvid
       PeakResult(Seq(Seq(), Seq()), Seq()),
       PeakResult(Seq(Seq("a4"), Seq("b4")), Seq("a4 b4"))
     )
+  }
+
+  it should "skip entities with an empty transform result by default (legacy mapping editor behaviour)" in {
+    val rule = transformRule(ConcatTransformer(" "))
+    val entities = Iterator(
+      entity(Seq("a1"), Seq("b1")),   // "a1 b1"  -> kept
+      entity(Seq("a2"), Seq()),       // empty    -> skipped (not a result, not counted)
+      entity(Seq("a3"), Seq("b3")),   // "a3 b3"  -> kept
+      entity(Seq(), Seq()),           // empty    -> skipped
+      entity(Seq("a4"), Seq("b4"))    // "a4 b4"  -> kept
+    )
+    val (tries, errors, _, peakResult, hasMore, total) =
+      PeakTransformApi.collectTransformationExamples(rule, entities, limit = 10, computeTotal = true)
+    tries mustBe 5
+    errors mustBe 0
+    hasMore mustBe false
+    // Only the three non-empty results are examples; the two empty records do not count toward the total.
+    total mustBe 3
+    peakResult mustBe Seq(
+      PeakResult(Seq(Seq("a1"), Seq("b1")), Seq("a1 b1")),
+      PeakResult(Seq(Seq("a3"), Seq("b3")), Seq("a3 b3")),
+      PeakResult(Seq(Seq("a4"), Seq("b4")), Seq("a4 b4"))
+    )
+  }
+
+  it should "honor offset over non-empty results only in legacy (skip-empty) mode" in {
+    val rule = transformRule(ConcatTransformer(" "))
+    val entities = Iterator(
+      entity(Seq("a1"), Seq("b1")),   // non-empty (skipped by offset)
+      entity(Seq(), Seq()),           // empty (ignored entirely)
+      entity(Seq("a2"), Seq("b2")),   // non-empty (skipped by offset)
+      entity(Seq(), Seq()),           // empty (ignored entirely)
+      entity(Seq("a3"), Seq("b3")),   // non-empty -> first page result
+      entity(Seq("a4"), Seq("b4"))    // non-empty -> tail
+    )
+    val (_, _, _, peakResult, hasMore, total) =
+      PeakTransformApi.collectTransformationExamples(rule, entities, limit = 1, offset = 2, computeTotal = true)
+    // 4 non-empty results in total; the 2 empties never count toward offset/total.
+    total mustBe 4
+    hasMore mustBe true
+    peakResult mustBe Seq(PeakResult(Seq(Seq("a3"), Seq("b3")), Seq("a3 b3")))
   }
 
   it should "report total = skipped + collected + remaining when there is a non-empty tail" in {
@@ -314,6 +355,30 @@ class PeakTransformApiTest extends AnyFlatSpec with SingleProjectWorkspaceProvid
     peakResult.total mustBe None
     peakResult.totalIsExact mustBe None
     peakResult.nextOffset mustBe None
+  }
+
+  it should "skip records with an empty transform result by default at the API (legacy mapping editor)" in {
+    // 'Max Noe' has no Events/Birth, so this pattern yields an empty result for that record. In the default
+    // (legacy) mode that record is not a preview row at all - only the real 'Max Doe' example is returned.
+    val peakResult = peakChildRuleRequest(PatternUriMapping(pattern = "urn:{Name}/{Events/Birth}"), perRecord = false)
+    peakResult.status.id mustBe "success"
+    peakResult.results mustBe Some(Seq(
+      PeakResult(Seq(Seq("Max Doe"), Seq("May 1900")), Seq("urn:Max+Doe/May+1900"))
+    ))
+  }
+
+  it should "keep the empty record as its own grouped row when perRecord is set (new mapping editor)" in {
+    // Same rule, but with per-record grouping the value-less 'Max Noe' record still appears as an empty row.
+    val peakResult = peakChildRuleRequest(PatternUriMapping(pattern = "urn:{Name}/{Events/Birth}"), perRecord = true)
+    peakResult.results mustBe Some(Seq(
+      PeakResult(Seq(Seq("Max Doe"), Seq("May 1900")), Seq("urn:Max+Doe/May+1900")),
+      PeakResult(Seq(Seq("Max Noe"), Seq()), Seq())
+    ))
+  }
+
+  it should "reject a maxTryEntities below 1 with a 400" in {
+    val peakUrl = controllers.transform.routes.PeakTransformApi.peak(projectId, transformXmlTask, rootRuleId, maxTryEntities = 0).url
+    checkResponseCode(client.url(s"$baseUrl$peakUrl").post(""), responseCode = 400)
   }
 
   it should "include pagination metadata when includeTotal is requested" in {
@@ -473,28 +538,31 @@ class PeakTransformApiTest extends AnyFlatSpec with SingleProjectWorkspaceProvid
     boundPeek.results.map(_.map(_.sourceValues)) mustBe sourcePreview.results.map(_.map(_.sourceValues))
   }
 
-  private def peakSourcePathRequest(path: String, objectPath: Option[String] = None, includeTotal: Boolean = false): PeakResults = {
+  // The API helpers default to `perRecord = true` (the new mapping editor's per-record grouping) because the
+  // existing assertions expect value-less records to still appear as (empty) rows. Legacy skip-empty behaviour
+  // is exercised explicitly with `perRecord = false`.
+  private def peakSourcePathRequest(path: String, objectPath: Option[String] = None, includeTotal: Boolean = false, perRecord: Boolean = true): PeakResults = {
     val peakUrl = controllers.transform.routes.PeakTransformApi.peakSourcePath(
-      projectId, transformXmlTask, rootRuleId, path, objectPath, includeTotal = includeTotal).url
+      projectId, transformXmlTask, rootRuleId, path, objectPath, includeTotal = includeTotal, perRecord = perRecord).url
     val request = client.url(s"$baseUrl$peakUrl")
     val jsonResponse = checkResponse(request.post("")).json
     JsonHelpers.fromJsonValidated[PeakResults](jsonResponse)
   }
 
-  private def peakNamedRuleRequest(ruleId: String): PeakResults = {
-    val peakUrl = controllers.transform.routes.PeakTransformApi.peak(projectId, transformXmlTask, ruleId).url
+  private def peakNamedRuleRequest(ruleId: String, perRecord: Boolean = true): PeakResults = {
+    val peakUrl = controllers.transform.routes.PeakTransformApi.peak(projectId, transformXmlTask, ruleId, perRecord = perRecord).url
     val request = client.url(s"$baseUrl$peakUrl")
     val jsonResponse = checkResponse(request.post("")).json
     JsonHelpers.fromJsonValidated[PeakResults](jsonResponse)
   }
 
-  private def peakRequest(taskId: String, ruleId: String): PeakResults = {
-    val peakUrl = controllers.transform.routes.PeakTransformApi.peak(projectId, taskId, ruleId).url
+  private def peakRequest(taskId: String, ruleId: String, perRecord: Boolean = true): PeakResults = {
+    val peakUrl = controllers.transform.routes.PeakTransformApi.peak(projectId, taskId, ruleId, perRecord = perRecord).url
     val jsonResponse = checkResponse(client.url(s"$baseUrl$peakUrl").post("")).json
     JsonHelpers.fromJsonValidated[PeakResults](jsonResponse)
   }
 
-  private def peakChildRuleRequest(transformRule: TransformRule, objectPath: Option[String] = None, includeTotal: Boolean = false): PeakResults = {
+  private def peakChildRuleRequest(transformRule: TransformRule, objectPath: Option[String] = None, includeTotal: Boolean = false, perRecord: Boolean = true): PeakResults = {
     val uriPatternUrl = controllers.transform.routes.PeakTransformApi.peakChildRule(projectId, transformXmlTask, rootRuleId).url
     var request = client.url(s"$baseUrl$uriPatternUrl")
     val params = scala.collection.mutable.Buffer.empty[(String, String)]
@@ -503,6 +571,9 @@ class PeakTransformApiTest extends AnyFlatSpec with SingleProjectWorkspaceProvid
     }
     if (includeTotal) {
       params += "includeTotal" -> "true"
+    }
+    if (perRecord) {
+      params += "perRecord" -> "true"
     }
     if (params.nonEmpty) {
       request = request.withQueryStringParameters(params.toSeq: _*)

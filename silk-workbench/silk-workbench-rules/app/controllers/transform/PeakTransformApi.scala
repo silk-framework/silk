@@ -25,7 +25,7 @@ import org.silkframework.rule.input.{PathInput, Value}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.PluginContext
 import org.silkframework.runtime.serialization.ReadContext
-import org.silkframework.runtime.validation.ValidationException
+import org.silkframework.runtime.validation.{BadUserInputException, ValidationException}
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.{Project, ProjectTask}
 import play.api.libs.json.{Format, Json}
@@ -119,14 +119,25 @@ class PeakTransformApi @Inject() () extends InjectedController with UserContextA
               in = ParameterIn.QUERY,
               schema = new Schema(implementation = classOf[Boolean], defaultValue = "false")
             )
-            includeTotal: Boolean = false): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
+            includeTotal: Boolean = false,
+            @Parameter(
+              name = "perRecord",
+              description = "If true, return one row per tried source record - including records whose transform " +
+                "produced no value (per-record grouping, used by the new mapping editor). If false (the default), " +
+                "records with an empty transform result are skipped so only real transformed examples are returned " +
+                "(legacy mapping editor behaviour).",
+              required = false,
+              in = ParameterIn.QUERY,
+              schema = new Schema(implementation = classOf[Boolean], defaultValue = "false")
+            )
+            perRecord: Boolean = false): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
       val (project, task) = projectAndTask(projectName, taskName)
       val transformSpec = task.data
       val ruleSchemata = transformSpec.oneRuleEntitySchemaById(ruleName).get
       val inputTaskId = transformSpec.selection.inputId
       implicit val context: PluginContext = PluginContext.fromProject(project)
 
-      peakRule(project, inputTaskId, ruleSchemata, limit, maxTryEntities, offset, search, includeTotal)
+      peakRule(project, inputTaskId, ruleSchemata, limit, maxTryEntities, offset, search, includeTotal, perRecord)
   }
 
   /**
@@ -215,7 +226,17 @@ class PeakTransformApi @Inject() () extends InjectedController with UserContextA
                       in = ParameterIn.QUERY,
                       schema = new Schema(implementation = classOf[Boolean], defaultValue = "false")
                     )
-                    includeTotal: Boolean = false): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
+                    includeTotal: Boolean = false,
+                    @Parameter(
+                      name = "perRecord",
+                      description = "If true, return one row per tried source record - including records whose transform " +
+                        "produced no value (per-record grouping, used by the new mapping editor). If false (the default), " +
+                        "records with an empty transform result are skipped (legacy mapping editor behaviour).",
+                      required = false,
+                      in = ParameterIn.QUERY,
+                      schema = new Schema(implementation = classOf[Boolean], defaultValue = "false")
+                    )
+                    perRecord: Boolean = false): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     val (project, task) = projectAndTask(projectName, taskName)
     val transformSpec = task.data
     val parentRule = transformSpec.oneRuleEntitySchemaById(ruleName).get
@@ -224,7 +245,7 @@ class PeakTransformApi @Inject() () extends InjectedController with UserContextA
 
     deserializeCompileTime[TransformRule]() { rule =>
       val ruleSchemata = childRuleSchemata(parentRule, transformSpec, rule, objectPath)
-      peakRule(project, inputTaskId, ruleSchemata, limit, maxTryEntities, offset, search, includeTotal)
+      peakRule(project, inputTaskId, ruleSchemata, limit, maxTryEntities, offset, search, includeTotal, perRecord)
     }
   }
 
@@ -278,7 +299,10 @@ class PeakTransformApi @Inject() () extends InjectedController with UserContextA
                      search: Option[String] = None,
                      @Parameter(name = "includeTotal", description = "If true, scan the full `offset + maxTryEntities` budget so the response can report `total`/`totalIsExact`/`nextOffset`.",
                        required = false, in = ParameterIn.QUERY, schema = new Schema(implementation = classOf[Boolean], defaultValue = "false"))
-                     includeTotal: Boolean = false): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
+                     includeTotal: Boolean = false,
+                     @Parameter(name = "perRecord", description = "If true, return one row per tried source record - including records whose transform produced no value (per-record grouping, used by the new mapping editor). If false (the default), records with an empty result are skipped (legacy behaviour).",
+                       required = false, in = ParameterIn.QUERY, schema = new Schema(implementation = classOf[Boolean], defaultValue = "false"))
+                     perRecord: Boolean = false): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     val (project, task) = projectAndTask(projectName, taskName)
     val transformSpec = task.data
     val parentRule = transformSpec.oneRuleEntitySchemaById(ruleName).get
@@ -291,7 +315,7 @@ class PeakTransformApi @Inject() () extends InjectedController with UserContextA
     // a source-only preview.
     val childRule = ComplexMapping(id = "sourcePathPreview", operator = PathInput(path = UntypedPath.parse(path)), target = None)
     val ruleSchemata = childRuleSchemata(parentRule, transformSpec, childRule, objectPath)
-    peakRule(project, inputTaskId, ruleSchemata, limit, maxTryEntities, offset, search, includeTotal)
+    peakRule(project, inputTaskId, ruleSchemata, limit, maxTryEntities, offset, search, includeTotal, perRecord)
   }
 
   /**
@@ -311,13 +335,19 @@ class PeakTransformApi @Inject() () extends InjectedController with UserContextA
     }
   }
 
-  private def peakRule(project: Project, inputTaskId: Identifier, ruleSchemata: RuleSchemata, limit: Int, maxTryEntities: Int, offset: Int, search: Option[String], includeTotal: Boolean)
+  private def peakRule(project: Project, inputTaskId: Identifier, ruleSchemata: RuleSchemata, limit: Int, maxTryEntities: Int, offset: Int, search: Option[String], includeTotal: Boolean, perRecord: Boolean)
                       (implicit context: PluginContext): Result = {
     if (offset < 0) {
       throw new ValidationException(s"Query parameter 'offset' must be >= 0, but was $offset.")
     }
     if (limit <= 0) {
       throw new ValidationException(s"Query parameter 'limit' must be > 0, but was $limit.")
+    }
+    if (maxTryEntities < 1) {
+      // BadUserInputException (a RequestException) maps to HTTP 400. NB: the offset/limit checks above use
+      // ValidationException, which the workbench error handler renders as 500 - a pre-existing inconsistency
+      // left untouched here to keep this change scoped to maxTryEntities.
+      throw BadUserInputException(s"Query parameter 'maxTryEntities' must be >= 1, but was $maxTryEntities.")
     }
     implicit val prefixes: Prefixes = project.config.prefixes
     implicit val user: UserContext = context.user
@@ -351,8 +381,9 @@ class PeakTransformApi @Inject() () extends InjectedController with UserContextA
     val effectiveSearch = search.map(_.trim).filter(_.nonEmpty)
     // Pagination/filtering implies the caller wants the total; otherwise scanning stops at `limit`.
     val computeTotal = includeTotal || offset > 0 || effectiveSearch.nonEmpty
-    // Source needs to yield enough entities to cover the skipped offset plus the per-page budget.
-    val sourceFetchSize = offset + maxTryEntities
+    // Source needs to yield enough entities to cover the skipped offset plus the per-page budget. Compute in
+    // Long and saturate so a large offset (near Int.MaxValue) can't overflow into a negative fetch size.
+    val sourceFetchSize = math.min(offset.toLong + maxTryEntities.toLong, Int.MaxValue.toLong).toInt
     inputTask.data match {
       case dataset: GenericDatasetSpec =>
         val pluginLabel = dataset.plugin.pluginSpec.label
@@ -363,7 +394,7 @@ class PeakTransformApi @Inject() () extends InjectedController with UserContextA
                 generateMappingPreviewResponse(
                   peakSchemata.transformRule.execution(TaskContext.forInput(inputTask)),
                   exampleEntities,
-                  limit, offset, sourceFetchSize, effectiveSearch, computeTotal
+                  limit, offset, sourceFetchSize, effectiveSearch, computeTotal, perRecord
                 )
               }
             } catch {
@@ -376,7 +407,7 @@ class PeakTransformApi @Inject() () extends InjectedController with UserContextA
               s" of type '$pluginLabel' does not support transformation preview!"))))
         }
       case sparqlSelectTask: SparqlSelectCustomTask =>
-        peakIntoSparqlSelectTask(project, inputTaskLabel, peakSchemata, limit, sourceFetchSize, offset, effectiveSearch, computeTotal, sparqlSelectTask)
+        peakIntoSparqlSelectTask(project, inputTaskLabel, peakSchemata, limit, sourceFetchSize, offset, effectiveSearch, computeTotal, perRecord, sparqlSelectTask)
       case _: TransformSpec =>
         Ok(Json.toJson(PeakResults(None, None, PeakStatus(NOT_SUPPORTED_STATUS_MSG, s"Input task '$inputTaskLabel'" +
           " is not a Dataset. Currently mapping preview is only supported for dataset inputs."))))
@@ -394,6 +425,7 @@ class PeakTransformApi @Inject() () extends InjectedController with UserContextA
                                        offset: Int,
                                        search: Option[String],
                                        computeTotal: Boolean,
+                                       perRecord: Boolean,
                                        sparqlSelectTask: SparqlSelectCustomTask)
                                       (implicit userContext: UserContext, prefixes: Prefixes): Result = {
     implicit val context: PluginContext = PluginContext.fromProject(project)
@@ -413,7 +445,7 @@ class PeakTransformApi @Inject() () extends InjectedController with UserContextA
               generateMappingPreviewResponse(
                 ruleSchemata.transformRule.execution(TaskContext.noInput()),
                 exampleEntities,
-                limit, offset, sourceFetchSize, search, computeTotal
+                limit, offset, sourceFetchSize, search, computeTotal, perRecord
               )
             }
           } catch {
@@ -435,11 +467,12 @@ class PeakTransformApi @Inject() () extends InjectedController with UserContextA
                                              offset: Int,
                                              sourceFetchSize: Int,
                                              search: Option[String],
-                                             computeTotal: Boolean)
+                                             computeTotal: Boolean,
+                                             perRecord: Boolean)
                                             (implicit prefixes: Prefixes) = {
     val rule = ruleExecution.operator
     val (tryCounter, errorCounter, errorMessage, sourceAndTargetResults, hasMore, totalWithinBudget) =
-      collectTransformationExamples(ruleExecution, exampleEntities, limit, offset, search, computeTotal)
+      collectTransformationExamples(ruleExecution, exampleEntities, limit, offset, search, computeTotal, perRecord)
     // Only expose pagination metadata when the caller asked for total/pagination. Otherwise scanning
     // stopped at `limit` and the counts wouldn't be meaningful.
     val nextOffset = if (computeTotal && hasMore) Some(offset + limit) else None
@@ -497,13 +530,19 @@ object PeakTransformApi {
     * @param ruleExecution   The contextualized transformation rule to execute on the example entities.
     * @param exampleEntities Entities to try executing the transform rule on
     * @param limit           Limit of examples to return
+    * @param perRecord       When false (default), only entities whose transform produced a non-empty result
+    *                        count as examples - empty results are scanned over and skipped. This is the legacy
+    *                        Mapping Editor behaviour: the preview shows real transformed values, not blank rows.
+    *                        When true, every tried entity is kept as its own row (including empty results), so
+    *                        callers get one grouped row per source record. MappingCreatorV2 relies on this.
     */
   def collectTransformationExamples(ruleExecution: TransformRuleExecution,
                                     exampleEntities: Iterator[Entity],
                                     limit: Int,
                                     offset: Int = 0,
                                     search: Option[String] = None,
-                                    computeTotal: Boolean = false): (Int, Int, String, Seq[PeakResult], Boolean, Int) = {
+                                    computeTotal: Boolean = false,
+                                    perRecord: Boolean = false): (Int, Int, String, Seq[PeakResult], Boolean, Int) = {
     // Use the non-throwing apply so a record whose transformed values fail target validation (e.g. a
     // multi-valued source mapped onto a single-cardinality target) still surfaces as a row, with the
     // validation error attached, instead of being silently dropped into the catch (NonFatal) branch.
@@ -544,7 +583,10 @@ object PeakTransformApi {
         // Flag the individual row with its first error (if any) so a client can distinguish an empty
         // target caused by validation failure from one caused by the record simply having no value.
         val rowError = transformResult.errors.headOption.map(e => formatError(e.error))
-        if (matchesSearch(entity.values, transformResult.values, needle)) {
+        // In legacy (non per-record) mode an entity that transformed to no value is not an example row at
+        // all: it is scanned over just like a search miss, so the preview only ever shows real results.
+        val countsAsResult = perRecord || transformResult.values.nonEmpty
+        if (countsAsResult && matchesSearch(entity.values, transformResult.values, needle)) {
           if (skippedCounter < offset) {
             skippedCounter += 1
           } else if (exampleCounter < limit) {
