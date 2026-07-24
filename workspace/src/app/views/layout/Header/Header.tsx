@@ -65,7 +65,7 @@ const createTypes: Array<{ dtype: string; label: string; defaultLabel: string; i
  * `NotificationsMenu.tsx`; icons inside are rendered `small` (16px) to match the dense header chrome.
  */
 export const headerActionButtonClass = cn(
-    "relative flex size-9 items-center justify-center rounded-lg text-foreground transition-colors",
+    "relative flex size-9 cursor-pointer items-center justify-center rounded-lg text-foreground transition-colors",
     "hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40",
     "data-[state=open]:bg-muted",
 );
@@ -164,7 +164,7 @@ export function Header() {
                             onClick={openQuickSearch}
                             aria-label={t("RecentlyViewedModal.title", "Quick search")}
                             className={cn(
-                                "hidden shrink-0 items-center gap-2.5 rounded-lg border border-input bg-muted/60 px-3",
+                                "hidden shrink-0 cursor-pointer items-center gap-2.5 rounded-lg border border-input bg-muted/60 px-3",
                                 "h-9 w-[340px] max-w-[34vw] text-sm text-muted-foreground transition-colors lg:flex",
                                 "hover:border-ring/40 hover:bg-card focus-visible:border-ring focus-visible:outline-none",
                             )}
@@ -198,7 +198,7 @@ export function Header() {
                             data-test-id="create-item-btn"
                             onClick={() => openCreateDialog("all")}
                             className={cn(
-                                "flex h-9 items-center gap-1.5 rounded-l-lg bg-brand pl-3 pr-3.5 text-sm font-semibold",
+                                "flex h-9 cursor-pointer items-center gap-1.5 rounded-l-lg bg-brand pl-3 pr-3.5 text-sm font-semibold",
                                 "text-brand-foreground transition-[filter] hover:brightness-95 focus-visible:outline-none",
                                 "focus-visible:ring-2 focus-visible:ring-brand/50",
                             )}
@@ -218,7 +218,7 @@ export function Header() {
                                     type="button"
                                     aria-label={t("common.action.create", "Create") + " …"}
                                     className={cn(
-                                        "flex h-9 w-8 items-center justify-center rounded-r-lg border-l border-brand-foreground/25",
+                                        "flex h-9 w-8 cursor-pointer items-center justify-center rounded-r-lg border-l border-brand-foreground/25",
                                         "bg-brand text-brand-foreground transition-[filter] hover:brightness-95",
                                         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/50",
                                     )}

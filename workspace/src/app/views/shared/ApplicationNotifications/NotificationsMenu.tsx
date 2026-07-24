@@ -58,7 +58,7 @@ export function NotificationsMenu({ autoDisplayNotifications = true, errorNotifi
                 toggleNotifications();
             }}
             className={cn(
-                "relative flex size-9 items-center justify-center rounded-lg text-foreground transition-colors",
+                "relative flex size-9 cursor-pointer items-center justify-center rounded-lg text-foreground transition-colors",
                 "hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40",
                 displayNotifications && "bg-muted text-foreground",
             )}
