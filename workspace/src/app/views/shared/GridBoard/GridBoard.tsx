@@ -488,7 +488,7 @@ export function GridBoard({ items, storageKey, cols = 12, rowHeight = 44, gap = 
             <div className="flex items-start gap-3">
                 <div
                     ref={boardRef}
-                    className="relative min-w-0 flex-1 select-none"
+                    className={`relative min-w-0 flex-1${drag ? " select-none" : ""}`}
                     style={{ height: Math.max(boardH, 0) }}
                     onPointerMove={onPointerMove}
                     onPointerUp={onPointerUp}
