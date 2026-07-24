@@ -52,6 +52,48 @@ class ExecuteTransformTest extends AnyFlatSpec with Matchers with MockitoSugar {
     resultStats.ruleResults("prop2Transform").errorCount shouldBe 0
   }
 
+  it should "stop scanning root entities once the root-table stop condition is met, without exhausting the source" in {
+    val prop = "http://prop"
+    // A source that lazily yields 1000 entities and records how many were actually pulled.
+    val pulled = new java.util.concurrent.atomic.AtomicInteger(0)
+    val sourceEntities = (1 to 1000).iterator.map { i =>
+      pulled.incrementAndGet()
+      entity(IndexedSeq("v" + i), IndexedSeq(prop))
+    }
+    val dataSourceMock = mock[DataSource]
+    when(dataSourceMock.retrieve(any(), any())(any()))
+      .thenReturn(GenericEntityTable(CloseableIterator(sourceEntities), EntitySchema(Uri("entity"), IndexedSeq(UntypedPath.saveApply(prop).asStringTypedPath)), null))
+    when(dataSourceMock.underlyingTask).thenReturn(PlainTask("inputTaskDummy", DatasetSpec(InternalDataset())))
+
+    // A flat transform (single value rule) produces exactly one output table (the root table).
+    val transformSpec = TransformSpec(datasetSelection(), RootMappingRule(rules = MappingRules(mapping("propTransform", prop))))
+    val writeCount = new java.util.concurrent.atomic.AtomicInteger(0)
+    val outputMock = mock[EntitySink]
+    // writeEntity returns Unit (a void method), so it must be stubbed with doAnswer, not when(...).thenAnswer.
+    doAnswer { _ =>
+      writeCount.incrementAndGet(); null
+    }.when(outputMock).writeEntity(anyString(), any())(any())
+
+    val execute = new ExecuteTransform(
+      PlainTask("transformTask", transformSpec),
+      inputTask = _ => PlainTask("dummy", DatasetSpec(EmptyDataset)),
+      input = _ => dataSourceMock,
+      output = _ => outputMock,
+      pluginContext = _ => PluginContext.empty,
+      rootTableStopCondition = () => writeCount.get() >= 3
+    )
+    val contextMock = mock[ActivityContext[TransformReport]]
+    when(contextMock.value).thenReturn(new ValueHolder[TransformReport](None))
+    when(contextMock.status).thenReturn(mock[StatusHolder])
+    implicit val userContext: UserContext = UserContext.Empty
+    execute.run(contextMock)
+
+    // The root table stopped right after the 3rd entity ...
+    writeCount.get() shouldBe 3
+    // ... so the 1000-entity source was NOT exhaustively consumed (a small read-ahead margin is allowed).
+    pulled.get() should be < 100
+  }
+
   private def transformerWithExceptions(): Transformer = {
     new InlineTransformer {
       override def apply(values: Seq[Seq[String]]): Seq[String] = {

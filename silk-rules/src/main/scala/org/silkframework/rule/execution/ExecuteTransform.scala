@@ -21,7 +21,13 @@ class ExecuteTransform(task: Task[TransformSpec],
                        output: UserContext => EntitySink,
                        errorOutput: UserContext => Option[EntitySink] = _ => None,
                        pluginContext: UserContext => PluginContext,
-                       limit: Option[Int] = None) extends Activity[TransformReport] {
+                       limit: Option[Int] = None,
+                       // Optional early-stop that applies ONLY to the first (root/top-level) rule schemata. It is
+                       // polled after each root entity is written; once it returns true, writing of further root
+                       // entities stops while nested/child rule levels still run to completion. Used by the paged
+                       // turtle output to stop scanning root records once the requested page window is covered,
+                       // without truncating the children of the records already in the page. Defaults to no-op.
+                       rootTableStopCondition: () => Boolean = () => false) extends Activity[TransformReport] {
 
   private def transform = task.data
 
@@ -63,7 +69,7 @@ class ExecuteTransform(task: Task[TransformSpec],
     context.status.updateMessage("Retrieving entities")
     try {
       for ((ruleSchemata, index) <- transform.ruleSchemataWithoutEmptyObjectRules.zipWithIndex) {
-        transformEntities(dataSource, ruleSchemata.execution(taskContext), entitySink, errorEntitySink, report, context)
+        transformEntities(dataSource, ruleSchemata.execution(taskContext), entitySink, errorEntitySink, report, context, isRootTable = index == 0)
         context.status.updateProgress((index + 1.0) / transform.ruleSchemataWithoutEmptyObjectRules.size)
       }
     } finally {
@@ -77,7 +83,8 @@ class ExecuteTransform(task: Task[TransformSpec],
                                 entitySink: EntitySink,
                                 errorEntitySink: Option[EntitySink],
                                 reportBuilder: TransformReportBuilder,
-                                context: ActivityContext[TransformReport])
+                                context: ActivityContext[TransformReport],
+                                isRootTable: Boolean)
                                (implicit pluginContext: PluginContext): Unit = {
     implicit val prefixes: Prefixes = pluginContext.prefixes
     implicit val user: UserContext = pluginContext.user
@@ -102,7 +109,7 @@ class ExecuteTransform(task: Task[TransformSpec],
           errorEntitySink.foreach(_.writeEntity(entity.uri, entity.values :+ Seq(entity.failure.get.message.getOrElse("Unknown error"))))
         }
         count += 1
-        if (cancelled || limit.exists(_ <= count)) {
+        if (cancelled || limit.exists(_ <= count) || (isRootTable && rootTableStopCondition())) {
           break()
         }
       }

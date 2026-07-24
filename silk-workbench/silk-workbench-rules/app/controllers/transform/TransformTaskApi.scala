@@ -1162,12 +1162,26 @@ class TransformTaskApi @Inject() () extends InjectedController with UserContextA
     val (model, baseSink) = inMemoryModelSink()
     // Records the subjects minted for the root (top-level) entities so we can page by input record.
     val recordingSink = new RootSubjectRecordingSink(baseSink)
+    // Bound the root-record scan to the page window instead of materializing the whole dataset on every
+    // (single-record) page request. This is only safe when the pruned transform produces a single output
+    // table (no object/nested rules): there are no child levels that could be truncated, and with no object
+    // links there is no cross-record bleed that the full root set (foreign-root boundary in connectedSubgraph)
+    // would have to guard against. For multi-level transforms we keep the full materialization so complete
+    // records and the anti-bleed boundary stay correct. The stop condition counts DISTINCT root subjects (the
+    // recording sink de-duplicates by IRI, line ~1240), so heavy root-IRI de-duplication cannot under-fill the
+    // page - it keeps reading root records until enough distinct roots for [offset, offset + limit) are seen.
+    val singleOutputTable = prunedTask.data.ruleSchemataWithoutEmptyObjectRules.lengthCompare(1) == 0
+    val requiredRootCount = offset.toLong + limit.toLong // widened so a near-Int.MaxValue offset can't overflow
+    val rootTableStopCondition: () => Boolean =
+      if (singleOutputTable) () => recordingSink.rootSubjects.size.toLong >= requiredRootCount
+      else () => false
     val transform = new ExecuteTransform(
       task = prunedTask,
       inputTask = (uc: UserContext) => project.anyTask(task.data.selection.inputId)(uc),
       input = _ => dataSource,
       output = _ => recordingSink,
-      pluginContext = (uc: UserContext) => PluginContext.fromProject(project)(uc)
+      pluginContext = (uc: UserContext) => PluginContext.fromProject(project)(uc),
+      rootTableStopCondition = rootTableStopCondition
     )
     Activity(transform).startBlocking()
 
