@@ -44,6 +44,8 @@ export function AppSidebar() {
     // Tasks/Activities are project-scoped when a project is open, and fall back to the global
     // workbench item list / global activities otherwise, so the nav is never empty.
     const tasksPath = currentProjectId ? SERVE_PATH + "/projects/" + currentProjectId : SERVE_PATH;
+    const datasetsPath = SERVE_PATH + "?itemType=dataset";
+    const itemTypeParam = new URLSearchParams(location.search).get("itemType");
     const activitiesPath = currentProjectId
         ? SERVE_PATH + "/projects/" + currentProjectId + "/activities"
         : SERVE_PATH + "/activities";
@@ -145,7 +147,16 @@ export function AppSidebar() {
                             "artefact-task",
                             t("navigation.side.di.tasks", "Tasks"),
                             t("navigation.side.di.tasksTooltip", "Browse and manage the tasks in this project"),
-                            location.pathname === tasksPath,
+                            // without a project the tasks path is the plain workbench list, which the
+                            // dataset filter link also lives on — don't mark both active at once
+                            location.pathname === tasksPath && itemTypeParam !== "dataset",
+                        )}
+                        {diNavItem(
+                            datasetsPath,
+                            "artefact-dataset",
+                            t("navigation.side.di.datasets", "Datasets"),
+                            t("navigation.side.di.datasetsTooltip"),
+                            location.pathname === SERVE_PATH && itemTypeParam === "dataset",
                         )}
                         {diNavItem(
                             activitiesPath,

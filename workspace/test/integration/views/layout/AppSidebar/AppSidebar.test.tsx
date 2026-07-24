@@ -39,6 +39,18 @@ describe("AppSidebar", () => {
         expect(tasksLink.getAttribute("href")).toBe(workspacePath(""));
         const activitiesLink = wrapper.getByText("Activities").closest("a") as HTMLElement;
         expect(activitiesLink.getAttribute("href")).toBe(workspacePath("/activities"));
+        const datasetsLink = wrapper.getByText("Datasets").closest("a") as HTMLElement;
+        expect(datasetsLink.getAttribute("href")).toBe(workspacePath("") + "?itemType=dataset");
+    });
+
+    it("marks Datasets (not Tasks) active on the dataset-filtered workbench list", () => {
+        history.push(workspacePath("") + "?itemType=dataset");
+        wrapper = renderSidebar();
+        const datasetsLink = wrapper.getByText("Datasets").closest("a") as HTMLElement;
+        expect(datasetsLink.getAttribute("data-active")).toBe("true");
+        // Without a project the Tasks item shares the workbench pathname — it must yield.
+        const tasksLink = wrapper.getByText("Tasks").closest("a") as HTMLElement;
+        expect(tasksLink.getAttribute("data-active")).toBe("false");
     });
 
     it("scopes Tasks and Activities to the project when one is open", () => {
