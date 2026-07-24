@@ -16,7 +16,17 @@ import CopyToModal from "../modals/CopyToModal/CopyToModal";
 import ShowIdentifierModal from "../modals/ShowIdentifierModal";
 import { SERVE_PATH } from "../../../constants/path";
 import { absoluteProjectPath } from "../../../utils/routerUtils";
-import { AlertDialog, Button, HtmlContentBlock, Menu, MenuDivider, MenuItem, Notification } from "@eccenca/gui-elements";
+import {
+    AlertDialog,
+    Button,
+    ContextMenu,
+    HtmlContentBlock,
+    Icon,
+    Menu,
+    MenuDivider,
+    MenuItem,
+    Notification,
+} from "@eccenca/gui-elements";
 import { ValidIconName } from "@eccenca/gui-elements/src/components/atoms/Icon/canonicalIconNames";
 import { GridTileCard } from "../GridBoard";
 import { FetchError } from "../../../services/fetch/responseInterceptor";
@@ -303,26 +313,43 @@ export function ArtefactManagementOptions({
         });
     }, [projectId, taskId, itemType, exportTypes, itemLinks, t, isReadOnlyDataset]);
 
-    // Render one action as a full-width menu row. Parent entries (e.g. "Export to") carry `subitems`,
-    // which `MenuItem` renders as an inline nested list in this static (non-dropdown) context.
-    const renderActionRow = (action: RenderableAction, key: React.Key) => (
-        <MenuItem
-            key={key}
-            icon={action.icon}
-            text={action.text}
-            onClick={action.actionHandler}
-            disabled={action.disabled}
-            intent={action.disruptive ? "danger" : undefined}
-            tooltip={action.tooltipText}
-            data-test-id={action["data-test-id"]}
-        >
-            {action.subitems && action.subitems.length > 0
-                ? action.subitems.map((sub, i) => (
-                      <MenuItem key={`${key}-sub-${i}`} text={sub.text} onClick={sub.actionHandler} />
-                  ))
-                : undefined}
-        </MenuItem>
-    );
+    // Render one action as a full-width menu row. Parent entries (e.g. "Export to") carry `subitems`
+    // and open them as a flyout menu anchored to the row, so the tile keeps one uniform row per action.
+    const renderActionRow = (action: RenderableAction, key: React.Key) => {
+        if (action.subitems && action.subitems.length > 0) {
+            return (
+                <ContextMenu
+                    key={key}
+                    togglerElement={
+                        <MenuItem
+                            icon={action.icon}
+                            text={action.text}
+                            labelElement={<Icon name="toggler-caretright" small />}
+                            data-test-id={action["data-test-id"]}
+                            tabIndex={0}
+                        />
+                    }
+                    contextOverlayProps={{ placement: "right-start" }}
+                >
+                    {action.subitems.map((sub, i) => (
+                        <MenuItem key={`${key}-sub-${i}`} text={sub.text} onClick={sub.actionHandler} />
+                    ))}
+                </ContextMenu>
+            );
+        }
+        return (
+            <MenuItem
+                key={key}
+                icon={action.icon}
+                text={action.text}
+                onClick={action.actionHandler}
+                disabled={action.disabled}
+                intent={action.disruptive ? "danger" : undefined}
+                tooltip={action.tooltipText}
+                data-test-id={action["data-test-id"]}
+            />
+        );
+    };
 
     const fullMenu = (menuItems.actionsFullMenu ?? []) as RenderableAction[];
     const secondaryActions = (menuItems.actionsSecondary ?? []) as RenderableAction[];
