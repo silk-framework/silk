@@ -5,7 +5,7 @@ import org.silkframework.config.ConfigValue
 import org.silkframework.runtime.plugin.PluginContext
 import org.silkframework.runtime.resource.Resource.maxInMemorySizeParameterName
 
-import java.io.{ByteArrayOutputStream, File, InputStream}
+import java.io.{ByteArrayOutputStream, File, InputStream, InputStreamReader}
 import java.time.Instant
 import java.util.logging.Logger
 import scala.io.{Codec, Source}
@@ -80,6 +80,27 @@ trait Resource {
       source.getLines().mkString("\n")
     } finally {
       source.close()
+    }
+  }
+
+  /**
+   * Loads at most maxChars characters of this resource into a string.
+   * The read is bounded, so it is safe for resources over the in-memory size limit.
+   * Unlike [[loadAsString]], line endings are kept verbatim.
+   */
+  def loadAsStringCapped(maxChars: Int, codec: Codec = Codec.UTF8): CappedString = {
+    require(maxChars >= 0 && maxChars < Int.MaxValue, "maxChars must be non-negative and below Int.MaxValue")
+    read { is =>
+      val reader = new InputStreamReader(is, codec.charSet)
+      val buffer = new Array[Char](maxChars + 1)
+      var total = 0
+      var n = 0
+      while (n != -1 && total < buffer.length) {
+        n = reader.read(buffer, total, buffer.length - total)
+        if (n > 0) total += n
+      }
+      if (total > maxChars) CappedString(new String(buffer, 0, maxChars), truncated = true)
+      else CappedString(new String(buffer, 0, total), truncated = false)
     }
   }
 
@@ -187,6 +208,14 @@ trait Resource {
     }
   }
 }
+
+/**
+  * A string loaded with a character bound, as returned by [[Resource.loadAsStringCapped]].
+  *
+  * @param content   The loaded, possibly truncated, content.
+  * @param truncated True if the source was longer than the bound and content was cut off.
+  */
+case class CappedString(content: String, truncated: Boolean)
 
 object Resource {
 

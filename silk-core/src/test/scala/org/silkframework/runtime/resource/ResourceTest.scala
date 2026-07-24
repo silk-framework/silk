@@ -23,6 +23,18 @@ class ResourceTest extends AnyFlatSpec with Matchers {
     }
   }
 
+  behavior of "Resource.loadAsStringCapped"
+
+  it should "cap the loaded string and flag truncation, regardless of resource size" in {
+    // The declared size is far over the in-memory limit: capped reads must not reject it.
+    val largeResource = new TestResource("0123456789".getBytes, size = Some(1000000000))
+    largeResource.loadAsStringCapped(4) mustBe CappedString("0123", truncated = true)
+    largeResource.loadAsStringCapped(10) mustBe CappedString("0123456789", truncated = false)
+    largeResource.loadAsStringCapped(20) mustBe CappedString("0123456789", truncated = false)
+    largeResource.loadAsStringCapped(0) mustBe CappedString("", truncated = true)
+    new TestResource(Array.emptyByteArray, size = Some(0)).loadAsStringCapped(0) mustBe CappedString("", truncated = false)
+  }
+
   behavior of "Resource.relativePath"
 
   it should "return the '/'-separated path relative to the resource manager base path" in {
