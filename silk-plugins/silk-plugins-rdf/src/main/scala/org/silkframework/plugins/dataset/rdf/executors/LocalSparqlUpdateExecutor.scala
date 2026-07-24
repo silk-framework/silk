@@ -118,7 +118,7 @@ case class BatchSparqlUpdateEmitter[U](f: String => U, batchSize: Int, reportUpd
     }
     queryCount += 1
 
-    sparqlUpdateQueries.append(query)
+    sparqlUpdateQueries.append(BatchSparqlUpdateEmitter.ensureTerminated(query))
     if(queryCount >= batchSize) {
       emitEntity()
     }
@@ -138,5 +138,12 @@ case class BatchSparqlUpdateEmitter[U](f: String => U, batchSize: Int, reportUpd
     if(queryCount > 0) {
       emitEntity()
     }
+  }
+}
+
+object BatchSparqlUpdateEmitter {
+  private def ensureTerminated(query: String): String = {
+    val trimmed = query.replaceAll("\\s+$", "")
+    if (trimmed.endsWith(";")) trimmed else trimmed + ";"
   }
 }

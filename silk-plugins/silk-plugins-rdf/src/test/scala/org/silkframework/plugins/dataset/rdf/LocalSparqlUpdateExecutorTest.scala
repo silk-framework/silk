@@ -1,6 +1,7 @@
 package org.silkframework.plugins.dataset.rdf
 
 
+import org.apache.jena.update.UpdateFactory
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.must.Matchers
 import org.silkframework.config._
@@ -117,6 +118,49 @@ class LocalSparqlUpdateExecutorTest extends AnyFlatSpec with Matchers with TestW
     val result = executeTask(staticTemplate, Seq(mockInputTable(Seq("graph" -> "g1")),
       mockInputTable(Seq("graph" -> "g2"))), VelocityTemplateEngine.id)
     result.entities.map(_.values.flatten.head).toList mustBe List(staticTemplate)
+  }
+
+  it should "auto-insert a missing trailing semicolon for Jinja templates when batching" in {
+    val templateMissingSemicolon = """INSERT DATA { <{{ input.entity.s }}> <urn:prop> "{{ input.entity.v }}" }"""
+    val entities = Seq(
+      Entity("e1", IndexedSeq(Seq("http://s1"), Seq("v1")), schema),
+      Entity("e2", IndexedSeq(Seq("http://s2"), Seq("v2")), schema)
+    )
+    val inputTaskMock = PlainTask("mockTask", new DummyTaskSpec(Map.empty))
+    val input = Seq(GenericEntityTable(entities, schema, inputTaskMock))
+    val result = executeTask(templateMissingSemicolon, input, language = "jinja")
+    val batched = result.entities.toSeq.map(_.values.flatten.head)
+    batched mustBe Seq(
+      """INSERT DATA { <http://s1> <urn:prop> "v1" };
+        |INSERT DATA { <http://s2> <urn:prop> "v2" };""".stripMargin
+    )
+  }
+
+  it should "auto-insert a missing trailing semicolon for rawUnsafe Velocity templates when batching" in {
+    val templateMissingSemicolon = """INSERT DATA { $row.rawUnsafe("s") <urn:prop> $row.plainLiteral("v") }"""
+    val result = executeTask(templateMissingSemicolon, Seq(mockInputTable()), language = VelocityTemplateEngine.id)
+    val batched = result.entities.toSeq.map(_.values.flatten.head)
+    batched.foreach { entry =>
+      entry.split("\n").foreach { line => line must endWith(";") }
+    }
+  }
+
+  it should "terminate a malformed rawUnsafe query without fixing its other syntax errors — this fix only adds termination, not validation" in {
+    val malformedAndMissingSemicolon = """INSERT DATA { $row.rawUnsafe("s") <urn:prop> $row.plainLiteral("v") """ // no closing '}', no trailing ';'
+    val result = executeTask(malformedAndMissingSemicolon, Seq(mockInputTable()), language = VelocityTemplateEngine.id)
+    val batched = result.entities.toSeq.map(_.values.flatten.head)
+    batched.head must endWith(";")
+    batched.head must not include "}"
+    an [Exception] must be thrownBy UpdateFactory.create(batched.head)
+  }
+
+  it should "mis-terminate a query ending in a trailing SPARQL comment — documented, accepted limitation" in {
+    val templateEndingInComment = """INSERT DATA { $row.rawUnsafe("s") <urn:prop> $row.plainLiteral("v") } # trailing comment"""
+    val result = executeTask(templateEndingInComment, Seq(mockInputTable()), language = VelocityTemplateEngine.id)
+    val batched = result.entities.toSeq.map(_.values.flatten.head)
+    val firstBatch = batched.head
+    firstBatch must include("# trailing comment;")
+    an [Exception] must be thrownBy UpdateFactory.create(firstBatch + "\n" + firstBatch)
   }
 
   private def sparqlUpdateTask(template: String,
