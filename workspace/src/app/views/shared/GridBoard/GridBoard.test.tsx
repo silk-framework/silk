@@ -123,3 +123,98 @@ describe("GridBoard minimize / restore", () => {
         expect(JSON.parse(window.localStorage.getItem("diApp.gridBoard.persist.minimized") ?? "[]")).toEqual(["beta"]);
     });
 });
+
+// Free-placement drag behavior. These tests need real cell geometry: with no ResizeObserver the
+// board falls back to `clientWidth`, which we stub so that a 12-column board (gap 12) gets an
+// 88px cell — stepX = 100px, stepY = 56px (rowHeight 44) — keeping expected positions round.
+describe("GridBoard free placement", () => {
+    const BOARD_W = 1188; // 12 * 88 + 11 * 12
+    const STEP_X = 100;
+    const STEP_Y = 56;
+
+    const savedResizeObserver = (global as { ResizeObserver?: unknown }).ResizeObserver;
+
+    beforeEach(() => {
+        window.localStorage.clear();
+        delete (global as { ResizeObserver?: unknown }).ResizeObserver;
+        Object.defineProperty(HTMLElement.prototype, "clientWidth", {
+            configurable: true,
+            get: () => BOARD_W,
+        });
+    });
+
+    afterEach(() => {
+        (global as { ResizeObserver?: unknown }).ResizeObserver = savedResizeObserver;
+        delete (HTMLElement.prototype as unknown as Record<string, unknown>).clientWidth;
+    });
+
+    const boardOf = (tile: HTMLElement): HTMLElement => tile.parentElement as HTMLElement;
+    const translate = (x: number, y: number) => `translate(${x * STEP_X}px, ${y * STEP_Y}px)`;
+    const savedLayout = (storageKey: string) =>
+        JSON.parse(window.localStorage.getItem(`diApp.gridBoard.${storageKey}`) ?? "{}");
+
+    it("keeps a tile exactly where it is dropped — no compaction toward the top-left", () => {
+        const { getByTestId, getByTitle } = render(<GridBoard items={items} storageKey="free" />);
+        const board = boardOf(getByTestId("grid-board-tile-alpha"));
+
+        // Drag alpha 4 columns right and 5 rows down: free space remains on its left AND above.
+        fireEvent.pointerDown(getByTitle("Alpha"), { clientX: 0, clientY: 0 });
+        fireEvent.pointerMove(board, { clientX: 4 * STEP_X, clientY: 5 * STEP_Y });
+        fireEvent.pointerUp(board);
+
+        expect(savedLayout("free").alpha).toEqual({ x: 4, y: 5, w: 6, h: 3 });
+        expect(savedLayout("free").beta).toEqual({ x: 6, y: 0, w: 6, h: 3 });
+        expect(getByTestId("grid-board-tile-alpha").style.transform).toBe(translate(4, 5));
+        expect(getByTestId("grid-board-tile-beta").style.transform).toBe(translate(6, 0));
+    });
+
+    it("pushes an overlapped tile down and lets it spring back when the drag moves away", () => {
+        const { getByTestId, getByTitle } = render(<GridBoard items={items} storageKey="push" />);
+        const board = boardOf(getByTestId("grid-board-tile-alpha"));
+        const beta = getByTestId("grid-board-tile-beta");
+
+        // Drag alpha onto beta's slot → beta is pushed straight down below it.
+        fireEvent.pointerDown(getByTitle("Alpha"), { clientX: 0, clientY: 0 });
+        fireEvent.pointerMove(board, { clientX: 6 * STEP_X, clientY: 0 });
+        expect(beta.style.transform).toBe(translate(6, 3));
+
+        // Same gesture, drag away again → beta returns to its original slot (snapshot resolution).
+        fireEvent.pointerMove(board, { clientX: 0, clientY: 5 * STEP_Y });
+        expect(beta.style.transform).toBe(translate(6, 0));
+
+        fireEvent.pointerUp(board);
+        expect(savedLayout("push").alpha).toEqual({ x: 0, y: 5, w: 6, h: 3 });
+        expect(savedLayout("push").beta).toEqual({ x: 6, y: 0, w: 6, h: 3 });
+    });
+
+    it("leaves the hole of a minimized tile instead of reflowing the rest", () => {
+        window.localStorage.setItem(
+            "diApp.gridBoard.hole",
+            JSON.stringify({ alpha: { x: 0, y: 0, w: 6, h: 3 }, beta: { x: 0, y: 3, w: 6, h: 3 } }),
+        );
+        const { getByTestId } = render(<GridBoard items={items} storageKey="hole" />);
+
+        fireEvent.click(getByTestId("grid-board-minimize-alpha"));
+
+        // beta stays below the (now empty) alpha slot — nothing moves up.
+        expect(getByTestId("grid-board-tile-beta").style.transform).toBe(translate(0, 3));
+        expect(savedLayout("hole").beta).toEqual({ x: 0, y: 3, w: 6, h: 3 });
+        expect(savedLayout("hole").alpha).toEqual({ x: 0, y: 0, w: 6, h: 3 }); // slot remembered
+    });
+
+    it("restores a tile to its remembered slot, pushing a squatter down", () => {
+        window.localStorage.setItem(
+            "diApp.gridBoard.squat",
+            JSON.stringify({ alpha: { x: 0, y: 0, w: 6, h: 3 }, beta: { x: 0, y: 0, w: 6, h: 3 } }),
+        );
+        window.localStorage.setItem("diApp.gridBoard.squat.minimized", JSON.stringify(["alpha"]));
+        const { getByTestId } = render(<GridBoard items={items} storageKey="squat" />);
+
+        // beta occupies alpha's remembered slot while alpha is parked.
+        expect(getByTestId("grid-board-tile-beta").style.transform).toBe(translate(0, 0));
+
+        fireEvent.click(getByTestId("grid-board-restore-alpha"));
+        expect(getByTestId("grid-board-tile-alpha").style.transform).toBe(translate(0, 0));
+        expect(getByTestId("grid-board-tile-beta").style.transform).toBe(translate(0, 3));
+    });
+});

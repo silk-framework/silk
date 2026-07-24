@@ -158,7 +158,7 @@ export const ProjectTaskLoadingErrors = ({ refreshProjectPage }: Props) => {
     };
 
     // While the fetch is in flight and no warnings are known yet, render nothing: on a slow fetch a
-    // spinner would materialize this grid tile, repack the board and then vanish again in the (usual)
+    // spinner would materialize this grid tile, reflow the board and then vanish again in the (usual)
     // no-warnings case. The spinner only shows when already-displayed warnings are being refreshed.
     if (isLoading && warningList.length === 0) return null;
     if (isLoading) return <Loading description={t("widget.WarningWidget.loading", "Loading log messages.")} />;

@@ -1,4 +1,12 @@
-import { apply, clamp, compact, GridPlacement, repack, sanitizeSavedLayout, usedRows } from "./gridEngine";
+import {
+    apply,
+    clamp,
+    GridPlacement,
+    insertTile,
+    resolveCollisions,
+    sanitizeSavedLayout,
+    usedRows,
+} from "./gridEngine";
 
 const noOverlaps = (layout: GridPlacement[]): boolean =>
     layout.every((a) =>
@@ -16,47 +24,108 @@ describe("gridEngine", () => {
         });
     });
 
-    describe("compact", () => {
-        it("floats tiles up to close vertical gaps while keeping their column", () => {
-            const result = compact([
+    describe("resolveCollisions", () => {
+        it("returns a non-overlapping layout unchanged (free placement invariant)", () => {
+            const input: GridPlacement[] = [
                 { id: "a", x: 0, y: 0, w: 4, h: 2 },
-                { id: "b", x: 0, y: 5, w: 4, h: 2 }, // gap below a
-                { id: "c", x: 4, y: 9, w: 4, h: 3 }, // separate column
-            ]);
+                { id: "b", x: 8, y: 3, w: 4, h: 2 }, // free space left AND above — must be kept
+                { id: "c", x: 4, y: 9, w: 4, h: 3 },
+            ];
+            expect(resolveCollisions(input, "a")).toEqual(expect.arrayContaining(input));
+            expect(resolveCollisions(input, "a")).toHaveLength(input.length);
+        });
+
+        it("never floats a tile up, even with empty rows above it", () => {
+            const input: GridPlacement[] = [{ id: "a", x: 3, y: 7, w: 4, h: 2 }];
+            expect(resolveCollisions(input, null)).toEqual(input);
+        });
+
+        it("pushes an overlapped tile straight down, just below the pinned tile", () => {
+            const result = resolveCollisions(
+                [
+                    { id: "a", x: 0, y: 0, w: 6, h: 3 }, // pinned
+                    { id: "b", x: 2, y: 1, w: 4, h: 2 }, // overlaps a
+                ],
+                "a",
+            );
             const byId = Object.fromEntries(result.map((i) => [i.id, i]));
-            expect(byId.a.y).toBe(0);
-            expect(byId.b.y).toBe(2); // settled directly under a
-            expect(byId.b.x).toBe(0); // column preserved
-            expect(byId.c.y).toBe(0); // its own column, floats to the top
-            expect(byId.c.x).toBe(4);
+            expect(byId.a).toMatchObject({ x: 0, y: 0 });
+            expect(byId.b).toMatchObject({ x: 2, y: 3 }); // x unchanged, y = a.y + a.h
             expect(noOverlaps(result)).toBe(true);
         });
 
-        it("is idempotent on an already-settled layout", () => {
-            const once = compact([
-                { id: "a", x: 0, y: 0, w: 6, h: 2 },
-                { id: "b", x: 6, y: 0, w: 6, h: 2 },
-                { id: "c", x: 0, y: 2, w: 12, h: 3 },
-            ]);
-            expect(compact(once)).toEqual(once);
+        it("cascades a push chain without moving unaffected tiles", () => {
+            const result = resolveCollisions(
+                [
+                    { id: "a", x: 0, y: 0, w: 4, h: 2 }, // pinned onto b
+                    { id: "b", x: 0, y: 1, w: 4, h: 2 }, // pushed to y2 → collides with c
+                    { id: "c", x: 0, y: 3, w: 4, h: 2 }, // pushed to y4
+                    { id: "d", x: 8, y: 0, w: 4, h: 2 }, // elsewhere — untouched
+                ],
+                "a",
+            );
+            const byId = Object.fromEntries(result.map((i) => [i.id, i]));
+            expect(byId.b).toMatchObject({ x: 0, y: 2 });
+            expect(byId.c).toMatchObject({ x: 0, y: 4 });
+            expect(byId.d).toMatchObject({ x: 8, y: 0 });
+            expect(noOverlaps(result)).toBe(true);
+        });
+
+        it("breaks same-row ties deterministically in x order", () => {
+            const input: GridPlacement[] = [
+                { id: "pin", x: 0, y: 0, w: 12, h: 2 },
+                { id: "right", x: 6, y: 0, w: 6, h: 2 },
+                { id: "left", x: 0, y: 0, w: 6, h: 2 },
+            ];
+            const result = resolveCollisions(input, "pin");
+            const byId = Object.fromEntries(result.map((i) => [i.id, i]));
+            // Both overlap the pinned full-width tile; processed left-to-right, both land at y2 side by side.
+            expect(byId.left).toMatchObject({ x: 0, y: 2 });
+            expect(byId.right).toMatchObject({ x: 6, y: 2 });
+            expect(resolveCollisions(input, "pin")).toEqual(result);
+            expect(noOverlaps(result)).toBe(true);
+        });
+
+        it("normalizes an overlapping layout without a pinned tile (reading order wins)", () => {
+            const result = resolveCollisions(
+                [
+                    { id: "a", x: 0, y: 0, w: 4, h: 2 },
+                    { id: "b", x: 0, y: 0, w: 4, h: 2 }, // stale duplicate slot
+                ],
+                null,
+            );
+            const byId = Object.fromEntries(result.map((i) => [i.id, i]));
+            expect(byId.a).toMatchObject({ x: 0, y: 0 });
+            expect(byId.b).toMatchObject({ x: 0, y: 2 });
+            expect(noOverlaps(result)).toBe(true);
         });
     });
 
     describe("apply", () => {
-        it("moves a tile onto another and pushes the collided one below", () => {
+        it("moves a tile onto another and pushes the collided one straight down", () => {
             const start: GridPlacement[] = [
                 { id: "a", x: 0, y: 0, w: 6, h: 2 },
                 { id: "b", x: 6, y: 0, w: 6, h: 2 },
             ];
-            // Drag b onto a's column at the top; a is pinned nowhere, so it must move out of the way.
             const result = apply(start, "b", { x: 0, y: 0 });
             const byId = Object.fromEntries(result.map((i) => [i.id, i]));
             expect(byId.b).toMatchObject({ x: 0, y: 0 });
-            expect(byId.a.y).toBeGreaterThanOrEqual(2); // pushed below the pinned b
+            expect(byId.a).toMatchObject({ x: 0, y: 2 }); // pushed exactly below b, column kept
             expect(noOverlaps(result)).toBe(true);
         });
 
-        it("keeps the actively edited tile exactly where requested (pinned)", () => {
+        it("leaves tiles outside the push chain exactly where they are", () => {
+            const start: GridPlacement[] = [
+                { id: "a", x: 0, y: 0, w: 4, h: 2 },
+                { id: "b", x: 8, y: 5, w: 4, h: 2 }, // free space above/left — must not compact
+            ];
+            const result = apply(start, "a", { x: 0, y: 1 });
+            const byId = Object.fromEntries(result.map((i) => [i.id, i]));
+            expect(byId.a).toMatchObject({ x: 0, y: 1 });
+            expect(byId.b).toMatchObject({ x: 8, y: 5 });
+        });
+
+        it("keeps the actively edited tile exactly where requested (pinned) when growing", () => {
             const start: GridPlacement[] = [
                 { id: "a", x: 0, y: 0, w: 4, h: 2 },
                 { id: "b", x: 4, y: 0, w: 4, h: 2 },
@@ -65,87 +134,51 @@ describe("gridEngine", () => {
             const result = apply(start, "b", { w: 8 }); // grow b to overlap c
             const byId = Object.fromEntries(result.map((i) => [i.id, i]));
             expect(byId.b).toMatchObject({ x: 4, y: 0, w: 8 });
+            expect(byId.a).toMatchObject({ x: 0, y: 0 }); // untouched
+            expect(byId.c).toMatchObject({ x: 8, y: 2 }); // pushed below b
             expect(noOverlaps(result)).toBe(true);
         });
     });
 
-    describe("repack", () => {
-        it("fills a right-column hole by moving a lower tile up and sideways", () => {
-            // a spans the left; b sits top-right; the slot under b (right column, rows 2-3) is empty;
-            // c lives lower-left. repack should pull c up into the free top-left/right space.
-            const result = repack(
+    describe("insertTile", () => {
+        it("keeps the desired slot when it is free — even with space left and above", () => {
+            const result = insertTile([{ id: "a", x: 0, y: 0, w: 4, h: 2 }], { id: "b", x: 6, y: 4, w: 4, h: 2 }, 12);
+            const byId = Object.fromEntries(result.map((i) => [i.id, i]));
+            expect(byId.b).toMatchObject({ x: 6, y: 4 });
+            expect(noOverlaps(result)).toBe(true);
+        });
+
+        it("falls back to the first free top-left slot when the desired one is occupied", () => {
+            const result = insertTile(
                 [
-                    { id: "a", x: 0, y: 0, w: 6, h: 4 },
-                    { id: "b", x: 6, y: 0, w: 6, h: 2 },
-                    { id: "c", x: 0, y: 6, w: 6, h: 2 }, // far below — a gap above it
+                    { id: "a", x: 0, y: 0, w: 8, h: 2 },
+                    { id: "b", x: 8, y: 0, w: 4, h: 2 },
                 ],
+                { id: "c", x: 8, y: 0, w: 4, h: 2 },
                 12,
             );
             const byId = Object.fromEntries(result.map((i) => [i.id, i]));
-            // c must float up to close the vertical gap (no empty rows between tiles).
-            expect(Math.min(byId.a.y, byId.b.y, byId.c.y)).toBe(0);
-            expect(usedRows(result)).toBeLessThan(6); // tighter than the sparse input
+            expect(byId.c).toMatchObject({ x: 0, y: 2 });
             expect(noOverlaps(result)).toBe(true);
         });
 
-        it("moves a tile up and sideways into a freed pocket", () => {
-            // Tall `a` on the left, short `b` top-middle. The pocket to a's right below b (x4-11, y2-3)
-            // is empty, while wide `c` sits far below. repack should pull c up AND across into it.
-            const result = repack(
-                [
-                    { id: "a", x: 0, y: 0, w: 4, h: 4 },
-                    { id: "b", x: 4, y: 0, w: 4, h: 2 },
-                    { id: "c", x: 0, y: 6, w: 8, h: 2 }, // far below, left column
-                ],
-                12,
-            );
-            const byId = Object.fromEntries(result.map((i) => [i.id, i]));
-            expect(byId.a).toMatchObject({ x: 0, y: 0 });
-            expect(byId.b).toMatchObject({ x: 4, y: 0 });
-            // c floats up from y6→y2 and shifts right from x0→x4 to fill the pocket.
-            expect(byId.c).toMatchObject({ x: 4, y: 2 });
-            expect(noOverlaps(result)).toBe(true);
-        });
-
-        it("respects the column count and preserves every tile's size", () => {
-            const input: GridPlacement[] = [
-                { id: "a", x: 0, y: 0, w: 8, h: 2 },
-                { id: "b", x: 0, y: 2, w: 8, h: 2 },
-                { id: "c", x: 0, y: 4, w: 5, h: 2 },
-            ];
-            const result = repack(input, 12);
-            const byId = Object.fromEntries(result.map((i) => [i.id, i]));
-            input.forEach((t) => {
-                expect(byId[t.id].w).toBe(t.w);
-                expect(byId[t.id].h).toBe(t.h);
-            });
-            result.forEach((t) => expect(t.x + t.w).toBeLessThanOrEqual(12));
-            expect(noOverlaps(result)).toBe(true);
-        });
-
-        it("is deterministic for the same input", () => {
-            const input: GridPlacement[] = [
-                { id: "a", x: 3, y: 1, w: 4, h: 2 },
-                { id: "b", x: 0, y: 0, w: 3, h: 3 },
-                { id: "c", x: 8, y: 5, w: 4, h: 2 },
-            ];
-            expect(repack(input, 12)).toEqual(repack(input, 12));
-        });
-
-        it("terminates on non-finite dimensions (corrupt persisted layout) by coercing them", () => {
+        it("terminates on non-finite dimensions (corrupt input) by coercing them", () => {
             // An `undefined` width (partial saved entry spread into a placement) used to make the
             // placement scan loop forever. It must place with a minimal sane size instead.
-            const result = repack(
-                [
-                    { id: "a", x: 0, y: 0, w: undefined as unknown as number, h: NaN },
-                    { id: "b", x: 0, y: 2, w: 6, h: 2 },
-                ],
+            const result = insertTile(
+                [{ id: "b", x: 0, y: 2, w: 6, h: 2 }],
+                { id: "a", x: 0, y: 0, w: undefined as unknown as number, h: NaN },
                 12,
             );
             const byId = Object.fromEntries(result.map((i) => [i.id, i]));
             expect(byId.a).toMatchObject({ w: 1, h: 1 });
-            expect(byId.b).toMatchObject({ w: 6, h: 2 });
+            expect(byId.b).toMatchObject({ x: 0, y: 2, w: 6, h: 2 });
             expect(noOverlaps(result)).toBe(true);
+        });
+
+        it("clamps a tile wider than the grid so it can still be placed", () => {
+            const result = insertTile([], { id: "a", x: 4, y: 0, w: 20, h: 2 }, 12);
+            expect(result[0]).toMatchObject({ x: 0, y: 0, w: 12, h: 2 });
         });
     });
 

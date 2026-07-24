@@ -24,31 +24,30 @@ const overlaps = (a: GridPlacement, b: GridPlacement): boolean =>
 const hits = (placed: GridPlacement[], item: GridPlacement): GridPlacement | undefined =>
     placed.find((p) => overlaps(p, item));
 
-/** Float an item up until it bumps into something, then drop it just below. */
-function settle(placed: GridPlacement[], item: GridPlacement): GridPlacement {
-    const it = { ...item };
-    while (it.y > 0 && !hits(placed, it)) it.y -= 1;
-    let collision: GridPlacement | undefined;
-    while ((collision = hits(placed, it))) it.y = collision.y + collision.h;
-    return it;
-}
-
 /**
- * Gravity pass. `pinnedId` (the card under the cursor) keeps its exact slot;
- * everything else settles around it, topmost first.
+ * Push-down collision resolution — the only pass that ever moves a tile the user didn't touch.
+ * Every tile keeps its exact `x`/`y` unless it overlaps the pinned tile (or a tile that was itself
+ * pushed), in which case it moves straight down just enough to clear. Never up, never sideways, so
+ * free placement (empty space left/right/above) survives. Non-pinned tiles are processed in reading
+ * order (`y` then `x`), which makes cascades deterministic; `y` only increases, so it terminates.
  */
-export function compact(layout: GridPlacement[], pinnedId: string | null = null): GridPlacement[] {
+export function resolveCollisions(layout: GridPlacement[], pinnedId: string | null = null): GridPlacement[] {
     const pinned = layout.find((i) => i.id === pinnedId);
     const rest = layout.filter((i) => i.id !== pinnedId).sort((a, b) => a.y - b.y || a.x - b.x);
 
     const placed: GridPlacement[] = pinned ? [{ ...pinned }] : [];
-    for (const item of rest) placed.push(settle(placed, item));
+    for (const item of rest) {
+        const it = { ...item };
+        let collision: GridPlacement | undefined;
+        while ((collision = hits(placed, it))) it.y = collision.y + collision.h;
+        placed.push(it);
+    }
     return placed;
 }
 
-/** Move or resize one card, then let gravity resolve the consequences. */
+/** Move or resize one card; push down only what it now overlaps. Nothing else moves. */
 export const apply = (layout: GridPlacement[], id: string, patch: Partial<GridLayout>): GridPlacement[] =>
-    compact(
+    resolveCollisions(
         layout.map((i) => (i.id === id ? { ...i, ...patch } : i)),
         id,
     );
@@ -64,30 +63,25 @@ function place(placed: GridPlacement[], item: GridPlacement, cols: number): Grid
 }
 
 /**
- * Reflow that also closes HORIZONTAL gaps. Unlike {@link compact} (which only floats each tile
- * straight up in its own column), this packs every tile into the first free top-left slot that fits
- * its size — so a hole left by a removed/minimized tile is reclaimed by whichever remaining tile fits
- * there, moving up *and* sideways. Tiles keep their `w`/`h`; only `x`/`y` change. Placement order is
- * the tiles' current reading order (`y` then `x`), which keeps the arrangement roughly stable.
+ * Add a tile at its desired slot if that slot is free, otherwise at the first free top-left slot
+ * that fits it. Used for tiles that have no persisted position (new widgets, reset defaults).
+ * Corrupt input with non-finite dimensions would make `place` scan rows forever — coerce to a
+ * minimal sane size instead. A tile wider than the grid is clamped so it can still be placed.
  */
-export function repack(layout: GridPlacement[], cols: number): GridPlacement[] {
-    const order = [...layout].sort((a, b) => a.y - b.y || a.x - b.x);
-    const placed: GridPlacement[] = [];
-    for (const item of order) {
-        // Corrupt input (e.g. a malformed persisted layout) with non-finite dimensions would make
-        // `place` scan rows forever — coerce to a minimal sane size instead. A tile wider than the
-        // grid is clamped so it can still be placed.
-        const w = Math.min(Number.isFinite(item.w) ? Math.max(1, item.w) : 1, cols);
-        const h = Number.isFinite(item.h) ? Math.max(1, item.h) : 1;
-        placed.push(place(placed, { ...item, w, h }, cols));
-    }
-    return placed;
+export function insertTile(layout: GridPlacement[], item: GridPlacement, cols: number): GridPlacement[] {
+    const w = Math.min(Number.isFinite(item.w) ? Math.max(1, item.w) : 1, cols);
+    const h = Number.isFinite(item.h) ? Math.max(1, item.h) : 1;
+    const x = Number.isFinite(item.x) ? clamp(item.x, 0, cols - w) : 0;
+    const y = Number.isFinite(item.y) ? Math.max(0, item.y) : 0;
+    const candidate = { ...item, x, y, w, h };
+    if (!hits(layout, candidate)) return [...layout, candidate];
+    return [...layout, place(layout, candidate, cols)];
 }
 
 export const clamp = (v: number, lo: number, hi: number): number => Math.min(hi, Math.max(lo, v));
 
-/** Upper bound for persisted coordinates/sizes — anything beyond this is corrupt, not a layout. */
-const MAX_GRID_UNITS = 500;
+/** Upper bound for coordinates/sizes — anything beyond this is corrupt, not a layout. */
+export const MAX_GRID_UNITS = 500;
 
 /**
  * Validate one persisted layout entry (untrusted `localStorage` content). Returns a sane

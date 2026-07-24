@@ -3,7 +3,17 @@ import { Icon } from "@eccenca/gui-elements";
 import { ValidIconName } from "@eccenca/gui-elements/src/components/atoms/Icon/canonicalIconNames";
 import { useTranslation } from "react-i18next";
 import { AnimatePresence, motion } from "framer-motion";
-import { apply, clamp, GridLayout, GridPlacement, repack, sanitizeSavedLayout, usedRows } from "./gridEngine";
+import {
+    apply,
+    clamp,
+    GridLayout,
+    GridPlacement,
+    insertTile,
+    MAX_GRID_UNITS,
+    resolveCollisions,
+    sanitizeSavedLayout,
+    usedRows,
+} from "./gridEngine";
 import { useRegisterGridBoardReset } from "./GridBoardResetContext";
 import { GridBoardMinimizedRail } from "./GridBoardMinimizedRail";
 import { GridTileIconProvider } from "./GridTileIcon";
@@ -47,7 +57,8 @@ const STORAGE_PREFIX = "diApp.gridBoard.";
 // Persisted layouts are untrusted (hand-edited / stale / corrupt localStorage): a non-object parse
 // result counts as "no saved layout", and every entry is validated via `sanitizeSavedLayout` —
 // invalid entries are dropped so the tile falls back to its default layout. Without this, a partial
-// entry (e.g. missing `w`) reaches `repack` as NaN and its placement scan never terminates.
+// entry (e.g. missing `w`) reaches the engine as NaN (`insertTile` additionally coerces non-finite
+// dimensions so its placement scan always terminates).
 const loadSavedLayout = (storageKey: string): Record<string, GridLayout> => {
     try {
         const raw = window.localStorage.getItem(STORAGE_PREFIX + storageKey);
@@ -64,12 +75,17 @@ const loadSavedLayout = (storageKey: string): Record<string, GridLayout> => {
     }
 };
 
-// `repack` (not `compact`) so a slot freed by a minimized/hidden tile is reclaimed by whichever
-// remaining tile fits there — moving up *and* sideways, not only floating straight up.
+// Free placement: a tile with a saved slot returns to it verbatim (pinned, pushing any squatter
+// down); a tile without one (new widget / reset) takes its default slot, or the first free slot if
+// that is occupied. Nothing is ever compacted — holes in a saved arrangement are kept as the user
+// left them.
 const buildLayout = (items: GridBoardItem[], saved: Record<string, GridLayout>, cols: number): GridPlacement[] =>
-    repack(
-        items.map((it) => ({ id: it.id, ...(saved[it.id] ?? it.defaultLayout) })),
-        cols,
+    items.reduce<GridPlacement[]>(
+        (layout, it) =>
+            saved[it.id]
+                ? resolveCollisions([...layout, { id: it.id, ...saved[it.id] }], it.id)
+                : insertTile(layout, { id: it.id, ...it.defaultLayout }, cols),
+        [],
     );
 
 const minimizedStorageKey = (storageKey: string): string => STORAGE_PREFIX + storageKey + ".minimized";
@@ -112,6 +128,13 @@ interface Gesture {
     origin: GridPlacement;
     px: number;
     py: number;
+    /**
+     * Layout snapshot at gesture start. Every pointer-move resolves collisions from this snapshot
+     * (not the previous frame), so a tile pushed aside springs back the moment the drag moves away.
+     */
+    startLayout: GridPlacement[];
+    /** Last applied target — skips redundant layout updates while the pointer stays in a cell. */
+    last: GridLayout;
 }
 
 interface DragState {
@@ -254,10 +277,17 @@ export function GridBoard({ items, storageKey, cols = 12, rowHeight = 44, gap = 
 
     const placements = React.useMemo(() => new Map(layout.map((p) => [p.id, p])), [layout]);
     // Re-derive the layout whenever the set of visible tiles changes (a conditional / empty widget
-    // appeared or vanished).
+    // appeared or vanished). Bail when the layout already covers exactly the visible ids: minimize/
+    // restore set their layout synchronously (with the restored tile pinned to its remembered slot),
+    // and a rebuild from storage here would re-resolve that arrangement without the pin.
     const idKey = visibleItems.map((it) => it.id).join("|");
     React.useEffect(() => {
-        setLayout(buildLayout(visibleItems, loadSavedLayout(storageKey), cols));
+        setLayout((prev) => {
+            const prevIds = new Set(prev.map((p) => p.id));
+            const ids = visibleItems.map((it) => it.id);
+            if (ids.length === prevIds.size && ids.every((id) => prevIds.has(id))) return prev;
+            return buildLayout(visibleItems, loadSavedLayout(storageKey), cols);
+        });
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [idKey, storageKey, cols]);
 
@@ -310,7 +340,7 @@ export function GridBoard({ items, storageKey, cols = 12, rowHeight = 44, gap = 
         e.currentTarget.setPointerCapture?.(e.pointerId);
         const origin = layout.find((i) => i.id === id);
         if (!origin) return;
-        gesture.current = { id, mode, origin, px: e.clientX, py: e.clientY };
+        gesture.current = { id, mode, origin, px: e.clientX, py: e.clientY, startLayout: layout, last: origin };
         setDrag({ id, mode, origin, dx: 0, dy: 0 });
     };
 
@@ -321,37 +351,30 @@ export function GridBoard({ items, storageKey, cols = 12, rowHeight = 44, gap = 
         const dy = e.clientY - g.py;
         setDrag((d) => (d ? { ...d, dx, dy } : d));
 
-        // Snap the pointer delta to whole cells and hand it to the engine.
+        // Snap the pointer delta to whole cells and resolve from the gesture-start snapshot, so
+        // tiles pushed down on an earlier frame return to their slot once the drag moves on.
         if (g.mode === "move") {
             const x = clamp(Math.round(g.origin.x + dx / stepX), 0, cols - g.origin.w);
-            const y = Math.max(0, Math.round(g.origin.y + dy / stepY));
-            setLayout((l) => {
-                const cur = l.find((i) => i.id === g.id);
-                return cur && cur.x === x && cur.y === y ? l : apply(l, g.id, { x, y });
-            });
+            const y = clamp(Math.round(g.origin.y + dy / stepY), 0, MAX_GRID_UNITS - g.origin.h);
+            if (x === g.last.x && y === g.last.y) return;
+            g.last = { ...g.last, x, y };
+            setLayout(apply(g.startLayout, g.id, { x, y }));
         } else {
             const w = clamp(Math.round(g.origin.w + dx / stepX), 1, cols - g.origin.x);
-            const h = Math.max(1, Math.round(g.origin.h + dy / stepY));
-            setLayout((l) => {
-                const cur = l.find((i) => i.id === g.id);
-                return cur && cur.w === w && cur.h === h ? l : apply(l, g.id, { w, h });
-            });
+            const h = clamp(Math.round(g.origin.h + dy / stepY), 1, MAX_GRID_UNITS - g.origin.y);
+            if (w === g.last.w && h === g.last.h) return;
+            g.last = { ...g.last, w, h };
+            setLayout(apply(g.startLayout, g.id, { w, h }));
         }
     };
 
     const onPointerUp = () => {
         if (!gesture.current) return;
         gesture.current = null;
-        setDrag(null);
-        setLayout((l) => repack(l, cols)); // nothing is pinned any more — let it all fall and pack tight
+        setDrag(null); // the layout stays exactly as dropped; persistence fires now that drag is null
     };
 
     /* ---------------- minimize / restore ---------------- */
-
-    // The layout the grid would settle to for a given set of visible ids — used to place tiles
-    // synchronously (no wait for the derive-on-change effect) so the morph can measure the right box.
-    const layoutFor = (visibleIds: (it: GridBoardItem) => boolean): GridPlacement[] =>
-        buildLayout(items.filter(visibleIds), loadSavedLayout(storageKey), cols);
 
     // Grid-unit placement (board-relative) → a viewport rect, matching getBoundingClientRect space.
     const placementToViewportRect = (pl: GridLayout): MorphRect | null => {
@@ -367,8 +390,8 @@ export function GridBoard({ items, storageKey, cols = 12, rowHeight = 44, gap = 
         closePreviewNow();
         const el = articleRefs.current.get(id);
         pendingMorph.current = el ? { id, rect: toMorphRect(el.getBoundingClientRect()), dir: "minimize" } : null;
-        // Drop it out of the grid immediately so the remaining tiles repack without a stale frame.
-        setLayout(layoutFor((it) => !emptyIds.has(it.id) && it.id !== id && !minimizedSet.has(it.id)));
+        // Drop it out of the grid immediately — its slot stays empty (free placement, no reflow).
+        setLayout((l) => l.filter((p) => p.id !== id));
         setMinimized((m) => (m.includes(id) ? m : [...m, id]));
     };
 
@@ -378,10 +401,16 @@ export function GridBoard({ items, storageKey, cols = 12, rowHeight = 44, gap = 
     const restore = (id: string) => {
         closePreviewNow();
         const railEl = railRefs.current.get(id);
-        const nextLayout = layoutFor((it) => !emptyIds.has(it.id) && (it.id === id || !minimizedSet.has(it.id)));
+        const item = items.find((it) => it.id === id);
+        // The restored tile wins its remembered slot (pinned — a squatter gets pushed down); a tile
+        // without one (never persisted) takes its default slot the same way. Computed from the live
+        // layout, not a rebuild, so the tiles already on the board keep their exact positions.
+        const slot = loadSavedLayout(storageKey)[id] ?? item?.defaultLayout;
+        const nextLayout = slot
+            ? resolveCollisions([...layout.filter((p) => p.id !== id), { id, ...slot }], id)
+            : layout;
         const pl = nextLayout.find((p) => p.id === id);
         const to = pl ? placementToViewportRect(pl) : null;
-        const item = items.find((it) => it.id === id);
         if (railEl && to) {
             setMorph({
                 id,
@@ -423,9 +452,11 @@ export function GridBoard({ items, storageKey, cols = 12, rowHeight = 44, gap = 
         }
         setMinimized([]);
         setMorph(null);
+        // Empty saved record → every tile takes its authored default slot verbatim.
         setLayout(
-            repack(
-                items.filter((it) => !emptyIds.has(it.id)).map((it) => ({ id: it.id, ...it.defaultLayout })),
+            buildLayout(
+                items.filter((it) => !emptyIds.has(it.id)),
+                {},
                 cols,
             ),
         );
