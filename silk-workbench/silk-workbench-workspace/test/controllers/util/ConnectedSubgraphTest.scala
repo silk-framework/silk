@@ -86,6 +86,26 @@ class ConnectedSubgraphTest extends AnyFlatSpec with Matchers {
     result.contains(result.getResource(book2), result.getProperty(name), "Animal Farm") mustBe false
   }
 
+  it should "emit a seed's own statement that links to another record's root, but not traverse into that record" in {
+    val manager = "http://example.org/manages"
+    val salary = "http://example.org/salary"
+
+    val model = ModelFactory.createDefaultModel()
+    literal(model, person, label, "Alice")
+    stmt(model, person, manager, otherPerson)     // person1 -> manages -> person2 (person2 is another record's root)
+    literal(model, otherPerson, label, "Bob")     // person2's own subtree
+    literal(model, otherPerson, salary, "100")
+
+    val result = ProjectUtils.connectedSubgraph(model, Seq(person), roots = Set(person, otherPerson))
+
+    // The seed's own outgoing triple to the foreign root is a genuine statement of person1 and must be kept.
+    result.contains(result.getResource(person), result.getProperty(label), "Alice") mustBe true
+    result.contains(result.getResource(person), result.getProperty(manager), result.getResource(otherPerson)) mustBe true
+    // ... but person2's own subtree must NOT bleed in - the walk stops at the foreign root.
+    result.contains(result.getResource(otherPerson), result.getProperty(label), "Bob") mustBe false
+    result.contains(result.getResource(otherPerson), result.getProperty(salary), "100") mustBe false
+  }
+
   it should "not follow a shared object hub (e.g. a shared rdf:type class) backward when backward predicates are restricted" in {
     val pub1 = "http://example.org/publisher/1"
     val pub2 = "http://example.org/publisher/2"

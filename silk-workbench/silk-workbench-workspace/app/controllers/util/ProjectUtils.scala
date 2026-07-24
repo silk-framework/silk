@@ -67,10 +67,14 @@ object ProjectUtils {
     * nested, linked entities) while leaving out everything not connected to the seeds.
     *
     * @param roots The set of all root subjects (one per input record). Any root that is not itself a seed
-    *              acts as a hard boundary: the walk neither crosses into it nor emits the statement linking
-    *              to it. This keeps records that merely share a referenced entity (e.g. two books with the
-    *              same author or publisher) from bleeding into each other. Defaults to empty, in which case
-    *              no boundary is applied and the full connected component is returned.
+    *              acts as a traversal boundary: the walk stops at it and does not cross into its subtree. A
+    *              seed's own outgoing statement whose object is such a foreign root is still emitted (it is a
+    *              genuine triple of the seed record, e.g. person1 :manager person2), but the foreign root's
+    *              own subtree is not followed. Incoming (backward) statements originating at a foreign root
+    *              are dropped entirely, since those belong to the other record. This keeps records that merely
+    *              share a referenced entity (e.g. two books with the same author or publisher) from bleeding
+    *              into each other. Defaults to empty, in which case no boundary is applied and the full
+    *              connected component is returned.
     * @param backwardPredicates Restricts which incoming (backward) statements are followed. `None` follows
     *              all incoming statements (legacy behaviour). `Some(set)` follows an incoming statement only
     *              if its predicate is in the set - this must be the set of the transform's backward/inverse
@@ -103,8 +107,11 @@ object ProjectUtils {
           val obj = statement.getObject
           if (obj.isURIResource) {
             val objUri = obj.asResource().getURI
+            // The statement itself is a genuine triple of the current (seed-side) record, so always emit it -
+            // even when its object is another record's root (e.g. person1 :manager person2). Only the
+            // *traversal* is suppressed at a foreign root, so the other record's subtree is not pulled in.
+            result.add(statement)
             if (!isForeignRoot(objUri)) {
-              result.add(statement)
               queue.enqueue(objUri)
             }
           } else {
