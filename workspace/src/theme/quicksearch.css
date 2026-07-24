@@ -20,11 +20,9 @@ body.di-quicksearch-open [data-slot="dialog-content"] {
 /*
  * Row hover / selection fill.
  *
- * cmdk renders `data-selected="false"` on every unselected row, and the shadcn CommandItem base
- * styles selection with the Tailwind `data-selected:` variant — which compiles to the attribute-
- * PRESENCE selector `[data-selected]` and therefore also matches `data-selected="false"`. The
- * result is that *every* row gets the selected fill at rest, so hovering shows no change (the same
- * class of bug documented in sidebar-active-fix.css).
+ * The shadcn CommandItem base now scopes its fill to `data-[selected=true]` (the attribute-presence
+ * variant bug is fixed at the source), but its selected fill is `--muted`; quick search wants the
+ * stronger `--accent` fill plus a plain `:hover` fill (cmdk only moves selection on pointer move).
  *
  * Reset the fill on every quick-search row, then paint only the row cmdk has actually selected
  * (`data-selected="true"`) or the one under the pointer. Scoped to the quick-search command via its
