@@ -61,7 +61,16 @@ case class InitApi @Inject()() extends InjectedController with UserContextAction
     cfg.hasPath(mappingCreatorEnabledKey) && cfg.getBoolean(mappingCreatorEnabledKey)
   }
 
-  /** True, if the server-side LLM gateway is enabled and configured with an API key. */
+  /**
+    * True, if the server-side LLM gateway is enabled and configured with an API key.
+    *
+    * This re-implements `LlmGatewayConfig.available` (`eccenca-ontology-matching`'s
+    * `controllers.ontologyMatching.llm.LlmGatewayConfig`) by hand via raw typesafe-config parsing, because
+    * this module cannot depend on `eccenca-ontology-matching` (repo/module boundary: this is silk, that is
+    * an eccenca module built on top of it). Keep the two checks in sync: same config path
+    * ([[llmConfigKey]] here, `LlmGatewayConfig.configPath` there, both `"com.eccenca.di.llm"`) and the same
+    * "enabled && apiKey non-blank" semantics. If `LlmGatewayConfig.available` changes, mirror the change here.
+    */
   lazy val llmEnabled: Boolean = {
     cfg.hasPath(llmConfigKey) && {
       val llmCfg = cfg.getConfig(llmConfigKey)
