@@ -8,6 +8,7 @@ import org.silkframework.execution.ExecutorRegistry
 import org.silkframework.rule.TransformSpec
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.validation.BadUserInputException
+import org.silkframework.util.Uri
 import org.silkframework.workspace.ProjectTask
 import org.silkframework.workspace.activity.transform.TransformTaskUtils._
 
@@ -37,13 +38,16 @@ object ResolvedTransformInput {
   /**
     * The input has a statically known schema, i.e., it is another transform task or a task with a fixed output schema.
     * For transform tasks that read from a dataset, a data source is available that executes the transformation.
+    *
+    * @param typeUri The requested type, i.e., the type selection of the transform task that reads from this input.
     */
   case class StaticSchemaInput(schema: EntitySchema,
-                               upstreamTransform: Option[ProjectTask[TransformSpec]] = None) extends ResolvedTransformInput {
+                               upstreamTransform: Option[ProjectTask[TransformSpec]] = None,
+                               typeUri: Uri = Uri("")) extends ResolvedTransformInput {
     override def dataSourceOption(implicit userContext: UserContext): Option[DataSource] = {
       // Executing the upstream transform requires its own input to be a dataset
       upstreamTransform.filter(_.inputDatasetTaskOption.isDefined)
-        .map(transformTask => transformTask.asDataSource(transformTask.data.selection.typeUri))
+        .map(transformTask => transformTask.asDataSource(typeUri))
     }
   }
 
@@ -52,18 +56,20 @@ object ResolvedTransformInput {
     *
     * @throws BadUserInputException If the input task does not provide a fixed output schema.
     * @throws org.silkframework.workspace.exceptions.TaskNotFoundException If the input task does not exist.
+    * @throws org.silkframework.runtime.validation.ValidationException If no rule of the input transform generates the selected type.
     */
   def resolve(transformTask: ProjectTask[TransformSpec])
              (implicit userContext: UserContext): ResolvedTransformInput = {
     val project = transformTask.project
-    val inputId = transformTask.data.selection.inputId
+    val selection = transformTask.data.selection
+    val inputId = selection.inputId
     project.taskOption[GenericDatasetSpec](inputId).map(DatasetInput) match {
       case Some(datasetInput) =>
         datasetInput
       case None =>
         project.taskOption[TransformSpec](inputId) match {
           case Some(upstream) =>
-            StaticSchemaInput(outputSchema(upstream), Some(upstream))
+            StaticSchemaInput(outputSchema(upstream, selection.typeUri), Some(upstream), selection.typeUri)
           case None =>
             project.anyTask(inputId).data.outputPort match {
               case Some(FixedSchemaPort(schema)) =>
@@ -77,12 +83,11 @@ object ResolvedTransformInput {
   }
 
   /**
-    * The output schema of the rule that generates the selected type of the given transform task.
+    * The output schema of the rule of the given transform task that generates the requested type.
     * Selects the same rule as TransformTaskUtils.asDataSource.
     */
-  private def outputSchema(transformTask: ProjectTask[TransformSpec]): EntitySchema = {
+  private def outputSchema(transformTask: ProjectTask[TransformSpec], typeUri: Uri): EntitySchema = {
     val transformSpec = transformTask.data
-    val typeUri = transformSpec.selection.typeUri
     if (typeUri.uri.isEmpty) {
       transformSpec.ruleSchemataWithoutEmptyObjectRules.head.outputSchema
     } else {
