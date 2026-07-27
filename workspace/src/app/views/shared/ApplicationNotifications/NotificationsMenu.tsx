@@ -18,6 +18,7 @@ import { ApplicationError, DIErrorFormat, DIErrorTypes } from "@ducks/error/typi
 import { ErrorResponse, FetchError } from "../../../services/fetch/responseInterceptor";
 import { ApplicationNotification } from "./ApplicationNotification";
 import { commonOp, commonSel } from "@ducks/common";
+import { headerActionButtonClass } from "../../layout/Header/headerChrome";
 
 interface Props {
     /** When true the last notification will be shown for some seconds. */
@@ -47,27 +48,31 @@ export function NotificationsMenu({ autoDisplayNotifications = true, errorNotifi
     // empty queue shows an explicit empty state.
     const notificationCount = notificationQueue.messages.length;
 
-    // Ghost icon-button matching the header's other chrome actions (Help): 36px box, 20px icon,
-    // stroke 2 — kept in sync with `headerActionButtonClass` in `Header.tsx`. The count badge sits
-    // in the top-right corner of the relative button; opening the panel swaps in a close icon.
+    // Ghost icon-button matching the header's other chrome actions (Help), via the shared
+    // `headerActionButtonClass`. The count badge sits in the top-right corner of the relative button;
+    // opening the panel swaps in a close icon.
     const notificationIndicatorButton = (
         <button
             type="button"
-            aria-label={displayNotifications ? "Close notifications menu" : "Open notifications menu"}
+            aria-label={
+                displayNotifications
+                    ? t("Notifications.close", "Close notifications menu")
+                    : t("Notifications.open", "Open notifications menu")
+            }
             onClick={() => {
                 toggleNotifications();
             }}
-            className={cn(
-                "relative flex size-9 cursor-pointer items-center justify-center rounded-lg text-foreground transition-colors",
-                "hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40",
-                displayNotifications && "bg-muted text-foreground",
-            )}
+            className={cn(headerActionButtonClass, displayNotifications && "bg-muted text-foreground")}
         >
             {displayNotifications ? (
-                <Icon name="navigation-close" title="Close icon" small />
+                <Icon name="navigation-close" title={t("Notifications.closeIcon", "Close icon")} small />
             ) : (
                 <>
-                    <Icon name="application-notification" title="Notification menu icon" small />
+                    <Icon
+                        name="application-notification"
+                        title={t("Notifications.menuIcon", "Notification menu icon")}
+                        small
+                    />
                     {notificationCount > 0 && (
                         <Badge position={"top-right"} intent="danger" maxLength={2} children={notificationCount} />
                     )}
@@ -98,10 +103,10 @@ export function NotificationsMenu({ autoDisplayNotifications = true, errorNotifi
             {notificationIndicator}
             {displayNotifications && (
                 <ApplicationToolbarPanel
-                    aria-label="Notification menu"
+                    aria-label={t("Notifications.menuLabel", "Notification menu")}
                     expanded={true}
                     style={{ width: "40rem" }}
-                    className="top-15"
+                    className="top-[var(--header-height)]"
                 >
                     {notificationCount > 0 ? (
                         <>

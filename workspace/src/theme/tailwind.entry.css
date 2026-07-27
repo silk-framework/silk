@@ -15,16 +15,22 @@
 @layer theme, base;
 
 /*
- * NOTE: the lib files are imported via relative path instead of
- * "@eccenca/gui-elements/src/tailwind/…" because Tailwind's resolver enforces the
- * package `exports` field (which only exposes "." and "./config/sassOptions"); webpack is
- * not affected (webpack 4 ignores `exports`), but the CLI would fail on the package path.
+ * The lib files are imported via the package specifier, exposed by the `./tailwind/*`
+ * entry in gui-elements' `exports` map (`@eccenca/gui-elements/tailwind/*` ->
+ * `src/tailwind/*`). The Tailwind v4 CLI resolves this like Node does, walking up
+ * node_modules to the workspace-hoisted `@eccenca/gui-elements` symlink; webpack 4 is
+ * unaffected either way (it ignores `exports`).
  */
 @import "tailwindcss/preflight.css" layer(base);
-@import "../../../libs/gui-elements/src/tailwind/theme.css";
-@import "../../../libs/gui-elements/src/tailwind/base.css" layer(base);
+@import "@eccenca/gui-elements/tailwind/theme.css";
+@import "@eccenca/gui-elements/tailwind/base.css" layer(base);
 @import "tailwindcss/utilities.css";
 
 @source "../";
 @source "../../../libs/gui-elements/src";
 @source "../../../../workspacePlugins/src";
+/* v4.1 `@source not`: story files only exist for local component development/preview —
+   exclude them so utility classes used solely inside a *.stories.tsx (never on the
+   shipped component) don't get compiled into the production app CSS. */
+@source not "../../../libs/gui-elements/src/**/*.stories.{ts,tsx,js,jsx}";
+@source not "../../../../workspacePlugins/src/**/*.stories.{ts,tsx,js,jsx}";

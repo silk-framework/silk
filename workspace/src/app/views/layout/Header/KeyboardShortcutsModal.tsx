@@ -4,11 +4,20 @@ import { useTranslation } from "react-i18next";
 import useHotKey from "../../../views/shared/HotKeyHandler/HotKeyHandler";
 import { useSelector } from "react-redux";
 import { commonSel } from "@ducks/common";
+import { artefactTypes } from "./artefactTypes";
 
 const { Kbd, KbdGroup } = shadcn;
 
 const sectionKeys = ["general", "workflow-editor", "rule-editors", "projects", "tasks"] as const;
 type SectionKey = (typeof sectionKeys)[number];
+
+// "c <suffix>" create-chord rows sourced from the shared artefact-type registry so the documented
+// suffixes can't drift from the actual bindings. `key` maps to the existing
+// `...categories.<section>.shortcuts.create-<dtype>` i18n label.
+const createShortcutRow = (dtype: string): { key: string; commands: string[] } => {
+    const type = artefactTypes.find((a) => a.dtype === dtype)!;
+    return { key: `create-${type.dtype}`, commands: ["c", "*then", type.hotkeySuffix] };
+};
 
 const shortcuts: Record<SectionKey, Array<{ key: string; commands: string[] }>> = {
     general: [
@@ -22,12 +31,7 @@ const shortcuts: Record<SectionKey, Array<{ key: string; commands: string[] }>> 
         { key: "browse-linking-tasks", commands: ["g", "*then", "l"] },
         { key: "browse-tasks", commands: ["g", "*then", "o"] },
         { key: "browse-activities-tasks", commands: ["g", "*then", "a"] },
-        { key: "create-project", commands: ["c", "*then", "p"] },
-        { key: "create-workflow", commands: ["c", "*then", "w"] },
-        { key: "create-dataset", commands: ["c", "*then", "d"] },
-        { key: "create-transform", commands: ["c", "*then", "t"] },
-        { key: "create-linking", commands: ["c", "*then", "l"] },
-        { key: "create-task", commands: ["c", "*then", "o"] },
+        ...artefactTypes.map((type) => createShortcutRow(type.dtype)),
         { key: "create-new-item", commands: ["c", "*then", "n"] },
     ],
     projects: [
@@ -50,10 +54,8 @@ const shortcuts: Record<SectionKey, Array<{ key: string; commands: string[] }>> 
     "workflow-editor": [
         { key: "delete", commands: ["backspace"] },
         { key: "multiselect", commands: ["shift+mouse select"] },
-        { key: "create-dataset", commands: ["c", "*then", "d"] },
-        { key: "create-transform", commands: ["c", "*then", "t"] },
-        { key: "create-linking", commands: ["c", "*then", "l"] },
-        { key: "create-task", commands: ["c", "*then", "o"] },
+        // Curated subset of the create chords relevant inside the workflow editor.
+        ...["dataset", "transform", "linking", "task"].map(createShortcutRow),
         { key: "create-new-item", commands: ["c", "*then", "n"] },
     ],
 };

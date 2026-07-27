@@ -1,0 +1,26 @@
+/*
+ * Header chrome tokens.
+ *
+ * Central declaration of the z-index stacking scale used by the application header and the surfaces
+ * that must sit above it. Previously these numbers were scattered as Tailwind arbitrary values
+ * (`z-[8000]`, `z-[8002]`, `z-[8100]`) across Header.tsx / NavProject.tsx and as raw `z-index`
+ * declarations in quicksearch.css. Consumers now reference these custom properties via
+ * `z-[var(--z-app-header)]` etc. so the scale lives in one place.
+ *
+ * The header height reuses the existing `--header-height` token declared in `theme/index.css`
+ * (`h-[var(--header-height)]` / `top-[var(--header-height)]`), so it is not redeclared here.
+ *
+ * Imported by `headerChrome.ts`, which the always-mounted Header pulls in, so the tokens are present
+ * globally before any header-stack surface (including the quick-search dialog) renders.
+ */
+:root {
+    /* Sticky application header band. */
+    --z-app-header: 8000;
+    /* Header raised over normal modals (via `useApplicationHeaderOverModals`) so notifications stay reachable. */
+    --z-app-header-over-modals: 8002;
+    /* Menus/tooltips anchored to header (and sidebar) triggers, lifted above the header band. */
+    --z-app-header-menu: 8100;
+    /* Quick-search dialog overlay + content, lifted above the whole header stack while open. */
+    --z-quicksearch-overlay: 8500;
+    --z-quicksearch-content: 8501;
+}

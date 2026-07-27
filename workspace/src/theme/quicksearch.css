@@ -8,13 +8,14 @@
  *
  * `QuickSearchDialog` toggles `body.di-quicksearch-open` while it is open; here we lift its overlay
  * (and content above it) over the header. The descendant selector outweighs the utility `.z-50`, so
- * no `!important` is needed. Scoped to the open state so no other dialog is affected.
+ * no `!important` is needed. Scoped to the open state so no other dialog is affected. The z-index
+ * values come from the shared header-chrome scale (see Header/headerChrome.css).
  */
 body.di-quicksearch-open [data-slot="dialog-overlay"] {
-    z-index: 8500;
+    z-index: var(--z-quicksearch-overlay);
 }
 body.di-quicksearch-open [data-slot="dialog-content"] {
-    z-index: 8501;
+    z-index: var(--z-quicksearch-content);
 }
 
 /*

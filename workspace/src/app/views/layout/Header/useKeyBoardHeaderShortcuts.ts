@@ -11,6 +11,7 @@ import { useTranslation } from "react-i18next";
 import { absoluteProjectPath } from "../../../utils/routerUtils";
 import { AppDispatch } from "store/configureStore";
 import { ModalContext } from "@eccenca/gui-elements/src/components/molecules/Dialog/ModalContext";
+import { artefactTypes } from "./artefactTypes";
 
 export const useKeyboardHeaderShortcuts = () => {
     const dispatch = useDispatch<AppDispatch>();
@@ -105,77 +106,37 @@ export const useKeyboardHeaderShortcuts = () => {
                     return false;
                 }),
             },
-            {
-                hotKey: "c p",
+            // "c <suffix>" create chords, generated from the shared artefact-type registry so they
+            // stay in sync with the Create menu and the keyboard-shortcuts modal. A type with a
+            // `pluginId` is instantiated directly as that task; `project` opens the project artefact;
+            // any other type (e.g. `task`) opens the create dialog pre-selected to that category.
+            ...artefactTypes.map((type) => ({
+                hotKey: `c ${type.hotkeySuffix}`,
                 handler: onOffHandler(() => {
-                    dispatch(
-                        commonOp.selectArtefact({
-                            key: DATA_TYPES.PROJECT,
-                            title: uppercaseFirstChar(t("common.dataTypes.project")),
-                            description: t(
-                                "common.dataTypes.projectDesc",
-                                "Projects let you group related items. All items that depend on each other need to be in the same project.",
-                            ),
-                        }),
-                    );
+                    if (type.pluginId) {
+                        dispatch(
+                            commonOp.createNewTask({
+                                selectedDType: type.dtype,
+                                newTaskPreConfiguration: { taskPluginId: type.pluginId },
+                            }),
+                        );
+                    } else if (type.dtype === "project") {
+                        dispatch(
+                            commonOp.selectArtefact({
+                                key: DATA_TYPES.PROJECT,
+                                title: uppercaseFirstChar(t("common.dataTypes.project")),
+                                description: t(
+                                    "common.dataTypes.projectDesc",
+                                    "Projects let you group related items. All items that depend on each other need to be in the same project.",
+                                ),
+                            }),
+                        );
+                    } else {
+                        dispatch(commonOp.setSelectedArtefactDType(type.dtype));
+                    }
                     return false;
                 }),
-            },
-            {
-                hotKey: "c w",
-                handler: onOffHandler(() => {
-                    dispatch(
-                        commonOp.createNewTask({
-                            selectedDType: "workflow",
-                            newTaskPreConfiguration: { taskPluginId: "workflow" },
-                        }),
-                    );
-                    return false;
-                }),
-            },
-            {
-                hotKey: "c d",
-                handler: onOffHandler(() => {
-                    dispatch(
-                        commonOp.createNewTask({
-                            selectedDType: "dataset",
-                            newTaskPreConfiguration: { taskPluginId: "dataset" },
-                        }),
-                    );
-                    return false;
-                }),
-            },
-            {
-                hotKey: "c t",
-                handler: onOffHandler(() => {
-                    dispatch(
-                        commonOp.createNewTask({
-                            selectedDType: "transform",
-                            newTaskPreConfiguration: { taskPluginId: "transform" },
-                        }),
-                    );
-                    return false;
-                }),
-            },
-            {
-                hotKey: "c l",
-                handler: onOffHandler(() => {
-                    dispatch(
-                        commonOp.createNewTask({
-                            selectedDType: "linking",
-                            newTaskPreConfiguration: { taskPluginId: "linking" },
-                        }),
-                    );
-                    return false;
-                }),
-            },
-            {
-                hotKey: "c o",
-                handler: onOffHandler(() => {
-                    dispatch(commonOp.setSelectedArtefactDType("task"));
-                    return false;
-                }),
-            },
+            })),
             {
                 hotKey: "c n",
                 handler: onOffHandler(() => {
