@@ -1,12 +1,6 @@
 import React from "react";
 import { ISearchResultsServer } from "@ducks/workspace/typings";
-import {
-    ContextMenu,
-    IconButton,
-    MenuDivider,
-    MenuItem,
-    OverflowText,
-} from "@eccenca/gui-elements";
+import { ContextMenu, IconButton, MenuDivider, MenuItem, OverflowText } from "@eccenca/gui-elements";
 import { routerOp } from "@ducks/router";
 import { useDispatch, useSelector } from "react-redux";
 import { getItemLinkIcons } from "../../../utils/getItemLinkIcons";
@@ -50,7 +44,7 @@ export default function SearchItemActions({
     const dispatch = useDispatch<AppDispatch>();
     const exportTypes = useSelector(commonSel.exportTypesSelector);
     const [t] = useTranslation();
-    const { itemLinks, goToDetailsPage } = useItemNavigation(item);
+    const { itemLinks, detailsPath, goToDetailsPage } = useItemNavigation(item);
     // Remove detailsPath
     const menuItemLinks = itemLinks.slice(1);
     const { projectTabView, changeTab, menuItems } = useProjectTaskTabsView({
@@ -112,7 +106,7 @@ export default function SearchItemActions({
                     name="item-viewdetails"
                     text={t("common.action.showDetails", "Show details")}
                     onClick={goToDetailsPage}
-                    href={itemLinks[0].path}
+                    href={detailsPath}
                 />
             )}
             <ContextMenu
@@ -134,13 +128,17 @@ export default function SearchItemActions({
                     onClick={() => onOpenCopyToModal(item)}
                     text={t("common.action.copy", "Copy")}
                 />
-                <MenuItem
-                    icon="item-viewdetails"
-                    text={t("common.action.showDetails", "Show details")}
-                    key="view"
-                    onClick={goToDetailsPage}
-                    href={itemLinks[0].path}
-                />
+                {itemLinks.length ? (
+                    <MenuItem
+                        icon="item-viewdetails"
+                        text={t("common.action.showDetails", "Show details")}
+                        key="view"
+                        onClick={goToDetailsPage}
+                        href={detailsPath}
+                    />
+                ) : (
+                    <></>
+                )}
                 <MenuItem
                     data-test-id={"open-duplicate-modal"}
                     icon="item-clone"

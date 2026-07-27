@@ -117,7 +117,7 @@ export function AppSidebar() {
                                                 href={dmBaseUrl + "/" + link.path}
                                                 title={t("navigation.side.dm." + link.path + "Tooltip")}
                                             >
-                                                <Icon name={link.icon ? [link.icon] : "undefined"} />
+                                                {link.icon && <Icon name={[link.icon]} />}
                                                 <span>{t("navigation.side.dm." + link.path, link.defaultLabel)}</span>
                                             </a>
                                         </SidebarMenuButton>

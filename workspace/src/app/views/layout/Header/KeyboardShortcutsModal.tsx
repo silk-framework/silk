@@ -73,12 +73,15 @@ const KeyCombo = ({ combo }: { combo: string }) => {
     );
 };
 
-const ShortcutRow = ({ sectionKey, shortcut }: { sectionKey: SectionKey; shortcut: { key: string; commands: string[] } }) => {
+const ShortcutRow = ({
+    sectionKey,
+    shortcut,
+}: {
+    sectionKey: SectionKey;
+    shortcut: { key: string; commands: string[] };
+}) => {
     const [t] = useTranslation();
-    const description = t(
-        `header.keyboardShortcutsModal.categories.${sectionKey}.shortcuts.${shortcut.key}Desc`,
-        "",
-    );
+    const description = t(`header.keyboardShortcutsModal.categories.${sectionKey}.shortcuts.${shortcut.key}Desc`, "");
     return (
         <div className="flex items-baseline justify-between gap-6 py-1.5" title={description || undefined}>
             <span className="text-sm text-foreground">
@@ -103,6 +106,22 @@ export const KeyboardShortcutsModal = () => {
     const [isOpen, setIsOpen] = React.useState<boolean>(false);
     const [t] = useTranslation();
     const { hotKeys } = useSelector(commonSel.initialSettingsSelector);
+
+    // The "quick search" and "help" (this modal's own) shortcuts are user-configurable
+    // (see `hotKeys` in initial settings, rendered the same way in `Header.tsx`), so their
+    // keycaps must reflect the actual configured binding instead of the historical "/" and "?".
+    const sections: Record<SectionKey, Array<{ key: string; commands: string[] }>> = {
+        ...shortcuts,
+        general: shortcuts.general.map((shortcut) => {
+            if (shortcut.key === "quick-search") {
+                return { ...shortcut, commands: [hotKeys.quickSearch ?? "/"] };
+            }
+            if (shortcut.key === "help") {
+                return { ...shortcut, commands: [hotKeys.overview ?? "?"] };
+            }
+            return shortcut;
+        }),
+    };
 
     useHotKey({
         hotkey: hotKeys.overview,
@@ -137,7 +156,7 @@ export const KeyboardShortcutsModal = () => {
                             {t(`header.keyboardShortcutsModal.categories.${sectionKey}.label`)}
                         </h3>
                         <div className="divide-y divide-border/60">
-                            {shortcuts[sectionKey].map((shortcut) => (
+                            {sections[sectionKey].map((shortcut) => (
                                 <ShortcutRow key={shortcut.key} sectionKey={sectionKey} shortcut={shortcut} />
                             ))}
                         </div>

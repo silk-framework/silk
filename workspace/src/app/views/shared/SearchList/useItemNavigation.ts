@@ -12,12 +12,12 @@ import { AppDispatch } from "store/configureStore";
  */
 export const useItemNavigation = (item: ISearchResultsServer) => {
     const dispatch = useDispatch<AppDispatch>();
-    const itemLinks = item.itemLinks ?? [{ path: "", label: "" }];
+    const itemLinks = item.itemLinks ?? [];
     const detailsPath = itemLinks.length ? itemLinks[0].path : "";
 
     const goToDetailsPage = (e: React.MouseEvent) => {
-        // Only open page in same tab if user did not try to open in new tab
-        if (!e?.ctrlKey && itemLinks.length > 0) {
+        // Only open page in same tab if user did not try to open in new tab (CTRL or CMD click)
+        if (!e?.ctrlKey && !e?.metaKey && itemLinks.length > 0) {
             e.preventDefault();
             const labels: IPageLabels = Object.create(null);
             if (item.type === DATA_TYPES.PROJECT) {
