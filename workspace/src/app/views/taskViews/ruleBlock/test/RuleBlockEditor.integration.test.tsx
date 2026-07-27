@@ -271,11 +271,13 @@ const setupRuleBlockEditorIntegrationTest = () => {
     jest.doMock("../../../../../../../libs/gui-elements", () => {
         const React = require("react");
         // The new sidebar filter chips (and other restyled widgets) consume the `shadcn`
-        // namespace; pass the real one through — Radix renders fine under jsdom — while
-        // the legacy component surface stays hand-mocked below.
-        const { shadcn } = jest.requireActual("../../../../../../../libs/gui-elements");
+        // namespace and the FilterChips molecule; pass the real ones through — Radix
+        // renders fine under jsdom — while the legacy component surface stays hand-mocked
+        // below.
+        const { shadcn, FilterChips } = jest.requireActual("../../../../../../../libs/gui-elements");
         return {
             shadcn,
+            FilterChips,
             Button: jestTestUtils.createButtonMock(
                 ({ affirmative, disruptive, tooltip, tooltipProps, loading, elevated, ...props }) => ({
                     ...jestTestUtils.omitUnsupportedDomProps(props),
