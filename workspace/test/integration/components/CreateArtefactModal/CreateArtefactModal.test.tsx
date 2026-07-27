@@ -109,6 +109,9 @@ describe("Task creation widget", () => {
                 options: { id: string; label: string }[];
             };
         }>,
+        // Pre-selects a create category (as the header split-button / "c <suffix>" chords do) so the
+        // auto-advance predicate can be exercised. Omitted -> store default "all".
+        selectedDType?: string,
     ): IWrapper => {
         const history = createMemoryHistory<{}>();
         history.push(currentUrl);
@@ -123,6 +126,7 @@ describe("Task creation widget", () => {
                     isOpen: true,
                     updateExistingTask: existingTask,
                     newTaskPreConfiguration,
+                    ...(selectedDType ? { selectedDType } : {}),
                 },
                 // Only merge the key when set: an explicit `undefined` would overwrite the store
                 // default via mergeDeepRight and crash availableDTypesSelector consumers.
@@ -716,5 +720,130 @@ describe("Task creation widget", () => {
         iconButton && fireEvent.click(iconButton);
         const infoDialog = element.querySelector(".eccgui-card");
         expect(infoDialog !== null).toBeTruthy();
+    });
+
+    // --- Auto-advance for single-plugin categories ---------------------------------------------
+    // When the modal is opened pre-filtered to a category (via the header split-button / "c <suffix>"
+    // chords) that resolves to exactly one artefact type, the one-item selection list is skipped and
+    // that type's creation form opens directly. Multi-plugin categories and the "all" view keep the
+    // list. The advance fires once per open so an in-form "back" returns to the (single-item) list.
+
+    // A category (e.g. Transform) that maps to a single task plugin.
+    const singleTransformPluginList: IOverviewArtefactItemList = {
+        transform: {
+            title: "Transform",
+            description: "Create a transformation",
+            taskType: TaskTypes.TRANSFORM,
+            categories: [],
+        },
+    };
+
+    const transformPluginDescription: IPluginDetails = {
+        title: "Transform",
+        description: "Create a transformation",
+        type: "object",
+        taskType: TaskTypes.TRANSFORM,
+        categories: [],
+        required: [],
+        pluginId: "transform",
+        properties: {
+            stringParam: atomicParamDescription({
+                title: "transform string param",
+                parameterType: INPUT_TYPES.STRING,
+            }),
+        },
+    };
+
+    // Loads the modal pre-filtered to `selectedDType` and resolves the artefact-list request.
+    const createDTypeFilteredWrapper = async (
+        selectedDType: string,
+        artefactListResponse: IOverviewArtefactItemList,
+    ): Promise<IWrapper> => {
+        const wrapper = await act(() =>
+            createArtefactWrapper(
+                `${SERVE_PATH}/projects/${PROJECT_ID}`,
+                undefined,
+                undefined,
+                undefined,
+                selectedDType,
+            ),
+        );
+        mockAxios.mockResponseFor(
+            { url: apiUrl("core/taskPlugins?addMarkdownDocumentation=true") },
+            mockedAxiosResponse({ data: artefactListResponse }),
+        );
+        return wrapper;
+    };
+
+    const transformFormLabels = (element: HTMLElement): (string | null)[] =>
+        findAllDOMElements(element, ".eccgui-label .eccgui-label__text").map((e) => e.textContent);
+
+    it("should open the type's creation form directly when a category resolves to a single plugin", async () => {
+        const { element } = await createDTypeFilteredWrapper("transform", singleTransformPluginList);
+
+        // Auto-advance loads the (single) plugin's properties without any user click ...
+        await waitFor(() => {
+            expect(mockAxios.getReqByUrl(apiUrl("core/plugins/transform"))).toBeTruthy();
+        });
+        mockAxios.mockResponseFor(
+            { url: apiUrl("core/plugins/transform") },
+            mockedAxiosResponse({ data: transformPluginDescription }),
+        );
+
+        // ... and the creation form is shown, not the selection list.
+        await waitFor(() => {
+            expect(transformFormLabels(element)).toContain("transform string param");
+        });
+        expect(element.querySelector(byTestId("item-to-create-selection-list"))).not.toBeInTheDocument();
+    });
+
+    it("should return to the single-item list when clicking 'Back' after auto-advancing", async () => {
+        const { element } = await createDTypeFilteredWrapper("transform", singleTransformPluginList);
+        await waitFor(() => {
+            expect(mockAxios.getReqByUrl(apiUrl("core/plugins/transform"))).toBeTruthy();
+        });
+        mockAxios.mockResponseFor(
+            { url: apiUrl("core/plugins/transform") },
+            mockedAxiosResponse({ data: transformPluginDescription }),
+        );
+        await waitFor(() => {
+            expect(transformFormLabels(element)).toContain("transform string param");
+        });
+
+        // Back returns to the list (advance is guarded once-per-open, so it does not re-skip it) ...
+        clickRenderedElement(findElement(element, byTestId("create-dialog-back-btn")));
+        await waitFor(() => {
+            const items = selectionItems(element);
+            expect(items).toHaveLength(1);
+            expect(items[0].innerHTML).toContain("Transform");
+        });
+        // ... and the form is gone.
+        expect(transformFormLabels(element)).not.toContain("transform string param");
+    });
+
+    it("should keep showing the selection list for a multi-plugin category", async () => {
+        const twoDatasetPlugins: IOverviewArtefactItemList = {
+            datasetA: {
+                title: "Dataset A",
+                description: "A dataset plugin",
+                taskType: TaskTypes.DATASET,
+                categories: [],
+            },
+            datasetB: {
+                title: "Dataset B",
+                description: "Another dataset plugin",
+                taskType: TaskTypes.DATASET,
+                categories: [],
+            },
+        };
+        const { element } = await createDTypeFilteredWrapper("dataset", twoDatasetPlugins);
+
+        await waitFor(() => {
+            expect(selectionItems(element)).toHaveLength(2);
+        });
+        // No auto-advance: no plugin-properties request and no creation form.
+        expect(mockAxios.getReqByUrl(apiUrl("core/plugins/datasetA"))).toBeFalsy();
+        expect(mockAxios.getReqByUrl(apiUrl("core/plugins/datasetB"))).toBeFalsy();
+        expect(element.querySelector(byTestId("item-to-create-selection-list"))).toBeInTheDocument();
     });
 });

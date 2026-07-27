@@ -1,6 +1,7 @@
 import React from "react";
-import { configure, fireEvent, render } from "@testing-library/react";
+import { act, configure, fireEvent, render } from "@testing-library/react";
 import { GridBoard, GridBoardItem } from "./GridBoard";
+import { GridBoardResetProvider, useGridBoardReset } from "./GridBoardResetContext";
 
 // The codebase tags elements with `data-test-id` (hyphenated), not RTL's default `data-testid`.
 configure({ testIdAttribute: "data-test-id" });
@@ -264,5 +265,296 @@ describe("GridBoard free placement", () => {
         fireEvent.click(getByTestId("grid-board-restore-alpha"));
         expect(getByTestId("grid-board-tile-alpha").style.transform).toBe(translate(0, 0));
         expect(getByTestId("grid-board-tile-beta").style.transform).toBe(translate(0, 3));
+    });
+});
+
+// Corner-handle resize needs the same real cell geometry as the free-placement block: with no
+// ResizeObserver the board falls back to `clientWidth`, stubbed so a 12-column board (gap 12) gets
+// an 88px cell — stepX = 100px, stepY = 56px (rowHeight 44) — keeping the pixel→cell snap round.
+describe("GridBoard resize gesture", () => {
+    const BOARD_W = 1188; // 12 * 88 + 11 * 12
+    const STEP_X = 100;
+    const STEP_Y = 56;
+
+    const savedResizeObserver = (global as { ResizeObserver?: unknown }).ResizeObserver;
+
+    beforeEach(() => {
+        window.localStorage.clear();
+        delete (global as { ResizeObserver?: unknown }).ResizeObserver;
+        Object.defineProperty(HTMLElement.prototype, "clientWidth", { configurable: true, get: () => BOARD_W });
+    });
+
+    afterEach(() => {
+        (global as { ResizeObserver?: unknown }).ResizeObserver = savedResizeObserver;
+        delete (HTMLElement.prototype as unknown as Record<string, unknown>).clientWidth;
+    });
+
+    // A single tile keeps the resize math isolated from push-down collision (that interaction is
+    // covered by the two-tile grow-and-push case in gridEngine.test.ts / apply).
+    const oneItem: GridBoardItem[] = [
+        {
+            id: "alpha",
+            title: "Alpha",
+            icon: "item-info",
+            defaultLayout: { x: 0, y: 0, w: 6, h: 3 },
+            element: <div data-test-id="alpha-body">Alpha body</div>,
+        },
+    ];
+
+    const boardOf = (tile: HTMLElement): HTMLElement => tile.parentElement as HTMLElement;
+    // The resize handle is an aria-hidden div in the tile's bottom-right corner (no test-id/title).
+    const resizeHandle = (tile: HTMLElement): HTMLElement => tile.querySelector(".cursor-se-resize") as HTMLElement;
+    const savedLayout = (storageKey: string) =>
+        JSON.parse(window.localStorage.getItem(`diApp.gridBoard.${storageKey}`) ?? '{"tiles":{}}').tiles ?? {};
+
+    it("snaps a corner-handle drag to whole cells and persists the new size", () => {
+        const { getByTestId } = render(<GridBoard items={oneItem} storageKey="rz" />);
+        const tile = getByTestId("grid-board-tile-alpha");
+        const board = boardOf(tile);
+
+        // Grab the corner and drag out +2 columns, +1 row → 6×3 becomes 8×4 (x/y untouched).
+        fireEvent.pointerDown(resizeHandle(tile), { clientX: 0, clientY: 0 });
+        fireEvent.pointerMove(board, { clientX: 2 * STEP_X, clientY: 1 * STEP_Y });
+        fireEvent.pointerUp(board);
+
+        expect(savedLayout("rz").alpha).toEqual({ x: 0, y: 0, w: 8, h: 4 });
+    });
+
+    it("clamps width to the columns right of the tile's origin when resizing past the right edge", () => {
+        // Alpha parked at x:8 → only 4 columns remain to its right, so w can never exceed 4.
+        window.localStorage.setItem("diApp.gridBoard.rzr", JSON.stringify({ alpha: { x: 8, y: 0, w: 2, h: 2 } }));
+        const { getByTestId } = render(<GridBoard items={oneItem} storageKey="rzr" />);
+        const tile = getByTestId("grid-board-tile-alpha");
+        const board = boardOf(tile);
+
+        // Yank the handle far past the right edge (+10 cols) and grow height a little.
+        fireEvent.pointerDown(resizeHandle(tile), { clientX: 0, clientY: 0 });
+        fireEvent.pointerMove(board, { clientX: 10 * STEP_X, clientY: 3 * STEP_Y });
+        fireEvent.pointerUp(board);
+
+        expect(savedLayout("rzr").alpha).toEqual({ x: 8, y: 0, w: 4, h: 5 }); // w clamped 12→4, x pinned
+    });
+
+    it("clamps the size to a minimum of one cell in each axis", () => {
+        window.localStorage.setItem("diApp.gridBoard.rzm", JSON.stringify({ alpha: { x: 2, y: 2, w: 6, h: 3 } }));
+        const { getByTestId } = render(<GridBoard items={oneItem} storageKey="rzm" />);
+        const tile = getByTestId("grid-board-tile-alpha");
+        const board = boardOf(tile);
+
+        // Drag the corner far up-and-left → both dimensions floor at 1, origin stays put.
+        fireEvent.pointerDown(resizeHandle(tile), { clientX: 0, clientY: 0 });
+        fireEvent.pointerMove(board, { clientX: -20 * STEP_X, clientY: -20 * STEP_Y });
+        fireEvent.pointerUp(board);
+
+        expect(savedLayout("rzm").alpha).toEqual({ x: 2, y: 2, w: 1, h: 1 });
+    });
+});
+
+// A saved layout that covers only SOME of the current tiles: the unknown tile must fall into place
+// (its default slot, or the first free one) without disturbing the saved tiles, and the very next
+// persist (which fires on mount) must include it. Storage is grid-unit and geometry-independent,
+// so these need no cell-size stub.
+describe("GridBoard new tile onto a saved layout", () => {
+    beforeEach(() => window.localStorage.clear());
+    const savedLayout = (storageKey: string) =>
+        JSON.parse(window.localStorage.getItem(`diApp.gridBoard.${storageKey}`) ?? '{"tiles":{}}').tiles ?? {};
+
+    it("drops a new tile onto its default slot and persists it, leaving saved tiles untouched", () => {
+        // Only alpha is saved (moved down to y:5); beta is the "new" tile with no persisted slot.
+        window.localStorage.setItem(
+            "diApp.gridBoard.newtile",
+            JSON.stringify({ v: 1, tiles: { alpha: { x: 0, y: 5, w: 6, h: 3 } } }),
+        );
+        render(<GridBoard items={items} storageKey="newtile" />);
+        // beta's default {x:6,y:0} does not overlap alpha's saved slot → it lands there verbatim.
+        expect(savedLayout("newtile").beta).toEqual({ x: 6, y: 0, w: 6, h: 3 });
+        expect(savedLayout("newtile").alpha).toEqual({ x: 0, y: 5, w: 6, h: 3 }); // saved tile undisturbed
+    });
+
+    it("falls back to the first free slot when the new tile's default slot is taken", () => {
+        // Alpha is saved sitting exactly on beta's default slot → beta must find the first free one.
+        window.localStorage.setItem(
+            "diApp.gridBoard.newtile2",
+            JSON.stringify({ v: 1, tiles: { alpha: { x: 6, y: 0, w: 6, h: 3 } } }),
+        );
+        render(<GridBoard items={items} storageKey="newtile2" />);
+        expect(savedLayout("newtile2").beta).toEqual({ x: 0, y: 0, w: 6, h: 3 }); // first free top-left
+        expect(savedLayout("newtile2").alpha).toEqual({ x: 6, y: 0, w: 6, h: 3 });
+    });
+});
+
+// Pruning rule on write: a saved layout keeps only ids in (current items ∪ minimized tiles).
+// Complements the storage-level "ghost" test above by pinning the ∪-with-minimized half — a saved
+// slot for a tile that is minimized but no longer a current item still survives a persist cycle.
+describe("GridBoard layout pruning (items ∪ minimized)", () => {
+    beforeEach(() => window.localStorage.clear());
+    const savedLayout = (storageKey: string) =>
+        JSON.parse(window.localStorage.getItem(`diApp.gridBoard.${storageKey}`) ?? '{"tiles":{}}').tiles ?? {};
+
+    it("keeps a minimized-but-removed tile's slot yet prunes a pure orphan", () => {
+        window.localStorage.setItem(
+            "diApp.gridBoard.prune",
+            JSON.stringify({
+                v: 1,
+                tiles: {
+                    alpha: { x: 0, y: 0, w: 6, h: 3 },
+                    beta: { x: 6, y: 0, w: 6, h: 3 },
+                    gamma: { x: 0, y: 3, w: 6, h: 3 }, // no longer an item, but still minimized → kept
+                    delta: { x: 6, y: 3, w: 6, h: 3 }, // neither item nor minimized → pruned
+                },
+            }),
+        );
+        window.localStorage.setItem("diApp.gridBoard.prune.minimized", JSON.stringify({ v: 1, ids: ["gamma"] }));
+
+        // `items` is only [alpha, beta] — gamma/delta are gone from the current tile set.
+        render(<GridBoard items={items} storageKey="prune" />);
+
+        const tiles = savedLayout("prune");
+        expect(tiles.alpha).toBeDefined();
+        expect(tiles.beta).toBeDefined();
+        expect(tiles.gamma).toEqual({ x: 0, y: 3, w: 6, h: 3 }); // survives via the minimized set
+        expect(tiles.delta).toBeUndefined(); // orphan pruned on write
+    });
+});
+
+// resetLayout + the Help-menu reset wiring: a page's board registers its reset handler on the
+// GridBoardResetContext; invoking reset() from a consumer (the Help menu) must reach that handler,
+// clear both storage keys, un-minimize every tile, and rebuild the authored defaults.
+describe("GridBoard reset + GridBoardResetContext chain", () => {
+    beforeEach(() => window.localStorage.clear());
+
+    // Stand-in for the Help menu: reads whether a board is mounted and fires its reset.
+    function ResetConsumer() {
+        const { hasBoard, reset } = useGridBoardReset();
+        return (
+            <button type="button" data-test-id="help-reset" disabled={!hasBoard} onClick={reset}>
+                reset
+            </button>
+        );
+    }
+
+    it("routes a consumer-invoked reset to the mounted board: clears storage, un-minimizes, rebuilds defaults", () => {
+        // Seed a non-default arrangement with alpha parked in the rail.
+        window.localStorage.setItem(
+            "diApp.gridBoard.resetctx",
+            JSON.stringify({ v: 1, tiles: { alpha: { x: 2, y: 4, w: 6, h: 3 }, beta: { x: 1, y: 2, w: 6, h: 3 } } }),
+        );
+        window.localStorage.setItem("diApp.gridBoard.resetctx.minimized", JSON.stringify({ v: 1, ids: ["alpha"] }));
+
+        const { getByTestId, queryByTestId } = render(
+            <GridBoardResetProvider>
+                <ResetConsumer />
+                <GridBoard items={items} storageKey="resetctx" />
+            </GridBoardResetProvider>,
+        );
+
+        // Board mounted → the Help control is enabled; alpha starts parked.
+        expect(getByTestId("help-reset")).toBeEnabled();
+        expect(getByTestId("grid-board-restore-alpha")).toBeInTheDocument();
+
+        // Fire reset from the consumer (not from inside the board).
+        fireEvent.click(getByTestId("help-reset"));
+
+        // Rail emptied (un-minimized); every tile is back.
+        expect(queryByTestId("grid-board-restore-alpha")).not.toBeInTheDocument();
+        expect(queryByTestId("grid-board-minimized-rail")).not.toBeInTheDocument();
+
+        // Storage was cleared and immediately re-seeded with the authored defaults + an empty rail.
+        expect(JSON.parse(window.localStorage.getItem("diApp.gridBoard.resetctx.minimized") ?? "{}")).toEqual({
+            v: 1,
+            ids: [],
+        });
+        const tiles = JSON.parse(window.localStorage.getItem("diApp.gridBoard.resetctx") ?? "{}").tiles;
+        expect(tiles.alpha).toEqual({ x: 0, y: 0, w: 6, h: 3 });
+        expect(tiles.beta).toEqual({ x: 6, y: 0, w: 6, h: 3 });
+    });
+
+    it("tracks board presence — reset is a no-op control when no board is mounted", () => {
+        const { getByTestId, rerender } = render(
+            <GridBoardResetProvider>
+                <ResetConsumer />
+                <GridBoard items={items} storageKey="presence" />
+            </GridBoardResetProvider>,
+        );
+        expect(getByTestId("help-reset")).toBeEnabled();
+
+        // Unmount the board → the provider drops its handler and the control disables again.
+        rerender(
+            <GridBoardResetProvider>
+                <ResetConsumer />
+            </GridBoardResetProvider>,
+        );
+        expect(getByTestId("help-reset")).toBeDisabled();
+    });
+});
+
+// Hover-preview close/keep-open timing. usePreviewPopover bridges the icon→popover gap with a 140ms
+// deferred close, cancels it when the pointer lands on the popover/arrow, and closes immediately on a
+// scroll OUTSIDE the previewed widget. Fake timers make the bridge deterministic.
+describe("GridBoard preview popover timers", () => {
+    beforeEach(() => {
+        window.localStorage.clear();
+        jest.useFakeTimers();
+    });
+    afterEach(() => {
+        act(() => jest.runOnlyPendingTimers());
+        jest.useRealTimers();
+    });
+
+    // The rail icon lives in a framer-motion `motion.span`; the top-of-file mock returns a fresh
+    // component per render, so every state change REMOUNTS that span. Always re-query it right before
+    // firing an event — a reference captured before a render points at a detached node whose React
+    // handlers no longer fire.
+    const railSpan = (getByTestId: (id: string) => HTMLElement): HTMLElement =>
+        getByTestId("grid-board-restore-alpha").parentElement as HTMLElement;
+
+    // Park alpha and hover its rail icon → the still-mounted article floats out as a fixed popover.
+    const openPreview = (getByTestId: (id: string) => HTMLElement) => {
+        fireEvent.click(getByTestId("grid-board-minimize-alpha"));
+        const tile = getByTestId("grid-board-tile-alpha"); // plain <article>, stable across renders
+        fireEvent.mouseEnter(railSpan(getByTestId));
+        expect(tile.style.position).toBe("fixed");
+        return { tile };
+    };
+
+    it("keeps the preview open for 139ms after the pointer leaves the rail icon, then closes at 140ms", () => {
+        const { getByTestId } = render(<GridBoard items={items} storageKey="pv" />);
+        const { tile } = openPreview(getByTestId);
+
+        fireEvent.mouseLeave(railSpan(getByTestId)); // fresh span → arms the 140ms bridge timer
+        act(() => jest.advanceTimersByTime(139));
+        expect(tile.style.position).toBe("fixed"); // still floated — bridge not yet elapsed
+
+        act(() => jest.advanceTimersByTime(1)); // 140ms total
+        expect(tile.style.display).toBe("none"); // closed → back to a hidden minimized tile
+    });
+
+    it("cancels the pending close when the pointer bridges onto the arrow, and closes on arrow leave", () => {
+        const { getByTestId, container } = render(<GridBoard items={items} storageKey="pv2" />);
+        const { tile } = openPreview(getByTestId);
+        const arrow = container.querySelector(".rotate-45") as HTMLElement; // plain div, stable
+        expect(arrow).toBeTruthy();
+
+        fireEvent.mouseLeave(railSpan(getByTestId)); // arms the bridge timer…
+        fireEvent.mouseEnter(arrow); // …but the pointer reaches the arrow first → cancel it
+        act(() => jest.advanceTimersByTime(500));
+        expect(tile.style.position).toBe("fixed"); // stays open well past 140ms
+
+        fireEvent.mouseLeave(arrow); // now leaving for real
+        act(() => jest.advanceTimersByTime(140));
+        expect(tile.style.display).toBe("none");
+    });
+
+    it("closes on a scroll outside the widget but stays open for a scroll inside it", () => {
+        const { getByTestId } = render(<GridBoard items={items} storageKey="pv3" />);
+        const { tile } = openPreview(getByTestId);
+
+        // Scrolling the live widget inside the popover must NOT move/close it.
+        fireEvent.scroll(getByTestId("alpha-body"));
+        expect(tile.style.position).toBe("fixed");
+
+        // Any scroll elsewhere on the page closes the fixed popover immediately (no bridge delay).
+        fireEvent.scroll(getByTestId("grid-board"));
+        expect(tile.style.display).toBe("none");
     });
 });

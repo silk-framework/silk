@@ -17,7 +17,7 @@ interface IProps {
  * don't have). So read it here and feed it as `defaultOpen`. Fallback = closed: the sidebar
  * stays collapsed unless the user has explicitly opened it before.
  */
-const readStoredSidebarOpen = (): boolean => {
+export const readStoredSidebarOpen = (): boolean => {
     if (typeof document === "undefined") return false;
     const match = document.cookie.match(/(?:^|;\s*)sidebar_state=(true|false)/);
     return match ? match[1] === "true" : false;
