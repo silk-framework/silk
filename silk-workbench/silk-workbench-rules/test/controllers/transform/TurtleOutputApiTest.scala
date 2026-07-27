@@ -1,8 +1,13 @@
 package controllers.transform
 
+import controllers.transform.transformTask.TurtleOutputService
 import helper.IntegrationTestTrait
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.must.Matchers
+import org.silkframework.config.CustomTask
+import org.silkframework.dataset.operations.ClearDatasetOperator
+import org.silkframework.rule.{DatasetSelection, ObjectMapping, TransformSpec}
+import org.silkframework.util.ConfigTestTrait
 import org.silkframework.workspace.SingleProjectWorkspaceProviderTestTrait
 import play.api.libs.json.Json
 import test.Routes
@@ -135,5 +140,66 @@ class TurtleOutputApiTest extends AnyFlatSpec with SingleProjectWorkspaceProvide
   it should "return 400 for a negative offset or non-positive limit" in {
     page(-1, 1, "direct").status mustBe 400
     page(0, 0, "direct").status mustBe 400
+  }
+
+  it should "return 400 when the limit parameter exceeds the configured maximum" in {
+    // Default maximum.
+    val response = page(0, TurtleOutputService.defaultMaxLimit + 1, "direct")
+    response.status mustBe 400
+    (Json.parse(response.body) \ "detail").as[String] must include ("limit")
+    // The maximum is configurable.
+    ConfigTestTrait.withConfig(TurtleOutputService.maxLimitConfigKey -> Some("2")) {
+      page(0, 3, "direct").status mustBe 400
+      page(0, 2, "direct").status mustBe 200
+    }
+  }
+
+  it should "return 413 with a problem-details body when the statement cap is exceeded" in {
+    // The 'object' selection materializes ~9 statements for the fixture, so a cap of 3 is exceeded.
+    ConfigTestTrait.withConfig(TurtleOutputService.maxStatementsConfigKey -> Some("3")) {
+      val response = page(0, 100, "object")
+      response.status mustBe 413
+      val json = Json.parse(response.body)
+      (json \ "title").as[String] mustBe "Turtle debug output too large"
+      (json \ "detail").as[String] must include (TurtleOutputService.maxStatementsConfigKey)
+    }
+    // Untouched config: the same request stays within the default cap.
+    page(0, 100, "object").status mustBe 200
+  }
+
+  it should "return 400 when the input task of the transformation is not a dataset" in {
+    project.addTask[CustomTask]("otherTask", ClearDatasetOperator())
+    project.addTask[TransformSpec]("otherInputTransform", TransformSpec(DatasetSelection("otherTask")))
+    val url = s"$baseUrl/transform/tasks/$projectId/otherInputTransform/turtle?offset=0&limit=1"
+    val response = Await.result(client.url(url).post(Json.obj("ruleIds" -> Json.arr("root"))), 100.seconds)
+    response.status mustBe 400
+    (Json.parse(response.body) \ "detail").as[String] must include ("not supported as data source")
+  }
+
+  it should "follow backward/inverse property mappings when assembling a record's page" in {
+    // Clone the fixture transform, but link the Property entities via an inverse mapping:
+    // property entity -> eccemca:property -> person (instead of person -> eccemca:property -> property entity).
+    val baseSpec = project.task[TransformSpec](transformTask).data
+    val root = baseSpec.mappingRule
+    val invertedRules = root.rules.copy(propertyRules = root.rules.propertyRules.map {
+      case obj: ObjectMapping if obj.id.toString == "object" =>
+        obj.copy(target = obj.target.map(_.copy(isBackwardProperty = true)))
+      case other => other
+    })
+    project.addTask[TransformSpec]("BackwardTransform", baseSpec.copy(mappingRule = root.copy(rules = invertedRules)))
+    val url = s"$baseUrl/transform/tasks/$projectId/BackwardTransform/turtle?offset=0&limit=1"
+    val request = client.url(url).addHttpHeaders("Accept" -> "application/n-triples")
+    val response = Await.result(request.post(Json.obj("ruleIds" -> Json.arr("object"))), 100.seconds)
+    response.status mustBe 200
+    val body = response.body
+    // The link triple is inverted: the property entity is the subject, the person the object.
+    body must include (s"<$propertyLink> <http://domain.com/person/1>")
+    // The linked entities (reached only through the backward link) are part of the record's page.
+    body must include (s"<$keyProperty>")
+    body must include ("\"1\"")
+    body must include ("\"2\"")
+    body must include ("\"3\"")
+    // The other record does not bleed in.
+    body must not include "person/2"
   }
 }

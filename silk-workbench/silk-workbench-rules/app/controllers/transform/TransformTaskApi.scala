@@ -7,6 +7,7 @@ import controllers.transform.AutoCompletionApi.Categories
 import controllers.transform.TransformTaskApi._
 import controllers.transform.autoCompletion.RuleAutoCompletionRequest
 import controllers.transform.doc.TransformTaskApiDoc
+import controllers.transform.transformTask.TurtleOutputService
 import controllers.util.ProjectUtils._
 import controllers.util.SerializationUtils._
 import io.swagger.v3.oas.annotations.enums.ParameterIn
@@ -16,10 +17,9 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.tags.Tag
 import io.swagger.v3.oas.annotations.{Operation, Parameter}
 import org.apache.jena.riot.RDFLanguages
-import org.silkframework.config.{MetaData, PlainTask, Prefixes, Task}
+import org.silkframework.config.{MetaData, Prefixes, Task}
 import org.silkframework.dataset._
 import org.silkframework.entity._
-import org.silkframework.execution.TaskException
 import org.silkframework.rule.TransformSpec.{TargetVocabularyListParameter, TargetVocabularyParameterType}
 import org.silkframework.rule._
 import org.silkframework.rule.execution.ExecuteTransform
@@ -34,15 +34,12 @@ import org.silkframework.serialization.json.JsonSerializers._
 import org.silkframework.util.{Identifier, IdentifierGenerator, Uri}
 import org.silkframework.workbench.utils.{ErrorResult, UnsupportedMediaTypeException}
 import org.silkframework.workspace.activity.transform.TransformPathsCache
-import org.silkframework.workspace.activity.transform.TransformTaskUtils.{TransformTask => TransformTaskOps}
 import org.silkframework.workspace.{Project, ProjectTask, WorkspaceFactory}
 import play.api.libs.json._
 import play.api.mvc._
 
 import java.util.logging.{Level, Logger}
 import javax.inject.Inject
-import scala.collection.mutable
-import scala.jdk.CollectionConverters._
 
 @Tag(
   name = "Transform",
@@ -1071,7 +1068,14 @@ class TransformTaskApi @Inject() () extends InjectedController with UserContextA
       ),
       new ApiResponse(
         responseCode = "400",
-        description = "If no (valid) rule ids were provided, the selection does not produce any output, or offset/limit are out of range."
+        description = "If no (valid) rule ids were provided, the selection does not produce any output, or offset/limit are out of range " +
+          "(the maximum limit is configurable via 'workbench.transform.turtleOutput.maxLimit', default 1000)."
+      ),
+      new ApiResponse(
+        responseCode = "413",
+        description = "If executing the selection would materialize more statements in memory than allowed " +
+          "(configurable via 'workbench.transform.turtleOutput.maxStatements', default 100000). " +
+          "Select fewer rules or use a smaller (sample) input dataset."
       )
     ))
   @RequestBody(
@@ -1108,18 +1112,13 @@ class TransformTaskApi @Inject() () extends InjectedController with UserContextA
                    offset: Int,
                    @Parameter(
                      name = "limit",
-                     description = "The number of top-level input records (rows) to include in the page.",
+                     description = "The number of top-level input records (rows) to include in the page. " +
+                       "Capped by the config key 'workbench.transform.turtleOutput.maxLimit' (default 1000).",
                      required = false,
                      in = ParameterIn.QUERY,
                      schema = new Schema(implementation = classOf[Int], defaultValue = "1")
                    )
                    limit: Int): Action[AnyContent] = RequestUserContextAction { request => implicit userContext =>
-    if (offset < 0) {
-      throw new BadUserInputException(s"Query parameter 'offset' must be >= 0, but was $offset.")
-    }
-    if (limit <= 0) {
-      throw new BadUserInputException(s"Query parameter 'limit' must be > 0, but was $limit.")
-    }
     val (project, task) = projectAndTask(projectName, taskName)
     val selectedRuleIds: Set[Identifier] = request.body.asJson match {
       case Some(json) =>
@@ -1136,70 +1135,7 @@ class TransformTaskApi @Inject() () extends InjectedController with UserContextA
       case None =>
         throw UnsupportedMediaTypeException.supportedFormats("application/json")
     }
-    if (selectedRuleIds.isEmpty) {
-      throw new BadUserInputException("No rule ids provided in 'ruleIds'.")
-    }
-    val knownRuleIds = task.data.allRulesRecursive.map(_.id).toSet
-    val unknownRuleIds = selectedRuleIds.diff(knownRuleIds)
-    if (unknownRuleIds.nonEmpty) {
-      throw new BadUserInputException(s"The following rule ids do not exist in transform task '$taskName': " +
-        unknownRuleIds.map(_.toString).mkString(", ") + ".")
-    }
-    val prunedRoot = MappingRuleTreePruning.pruneRoot(task.data.mappingRule, selectedRuleIds)
-      .getOrElse(throw new BadUserInputException("The selected rules do not produce any output."))
-    val prunedTask = PlainTask(task.id, task.data.copy(mappingRule = prunedRoot), task.metaData)
-
-    // Resolve the data source up front so that an unsupported input task (e.g. a non-dataset 'Other'
-    // task) surfaces as a 400 instead of escaping the activity as a 500.
-    val dataSource =
-      try {
-        task.dataSource
-      } catch {
-        case ex: TaskException =>
-          throw new BadUserInputException(ex.getMessage)
-      }
-
-    val (model, baseSink) = inMemoryModelSink()
-    // Records the subjects minted for the root (top-level) entities so we can page by input record.
-    val recordingSink = new RootSubjectRecordingSink(baseSink)
-    // Bound the root-record scan to the page window instead of materializing the whole dataset on every
-    // (single-record) page request. This is only safe when the pruned transform produces a single output
-    // table (no object/nested rules): there are no child levels that could be truncated, and with no object
-    // links there is no cross-record bleed that the full root set (foreign-root boundary in connectedSubgraph)
-    // would have to guard against. For multi-level transforms we keep the full materialization so complete
-    // records and the anti-bleed boundary stay correct. The stop condition counts DISTINCT root subjects (the
-    // recording sink de-duplicates by IRI, line ~1240), so heavy root-IRI de-duplication cannot under-fill the
-    // page - it keeps reading root records until enough distinct roots for [offset, offset + limit) are seen.
-    val singleOutputTable = prunedTask.data.ruleSchemataWithoutEmptyObjectRules.lengthCompare(1) == 0
-    val requiredRootCount = offset.toLong + limit.toLong // widened so a near-Int.MaxValue offset can't overflow
-    val rootTableStopCondition: () => Boolean =
-      if (singleOutputTable) () => recordingSink.rootSubjects.size.toLong >= requiredRootCount
-      else () => false
-    val transform = new ExecuteTransform(
-      task = prunedTask,
-      inputTask = (uc: UserContext) => project.anyTask(task.data.selection.inputId)(uc),
-      input = _ => dataSource,
-      output = _ => recordingSink,
-      pluginContext = (uc: UserContext) => PluginContext.fromProject(project)(uc),
-      rootTableStopCondition = rootTableStopCondition
-    )
-    Activity(transform).startBlocking()
-
-    // A page = the complete output of the root records [offset, offset + limit): each root subject
-    // plus all entities reachable from it (its nested, linked children). Passing all root subjects as
-    // boundaries keeps records that merely share a referenced entity (same author, publisher, ...) from
-    // bleeding into the page through the backward/inverse link traversal.
-    val pageRootSubjects = recordingSink.rootSubjects.drop(offset).take(limit)
-    // Follow inverse links backward only for predicates that are actually backward/inverse property
-    // mappings in this transform. Otherwise the walk would hop through shared object IRIs (e.g. the
-    // rdf:type class shared by every entity of a type, or a shared author) into other records.
-    val backwardPredicates: Set[String] =
-      prunedRoot.rules.allRulesRecursive.flatMap(_.target).collect {
-        case target if target.isBackwardProperty => target.propertyUri.uri
-      }.toSet
-    val pageModel = connectedSubgraph(model, pageRootSubjects, recordingSink.rootSubjects.toSet, Some(backwardPredicates))
-    // Add the project prefixes so the Turtle output uses readable @prefix declarations.
-    pageModel.setNsPrefixes(project.config.prefixes.prefixMap.asJava)
+    val pageModel = TurtleOutputService.outputPageModel(project, task, selectedRuleIds, offset, limit)
     // Resolve the Accept header to a supported RDF content type, ignoring q-params and wildcards.
     // Falls back to Turtle when no accepted media range names a known RDF serialization.
     val acceptedContentType = request.acceptedTypes.iterator
@@ -1207,41 +1143,6 @@ class TransformTaskApi @Inject() () extends InjectedController with UserContextA
       .find(contentType => RDFLanguages.contentTypeToLang(contentType) != null)
       .getOrElse("text/turtle")
     jenaModelResult(pageModel, acceptedContentType)
-  }
-
-  /**
-    * Entity sink that records the subjects written for the first (root) table, so the turtle endpoint
-    * can page by top-level input record. ExecuteTransform writes one table per object level, the root
-    * level first; subjects written before the first [[closeTable]] are therefore the root subjects.
-    */
-  private class RootSubjectRecordingSink(inner: EntitySink) extends EntitySink {
-    private val recordedSubjects = mutable.ListBuffer[String]()
-    private val seen = mutable.Set[String]()
-    private var firstTableClosed = false
-
-    /** The root subjects in the order they were written, de-duplicated. */
-    def rootSubjects: Seq[String] = recordedSubjects.toSeq
-
-    override def openTable(typeUri: Uri, properties: Seq[TypedProperty], singleEntity: Boolean)
-                          (implicit userContext: UserContext, prefixes: Prefixes): Unit =
-      inner.openTable(typeUri, properties, singleEntity)
-
-    override def closeTable()(implicit userContext: UserContext): Unit = {
-      firstTableClosed = true
-      inner.closeTable()
-    }
-
-    override def writeEntity(subject: String, values: IndexedSeq[Seq[String]])
-                            (implicit userContext: UserContext): Unit = {
-      if (!firstTableClosed && seen.add(subject)) {
-        recordedSubjects += subject
-      }
-      inner.writeEntity(subject, values)
-    }
-
-    override def clear(force: Boolean)(implicit userContext: UserContext): Unit = inner.clear(force)
-
-    override def close()(implicit userContext: UserContext): Unit = inner.close()
   }
 
   private def executeTransform(task: ProjectTask[TransformSpec],
