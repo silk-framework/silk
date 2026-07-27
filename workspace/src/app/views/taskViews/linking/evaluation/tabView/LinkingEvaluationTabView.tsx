@@ -728,7 +728,7 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
             )}
             <Spacing size="small" />
             <TableContainer rows={rowData} headers={headerData}>
-                {({ headers, getHeaderProps, getTableProps }: DataTableRenderProps<any, any>) => (
+                {({ headers, getHeaderProps, getTableProps }: DataTableRenderProps<any>) => (
                     <Table
                         {...getTableProps()}
                         size="medium"

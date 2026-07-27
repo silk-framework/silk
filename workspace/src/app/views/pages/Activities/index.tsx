@@ -6,19 +6,16 @@ import {
     WorkspaceMain,
     Section,
     SectionHeader,
-    Grid,
-    GridRow,
-    GridColumn,
     TitleMainsection,
     Divider,
     Notification,
     Button,
     IconButton,
+    Spacing,
 } from "@eccenca/gui-elements";
-import SearchBar from "../../shared/SearchBar";
 import { usePageHeader } from "../../shared/PageHeader/PageHeader";
 import NotFound from "../NotFound";
-import Filterbar from "../Workspace/Filterbar";
+import WorkspaceToolbar from "../Workspace/Toolbar/WorkspaceToolbar";
 import utils from "./ActivitiesUtils";
 import useErrorHandler from "../../../hooks/useErrorHandler";
 import { commonOp } from "@ducks/common";
@@ -31,6 +28,7 @@ import { ProjectTaskParams } from "views/shared/typings";
 import { previewSlice } from "@ducks/workspace/previewSlice";
 import { AppDispatch } from "store/configureStore";
 import { GlobalTableContext } from "../../../GlobalContextsWrapper";
+import { useWorkbenchListState } from "../../../hooks/useWorkbenchListState";
 
 const Activities = () => {
     const dispatch = useDispatch<AppDispatch>();
@@ -38,22 +36,15 @@ const Activities = () => {
     const history = useHistory();
     const error = useSelector(workspaceSel.errorSelector);
     const path = useSelector(routerSel.pathnameSelector);
-    const { textQuery } = useSelector(workspaceSel.appliedFiltersSelector);
     const qs = useSelector(routerSel.routerSearchSelector);
     const pagination = useSelector(workspaceSel.paginationSelector);
-    const sorters = useSelector(workspaceSel.sortersSelector);
     const { clearSearchResults } = previewSlice.actions;
     const { globalTableSettings } = React.useContext(GlobalTableContext);
 
     const [t] = useTranslation();
 
     // FIXME: Workaround to prevent search with a text query from another page sharing the same Redux state. Needs refactoring.
-    const [searchInitialized, setSearchInitialized] = React.useState(false);
-    const effectiveSearchQuery = searchInitialized ? textQuery : "";
-
-    React.useEffect(() => {
-        setSearchInitialized(true);
-    }, []);
+    const { effectiveSearchQuery } = useWorkbenchListState("activities");
 
     const breadcrumbs = [
         {
@@ -140,65 +131,40 @@ const Activities = () => {
             <WorkspaceMain>
                 <Section>
                     <SectionHeader>
-                        <Grid>
-                            <GridRow>
-                                <GridColumn small verticalAlign="center">
-                                    <TitleMainsection>{t("pages.activities.title", "Activities")}</TitleMainsection>
-                                </GridColumn>
-                                <GridColumn>
-                                    <div className="flex items-center gap-2">
-                                        <div className="min-w-0 flex-1">
-                                            <SearchBar
-                                                focusOnCreation
-                                                textQuery={effectiveSearchQuery}
-                                                sorters={sorters}
-                                                onSearch={handleSearch}
-                                                globalTableKey={"activities"}
-                                            />
-                                        </div>
-                                        <IconButton
-                                            name="item-reload"
-                                            text="Reload activities"
-                                            onClick={() => history.go(0)}
-                                        />
-                                    </div>
-                                </GridColumn>
-                            </GridRow>
-                        </Grid>
+                        <TitleMainsection>{t("pages.activities.title", "Activities")}</TitleMainsection>
                     </SectionHeader>
+                    <Spacing size="small" />
+                    <WorkspaceToolbar
+                        textQuery={effectiveSearchQuery}
+                        onSearch={handleSearch}
+                        projectId={projectId}
+                        extraItemTypeModifiers={[{ id: "global", label: "Global" }]}
+                        globalTableKey={"activities"}
+                        actions={
+                            <IconButton name="item-reload" text="Reload activities" onClick={() => history.go(0)} />
+                        }
+                    />
                     <Divider addSpacing="medium" />
-                    <Grid>
-                        <GridRow>
-                            <GridColumn small>
-                                <Filterbar
-                                    extraItemTypeModifiers={[{ id: "global", label: "Global" }]}
-                                    projectId={projectId}
+                    {error.detail ? (
+                        <Notification
+                            intent="danger"
+                            actions={
+                                <Button
+                                    text={t("common.action.retry", "Retry")}
+                                    onClick={() => {
+                                        window.location.reload();
+                                    }}
                                 />
-                            </GridColumn>
-                            <GridColumn>
-                                {error.detail ? (
-                                    <Notification
-                                        intent="danger"
-                                        actions={
-                                            <Button
-                                                text={t("common.action.retry", "Retry")}
-                                                onClick={() => {
-                                                    window.location.reload();
-                                                }}
-                                            />
-                                        }
-                                    >
-                                        <h3 className="font-medium">
-                                            {t("http.error.fetchNotResult", "Error, cannot fetch results.")}
-                                        </h3>
-                                        <p>{error.detail}</p>
-                                    </Notification>
-                                ) : (
-                                    <ActivityList />
-                                )}
-                            </GridColumn>
-                        </GridRow>
-                    </Grid>
+                            }
+                        >
+                            <h3 className="font-medium">
+                                {t("http.error.fetchNotResult", "Error, cannot fetch results.")}
+                            </h3>
+                            <p>{error.detail}</p>
+                        </Notification>
+                    ) : (
+                        <ActivityList />
+                    )}
                 </Section>
             </WorkspaceMain>
         </WorkspaceContent>

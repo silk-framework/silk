@@ -129,7 +129,7 @@ const TransformEvaluationTabView: React.FC<TransformEvaluationTabViewProps> = ({
                     </GridColumn>
                     <GridColumn className="diapp-linking-evaluation">
                         <TableContainer rows={rows} headers={headers}>
-                            {({ getTableProps }: DataTableRenderProps<any, any>) => (
+                            {({ getTableProps }: DataTableRenderProps<any>) => (
                                 <Table {...getTableProps()} size={"medium"}>
                                     <TableHead>
                                         <TableRow>

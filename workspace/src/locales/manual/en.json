@@ -395,7 +395,12 @@
         "updateFailed": "Updating meta data has failed"
     },
     "Notifications": {
-        "empty": "You have no notifications."
+        "close": "Close notifications menu",
+        "closeIcon": "Close icon",
+        "empty": "You have no notifications.",
+        "menuIcon": "Notification menu icon",
+        "menuLabel": "Notification menu",
+        "open": "Open notifications menu"
     },
     "OverwriteModal": {
         "overwriteFile": "File '{{fileName}}' already exists. Do you want to overwrite it?"
@@ -1090,7 +1095,8 @@
             "close": "Close user menu",
             "language": "Language",
             "menu": "User menu",
-            "open": "Open user menu"
+            "open": "Open user menu",
+            "versionBy": "{{version}} by {{corporation}}"
         }
     },
     "pages": {
