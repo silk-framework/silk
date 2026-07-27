@@ -84,8 +84,17 @@ object TransformTaskUtils {
       */
     def asDataSource(typeUri: Uri)
                     (implicit userContext: UserContext): DataSource = {
+      asDataSource(inputDatasetTask, typeUri)
+    }
+
+    /**
+      * Converts this transform task to a data source that transforms the entities of the given input dataset.
+      * Allows callers that already resolved the input dataset to avoid resolving it a second time.
+      */
+    def asDataSource(inputDataset: ProjectTask[GenericDatasetSpec], typeUri: Uri)
+                    (implicit userContext: UserContext): DataSource = {
       val transformSpec = task.data
-      val source = ExecutorRegistry.access(inputDatasetTask).source
+      val source = ExecutorRegistry.access(inputDataset).source
 
       // Find the rule that generates the selected type
       if(typeUri.uri.isEmpty) {

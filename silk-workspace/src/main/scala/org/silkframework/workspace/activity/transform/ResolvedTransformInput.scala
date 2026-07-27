@@ -49,9 +49,13 @@ object ResolvedTransformInput {
                                upstreamTransform: Option[ProjectTask[TransformSpec]] = None,
                                typeUri: Uri = Uri("")) extends ResolvedTransformInput {
     override def dataSourceOption(implicit userContext: UserContext): Option[DataSource] = {
-      // Executing the upstream transform requires its own input to be a dataset
-      upstreamTransform.filter(_.inputDatasetTaskOption.isDefined)
-        .map(transformTask => transformTask.asDataSource(typeUri))
+      // Executing the upstream transform requires its own input to be a dataset, which is only resolved once
+      for {
+        transformTask <- upstreamTransform
+        inputDataset <- transformTask.inputDatasetTaskOption
+      } yield {
+        transformTask.asDataSource(inputDataset, typeUri)
+      }
     }
     // Both transform outputs and fixed output schemas are flat entity tables
     override def characteristics: DatasetCharacteristics = DatasetCharacteristics.attributesOnly()
