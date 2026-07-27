@@ -27,27 +27,10 @@ import "./theme/quicksearch.css";
 import mappingEditor from "./app/views/pages/MappingEditor/index";
 import "./language";
 
-// Restyling experiment: dark-mode dev flag. The shadcn token set ships full dark values
-// (`.dark` class variant), but legacy SCSS still hardcodes light colors, so this stays a
-// dev-only switch until the SCSS sunset. Usage: `window.__toggleDarkMode()` in the console.
 // The `dark` class on <html> is owned by next-themes (`ThemeProvider attribute="class"`,
-// storage key `diapp-theme`) — the pristine shadcn `sonner.tsx` reads the theme through
-// next-themes' `useTheme`. The toggle flips the class in place and persists the choice.
-const legacyDarkFlag = window.localStorage?.getItem("diapp-experimental-dark") === "true";
-// The dark-mode experiment persists `diapp-theme` in localStorage. A value left over from an
-// earlier session strands the shadcn sidebar in dark (it honours `.dark`) while the legacy
-// light-SCSS shell stays light — a jarring dark-gray sidebar on an otherwise light app. Unless
-// the legacy dark flag is explicitly set, reset to light on boot so a stale preference can't
-// keep us in dark. `__toggleDarkMode()` still works within a session.
-if (!legacyDarkFlag) {
-    window.localStorage?.removeItem("diapp-theme");
-    document.documentElement.classList.remove("dark");
-}
-(window as any).__toggleDarkMode = (): boolean => {
-    const dark = document.documentElement.classList.toggle("dark");
-    window.localStorage?.setItem("diapp-theme", dark ? "dark" : "light");
-    return dark;
-};
+// storage key `diapp-theme`): the appearance switcher in the sidebar user menu sets the theme
+// via next-themes' `useTheme`, next-themes persists it and restores it on boot, and the
+// pristine shadcn `sonner.tsx` reads it the same way.
 
 if (typeof mappingEditor.hierarchicalMapping !== "function") {
     console.error("Mapping editor factory methods no registered.");
@@ -70,12 +53,7 @@ const bootstrapApp = (routes: IRouteProps[], externalRoutes) => {
     const root = createRoot(rootDIv);
     root.render(
         <ErrorBoundary>
-            <ThemeProvider
-                attribute="class"
-                storageKey="diapp-theme"
-                defaultTheme={legacyDarkFlag ? "dark" : "light"}
-                enableSystem={false}
-            >
+            <ThemeProvider attribute="class" storageKey="diapp-theme" defaultTheme="light" enableSystem={false}>
                 {/* The pristine shadcn sidebar/tooltip primitives expect an app-level
                     TooltipProvider (the radix-nova sidebar no longer mounts its own). */}
                 <shadcn.TooltipProvider>

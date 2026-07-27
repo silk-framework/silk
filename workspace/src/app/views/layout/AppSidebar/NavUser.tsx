@@ -5,6 +5,7 @@ import { Icon, Menu, shadcn } from "@eccenca/gui-elements";
 import { commonSel } from "@ducks/common";
 import { pluginRegistry, SUPPORTED_PLUGINS } from "../../plugins/PluginRegistry";
 import { APPLICATION_CORPORATION_NAME } from "../../../constants/base";
+import { ThemeSwitcher } from "./ThemeSwitcher";
 
 const {
     DropdownMenu,
@@ -25,7 +26,7 @@ const localPart = (uri: string): string => {
 /**
  * Sidebar footer profile menu. The tile shows the logged-in user (from
  * `initialSettings.userUri`); clicking opens a popup menu to the side with the language switcher,
- * account actions (logout) and the version line. The menu's gui-elements `MenuItem`s render in
+ * the light/dark appearance switcher, account actions (logout) and the version line. The menu's gui-elements `MenuItem`s render in
  * STATIC mode (plain `<li>` via `<Menu>`) — dropdown mode would emit a Radix item from a
  * different Radix instance than `shadcn.DropdownMenuContent` and crash ("MenuItem must be used
  * within Menu").
@@ -81,6 +82,12 @@ export function NavUser() {
                                 <languageSwitcher.Component />
                             </div>
                         )}
+                        <div className="px-1 pt-1">
+                            <div className="px-2 pb-1 text-xs font-medium text-muted-foreground">
+                                {t("navigation.user.appearance", "Appearance")}
+                            </div>
+                            <ThemeSwitcher />
+                        </div>
                         {!!dmBaseUrl && diUserMenuItems && (
                             <Menu>
                                 <diUserMenuItems.Component />

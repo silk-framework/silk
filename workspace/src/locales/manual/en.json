@@ -1092,10 +1092,13 @@
         },
         "user": {
             "account": "Account",
+            "appearance": "Appearance",
             "close": "Close user menu",
             "language": "Language",
             "menu": "User menu",
             "open": "Open user menu",
+            "themeDark": "Dark",
+            "themeLight": "Light",
             "versionBy": "{{version}} by {{corporation}}"
         }
     },
