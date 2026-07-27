@@ -10,7 +10,6 @@ import {
     CardHeader,
     CardOptions,
     CardTitle,
-    cn,
     Divider,
     Grid,
     GridRow,
@@ -28,8 +27,10 @@ import { SERVE_PATH } from "../../../constants/path";
 import { IProjectTaskView, IViewActions, pluginRegistry } from "../../plugins/PluginRegistry";
 import { GridTileTitleIcon } from "../GridBoard";
 import PromptModal from "./PromptModal";
+import TabBar from "./TabBar";
 import ErrorBoundary from "../../../ErrorBoundary";
 import { ProjectTaskTabViewContext } from "./ProjectTaskTabViewContext";
+import { routeNextBlockConfirmation } from "./unsavedChangesConfirmation";
 
 const getBookmark = () => window.location.pathname.split("/").slice(-1)[0];
 
@@ -128,6 +129,19 @@ export function ProjectTaskTabView({
     // user declined a dirty tab switch. That restore is not a real navigation, so it must pass
     // history.block without triggering a second unsaved-changes prompt.
     const restoringDeclinedUrlRef = React.useRef(false);
+    // Resolver for the currently open PromptModal when it was opened as a Promise-based
+    // confirmation — i.e. the two non-click paths: a history.block prompt routed through the
+    // custom getUserConfirmation, and the URL→tab restore path. null while the modal is instead
+    // driven by the in-app tab-click flow (blockedTab / blockedClosingModal).
+    const confirmResolveRef = React.useRef<((confirmed: boolean) => void) | null>(null);
+    // Open the PromptModal and resolve once the user proceeds (true) or cancels (false). This is
+    // the single modal surface shared by all unsaved-changes prompts.
+    const requestConfirmation = React.useCallback((): Promise<boolean> => {
+        return new Promise<boolean>((resolve) => {
+            confirmResolveRef.current = resolve;
+            setOpenTabSwitchPrompt(true);
+        });
+    }, []);
     const viewsAndItemLink: Partial<IProjectTaskView & IItemLink>[] = [...(taskViews ?? []), ...itemLinks];
     const isTaskView = (viewOrItemLink: Partial<IProjectTaskView & IItemLink>) => !viewOrItemLink.path;
     const itemLinkActive = selectedTab != null && typeof selectedTab !== "string";
@@ -220,24 +234,23 @@ export function ProjectTaskTabView({
         // back/forward to a sibling tab's deep link (…/transformEvaluation?ruleId=x) arrives
         // here unprompted while the embedded view may still hold unsaved changes — applyTab
         // would silently discard them. Complement the block condition (non-empty search ⇒
-        // block stayed silent) and ask with the same prompt. On decline, restore the URL to
-        // the selected tab and keep the unsaved-changes flag untouched.
-        const applyTabFromUrl = (tabItem: IItemLink | string) => {
-            if (
-                unsavedChanges &&
-                typeof selectedTabId === "string" &&
-                location.search.length > 0 &&
-                !window.confirm(t("Metadata.unsavedMetaDataWarning") as string)
-            ) {
-                restoringDeclinedUrlRef.current = true;
-                try {
-                    // Re-runs this effect, which then no-ops: the bookmark matches the (kept)
-                    // selected tab again.
-                    history.replace(calculateBookmark(selectedTabId, taskId, viewsAndItemLink));
-                } finally {
-                    restoringDeclinedUrlRef.current = false;
+        // block stayed silent) and ask with the same PromptModal. On decline, restore the URL
+        // to the selected tab and keep the unsaved-changes flag untouched.
+        const applyTabFromUrl = async (tabItem: IItemLink | string) => {
+            if (unsavedChanges && typeof selectedTabId === "string" && location.search.length > 0) {
+                const confirmed = await requestConfirmation();
+                if (!confirmed) {
+                    restoringDeclinedUrlRef.current = true;
+                    try {
+                        // Re-runs this effect, which then no-ops: the bookmark matches the (kept)
+                        // selected tab again. restoringDeclinedUrlRef keeps history.block silent
+                        // for this synchronous restore.
+                        history.replace(calculateBookmark(selectedTabId, taskId, viewsAndItemLink));
+                    } finally {
+                        restoringDeclinedUrlRef.current = false;
+                    }
+                    return;
                 }
-                return;
             }
             applyTab(tabItem);
         };
@@ -331,20 +344,29 @@ export function ProjectTaskTabView({
     /** show browser prompt when making route changes except changes with search params */
     React.useEffect(() => {
         window.onbeforeunload = () => (unsavedChanges ? true : null);
-        const unBlock = history.block((nextLocation) =>
+        const unBlock = history.block((nextLocation) => {
             // Only real navigation (pathname change) counts as leaving the view. Same-pathname
             // transitions are in-view query-param updates — including CLEARING the params (e.g.
             // the mapping creator deselecting a node with an autosave still pending), which used
             // to trip this prompt because the resulting search string is empty. The URL-restore
             // after a declined tab switch (URL→tab sync effect) is not a navigation either.
-            !restoringDeclinedUrlRef.current &&
-            nextLocation.pathname !== history.location.pathname &&
-            !nextLocation.search.length &&
-            unsavedChanges &&
-            !openTabSwitchPrompt
-                ? (t("Metadata.unsavedMetaDataWarning") as string)
-                : undefined,
-        );
+            const shouldPrompt =
+                !restoringDeclinedUrlRef.current &&
+                nextLocation.pathname !== history.location.pathname &&
+                !nextLocation.search.length &&
+                unsavedChanges &&
+                !openTabSwitchPrompt;
+            if (!shouldPrompt) {
+                return undefined;
+            }
+            // Route this navigation's confirmation through the in-app PromptModal instead of the
+            // native window.confirm: history calls getUserConfirmation(message, cb) synchronously
+            // right after this callback returns a string, and the app's custom getUserConfirmation
+            // (installed on the browser history) consumes this one-shot handler for exactly this
+            // navigation, falling back to window.confirm for every other caller.
+            routeNextBlockConfirmation(requestConfirmation);
+            return t("Metadata.unsavedMetaDataWarning") as string;
+        });
         return () => unBlock();
     }, [unsavedChanges, openTabSwitchPrompt]);
 
@@ -468,8 +490,6 @@ export function ProjectTaskTabView({
         unsavedChanges: viewActionsUnsavedChanges,
     };
 
-    let tabNr = 1;
-
     const tabsWidget = (projectId: string | undefined, taskId: string | undefined) => {
         const suffix =
             getTaskView(selectedTab)?.supportsTaskContext && viewActions?.taskContext
@@ -496,73 +516,17 @@ export function ProjectTaskTabView({
                         </CardTitle>
                         <CardOptions>
                             {viewsAndItemLink.length > 1 && (
-                                // Shadcn-styled segmented tab bar. Presentational only — the anchors keep
-                                // the existing bookmark-href navigation, unsaved-changes prompt via
-                                // changeTab, open-in-new-tab item links and data-test-ids. The active tab
-                                // is expressed with `data-active` styling instead of the old disabled grey.
-                                <div
-                                    role="tablist"
-                                    aria-label={tLabel(title ?? activeTab?.label ?? "")}
-                                    className={cn(
-                                        "inline-flex h-8 w-fit items-center justify-center rounded-lg",
-                                        "bg-muted p-[3px] text-muted-foreground",
-                                    )}
-                                >
-                                    {viewsAndItemLink.map((tabItem) => {
-                                        const tabRoute = getTabRoute(tabItem.id ?? (tabItem as IItemLink));
-                                        const openInNewTab = tabItem.openInNewTab;
-                                        const isActive =
-                                            !!selectedTab &&
-                                            (tabItem.path ?? tabItem.id) ===
-                                                ((selectedTab as any)?.path ?? selectedTab);
-                                        return (
-                                            <a
-                                                role="tab"
-                                                aria-selected={isActive}
-                                                data-test-id={"taskView-" + (tabItem.id ?? `-iframe-${tabNr++}`)}
-                                                key={tabItem.id ?? tabItem.path}
-                                                onClick={(e) => {
-                                                    if (isActive) {
-                                                        e.preventDefault();
-                                                        return;
-                                                    }
-                                                    if (!openInNewTab) {
-                                                        e.preventDefault();
-                                                        changeTab(tabItem.id ?? (tabItem as IItemLink));
-                                                    }
-                                                }}
-                                                title={openInNewTab ? t("common.action.openInNewTabTooltip") : ""}
-                                                href={
-                                                    openInNewTab
-                                                        ? tabItem.path
-                                                        : calculateBookmark(
-                                                              tabRoute?.id ?? "",
-                                                              taskId,
-                                                              viewsAndItemLink,
-                                                          )
-                                                }
-                                                target={openInNewTab ? "_blank" : undefined}
-                                                rel="noopener noreferrer"
-                                                className={cn(
-                                                    "relative inline-flex h-[calc(100%-1px)] items-center justify-center gap-1.5",
-                                                    "cursor-pointer rounded-md border border-transparent px-1.5 py-0.5",
-                                                    "text-sm font-medium whitespace-nowrap no-underline transition-all",
-                                                    "hover:no-underline focus-visible:outline-1 focus-visible:outline-ring",
-                                                    "[&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
-                                                    // `--background` equals `--muted` in this theme, so an active
-                                                    // `bg-background` was invisible against the muted tab bar. Use the
-                                                    // card surface (white in light, a lighter slate in dark) + shadow so
-                                                    // the selected tab reads as a distinct raised pill.
-                                                    isActive
-                                                        ? "bg-card text-foreground shadow-sm dark:border-input dark:bg-input"
-                                                        : "text-muted-foreground hover:text-foreground",
-                                                )}
-                                            >
-                                                {tLabel(tabItem.label as string)}
-                                            </a>
-                                        );
-                                    })}
-                                </div>
+                                <TabBar
+                                    tabs={viewsAndItemLink}
+                                    selectedTab={selectedTab}
+                                    ariaLabel={tLabel(title ?? activeTab?.label ?? "")}
+                                    bookmarkHref={(tabRouteId) =>
+                                        calculateBookmark(tabRouteId, taskId, viewsAndItemLink)
+                                    }
+                                    tLabel={tLabel}
+                                    openInNewTabTooltip={t("common.action.openInNewTabTooltip")}
+                                    onSelect={(tabItem) => changeTab(tabItem)}
+                                />
                             )}
                             {!!handlerRemoveModal && (
                                 <IconButton
@@ -621,13 +585,29 @@ export function ProjectTaskTabView({
         <ErrorBoundary>
             <PromptModal
                 onClose={() => {
+                    // Promise-based paths (history.block via getUserConfirmation, URL→tab restore)
+                    // resolve their own decision; the in-app tab-click flow clears its blockedTab.
+                    if (confirmResolveRef.current) {
+                        const resolve = confirmResolveRef.current;
+                        confirmResolveRef.current = null;
+                        setOpenTabSwitchPrompt(false);
+                        resolve(false);
+                        return;
+                    }
                     setOpenTabSwitchPrompt(false);
                     setBlockedTab(undefined);
                 }}
                 isOpen={openTabSwitchPrompt}
-                proceed={() =>
-                    blockedClosingModal ? handlerRemoveModalWrapper(true) : blockedTab && changeTab(blockedTab, true)
-                }
+                proceed={() => {
+                    if (confirmResolveRef.current) {
+                        const resolve = confirmResolveRef.current;
+                        confirmResolveRef.current = null;
+                        setOpenTabSwitchPrompt(false);
+                        resolve(true);
+                        return;
+                    }
+                    blockedClosingModal ? handlerRemoveModalWrapper(true) : blockedTab && changeTab(blockedTab, true);
+                }}
             />
             {selectedTask === taskId && !!handlerRemoveModal ? (
                 <Modal
