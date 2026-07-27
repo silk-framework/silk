@@ -7,9 +7,10 @@ import org.silkframework.execution.{ExecutorRegistry, TaskException}
 import org.silkframework.rule.{TaskContext, TransformSpec, TransformedDataSource}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.PluginContext
-import org.silkframework.runtime.validation.NotFoundException
+import org.silkframework.runtime.validation.{BadUserInputException, NotFoundException, ValidationException}
 import org.silkframework.util.Uri
-import org.silkframework.workspace.{ProjectTask}
+import org.silkframework.workspace.ProjectTask
+import org.silkframework.workspace.exceptions.TaskNotFoundException
 
 /**
   * Adds additional methods to transform tasks.
@@ -45,6 +46,19 @@ object TransformTaskUtils {
       */
     def resolveInput(implicit userContext: UserContext): ResolvedTransformInput = {
       ResolvedTransformInput.resolve(task)
+    }
+
+    /**
+      * Resolves the input of this transform task, if it provides a schema.
+      */
+    def resolveInputOption(implicit userContext: UserContext): Option[ResolvedTransformInput] = {
+      try {
+        Some(resolveInput)
+      } catch {
+        // The input task is missing, provides no fixed output schema or does not generate the selected type
+        case _: BadUserInputException | _: TaskNotFoundException | _: ValidationException =>
+          None
+      }
     }
 
     /**

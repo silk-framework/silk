@@ -1,7 +1,7 @@
 package org.silkframework.workspace.activity.transform
 
 import org.silkframework.config.FixedSchemaPort
-import org.silkframework.dataset.DataSource
+import org.silkframework.dataset.{DataSource, DatasetCharacteristics}
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.entity.EntitySchema
 import org.silkframework.execution.ExecutorRegistry
@@ -23,6 +23,9 @@ sealed trait ResolvedTransformInput {
 
   /** A data source for retrieving input entities, if the input can provide data without executing a workflow. */
   def dataSourceOption(implicit userContext: UserContext): Option[DataSource]
+
+  /** The characteristics of the input, e.g., if it supports multi-hop paths. */
+  def characteristics: DatasetCharacteristics
 }
 
 object ResolvedTransformInput {
@@ -33,6 +36,7 @@ object ResolvedTransformInput {
     override def dataSourceOption(implicit userContext: UserContext): Option[DataSource] = {
       Some(ExecutorRegistry.access(datasetTask).source)
     }
+    override def characteristics: DatasetCharacteristics = datasetTask.data.characteristics
   }
 
   /**
@@ -49,6 +53,8 @@ object ResolvedTransformInput {
       upstreamTransform.filter(_.inputDatasetTaskOption.isDefined)
         .map(transformTask => transformTask.asDataSource(typeUri))
     }
+    // Both transform outputs and fixed output schemas are flat entity tables
+    override def characteristics: DatasetCharacteristics = DatasetCharacteristics.attributesOnly()
   }
 
   /**
