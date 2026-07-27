@@ -62,6 +62,17 @@ class ResolvedTransformInputTest extends AnyFlatSpec with Matchers with TestWork
     targetProperties(staticInput.schema) must contain("urn:target:name")
   }
 
+  it should "report whether the input schema contains multi-hop paths" in {
+    def schemaOf(paths: UntypedPath*): EntitySchema = {
+      EntitySchema(Uri(rootType), paths.map(_.asStringTypedPath).toIndexedSeq)
+    }
+    val flat = StaticSchemaInput(schemaOf(path("name")))
+    val nested = StaticSchemaInput(schemaOf(path("name"), UntypedPath(List(ForwardOperator("address"), ForwardOperator("city")))))
+
+    flat.characteristics.supportedPathExpressions.multiHopPaths mustBe false
+    nested.characteristics.supportedPathExpressions.multiHopPaths mustBe true
+  }
+
   /** An upstream transform that reads a typed source and maps it to a root and a nested object rule. */
   private def upstreamTransform: TransformSpec = {
     TransformSpec(

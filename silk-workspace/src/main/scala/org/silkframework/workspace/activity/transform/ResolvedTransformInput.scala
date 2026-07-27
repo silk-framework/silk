@@ -2,6 +2,7 @@ package org.silkframework.workspace.activity.transform
 
 import org.silkframework.config.FixedSchemaPort
 import org.silkframework.dataset.{DataSource, DatasetCharacteristics}
+import org.silkframework.dataset.DatasetCharacteristics.SupportedPathExpressions
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.entity.EntitySchema
 import org.silkframework.execution.ExecutorRegistry
@@ -57,8 +58,14 @@ object ResolvedTransformInput {
         transformTask.asDataSource(inputDataset, typeUri)
       }
     }
-    // Both transform outputs and fixed output schemas are flat entity tables
-    override def characteristics: DatasetCharacteristics = DatasetCharacteristics.attributesOnly()
+
+    /** Transform outputs are flat, but a fixed output schema may contain multi-hop paths. */
+    override def characteristics: DatasetCharacteristics = {
+      DatasetCharacteristics(
+        supportedPathExpressions = SupportedPathExpressions(multiHopPaths = schema.typedPaths.exists(_.operators.size > 1)),
+        supportsMultipleTables = false
+      )
+    }
   }
 
   /**
@@ -90,8 +97,7 @@ object ResolvedTransformInput {
 
   /**
     * The type that is read from the given transform task.
-    * A selected type that none of its rules generates is ignored, e.g., a type that is left over from a previous
-    * input dataset. The primary output type is read in that case, which is also what happens if no type is selected.
+    * A selected type that none of its rules generates is ignored, e.g. one left over from a previous input dataset.
     */
   private def effectiveTypeUri(transformTask: ProjectTask[TransformSpec], selectedType: Uri): Uri = {
     if(selectedType.uri.nonEmpty && transformTask.data.ruleSchemataForTargetTypeOption(selectedType).isDefined) {
