@@ -73,23 +73,19 @@ object ResolvedTransformInput {
     val project = transformTask.project
     val selection = transformTask.data.selection
     val inputId = selection.inputId
-    project.taskOption[GenericDatasetSpec](inputId).map(DatasetInput) match {
-      case Some(datasetInput) =>
-        datasetInput
-      case None =>
-        project.taskOption[TransformSpec](inputId) match {
-          case Some(upstream) =>
-            StaticSchemaInput(outputSchema(upstream, selection.typeUri), Some(upstream), selection.typeUri)
-          case None =>
-            project.anyTask(inputId).data.outputPort match {
-              case Some(FixedSchemaPort(schema)) =>
-                StaticSchemaInput(schema)
-              case _ =>
-                throw new BadUserInputException(s"The input task '$inputId' of transform task '${transformTask.id}' does not provide a fixed output schema. " +
-                  "The input of a transform task must be a dataset, a transform task or a task with a fixed output schema.")
-            }
+    project.taskOption[GenericDatasetSpec](inputId).map(DatasetInput)
+      .orElse(project.taskOption[TransformSpec](inputId).map { upstream =>
+        StaticSchemaInput(outputSchema(upstream, selection.typeUri), Some(upstream), selection.typeUri)
+      })
+      .getOrElse {
+        project.anyTask(inputId).data.outputPort match {
+          case Some(FixedSchemaPort(schema)) =>
+            StaticSchemaInput(schema)
+          case _ =>
+            throw new BadUserInputException(s"The input task '$inputId' of transform task '${transformTask.id}' does not provide a fixed output schema. " +
+              "The input of a transform task must be a dataset, a transform task or a task with a fixed output schema.")
         }
-    }
+      }
   }
 
   /**

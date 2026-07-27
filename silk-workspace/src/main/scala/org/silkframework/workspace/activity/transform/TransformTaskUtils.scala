@@ -1,6 +1,5 @@
 package org.silkframework.workspace.activity.transform
 
-import org.silkframework.config.CustomTask
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.dataset.{DataSource, EntitySink}
 import org.silkframework.execution.{ExecutorRegistry, TaskException}
@@ -63,19 +62,13 @@ object TransformTaskUtils {
 
     /**
       * Retrieves the data source for this transform task.
+      *
+      * @throws org.silkframework.execution.TaskException If the input cannot provide data without executing a workflow.
       */
     def dataSource(implicit userContext: UserContext): DataSource = {
-      val sourceId = task.data.selection.inputId
-      task.project.taskOption[CustomTask](sourceId) match {
-        case Some(customTask) =>
-          throw TaskException(s"Task ${customTask.id} of type 'Other' is not supported as data source. Evaluate and Execute actions are thus not working.")
-        case None =>
-          task.project.taskOption[TransformSpec](sourceId) match {
-            case Some(transformTask) =>
-              transformTask.asDataSource(task.data.selection.typeUri)
-            case None =>
-              ExecutorRegistry.access(inputDatasetTask).source
-          }
+      resolveInput.dataSourceOption.getOrElse {
+        throw TaskException(s"The input task '${task.data.selection.inputId}' of transform task '${task.id}' cannot provide data on its own. " +
+          "Evaluate and Execute actions are thus not working.")
       }
     }
 
