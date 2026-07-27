@@ -16,7 +16,7 @@ import org.silkframework.runtime.resource.Resource
 import org.silkframework.runtime.serialization.XmlSerialization._
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat, XmlSerialization}
 import org.silkframework.runtime.templating.{TemplateVariableName, TemplateVariables}
-import org.silkframework.runtime.validation.{NotFoundException, ValidationException}
+import org.silkframework.runtime.validation.{BadUserInputException, NotFoundException}
 import org.silkframework.util.{Identifier, IdentifierGenerator, Uri}
 import org.silkframework.workspace.{OriginalTaskData, TaskLoadingException, WorkspaceReadTrait}
 import org.silkframework.workspace.project.task.DatasetTaskReferenceAutoCompletionProvider
@@ -187,14 +187,19 @@ case class TransformSpec(@Param(label = "Input", value = "The source from which 
     collectSchemata(mappingRule, UntypedPath.empty, UntypedPath.empty, withEmptyObjectRules = false)
   }
 
+  /** The schemata of the rule that generates the given target type, if there is one. */
+  def ruleSchemataForTargetTypeOption(targetType: Uri): Option[RuleSchemata] = {
+    ruleSchemataWithoutEmptyObjectRules.find(_.transformRule.rules.typeRules.map(_.typeUri).contains(targetType))
+  }
+
   /**
     * The schemata of the rule that generates the given target type.
     *
-    * @throws ValidationException If no rule generates the given type.
+    * @throws BadUserInputException If no rule generates the given type.
     */
   def ruleSchemataForTargetType(targetType: Uri): RuleSchemata = {
-    ruleSchemataWithoutEmptyObjectRules.find(_.transformRule.rules.typeRules.map(_.typeUri).contains(targetType))
-      .getOrElse(throw new ValidationException(s"No rule matching target type $targetType found."))
+    ruleSchemataForTargetTypeOption(targetType)
+      .getOrElse(throw new BadUserInputException(s"No rule matching target type $targetType found."))
   }
 
   /**

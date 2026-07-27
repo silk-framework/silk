@@ -6,7 +6,7 @@ import org.silkframework.execution.{ExecutorRegistry, TaskException}
 import org.silkframework.rule.{TaskContext, TransformSpec, TransformedDataSource}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.PluginContext
-import org.silkframework.runtime.validation.{BadUserInputException, NotFoundException, ValidationException}
+import org.silkframework.runtime.validation.{BadUserInputException, NotFoundException}
 import org.silkframework.util.Uri
 import org.silkframework.workspace.ProjectTask
 import org.silkframework.workspace.exceptions.TaskNotFoundException
@@ -54,8 +54,8 @@ object TransformTaskUtils {
       try {
         Some(resolveInput)
       } catch {
-        // The input task is missing, provides no fixed output schema or does not generate the selected type
-        case _: BadUserInputException | _: TaskNotFoundException | _: ValidationException =>
+        // The input task is missing or provides no schema at all
+        case _: BadUserInputException | _: TaskNotFoundException =>
           None
       }
     }
@@ -66,11 +66,20 @@ object TransformTaskUtils {
       * @throws org.silkframework.execution.TaskException If the input cannot provide data without executing a workflow.
       */
     def dataSource(implicit userContext: UserContext): DataSource = {
-      resolveInput.dataSourceOption.getOrElse {
+      val resolvedInput =
+        try {
+          resolveInput
+        } catch {
+          // The input provides no schema at all, e.g., a custom task without a fixed output schema
+          case ex: BadUserInputException => throw TaskException(s"${ex.getMessage} $evaluateAndExecuteNotWorking")
+        }
+      resolvedInput.dataSourceOption.getOrElse {
         throw TaskException(s"The input task '${task.data.selection.inputId}' of transform task '${task.id}' cannot provide data on its own. " +
-          "Evaluate and Execute actions are thus not working.")
+          evaluateAndExecuteNotWorking)
       }
     }
+
+    private def evaluateAndExecuteNotWorking = "Evaluate and Execute actions are thus not working."
 
     /**
       * Converts this transform task to a data source.

@@ -43,7 +43,7 @@ object ResolvedTransformInput {
     * The input has a statically known schema, i.e., it is another transform task or a task with a fixed output schema.
     * For transform tasks that read from a dataset, a data source is available that executes the transformation.
     *
-    * @param typeUri The requested type, i.e., the type selection of the transform task that reads from this input.
+    * @param typeUri The type that is read from the upstream transform. Empty if its primary output type is read.
     */
   case class StaticSchemaInput(schema: EntitySchema,
                                upstreamTransform: Option[ProjectTask[TransformSpec]] = None,
@@ -66,7 +66,6 @@ object ResolvedTransformInput {
     *
     * @throws BadUserInputException If the input task does not provide a fixed output schema.
     * @throws org.silkframework.workspace.exceptions.TaskNotFoundException If the input task does not exist.
-    * @throws org.silkframework.runtime.validation.ValidationException If no rule of the input transform generates the selected type.
     */
   def resolve(transformTask: ProjectTask[TransformSpec])
              (implicit userContext: UserContext): ResolvedTransformInput = {
@@ -75,7 +74,8 @@ object ResolvedTransformInput {
     val inputId = selection.inputId
     project.taskOption[GenericDatasetSpec](inputId).map(DatasetInput)
       .orElse(project.taskOption[TransformSpec](inputId).map { upstream =>
-        StaticSchemaInput(outputSchema(upstream, selection.typeUri), Some(upstream), selection.typeUri)
+        val typeUri = effectiveTypeUri(upstream, selection.typeUri)
+        StaticSchemaInput(outputSchema(upstream, typeUri), Some(upstream), typeUri)
       })
       .getOrElse {
         project.anyTask(inputId).data.outputPort match {
@@ -86,6 +86,19 @@ object ResolvedTransformInput {
               "The input of a transform task must be a dataset, a transform task or a task with a fixed output schema.")
         }
       }
+  }
+
+  /**
+    * The type that is read from the given transform task.
+    * A selected type that none of its rules generates is ignored, e.g., a type that is left over from a previous
+    * input dataset. The primary output type is read in that case, which is also what happens if no type is selected.
+    */
+  private def effectiveTypeUri(transformTask: ProjectTask[TransformSpec], selectedType: Uri): Uri = {
+    if(selectedType.uri.nonEmpty && transformTask.data.ruleSchemataForTargetTypeOption(selectedType).isDefined) {
+      selectedType
+    } else {
+      Uri("")
+    }
   }
 
   /**
