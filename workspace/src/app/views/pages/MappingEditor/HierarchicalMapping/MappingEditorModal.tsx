@@ -1,22 +1,9 @@
 import React from "react";
-import { IconButton, SimpleDialog, shadcn } from "@eccenca/gui-elements";
+import { AlertDialog, Button, IconButton, SimpleDialog } from "@eccenca/gui-elements";
 import { TransformRuleEditor } from "../../../../views/taskViews/transform/TransformRuleEditor";
 import { useTranslation } from "react-i18next";
 import { IViewActions } from "../../../../views/plugins/PluginRegistry";
 import { InitialRuleHighlighting, RuleParameterType } from "../../../taskViews/transform/transform.types";
-
-const {
-    AlertDialog,
-    AlertDialogAction,
-    AlertDialogCancel,
-    AlertDialogContent,
-    AlertDialogDescription,
-    AlertDialogFooter,
-    AlertDialogHeader,
-    AlertDialogOverlay,
-    AlertDialogPortal,
-    AlertDialogTitle,
-} = shadcn;
 
 export interface MappingEditorProps {
     /** Project ID the task is in. */
@@ -70,38 +57,34 @@ const MappingEditorModal = ({
         viewActions?.unsavedChanges && viewActions.unsavedChanges(status);
     };
 
-    /** Warning prompt that shows up when the user decides to close the modal with unsaved changes.
-     * The surrounding fullscreen editor modal is a legacy dialog stacked at
-     * `--eccgui-zindex-modals` (8001), far above the shadcn default of `z-50` — so the
-     * overlay/content are elevated explicitly to stay on top of it. */
+    /** Warning prompt that shows up when the user decides to close the modal with unsaved
+     * changes. Same modal stack as the surrounding fullscreen dialog, so it renders on top. */
     const warningModal = (
-        <AlertDialog open={showWarningModal} onOpenChange={(open) => !open && setShowWarningModal(false)}>
-            {/* AlertDialogContent brings its own overlay, but that one is fixed at z-50 and
-                disappears behind the fullscreen modal; this portal renders the visible backdrop. */}
-            <AlertDialogPortal>
-                <AlertDialogOverlay className="z-[8002]" />
-            </AlertDialogPortal>
-            <AlertDialogContent className="z-[8003]" data-test-id="mapping-editor-warning-modal">
-                <AlertDialogHeader>
-                    <AlertDialogTitle>{t("taskViews.transformRulesEditor.warning.modal.title")}</AlertDialogTitle>
-                    <AlertDialogDescription>
-                        {t("taskViews.transformRulesEditor.warning.modal.body")}
-                    </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                    <AlertDialogCancel>{t("common.action.cancel")}</AlertDialogCancel>
-                    <AlertDialogAction
-                        variant="destructive"
-                        onClick={() => {
-                            setShowWarningModal(false);
-                            onClose();
-                            updateViewActionUnsavedChanges(false);
-                        }}
-                    >
-                        {t("taskViews.transformRulesEditor.warning.modal.discard")}
-                    </AlertDialogAction>
-                </AlertDialogFooter>
-            </AlertDialogContent>
+        <AlertDialog
+            warning
+            isOpen={showWarningModal}
+            title={t("taskViews.transformRulesEditor.warning.modal.title")}
+            onClose={() => setShowWarningModal(false)}
+            data-test-id="mapping-editor-warning-modal"
+            actions={[
+                <Button
+                    key="discard"
+                    disruptive
+                    data-test-id="mapping-editor-warning-discard-btn"
+                    onClick={() => {
+                        setShowWarningModal(false);
+                        onClose();
+                        updateViewActionUnsavedChanges(false);
+                    }}
+                >
+                    {t("taskViews.transformRulesEditor.warning.modal.discard")}
+                </Button>,
+                <Button key="cancel" onClick={() => setShowWarningModal(false)}>
+                    {t("common.action.cancel")}
+                </Button>,
+            ]}
+        >
+            {t("taskViews.transformRulesEditor.warning.modal.body")}
         </AlertDialog>
     );
 
