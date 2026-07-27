@@ -2,7 +2,6 @@ import React from "react";
 
 import {
     Button,
-    CardActionsAux,
     CLASSPREFIX as eccgui,
     IconButton,
     Markdown,
@@ -126,24 +125,9 @@ export const TaskDocumentationModal = ({
             enforceFocus={true}
             onClose={onClose}
             title={documentationToShow.title ?? "Documentation"}
-            actions={
-                <>
-                    <Button text={t("common.action.close")} onClick={onClose} />
-                    {shrinkRelatedPlugins && (
-                        <CardActionsAux>
-                            <Button
-                                variant={"outlined"}
-                                icon={"toggler-showless"}
-                                text={t("CreateModal.relatedPlugins.displayPlugins")}
-                                onClick={toggleRelatedPlugins}
-                            />
-                        </CardActionsAux>
-                    )}
-                </>
-            }
+            actions={<Button text={t("common.action.close")} onClick={onClose} />}
             size={size}
             notifications={
-                !shrinkRelatedPlugins &&
                 documentationToShow.relatedPlugins &&
                 documentationToShow.relatedPlugins.length > 0 && (
                     <Notification
@@ -151,55 +135,65 @@ export const TaskDocumentationModal = ({
                         timeout={0}
                         actions={
                             <IconButton
-                                name={"toggler-showmore"}
+                                name={shrinkRelatedPlugins ? "toggler-showmore" : "toggler-showless"}
                                 onClick={toggleRelatedPlugins}
-                                text={t("common.action.hide")}
+                                text={t(
+                                    shrinkRelatedPlugins
+                                        ? "CreateModal.relatedPlugins.displayPlugins"
+                                        : "common.action.hide",
+                                )}
                             />
                         }
                     >
                         <TitleSubsection>{t("CreateModal.relatedPlugins.title")}</TitleSubsection>
-                        <Spacing size={"tiny"} />
-                        <OverviewItemList data-test-id="related-plugins-list" columns={1} hasSpacing>
-                            {documentationToShow.relatedPlugins.map((relatedPlugin) => {
-                                const pluginLabel = relatedPlugin.plugin.title ?? relatedPlugin.plugin.key;
-                                return (
-                                    <OverviewItem
-                                        key={relatedPlugin.plugin.key}
-                                        data-test-id={`related-plugin-${relatedPlugin.plugin.key}`}
-                                        hasCardWrapper
-                                        hasSpacing
-                                    >
-                                        <OverviewItemDescription>
-                                            <OverviewItemLine>
-                                                <strong>{pluginLabel}</strong>
-                                            </OverviewItemLine>
-                                            <OverviewItemLine small>
-                                                <Tooltip content={relatedPlugin.description}>
-                                                    <OverflowText>{relatedPlugin.description}</OverflowText>
-                                                </Tooltip>
-                                            </OverviewItemLine>
-                                        </OverviewItemDescription>
-                                        {onSwitchToRelatedPlugin && (
-                                            <OverviewItemActions>
-                                                <Button
-                                                    outlined
-                                                    elevated
-                                                    data-test-id={`related-plugin-${relatedPlugin.plugin.key}-use-btn`}
-                                                    tooltip={t("CreateModal.relatedPlugins.switchTooltip", {
-                                                        pluginLabel,
-                                                    })}
-                                                    onClick={() => onSwitchToRelatedPlugin(relatedPlugin.plugin)}
-                                                >
-                                                    {t("CreateModal.relatedPlugins.switchAction", {
-                                                        pluginLabel,
-                                                    })}
-                                                </Button>
-                                            </OverviewItemActions>
-                                        )}
-                                    </OverviewItem>
-                                );
-                            })}
-                        </OverviewItemList>
+                        {!shrinkRelatedPlugins && (
+                            <>
+                                <Spacing size={"tiny"} />
+                                <OverviewItemList data-test-id="related-plugins-list" columns={1} hasSpacing>
+                                    {documentationToShow.relatedPlugins.map((relatedPlugin) => {
+                                        const pluginLabel = relatedPlugin.plugin.title ?? relatedPlugin.plugin.key;
+                                        return (
+                                            <OverviewItem
+                                                key={relatedPlugin.plugin.key}
+                                                data-test-id={`related-plugin-${relatedPlugin.plugin.key}`}
+                                                hasCardWrapper
+                                                hasSpacing
+                                            >
+                                                <OverviewItemDescription>
+                                                    <OverviewItemLine>
+                                                        <strong>{pluginLabel}</strong>
+                                                    </OverviewItemLine>
+                                                    <OverviewItemLine small>
+                                                        <Tooltip content={relatedPlugin.description}>
+                                                            <OverflowText>{relatedPlugin.description}</OverflowText>
+                                                        </Tooltip>
+                                                    </OverviewItemLine>
+                                                </OverviewItemDescription>
+                                                {onSwitchToRelatedPlugin && (
+                                                    <OverviewItemActions>
+                                                        <Button
+                                                            outlined
+                                                            elevated
+                                                            data-test-id={`related-plugin-${relatedPlugin.plugin.key}-use-btn`}
+                                                            tooltip={t("CreateModal.relatedPlugins.switchTooltip", {
+                                                                pluginLabel,
+                                                            })}
+                                                            onClick={() =>
+                                                                onSwitchToRelatedPlugin(relatedPlugin.plugin)
+                                                            }
+                                                        >
+                                                            {t("CreateModal.relatedPlugins.switchAction", {
+                                                                pluginLabel,
+                                                            })}
+                                                        </Button>
+                                                    </OverviewItemActions>
+                                                )}
+                                            </OverviewItem>
+                                        );
+                                    })}
+                                </OverviewItemList>
+                            </>
+                        )}
                     </Notification>
                 )
             }
