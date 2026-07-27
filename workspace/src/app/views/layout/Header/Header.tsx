@@ -162,7 +162,7 @@ export function Header() {
                         <button
                             type="button"
                             onClick={openQuickSearch}
-                            aria-label={t("RecentlyViewedModal.title", "Quick search")}
+                            aria-label={t("quickSearch.title", "Quick search")}
                             className={cn(
                                 "hidden shrink-0 cursor-pointer items-center gap-2.5 rounded-lg border border-input bg-muted/60 px-3",
                                 "h-9 w-[340px] max-w-[34vw] text-sm text-muted-foreground transition-colors lg:flex",
@@ -182,8 +182,8 @@ export function Header() {
                         <button
                             type="button"
                             onClick={openQuickSearch}
-                            aria-label={t("RecentlyViewedModal.title", "Quick search")}
-                            title={t("RecentlyViewedModal.title", "Quick search")}
+                            aria-label={t("quickSearch.title", "Quick search")}
+                            title={t("quickSearch.title", "Quick search")}
                             className={cn(headerActionButtonClass, "shrink-0 lg:hidden")}
                         >
                             <Icon name="operation-search" small />

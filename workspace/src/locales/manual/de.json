@@ -442,11 +442,6 @@
         "warningExistingProject": "A project with the same ID already exists! Choose to either overwrite the existing project or import the project under a freshly generated ID.",
         "warningExistingProjectForbidden": "A project with the same ID already exists and you do **not** have the necessary **access rights** to replace it. Trying to replace the project will most likely result in an error!"
     },
-    "RecentlyViewedModal": {
-        "globalSearch": "Search in workspace for '{{query}}'",
-        "placeholder": "Search recently viewed items or in workspace",
-        "title": "Quick search"
-    },
     "ReferenceLinks": {
         "addLinkModal": {
             "sourceUri": "Source URI",
@@ -1111,7 +1106,10 @@
         }
     },
     "quickSearch": {
-        "recentlyViewed": "Zuletzt angesehen"
+        "globalSearch": "Search in workspace for '{{query}}'",
+        "placeholder": "Search recently viewed items or in workspace",
+        "recentlyViewed": "Zuletzt angesehen",
+        "title": "Quick search"
     },
     "taskViews": {
         "linkRulesEditor": {

@@ -103,8 +103,8 @@ export function QuickSearchDialog() {
         <CommandDialog
             open={isOpen}
             onOpenChange={(open) => (open ? setIsOpen(true) : close())}
-            title={t("RecentlyViewedModal.title")}
-            description={t("RecentlyViewedModal.placeholder")}
+            title={t("quickSearch.title")}
+            description={t("quickSearch.placeholder")}
             className="top-[12vh] sm:max-w-2xl"
         >
             {/* Filtering happens in `useQuickSearchItems` — against the workspace search, not cmdk's
@@ -166,7 +166,7 @@ export function QuickSearchDialog() {
                                                 className="shrink-0 text-muted-foreground group-data-[selected]/command-item:text-foreground"
                                             />
                                             <span className="truncate text-sm">
-                                                {t("RecentlyViewedModal.globalSearch", { query: trimmedQuery })}
+                                                {t("quickSearch.globalSearch", { query: trimmedQuery })}
                                             </span>
                                         </CommandItem>
                                     </CommandGroup>
