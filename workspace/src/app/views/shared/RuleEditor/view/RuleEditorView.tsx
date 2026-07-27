@@ -62,20 +62,19 @@ export const RuleEditorView = ({
             }}
         >
             <>
-                <Grid
-                    verticalStretchable={true}
-                    useAbsoluteSpace={true}
-                    style={{ backgroundColor: "var(--background)" }}
-                >
+                {/* No explicit background: the editor inherits its host surface (white modal /
+                    page card) instead of painting the grey canvas token behind toolbar+sidebar;
+                    the react-flow canvas draws its own grid background. */}
+                <Grid verticalStretchable={true} useAbsoluteSpace={true}>
                     {!showRuleOnly ? (
-                        <GridRow style={{ backgroundColor: "var(--background)" }}>
+                        <GridRow>
                             <GridColumn>
                                 <RuleEditorToolbar />
                                 <Divider addSpacing="medium" />
                             </GridColumn>
                         </GridRow>
                     ) : null}
-                    <GridRow verticalStretched={true} style={{ backgroundColor: "var(--background)" }}>
+                    <GridRow verticalStretched={true}>
                         {!showRuleOnly && !readOnlyMode ? (
                             <GridColumn small>
                                 <RuleEditorOperatorSidebar />

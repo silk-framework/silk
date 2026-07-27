@@ -1,7 +1,7 @@
 import React from "react";
 import { RuleEditorContext } from "../../contexts/RuleEditorContext";
 import { ExternalSidebarContext } from "../../contexts/ExternalSidebarContext";
-import { Grid, GridColumn, GridRow, Icon, Spacing, Tabs, TabTitle, highlighterUtils } from "@eccenca/gui-elements";
+import { Grid, GridColumn, GridRow, Spacing, highlighterUtils } from "@eccenca/gui-elements";
 import Loading from "../../../Loading";
 import { IPreConfiguredOperators, RuleOperatorList } from "./RuleOperatorList";
 import {
@@ -10,15 +10,14 @@ import {
     IRuleSidebarPreConfiguredOperatorsTabConfig,
     RULE_EDITOR_NOTIFICATION_INSTANCE,
 } from "../../RuleEditor.typings";
+import { SidebarFilterChips } from "./SidebarFilterChips";
 import { SidebarSearchField } from "./SidebarSearchField";
 import { partitionArray, sortLexically } from "../../../../../utils/basicUtils";
-import { TabProps } from "@eccenca/gui-elements/src/components/molecules/Tabs/Tab";
 import useErrorHandler from "../../../../../hooks/useErrorHandler";
 import { useTranslation } from "react-i18next";
 import { useSelector } from "react-redux";
 import { commonSel } from "@ducks/common";
 import { CodeAutocompleteFieldSuggestionWithReplacementInfo } from "@eccenca/gui-elements/src/components/organisms/AutoSuggestion/AutoSuggestion";
-import ruleEditorUtils from "../../RuleEditor.utils";
 
 type PreConfiguredOperatorConfig = IPreConfiguredOperators<any> & {
     itemSearchText: (listItem: any) => string;
@@ -225,41 +224,21 @@ export const RuleEditorOperatorSidebar = () => {
         }
     };
 
-    const getTabColor = ruleEditorUtils.linkingRuleOperatorTypeColorFunction();
-
-    const tabs: TabProps[] = (editorContext.tabs ?? []).map((tab) => ({
-        id: tab.id,
-        title: (
-            <TabTitle
-                text={tab.icon ? null : t("RuleEditor.sidebar.tab." + tab.id, tab.label)}
-                titlePrefix={tab.icon ? <Icon name={tab.icon} small /> : undefined}
-                tooltip={tab.icon ? t("RuleEditor.sidebar.tab." + tab.id, tab.label) : undefined}
-                small
-            />
-        ),
-        // dontShrink: tab.icon ? true : false,
-        backgroundColor: getTabColor(tab.id),
-    }));
-
     const fetchCategories = () => operatorCategories;
 
     return editorContext.operatorListLoading ? (
         <Loading />
     ) : (
         <Grid data-test-id={"rule-editor-sidebar"} verticalStretchable={true} useAbsoluteSpace={true}>
-            {tabs.length > 0 && activeTabId ? (
+            {editorContext.tabs && editorContext.tabs.length > 0 && activeTabId ? (
                 <GridRow>
                     <GridColumn>
-                        {editorContext.tabs && (
-                            <Tabs
-                                id={"rule-editor-sidebar-tabs"}
-                                tabs={tabs}
-                                selectedTabId={activeTabId}
-                                onChange={(tabId: string) => {
-                                    setActiveTabId(tabId);
-                                }}
-                            />
-                        )}
+                        <SidebarFilterChips
+                            tabs={editorContext.tabs}
+                            activeTabId={activeTabId}
+                            onChange={setActiveTabId}
+                        />
+                        <Spacing size={"tiny"} />
                     </GridColumn>
                 </GridRow>
             ) : null}

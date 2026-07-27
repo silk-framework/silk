@@ -115,13 +115,17 @@ export const RuleOperator = ({ ruleOperator, textQuery, searchWords }: RuleOpera
                     )}
                 </OverviewItemLine>
             )}
-            <OverviewItemLine>
+            {/* Deliberately NOT an OverviewItemLine: that component is strictly single-line —
+                its `flex-[1_1_100%]` + `overflow-hidden` shrink a wrapped row to half height
+                (clipping tags mid-text) and its `[&>*]:inline-block` override breaks the tags'
+                internal flex centering. A plain wrapping flex row lets the card grow instead. */}
+            <div className="flex min-w-0 flex-wrap items-center gap-y-1">
                 {utils.createOperatorTags(
                     [...(ruleOperator.tags ?? []), ...(ruleOperator.categories ?? [])],
                     textQuery,
                     tagColor,
                 )}
-            </OverviewItemLine>
+            </div>
         </OverviewItemDescription>
     );
 };
