@@ -7,7 +7,7 @@ import org.silkframework.execution.{ExecutorRegistry, TaskException}
 import org.silkframework.rule.{TaskContext, TransformSpec, TransformedDataSource}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.PluginContext
-import org.silkframework.runtime.validation.{NotFoundException, ValidationException}
+import org.silkframework.runtime.validation.NotFoundException
 import org.silkframework.util.Uri
 import org.silkframework.workspace.{ProjectTask}
 
@@ -41,6 +41,13 @@ object TransformTaskUtils {
     }
 
     /**
+      * Resolves the input of this transform task, which may be a dataset, another transform task or any task with a fixed output schema.
+      */
+    def resolveInput(implicit userContext: UserContext): ResolvedTransformInput = {
+      ResolvedTransformInput.resolve(task)
+    }
+
+    /**
       * Retrieves the data source for this transform task.
       */
     def dataSource(implicit userContext: UserContext): DataSource = {
@@ -70,12 +77,8 @@ object TransformTaskUtils {
       if(typeUri.uri.isEmpty) {
         new TransformedDataSource(source, transformSpec.inputSchema, transformSpec.mappingRule, task)
       } else {
-        transformSpec.ruleSchemataWithoutEmptyObjectRules.find(_.transformRule.rules.typeRules.map(_.typeUri).contains(typeUri)) match {
-          case Some(ruleSchemata) =>
-            new TransformedDataSource(source, ruleSchemata.inputSchema, ruleSchemata.transformRule, task)
-          case None =>
-            throw new ValidationException(s"No rule matching target type $typeUri found.")
-        }
+        val ruleSchemata = transformSpec.ruleSchemataForTargetType(typeUri)
+        new TransformedDataSource(source, ruleSchemata.inputSchema, ruleSchemata.transformRule, task)
       }
     }
 
