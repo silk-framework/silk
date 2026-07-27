@@ -117,10 +117,57 @@ describe("GridBoard minimize / restore", () => {
         expect(second.getByTestId("grid-board-tile-alpha")).toBeInTheDocument();
     });
 
-    it("persists the minimized set to localStorage", () => {
+    it("persists the minimized set to localStorage as a versioned envelope", () => {
         const { getByTestId } = render(<GridBoard items={items} storageKey="persist" />);
         fireEvent.click(getByTestId("grid-board-minimize-beta"));
-        expect(JSON.parse(window.localStorage.getItem("diApp.gridBoard.persist.minimized") ?? "[]")).toEqual(["beta"]);
+        const stored = JSON.parse(window.localStorage.getItem("diApp.gridBoard.persist.minimized") ?? "{}");
+        expect(stored).toEqual({ v: 1, ids: ["beta"] });
+    });
+});
+
+describe("GridBoard storage envelope", () => {
+    beforeEach(() => window.localStorage.clear());
+
+    it("migrates a bare v0 layout to the versioned envelope, preserving positions", () => {
+        // Original (pre-envelope) format: a bare Record<id, GridLayout>.
+        window.localStorage.setItem(
+            "diApp.gridBoard.legacy",
+            JSON.stringify({ alpha: { x: 2, y: 1, w: 6, h: 3 }, beta: { x: 8, y: 0, w: 4, h: 2 } }),
+        );
+        render(<GridBoard items={items} storageKey="legacy" />);
+        // The mount-time persist rewrites it as { v: 1, tiles: {…} } without losing the saved slots.
+        const stored = JSON.parse(window.localStorage.getItem("diApp.gridBoard.legacy") ?? "{}");
+        expect(stored.v).toBe(1);
+        expect(stored.tiles.alpha).toMatchObject({ x: 2, y: 1, w: 6, h: 3 });
+        expect(stored.tiles.beta).toMatchObject({ x: 8, y: 0, w: 4, h: 2 });
+    });
+
+    it("accepts a bare v0 minimized array and re-persists it as an envelope", () => {
+        window.localStorage.setItem("diApp.gridBoard.legacymin.minimized", JSON.stringify(["beta"]));
+        const { getByTestId } = render(<GridBoard items={items} storageKey="legacymin" />);
+        // The v0 array is honored: beta starts parked in the rail.
+        expect(getByTestId("grid-board-restore-beta")).toBeInTheDocument();
+        const stored = JSON.parse(window.localStorage.getItem("diApp.gridBoard.legacymin.minimized") ?? "{}");
+        expect(stored).toEqual({ v: 1, ids: ["beta"] });
+    });
+
+    it("prunes orphaned layout entries not backed by a current item or minimized tile", () => {
+        window.localStorage.setItem(
+            "diApp.gridBoard.orphan",
+            JSON.stringify({
+                v: 1,
+                tiles: {
+                    alpha: { x: 0, y: 0, w: 6, h: 3 },
+                    beta: { x: 6, y: 0, w: 6, h: 3 },
+                    ghost: { x: 0, y: 3, w: 6, h: 3 }, // no such item — must not survive a write
+                },
+            }),
+        );
+        render(<GridBoard items={items} storageKey="orphan" />);
+        const stored = JSON.parse(window.localStorage.getItem("diApp.gridBoard.orphan") ?? "{}");
+        expect(stored.tiles.alpha).toBeDefined();
+        expect(stored.tiles.beta).toBeDefined();
+        expect(stored.tiles.ghost).toBeUndefined();
     });
 });
 
@@ -150,8 +197,9 @@ describe("GridBoard free placement", () => {
 
     const boardOf = (tile: HTMLElement): HTMLElement => tile.parentElement as HTMLElement;
     const translate = (x: number, y: number) => `translate(${x * STEP_X}px, ${y * STEP_Y}px)`;
+    // The layout is persisted as a versioned envelope { v, tiles }; unwrap `tiles` for the assertions.
     const savedLayout = (storageKey: string) =>
-        JSON.parse(window.localStorage.getItem(`diApp.gridBoard.${storageKey}`) ?? "{}");
+        JSON.parse(window.localStorage.getItem(`diApp.gridBoard.${storageKey}`) ?? '{"tiles":{}}').tiles ?? {};
 
     it("keeps a tile exactly where it is dropped — no compaction toward the top-left", () => {
         const { getByTestId, getByTitle } = render(<GridBoard items={items} storageKey="free" />);

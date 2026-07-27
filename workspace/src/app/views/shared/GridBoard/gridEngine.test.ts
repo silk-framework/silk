@@ -7,6 +7,7 @@ import {
     sanitizeSavedLayout,
     usedRows,
 } from "./gridEngine";
+import { buildLayout } from "./gridStorage";
 
 const noOverlaps = (layout: GridPlacement[]): boolean =>
     layout.every((a) =>
@@ -206,6 +207,27 @@ describe("gridEngine", () => {
 
         it("clamps out-of-range values to sane bounds", () => {
             expect(sanitizeSavedLayout({ x: -3, y: 1e9, w: 0, h: 99999 })).toEqual({ x: 0, y: 500, w: 1, h: 500 });
+        });
+    });
+
+    describe("buildLayout (order-dependent tie-break)", () => {
+        it("pins the later item and pushes the earlier one down when two saved tiles overlap", () => {
+            // Both saved entries claim the same slot. buildLayout folds in `items` order and pins each
+            // saved tile as it is added, so the LATER item ("second") wins the slot and the earlier one
+            // ("first") is pushed straight down.
+            const boardItems = [
+                { id: "first", defaultLayout: { x: 0, y: 0, w: 6, h: 3 }, element: null },
+                { id: "second", defaultLayout: { x: 6, y: 0, w: 6, h: 3 }, element: null },
+            ];
+            const saved = {
+                first: { x: 0, y: 0, w: 6, h: 3 },
+                second: { x: 0, y: 0, w: 6, h: 3 },
+            };
+            const result = buildLayout(boardItems, saved, 12);
+            const byId = Object.fromEntries(result.map((i) => [i.id, i]));
+            expect(byId.second).toMatchObject({ x: 0, y: 0 }); // later item keeps the contested slot
+            expect(byId.first).toMatchObject({ x: 0, y: 3 }); // earlier item pushed below it
+            expect(noOverlaps(result)).toBe(true);
         });
     });
 

@@ -16,6 +16,7 @@ import {
 } from "../../RuleEditor.typings";
 import { RuleOperator } from "./RuleOperator";
 import { IPreConfiguredRuleOperator } from "./RuleEditorOperatorSidebar.typings";
+import { setDragImageFromClone } from "../../../dragImage";
 
 interface RuleOperatorListProps<T> {
     /** The rule operators that should be shown. */
@@ -73,12 +74,10 @@ export function RuleOperatorList<T>({
             const pluginData = JSON.stringify(dragPayload);
             e.dataTransfer.setData("application/reactflow", pluginData);
             e.dataTransfer.setData("application/x-reactflow-app", "ruleEditor");
+            // These operator cards render inside a CSS-transformed GridBoard tile, which makes a raw
+            // `setDragImage` snapshot come out blank/offset in Chromium — use the offscreen-clone workaround.
             const draggedElement = e.currentTarget;
-            e.dataTransfer.setDragImage(
-                draggedElement,
-                draggedElement.clientWidth / 2,
-                draggedElement.clientHeight / 2,
-            );
+            setDragImageFromClone(e, draggedElement, draggedElement.clientWidth / 2, draggedElement.clientHeight / 2);
         };
 
     const itemRenderer = (ruleOperator: IRuleOperator | IPreConfiguredRuleOperator) => {
