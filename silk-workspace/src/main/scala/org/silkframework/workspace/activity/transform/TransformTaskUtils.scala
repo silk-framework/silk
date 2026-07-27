@@ -58,7 +58,7 @@ object TransformTaskUtils {
         case None =>
           task.project.taskOption[TransformSpec](sourceId) match {
             case Some(transformTask) =>
-              transformTask.asDataSource(transformTask.data.selection.typeUri)
+              transformTask.asDataSource(task.data.selection.typeUri)
             case None =>
               ExecutorRegistry.access(inputDatasetTask).source
           }
