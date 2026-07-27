@@ -458,6 +458,9 @@ export function CreateArtefactModal() {
     const isErrorPresented = () => !!Object.keys(form.formState.errors).length;
 
     const handleSelectDType = (value: string) => {
+        // A category picked inside the dialog must show the (possibly one-item) card list — only a
+        // pre-filtered open (split-button caret / shortcut) may jump straight into the creation form.
+        suppressAutoAdvance.current = true;
         dispatch(commonOp.setSelectedArtefactDType(value));
     };
 
@@ -727,22 +730,24 @@ export function CreateArtefactModal() {
         }
     }, [artefactListWithProject.map((item) => item.key).join("|"), selectedDType]);
 
-    // Skip the selection list when a category resolves to a single artefact type. Opening the dialog
-    // pre-filtered to e.g. Transform / Linking / Workflow / Project used to still show a one-item
-    // list; instead we open that type's creation form directly. Multi-plugin categories (Dataset,
-    // Task) and the "all" view keep the list. Guarded to fire once per open so the in-form "back"
-    // button still returns to the (single-item) list instead of immediately re-selecting.
-    const autoAdvancedForOpen = React.useRef(false);
+    // Skip the selection list when the dialog is OPENED pre-filtered to a category that resolves to
+    // a single artefact type (split-button caret / keyboard shortcut for e.g. Transform / Linking /
+    // Workflow / Project): instead of a one-item list, that type's creation form opens directly.
+    // Only that entry path auto-advances — picking a category via the dialog's own side navigation
+    // always shows the card list (develop behavior), which handleSelectDType enforces by setting
+    // this suppression flag. Also set after a single auto-advance per open, so the in-form "back"
+    // button returns to the (single-item) list instead of immediately re-selecting.
+    const suppressAutoAdvance = React.useRef(false);
     React.useEffect(() => {
         if (!isOpen) {
-            autoAdvancedForOpen.current = false;
+            suppressAutoAdvance.current = false;
         }
     }, [isOpen]);
     React.useEffect(() => {
         if (
             isOpen &&
             !loading &&
-            !autoAdvancedForOpen.current &&
+            !suppressAutoAdvance.current &&
             selectedDType !== "all" &&
             !searchValue &&
             !selectedArtefactFromStore?.key &&
@@ -750,7 +755,7 @@ export function CreateArtefactModal() {
             !newTaskPreConfiguration &&
             artefactListWithProject.length === 1
         ) {
-            autoAdvancedForOpen.current = true;
+            suppressAutoAdvance.current = true;
             const only = artefactListWithProject[0];
             if (only.key === DATA_TYPES.PROJECT) {
                 dispatch(commonOp.selectArtefact(only));
