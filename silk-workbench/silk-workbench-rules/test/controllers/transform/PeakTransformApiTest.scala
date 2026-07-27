@@ -39,7 +39,7 @@ class PeakTransformApiTest extends AnyFlatSpec with SingleProjectWorkspaceProvid
       entity(Seq(), Seq("bValue2")),
       entity(Seq(), Seq())
     )
-    val (tries, errors, errorMsg, peakResult, hasMore, total) =
+    val CollectedExamples(tries, errors, errorMsg, peakResult, hasMore, total) =
       PeakTransformApi.collectTransformationExamples(rule, entities.iterator, limit = 10, computeTotal = true, perRecord = true)
     tries mustBe 5
     errors mustBe 0
@@ -71,7 +71,7 @@ class PeakTransformApiTest extends AnyFlatSpec with SingleProjectWorkspaceProvid
       entity(Seq("aValue3"), Seq("bValue3")),
       entity(Seq(), Seq())
     )
-    val (tries, errors, errorMsg, peakResult, hasMore, total) =
+    val CollectedExamples(tries, errors, errorMsg, peakResult, hasMore, total) =
       PeakTransformApi.collectTransformationExamples(rule, entities, limit = 10, computeTotal = true, perRecord = true)
     tries mustBe 6
     errors mustBe 0
@@ -94,7 +94,7 @@ class PeakTransformApiTest extends AnyFlatSpec with SingleProjectWorkspaceProvid
       entity(Seq("2015"), Seq("no date")),
       entity(Seq("123"), Seq("also no date"))
     )
-    val (tries, errors, errorMsg, peakResult, hasMore, total) =
+    val CollectedExamples(tries, errors, errorMsg, peakResult, hasMore, total) =
       PeakTransformApi.collectTransformationExamples(rule, entities, limit = 3, computeTotal = true, perRecord = true)
     tries mustBe 2
     errors mustBe 2
@@ -121,7 +121,7 @@ class PeakTransformApiTest extends AnyFlatSpec with SingleProjectWorkspaceProvid
       entity(Seq("only"), Seq()),            // single value -> valid
       entity(Seq(), Seq())                   // no value -> valid
     )
-    val (tries, errors, errorMsg, peakResult, _, total) =
+    val CollectedExamples(tries, errors, errorMsg, peakResult, _, total) =
       PeakTransformApi.collectTransformationExamples(rule, entities, limit = 10, computeTotal = true, perRecord = true)
     tries mustBe 3
     errors mustBe 1
@@ -152,7 +152,7 @@ class PeakTransformApiTest extends AnyFlatSpec with SingleProjectWorkspaceProvid
       counter += 1
       entity(Seq("UPPER" + i), Seq("UPPER" + i))
     }
-    val (tries, errors, _, peakResult, hasMore, total) =
+    val CollectedExamples(tries, errors, _, peakResult, hasMore, total) =
       PeakTransformApi.collectTransformationExamples(rule, entities.iterator, limit = 3, computeTotal = true)
     tries mustBe 1000
     errors mustBe 0
@@ -169,7 +169,7 @@ class PeakTransformApiTest extends AnyFlatSpec with SingleProjectWorkspaceProvid
       counter += 1
       entity(Seq("UPPER" + i), Seq("UPPER" + i))
     }
-    val (tries, errors, _, peakResult, hasMore, _) =
+    val CollectedExamples(tries, errors, _, peakResult, hasMore, _) =
       PeakTransformApi.collectTransformationExamples(rule, entities.iterator, limit = 3)
     tries mustBe 3
     errors mustBe 0
@@ -182,7 +182,7 @@ class PeakTransformApiTest extends AnyFlatSpec with SingleProjectWorkspaceProvid
   it should "skip the first `offset` successful results when paginating" in {
     val rule = transformRule(LowerCaseTransformer())
     val entities = (1 to 10).map(i => entity(Seq("UPPER" + i), Seq("UPPER" + i)))
-    val (_, errors, _, peakResult, hasMore, total) =
+    val CollectedExamples(_, errors, _, peakResult, hasMore, total) =
       PeakTransformApi.collectTransformationExamples(rule, entities.iterator, limit = 3, offset = 3, computeTotal = true)
     errors mustBe 0
     hasMore mustBe true
@@ -197,7 +197,7 @@ class PeakTransformApiTest extends AnyFlatSpec with SingleProjectWorkspaceProvid
   it should "report no more results when the page reaches the end of the iterator" in {
     val rule = transformRule(LowerCaseTransformer())
     val entities = (1 to 5).map(i => entity(Seq("UPPER" + i), Seq("UPPER" + i)))
-    val (_, _, _, peakResult, hasMore, total) =
+    val CollectedExamples(_, _, _, peakResult, hasMore, total) =
       PeakTransformApi.collectTransformationExamples(rule, entities.iterator, limit = 3, offset = 3, computeTotal = true)
     hasMore mustBe false
     total mustBe 5
@@ -210,7 +210,7 @@ class PeakTransformApiTest extends AnyFlatSpec with SingleProjectWorkspaceProvid
   it should "return an empty page when offset is past the end of the iterator" in {
     val rule = transformRule(LowerCaseTransformer())
     val entities = (1 to 3).map(i => entity(Seq("UPPER" + i), Seq("UPPER" + i)))
-    val (_, _, _, peakResult, hasMore, total) =
+    val CollectedExamples(_, _, _, peakResult, hasMore, total) =
       PeakTransformApi.collectTransformationExamples(rule, entities.iterator, limit = 3, offset = 10, computeTotal = true)
     hasMore mustBe false
     total mustBe 3
@@ -227,7 +227,7 @@ class PeakTransformApiTest extends AnyFlatSpec with SingleProjectWorkspaceProvid
       entity(Seq("a4"), Seq("b4")),       // third result of page
       entity(Seq("a5"), Seq("b5"))        // tail
     )
-    val (_, _, _, peakResult, hasMore, total) =
+    val CollectedExamples(_, _, _, peakResult, hasMore, total) =
       PeakTransformApi.collectTransformationExamples(rule, entities, limit = 3, offset = 2, computeTotal = true, perRecord = true)
     hasMore mustBe true
     total mustBe 6
@@ -247,7 +247,7 @@ class PeakTransformApiTest extends AnyFlatSpec with SingleProjectWorkspaceProvid
       entity(Seq(), Seq()),           // empty    -> skipped
       entity(Seq("a4"), Seq("b4"))    // "a4 b4"  -> kept
     )
-    val (tries, errors, _, peakResult, hasMore, total) =
+    val CollectedExamples(tries, errors, _, peakResult, hasMore, total) =
       PeakTransformApi.collectTransformationExamples(rule, entities, limit = 10, computeTotal = true)
     tries mustBe 5
     errors mustBe 0
@@ -271,7 +271,7 @@ class PeakTransformApiTest extends AnyFlatSpec with SingleProjectWorkspaceProvid
       entity(Seq("a3"), Seq("b3")),   // non-empty -> first page result
       entity(Seq("a4"), Seq("b4"))    // non-empty -> tail
     )
-    val (_, _, _, peakResult, hasMore, total) =
+    val CollectedExamples(_, _, _, peakResult, hasMore, total) =
       PeakTransformApi.collectTransformationExamples(rule, entities, limit = 1, offset = 2, computeTotal = true)
     // 4 non-empty results in total; the 2 empties never count toward offset/total.
     total mustBe 4
@@ -282,7 +282,7 @@ class PeakTransformApiTest extends AnyFlatSpec with SingleProjectWorkspaceProvid
   it should "report total = skipped + collected + remaining when there is a non-empty tail" in {
     val rule = transformRule(LowerCaseTransformer())
     val entities = (1 to 8).map(i => entity(Seq("UPPER" + i), Seq("UPPER" + i)))
-    val (_, _, _, peakResult, hasMore, total) =
+    val CollectedExamples(_, _, _, peakResult, hasMore, total) =
       PeakTransformApi.collectTransformationExamples(rule, entities.iterator, limit = 2, offset = 2, computeTotal = true)
     peakResult must have size 2
     // 2 skipped + 2 collected + 4 in tail = 8
@@ -298,7 +298,7 @@ class PeakTransformApiTest extends AnyFlatSpec with SingleProjectWorkspaceProvid
       entity(Seq("Charlie"), Seq("aLi")),    // "ali" appears in transformed
       entity(Seq("Dave"),    Seq("Roberts"))
     )
-    val (_, _, _, peakResult, hasMore, total) =
+    val CollectedExamples(_, _, _, peakResult, hasMore, total) =
       PeakTransformApi.collectTransformationExamples(rule, entities, limit = 10, search = Some("ALI"), computeTotal = true)
     hasMore mustBe false
     total mustBe 2
@@ -311,7 +311,7 @@ class PeakTransformApiTest extends AnyFlatSpec with SingleProjectWorkspaceProvid
   it should "treat blank search input as no filter" in {
     val rule = transformRule(LowerCaseTransformer())
     val entities = (1 to 3).map(i => entity(Seq("UPPER" + i), Seq("UPPER" + i)))
-    val (_, _, _, peakResult, _, total) =
+    val CollectedExamples(_, _, _, peakResult, _, total) =
       PeakTransformApi.collectTransformationExamples(rule, entities.iterator, limit = 10, search = Some(""), computeTotal = true)
     peakResult must have size 3
     total mustBe 3
@@ -328,7 +328,7 @@ class PeakTransformApiTest extends AnyFlatSpec with SingleProjectWorkspaceProvid
       entity(Seq("foo4"), Seq("x")),  // matches
       entity(Seq("foo5"), Seq("x"))   // matches
     )
-    val (_, _, _, peakResult, hasMore, total) =
+    val CollectedExamples(_, _, _, peakResult, hasMore, total) =
       PeakTransformApi.collectTransformationExamples(rule, entities, limit = 2, offset = 1, search = Some("foo"), computeTotal = true)
     // 5 entities match "foo"; offset=1 skips foo1, page returns foo2 + foo3, tail has foo4 + foo5.
     total mustBe 5
@@ -378,6 +378,14 @@ class PeakTransformApiTest extends AnyFlatSpec with SingleProjectWorkspaceProvid
 
   it should "reject a maxTryEntities below 1 with a 400" in {
     val peakUrl = controllers.transform.routes.PeakTransformApi.peak(projectId, transformXmlTask, rootRuleId, maxTryEntities = 0).url
+    checkResponseCode(client.url(s"$baseUrl$peakUrl").post(""), responseCode = 400)
+  }
+
+  it should "reject a syntactically invalid source path with a clean 400, not a 500" in {
+    // An unterminated filter expression ('[' without a closing ']') fails path parsing - this must
+    // surface as a client error (bad request), not an unhandled server exception.
+    val peakUrl = controllers.transform.routes.PeakTransformApi.peakSourcePath(
+      projectId, transformXmlTask, rootRuleId, path = "/Name[", objectPath = None).url
     checkResponseCode(client.url(s"$baseUrl$peakUrl").post(""), responseCode = 400)
   }
 

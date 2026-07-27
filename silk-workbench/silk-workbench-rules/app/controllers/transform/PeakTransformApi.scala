@@ -137,7 +137,7 @@ class PeakTransformApi @Inject() () extends InjectedController with UserContextA
       val inputTaskId = transformSpec.selection.inputId
       implicit val context: PluginContext = PluginContext.fromProject(project)
 
-      peakRule(project, inputTaskId, ruleSchemata, limit, maxTryEntities, offset, search, includeTotal, perRecord)
+      peakRule(project, inputTaskId, ruleSchemata, PeakQueryParams(limit, maxTryEntities, offset, search, includeTotal, perRecord))
   }
 
   /**
@@ -243,9 +243,10 @@ class PeakTransformApi @Inject() () extends InjectedController with UserContextA
     val inputTaskId = transformSpec.selection.inputId
     implicit val readContext: ReadContext = ReadContext.fromProject(project)
 
+    val params = PeakQueryParams(limit, maxTryEntities, offset, search, includeTotal, perRecord)
     deserializeCompileTime[TransformRule]() { rule =>
       val ruleSchemata = childRuleSchemata(parentRule, transformSpec, rule, objectPath)
-      peakRule(project, inputTaskId, ruleSchemata, limit, maxTryEntities, offset, search, includeTotal, perRecord)
+      peakRule(project, inputTaskId, ruleSchemata, params)
     }
   }
 
@@ -309,13 +310,21 @@ class PeakTransformApi @Inject() () extends InjectedController with UserContextA
     val inputTaskId = transformSpec.selection.inputId
     implicit val context: PluginContext = PluginContext.fromProject(project)
 
+    // A syntactically invalid path is a client error (400), not a server error - convert the parser's
+    // exception the same way the offset/limit/maxTryEntities checks below do.
+    val parsedPath = try {
+      UntypedPath.parse(path)
+    } catch {
+      case NonFatal(ex) =>
+        throw BadUserInputException(s"Query parameter 'path' is not a valid path: ${ex.getMessage}", Some(ex))
+    }
     // Synthesize a target-less identity value rule on the path so a bare source node (no saved rule,
     // no target) is previewed through the very same peek machinery. The source side of each result is
     // the entity's grouped values for the path; transformedValues just echo them and are ignored by
     // a source-only preview.
-    val childRule = ComplexMapping(id = "sourcePathPreview", operator = PathInput(path = UntypedPath.parse(path)), target = None)
+    val childRule = ComplexMapping(id = "sourcePathPreview", operator = PathInput(path = parsedPath), target = None)
     val ruleSchemata = childRuleSchemata(parentRule, transformSpec, childRule, objectPath)
-    peakRule(project, inputTaskId, ruleSchemata, limit, maxTryEntities, offset, search, includeTotal, perRecord)
+    peakRule(project, inputTaskId, ruleSchemata, PeakQueryParams(limit, maxTryEntities, offset, search, includeTotal, perRecord))
   }
 
   /**
@@ -335,18 +344,9 @@ class PeakTransformApi @Inject() () extends InjectedController with UserContextA
     }
   }
 
-  private def peakRule(project: Project, inputTaskId: Identifier, ruleSchemata: RuleSchemata, limit: Int, maxTryEntities: Int, offset: Int, search: Option[String], includeTotal: Boolean, perRecord: Boolean)
+  private def peakRule(project: Project, inputTaskId: Identifier, ruleSchemata: RuleSchemata, params: PeakQueryParams)
                       (implicit context: PluginContext): Result = {
-    if (offset < 0) {
-      throw BadUserInputException(s"Query parameter 'offset' must be >= 0, but was $offset.")
-    }
-    if (limit <= 0) {
-      throw BadUserInputException(s"Query parameter 'limit' must be > 0, but was $limit.")
-    }
-    if (maxTryEntities < 1) {
-      // BadUserInputException (a RequestException) maps to HTTP 400, consistent with the offset/limit checks above.
-      throw BadUserInputException(s"Query parameter 'maxTryEntities' must be >= 1, but was $maxTryEntities.")
-    }
+    params.validate()
     implicit val prefixes: Prefixes = project.config.prefixes
     implicit val user: UserContext = context.user
 
@@ -375,24 +375,17 @@ class PeakTransformApi @Inject() () extends InjectedController with UserContextA
 
     val inputTask = project.anyTask(inputTaskId)
     val inputTaskLabel = inputTask.label()
-    // Treat blank search input as no filter so callers can safely send `?search=` from a UI textbox.
-    val effectiveSearch = search.map(_.trim).filter(_.nonEmpty)
-    // Pagination/filtering implies the caller wants the total; otherwise scanning stops at `limit`.
-    val computeTotal = includeTotal || offset > 0 || effectiveSearch.nonEmpty
-    // Source needs to yield enough entities to cover the skipped offset plus the per-page budget. Compute in
-    // Long and saturate so a large offset (near Int.MaxValue) can't overflow into a negative fetch size.
-    val sourceFetchSize = math.min(offset.toLong + maxTryEntities.toLong, Int.MaxValue.toLong).toInt
     inputTask.data match {
       case dataset: GenericDatasetSpec =>
         val pluginLabel = dataset.plugin.pluginSpec.label
         DataSource.pluginSource(inputTask.asInstanceOf[Task[GenericDatasetSpec]]) match {
           case peakDataSource: PeakDataSource =>
             try {
-              peakDataSource.peak(peakSchemata.inputSchema, sourceFetchSize).use { exampleEntities =>
+              peakDataSource.peak(peakSchemata.inputSchema, params.sourceFetchSize).use { exampleEntities =>
                 generateMappingPreviewResponse(
                   peakSchemata.transformRule.execution(TaskContext.forInput(inputTask)),
                   exampleEntities,
-                  limit, offset, sourceFetchSize, effectiveSearch, computeTotal, perRecord
+                  params
                 )
               }
             } catch {
@@ -405,7 +398,7 @@ class PeakTransformApi @Inject() () extends InjectedController with UserContextA
               s" of type '$pluginLabel' does not support transformation preview!"))))
         }
       case sparqlSelectTask: SparqlSelectCustomTask =>
-        peakIntoSparqlSelectTask(project, inputTaskLabel, peakSchemata, limit, sourceFetchSize, offset, effectiveSearch, computeTotal, perRecord, sparqlSelectTask)
+        peakIntoSparqlSelectTask(project, inputTaskLabel, peakSchemata, params, sparqlSelectTask)
       case _: TransformSpec =>
         Ok(Json.toJson(PeakResults(None, None, PeakStatus(NOT_SUPPORTED_STATUS_MSG, s"Input task '$inputTaskLabel'" +
           " is not a Dataset. Currently mapping preview is only supported for dataset inputs."))))
@@ -418,12 +411,7 @@ class PeakTransformApi @Inject() () extends InjectedController with UserContextA
   private def peakIntoSparqlSelectTask(project: Project,
                                        inputTaskLabel: String,
                                        ruleSchemata: RuleSchemata,
-                                       limit: Int,
-                                       sourceFetchSize: Int,
-                                       offset: Int,
-                                       search: Option[String],
-                                       computeTotal: Boolean,
-                                       perRecord: Boolean,
+                                       params: PeakQueryParams,
                                        sparqlSelectTask: SparqlSelectCustomTask)
                                       (implicit userContext: UserContext, prefixes: Prefixes): Result = {
     implicit val context: PluginContext = PluginContext.fromProject(project)
@@ -436,14 +424,14 @@ class PeakTransformApi @Inject() () extends InjectedController with UserContextA
       datasetTask.data.plugin match {
         case _: RdfDataset =>
           val sparqlEndpoint = RdfDatasetAccess.forExecution(datasetTask).sparqlEndpoint
-          val entities = new LocalSparqlSelectIterator(sparqlSelectTask, sparqlEndpoint, Some(datasetTask), None, sourceFetchSize, executionReportUpdater = None)
+          val entities = new LocalSparqlSelectIterator(sparqlSelectTask, sparqlEndpoint, Some(datasetTask), None, params.sourceFetchSize, executionReportUpdater = None)
           val entityDatasource = EntityDatasource(datasetTask, entities, sparqlSelectTask.outputSchema)
           try {
-            entityDatasource.peak(ruleSchemata.inputSchema, sourceFetchSize).use { exampleEntities =>
+            entityDatasource.peak(ruleSchemata.inputSchema, params.sourceFetchSize).use { exampleEntities =>
               generateMappingPreviewResponse(
                 ruleSchemata.transformRule.execution(TaskContext.noInput()),
                 exampleEntities,
-                limit, offset, sourceFetchSize, search, computeTotal, perRecord
+                params
               )
             }
           } catch {
@@ -461,23 +449,18 @@ class PeakTransformApi @Inject() () extends InjectedController with UserContextA
   // Generate the HTTP response for the mapping transformation preview
   private def generateMappingPreviewResponse(ruleExecution: TransformRuleExecution,
                                              exampleEntities: Iterator[Entity],
-                                             limit: Int,
-                                             offset: Int,
-                                             sourceFetchSize: Int,
-                                             search: Option[String],
-                                             computeTotal: Boolean,
-                                             perRecord: Boolean)
+                                             params: PeakQueryParams)
                                             (implicit prefixes: Prefixes) = {
     val rule = ruleExecution.operator
-    val (tryCounter, errorCounter, errorMessage, sourceAndTargetResults, hasMore, totalWithinBudget) =
-      collectTransformationExamples(ruleExecution, exampleEntities, limit, offset, search, computeTotal, perRecord)
+    val CollectedExamples(tryCounter, errorCounter, errorMessage, sourceAndTargetResults, hasMore, totalWithinBudget) =
+      collectTransformationExamples(ruleExecution, exampleEntities, params.limit, params.offset, params.effectiveSearch, params.computeTotal, params.perRecord)
     // Only expose pagination metadata when the caller asked for total/pagination. Otherwise scanning
     // stopped at `limit` and the counts wouldn't be meaningful.
-    val nextOffset = if (computeTotal && hasMore) Some(offset + limit) else None
-    val total = if (computeTotal) Some(totalWithinBudget) else None
+    val nextOffset = if (params.computeTotal && hasMore) Some(params.offset + params.limit) else None
+    val total = if (params.computeTotal) Some(totalWithinBudget) else None
     // The source returns at most `sourceFetchSize` entities. If we consumed fewer, the iterator
     // ran dry naturally and `total` is the true count. If we hit the cap, more results may exist.
-    val totalIsExact = if (computeTotal) Some(tryCounter < sourceFetchSize) else None
+    val totalIsExact = if (params.computeTotal) Some(tryCounter < params.sourceFetchSize) else None
     if (sourceAndTargetResults.nonEmpty && errorMessage.nonEmpty) {
       Ok(Json.toJson(PeakResults(Some(rule.sourcePaths.map(serializePath)), Some(sourceAndTargetResults),
         status = PeakStatus("with exceptions", errorMessage), nextOffset = nextOffset, total = total, totalIsExact = totalIsExact)))
@@ -540,7 +523,7 @@ object PeakTransformApi {
                                     offset: Int = 0,
                                     search: Option[String] = None,
                                     computeTotal: Boolean = false,
-                                    perRecord: Boolean = false): (Int, Int, String, Seq[PeakResult], Boolean, Int) = {
+                                    perRecord: Boolean = false): CollectedExamples = {
     // Use the non-throwing apply so a record whose transformed values fail target validation (e.g. a
     // multi-valued source mapped onto a single-cardinality target) still surfaces as a row, with the
     // validation error attached, instead of being silently dropped into the catch (NonFatal) branch.
@@ -607,7 +590,7 @@ object PeakTransformApi {
     // exist but none of them would have matched) but never under-reports.
     val hasMore = if (computeTotal) tailCounter > 0 else exampleEntities.hasNext
     val totalWithinBudget = skippedCounter + exampleCounter + tailCounter
-    (tryCounter, errorCounter, errorMessage, resultBuffer.toSeq, hasMore, totalWithinBudget)
+    CollectedExamples(tryCounter, errorCounter, errorMessage, resultBuffer.toSeq, hasMore, totalWithinBudget)
   }
 
   // Format a throwable as "SimpleClassName: message" - the shape used both for the global first-error
@@ -641,6 +624,64 @@ case class PeakStatus(id: String, msg: String)
 // errored). It is an optional field: a JSON Option serializes as omitted/null, so existing clients
 // that don't know about it are unaffected.
 case class PeakResult(sourceValues: Seq[Seq[String]], transformedValues: Seq[String], error: Option[String] = None)
+
+/**
+  * Bundles the pagination/filter query parameters shared by the three peak endpoints ([[PeakTransformApi.peak]],
+  * [[PeakTransformApi.peakChildRule]], [[PeakTransformApi.peakSourcePath]]), together with the validation and the
+  * derived values ([[effectiveSearch]], [[computeTotal]], [[sourceFetchSize]]) every downstream helper
+  * ([[PeakTransformApi.peakRule]], [[PeakTransformApi.peakIntoSparqlSelectTask]],
+  * [[PeakTransformApi.generateMappingPreviewResponse]]) needs, instead of threading the raw params individually.
+  *
+  * @param limit          The maximum number of transformed example entities.
+  * @param maxTryEntities Per-page budget of example entities to try to transform before giving up.
+  * @param offset         Number of successful example results to skip before collecting the page.
+  * @param search         Optional case-insensitive substring filter, as given by the caller (not yet trimmed).
+  * @param includeTotal   If true, scan the full `offset + maxTryEntities` budget so total/hasMore can be reported.
+  * @param perRecord      If true, return one row per tried source record, including empty ones.
+  */
+case class PeakQueryParams(limit: Int,
+                           maxTryEntities: Int,
+                           offset: Int,
+                           search: Option[String],
+                           includeTotal: Boolean,
+                           perRecord: Boolean) {
+
+  /** Validates the raw query parameters, throwing a [[org.silkframework.runtime.validation.BadUserInputException]]
+    * (-> HTTP 400) on invalid input. */
+  def validate(): Unit = {
+    if (offset < 0) {
+      throw BadUserInputException(s"Query parameter 'offset' must be >= 0, but was $offset.")
+    }
+    if (limit <= 0) {
+      throw BadUserInputException(s"Query parameter 'limit' must be > 0, but was $limit.")
+    }
+    if (maxTryEntities < 1) {
+      throw BadUserInputException(s"Query parameter 'maxTryEntities' must be >= 1, but was $maxTryEntities.")
+    }
+  }
+
+  // Treat blank search input as no filter so callers can safely send `?search=` from a UI textbox.
+  val effectiveSearch: Option[String] = search.map(_.trim).filter(_.nonEmpty)
+
+  // Pagination/filtering implies the caller wants the total; otherwise scanning stops at `limit`.
+  val computeTotal: Boolean = includeTotal || offset > 0 || effectiveSearch.nonEmpty
+
+  // Source needs to yield enough entities to cover the skipped offset plus the per-page budget. Compute in
+  // Long and saturate so a large offset (near Int.MaxValue) can't overflow into a negative fetch size.
+  val sourceFetchSize: Int = math.min(offset.toLong + maxTryEntities.toLong, Int.MaxValue.toLong).toInt
+}
+
+/**
+  * Result of [[PeakTransformApi.collectTransformationExamples]].
+  *
+  * @param tryCount     Number of example entities tried.
+  * @param errorCount   Number of exceptions that occurred while transforming.
+  * @param errorMessage The first exception message that occurred (empty if none occurred).
+  * @param results      The collected page of preview results.
+  * @param hasMore      Whether there are more matching results beyond this page.
+  * @param total        Total number of matching results within the scanned budget.
+  */
+case class CollectedExamples(tryCount: Int, errorCount: Int, errorMessage: String, results: Seq[PeakResult], hasMore: Boolean, total: Int)
 
 object PeakResults {
   implicit val peakStatusWrites: Format[PeakStatus] = Json.format[PeakStatus]
