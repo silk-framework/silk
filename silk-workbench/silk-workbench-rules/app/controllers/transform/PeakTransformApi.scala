@@ -338,15 +338,13 @@ class PeakTransformApi @Inject() () extends InjectedController with UserContextA
   private def peakRule(project: Project, inputTaskId: Identifier, ruleSchemata: RuleSchemata, limit: Int, maxTryEntities: Int, offset: Int, search: Option[String], includeTotal: Boolean, perRecord: Boolean)
                       (implicit context: PluginContext): Result = {
     if (offset < 0) {
-      throw new ValidationException(s"Query parameter 'offset' must be >= 0, but was $offset.")
+      throw BadUserInputException(s"Query parameter 'offset' must be >= 0, but was $offset.")
     }
     if (limit <= 0) {
-      throw new ValidationException(s"Query parameter 'limit' must be > 0, but was $limit.")
+      throw BadUserInputException(s"Query parameter 'limit' must be > 0, but was $limit.")
     }
     if (maxTryEntities < 1) {
-      // BadUserInputException (a RequestException) maps to HTTP 400. NB: the offset/limit checks above use
-      // ValidationException, which the workbench error handler renders as 500 - a pre-existing inconsistency
-      // left untouched here to keep this change scoped to maxTryEntities.
+      // BadUserInputException (a RequestException) maps to HTTP 400, consistent with the offset/limit checks above.
       throw BadUserInputException(s"Query parameter 'maxTryEntities' must be >= 1, but was $maxTryEntities.")
     }
     implicit val prefixes: Prefixes = project.config.prefixes
