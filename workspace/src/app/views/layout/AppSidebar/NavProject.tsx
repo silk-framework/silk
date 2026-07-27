@@ -6,7 +6,7 @@ import { Icon, shadcn } from "@eccenca/gui-elements";
 import { commonSel } from "@ducks/common";
 import { routerOp } from "@ducks/router";
 import { requestSearchList } from "@ducks/workspace/requests";
-import { ISearchResultsServer } from "@ducks/workspace/typings";
+import { requestProjectMetadata } from "@ducks/shared/requests";
 import { SERVE_PATH } from "../../../constants/path";
 import { getFullRoutePath } from "../../../utils/routerUtils";
 import { AppDispatch } from "store/configureStore";
@@ -29,19 +29,24 @@ export function NavProject() {
     // the dashboard route to avoid bouncing the user back into the single project.
     const onDashboard = matchPath(location.pathname, { path: getFullRoutePath("/"), exact: true }) != null;
 
-    const [projects, setProjects] = React.useState<ISearchResultsServer[]>([]);
+    const [projectLabel, setProjectLabel] = React.useState<string | undefined>(undefined);
 
     const navigate = (path: string) => dispatch(routerOp.goToPage(path));
 
-    // Resolve the current project's label; refresh when the active project changes.
+    // Resolve the current project's label directly instead of listing (up to 100) projects just to
+    // find the one we need; refresh when the active project changes.
     React.useEffect(() => {
+        if (!currentProjectId) {
+            setProjectLabel(undefined);
+            return;
+        }
         let active = true;
-        requestSearchList({ itemType: "project", limit: 100 })
-            .then(({ results }) => {
-                if (active) setProjects(results);
+        requestProjectMetadata(currentProjectId)
+            .then(({ data }) => {
+                if (active) setProjectLabel(data.label);
             })
             .catch(() => {
-                // Keep whatever list we have; the id still works as a label.
+                // Keep the id as the label fallback.
             });
         return () => {
             active = false;
@@ -51,14 +56,28 @@ export function NavProject() {
     // "If there is only one project it should be automatically selected" — but ONLY on the
     // dashboard landing route with an empty query string, so global pages and search stay reachable.
     React.useEffect(() => {
-        if (onDashboard && location.search === "" && !currentProjectId && projects.length === 1) {
-            navigate(`projects/${projects[0].id}`);
+        if (!(onDashboard && location.search === "" && !currentProjectId)) {
+            return;
         }
+        let active = true;
+        // Only the count matters here, so a minimal `limit` avoids fetching a project list just to
+        // check its size.
+        requestSearchList({ itemType: "project", limit: 1 })
+            .then(({ total, results }) => {
+                if (active && total === 1 && results[0]) {
+                    navigate(`projects/${results[0].id}`);
+                }
+            })
+            .catch(() => {
+                // Stay on the dashboard; nothing to auto-select.
+            });
+        return () => {
+            active = false;
+        };
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [projects, currentProjectId, onDashboard, location.search]);
+    }, [currentProjectId, onDashboard, location.search]);
 
-    const currentProject = projects.find((p) => p.id === currentProjectId);
-    const label = currentProject?.label || currentProjectId || t("navigation.side.project.select", "Select a project");
+    const label = projectLabel || currentProjectId || t("navigation.side.project.select", "Select a project");
 
     return (
         <SidebarMenu>
@@ -71,8 +90,8 @@ export function NavProject() {
                     aria-label={t("navigation.side.project.projects", "Projects")}
                     // Shown only in the collapsed icon rail (shadcn hides it when expanded). Safe to
                     // use now that this button is no longer wrapped in a CollapsibleTrigger. The
-                    // `z-[8100]` lifts it above the `z-[8000]`/`z-[8002]` header (default is z-50).
-                    tooltip={{ children: label, className: "z-[8100]" }}
+                    // `--z-app-header-menu` token lifts it above the header (default is z-50).
+                    tooltip={{ children: label, className: "z-[var(--z-app-header-menu)]" }}
                 >
                     <div className="flex aspect-square size-8 shrink-0 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
                         <Icon name="artefact-project" />

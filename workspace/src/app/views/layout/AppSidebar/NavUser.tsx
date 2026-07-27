@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { Icon, Menu, shadcn } from "@eccenca/gui-elements";
 import { commonSel } from "@ducks/common";
 import { pluginRegistry, SUPPORTED_PLUGINS } from "../../plugins/PluginRegistry";
+import { APPLICATION_CORPORATION_NAME } from "../../../constants/base";
 
 const {
     DropdownMenu,
@@ -87,15 +88,12 @@ export function NavUser() {
                         )}
                         {version && (
                             <p className="mt-2 whitespace-nowrap border-t border-sidebar-border px-2 pt-2 text-xs text-muted-foreground">
-                                {version} by{" "}
-                                <a
-                                    href="https://eccenca.com/"
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="text-primary hover:underline"
-                                >
-                                    eccenca GmbH
-                                </a>
+                                {APPLICATION_CORPORATION_NAME()
+                                    ? t("navigation.user.versionBy", "{{version}} by {{corporation}}", {
+                                          version,
+                                          corporation: APPLICATION_CORPORATION_NAME(),
+                                      })
+                                    : version}
                             </p>
                         )}
                     </DropdownMenuContent>

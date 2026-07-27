@@ -1,5 +1,4 @@
 import React from "react";
-import { useDispatch, useSelector } from "react-redux";
 import { useTranslation } from "react-i18next";
 import {
     Button,
@@ -12,40 +11,16 @@ import {
     WorkspaceContent,
     WorkspaceMain,
 } from "@eccenca/gui-elements";
-import { workspaceOp, workspaceSel } from "@ducks/workspace";
 import SearchList from "../../shared/SearchList";
 import { usePageHeader } from "../../shared/PageHeader/PageHeader";
 import WorkspaceToolbar from "./Toolbar/WorkspaceToolbar";
-import { useSelectFirstResult } from "../../../hooks/useSelectFirstResult";
-import { AppDispatch } from "store/configureStore";
-import { GlobalTableContext } from "../../../GlobalContextsWrapper";
-import { WorkbenchViewMode } from "../../../hooks/useStoreGlobalTableSettings";
+import { useWorkbenchListState } from "../../../hooks/useWorkbenchListState";
 
 const WorkspaceSearch = () => {
-    const dispatch = useDispatch<AppDispatch>();
     const [t] = useTranslation();
 
-    const { textQuery } = useSelector(workspaceSel.appliedFiltersSelector);
-    const error = useSelector(workspaceSel.errorSelector);
-    const { globalTableSettings, updateGlobalTableSettings } = React.useContext(GlobalTableContext);
-    const viewMode: WorkbenchViewMode = globalTableSettings["workbench"].viewMode ?? "table";
-
-    // FIXME: Workaround to prevent search with a text query from another page sharing the same Redux state. Needs refactoring.
-    const [searchInitialized, setSearchInitialized] = React.useState(false);
-    const effectiveSearchQuery = searchInitialized ? textQuery : "";
-    const { onEnter } = useSelectFirstResult();
-
-    React.useEffect(() => {
-        setSearchInitialized(true);
-    }, []);
-
-    const handleSearch = (textQuery: string) => {
-        dispatch(workspaceOp.applyFiltersOp({ textQuery }));
-    };
-
-    const handleViewModeChange = (mode: WorkbenchViewMode) => {
-        updateGlobalTableSettings({ viewMode: mode }, "workbench");
-    };
+    const { effectiveSearchQuery, error, viewMode, handleSearch, handleViewModeChange, onEnter } =
+        useWorkbenchListState("workbench");
 
     const { pageHeader } = usePageHeader({
         alternateDepiction: "application-homepage",

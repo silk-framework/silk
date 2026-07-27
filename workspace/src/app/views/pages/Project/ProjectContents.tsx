@@ -1,15 +1,12 @@
 import React from "react";
-import { useDispatch, useSelector } from "react-redux";
+import { useSelector } from "react-redux";
 import { useTranslation } from "react-i18next";
 import { Button, Divider, Notification } from "@eccenca/gui-elements";
-import { workspaceOp, workspaceSel } from "@ducks/workspace";
+import { workspaceSel } from "@ducks/workspace";
 import { diErrorMessage } from "@ducks/error/typings";
 import SearchList from "../../shared/SearchList";
 import { GridTileCard } from "../../shared/GridBoard";
-import { AppDispatch } from "store/configureStore";
-import { GlobalTableContext } from "../../../GlobalContextsWrapper";
-import { WorkbenchViewMode } from "../../../hooks/useStoreGlobalTableSettings";
-import { useSelectFirstResult } from "../../../hooks/useSelectFirstResult";
+import { useWorkbenchListState } from "../../../hooks/useWorkbenchListState";
 import WorkspaceToolbar from "../Workspace/Toolbar/WorkspaceToolbar";
 
 interface IProps {
@@ -22,31 +19,11 @@ interface IProps {
  * listing, scoped to the current project via the toolbar's `projectId`.
  */
 const ProjectContents = ({ projectId }: IProps) => {
-    const dispatch = useDispatch<AppDispatch>();
     const [t] = useTranslation();
 
-    const { textQuery } = useSelector(workspaceSel.appliedFiltersSelector);
-    const error = useSelector(workspaceSel.errorSelector);
     const data = useSelector(workspaceSel.resultsSelector);
-    const { globalTableSettings, updateGlobalTableSettings } = React.useContext(GlobalTableContext);
-    const viewMode: WorkbenchViewMode = globalTableSettings["workbench"].viewMode ?? "table";
-
-    // FIXME: Workaround to prevent search with a text query from another page sharing the same Redux state. Needs refactoring.
-    const [searchInitialized, setSearchInitialized] = React.useState(false);
-    const effectiveSearchQuery = searchInitialized ? textQuery : "";
-    const { onEnter } = useSelectFirstResult();
-
-    React.useEffect(() => {
-        setSearchInitialized(true);
-    }, []);
-
-    const handleSearch = (textQuery: string) => {
-        dispatch(workspaceOp.applyFiltersOp({ textQuery }));
-    };
-
-    const handleViewModeChange = (mode: WorkbenchViewMode) => {
-        updateGlobalTableSettings({ viewMode: mode }, "workbench");
-    };
+    const { effectiveSearchQuery, error, viewMode, handleSearch, handleViewModeChange, onEnter } =
+        useWorkbenchListState("projectContents");
 
     return (
         <GridTileCard title={t("pages.project.content", "Contents")} data-test-id="project-contents-tile">
@@ -58,6 +35,7 @@ const ProjectContents = ({ projectId }: IProps) => {
                 onViewModeChange={handleViewModeChange}
                 projectId={projectId}
                 focusOnCreation={false}
+                globalTableKey="projectContents"
             />
             <Divider addSpacing="medium" />
             {!data.length && error.detail ? (
@@ -82,7 +60,7 @@ const ProjectContents = ({ projectId }: IProps) => {
                     {error?.status !== 503 && <p>{error.detail}</p>}
                 </Notification>
             ) : (
-                <SearchList viewMode={viewMode} flush />
+                <SearchList viewMode={viewMode} flush tableKey="projectContents" />
             )}
         </GridTileCard>
     );

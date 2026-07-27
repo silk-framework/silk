@@ -93,7 +93,13 @@
         "rules": {
             "react-hooks/rules-of-hooks": "error",
             "react-hooks/exhaustive-deps": "off",
-            "no-control-regex": 0
+            "no-control-regex": 0,
+            "no-restricted-imports": ["error", {
+                "patterns": [{
+                    "group": ["@eccenca/gui-elements/src/_shadcn/*"],
+                    "message": "Deep-imports into gui-elements' vendored shadcn primitives bypass the package's exports map. Import { shadcn } from \"@eccenca/gui-elements\" and use shadcn.<Component> instead."
+                }]
+            }]
         }
     },
     "browserslist": {

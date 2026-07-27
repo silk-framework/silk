@@ -11,6 +11,7 @@ export const defaultGlobalTableSettings: GlobalTableSettings = {
     activities: { ...defaultConfig, pageSize: 25 },
     workbench: { ...defaultConfig },
     files: { ...defaultConfig, pageSize: 5 },
+    projectContents: { ...defaultConfig },
 } as const;
 
 /** Presentation of the workbench result list. */
@@ -28,13 +29,16 @@ export interface GlobalTableSettings {
     activities: GlobalTableBaseConfig;
     workbench: GlobalTableBaseConfig;
     files: GlobalTableBaseConfig;
+    /** Settings for the Project page's "Contents" tile, kept separate from `workbench` so the two
+     *  surfaces don't share view mode / page size / sort preferences. */
+    projectContents: GlobalTableBaseConfig;
 }
 
 const LOCAL_STORAGE_KEYS = {
     GLOBAL_TABLE_SETTINGS: "global_table_settings",
 };
 
-export type GlobalTableTypes = "workbench" | "files" | "activities";
+export type GlobalTableTypes = "workbench" | "files" | "activities" | "projectContents";
 
 interface GlobalTableSettingFunctions {
     /** Set the table settings for a specific global table. Specify table explicitly, else it will be derived from the path if possible. */
@@ -46,16 +50,26 @@ interface GlobalTableSettingFunctions {
  *
  * Do NOT use this hook directly, instead use the GlobalTableContext! */
 export const useStoreGlobalTableSettings: () => GlobalTableSettingFunctions = () => {
-    // Return the current global settings from local storage or if not existing default values
+    // Return the current global settings from local storage or if not existing default values. Merged
+    // onto the defaults so a settings key added after a user's stored preferences were written (e.g. a
+    // new surface like `projectContents`) still resolves instead of being `undefined`.
     const getGlobalTableSettings = React.useCallback(() => {
         const storedSettings = localStorage.getItem(LOCAL_STORAGE_KEYS.GLOBAL_TABLE_SETTINGS);
-        return !storedSettings ? defaultGlobalTableSettings : JSON.parse(storedSettings);
+        return !storedSettings
+            ? defaultGlobalTableSettings
+            : { ...defaultGlobalTableSettings, ...JSON.parse(storedSettings) };
     }, []);
     const [globalTableSettings, setGlobalTableSettings] = React.useState(getGlobalTableSettings);
 
     // Extracts the table key from the location path
     const extractTableKey = (): GlobalTableTypes => {
-        return window.location.pathname.split("/").slice(-1)[0] === "activities" ? "activities" : "workbench";
+        const segments = window.location.pathname.split("/");
+        const lastSegment = segments.slice(-1)[0];
+        if (lastSegment === "activities") return "activities";
+        // The Project page's root route ("/projects/:projectId") hosts the "Contents" tile — give it
+        // its own settings key so it doesn't share view mode / page size / sort with `/workbench`.
+        if (segments.slice(-2)[0] === "projects" && lastSegment) return "projectContents";
+        return "workbench";
     };
     const updateGlobalTableSettings = React.useCallback(
         (settings: GlobalTableBaseConfig, customKey?: GlobalTableTypes) => {

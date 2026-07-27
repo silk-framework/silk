@@ -5,7 +5,7 @@ import "@uppy/drag-drop/dist/style.css";
 import "@uppy/progress-bar/dist/style.css";
 
 import { Button, Divider, FieldItem, TextField } from "@eccenca/gui-elements";
-import { SuggestFieldProps } from "@eccenca/gui-elements/src/components/organisms/AutocompleteField/AutoCompleteField";
+import { SuggestFieldProps } from "@eccenca/gui-elements/src/components/organisms/SuggestField/SuggestField";
 import { UploadNewFile } from "./cases/UploadNewFile/UploadNewFile";
 import { FileSelectionOptions, FileMenuItems } from "./FileSelectionOptions";
 import { SelectFileFromExisting } from "./cases/SelectFileFromExisting";

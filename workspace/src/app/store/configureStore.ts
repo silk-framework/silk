@@ -2,6 +2,7 @@ import rootReducer from "./reducers";
 import { configureStore } from "@reduxjs/toolkit";
 import { createBrowserHistory } from "history";
 import { routerMiddleware } from "connected-react-router";
+import { getUserConfirmation } from "../views/shared/projectTaskTabView/unsavedChangesConfirmation";
 import { createLogger } from "redux-logger";
 import monitorReducerEnhancer from "./enhancers/monitorPerformanceEnhancer";
 import storeDevEnhancer from "./enhancers/reduxDevEnhancer";
@@ -9,7 +10,9 @@ import React from "react";
 import { isDevelopment } from "../constants/path";
 
 let store;
-let history = createBrowserHistory();
+// Custom getUserConfirmation lets the ProjectTaskTabView route its own history.block prompts
+// through an in-app modal (opt-in per navigation); all other callers fall back to window.confirm.
+let history = createBrowserHistory({ getUserConfirmation });
 
 export const getStore = () => store;
 export const getHistory = () => history;

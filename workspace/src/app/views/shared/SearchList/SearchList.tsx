@@ -19,17 +19,19 @@ import ShowIdentifierModal from "../modals/ShowIdentifierModal";
 import { IArtefactModal } from "@ducks/common/typings";
 import { AppDispatch } from "store/configureStore";
 import { GlobalTableContext } from "../../../GlobalContextsWrapper";
-import { WorkbenchViewMode } from "../../../hooks/useStoreGlobalTableSettings";
+import { GlobalTableTypes, WorkbenchViewMode } from "../../../hooks/useStoreGlobalTableSettings";
 import { Loading } from "../Loading/Loading";
 import SearchTable from "./SearchTable";
 import SearchGrid from "./SearchGrid";
 import { ItemType } from "@ducks/router/operations";
+import { artefactTypes } from "../../layout/Header/artefactTypes";
 
+// Types created directly as a task carry a `pluginId` in the shared artefact-type registry;
+// `ruleBlock` is create-in-place only (it has no header Create tile) so it is added here.
 const directCreateTaskPluginIds: Partial<Record<ItemType, string>> = {
-    dataset: "dataset",
-    workflow: "workflow",
-    transform: "transform",
-    linking: "linking",
+    ...(Object.fromEntries(
+        artefactTypes.flatMap((type) => (type.pluginId ? [[type.dtype, type.pluginId]] : [])),
+    ) as Partial<Record<ItemType, string>>),
     ruleBlock: "ruleBlock",
 };
 
@@ -50,10 +52,16 @@ interface SearchListProps {
      * inside a card, e.g. the Project "Contents" tile, to avoid a card-inside-a-card.
      */
     flush?: boolean;
+    /**
+     * Which `GlobalTableContext` slot this list's page size preference is stored under. Defaults to
+     * `"workbench"` (the `/workbench` page); the Project "Contents" tile passes `"projectContents"`
+     * so the two surfaces don't share a page size.
+     */
+    tableKey?: GlobalTableTypes;
 }
 
 /** Search list for the workspace/project page search. */
-export function SearchList({ framed = false, viewMode, flush = false }: SearchListProps = {}) {
+export function SearchList({ framed = false, viewMode, flush = false, tableKey = "workbench" }: SearchListProps = {}) {
     const dispatch = useDispatch<AppDispatch>();
 
     const pageSizes = [10, 25, 50, 100];
@@ -61,7 +69,7 @@ export function SearchList({ framed = false, viewMode, flush = false }: SearchLi
     const data = useSelector(workspaceSel.resultsSelector);
     const pagination = useSelector(workspaceSel.paginationSelector);
     const { globalTableSettings } = React.useContext(GlobalTableContext);
-    const workspaceTableSettings = globalTableSettings["workbench"];
+    const workspaceTableSettings = globalTableSettings[tableKey];
     const adaptedPagination = {
         ...pagination,
     };

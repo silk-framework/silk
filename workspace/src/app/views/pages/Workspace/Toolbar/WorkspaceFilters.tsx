@@ -4,16 +4,25 @@ import { workspaceOp, workspaceSel } from "@ducks/workspace";
 import { commonSel } from "@ducks/common";
 import { useTranslation } from "react-i18next";
 import { IFacetState } from "@ducks/workspace/typings";
+import { IAvailableDataTypeOption } from "@ducks/common/typings";
 import { AppDispatch } from "store/configureStore";
 import { createIconNameStack } from "../../../shared/ItemDepiction/ItemDepiction";
 import FilterMenu from "./FilterMenu";
+
+interface WorkspaceFiltersProps {
+    /** When rendered inside a project, hides the project-specific filter options. */
+    projectId?: string;
+    /** Additional item-type options prepended to the server-provided ones (e.g. the Activities
+     *  page adds a synthetic "Global" type that has no backing data type). */
+    extraItemTypeModifiers?: IAvailableDataTypeOption[];
+}
 
 /**
  * The workbench filters rendered as inline dropdown "option menus": a single-select item type
  * filter followed by one dropdown per available server facet (e.g. "Created by", tags). Replaces
  * the former left-hand filter sidebar.
  */
-export default function WorkspaceFilters({ projectId }: { projectId?: string }) {
+export default function WorkspaceFilters({ projectId, extraItemTypeModifiers = [] }: WorkspaceFiltersProps) {
     const dispatch = useDispatch<AppDispatch>();
     const [t] = useTranslation();
 
@@ -41,7 +50,7 @@ export default function WorkspaceFilters({ projectId }: { projectId?: string }) 
         appliedFacets.find((f) => f.facetId === facetId)?.keywordIds ?? [];
 
     const typeOptions = typeModifier
-        ? typeModifier.options
+        ? [...extraItemTypeModifiers, ...typeModifier.options]
               .filter((mod) => !(!!projectId && (mod.label === "Project" || mod.label === "Global")))
               .map((opt) => ({
                   id: opt.id,
