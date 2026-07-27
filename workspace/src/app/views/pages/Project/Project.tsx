@@ -5,11 +5,9 @@ import { WorkspaceContent, WorkspaceMain } from "@eccenca/gui-elements";
 import { workspaceOp, workspaceSel } from "@ducks/workspace";
 import { routerSel } from "@ducks/router";
 import { commonOp, commonSel } from "@ducks/common";
-import Metadata from "../../shared/Metadata";
 import Loading from "../../shared/Loading";
 import { DATA_TYPES } from "../../../constants";
 import { usePageHeader } from "../../shared/PageHeader/PageHeader";
-import { ArtefactManagementOptions } from "../../shared/ActionsMenu/ArtefactManagementOptions";
 import ConfigurationWidget from "./ProjectNamespacePrefixManagementWidget";
 import { ProjectTaskLoadingErrors } from "./WarningWidget/ProjectTaskLoadingErrors";
 import FileWidget from "./FileWidget";
@@ -24,7 +22,8 @@ import { pluginRegistry, SUPPORTED_PLUGINS } from "../../plugins/PluginRegistry"
 import { ProjectAccessControlProps } from "../../plugins/plugin.types";
 import useErrorHandler from "../../../hooks/useErrorHandler";
 import { ProjectForbiddenNotification } from "../../shared/ProjectForbiddenNotification";
-import { GridBoard, GridBoardItem, GridTileCard } from "../../shared/GridBoard";
+import { GridBoard, GridBoardItem } from "../../shared/GridBoard";
+import { summaryTile, actionsTile } from "../../shared/GridBoard/taskPageTiles";
 
 const Project = () => {
     const dispatch = useDispatch<AppDispatch>();
@@ -65,7 +64,8 @@ const Project = () => {
         dispatch(workspaceOp.resetFilters());
     }, [window.location.pathname]);
 
-    const tableSettings = globalTableSettings["workbench"];
+    // The Project "Contents" tile has its own settings slot, separate from `/workbench`.
+    const tableSettings = globalTableSettings["projectContents"];
 
     useEffect(() => {
         // Setup the filters from query string
@@ -97,24 +97,8 @@ const Project = () => {
     }
 
     const items: GridBoardItem[] = [
-        {
-            id: "summary",
-            title: t("common.words.summary", "Summary"),
-            icon: "item-info",
-            defaultLayout: { x: 0, y: 0, w: 8, h: 3 },
-            element: (
-                <GridTileCard title={t("common.words.summary", "Summary")}>
-                    <Metadata />
-                </GridTileCard>
-            ),
-        },
-        {
-            id: "actions",
-            title: t("common.words.actions", "Actions"),
-            icon: "item-moremenu",
-            defaultLayout: { x: 8, y: 0, w: 4, h: 5 },
-            element: <ArtefactManagementOptions projectId={projectId} itemType={DATA_TYPES.PROJECT} />,
-        },
+        summaryTile(t),
+        actionsTile({ t, projectId, itemType: DATA_TYPES.PROJECT }),
         {
             id: "contents",
             title: t("pages.project.content", "Contents"),

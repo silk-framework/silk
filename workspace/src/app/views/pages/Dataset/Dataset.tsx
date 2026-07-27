@@ -8,19 +8,14 @@ import { DATA_TYPES } from "../../../constants";
 import { Loading } from "../../shared/Loading/Loading";
 import { ProjectTaskTabView } from "../../shared/projectTaskTabView/ProjectTaskTabView";
 import { usePageHeader } from "../../shared/PageHeader/PageHeader";
-import { ArtefactManagementOptions } from "../../shared/ActionsMenu/ArtefactManagementOptions";
-import Metadata from "../../shared/Metadata";
-import { RelatedItems } from "../../shared/RelatedItems/RelatedItems";
-import { TaskConfig } from "../../shared/TaskConfig/TaskConfig";
-import { TaskActivityOverview } from "../../shared/TaskActivityOverview/TaskActivityOverview";
-import NotFound from "../NotFound";
-import { ProjectForbiddenNotification } from "../../shared/ProjectForbiddenNotification";
 import { ProjectTaskParams } from "../../shared/typings";
 import { pluginRegistry, SUPPORTED_PLUGINS } from "../../plugins/PluginRegistry";
 import { DataPreviewProps } from "../../plugins/plugin.types";
 import DeprecatedPluginsBanner from "../Project/DeprecatedPlugins/DeprecatedPluginsBanner";
 import { IPluginDetails } from "@ducks/common/typings";
-import { GridBoard, GridBoardItem, GridTileCard } from "../../shared/GridBoard";
+import { GridBoard } from "../../shared/GridBoard";
+import { buildDatasetTiles } from "../../shared/GridBoard/taskPageTiles";
+import { useTaskPageGuards } from "../../shared/GridBoard/useTaskPageGuards";
 
 // The dataset plugins that should show the data preview automatically without user interaction.
 const automaticallyPreviewedDatasets = ["json", "xml", "csv"];
@@ -32,8 +27,7 @@ export function Dataset() {
     const [t] = useTranslation();
     // Shared by the always-mounted TaskConfig tile, so the task data is only fetched once.
     const [pluginDetails, setPluginDetails] = useState<IPluginDetails | undefined>(undefined);
-    const [notFound, setNotFound] = useState(false);
-    const [forbidden, setForbidden] = useState(false);
+    const { guardElement, notFoundCallback, forbiddenCallback } = useTaskPageGuards();
     const { dmBaseUrl } = useSelector(commonSel.initialSettingsSelector);
 
     const pluginId = pluginDetails?.pluginId;
@@ -77,71 +71,20 @@ export function Dataset() {
     // Main content = data preview (or the knowledge-graph explore/query iframe); may be absent.
     const mainContent = !pluginDetails ? <Loading /> : additionalContent();
 
-    const items: GridBoardItem[] = [
-        {
-            id: "summary",
-            icon: "item-info",
-            title: t("common.words.summary", "Summary"),
-            defaultLayout: { x: 0, y: 0, w: 8, h: 3 },
-            element: (
-                <GridTileCard title={t("common.words.summary", "Summary")}>
-                    <Metadata />
-                </GridTileCard>
-            ),
-        },
-        {
-            id: "actions",
-            icon: "item-moremenu",
-            title: t("common.words.actions", "Actions"),
-            defaultLayout: { x: 8, y: 0, w: 4, h: 5 },
-            element: (
-                <ArtefactManagementOptions
-                    projectId={projectId}
-                    taskId={taskId}
-                    itemType={DATA_TYPES.DATASET}
-                    notFoundCallback={setNotFound}
-                    forbiddenCallback={setForbidden}
-                />
-            ),
-        },
-        {
-            id: "relatedItems",
-            icon: "toggler-list",
-            title: t("RelatedItems.title", "Related items"),
-            defaultLayout: { x: 8, y: 0, w: 4, h: 5 },
-            element: <RelatedItems />,
-        },
-        {
-            id: "taskConfig",
-            icon: "item-settings",
-            title: t("widget.TaskConfigWidget.title", "Configuration"),
-            defaultLayout: { x: 8, y: 5, w: 4, h: 5 },
-            element: <TaskConfig projectId={projectId} taskId={taskId} pluginDataCallback={setPluginDetails} />,
-        },
-        {
-            id: "activity",
-            icon: "application-activities",
-            title: t("widget.TaskActivityOverview.title", "Activities"),
-            defaultLayout: { x: 8, y: 10, w: 4, h: 4 },
-            element: <TaskActivityOverview projectId={projectId} taskId={taskId} />,
-        },
-    ];
+    const items = buildDatasetTiles({
+        t,
+        projectId,
+        taskId,
+        notFoundCallback,
+        forbiddenCallback,
+        pluginDataCallback: setPluginDetails,
+        mainContent,
+    });
 
-    if (mainContent) {
-        items.splice(1, 0, {
-            id: "preview",
-            icon: "item-viewdetails",
-            title: t("pages.dataset.title", "Data preview"),
-            defaultLayout: { x: 0, y: 3, w: 8, h: 11 },
-            element: mainContent,
-        });
+    if (guardElement) {
+        return guardElement;
     }
-
-    return forbidden ? (
-        <ProjectForbiddenNotification />
-    ) : notFound ? (
-        <NotFound />
-    ) : (
+    return (
         <WorkspaceContent className="eccapp-di__dataset">
             {pageHeader}
             <WorkspaceMain>
