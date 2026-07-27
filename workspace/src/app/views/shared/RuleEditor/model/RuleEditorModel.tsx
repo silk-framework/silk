@@ -208,18 +208,17 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
             return;
         }
         const handlePaste = async (e) => {
-            const tagName = e.target?.tagName;
+            const target = e.target as HTMLElement | null;
             if (
-                tagName === "INPUT" ||
-                // In CodeMirror the target has this structure.
-                (tagName === "BR" && e.target?.parentElement == null) ||
-                e.target?.classList.contains("cm-line") ||
-                // Or this structure when a string is highlighted for auto-completion
-                e.target?.classList.contains("eccgui-autosuggestion__text--highlighted") ||
-                // Or this if an empty line after double-clicking
-                e.target?.classList.contains("cm-widgetBuffer")
+                !target ||
+                target.tagName === "INPUT" ||
+                target.tagName === "TEXTAREA" ||
+                // Covers CodeMirror editors: the paste target is inside a contenteditable element
+                target.isContentEditable ||
+                // Detached targets (e.g. CodeMirror internals) cannot be attributed to the canvas
+                !target.isConnected
             ) {
-                // User tries to paste text into an input field
+                // The paste goes into a text input, not the canvas
                 return;
             }
             await pasteNodes(e);
@@ -945,7 +944,10 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                                     ...currentRuleNode,
                                     data: {
                                         ...currentRuleNode.data,
-                                        businessData: { ...businessData, updateSwitch: !businessData.updateSwitch },
+                                        businessData: {
+                                            ...businessData,
+                                            updateSwitch: (businessData.updateSwitch ?? 0) + 1,
+                                        },
                                         content: (adjustedProps: Partial<RuleNodeContentProps>) => (
                                             <NodeContent
                                                 nodeOperations={operatorNodeOperationsInternal}
@@ -960,7 +962,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                                                     ...op.parameters,
                                                     ...Object.fromEntries(nodeParameters.get(elem.id)!!.entries()),
                                                 }}
-                                                updateSwitch={!businessData.updateSwitch}
+                                                updateSwitch={(businessData.updateSwitch ?? 0) + 1}
                                                 showEditModal={false}
                                                 {...adjustedProps}
                                             />
@@ -1106,7 +1108,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
             ...originalRuleOperatorNode,
             ...patch,
         };
-        const updateSwitch = !businessData.updateSwitch;
+        const updateSwitch = (businessData.updateSwitch ?? 0) + 1;
 
         return {
             ...currentNode,

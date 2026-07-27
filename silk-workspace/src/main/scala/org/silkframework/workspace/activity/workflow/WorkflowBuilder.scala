@@ -47,7 +47,6 @@ class WorkflowBuilder {
         outputs = Seq.empty,
         position = (0, 0),
         nodeId = id,
-        outputPriority = None,
         configInputs = Seq.empty,
         dependencyInputs = Seq.empty
       )
@@ -67,7 +66,6 @@ class WorkflowBuilder {
         errorOutputs = Seq.empty,
         position = (0, 0),
         nodeId = id,
-        outputPriority = None,
         configInputs = Seq.empty,
         dependencyInputs = Seq.empty
       )
@@ -87,7 +85,7 @@ class WorkflowBuilder {
 
   def build(): Workflow = {
     addCurrentNode()
-    Workflow(
+    Workflow.createNormalized(
       operators = WorkflowOperatorsParameter(operators.toSeq),
       datasets = WorkflowDatasetsParameter(datasets.toSeq),
       replaceableInputs = replaceableInputs,

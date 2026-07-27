@@ -33,8 +33,6 @@ object StringUtils {
           """[eE][-+]?[0-9]+""" + // or without, but obligatory exponent
         """)""" +
         """\s*$""").
-      replace("\n", "").
-      replaceAll("\r", "").
       r
 
   object IntLiteral {

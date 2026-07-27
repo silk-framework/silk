@@ -2,7 +2,7 @@ package controllers.workflowApi
 
 import akka.stream.scaladsl.{FileIO, Source}
 import controllers.workflowApi.variableWorkflow.VariableWorkflowRequestUtils
-import controllers.workflowApi.workflow.WorkflowInfo
+import controllers.workflowApi.workflow.{WorkflowInfo, WorkflowWarningInfo}
 import controllers.workspace.ActivityClient
 import controllers.workspace.activityApi.StartActivityResponse
 import helper.IntegrationTestTrait
@@ -212,7 +212,7 @@ class SimpleVariableWorkflowApiTest extends AnyFlatSpec with BeforeAndAfterAll
       "Simple variable workflow project",
       List(variableInputDataset),
       List(variableOutputDataset),
-      Seq.empty
+      Seq.empty[WorkflowWarningInfo]
     )
   }
 
@@ -238,11 +238,11 @@ class SimpleVariableWorkflowApiTest extends AnyFlatSpec with BeforeAndAfterAll
     project.addTask[GenericDatasetSpec](outputDataset, DatasetSpec(InMemoryDataset()))
     val workflow = Workflow(
       operators = Seq(
-        WorkflowOperator(inputs = Seq(Some(inputDataset)), task = transformTask, outputs = Seq(outputDataset), Seq(), (0, 0), transformTask, None, Seq.empty, Seq.empty)
+        WorkflowOperator(inputs = Seq(Some(inputDataset)), task = transformTask, outputs = Seq(outputDataset), Seq(), (0, 0), transformTask, Seq.empty, Seq.empty)
       ),
       datasets = Seq(
-        WorkflowDataset(Seq(), inputDataset, Seq(transformTask), (0, 0), inputDataset, None, Seq.empty, Seq.empty),
-        WorkflowDataset(Seq(Some(transformTask)), outputDataset, Seq(), (0, 0), outputDataset, None, Seq.empty, Seq.empty)
+        WorkflowDataset(Seq(), inputDataset, Seq(transformTask), (0, 0), inputDataset, Seq.empty, Seq.empty),
+        WorkflowDataset(Seq(Some(transformTask)), outputDataset, Seq(), (0, 0), outputDataset, Seq.empty, Seq.empty)
       ),
       uiAnnotations = UiAnnotations(),
       replaceableInputs = Seq(inputDataset),
@@ -287,11 +287,11 @@ class SimpleVariableWorkflowApiTest extends AnyFlatSpec with BeforeAndAfterAll
     proj.addTask[GenericDatasetSpec](outputDataset, DatasetSpec(InMemoryDataset()))
     val workflow = Workflow(
       operators = Seq(
-        WorkflowOperator(inputs = Seq(Some(inputDataset)), task = transformTask, outputs = Seq(outputDataset), Seq(), (0, 0), transformTask, None, Seq.empty, Seq.empty)
+        WorkflowOperator(inputs = Seq(Some(inputDataset)), task = transformTask, outputs = Seq(outputDataset), Seq(), (0, 0), transformTask, Seq.empty, Seq.empty)
       ),
       datasets = Seq(
-        WorkflowDataset(Seq(), inputDataset, Seq(transformTask), (0, 0), inputDataset, None, Seq.empty, Seq.empty),
-        WorkflowDataset(Seq(Some(transformTask)), outputDataset, Seq(), (0, 0), outputDataset, None, Seq.empty, Seq.empty)
+        WorkflowDataset(Seq(), inputDataset, Seq(transformTask), (0, 0), inputDataset, Seq.empty, Seq.empty),
+        WorkflowDataset(Seq(Some(transformTask)), outputDataset, Seq(), (0, 0), outputDataset, Seq.empty, Seq.empty)
       ),
       uiAnnotations = UiAnnotations()
     )

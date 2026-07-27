@@ -55,7 +55,7 @@ class GenericReportingIterator[T](entities: CloseableIterator[T])(implicit execu
       } catch {
         case NonFatal(ex) =>
           executionReport.setExecutionError(Some(ex.getMessage))
-          executionReport.executionDone()
+          Try(close())
           throw ex
       }
     addEntitySample(entity)

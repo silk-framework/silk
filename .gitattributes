@@ -1,0 +1,4 @@
+# Force LF for source files so string literals are identical on every checkout
+*.scala text eol=lf
+*.sbt   text eol=lf
+*.java  text eol=lf

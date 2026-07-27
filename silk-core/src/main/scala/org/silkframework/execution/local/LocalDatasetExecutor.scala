@@ -461,6 +461,7 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
         // Write the statements as generic entities
         implicit val executionReportUpdater: ExecutionReportUpdater = reportUpdater
         writeEntities(sink, quads)
+        reportUpdater.executionDone()
     }
   }
 
@@ -483,11 +484,13 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
 
   private case class WriteEntitiesReportUpdater(task: Task[TaskSpec], context: ActivityContext[ExecutionReport]) extends ExecutionReportUpdater {
     override def operationLabel: Option[String] = Some("write")
+    override def operationType: OperationType = OperationType.Write
     override def entityProcessVerb: String = "written"
   }
 
   private case class ReadEntitiesReportUpdater(task: Task[TaskSpec], context: ActivityContext[ExecutionReport]) extends ExecutionReportUpdater {
     override def operationLabel: Option[String] = Some("read")
+    override def operationType: OperationType = OperationType.Read
     override def entityProcessVerb: String = "read"
   }
 
@@ -495,6 +498,7 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
     override def entityLabelSingle: String = "File"
     override def entityLabelPlural: String = "Files"
     override def operationLabel: Option[String] = Some("read")
+    override def operationType: OperationType = OperationType.Read
     override def entityProcessVerb: String = "read"
   }
 
@@ -502,6 +506,7 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
     override def entityLabelSingle: String = "Triple"
     override def entityLabelPlural: String = "Triples"
     override def operationLabel: Option[String] = Some("read")
+    override def operationType: OperationType = OperationType.Read
     override def entityProcessVerb: String = "read"
   }
 
@@ -509,6 +514,7 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
     override def entityLabelSingle: String = "Link"
     override def entityLabelPlural: String = "Links"
     override def operationLabel: Option[String] = Some("write")
+    override def operationType: OperationType = OperationType.Write
     override def entityProcessVerb: String = "written"
   }
 
@@ -516,6 +522,7 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
     override def entityLabelSingle: String = "File"
     override def entityLabelPlural: String = "Files"
     override def operationLabel: Option[String] = Some("write")
+    override def operationType: OperationType = OperationType.Write
     override def entityProcessVerb: String = "written"
   }
 
@@ -530,6 +537,7 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
     override def entityLabelSingle: String = "File"
     override def entityLabelPlural: String = "Files"
     override def operationLabel: Option[String] = Some("upload")
+    override def operationType: OperationType = OperationType.Write
     override def entityProcessVerb: String = "uploaded"
   }
 
@@ -537,6 +545,7 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
     override def entityLabelSingle: String = "Triple"
     override def entityLabelPlural: String = "Triples"
     override def operationLabel: Option[String] = Some("write")
+    override def operationType: OperationType = OperationType.Write
     override def entityProcessVerb: String = "written"
   }
 }

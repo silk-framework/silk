@@ -14,7 +14,8 @@ case class SimpleExecutionReport(task: Task[TaskSpec],
                                  entityCount: Int = 0,
                                  override val operation: Option[String] = None,
                                  override val operationDesc: String = ExecutionReport.DEFAULT_OPERATION_DESC,
-                                 override val sampleOutputEntities: Seq[SampleEntities] = Seq.empty) extends ExecutionReport {
+                                 override val sampleOutputEntities: Seq[SampleEntities] = Seq.empty,
+                                 override val operationType: OperationType = OperationType.Process) extends ExecutionReport {
 
   /**
     * Returns a done version of this report.

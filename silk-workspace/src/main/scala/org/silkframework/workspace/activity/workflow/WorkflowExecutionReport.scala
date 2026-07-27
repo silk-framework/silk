@@ -20,14 +20,15 @@ case class WorkflowExecutionReport(task: Task[TaskSpec],
                                    isDone: Boolean = false,
                                    override val error : Option[String] = None,
                                    authDiagnostics: Option[String] = None,
-                                   version: Int = 0) extends ExecutionReport {
+                                   version: Int = 0,
+                                   workflowWarnings: Seq[String] = Seq.empty) extends ExecutionReport {
 
   /**
     * Retrieves all current task reports.
     * If there are multiple reports for a single node, only the most recent one is returned.
     */
   def currentReports(): Iterable[WorkflowTaskReport] = {
-    taskReports.groupBy(_.nodeId).values.map(_.maxBy(_.timestamp))
+    taskReports.groupBy(_.nodeId).values.map(_.maxBy(_.version))
   }
 
   /**
@@ -44,7 +45,7 @@ case class WorkflowExecutionReport(task: Task[TaskSpec],
     * @return The updated workflow report
     */
   def addReport(nodeId: Identifier, report: ExecutionReport): WorkflowExecutionReport = {
-    copy(taskReports = taskReports :+ WorkflowTaskReport(nodeId, report, version), version = version + 1)
+    copy(taskReports = taskReports :+ WorkflowTaskReport(nodeId, report, version + 1), version = version + 1)
   }
 
   /**
@@ -111,12 +112,16 @@ case class WorkflowExecutionReport(task: Task[TaskSpec],
   }
 
   override def warnings: Seq[String] = {
-    if(taskReports.exists(_.report.warnings.nonEmpty)) {
+    val taskWarnings = if(taskReports.exists(_.report.warnings.nonEmpty)) {
       Seq("Some tasks generated warnings.")
     } else {
       Seq.empty
     }
+    workflowWarnings ++ taskWarnings
   }
+
+  /** Also covers node reports that carry an error but no warnings. */
+  override def hasIssues: Boolean = super.hasIssues || taskReports.exists(_.report.hasIssues)
 
   override def entityCount: Int = taskReports.map(_.nodeId).distinct.size
 
@@ -130,9 +135,10 @@ case class WorkflowExecutionReport(task: Task[TaskSpec],
 /**
   * Report of a single workflow operator execution.
   *
-  * @param nodeId The node identifier within the workflow
-  * @param report             The execution report.
-  * @param timestamp          Timestamp of the last update.
+  * @param nodeId    The node identifier within the workflow
+  * @param report    The execution report.
+  * @param version   Version of the workflow execution report at which this report was added or last updated.
+  * @param timestamp Timestamp of the last update.
   */
 case class WorkflowTaskReport(nodeId: Identifier,
                               report: ExecutionReport,

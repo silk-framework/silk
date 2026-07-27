@@ -24,6 +24,13 @@ trait ExecutionReport {
   def operation: Option[String] = None
 
   /**
+    * The semantic type of the executed operation ([[operation]] is the free-text display label).
+    * E.g. compact serializations drop the output samples of [[OperationType.Read]] reports,
+    * which echo the read source entities.
+    */
+  def operationType: OperationType = OperationType.Process
+
+  /**
     * Short description of the operation (plural, past tense).
     * Example: "entities processed".
     */
@@ -40,6 +47,11 @@ trait ExecutionReport {
     * If issues occurred during execution, this contains a list of user-friendly messages.
     */
   def warnings: Seq[String]
+
+  /**
+    * True if this report carries an error or warnings (nested node reports included).
+    */
+  def hasIssues: Boolean = error.isDefined || warnings.nonEmpty
 
   /**
     * Error message in case a fatal error occurred.
