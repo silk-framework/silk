@@ -62,7 +62,8 @@ import { requestAutoConfiguredDataset } from "./CreateArtefactModal.requests";
 import { diErrorMessage } from "@ducks/error/typings";
 import useHotKey from "../../HotKeyHandler/HotKeyHandler";
 import { CreateArtefactModalContext } from "./CreateArtefactModalContext";
-import { TaskDocumentationModal } from "./TaskDocumentationModal";
+import { PluginDocumentationModal } from "../PluginDocumentationModal";
+import { PluginDocumentation as ArtefactDocumentation, RelatedPluginDocumentation } from "../PluginDocumentation";
 import { PARAMETER_DOC_PREFIX } from "./ArtefactForms/TaskForm";
 import { AppDispatch } from "store/configureStore";
 
@@ -77,20 +78,6 @@ export interface ProjectIdAndLabel {
 export interface InfoMessage {
     message: string;
     removeAfterSeconds?: number;
-}
-
-export interface ArtefactDocumentation {
-    key: string;
-    title?: string;
-    description?: string;
-    markdownDocumentation?: string;
-    namedAnchor: string | undefined;
-    relatedPlugins?: RelatedPluginDocumentation[];
-}
-
-interface RelatedPluginDocumentation {
-    plugin: IPluginOverview;
-    description: string;
 }
 
 export function CreateArtefactModal() {
@@ -1345,7 +1332,7 @@ export function CreateArtefactModal() {
                         </Grid>
                     )}
                     {documentationToShow && (
-                        <TaskDocumentationModal
+                        <PluginDocumentationModal
                             documentationToShow={documentationToShow}
                             onClose={() => {
                                 setDocumentationToShow(undefined);

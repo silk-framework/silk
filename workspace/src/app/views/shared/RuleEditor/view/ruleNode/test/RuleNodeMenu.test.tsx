@@ -38,6 +38,7 @@ const createRuleBlockNode = (): IRuleOperatorNode =>
 const createMenuUi = (
     evaluationContextOverrides: Partial<RuleEditorEvaluationContextProps> = {},
     ruleNode: IRuleOperatorNode = createRuleBlockNode(),
+    setCurrentRuleNodeInfo = jest.fn(),
 ) => {
     const evaluationContext: RuleEditorEvaluationContextProps = {
         ...ruleEditorEvaluationContextDefaultValue,
@@ -53,7 +54,7 @@ const createMenuUi = (
     };
 
     return (
-        <RuleEditorUiContext.Provider value={ruleEditorUiContextDefaultValue}>
+        <RuleEditorUiContext.Provider value={{ ...ruleEditorUiContextDefaultValue, setCurrentRuleNodeInfo }}>
             <RuleEditorEvaluationContext.Provider value={evaluationContext}>
                 <RuleEditorModelContext.Provider value={modelContext}>
                     <RuleEditorContext.Provider value={{ ...ruleEditorContextDefaultValue, projectId: "project1" }}>
@@ -63,6 +64,8 @@ const createMenuUi = (
                             handleDeleteNode={jest.fn()}
                             handleCloneNode={jest.fn()}
                             ruleOperatorLabel={ruleNode.label}
+                            ruleOperatorDescription={ruleNode.description}
+                            ruleOperatorDocumentation={ruleNode.markdownDocumentation}
                         />
                     </RuleEditorContext.Provider>
                 </RuleEditorModelContext.Provider>
@@ -74,7 +77,8 @@ const createMenuUi = (
 const renderMenu = (
     evaluationContextOverrides: Partial<RuleEditorEvaluationContextProps> = {},
     ruleNode: IRuleOperatorNode = createRuleBlockNode(),
-) => render(createMenuUi(evaluationContextOverrides, ruleNode));
+    setCurrentRuleNodeInfo = jest.fn(),
+) => render(createMenuUi(evaluationContextOverrides, ruleNode, setCurrentRuleNodeInfo));
 
 const internalEvaluationMenuButton = () =>
     document.querySelector('[data-test-id="rule-node-open-internal-rule-block-evaluation-btn"]');
@@ -140,6 +144,33 @@ describe("RuleNodeMenu", () => {
                 "normalizeName",
                 "Normalize Name",
             ),
+        );
+    });
+
+    it("opens documentation with related plugin information", () => {
+        const setCurrentRuleNodeInfo = jest.fn();
+        const ruleNode = {
+            ...createRuleBlockNode(),
+            description: "Normalizes a name.",
+            markdownDocumentation: "# Normalize name",
+            relatedPlugins: [{ id: "trim", description: "Removes leading and trailing whitespace." }],
+        };
+
+        renderMenu({}, ruleNode, setCurrentRuleNodeInfo);
+
+        fireEvent.click(document.querySelector('[data-test-id="rule-node-info"]') as Element);
+
+        expect(setCurrentRuleNodeInfo).toHaveBeenCalledWith(
+            expect.objectContaining({
+                key: "normalizeName",
+                title: "Normalize Name",
+                relatedPlugins: [
+                    expect.objectContaining({
+                        plugin: expect.objectContaining({ key: "trim", title: "trim" }),
+                        description: "Removes leading and trailing whitespace.",
+                    }),
+                ],
+            }),
         );
     });
 });

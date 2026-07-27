@@ -19,11 +19,11 @@ import {
     Tooltip,
 } from "@eccenca/gui-elements";
 import { useTranslation } from "react-i18next";
-import { ArtefactDocumentation } from "./CreateArtefactModal";
+import { PluginDocumentation } from "./PluginDocumentation";
 import { IPluginOverview } from "@ducks/common/typings";
 
-interface TaskDocumentationModalProps {
-    documentationToShow: ArtefactDocumentation;
+interface PluginDocumentationModalProps {
+    documentationToShow: PluginDocumentation;
     size?: SimpleDialogProps["size"];
     onClose: () => any;
     onSwitchToRelatedPlugin?: (plugin: IPluginOverview) => void;
@@ -53,13 +53,13 @@ const findHeadingBefore = (element: Element): Element | undefined => {
     }
 };
 
-/** Modal that shows the detailed task documentation, e.g. the Markdown. */
-export const TaskDocumentationModal = ({
+/** Modal that shows detailed plugin documentation, e.g. Markdown. */
+export const PluginDocumentationModal = ({
     documentationToShow,
     onClose,
     onSwitchToRelatedPlugin,
     size = "large",
-}: TaskDocumentationModalProps) => {
+}: PluginDocumentationModalProps) => {
     const [initialized, setInitialized] = React.useState(false);
     const [shrinkRelatedPlugins, setShrinkRelatedPlugins] = React.useState<string | null>(
         localStorage.getItem("shrinkRelatedPlugins"),
