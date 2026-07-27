@@ -21,7 +21,7 @@
         "relatedPlugins": {
             "title": "Related plugins",
             "displayPlugins": "Show related plugins",
-            "switchAction": "Use {{pluginLabel}}",
+            "switchAction": "Select {{pluginLabel}}",
             "switchTooltip": "Loads the '{{pluginLabel}}' plugin into the form. Label, description, and tags are kept; all other settings are reset.",
             "switchWarningTitle": "Switch plugin",
             "switchWarningMessage": "There are unsaved changes in the form. Switching to the related plugin will reset all settings except label, description, and tags. Do you want to continue?"
