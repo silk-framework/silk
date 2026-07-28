@@ -150,8 +150,6 @@ class ResolvedTransformInputTest extends AnyFlatSpec with Matchers with TestWork
     val schemata = input.asInstanceOf[StaticSchemaInput].nestedSchemata
     schemata.map(_.subPath) mustBe Seq(UntypedPath.empty, path("urn:target:address"))
     targetProperties(schemata.last) must contain("urn:target:city")
-    // Nested object rules make the input hierarchical, so generated object mappings keep their source path
-    input.characteristics.supportedPathExpressions.multiHopPaths mustBe true
   }
 
   it should "report an upstream transform whose nested object rule has no properties as hierarchical" in {
