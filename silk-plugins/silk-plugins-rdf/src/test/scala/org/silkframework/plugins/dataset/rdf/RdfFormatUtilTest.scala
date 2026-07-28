@@ -1,5 +1,5 @@
 package org.silkframework.plugins.dataset.rdf
-
+
 import org.silkframework.entity._
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.must.Matchers

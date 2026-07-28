@@ -1,5 +1,5 @@
 package org.silkframework.rule.evaluation
-
+
 import org.silkframework.entity.paths.UntypedPath
 import org.silkframework.entity.{Entity, EntitySchema, Link}
 import org.silkframework.util.{Uri, XmlSerializationHelperTrait}

@@ -1,5 +1,5 @@
 package org.silkframework.entity.paths
-
+
 import org.silkframework.config.Prefixes
 import org.silkframework.util.Uri
 import org.scalatest.flatspec.AnyFlatSpec

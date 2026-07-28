@@ -2,7 +2,7 @@ package org.silkframework.workspace.zip
 
 import java.io.File
 import java.util.zip.ZipFile
-
+
 import org.silkframework.runtime.resource.FileResource
 import org.silkframework.runtime.resource.zip.{ZipFileResourceLoader, ZipOutputStreamResourceManager}
 import org.scalatest.flatspec.AnyFlatSpec

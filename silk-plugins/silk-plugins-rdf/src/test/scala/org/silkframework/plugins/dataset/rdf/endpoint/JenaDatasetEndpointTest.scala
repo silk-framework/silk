@@ -1,6 +1,6 @@
 package org.silkframework.plugins.dataset.rdf.endpoint
 
-import org.apache.jena.query.DatasetFactory
+import org.apache.jena.query.DatasetFactory
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.util.MockitoSugar
 import org.scalatest.flatspec.AnyFlatSpec
