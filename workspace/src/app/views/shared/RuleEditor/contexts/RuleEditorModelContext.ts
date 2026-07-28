@@ -20,6 +20,8 @@ import { NodeContentProps, NodeDimensions } from "@eccenca/gui-elements";
 export interface RuleEditorModelContextProps {
     /** The rule nodes and edges. */
     elements: Elements;
+    /** Increases whenever the complete rule model has been rebuilt. */
+    initializationGeneration: number;
     /** If the model is set to read-only. */
     isReadOnly(): boolean;
     /** Same as above. Should be used where state change is pushed into the component. */
@@ -168,6 +170,7 @@ export const ruleEditorModelActionsDefaultValue: IModelActions = {
 export const ruleEditorModelContextDefaultValue: RuleEditorModelContextProps = {
     /** The nodes and edges of the rules graph. */
     elements: [],
+    initializationGeneration: 0,
     /** Set to true if the model is in read-only mode. */
     isReadOnly: () => false,
     readOnly: false,

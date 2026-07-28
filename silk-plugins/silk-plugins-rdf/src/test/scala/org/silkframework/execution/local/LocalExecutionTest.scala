@@ -1,5 +1,9 @@
 package org.silkframework.execution.local
+<<<<<<< HEAD
 
+=======
+
+>>>>>>> release/26.2.0
 import org.silkframework.workspace.InMemoryWorkspaceTestTrait
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers

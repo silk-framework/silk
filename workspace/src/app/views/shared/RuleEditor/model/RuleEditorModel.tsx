@@ -105,6 +105,8 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
     const [reactFlowInstance, setReactFlowInstance] = React.useState<OnLoadParams | undefined>(undefined);
     /** The nodes and edges of the rule editor. */
     const [elements, setElements] = React.useState<Elements>([]);
+    /** Increases whenever all canvas elements are reconstructed from the rule model. */
+    const [initializationGeneration, setInitializationGeneration] = React.useState(0);
     /** Track the current elements, since the API methods changing the elements when run subsequently will otherwise work with the same elements.
      * Use the function changeElementsInternal to modify the elements instead of directly changing them. */
     const [current] = React.useState<{ elements: Elements; evaluateQuickly: boolean }>({
@@ -2364,6 +2366,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
             elems = await autoLayoutInternal(elems, false, false);
         }
         setElements(elems);
+        setInitializationGeneration((generation) => generation + 1);
         utils.initNodeBaseIds([...nodes, ...stickyNodeElements]);
         if (resetHistory) {
             ruleUndoStack.splice(0);
@@ -2445,6 +2448,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
         <RuleEditorModelContext.Provider
             value={{
                 elements,
+                initializationGeneration,
                 isReadOnly: () => readOnlyState.enabled,
                 readOnly,
                 setIsReadOnly: ruleEditorContext.readOnlyMode ? undefined : setIsReadOnly,
