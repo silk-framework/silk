@@ -92,6 +92,31 @@ class ResolvedTransformInputTest extends AnyFlatSpec with Matchers with TestWork
     project.task[TransformSpec]("tail").resolveInput.dataSourceOption mustBe empty
   }
 
+  it should "expose the nested rules of an upstream transform" in {
+    val project = retrieveOrCreateProject("nestedSchemataTest")
+    project.addTask("upstream", upstreamTransform)
+    project.addTask("downstream", TransformSpec(selection = DatasetSelection("upstream")))
+    val input = project.task[TransformSpec]("downstream").resolveInput
+
+    // The root rule and the nested address rule, the latter addressed by the sub path that generates it
+    val schemata = input.asInstanceOf[StaticSchemaInput].nestedSchemata
+    schemata.map(_.subPath) mustBe Seq(UntypedPath.empty, path("urn:target:address"))
+    targetProperties(schemata.last) must contain("urn:target:city")
+    // Nested object rules make the input hierarchical, so generated object mappings keep their source path
+    input.characteristics.supportedPathExpressions.multiHopPaths mustBe true
+  }
+
+  it should "report an upstream transform without nested object rules as flat" in {
+    val project = retrieveOrCreateProject("flatUpstreamTest")
+    project.addTask("upstream", TransformSpec(
+      selection = DatasetSelection("sourceDataset", Uri(sourceType)),
+      mappingRule = singleRule("flatName", path("name"))
+    ))
+    project.addTask("downstream", TransformSpec(selection = DatasetSelection("upstream")))
+
+    project.task[TransformSpec]("downstream").resolveInput.characteristics.supportedPathExpressions.multiHopPaths mustBe false
+  }
+
   it should "report whether the input schema contains multi-hop paths" in {
     def schemaOf(paths: UntypedPath*): EntitySchema = {
       EntitySchema(Uri(rootType), paths.map(_.asStringTypedPath).toIndexedSeq)

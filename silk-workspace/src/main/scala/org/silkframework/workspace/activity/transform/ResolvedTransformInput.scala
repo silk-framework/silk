@@ -5,6 +5,7 @@ import org.silkframework.dataset.{DataSource, DatasetCharacteristics}
 import org.silkframework.dataset.DatasetCharacteristics.SupportedPathExpressions
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.entity.EntitySchema
+import org.silkframework.entity.paths.UntypedPath
 import org.silkframework.execution.ExecutorRegistry
 import org.silkframework.rule.TransformSpec
 import org.silkframework.runtime.activity.UserContext
@@ -60,10 +61,30 @@ object ResolvedTransformInput {
       }
     }
 
-    /** Transform outputs are flat, but a fixed output schema may contain multi-hop paths. */
+    /**
+      * The schemata of this input: the resolved rule and all rules nested below it, or the fixed schema itself.
+      * Sub paths are relative to the resolved rule, which addresses the entities that the nested rules generate.
+      */
+    def nestedSchemata: Seq[EntitySchema] = {
+      upstreamTransform match {
+        case Some(upstream) =>
+          val basePath = schema.subPath.operators
+          for {
+            outputSchema <- upstream.data.ruleSchemataWithoutEmptyObjectRules.map(_.outputSchema)
+            if outputSchema.subPath.operators.startsWith(basePath)
+          } yield {
+            outputSchema.copy(subPath = UntypedPath(outputSchema.subPath.operators.drop(basePath.size)))
+          }
+        case None =>
+          Seq(schema)
+      }
+    }
+
+    /** Nested object rules of a transform and multi-hop paths of a fixed output schema both make an input hierarchical. */
     override def characteristics: DatasetCharacteristics = {
+      val multiHopPaths = nestedSchemata.exists(s => s.subPath.operators.nonEmpty || s.typedPaths.exists(_.operators.size > 1))
       DatasetCharacteristics(
-        supportedPathExpressions = SupportedPathExpressions(multiHopPaths = schema.typedPaths.exists(_.operators.size > 1)),
+        supportedPathExpressions = SupportedPathExpressions(multiHopPaths = multiHopPaths),
         supportsMultipleTables = false
       )
     }
