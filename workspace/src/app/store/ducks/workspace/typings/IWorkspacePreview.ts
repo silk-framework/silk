@@ -69,4 +69,9 @@ export interface IPreviewState {
      * Error object which contains all kind of errors, presented in Workspace UI
      */
     error: any;
+    /**
+     * Pathname the current `searchResults` belong to — results are cleared when the route's
+     * pathname changes, since the pages sharing this state have differently shaped results.
+     */
+    resultsPathname?: string;
 }

@@ -41,10 +41,13 @@ interface SearchTableRowProps extends ItemCallbacks {
 }
 
 const itemTypeLabel = (item: ISearchResultsServer, t: (key: string, fallback?: string) => string): string =>
-    t(
-        "widget.Filterbar.subsections.valueLabels.itemType." + item.type,
-        item.type[0].toUpperCase() + item.type.substr(1),
-    );
+    // Results from other list pages sharing the search state (e.g. activities) have no `type`.
+    item.type
+        ? t(
+              "widget.Filterbar.subsections.valueLabels.itemType." + item.type,
+              item.type[0].toUpperCase() + item.type.substr(1),
+          )
+        : "";
 
 function SearchTableRow({ item, searchValue, parentProjectId, showProjectColumn, ...callbacks }: SearchTableRowProps) {
     const [t] = useTranslation();
