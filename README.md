@@ -15,6 +15,9 @@ General information about Silk can be found on the official [website](http://sil
 
 Community documentation is maintained in the [doc](doc/) folder.
 
+On the `experimental/restyling` branch, [RESTYLING.md](RESTYLING.md) summarizes the workbench
+UI overhaul (what changed and why).
+
 ## Requirements
 
 ### Local build
