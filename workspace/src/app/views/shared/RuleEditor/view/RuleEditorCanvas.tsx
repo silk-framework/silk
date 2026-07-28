@@ -78,6 +78,7 @@ export const RuleEditorCanvas = () => {
         reactFlowWrapper: ruleEditorUiContext.reactFlowWrapper,
         nodeIds: ruleNodeIds,
         nodeGeometryKey,
+        initializationGeneration: modelContext.initializationGeneration,
     });
 
     /** Clones the given nodes with a small offset. */

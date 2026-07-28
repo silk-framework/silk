@@ -5,6 +5,7 @@ interface InitialNodeInternalsSynchronizationProps {
     reactFlowWrapper: React.MutableRefObject<HTMLElement | null> | null;
     nodeIds: string[];
     nodeGeometryKey: string;
+    initializationGeneration: number;
 }
 
 /**
@@ -16,13 +17,19 @@ export const useInitialNodeInternalsSynchronization = ({
     reactFlowWrapper,
     nodeIds,
     nodeGeometryKey,
+    initializationGeneration,
 }: InitialNodeInternalsSynchronizationProps) => {
     const updateNodeInternals = useUpdateNodeInternals();
     const currentNodeIds = React.useRef<string[]>([]);
     const initialNodeInternalsSynchronized = React.useRef(false);
+    const lastInitializationGeneration = React.useRef<number | undefined>(undefined);
     currentNodeIds.current = nodeIds;
 
     React.useEffect(() => {
+        if (lastInitializationGeneration.current !== initializationGeneration) {
+            lastInitializationGeneration.current = initializationGeneration;
+            initialNodeInternalsSynchronized.current = false;
+        }
         const canvas = reactFlowWrapper?.current;
         const initialNodeIds = currentNodeIds.current;
         if (initialNodeIds.length === 0) {
@@ -92,5 +99,5 @@ export const useInitialNodeInternalsSynchronization = ({
                 window.cancelAnimationFrame(refreshFrame);
             }
         };
-    }, [nodeGeometryKey, reactFlowWrapper, updateNodeInternals]);
+    }, [initializationGeneration, nodeGeometryKey, reactFlowWrapper, updateNodeInternals]);
 };
