@@ -2,11 +2,13 @@ package org.silkframework.workspace.activity.transform
 
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.must.Matchers
-import org.silkframework.config.PlainTask
+import org.silkframework.config.{CustomTask, PlainTask}
+import org.silkframework.dataset.operations.GetProjectFilesOperator
 import org.silkframework.dataset.{DatasetSpec, MockDataset, MockDatasetExecutor}
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.runtime.validation.BadUserInputException
 import org.silkframework.workspace.WorkspaceFactory
+import org.silkframework.workspace.exceptions.TaskNotFoundException
 import org.silkframework.runtime.plugin.PluginRegistry
 import org.silkframework.entity.EntitySchema
 import org.silkframework.entity.paths.{ForwardOperator, UntypedPath}
@@ -107,10 +109,20 @@ class ResolvedTransformInputTest extends AnyFlatSpec with Matchers with TestWork
 
   it should "not provide a data source if the chain of transform tasks does not end in a dataset" in {
     val project = retrieveOrCreateProject("openChainTest")
-    project.addTask("head", upstreamTransform) // Its input dataset does not exist
+    project.addTask[CustomTask]("filesTask", GetProjectFilesOperator(filesRegex = ".*"))
+    project.addTask("head", TransformSpec(selection = DatasetSelection("filesTask"), mappingRule = singleRule("path", path("filePath"))))
     project.addTask("tail", TransformSpec(selection = DatasetSelection("head")))
 
+    // A fixed output schema provides a schema but no data, which is not an error
     project.task[TransformSpec]("tail").resolveInput.dataSourceOption mustBe empty
+  }
+
+  it should "report a missing task in the chain rather than reporting that there is no data" in {
+    val project = retrieveOrCreateProject("brokenChainTest")
+    project.addTask("head", upstreamTransform) // Reads 'sourceDataset', which does not exist here
+    project.addTask("tail", TransformSpec(selection = DatasetSelection("head")))
+
+    a[TaskNotFoundException] must be thrownBy project.task[TransformSpec]("tail").resolveInput.dataSourceOption
   }
 
   it should "expose the nested rules of an upstream transform" in {

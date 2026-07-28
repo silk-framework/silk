@@ -80,7 +80,14 @@ object ResolvedTransformInput {
         throw new BadUserInputException(s"The inputs of transform task '${transformTask.id}' are circular: " +
           chain.mkString(" -> ") + ".")
       }
-      transformTask.resolveInputOption.flatMap {
+      val resolvedInput =
+        try {
+          Some(transformTask.resolveInput)
+        } catch {
+          // An input without a fixed output schema cannot provide data; a missing task is a misconfiguration
+          case _: BadUserInputException => None
+        }
+      resolvedInput.flatMap {
         case upstreamInput: StaticSchemaInput => upstreamInput.dataSourceOfChain(chain)
         case input => input.dataSourceOption
       }
