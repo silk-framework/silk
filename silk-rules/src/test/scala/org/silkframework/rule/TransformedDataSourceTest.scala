@@ -8,6 +8,7 @@ import org.silkframework.entity.paths.UntypedPath
 import org.silkframework.plugins.dataset.csv.CsvDataset
 import org.silkframework.runtime.activity.{TestPluginContextTrait, UserContext}
 import org.silkframework.runtime.resource.{InMemoryResourceManager, WritableResource}
+import org.silkframework.runtime.validation.BadUserInputException
 import org.silkframework.util.Uri
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.must.Matchers
@@ -42,5 +43,44 @@ class TransformedDataSourceTest extends AnyFlatSpec with Matchers with TestPlugi
     transformedDataSource.retrieveByUri(entitySchema, entities = Seq(Uri(entityUris.head))).entities must have size 0
     // Transformed entities can be retrieved via transformed entity URIs
     transformedDataSource.retrieveByUri(entitySchema, entities = Seq(Uri(transformedUris.head))).entities must have size 1
+  }
+
+  it should "fail if no rule generates a requested sub path" in {
+    // A downstream task requests a nested path that no rule of this transform generates, e.g. because it has been
+    // edited since. Transforming the root rule's entities instead would deliver an empty entity for every path.
+    val source = transformedSource(RootMappingRule(MappingRules(
+      propertyRules = Seq(DirectMapping("id", UntypedPath("ID"), MappingTarget("urn:p:id")))
+    )))
+    val exception = the[BadUserInputException] thrownBy source.retrieve(nestedSchema)
+    exception.getMessage must include("<urn:p:address>")
+  }
+
+  it should "generate entities for an object rule that has no properties of its own" in {
+    // Still being built, or intentionally only generating URIs. There is nothing to deliver, but it is not an error.
+    val source = transformedSource(RootMappingRule(MappingRules(
+      propertyRules = Seq(ObjectMapping(
+        id = "address",
+        sourcePath = UntypedPath.empty,
+        target = Some(MappingTarget("urn:p:address")),
+        rules = MappingRules()
+      ))
+    )))
+    val entities = source.retrieve(nestedSchema).entities.toSeq
+    entities must have size 3 // One per CSV row
+    entities.flatMap(_.values.flatten) mustBe empty
+  }
+
+  /** The schema a downstream task requests for a nested rule reading `urn:p:address`. */
+  private val nestedSchema = EntitySchema(
+    typeUri = Uri(""),
+    typedPaths = IndexedSeq(UntypedPath.parse("<urn:p:zip>").asStringTypedPath),
+    subPath = UntypedPath.parse("<urn:p:address>")
+  )
+
+  private def transformedSource(mappingRule: RootMappingRule): TransformedDataSource = {
+    val csvSource = ExecutorRegistry.access(CsvDataset(inMemoryResource)).source
+    val inputSchema = EntitySchema(Uri(""), typedPaths = IndexedSeq(UntypedPath("ID").asStringTypedPath))
+    val transformSpec = TransformSpec(DatasetSelection("input"), mappingRule)
+    new TransformedDataSource(csvSource, inputSchema, mappingRule, PlainTask("transform", transformSpec))
   }
 }
