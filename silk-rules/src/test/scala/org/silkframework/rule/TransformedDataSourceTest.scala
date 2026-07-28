@@ -70,6 +70,28 @@ class TransformedDataSourceTest extends AnyFlatSpec with Matchers with TestPlugi
     entities.flatMap(_.values.flatten) mustBe empty
   }
 
+  it should "deliver the entities of every rule that generates the requested sub path" in {
+    // Two object rules with the same target property, e.g. a billing and a shipping address. A target property does
+    // not identify one rule, so picking a single one would drop the other rule's entities without a trace.
+    val source = transformedSource(RootMappingRule(MappingRules(
+      propertyRules = Seq(
+        addressRule("billing", "urn:p:billingZip"),
+        addressRule("shipping", "urn:p:shippingZip")
+      )
+    )))
+    val entities = source.retrieve(nestedSchema).entities.toSeq
+    entities must have size 6 // Both rules generate one address entity per CSV row
+  }
+
+  private def addressRule(id: String, zipProperty: String): ObjectMapping = {
+    ObjectMapping(
+      id = id,
+      sourcePath = UntypedPath.empty,
+      target = Some(MappingTarget("urn:p:address")),
+      rules = MappingRules(propertyRules = Seq(DirectMapping(id + "Zip", UntypedPath("ID"), MappingTarget(zipProperty))))
+    )
+  }
+
   /** The schema a downstream task requests for a nested rule reading `urn:p:address`. */
   private val nestedSchema = EntitySchema(
     typeUri = Uri(""),
