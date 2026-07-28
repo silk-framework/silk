@@ -93,12 +93,11 @@ object ResolvedTransformInput {
     def nestedSchemata: Seq[EntitySchema] = {
       upstreamTransform match {
         case Some(upstream) =>
-          val basePath = schema.subPath.operators
           for {
             outputSchema <- upstream.data.ruleSchemataWithoutEmptyObjectRules.map(_.outputSchema)
-            if outputSchema.subPath.operators.startsWith(basePath)
+            if outputSchema.subPath.operators.startsWith(schema.subPath.operators)
           } yield {
-            outputSchema.copy(subPath = UntypedPath(outputSchema.subPath.operators.drop(basePath.size)))
+            outputSchema.copy(subPath = UntypedPath.removePathPrefix(outputSchema.subPath, schema.subPath))
           }
         case None =>
           Seq(schema)

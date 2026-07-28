@@ -203,18 +203,24 @@ case class TransformSpec(@Param(label = "Input", value = "The source from which 
   }
 
   /**
+    * The schemata of the root rule, which generates the primary output type of this transform.
+    * Collecting the rule schemata always yields the root rule first, so there is always one.
+    */
+  def primaryRuleSchemata: RuleSchemata = ruleSchemataWithoutEmptyObjectRules.head
+
+  /**
     * The output schema of the rule that generates the given target type, which is what a downstream task reads.
     * Falls back to the primary output type if no rule generates it, e.g. a type left over from a previous input.
     */
   def outputSchemaForTargetType(targetType: Uri): EntitySchema = {
-    ruleSchemataForTargetTypeOption(targetType).getOrElse(ruleSchemataWithoutEmptyObjectRules.head).outputSchema
+    ruleSchemataForTargetTypeOption(targetType).getOrElse(primaryRuleSchemata).outputSchema
   }
 
   /**
     * Input schemata of all object rules in the tree.
     */
   lazy val inputSchema: MultiEntitySchema = {
-    new MultiEntitySchema(ruleSchemataWithoutEmptyObjectRules.head.inputSchema, ruleSchemataWithoutEmptyObjectRules.tail.map(_.inputSchema).toIndexedSeq)
+    new MultiEntitySchema(primaryRuleSchemata.inputSchema, ruleSchemataWithoutEmptyObjectRules.tail.map(_.inputSchema).toIndexedSeq)
   }
 
 
@@ -222,7 +228,7 @@ case class TransformSpec(@Param(label = "Input", value = "The source from which 
     * Output schemata of all object rules in the tree.``
     */
   lazy val outputSchema: MultiEntitySchema = {
-    new MultiEntitySchema(ruleSchemataWithoutEmptyObjectRules.head.outputSchema, ruleSchemataWithoutEmptyObjectRules.tail.map(_.outputSchema).toIndexedSeq)
+    new MultiEntitySchema(primaryRuleSchemata.outputSchema, ruleSchemataWithoutEmptyObjectRules.tail.map(_.outputSchema).toIndexedSeq)
   }
 
   /**
