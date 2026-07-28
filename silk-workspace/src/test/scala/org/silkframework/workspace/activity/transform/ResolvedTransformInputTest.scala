@@ -2,8 +2,11 @@ package org.silkframework.workspace.activity.transform
 
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.must.Matchers
+import org.silkframework.config.PlainTask
 import org.silkframework.dataset.{DatasetSpec, MockDataset, MockDatasetExecutor}
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
+import org.silkframework.runtime.validation.BadUserInputException
+import org.silkframework.workspace.WorkspaceFactory
 import org.silkframework.runtime.plugin.PluginRegistry
 import org.silkframework.entity.EntitySchema
 import org.silkframework.entity.paths.{ForwardOperator, UntypedPath}
@@ -82,6 +85,24 @@ class ResolvedTransformInputTest extends AnyFlatSpec with Matchers with TestWork
     // The chain of transform tasks is followed until the dataset that provides the entities
     project.task[TransformSpec]("middle").resolveInput.dataSourceOption mustBe defined
     project.task[TransformSpec]("downstream").resolveInput.dataSourceOption mustBe defined
+  }
+
+  it should "report a circular chain of transform tasks instead of recursing" in {
+    val projectId = "circularInputTest"
+    val project = retrieveOrCreateProject(projectId)
+    project.addTask("first", TransformSpec(selection = DatasetSelection("second"), mappingRule = singleRule("firstName", path("name"))))
+    project.addTask("second", TransformSpec(selection = DatasetSelection("sourceDataset"), mappingRule = singleRule("secondName", path("name"))))
+    // Adding a circular input is rejected, but loading one is not, so the cycle is written straight to the provider
+    // and the workspace is reloaded - the way an imported or restored project introduces one.
+    workspaceProvider.putTask(projectId,
+      PlainTask("second", TransformSpec(selection = DatasetSelection("first"), mappingRule = singleRule("secondName", path("name")))),
+      project.resources)
+    WorkspaceFactory().workspace.reload()
+
+    val reloaded = WorkspaceFactory().workspace.project(projectId).task[TransformSpec]("first")
+    // The chain starts at the input of 'first', so the cycle is reported from there
+    val exception = the[BadUserInputException] thrownBy reloaded.resolveInput.dataSourceOption
+    exception.getMessage must include("second -> first -> second")
   }
 
   it should "not provide a data source if the chain of transform tasks does not end in a dataset" in {

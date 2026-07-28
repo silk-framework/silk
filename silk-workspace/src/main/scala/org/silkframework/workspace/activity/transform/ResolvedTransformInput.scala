@@ -10,7 +10,7 @@ import org.silkframework.execution.ExecutorRegistry
 import org.silkframework.rule.TransformSpec
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.validation.BadUserInputException
-import org.silkframework.util.Uri
+import org.silkframework.util.{Identifier, Uri}
 import org.silkframework.workspace.ProjectTask
 import org.silkframework.workspace.activity.transform.TransformTaskUtils._
 
@@ -51,13 +51,38 @@ object ResolvedTransformInput {
                                upstreamTransform: Option[ProjectTask[TransformSpec]] = None,
                                typeUri: Uri = Uri("")) extends ResolvedTransformInput {
     override def dataSourceOption(implicit userContext: UserContext): Option[DataSource] = {
-      // Executing the upstream transform needs a source for its own input, which may be a transform task itself.
-      // The recursion terminates because the workspace rejects circular task dependencies.
+      dataSourceOfChain(Seq.empty)
+    }
+
+    /**
+      * A data source that executes the upstream transform on its own input, which may be a transform task itself.
+      *
+      * @param visitedTasks The transform tasks already resolved in this chain. The workspace rejects circular inputs
+      *                     only when a task is added or updated, so a project that is imported or loaded from the
+      *                     workspace provider can still contain a cycle.
+      * @throws BadUserInputException If the chain of transform tasks is circular.
+      */
+    private def dataSourceOfChain(visitedTasks: Seq[Identifier])
+                                 (implicit userContext: UserContext): Option[DataSource] = {
       for {
         transformTask <- upstreamTransform
-        inputSource <- transformTask.resolveInputOption.flatMap(_.dataSourceOption)
+        inputSource <- inputSourceOfChain(transformTask, visitedTasks)
       } yield {
         transformTask.asDataSource(inputSource, typeUri)
+      }
+    }
+
+    /** The data source that provides the input entities of the given transform task, which may be a transform itself. */
+    private def inputSourceOfChain(transformTask: ProjectTask[TransformSpec], visitedTasks: Seq[Identifier])
+                                  (implicit userContext: UserContext): Option[DataSource] = {
+      val chain = visitedTasks :+ transformTask.id
+      if(visitedTasks.contains(transformTask.id)) {
+        throw new BadUserInputException(s"The inputs of transform task '${transformTask.id}' are circular: " +
+          chain.mkString(" -> ") + ".")
+      }
+      transformTask.resolveInputOption.flatMap {
+        case upstreamInput: StaticSchemaInput => upstreamInput.dataSourceOfChain(chain)
+        case input => input.dataSourceOption
       }
     }
 
