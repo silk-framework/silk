@@ -129,8 +129,9 @@ object ResolvedTransformInput {
     def nestedSchemata: Seq[EntitySchema] = {
       upstreamTransform match {
         case Some(upstream) =>
+          // Object rules without properties of their own still generate entities, as scopeTo and scopeToRule assume
           for {
-            outputSchema <- upstream.data.ruleSchemataWithoutEmptyObjectRules.map(_.outputSchema)
+            outputSchema <- upstream.data.ruleSchemata.map(_.outputSchema)
             if outputSchema.subPath.operators.startsWith(schema.subPath.operators)
           } yield {
             outputSchema.copy(subPath = UntypedPath.removePathPrefix(outputSchema.subPath, schema.subPath))
