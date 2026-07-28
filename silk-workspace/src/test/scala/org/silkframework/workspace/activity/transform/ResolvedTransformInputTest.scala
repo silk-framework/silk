@@ -125,6 +125,26 @@ class ResolvedTransformInputTest extends AnyFlatSpec with Matchers with TestWork
     a[TaskNotFoundException] must be thrownBy project.task[TransformSpec]("tail").resolveInput.dataSourceOption
   }
 
+  it should "not advertise paths that the data source of the selected type does not deliver" in {
+    val project = retrieveOrCreateProject("sharedTypeUpstreamTest")
+    // Two rules generate the same target type, e.g. a billing and a shipping address
+    project.addTask("upstream", TransformSpec(
+      selection = DatasetSelection("sourceDataset", Uri(sourceType)),
+      mappingRule = RootMappingRule(MappingRules(propertyRules = Seq(
+        typedObjectRule("billing"), typedObjectRule("shipping")
+      )))
+    ))
+    project.addTask("downstream", TransformSpec(selection = DatasetSelection("upstream", Uri(nestedType))))
+
+    val advertised = project.task[TransformSpec]("downstream").resolveInput
+      .asInstanceOf[StaticSchemaInput].schema.typedPaths.toSet
+    // The entities of a selected type come from a single rule, so the schema may not describe any other rule
+    val delivered = project.task[TransformSpec]("upstream").data
+      .ruleSchemataForTargetType(Uri(nestedType)).outputSchema.typedPaths.toSet
+    advertised must not be empty
+    advertised.subsetOf(delivered) mustBe true
+  }
+
   it should "expose the nested rules of an upstream transform" in {
     val project = retrieveOrCreateProject("nestedSchemataTest")
     project.addTask("upstream", upstreamTransform)
@@ -193,6 +213,20 @@ class ResolvedTransformInputTest extends AnyFlatSpec with Matchers with TestWork
           )
         )
       ))
+    )
+  }
+
+  /** An object rule that generates the nested type. */
+  private def typedObjectRule(id: String): ObjectMapping = {
+    ObjectMapping(
+      id = id,
+      sourcePath = path(id),
+      target = Some(MappingTarget(s"urn:target:$id")),
+      rules = MappingRules(
+        typeRules = Seq(TypeMapping(id = s"${id}Type", typeUri = nestedType)),
+        propertyRules = Seq(DirectMapping(id = s"${id}Street", sourcePath = path("street"),
+          mappingTarget = MappingTarget(s"urn:target:${id}Street")))
+      )
     )
   }
 

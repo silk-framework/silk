@@ -187,7 +187,11 @@ case class TransformSpec(@Param(label = "Input", value = "The source from which 
     collectSchemata(mappingRule, UntypedPath.empty, UntypedPath.empty, withEmptyObjectRules = false)
   }
 
-  /** The schemata of the rule that generates the given target type, if there is one. */
+  /**
+    * The schemata of the rule that generates the given target type, if there is one.
+    * A target type selects a single rule, unlike a target path: the entities of a selected type are retrieved from
+    * one rule (see TransformTaskUtils.asDataSource), so the schema must not promise more than that rule generates.
+    */
   def ruleSchemataForTargetTypeOption(targetType: Uri): Option[RuleSchemata] = {
     ruleSchemataWithoutEmptyObjectRules.find(_.transformRule.rules.typeRules.map(_.typeUri).contains(targetType))
   }
