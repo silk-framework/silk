@@ -2,6 +2,9 @@ package org.silkframework.workspace.activity.transform
 
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.must.Matchers
+import org.silkframework.dataset.{DatasetSpec, MockDataset, MockDatasetExecutor}
+import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
+import org.silkframework.runtime.plugin.PluginRegistry
 import org.silkframework.entity.EntitySchema
 import org.silkframework.entity.paths.{ForwardOperator, UntypedPath}
 import org.silkframework.rule._
@@ -19,6 +22,10 @@ class ResolvedTransformInputTest extends AnyFlatSpec with Matchers with TestWork
   behavior of "ResolvedTransformInput"
 
   override def workspaceProviderId: String = "inMemoryWorkspaceProvider"
+
+  // MockDataset only provides data access if its executor is registered
+  PluginRegistry.unregisterPlugin(classOf[MockDatasetExecutor])
+  PluginRegistry.registerPlugin(classOf[MockDatasetExecutor])
 
   private val sourceType = "urn:source:Person"
   private val rootType = "urn:target:Person"
@@ -62,6 +69,29 @@ class ResolvedTransformInputTest extends AnyFlatSpec with Matchers with TestWork
     targetProperties(staticInput.schema) must contain("urn:target:name")
   }
 
+  it should "provide a data source through a chain of transform tasks" in {
+    val project = retrieveOrCreateProject("transformChainTest")
+    project.addTask[GenericDatasetSpec]("sourceDataset", DatasetSpec(MockDataset()))
+    project.addTask("upstream", upstreamTransform)
+    project.addTask("middle", TransformSpec(
+      selection = DatasetSelection("upstream"),
+      mappingRule = singleRule("middleName", UntypedPath.parse("<urn:target:name>"))
+    ))
+    project.addTask("downstream", TransformSpec(selection = DatasetSelection("middle")))
+
+    // The chain of transform tasks is followed until the dataset that provides the entities
+    project.task[TransformSpec]("middle").resolveInput.dataSourceOption mustBe defined
+    project.task[TransformSpec]("downstream").resolveInput.dataSourceOption mustBe defined
+  }
+
+  it should "not provide a data source if the chain of transform tasks does not end in a dataset" in {
+    val project = retrieveOrCreateProject("openChainTest")
+    project.addTask("head", upstreamTransform) // Its input dataset does not exist
+    project.addTask("tail", TransformSpec(selection = DatasetSelection("head")))
+
+    project.task[TransformSpec]("tail").resolveInput.dataSourceOption mustBe empty
+  }
+
   it should "report whether the input schema contains multi-hop paths" in {
     def schemaOf(paths: UntypedPath*): EntitySchema = {
       EntitySchema(Uri(rootType), paths.map(_.asStringTypedPath).toIndexedSeq)
@@ -93,6 +123,13 @@ class ResolvedTransformInputTest extends AnyFlatSpec with Matchers with TestWork
         )
       ))
     )
+  }
+
+  /** A root rule with a single direct mapping. */
+  private def singleRule(id: String, sourcePath: UntypedPath): RootMappingRule = {
+    RootMappingRule(MappingRules(propertyRules = Seq(
+      DirectMapping(id = id, sourcePath = sourcePath, mappingTarget = MappingTarget(s"urn:target:$id"))
+    )))
   }
 
   private def path(property: String): UntypedPath = UntypedPath(List(ForwardOperator(property)))

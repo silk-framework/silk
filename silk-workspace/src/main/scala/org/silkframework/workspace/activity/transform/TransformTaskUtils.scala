@@ -86,24 +86,21 @@ object TransformTaskUtils {
       */
     def asDataSource(typeUri: Uri)
                     (implicit userContext: UserContext): DataSource = {
-      asDataSource(inputDatasetTask, typeUri)
+      asDataSource(ExecutorRegistry.access(inputDatasetTask).source, typeUri)
     }
 
     /**
-      * Converts this transform task to a data source that transforms the entities of the given input dataset.
-      * Allows callers that already resolved the input dataset to avoid resolving it a second time.
+      * Converts this transform task to a data source that transforms the entities of the given input source.
+      * Allows callers that already resolved the input to provide its source, e.g. for chains of transform tasks.
       */
-    def asDataSource(inputDataset: ProjectTask[GenericDatasetSpec], typeUri: Uri)
-                    (implicit userContext: UserContext): DataSource = {
+    def asDataSource(inputSource: DataSource, typeUri: Uri): DataSource = {
       val transformSpec = task.data
-      val source = ExecutorRegistry.access(inputDataset).source
-
       // Find the rule that generates the selected type
       if(typeUri.uri.isEmpty) {
-        new TransformedDataSource(source, transformSpec.inputSchema, transformSpec.mappingRule, task)
+        new TransformedDataSource(inputSource, transformSpec.inputSchema, transformSpec.mappingRule, task)
       } else {
         val ruleSchemata = transformSpec.ruleSchemataForTargetType(typeUri)
-        new TransformedDataSource(source, ruleSchemata.inputSchema, ruleSchemata.transformRule, task)
+        new TransformedDataSource(inputSource, ruleSchemata.inputSchema, ruleSchemata.transformRule, task)
       }
     }
 

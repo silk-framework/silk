@@ -42,7 +42,7 @@ object ResolvedTransformInput {
 
   /**
     * The input has a statically known schema, i.e., it is another transform task or a task with a fixed output schema.
-    * For transform tasks that read from a dataset, a data source is available that executes the transformation.
+    * For transform tasks whose input chain ends in a dataset, a data source is available that executes the transformation.
     *
     * @param typeUri The type that is read from the upstream transform. Empty if its primary output type is read.
     */
@@ -50,12 +50,13 @@ object ResolvedTransformInput {
                                upstreamTransform: Option[ProjectTask[TransformSpec]] = None,
                                typeUri: Uri = Uri("")) extends ResolvedTransformInput {
     override def dataSourceOption(implicit userContext: UserContext): Option[DataSource] = {
-      // Executing the upstream transform requires its own input to be a dataset, which is only resolved once
+      // Executing the upstream transform needs a source for its own input, which may be a transform task itself.
+      // The recursion terminates because the workspace rejects circular task dependencies.
       for {
         transformTask <- upstreamTransform
-        inputDataset <- transformTask.inputDatasetTaskOption
+        inputSource <- transformTask.resolveInputOption.flatMap(_.dataSourceOption)
       } yield {
-        transformTask.asDataSource(inputDataset, typeUri)
+        transformTask.asDataSource(inputSource, typeUri)
       }
     }
 
