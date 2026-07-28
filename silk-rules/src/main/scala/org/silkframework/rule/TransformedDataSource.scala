@@ -99,9 +99,11 @@ class TransformedDataSource(source: DataSource, inputSchema: EntitySchema, trans
       val basePath = transformSpec.ruleSchemata.find(_.transformRule.id == transformRule.id)
         .map(_.outputSchema.subPath).getOrElse(UntypedPath.empty)
       val targetPath = basePath ++ subPath
-      val rules = transformSpec.ruleSchemataForTargetPath(targetPath)
+      // Only this source's own rule tree: a sibling rule may share the target path, but is not delivered
+      val subtreeSchemata = transformSpec.ruleSchemataWithinRule(transformRule)
+      val rules = subtreeSchemata.filter(_.outputSchema.subPath == targetPath)
       // A path generated as a value property holds no entities below it, which is not an error
-      if(rules.isEmpty && !transformSpec.generatesValuesAtTargetPath(targetPath)) {
+      if(rules.isEmpty && !subtreeSchemata.exists(_.generatesValueAt(targetPath))) {
         throw new BadUserInputException(s"No rule of transform task '${task.id}' generates the requested path " +
           s"'${targetPath.normalizedSerialization}'.")
       }

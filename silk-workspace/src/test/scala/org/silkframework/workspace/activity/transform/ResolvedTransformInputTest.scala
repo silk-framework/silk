@@ -145,6 +145,29 @@ class ResolvedTransformInputTest extends AnyFlatSpec with Matchers with TestWork
     advertised.subsetOf(delivered) mustBe true
   }
 
+  it should "not expose a sibling rule that shares the target path of the resolved rule" in {
+    val project = retrieveOrCreateProject("siblingPathUpstreamTest")
+    // Billing and shipping write the same target property, but only billing generates the selected type
+    def addressRule(id: String, typeRules: Seq[TypeMapping]) = ObjectMapping(
+      id = id, sourcePath = path(id), target = Some(MappingTarget("urn:target:address")),
+      rules = MappingRules(
+        typeRules = typeRules,
+        propertyRules = Seq(DirectMapping(id = s"${id}Street", sourcePath = path("street"),
+          mappingTarget = MappingTarget(s"urn:target:${id}Street")))))
+    project.addTask("upstream", TransformSpec(
+      selection = DatasetSelection("sourceDataset", Uri(sourceType)),
+      mappingRule = RootMappingRule(MappingRules(propertyRules = Seq(
+        addressRule("billing", Seq(TypeMapping(id = "billingType", typeUri = nestedType))),
+        addressRule("shipping", Seq.empty))))))
+    project.addTask("downstream", TransformSpec(selection = DatasetSelection("upstream", Uri(nestedType))))
+
+    val input = project.task[TransformSpec]("downstream").resolveInput.asInstanceOf[StaticSchemaInput]
+    // The data source of the selected type delivers only the billing rule, so shipping must not be advertised
+    val advertised = input.nestedSchemata.flatMap(targetProperties)
+    advertised must contain("urn:target:billingStreet")
+    advertised must not contain "urn:target:shippingStreet"
+  }
+
   it should "expose the nested rules of an upstream transform" in {
     val project = retrieveOrCreateProject("nestedSchemataTest")
     project.addTask("upstream", upstreamTransform)

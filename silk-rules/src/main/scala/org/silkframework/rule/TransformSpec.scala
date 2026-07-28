@@ -222,9 +222,20 @@ case class TransformSpec(@Param(label = "Input", value = "The source from which 
     ruleSchemata.filter(_.outputSchema.subPath == targetPath)
   }
 
+  /** The schemata of the given rule and all rules nested below it, including object rules that generate no properties. */
+  def ruleSchemataWithinRule(rule: TransformRule): Seq[RuleSchemata] = {
+    val ruleIds = (rule.rules.allRulesRecursive.map(_.id) :+ rule.id).toSet
+    ruleSchemata.filter(schemata => ruleIds.contains(schemata.transformRule.id))
+  }
+
   /** True if a rule generates the given target path as a value property, which holds no entities below it. */
   def generatesValuesAtTargetPath(targetPath: UntypedPath): Boolean = {
-    ruleSchemata.exists(schemata => schemata.outputSchema.typedPaths.exists(schemata.outputSchema.subPath ++ _.toUntypedPath == targetPath))
+    ruleSchemata.exists(_.generatesValueAt(targetPath))
+  }
+
+  /** The schemata of the rule that generates the given target type, or of the root rule if no rule generates it. */
+  def ruleSchemataForTargetTypeOrPrimary(targetType: Uri): RuleSchemata = {
+    ruleSchemataForTargetTypeOption(targetType).getOrElse(primaryRuleSchemata)
   }
 
   /**
@@ -232,7 +243,7 @@ case class TransformSpec(@Param(label = "Input", value = "The source from which 
     * Falls back to the primary output type if no rule generates it, e.g. a type left over from a previous input.
     */
   def outputSchemaForTargetType(targetType: Uri): EntitySchema = {
-    ruleSchemataForTargetTypeOption(targetType).getOrElse(primaryRuleSchemata).outputSchema
+    ruleSchemataForTargetTypeOrPrimary(targetType).outputSchema
   }
 
   /**
@@ -450,6 +461,11 @@ object TransformSpec {
     * Holds a transform rule along with its input and output schema.
     */
   case class RuleSchemata(transformRule: TransformRule, inputSchema: EntitySchema, outputSchema: EntitySchema) {
+
+    /** True if this rule generates the given absolute target path as a value property. */
+    def generatesValueAt(targetPath: UntypedPath): Boolean = {
+      outputSchema.typedPaths.exists(outputSchema.subPath ++ _.toUntypedPath == targetPath)
+    }
 
     def hasMapping(ruleId: Identifier): Option[RuleSchemata] = {
       if(ruleId == transformRule.id) {

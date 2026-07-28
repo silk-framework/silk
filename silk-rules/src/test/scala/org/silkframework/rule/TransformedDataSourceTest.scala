@@ -121,6 +121,29 @@ class TransformedDataSourceTest extends AnyFlatSpec with Matchers with TestPlugi
     source.retrieve(schema).entities.toSeq.flatMap(_.values.head) mustBe Seq("1", "2", "3")
   }
 
+  it should "not deliver the entities of a sibling rule that shares the requested target path" in {
+    // Billing and shipping both generate <urn:p:address>/<urn:p:geo>
+    def addressGeoRule(id: String): ObjectMapping = {
+      ObjectMapping(id = id, sourcePath = UntypedPath.empty, target = Some(MappingTarget("urn:p:address")),
+        rules = MappingRules(propertyRules = Seq(
+          ObjectMapping(id = id + "Geo", sourcePath = UntypedPath.empty, target = Some(MappingTarget("urn:p:geo")),
+            rules = MappingRules(propertyRules = Seq(
+              DirectMapping(id + "Lat", UntypedPath("ID"), MappingTarget("urn:p:" + id + "Lat"))))))))
+    }
+    val spec = TransformSpec(DatasetSelection("input"), RootMappingRule(MappingRules(propertyRules = Seq(
+      addressGeoRule("billing"), addressGeoRule("shipping")))))
+    val billingSchemata = spec.ruleSchemata.find(_.transformRule.id.toString == "billing").get
+    val source = new TransformedDataSource(csvSource, billingSchemata.inputSchema, billingSchemata.transformRule,
+      PlainTask("transform", spec))
+
+    val schema = EntitySchema(Uri(""), IndexedSeq(UntypedPath.parse("<urn:p:billingLat>").asStringTypedPath),
+      subPath = UntypedPath.parse("<urn:p:geo>"))
+    // Only the billing tree belongs to this source, so the shipping geo entities are not delivered
+    val entities = source.retrieve(schema).entities.toSeq
+    entities must have size 3
+    entities.flatMap(_.values.head) mustBe Seq("1", "2", "3")
+  }
+
   it should "close the opened rule sources if the limit stops the iteration early" in {
     val recording = new RecordingSource(csvSource)
     val source = new TransformedDataSource(recording, rootInputSchema, twoAddressRules, transformTask(twoAddressRules))

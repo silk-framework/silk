@@ -100,11 +100,9 @@ object ResolvedTransformInput {
     def nestedSchemata: Seq[EntitySchema] = {
       upstreamTransform match {
         case Some(upstream) =>
-          // Object rules without properties of their own still generate entities
-          for {
-            outputSchema <- upstream.data.ruleSchemata.map(_.outputSchema)
-            if outputSchema.subPath.operators.startsWith(schema.subPath.operators)
-          } yield {
+          // Scoped by rule tree, not by path prefix: a sibling rule may share the target path, but is not delivered
+          val resolvedRule = upstream.data.ruleSchemataForTargetTypeOrPrimary(typeUri).transformRule
+          for(outputSchema <- upstream.data.ruleSchemataWithinRule(resolvedRule).map(_.outputSchema)) yield {
             outputSchema.copy(subPath = UntypedPath.removePathPrefix(outputSchema.subPath, schema.subPath))
           }
         case None =>
