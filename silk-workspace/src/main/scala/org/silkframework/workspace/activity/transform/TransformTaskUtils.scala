@@ -4,6 +4,7 @@ import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.dataset.{DataSource, EntitySink}
 import org.silkframework.execution.{ExecutorRegistry, TaskException}
 import org.silkframework.rule.{TaskContext, TransformSpec, TransformedDataSource}
+import org.silkframework.rule.TransformSpec.RuleSchemata
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.PluginContext
 import org.silkframework.runtime.validation.{BadUserInputException, NotFoundException}
@@ -99,9 +100,13 @@ object TransformTaskUtils {
       if(typeUri.uri.isEmpty) {
         new TransformedDataSource(inputSource, transformSpec.inputSchema, transformSpec.mappingRule, task)
       } else {
-        val ruleSchemata = transformSpec.ruleSchemataForTargetType(typeUri)
-        new TransformedDataSource(inputSource, ruleSchemata.inputSchema, ruleSchemata.transformRule, task)
+        asDataSource(inputSource, transformSpec.ruleSchemataForTargetType(typeUri))
       }
+    }
+
+    /** Converts a single rule of this transform task to a data source, which generates the entities of that rule. */
+    def asDataSource(inputSource: DataSource, ruleSchemata: RuleSchemata): DataSource = {
+      new TransformedDataSource(inputSource, ruleSchemata.inputSchema, ruleSchemata.transformRule, task)
     }
 
     /**
