@@ -203,6 +203,14 @@ case class TransformSpec(@Param(label = "Input", value = "The source from which 
   }
 
   /**
+    * The output schema of the rule that generates the given target type, which is what a downstream task reads.
+    * Falls back to the primary output type if no rule generates it, e.g. a type left over from a previous input.
+    */
+  def outputSchemaForTargetType(targetType: Uri): EntitySchema = {
+    ruleSchemataForTargetTypeOption(targetType).getOrElse(ruleSchemataWithoutEmptyObjectRules.head).outputSchema
+  }
+
+  /**
     * Input schemata of all object rules in the tree.
     */
   lazy val inputSchema: MultiEntitySchema = {

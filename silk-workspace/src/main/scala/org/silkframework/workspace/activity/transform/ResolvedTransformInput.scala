@@ -104,7 +104,7 @@ object ResolvedTransformInput {
     project.taskOption[GenericDatasetSpec](inputId).map(DatasetInput)
       .orElse(project.taskOption[TransformSpec](inputId).map { upstream =>
         val typeUri = effectiveTypeUri(upstream, selection.typeUri)
-        StaticSchemaInput(outputSchema(upstream, typeUri), Some(upstream), typeUri)
+        StaticSchemaInput(upstream.data.outputSchemaForTargetType(typeUri), Some(upstream), typeUri)
       })
       .getOrElse {
         project.anyTask(inputId).data.outputPort match {
@@ -126,19 +126,6 @@ object ResolvedTransformInput {
       selectedType
     } else {
       Uri("")
-    }
-  }
-
-  /**
-    * The output schema of the rule of the given transform task that generates the requested type.
-    * Selects the same rule as TransformTaskUtils.asDataSource.
-    */
-  private def outputSchema(transformTask: ProjectTask[TransformSpec], typeUri: Uri): EntitySchema = {
-    val transformSpec = transformTask.data
-    if (typeUri.uri.isEmpty) {
-      transformSpec.ruleSchemataWithoutEmptyObjectRules.head.outputSchema
-    } else {
-      transformSpec.ruleSchemataForTargetType(typeUri).outputSchema
     }
   }
 }
