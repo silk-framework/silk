@@ -58,13 +58,12 @@ class TransformedDataSource(source: DataSource, inputSchema: EntitySchema, trans
                        (implicit context: PluginContext): EntityHolder = {
     implicit val prefixes: Prefixes = context.prefixes
     val rules = rulesForSubPath(entitySchema.subPath)
-    // The limit bounds the whole result, so the rules share it: giving each the full limit would exceed it, and
-    // taking it from the concatenation alone would let the first rule exhaust it and drop the rest
-    val ruleLimit = limit.map(l => Math.max(1, (l + rules.size - 1) / Math.max(rules.size, 1)))
+    // The limit bounds the whole result. Each rule still gets the full limit, so that a rule yielding fewer
+    // entities than its share does not reduce the total.
     // Each rule's source is opened only when the previous one is exhausted, and whatever was opened is closed
     val openedIterators = mutable.Buffer[CloseableIterator[Entity]]()
     val entities = rules.iterator.flatMap { case (ruleInputSchema, rule) =>
-      val iterator = transformedEntities(ruleInputSchema, rule, entitySchema, ruleLimit)
+      val iterator = transformedEntities(ruleInputSchema, rule, entitySchema, limit)
       openedIterators += iterator
       iterator
     }
