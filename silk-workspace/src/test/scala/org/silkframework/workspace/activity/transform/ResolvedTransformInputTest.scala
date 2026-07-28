@@ -125,21 +125,6 @@ class ResolvedTransformInputTest extends AnyFlatSpec with Matchers with TestWork
     a[TaskNotFoundException] must be thrownBy project.task[TransformSpec]("tail").resolveInput.dataSourceOption
   }
 
-  it should "scope to the upstream rule that generates a nested source path" in {
-    val project = retrieveOrCreateProject("scopeToRuleTest")
-    project.addTask("upstream", upstreamTransform)
-    project.addTask("downstream", TransformSpec(selection = DatasetSelection("upstream")))
-    val input = project.task[TransformSpec]("downstream").resolveInput
-
-    // The rule generating the address object delivers its entities itself, so no sub path remains to be requested
-    val (scopedInput, requestedSubPath) = input.scopeTo(path("urn:target:address"))
-    requestedSubPath mustBe UntypedPath.empty
-    targetProperties(scopedInput.asInstanceOf[StaticSchemaInput].schema) must contain("urn:target:city")
-
-    // A value property is not addressable as a rule, so the sub path stays with the caller
-    input.scopeTo(path("urn:target:name")) mustBe (input, path("urn:target:name"))
-  }
-
   it should "expose the nested rules of an upstream transform" in {
     val project = retrieveOrCreateProject("nestedSchemataTest")
     project.addTask("upstream", upstreamTransform)

@@ -8,7 +8,6 @@ import org.silkframework.entity.EntitySchema
 import org.silkframework.entity.paths.UntypedPath
 import org.silkframework.execution.ExecutorRegistry
 import org.silkframework.rule.TransformSpec
-import org.silkframework.rule.TransformSpec.RuleSchemata
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.validation.BadUserInputException
 import org.silkframework.util.{Identifier, Uri}
@@ -29,13 +28,6 @@ sealed trait ResolvedTransformInput {
 
   /** The characteristics of the input, e.g., if it supports multi-hop paths. */
   def characteristics: DatasetCharacteristics
-
-  /**
-    * Restricts this input to the entities that the given source path addresses, e.g. the input of a nested rule.
-    * Returns the restricted input and the sub path that still needs to be requested from it.
-    * Datasets and fixed schemas address nested entities by sub path, so they are returned unchanged.
-    */
-  def scopeTo(sourcePath: UntypedPath): (ResolvedTransformInput, UntypedPath) = (this, sourcePath)
 }
 
 object ResolvedTransformInput {
@@ -54,28 +46,10 @@ object ResolvedTransformInput {
     * For transform tasks whose input chain ends in a dataset, a data source is available that executes the transformation.
     *
     * @param typeUri The type that is read from the upstream transform. Empty if its primary output type is read.
-    * @param nestedRule The upstream rule that generates the entities, if this input has been scoped to a source path.
     */
   case class StaticSchemaInput(schema: EntitySchema,
                                upstreamTransform: Option[ProjectTask[TransformSpec]] = None,
-                               typeUri: Uri = Uri(""),
-                               nestedRule: Option[RuleSchemata] = None) extends ResolvedTransformInput {
-
-    /**
-      * Selects the upstream rule that generates the source path, so its entities are read directly.
-      * A transform delivers nested entities through the rule that generates them, not through a sub path.
-      */
-    override def scopeTo(sourcePath: UntypedPath): (ResolvedTransformInput, UntypedPath) = {
-      val targetPath = UntypedPath(schema.subPath.operators ++ sourcePath.operators)
-      // A rule is only addressable if it generates entities, so value properties are left to the caller's sub path
-      val generatingRule = upstreamTransform.flatMap(_.data.ruleSchemata.find(_.outputSchema.subPath == targetPath))
-      generatingRule match {
-        case Some(rule) if sourcePath.operators.nonEmpty =>
-          (copy(schema = rule.outputSchema, nestedRule = Some(rule)), UntypedPath.empty)
-        case _ =>
-          (this, sourcePath)
-      }
-    }
+                               typeUri: Uri = Uri("")) extends ResolvedTransformInput {
     override def dataSourceOption(implicit userContext: UserContext): Option[DataSource] = {
       dataSourceOfChain(Seq.empty)
     }
@@ -94,10 +68,7 @@ object ResolvedTransformInput {
         transformTask <- upstreamTransform
         inputSource <- inputSourceOfChain(transformTask, visitedTasks)
       } yield {
-        nestedRule match {
-          case Some(rule) => transformTask.asDataSource(inputSource, rule)
-          case None => transformTask.asDataSource(inputSource, typeUri)
-        }
+        transformTask.asDataSource(inputSource, typeUri)
       }
     }
 
@@ -129,7 +100,7 @@ object ResolvedTransformInput {
     def nestedSchemata: Seq[EntitySchema] = {
       upstreamTransform match {
         case Some(upstream) =>
-          // Object rules without properties of their own still generate entities, as scopeTo and scopeToRule assume
+          // Object rules without properties of their own still generate entities
           for {
             outputSchema <- upstream.data.ruleSchemata.map(_.outputSchema)
             if outputSchema.subPath.operators.startsWith(schema.subPath.operators)

@@ -2,15 +2,19 @@ package org.silkframework.rule
 
 import org.silkframework.config.{Prefixes, Task}
 import org.silkframework.dataset.{DataSource, Dataset, DatasetSpec}
-import org.silkframework.entity.EntitySchema
-import org.silkframework.entity.paths.TypedPath
+import org.silkframework.entity.{Entity, EntitySchema}
+import org.silkframework.entity.paths.{TypedPath, UntypedPath}
 import org.silkframework.execution.EntityHolder
 import org.silkframework.execution.local.{EmptyEntityTable, GenericEntityTable}
 import org.silkframework.rule.execution.{TransformReport, TransformReportBuilder}
 import org.silkframework.rule.execution.local.TransformedEntities
 import org.silkframework.runtime.activity.{ActivityMonitor, UserContext}
+import org.silkframework.runtime.iterator.CloseableIterator
 import org.silkframework.runtime.plugin.{PluginContext, TaskResolver}
+import org.silkframework.runtime.validation.BadUserInputException
 import org.silkframework.util.Uri
+
+import scala.collection.mutable
 
 /**
   * A data source that transforms all entities using a provided transformation.
@@ -53,12 +57,57 @@ class TransformedDataSource(source: DataSource, inputSchema: EntitySchema, trans
   override def retrieve(entitySchema: EntitySchema, limit: Option[Int])
                        (implicit context: PluginContext): EntityHolder = {
     implicit val prefixes: Prefixes = context.prefixes
-    val sourceEntities = source.retrieve(inputSchema, limit).entities
+    val rules = rulesForSubPath(entitySchema.subPath)
+    // The limit bounds the whole result, so the rules share it: giving each the full limit would exceed it, and
+    // taking it from the concatenation alone would let the first rule exhaust it and drop the rest
+    val ruleLimit = limit.map(l => Math.max(1, (l + rules.size - 1) / Math.max(rules.size, 1)))
+    // Each rule's source is opened only when the previous one is exhausted, and whatever was opened is closed
+    val openedIterators = mutable.Buffer[CloseableIterator[Entity]]()
+    val entities = rules.iterator.flatMap { case (ruleInputSchema, rule) =>
+      val iterator = transformedEntities(ruleInputSchema, rule, entitySchema, ruleLimit)
+      openedIterators += iterator
+      iterator
+    }
+    val allEntities = CloseableIterator(entities, () => openedIterators.foreach(_.close()))
+    GenericEntityTable(limit.map(allEntities.take).getOrElse(allEntities), entitySchema, underlyingTask)
+  }
+
+  /** Transforms the entities that the given rule reads from the source. */
+  private def transformedEntities(ruleInputSchema: EntitySchema,
+                                  rule: TransformRule,
+                                  requestedSchema: EntitySchema,
+                                  limit: Option[Int])
+                                 (implicit context: PluginContext, prefixes: Prefixes): CloseableIterator[Entity] = {
+    val sourceEntities = source.retrieve(ruleInputSchema, limit).entities
     val taskContext = new ActivityMonitor[TransformReport](task.id, None)
     val reportBuilder = new TransformReportBuilder(task, taskContext)
-    val transformedEntities = new TransformedEntities(task, sourceEntities, transformRule.label(), transformRule.execution(TaskContext.noInput()),
-      entitySchema, isRequestedSchema = true, abortIfErrorsOccur = false, report = reportBuilder).iterator
-    GenericEntityTable(transformedEntities, entitySchema, underlyingTask)
+    new TransformedEntities(task, sourceEntities, rule.label(), rule.execution(TaskContext.noInput()),
+      requestedSchema, isRequestedSchema = true, abortIfErrorsOccur = false, report = reportBuilder).iterator
+  }
+
+  /**
+    * The rules that generate the entities below a requested sub path, each with the schema it reads.
+    * Target properties of a transform are a single hop, so nested entities come from nested object rules.
+    *
+    * @throws BadUserInputException If no rule generates the requested path at all.
+    */
+  private def rulesForSubPath(subPath: UntypedPath): Seq[(EntitySchema, TransformRule)] = {
+    if(subPath.operators.isEmpty) {
+      Seq((inputSchema, transformRule))
+    } else {
+      val transformSpec = task.data
+      // Sub paths of the rule schemata are absolute, so the path of this source's own rule is prepended
+      val basePath = transformSpec.ruleSchemata.find(_.transformRule.id == transformRule.id)
+        .map(_.outputSchema.subPath).getOrElse(UntypedPath.empty)
+      val targetPath = basePath ++ subPath
+      val rules = transformSpec.ruleSchemataForTargetPath(targetPath)
+      // A path generated as a value property holds no entities below it, which is not an error
+      if(rules.isEmpty && !transformSpec.generatesValuesAtTargetPath(targetPath)) {
+        throw new BadUserInputException(s"No rule of transform task '${task.id}' generates the requested path " +
+          s"'${targetPath.normalizedSerialization}'.")
+      }
+      rules.map(schemata => (schemata.inputSchema, schemata.transformRule))
+    }
   }
 
   /**

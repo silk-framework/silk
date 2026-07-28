@@ -209,6 +209,21 @@ case class TransformSpec(@Param(label = "Input", value = "The source from which 
   def primaryRuleSchemata: RuleSchemata = ruleSchemataWithoutEmptyObjectRules.head
 
   /**
+    * The schemata of the rules that generate the entities at the given target path.
+    * A target property identifies a set of rules, not one: several rules may generate the same property, and an
+    * object rule without a target of its own writes into its parent's entity. Object rules that generate no
+    * properties are included, since they still generate entities.
+    */
+  def ruleSchemataForTargetPath(targetPath: UntypedPath): Seq[RuleSchemata] = {
+    ruleSchemata.filter(_.outputSchema.subPath == targetPath)
+  }
+
+  /** True if a rule generates the given target path as a value property, which holds no entities below it. */
+  def generatesValuesAtTargetPath(targetPath: UntypedPath): Boolean = {
+    ruleSchemata.exists(schemata => schemata.outputSchema.typedPaths.exists(schemata.outputSchema.subPath ++ _.toUntypedPath == targetPath))
+  }
+
+  /**
     * The output schema of the rule that generates the given target type, which is what a downstream task reads.
     * Falls back to the primary output type if no rule generates it, e.g. a type left over from a previous input.
     */
