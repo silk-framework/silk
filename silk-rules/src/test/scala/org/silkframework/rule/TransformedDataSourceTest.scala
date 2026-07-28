@@ -35,7 +35,7 @@ class TransformedDataSourceTest extends AnyFlatSpec with Matchers with TestPlugi
     val entityUris = entities.map(_.uri.toString).toSet
     val mappingRule = RootMappingRule(MappingRules(PatternUriMapping(pattern = "http://entity/{ID}"),
       DirectMapping(sourcePath = UntypedPath("ID"), mappingTarget = MappingTarget("ID"))))
-    val transformedDataSource = new TransformedDataSource(csvSource, entitySchema, mappingRule, PlainTask("dataset", null))
+    val transformedDataSource = new TransformedDataSource(csvSource, entitySchema, mappingRule, transformTask(mappingRule))
     val transformedEntities = transformedDataSource.retrieve(entitySchema).entities
     val transformedUris = transformedEntities.map(_.uri.toString).toSet
     entityUris must have size 3
@@ -91,6 +91,28 @@ class TransformedDataSourceTest extends AnyFlatSpec with Matchers with TestPlugi
     val entities = source.retrieve(addressSchema).entities.toSeq
     entities must have size 3 // One per CSV row
     entities.flatMap(_.values.flatten) mustBe empty
+  }
+
+  it should "deliver the values of an object rule without a target at the path of its parent" in {
+    val source = transformedSource(RootMappingRule(MappingRules(propertyRules = Seq(
+      DirectMapping("id", UntypedPath("ID"), MappingTarget("urn:p:id")),
+      ObjectMapping(id = "extra", sourcePath = UntypedPath.empty, target = None, rules = MappingRules(propertyRules = Seq(
+        DirectMapping("extraId", UntypedPath("ID"), MappingTarget("urn:p:extraId")))))
+    ))))
+    val schema = EntitySchema(Uri(""), IndexedSeq(UntypedPath.parse("<urn:p:id>").asStringTypedPath,
+      UntypedPath.parse("<urn:p:extraId>").asStringTypedPath))
+
+    // The no-target rule writes into the root entities, so its values must be delivered at the root path
+    val entities = source.retrieve(schema).entities.toSeq
+    entities.flatMap(_.values.head) mustBe Seq("1", "2", "3")
+    entities.flatMap(_.values(1)) mustBe Seq("1", "2", "3")
+  }
+
+  it should "deliver no entities for a sub path with a filter instead of failing" in {
+    val schema = EntitySchema(Uri(""), IndexedSeq(UntypedPath.parse("<urn:p:billingZip>").asStringTypedPath),
+      subPath = UntypedPath.parse("""<urn:p:address>[<urn:p:type> = "home"]"""))
+    // Datasets accept filtered paths, so a transform input yields nothing rather than an error
+    twoRuleSource.retrieve(schema).entities.toSeq mustBe empty
   }
 
   it should "fail if no rule generates the requested sub path" in {

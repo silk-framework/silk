@@ -3,7 +3,7 @@ package org.silkframework.rule
 import org.silkframework.config.{Prefixes, Task}
 import org.silkframework.dataset.{DataSource, Dataset, DatasetSpec}
 import org.silkframework.entity.{Entity, EntitySchema}
-import org.silkframework.entity.paths.{TypedPath, UntypedPath}
+import org.silkframework.entity.paths.{DirectionalPathOperator, TypedPath, UntypedPath}
 import org.silkframework.execution.EntityHolder
 import org.silkframework.execution.local.{EmptyEntityTable, GenericEntityTable}
 import org.silkframework.rule.execution.{TransformReport, TransformReportBuilder}
@@ -91,19 +91,24 @@ class TransformedDataSource(source: DataSource, inputSchema: EntitySchema, trans
     * @throws BadUserInputException If no rule generates the requested path at all.
     */
   private def rulesForSubPath(subPath: UntypedPath): Seq[(EntitySchema, TransformRule)] = {
+    val transformSpec = task.data
+    // Sub paths of the rule schemata are absolute, so the path of this source's own rule is prepended
+    val basePath = transformSpec.ruleSchemata.find(_.transformRule.id == transformRule.id)
+      .map(_.outputSchema.subPath).getOrElse(UntypedPath.empty)
+    val targetPath = basePath ++ subPath
+    // Only this source's own rule tree: a sibling rule may share the target path, but is not delivered
+    val subtreeSchemata = transformSpec.ruleSchemataWithinRule(transformRule)
+    val rules = subtreeSchemata.filter(_.outputSchema.subPath == targetPath)
     if(subPath.operators.isEmpty) {
-      Seq((inputSchema, transformRule))
+      // The own rule keeps the schema the source was built with. Object rules without a target of their own
+      // share its path and write into the same entities, so they are delivered as well.
+      val noTargetRules = rules.filter(_.transformRule.id != transformRule.id)
+      (inputSchema, transformRule) +: noTargetRules.map(schemata => (schemata.inputSchema, schemata.transformRule))
     } else {
-      val transformSpec = task.data
-      // Sub paths of the rule schemata are absolute, so the path of this source's own rule is prepended
-      val basePath = transformSpec.ruleSchemata.find(_.transformRule.id == transformRule.id)
-        .map(_.outputSchema.subPath).getOrElse(UntypedPath.empty)
-      val targetPath = basePath ++ subPath
-      // Only this source's own rule tree: a sibling rule may share the target path, but is not delivered
-      val subtreeSchemata = transformSpec.ruleSchemataWithinRule(transformRule)
-      val rules = subtreeSchemata.filter(_.outputSchema.subPath == targetPath)
-      // A path generated as a value property holds no entities below it, which is not an error
-      if(rules.isEmpty && !subtreeSchemata.exists(_.generatesValueAt(targetPath))) {
+      // Target paths consist of properties only, so a path with a filter holds no entities, which is not an error.
+      // A path generated as a value property holds no entities below it either.
+      val canAddressRule = subPath.operators.forall(_.isInstanceOf[DirectionalPathOperator])
+      if(rules.isEmpty && canAddressRule && !subtreeSchemata.exists(_.generatesValueAt(targetPath))) {
         throw new BadUserInputException(s"No rule of transform task '${task.id}' generates the requested path " +
           s"'${targetPath.normalizedSerialization}'.")
       }
