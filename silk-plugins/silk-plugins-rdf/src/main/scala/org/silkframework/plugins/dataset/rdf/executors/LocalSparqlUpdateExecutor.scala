@@ -143,7 +143,7 @@ case class BatchSparqlUpdateEmitter[U](f: String => U, batchSize: Int, reportUpd
 
 object BatchSparqlUpdateEmitter {
   private def ensureTerminated(query: String): String = {
-    val trimmed = query.replaceAll("\\s+$", "")
-    if (trimmed.endsWith(";")) trimmed else trimmed + ";"
+    val queryContent = query.replaceAll("\\s+$", "")
+    if (queryContent.isEmpty || queryContent.endsWith(";")) queryContent else queryContent + ";"
   }
 }
