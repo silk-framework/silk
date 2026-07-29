@@ -5,7 +5,7 @@ import org.silkframework.config.{FixedNumberOfInputs, FixedSchemaPort, InputPort
 import org.silkframework.entity._
 import org.silkframework.entity.paths._
 import org.silkframework.rule.RootMappingRule.RootMappingRuleFormat
-import org.silkframework.rule.TransformSpec.{RuleSchemata, TargetVocabularyCategory, TargetVocabularyParameter}
+import org.silkframework.rule.TransformSpec.{RuleSchemata, RulesAtTargetPath, TargetVocabularyCategory, TargetVocabularyParameter}
 import org.silkframework.rule.input.{RuleBlockInput, TransformInput, Transformer}
 import org.silkframework.rule.vocab.TargetVocabularyParameterEnum
 import org.silkframework.runtime.plugin.StringParameterType.{EnumerationType, StringIterableParameterType}
@@ -218,24 +218,31 @@ case class TransformSpec(@Param(label = "Input", value = "The source from which 
   def primaryRuleSchemata: RuleSchemata = ruleSchemataWithoutEmptyObjectRules.head
 
   /**
-    * The schemata of the rules that generate the entities at the given target path.
+    * The rules that generate the entities at the given path, relative to the given rule's own target path.
     * A target property identifies a set of rules, not one: several rules may generate the same property, and an
-    * object rule without a target of its own writes into its parent's entity. Object rules that generate no
-    * properties are included, since they still generate entities.
+    * object rule without a target of its own writes into its parent's entity. Scoped to the given rule's tree,
+    * since a sibling rule may share the target path, but does not belong to a source scoped to a single rule.
     */
-  def ruleSchemataForTargetPath(targetPath: UntypedPath): Seq[RuleSchemata] = {
-    ruleSchemata.filter(_.outputSchema.subPath == targetPath)
+  def rulesAtTargetPath(withinRule: TransformRule, relativePath: UntypedPath): RulesAtTargetPath = {
+    val basePath = ruleSchemata.find(_.transformRule.id == withinRule.id)
+      .map(_.outputSchema.subPath).getOrElse(UntypedPath.empty)
+    val targetPath = basePath ++ relativePath
+    val subtreeSchemata = ruleSchemataWithinRule(withinRule)
+    val rules = subtreeSchemata.filter(_.outputSchema.subPath == targetPath)
+    if(rules.nonEmpty) {
+      RulesAtTargetPath.Rules(rules)
+    } else if(subtreeSchemata.exists(_.generatesValueAt(targetPath)) ||
+              relativePath.operators.exists(!_.isInstanceOf[DirectionalPathOperator])) {
+      RulesAtTargetPath.NoEntities(targetPath)
+    } else {
+      RulesAtTargetPath.NotGenerated(targetPath)
+    }
   }
 
   /** The schemata of the given rule and all rules nested below it, including object rules that generate no properties. */
   def ruleSchemataWithinRule(rule: TransformRule): Seq[RuleSchemata] = {
     val ruleIds = (rule.rules.allRulesRecursive.map(_.id) :+ rule.id).toSet
     ruleSchemata.filter(schemata => ruleIds.contains(schemata.transformRule.id))
-  }
-
-  /** True if a rule generates the given target path as a value property, which holds no entities below it. */
-  def generatesValuesAtTargetPath(targetPath: UntypedPath): Boolean = {
-    ruleSchemata.exists(_.generatesValueAt(targetPath))
   }
 
   /** The schemata of the rule that generates the given target type, or of the root rule if no rule generates it. */
@@ -461,6 +468,18 @@ object TransformSpec {
   implicit def toTransformTask(task: Task[TransformSpec]): TransformTask = TransformTask.fromTask(task)
 
   def empty: TransformSpec = TransformSpec(DatasetSelection.empty, RootMappingRule.empty)
+
+  /** The entities that a source scoped to a rule finds at a target path (see [[TransformSpec.rulesAtTargetPath]]). */
+  sealed trait RulesAtTargetPath
+  object RulesAtTargetPath {
+    /** The rules that generate entities at the path. */
+    case class Rules(schemata: Seq[RuleSchemata]) extends RulesAtTargetPath
+    /** The path holds no entities: it is generated as a value property, or it contains operators that cannot
+      * address a rule, e.g. filters. Not an error. */
+    case class NoEntities(targetPath: UntypedPath) extends RulesAtTargetPath
+    /** No rule generates the path, which hints at a misconfigured source path. */
+    case class NotGenerated(targetPath: UntypedPath) extends RulesAtTargetPath
+  }
 
   /**
     * Holds a transform rule along with its input and output schema.
