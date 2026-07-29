@@ -275,6 +275,16 @@ class JsonSerializersTest  extends AnyFlatSpec with Matchers with ConfigTestTrai
     ((((fullJson \ "outputEntitiesSample")(0) \ "entities")(0) \ "values")(0)(0)).as[String] shouldBe longValue
   }
 
+  it should "omit absent titles and preserve explicit titles" in {
+    implicit val jsonWriteContext: WriteContext[play.api.libs.json.JsValue] =
+      TestWriteContext[play.api.libs.json.JsValue]()
+    val untitledReport = SimpleExecutionReport(task = PlainTask("someTask", WorkflowTest.testWorkflow))
+    val titledReport = untitledReport.copy(title = Some("Wrote 7 entities to 'Output Transform Person JSON'"))
+
+    (ExecutionReportJsonFormat.serializeBasicValues(untitledReport, ReportDetail.Compact) \ "title").toOption shouldBe empty
+    (ExecutionReportJsonFormat.serializeBasicValues(titledReport, ReportDetail.Compact) \ "title").as[String] shouldBe titledReport.title.get
+  }
+
   it should "round-trip the operation type through the verbose format" in {
     implicit val jsonWriteContext: WriteContext[play.api.libs.json.JsValue] =
       TestWriteContext[play.api.libs.json.JsValue]()

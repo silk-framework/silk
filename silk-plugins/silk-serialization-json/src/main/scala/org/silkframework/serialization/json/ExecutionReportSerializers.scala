@@ -80,11 +80,11 @@ object ExecutionReportSerializers {
           else value.sampleOutputEntities.filter(_.entities.nonEmpty).map(_.truncateValues(SLIM_SAMPLE_VALUE_CHAR_LIMIT))
         Json.obj(
           LABEL -> value.task.label(),
-          TITLE -> value.title,
           OPERATION_DESC -> value.operationDesc,
           IS_DONE -> value.isDone,
           ENTITY_COUNT -> value.entityCount
         ) ++
+          value.title.map(title => Json.obj(TITLE -> title)).getOrElse(JsObject.empty) ++
           value.operation.map(op => Json.obj(OPERATION -> op)).getOrElse(JsObject.empty) ++
           (if (value.warnings.nonEmpty) Json.obj(WARNINGS -> value.warnings) else JsObject.empty) ++
           value.error.map(err => Json.obj(ERROR -> err)).getOrElse(JsObject.empty) ++
