@@ -105,7 +105,7 @@ object ResolvedTransformInput {
       (upstreamTransform, resolvedRule) match {
         case (Some(upstream), Some(rule)) =>
           // Scoped by rule tree, not by path prefix: a sibling rule may share the target path, but is not delivered
-          for(outputSchema <- upstream.data.ruleSchemataWithinRule(rule.transformRule).map(_.outputSchema)) yield {
+          for(outputSchema <- upstream.data.outputView.ruleSchemataWithinRule(rule.transformRule).map(_.outputSchema)) yield {
             outputSchema.copy(subPath = UntypedPath.removePathPrefix(outputSchema.subPath, schema.subPath))
           }
         case _ =>
@@ -137,7 +137,7 @@ object ResolvedTransformInput {
     project.taskOption[GenericDatasetSpec](inputId).map(DatasetInput)
       .orElse(project.taskOption[TransformSpec](inputId).map { upstream =>
         val typeUri = effectiveTypeUri(upstream, selection.typeUri)
-        val ruleSchemata = upstream.data.ruleSchemataForTargetTypeOrPrimary(typeUri)
+        val ruleSchemata = upstream.data.outputView.ruleSchemataForTargetTypeOrPrimary(typeUri)
         StaticSchemaInput(ruleSchemata.outputSchema, Some(upstream), typeUri, Some(ruleSchemata))
       })
       .getOrElse {
@@ -158,7 +158,7 @@ object ResolvedTransformInput {
     * rule keeps the task usable, while an error would also block the editors needed to fix the selection.
     */
   private def effectiveTypeUri(transformTask: ProjectTask[TransformSpec], selectedType: Uri): Uri = {
-    if(selectedType.uri.nonEmpty && transformTask.data.ruleSchemataForTargetTypeOption(selectedType).isDefined) {
+    if(selectedType.uri.nonEmpty && transformTask.data.outputView.ruleSchemataForTargetTypeOption(selectedType).isDefined) {
       selectedType
     } else {
       Uri("")

@@ -38,7 +38,7 @@ trait PathsCacheTrait {
         }
       case transformSpec: TransformSpec =>
         // A transform input delivers the entities of the rule that generates the selected type, not those of its root rule
-        transformSpec.outputSchemaForTargetType(dataSelection.map(_.typeUri).getOrElse(Uri(""))).typedPaths
+        transformSpec.outputView.outputSchemaForTargetType(dataSelection.map(_.typeUri).getOrElse(Uri(""))).typedPaths
       case task: TaskSpec =>
         task.outputPort match {
           case Some(FixedSchemaPort(schema)) =>

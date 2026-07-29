@@ -4,7 +4,7 @@ import org.silkframework.config.{Prefixes, Task}
 import org.silkframework.dataset.{DataSource, Dataset, DatasetSpec}
 import org.silkframework.entity.{Entity, EntitySchema}
 import org.silkframework.entity.paths.{TypedPath, UntypedPath}
-import org.silkframework.rule.TransformSpec.RulesAtTargetPath.{NoEntities, NotGenerated, Rules}
+import org.silkframework.rule.TransformOutputView.RulesAtTargetPath.{NoEntities, NotGenerated, Rules}
 import org.silkframework.execution.EntityHolder
 import org.silkframework.execution.local.{EmptyEntityTable, GenericEntityTable}
 import org.silkframework.rule.execution.{TransformReport, TransformReportBuilder}
@@ -92,17 +92,11 @@ class TransformedDataSource(source: DataSource, inputSchema: EntitySchema, trans
     * @throws BadUserInputException If no rule generates the requested path at all.
     */
   private def rulesForSubPath(subPath: UntypedPath): Seq[(EntitySchema, TransformRule)] = {
-    val rulesAtPath = task.data.rulesAtTargetPath(transformRule, subPath)
     if(subPath.operators.isEmpty) {
-      // The own rule keeps the schema the source was built with. Object rules without a target of their own
-      // share its path and write into the same entities, so they are delivered as well.
-      val noTargetRules = rulesAtPath match {
-        case Rules(schemata) => schemata.filter(_.transformRule.id != transformRule.id)
-        case _ => Seq.empty
-      }
-      (inputSchema, transformRule) +: noTargetRules.map(schemata => (schemata.inputSchema, schemata.transformRule))
+      // The own rule keeps the schema the source was built with
+      Seq((inputSchema, transformRule))
     } else {
-      rulesAtPath match {
+      task.data.outputView.rulesAtTargetPath(transformRule, subPath) match {
         case Rules(schemata) =>
           schemata.map(schemata => (schemata.inputSchema, schemata.transformRule))
         case NoEntities(_) =>

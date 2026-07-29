@@ -140,7 +140,7 @@ class ResolvedTransformInputTest extends AnyFlatSpec with Matchers with TestWork
       .asInstanceOf[StaticSchemaInput].schema.typedPaths.toSet
     // The entities of a selected type come from a single rule, so the schema may not describe any other rule
     val delivered = project.task[TransformSpec]("upstream").data
-      .ruleSchemataForTargetType(Uri(nestedType)).outputSchema.typedPaths.toSet
+      .outputView.ruleSchemataForTargetType(Uri(nestedType)).outputSchema.typedPaths.toSet
     advertised must not be empty
     advertised.subsetOf(delivered) mustBe true
   }

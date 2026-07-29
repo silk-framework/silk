@@ -2,6 +2,7 @@ package org.silkframework.workspace.activity.transform
 
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.dataset.{DataSource, EntitySink}
+import org.silkframework.entity.MultiEntitySchema
 import org.silkframework.execution.{ExecutorRegistry, TaskException}
 import org.silkframework.rule.{TaskContext, TransformSpec, TransformedDataSource}
 import org.silkframework.runtime.activity.UserContext
@@ -97,9 +98,12 @@ object TransformTaskUtils {
       val transformSpec = task.data
       // Find the rule that generates the selected type
       if(typeUri.uri.isEmpty) {
-        new TransformedDataSource(inputSource, transformSpec.inputSchema, transformSpec.mappingRule, task)
+        val rootSchemata = transformSpec.outputView.ruleSchemataForTargetTypeOrPrimary(typeUri)
+        // The root keeps the multi entity input schema, whose sub schemata retrieve the nested source entities
+        val rootInputSchema = new MultiEntitySchema(rootSchemata.inputSchema, transformSpec.inputSchema.subSchemata)
+        new TransformedDataSource(inputSource, rootInputSchema, rootSchemata.transformRule, task)
       } else {
-        val ruleSchemata = transformSpec.ruleSchemataForTargetType(typeUri)
+        val ruleSchemata = transformSpec.outputView.ruleSchemataForTargetType(typeUri)
         new TransformedDataSource(inputSource, ruleSchemata.inputSchema, ruleSchemata.transformRule, task)
       }
     }

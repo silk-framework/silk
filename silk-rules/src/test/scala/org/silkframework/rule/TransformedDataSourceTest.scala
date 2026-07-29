@@ -102,10 +102,43 @@ class TransformedDataSourceTest extends AnyFlatSpec with Matchers with TestPlugi
     val schema = EntitySchema(Uri(""), IndexedSeq(UntypedPath.parse("<urn:p:id>").asStringTypedPath,
       UntypedPath.parse("<urn:p:extraId>").asStringTypedPath))
 
-    // The no-target rule writes into the root entities, so its values must be delivered at the root path
+    // The no-target rule writes into the root entities: one entity per source record, with both values
     val entities = source.retrieve(schema).entities.toSeq
-    entities.flatMap(_.values.head) mustBe Seq("1", "2", "3")
-    entities.flatMap(_.values(1)) mustBe Seq("1", "2", "3")
+    entities must have size 3
+    entities.map(_.values.head) mustBe Seq(Seq("1"), Seq("2"), Seq("3"))
+    entities.map(_.values(1)) mustBe Seq(Seq("1"), Seq("2"), Seq("3"))
+  }
+
+  it should "merge an object rule without a target into its parent at a nested path" in {
+    val source = transformedSource(RootMappingRule(MappingRules(propertyRules = Seq(
+      ObjectMapping(id = "address", sourcePath = UntypedPath.empty, target = Some(MappingTarget("urn:p:address")),
+        rules = MappingRules(propertyRules = Seq(
+          DirectMapping("zip", UntypedPath("ID"), MappingTarget("urn:p:zip")),
+          ObjectMapping(id = "extra", sourcePath = UntypedPath.empty, target = None, rules = MappingRules(propertyRules = Seq(
+            DirectMapping("extraZip", UntypedPath("ID"), MappingTarget("urn:p:extraZip")))))
+        )))
+    ))))
+    val schema = EntitySchema(Uri(""), IndexedSeq(UntypedPath.parse("<urn:p:zip>").asStringTypedPath,
+      UntypedPath.parse("<urn:p:extraZip>").asStringTypedPath), subPath = UntypedPath.parse("<urn:p:address>"))
+
+    val entities = source.retrieve(schema).entities.toSeq
+    entities must have size 3
+    entities.map(_.values.head) mustBe Seq(Seq("1"), Seq("2"), Seq("3"))
+    entities.map(_.values(1)) mustBe Seq(Seq("1"), Seq("2"), Seq("3"))
+  }
+
+  it should "prepend the source path of an object rule without a target to its inlined rules" in {
+    val source = transformedSource(RootMappingRule(MappingRules(propertyRules = Seq(
+      DirectMapping("id", UntypedPath("ID"), MappingTarget("urn:p:id")),
+      ObjectMapping(id = "extra", sourcePath = UntypedPath("ID"), target = None, rules = MappingRules(propertyRules = Seq(
+        DirectMapping("nested", UntypedPath.empty, MappingTarget("urn:p:nested")))))
+    ))))
+    val schema = EntitySchema(Uri(""), IndexedSeq(UntypedPath.parse("<urn:p:nested>").asStringTypedPath))
+
+    // The child rule reads relative to the no-target rule's source path 'ID'
+    val entities = source.retrieve(schema).entities.toSeq
+    entities must have size 3
+    entities.map(_.values.head) mustBe Seq(Seq("1"), Seq("2"), Seq("3"))
   }
 
   it should "deliver no entities for a sub path with a filter instead of failing" in {
@@ -224,7 +257,10 @@ class TransformedDataSourceTest extends AnyFlatSpec with Matchers with TestPlugi
   private def twoRuleSource: TransformedDataSource = transformedSource(twoAddressRules)
 
   private def transformedSource(mappingRule: RootMappingRule): TransformedDataSource = {
-    new TransformedDataSource(csvSource, rootInputSchema, mappingRule, transformTask(mappingRule))
+    // Built on the merged root schemata, like TransformTaskUtils.asDataSource builds it
+    val task = transformTask(mappingRule)
+    val rootSchemata = task.data.outputView.ruleSchemataForTargetTypeOrPrimary(Uri(""))
+    new TransformedDataSource(csvSource, rootSchemata.inputSchema, rootSchemata.transformRule, task)
   }
 
   /** Counts retrievals and closes, so that leaked rule sources become visible. */
