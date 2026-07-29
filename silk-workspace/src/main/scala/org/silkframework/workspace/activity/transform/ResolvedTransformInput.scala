@@ -150,6 +150,8 @@ object ResolvedTransformInput {
   /**
     * The type that is read from the given transform task.
     * A selected type that none of its rules generates is ignored, e.g. one left over from a previous input dataset.
+    * This is deliberate even for a type that matched before the upstream was edited: falling back to the primary
+    * rule keeps the task usable, while an error would also block the editors needed to fix the selection.
     */
   private def effectiveTypeUri(transformTask: ProjectTask[TransformSpec], selectedType: Uri): Uri = {
     if(selectedType.uri.nonEmpty && transformTask.data.ruleSchemataForTargetTypeOption(selectedType).isDefined) {
