@@ -27,7 +27,6 @@ import {
     ContextMenu,
     Accordion,
     AccordionItem,
-    Depiction,
     Spinner,
 } from "@eccenca/gui-elements";
 import { commonOp, commonSel } from "@ducks/common";
@@ -49,6 +48,7 @@ import { useTranslation } from "react-i18next";
 import { DatasetTaskPlugin, TaskType } from "@ducks/shared/typings";
 import { ProjectImportModal } from "../ProjectImportModal";
 import ItemDepiction from "../../../shared/ItemDepiction";
+import { itemTypeTileClass } from "../../../shared/ItemDepiction/itemTypeColors";
 import ProjectSelection from "./ArtefactForms/ProjectSelection";
 import { workspaceSel } from "@ducks/workspace";
 import { AccessControlConfig, requestSearchList, ISearchListRequest } from "@ducks/workspace/requests";
@@ -903,11 +903,6 @@ export function CreateArtefactModal() {
                         data-test-id={`${actionKey}-btn`}
                         key={actionKey}
                         onClick={executeAction}
-                        icon={
-                            action.icon ? (
-                                <Depiction image={<img src={action.icon} />} forceInlineSvg ratio="1:1" size="tiny" />
-                            ) : undefined
-                        }
                     />
                 ) : (
                     <Button
@@ -919,13 +914,7 @@ export function CreateArtefactModal() {
                         key={actionKey}
                         onClick={executeAction}
                         tooltip={action.description}
-                        icon={
-                            taskActionLoading == actionKey ? (
-                                <Spinner size="tiny" />
-                            ) : action.icon ? (
-                                <Depiction image={<img src={action.icon} />} forceInlineSvg ratio="1:1" size="tiny" />
-                            ) : undefined
-                        }
+                        icon={taskActionLoading == actionKey ? <Spinner size="tiny" /> : undefined}
                     >
                         {action.label}
                     </Button>
@@ -1104,6 +1093,10 @@ export function CreateArtefactModal() {
     const createDialog = (
         <SimpleDialog
             size="large"
+            // Fixed (full available) height so the dialog does not resize when switching between
+            // categories with few items (e.g. Workflow) and "All", or between list and form step.
+            // The task-update variant stays content-sized.
+            className={updateExistingTask ? undefined : "h-full"}
             preventSimpleClosing={!!artefactForm || searchValue.trim().length > 0}
             hasBorder
             title={
@@ -1200,18 +1193,33 @@ export function CreateArtefactModal() {
                     ) : (
                         <Grid>
                             <GridRow>
-                                <GridColumn small>
+                                {/* Sticky within the dialog body's scroll container (`CardContent`,
+                                    `overflow-auto`): the type sidebar stays in place while the plugin
+                                    list scrolls. `self-start` keeps the column content-sized — a
+                                    stretched (full-height) column would have no room to stick.
+                                    `-top-4`/`-mt-4`/`pt-4` compensate the scroll container's own top
+                                    padding (with headroom) so the pin line matches the search bar block. */}
+                                <GridColumn small className="sticky -top-4 -mt-4 self-start pt-4">
                                     <ArtefactTypesList onSelect={handleSelectDType} typesToRemove={hiddenItemTypes} />
                                 </GridColumn>
                                 <GridColumn>
-                                    <SearchBar
-                                        textQuery={searchValue}
-                                        focusOnCreation={true}
-                                        onSearch={handleSearch}
-                                        onEnter={handleAdd}
-                                        disableEnterDuringPendingSearch={true}
-                                    />
-                                    <Spacing />
+                                    {/* Sticks together with the type sidebar while the list scrolls;
+                                        opaque card background so list items slide underneath invisibly.
+                                        The scroll container (`CardContent`) has top padding that
+                                        scrolled cards remain visible in above a `top-0` pin line —
+                                        `-top-4` pins the block higher and `-mt-4`/`pt-4` extend its
+                                        opaque background over that zone with headroom (overshoot above
+                                        the scrollport is clipped and invisible; resting position is
+                                        unchanged since margin and padding cancel out). */}
+                                    <div className="sticky -top-4 z-10 -mt-4 bg-card pt-4 pb-4">
+                                        <SearchBar
+                                            textQuery={searchValue}
+                                            focusOnCreation={true}
+                                            onSearch={handleSearch}
+                                            onEnter={handleAdd}
+                                            disableEnterDuringPendingSearch={true}
+                                        />
+                                    </div>
                                     {loading ? (
                                         <Loading
                                             description={t("CreateModal.loading", "Loading artefact type list.")}
@@ -1228,6 +1236,10 @@ export function CreateArtefactModal() {
                                             {artefactListWithProject.map((artefact) => {
                                                 const description =
                                                     artefact.markdownDocumentation || artefact.description || "";
+                                                // The project pseudo-entry carries no taskType; its key ("project") is the type.
+                                                const depictionTile = itemTypeTileClass(
+                                                    artefact.taskType ?? artefact.key,
+                                                );
                                                 return (
                                                     <Card
                                                         isOnlyLayout
@@ -1244,7 +1256,10 @@ export function CreateArtefactModal() {
                                                             onClick={() => handleArtefactSelect(artefact)}
                                                             onKeyDown={handleEnter}
                                                         >
-                                                            <OverviewItemDepiction>
+                                                            <OverviewItemDepiction
+                                                                keepColors={!!depictionTile}
+                                                                className={depictionTile}
+                                                            >
                                                                 <ItemDepiction
                                                                     itemType={artefact.taskType}
                                                                     pluginId={artefact.key}

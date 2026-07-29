@@ -25,7 +25,6 @@ import utils from "../../../views/shared/Metadata/MetadataUtils";
 import { Keyword } from "@ducks/workspace/typings";
 import { MultiSuggestFieldSelectionProps } from "@eccenca/gui-elements/src/components/organisms/MultiSuggestField/MultiSuggestField";
 import { READ_ONLY_PARAMETER } from "../../../views/shared/modals/CreateArtefactModal/ArtefactForms/TaskForm";
-import { fillCustomPluginStore } from "../../../views/shared/ItemDepiction/ItemDepiction";
 import { TaskParameters } from "../../../views/plugins/plugin.types";
 import { setDefaultProjectPageSuffix } from "../../../utils/routerUtils";
 
@@ -82,7 +81,6 @@ const fetchCommonSettingsAsync = () => {
                 key,
                 ...overviewItems[key],
             }));
-            await fillCustomPluginStore(taskPluginOverviews);
             dispatch(setTaskPluginOverviews(taskPluginOverviews));
 
             const selectedLng = fetchStoredLang();

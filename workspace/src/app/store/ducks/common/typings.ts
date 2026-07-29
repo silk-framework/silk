@@ -117,14 +117,11 @@ export interface IPluginOverview {
     description?: string;
     categories?: string[];
     markdownDocumentation?: string;
-    /** Plugin icon in Data URL format. */
-    pluginIcon?: string;
     pluginId?: string;
     actions?: Record<
         string,
         {
             description: string;
-            icon: string | null;
             label: string;
         }
     >;
