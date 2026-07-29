@@ -193,7 +193,12 @@ case class TransformSpec(@Param(label = "Input", value = "The source from which 
     * one rule (see TransformTaskUtils.asDataSource), so the schema must not promise more than that rule generates.
     */
   def ruleSchemataForTargetTypeOption(targetType: Uri): Option[RuleSchemata] = {
-    ruleSchemataWithoutEmptyObjectRules.find(_.transformRule.rules.typeRules.map(_.typeUri).contains(targetType))
+    // The empty URI means that no type is selected, so it must not match a type rule with an empty URI
+    if(targetType.uri.isEmpty) {
+      None
+    } else {
+      ruleSchemataWithoutEmptyObjectRules.find(_.transformRule.rules.typeRules.map(_.typeUri).contains(targetType))
+    }
   }
 
   /**
