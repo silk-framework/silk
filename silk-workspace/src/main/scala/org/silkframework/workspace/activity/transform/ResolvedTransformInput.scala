@@ -8,6 +8,7 @@ import org.silkframework.entity.EntitySchema
 import org.silkframework.entity.paths.UntypedPath
 import org.silkframework.execution.ExecutorRegistry
 import org.silkframework.rule.TransformSpec
+import org.silkframework.rule.TransformSpec.RuleSchemata
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.validation.BadUserInputException
 import org.silkframework.util.{Identifier, Uri}
@@ -45,11 +46,14 @@ object ResolvedTransformInput {
     * The input has a statically known schema, i.e., it is another transform task or a task with a fixed output schema.
     * For transform tasks whose input chain ends in a dataset, a data source is available that executes the transformation.
     *
-    * @param typeUri The type that is read from the upstream transform. Empty if its primary output type is read.
+    * @param typeUri      The type that is read from the upstream transform. Empty if its primary output type is read.
+    * @param resolvedRule The upstream rule that generates the read entities, i.e. `schema` is its output schema.
+    *                     Resolved once, so that schema, rule scoping and delivery stay consistent.
     */
   case class StaticSchemaInput(schema: EntitySchema,
                                upstreamTransform: Option[ProjectTask[TransformSpec]] = None,
-                               typeUri: Uri = Uri("")) extends ResolvedTransformInput {
+                               typeUri: Uri = Uri(""),
+                               resolvedRule: Option[RuleSchemata] = None) extends ResolvedTransformInput {
     override def dataSourceOption(implicit userContext: UserContext): Option[DataSource] = {
       dataSourceOfChain(Seq.empty)
     }
@@ -98,14 +102,13 @@ object ResolvedTransformInput {
       * Sub paths are relative to the resolved rule, which addresses the entities that the nested rules generate.
       */
     def nestedSchemata: Seq[EntitySchema] = {
-      upstreamTransform match {
-        case Some(upstream) =>
+      (upstreamTransform, resolvedRule) match {
+        case (Some(upstream), Some(rule)) =>
           // Scoped by rule tree, not by path prefix: a sibling rule may share the target path, but is not delivered
-          val resolvedRule = upstream.data.ruleSchemataForTargetTypeOrPrimary(typeUri).transformRule
-          for(outputSchema <- upstream.data.ruleSchemataWithinRule(resolvedRule).map(_.outputSchema)) yield {
+          for(outputSchema <- upstream.data.ruleSchemataWithinRule(rule.transformRule).map(_.outputSchema)) yield {
             outputSchema.copy(subPath = UntypedPath.removePathPrefix(outputSchema.subPath, schema.subPath))
           }
-        case None =>
+        case _ =>
           Seq(schema)
       }
     }
@@ -134,7 +137,8 @@ object ResolvedTransformInput {
     project.taskOption[GenericDatasetSpec](inputId).map(DatasetInput)
       .orElse(project.taskOption[TransformSpec](inputId).map { upstream =>
         val typeUri = effectiveTypeUri(upstream, selection.typeUri)
-        StaticSchemaInput(upstream.data.outputSchemaForTargetType(typeUri), Some(upstream), typeUri)
+        val ruleSchemata = upstream.data.ruleSchemataForTargetTypeOrPrimary(typeUri)
+        StaticSchemaInput(ruleSchemata.outputSchema, Some(upstream), typeUri, Some(ruleSchemata))
       })
       .getOrElse {
         project.anyTask(inputId).data.outputPort match {
