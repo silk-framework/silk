@@ -6,6 +6,7 @@ import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.execution._
 import org.silkframework.execution.local.LocalExecution
 import org.silkframework.plugins.dataset.InternalDataset
+import org.silkframework.rule.execution.TransformReport
 import org.silkframework.runtime.activity.Status.Canceling
 import org.silkframework.runtime.activity._
 import org.silkframework.runtime.plugin.{PluginContext, TaskResolver}
@@ -361,11 +362,18 @@ case class WorkflowRunContext(activityContext: ActivityContext[WorkflowExecution
     * Updates the workflow execution report on each update of a task report.
     * A node may run multiple executions within one workflow run (e.g. a dataset node executes one
     * write per input): each execution ends with a report marked as done, so an update arriving
-    * after that starts a new report entry instead of overwriting the finished one.
+    * after that starts a new report entry instead of overwriting the finished one. Transform reports
+    * are an exception: nested output tables complete individually but contribute to the same transform
+    * report. A new transform execution starts with a non-completed report.
     */
   private class TaskReportListener(private var index: Int, nodeId: Identifier) extends (ExecutionReport => Unit) {
     def apply(report: ExecutionReport): Unit = activityContext.value.synchronized {
-      if(activityContext.value().taskReports(index).report.isDone) {
+      val previousReportDone = activityContext.value().taskReports(index).report.isDone
+      val startsNewExecution = report match {
+        case transformReport: TransformReport => !transformReport.isDone
+        case _ => true
+      }
+      if(previousReportDone && startsNewExecution) {
         activityContext.value.updateWith(_.addReport(nodeId, report))
         index = activityContext.value().taskReports.size - 1
       } else {

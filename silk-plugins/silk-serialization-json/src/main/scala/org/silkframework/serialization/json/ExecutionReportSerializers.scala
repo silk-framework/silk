@@ -62,7 +62,8 @@ object ExecutionReportSerializers {
           isDone = booleanValueOption(value, IS_DONE).getOrElse(true),
           entityCount = numberValueOption(value, ENTITY_COUNT).map(_.intValue).getOrElse(0),
           sampleOutputEntities = parseSampleEntities(value),
-          operationType = stringValueOption(value, OPERATION_TYPE).map(OperationType.fromId).getOrElse(OperationType.Process)
+          operationType = stringValueOption(value, OPERATION_TYPE).map(OperationType.fromId).getOrElse(OperationType.Process),
+          title = stringValueOption(value, TITLE)
         )
       }
     }
@@ -79,6 +80,7 @@ object ExecutionReportSerializers {
           else value.sampleOutputEntities.filter(_.entities.nonEmpty).map(_.truncateValues(SLIM_SAMPLE_VALUE_CHAR_LIMIT))
         Json.obj(
           LABEL -> value.task.label(),
+          TITLE -> value.title,
           OPERATION_DESC -> value.operationDesc,
           IS_DONE -> value.isDone,
           ENTITY_COUNT -> value.entityCount
@@ -90,6 +92,7 @@ object ExecutionReportSerializers {
       } else {
         Json.obj(
           LABEL -> value.task.label(),
+          TITLE -> value.title,
           OPERATION -> value.operation,
           OPERATION_DESC -> value.operationDesc,
           TASK -> GenericTaskJsonFormat.write(value.task),
@@ -356,6 +359,7 @@ object ExecutionReportSerializers {
     final val IS_DONE = "isDone"
     final val OPERATION_TYPE = "operationType"
     final val ENTITY_COUNT = "entityCount"
+    final val TITLE = "title"
     final val NODE = "nodeId" // node id within a workflow
     final val TIMESTAMP = "timestamp"
 

@@ -11,7 +11,7 @@ import org.silkframework.rule._
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.{ClassPluginDescription, PluginRegistry}
 import org.silkframework.runtime.serialization._
-import org.silkframework.runtime.templating.{SimpleSubstitutionTemplateEngine, TemplateVariable, VariableScope, TemplateVariables}
+import org.silkframework.runtime.templating.{SimpleSubstitutionTemplateEngine, TemplateVariable, TemplateVariables, VariableScope}
 import org.silkframework.runtime.validation.TaskValidationException
 import org.silkframework.util.ConfigTestTrait
 import org.silkframework.execution.report.{EntitySample, SampleEntities, SampleEntitiesSchema}
@@ -25,7 +25,7 @@ import org.silkframework.serialization.json.{JsonFormat, JsonSerialization}
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.activity.transform.VocabularyCacheValue
 import org.silkframework.serialization.json.WorkflowSerializers._
-import org.silkframework.execution.{OperationType, SimpleExecutionReport}
+import org.silkframework.execution.{ExecutionReport, OperationType, SimpleExecutionReport}
 import org.silkframework.workspace.activity.workflow.{Workflow, WorkflowExecutionReport, WorkflowTaskReport, WorkflowTest}
 import org.silkframework.workspace.activity.workflow.WorkflowTest.{DS_A1, OUTPUT, testWorkflow}
 import org.silkframework.workspace.activity.workflow.WorkflowTest.{DS_A1, OUTPUT, testWorkflow}
@@ -41,6 +41,16 @@ class JsonSerializersTest  extends AnyFlatSpec with Matchers with ConfigTestTrai
   override def propertyMap: Map[String, Option[String]] = Map(
     "config.variables.engine" -> Some(SimpleSubstitutionTemplateEngine.id)
   )
+
+  "ExecutionReport" should "round-trip an explicit title" in {
+    val report: ExecutionReport = SimpleExecutionReport(
+      task = PlainTask("dataset", WorkflowTest.testWorkflow),
+      title = Some("Read LineItem at /items from Orders dataset"),
+      isDone = true
+    )
+
+    JsonSerialization.fromJson[ExecutionReport](JsonSerialization.toJson(report)) shouldBe report
+  }
 
   "JsonDatasetSpecFormat" should "serialize JsonTaskFormats" in {
     PluginRegistry.registerPlugin(classOf[SomeDatasetPlugin])

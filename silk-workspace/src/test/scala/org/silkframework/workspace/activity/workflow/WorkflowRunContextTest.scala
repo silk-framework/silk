@@ -4,6 +4,8 @@ import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import org.silkframework.config.{PlainTask, Task, TaskSpec}
 import org.silkframework.execution.{ExecutionReport, ExecutionReportUpdater}
+import org.silkframework.rule.TransformSpec
+import org.silkframework.rule.execution.TransformReport
 import org.silkframework.runtime.activity.{ActivityContext, ActivityMonitor, UserContext}
 import org.silkframework.util.Identifier
 
@@ -16,6 +18,7 @@ class WorkflowRunContextTest extends AnyFlatSpec with Matchers {
 
   private val workflowTask = PlainTask("workflow", WorkflowTest.testWorkflow)
   private val datasetTask: Task[TaskSpec] = PlainTask("dataset1", WorkflowTest.testWorkflow)
+  private val transformTask = PlainTask("transform", TransformSpec.empty)
 
   it should "add a separate report entry for each execution on the same task context" in {
     val monitor = new ActivityMonitor[WorkflowExecutionReport]("workflowRun", initialValue = Some(WorkflowExecutionReport(workflowTask)))
@@ -44,6 +47,25 @@ class WorkflowRunContextTest extends AnyFlatSpec with Matchers {
     reports.map(_.report.isDone) shouldBe IndexedSeq(true, true)
     reports.head.report.operationDesc should include ("clear instruction")
     reports.last.report.operationDesc should include ("update query")
+  }
+
+  it should "keep nested-schema updates of a transform in one report entry" in {
+    val monitor = new ActivityMonitor[WorkflowExecutionReport]("workflowRun", initialValue = Some(WorkflowExecutionReport(workflowTask)))
+    implicit val runContext: WorkflowRunContext = WorkflowRunContext(monitor, WorkflowTest.testWorkflow, UserContext.Empty)
+    val nodeId = Identifier("transform")
+    val taskContext = runContext.taskContext(nodeId, transformTask)
+
+    taskContext.value.update(TransformReport(transformTask, entityCount = 1, isDone = true))
+    taskContext.value.update(TransformReport(transformTask, entityCount = 2, isDone = true))
+
+    monitor.value().taskReports should have size 1
+    monitor.value().taskReports.head.report.entityCount shouldBe 2
+
+    taskContext.value.update(TransformReport(transformTask, isDone = false))
+    taskContext.value.update(TransformReport(transformTask, entityCount = 1, isDone = true))
+
+    monitor.value().taskReports should have size 2
+    monitor.value().taskReports.last.report.entityCount shouldBe 1
   }
 
   private def reportUpdater(taskContext: ActivityContext[ExecutionReport], singular: String, plural: String): ExecutionReportUpdater = {

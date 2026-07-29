@@ -8,6 +8,9 @@ import org.silkframework.execution.report.SampleEntities
   */
 trait ExecutionReport {
 
+  /** Optional, execution-specific title supplied by the backend. */
+  def title: Option[String] = None
+
   /**
     * The task that corresponds to this report.
     */

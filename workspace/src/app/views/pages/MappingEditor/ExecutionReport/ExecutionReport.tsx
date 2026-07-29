@@ -59,8 +59,8 @@ export const ExecutionReport = ({ executionReport, executionMetaData, trackRuleI
     }, []);
 
     const renderSummary = () => {
-        let title;
-        if (executionReport?.entityCount != null && executionReport?.operationDesc != null) {
+        let title = executionReport?.title;
+        if (!title && executionReport?.entityCount != null && executionReport?.operationDesc != null) {
             title =
                 `${t("ExecutionReport.execution")}: ` +
                 executionReport.entityCount +
