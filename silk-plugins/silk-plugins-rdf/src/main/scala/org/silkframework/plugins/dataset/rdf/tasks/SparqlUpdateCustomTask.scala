@@ -18,7 +18,6 @@ import org.silkframework.runtime.templating.{TemplateEngineAutocompletionProvide
     "A task that outputs SPARQL Update queries for every entity from the input based on a SPARQL Update template." +
       " The output of this operator should be connected to the SPARQL datasets to which the results should be written.",
   documentationFile = "SparqlUpdateCustomTask.md",
-  iconFile = "sparql-update-query.svg",
   relatedPlugins = Array(
     new PluginReference(
       id = SparqlDataset.pluginId,

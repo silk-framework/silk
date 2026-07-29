@@ -22,7 +22,6 @@ import scala.util.Try
   label = "SPARQL Select query",
   description = "A task that executes a SPARQL Select query and outputs the SPARQL result.",
   documentationFile = "SparqlSelectCustomTask.md",
-  iconFile = "sparql-select-query.svg",
   relatedPlugins = Array(
     new PluginReference(
       id = SparqlDataset.pluginId,

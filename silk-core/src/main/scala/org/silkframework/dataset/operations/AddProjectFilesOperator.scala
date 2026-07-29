@@ -8,7 +8,6 @@ import org.silkframework.runtime.resource.ResourceManager
 @Plugin(
   id = "addProjectFiles",
   label = "Add project files",
-  iconFile = "AddProjectFilesOperator.svg",
   description = """Adds file resources to the project that are piped into the input port."""
 )
 case class AddProjectFilesOperator(

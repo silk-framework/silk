@@ -11,7 +11,6 @@ import org.silkframework.workspace.WorkspaceReadTrait
 @Plugin(
   id = "getProjectFiles",
   label = "Get project files",
-  iconFile = "GetProjectFilesOperator.svg",
   description =
     """Get file resources from the project."""
 )
@@ -63,8 +62,7 @@ case class GetProjectFilesOperator(
 
   @Action(
     label = "Preview",
-    description = "Lists the files that would be retrieved.",
-    iconFile = "DryRun.svg"
+    description = "Lists the files that would be retrieved."
   )
   def dryRun(implicit pluginContext: PluginContext): GetProjectFilesPreview = {
     new GetProjectFilesPreview(getFiles())

@@ -19,8 +19,7 @@ import org.silkframework.util.{Identifier, Uri}
   label = "Binary file",
   categories = Array(DatasetCategories.file),
   description= "Reads and writes binary files. A typical use-case for this dataset is to process PDF documents or images.",
-  documentationFile = "BinaryFileDataset.md",
-  iconFile = "BinaryFileDataset.svg"
+  documentationFile = "BinaryFileDataset.md"
 )
 case class BinaryFileDataset(
     @Param("The file to read or write.")
