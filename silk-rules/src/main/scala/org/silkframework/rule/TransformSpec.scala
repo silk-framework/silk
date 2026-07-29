@@ -187,7 +187,8 @@ case class TransformSpec(@Param(label = "Input", value = "The source from which 
     collectSchemata(mappingRule, UntypedPath.empty, UntypedPath.empty, withEmptyObjectRules = false)
   }
 
-  /** The transform's output as downstream tasks read it (see [[TransformOutputView]]). */
+  /** The transform's output as downstream tasks read it (see [[TransformOutputView]]). Transient: the view is not serializable and is recomputed on access. */
+  @transient
   lazy val outputView: TransformOutputView = new TransformOutputView(this)
 
   /**
