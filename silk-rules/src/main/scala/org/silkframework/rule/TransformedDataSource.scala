@@ -4,7 +4,7 @@ import org.silkframework.config.{Prefixes, Task}
 import org.silkframework.dataset.{DataSource, Dataset, DatasetSpec}
 import org.silkframework.entity.{Entity, EntitySchema}
 import org.silkframework.entity.paths.{TypedPath, UntypedPath}
-import org.silkframework.rule.TransformOutputView.RulesAtTargetPath.{NoEntities, NotGenerated, Rules}
+import org.silkframework.rule.TransformOutputView.RulesAtTargetPath.Rules
 import org.silkframework.execution.EntityHolder
 import org.silkframework.execution.local.{EmptyEntityTable, GenericEntityTable}
 import org.silkframework.rule.execution.{TransformReport, TransformReportBuilder}
@@ -12,7 +12,6 @@ import org.silkframework.rule.execution.local.TransformedEntities
 import org.silkframework.runtime.activity.{ActivityMonitor, UserContext}
 import org.silkframework.runtime.iterator.CloseableIterator
 import org.silkframework.runtime.plugin.{PluginContext, TaskResolver}
-import org.silkframework.runtime.validation.BadUserInputException
 import org.silkframework.util.Uri
 
 import scala.collection.mutable
@@ -89,7 +88,8 @@ class TransformedDataSource(source: DataSource, inputSchema: EntitySchema, trans
     * The rules that generate the entities below a requested sub path, each with the schema it reads.
     * Target properties of a transform are a single hop, so nested entities come from nested object rules.
     *
-    * @throws BadUserInputException If no rule generates the requested path at all.
+    * A path that no rule generates yields nothing as well: failing would abort a whole execution over a single
+    * stale rule, and a stale type selection is tolerated in the same way.
     */
   private def rulesForSubPath(subPath: UntypedPath): Seq[(EntitySchema, TransformRule)] = {
     if(subPath.operators.isEmpty) {
@@ -99,11 +99,9 @@ class TransformedDataSource(source: DataSource, inputSchema: EntitySchema, trans
       task.data.outputView.rulesAtTargetPath(transformRule, subPath) match {
         case Rules(schemata) =>
           schemata.map(schemata => (schemata.inputSchema, schemata.transformRule))
-        case NoEntities(_) =>
+        case _ =>
+          // Value leaves, filtered paths and stale paths that no rule generates all hold no entities
           Seq.empty
-        case NotGenerated(targetPath) =>
-          throw new BadUserInputException(s"No rule of transform task '${task.id}' generates the requested path " +
-            s"'${targetPath.normalizedSerialization}'.")
       }
     }
   }

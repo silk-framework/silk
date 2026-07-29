@@ -12,7 +12,6 @@ import org.silkframework.runtime.activity.{TestPluginContextTrait, UserContext}
 import org.silkframework.runtime.iterator.CloseableIterator
 import org.silkframework.runtime.plugin.PluginContext
 import org.silkframework.runtime.resource.{InMemoryResourceManager, WritableResource}
-import org.silkframework.runtime.validation.BadUserInputException
 import org.silkframework.util.Uri
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.must.Matchers
@@ -148,12 +147,12 @@ class TransformedDataSourceTest extends AnyFlatSpec with Matchers with TestPlugi
     twoRuleSource.retrieve(schema).entities.toSeq mustBe empty
   }
 
-  it should "fail if no rule generates the requested sub path" in {
+  it should "deliver no entities for a sub path that no rule generates" in {
+    // A stale rule path must not fail retrieval: it would abort whole executions, cf. the stale type fallback
     val source = transformedSource(RootMappingRule(MappingRules(propertyRules = Seq(
       DirectMapping("id", UntypedPath("ID"), MappingTarget("urn:p:id"))
     ))))
-    val exception = the[BadUserInputException] thrownBy source.retrieve(addressSchema)
-    exception.getMessage must include("<urn:p:address>")
+    source.retrieve(addressSchema).entities.toSeq mustBe empty
   }
 
   it should "resolve a sub path that spans multiple nested rules" in {
