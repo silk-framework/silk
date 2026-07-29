@@ -2,6 +2,7 @@ package org.silkframework.workspace.activity.transform
 
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.dataset.{DataSource, EntitySink}
+import org.silkframework.entity.paths.PathOperator
 import org.silkframework.entity.MultiEntitySchema
 import org.silkframework.execution.{ExecutorRegistry, TaskException}
 import org.silkframework.rule.{TaskContext, TransformSpec, TransformedDataSource}
@@ -39,6 +40,16 @@ object TransformTaskUtils {
       */
     def inputDatasetTaskOption(implicit userContext: UserContext): Option[ProjectTask[GenericDatasetSpec]] = {
       task.project.taskOption[GenericDatasetSpec](task.data.selection.inputId)
+    }
+
+    /**
+      * The source path to the given rule of this transform task.
+      *
+      * @throws NotFoundException If the task has no rule with the given identifier.
+      */
+    def ruleSourcePath(ruleId: String): List[PathOperator] = {
+      task.data.nestedRuleAndSourcePath(ruleId).getOrElse(
+        throw new NotFoundException(s"No rule with ID '$ruleId' found in transform task '${task.id}'"))._2
     }
 
     /**
