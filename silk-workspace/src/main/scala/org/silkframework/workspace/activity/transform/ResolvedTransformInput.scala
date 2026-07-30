@@ -7,7 +7,7 @@ import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.entity.EntitySchema
 import org.silkframework.entity.paths.UntypedPath
 import org.silkframework.execution.ExecutorRegistry
-import org.silkframework.rule.TransformSpec
+import org.silkframework.rule.{TransformOutputView, TransformSpec}
 import org.silkframework.rule.TransformSpec.RuleSchemata
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.validation.BadUserInputException
@@ -47,13 +47,16 @@ object ResolvedTransformInput {
     * For transform tasks whose input chain ends in a dataset, a data source is available that executes the transformation.
     *
     * @param typeUri      The type that is read from the upstream transform. Empty if its primary output type is read.
-    * @param resolvedRule The upstream rule that generates the read entities, i.e. `schema` is its output schema.
-    *                     Resolved once, so that schema, rule scoping and delivery stay consistent.
+    * @param upstreamView The upstream output view that `schema` was resolved against. Captured once, so that
+    *                     schema, rule scoping and suggestions stay consistent while the task may change.
     */
   case class StaticSchemaInput(schema: EntitySchema,
                                upstreamTransform: Option[ProjectTask[TransformSpec]] = None,
                                typeUri: Uri = Uri(""),
-                               resolvedRule: Option[RuleSchemata] = None) extends ResolvedTransformInput {
+                               upstreamView: Option[TransformOutputView] = None) extends ResolvedTransformInput {
+
+    /** The upstream rule that generates the read entities, i.e. `schema` is its output schema. */
+    def resolvedRule: Option[RuleSchemata] = upstreamView.map(_.ruleSchemataForTargetTypeOrPrimary(typeUri))
     override def dataSourceOption(implicit userContext: UserContext): Option[DataSource] = {
       dataSourceOfChain(Seq.empty)
     }
@@ -102,10 +105,10 @@ object ResolvedTransformInput {
       * Sub paths are relative to the resolved rule, which addresses the entities that the nested rules generate.
       */
     def nestedSchemata: Seq[EntitySchema] = {
-      (upstreamTransform, resolvedRule) match {
-        case (Some(upstream), Some(rule)) =>
+      (upstreamView, resolvedRule) match {
+        case (Some(view), Some(rule)) =>
           // Scoped by rule tree, not by path prefix: a sibling rule may share the target path, but is not delivered
-          for(outputSchema <- upstream.data.outputView.ruleSchemataWithinRule(rule.transformRule).map(_.outputSchema)) yield {
+          for(outputSchema <- view.ruleSchemataWithinRule(rule.transformRule).map(_.outputSchema)) yield {
             outputSchema.copy(subPath = UntypedPath.removePathPrefix(outputSchema.subPath, schema.subPath))
           }
         case _ =>
@@ -137,8 +140,8 @@ object ResolvedTransformInput {
     project.taskOption[GenericDatasetSpec](inputId).map(DatasetInput)
       .orElse(project.taskOption[TransformSpec](inputId).map { upstream =>
         val typeUri = effectiveTypeUri(upstream, selection.typeUri)
-        val ruleSchemata = upstream.data.outputView.ruleSchemataForTargetTypeOrPrimary(typeUri)
-        StaticSchemaInput(ruleSchemata.outputSchema, Some(upstream), typeUri, Some(ruleSchemata))
+        val view = upstream.data.outputView
+        StaticSchemaInput(view.ruleSchemataForTargetTypeOrPrimary(typeUri).outputSchema, Some(upstream), typeUri, Some(view))
       })
       .getOrElse {
         project.anyTask(inputId).data.outputPort match {

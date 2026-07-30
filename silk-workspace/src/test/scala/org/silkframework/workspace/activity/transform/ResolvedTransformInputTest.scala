@@ -168,6 +168,17 @@ class ResolvedTransformInputTest extends AnyFlatSpec with Matchers with TestWork
     advertised must not contain "urn:target:shippingStreet"
   }
 
+  it should "keep reading the view that was captured when the input was resolved" in {
+    val project = retrieveOrCreateProject("capturedViewTest")
+    project.addTask("upstream", upstreamTransform)
+    project.addTask("downstream", TransformSpec(selection = DatasetSelection("upstream")))
+    val input = project.task[TransformSpec]("downstream").resolveInput.asInstanceOf[StaticSchemaInput]
+
+    // A concurrent save of the upstream task must not change or blank the already resolved schemata
+    project.updateTask[TransformSpec]("upstream", TransformSpec(selection = DatasetSelection("sourceDataset")))
+    targetProperties(input.nestedSchemata.head) must contain("urn:target:name")
+  }
+
   it should "expose the nested rules of an upstream transform" in {
     val project = retrieveOrCreateProject("nestedSchemataTest")
     project.addTask("upstream", upstreamTransform)
