@@ -1,7 +1,7 @@
 package org.silkframework.rule
 
 import org.silkframework.entity.EntitySchema
-import org.silkframework.entity.paths.{DirectionalPathOperator, TypedPath, UntypedPath}
+import org.silkframework.entity.paths.{DirectionalPathOperator, UntypedPath}
 import org.silkframework.rule.TransformOutputView.RulesAtTargetPath
 import org.silkframework.rule.TransformSpec.RuleSchemata
 import org.silkframework.rule.input.Input
@@ -19,7 +19,7 @@ class TransformOutputView(spec: TransformSpec) {
   /** The rule schemata of the entity-generating rules, with the rules of object rules without a target folded in. */
   lazy val mergedRuleSchemata: Seq[RuleSchemata] = {
     val (noTargetSchemata, generators) = spec.ruleSchemata.partition(schemata =>
-      schemata.transformRule.target.isEmpty && !schemata.transformRule.isInstanceOf[RootMappingRule])
+      !hasRealTarget(schemata.transformRule) && !schemata.transformRule.isInstanceOf[RootMappingRule])
     generators.map { generator =>
       val ruleIds = generator.transformRule.rules.allRulesRecursive.map(_.id).toSet
       // A no-target rule writes into the entities of the nearest generator above it, which shares its target path
@@ -27,6 +27,9 @@ class TransformOutputView(spec: TransformSpec) {
         schemata.outputSchema.subPath == generator.outputSchema.subPath && ruleIds.contains(schemata.transformRule.id)))
     }
   }
+
+  /** A target with an empty property URI writes into the parent's entities like a missing target (see collectSchemata). */
+  private def hasRealTarget(rule: TransformRule): Boolean = rule.target.exists(_.propertyUri.uri.nonEmpty)
 
   /**
     * The schemata of the rule that generates the given target type, if there is one.
@@ -102,18 +105,16 @@ class TransformOutputView(spec: TransformSpec) {
         schemata <- noTargetSchemata
         // The rules read relative to their own rule's source path, the merged rule relative to the generator's
         sourcePrefix = UntypedPath.removePathPrefix(schemata.inputSchema.subPath, generator.inputSchema.subPath)
-        rule <- schemata.transformRule.rules.propertyRules if rule.target.isDefined
+        rule <- schemata.transformRule.rules.propertyRules if hasRealTarget(rule)
       } yield {
         inlinedRule(rule, sourcePrefix)
       }
-      // The inlined rules may read paths that the generator's own input schema does not contain
-      val extraPaths = inlinedRules.flatMap(_.sourcePaths).map(path => UntypedPath(path.operators).asStringTypedPath)
-      RuleSchemata(
-        transformRule = withReplacedRules(generator.transformRule, noTargetSchemata.map(_.transformRule.id).toSet, inlinedRules),
-        inputSchema = withExtraPaths(generator.inputSchema, extraPaths),
-        outputSchema = generator.outputSchema.copy(typedPaths =
-          (generator.outputSchema.typedPaths ++ noTargetSchemata.flatMap(_.outputSchema.typedPaths)).distinctBy(_.toUntypedPath))
-      )
+      // The types of the folded rules belong to the merged entities, like their properties
+      val inlinedTypeRules = noTargetSchemata.flatMap(_.transformRule.rules.typeRules)
+      val mergedRule = withReplacedRules(generator.transformRule, noTargetSchemata.map(_.transformRule.id).toSet,
+        inlinedRules, inlinedTypeRules)
+      // Derived like the raw schemata, so path typing and ordering stay consistent with execution
+      RuleSchemata.create(mergedRule, spec.selection, generator.inputSchema.subPath, generator.outputSchema.subPath)
     }
   }
 
@@ -121,26 +122,29 @@ class TransformOutputView(spec: TransformSpec) {
     if(sourcePrefix.operators.isEmpty) {
       rule
     } else {
-      ComplexMapping(rule.id, Input.rewriteSourcePaths(rule.operator, path => UntypedPath(sourcePrefix.operators ++ path.operators)),
-        rule.target, rule.metaData)
+      rule match {
+        // Keeps the object rule's tree, so that the rules below it stay part of this view
+        case objectRule: ObjectMapping =>
+          objectRule.copy(sourcePath = UntypedPath(sourcePrefix.operators ++ objectRule.sourcePath.operators))
+        case valueRule =>
+          ComplexMapping(valueRule.id, Input.rewriteSourcePaths(valueRule.operator, path => UntypedPath(sourcePrefix.operators ++ path.operators)),
+            valueRule.target, valueRule.metaData)
+      }
     }
   }
 
   /** Replaces the no-target object rules by their inlined rules, so that all identifiers stay unique. */
-  private def withReplacedRules(rule: TransformRule, removedIds: Set[Identifier], extraRules: Seq[TransformRule]): TransformRule = {
+  private def withReplacedRules(rule: TransformRule, removedIds: Set[Identifier],
+                                extraRules: Seq[TransformRule], extraTypeRules: Seq[TypeMapping]): TransformRule = {
     def replaced(rules: MappingRules): MappingRules = {
-      rules.copy(propertyRules = rules.propertyRules.filterNot(rule => removedIds.contains(rule.id)) ++ extraRules)
+      rules.copy(typeRules = rules.typeRules ++ extraTypeRules,
+        propertyRules = rules.propertyRules.filterNot(rule => removedIds.contains(rule.id)) ++ extraRules)
     }
     rule match {
       case rootRule: RootMappingRule => rootRule.copy(rules = replaced(rootRule.rules))
       case objectRule: ObjectMapping => objectRule.copy(rules = replaced(objectRule.rules))
       case other => other
     }
-  }
-
-  private def withExtraPaths(schema: EntitySchema, extraPaths: Seq[TypedPath]): EntitySchema = {
-    val newPaths = extraPaths.filterNot(path => schema.typedPaths.exists(_.toUntypedPath == path.toUntypedPath)).distinct
-    schema.copy(typedPaths = schema.typedPaths ++ newPaths)
   }
 }
 
