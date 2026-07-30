@@ -15,13 +15,16 @@ import org.silkframework.entity.paths.UntypedPath
   *                               If false, the type is already given and not needed on a per-entity basis (e.g. relational databases where each table only contains entities of one type).
   * @param explicitSchema          Indicates whether a dataset has an explicitly defined and quickly retrievable schema (like CSV). It is expected that this schema can be retrieved by requesting
   *                                all properties (depth 1) of the first type of the dataset.
+  * @param typesArePaths          If true, entity types are paths into the data hierarchy (e.g., XML, JSON), so a type
+  *                               extended by a source path addresses a nested type. If false, types are opaque names.
   */
 case class DatasetCharacteristics(supportedPathExpressions: SupportedPathExpressions = SupportedPathExpressions(),
                                   supportsMultipleTables: Boolean = true,
                                   readOnly: Boolean = false,
                                   supportsMultipleWrites: Boolean = false,
                                   typedEntities: Boolean = false,
-                                  explicitSchema: Boolean = false) {
+                                  explicitSchema: Boolean = false,
+                                  typesArePaths: Boolean = false) {
   def supportsAsteriskPathOperator: Boolean = supportedPathExpressions.specialPaths.exists(_.value == "*")
 }
 

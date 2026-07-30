@@ -1,8 +1,9 @@
 package org.silkframework.workspace.activity.transform
 
+import org.silkframework.config.Prefixes
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
-import org.silkframework.dataset.{DataSource, EntitySink}
-import org.silkframework.entity.paths.PathOperator
+import org.silkframework.dataset.{DataSource, DatasetCharacteristics, EntitySink}
+import org.silkframework.entity.paths.{PathOperator, UntypedPath}
 import org.silkframework.entity.MultiEntitySchema
 import org.silkframework.execution.{ExecutorRegistry, TaskException}
 import org.silkframework.rule.{TaskContext, TransformSpec, TransformedDataSource}
@@ -50,6 +51,22 @@ object TransformTaskUtils {
     def ruleSourcePath(ruleId: String): List[PathOperator] = {
       task.data.nestedRuleAndSourcePath(ruleId).getOrElse(
         throw new NotFoundException(s"No rule with ID '$ruleId' found in transform task '${task.id}'"))._2
+    }
+
+    /**
+      * The source type that a rule at the given source path reads from the input dataset.
+      * If the types of the dataset are paths (e.g., XML, JSON), the source path of the rule extends the selected type.
+      * Other datasets cannot address a source path as a type, so the selected type is read as-is.
+      */
+    def ruleSourceType(datasetCharacteristics: DatasetCharacteristics, ruleSourcePath: Option[List[PathOperator]])
+                      (implicit prefixes: Prefixes): Uri = {
+      val baseType = task.data.selection.typeUri.uri.trim
+      ruleSourcePath match {
+        case Some(sourcePath) if datasetCharacteristics.typesArePaths =>
+          Uri(baseType + UntypedPath(sourcePath).serialize(stripForwardSlash = false))
+        case _ =>
+          Uri(baseType)
+      }
     }
 
     /**
