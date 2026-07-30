@@ -362,18 +362,11 @@ case class WorkflowRunContext(activityContext: ActivityContext[WorkflowExecution
     * Updates the workflow execution report on each update of a task report.
     * A node may run multiple executions within one workflow run (e.g. a dataset node executes one
     * write per input): each execution ends with a report marked as done, so an update arriving
-    * after that starts a new report entry instead of overwriting the finished one. Transform reports
-    * are an exception: nested output tables complete individually but contribute to the same transform
-    * report. A new transform execution starts with a non-completed report.
+    * after that starts a new report entry instead of overwriting the finished one.
     */
   private class TaskReportListener(private var index: Int, nodeId: Identifier) extends (ExecutionReport => Unit) {
     def apply(report: ExecutionReport): Unit = activityContext.value.synchronized {
-      val previousReportDone = activityContext.value().taskReports(index).report.isDone
-      val startsNewExecution = report match {
-        case transformReport: TransformReport => !transformReport.isDone
-        case _ => true
-      }
-      if(previousReportDone && startsNewExecution) {
+      if(activityContext.value().taskReports(index).report.isDone) {
         activityContext.value.updateWith(_.addReport(nodeId, report))
         index = activityContext.value().taskReports.size - 1
       } else {

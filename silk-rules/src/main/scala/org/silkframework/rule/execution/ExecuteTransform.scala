@@ -50,7 +50,8 @@ class ExecuteTransform(task: Task[TransformSpec],
     val dataSource = input(userContext)
     val entitySink = output(userContext)
     val errorEntitySink = errorOutput(userContext)
-    val report = new TransformReportBuilder(task, context)
+    val ruleSchemata = transform.ruleSchemataWithoutEmptyObjectRules
+    val report = new TransformReportBuilder(task, context, outputTableCount = ruleSchemata.size)
     report.setExecutionContext(TransformReportExecutionContext(entitySink))
     implicit val pluginContextWithUser: PluginContext = pluginContext(userContext)
     val taskContext = TaskContext(Seq(inputTask(userContext)), pluginContextWithUser)
@@ -62,9 +63,9 @@ class ExecuteTransform(task: Task[TransformSpec],
 
     context.status.updateMessage("Retrieving entities")
     try {
-      for ((ruleSchemata, index) <- transform.ruleSchemataWithoutEmptyObjectRules.zipWithIndex) {
-        transformEntities(dataSource, ruleSchemata.execution(taskContext), entitySink, errorEntitySink, report, context)
-        context.status.updateProgress((index + 1.0) / transform.ruleSchemataWithoutEmptyObjectRules.size)
+      for ((ruleSchema, index) <- ruleSchemata.zipWithIndex) {
+        transformEntities(dataSource, ruleSchema.execution(taskContext), entitySink, errorEntitySink, report, context)
+        context.status.updateProgress((index + 1.0) / ruleSchemata.size)
       }
     } finally {
       entitySink.close()

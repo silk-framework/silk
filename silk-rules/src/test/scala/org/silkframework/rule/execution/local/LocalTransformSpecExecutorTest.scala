@@ -87,10 +87,12 @@ class LocalTransformSpecExecutorTest extends AnyFlatSpec with Matchers with Exec
     // Check entities
     objectEntitiesResult.entitySchema.typeUri.toString mustBe "TypeObject"
     val objectEntitiesSeq = objectEntitiesResult.entities.toSeq
+    context.value().isDone mustBe false
     objectEntitiesSeq.flatMap(e => e.values).flatten mustBe Seq("B")
     val objectEntityUri = objectEntitiesSeq.head.uri
     rootEntitiesResult.entitySchema.typeUri.toString mustBe "TypeRoot"
     val rootEntitiesSeq = rootEntitiesResult.entities.toSeq
+    context.value().isDone mustBe true
     rootEntitiesSeq.flatMap(e => e.values).flatten mustBe Seq("A", objectEntityUri.toString)
     val rootEntityUri = rootEntitiesSeq.head.uri
     rootEntityUri must not be objectEntityUri

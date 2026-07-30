@@ -224,7 +224,14 @@ class TransformedEntities(task: Task[TransformSpec],
 
     private def closeReport(): Unit = {
       if(!reportDone) {
-        report.build(isDone = true)
+        report.outputTableCompleted()
+        reportDone = true
+      }
+    }
+
+    private def failReport(error: String): Unit = {
+      if(!reportDone) {
+        report.executionFailed(error)
         reportDone = true
       }
     }
@@ -244,8 +251,7 @@ class TransformedEntities(task: Task[TransformSpec],
         }
       } catch {
         case NonFatal(ex) =>
-          report.setExecutionError(ex.getMessage)
-          closeReport()
+          failReport(ex.getMessage)
           throw ex
       }
     }
@@ -255,8 +261,7 @@ class TransformedEntities(task: Task[TransformSpec],
         iterator.next()
       } catch {
         case NonFatal(ex) =>
-          report.setExecutionError(ex.getMessage)
-          closeReport()
+          failReport(ex.getMessage)
           throw ex
       }
     }
