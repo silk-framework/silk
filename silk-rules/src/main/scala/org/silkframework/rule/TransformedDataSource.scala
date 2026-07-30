@@ -10,11 +10,9 @@ import org.silkframework.execution.local.{EmptyEntityTable, GenericEntityTable}
 import org.silkframework.rule.execution.{TransformReport, TransformReportBuilder}
 import org.silkframework.rule.execution.local.TransformedEntities
 import org.silkframework.runtime.activity.{ActivityMonitor, UserContext}
-import org.silkframework.runtime.iterator.CloseableIterator
+import org.silkframework.runtime.iterator.{CloseableIterator, RepeatedIterator}
 import org.silkframework.runtime.plugin.{PluginContext, TaskResolver}
 import org.silkframework.util.Uri
-
-import scala.collection.mutable
 
 /**
   * A data source that transforms all entities using a provided transformation.
@@ -60,14 +58,10 @@ class TransformedDataSource(source: DataSource, inputSchema: EntitySchema, trans
     val rules = rulesForSubPath(entitySchema.subPath)
     // The limit bounds the whole result. Each rule still gets the full limit, so that a rule yielding fewer
     // entities than its share does not reduce the total.
-    // Each rule's source is opened only when the previous one is exhausted, and whatever was opened is closed
-    val openedIterators = mutable.Buffer[CloseableIterator[Entity]]()
-    val entities = rules.iterator.flatMap { case (ruleInputSchema, rule) =>
-      val iterator = transformedEntities(ruleInputSchema, rule, entitySchema, limit)
-      openedIterators += iterator
-      iterator
-    }
-    val allEntities = CloseableIterator(entities, () => openedIterators.foreach(_.close()))
+    val ruleIterator = rules.iterator
+    val allEntities = new RepeatedIterator[Entity](() => ruleIterator.nextOption().map { case (ruleInputSchema, rule) =>
+      transformedEntities(ruleInputSchema, rule, entitySchema, limit)
+    })
     GenericEntityTable(limit.map(allEntities.take).getOrElse(allEntities), entitySchema, underlyingTask)
   }
 
