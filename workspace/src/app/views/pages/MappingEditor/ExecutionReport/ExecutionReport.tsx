@@ -283,6 +283,12 @@ export const ExecutionReport = ({ executionReport, executionMetaData, trackRuleI
                         types,
                         typeValues,
                     }}
+                    emptyStateMessages={{
+                        entriesWithoutProperties: t(
+                            "DataPreview.emptyState.executionReport.entriesWithoutProperties",
+                            "Sample output entities do not contain any properties.",
+                        ),
+                    }}
                 />
             );
         } else {
