@@ -113,14 +113,16 @@ case class BatchSparqlUpdateEmitter[U](f: String => U, batchSize: Int, reportUpd
   private var queryCount = 0
 
   def update(query: String): Unit = {
-    if(queryCount > 0) {
-      sparqlUpdateQueries.append("\n")
-    }
-    queryCount += 1
+    if(!query.isBlank) {
+      if (queryCount > 0) {
+        sparqlUpdateQueries.append("\n")
+      }
+      queryCount += 1
 
-    sparqlUpdateQueries.append(BatchSparqlUpdateEmitter.ensureTerminated(query))
-    if(queryCount >= batchSize) {
-      emitEntity()
+      sparqlUpdateQueries.append(BatchSparqlUpdateEmitter.ensureTerminated(query))
+      if (queryCount >= batchSize) {
+        emitEntity()
+      }
     }
   }
 

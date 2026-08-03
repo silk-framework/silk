@@ -42,13 +42,24 @@ class BatchSparqlUpdateEmitterTest extends AnyFlatSpec with Matchers {
     val emitted = ArrayBuffer[String]()
     val emitter = newEmitter(batchSize = 1, emitted.append(_))
     emitter.update("")
-    emitted.head mustBe ""
+    emitted mustBe empty
   }
 
   it should "leave a whitespace-only query empty rather than turning it into a bare semicolon" in {
     val emitted = ArrayBuffer[String]()
-    val emitter = newEmitter(batchSize = 1, emitted.append(_))
-    emitter.update("   \n")
-    emitted.head mustBe ""
+    val emitter = newEmitter(batchSize = 2, emitted.append(_))
+    emitter.update("INSERT DATA { <a> <b> <c> }")
+    emitter.update("   \n ")
+    emitter.update("INSERT DATA { <d> <e> <f> }")
+    emitted.head mustBe "INSERT DATA { <a> <b> <c> };\nINSERT DATA { <d> <e> <f> };"
+  }
+
+  it should "emit nothing when all queries are blank" in {
+    val emitted = ArrayBuffer[String]()
+    val emitter = newEmitter(batchSize = 2, emitted.append(_))
+    emitter.update("")
+    emitter.update("  ")
+    emitter.close()
+    emitted mustBe empty
   }
 }
