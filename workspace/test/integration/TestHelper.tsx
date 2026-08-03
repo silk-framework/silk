@@ -353,16 +353,6 @@ export const mockAxiosResponse = (
     }
 };
 
-/** Jest does not allow to set the window.location. In order to test changes on that object, we need to mock it.
- * This function mocks the window.location object and restores it afterwards. */
-export const withWindowLocation = async (block: () => void, location: any = {}) => {
-    const oldLocation = window.location;
-    //delete window.location;
-    window.location = location;
-    await block();
-    window.location = oldLocation;
-};
-
 /** Returns the absolute path under the workspace path with the given path value appended. */
 export const workspacePath = (path: string = ""): string => {
     return path ? SERVE_PATH + prependSlash(path) : SERVE_PATH;
