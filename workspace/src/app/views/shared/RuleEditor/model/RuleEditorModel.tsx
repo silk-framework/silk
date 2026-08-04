@@ -302,7 +302,6 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
             ruleEditorContext.initialRuleOperatorNodes &&
             ruleEditorContext.operatorSpec &&
             ruleEditorContext.operatorList &&
-            ruleEditorContext.editedItem &&
             reactFlowInstance
         ) {
             initModel();
@@ -312,7 +311,6 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
         ruleEditorContext.initialRuleOperatorNodes,
         ruleEditorContext.operatorSpec,
         ruleEditorContext.operatorList,
-        ruleEditorContext.editedItem,
         reactFlowInstance,
     ]);
 
