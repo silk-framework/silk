@@ -22,7 +22,10 @@ import { IPropertyAutocomplete } from "@ducks/common/typings";
 import { InputPathFunctions, PathInputOperator } from "./PathInputOperator";
 import { RULE_EDITOR_NOTIFICATION_INSTANCE, supportedCodeRuleParameterTypes } from "../../RuleEditor.typings";
 import { CodeAutocompleteFieldPartialAutoCompleteResult } from "@eccenca/gui-elements/src/components/AutoSuggestion/AutoSuggestion";
-import { requestAutoCompleteTemplateString } from "../../../../../views/shared/modals/CreateArtefactModal/CreateArtefactModal.requests";
+import {
+    requestAutoCompleteTemplateString,
+    requestValidateTemplateString,
+} from "../../../../../views/shared/modals/CreateArtefactModal/CreateArtefactModal.requests";
 
 interface RuleParameterInputProps {
     /** ID of the plugin this parameter is part of. */
@@ -140,6 +143,21 @@ export const RuleParameterInput = ({
         [],
     );
 
+    /** Validates template parameters like the task dialogs do: unbound variables are tolerated
+     * (input variables and execution references cannot be known here), syntax errors and references
+     * to non-existing project or global variables are underlined. */
+    const checkTemplate = React.useCallback(async (inputString: string) => {
+        try {
+            return (
+                await requestValidateTemplateString(inputString, ruleEditorContext.projectId, undefined, undefined, true)
+            ).data;
+        } catch (e) {
+            registerError("RuleParameterInput.checkTemplate", "Validating the template has failed.", e, {
+                errorNotificationInstanceId: RULE_EDITOR_NOTIFICATION_INSTANCE,
+            });
+        }
+    }, []);
+
     if (
         ruleParameter.parameterSpecification.type === "code" ||
         ruleParameter.parameterSpecification.type.startsWith("code-")
@@ -153,6 +171,7 @@ export const RuleParameterInput = ({
                     initialValue={inputAttributes.defaultValue ?? ""}
                     onChange={inputAttributes.onChange}
                     fetchSuggestions={fetchSuggestions}
+                    checkInput={ruleParameter.parameterSpecification.type === "code-jinja2" ? checkTemplate : undefined}
                     readOnly={inputAttributes.readOnly}
                     autoCompletionRequestDelay={500}
                     validationRequestDelay={250}

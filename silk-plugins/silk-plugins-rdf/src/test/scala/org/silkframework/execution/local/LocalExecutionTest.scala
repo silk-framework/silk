@@ -1,5 +1,5 @@
 package org.silkframework.execution.local
-
+
 import org.silkframework.workspace.InMemoryWorkspaceTestTrait
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers

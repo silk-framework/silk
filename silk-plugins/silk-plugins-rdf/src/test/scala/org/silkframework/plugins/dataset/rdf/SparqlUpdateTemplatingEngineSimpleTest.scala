@@ -81,7 +81,7 @@ class SparqlUpdateTemplatingEngineSimpleTest extends AnyFlatSpec with Matchers {
       .compiledTemplate.generate(Some(entityFromMap(bindings)), TaskProperties(Map.empty, Map.empty)).head mustBe
       """PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
         |DELETE DATA { <urn:some:uri> rdf:label "the old label" } ;
-        |  INSERT DATA { <urn:some:uri> rdf:label "The new\nlabel with some \"'weird characters" } ;""".stripMargin.replace("\r\n", "\n")
+        |  INSERT DATA { <urn:some:uri> rdf:label "The new\nlabel with some \"'weird characters" } ;""".stripMargin
   }
 
   private def entityFromMap(values: Map[String, String]): Entity = {

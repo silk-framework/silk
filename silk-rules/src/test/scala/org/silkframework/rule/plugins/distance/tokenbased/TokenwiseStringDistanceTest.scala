@@ -13,7 +13,7 @@
  */
 
 package org.silkframework.rule.plugins.distance.tokenbased
-
+
 import org.silkframework.test.PluginTest
 
 class TokenwiseStringDistanceTest extends PluginTest {

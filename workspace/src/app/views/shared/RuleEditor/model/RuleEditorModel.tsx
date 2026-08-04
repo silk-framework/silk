@@ -105,6 +105,8 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
     const [reactFlowInstance, setReactFlowInstance] = React.useState<OnLoadParams | undefined>(undefined);
     /** The nodes and edges of the rule editor. */
     const [elements, setElements] = React.useState<Elements>([]);
+    /** Increases whenever all canvas elements are reconstructed from the rule model. */
+    const [initializationGeneration, setInitializationGeneration] = React.useState(0);
     /** Track the current elements, since the API methods changing the elements when run subsequently will otherwise work with the same elements.
      * Use the function changeElementsInternal to modify the elements instead of directly changing them. */
     const [current] = React.useState<{ elements: Elements; evaluateQuickly: boolean }>({
@@ -208,18 +210,17 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
             return;
         }
         const handlePaste = async (e) => {
-            const tagName = e.target?.tagName;
+            const target = e.target as HTMLElement | null;
             if (
-                tagName === "INPUT" ||
-                // In CodeMirror the target has this structure.
-                (tagName === "BR" && e.target?.parentElement == null) ||
-                e.target?.classList.contains("cm-line") ||
-                // Or this structure when a string is highlighted for auto-completion
-                e.target?.classList.contains("eccgui-autosuggestion__text--highlighted") ||
-                // Or this if an empty line after double-clicking
-                e.target?.classList.contains("cm-widgetBuffer")
+                !target ||
+                target.tagName === "INPUT" ||
+                target.tagName === "TEXTAREA" ||
+                // Covers CodeMirror editors: the paste target is inside a contenteditable element
+                target.isContentEditable ||
+                // Detached targets (e.g. CodeMirror internals) cannot be attributed to the canvas
+                !target.isConnected
             ) {
-                // User tries to paste text into an input field
+                // The paste goes into a text input, not the canvas
                 return;
             }
             await pasteNodes(e);
@@ -2365,6 +2366,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
             elems = await autoLayoutInternal(elems, false, false);
         }
         setElements(elems);
+        setInitializationGeneration((generation) => generation + 1);
         utils.initNodeBaseIds([...nodes, ...stickyNodeElements]);
         if (resetHistory) {
             ruleUndoStack.splice(0);
@@ -2446,6 +2448,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
         <RuleEditorModelContext.Provider
             value={{
                 elements,
+                initializationGeneration,
                 isReadOnly: () => readOnlyState.enabled,
                 readOnly,
                 setIsReadOnly: ruleEditorContext.readOnlyMode ? undefined : setIsReadOnly,
