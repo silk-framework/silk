@@ -77,6 +77,39 @@ class SparqlTemplateVelocityTest extends AnyFlatSpec with Matchers {
     }
   }
 
+  it should "not require an input if only outputProperties are referenced" in {
+    val template = new SparqlLegacyTemplate(VelocityTemplateEngine().compile(
+      """INSERT DATA { <urn:s:1> <urn:p:graph> $outputProperties.uri("graph") } ;"""))
+    template.requiresInput mustBe false
+    template.inputSchema.typedPaths mustBe empty
+    val rendered = template.generate(None, TaskProperties(Map.empty, Map("graph" -> "urn:graph:g1"))).head
+    rendered mustBe """INSERT DATA { <urn:s:1> <urn:p:graph> <urn:graph:g1> } ;"""
+    // Entity values and inputProperties still require an input connection
+    new SparqlLegacyTemplate(VelocityTemplateEngine().compile(
+      """INSERT DATA { <urn:s:1> <urn:p:graph> $inputProperties.uri("graph") } ;""")).requiresInput mustBe true
+    new SparqlLegacyTemplate(VelocityTemplateEngine().compile(
+      """INSERT DATA { $row.uri("subject") <urn:p:graph> $outputProperties.uri("graph") } ;""")).requiresInput mustBe true
+  }
+
+  it should "not silently drop an outputProperties-only reference that uses an undocumented method name" in {
+    val template = new SparqlLegacyTemplate(VelocityTemplateEngine().compile(
+      """INSERT DATA { <urn:s:1> <urn:p:graph> $outputProperties.get("graph") } ;"""))
+    template.requiresInput mustBe false
+  }
+
+  it should "still require input correctly when a bare outputProperties reference coexists with a proper row usage" in {
+    val template = new SparqlLegacyTemplate(VelocityTemplateEngine().compile(
+      """#if($outputProperties)INSERT DATA { $row.uri("subject") <urn:p:graph> "static" } ;#end"""))
+    template.requiresInput mustBe true
+  }
+
+  it should "not require an input for a fully static template referencing none of row/inputProperties/outputProperties" in {
+    val template = new SparqlLegacyTemplate(VelocityTemplateEngine().compile(
+      """INSERT DATA { <urn:s:1> <urn:p:graph> <urn:o:1> } ;"""))
+    template.requiresInput mustBe false
+    template.inputSchema.typedPaths mustBe empty
+  }
+
   it should "render a simple Velocity template" in {
     val stringTemplate =
       """SELECT * WHERE {
