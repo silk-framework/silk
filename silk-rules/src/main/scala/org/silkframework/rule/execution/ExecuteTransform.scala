@@ -96,17 +96,22 @@ class ExecuteTransform(task: Task[TransformSpec],
     val transformedEntities = new TransformedEntities(task, entityTable.entities, rule.transformRule.label(), rule.transformRuleExecution, rule.outputSchema,
       isRequestedSchema = false, abortIfErrorsOccur = task.data.abortIfErrorsOccur, report = reportBuilder).iterator
     var count = 0
-    breakable {
-      for (entity <- transformedEntities) {
-        entitySink.writeEntity(entity.uri, entity.values)
-        if(entity.hasFailed) {
-          errorEntitySink.foreach(_.writeEntity(entity.uri, entity.values :+ Seq(entity.failure.get.message.getOrElse("Unknown error"))))
-        }
-        count += 1
-        if (cancelled || limit.exists(_ <= count)) {
-          break()
+    try {
+      breakable {
+        for (entity <- transformedEntities) {
+          entitySink.writeEntity(entity.uri, entity.values)
+          if(entity.hasFailed) {
+            errorEntitySink.foreach(_.writeEntity(entity.uri, entity.values :+ Seq(entity.failure.get.message.getOrElse("Unknown error"))))
+          }
+          count += 1
+          if (cancelled || limit.exists(_ <= count)) {
+            break()
+          }
         }
       }
+    } finally {
+      // Completes this output table in the report and closes the input iterator, also on cancellation or limit.
+      transformedEntities.close()
     }
     entitySink.closeTable()
     errorEntitySink.foreach(_.closeTable())
