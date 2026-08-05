@@ -36,6 +36,11 @@ class LocalWorkflowExecutorTest extends AnyFlatSpec with Matchers with SinglePro
     val availableReports = executionMgr.listReports(projectIds = Set(projectId))
     availableReports should have size 1
 
+    // The activity value carries the identifier of the persisted report
+    val reportId = workflow.activity[LocalWorkflowExecutorGeneratingProvenance].value().reportId
+    reportId shouldBe Some(availableReports.head)
+    executionMgr.retrieveReport(reportId.get).resultValue shouldBe defined
+
     // Retrieve transform report
     val lastReport = executionMgr.retrieveReport(availableReports.last)
     val workflowReport = lastReport.resultValue.get.asInstanceOf[WorkflowExecutionReport]

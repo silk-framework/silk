@@ -9,12 +9,14 @@ import org.silkframework.util.Identifier
 import org.silkframework.workspace.resources.{ResourceRepository, SharedFileRepository}
 
 import java.io.{File, FileNotFoundException}
+import scala.util.Try
 
 /**
   * Setups a test workspace with an in-memory workspace provider and temporary file based resource repository.
   */
 trait TestWorkspaceProviderTestTrait extends BeforeAndAfterAll { this: TestSuite =>
   var oldWorkspaceFactory: WorkspaceFactory = _
+  private var testWorkspace: Workspace = _
   private val tmpDir = File.createTempFile("di-resource-repository", "-tmp")
   tmpDir.delete()
   tmpDir.mkdirs()
@@ -52,6 +54,7 @@ trait TestWorkspaceProviderTestTrait extends BeforeAndAfterAll { this: TestSuite
   override protected def beforeAll(): Unit = {
     super.beforeAll()
     val replacementWorkspace = new Workspace(workspaceProvider, createResourceRepository(tmpDir))
+    testWorkspace = replacementWorkspace
     val rdfWorkspaceFactory = new WorkspaceFactory {
       /**
         * The current workspace of this user.
@@ -74,8 +77,20 @@ trait TestWorkspaceProviderTestTrait extends BeforeAndAfterAll { this: TestSuite
 
   override protected def afterAll(): Unit = {
     WorkspaceFactory.factory = oldWorkspaceFactory
+    stopAllActivities()
     deleteRecursively(tmpDir)
     super.afterAll()
+  }
+
+  /** Cancels and awaits all activities, so none still holds a file in tmpDir when it is deleted. */
+  private def stopAllActivities(): Unit = {
+    implicit val userContext: UserContext = UserContext.Empty
+    if (testWorkspace != null) {
+      val controls = testWorkspace.activities.map(_.control) ++
+        testWorkspace.userProjects.flatMap(p => p.activities.map(_.control) ++ p.allTasks.flatMap(_.activities.map(_.control)))
+      controls.foreach(_.cancel())
+      controls.foreach(c => Try(c.waitUntilFinished()))
+    }
   }
 
   def retrieveOrCreateProject(projectId: Identifier, prefixes: Prefixes = Prefixes.default)(implicit userContext: UserContext): Project = {

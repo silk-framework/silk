@@ -6,6 +6,8 @@ import org.silkframework.rule.input.{Transformer, TransformerExecution}
 import org.silkframework.runtime.plugin.{ParameterValues, PluginContext, PluginDescription, PluginRegistry}
 import org.silkframework.runtime.templating.IterableTemplateValues
 
+import scala.jdk.CollectionConverters.CollectionHasAsScala
+
 /**
   * Makes transformer plugins available as Jinja filters.
   */
@@ -38,9 +40,10 @@ object TransformFilters {
         }
       val transformer = transformerPlugin(ParameterValues.fromStringMap(paramValues.toMap))
 
-      // Evaluate transformer
+      // Evaluate transformer. Multi-values from chained filters arrive directly, others wrapped by Jinjava (e.g. PyList).
       val inputValues = value match {
         case r: IterableTemplateValues => r.values
+        case list: java.util.List[_] => list.asScala.map(_.toString).toSeq
         case v: Any => Seq(v.toString)
       }
       val transformedValues = transformer match {

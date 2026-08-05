@@ -23,8 +23,6 @@ import play.api.libs.json.Json
 import play.api.mvc._
 import resources.ResourceHelper
 
-import java.io.File
-import java.net.URLConnection
 import java.util.logging.Logger
 import javax.inject.Inject
 
@@ -125,11 +123,6 @@ class ResourceApi  @Inject() extends InjectedController with UserContextActions 
     val project = WorkspaceFactory().workspace.project(projectName)
     val resource = project.resources.getInPath(resourcePath, mustExist = true)
 
-    val pathPrefix = resourcePath.lastIndexOf(File.separatorChar) match {
-      case -1 => ""
-      case index => resourcePath.substring(0, index + 1)
-    }
-
     Ok(ResourceSerializers.resourceProperties(resource, project.resources))
   }
 
@@ -203,14 +196,9 @@ class ResourceApi  @Inject() extends InjectedController with UserContextActions 
   private def getFile(projectName: String, resourceName: String, download: Boolean)
                      (implicit user: UserContext): Result = {
     val project = WorkspaceFactory().workspace.project(projectName)
-    val resource = project.resources.get(resourceName, mustExist = true)
-    val contentType = Option(URLConnection.guessContentTypeFromName(resourceName))
-    val result = Ok.chunked(StreamConverters.fromInputStream(() => resource.inputStream), contentType)
-    if(download) {
-      result.withHeaders("Content-Disposition" -> s"attachment; filename=\"${resource.name}\"")
-    } else {
-      result.withHeaders("Content-Disposition" -> s"inline; filename=\"${resource.name}\"")
-    }
+    val resource = project.resources.getInPath(resourceName, mustExist = true)
+    // Sets the Content-Disposition header and derives the Content-Type from the file name
+    Ok.chunked(StreamConverters.fromInputStream(() => resource.inputStream), inline = !download, fileName = Some(resource.name))
   }
 
   @deprecated("Use files-endpoints instead.")

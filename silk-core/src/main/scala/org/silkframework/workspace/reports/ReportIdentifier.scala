@@ -1,6 +1,7 @@
 package org.silkframework.workspace.reports
 
 import java.time.Instant
+import java.time.temporal.ChronoUnit
 
 import org.silkframework.util.Identifier
 
@@ -14,7 +15,9 @@ case class ReportIdentifier(projectId: Identifier, taskId: Identifier, time: Ins
 object ReportIdentifier {
 
   def create(projectId: Identifier, taskId: Identifier): ReportIdentifier = {
-    ReportIdentifier(projectId, taskId, Instant.now)
+    // Millisecond precision: report stores encode the time at millisecond granularity (e.g. in file
+    // names), so a finer-grained identifier would not survive the round trip through the store.
+    ReportIdentifier(projectId, taskId, Instant.now.truncatedTo(ChronoUnit.MILLIS))
   }
 
 }

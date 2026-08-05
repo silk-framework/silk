@@ -104,10 +104,7 @@ lazy val commonSettings = Seq(
   javacOptions ++= compilerParams._1,
 
   Test / javaOptions ++= Seq(
-    // Needed by Play 2.8.x for JDK 17 support
-    "--add-exports=java.base/sun.security.x509=ALL-UNNAMED",
-    "--add-opens=java.base/sun.security.ssl=ALL-UNNAMED",
-    // Needed by ldmb for JDK 17 support
+    // Needed by lmdb for JDK 17+ support
     "--add-opens=java.base/java.nio=ALL-UNNAMED",
     "--add-exports=java.base/sun.nio.ch=ALL-UNNAMED"
   )
