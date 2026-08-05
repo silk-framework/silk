@@ -37,6 +37,9 @@ val buildReactExternally = {
 val compilerParams: (Seq[String], Seq[String]) =
   (Seq("--release", "21", "-Xlint"), Seq("-release", "21"))
 
+// One version for every jena module, must match the version in the root build.
+val jenaVersion = "6.2.0"
+
 (Global / concurrentRestrictions) += Tags.limit(Tags.Test, 1)
 
 val scalaTestOptions = {
@@ -91,9 +94,6 @@ lazy val commonSettings = Seq(
   dependencyOverrides += "tools.jackson.core" % "jackson-core" % "3.2.0",
   dependencyOverrides += "tools.jackson.core" % "jackson-databind" % "3.2.0",
 
-  // Fix CVE-2026-43869 in Apache Thrift (transitive from jena-arq)
-  dependencyOverrides += "org.apache.thrift" % "libthrift" % "0.23.0",
-
   // Fix CVE-2026-5598 in Bouncy Castle (private key leakage via non-constant time comparisons)
   dependencyOverrides += "org.bouncycastle" % "bcprov-jdk18on" % "1.84",
 
@@ -140,8 +140,8 @@ lazy val rules = (project in file("silk-rules"))
   .settings(
     name := "Silk Rules",
     libraryDependencies += "org.postgresql" % "postgresql" % "42.7.12",
-    libraryDependencies += "org.apache.jena" % "jena-core" % "6.1.0" exclude("org.slf4j", "slf4j-log4j12"),
-    libraryDependencies += "org.apache.jena" % "jena-arq" % "6.1.0" exclude("org.slf4j", "slf4j-log4j12")
+    libraryDependencies += "org.apache.jena" % "jena-core" % jenaVersion exclude("org.slf4j", "slf4j-log4j12"),
+    libraryDependencies += "org.apache.jena" % "jena-arq" % jenaVersion exclude("org.slf4j", "slf4j-log4j12")
   )
 
 lazy val workspace = (project in file("silk-workspace"))
@@ -180,7 +180,7 @@ lazy val pluginsRdf = (project in file("silk-plugins/silk-plugins-rdf"))
   .settings(commonSettings *)
   .settings(
     name := "Silk Plugins RDF",
-    libraryDependencies += "org.apache.jena" % "jena-fuseki-main" % "6.1.0" % "test"
+    libraryDependencies += "org.apache.jena" % "jena-fuseki-main" % jenaVersion % "test"
 )
 
 lazy val pluginsCsv = (project in file("silk-plugins/silk-plugins-csv"))
