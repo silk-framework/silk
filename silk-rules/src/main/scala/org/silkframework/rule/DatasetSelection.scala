@@ -38,7 +38,8 @@ import scala.xml.{Elem, Node}
       " further restrict the selected instances."
 )
 case class DatasetSelection(@Param(label = "Input", value = "The input that is generating the entities. At the moment this can be a dataset, transformation or task. " +
-                                   "If left empty, the input must be provided by connecting it in a workflow.",
+                                   "If left empty, the input must be provided by connecting it in a workflow. " +
+                                   "Note that auto-completion of types and paths is only available if an input is selected here.",
                             autoCompletionProvider = classOf[DatasetOrTransformTaskAutoCompletionProvider],
                                    autoCompleteValueWithLabels = true, allowOnlyAutoCompletedValues = true)
                             inputId: IdentifierOptionParameter = IdentifierOptionParameter(None),

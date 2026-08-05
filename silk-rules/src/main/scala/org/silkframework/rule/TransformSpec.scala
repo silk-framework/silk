@@ -46,7 +46,8 @@ import scala.collection.immutable.ArraySeq
       """A transform task defines a mapping from a source structure to a target structure."""
 )
 case class TransformSpec(@Param(label = "Input", value = "The source from which data will be transformed when executed as a stand-alone task outside of a workflow. " +
-                             "If left empty, the input must be provided by connecting it in a workflow.")
+                             "If left empty, the input must be provided by connecting it in a workflow. " +
+                             "Note that auto-completion of types and paths is only available if an input is selected here.")
                          selection: DatasetSelection = DatasetSelection.empty,
                          @Param(label = "", value = "", visibleInDialog = false)
                          mappingRule: RootMappingRule = RootMappingRule.empty,

@@ -50,9 +50,11 @@ import scala.xml.Node
   description =
       """Generates links between instances from different sources according to a link specification."""
 )
-case class LinkSpec(@Param(label = "Source input", value = "The source input to select. If left empty, the input must be provided by connecting it in a workflow.")
+case class LinkSpec(@Param(label = "Source input", value = "The source input to select. If left empty, the input must be provided by connecting it in a workflow. " +
+                      "Note that auto-completion of types and paths is only available if an input is selected here.")
                     source: DatasetSelection = DatasetSelection.empty,
-                    @Param(label = "Target input", value = "The target input to select. If left empty, the input must be provided by connecting it in a workflow.")
+                    @Param(label = "Target input", value = "The target input to select. If left empty, the input must be provided by connecting it in a workflow. " +
+                      "Note that auto-completion of types and paths is only available if an input is selected here.")
                     target: DatasetSelection = DatasetSelection.empty,
                     @Param(label = "Linkage rule", value = "The linkage rule that specifies when entities match and are linked.", visibleInDialog = false)
                     rule: LinkageRule = LinkageRule(),
