@@ -355,19 +355,16 @@ const SortableVariableItem: React.FC<SortableVariableItemProps> = ({
                     <PropertyValuePair nowrap>
                         <PropertyName
                             title={variable.name}
+                            nowrap
                             size="large"
                             labelProps={{
                                 tooltip: variable.description,
-                                style: { lineHeight: "normal" },
+                                className: "nodrag",
                             }}
                         >
-                            <span className={"nodrag"}>{variable.name}</span>
+                            {variable.name}
                         </PropertyName>
-                        <PropertyValue
-                            style={{
-                                marginLeft: "calc(31.25% + 14px)",
-                            }}
-                        >
+                        <PropertyValue>
                             <code className={"nodrag"}>{variable.value}</code>
                         </PropertyValue>
                     </PropertyValuePair>
