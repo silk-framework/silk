@@ -81,10 +81,11 @@ lazy val commonSettings = Seq(
   (Test / testOptions) += Tests.Argument(TestFrameworks.ScalaTest, "-u", "target/test-reports", scalaTestOptions),
 
   // We need to overwrite the versions of the Jackson modules.
-  // Fixes GHSA-72hv-8253-57qq and CVE-2025-52999 (require 2.21.1+).
-  dependencyOverrides += "com.fasterxml.jackson.module" %% "jackson-module-scala" % "2.22.0",
-  dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-databind" % "2.22.0",
-  dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-core" % "2.22.0",
+  // Fixes GHSA-72hv-8253-57qq and CVE-2025-52999 (require 2.21.1+) and
+  // CVE-2026-54512/54515/54516/54517, which still affect 2.22.0 (require 2.22.1).
+  dependencyOverrides += "com.fasterxml.jackson.module" %% "jackson-module-scala" % "2.22.1",
+  dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-databind" % "2.22.1",
+  dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-core" % "2.22.1",
 
   // Fix CVE-2026-29062 and GHSA-72hv-8253-57qq in tools.jackson.core (Jackson 3.x, from Jena)
   dependencyOverrides += "tools.jackson.core" % "jackson-core" % "3.2.0",
