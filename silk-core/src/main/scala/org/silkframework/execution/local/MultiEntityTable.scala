@@ -25,4 +25,17 @@ case class MultiEntityTable(entities: CloseableIterator[Entity],
   override def updateEntities(newEntities: CloseableIterator[Entity], newSchema: EntitySchema): LocalEntities = {
     MultiEntityTable(newEntities, newSchema, task, subTables)
   }
+
+  /**
+    * Closes this table and all nested tables.
+    * Sub tables that a consumer did not read must be closed as well, since they may hold resources and
+    * report their completion on close.
+    */
+  override def close(): Unit = {
+    try {
+      super.close()
+    } finally {
+      subTables.foreach(_.close())
+    }
+  }
 }

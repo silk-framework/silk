@@ -6,6 +6,7 @@ import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.execution._
 import org.silkframework.execution.local.LocalExecution
 import org.silkframework.plugins.dataset.InternalDataset
+import org.silkframework.rule.execution.TransformReport
 import org.silkframework.runtime.activity.Status.Canceling
 import org.silkframework.runtime.activity._
 import org.silkframework.runtime.plugin.{PluginContext, TaskResolver}

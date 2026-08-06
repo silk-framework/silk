@@ -60,6 +60,16 @@ export function Dataset() {
                         title={t("pages.dataset.title", "Data preview")}
                         preview={{ project: projectId, dataset: taskId }}
                         autoLoad={showPreviewAutomatically}
+                        emptyStateMessages={{
+                            noEntries: t(
+                                "DataPreview.emptyState.datasetPage.noEntries",
+                                "No preview entries found. This dataset may be empty.",
+                            ),
+                            entriesWithoutProperties: t(
+                                "DataPreview.emptyState.datasetPage.entriesWithoutProperties",
+                                "Preview entries do not contain any properties.",
+                            ),
+                        }}
                     />
                 )
             );

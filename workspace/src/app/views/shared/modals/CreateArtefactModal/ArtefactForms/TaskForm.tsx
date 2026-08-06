@@ -710,6 +710,16 @@ export function TaskForm({
                                 datasetConfigValues={datasetConfigValues}
                                 autoLoad={showPreviewAutomatically}
                                 startWithRawView={showRawView}
+                                emptyStateMessages={{
+                                    noEntries: t(
+                                        "DataPreview.emptyState.taskConfiguration.noEntries",
+                                        "No preview entries found for the current configuration.",
+                                    ),
+                                    entriesWithoutProperties: t(
+                                        "DataPreview.emptyState.taskConfiguration.entriesWithoutProperties",
+                                        "Preview entries do not contain any properties.",
+                                    ),
+                                }}
                             />
                         )}
                     </>
