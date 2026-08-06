@@ -365,7 +365,9 @@ const SortableVariableItem: React.FC<SortableVariableItemProps> = ({
                             {variable.name}
                         </PropertyName>
                         <PropertyValue>
-                            <code className={"nodrag"}>{variable.value}</code>
+                            <Tooltip content={<code>{variable.value}</code>}>
+                                <code className={"nodrag"}>{variable.value}</code>
+                            </Tooltip>
                         </PropertyValue>
                     </PropertyValuePair>
                 </ToolbarSection>
