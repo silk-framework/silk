@@ -118,6 +118,9 @@ trait ExecutionReportUpdater {
     this.error = error
   }
 
+  /** True, if at least one update has been pushed to the execution report. */
+  final def hasUpdates: Boolean = lastUpdate != 0
+
   /**
     * Finishes execution of the operator and updates the report.
     * A operator may be run multiple times within one workflow execution.
