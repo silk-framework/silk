@@ -347,7 +347,7 @@ const SortableVariableItem: React.FC<SortableVariableItemProps> = ({
             <Toolbar noWrap>
                 {!isOnlyItem ? (
                     <ToolbarSection>
-                        <Icon small name="item-draggable" />
+                        <Icon small name="item-draggable" style={{ cursor: "grab" }} />
                         <Spacing size="tiny" vertical />
                     </ToolbarSection>
                 ) : null}
