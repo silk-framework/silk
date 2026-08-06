@@ -360,6 +360,7 @@ const SortableVariableItem: React.FC<SortableVariableItemProps> = ({
                             labelProps={{
                                 tooltip: variable.description,
                                 className: "nodrag",
+                                emphasis: "strong",
                             }}
                         >
                             {variable.name}
