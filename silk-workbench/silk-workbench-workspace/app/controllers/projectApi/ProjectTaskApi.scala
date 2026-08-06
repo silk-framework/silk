@@ -448,9 +448,9 @@ class ProjectTaskApi @Inject()() extends InjectedController with UserContextActi
   private def inputTaskIds(task: Task[_ <: TaskSpec]): Option[Seq[String]] = {
     task.data match {
       case transform: TransformSpec =>
-        Some(Seq(transform.selection.inputId.toString))
+        Some(transform.selection.inputTaskId.toSeq.map(_.toString))
       case linking: LinkSpec =>
-        Some(linking.dataSelections.map(_.inputId.toString).toSeq)
+        Some(linking.dataSelections.toSeq.flatMap(_.inputTaskId).map(_.toString))
       case _ =>
         None
     }

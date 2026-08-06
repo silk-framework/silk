@@ -31,7 +31,7 @@ class ExecuteTransformTest extends AnyFlatSpec with Matchers with MockitoSugar {
     val transform = TransformSpec(datasetSelection(), RootMappingRule(rules = MappingRules(mapping("propTransform", prop), mapping("prop2Transform", prop2))))
     val execute = new ExecuteTransform(
       PlainTask("transformTask", transform),
-      inputTask = _ => PlainTask("dummy", DatasetSpec(EmptyDataset)),
+      inputTask = _ => Some(PlainTask("dummy", DatasetSpec(EmptyDataset))),
       input = _ => dataSourceMock,
       output = _ => outputMock,
       pluginContext = _ => PluginContext.empty,

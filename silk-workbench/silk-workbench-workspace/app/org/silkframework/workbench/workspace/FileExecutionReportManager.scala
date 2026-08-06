@@ -7,7 +7,7 @@ import java.time.format.DateTimeFormatter
 import java.time.{Duration, Instant, ZoneOffset}
 import org.silkframework.execution.ExecutionReport
 import org.silkframework.runtime.activity.ActivityExecutionResult
-import org.silkframework.runtime.plugin.PluginContext
+import org.silkframework.runtime.plugin.{InvalidPluginParameterValueException, PluginContext}
 import org.silkframework.runtime.plugin.annotations.Plugin
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext}
 import org.silkframework.serialization.json.ActivitySerializers.ActivityExecutionResultJsonFormat
@@ -29,6 +29,10 @@ case class FileExecutionReportManager(dir: String, retentionTime: Duration = DEF
 
   private val reportDirectory = new File(dir)
   reportDirectory.mkdirs()
+  if(!reportDirectory.isDirectory) {
+    throw new InvalidPluginParameterValueException(s"The execution report directory '${reportDirectory.getAbsolutePath}' could not be created. " +
+      "Make sure that the location is accessible and writable.")
+  }
 
   // Time format to encode times in file names
   private val timeFormat = DateTimeFormatter.ofPattern("yyyy-MM-dd-HH-mm-ss-SSS").withZone(ZoneOffset.UTC)
@@ -38,7 +42,7 @@ case class FileExecutionReportManager(dir: String, retentionTime: Duration = DEF
 
   override def listReports(projectIds: Set[Identifier], taskId: Option[Identifier]): Seq[ReportIdentifier] = synchronized {
     for {
-      reportFile <- ArraySeq.unsafeWrapArray(reportDirectory.listFiles())
+      reportFile <- listReportFiles()
       report <- fromReportFile(reportFile)
       if projectIds.isEmpty || projectIds.contains(report.projectId)
       if taskId.forall(_ == report.taskId)
@@ -76,6 +80,19 @@ case class FileExecutionReportManager(dir: String, retentionTime: Duration = DEF
   override def removeReport(reportId: ReportIdentifier): Unit = synchronized {
     val file = reportFile(reportId)
     Files.delete(file.toPath)
+  }
+
+  /**
+    * Lists all files in the report directory with a meaningful error if the directory is not accessible.
+    */
+  private def listReportFiles(): ArraySeq[File] = {
+    Option(reportDirectory.listFiles()) match {
+      case Some(files) =>
+        ArraySeq.unsafeWrapArray(files)
+      case None =>
+        throw new RuntimeException(s"Cannot list execution reports because the report directory " +
+          s"'${reportDirectory.getAbsolutePath}' does not exist or is not readable.")
+    }
   }
 
   /**

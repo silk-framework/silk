@@ -186,6 +186,35 @@ class WorkflowTest extends AnyFlatSpec with MockitoSugar with Matchers with Test
     workflow.replaceableOutputs.taskIds mustBe Seq(OUTPUT)
   }
 
+  it should "trim trailing vacant input ports on creation" in {
+    // Trailing vacant ports are left e.g. by clients that vacate a port on edge removal
+    val workflow = Workflow.createNormalized(
+      operators = Seq(operator(task = TRANSFORM_1, inputs = Seq(DS_A1, ""), outputs = Seq.empty, TRANSFORM_1)),
+      datasets = Seq(dataset(DS_B, DS_B1, inputs = Seq("", TRANSFORM_1, "")))
+    )
+    workflow.operators.value.head.inputs mustBe Seq(Some(DS_A1))
+    // Interior vacant ports keep their index so positional ports keep their meaning
+    workflow.datasets.value.head.inputs mustBe Seq(None, Some(TRANSFORM_1))
+  }
+
+  it should "trim an inputs list down to Seq.empty when every port is vacant" in {
+    val workflow = Workflow.createNormalized(
+      operators = Seq(operator(task = TRANSFORM_1, inputs = Seq("", "", ""), outputs = Seq.empty, TRANSFORM_1)),
+      datasets = Seq(dataset(DS_B, DS_B1, inputs = Seq("", "")))
+    )
+    workflow.operators.value.head.inputs mustBe Seq.empty
+    workflow.datasets.value.head.inputs mustBe Seq.empty
+  }
+
+  it should "leave an inputs list unchanged when no port is vacant" in {
+    val workflow = Workflow.createNormalized(
+      operators = Seq(operator(task = LINKING, inputs = Seq(DS_A1, DS_A2), outputs = Seq.empty, LINKING)),
+      datasets = Seq(dataset(DS_B, DS_B1, inputs = Seq(TRANSFORM_1, TRANSFORM_2)))
+    )
+    workflow.operators.value.head.inputs mustBe Seq(Some(DS_A1), Some(DS_A2))
+    workflow.datasets.value.head.inputs mustBe Seq(Some(TRANSFORM_1), Some(TRANSFORM_2))
+  }
+
   it should "drop stale replaceable dataset IDs when reading XML" in {
     implicit val readContext: ReadContext = TestReadContext()
     implicit val writeContext: WriteContext[Node] = TestWriteContext[Node]()

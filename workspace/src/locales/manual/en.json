@@ -55,7 +55,21 @@
         "formatText": "Format text",
         "load": "Load preview",
         "loading": "Loading preview data.",
-        "noAttributes": "No attributes found. This might be an empty dataset.",
+        "noEntries": "No preview entries found.",
+        "entriesWithoutProperties": "Preview entries do not contain any properties.",
+        "emptyState": {
+            "datasetPage": {
+                "noEntries": "No preview entries found. This dataset may be empty.",
+                "entriesWithoutProperties": "Preview entries do not contain any properties."
+            },
+            "taskConfiguration": {
+                "noEntries": "No preview entries found for the current configuration.",
+                "entriesWithoutProperties": "Preview entries do not contain any properties."
+            },
+            "executionReport": {
+                "entriesWithoutProperties": "Sample output entities do not contain any properties."
+            }
+        },
         "notLoading": "Validation failed. Not loading preview.",
         "previewOf": "Preview of",
         "reload": "Reload preview",

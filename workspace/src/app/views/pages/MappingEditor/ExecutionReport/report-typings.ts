@@ -19,6 +19,8 @@ export interface ExecutionReportProps {
 }
 
 export interface ExecutionReportResponse {
+    /** Optional execution-specific title supplied by the backend. */
+    title?: string;
     label: string;
     operationDesc: string;
     entityCount: number;
