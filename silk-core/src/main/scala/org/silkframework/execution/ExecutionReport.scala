@@ -80,7 +80,8 @@ trait ExecutionReport {
     * transform's rule results) should override this to set the error in place and preserve their data.
     */
   def asFailed(error: String): ExecutionReport =
-    SimpleExecutionReport(task, summary, warnings, Some(error), isDone = true, entityCount, operation, operationDesc)
+    SimpleExecutionReport(task, summary, warnings, Some(error), isDone = true, entityCount, operation, operationDesc,
+      operationType = operationType, title = title)
 
   /**
     * The number of entities that have been processed.
