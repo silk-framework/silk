@@ -135,12 +135,13 @@ class BlankInputTaskExecutionTest extends AnyFlatSpec with Matchers with ConfigT
     project.addTask[TransformSpec]("transform", blankInputTransformSpec)
     project.addTask[LinkSpec]("linking", blankInputLinkSpec)
 
+    // The caches auto-start on addTask, so wait for that run instead of racing it with a second start
     val transformCache = project.task[TransformSpec]("transform").activity[TransformPathsCache]
-    transformCache.startBlocking()
+    transformCache.control.waitUntilFinished()
     transformCache.value().configuredSchema.typedPaths shouldBe empty
 
     val linkingCache = project.task[LinkSpec]("linking").activity[LinkingPathsCache]
-    linkingCache.startBlocking()
+    linkingCache.control.waitUntilFinished()
     // The cached schemas only contain the paths used in the linkage rule
     linkingCache.value().source.typedPaths.map(_.normalizedSerialization) shouldBe IndexedSeq("name")
   }
