@@ -7,7 +7,7 @@ import org.silkframework.execution.{ExecutorRegistry, TaskException}
 import org.silkframework.rule.{TaskContext, TransformSpec, TransformedDataSource}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.PluginContext
-import org.silkframework.runtime.validation.ValidationException
+import org.silkframework.runtime.validation.{NotFoundException, ValidationException}
 import org.silkframework.util.Uri
 import org.silkframework.workspace.{ProjectTask}
 
@@ -16,7 +16,22 @@ import org.silkframework.workspace.{ProjectTask}
   */
 object TransformTaskUtils {
 
-  implicit class TransformTask(task: ProjectTask[TransformSpec]) {
+  implicit class TransformTaskExtension(task: ProjectTask[TransformSpec]) {
+
+    /**
+      * Retrieves the input dataset task of this transform task.
+      * Note that the input of a transform task is not necessarily a dataset, but may also be another transform or a custom task.
+      *
+      * @throws NotFoundException If the input task exists, but is not a dataset.
+      * @throws org.silkframework.workspace.exceptions.TaskNotFoundException If no task with the configured input identifier exists.
+      */
+    def inputDatasetTask(implicit userContext: UserContext): ProjectTask[GenericDatasetSpec] = {
+      val inputId = task.data.selection.requiredInputId()
+      task.project.taskOption[GenericDatasetSpec](inputId).getOrElse {
+        val inputTask = task.project.anyTask(inputId) // Throws a 'task not found' error if the input task does not exist at all
+        throw new NotFoundException(s"The input task '${inputTask.id}' of transform task '${task.id}' is not a dataset. Only dataset inputs are supported for this feature.")
+      }
+    }
 
     /**
       * Retrieves the data source for this transform task.
@@ -31,7 +46,7 @@ object TransformTaskUtils {
             case Some(transformTask) =>
               transformTask.asDataSource(transformTask.data.selection.typeUri)
             case None =>
-              ExecutorRegistry.access(task.project.task[GenericDatasetSpec](sourceId)).source
+              ExecutorRegistry.access(inputDatasetTask).source
           }
       }
     }
@@ -42,7 +57,7 @@ object TransformTaskUtils {
     def asDataSource(typeUri: Uri)
                     (implicit userContext: UserContext): DataSource = {
       val transformSpec = task.data
-      val source = ExecutorRegistry.access(task.project.task[GenericDatasetSpec](transformSpec.selection.requiredInputId())).source
+      val source = ExecutorRegistry.access(task.inputDatasetTask).source
 
       // Find the rule that generates the selected type
       if(typeUri.uri.isEmpty) {
