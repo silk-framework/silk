@@ -7,7 +7,7 @@ import org.silkframework.execution.{ExecutorRegistry, TaskException}
 import org.silkframework.rule.{TaskContext, TransformSpec, TransformedDataSource}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.PluginContext
-import org.silkframework.runtime.validation.{BadUserInputException, ValidationException}
+import org.silkframework.runtime.validation.BadUserInputException
 import org.silkframework.util.Uri
 import org.silkframework.workspace.{ProjectTask}
 
@@ -31,6 +31,15 @@ object TransformTaskUtils {
         val inputTask = task.project.anyTask(inputId) // Throws a 'task not found' error if the input task does not exist at all
         throw BadUserInputException(s"The input task ${inputTask.labelAndId} of transform task ${task.labelAndId} is not a dataset. Only dataset inputs are supported for this feature.")
       }
+    }
+
+    /**
+      * Retrieves the input dataset task of this transform task, if the input is a dataset.
+      * Non-throwing variant of `inputDatasetTask` for callers that can handle the absence of a dataset input:
+      * returns None if no input is configured, the input task does not exist or it is not a dataset.
+      */
+    def inputDatasetTaskOption(implicit userContext: UserContext): Option[ProjectTask[GenericDatasetSpec]] = {
+      task.project.taskOption[GenericDatasetSpec](task.data.selection.inputTaskId)
     }
 
     /**
@@ -63,12 +72,8 @@ object TransformTaskUtils {
       if(typeUri.uri.isEmpty) {
         new TransformedDataSource(source, transformSpec.inputSchema, transformSpec.mappingRule, task)
       } else {
-        transformSpec.ruleSchemataWithoutEmptyObjectRules.find(_.transformRule.rules.typeRules.map(_.typeUri).contains(typeUri)) match {
-          case Some(ruleSchemata) =>
-            new TransformedDataSource(source, ruleSchemata.inputSchema, ruleSchemata.transformRule, task)
-          case None =>
-            throw new ValidationException(s"No rule matching target type $typeUri found.")
-        }
+        val ruleSchemata = transformSpec.ruleSchemataForTargetType(typeUri)
+        new TransformedDataSource(source, ruleSchemata.inputSchema, ruleSchemata.transformRule, task)
       }
     }
 
