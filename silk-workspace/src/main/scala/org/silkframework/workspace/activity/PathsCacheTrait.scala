@@ -6,9 +6,9 @@ import org.silkframework.execution.ExecutorRegistry
 import org.silkframework.entity.Restriction.CustomOperator
 import org.silkframework.entity.paths.TypedPath
 import org.silkframework.entity.rdf.{SparqlEntitySchema, SparqlRestriction}
-import org.silkframework.rule.DatasetSelection
+import org.silkframework.rule.{DatasetSelection, TransformSpec}
 import org.silkframework.runtime.activity.{ActivityContext, UserContext}
-import org.silkframework.util.Identifier
+import org.silkframework.util.{Identifier, Uri}
 import org.silkframework.workspace.Project
 import org.silkframework.workspace.activity.PathsCacheTrait.useFullRestrictions
 
@@ -36,6 +36,9 @@ trait PathsCacheTrait {
             retrievePaths(ExecutorRegistry.access(datasetTask).source, selection)
           case None => IndexedSeq()
         }
+      case transformSpec: TransformSpec =>
+        // A transform input delivers the entities of the rule that generates the selected type, not those of its root rule
+        transformSpec.outputView.outputSchemaForTargetType(dataSelection.map(_.typeUri).getOrElse(Uri(""))).typedPaths
       case task: TaskSpec =>
         task.outputPort match {
           case Some(FixedSchemaPort(schema)) =>

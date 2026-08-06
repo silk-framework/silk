@@ -2,7 +2,9 @@ package org.silkframework.workspace.activity.transform
 
 
 import org.silkframework.entity.{StringValueType, UriValueType, ValueType}
-import org.silkframework.rule.TransformSpec
+import org.silkframework.entity.paths.{ForwardOperator, UntypedPath}
+import org.silkframework.rule.{DatasetSelection, DirectMapping, MappingRules, MappingTarget, ObjectMapping, RootMappingRule, TransformSpec, TypeMapping}
+import org.silkframework.util.Uri
 import org.silkframework.workspace.SingleProjectWorkspaceProviderTestTrait
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.must.Matchers
@@ -31,5 +33,37 @@ class TransformPathsCacheTest extends AnyFlatSpec with SingleProjectWorkspacePro
       )
       valueType mustBe expectedValueType
     }
+  }
+
+  it should "cache the paths of the upstream rule that generates the selected type" in {
+    val nestedType = "urn:target:Address"
+    project.addTask[TransformSpec]("upstreamTransform", TransformSpec(
+      selection = project.task[TransformSpec]("personJsonTransform").data.selection,
+      mappingRule = RootMappingRule(MappingRules(
+        typeRules = Seq(TypeMapping(id = "rootType", typeUri = "urn:target:Person")),
+        propertyRules = Seq(
+          DirectMapping("name", UntypedPath("name"), MappingTarget("urn:target:name")),
+          ObjectMapping(
+            id = "address",
+            sourcePath = UntypedPath.empty,
+            target = Some(MappingTarget("urn:target:address")),
+            rules = MappingRules(
+              typeRules = Seq(TypeMapping(id = "addressType", typeUri = nestedType)),
+              propertyRules = Seq(DirectMapping("city", UntypedPath("id"), MappingTarget("urn:target:city")))
+            )
+          )
+        )
+      ))
+    ))
+    project.addTask[TransformSpec]("downstreamTransform", TransformSpec(
+      selection = DatasetSelection("upstreamTransform", Uri(nestedType))
+    ))
+    val cache = project.task[TransformSpec]("downstreamTransform").activity[TransformPathsCache]
+    cache.control.waitUntilFinished()
+
+    // The editor must offer the paths of the rule that generates the selected type, not those of the root rule
+    val properties = cache.value().configuredSchema.typedPaths.flatMap(_.operators.collect { case ForwardOperator(p) => p.uri })
+    properties must contain("urn:target:city")
+    properties must not contain "urn:target:name"
   }
 }

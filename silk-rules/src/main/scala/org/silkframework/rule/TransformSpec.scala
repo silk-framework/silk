@@ -187,11 +187,21 @@ case class TransformSpec(@Param(label = "Input", value = "The source from which 
     collectSchemata(mappingRule, UntypedPath.empty, UntypedPath.empty, withEmptyObjectRules = false)
   }
 
+  /** The transform's output as downstream tasks read it (see [[TransformOutputView]]). Transient: the view is not serializable and is recomputed on access. */
+  @transient
+  lazy val outputView: TransformOutputView = new TransformOutputView(this)
+
+  /**
+    * The schemata of the root rule, which generates the primary output type of this transform.
+    * Collecting the rule schemata always yields the root rule first, so there is always one.
+    */
+  def primaryRuleSchemata: RuleSchemata = ruleSchemataWithoutEmptyObjectRules.head
+
   /**
     * Input schemata of all object rules in the tree.
     */
   lazy val inputSchema: MultiEntitySchema = {
-    new MultiEntitySchema(ruleSchemataWithoutEmptyObjectRules.head.inputSchema, ruleSchemataWithoutEmptyObjectRules.tail.map(_.inputSchema).toIndexedSeq)
+    new MultiEntitySchema(primaryRuleSchemata.inputSchema, ruleSchemataWithoutEmptyObjectRules.tail.map(_.inputSchema).toIndexedSeq)
   }
 
 
@@ -199,7 +209,7 @@ case class TransformSpec(@Param(label = "Input", value = "The source from which 
     * Output schemata of all object rules in the tree.``
     */
   lazy val outputSchema: MultiEntitySchema = {
-    new MultiEntitySchema(ruleSchemataWithoutEmptyObjectRules.head.outputSchema, ruleSchemataWithoutEmptyObjectRules.tail.map(_.outputSchema).toIndexedSeq)
+    new MultiEntitySchema(primaryRuleSchemata.outputSchema, ruleSchemataWithoutEmptyObjectRules.tail.map(_.outputSchema).toIndexedSeq)
   }
 
   /**
@@ -402,6 +412,11 @@ object TransformSpec {
     * Holds a transform rule along with its input and output schema.
     */
   case class RuleSchemata(transformRule: TransformRule, inputSchema: EntitySchema, outputSchema: EntitySchema) {
+
+    /** True if this rule generates the given absolute target path as a value property. */
+    def generatesValueAt(targetPath: UntypedPath): Boolean = {
+      outputSchema.typedPaths.exists(outputSchema.subPath ++ _.toUntypedPath == targetPath)
+    }
 
     def hasMapping(ruleId: Identifier): Option[RuleSchemata] = {
       if(ruleId == transformRule.id) {

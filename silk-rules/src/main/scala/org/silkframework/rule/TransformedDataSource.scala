@@ -2,13 +2,15 @@ package org.silkframework.rule
 
 import org.silkframework.config.{Prefixes, Task}
 import org.silkframework.dataset.{DataSource, Dataset, DatasetSpec}
-import org.silkframework.entity.EntitySchema
-import org.silkframework.entity.paths.TypedPath
+import org.silkframework.entity.{Entity, EntitySchema}
+import org.silkframework.entity.paths.{TypedPath, UntypedPath}
+import org.silkframework.rule.TransformOutputView.RulesAtTargetPath.Rules
 import org.silkframework.execution.EntityHolder
 import org.silkframework.execution.local.{EmptyEntityTable, GenericEntityTable}
 import org.silkframework.rule.execution.{TransformReport, TransformReportBuilder}
 import org.silkframework.rule.execution.local.TransformedEntities
 import org.silkframework.runtime.activity.{ActivityMonitor, UserContext}
+import org.silkframework.runtime.iterator.{CloseableIterator, RepeatedIterator}
 import org.silkframework.runtime.plugin.{PluginContext, TaskResolver}
 import org.silkframework.util.Uri
 
@@ -53,12 +55,49 @@ class TransformedDataSource(source: DataSource, inputSchema: EntitySchema, trans
   override def retrieve(entitySchema: EntitySchema, limit: Option[Int])
                        (implicit context: PluginContext): EntityHolder = {
     implicit val prefixes: Prefixes = context.prefixes
-    val sourceEntities = source.retrieve(inputSchema, limit).entities
+    val rules = rulesForSubPath(entitySchema.subPath)
+    // The limit bounds the whole result. Each rule still gets the full limit, so that a rule yielding fewer
+    // entities than its share does not reduce the total.
+    val ruleIterator = rules.iterator
+    val allEntities = new RepeatedIterator[Entity](() => ruleIterator.nextOption().map { case (ruleInputSchema, rule) =>
+      transformedEntities(ruleInputSchema, rule, entitySchema, limit)
+    })
+    GenericEntityTable(limit.map(allEntities.take).getOrElse(allEntities), entitySchema, underlyingTask)
+  }
+
+  /** Transforms the entities that the given rule reads from the source. */
+  private def transformedEntities(ruleInputSchema: EntitySchema,
+                                  rule: TransformRule,
+                                  requestedSchema: EntitySchema,
+                                  limit: Option[Int])
+                                 (implicit context: PluginContext, prefixes: Prefixes): CloseableIterator[Entity] = {
+    val sourceEntities = source.retrieve(ruleInputSchema, limit).entities
     val taskContext = new ActivityMonitor[TransformReport](task.id, None)
     val reportBuilder = new TransformReportBuilder(task, taskContext)
-    val transformedEntities = new TransformedEntities(task, sourceEntities, transformRule.label(), transformRule.execution(TaskContext.noInput()),
-      entitySchema, isRequestedSchema = true, abortIfErrorsOccur = false, report = reportBuilder).iterator
-    GenericEntityTable(transformedEntities, entitySchema, underlyingTask)
+    new TransformedEntities(task, sourceEntities, rule.label(), rule.execution(TaskContext.noInput()),
+      requestedSchema, isRequestedSchema = true, abortIfErrorsOccur = false, report = reportBuilder).iterator
+  }
+
+  /**
+    * The rules that generate the entities below a requested sub path, each with the schema it reads.
+    * Target properties of a transform are a single hop, so nested entities come from nested object rules.
+    *
+    * A path that no rule generates yields nothing as well: failing would abort a whole execution over a single
+    * stale rule, and a stale type selection is tolerated in the same way.
+    */
+  private def rulesForSubPath(subPath: UntypedPath): Seq[(EntitySchema, TransformRule)] = {
+    if(subPath.operators.isEmpty) {
+      // The own rule keeps the schema the source was built with
+      Seq((inputSchema, transformRule))
+    } else {
+      task.data.outputView.rulesAtTargetPath(transformRule, subPath) match {
+        case Rules(schemata) =>
+          schemata.map(schemata => (schemata.inputSchema, schemata.transformRule))
+        case _ =>
+          // Value leaves, filtered paths and stale paths that no rule generates all hold no entities
+          Seq.empty
+      }
+    }
   }
 
   /**

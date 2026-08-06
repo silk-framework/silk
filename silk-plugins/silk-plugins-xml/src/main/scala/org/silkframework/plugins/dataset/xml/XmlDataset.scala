@@ -99,7 +99,8 @@ object XmlDataset {
         SpecialPathInfo(ALL_CHILDREN, Some("Selects all direct children of the entity.")),
         SpecialPathInfo(ALL_CHILDREN_RECURSIVE, Some("Selects all children nested below the entity at any depth."))
       )
-    )
+    ),
+    typesArePaths = true
   )
 
 }
