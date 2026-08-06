@@ -132,12 +132,13 @@ class TransformReportBuilder(task: Task[TransformSpec],
 
   /** Records completion of one output table and marks the report done after the final table completes. */
   def outputTableCompleted(): Unit = {
+    // Counted outside the done check, so surplus completions fail fast even after the report is done.
+    completedOutputTables += 1
+    require(
+      completedOutputTables <= outputTableCount,
+      "More output tables completed than were registered for this transform execution."
+    )
     if(!executionDone) {
-      completedOutputTables += 1
-      require(
-        completedOutputTables <= outputTableCount,
-        "More output tables completed than were registered for this transform execution."
-      )
       executionDone = completedOutputTables == outputTableCount
       build(isDone = executionDone)
     }

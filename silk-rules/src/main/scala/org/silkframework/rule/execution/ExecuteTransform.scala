@@ -98,7 +98,9 @@ class ExecuteTransform(task: Task[TransformSpec],
     var count = 0
     try {
       breakable {
-        for (entity <- transformedEntities) {
+        // No for loop, since CloseableIterator.foreach would close the iterator before the catch below runs
+        while (transformedEntities.hasNext) {
+          val entity = transformedEntities.next()
           entitySink.writeEntity(entity.uri, entity.values)
           if(entity.hasFailed) {
             errorEntitySink.foreach(_.writeEntity(entity.uri, entity.values :+ Seq(entity.failure.get.message.getOrElse("Unknown error"))))
@@ -109,6 +111,11 @@ class ExecuteTransform(task: Task[TransformSpec],
           }
         }
       }
+    } catch {
+      case NonFatal(ex) =>
+        // Fail the report (e.g. on sink errors) before the finally-close counts this table as completed.
+        reportBuilder.executionFailed(ex.getMessage)
+        throw ex
     } finally {
       // Completes this output table in the report and closes the input iterator, also on cancellation or limit.
       transformedEntities.close()

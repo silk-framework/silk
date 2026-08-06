@@ -267,6 +267,10 @@ class TransformedEntities(task: Task[TransformSpec],
     }
 
     override def close(): Unit = {
+      // Rules that started but were not read to the end must not stay unfinished in a completed report.
+      if(started && !reportDone) {
+        report.setFinished(coveredRules)
+      }
       closeReport()
       iterator.close()
     }
