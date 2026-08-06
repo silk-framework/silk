@@ -16,7 +16,7 @@ import scala.util.control.NonFatal
   * Executes a set of transformation rules.
   */
 class ExecuteTransform(task: Task[TransformSpec],
-                       inputTask: UserContext => Task[_ <: TaskSpec],
+                       inputTask: UserContext => Option[Task[_ <: TaskSpec]],
                        input: UserContext => DataSource,
                        output: UserContext => EntitySink,
                        errorOutput: UserContext => Option[EntitySink] = _ => None,
@@ -53,7 +53,7 @@ class ExecuteTransform(task: Task[TransformSpec],
     val report = new TransformReportBuilder(task, context)
     report.setExecutionContext(TransformReportExecutionContext(entitySink))
     implicit val pluginContextWithUser: PluginContext = pluginContext(userContext)
-    val taskContext = TaskContext(Seq(inputTask(userContext)), pluginContextWithUser)
+    val taskContext = TaskContext(inputTask(userContext).toSeq, pluginContextWithUser)
 
     // Clear outputs before writing
     context.status.updateMessage("Clearing output")

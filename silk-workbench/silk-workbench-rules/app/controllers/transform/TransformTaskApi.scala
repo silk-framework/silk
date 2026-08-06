@@ -1053,7 +1053,7 @@ class TransformTaskApi @Inject() () extends InjectedController with UserContextA
                                dataSource: DataSource,
                                errorEntitySinkOpt: Option[EntitySink])
                               (implicit userContext: UserContext): Unit = {
-    val inputTask = task.project.anyTask(task.selection.inputId)
+    val inputTask = task.selection.inputTaskId.map(id => task.project.anyTask(id))
     val transform = new ExecuteTransform(
       task = task,
       inputTask = _ => inputTask,

@@ -31,7 +31,7 @@ import org.silkframework.workspace.activity.workflow.WorkflowTest.{DS_A1, OUTPUT
 import org.silkframework.workspace.activity.workflow.WorkflowTest.{DS_A1, OUTPUT, testWorkflow}
 import org.silkframework.workspace.activity.workflow.{WorkflowExecutionReport, WorkflowTest}
 import org.silkframework.workspace.annotation.{StickyNote, UiAnnotations}
-import play.api.libs.json.{JsObject, Json}
+import play.api.libs.json.{JsObject, JsValue, Json}
 
 import scala.reflect.ClassTag
 
@@ -66,6 +66,26 @@ class JsonSerializersTest  extends AnyFlatSpec with Matchers with ConfigTestTrai
   "MappingTargetJsonFormat" should "serialize MappingTarget" in {
     val mappingTarget = MappingTarget("http://dot.com/prop", ValueType.URI, isBackwardProperty = true)
     verify(mappingTarget)
+  }
+
+  "DatasetSelectionJsonFormat" should "round-trip a blank dataset selection" in {
+    implicit val jsonWriteContext: WriteContext[JsValue] = TestWriteContext[JsValue]()
+    val json = DatasetSelectionJsonFormat.write(DatasetSelection.empty)
+    (json \ "inputId").as[String] shouldBe ""
+    DatasetSelectionJsonFormat.read(json).inputTaskId shouldBe None
+  }
+
+  it should "read a dataset selection with a missing inputId field" in {
+    val json = Json.obj("typeUri" -> "", "restriction" -> "")
+    DatasetSelectionJsonFormat.read(json).inputTaskId shouldBe None
+  }
+
+  "TransformSpecJsonFormat" should "round-trip a transform spec with a blank input" in {
+    verify(TransformSpec())
+  }
+
+  "LinkSpecJsonFormat" should "round-trip a link spec with blank inputs" in {
+    verify(LinkSpec())
   }
 
   "VocabularyCacheValue" should "be serializable to JSON" in {

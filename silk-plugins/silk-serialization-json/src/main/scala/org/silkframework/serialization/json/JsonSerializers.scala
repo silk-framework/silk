@@ -852,8 +852,9 @@ object JsonSerializers {
       * Deserializes a value.
       */
     override def read(value: JsValue)(implicit readContext: ReadContext): DatasetSelection = {
+      val inputId: String = stringValueOption(value, INPUT_ID).getOrElse("")
       DatasetSelection(
-        inputId = stringValue(value, INPUT_ID),
+        inputId = inputId,
         typeUri = Uri.parse(stringValue(value, TYPE_URI), readContext.prefixes),
         restriction = Restriction.parse(stringValue(value, RESTRICTION))(readContext.prefixes)
       )
@@ -863,8 +864,9 @@ object JsonSerializers {
       * Serializes a value.
       */
     override def write(value: DatasetSelection)(implicit writeContext: WriteContext[JsValue]): JsValue = {
+      val inputId: String = value.inputId.value.map(_.toString).getOrElse("")
       Json.obj(
-        INPUT_ID -> value.inputId.toString,
+        INPUT_ID -> inputId,
         TYPE_URI -> value.typeUri.serialize(writeContext.prefixes),
         RESTRICTION -> value.restriction.generateCustomRestriction(writeContext.prefixes).toSparql
       )
