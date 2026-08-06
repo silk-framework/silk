@@ -37,6 +37,9 @@ val buildReactExternally = {
 val compilerParams: (Seq[String], Seq[String]) =
   (Seq("--release", "21", "-Xlint"), Seq("-release", "21"))
 
+// One version for every jena module, must match the version in the root build.
+val jenaVersion = "6.2.0"
+
 (Global / concurrentRestrictions) += Tags.limit(Tags.Test, 1)
 
 val scalaTestOptions = {
@@ -81,17 +84,15 @@ lazy val commonSettings = Seq(
   (Test / testOptions) += Tests.Argument(TestFrameworks.ScalaTest, "-u", "target/test-reports", scalaTestOptions),
 
   // We need to overwrite the versions of the Jackson modules.
-  // Fixes GHSA-72hv-8253-57qq and CVE-2025-52999 (require 2.21.1+).
-  dependencyOverrides += "com.fasterxml.jackson.module" %% "jackson-module-scala" % "2.22.0",
-  dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-databind" % "2.22.0",
-  dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-core" % "2.22.0",
+  // Fixes GHSA-72hv-8253-57qq and CVE-2025-52999 (require 2.21.1+) and
+  // CVE-2026-54512/54515/54516/54517, which still affect 2.22.0 (require 2.22.1).
+  dependencyOverrides += "com.fasterxml.jackson.module" %% "jackson-module-scala" % "2.22.1",
+  dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-databind" % "2.22.1",
+  dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-core" % "2.22.1",
 
   // Fix CVE-2026-29062 and GHSA-72hv-8253-57qq in tools.jackson.core (Jackson 3.x, from Jena)
   dependencyOverrides += "tools.jackson.core" % "jackson-core" % "3.2.0",
   dependencyOverrides += "tools.jackson.core" % "jackson-databind" % "3.2.0",
-
-  // Fix CVE-2026-43869 in Apache Thrift (transitive from jena-arq)
-  dependencyOverrides += "org.apache.thrift" % "libthrift" % "0.23.0",
 
   // Fix CVE-2026-5598 in Bouncy Castle (private key leakage via non-constant time comparisons)
   dependencyOverrides += "org.bouncycastle" % "bcprov-jdk18on" % "1.84",
@@ -104,10 +105,7 @@ lazy val commonSettings = Seq(
   javacOptions ++= compilerParams._1,
 
   Test / javaOptions ++= Seq(
-    // Needed by Play 2.8.x for JDK 17 support
-    "--add-exports=java.base/sun.security.x509=ALL-UNNAMED",
-    "--add-opens=java.base/sun.security.ssl=ALL-UNNAMED",
-    // Needed by ldmb for JDK 17 support
+    // Needed by lmdb for JDK 17+ support
     "--add-opens=java.base/java.nio=ALL-UNNAMED",
     "--add-exports=java.base/sun.nio.ch=ALL-UNNAMED"
   )
@@ -142,8 +140,8 @@ lazy val rules = (project in file("silk-rules"))
   .settings(
     name := "Silk Rules",
     libraryDependencies += "org.postgresql" % "postgresql" % "42.7.12",
-    libraryDependencies += "org.apache.jena" % "jena-core" % "6.1.0" exclude("org.slf4j", "slf4j-log4j12"),
-    libraryDependencies += "org.apache.jena" % "jena-arq" % "6.1.0" exclude("org.slf4j", "slf4j-log4j12")
+    libraryDependencies += "org.apache.jena" % "jena-core" % jenaVersion exclude("org.slf4j", "slf4j-log4j12"),
+    libraryDependencies += "org.apache.jena" % "jena-arq" % jenaVersion exclude("org.slf4j", "slf4j-log4j12")
   )
 
 lazy val workspace = (project in file("silk-workspace"))
@@ -182,7 +180,7 @@ lazy val pluginsRdf = (project in file("silk-plugins/silk-plugins-rdf"))
   .settings(commonSettings *)
   .settings(
     name := "Silk Plugins RDF",
-    libraryDependencies += "org.apache.jena" % "jena-fuseki-main" % "6.1.0" % "test"
+    libraryDependencies += "org.apache.jena" % "jena-fuseki-main" % jenaVersion % "test"
 )
 
 lazy val pluginsCsv = (project in file("silk-plugins/silk-plugins-csv"))

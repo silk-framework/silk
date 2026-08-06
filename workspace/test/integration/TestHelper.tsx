@@ -13,10 +13,6 @@ import { fireEvent, render, RenderResult, waitFor } from "@testing-library/react
 import "@testing-library/jest-dom";
 import { CLASSPREFIX as eccgui } from "@eccenca/gui-elements";
 
-import {
-    responseInterceptorOnError,
-    responseInterceptorOnSuccess,
-} from "../../src/app/services/fetch/responseInterceptor";
 import { AxiosError } from "axios";
 
 interface IMockValues {
@@ -341,7 +337,6 @@ export const mockAxiosResponse = (
     response?: HttpResponse | AxiosError,
     silentMode?: boolean,
 ): void => {
-    mockAxios.interceptors.response.use(responseInterceptorOnSuccess, responseInterceptorOnError);
     const requestQueueItem = axiosMockItemByCriteria(criteria);
     if (requestQueueItem) {
         if (response) {
@@ -356,16 +351,6 @@ export const mockAxiosResponse = (
     } else {
         throw new Error("No request to mock for " + criteria);
     }
-};
-
-/** Jest does not allow to set the window.location. In order to test changes on that object, we need to mock it.
- * This function mocks the window.location object and restores it afterwards. */
-export const withWindowLocation = async (block: () => void, location: any = {}) => {
-    const oldLocation = window.location;
-    //delete window.location;
-    window.location = location;
-    await block();
-    window.location = oldLocation;
 };
 
 /** Returns the absolute path under the workspace path with the given path value appended. */
@@ -464,11 +449,7 @@ export class RenderResultApi {
             element,
             `No element with selector '${cssSelector}' ${idx !== 0 ? `at index ${idx} ` : ""}has been found!`,
         );
-        if (element.click) {
-            element.click();
-        } else {
-            element.dispatchEvent(new Event("click"));
-        }
+        fireEvent.click(element);
     };
 
     printHtml = (selector?: string) => {

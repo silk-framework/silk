@@ -100,7 +100,7 @@ class TransformSingleEntityFlagTest extends AnyFlatSpec with Matchers {
     val transformTask = PlainTask("transformTask", TransformSpec(selection = DatasetSelection(inputId = "test"), mappingRule = rule))
     val execute = new ExecuteTransform(
       task = transformTask,
-      inputTask = _ => inputTask,
+      inputTask = _ => Some(inputTask),
       input = user => ExecutorRegistry.access(inputTask).source(user),
       output = user => ExecutorRegistry.access(outputDataset).entitySink(user),
       pluginContext = _ => PluginContext.empty

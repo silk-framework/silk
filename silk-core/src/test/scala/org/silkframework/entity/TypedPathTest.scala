@@ -1,5 +1,5 @@
 package org.silkframework.entity
-
+
 import org.silkframework.entity.paths.{TypedPath, UntypedPath}
 import org.silkframework.util.{Uri, XmlSerializationHelperTrait}
 import org.scalatest.flatspec.AnyFlatSpec

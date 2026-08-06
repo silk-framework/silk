@@ -13,12 +13,10 @@ const TargetProperty = ({ mappingTargetUri, isObjectMapping, isAttribute = false
                     <Label emphasis={"strong"} text={"Target property"} />
                 </PropertyName>
                 <PropertyValue>
-                    <ThingName id={mappingTargetUri} />{" "}
-                    <code>
-                        {"<"}
-                        {mappingTargetUri}
-                        {">"}
-                    </code>{" "}
+                    <ThingName id={mappingTargetUri} />
+                    <Spacing vertical size={"tiny"} />
+                    <code>{mappingTargetUri}</code>
+                    <Spacing vertical size={"tiny"} />
                     <TextToggler text={<ThingDescription id={mappingTargetUri} />} />
                 </PropertyValue>
             </PropertyValuePair>

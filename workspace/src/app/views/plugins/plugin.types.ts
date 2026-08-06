@@ -71,6 +71,14 @@ export interface DatasetPreviewResourceTextResponse {
     fileSize: number;
 }
 
+/** Optional wording for the two empty states of a data preview. */
+export interface DataPreviewEmptyStateMessages {
+    /** Shown when the preview does not contain any entries. */
+    noEntries?: string;
+    /** Shown when preview entries exist but do not have properties. */
+    entriesWithoutProperties?: string;
+}
+
 /** Parameters of the data preview component. */
 export interface DataPreviewProps extends TestableComponent {
     // The title of the widget
@@ -88,6 +96,8 @@ export interface DataPreviewProps extends TestableComponent {
     id?: string;
     /** If initially the raw view should be shown. */
     startWithRawView?: boolean;
+    /** Optional context-specific messages for empty preview states. */
+    emptyStateMessages?: DataPreviewEmptyStateMessages;
 }
 
 /** User menu footer component. */

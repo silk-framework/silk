@@ -90,17 +90,23 @@ class ExecuteLinking(task: ProjectTask[LinkSpec]) extends Activity[ExecutionRepo
     val updatedEntitySchema = sourceOrTarget.map(sot =>
       comparisonToRestrictionConverter.extendEntitySchemaWithLinkageRuleRestriction(entitySchema, task.data.rule, sot)
     ).getOrElse(entitySchema)
+    val inputName = sourceOrTarget match {
+      case Some(true) => "source input"
+      case Some(false) => "target input"
+      case None => "input source"
+    }
+    val inputId = selection.requiredInputId(inputName)
     val result =
-      task.project.taskOption[TransformSpec](selection.inputId) match {
+      task.project.taskOption[TransformSpec](inputId) match {
         case Some(transformTask) =>
           val input = loadInput(transformTask.data.selection, transformTask.data.inputSchema, None)
           ExecutorRegistry.execute[TransformSpec, ExecutionType](transformTask, Seq(input),
             ExecutorOutput(None, Some(FixedSchemaPort(entitySchema))), execution)
         case None =>
-          val datasetTask = task.project.task[GenericDatasetSpec](selection.inputId)
+          val datasetTask = task.project.task[GenericDatasetSpec](inputId)
           ExecutorRegistry.execute(datasetTask, Seq.empty, ExecutorOutput(None, Some(FixedSchemaPort(updatedEntitySchema))), execution)
       }
 
-    result.getOrElse(throw AbortExecutionException(s"The input task ${selection.inputId} did not generate any result"))
+    result.getOrElse(throw AbortExecutionException(s"The input task $inputId did not generate any result"))
   }
 }
