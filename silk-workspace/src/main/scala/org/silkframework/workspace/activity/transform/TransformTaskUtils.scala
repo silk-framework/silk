@@ -7,7 +7,7 @@ import org.silkframework.execution.{ExecutorRegistry, TaskException}
 import org.silkframework.rule.{TaskContext, TransformSpec, TransformedDataSource}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.PluginContext
-import org.silkframework.runtime.validation.{NotFoundException, ValidationException}
+import org.silkframework.runtime.validation.{BadUserInputException, ValidationException}
 import org.silkframework.util.Uri
 import org.silkframework.workspace.{ProjectTask}
 
@@ -22,14 +22,14 @@ object TransformTaskUtils {
       * Retrieves the input dataset task of this transform task.
       * Note that the input of a transform task is not necessarily a dataset, but may also be another transform or a custom task.
       *
-      * @throws NotFoundException If the input task exists, but is not a dataset.
+      * @throws BadUserInputException If the input task exists, but is not a dataset.
       * @throws org.silkframework.workspace.exceptions.TaskNotFoundException If no task with the configured input identifier exists.
       */
     def inputDatasetTask(implicit userContext: UserContext): ProjectTask[GenericDatasetSpec] = {
       val inputId = task.data.selection.requiredInputId()
       task.project.taskOption[GenericDatasetSpec](inputId).getOrElse {
         val inputTask = task.project.anyTask(inputId) // Throws a 'task not found' error if the input task does not exist at all
-        throw new NotFoundException(s"The input task '${inputTask.id}' of transform task '${task.id}' is not a dataset. Only dataset inputs are supported for this feature.")
+        throw BadUserInputException(s"The input task ${inputTask.labelAndId} of transform task ${task.labelAndId} is not a dataset. Only dataset inputs are supported for this feature.")
       }
     }
 
