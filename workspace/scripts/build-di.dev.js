@@ -25,7 +25,6 @@ const utils = require("./build.utils");
 const checkRequiredFiles = require("react-dev-utils/checkRequiredFiles");
 const formatWebpackMessages = require("react-dev-utils/formatWebpackMessages");
 const printBuildError = require("react-dev-utils/printBuildError");
-const ignoredFiles = require("react-dev-utils/ignoredFiles");
 
 const isInteractive = process.stdout.isTTY;
 // Warn and crash if required files are missing
@@ -69,6 +68,7 @@ checkBrowsers(paths.appPath, isInteractive)
 function exitOnError(err) {
     console.log(chalk.red("Failed to compile.\n"));
     printBuildError(err);
+    utils.setBuildFailureExitCode(isWatch);
 }
 
 function runCallback(err, stats) {
@@ -87,7 +87,7 @@ function runCallback(err, stats) {
                 all: false,
                 warnings: true,
                 errors: true,
-            })
+            }),
         );
     }
     if (messages.warnings.length) {
@@ -131,7 +131,7 @@ function run() {
                     ignored: /node_modules/,
                 },
             },
-            runCallback
+            runCallback,
         );
     }
     compiler.run(runCallback);
