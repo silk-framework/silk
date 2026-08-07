@@ -38,6 +38,16 @@ class UriTest extends AnyFlatSpec with Matchers {
     Uri("http://example.org").localName shouldBe None
   }
 
+  it should "url decode the local name" in {
+    Uri.urlDecodedLocalNameOfURI("http://example.org/caf%C3%A9") shouldBe "café"
+    Uri.urlDecodedLocalNameOfURI("http://example.org/with%20space") shouldBe "with space"
+    // '+' is a literal in a URI, it only means space in form encoding
+    Uri.urlDecodedLocalNameOfURI("http://example.org/a+b") shouldBe "a+b"
+    // A stray '%' is not a valid escape sequence, but must not fail the label extraction
+    Uri.urlDecodedLocalNameOfURI("http://example.org/50%") shouldBe "50%"
+    Uri.urlDecodedLocalNameOfURI("http://example.org/100%25") shouldBe "100%"
+  }
+
   it should "extract the namespace" in {
     Uri("http://example.org/resource/path?x=y").namespace shouldBe Some("http://example.org/resource/")
     Uri("urn:example:resource").namespace shouldBe Some("urn:example:")
