@@ -19,6 +19,11 @@ class TemplateVariableTest extends AnyFlatSpec with Matchers {
     }
   }
 
+  it should "reject an empty variable name with the same error as any other invalid name" in {
+    // Used to throw a raw index exception, which surfaced as a 500 instead of a 400
+    an[BadUserInputException] should be thrownBy variableName("")
+  }
+
   private def variableName(name: String) = TemplateVariable(name, "test value", None, None, isSensitive = false, VariableScope("testScope"))
 
 }
