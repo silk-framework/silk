@@ -49,8 +49,8 @@ class UriTest extends AnyFlatSpec with Matchers {
   it should "url decode the local name" in {
     Uri.urlDecodedLocalNameOfURI("http://example.org/caf%C3%A9") shouldBe "café"
     Uri.urlDecodedLocalNameOfURI("http://example.org/with%20space") shouldBe "with space"
-    // '+' is a literal in a URI, it only means space in form encoding
-    Uri.urlDecodedLocalNameOfURI("http://example.org/a+b") shouldBe "a+b"
+    // '+' decodes to a space on purpose, since labels are encoded back into URIs with the matching form encoding
+    Uri.urlDecodedLocalNameOfURI("http://example.org/a+b") shouldBe "a b"
     // A stray '%' is not a valid escape sequence, but must not fail the label extraction
     Uri.urlDecodedLocalNameOfURI("http://example.org/50%") shouldBe "50%"
     Uri.urlDecodedLocalNameOfURI("http://example.org/100%25") shouldBe "100%"

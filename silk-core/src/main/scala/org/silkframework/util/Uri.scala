@@ -162,8 +162,9 @@ object Uri {
     var cutIndex = if (hashIndex > slashIndex) hashIndex else slashIndex
     cutIndex = if(colonIndex > cutIndex) colonIndex else cutIndex
     val localName = uri.substring(cutIndex + 1, uri.length)
-    // '+' is a literal in URIs, not a space as in form encoding. Invalid escapes fall back to the undecoded name.
-    Try(URLDecoder.decode(localName.replace("+", "%2B"), StandardCharsets.UTF_8)).getOrElse(localName)
+    // Form decoding is intentional here: '+' becomes a space, matching how labels are encoded back into URIs.
+    // An invalid escape sequence falls back to the undecoded name instead of failing the label extraction.
+    Try(URLDecoder.decode(localName, StandardCharsets.UTF_8)).getOrElse(localName)
   }
 
   /**
