@@ -1,6 +1,6 @@
 package org.silkframework.runtime.resource.zip
 
-import org.silkframework.runtime.resource.{ResourceManager, WritableResource}
+import org.silkframework.runtime.resource.{ResourceAccessDeniedException, ResourceManager, WritableResource}
 
 import java.io.{BufferedOutputStream, File, FileOutputStream, OutputStream}
 import java.nio.file.Paths
@@ -50,7 +50,7 @@ class ZipOutputStreamResourceManager(zip: OutputStream, val basePath: String = "
     if(!Paths.get(path).normalize.toString.startsWith("..")) {
       base + path
     } else{
-      throw new IllegalArgumentException("The path requested would be outside the Zip resource.")
+      throw ResourceAccessDeniedException(s"Illegal resource access: '$path'. The requested path would be outside the zip resource.")
     }
   }
 
