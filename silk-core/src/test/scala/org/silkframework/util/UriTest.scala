@@ -2,6 +2,7 @@ package org.silkframework.util
 
 
 import org.silkframework.config.Prefixes
+import org.silkframework.runtime.validation.ValidationException
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
@@ -17,6 +18,13 @@ class UriTest extends AnyFlatSpec with Matchers {
   it should "parse full URIs" in {
     Uri.parse("<http://example.org/entity1>").uri shouldBe "http://example.org/entity1"
     Uri.parse("http://example.org/entity1").uri shouldBe "http://example.org/entity1"
+  }
+
+  it should "reject URIs with an unterminated angle bracket" in {
+    // Used to silently return http://example.org/entity (last character cut off)
+    an[ValidationException] should be thrownBy Uri.parse("<http://example.org/entity1")
+    an[ValidationException] should be thrownBy Uri.parse("<")
+    an[ValidationException] should be thrownBy Uri.parse("<>x")
   }
 
   it should "parse prefix names" in {
