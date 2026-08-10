@@ -250,6 +250,14 @@ class LinkingTaskApiTest extends PlaySpec with IntegrationTestTrait {
     linkSpec(task).rule.operator.map(_.id.toString) mustBe Some("compareWithThreshold")
   }
 
+  "Reject a reference link with an unsupported link type" in {
+    val request = client
+      .url(s"$baseUrl/linking/tasks/$project/$csvLinkingTask/referenceLink" +
+        s"?source=${URLEncoder.encode("urn:instance:simplecsv#1", "UTF-8")}" +
+        s"&target=${URLEncoder.encode("urn:instance:simplecsv#2", "UTF-8")}&linkType=unlabeled")
+    checkResponseExactStatusCode(request.put(""), BAD_REQUEST)
+  }
+
   "Upload reference links as XML" in {
     val response = putReferenceLinks(
       <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns="http://knowledgeweb.semanticweb.org/heterogeneity/alignment#">

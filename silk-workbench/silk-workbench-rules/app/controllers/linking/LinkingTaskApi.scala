@@ -469,6 +469,8 @@ class LinkingTaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends I
         val updatedRefLinks = task.data.copy(referenceLinks = task.data.referenceLinks.withNegative(link))
         project.updateTask(taskName, updatedRefLinks)
       }
+      case _ =>
+        throw BadUserInputException(s"Unsupported link type '$linkType'. Supported link types are 'positive' and 'negative'.")
     }
     Ok
   }
