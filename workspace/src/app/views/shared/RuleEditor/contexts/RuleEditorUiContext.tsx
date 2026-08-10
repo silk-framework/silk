@@ -1,5 +1,6 @@
 import React from "react";
 import { Elements, OnLoadParams } from "react-flow-renderer";
+import { PluginDocumentation } from "../../modals/PluginDocumentation";
 
 /** Context for all UI related properties. */
 export interface RuleEditorUiContextProps {
@@ -16,10 +17,10 @@ export interface RuleEditorUiContextProps {
     setReactFlowInstance: (params: OnLoadParams) => any;
     /** Sets the react-flow instance, so it can be used everywhere in the view code. */
     reactFlowInstance: OnLoadParams | undefined;
-    /** markdown description for rule operator node  */
-    currentRuleNodeInfo: { description?: string; label?: string } | undefined;
-    /** Sets the markdown description for rule operator node */
-    setCurrentRuleNodeInfo: (info: { description?: string; label?: string } | undefined) => void;
+    /** Documentation for the rule operator currently shown in the modal. */
+    currentRuleNodeInfo: PluginDocumentation | undefined;
+    /** Sets the documentation for the rule operator currently shown in the modal. */
+    setCurrentRuleNodeInfo: (info: PluginDocumentation | undefined) => void;
     /** When enabled only the rule is shown without side- and toolbar and any other means to edit the rule. */
     showRuleOnly?: boolean;
     /** If set to true the editor canvas is permanently read-only. */
@@ -40,7 +41,7 @@ export const ruleEditorUiContextDefaultValue: RuleEditorUiContextProps = {
     reactFlowWrapper: null,
     setReactFlowInstance: () => {},
     reactFlowInstance: undefined,
-    currentRuleNodeInfo: {},
+    currentRuleNodeInfo: undefined,
     setCurrentRuleNodeInfo: () => {},
     showRuleOnly: false,
     readOnly: false,

@@ -11,10 +11,12 @@ interface IProps {
     projectId?: string;
     handleTagSelectionChange: (params: MultiSuggestFieldSelectionProps<Keyword>) => any;
     initialTags?: Keyword[];
+    selectedTags?: Keyword[];
+    dataTestId?: string;
 }
 
 /** Multi selection component for project and task tags. */
-export const MultiTagSelect = ({ projectId, handleTagSelectionChange, initialTags }: IProps) => {
+export const MultiTagSelect = ({ projectId, handleTagSelectionChange, initialTags, selectedTags, dataTestId }: IProps) => {
     const modalContext = React.useContext(CreateArtefactModalContext);
     const { registerError: globalErrorHandler } = useErrorHandler();
     const registerError = modalContext.registerModalError ? modalContext.registerModalError : globalErrorHandler;
@@ -41,11 +43,14 @@ export const MultiTagSelect = ({ projectId, handleTagSelectionChange, initialTag
 
     return (
         <MultiSuggestField<Keyword>
-            prePopulateWithItems={!!initialTags}
+            {...(selectedTags !== undefined
+                ? { selectedItems: selectedTags }
+                : { prePopulateWithItems: !!initialTags })}
+            data-test-id={dataTestId}
             openOnKeyDown
             itemId={(keyword) => keyword.uri}
             itemLabel={(keyword) => keyword.label}
-            items={initialTags ?? []}
+            items={selectedTags ?? initialTags ?? []}
             onSelection={handleTagSelectionChange}
             runOnQueryChange={handleTagQueryChange}
             newItemCreationText={t("Metadata.addNewTag")}

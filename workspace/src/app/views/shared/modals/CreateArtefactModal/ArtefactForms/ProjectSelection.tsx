@@ -54,17 +54,14 @@ const ProjectSelection: React.FC<ProjectSelectionProps> = ({
                 isOpen={true}
                 canEscapeKeyClose={true}
                 onClose={onClose}
-                title={t("CreateModal.projectContext.resetModalTitle", "Project change warning")}
+                title={t("CreateModal.projectContext.resetModalTitle")}
                 actions={[
-                    <Button text={t("CreateModal.projectContext.changeProjectButton", "Ok")} onClick={onSubmit} />,
-                    <Button text={t("common.action.cancel", "Cancel")} onClick={onClose} />,
+                    <Button text={t("CreateModal.projectContext.changeProjectButton")} onClick={onSubmit} />,
+                    <Button text={t("common.action.cancel")} onClick={onClose} />,
                 ]}
             >
                 <p>
-                    {t(
-                        "CreateModal.projectContext.configResetInfo",
-                        "All settings except title/description are going to be reset."
-                    )}
+                    {t("CreateModal.projectContext.configResetInfo")}
                 </p>
             </AlertDialog>
         );
