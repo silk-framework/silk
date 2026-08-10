@@ -5,6 +5,7 @@ import React from "react";
 import { RuleEditorCanvas } from "./RuleEditorCanvas";
 import { RuleEditorUiContext } from "../contexts/RuleEditorUiContext";
 import { Elements, OnLoadParams } from "react-flow-renderer";
+import { PluginDocumentation } from "../../modals/PluginDocumentation";
 
 interface RuleEditorViewProps {
     /** When enabled only the rule is shown without side- and toolbar and any other means to edit the rule. */
@@ -29,9 +30,7 @@ export const RuleEditorView = ({
 }: RuleEditorViewProps) => {
     const [modalShown, setModalShown] = React.useState(false);
     const [advancedParameterModeEnabled, setAdvancedParameterMode] = React.useState(false);
-    const [currentRuleNodeInfo, setCurrentRuleNodeInfo] = React.useState<
-        { description?: string; label?: string } | undefined
-    >(undefined);
+    const [currentRuleNodeInfo, setCurrentRuleNodeInfo] = React.useState<PluginDocumentation | undefined>(undefined);
     const reactFlowWrapper = React.useRef<any>(null);
     const [reactFlowInstance, setReactFlowInstance] = React.useState<OnLoadParams | undefined>(undefined);
     // At the moment react-flow's selection logic is buggy in some places, e.g. https://github.com/wbkd/react-flow/issues/1314

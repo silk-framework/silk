@@ -19,6 +19,7 @@ const convertRuleOperatorToRuleNode = (ruleOperator: IRuleOperator): Omit<IRuleO
         tags: ruleOperator.tags,
         description: ruleOperator.description,
         markdownDocumentation: ruleOperator.markdownDocumentation,
+        relatedPlugins: ruleOperator.relatedPlugins,
         inputsCanBeSwitched: ruleOperator.inputsCanBeSwitched,
     };
 };
