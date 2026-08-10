@@ -14,10 +14,8 @@ import org.silkframework.workbench.Context
 import org.silkframework.workbench.utils.ErrorResult
 import play.api.http.{MediaRange, MimeTypes, Status}
 import play.api.libs.json.JsValue
-import play.api.mvc.{Action, AnyContent, InjectedController, Result}
+import play.api.mvc.{Action, AnyContent, InjectedController, Request, Result}
 
-import scala.concurrent.Await
-import scala.concurrent.duration.Duration
 import scala.util.Using
 import scala.xml.Node
 
@@ -47,14 +45,20 @@ class SparqlProtocolApi @Inject() () extends InjectedController with UserContext
     }
   }
 
-  def select(project: String, task: String, query: String = "", defaultGraphUri: List[String] = List(), namedGraphUri: List[String] = List()): Action[AnyContent] = RequestUserContextAction {
-    implicit request =>
-    implicit userContext =>
+  /** Executes a SPARQL query against a dataset. Shared by the GET and the POST variant of the protocol. */
+  private def selectResult(project: String, task: String, query: String, defaultGraphUri: Seq[String], namedGraphUri: Seq[String])
+                          (implicit request: Request[AnyContent], userContext: UserContext): Result = {
     // The parameter names of the SPARQL protocol are no valid identifiers, so they are read from the query string directly
     checkGraphParams(defaultGraphUri ++ request.queryString.getOrElse(DEFAULT_GRAPH_URI, Nil),
       namedGraphUri ++ request.queryString.getOrElse(NAMED_GRAPH_URI, Nil))
     val context = Context.get[GenericDatasetSpec](project, task, request.path)
     executeQuery(query, request.acceptedTypes, context)
+  }
+
+  def select(project: String, task: String, query: String = "", defaultGraphUri: List[String] = List(), namedGraphUri: List[String] = List()): Action[AnyContent] = RequestUserContextAction {
+    implicit request =>
+    implicit userContext =>
+    selectResult(project, task, query, defaultGraphUri, namedGraphUri)
   }
 
   def postSelect(project: String, task: String, defaultGraphUri: List[String] = List(), namedGraphUri: List[String] = List()): Action[AnyContent] = {
@@ -64,13 +68,13 @@ class SparqlProtocolApi @Inject() () extends InjectedController with UserContext
       request.contentType match{
         case Some(SPARQLQUERY) =>
           val query = request.body.asRaw.flatMap(_.asBytes()).map(bytes => new String(bytes.toArray)).getOrElse(throw new IllegalArgumentException("No query found in POST request."))
-          Await.result(select(project, task, query, defaultGraphUri, namedGraphUri)(request), Duration.Inf)
+          selectResult(project, task, query, defaultGraphUri, namedGraphUri)
         case Some(FORM) =>
           val decoded = request.body.asFormUrlEncoded.getOrElse(throw new IllegalArgumentException("No content found in POST request."))
           val query = decoded.get("query").flatMap(q => q.headOption).getOrElse(throw new IllegalArgumentException("No 'query' parameter found in POST request."))
           val defGraph = decoded.getOrElse(DEFAULT_GRAPH_URI, Seq())
           val namedGraph = decoded.getOrElse(NAMED_GRAPH_URI, Seq())
-          Await.result(select(project, task, query, defGraph.toList, namedGraph.toList)(request), Duration.Inf)
+          selectResult(project, task, query, defGraph, namedGraph)
         case _ => ErrorResult(SparqlSparqlUnsupportedMediaType(request.contentType))
       }
     }
