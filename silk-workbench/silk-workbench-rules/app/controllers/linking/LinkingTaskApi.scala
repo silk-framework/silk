@@ -314,14 +314,20 @@ class LinkingTaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends I
     val project = WorkspaceFactory().workspace.project(projectName)
     val task = project.task[LinkSpec](taskName)
 
-    for(data <- request.body.asMultipartFormData;
-        file <- data.files) {
-      var referenceLinks = ReferenceLinks.fromXML(scala.xml.XML.loadFile(file.ref.path.toFile))
-      if(generateNegative) {
-        referenceLinks = referenceLinks.generateNegative
-      }
-      project.updateTask(taskName, task.data.copy(referenceLinks = referenceLinks))
+    val uploadedFiles = request.body.asMultipartFormData.toSeq.flatMap(_.files)
+    if(uploadedFiles.size > 1) {
+      throw BadUserInputException("Expecting at most one file with reference links.")
     }
+    val referenceLinksXml =
+      uploadedFiles.headOption.map(file => scala.xml.XML.loadFile(file.ref.path.toFile))
+        .orElse(request.body.asXml.map(_.head))
+        .getOrElse(throw BadUserInputException("Expecting the reference links as XML, either as request body or as an uploaded file."))
+
+    var referenceLinks = ReferenceLinks.fromXML(referenceLinksXml)
+    if(generateNegative) {
+      referenceLinks = referenceLinks.generateNegative
+    }
+    project.updateTask(taskName, task.data.copy(referenceLinks = referenceLinks))
     Ok
   }
 

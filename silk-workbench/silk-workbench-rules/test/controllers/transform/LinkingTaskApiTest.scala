@@ -22,8 +22,10 @@ import org.silkframework.serialization.json.LinkingSerializers.LinkJsonFormat
 import org.silkframework.util.{DPair, Identifier}
 import org.silkframework.workspace.activity.linking.EvaluateLinkingActivity
 import play.api.libs.json.{JsArray, JsValue, Json}
+import play.api.libs.ws.WSResponse
 
 import java.net.URLEncoder
+import scala.xml.Elem
 
 class LinkingTaskApiTest extends PlaySpec with IntegrationTestTrait {
 
@@ -233,6 +235,36 @@ class LinkingTaskApiTest extends PlaySpec with IntegrationTestTrait {
     targetValues must have size 1
     targetValues.head mustBe sourceValues.head
     (targetBindingValues.head \ "children").as[JsArray].value mustBe empty
+  }
+
+  "Upload reference links as XML" in {
+    val response = putReferenceLinks(
+      <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns="http://knowledgeweb.semanticweb.org/heterogeneity/alignment#">
+        <Alignment>
+          <map>
+            <Cell>
+              <entity1 rdf:resource="urn:instance:source#1"/>
+              <entity2 rdf:resource="urn:instance:target#1"/>
+              <relation>=</relation>
+              <measure rdf:datatype="http://www.w3.org/2001/XMLSchema#float">1.0</measure>
+            </Cell>
+          </map>
+        </Alignment>
+      </rdf:RDF>
+    )
+    response.status mustBe OK
+    val referenceLinks = workspaceProject(project).task[LinkSpec](task).data.referenceLinks
+    referenceLinks.positive.map(link => (link.source, link.target)) mustBe Set(("urn:instance:source#1", "urn:instance:target#1"))
+  }
+
+  "Reject a reference link upload that does not contain any links" in {
+    val request = client.url(s"$baseUrl/linking/tasks/$project/$task/referenceLinks?generateNegative=false")
+    checkResponseExactStatusCode(request.put(""), BAD_REQUEST)
+  }
+
+  private def putReferenceLinks(referenceLinks: Elem): WSResponse = {
+    val request = client.url(s"$baseUrl/linking/tasks/$project/$task/referenceLinks?generateNegative=false")
+    checkResponseExactStatusCode(request.put(referenceLinks), OK)
   }
 
   private def linkCountMustBe(resultJson: JsValue, expectedCount: Int): Seq[Link] = {
