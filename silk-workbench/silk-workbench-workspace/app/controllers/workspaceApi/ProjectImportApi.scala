@@ -5,7 +5,7 @@ import controllers.core.UserContextActions
 import controllers.core.util.ControllerUtilsTrait
 import controllers.util.FileMultiPartRequest
 import controllers.workspace.ProjectMarshalingApi
-import controllers.workspaceApi.ProjectImportApi.{ProjectImport, ProjectImportDetails, ProjectImportExecution}
+import controllers.workspaceApi.ProjectImportApi.{MAX_STATUS_POLLING_TIMEOUT, ProjectImport, ProjectImportDetails, ProjectImportExecution}
 import io.swagger.v3.oas.annotations.enums.{ParameterIn, ParameterStyle}
 import io.swagger.v3.oas.annotations.media.{Content, ExampleObject, Schema}
 import io.swagger.v3.oas.annotations.parameters.RequestBody
@@ -33,7 +33,7 @@ import java.util.logging.{Level, Logger}
 import java.util.zip.ZipFile
 import javax.inject.Inject
 import scala.collection.mutable
-import scala.concurrent.duration.{Duration, DurationInt}
+import scala.concurrent.duration.{Duration, DurationInt, FiniteDuration}
 import scala.concurrent.{Await, ExecutionContext, ExecutionContextExecutor, Future}
 import scala.io.{Codec, Source}
 import scala.util.control.NonFatal
@@ -265,12 +265,16 @@ class ProjectImportApi @Inject() (api: ProjectMarshalingApi) extends InjectedCon
   private def handleUnexpectedError(projectImport: ProjectImport, ex: Exception): ProjectImportDetails = {
     log.log(Level.INFO, s"Failed to import project $projectImport", ex)
     val projectImportError = try {
-      val lineIterator = Source.fromInputStream(projectImport.projectFileResource.inputStream)(Codec.UTF8).getLines()
-      if (lineIterator.hasNext && lineIterator.next().startsWith("@prefix")) {
-        // FIXME: Support RDF project import
-        ProjectImportApi.errorProjectImportDetails("RDF project import not supported!")
-      } else {
-        ProjectImportApi.errorProjectImportDetails("No valid project export file detected!")
+      val source = Source.fromInputStream(projectImport.projectFileResource.inputStream)(Codec.UTF8)
+      try {
+        val lineIterator = source.getLines()
+        if (lineIterator.hasNext && lineIterator.next().startsWith("@prefix")) {
+          ProjectImportApi.errorProjectImportDetails("RDF project import not supported!")
+        } else {
+          ProjectImportApi.errorProjectImportDetails("No valid project export file detected!")
+        }
+      } finally {
+        source.close()
       }
     } catch {
       case NonFatal(_) =>
@@ -339,7 +343,7 @@ class ProjectImportApi @Inject() (api: ProjectMarshalingApi) extends InjectedCon
                                    projectImportId: String,
                                    @Parameter(
                                      name = "timeout",
-                                     description = "The timeout in milliseconds when this call should return if the execution is not finished, yet. This allow for long-polling the result.",
+                                     description = "The timeout in milliseconds when this call should return if the execution is not finished, yet. This allow for long-polling the result. Longer timeouts are capped at 60 seconds, i.e. the call may return before the requested timeout has passed.",
                                      required = false,
                                      in = ParameterIn.QUERY,
                                      schema = new Schema(implementation = classOf[Int])
@@ -356,7 +360,7 @@ class ProjectImportApi @Inject() (api: ProjectMarshalingApi) extends InjectedCon
       "importStarted" -> importExecution.importStarted.toEpochMilli
     )
     try {
-      val result = Await.result(importExecution.importProcess, timeout.millis) // Long polling for the result.
+      val result = Await.result(importExecution.importProcess, timeout.millis min MAX_STATUS_POLLING_TIMEOUT) // Long polling for the result.
       // Fetch end timestamp if avaialble
       var end: JsValue = JsNull
       withProjectImportQueue { queue =>
@@ -522,6 +526,10 @@ class ProjectImportApi @Inject() (api: ProjectMarshalingApi) extends InjectedCon
 
 object ProjectImportApi {
   final val PROJECT_IMPORT_ID = "projectImportId"
+
+  /** Upper bound for the long polling of the import status. The request thread is blocked while waiting, so the client must not
+    * be able to choose an arbitrary duration. Clients that ask for more just have to poll again. */
+  final val MAX_STATUS_POLLING_TIMEOUT: FiniteDuration = 60.seconds
 
   /**
     * Holds all data regarding a project import actions.

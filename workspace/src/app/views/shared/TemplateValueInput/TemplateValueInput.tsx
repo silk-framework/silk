@@ -60,7 +60,7 @@ const TemplateValueInput = React.forwardRef(
                     valueStateRef.current.templateValueBeforeSwitch =
                         valueStateRef.current.currentTemplateValue || valueStateRef.current.currentTemplateValue;
                 }
-                valueStateRef.current.isTemplate = becomesTemplate
+                valueStateRef.current.isTemplate = becomesTemplate;
                 setValidationError(undefined);
                 setTemplateInfoMessage(undefined);
                 return becomesTemplate;

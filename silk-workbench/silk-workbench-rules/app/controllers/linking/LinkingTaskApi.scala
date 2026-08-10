@@ -2,6 +2,7 @@ package controllers.linking
 
 import controllers.core.UserContextActions
 import controllers.core.util.ControllerUtilsTrait
+import controllers.linking.LinkingTaskApi.MAX_EVALUATION_TIMEOUT_IN_MS
 import controllers.linking.doc.LinkingTaskApiDoc
 import controllers.linking.evaluation.{AddPathToReferenceEntitiesCacheRequest, EvaluateCurrentLinkageRuleRequest, LinkRuleEvaluationStats, LinkageRuleEvaluationResult}
 import controllers.linking.linkingTask.LinkingTaskApiUtils
@@ -468,6 +469,8 @@ class LinkingTaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends I
         val updatedRefLinks = task.data.copy(referenceLinks = task.data.referenceLinks.withNegative(link))
         project.updateTask(taskName, updatedRefLinks)
       }
+      case _ =>
+        throw BadUserInputException(s"Unsupported link type '$linkType'. Supported link types are 'positive' and 'negative'.")
     }
     Ok
   }
@@ -1001,7 +1004,7 @@ class LinkingTaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends I
                           linkLimit: Int,
                           @Parameter(
                             name = "timeoutInMs",
-                            description = "The max. time in milliseconds the matching stage of the linking execution is allowed to run. This timeout does not affect the loading stage.",
+                            description = "The max. time in milliseconds the matching stage of the linking execution is allowed to run. This timeout does not affect the loading stage. Values above 300000 (5 minutes) are capped.",
                             required = false,
                             in = ParameterIn.QUERY,
                             schema = new Schema(implementation = classOf[Int], defaultValue = "30000")
@@ -1032,7 +1035,8 @@ class LinkingTaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends I
     implicit val prefixes: Prefixes = project.config.prefixes
 
     SerializationUtils.deserializeCompileTime[LinkageRule](defaultMimeType = SerializationUtils.APPLICATION_JSON) { linkageRule =>
-      val runtimeConfig = RuntimeLinkingConfig(executionTimeout = Some(timeoutInMs), linkLimit = Some(linkLimit),
+      // The request thread is blocked for the entire evaluation, so the client must not be able to choose an arbitrary timeout
+      val runtimeConfig = RuntimeLinkingConfig(executionTimeout = Some(math.min(timeoutInMs, MAX_EVALUATION_TIMEOUT_IN_MS)), linkLimit = Some(linkLimit),
         generateLinksWithEntities = true, includeReferenceLinks = includeReferenceLinks)
       val ruleExecution = linkageRule.execution(task.taskContext)
       val linksActivity = new GenerateLinksActivity(task, sources, None, task.taskContext, runtimeConfig, Some(ruleExecution))
@@ -1331,4 +1335,11 @@ class LinkingTaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends I
       .flatMap(_._2)
       .mkString(" ")
   }
+}
+
+object LinkingTaskApi {
+  /** Upper bound for the evaluation timeout that a client can request. The request thread is blocked while the evaluation runs.
+    * Generous, because evaluating a rule against a large dataset legitimately takes minutes. It only rules out a client
+    * blocking a thread indefinitely. */
+  final val MAX_EVALUATION_TIMEOUT_IN_MS: Int = 300000
 }
