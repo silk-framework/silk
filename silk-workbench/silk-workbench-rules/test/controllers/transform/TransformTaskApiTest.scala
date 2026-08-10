@@ -293,6 +293,19 @@ class TransformTaskApiTest extends TransformTaskApiTestBase {
     retrieveRuleOrder() mustBe Seq("directRule2", OBJECT_RULE_ID, "directRule")
   }
 
+  "Reject a reordering that repeats a rule" in {
+    val currentOrder = retrieveRuleOrder()
+    // Contains all current rules, but the first one twice
+    val repeatedOrder = currentOrder.head +: currentOrder
+    val request = client.url(s"$baseUrl/transform/tasks/$project/$task/rule/root/rules/reorder")
+      .addHttpHeaders("Accept" -> "application/json")
+    val response = checkResponseExactStatusCode(request.post(JsArray(repeatedOrder.map(JsString))), BAD_REQUEST)
+
+    // The request must be rejected by the endpoint itself, not by the validation of the resulting rule tree
+    (response.json \ "detail").as[String] must include("does not contain the same elements")
+    retrieveRuleOrder() mustBe currentOrder
+  }
+
   val insertedAfterRuleId = "insertedAfter"
 
   "Insert new mapping rule after the second rule" in {
