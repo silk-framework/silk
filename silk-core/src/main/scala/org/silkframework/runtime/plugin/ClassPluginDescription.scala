@@ -264,12 +264,13 @@ object ClassPluginDescription {
   private def getActions[T](pluginClass: Class[T]): ListMap[String, ClassPluginAction] = {
     val actionsAnnotations = {
       ArraySeq.unsafeWrapArray(pluginClass.getMethods)
-        .flatMap { method => method.getAnnotations.collect { case a: Action => a }.map(a => (method.getName, a)) }
+        // Keep the method itself, since two methods can carry equal @Action annotations, which compare by value
+        .flatMap { method => method.getAnnotations.collect { case a: Action => a }.map(a => (method, a)) }
         .sortBy(_._2.index())
     }
 
-    val actions = actionsAnnotations.map { case (name, action) =>
-      val method = pluginClass.getMethods.find(_.getAnnotations.contains(action)).get
+    val actions = actionsAnnotations.map { case (method, action) =>
+      val name = method.getName
       val provideContext = method.getParameters match {
         case Array() =>
           false

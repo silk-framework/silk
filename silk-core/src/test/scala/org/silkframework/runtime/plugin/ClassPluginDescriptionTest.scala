@@ -2,6 +2,7 @@ package org.silkframework.runtime.plugin
 
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.must.Matchers
+import org.silkframework.runtime.plugin.annotations.{Action, Plugin}
 
 class ClassPluginDescriptionTest extends AnyFlatSpec with Matchers {
 
@@ -35,6 +36,13 @@ class ClassPluginDescriptionTest extends AnyFlatSpec with Matchers {
     }
   }
 
+  it should "resolve each action to its own method even if two actions carry equal annotations" in {
+    val desc = ClassPluginDescription(classOf[TwoActionsPlugin])
+    val plugin = TwoActionsPlugin()
+    desc.actions("actionA").apply(plugin) mustBe Some("resultA")
+    desc.actions("actionB").apply(plugin) mustBe Some("resultB")
+  }
+
   private def create(elems: (String, String)*): TestPlugin  = {
     pluginDesc(ParameterValues.fromStringMap(Map(elems: _*)))
   }
@@ -43,4 +51,14 @@ class ClassPluginDescriptionTest extends AnyFlatSpec with Matchers {
     pluginDesc(ParameterValues.fromStringMap(Map(elems: _*)), ignoreNonExistingParameters = false)
   }
 
+}
+
+// Two action methods with identical @Action annotations, which compare by value
+@Plugin(id = "twoActionsPlugin", label = "Two actions")
+case class TwoActionsPlugin() extends TestPluginType {
+  @Action(label = "same", description = "same")
+  def actionA(): String = "resultA"
+
+  @Action(label = "same", description = "same")
+  def actionB(): String = "resultB"
 }
