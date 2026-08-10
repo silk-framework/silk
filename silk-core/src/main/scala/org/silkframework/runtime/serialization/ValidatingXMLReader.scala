@@ -16,7 +16,6 @@ package org.silkframework.runtime.serialization
 
 import java.io._
 import javax.xml.XMLConstants
-import javax.xml.parsers.SAXParserFactory
 import javax.xml.transform.stream.StreamSource
 import javax.xml.validation.SchemaFactory
 import org.silkframework.runtime.validation.{ValidationError, ValidationException}
@@ -67,7 +66,7 @@ class ValidatingXMLReader(schemaPath: String) {
       val schema = schemaFactory.newSchema(new StreamSource(schemaStream))
 
       //Create parser
-      val parserFactory = SAXParserFactory.newInstance()
+      val parserFactory = SecureXmlParsing.saxParserFactory()
       parserFactory.setNamespaceAware(true)
       parserFactory.setFeature("http://xml.org/sax/features/namespace-prefixes", true)
       val parser = parserFactory.newSAXParser()
