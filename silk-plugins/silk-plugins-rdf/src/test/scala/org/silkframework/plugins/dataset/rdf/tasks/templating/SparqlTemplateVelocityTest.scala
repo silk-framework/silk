@@ -15,10 +15,10 @@ class SparqlTemplateVelocityTest extends AnyFlatSpec with Matchers {
   behavior of "SPARQL templating with the Velocity Template Engine"
 
   private val sparqlUpdateTemplate =
-    s"""PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+    s"""PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
        |PREFIX xsd: <${XSD.getURI}>
-       |DELETE DATA { $$row.uri("PROP_FROM_ENTITY_SCHEMA1") rdf:label $$row.plainLiteral("PROP_FROM_ENTITY_SCHEMA2") } ;
-       |INSERT DATA { $$row.uri("PROP_FROM_ENTITY_SCHEMA1") rdf:label $$row.plainLiteral("PROP_FROM_ENTITY_SCHEMA3")^^xsd:int } ;""".stripMargin
+       |DELETE DATA { $$row.uri("PROP_FROM_ENTITY_SCHEMA1") rdfs:label $$row.plainLiteral("PROP_FROM_ENTITY_SCHEMA2") } ;
+       |INSERT DATA { $$row.uri("PROP_FROM_ENTITY_SCHEMA1") rdfs:label $$row.plainLiteral("PROP_FROM_ENTITY_SCHEMA3")^^xsd:int } ;""".stripMargin
 
   it should "output the correct input paths of the template" in {
     val templateString =
@@ -54,15 +54,15 @@ class SparqlTemplateVelocityTest extends AnyFlatSpec with Matchers {
 
   it should "raise a validation error when the template is invalid" in {
     intercept[ValidationException] {
-      validate("""DELETE DATA { $row.uri("test") rdf:label } ;""")
+      validate("""DELETE DATA { $row.uri("test") rdfs:label } ;""")
     }
     intercept[ValidationException] {
-      validate("""DELETE DATA { <urn:a:b> rdf:label $row.uri(3) ;""")
+      validate("""DELETE DATA { <urn:a:b> rdfs:label $row.uri(3) ;""")
     }
     intercept[ValidationException] {
-      // No rdf prefix defined
-      validate("""DELETE DATA { $row.uri("PROP_FROM_ENTITY_SCHEMA1") rdf:label $row.plainLiteral("PROP_FROM_ENTITY_SCHEMA2") } ;
-              |  INSERT DATA { $row.uri("PROP_FROM_ENTITY_SCHEMA1") rdf:label $row.plainLiteral("PROP_FROM_ENTITY_SCHEMA3") } ;""".stripMargin)
+      // No rdfs prefix defined
+      validate("""DELETE DATA { $row.uri("PROP_FROM_ENTITY_SCHEMA1") rdfs:label $row.plainLiteral("PROP_FROM_ENTITY_SCHEMA2") } ;
+              |  INSERT DATA { $row.uri("PROP_FROM_ENTITY_SCHEMA1") rdfs:label $row.plainLiteral("PROP_FROM_ENTITY_SCHEMA3") } ;""".stripMargin)
     }
     intercept[ValidationException] {
       validate("""PREFIX foaf:  <http://xmlns.com/foaf/0.1/>
