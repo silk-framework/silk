@@ -265,12 +265,16 @@ class ProjectImportApi @Inject() (api: ProjectMarshalingApi) extends InjectedCon
   private def handleUnexpectedError(projectImport: ProjectImport, ex: Exception): ProjectImportDetails = {
     log.log(Level.INFO, s"Failed to import project $projectImport", ex)
     val projectImportError = try {
-      val lineIterator = Source.fromInputStream(projectImport.projectFileResource.inputStream)(Codec.UTF8).getLines()
-      if (lineIterator.hasNext && lineIterator.next().startsWith("@prefix")) {
-        // FIXME: Support RDF project import
-        ProjectImportApi.errorProjectImportDetails("RDF project import not supported!")
-      } else {
-        ProjectImportApi.errorProjectImportDetails("No valid project export file detected!")
+      val source = Source.fromInputStream(projectImport.projectFileResource.inputStream)(Codec.UTF8)
+      try {
+        val lineIterator = source.getLines()
+        if (lineIterator.hasNext && lineIterator.next().startsWith("@prefix")) {
+          ProjectImportApi.errorProjectImportDetails("RDF project import not supported!")
+        } else {
+          ProjectImportApi.errorProjectImportDetails("No valid project export file detected!")
+        }
+      } finally {
+        source.close()
       }
     } catch {
       case NonFatal(_) =>
