@@ -3,7 +3,7 @@ package org.silkframework.workspace.activity.workflow
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import org.silkframework.config.PlainTask
-import org.silkframework.execution.SimpleExecutionReport
+import org.silkframework.execution.{OperationType, SimpleExecutionReport}
 import org.silkframework.util.Identifier
 
 class WorkflowExecutionReportTest extends AnyFlatSpec with Matchers {
@@ -65,7 +65,8 @@ class WorkflowExecutionReportTest extends AnyFlatSpec with Matchers {
 
   it should "downgrade a plain node report to a SimpleExecutionReport (default behavior)" in {
     val plain = SimpleExecutionReport(
-      PlainTask("ds", WorkflowTest.testWorkflow), entityCount = 5, isDone = false, operationDesc = "entities read")
+      PlainTask("ds", WorkflowTest.testWorkflow), entityCount = 5, isDone = false, operationDesc = "entities read",
+      operationType = OperationType.Read, title = Some("Read 5 entities of type Person"))
     val parent = WorkflowExecutionReport(
       task = parentTask,
       taskReports = IndexedSeq(WorkflowTaskReport(Identifier("ds"), plain)))
@@ -76,5 +77,8 @@ class WorkflowExecutionReportTest extends AnyFlatSpec with Matchers {
     nodeReport shouldBe a[SimpleExecutionReport]
     nodeReport.error shouldBe Some("kaboom")
     nodeReport.isDone shouldBe true
+    // The failed report must keep the descriptive title and operation type
+    nodeReport.title shouldBe Some("Read 5 entities of type Person")
+    nodeReport.operationType shouldBe OperationType.Read
   }
 }

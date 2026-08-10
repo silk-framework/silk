@@ -110,6 +110,26 @@ class WorkspaceTest extends AnyFlatSpec with Matchers with ConfigTestTrait with 
     newSleepActivity.status() mustBe 'isRunning
   }
 
+  it should "stop all activities before a project is removed" in {
+    val workspaceProvider = new TestWorkspaceProvider(loadTimePause = 0)
+    PluginRegistry.registerPlugin(classOf[SlowStopActivityFactory])
+
+    val project = Identifier("removedProject")
+    val task = Identifier("task")
+    workspaceProvider.putProject(ProjectConfig(project, metaData = MetaData(Some(project))))
+    workspaceProvider.putTask(project, PlainTask(task,  TestTask()), TestResourceManager())
+
+    val workspace = new Workspace(workspaceProvider, InMemoryResourceRepository())
+
+    // Activity should have been started automatically
+    val slowStopActivity = workspace.project(project).anyTask(task).activity[SlowStopActivity]
+    slowStopActivity.status() mustBe 'isRunning
+
+    // The activity must have stopped when the project is gone, else it could still write to the deleted project
+    workspace.removeProject(project)
+    slowStopActivity.status() must not be 'isRunning
+  }
+
   it should "reload workspace prefixes and add them to all projects" in {
     val initialPrefix = "initialPrefix"
     val secondPrefix = "secondPrefix"
@@ -273,6 +293,33 @@ object WorkspaceTest {
                     (implicit userContext: UserContext): Unit = {
       Thread.sleep(10000)
     }
+  }
+
+  case class SlowStopActivityFactory() extends TaskActivityFactory[TestTask, SlowStopActivity] {
+
+    override def autoRun: Boolean = true
+
+    def apply(task: ProjectTask[TestTask]): Activity[Unit] = {
+      new SlowStopActivity
+    }
+  }
+
+  // Activity that keeps working for a while after it has been cancelled, like an activity that finishes its current chunk
+  class SlowStopActivity extends Activity[Unit] {
+    override def run(context: ActivityContext[Unit])
+                    (implicit userContext: UserContext): Unit = {
+      try {
+        Thread.sleep(10000)
+      } catch {
+        case _: InterruptedException =>
+          Thread.interrupted() // Clear the interrupt flag, so that the remaining work is not interrupted as well
+          Thread.sleep(SlowStopActivity.stopDurationMillis)
+      }
+    }
+  }
+
+  object SlowStopActivity {
+    final val stopDurationMillis = 500L
   }
 
 }

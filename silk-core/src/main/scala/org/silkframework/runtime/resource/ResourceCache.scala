@@ -33,12 +33,12 @@ abstract class ResourceCache[T](protected val resource: Resource, updateTimeout:
   final def value: T = synchronized {
     // Not making this a val lets the class initialize without exception, which would else prevent the executing task from loading
     // and it allows to initialize at runtime, even if the resource was not readable at some moment in time.
-    val needsUpdate = checkForUpdate()
+    val updateCheck = checkForUpdate()
     cachedValue match {
-      case Some(v) if !needsUpdate =>
+      case Some(v) if !updateCheck.needsUpdate =>
         v
       case _ =>
-        updateCache()
+        updateCache(updateCheck.newModificationTime)
     }
   }
 
@@ -58,35 +58,42 @@ abstract class ResourceCache[T](protected val resource: Resource, updateTimeout:
 
   /**
     * Updates the cache and returns the updated value.
+    *
+    * @param newModificationTime The modification time that has been observed for the current resource contents, if any.
+    *                            It is only recorded if the value could be loaded, so that a failed load is retried instead of
+    *                            serving the previous value until the resource happens to change again.
     */
-  private def updateCache(): T = {
+  private def updateCache(newModificationTime: Option[Instant] = None): T = {
     log.info(s"Updating cached value from ${resource.name}.")
     val updatedValue = load()
     cachedValue = Some(updatedValue)
+    newModificationTime.foreach(lastModificationTime = _)
     updatedValue
   }
 
   /**
     * Checks if the cache needs to be updated, i.e., if the modified date has been updated after the updateTimeout passed.
     */
-  private def checkForUpdate(): Boolean = {
+  private def checkForUpdate(): UpdateCheck = {
     if(System.currentTimeMillis > timestamp + updateTimeout) {
       resource.modificationTime match {
         case Some(modificationTime) =>
           timestamp = System.currentTimeMillis
           if(modificationTime.isAfter(lastModificationTime)) {
-            lastModificationTime = modificationTime
-            true
+            UpdateCheck(needsUpdate = true, newModificationTime = Some(modificationTime))
           } else {
-            false
+            UpdateCheck(needsUpdate = false)
           }
         case None =>
-          true
+          UpdateCheck(needsUpdate = true)
       }
     } else {
-      false
+      UpdateCheck(needsUpdate = false)
     }
   }
+
+  /** Whether the cache needs to be updated and the modification time to record once the value has been loaded successfully. */
+  private case class UpdateCheck(needsUpdate: Boolean, newModificationTime: Option[Instant] = None)
 
 }
 

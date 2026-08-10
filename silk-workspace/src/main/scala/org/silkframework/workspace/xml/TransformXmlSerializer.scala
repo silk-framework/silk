@@ -58,12 +58,8 @@ private class TransformXmlSerializer extends XmlSerializer[TransformSpec] {
       // Currently the transform spec is distributed in two xml files
       val datasetXml = loadResourceAsXml(taskResources, "dataset.xml")
       val rulesXml = loadResourceAsXml(taskResources, "rules.xml")
-      var xml = rulesXml.copy(child = datasetXml ++ rulesXml.child)
-      // Old XML versions do not contain the id
-      if((xml \ "@id").isEmpty) {
-        xml = xml % Attribute("id", Text(name), Null)
-      }
-      loadTaskSafelyFromXML(xml, resourceName = "rules.xml", alternativeTaskId = Some(name), taskResources)
+      val xml = rulesXml.copy(child = datasetXml ++ rulesXml.child)
+      loadTaskSafelyFromXML(xml, resourceName = "rules.xml", taskId = name, taskResources)
     } catch {
       case NonFatal(ex) =>
         throw new ValidationException(s"Error loading task '$name': ${ex.getMessage}", ex)

@@ -30,6 +30,13 @@ class Identifier(private val name: String) extends Serializable with Ordered[Ide
   /** Returns the identifier itself. */
   override def toString: String = name
 
+  /**
+    * Compares this identifier to another identifier or to its string representation.
+    *
+    * The comparison to a string is asymmetric: `Identifier("a") == "a"` holds, but `"a" == Identifier("a")` does not.
+    * Because of that it must not be relied on in heterogeneous collections, e.g. `Seq[Any](Identifier("a")).contains("a")`
+    * is true while `Seq[Any]("a").contains(Identifier("a"))` is false.
+    */
   override def equals(other: Any): Boolean = other match {
     case otherId: Identifier => name.equals(otherId.name)
     case str: String => name.equals(str)

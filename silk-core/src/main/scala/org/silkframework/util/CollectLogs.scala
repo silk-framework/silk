@@ -24,21 +24,31 @@ object CollectLogs {
     val logCollector = new LogCollector
     logCollector.setLevel(level)
 
-    Logger.getLogger(namespace).addHandler(logCollector)
-
-    f
-
-    Logger.getLogger(namespace).removeHandler(logCollector)
+    // Hold on to the logger, since loggers are only weakly referenced and the handler has to be removed from the same instance
+    val logger = Logger.getLogger(namespace)
+    logger.addHandler(logCollector)
+    try {
+      f
+    } finally {
+      // Also remove the handler if the block failed, else it stays attached and collects records forever
+      logger.removeHandler(logCollector)
+    }
 
     logCollector.records
   }
 
   private class LogCollector extends Handler {
-    var records = List[LogRecord]()
+    // Written from arbitrary logging threads, so all access is synchronized
+    private var collectedRecords = List[LogRecord]()
 
-    def publish(record: LogRecord): Unit = {
+    /** The collected records, most recent first. */
+    def records: Seq[LogRecord] = synchronized {
+      collectedRecords
+    }
+
+    def publish(record: LogRecord): Unit = synchronized {
       if (isLoggable(record)) {
-        records ::= record
+        collectedRecords ::= record
       }
     }
 
@@ -46,8 +56,8 @@ object CollectLogs {
 
     }
 
-    def close(): Unit = {
-      records = Nil
+    def close(): Unit = synchronized {
+      collectedRecords = Nil
     }
   }
 

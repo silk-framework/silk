@@ -103,7 +103,7 @@ class UriGenerationErrorReportingTest extends AnyFlatSpec with Matchers {
     val reportHolder = new ValueHolder[TransformReport](None)
     when(context.value).thenReturn(reportHolder)
     when(context.status).thenReturn(mock(classOf[StatusHolder]))
-    val reportBuilder = new TransformReportBuilder(task, context)
+    val reportBuilder = new TransformReportBuilder(task, context, outputTableCount = 1)
 
     implicit val prefixes: Prefixes = Prefixes.empty
     implicit val taskContext: TaskContext = TaskContext(Seq.empty, PluginContext.empty)

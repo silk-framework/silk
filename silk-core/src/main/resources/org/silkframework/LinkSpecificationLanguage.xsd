@@ -494,7 +494,8 @@
                 <xs:element ref="ParamOrTemplate" minOccurs="0" maxOccurs="unbounded"/>
 
             </xs:sequence>
-            <xs:attribute name="id" type="xs:string" use="required"/>
+            <!-- The identifier belongs to the task and is only present if the link specification is part of a task serialization -->
+            <xs:attribute name="id" type="xs:string" use="optional"/>
             <xs:attribute name="linkLimit" type="xs:string" />
             <xs:attribute name="matchingExecutionTimeout" type="xs:string" />
         </xs:complexType>

@@ -19,7 +19,7 @@ import org.silkframework.runtime.resource.zip.ZipFileResourceLoader
 import org.silkframework.runtime.resource.{EmptyResourceManager, FileResource, ResourceLoader}
 import org.silkframework.runtime.serialization.ReadContext
 import org.silkframework.runtime.validation.{BadUserInputException, ConflictRequestException, NotFoundException, RequestException}
-import org.silkframework.util.DurationConverters._
+import scala.jdk.DurationConverters._
 import org.silkframework.util.{IdentifierUtils, StreamUtils}
 import org.silkframework.workspace.access.ProjectAccessDeniedException
 import org.silkframework.workspace.xml.XmlZipWithResourcesProjectMarshaling

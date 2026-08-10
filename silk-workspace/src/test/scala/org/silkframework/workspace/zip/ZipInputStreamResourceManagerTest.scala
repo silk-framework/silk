@@ -3,7 +3,7 @@ package org.silkframework.workspace.zip
 import java.io.File
 import java.util.zip.ZipFile
 
-import org.silkframework.runtime.resource.FileResource
+import org.silkframework.runtime.resource.{FileResource, ResourceAccessDeniedException}
 import org.silkframework.runtime.resource.zip.{ZipFileResourceLoader, ZipOutputStreamResourceManager}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.must.Matchers
@@ -53,16 +53,16 @@ class ZipInputStreamResourceManagerTest extends AnyFlatSpec with Matchers {
     val zipFile = File.createTempFile(tempDir + "outZip", ".zip")
     val manager = new ZipOutputStreamResourceManager(zipFile, "", true)
     manager.get("someDir/../allowedAccess")
-    intercept[IllegalArgumentException] {
+    intercept[ResourceAccessDeniedException] {
       manager.get("../../etc/passwd")
     }
-    intercept[IllegalArgumentException] {
+    intercept[ResourceAccessDeniedException] {
       manager.get("somePath/morePath/./../../../etc/passwd")
     }
 
     val managerWithBaseDir = new ZipOutputStreamResourceManager(zipFile, "base/Path", true)
     managerWithBaseDir.get("someDir/../allowedAccess")
-    intercept[IllegalArgumentException] {
+    intercept[ResourceAccessDeniedException] {
       managerWithBaseDir.get("../../etc/passwd")
     }
   }

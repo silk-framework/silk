@@ -33,7 +33,9 @@ case class FileMapResourceManager(baseDir: Path,
       case None =>
         val newPath = Path.of(baseDir.toString, name).normalize()
         val resource = if(!newPath.startsWith(baseDir)) {
-          throw new IllegalArgumentException(s"Tried to break out of resource manager with base dir: $baseDir, with requested file: $name")
+          // The base dir is deliberately not part of the message, since it is returned to the requesting client
+          throw ResourceAccessDeniedException(s"Illegal file resource access: '$name'. " +
+            "Requesting resources outside of the resource base directory is not permitted.")
         } else {
           FileResource(newPath.toFile)
         }

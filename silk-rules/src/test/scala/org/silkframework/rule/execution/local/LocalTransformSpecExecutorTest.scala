@@ -57,8 +57,9 @@ class LocalTransformSpecExecutorTest extends AnyFlatSpec with Matchers with Exec
     result.get.entities.map(_.values).toSeq mustBe Seq(IndexedSeq(Seq("A"), Seq("B", "D"), Seq("C", "E")))
   }
 
-  it should "output the correct entity schemas and entities" in {
-    val executor = new LocalTransformSpecExecutor()
+  /** A transform with a nested object mapping and a matching input, i.e. it generates two output tables.
+    * Must be created per test, since the input can only be read once. */
+  private def hierarchicalTransform(): (PlainTask[TransformSpec], MultiEntityTable) = {
     val transformTask = PlainTask("transform", TransformSpec(
       DatasetSelection.empty,
       RootMappingRule(MappingRules(
@@ -78,7 +79,13 @@ class LocalTransformSpecExecutorTest extends AnyFlatSpec with Matchers with Exec
     val objectEntitySchema = EntitySchema("es", IndexedSeq(UntypedPath("pathB")).map(_.asStringTypedPath))
     val rootEntities = Seq(Entity("uri1", IndexedSeq(Seq("A")), rootEntitySchema))
     val objectEntities = Seq(Entity("uri1", IndexedSeq(Seq("B")), objectEntitySchema))
-    val multiEntitySchema = MultiEntityTable(CloseableIterator(rootEntities.iterator), rootEntitySchema, transformTask, Seq(GenericEntityTable(objectEntities, objectEntitySchema, transformTask)))
+    val input = MultiEntityTable(CloseableIterator(rootEntities.iterator), rootEntitySchema, transformTask, Seq(GenericEntityTable(objectEntities, objectEntitySchema, transformTask)))
+    (transformTask, input)
+  }
+
+  it should "output the correct entity schemas and entities" in {
+    val executor = new LocalTransformSpecExecutor()
+    val (transformTask, multiEntitySchema) = hierarchicalTransform()
     val context: ActivityContext[ExecutionReport] = new ActivityMonitor(getClass.getSimpleName)
     val rootEntitiesResult = executor.execute(transformTask, Seq(multiEntitySchema), ExecutorOutput.empty, LocalExecution(true), context).get
     val subTables = rootEntitiesResult.asInstanceOf[MultiEntityTable].subTables
@@ -87,15 +94,29 @@ class LocalTransformSpecExecutorTest extends AnyFlatSpec with Matchers with Exec
     // Check entities
     objectEntitiesResult.entitySchema.typeUri.toString mustBe "TypeObject"
     val objectEntitiesSeq = objectEntitiesResult.entities.toSeq
+    context.value().isDone mustBe false
     objectEntitiesSeq.flatMap(e => e.values).flatten mustBe Seq("B")
     val objectEntityUri = objectEntitiesSeq.head.uri
     rootEntitiesResult.entitySchema.typeUri.toString mustBe "TypeRoot"
     val rootEntitiesSeq = rootEntitiesResult.entities.toSeq
+    context.value().isDone mustBe true
     rootEntitiesSeq.flatMap(e => e.values).flatten mustBe Seq("A", objectEntityUri.toString)
     val rootEntityUri = rootEntitiesSeq.head.uri
     rootEntityUri must not be objectEntityUri
     // Check report
     context.value().entityCount mustBe 2
+  }
+
+  it should "complete the report when the result is closed without reading all tables" in {
+    val executor = new LocalTransformSpecExecutor()
+    val (transformTask, multiEntitySchema) = hierarchicalTransform()
+    val context: ActivityContext[ExecutionReport] = new ActivityMonitor(getClass.getSimpleName)
+    val result = executor.execute(transformTask, Seq(multiEntitySchema), ExecutorOutput.empty, LocalExecution(true), context).get
+    context.value().isDone mustBe false
+
+    // Closing the result must also close the object table, else its report would never complete.
+    result.close()
+    context.value().isDone mustBe true
   }
 
   it should "inject the task context into the transform rules" in {

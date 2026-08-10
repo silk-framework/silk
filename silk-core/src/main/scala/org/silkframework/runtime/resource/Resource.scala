@@ -5,7 +5,7 @@ import org.silkframework.config.ConfigValue
 import org.silkframework.runtime.plugin.PluginContext
 import org.silkframework.runtime.resource.Resource.maxInMemorySizeParameterName
 
-import java.io.{ByteArrayOutputStream, File, InputStream, InputStreamReader}
+import java.io.{File, InputStream, InputStreamReader}
 import java.time.Instant
 import java.util.logging.Logger
 import scala.io.{Codec, Source}
@@ -124,13 +124,7 @@ trait Resource {
     checkSizeForInMemory()
     val in = inputStream
     try {
-      val out = new ByteArrayOutputStream()
-      var b = in.read()
-      while (b > -1) {
-        out.write(b)
-        b = in.read()
-      }
-      out.toByteArray
+      in.readAllBytes()
     } finally {
       in.close()
     }

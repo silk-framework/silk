@@ -25,7 +25,7 @@ case class ExecuteTransformFactory(@Param("Limits the maximum number of entities
       new ExecuteTransform(
         task,
         // No user context here, defer fetching data sources
-        (userContext: UserContext) => task.project.anyTask(task.selection.inputId)(userContext),
+        (userContext: UserContext) => task.selection.inputTaskId.map(id => task.project.anyTask(id)(userContext)),
         (userContext: UserContext) => task.dataSource(userContext),
         (userContext: UserContext) => new CombinedEntitySink(task.entitySink(userContext).toSeq),
         (userContext: UserContext) => task.errorEntitySink(userContext),

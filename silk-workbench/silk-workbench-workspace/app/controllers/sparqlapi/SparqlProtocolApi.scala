@@ -39,20 +39,22 @@ class SparqlProtocolApi @Inject() () extends InjectedController with UserContext
     taskResolver = TaskResolver.empty
   )
 
-  private def checkGraphParams(query: String, defaultGraphUri: List[String], namedGraphUri: List[String]): String ={
+  //FIXME remove if named graphs are supported
+  //FIXME should unify graphs named in a query (FROM...) and those specified via the protocol into a consistent query
+  private def checkGraphParams(defaultGraphUri: Seq[String], namedGraphUri: Seq[String]): Unit = {
     if (defaultGraphUri.nonEmpty || namedGraphUri.nonEmpty) {
-      //FIXME remove if named graphs are supported
-      ErrorResult(METHOD_NOT_ALLOWED, "Graph specification currently not supported", "Specifying graphs using SPRRQL protocol parameters is not supported. The default graph contains all tripled of the dataset.")
+      throw SparqlGraphSpecificationUnsupported()
     }
-    query //FIXME should unify graphs named in a query (FROM...) and those specified via the protocol into a consistent query
   }
 
   def select(project: String, task: String, query: String = "", defaultGraphUri: List[String] = List(), namedGraphUri: List[String] = List()): Action[AnyContent] = RequestUserContextAction {
     implicit request =>
     implicit userContext =>
+    // The parameter names of the SPARQL protocol are no valid identifiers, so they are read from the query string directly
+    checkGraphParams(defaultGraphUri ++ request.queryString.getOrElse(DEFAULT_GRAPH_URI, Nil),
+      namedGraphUri ++ request.queryString.getOrElse(NAMED_GRAPH_URI, Nil))
     val context = Context.get[GenericDatasetSpec](project, task, request.path)
-    val updatedQuery = checkGraphParams(query, defaultGraphUri, namedGraphUri)
-    executeQuery(updatedQuery, request.acceptedTypes, context)
+    executeQuery(query, request.acceptedTypes, context)
   }
 
   def postSelect(project: String, task: String, defaultGraphUri: List[String] = List(), namedGraphUri: List[String] = List()): Action[AnyContent] = {
@@ -66,8 +68,8 @@ class SparqlProtocolApi @Inject() () extends InjectedController with UserContext
         case Some(FORM) =>
           val decoded = request.body.asFormUrlEncoded.getOrElse(throw new IllegalArgumentException("No content found in POST request."))
           val query = decoded.get("query").flatMap(q => q.headOption).getOrElse(throw new IllegalArgumentException("No 'query' parameter found in POST request."))
-          val defGraph = decoded.getOrElse("default-graph-uri", Seq())
-          val namedGraph = decoded.getOrElse("named-graph-uri", Seq())
+          val defGraph = decoded.getOrElse(DEFAULT_GRAPH_URI, Seq())
+          val namedGraph = decoded.getOrElse(NAMED_GRAPH_URI, Seq())
           Await.result(select(project, task, query, defGraph.toList, namedGraph.toList)(request), Duration.Inf)
         case _ => ErrorResult(SparqlSparqlUnsupportedMediaType(request.contentType))
       }
@@ -113,6 +115,17 @@ object SparqlProtocolApi{
 
   /* media types supported for SPARQL result sets */
   val SupportedMediaTyped: Seq[String] = Seq(SPARQLJSONRESULT, SPARQLXMLRESULT)
+
+  // The graph parameters of the SPARQL protocol
+  val DEFAULT_GRAPH_URI = "default-graph-uri"
+  val NAMED_GRAPH_URI = "named-graph-uri"
+
+  case class SparqlGraphSpecificationUnsupported() extends RequestException(
+    s"Specifying graphs using the SPARQL protocol parameters '$DEFAULT_GRAPH_URI' and '$NAMED_GRAPH_URI' is not supported. " +
+      s"The default graph contains all triples of the dataset.", None) {
+    override def errorTitle: String = "Graph specification not supported"
+    override def httpErrorCode: Option[Int] = Some(Status.BAD_REQUEST)
+  }
 
   case class SparqlSparqlUnsupportedMediaType(contentType: Option[String]) extends RequestException(
     s"${contentType.getOrElse("No content type ")} found, SPARQL protocol 1.1 only supports $SPARQLQUERY and ${MimeTypes.FORM}", None){

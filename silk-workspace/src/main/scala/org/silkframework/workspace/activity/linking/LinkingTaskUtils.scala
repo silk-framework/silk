@@ -29,11 +29,11 @@ object LinkingTaskUtils {
       */
     def dataSource(selection: DatasetSelection)
                   (implicit userContext: UserContext): DataSource = {
-      task.project.taskOption[TransformSpec](selection.inputId) match {
+      task.project.taskOption[TransformSpec](selection.inputTaskId) match {
         case Some(transformTask) =>
           transformTask.asDataSource(selection.typeUri)
         case None =>
-          task.project.taskOption[GenericDatasetSpec](selection.inputId)
+          task.project.taskOption[GenericDatasetSpec](selection.inputTaskId)
             .map(ExecutorRegistry.access(_).source)
             // Only datasets and transform inputs supported, everything else will be empty.
             .getOrElse(EmptySource)
@@ -52,7 +52,7 @@ object LinkingTaskUtils {
      */
     def taskContext(implicit userContext: UserContext): TaskContext = {
       implicit val pluginContext: PluginContext = PluginContext.fromTask(task, task.project)
-      val inputTasks = task.dataSelections.map(selection => task.project.anyTask(selection.inputId)(pluginContext.user))
+      val inputTasks = task.dataSelections.toSeq.flatMap(selection => selection.inputTaskId.map(id => task.project.anyTask(id)(pluginContext.user)))
       TaskContext(inputTasks, pluginContext)
     }
 

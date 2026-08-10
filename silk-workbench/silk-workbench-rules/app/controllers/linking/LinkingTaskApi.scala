@@ -60,8 +60,8 @@ class LinkingTaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends I
     if(withLabels) {
       val linkSpec = task.data
       val DPair(sourcePaths, targetPaths) = linkSpec.entityDescriptions.map(es => es.typedPaths)
-      val sourcePathLabels = pathLabels(task.project, linkSpec.source.inputId, sourcePaths, langPref)
-      val targetPathLabels = pathLabels(task.project, linkSpec.target.inputId, targetPaths, langPref)
+      val sourcePathLabels = pathLabels(task.project, linkSpec.source.inputTaskId, sourcePaths, langPref)
+      val targetPathLabels = pathLabels(task.project, linkSpec.target.inputTaskId, targetPaths, langPref)
       Ok(LinkingTaskApiUtils.getLinkSpecWithRuleNodeParameterValueLabels(task, sourcePathLabels, targetPathLabels))
     } else {
       SerializationUtils.serializeCompileTime[LinkSpec](task.data, Some(project))
@@ -69,7 +69,7 @@ class LinkingTaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends I
   }
 
   private def pathLabels(project: Project,
-                         dataSourceTaskId: String,
+                         dataSourceTaskId: Option[Identifier],
                          typedPaths: Seq[TypedPath],
                          langPref: String)
                         (implicit userContext: UserContext): Map[String, String] = {
@@ -201,12 +201,11 @@ class LinkingTaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends I
           //Load link specification
           val newLinkSpec = XmlSerialization.fromXml[LinkSpec](xml.head)
           val issues = newLinkSpec.rule.validate()
+          project.updateTask(taskName, newLinkSpec.copy(referenceLinks = task.data.referenceLinks))
           if(issues.isEmpty) {
-            //Update linking task
-            project.updateTask(taskName, newLinkSpec.copy(referenceLinks = task.data.referenceLinks))
             ErrorResult.validation(OK, "Linkage rule committed successfully", issues = Seq.empty)
           } else {
-            ErrorResult.validation(OK, "Linkage rule with warnings", issues = issues)
+            ErrorResult.validation(OK, "Linkage rule committed with warnings", issues = issues)
           }
         } catch {
           case ex: ValidationException =>
@@ -315,14 +314,20 @@ class LinkingTaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends I
     val project = WorkspaceFactory().workspace.project(projectName)
     val task = project.task[LinkSpec](taskName)
 
-    for(data <- request.body.asMultipartFormData;
-        file <- data.files) {
-      var referenceLinks = ReferenceLinks.fromXML(scala.xml.XML.loadFile(file.ref.path.toFile))
-      if(generateNegative) {
-        referenceLinks = referenceLinks.generateNegative
-      }
-      project.updateTask(taskName, task.data.copy(referenceLinks = referenceLinks))
+    val uploadedFiles = request.body.asMultipartFormData.toSeq.flatMap(_.files)
+    if(uploadedFiles.size > 1) {
+      throw BadUserInputException("Expecting at most one file with reference links.")
     }
+    val referenceLinksXml =
+      uploadedFiles.headOption.map(file => scala.xml.XML.loadFile(file.ref.path.toFile))
+        .orElse(request.body.asXml.map(_.head))
+        .getOrElse(throw BadUserInputException("Expecting the reference links as XML, either as request body or as an uploaded file."))
+
+    var referenceLinks = ReferenceLinks.fromXML(referenceLinksXml)
+    if(generateNegative) {
+      referenceLinks = referenceLinks.generateNegative
+    }
+    project.updateTask(taskName, task.data.copy(referenceLinks = referenceLinks))
     Ok
   }
 
@@ -562,9 +567,9 @@ class LinkingTaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends I
     linkingPathCacheValues(linkingTask) match {
       case Some(value) =>
         val (sourceTaskId, sourceEntitySchema) = if(target) {
-          (linkingTask.data.target.inputId, value.target)
+          (linkingTask.data.target.inputTaskId, value.target)
         } else {
-          (linkingTask.data.source.inputId, value.source)
+          (linkingTask.data.source.inputTaskId, value.source)
         }
         if(withMetaData) {
           // For now we only support dataset plugins
@@ -1267,11 +1272,12 @@ class LinkingTaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends I
   private def inputTaskLabel(linkingTask: ProjectTask[LinkSpec])
                             (implicit userContext: UserContext): (String, String) = {
     val project = linkingTask.project
-    val sourceId = linkingTask.data.source.inputId
-    val targetId = linkingTask.data.target.inputId
+    def label(inputTaskId: Option[Identifier]): String = {
+      inputTaskId.map(id => project.anyTaskOption(id).map(_.fullLabel).getOrElse(id.toString)).getOrElse("")
+    }
     (
-      project.anyTaskOption(sourceId).map(_.fullLabel).getOrElse(sourceId),
-      project.anyTaskOption(targetId).map(_.fullLabel).getOrElse(targetId)
+      label(linkingTask.data.source.inputTaskId),
+      label(linkingTask.data.target.inputTaskId)
     )
   }
 

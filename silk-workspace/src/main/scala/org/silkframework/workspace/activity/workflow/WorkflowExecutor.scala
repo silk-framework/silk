@@ -6,6 +6,7 @@ import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.execution._
 import org.silkframework.execution.local.LocalExecution
 import org.silkframework.plugins.dataset.InternalDataset
+import org.silkframework.rule.execution.TransformReport
 import org.silkframework.runtime.activity.Status.Canceling
 import org.silkframework.runtime.activity._
 import org.silkframework.runtime.plugin.{PluginContext, TaskResolver}
@@ -229,7 +230,7 @@ trait WorkflowExecutor[ExecType <: ExecutionType] extends Activity[WorkflowExecu
       ).asInstanceOf[Task[T]]
     } catch {
       case ex: ValidationException =>
-        throw new ValidationException(s"Failed to re-configure task '${task.label()}'. Error details: " + ex.getMessage)
+        throw new ValidationException(s"Failed to re-configure task '${task.label()}'. Error details: " + ex.getMessage, ex)
     }
   }
 

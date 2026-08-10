@@ -11,7 +11,7 @@ import org.silkframework.rule._
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.{ClassPluginDescription, PluginRegistry}
 import org.silkframework.runtime.serialization._
-import org.silkframework.runtime.templating.{SimpleSubstitutionTemplateEngine, TemplateVariable, VariableScope, TemplateVariables}
+import org.silkframework.runtime.templating.{SimpleSubstitutionTemplateEngine, TemplateVariable, TemplateVariables, VariableScope}
 import org.silkframework.runtime.validation.TaskValidationException
 import org.silkframework.util.ConfigTestTrait
 import org.silkframework.execution.report.{EntitySample, SampleEntities, SampleEntitiesSchema}
@@ -25,13 +25,13 @@ import org.silkframework.serialization.json.{JsonFormat, JsonSerialization}
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.activity.transform.VocabularyCacheValue
 import org.silkframework.serialization.json.WorkflowSerializers._
-import org.silkframework.execution.{OperationType, SimpleExecutionReport}
+import org.silkframework.execution.{ExecutionReport, OperationType, SimpleExecutionReport}
 import org.silkframework.workspace.activity.workflow.{Workflow, WorkflowExecutionReport, WorkflowTaskReport, WorkflowTest}
 import org.silkframework.workspace.activity.workflow.WorkflowTest.{DS_A1, OUTPUT, testWorkflow}
 import org.silkframework.workspace.activity.workflow.WorkflowTest.{DS_A1, OUTPUT, testWorkflow}
 import org.silkframework.workspace.activity.workflow.{WorkflowExecutionReport, WorkflowTest}
 import org.silkframework.workspace.annotation.{StickyNote, UiAnnotations}
-import play.api.libs.json.{JsObject, Json}
+import play.api.libs.json.{JsObject, JsValue, Json}
 
 import scala.reflect.ClassTag
 
@@ -41,6 +41,16 @@ class JsonSerializersTest  extends AnyFlatSpec with Matchers with ConfigTestTrai
   override def propertyMap: Map[String, Option[String]] = Map(
     "config.variables.engine" -> Some(SimpleSubstitutionTemplateEngine.id)
   )
+
+  "ExecutionReport" should "round-trip an explicit title" in {
+    val report: ExecutionReport = SimpleExecutionReport(
+      task = PlainTask("dataset", WorkflowTest.testWorkflow),
+      title = Some("Read LineItem at /items from Orders dataset"),
+      isDone = true
+    )
+
+    JsonSerialization.fromJson[ExecutionReport](JsonSerialization.toJson(report)) shouldBe report
+  }
 
   "JsonDatasetSpecFormat" should "serialize JsonTaskFormats" in {
     PluginRegistry.registerPlugin(classOf[SomeDatasetPlugin])
@@ -66,6 +76,26 @@ class JsonSerializersTest  extends AnyFlatSpec with Matchers with ConfigTestTrai
   "MappingTargetJsonFormat" should "serialize MappingTarget" in {
     val mappingTarget = MappingTarget("http://dot.com/prop", ValueType.URI, isBackwardProperty = true)
     verify(mappingTarget)
+  }
+
+  "DatasetSelectionJsonFormat" should "round-trip a blank dataset selection" in {
+    implicit val jsonWriteContext: WriteContext[JsValue] = TestWriteContext[JsValue]()
+    val json = DatasetSelectionJsonFormat.write(DatasetSelection.empty)
+    (json \ "inputId").as[String] shouldBe ""
+    DatasetSelectionJsonFormat.read(json).inputTaskId shouldBe None
+  }
+
+  it should "read a dataset selection with a missing inputId field" in {
+    val json = Json.obj("typeUri" -> "", "restriction" -> "")
+    DatasetSelectionJsonFormat.read(json).inputTaskId shouldBe None
+  }
+
+  "TransformSpecJsonFormat" should "round-trip a transform spec with a blank input" in {
+    verify(TransformSpec())
+  }
+
+  "LinkSpecJsonFormat" should "round-trip a link spec with blank inputs" in {
+    verify(LinkSpec())
   }
 
   "VocabularyCacheValue" should "be serializable to JSON" in {
@@ -263,6 +293,16 @@ class JsonSerializersTest  extends AnyFlatSpec with Matchers with ConfigTestTrai
     // The verbose report keeps the full value.
     val fullJson = ExecutionReportJsonFormat.serializeBasicValues(report(OperationType.Write))
     ((((fullJson \ "outputEntitiesSample")(0) \ "entities")(0) \ "values")(0)(0)).as[String] shouldBe longValue
+  }
+
+  it should "omit absent titles and preserve explicit titles" in {
+    implicit val jsonWriteContext: WriteContext[play.api.libs.json.JsValue] =
+      TestWriteContext[play.api.libs.json.JsValue]()
+    val untitledReport = SimpleExecutionReport(task = PlainTask("someTask", WorkflowTest.testWorkflow))
+    val titledReport = untitledReport.copy(title = Some("Wrote 7 entities to 'Output Transform Person JSON'"))
+
+    (ExecutionReportJsonFormat.serializeBasicValues(untitledReport, ReportDetail.Compact) \ "title").toOption shouldBe empty
+    (ExecutionReportJsonFormat.serializeBasicValues(titledReport, ReportDetail.Compact) \ "title").as[String] shouldBe titledReport.title.get
   }
 
   it should "round-trip the operation type through the verbose format" in {

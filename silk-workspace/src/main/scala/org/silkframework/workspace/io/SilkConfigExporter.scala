@@ -36,7 +36,7 @@ object SilkConfigExporter {
     LinkingConfig(
       prefixes = project.config.prefixes,
       runtime = RuntimeLinkingConfig(),
-      sources = linkSpec.dataSelections.map(_.inputId).map(findDataset).toSeq,
+      sources = linkSpec.dataSelections.map(_.requiredInputId()).map(findDataset).toSeq,
       linkSpecs = linkSpec :: Nil,
       output = linkSpec.output.map(findDataset)
     )

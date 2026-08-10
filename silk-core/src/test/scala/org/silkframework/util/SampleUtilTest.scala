@@ -42,6 +42,26 @@ class SampleUtilTest extends AnyFlatSpec with Matchers {
     isCloseToUniform(sample)
   }
 
+  it should "sample every position with the same probability" in {
+    // Each distinct value appears exactly once, so the sample frequency of a value is the inclusion probability
+    // of its position. A position dependent sampling probability shows up here, while a value based check cannot see it.
+    for((inputSize, sampleSize) <- Seq((5, 2), (10, 3))) {
+      val trials = 50000
+      val counts = Array.fill(inputSize)(0)
+      for(_ <- 1 to trials) {
+        for(value <- SampleUtil.sample((0 until inputSize).iterator, sampleSize, None)) {
+          counts(value) += 1
+        }
+      }
+      val expected = sampleSize.toDouble / inputSize
+      for((count, position) <- counts.zipWithIndex) {
+        withClue(s"for position $position of $inputSize (sample size $sampleSize): ") {
+          count.toDouble / trials shouldBe (expected +- 0.02)
+        }
+      }
+    }
+  }
+
   it should "take all values if the input set is smaller" in {
     val input = 1 to 10
     val sample = SampleUtil.sample(input.iterator, 20, None)
