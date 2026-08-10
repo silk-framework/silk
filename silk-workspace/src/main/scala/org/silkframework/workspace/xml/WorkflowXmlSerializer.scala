@@ -34,12 +34,8 @@ private class WorkflowXmlSerializer extends XmlSerializer[Workflow] {
   private def loadTask(name: String, resources: ResourceLoader)
                       (implicit context: PluginContext): LoadedTask[Workflow] = {
     try {
-      var xml = loadResourceAsXml(resources, name)
-      // Old XML versions do not contain the id
-      if ((xml \ "@id").isEmpty) {
-        xml = xml % Attribute("id", Text(name.stripSuffix(".xml")), Null)
-      }
-      loadTaskSafelyFromXML(xml, name, Some(name.stripSuffix(".xml")), resources)
+      val xml = loadResourceAsXml(resources, name)
+      loadTaskSafelyFromXML(xml, name, Identifier(name.stripSuffix(".xml")), resources)
     } catch {
       case NonFatal(ex) =>
         throw new ValidationException(s"Error loading task '$name': ${ex.getMessage}", ex)
