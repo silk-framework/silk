@@ -75,7 +75,7 @@ class UriPatternParserTest extends AnyFlatSpec with Matchers {
     validateSuccessful("""http://{<http://test.test/path?query=value>/ABC[path = "match this"]}""")
     validateSuccessful("{}{somepath}")
     validateSuccessful("ftp://{}")
-    validateSuccessful("urn:{rdf:label}")
+    validateSuccessful("urn:{rdfs:label}")
     validateSuccessful("""http://{<http://test.test/path?query=value>/ABC[path = "{}"]}""")
     validateSuccessful("{}path/{pathA}/pathB/{pathC}")
   }

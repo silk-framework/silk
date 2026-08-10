@@ -69,8 +69,8 @@ on the selected templating mode:
 ### Example of the `Simple` mode (deprecated)
 
 ```
-  DELETE DATA { ${<PROP_FROM_ENTITY_SCHEMA1>} rdf:label ${"PROP_FROM_ENTITY_SCHEMA2"} }
-  INSERT DATA { ${<PROP_FROM_ENTITY_SCHEMA1>} rdf:label ${"PROP_FROM_ENTITY_SCHEMA3"} }
+  DELETE DATA { ${<PROP_FROM_ENTITY_SCHEMA1>} rdfs:label ${"PROP_FROM_ENTITY_SCHEMA2"} }
+  INSERT DATA { ${<PROP_FROM_ENTITY_SCHEMA1>} rdfs:label ${"PROP_FROM_ENTITY_SCHEMA3"} }
 ```
 
 This will insert the URI serialization of the property value `PROP_FROM_ENTITY_SCHEMA1` for the
@@ -84,9 +84,9 @@ can combine variable substitutions with fixed expressions to construct semi-flex
 ### Example of the `Velocity Engine` mode (deprecated)
 
 ```
-  DELETE DATA { $row.uri("PROP_FROM_ENTITY_SCHEMA1") rdf:label $row.plainLiteral("PROP_FROM_ENTITY_SCHEMA2") }
+  DELETE DATA { $row.uri("PROP_FROM_ENTITY_SCHEMA1") rdfs:label $row.plainLiteral("PROP_FROM_ENTITY_SCHEMA2") }
   #if ( $row.exists("PROP_FROM_ENTITY_SCHEMA1") )
-    INSERT DATA { $row.uri("PROP_FROM_ENTITY_SCHEMA1") rdf:label $row.plainLiteral("PROP_FROM_ENTITY_SCHEMA3") }
+    INSERT DATA { $row.uri("PROP_FROM_ENTITY_SCHEMA1") rdfs:label $row.plainLiteral("PROP_FROM_ENTITY_SCHEMA3") }
   #end
 ```
 

@@ -399,6 +399,16 @@ object StringParameterType {
 
     override def description: String = "A map of the form 'Key1:Value1,Key2:Value2'"
 
+    // Only bind to Map[String, String]. The erased raw type alone would also match e.g. Map[String, Int], which this cannot parse.
+    override def hasType(givenType: Type): Boolean = {
+      givenType match {
+        case pt: ParameterizedType =>
+          pt.getRawType.toString == dataType.toString &&
+            pt.getActualTypeArguments.toSeq == Seq(classOf[String], classOf[String])
+        case other => super.hasType(other)
+      }
+    }
+
     private final val utf8: String = "UTF8"
 
     def fromString(str: String)(implicit context: PluginContext): Map[String, String] = {
