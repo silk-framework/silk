@@ -25,7 +25,7 @@ import play.api.libs.json.{JsArray, JsValue, Json}
 import play.api.libs.ws.WSResponse
 
 import java.net.URLEncoder
-import scala.xml.Elem
+import scala.xml.{Elem, Node}
 
 class LinkingTaskApiTest extends PlaySpec with IntegrationTestTrait {
 
@@ -237,6 +237,19 @@ class LinkingTaskApiTest extends PlaySpec with IntegrationTestTrait {
     (targetBindingValues.head \ "children").as[JsArray].value mustBe empty
   }
 
+  "Update the link specification" in {
+    val response = putLinkSpec(linkSpec(task).copy(rule = comparisonRule("compareLabels")))
+    (response.json \ "issues").as[JsArray].value mustBe empty
+    linkSpec(task).rule.operator.map(_.id.toString) mustBe Some("compareLabels")
+  }
+
+  "Update the link specification even if the linkage rule generates warnings" in {
+    // On a boolean distance measure the threshold is ignored, which is reported as a warning
+    val response = putLinkSpec(linkSpec(task).copy(rule = comparisonRule("compareWithThreshold", threshold = 0.5)))
+    (response.json \ "issues").as[JsArray].value.map(issue => (issue \ "type").as[String]) mustBe Seq("Warning")
+    linkSpec(task).rule.operator.map(_.id.toString) mustBe Some("compareWithThreshold")
+  }
+
   "Upload reference links as XML" in {
     val response = putReferenceLinks(
       <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns="http://knowledgeweb.semanticweb.org/heterogeneity/alignment#">
@@ -260,6 +273,28 @@ class LinkingTaskApiTest extends PlaySpec with IntegrationTestTrait {
   "Reject a reference link upload that does not contain any links" in {
     val request = client.url(s"$baseUrl/linking/tasks/$project/$task/referenceLinks?generateNegative=false")
     checkResponseExactStatusCode(request.put(""), BAD_REQUEST)
+  }
+
+  private def linkSpec(taskId: String): LinkSpec = workspaceProject(project).task[LinkSpec](taskId).data
+
+  private def comparisonRule(id: String, threshold: Double = 0.0): LinkageRule = {
+    LinkageRule(Some(
+      Comparison(
+        id = Identifier(id),
+        threshold = threshold,
+        metric = EqualityMetric(),
+        inputs = DPair(
+          PathInput(id = Identifier("label1"), path = UntypedPath("label")),
+          PathInput(id = Identifier("label2"), path = UntypedPath("label"))
+        )
+      )
+    ))
+  }
+
+  private def putLinkSpec(updatedLinkSpec: LinkSpec): WSResponse = {
+    implicit val writeContext: WriteContext[Node] = TestWriteContext[Node]()
+    val request = client.url(s"$baseUrl/linking/tasks/$project/$task/linkSpec")
+    checkResponseExactStatusCode(request.put(XmlSerialization.toXml(updatedLinkSpec).asInstanceOf[Elem]), OK)
   }
 
   private def putReferenceLinks(referenceLinks: Elem): WSResponse = {
