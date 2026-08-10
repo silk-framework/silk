@@ -2,6 +2,7 @@ package controllers.workspace
 
 import helper.IntegrationTestTrait
 import org.scalatestplus.play.PlaySpec
+import org.silkframework.rule.{DatasetSelection, MappingRules, RootMappingRule, TransformSpec}
 import org.silkframework.serialization.json.JsonSerializers.{DATA, ID, PARAMETERS, TASKTYPE, TASK_TYPE_DATASET, TYPE}
 import play.api.libs.json.{JsObject, Json}
 
@@ -31,6 +32,22 @@ class DatasetApiTest extends PlaySpec with IntegrationTestTrait {
       </Dataset>
     )
     checkResponse(response)
+  }
+
+  "report an invalid dataset as bad request" in {
+    val request = client.url(s"$baseUrl/workspace/projects/$project/datasets/invalidDataset")
+      .addHttpHeaders("Accept" -> "application/json")
+    val response = request.put(
+      Json.obj(
+        TASKTYPE -> TASK_TYPE_DATASET,
+        ID -> "invalidDataset",
+        DATA -> Json.obj(
+          TYPE -> "thisPluginDoesNotExist",
+          PARAMETERS -> Json.obj()
+        )
+      )
+    )
+    checkResponseExactStatusCode(response, BAD_REQUEST)
   }
 
   "add datasets using JSON" in {
@@ -167,4 +184,22 @@ class DatasetApiTest extends PlaySpec with IntegrationTestTrait {
     storedVariables mustBe Seq.empty
   }
 
+  "keep the status code of a failure that happens while the task is stored" in {
+    // Storing a dataset under the identifier of an existing task of another type is a conflict, not a bad request
+    workspaceProject(project).addTask[TransformSpec]("conflictingTask",
+      TransformSpec(DatasetSelection.empty, RootMappingRule(rules = MappingRules.empty)))
+    val request = client.url(s"$baseUrl/workspace/projects/$project/datasets/conflictingTask")
+      .addHttpHeaders("Accept" -> "application/json")
+    val response = request.put(
+      Json.obj(
+        TASKTYPE -> TASK_TYPE_DATASET,
+        ID -> "conflictingTask",
+        DATA -> Json.obj(
+          TYPE -> "internal",
+          PARAMETERS -> Json.obj()
+        )
+      )
+    )
+    checkResponseExactStatusCode(response, CONFLICT)
+  }
 }
