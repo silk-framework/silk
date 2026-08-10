@@ -13,6 +13,7 @@ class ProjectTemplateVariablesManager(serializer: TemplateVariablesSerializer, l
 
   private def projectScope = VariableScope.project
 
+  @volatile
   private var variables: TemplateVariables = serializer.readVariables()(loadingUser)
 
   /**

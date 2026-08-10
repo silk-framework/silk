@@ -1,6 +1,6 @@
 package org.silkframework.runtime.resource
 
-import java.io.{ByteArrayInputStream, InputStream}
+import java.io.{ByteArrayInputStream, IOException, InputStream}
 import java.time.Instant
 import java.time.temporal.ChronoUnit
 
@@ -57,6 +57,47 @@ class ResourceCacheTest extends AnyFlatSpec with Matchers {
     resource.readCounter shouldBe 2
   }
 
+  it should "retry the load after a failed update instead of serving the stale value" in {
+    val resource = new TestResource()
+    val cache = new TestResourceCache(resource, updateTimeout = 1000L)
+
+    // Set initial resource value and access it
+    resource.value = "test value"
+    resource.modificationTimeValue = Instant.now()
+    cache.value shouldBe "test value"
+
+    // Update the resource, but make reading it fail (e.g. the file is currently being written)
+    resource.value = "updated value"
+    resource.modificationTimeValue = resource.modificationTimeValue.plus(1, ChronoUnit.MINUTES)
+    resource.failOnRead = true
+
+    Thread.sleep(1001L)
+    an[IOException] should be thrownBy cache.value
+
+    // Once the resource becomes readable again, the update must still be picked up,
+    // although the modification time did not change since the failed attempt
+    resource.failOnRead = false
+    Thread.sleep(1001L)
+    cache.value shouldBe "updated value"
+  }
+
+  it should "keep serving the previous value while an update keeps failing" in {
+    val resource = new TestResource()
+    val cache = new TestResourceCache(resource, updateTimeout = 1000L)
+
+    resource.value = "test value"
+    resource.modificationTimeValue = Instant.now()
+    cache.value shouldBe "test value"
+
+    resource.modificationTimeValue = resource.modificationTimeValue.plus(1, ChronoUnit.MINUTES)
+    resource.failOnRead = true
+
+    Thread.sleep(1001L)
+    an[IOException] should be thrownBy cache.value
+    // Within the update timeout the cache does not hammer the failing resource, but answers with what it has
+    cache.value shouldBe "test value"
+  }
+
   class TestResource() extends Resource {
 
     override def name: String = "TestResource"
@@ -64,6 +105,9 @@ class ResourceCacheTest extends AnyFlatSpec with Matchers {
     var value = "initial value"
 
     var modificationTimeValue: Instant = Instant.now
+
+    // If enabled, reading the resource fails
+    var failOnRead = false
 
     // The number of times the resource has been read
     var readCounter = 0
@@ -78,6 +122,9 @@ class ResourceCacheTest extends AnyFlatSpec with Matchers {
 
     override def inputStream: InputStream = {
       readCounter += 1
+      if(failOnRead) {
+        throw new IOException("Simulated read failure")
+      }
       new ByteArrayInputStream(value.getBytes("UTF8"))
     }
 

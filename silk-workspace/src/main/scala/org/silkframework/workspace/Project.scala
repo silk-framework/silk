@@ -95,12 +95,28 @@ class Project(initialConfig: ProjectConfig, provider: WorkspaceProvider, val res
 
   /**
     * Cancels all activities in this project.
+    * Cancellation is asynchronous, use [[awaitActivities]] before deleting or reloading the project.
     */
   def cancelActivities()(implicit userContext: UserContext): Unit = {
     // Project activities
     activities.foreach(_.control.cancel())
     // Task activities
     allTasks.foreach(_.cancelActivities())
+  }
+
+  /** Waits until all activities stopped. Bounded, because activities are not guaranteed to react to cancellation. */
+  def awaitActivities()(implicit userContext: UserContext): Unit = {
+    val controls = activities.map(_.control) ++ allTasks.flatMap(_.activities.map(_.control))
+    val deadline = System.currentTimeMillis() + Project.cancellationTimeoutMillis
+    var running = controls.filter(_.status().isRunning)
+    while(running.nonEmpty && System.currentTimeMillis() < deadline) {
+      Thread.sleep(Project.cancellationPollIntervalMillis)
+      running = running.filter(_.status().isRunning)
+    }
+    if(running.nonEmpty) {
+      logger.warning(s"Activities in project $id did not stop within ${Project.cancellationTimeoutMillis}ms " +
+        s"after being cancelled: ${running.map(_.name).mkString(", ")}")
+    }
   }
 
   /**
@@ -441,4 +457,11 @@ class Project(initialConfig: ProjectConfig, provider: WorkspaceProvider, val res
   }
 
   override def toString: String = s"Project ${config.labelAndId(config.prefixes)}"
+}
+
+private object Project {
+  /** Upper bound for waiting on cancelled activities, so that a project that ignores cancellation cannot block the workspace. */
+  final val cancellationTimeoutMillis = 10000L
+
+  final val cancellationPollIntervalMillis = 50L
 }

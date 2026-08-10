@@ -67,13 +67,13 @@ class InMemoryWorkspaceProvider() extends WorkspaceProvider {
   /**
     * Retrieves the project cache folder.
     */
-  override def projectCache(name: Identifier): ResourceManager = projects(name).cache
+  override def projectCache(name: Identifier): ResourceManager = synchronized { projects(name).cache }
 
   /**
     * Access to project variables.
     */
   def projectVariables(projectName: Identifier)
-                      (implicit userContext: UserContext): TemplateVariablesSerializer = {
+                      (implicit userContext: UserContext): TemplateVariablesSerializer = synchronized {
     projects(projectName).variables
   }
 
@@ -256,7 +256,7 @@ class InMemoryWorkspaceProvider() extends WorkspaceProvider {
   }
 
   override def readProject(projectId: String)
-                          (implicit userContext: UserContext): Option[ProjectConfig] = {
+                          (implicit userContext: UserContext): Option[ProjectConfig] = synchronized {
     projects.get(projectId).map(_.config)
   }
 

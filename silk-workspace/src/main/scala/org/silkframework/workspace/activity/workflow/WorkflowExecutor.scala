@@ -230,7 +230,7 @@ trait WorkflowExecutor[ExecType <: ExecutionType] extends Activity[WorkflowExecu
       ).asInstanceOf[Task[T]]
     } catch {
       case ex: ValidationException =>
-        throw new ValidationException(s"Failed to re-configure task '${task.label()}'. Error details: " + ex.getMessage)
+        throw new ValidationException(s"Failed to re-configure task '${task.label()}'. Error details: " + ex.getMessage, ex)
     }
   }
 
