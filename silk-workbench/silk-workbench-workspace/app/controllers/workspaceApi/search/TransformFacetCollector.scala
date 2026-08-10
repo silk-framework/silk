@@ -5,6 +5,7 @@ import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.rule.TransformSpec
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.workspace.ProjectTask
+import org.silkframework.workspace.activity.transform.TransformTaskUtils._
 
 /**
   * Facet collector for the Transformation task.
@@ -21,8 +22,7 @@ case class TransformInputResourceFacetCollector() extends NoLabelKeywordFacetCol
 
   override def extractKeywordIds(projectTask: ProjectTask[TransformSpec])
                                 (implicit user: UserContext): Set[String] = {
-    val inputTaskId = projectTask.data.selection.inputTaskId
-    projectTask.project.taskOption[GenericDatasetSpec](inputTaskId).toSet flatMap { projectDatasetSpec: ProjectTask[GenericDatasetSpec] =>
+    projectTask.inputDatasetTaskOption.toSet flatMap { projectDatasetSpec: ProjectTask[GenericDatasetSpec] =>
       fileFacetCollector.extractKeywordIds(projectDatasetSpec)
     }
   }
