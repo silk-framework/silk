@@ -405,7 +405,23 @@ object StringParameterType {
       if(str.trim.isEmpty) {
         Map.empty
       } else {
-        str.split(',').map(_.split(':')).map(v => Tuple2(URLDecoder.decode(v(0), utf8), URLDecoder.decode(v(1), utf8))).toMap
+        str.split(',').map { entry =>
+          // Split on the first colon only, so that a value may contain further (unencoded) colons
+          entry.split(":", 2) match {
+            case Array(key, value) => (decode(key), decode(value))
+            case _ => throw new ValidationException(s"Invalid map entry '$entry'. Expected an entry of the form 'Key:Value'.")
+          }
+        }.toMap
+      }
+    }
+
+    // Reserved characters (':' and ',') are percent-encoded by the write path and decoded back here.
+    private def decode(component: String): String = {
+      try {
+        URLDecoder.decode(component, utf8)
+      } catch {
+        case _: IllegalArgumentException =>
+          throw new ValidationException(s"Invalid percent-encoding in map entry component '$component'.")
       }
     }
 
