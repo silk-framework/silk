@@ -38,6 +38,9 @@ object PluginRegistry {
   @volatile
   private var timestamp: Long = System.currentTimeMillis()
 
+  /** Serializes all mutations of the registry, so that concurrent (un)registrations cannot lose updates. */
+  private val registrationLock = new AnyRef
+
   // Register all plugins at instantiation of this singleton object.
   Config.pluginFolder() match {
     case Some(folder) =>
@@ -284,18 +287,21 @@ object PluginRegistry {
   def registerPlugin(pluginDesc: PluginDescription[_]): Unit = {
     checkPluginDescription(pluginDesc)
     if(!Config.blacklistedPlugins().contains(pluginDesc.id)) {
-      if(pluginsById.contains(pluginDesc.id)) {
-        throw new InvalidPluginException(s"Plugin with id '${pluginDesc.id}' already exists. " +
-            s"Please use a different id for $pluginDesc.")
+      // The check-then-act and the update of all maps must be atomic, so that concurrent registrations are not lost
+      registrationLock.synchronized {
+        if(pluginsById.contains(pluginDesc.id)) {
+          throw new InvalidPluginException(s"Plugin with id '${pluginDesc.id}' already exists. " +
+              s"Please use a different id for $pluginDesc.")
+        }
+        for (superType <- pluginDesc.pluginTypes) {
+          val pluginType = pluginTypesById.getOrElse(superType.name, new PluginTypeHolder(superType))
+          pluginTypesById += ((superType.name, pluginType))
+          pluginType.register(pluginDesc)
+        }
+        plugins += ((pluginDesc.pluginClass.getName, pluginDesc))
+        pluginsById += ((pluginDesc.id.toString, pluginDesc :: (pluginsById.getOrElse(pluginDesc.id, Seq()).toList)))
+        timestamp = System.currentTimeMillis()
       }
-      for (superType <- pluginDesc.pluginTypes) {
-        val pluginType = pluginTypesById.getOrElse(superType.name, new PluginTypeHolder(superType))
-        pluginTypesById += ((superType.name, pluginType))
-        pluginType.register(pluginDesc)
-      }
-      plugins += ((pluginDesc.pluginClass.getName, pluginDesc))
-      pluginsById += ((pluginDesc.id.toString, pluginDesc :: (pluginsById.getOrElse(pluginDesc.id, Seq()).toList)))
-      timestamp = System.currentTimeMillis()
     }
   }
 
@@ -313,22 +319,24 @@ object PluginRegistry {
     * Does nothing if the plugin is not registered.
     */
   def unregisterPlugin(pluginDesc: PluginDescription[_]): Unit = {
-    for  { superType <- pluginDesc.pluginTypes
-           pluginType <- pluginTypesById.get(superType.name)} {
-      pluginType.unregister(pluginDesc.id)
-    }
-    plugins -= pluginDesc.pluginClass.getName
+    registrationLock.synchronized {
+      for  { superType <- pluginDesc.pluginTypes
+             pluginType <- pluginTypesById.get(superType.name)} {
+        pluginType.unregister(pluginDesc.id)
+      }
+      plugins -= pluginDesc.pluginClass.getName
 
-    // Remove plugin from pluginsById
-    val existingPluginsForId = pluginsById.getOrElse(pluginDesc.id.toString, Seq.empty)
-    val updatedPluginsForId = existingPluginsForId.filter(_.pluginClass.getName != pluginDesc.pluginClass.getName)
-    if(updatedPluginsForId.nonEmpty) {
-      pluginsById += ((pluginDesc.id.toString, updatedPluginsForId))
-    } else {
-      pluginsById -= pluginDesc.id.toString
-    }
+      // Remove plugin from pluginsById
+      val existingPluginsForId = pluginsById.getOrElse(pluginDesc.id.toString, Seq.empty)
+      val updatedPluginsForId = existingPluginsForId.filter(_.pluginClass.getName != pluginDesc.pluginClass.getName)
+      if(updatedPluginsForId.nonEmpty) {
+        pluginsById += ((pluginDesc.id.toString, updatedPluginsForId))
+      } else {
+        pluginsById -= pluginDesc.id.toString
+      }
 
-    timestamp = System.currentTimeMillis()
+      timestamp = System.currentTimeMillis()
+    }
   }
 
   /**
