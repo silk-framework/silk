@@ -201,12 +201,11 @@ class LinkingTaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends I
           //Load link specification
           val newLinkSpec = XmlSerialization.fromXml[LinkSpec](xml.head)
           val issues = newLinkSpec.rule.validate()
+          project.updateTask(taskName, newLinkSpec.copy(referenceLinks = task.data.referenceLinks))
           if(issues.isEmpty) {
-            //Update linking task
-            project.updateTask(taskName, newLinkSpec.copy(referenceLinks = task.data.referenceLinks))
             ErrorResult.validation(OK, "Linkage rule committed successfully", issues = Seq.empty)
           } else {
-            ErrorResult.validation(OK, "Linkage rule with warnings", issues = issues)
+            ErrorResult.validation(OK, "Linkage rule committed with warnings", issues = issues)
           }
         } catch {
           case ex: ValidationException =>
