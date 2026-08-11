@@ -34,7 +34,8 @@ class BulkDataSource(bulkContainerName: String,
         indexFn = weightedPath => weightedPath._1 // Make distinct by path name only
       )
     } else {
-      sources().headOption.map(handleSourceError(_)(_.retrieveTypes(limit))).getOrElse(Seq.empty)
+      // Read the first source inside use, so the container (e.g. zip) is not closed before it is read
+      sources().use(_.nextOption().map(handleSourceError(_)(_.retrieveTypes(limit).toSeq)).getOrElse(Seq.empty))
     }
   }
 
@@ -46,7 +47,8 @@ class BulkDataSource(bulkContainerName: String,
         indexFn = a => a
       ).toIndexedSeq
     } else {
-      sources().headOption.map(handleSourceError(_)(_.retrievePaths(typeUri, depth, limit))).getOrElse(IndexedSeq.empty)
+      // Read the first source inside use, so the container (e.g. zip) is not closed before it is read
+      sources().use(_.nextOption().map(handleSourceError(_)(_.retrievePaths(typeUri, depth, limit))).getOrElse(IndexedSeq.empty))
     }
   }
 
