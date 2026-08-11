@@ -506,10 +506,11 @@ case class ObjectMapping(id: Identifier = "mapping",
             })
             Some(ComplexUriMapping(rule.id, rewrittenInput, rule.metaData, RuleLayout(),UiAnnotations()))
           }
+          // Derive a unique id from the object mapping so the report results of default URI rules do not collide on the default id "URI".
           case None if sourcePath.isEmpty =>
-            Some(PatternUriMapping(pattern = s"{}/$id", prefixes = prefixes))
+            Some(PatternUriMapping(id = id + "uri", pattern = s"{}/$id", prefixes = prefixes))
           case None =>
-            Some(PatternUriMapping(pattern = s"{${pathPrefix.normalizedSerialization}}/$id", prefixes = prefixes))
+            Some(PatternUriMapping(id = id + "uri", pattern = s"{${pathPrefix.normalizedSerialization}}/$id", prefixes = prefixes))
         }
       case None =>
         None
