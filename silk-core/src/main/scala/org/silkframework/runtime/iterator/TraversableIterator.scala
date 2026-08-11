@@ -3,7 +3,7 @@ package org.silkframework.runtime.iterator
 import org.silkframework.runtime.execution.Execution
 import org.silkframework.runtime.resource.DoSomethingOnGC
 
-import java.util.concurrent.{ArrayBlockingQueue, ExecutionException, Future, TimeUnit}
+import java.util.concurrent.{ArrayBlockingQueue, CancellationException, ExecutionException, Future, TimeUnit}
 
 /**
   * A closable iterator that is implemented by a single foreach function.
@@ -73,6 +73,8 @@ trait TraversableIterator[T] extends BufferingIterator[T] with DoSomethingOnGC {
     } catch {
       case ex: ExecutionException =>
         throw ex.getCause
+      case _: CancellationException =>
+        // Loading has been cancelled by close(), so the iteration just ends
     }
   }
 
