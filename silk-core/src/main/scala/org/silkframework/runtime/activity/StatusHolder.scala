@@ -69,9 +69,17 @@ class StatusHolder(log: Logger = Logger.getLogger(classOf[StatusHolder].getName)
 
     // Publish status change
     // If this task is in Canceling state, it doesn't accept new status changes except the finished status.
-    if(force || !status.isInstanceOf[Status.Canceling] || !newStatus.isRunning) {
-      status = newStatus
-      publish(status)
+    val accepted = synchronized {
+      if(force || !status.isInstanceOf[Status.Canceling] || !newStatus.isRunning) {
+        status = newStatus
+        true
+      } else {
+        false
+      }
+    }
+    // Publish outside the lock to avoid a deadlock with cancel() holding StatusLock.
+    if(accepted) {
+      publish(newStatus)
     }
   }
 
