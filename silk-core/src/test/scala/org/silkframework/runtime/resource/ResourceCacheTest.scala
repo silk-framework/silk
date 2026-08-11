@@ -57,6 +57,26 @@ class ResourceCacheTest extends AnyFlatSpec with Matchers {
     resource.readCounter shouldBe 2
   }
 
+  it should "reload a resource without a modification time at most once per update timeout" in {
+    val resource = new TestResource() {
+      override def modificationTime: Option[Instant] = None
+    }
+    val cache = new TestResourceCache(resource, updateTimeout = 1000L)
+    resource.value = "test value"
+
+    // Repeated reads within the update timeout serve the cached value
+    for(_ <- 0 until 10) {
+      cache.value shouldBe "test value"
+    }
+    resource.readCounter shouldBe 1
+
+    // After the timeout the value is loaded again, since a change cannot be detected
+    Thread.sleep(1001L)
+    resource.value = "updated value"
+    cache.value shouldBe "updated value"
+    resource.readCounter shouldBe 2
+  }
+
   it should "retry the load after a failed update instead of serving the stale value" in {
     val resource = new TestResource()
     val cache = new TestResourceCache(resource, updateTimeout = 1000L)

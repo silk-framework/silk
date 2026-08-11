@@ -85,6 +85,8 @@ abstract class ResourceCache[T](protected val resource: Resource, updateTimeout:
             UpdateCheck(needsUpdate = false)
           }
         case None =>
+          // No modification time available: reload, but at most once per update timeout
+          timestamp = System.currentTimeMillis
           UpdateCheck(needsUpdate = true)
       }
     } else {

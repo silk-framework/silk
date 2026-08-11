@@ -11,6 +11,7 @@ import java.util.concurrent.ConcurrentHashMap
 import java.util.logging.{Level, Logger}
 import scala.collection.mutable
 import scala.jdk.CollectionConverters.ConcurrentMapHasAsScala
+import scala.util.control.NonFatal
 
 /**
   * Tasks are executed on a local machine.
@@ -92,16 +93,21 @@ case class LocalExecution(useLocalInternalDatasets: Boolean,
     this.shutdownHooks.remove(id)
   }
 
-  def executeShutdownHooks(): Unit ={
-    for((id, hook) <- this.shutdownHooks.asScala){
-      try{
-        hook()
-      }
-      catch{
-        case ex: Throwable => logger.log(Level.FINE, "Exception while executing an Execution shutdown hook.", ex)
+  def executeShutdownHooks(): Unit = {
+    // Remove each hook before running it and loop until none are left, so hooks run exactly once and concurrently registered hooks are never dropped.
+    while (!shutdownHooks.isEmpty) {
+      for ((id, _) <- shutdownHooks.asScala) {
+        val hook = shutdownHooks.remove(id)
+        if (hook != null) {
+          try {
+            hook()
+          } catch {
+            case NonFatal(ex) =>
+              logger.log(Level.WARNING, "Exception while executing an Execution shutdown hook.", ex)
+          }
+        }
       }
     }
-    this.shutdownHooks.clear()
   }
 }
 

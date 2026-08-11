@@ -412,6 +412,8 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
         case Some(firstEntity) if BulkResourceBasedDataset.isZip(firstEntity.file) && !fileEntities.hasNext =>
           // If there is only one file and it is a zip file, we can write it directly
           outputResource.writeResource(firstEntity.file)
+          resourceWritten = true
+          reportUpdater.increaseEntityCounter()
         case Some(firstEntity) =>
           // Otherwise we package all files into a zip file
           outputResource.write() { outputStream =>

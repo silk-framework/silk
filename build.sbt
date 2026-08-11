@@ -459,14 +459,6 @@ lazy val singlemachine = (project in file("silk-tools/silk-singlemachine"))
     libraryDependencies += "org.slf4j" % "slf4j-jdk14" % "2.0.18"
   )
 
-//lazy val mapreduce = (project in file("silk-tools/silk-mapreduce"))
-//  .dependsOn(core, plugins)
-//  .aggregate(core, plugins)
-//  .settings(commonSettings: _*)
-//  .settings(
-//    name := "Silk MapReduce"
-//  )
-
 //////////////////////////////////////////////////////////////////////////////
 // Root
 //////////////////////////////////////////////////////////////////////////////
