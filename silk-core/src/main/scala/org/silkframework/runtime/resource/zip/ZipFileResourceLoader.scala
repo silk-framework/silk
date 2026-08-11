@@ -20,14 +20,14 @@ case class ZipFileResourceLoader(zip: ZipFile, basePath: String) extends Resourc
     * Lists all available files at the given base path.
     */
   override def list: List[String] = {
-    entryNamesBelowBasePath(zip.entries.asScala.toList.filterNot(_.isDirectory)).filterNot(_.contains("/"))
+    entryNamesBelowBasePath(zip.entries.asScala.filterNot(_.isDirectory)).filterNot(_.contains("/")).toList
   }
 
   /**
     * Lists all available directories at the given base path.
     */
   override def listChildren: List[String] = {
-    entryNamesBelowBasePath(zip.entries.asScala.toList).filter(_.contains("/")).map(_.takeWhile(_ != '/')).distinct
+    entryNamesBelowBasePath(zip.entries.asScala).filter(_.contains("/")).map(_.takeWhile(_ != '/')).distinct.toList
   }
 
   /**
@@ -35,7 +35,7 @@ case class ZipFileResourceLoader(zip: ZipFile, basePath: String) extends Resourc
     * Matching on the base path including its separator makes sure that a sibling that merely shares the name prefix
     * (base path 'proj' vs. 'proj2/file') is not reported as content of this base path.
     */
-  private def entryNamesBelowBasePath(entries: List[ZipEntry]): List[String] = {
+  private def entryNamesBelowBasePath(entries: Iterator[ZipEntry]): Iterator[String] = {
     val normalizedBasePath = basePath.stripSuffix("/")
     if(normalizedBasePath.isEmpty) {
       entries.map(_.getName)

@@ -1,6 +1,5 @@
 package org.silkframework.cache
 
-import org.silkframework.config.{Blocking, RuntimeConfig}
 import org.silkframework.entity.Index
 import org.silkframework.util.FileUtils._
 
@@ -17,7 +16,4 @@ class FileEntityCacheTest extends EntityCacheTest {
       dir.deleteRecursive()
     }
   }
-
-  private def runtimeConfig(partitionSize: Int): RuntimeConfig =
-    RuntimeConfig(blocking = Blocking(isEnabled = false), partitionSize = partitionSize)
 }

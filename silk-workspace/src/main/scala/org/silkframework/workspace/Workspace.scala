@@ -206,13 +206,17 @@ class Workspace(val provider: WorkspaceProvider,
     project(name).cancelActivities()
     project(name).awaitActivities()
     provider.deleteProject(name)(readWriteUser)
-    repository.removeProjectResources(name)
+    // A resource deletion failure is rethrown only after the remaining cleanup, so the removed project cannot stay half-registered
+    val resourceRemoval = Try(repository.removeProjectResources(name))
     provider.removeExternalTaskLoadingErrors(name)
     removeProjectFromCache(name)
     for(task <- projectTasks) {
       cleanUpAfterTaskDeletion(name, task.id, task.data)
     }
     log.info(s"Removed project '$name'. " + userContext.logInfo)
+    for(ex <- resourceRemoval.failed.toOption) {
+      throw new RuntimeException(s"Project '$name' has been removed, but its resources could not be fully deleted: ${ex.getMessage}", ex)
+    }
   }
 
   private def removeProjectFromCache(name: Identifier): Unit = {

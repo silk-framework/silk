@@ -2,6 +2,7 @@ package org.silkframework.cache
 
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.must.Matchers
+import org.silkframework.config.{Blocking, RuntimeConfig}
 import org.silkframework.entity.paths.UntypedPath
 import org.silkframework.entity.{Entity, EntitySchema}
 import org.silkframework.util.Uri
@@ -18,6 +19,10 @@ trait EntityCacheTest extends AnyFlatSpec with Matchers {
 
   /** Creates a cache with the given partition size and blocking disabled, runs the test, then releases its resources. */
   protected def withCache(partitionSize: Int)(test: EntityCache => Unit): Unit
+
+  /** Runtime configuration for [[withCache]] implementations: given partition size, blocking disabled. */
+  protected def runtimeConfig(partitionSize: Int): RuntimeConfig =
+    RuntimeConfig(blocking = Blocking(isEnabled = false), partitionSize = partitionSize)
 
   it should "expose only completed partitions before close and the final partial partition after close" in withCache(2) { cache =>
     // Two full partitions plus a partition that is still being filled (5 entities, partition size 2).
