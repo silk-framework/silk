@@ -2,6 +2,7 @@ package org.silkframework.util
 
 
 import org.silkframework.config.Prefixes
+import org.silkframework.runtime.validation.ValidationException
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
@@ -17,6 +18,13 @@ class UriTest extends AnyFlatSpec with Matchers {
   it should "parse full URIs" in {
     Uri.parse("<http://example.org/entity1>").uri shouldBe "http://example.org/entity1"
     Uri.parse("http://example.org/entity1").uri shouldBe "http://example.org/entity1"
+  }
+
+  it should "reject URIs with an unterminated angle bracket" in {
+    // Used to silently return http://example.org/entity (last character cut off)
+    an[ValidationException] should be thrownBy Uri.parse("<http://example.org/entity1")
+    an[ValidationException] should be thrownBy Uri.parse("<")
+    an[ValidationException] should be thrownBy Uri.parse("<>x")
   }
 
   it should "parse prefix names" in {
@@ -36,6 +44,16 @@ class UriTest extends AnyFlatSpec with Matchers {
     Uri("urn:namespace:name").localName shouldBe Some("name")
     Uri("urn:namespace:name/child").localName shouldBe Some("child")
     Uri("http://example.org").localName shouldBe None
+  }
+
+  it should "url decode the local name" in {
+    Uri.urlDecodedLocalNameOfURI("http://example.org/caf%C3%A9") shouldBe "café"
+    Uri.urlDecodedLocalNameOfURI("http://example.org/with%20space") shouldBe "with space"
+    // '+' decodes to a space on purpose, since labels are encoded back into URIs with the matching form encoding
+    Uri.urlDecodedLocalNameOfURI("http://example.org/a+b") shouldBe "a b"
+    // A stray '%' is not a valid escape sequence, but must not fail the label extraction
+    Uri.urlDecodedLocalNameOfURI("http://example.org/50%") shouldBe "50%"
+    Uri.urlDecodedLocalNameOfURI("http://example.org/100%25") shouldBe "100%"
   }
 
   it should "extract the namespace" in {

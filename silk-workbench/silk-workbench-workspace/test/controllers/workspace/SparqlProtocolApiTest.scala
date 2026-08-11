@@ -223,6 +223,28 @@ class SparqlProtocolApiTest extends PlaySpec with IntegrationTestTrait with Sing
     error.getMessage.contains("text/turtle") mustBe true
   }
 
+  for(graphParameter <- Seq(SparqlProtocolApi.DEFAULT_GRAPH_URI, SparqlProtocolApi.NAMED_GRAPH_URI)) {
+
+    "should fail if a query specifies graphs via the protocol parameter " + graphParameter in {
+      val (query, _, _) = queries("simpleSelect")
+      val request = client
+        .url(s"$baseUrl/workspace/rdfdataset/$projectId/$filmDescriptions/sparql")
+        .addQueryStringParameters(("query", query), (graphParameter, "http://example.org/graph"))
+        .addHttpHeaders("Accept" -> SparqlProtocolApi.SPARQLJSONRESULT)
+      checkResponseExactStatusCode(request.get(), BAD_REQUEST)
+    }
+
+    "should fail if a form encoded query specifies graphs via the protocol parameter " + graphParameter in {
+      val (query, _, _) = queries("simpleSelect")
+      val request = client
+        .url(s"$baseUrl/workspace/rdfdataset/$projectId/$filmDescriptions/sparql")
+        .addHttpHeaders("Accept" -> SparqlProtocolApi.SPARQLJSONRESULT)
+        .addHttpHeaders("Content-Type" -> MimeTypes.FORM)
+      val body = "query=" + URLEncoder.encode(query, "UTF-8") + s"&$graphParameter=" + URLEncoder.encode("http://example.org/graph", "UTF-8")
+      checkResponseExactStatusCode(request.post[String](body), BAD_REQUEST)
+    }
+  }
+
   "should fail for unsupported query type" in {
     val query = "DESCRIBE <http://example.org/some/entity>"
     val request = client

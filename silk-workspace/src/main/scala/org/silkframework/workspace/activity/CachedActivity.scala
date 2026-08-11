@@ -88,14 +88,18 @@ trait CachedActivity[T] extends Activity[T] {
 
   private def update(context: ActivityContext[T], fullReload: Boolean)
                     (implicit userContext: UserContext): Unit = {
-    // Listen for value updates
-    var updated = false
-    val updateFunc = (value: T) => { updated = true }
+    // Listen for value updates. Subscribers are held weakly, so updateFunc must stay referenced until it is removed again.
+    val updated = new AtomicBoolean(false)
+    val updateFunc = (value: T) => { updated.set(true) }
     context.value.subscribe(updateFunc)
-    // Update cache
-    this.loadCache(context, fullReload)
+    try {
+      // Update cache
+      this.loadCache(context, fullReload)
+    } finally {
+      context.value.removeSubscription(updateFunc)
+    }
     // Persist value (if updated)
-    if (updated && persistent) {
+    if (updated.get() && persistent) {
       writeValue(context)
     }
   }

@@ -900,7 +900,8 @@ class TransformTaskApi @Inject() () extends InjectedController with UserContextA
             val currentRules = parentRule.operator.asInstanceOf[TransformRule].rules
             val currentOrder = currentRules.propertyRules.map(_.id.toString).toList
             val newOrder = json.as[JsArray].value.map(_.as[JsString].value).toList
-            if (newOrder.toSet == currentOrder.toSet) {
+            // Compared as sorted lists, so that a repeated id is rejected as well
+            if (newOrder.sorted == currentOrder.sorted) {
               val newPropertyRules =
                 for (id <- newOrder) yield {
                   parentRule.operator.children.find(_.id == id).get

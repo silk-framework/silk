@@ -303,16 +303,18 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
     executionReport.executionDone()
   }
 
-  /** Buffers queries to make prediction about how many queries will be executed.
+  /**
+   * Buffers queries to make a prediction about how many queries are still to be executed, while preserving their order.
    *
-   * @param bufferSize max size of queries that should be buffered
+   * @param queryBufferSize max number of queries that are buffered
+   * @param entities the queries to emit, in order
    */
-  case class SparqlQueryBuffer(queryBufferSize: Int, entities: CloseableIterator[String]) extends TraversableIterator[String] {
-    private val queryBuffer = new util.LinkedList[String]()
+  private case class SparqlQueryBuffer(queryBufferSize: Int, entities: CloseableIterator[String]) extends TraversableIterator[String] {
+    private val queryBuffer = new util.ArrayDeque[String]()
 
     override def foreach[U](f: String => U): Unit = {
       entities foreach { query =>
-        queryBuffer.push(query)
+        queryBuffer.add(query)
         if(queryBuffer.size() > queryBufferSize) {
           f(queryBuffer.remove())
         }
@@ -410,6 +412,8 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
         case Some(firstEntity) if BulkResourceBasedDataset.isZip(firstEntity.file) && !fileEntities.hasNext =>
           // If there is only one file and it is a zip file, we can write it directly
           outputResource.writeResource(firstEntity.file)
+          resourceWritten = true
+          reportUpdater.increaseEntityCounter()
         case Some(firstEntity) =>
           // Otherwise we package all files into a zip file
           outputResource.write() { outputStream =>

@@ -27,7 +27,8 @@ case class TemplateVariable(override val name: String,
   validate()
 
   private def validate(): Unit = {
-    if(!isAllowedChar(name.head, firstChar = true) || !name.tail.forall(isAllowedChar(_, firstChar = false))) {
+    // The emptiness check must come first, else name.head throws an index exception instead of the message below
+    if(name.isEmpty || !isAllowedChar(name.head, firstChar = true) || !name.tail.forall(isAllowedChar(_, firstChar = false))) {
       throw new BadUserInputException(s"Invalid variable name '$name'. " +
         "Variable names may only consist of uppercase and lowercase letters (A-Z , a-z), digits (0-9), and the underscore character ( _ ). " +
         "In addition, the first character of a variable name cannot be a digit")

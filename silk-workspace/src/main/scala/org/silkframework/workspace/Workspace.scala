@@ -201,21 +201,22 @@ class Workspace(val provider: WorkspaceProvider,
   def removeProject(name: Identifier)
                    (implicit userContext: UserContext): Unit = synchronized {
     initProjects()
-    // Cancel all project and task activities
-    project(name).activities.foreach(_.control.cancel())
     val projectTasks = project(name).allTasks
-    for(task <- projectTasks;
-        activity <- task.activities) {
-      activity.control.cancel()
-    }
+    // Cancel all project and task activities and wait for them, so that none of them writes to the project while it is deleted
+    project(name).cancelActivities()
+    project(name).awaitActivities()
     provider.deleteProject(name)(readWriteUser)
-    repository.removeProjectResources(name)
+    // A resource deletion failure is rethrown only after the remaining cleanup, so the removed project cannot stay half-registered
+    val resourceRemoval = Try(repository.removeProjectResources(name))
     provider.removeExternalTaskLoadingErrors(name)
     removeProjectFromCache(name)
     for(task <- projectTasks) {
       cleanUpAfterTaskDeletion(name, task.id, task.data)
     }
     log.info(s"Removed project '$name'. " + userContext.logInfo)
+    for(ex <- resourceRemoval.failed.toOption) {
+      throw new RuntimeException(s"Project '$name' has been removed, but its resources could not be fully deleted: ${ex.getMessage}", ex)
+    }
   }
 
   private def removeProjectFromCache(name: Identifier): Unit = {
@@ -329,8 +330,9 @@ class Workspace(val provider: WorkspaceProvider,
     requireAdminUser()
     initProjects()
 
-    // Stop all activities
-    for(project <- userProjects) { // Should not work directly on the cached projects
+    // Stop all activities. Cancel everything first, so that the projects stop concurrently instead of one after another.
+    val projects = userProjects // Should not work directly on the cached projects
+    for(project <- projects) {
       project.cancelActivities()
     }
     for(workspaceActivity <- activities) {
@@ -338,6 +340,9 @@ class Workspace(val provider: WorkspaceProvider,
     }
     for(workspaceActivity <- activities) {
       Try(workspaceActivity.control.waitUntilFinished())
+    }
+    for(project <- projects) {
+      project.awaitActivities()
     }
 
     // Refresh workspace provider
@@ -367,7 +372,11 @@ class Workspace(val provider: WorkspaceProvider,
   private def reloadProjectInternal(id: Identifier, throwError: Boolean = false)
                                    (implicit userContext: UserContext): Unit = synchronized {
     // remove project
-    Try(project(id).cancelActivities())
+    Try {
+      val oldProject = project(id)
+      oldProject.cancelActivities()
+      oldProject.awaitActivities()
+    }
     removeProjectFromCache(id)
     provider.readProject(id)(readWriteUser) match {
       case Some(projectConfig) =>
@@ -394,7 +403,12 @@ class Workspace(val provider: WorkspaceProvider,
   def clear()(implicit userContext: UserContext): Unit = {
     requireAdminUser()
     initProjects()
-    for(project <- userProjects) {
+    val projects = userProjects
+    // Cancel up front, so that the projects stop concurrently instead of one after another in removeProject
+    for(project <- projects) {
+      project.cancelActivities()
+    }
+    for(project <- projects) {
       removeProject(project.config.id)
     }
   }

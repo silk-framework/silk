@@ -1,6 +1,7 @@
 import { NodeContentProps, NodeDimensions } from "@eccenca/gui-elements/src/extensions/react-flow/nodes/NodeContent";
 import { PluginType, RuleOperatorType } from "@ducks/shared/typings";
 import { ValidIconName } from "@eccenca/gui-elements/src/components/Icon/canonicalIconNames";
+import { RelatedPlugin } from "@ducks/common/typings";
 import { IPreConfiguredRuleOperator } from "./view/sidebar/RuleEditorOperatorSidebar.typings";
 import { RuleEditorNodeParameterValue } from "./model/RuleEditorModel.typings";
 import { DistanceMeasureRange, IPropertyAutocomplete } from "@ducks/common/typings";
@@ -110,6 +111,8 @@ export interface IRuleOperator extends IRuleOperatorBase {
     inputsCanBeSwitched: boolean;
     /** Optional markdown description that would be visible via an open modal */
     markdownDocumentation?: string;
+    /** Plugins related to this operator. */
+    relatedPlugins?: RelatedPlugin[];
 }
 
 /** A single node in the rule operator tree. This is displayed in the editor canvas. */
@@ -132,6 +135,8 @@ export interface IRuleOperatorNode extends IRuleOperatorBase {
     inputsCanBeSwitched: boolean;
     /** Optional markdown description that would be visible via an open modal */
     markdownDocumentation?: string;
+    /** Plugins related to this operator. */
+    relatedPlugins?: RelatedPlugin[];
 }
 
 /** Minimal node shape needed for validation and rule-tree traversal helpers. */

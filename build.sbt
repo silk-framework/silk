@@ -7,7 +7,7 @@ import java.io.FileWriter
 // Common Settings
 //////////////////////////////////////////////////////////////////////////////
 
-val NEXT_VERSION = "3.11.0"
+val NEXT_VERSION = "v26.2.0"
 val silkVersion = {
   val version = sys.env.getOrElse("GIT_DESCRIBE", NEXT_VERSION + "-SNAPSHOT")
   val configPath = "silk-workbench/silk-workbench-core/conf/reference.conf"
@@ -458,14 +458,6 @@ lazy val singlemachine = (project in file("silk-tools/silk-singlemachine"))
     name := "Silk SingleMachine",
     libraryDependencies += "org.slf4j" % "slf4j-jdk14" % "2.0.18"
   )
-
-//lazy val mapreduce = (project in file("silk-tools/silk-mapreduce"))
-//  .dependsOn(core, plugins)
-//  .aggregate(core, plugins)
-//  .settings(commonSettings: _*)
-//  .settings(
-//    name := "Silk MapReduce"
-//  )
 
 //////////////////////////////////////////////////////////////////////////////
 // Root

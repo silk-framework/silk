@@ -288,19 +288,19 @@ class ReportsApi @Inject() (implicit system: ActorSystem, mat: Materializer) ext
                                       schema = new Schema(implementation = classOf[String])
                                     )
                                     taskId: String): WebSocket = {
-    implicit val userContext: UserContext = UserContext.Empty
-    val currentReport = retrieveCurrentReport(projectId, taskId)
+    AkkaUtils.createWebSocket { implicit userContext =>
+      val currentReport = retrieveCurrentReport(projectId, taskId)
 
-    var previousVersion = -1
-    val source = AkkaUtils.createSource(currentReport).map { value =>
-      val updates =
-        for(taskReport <- value.report.currentReports() if taskReport.version > previousVersion) yield {
-          ReportSummary(taskReport, value.report.retrieveReports(taskReport.nodeId))
-        }
-      previousVersion = value.report.version
-      Json.toJson(ReportUpdates(System.currentTimeMillis(), updates))
+      var previousVersion = -1
+      AkkaUtils.createSource(currentReport).map { value =>
+        val updates =
+          for(taskReport <- value.report.currentReports() if taskReport.version > previousVersion) yield {
+            ReportSummary(taskReport, value.report.retrieveReports(taskReport.nodeId))
+          }
+        previousVersion = value.report.version
+        Json.toJson(ReportUpdates(System.currentTimeMillis(), updates))
+      }
     }
-    AkkaUtils.createWebSocket(source)
   }
 
   private def retrieveCurrentReport(projectId: String, taskId: String)(implicit userContext: UserContext): Observable[WorkflowExecutionReportWithProvenance] = {

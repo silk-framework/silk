@@ -3,7 +3,6 @@ package org.silkframework.runtime.serialization
 import org.silkframework.runtime.plugin.AnyPlugin
 import org.silkframework.runtime.plugin.annotations.PluginType
 
-import scala.collection.mutable
 import scala.reflect.ClassTag
 
 /**
@@ -54,25 +53,4 @@ abstract class SerializationFormat[T: ClassTag, U: ClassTag] extends AnyPlugin w
     * Read Serialization format from string
     */
   def parse(value: String, mimeType: String): U
-
-  // register the new serializer
-  SerializationFormat.registerSerializationFormat(this)()
-}
-
-object SerializationFormat{
-
-  /* Serializer Registry */
-
-  private val SerializerRegistry = new mutable.HashMap[(ClassTag[_], ClassTag[_]), SerializationFormat[_, _]]
-
-  def registerSerializationFormat(sf: SerializationFormat[_, _])(): Unit ={
-    //add entry for each mime type
-    SerializerRegistry.put((ClassTag(sf.valueType), ClassTag(sf.serializedType)), sf)
-  }
-
-  def getSerializationFormat[Typ, Ser](implicit typTag: ClassTag[_], serTag: ClassTag[_]): Option[SerializationFormat[Typ, Ser]] ={
-    SerializerRegistry.get((typTag, serTag)).asInstanceOf[Option[SerializationFormat[Typ, Ser]]]
-  }
-
-  def listAllSerializers: List[SerializationFormat[_, _]] = SerializerRegistry.values.toList.distinct
 }
