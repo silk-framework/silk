@@ -57,7 +57,7 @@ class BulkDataSource(bulkContainerName: String,
   private def mergePaths[T, U](dataSourcePathFn: DataSource => Iterable[T],
                                indexFn: T => U): Iterable[T] = {
     val entrySet = new mutable.HashSet[U]()
-    var elems = Seq[T]()
+    val elems = mutable.ArrayBuffer[T]()
     sources().use {_.foreach { source =>
       handleSourceError(source) { dataSource =>
         for (elem <- dataSourcePathFn(dataSource)) {
@@ -65,12 +65,12 @@ class BulkDataSource(bulkContainerName: String,
           val valueToIndex = indexFn(elem)
           if (!entrySet.contains(valueToIndex)) {
             entrySet.add(valueToIndex)
-            elems = elems :+ elem
+            elems += elem
           }
         }
       }
     }}
-    elems
+    elems.toSeq
   }
 
   // Report errors from a data source that happen inside the given block with useful information
