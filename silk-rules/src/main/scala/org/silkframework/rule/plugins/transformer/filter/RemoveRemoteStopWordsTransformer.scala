@@ -36,6 +36,9 @@ case class RemoveRemoteStopWordsTransformer(@Param(value = "URL of the stop word
                                             @Param(value = "RegEx for detecting words") separator: String = "[\\s-]+")
   extends RemoveStopWords(separator, Set.empty) {
 
+  // Malformed URLs fail at construction, so rule validation catches typos without hitting the network.
+  RemoveRemoteStopWordsTransformer.validateUrl(stopWordListUrl)
+
   // Deferred until the first evaluation, so that instantiating the plugin (deserialization, validation) does not block on the network.
   override protected def loadStopWords(): Set[String] = RemoveRemoteStopWordsTransformer.loadStopWords(stopWordListUrl)
 }
@@ -46,6 +49,15 @@ object RemoveRemoteStopWordsTransformer {
   private val defaultStopWordListUrl = "https://raw.githubusercontent.com/stopwords-iso/stopwords-en/refs/heads/master/stopwords-en.txt"
 
   private val timeoutMs = 10000
+
+  private def validateUrl(stopWordListUrl: String): Unit = {
+    try {
+      new URI(stopWordListUrl).toURL
+    } catch {
+      case NonFatal(ex) =>
+        throw new ValidationException(s"Invalid stop word list URL '$stopWordListUrl': ${ex.getMessage}", ex)
+    }
+  }
 
   private def loadStopWords(stopWordListUrl: String): Set[String] = {
     try {

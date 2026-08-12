@@ -30,6 +30,20 @@ class RemoveRemoteStopWordsTransformerTest extends AnyFlatSpec with Matchers wit
     }
   }
 
+  "RemoveRemoteStopWordsTransformer" should "not re-attempt a failed stop word list download on every evaluation" in {
+    val transformer = RemoveRemoteStopWordsTransformer("file:///nonexistent-stop-word-list.txt")
+    val firstException = intercept[ValidationException](transformer.evaluate("some value"))
+    // The cached failure is rethrown, so the same instance proves that no new download was attempted.
+    val secondException = intercept[ValidationException](transformer.evaluate("another value"))
+    secondException should be theSameInstanceAs firstException
+  }
+
+  "RemoveRemoteStopWordsTransformer" should "reject a malformed stop word list URL at construction time" in {
+    intercept[ValidationException] {
+      RemoveRemoteStopWordsTransformer("not a valid url")
+    }
+  }
+
   "RemoveRemoteStopWordsTransformer" should "be case insensitive" in {
     val transformer = RemoveRemoteStopWordsTransformer()
     transformer.apply(Seq(Seq("To be or not to be", "that is the question"))).map(_.trim) should
