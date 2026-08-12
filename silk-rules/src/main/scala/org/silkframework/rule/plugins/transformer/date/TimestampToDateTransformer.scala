@@ -18,7 +18,7 @@ package org.silkframework.rule.plugins.transformer.date
 
 import org.silkframework.rule.annotations.{TransformExample, TransformExamples}
 import java.text.SimpleDateFormat
-import java.util.Date
+import java.util.{Date, Locale, TimeZone}
 import org.silkframework.rule.input.SimpleTransformer
 import org.silkframework.runtime.plugin.annotations.{Param, Plugin, PluginReference}
 
@@ -59,10 +59,16 @@ import java.time.Instant
     parameters = Array("format", "yyyy-MM-dd", "unit", "seconds"),
     input1 = Array("1499040000"),
     output = Array("2017-07-03")
+  ),
+  new TransformExample(
+    description = "Custom formats are rendered in UTC, independently of the server timezone.",
+    parameters = Array("format", "yyyy-MM-dd HH:mm"),
+    input1 = Array("0"),
+    output = Array("1970-01-01 00:00")
   )
 ))
 case class TimestampToDateTransformer(
-  @Param("Custom output format (e.g., 'yyyy-MM-dd'). If left empty, a full xsd:dateTime (UTC) is returned.")
+  @Param("Custom output format (e.g., 'yyyy-MM-dd'), rendered in UTC. If left empty, a full xsd:dateTime (UTC) is returned.")
   format: String = "",
   unit: DateUnit = DateUnit.milliseconds
 ) extends SimpleTransformer {
@@ -78,7 +84,10 @@ case class TimestampToDateTransformer(
     if(format.trim.isEmpty) {
       None
     } else {
-      Some(new SimpleDateFormat(format))
+      // Format in UTC with a fixed locale, so the output does not depend on the server configuration.
+      val df = new SimpleDateFormat(format, Locale.ENGLISH)
+      df.setTimeZone(TimeZone.getTimeZone("UTC"))
+      Some(df)
     }
   }
 
