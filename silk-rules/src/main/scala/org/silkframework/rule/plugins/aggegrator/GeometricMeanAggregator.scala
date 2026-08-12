@@ -93,7 +93,7 @@ case class GeometricMeanAggregator() extends SimpleAggregator {
       }
 
       if (minScore < 0.0) {
-        // A negative score is a definite mismatch, so the result must be negative too instead of a link-generating 0.
+        // A definite mismatch must stay negative instead of producing a link-generating 0.
         SimilarityScore(minScore)
       } else {
         SimilarityScore(pow(weightedProduct, 1.0 / sumWeights))

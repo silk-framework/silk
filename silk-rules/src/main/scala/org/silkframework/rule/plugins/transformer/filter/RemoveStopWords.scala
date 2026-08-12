@@ -24,7 +24,7 @@ class RemoveStopWords(@Param(value = "RegEx for detecting words") separator: Str
   protected def loadStopWords(): Set[String] = stopWords
 
   // The set is invariant, so it is lower-cased only once instead of once per word.
-  // The outcome is cached as a Try, so a failing deferred load is not re-attempted on every evaluation.
+  // Failures are cached too, so a failing load is loud but cannot stall executions with per-value retries.
   @transient private lazy val lowerCaseStopWords: Try[Set[String]] = Try(loadStopWords().map(_.toLowerCase))
 
   override def evaluate(value: String): String = {
