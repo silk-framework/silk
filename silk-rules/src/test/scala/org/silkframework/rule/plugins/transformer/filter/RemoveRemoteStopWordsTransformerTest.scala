@@ -1,5 +1,6 @@
 package org.silkframework.rule.plugins.transformer.filter
 
+import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.{MockServerTestTrait, ServedContent}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
@@ -18,6 +19,14 @@ class RemoveRemoteStopWordsTransformerTest extends AnyFlatSpec with Matchers wit
     )) { port =>
       val transformer = RemoveRemoteStopWordsTransformer(s"http://localhost:$port/stopwords.txt")
       transformer.apply(Seq(Seq("the tree is big"))).map(_.trim) should equal(Seq("tree big"))
+    }
+  }
+
+  "RemoveRemoteStopWordsTransformer" should "not access the URL at construction time and report a clear error on evaluation" in {
+    // Construction must not throw, although the stop word list cannot be loaded.
+    val transformer = RemoveRemoteStopWordsTransformer("file:///nonexistent-stop-word-list.txt")
+    intercept[ValidationException] {
+      transformer.evaluate("some value")
     }
   }
 

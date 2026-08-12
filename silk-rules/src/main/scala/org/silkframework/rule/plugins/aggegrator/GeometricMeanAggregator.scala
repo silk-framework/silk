@@ -60,6 +60,11 @@ import scala.math._
     description = "Missing scores always lead to an output of none.",
     inputs = Array(-1.0, Double.NaN, 1.0),
     output = Double.NaN
+  ),
+  new AggregatorExample(
+    description = "Negative scores are clamped to 0, since the geometric mean is undefined for negative values.",
+    inputs = Array(-1.0, 1.0),
+    output = 0.0
   )
 ))
 case class GeometricMeanAggregator() extends SimpleAggregator {
@@ -73,7 +78,8 @@ case class GeometricMeanAggregator() extends SimpleAggregator {
         score match {
           case Some(score) =>
             sumWeights += weight
-            weightedProduct *= pow(score, weight)
+            // Negative scores are clamped to 0: the geometric mean is undefined for negative values and would yield NaN.
+            weightedProduct *= pow(max(score, 0.0), weight)
           case None =>
             return SimilarityScore.none
         }

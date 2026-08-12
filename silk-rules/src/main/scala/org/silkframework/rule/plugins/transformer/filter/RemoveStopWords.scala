@@ -19,9 +19,15 @@ class RemoveStopWords(@Param(value = "RegEx for detecting words") separator: Str
   extends SimpleTransformer {
   private val regex: Regex = separator.r
 
+  /** The stop words to remove. Subclasses may override this to defer expensive loading until the first evaluation. */
+  protected def loadStopWords(): Set[String] = stopWords
+
+  // The set is invariant, so it is lower-cased only once instead of once per word.
+  @transient private lazy val lowerCaseStopWords: Set[String] = loadStopWords().map(_.toLowerCase)
+
   override def evaluate(value: String): String = {
     val result = new StringBuilder
-    for(word <- regex.split(value) if !stopWords.map(_.toLowerCase).contains(word.toLowerCase)) {
+    for(word <- regex.split(value) if !lowerCaseStopWords.contains(word.toLowerCase)) {
       result.append(word.toLowerCase)
       result.append(" ")
     }

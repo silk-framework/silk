@@ -3,8 +3,11 @@ package org.silkframework.rule.plugins.transformer.filter
 import org.silkframework.rule.annotations.{TransformExample, TransformExamples}
 import org.silkframework.rule.plugins.transformer.replace.RegexReplaceTransformer
 import org.silkframework.runtime.plugin.annotations.{Param, Plugin, PluginReference}
+import org.silkframework.runtime.validation.ValidationException
 
-import scala.io.Source
+import java.net.URI
+import scala.io.{Codec, Source}
+import scala.util.control.NonFatal
 
 @Plugin(
   id = RemoveRemoteStopWordsTransformer.pluginId,
@@ -31,19 +34,33 @@ import scala.io.Source
 ))
 case class RemoveRemoteStopWordsTransformer(@Param(value = "URL of the stop word list") stopWordListUrl: String = RemoveRemoteStopWordsTransformer.defaultStopWordListUrl,
                                             @Param(value = "RegEx for detecting words") separator: String = "[\\s-]+")
-  extends RemoveStopWords(separator, RemoveRemoteStopWordsTransformer.loadStopWords(stopWordListUrl))
+  extends RemoveStopWords(separator, Set.empty) {
+
+  // Deferred until the first evaluation, so that instantiating the plugin (deserialization, validation) does not block on the network.
+  override protected def loadStopWords(): Set[String] = RemoveRemoteStopWordsTransformer.loadStopWords(stopWordListUrl)
+}
 
 object RemoveRemoteStopWordsTransformer {
   final val pluginId = "removeRemoteStopWords"
 
   private val defaultStopWordListUrl = "https://raw.githubusercontent.com/stopwords-iso/stopwords-en/refs/heads/master/stopwords-en.txt"
 
+  private val timeoutMs = 10000
+
   private def loadStopWords(stopWordListUrl: String): Set[String] = {
-    val html = Source.fromURL(stopWordListUrl)
     try {
-      html.getLines().toSet
-    } finally {
-      html.close()
+      val connection = new URI(stopWordListUrl).toURL.openConnection()
+      connection.setConnectTimeout(timeoutMs)
+      connection.setReadTimeout(timeoutMs)
+      val source = Source.fromInputStream(connection.getInputStream)(Codec.UTF8)
+      try {
+        source.getLines().toSet
+      } finally {
+        source.close()
+      }
+    } catch {
+      case NonFatal(ex) =>
+        throw new ValidationException(s"Could not load the stop word list from '$stopWordListUrl': ${ex.getMessage}", ex)
     }
   }
 }
