@@ -21,6 +21,8 @@ import {
 import { useTranslation } from "react-i18next";
 import { PluginDocumentation } from "./PluginDocumentation";
 import { IPluginOverview } from "@ducks/common/typings";
+import { RuleEditorUiContext } from "../RuleEditor/contexts/RuleEditorUiContext";
+import { RuleEditorBaseModal } from "../RuleEditor/view/components/RuleEditorBaseModal";
 
 interface PluginDocumentationModalProps {
     documentationToShow: PluginDocumentation;
@@ -60,6 +62,7 @@ export const PluginDocumentationModal = ({
     onSwitchToRelatedPlugin,
     size = "large",
 }: PluginDocumentationModalProps) => {
+    const ruleEditorUiContext = React.useContext(RuleEditorUiContext);
     const [initialized, setInitialized] = React.useState(false);
     const [shrinkRelatedPlugins, setShrinkRelatedPlugins] = React.useState<string | null>(
         localStorage.getItem("shrinkRelatedPlugins"),
@@ -117,8 +120,14 @@ export const PluginDocumentationModal = ({
         }
     }, [documentationToShow, initialized]);
 
+    // decide component usage on context
+    let DialogComponent = SimpleDialog;
+    if (ruleEditorUiContext.reactFlowInstance) {
+        DialogComponent = RuleEditorBaseModal;
+    }
+
     return (
-        <SimpleDialog
+        <DialogComponent
             data-test-id={testId}
             isOpen
             showFullScreenToggler={true}
@@ -202,6 +211,6 @@ export const PluginDocumentationModal = ({
             <Markdown allowHtml>
                 {documentationToShow.markdownDocumentation || documentationToShow.description || ""}
             </Markdown>
-        </SimpleDialog>
+        </DialogComponent>
     );
 };

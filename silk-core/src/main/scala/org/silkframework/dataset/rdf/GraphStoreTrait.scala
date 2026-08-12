@@ -180,13 +180,29 @@ case class ConnectionClosingOutputStream(connection: HttpURLConnection,
   @volatile
   private var disconnected = false
 
+  @volatile
+  private var initialized = false
+
   private lazy val outputStream = {
     connection.connect()
+    initialized = true
     new BufferedOutputStream(connection.getOutputStream)
   }
 
   override def write(i: Int): Unit = {
     outputStream.write(i)
+  }
+
+  // Write whole chunks instead of the single-byte default, which forwards every byte through a virtual call
+  override def write(b: Array[Byte], off: Int, len: Int): Unit = {
+    outputStream.write(b, off, len)
+  }
+
+  override def flush(): Unit = {
+    // Only flush written data; flushing must not open the connection on its own
+    if (initialized) {
+      outputStream.flush()
+    }
   }
 
   override def close(): Unit = {
@@ -344,6 +360,18 @@ case class GraphStoreUploadOutputStream(fileUploadGraphStore: GraphStoreFileUplo
 
   override def write(i: Int): Unit = {
     outputStream.write(i)
+  }
+
+  // Write whole chunks instead of the single-byte default, which forwards every byte through a virtual call
+  override def write(b: Array[Byte], off: Int, len: Int): Unit = {
+    outputStream.write(b, off, len)
+  }
+
+  override def flush(): Unit = {
+    // Only flush written data; flushing must not create the temp file on its own
+    if (initialized) {
+      outputStream.flush()
+    }
   }
 
   override def close(): Unit = {

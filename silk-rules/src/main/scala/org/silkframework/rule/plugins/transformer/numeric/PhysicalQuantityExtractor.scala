@@ -51,7 +51,9 @@ case class PhysicalQuantityExtractor(@Param("The symbol of the dimension, e.g., 
     "G" -> 1000000000.0
   )
 
-  private val numberParser = NumberFormat.getInstance(Locale.forLanguageTag(numberFormat))
+  // NumberFormat is not thread-safe, so each thread gets its own instance.
+  @transient private lazy val numberParser: ThreadLocal[NumberFormat] =
+    ThreadLocal.withInitial(() => NumberFormat.getInstance(Locale.forLanguageTag(numberFormat)))
 
   private val filterRegex = if(filter.nonEmpty) Some(("(?i)" + filter).r) else None
 
@@ -72,7 +74,7 @@ case class PhysicalQuantityExtractor(@Param("The symbol of the dimension, e.g., 
       return None
 
     for(matches <- findMatch(value)) yield {
-      val number = numberParser.parse(matches.group(1)).doubleValue()
+      val number = numberParser.get().parse(matches.group(1)).doubleValue()
       val factor = unitPrefixes.getOrElse(matches.group(2), 1.0)
       (number * factor).toString
     }

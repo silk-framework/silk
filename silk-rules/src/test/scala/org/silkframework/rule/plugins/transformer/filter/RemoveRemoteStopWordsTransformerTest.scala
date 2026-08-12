@@ -1,5 +1,6 @@
 package org.silkframework.rule.plugins.transformer.filter
 
+import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.{MockServerTestTrait, ServedContent}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
@@ -18,6 +19,28 @@ class RemoveRemoteStopWordsTransformerTest extends AnyFlatSpec with Matchers wit
     )) { port =>
       val transformer = RemoveRemoteStopWordsTransformer(s"http://localhost:$port/stopwords.txt")
       transformer.apply(Seq(Seq("the tree is big"))).map(_.trim) should equal(Seq("tree big"))
+    }
+  }
+
+  "RemoveRemoteStopWordsTransformer" should "not access the URL at construction time and report a clear error on evaluation" in {
+    // Construction must not throw, although the stop word list cannot be loaded.
+    val transformer = RemoveRemoteStopWordsTransformer("file:///nonexistent-stop-word-list.txt")
+    intercept[ValidationException] {
+      transformer.evaluate("some value")
+    }
+  }
+
+  "RemoveRemoteStopWordsTransformer" should "not re-attempt a failed stop word list download on every evaluation" in {
+    val transformer = RemoveRemoteStopWordsTransformer("file:///nonexistent-stop-word-list.txt")
+    val firstException = intercept[ValidationException](transformer.evaluate("some value"))
+    // The cached failure is rethrown, so the same instance proves that no new download was attempted.
+    val secondException = intercept[ValidationException](transformer.evaluate("another value"))
+    secondException should be theSameInstanceAs firstException
+  }
+
+  "RemoveRemoteStopWordsTransformer" should "reject a malformed stop word list URL at construction time" in {
+    intercept[ValidationException] {
+      RemoveRemoteStopWordsTransformer("not a valid url")
     }
   }
 

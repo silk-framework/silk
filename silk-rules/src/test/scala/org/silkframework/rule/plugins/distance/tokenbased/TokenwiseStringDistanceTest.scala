@@ -105,6 +105,22 @@ class TokenwiseStringDistanceTest extends PluginTest {
     myMetric.evaluate("Hotel California", "California", 1.0) should equal(0.0)
   }
 
+  "TokenwiseStringDistance" should "collect consistent incremental IDF weights when indexing from multiple threads" in {
+    val myMetric = new TokenwiseStringDistance(useIncrementalIdfWeights = true)
+    val barrier = new java.util.concurrent.CyclicBarrier(8)
+    val threads = for(_ <- 0 until 8) yield new Thread(() => {
+      barrier.await()
+      for(_ <- 1 to 20000) {
+        myMetric.indexValue("common", limit = 0.0, sourceOrTarget = true)
+      }
+    })
+    threads.foreach(_.start())
+    threads.foreach(_.join())
+    // The token occurs in every document, so its IDF weight must be exactly log(1) = 0.
+    // Lost updates would make the document count and the token frequency drift apart.
+    myMetric.getWeight("common") shouldBe 0.0
+  }
+
   "TokenwiseStringDistance" should "return the same value as JaccardSimilarity with the right settings" in {
     val myMetric = new TokenwiseStringDistance(metricName = "levenshtein", stopwords = "", nonStopwordWeight = 1.0, stopwordWeight = 1.0, matchThreshold = 1.0)
     val jaccardMetric = new JaccardDistance()

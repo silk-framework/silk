@@ -17,6 +17,10 @@ class UriPatternTest extends AnyFlatSpec with Matchers {
     testRoundtrip("{uri}suffix")
   }
 
+  it should "parse a bare whole-value pattern" in {
+    testRoundtrip("{}")
+  }
+
   def testRoundtrip(uriPattern: String): Unit = {
     implicit val prefixes: Prefixes = Prefixes.empty
     val input = UriPattern.parse(uriPattern)

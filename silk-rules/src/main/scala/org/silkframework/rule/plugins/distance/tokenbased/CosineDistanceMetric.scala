@@ -1,6 +1,7 @@
 package org.silkframework.rule.plugins.distance.tokenbased
 
 import org.silkframework.entity.Index
+import org.silkframework.rule.annotations.{DistanceMeasureExample, DistanceMeasureExamples}
 import org.silkframework.rule.similarity.{NormalizedDistanceMeasure, SingleValueDistanceMeasure, TokenBasedDistanceMeasure}
 import org.silkframework.runtime.plugin.annotations.Plugin
 
@@ -21,15 +22,48 @@ import org.silkframework.runtime.plugin.annotations.Plugin
   label = "Cosine",
   description = "Cosine Distance Measure."
 )
+@DistanceMeasureExamples(Array(
+  new DistanceMeasureExample(
+    description = "Returns 0 for identical unit vectors.",
+    input1 = Array("a 1.0"),
+    input2 = Array("a 1.0"),
+    output = 0.0
+  ),
+  new DistanceMeasureExample(
+    description = "Returns 1 minus the dot product of the two vectors.",
+    input1 = Array("a 0.8;b 0.6"),
+    input2 = Array("a 0.5"),
+    output = 0.6
+  ),
+  new DistanceMeasureExample(
+    description = "Returns 1 for vectors that share no terms.",
+    input1 = Array("a 1.0"),
+    input2 = Array("b 1.0"),
+    output = 1.0
+  ),
+  new DistanceMeasureExample(
+    description = "Values that are not shaped as 'term score' do not match, instead of failing the linking execution.",
+    input1 = Array("not a vector"),
+    input2 = Array("a 1.0"),
+    output = 1.0
+  ),
+  new DistanceMeasureExample(
+    description = "Terms with a non-finite score are ignored.",
+    input1 = Array("a NaN"),
+    input2 = Array("a 1.0"),
+    output = 1.0
+  )
+))
 case class CosineDistanceMetric(k: Int = 3) extends SingleValueDistanceMeasure with TokenBasedDistanceMeasure with NormalizedDistanceMeasure {
   override def evaluate(str1: String, str2: String, limit: Double): Double = {
     val items1 = str1.split(";")
     val items2 = str2.split(";")
-    val v1Map = items1.map(getValues(_)).toMap
+    val v1Map = items1.flatMap(getValues).toMap
     var similarity = 0.0
-    for((entity, weight) <- items2.map(getValues(_))) {
-      if(v1Map.contains(entity))
-        similarity += weight*v1Map.get(entity).get
+    for((entity, weight) <- items2.flatMap(getValues)) {
+      for(weight1 <- v1Map.get(entity)) {
+        similarity += weight * weight1
+      }
     }
 
     val distance = 1 - similarity
@@ -46,13 +80,19 @@ case class CosineDistanceMetric(k: Int = 3) extends SingleValueDistanceMeasure w
     if(str.trim()=="")
       return Index.empty
     val values = str.split(";")
-    val list = values.map(getValues(_)).toSeq
+    val list = values.flatMap(getValues).toSeq
     val topK = list.sortWith(_._2>_._2).take(k)
-    Index.oneDim(topK.map(_.hashCode()).toSet)
+    // Hash only the term: evaluate matches terms regardless of their weights, so the index must too.
+    Index.oneDim(topK.map(_._1.hashCode).toSet)
   }
 
-  private def getValues(item: String): (String, Double) = {
+  // Items that are not shaped as "term score" or have a non-finite score are ignored instead of failing the whole linking run.
+  private def getValues(item: String): Option[(String, Double)] = {
     val values = item.split(" ")
-    return (values(0), values(1).toDouble)
+    if(values.length < 2) {
+      None
+    } else {
+      values(1).toDoubleOption.filter(_.isFinite).map(score => (values(0), score))
+    }
   }
 }

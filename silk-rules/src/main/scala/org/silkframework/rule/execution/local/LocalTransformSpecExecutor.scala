@@ -106,7 +106,8 @@ class LocalTransformSpecExecutor extends Executor[TransformSpec, LocalExecution]
         matchingTransformRules = Some(containerRules)
         inputTable = currentInputTable
       } else {
-        for(objectMapping @ ObjectMapping(_, _, _, childRules, _, _) <- containerRules) {
+        for(objectMapping @ ObjectMapping(_, _, _, childRules, _, _) <- containerRules
+            if childRules.typeRules.nonEmpty || childRules.propertyRules.nonEmpty) {
           findRecursive(objectMapping.label(), updateChildRules(childRules, objectMapping))
         }
       }

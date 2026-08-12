@@ -17,7 +17,7 @@ import PrefixRow from "./PrefixRow";
 import DeleteModal from "../../../shared/modals/DeleteModal";
 import PrefixNew from "./PrefixNew";
 import DataList from "../../../shared/Datalist";
-import { Trans, useTranslation } from "react-i18next";
+import { useTranslation } from "react-i18next";
 import { requestChangePrefixes, requestRemoveProjectPrefix } from "@ducks/workspace/requests";
 import { ErrorResponse } from "../../../../services/fetch/responseInterceptor";
 import { useModalError } from "../../../../hooks/useModalError";
@@ -170,13 +170,6 @@ const PrefixesDialog = ({
         [existingProjectPrefixes, workspacePrefixes],
     );
 
-    const workspaceVocabUrl = React.useMemo(() => {
-        if (!dmBaseUrl) {
-            return undefined;
-        }
-        return `${dmBaseUrl.replace(/\/+$/, "")}/vocab`;
-    }, [dmBaseUrl]);
-
     const jumpToProjectPrefix = React.useCallback((prefixName: string) => {
         const targetRow = document.getElementById(projectPrefixRowId(prefixName));
         setHighlightedProjectPrefix(prefixName);
@@ -186,16 +179,14 @@ const PrefixesDialog = ({
         });
     }, []);
 
-    const workspaceSectionDescription = workspaceVocabUrl ? (
+    const workspaceSectionDescription = (
         <p>
-            <Trans
-                i18nKey="PrefixDialog.workspacePrefixesDescription"
-                components={{
-                    exploreLink: <a href={workspaceVocabUrl} rel="noreferrer" target="_blank" />,
-                }}
-            />
+            {t(
+                "PrefixDialog.workspacePrefixesDescription",
+                "These prefixes are provided by Explore. Manage them by installing packages or create / import ontology graphs; they are read-only here.",
+            )}
         </p>
-    ) : null;
+    );
     const defaultSectionDescription = (
         <p>
             {t(
@@ -207,7 +198,7 @@ const PrefixesDialog = ({
 
     const exploreEmptyMessage = t(
         "PrefixDialog.explorePrefixesEmpty",
-        "No Explore prefixes are currently registered. Manage them in Explore's vocabulary module.",
+        "No Explore prefixes are currently registered. Manage them in Explore by installing packages or creating / importing ontology graphs.",
     );
 
     return (
@@ -274,7 +265,7 @@ const PrefixesDialog = ({
                         </DataList>
                     </Section>
                     <Spacing />
-                    {workspaceVocabUrl && (
+                    {dmBaseUrl && (
                         <Section>
                             <SectionHeader>
                                 <TitleSubsection>

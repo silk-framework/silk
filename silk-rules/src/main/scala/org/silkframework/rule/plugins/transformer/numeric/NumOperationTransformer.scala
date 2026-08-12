@@ -79,10 +79,11 @@ import org.silkframework.util.StringUtils.DoubleLiteral
     output = Array()
   ),
   new TransformExample(
+    description = "If any input is empty, no output is generated.",
     parameters = Array("operator", "*"),
     input1 = Array("1"),
     input2 = Array(),
-    output = Array("1.0")
+    output = Array()
   ),
   new TransformExample(
     parameters = Array("operator", "+"),
@@ -96,6 +97,13 @@ import org.silkframework.util.StringUtils.DoubleLiteral
     input2 = Array("0"),
     output = Array("Infinity")
   ),
+  new TransformExample(
+    description = "If all inputs are empty, no output is generated.",
+    parameters = Array("operator", "+"),
+    input1 = Array(),
+    input2 = Array(),
+    output = Array()
+  ),
 ))
 case class NumOperationTransformer(
   @Param("The operator to be applied to all values. One of `+`, `-`, `*`, `/`")
@@ -105,8 +113,14 @@ case class NumOperationTransformer(
   require(Set("+", "-", "*", "/") contains operator, "Operator must be one of '+', '-', '*', '/'")
 
   def apply(values: Seq[Seq[String]]): Seq[String] = {
-    val operands = values.flatMap(_.map(parse))
-    Seq(operands.reduce(operation).toString)
+    // All values are parsed first, so malformed numbers are reported even if another input is empty.
+    val operands = values.map(_.map(parse))
+    // The operation is undefined if an operand is missing, so any empty input yields no value.
+    if(operands.isEmpty || operands.exists(_.isEmpty)) {
+      Seq.empty
+    } else {
+      Seq(operands.flatten.reduce(operation).toString)
+    }
   }
 
   def parse(value: String): Double = {
