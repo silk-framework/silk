@@ -80,6 +80,30 @@ import org.silkframework.runtime.validation.ValidationException
     parameters = Array("beginIndex", "1", "endIndex", "0"),
     input1 = Array("abc"),
     output = Array("bc")
+  ),
+  new TransformExample(
+    description = "Values shorter than the number of characters to remove from the end are rejected.",
+    parameters = Array("beginIndex", "0", "endIndex", "-3"),
+    input1 = Array("ab"),
+    throwsException = classOf[org.silkframework.runtime.validation.ValidationException]
+  ),
+  new TransformExample(
+    description = "Values shorter than the number of characters to remove from the end are clipped to the empty string in lenient mode.",
+    parameters = Array("beginIndex", "0", "endIndex", "-3", "stringMustBeInRange", "false"),
+    input1 = Array("ab"),
+    output = Array("")
+  ),
+  new TransformExample(
+    description = "A start index that exceeds the end index is rejected.",
+    parameters = Array("beginIndex", "2", "endIndex", "1"),
+    input1 = Array("abc"),
+    throwsException = classOf[org.silkframework.runtime.validation.ValidationException]
+  ),
+  new TransformExample(
+    description = "A start index that exceeds the end index yields the empty string in lenient mode.",
+    parameters = Array("beginIndex", "2", "endIndex", "1", "stringMustBeInRange", "false"),
+    input1 = Array("abc"),
+    output = Array("")
   )
 ))
 case class SubstringTransformer(
@@ -104,18 +128,26 @@ case class SubstringTransformer(
     }
 
     // Check if indexes are within range
-    if(start > value.length) {
+    if(start > value.length || start < 0) {
       if(stringMustBeInRange) {
         throw new ValidationException(s"Start index $start is out of range")
       } else {
-        start = value.length
+        start = if(start < 0) 0 else value.length
       }
     }
-    if(end > value.length) {
+    if(end > value.length || end < 0) {
       if(stringMustBeInRange) {
         throw new ValidationException(s"End index $end is out of range")
       } else {
-        end = value.length
+        end = if(end < 0) 0 else value.length
+      }
+    }
+    // The start index may exceed the end index after negative indices have been resolved
+    if(endIndex != 0 && start > end) {
+      if(stringMustBeInRange) {
+        throw new ValidationException(s"Start index $start exceeds end index $end")
+      } else {
+        end = start
       }
     }
 

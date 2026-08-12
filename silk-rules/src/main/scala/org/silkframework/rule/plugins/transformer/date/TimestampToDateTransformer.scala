@@ -64,7 +64,14 @@ case class TimestampToDateTransformer(
   unit: DateUnit = DateUnit.milliseconds
 ) extends SimpleTransformer {
 
-  private val dateFormat = {
+  // Fail eagerly on invalid formats at construction time.
+  createFormat()
+
+  // SimpleDateFormat is not thread-safe, so each thread gets its own instance.
+  @transient private lazy val dateFormat: ThreadLocal[Option[SimpleDateFormat]] =
+    ThreadLocal.withInitial(() => createFormat())
+
+  private def createFormat(): Option[SimpleDateFormat] = {
     if(format.trim.isEmpty) {
       None
     } else {
@@ -74,7 +81,7 @@ case class TimestampToDateTransformer(
 
   override def evaluate(value: String): String = {
     val instant = Instant.EPOCH.plus(value.toLong, unit.toChronoUnit)
-    dateFormat match {
+    dateFormat.get() match {
       case Some(df) =>
         df.format(new Date(instant.toEpochMilli))
       case None =>

@@ -70,12 +70,21 @@ import org.silkframework.util.StringUtils.DoubleLiteral
 ))
 case class FormatNumber(pattern: String, locale: String = "en") extends SimpleTransformer {
 
-  private val format = NumberFormat.getNumberInstance(Locale.forLanguageTag(locale))
-  format.asInstanceOf[DecimalFormat].applyLocalizedPattern(pattern)
+  // Fail eagerly on invalid patterns at construction time.
+  createFormat()
+
+  // NumberFormat is not thread-safe, so each thread gets its own instance.
+  @transient private lazy val format: ThreadLocal[NumberFormat] = ThreadLocal.withInitial(() => createFormat())
+
+  private def createFormat(): NumberFormat = {
+    val format = NumberFormat.getNumberInstance(Locale.forLanguageTag(locale))
+    format.asInstanceOf[DecimalFormat].applyLocalizedPattern(pattern)
+    format
+  }
 
   override def evaluate(value: String): String = {
     value match {
-      case DoubleLiteral(d) => format.format(d)
+      case DoubleLiteral(d) => format.get().format(d)
       case _ => throw new ValidationException(s"Input value $value must be a number.")
     }
   }

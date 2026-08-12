@@ -49,6 +49,24 @@ import org.silkframework.runtime.plugin.annotations.{Plugin, PluginReference}
     parameters = Array("glue", "\\n\\t\\\\"),
     input1 = Array("a\n\t\\b", "c"),
     output = Array("a\n\t\\b\n\t\\c")
+  ),
+  new TransformExample(
+    description = "Duplicates are removed, also when they span multiple values.",
+    parameters = Array("glue", " ", "removeDuplicates", "true"),
+    input1 = Array("Albert", "Einstein", "Albert Einstein"),
+    output = Array("Albert Einstein")
+  ),
+  new TransformExample(
+    description = "With an empty glue, duplicate values are removed.",
+    parameters = Array("removeDuplicates", "true"),
+    input1 = Array("a", "b", "a"),
+    output = Array("ab")
+  ),
+  new TransformExample(
+    description = "Values consisting only of the glue collapse to an empty string.",
+    parameters = Array("glue", "x", "removeDuplicates", "true"),
+    input1 = Array("x", "x"),
+    output = Array("")
   )
 ))
 case class ConcatMultipleValuesTransformer(glue: String = "", removeDuplicates: Boolean = false) extends InlineTransformer {
@@ -57,10 +75,13 @@ case class ConcatMultipleValuesTransformer(glue: String = "", removeDuplicates: 
 
   override def apply(values: Seq[Seq[String]]): Seq[String] = {
     for (strings <- values; if strings.nonEmpty) yield {
-      if (removeDuplicates) {
+      if (removeDuplicates && parsedGlue.nonEmpty) {
         //glue, split, remove duplicates and glue again to remove more subtle duplicates.
         //e.g. "Albert", "Einstein", "Albert Einstein" -> "Albert Einstein" instead of "Albert Einstein Albert Einstein"
-        strings.reduce(_ + parsedGlue + _).split(Pattern.quote(parsedGlue)).reduce(_ + parsedGlue + _)
+        strings.mkString(parsedGlue).split(Pattern.quote(parsedGlue)).distinct.mkString(parsedGlue)
+      } else if (removeDuplicates) {
+        //an empty glue offers no split boundary, so only whole values are deduplicated.
+        strings.distinct.mkString
       } else {
         strings.reduce(_ + parsedGlue + _)
       }
