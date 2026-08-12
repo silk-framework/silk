@@ -113,11 +113,13 @@ case class NumOperationTransformer(
   require(Set("+", "-", "*", "/") contains operator, "Operator must be one of '+', '-', '*', '/'")
 
   def apply(values: Seq[Seq[String]]): Seq[String] = {
-    // The operation is undefined if an operand is missing, so any empty input yields no value instead of silently operating on the remaining inputs.
-    if(values.isEmpty || values.exists(_.isEmpty)) {
+    // All values are parsed first, so malformed numbers are reported even if another input is empty.
+    val operands = values.map(_.map(parse))
+    // The operation is undefined if an operand is missing, so any empty input yields no value.
+    if(operands.isEmpty || operands.exists(_.isEmpty)) {
       Seq.empty
     } else {
-      Seq(values.flatMap(_.map(parse)).reduce(operation).toString)
+      Seq(operands.flatten.reduce(operation).toString)
     }
   }
 

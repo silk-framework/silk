@@ -5,7 +5,7 @@ import org.silkframework.rule.plugins.transformer.replace.RegexReplaceTransforme
 import org.silkframework.runtime.plugin.annotations.{Param, Plugin, PluginReference}
 import org.silkframework.runtime.validation.ValidationException
 
-import java.net.URI
+import java.net.{URI, URL}
 import scala.io.{Codec, Source}
 import scala.util.control.NonFatal
 
@@ -37,7 +37,7 @@ case class RemoveRemoteStopWordsTransformer(@Param(value = "URL of the stop word
   extends RemoveStopWords(separator, Set.empty) {
 
   // Malformed URLs fail at construction, so rule validation catches typos without hitting the network.
-  RemoveRemoteStopWordsTransformer.validateUrl(stopWordListUrl)
+  RemoveRemoteStopWordsTransformer.parseUrl(stopWordListUrl)
 
   // Deferred until the first evaluation, so that instantiating the plugin (deserialization, validation) does not block on the network.
   override protected def loadStopWords(): Set[String] = RemoveRemoteStopWordsTransformer.loadStopWords(stopWordListUrl)
@@ -50,7 +50,7 @@ object RemoveRemoteStopWordsTransformer {
 
   private val timeoutMs = 10000
 
-  private def validateUrl(stopWordListUrl: String): Unit = {
+  private def parseUrl(stopWordListUrl: String): URL = {
     try {
       new URI(stopWordListUrl).toURL
     } catch {
@@ -60,8 +60,9 @@ object RemoveRemoteStopWordsTransformer {
   }
 
   private def loadStopWords(stopWordListUrl: String): Set[String] = {
+    val url = parseUrl(stopWordListUrl)
     try {
-      val connection = new URI(stopWordListUrl).toURL.openConnection()
+      val connection = url.openConnection()
       connection.setConnectTimeout(timeoutMs)
       connection.setReadTimeout(timeoutMs)
       val source = Source.fromInputStream(connection.getInputStream)(Codec.UTF8)

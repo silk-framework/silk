@@ -85,8 +85,10 @@ case class GeometricMeanAggregator() extends SimpleAggregator {
           case Some(score) =>
             sumWeights += weight
             minScore = min(minScore, score)
-            // Clamped to 0: the geometric mean is undefined for negative values and would yield NaN.
-            weightedProduct *= pow(max(score, 0.0), weight)
+            // The product is only accumulated while all scores are non-negative, since the mismatch branch below discards it.
+            if (minScore >= 0.0) {
+              weightedProduct *= pow(score, weight)
+            }
           case None =>
             return SimilarityScore.none
         }
