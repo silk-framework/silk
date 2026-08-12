@@ -21,8 +21,10 @@ import {
     Divider,
     Icon,
     IconButton,
+    Label,
     Link,
     Notification,
+    OverflowText,
     OverviewItemList,
     PropertyName,
     PropertyValue,
@@ -347,28 +349,29 @@ const SortableVariableItem: React.FC<SortableVariableItemProps> = ({
             <Toolbar noWrap>
                 {!isOnlyItem ? (
                     <ToolbarSection>
-                        <Icon small name="item-draggable" />
+                        <Icon small name="item-draggable" style={{ cursor: "grab" }} />
                         <Spacing size="tiny" vertical />
                     </ToolbarSection>
                 ) : null}
                 <ToolbarSection canGrow canShrink>
                     <PropertyValuePair nowrap>
-                        <PropertyName
-                            title={variable.name}
-                            size="large"
-                            labelProps={{
-                                tooltip: variable.description,
-                                style: { lineHeight: "normal" },
-                            }}
-                        >
-                            <span className={"nodrag"}>{variable.name}</span>
+                        <PropertyName nowrap size="large">
+                            <Label
+                                text={
+                                    <OverflowText inline passDown>
+                                        <Tooltip content={variable.name}>{variable.name}</Tooltip>
+                                    </OverflowText>
+                                }
+                                tooltip={variable.description}
+                                className={"nodrag"}
+                                isLayoutForElement="span"
+                                emphasis={"strong"}
+                            />
                         </PropertyName>
-                        <PropertyValue
-                            style={{
-                                marginLeft: "calc(31.25% + 14px)",
-                            }}
-                        >
-                            <code className={"nodrag"}>{variable.value}</code>
+                        <PropertyValue>
+                            <Tooltip content={<code>{variable.value}</code>}>
+                                <code className={"nodrag"}>{variable.value}</code>
+                            </Tooltip>
                         </PropertyValue>
                     </PropertyValuePair>
                 </ToolbarSection>
