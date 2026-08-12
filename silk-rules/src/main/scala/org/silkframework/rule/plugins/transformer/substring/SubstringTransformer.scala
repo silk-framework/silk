@@ -41,42 +41,49 @@ import org.silkframework.runtime.validation.ValidationException
 )
 @TransformExamples(Array(
   new TransformExample(
+    description = "Returns the substring between 'beginIndex' (inclusive) and 'endIndex' (exclusive). Indices are zero-based.",
     parameters = Array("beginIndex", "0", "endIndex", "1"),
     input1 = Array("abc"),
     output = Array("a")
   ),
   new TransformExample(
+    description = "Extracts a single character if 'endIndex' is 'beginIndex' plus one.",
     parameters = Array("beginIndex", "2", "endIndex", "3"),
     input1 = Array("abc"),
     output = Array("c")
   ),
   new TransformExample(
+    description = "Equal indices yield an empty string.",
     parameters = Array("beginIndex", "3", "endIndex", "3"),
     input1 = Array("abc"),
     output = Array("")
   ),
   new TransformExample(
+    description = "Indices that are out of range for the value are rejected by default.",
     parameters = Array("beginIndex", "2", "endIndex", "4"),
     input1 = Array("abc"),
-    output = Array("c"),
     throwsException = classOf[org.silkframework.runtime.validation.ValidationException]
   ),
   new TransformExample(
+    description = "If 'stringMustBeInRange' is false, out-of-range indices are clipped to the length of the value.",
     parameters = Array("beginIndex", "2", "endIndex", "4", "stringMustBeInRange", "false"),
     input1 = Array("abc"),
     output = Array("c")
   ),
   new TransformExample(
+    description = "Clipping yields an empty string if the whole range lies outside the value.",
     parameters = Array("beginIndex", "10", "endIndex", "20", "stringMustBeInRange", "false"),
     input1 = Array("abc"),
     output = Array("")
   ),
   new TransformExample(
+    description = "A negative 'endIndex' removes that many characters from the end.",
     parameters = Array("beginIndex", "0", "endIndex", "-1"),
     input1 = Array("abc"),
     output = Array("ab")
   ),
   new TransformExample(
+    description = "An 'endIndex' of 0 returns the entire remaining string starting at 'beginIndex'.",
     parameters = Array("beginIndex", "1", "endIndex", "0"),
     input1 = Array("abc"),
     output = Array("bc")
@@ -88,19 +95,19 @@ import org.silkframework.runtime.validation.ValidationException
     throwsException = classOf[org.silkframework.runtime.validation.ValidationException]
   ),
   new TransformExample(
-    description = "Values shorter than the number of characters to remove from the end are clipped to the empty string in lenient mode.",
+    description = "If 'stringMustBeInRange' is false, values shorter than the number of characters to remove yield an empty string.",
     parameters = Array("beginIndex", "0", "endIndex", "-3", "stringMustBeInRange", "false"),
     input1 = Array("ab"),
     output = Array("")
   ),
   new TransformExample(
-    description = "A start index that exceeds the end index is rejected.",
+    description = "A begin index that exceeds the end index is rejected.",
     parameters = Array("beginIndex", "2", "endIndex", "1"),
     input1 = Array("abc"),
     throwsException = classOf[org.silkframework.runtime.validation.ValidationException]
   ),
   new TransformExample(
-    description = "A start index that exceeds the end index yields the empty string in lenient mode.",
+    description = "If 'stringMustBeInRange' is false, a begin index that exceeds the end index yields an empty string.",
     parameters = Array("beginIndex", "2", "endIndex", "1", "stringMustBeInRange", "false"),
     input1 = Array("abc"),
     output = Array("")

@@ -25,27 +25,33 @@ import org.silkframework.runtime.plugin.annotations.{Plugin, PluginReference}
 )
 @TransformExamples(Array(
   new TransformExample(
+    description = "Without input values, no output is generated.",
     output = Array()
   ),
   new TransformExample(
+    description = "A single value is returned unchanged.",
     input1 = Array("a"),
     output = Array("a")
   ),
   new TransformExample(
+    description = "All values of an input are concatenated into one value. The default glue is the empty string.",
     input1 = Array("a", "b"),
     output = Array("ab")
   ),
   new TransformExample(
+    description = "The glue string is inserted between the values.",
     parameters = Array("glue", "x"),
     input1 = Array("a", "b"),
     output = Array("axb")
   ),
   new TransformExample(
+    description = "Each input is concatenated separately, yielding one value per input.",
     input1 = Array("a", "b"),
     input2 = Array("1", "2"),
     output = Array("ab", "12")
   ),
   new TransformExample(
+    description = "Escaped character sequences in the glue are replaced by the actual characters (newline, tab, backslash).",
     parameters = Array("glue", "\\n\\t\\\\"),
     input1 = Array("a\n\t\\b", "c"),
     output = Array("a\n\t\\b\n\t\\c")
@@ -57,7 +63,7 @@ import org.silkframework.runtime.plugin.annotations.{Plugin, PluginReference}
     output = Array("Albert Einstein")
   ),
   new TransformExample(
-    description = "With an empty glue, duplicate values are removed.",
+    description = "With an empty glue, only whole duplicate values are removed.",
     parameters = Array("removeDuplicates", "true"),
     input1 = Array("a", "b", "a"),
     output = Array("ab")

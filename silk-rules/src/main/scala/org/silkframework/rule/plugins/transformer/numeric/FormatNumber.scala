@@ -28,41 +28,49 @@ import org.silkframework.util.StringUtils.DoubleLiteral
 )
 @TransformExamples(Array(
   new TransformExample(
+    description = "The digit '0' in the pattern pads the number with leading zeros.",
     parameters = Array("pattern", "000"),
     input1 = Array("1"),
     output = Array("001")
   ),
   new TransformExample(
+    description = "Padding applies to the integer and the fraction part.",
     parameters = Array("pattern", "000000.000"),
     input1 = Array("123.78"),
     output = Array("000123.780")
   ),
   new TransformExample(
+    description = "The placeholder '#' stands for an optional digit and ',' inserts a grouping separator.",
     parameters = Array("pattern", "###,###.###"),
     input1 = Array("123456.789"),
     output = Array("123,456.789")
   ),
   new TransformExample(
+    description = "The pattern is interpreted in the configured locale, here German with '.' as grouping and ',' as decimal separator.",
     parameters = Array("pattern", "###.###,###", "locale", "de"),
     input1 = Array("123456.789"),
     output = Array("123.456,789")
   ),
   new TransformExample(
+    description = "Literal text in the pattern is kept in the output.",
     parameters = Array("pattern", "# apples"),
     input1 = Array("10"),
     output = Array("10 apples")
   ),
   new TransformExample(
+    description = "Quoted characters are copied to the output as-is, even if they are digits.",
     parameters = Array("pattern", "000'0'"),
     input1 = Array("1"),
     output = Array("0010")
   ),
   new TransformExample(
+    description = "A pattern without fraction digits rounds to a whole number.",
     parameters = Array("pattern", "0"),
     input1 = Array("1.0"),
     output = Array("1")
   ),
   new TransformExample(
+    description = "Leading zeros of the input are removed unless the pattern demands them.",
     parameters = Array("pattern", "0.0"),
     input1 = Array("0000123.4"),
     output = Array("123.4")

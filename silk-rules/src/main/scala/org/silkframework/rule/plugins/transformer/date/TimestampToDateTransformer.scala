@@ -43,16 +43,19 @@ import java.time.Instant
 )
 @TransformExamples(Array(
   new TransformExample(
+    description = "By default, a milliseconds timestamp is converted to a full xsd:dateTime in UTC.",
     parameters = Array(),
     input1 = Array("1499117572000"),
     output = Array("2017-07-03T21:32:52Z")
   ),
   new TransformExample(
+    description = "A custom date format returns only the requested fields.",
     parameters = Array("format", "yyyy-MM-dd"),
     input1 = Array("1499040000000"),
     output = Array("2017-07-03")
   ),
   new TransformExample(
+    description = "The 'unit' parameter interprets the input as seconds instead of milliseconds.",
     parameters = Array("format", "yyyy-MM-dd", "unit", "seconds"),
     input1 = Array("1499040000"),
     output = Array("2017-07-03")
