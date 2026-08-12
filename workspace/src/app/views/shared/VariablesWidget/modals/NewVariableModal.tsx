@@ -1,4 +1,13 @@
-import { Button, FieldItem, IconButton, Notification, SimpleDialog, TextArea, TextField } from "@eccenca/gui-elements";
+import {
+    Button,
+    FieldItem,
+    HtmlContentBlock,
+    IconButton,
+    Notification,
+    SimpleDialog,
+    TextArea,
+    TextField,
+} from "@eccenca/gui-elements";
 import React from "react";
 import { useTranslation } from "react-i18next";
 import { Variable } from "../typing";
@@ -283,7 +292,7 @@ const NewVariableModal: React.FC<VariableModalProps> = ({
             </SimpleDialog>
             {showModalHelperText && (
                 <SimpleDialog
-                    data-test-id={"artefact-documentation-modal"}
+                    data-test-id={"project-variables-widget-documentation-modal"}
                     isOpen
                     canEscapeKeyClose={true}
                     title={t("widget.VariableWidget.form.infoBoxTitle")}
@@ -297,7 +306,9 @@ const NewVariableModal: React.FC<VariableModalProps> = ({
                     }
                     size="small"
                 >
-                    <p>{t("widget.VariableWidget.form.infoBoxDescription")}</p>
+                    <HtmlContentBlock>
+                        <p>{t("widget.VariableWidget.form.infoBoxDescription")}</p>
+                    </HtmlContentBlock>
                 </SimpleDialog>
             )}
         </>
