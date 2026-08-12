@@ -46,6 +46,12 @@ import org.silkframework.runtime.plugin.annotations.Plugin
     input1 = Array("not a vector"),
     input2 = Array("a 1.0"),
     output = 1.0
+  ),
+  new DistanceMeasureExample(
+    description = "Terms with a non-finite score are ignored.",
+    input1 = Array("a NaN"),
+    input2 = Array("a 1.0"),
+    output = 1.0
   )
 ))
 case class CosineDistanceMetric(k: Int = 3) extends SingleValueDistanceMeasure with TokenBasedDistanceMeasure with NormalizedDistanceMeasure {
@@ -76,16 +82,17 @@ case class CosineDistanceMetric(k: Int = 3) extends SingleValueDistanceMeasure w
     val values = str.split(";")
     val list = values.flatMap(getValues).toSeq
     val topK = list.sortWith(_._2>_._2).take(k)
-    Index.oneDim(topK.map(_.hashCode()).toSet)
+    // Hash only the term: evaluate matches terms regardless of their weights, so the index must too.
+    Index.oneDim(topK.map(_._1.hashCode).toSet)
   }
 
-  // Items that are not shaped as "term score" are ignored instead of failing the whole linking run.
+  // Items that are not shaped as "term score" or have a non-finite score are ignored instead of failing the whole linking run.
   private def getValues(item: String): Option[(String, Double)] = {
     val values = item.split(" ")
     if(values.length < 2) {
       None
     } else {
-      values(1).toDoubleOption.map(score => (values(0), score))
+      values(1).toDoubleOption.filter(_.isFinite).map(score => (values(0), score))
     }
   }
 }
