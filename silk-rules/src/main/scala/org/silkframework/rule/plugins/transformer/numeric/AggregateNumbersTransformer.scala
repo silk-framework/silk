@@ -16,10 +16,9 @@ package org.silkframework.rule.plugins.transformer.numeric
 
 import org.silkframework.rule.annotations.{TransformExample, TransformExamples}
 import org.silkframework.rule.input.InlineTransformer
+import org.silkframework.runtime.plugin.FixedValuesAutoCompletionProvider
 import org.silkframework.runtime.plugin.annotations.{Param, Plugin, PluginReference}
-import org.silkframework.runtime.plugin.{AutoCompletionResult, ParamValue, PluginContext, PluginParameterAutoCompletionProvider}
 import org.silkframework.util.StringUtils.DoubleLiteral
-import org.silkframework.workspace.WorkspaceReadTrait
 
 /**
  * Aggregates all numbers in this set using a mathematical operation.
@@ -158,15 +157,4 @@ object AggregateNumbersTransformer {
 }
 
 /** Provides autocomplete suggestions for the aggregation operator. */
-case class AggregationOperatorAutoCompletionProvider() extends PluginParameterAutoCompletionProvider {
-
-  override def autoComplete(searchQuery: String, dependOnParameterValues: Seq[ParamValue],
-                            workspace: WorkspaceReadTrait)
-                           (implicit context: PluginContext): Iterable[AutoCompletionResult] = {
-    filterStringResults(searchQuery, AggregateNumbersTransformer.operators)
-  }
-
-  override def valueToLabel(value: String, dependOnParameterValues: Seq[ParamValue],
-                            workspace: WorkspaceReadTrait)
-                           (implicit context: PluginContext): Option[String] = None
-}
+case class AggregationOperatorAutoCompletionProvider() extends FixedValuesAutoCompletionProvider(AggregateNumbersTransformer.operators)

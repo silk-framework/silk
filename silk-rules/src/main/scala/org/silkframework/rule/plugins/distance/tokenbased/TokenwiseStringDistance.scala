@@ -18,6 +18,7 @@ import java.util.regex.Pattern
 import org.silkframework.entity.Index
 import org.silkframework.rule.plugins.distance.characterbased.{JaroDistanceMetric, JaroWinklerDistance, LevenshteinMetric}
 import org.silkframework.rule.similarity.{NormalizedDistanceMeasure, SingleValueDistanceMeasure, TokenBasedDistanceMeasure}
+import org.silkframework.runtime.plugin.FixedValuesAutoCompletionProvider
 import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
 
 /**
@@ -87,6 +88,8 @@ import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
 )
 case class TokenwiseStringDistance(
         ignoreCase: Boolean = true,
+        @Param(value = "The metric used to compare tokens. One of `levenshtein`, `jaro`, `jaroWinkler`.",
+               autoCompletionProvider = classOf[TokenMetricAutoCompletionProvider], allowOnlyAutoCompletedValues = true)
         metricName: String = "levenshtein",
         splitRegex: String =  "[\\s\\d\\p{Punct}]+",
         stopwords: String = "",
@@ -358,3 +361,11 @@ case class TokenwiseStringDistance(
     }
   }
 }
+
+object TokenwiseStringDistance {
+  /** The supported token comparison metrics. */
+  final val metricNames = Seq("levenshtein", "jaro", "jaroWinkler")
+}
+
+/** Provides autocomplete suggestions for the token comparison metric. */
+case class TokenMetricAutoCompletionProvider() extends FixedValuesAutoCompletionProvider(TokenwiseStringDistance.metricNames)

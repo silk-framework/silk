@@ -123,6 +123,20 @@ case class AutoCompletionResult(value: String, label: Option[String]) {
   def withNonEmptyLabels: AutoCompletionResult = AutoCompletionResult(value, label.filter(_.trim.nonEmpty))
 }
 
+/** Auto-completion provider that suggests values from a fixed list. */
+abstract class FixedValuesAutoCompletionProvider(values: Seq[String]) extends PluginParameterAutoCompletionProvider {
+
+  override def autoComplete(searchQuery: String, dependOnParameterValues: Seq[ParamValue],
+                            workspace: WorkspaceReadTrait)
+                           (implicit context: PluginContext): Iterable[AutoCompletionResult] = {
+    filterStringResults(searchQuery, values)
+  }
+
+  override def valueToLabel(value: String, dependOnParameterValues: Seq[ParamValue],
+                            workspace: WorkspaceReadTrait)
+                           (implicit context: PluginContext): Option[String] = None
+}
+
 /** Default auto-completion provider. This one always returns empty results. */
 case class NopPluginParameterAutoCompletionProvider() extends PluginParameterAutoCompletionProvider {
   override def autoComplete(searchQuery: String, dependOnParameterValues: Seq[ParamValue],
