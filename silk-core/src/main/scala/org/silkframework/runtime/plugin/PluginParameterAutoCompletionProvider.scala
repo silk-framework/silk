@@ -123,18 +123,23 @@ case class AutoCompletionResult(value: String, label: Option[String]) {
   def withNonEmptyLabels: AutoCompletionResult = AutoCompletionResult(value, label.filter(_.trim.nonEmpty))
 }
 
-/** Auto-completion provider that suggests values from a fixed list. */
-abstract class FixedValuesAutoCompletionProvider(values: Seq[String]) extends PluginParameterAutoCompletionProvider {
+/** Auto-completion provider that suggests values from a fixed list, optionally with labels. */
+abstract class FixedValuesAutoCompletionProvider(values: Seq[AutoCompletionResult]) extends PluginParameterAutoCompletionProvider {
+
+  /** Convenience constructor for plain values without labels. */
+  def this(values: Seq[String])(implicit dummy: DummyImplicit) = this(values.map(AutoCompletionResult(_, None)))
 
   override def autoComplete(searchQuery: String, dependOnParameterValues: Seq[ParamValue],
                             workspace: WorkspaceReadTrait)
                            (implicit context: PluginContext): Iterable[AutoCompletionResult] = {
-    filterStringResults(searchQuery, values)
+    filterResults(searchQuery, values)
   }
 
   override def valueToLabel(value: String, dependOnParameterValues: Seq[ParamValue],
                             workspace: WorkspaceReadTrait)
-                           (implicit context: PluginContext): Option[String] = None
+                           (implicit context: PluginContext): Option[String] = {
+    values.find(_.value == value).flatMap(_.label)
+  }
 }
 
 /** Default auto-completion provider. This one always returns empty results. */
