@@ -5,6 +5,7 @@ import java.net.URLEncoder
 
 import org.silkframework.rule.input.SimpleTransformer
 import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
+import org.silkframework.runtime.plugin.types.autoComlpetionProviders.CharsetParameterAutoCompletionProvider
 
 @Plugin(
   id = "urlEncode",
@@ -27,7 +28,8 @@ import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
   )
 ))
 case class UrlEncodeTransformer(
-  @Param(value = "The character encoding.", advanced = true)
+  @Param(value = "The character encoding.", advanced = true,
+         autoCompletionProvider = classOf[CharsetParameterAutoCompletionProvider])
   encoding: String = "UTF-8") extends SimpleTransformer {
 
   override def evaluate(value: String): String = {
