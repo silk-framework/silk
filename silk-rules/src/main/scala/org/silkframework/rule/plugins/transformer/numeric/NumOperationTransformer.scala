@@ -17,8 +17,10 @@ package org.silkframework.rule.plugins.transformer.numeric
 import org.silkframework.rule.annotations.{TransformExample, TransformExamples}
 import org.silkframework.rule.input.InlineTransformer
 import org.silkframework.runtime.plugin.annotations.{Param, Plugin, PluginReference}
+import org.silkframework.runtime.plugin.{AutoCompletionResult, ParamValue, PluginContext, PluginParameterAutoCompletionProvider}
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.StringUtils.DoubleLiteral
+import org.silkframework.workspace.WorkspaceReadTrait
 
 /**
  * Applies a numeric operation.
@@ -106,11 +108,12 @@ import org.silkframework.util.StringUtils.DoubleLiteral
   ),
 ))
 case class NumOperationTransformer(
-  @Param("The operator to be applied to all values. One of `+`, `-`, `*`, `/`")
+  @Param(value = "The operator to be applied to all values. One of `+`, `-`, `*`, `/`",
+         autoCompletionProvider = classOf[ArithmeticOperatorAutoCompletionProvider], allowOnlyAutoCompletedValues = true)
   operator: String
 ) extends InlineTransformer {
 
-  require(Set("+", "-", "*", "/") contains operator, "Operator must be one of '+', '-', '*', '/'")
+  require(NumOperationTransformer.operators contains operator, "Operator must be one of '+', '-', '*', '/'")
 
   def apply(values: Seq[Seq[String]]): Seq[String] = {
     // All values are parsed first, so malformed numbers are reported even if another input is empty.
@@ -142,4 +145,21 @@ case class NumOperationTransformer(
 
 object NumOperationTransformer {
   final val pluginId = "numOperation"
+
+  /** The supported arithmetic operators. */
+  final val operators = Seq("+", "-", "*", "/")
+}
+
+/** Provides autocomplete suggestions for the arithmetic operator. */
+case class ArithmeticOperatorAutoCompletionProvider() extends PluginParameterAutoCompletionProvider {
+
+  override def autoComplete(searchQuery: String, dependOnParameterValues: Seq[ParamValue],
+                            workspace: WorkspaceReadTrait)
+                           (implicit context: PluginContext): Iterable[AutoCompletionResult] = {
+    filterStringResults(searchQuery, NumOperationTransformer.operators)
+  }
+
+  override def valueToLabel(value: String, dependOnParameterValues: Seq[ParamValue],
+                            workspace: WorkspaceReadTrait)
+                           (implicit context: PluginContext): Option[String] = None
 }
