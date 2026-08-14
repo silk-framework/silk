@@ -157,6 +157,10 @@ class ProjectAccessControlIntegrationTest extends AnyFlatSpec with IntegrationTe
 
     // Import with importGroups=true — should fail because archive has no groups
     importProjectStatus(projectId, exportedBytes, user1, importGroups = true) shouldBe 400
+
+    // The rejected import must not leave the project behind, where it would be accessible to everyone.
+    // A repeated import only succeeds if the previous one was rolled back completely.
+    importProjectStatus(projectId, exportedBytes, user1) should (be >= 200 and be < 300)
   }
 
   it should "reject import with both importGroups and groups parameters" in {

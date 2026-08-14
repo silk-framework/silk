@@ -203,9 +203,12 @@ class Workspace(val provider: WorkspaceProvider,
         newProject.accessControl.setGroups(groups)
       } catch {
         case NonFatal(ex) =>
-          Try(provider.deleteProject(creationConfig.id)(readWriteUser))
-          Try(repository.removeProjectResources(creationConfig.id))
-          throw new RuntimeException(s"Project '${creationConfig.id}' has not been created because its access control could not be persisted: ${ex.getMessage}", ex)
+          if (removePartiallyCreatedProject(creationConfig.id)) {
+            throw new RuntimeException(s"Project '${creationConfig.id}' has not been created because its access control could not be persisted: ${ex.getMessage}", ex)
+          } else {
+            throw new RuntimeException(s"The access control of project '${creationConfig.id}' could not be persisted and the project could not be removed again. " +
+              s"It must be removed or assigned groups manually. Cause: ${ex.getMessage}", ex)
+          }
       }
     }
     addProjectToCache(newProject)
@@ -320,22 +323,31 @@ class Workspace(val provider: WorkspaceProvider,
     log.info(s"Starting import of project '$name'...")
     val start = System.currentTimeMillis()
     marshaller.unmarshalProject(name, provider, repository.get(name), file)(readWriteUser)
-    reloadProjectInternal(name)(readWriteUser)
-    if (importGroups && !provider.containsAccessControl(name)(readWriteUser)) {
-      throw new BadUserInputException("The archive does not contain access control groups. Export the project with exportGroups enabled.")
-    }
-    if (!importGroups) {
-      if (groups.nonEmpty) {
-        // Apply explicitly provided groups
-        project(name).accessControl.setGroups(groups)
-      } else if (existingGroups.isDefined) {
-        // Overwriting an existing project without explicit groups: restore the existing project's groups
-        project(name).accessControl.setGroups(existingGroups.get)
-      } else {
-        // New project without explicit groups: clear any groups that came from the archive
-        project(name).accessControl.setGroups(Set.empty)
+    // Validation and group setup happen before the project becomes reachable; a failure removes it again
+    try {
+      if (importGroups && !provider.containsAccessControl(name)(readWriteUser)) {
+        throw new BadUserInputException("The archive does not contain access control groups. Export the project with exportGroups enabled.")
       }
+      if (!importGroups) {
+        val importedGroups =
+          if (groups.nonEmpty) {
+            groups // Apply explicitly provided groups
+          } else {
+            // Restore the overwritten project's groups or clear any groups that came from the archive
+            existingGroups.getOrElse(Set.empty)
+          }
+        provider.putAccessControl(name, AccessControl(importedGroups))(readWriteUser)
+      }
+    } catch {
+      case NonFatal(ex) =>
+        if (removePartiallyCreatedProject(name)) {
+          throw ex
+        } else {
+          throw new RuntimeException(s"The imported project '$name' could not be set up and could not be removed again. " +
+            s"It must be removed or assigned groups manually. Cause: ${ex.getMessage}", ex)
+        }
     }
+    reloadProjectInternal(name)(readWriteUser)
     log.info(s"Imported project '$name' in ${(System.currentTimeMillis() - start).toDouble / 1000}s. " + userContext.logInfo)
   }
 
@@ -411,6 +423,22 @@ class Workspace(val provider: WorkspaceProvider,
 
   private def addProjectToCache(project: Project): Unit = {
     cachedProjects :+= project
+  }
+
+  /** Best-effort removal of a partially created project.
+    * @return false if the project could not be removed and remains stored, which is also logged.
+    */
+  private def removePartiallyCreatedProject(projectId: Identifier)
+                                           (implicit userContext: UserContext): Boolean = {
+    val deletionFailure = Try(provider.deleteProject(projectId)(readWriteUser)).failed.toOption
+    for(resourceFailure <- Try(repository.removeProjectResources(projectId)).failed.toOption) {
+      log.log(Level.WARNING, s"The resources of project '$projectId' could not be removed while rolling back its creation.", resourceFailure)
+    }
+    for(failure <- deletionFailure) {
+      log.log(Level.SEVERE, s"Project '$projectId' could not be removed after a failure while creating it. " +
+        "It remains stored without access control and becomes reachable on the next workspace reload!", failure)
+    }
+    deletionFailure.isEmpty
   }
 
   /**
