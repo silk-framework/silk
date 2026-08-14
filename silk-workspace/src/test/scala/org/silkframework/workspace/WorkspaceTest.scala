@@ -8,7 +8,7 @@ import org.silkframework.runtime.activity.{Activity, ActivityContext, SimpleUser
 import org.silkframework.runtime.plugin.{PluginContext, PluginRegistry}
 import org.silkframework.runtime.resource.{ResourceManager, TestResourceManager}
 import org.silkframework.runtime.users.DefaultUserManager
-import org.silkframework.runtime.validation.ServiceUnavailableException
+import org.silkframework.runtime.validation.{BadUserInputException, ServiceUnavailableException}
 import org.silkframework.util.{ConfigTestTrait, Identifier, MockitoSugar}
 import org.silkframework.workspace.WorkspaceTest._
 import org.silkframework.workspace.activity.TaskActivityFactory
@@ -172,11 +172,12 @@ class WorkspaceTest extends AnyFlatSpec with Matchers with ConfigTestTrait with 
   it should "not leave a project behind if persisting its initial access control groups fails" in {
     val provider = new FailingAccessControlProvider()
     val workspace = new Workspace(provider, InMemoryResourceRepository())
-    val ex = intercept[RuntimeException] {
+    // Nothing has been created, so the original exception is reported with its own status code instead of a 500
+    val ex = intercept[BadUserInputException] {
       workspace.createProject(ProjectConfig("openProject", metaData = MetaData(Some("openProject"))),
         initialGroups = Some(Set("group1")))
     }
-    ex.getMessage must include ("access control")
+    ex.getMessage must include ("Access control backend")
     // Neither cached nor persisted, so no project without its groups is reachable
     workspace.projectOption("openProject") must not be defined
     provider.readProjects() mustBe empty
@@ -270,7 +271,7 @@ object WorkspaceTest {
     override def putAccessControl(project: Identifier, accessControl: AccessControl)
                                  (implicit userContext: UserContext): Unit = {
       if(failAccessControlWrites) {
-        throw new RuntimeException("Access control backend unavailable")
+        throw BadUserInputException("Access control backend unavailable")
       }
       super.putAccessControl(project, accessControl)
     }

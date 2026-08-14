@@ -204,7 +204,8 @@ class Workspace(val provider: WorkspaceProvider,
       } catch {
         case NonFatal(ex) =>
           if (removePartiallyCreatedProject(creationConfig.id)) {
-            throw new RuntimeException(s"Project '${creationConfig.id}' has not been created because its access control could not be persisted: ${ex.getMessage}", ex)
+            // Nothing has been created, so the original failure is reported as is, e.g. a bad group as a 400
+            throw ex
           } else {
             throw new RuntimeException(s"The access control of project '${creationConfig.id}' could not be persisted and the project could not be removed again. " +
               s"It must be removed or assigned groups manually. Cause: ${ex.getMessage}", ex)
