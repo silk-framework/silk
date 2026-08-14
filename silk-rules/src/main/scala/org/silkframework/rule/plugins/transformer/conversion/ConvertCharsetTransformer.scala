@@ -17,7 +17,8 @@ package org.silkframework.rule.plugins.transformer.conversion
 import java.nio.charset.Charset
 
 import org.silkframework.rule.input.SimpleTransformer
-import org.silkframework.runtime.plugin.annotations.Plugin
+import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
+import org.silkframework.runtime.plugin.types.autoComlpetionProviders.CharsetParameterAutoCompletionProvider
 
 @Plugin(
   id = "convertCharset",
@@ -25,7 +26,12 @@ import org.silkframework.runtime.plugin.annotations.Plugin
   label = "Convert charset",
   description = "Convert the string from \"sourceCharset\" to \"targetCharset\"."
 )
-case class ConvertCharsetTransformer(sourceCharset: String = "ISO-8859-1", targetCharset: String = "UTF-8") extends SimpleTransformer {
+case class ConvertCharsetTransformer(@Param(value = "The source charset, e.g., ISO-8859-1.",
+                                            autoCompletionProvider = classOf[CharsetParameterAutoCompletionProvider])
+                                     sourceCharset: String = "ISO-8859-1",
+                                     @Param(value = "The target charset, e.g., UTF-8.",
+                                            autoCompletionProvider = classOf[CharsetParameterAutoCompletionProvider])
+                                     targetCharset: String = "UTF-8") extends SimpleTransformer {
   require(Charset.isSupported(sourceCharset), "sourceCharset " + sourceCharset + " is unsupported")
   require(Charset.isSupported(targetCharset), "targetCharset " + targetCharset + " is unsupported")
 

@@ -5,7 +5,8 @@ import java.text.{DecimalFormat, NumberFormat}
 import java.util.Locale
 
 import org.silkframework.rule.input.SimpleTransformer
-import org.silkframework.runtime.plugin.annotations.{Plugin, PluginReference}
+import org.silkframework.runtime.plugin.annotations.{Param, Plugin, PluginReference}
+import org.silkframework.runtime.plugin.types.autoComlpetionProviders.LocaleParameterAutoCompletionProvider
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.StringUtils.DoubleLiteral
 
@@ -76,7 +77,11 @@ import org.silkframework.util.StringUtils.DoubleLiteral
     output = Array("123.4")
   )
 ))
-case class FormatNumber(pattern: String, locale: String = "en") extends SimpleTransformer {
+case class FormatNumber(@Param("The number pattern, e.g., '###,###.###'.")
+                        pattern: String,
+                        @Param(value = "The locale in which the pattern is interpreted, given as an IETF BCP 47 language tag, e.g., 'en'.",
+                               autoCompletionProvider = classOf[LocaleParameterAutoCompletionProvider])
+                        locale: String = "en") extends SimpleTransformer {
 
   // Fail eagerly on invalid patterns at construction time.
   createFormat()
