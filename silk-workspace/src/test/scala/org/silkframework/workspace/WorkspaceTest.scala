@@ -160,6 +160,33 @@ class WorkspaceTest extends AnyFlatSpec with Matchers with ConfigTestTrait with 
     projectConfig2.prefixes.get(projectPrefix) must not be defined
   }
 
+  it should "persist the initial access control groups before the project becomes available" in {
+    val provider = new InMemoryWorkspaceProvider()
+    val workspace = new Workspace(provider, InMemoryResourceRepository())
+    val project = workspace.createProject(ProjectConfig("projectWithGroups", metaData = MetaData(Some("projectWithGroups"))),
+      initialGroups = Some(Set("group1")))
+    project.accessControl.getGroups mustBe Set("group1")
+    provider.readAccessControl("projectWithGroups").map(_.groups) mustBe Some(Set("group1"))
+  }
+
+  it should "not leave a project behind if persisting its initial access control groups fails" in {
+    val provider = new FailingAccessControlProvider()
+    val workspace = new Workspace(provider, InMemoryResourceRepository())
+    val ex = intercept[RuntimeException] {
+      workspace.createProject(ProjectConfig("openProject", metaData = MetaData(Some("openProject"))),
+        initialGroups = Some(Set("group1")))
+    }
+    ex.getMessage must include ("access control")
+    // Neither cached nor persisted, so no project without its groups is reachable
+    workspace.projectOption("openProject") must not be defined
+    provider.readProjects() mustBe empty
+    // Once the backend recovered, the same project can be created
+    provider.failAccessControlWrites = false
+    val project = workspace.createProject(ProjectConfig("openProject", metaData = MetaData(Some("openProject"))),
+      initialGroups = Some(Set("group1")))
+    project.accessControl.getGroups mustBe Set("group1")
+  }
+
   it should "use the loading user for provider write calls when access control is enabled" in {
     ConfigTestTrait.withConfig("workspace.accessControl.enabled" -> Some("true")) {
       val recordingProvider = new RecordingWorkspaceProvider()
@@ -219,6 +246,19 @@ object WorkspaceTest {
                                                       (implicit userContext: UserContext): Unit = {
       recordedUsers += (("deleteTask", userContext))
       super.deleteTask(project, task)
+    }
+  }
+
+  /** Provider whose access control writes fail, like a backend that goes down mid-creation. */
+  class FailingAccessControlProvider extends InMemoryWorkspaceProvider {
+    var failAccessControlWrites: Boolean = true
+
+    override def putAccessControl(project: Identifier, accessControl: AccessControl)
+                                 (implicit userContext: UserContext): Unit = {
+      if(failAccessControlWrites) {
+        throw new RuntimeException("Access control backend unavailable")
+      }
+      super.putAccessControl(project, accessControl)
     }
   }
 

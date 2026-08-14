@@ -183,7 +183,13 @@ class Workspace(val provider: WorkspaceProvider,
     }
   }
 
-  def createProject(config: ProjectConfig)
+  /**
+   * Adds a new project to the workspace.
+   *
+   * @param initialGroups If set, the access control groups are persisted before the project becomes available.
+   *                      If that fails, the project is deleted again, so it never stays open to everyone.
+   */
+  def createProject(config: ProjectConfig, initialGroups: Option[Set[String]] = None)
                    (implicit userContext: UserContext): Project = synchronized {
     val creationConfig = config.withMetaData(config.metaData.asNewMetaData)
     initProjects()
@@ -192,6 +198,16 @@ class Workspace(val provider: WorkspaceProvider,
     }
     provider.putProject(creationConfig)(readWriteUser)
     val newProject = new Project(creationConfig, provider, repository.get(creationConfig.id), readWriteUser)
+    for(groups <- initialGroups) {
+      try {
+        newProject.accessControl.setGroups(groups)
+      } catch {
+        case NonFatal(ex) =>
+          Try(provider.deleteProject(creationConfig.id)(readWriteUser))
+          Try(repository.removeProjectResources(creationConfig.id))
+          throw new RuntimeException(s"Project '${creationConfig.id}' has not been created because its access control could not be persisted: ${ex.getMessage}", ex)
+      }
+    }
     addProjectToCache(newProject)
     newProject.setWorkspacePrefixes(workspacePrefixes)
     log.info(s"Created new project '${creationConfig.id}'. " + userContext.logInfo)
