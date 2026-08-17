@@ -15,19 +15,19 @@ class SparqlUpdateTemplatingEngineSimpleTest extends AnyFlatSpec with Matchers {
   behavior of "SPARQL Update Simple Templating Engine"
 
   private val sparqlUpdateTemplate =
-    """PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-      |DELETE DATA { ${<PROP_FROM_ENTITY_SCHEMA1>} rdf:label ${"PROP_FROM_ENTITY_SCHEMA2"} } ;
-      |  INSERT DATA { ${<PROP_FROM_ENTITY_SCHEMA1>} rdf:label ${"PROP_FROM_ENTITY_SCHEMA3"} } ;""".stripMargin
+    """PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+      |DELETE DATA { ${<PROP_FROM_ENTITY_SCHEMA1>} rdfs:label ${"PROP_FROM_ENTITY_SCHEMA2"} } ;
+      |  INSERT DATA { ${<PROP_FROM_ENTITY_SCHEMA1>} rdfs:label ${"PROP_FROM_ENTITY_SCHEMA3"} } ;""".stripMargin
 
   it should "parse the SPARQL Update template correctly" in {
     parse(sparqlUpdateTemplate) mustBe Seq(
-      SparqlUpdateTemplateStaticPart("PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\nDELETE DATA { "),
+      SparqlUpdateTemplateStaticPart("PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\nDELETE DATA { "),
       SparqlUpdateTemplateURIPlaceholder("PROP_FROM_ENTITY_SCHEMA1"),
-      SparqlUpdateTemplateStaticPart(" rdf:label "),
+      SparqlUpdateTemplateStaticPart(" rdfs:label "),
       SparqlUpdateTemplatePlainLiteralPlaceholder("PROP_FROM_ENTITY_SCHEMA2"),
       SparqlUpdateTemplateStaticPart(" } ;\n  INSERT DATA { "),
       SparqlUpdateTemplateURIPlaceholder("PROP_FROM_ENTITY_SCHEMA1"),
-      SparqlUpdateTemplateStaticPart(" rdf:label "),
+      SparqlUpdateTemplateStaticPart(" rdfs:label "),
       SparqlUpdateTemplatePlainLiteralPlaceholder("PROP_FROM_ENTITY_SCHEMA3"),
       SparqlUpdateTemplateStaticPart(" } ;")
     )
@@ -35,15 +35,15 @@ class SparqlUpdateTemplatingEngineSimpleTest extends AnyFlatSpec with Matchers {
 
   it should "raise a validation error when the template is invalid" in {
     intercept[ValidationException] {
-      parse("""DELETE DATA { ${<${"PROP_FROM_ENTITY_SCHEMA2"}>} rdf:label "label" } ;""")
+      parse("""DELETE DATA { ${<${"PROP_FROM_ENTITY_SCHEMA2"}>} rdfs:label "label" } ;""")
     }
     intercept[ValidationException] {
-      parse("""DELETE DATA { <urn:a:b> rdf:label ${"${<PROP_FROM_ENTITY_SCHEMA1>}"} } ;""")
+      parse("""DELETE DATA { <urn:a:b> rdfs:label ${"${<PROP_FROM_ENTITY_SCHEMA1>}"} } ;""")
     }
     intercept[ValidationException] {
-      // No rdf prefix defined
-      parse("""DELETE DATA { ${<PROP_FROM_ENTITY_SCHEMA1>} rdf:label ${"PROP_FROM_ENTITY_SCHEMA2"} } ;
-              |  INSERT DATA { ${<PROP_FROM_ENTITY_SCHEMA1>} rdf:label ${"PROP_FROM_ENTITY_SCHEMA3"} } ;""".stripMargin)
+      // No rdfs prefix defined
+      parse("""DELETE DATA { ${<PROP_FROM_ENTITY_SCHEMA1>} rdfs:label ${"PROP_FROM_ENTITY_SCHEMA2"} } ;
+              |  INSERT DATA { ${<PROP_FROM_ENTITY_SCHEMA1>} rdfs:label ${"PROP_FROM_ENTITY_SCHEMA3"} } ;""".stripMargin)
     }
     intercept[ValidationException] {
       parse("""PREFIX foaf:  <http://xmlns.com/foaf/0.1/>
@@ -79,9 +79,9 @@ class SparqlUpdateTemplatingEngineSimpleTest extends AnyFlatSpec with Matchers {
     )
     SparqlUpdateCustomTask(sparqlUpdateTemplate, templatingMode = SparqlSimpleTemplateEngine.id)
       .compiledTemplate.generate(Some(entityFromMap(bindings)), TaskProperties(Map.empty, Map.empty)).head mustBe
-      """PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-        |DELETE DATA { <urn:some:uri> rdf:label "the old label" } ;
-        |  INSERT DATA { <urn:some:uri> rdf:label "The new\nlabel with some \"'weird characters" } ;""".stripMargin.replace("\r\n", "\n")
+      """PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+        |DELETE DATA { <urn:some:uri> rdfs:label "the old label" } ;
+        |  INSERT DATA { <urn:some:uri> rdfs:label "The new\nlabel with some \"'weird characters" } ;""".stripMargin
   }
 
   private def entityFromMap(values: Map[String, String]): Entity = {

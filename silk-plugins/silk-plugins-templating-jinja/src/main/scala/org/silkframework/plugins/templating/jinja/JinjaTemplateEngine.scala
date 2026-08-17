@@ -3,8 +3,9 @@ package org.silkframework.plugins.templating.jinja
 import com.hubspot.jinjava.interpret.{InterpretException, JinjavaInterpreter, UnknownTokenException}
 import com.hubspot.jinjava.tree.Node
 import com.hubspot.jinjava.{Jinjava, JinjavaConfig}
+import jinjava.de.odysseus.el.tree.TreeBuilderException
 import org.silkframework.runtime.plugin.annotations.Plugin
-import org.silkframework.runtime.templating.exceptions.{TemplateEvaluationException, UnboundVariablesException}
+import org.silkframework.runtime.templating.exceptions.{TemplateEvaluationException, TemplateSyntaxException, UnboundVariablesException}
 import org.silkframework.runtime.templating.{CompiledTemplate, EvaluationConfig, TemplateEngine, TemplateMethodUsage, TemplateVariableName, TemplateVariableValue}
 
 import java.io.Writer
@@ -140,7 +141,7 @@ class JinjaTemplate(val node: Node) extends CompiledTemplate {
       case ex: UnknownTokenException =>
         throw new UnboundVariablesException(Seq(TemplateVariableName.parse(ex.getToken)), Some(ex))
       case ex: InterpretException =>
-        throw new TemplateEvaluationException(ex.getMessage, Some(ex))
+        throw evaluationException(ex.getMessage, Some(ex))
     }
 
     // For now, we just throw any errors. In the future, we could improve this and add an error collector.
@@ -151,15 +152,28 @@ class JinjaTemplate(val node: Node) extends CompiledTemplate {
       val prefix = if (messages.size == 1) "Error in template: " else "Errors in template: "
       val msg = prefix + messages.mkString(" ")
       val cause = Option(interpreter.getErrors.get(0).getException)
-      throw new TemplateEvaluationException(msg, cause)
+      throw evaluationException(msg, cause)
+    }
+  }
+
+  // Errors originating from the expression parser are syntax errors, i.e., independent of the provided values.
+  private def evaluationException(msg: String, cause: Option[Exception]): TemplateEvaluationException = {
+    if(cause.exists(causeChain(_).exists(_.isInstanceOf[TreeBuilderException]))) {
+      new TemplateSyntaxException(msg, cause)
+    } else {
+      new TemplateEvaluationException(msg, cause)
+    }
+  }
+
+  private def causeChain(throwable: Throwable): Seq[Throwable] = {
+    Option(throwable.getCause) match {
+      case Some(cause) if cause ne throwable => throwable +: causeChain(cause)
+      case _ => Seq(throwable)
     }
   }
 
   private def rootCauseMessage(throwable: Throwable): String = {
-    Option(throwable.getCause) match {
-      case Some(cause) if cause ne throwable => rootCauseMessage(cause)
-      case _ => throwable.getMessage
-    }
+    causeChain(throwable).last.getMessage
   }
 
 }

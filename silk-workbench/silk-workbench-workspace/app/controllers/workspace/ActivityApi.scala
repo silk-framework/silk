@@ -675,20 +675,20 @@ class ActivityApi @Inject() (implicit system: ActorSystem, mat: Materializer) ex
                                      )
                                      activityInstance: String): WebSocket = {
 
-    implicit val userContext = UserContext.Empty
-    implicit val writeContext = WriteContext.empty[JsValue]
+    AkkaUtils.createWebSocket { implicit userContext =>
+      implicit val writeContext: WriteContext[JsValue] = WriteContext.empty[JsValue]
 
-    val activities = allActivities(projectName, taskName, activityName)
-    val sources =
-      for(activity <- activities) yield {
-        implicit val format = new ExtendedStatusJsonFormat(activity)
-        val activityControl = activityControlForInstance(activity, activityInstance)
-        AkkaUtils.createSource(activityControl.status).map(format.write)
-      }
+      val activities = allActivities(projectName, taskName, activityName)
+      val sources =
+        for(activity <- activities) yield {
+          implicit val format = new ExtendedStatusJsonFormat(activity)
+          val activityControl = activityControlForInstance(activity, activityInstance)
+          AkkaUtils.createSource(activityControl.status).map(format.write)
+        }
 
-    // Combine all sources into a single flow
-    val combinedSources = Source.combine(Source.empty, Source.empty, sources :_*)(Merge(_))
-    AkkaUtils.createWebSocket(combinedSources)
+      // Combine all sources into a single flow
+      Source.combine(Source.empty, Source.empty, sources :_*)(Merge(_))
+    }
   }
 
   @Operation(
@@ -744,20 +744,20 @@ class ActivityApi @Inject() (implicit system: ActorSystem, mat: Materializer) ex
                                      )
                                      minIntervalMs: Int): WebSocket = {
 
-    implicit val userContext = UserContext.Empty
-    implicit val writeContext = WriteContext.empty[JsValue]
+    AkkaUtils.createWebSocket { implicit userContext =>
+      implicit val writeContext: WriteContext[JsValue] = WriteContext.empty[JsValue]
 
-    val activities = allActivities(projectName, taskName, activityName)
-    val sources =
-      for (activity <- activities) yield {
-        val format = Serialization.formatForDynamicType[JsValue](activity.value().getClass)
-        val activityControl = activityControlForInstance(activity, activityInstance)
-        AkkaUtils.createSource(activityControl.value, Some(FiniteDuration(minIntervalMs, MILLISECONDS))).map(format.write)
-      }
+      val activities = allActivities(projectName, taskName, activityName)
+      val sources =
+        for (activity <- activities) yield {
+          val format = Serialization.formatForDynamicType[JsValue](activity.value().getClass)
+          val activityControl = activityControlForInstance(activity, activityInstance)
+          AkkaUtils.createSource(activityControl.value, Some(FiniteDuration(minIntervalMs, MILLISECONDS))).map(format.write)
+        }
 
-    // Combine all sources into a single flow
-    val combinedSources = Source.combine(Source.empty, Source.empty, sources: _*)(Merge(_))
-    AkkaUtils.createWebSocket(combinedSources)
+      // Combine all sources into a single flow
+      Source.combine(Source.empty, Source.empty, sources: _*)(Merge(_))
+    }
   }
 
   @Operation(

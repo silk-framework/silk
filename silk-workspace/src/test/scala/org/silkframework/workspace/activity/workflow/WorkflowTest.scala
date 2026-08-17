@@ -12,7 +12,10 @@ import org.silkframework.workspace._
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.must.Matchers
 import org.silkframework.rule.{DatasetSelection, TransformSpec}
+import org.silkframework.runtime.serialization.{ReadContext, TestReadContext, TestWriteContext, WriteContext, XmlSerialization}
 import org.silkframework.workspace.activity.workflow.WorkflowNode.convertStringToOption
+
+import scala.xml.{Attribute, Elem, Node, Null, Text}
 
 class WorkflowTest extends AnyFlatSpec with MockitoSugar with Matchers with TestUserContextTrait {
   behavior of "Workflow"
@@ -50,11 +53,11 @@ class WorkflowTest extends AnyFlatSpec with MockitoSugar with Matchers with Test
     val dag = testWorkflow.workflowDependencyGraph
     dag mustBe WorkflowDependencyGraph(
       startNodes = Seq(
-        WorkflowDependencyNode(WorkflowDataset(List(), DS_A1, List(TRANSFORM_1), (0, 0), DS_A1, None, Seq.empty, Seq.empty)),
-        WorkflowDependencyNode(WorkflowDataset(List(), DS_A2, List(TRANSFORM_2), (0, 0), DS_A2, None, Seq.empty, Seq.empty))),
+        WorkflowDependencyNode(WorkflowDataset(List(), DS_A1, List(TRANSFORM_1), (0, 0), DS_A1, Seq.empty, Seq.empty)),
+        WorkflowDependencyNode(WorkflowDataset(List(), DS_A2, List(TRANSFORM_2), (0, 0), DS_A2, Seq.empty, Seq.empty))),
       endNodes = Seq(
-        WorkflowDependencyNode(WorkflowDataset(List(Some(TRANSFORM_2)), DS_B, List(), (0, 0), DS_B2, None, Seq.empty, Seq.empty)),
-        WorkflowDependencyNode(WorkflowDataset(List(Some(GENERATE_OUTPUT)), OUTPUT, List(), (0, 0), OUTPUT, None, Seq.empty, Seq.empty))
+        WorkflowDependencyNode(WorkflowDataset(List(Some(TRANSFORM_2)), DS_B, List(), (0, 0), DS_B2, Seq.empty, Seq.empty)),
+        WorkflowDependencyNode(WorkflowDataset(List(Some(GENERATE_OUTPUT)), OUTPUT, List(), (0, 0), OUTPUT, Seq.empty, Seq.empty))
       ))
     val dsA1 = dag.startNodes.filter(_.workflowNode.nodeId == DS_A1).head
     intercept[IllegalStateException] {
@@ -85,20 +88,6 @@ class WorkflowTest extends AnyFlatSpec with MockitoSugar with Matchers with Test
     dag.endNodes.map(_.nodeId) mustBe Seq(DS_B2)
   }
 
-  it should "sort by output priority" in {
-    val nodes = Seq(
-      dataset(DS_A, DS_A, outputPriority = None, outputs = Seq(TRANSFORM, LINKING)),
-      dataset(DS_B, DS_B, outputPriority = Some(5.0), outputs = Seq(LINKING), inputs = Seq(TRANSFORM)),
-      dataset(LINKS, LINKS, outputPriority = Some(3), inputs = Seq(LINKING), outputs = Seq(GENERATE_OUTPUT)),
-      dataset(OUTPUT, OUTPUT, outputPriority = None),
-      operator(task = TRANSFORM, inputs = Seq(DS_A), outputs = Seq(DS_B), TRANSFORM, outputPriority = Some(1.5)),
-      operator(task = LINKING, inputs = Seq(DS_A, DS_B), outputs = Seq(LINKS), LINKING, outputPriority = None),
-      operator(task = GENERATE_OUTPUT, inputs = Seq(LINKS), outputs = Seq(OUTPUT), GENERATE_OUTPUT, outputPriority = Some(0.5))
-    ).map(n => WorkflowDependencyNode(n))
-    testWorkflow.sortWorkflowNodesByOutputPriority(nodes).map(_.nodeId) mustBe Seq(
-      GENERATE_OUTPUT, TRANSFORM, LINKS, DS_B, DS_A, LINKING, OUTPUT)
-  }
-
   it should "build the DAG correctly for a workflow ending in an operator" in {
     val dag = testWorkflowEndingInOperator.workflowDependencyGraph
     dag.startNodes.map(_.nodeId) mustBe Seq(DS_A, DS_B)
@@ -113,7 +102,7 @@ class WorkflowTest extends AnyFlatSpec with MockitoSugar with Matchers with Test
   it should "build the DAG correctly for a workflow with disjunct data flows and multiple output nodes" in {
     val dag = testWorkflowWithMultipleEndNodesAndDisjunctDataFlows.workflowDependencyGraph
     dag.startNodes.map(_.nodeId) mustBe Seq(DS_A, DS_B, DS_C)
-    dag.endNodes.map(_.nodeId) mustBe Seq(TRANSFORM, OP_1, OP_2)
+    dag.endNodes.map(_.nodeId) mustBe Seq(OP_1, OP_2, TRANSFORM)
   }
 
   it should "put workflow nodes that have neither input nor output into the end nodes" in {
@@ -174,6 +163,69 @@ class WorkflowTest extends AnyFlatSpec with MockitoSugar with Matchers with Test
       project.addTask[TransformSpec](transformId, TransformSpec(DatasetSelection(DS_A)))
     }
     reConfiguredDatasetWorkflow.outputDatasets(project).map(_.id.toString) mustBe Seq(DS_B)
+  }
+
+  it should "reject replaceable dataset IDs of datasets that are not part of the workflow" in {
+    intercept[IllegalArgumentException] {
+      testWorkflow.copy(replaceableInputs = Seq(DS_A1, "removedDataset"))
+    }
+    intercept[IllegalArgumentException] {
+      testWorkflow.copy(replaceableOutputs = Seq("removedDataset"))
+    }
+  }
+
+  it should "drop replaceable dataset IDs of datasets that are not part of the workflow on creation" in {
+    // Stale IDs remain if a replaceable dataset is removed from the workflow or deleted, e.g. in the workflow editor
+    val workflow = Workflow.createNormalized(
+      operators = testWorkflow.operators,
+      datasets = testWorkflow.datasets,
+      replaceableInputs = Seq(DS_A1, "removedDataset"),
+      replaceableOutputs = Seq(OUTPUT, "removedDataset")
+    )
+    workflow.replaceableInputs.taskIds mustBe Seq(DS_A1)
+    workflow.replaceableOutputs.taskIds mustBe Seq(OUTPUT)
+  }
+
+  it should "trim trailing vacant input ports on creation" in {
+    // Trailing vacant ports are left e.g. by clients that vacate a port on edge removal
+    val workflow = Workflow.createNormalized(
+      operators = Seq(operator(task = TRANSFORM_1, inputs = Seq(DS_A1, ""), outputs = Seq.empty, TRANSFORM_1)),
+      datasets = Seq(dataset(DS_B, DS_B1, inputs = Seq("", TRANSFORM_1, "")))
+    )
+    workflow.operators.value.head.inputs mustBe Seq(Some(DS_A1))
+    // Interior vacant ports keep their index so positional ports keep their meaning
+    workflow.datasets.value.head.inputs mustBe Seq(None, Some(TRANSFORM_1))
+  }
+
+  it should "trim an inputs list down to Seq.empty when every port is vacant" in {
+    val workflow = Workflow.createNormalized(
+      operators = Seq(operator(task = TRANSFORM_1, inputs = Seq("", "", ""), outputs = Seq.empty, TRANSFORM_1)),
+      datasets = Seq(dataset(DS_B, DS_B1, inputs = Seq("", "")))
+    )
+    workflow.operators.value.head.inputs mustBe Seq.empty
+    workflow.datasets.value.head.inputs mustBe Seq.empty
+  }
+
+  it should "leave an inputs list unchanged when no port is vacant" in {
+    val workflow = Workflow.createNormalized(
+      operators = Seq(operator(task = LINKING, inputs = Seq(DS_A1, DS_A2), outputs = Seq.empty, LINKING)),
+      datasets = Seq(dataset(DS_B, DS_B1, inputs = Seq(TRANSFORM_1, TRANSFORM_2)))
+    )
+    workflow.operators.value.head.inputs mustBe Seq(Some(DS_A1), Some(DS_A2))
+    workflow.datasets.value.head.inputs mustBe Seq(Some(TRANSFORM_1), Some(TRANSFORM_2))
+  }
+
+  it should "drop stale replaceable dataset IDs when reading XML" in {
+    implicit val readContext: ReadContext = TestReadContext()
+    implicit val writeContext: WriteContext[Node] = TestWriteContext[Node]()
+    // XML from old exports may still contain IDs of datasets that were removed from the workflow
+    val staleXml = XmlSerialization.toXml(testWorkflow).asInstanceOf[Elem] %
+      Attribute("replaceableInputs", Text(s"$DS_A1,removedDataset"), Null) %
+      Attribute("replaceableOutputs", Text("removedDataset"), Null)
+    val workflow = XmlSerialization.fromXml[Workflow](staleXml)
+    workflow.replaceableInputs.taskIds mustBe Seq(DS_A1)
+    workflow.replaceableOutputs.taskIds mustBe Seq.empty
+    (XmlSerialization.toXml(workflow) \ "@replaceableInputs").text mustBe DS_A1
   }
 
   it should "not return datasets as output datasets that only have tasks as inputs that generate no data" in {
@@ -250,7 +302,7 @@ object WorkflowTest {
   val testWorkflowWithMultipleEndNodesAndDisjunctDataFlows: Workflow = {
     Workflow(
       operators = Seq(
-        operator(task = TRANSFORM, inputs = Seq(DS_A, DS_B), outputs = Seq(), TRANSFORM, outputPriority = Some(1.5)),
+        operator(task = TRANSFORM, inputs = Seq(DS_A, DS_B), outputs = Seq(), TRANSFORM),
         operator(task = OP_1, inputs = Seq(DS_C), outputs = Seq(), OP_1),
         operator(task = OP_2, inputs = Seq(DS_C), outputs = Seq(), OP_2)
       ),
@@ -343,18 +395,17 @@ object WorkflowTest {
     )
   }
 
-  def operator(task: String, inputs: Seq[String], outputs: Seq[String], nodeId: String, outputPriority: Option[Double] = None,
+  def operator(task: String, inputs: Seq[String], outputs: Seq[String], nodeId: String,
                dependencyInputs: Seq[String] = Seq.empty): WorkflowOperator = {
-    WorkflowOperator(inputs = inputs.map(convertStringToOption), task = task, outputs = outputs, Seq(), (0, 0), nodeId, outputPriority, Seq.empty, dependencyInputs)
+    WorkflowOperator(inputs = inputs.map(convertStringToOption), task = task, outputs = outputs, Seq(), (0, 0), nodeId, Seq.empty, dependencyInputs)
   }
 
   def dataset(task: String,
               nodeId: String,
-              outputPriority: Option[Double] = None,
               inputs: Seq[String] = Seq.empty,
               outputs: Seq[String] = Seq.empty,
               configInputs: Seq[String] = Seq.empty,
               dependencyInputs: Seq[String] = Seq.empty): WorkflowDataset = {
-    WorkflowDataset(inputs.map(convertStringToOption), task, outputs, (0, 0), nodeId, outputPriority, configInputs, dependencyInputs)
+    WorkflowDataset(inputs.map(convertStringToOption), task, outputs, (0, 0), nodeId, configInputs, dependencyInputs)
   }
 }

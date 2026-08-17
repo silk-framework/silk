@@ -210,8 +210,12 @@ class LegacyDatasetApi @Inject() (implicit workspaceReact: WorkspaceReact) exten
     implicit val prefixes: Prefixes = project.config.prefixes
     implicit val readContext: ReadContext = taskUpdateReadContext(project, datasetName)
 
+    // Everything that fails while the request is read is caused by the request itself. Failures after that, e.g. while the task
+    // is persisted, are server errors and must not be reported as bad input.
+    var readingRequest = true
     try {
       deserializeCompileTime() { dataset: DatasetTask =>
+        readingRequest = false
         val executionVariables = executionVariablesIfProvided(dataset)
         if (autoConfigure) {
           dataset.plugin match {
@@ -227,7 +231,7 @@ class LegacyDatasetApi @Inject() (implicit workspaceReact: WorkspaceReact) exten
         }
       }
     } catch {
-      case ex: Exception =>
+      case ex: Exception if readingRequest =>
         ErrorResult(BadUserInputException(ex))
     }
   }
@@ -379,7 +383,8 @@ class LegacyDatasetApi @Inject() (implicit workspaceReact: WorkspaceReact) exten
     dataset.data.plugin match {
       case resourceDataset: ResourceBasedDataset =>
         val resource = resourceDataset.file
-        Ok.chunked(StreamConverters.fromInputStream(() => resource.inputStream)).withHeaders("Content-Disposition" -> s"""attachment; filename="${resource.name}"""")
+        // Sets the Content-Disposition header and derives the Content-Type from the file name
+        Ok.chunked(StreamConverters.fromInputStream(() => resource.inputStream), inline = false, fileName = Some(resource.name))
       case _ =>
         throw BadUserInputException(s"Dataset ${dataset.labelAndId} is not based on a file.")
     }

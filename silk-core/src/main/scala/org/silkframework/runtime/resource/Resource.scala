@@ -3,9 +3,8 @@ package org.silkframework.runtime.resource
 import com.typesafe.config.Config
 import org.silkframework.config.ConfigValue
 import org.silkframework.runtime.plugin.PluginContext
-import org.silkframework.runtime.resource.Resource.maxInMemorySizeParameterName
 
-import java.io.{ByteArrayOutputStream, File, InputStream}
+import java.io.{File, InputStream, InputStreamReader}
 import java.time.Instant
 import java.util.logging.Logger
 import scala.io.{Codec, Source}
@@ -84,6 +83,27 @@ trait Resource {
   }
 
   /**
+   * Loads at most maxChars characters of this resource into a string.
+   * The read is bounded, so it is safe for resources over the in-memory size limit.
+   * Unlike [[loadAsString]], line endings are kept verbatim.
+   */
+  def loadAsStringCapped(maxChars: Int, codec: Codec = Codec.UTF8): CappedString = {
+    require(maxChars >= 0 && maxChars < Int.MaxValue, "maxChars must be non-negative and below Int.MaxValue")
+    read { is =>
+      val reader = new InputStreamReader(is, codec.charSet)
+      val buffer = new Array[Char](maxChars + 1)
+      var total = 0
+      var n = 0
+      while (n != -1 && total < buffer.length) {
+        n = reader.read(buffer, total, buffer.length - total)
+        if (n > 0) total += n
+      }
+      if (total > maxChars) CappedString(new String(buffer, 0, maxChars), truncated = true)
+      else CappedString(new String(buffer, 0, total), truncated = false)
+    }
+  }
+
+  /**
     * Loads all lines of this resource into a sequence.
     */
   def loadLines(codec: Codec = Codec.UTF8): Seq[String] = {
@@ -103,13 +123,7 @@ trait Resource {
     checkSizeForInMemory()
     val in = inputStream
     try {
-      val out = new ByteArrayOutputStream()
-      var b = in.read()
-      while (b > -1) {
-        out.write(b)
-        b = in.read()
-      }
-      out.toByteArray
+      in.readAllBytes()
     } finally {
       in.close()
     }
@@ -152,8 +166,7 @@ trait Resource {
     size match {
       case Some(s) =>
         if(s > Resource.maxInMemorySize()) {
-          throw new ResourceTooLargeException(s"Resource $name is too large to be loaded into memory (size: $s, maximum size: ${Resource.maxInMemorySize()}). " +
-            s"Configure '$maxInMemorySizeParameterName' in order to increase this limit.")
+          throw new ResourceTooLargeException(name, s)
         }
       case None =>
         log.warning(s"Could not determine size of resource $name for loading contents into memory.")
@@ -162,22 +175,39 @@ trait Resource {
 
   /**
    * The relative path within a resource manager.
+   * Always uses '/' as separator, independent of the OS, so it can be resolved via [[ResourceManager.getInPath]].
    *
    * @throws IllegalArgumentException If the given resource manager is either empty or
    *                                  does have a different base path than this resource.
    */
   def relativePath(resourceManager: ResourceManager): String = {
+    relativePath(resourceManager, File.separatorChar)
+  }
+
+  // The OS separator is a parameter so the Windows normalization can be tested on any OS
+  private[resource] def relativePath(resourceManager: ResourceManager, separatorChar: Char): String = {
     if (resourceManager == EmptyResourceManager()) {
       throw new IllegalArgumentException("Need non-empty resource manager in order to serialize resource paths relative to base path.")
     }
+    val separator = separatorChar.toString
     val basePath = resourceManager.basePath
-    if (path.startsWith(basePath)) {
-      path.stripPrefix(basePath).stripPrefix("/").stripPrefix(File.separator)
+    val relative = path.stripPrefix(basePath)
+    // The remainder must start at a separator, so that e.g. base path '/proj' does not match '/proj2/file'
+    if (path.startsWith(basePath) && (relative.isEmpty || relative.startsWith("/") || relative.startsWith(separator))) {
+      relative.stripPrefix("/").stripPrefix(separator).replace(separatorChar, '/')
     } else {
       throw new IllegalArgumentException("The context uses a different base path than the provided resource.")
     }
   }
 }
+
+/**
+  * A string loaded with a character bound, as returned by [[Resource.loadAsStringCapped]].
+  *
+  * @param content   The loaded, possibly truncated, content.
+  * @param truncated True if the source was longer than the bound and content was cut off.
+  */
+case class CappedString(content: String, truncated: Boolean)
 
 object Resource {
 

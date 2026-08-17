@@ -1,10 +1,11 @@
 package org.silkframework.runtime.resource.zip
 
-import org.silkframework.runtime.resource.WritableResource
+import org.silkframework.runtime.resource.{ResourceNotFoundException, WritableResource}
 
 import java.io.{InputStream, OutputStream}
 import java.time.Instant
 import java.util.zip.{ZipEntry, ZipInputStream, ZipOutputStream}
+import scala.util.control.NonFatal
 
 /**
  * A resource representing an entry inside a zip file.
@@ -76,13 +77,20 @@ class ZipResource(zipFile: WritableResource, zipEntry: String) extends WritableR
       var entry = zipInputStream.getNextEntry
       while (entry != null) {
         if (entry.getName == zipEntry) {
-          return zipInputStream // Return the stream for the found entry
+          return zipInputStream // The caller takes ownership of the stream and has to close it
         }
         entry = zipInputStream.getNextEntry
       }
-      throw new NoSuchElementException(s"Entry '$entryPath' not found in zip file.")
+      throw new ResourceNotFoundException(s"Entry '$zipEntry' not found in zip file ${zipFile.name}.")
     } catch {
-      case e: Exception => throw new RuntimeException(s"Failed to read entry '$entryPath' from zip file.", e)
+      case NonFatal(ex) =>
+        // The caller never receives the stream on this path, so it has to be closed here to not leak the file handle
+        try {
+          zipInputStream.close()
+        } catch {
+          case NonFatal(closeEx) => ex.addSuppressed(closeEx)
+        }
+        throw ex
     }
   }
 

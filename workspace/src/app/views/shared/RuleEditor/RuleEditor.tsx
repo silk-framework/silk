@@ -255,10 +255,6 @@ const RuleEditorInner = <TASK_TYPE extends object, OPERATOR_TYPE extends object>
     const [operators, setOperators] = React.useState<OPERATOR_TYPE[]>([]);
     // True while operators are loaded
     const [operatorsLoading, setOperatorsLoading] = React.useState<boolean>(false);
-    // The internal rule operator node model
-    const [initialRuleOperatorNodes, setInitialRuleOperatorNodes] = React.useState<IRuleOperatorNode[] | undefined>(
-        undefined,
-    );
     // The list of available operators that can be added to the canvas
     const [operatorList, setOperatorList] = React.useState<IRuleOperator[] | undefined>(undefined);
     /* A map that connects pluginId to all operators with that ID. In theory there could be plugins with the same ID in different plugin types,
@@ -295,16 +291,15 @@ const RuleEditorInner = <TASK_TYPE extends object, OPERATOR_TYPE extends object>
         }
     };
 
-    // Convert task data to internal model
-    React.useEffect(() => {
-        if (taskData && operatorMap) {
-            const getOperatorNode = (pluginId: string, pluginType?: string): IRuleOperator | undefined => {
-                return utils.getOperatorNode(pluginId, operatorMap, pluginType);
-            };
-            const nodes = convertToRuleOperatorNodes(taskData, getOperatorNode);
-            setInitialRuleOperatorNodes(nodes);
+    // Derive both representations in the same render so consumers never receive new task data with stale rule nodes.
+    const initialRuleOperatorNodes = React.useMemo(() => {
+        if (!taskData || !operatorMap) {
+            return undefined;
         }
-    }, [taskData, operatorMap]);
+        const getOperatorNode = (pluginId: string, pluginType?: string): IRuleOperator | undefined =>
+            utils.getOperatorNode(pluginId, operatorMap, pluginType);
+        return convertToRuleOperatorNodes(taskData, getOperatorNode);
+    }, [convertToRuleOperatorNodes, operatorMap, taskData]);
 
     // Convert available operators
     React.useEffect(() => {

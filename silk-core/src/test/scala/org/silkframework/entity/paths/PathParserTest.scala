@@ -1,5 +1,5 @@
 package org.silkframework.entity.paths
-
+
 import org.silkframework.config.Prefixes
 import org.silkframework.util.Uri
 import org.scalatest.flatspec.AnyFlatSpec
@@ -16,6 +16,13 @@ class PathParserTest extends AnyFlatSpec with Matchers {
     testValidPath("""\<urn:some:test>[<urn:prop:check> != "check value"]/abc""")
     testValidPath("""abc[@lang ='en']""").operators.drop(1).head mustBe LanguageFilter("=", "en")
     testValidPath("""abc[ @lang   =  'en']""").operators.drop(1).head mustBe LanguageFilter("=", "en")
+  }
+
+  it should "parse property filters with all comparison operators, including two-character ones" in {
+    for(op <- Seq(">=", "<=", "!=", ">", "<", "=")) {
+      val path = testValidPath(s"""/person[age $op "18"]""")
+      path.operators.drop(1).head mustBe PropertyFilter(Uri("age"), op, "\"18\"")
+    }
   }
 
   it should "parse invalid paths and return the parsed part and the position where it failed" in {

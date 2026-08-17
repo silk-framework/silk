@@ -107,6 +107,12 @@ export interface IPluginDetails {
     pluginType?: PluginType;
     markdownDocumentation?: string;
     autoConfigurable?: boolean;
+    relatedPlugins?: RelatedPlugin[];
+}
+
+export interface RelatedPlugin {
+    id: string;
+    description: string;
 }
 
 /** Overview version of an item description. */

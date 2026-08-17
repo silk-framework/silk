@@ -74,7 +74,6 @@ class LocalJsonParserWorkflowTest extends AnyFlatSpec with Matchers with ConfigT
       outputs = Seq(ParseJsonId),
       position = (0, 0),
       nodeId = SourceDatasetId,
-      outputPriority = None,
       configInputs = Seq.empty,
       dependencyInputs = Seq.empty
     )
@@ -85,7 +84,6 @@ class LocalJsonParserWorkflowTest extends AnyFlatSpec with Matchers with ConfigT
       errorOutputs = Seq.empty,
       position = (100, 0),
       nodeId = ParseJsonId,
-      outputPriority = None,
       configInputs = Seq.empty,
       dependencyInputs = Seq.empty
     )
@@ -95,7 +93,6 @@ class LocalJsonParserWorkflowTest extends AnyFlatSpec with Matchers with ConfigT
       outputs = Seq.empty,
       position = (200, 0),
       nodeId = OutputDatasetId,
-      outputPriority = None,
       configInputs = Seq.empty,
       dependencyInputs = Seq.empty
     )

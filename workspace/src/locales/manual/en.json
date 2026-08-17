@@ -18,6 +18,14 @@
             "changeProjectButton": "Change target project",
             "resetModalTitle": "Configuration reset necessary"
         },
+        "relatedPlugins": {
+            "title": "Related plugins",
+            "displayPlugins": "Show related plugins",
+            "switchAction": "Select {{pluginLabel}}",
+            "switchTooltip": "Loads the '{{pluginLabel}}' plugin into the form. Label, description, and tags are kept; all other settings are reset.",
+            "switchWarningTitle": "Switch plugin",
+            "switchWarningMessage": "There are unsaved changes in the form. Switching to the related plugin will reset all settings except label, description, and tags. Do you want to continue?"
+        },
         "ReadOnlyParameter": {
             "label": "Read-only",
             "description": "If enabled, all write operations using this dataset object will fail, e.g. when used as output in workflows or transform/linking executions. This will NOT protect the underlying resource in general, e.g. files, databases or knowledge graphs could still be changed externally."
@@ -55,7 +63,21 @@
         "formatText": "Format text",
         "load": "Load preview",
         "loading": "Loading preview data.",
-        "noAttributes": "No attributes found. This might be an empty dataset.",
+        "noEntries": "No preview entries found.",
+        "entriesWithoutProperties": "Preview entries do not contain any properties.",
+        "emptyState": {
+            "datasetPage": {
+                "noEntries": "No preview entries found. This dataset may be empty.",
+                "entriesWithoutProperties": "Preview entries do not contain any properties."
+            },
+            "taskConfiguration": {
+                "noEntries": "No preview entries found for the current configuration.",
+                "entriesWithoutProperties": "Preview entries do not contain any properties."
+            },
+            "executionReport": {
+                "entriesWithoutProperties": "Sample output entities do not contain any properties."
+            }
+        },
         "notLoading": "Validation failed. Not loading preview.",
         "previewOf": "Preview of",
         "reload": "Reload preview",
@@ -197,11 +219,27 @@
         "parameterDocLinkText": "See documentation"
     },
     "PrefixDialog": {
+        "addProjectPrefix": "Add project prefix",
+        "defaultPrefixesDescription": "These built-in prefixes are always available in DI and cannot be edited here.",
+        "defaultPrefixesEmpty": "No default prefixes are currently configured.",
+        "defaultPrefixesTitle": "Default prefixes",
         "deletePrefix": "Prefix '{{prefixName}}' will be deleted.",
+        "explorePrefixesEmpty": "No Explore prefixes are currently registered. Manage them in Explore by installing packages or creating / importing ontology graphs.",
+        "overriddenInProjectBadge": "Overridden in project",
+        "overrideWorkspacePrefix": "The workspace prefix '{{prefixName}}' will stay unchanged. This project prefix will override it only inside this project.",
+        "overrideWorkspacePrefixAction": "Override in project",
+        "overridesWorkspacePrefixBadge": "Overrides workspace prefix",
         "overwritePrefix": "Update existing prefix '{{prefixName}}'?",
         "prefixNameInvalid": "The prefix name you have entered is invalid",
         "prefixUriInvalid": "The entered URI prefix must be a valid URI / IRI.",
-        "prefixUriInvalidChar": "The entered URI prefix contains invalid characters. First invalid character at position {{idx}} is '{{char}}'."
+        "prefixUriInvalidChar": "The entered URI prefix contains invalid characters. First invalid character at position {{idx}} is '{{char}}'.",
+        "projectPrefixesDescription": "Project prefixes can be added, updated, and removed here. They are exported with the project.",
+        "projectPrefixesEmpty": "No project prefixes have been defined yet.",
+        "projectPrefixesTitle": "Project prefixes",
+        "showProjectOverride": "Show project override",
+        "workspacePrefixReadOnly": "Workspace prefix, read-only here",
+        "workspacePrefixesDescription": "These prefixes are provided by Explore. Manage them by installing packages or create / import ontology graphs; they are read-only here.",
+        "workspacePrefixesTitle": "Explore prefixes"
     },
     "ProjectImportModal": {
         "importBtn": "Import project",
@@ -335,6 +373,7 @@
             "download": "Download",
             "export": "Export to",
             "exportTo": "Export to",
+            "hide": "Hide",
             "import": "Import",
             "loadExampleProject": "Add \"movies\" example project",
             "logout": "Logout",
@@ -986,10 +1025,15 @@
             "prefixTitle": "Manage prefixes",
             "prefix_plural": "Prefixes",
             "title": "Configuration",
+            "errors": {
+                "prefixLoadFailure": "Loading prefixes failed"
+            },
             "modal": {
                 "errors": {
                     "prefixDeletionFailure": "Prefix deletion failed",
-                    "prefixChangeFailure": "Prefix change failed"
+                    "prefixChangeFailure": "Prefix change failed",
+                    "prefixRefreshAfterDeletionFailure": "Prefix deleted, but refreshing the prefix list failed",
+                    "prefixRefreshAfterChangeFailure": "Prefix updated, but refreshing the prefix list failed"
                 }
             }
         },
@@ -1438,7 +1482,7 @@
     },
     "ArtefactFormParameter": {
         "evaluatedValue": "Evaluated template: {{value}}",
-        "evaluatedValueExecutionNote": "Evaluated template (execution variables not resolved): {{value}}",
+        "evaluatedValueUnresolvedNote": "Evaluated template (unknown variables are not resolved): {{value}}",
         "invalidTemplate": "Invalid template value",
         "switchToTemplate": "Switch to template input that allows to use project and global variables like this 'EXAMPLE'. Templates follows the Jinja syntax.",
         "switchToValue": "Variable template usage is active. You can use Jinja template syntax, e.g. for accessing project and global variables use 'EXAMPLE'. Click to switch back to direct value input.",

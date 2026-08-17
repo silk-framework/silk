@@ -35,7 +35,7 @@ private class RuleBlockXmlSerializer extends XmlSerializer[RuleBlockSpec] {
                         (implicit context: PluginContext): Seq[LoadedTask[RuleBlockSpec]] = {
     val names = resources.list.filter(_.endsWith(".xml"))
     for(name <- names) yield {
-      loadTaskSafelyFromXML(name, Some(Identifier(name.stripSuffix(".xml"))), resources)
+      loadTaskSafelyFromXML(name, Identifier(name.stripSuffix(".xml")), resources)
     }
   }
 }

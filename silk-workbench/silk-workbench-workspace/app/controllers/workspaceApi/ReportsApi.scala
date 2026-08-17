@@ -11,7 +11,7 @@ import io.swagger.v3.oas.annotations.media.Schema.RequiredMode
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.tags.Tag
 import io.swagger.v3.oas.annotations.{Operation, Parameter}
-import org.silkframework.execution.SimpleExecutionReport
+import org.silkframework.execution.{ExecutionReport, SimpleExecutionReport}
 import org.silkframework.runtime.activity.{Observable, UserContext}
 import org.silkframework.runtime.serialization.WriteContext
 import org.silkframework.serialization.json.ActivitySerializers.ActivityExecutionResultJsonFormat
@@ -251,7 +251,7 @@ class ReportsApi @Inject() (implicit system: ActorSystem, mat: Materializer) ext
 
     val updates =
       for(taskReport <- report.currentReports() if taskReport.timestamp.toEpochMilli >= timestamp) yield {
-        ReportSummary(taskReport)
+        ReportSummary(taskReport, report.retrieveReports(taskReport.nodeId))
       }
 
     Ok(Json.toJson(ReportUpdates(startTime, updates)))
@@ -288,19 +288,19 @@ class ReportsApi @Inject() (implicit system: ActorSystem, mat: Materializer) ext
                                       schema = new Schema(implementation = classOf[String])
                                     )
                                     taskId: String): WebSocket = {
-    implicit val userContext: UserContext = UserContext.Empty
-    val currentReport = retrieveCurrentReport(projectId, taskId)
+    AkkaUtils.createWebSocket { implicit userContext =>
+      val currentReport = retrieveCurrentReport(projectId, taskId)
 
-    var previousVersion = -1
-    val source = AkkaUtils.createSource(currentReport).map { value =>
-      val updates =
-        for(taskReport <- value.report.currentReports() if taskReport.version > previousVersion) yield {
-          ReportSummary(taskReport)
-        }
-      previousVersion = value.report.version
-      Json.toJson(ReportUpdates(System.currentTimeMillis(), updates))
+      var previousVersion = -1
+      AkkaUtils.createSource(currentReport).map { value =>
+        val updates =
+          for(taskReport <- value.report.currentReports() if taskReport.version > previousVersion) yield {
+            ReportSummary(taskReport, value.report.retrieveReports(taskReport.nodeId))
+          }
+        previousVersion = value.report.version
+        Json.toJson(ReportUpdates(System.currentTimeMillis(), updates))
+      }
     }
-    AkkaUtils.createWebSocket(source)
   }
 
   private def retrieveCurrentReport(projectId: String, taskId: String)(implicit userContext: UserContext): Observable[WorkflowExecutionReportWithProvenance] = {
@@ -386,17 +386,24 @@ object ReportSummary {
 
   implicit val reportSummaryFormat: OFormat[ReportSummary] = Json.format[ReportSummary]
 
-  def apply(value: WorkflowTaskReport): ReportSummary = {
-    val report = value.report
+  /** Builds the summary of a workflow node from its latest report, summing the entity counts of all
+    * executions of the same operation (e.g. a dataset that is written by multiple inputs). */
+  def apply(value: WorkflowTaskReport, nodeReports: Seq[ExecutionReport]): ReportSummary = {
+    val latest = value.report
+    val sameOperation = nodeReports.filter(_.operation == latest.operation)
+    val entityCount = sameOperation.map(_.entityCount).sum
+    val operationDesc =
+      if(entityCount == latest.entityCount) latest.operationDesc
+      else sameOperation.find(_.entityCount != 1).map(_.operationDesc).getOrElse(latest.operationDesc) // prefer a plural description
     ReportSummary(
       node = value.nodeId.toString,
       timestamp = value.timestamp.toEpochMilli,
-      operation = report.operation,
-      operationDesc = report.operationDesc,
-      warnings = report.warnings,
-      error = report.error,
-      isDone = report.isDone,
-      entityCount = report.entityCount
+      operation = latest.operation,
+      operationDesc = operationDesc,
+      warnings = nodeReports.flatMap(_.warnings).distinct,
+      error = latest.error,
+      isDone = latest.isDone,
+      entityCount = entityCount
     )
   }
 }

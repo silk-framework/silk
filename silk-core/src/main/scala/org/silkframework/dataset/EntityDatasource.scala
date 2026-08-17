@@ -28,7 +28,6 @@ case class EntityDatasource(underlyingTask: Task[DatasetSpec[Dataset]], entities
         val missingPath = requestSchema.typedPaths.find(tp => !matchingPathMap.contains(tp))
         throw new ValidationException("Some requested paths do not exist in data source, e.g. " + missingPath.get.toUntypedPath.normalizedSerialization + "!")
       } else {
-        val matchingPathMap = matchingPaths.toMap
         val valuesIndexes = requestSchema.typedPaths.map ( tp => matchingPathMap(tp) )
         val mappedEntities = entities.map { entity =>
           Entity(
@@ -37,7 +36,7 @@ case class EntityDatasource(underlyingTask: Task[DatasetSpec[Dataset]], entities
             requestSchema
           )
         }
-        GenericEntityTable(mappedEntities, entitySchema, underlyingTask)
+        GenericEntityTable(mappedEntities, requestSchema, underlyingTask)
       }
     }
   }

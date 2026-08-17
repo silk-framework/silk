@@ -3,7 +3,7 @@ package org.silkframework.runtime.iterator
 import org.silkframework.runtime.execution.Execution
 import org.silkframework.runtime.resource.DoSomethingOnGC
 
-import java.util.concurrent.{ArrayBlockingQueue, ExecutionException, Future, TimeUnit}
+import java.util.concurrent.{ArrayBlockingQueue, CancellationException, ExecutionException, Future, TimeUnit}
 
 /**
   * A closable iterator that is implemented by a single foreach function.
@@ -16,33 +16,52 @@ trait TraversableIterator[T] extends BufferingIterator[T] with DoSomethingOnGC {
 
   private val queue = new ArrayBlockingQueue[T](bufferSize)
 
-  // Loads entities in the background
+  // Guards the loadingFuture lifecycle
+  private val loadingLock = new Object
+
+  // Loads entities in the background. Mutated only under loadingLock
+  @volatile
   private var loadingFuture: Option[Future[Unit]] = None
+
+  @volatile
+  private var closed = false
 
   def foreach[U](f: T => U): Unit
 
   override def retrieveNext(): Option[T] = {
-    if(loadingFuture.isEmpty) {
-      // Start retrieving entities from the traversable
-      loadingFuture = Some(TraversableIterator.threadPool.submit[Unit](() => {
-        foreach(queue.put)
-      }))
-    }
-    // Retrieve next element from the queue
-    try {
-      while (!loadingFuture.get.isDone) {
-        val nextElement = queue.poll(100, TimeUnit.MILLISECONDS)
-        if (nextElement != null) {
+    startLoading() match {
+      case None =>
+        None // Closed before loading started, so nothing will be produced.
+      case Some(future) =>
+        try {
+          while (!future.isDone) {
+            val nextElement = queue.poll(100, TimeUnit.MILLISECONDS)
+            if (nextElement != null) {
+              checkForException()
+              return Some(nextElement)
+            }
+          }
           checkForException()
-          return Some(nextElement)
+          Option(queue.poll())
+        } catch {
+          case ex: InterruptedException =>
+            future.cancel(true)
+            throw ex
         }
-      }
-      checkForException()
-      Option(queue.poll())
-    } catch {
-      case ex: InterruptedException =>
-        loadingFuture.get.cancel(true)
-        throw ex
+    }
+  }
+
+  // Returns the background loading future, starting it on the first call. Returns None if already closed.
+  private def startLoading(): Option[Future[Unit]] = {
+    loadingFuture match {
+      case started @ Some(_) => started // Fast path: already loading, no need to lock.
+      case None =>
+        loadingLock.synchronized {
+          if (loadingFuture.isEmpty && !closed) {
+            loadingFuture = Some(TraversableIterator.threadPool.submit[Unit](() => foreach(queue.put)))
+          }
+          loadingFuture
+        }
     }
   }
 
@@ -54,6 +73,8 @@ trait TraversableIterator[T] extends BufferingIterator[T] with DoSomethingOnGC {
     } catch {
       case ex: ExecutionException =>
         throw ex.getCause
+      case _: CancellationException =>
+        // Loading has been cancelled by close(), so the iteration just ends
     }
   }
 
@@ -61,7 +82,8 @@ trait TraversableIterator[T] extends BufferingIterator[T] with DoSomethingOnGC {
     close()
   }
 
-  override def close(): Unit = {
+  override def close(): Unit = loadingLock.synchronized {
+    closed = true
     for(future <- loadingFuture) {
       future.cancel(true)
     }

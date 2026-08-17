@@ -41,14 +41,12 @@ export function RelatedItems(props: IProps) {
     // If an I-Frame sends an event to update the page, decide based on provided function if to reload.
     useEffect(() => {
         if (props.messageEventReloadTrigger) {
-            let updateSwitchValue = updated;
             const handler = (event) => {
                 try {
                     const data = JSON.parse(event.data);
                     if (typeof data?.id === "string") {
                         if (props.messageEventReloadTrigger?.(data.id, data.message)) {
-                            updateSwitchValue = 1 - updateSwitchValue;
-                            setUpdated(updateSwitchValue);
+                            setUpdated((currentVersion) => currentVersion + 1);
                         }
                     }
                 } catch (ex) {}

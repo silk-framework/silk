@@ -33,12 +33,14 @@ case class ZipInputStreamResourceIterator(private[zip] val zip: () => ZipInputSt
     **/
   def iterateReadOnceResources(filterRegex: Regex): CloseableIterator[Resource] = {
     val zipInputStream = ZipInputStreamResourceIterator.this.zip()
+    // The entries are read strictly sequentially, so all of them can share one probe buffer
+    val head = new Array[Byte](maxCompressedSizeForInMemory + 1)
     var currentResource: Option[WritableResource with ResourceWithKnownTypes] = None
     val iterator =
       ZipInputStreamResourceIterator.listEntries(zipInputStream)
                                     .filter(entry => !entry.isDirectory && filterRegex.findFirstIn(entry.getName).isDefined)
                                     .map { entry =>
-        val tempResource = createCompressedResource(entry, zipInputStream)
+        val tempResource = createCompressedResource(entry, zipInputStream, head)
         currentResource.foreach(_.delete())
         currentResource = Some(tempResource)
         tempResource
@@ -47,8 +49,21 @@ case class ZipInputStreamResourceIterator(private[zip] val zip: () => ZipInputSt
   }
 
   // Creates a compressed, in-memory or file based resource from the ZIP input stream.
-  private def createCompressedResource[U](entry: ZipEntry, z: ZipInputStream): WritableResource with ResourceWithKnownTypes = {
-    val r = if (entry.getCompressedSize <= maxCompressedSizeForInMemory) {
+  // The head buffer is used to probe the entry size and must hold maxCompressedSizeForInMemory + 1 bytes.
+  private def createCompressedResource(entry: ZipEntry, z: ZipInputStream, head: Array[Byte]): WritableResource with ResourceWithKnownTypes = {
+    // ZipEntry.getCompressedSize is -1 for entries that have been written in streaming mode (as ZipOutputStream does, including
+    // our own exports), which would make every entry look small enough for memory. So the entry is read up to the limit instead and
+    // only the remainder decides whether it has to be spilled to a temp file.
+    var headSize = 0
+    var lastRead = 0
+    while (lastRead >= 0 && headSize < head.length) {
+      lastRead = z.read(head, headSize, head.length - headSize)
+      if (lastRead > 0) {
+        headSize += lastRead
+      }
+    }
+    val fitsInMemory = headSize <= maxCompressedSizeForInMemory
+    val r = if (fitsInMemory) {
       CompressedInMemoryResource(entry.getName, zipPath, Some(entry.getName), ZipEntryUtil.getTypeAnnotation(entry).toIndexedSeq)
     } else {
       val tempFile = File.createTempFile("zipResource", ".bin")
@@ -56,7 +71,12 @@ case class ZipInputStreamResourceIterator(private[zip] val zip: () => ZipInputSt
       // Since there is no way to know when the last resource will not be used anymore, we set the deleteOnGC flag, so it gets eventually deleted.
       CompressedFileResource(tempFile, entry.getName, zipPath, Some(entry.getName), ZipEntryUtil.getTypeAnnotation(entry).toIndexedSeq, deleteOnGC = true)
     }
-    r.writeStream(z)
+    r.write() { outputStream =>
+      outputStream.write(head, 0, headSize)
+      if (!fitsInMemory) {
+        z.transferTo(outputStream)
+      }
+    }
     r
   }
 }

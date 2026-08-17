@@ -59,13 +59,11 @@ export const ExecutionReport = ({ executionReport, executionMetaData, trackRuleI
     }, []);
 
     const renderSummary = () => {
-        let title;
-        if (executionReport?.entityCount != null && executionReport?.operationDesc != null) {
-            title =
-                `${t("ExecutionReport.execution")}: ` +
-                executionReport.entityCount +
-                " " +
-                executionReport.operationDesc;
+        let title: string;
+        if (executionReport?.title) {
+            title = executionReport.title;
+        } else if (executionReport?.entityCount != null && executionReport?.operationDesc != null) {
+            title = `${t("ExecutionReport.execution")}: ${executionReport.entityCount} ${executionReport.operationDesc}`;
         } else {
             title = t("ExecutionReport.defaultTitle");
         }
@@ -284,6 +282,12 @@ export const ExecutionReport = ({ executionReport, executionMetaData, trackRuleI
                     preview={{
                         types,
                         typeValues,
+                    }}
+                    emptyStateMessages={{
+                        entriesWithoutProperties: t(
+                            "DataPreview.emptyState.executionReport.entriesWithoutProperties",
+                            "Sample output entities do not contain any properties.",
+                        ),
                     }}
                 />
             );

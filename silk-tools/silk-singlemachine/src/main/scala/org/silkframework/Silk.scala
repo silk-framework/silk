@@ -191,9 +191,9 @@ object Silk {
    * @param transform The transform specification.
    */
   private def executeTransform(config: LinkingConfig, transform: Task[TransformSpec]): Unit = {
-    val inputTask =  config.source(transform.selection.inputId)
+    val inputTask =  config.source(transform.selection.requiredInputId())
     val inputSource = access(inputTask).source
-    Activity(new ExecuteTransform(transform, (_) => inputTask, (_) => inputSource, (_) =>
+    Activity(new ExecuteTransform(transform, (_) => Some(inputTask), (_) => inputSource, (_) =>
       new CombinedEntitySink(config.output.map(access(_).entitySink).toSeq), _ => None, _ => PluginContext.empty)).startBlocking()
   }
 

@@ -20,6 +20,10 @@ trait ExecutionReportUpdater {
   def context: ActivityContext[ExecutionReport]
   /** Short label for the operation, e.g., "read" or "write" */
   def operationLabel: Option[String] = None
+  /** The semantic type of the operation, see [[ExecutionReport.operationType]]. */
+  def operationType: OperationType = OperationType.Process
+  /** Optional, execution-specific title displayed instead of the UI fallback title. */
+  def title: Option[String] = None
   /** What does the task emit, e.g. "entity", "query" etc. */
   def entityLabelSingle: String = "Entity"
   /** The plural of the entity label, e.g. "entities", "queries" */
@@ -34,10 +38,13 @@ trait ExecutionReportUpdater {
   private val start = System.currentTimeMillis()
   private var startFirstEntity: Option[Long] = None
   private var lastUpdate = 0L
-  private var entitiesEmitted = context.value.get.map(_.entityCount).getOrElse(0)
+  private var entitiesEmitted = 0
   private var numberOfExecutions = 0
   private var warnings: Seq[String] = Seq.empty
   private var error: Option[String] = None
+
+  /** The number of entities represented by the report currently being built. */
+  protected final def emittedEntityCount: Int = entitiesEmitted
 
   // Sample entities
   private var currentOutputSampleEntitySchema: SampleEntitiesSchema = SampleEntitiesSchema.empty
@@ -111,6 +118,9 @@ trait ExecutionReportUpdater {
     this.error = error
   }
 
+  /** True, if at least one update has been pushed to the execution report. */
+  final def hasUpdates: Boolean = lastUpdate != 0
+
   /**
     * Finishes execution of the operator and updates the report.
     * A operator may be run multiple times within one workflow execution.
@@ -154,7 +164,7 @@ trait ExecutionReportUpdater {
           Seq("Number of executions" -> numberOfExecutions.toString).filter(_ => numberOfExecutions > 0) ++
           additionalFields()
       val statusMessage = s"${if(entitiesEmitted == 1) entityLabelSingle.toLowerCase else entityLabelPlural.toLowerCase} $entityProcessVerb"
-      context.value.update(SimpleExecutionReport(task, stats, warnings, error, addEndTime, entitiesEmitted, operationLabel, statusMessage, allSampleOutputEntities()))
+      context.value.update(SimpleExecutionReport(task, stats, warnings, error, addEndTime, entitiesEmitted, operationLabel, statusMessage, allSampleOutputEntities(), operationType, title))
       lastUpdate = System.currentTimeMillis()
     }
   }

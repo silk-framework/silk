@@ -22,7 +22,8 @@ object WorkflowSerializers {
 
     override def read(value: JsValue)(implicit readContext: ReadContext): Workflow = {
       val parameterObject = objectValue(value, PARAMETERS)
-      Workflow(
+      // Use createNormalized to drop stale replaceable dataset IDs, e.g. sent by clients that did not clean them up on dataset removal
+      Workflow.createNormalized(
         operators =  WorkflowOperatorsParameter(
           arrayValueOption(parameterObject, OPERATORS).map(_.value.map(WorkflowOperatorJsonFormat.read).toSeq).getOrElse(Seq.empty)),
         datasets = WorkflowDatasetsParameter(
@@ -87,7 +88,6 @@ object WorkflowSerializers {
   private final val OUTPUTS = "outputs"
   private final val ERROR_OUTPUTS = "errorOutputs"
   private final val ID = "id"
-  private final val OUTPUT_PRIORITY = "outputPriority"
 
   implicit object WorkflowOperatorJsonFormat extends JsonFormat[WorkflowOperator] with WorkflowNodeFormatTrait {
 
@@ -99,7 +99,6 @@ object WorkflowSerializers {
         errorOutputs = mustBeJsArray(requiredValue(value, ERROR_OUTPUTS))(_.value.map(_.as[JsString].value).toSeq),
         position = nodePosition(value),
         nodeId = nodeId(value),
-        outputPriority = outputPriority(value),
         configInputs = configInputs(value),
         dependencyInputs = dependencyInputs(value)
       )
@@ -114,7 +113,6 @@ object WorkflowSerializers {
         OUTPUTS -> JsArray(op.outputs.map(JsString)),
         ERROR_OUTPUTS -> JsArray(op.errorOutputs.map(JsString)),
         ID -> op.nodeId.toString,
-        OUTPUT_PRIORITY -> op.outputPriority,
         CONFIG_INPUTS -> JsArray(op.configInputs.map(JsString)),
         DEPENDENCY_INPUTS -> JsArray(op.dependencyInputs.map(JsString))
       )
@@ -129,7 +127,6 @@ object WorkflowSerializers {
         outputs = outputs(value),
         position = nodePosition(value),
         nodeId = nodeId(value),
-        outputPriority = outputPriority(value),
         configInputs = configInputs(value),
         dependencyInputs = dependencyInputs(value)
       )
@@ -143,7 +140,6 @@ object WorkflowSerializers {
         INPUTS -> JsArray(op.inputs.map(convertOptionToString).map(JsString)),
         OUTPUTS -> JsArray(op.outputs.map(JsString)),
         ID -> op.nodeId,
-        OUTPUT_PRIORITY -> op.outputPriority,
         CONFIG_INPUTS -> JsArray(op.configInputs.map(JsString)),
         DEPENDENCY_INPUTS -> JsArray(op.dependencyInputs.map(JsString))
       )
@@ -153,10 +149,6 @@ object WorkflowSerializers {
   trait WorkflowNodeFormatTrait {
     protected def nodeId(value: JsValue): String = {
       stringValue(value, ID)
-    }
-
-    protected def outputPriority(value: JsValue): Option[Double] = {
-      numberValueOption(value, OUTPUT_PRIORITY).map(_.toDouble)
     }
 
     protected def nodePosition(value: JsValue): (Int, Int) = {

@@ -6,6 +6,7 @@ import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.execution._
 import org.silkframework.execution.local.LocalExecution
 import org.silkframework.plugins.dataset.InternalDataset
+import org.silkframework.rule.execution.TransformReport
 import org.silkframework.runtime.activity.Status.Canceling
 import org.silkframework.runtime.activity._
 import org.silkframework.runtime.plugin.{PluginContext, TaskResolver}
@@ -125,6 +126,8 @@ trait WorkflowExecutor[ExecType <: ExecutionType] extends Activity[WorkflowExecu
       parentExecutionVariablesHolder = parentExecutionVariablesHolder
     )
 
+    ClearDatasetOrderingCheck.warnInReport(currentWorkflow, project, context)
+
     for (node <- workflowNodes) {
       val taskOpt: Option[Task[_ <: TaskSpec]] = node match {
         case datasetNode: WorkflowDataset =>
@@ -227,7 +230,7 @@ trait WorkflowExecutor[ExecType <: ExecutionType] extends Activity[WorkflowExecu
       ).asInstanceOf[Task[T]]
     } catch {
       case ex: ValidationException =>
-        throw new ValidationException(s"Failed to re-configure task '${task.label()}'. Error details: " + ex.getMessage)
+        throw new ValidationException(s"Failed to re-configure task '${task.label()}'. Error details: " + ex.getMessage, ex)
     }
   }
 
@@ -338,10 +341,12 @@ case class WorkflowRunContext(activityContext: ActivityContext[WorkflowExecution
   private def listenForTaskReports(nodeId: Identifier,
                                    task: Task[_ <: TaskSpec],
                                    taskContext: ActivityMonitor[ExecutionReport]): Unit = {
-    // Add initial task report
-    activityContext.value.updateWith(_.addReport(nodeId, SimpleExecutionReport.initial(task)))
+    val listener = activityContext.value.synchronized {
+      // Add initial task report
+      activityContext.value.updateWith(_.addReport(nodeId, SimpleExecutionReport.initial(task)))
+      new TaskReportListener(activityContext.value().taskReports.size - 1, nodeId)
+    }
     // Listen for changes and update the task report for each change
-    val listener = new TaskReportListener(reportListeners.size, nodeId)
     taskContext.value.subscribe(listener)
     reportListeners.append(listener)
   }
@@ -355,10 +360,18 @@ case class WorkflowRunContext(activityContext: ActivityContext[WorkflowExecution
 
   /**
     * Updates the workflow execution report on each update of a task report.
+    * A node may run multiple executions within one workflow run (e.g. a dataset node executes one
+    * write per input): each execution ends with a report marked as done, so an update arriving
+    * after that starts a new report entry instead of overwriting the finished one.
     */
-  private class TaskReportListener(index: Int, nodeId: Identifier) extends (ExecutionReport => Unit) {
+  private class TaskReportListener(private var index: Int, nodeId: Identifier) extends (ExecutionReport => Unit) {
     def apply(report: ExecutionReport): Unit = activityContext.value.synchronized {
-      activityContext.value.updateWith(_.updateReport(index, nodeId, report))
+      if(activityContext.value().taskReports(index).report.isDone) {
+        activityContext.value.updateWith(_.addReport(nodeId, report))
+        index = activityContext.value().taskReports.size - 1
+      } else {
+        activityContext.value.updateWith(_.updateReport(index, nodeId, report))
+      }
     }
   }
 

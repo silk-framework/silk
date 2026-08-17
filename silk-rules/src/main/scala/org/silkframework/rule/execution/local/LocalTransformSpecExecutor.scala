@@ -32,7 +32,7 @@ class LocalTransformSpecExecutor extends Executor[TransformSpec, LocalExecution]
     val ruleSchemata = task.data.ruleSchemataWithoutEmptyObjectRules
     val flatInputs = flattenInputs(input, Some(ruleSchemata.size)).toIndexedSeq
     val outputTables = mutable.Buffer[LocalEntities]()
-    val report = new TransformReportBuilder(task, transformContext)
+    val report = new TransformReportBuilder(task, transformContext, outputTableCount = ruleSchemata.size)
     report.setExecutionContext(transformReportExecutionContext)
     implicit val prefixes: Prefixes = pluginContext.prefixes
     implicit val taskContext: TaskContext = TaskContext(Seq(input.task), pluginContext)
@@ -106,7 +106,8 @@ class LocalTransformSpecExecutor extends Executor[TransformSpec, LocalExecution]
         matchingTransformRules = Some(containerRules)
         inputTable = currentInputTable
       } else {
-        for(objectMapping @ ObjectMapping(_, _, _, childRules, _, _) <- containerRules) {
+        for(objectMapping @ ObjectMapping(_, _, _, childRules, _, _) <- containerRules
+            if childRules.typeRules.nonEmpty || childRules.propertyRules.nonEmpty) {
           findRecursive(objectMapping.label(), updateChildRules(childRules, objectMapping))
         }
       }

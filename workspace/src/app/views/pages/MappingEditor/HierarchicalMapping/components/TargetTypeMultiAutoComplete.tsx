@@ -30,12 +30,9 @@ const TargetTypeMultiAutoComplete = ({
     const mappingEditorContext = React.useContext(GlobalMappingEditorContext);
     const runOnQueryChange = React.useCallback(
         (query: string) => {
-            return silkRestApi.targetClassAutoCompletions(
-                mappingEditorContext.projectId,
-                mappingEditorContext.transformTaskId,
-                query,
-                50,
-            ).the;
+            return silkRestApi
+                .targetClassAutoCompletions(mappingEditorContext.projectId, mappingEditorContext.transformTaskId, query, 50)
+                .then((response) => response.data);
         },
         [mappingEditorContext.projectId, mappingEditorContext.transformTaskId],
     );

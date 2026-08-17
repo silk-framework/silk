@@ -129,17 +129,17 @@ object LocalJsonToFileWorkflowTest {
 
     val sourceNode = WorkflowDataset(
       inputs = Seq.empty, task = SourceDatasetId, outputs = Seq(JsonToFileId),
-      position = (0, 0), nodeId = SourceDatasetId, outputPriority = None,
+      position = (0, 0), nodeId = SourceDatasetId,
       configInputs = Seq.empty, dependencyInputs = Seq.empty
     )
     val operatorNode = WorkflowOperator(
       inputs = Seq(Some(SourceDatasetId)), task = JsonToFileId, outputs = Seq(OutputDatasetId),
       errorOutputs = Seq.empty, position = (100, 0), nodeId = JsonToFileId,
-      outputPriority = None, configInputs = Seq.empty, dependencyInputs = Seq.empty
+      configInputs = Seq.empty, dependencyInputs = Seq.empty
     )
     val outputNode = WorkflowDataset(
       inputs = Seq(Some(JsonToFileId)), task = OutputDatasetId, outputs = Seq.empty,
-      position = (200, 0), nodeId = OutputDatasetId, outputPriority = None,
+      position = (200, 0), nodeId = OutputDatasetId,
       configInputs = Seq.empty, dependencyInputs = Seq.empty
     )
 

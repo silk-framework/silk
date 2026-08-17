@@ -147,7 +147,7 @@ describe("Project page", () => {
 
     it("should get prefixes for configuration widget", () => {
         renderProjectPage();
-        checkRequestMade(apiUrl("/workspace/projects/" + testProjectId + "/prefixes"));
+        checkRequestMade(apiUrl("/workspace/projects/" + testProjectId + "/prefixes/detailed"));
     });
 
     it("should search items for that project", () => {

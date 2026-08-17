@@ -30,11 +30,15 @@ class EntityDatasourceTest extends AnyFlatSpec with Matchers {
 
   it should "turn its entities into the request schema" in {
     val requestSchema = EntitySchema(typeUri, nrToPaths(IndexedSeq(4, 2)))
-    val requestEntities = entityDatasource.retrieve(requestSchema).entities.toSeq
+    val entityTable = entityDatasource.retrieve(requestSchema)
+    // The returned table must declare the schema the entities were projected onto, not the source schema.
+    entityTable.entitySchema mustBe requestSchema
+    val requestEntities = entityTable.entities.toSeq
     requestEntities.size mustBe 1
     val entity = requestEntities.head
     entity.uri.toString mustBe entityUri
     entity.values mustBe IndexedSeq(Seq("4"), Seq("2"))
+    entity.schema mustBe requestSchema
   }
 
   private def nrToPaths(seq: IndexedSeq[Int]): IndexedSeq[TypedPath] = {

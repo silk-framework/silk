@@ -16,6 +16,7 @@ package org.silkframework.rule.plugins.transformer.numeric
 
 import org.silkframework.rule.annotations.{TransformExample, TransformExamples}
 import org.silkframework.rule.input.InlineTransformer
+import org.silkframework.runtime.plugin.FixedValuesAutoCompletionProvider
 import org.silkframework.runtime.plugin.annotations.{Param, Plugin, PluginReference}
 import org.silkframework.util.StringUtils.DoubleLiteral
 
@@ -124,11 +125,12 @@ import org.silkframework.util.StringUtils.DoubleLiteral
   ),
 ))
 case class AggregateNumbersTransformer(
-  @Param("The aggregation operation to be applied to all values. One of `+`, `*`, `min`, `max`, `average`.")
+  @Param(value = "The aggregation operation to be applied to all values. One of `+`, `*`, `min`, `max`, `average`.",
+         autoCompletionProvider = classOf[AggregationOperatorAutoCompletionProvider], allowOnlyAutoCompletedValues = true)
   operator: String
 ) extends InlineTransformer {
 
-  require(Set("+", "*", "min", "max", "average") contains operator, "Operator must be one of '+', '*', 'min', 'max', 'average'")
+  require(AggregateNumbersTransformer.operators contains operator, "Operator must be one of '+', '*', 'min', 'max', 'average'")
 
   def apply(values: Seq[Seq[String]]): Seq[String] = {
     // Collect all numbers
@@ -149,4 +151,10 @@ case class AggregateNumbersTransformer(
 
 object AggregateNumbersTransformer {
   final val pluginId = "aggregateNumbers"
+
+  /** The supported aggregation operators. */
+  final val operators = Seq("+", "*", "min", "max", "average")
 }
+
+/** Provides autocomplete suggestions for the aggregation operator. */
+case class AggregationOperatorAutoCompletionProvider() extends FixedValuesAutoCompletionProvider(AggregateNumbersTransformer.operators)

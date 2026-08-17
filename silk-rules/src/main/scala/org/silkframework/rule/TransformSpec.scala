@@ -16,8 +16,8 @@ import org.silkframework.runtime.resource.Resource
 import org.silkframework.runtime.serialization.XmlSerialization._
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat, XmlSerialization}
 import org.silkframework.runtime.templating.{TemplateVariableName, TemplateVariables}
-import org.silkframework.runtime.validation.NotFoundException
-import org.silkframework.util.{Identifier, IdentifierGenerator}
+import org.silkframework.runtime.validation.{NotFoundException, ValidationException}
+import org.silkframework.util.{Identifier, IdentifierGenerator, Uri}
 import org.silkframework.workspace.{OriginalTaskData, TaskLoadingException, WorkspaceReadTrait}
 import org.silkframework.workspace.project.task.DatasetTaskReferenceAutoCompletionProvider
 
@@ -45,8 +45,10 @@ import scala.collection.immutable.ArraySeq
   description =
       """A transform task defines a mapping from a source structure to a target structure."""
 )
-case class TransformSpec(@Param(label = "Input", value = "The source from which data will be transformed when executed as a stand-alone task outside of a workflow.")
-                         selection: DatasetSelection,
+case class TransformSpec(@Param(label = "Input", value = "The source from which data will be transformed when executed as a stand-alone task outside of a workflow. " +
+                             "If left empty, the input must be provided by connecting it in a workflow. " +
+                             "Note that auto-completion of types and paths is only available if an input is selected here.")
+                         selection: DatasetSelection = DatasetSelection.empty,
                          @Param(label = "", value = "", visibleInDialog = false)
                          mappingRule: RootMappingRule = RootMappingRule.empty,
                          @Param(label = "Output dataset", value = "An optional dataset where the transformation results should be written to when executed" +
@@ -92,7 +94,7 @@ case class TransformSpec(@Param(label = "Input", value = "The source from which 
   /**
     * The tasks that this task reads from.
     */
-  override def inputTasks: Set[Identifier] = Set(selection.inputId)
+  override def inputTasks: Set[Identifier] = selection.inputTaskId.toSet
 
   /**
     * The tasks that this task writes to.
@@ -185,6 +187,16 @@ case class TransformSpec(@Param(label = "Input", value = "The source from which 
     **/
   lazy val ruleSchemataWithoutEmptyObjectRules: Seq[RuleSchemata] = {
     collectSchemata(mappingRule, UntypedPath.empty, UntypedPath.empty, withEmptyObjectRules = false)
+  }
+
+  /**
+    * The schemata of the rule that generates the given target type.
+    *
+    * @throws ValidationException If no rule generates the given type.
+    */
+  def ruleSchemataForTargetType(targetType: Uri): RuleSchemata = {
+    ruleSchemataWithoutEmptyObjectRules.find(_.transformRule.rules.typeRules.map(_.typeUri).contains(targetType))
+      .getOrElse(throw new ValidationException(s"No rule matching target type $targetType found."))
   }
 
   /**
@@ -483,7 +495,7 @@ object TransformSpec {
       */
     override def read(node: Node)(implicit readContext: ReadContext): TransformSpec = {
       // Get the required parameters from the XML configuration.
-      val datasetSelection = DatasetSelection.fromXML((node \ "SourceDataset").head)
+      val datasetSelection = (node \ "SourceDataset").headOption.map(DatasetSelection.fromXML).getOrElse(DatasetSelection.empty)
       val sink = (node \ "Outputs" \ "Output" \ "@id").headOption.map(_.text).map(Identifier(_))
       val errorSink = (node \ "ErrorOutputs" \ "ErrorOutput" \ "@id").headOption.map(_.text).map(Identifier(_))
       val targetVocabularyParameter = (node \ "TargetVocabularyCategory").headOption match {

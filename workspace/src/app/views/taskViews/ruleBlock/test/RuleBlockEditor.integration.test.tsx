@@ -49,7 +49,11 @@ describe("RuleBlockEditor integration", () => {
         await waitFor(() =>
             expect(screen.queryByRole("button", { name: "remove-deprecated-node" })).not.toBeInTheDocument(),
         );
-        expect(screen.getByTestId("sidebar-item-normalPort")).toHaveAttribute("data-warning", "false");
+        // The sidebar's pre-configured operator list is rebuilt asynchronously when the used-port set
+        // changes (reloadToken bump -> loadExternalOperators), so wait for it to settle before asserting.
+        await waitFor(() =>
+            expect(screen.getByTestId("sidebar-item-normalPort")).toHaveAttribute("data-warning", "false"),
+        );
 
         fireEvent.click(screen.getByRole("button", { name: "remove-normal-node" }));
 

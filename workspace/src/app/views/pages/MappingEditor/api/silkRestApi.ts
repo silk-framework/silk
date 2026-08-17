@@ -19,50 +19,6 @@ export type HttpResponsePromise<T> = Promise<IHttpResponse<T>>;
  * further business logic.
  */
 const silkApi = {
-    /** returns the JSON representation of a DI task */
-    getTask: function (projectId, taskId) {
-        const requestUrl = this.genericTaskEndpoint(projectId, taskId);
-
-        const promise = superagent.get(requestUrl).accept(CONTENT_TYPE_JSON);
-
-        return this.handleErrorCode(promise);
-    },
-
-    /** Patches the DI task with the provided path JSON. The JSON is merged with the current version of the task.
-     *  The merge functions as follows:
-     *  - For all undefined properties in the patch object the old property values are taken
-     *  - For all defined properties it depends on the type of the value:
-     *    - If the new value is an object and the old value is also an object both objects are also deep merged
-     *    - If the new value is not an object it will overwrite the old value
-     *  - It's not possible to remove a property, but only to set it to null. TODO: Clarify with Robert if there is a way to remove a property
-     **/
-    patchTask: function (projectId, taskId, patchJson) {
-        const requestUrl = this.genericTaskEndpoint(projectId, taskId);
-
-        const promise = superagent.patch(requestUrl).set("Content-Type", CONTENT_TYPE_JSON).send(patchJson);
-        return this.handleErrorCode(promise);
-    },
-
-    /** Configure a task activity. This should be done before starting the activity.
-     *  @param config a JS object interpreted as Map containing the activity config parameters
-     * */
-    configureTaskActivity: function (projectId, taskId, activityId, config) {
-        const requestUrl = this.taskActivityConfigEndpoint(projectId, taskId, activityId);
-
-        const promise = superagent.post(requestUrl).type("form").send(config);
-
-        return this.handleErrorCode(promise);
-    },
-
-    /** Executes an activity. Blocks until the activity finished executing. */
-    executeTaskActivityBlocking: function (projectId, taskId, activityId, config) {
-        const requestUrl = this.taskActivityExecuteBlockingEndpoint(projectId, taskId, activityId);
-
-        const promise = superagent.post(requestUrl).type("form").send(config);
-
-        return this.handleErrorCode(promise);
-    },
-
     /**
      * Returns a promise of the activity result value as JSON.
      */
@@ -202,21 +158,6 @@ const silkApi = {
         );
     },
 
-    /**
-     * Requests auto-completion suggestions for the script task code.
-     */
-    completions: function (projectId, taskId, requestJson) {
-        const requestUrl = this.completionEndpoint(projectId, taskId);
-
-        const promise = superagent
-            .post(requestUrl)
-            .accept(CONTENT_TYPE_JSON)
-            .set("Content-Type", CONTENT_TYPE_JSON)
-            .send(requestJson);
-
-        return this.handleErrorCode(promise);
-    },
-
     /** Returns information relevant for initializing the UI. */
     initFrontendInfo: function () {
         const requestUrl = this.initFrontendEndpoint();
@@ -271,26 +212,8 @@ const silkApi = {
         return `${this.workspaceApi()}/initFrontend`;
     },
 
-    genericTaskEndpoint: function (projectId, taskId) {
-        return `${CONTEXT_PATH}/workspace/projects/${projectId}/tasks/${taskId}`;
-    },
-
-    taskActivityExecuteBlockingEndpoint: function (projectId, taskId, activityId) {
-        return `${CONTEXT_PATH}/workspace/projects/${projectId}/tasks/${taskId}/activities/${activityId}/startBlocking`;
-    },
-
     taskActivityValueEndpoint: function (projectId, taskId, activityId) {
         return `${CONTEXT_PATH}/workspace/projects/${projectId}/tasks/${taskId}/activities/${activityId}/value`;
-    },
-
-    /** Endpoint for configuring an activity or getting the current configuration.
-     **/
-    taskActivityConfigEndpoint: function (projectId, taskId, activityId) {
-        return `${CONTEXT_PATH}/workspace/projects/${projectId}/tasks/${taskId}/activities/${activityId}/config`;
-    },
-
-    completionEndpoint: function (projectId, taskId) {
-        return `${CONTEXT_PATH}/scripts/projects/${projectId}/tasks/${taskId}/completions`;
     },
 
     reportListEndpoint: function (projectId, taskId) {

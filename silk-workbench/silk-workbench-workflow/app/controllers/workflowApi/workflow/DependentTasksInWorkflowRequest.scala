@@ -17,7 +17,7 @@ case class DependentTasksInWorkflowRequest(projectId: String,
 
     val dependentTasks =
       for {
-        id <- findDependencies(project, workflow, taskId)
+        id <- findDependencies(project, workflow, taskId, Set.empty)
         if (id != taskId || workflow.referencedTasks.contains(Identifier(taskId))) && id != workflowId
       } yield {
         val task = project.anyTask(id)
@@ -27,12 +27,16 @@ case class DependentTasksInWorkflowRequest(projectId: String,
     DependentTasksInWorkflowResponse(dependentTasks.toArray)
   }
 
-  private def findDependencies(project: Project, workflowDependency: ProjectTask[_ <: TaskSpec], taskId: Identifier)(implicit user: UserContext): Set[String] = {
+  private def findDependencies(project: Project, workflowDependency: ProjectTask[_ <: TaskSpec], taskId: Identifier,
+                               visited: Set[Identifier])(implicit user: UserContext): Set[String] = {
+    // Track the tasks on the current path, so that a reference cycle does not lead to endless recursion
+    val newVisited = visited + workflowDependency.id
     val allReferencedTasks =
       for {
         referencedTaskId <- workflowDependency.referencedTasks
+        if !newVisited.contains(referencedTaskId)
         referencedTask = project.anyTask(referencedTaskId)
-        dependentTask <- findDependencies(project, referencedTask, taskId)
+        dependentTask <- findDependencies(project, referencedTask, taskId, newVisited)
       } yield {
         dependentTask
       }

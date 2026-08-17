@@ -16,12 +16,12 @@ import scala.xml.Node
   * @param configuredSchema  The schema of the input as configured in this transform spec
   * @param untypedSchema     The optional schema of the input without type. This is stored for some datasets, currently
   *                          only RDF datasets, in order to make services like auto-completion work in hierarchical mappings.
-  * @param inputTaskId       The id of the input task for which this entity schema has been loaded.
+  * @param inputTaskId       The id of the input task for which this entity schema has been loaded, if any is configured.
   * @param datasetParameters The parameters of the dataset from which this entity schema has been loaded, if any.
   */
 case class CachedEntitySchemata(configuredSchema: EntitySchema,
                                 untypedSchema: Option[EntitySchema],
-                                inputTaskId: Identifier,
+                                inputTaskId: Option[Identifier],
                                 datasetParameters: Option[ParameterValues]) {
   /**
     * Returns the cached paths. Depending on the provided context either the configured or the untyped
@@ -44,7 +44,7 @@ case class CachedEntitySchemata(configuredSchema: EntitySchema,
 object CachedEntitySchemata {
   implicit object CachedEntitySchemaXmlFormat extends XmlFormat[CachedEntitySchemata] {
     override def read(value: Node)(implicit readContext: ReadContext): CachedEntitySchemata = {
-      val inputTaskId = Identifier((value \ "@inputTaskId").text)
+      val inputTaskId = Option((value \ "@inputTaskId").text.trim).filter(_.nonEmpty).map(Identifier(_))
       val configured = XmlSerialization.fromXml[EntitySchema]((value \ "ConfiguredEntitySchema" \ "EntityDescription").head)
       val untyped = (value \ "UnTypedEntitySchema" \ "EntityDescription").headOption.map(XmlSerialization.fromXml[EntitySchema])
       val datasetParams = (value \ "Dataset").headOption.map(XmlSerialization.deserializeParameters)
@@ -52,7 +52,7 @@ object CachedEntitySchemata {
     }
 
     override def write(value: CachedEntitySchemata)(implicit writeContext: WriteContext[Node]): Node = {
-      <CachedEntitySchemata inputTaskId={value.inputTaskId.toString}>
+      <CachedEntitySchemata inputTaskId={value.inputTaskId.map(_.toString).getOrElse("")}>
         <ConfiguredEntitySchema>
           {XmlSerialization.toXml(value.configuredSchema)}
         </ConfiguredEntitySchema>

@@ -11,6 +11,7 @@ import org.silkframework.util.Identifier
 import java.lang.reflect.{Modifier, ParameterizedType, TypeVariable}
 import java.util.logging.{Level, Logger}
 import scala.language.existentials
+import scala.util.Try
 
 trait ExecutorRegistry {
 
@@ -152,9 +153,20 @@ object ExecutorRegistry extends ExecutorRegistry {
   )(implicit pluginContext: PluginContext): Option[ExecType#DataType] = {
     context.status.update(Status.Running("Running", None), logStatus = false)
     val startTime = System.currentTimeMillis()
-    val result = exec.execute(task, inputs, output, execution, context)
-    context.status.update(Status.Finished(success = true, System.currentTimeMillis() - startTime, cancelled = false), logStatus = false)
-    result
+    // Publishes the terminal status. An execution that produced a report with an error counts as failed.
+    def finish(exception: Option[Throwable]): Unit = {
+      val success = exception.isEmpty && !context.value.get.exists(_.error.isDefined)
+      context.status.update(Status.Finished(success, System.currentTimeMillis() - startTime, cancelled = false, exception), logStatus = false)
+    }
+    try {
+      val result = exec.execute(task, inputs, output, execution, context)
+      finish(None)
+      result
+    } catch {
+      case ex: Throwable =>
+        Try(finish(Some(ex))) // The executor's exception must propagate even if a status subscriber fails
+        throw ex
+    }
   }
 
   /** Instantiates the executor for a given task and execution type without executing it. */

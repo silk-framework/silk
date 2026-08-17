@@ -60,7 +60,12 @@ trait WorkflowExecutorGeneratingProvenance extends Activity[WorkflowExecutionRep
           case Some(lastResult) =>
             val report = WorkflowExecutionReportWithProvenance.fromActivityExecutionReport(lastResult)
             context.value.update(report)
-            ExecutionReportManager().addReport(ReportIdentifier.create(workflowTask.project.id, workflowTask.id), lastResult)
+            val reportId = ReportIdentifier.create(workflowTask.project.id, workflowTask.id)
+            ExecutionReportManager().addReport(reportId, lastResult)
+            if(ExecutionReportManager().persistsReports) {
+              // Only advertise the identifier after the report has actually been persisted.
+              context.value.update(report.copy(reportId = Some(reportId)))
+            }
             val persistProvenanceService = PluginRegistry.createFromConfig[PersistWorkflowProvenance]("provenance.persistWorkflowProvenancePlugin")
             persistProvenanceService.persistWorkflowProvenance(workflowTask, lastResult)
           case None =>
@@ -81,7 +86,11 @@ trait WorkflowExecutorGeneratingProvenance extends Activity[WorkflowExecutionRep
   }
 }
 
-case class WorkflowExecutionReportWithProvenance(report: WorkflowExecutionReport, workflowExecutionProvenance: WorkflowExecutionProvenanceData)
+/** @param reportId The identifier of the persisted execution report; only set once the report has been
+  *                 persisted (absent while running or when no report manager is configured). */
+case class WorkflowExecutionReportWithProvenance(report: WorkflowExecutionReport,
+                                                 workflowExecutionProvenance: WorkflowExecutionProvenanceData,
+                                                 reportId: Option[ReportIdentifier] = None)
 
 object WorkflowExecutionReportWithProvenance {
   def fromActivityExecutionReport(activityResult: ActivityExecutionResult[WorkflowExecutionReport]): WorkflowExecutionReportWithProvenance = {

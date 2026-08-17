@@ -85,7 +85,7 @@ class TransformedEntities(task: Task[TransformSpec],
         }
         mappedEntity
       }
-    new TransformReportIterator(mappedEntities.thenClose(() => report.build()), report, rules.map(_.id.toString).toSet)
+    new TransformReportIterator(mappedEntities, report, rules.map(_.id.toString).toSet)
   }
 
   private def mapEntity(entity: Entity, report: TransformReportBuilder): Iterator[Entity] = {
@@ -224,7 +224,14 @@ class TransformedEntities(task: Task[TransformSpec],
 
     private def closeReport(): Unit = {
       if(!reportDone) {
-        report.build(isDone = true)
+        report.outputTableCompleted()
+        reportDone = true
+      }
+    }
+
+    private def failReport(error: String): Unit = {
+      if(!reportDone) {
+        report.executionFailed(error)
         reportDone = true
       }
     }
@@ -244,8 +251,7 @@ class TransformedEntities(task: Task[TransformSpec],
         }
       } catch {
         case NonFatal(ex) =>
-          report.setExecutionError(ex.getMessage)
-          closeReport()
+          failReport(ex.getMessage)
           throw ex
       }
     }
@@ -255,13 +261,16 @@ class TransformedEntities(task: Task[TransformSpec],
         iterator.next()
       } catch {
         case NonFatal(ex) =>
-          report.setExecutionError(ex.getMessage)
-          closeReport()
+          failReport(ex.getMessage)
           throw ex
       }
     }
 
     override def close(): Unit = {
+      // Rules that started but were not read to the end must not stay unfinished in a completed report.
+      if(started && !reportDone) {
+        report.setFinished(coveredRules)
+      }
       closeReport()
       iterator.close()
     }

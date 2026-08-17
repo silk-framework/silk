@@ -25,4 +25,7 @@ case class IdentifierOptionParameter(value: Option[Identifier])
 object IdentifierOptionParameter {
   implicit def toIdentifierOptionParameter(v: Option[Identifier]): IdentifierOptionParameter = IdentifierOptionParameter(v)
   implicit def fromIdentifierOptionParameter(v: IdentifierOptionParameter): Option[Identifier] = v.value
+  implicit def fromIdentifier(id: Identifier): IdentifierOptionParameter = IdentifierOptionParameter(Some(id))
+  implicit def fromString(str: String): IdentifierOptionParameter =
+    IdentifierOptionParameter(Option(str).map(_.trim).filter(_.nonEmpty).map(Identifier(_)))
 }

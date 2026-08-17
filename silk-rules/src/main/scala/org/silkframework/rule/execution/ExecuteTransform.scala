@@ -16,7 +16,7 @@ import scala.util.control.NonFatal
   * Executes a set of transformation rules.
   */
 class ExecuteTransform(task: Task[TransformSpec],
-                       inputTask: UserContext => Task[_ <: TaskSpec],
+                       inputTask: UserContext => Option[Task[_ <: TaskSpec]],
                        input: UserContext => DataSource,
                        output: UserContext => EntitySink,
                        errorOutput: UserContext => Option[EntitySink] = _ => None,
@@ -50,10 +50,11 @@ class ExecuteTransform(task: Task[TransformSpec],
     val dataSource = input(userContext)
     val entitySink = output(userContext)
     val errorEntitySink = errorOutput(userContext)
-    val report = new TransformReportBuilder(task, context)
+    val ruleSchemata = transform.ruleSchemataWithoutEmptyObjectRules
+    val report = new TransformReportBuilder(task, context, outputTableCount = ruleSchemata.size)
     report.setExecutionContext(TransformReportExecutionContext(entitySink))
     implicit val pluginContextWithUser: PluginContext = pluginContext(userContext)
-    val taskContext = TaskContext(Seq(inputTask(userContext)), pluginContextWithUser)
+    val taskContext = TaskContext(inputTask(userContext).toSeq, pluginContextWithUser)
 
     // Clear outputs before writing
     context.status.updateMessage("Clearing output")
@@ -62,9 +63,9 @@ class ExecuteTransform(task: Task[TransformSpec],
 
     context.status.updateMessage("Retrieving entities")
     try {
-      for ((ruleSchemata, index) <- transform.ruleSchemataWithoutEmptyObjectRules.zipWithIndex) {
-        transformEntities(dataSource, ruleSchemata.execution(taskContext), entitySink, errorEntitySink, report, context)
-        context.status.updateProgress((index + 1.0) / transform.ruleSchemataWithoutEmptyObjectRules.size)
+      for ((ruleSchema, index) <- ruleSchemata.zipWithIndex) {
+        transformEntities(dataSource, ruleSchema.execution(taskContext), entitySink, errorEntitySink, report, context)
+        context.status.updateProgress((index + 1.0) / ruleSchemata.size)
       }
     } finally {
       entitySink.close()
@@ -95,17 +96,29 @@ class ExecuteTransform(task: Task[TransformSpec],
     val transformedEntities = new TransformedEntities(task, entityTable.entities, rule.transformRule.label(), rule.transformRuleExecution, rule.outputSchema,
       isRequestedSchema = false, abortIfErrorsOccur = task.data.abortIfErrorsOccur, report = reportBuilder).iterator
     var count = 0
-    breakable {
-      for (entity <- transformedEntities) {
-        entitySink.writeEntity(entity.uri, entity.values)
-        if(entity.hasFailed) {
-          errorEntitySink.foreach(_.writeEntity(entity.uri, entity.values :+ Seq(entity.failure.get.message.getOrElse("Unknown error"))))
-        }
-        count += 1
-        if (cancelled || limit.exists(_ <= count)) {
-          break()
+    try {
+      breakable {
+        // No for loop, since CloseableIterator.foreach would close the iterator before the catch below runs
+        while (transformedEntities.hasNext) {
+          val entity = transformedEntities.next()
+          entitySink.writeEntity(entity.uri, entity.values)
+          if(entity.hasFailed) {
+            errorEntitySink.foreach(_.writeEntity(entity.uri, entity.values :+ Seq(entity.failure.get.message.getOrElse("Unknown error"))))
+          }
+          count += 1
+          if (cancelled || limit.exists(_ <= count)) {
+            break()
+          }
         }
       }
+    } catch {
+      case NonFatal(ex) =>
+        // Fail the report (e.g. on sink errors) before the finally-close counts this table as completed.
+        reportBuilder.executionFailed(ex.getMessage)
+        throw ex
+    } finally {
+      // Completes this output table in the report and closes the input iterator, also on cancellation or limit.
+      transformedEntities.close()
     }
     entitySink.closeTable()
     errorEntitySink.foreach(_.closeTable())

@@ -47,19 +47,15 @@ class DefaultConfig private() extends Config {
       }
 
       val configFile = new java.io.File(configPath)
-      val fullConfig = if (configFile.exists()) {
+      val externalConfig = if (configFile.exists()) {
         println(s"Loading external config from: $configPath")
-        // Load with external config having highest priority
-        val externalConfig = ConfigFactory.parseFile(configFile)
-        ConfigFactory.systemProperties()
-          .withFallback(externalConfig)
-          .withFallback(ConfigFactory.load())
+        Some(ConfigFactory.parseFile(configFile))
       } else {
-        ConfigFactory.load()
+        None
       }
 
       currentTimestamp = Instant.now()
-      fullConfig.resolve()
+      DefaultConfig.layerConfigs(externalConfig)
     }
   }
 
@@ -163,4 +159,15 @@ object ExtendedTypesafeConfig {
 object DefaultConfig {
   // This default initialization needed for usages that don't involve dependency injection
   lazy val instance = new DefaultConfig()
+
+  /**
+    * Layers the configuration sources, from highest to lowest priority, and resolves substitutions once at the end.
+    * All layers must stay unresolved until then, else an external override of e.g. `directories.base` would not reach
+    * `directories.data`, which is defined in terms of it.
+    */
+  private[config] def layerConfigs(externalConfig: Option[TypesafeConfig]): TypesafeConfig = {
+    val defaults = ConfigFactory.defaultApplication().withFallback(ConfigFactory.defaultReferenceUnresolved())
+    val withExternal = externalConfig.fold(defaults)(_.withFallback(defaults))
+    ConfigFactory.systemProperties().withFallback(withExternal).resolve()
+  }
 }

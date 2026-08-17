@@ -34,7 +34,10 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
   /**
    * Reads data from a dataset.
    */
-  override def read(dataset: Task[DatasetSpec[DatasetType]], schema: EntitySchema, execution: LocalExecution)
+  override def read(dataset: Task[DatasetSpec[DatasetType]],
+                    schema: EntitySchema,
+                    outputTask: Option[Task[_ <: TaskSpec]],
+                    execution: LocalExecution)
                    (implicit pluginContext: PluginContext, context: ActivityContext[ExecutionReport]): LocalEntities = {
     implicit val prefixes: Prefixes = pluginContext.prefixes
     implicit val user: UserContext = pluginContext.user
@@ -49,11 +52,11 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
       case SparqlEndpointEntitySchema.schema =>
         handleSparqlEndpointSchema(dataset)
       case multi: MultiEntitySchema =>
-        handleMultiEntitySchema(dataset, source, schema, multi)
+        handleMultiEntitySchema(dataset, source, schema, multi, outputTask)
       case FileEntitySchema.schema =>
         handleDatasetResourceEntitySchema(dataset)
       case _ =>
-        implicit val executionReport: ExecutionReportUpdater = ReadEntitiesReportUpdater(dataset, context)
+        implicit val executionReport: ExecutionReportUpdater = ReadEntitiesReportUpdater(dataset, context, schema, outputTask)
         val table = source.retrieve(entitySchema = schema)
         GenericEntityTable(ReportingIterator(table.entities), entitySchema = schema, dataset, table.globalErrors)
     }
@@ -81,20 +84,39 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
     }
   }
 
-  private def handleMultiEntitySchema(dataset: Task[DatasetSpec[Dataset]], source: DataSource, schema: EntitySchema, multi: MultiEntitySchema)
+  private def handleMultiEntitySchema(dataset: Task[DatasetSpec[Dataset]],
+                                      source: DataSource,
+                                      schema: EntitySchema,
+                                      multi: MultiEntitySchema,
+                                      outputTask: Option[Task[_ <: TaskSpec]])
                                      (implicit pluginContext: PluginContext, context: ActivityContext[ExecutionReport])= {
-    implicit val executionReport: ExecutionReportUpdater = ReadEntitiesReportUpdater(dataset, context)
     implicit val prefixes: Prefixes = pluginContext.prefixes
     val table = source.retrieve(entitySchema = schema)
+    def reportedEntities(entitySchema: EntitySchema, entities: CloseableIterator[Entity]): CloseableIterator[Entity] = {
+      implicit val executionReport: ExecutionReportUpdater = ReadEntitiesReportUpdater(dataset, context, entitySchema, outputTask)
+      ReportingIterator(entities)
+    }
     MultiEntityTable(
-      entities = ReportingIterator(table.entities),
+      entities = reportedEntities(multi.pivotSchema, table.entities),
       entitySchema = schema,
       subTables =
         for (subSchema <- multi.subSchemata) yield
-          GenericEntityTable(ReportingIterator(source.retrieve(entitySchema = subSchema).entities), subSchema, dataset),
+          GenericEntityTable(reportedEntities(subSchema, source.retrieve(entitySchema = subSchema).entities), subSchema, dataset),
       task = dataset,
       globalErrors = table.globalErrors
     )
+  }
+
+  private def readTitle(schema: EntitySchema,
+                        outputTask: Option[Task[_ <: TaskSpec]],
+                        entityCount: Int,
+                        entityLabel: String)(implicit prefixes: Prefixes): String = {
+    val schemaDescription = Seq(schema.typeUri.serialize, schema.subPath.serialize()).filter(_.nonEmpty).mkString("/") match {
+      case "" => "<root type>"
+      case description => description
+    }
+    val requestedBy = outputTask.map(task => s"requested by '${task.label()}'")
+    (Seq(s"Read $entityCount $entityLabel of type $schemaDescription") ++ requestedBy).mkString(" ")
   }
 
   private def handleQuadEntitySchema(dataset: Task[DatasetSpec[Dataset]], execution: LocalExecution)
@@ -281,16 +303,18 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
     executionReport.executionDone()
   }
 
-  /** Buffers queries to make prediction about how many queries will be executed.
+  /**
+   * Buffers queries to make a prediction about how many queries are still to be executed, while preserving their order.
    *
-   * @param bufferSize max size of queries that should be buffered
+   * @param queryBufferSize max number of queries that are buffered
+   * @param entities the queries to emit, in order
    */
-  case class SparqlQueryBuffer(queryBufferSize: Int, entities: CloseableIterator[String]) extends TraversableIterator[String] {
-    private val queryBuffer = new util.LinkedList[String]()
+  private case class SparqlQueryBuffer(queryBufferSize: Int, entities: CloseableIterator[String]) extends TraversableIterator[String] {
+    private val queryBuffer = new util.ArrayDeque[String]()
 
     override def foreach[U](f: String => U): Unit = {
       entities foreach { query =>
-        queryBuffer.push(query)
+        queryBuffer.add(query)
         if(queryBuffer.size() > queryBufferSize) {
           f(queryBuffer.remove())
         }
@@ -388,6 +412,8 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
         case Some(firstEntity) if BulkResourceBasedDataset.isZip(firstEntity.file) && !fileEntities.hasNext =>
           // If there is only one file and it is a zip file, we can write it directly
           outputResource.writeResource(firstEntity.file)
+          resourceWritten = true
+          reportUpdater.increaseEntityCounter()
         case Some(firstEntity) =>
           // Otherwise we package all files into a zip file
           outputResource.write() { outputStream =>
@@ -461,6 +487,7 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
         // Write the statements as generic entities
         implicit val executionReportUpdater: ExecutionReportUpdater = reportUpdater
         writeEntities(sink, quads)
+        reportUpdater.executionDone()
     }
   }
 
@@ -482,12 +509,26 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
   }
 
   private case class WriteEntitiesReportUpdater(task: Task[TaskSpec], context: ActivityContext[ExecutionReport]) extends ExecutionReportUpdater {
+    override def title: Option[String] = {
+      val entityLabel = if(emittedEntityCount == 1) entityLabelSingle else entityLabelPlural
+      Some(s"Wrote $emittedEntityCount ${entityLabel.toLowerCase} to '${task.label()}'")
+    }
     override def operationLabel: Option[String] = Some("write")
+    override def operationType: OperationType = OperationType.Write
     override def entityProcessVerb: String = "written"
   }
 
-  private case class ReadEntitiesReportUpdater(task: Task[TaskSpec], context: ActivityContext[ExecutionReport]) extends ExecutionReportUpdater {
+  private case class ReadEntitiesReportUpdater(task: Task[TaskSpec],
+                                               context: ActivityContext[ExecutionReport],
+                                               schema: EntitySchema,
+                                               outputTask: Option[Task[_ <: TaskSpec]])
+                                              (implicit prefixes: Prefixes) extends ExecutionReportUpdater {
+    override def title: Option[String] = {
+      val entityLabel = if(emittedEntityCount == 1) entityLabelSingle else entityLabelPlural
+      Some(readTitle(schema, outputTask, emittedEntityCount, entityLabel.toLowerCase))
+    }
     override def operationLabel: Option[String] = Some("read")
+    override def operationType: OperationType = OperationType.Read
     override def entityProcessVerb: String = "read"
   }
 
@@ -495,6 +536,7 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
     override def entityLabelSingle: String = "File"
     override def entityLabelPlural: String = "Files"
     override def operationLabel: Option[String] = Some("read")
+    override def operationType: OperationType = OperationType.Read
     override def entityProcessVerb: String = "read"
   }
 
@@ -502,6 +544,7 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
     override def entityLabelSingle: String = "Triple"
     override def entityLabelPlural: String = "Triples"
     override def operationLabel: Option[String] = Some("read")
+    override def operationType: OperationType = OperationType.Read
     override def entityProcessVerb: String = "read"
   }
 
@@ -509,6 +552,7 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
     override def entityLabelSingle: String = "Link"
     override def entityLabelPlural: String = "Links"
     override def operationLabel: Option[String] = Some("write")
+    override def operationType: OperationType = OperationType.Write
     override def entityProcessVerb: String = "written"
   }
 
@@ -516,6 +560,7 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
     override def entityLabelSingle: String = "File"
     override def entityLabelPlural: String = "Files"
     override def operationLabel: Option[String] = Some("write")
+    override def operationType: OperationType = OperationType.Write
     override def entityProcessVerb: String = "written"
   }
 
@@ -530,6 +575,7 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
     override def entityLabelSingle: String = "File"
     override def entityLabelPlural: String = "Files"
     override def operationLabel: Option[String] = Some("upload")
+    override def operationType: OperationType = OperationType.Write
     override def entityProcessVerb: String = "uploaded"
   }
 
@@ -537,6 +583,7 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
     override def entityLabelSingle: String = "Triple"
     override def entityLabelPlural: String = "Triples"
     override def operationLabel: Option[String] = Some("write")
+    override def operationType: OperationType = OperationType.Write
     override def entityProcessVerb: String = "written"
   }
 }

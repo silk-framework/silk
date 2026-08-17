@@ -224,8 +224,8 @@ export const ArtefactFormParameter = ({
                             evaluatedValueMessage={
                                 supportVariableTemplateElement?.showTemplatePreview ? setTemplateInfoMessage : undefined
                             }
-                            // The preview of template parameters cannot resolve execution variables
-                            noteUnresolvedExecutionVariables={isTemplateInputType && !showVariableTemplateInput}
+                            // The preview of template parameters cannot resolve unknown variables, e.g. input attributes or execution variables
+                            noteUnresolvedVariables={isTemplateInputType && !showVariableTemplateInput}
                             intent={inputIntent}
                             allowSensitiveVariables={isPasswordInput}
                             // If the parameter is a template parameter, the validation is not aware in general what variables exist
@@ -277,8 +277,8 @@ interface TemplateInputComponentProps {
     setValidationError: (error?: string) => any;
     /** Called with a message that contains the currently evaluated template. */
     evaluatedValueMessage?: (evaluatedTemplateMessage?: string) => any;
-    /** Mention in the evaluated template message that execution variables are not resolved, if the template references any. */
-    noteUnresolvedExecutionVariables?: boolean;
+    /** Mention in the evaluated template message that unknown variables are not resolved, if the template contains any Jinja expressions. */
+    noteUnresolvedVariables?: boolean;
     /** optional parameter to make correct suggestions for when an existing variable is edited **/
     variableName?: string;
     handleTemplateErrors?: (error?: string) => any;
@@ -289,8 +289,8 @@ interface TemplateInputComponentProps {
     intent?: CodeAutocompleteFieldProps["intent"];
 }
 
-/** Matches Jinja expressions/statements that reference the execution scope. */
-const executionVariableReferenceRegex = /\{\{[^}]*execution\s*[.[]|\{%[^%}]*execution\s*[.[]/;
+/** Matches any Jinja expression/statement. */
+const jinjaExpressionRegex = /\{\{|\{%/;
 
 /** The input component for the template value. */
 export const TemplateInputComponent = memo(
@@ -307,7 +307,7 @@ export const TemplateInputComponent = memo(
         multiline,
         allowSensitiveVariables,
         ignoreUnboundVariables,
-        noteUnresolvedExecutionVariables,
+        noteUnresolvedVariables,
         intent,
     }: TemplateInputComponentProps) => {
         const currentUB = React.useRef<boolean>(ignoreUnboundVariables);
@@ -379,8 +379,8 @@ export const TemplateInputComponent = memo(
                         )
                     ).data;
                     const evaluatedValueKey =
-                        noteUnresolvedExecutionVariables && executionVariableReferenceRegex.test(inputString)
-                            ? "ArtefactFormParameter.evaluatedValueExecutionNote"
+                        noteUnresolvedVariables && jinjaExpressionRegex.test(inputString)
+                            ? "ArtefactFormParameter.evaluatedValueUnresolvedNote"
                             : "ArtefactFormParameter.evaluatedValue";
                     evaluatedValueMessage?.(
                         validationResponse.evaluatedTemplate
@@ -405,6 +405,7 @@ export const TemplateInputComponent = memo(
         return (
             <CodeAutocompleteField
                 id={parameterId}
+                mode="jinja2"
                 initialValue={initialValue}
                 onChange={onTemplateValueChange}
                 fetchSuggestions={autoComplete}
