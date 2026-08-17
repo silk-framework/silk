@@ -19,7 +19,6 @@
         "outputs" : [ "dsB1" ],
         "errorOutputs" : [ ],
         "id" : "transform1",
-        "outputPriority" : null,
         "configInputs" : [ ],
         "dependencyInputs" : [ ]
       }, {
@@ -30,7 +29,6 @@
         "outputs" : [ "dsB1" ],
         "errorOutputs" : [ ],
         "id" : "transform2",
-        "outputPriority" : null,
         "configInputs" : [ ],
         "dependencyInputs" : [ ]
       }, {
@@ -41,7 +39,6 @@
         "outputs" : [ "links" ],
         "errorOutputs" : [ ],
         "id" : "linking",
-        "outputPriority" : null,
         "configInputs" : [ ],
         "dependencyInputs" : [ ]
       }, {
@@ -52,7 +49,6 @@
         "outputs" : [ "output" ],
         "errorOutputs" : [ ],
         "id" : "generateOutput",
-        "outputPriority" : null,
         "configInputs" : [ ],
         "dependencyInputs" : [ ]
       } ],
@@ -63,7 +59,6 @@
         "inputs" : [ ],
         "outputs" : [ "transform1" ],
         "id" : "dsA1",
-        "outputPriority" : null,
         "configInputs" : [ ],
         "dependencyInputs" : [ ]
       }, {
@@ -73,7 +68,6 @@
         "inputs" : [ ],
         "outputs" : [ "transform2" ],
         "id" : "dsA2",
-        "outputPriority" : null,
         "configInputs" : [ ],
         "dependencyInputs" : [ ]
       }, {
@@ -83,7 +77,6 @@
         "inputs" : [ "transform1" ],
         "outputs" : [ "linking", "linking" ],
         "id" : "dsB1",
-        "outputPriority" : null,
         "configInputs" : [ ],
         "dependencyInputs" : [ ]
       }, {
@@ -93,7 +86,6 @@
         "inputs" : [ "transform2" ],
         "outputs" : [ ],
         "id" : "dsB2",
-        "outputPriority" : null,
         "configInputs" : [ ],
         "dependencyInputs" : [ ]
       }, {
@@ -103,7 +95,6 @@
         "inputs" : [ "linking" ],
         "outputs" : [ "generateOutput" ],
         "id" : "links",
-        "outputPriority" : null,
         "configInputs" : [ ],
         "dependencyInputs" : [ ]
       }, {
@@ -113,7 +104,6 @@
         "inputs" : [ "generateOutput" ],
         "outputs" : [ ],
         "id" : "output",
-        "outputPriority" : null,
         "configInputs" : [ ],
         "dependencyInputs" : [ ]
       } ],
