@@ -1280,12 +1280,10 @@ object JsonSerializers {
                                                  userContext: Option[UserContext] = None,
                                                  dependentTaskFormatter: Option[String => JsValue] = None)(implicit dataFormat: JsonFormat[T]) extends JsonFormat[LoadedTask[T]] {
 
-    final val EXECUTION_VARIABLES = TaskJsonFormat.EXECUTION_VARIABLES
-
-
     /**
       * Deserializes a value. The envelope is validated strictly via the [[TaskDto]] wire model;
-      * the task data itself is read by the type-specific format.
+      * the task data itself is read by the type-specific format, which receives the raw JSON so that
+      * plugin-defined content is passed through untouched.
       */
     override def read(value: JsValue)(implicit readContext: ReadContext): LoadedTask[T] = {
       // Best-effort id extraction upfront, so that parse failures can be attributed to the task.

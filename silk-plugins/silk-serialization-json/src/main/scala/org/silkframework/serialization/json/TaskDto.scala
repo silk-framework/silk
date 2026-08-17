@@ -270,6 +270,7 @@ case class TaskPropertyDto(key: String, value: String)
 
 object TaskPropertyDto {
 
+  // The write context provides the plugin context that parameter templates are evaluated against.
   def fromTask(task: Task[_ <: TaskSpec])(implicit writeContext: WriteContext[JsValue]): Seq[TaskPropertyDto] = {
     for((key, value) <- task.data.parameters.toStringMap.toSeq) yield {
       TaskPropertyDto(key, value)
