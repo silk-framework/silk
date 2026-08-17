@@ -54,8 +54,18 @@ class TaskJsonFormatRegressionTest extends AnyFlatSpec with Matchers with Config
 
   // Suite-local plugins: JsonSerializersTest unregisters its SomeDatasetPlugin mid-run and suites
   // may execute in parallel in the same JVM, so this suite must not share plugin registrations.
-  PluginRegistry.registerPlugin(classOf[TaskJsonRegressionDataset])
-  PluginRegistry.registerPlugin(classOf[TaskJsonRegressionCustomTask])
+  // They are removed again afterwards, since the registry is global and registering twice fails.
+  override protected def beforeAll(): Unit = {
+    super.beforeAll()
+    PluginRegistry.registerPlugin(classOf[TaskJsonRegressionDataset])
+    PluginRegistry.registerPlugin(classOf[TaskJsonRegressionCustomTask])
+  }
+
+  override protected def afterAll(): Unit = {
+    PluginRegistry.unregisterPlugin(classOf[TaskJsonRegressionDataset])
+    PluginRegistry.unregisterPlugin(classOf[TaskJsonRegressionCustomTask])
+    super.afterAll()
+  }
 
   private implicit val readContext: ReadContext = TestReadContext()
 
