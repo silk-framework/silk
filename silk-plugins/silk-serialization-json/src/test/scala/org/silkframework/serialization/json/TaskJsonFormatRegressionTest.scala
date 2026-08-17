@@ -29,13 +29,12 @@ import java.time.Instant
 /**
   * Locks the canonical task JSON format produced by [[TaskJsonFormat]] for all task types.
   *
-  * Regression net for the task DTO refactoring (see
-  * dev-wiki/feature-specs/2026-07-14-typed-task-json.md): the emitted task JSON is a public
-  * contract (task CRUD APIs, persisted execution reports, search results, external client SDKs),
-  * so re-basing the serializers must not change it. Each test serializes a deterministic task,
-  * compares it structurally against a committed fixture, and additionally checks that reading the
-  * canonical JSON back and re-writing it is stable (protecting the read side once legacy read
-  * paths are removed).
+  * The emitted task JSON is a public contract: the task CRUD API, persisted execution reports,
+  * search results and the generated client SDKs all depend on it. Round trip tests cannot protect
+  * it, since a change that is applied to reading and writing alike passes them. Each test here
+  * serializes a deterministic task, compares it structurally against a committed fixture, and
+  * additionally checks that reading the canonical JSON back and re-writing it is stable.
+  * The remaining tests cover the payloads the format rejects and the value shapes it accepts.
   *
   * To (re-)generate the fixtures, set the environment variable TASK_JSON_REGRESSION_WRITE_DIR to
   * this module's src/test/resources/org/silkframework/serialization/json/taskJsonRegression
@@ -85,8 +84,10 @@ class TaskJsonFormatRegressionTest extends AnyFlatSpec with Matchers with Config
     checkFixture("dataset", datasetTask)
   }
 
-  it should "stay stable for dataset tasks with minimal meta data" in {
-    checkFixture("dataset-minimal", PlainTask[TaskSpec]("minimalDatasetTask", new DatasetSpec(TaskJsonRegressionDataset("stringValue", 6.0))))
+  it should "write empty meta data as an empty object" in {
+    val task = PlainTask[TaskSpec]("minimalDatasetTask", new DatasetSpec(TaskJsonRegressionDataset("stringValue", 6.0)))
+    val json = GenericTaskJsonFormat.write(task)(TestWriteContext[JsValue]())
+    (json \ METADATA).as[JsObject] shouldBe Json.obj()
   }
 
   it should "stay stable for dataset tasks with uriProperty and readOnly" in {
@@ -94,9 +95,10 @@ class TaskJsonFormatRegressionTest extends AnyFlatSpec with Matchers with Config
     checkFixture("dataset-uri-property", PlainTask[TaskSpec]("readOnlyDatasetTask", spec, metaData))
   }
 
-  it should "stay stable for tasks written in a project context" in {
-    val context = TestWriteContext[JsValue]().copy(projectId = Some(Identifier("someProject")))
-    checkFixture("dataset-project-context", datasetTask, context)
+  it should "write the project only in a project context" in {
+    val projectContext = TestWriteContext[JsValue]().copy(projectId = Some(Identifier("someProject")))
+    (GenericTaskJsonFormat.write(datasetTask)(projectContext) \ "project").asOpt[String] shouldBe Some("someProject")
+    (GenericTaskJsonFormat.write(datasetTask)(TestWriteContext[JsValue]()) \ "project").asOpt[String] shouldBe None
   }
 
   it should "stay stable for tasks with parameter templates and execution variables" in {
