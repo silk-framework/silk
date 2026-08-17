@@ -79,7 +79,7 @@ class ClassPluginDescription[+T <: AnyPlugin](val id: Identifier,
     if (!ignoreNonExistingParameters) {
       validateParameters(parameterValues)
     }
-    val parsedParameters = parseParameters(parameterValues)
+    val parsedParameters = parseParameters(parameterValues, ignoreNonExistingParameters)
     try {
       val plugin = constructor.newInstance(parsedParameters: _*)
       plugin.init(this, parameterValues.templates)
