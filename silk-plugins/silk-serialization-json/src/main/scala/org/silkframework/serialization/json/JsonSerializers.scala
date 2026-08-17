@@ -176,8 +176,8 @@ object JsonSerializers {
 
   implicit object DatasetSpecJsonFormat extends JsonFormat[GenericDatasetSpec] {
 
-    private val URI_PROPERTY = "uriProperty"
-    private val READ_ONLY = "readOnly"
+    private val URI_PROPERTY = TaskDataDto.URI_PROPERTY
+    private val READ_ONLY = TaskDataDto.READ_ONLY
 
     private val pluginFormat = new PluginJsonFormat[Dataset]
 
@@ -884,11 +884,6 @@ object JsonSerializers {
     final val TARGET_VOCABULARIES: String = "targetVocabularies"
     final val ABORT_IF_ERRORS_OCCUR: String = "abortIfErrorsOccur"
 
-    /** Deprecated property names */
-    final val DEPRECATED_RULES_PROPERTY: String = "root"
-    // A transform task can only have one output (outside of a workflow)
-    final val DEPRECATED_OUTPUTS: String = "outputs"
-
     private val pluginFormat = new PluginJsonFormat[TransformSpec](Some(ClassPluginDescription.create(classOf[TransformSpec])))
 
     override def typeNames: Set[String] = Set(TASK_TYPE_TRANSFORM)
@@ -897,26 +892,11 @@ object JsonSerializers {
       * Deserializes a value.
       */
     override def read(value: JsValue)(implicit readContext: ReadContext): TransformSpec = {
-      optionalValue(value, PARAMETERS) match {
-        case None =>
-          readDeprecated(value)
-        case _ =>
-          val parametersObj = objectValue(value, PARAMETERS)
-          val objParameters = ParameterValues(Map(
-            RULES_PROPERTY -> ParameterObjectValue(optionalValue(parametersObj, RULES_PROPERTY).map(fromJson[RootMappingRule]).getOrElse(RootMappingRule.empty))
-          ))
-          pluginFormat.read(value, objParameters)
-      }
-    }
-
-    // Reads the deprecated JSON model
-    private def readDeprecated(value: JsValue)(implicit readContext: ReadContext): TransformSpec = {
-      TransformSpec(
-        selection = fromJson[DatasetSelection](mustBeDefined(value, SELECTION)),
-        mappingRule = optionalValue(value, DEPRECATED_RULES_PROPERTY).map(fromJson[RootMappingRule]).getOrElse(RootMappingRule.empty),
-        output = mustBeJsArray(mustBeDefined(value, DEPRECATED_OUTPUTS))(_.value.map(v => Identifier(v.as[JsString].value))).headOption,
-        targetVocabularies = TargetVocabularyListParameter(mustBeJsArray(mustBeDefined(value, TARGET_VOCABULARIES))(_.value.map(_.as[JsString].value)))
-      )
+      val parametersObj = objectValue(value, PARAMETERS)
+      val objParameters = ParameterValues(Map(
+        RULES_PROPERTY -> ParameterObjectValue(optionalValue(parametersObj, RULES_PROPERTY).map(fromJson[RootMappingRule]).getOrElse(RootMappingRule.empty))
+      ))
+      pluginFormat.read(value, objParameters)
     }
 
     /**
@@ -1090,39 +1070,17 @@ object JsonSerializers {
     final val LINK_LIMIT = "linkLimit"
     final val MATCHING_EXECUTION_TIMEOUT = "matchingExecutionTimeout"
 
-    /** Deprecated properties */
-    final val DEPRECATED_OUTPUTS = "outputs"
-
     private val pluginFormat = new PluginJsonFormat[LinkSpec](Some(ClassPluginDescription.create(classOf[LinkSpec])))
 
     override def typeNames: Set[String] = Set(TASK_TYPE_LINKING)
 
     override def read(value: JsValue)(implicit readContext: ReadContext): LinkSpec = {
-      optionalValue(value, PARAMETERS) match {
-        case None =>
-          deprecatedRead(value)
-        case _ =>
-          val jsonParameters = objectValue(value, PARAMETERS)
-          val objParameters = ParameterValues(Map(
-            RULE -> ParameterObjectValue(optionalValue(jsonParameters, RULE).map(fromJson[LinkageRule]).getOrElse(LinkageRule())),
-            REFERENCE_LINKS -> ParameterObjectValue(optionalValue(jsonParameters, REFERENCE_LINKS).map(fromJson[ReferenceLinks]).getOrElse(ReferenceLinks.empty))
-          ))
-          pluginFormat.read(value, objParameters)
-      }
-    }
-
-    private def deprecatedRead(value: JsValue)(implicit readContext: ReadContext): LinkSpec = {
-      LinkSpec(
-        source =
-            fromJson[DatasetSelection](mustBeDefined(value, SOURCE)),
-        target =
-            fromJson[DatasetSelection](mustBeDefined(value, TARGET)),
-        rule = optionalValue(value, RULE).map(fromJson[LinkageRule]).getOrElse(LinkageRule()),
-        output = mustBeJsArray(mustBeDefined(value, DEPRECATED_OUTPUTS))(_.value.map(v => Identifier(v.as[JsString].value))).headOption,
-        referenceLinks = optionalValue(value, REFERENCE_LINKS).map(fromJson[ReferenceLinks]).getOrElse(ReferenceLinks.empty),
-        linkLimit = numberValueOption(value, LINK_LIMIT).map(_.intValue).getOrElse(LinkSpec.DEFAULT_LINK_LIMIT),
-        matchingExecutionTimeout = numberValueOption(value, MATCHING_EXECUTION_TIMEOUT).map(_.intValue).getOrElse(LinkSpec.DEFAULT_EXECUTION_TIMEOUT_SECONDS)
-      )
+      val jsonParameters = objectValue(value, PARAMETERS)
+      val objParameters = ParameterValues(Map(
+        RULE -> ParameterObjectValue(optionalValue(jsonParameters, RULE).map(fromJson[LinkageRule]).getOrElse(LinkageRule())),
+        REFERENCE_LINKS -> ParameterObjectValue(optionalValue(jsonParameters, REFERENCE_LINKS).map(fromJson[ReferenceLinks]).getOrElse(ReferenceLinks.empty))
+      ))
+      pluginFormat.read(value, objParameters)
     }
 
     override def write(value: LinkSpec)(implicit writeContext: WriteContext[JsValue]): JsValue = {
@@ -1322,158 +1280,71 @@ object JsonSerializers {
                                                  userContext: Option[UserContext] = None,
                                                  dependentTaskFormatter: Option[String => JsValue] = None)(implicit dataFormat: JsonFormat[T]) extends JsonFormat[LoadedTask[T]] {
 
-    final val PROJECT = "project"
-    final val EXECUTION_VARIABLES = TaskJsonFormat.EXECUTION_VARIABLES
-    final val PROPERTIES = "properties"
-    final val RELATIONS = "relations"
-    final val SCHEMATA = "schemata"
-    final val KEY = "key"
-    final val VALUE = "value"
-
-
     /**
-      * Deserializes a value.
+      * Deserializes a value. The envelope is validated strictly via the [[TaskDto]] wire model;
+      * the task data itself is read by the type-specific format, which receives the raw JSON so that
+      * plugin-defined content is passed through untouched.
       */
     override def read(value: JsValue)(implicit readContext: ReadContext): LoadedTask[T] = {
-      var taskId = ""
+      // Best-effort id extraction upfront, so that parse failures can be attributed to the task.
+      var taskId: Identifier = TaskJsonFormat.taskIdForErrors(value)
       try {
-        val id: Identifier = stringValueOption(value, ID).map(_.trim).filter(_.nonEmpty).map(Identifier.apply).getOrElse {
+        val dto = TaskDto.parseTaskJson(value)
+        val id: Identifier = if(dto.id.nonEmpty) {
+          Identifier(dto.id)
+        } else {
           // Generate unique ID from label if no ID was supplied
-          val md = metaData(value)
-          md.label match {
-            case Some(label) if label.trim.nonEmpty =>
+          dto.metadata.flatMap(_.label).filter(_.trim.nonEmpty) match {
+            case Some(label) =>
               IdentifierUtils.generateTaskId(label)
-            case _ =>
+            case None =>
               throw BadUserInputException("The label must not be empty if no ID is provided!")
           }
         }
-        taskId = id.toString
-        // In older serializations the task data has been directly attached to this JSON object
-        val dataJson = optionalValue(value, DATA).getOrElse(value)
+        taskId = id
         // Read the execution variables first, so that parameter templates referencing them resolve against the task's own defaults.
         // Variable templates are resolved like at save time. If the variables are absent, the context's
         // execution scope is kept (seeded with the stored variables on task updates).
-        val providedVariables = optionalValue(value, EXECUTION_VARIABLES).map(fromJson[TemplateVariables])
+        val providedVariables = dto.executionVariables.map(variables => TemplateVariables(variables.map(_.convert)))
         val dataContext = providedVariables.fold(readContext) { v =>
           val resolved = v.resolvedKeepingUnresolved(readContext.templateVariables.all.withoutSensitiveVariables())
           readContext.copy(templateVariables = readContext.templateVariables.withExecutionDefaults(resolved))
         }
         val task = PlainTask(
           id = id,
-          data = fromJson[T](dataJson)(dataFormat, dataContext),
-          metaData = metaData(value),
+          data = fromJson[T](objectValue(value, DATA))(dataFormat, dataContext),
+          metaData = dto.metadata.map(_.toMetaData).getOrElse(MetaData.empty),
           executionVariables = providedVariables.getOrElse(TemplateVariables.empty)
         )
 
         LoadedTask.success(task)
       } catch {
         case NonFatal(ex) =>
-          LoadedTask.failed(TaskLoadingError(readContext.projectId, if(taskId.isEmpty) Identifier("__unknown__") else Identifier(taskId),
-            ex, factoryFunction = None, originalParameterValues = None))
+          LoadedTask.failed(TaskLoadingError(readContext.projectId, taskId, ex, factoryFunction = None, originalParameterValues = None))
       }
     }
 
     /**
-      * Serializes a value.
+      * Serializes a value by building the [[TaskDto]] wire model.
       */
     override def write(task:  LoadedTask[T])(implicit writeContext: WriteContext[JsValue]): JsValue = {
-      // If any of the defaults is changed, the annotations on TaskFormatOptions need to be updated
-      var json = Json.obj(ID -> JsString(task.id.toString))
-
-      for(project <- writeContext.projectId) {
-        json += PROJECT -> JsString(project)
-      }
-
-      if(options.includeMetaData.getOrElse(true)) {
-        json += METADATA -> toJson(task.metaData)
-      }
-
-      if(task.executionVariables.variables.nonEmpty) {
-        json += EXECUTION_VARIABLES -> toJson(task.executionVariables)
-      }
-
+      // If any of the option defaults is changed, the annotations on TaskFormatOptions need to be updated
       // Serialize the task data with the execution scope seeded, so that parameter templates referencing execution variables evaluate.
       val dataContext = writeContext.copy(templateVariables = writeContext.templateVariables.withExecutionDefaults(task.executionVariables))
       val taskDataJson = toJson(task.data)(dataFormat, dataContext).as[JsObject]
-      // We always want to add the type at the top level regardless if the task data is serialized
-      for(taskType <- taskDataJson.value.get(TASKTYPE)) {
-        json += TASKTYPE -> taskType
-      }
-      if(options.includeTaskData.getOrElse(true)) {
-        json += DATA -> taskDataJson
-      }
-
-      if(options.includeTaskProperties.getOrElse(false)) {
-        json += PROPERTIES -> writeTaskProperties(task)
-      }
-      if(options.includeRelations.getOrElse(false) && userContext.isDefined) {
-        implicit val uc = userContext.get // User context is needed to fetch dependent tasks
-        json += RELATIONS -> writeTaskRelations(task, dependentTaskFormatter)
-      }
-      if(options.includeSchemata.getOrElse(false)) {
-        json += SCHEMATA -> writeTaskSchemata(task)
-      }
-
-      json
-    }
-
-    private def writeTaskProperties(task: Task[T])(implicit writeContext: WriteContext[JsValue]): JsValue = {
-      JsArray(
-        for((key, value) <- task.data.parameters.toStringMap.toSeq) yield {
-          Json.obj(KEY -> key, VALUE -> value)
-        }
+      val dto = TaskDto(
+        id = task.id.toString,
+        project = writeContext.projectId.map(_.toString),
+        metadata = if(options.includeMetaData.getOrElse(true)) Some(MetaDataPlain.fromMetaData(task.metaData)) else None,
+        executionVariables = if(task.executionVariables.variables.nonEmpty) Some(task.executionVariables.variables.map(TemplateVariableJson(_))) else None,
+        // The task type is always added at the top level, regardless of whether the task data is included
+        taskType = (taskDataJson \ TASKTYPE).asOpt[String],
+        data = if(options.includeTaskData.getOrElse(true)) Some(TaskDataDto.fromDataJson(taskDataJson)) else None,
+        properties = if(options.includeTaskProperties.getOrElse(false)) Some(TaskPropertyDto.fromTask(task)) else None,
+        relations = if(options.includeRelations.getOrElse(false) && userContext.isDefined) Some(TaskRelationsDto.fromTask(task, dependentTaskFormatter)(userContext.get)) else None,
+        schemata = if(options.includeSchemata.getOrElse(false)) Some(TaskSchemataDto.fromTask(task)) else None
       )
-    }
-
-
-
-    private def writeTaskRelations(task: Task[T],
-                                   dependentTaskFormatter: Option[String => JsValue])
-                                  (implicit writeContext: WriteContext[JsValue],
-                                   userContext: UserContext): JsValue = {
-      Json.obj(
-        "inputTasks" -> JsArray(task.data.inputTasks.toSeq.map(JsString(_))),
-        "outputTasks" -> JsArray(task.data.outputTasks.toSeq.map(JsString(_))),
-        "referencedTasks" -> JsArray(task.data.referencedTasks.toSeq.map(JsString(_))),
-        "dependentTasksDirect" -> {
-          val directTasks = task.findDependentTasks(recursive = false)
-          dependentTaskFormatter match {
-            case Some(jsonFormatter) =>
-              directTasks.map(t => jsonFormatter(t))
-            case None =>
-              directTasks.map(JsString(_)).toSeq
-          }
-        },
-        "dependentTasksAll" -> {
-          val allTasks = task.findDependentTasks(recursive = true)
-          dependentTaskFormatter match {
-            case Some(jsonFormatter) =>
-              allTasks.map(t => jsonFormatter(t))
-            case None =>
-              allTasks.map(JsString(_)).toSeq
-          }
-        }
-      )
-    }
-
-    private def writeTaskSchemata(task: Task[T])(implicit writeContext: WriteContext[JsValue]): JsValue = {
-      val inputSchemata = task.data.inputPorts match {
-        case FixedNumberOfInputs(ports) => JsArray(ports.flatMap(_.schemaOpt).map(entitySchema))
-        case _ => JsNull
-      }
-      val outputSchema = task.data.outputPort.flatMap(_.schemaOpt).map(entitySchema).getOrElse(JsNull)
-      Json.obj(
-        "input" -> inputSchemata,
-        "output" -> outputSchema
-      )
-    }
-
-    private def entitySchema(schema: EntitySchema) = {
-      // TODO: Why is only the Path written instead of the TypedPath, where is serialization read?
-      val paths = for(typedPath <- schema.typedPaths) yield JsString(typedPath.toUntypedPath.normalizedSerialization)
-      Json.obj(
-        "paths" -> JsArray(paths)
-      )
+      Json.toJson(dto)
     }
   }
 
@@ -1481,6 +1352,21 @@ object JsonSerializers {
 
     /** Name of the JSON attribute that holds the execution variables of a task. */
     final val EXECUTION_VARIABLES = "executionVariables"
+
+    /** Task id that is reported if the id of a failing task cannot be determined. */
+    private val UNKNOWN_TASK_ID = Identifier("__unknown__")
+
+    /**
+      * Extracts the task id from the raw JSON for error reporting.
+      * Never fails: an id that is missing or not a valid identifier is reported as [[UNKNOWN_TASK_ID]].
+      */
+    private def taskIdForErrors(value: JsValue): Identifier = {
+      (value \ ID).asOpt[String]
+        .map(_.trim)
+        .filter(id => id.nonEmpty && id.forall(Identifier.isAllowed))
+        .map(Identifier(_))
+        .getOrElse(UNKNOWN_TASK_ID)
+    }
   }
 
   /**
