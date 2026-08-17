@@ -17,7 +17,7 @@ import io.swagger.v3.oas.annotations.tags.Tag
 import io.swagger.v3.oas.annotations.{Operation, Parameter}
 import org.silkframework.config.Prefixes
 import org.silkframework.entity.paths._
-import org.silkframework.entity.{EntitySchema, ValueType, ValueTypeAnnotation}
+import org.silkframework.entity.{EntitySchema, ValueType}
 import org.silkframework.rule.vocab.ObjectPropertyType
 import org.silkframework.rule.{ContainerTransformRule, TransformRule, TransformSpec}
 import org.silkframework.runtime.activity.UserContext
@@ -730,21 +730,10 @@ class AutoCompletionApi @Inject() () extends InjectedController with UserContext
   }
 
   private def valueTypeCompletion(valueType: PluginDescription[ValueType]): Completion = {
-    val annotation = valueType.pluginClass.getAnnotation(classOf[ValueTypeAnnotation])
-    val annotationDescription = {
-      if(annotation != null) {
-        val validValues = annotation.validValues().map(str => s"'$str'").mkString(", ")
-        val invalidValues = annotation.invalidValues().map(str => s"'$str'").mkString(", ")
-        s" Examples for valid values are: $validValues. Invalid values are: $invalidValues."
-      } else {
-        ""
-      }
-    }
-
     Completion(
       value = valueType.id,
       label = Some(valueType.label),
-      description = Some(valueType.description + annotationDescription),
+      description = Some(ValueType.describe(valueType)),
       category = valueType.categories.headOption.getOrElse(""),
       isCompletion = true
     )
