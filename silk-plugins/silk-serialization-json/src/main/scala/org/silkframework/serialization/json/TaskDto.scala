@@ -20,8 +20,8 @@ import play.api.libs.json._
   */
 @Schema(description = "A project task in its canonical JSON format.")
 case class TaskDto(@Schema(
-                     description = "The task identifier. Optional on task creation, in which case it is generated from the label.",
-                     requiredMode = RequiredMode.REQUIRED
+                     description = "The task identifier. Always present in responses. Optional on task creation, in which case it is generated from the label.",
+                     requiredMode = RequiredMode.NOT_REQUIRED
                    )
                    id: String,
                    @Schema(
@@ -52,8 +52,9 @@ case class TaskDto(@Schema(
                    )
                    taskType: Option[String],
                    @Schema(
-                     description = "The task specification. Required on requests; only omitted in responses if requested via the format options.",
-                     requiredMode = RequiredMode.NOT_REQUIRED,
+                     description = "The task specification. Required on requests, except on updates of selected properties, which take a partial task. " +
+                       "Only omitted in responses if requested via the format options.",
+                     requiredMode = RequiredMode.REQUIRED,
                      implementation = classOf[TaskDataDto]
                    )
                    data: Option[TaskDataDto],
