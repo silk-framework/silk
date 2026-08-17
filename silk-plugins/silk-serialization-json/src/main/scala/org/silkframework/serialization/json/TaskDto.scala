@@ -117,10 +117,19 @@ object TaskDto {
         dto
       case JsError(errors) =>
         val errorStrings = errors.map { case (path, validationErrors) =>
-          s"At '${path.toJsonString}': ${validationErrors.map(readableMessage).mkString(", ")}"
+          val messages = validationErrors.map(readableMessage).mkString(", ")
+          jsonPath(path).map(p => s"At '$p': $messages").getOrElse(messages)
         }
         throw BadUserInputException("The task JSON is invalid. " + errorStrings.mkString("; "))
     }
+  }
+
+  /**
+    * The path of an attribute as the client sees it, e.g. 'data.parameters'.
+    * Not using JsPath.toJsonString, which prefixes the path with Play's internal 'obj' root.
+    */
+  private def jsonPath(path: JsPath): Option[String] = {
+    Some(path.path.map(_.toJsonString).mkString.stripPrefix(".")).filter(_.nonEmpty)
   }
 
   private def readableMessage(error: JsonValidationError): String = {
@@ -229,13 +238,25 @@ object TaskDataDto {
   }
 
   /**
+    * Accepts booleans as well as their string representation, since clients commonly transport all
+    * parameter values as strings. Matches [[JsonHelpers.booleanValueOption]], which the dataset
+    * format uses to read the same attribute.
+    */
+  private val lenientBooleanReads: Reads[Boolean] = Reads {
+    case JsBoolean(value) => JsSuccess(value)
+    case JsString(value) if value.equalsIgnoreCase("true") => JsSuccess(true)
+    case JsString(value) if value.equalsIgnoreCase("false") => JsSuccess(false)
+    case _ => JsError("error.expected.jsboolean")
+  }
+
+  /**
     * Strict reads of the canonical task data. 'taskType' and 'type' stay optional here because
     * endpoints with a known task/plugin type accept payloads without them; the generic task
     * dispatch enforces 'taskType' itself.
     */
   implicit val taskDataDtoReads: Reads[TaskDataDto] = (
     (__ \ JsonSerializers.TASKTYPE).readNullable[String] and
-    (__ \ READ_ONLY).readNullable[Boolean] and
+    (__ \ READ_ONLY).readNullable[Boolean](lenientBooleanReads) and
     (__ \ URI_PROPERTY).readNullable[String] and
     (__ \ JsonSerializers.TYPE).readNullable[String] and
     (__ \ JsonSerializers.PARAMETERS).read[JsObject] and

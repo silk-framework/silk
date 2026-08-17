@@ -1288,10 +1288,9 @@ object JsonSerializers {
       * the task data itself is read by the type-specific format.
       */
     override def read(value: JsValue)(implicit readContext: ReadContext): LoadedTask[T] = {
-      var taskId = ""
+      // Best-effort id extraction upfront, so that parse failures can be attributed to the task.
+      var taskId: Identifier = TaskJsonFormat.taskIdForErrors(value)
       try {
-        // Best-effort id extraction upfront, so that parse failures can be attributed to the task.
-        taskId = (value \ ID).asOpt[String].map(_.trim).getOrElse("")
         val dto = TaskDto.parseTaskJson(value)
         val id: Identifier = if(dto.id.nonEmpty) {
           Identifier(dto.id)
@@ -1304,7 +1303,7 @@ object JsonSerializers {
               throw BadUserInputException("The label must not be empty if no ID is provided!")
           }
         }
-        taskId = id.toString
+        taskId = id
         // Read the execution variables first, so that parameter templates referencing them resolve against the task's own defaults.
         // Variable templates are resolved like at save time. If the variables are absent, the context's
         // execution scope is kept (seeded with the stored variables on task updates).
@@ -1323,8 +1322,7 @@ object JsonSerializers {
         LoadedTask.success(task)
       } catch {
         case NonFatal(ex) =>
-          LoadedTask.failed(TaskLoadingError(readContext.projectId, if(taskId.isEmpty) Identifier("__unknown__") else Identifier(taskId),
-            ex, factoryFunction = None, originalParameterValues = None))
+          LoadedTask.failed(TaskLoadingError(readContext.projectId, taskId, ex, factoryFunction = None, originalParameterValues = None))
       }
     }
 
@@ -1356,6 +1354,21 @@ object JsonSerializers {
 
     /** Name of the JSON attribute that holds the execution variables of a task. */
     final val EXECUTION_VARIABLES = "executionVariables"
+
+    /** Task id that is reported if the id of a failing task cannot be determined. */
+    private val UNKNOWN_TASK_ID = Identifier("__unknown__")
+
+    /**
+      * Extracts the task id from the raw JSON for error reporting.
+      * Never fails: an id that is missing or not a valid identifier is reported as [[UNKNOWN_TASK_ID]].
+      */
+    private def taskIdForErrors(value: JsValue): Identifier = {
+      (value \ ID).asOpt[String]
+        .map(_.trim)
+        .filter(id => id.nonEmpty && id.forall(Identifier.isAllowed))
+        .map(Identifier(_))
+        .getOrElse(UNKNOWN_TASK_ID)
+    }
   }
 
   /**

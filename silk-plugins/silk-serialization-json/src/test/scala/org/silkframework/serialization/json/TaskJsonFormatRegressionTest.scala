@@ -20,7 +20,7 @@ import org.silkframework.serialization.json.JsonSerializers._
 import org.silkframework.util.{ConfigTestTrait, DPair, Identifier, Uri}
 import org.silkframework.workspace.activity.workflow.WorkflowTest
 import org.silkframework.workspace.annotation.{StickyNote, UiAnnotations}
-import play.api.libs.json.{JsValue, Json}
+import play.api.libs.json.{JsBoolean, JsObject, JsString, JsValue, Json}
 
 import java.nio.charset.StandardCharsets
 import java.nio.file.{Files, Paths}
@@ -252,7 +252,8 @@ class TaskJsonFormatRegressionTest extends AnyFlatSpec with Matchers with Config
     val ex = the[BadUserInputException] thrownBy {
       JsonSerialization.fromJson[Task[TaskSpec]](json)
     }
-    ex.getMessage should include("parameters")
+    // The reported path is the one the client sent, without Play's internal 'obj' root.
+    ex.getMessage shouldBe "The task JSON is invalid. At 'data.parameters': attribute is missing"
   }
 
   it should "reject the legacy workflow layout without a parameters object" in {
@@ -269,6 +270,44 @@ class TaskJsonFormatRegressionTest extends AnyFlatSpec with Matchers with Config
       JsonSerialization.fromJson[Task[TaskSpec]](json)
     }
     ex.getMessage should include("parameters")
+  }
+
+  it should "accept boolean 'readOnly' values" in {
+    val task = JsonSerialization.fromJson[Task[TaskSpec]](datasetJson(TaskDataDto.READ_ONLY -> JsBoolean(true)))
+    task.data.asInstanceOf[DatasetSpec[_]].readOnly shouldBe true
+  }
+
+  it should "accept 'readOnly' transported as a string, as the workbench does" in {
+    val task = JsonSerialization.fromJson[Task[TaskSpec]](datasetJson(TaskDataDto.READ_ONLY -> JsString("true")))
+    task.data.asInstanceOf[DatasetSpec[_]].readOnly shouldBe true
+  }
+
+  it should "reject 'readOnly' values that are neither a boolean nor its string representation" in {
+    val ex = the[BadUserInputException] thrownBy {
+      JsonSerialization.fromJson[Task[TaskSpec]](datasetJson(TaskDataDto.READ_ONLY -> JsString("yes")))
+    }
+    ex.getMessage shouldBe "The task JSON is invalid. At 'data.readOnly': attribute must be a boolean"
+  }
+
+  it should "report an invalid task id as a loading error instead of throwing" in {
+    val loadedTask = new TaskJsonFormat[TaskSpec]().read(datasetJson(ID -> JsString("invalid task id")))
+    // The invalid id itself cannot be reported, but reading it must not fail the load of the whole project.
+    loadedTask.error.map(_.taskId) shouldBe Some(Identifier("__unknown__"))
+    loadedTask.error.get.throwable.getMessage should include("invalid task id")
+  }
+
+  /** Canonical JSON of a dataset task, with the given attributes added to the data object or the envelope. */
+  private def datasetJson(additionalFields: (String, JsValue)*): JsObject = {
+    val pluginId = ClassPluginDescription(classOf[TaskJsonRegressionDataset]).id.toString
+    val (envelopeFields, dataFields) = additionalFields.partition(_._1 == ID)
+    Json.obj(
+      ID -> "someDataset",
+      DATA -> (Json.obj(
+        TASKTYPE -> TASK_TYPE_DATASET,
+        TYPE -> pluginId,
+        PARAMETERS -> Json.obj("param1" -> "stringValue", "param2" -> "6.0")
+      ) ++ JsObject(dataFields))
+    ) ++ JsObject(envelopeFields)
   }
 
   /**
