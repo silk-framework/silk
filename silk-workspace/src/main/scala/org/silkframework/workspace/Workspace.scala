@@ -203,13 +203,7 @@ class Workspace(val provider: WorkspaceProvider,
         newProject.accessControl.setGroups(groups)
       } catch {
         case NonFatal(ex) =>
-          if (removePartiallyCreatedProject(creationConfig.id)) {
-            // Nothing has been created, so the original failure is reported as is, e.g. a bad group as a 400
-            throw ex
-          } else {
-            throw new RuntimeException(s"The access control of project '${creationConfig.id}' could not be persisted and the project could not be removed again. " +
-              s"It must be removed or assigned groups manually. Cause: ${ex.getMessage}", ex)
-          }
+          rollbackOrRethrow(creationConfig.id, ex, s"The access control of project '${creationConfig.id}' could not be persisted")
       }
     }
     addProjectToCache(newProject)
@@ -341,12 +335,7 @@ class Workspace(val provider: WorkspaceProvider,
       }
     } catch {
       case NonFatal(ex) =>
-        if (removePartiallyCreatedProject(name)) {
-          throw ex
-        } else {
-          throw new RuntimeException(s"The imported project '$name' could not be set up and could not be removed again. " +
-            s"It must be removed or assigned groups manually. Cause: ${ex.getMessage}", ex)
-        }
+        rollbackOrRethrow(name, ex, s"The imported project '$name' could not be set up")
     }
     reloadProjectInternal(name)(readWriteUser)
     log.info(s"Imported project '$name' in ${(System.currentTimeMillis() - start).toDouble / 1000}s. " + userContext.logInfo)
@@ -424,6 +413,19 @@ class Workspace(val provider: WorkspaceProvider,
 
   private def addProjectToCache(project: Project): Unit = {
     cachedProjects :+= project
+  }
+
+  /** Rolls a partially created project back and rethrows.
+    * If nothing has been created, the original failure is reported as is, e.g. a bad group as a 400.
+    */
+  private def rollbackOrRethrow(projectId: Identifier, ex: Throwable, failureDescription: String)
+                               (implicit userContext: UserContext): Nothing = {
+    if (removePartiallyCreatedProject(projectId)) {
+      throw ex
+    } else {
+      throw new RuntimeException(s"$failureDescription and the project could not be removed again. " +
+        s"It must be removed or assigned groups manually. Cause: ${ex.getMessage}", ex)
+    }
   }
 
   /** Best-effort removal of a partially created project.
