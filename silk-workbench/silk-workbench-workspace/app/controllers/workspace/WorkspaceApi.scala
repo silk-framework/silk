@@ -148,7 +148,9 @@ class WorkspaceApi  @Inject() (accessMonitor: WorkbenchAccessMonitor) extends In
     } else {
       val projectConfig = ProjectConfig(project, metaData = MetaData(Some(project)).asNewMetaData)
       projectConfig.copy(projectResourceUriOpt = Some(projectConfig.generateDefaultUri))
-      val newProject = WorkspaceFactory().workspace.createProject(projectConfig)
+      // Restricted to the creating user's groups, matching the newer create endpoints
+      val newProject = WorkspaceFactory().workspace.createProject(projectConfig,
+        initialGroups = Some(userContext.user.map(_.groups).getOrElse(Set.empty)))
       Created(JsonSerializer.projectJson(newProject))
     }
   }
@@ -214,7 +216,9 @@ class WorkspaceApi  @Inject() (accessMonitor: WorkbenchAccessMonitor) extends In
 
     val clonedProjectConfig = project.config.copy(id = newProject)
     val clonedProjectUri = clonedProjectConfig.generateDefaultUri
-    val clonedProject = workspace.createProject(clonedProjectConfig.copy(projectResourceUriOpt = Some(clonedProjectUri)))
+    // The clone keeps the access control groups of the source project
+    val clonedProject = workspace.createProject(clonedProjectConfig.copy(projectResourceUriOpt = Some(clonedProjectUri)),
+      initialGroups = Some(project.accessControl.getGroups))
     WorkspaceIO.copyResources(project.resources, clonedProject.resources)
     // Clone tags
     for (tag <- project.tagManager.allTags()) {

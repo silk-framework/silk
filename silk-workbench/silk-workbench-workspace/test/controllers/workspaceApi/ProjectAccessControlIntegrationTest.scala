@@ -223,6 +223,22 @@ class ProjectAccessControlIntegrationTest extends AnyFlatSpec with IntegrationTe
     getProjectAccessControl(cloneId, user1).groups shouldBe Set(group1)
   }
 
+  it should "restrict a project created through the legacy API to the creating user's groups" in {
+    val projectId = "legacyCreateGroups"
+    checkResponse(userRequest(controllers.workspace.routes.WorkspaceApi.newProject(projectId), user1).put(""))
+    getProjectAccessControl(projectId, user1).groups shouldBe user1.groups
+    testGetProject(projectId, user2, shouldHaveAccess = false)
+  }
+
+  it should "keep the groups of the source project when cloning through the legacy API" in {
+    val sourceId = "legacyCloneSource"
+    val cloneId = "legacyClone"
+    createProject(sourceId, user1, Set(group1))
+    checkResponse(userRequest(controllers.workspace.routes.WorkspaceApi.cloneProject(sourceId, cloneId), user1).post(""))
+    getProjectAccessControl(cloneId, user1).groups shouldBe Set(group1)
+    testGetProject(cloneId, user2, shouldHaveAccess = false)
+  }
+
   it should "only list reports for projects the user has access to" in {
     val accessibleProjectId = "reportsAccessible"
     val restrictedProjectId = "reportsRestricted"
