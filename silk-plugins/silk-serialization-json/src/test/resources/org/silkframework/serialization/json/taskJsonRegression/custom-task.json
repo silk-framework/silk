@@ -1,0 +1,18 @@
+{
+  "id" : "customTask",
+  "metadata" : {
+    "label" : "Task label",
+    "description" : "Task description",
+    "modified" : "2026-07-14T10:30:00Z",
+    "created" : "2026-07-01T08:00:00Z"
+  },
+  "taskType" : "CustomTask",
+  "data" : {
+    "taskType" : "CustomTask",
+    "type" : "taskJsonRegressionCustomTask",
+    "parameters" : {
+      "stringParam" : "stringValue",
+      "numberParam" : "42"
+    }
+  }
+}

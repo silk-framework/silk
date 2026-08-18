@@ -8,9 +8,8 @@ import org.silkframework.util.Identifier
   * Holds metadata for each entity.
   *
   * @param failure The last failure that occurred on this entity (e.g., during transformation)
-  * @param internalOrder Internal order id. Currently only used by Spark code.
   */
-case class EntityMetadata(failure: Option[FailureClass] = None, internalOrder: Option[InternalOrder] = None) {
+case class EntityMetadata(failure: Option[FailureClass] = None) {
 
   def withFailure(failure: FailureClass): EntityMetadata = {
     copy(failure = Some(failure))
