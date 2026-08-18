@@ -39,9 +39,25 @@ case class TransformReport(task: Task[TransformSpec],
   def warnings: Seq[String] = {
     var allErrors = globalErrors
     if(entityErrorCount != 0) {
-      allErrors :+= s"Validation issues occurred on $entityErrorCount entities."
+      allErrors :+= entityErrorWarning
     }
     allErrors
+  }
+
+  /** The aggregate entity error count, attributing the errors to the worst offending rules. */
+  private def entityErrorWarning: String = {
+    val failingRules = ruleResults.toSeq.filter(_._2.errorCount > 0).sortBy { case (id, result) => (-result.errorCount, id.toString) }
+    if(failingRules.isEmpty) {
+      s"Validation issues occurred on $entityErrorCount entities."
+    } else {
+      val worst = failingRules.take(MaxRulesInWarning).map { case (id, result) => s"$id: ${result.errorCount}" }.mkString(", ")
+      val more = (failingRules.size - MaxRulesInWarning) match {
+        case 1 => " and 1 more rule"
+        case n if n > 1 => s" and $n more rules"
+        case _ => ""
+      }
+      s"Validation issues occurred on $entityErrorCount entities ($worst$more). See 'ruleResults' for sample values."
+    }
   }
 
   /**
@@ -64,6 +80,9 @@ case class TransformReport(task: Task[TransformSpec],
 }
 
 object TransformReport {
+
+  /** How many offending rules the aggregate warning names before cutting off with "and N more". */
+  private val MaxRulesInWarning = 3
 
   /**
     * The transformation statistics for a single mapping rule.
