@@ -385,9 +385,11 @@ private class ActivityExecution[T](activity: Activity[T],
         forkJoinRunner = None
       }
     }
-    runningThread = None
-    // Clear interrupt flag
-    Thread.interrupted()
+    // Atomic with cancel()'s interrupt delivery, so a late cancellation cannot interrupt the released thread
+    interruptEnabled.synchronized {
+      runningThread = None
+      Thread.interrupted() // Clear interrupt flag
+    }
   }
 
 
