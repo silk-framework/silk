@@ -337,7 +337,7 @@ class Workspace(val provider: WorkspaceProvider,
       case NonFatal(ex) =>
         rollbackOrRethrow(name, ex, s"The imported project '$name' could not be set up")
     }
-    reloadProjectInternal(name)(readWriteUser)
+    reloadProjectInternal(name, throwError = true)(readWriteUser)
     log.info(s"Imported project '$name' in ${(System.currentTimeMillis() - start).toDouble / 1000}s. " + userContext.logInfo)
   }
 
@@ -437,6 +437,7 @@ class Workspace(val provider: WorkspaceProvider,
     for(resourceFailure <- Try(repository.removeProjectResources(projectId)).failed.toOption) {
       log.log(Level.WARNING, s"The resources of project '$projectId' could not be removed while rolling back its creation.", resourceFailure)
     }
+    provider.removeExternalTaskLoadingErrors(projectId)
     for(failure <- deletionFailure) {
       log.log(Level.SEVERE, s"Project '$projectId' could not be removed after a failure while creating it. " +
         "It remains stored without access control and becomes reachable on the next workspace reload!", failure)
