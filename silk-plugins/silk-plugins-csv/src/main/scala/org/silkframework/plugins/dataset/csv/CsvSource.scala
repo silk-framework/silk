@@ -154,15 +154,13 @@ class CsvSource(file: Resource,
 
     logger.log(Level.FINE, "Retrieving data from CSV.")
 
-    // Collect missing columns
+    // Collect missing columns.
     var missingColumns = Seq[String]()
     for (path <- entityDesc.typedPaths) {
-      val property = path.operators.head.asInstanceOf[ForwardOperator].property.uri
-      val propertyIndex = propertyList.indexOf(property)
-      if (propertyIndex == -1) {
-        if(!property.startsWith("#")) {
-          missingColumns :+= property
-        }
+      path.operators.headOption match {
+        case Some(ForwardOperator(property)) if !property.uri.startsWith("#") && !propertyList.contains(property.uri) =>
+          missingColumns :+= property.uri
+        case _ =>
       }
     }
 
