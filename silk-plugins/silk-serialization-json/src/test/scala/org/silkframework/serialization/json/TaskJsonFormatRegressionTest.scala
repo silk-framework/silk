@@ -266,7 +266,8 @@ class TaskJsonFormatRegressionTest extends AnyFlatSpec with Matchers with Config
     }
     // The reported path is the one the client sent, without Play's internal 'obj' root.
     ex.getMessage shouldBe "The task JSON is invalid. At 'data': unknown attribute(s): outputs, root, selection, " +
-      "targetVocabularies. Plugin parameters must be provided in the 'parameters' object."
+      "targetVocabularies. Valid attributes are: parameters, readOnly, taskType, templates, type, uriProperty. " +
+      "Plugin parameters must be provided in the 'parameters' object."
   }
 
   it should "report a missing parameters object" in {
@@ -299,6 +300,7 @@ class TaskJsonFormatRegressionTest extends AnyFlatSpec with Matchers with Config
       JsonSerialization.fromJson[Task[TaskSpec]](datasetJson("param1" -> JsString("stringValue")))
     }
     ex.getMessage shouldBe "The task JSON is invalid. At 'data': unknown attribute(s): param1. " +
+      "Valid attributes are: parameters, readOnly, taskType, templates, type, uriProperty. " +
       "Plugin parameters must be provided in the 'parameters' object."
   }
 

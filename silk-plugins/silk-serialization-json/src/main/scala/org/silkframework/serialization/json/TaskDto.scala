@@ -258,6 +258,7 @@ object TaskDataDto {
         JsSuccess(dataJson)
       } else {
         JsError(s"unknown attribute(s): ${unknownFields.mkString(", ")}. " +
+          s"Valid attributes are: ${knownFields.toSeq.sorted.mkString(", ")}. " +
           s"Plugin parameters must be provided in the '${JsonSerializers.PARAMETERS}' object.")
       }
     case _ =>
