@@ -50,7 +50,7 @@ case class TransformReport(task: Task[TransformSpec],
     if(failingRules.isEmpty) {
       s"Validation issues occurred on $entityErrorCount entities."
     } else {
-      val worst = failingRules.take(MaxRulesInWarning).map { case (id, result) => s"$id: ${result.errorCount}" }.mkString(", ")
+      val worst = failingRules.take(MaxRulesInWarning).map { case (id, result) => s"${ruleDisplayName(id)}: ${result.errorCount}" }.mkString(", ")
       val more = (failingRules.size - MaxRulesInWarning) match {
         case 1 => " and 1 more rule"
         case n if n > 1 => s" and $n more rules"
@@ -58,6 +58,11 @@ case class TransformReport(task: Task[TransformSpec],
       }
       s"Validation issues occurred on $entityErrorCount entities ($worst$more). See 'ruleResults' for sample values."
     }
+  }
+
+  /** The rule's label and id (the id being the key into `ruleResults`), or just the id if it cannot be resolved. */
+  private def ruleDisplayName(id: Identifier): String = {
+    task.data.nestedRuleAndSourcePath(id.toString).map(_._1.labelAndId).getOrElse(id.toString)
   }
 
   /**
