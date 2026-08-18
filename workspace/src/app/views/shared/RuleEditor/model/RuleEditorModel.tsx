@@ -450,9 +450,17 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                         },
                     };
                     // This need to be done every time the handles of a node have been changed, else the UI does not show the current state
+                    // Looks like the FF/Gecko need 25m timeout to work like intended, see https://chat.eccenca.com/eccenca/pl/zifiwak4i3brbgo3r83aayy34h
+                    // TODO: this timeout process looks like a workaround, maybe we can fix this by another method
+                    const updateNodeInternalsTimeout =
+                        !window.navigator.userAgent ||
+                        (window.navigator.userAgent.includes("Gecko") &&
+                            !window.navigator.userAgent.includes("like Gecko"))
+                            ? 30
+                            : 1;
                     setTimeout(() => {
                         updateNodeInternals(node.id);
-                    }, 1);
+                    }, updateNodeInternalsTimeout);
                     return nodeWithNewHandles;
                 } else {
                     return node;
