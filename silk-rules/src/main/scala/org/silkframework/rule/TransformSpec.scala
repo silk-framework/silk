@@ -16,7 +16,7 @@ import org.silkframework.runtime.resource.Resource
 import org.silkframework.runtime.serialization.XmlSerialization._
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat, XmlSerialization}
 import org.silkframework.runtime.templating.{TemplateVariableName, TemplateVariables}
-import org.silkframework.runtime.validation.{NotFoundException, ValidationException}
+import org.silkframework.runtime.validation.{BadUserInputException, NotFoundException, ValidationException}
 import org.silkframework.util.{Identifier, IdentifierGenerator, Uri}
 import org.silkframework.workspace.{OriginalTaskData, TaskLoadingException, WorkspaceReadTrait}
 import org.silkframework.workspace.project.task.DatasetTaskReferenceAutoCompletionProvider
@@ -253,6 +253,24 @@ case class TransformSpec(@Param(label = "Input", value = "The source from which 
     */
   def nestedRuleAndSourcePathWithParents(ruleName: String): List[(TransformRule, List[PathOperator])] = {
     fetchRuleAndSourcePath(mappingRule, ruleName, List.empty)
+  }
+
+  /**
+    * Throws if the given id for a new rule is taken already. Rule ids are unique across the whole
+    * transform and not per parent rule, which is the surprising half, so the message names where the
+    * existing rule sits and states the scope.
+    *
+    * @param ruleName The ID of the rule that should be added.
+    */
+  def validateNewRuleId(ruleName: String): Unit = {
+    nestedRuleAndSourcePathWithParents(ruleName) match {
+      case Nil =>
+      case ruleWithParents =>
+        val parent = ruleWithParents.dropRight(1).lastOption
+          .map(parentRule => s" (under parent '${parentRule._1.id}')").getOrElse("")
+        throw BadUserInputException(s"A rule with id '$ruleName' already exists in this transform$parent. " +
+          "Rule ids must be unique across the whole transform, not just within a parent rule.")
+    }
   }
 
   /** Either the rule itself if it is an object mapping or the parent object mapping if it is a value rule. */

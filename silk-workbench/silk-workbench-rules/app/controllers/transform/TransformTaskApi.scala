@@ -677,9 +677,7 @@ class TransformTaskApi @Inject() () extends InjectedController with UserContextA
                                      task: ProjectTask[TransformSpec],
                                      userContext: UserContext,
                                      project: Project): Result = {
-    if (task.data.nestedRuleAndSourcePath(newChildRule.id).isDefined) {
-      throw new ValidationException(s"Rule with ID ${newChildRule.id} already exists!")
-    }
+    task.data.validateNewRuleId(newChildRule.id)
     val children = parentRule.operator.children
     val newChildren = children.indexWhere(rule => afterRuleId.contains(rule.id.toString)) match {
       case afterRuleIdx: Int if afterRuleIdx >= 0 =>
