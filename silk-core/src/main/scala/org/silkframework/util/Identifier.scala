@@ -23,8 +23,12 @@ import scala.language.implicitConversions
  * May only contain the following characters: (a - z, A - Z, 0 - 9, _, -)
  */
 class Identifier(private val name: String) extends Serializable with Ordered[Identifier] {
-  require(name.nonEmpty, "Identifier must not be empty.")
-  require(name.forall(Identifier.isAllowed), Identifier.invalidIdentifierMessage(name))
+  if(name.isEmpty) {
+    throw new IllegalArgumentException("Identifier must not be empty.")
+  }
+  if(!name.forall(Identifier.isAllowed)) {
+    throw new IllegalArgumentException(Identifier.invalidIdentifierMessage(name))
+  }
 
   /** Returns the identifier itself. */
   override def toString: String = name
