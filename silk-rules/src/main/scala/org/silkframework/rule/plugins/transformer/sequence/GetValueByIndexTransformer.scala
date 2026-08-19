@@ -55,10 +55,18 @@ case class GetValueByIndexTransformer(
   emptyStringToEmptyResult: Boolean = false
 ) extends InlineTransformer {
 
+  private implicit class IntOps(private val a: Int) {
+    /**
+      * The mathematical modulo operation: the result in [0, n) for positive 'n', or (n, 0] for negative 'n'.
+      * Always congruent to 'a'.
+      */
+    def mod(n: Int): Int = ((a % n) + n) % n
+  }
+
   private implicit class SeqOps[A](private val vs: Seq[A]) {
     def getAt(idx: Int): Option[A] = {
-      val effectiveIndex = if (idx >= 0) idx else vs.length + idx
-      vs.lift(effectiveIndex)
+      val length = vs.length
+      if (idx >= -length && idx < length) Some(vs(idx mod length)) else None
     }
   }
 
