@@ -5,27 +5,30 @@ import org.scalatest.matchers.should.Matchers
 import GetValueByIndexTransformer.{apply => get}
 
 /**
-  * Verifies GetValueByIndexTransformer's index-lookup contract: positive and negative indices, and their interaction
-  * with failIfNotFound and emptyStringToEmptyResult.
+  * Verifies GetValueByIndexTransformer's index-lookup contract: positive and negative indices, and how a missing
+  * or empty value is handled.
   */
 class GetValueByIndexTransformerTest extends AnyFlatSpec with Matchers {
   import GetValueByIndexTransformerTest._
 
   behavior of "get value by index transformer"
 
-  it should "Get the right value by index" in {
+  it should "return the correct value for positive indices" in {
     get(0)(Values.ONE_TWO) shouldBe Elements.ONE
     get(1)(Values.ONE_TWO) shouldBe Elements.TWO
+  }
+
+  it should "return an empty result for a positive index out of range" in {
     get(2)(Values.ONE_TWO) shouldBe Elements.EMPTY
   }
 
-  it should "throw IndexOutOfBoundsException if failIfNotFound is set and there is no value at index" in {
+  it should "throw rather than ignore a missing value at the index" in {
     intercept[IndexOutOfBoundsException] {
       get(1, failIfNotFound = true)(Values.ONE)
     }
   }
 
-  it should "return an empty result for an empty String if emptyStringToEmptyResult==true" in {
+  it should "return nothing for an empty String when empty results should be suppressed" in {
     get(0, emptyStringToEmptyResult = true)(Values.EMPTY_STRING) shouldBe Elements.EMPTY
   }
 
@@ -35,28 +38,34 @@ class GetValueByIndexTransformerTest extends AnyFlatSpec with Matchers {
     get(-3)(Values.ONE_TWO_THREE) shouldBe Elements.ONE
   }
 
-  it should "return the correct value for a single-element sequence, where the last-element and wrap-to-start cases coincide" in {
+  it should "return the correct value for a single-element sequence's wrap-to-start case" in {
     get(-1)(Values.ONE) shouldBe Elements.ONE
   }
 
-  it should "return an empty result for a negative index out of range, or for an empty input sequence" in {
+  it should "return an empty result for a negative index out of range" in {
     get(-4)(Values.ONE_TWO_THREE) shouldBe Elements.EMPTY
+  }
+
+  it should "return an empty result for an empty input sequence" in {
     get(0)(Values.EMPTY) shouldBe Elements.EMPTY
     get(-1)(Values.EMPTY) shouldBe Elements.EMPTY
   }
 
-  it should "throw IndexOutOfBoundsException if failIfNotFound is set and a negative index is out of range" in {
+  it should "throw rather than ignore an out-of-range negative index" in {
     intercept[IndexOutOfBoundsException] {
       get(-4, failIfNotFound = true)(Values.ONE_TWO_THREE)
     }
   }
 
-  it should "not throw for a negative index exactly at the wrap-to-start boundary, even if failIfNotFound is set" in {
+  it should "not throw at the wrap-to-start boundary, even when configured to throw on a miss" in {
     get(-3, failIfNotFound = true)(Values.ONE_TWO_THREE) shouldBe Elements.ONE
   }
 
-  it should "return an empty result for an empty String at a negative index if emptyStringToEmptyResult==true" in {
+  it should "return the empty String at a negative index by default" in {
     get(-1)(Values.ONE_EMPTY_STRING) shouldBe Elements.EMPTY_STRING
+  }
+
+  it should "return nothing for an empty String at a negative index when empty results should be suppressed" in {
     get(-1, emptyStringToEmptyResult = true)(Values.ONE_EMPTY_STRING) shouldBe Elements.EMPTY
   }
 
