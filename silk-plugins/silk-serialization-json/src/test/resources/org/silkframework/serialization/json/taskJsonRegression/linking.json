@@ -1,0 +1,72 @@
+{
+  "id" : "linkingTask",
+  "metadata" : {
+    "label" : "Task label",
+    "description" : "Task description",
+    "modified" : "2026-07-14T10:30:00Z",
+    "created" : "2026-07-01T08:00:00Z"
+  },
+  "taskType" : "Linking",
+  "data" : {
+    "taskType" : "Linking",
+    "type" : "linking",
+    "parameters" : {
+      "referenceLinks" : {
+        "positive" : [ ],
+        "negative" : [ ],
+        "unlabeled" : [ ]
+      },
+      "source" : {
+        "inputId" : "sourceDataset",
+        "typeUri" : "<urn:type:Person>",
+        "restriction" : ""
+      },
+      "linkLimit" : "1000000",
+      "rule" : {
+        "operator" : {
+          "id" : "labelComparison",
+          "type" : "Comparison",
+          "weight" : 1,
+          "threshold" : 0.1,
+          "indexing" : true,
+          "metric" : "equality",
+          "sourceInput" : {
+            "type" : "pathInput",
+            "id" : "sourceLabel",
+            "path" : "label"
+          },
+          "targetInput" : {
+            "type" : "pathInput",
+            "id" : "targetLabel",
+            "path" : "label"
+          },
+          "parameters" : { }
+        },
+        "filter" : {
+          "limit" : null,
+          "unambiguous" : null
+        },
+        "linkType" : "http://www.w3.org/2002/07/owl#sameAs",
+        "inverseLinkType" : null,
+        "excludeSelfReferences" : false,
+        "layout" : {
+          "nodePositions" : { }
+        },
+        "uiAnnotations" : {
+          "stickyNotes" : [ ]
+        }
+      },
+      "target" : {
+        "inputId" : "targetDataset",
+        "typeUri" : "<urn:type:Person>",
+        "restriction" : ""
+      },
+      "output" : "",
+      "matchingExecutionTimeout" : "3600"
+    },
+    "templates" : {
+      "source" : { },
+      "target" : { }
+    }
+  }
+}

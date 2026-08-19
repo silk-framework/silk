@@ -4,9 +4,10 @@ import org.silkframework.config.DefaultConfig
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.annotations.PluginType
 import org.silkframework.runtime.plugin.{AnyPlugin, PluginContext, PluginRegistry}
-import play.api.mvc.RequestHeader
+import play.api.mvc.{RequestHeader, Result}
 
 import java.util.logging.Logger
+import scala.concurrent.Future
 import scala.util.control.NonFatal
 
 /**
@@ -17,6 +18,12 @@ trait WebUserManager extends AnyPlugin {
   def user(request: RequestHeader): Option[WebUser]
 
   def userContext(request: RequestHeader): UserContext
+
+  /** Authorizes a WebSocket handshake, which Play filters do not cover.
+    * Returns the user context to open the stream with or a result rejecting the handshake. */
+  def webSocketUserContext(request: RequestHeader): Future[Either[Result, UserContext]] = {
+    Future.successful(Right(userContext(request)))
+  }
 }
 
 object WebUserManager {
