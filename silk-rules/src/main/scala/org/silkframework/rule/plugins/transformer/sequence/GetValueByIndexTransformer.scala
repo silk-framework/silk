@@ -5,8 +5,9 @@ import org.silkframework.rule.input.InlineTransformer
 import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
 
 /**
-  * For each input sequence take the element with specified index and concatenate all values to a new sequence.
-  * If one input has no element with the specified index it is either ignored or it fails.
+  * For each input sequence, take the element at the specified index — a negative index counts from the end —
+  * and collect the results into a single sequence.
+  * If one input has no element at that index, it is either ignored or the transformation fails.
   */
 @Plugin(
   id = "getValueByIndex",
@@ -47,10 +48,12 @@ import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
     throwsException = classOf[IndexOutOfBoundsException]
   )
 ))
-case class GetValueByIndexTransformer(@Param("The index of the value to return. A non-negative index counts from the start (0-based). A negative index counts from the end, so -1 is the last value, -2 is the second-to-last, and so on.")
-                                      index: Int,
-                                      failIfNotFound: Boolean = false,
-                                      emptyStringToEmptyResult: Boolean = false) extends InlineTransformer {
+case class GetValueByIndexTransformer(
+  @Param("The index of the value to return. A non-negative index counts from the start (0-based). A negative index counts from the end, so -1 is the last value, -2 is the second-to-last, and so on.")
+  index: Int,
+  failIfNotFound: Boolean = false,
+  emptyStringToEmptyResult: Boolean = false
+) extends InlineTransformer {
 
   private implicit class SeqOps[A](private val vs: Seq[A]) {
     def getAt(idx: Int): Option[A] = {
