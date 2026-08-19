@@ -66,7 +66,8 @@ case class GetValueByIndexTransformer(
   private implicit class SeqOps[A](private val vs: Seq[A]) {
     def getAt(idx: Int): Option[A] = {
       val length = vs.length
-      if (idx >= -length && idx < length) Some(vs(idx mod length)) else None
+      val effectiveIndex = idx mod length
+      if (idx >= -length && idx < length) Some(vs(effectiveIndex)) else None
     }
   }
 
