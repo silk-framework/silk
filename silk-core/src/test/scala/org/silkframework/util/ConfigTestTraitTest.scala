@@ -1,6 +1,6 @@
 package org.silkframework.util
 
-import com.typesafe.config.ConfigException
+import com.typesafe.config.ConfigException
 import org.silkframework.config.DefaultConfig
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.must.Matchers
