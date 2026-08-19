@@ -166,8 +166,8 @@ class ProjectApi @Inject()(accessMonitor: WorkbenchAccessMonitor) extends Inject
       val project = getProject(fromProjectId)
       val requestMetaData = request.metaData.asMetaData
       val clonedProjectConfig = project.config.copy(id = projectId, metaData = requestMetaData.copy(tags = requestMetaData.tags ++ project.metaData.tags))
-      val clonedProject = workspace.createProject(clonedProjectConfig.copy(projectResourceUriOpt = Some(clonedProjectConfig.generateDefaultUri)))
-      clonedProject.accessControl.setGroups(request.groups.getOrElse(Set.empty))
+      val clonedProject = workspace.createProject(clonedProjectConfig.copy(projectResourceUriOpt = Some(clonedProjectConfig.generateDefaultUri)),
+        initialGroups = Some(request.groups.getOrElse(Set.empty)))
       // Clone resources
       WorkspaceIO.copyResources(project.resources, clonedProject.resources)
       // Clone tags

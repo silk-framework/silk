@@ -62,7 +62,7 @@ private class CustomTaskXmlSerializer extends XmlSerializer[CustomTask] {
                         (implicit context: PluginContext): Seq[LoadedTask[CustomTask]] = {
     val names = taskNames(resources)
     val tasks = for (name <- names) yield {
-      loadTaskSafelyFromXML(name, Some(Identifier(name.stripSuffix(".xml"))), resources)
+      loadTaskSafelyFromXML(name, Identifier(name.stripSuffix(".xml")), resources)
     }
 
     tasks

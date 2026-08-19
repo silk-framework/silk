@@ -15,10 +15,10 @@ class SparqlTemplateVelocityTest extends AnyFlatSpec with Matchers {
   behavior of "SPARQL templating with the Velocity Template Engine"
 
   private val sparqlUpdateTemplate =
-    s"""PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+    s"""PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
        |PREFIX xsd: <${XSD.getURI}>
-       |DELETE DATA { $$row.uri("PROP_FROM_ENTITY_SCHEMA1") rdf:label $$row.plainLiteral("PROP_FROM_ENTITY_SCHEMA2") } ;
-       |INSERT DATA { $$row.uri("PROP_FROM_ENTITY_SCHEMA1") rdf:label $$row.plainLiteral("PROP_FROM_ENTITY_SCHEMA3")^^xsd:int } ;""".stripMargin
+       |DELETE DATA { $$row.uri("PROP_FROM_ENTITY_SCHEMA1") rdfs:label $$row.plainLiteral("PROP_FROM_ENTITY_SCHEMA2") } ;
+       |INSERT DATA { $$row.uri("PROP_FROM_ENTITY_SCHEMA1") rdfs:label $$row.plainLiteral("PROP_FROM_ENTITY_SCHEMA3")^^xsd:int } ;""".stripMargin
 
   it should "output the correct input paths of the template" in {
     val templateString =
@@ -54,15 +54,15 @@ class SparqlTemplateVelocityTest extends AnyFlatSpec with Matchers {
 
   it should "raise a validation error when the template is invalid" in {
     intercept[ValidationException] {
-      validate("""DELETE DATA { $row.uri("test") rdf:label } ;""")
+      validate("""DELETE DATA { $row.uri("test") rdfs:label } ;""")
     }
     intercept[ValidationException] {
-      validate("""DELETE DATA { <urn:a:b> rdf:label $row.uri(3) ;""")
+      validate("""DELETE DATA { <urn:a:b> rdfs:label $row.uri(3) ;""")
     }
     intercept[ValidationException] {
-      // No rdf prefix defined
-      validate("""DELETE DATA { $row.uri("PROP_FROM_ENTITY_SCHEMA1") rdf:label $row.plainLiteral("PROP_FROM_ENTITY_SCHEMA2") } ;
-              |  INSERT DATA { $row.uri("PROP_FROM_ENTITY_SCHEMA1") rdf:label $row.plainLiteral("PROP_FROM_ENTITY_SCHEMA3") } ;""".stripMargin)
+      // No rdfs prefix defined
+      validate("""DELETE DATA { $row.uri("PROP_FROM_ENTITY_SCHEMA1") rdfs:label $row.plainLiteral("PROP_FROM_ENTITY_SCHEMA2") } ;
+              |  INSERT DATA { $row.uri("PROP_FROM_ENTITY_SCHEMA1") rdfs:label $row.plainLiteral("PROP_FROM_ENTITY_SCHEMA3") } ;""".stripMargin)
     }
     intercept[ValidationException] {
       validate("""PREFIX foaf:  <http://xmlns.com/foaf/0.1/>
@@ -75,6 +75,39 @@ class SparqlTemplateVelocityTest extends AnyFlatSpec with Matchers {
     intercept[ValidationException] {
       validate(sparqlUpdateTemplate.dropRight(1)) // Dropped ';' at the end, not batch supported
     }
+  }
+
+  it should "not require an input if only outputProperties are referenced" in {
+    val template = new SparqlLegacyTemplate(VelocityTemplateEngine().compile(
+      """INSERT DATA { <urn:s:1> <urn:p:graph> $outputProperties.uri("graph") } ;"""))
+    template.requiresInput mustBe false
+    template.inputSchema.typedPaths mustBe empty
+    val rendered = template.generate(None, TaskProperties(Map.empty, Map("graph" -> "urn:graph:g1"))).head
+    rendered mustBe """INSERT DATA { <urn:s:1> <urn:p:graph> <urn:graph:g1> } ;"""
+    // Entity values and inputProperties still require an input connection
+    new SparqlLegacyTemplate(VelocityTemplateEngine().compile(
+      """INSERT DATA { <urn:s:1> <urn:p:graph> $inputProperties.uri("graph") } ;""")).requiresInput mustBe true
+    new SparqlLegacyTemplate(VelocityTemplateEngine().compile(
+      """INSERT DATA { $row.uri("subject") <urn:p:graph> $outputProperties.uri("graph") } ;""")).requiresInput mustBe true
+  }
+
+  it should "not silently drop an outputProperties-only reference that uses an undocumented method name" in {
+    val template = new SparqlLegacyTemplate(VelocityTemplateEngine().compile(
+      """INSERT DATA { <urn:s:1> <urn:p:graph> $outputProperties.get("graph") } ;"""))
+    template.requiresInput mustBe false
+  }
+
+  it should "still require input correctly when a bare outputProperties reference coexists with a proper row usage" in {
+    val template = new SparqlLegacyTemplate(VelocityTemplateEngine().compile(
+      """#if($outputProperties)INSERT DATA { $row.uri("subject") <urn:p:graph> "static" } ;#end"""))
+    template.requiresInput mustBe true
+  }
+
+  it should "not require an input for a fully static template referencing none of row/inputProperties/outputProperties" in {
+    val template = new SparqlLegacyTemplate(VelocityTemplateEngine().compile(
+      """INSERT DATA { <urn:s:1> <urn:p:graph> <urn:o:1> } ;"""))
+    template.requiresInput mustBe false
+    template.inputSchema.typedPaths mustBe empty
   }
 
   it should "render a simple Velocity template" in {

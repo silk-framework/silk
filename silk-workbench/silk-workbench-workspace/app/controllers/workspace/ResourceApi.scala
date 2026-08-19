@@ -251,7 +251,7 @@ class ResourceApi  @Inject() extends InjectedController with UserContextActions 
                   )
                   resourceName: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     val project = WorkspaceFactory().workspace.project(projectName)
-    val resource = project.resources.get(resourceName)
+    val resource = project.resources.getInPath(resourceName)
     ResourceHelper.uploadResource(project, resource)
   }
 

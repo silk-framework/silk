@@ -19,7 +19,7 @@ import org.silkframework.runtime.serialization.{ReadContext, WriteContext}
 import org.silkframework.runtime.validation.BadUserInputException
 import org.silkframework.serialization.json.JsonSerializers._
 import org.silkframework.serialization.json.MetaDataSerializers._
-import org.silkframework.serialization.json.{JsonSerialization, JsonSerializers}
+import org.silkframework.serialization.json.{JsonSerialization, JsonSerializers, TaskDto}
 import org.silkframework.workbench.utils.ErrorResult.ErrorResultFormat
 import org.silkframework.workbench.workspace.WorkbenchAccessMonitor
 import org.silkframework.workspace.{Project, ProjectTask, WorkspaceFactory}
@@ -46,7 +46,7 @@ class TaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends Injected
         description = "The added task.",
         content = Array(new Content(
           mediaType = "application/json",
-          schema = new Schema(`type` = "object"),
+          schema = new Schema(implementation = classOf[TaskDto]),
           examples = Array(new ExampleObject(TaskApiDoc.taskExampleJson))
         ))
       ),
@@ -69,7 +69,7 @@ class TaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends Injected
     content = Array(
       new Content(
         mediaType = "application/json",
-        schema = new Schema(`type` = "object"),
+        schema = new Schema(implementation = classOf[TaskDto]),
         examples = Array(new ExampleObject(TaskApiDoc.taskExampleJson))
       ))
   )
@@ -115,7 +115,7 @@ class TaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends Injected
     content = Array(
       new Content(
         mediaType = "application/json",
-        schema = new Schema(`type` = "object"),
+        schema = new Schema(implementation = classOf[TaskDto]),
         examples = Array(new ExampleObject(TaskApiDoc.taskExampleJson))
       ))
   )
@@ -165,12 +165,13 @@ class TaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends Injected
       )
     ))
   @RequestBody(
-    description = "The task description",
+    description = "The task properties to update. Uses the same JSON format as the task itself; all attributes are optional and " +
+      "only the sent JSON paths are updated.",
     required = true,
     content = Array(
       new Content(
         mediaType = "application/json",
-        schema = new Schema(`type` = "object"),
+        schema = new Schema(implementation = classOf[TaskDto]),
         examples = Array(new ExampleObject("{ \"metadata\": { \"description\": \"task description\" } }"))
       ))
   )
@@ -223,9 +224,10 @@ class TaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends Injected
     responses = Array(
       new ApiResponse(
         responseCode = "200",
-        description = "The task.",
+        description = "The task. With 'withLabels' set to true, parameter values are reified into objects with 'value' and optional 'label' properties (see the example).",
         content = Array(new Content(
           mediaType = "application/json",
+          schema = new Schema(implementation = classOf[TaskDto]),
           examples = Array(
             new ExampleObject(name = "Without labels", value = TaskApiDoc.taskExampleWithoutLabelsJson),
             new ExampleObject(name = "With labels", value = TaskApiDoc.taskMetadataExampleWithLabelsJson)

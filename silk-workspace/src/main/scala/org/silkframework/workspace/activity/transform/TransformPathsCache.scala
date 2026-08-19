@@ -24,7 +24,7 @@ class TransformPathsCache(transformTask: ProjectTask[TransformSpec]) extends Cac
 
   protected override def maxDepth: Int = Int.MaxValue
 
-  private def inputId = transformTask.data.selection.inputId
+  private def inputId: Option[Identifier] = transformTask.data.selection.inputTaskId
 
   /** The purpose of this value is to store the change notify callback function
     * because it will be in a WeakHashMap in the Observable and would else be garbage collected */
@@ -35,19 +35,20 @@ class TransformPathsCache(transformTask: ProjectTask[TransformSpec]) extends Cac
     val fn: TaskSpec => Unit = _ => {
       this.startDirty(transformTask.activity[TransformPathsCache].control)
     }
-    // Only do this automatically if the input is a dataset
-    val inputId = transformTask.data.selection.inputId
-    val inputDatasetOpt = transformTask.project.taskOption[GenericDatasetSpec](inputId)
-    inputDatasetOpt.foreach { inputDataset =>
-      inputDataset.dataValueHolder.subscribe(fn)
-    }
-    // or a CustomTask
-    val inputCustomTaskOpt = transformTask.project.taskOption[CustomTask](inputId)
-    inputCustomTaskOpt.foreach { inputTask =>
-      inputTask.dataValueHolder.subscribe(fn)
+    for(inputId <- transformTask.data.selection.inputTaskId) {
+      // Only do this automatically if the input is a dataset
+      val inputDatasetOpt = transformTask.project.taskOption[GenericDatasetSpec](inputId)
+      inputDatasetOpt.foreach { inputDataset =>
+        inputDataset.dataValueHolder.subscribe(fn)
+      }
+      // or a CustomTask
+      val inputCustomTaskOpt = transformTask.project.taskOption[CustomTask](inputId)
+      inputCustomTaskOpt.foreach { inputTask =>
+        inputTask.dataValueHolder.subscribe(fn)
+      }
     }
     datasetObserverFunctions = Some(fn)
-    observedInputTask = Some(inputId)
+    observedInputTask = inputId
   }
 
   /**
@@ -59,7 +60,7 @@ class TransformPathsCache(transformTask: ProjectTask[TransformSpec]) extends Cac
     implicit val prefixes: Prefixes = transformTask.project.config.prefixes
     implicit val pluginContext: PluginContext = PluginContext.fromProject(transformTask.project)
 
-    if(datasetObserverFunctions.isEmpty || !observedInputTask.contains(transformTask.data.selection.inputId)) {
+    if(datasetObserverFunctions.isEmpty || observedInputTask != inputId) {
       setTransformSpecObserverFunction()
     }
 
@@ -79,7 +80,7 @@ class TransformPathsCache(transformTask: ProjectTask[TransformSpec]) extends Cac
       context.value() = currentCachedValue.copy(configuredSchema = currentEntityDesc.copy(typedPaths = IndexedSeq.empty), untypedSchema = None)
       // Retrieve the data sources
       val inputTaskId = inputId
-      val paths = retrievePathsOfInput(inputTaskId, Some(transform.selection), transformTask.project, context)
+      val paths = inputTaskId.map(id => retrievePathsOfInput(id, Some(transform.selection), transformTask.project, context)).getOrElse(IndexedSeq.empty)
       val configuredEntitySchema = currentEntityDesc.copy(typedPaths = paths.distinct)
       // Retrieve untyped paths if input is an RDF data source and configured type is non empty
       val isRdfInput = transformTask.project.taskOption[DatasetSpec[Dataset]](inputTaskId).exists(_.plugin.isInstanceOf[RdfDataset])
@@ -88,7 +89,7 @@ class TransformPathsCache(transformTask: ProjectTask[TransformSpec]) extends Cac
           && (context.value().untypedSchema.isEmpty
           || context.value().untypedSchema.get.typedPaths.isEmpty)) {
         val selection = transform.selection.copy(typeUri = Uri(""))
-        val unTypedPaths = retrievePathsOfInput(inputTaskId, Some(selection), transformTask.project, context)
+        val unTypedPaths = inputTaskId.map(id => retrievePathsOfInput(id, Some(selection), transformTask.project, context)).getOrElse(IndexedSeq.empty)
         Some(currentEntityDesc.copy(typeUri = Uri(""), typedPaths = unTypedPaths.distinct))
       } else {
         None
@@ -104,8 +105,8 @@ class TransformPathsCache(transformTask: ProjectTask[TransformSpec]) extends Cac
 
   private def datasetParameters()(implicit userContext: UserContext,
                                   pluginContext: PluginContext) = {
-    transformTask.project.anyTask(inputId).data match {
-      case dataset: DatasetSpec[Dataset] =>
+    inputId.map(id => transformTask.project.anyTask(id).data) match {
+      case Some(dataset: DatasetSpec[Dataset]) =>
         Some(dataset.plugin.parameters)
       case _ =>
         None

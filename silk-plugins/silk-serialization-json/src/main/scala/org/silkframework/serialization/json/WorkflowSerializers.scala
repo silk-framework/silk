@@ -21,10 +21,7 @@ object WorkflowSerializers {
     override def typeNames: Set[String] = Set(JsonSerializers.TASK_TYPE_WORKFLOW)
 
     override def read(value: JsValue)(implicit readContext: ReadContext): Workflow = {
-      val parameterObject = optionalValue(value, PARAMETERS) match {
-        case None => value
-        case _ => objectValue(value, PARAMETERS)
-      }
+      val parameterObject = objectValue(value, PARAMETERS)
       // Use createNormalized to drop stale replaceable dataset IDs, e.g. sent by clients that did not clean them up on dataset removal
       Workflow.createNormalized(
         operators =  WorkflowOperatorsParameter(

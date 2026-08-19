@@ -90,6 +90,25 @@ class UriGenerationErrorReportingTest extends AnyFlatSpec with Matchers {
     sampleErrors.head.message shouldBe "Kaboom: boom"
   }
 
+  it should "assign distinct report ids to the default URI rules of different object mappings" in {
+    val uriRuleA = ObjectMapping(id = "objA", rules = MappingRules()).uriRule().get
+    val uriRuleB = ObjectMapping(id = "objB", rules = MappingRules()).uriRule().get
+    // The generated URI rules must not share the default id "URI", otherwise their report results collide.
+    uriRuleA.id.toString should not be "URI"
+    uriRuleA.id should not be uriRuleB.id
+
+    val task = PlainTask("transformTask", TransformSpec(DatasetSelection(inputId = "input"), RootMappingRule(MappingRules.empty)))
+    val context = mock(classOf[ActivityContext[TransformReport]])
+    val reportHolder = new ValueHolder[TransformReport](None)
+    when(context.value).thenReturn(reportHolder)
+    when(context.status).thenReturn(mock(classOf[StatusHolder]))
+    val builder = new TransformReportBuilder(task, context, outputTableCount = 1)
+    builder.addRules(Seq(uriRuleA, uriRuleB))
+    builder.build()
+    reportHolder().ruleResults.keySet should contain allOf(uriRuleA.id, uriRuleB.id)
+    reportHolder().ruleResults should have size 2
+  }
+
   private def executeReport(uriRule: UriMapping, entity: Entity): TransformReport = {
     val rootRule = RootMappingRule(MappingRules(uriRule = Some(uriRule)))
     val task = PlainTask(
@@ -103,7 +122,7 @@ class UriGenerationErrorReportingTest extends AnyFlatSpec with Matchers {
     val reportHolder = new ValueHolder[TransformReport](None)
     when(context.value).thenReturn(reportHolder)
     when(context.status).thenReturn(mock(classOf[StatusHolder]))
-    val reportBuilder = new TransformReportBuilder(task, context)
+    val reportBuilder = new TransformReportBuilder(task, context, outputTableCount = 1)
 
     implicit val prefixes: Prefixes = Prefixes.empty
     implicit val taskContext: TaskContext = TaskContext(Seq.empty, PluginContext.empty)

@@ -22,15 +22,15 @@ class ReconfigureTasksTest extends AnyFlatSpec with Matchers with ConfigTestTrai
   it should "reconfigure transform tasks" in {
     val transform = PlainTask("transform-task", TransformSpec(DatasetSelection("original-source"), output = IdentifierOptionParameter(Some("original-output"))))
     val updatedTransform = reconfigure(transform, Map("selection-inputId" -> "replaced-source", "output" -> "replaced-output"))
-    updatedTransform.data.selection.inputId shouldBe "replaced-source"
+    updatedTransform.data.selection.inputId shouldBe IdentifierOptionParameter(Some("replaced-source"))
     updatedTransform.data.output shouldBe IdentifierOptionParameter(Some("replaced-output"))
   }
 
   it should "reconfigure linking tasks" in {
     val linkSpec = PlainTask("linking-task", LinkSpec(DatasetSelection("original-source"), DatasetSelection("original-target"), output = IdentifierOptionParameter(Some("original-output"))))
     val updatedLinkSpec = reconfigure(linkSpec, Map("source-inputId" -> "replaced-source", "target-inputId" -> "replaced-target", "output" -> "replaced-output"))
-    updatedLinkSpec.data.source.inputId shouldBe "replaced-source"
-    updatedLinkSpec.data.target.inputId shouldBe "replaced-target"
+    updatedLinkSpec.data.source.inputId shouldBe IdentifierOptionParameter(Some("replaced-source"))
+    updatedLinkSpec.data.target.inputId shouldBe IdentifierOptionParameter(Some("replaced-target"))
     updatedLinkSpec.data.output shouldBe IdentifierOptionParameter(Some("replaced-output"))
   }
 

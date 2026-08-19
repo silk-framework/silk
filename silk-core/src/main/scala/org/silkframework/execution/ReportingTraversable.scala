@@ -27,12 +27,16 @@ class GenericReportingIterator[T](entities: CloseableIterator[T])(implicit execu
   @volatile
   private var closed = false
 
+  @volatile
+  private var consumed = false
+
   /**
    * May be overridden to add sample entities to the execution report.
    */
   protected def addEntitySample(entity: T): Unit = { }
 
   override def hasNext: Boolean = {
+    consumed = true
     try {
       if (entities.hasNext) {
         true
@@ -49,6 +53,7 @@ class GenericReportingIterator[T](entities: CloseableIterator[T])(implicit execu
   }
 
   override def next(): T = {
+    consumed = true
     val entity =
       try {
         entities.next()
@@ -65,7 +70,10 @@ class GenericReportingIterator[T](entities: CloseableIterator[T])(implicit execu
 
   override def close(): Unit = {
     if(!closed) {
-      executionReport.executionDone()
+      // An iterator that was never read and never reported must not add a report entry on close,
+      if(consumed || executionReport.hasUpdates) {
+        executionReport.executionDone()
+      }
       closed = true
       entities.close()
     }

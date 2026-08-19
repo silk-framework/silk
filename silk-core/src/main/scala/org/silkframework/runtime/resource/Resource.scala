@@ -3,9 +3,8 @@ package org.silkframework.runtime.resource
 import com.typesafe.config.Config
 import org.silkframework.config.ConfigValue
 import org.silkframework.runtime.plugin.PluginContext
-import org.silkframework.runtime.resource.Resource.maxInMemorySizeParameterName
 
-import java.io.{ByteArrayOutputStream, File, InputStream, InputStreamReader}
+import java.io.{File, InputStream, InputStreamReader}
 import java.time.Instant
 import java.util.logging.Logger
 import scala.io.{Codec, Source}
@@ -124,13 +123,7 @@ trait Resource {
     checkSizeForInMemory()
     val in = inputStream
     try {
-      val out = new ByteArrayOutputStream()
-      var b = in.read()
-      while (b > -1) {
-        out.write(b)
-        b = in.read()
-      }
-      out.toByteArray
+      in.readAllBytes()
     } finally {
       in.close()
     }
@@ -173,8 +166,7 @@ trait Resource {
     size match {
       case Some(s) =>
         if(s > Resource.maxInMemorySize()) {
-          throw new ResourceTooLargeException(s"Resource $name is too large to be loaded into memory (size: $s, maximum size: ${Resource.maxInMemorySize()}). " +
-            s"Configure '$maxInMemorySizeParameterName' in order to increase this limit.")
+          throw new ResourceTooLargeException(name, s)
         }
       case None =>
         log.warning(s"Could not determine size of resource $name for loading contents into memory.")

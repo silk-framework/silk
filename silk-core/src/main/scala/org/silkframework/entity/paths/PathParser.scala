@@ -138,8 +138,8 @@ private[entity] class PathParser(prefixes: Prefixes) extends RegexParsers {
   // A value that is either an identifier or a literal value enclosed in quotes (e.g., "literal").
   private def value = identifier | "\"[^\"]*\"".r
 
-  // A comparison operator
-  private def compOperator = ">" | "<" | ">=" | "<=" | "=" | "!="
+  // A comparison operator. Longer operators must come first, since the ordered choice does not backtrack.
+  private def compOperator = ">=" | "<=" | "!=" | ">" | "<" | "="
 }
 
 object PathParser {

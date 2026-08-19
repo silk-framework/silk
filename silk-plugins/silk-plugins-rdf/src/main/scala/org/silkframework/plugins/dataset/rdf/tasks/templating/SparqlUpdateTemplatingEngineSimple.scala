@@ -35,7 +35,7 @@ object SparqlSimpleTemplateEngine {
   * A compiled simple SPARQL Update template that can only render plain literals and URIs.
   * Example:
   *
-  * DELETE DATA { ${<PROP_FROM_ENTITY_SCHEMA1>} rdf:label ${"PROP_FROM_ENTITY_SCHEMA2"} }
+  * DELETE DATA { ${<PROP_FROM_ENTITY_SCHEMA1>} rdfs:label ${"PROP_FROM_ENTITY_SCHEMA2"} }
   */
 class SparqlSimpleCompiledTemplate(val sparqlUpdateTemplate: String) extends CompiledTemplate {
 

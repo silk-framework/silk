@@ -16,6 +16,7 @@ trait StatusCodeTestTrait {
   final val NOT_FOUND: Int = 404
   final val NOT_ACCEPTABLE: Int = 406
   final val CONFLICT: Int = 409
+  final val UPGRADE_REQUIRED: Int = 426
 
   // Server error
   final val INTERNAL_ERROR: Int = 500

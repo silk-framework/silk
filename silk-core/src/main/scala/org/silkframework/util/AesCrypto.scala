@@ -1,5 +1,6 @@
 package org.silkframework.util
 
+import java.nio.charset.StandardCharsets
 import java.util.Base64
 
 import javax.crypto.Cipher
@@ -31,7 +32,7 @@ object AesCrypto {
   def encrypt(key: SecretKey, value: String): String = {
     val cipher = Cipher.getInstance("AES/CBC/PKCS5PADDING")
     cipher.init(Cipher.ENCRYPT_MODE, key, INIT_VECTOR)
-    val encrypted = cipher.doFinal(value.getBytes)
+    val encrypted = cipher.doFinal(value.getBytes(StandardCharsets.UTF_8))
     Base64.getEncoder.encodeToString(encrypted)
   }
 
@@ -39,6 +40,6 @@ object AesCrypto {
     val cipher = Cipher.getInstance("AES/CBC/PKCS5PADDING")
     cipher.init(Cipher.DECRYPT_MODE, key, INIT_VECTOR)
     val original = cipher.doFinal(Base64.getDecoder.decode(encrypted))
-    new String(original)
+    new String(original, StandardCharsets.UTF_8)
   }
 }

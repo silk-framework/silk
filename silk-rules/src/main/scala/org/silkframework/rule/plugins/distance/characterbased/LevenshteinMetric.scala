@@ -57,6 +57,12 @@ import scala.math.max
     input1 = Array("John"),
     input2 = Array("Clara"),
     output = 1.0
+  ),
+  new DistanceMeasureExample(
+    description = "Two empty strings are equal.",
+    input1 = Array(""),
+    input2 = Array(""),
+    output = 0.0
   )
 ))
 case class LevenshteinMetric(
@@ -71,7 +77,11 @@ case class LevenshteinMetric(
 
   override def evaluate(str1: String, str2: String, limit: Double): Double = {
     val scale = max(str1.length, str2.length)
-    levenshtein.evaluate(str1, str2, limit * scale) / scale
+    if(scale == 0) {
+      0.0 // Both strings are empty, i.e., they are equal. Dividing by the zero scale would yield NaN.
+    } else {
+      levenshtein.evaluate(str1, str2, limit * scale) / scale
+    }
   }
 
   override def emptyIndex(limit: Double): Index = {

@@ -351,6 +351,7 @@ const convertRuleOperator = (
         categories: pluginDetails.categories,
         icon: undefined,
         markdownDocumentation: pluginDetails.markdownDocumentation,
+        relatedPlugins: pluginDetails.relatedPlugins,
         parameterSpecification: Object.fromEntries([
             ...Object.entries(pluginDetails.properties)
                 .filter(([paramId, paramSpec]) => !inputsCanBeSwitched || paramId !== REVERSE_PARAMETER_ID)

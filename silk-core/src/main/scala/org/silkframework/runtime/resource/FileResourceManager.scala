@@ -1,6 +1,7 @@
 package org.silkframework.runtime.resource
 
 import java.io._
+import java.nio.file.Path
 
 /**
  * A resource manager that loads files from a base directory.
@@ -8,6 +9,8 @@ import java.io._
 case class FileResourceManager(baseDir: File) extends ResourceManager {
 
   val basePath: String = baseDir.getCanonicalPath
+
+  private val canonicalBaseDir: Path = new File(basePath).toPath
 
   def this(baseDir: String) = this(new File(baseDir))
 
@@ -32,11 +35,7 @@ case class FileResourceManager(baseDir: File) extends ResourceManager {
    */
   override def get(name: String, mustExist: Boolean): WritableResource = {
     // Get the file in the configured base dir
-    val newFile = new File(baseDir, name)
-    if(!newFile.getCanonicalPath.startsWith(baseDir.getCanonicalPath)) {
-      throw new IllegalArgumentException("Illegal file resource access: '" + name +
-        "'. Requesting resources outside of the resource base directory is not permitted.")
-    }
+    val newFile = resolveInBaseDir(name, "Illegal file resource access")
 
     // Check if the file exists
     val file =
@@ -50,6 +49,11 @@ case class FileResourceManager(baseDir: File) extends ResourceManager {
   }
 
   override def delete(name: String): Unit = {
+    val file = resolveInBaseDir(name, "Illegal resource deletion")
+    if (file.getCanonicalFile.toPath == canonicalBaseDir) {
+      throw ResourceAccessDeniedException("Illegal resource deletion: '" + name +
+        "'. The resource base directory itself cannot be deleted.")
+    }
     def deleteRecursive(file: File): Unit = {
       if (file.isDirectory) {
         file.listFiles.foreach(deleteRecursive)
@@ -58,7 +62,7 @@ case class FileResourceManager(baseDir: File) extends ResourceManager {
         throw new IOException("Could not delete file " + file)
       }
     }
-    deleteRecursive(new File(baseDir, name))
+    deleteRecursive(file)
   }
 
   override def listChildren: List[String] = {
@@ -71,17 +75,26 @@ case class FileResourceManager(baseDir: File) extends ResourceManager {
   }
 
   override def child(name: String): ResourceManager = {
-    val newDir = new File(baseDir, name)
-    if(!newDir.getCanonicalPath.startsWith(baseDir.getCanonicalPath)) {
-      throw new IllegalArgumentException("Illegal resource directory access: '" + name +
-        "'. Requesting resources outside of the resource base directory is not permitted.")
-    }
-    FileResourceManager(newDir)
+    FileResourceManager(resolveInBaseDir(name, "Illegal resource directory access"))
   }
 
   override def parent: Option[ResourceManager] = {
     for(parent <- Option(baseDir.getAbsoluteFile.getParentFile)) yield
       FileResourceManager(parent)
+  }
+
+  /**
+   * Resolves a name against the base directory and makes sure the result stays inside it.
+   *
+   * @throws ResourceAccessDeniedException If the name resolves to a path outside of the base directory.
+   */
+  private def resolveInBaseDir(name: String, deniedAction: String): File = {
+    val newFile = new File(baseDir, name)
+    if(!newFile.getCanonicalFile.toPath.startsWith(canonicalBaseDir)) {
+      throw ResourceAccessDeniedException(deniedAction + ": '" + name +
+        "'. Requesting resources outside of the resource base directory is not permitted.")
+    }
+    newFile
   }
 }
 

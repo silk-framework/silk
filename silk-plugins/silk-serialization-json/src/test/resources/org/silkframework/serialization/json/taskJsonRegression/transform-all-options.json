@@ -1,0 +1,91 @@
+{
+  "id" : "transformTask",
+  "metadata" : {
+    "label" : "Task label",
+    "description" : "Task description",
+    "modified" : "2026-07-14T10:30:00Z",
+    "created" : "2026-07-01T08:00:00Z"
+  },
+  "taskType" : "Transform",
+  "data" : {
+    "taskType" : "Transform",
+    "type" : "transform",
+    "parameters" : {
+      "mappingRule" : {
+        "type" : "root",
+        "id" : "root",
+        "rules" : {
+          "uriRule" : null,
+          "typeRules" : [ ],
+          "propertyRules" : [ {
+            "type" : "direct",
+            "id" : "labelMapping",
+            "sourcePath" : "label",
+            "mappingTarget" : {
+              "uri" : "<http://www.w3.org/2000/01/rdf-schema#label>",
+              "valueType" : {
+                "nodeType" : "StringValueType"
+              },
+              "isBackwardProperty" : false,
+              "isAttribute" : false
+            },
+            "metadata" : {
+              "label" : "Label mapping"
+            }
+          } ]
+        },
+        "mappingTarget" : {
+          "uri" : "",
+          "valueType" : {
+            "nodeType" : "UriValueType"
+          },
+          "isBackwardProperty" : false,
+          "isAttribute" : false
+        },
+        "metadata" : {
+          "label" : "Root mapping"
+        }
+      },
+      "abortIfErrorsOccur" : "false",
+      "errorOutput" : "",
+      "targetVocabularies" : "all installed vocabularies",
+      "selection" : {
+        "inputId" : "inputDataset",
+        "typeUri" : "<urn:type:Person>",
+        "restriction" : ""
+      },
+      "output" : ""
+    },
+    "templates" : {
+      "selection" : { }
+    }
+  },
+  "properties" : [ {
+    "key" : "abortIfErrorsOccur",
+    "value" : "false"
+  }, {
+    "key" : "errorOutput",
+    "value" : ""
+  }, {
+    "key" : "targetVocabularies",
+    "value" : "all installed vocabularies"
+  }, {
+    "key" : "output",
+    "value" : ""
+  } ],
+  "relations" : {
+    "inputTasks" : [ "inputDataset" ],
+    "outputTasks" : [ ],
+    "referencedTasks" : [ "inputDataset" ],
+    "dependentTasksDirect" : [ ],
+    "dependentTasksAll" : [ ]
+  },
+  "schemata" : {
+    "input" : [ {
+      "paths" : [ "label" ]
+    } ],
+    "output" : {
+      "paths" : [ "<http://www.w3.org/2000/01/rdf-schema#label>" ]
+    }
+  }
+}
