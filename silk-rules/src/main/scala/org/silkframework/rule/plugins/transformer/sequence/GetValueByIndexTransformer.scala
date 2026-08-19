@@ -52,14 +52,16 @@ case class GetValueByIndexTransformer(@Param("The index of the value to return. 
                                       failIfNotFound: Boolean = false,
                                       emptyStringToEmptyResult: Boolean = false) extends InlineTransformer {
 
-  private def elementAt(vs: Seq[String], idx: Int): Option[String] = {
-    val effectiveIndex = if (idx >= 0) idx else vs.length + idx
-    vs.lift(effectiveIndex)
+  private implicit class SeqOps[A](private val vs: Seq[A]) {
+    def getAt(idx: Int): Option[A] = {
+      val effectiveIndex = if (idx >= 0) idx else vs.length + idx
+      vs.lift(effectiveIndex)
+    }
   }
 
   override def apply(values: Seq[Seq[String]]): Seq[String] = {
     values.flatMap { vs =>
-      elementAt(vs, index) match {
+      vs.getAt(index) match {
         case None if failIfNotFound =>
           throw new IndexOutOfBoundsException("No value at index " + index + ".")
         case None =>
