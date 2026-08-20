@@ -3,6 +3,8 @@ package org.silkframework.rule.plugins.transformer.sequence
 import org.silkframework.rule.annotations.{TransformExample, TransformExamples}
 import org.silkframework.rule.input.InlineTransformer
 import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
+import org.silkframework.util.indexable.instances.seq
+import org.silkframework.util.indexable.syntax._
 
 /**
   * For each input sequence, take the element at the specified index — a negative index counts from the end —
@@ -54,21 +56,6 @@ case class GetValueByIndexTransformer(
   failIfNotFound: Boolean = false,
   emptyStringToEmptyResult: Boolean = false
 ) extends InlineTransformer {
-
-  private implicit class IntOps(private val a: Int) {
-    /**
-      * The mathematical modulo operation: the result in [0, n) for positive 'n', or (n, 0] for negative 'n'.
-      * Always congruent to 'a'.
-      */
-    def mod(n: Int): Int = ((a % n) + n) % n
-  }
-
-  private implicit class SeqOps[A](private val vs: Seq[A]) {
-    def getAt(idx: Int): Option[A] = {
-      val length = vs.length
-      if (idx >= -length && idx < length) Some(vs(idx mod length)) else None
-    }
-  }
 
   override def apply(values: Seq[Seq[String]]): Seq[String] = {
     values.flatMap { vs =>
