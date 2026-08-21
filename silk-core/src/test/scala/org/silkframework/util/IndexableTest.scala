@@ -45,6 +45,18 @@ class IndexableTest extends AnyFlatSpec with Matchers {
     Seq.empty[Int].getAt(-1) shouldBe None
   }
 
+  it should "resolve a positive in-range index on a Vector, via the Seq evidence" in {
+    Vector(10, 20, 30).getAt(1) shouldBe Some(20)
+  }
+
+  it should "resolve a negative in-range index on a Vector, via the Seq evidence" in {
+    Vector(10, 20, 30).getAt(-1) shouldBe Some(30)
+  }
+
+  it should "return None for an out-of-range index on a Vector, via the Seq evidence" in {
+    Vector(10, 20, 30).getAt(5) shouldBe None
+  }
+
   behavior of "Indexable (Array)"
 
   it should "resolve a positive in-range index" in {
