@@ -204,13 +204,22 @@ class IndexableTest extends AnyFlatSpec with Matchers {
     indexableOf(0).getAt(Sized(0), 0) shouldBe None
   }
 
-  behavior of "Indexable (encapsulation)"
+  behavior of "Indexable (compile-time guarantees)"
 
   it should "keep lookup inaccessible from outside the trait" in {
     assertTypeError {
       """
         |import org.silkframework.util.indexable.instances.charSequence
         |charSequence.lookup("abc", 0)
+      """.stripMargin
+    }
+  }
+
+  it should "fail to compile getAt when no evidence exists for the receiver's type" in {
+    assertTypeError {
+      """
+        |import org.silkframework.util.indexable.syntax._
+        |42.getAt(0)
       """.stripMargin
     }
   }
