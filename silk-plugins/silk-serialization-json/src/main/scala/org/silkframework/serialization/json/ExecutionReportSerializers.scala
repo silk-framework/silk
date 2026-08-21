@@ -172,8 +172,7 @@ object ExecutionReportSerializers {
       }
     }
 
-    /** Only the rules that errored, with their sample errors but without timing and stacktraces (a full
-      * stacktrace weighs >10k chars per sample error; the error message suffices). Empty when none failed. */
+    /** Only the rules that errored, with their sample errors but without timing and stacktraces. Empty when none failed. */
     private def compactRuleResults(ruleResults: Map[Identifier, RuleResult]): JsObject = {
       val failing = ruleResults.filter { case (_, result) => result.errorCount > 0 || result.sampleErrors.nonEmpty }
       if (failing.isEmpty) {
@@ -182,9 +181,20 @@ object ExecutionReportSerializers {
         Json.obj(RULE_RESULTS -> JsObject(failing.toSeq.map { case (ruleId, ruleResult) =>
           ruleId.toString -> Json.obj(
             ERROR_COUNT -> ruleResult.errorCount,
-            SAMPLE_ERRORS -> ruleResult.sampleErrors.map(writeRuleError(_, withStacktrace = false))
+            SAMPLE_ERRORS -> distinctSampleErrors(ruleResult.sampleErrors)
           )
         }))
+      }
+    }
+
+    /** One entry per distinct message, in first-occurrence order: a rule that fails usually fails the same
+      * way for every entity, and repeating the message verbatim per entity adds nothing over the first one
+      * plus how often it occurred among the samples. */
+    private def distinctSampleErrors(sampleErrors: IndexedSeq[RuleError]): Seq[JsObject] = {
+      for (message <- sampleErrors.map(_.message).distinct) yield {
+        val sameMessage = sampleErrors.filter(_.message == message)
+        writeRuleError(sameMessage.head, withStacktrace = false) ++
+          (if (sameMessage.size > 1) Json.obj(SAMPLED_OCCURRENCES -> sameMessage.size) else JsObject.empty)
       }
     }
 
@@ -235,7 +245,7 @@ object ExecutionReportSerializers {
       )
     }
 
-    private def writeRuleError(ruleError: RuleError, withStacktrace: Boolean = true): JsValue = {
+    private def writeRuleError(ruleError: RuleError, withStacktrace: Boolean = true): JsObject = {
       Json.obj(
         ENTITY -> ruleError.entity,
         VALUES -> ruleError.value,
@@ -377,6 +387,8 @@ object ExecutionReportSerializers {
 
     final val ERROR_COUNT = "errorCount"
     final val SAMPLE_ERRORS = "sampleErrors"
+    /** Compact reports only: how many of the sampled errors carried this message. */
+    final val SAMPLED_OCCURRENCES = "sampledOccurrences"
     final val RULE_EXECUTION_STARTED = "startedAt"
     final val RULE_EXECUTION_FINISHED = "finishedAt"
 

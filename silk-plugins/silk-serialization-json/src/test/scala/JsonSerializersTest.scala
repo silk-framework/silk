@@ -31,7 +31,7 @@ import org.silkframework.workspace.activity.workflow.WorkflowTest.{DS_A1, OUTPUT
 import org.silkframework.workspace.activity.workflow.WorkflowTest.{DS_A1, OUTPUT, testWorkflow}
 import org.silkframework.workspace.activity.workflow.{WorkflowExecutionReport, WorkflowTest}
 import org.silkframework.workspace.annotation.{StickyNote, UiAnnotations}
-import play.api.libs.json.{JsObject, JsValue, Json}
+import play.api.libs.json.{JsArray, JsObject, JsValue, Json}
 
 import scala.reflect.ClassTag
 
@@ -268,6 +268,36 @@ class JsonSerializersTest  extends AnyFlatSpec with Matchers with ConfigTestTrai
     slimJson should include ("not a valid Integer")
     slimJson should not include "stacktrace"
     Json.stringify(TransformReportJsonFormat.write(report, ReportDetail.Full)) should include ("stacktrace")
+  }
+
+  // A rule that fails usually fails the same way for every entity; ten verbatim repetitions say no more
+  // than the first one plus a count.
+  it should "collapse repeated rule error messages into one entry with an occurrence count" in {
+    implicit val jsonWriteContext: WriteContext[play.api.libs.json.JsValue] =
+      TestWriteContext[play.api.libs.json.JsValue]()
+    val repeated = (44 to 53).map(i =>
+      RuleError(s"urn:entity:$i", Seq(Seq(s"value $i")), "The URI pattern did not generate any URI.", None, None))
+    val distinct = RuleError("urn:entity:99", Seq(Seq("other")), "Not a valid Integer.", None, None)
+    val report = TransformReport(
+      task = PlainTask("transform", TransformSpec.empty),
+      entityCount = 100,
+      entityErrorCount = 51,
+      ruleResults = Map(Identifier("uriR") -> RuleResult(errorCount = 51, sampleErrors = (repeated :+ distinct).toIndexedSeq)),
+      isDone = true)
+
+    val sampleErrors = (TransformReportJsonFormat.write(report, ReportDetail.Compact) \\ "sampleErrors").head.as[JsArray].value
+    sampleErrors should have size 2
+    // The total is still reported by errorCount; the count here says how many samples shared the message.
+    (sampleErrors.head \ "error").as[String] shouldBe "The URI pattern did not generate any URI."
+    (sampleErrors.head \ "entity").as[String] shouldBe "urn:entity:44"
+    (sampleErrors.head \ "sampledOccurrences").as[Int] shouldBe 10
+    // A message seen once carries no count.
+    (sampleErrors(1) \ "error").as[String] shouldBe "Not a valid Integer."
+    (sampleErrors(1) \ "sampledOccurrences").toOption shouldBe empty
+
+    // The verbose report is never collapsed: every sample stays.
+    val full = (TransformReportJsonFormat.write(report, ReportDetail.Full) \\ "sampleErrors").head.as[JsArray].value
+    full should have size 11
   }
 
   "ExecutionReport (slim)" should "drop output samples of dataset read reports and truncate long sample values" in {
