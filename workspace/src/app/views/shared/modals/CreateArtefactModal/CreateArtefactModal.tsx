@@ -826,7 +826,7 @@ export function CreateArtefactModal() {
             setAutoConfigPending(true);
             resetModalError();
             const { parameters, variableTemplateParameters } = commonOp.splitParameterAndVariableTemplateParameters(
-                form.getValues(),
+                commonOp.extractParameterValues(form.getValues()),
                 templateParameters.current,
             );
             const parameterData = commonOp.buildStringValuedObject(parameters);
@@ -906,10 +906,9 @@ export function CreateArtefactModal() {
                         setTaskActionLoading(actionKey);
                         const project = updateExistingTask?.projectId || currentProject?.id || projectId;
                         if (!project) return;
-                        const formValues = form.getValues();
                         const { parameters, variableTemplateParameters } =
                             commonOp.splitParameterAndVariableTemplateParameters(
-                                formValues,
+                                commonOp.extractParameterValues(form.getValues()),
                                 templateParameters.current,
                             );
                         const parameterData = commonOp.buildStringValuedObject(parameters);

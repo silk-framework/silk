@@ -579,7 +579,7 @@ export function TaskForm({
     );
 
     const datasetConfigValues = React.useCallback(() => {
-        return commonOp.buildStringValuedObject(getValues());
+        return commonOp.buildStringValuedObject(commonOp.extractParameterValues(getValues()));
     }, []);
 
     return doChange ? (
