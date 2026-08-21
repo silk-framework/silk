@@ -1,14 +1,13 @@
 package org.silkframework.rule.plugins.transformer.sequence
 
-import org.scalatest.flatspec.AnyFlatSpec
-import org.scalatest.matchers.should.Matchers
 import GetValueByIndexTransformer.{apply => get}
+import org.silkframework.rule.test.TransformerTest
 
 /**
   * Verifies GetValueByIndexTransformer's index-lookup contract: positive and negative indices, and how a missing
   * or empty value is handled.
   */
-class GetValueByIndexTransformerTest extends AnyFlatSpec with Matchers {
+class GetValueByIndexTransformerTest extends TransformerTest[GetValueByIndexTransformer] {
   import GetValueByIndexTransformerTest._
 
   behavior of "get value by index transformer"
