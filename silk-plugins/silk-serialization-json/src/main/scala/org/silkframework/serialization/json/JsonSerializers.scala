@@ -415,7 +415,7 @@ object JsonSerializers {
 
     override def read(value: JsValue)(implicit readContext: ReadContext): MappingTarget = {
       val uri = stringValue(value, URI)
-      val valueType = fromJson[ValueType](mustBeDefined(value, VALUE_TYPE))
+      val valueType = optionalValue(value, VALUE_TYPE).map(fromJson[ValueType]).getOrElse(ValueType.STRING)
       val isBackwardProperty = booleanValueOption(value, IS_BACKWARD_PROPERTY).getOrElse(false)
       val isAttribute = booleanValueOption(value, IS_ATTRIBUTE).getOrElse(false)
       MappingTarget(Uri.parse(uri, readContext.prefixes), valueType, isBackwardProperty, isAttribute)
