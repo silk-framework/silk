@@ -203,4 +203,15 @@ class IndexableTest extends AnyFlatSpec with Matchers {
   it should "return None for an empty container" in {
     indexableOf(0).getAt(Sized(0), 0) shouldBe None
   }
+
+  behavior of "Indexable (encapsulation)"
+
+  it should "keep lookup inaccessible from outside the trait" in {
+    assertTypeError {
+      """
+        |import org.silkframework.util.indexable.instances.charSequence
+        |charSequence.lookup("abc", 0)
+      """.stripMargin
+    }
+  }
 }
