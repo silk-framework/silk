@@ -413,9 +413,12 @@ object JsonSerializers {
     final val IS_BACKWARD_PROPERTY = "isBackwardProperty"
     final val IS_ATTRIBUTE = "isAttribute"
 
-    override def read(value: JsValue)(implicit readContext: ReadContext): MappingTarget = {
+    override def read(value: JsValue)(implicit readContext: ReadContext): MappingTarget = read(value, ValueType.STRING)
+
+    /** Reads a target whose omitted `valueType` falls back to `defaultValueType` (URI for object and root rules). */
+    def read(value: JsValue, defaultValueType: ValueType)(implicit readContext: ReadContext): MappingTarget = {
       val uri = stringValue(value, URI)
-      val valueType = optionalValue(value, VALUE_TYPE).map(fromJson[ValueType]).getOrElse(ValueType.STRING)
+      val valueType = optionalValue(value, VALUE_TYPE).map(fromJson[ValueType]).getOrElse(defaultValueType)
       val isBackwardProperty = booleanValueOption(value, IS_BACKWARD_PROPERTY).getOrElse(false)
       val isAttribute = booleanValueOption(value, IS_ATTRIBUTE).getOrElse(false)
       MappingTarget(Uri.parse(uri, readContext.prefixes), valueType, isBackwardProperty, isAttribute)
@@ -480,7 +483,8 @@ object JsonSerializers {
     override def read(value: JsValue)(implicit readContext: ReadContext): RootMappingRule = {
       val mappingRules = fromJson[MappingRules](mustBeDefined(value, RULES_PROPERTY))
       val id = identifier(value, RootMappingRule.defaultId)
-      val mappingTarget = optionalValue(value, MAPPING_TARGET).map(fromJson[MappingTarget]).getOrElse(RootMappingRule.defaultMappingTarget)
+      val mappingTarget = optionalValue(value, MAPPING_TARGET).map(MappingTargetJsonFormat.read(_, ValueType.URI))
+        .getOrElse(RootMappingRule.defaultMappingTarget)
       RootMappingRule(id = id, rules = mappingRules, mappingTarget = mappingTarget, metaData = metaData(value))
     }
 
@@ -718,7 +722,7 @@ object JsonSerializers {
       */
     override def read(value: JsValue)(implicit readContext: ReadContext): ObjectMapping = {
       val children = fromJson[MappingRules](mustBeDefined(value, RULES))
-      val mappingTarget = optionalValue(value, MAPPING_TARGET).map(fromJson[MappingTarget])
+      val mappingTarget = optionalValue(value, MAPPING_TARGET).map(MappingTargetJsonFormat.read(_, ValueType.URI))
       val mappingName = mappingTarget.flatMap(_.propertyUri.localName).getOrElse("ObjectMapping")
       val id = identifier(value, mappingName)
       val sourcePath = silkPath(id, stringValue(value, SOURCE_PATH))

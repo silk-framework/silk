@@ -507,6 +507,45 @@ class JsonSerializersTest  extends AnyFlatSpec with Matchers with ConfigTestTrai
     ex.getMessage should include("ruleBlockInput")
   }
 
+  it should "default the target valueType of an object mapping to a URI" in {
+    val json =
+      Json.obj(
+        TYPE -> "object",
+        ID -> "vendor",
+        "sourcePath" -> "vendor",
+        "mappingTarget" -> Json.obj(URI -> "https://ex.org/vendor"),
+        "rules" -> Json.obj("typeRules" -> JsArray(), "propertyRules" -> JsArray())
+      )
+
+    val rule = JsonSerialization.fromJson[TransformRule](json).asInstanceOf[ObjectMapping]
+    rule.target.get.valueType shouldBe ValueType.URI
+  }
+
+  it should "default the target valueType of a value mapping to a string" in {
+    val json =
+      Json.obj(
+        TYPE -> "direct",
+        ID -> "name",
+        "sourcePath" -> "name",
+        "mappingTarget" -> Json.obj(URI -> "https://ex.org/name")
+      )
+
+    val rule = JsonSerialization.fromJson[TransformRule](json).asInstanceOf[DirectMapping]
+    rule.target.get.valueType shouldBe ValueType.STRING
+  }
+
+  it should "default the target valueType of a root mapping rule to a URI" in {
+    val json =
+      Json.obj(
+        TYPE -> "root",
+        ID -> "root",
+        "mappingTarget" -> Json.obj(URI -> "https://ex.org/root"),
+        "rules" -> Json.obj("typeRules" -> JsArray(), "propertyRules" -> JsArray())
+      )
+
+    val rule = JsonSerialization.fromJson[RootMappingRule](json)
+    rule.mappingTarget.valueType shouldBe ValueType.URI
+  }
   def testSerialization[T](obj: T)(implicit format: JsonFormat[T]): Unit = {
     val objJson = JsonSerialization.toJson(obj)
     val objRoundTrip = JsonSerialization.fromJson[T](objJson)
