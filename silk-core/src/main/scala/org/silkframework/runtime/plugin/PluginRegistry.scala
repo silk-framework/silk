@@ -228,7 +228,11 @@ object PluginRegistry {
   def registerFromClasspath(classLoader: ClassLoader = Thread.currentThread.getContextClassLoader): Unit = {
     // Load all plugin classes
     val loader = ServiceLoader.load(classOf[PluginModule], classLoader)
-    val modules = loader.iterator().asScala.toList
+    var modules = loader.iterator().asScala.toList
+    if(modules.isEmpty) {
+      // Fall back to our own class loader, e.g. the context class loader of fork/join workers cannot see the classpath since JDK 19
+      modules = ServiceLoader.load(classOf[PluginModule], classOf[PluginModule].getClassLoader).iterator().asScala.toList
+    }
     val pluginClasses = for(module <- modules; pluginClass <- module.pluginClasses) yield pluginClass
 
     // Create a plugin description for each plugin class (can be done in parallel)

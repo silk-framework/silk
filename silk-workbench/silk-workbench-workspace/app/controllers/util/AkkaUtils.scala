@@ -12,7 +12,7 @@ import play.api.http.websocket.{Message, PingMessage}
 import play.api.libs.json.JsValue
 import play.api.mvc.{RequestHeader, Result, WebSocket}
 import scala.concurrent.duration._
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 object AkkaUtils {
 
@@ -48,15 +48,17 @@ object AkkaUtils {
   def createWebSocket(createSource: UserContext => Source[JsValue, _]): WebSocket = {
     new WebSocket {
       override def apply(request: RequestHeader): Future[Either[Result, Flow[Message, Message, _]]] = {
-        val userContext = WebUserManager().userContext(request)
-        Future.successful {
-          try {
-            Right(keepAliveFlow(createSource(userContext)))
-          } catch {
-            case ex: RequestException =>
-              Left(ErrorResult(ex))
-          }
-        }
+        WebUserManager().webSocketUserContext(request).map {
+          case Right(userContext) =>
+            try {
+              Right(keepAliveFlow(createSource(userContext)))
+            } catch {
+              case ex: RequestException =>
+                Left(ErrorResult(ex))
+            }
+          case Left(rejection) =>
+            Left(rejection)
+        }(ExecutionContext.parasitic)
       }
     }
   }

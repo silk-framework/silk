@@ -157,6 +157,10 @@ class ProjectAccessControlIntegrationTest extends AnyFlatSpec with IntegrationTe
 
     // Import with importGroups=true — should fail because archive has no groups
     importProjectStatus(projectId, exportedBytes, user1, importGroups = true) shouldBe 400
+
+    // The rejected import must not leave the project behind, where it would be accessible to everyone.
+    // A repeated import only succeeds if the previous one was rolled back completely.
+    importProjectStatus(projectId, exportedBytes, user1) should (be >= 200 and be < 300)
   }
 
   it should "reject import with both importGroups and groups parameters" in {
@@ -217,6 +221,22 @@ class ProjectAccessControlIntegrationTest extends AnyFlatSpec with IntegrationTe
     testGetProject(cloneId, user2, shouldHaveAccess = false)
     // The clone should have group1 set
     getProjectAccessControl(cloneId, user1).groups shouldBe Set(group1)
+  }
+
+  it should "restrict a project created through the legacy API to the creating user's groups" in {
+    val projectId = "legacyCreateGroups"
+    checkResponse(userRequest(controllers.workspace.routes.WorkspaceApi.newProject(projectId), user1).put(""))
+    getProjectAccessControl(projectId, user1).groups shouldBe user1.groups
+    testGetProject(projectId, user2, shouldHaveAccess = false)
+  }
+
+  it should "keep the groups of the source project when cloning through the legacy API" in {
+    val sourceId = "legacyCloneSource"
+    val cloneId = "legacyClone"
+    createProject(sourceId, user1, Set(group1))
+    checkResponse(userRequest(controllers.workspace.routes.WorkspaceApi.cloneProject(sourceId, cloneId), user1).post(""))
+    getProjectAccessControl(cloneId, user1).groups shouldBe Set(group1)
+    testGetProject(cloneId, user2, shouldHaveAccess = false)
   }
 
   it should "only list reports for projects the user has access to" in {
