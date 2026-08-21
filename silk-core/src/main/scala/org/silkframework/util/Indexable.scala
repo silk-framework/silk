@@ -28,7 +28,7 @@ package org.silkframework.util
   * @tparam A the element type
   * @see [[https://rockthejvm.com/articles/why-are-scala-type-classes-useful Why Are Scala Type Classes Useful?]]
   */
-trait Indexable[C, A] {
+trait Indexable[-C, A] {
 
   private implicit class IntOps(private val a: Int) {
     /**
