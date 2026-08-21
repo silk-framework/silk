@@ -9,8 +9,9 @@ import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
 import org.silkframework.runtime.plugin.types.XmlCodeParameter
 import org.silkframework.runtime.resource.{Resource, WritableResource}
 
+import com.ctc.wstx.stax.WstxInputFactory
+
 import java.nio.charset.{Charset, StandardCharsets}
-import javax.xml.stream.XMLInputFactory
 import scala.io.Codec
 
 @Plugin(
@@ -43,7 +44,8 @@ case class XmlDataset( @Param("The XML file. This may also be a zip archive of m
 
   override def codec: Codec = {
     file.read { inputStream =>
-      val reader = XMLInputFactory.newInstance().createXMLStreamReader(inputStream)
+      // Fixed implementation, so that the detected encoding does not depend on the deployed jars
+      val reader = new WstxInputFactory().createXMLStreamReader(inputStream)
       try {
         reader.getEncoding match {
           case null =>
