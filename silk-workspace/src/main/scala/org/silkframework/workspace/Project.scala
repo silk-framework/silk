@@ -391,10 +391,11 @@ class Project(initialConfig: ProjectConfig, provider: WorkspaceProvider, val res
             removeAnyTask(dependentTask, removeDependentTasks = true)
           }
         } else {
-          // Make sure that no other task depends on this task
-          for(task <- allTasks) {
-            if(task.data.inputTasks.contains(taskName)) {
-              throw new ValidationException(s"Cannot delete task $taskName as it is referenced by task ${task.id}")
+          // Same relation as findDependentTasks above, so this rejects what removeDependentTasks would delete.
+          for(referencingTask <- allTasks) {
+            if(referencingTask.data.referencedTasks.contains(taskName)) {
+              throw new ValidationException(s"Cannot delete task $taskName as it is referenced by task " +
+                s"${referencingTask.id} (${referenceKind(referencingTask.data, taskName)})")
             }
           }
         }
@@ -411,6 +412,15 @@ class Project(initialConfig: ProjectConfig, provider: WorkspaceProvider, val res
         }
         provider.removeExternalTaskLoadingError(id, taskName)
     }
+  }
+
+  /** How `referencingTask` refers to `referenced`, so a rejected deletion says where to look. */
+  private def referenceKind(referencingTask: TaskSpec, referenced: Identifier): String = {
+    val kinds = Seq(
+      Option.when(referencingTask.inputTasks.contains(referenced))("as input"),
+      Option.when(referencingTask.outputTasks.contains(referenced))("as output")
+    ).flatten
+    if(kinds.isEmpty) "in its rules or configuration" else kinds.mkString(" and ")
   }
 
   /** Returns the user context for read and write operations to the workspace provider. */

@@ -10,8 +10,10 @@ import org.silkframework.rule.plugins.transformer.value.ConstantTransformer
 import org.silkframework.rule.{ComplexMapping, DatasetSelection, MappingRules, RootMappingRule, RuleBlockModel, RuleBlockPort, RuleBlockSpec, TransformSpec}
 import org.silkframework.runtime.activity.{SimpleUserContext, TestUserContextTrait}
 import org.silkframework.runtime.plugin.PluginContext
+import org.silkframework.runtime.plugin.types.IdentifierOptionParameter
 import org.silkframework.runtime.resource.InMemoryResourceManager
 import org.silkframework.runtime.users.DefaultUserManager
+import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.{ConfigTestTrait, Identifier}
 import org.silkframework.workspace.WorkspaceTest.RecordingWorkspaceProvider
 import org.silkframework.workspace.exceptions.CircularDependencyException
@@ -158,6 +160,53 @@ class ProjectTest extends AnyFlatSpec with Matchers with TestWorkspaceProviderTe
     ruleBlockTask.ownPluginUsages.map(_.pluginId) should contain only "constant"
     transformTask.ownPluginUsages shouldBe empty
     transformTask.pluginUsages.map(_.pluginId) should contain("constant")
+  }
+
+  // The guard used to check inputTasks only, while removeDependentTasks uses the complete referencedTasks.
+  it should "refuse to delete a task that is referenced as an output or through a rule block" in {
+    val project = retrieveOrCreateProject("TaskDeletionGuardTest")
+
+    project.addTask("normalizeLabel", normalizeLabelRuleBlock)
+    project.addAnyTask("sink", ProjectTestTask())
+    project.addTask("transformUsingRuleBlock", transformUsing("normalizeLabel", output = "sink"))
+
+    // Deleting the rule block would leave the transform calling a task that no longer exists.
+    val ruleBlockError = the[ValidationException] thrownBy
+      project.removeAnyTask("normalizeLabel", removeDependentTasks = false)
+    ruleBlockError.getMessage should include("normalizeLabel")
+    ruleBlockError.getMessage should include("transformUsingRuleBlock")
+
+    // Deleting the dataset the transform writes to is just as breaking as deleting its input.
+    val outputError = the[ValidationException] thrownBy project.removeAnyTask("sink", removeDependentTasks = false)
+    outputError.getMessage should include("as output")
+
+    // Both are deletable together with their dependents, as they always were.
+    project.removeAnyTask("normalizeLabel", removeDependentTasks = true)
+    project.anyTaskOption("normalizeLabel") shouldBe empty
+    project.anyTaskOption("transformUsingRuleBlock") shouldBe empty
+  }
+
+  private def normalizeLabelRuleBlock: RuleBlockSpec = {
+    RuleBlockSpec(RuleBlockModel(
+      ports = IndexedSeq(RuleBlockPort(id = Identifier("namePort"), label = "Name", displayOrder = 1)),
+      operator = Some(TransformInput(
+        id = Identifier("normalizeInput"),
+        transformer = ConstantTransformer("normalized"),
+        inputs = IndexedSeq(InputPortInput(id = Identifier("nameInput"), portId = Identifier("namePort")))))))
+  }
+
+  private def transformUsing(ruleBlockId: String, output: String): TransformSpec = {
+    TransformSpec(
+      selection = DatasetSelection("sourceDataset"),
+      output = IdentifierOptionParameter(Some(Identifier(output))),
+      mappingRule = RootMappingRule(MappingRules(ComplexMapping(
+        id = Identifier("ruleBlockMapping"),
+        operator = RuleBlockInput(
+          id = Identifier("ruleBlockUsage"),
+          ruleBlockId = Identifier(ruleBlockId),
+          bindings = IndexedSeq(RuleBlockBinding(
+            portId = Identifier("namePort"),
+            input = PathInput(id = Identifier("namePath"), path = UntypedPath("name")))))))))
   }
 
   override def workspaceProviderId: String = "inMemoryWorkspaceProvider"

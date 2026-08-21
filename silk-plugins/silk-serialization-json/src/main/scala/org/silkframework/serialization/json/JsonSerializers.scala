@@ -34,6 +34,7 @@ import play.api.libs.json._
 
 import scala.reflect.ClassTag
 import scala.util.control.NonFatal
+import scala.util.{Failure, Try}
 
 /**
   * Serializers for JSON.
@@ -1100,15 +1101,18 @@ object JsonSerializers {
 
     override def read(value: JsValue)(implicit readContext: ReadContext): RuleBlockPort = {
       val portId = stringValueOption(value, ID).map(Identifier.apply).getOrElse(Operator.generateId)
+      val label = stringValueOption(value, LABEL).filter(_.nonEmpty)
+      val displayOrder = numberValueOption(value, DISPLAY_ORDER).map(_.intValue)
+      val missing = Seq(LABEL -> label, DISPLAY_ORDER -> displayOrder).collect { case (field, None) => s"'$field'" }
+      if(missing.nonEmpty) {
+        val fields = if(missing.size > 1) "fields" else "field"
+        throw new TaskValidationException(s"Rule block port '$portId' is missing required $fields ${missing.mkString(", ")} in JSON.")
+      }
       RuleBlockPort(
         id = portId,
-        label = stringValueOption(value, LABEL)
-          .filter(_.nonEmpty)
-          .getOrElse(throw new TaskValidationException(s"Rule block port '$portId' is missing required field '$LABEL' in JSON.")),
+        label = label.get,
         description = stringValueOption(value, DESCRIPTION).getOrElse(""),
-        displayOrder = numberValueOption(value, DISPLAY_ORDER)
-          .map(_.intValue)
-          .getOrElse(throw new TaskValidationException(s"Rule block port '$portId' is missing required field '$DISPLAY_ORDER' in JSON.")),
+        displayOrder = displayOrder.get,
         deprecated = booleanValueOption(value, DEPRECATED).getOrElse(false)
       )
     }
@@ -1161,7 +1165,7 @@ object JsonSerializers {
     override def read(value: JsValue)(implicit readContext: ReadContext): RuleBlockModel = {
       RuleBlockModel(
         ports = arrayValueOption(value, PORTS)
-          .map(_.value.map(fromJson[RuleBlockPort]).toIndexedSeq)
+          .map(array => readAllPorts(array.value.toIndexedSeq))
           .getOrElse(IndexedSeq.empty[RuleBlockPort]),
         inputExamples = arrayValueOption(value, INPUT_EXAMPLES)
           .map(_.value.map(fromJson[RuleBlockInputExample]).toIndexedSeq)
@@ -1170,6 +1174,16 @@ object JsonSerializers {
         layout = optionalValue(value, LAYOUT).map(fromJson[RuleLayout]).getOrElse(RuleLayout()),
         uiAnnotations = optionalValue(value, UI_ANNOTATIONS).map(fromJson[UiAnnotations]).getOrElse(UiAnnotations())
       )
+    }
+
+    /** Reads every port, reporting the problems of all of them at once instead of one per round trip. */
+    private def readAllPorts(ports: IndexedSeq[JsValue])(implicit readContext: ReadContext): IndexedSeq[RuleBlockPort] = {
+      val results = ports.map(port => Try(fromJson[RuleBlockPort](port)))
+      val errors = results.collect { case Failure(ex) => ex.getMessage }
+      if(errors.nonEmpty) {
+        throw new TaskValidationException(errors.mkString(" "))
+      }
+      results.map(_.get)
     }
 
     override def write(value: RuleBlockModel)(implicit writeContext: WriteContext[JsValue]): JsValue = {
@@ -1626,6 +1640,9 @@ object InputJsonSerializer {
                 fromJson[InputPortInput](jsObject)
               case RULE_BLOCK_INPUT =>
                 fromJson[RuleBlockInput](jsObject)
+              case unknown =>
+                throw JsonParseException(s"Unknown input type '$unknown'. Expected one of: " +
+                  s"$PATH_INPUT, $TRANSFORM_INPUT, $INPUT_PORT_INPUT, $RULE_BLOCK_INPUT.")
             }
           case _ =>
             throw JsonParseException("Input JSON object has no 'type' attribute! Instead found: " + jsObject.value.keys.mkString(", "))

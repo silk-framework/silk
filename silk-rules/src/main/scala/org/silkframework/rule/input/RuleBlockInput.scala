@@ -22,10 +22,14 @@ case class RuleBlockBinding(portId: Identifier,
 
   private def validateInput(boundInput: Input): Unit = {
     boundInput match {
+      // Names both causes: inside a definition the real violation is the nesting, detected only later.
       case _: InputPortInput =>
-        throw new ValidationException("Input ports may only be used inside rule block definitions.")
+        throw new ValidationException("Input ports may only be used inside rule block definitions. " +
+          s"The binding of port '$portId' is fed by one; if this rule block usage is itself part of a rule block " +
+          "definition, then the actual problem is that nested rule block usages are not supported.")
       case _: RuleBlockInput =>
-        throw new ValidationException("Nested rule block usages are not supported in the first iteration.")
+        throw new ValidationException("Nested rule block usages are not supported in the first iteration. " +
+          s"The binding of port '$portId' uses another rule block.")
       case TransformInput(_, _, inputs) =>
         inputs.foreach(validateInput)
       case _: PathInput =>

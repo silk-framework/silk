@@ -21,7 +21,7 @@ import org.silkframework.serialization.json.ExecutionReportSerializers.{Executio
 import org.silkframework.serialization.json.ReportDetail
 import org.silkframework.serialization.json.JsonSerializers._
 import org.silkframework.serialization.json.WorkflowSerializers._
-import org.silkframework.serialization.json.{JsonFormat, JsonSerialization}
+import org.silkframework.serialization.json.{InputJsonSerializer, JsonFormat, JsonParseException, JsonSerialization}
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.activity.transform.VocabularyCacheValue
 import org.silkframework.serialization.json.WorkflowSerializers._
@@ -438,6 +438,43 @@ class JsonSerializersTest  extends AnyFlatSpec with Matchers with ConfigTestTrai
     }
     ex.getMessage should include("missing required field 'label'")
     ex.getMessage should include("missingLabelPort")
+  }
+
+  // Fixing one missing field per round trip is what makes authoring a rule block expensive.
+  it should "report every missing port field of a rule block at once" in {
+    val json =
+      Json.obj(
+        TASKTYPE -> TASK_TYPE_RULE_BLOCK,
+        PARAMETERS -> Json.obj(
+          "ruleBlockModel" -> Json.obj(
+            "ports" -> Json.arr(
+              Json.obj(ID -> "barePort"),
+              Json.obj(ID -> "missingLabelPort", "displayOrder" -> 2)
+            )
+          )
+        )
+      )
+
+    val ex = the[TaskValidationException] thrownBy {
+      JsonSerialization.fromJson[RuleBlockSpec](json)
+    }
+    // Both fields of the first port and the one of the second, in a single message.
+    ex.getMessage should include("missing required fields 'label', 'displayOrder'")
+    ex.getMessage should include("barePort")
+    ex.getMessage should include("missing required field 'label'")
+    ex.getMessage should include("missingLabelPort")
+  }
+
+  it should "reject an unknown input type by name instead of failing with a MatchError" in {
+    implicit val readContext: ReadContext = ReadContext.empty
+    val ex = the[JsonParseException] thrownBy {
+      InputJsonSerializer.InputJsonFormat.read(Json.obj("type" -> "portInput", ID -> "in1"))
+    }
+    ex.getMessage should include("portInput")
+    ex.getMessage should include("pathInput")
+    ex.getMessage should include("transformInput")
+    ex.getMessage should include("inputPortInput")
+    ex.getMessage should include("ruleBlockInput")
   }
 
   def testSerialization[T](obj: T)(implicit format: JsonFormat[T]): Unit = {
