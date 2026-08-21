@@ -36,4 +36,22 @@ describe("commonOps", () => {
         };
         expect(commonOps.buildStringValuedObject(flatObject)).toEqual(expectedResult);
     });
+
+    test("extractParameterValues should remove the meta data fields and the dataset attributes", () => {
+        const formValues = {
+            label: "Some label",
+            description: "Some description",
+            id: "someId",
+            tags: { selectedItems: [] },
+            readOnly: true,
+            uriProperty: "urn:uri",
+            file: "some file",
+            // Only root parameters are removed, nested parameters may have the same name
+            objectParameter: { label: "nested label" },
+        };
+        expect(commonOps.extractParameterValues(formValues)).toStrictEqual({
+            file: "some file",
+            objectParameter: { label: "nested label" },
+        });
+    });
 });

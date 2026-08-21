@@ -96,12 +96,14 @@ object PluginRegistry {
    *
    * @param id The id of the plugin.
    * @param params The instantiation parameters.
+   * @param ignoreNonExistingParameters If false, creation fails if a parameter is provided that does not exist on the plugin.
    * @tparam T The base type of the plugin.
    * @return A new instance of the plugin type with the given parameters.
    */
-  def create[T: ClassTag](id: String, params: ParameterValues = ParameterValues.empty)
+  def create[T: ClassTag](id: String, params: ParameterValues = ParameterValues.empty,
+                          ignoreNonExistingParameters: Boolean = true)
                          (implicit context: PluginContext): T = {
-    pluginType[T].create[T](id, params)
+    pluginType[T].create[T](id, params, ignoreNonExistingParameters)
   }
 
   /**
@@ -388,12 +390,13 @@ object PluginRegistry {
      *
      * @param id The id of the plugin.
      * @param params The instantiation parameters.
+     * @param ignoreNonExistingParameters If false, creation fails if a parameter is provided that does not exist on the plugin.
      * @tparam T The base type of the plugin.
      * @return A new instance of the plugin type with the given parameters.
      */
-    def create[T: ClassTag](id: String, params: ParameterValues)
+    def create[T: ClassTag](id: String, params: ParameterValues, ignoreNonExistingParameters: Boolean = true)
                            (implicit context: PluginContext): T = {
-      pluginById[T](id).apply(params)
+      pluginById[T](id).apply(params, ignoreNonExistingParameters)
     }
 
     /**

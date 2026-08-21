@@ -23,9 +23,12 @@ import scala.language.implicitConversions
  * May only contain the following characters: (a - z, A - Z, 0 - 9, _, -)
  */
 class Identifier(private val name: String) extends Serializable with Ordered[Identifier] {
-  require(name.nonEmpty, "Identifier must not be empty.")
-  require(name.forall(Identifier.isAllowed),
-    "An identifier may only contain the following characters (a - z, A - Z, 0 - 9, _, -). The following identifier is not valid: '" + name + "'.")
+  if(name.isEmpty) {
+    throw new IllegalArgumentException("Identifier must not be empty.")
+  }
+  if(!name.forall(Identifier.isAllowed)) {
+    throw new IllegalArgumentException(Identifier.invalidIdentifierMessage(name))
+  }
 
   /** Returns the identifier itself. */
   override def toString: String = name
@@ -91,6 +94,23 @@ object Identifier {
    * Generates a new random identifier.
    */
   def random: Identifier = new Identifier("r" + UUID.randomUUID.toString)
+
+  /**
+    * The validation message for an invalid identifier. Reports the offending characters by position and
+    * Unicode name instead of only echoing the identifier: a homoglyph, such as a Cyrillic 'е' in an
+    * otherwise ASCII id, is indistinguishable from the character it is mistaken for when merely echoed.
+    */
+  private def invalidIdentifierMessage(name: String): String = {
+    val invalid =
+      for((codePoint, index) <- name.codePoints().toArray.zipWithIndex
+          if Character.charCount(codePoint) > 1 || !isAllowed(codePoint.toChar))
+        yield f"position ${index + 1}: U+$codePoint%04X (${Option(Character.getName(codePoint)).getOrElse("unassigned")})"
+    val listed = invalid.take(5)
+    "An identifier may only contain the following characters (a - z, A - Z, 0 - 9, _, -). " +
+      s"The following identifier is not valid: '$name'. " +
+      (if(listed.length == 1) "Invalid character at " else "Invalid characters at ") +
+      listed.mkString(", ") + (if(invalid.length > listed.length) s" and ${invalid.length - listed.length} more" else "") + "."
+  }
 
   /**
    * Converts a String to an Identifier.

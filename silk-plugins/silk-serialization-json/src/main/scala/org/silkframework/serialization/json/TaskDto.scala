@@ -250,12 +250,22 @@ object TaskDataDto {
     case _ => JsError("error.expected.jsboolean")
   }
 
-  /**
-    * Strict reads of the canonical task data. 'taskType' and 'type' stay optional here because
-    * endpoints with a known task/plugin type accept payloads without them; the generic task
-    * dispatch enforces 'taskType' itself.
-    */
-  implicit val taskDataDtoReads: Reads[TaskDataDto] = (
+  /** Rejects unknown attributes, mirroring [[fromDataJson]]. They would be dropped silently otherwise. */
+  private val rejectUnknownFields: Reads[JsObject] = Reads {
+    case dataJson: JsObject =>
+      val unknownFields = (dataJson.keys.toSet -- knownFields).toSeq.sorted
+      if(unknownFields.isEmpty) {
+        JsSuccess(dataJson)
+      } else {
+        JsError(s"unknown attribute(s): ${unknownFields.mkString(", ")}. " +
+          s"Valid attributes are: ${knownFields.toSeq.sorted.mkString(", ")}. " +
+          s"Plugin parameters must be provided in the '${JsonSerializers.PARAMETERS}' object.")
+      }
+    case _ =>
+      JsError("error.expected.jsobject")
+  }
+
+  private val fieldReads: Reads[TaskDataDto] = (
     (__ \ JsonSerializers.TASKTYPE).readNullable[String] and
     (__ \ READ_ONLY).readNullable[Boolean](lenientBooleanReads) and
     (__ \ URI_PROPERTY).readNullable[String] and
@@ -263,6 +273,13 @@ object TaskDataDto {
     (__ \ JsonSerializers.PARAMETERS).read[JsObject] and
     (__ \ JsonSerializers.TEMPLATES).readNullable[JsObject]
   )(TaskDataDto.apply _)
+
+  /**
+    * Strict reads of the canonical task data. 'taskType' and 'type' stay optional here because
+    * endpoints with a known task/plugin type accept payloads without them; the generic task
+    * dispatch enforces 'taskType' itself.
+    */
+  implicit val taskDataDtoReads: Reads[TaskDataDto] = rejectUnknownFields.flatMap(_ => fieldReads)
 }
 
 @Schema(description = "A task parameter as a displayable key-value pair.")

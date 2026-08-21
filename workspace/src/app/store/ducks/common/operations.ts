@@ -292,6 +292,21 @@ const extractDataAttributes = (formData): ArtefactDataParameters => {
     return returnValue;
 };
 
+/** Extracts the plugin parameters from the form data, i.e. removes the meta data fields and the data attributes.
+ * The backend rejects values for parameters that the plugin does not declare. */
+const extractParameterValues = (formData: Record<string, any>): Record<string, any> => {
+    const {
+        label,
+        description,
+        id,
+        tags,
+        [URI_PROPERTY_PARAMETER_ID]: uriProperty,
+        [READ_ONLY_PARAMETER]: readOnly,
+        ...parameters
+    } = formData;
+    return parameters;
+};
+
 const fetchCreateTaskAsync = (
     formData: any,
     artefactId: string,
@@ -304,9 +319,9 @@ const fetchCreateTaskAsync = (
 ) => {
     return async (dispatch, getState) => {
         const currentProjectId = commonSel.currentProjectIdSelector(getState());
-        const { label, description, id, tags, ...restFormData } = formData;
+        const { label, description, id, tags } = formData;
         const { parameters, variableTemplateParameters } = splitParameterAndVariableTemplateParameters(
-            restFormData,
+            extractParameterValues(formData),
             variableTemplateParameterSet,
         );
         const parameterData = buildStringValuedObject(parameters);
@@ -382,7 +397,7 @@ const fetchUpdateTaskAsync = (
 ) => {
     return async (dispatch) => {
         const { parameters, variableTemplateParameters } = splitParameterAndVariableTemplateParameters(
-            formData,
+            extractParameterValues(formData),
             variableTemplateParameterSet,
         );
         const parameterData = buildStringValuedObject(parameters);
@@ -496,6 +511,7 @@ const commonOps = {
     resetArtefactModal,
     fetchExportTypesAsync,
     extractDataAttributes,
+    extractParameterValues,
     splitParameterAndVariableTemplateParameters,
     toggleNotificationMenuDisplay,
     toggleUserMenuDisplay,

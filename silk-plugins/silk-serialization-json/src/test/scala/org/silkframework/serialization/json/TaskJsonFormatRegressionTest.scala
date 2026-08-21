@@ -265,6 +265,16 @@ class TaskJsonFormatRegressionTest extends AnyFlatSpec with Matchers with Config
       JsonSerialization.fromJson[Task[TaskSpec]](json)
     }
     // The reported path is the one the client sent, without Play's internal 'obj' root.
+    ex.getMessage shouldBe "The task JSON is invalid. At 'data': unknown attribute(s): outputs, root, selection, " +
+      "targetVocabularies. Valid attributes are: parameters, readOnly, taskType, templates, type, uriProperty. " +
+      "Plugin parameters must be provided in the 'parameters' object."
+  }
+
+  it should "report a missing parameters object" in {
+    val json = Json.obj(ID -> "noParameters", DATA -> Json.obj(TASKTYPE -> TASK_TYPE_TRANSFORM))
+    val ex = the[BadUserInputException] thrownBy {
+      JsonSerialization.fromJson[Task[TaskSpec]](json)
+    }
     ex.getMessage shouldBe "The task JSON is invalid. At 'data.parameters': attribute is missing"
   }
 
@@ -282,6 +292,36 @@ class TaskJsonFormatRegressionTest extends AnyFlatSpec with Matchers with Config
       JsonSerialization.fromJson[Task[TaskSpec]](json)
     }
     ex.getMessage should include("parameters")
+  }
+
+  it should "reject an unknown attribute in the task data" in {
+    // A plugin parameter next to 'parameters' instead of inside it used to be dropped silently.
+    val ex = the[BadUserInputException] thrownBy {
+      JsonSerialization.fromJson[Task[TaskSpec]](datasetJson("param1" -> JsString("stringValue")))
+    }
+    ex.getMessage shouldBe "The task JSON is invalid. At 'data': unknown attribute(s): param1. " +
+      "Valid attributes are: parameters, readOnly, taskType, templates, type, uriProperty. " +
+      "Plugin parameters must be provided in the 'parameters' object."
+  }
+
+  it should "list all unknown attributes of the task data" in {
+    val ex = the[BadUserInputException] thrownBy {
+      JsonSerialization.fromJson[Task[TaskSpec]](datasetJson("selection" -> Json.obj(), "outputs" -> Json.arr()))
+    }
+    ex.getMessage should include("unknown attribute(s): outputs, selection.")
+  }
+
+  it should "reject a parameter that the plugin does not declare" in {
+    val json = datasetJson()
+    val withUnknownParameter = json ++ Json.obj(
+      DATA -> ((json \ DATA).as[JsObject] ++ Json.obj(
+        PARAMETERS -> Json.obj("param1" -> "stringValue", "param2" -> "6.0", "param3" -> "unknown"))))
+    // Reported as bad user input, so that the task endpoints answer with 400 rather than 500.
+    val ex = the[BadUserInputException] thrownBy {
+      JsonSerialization.fromJson[Task[TaskSpec]](withUnknownParameter)
+    }
+    ex.getMessage should include("param3")
+    ex.getMessage should include("Valid parameters are: param1, param2")
   }
 
   it should "accept boolean 'readOnly' values" in {

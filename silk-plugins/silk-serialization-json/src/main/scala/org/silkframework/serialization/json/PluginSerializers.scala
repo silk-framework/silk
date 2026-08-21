@@ -3,6 +3,7 @@ package org.silkframework.serialization.json
 import org.silkframework.runtime.plugin._
 import org.silkframework.runtime.serialization.{ReadContext, Serialization, WriteContext}
 import org.silkframework.runtime.templating.exceptions.TemplateEvaluationException
+import org.silkframework.runtime.validation.BadUserInputException
 import org.silkframework.serialization.json.JsonSerializers.{PARAMETERS, TEMPLATES, TYPE}
 import play.api.libs.json._
 
@@ -121,15 +122,23 @@ object PluginSerializers {
     */
   class PluginJsonFormat[T <: AnyPlugin : ClassTag](pluginDesc: Option[PluginDescription[T]] = None) extends JsonFormat[T] {
 
+    // Undeclared parameters are rejected instead of being dropped silently. Only affects the wire
+    // protocol; persistence stays lenient to load projects written by a version with other parameters.
+    // Reported as bad user input, so that a client payload answers with 400 instead of 500.
     def read(value: JsValue, extraParameters: ParameterValues)(implicit readContext: ReadContext): T = {
       val params = ParameterValuesJsonFormat.read(value) merge extraParameters
 
-      pluginDesc match {
-        case Some(plugin) =>
-          plugin(params)
-        case None =>
-          val id = (value \ TYPE).as[JsString].value
-          PluginRegistry.create[T](id, params)
+      try {
+        pluginDesc match {
+          case Some(plugin) =>
+            plugin(params, ignoreNonExistingParameters = false)
+          case None =>
+            val id = (value \ TYPE).as[JsString].value
+            PluginRegistry.create[T](id, params, ignoreNonExistingParameters = false)
+        }
+      } catch {
+        case ex: InvalidPluginParameterValueException =>
+          throw BadUserInputException(ex)
       }
     }
 

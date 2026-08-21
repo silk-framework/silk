@@ -120,8 +120,11 @@ trait PluginDescription[+T] {
 
   /**
     * Parses parameter values.
+    *
+    * @param ignoreNonExistingParameters Forwarded to nested plugins of object parameters.
     */
-  protected def parseParameters(parameterValues: ParameterValues)(implicit context: PluginContext): Seq[AnyRef] = {
+  protected def parseParameters(parameterValues: ParameterValues,
+                                ignoreNonExistingParameters: Boolean = true)(implicit context: PluginContext): Seq[AnyRef] = {
     for (parameter <- parameters) yield {
       parameterValues.values.get(parameter.name) match {
         case Some(value) =>
@@ -130,7 +133,7 @@ trait PluginDescription[+T] {
               case stringParam: StringParameterType[_] =>
                 parseStringParameter(stringParam, value)
               case objParam: PluginObjectParameterTypeTrait =>
-                parseObjectParameter(objParam, value)
+                parseObjectParameter(objParam, value, ignoreNonExistingParameters)
             }
           } catch {
             case NonFatal(ex) =>
@@ -178,7 +181,8 @@ trait PluginDescription[+T] {
     }
   }
 
-  private def parseObjectParameter(objParam: PluginObjectParameterTypeTrait, value: ParameterValue)
+  private def parseObjectParameter(objParam: PluginObjectParameterTypeTrait, value: ParameterValue,
+                                   ignoreNonExistingParameters: Boolean)
                                   (implicit context: PluginContext): AnyRef = {
     value match {
       case parameterObjectValue: ParameterObjectValue =>
@@ -186,7 +190,7 @@ trait PluginDescription[+T] {
       case values: ParameterValues =>
         objParam.pluginDescription match {
           case Some(pluginDesc: PluginDescription[_]) =>
-            pluginDesc(values).asInstanceOf[AnyRef]
+            pluginDesc(values, ignoreNonExistingParameters).asInstanceOf[AnyRef]
           case _ =>
             throw new IllegalArgumentException(s"No plugin description available. Value needs to be provided using a ${classOf[ParameterObjectValue].getClass.getSimpleName}.")
         }
