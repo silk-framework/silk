@@ -449,11 +449,14 @@ object JsonSerializers {
       */
     override def read(value: JsValue)(implicit readContext: ReadContext): MappingRules = {
       val uriRule = optionalValue(value, URI_RULE).map(UriMappingJsonFormat.read)
-      val typeRules = mustBeJsArray(mustBeDefined(value, TYPE_RULES)) { array =>
-        array.value.map(TypeMappingJsonFormat.read).toSeq
+      // All three parts are optional, as they are in MappingRules itself: an omitted list is empty.
+      val typeRules = optionalValue(value, TYPE_RULES) match {
+        case Some(rules) => mustBeJsArray(rules)(_.value.map(TypeMappingJsonFormat.read).toSeq)
+        case None => Seq.empty
       }
-      val propertyRules = mustBeJsArray(mustBeDefined(value, PROPERTY_RULES)) { array =>
-        array.value.map(TransformRuleJsonFormat.read).toSeq
+      val propertyRules = optionalValue(value, PROPERTY_RULES) match {
+        case Some(rules) => mustBeJsArray(rules)(_.value.map(TransformRuleJsonFormat.read).toSeq)
+        case None => Seq.empty
       }
 
       MappingRules(uriRule, typeRules, propertyRules)

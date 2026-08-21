@@ -546,6 +546,22 @@ class JsonSerializersTest  extends AnyFlatSpec with Matchers with ConfigTestTrai
     val rule = JsonSerialization.fromJson[RootMappingRule](json)
     rule.mappingTarget.valueType shouldBe ValueType.URI
   }
+  it should "default omitted typeRules and propertyRules of a nested rules object to empty" in {
+    val json =
+      Json.obj(
+        TYPE -> "object",
+        ID -> "vendor",
+        "sourcePath" -> "vendor",
+        "mappingTarget" -> Json.obj(URI -> "https://ex.org/vendor"),
+        "rules" -> Json.obj()
+      )
+
+    val rule = JsonSerialization.fromJson[TransformRule](json).asInstanceOf[ObjectMapping]
+    rule.rules.uriRule shouldBe None
+    rule.rules.typeRules shouldBe empty
+    rule.rules.propertyRules shouldBe empty
+  }
+
   def testSerialization[T](obj: T)(implicit format: JsonFormat[T]): Unit = {
     val objJson = JsonSerialization.toJson(obj)
     val objRoundTrip = JsonSerialization.fromJson[T](objJson)
