@@ -2,6 +2,8 @@ package org.silkframework.util.indexable
 
 import org.silkframework.util.Indexable
 
+/** Evidence for [[Indexable]]: one implicit value per adapted type.
+ * A new type gains the capability by adding one more here. */
 object instances {
 
   implicit def seq[A]: Indexable[Seq[A], A] =
