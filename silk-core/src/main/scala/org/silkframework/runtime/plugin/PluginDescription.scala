@@ -147,6 +147,18 @@ trait PluginDescription[+T] {
     }
   }
 
+  /**
+    * Throws an exception if a parameter value is provided that does not exist on this plugin.
+    * Every implementation of `apply` must call this when `ignoreNonExistingParameters` is false.
+    */
+  protected def validateParameters(parameterValues: ParameterValues): Unit = {
+    val invalidParameters = parameterValues.values.keySet -- parameters.map(_.name)
+    if (invalidParameters.nonEmpty) {
+      throw new InvalidPluginParameterValueException(s"The following parameters cannot be set on plugin '$label' because they are no valid parameters:" +
+        s" ${invalidParameters.mkString(", ")}. Valid parameters are: ${parameters.map(_.name).mkString(", ")}")
+    }
+  }
+
   private def parseStringParameter(stringParam: StringParameterType[_], value: ParameterValue)
                                   (implicit context: PluginContext): AnyRef = {
     value match {
