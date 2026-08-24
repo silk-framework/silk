@@ -1183,10 +1183,14 @@ object JsonSerializers {
       )
     }
 
-    /** Reads every port, reporting the problems of all of them at once instead of one per round trip. */
+    /** Reads every port, reporting the problems of all of them at once instead of one per round trip.
+      * Only validation failures are aggregated; any other failure (a parse error, a crash) keeps its type. */
     private def readAllPorts(ports: IndexedSeq[JsValue])(implicit readContext: ReadContext): IndexedSeq[RuleBlockPort] = {
       val results = ports.map(port => Try(fromJson[RuleBlockPort](port)))
-      val errors = results.collect { case Failure(ex) => ex.getMessage }
+      results.collectFirst {
+        case Failure(ex) if !ex.isInstanceOf[TaskValidationException] && !ex.isInstanceOf[ValidationException] => ex
+      }.foreach(ex => throw ex)
+      val errors = results.collect { case Failure(ex) => Option(ex.getMessage).filter(_.nonEmpty).getOrElse(ex.toString) }
       if(errors.nonEmpty) {
         throw new TaskValidationException(errors.mkString(" "))
       }
