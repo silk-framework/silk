@@ -88,10 +88,10 @@ object PluginRegistry {
     * otherwise the closest ids are suggested. Never lists the whole type as that can be hundreds of ids. */
   private def pluginNotFoundMessage(id: String, pluginClass: Class[_]): String = {
     val requestedType = pluginClass.getSimpleName
-    val registeredAs = pluginsById.getOrElse(id, Seq.empty).map(_.pluginClass.getSimpleName).distinct
+    val registeredAs = pluginsById.getOrElse(id, Seq.empty).flatMap(_.pluginTypes.map(_.label)).distinct
     if(registeredAs.nonEmpty) {
-      s"No plugin '$id' found for class $requestedType. '$id' is the id of ${registeredAs.mkString(" / ")}, " +
-        s"which is not a $requestedType."
+      s"No plugin '$id' found for class $requestedType. '$id' is a ${registeredAs.mkString(" / ")} plugin, " +
+        s"not a $requestedType."
     } else {
       val available = availablePluginsForClass(pluginClass).map(_.id.toString)
       s"No plugin '$id' found for class $requestedType. ${closestPluginIds(id, available)}"
