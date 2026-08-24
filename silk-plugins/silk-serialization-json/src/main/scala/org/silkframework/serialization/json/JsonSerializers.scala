@@ -459,7 +459,7 @@ object JsonSerializers {
         case None => Seq.empty
       }
 
-      MappingRules(uriRule, typeRules, propertyRules)
+      MappingRules.fromSeq(uriRule.toSeq ++ typeRules ++ propertyRules)
     }
 
     /**
