@@ -420,7 +420,13 @@ class Project(initialConfig: ProjectConfig, provider: WorkspaceProvider, val res
       Option.when(referencingTask.inputTasks.contains(referenced))("as input"),
       Option.when(referencingTask.outputTasks.contains(referenced))("as output")
     ).flatten
-    if(kinds.isEmpty) "in its rules or configuration" else kinds.mkString(" and ")
+    if(kinds.nonEmpty) {
+      kinds.mkString(" and ")
+    } else referencingTask match {
+      // Sources and sinks were matched above, so the node sits on the canvas without connections.
+      case _: Workflow => "as a workflow node without connections"
+      case _ => "in its rules or configuration"
+    }
   }
 
   /** Returns the user context for read and write operations to the workspace provider. */

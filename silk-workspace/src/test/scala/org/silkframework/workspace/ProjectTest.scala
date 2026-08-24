@@ -16,6 +16,7 @@ import org.silkframework.runtime.users.DefaultUserManager
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.{ConfigTestTrait, Identifier}
 import org.silkframework.workspace.WorkspaceTest.RecordingWorkspaceProvider
+import org.silkframework.workspace.activity.workflow.{Workflow, WorkflowOperator}
 import org.silkframework.workspace.exceptions.CircularDependencyException
 
 class ProjectTest extends AnyFlatSpec with Matchers with TestWorkspaceProviderTestTrait with TestUserContextTrait {
@@ -184,6 +185,19 @@ class ProjectTest extends AnyFlatSpec with Matchers with TestWorkspaceProviderTe
     project.removeAnyTask("normalizeLabel", removeDependentTasks = true)
     project.anyTaskOption("normalizeLabel") shouldBe empty
     project.anyTaskOption("transformUsingRuleBlock") shouldBe empty
+  }
+
+  // An unconnected node still pins its task to the canvas: deleting the task would leave a dangling node.
+  it should "refuse to delete a task that sits on a workflow canvas without connections" in {
+    val project = retrieveOrCreateProject("UnconnectedNodeDeletionGuardTest")
+    project.addAnyTask("lonelyTask", ProjectTestTask())
+    project.addTask("canvas", Workflow(operators = Seq(WorkflowOperator(
+      inputs = Seq.empty, task = "lonelyTask", outputs = Seq.empty, errorOutputs = Seq.empty,
+      position = (0, 0), nodeId = "lonelyTask", configInputs = Seq.empty, dependencyInputs = Seq.empty))))
+
+    val error = the[ValidationException] thrownBy project.removeAnyTask("lonelyTask", removeDependentTasks = false)
+    error.getMessage should include("canvas")
+    error.getMessage should include("as a workflow node without connections")
   }
 
   private def normalizeLabelRuleBlock: RuleBlockSpec = {
