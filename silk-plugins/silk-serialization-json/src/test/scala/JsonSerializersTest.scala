@@ -562,6 +562,21 @@ class JsonSerializersTest  extends AnyFlatSpec with Matchers with ConfigTestTrai
     rule.rules.propertyRules shouldBe empty
   }
 
+  "TransformRuleJsonFormat" should "not derive a rule id that an earlier rule of the same read claimed explicitly" in {
+    implicit val readContext: ReadContext = TestReadContext()
+    def directRule(fields: (String, play.api.libs.json.Json.JsValueWrapper)*) =
+      JsonSerialization.fromJson[TransformRule](Json.obj(fields: _*))
+
+    val explicit = directRule(TYPE -> "direct", ID -> "name", "sourcePath" -> "givenName",
+      "mappingTarget" -> Json.obj(URI -> "https://ex.org/name"))
+    // No id: the default derived from the target's local name is taken, so it must give way.
+    val derived = directRule(TYPE -> "direct", "sourcePath" -> "familyName",
+      "mappingTarget" -> Json.obj(URI -> "https://ex.org/name"))
+
+    explicit.id.toString shouldBe "name"
+    derived.id.toString shouldBe "name1"
+  }
+
   def testSerialization[T](obj: T)(implicit format: JsonFormat[T]): Unit = {
     val objJson = JsonSerialization.toJson(obj)
     val objRoundTrip = JsonSerialization.fromJson[T](objJson)
