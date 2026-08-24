@@ -43,7 +43,7 @@ class PluginRegistryTest extends AnyFlatSpec with Matchers {
         PluginRegistry.pluginById[TestPluginType]("otherTypeTestPlugin")
       }
       ex.getMessage must include("otherTypeTestPlugin")
-      ex.getMessage must include("OtherTypeTestPlugin")
+      ex.getMessage must include("Other test plugin type")
       ex.getMessage must include("TestPluginType")
     } finally {
       PluginRegistry.unregisterPlugin(classOf[OtherTypeTestPlugin])
