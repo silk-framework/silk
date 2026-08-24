@@ -189,12 +189,15 @@ object ExecutionReportSerializers {
 
     /** One entry per distinct message, in first-occurrence order: a rule that fails usually fails the same
       * way for every entity, and repeating the message verbatim per entity adds nothing over the first one
-      * plus how often it occurred among the samples. */
+      * plus how often it occurred among the samples. A message that failed on several distinct inputs lists
+      * them under `sampledValues`, so one collapsed entry cannot hide further defective value formats. */
     private def distinctSampleErrors(sampleErrors: IndexedSeq[RuleError]): Seq[JsObject] = {
       for (message <- sampleErrors.map(_.message).distinct) yield {
         val sameMessage = sampleErrors.filter(_.message == message)
+        val distinctValues = sameMessage.map(_.value).distinct
         writeRuleError(sameMessage.head, withStacktrace = false) ++
-          (if (sameMessage.size > 1) Json.obj(SAMPLED_OCCURRENCES -> sameMessage.size) else JsObject.empty)
+          (if (sameMessage.size > 1) Json.obj(SAMPLED_OCCURRENCES -> sameMessage.size) else JsObject.empty) ++
+          (if (distinctValues.size > 1) Json.obj(SAMPLED_VALUES -> Json.toJson(distinctValues)) else JsObject.empty)
       }
     }
 
@@ -389,6 +392,8 @@ object ExecutionReportSerializers {
     final val SAMPLE_ERRORS = "sampleErrors"
     /** Compact reports only: how many of the sampled errors carried this message. */
     final val SAMPLED_OCCURRENCES = "sampledOccurrences"
+    /** Compact reports only: the distinct failing values of the sampled errors sharing this message. */
+    final val SAMPLED_VALUES = "sampledValues"
     final val RULE_EXECUTION_STARTED = "startedAt"
     final val RULE_EXECUTION_FINISHED = "finishedAt"
 

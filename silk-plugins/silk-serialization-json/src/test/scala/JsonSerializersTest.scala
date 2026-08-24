@@ -291,9 +291,15 @@ class JsonSerializersTest  extends AnyFlatSpec with Matchers with ConfigTestTrai
     (sampleErrors.head \ "error").as[String] shouldBe "The URI pattern did not generate any URI."
     (sampleErrors.head \ "entity").as[String] shouldBe "urn:entity:44"
     (sampleErrors.head \ "sampledOccurrences").as[Int] shouldBe 10
-    // A message seen once carries no count.
+    // The collapsed entry lists every distinct failing value, so it cannot hide further defective formats.
+    val sampledValues = (sampleErrors.head \ "sampledValues").as[Seq[Seq[Seq[String]]]]
+    sampledValues should have size 10
+    sampledValues.head shouldBe Seq(Seq("value 44"))
+    sampledValues.last shouldBe Seq(Seq("value 53"))
+    // A message seen once carries no count and no value list.
     (sampleErrors(1) \ "error").as[String] shouldBe "Not a valid Integer."
     (sampleErrors(1) \ "sampledOccurrences").toOption shouldBe empty
+    (sampleErrors(1) \ "sampledValues").toOption shouldBe empty
 
     // The verbose report is never collapsed: every sample stays.
     val full = (TransformReportJsonFormat.write(report, ReportDetail.Full) \\ "sampleErrors").head.as[JsArray].value
