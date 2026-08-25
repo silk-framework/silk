@@ -14,6 +14,7 @@ class XmlWorkspaceExportIntegrationTest extends AnyFlatSpec with ExportIntegrati
     val projectExportUri = baseUrl + s"/workspace/projects/$projectId/export/xmlZip"
     val responseBody = checkResponse(client.url(projectExportUri).get()).bodyAsBytes.toArray
     checkZipEntries(responseBody, Seq(
+      "singleProject/custom/miniCustomTask.xml",
       "singleProject/workflow/Workflow.xml",
       "singleProject/linking/miniLinking/alignment.xml",
       "singleProject/linking/miniLinking/linkSpec.xml",
@@ -33,6 +34,7 @@ class XmlWorkspaceExportIntegrationTest extends AnyFlatSpec with ExportIntegrati
     val workspaceExportURI = baseUrl + "/workspace/export/xmlZip"
     val responseBody = checkResponse(client.url(workspaceExportURI).get()).bodyAsBytes.toArray
     checkZipEntries(responseBody, Seq(
+      "singleProject/custom/miniCustomTask.xml",
       "singleProject/workflow/Workflow.xml",
       "singleProject/linking/miniLinking/alignment.xml",
       "singleProject/linking/miniLinking/linkSpec.xml",
@@ -52,6 +54,7 @@ class XmlWorkspaceExportIntegrationTest extends AnyFlatSpec with ExportIntegrati
     val workspaceExportURI = baseUrl + "/workspace/export/xmlZipWithoutResources"
     val responseBody = checkResponse(client.url(workspaceExportURI).get()).bodyAsBytes.toArray
     checkZipEntries(responseBody, Seq(
+      "singleProject/custom/miniCustomTask.xml",
       "singleProject/workflow/Workflow.xml",
       "singleProject/linking/miniLinking/alignment.xml",
       "singleProject/linking/miniLinking/linkSpec.xml",
