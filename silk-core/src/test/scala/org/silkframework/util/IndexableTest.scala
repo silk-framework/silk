@@ -2,6 +2,7 @@ package org.silkframework.util
 
 import org.silkframework.util.indexable.instances.{array, charSequence, seq}
 import org.silkframework.util.indexable.syntax._
+import org.scalatest.Assertion
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
@@ -15,6 +16,10 @@ class IndexableTest extends AnyFlatSpec with Matchers {
 
   it should "resolve a negative in-range index" in {
     Seq(10, 20, 30).getAt(-1) shouldBe Some(30)
+  }
+
+  it should "resolve an interior negative index" in {
+    Seq(10, 20, 30).getAt(-2) shouldBe Some(20)
   }
 
   it should "return None for a positive out-of-range index" in {
@@ -67,6 +72,10 @@ class IndexableTest extends AnyFlatSpec with Matchers {
     Array(10, 20, 30).getAt(-1) shouldBe Some(30)
   }
 
+  it should "resolve an interior negative index" in {
+    Array(10, 20, 30).getAt(-2) shouldBe Some(20)
+  }
+
   it should "return None for a positive out-of-range index" in {
     Array(10, 20, 30).getAt(5) shouldBe None
   }
@@ -103,6 +112,10 @@ class IndexableTest extends AnyFlatSpec with Matchers {
 
   it should "resolve a negative in-range index on a String" in {
     "abc".getAt(-1) shouldBe Some('c')
+  }
+
+  it should "resolve an interior negative index on a String" in {
+    "abc".getAt(-2) shouldBe Some('b')
   }
 
   it should "return None for a positive out-of-range index on a String" in {
@@ -222,5 +235,26 @@ class IndexableTest extends AnyFlatSpec with Matchers {
         |42.getAt(0)
       """.stripMargin
     }
+  }
+
+  behavior of "Indexable (ad hoc polymorphism across stored instances)"
+
+  case class DispatchCase[C, A](container: C, index: Int, expected: Option[A])(implicit ev: Indexable[C, A]) {
+    def check(): Assertion = ev.getAt(container, index) shouldBe expected
+  }
+
+  val cases: Seq[DispatchCase[_, _]] = Seq(
+    DispatchCase(Seq(10, 20, 30), -1, Some(30)),
+    DispatchCase(Array(10, 20, 30), -1, Some(30)),
+    DispatchCase("abc", -1, Some('c')),
+    DispatchCase({
+      val buffer = new RingBuffer[Int](3)
+      Seq(10, 20, 30, 40).foreach(buffer.push)
+      buffer
+    }, -1, Some(40))
+  )
+
+  it should "resolve the expected value at the expected index for every stored instance, via one shared check" in {
+    for (c <- cases) c.check()
   }
 }
