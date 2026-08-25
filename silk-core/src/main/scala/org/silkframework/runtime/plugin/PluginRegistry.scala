@@ -78,11 +78,41 @@ object PluginRegistry {
    * Returns the plugin description of a specific plugin.
    */
   def pluginById[T: ClassTag](id: String): PluginDescription[T] = {
-    val pluginClass = implicitly[ClassTag[T]].runtimeClass.getName
+    val pluginClass = implicitly[ClassTag[T]].runtimeClass
     pluginType[T].pluginByIdOpt[T](id)
-      .getOrElse(id, throw new NoSuchElementException(s"No plugin '$id' found for class $pluginClass. Available plugins: ${pluginType[T].availablePlugins.map(_.id).mkString(", ")}"))
+      .getOrElse(throw new NoSuchElementException(pluginNotFoundMessage(id, pluginClass)))
       .asInstanceOf[PluginDescription[T]]
   }
+
+  /** Explains a failed plugin lookup: an id that exists under another plugin type is the likely mix-up,
+    * otherwise the closest ids are suggested. Never lists the whole type as that can be hundreds of ids. */
+  private def pluginNotFoundMessage(id: String, pluginClass: Class[_]): String = {
+    val requestedType = pluginClass.getSimpleName
+    val registeredAs = pluginsById.getOrElse(id, Seq.empty).flatMap(_.pluginTypes.map(_.label)).distinct
+    if(registeredAs.nonEmpty) {
+      s"No plugin '$id' found for class $requestedType. '$id' is a ${registeredAs.mkString(" / ")} plugin, " +
+        s"not a $requestedType."
+    } else {
+      val available = availablePluginsForClass(pluginClass).map(_.id.toString)
+      s"No plugin '$id' found for class $requestedType. ${closestPluginIds(id, available)}"
+    }
+  }
+
+  /** The ids closest to the searched one, capped. */
+  private[plugin] def closestPluginIds(id: String, available: Seq[String]): String = {
+    val searched = id.toLowerCase
+    val close = available.filter { candidate =>
+      val lower = candidate.toLowerCase
+      lower.contains(searched) || searched.contains(lower) || lower.take(3) == searched.take(3)
+    }
+    val shown = (if(close.nonEmpty) close else available).take(MAX_SUGGESTED_PLUGIN_IDS)
+    val label = if(close.nonEmpty) "Closest ids" else "Available ids"
+    val rest = if(available.size > shown.size) s" (${available.size} plugins are available for this type)" else ""
+    if(shown.isEmpty) "No plugins are available for this type." else s"$label: ${shown.mkString(", ")}.$rest"
+  }
+
+  /** Max plugin ids named in a not-found message. */
+  private final val MAX_SUGGESTED_PLUGIN_IDS = 10
 
   /**
    * Returns the (optional) plugin description of a specific plugin.

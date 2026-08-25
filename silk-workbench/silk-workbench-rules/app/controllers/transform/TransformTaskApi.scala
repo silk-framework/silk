@@ -159,6 +159,10 @@ class TransformTaskApi @Inject() () extends InjectedController with UserContextA
     responses = Array(
       new ApiResponse(
         responseCode = "200"
+      ),
+      new ApiResponse(
+        responseCode = "400",
+        description = "If other tasks reference the task and removeDependentTasks is false. The message names them and every task that removeDependentTasks=true would delete."
       )
     )
   )
@@ -180,8 +184,9 @@ class TransformTaskApi @Inject() () extends InjectedController with UserContextA
                           taskName: String,
                           @Parameter(
                             name = "removeDependentTasks",
-                            description = "If true, transform and linking tasks that directly reference this task are removed as well.",
-                            required = true,
+                            description = "If true, all tasks that directly or indirectly reference this task are removed as well. " +
+                              "Otherwise the deletion is rejected while other tasks reference it.",
+                            required = false,
                             in = ParameterIn.QUERY,
                             schema = new Schema(implementation = classOf[Boolean], defaultValue = "false")
                           )

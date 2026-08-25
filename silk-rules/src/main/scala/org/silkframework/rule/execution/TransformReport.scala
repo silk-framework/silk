@@ -36,7 +36,7 @@ case class TransformReport(task: Task[TransformSpec],
     )
   }
 
-  def warnings: Seq[String] = {
+  lazy val warnings: Seq[String] = {
     var allErrors = globalErrors
     if(entityErrorCount != 0) {
       allErrors :+= entityErrorWarning

@@ -111,7 +111,7 @@ case class WorkflowExecutionReport(task: Task[TaskSpec],
     }
   }
 
-  override def warnings: Seq[String] = {
+  override lazy val warnings: Seq[String] = {
     val taskWarnings = if(taskReports.exists(_.report.warnings.nonEmpty)) {
       Seq("Some tasks generated warnings.")
     } else {

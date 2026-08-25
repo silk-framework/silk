@@ -21,7 +21,7 @@ import org.silkframework.runtime.activity.{HasValue, UserContext}
 import org.silkframework.runtime.plugin.{PluginContext, PluginRegistry, TaskResolver}
 import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.runtime.templating.{TemplateVariables, TemplateVariablesManager}
-import org.silkframework.runtime.validation.{NotFoundException, ValidationException}
+import org.silkframework.runtime.validation.{BadUserInputException, NotFoundException}
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.access.{AccessControlConfig, ProjectAccessControlManager, ProjectAccessDeniedException}
 import org.silkframework.workspace.activity.workflow.{Workflow, WorkflowValidator}
@@ -29,6 +29,7 @@ import org.silkframework.workspace.activity.{ProjectActivity, ProjectActivityFac
 import org.silkframework.workspace.exceptions.{IdentifierAlreadyExistsException, TaskNotFoundException}
 
 import java.util.logging.{Level, Logger}
+import scala.collection.mutable
 import scala.reflect.ClassTag
 import scala.util.control.NonFatal
 
@@ -377,29 +378,27 @@ class Project(initialConfig: ProjectConfig, provider: WorkspaceProvider, val res
     *
     * @param taskName The name of the task
     * @param removeDependentTasks Also remove tasks that directly or indirectly reference the named task
-    * @throws ValidationException If the task to be removed is referenced by another task and removeDependentTasks is false.
+    * @return The ids of all removed tasks, including the dependent ones.
+    * @throws BadUserInputException If the task to be removed is referenced by another task and removeDependentTasks is false.
     */
   def removeAnyTask(taskName: Identifier, removeDependentTasks: Boolean)
-                   (implicit userContext: UserContext): Unit = synchronized {
+                   (implicit userContext: UserContext): Set[Identifier] = synchronized {
     // Find the task in the project
     modules.view.flatMap(module => module.taskOption(taskName).map(task => (module, task))).headOption match {
-      case Some((module, task)) =>
-        // Task has been found, remove it
-        if(removeDependentTasks) {
-          // Remove all dependent tasks
-          for(dependentTask <- task.findDependentTasks(recursive = false) if anyTaskOption(dependentTask).isDefined) {
-            removeAnyTask(dependentTask, removeDependentTasks = true)
-          }
-        } else {
-          // Make sure that no other task depends on this task
-          for(task <- allTasks) {
-            if(task.data.inputTasks.contains(taskName)) {
-              throw new ValidationException(s"Cannot delete task $taskName as it is referenced by task ${task.id}")
-            }
-          }
+      case Some((module, _)) =>
+        val tasks = allTasks
+        val referencingTasks = tasks.filter(_.data.referencedTasks.contains(taskName)).sortBy(_.id.toString)
+        val dependentTasks = withIndirectDependents(tasks, taskName, referencingTasks.map(_.id))
+        if(dependentTasks.nonEmpty && !removeDependentTasks) {
+          // A client error: the caller decides whether to cascade, so the REST endpoints answer 400, not 500.
+          throw BadUserInputException(deletionRejectedMessage(taskName, referencingTasks, dependentTasks))
         }
-        // Remove the task from the module
+        // Farthest dependents first, so no task references a task that is already gone.
+        for(dependentTask <- dependentTasks.reverse; dependentModule <- modules if dependentModule.taskOption(dependentTask).isDefined) {
+          dependentModule.remove(dependentTask)(readWriteUser)
+        }
         module.remove(taskName)(readWriteUser)
+        dependentTasks.toSet + taskName
       case None =>
         // Task not found, check if it failed to load
         for {
@@ -410,6 +409,46 @@ class Project(initialConfig: ProjectConfig, provider: WorkspaceProvider, val res
           module.removeLoadingError(taskName)
         }
         provider.removeExternalTaskLoadingError(id, taskName)
+        Set.empty
+    }
+  }
+
+  /**
+    * The direct dependents and every task that directly or indirectly references one of them, nearest first.
+    * Each task is visited once, so a reference cycle terminates.
+    */
+  private def withIndirectDependents(tasks: Seq[ProjectTask[_ <: TaskSpec]], root: Identifier, direct: Seq[Identifier]): Seq[Identifier] = {
+    val found = mutable.LinkedHashSet[Identifier]() ++ direct
+    var frontier = direct.toSet
+    while(frontier.nonEmpty) {
+      val next = tasks.filter(t => t.id != root && !found.contains(t.id) && t.data.referencedTasks.exists(frontier)).map(_.id)
+      found ++= next
+      frontier = next.toSet
+    }
+    found.toSeq
+  }
+
+  /** Names the referencing tasks and, as the blast radius, every task that removeDependentTasks=true would delete. */
+  private def deletionRejectedMessage(taskName: Identifier,
+                                      referencingTasks: Seq[ProjectTask[_ <: TaskSpec]],
+                                      dependentTasks: Seq[Identifier]): String = {
+    val references = referencingTasks.map(t => s"${t.id} (${referenceKind(t.data, taskName)})").mkString(", ")
+    s"Cannot delete task $taskName as it is referenced by task${if(referencingTasks.size > 1) "s" else ""} $references. " +
+      s"Pass removeDependentTasks=true to delete it together with all tasks that depend on it: ${dependentTasks.map(_.toString).sorted.mkString(", ")}."
+  }
+
+  /** How `referencingTask` refers to `referenced`, so a rejected deletion says where to look. */
+  private def referenceKind(referencingTask: TaskSpec, referenced: Identifier): String = {
+    val kinds = Seq(
+      Option.when(referencingTask.inputTasks.contains(referenced))("as input"),
+      Option.when(referencingTask.outputTasks.contains(referenced))("as output")
+    ).flatten
+    if(kinds.nonEmpty) {
+      kinds.mkString(" and ")
+    } else referencingTask match {
+      // Sources and sinks were matched above, so the node sits on the canvas without connections.
+      case _: Workflow => "as a workflow node without connections"
+      case _ => "in its rules or configuration"
     }
   }
 
