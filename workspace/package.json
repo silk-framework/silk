@@ -199,6 +199,8 @@
         "ts-pnp": "1.1.6",
         "typescript": "5.5.3",
         "url-loader": "^4.1.1",
+        "vinyl": "^3.0.1",
+        "vinyl-fs": "^4.0.2",
         "webpack": "^4.47.0",
         "webpack-bundle-analyzer": "^4.10.2",
         "webpack-cli": "^3.3.12",
