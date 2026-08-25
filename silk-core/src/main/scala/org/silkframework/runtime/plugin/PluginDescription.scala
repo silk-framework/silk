@@ -167,7 +167,7 @@ trait PluginDescription[+T] {
           stringParam.fromString(strValue).asInstanceOf[AnyRef]
         } catch {
           case NonFatal(ex) =>
-            throw new InvalidPluginParameterValueException(s"Got '$strValue', but expected: ${stringParam.description.stripSuffix(".")}. Details: ${ex.getMessage}", ex)
+            throw new InvalidPluginParameterValueException(s"Got '$strValue', but ${expected(stringParam)}. Details: ${ex.getMessage}", ex)
         }
       case template: ParameterTemplateValue =>
         // Only password parameters are allowed to resolve sensitive variables
@@ -184,13 +184,19 @@ trait PluginDescription[+T] {
         } catch {
           case NonFatal(ex) =>
             throw new InvalidPluginParameterValueException(s"Got '$evaluatedValue' based on template '${template.template}', " +
-              s"but expected: ${stringParam.description.stripSuffix(".")}. Details: ${ex.getMessage}", ex)
+              s"but ${expected(stringParam)}. Details: ${ex.getMessage}", ex)
         }
       case parameterObjectValue: ParameterObjectValue =>
         parameterObjectValue.value(context)
       case _ =>
-        throw new IllegalArgumentException(s"Expected a string parameter, but got $value.")
+        throw new IllegalArgumentException(s"Got ${PluginDescription.describeValue(value)}, but ${expected(stringParam)}.")
     }
+  }
+
+  /** The "expected …" part of a value error. A type without its own description is described by its name, which says nothing. */
+  private def expected(stringParam: StringParameterType[_]): String = {
+    val description = stringParam.description.stripSuffix(".")
+    if (description == stringParam.name) "expected a string" else s"expected: $description"
   }
 
   private def parseObjectParameter(objParam: PluginObjectParameterTypeTrait, value: ParameterValue,
@@ -207,13 +213,23 @@ trait PluginDescription[+T] {
             throw new IllegalArgumentException(s"No plugin description available. Value needs to be provided using a ${classOf[ParameterObjectValue].getClass.getSimpleName}.")
         }
       case _ =>
-        throw new IllegalArgumentException(s"Expected a complex parameter, but got $value.")
+        throw new IllegalArgumentException(s"Got ${PluginDescription.describeValue(value)}, but expected a nested object.")
     }
   }
 
 }
 
 object PluginDescription {
+
+  /** Names a parameter value in an error message, instead of its case-class toString. The JSON reader maps
+    * every array and null to an empty ParameterValues, so that case cannot be told apart from `{}`. */
+  private[plugin] def describeValue(value: ParameterValue): String = value match {
+    case ParameterStringValue(string) => s"the string '$string'"
+    case ParameterTemplateValue(template) => s"the template '$template'"
+    case ParameterValues(values) if values.isEmpty => "an array, null or an empty object"
+    case ParameterValues(values) => s"a nested object with the keys ${values.keys.mkString(", ")}"
+    case other => s"a ${other.getClass.getSimpleName}"
+  }
 
   /** Returns a plugin description for a given task. */
   def forTask(task: TaskSpec): PluginDescription[_] = {
