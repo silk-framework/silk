@@ -176,6 +176,7 @@ class ProjectTest extends AnyFlatSpec with Matchers with TestWorkspaceProviderTe
       project.removeAnyTask("normalizeLabel", removeDependentTasks = false)
     ruleBlockError.getMessage should include("normalizeLabel")
     ruleBlockError.getMessage should include("transformUsingRuleBlock")
+    ruleBlockError.getMessage should include("removeDependentTasks=true")
 
     // Deleting the dataset the transform writes to is just as breaking as deleting its input.
     val outputError = the[ValidationException] thrownBy project.removeAnyTask("sink", removeDependentTasks = false)

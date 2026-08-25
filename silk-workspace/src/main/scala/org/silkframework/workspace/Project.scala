@@ -395,7 +395,8 @@ class Project(initialConfig: ProjectConfig, provider: WorkspaceProvider, val res
           for(referencingTask <- allTasks) {
             if(referencingTask.data.referencedTasks.contains(taskName)) {
               throw new ValidationException(s"Cannot delete task $taskName as it is referenced by task " +
-                s"${referencingTask.id} (${referenceKind(referencingTask.data, taskName)})")
+                s"${referencingTask.id} (${referenceKind(referencingTask.data, taskName)}). " +
+                "Pass removeDependentTasks=true to delete the referencing tasks along with it.")
             }
           }
         }
