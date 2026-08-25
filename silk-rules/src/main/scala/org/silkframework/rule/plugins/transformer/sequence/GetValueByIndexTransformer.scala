@@ -45,9 +45,11 @@ import org.silkframework.util.indexable.syntax._
   )
 ))
 case class GetValueByIndexTransformer(
-  @Param("The index of the value to return. A non-negative index counts from the start (0-based). A negative index counts from the end, so -1 is the last value, -2 is the second-to-last, and so on.")
+  @Param("The index of the value: 0-based if non-negative; if negative, counts from the end, wrapping at -length.")
   index: Int,
+  @Param("If enabled, the transformation fails when no value exists at the given index; otherwise it is dropped.")
   failIfNotFound: Boolean = false,
+  @Param("If enabled, an empty-string result is treated as no result, instead of being returned as an empty string.")
   emptyStringToEmptyResult: Boolean = false
 ) extends InlineTransformer {
 
