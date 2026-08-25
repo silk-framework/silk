@@ -40,7 +40,7 @@
     "ecc-utils": "^1.4.0",
     "@eccenca/gui-elements": "^22.1.0-rc.1",
     "immutable": "^4.0.0-rc.12",
-    "jquery": "3.3.1",
+    "jquery": "3.5.0",
     "jquery-migrate": "3.0.1",
     "lodash": "^4.17.4",
     "mark.js": "^8.11.1",
