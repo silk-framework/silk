@@ -100,7 +100,8 @@ case class RuleBlockInput(id: Identifier = Operator.generateId,
     val ruleBlockPortIds = ruleBlockTask.data.ports.map(_.id).toSet
     val unknownBindingPortIds = bindings.map(_.portId).filterNot(ruleBlockPortIds).distinct
     if(unknownBindingPortIds.nonEmpty) {
-      throw new ValidationException(s"Rule block '$ruleBlockId' does not define ports: ${unknownBindingPortIds.mkString(", ")}.")
+      throw new ValidationException(s"Rule block usage '$id' binds ports that rule block '$ruleBlockId' " +
+        s"does not define: ${unknownBindingPortIds.mkString(", ")}.")
     }
 
     val bindingExecutions = bindings.map(binding => RuleBlockBindingExecution(binding.portId, binding.input.execution(taskContext)))
