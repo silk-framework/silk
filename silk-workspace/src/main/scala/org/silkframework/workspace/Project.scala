@@ -26,6 +26,7 @@ import org.silkframework.util.Identifier
 import org.silkframework.workspace.access.{AccessControlConfig, ProjectAccessControlManager, ProjectAccessDeniedException}
 import org.silkframework.workspace.activity.workflow.{Workflow, WorkflowValidator}
 import org.silkframework.workspace.activity.{ProjectActivity, ProjectActivityFactory}
+import org.silkframework.workspace.changes.ChangeJournal
 import org.silkframework.workspace.exceptions.{IdentifierAlreadyExistsException, TaskNotFoundException}
 
 import java.util.logging.{Level, Logger}
@@ -60,6 +61,9 @@ class Project(initialConfig: ProjectConfig, provider: WorkspaceProvider, val res
   }
 
   val cacheResources: ResourceManager = provider.projectCache(initialConfig.id)
+
+  /** The journal of changes to this project, which records every write and can revert it. */
+  val changeJournal: ChangeJournal = new ChangeJournal(this)
 
   @volatile
   private var cachedConfig: ProjectConfig = initialConfig
@@ -433,7 +437,8 @@ class Project(initialConfig: ProjectConfig, provider: WorkspaceProvider, val res
   /** Returns the user context for read and write operations to the workspace provider. */
   private def readWriteUser(implicit userContext: UserContext): UserContext = {
     if(AccessControlConfig().enabled) {
-      loadingUser
+      // The loading user has the provider rights, the execution context still tells where the request came from.
+      loadingUser.withExecutionContext(userContext.executionContext)
     } else {
       userContext
     }
