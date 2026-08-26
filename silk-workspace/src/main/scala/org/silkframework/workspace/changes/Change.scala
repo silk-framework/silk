@@ -14,6 +14,9 @@ import scala.reflect.{ClassTag, classTag}
   */
 trait Change {
 
+  /** The kind of change, as served by the API. */
+  def changeType: String = getClass.getSimpleName
+
   /** Short description for display, e.g. "Added mapping rule 'name' under 'root' in transform 'persons'". */
   def describe: String
 

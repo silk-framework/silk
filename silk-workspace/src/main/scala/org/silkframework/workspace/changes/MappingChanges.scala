@@ -1,6 +1,7 @@
 package org.silkframework.workspace.changes
 
 import org.silkframework.rule.{ContainerTransformRule, RootMappingRule, RuleTraverser, TransformRule, TransformSpec}
+import org.silkframework.runtime.validation.{BadUserInputException, NotFoundException}
 import org.silkframework.util.Identifier
 
 /**
@@ -49,9 +50,9 @@ object RemoveMapping {
   /** The removal of an existing rule of the transform, capturing the rule and its position. */
   def of(taskId: Identifier, spec: TransformSpec, ruleId: Identifier): RemoveMapping = {
     val traverser = RuleTraverser(spec.mappingRule).find(ruleId)
-      .getOrElse(throw new NoSuchElementException(s"No rule '$ruleId' found in transform '$taskId'."))
+      .getOrElse(throw new NotFoundException(s"No rule '$ruleId' found in transform '$taskId'."))
     val parent = traverser.moveUp
-      .getOrElse(throw new IllegalArgumentException(s"The root rule of transform '$taskId' cannot be removed."))
+      .getOrElse(throw BadUserInputException(s"The root rule of transform '$taskId' cannot be removed."))
     val index = parent.operator.children.indexWhere(_.id == ruleId)
     RemoveMapping(taskId, parent.operator.id, traverser.operator.asInstanceOf[TransformRule], Some(index))
   }
@@ -81,7 +82,7 @@ object UpdateMapping {
   /** The update of an existing rule of the transform, capturing the current rule. */
   def of(taskId: Identifier, spec: TransformSpec, ruleId: Identifier, updated: TransformRule): UpdateMapping = {
     val current = RuleTraverser(spec.mappingRule).find(ruleId)
-      .getOrElse(throw new NoSuchElementException(s"No rule '$ruleId' found in transform '$taskId'."))
+      .getOrElse(throw new NotFoundException(s"No rule '$ruleId' found in transform '$taskId'."))
     UpdateMapping(taskId, current.operator.asInstanceOf[TransformRule], updated)
   }
 }

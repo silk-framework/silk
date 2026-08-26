@@ -7,7 +7,6 @@ import io.swagger.v3.oas.annotations.media.{Content, ExampleObject, Schema}
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.tags.Tag
 import io.swagger.v3.oas.annotations.{Operation, Parameter}
-import org.silkframework.runtime.validation.NotFoundException
 import org.silkframework.workspace.WorkspaceFactory
 import org.silkframework.workspace.changes.ChangeEntry
 import play.api.libs.json.{Format, Json}
@@ -82,9 +81,6 @@ class ChangeJournalApi @Inject()() extends InjectedController with UserContextAc
              )
              seq: Int): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     val journal = WorkspaceFactory().workspace.project(projectId).changeJournal
-    if(journal.entry(seq).isEmpty) {
-      throw new NotFoundException(s"No change $seq in project '$projectId'.")
-    }
     Ok(Json.toJson(ChangeEntryJson.of(journal.revert(seq), revertedBy = None)))
   }
 }
@@ -114,7 +110,7 @@ object ChangeJournalApi {
     implicit val format: Format[ChangeEntryJson] = Json.format[ChangeEntryJson]
 
     def of(entry: ChangeEntry, revertedBy: Option[Int]): ChangeEntryJson = {
-      ChangeEntryJson(entry.seq, entry.timestamp.toString, entry.user, entry.origin, entry.change.getClass.getSimpleName,
+      ChangeEntryJson(entry.seq, entry.timestamp.toString, entry.user, entry.origin, entry.change.changeType,
         entry.change.describe, entry.reverts, revertedBy)
     }
   }
