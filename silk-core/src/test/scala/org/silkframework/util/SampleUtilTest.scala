@@ -1,5 +1,5 @@
 package org.silkframework.util
-
+
 
 import scala.util.Random
 import org.scalatest.flatspec.AnyFlatSpec
@@ -40,6 +40,26 @@ class SampleUtilTest extends AnyFlatSpec with Matchers {
     }
     val sample = SampleUtil.sample(values.iterator, 10000, Some(filter))
     isCloseToUniform(sample)
+  }
+
+  it should "sample every position with the same probability" in {
+    // Each distinct value appears exactly once, so the sample frequency of a value is the inclusion probability
+    // of its position. A position dependent sampling probability shows up here, while a value based check cannot see it.
+    for((inputSize, sampleSize) <- Seq((5, 2), (10, 3))) {
+      val trials = 50000
+      val counts = Array.fill(inputSize)(0)
+      for(_ <- 1 to trials) {
+        for(value <- SampleUtil.sample((0 until inputSize).iterator, sampleSize, None)) {
+          counts(value) += 1
+        }
+      }
+      val expected = sampleSize.toDouble / inputSize
+      for((count, position) <- counts.zipWithIndex) {
+        withClue(s"for position $position of $inputSize (sample size $sampleSize): ") {
+          count.toDouble / trials shouldBe (expected +- 0.02)
+        }
+      }
+    }
   }
 
   it should "take all values if the input set is smaller" in {

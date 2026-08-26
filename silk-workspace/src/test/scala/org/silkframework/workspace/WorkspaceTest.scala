@@ -8,7 +8,7 @@ import org.silkframework.runtime.activity.{Activity, ActivityContext, SimpleUser
 import org.silkframework.runtime.plugin.{PluginContext, PluginRegistry}
 import org.silkframework.runtime.resource.{ResourceManager, TestResourceManager}
 import org.silkframework.runtime.users.DefaultUserManager
-import org.silkframework.runtime.validation.ServiceUnavailableException
+import org.silkframework.runtime.validation.{BadUserInputException, ServiceUnavailableException}
 import org.silkframework.util.{ConfigTestTrait, Identifier, MockitoSugar}
 import org.silkframework.workspace.WorkspaceTest._
 import org.silkframework.workspace.activity.TaskActivityFactory
@@ -110,6 +110,26 @@ class WorkspaceTest extends AnyFlatSpec with Matchers with ConfigTestTrait with 
     newSleepActivity.status() mustBe 'isRunning
   }
 
+  it should "stop all activities before a project is removed" in {
+    val workspaceProvider = new TestWorkspaceProvider(loadTimePause = 0)
+    PluginRegistry.registerPlugin(classOf[SlowStopActivityFactory])
+
+    val project = Identifier("removedProject")
+    val task = Identifier("task")
+    workspaceProvider.putProject(ProjectConfig(project, metaData = MetaData(Some(project))))
+    workspaceProvider.putTask(project, PlainTask(task,  TestTask()), TestResourceManager())
+
+    val workspace = new Workspace(workspaceProvider, InMemoryResourceRepository())
+
+    // Activity should have been started automatically
+    val slowStopActivity = workspace.project(project).anyTask(task).activity[SlowStopActivity]
+    slowStopActivity.status() mustBe 'isRunning
+
+    // The activity must have stopped when the project is gone, else it could still write to the deleted project
+    workspace.removeProject(project)
+    slowStopActivity.status() must not be 'isRunning
+  }
+
   it should "reload workspace prefixes and add them to all projects" in {
     val initialPrefix = "initialPrefix"
     val secondPrefix = "secondPrefix"
@@ -138,6 +158,47 @@ class WorkspaceTest extends AnyFlatSpec with Matchers with ConfigTestTrait with 
     projectConfig2.projectPrefixes.get("rdfs") must not be defined
     projectConfig2.prefixes.get(secondPrefix) mustBe defined
     projectConfig2.prefixes.get(projectPrefix) must not be defined
+  }
+
+  it should "persist the initial access control groups before the project becomes available" in {
+    val provider = new InMemoryWorkspaceProvider()
+    val workspace = new Workspace(provider, InMemoryResourceRepository())
+    val project = workspace.createProject(ProjectConfig("projectWithGroups", metaData = MetaData(Some("projectWithGroups"))),
+      initialGroups = Some(Set("group1")))
+    project.accessControl.getGroups mustBe Set("group1")
+    provider.readAccessControl("projectWithGroups").map(_.groups) mustBe Some(Set("group1"))
+  }
+
+  it should "not leave a project behind if persisting its initial access control groups fails" in {
+    val provider = new FailingAccessControlProvider()
+    val workspace = new Workspace(provider, InMemoryResourceRepository())
+    // Nothing has been created, so the original exception is reported with its own status code instead of a 500
+    val ex = intercept[BadUserInputException] {
+      workspace.createProject(ProjectConfig("openProject", metaData = MetaData(Some("openProject"))),
+        initialGroups = Some(Set("group1")))
+    }
+    ex.getMessage must include ("Access control backend")
+    // Neither cached nor persisted, so no project without its groups is reachable
+    workspace.projectOption("openProject") must not be defined
+    provider.readProjects() mustBe empty
+    // Once the backend recovered, the same project can be created
+    provider.failAccessControlWrites = false
+    val project = workspace.createProject(ProjectConfig("openProject", metaData = MetaData(Some("openProject"))),
+      initialGroups = Some(Set("group1")))
+    project.accessControl.getGroups mustBe Set("group1")
+  }
+
+  it should "report honestly when a project cannot be removed after its access control could not be persisted" in {
+    val provider = new FailingAccessControlProvider()
+    provider.failProjectDeletion = true
+    val workspace = new Workspace(provider, InMemoryResourceRepository())
+    val ex = intercept[RuntimeException] {
+      workspace.createProject(ProjectConfig("stuckProject", metaData = MetaData(Some("stuckProject"))),
+        initialGroups = Some(Set("group1")))
+    }
+    // The project is still stored, which the error message must not hide
+    ex.getMessage must include ("could not be removed")
+    provider.readProjects().map(_.id.toString) must contain ("stuckProject")
   }
 
   it should "use the loading user for provider write calls when access control is enabled" in {
@@ -199,6 +260,27 @@ object WorkspaceTest {
                                                       (implicit userContext: UserContext): Unit = {
       recordedUsers += (("deleteTask", userContext))
       super.deleteTask(project, task)
+    }
+  }
+
+  /** Provider whose access control writes fail, like a backend that goes down mid-creation. */
+  class FailingAccessControlProvider extends InMemoryWorkspaceProvider {
+    var failAccessControlWrites: Boolean = true
+    var failProjectDeletion: Boolean = false
+
+    override def putAccessControl(project: Identifier, accessControl: AccessControl)
+                                 (implicit userContext: UserContext): Unit = {
+      if(failAccessControlWrites) {
+        throw BadUserInputException("Access control backend unavailable")
+      }
+      super.putAccessControl(project, accessControl)
+    }
+
+    override def deleteProject(name: Identifier)(implicit userContext: UserContext): Unit = {
+      if(failProjectDeletion) {
+        throw new RuntimeException("Backend unavailable")
+      }
+      super.deleteProject(name)
     }
   }
 
@@ -273,6 +355,33 @@ object WorkspaceTest {
                     (implicit userContext: UserContext): Unit = {
       Thread.sleep(10000)
     }
+  }
+
+  case class SlowStopActivityFactory() extends TaskActivityFactory[TestTask, SlowStopActivity] {
+
+    override def autoRun: Boolean = true
+
+    def apply(task: ProjectTask[TestTask]): Activity[Unit] = {
+      new SlowStopActivity
+    }
+  }
+
+  // Activity that keeps working for a while after it has been cancelled, like an activity that finishes its current chunk
+  class SlowStopActivity extends Activity[Unit] {
+    override def run(context: ActivityContext[Unit])
+                    (implicit userContext: UserContext): Unit = {
+      try {
+        Thread.sleep(10000)
+      } catch {
+        case _: InterruptedException =>
+          Thread.interrupted() // Clear the interrupt flag, so that the remaining work is not interrupted as well
+          Thread.sleep(SlowStopActivity.stopDurationMillis)
+      }
+    }
+  }
+
+  object SlowStopActivity {
+    final val stopDurationMillis = 500L
   }
 
 }

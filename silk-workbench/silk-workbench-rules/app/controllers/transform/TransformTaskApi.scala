@@ -677,9 +677,7 @@ class TransformTaskApi @Inject() () extends InjectedController with UserContextA
                                      task: ProjectTask[TransformSpec],
                                      userContext: UserContext,
                                      project: Project): Result = {
-    if (task.data.nestedRuleAndSourcePath(newChildRule.id).isDefined) {
-      throw new ValidationException(s"Rule with ID ${newChildRule.id} already exists!")
-    }
+    task.data.validateNewRuleId(newChildRule.id)
     val children = parentRule.operator.children
     val newChildren = children.indexWhere(rule => afterRuleId.contains(rule.id.toString)) match {
       case afterRuleIdx: Int if afterRuleIdx >= 0 =>
@@ -900,7 +898,8 @@ class TransformTaskApi @Inject() () extends InjectedController with UserContextA
             val currentRules = parentRule.operator.asInstanceOf[TransformRule].rules
             val currentOrder = currentRules.propertyRules.map(_.id.toString).toList
             val newOrder = json.as[JsArray].value.map(_.as[JsString].value).toList
-            if (newOrder.toSet == currentOrder.toSet) {
+            // Compared as sorted lists, so that a repeated id is rejected as well
+            if (newOrder.sorted == currentOrder.sorted) {
               val newPropertyRules =
                 for (id <- newOrder) yield {
                   parentRule.operator.children.find(_.id == id).get
@@ -1053,7 +1052,7 @@ class TransformTaskApi @Inject() () extends InjectedController with UserContextA
                                dataSource: DataSource,
                                errorEntitySinkOpt: Option[EntitySink])
                               (implicit userContext: UserContext): Unit = {
-    val inputTask = task.project.anyTask(task.selection.inputId)
+    val inputTask = task.selection.inputTaskId.map(id => task.project.anyTask(id))
     val transform = new ExecuteTransform(
       task = task,
       inputTask = _ => inputTask,

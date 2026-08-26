@@ -36,10 +36,16 @@ trait HasMetaData {
   def fullLabel(implicit prefixes: Prefixes = Prefixes.empty): String = label(Int.MaxValue)
 
   /**
-    * Returns a string containing both the full label and the identifier, e.g., to be used for logging.
+    * Returns a string containing both the label (truncated) and the identifier, e.g., to be used for messages
+    * and logging. Returns just the identifier if the label carries no information beyond it.
     */
   def labelAndId(implicit prefixes: Prefixes = Prefixes.empty): String = {
-    s"'${fullLabel()}' ($id)"
+    val truncatedLabel = label(MetaData.DEFAULT_LABEL_MAX_LENGTH)
+    if(truncatedLabel == id.toString || truncatedLabel == MetaData.labelFromId(id)) {
+      id.toString
+    } else {
+      s"'$truncatedLabel' ($id)"
+    }
   }
 
   /**

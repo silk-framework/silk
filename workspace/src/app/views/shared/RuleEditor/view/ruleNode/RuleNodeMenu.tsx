@@ -8,6 +8,7 @@ import { RuleEditorContext } from "../../contexts/RuleEditorContext";
 import { ruleEditorModelUtilsFactory } from "../../model/RuleEditorModel.utils";
 import { internalRuleBlockEvaluationActionState } from "./internalRuleBlockEvaluationAction.utils";
 import { taskUrl } from "../../../../../store/ducks/router/operations";
+import { ruleOperatorToPluginDocumentation } from "../../RuleEditorDocumentation";
 
 interface NodeMenuProps {
     nodeId: string;
@@ -42,7 +43,6 @@ export const RuleNodeMenu = ({
         menuFns?.closeMenu();
     };
     const menuFunctionsCallback = useMemo(() => (menuFunctions) => setMenuFns(menuFunctions), []);
-    const operatorDoc = ruleOperatorDocumentation || ruleOperatorDescription || "";
     const currentRuleNode = modelContext.ruleOperatorNodes().find((node) => node.nodeId === nodeId);
     const extraMenuItems = currentRuleNode
         ? ruleEditorContext.extraRuleNodeMenuItems?.(currentRuleNode, closeMenu)
@@ -81,10 +81,11 @@ export const RuleNodeMenu = ({
                         icon={"item-question"}
                         onClick={(e) => {
                             closeMenu();
-                            ruleEditorUiContext.setCurrentRuleNodeInfo({
-                                description: operatorDoc,
-                                label: ruleOperatorLabel,
-                            });
+                            if (currentRuleNode) {
+                                ruleEditorUiContext.setCurrentRuleNodeInfo(
+                                    ruleOperatorToPluginDocumentation(currentRuleNode, ruleEditorContext.operatorList),
+                                );
+                            }
                             e.preventDefault();
                             e.stopPropagation();
                         }}

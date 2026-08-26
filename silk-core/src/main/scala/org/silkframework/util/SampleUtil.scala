@@ -34,9 +34,6 @@ object SampleUtil {
     val sample = new Array[T](size)
 
     var valueCount = 0L
-    // Init first round
-    var step = 1
-    var nextSampleProbability = 1.0 / step
     // Filter function for values
     val f: T => Boolean = filterOpt match {
       case Some(filter) => filter
@@ -46,16 +43,15 @@ object SampleUtil {
     for (value <- values if f(value)) {
       if (valueCount < size) {
         sample(valueCount.toInt) = value
-      } else if (random.nextDouble() < nextSampleProbability) {
-        val idx = (valueCount % size).toInt // Round-robin over each position in the array
-        sample(idx) = value
+      } else {
+        // Replace a random position of the sample, with a probability that decreases as more values are seen.
+        // Picking the position at random is what makes every value equally likely to end up in the sample.
+        val index = (random.nextDouble() * (valueCount + 1)).toLong
+        if (index < size) {
+          sample(index.toInt) = value
+        }
       }
       valueCount += 1
-      if (valueCount % size == 0) {
-        // Init next round: A new round begins when all positions have been covered with the current probability
-        step += 1
-        nextSampleProbability = 1.0 / step
-      }
     }
     // Allow to return samples smaller than size
     ArraySeq.unsafeWrapArray(sample).take(math.min(size, valueCount).toInt)

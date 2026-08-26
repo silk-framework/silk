@@ -18,7 +18,7 @@ package org.silkframework.rule.plugins.transformer.date
 
 import org.silkframework.rule.annotations.{TransformExample, TransformExamples}
 import java.text.SimpleDateFormat
-import java.util.Date
+import java.util.{Date, Locale, TimeZone}
 import org.silkframework.rule.input.SimpleTransformer
 import org.silkframework.runtime.plugin.annotations.{Param, Plugin, PluginReference}
 
@@ -43,38 +43,57 @@ import java.time.Instant
 )
 @TransformExamples(Array(
   new TransformExample(
+    description = "By default, a milliseconds timestamp is converted to a full xsd:dateTime in UTC.",
     parameters = Array(),
     input1 = Array("1499117572000"),
     output = Array("2017-07-03T21:32:52Z")
   ),
   new TransformExample(
+    description = "A custom date format returns only the requested fields.",
     parameters = Array("format", "yyyy-MM-dd"),
     input1 = Array("1499040000000"),
     output = Array("2017-07-03")
   ),
   new TransformExample(
+    description = "The 'unit' parameter interprets the input as seconds instead of milliseconds.",
     parameters = Array("format", "yyyy-MM-dd", "unit", "seconds"),
     input1 = Array("1499040000"),
     output = Array("2017-07-03")
+  ),
+  new TransformExample(
+    description = "Custom formats are rendered in UTC, independently of the server timezone.",
+    parameters = Array("format", "yyyy-MM-dd HH:mm"),
+    input1 = Array("0"),
+    output = Array("1970-01-01 00:00")
   )
 ))
 case class TimestampToDateTransformer(
-  @Param("Custom output format (e.g., 'yyyy-MM-dd'). If left empty, a full xsd:dateTime (UTC) is returned.")
+  @Param("Custom output format (e.g., 'yyyy-MM-dd'), rendered in UTC. If left empty, a full xsd:dateTime (UTC) is returned.")
   format: String = "",
   unit: DateUnit = DateUnit.milliseconds
 ) extends SimpleTransformer {
 
-  private val dateFormat = {
+  // Fail eagerly on invalid formats at construction time.
+  createFormat()
+
+  // SimpleDateFormat is not thread-safe, so each thread gets its own instance.
+  @transient private lazy val dateFormat: ThreadLocal[Option[SimpleDateFormat]] =
+    ThreadLocal.withInitial(() => createFormat())
+
+  private def createFormat(): Option[SimpleDateFormat] = {
     if(format.trim.isEmpty) {
       None
     } else {
-      Some(new SimpleDateFormat(format))
+      // Format in UTC with a fixed locale, so the output does not depend on the server configuration.
+      val df = new SimpleDateFormat(format, Locale.ENGLISH)
+      df.setTimeZone(TimeZone.getTimeZone("UTC"))
+      Some(df)
     }
   }
 
   override def evaluate(value: String): String = {
     val instant = Instant.EPOCH.plus(value.toLong, unit.toChronoUnit)
-    dateFormat match {
+    dateFormat.get() match {
       case Some(df) =>
         df.format(new Date(instant.toEpochMilli))
       case None =>

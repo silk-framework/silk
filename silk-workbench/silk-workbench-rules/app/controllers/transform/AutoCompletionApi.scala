@@ -17,7 +17,7 @@ import io.swagger.v3.oas.annotations.tags.Tag
 import io.swagger.v3.oas.annotations.{Operation, Parameter}
 import org.silkframework.config.Prefixes
 import org.silkframework.entity.paths._
-import org.silkframework.entity.{EntitySchema, ValueType, ValueTypeAnnotation}
+import org.silkframework.entity.{EntitySchema, ValueType}
 import org.silkframework.rule.vocab.ObjectPropertyType
 import org.silkframework.rule.{ContainerTransformRule, TransformRule, TransformSpec}
 import org.silkframework.runtime.activity.UserContext
@@ -256,7 +256,7 @@ class AutoCompletionApi @Inject() () extends InjectedController with UserContext
         AutoCompletionApi.validateAutoCompletionRequest(autoCompletionRequest)
         val inputAndOutputTasks = ProjectTaskApi.validateTaskContext(project, autoCompletionRequest.taskContext)
         val inputEqualsConfig = inputAndOutputTasks.inputTasks.size == 1 &&
-          inputAndOutputTasks.inputTasks.head.workflowContextTask.id == transformTask.data.selection.inputId.toString
+          transformTask.data.selection.inputTaskId.map(_.toString).contains(inputAndOutputTasks.inputTasks.head.workflowContextTask.id)
         val alternativeEntitySchema = if(inputEqualsConfig) None else inputAndOutputTasks.inputEntitySchema().filter(_.typedPaths.nonEmpty)
         val sourcePath: List[PathOperator] = autoCompletionRequest.baseSourcePath match {
           case Some(sourcePathString) =>
@@ -384,7 +384,7 @@ class AutoCompletionApi @Inject() () extends InjectedController with UserContext
               )
               val inputOutputTasks = ProjectTaskApi.validateTaskContext(project, uriPatternAutoCompletionRequest.workflowTaskContext)
               val inputEqualsConfig = inputOutputTasks.inputTasks.size == 1 &&
-                inputOutputTasks.inputTasks.head.workflowContextTask.id == transformTask.data.selection.inputId.toString
+                transformTask.data.selection.inputTaskId.map(_.toString).contains(inputOutputTasks.inputTasks.head.workflowContextTask.id)
               val alternativeInputSchema = if(inputEqualsConfig) None else inputOutputTasks.inputEntitySchema().filter(_.typedPaths.nonEmpty)
               val autoCompletionResponse = autoCompletePartialSourcePath(transformTask, partialSourcePathAutoCompletionRequest,
                 basePath, isObjectPath = false, alternativeInputSchema)
@@ -730,21 +730,10 @@ class AutoCompletionApi @Inject() () extends InjectedController with UserContext
   }
 
   private def valueTypeCompletion(valueType: PluginDescription[ValueType]): Completion = {
-    val annotation = valueType.pluginClass.getAnnotation(classOf[ValueTypeAnnotation])
-    val annotationDescription = {
-      if(annotation != null) {
-        val validValues = annotation.validValues().map(str => s"'$str'").mkString(", ")
-        val invalidValues = annotation.invalidValues().map(str => s"'$str'").mkString(", ")
-        s" Examples for valid values are: $validValues. Invalid values are: $invalidValues."
-      } else {
-        ""
-      }
-    }
-
     Completion(
       value = valueType.id,
       label = Some(valueType.label),
-      description = Some(valueType.description + annotationDescription),
+      description = Some(ValueType.describe(valueType)),
       category = valueType.categories.headOption.getOrElse(""),
       isCompletion = true
     )

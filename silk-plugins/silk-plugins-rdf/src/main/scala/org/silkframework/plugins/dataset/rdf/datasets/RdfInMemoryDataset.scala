@@ -10,13 +10,13 @@ import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
 
 /**
   * A Dataset where all entities are given directly in the configuration.
-  *
-  * Parameters:
-  * - '''data''': The RDF data
-  * - '''format''': The format of the RDF file. Allowed values: "RDF/XML", "N-Triples", "Turtle"
   */
 @Plugin(id = "rdf", label = "RDF in-memory", description = "A Dataset where all entities are given directly in the configuration.")
-case class RdfInMemoryDataset(data: String,
+case class RdfInMemoryDataset(@Param("The RDF data.")
+                              data: String,
+                              @Param(value = "The format of the RDF data, e.g., 'N-Triples' or 'Turtle'.",
+                                autoCompletionProvider = classOf[RdfLangAutocompletionProvider],
+                                autoCompleteValueWithLabels = true)
                               format: String,
                               @Param(label = "Clear graph before workflow execution (deprecated)",
                                 value = "This is deprecated, use the 'Clear dataset' operator instead to clear a dataset in a workflow. If set to true this will clear the specified graph before executing a workflow that writes to it.",

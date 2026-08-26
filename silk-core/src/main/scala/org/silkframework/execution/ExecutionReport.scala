@@ -8,6 +8,9 @@ import org.silkframework.execution.report.SampleEntities
   */
 trait ExecutionReport {
 
+  /** Optional, execution-specific title supplied by the backend. */
+  def title: Option[String] = None
+
   /**
     * The task that corresponds to this report.
     */
@@ -77,7 +80,8 @@ trait ExecutionReport {
     * transform's rule results) should override this to set the error in place and preserve their data.
     */
   def asFailed(error: String): ExecutionReport =
-    SimpleExecutionReport(task, summary, warnings, Some(error), isDone = true, entityCount, operation, operationDesc)
+    SimpleExecutionReport(task, summary, warnings, Some(error), isDone = true, entityCount, operation, operationDesc,
+      operationType = operationType, title = title)
 
   /**
     * The number of entities that have been processed.

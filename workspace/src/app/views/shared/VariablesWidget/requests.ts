@@ -52,12 +52,7 @@ export const createNewVariable = (
  * @param task  If provided, updates an execution variable of that task instead of a project variable.
  * @returns
  */
-export const updateVariable = (
-    payload,
-    project: string,
-    name: string,
-    task?: string,
-): Promise<FetchResponse<any>> =>
+export const updateVariable = (payload, project: string, name: string, task?: string): Promise<FetchResponse<any>> =>
     fetch({
         url: coreApi(`/variableTemplate/variables/${name}`),
         query: {

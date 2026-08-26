@@ -38,6 +38,9 @@ object PluginRegistry {
   @volatile
   private var timestamp: Long = System.currentTimeMillis()
 
+  /** Serializes all mutations of the registry, so that concurrent (un)registrations cannot lose updates. */
+  private val registrationLock = new AnyRef
+
   // Register all plugins at instantiation of this singleton object.
   Config.pluginFolder() match {
     case Some(folder) =>
@@ -93,12 +96,14 @@ object PluginRegistry {
    *
    * @param id The id of the plugin.
    * @param params The instantiation parameters.
+   * @param ignoreNonExistingParameters If false, creation fails if a parameter is provided that does not exist on the plugin.
    * @tparam T The base type of the plugin.
    * @return A new instance of the plugin type with the given parameters.
    */
-  def create[T: ClassTag](id: String, params: ParameterValues = ParameterValues.empty)
+  def create[T: ClassTag](id: String, params: ParameterValues = ParameterValues.empty,
+                          ignoreNonExistingParameters: Boolean = true)
                          (implicit context: PluginContext): T = {
-    pluginType[T].create[T](id, params)
+    pluginType[T].create[T](id, params, ignoreNonExistingParameters)
   }
 
   /**
@@ -223,7 +228,11 @@ object PluginRegistry {
   def registerFromClasspath(classLoader: ClassLoader = Thread.currentThread.getContextClassLoader): Unit = {
     // Load all plugin classes
     val loader = ServiceLoader.load(classOf[PluginModule], classLoader)
-    val modules = loader.iterator().asScala.toList
+    var modules = loader.iterator().asScala.toList
+    if(modules.isEmpty) {
+      // Fall back to our own class loader, e.g. the context class loader of fork/join workers cannot see the classpath since JDK 19
+      modules = ServiceLoader.load(classOf[PluginModule], classOf[PluginModule].getClassLoader).iterator().asScala.toList
+    }
     val pluginClasses = for(module <- modules; pluginClass <- module.pluginClasses) yield pluginClass
 
     // Create a plugin description for each plugin class (can be done in parallel)
@@ -284,18 +293,21 @@ object PluginRegistry {
   def registerPlugin(pluginDesc: PluginDescription[_]): Unit = {
     checkPluginDescription(pluginDesc)
     if(!Config.blacklistedPlugins().contains(pluginDesc.id)) {
-      if(pluginsById.contains(pluginDesc.id)) {
-        throw new InvalidPluginException(s"Plugin with id '${pluginDesc.id}' already exists. " +
-            s"Please use a different id for $pluginDesc.")
+      // The check-then-act and the update of all maps must be atomic, so that concurrent registrations are not lost
+      registrationLock.synchronized {
+        if(pluginsById.contains(pluginDesc.id)) {
+          throw new InvalidPluginException(s"Plugin with id '${pluginDesc.id}' already exists. " +
+              s"Please use a different id for $pluginDesc.")
+        }
+        for (superType <- pluginDesc.pluginTypes) {
+          val pluginType = pluginTypesById.getOrElse(superType.name, new PluginTypeHolder(superType))
+          pluginTypesById += ((superType.name, pluginType))
+          pluginType.register(pluginDesc)
+        }
+        plugins += ((pluginDesc.pluginClass.getName, pluginDesc))
+        pluginsById += ((pluginDesc.id.toString, pluginDesc :: (pluginsById.getOrElse(pluginDesc.id, Seq()).toList)))
+        timestamp = System.currentTimeMillis()
       }
-      for (superType <- pluginDesc.pluginTypes) {
-        val pluginType = pluginTypesById.getOrElse(superType.name, new PluginTypeHolder(superType))
-        pluginTypesById += ((superType.name, pluginType))
-        pluginType.register(pluginDesc)
-      }
-      plugins += ((pluginDesc.pluginClass.getName, pluginDesc))
-      pluginsById += ((pluginDesc.id.toString, pluginDesc :: (pluginsById.getOrElse(pluginDesc.id, Seq()).toList)))
-      timestamp = System.currentTimeMillis()
     }
   }
 
@@ -313,22 +325,24 @@ object PluginRegistry {
     * Does nothing if the plugin is not registered.
     */
   def unregisterPlugin(pluginDesc: PluginDescription[_]): Unit = {
-    for  { superType <- pluginDesc.pluginTypes
-           pluginType <- pluginTypesById.get(superType.name)} {
-      pluginType.unregister(pluginDesc.id)
-    }
-    plugins -= pluginDesc.pluginClass.getName
+    registrationLock.synchronized {
+      for  { superType <- pluginDesc.pluginTypes
+             pluginType <- pluginTypesById.get(superType.name)} {
+        pluginType.unregister(pluginDesc.id)
+      }
+      plugins -= pluginDesc.pluginClass.getName
 
-    // Remove plugin from pluginsById
-    val existingPluginsForId = pluginsById.getOrElse(pluginDesc.id.toString, Seq.empty)
-    val updatedPluginsForId = existingPluginsForId.filter(_.pluginClass.getName != pluginDesc.pluginClass.getName)
-    if(updatedPluginsForId.nonEmpty) {
-      pluginsById += ((pluginDesc.id.toString, updatedPluginsForId))
-    } else {
-      pluginsById -= pluginDesc.id.toString
-    }
+      // Remove plugin from pluginsById
+      val existingPluginsForId = pluginsById.getOrElse(pluginDesc.id.toString, Seq.empty)
+      val updatedPluginsForId = existingPluginsForId.filter(_.pluginClass.getName != pluginDesc.pluginClass.getName)
+      if(updatedPluginsForId.nonEmpty) {
+        pluginsById += ((pluginDesc.id.toString, updatedPluginsForId))
+      } else {
+        pluginsById -= pluginDesc.id.toString
+      }
 
-    timestamp = System.currentTimeMillis()
+      timestamp = System.currentTimeMillis()
+    }
   }
 
   /**
@@ -376,12 +390,13 @@ object PluginRegistry {
      *
      * @param id The id of the plugin.
      * @param params The instantiation parameters.
+     * @param ignoreNonExistingParameters If false, creation fails if a parameter is provided that does not exist on the plugin.
      * @tparam T The base type of the plugin.
      * @return A new instance of the plugin type with the given parameters.
      */
-    def create[T: ClassTag](id: String, params: ParameterValues)
+    def create[T: ClassTag](id: String, params: ParameterValues, ignoreNonExistingParameters: Boolean = true)
                            (implicit context: PluginContext): T = {
-      pluginById[T](id).apply(params)
+      pluginById[T](id).apply(params, ignoreNonExistingParameters)
     }
 
     /**

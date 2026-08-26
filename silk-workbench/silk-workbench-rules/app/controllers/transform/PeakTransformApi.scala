@@ -98,7 +98,7 @@ class PeakTransformApi @Inject() () extends InjectedController with UserContextA
       val (project, task) = projectAndTask(projectName, taskName)
       val transformSpec = task.data
       val ruleSchemata = transformSpec.oneRuleEntitySchemaById(ruleName).get
-      val inputTaskId = transformSpec.selection.inputId
+      val inputTaskId = transformSpec.selection.inputTaskId
       implicit val context: PluginContext = PluginContext.fromProject(project)
 
       peakRule(project, inputTaskId, ruleSchemata, limit, maxTryEntities)
@@ -170,7 +170,7 @@ class PeakTransformApi @Inject() () extends InjectedController with UserContextA
     val (project, task) = projectAndTask(projectName, taskName)
     val transformSpec = task.data
     val parentRule = transformSpec.oneRuleEntitySchemaById(ruleName).get
-    val inputTaskId = transformSpec.selection.inputId
+    val inputTaskId = transformSpec.selection.inputTaskId
     implicit val readContext: ReadContext = ReadContext.fromProject(project)
 
     deserializeCompileTime[TransformRule]() { rule =>
@@ -187,8 +187,19 @@ class PeakTransformApi @Inject() () extends InjectedController with UserContextA
     }
   }
 
-  private def peakRule(project: Project, inputTaskId: Identifier, ruleSchemata: RuleSchemata, limit: Int, maxTryEntities: Int)
+  private def peakRule(project: Project, inputTaskIdOpt: Option[Identifier], ruleSchemata: RuleSchemata, limit: Int, maxTryEntities: Int)
                       (implicit context: PluginContext): Result = {
+    inputTaskIdOpt match {
+      case Some(inputTaskId) =>
+        peakRuleWithInput(project, inputTaskId, ruleSchemata, limit, maxTryEntities)
+      case None =>
+        Ok(Json.toJson(PeakResults(None, None, PeakStatus(NOT_SUPPORTED_STATUS_MSG,
+          "No input source has been configured for this task. Transformation preview is only available if an input is selected in the task configuration."))))
+    }
+  }
+
+  private def peakRuleWithInput(project: Project, inputTaskId: Identifier, ruleSchemata: RuleSchemata, limit: Int, maxTryEntities: Int)
+                               (implicit context: PluginContext): Result = {
     implicit val prefixes: Prefixes = project.config.prefixes
     implicit val user: UserContext = context.user
 

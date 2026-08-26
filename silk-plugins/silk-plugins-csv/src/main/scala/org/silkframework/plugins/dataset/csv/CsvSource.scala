@@ -11,6 +11,7 @@ import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.iterator.{AutoClose, CloseableIterator}
 import org.silkframework.runtime.plugin.PluginContext
 import org.silkframework.runtime.resource.Resource
+import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.{Identifier, Uri}
 
 import java.io.{BufferedReader, IOException, InputStreamReader}
@@ -154,15 +155,13 @@ class CsvSource(file: Resource,
 
     logger.log(Level.FINE, "Retrieving data from CSV.")
 
-    // Collect missing columns
+    // Collect missing columns.
     var missingColumns = Seq[String]()
     for (path <- entityDesc.typedPaths) {
-      val property = path.operators.head.asInstanceOf[ForwardOperator].property.uri
-      val propertyIndex = propertyList.indexOf(property)
-      if (propertyIndex == -1) {
-        if(!property.startsWith("#")) {
-          missingColumns :+= property
-        }
+      path.operators.headOption match {
+        case Some(ForwardOperator(property)) if !property.uri.startsWith("#") && !propertyList.contains(property.uri) =>
+          missingColumns :+= property.uri
+        case _ =>
       }
     }
 
@@ -258,11 +257,12 @@ class CsvSource(file: Resource,
       }
     }
 
-    private def handleBadLine[U](index: Int, entry: Array[String]): Unit = {
-      // Bad line
+    private def handleBadLine(index: Int, entry: Array[String]): Unit = {
       if (!ignoreBadLines) {
-        assert(propertyList.size <= entry.length, s"Invalid line ${index + 1}: '${entry.toSeq}' in resource '${file.name}' with " +
-          s"${entry.length} elements. Expected number of elements ${propertyList.size}.")
+        val line = entry.map(Option(_).getOrElse("")).mkString(csvSettings.separator.toString)
+        throw new ValidationException(s"Invalid line ${index + 1}: '$line' in resource '${file.name}' with " +
+          s"${entry.length} elements. Expected number of elements ${propertyList.size}. " +
+          "Set 'ignoreBadLines' to skip such lines.")
       }
     }
 

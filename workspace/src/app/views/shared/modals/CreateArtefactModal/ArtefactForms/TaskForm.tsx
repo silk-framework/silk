@@ -66,6 +66,9 @@ export interface IProps {
 
     /** Shows or clears a warning notification in the dialog popup. */
     showWarningMessage: (warning?: TaskFormReviewWarning) => void;
+
+    /** Field values preserved over a plugin/project switch, re-applied once after mount. */
+    preservedFieldValues?: React.MutableRefObject<Record<string, unknown> | undefined>;
 }
 
 export interface TaskFormReviewWarning {
@@ -130,6 +133,12 @@ const extractDefaultValues = (pluginDetails: IPluginDetails): Map<string, string
     return m;
 };
 
+const serializeTagSelection = (selection?: MultiSuggestFieldSelectionProps<Keyword>): string =>
+    JSON.stringify({
+        createdItems: (selection?.createdItems ?? []).map((tag) => tag.uri).sort(),
+        selectedItems: (selection?.selectedItems ?? []).map((tag) => tag.uri).sort(),
+    });
+
 /** The task creation/update form. */
 export function TaskForm({
     form,
@@ -143,6 +152,7 @@ export function TaskForm({
     newTaskPreConfiguration,
     propagateExternallyChangedParameterValue,
     showWarningMessage,
+    preservedFieldValues,
 }: IProps) {
     const { properties, required: requiredRootParameters } = artefact;
     const {
@@ -188,6 +198,7 @@ export function TaskForm({
     const [t] = useTranslation();
     const parameterLabels = React.useRef(new Map<string, string>());
     const [label, description] = form.watch([LABEL, DESCRIPTION]);
+    const tagSelection = form.watch(TAGS) as MultiSuggestFieldSelectionProps<Keyword> | undefined;
     const dataPreviewPlugin = pluginRegistry.pluginReactComponent<DataPreviewProps>(SUPPORTED_PLUGINS.DATA_PREVIEW);
     const escapeKeyDisabled = React.useRef(false);
 
@@ -363,6 +374,13 @@ export function TaskForm({
             register(DESCRIPTION);
             register(IDENTIFIER);
             register(TAGS);
+            // Re-apply metadata preserved over a plugin/project switch, since unregistering on unmount
+            // has dropped the form values and the tag widget's initial selection event overwrites them.
+            if (preservedFieldValues?.current) {
+                const preservedValues = preservedFieldValues.current;
+                preservedFieldValues.current = undefined;
+                Object.entries(preservedValues).forEach(([field, value]) => setValue(field, value));
+            }
         }
         if (newTaskPreConfiguration) {
             newTaskPreConfiguration.metaData?.label && setValue(LABEL, newTaskPreConfiguration.metaData?.label);
@@ -505,8 +523,19 @@ export function TaskForm({
     );
 
     const handleTagSelectionChange = React.useCallback(
-        (params: MultiSuggestFieldSelectionProps<Keyword>) => setValue(TAGS, params),
-        [],
+        (params: MultiSuggestFieldSelectionProps<Keyword>) => {
+            const oldValue = getValues()[TAGS] as MultiSuggestFieldSelectionProps<Keyword> | undefined;
+            if (params.newlySelected || params.newlyRemoved) {
+                setValue(TAGS, params);
+                detectChange(TAGS, serializeTagSelection(params), serializeTagSelection(oldValue));
+                if (!escapeKeyDisabled.current) {
+                    escapeKeyDisabled.current = true;
+                }
+            } else if (!oldValue) {
+                setValue(TAGS, params);
+            }
+        },
+        [detectChange, getValues, setValue],
     );
     const preConfiguredFileAndLabel =
         newTaskPreConfiguration?.preConfiguredParameterValues?.file && newTaskPreConfiguration?.metaData?.label;
@@ -550,7 +579,7 @@ export function TaskForm({
     );
 
     const datasetConfigValues = React.useCallback(() => {
-        return commonOp.buildStringValuedObject(getValues());
+        return commonOp.buildStringValuedObject(commonOp.extractParameterValues(getValues()));
     }, []);
 
     return doChange ? (
@@ -608,8 +637,10 @@ export function TaskForm({
                             label={t("form.field.tags")}
                             inputElementFactory={() => (
                                 <MultiTagSelect
+                                    dataTestId="task-tags-select"
                                     projectId={projectId}
                                     handleTagSelectionChange={handleTagSelectionChange}
+                                    selectedTags={tagSelection?.selectedItems}
                                 />
                             )}
                         />
@@ -710,6 +741,16 @@ export function TaskForm({
                                 datasetConfigValues={datasetConfigValues}
                                 autoLoad={showPreviewAutomatically}
                                 startWithRawView={showRawView}
+                                emptyStateMessages={{
+                                    noEntries: t(
+                                        "DataPreview.emptyState.taskConfiguration.noEntries",
+                                        "No preview entries found for the current configuration.",
+                                    ),
+                                    entriesWithoutProperties: t(
+                                        "DataPreview.emptyState.taskConfiguration.entriesWithoutProperties",
+                                        "Preview entries do not contain any properties.",
+                                    ),
+                                }}
                             />
                         )}
                     </>

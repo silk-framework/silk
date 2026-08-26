@@ -47,6 +47,12 @@ trait ProjectTrait extends HasMetaData {
   def taskOption[T <: TaskSpec : ClassTag](taskName: Identifier)
                                           (implicit userContext: UserContext): Option[Task[T]]
 
+  /** Returns a task option for an optional task name, e.g., an optional task input. */
+  def taskOption[T <: TaskSpec : ClassTag](taskName: Option[Identifier])
+                                          (implicit userContext: UserContext): Option[Task[T]] = {
+    taskName.flatMap(name => taskOption[T](name))
+  }
+
   /** Retrieves a task of the requested type. */
   def task[T <: TaskSpec : ClassTag](taskName: Identifier)
                                     (implicit userContext: UserContext): Task[T]

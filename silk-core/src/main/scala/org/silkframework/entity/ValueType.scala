@@ -3,7 +3,7 @@ package org.silkframework.entity
 
 import org.silkframework.config.Prefixes
 import org.silkframework.entity.ValueType.{GEO, XSD}
-import org.silkframework.runtime.plugin.AnyPlugin
+import org.silkframework.runtime.plugin.{AnyPlugin, PluginDescription}
 import org.silkframework.runtime.plugin.annotations.{Plugin, PluginType}
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat}
 import org.silkframework.util.StringUtils.DoubleLiteral
@@ -164,6 +164,25 @@ object ValueType {
       case Left(_) =>
         throw new IllegalArgumentException(s"Value type ID '$valueTypeId' is not a plain value type.")
     }
+  }
+
+  /**
+    * The description of a value type as shown to a user, extended by everything needed to actually use it:
+    * the example values of its [[ValueTypeAnnotation]] and the attribute that the parameterized types
+    * require besides 'nodeType'. Shared by the workbench and the MCP autocompletion.
+    */
+  def describe(valueType: PluginDescription[_]): String = {
+    val examples = Option(valueType.pluginClass.getAnnotation(classOf[ValueTypeAnnotation])).map { annotation =>
+      def quoted(values: Array[String]): String = values.map(value => s"'$value'").mkString(", ")
+      s"Examples for valid values are: ${quoted(annotation.validValues())}. Invalid values are: ${quoted(annotation.invalidValues())}."
+    }
+    val requiredAttribute = valueType.id.toString match {
+      case CUSTOM_VALUE_TYPE_ID => Some("Requires an additional 'uri' attribute holding the datatype URI.")
+      case LANGUAGE_VALUE_TYPE_ID => Some("Requires an additional 'lang' attribute holding the language tag.")
+      case _ => None
+    }
+    (Seq(valueType.description) ++ examples ++ requiredAttribute).map(_.trim).filter(_.nonEmpty)
+      .map(sentence => if(sentence.endsWith(".")) sentence else sentence + ".").mkString(" ")
   }
 
   /**

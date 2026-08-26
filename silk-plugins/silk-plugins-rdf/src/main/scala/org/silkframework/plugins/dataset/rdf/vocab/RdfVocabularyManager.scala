@@ -3,6 +3,7 @@ package org.silkframework.plugins.dataset.rdf.vocab
 import org.silkframework.dataset.rdf.{GraphStoreTrait, SparqlEndpoint}
 import org.silkframework.rule.vocab.{Vocabulary, VocabularyManager}
 import org.silkframework.runtime.activity.UserContext
+import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.runtime.plugin.annotations.Plugin
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.WorkspaceFactory
@@ -25,7 +26,7 @@ case class RdfVocabularyManager() extends VocabularyManager {
       case Some(endpoint) =>
         endpoint
       case _ =>
-        throw new RuntimeException("Workspace has no SPARQL enabled storage backend.")
+        throw new ValidationException("Cannot load vocabularies: the workspace has no SPARQL enabled storage backend.")
     }
   }
 

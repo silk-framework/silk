@@ -105,6 +105,8 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
     const [reactFlowInstance, setReactFlowInstance] = React.useState<OnLoadParams | undefined>(undefined);
     /** The nodes and edges of the rule editor. */
     const [elements, setElements] = React.useState<Elements>([]);
+    /** Increases whenever all canvas elements are reconstructed from the rule model. */
+    const [initializationGeneration, setInitializationGeneration] = React.useState(0);
     /** Track the current elements, since the API methods changing the elements when run subsequently will otherwise work with the same elements.
      * Use the function changeElementsInternal to modify the elements instead of directly changing them. */
     const [current] = React.useState<{ elements: Elements; evaluateQuickly: boolean }>({
@@ -300,7 +302,6 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
             ruleEditorContext.initialRuleOperatorNodes &&
             ruleEditorContext.operatorSpec &&
             ruleEditorContext.operatorList &&
-            ruleEditorContext.editedItem &&
             reactFlowInstance
         ) {
             initModel();
@@ -310,7 +311,6 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
         ruleEditorContext.initialRuleOperatorNodes,
         ruleEditorContext.operatorSpec,
         ruleEditorContext.operatorList,
-        ruleEditorContext.editedItem,
         reactFlowInstance,
     ]);
 
@@ -450,9 +450,17 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                         },
                     };
                     // This need to be done every time the handles of a node have been changed, else the UI does not show the current state
+                    // Looks like the FF/Gecko need 25m timeout to work like intended, see https://chat.eccenca.com/eccenca/pl/zifiwak4i3brbgo3r83aayy34h
+                    // TODO: this timeout process looks like a workaround, maybe we can fix this by another method
+                    const updateNodeInternalsTimeout =
+                        !window.navigator.userAgent ||
+                        (window.navigator.userAgent.includes("Gecko") &&
+                            !window.navigator.userAgent.includes("like Gecko"))
+                            ? 30
+                            : 1;
                     setTimeout(() => {
                         updateNodeInternals(node.id);
-                    }, 1);
+                    }, updateNodeInternalsTimeout);
                     return nodeWithNewHandles;
                 } else {
                     return node;
@@ -2364,6 +2372,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
             elems = await autoLayoutInternal(elems, false, false);
         }
         setElements(elems);
+        setInitializationGeneration((generation) => generation + 1);
         utils.initNodeBaseIds([...nodes, ...stickyNodeElements]);
         if (resetHistory) {
             ruleUndoStack.splice(0);
@@ -2445,6 +2454,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
         <RuleEditorModelContext.Provider
             value={{
                 elements,
+                initializationGeneration,
                 isReadOnly: () => readOnlyState.enabled,
                 readOnly,
                 setIsReadOnly: ruleEditorContext.readOnlyMode ? undefined : setIsReadOnly,

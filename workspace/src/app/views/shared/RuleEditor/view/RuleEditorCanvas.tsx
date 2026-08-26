@@ -26,6 +26,7 @@ import { RuleEditorUiContext } from "../contexts/RuleEditorUiContext";
 import { useSelector } from "react-redux";
 import { commonSel } from "@ducks/common";
 import { RuleEditorSidebarDragPayload, RuleEditorSidebarOperatorDragPayload } from "../RuleEditor.typings";
+import { useInitialNodeInternalsSynchronization } from "./useInitialNodeInternalsSynchronization";
 
 //snap grid
 const snapGrid: [number, number] = [15, 15];
@@ -68,6 +69,17 @@ export const RuleEditorCanvas = () => {
     const { isOpen } = useSelector(commonSel.artefactModalSelector);
     const { hotKeysDisabled } = React.useContext(ReactFlowHotkeyContext);
     const hotKeysDisabledRef = React.useRef(false);
+    const ruleNodes = modelUtils.elementNodes(modelContext.elements);
+    const ruleNodeIds = ruleNodes.map((node) => node.id);
+    const nodeGeometryKey = ruleNodes
+        .map((node) => `${node.id}:${(node.data.handles ?? []).map((handle) => handle.id).join(",")}`)
+        .join("|");
+    useInitialNodeInternalsSynchronization({
+        reactFlowWrapper: ruleEditorUiContext.reactFlowWrapper,
+        nodeIds: ruleNodeIds,
+        nodeGeometryKey,
+        initializationGeneration: modelContext.initializationGeneration,
+    });
 
     /** Clones the given nodes with a small offset. */
     const cloneNodes = (nodeIds: string[]) => {

@@ -40,11 +40,11 @@ private class LinkingXmlSerializer extends XmlSerializer[LinkSpec] {
   /**
    * Loads a specific task in this module.
    */
-  private def loadTask(taskResources: ResourceLoader)
+  private def loadTask(name: Identifier, taskResources: ResourceLoader)
                       (implicit context: PluginContext): LoadedTask[LinkSpec] = {
     val taskOrError =
-      loadTaskSafelyFromXML("linkSpec.xml", None, taskResources).taskOrError match {
-        case Right(linkSpec) => // TODO: Fix alternative ID
+      loadTaskSafelyFromXML("linkSpec.xml", name, taskResources).taskOrError match {
+        case Right(linkSpec) =>
           val referenceLinks = taskResources.get("alignment.xml").read(ReferenceLinksReader.readReferenceLinks)
           val updatedLinkSpec = linkSpec.data.copy(referenceLinks = referenceLinks)
           updatedLinkSpec.init(linkSpec.pluginSpec, linkSpec.templateValues)
@@ -82,7 +82,7 @@ private class LinkingXmlSerializer extends XmlSerializer[LinkSpec] {
                         (implicit context: PluginContext): Seq[LoadedTask[LinkSpec]] = {
     val tasks =
       for(name <- resources.listChildren) yield
-        loadTask(resources.child(name))
+        loadTask(name, resources.child(name))
     tasks
   }
 }

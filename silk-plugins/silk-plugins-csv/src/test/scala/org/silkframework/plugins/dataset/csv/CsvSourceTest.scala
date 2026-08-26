@@ -4,11 +4,12 @@ package org.silkframework.plugins.dataset.csv
 import org.silkframework.config.Prefixes
 import org.silkframework.dataset.{DataSource, DatasetSpec}
 import org.silkframework.execution.ExecutorRegistry
-import org.silkframework.entity.paths.UntypedPath
+import org.silkframework.entity.paths.{PathNotFoundException, UntypedPath}
 import org.silkframework.entity.{Entity, EntitySchema, ValueType}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.{PluginContext, TestPluginContext}
 import org.silkframework.runtime.resource._
+import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.Uri
 
 import java.io.StringReader
@@ -86,6 +87,29 @@ class CsvSourceTest extends AnyFlatSpec with Matchers {
     persons(0).values should equal(IndexedSeq(Seq("Max Mustermann"), Seq("30")))
     persons(1).values should equal(IndexedSeq(Seq("Markus G."), Seq("24")))
     persons(2).values should equal(IndexedSeq(Seq("John Doe"), Seq("55")))
+  }
+
+  "For persons.csv, CsvParser" should "report a path that names no column, instead of failing internally" in {
+    // A path may start with a filter, which a flat source cannot resolve to a column.
+    val entityDesc = EntitySchema(typeUri = Uri(""),
+      typedPaths = IndexedSeq(UntypedPath.parse("""[Name = "Max Mustermann"]/Age""").asStringTypedPath))
+    val error = intercept[PathNotFoundException](source.retrieveEntities(entityDesc).entities.toIndexedSeq)
+    error.getMessage should include ("Available paths: ID, Name, Age")
+  }
+
+  "For ragged.csv, CsvParser" should "report a line with too few elements by its values" in {
+    val entityDesc = EntitySchema(typeUri = Uri(""), typedPaths = IndexedSeq(UntypedPath("ID").asStringTypedPath))
+    val raggedSource = new CsvSource(resources.get("ragged.csv"), settings)
+    val error = intercept[ValidationException](raggedSource.retrieve(entityDesc).entities.toIndexedSeq)
+    error.getMessage should include ("'2,20' in resource 'ragged.csv' with 2 elements. Expected number of elements 3.")
+    error.getMessage should include ("ignoreBadLines")
+  }
+
+  it should "skip such a line if ignoreBadLines is set" in {
+    val entityDesc = EntitySchema(typeUri = Uri(""), typedPaths = IndexedSeq(UntypedPath("ID").asStringTypedPath))
+    val tolerantSource = new CsvSource(resources.get("ragged.csv"), settings, ignoreBadLines = true)
+    val ids = tolerantSource.retrieve(entityDesc).entities.map(_.values.head).toIndexedSeq
+    ids shouldBe IndexedSeq(Seq("1"), Seq("3"))
   }
 
   "For spaced_persons.csv, CsvParser" should "trim the whitespaces if so configured" in {

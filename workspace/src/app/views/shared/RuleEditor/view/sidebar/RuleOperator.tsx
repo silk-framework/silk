@@ -16,6 +16,8 @@ import { ColorLike } from "color";
 import getColorConfiguration from "@eccenca/gui-elements/src/common/utils/getColorConfiguration";
 import { useTranslation } from "react-i18next";
 import { RuleEditorUiContext } from "../../contexts/RuleEditorUiContext";
+import { RuleEditorContext } from "../../contexts/RuleEditorContext";
+import { ruleOperatorToPluginDocumentation } from "../../RuleEditorDocumentation";
 
 interface RuleOperatorProps {
     // The rule operator that should be rendered
@@ -36,6 +38,7 @@ export const RuleOperator = ({ ruleOperator, textQuery, searchWords }: RuleOpera
     const [t] = useTranslation();
     const operatorDoc = ruleOperator.markdownDocumentation || ruleOperator.description || "";
     const ruleEditorUiContext = React.useContext(RuleEditorUiContext);
+    const ruleEditorContext = React.useContext(RuleEditorContext);
 
     return (
         <OverviewItemDescription>
@@ -83,8 +86,11 @@ export const RuleOperator = ({ ruleOperator, textQuery, searchWords }: RuleOpera
                                 name="item-question"
                                 onClick={() =>
                                     ruleEditorUiContext.setCurrentRuleNodeInfo({
-                                        description: operatorDoc,
-                                        label: ruleOperator.label,
+                                        ...ruleOperatorToPluginDocumentation(
+                                            ruleOperator,
+                                            ruleEditorContext.operatorList,
+                                        ),
+                                        markdownDocumentation: operatorDoc,
                                     })
                                 }
                                 small

@@ -507,18 +507,27 @@ object Workflow {
   }
 
   /** Creates a workflow, dropping replaceable dataset IDs of datasets that do not occur in the workflow
-    * (e.g. of removed datasets). The constructor itself rejects such IDs, so use this whenever the
-    * replaceable IDs are not known to be clean. */
+    * (e.g. of removed datasets) and trimming trailing vacant input ports (e.g. left by clients that
+    * vacate ports on edge removal). The constructor itself rejects stale replaceable IDs, so use this
+    * whenever the workflow data is not known to be clean. */
   def createNormalized(operators: WorkflowOperatorsParameter = WorkflowOperatorsParameter(Seq.empty),
              datasets: WorkflowDatasetsParameter = WorkflowDatasetsParameter(Seq.empty),
              uiAnnotations: UiAnnotations = UiAnnotations(),
              replaceableInputs: TaskIdentifierParameter = TaskIdentifierParameter(Seq.empty),
              replaceableOutputs: TaskIdentifierParameter = TaskIdentifierParameter(Seq.empty)): Workflow = {
     val workflowDatasets = datasets.value.map(_.task.toString).toSet
-    Workflow(operators, datasets, uiAnnotations,
+    Workflow(
+      operators.value.map(op => op.copy(inputs = trimTrailingVacantInputs(op.inputs))),
+      datasets.value.map(ds => ds.copy(inputs = trimTrailingVacantInputs(ds.inputs))),
+      uiAnnotations,
       replaceableInputs.taskIds.filter(workflowDatasets.contains),
       replaceableOutputs.taskIds.filter(workflowDatasets.contains))
   }
+
+  /** Trailing vacant input ports carry no information but are rendered as phantom input ports by the
+    * workflow editor; interior vacant ports keep their index so positional ports keep their meaning. */
+  private def trimTrailingVacantInputs(inputs: Seq[Option[String]]): Seq[Option[String]] =
+    inputs.reverse.dropWhile(_.isEmpty).reverse
 
   implicit object WorkflowXmlFormat extends XmlFormat[Workflow] {
 

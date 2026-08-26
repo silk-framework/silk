@@ -47,8 +47,8 @@ case class Prefixes(prefixMap: immutable.HashMap[String, String]) extends Serial
   /**
    * Resolves a qualified name to its full URI.
    *
-   * @param name The qualified name e.g. rdf:label.
-   * @return The full URI e.g. http://www.w3.org/1999/02/22-rdf-syntax-ns#label
+   * @param name The qualified name e.g. rdfs:label.
+   * @return The full URI e.g. http://www.w3.org/2000/01/rdf-schema#label
    * @see shorten
    */
   def resolve(name: String): String = name.split(":", 2) match {
@@ -66,8 +66,8 @@ case class Prefixes(prefixMap: immutable.HashMap[String, String]) extends Serial
   /**
    * Tries to shorten a full URI.
    *
-   * @param uri The full URI e.g. http://www.w3.org/1999/02/22-rdf-syntax-ns#label
-   * @return The qualified name if a prefix was found e.g. rdf:label. The full URI otherwise.
+   * @param uri The full URI e.g. http://www.w3.org/2000/01/rdf-schema#label
+   * @return The qualified name if a prefix was found e.g. rdfs:label. The full URI otherwise.
    * @see resolve
    */
   def shorten(uri: String): String = {

@@ -1,5 +1,5 @@
 package org.silkframework.plugins.dataset.xml
-
+
 import org.silkframework.config.Prefixes
 import org.silkframework.entity.paths.{TypedPath, UntypedPath}
 import org.silkframework.entity.{Entity, _}
@@ -339,8 +339,8 @@ class XmlSinkTest extends AnyFlatSpec with Matchers {
       entityTables = Seq(entities),
       expected =
         <Root>
-          <Element xmlns:ns0="urn:schema:">
-            <ns0:name>1</ns0:name>
+          <Element>
+            <ns0:name xmlns:ns0="urn:schema:">1</ns0:name>
           </Element>
         </Root>,
       compareRawText = true

@@ -35,7 +35,12 @@ private[entity] class PathParser(prefixes: Prefixes) extends RegexParsers {
       // Parse path
       parseAll(path, new CharSequenceReader(completePath)) match {
         case Success(parsedPath, _) => parsedPath
-        case error: NoSuccess => throw new ValidationException(error.toString)
+        case error: NoSuccess =>
+          // The parser positions the failure in the normalized string and prints the grammar. Both are
+          // internals: the caller never wrote the added variable and cannot act on a regex.
+          val offset = math.min(math.max(0, error.next.offset - (completePath.length - pathStr.length)), pathStr.length)
+          throw new ValidationException(s"Cannot parse the path at character ${offset + 1}: " +
+            s"${PathParser.humanReadable(error.msg)}\n\n$pathStr\n${" " * offset}^")
       }
     }
   }
@@ -69,7 +74,7 @@ private[entity] class PathParser(prefixes: Prefixes) extends RegexParsers {
             val originalErrorOffset = math.max(error.next.offset - addedOffset - 1, 0)
             partialParseError = Some(PartialParseError(
               originalErrorOffset,
-              error.msg,
+              PathParser.humanReadable(error.msg),
               pathStr.substring(originalParseOffset, math.min(originalErrorOffset + 1, pathStr.length)), // + 1 since we want to have the character where it failed
               originalParseOffset
             ))
@@ -92,7 +97,9 @@ private[entity] class PathParser(prefixes: Prefixes) extends RegexParsers {
   private def normalized(pathStr: String): String = {
     pathStr.headOption match {
       case Some('?') => pathStr // Path includes a variable
-      case Some('/') | Some('\\') => "?a" + pathStr // Variable has been left out
+      // Starts with an operator, so only the variable is left out. A filter is one of them: the grammar
+      // allows it as the first operator and paths are serialized that way, e.g. [rdf:type = <urn:x>]/a.
+      case Some('/') | Some('\\') | Some('[') => "?a" + pathStr
       case _ => "?a/" + pathStr // Variable and leading '/' have been left out
     }
   }
@@ -129,17 +136,15 @@ private[entity] class PathParser(prefixes: Prefixes) extends RegexParsers {
         value = if(value.startsWith("\"")) value else "<" + Uri.parse(value, prefixes).uri + ">")
   }
 
-  // An identifier that is either a URI enclosed in angle brackets (e.g., <URI>) or a plain identifier (e.g., name or prefix:name)
   private def identifier: Regex = PathParser.Regexes.identifier
 
-  // A language tag according to the Sparql spec
-  private def languageTag = """[a-zA-Z]+('-'[a-zA-Z0-9]+)*""".r
+  private def languageTag = PathParser.Regexes.languageTag
 
   // A value that is either an identifier or a literal value enclosed in quotes (e.g., "literal").
-  private def value = identifier | "\"[^\"]*\"".r
+  private def value = identifier | PathParser.Regexes.quotedValue
 
-  // A comparison operator
-  private def compOperator = ">" | "<" | ">=" | "<=" | "=" | "!="
+  // A comparison operator. Longer operators must come first, since the ordered choice does not backtrack.
+  private def compOperator = ">=" | "<=" | "!=" | ">" | "<" | "="
 }
 
 object PathParser {
@@ -149,7 +154,26 @@ object PathParser {
   }
   object Regexes {
     import RegexParts._
+    // A URI enclosed in angle brackets (e.g., <URI>) or a plain identifier (e.g., name or prefix:name)
     val identifier: Regex = (s"$uriExpression|$plainIdentifier").r
+    // A language tag according to the Sparql spec
+    val languageTag: Regex = """[a-zA-Z]+('-'[a-zA-Z0-9]+)*""".r
+    // A literal value enclosed in quotes (e.g., "literal")
+    val quotedValue: Regex = "\"[^\"]*\"".r
+
+    /** What each regex stands for, in the words of a caller who has not seen the grammar. */
+    val descriptions: Seq[(Regex, String)] = Seq(
+      identifier -> "a property name or a <URI>",
+      languageTag -> "a language tag",
+      quotedValue -> "a quoted value"
+    )
+  }
+
+  /** Replaces the regexes in a parser message: a caller cannot act on the grammar of the path language. */
+  private def humanReadable(parserMessage: String): String = {
+    Regexes.descriptions.foldLeft(parserMessage) {
+      case (message, (regex, description)) => message.replace(s"string matching regex '$regex'", description)
+    }
   }
 }
 

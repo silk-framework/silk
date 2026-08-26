@@ -5,6 +5,7 @@ import org.silkframework.dataset.rdf.{GraphStoreTrait, SparqlEndpoint}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.PluginContext
 import org.silkframework.runtime.resource.ResourceManager
+import org.silkframework.runtime.templating.TemplateVariables
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.io.WorkspaceIO
 import org.silkframework.workspace.resources.ResourceRepository
@@ -95,7 +96,16 @@ class CombinedWorkspaceProvider(val primaryWorkspace: WorkspaceProvider,
     * Access to project variables.
     */
   override def projectVariables(projectName: Identifier)(implicit userContext: UserContext): TemplateVariablesSerializer = {
-    executeOnBackends(_.projectVariables(projectName), s"Updating variables in project $projectName")
+    // Wrapping this getter would only create the secondary serializer and discard it, so the returned one forwards the update
+    new TemplateVariablesSerializer {
+      override def readVariables()(implicit userContext: UserContext): TemplateVariables = {
+        primaryWorkspace.projectVariables(projectName).readVariables()
+      }
+
+      override def putVariables(variables: TemplateVariables)(implicit userContext: UserContext): Unit = {
+        executeOnBackends(_.projectVariables(projectName).putVariables(variables), s"Updating variables in project $projectName")
+      }
+    }
   }
 
   /**

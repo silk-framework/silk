@@ -20,6 +20,7 @@ import { pluginRegistry, SUPPORTED_PLUGINS } from "../../plugins/PluginRegistry"
 import { DataPreviewProps } from "../../plugins/plugin.types";
 import { IPluginDetails } from "@ducks/common/typings";
 import DeprecatedPluginsBanner from "../Project/DeprecatedPlugins/DeprecatedPluginsBanner";
+import VariablesWidget from "../../shared/VariablesWidget/VariablesWidget";
 
 // The dataset plugins that should show the data preview automatically without user interaction.
 const automaticallyPreviewedDatasets = ["json", "xml", "csv"];
@@ -60,6 +61,16 @@ export function Dataset() {
                         title={t("pages.dataset.title", "Data preview")}
                         preview={{ project: projectId, dataset: taskId }}
                         autoLoad={showPreviewAutomatically}
+                        emptyStateMessages={{
+                            noEntries: t(
+                                "DataPreview.emptyState.datasetPage.noEntries",
+                                "No preview entries found. This dataset may be empty.",
+                            ),
+                            entriesWithoutProperties: t(
+                                "DataPreview.emptyState.datasetPage.entriesWithoutProperties",
+                                "Preview entries do not contain any properties.",
+                            ),
+                        }}
                     />
                 )
             );
@@ -111,6 +122,8 @@ export function Dataset() {
                     <TaskConfig projectId={projectId} taskId={taskId} pluginDataCallback={pluginDataCallback} />
                     <Spacing />
                     <TaskActivityOverview projectId={projectId} taskId={taskId} />
+                    <Spacing />
+                    <VariablesWidget projectId={projectId} taskId={taskId} />
                 </Section>
             </WorkspaceSide>
         </WorkspaceContent>

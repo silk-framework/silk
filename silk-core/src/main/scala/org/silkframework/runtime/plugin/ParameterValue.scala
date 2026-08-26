@@ -72,16 +72,14 @@ case class ParameterObjectValueSerialized(xmlFormat: SerializationFormat[Any, No
 object ParameterObjectValue {
   def apply(parameterValue: AnyRef)
            (implicit  pluginContext: PluginContext): ParameterObjectValue = {
-    try {
-      val xmlFormat = Serialization.formatForDynamicType[Node](parameterValue.getClass)
-      implicit val writeContext: WriteContext[Node] = WriteContext.fromPluginContext[Node]()(pluginContext)
-      val valueXml = xmlFormat.write(parameterValue)
-      ParameterObjectValue(Right(ParameterObjectValueSerialized(xmlFormat, valueXml)))
-    } catch {
-      case _: NoSuchElementException =>
+    Serialization.formatForDynamicTypeOption[Node](parameterValue.getClass) match {
+      case Some(xmlFormat) =>
+        implicit val writeContext: WriteContext[Node] = WriteContext.fromPluginContext[Node]()(pluginContext)
+        val valueXml = xmlFormat.write(parameterValue)
+        ParameterObjectValue(Right(ParameterObjectValueSerialized(xmlFormat, valueXml)))
+      case None =>
         ParameterObjectValue(Left(parameterValue))
     }
-
   }
 }
 
