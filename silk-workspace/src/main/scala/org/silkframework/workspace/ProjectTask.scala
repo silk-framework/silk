@@ -182,8 +182,9 @@ class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
       case None =>
         executionVariablesValueHolder.all
     }
-    // First persist task
-    persistTask(PlainTask.fromTask(ProjectTask.this).copy(data = newData, metaData = metaDataToPersist, executionVariables = executionVariablesToPersist))
+    // Persisted and restarted as the loading user, who holds the provider rights; the journal records who asked.
+    val providerUser = project.readWriteUser
+    persistTask(PlainTask.fromTask(ProjectTask.this).copy(data = newData, metaData = metaDataToPersist, executionVariables = executionVariablesToPersist))(providerUser)
     // Invalidate plugin usage cache
     _cachedPluginUsages = None
     // Update (in-memory) data
@@ -192,7 +193,7 @@ class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
     executionVariablesValueHolder.put(executionVariablesToPersist)
     // Restart each activity, don't wait for completion.
     for (activity <- taskActivities if shouldAutoRun(activity)) {
-      activity.control.restart()
+      activity.control.restart()(providerUser)
     }
 
     log.info(s"Updated task '$id' of project ${project.id}." + userContext.logInfo)
