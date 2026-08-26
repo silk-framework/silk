@@ -10,7 +10,8 @@ package org.silkframework.plugins.dataset.rdf.tasks.templating
  * Strategy:
  *
  *   1. Locate the first `SELECT` keyword (word-bounded, case-insensitive).
- *   2. Find the end of the projection clause: the first `WHERE` / `FROM` keyword or `{`.
+ *   2. Find the end of the projection clause: the first `WHERE` / `FROM` keyword or `{`. A variable named like
+ *      a keyword (`?from`, `?where`) is not a boundary.
  *   3. Strip a leading `DISTINCT` / `REDUCED`.
  *   4. If the projection is `*`, fall back to collecting every distinct `?var` token in the full query.
  *   5. Otherwise, walk the projection tracking parenthesis depth. At depth 0 collect `?var` directly.
@@ -21,9 +22,10 @@ package org.silkframework.plugins.dataset.rdf.tasks.templating
  */
 object SparqlSelectVarExtractor {
 
-  private val selectKeywordPattern = """(?i)\bSELECT\b""".r
-  private val whereKeywordPattern = """(?i)\bWHERE\b""".r
-  private val fromKeywordPattern = """(?i)\bFROM\b""".r
+  // A keyword preceded by '?' or '$' is a variable named like the keyword (e.g. ?from), not the keyword itself.
+  private val selectKeywordPattern = """(?i)(?<![?$])\bSELECT\b""".r
+  private val whereKeywordPattern = """(?i)(?<![?$])\bWHERE\b""".r
+  private val fromKeywordPattern = """(?i)(?<![?$])\bFROM\b""".r
   private val distinctReducedPattern = """(?i)^(?:DISTINCT|REDUCED)\s+""".r
   private val anyVarPattern = """\?([A-Za-z_][A-Za-z0-9_]*)""".r
   private val asAliasPattern = """(?i)\bAS\s+\?([A-Za-z_][A-Za-z0-9_]*)""".r

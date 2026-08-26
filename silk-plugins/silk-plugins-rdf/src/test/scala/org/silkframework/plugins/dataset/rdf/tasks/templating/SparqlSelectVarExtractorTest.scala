@@ -79,5 +79,21 @@ class SparqlSelectVarExtractorTest extends AnyFlatSpec with Matchers {
     extract("ASK WHERE { ?s ?p ?o }") mustBe empty
   }
 
+  it should "not mistake a variable named ?from for the FROM keyword" in {
+    extract("SELECT ?to ?from WHERE { ?to ?p ?from }") mustBe Seq("to", "from")
+  }
+
+  it should "not mistake a variable named ?where for the WHERE keyword" in {
+    extract("SELECT ?where ?x WHERE { ?where ?p ?x }") mustBe Seq("where", "x")
+  }
+
+  it should "not mistake a variable named ?from inside an expression for the FROM keyword" in {
+    extract("SELECT ?to (COUNT(?from) AS ?n) WHERE { ?to ?p ?from }") mustBe Seq("to", "n")
+  }
+
+  it should "stop at a FROM clause that follows a variable named ?from" in {
+    extract("SELECT ?from FROM <urn:g> WHERE { ?from ?p ?o }") mustBe Seq("from")
+  }
+
   private def extract(query: String): Seq[String] = SparqlSelectVarExtractor.extractSelectVars(query)
 }
