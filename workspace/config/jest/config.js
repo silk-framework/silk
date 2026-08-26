@@ -12,7 +12,6 @@ module.exports = {
     },
     roots: ["<rootDir>/src/", "<rootDir>/test/"],
     collectCoverageFrom: ["test/**/*.{js,jsx,ts,tsx}", "src/**/*.{js,jsx,ts,tsx}", "!src/**/*.d.ts"],
-    resolver: "jest-pnp-resolver",
     setupFiles: ["react-app-polyfill/jsdom"],
     setupFilesAfterEnv: ["<rootDir>/src/setupTests.ts"],
     testMatch: [

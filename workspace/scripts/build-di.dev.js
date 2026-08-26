@@ -1,17 +1,12 @@
 "use strict";
 
-// Do this as the first thing so that any code reading it knows the right env.
 process.env.BABEL_ENV = "development";
 process.env.NODE_ENV = "development";
 
-// Makes the script crash on unhandled rejections instead of silently
-// ignoring them. In the future, promise rejections that are not handled will
-// terminate the Node.js process with a non-zero exit code.
-process.on("unhandledRejection", (err) => {
-    throw err;
+process.on("unhandledRejection", (error) => {
+    throw error;
 });
 
-// Ensure environment variables are read.
 require("../config/env");
 
 const path = require("path");
@@ -26,115 +21,112 @@ const checkRequiredFiles = require("react-dev-utils/checkRequiredFiles");
 const formatWebpackMessages = require("react-dev-utils/formatWebpackMessages");
 const printBuildError = require("react-dev-utils/printBuildError");
 
+const argv = process.argv.slice(2);
+const writeStatsJson = argv.includes("--stats") || argv.includes("--profile");
+const isWatch = argv.includes("--watch");
+const diagnostics = {
+    analyze: argv.includes("--analyze"),
+    profile: argv.includes("--profile"),
+};
+const config = configFactory("development", isWatch, diagnostics);
+const diBuildPath = isWatch ? paths.watchDIBuild : paths.appDIBuild;
+const diAssetsPath = isWatch ? paths.watchDIAssets : paths.appDIAssets;
 const isInteractive = process.stdout.isTTY;
-// Warn and crash if required files are missing
+let watcher;
+
 if (!checkRequiredFiles([paths.appHtml, paths.appIndexJs])) {
-    process.exit(1);
+    process.exitCode = 1;
+} else {
+    const { checkBrowsers } = require("react-dev-utils/browsersHelper");
+    checkBrowsers(paths.appPath, isInteractive)
+        .then(() => {
+            if (!isWatch) {
+                fs.emptyDirSync(diBuildPath);
+            }
+            copyPublicFolder();
+            return run();
+        })
+        .catch(failFatally);
 }
 
-// Process CLI arguments
-const argv = process.argv.slice(2);
-const writeStatsJson = argv.indexOf("--stats") !== -1;
-const isWatch = argv.indexOf("--watch") !== -1;
-// Generate configuration
-const config = configFactory("development", isWatch);
-
-let diBuildPath = isWatch ? paths.watchDIBuild : paths.appDIBuild;
-let diAssetsPath = isWatch ? paths.watchDIAssets : paths.appDIAssets;
-
-// We require that you explicitly set browsers and do not fall back to
-// browserslist defaults.
-const { checkBrowsers } = require("react-dev-utils/browsersHelper");
-checkBrowsers(paths.appPath, isInteractive)
-    .then(() => {
-        // Remove all content but keep the directory so that
-        // if you're in it, you don't end up in Trash
-        // Do not remove content in watch mode to not overwrite other web assets
-        if (!isWatch) {
-            fs.emptyDirSync(diBuildPath);
-        }
-        // Merge with the public folder
-        copyPublicFolder();
-        // Start the webpack build
-        run();
-    })
-    .catch((err) => {
-        if (err && err.message) {
-            console.log(err.message);
-        }
-        process.exit(1);
-    });
-
-function exitOnError(err) {
+function failFatally(error) {
     console.log(chalk.red("Failed to compile.\n"));
-    printBuildError(err);
+    printBuildError(error);
+    process.exitCode = 1;
+}
+
+function reportCompilationFailure(error) {
+    console.log(chalk.red("Failed to compile.\n"));
+    printBuildError(error);
     utils.setBuildFailureExitCode(isWatch);
 }
 
-function runCallback(err, stats) {
+async function handleCompilation(error, stats) {
     let messages;
-    if (err) {
-        if (!err.message) {
-            return exitOnError(err);
-        }
+    if (error) {
         messages = formatWebpackMessages({
-            errors: [err.message],
+            errors: [error.message || String(error)],
             warnings: [],
         });
     } else {
-        messages = formatWebpackMessages(
-            stats.toJson({
-                all: false,
-                warnings: true,
-                errors: true,
-            }),
-        );
+        messages = formatWebpackMessages(stats.toJson({ all: false, warnings: true, errors: true }));
     }
+
     if (messages.warnings.length) {
         console.log(messages.warnings.join("\n"));
         console.log(chalk.yellow("Compiled with warnings.\n"));
     }
 
     if (messages.errors.length) {
-        // Only keep the first error. Others are often indicative
-        // of the same problem, but confuse the reader with noise.
-        if (messages.errors.length > 1) {
-            messages.errors.length = 1;
-        }
-        return exitOnError(new Error(messages.errors.join("\n\n")));
+        reportCompilationFailure(new Error(messages.errors[0]));
+        return;
     }
 
     if (!messages.warnings.length) {
         console.log(chalk.green("Compiled successfully.\n"));
     }
 
-    fs.emptyDirSync(diAssetsPath + "/assets");
-    // Copy assets into assets public folder
-    copyAssetsToPublicFolder();
+    copyCurrentAssetsToPublicFolder(stats);
 
     if (writeStatsJson) {
-        return bfj.write(diBuildPath + "/bundle-stats.json", stats.toJson());
+        await bfj.write(path.join(diBuildPath, "bundle-stats.json"), stats.toJson());
     }
 
-    console.log("listening to new changes...");
+    if (isWatch) {
+        console.log("Listening for changes...");
+    }
 }
 
-// Create the production build and print the deployment instructions.
 function run() {
-    const adaptedConfig = utils.adaptWebpackConfig(config);
-    const compiler = webpack(adaptedConfig);
+    const compiler = webpack(config);
     if (isWatch) {
-        return compiler.watch(
+        watcher = compiler.watch(
             {
                 aggregateTimeout: 300,
-                watchOptions: {
-                    ignored: /node_modules/,
-                },
+                ignored: /node_modules/,
             },
-            runCallback,
+            (error, stats) => {
+                handleCompilation(error, stats).catch(reportCompilationFailure);
+            },
         );
+        installWatchSignalHandlers();
+        return watcher;
     }
-    compiler.run(runCallback);
+
+    return utils.runCompiler(compiler).then((stats) => handleCompilation(null, stats));
+}
+
+function installWatchSignalHandlers() {
+    const closeWatcher = () => {
+        watcher.close((error) => {
+            if (error) {
+                printBuildError(error);
+                process.exitCode = 1;
+            }
+        });
+    };
+    process.once("SIGINT", closeWatcher);
+    process.once("SIGTERM", closeWatcher);
 }
 
 function copyPublicFolder() {
@@ -144,9 +136,18 @@ function copyPublicFolder() {
     });
 }
 
-function copyAssetsToPublicFolder() {
-    const from = path.join(diBuildPath, "assets");
-    const to = path.join(diAssetsPath, "assets");
-    console.log(`Copying assets from '${from}' to '${to}'.`);
-    fs.copySync(from, to);
+function copyCurrentAssetsToPublicFolder(stats) {
+    const destinationAssetsPath = path.join(diAssetsPath, "assets");
+    const assetNames = stats.compilation
+        .getAssets()
+        .map((asset) => asset.name)
+        .filter((assetName) => assetName.startsWith("assets/"));
+
+    fs.emptyDirSync(destinationAssetsPath);
+    assetNames.forEach((assetName) => {
+        const sourcePath = path.join(diBuildPath, assetName);
+        if (fs.existsSync(sourcePath)) {
+            fs.copySync(sourcePath, path.join(diAssetsPath, assetName));
+        }
+    });
 }
