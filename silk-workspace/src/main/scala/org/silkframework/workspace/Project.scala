@@ -315,7 +315,7 @@ class Project(initialConfig: ProjectConfig, provider: WorkspaceProvider, val res
     module[T].taskOption(name) match {
       case Some(task) =>
         val mergedMetaData = mergeMetaData(task.metaData, metaData)
-        task.update(taskData, Some(mergedMetaData.asUpdatedMetaData), executionVariables)(readWriteUser)
+        task.update(taskData, Some(mergedMetaData.asUpdatedMetaData), executionVariables)
         task
       case None =>
         addTask[T](name, taskData, metaData.getOrElse(MetaData.empty).asNewMetaData, executionVariables.getOrElse(TemplateVariables.empty))
@@ -345,7 +345,7 @@ class Project(initialConfig: ProjectConfig, provider: WorkspaceProvider, val res
         module.taskOption(name) match {
           case Some(task) =>
             val mergedMetaData = mergeMetaData(task.metaData, metaData)
-            task.asInstanceOf[ProjectTask[TaskSpec]].update(taskData, Some(mergedMetaData.asUpdatedMetaData), executionVariables)(readWriteUser)
+            task.asInstanceOf[ProjectTask[TaskSpec]].update(taskData, Some(mergedMetaData.asUpdatedMetaData), executionVariables)
           case None =>
             addAnyTask(name, taskData, metaData.getOrElse(MetaData.empty).asNewMetaData, executionVariables.getOrElse(TemplateVariables.empty))
         }
@@ -414,7 +414,7 @@ class Project(initialConfig: ProjectConfig, provider: WorkspaceProvider, val res
   }
 
   /** Returns the user context for read and write operations to the workspace provider. */
-  private def readWriteUser(implicit userContext: UserContext): UserContext = {
+  private[workspace] def readWriteUser(implicit userContext: UserContext): UserContext = {
     if(AccessControlConfig().enabled) {
       loadingUser
     } else {
