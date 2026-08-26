@@ -6,6 +6,7 @@ import org.silkframework.entity.paths.UntypedPath
 import org.silkframework.rule._
 import org.silkframework.runtime.activity.{SimpleUserContext, TestUserContextTrait, UserExecutionContext}
 import org.silkframework.runtime.users.DefaultUserManager
+import org.silkframework.runtime.validation.BadUserInputException
 import org.silkframework.workspace.{ProjectTask, TestWorkspaceProviderTestTrait}
 
 class ChangeJournalTest extends AnyFlatSpec with Matchers with TestWorkspaceProviderTestTrait with TestUserContextTrait {
@@ -128,6 +129,30 @@ class ChangeJournalTest extends AnyFlatSpec with Matchers with TestWorkspaceProv
 
     a[ChangeConflictException] should be thrownBy project.changeJournal.revert(update.seq)
     ruleIds(task) shouldBe Seq("fullName")
+  }
+
+  it should "reorder rules and revert the order" in {
+    val project = retrieveOrCreateProject("journalReorder")
+    val journal = project.changeJournal
+    val rules = MappingRules(typeRules = Seq(TypeMapping(id = "type")), propertyRules = Seq(name, age, city))
+    val task = project.addTask[TransformSpec]("transform", TransformSpec(mappingRule = RootMappingRule(rules)))
+    val reorder = ReorderMappings.of("transform", task.data, "root", Seq("city", "name", "age"))
+    reorder shouldBe ReorderMappings("transform", "root", Seq("name", "age", "city"), Seq("city", "name", "age"))
+    reorder.describe shouldBe "Reordered mapping rules under 'root' in transform 'transform'"
+    task.applyChange(reorder)
+    // The type rule stays ahead of the property rules
+    ruleIds(task) shouldBe Seq("type", "city", "name", "age")
+
+    // The new order must name each rule once
+    a[BadUserInputException] should be thrownBy ReorderMappings.of("transform", task.data, "root", Seq("city", "city", "age"))
+    an[IllegalArgumentException] should be thrownBy ReorderMappings("transform", "root", Seq("name"), Seq("age"))
+
+    val reverted = journal.revert(journal.all.last.seq)
+    ruleIds(task) shouldBe Seq("type", "name", "age", "city")
+    // Redoing the reorder refuses once the rules were reordered again
+    task.applyChange(ReorderMappings.of("transform", task.data, "root", Seq("age", "name", "city")))
+    a[ChangeConflictException] should be thrownBy journal.revert(reverted.seq)
+    ruleIds(task) shouldBe Seq("type", "age", "name", "city")
   }
 
   it should "attribute entries to the user and origin of the request" in {
