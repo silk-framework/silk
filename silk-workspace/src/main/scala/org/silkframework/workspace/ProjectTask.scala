@@ -132,7 +132,7 @@ class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
     */
   def update(newData: TaskType, newMetaData: Option[MetaData] = None, newExecutionVariables: Option[TemplateVariables] = None)
             (implicit userContext: UserContext): Unit = synchronized {
-    updateAndRecord(newData, newMetaData, newExecutionVariables, change = None)
+    updateAndRecord(newData, newMetaData, newExecutionVariables, changes = Seq.empty)
   }
 
   /**
@@ -140,12 +140,26 @@ class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
     *
     * @throws org.silkframework.workspace.changes.ChangeConflictException If the task is not in the state the change expects.
     */
-  def applyChange(change: TaskChange[_ <: TaskSpec])(implicit userContext: UserContext): Unit = synchronized {
-    updateAndRecord(change.applyAny(data).asInstanceOf[TaskType], None, None, Some(change))
+  def applyChange(change: TaskChange[_ <: TaskSpec])(implicit userContext: UserContext): Unit = {
+    applyChanges(Seq(change))
   }
 
+  /**
+    * Applies typed changes in order as one write: if any of them is rejected, none is applied.
+    * Each change is recorded in the project's change journal.
+    *
+    * @throws org.silkframework.workspace.changes.ChangeConflictException If the task is not in the state a change expects.
+    */
+  def applyChanges(changes: Seq[TaskChange[_ <: TaskSpec]])(implicit userContext: UserContext): Unit = synchronized {
+    if(changes.nonEmpty) {
+      val newData = changes.foldLeft(data: TaskSpec)((current, change) => change.applyAny(current)).asInstanceOf[TaskType]
+      updateAndRecord(newData, None, None, changes)
+    }
+  }
+
+  /** Writes the task. Records `changes` in the journal, or a whole-task replacement if there are none. */
   private def updateAndRecord(newData: TaskType, newMetaData: Option[MetaData], newExecutionVariables: Option[TemplateVariables],
-                              change: Option[Change])
+                              changes: Seq[Change])
                              (implicit userContext: UserContext): Unit = {
     val before = PlainTask.fromTask(this)
     // Validate
@@ -182,14 +196,13 @@ class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
     }
 
     log.info(s"Updated task '$id' of project ${project.id}." + userContext.logInfo)
-    change match {
-      case Some(typedChange) =>
-        project.changeJournal.record(typedChange)
-      case None =>
-        val after = PlainTask.fromTask(this)
-        if(!TaskChanges.same(before, after)) {
-          project.changeJournal.record(ReplaceTask(before, after))
-        }
+    if(changes.nonEmpty) {
+      changes.foreach(change => project.changeJournal.record(change))
+    } else {
+      val after = PlainTask.fromTask(this)
+      if(!TaskChanges.same(before, after)) {
+        project.changeJournal.record(ReplaceTask(before, after))
+      }
     }
   }
 
