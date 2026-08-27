@@ -31,6 +31,11 @@ class SparqlSelectVarExtractorTest extends AnyFlatSpec with Matchers {
     extract("SELECT ?a (?x + 1 AS ?sum) ?b WHERE { ?a ?p ?b }") mustBe Seq("a", "sum", "b")
   }
 
+  it should "not require whitespace after a keyword" in {
+    extract("SELECT DISTINCT* WHERE { ?s ?p ?o }") mustBe Seq("s", "p", "o")
+    extract("SELECT ?a (COUNT(?x) AS?n) WHERE { ?a ?p ?x } GROUP BY ?a") mustBe Seq("a", "n")
+  }
+
   it should "fall back to all variables for SELECT *" in {
     extract("SELECT * WHERE { ?s ?p ?o }") mustBe Seq("s", "p", "o")
   }

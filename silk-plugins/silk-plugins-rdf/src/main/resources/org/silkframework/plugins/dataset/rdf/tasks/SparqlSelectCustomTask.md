@@ -114,13 +114,13 @@ mistaken for query structure. It then takes the projection between `SELECT` and 
 outside of parentheses (a keyword inside a name, e.g. `?from` or `ex:where`, is not a boundary), drops a leading
 `DISTINCT` / `REDUCED`, and then:
 
-- For `SELECT *`, collects every distinct `?var` token in the query, unless a sub-select, `EXISTS` or `MINUS`
+- For `SELECT *`, collects every distinct `?var` token in the rest of the query, unless a sub-select, `EXISTS` or `MINUS`
   could bind variables that are not part of the result.
 - Otherwise, collects each top-level `?var` and the trailing `AS ?alias` from parenthesised expressions
   (e.g. `(COUNT(?s) AS ?count)` yields `count`).
 
 Each variable becomes a string-typed path. If no variables can be detected, or a Jinja tag could change the set
-of result variables (a block tag before the query, a tag inside the projection, or, for `SELECT *`, a tag anywhere after
+of result variables (any block tag before the query, a tag inside the projection, or, for `SELECT *`, a tag anywhere after
 the projection that is not inside an IRI or string literal), the output port is reported with an unknown schema and the
 schema is taken from the actual query results at execution time. The heuristic need not be complete but must not be
 wrong, so whenever it is in doubt (for example on unbalanced parentheses) it reports an unknown schema as well.

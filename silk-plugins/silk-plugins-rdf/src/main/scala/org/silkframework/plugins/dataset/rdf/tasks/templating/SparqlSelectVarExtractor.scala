@@ -39,13 +39,14 @@ object SparqlSelectVarExtractor {
   private val selectKeywordPattern = keyword("SELECT").r
   private val whereKeywordPattern = keyword("WHERE").r
   private val fromKeywordPattern = keyword("FROM").r
-  private val distinctReducedPattern = """(?i)^(?:DISTINCT|REDUCED)\s+""".r
+  // SPARQL does not require whitespace after a keyword, e.g. SELECT DISTINCT* or (COUNT(?x) AS?n)
+  private val distinctReducedPattern = raw"""^${keyword("DISTINCT|REDUCED")}\s*""".r
   // Keywords that open a scope which may bind variables that are not part of a SELECT * result
   private val nestedScopePattern = keyword("SELECT|EXISTS|MINUS").r
   // SPARQL VARNAME: letters, digits and '_' plus a few combining characters
   private val varName = """[\p{L}\p{Nd}_][\p{L}\p{Nd}_\x{B7}\x{300}-\x{36F}\x{203F}\x{2040}]*"""
   private val anyVarPattern = raw"""[?$$]($varName)""".r
-  private val asAliasPattern = raw"""${keyword("AS")}\s+[?$$]($varName)""".r
+  private val asAliasPattern = raw"""${keyword("AS")}\s*[?$$]($varName)""".r
 
   def extractSelectVars(query: String): Seq[String] = {
     val cleaned = blankOpaqueRegions(query)
@@ -54,8 +55,8 @@ object SparqlSelectVarExtractor {
       case Some(m) if !cleaned.substring(0, m.start).contains("{%") =>
         val afterSelect = cleaned.substring(m.end)
         val boundary = projectionBoundary(afterSelect)
-        // Include the boundary character itself, since it may be the start of a Jinja tag.
-        if (containsTag(afterSelect.substring(0, math.min(boundary + 2, afterSelect.length)))) {
+        // The boundary itself may be the start of a Jinja tag, which is not a projection we can read.
+        if (isTagStart(afterSelect, boundary) || containsTag(afterSelect.substring(0, boundary))) {
           Seq.empty
         } else {
           val projection = distinctReducedPattern.replaceFirstIn(afterSelect.substring(0, boundary).trim, "")
