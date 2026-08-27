@@ -78,6 +78,7 @@ class SparqlSelectVarExtractorTest extends AnyFlatSpec with Matchers {
 
   it should "return an empty sequence for non-SELECT queries" in {
     extract("INSERT DATA { <urn:a> <urn:b> <urn:c> }") mustBe empty
+    extract("CONSTRUCT { ?s ?p ?o } WHERE { { SELECT ?s ?p ?o WHERE { ?s ?p ?o } } }") mustBe empty
   }
 
   it should "return an empty sequence for an ASK query" in {

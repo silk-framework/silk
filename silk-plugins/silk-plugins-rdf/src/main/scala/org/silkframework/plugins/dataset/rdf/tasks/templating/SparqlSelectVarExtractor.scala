@@ -14,8 +14,8 @@ import scala.util.matching.Regex
  *
  *   1. Blank out everything that must not be mistaken for query structure: line comments and Jinja comments
  *      are dropped, the contents of string literals, IRIs and Jinja tags are removed (their delimiters are kept).
- *   2. Locate the first `SELECT` keyword that is not part of a name (case-insensitive). Give up if a Jinja
- *      block tag precedes it, since it may switch between alternative queries.
+ *   2. Locate the first `SELECT` keyword that is not part of a name (case-insensitive). Give up if it is nested in
+ *      a group (a sub-select of another query form) or preceded by a Jinja block tag, which may switch queries.
  *   3. Find the end of the projection clause: the first `WHERE` / `FROM` keyword or `{` outside of parentheses.
  *      A keyword that is part of a variable or prefixed name (`?from`, `ex:where`) is not a boundary.
  *   4. If the projection contains a Jinja tag, its variables cannot be known statically: return nothing.
@@ -51,8 +51,7 @@ object SparqlSelectVarExtractor {
   def extractSelectVars(query: String): Seq[String] = {
     val cleaned = blankOpaqueRegions(query)
     selectKeywordPattern.findFirstMatchIn(cleaned) match {
-      // A block tag before the SELECT keyword may switch between alternative queries.
-      case Some(m) if !cleaned.substring(0, m.start).contains("{%") =>
+      case Some(m) if isQueryForm(cleaned.substring(0, m.start)) =>
         val afterSelect = cleaned.substring(m.end)
         val boundary = projectionBoundary(afterSelect)
         // The boundary itself may be the start of a Jinja tag, which is not a projection we can read.
@@ -71,6 +70,15 @@ object SparqlSelectVarExtractor {
   }
 
   private def containsTag(text: String): Boolean = text.contains("{{") || text.contains("{%")
+
+  /**
+   * Whether the SELECT keyword preceded by `before` is the query form itself: it must not sit inside a group
+   * (a sub-select of a CONSTRUCT, DESCRIBE or update query), and no Jinja block tag may precede it, since such a
+   * tag may switch between alternative queries. Blanked tags are brace-balanced and do not affect the depth.
+   */
+  private def isQueryForm(before: String): Boolean = {
+    !before.contains("{%") && before.count(_ == '{') == before.count(_ == '}')
+  }
 
   /** All variables of a `SELECT *` query, unless a tag or a nested scope may bind variables that are not projected. */
   private def allVars(afterSelect: String): Seq[String] = {
