@@ -17,7 +17,7 @@ const bfj = require("bfj");
 const configFactory = require("../config/webpack.di.config");
 const paths = require("../config/paths");
 const utils = require("./build.utils");
-const checkRequiredFiles = require("react-dev-utils/checkRequiredFiles");
+const checkRequiredFiles = require("./checkRequiredFiles");
 const formatWebpackMessages = require("react-dev-utils/formatWebpackMessages");
 const printBuildError = require("react-dev-utils/printBuildError");
 
