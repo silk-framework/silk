@@ -55,7 +55,7 @@ module.exports = function createWebpackConfig(webpackEnv, isWatch = false, diagn
             loaders.push({
                 loader: require.resolve(preProcessor),
                 options: {
-                    api: "modern",
+                    api: "modern-compiler",
                     implementation: sass,
                     sassOptions: {
                         ...sassRenderSyncOptions,
