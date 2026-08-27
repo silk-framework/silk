@@ -7,9 +7,6 @@ module.exports = {
         url: "http://localhost/",
         globalsCleanup: "on",
     },
-    globals: {
-        __DEBUG__: false,
-    },
     roots: ["<rootDir>/src/", "<rootDir>/test/"],
     collectCoverageFrom: ["test/**/*.{js,jsx,ts,tsx}", "src/**/*.{js,jsx,ts,tsx}", "!src/**/*.d.ts"],
     setupFiles: ["react-app-polyfill/jsdom"],
