@@ -108,6 +108,12 @@ class SparqlSelectVarExtractorTest extends AnyFlatSpec with Matchers {
     extract("# select all items from the graph\nSELECT ?a ?b WHERE { ?a ?p ?b }") mustBe Seq("a", "b")
     extract("# returns ?x\nSELECT * WHERE { ?s ?p ?o }") mustBe Seq("s", "p", "o")
     extract("SELECT ?a {# from the index #} ?b WHERE { ?a ?p ?b }") mustBe Seq("a", "b")
+    extract("# queries {{ input.config.graph }}\nSELECT ?a ?b WHERE { ?a ?p ?b }") mustBe Seq("a", "b")
+  }
+
+  it should "not mistake a prefixed name for a keyword" in {
+    extract("ASK { ?s ex:select ?o }") mustBe empty
+    extract("PREFIX select: <urn:s#>\nSELECT * WHERE { ?s select:p ?o }") mustBe Seq("s", "o")
   }
 
   it should "not mistake IRI contents for comments or keywords" in {
@@ -146,6 +152,7 @@ class SparqlSelectVarExtractorTest extends AnyFlatSpec with Matchers {
 
   it should "give up on unbalanced parentheses in the projection" in {
     extract("SELECT ?a (COUNT(?x AS ?n WHERE { ?a ?p ?x }") mustBe empty
+    extract("SELECT ?a ) ?b WHERE { ?a ?p ?b }") mustBe empty
   }
 
   it should "not fail on malformed input" in {

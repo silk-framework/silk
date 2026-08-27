@@ -111,7 +111,7 @@ will still cause `property` to appear in the inferred input schema.
 The output schema is derived from the raw template by a heuristic, without rendering it. The heuristic first
 blanks out line comments, Jinja comments, string literals, IRIs and Jinja tags, so that nothing inside them is
 mistaken for query structure. It then takes the projection between `SELECT` and the first `WHERE`, `FROM` or `{`
-outside of parentheses (a variable named like a keyword, e.g. `?from`, is not a boundary), drops a leading
+outside of parentheses (a keyword inside a name, e.g. `?from` or `ex:where`, is not a boundary), drops a leading
 `DISTINCT` / `REDUCED`, and then:
 
 - For `SELECT *`, collects every distinct `?var` token in the query, unless a sub-select, `EXISTS` or `MINUS`

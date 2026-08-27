@@ -14,10 +14,10 @@ import scala.util.matching.Regex
  *
  *   1. Blank out everything that must not be mistaken for query structure: line comments and Jinja comments
  *      are dropped, the contents of string literals, IRIs and Jinja tags are removed (their delimiters are kept).
- *   2. Locate the first `SELECT` keyword (word-bounded, case-insensitive). Give up if a Jinja block tag precedes it,
- *      since it may switch between alternative queries.
+ *   2. Locate the first `SELECT` keyword that is not part of a name (case-insensitive). Give up if a Jinja
+ *      block tag precedes it, since it may switch between alternative queries.
  *   3. Find the end of the projection clause: the first `WHERE` / `FROM` keyword or `{` outside of parentheses.
- *      A variable named like a keyword (`?from`, `?where`) is not a boundary.
+ *      A keyword that is part of a variable or prefixed name (`?from`, `ex:where`) is not a boundary.
  *   4. If the projection contains a Jinja tag, its variables cannot be known statically: return nothing.
  *   5. Strip a leading `DISTINCT` / `REDUCED`.
  *   6. If the projection is `*`, fall back to collecting every distinct `?var` token after the projection. Give up
@@ -31,17 +31,21 @@ import scala.util.matching.Regex
  */
 object SparqlSelectVarExtractor {
 
-  // A keyword preceded by '?' or '$' is a variable named like the keyword (e.g. ?from), not the keyword itself.
-  private val selectKeywordPattern = """(?i)(?<![?$])\bSELECT\b""".r
-  private val whereKeywordPattern = """(?i)(?<![?$])\bWHERE\b""".r
-  private val fromKeywordPattern = """(?i)(?<![?$])\bFROM\b""".r
+  // Characters a variable or a prefixed name may contain. A keyword enclosed in them is part of a name
+  // (?from, ex:select), not the keyword itself.
+  private val nameChars = """\p{L}\p{Nd}_:.\-\x{B7}\x{300}-\x{36F}\x{203F}\x{2040}"""
+  private def keyword(alternatives: String): String = raw"""(?i)(?<![$nameChars?$$])(?:$alternatives)(?![$nameChars])"""
+
+  private val selectKeywordPattern = keyword("SELECT").r
+  private val whereKeywordPattern = keyword("WHERE").r
+  private val fromKeywordPattern = keyword("FROM").r
   private val distinctReducedPattern = """(?i)^(?:DISTINCT|REDUCED)\s+""".r
   // Keywords that open a scope which may bind variables that are not part of a SELECT * result
-  private val nestedScopePattern = """(?i)(?<![?$])\b(?:SELECT|EXISTS|MINUS)\b""".r
+  private val nestedScopePattern = keyword("SELECT|EXISTS|MINUS").r
   // SPARQL VARNAME: letters, digits and '_' plus a few combining characters
   private val varName = """[\p{L}\p{Nd}_][\p{L}\p{Nd}_\x{B7}\x{300}-\x{36F}\x{203F}\x{2040}]*"""
   private val anyVarPattern = raw"""[?$$]($varName)""".r
-  private val asAliasPattern = raw"""(?i)(?<![?$$])\bAS\s+[?$$]($varName)""".r
+  private val asAliasPattern = raw"""${keyword("AS")}\s+[?$$]($varName)""".r
 
   def extractSelectVars(query: String): Seq[String] = {
     val cleaned = blankOpaqueRegions(query)
@@ -55,7 +59,7 @@ object SparqlSelectVarExtractor {
           Seq.empty
         } else {
           val projection = distinctReducedPattern.replaceFirstIn(afterSelect.substring(0, boundary).trim, "")
-          if (projection.trim == "*") {
+          if (projection == "*") {
             allVars(afterSelect)
           } else {
             extractProjectedVars(projection)
@@ -150,9 +154,11 @@ object SparqlSelectVarExtractor {
         // Escaped character of a prefixed name (ex:a\#b, dbr:Baldwin\'s_Peak)
         i += 2
       } else if (c == '#') {
-        // Line comment. Jinja still evaluates tags inside it, so keep a marker for them.
+        // Line comment. Jinja still evaluates tags inside it, so keep a marker of the same kind for them.
         val end = endOfLine(query, i)
-        if (containsTag(query.substring(i, end))) out.append("{%%}")
+        val comment = query.substring(i, end)
+        if (comment.contains("{%")) out.append("{%%}")
+        else if (comment.contains("{{")) out.append("{{}}")
         i = end
       } else if (c == '"' || c == '\'') {
         val quote = if (query.startsWith(c.toString * 3, i)) c.toString * 3 else c.toString
