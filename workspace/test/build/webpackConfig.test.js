@@ -1,7 +1,9 @@
 process.env.BABEL_ENV = "development";
+process.env.BROWSERSLIST_IGNORE_OLD_DATA = "true";
 process.env.NODE_ENV = "development";
 
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
+const browserslist = require("browserslist");
 const webpack = require("webpack");
 const configFactory = require("../../config/webpack.di.config");
 const paths = require("../../config/paths");
@@ -27,6 +29,14 @@ describe("Workspace webpack configuration invariants", () => {
 
     it("keeps the backend asset URL as webpack's public path", () => {
         expect(oneShotConfig.output.publicPath).toBe(paths.appDIAssetsUrl);
+    });
+
+    it("excludes Internet Explorer from production and development browser targets", () => {
+        ["production", "development"].forEach((environment) => {
+            const configuredBrowsers = browserslist(undefined, { path: paths.appPath, env: environment });
+
+            expect(configuredBrowsers).not.toEqual(expect.arrayContaining([expect.stringMatching(/^ie /)]));
+        });
     });
 
     it("extracts CSS in development so Play can serve files written to disk", () => {
