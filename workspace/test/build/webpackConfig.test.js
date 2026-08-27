@@ -70,6 +70,17 @@ describe("Workspace webpack configuration invariants", () => {
         );
     });
 
+    it("emits fonts beside extracted CSS and exposes CSS-relative font URLs", () => {
+        const loaderRules = oneShotConfig.module.rules.find((rule) => rule.oneOf).oneOf;
+        const fontRule = loaderRules.find((rule) => String(rule.test).includes("woff"));
+
+        expect(fontRule.generator).toEqual({
+            filename: "[name][ext]",
+            outputPath: "assets/css/fonts/",
+            publicPath: "fonts/",
+        });
+    });
+
     it("uses webpack defaults for JavaScript minimization and a webpack 5 CSS minimizer", () => {
         expect(productionConfig.optimization.minimizer[0]).toBe("...");
         expect(productionConfig.optimization.minimizer[1].constructor.name).toBe("CssMinimizerPlugin");

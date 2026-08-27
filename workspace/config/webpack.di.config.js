@@ -206,7 +206,8 @@ module.exports = function createWebpackConfig(webpackEnv, isWatch = false, diagn
                             test: fontRegex,
                             type: "asset/resource",
                             generator: {
-                                filename: "assets/css/fonts/[name][ext]",
+                                filename: "[name][ext]",
+                                outputPath: "assets/css/fonts/",
                                 publicPath: "fonts/",
                             },
                         },
