@@ -137,6 +137,8 @@ const additionalEntries = () => {
     return configuredPaths(entriesString);
 };
 
+const stylesEntry = resolveApp(configValue("stylesEntry", "src/theme/index.scss"));
+
 // config after eject: we're in ./config/
 module.exports = {
     dotenv: resolveApp(".env"),
@@ -152,6 +154,7 @@ module.exports = {
     appPublic: resolveApp("public"),
     appHtml: resolveApp("public/index.html"),
     appIndexJs: resolveModule(resolveApp, "src/index"),
+    stylesEntry,
     appPackageJson: resolveApp("package.json"),
     appSrc: resolveApp("src"),
     appTsConfig: resolveApp("tsconfig.json"),

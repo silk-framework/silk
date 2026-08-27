@@ -36,11 +36,19 @@ describe("Silk UI build properties", () => {
             opaqueValue=value=with=equals
             additionalEntries= src/index.tsx ; ; test/extra.tsx
             additionalSources= src ; test
+            stylesEntry= test/styles.scss
         `);
 
         expect(paths.silkConfig.opaqueValue).toBe("value=with=equals");
         expect(paths.additionalEntries()).toEqual([path.resolve("src/index.tsx"), path.resolve("test/extra.tsx")]);
         expect(paths.additionalSourcePaths()).toEqual([path.resolve("src"), path.resolve("test")]);
+        expect(paths.stylesEntry).toBe(path.resolve("test/styles.scss"));
+    });
+
+    it("uses the Silk theme as the standalone styles entry", () => {
+        const paths = loadPathsWithConfigs();
+
+        expect(paths.stylesEntry).toBe(path.resolve("src/theme/index.scss"));
     });
 
     it("uses the nearest properties file without merging an ancestor", () => {

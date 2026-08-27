@@ -34,7 +34,7 @@ const diAssetsPath = isWatch ? paths.watchDIAssets : paths.appDIAssets;
 const isInteractive = process.stdout.isTTY;
 let watcher;
 
-if (!checkRequiredFiles([paths.appHtml, paths.appIndexJs])) {
+if (!checkRequiredFiles([paths.appHtml, paths.appIndexJs, paths.stylesEntry])) {
     process.exitCode = 1;
 } else {
     const { checkBrowsers } = require("react-dev-utils/browsersHelper");

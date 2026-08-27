@@ -74,7 +74,7 @@ module.exports = function createWebpackConfig(webpackEnv, isWatch = false, diagn
         bail: isEnvProduction,
         profile: profilingEnabled,
         devtool: isEnvProduction ? "source-map" : "cheap-module-source-map",
-        entry: [paths.appIndexJs, ...paths.additionalEntries()],
+        entry: [paths.stylesEntry, paths.appIndexJs, ...paths.additionalEntries()],
         output: {
             path: buildPath,
             pathinfo: isEnvDevelopment,

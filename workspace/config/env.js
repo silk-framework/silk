@@ -2,10 +2,8 @@
 
 const fs = require("fs");
 const path = require("path");
-const paths = require("./paths");
-
-// Make sure that including paths.js after env.js will read .env variables.
-delete require.cache[require.resolve("./paths")];
+const appDirectory = fs.realpathSync(process.cwd());
+const dotenvPath = path.resolve(appDirectory, ".env");
 
 const NODE_ENV = process.env.NODE_ENV;
 if (!NODE_ENV) {
@@ -14,13 +12,13 @@ if (!NODE_ENV) {
 
 // https://github.com/bkeepers/dotenv#what-other-env-files-can-i-use
 var dotenvFiles = [
-    `${paths.dotenv}.${NODE_ENV}.local`,
-    `${paths.dotenv}.${NODE_ENV}`,
+    `${dotenvPath}.${NODE_ENV}.local`,
+    `${dotenvPath}.${NODE_ENV}`,
     // Don't include `.env.local` for `test` environment
     // since normally you expect tests to produce the same
     // results for everyone
-    NODE_ENV !== "test" && `${paths.dotenv}.local`,
-    paths.dotenv,
+    NODE_ENV !== "test" && `${dotenvPath}.local`,
+    dotenvPath,
 ].filter(Boolean);
 
 // Load environment variables from .env* files. Suppress warnings using silent
@@ -47,7 +45,6 @@ dotenvFiles.forEach((dotenvFile) => {
 // Otherwise, we risk importing Node.js core modules into an app instead of Webpack shims.
 // https://github.com/facebook/create-react-app/issues/1023#issuecomment-265344421
 // We also resolve them to make sure all tools using them work consistently.
-const appDirectory = fs.realpathSync(process.cwd());
 process.env.NODE_PATH = (process.env.NODE_PATH || "")
     .split(path.delimiter)
     .filter((folder) => folder && !path.isAbsolute(folder))

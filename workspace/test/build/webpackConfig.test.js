@@ -61,7 +61,7 @@ describe("Workspace webpack configuration invariants", () => {
         const loaderRules = oneShotConfig.module.rules.find((rule) => rule.oneOf).oneOf;
         const babelRule = loaderRules.find((rule) => String(rule.test) === String(/\.(js|mjs|jsx|ts|tsx)$/));
 
-        expect(oneShotConfig.entry).toEqual([paths.appIndexJs, ...paths.additionalEntries()]);
+        expect(oneShotConfig.entry).toEqual([paths.stylesEntry, paths.appIndexJs, ...paths.additionalEntries()]);
         expect(babelRule.include).toEqual([paths.appSrc, paths.guiElements, ...paths.additionalSourcePaths()]);
     });
 
