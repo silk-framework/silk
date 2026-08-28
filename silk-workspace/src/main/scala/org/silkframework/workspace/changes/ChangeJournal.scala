@@ -40,6 +40,9 @@ class ChangeJournal(project: Project) {
     override def initialValue: Boolean = false
   }
 
+  // The entries whose inverse is being applied. Their revert is not recorded yet, so nothing else marks them.
+  private var revertsInProgress = Set.empty[Int]
+
   /** All entries, oldest first. */
   def all: Seq[ChangeEntry] = synchronized(entries)
 
@@ -79,27 +82,39 @@ class ChangeJournal(project: Project) {
     * the reverted one; reverting that entry in turn redoes the change.
     *
     * @throws org.silkframework.runtime.validation.NotFoundException If there is no entry with this sequence number.
-    * @throws ChangeConflictException If the entry has been reverted already, has no inverse, or the project changed
-    *                                 since so that the inverse does not apply.
+    * @throws ChangeConflictException If the entry is being or has been reverted already, has no inverse, or the
+    *                                 project changed since so that the inverse does not apply.
     */
   def revert(seq: Int)(implicit userContext: UserContext): ChangeEntry = {
     if(derivedWrite.get()) {
       throw new IllegalStateException(s"Change $seq cannot be reverted from within a derived write.")
     }
-    val entry = this.entry(seq).getOrElse(throw new NotFoundException(s"No change $seq in project '${project.id}'."))
-    if(revertOf(seq).isDefined) {
-      throw ChangeConflictException(s"Change $seq in project '${project.id}' has been reverted already.")
-    }
-    val inverse = entry.change.inverse.getOrElse(
-      throw ChangeConflictException(s"Change $seq (${entry.change.describe}) in project '${project.id}' cannot be reverted."))
+    val inverse = claimRevert(seq)
     reverting.set(Some(seq))
     try {
       // A revert is a request of the user, so the files its inverse writes are recorded.
       ChangeJournal.onBehalfOf(userContext)(inverse.applyTo(project))
     } finally {
       reverting.remove()
+      synchronized(revertsInProgress -= seq)
     }
     revertOf(seq).getOrElse(throw new IllegalStateException(s"Reverting change $seq did not record a change."))
+  }
+
+  /**
+    * Claims an entry for reverting and returns the inverse to apply. The claim is held until the revert is recorded,
+    * so that an entry is reverted once even if it is reverted concurrently. The inverse is applied without the lock,
+    * as it writes to the project.
+    */
+  private def claimRevert(seq: Int): Change = synchronized {
+    val entry = entries.find(_.seq == seq).getOrElse(throw new NotFoundException(s"No change $seq in project '${project.id}'."))
+    if(revertsInProgress.contains(seq) || entries.exists(_.reverts.contains(seq))) {
+      throw ChangeConflictException(s"Change $seq in project '${project.id}' has been reverted already.")
+    }
+    val inverse = entry.change.inverse.getOrElse(
+      throw ChangeConflictException(s"Change $seq (${entry.change.describe}) in project '${project.id}' cannot be reverted."))
+    revertsInProgress += seq
+    inverse
   }
 
   private def revertOf(seq: Int): Option[ChangeEntry] = synchronized(entries.find(_.reverts.contains(seq)))

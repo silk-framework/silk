@@ -16,6 +16,9 @@ import org.silkframework.util.ConfigTestTrait
 import org.silkframework.workspace.variables.{DeleteVariableModification, UpdateVariableModification}
 import org.silkframework.workspace.{ProjectTask, TestWorkspaceProviderTestTrait}
 
+import java.util.concurrent.CyclicBarrier
+import scala.util.{Failure, Try}
+
 class ChangeJournalTest extends AnyFlatSpec with Matchers with TestWorkspaceProviderTestTrait with TestUserContextTrait with ConfigTestTrait {
 
   behavior of "ChangeJournal"
@@ -96,6 +99,28 @@ class ChangeJournalTest extends AnyFlatSpec with Matchers with TestWorkspaceProv
     project.anyTaskOption("other") shouldBe None
     journal.revert(removed.seq)
     project.task[TransformSpec]("other").data shouldBe transform(name)
+  }
+
+  it should "apply one of two concurrent reverts of the same change" in {
+    val project = retrieveOrCreateProject("journalConcurrentRevert")
+    val journal = project.changeJournal
+    project.addTask[TransformSpec]("transform", transform(name))
+    project.updateTask[TransformSpec]("transform", transform(name, age))
+    val update = journal.all.last
+
+    val barrier = new CyclicBarrier(2)
+    val outcomes = new Array[Try[ChangeEntry]](2)
+    val threads = for(i <- 0 until 2) yield new Thread(() => {
+      barrier.await()
+      outcomes(i) = Try(journal.revert(update.seq))
+    })
+    threads.foreach(_.start())
+    threads.foreach(_.join())
+
+    outcomes.count(_.isSuccess) shouldBe 1
+    outcomes.collectFirst { case Failure(ex) => ex }.get shouldBe a[ChangeConflictException]
+    journal.all.count(_.reverts.contains(update.seq)) shouldBe 1
+    ruleIds(project.task[TransformSpec]("transform")) shouldBe Seq("name")
   }
 
   it should "apply typed mapping changes and revert them in place" in {
