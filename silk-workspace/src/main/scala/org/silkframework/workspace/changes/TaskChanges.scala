@@ -16,7 +16,7 @@ case class AddTask(task: PlainTask[TaskSpec]) extends Change {
     if(project.anyTaskOption(task.id).isDefined) {
       throw ChangeConflictException(s"Task '${task.id}' already exists in project '${project.id}'.")
     }
-    project.addAnyTask(task.id, task.data, task.metaData, task.executionVariables)
+    project.restoreTask(task)
   }
 
   // The task parameters may be sensitive, so they are never printed.

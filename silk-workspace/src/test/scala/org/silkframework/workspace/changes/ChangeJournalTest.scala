@@ -12,7 +12,7 @@ import org.silkframework.runtime.plugin.{ParameterStringValue, ParameterTemplate
 import org.silkframework.runtime.templating.{SimpleSubstitutionTemplateEngine, TemplateVariable, TemplateVariables, VariableScope}
 import org.silkframework.runtime.users.DefaultUserManager
 import org.silkframework.runtime.validation.BadUserInputException
-import org.silkframework.util.ConfigTestTrait
+import org.silkframework.util.{ConfigTestTrait, Uri}
 import org.silkframework.workspace.variables.{DeleteVariableModification, UpdateVariableModification}
 import org.silkframework.workspace.{ProjectTask, TestWorkspaceProviderTestTrait}
 
@@ -99,8 +99,15 @@ class ChangeJournalTest extends AnyFlatSpec with Matchers with TestWorkspaceProv
     val removed = journal.revert(added.seq)
     removed.change shouldBe a[RemoveTask]
     project.anyTaskOption("other") shouldBe None
-    journal.revert(removed.seq)
-    project.task[TransformSpec]("other").data shouldBe transform(name)
+    // The restored task keeps its creation metadata and is stamped as modified by the reverting user
+    val created = added.change.asInstanceOf[AddTask].task.metaData
+    val agent = SimpleUserContext(Some(DefaultUserManager.get("urn:agent")), UserExecutionContext())
+    journal.revert(removed.seq)(agent)
+    val restored = project.task[TransformSpec]("other")
+    restored.data shouldBe transform(name)
+    restored.metaData.created shouldBe created.created
+    restored.metaData.createdByUser shouldBe created.createdByUser
+    restored.metaData.lastModifiedByUser shouldBe Some(Uri("urn:agent"))
   }
 
   it should "apply one of two concurrent reverts of the same change" in {

@@ -300,11 +300,21 @@ class Project(initialConfig: ProjectConfig, provider: WorkspaceProvider, project
   def addAnyTask(name: Identifier, taskData: TaskSpec, metaData: MetaData = MetaData.empty,
                  executionVariables: TemplateVariables = TemplateVariables.empty)
                 (implicit userContext: UserContext): ProjectTask[TaskSpec] = synchronized {
+    addTaskToModule(name, taskData, metaData.asNewMetaData, executionVariables)
+  }
+
+  /** Re-adds a removed task with its creation metadata; like an update, the restore is stamped as a modification. */
+  private[workspace] def restoreTask(task: PlainTask[TaskSpec])(implicit userContext: UserContext): ProjectTask[TaskSpec] = synchronized {
+    addTaskToModule(task.id, task.data, task.metaData.asUpdatedMetaData, task.executionVariables)
+  }
+
+  private def addTaskToModule(name: Identifier, taskData: TaskSpec, metaData: MetaData, executionVariables: TemplateVariables)
+                             (implicit userContext: UserContext): ProjectTask[TaskSpec] = {
     if(allTasks.exists(_.id == name)) {
       throw IdentifierAlreadyExistsException(s"Task name '$name' is not unique as there is already a task in project '${this.id}' with this name.")
     }
     modules.find(_.taskType.isAssignableFrom(taskData.getClass)) match {
-      case Some(module) => module.asInstanceOf[Module[TaskSpec]].add(name, taskData, metaData.asNewMetaData, executionVariables)(readWriteUser)
+      case Some(module) => module.asInstanceOf[Module[TaskSpec]].add(name, taskData, metaData, executionVariables)(readWriteUser)
       case None => throw new NoSuchElementException(s"No module for task type ${taskData.getClass} has been registered. Registered task types: ${modules.map(_.taskType).mkString(";")}")
     }
   }
