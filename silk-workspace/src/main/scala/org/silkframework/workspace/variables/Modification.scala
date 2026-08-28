@@ -65,26 +65,29 @@ abstract class Modification {
     */
   def execute()(implicit user: UserContext): Unit = {
     val manager = variablesManager()
-    val currentVariables = manager.all
-    val newVariables = updateVariables(currentVariables, manager.parentVariables.withoutSensitiveVariables())
-    taskId match {
-      case Some(id) =>
-        updateExecutionVariablesAndTask(project.anyTask(id), currentVariables, newVariables)
-        log.info(s"$operation.")
-      case None =>
-        // The scope check is the one expected failure of the put, so it precedes the task updates.
-        manager.validateScope(newVariables)
-        // The task updates follow the variables and are restored by reverting the variable change, so they are not journaled.
-        val updatedTaskIds = project.changeJournal.derived(updateTasks(newVariables))
-        manager.put(newVariables)
-        // Execution-variable templates are resolved at save time, so re-resolve them against the updated variables.
-        val refreshedTaskIds = project.changeJournal.derived(refreshTaskExecutionVariables())
-        val allUpdatedIds = (updatedTaskIds ++ refreshedTaskIds).toSeq.distinct
-        if(allUpdatedIds.nonEmpty) {
-          log.info(s"$operation. The following tasks have been updated: " + allUpdatedIds)
-        } else {
-          log.info(s"$operation. No tasks have been updated.")
-        }
+    // Read and write are one step under the monitor that `put` takes, so concurrent modifications do not overwrite each other.
+    manager.synchronized {
+      val currentVariables = manager.all
+      val newVariables = updateVariables(currentVariables, manager.parentVariables.withoutSensitiveVariables())
+      taskId match {
+        case Some(id) =>
+          updateExecutionVariablesAndTask(project.anyTask(id), currentVariables, newVariables)
+          log.info(s"$operation.")
+        case None =>
+          // The scope check is the one expected failure of the put, so it precedes the task updates.
+          manager.validateScope(newVariables)
+          // The task updates follow the variables and are restored by reverting the variable change, so they are not journaled.
+          val updatedTaskIds = project.changeJournal.derived(updateTasks(newVariables))
+          manager.put(newVariables)
+          // Execution-variable templates are resolved at save time, so re-resolve them against the updated variables.
+          val refreshedTaskIds = project.changeJournal.derived(refreshTaskExecutionVariables())
+          val allUpdatedIds = (updatedTaskIds ++ refreshedTaskIds).toSeq.distinct
+          if(allUpdatedIds.nonEmpty) {
+            log.info(s"$operation. The following tasks have been updated: " + allUpdatedIds)
+          } else {
+            log.info(s"$operation. No tasks have been updated.")
+          }
+      }
     }
   }
 

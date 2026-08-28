@@ -243,6 +243,23 @@ class ChangeJournalTest extends AnyFlatSpec with Matchers with TestWorkspaceProv
       "Set variable 'b'", "Added variable 'c'", "Removed variable 'a'", "Added variable 'd'")
   }
 
+  it should "apply concurrent variable modifications without losing one" in {
+    val project = retrieveOrCreateProject("journalConcurrentVariables")
+    val barrier = new CyclicBarrier(2)
+    val outcomes = new Array[Try[Unit]](2)
+    val threads = for((name, i) <- Seq("a", "b").zipWithIndex) yield new Thread(() => {
+      barrier.await()
+      outcomes(i) = Try(UpdateVariableModification(project, variable(name, "1")).execute())
+    })
+    threads.foreach(_.start())
+    threads.foreach(_.join())
+    outcomes.foreach(_.get)
+
+    // Each modification reads, computes and writes; as one step, neither overwrites the other
+    project.templateVariables.all.map.keySet shouldBe Set("a", "b")
+    project.changeJournal.all.map(_.change.describe).sorted shouldBe Seq("Added variable 'a'", "Added variable 'b'")
+  }
+
   it should "revert variable changes while the variable is unchanged" in {
     val project = retrieveOrCreateProject("journalRevertVariables")
     val journal = project.changeJournal
