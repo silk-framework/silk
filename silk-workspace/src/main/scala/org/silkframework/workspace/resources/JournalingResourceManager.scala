@@ -5,6 +5,7 @@ import org.silkframework.workspace.changes.{Change, ChangeJournal, FileState, Re
 
 import java.io.{InputStream, OutputStream}
 import java.time.Instant
+import java.util.concurrent.atomic.AtomicBoolean
 
 /**
   * The resources of a project, recording every write and deletion made on behalf of a request in its change journal.
@@ -12,7 +13,7 @@ import java.time.Instant
   *
   * @param prefix The path of this manager relative to the project resources, ending in '/' unless it is the root.
   */
-class JournalingResourceManager(underlying: ResourceManager, journal: ChangeJournal, prefix: String = "",
+class JournalingResourceManager(private val underlying: ResourceManager, journal: ChangeJournal, prefix: String = "",
                                 parentManager: Option[JournalingResourceManager] = None) extends ResourceManager {
 
   override def basePath: String = underlying.basePath
@@ -25,76 +26,99 @@ class JournalingResourceManager(underlying: ResourceManager, journal: ChangeJour
     new JournalingResourceManager(underlying.child(name), journal, prefix + name + "/", Some(this))
   }
 
-  override def parent: Option[ResourceManager] = parentManager.orElse(underlying.parent)
+  /** The project is the boundary of the journal, so the root manager exposes no parent outside it. */
+  override def parent: Option[ResourceManager] = parentManager
 
   override def get(name: String, mustExist: Boolean): WritableResource = {
-    new JournalingResource(underlying.get(name, mustExist), prefix + name)
+    new JournalingResource(underlying.get(name, mustExist), journal, prefix + name)
   }
 
   /** Deletes a resource or a child directory. Each file goes through its resource, so each deletion is recorded. */
   override def delete(name: String): Unit = {
-    if(list.contains(name)) {
+    if(underlying.list.contains(name)) {
       get(name).delete()
+    } else {
+      if(underlying.listChildren.contains(name)) {
+        val directory = child(name)
+        directory.listRecursive.foreach(path => directory.getInPath(path).delete())
+      }
+      // Removes the directory itself, which holds no files anymore, or a name that is not listed.
+      underlying.delete(name)
     }
-    if(listChildren.contains(name)) {
-      val directory = child(name)
-      directory.listRecursive.foreach(path => directory.getInPath(path).delete())
-    }
-    underlying.delete(name)
   }
 
   override def close(): Unit = underlying.close()
 
-  /** A resource whose writes and deletion are recorded. */
-  private class JournalingResource(underlying: WritableResource, journalPath: String) extends WritableResource {
+  /** Compares by the wrapped manager, as wrapping must not turn value equality into identity. */
+  override def equals(obj: Any): Boolean = obj match {
+    case other: JournalingResourceManager => underlying == other.underlying
+    case _ => false
+  }
 
-    override def name: String = underlying.name
+  override def hashCode(): Int = underlying.hashCode()
+}
 
-    override def path: String = underlying.path
+/** A resource whose writes and deletion are recorded. */
+private class JournalingResource(private val underlying: WritableResource, journal: ChangeJournal,
+                                 journalPath: String) extends WritableResource {
 
-    override def entryPath: Option[String] = underlying.entryPath
+  override def name: String = underlying.name
 
-    override def exists: Boolean = underlying.exists
+  override def path: String = underlying.path
 
-    override def size: Option[Long] = underlying.size
+  override def entryPath: Option[String] = underlying.entryPath
 
-    override def modificationTime: Option[Instant] = underlying.modificationTime
+  override def exists: Boolean = underlying.exists
 
-    override def inputStream: InputStream = underlying.inputStream
+  override def size: Option[Long] = underlying.size
 
-    override def createOutputStream(append: Boolean): OutputStream = {
-      // Taken before the stream opens, as opening creates or truncates the file.
-      val before = FileState.of(underlying)
-      new RecordingOutputStream(underlying.createOutputStream(append), before)
-    }
+  override def modificationTime: Option[Instant] = underlying.modificationTime
 
-    override def delete(): Unit = {
-      val before = FileState.of(underlying)
-      underlying.delete()
-      before.foreach(state => record(ResourceDeleted(journalPath, state)))
-    }
+  override def inputStream: InputStream = underlying.inputStream
 
-    private def record(change: Change): Unit = {
-      ChangeJournal.requestUserContext.foreach(user => journal.record(change)(user))
-    }
+  override def createOutputStream(append: Boolean): OutputStream = {
+    // Taken before the stream opens, as opening creates or truncates the file.
+    val before = FileState.of(underlying)
+    new RecordingOutputStream(underlying.createOutputStream(append), before)
+  }
 
-    /** Records the write once the stream is closed, i.e. the file is in its new state. */
-    private class RecordingOutputStream(out: OutputStream, before: Option[FileState]) extends OutputStream {
+  override def delete(): Unit = {
+    val before = FileState.of(underlying)
+    underlying.delete()
+    before.foreach(state => record(ResourceDeleted(journalPath, state)))
+  }
 
-      private var closed = false
+  /** Compares by the wrapped resource, as wrapping must not change how tasks that hold resources compare. */
+  override def equals(obj: Any): Boolean = obj match {
+    case other: JournalingResource => underlying == other.underlying
+    case _ => false
+  }
 
-      override def write(b: Int): Unit = out.write(b)
+  override def hashCode(): Int = underlying.hashCode()
 
-      override def write(b: Array[Byte]): Unit = out.write(b)
+  private def record(change: Change): Unit = {
+    ChangeJournal.requestUserContext.foreach(user => journal.record(change)(user))
+  }
 
-      override def write(b: Array[Byte], off: Int, len: Int): Unit = out.write(b, off, len)
+  /** Records the write once the stream is closed, i.e. the file is in its new state. */
+  private class RecordingOutputStream(out: OutputStream, before: Option[FileState]) extends OutputStream {
 
-      override def flush(): Unit = out.flush()
+    private val closed = new AtomicBoolean(false)
 
-      override def close(): Unit = {
-        if(!closed) {
-          closed = true
+    override def write(b: Int): Unit = out.write(b)
+
+    override def write(b: Array[Byte]): Unit = out.write(b)
+
+    override def write(b: Array[Byte], off: Int, len: Int): Unit = out.write(b, off, len)
+
+    override def flush(): Unit = out.flush()
+
+    override def close(): Unit = {
+      if(closed.compareAndSet(false, true)) {
+        // Recorded even if closing fails, as the file has been written to nevertheless.
+        try {
           out.close()
+        } finally {
           for(after <- FileState.of(underlying)) {
             record(before match {
               case Some(previous) => ResourceOverwritten(journalPath, previous, after)

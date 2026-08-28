@@ -8,7 +8,7 @@ import org.silkframework.entity.paths.UntypedPath
 import org.silkframework.plugins.dataset.text.TextFileDataset
 import org.silkframework.rule._
 import org.silkframework.runtime.activity.{SimpleUserContext, TestUserContextTrait, UserContext, UserExecutionContext}
-import org.silkframework.runtime.plugin.{ParameterTemplateValue, ParameterValues, PluginContext, PluginRegistry}
+import org.silkframework.runtime.plugin.{ParameterStringValue, ParameterTemplateValue, ParameterValues, PluginContext, PluginRegistry}
 import org.silkframework.runtime.templating.{SimpleSubstitutionTemplateEngine, TemplateVariable, TemplateVariables, VariableScope}
 import org.silkframework.runtime.users.DefaultUserManager
 import org.silkframework.runtime.validation.BadUserInputException
@@ -51,6 +51,21 @@ class ChangeJournalTest extends AnyFlatSpec with Matchers with TestWorkspaceProv
     entries.map(_.seq) shouldBe Seq(1, 2, 3)
     entries.map(_.change.describe) shouldBe Seq("Added task 'transform'", "Updated task 'transform'", "Removed task 'transform'")
     entries.map(_.reverts) shouldBe Seq(None, None, None)
+  }
+
+  it should "not record an update of a file based dataset that changes nothing" in {
+    val project = retrieveOrCreateProject("journalDatasetUpdate")
+    implicit val pluginContext: PluginContext = PluginContext.fromProject(project)
+    def dataset: GenericDatasetSpec = {
+      DatasetSpec(PluginRegistry.create[Dataset]("text", ParameterValues(Map("file" -> ParameterStringValue("data.txt")))))
+    }
+    project.addTask[GenericDatasetSpec]("dataset", dataset)
+    project.updateTask[GenericDatasetSpec]("dataset", dataset)
+    project.changeJournal.all.map(_.change.describe) shouldBe Seq("Added task 'dataset'")
+
+    // The recording wrapper keeps the value equality of the resources it wraps, also in sub directories
+    project.resources.get("data.txt") shouldBe project.resources.get("data.txt")
+    project.resources.child("sub").get("data.txt") shouldBe project.resources.child("sub").get("data.txt")
   }
 
   it should "revert whole-task changes while the task is unchanged" in {
@@ -286,6 +301,13 @@ class ChangeJournalTest extends AnyFlatSpec with Matchers with TestWorkspaceProv
       val recreated = journal.all.last
       journal.revert(recreated.seq).change shouldBe a[ResourceDeleted]
       file.exists shouldBe false
+
+      // Deleting a directory records the deletion of each file in it and removes the directory
+      project.resources.child("folder").get("nested.txt").writeString("content")
+      project.resources.delete("folder")
+      journal.all.map(_.change.describe).takeRight(2) shouldBe
+        Seq("Added file 'folder/nested.txt'", "Deleted file 'folder/nested.txt'")
+      project.resources.listChildren should not contain "folder"
     }
   }
 }
