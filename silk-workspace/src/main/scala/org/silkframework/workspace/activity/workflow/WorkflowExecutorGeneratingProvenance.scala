@@ -59,16 +59,7 @@ trait WorkflowExecutorGeneratingProvenance extends Activity[WorkflowExecutionRep
       try {
         control.lastResult match {
           case Some(lastResult) =>
-            val report = WorkflowExecutionReportWithProvenance.fromActivityExecutionReport(lastResult)
-            context.value.update(report)
-            val reportId = ReportIdentifier.create(workflowTask.project.id, workflowTask.id)
-            ExecutionReportManager().addReport(reportId, lastResult)
-            val persisted = ExecutionReportManager().persistsReports
-            if(persisted) {
-              // Only advertise the identifier after the report has actually been persisted.
-              context.value.update(report.copy(reportId = Some(reportId)))
-            }
-            recordRun(Some(reportId).filter(_ => persisted),
+            storeReport(lastResult, context,
               failed = executionException.isDefined || lastResult.resultValue.exists(_.error.isDefined))
             val persistProvenanceService = PluginRegistry.createFromConfig[PersistWorkflowProvenance]("provenance.persistWorkflowProvenancePlugin")
             persistProvenanceService.persistWorkflowProvenance(workflowTask, lastResult)
@@ -87,6 +78,26 @@ trait WorkflowExecutorGeneratingProvenance extends Activity[WorkflowExecutionRep
               throw ex
           }
       }
+    }
+  }
+
+  /** Stores the report and records the run. The run is recorded even if its report cannot be built or stored. */
+  private def storeReport(lastResult: ActivityExecutionResult[WorkflowExecutionReport],
+                          context: ActivityContext[WorkflowExecutionReportWithProvenance], failed: Boolean)
+                         (implicit userContext: UserContext, pluginContext: PluginContext): Unit = {
+    val reportId = ReportIdentifier.create(workflowTask.project.id, workflowTask.id)
+    var persisted = false
+    try {
+      val report = WorkflowExecutionReportWithProvenance.fromActivityExecutionReport(lastResult)
+      context.value.update(report)
+      ExecutionReportManager().addReport(reportId, lastResult)
+      persisted = ExecutionReportManager().persistsReports
+      if(persisted) {
+        // Only advertise the identifier after the report has actually been persisted.
+        context.value.update(report.copy(reportId = Some(reportId)))
+      }
+    } finally {
+      recordRun(Some(reportId).filter(_ => persisted), failed)
     }
   }
 
