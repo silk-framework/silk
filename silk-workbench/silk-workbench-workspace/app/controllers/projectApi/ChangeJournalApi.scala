@@ -101,7 +101,7 @@ object ChangeJournalApi {
                              `type`: String,
                              @Schema(description = "What has been changed, for display.")
                              description: String,
-                             @Schema(description = "Whether the change can be reverted at all. False for a file overwrite or deletion, whose previous content is not kept.")
+                             @Schema(description = "Whether the change can be reverted at all. False for a workflow run, and for a file overwrite or deletion, whose previous content is not kept.")
                              revertible: Boolean,
                              @Schema(description = "The change this one reverted. Present only if the change was made by reverting one.")
                              reverts: Option[Int],

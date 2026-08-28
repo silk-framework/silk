@@ -31,6 +31,14 @@ trait Change {
   def applyTo(project: Project)(implicit userContext: UserContext): Unit
 }
 
+/** A change recorded from the outcome of a write, e.g. a file write or a workflow run. It holds no content, so it is not applied itself. */
+trait RecordedChange extends Change {
+
+  override def applyTo(project: Project)(implicit userContext: UserContext): Unit = {
+    throw new IllegalStateException(s"$changeType records the outcome of a write and cannot be applied.")
+  }
+}
+
 /**
   * A change of the data of one task. A typed change carries only what it changes and [[apply]] is pure:
   * everything it needs, such as generated identifiers, is resolved before the change is created.

@@ -17,37 +17,28 @@ object FileState {
   }
 }
 
-/**
-  * A file was written that did not exist. Recorded by the resource funnel from the outcome of the write, so it holds
-  * no content and is not applied itself; its inverse is.
-  */
-case class ResourceCreated(path: String, after: FileState) extends Change {
+/** A file was written that did not exist. Reverting deletes it while it is unchanged. */
+case class ResourceCreated(path: String, after: FileState) extends RecordedChange {
 
   override def describe: String = s"Added file '$path'"
 
   override def inverse: Option[Change] = Some(DeleteResource(path, after))
-
-  override def applyTo(project: Project)(implicit userContext: UserContext): Unit = ResourceChanges.recordedOnly(this)
 }
 
 /** An existing file was overwritten or appended to. Its previous content is not kept, so it cannot be reverted. */
-case class ResourceOverwritten(path: String, before: FileState, after: FileState) extends Change {
+case class ResourceOverwritten(path: String, before: FileState, after: FileState) extends RecordedChange {
 
   override def describe: String = s"Overwrote file '$path'"
 
   override def inverse: Option[Change] = None
-
-  override def applyTo(project: Project)(implicit userContext: UserContext): Unit = ResourceChanges.recordedOnly(this)
 }
 
 /** A file was deleted. Its content is not kept, so it cannot be reverted. */
-case class ResourceDeleted(path: String, before: FileState) extends Change {
+case class ResourceDeleted(path: String, before: FileState) extends RecordedChange {
 
   override def describe: String = s"Deleted file '$path'"
 
   override def inverse: Option[Change] = None
-
-  override def applyTo(project: Project)(implicit userContext: UserContext): Unit = ResourceChanges.recordedOnly(this)
 }
 
 /**
@@ -78,9 +69,5 @@ private[workspace] object ResourceChanges {
         throw ChangeConflictException(s"File '$path' in project '${project.id}' has been changed since.")
     }
     resource
-  }
-
-  def recordedOnly(change: Change): Nothing = {
-    throw new IllegalStateException(s"${change.changeType} records the outcome of a write and cannot be applied; its inverse can.")
   }
 }

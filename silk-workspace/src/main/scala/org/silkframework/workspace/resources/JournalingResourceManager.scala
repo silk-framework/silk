@@ -7,7 +7,8 @@ import java.io.{InputStream, OutputStream}
 import java.time.Instant
 
 /**
-  * The resources of a project, recording every write and deletion in its change journal.
+  * The resources of a project, recording every write and deletion made on behalf of a request in its change journal.
+  * The writes of an activity, e.g. a workflow run, are its effect and represented by the activity's own entry.
   *
   * @param prefix The path of this manager relative to the project resources, ending in '/' unless it is the root.
   */
@@ -73,7 +74,9 @@ class JournalingResourceManager(underlying: ResourceManager, journal: ChangeJour
       before.foreach(state => record(ResourceDeleted(journalPath, state)))
     }
 
-    private def record(change: Change): Unit = journal.record(change)(ChangeJournal.requestUserContext)
+    private def record(change: Change): Unit = {
+      ChangeJournal.requestUserContext.foreach(user => journal.record(change)(user))
+    }
 
     /** Records the write once the stream is closed, i.e. the file is in its new state. */
     private class RecordingOutputStream(out: OutputStream, before: Option[FileState]) extends OutputStream {

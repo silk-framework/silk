@@ -5,6 +5,7 @@ import org.silkframework.runtime.activity._
 import org.silkframework.runtime.plugin.{PluginContext, PluginRegistry}
 import org.silkframework.runtime.templating.{ExecutionVariablesHolder, TemplateVariables}
 import org.silkframework.workspace.ProjectTask
+import org.silkframework.workspace.changes.WorkflowExecuted
 import org.silkframework.workspace.reports.{ExecutionReportManager, ReportIdentifier}
 
 import java.util.logging.Logger
@@ -62,13 +63,17 @@ trait WorkflowExecutorGeneratingProvenance extends Activity[WorkflowExecutionRep
             context.value.update(report)
             val reportId = ReportIdentifier.create(workflowTask.project.id, workflowTask.id)
             ExecutionReportManager().addReport(reportId, lastResult)
-            if(ExecutionReportManager().persistsReports) {
+            val persisted = ExecutionReportManager().persistsReports
+            if(persisted) {
               // Only advertise the identifier after the report has actually been persisted.
               context.value.update(report.copy(reportId = Some(reportId)))
             }
+            recordRun(Some(reportId).filter(_ => persisted),
+              failed = executionException.isDefined || lastResult.resultValue.exists(_.error.isDefined))
             val persistProvenanceService = PluginRegistry.createFromConfig[PersistWorkflowProvenance]("provenance.persistWorkflowProvenancePlugin")
             persistProvenanceService.persistWorkflowProvenance(workflowTask, lastResult)
           case None =>
+            recordRun(None, failed = true)
             throw new RuntimeException("Child activity 'Execute local workflow' did not finish with result!")
         }
       } catch {
@@ -83,6 +88,11 @@ trait WorkflowExecutorGeneratingProvenance extends Activity[WorkflowExecutionRep
           }
       }
     }
+  }
+
+  /** Records the run in the project's change journal, where it marks what the changes before it were consumed by. */
+  private def recordRun(reportId: Option[ReportIdentifier], failed: Boolean)(implicit userContext: UserContext): Unit = {
+    workflowTask.project.changeJournal.record(WorkflowExecuted(workflowTask.id, reportId.map(_.time.toString), failed))
   }
 }
 

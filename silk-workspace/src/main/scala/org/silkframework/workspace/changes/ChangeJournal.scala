@@ -94,7 +94,8 @@ class ChangeJournal(project: Project) {
       throw ChangeConflictException(s"Change $seq (${entry.change.describe}) in project '${project.id}' cannot be reverted."))
     reverting.set(Some(seq))
     try {
-      inverse.applyTo(project)
+      // A revert is a request of the user, so the files its inverse writes are recorded.
+      ChangeJournal.onBehalfOf(userContext)(inverse.applyTo(project))
     } finally {
       reverting.remove()
     }
@@ -125,6 +126,6 @@ object ChangeJournal {
     }
   }
 
-  /** The user of the request being served, or the empty context outside of one, e.g. in an activity. */
-  private[workspace] def requestUserContext: UserContext = requestUser.get().getOrElse(UserContext.Empty)
+  /** The user of the request being served, if any; an activity, e.g. a workflow run, serves none. */
+  private[workspace] def requestUserContext: Option[UserContext] = requestUser.get()
 }

@@ -7,7 +7,7 @@ import org.silkframework.dataset.{Dataset, DatasetSpec}
 import org.silkframework.entity.paths.UntypedPath
 import org.silkframework.plugins.dataset.text.TextFileDataset
 import org.silkframework.rule._
-import org.silkframework.runtime.activity.{SimpleUserContext, TestUserContextTrait, UserExecutionContext}
+import org.silkframework.runtime.activity.{SimpleUserContext, TestUserContextTrait, UserContext, UserExecutionContext}
 import org.silkframework.runtime.plugin.{ParameterTemplateValue, ParameterValues, PluginContext, PluginRegistry}
 import org.silkframework.runtime.templating.{SimpleSubstitutionTemplateEngine, TemplateVariable, TemplateVariables, VariableScope}
 import org.silkframework.runtime.users.DefaultUserManager
@@ -254,31 +254,38 @@ class ChangeJournalTest extends AnyFlatSpec with Matchers with TestWorkspaceProv
     project.templateVariables.all.map("fileName").value shouldBe "a.csv"
   }
 
-  it should "record file writes and deletions and revert a creation while the file is unchanged" in {
+  it should "record the file writes and deletions of a request and revert a creation while the file is unchanged" in {
     val project = retrieveOrCreateProject("journalFiles")
     val journal = project.changeJournal
     val file = project.resources.get("data.txt")
-    file.writeString("first")
-    file.writeString("second!")
+    // A write outside of a request, e.g. by a workflow run, is not recorded
+    file.writeString("by an activity")
     file.delete()
-    journal.all.map(_.change.describe) shouldBe Seq("Added file 'data.txt'", "Overwrote file 'data.txt'", "Deleted file 'data.txt'")
-    // The previous content is not kept, so only a creation has an inverse
-    journal.all.map(_.change.inverse.isDefined) shouldBe Seq(true, false, false)
-    (the[ChangeConflictException] thrownBy journal.revert(journal.all.last.seq)).getMessage should include("cannot be reverted")
+    journal.all shouldBe empty
 
-    // Reverting a creation refuses once the file changed
-    file.writeString("third")
-    val created = journal.all.last
-    created.change shouldBe a[ResourceCreated]
-    file.writeString("third, changed")
-    a[ChangeConflictException] should be thrownBy journal.revert(created.seq)
-    file.loadAsString() shouldBe "third, changed"
+    ChangeJournal.onBehalfOf(implicitly[UserContext]) {
+      file.writeString("first")
+      file.writeString("second!")
+      file.delete()
+      journal.all.map(_.change.describe) shouldBe Seq("Added file 'data.txt'", "Overwrote file 'data.txt'", "Deleted file 'data.txt'")
+      // The previous content is not kept, so only a creation has an inverse
+      journal.all.map(_.change.inverse.isDefined) shouldBe Seq(true, false, false)
+      (the[ChangeConflictException] thrownBy journal.revert(journal.all.last.seq)).getMessage should include("cannot be reverted")
 
-    // Reverting a creation deletes the file
-    file.delete()
-    file.writeString("fourth")
-    val recreated = journal.all.last
-    journal.revert(recreated.seq).change shouldBe a[ResourceDeleted]
-    file.exists shouldBe false
+      // Reverting a creation refuses once the file changed
+      file.writeString("third")
+      val created = journal.all.last
+      created.change shouldBe a[ResourceCreated]
+      file.writeString("third, changed")
+      a[ChangeConflictException] should be thrownBy journal.revert(created.seq)
+      file.loadAsString() shouldBe "third, changed"
+
+      // Reverting a creation deletes the file
+      file.delete()
+      file.writeString("fourth")
+      val recreated = journal.all.last
+      journal.revert(recreated.seq).change shouldBe a[ResourceDeleted]
+      file.exists shouldBe false
+    }
   }
 }
