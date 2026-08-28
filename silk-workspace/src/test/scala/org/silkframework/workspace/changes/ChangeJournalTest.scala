@@ -54,6 +54,8 @@ class ChangeJournalTest extends AnyFlatSpec with Matchers with TestWorkspaceProv
     entries.map(_.seq) shouldBe Seq(1, 2, 3)
     entries.map(_.change.describe) shouldBe Seq("Added task 'transform'", "Updated task 'transform'", "Removed task 'transform'")
     entries.map(_.reverts) shouldBe Seq(None, None, None)
+    // The task parameters may be sensitive, so a change never prints the task data
+    entries.map(_.change.toString) shouldBe Seq("AddTask(transform)", "ReplaceTask(transform)", "RemoveTask(transform)")
   }
 
   it should "not record an update of a file based dataset that changes nothing" in {

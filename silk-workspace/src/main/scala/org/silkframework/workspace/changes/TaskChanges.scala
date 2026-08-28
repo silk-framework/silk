@@ -18,6 +18,9 @@ case class AddTask(task: PlainTask[TaskSpec]) extends Change {
     }
     project.addAnyTask(task.id, task.data, task.metaData, task.executionVariables)
   }
+
+  // The task parameters may be sensitive, so they are never printed.
+  override def toString: String = s"AddTask(${task.id})"
 }
 
 /** Removes a task from the project. Holds the removed task, so the removal can be reverted. */
@@ -31,6 +34,8 @@ case class RemoveTask(task: PlainTask[TaskSpec]) extends Change {
     TaskChanges.expectState(project, task)
     project.removeAnyTask(task.id, removeDependentTasks = false)
   }
+
+  override def toString: String = s"RemoveTask(${task.id})"
 }
 
 /**
@@ -50,6 +55,8 @@ case class ReplaceTask(before: PlainTask[TaskSpec], after: PlainTask[TaskSpec]) 
     // Timestamps and users are dropped, so the update is stamped as a new modification.
     task.update(after.data, Some(after.metaData.withoutUserData), Some(after.executionVariables))
   }
+
+  override def toString: String = s"ReplaceTask($taskId)"
 }
 
 object TaskChanges {
