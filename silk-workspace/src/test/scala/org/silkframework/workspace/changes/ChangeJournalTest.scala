@@ -7,11 +7,12 @@ import org.silkframework.dataset.{Dataset, DatasetSpec}
 import org.silkframework.entity.paths.UntypedPath
 import org.silkframework.plugins.dataset.text.TextFileDataset
 import org.silkframework.rule._
+import org.silkframework.rule.input.PathInput
 import org.silkframework.runtime.activity.{SimpleUserContext, TestUserContextTrait, UserContext, UserExecutionContext}
 import org.silkframework.runtime.plugin.{ParameterStringValue, ParameterTemplateValue, ParameterValues, PluginContext, PluginRegistry}
 import org.silkframework.runtime.templating.{SimpleSubstitutionTemplateEngine, TemplateVariable, TemplateVariables, VariableScope}
 import org.silkframework.runtime.users.DefaultUserManager
-import org.silkframework.runtime.validation.BadUserInputException
+import org.silkframework.runtime.validation.{BadUserInputException, NotFoundException}
 import org.silkframework.util.{ConfigTestTrait, Uri}
 import org.silkframework.workspace.variables.{DeleteVariableModification, UpdateVariableModification}
 import org.silkframework.workspace.{ProjectTask, TestWorkspaceProviderTestTrait}
@@ -147,6 +148,19 @@ class ChangeJournalTest extends AnyFlatSpec with Matchers with TestWorkspaceProv
     val reverted = project.changeJournal.revert(added.seq)
     reverted.change shouldBe RemoveMapping("transform", "root", age, Some(1))
     ruleIds(task) shouldBe Seq("name", "town")
+  }
+
+  it should "not take the operators inside a rule for rules" in {
+    val project = retrieveOrCreateProject("journalRuleOperators")
+    val complex = ComplexMapping(id = "complex", operator = PathInput(id = "input", path = UntypedPath("name")),
+      target = Some(MappingTarget("http://example.org/name")))
+    val task = project.addTask[TransformSpec]("transform", transform(complex, age))
+    // The rule JSON shows the ids of the input operators, but they do not name a rule
+    a[NotFoundException] should be thrownBy RemoveMapping.of("transform", task.data, "input")
+    a[NotFoundException] should be thrownBy UpdateMapping.of("transform", task.data, "input", age)
+    a[NotFoundException] should be thrownBy ReorderMappings.of("transform", task.data, "input", Seq.empty)
+    // A value rule holds no child rules, so there is nothing to reorder under it
+    a[BadUserInputException] should be thrownBy ReorderMappings.of("transform", task.data, "complex", Seq.empty)
   }
 
   it should "restore a removed rule at its position" in {

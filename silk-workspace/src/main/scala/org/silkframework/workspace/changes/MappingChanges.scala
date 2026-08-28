@@ -118,7 +118,11 @@ object ReorderMappings {
   def of(taskId: Identifier, spec: TransformSpec, parentId: Identifier, order: Seq[String]): ReorderMappings = {
     val parent = RuleTraverser(spec.mappingRule).find(parentId)
       .getOrElse(throw new NotFoundException(s"No rule '$parentId' found in transform '$taskId'."))
-    val current = parent.operator.asInstanceOf[TransformRule].rules.propertyRules.map(_.id)
+    val rules = parent.operator match {
+      case container: ContainerTransformRule => container.rules
+      case _ => throw BadUserInputException(s"Rule '$parentId' in transform '$taskId' cannot hold child rules.")
+    }
+    val current = rules.propertyRules.map(_.id)
     if(order.sorted != current.map(_.toString).sorted) {
       throw BadUserInputException(s"Provided list [${order.mkString(", ")}] does not contain the same elements " +
         s"as current list [${current.mkString(", ")}].")
