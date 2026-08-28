@@ -2,18 +2,28 @@ package org.silkframework.workspace.changes
 
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
+import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
+import org.silkframework.dataset.{Dataset, DatasetSpec}
 import org.silkframework.entity.paths.UntypedPath
+import org.silkframework.plugins.dataset.text.TextFileDataset
 import org.silkframework.rule._
 import org.silkframework.runtime.activity.{SimpleUserContext, TestUserContextTrait, UserExecutionContext}
+import org.silkframework.runtime.plugin.{ParameterTemplateValue, ParameterValues, PluginContext, PluginRegistry}
+import org.silkframework.runtime.templating.{SimpleSubstitutionTemplateEngine, TemplateVariable, TemplateVariables, VariableScope}
 import org.silkframework.runtime.users.DefaultUserManager
 import org.silkframework.runtime.validation.BadUserInputException
+import org.silkframework.util.ConfigTestTrait
+import org.silkframework.workspace.variables.{DeleteVariableModification, UpdateVariableModification}
 import org.silkframework.workspace.{ProjectTask, TestWorkspaceProviderTestTrait}
 
-class ChangeJournalTest extends AnyFlatSpec with Matchers with TestWorkspaceProviderTestTrait with TestUserContextTrait {
+class ChangeJournalTest extends AnyFlatSpec with Matchers with TestWorkspaceProviderTestTrait with TestUserContextTrait with ConfigTestTrait {
 
   behavior of "ChangeJournal"
 
   override def workspaceProviderId: String = "inMemoryWorkspaceProvider"
+
+  // The jinja engine is not on this module's classpath; the simple engine substitutes '{{scope.name}}' references.
+  override def propertyMap: Map[String, Option[String]] = Map("config.variables.engine" -> Some(SimpleSubstitutionTemplateEngine.id))
 
   private def rule(name: String): DirectMapping = {
     DirectMapping(id = name, sourcePath = UntypedPath(name), mappingTarget = MappingTarget("http://example.org/" + name))
@@ -163,5 +173,84 @@ class ChangeJournalTest extends AnyFlatSpec with Matchers with TestWorkspaceProv
     val entry = project.changeJournal.all.last
     entry.user shouldBe Some("urn:agent")
     entry.origin shouldBe Some("mcp:test")
+  }
+
+  private def variable(name: String, value: String, template: Option[String] = None): TemplateVariable = {
+    TemplateVariable(name, value, template, scope = VariableScope.project)
+  }
+
+  it should "record every variable addition, change and removal" in {
+    val project = retrieveOrCreateProject("journalVariables")
+    val variables = project.templateVariables
+    variables.put(TemplateVariables(Seq(variable("a", "1"), variable("b", "2"))))
+    // A reorder is not recorded
+    variables.put(TemplateVariables(Seq(variable("b", "2"), variable("a", "1"))))
+    variables.put(TemplateVariables(Seq(variable("b", "3"), variable("c", "4"))))
+    // The value of a templated variable is derived and not compared
+    variables.put(TemplateVariables(Seq(variable("b", "3"), variable("c", "4"), variable("d", "3", Some("{{project.b}}")))))
+    variables.put(TemplateVariables(Seq(variable("b", "3"), variable("c", "4"), variable("d", "other", Some("{{project.b}}")))))
+
+    project.changeJournal.all.map(_.change.describe) shouldBe Seq("Added variable 'a'", "Added variable 'b'",
+      "Set variable 'b'", "Added variable 'c'", "Removed variable 'a'", "Added variable 'd'")
+  }
+
+  it should "revert variable changes while the variable is unchanged" in {
+    val project = retrieveOrCreateProject("journalRevertVariables")
+    val journal = project.changeJournal
+    def value(name: String): Option[String] = project.templateVariables.all.map.get(name).map(_.value)
+    UpdateVariableModification(project, variable("a", "1")).execute()
+    UpdateVariableModification(project, variable("a", "2")).execute()
+    val set = journal.all.last
+    set.change shouldBe SetVariable(Some(variable("a", "1")), variable("a", "2"))
+
+    // Revert the change, then revert the revert
+    val reverted = journal.revert(set.seq)
+    reverted.reverts shouldBe Some(set.seq)
+    reverted.change shouldBe SetVariable(Some(variable("a", "2")), variable("a", "1"))
+    value("a") shouldBe Some("1")
+    val redone = journal.revert(reverted.seq)
+    value("a") shouldBe Some("2")
+    // Refused once the variable changed again
+    UpdateVariableModification(project, variable("a", "3")).execute()
+    a[ChangeConflictException] should be thrownBy journal.revert(redone.seq)
+    value("a") shouldBe Some("3")
+
+    // Reverting an addition removes the variable, reverting that adds it back, unless the name is taken again
+    UpdateVariableModification(project, variable("b", "1")).execute()
+    val added = journal.all.last
+    val removed = journal.revert(added.seq)
+    removed.change shouldBe RemoveVariable(variable("b", "1"))
+    value("b") shouldBe None
+    UpdateVariableModification(project, variable("b", "9")).execute()
+    a[ChangeConflictException] should be thrownBy journal.revert(removed.seq)
+    DeleteVariableModification(project, "b").execute()
+    journal.revert(removed.seq)
+    value("b") shouldBe Some("1")
+  }
+
+  it should "let the tasks that use a variable follow it without recording them" in {
+    val project = retrieveOrCreateProject("journalVariableTasks")
+    val journal = project.changeJournal
+    UpdateVariableModification(project, variable("fileName", "a.csv")).execute()
+    implicit val pluginContext: PluginContext = PluginContext.fromProject(project)
+    val dataset = PluginRegistry.create[Dataset]("text", ParameterValues(Map("file" -> ParameterTemplateValue("{{project.fileName}}"))))
+    project.addTask[GenericDatasetSpec]("dataset", DatasetSpec(dataset))
+    def file: String = project.task[GenericDatasetSpec]("dataset").data.plugin.asInstanceOf[TextFileDataset].file.name
+    file shouldBe "a.csv"
+    val recorded = journal.all.size
+
+    // The dataset follows the variable; only the variable change is recorded
+    UpdateVariableModification(project, variable("fileName", "b.csv")).execute()
+    file shouldBe "b.csv"
+    journal.all.drop(recorded).map(_.change.describe) shouldBe Seq("Set variable 'fileName'")
+    val reverted = journal.revert(journal.all.last.seq)
+    file shouldBe "a.csv"
+    reverted.reverts shouldBe Some(journal.all(recorded).seq)
+    journal.all.drop(recorded + 1).map(_.change.describe) shouldBe Seq("Set variable 'fileName'")
+
+    // A variable that a task uses cannot be removed by reverting its addition
+    a[ChangeConflictException] should be thrownBy journal.revert(journal.all.head.seq)
+    file shouldBe "a.csv"
+    project.templateVariables.all.map("fileName").value shouldBe "a.csv"
   }
 }

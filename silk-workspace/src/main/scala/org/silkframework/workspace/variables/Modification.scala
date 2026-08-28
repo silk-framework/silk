@@ -1,4 +1,4 @@
-package org.silkframework.runtime.templating.operations
+package org.silkframework.workspace.variables
 
 import org.silkframework.config.{Task, TaskSpec}
 import org.silkframework.runtime.activity.UserContext
@@ -72,10 +72,13 @@ abstract class Modification {
         updateExecutionVariablesAndTask(project.anyTask(id), currentVariables, newVariables)
         log.info(s"$operation.")
       case None =>
-        val updatedTaskIds = updateTasks(newVariables)
+        // The scope check is the one expected failure of the put, so it precedes the task updates.
+        manager.validateScope(newVariables)
+        // The task updates follow the variables and are restored by reverting the variable change, so they are not journaled.
+        val updatedTaskIds = project.changeJournal.derived(updateTasks(newVariables))
         manager.put(newVariables)
         // Execution-variable templates are resolved at save time, so re-resolve them against the updated variables.
-        val refreshedTaskIds = refreshTaskExecutionVariables()
+        val refreshedTaskIds = project.changeJournal.derived(refreshTaskExecutionVariables())
         val allUpdatedIds = (updatedTaskIds ++ refreshedTaskIds).toSeq.distinct
         if(allUpdatedIds.nonEmpty) {
           log.info(s"$operation. The following tasks have been updated: " + allUpdatedIds)

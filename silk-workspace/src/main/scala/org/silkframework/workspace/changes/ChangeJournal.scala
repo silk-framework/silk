@@ -9,9 +9,12 @@ import java.time.Instant
 /**
   * A recorded change.
   *
-  * @param user    The URI of the user who made the change, if known.
-  * @param origin  The client the change came from, e.g. "mcp:<client name>", if known.
-  * @param reverts The entry this change reverts, if it was recorded by reverting one.
+  * @param seq       The sequence number of this entry, unique and increasing within the project's journal.
+  * @param timestamp When the change was recorded.
+  * @param user      The URI of the user who made the change, if known.
+  * @param origin    The client the change came from, e.g. "mcp:<client name>", if known.
+  * @param change    The change that was applied.
+  * @param reverts   The seq of the entry this change reverts, if it was recorded by reverting one.
   */
 case class ChangeEntry(seq: Int, timestamp: Instant, user: Option[String], origin: Option[String], change: Change,
                        reverts: Option[Int] = None)
@@ -32,20 +35,43 @@ class ChangeJournal(project: Project) {
     override def initialValue: Option[Int] = None
   }
 
+  // Set while a write is derived from a change that is recorded itself, so that it is not recorded.
+  private val derivedWrite = new ThreadLocal[Boolean] {
+    override def initialValue: Boolean = false
+  }
+
   /** All entries, oldest first. */
   def all: Seq[ChangeEntry] = synchronized(entries)
 
   def entry(seq: Int): Option[ChangeEntry] = synchronized(entries.find(_.seq == seq))
 
-  /** Records a change that has been applied. Called by the write path. */
-  private[workspace] def record(change: Change)(implicit userContext: UserContext): ChangeEntry = synchronized {
-    val entry = ChangeEntry(nextSeq, Instant.now, userContext.user.map(_.uri), userContext.executionContext.origin,
-      change, reverting.get())
-    // A change that writes more than one task records one entry per task; only the first one reverts the entry.
-    reverting.remove()
-    nextSeq += 1
-    entries = (entries :+ entry).takeRight(ChangeJournal.maxEntries)
-    entry
+  /**
+    * Runs writes that are derived from a change recorded on this thread, e.g. the tasks re-resolved after a variable
+    * change. They are not recorded, as reverting the change restores them too.
+    */
+  private[workspace] def derived[T](body: => T): T = {
+    val outer = derivedWrite.get()
+    derivedWrite.set(true)
+    try {
+      body
+    } finally {
+      derivedWrite.set(outer)
+    }
+  }
+
+  /** Records a change that has been applied. Called by the write path; a derived write is not recorded. */
+  private[workspace] def record(change: Change)(implicit userContext: UserContext): Option[ChangeEntry] = synchronized {
+    if(derivedWrite.get()) {
+      None
+    } else {
+      val entry = ChangeEntry(nextSeq, Instant.now, userContext.user.map(_.uri), userContext.executionContext.origin,
+        change, reverting.get())
+      // A change that writes more than one task records one entry per task; only the first one reverts the entry.
+      reverting.remove()
+      nextSeq += 1
+      entries = (entries :+ entry).takeRight(ChangeJournal.maxEntries)
+      Some(entry)
+    }
   }
 
   /**
@@ -57,6 +83,9 @@ class ChangeJournal(project: Project) {
     *                                 the inverse does not apply.
     */
   def revert(seq: Int)(implicit userContext: UserContext): ChangeEntry = {
+    if(derivedWrite.get()) {
+      throw new IllegalStateException(s"Change $seq cannot be reverted from within a derived write.")
+    }
     val entry = this.entry(seq).getOrElse(throw new NotFoundException(s"No change $seq in project '${project.id}'."))
     if(revertOf(seq).isDefined) {
       throw ChangeConflictException(s"Change $seq in project '${project.id}' has been reverted already.")

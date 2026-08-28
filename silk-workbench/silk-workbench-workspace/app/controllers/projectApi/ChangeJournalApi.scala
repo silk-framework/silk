@@ -96,7 +96,7 @@ object ChangeJournalApi {
                              user: Option[String],
                              @Schema(description = "The client the change came from, e.g. 'mcp:<user agent>'. Absent if unknown.")
                              origin: Option[String],
-                             @Schema(description = "The kind of change, e.g. 'AddMapping' or 'ReplaceTask'.")
+                             @Schema(description = "The kind of change, e.g. 'AddMapping', 'ReplaceTask' or 'SetVariable'.")
                              `type`: String,
                              @Schema(description = "What has been changed, for display.")
                              description: String,
