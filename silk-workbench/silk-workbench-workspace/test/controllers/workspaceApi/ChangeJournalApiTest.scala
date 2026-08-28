@@ -44,6 +44,7 @@ class ChangeJournalApiTest extends AnyFlatSpec with IntegrationTestTrait with Ap
     listed.map(_.`type`) mustBe Seq("AddMapping", "AddTask")
     listed.head.description mustBe s"Added mapping rule 'b' under '${task.data.mappingRule.id}' in transform 'transform'"
     listed.head.revertedBy mustBe None
+    listed.head.revertible mustBe true
     val seq = listed.head.seq
 
     val revert = checkResponse(client.url(revertUrl(seq)).post("")).json.as[ChangeEntryJson]

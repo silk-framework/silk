@@ -20,8 +20,9 @@ class ChangeJournalApi @Inject()() extends InjectedController with UserContextAc
 
   @Operation(
     summary = "List changes",
-    description = "The changes made to the project since it was loaded, newest first. A change can be reverted unless " +
-      "'revertedBy' names the change that reverted it already; 'reverts' names the change a revert undid.",
+    description = "The changes made to the project since it was loaded, newest first. A change can be reverted while " +
+      "'revertible' is true and 'revertedBy' does not name the change that reverted it already; 'reverts' names the " +
+      "change a revert undid.",
     responses = Array(
       new ApiResponse(
         responseCode = "200",
@@ -61,8 +62,8 @@ class ChangeJournalApi @Inject()() extends InjectedController with UserContextAc
         ))
       ),
       new ApiResponse(responseCode = "404", description = "The project or the change does not exist."),
-      new ApiResponse(responseCode = "409", description = "The change has been reverted already, or the project has " +
-        "changed since so that the revert does not apply. The project is left unchanged.")
+      new ApiResponse(responseCode = "409", description = "The change has been reverted already, is not revertible, or " +
+        "the project has changed since so that the revert does not apply. The project is left unchanged.")
     ))
   def revert(@Parameter(
                name = "projectId",
@@ -100,6 +101,8 @@ object ChangeJournalApi {
                              `type`: String,
                              @Schema(description = "What has been changed, for display.")
                              description: String,
+                             @Schema(description = "Whether the change can be reverted at all. False for a file overwrite or deletion, whose previous content is not kept.")
+                             revertible: Boolean,
                              @Schema(description = "The change this one reverted. Present only if the change was made by reverting one.")
                              reverts: Option[Int],
                              @Schema(description = "The change that reverted this one. Present only if the change has been reverted.")
@@ -111,7 +114,7 @@ object ChangeJournalApi {
 
     def of(entry: ChangeEntry, revertedBy: Option[Int]): ChangeEntryJson = {
       ChangeEntryJson(entry.seq, entry.timestamp.toString, entry.user, entry.origin, entry.change.changeType,
-        entry.change.describe, entry.reverts, revertedBy)
+        entry.change.describe, entry.change.inverse.isDefined, entry.reverts, revertedBy)
     }
   }
 
@@ -133,6 +136,7 @@ object ChangeJournalApi {
           "user": "urn:user:alice",
           "type": "RemoveMapping",
           "description": "Removed mapping rule 'name' from transform 'persons'",
+          "revertible": true,
           "reverts": 2
         },
         {
@@ -142,6 +146,7 @@ object ChangeJournalApi {
           "origin": "mcp:claude-code",
           "type": "AddMapping",
           "description": "Added mapping rule 'name' under 'root' in transform 'persons'",
+          "revertible": true,
           "revertedBy": 3
         },
         {
@@ -150,7 +155,8 @@ object ChangeJournalApi {
           "user": "urn:user:alice",
           "origin": "mcp:claude-code",
           "type": "AddTask",
-          "description": "Added task 'persons'"
+          "description": "Added task 'persons'",
+          "revertible": true
         }
         ]
       }
@@ -164,6 +170,7 @@ object ChangeJournalApi {
         "user": "urn:user:alice",
         "type": "RemoveMapping",
         "description": "Removed mapping rule 'name' from transform 'persons'",
+        "revertible": true,
         "reverts": 2
       }
     """

@@ -15,7 +15,7 @@ case class AddMapping(taskId: Identifier, parentId: Identifier, rule: TransformR
 
   override def describe: String = s"Added mapping rule '${rule.id}' under '$parentId' in transform '$taskId'"
 
-  override def inverse: RemoveMapping = RemoveMapping(taskId, parentId, rule, index)
+  override def inverse: Option[RemoveMapping] = Some(RemoveMapping(taskId, parentId, rule, index))
 
   override def apply(spec: TransformSpec): TransformSpec = {
     val parent = MappingChanges.container(spec, taskId, parentId)
@@ -37,7 +37,7 @@ case class RemoveMapping(taskId: Identifier, parentId: Identifier, rule: Transfo
 
   override def describe: String = s"Removed mapping rule '${rule.id}' from transform '$taskId'"
 
-  override def inverse: AddMapping = AddMapping(taskId, parentId, rule, index)
+  override def inverse: Option[AddMapping] = Some(AddMapping(taskId, parentId, rule, index))
 
   override def apply(spec: TransformSpec): TransformSpec = {
     MappingChanges.expectRule(spec, taskId, rule)
@@ -66,7 +66,7 @@ case class UpdateMapping(taskId: Identifier, before: TransformRule, after: Trans
 
   override def describe: String = s"Updated mapping rule '${before.id}' in transform '$taskId'"
 
-  override def inverse: UpdateMapping = UpdateMapping(taskId, after, before)
+  override def inverse: Option[UpdateMapping] = Some(UpdateMapping(taskId, after, before))
 
   override def apply(spec: TransformSpec): TransformSpec = {
     val current = MappingChanges.expectRule(spec, taskId, before)
@@ -98,7 +98,7 @@ case class ReorderMappings(taskId: Identifier, parentId: Identifier, before: Seq
 
   override def describe: String = s"Reordered mapping rules under '$parentId' in transform '$taskId'"
 
-  override def inverse: ReorderMappings = ReorderMappings(taskId, parentId, after, before)
+  override def inverse: Option[ReorderMappings] = Some(ReorderMappings(taskId, parentId, after, before))
 
   override def apply(spec: TransformSpec): TransformSpec = {
     val parent = MappingChanges.container(spec, taskId, parentId)

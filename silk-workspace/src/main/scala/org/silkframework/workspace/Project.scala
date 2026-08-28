@@ -28,6 +28,7 @@ import org.silkframework.workspace.activity.workflow.{Workflow, WorkflowValidato
 import org.silkframework.workspace.activity.{ProjectActivity, ProjectActivityFactory}
 import org.silkframework.workspace.changes.ChangeJournal
 import org.silkframework.workspace.exceptions.{IdentifierAlreadyExistsException, TaskNotFoundException}
+import org.silkframework.workspace.resources.JournalingResourceManager
 
 import java.util.logging.{Level, Logger}
 import scala.reflect.ClassTag
@@ -38,11 +39,11 @@ import scala.util.control.NonFatal
  *
  * @param initialConfig The initial project configuration.
  * @param provider The workspace provider used to read and write this project.
- * @param resources The resource manager for holding project file resources.
+ * @param projectResources The resource manager for holding project file resources.
  * @param loadingUser The user context for loading tasks and variables initially. Should not be used after the project has been loaded.
  *
  */
-class Project(initialConfig: ProjectConfig, provider: WorkspaceProvider, val resources: ResourceManager, loadingUser: UserContext) extends ProjectTrait {
+class Project(initialConfig: ProjectConfig, provider: WorkspaceProvider, projectResources: ResourceManager, loadingUser: UserContext) extends ProjectTrait {
 
   private implicit val logger: Logger = Logger.getLogger(classOf[Project].getName)
 
@@ -50,8 +51,13 @@ class Project(initialConfig: ProjectConfig, provider: WorkspaceProvider, val res
 
   val tagManager = new TagManager(initialConfig.id, provider)
 
+  val cacheResources: ResourceManager = provider.projectCache(initialConfig.id)
+
   /** The journal of changes to this project, which records every write and can revert it. */
   val changeJournal: ChangeJournal = new ChangeJournal(this)
+
+  /** The file resources of this project. Every write is recorded in the change journal. */
+  val resources: ResourceManager = new JournalingResourceManager(projectResources, changeJournal)
 
   val templateVariables: TemplateVariablesManager =
     new ProjectTemplateVariablesManager(provider.projectVariables(initialConfig.id)(loadingUser), loadingUser, changeJournal)
@@ -63,8 +69,6 @@ class Project(initialConfig: ProjectConfig, provider: WorkspaceProvider, val res
       case None => templateVariables
     }
   }
-
-  val cacheResources: ResourceManager = provider.projectCache(initialConfig.id)
 
   @volatile
   private var cachedConfig: ProjectConfig = initialConfig

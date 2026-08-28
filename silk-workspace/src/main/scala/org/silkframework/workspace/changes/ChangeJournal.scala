@@ -79,8 +79,8 @@ class ChangeJournal(project: Project) {
     * the reverted one; reverting that entry in turn redoes the change.
     *
     * @throws org.silkframework.runtime.validation.NotFoundException If there is no entry with this sequence number.
-    * @throws ChangeConflictException If the entry has been reverted already, or the project changed since so that
-    *                                 the inverse does not apply.
+    * @throws ChangeConflictException If the entry has been reverted already, has no inverse, or the project changed
+    *                                 since so that the inverse does not apply.
     */
   def revert(seq: Int)(implicit userContext: UserContext): ChangeEntry = {
     if(derivedWrite.get()) {
@@ -90,9 +90,11 @@ class ChangeJournal(project: Project) {
     if(revertOf(seq).isDefined) {
       throw ChangeConflictException(s"Change $seq in project '${project.id}' has been reverted already.")
     }
+    val inverse = entry.change.inverse.getOrElse(
+      throw ChangeConflictException(s"Change $seq (${entry.change.describe}) in project '${project.id}' cannot be reverted."))
     reverting.set(Some(seq))
     try {
-      entry.change.inverse.applyTo(project)
+      inverse.applyTo(project)
     } finally {
       reverting.remove()
     }
@@ -106,4 +108,23 @@ object ChangeJournal {
 
   /** The number of entries kept per project. */
   val maxEntries: Int = 500
+
+  // The user of the request being served, for writes that carry no user context, such as resource writes.
+  private val requestUser = new ThreadLocal[Option[UserContext]] {
+    override def initialValue: Option[UserContext] = None
+  }
+
+  /** Serves a request on behalf of a user, so that its writes that carry no user context are attributed to the user. */
+  def onBehalfOf[T](userContext: UserContext)(body: => T): T = {
+    val outer = requestUser.get()
+    requestUser.set(Some(userContext))
+    try {
+      body
+    } finally {
+      requestUser.set(outer)
+    }
+  }
+
+  /** The user of the request being served, or the empty context outside of one, e.g. in an activity. */
+  private[workspace] def requestUserContext: UserContext = requestUser.get().getOrElse(UserContext.Empty)
 }

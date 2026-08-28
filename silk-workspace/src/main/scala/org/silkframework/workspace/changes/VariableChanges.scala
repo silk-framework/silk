@@ -16,10 +16,10 @@ case class SetVariable(before: Option[TemplateVariable], after: TemplateVariable
     if(before.isEmpty) s"Added variable '${after.name}'" else s"Set variable '${after.name}'"
   }
 
-  override def inverse: Change = before match {
+  override def inverse: Option[Change] = Some(before match {
     case Some(previous) => SetVariable(Some(after), previous)
     case None => RemoveVariable(after)
-  }
+  })
 
   override def applyTo(project: Project)(implicit userContext: UserContext): Unit = {
     VariableChanges.expect(project, after.name, before)
@@ -35,7 +35,7 @@ case class RemoveVariable(variable: TemplateVariable) extends Change {
 
   override def describe: String = s"Removed variable '${variable.name}'"
 
-  override def inverse: SetVariable = SetVariable(None, variable)
+  override def inverse: Option[SetVariable] = Some(SetVariable(None, variable))
 
   override def applyTo(project: Project)(implicit userContext: UserContext): Unit = {
     VariableChanges.expect(project, variable.name, Some(variable))

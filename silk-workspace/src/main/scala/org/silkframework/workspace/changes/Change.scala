@@ -10,7 +10,7 @@ import scala.reflect.{ClassTag, classTag}
 
 /**
   * A change of a project, as recorded in its [[ChangeJournal]].
-  * Every change knows its inverse, so reverting a change is applying its inverse through the regular write path.
+  * A change knows its inverse, so reverting a change is applying its inverse through the regular write path.
   */
 trait Change {
 
@@ -20,8 +20,8 @@ trait Change {
   /** Short description for display, e.g. "Added mapping rule 'name' under 'root' in transform 'persons'". */
   def describe: String
 
-  /** The change that undoes this one. */
-  def inverse: Change
+  /** The change that undoes this one, or None if it cannot be undone, e.g. a file overwrite of which no copy was kept. */
+  def inverse: Option[Change]
 
   /**
     * Performs this change on the project through the regular write path, which records it in the journal.
@@ -48,7 +48,7 @@ abstract class TaskChange[T <: TaskSpec : ClassTag] extends Change {
     */
   def apply(data: T): T
 
-  override def inverse: TaskChange[T]
+  override def inverse: Option[TaskChange[T]]
 
   /** Applies this change to task data of unknown type. */
   final def applyAny(data: TaskSpec): TaskSpec = data match {

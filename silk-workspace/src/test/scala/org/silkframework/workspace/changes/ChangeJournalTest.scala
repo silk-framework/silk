@@ -253,4 +253,32 @@ class ChangeJournalTest extends AnyFlatSpec with Matchers with TestWorkspaceProv
     file shouldBe "a.csv"
     project.templateVariables.all.map("fileName").value shouldBe "a.csv"
   }
+
+  it should "record file writes and deletions and revert a creation while the file is unchanged" in {
+    val project = retrieveOrCreateProject("journalFiles")
+    val journal = project.changeJournal
+    val file = project.resources.get("data.txt")
+    file.writeString("first")
+    file.writeString("second!")
+    file.delete()
+    journal.all.map(_.change.describe) shouldBe Seq("Added file 'data.txt'", "Overwrote file 'data.txt'", "Deleted file 'data.txt'")
+    // The previous content is not kept, so only a creation has an inverse
+    journal.all.map(_.change.inverse.isDefined) shouldBe Seq(true, false, false)
+    (the[ChangeConflictException] thrownBy journal.revert(journal.all.last.seq)).getMessage should include("cannot be reverted")
+
+    // Reverting a creation refuses once the file changed
+    file.writeString("third")
+    val created = journal.all.last
+    created.change shouldBe a[ResourceCreated]
+    file.writeString("third, changed")
+    a[ChangeConflictException] should be thrownBy journal.revert(created.seq)
+    file.loadAsString() shouldBe "third, changed"
+
+    // Reverting a creation deletes the file
+    file.delete()
+    file.writeString("fourth")
+    val recreated = journal.all.last
+    journal.revert(recreated.seq).change shouldBe a[ResourceDeleted]
+    file.exists shouldBe false
+  }
 }

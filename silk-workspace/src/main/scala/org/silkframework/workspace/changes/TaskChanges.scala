@@ -10,7 +10,7 @@ case class AddTask(task: PlainTask[TaskSpec]) extends Change {
 
   override def describe: String = s"Added task '${task.id}'"
 
-  override def inverse: RemoveTask = RemoveTask(task)
+  override def inverse: Option[RemoveTask] = Some(RemoveTask(task))
 
   override def applyTo(project: Project)(implicit userContext: UserContext): Unit = {
     if(project.anyTaskOption(task.id).isDefined) {
@@ -25,7 +25,7 @@ case class RemoveTask(task: PlainTask[TaskSpec]) extends Change {
 
   override def describe: String = s"Removed task '${task.id}'"
 
-  override def inverse: AddTask = AddTask(task)
+  override def inverse: Option[AddTask] = Some(AddTask(task))
 
   override def applyTo(project: Project)(implicit userContext: UserContext): Unit = {
     TaskChanges.expectState(project, task)
@@ -43,7 +43,7 @@ case class ReplaceTask(before: PlainTask[TaskSpec], after: PlainTask[TaskSpec]) 
 
   override def describe: String = s"Updated task '$taskId'"
 
-  override def inverse: ReplaceTask = ReplaceTask(after, before)
+  override def inverse: Option[ReplaceTask] = Some(ReplaceTask(after, before))
 
   override def applyTo(project: Project)(implicit userContext: UserContext): Unit = {
     val task = TaskChanges.expectState(project, before)
