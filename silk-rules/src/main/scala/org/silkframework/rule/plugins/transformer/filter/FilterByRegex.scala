@@ -19,6 +19,7 @@ import java.util.regex.{Matcher, Pattern, PatternSyntaxException}
   description = "This transformer filters values by a regular expression: values matching the regex are kept, " +
     "unless 'negate' is set, which keeps only the values that don't. By default the regex must match a value " +
     "in full; setting 'contains' relaxes that so any value containing a match is kept instead.",
+  documentationFile = "FilterByRegex.md",
   relatedPlugins = Array(
     new PluginReference(
       id = RegexSelectTransformer.pluginId,
